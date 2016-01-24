@@ -21,7 +21,7 @@
 
 	@note No namespace path may be given with out of line namespace declarations.
 
-    When defining a @ref user_modules "user module", namespace declarations can be preceded by @ref mod_public "public", which means that the namespace's public contents will be exported into the @ref Qore::Program "Program" object importing the module.  When a namespace is declared @ref mod_public "public" outside of a @ref user_modules "user module", it means that the namespace can be inherited in any child @ref Qore::Program "Program" objects created in the same scope. S ee @ref mod_public "public" for more information.
+    When defining a @ref user_modules "user module", namespace declarations can be preceded by @ref mod_public "public", which means that the namespace's public contents will be exported into the @ref Qore::Program "Program" object importing the module.  When a namespace is declared @ref mod_public "public" outside of a @ref user_modules "user module", it means that the namespace can be inherited in any child @ref Qore::Program "Program" objects created in the same scope. See @ref mod_public "public" for more information.
 
     @anchor namespace_resolution
     @par Namespace Resolution
@@ -34,8 +34,8 @@
     - <em>starting_namespace::[sub_namespace(s)s::]constant|class|namespace</em>
 
     @par Example
-    @code
-namespace MyNamspace {
+    @code{.py}
+namespace MyNamespace {
     # global variable declarations in a namespace declaration cannot be initialized at the point they are declared
     our bool $my_bool;
 

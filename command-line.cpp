@@ -7,7 +7,7 @@
 
   it should offer POSIX style command-line handling on any platform...
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,7 @@
 
 #include <qore/Qore.h>
 #include <qore/ParseOptionMap.h>
+#include <qore/safe_dslist>
 
 #include "command-line.h"
 
@@ -42,65 +43,70 @@
 #include <stdlib.h>
 #include <libgen.h>
 #include <ctype.h>
+#include <strings.h>
 
+#include <string>
 #include <map>
 
+#define is_assign_char(a) ((((a) == '=') || ((a) == ':')))
+
 // license type for initializing the library
-qore_license_t license = QL_GPL;
+static qore_license_t license = QL_GPL;
 
 // list of modules to load after library initialization
-cl_mod_list_t cl_mod_list;
+typedef safe_dslist<std::string> cl_mod_list_t;
+static cl_mod_list_t cl_mod_list;
 
 // global parse_option
-int64 parse_options = PO_DEFAULT;
-int warnings = QP_WARN_DEFAULT;
-int qore_lib_options = QLO_NONE;
+static int64 parse_options = PO_DEFAULT;
+static int warnings = QP_WARN_DEFAULT;
+static int qore_lib_options = QLO_NONE;
 
 // lock options
-bool lock_options = false;
+static bool lock_options = false;
 
 // command-line specified default character set
-const char *def_charset = 0;
+static const char* def_charset = 0;
 
 // classname to instantiate as program
-const char *exec_class_name = 0;
+static const char* exec_class_name = 0;
 
 // time zone to set after initialization
-const char *cmd_zone = 0;
+const char* cmd_zone = 0;
 
 // show module errors
-bool show_mod_errs = false;
+static bool show_mod_errs = false;
 
 // execute class
-bool exec_class = false;
+static bool exec_class = false;
 
 // treat warnings as errors
-bool warnings_are_errors = false;
+static bool warnings_are_errors = false;
 
 // stop writing parse exceptions after 1st one
-bool only_first_except = false;
+static bool only_first_except = false;
 
 // program text given on the command-line
-const char *cl_pgm = 0;
+static const char* cl_pgm = 0;
 
 // argument to evaluate given on the command-line
-const char *eval_arg = 0;
+static const char* eval_arg = 0;
 
 // program name
-static char *pn;
+static char* pn;
 
 // define map type
 typedef std::map<std::string, std::string> defmap_t;
 
 // parse define map
-defmap_t defmap;
+static defmap_t defmap;
 
 static int opt_errors = 0;
 
 static const char usage[] = "usage: %s [option(s)]... [program file]\n";
 static const char suggest[] = "try '%s -h' for more information.\n";
 
-static const char helpstr[] = 
+static const char helpstr[] =
    "  -a, --show-aliases           displays the list of character sets aliases\n"
    "  -b, --disable-signals        disables signal handling\n"
    "  -B, --show-build-options     show Qore build options and quit\n"
@@ -139,7 +145,7 @@ static const char helpstr[] =
    "                               UTC offset with format S[DD[:DD[:DD]]], S=+ or -\n"
    "\n"
    " PARSE OPTIONS:\n"
-   "  -H, --parse-option-help      display options controlling parse options\n";
+   "  -H, --parse-option-help      display options controlling parse options";
 
 static const char parseopts[] =    "qore options controlling parse options:\n"
    "  -o, --list-parse-options     list all parse options\n"
@@ -184,56 +190,56 @@ static const char parseopts[] =    "qore options controlling parse options:\n"
    "      --no-thread-info         disallow access to thread info\n"
    "  -S, --no-subroutine-defs     make subroutine definitions illegal\n"
    "  -T, --no-threads             disallow thread access and control\n"
-   "      --no-thread-classes      disallow access to thread classes\n" 
-   "  -Y, --no-network             disallow access to the network\n";
+   "      --no-thread-classes      disallow access to thread classes\n"
+   "  -Y, --no-network             disallow access to the network";
 ////12345678901234567890123456789012345678901234567890123456789012345678901234567890
 static const char debugstr[] = "\n DEBUGGING OPTIONS:\n"
    "  -d, --debug=arg              sets debugging level (higher number = more output)\n"
-   "  -t, --trace                  turns on function tracing\n" 
+   "  -t, --trace                  turns on function tracing"
    ;
 
 static inline void show_usage() {
    printf(usage, pn);
 }
 
-static void show_parse_option_help(const char *arg) {
+static void show_parse_option_help(const char* arg) {
    printf("%s\n", parseopts);
    exit(0);
 }
 
-static void do_debug(const char *arg) {
+static void do_debug(const char* arg) {
    debug = atoi(arg);
 }
 
-static void set_eval_arg(const char *arg) {
+static void set_eval_arg(const char* arg) {
    eval_arg = arg;
 }
 
-static void do_trace(const char *arg) {
+static void do_trace(const char* arg) {
    qore_trace = 1;
 }
 
-static void show_module_path(const char *arg) {
+static void show_module_path(const char* arg) {
    printf("%s:%s:%s:%s\n", qore_user_module_ver_dir, qore_user_module_dir, qore_module_ver_dir, qore_module_dir);
    exit(0);
 }
 
-static void show_binary_module_dir(const char *arg) {
+static void show_binary_module_dir(const char* arg) {
    printf("%s\n", qore_module_dir);
    exit(0);
 }
 
-static void show_user_module_dir(const char *arg) {
+static void show_user_module_dir(const char* arg) {
    printf("%s\n", qore_user_module_dir);
    exit(0);
 }
 
-static void show_module_api(const char *arg) {
+static void show_module_api(const char* arg) {
    printf("%d.%d\n", qore_min_mod_api_major, qore_min_mod_api_minor);
    exit(0);
 }
 
-static void show_module_apis(const char *arg) {
+static void show_module_apis(const char* arg) {
    // show all module apis
    printf("%d.%d", qore_mod_api_list[0].major, qore_mod_api_list[0].minor);
    for (unsigned i = 1; i < qore_mod_api_list_len; ++i)
@@ -243,12 +249,12 @@ static void show_module_apis(const char *arg) {
    exit(0);
 }
 
-static void show_latest_module_api(const char *arg) {
+static void show_latest_module_api(const char* arg) {
    printf("%d.%d\n", qore_mod_api_list[0].major, qore_mod_api_list[0].minor);
    exit(0);
 }
 
-static void set_parse_option(const char *arg) {
+static void set_parse_option(const char* arg) {
    int64 code = ParseOptionMap::find_code64(arg);
    if (code == -1) {
       fprintf(stderr, "unknown parse option '%s', use -o or --list-parse-options\n", arg);
@@ -257,16 +263,16 @@ static void set_parse_option(const char *arg) {
    parse_options |= code;
 }
 
-static void only_first_exception(const char *arg) {
+static void only_first_exception(const char* arg) {
    only_first_except = true;
 }
 
-static void list_parse_options(const char *arg) {
+static void list_parse_options(const char* arg) {
    ParseOptionMap::list_options();
    exit(0);
 }
 
-static void do_help(const char *arg) {
+static void do_help(const char* arg) {
    show_usage();
    puts(helpstr);
    if (qore_has_debug())
@@ -274,23 +280,23 @@ static void do_help(const char *arg) {
    exit(0);
 }
 
-static void disable_signals(const char *arg) {
+static void disable_signals(const char* arg) {
    qore_lib_options |= QLO_DISABLE_SIGNAL_HANDLING;
 }
 
-static void load_module(const char *arg) {
+static void load_module(const char* arg) {
    cl_mod_list.push_back(arg);
 }
 
-static void warn_to_err(const char *arg) {
+static void warn_to_err(const char* arg) {
    warnings_are_errors = true;
 }
 
-static void enable_warnings(const char *arg) {
+static void enable_warnings(const char* arg) {
    warnings = -1;
 }
 
-static void enable_warning(const char *arg) {
+static void enable_warning(const char* arg) {
    int code = get_warning_code(arg);
    if (!code) {
       printf("cannot enable unknown warning '%s'\n", arg);
@@ -299,159 +305,159 @@ static void enable_warning(const char *arg) {
    warnings |= code;
 }
 
-static void list_warnings(const char *arg) {
+static void list_warnings(const char* arg) {
    for (unsigned i = 0; i < qore_num_warnings; i++)
       printf("%s\n", qore_warnings[i]);
    exit(0);
 }
 
-static void do_no_terminal_io(const char *arg) {
+static void do_no_terminal_io(const char* arg) {
    parse_options |= PO_NO_TERMINAL_IO;
 }
 
-static void do_no_io(const char *arg) {
+static void do_no_io(const char* arg) {
    parse_options |= PO_NO_IO;
 }
 
-static void do_no_gui(const char *arg) {
+static void do_no_gui(const char* arg) {
    parse_options |= PO_NO_GUI;
 }
 
-static void do_no_database(const char *arg) {
+static void do_no_database(const char* arg) {
    parse_options |= PO_NO_DATABASE;
 }
 
-static void do_lockdown(const char *arg) {
+static void do_lockdown(const char* arg) {
    parse_options |= PO_LOCKDOWN;
 }
 
-static void do_lock_warnings(const char *arg) {
+static void do_lock_warnings(const char* arg) {
    parse_options |= PO_LOCK_WARNINGS;
 }
 
-static void do_no_global_vars(const char *arg) {
+static void do_no_global_vars(const char* arg) {
    parse_options |= PO_NO_GLOBAL_VARS;
 }
 
-static void do_no_subroutine_defs(const char *arg) {
+static void do_no_subroutine_defs(const char* arg) {
    parse_options |= PO_NO_SUBROUTINE_DEFS;
 }
 
-static void do_no_network(const char *arg) {
+static void do_no_network(const char* arg) {
    parse_options |= PO_NO_NETWORK;
 }
 
-static void do_no_threads(const char *arg) {
+static void do_no_threads(const char* arg) {
    parse_options |= PO_NO_THREADS;
 }
 
-static void do_no_thread_control(const char *arg) {
+static void do_no_thread_control(const char* arg) {
    parse_options |= PO_NO_THREAD_CONTROL;
 }
 
-static void do_no_thread_classes(const char *arg) {
+static void do_no_thread_classes(const char* arg) {
    parse_options |= PO_NO_THREAD_CLASSES;
 }
 
-static void do_no_top_level(const char *arg) {
+static void do_no_top_level(const char* arg) {
    parse_options |= PO_NO_TOP_LEVEL_STATEMENTS;
 }
 
-static void do_no_class_defs(const char *arg) {
+static void do_no_class_defs(const char* arg) {
    parse_options |= PO_NO_CLASS_DEFS;
 }
 
-static void do_no_namespace_defs(const char *arg) {
+static void do_no_namespace_defs(const char* arg) {
    parse_options |= PO_NO_NAMESPACE_DEFS;
 }
 
-static void do_no_constant_defs(const char *arg) {
+static void do_no_constant_defs(const char* arg) {
    parse_options |= PO_NO_CONSTANT_DEFS;
 }
 
-static void do_no_filesystem(const char *arg) {
+static void do_no_filesystem(const char* arg) {
    parse_options |= PO_NO_FILESYSTEM;
 }
 
-static void do_no_new(const char *arg) {
+static void do_no_new(const char* arg) {
    parse_options |= PO_NO_NEW;
 }
 
-static void do_no_child_po_restrictions(const char *arg) {
+static void do_no_child_po_restrictions(const char* arg) {
    parse_options |= PO_NO_CHILD_PO_RESTRICTIONS;
 }
 
-static void do_no_external_access(const char *arg) {
+static void do_no_external_access(const char* arg) {
    parse_options |= PO_NO_EXTERNAL_ACCESS;
 }
 
-static void do_no_external_info(const char *arg) {
+static void do_no_external_info(const char* arg) {
    parse_options |= PO_NO_EXTERNAL_INFO;
 }
 
-static void do_no_external_process(const char *arg) {
+static void do_no_external_process(const char* arg) {
    parse_options |= PO_NO_EXTERNAL_PROCESS;
 }
 
-static void do_no_locale_control(const char *arg) {
+static void do_no_locale_control(const char* arg) {
    parse_options |= PO_NO_LOCALE_CONTROL;
 }
 
-static void do_no_process_control(const char *arg) {
+static void do_no_process_control(const char* arg) {
    parse_options |= PO_NO_PROCESS_CONTROL;
 }
 
-static void do_no_thread_info(const char *arg) {
+static void do_no_thread_info(const char* arg) {
    parse_options |= PO_NO_THREAD_INFO;
 }
 
-static void do_require_our(const char *arg) {
+static void do_require_our(const char* arg) {
    parse_options |= PO_REQUIRE_OUR;
 }
 
-static void do_require_types(const char *arg) {
+static void do_require_types(const char* arg) {
    parse_options |= PO_REQUIRE_TYPES;
 }
 
-static void do_require_prototypes(const char *arg) {
+static void do_require_prototypes(const char* arg) {
    parse_options |= PO_REQUIRE_PROTOTYPES;
 }
 
-static void do_strict_args(const char *arg) {
+static void do_strict_args(const char* arg) {
    parse_options |= PO_STRICT_ARGS;
 }
 
-static void do_lock_options(const char *arg) {
+static void do_lock_options(const char* arg) {
    lock_options = true;
 }
 
-static void allow_bare_refs(const char *arg) {
+static void allow_bare_refs(const char* arg) {
    parse_options |= PO_ALLOW_BARE_REFS;
 }
 
-static void assume_local(const char *arg) {
+static void assume_local(const char* arg) {
    parse_options |= PO_ASSUME_LOCAL;
 }
 
-static void new_style(const char *arg) {
+static void new_style(const char* arg) {
    parse_options |= PO_NEW_STYLE;
 }
 
-static void short_version(const char *arg) {
+static void short_version(const char* arg) {
    printf("%s\n", qore_version_string);
    exit(0);
 }
 
-static void set_time_zone(const char *arg) {
+static void set_time_zone(const char* arg) {
    cmd_zone = arg;
 }
 
-static void set_define(const char *carg) {
+static void set_define(const char* carg) {
    QoreString str(carg);
    // trim trailing and leading whitespace
    str.trim();
    // find assignment character, if any
-   const char *p = strchr(str.getBuffer(), '=');
+   const char* p = strchr(str.getBuffer(), '=');
    QoreString arg;
    if (p) {
       // copy arg to arg string
@@ -475,7 +481,7 @@ static void set_define(const char *carg) {
    defmap[str.getBuffer()] = arg.getBuffer();
 }
 
-static const char *tlist[] = { "OPTION", "ALGORITHM", "FUNCTION", "UNKNOWN" };
+static const char* tlist[] = { "OPTION", "ALGORITHM", "FUNCTION", "UNKNOWN" };
 
 static void show_build_options(const char* arg) {
    printf("this build has options:\n");
@@ -501,8 +507,8 @@ static void show_build_options(const char* arg) {
    exit(0);
 }
 
-static void do_version(const char *arg) {
-   printf("QORE for %s %s (%d-bit build), Copyright (C) 2003 - 2014 David Nichols\n", qore_target_os, qore_target_arch, qore_target_bits);
+static void do_version(const char* arg) {
+   printf("QORE for %s %s (%d-bit build), Copyright (C) 2003 - 2015 David Nichols\n", qore_target_os, qore_target_arch, qore_target_bits);
 
    printf("version %s", qore_version_string);
    FeatureList::iterator i = qoreFeatureList.begin();
@@ -516,6 +522,9 @@ static void do_version(const char *arg) {
       }
       putchar(')');
    }
+
+   // show git hash
+   printf("\n  git hash: %s", qore_git_hash);
 
    // show module api and compatible module apis
    printf("\n  module API: %d.%d", qore_mod_api_list[0].major, qore_mod_api_list[0].minor);
@@ -531,7 +540,7 @@ static void do_version(const char *arg) {
        printf(")\n");
    }
 
-   printf("  build host: %s\n  C++ compiler: %s\n  CFLAGS: %s\n  LDFLAGS: %s\n  MPFR: %s\n", 
+   printf("  build host: %s\n  C++ compiler: %s\n  CFLAGS: %s\n  LDFLAGS: %s\n  MPFR: %s\n",
 	  qore_build_host, qore_cplusplus_compiler, qore_cflags, qore_ldflags, mpfrInfo.getBuffer());
 
    printf("use -B to show build options\n");
@@ -539,40 +548,40 @@ static void do_version(const char *arg) {
    exit(0);
 }
 
-static void set_charset(const char *arg) {
+static void set_charset(const char* arg) {
    def_charset = arg;
 }
 
-static void show_charsets(const char *arg) {
+static void show_charsets(const char* arg) {
    QEM.showEncodings();
    exit(0);
 }
 
-static void show_charset_aliases(const char *arg) {
+static void show_charset_aliases(const char* arg) {
    QEM.showAliases();
    exit(0);
 }
 
-static void set_exec(const char *arg) {
+static void set_exec(const char* arg) {
    cl_pgm = arg;
 }
 
-static void show_module_errors(const char *arg) {
+static void show_module_errors(const char* arg) {
    show_mod_errs = true;
 }
 
-static void do_exec_class(const char *arg) {
+static void do_exec_class(const char* arg) {
    //printf("do_exec_class(%s)\n", arg);
    exec_class = true;
    exec_class_name = arg;
    parse_options |= PO_NO_TOP_LEVEL_STATEMENTS;
 }
 
-static void set_lgpl(const char *arg) {
+static void set_lgpl(const char* arg) {
    license = QL_LGPL;
 }
 
-static void set_mit(const char *arg) {
+static void set_mit(const char* arg) {
    license = QL_MIT;
 }
 
@@ -582,9 +591,9 @@ static void set_mit(const char *arg) {
 
 static struct opt_struct_s {
       char short_opt;
-      const char *long_opt;
+      const char* long_opt;
       int arg;
-      void (*opt_func)(const char *arg);
+      void (*opt_func)(const char* arg);
 } options[] = {
    { 'a', "show-aliases",          ARG_NONE, show_charset_aliases },
    { 'B', "show-built-options",    ARG_NONE, show_build_options },
@@ -672,7 +681,7 @@ static inline void excess_option(int i) {
    opt_errors++;
 }
 
-static inline void invalid_option(char *opt) {
+static inline void invalid_option(char* opt) {
    printe("error: '--%s' is not a valid long option.\n", opt);
    opt_errors++;
 }
@@ -683,7 +692,7 @@ static inline void invalid_option(char opt) {
 }
 
 // *i is the argument position, *j is the index in the string
-static const char *get_arg(char *argv[], unsigned *i, unsigned *j, unsigned argc) {
+static const char* get_arg(char* argv[], unsigned *i, unsigned *j, unsigned argc) {
    if (*i >= argc)
       return 0;
    // if next character is an assignment character, then advance character pointer
@@ -703,14 +712,14 @@ static const char *get_arg(char *argv[], unsigned *i, unsigned *j, unsigned argc
    return &argv[*i][*j];
 }
 
-static void process_str_opt(char *argv[], unsigned *i, unsigned j, unsigned argc);
+static void process_str_opt(char* argv[], unsigned *i, unsigned j, unsigned argc);
 
 // *i is the argument position, *j is the index in the string
-static int process_char_opt(char *argv[], unsigned *i, unsigned *j, unsigned argc) {
+static int process_char_opt(char* argv[], unsigned *i, unsigned *j, unsigned argc) {
    unsigned x;
 
    if (isblank(argv[*i][*j])) {
-      do 
+      do
 	 (*j)++;
       while (isblank(argv[*i][*j]));
       if (argv[*i][*j] == '-') {
@@ -728,9 +737,9 @@ static int process_char_opt(char *argv[], unsigned *i, unsigned *j, unsigned arg
    for (x = 0; x < NUM_OPTS; x++)
       if (options[x].short_opt == c) {
 	 //printf("found '%c' %s (%d)\n", c, options[x].long_opt, options[x].arg);
-	 if (options[x].arg == ARG_MAND || 
+	 if (options[x].arg == ARG_MAND ||
 	     (options[x].arg == ARG_OPT && (argv[*i][(*j) + 1] == '='))) {
-	    const char *arg;
+	    const char* arg;
 
 	    // increment string index
 	    (*j)++;
@@ -752,16 +761,16 @@ static int process_char_opt(char *argv[], unsigned *i, unsigned *j, unsigned arg
 }
 
 // *i is the argument position
-static void process_str_opt(char *argv[], unsigned *i, unsigned j, unsigned argc)
+static void process_str_opt(char* argv[], unsigned *i, unsigned j, unsigned argc)
 {
    unsigned x, option_present = 0;
-   char *opt = &argv[*i][j];
+   char* opt = &argv[*i][j];
 
    // find option string (left side of string if there is an assignment char)
    for (x = 2; x < strlen(argv[*i]); x++) {
       if (is_assign_char(argv[*i][x])) {
 	 option_present = x + 1;
-	 opt = (char *)malloc(sizeof(char) * (x - 1));
+	 opt = (char* )malloc(sizeof(char) * (x - 1));
 	 strncpy(opt, &argv[*i][2], x - 2);
 	 opt[x - 2] = '\0';
 	 break;
@@ -781,7 +790,7 @@ static void process_str_opt(char *argv[], unsigned *i, unsigned j, unsigned argc
 	    options[x].opt_func(0);
 	 }
 	 else if (options[x].arg == ARG_OPT) {
-	    const char *arg = 0;
+	    const char* arg = 0;
 
 	    if (option_present)
 	       arg = get_arg(argv, i, &option_present, argc);
@@ -790,7 +799,7 @@ static void process_str_opt(char *argv[], unsigned *i, unsigned j, unsigned argc
 	    options[x].opt_func(arg);
 	 }
 	 else {
-	    const char *arg;
+	    const char* arg;
 
 	    if (!(arg = get_arg(argv, i, &option_present, argc)))
 	       missing_str_option(x);
@@ -811,12 +820,11 @@ static void process_str_opt(char *argv[], unsigned *i, unsigned j, unsigned argc
 
 // returns either 0 or a string that must be freed with free()
 // also sets up the global ARGV argument list
-char *parse_command_line(unsigned argc, char *argv[])
-{
+static char* parse_command_line(unsigned argc, char* argv[]) {
    pn = basename(argv[0]);
 
    // file name to return, if any
-   char *fn = 0;
+   char* fn = 0;
 
    unsigned i = 1;
 
@@ -839,7 +847,7 @@ char *parse_command_line(unsigned argc, char *argv[])
 	    else {
 	       unsigned j;
 
-	       for (j = 1; j < strlen(argv[i]); j++)		  
+	       for (j = 1; j < strlen(argv[i]); j++)
 		  if (process_char_opt(argv, &i, &j, argc))
 		     break;
 	    }
@@ -863,4 +871,127 @@ char *parse_command_line(unsigned argc, char *argv[])
       exit(1);
    }
    return fn;
+}
+
+int qore_main_intern(int argc, char* argv[], int other_po) {
+   int rc = 0;
+
+   if (other_po)
+      parse_options |= other_po;
+
+   // parse the command line
+   char* program_file_name = parse_command_line(argc, argv);
+   ON_BLOCK_EXIT(free, program_file_name);
+
+   // initialize Qore subsystem
+   qore_init(license, def_charset, show_mod_errs, qore_lib_options);
+
+   ExceptionSink wsink, xsink;
+   {
+      QoreProgramHelper qpgm(parse_options, xsink);
+
+      // set parse defines
+      for (defmap_t::iterator i = defmap.begin(), e = defmap.end(); i != e; ++i)
+	 qpgm->parseDefine(i->first.c_str(), i->second.c_str());
+
+      // load any modules requested on the command-line
+      bool mod_errs = false;
+      for (cl_mod_list_t::iterator i = cl_mod_list.begin(), e = cl_mod_list.end(); i != e; ++i) {
+	 // display any error messages
+	 SimpleRefHolder<QoreStringNode> err(MM.parseLoadModule((*i).c_str(), *qpgm));
+	 if (err) {
+	    printf("cannot load '%s': %s\n", (*i).c_str(), err->getBuffer());
+	    mod_errs = true;
+	 }
+      }
+
+      cl_mod_list.clear();
+      if (mod_errs) {
+	 printf("please fix the errors listed above and try again.\n");
+	 rc = 2;
+	 goto exit;
+      }
+
+      // set time zone if requested
+      if (cmd_zone)
+	 qpgm->parseSetTimeZone(cmd_zone);
+
+      // lock the parse options if necessary
+      if (lock_options)
+	 qpgm->lockOptions();
+
+      // parse immediate argument if any
+      if (eval_arg) {
+	 QoreString str("printf(\"%N\n\", (");
+	 str.concat(eval_arg);
+	 str.concat("));");
+	 qpgm->parse(str.getBuffer(), "<command-line>", &xsink, &wsink, warnings);
+      }
+      else  {
+	 // set for program class execution if "exec_class" is set
+	 if (exec_class) {
+	    if (exec_class_name)
+	       qpgm->setExecClass(exec_class_name);
+	    else if (program_file_name) {
+	       char* cn = make_class_name(program_file_name);
+	       qpgm->setExecClass(cn);
+	       free(cn);
+	    }
+	    else {
+	       fprintf(stderr, "error, missing class name to instantiate as application\n");
+	       rc = 1;
+	       goto exit;
+	    }
+	 }
+
+	 // parse the program
+	 if (cl_pgm)
+	    qpgm->parse(cl_pgm, "<command-line>", &xsink, &wsink, warnings);
+	 else if (program_file_name)
+	    qpgm->parseFile(program_file_name, &xsink, &wsink, warnings, only_first_except);
+	 else
+	    qpgm->parse(stdin, "<stdin>", &xsink, &wsink, warnings);
+      }
+
+      // display any warnings now
+      if (wsink.isException()) {
+	 wsink.handleWarnings();
+	 if (warnings_are_errors && !xsink.isException()) {
+	    printf("exiting due to the above warnings...\n");
+	    rc = 2; // set return code to 2 if there were parse warnings to be treated as errors
+	    goto exit;
+	 }
+      }
+
+      // if there were no parse exceptions, execute the program
+      if (!xsink.isException()) {
+	 {
+	    // execute the program and get the return value
+	    AbstractQoreNode* rv = qpgm->run(&xsink);
+	    // set the return code for this program from the core returned by the Qore program
+	    rc = rv ? rv->getAsInt() : 0;
+	    discard(rv, &xsink);
+	 }
+
+	 // if there is any unhandled exception, set the return code to 3
+	 if (xsink.isException())
+	    rc = 3;
+      }
+      else // set return code to 2 if there were parse errors
+	 rc = 2;
+
+      // run the default exception handler on any unhandled exceptions in the primary thread or during parsing
+      xsink.handleExceptions();
+
+exit:
+      ;
+   }
+   // run the default exception handler on any unhandled exceptions if necessary (again)
+   // -- exceptions could have been thrown in the QoreProgram object's destructor
+   xsink.handleExceptions();
+
+   // cleanup Qore subsystem (deallocate memory, etc)
+   qore_cleanup();
+
+   return rc;
 }

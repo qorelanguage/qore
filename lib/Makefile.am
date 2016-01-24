@@ -3,12 +3,14 @@ pkglibdir = $(libdir)/$(mypkglibdir)
 
 SUBDIRS =
 
+# Apps and files included in BUILT_SOURCES are compiled/created first.
+# It must include qpp since qpp is required to generate some cpp's
 BUILT_SOURCES = dummy
 
 dummy:
-	$(top_srcdir)/next_build.sh
+	echo "Build started!"
 
-EXTRA_INCLUDES = -I$(top_srcdir)/include
+EXTRA_INCLUDES = -I$(top_srcdir)/include -I$(top_builddir)/include -I$(top_builddir)/lib
 libqore_la_LDFLAGS = -version-info 18:0:13 -no-undefined ${QORE_LIB_LDFLAGS}
 AM_CPPFLAGS = $(EXTRA_INCLUDES) ${QORE_LIB_CPPFLAGS}
 AM_CXXFLAGS = ${QORE_LIB_CXXFLAGS}
@@ -16,7 +18,7 @@ AM_YFLAGS = -d
 
 lib_LTLIBRARIES = libqore.la
 
-bin_PROGRAMS = qpp$(EXEEXT)
+bin_PROGRAMS = qpp
 
 qpp_SOURCES = qpp.cpp
 
@@ -31,18 +33,14 @@ qpp_native: $(qpp_SOURCES)
 	$(NATIVE_CXX) $(EXTRA_INCLUDES) $(NATIVE_CPPFLAGS) $(QPP_CPPFLAGS) $(NATIVE_LDFLAGS) -o $@ $(qpp_SOURCES)
 else
 QPP=./qpp$(EXEEXT)
+BUILT_SOURCES += ./qpp$(EXEEXT)
 endif
-
-qpp$(EXEEXT): $(qpp_SOURCES)
-	$(CXX) $(EXTRA_INCLUDES) $(AM_CPPFLAGS) $(AM_CXXFLAGS) $(AM_LDFLAGS) -o $@ $(qpp_SOURCES)
 
 QORE_PSEUDO_SRC = Pseudo_QC_All.cpp Pseudo_QC_Bool.cpp Pseudo_QC_Int.cpp \
 	Pseudo_QC_Float.cpp Pseudo_QC_Date.cpp Pseudo_QC_Object.cpp \
 	Pseudo_QC_Hash.cpp Pseudo_QC_String.cpp Pseudo_QC_Binary.cpp \
 	Pseudo_QC_List.cpp Pseudo_QC_Closure.cpp Pseudo_QC_Callref.cpp \
 	Pseudo_QC_Nothing.cpp Pseudo_QC_Number.cpp
-
-QorePseudoMethods.cpp: $(QORE_PSEUDO_SRC)
 
 QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC_AbstractSmartLock.cpp \
         QC_Mutex.cpp QC_AutoLock.cpp \
@@ -60,17 +58,22 @@ QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC
 	QC_HashListIterator.cpp QC_HashListReverseIterator.cpp \
 	QC_ListHashIterator.cpp QC_ListHashReverseIterator.cpp \
 	QC_FileLineIterator.cpp QC_SingleValueIterator.cpp \
+	QC_DataLineIterator.cpp \
 	QC_RangeIterator.cpp \
 	QC_ThreadPool.cpp \
+	QC_TreeMap.cpp \
 	QC_AbstractDatasource.cpp \
 	QC_Datasource.cpp QC_DatasourcePool.cpp QC_SQLStatement.cpp QC_Dir.cpp QC_Program.cpp \
 	QC_GetOpt.cpp QC_TermIOS.cpp QC_TimeZone.cpp QC_SSLCertificate.cpp QC_SSLPrivateKey.cpp \
+	QC_AbstractThreadResource.cpp \
 	ql_misc.cpp ql_compression.cpp ql_thread.cpp ql_crypto.cpp ql_lib.cpp ql_file.cpp \
-	ql_string.cpp ql_time.cpp ql_math.cpp ql_list.cpp ql_type.cpp ql_pwd.cpp ql_object.cpp \
-	ql_env.cpp ql_dbi.cpp ql_context.cpp \
+	ql_string.cpp ql_time.cpp ql_math.cpp ql_list.cpp ql_pwd.cpp ql_object.cpp \
+	ql_dbi.cpp ql_context.cpp ql_env.cpp ql_type.cpp \
 	qc_option.cpp qc_errno.cpp qc_qore.cpp
 
-QORE_GENERATED_SOURCES = $(QORE_QPP_TARGETS) parser.cpp parser.hpp scanner.cpp
+QorePseudoMethods.cpp: $(QORE_PSEUDO_SRC)
+
+QORE_GENERATED_SOURCES = $(QORE_QPP_TARGETS) #parser.cpp parser.hpp scanner.cpp
 
 dox-src: $(QORE_GENERATED_SOURCES)
 
@@ -78,10 +81,8 @@ QORE_ALL_SRC = $(QORE_GENERATED_SOURCES) $(QORE_PSEUDO_SRC)
 
 QORE_ALL_QPP_SRC = $(subst cpp,qpp,$(QORE_QPP_TARGETS) $(QORE_PSEUDO_SRC))
 
-$(QORE_ALL_QPP_SRC): $(QPP)
-
-$(QORE_QPP_TARGETS) $(QORE_PSEUDO_SRC): %.cpp: %.qpp
-	$(QPP) $<
+$(QORE_QPP_TARGETS) $(QORE_PSEUDO_SRC): %.cpp: %.qpp qpp
+	$(QPP) -V $< -o $@
 
 CLEANFILES = $(QORE_ALL_SRC)
 
@@ -160,6 +161,7 @@ libqore_la_SOURCES = \
 	charset.cpp \
 	unicode-charmaps.cpp \
 	QoreProgram.cpp \
+	QoreProgramHelper.cpp \
 	QoreNamespace.cpp \
 	QoreNet.cpp \
 	QoreURL.cpp \
@@ -171,6 +173,7 @@ libqore_la_SOURCES = \
 	QoreTimeZoneManager.cpp \
 	QoreString.cpp \
 	QoreObject.cpp \
+	RSet.cpp \
 	QoreListNode.cpp \
 	qore-main.cpp \
 	QoreGetOpt.cpp \
@@ -186,9 +189,11 @@ libqore_la_SOURCES = \
 	ConstantList.cpp \
 	QoreClassList.cpp \
 	ThreadResourceList.cpp \
+	AbstractThreadResource.cpp \
 	thread.cpp \
 	VRMutex.cpp \
 	VLock.cpp \
+	QoreRWLock.cpp \
 	AbstractSmartLock.cpp \
 	ExecArgList.cpp \
 	NamedScope.cpp \
@@ -222,22 +227,25 @@ libqore_la_SOURCES = \
 	QoreExtractOperatorNode.cpp \
 	QoreCastOperatorNode.cpp \
 	QoreUnaryMinusOperatorNode.cpp \
+	QoreLogicalNotOperatorNode.cpp \
 	QoreDotEvalOperatorNode.cpp \
 	QoreLogicalEqualsOperatorNode.cpp \
+	QoreModuloOperatorNode.cpp \
 	QoreAssignmentOperatorNode.cpp \
 	QoreIntAssignmentOperatorNode.cpp \
 	QorePlusEqualsOperatorNode.cpp \
 	QoreIntPlusEqualsOperatorNode.cpp \
 	QoreMinusEqualsOperatorNode.cpp \
 	QoreIntMinusEqualsOperatorNode.cpp \
-        QoreOrEqualsOperatorNode.cpp \
-        QoreAndEqualsOperatorNode.cpp \
-        QoreModulaEqualsOperatorNode.cpp \
-        QoreMultiplyEqualsOperatorNode.cpp \
-        QoreDivideEqualsOperatorNode.cpp \
-        QoreXorEqualsOperatorNode.cpp \
-        QoreShiftLeftEqualsOperatorNode.cpp \
-        QoreShiftRightEqualsOperatorNode.cpp \
+	QoreOrEqualsOperatorNode.cpp \
+	QoreAndEqualsOperatorNode.cpp \
+	QoreModuloEqualsOperatorNode.cpp \
+	QoreMultiplyEqualsOperatorNode.cpp \
+	QoreDivideEqualsOperatorNode.cpp \
+	QoreDivisionOperatorNode.cpp \
+	QoreXorEqualsOperatorNode.cpp \
+	QoreShiftLeftEqualsOperatorNode.cpp \
+	QoreShiftRightEqualsOperatorNode.cpp \
 	QorePostIncrementOperatorNode.cpp \
 	QorePostDecrementOperatorNode.cpp \
 	QorePreIncrementOperatorNode.cpp \
@@ -248,11 +256,22 @@ libqore_la_SOURCES = \
 	QoreIntPreDecrementOperatorNode.cpp \
 	QoreLogicalLessThanOperatorNode.cpp \
 	QoreLogicalGreaterThanOperatorNode.cpp \
+	QoreMapOperatorNode.cpp \
+	QoreMapSelectOperatorNode.cpp \
+	QoreHashMapOperatorNode.cpp \
+	QoreHashMapSelectOperatorNode.cpp \
+	QoreNullCoalescingOperatorNode.cpp \
+	QoreValueCoalescingOperatorNode.cpp \
+	QoreChompOperatorNode.cpp \
+	QoreTrimOperatorNode.cpp \
+	QoreSquareBracketsOperatorNode.cpp \
 	QorePseudoMethods.cpp \
 	QoreHTTPClient.cpp \
 	QoreHttpClientObject.cpp \
+	QoreValue.cpp \
 	xxhash.cpp \
-	minitest.cpp
+	minitest.cpp \
+	QoreValueList.cpp
 
 if COND_SIGNAL_HANDLING
 libqore_la_SOURCES += QoreSignal.cpp

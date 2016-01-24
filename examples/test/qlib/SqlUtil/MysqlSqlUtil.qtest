@@ -1,0 +1,198 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/SqlUtil.qm
+%requires ../../../../qlib/BulkSqlUtil.qm
+%requires ../../../../qlib/MysqlSqlUtil.qm
+%requires ../../../../qlib/Schema.qm
+
+%requires ./SqlUtilTestBase.qm
+#/;
+%try-module mysql
+%define NoMysql
+%endtry
+
+%exec-class MysqlTest
+
+class MysqlTestSchema inherits AbstractSchema {
+    public {
+        const SchemaName = "MysqlTestSchema";
+        const SchemaVersion = "1.0";
+    }
+
+    private {
+        const GenericOptions = (
+            "replace": True,
+            );
+
+        const IndexOptions = {};
+
+        const ColumnOptions = {};
+
+        const T_MysqlTest = (
+            "columns": (
+                "id": c_number(14, True),
+            ),
+            "primary_key": ("name": "pk_mysql_test", "columns": ("id")),
+            );
+
+        const Tables = (
+            "mysql_test": T_MysqlTest,
+            );
+    }
+
+    constructor(AbstractDatasource ds, *string dts, *string its) :  AbstractSchema(ds, dts, its) {
+    }
+
+    private string getNameImpl() {
+        return SchemaName;
+    }
+
+    private string getVersionImpl() {
+        return SchemaVersion;
+    }
+
+    private *hash getTablesImpl() {
+        hash tables = Tables;
+        # add custom columns to mysql_test
+        foreach hash h in (MysqlTest::CustomColumns.pairIterator()) {
+            hash ch = (
+                "native_type": h.key,
+                "notnull": True,
+                );
+            if (h.value.typeCode() == NT_HASH)
+                ch += (h.value - ("value", "bind"));
+            tables.mysql_test.columns{MysqlTest::getColumnName(h.key)} = ch;
+        }
+        return tables;
+    }
+
+    private *hash getIndexOptionsImpl() {
+        return IndexOptions;
+    }
+
+    private *hash getGenericOptionsImpl() {
+        return GenericOptions;
+    }
+
+    private *hash getColumnOptionsImpl() {
+        return ColumnOptions;
+    }
+
+    log(string fmt) {
+        delete argv;
+    }
+
+    logpf(string fmt) {
+        delete argv;
+    }
+
+    logProgress(string fmt) {
+        delete argv;
+    }
+}
+
+class MysqlTest inherits SqlTestBase {
+    public {
+        const CustomColumns = (
+            "varchar": (
+                "value": "hello",
+                "size": "20",
+            ),
+            "char": (
+                "value": "hello",
+                "size": "20",
+            ),
+            "decimal": (
+                "size": 15,
+                "scale": 2,
+                "value": 400.95n,
+            ),
+
+            "tinyint": 10,
+            "smallint": 512,
+            "mediumint": 192932,
+            "int": 49349839,
+            "bigint": 34839203948394,
+            "float": 1.1,
+            "double": 3.1415927,
+
+            "date": 2016-01-11,
+            "datetime": 2016-01-11T09:26:14,
+            "timestamp": 2016-01-11T09:27:59,
+            "time": 09:26:52,
+            "year": 2016,
+
+            "binary": <bead>,
+            /*
+            "varbinary": (
+                "value": <bead>,
+                "size": "20",
+            ),
+            */
+
+            "tinyblob": <bead>,
+            "blob": <bead>,
+            "mediumblob": <bead>,
+            "longblob": <bead>,
+
+            "tinytext": "test",
+            "mediumtext": "test",
+            "longtext": "test",
+
+            "bit": 100,
+            );
+    }
+
+    constructor() : SqlTestBase("MysqlTest", "1.0", \ARGV, MyOpts) {
+        Datasource ds;
+        try {
+            ds = getDatasource();
+        }
+        catch (hash ex) {
+            if (m_options.verbose)
+                printf("%s: %s\n", ex.err, ex.desc);
+            # skip tests if we can't create the datasource
+        }
+
+        if (ds) {
+            foreach hash h in (CustomColumns.pairIterator()) {
+                any val = h.value.typeCode() == NT_HASH ? h.value.value : h.value;
+                row{MysqlTest::getColumnName(h.key)} = val;
+            }
+            insert_data = (("id": 1,) + row, ("id": 2,) + row,);
+            upsert_data = (("id": 2,) + row, ("id": 3,) + row,);
+
+            # create the test schema
+            schema = new MysqlTestSchema(ds);
+
+            schema.align(False, m_options.verbose);
+
+            # get table object
+            table = (new Table(schema.getDatasource(), "mysql_test")).getTable();
+        }
+
+        set_return_value(main());
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"mysql:user/pass@db\")", OptionColumn);
+    }
+
+    Datasource getDatasource() {
+        if (!m_options.connstr)
+            m_options.connstr = ENV.QORE_DB_CONNSTR_MYSQL ?? "mysql:omquser/omquser@omquser";
+        Datasource ds(m_options.connstr);
+        if (ds.getDriverName() != "mysql")
+            throw "MYSQL-ERROR", sprintf("cannot execute the mysql tests on a connection using driver %y", ds.getDriverName());
+        ds.open();
+        return ds;
+    }
+}

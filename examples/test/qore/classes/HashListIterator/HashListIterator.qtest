@@ -1,0 +1,51 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../../qlib/QUnit.qm
+
+%exec-class Test
+
+class Test inherits QUnit::Test {
+    private {
+        const SimpleHash = (
+            "a": 1,
+            "b": 2,
+            );
+
+        const HashList = (
+            "a": (1, 2,),
+            "b": (2, 3,),
+            );
+
+        const ListHash = (
+            (
+             "a": 1,
+             "b": 2,
+            ),
+            (
+             "a": 2,
+             "b": 3,
+            ),
+            );
+    }
+
+    constructor() : QUnit::Test("HashListIterator", "1.0") {
+        addTestCase("simple tests", \simpleTests());
+        set_return_value(main());
+    }
+
+    simpleTests() {
+        list l = map $1, SimpleHash.contextIterator();
+        assertEq(1, l.size());
+        assertEq(SimpleHash, l[0]);
+
+        l = map $1, HashList.contextIterator();
+        assertEq(2, l.size());
+        assertEq(ListHash, l);
+    }
+}

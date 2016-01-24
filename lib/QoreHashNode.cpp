@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,8 +31,10 @@
 #include <qore/Qore.h>
 #include <qore/minitest.hpp>
 #include <qore/intern/QoreHashNodeIntern.h>
+#include <qore/intern/QoreParseHashNode.h>
 #include <qore/intern/QoreNamespaceIntern.h>
 #include <qore/intern/ParserSupport.h>
+#include <qore/intern/qore_program_private.h>
 
 #include <string.h>
 #include <strings.h>
@@ -51,7 +53,7 @@ static const char* qore_hash_type_name = "hash";
 QoreHashNode::QoreHashNode(bool ne) : AbstractQoreNode(NT_HASH, !ne, ne), priv(new qore_hash_private) {
 }
 
-QoreHashNode::QoreHashNode() : AbstractQoreNode(NT_HASH, true, false), priv(new qore_hash_private) { 
+QoreHashNode::QoreHashNode() : AbstractQoreNode(NT_HASH, true, false), priv(new qore_hash_private) {
 }
 
 QoreHashNode::~QoreHashNode() {
@@ -70,14 +72,14 @@ bool QoreHashNode::is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink
    if (!v || v->getType() != NT_HASH)
       return false;
 
-   return !compareSoft(reinterpret_cast<const QoreHashNode* >(v), xsink);
+   return !compareSoft(reinterpret_cast<const QoreHashNode*>(v), xsink);
 }
 
 bool QoreHashNode::is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const {
    if (!v || v->getType() != NT_HASH)
       return false;
 
-   return !compareHard(reinterpret_cast<const QoreHashNode* >(v), xsink);
+   return !compareHard(reinterpret_cast<const QoreHashNode*>(v), xsink);
 }
 
 const char* QoreHashNode::getTypeName() const {
@@ -97,7 +99,7 @@ AbstractQoreNode** QoreHashNode::getKeyValuePtr(const QoreString* key, Exception
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
    if (*xsink)
       return 0;
-   
+
    return priv->getKeyValuePtr(tmp->getBuffer());
 }
 
@@ -115,6 +117,7 @@ bool QoreHashNode::getKeyAsBool(const char* key, bool &found) const {
 }
 
 void QoreHashNode::deleteKey(const QoreString* key, ExceptionSink* xsink) {
+   assert(reference_count() == 1);
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
    if (*xsink)
       return;
@@ -123,6 +126,7 @@ void QoreHashNode::deleteKey(const QoreString* key, ExceptionSink* xsink) {
 }
 
 void QoreHashNode::removeKey(const QoreString* key, ExceptionSink* xsink) {
+   assert(reference_count() == 1);
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
    if (*xsink)
       return;
@@ -131,6 +135,7 @@ void QoreHashNode::removeKey(const QoreString* key, ExceptionSink* xsink) {
 }
 
 AbstractQoreNode* QoreHashNode::takeKeyValue(const QoreString* key, ExceptionSink* xsink) {
+   assert(reference_count() == 1);
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
    if (*xsink)
       return 0;
@@ -147,7 +152,7 @@ AbstractQoreNode* QoreHashNode::getKeyValueExistence(const QoreString* key, bool
 }
 
 const AbstractQoreNode* QoreHashNode::getKeyValueExistence(const QoreString* key, bool &exists, ExceptionSink* xsink) const {
-   return const_cast<QoreHashNode* >(this)->getKeyValueExistence(key, exists, xsink);
+   return const_cast<QoreHashNode*>(this)->getKeyValueExistence(key, exists, xsink);
 }
 
 void QoreHashNode::setKeyValue(const QoreString* key, AbstractQoreNode* val, ExceptionSink* xsink) {
@@ -190,6 +195,7 @@ AbstractQoreNode* QoreHashNode::swapKeyValue(const char* key, AbstractQoreNode* 
 }
 
 AbstractQoreNode* QoreHashNode::swapKeyValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink) {
+   assert(reference_count() == 1);
    hash_assignment_priv ha(*priv, key);
    return ha.swap(val);
 }
@@ -242,7 +248,7 @@ QoreHashNode* QoreHashNode::copy() const {
 
 QoreHashNode* QoreHashNode::hashRefSelf() const {
    ref();
-   return const_cast<QoreHashNode* >(this);
+   return const_cast<QoreHashNode*>(this);
 }
 
 // returns a hash with the same order
@@ -310,7 +316,7 @@ AbstractQoreNode* QoreHashNode::getReferencedKeyValue(const char* key, bool &exi
       exists = true;
       if ((*i->second)->node)
 	 return (*i->second)->node->refSelf();
-      
+
       return 0;
    }
    exists = false;
@@ -329,7 +335,7 @@ AbstractQoreNode* QoreHashNode::getKeyValue(const char* key) {
 }
 
 const AbstractQoreNode* QoreHashNode::getKeyValue(const char* key) const {
-   return const_cast<QoreHashNode* >(this)->getKeyValue(key);
+   return const_cast<QoreHashNode*>(this)->getKeyValue(key);
 }
 
 AbstractQoreNode* QoreHashNode::getKeyValueExistence(const char* key, bool &exists) {
@@ -347,7 +353,7 @@ AbstractQoreNode* QoreHashNode::getKeyValueExistence(const char* key, bool &exis
 }
 
 const AbstractQoreNode* QoreHashNode::getKeyValueExistence(const char* key, bool &exists) const {
-   return const_cast<QoreHashNode* >(this)->getKeyValueExistence(key, exists);
+   return const_cast<QoreHashNode*>(this)->getKeyValueExistence(key, exists);
 }
 
 // does a "soft" compare (values of different types are converted if necessary and then compared)
@@ -362,7 +368,7 @@ bool QoreHashNode::compareSoft(const QoreHashNode* h, ExceptionSink* xsink) cons
       if (j == h->priv->hm.end())
          return 1;
 
-      if (::compareSoft(hi.getValue(), (*j->second)->node, xsink))
+      if (q_compare_soft(hi.getValue(), (*j->second)->node, xsink))
          return 1;
    }
    return 0;
@@ -379,7 +385,7 @@ bool QoreHashNode::compareHard(const QoreHashNode* h, ExceptionSink* xsink) cons
       hm_hm_t::const_iterator j = h->priv->hm.find(hi.getKey());
       if (j == h->priv->hm.end())
          return 1;
-      
+
       if (::compareHard(hi.getValue(), (*j->second)->node, xsink))
          return 1;
    }
@@ -392,7 +398,7 @@ AbstractQoreNode** QoreHashNode::getExistingValuePtr(const char* key) {
 
    if (i != priv->hm.end())
       return &(*i->second)->node;
-   
+
    return 0;
 }
 
@@ -406,19 +412,22 @@ void QoreHashNode::clear(ExceptionSink* xsink) {
 }
 
 void QoreHashNode::deleteKey(const char* key, ExceptionSink* xsink) {
+   assert(reference_count() == 1);
    priv->deleteKey(key, xsink);
 }
 
 void QoreHashNode::removeKey(const char* key, ExceptionSink* xsink) {
+   assert(reference_count() == 1);
    return priv->removeKey(key, xsink);
 }
 
 AbstractQoreNode* QoreHashNode::takeKeyValue(const char* key) {
+   // cannot assert reference_count == 1 here because the HttpClient class modifies a hash with refcount > 1
    return priv->takeKeyValue(key);
 }
 
-qore_size_t QoreHashNode::size() const { 
-   return priv->size(); 
+qore_size_t QoreHashNode::size() const {
+   return priv->size();
 }
 
 bool QoreHashNode::empty() const {
@@ -430,7 +439,7 @@ bool QoreHashNode::existsKey(const char* key) const {
 }
 
 bool QoreHashNode::existsKeyValue(const char* key) const {
-   return priv->existsKeyValue(key);   
+   return priv->existsKeyValue(key);
 }
 
 void QoreHashNode::clearNeedsEval() {
@@ -476,7 +485,7 @@ int QoreHashNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) c
       qore_size_t elements = size();
       str.sprintf("%lu member%s)\n", elements, elements == 1 ? "" : "s");
    }
-   
+
    ConstHashIterator hi(this);
    while (hi.next()) {
       if (foff != FMT_NONE)
@@ -496,7 +505,7 @@ int QoreHashNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) c
             str.concat(", ");
       }
    }
-   
+
    if (foff == FMT_NONE)
       str.concat(')');
 
@@ -538,73 +547,8 @@ QoreHashNode* QoreHashNode::getSlice(const QoreListNode* value_list, ExceptionSi
 }
 
 AbstractQoreNode* QoreHashNode::parseInit(LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   QoreProgramLocation loc = get_parse_location();
-
-   assert(!typeInfo);
-   //printd(5, "QoreHashNode::parseInit() this=%p\n", this);
    typeInfo = hashTypeInfo;
-
-   HashIterator hi(this);
-   while (hi.next()) {
-      const char* k = hi.getKey();
-      AbstractQoreNode** val = hi.getValuePtr();
-      
-      //printd(5, "QoreHashNode::parseInit() this: %p resolving key '%s' val %p (%s)\n", this, k, *val, get_type_name(*val));
-
-      // resolve constant references in keys
-      if (k[0] == HE_TAG_CONST || k[0] == HE_TAG_SCOPED_CONST) {
-         AbstractQoreNode* rv;
-         // currently type information is ignored
-         const QoreTypeInfo *keyTypeInfo = 0;
-         if (k[0] == HE_TAG_CONST)
-	    rv = qore_root_ns_private::parseFindConstantValue(k + 1, keyTypeInfo, true);
-         else {
-            NamedScope nscope(k + 1);
-	    rv = qore_root_ns_private::parseFindConstantValue(nscope, keyTypeInfo, true);
-          }
-
-	 //printd(5, "QoreHashNode::parseInit() resolved constant '%s': %p\n", k + 1, rv);
-
-         if (rv) {
-            QoreStringValueHelper t(rv);
-
-            // check for duplicate key definitions
-            if (priv->existsKey(t->getBuffer()))
-               doDuplicateKeyWarning(t->getBuffer());
-
-            // move value to new hash key
-            setKeyValue(t->getBuffer(), *val, 0);
-	    *val = 0;
-         }
-         
-         // delete the old key (not possible to have an exception here)
-         hi.deleteKey(0);
-         continue;
-      }
-
-      assert(val);
-      if (*val) {
-         const QoreTypeInfo *argTypeInfo = 0;
-
-	 //printd(5, "QoreHashNode::parseInit() this=%p initializing key '%s' val=%p (%s)\n", this, k, *val, get_type_name(*val));
-
-         (*val) = (*val)->parseInit(oflag, pflag, lvids, argTypeInfo);
-         if (!needs_eval_flag && *val && (*val)->needs_eval()) {
-            //printd(5, "setting needs_eval on hash %p key '%s' val=%p (%s)\n", this, k, *val, get_type_name(*val));
-            setNeedsEval();
-         }
-	 // restore parse location
-	 update_parse_location(loc);
-      }
-   }
    return this;
-}
-
-// static function
-void QoreHashNode::doDuplicateKeyWarning(const char* key) {
-   if (key[0] < 32)
-      ++key;
-   qore_program_private::makeParseWarning(getProgram(), QP_WARN_DUPLICATE_HASH_KEY, "DUPLICATE-HASH-KEY", "hash key '%s' has already been given in this hash; the value given in the last occurrence will be assigned to the hash; to avoid seeing this warning, remove the extraneous key definitions or turn off the warning by using '%%disable-warning duplicate-hash-key' in your code", key);
 }
 
 bool QoreHashNode::getAsBoolImpl() const {
@@ -750,21 +694,21 @@ AbstractQoreNode** HashIterator::getValuePtr() const {
    return &((*(priv->i))->node);
 }
 
-bool HashIterator::last() const { 
+bool HashIterator::last() const {
    if (!priv->valid())
       return false;
 
    qhlist_t::const_iterator ni = priv->i;
    ++ni;
    return ni == h->priv->member_list.end() ? true : false;
-} 
+}
 
-bool HashIterator::first() const { 
+bool HashIterator::first() const {
    if (!priv->valid())
       return false;
 
    return priv->i == h->priv->member_list.begin();
-} 
+}
 
 bool HashIterator::empty() const {
    return h->empty();
@@ -791,7 +735,7 @@ bool ReverseHashIterator::first() const {
    return HashIterator::last();
 }
 
-bool ReverseHashIterator::next() { 
+bool ReverseHashIterator::next() {
    return HashIterator::prev();
 }
 
@@ -820,7 +764,7 @@ QoreString* ConstHashIterator::getKeyString() const {
    return !priv->valid() ? 0 : new QoreString((*(priv->i))->key);
 }
 
-bool ConstHashIterator::next() { 
+bool ConstHashIterator::next() {
    return h ? priv->next(h->priv->member_list) : false;
 }
 
@@ -841,21 +785,21 @@ const AbstractQoreNode* ConstHashIterator::getValue() const {
    return (*(priv->i))->node;
 }
 
-bool ConstHashIterator::last() const { 
+bool ConstHashIterator::last() const {
    if (!priv->valid())
       return false;
 
    qhlist_t::const_iterator ni = priv->i;
    ++ni;
    return ni == h->priv->member_list.end() ? true : false;
-} 
+}
 
 bool ConstHashIterator::first() const {
    if (!priv->valid())
       return false;
 
    return priv->i == h->priv->member_list.begin();
-} 
+}
 
 bool ConstHashIterator::empty() const {
    return h->empty();
@@ -886,7 +830,7 @@ bool ReverseConstHashIterator::first() const {
    return ConstHashIterator::last();
 }
 
-bool ReverseConstHashIterator::next() { 
+bool ReverseConstHashIterator::next() {
    return ConstHashIterator::prev();
 }
 
@@ -907,7 +851,7 @@ hash_assignment_priv::hash_assignment_priv(ExceptionSink* xsink, QoreHashNode& n
    TempEncodingHelper k(key, QCS_DEFAULT, xsink);
    if (*xsink)
       return;
-      
+
    om = must_already_exist ? h.findMember(k->getBuffer()) : h.findCreateMember(k->getBuffer());
 }
 
@@ -926,7 +870,26 @@ AbstractQoreNode* hash_assignment_priv::swapImpl(AbstractQoreNode* v) {
       v = 0;
    AbstractQoreNode* old = om->node;
    om->node = v;
+
+   bool before = needs_scan(old);
+   bool after = needs_scan(v);
+   if (before) {
+      if (!after)
+	 h.incScanCount(-1);
+   }
+   else if (after)
+      h.incScanCount(1);
+
    return old;
+}
+
+void hash_assignment_priv::assign(AbstractQoreNode* v, ExceptionSink* xsink) {
+   AbstractQoreNode* old = swapImpl(v);
+   //qoreCheckContainer(v);
+   if (old) {
+      // "remove" logic here
+      old->deref(xsink);
+   }
 }
 
 AbstractQoreNode* hash_assignment_priv::getValueImpl() const {
@@ -981,3 +944,22 @@ AbstractQoreNode* HashAssignmentHelper::operator*() const {
    return **priv;
 }
 
+void QoreParseHashNode::doDuplicateWarning(QoreProgramLocation& loc, const char* key) {
+   qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DUPLICATE_HASH_KEY, "DUPLICATE-HASH-KEY", "hash key '%s' has already been given in this hash; the value given in the last occurrence will be assigned to the hash; to avoid seeing this warning, remove the extraneous key definitions or turn off the warning by using '%%disable-warning duplicate-hash-key' in your code", key);
+}
+
+int QoreParseHashNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
+   str.sprintf("expression hash with %d member%s", (int)keys.size(), keys.size() == 1 ? "" : "s");
+   return 0;
+}
+
+QoreString* QoreParseHashNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
+   del = true;
+   QoreString* rv = new QoreString;
+   getAsString(*rv, foff, xsink);
+   return rv;
+}
+
+const char* QoreParseHashNode::getTypeName() const {
+   return "hash";
+}

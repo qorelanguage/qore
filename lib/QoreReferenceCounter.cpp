@@ -3,7 +3,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,7 @@ QoreReferenceCounter::~QoreReferenceCounter() {
 void QoreReferenceCounter::ROreference() const {
 #ifdef DEBUG
    if (references < 0 || references > 10000000) {
-      printd(0, "QoreReferenceCounter::ROreference() this=%08p references=%d\n", this, references);
+      printd(0, "QoreReferenceCounter::ROreference() this=%p references=%d\n", this, references);
       assert(false);
    }
 #endif
@@ -56,7 +56,7 @@ void QoreReferenceCounter::ROreference() const {
 bool QoreReferenceCounter::ROdereference() const {
 #ifdef DEBUG
    if (references <= 0 || references > 10000000) {
-      printd(0, "QoreReferenceCounter::ROdereference() this=%08p references=%d\n", this, references);
+      printd(0, "QoreReferenceCounter::ROdereference() this=%p references=%d\n", this, references);
       assert(false);
    }
 #endif

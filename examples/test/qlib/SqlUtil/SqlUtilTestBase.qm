@@ -1,0 +1,131 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+module SqlUtilTestBase {
+    version = "0.1";
+    desc = "SqlUtil test base module";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/SqlUtil.qm
+%requires ../../../../qlib/BulkSqlUtil.qm
+%requires ../../../../qlib/Schema.qm
+
+public class SqlUtilTestSchema inherits AbstractSchema {
+    constructor(AbstractDatasource ds, *string dts, *string its) :  AbstractSchema(ds, dts, its) {
+    }
+
+    log(string fmt) {
+        delete argv;
+    }
+
+    logpf(string fmt) {
+        delete argv;
+    }
+
+    logProgress(string fmt) {
+        delete argv;
+    }
+}
+
+public class SqlTestBase inherits QUnit::Test {
+    private {
+        AbstractSchema schema;
+        AbstractTable table;
+
+        const MyOpts = Opts + (
+            "connstr": "c,conn=s",
+            );
+
+        const OptionColumn = 22;
+
+        hash row;
+
+        list insert_data;
+        list upsert_data;
+    }
+
+    constructor(string testName, string testVer, any args, *hash mopts) : Test(testName, testVer, \args, mopts) {
+        addTestCase("Insert", \insertTest());
+        addTestCase("Upsert", \upsertTest());
+        addTestCase("BulkInsert", \bulkInsertTest());
+        addTestCase("BulkUpsert", \bulkUpsertTest());
+    }
+
+    globalTearDown() {
+        # drop the test schema
+        if (schema)
+            schema.drop(False, m_options.verbose);
+    }
+
+    insertTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        foreach any data in (insert_data)
+            assertEq(NOTHING, table.insertNoCommit(data));
+    }
+
+    upsertTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        code upsert = table.getUpsertClosure(insert_data[0]);
+        assertEq(AbstractTable::UR_Verified, upsert(upsert_data[0]));
+        # upsert can return UR_Verified even when rows are upserted when there is an optimized upsert implementation used in the driver-specific SqlUtil module
+        assertEq(True, inlist(upsert(upsert_data[1]), (AbstractTable::UR_Inserted, AbstractTable::UR_Verified)));
+    }
+
+    bulkInsertTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        table.delNoCommit();
+
+        BulkInsertOperation insert(table);
+        on_success insert.flush();
+        on_error insert.discard();
+
+        foreach any data in (insert_data)
+            assertEq(NOTHING, insert.queueData(data));
+    }
+
+    bulkUpsertTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        table.delNoCommit();
+
+        BulkUpsertOperation insert(table);
+        on_success insert.flush();
+        on_error insert.discard();
+
+        foreach any data in (upsert_data)
+            assertEq(NOTHING, insert.queueData(data));
+    }
+
+    static string getColumnName(string n) {
+        n =~ s/ //g;
+        return n + "_f";
+    }
+}

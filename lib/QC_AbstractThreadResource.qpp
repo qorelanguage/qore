@@ -1,0 +1,146 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_AbstractThreadResource.qpp AbstractThreadResource class (interface) definition */
+/*
+  Qore Programming Language
+
+  Copyright (C) 2003 - 2015 David Nichols
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+  Note that the Qore library is released under a choice of three open-source
+  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+  information.
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/QC_AbstractThreadResource.h>
+
+//! This class defines an abstract interface for thread resources
+/** @par Overview
+    %Thread resources can be considered properties of a thread that need to be cleaned up when the thread exits
+    or one of the thread cleanup functions is run:
+    - @ref Qore::throw_thread_resource_exceptions()
+    - @ref Qore::throw_thread_resource_exceptions_to_mark()
+    .
+    The following functions allow classes of this type to be set or removed as thread resources:
+    - @ref Qore::set_thread_resource()
+    - @ref Qore::remove_thread_resource()
+    .
+    If the thread resource is still set when the destructor is run, then the destructor frees the thread
+    resource and calls cleanup().
+
+    @par Example
+    @code
+# this class starts a background thread in the constructor that is managed as a thread resource in the creating thread
+class ThreadResourceExample inherits AbstractThreadResource {
+    public {}
+
+    private {
+        Qore::Thread::Mutex m();
+        Qore::Thread::Condition cond();
+        Qore::Thread::Counter cnt();
+        bool exit;
+    }
+
+    constructor() {
+        start();
+    }
+
+    synchronized private start() {
+        cnt.inc();
+	set_thread_resource(self);
+        on_error {
+            cnt.dec();
+            remove_thread_resource(self);
+        }
+        background waiter();
+    }
+
+    stop() {
+        {
+            m.lock();
+            on_exit m.unlock();
+            exit = True;
+            cond.signal();
+        }
+        cnt.waitForZero();
+        remove_thread_resource(self);
+    }
+
+    # the cleanup routine stops the thread and throws an exception
+    cleanup() {
+        m.lock();
+        on_exit m.unlock();
+        if (!exit) {
+            stop();
+            throw "THREAD-RESOURCE-ERROR", sprintf("the background thread was stopped during thread resource cleanup; call %s::stop() before exiting the thread to avoid this exception", self.className());
+        }
+    }
+
+    # the background thread simply waits for the exit condition
+    private waiter() {
+        on_exit cnt.dec();
+
+        m.lock();
+        on_exit m.unlock();
+        while (!exit)
+            cond.wait(m);
+    }
+}    @endcode
+
+    @see @ref thread_resources
+
+    @since %Qore 0.8.12
+ */
+qclass AbstractThreadResource [arg=AbstractThreadResource* atr; ns=Qore::Thread];
+
+//! Creates the internal thread resource object
+/**
+ */
+AbstractThreadResource::constructor() {
+   self->setPrivate(CID_ABSTRACTTHREADRESOURCE, new AbstractQoreThreadResource(*self));
+}
+
+//! removes the thread resource if set; if so then the cleanup() method is called
+/**
+ */
+AbstractThreadResource::destructor() {
+   if (!remove_thread_resource(atr))
+      atr->cleanup(xsink);
+   atr->deref(xsink);
+}
+
+//! This method is called by %Qore itself when the thread resource is still allocated and requires cleanup
+/** This method should clean up the resource and normally should throw an appropriate exception explaining:
+    - what the programming error was (ex: failing to unlock a lock before the thread exited)
+    - what happened (ex: the lock was automatically released)
+    - how to prevent it from happening in the future (ex: make sure and release the lock before exiting the thread)
+
+    This method is called in the following situations:
+    - @ref Qore::throw_thread_resource_exceptions() is called and the current object is still set as a thread resource
+    - @ref Qore::throw_thread_resource_exceptions_to_mark() is called and the current object is set as a thread resource after the current mark set by @ref Qore::mark_thread_resources()
+    - the thread exits and the current object is still set as a thread resource
+
+    @note
+    - thread resources are set with @ref Qore::set_thread_resource() and removed with @ref Qore::remove_thread_resource()
+    - if this method does not throw an exception, then thread resource cleanup for the object will be performed silently
+
+    @see @ref thread_resources
+ */
+abstract nothing AbstractThreadResource::cleanup();

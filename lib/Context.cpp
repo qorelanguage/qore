@@ -3,7 +3,7 @@
 
   Qore programming language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -466,12 +466,8 @@ static inline int compare_templist(class Templist t1, class Templist t2) {
       return 1;
 
    ExceptionSink xsink;
-   int rc = (int)OP_LOG_LT->bool_eval(t1.node, t2.node, &xsink);
-
-   //printd(5, "t1.node->getType()=%s t2.node->getType()=%s\n", t1.node->getTypeName(), t2.node->getTypeName());
-   //   print_node(stderr, t1.node); printd(1," == "); print_node(stderr, t2.node);
-   //   printd(5, " result = %d\n", rc);
-   return rc;
+   ValueHolder v(OP_LOG_LT->eval(t1.node, t2.node, true, &xsink), &xsink);
+   return (int)v->getAsBool();
 }
 
 void Context::Sort(AbstractQoreNode *snode, int sort_type) {

@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,8 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/QoreHashIterator.h>
+
+extern QoreClass* QC_HASHITERATOR;
 
 //! This class an iterator class for hashes
 /** Call HashPairIterator::next() to iterate through the hash; do not use the iterator if HashPairIterator::next() returns @ref False.
@@ -110,6 +112,6 @@ map printf("%s: %y\n", $1.key, $1.value), $hash.pairIterator();
  */
 hash HashPairIterator::getValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
    return i->getReferencedValuePair(xsink);
 }

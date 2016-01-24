@@ -2,9 +2,9 @@
 /* @file QC_Queue.qpp Queue class definition
 
   Qore Programming Language
-  
-  Copyright (C) 2003 - 2014 David Nichols
-  
+
+  Copyright (C) 2003 - 2016 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -37,7 +37,9 @@
     In this case when the %Queue is full, adding new elements to the %Queue will block until the %Queue shrinks below the maximum size.
     All read and write methods to %Queue also take timeout values; if a timeout occurs a \c QUEUE-TIMEOUT exception is thrown.
 
-    @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option   
+    Queues can be atomically flagged with an error status by calling Queue::setError().  This method will cause any write operations on the Queue to fail with the error information provided with this call.  Calling Queue::clearError() causes the error status to be removed and allows the Queue to be usable again.
+
+    @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option
  */
 qclass Queue [dom=THREAD_CLASS; arg=Queue *q; ns=Qore::Thread];
 
@@ -91,7 +93,7 @@ Queue::copy() {
  */
 nothing Queue::push(any arg, timeout timeout_ms = 0) {
    bool to;
-   q->push(xsink, arg, timeout_ms, &to);
+   q->push(xsink, arg.getReferencedValue(), timeout_ms, &to);
    if (to)
       xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
 }
@@ -110,7 +112,7 @@ nothing Queue::push(any arg, timeout timeout_ms = 0) {
  */
 nothing Queue::insert(any arg, timeout timeout_ms = 0) {
    bool to;
-   q->insert(xsink, arg, timeout_ms, &to);
+   q->insert(xsink, arg.getReferencedValue(), timeout_ms, &to);
    if (to)
       xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
 }
@@ -119,7 +121,7 @@ nothing Queue::insert(any arg, timeout timeout_ms = 0) {
 /** @par Example:
     <code>my any $data = $queue.get();</code>
 
-    @param timeout_ms a timeout value to wait for data to become available on the queue; integers are interpreted as milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  Values <= 0 mean do not timeout.  If a non-zero timeout argument is passed, and no data is available in the timeout period, a \c "QUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue. 
+    @param timeout_ms a timeout value to wait for data to become available on the queue; integers are interpreted as milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  Values <= 0 mean do not timeout.  If a non-zero timeout argument is passed, and no data is available in the timeout period, a \c "QUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue.
 
     @return the first entry on the queue
 
@@ -147,7 +149,7 @@ any Queue::get(timeout timeout_ms = 0) {
 /** @par Example:
     <code>my any $data = $queue.pop();</code>
 
-    @param timeout_ms a timeout value to wait for data to become available on the queue; integers are interpreted as milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  Values <= 0 mean do not timeout.  If a non-zero timeout argument is passed, and no data is available in the timeout period, a \c "QUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue. 
+    @param timeout_ms a timeout value to wait for data to become available on the queue; integers are interpreted as milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  Values <= 0 mean do not timeout.  If a non-zero timeout argument is passed, and no data is available in the timeout period, a \c "QUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue.
 
     @return the last entry on the queue
 
@@ -226,7 +228,7 @@ int Queue::max() [flags=CONSTANT] {
     <code>my int $waiting = $queue.numWaiting();</code>
 
     @return the number of threads currently blocked on this queue for reading
-    
+
     @see Queue::getWriteWaiting()
  */
 int Queue::getWaiting() [flags=CONSTANT] {
@@ -240,9 +242,9 @@ int Queue::getWaiting() [flags=CONSTANT] {
     <code>my int $waiting = $queue.numReadWaiting();</code>
 
     @return the number of threads currently blocked on this queue for reading
-    
+
     @see Queue::getWriteWaiting()
-    
+
     @since %Qore 0.8.4
  */
 int Queue::getReadWaiting() [flags=CONSTANT] {
@@ -254,11 +256,44 @@ int Queue::getReadWaiting() [flags=CONSTANT] {
     <code>my int $waiting = $queue.getWriteWaiting();</code>
 
     @return the number of threads currently blocked on this queue for writing
-    
+
     @see Queue::getReadWaiting()
-    
+
     @since %Qore 0.8.4
  */
 int Queue::getWriteWaiting() [flags=CONSTANT] {
    return q->getWriteWaiting();
+}
+
+//! sets an error status on the Queue and clears the Queue; while a Queue object has an error status, any write operations to the queue will fail and cause an exception to be raised with the information provided to this method
+/** @par Example:
+    @code $queue.setError("INVALID-OPERATION", "the data queue has been closed");
+    @endcode
+
+    @param err the exception error code string
+    @param desc the exception description string
+
+    Any threads blocked on this Queue will be woken up immediately and have the given exception thrown
+
+    @note This method does not throw any exceptions, but exceptions could be thrown by in destructors of objects that go out of scope by being removed from the Queue
+
+    @see clearError()
+
+    @since %Qore 0.8.12
+*/
+Queue::setError(string err, string desc) {
+   q->setError(err->c_str(), desc, xsink);
+}
+
+//! clears the error setting from the Queue; if error information is set, then after this call, the Queue is usable again
+/** @par Example:
+    @code $queue.clearError()
+    @endcode
+
+    @see setError()
+
+    @since %Qore 0.8.12
+*/
+Queue::clearError() {
+   q->clearError();
 }

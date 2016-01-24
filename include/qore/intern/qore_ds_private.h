@@ -3,11 +3,11 @@
   qore_ds_private.h
 
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2015 David Nichols
+
   The Datasource class provides the low-level interface to Qore DBI drivers.
-  
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -35,17 +35,21 @@
 
 #define _QORE_DS_PRIVATE_H
 
+#include <qore/intern/qore_dbi_private.h>
+
 struct qore_ds_private {
    Datasource* ds;
+
    bool in_transaction;
    bool active_transaction;
    bool isopen;
    bool autocommit;
    bool connection_aborted;
+
    mutable DBIDriver* dsl;
    const QoreEncoding* qorecharset;
    void* private_data;               // driver private data per connection
-      
+
    // for pending connection values
    std::string p_username,
       p_password,
@@ -79,9 +83,9 @@ struct qore_ds_private {
       p_username(old.p_username), p_password(old.p_password),
       p_dbname(old.p_dbname), p_db_encoding(old.p_db_encoding),
       p_hostname(old.p_hostname), p_port(old.p_port),
-      port(0), 
+      port(0),
       //opt(old.opt->copy()) {
-      opt(old.getCurrentOptionHash(true)), 
+      opt(old.getCurrentOptionHash(true)),
       event_queue(old.event_queue ? old.event_queue->queueRefSelf() : 0),
       event_arg(old.event_arg ? old.event_arg->refSelf() : 0) {
    }
@@ -116,8 +120,7 @@ struct qore_ds_private {
       port        = p_port;
    }
 
-   // returns true if a new transaction was started
-   DLLLOCAL bool statementExecuted(int rc, ExceptionSink *xsink);
+   DLLLOCAL void statementExecuted(int rc, ExceptionSink *xsink);
 
    DLLLOCAL void copyOptions(const Datasource* ods);
 
@@ -131,7 +134,7 @@ struct qore_ds_private {
 
    DLLLOCAL QoreHashNode* getCurrentOptionHash(bool ensure_hash = false) const {
       QoreHashNode* options = 0;
-      
+
       ReferenceHolder<QoreHashNode> opts(getOptionHash(), 0);
       ConstHashIterator hi(*opts);
       while (hi.next()) {

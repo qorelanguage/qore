@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   ql_file.qpp
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2015 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -37,65 +37,81 @@
 #include <unistd.h>
 #include <errno.h>
 
+#ifdef _Q_WINDOWS
+#include <io.h>
+#include <direct.h>
+#else
+#include <sys/param.h>
+#include <limits.h>
+#include <stdlib.h>
+#endif
+
 #ifdef HAVE_GLOB_H
 #include <glob.h>
 #else
 #include <qore/intern/glob.h>
 #endif
 
-bool check_stat(unsigned code, const QoreStringNode* path) {
-   struct stat sbuf;
-   int rc;
-   
-   if ((rc = stat(path->getBuffer(), &sbuf)))
-      return false;
-
-   return (sbuf.st_mode & S_IFMT) == code;
+static bool check_stat(unsigned code, const QoreString& path) {
+   return (q_get_mode(path) & S_IFMT) == code;
 }
 
 #ifdef HAVE_LSTAT
-bool check_lstat(unsigned code, const QoreStringNode* path) {
+static bool check_lstat(unsigned code, const QoreString& path) {
    struct stat sbuf;
    int rc;
-   
-   if ((rc = lstat(path->getBuffer(), &sbuf)))
+
+   if ((rc = lstat(path.getBuffer(), &sbuf)))
       return false;
-   
+
    return (sbuf.st_mode & S_IFMT) == code;
 }
 #endif
 
-bool is_writable_intern(const QoreStringNode* path) {
-#ifdef HAVE_ACCESS
-   // solution for situation like:
+static bool is_writable_intern(const QoreStringNode* path) {
+#if defined HAVE_PWD_H
+   // does not cover situations like:
    // $ id
    // uid=5920(user1) gid=6183(group1) groups=6003(group2),6183(group3)
    // $ ls -la /foo/bar/
    // drwxrwsr-x 2  5921 group2 4096 Aug  7 14:37 .
    // where 6183(group1) is an effective group etc so geteuid() != dir group
-   return access(path->getBuffer(), W_OK) == 0;
 
-#elif defined HAVE_PWD_H
    struct stat sbuf;
    int rc;
-   
+
    if ((rc = stat(path->getBuffer(), &sbuf)))
       return false;
-   
+
    uid_t euid = geteuid();
-   if (!euid || sbuf.st_mode & S_IWOTH 
-       || (euid      == sbuf.st_uid && (sbuf.st_mode & S_IWUSR)) 
+   if (!euid || sbuf.st_mode & S_IWOTH
+       || (euid      == sbuf.st_uid && (sbuf.st_mode & S_IWUSR))
        || (getegid() == sbuf.st_gid && (sbuf.st_mode & S_IWGRP)))
       return true;
-   
+
    return false;
-#else
-   // try to open the file with write permissions
-   int rc = open(path->getBuffer(), O_WRONLY);
-   if (rc == -1)
-      return false;
-   close(rc);
-   return true;
+#elif defined(HAVE_ACCESS) && defined(_Q_WINDOWS)
+   // only use access(2) on Windows
+   return access(path->getBuffer(), W_OK) == 0;
+#elif defined _Q_WINDOWS
+   int ftype = q_get_mode(*path) & S_IFMT;
+   if (ftype & S_ISDIR) {
+      QoreStringMaker tfn("%s\\xxx_qore_tmp_test_xxx", path->getBuffer());
+      HANDLE h = CreateFile(tfn.getBuffer(), GENERIC_WRITE, 0, 0, CREATE_NEW, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_DELETE_ON_CLOSE, 0);
+      if (h == INVALID_HANDLE_VALUE)
+         return false;
+      CloseHandle(h);
+      return true;
+   }
+   else {
+      // try to open the file with write permissions
+      int rc = open(path->getBuffer(), O_WRONLY);
+      if (rc == -1)
+         return false;
+      close(rc);
+      return true;
+   }
+#error no is_writable() implementation for this platform
 #endif
 }
 
@@ -167,7 +183,7 @@ my bool $b = is_file("/etc/hosts");
     @endcode
  */
 bool is_file(string path) [flags=CONSTANT;dom=FILESYSTEM] {
-   return check_stat(S_IFREG, path);
+   return check_stat(S_IFREG, *path);
 }
 
 //! Returns @ref True if the string passed identifies a directory on the filesystem, @ref False if not
@@ -182,7 +198,7 @@ my bool $b = is_dir("/tmp/mydir");
     @endcode
  */
 bool is_dir(string path) [flags=CONSTANT;dom=FILESYSTEM] {
-   return check_stat(S_IFDIR, path);
+   return check_stat(S_IFDIR, *path);
 }
 
 //! Returns @ref True if the string passed identifies a socket on the filesystem, @ref False if not
@@ -200,7 +216,7 @@ my bool $b = is_socket("/tmp/X0");
  */
 bool is_socket(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 #ifdef S_IFSOCK
-   return check_stat(S_IFSOCK, path);
+   return check_stat(S_IFSOCK, *path);
 #else
    missing_function_error("is_socket", "UNIX_FILEMGT", xsink);
    return false;
@@ -219,7 +235,7 @@ my bool $b = is_pipe("/tmp/mypipe");
     @endcode
  */
 bool is_pipe(string path) [flags=CONSTANT;dom=FILESYSTEM] {
-   return check_stat(S_IFIFO, path);
+   return check_stat(S_IFIFO, *path);
 }
 
 //! Returns @ref True if the string passed identifies a character device on the filesystem, @ref False if not
@@ -234,7 +250,7 @@ my bool $b = is_cdev("/tmp/tty");
     @endcode
  */
 bool is_cdev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
-   return check_stat(S_IFCHR, path);
+   return check_stat(S_IFCHR, *path);
 }
 
 //! Returns @ref True if the string passed identifies a block device on the filesystem, @ref False if not
@@ -249,7 +265,7 @@ my bool $b = is_bdev("/tmp/sda1");
     @endcode
  */
 bool is_bdev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
-   return check_stat(S_IFBLK, path);
+   return check_stat(S_IFBLK, *path);
 }
 
 //! Returns @ref True if the string passed identifies a device (either block or character) on the filesystem, @ref False if not
@@ -266,14 +282,14 @@ my bool $b = is_dev("/tmp/scanner");
 bool is_dev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    struct stat sbuf;
    int rc;
-   
+
 #ifdef HAVE_LSTAT
    if ((rc = lstat(path->getBuffer(), &sbuf)))
 #else
    if ((rc = stat(path->getBuffer(), &sbuf)))
 #endif
       return false;
-   
+
    return ((sbuf.st_mode & S_IFMT) == S_IFCHR) || ((sbuf.st_mode & S_IFMT) == S_IFBLK);
 }
 
@@ -292,7 +308,7 @@ my bool $b = is_link("/etc/hosts");
  */
 bool is_link(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 #ifdef HAVE_LSTAT
-   return check_lstat(S_IFLNK, path);
+   return check_lstat(S_IFLNK, *path);
 #else
    missing_function_error("is_link", "UNIX_FILEMGT", xsink);
    return false;
@@ -300,7 +316,7 @@ bool is_link(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 }
 
 //! Returns @ref True if the string passed identifies a file readable by the current user, @ref False if not
-/** 
+/**
     @param path the path to check
 
     @return @ref True if the string passed identifies a file readable by the current user, @ref False if not
@@ -317,7 +333,7 @@ bool is_readable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 }
 
 //! Returns @ref True if the string passed identifies a file writable by the current user, @ref False if not
-/** 
+/**
     @param path the path to check
 
     @return @ref True if the string passed identifies a file writable by the current user, @ref False if not
@@ -327,14 +343,14 @@ bool is_readable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 my bool $b = is_writable("/etc/hosts");
     @endcode
 
-    @bug on Windows this function always returns @ref Qore::False "False" for directories; this will be fixed in a later version of Qore
+    @since %Qore 0.8.12 this function works properly on Windows
  */
 bool is_writable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    return is_writable_intern(path);
 }
 
 //! Returns @ref True if the string passed identifies a file writable by the current user (backwards-compatible misspelling of is_writable())
-/** 
+/**
     @param path the path to check
 
     @return @ref True if the string passed identifies a file writable by the current user, @ref False if not
@@ -343,6 +359,8 @@ bool is_writable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @code
 my bool $b = is_writeable("/etc/hosts");
     @endcode
+
+    @since %Qore 0.8.12 this function works properly on Windows
  */
 bool is_writeable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    return is_writable_intern(path);
@@ -365,19 +383,18 @@ bool is_executable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 #ifdef HAVE_PWD_H
    struct stat sbuf;
    int rc;
-   
+
    if ((rc = stat(path->getBuffer(), &sbuf)))
-      return 0;
-   
-   if (sbuf.st_mode & S_IXOTH 
-       || (geteuid() == sbuf.st_uid && (sbuf.st_mode & S_IXUSR)) 
+      return QoreValue();
+
+   if (sbuf.st_mode & S_IXOTH
+       || (geteuid() == sbuf.st_uid && (sbuf.st_mode & S_IXUSR))
        || (getegid() == sbuf.st_gid && (sbuf.st_mode & S_IXGRP)))
       return true;
-   
+
    return false;
 #else
-   missing_function_error("is_executable", xsink);
-   return false;
+   return missing_function_error("is_executable", xsink);
 #endif
 }
 
@@ -397,22 +414,18 @@ rename("/tmp/myfile", "/tmp/myfile.txt");
     @note Some operating systems do not allow moving files between filesystems (ex Solaris)
  */
 nothing rename(string old_path, string new_path) [dom=FILESYSTEM] {
-   if (old_path->empty()) {
-      xsink->raiseException("RENAME-ERROR", "empty path to current file name given as first argument");
-      return 0;
-   }
+   if (old_path->empty())
+      return xsink->raiseException("RENAME-ERROR", "empty path to current file name given as first argument");
 
    // new file name
-   if (new_path->empty()) {
-      xsink->raiseException("RENAME-ERROR", "empty new file path given as second argument");
-      return 0;
-   }
+   if (new_path->empty())
+      return xsink->raiseException("RENAME-ERROR", "empty new file path given as second argument");
 
    int rc = rename(old_path->getBuffer(), new_path->getBuffer());
    if (rc)
       xsink->raiseErrnoException("RENAME-ERROR", errno, "rename('%s', '%s') failed", old_path->getBuffer(), new_path->getBuffer());
 
-   return 0;
+   return QoreValue();
 }
 
 //! Returns a hash of filesystem status values for the file or directory path passed
@@ -434,12 +447,11 @@ my *hash $h = statvfs("/tmp")
 #ifdef HAVE_SYS_STATVFS_H
    struct statvfs vfs;
    if (statvfs(path->getBuffer(), &vfs))
-      return 0;
-   
+      return QoreValue();
+
    return statvfs_to_hash(vfs);
 #else
-   missing_function_error("statvfs", xsink);
-   return 0;
+   return missing_function_error("statvfs", xsink);
 #endif
 }
 
@@ -462,13 +474,13 @@ if (!exists $l)
 *list stat(string path) [dom=FILESYSTEM] {
    struct stat sbuf;
    if (stat(path->getBuffer(), &sbuf))
-      return 0;
+      return QoreValue();
 
    return stat_to_list(sbuf);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing stat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 }
@@ -497,13 +509,13 @@ if (!exists $l)
 #else
    if (stat(path->getBuffer(), &sbuf))
 #endif
-      return 0;
+      return QoreValue();
 
    return stat_to_list(sbuf);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing lstat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 }
@@ -527,13 +539,13 @@ if (!exists $h)
 *hash hstat(string path) [dom=FILESYSTEM] {
    struct stat sbuf;
    if (stat(path->getBuffer(), &sbuf))
-      return 0;
+      return QoreValue();
 
    return stat_to_hash(sbuf);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing hstat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 }
@@ -561,19 +573,19 @@ if (!exists $h)
 #else
    if (stat(path->getBuffer(), &sbuf))
 #endif
-      return 0;
+      return QoreValue();
 
    return stat_to_hash(sbuf);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing hlstat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 }
 
 //! Returns a list of files matching the string argument or @ref nothing if the call to glob() fails
-/** 
+/**
     @param glob_str the glob string, containing an optional path (in which case the entire path must be readable) and a glob filename pattern
 
     @return a list of files matching the string argument or @ref nothing if the call to glob() fails, in which case errno() can be used to get the error
@@ -589,19 +601,19 @@ if (!exists $gl)
    glob_t globbuf;
    if (glob(glob_str->getBuffer(), 0, 0, &globbuf)) {
       globfree(&globbuf);
-      return 0;
+      return QoreValue();
    }
 
    QoreListNode *l = new QoreListNode;
    for (unsigned i = 0; i < globbuf.gl_pathc; ++i)
       l->push(new QoreStringNode(globbuf.gl_pathv[i]));
-   
+
    globfree(&globbuf);
    return l;
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing glob() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 }
@@ -624,7 +636,7 @@ int unlink(string path) [dom=FILESYSTEM] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing unlink() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 }
@@ -645,7 +657,7 @@ int umask(softint mask) [dom=PROCESS] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing umask() [flags=RUNTIME_NOOP;dom=PROCESS] {
 }
@@ -665,7 +677,11 @@ if (mkdir("/tmp/newdir", 0755))
     @see umask()
  */
 int mkdir(string path, softint mode = 0777) [dom=FILESYSTEM] {
+#ifdef _Q_WINDOWS
+   return _mkdir(path->getBuffer());
+#else
    return mkdir(path->getBuffer(), mode);
+#endif
 }
 
 //! Removes a directory
@@ -700,9 +716,9 @@ int chmod(string path, softint mode) [dom=FILESYSTEM] {
 }
 
 //! Changes the current working directory for the current process
-/** 
+/**
     @param path the new working directory for the current process
-    
+
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
@@ -717,32 +733,6 @@ int chdir(string path) [dom=PROCESS,FILESYSTEM] {
    return chdir(path->getBuffer());
 }
 
-static QoreStringNode *f_getcwd_intern(ExceptionSink *xsink = 0) {
-   int bs = 512;
-   char *buf = (char *)malloc(sizeof(char) * bs);
-
-   while (true) {
-      char *b = getcwd(buf, bs);
-      if (!b) {
-          if (errno == ERANGE) {
-              bs *= 2;
-              buf = (char *)q_realloc(buf, sizeof(char) * bs);
-              if (!buf) {
-                  xsink->outOfMemory();
-                  return 0;
-              }
-              continue;
-          }
-          if (xsink)
-             xsink->raiseErrnoException("GETCWD2-ERROR", errno, "getcwd() failed");
-          return 0;
-      }
-      break;
-   }
-
-   return new QoreStringNode(buf, strlen(buf), bs, QCS_DEFAULT);
-}
-
 //! Returns a string giving the current working directory or @ref nothing if the current working directory could not be read
 /** @return a string giving the current working directory or @ref nothing if the current working directory could not be read
 
@@ -753,12 +743,13 @@ my *string $cwd = getcwd();
 
     @see getcwd2() for a similar function that throws an exception if an error occurs instead
  */
-string getcwd() [flags=CONSTANT;dom=FILESYSTEM,EXTERNAL_INFO] {
-   return f_getcwd_intern();
+*string getcwd() [flags=CONSTANT;dom=FILESYSTEM,EXTERNAL_INFO] {
+   SimpleRefHolder<QoreStringNode> rv(new QoreStringNode);
+   return q_getcwd(**rv) ? 0 : rv.release();
 }
 
 //! Returns a string giving the current working directory; throws an exception if the current directory cannot be read
-/** 
+/**
     @par Example:
     @code
 my string $cwd = getcwd2();
@@ -767,7 +758,11 @@ my string $cwd = getcwd2();
     @see getcwd() for a similar function that returns @ref nothing instead of throwing an exception if an error occurs
 */
 string getcwd2() [flags=RET_VALUE_ONLY;dom=FILESYSTEM,EXTERNAL_INFO] {
-   return f_getcwd_intern(xsink);
+   SimpleRefHolder<QoreStringNode> rv(new QoreStringNode);
+   if (q_getcwd(**rv))
+      return xsink->raiseErrnoException("GETCWD2-ERROR", errno, "getcwd() failed");
+
+   return rv.release();
 }
 
 //! Creates a named pipe file with an optional file mode
@@ -789,8 +784,7 @@ int mkfifo(string path, softint mode = 0600) [dom=FILESYSTEM] {
 #ifdef HAVE_MKFIFO
    return mkfifo(path->getBuffer(), mode);
 #else
-   missing_function_error("mkfifo", "UNIX_FILEMGT", xsink);
-   return 0;
+   return missing_function_error("mkfifo", "UNIX_FILEMGT", xsink);
 #endif
 }
 
@@ -816,8 +810,7 @@ int chown(string path, softint owner = -1, softint group = -1) [dom=FILESYSTEM] 
 #ifdef HAVE_CHOWN
    return chown(path->getBuffer(), (uid_t)owner, (uid_t)group);
 #else
-   missing_function_error("chown", "UNIX_FILEMGT", xsink);
-   return 0;
+   return missing_function_error("chown", "UNIX_FILEMGT", xsink);
 #endif
 }
 
@@ -843,8 +836,7 @@ int lchown(string path, softint uid = -1, softint gid = -1) [dom=FILESYSTEM] {
 #ifdef HAVE_LCHOWN
    return lchown(path->getBuffer(), (uid_t)uid, (uid_t)gid);
 #else
-   missing_function_error("lchown", "UNIX_FILEMGT", xsink);
-   return 0;
+   return missing_function_error("lchown", "UNIX_FILEMGT", xsink);
 #endif
 }
 
@@ -867,16 +859,13 @@ string readlink(string path) [dom=FILESYSTEM] {
 #ifdef HAVE_READLINK
    char buf[QORE_PATH_MAX + 1];
    qore_offset_t len = readlink(path->getBuffer(), buf, QORE_PATH_MAX);
-   if (len < 0) {
-      xsink->raiseErrnoException("READLINK-ERROR", errno, "readlink('%s') failed", path->getBuffer());
-      return 0;
-   }
+   if (len < 0)
+      return xsink->raiseErrnoException("READLINK-ERROR", errno, "readlink('%s') failed", path->getBuffer());
    assert(len <= QORE_PATH_MAX);
    buf[len] = '\0';
    return new QoreStringNode(buf);
 #else
-   missing_function_error("readlink", "UNIX_FILEMGT", xsink);
-   return 0;
+   return missing_function_error("readlink", "UNIX_FILEMGT", xsink);
 #endif
 }
 
@@ -901,25 +890,99 @@ symlink("/tmp/temporary-dir", "/users/oracle/install");
  */
 nothing symlink(string old_path, string new_path) [dom=FILESYSTEM] {
 #ifdef HAVE_SYMLINK
-   if (old_path->empty()) {
-      xsink->raiseException("SYMLINK-ERROR", "empty path to current file name given as first argument");
-      return 0;
-   }
+   if (old_path->empty())
+      return xsink->raiseException("SYMLINK-ERROR", "empty path to current file name given as first argument");
 
    // new file name
-   if (new_path->empty()) {
-      xsink->raiseException("SYMLINK-ERROR", "empty new file path given as second argument");
-      return 0;
-   }
+   if (new_path->empty())
+      return xsink->raiseException("SYMLINK-ERROR", "empty new file path given as second argument");
 
    int rc = symlink(old_path->getBuffer(), new_path->getBuffer());
    if (rc)
       xsink->raiseErrnoException("SYMLINK-ERROR", errno, "symlink('%s', '%s') failed", old_path->getBuffer(), new_path->getBuffer());
 
-   return 0;
+   return QoreValue();
 #else
-   missing_function_error("symlink", "UNIX_FILEMGT", xsink);
-   return 0;
+   return missing_function_error("symlink", "UNIX_FILEMGT", xsink);
 #endif
+}
+
+//! returns @ref Qore::True "True" if the argument is an absolute path on the current platform, @ref Qore::False "False" if not
+/** @par Example:
+    @code
+my bool $abs = absolute_path($path);
+    @endcode
+
+    @param path the path to check
+
+    @return @ref Qore::True "True" if the argument is an absolute path, @ref Qore::False "False" if not
+
+    @see
+    - @ref Qore::absolute_path_unix()
+    - @ref Qore::absolute_path_windows()
+
+    @since %Qore 0.8.12 this function is a native function in %Qore; moved from the <a href="../../modules/Util/html/index.html">Util</a> module
+*/
+bool absolute_path(string path) [flags=CONSTANT] {
+   return q_absolute_path(path->getBuffer());
+}
+
+//! returns @ref Qore::True "True" if the argument is a UNIX absolute path, @ref Qore::False "False" if not
+/** @par Example:
+    @code
+my bool $abs = absolute_path_unix($path);
+    @endcode
+
+    @param path the path to check
+
+    @return @ref Qore::True "True" if the argument is a UNIX absolute path, @ref Qore::False "False" if not
+
+    @see
+    - @ref Qore::absolute_path()
+    - @ref Qore::absolute_path_windows()
+
+    @since %Qore 0.8.12 this function is a native function in %Qore; moved from the <a href="../../modules/Util/html/index.html">Util</a> module
+*/
+bool absolute_path_unix(string path) [flags=CONSTANT] {
+   return q_absolute_path_unix(path->getBuffer());
+}
+
+//! returns @ref Qore::True "True" if the argument is a Windows absolute path, @ref Qore::False "False" if not
+/** @par Example:
+    @code
+my bool $abs = absolute_path_windows($path);
+    @endcode
+
+    @param path the path to check
+
+    @return @ref Qore::True "True" if the argument is a Windows absolute path, @ref Qore::False "False" if not
+
+    @see
+    - @ref Qore::absolute_path()
+    - @ref Qore::absolute_path_unix()
+
+    @since %Qore 0.8.12 this function is a native function in %Qore; moved from the <a href="../../modules/Util/html/index.html">Util</a> module
+*/
+bool absolute_path_windows(string path) [flags=CONSTANT] {
+   return q_absolute_path_windows(path->getBuffer());
+}
+
+//! Returns the canonicalized absolute pathname from the given path
+/** @par Example:
+    @code
+my string $realpath = realpath($path);
+    @endcode
+
+    @param path the path to process
+
+    @return the corresponding absolute path with all relative references removed and all symbolic links resolved (if applicable for the current platform)
+
+    @throw REALPATH-ERROR if an error occurs calculating the return value then this exception is thrown
+
+    @since %Qore 0.8.12
+ */
+string realpath(string path) [dom=FILESYSTEM] {
+   SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(path->getEncoding()));
+   return q_realpath(*path, **rv, xsink) ? 0 : rv.release();
 }
 //@}

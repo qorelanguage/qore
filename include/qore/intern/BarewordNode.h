@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   BarewordNode.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2016 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -36,13 +36,15 @@
 class BarewordNode : public ParseNoEvalNode {
 protected:
    QoreProgramLocation loc;
+   // if true it means the node was given in parentheses
+   bool finalized;
 
    DLLLOCAL AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
       return 0;
    }
-      
+
 public:
    char *str;
 
@@ -67,6 +69,15 @@ public:
    DLLLOCAL QoreStringNode *makeQoreStringNode();
    // returns the string, caller now owns the memory
    DLLLOCAL char *takeString();
+
+   DLLLOCAL bool isFinalized() const {
+      return finalized;
+   }
+
+   DLLLOCAL void setFinalized() {
+      assert(!finalized);
+      finalized = true;
+   }
 };
 
 #endif

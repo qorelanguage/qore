@@ -33,7 +33,7 @@
 
     For example (in the following script, the @ref our keyword is optional unless @ref require-our "%require-our" is set):
 
-    @code
+    @code{.py}
 #!/usr/bin/qore
 #
 # variable scoping example
@@ -74,7 +74,7 @@ global a = 1@endverbatim
     Variables declared with \b my are always local variables.
 
     <b>my Example</b>\n
-    @code my int $i = 1;@endcode
+    @code{.py} my int $i = 1;@endcode
 
     The \b my keyword is not required if the @ref assume-local "%assume-local" parse directive is set (note that this parse directive is also set by @ref new-style "%new-style").  In this case, all variables are assumed to be local unless explicitly declared with @ref our "our".
 
@@ -84,7 +84,7 @@ global a = 1@endverbatim
     Variables declared with \b our have global scope and are subject to mutual exclusion locks with each access.  Therefore even in single-threaded programs, it's more efficient to use local variables (even local variables with global scope - where a local variable is declared in the top-level block) if the value of the variable does not need to be shared among other threads.
 
     <b>our Example</b>\n
-    @code our int $i = 1;@endcode
+    @code{.py} our int $i = 1;@endcode
 
     Note that the \b our keyword is required when declaring a global variable if the parse option @ref require-our "%require-our" (\c -O or \c --require-our command-line option) is set for the parent program. See @ref parse_options for more information.  
 

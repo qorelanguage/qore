@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,27 +33,21 @@
 
 #define _QORE_QORETYPEINFO_H
 
-#include <qore/intern/QoreValue.h>
-
 #include <map>
 #include <vector>
 
 #define NO_TYPE_INFO "any"
 
 // adds external types to global type map
-DLLLOCAL void add_to_type_map(qore_type_t t, const QoreTypeInfo *typeInfo);
+DLLLOCAL void add_to_type_map(qore_type_t t, const QoreTypeInfo* typeInfo);
 DLLLOCAL bool builtinTypeHasDefaultValue(qore_type_t t);
 // returns the default value for any type >= 0 and < NT_OBJECT
-DLLLOCAL AbstractQoreNode *getDefaultValueForBuiltinValueType(qore_type_t t);
+DLLLOCAL AbstractQoreNode* getDefaultValueForBuiltinValueType(qore_type_t t);
 
-static inline void concatClass(std::string &str, const char *cn) {
-   str.append("<class: ");
-   str.append(cn);
-   str.push_back('>');
-}
+DLLLOCAL void concatClass(std::string& str, const char* cn);
 
 /*
- * if input_filter is true, then 
+ * if input_filter is true, then
    + returns_mult must be false xxx <- REMOVE THIS RESTRICTION
    + accepts_mult must be true
  * if accepts_mult is false, then qc and qt apply to the type accepted
@@ -70,9 +64,14 @@ class QoreTypeInfo {
 
 protected:
    // class pointer
-   const QoreClass *qc;
+   const QoreClass* qc;
    // basic type
+#ifdef __SUNPRO_CC
+   // seems to be converted to unsigned with oracle studio compilers
+   qore_type_t qt;
+#else
    qore_type_t qt : 11;
+#endif
    // true if type indicates more than one return type can be returned
    bool returns_mult : 1;
    // true if type accepts multiple types
@@ -104,7 +103,7 @@ protected:
       return matchTypeIntern(t, n_is_int);
    }
 
-   DLLLOCAL qore_type_result_e parseReturnsClass(const QoreClass *n_qc) const {
+   DLLLOCAL qore_type_result_e parseReturnsClass(const QoreClass* n_qc) const {
       if (!hasType())
          return QTI_AMBIGUOUS;
 
@@ -139,7 +138,7 @@ protected:
       return rc;
    }
 
-   DLLLOCAL qore_type_result_e runtimeAcceptsClass(const QoreClass *n_qc) const {
+   DLLLOCAL qore_type_result_e runtimeAcceptsClass(const QoreClass* n_qc) const {
       assert(n_qc);
 
       if (!hasType() || accepts_all)
@@ -151,7 +150,7 @@ protected:
       return runtimeMatchClassIntern(n_qc);
    }
 
-   DLLLOCAL qore_type_result_e parseAcceptsClass(const QoreClass *n_qc) const {
+   DLLLOCAL qore_type_result_e parseAcceptsClass(const QoreClass* n_qc) const {
       if (!hasType() || accepts_all)
          return QTI_AMBIGUOUS;
 
@@ -173,7 +172,7 @@ protected:
       return matchTypeIntern(t, n_is_int);
    }
 
-   DLLLOCAL qore_type_result_e parseReturnsClassMult(const QoreClass *n_qc) const {
+   DLLLOCAL qore_type_result_e parseReturnsClassMult(const QoreClass* n_qc) const {
       const type_vec_t &rt = getReturnTypeList();
 
       for (type_vec_t::const_iterator i = rt.begin(), e = rt.end(); i != e; ++i) {
@@ -215,7 +214,7 @@ protected:
       return rc;
    }
 
-   DLLLOCAL qore_type_result_e parseAcceptsClassMult(const QoreClass *n_qc) const {
+   DLLLOCAL qore_type_result_e parseAcceptsClassMult(const QoreClass* n_qc) const {
       if (!returns_mult && qc && qc->getID() == n_qc->getID())
          return exact_return ? QTI_IDENT : QTI_AMBIGUOUS;
 
@@ -230,7 +229,7 @@ protected:
       return matchClassIntern(n_qc);
    }
 
-   DLLLOCAL qore_type_result_e runtimeAcceptsClassMult(const QoreClass *n_qc) const {
+   DLLLOCAL qore_type_result_e runtimeAcceptsClassMult(const QoreClass* n_qc) const {
       if (!returns_mult && qc && qc->getID() == n_qc->getID())
          return exact_return ? QTI_IDENT : QTI_AMBIGUOUS;
 
@@ -245,11 +244,11 @@ protected:
       return runtimeMatchClassIntern(n_qc);
    }
 
-   DLLLOCAL qore_type_result_e parseAcceptsBasic(const QoreTypeInfo *typeInfo, bool& may_not_match) const {
+   DLLLOCAL qore_type_result_e parseAcceptsBasic(const QoreTypeInfo* typeInfo, bool& may_not_match) const {
       return typeInfo->qc ? parseAcceptsClass(typeInfo->qc) : parseAcceptsType(typeInfo->qt, typeInfo->is_int, may_not_match);
    }
 
-   DLLLOCAL static bool parseAcceptsMultHelper(bool val, qore_type_result_e &rc, bool &may_not_match) {
+   DLLLOCAL static bool parseAcceptsMultHelper(bool val, qore_type_result_e& rc, bool& may_not_match) {
       if (val) {
          rc = QTI_AMBIGUOUS;
          return may_not_match ? true : false;
@@ -260,12 +259,12 @@ protected:
    }
 
    // see if any of of the types we accept match any of the types that can be returned by typeInfo
-   DLLLOCAL qore_type_result_e parseAcceptsMult(const QoreTypeInfo *typeInfo, bool &may_not_match) const {
+   DLLLOCAL qore_type_result_e parseAcceptsMult(const QoreTypeInfo* typeInfo, bool& may_not_match) const {
       assert(accepts_mult);
       assert(typeInfo->returns_mult);
 
-      const type_vec_t &at = getAcceptTypeList();
-      const type_vec_t &rt = typeInfo->getReturnTypeList();
+      const type_vec_t& at = getAcceptTypeList();
+      const type_vec_t& rt = typeInfo->getReturnTypeList();
 
       qore_type_result_e rc = QTI_NOT_EQUAL;
       for (type_vec_t::const_iterator i = at.begin(), e = at.end(); i != e; ++i) {
@@ -312,16 +311,16 @@ protected:
       return QTI_NOT_EQUAL;
    }
 
-   DLLLOCAL qore_type_result_e matchClassIntern(const QoreClass *n_qc) const;
-   DLLLOCAL qore_type_result_e runtimeMatchClassIntern(const QoreClass *n_qc) const;
+   DLLLOCAL qore_type_result_e matchClassIntern(const QoreClass* n_qc) const;
+   DLLLOCAL qore_type_result_e runtimeMatchClassIntern(const QoreClass* n_qc) const;
 
-   DLLLOCAL int doPrivateClassException(int param_num, const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
+   DLLLOCAL int doPrivateClassException(int param_num, const char* param_name, const AbstractQoreNode* n, ExceptionSink* xsink) const {
       // xsink may be null in case that parse exceptions have been disabled in the QoreProgram object
       // for example if there was a "requires" error
       if (!xsink)
 	 return -1;
 
-      QoreStringNode *desc = new QoreStringNode;
+      QoreStringNode* desc = new QoreStringNode;
       QoreTypeInfo::ptext(*desc, param_num, param_name);
       desc->concat("expects ");
       getThisType(*desc);
@@ -330,24 +329,20 @@ protected:
       return -1;
    }
 
-   /*
-   DLLLOCAL int doObjectTypeException(const char *param_name, const QoreValue n, ExceptionSink *xsink) const {
+   DLLLOCAL int doObjectTypeException(const char* param_name, const QoreValue& n, ExceptionSink* xsink) const {
       assert(xsink);
-      QoreStringNode *desc = new QoreStringNode;
-      desc->sprintf("member '$.%s' expects ", param_name);
+      QoreStringNode* desc = new QoreStringNode;
+      desc->sprintf("member '%s' expects ", param_name);
       getThisType(*desc);
-      desc->concat(", but got ");
-      getNodeType(*desc, n);
-      desc->concat(" instead");
+      desc->sprintf(", but got %s instead", n.getTypeName());
       xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
       return -1;
    }
-   */
 
-   DLLLOCAL int doObjectTypeException(const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
+   DLLLOCAL int doObjectTypeException(const char* param_name, const AbstractQoreNode* n, ExceptionSink* xsink) const {
       assert(xsink);
-      QoreStringNode *desc = new QoreStringNode;
-      desc->sprintf("member '$.%s' expects ", param_name);
+      QoreStringNode* desc = new QoreStringNode;
+      desc->sprintf("member '%s' expects ", param_name);
       getThisType(*desc);
       desc->concat(", but got ");
       getNodeType(*desc, n);
@@ -356,25 +351,49 @@ protected:
       return -1;
    }
 
-   DLLLOCAL int doObjectPrivateClassException(const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
+   DLLLOCAL int doObjectPrivateClassException(const char* param_name, const AbstractQoreNode* n, ExceptionSink* xsink) const {
       assert(xsink);
-      QoreStringNode *desc = new QoreStringNode;
-      desc->sprintf("member '$.%s' expects ", param_name);
+      QoreStringNode* desc = new QoreStringNode;
+      desc->sprintf("member '%s' expects ", param_name);
       getThisType(*desc);
       desc->concat(", but got an object where this class is privately inherited instead");
       xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
       return -1;
    }
 
+   // returns -1 for error encountered, 0 for OK
+   // can only be called with accepts_mult is false
+   DLLLOCAL int runtimeAcceptInputIntern(bool& priv_error, QoreValue& n) const;
+
+   // returns -1 for error encountered, 0 for OK
+   DLLLOCAL int acceptInputDefault(bool& priv_error, QoreValue& n) const;
+
+   DLLLOCAL void acceptInputIntern(bool obj, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) const {
+      if (!input_filter) {
+         bool priv_error = false;
+         if (acceptInputDefault(priv_error, n))
+            doAcceptError(priv_error, obj, param_num, param_name, n, xsink);
+         return;
+      }
+
+      // first check if input matches default type
+      bool priv_error = false;
+      if (!runtimeAcceptInputIntern(priv_error, n))
+         return;
+
+      if (!acceptInputImpl(n, xsink) && !*xsink)
+         doAcceptError(false, obj, param_num, param_name, n, xsink);
+   }
+
    /*
    // returns -1 for error encountered, 0 for OK
    // can only be called with accepts_mult is false
-   DLLLOCAL int runtimeAcceptInputIntern(bool &priv_error, QoreValue n) const;
+   DLLLOCAL int runtimeAcceptInputIntern(bool& priv_error, AbstractQoreNode* n) const;
 
    // returns -1 for error encountered, 0 for OK
-   DLLLOCAL int acceptInputDefault(bool &priv_error, QoreValue n) const;
+   DLLLOCAL int acceptInputDefault(bool& priv_error, AbstractQoreNode* n) const;
 
-   DLLLOCAL QoreValue acceptInputIntern(bool obj, int param_num, const char *param_name, QoreValue& n, ExceptionSink *xsink) const {
+   DLLLOCAL AbstractQoreNode* acceptInputIntern(bool obj, int param_num, const char* param_name, AbstractQoreNode* n, ExceptionSink* xsink) const {
       if (!input_filter) {
          bool priv_error = false;
          if (acceptInputDefault(priv_error, n))
@@ -394,33 +413,7 @@ protected:
    }
    */
 
-   // returns -1 for error encountered, 0 for OK
-   // can only be called with accepts_mult is false
-   DLLLOCAL int runtimeAcceptInputIntern(bool &priv_error, AbstractQoreNode *n) const;
-
-   // returns -1 for error encountered, 0 for OK
-   DLLLOCAL int acceptInputDefault(bool &priv_error, AbstractQoreNode *n) const;
-
-   DLLLOCAL AbstractQoreNode *acceptInputIntern(bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
-      if (!input_filter) {
-         bool priv_error = false;
-         if (acceptInputDefault(priv_error, n))
-            doAcceptError(priv_error, obj, param_num, param_name, n, xsink);
-         return n;
-      }
-
-      // first check if input matches default type
-      bool priv_error = false;
-      if (!runtimeAcceptInputIntern(priv_error, n))
-         return n;
-
-      if (!acceptInputImpl(n, xsink) && !*xsink)
-         doAcceptError(false, obj, param_num, param_name, n, xsink);
-
-      return n;
-   }
-
-   DLLLOCAL bool isTypeIdenticalIntern(const QoreTypeInfo *typeInfo) const {
+   DLLLOCAL bool isTypeIdenticalIntern(const QoreTypeInfo* typeInfo) const {
       if (qt != typeInfo->qt)
 	 return false;
 
@@ -437,25 +430,24 @@ protected:
    }
 
    // must be reimplemented in subclasses if input_filter is true
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
       assert(false);
       return false;
    }
 
    // must be reimplemented in subclasses if has_defval is true
-   DLLLOCAL virtual AbstractQoreNode *getDefaultValueImpl() const {
+   DLLLOCAL virtual AbstractQoreNode* getDefaultValueImpl() const {
       assert(false);
       return 0;
    }
 
    // must be reimplemented in subclasses if has_name is true
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       assert(false);
       return 0;
    }
 
-   /*
-   DLLLOCAL static void getNodeType(QoreString &str, const QoreValue& n) {
+   DLLLOCAL static void getNodeType(QoreString& str, const QoreValue n) {
       qore_type_t nt = n.getType();
       if (nt == NT_NOTHING) {
 	 str.concat("no value");
@@ -465,23 +457,10 @@ protected:
 	 str.sprintf("type '%s'", n.getTypeName());
 	 return;
       }
-      str.sprintf("an object of class '%s'", reinterpret_cast<const QoreObject *>(n.getNode())->getClassName());
-   }
-   */
-
-   DLLLOCAL static void getNodeType(QoreString &str, const AbstractQoreNode *n) {
-      if (is_nothing(n)) {
-         str.concat("no value");
-         return;
-      }
-      if (n->getType() != NT_OBJECT) {
-         str.sprintf("type '%s'", n->getTypeName());
-         return;
-      }
-      str.sprintf("an object of class '%s'", reinterpret_cast<const QoreObject *>(n)->getClassName());
+      str.sprintf("an object of class '%s'", n.get<const QoreObject>()->getClassName());
    }
 
-   DLLLOCAL static void ptext(QoreString &str, int param_num, const char *param_name) {
+   DLLLOCAL static void ptext(QoreString& str, int param_num, const char* param_name) {
       if (!param_num && param_name && param_name[0] == '<') {
          str.concat(param_name);
          str.concat(' ');
@@ -502,14 +481,14 @@ protected:
    }
 
    DLLLOCAL bool returnsSingleIntern() const {
-      return this && !returns_mult && qt != NT_ALL;
+      return qore_check_this(this) && !returns_mult && qt != NT_ALL;
    }
 
-   DLLLOCAL QoreTypeInfo(const QoreClass *n_qc, qore_type_t n_qt, bool n_returns_mult,
+   DLLLOCAL QoreTypeInfo(const QoreClass* n_qc, qore_type_t n_qt, bool n_returns_mult,
                          bool n_accepts_mult, bool n_input_filter, bool n_has_subtype,
                          bool n_has_name, bool n_has_defval,
-                         bool n_is_int, bool n_exact_return, bool n_accepts_all) : 
-      qc(n_qc), qt(n_qt), returns_mult(n_returns_mult), accepts_mult(n_accepts_mult), input_filter(n_input_filter), 
+                         bool n_is_int, bool n_exact_return, bool n_accepts_all) :
+      qc(n_qc), qt(n_qt), returns_mult(n_returns_mult), accepts_mult(n_accepts_mult), input_filter(n_input_filter),
       has_subtype(n_has_subtype), has_name(n_has_name), has_defval(n_has_defval),
       is_int(n_is_int), exact_return(n_exact_return), ambiguous_int_match(false), accepts_all(n_accepts_all) {
       assert(!is_int || !qc);
@@ -517,19 +496,19 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreTypeInfo() : qc(0), qt(NT_ALL), returns_mult(false), accepts_mult(false), 
+   DLLLOCAL QoreTypeInfo() : qc(0), qt(NT_ALL), returns_mult(false), accepts_mult(false),
                              input_filter(false), has_subtype(false), has_name(false), has_defval(false),
                              is_int(false), exact_return(false),
                              ambiguous_int_match(false), accepts_all(true) {
    }
 
-   DLLLOCAL QoreTypeInfo(qore_type_t n_qt) : qc(0), qt(n_qt), returns_mult(false), accepts_mult(false), 
+   DLLLOCAL QoreTypeInfo(qore_type_t n_qt) : qc(0), qt(n_qt), returns_mult(false), accepts_mult(false),
                                              input_filter(false), has_subtype(false), has_name(false), has_defval(false),
                                              is_int(n_qt == NT_INT),
                                              exact_return(true), ambiguous_int_match(false), accepts_all(false) {
    }
 
-   DLLLOCAL QoreTypeInfo(const QoreClass *n_qc) : qc(n_qc), qt(NT_OBJECT), returns_mult(false), accepts_mult(false), 
+   DLLLOCAL QoreTypeInfo(const QoreClass* n_qc) : qc(n_qc), qt(NT_OBJECT), returns_mult(false), accepts_mult(false),
                                                   input_filter(false), has_subtype(false), has_name(false), has_defval(false),
                                                   is_int(false),
                                                   exact_return(true), ambiguous_int_match(false), accepts_all(false) {
@@ -539,7 +518,7 @@ public:
    }
 
    DLLLOCAL qore_type_t getSingleType() const {
-      return this ? qt : NT_ALL;
+      return qore_check_this(this) ? qt : NT_ALL;
    }
 
    DLLLOCAL bool parseAcceptsReturns(qore_type_t t) const {
@@ -568,38 +547,52 @@ public:
 
    // returns true if this type only returns the value given
    DLLLOCAL bool isType(qore_type_t t) const {
-      if (!this || returns_mult)
+      if (!qore_check_this(this) || returns_mult)
          return false;
 
       return t == qt;
    }
 
-   DLLLOCAL bool isClass(const QoreClass *n_qc) const {
-      if (!this || returns_mult || !qc)
+   DLLLOCAL bool isClass(const QoreClass* n_qc) const {
+      if (!qore_check_this(this) || returns_mult || !qc)
          return false;
 
       return qc->getID() == n_qc->getID();
    }
 
-   DLLLOCAL qore_type_result_e runtimeAcceptsValue(const AbstractQoreNode *n) const {
+   /*
+   DLLLOCAL qore_type_result_e runtimeAcceptsValue(const AbstractQoreNode* n) const {
       if (!hasType() || accepts_all)
          return QTI_AMBIGUOUS;
-      
+
       qore_type_t t = get_node_type(n);
 
       if (t == NT_OBJECT)
-         return runtimeAcceptsClass(reinterpret_cast<const QoreObject *>(n)->getClass());
+         return runtimeAcceptsClass(reinterpret_cast<const QoreObject*>(n)->getClass());
 
-      return parseAcceptsType(t, t == NT_INT || (t >= QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode *>(n)));
+      return parseAcceptsType(t, t == NT_INT);
+   }
+   */
+
+   DLLLOCAL qore_type_result_e runtimeAcceptsValue(const QoreValue n) const {
+      if (!hasType() || accepts_all)
+         return QTI_AMBIGUOUS;
+
+      qore_type_t t = n.getType();
+
+      if (t == NT_OBJECT)
+         return runtimeAcceptsClass(n.get<const QoreObject>()->getClass());
+
+      return parseAcceptsType(t, t == NT_INT);
    }
 
-   DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo *typeInfo) const {
+   DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo* typeInfo) const {
       // set to true because value is ignored and can short-circuit logic in parseAcceptsMult() if called
       bool may_not_match = true;
       return parseAccepts(typeInfo, may_not_match);
    }
 
-   DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo *typeInfo, bool &may_not_match) const {
+   DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo* typeInfo, bool& may_not_match) const {
       //printd(5, "QoreTypeInfo::parseAccepts() this: %p (%s) ti: %p (%s) ti->returnsSingleIntern(): %d\n", this, getName(), typeInfo, typeInfo->getName(), typeInfo->returnsSingleIntern());
       if (!hasType() || !typeInfo->hasType() || accepts_all)
          return QTI_AMBIGUOUS;
@@ -615,8 +608,8 @@ public:
       return parseAcceptsBasic(typeInfo, may_not_match);
    }
 
-   DLLLOCAL const QoreClass *getUniqueReturnClass() const {
-      return !this || returns_mult ? 0 : qc;
+   DLLLOCAL const QoreClass* getUniqueReturnClass() const {
+      return !qore_check_this(this) || returns_mult ? 0 : qc;
    }
 
    DLLLOCAL bool returnsSingle() const {
@@ -624,18 +617,26 @@ public:
    }
 
    DLLLOCAL bool acceptsSingle() const {
-      return this && !accepts_mult && qt != NT_ALL;
+      return qore_check_this(this) && !accepts_mult && qt != NT_ALL;
    }
 
    DLLLOCAL bool hasType() const {
-      return this && (accepts_mult || returns_mult || qt != NT_ALL);
+      return qore_check_this(this) && (accepts_mult || returns_mult || qt != NT_ALL);
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL bool needsScan() const {
+      return parseReturnsType(NT_OBJECT) != QTI_NOT_EQUAL
+         || parseReturnsType(NT_RUNTIME_CLOSURE) != QTI_NOT_EQUAL
+         || parseReturnsType(NT_LIST) != QTI_NOT_EQUAL
+         || parseReturnsType(NT_HASH) != QTI_NOT_EQUAL;
    }
 
    DLLLOCAL bool hasInputFilter() const {
-      return this && input_filter;
+      return qore_check_this(this) && input_filter;
    }
 
-   DLLLOCAL const char *getName() const {
+   DLLLOCAL const char* getName() const {
       if (!hasType())
 	 return NO_TYPE_INFO;
 
@@ -645,8 +646,8 @@ public:
       return qc ? qc->getName() : getBuiltinTypeName(qt);
    }
 
-   DLLLOCAL void getThisType(QoreString &str) const {
-      if (!this || qt == NT_NOTHING) {
+   DLLLOCAL void getThisType(QoreString& str) const {
+      if (!qore_check_this(this) || qt == NT_NOTHING) {
 	 str.sprintf("no value");
 	 return;
       }
@@ -658,44 +659,59 @@ public:
    }
 
    // must be reimplemented in subclasses if returns_mult is true
-   DLLLOCAL virtual const type_vec_t &getReturnTypeList() const {
+   DLLLOCAL virtual const type_vec_t& getReturnTypeList() const {
       assert(false);
       return *((type_vec_t*)0);
    }
 
    // must be reimplemented in subclasses if accepts_mult is true
-   DLLLOCAL virtual const type_vec_t &getAcceptTypeList() const {
+   DLLLOCAL virtual const type_vec_t& getAcceptTypeList() const {
       assert(false);
       return *((type_vec_t*)0);
    }
 
-   DLLLOCAL AbstractQoreNode *acceptInputParam(int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
+   // FIXME: eliminate
+   DLLLOCAL AbstractQoreNode* acceptInputParam(int param_num, const char* param_name, AbstractQoreNode* n, ExceptionSink* xsink) const {
       if (!hasType())
          return n;
-      return acceptInputIntern(false, param_num, param_name, n, xsink);
+      QoreValue v(n);
+      acceptInputIntern(false, param_num, param_name, v, xsink);
+      return v.takeNode();
    }
 
-   DLLLOCAL AbstractQoreNode *acceptInputMember(const char *member_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
+   DLLLOCAL void acceptInputParam(int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) const {
+      if (hasType())
+         acceptInputIntern(false, param_num, param_name, n, xsink);
+   }
+
+   DLLLOCAL AbstractQoreNode* acceptInputMember(const char* member_name, AbstractQoreNode* n, ExceptionSink* xsink) const {
       if (!hasType())
          return n;
-      return acceptInputIntern(true, -1, member_name, n, xsink);
+      QoreValue v(n);
+      acceptInputIntern(true, -1, member_name, v, xsink);
+      return v.takeNode();
    }
 
-   /*
-   DLLLOCAL QoreValue acceptAssignment(const char *text, QoreValue n, ExceptionSink *xsink) const {
+   DLLLOCAL void acceptInputMember(const char* member_name, QoreValue& n, ExceptionSink* xsink) const {
+      if (hasType())
+         acceptInputIntern(true, -1, member_name, n, xsink);
+   }
+
+   DLLLOCAL void acceptAssignment(const char* text, QoreValue& n, ExceptionSink* xsink) const {
       assert(text && text[0] == '<');
-      if (!hasType())
-         return n;
-      return acceptInputIntern(false, -1, text, n, xsink);
+      if (hasType())
+         acceptInputIntern(false, -1, text, n, xsink);
    }
-   */
 
-   DLLLOCAL AbstractQoreNode *acceptAssignment(const char *text, AbstractQoreNode *n, ExceptionSink *xsink) const {
-      assert(text && text[0] == '<');
+/*
+   DLLLOCAL AbstractQoreNode* acceptAssignment(const char* text, AbstractQoreNode* n, ExceptionSink* xsink) const {
       if (!hasType())
          return n;
-      return acceptInputIntern(false, -1, text, n, xsink);
+      QoreValue v(n);
+      acceptAssignment(text, v, xsink);
+      return v.takeNode();
    }
+*/
 
    DLLLOCAL bool hasDefaultValue() const {
       if (!hasType())
@@ -704,7 +720,7 @@ public:
       return (!returns_mult && qt >= 0 && qt < NT_OBJECT) || has_defval;
    }
 
-   DLLLOCAL AbstractQoreNode *getDefaultValue() const {
+   DLLLOCAL AbstractQoreNode* getDefaultValue() const {
       if (!hasType())
          return 0;
 
@@ -740,18 +756,35 @@ public:
    }
 
    // quick function to tell if the argument may be subject to an input filter for this type
-   DLLLOCAL bool mayRequireFilter(const AbstractQoreNode *n) const {
+   DLLLOCAL bool mayRequireFilter(const QoreValue& n) const {
+      if (!hasType() || !input_filter)
+         return false;
+
+      qore_type_t nt = n.getType();
+      if (nt == NT_OBJECT && qc)
+         return qc->getID() == n.get<const QoreObject>()->getClass()->getID() ? false : true;
+
+      // only set n_is_int = true if our 'is_int' is true
+      // only perform the dynamic cast if the type is external
+      bool n_is_int = (is_int && nt == NT_INT) ? true : false;
+      if (n_is_int)
+         return qt == nt ? false : true;
+
+      return matchTypeIntern(nt, false) == QTI_IDENT ? false : true;
+   }
+
+   // quick function to tell if the argument may be subject to an input filter for this type
+   DLLLOCAL bool mayRequireFilter(const AbstractQoreNode* n) const {
       if (!hasType() || !input_filter)
          return false;
 
       qore_type_t nt = get_node_type(n);
       if (nt == NT_OBJECT && qc)
-         return qc->getID() == reinterpret_cast<const QoreObject *>(n)->getClass()->getID() ? false : true;
+         return qc->getID() == reinterpret_cast<const QoreObject*>(n)->getClass()->getID() ? false : true;
 
       // only set n_is_int = true if our 'is_int' is true
       // only perform the dynamic cast if the type is external
-      bool n_is_int = (is_int && (nt == NT_INT 
-                                  || (nt >= QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode *>(n)))) ? true : false;
+      bool n_is_int = (is_int && nt == NT_INT) ? true : false;
       if (n_is_int)
          return qt == nt ? false : true;
 
@@ -772,7 +805,7 @@ public:
          return false;
 
       if (returns_mult) {
-         const type_vec_t &rt = getReturnTypeList();
+         const type_vec_t& rt = getReturnTypeList();
 
          // return true only if none of the return types are numeric
          for (type_vec_t::const_iterator i = rt.begin(), e = rt.end(); i != e; ++i) {
@@ -785,8 +818,8 @@ public:
       return is_int || qt == NT_FLOAT || qt == NT_STRING || qt == NT_BOOLEAN || qt == NT_DATE ? false : true;
    }
 
-   DLLLOCAL void doNonNumericWarning(const char *preface) const;
-   DLLLOCAL void doNonBooleanWarning(const char *preface) const;
+   DLLLOCAL void doNonNumericWarning(const char* preface) const;
+   DLLLOCAL void doNonBooleanWarning(const char* preface) const;
 
    // returns false if there is no type or if the type can be converted to a string value, true if otherwise
    DLLLOCAL bool nonStringValue() const {
@@ -794,7 +827,7 @@ public:
          return false;
 
       if (returns_mult) {
-         const type_vec_t &rt = getReturnTypeList();
+         const type_vec_t& rt = getReturnTypeList();
 
          // return true only if none of the return types are a string
          for (type_vec_t::const_iterator i = rt.begin(), e = rt.end(); i != e; ++i) {
@@ -807,9 +840,9 @@ public:
       return is_int || qt == NT_FLOAT || qt == NT_STRING || qt == NT_BOOLEAN || qt == NT_DATE ? false : true;
    }
 
-   DLLLOCAL void doNonStringWarning(const char *preface) const;
+   DLLLOCAL void doNonStringWarning(const QoreProgramLocation& loc, const char* preface) const;
 
-   DLLLOCAL void concatName(std::string &str) const {
+   DLLLOCAL void concatName(std::string& str) const {
       if (!hasType()) {
 	 str.append(NO_TYPE_INFO);
 	 return;
@@ -821,13 +854,12 @@ public:
          concatClass(str, qc->getName());
    }
 
-   /*
-   DLLLOCAL int doAcceptError(bool priv_error, bool obj, int param_num, const char *param_name, QoreValue n, ExceptionSink *xsink) const {
+   DLLLOCAL int doAcceptError(bool priv_error, bool obj, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) const {
       if (priv_error) {
          if (obj)
-            doObjectPrivateClassException(param_name, n.getNode(), xsink);
+            doObjectPrivateClassException(param_name, n.getInternalNode(), xsink);
          else
-            doPrivateClassException(param_num + 1, param_name, n.getNode(), xsink);
+            doPrivateClassException(param_num + 1, param_name, n.getInternalNode(), xsink);
       }
       else {
          if (obj)
@@ -837,9 +869,8 @@ public:
       }
       return -1;
    }
-   */
 
-   DLLLOCAL int doAcceptError(bool priv_error, bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
+   DLLLOCAL int doAcceptError(bool priv_error, bool obj, int param_num, const char* param_name, AbstractQoreNode* n, ExceptionSink* xsink) const {
       if (priv_error) {
          if (obj)
             doObjectPrivateClassException(param_name, n, xsink);
@@ -855,32 +886,13 @@ public:
       return -1;
    }
 
-   /*
-   DLLLOCAL int doTypeException(int param_num, const char *param_name, const QoreValue& n, ExceptionSink *xsink) const {
+   DLLLOCAL int doTypeException(int param_num, const char* param_name, const QoreValue& n, ExceptionSink* xsink) const {
       // xsink may be null in case parse exceptions have been disabled in the QoreProgram object
       // for example if there was a "requires" error
       if (!xsink)
          return -1;
 
-      QoreStringNode *desc = new QoreStringNode;
-      QoreTypeInfo::ptext(*desc, param_num, param_name);
-      desc->concat("expects ");
-      getThisType(*desc);
-      desc->concat(", but got ");
-      getNodeType(*desc, n);
-      desc->concat(" instead");
-      xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
-      return -1;
-   }
-   */
-
-   DLLLOCAL int doTypeException(int param_num, const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
-      // xsink may be null in case parse exceptions have been disabled in the QoreProgram object
-      // for example if there was a "requires" error
-      if (!xsink)
-         return -1;
-
-      QoreStringNode *desc = new QoreStringNode;
+      QoreStringNode* desc = new QoreStringNode;
       QoreTypeInfo::ptext(*desc, param_num, param_name);
       desc->concat("expects ");
       getThisType(*desc);
@@ -891,9 +903,26 @@ public:
       return -1;
    }
 
-   DLLLOCAL int doTypeException(int param_num, const char *param_name, const char *n, ExceptionSink *xsink) const {
+   DLLLOCAL int doTypeException(int param_num, const char* param_name, const AbstractQoreNode* n, ExceptionSink* xsink) const {
+      // xsink may be null in case parse exceptions have been disabled in the QoreProgram object
+      // for example if there was a "requires" error
+      if (!xsink)
+         return -1;
+
+      QoreStringNode* desc = new QoreStringNode;
+      QoreTypeInfo::ptext(*desc, param_num, param_name);
+      desc->concat("expects ");
+      getThisType(*desc);
+      desc->concat(", but got ");
+      getNodeType(*desc, n);
+      desc->concat(" instead");
+      xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
+      return -1;
+   }
+
+   DLLLOCAL int doTypeException(int param_num, const char* param_name, const char* n, ExceptionSink* xsink) const {
       assert(xsink);
-      QoreStringNode *desc = new QoreStringNode;
+      QoreStringNode* desc = new QoreStringNode;
       QoreTypeInfo::ptext(*desc, param_num, param_name);
       desc->concat("expects ");
       getThisType(*desc);
@@ -909,7 +938,7 @@ protected:
    bool or_nothing;
    std::string tname;
 
-   DLLLOCAL QoreParseTypeInfo(const NamedScope *n_cscope) : or_nothing(false), cscope(n_cscope->copy()) {
+   DLLLOCAL QoreParseTypeInfo(const NamedScope* n_cscope) : or_nothing(false), cscope(n_cscope->copy()) {
       setName();
    }
 
@@ -920,11 +949,14 @@ protected:
    }
 
 public:
-   NamedScope *cscope; // namespace scope for class
+   NamedScope* cscope; // namespace scope for class
 
-   DLLLOCAL QoreParseTypeInfo(char *n_cscope, bool n_or_nothing = false) : or_nothing(n_or_nothing), cscope(new NamedScope(n_cscope)) {
+   DLLLOCAL QoreParseTypeInfo(char* n_cscope, bool n_or_nothing = false) : or_nothing(n_or_nothing), cscope(new NamedScope(n_cscope)) {
       setName();
       assert(strcmp(n_cscope, "any"));
+   }
+
+   DLLLOCAL QoreParseTypeInfo(const QoreParseTypeInfo& old) : or_nothing(old.or_nothing), tname(old.tname), cscope(old.cscope ? new NamedScope(*old.cscope) : 0) {
    }
 
    DLLLOCAL ~QoreParseTypeInfo() {
@@ -932,15 +964,15 @@ public:
    }
 
    // prototype (expecting type) should be "this"
-   // returns true if the prototype does not expect any type or the types are compatible, 
+   // returns true if the prototype does not expect any type or the types are compatible,
    // false if otherwise
-   DLLLOCAL bool parseStageOneEqual(const QoreParseTypeInfo *typeInfo) const {
+   DLLLOCAL bool parseStageOneEqual(const QoreParseTypeInfo* typeInfo) const {
       return !strcmp(cscope->getIdentifier(), typeInfo->cscope->getIdentifier());
    }
 
    // used when parsing user code to find duplicate signatures
-   DLLLOCAL bool parseStageOneIdenticalWithParsed(const QoreTypeInfo *typeInfo, bool &recheck) const {
-      bool thisnt = !this;
+   DLLLOCAL bool parseStageOneIdenticalWithParsed(const QoreTypeInfo* typeInfo, bool& recheck) const {
+      bool thisnt = !qore_check_this(this);
       bool typent = !typeInfo->hasType();
 
       if (thisnt && typent)
@@ -949,7 +981,7 @@ public:
       if (thisnt || typent)
 	 return false;
 
-      const QoreClass *qc = typeInfo->getUniqueReturnClass();
+      const QoreClass* qc = typeInfo->getUniqueReturnClass();
       if (!qc)
          return false;
 
@@ -961,8 +993,8 @@ public:
    }
 
    // used when parsing user code to find duplicate signatures
-   DLLLOCAL bool parseStageOneIdentical(const QoreParseTypeInfo *typeInfo) const {
-      bool thisnt = !this;
+   DLLLOCAL bool parseStageOneIdentical(const QoreParseTypeInfo* typeInfo) const {
+      bool thisnt = !qore_check_this(this);
       bool typent = !typeInfo;
 
       if (thisnt && typent)
@@ -975,28 +1007,28 @@ public:
    }
 
    // resolves the current type to a QoreTypeInfo pointer and deletes itself
-   DLLLOCAL const QoreTypeInfo *resolveAndDelete(const QoreProgramLocation& loc);
+   DLLLOCAL const QoreTypeInfo* resolveAndDelete(const QoreProgramLocation& loc);
 
 #ifdef DEBUG
-   DLLLOCAL const char *getCID() const { return this && cscope ? cscope->getIdentifier() : "n/a"; }
+   DLLLOCAL const char* getCID() const { return qore_check_this(this) && cscope ? cscope->getIdentifier() : "n/a"; }
 #endif
 
-   DLLLOCAL QoreParseTypeInfo *copy() const {
-      if (!this)
+   DLLLOCAL QoreParseTypeInfo* copy() const {
+      if (!qore_check_this(this))
 	 return 0;
 
       return new QoreParseTypeInfo(cscope);
    }
 
-   DLLLOCAL const char *getName() const {
-      if (!this)
+   DLLLOCAL const char* getName() const {
+      if (!qore_check_this(this))
 	 return NO_TYPE_INFO;
 
       return tname.c_str();
    }
 
-   DLLLOCAL void concatName(std::string &str) const {
-      if (!this) {
+   DLLLOCAL void concatName(std::string& str) const {
+      if (!qore_check_this(this)) {
 	 str.append(NO_TYPE_INFO);
 	 return;
       }
@@ -1009,17 +1041,17 @@ class AcceptsMultiTypeInfo : public QoreTypeInfo {
 protected:
    type_vec_t at;
 
-   DLLLOCAL virtual const type_vec_t &getAcceptTypeList() const {
+   DLLLOCAL virtual const type_vec_t& getAcceptTypeList() const {
       return at;
    }
 
 public:
-   DLLLOCAL AcceptsMultiTypeInfo(const QoreClass *n_qc, qore_type_t n_qt, bool n_returns_mult, 
-                                 bool n_input_filter = false, bool n_has_subtype = false, 
-                                 bool n_has_name = false, bool n_has_defval = false, 
+   DLLLOCAL AcceptsMultiTypeInfo(const QoreClass* n_qc, qore_type_t n_qt, bool n_returns_mult,
+                                 bool n_input_filter = false, bool n_has_subtype = false,
+                                 bool n_has_name = false, bool n_has_defval = false,
                                  bool n_is_int = false, bool n_exact_return = false,
-                                 bool n_accepts_all = false) : 
-      QoreTypeInfo(n_qc, n_qt, n_returns_mult, true, n_input_filter, n_has_subtype, n_has_name, 
+                                 bool n_accepts_all = false) :
+      QoreTypeInfo(n_qc, n_qt, n_returns_mult, true, n_input_filter, n_has_subtype, n_has_name,
                    n_has_defval, n_is_int, n_exact_return, n_accepts_all) {
    }
 };
@@ -1027,13 +1059,13 @@ public:
 class AcceptsMultiFilterTypeInfo : public AcceptsMultiTypeInfo {
 protected:
    // must be reimplemented in subclasses if input_filter is true
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const = 0;
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const = 0;
 
 public:
-   DLLLOCAL AcceptsMultiFilterTypeInfo(const QoreClass *n_qc, qore_type_t n_qt, bool n_returns_mult, bool n_has_subtype = false, 
-                                       bool n_has_name = false, bool n_has_defval = false, 
+   DLLLOCAL AcceptsMultiFilterTypeInfo(const QoreClass* n_qc, qore_type_t n_qt, bool n_returns_mult, bool n_has_subtype = false,
+                                       bool n_has_name = false, bool n_has_defval = false,
                                        bool n_is_int = false, bool n_exact_return = false,
-                                       bool n_accepts_all = false) : 
+                                       bool n_accepts_all = false) :
       AcceptsMultiTypeInfo(n_qc, n_qt, n_returns_mult, true, n_has_subtype, n_has_name,
                            n_has_defval, n_is_int, n_exact_return, n_accepts_all) {
    }
@@ -1043,42 +1075,39 @@ class AcceptsReturnsMultiFilterTypeInfo : public AcceptsMultiFilterTypeInfo {
 protected:
    type_vec_t rt;
 
-   DLLLOCAL virtual const type_vec_t &getReturnTypeList() const {
+   DLLLOCAL virtual const type_vec_t& getReturnTypeList() const {
       return rt;
    }
 
 public:
-   DLLLOCAL AcceptsReturnsMultiFilterTypeInfo(const QoreClass *n_qc, qore_type_t n_qt, bool n_has_subtype = false, 
-                                              bool n_has_name = false, bool n_has_defval = false, 
-                                              bool n_is_int = false) : 
+   DLLLOCAL AcceptsReturnsMultiFilterTypeInfo(const QoreClass* n_qc, qore_type_t n_qt, bool n_has_subtype = false,
+                                              bool n_has_name = false, bool n_has_defval = false,
+                                              bool n_is_int = false) :
       AcceptsMultiFilterTypeInfo(n_qc, n_qt, true, n_has_subtype, n_has_name, n_has_defval, n_is_int, false) {
    }
 };
 
 class FloatOrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "*float";
    }
 
-   DLLLOCAL bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_FLOAT || t == NT_NOTHING)
          return true;
 
       if (t == NT_NULL) {
-         n = &Nothing;
+         discard(n.assign((AbstractQoreNode*)0), xsink);
          return true;
       }
 
-      // only perform dynamic cast if type is external
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n)))
+      if (t != NT_INT)
          return false;
 
-      QoreFloatNode *f = new QoreFloatNode(reinterpret_cast<const QoreBigIntNode *>(n)->val);
-      n->deref(xsink);
-      n = f;
+      discard(n.assign((double)n.getAsBigInt()), xsink);
       return true;
    }
 
@@ -1100,19 +1129,16 @@ public:
 
 class FloatTypeInfo : public AcceptsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_FLOAT)
          return true;
 
-      // only perform dynamic cast if type is external
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n)))
+      if (t != NT_INT)
          return false;
 
-      QoreFloatNode *f = new QoreFloatNode(reinterpret_cast<const QoreBigIntNode *>(n)->val);
-      n->deref(xsink);
-      n = f;
+      discard(n.assign((double)n.getAsBigInt()), xsink);
       return true;
    }
 
@@ -1125,35 +1151,30 @@ public:
 
 class NumberOrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "*number";
    }
 
-   DLLLOCAL bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_NUMBER || t == NT_NOTHING)
          return true;
 
       if (t == NT_NULL) {
-         n = &Nothing;
+         discard(n.assign((AbstractQoreNode*)0), xsink);
          return true;
       }
 
       if (t == NT_FLOAT) {
-         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreFloatNode*>(n)->f);
-         n->deref(xsink);
-         n = nn;
+         discard(n.assign(new QoreNumberNode(n.getAsFloat())), xsink);
          return true;
       }
 
-      // only perform dynamic cast if type is external
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n)))
+      if (t != NT_INT)
          return false;
 
-      QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreBigIntNode *>(n)->val);
-      n->deref(xsink);
-      n = nn;
+      discard(n.assign(new QoreNumberNode(n.getAsBigInt())), xsink);
       return true;
    }
 
@@ -1177,26 +1198,22 @@ public:
 
 class NumberTypeInfo : public AcceptsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_NUMBER)
          return true;
 
       if (t == NT_FLOAT) {
-         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreFloatNode*>(n)->f);
-         n->deref(xsink);
-         n = nn;
+         discard(n.assign(new QoreNumberNode(n.getAsFloat())), xsink);
          return true;
       }
 
       // only perform dynamic cast if type is external
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode*>(n)))
+      if (t != NT_INT)
          return false;
 
-      QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreBigIntNode*>(n)->val);
-      n->deref(xsink);
-      n = nn;
+      discard(n.assign(new QoreNumberNode(n.getAsBigInt())), xsink);
       return true;
    }
 
@@ -1212,7 +1229,7 @@ public:
 class IntTypeInfo : public QoreTypeInfo {
 public:
    DLLLOCAL IntTypeInfo(qore_type_t n_qt, bool n_accepts_mult = false, bool n_input_filter = false,
-                        bool n_has_name = false, bool n_has_defval = false, bool n_exact_return = true) : 
+                        bool n_has_name = false, bool n_has_defval = false, bool n_exact_return = true) :
       QoreTypeInfo(0, n_qt, false, n_accepts_mult, n_input_filter, false, n_has_name, n_has_defval,
                    true, n_exact_return, false) {
    }
@@ -1226,15 +1243,15 @@ public:
 
 class AcceptsReturnsSameMultiTypeInfo : public AcceptsMultiTypeInfo {
 protected:
-   DLLLOCAL virtual const type_vec_t &getReturnTypeList() const {
+   DLLLOCAL virtual const type_vec_t& getReturnTypeList() const {
       return at;
    }
 
-   DLLLOCAL virtual const char *getNameImpl() const = 0;
+   DLLLOCAL virtual const char* getNameImpl() const = 0;
 
 public:
-   DLLLOCAL AcceptsReturnsSameMultiTypeInfo(const QoreClass *n_qc, qore_type_t n_qt, 
-                                            bool n_input_filter = false, bool n_has_subtype = false, 
+   DLLLOCAL AcceptsReturnsSameMultiTypeInfo(const QoreClass* n_qc, qore_type_t n_qt,
+                                            bool n_input_filter = false, bool n_has_subtype = false,
                                             bool n_is_int = false) :
       AcceptsMultiTypeInfo(n_qc, n_qt, true, n_input_filter, n_has_subtype, true, false, n_is_int) {
    }
@@ -1244,21 +1261,21 @@ class OrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
 protected:
    QoreString tname;
 
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return tname.getBuffer();
    }
 
-   DLLLOCAL bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const;
+   DLLLOCAL bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL OrNothingTypeInfo(const QoreTypeInfo &ti, const char *name) : AcceptsReturnsMultiFilterTypeInfo(ti.qc, ti.qt, ti.has_subtype, true) {
+   DLLLOCAL OrNothingTypeInfo(const QoreTypeInfo& ti, const char* name) : AcceptsReturnsMultiFilterTypeInfo(ti.qc, ti.qt, ti.has_subtype, true) {
       assert(ti.hasType());
 
       tname = "*";
       tname += name;
 
       assert(!ti.input_filter);
-      
+
       if (ti.accepts_mult)
          at = ti.getAcceptTypeList();
       else
@@ -1275,10 +1292,10 @@ public:
    }
 };
 
-// expect a ResolvedCallReferenceNode with this type 
+// expect a ResolvedCallReferenceNode with this type
 class CodeTypeInfo : public AcceptsReturnsSameMultiTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "code";
    }
 
@@ -1291,13 +1308,13 @@ public:
 
 class CodeOrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "*code";
    }
 
-   DLLLOCAL bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      if (n && n->getType() == NT_NULL)
-         n = &Nothing;
+   DLLLOCAL bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      if (n.getType() == NT_NULL)
+         discard(n.assign((AbstractQoreNode*)0), xsink);
       return true;
    }
 
@@ -1314,7 +1331,7 @@ public:
 
 class IntOrFloatTypeInfo : public AcceptsReturnsSameMultiTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "int|float";
    }
 
@@ -1327,7 +1344,7 @@ public:
 
 class IntFloatOrNumberTypeInfo : public AcceptsReturnsSameMultiTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "int|float|number";
    }
 
@@ -1341,7 +1358,7 @@ public:
 
 class FloatOrNumberTypeInfo : public AcceptsReturnsSameMultiTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "float|number";
    }
 
@@ -1355,7 +1372,7 @@ public:
 // accepts QoreStringNode or BinaryNode and passes through
 class DataTypeInfo : public AcceptsReturnsSameMultiTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "data";
    }
 
@@ -1368,13 +1385,13 @@ public:
 
 class DataOrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "*data";
    }
 
-   DLLLOCAL bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      if (n && n->getType() == NT_NULL)
-         n = &Nothing;
+   DLLLOCAL bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      if (n.getType() == NT_NULL)
+         discard(n.assign((AbstractQoreNode*)0), xsink);
       return true;
    }
 
@@ -1394,14 +1411,14 @@ public:
 // accepts int, float, number, string, date, null, or boolean and returns an int
 class SoftBigIntTypeInfo : public AcceptsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "softint";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
-      if (t == NT_INT || (t >= QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode *>(n)))
+      if (t == NT_INT)
          return true;
 
       if (t != NT_FLOAT
@@ -1412,14 +1429,12 @@ protected:
             && t != NT_NULL)
          return false;
 
-      int64 rv = n->getAsBigInt();
-      n->deref(xsink);
-      n = new QoreBigIntNode(rv);
+      discard(n.assign(n.getAsBigInt()), xsink);
       return true;
    }
 
    // must be reimplemented in subclasses if has_defval is true
-   DLLLOCAL virtual AbstractQoreNode *getDefaultValueImpl() const {
+   DLLLOCAL virtual AbstractQoreNode* getDefaultValueImpl() const {
       return zero();
    }
 
@@ -1440,19 +1455,19 @@ public:
 
 class SoftBigIntOrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "*softint";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_NULL) {
-         n = &Nothing;
+         discard(n.assign((AbstractQoreNode*)0), xsink);
          return true;
       }
 
-      if (t == NT_NOTHING || t == NT_INT || (t >= QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode *>(n)))
+      if (t == NT_NOTHING || t == NT_INT)
          return true;
 
       if (t != NT_FLOAT
@@ -1463,9 +1478,7 @@ protected:
             && t != NT_NULL)
          return false;
 
-      int64 rv = n->getAsBigInt();
-      n->deref(xsink);
-      n = new QoreBigIntNode(rv);
+      discard(n.assign(n.getAsBigInt()), xsink);
       return true;
    }
 
@@ -1487,17 +1500,17 @@ public:
 // accepts int, float, number, string, date, null, or boolean and returns a float
 class SoftFloatTypeInfo : public AcceptsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "softfloat";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_FLOAT)
          return true;
 
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
+      if (t != NT_INT
             && t != NT_NUMBER
             && t != NT_STRING
             && t != NT_BOOLEAN
@@ -1505,14 +1518,12 @@ protected:
             && t != NT_NULL)
          return false;
 
-      double rv = n->getAsFloat();
-      n->deref(xsink);
-      n = new QoreFloatNode(rv);
+      discard(n.assign(n.getAsFloat()), xsink);
       return true;
    }
 
    // must be reimplemented in subclasses if has_defval is true
-   DLLLOCAL virtual AbstractQoreNode *getDefaultValueImpl() const {
+   DLLLOCAL virtual AbstractQoreNode* getDefaultValueImpl() const {
       return zero_float();
    }
 
@@ -1529,22 +1540,22 @@ public:
 
 class SoftFloatOrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "*softfloat";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_FLOAT || t == NT_NOTHING)
          return true;
 
       if (t == NT_NULL) {
-         n = &Nothing;
+         discard(n.assign((AbstractQoreNode*)0), xsink);
          return true;
       }
 
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
+      if (t != NT_INT
             && t != NT_NUMBER
             && t != NT_STRING
             && t != NT_BOOLEAN
@@ -1552,9 +1563,7 @@ protected:
             && t != NT_NULL)
          return false;
 
-      double rv = n->getAsFloat();
-      n->deref(xsink);
-      n = new QoreFloatNode(rv);
+      discard(n.assign(n.getAsFloat()), xsink);
       return true;
    }
 
@@ -1576,34 +1585,28 @@ public:
 // accepts int, float, number, string, date, null, or boolean and returns a number
 class SoftNumberTypeInfo : public AcceptsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "softnumber";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_NUMBER)
          return true;
 
       if (t == NT_FLOAT) {
-         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreFloatNode*>(n)->f);
-         n->deref(xsink);
-         n = nn;
+         discard(n.assign(new QoreNumberNode(n.getAsFloat())), xsink);
          return true;
       }
 
       if (t == NT_STRING) {
-         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreStringNode*>(n)->getBuffer());
-         n->deref(xsink);
-         n = nn;
+         discard(n.assign(new QoreNumberNode(reinterpret_cast<const QoreStringNode*>(n.getInternalNode())->getBuffer())), xsink);
          return true;
       }
 
-      if (t == NT_INT || (t > QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode*>(n))) {
-         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreBigIntNode*>(n)->val);
-         n->deref(xsink);
-         n = nn;
+      if (t == NT_INT) {
+         discard(n.assign(new QoreNumberNode(n.getAsBigInt())), xsink);
          return true;
       }
 
@@ -1612,14 +1615,12 @@ protected:
           && t != NT_NULL)
          return false;
 
-      double rv = n->getAsFloat();
-      n->deref(xsink);
-      n = new QoreNumberNode(rv);
+      discard(n.assign(new QoreNumberNode(n.getAsFloat())), xsink);
       return true;
    }
 
    // must be reimplemented in subclasses if has_defval is true
-   DLLLOCAL virtual AbstractQoreNode *getDefaultValueImpl() const {
+   DLLLOCAL virtual AbstractQoreNode* getDefaultValueImpl() const {
       // XXX return zero_number();
       return 0;
    }
@@ -1637,39 +1638,33 @@ public:
 
 class SoftNumberOrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "*softnumber";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_NUMBER || t == NT_NOTHING)
          return true;
 
       if (t == NT_NULL) {
-         n = &Nothing;
+         discard(n.assign((AbstractQoreNode*)0), xsink);
          return true;
       }
 
       if (t == NT_FLOAT) {
-         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreFloatNode*>(n)->f);
-         n->deref(xsink);
-         n = nn;
+         discard(n.assign(new QoreNumberNode(n.getAsFloat())), xsink);
          return true;
       }
 
       if (t == NT_STRING) {
-         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreStringNode*>(n)->getBuffer());
-         n->deref(xsink);
-         n = nn;
+         discard(n.assign(new QoreNumberNode(reinterpret_cast<const QoreStringNode*>(n.getInternalNode())->getBuffer())), xsink);
          return true;
       }
 
-      if (t == NT_INT || (t > QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode*>(n))) {
-         QoreNumberNode* nn = new QoreNumberNode(reinterpret_cast<const QoreBigIntNode*>(n)->val);
-         n->deref(xsink);
-         n = nn;
+      if (t == NT_INT) {
+         discard(n.assign(new QoreNumberNode(n.getAsBigInt())), xsink);
          return true;
       }
 
@@ -1678,9 +1673,7 @@ protected:
           && t != NT_NULL)
          return false;
 
-      double rv = n->getAsFloat();
-      n->deref(xsink);
-      n = new QoreNumberNode(rv);
+      discard(n.assign(new QoreNumberNode(n.getAsFloat())), xsink);
       return true;
    }
 
@@ -1702,17 +1695,17 @@ public:
 // accepts int, float, number, string, date, null, or boolean and returns a boolean
 class SoftBoolTypeInfo : public AcceptsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "softbool";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_BOOLEAN)
          return true;
 
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
+      if (t != NT_INT
             && t != NT_FLOAT
             && t != NT_NUMBER
             && t != NT_STRING
@@ -1720,14 +1713,12 @@ protected:
             && t != NT_NULL)
          return false;
 
-      bool rv = n->getAsBool();
-      n->deref(xsink);
-      n = get_bool_node(rv);
+      discard(n.assign(n.getAsBool()), xsink);
       return true;
    }
 
    // must be reimplemented in subclasses if has_defval is true
-   DLLLOCAL virtual AbstractQoreNode *getDefaultValueImpl() const {
+   DLLLOCAL virtual AbstractQoreNode* getDefaultValueImpl() const {
       return &False;
    }
 
@@ -1744,22 +1735,22 @@ public:
 
 class SoftBoolOrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "*softbool";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_BOOLEAN || t == NT_NOTHING)
          return true;
 
       if (t == NT_NULL) {
-         n = &Nothing;
+         discard(n.assign((AbstractQoreNode*)0), xsink);
          return true;
       }
 
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
+      if (t != NT_INT
             && t != NT_NUMBER
             && t != NT_FLOAT
             && t != NT_STRING
@@ -1767,9 +1758,7 @@ protected:
             && t != NT_NULL)
          return false;
 
-      bool rv = n->getAsBool();
-      n->deref(xsink);
-      n = get_bool_node(rv);
+      discard(n.assign(n.getAsBool()), xsink);
       return true;
    }
 
@@ -1791,33 +1780,35 @@ public:
 // accepts int, float, number, string, date, bool, or null and returns a date
 class SoftDateTypeInfo : public AcceptsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "softdate";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_DATE)
          return true;
 
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode*>(n))
-          && t != NT_FLOAT
-          && t != NT_NUMBER
-          && t != NT_STRING
-          && t != NT_BOOLEAN
-          && t != NT_NULL)
+      if (t == NT_INT
+          || t == NT_BOOLEAN
+          || t == NT_FLOAT
+          || t == NT_NULL) {
+         discard(n.assign(new DateTimeNode(n.getAsBigInt())), xsink);
+         return true;
+      }
+
+      if (t != NT_NUMBER
+          && t != NT_STRING)
          return false;
 
-      DateTimeNodeValueHelper dt(n);
-      DateTimeNode *rv = dt.getReferencedValue();
-      n->deref(xsink);
-      n = rv;
+      DateTimeNodeValueHelper dt(n.getInternalNode());
+      discard(n.assign(dt.getReferencedValue()), xsink);
       return true;
    }
 
    // must be reimplemented in subclasses if has_defval is true
-   DLLLOCAL virtual AbstractQoreNode *getDefaultValueImpl() const {
+   DLLLOCAL virtual AbstractQoreNode* getDefaultValueImpl() const {
       return &False;
    }
 
@@ -1834,33 +1825,35 @@ public:
 
 class SoftDateOrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "*softdate";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_DATE || t == NT_NOTHING)
          return true;
 
       if (t == NT_NULL) {
-         n = &Nothing;
+         discard(n.assign((AbstractQoreNode*)0), xsink);
          return true;
       }
 
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
-          && t != NT_FLOAT
-          && t != NT_NUMBER
-          && t != NT_STRING
-          && t != NT_BOOLEAN
-          && t != NT_NULL)
+      if (t == NT_INT
+          || t == NT_BOOLEAN
+          || t == NT_FLOAT
+          || t == NT_NULL) {
+         discard(n.assign(new DateTimeNode(n.getAsBigInt())), xsink);
+         return true;
+      }
+
+      if (t != NT_NUMBER
+          && t != NT_STRING)
          return false;
 
-      DateTimeNodeValueHelper dt(n);
-      DateTimeNode *rv = dt.getReferencedValue();
-      n->deref(xsink);
-      n = rv;
+      DateTimeNodeValueHelper dt(n.getInternalNode());
+      discard(n.assign(dt.getReferencedValue()), xsink);
       return true;
    }
 
@@ -1882,33 +1875,39 @@ public:
 // accepts int, float, number, string, date, null, or boolean and returns a string
 class SoftStringTypeInfo : public AcceptsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "softstring";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_STRING)
          return true;
 
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
-          && t != NT_FLOAT
-          && t != NT_NUMBER
-          && t != NT_BOOLEAN
-          && t != NT_DATE
-          && t != NT_NULL)
+      if (t == NT_INT
+          || t == NT_BOOLEAN
+          || t == NT_NULL) {
+         discard(n.assign(new QoreStringNodeMaker(QLLD, n.getAsBigInt())), xsink);
+         return true;
+      }
+
+      if (t == NT_FLOAT) {
+         discard(n.assign(new QoreStringNodeMaker("%.9g", n.getAsFloat())), xsink);
+         return true;
+      }
+
+      if (t != NT_NUMBER
+          && t != NT_DATE)
          return false;
 
-      QoreStringNodeValueHelper str(n);
-      QoreStringNode *rv = str.getReferencedValue();
-      n->deref(xsink);
-      n = rv;
+      QoreStringNodeValueHelper str(n.getInternalNode());
+      discard(n.assign(str.getReferencedValue()), xsink);
       return true;
    }
 
    // must be reimplemented in subclasses if has_defval is true
-   DLLLOCAL virtual AbstractQoreNode *getDefaultValueImpl() const {
+   DLLLOCAL virtual AbstractQoreNode* getDefaultValueImpl() const {
       return &False;
    }
 
@@ -1925,33 +1924,39 @@ public:
 
 class SoftStringOrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "*softstring";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_STRING || t == NT_NOTHING)
          return true;
 
       if (t == NT_NULL) {
-         n = &Nothing;
+         discard(n.assign((AbstractQoreNode*)0), xsink);
          return true;
       }
 
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode*>(n))
-          && t != NT_FLOAT
-          && t != NT_NUMBER
-          && t != NT_BOOLEAN
-          && t != NT_DATE
-          && t != NT_NULL)
+      if (t == NT_INT
+          || t == NT_BOOLEAN
+          || t == NT_NULL) {
+         discard(n.assign(new QoreStringNodeMaker(QLLD, n.getAsBigInt())), xsink);
+         return true;
+      }
+
+      if (t == NT_FLOAT) {
+         discard(n.assign(new QoreStringNodeMaker("%.9g", n.getAsFloat())), xsink);
+         return true;
+      }
+
+      if (t != NT_NUMBER
+          && t != NT_DATE)
          return false;
 
-      QoreStringNodeValueHelper str(n);
-      QoreStringNode *rv = str.getReferencedValue();
-      n->deref(xsink);
-      n = rv;
+      QoreStringNodeValueHelper str(n.getInternalNode());
+      discard(n.assign(str.getReferencedValue()), xsink);
       return true;
    }
 
@@ -1973,27 +1978,26 @@ public:
 // accepts int or date and returns an int representing time in milliseconds
 class TimeoutTypeInfo : public AcceptsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "timeout";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
-      if (t == NT_INT || (t < QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode *>(n)))
+      if (t == NT_INT)
          return true;
 
       if (t != NT_DATE)
          return false;
 
-      int64 ms = reinterpret_cast<const DateTimeNode *>(n)->getRelativeMilliseconds();
-      n->deref(xsink);
-      n = new QoreBigIntNode(ms);
+      int64 ms = reinterpret_cast<const DateTimeNode*>(n.getInternalNode())->getRelativeMilliseconds();
+      discard(n.assign(ms), xsink);
       return true;
    }
 
    // must be reimplemented in subclasses if has_defval is true
-   DLLLOCAL virtual AbstractQoreNode *getDefaultValueImpl() const {
+   DLLLOCAL virtual AbstractQoreNode* getDefaultValueImpl() const {
       return &False;
    }
 
@@ -2005,27 +2009,26 @@ public:
 
 class TimeoutOrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "*timeout";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
-      if (t == NT_INT || t == NT_NOTHING || (t < QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode *>(n)))
+      if (t == NT_INT || t == NT_NOTHING)
          return true;
 
       if (t == NT_NULL) {
-         n = &Nothing;
+         discard(n.assign((AbstractQoreNode*)0), xsink);
          return true;
       }
 
       if (t != NT_DATE)
          return false;
 
-      int64 ms = reinterpret_cast<const DateTimeNode *>(n)->getRelativeMilliseconds();
-      n->deref(xsink);
-      n = new QoreBigIntNode(ms);
+      int64 ms = reinterpret_cast<const DateTimeNode*>(n.getInternalNode())->getRelativeMilliseconds();
+      discard(n.assign(ms), xsink);
       return true;
    }
 
@@ -2048,30 +2051,27 @@ public:
 */
 class SoftListTypeInfo : public AcceptsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return "softlist";
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
       //printd(5, "SoftListTypeInfo::acceptInputImpl() n=%p %s\n", n, get_type_name(n));
-      qore_type_t t = get_node_type(n);
+      qore_type_t t = n.getType();
 
-      if (t == NT_LIST || (t >= QORE_NUM_TYPES && dynamic_cast<const QoreListNode *>(n)))
+      if (t == NT_LIST)
          return true;
 
-      QoreListNode *l = new QoreListNode;
-      if (t == NT_NOTHING)
-         n = l;
-      else {
-         l->push(n);
-         n = l;
-      }
+      QoreListNode* l = new QoreListNode;
+      if (t != NT_NOTHING)
+         l->push(n.takeNode());
 
+      discard(n.assign(l), xsink);
       return true;
    }
 
    // must be reimplemented in subclasses if has_defval is true
-   DLLLOCAL virtual AbstractQoreNode *getDefaultValueImpl() const {
+   DLLLOCAL virtual AbstractQoreNode* getDefaultValueImpl() const {
       return new QoreListNode;
    }
 
@@ -2092,24 +2092,23 @@ protected:
       return rt;
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-      qore_type_t t = get_node_type(n);
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
+      qore_type_t t = n.getType();
 
       if (t == NT_NULL) {
-         n = &Nothing;
+         discard(n.assign((AbstractQoreNode*)0), xsink);
          return true;
       }
 
-      if (t == NT_LIST || t == NT_NOTHING || (t >= QORE_NUM_TYPES && dynamic_cast<const QoreListNode *>(n)))
+      if (t == NT_LIST || t == NT_NOTHING)
          return true;
 
-      QoreListNode *l = new QoreListNode;
-      l->push(n);
-      n = l;
-
+      QoreListNode* l = new QoreListNode;
+      l->push(n.takeNode());
+      discard(n.assign(l), xsink);
       return true;
    }
-   
+
 public:
    DLLLOCAL SoftListOrNothingTypeInfo() : SoftListTypeInfo(true) {
       rt.push_back(listTypeInfo);
@@ -2121,7 +2120,7 @@ class ReferenceTypeInfo : public QoreTypeInfo {
 protected:
    type_vec_t rt;
 
-   DLLLOCAL virtual const type_vec_t &getReturnTypeList() const {
+   DLLLOCAL virtual const type_vec_t& getReturnTypeList() const {
       return rt;
    }
 
@@ -2132,42 +2131,49 @@ public:
 };
 
 /*
-   DLLLOCAL QoreTypeInfo(const QoreClass *n_qc, qore_type_t n_qt, bool n_returns_mult,
+   DLLLOCAL QoreTypeInfo(const QoreClass* n_qc, qore_type_t n_qt, bool n_returns_mult,
                          bool n_accepts_mult, bool n_input_filter, bool n_has_subtype,
                          bool n_has_name, bool n_has_defval,
                          bool n_is_int, bool n_exact_return, bool n_accepts_all) : {}
-   DLLLOCAL AcceptsMultiTypeInfo(const QoreClass *n_qc, qore_type_t n_qt, bool n_returns_mult, 
-                                 bool n_input_filter = false, bool n_has_subtype = false, 
-                                 bool n_has_name = false, bool n_has_defval = false, 
-                                 bool n_is_int = false, bool n_exact_return = false, bool n_accepts_all = false) : 
-   DLLLOCAL AcceptsMultiFilterTypeInfo(const QoreClass *n_qc, qore_type_t n_qt, bool n_returns_mult, bool n_has_subtype = false, 
-                                       bool n_has_name = false, bool n_has_defval = false, 
-                                       bool n_is_int = false, bool n_exact_return = false, bool n_accepts_all = false) : 
+   DLLLOCAL AcceptsMultiTypeInfo(const QoreClass* n_qc, qore_type_t n_qt, bool n_returns_mult,
+                                 bool n_input_filter = false, bool n_has_subtype = false,
+                                 bool n_has_name = false, bool n_has_defval = false,
+                                 bool n_is_int = false, bool n_exact_return = false, bool n_accepts_all = false) :
+   DLLLOCAL AcceptsMultiFilterTypeInfo(const QoreClass* n_qc, qore_type_t n_qt, bool n_returns_mult, bool n_has_subtype = false,
+                                       bool n_has_name = false, bool n_has_defval = false,
+                                       bool n_is_int = false, bool n_exact_return = false, bool n_accepts_all = false) :
 */
 
 class ExternalTypeInfo : public QoreTypeInfo {
 protected:
-   const char *tname;
-   const QoreTypeInfoHelper &helper;
+   const char* tname;
+   const QoreTypeInfoHelper& helper;
    type_vec_t at;
 
-   DLLLOCAL virtual const char *getNameImpl() const {
+   DLLLOCAL virtual const char* getNameImpl() const {
       return tname;
    }
 
-   DLLLOCAL virtual const type_vec_t &getAcceptTypeList() const {
+   DLLLOCAL virtual const type_vec_t& getAcceptTypeList() const {
       return at;
    }
 
-   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+   DLLLOCAL virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const {
       return helper.acceptInputImpl(n, xsink);
+   }
+
+   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode*& v, ExceptionSink* xsink) const {
+      QoreValue n(v);
+      bool b = helper.acceptInputImpl(n, xsink);
+      v = n.takeNode();
+      return b;
    }
 
 public:
    // used for base types
-   DLLLOCAL ExternalTypeInfo(qore_type_t n_qt, const char *n_tname, const QoreTypeInfoHelper &n_helper, bool n_is_int = false, bool n_exact_return = true, bool n_accepts_all = false) : 
-      QoreTypeInfo(0, n_qt, 
-                   false, // returns_mult 
+   DLLLOCAL ExternalTypeInfo(qore_type_t n_qt, const char* n_tname, const QoreTypeInfoHelper& n_helper, bool n_is_int = false, bool n_exact_return = true, bool n_accepts_all = false) :
+      QoreTypeInfo(0, n_qt,
+                   false, // returns_mult
                    false, // accepts_mult
                    false, // input_filter
                    false, // has_subtype
@@ -2175,21 +2181,21 @@ public:
                    false, // has_defval
                    n_is_int, n_exact_return, n_accepts_all), tname(n_tname), helper(n_helper) {
       assert(tname);
-      
+
       assert(has_name);
 
       //printd(5, "ExternalTypeInfo::ExternalTypeInfo() this=%p qt=%n qc=%p name=%s\n", this, qt, qc, tname);
    }
 
    // used for classes
-   DLLLOCAL ExternalTypeInfo(const QoreClass *n_qc, const QoreTypeInfoHelper &n_helper) : QoreTypeInfo(n_qc), tname(0), helper(n_helper) {
+   DLLLOCAL ExternalTypeInfo(const QoreClass* n_qc, const QoreTypeInfoHelper& n_helper) : QoreTypeInfo(n_qc), tname(0), helper(n_helper) {
       //printd(5, "ExternalTypeInfo::ExternalTypeInfo() this=%p qt=%n qc=%p name=%s\n", this, qt, qc, qc->getName());
    }
 
    // used when assigning a base type after the fact
-   DLLLOCAL ExternalTypeInfo(const char *n_tname, const QoreTypeInfoHelper &n_helper) : 
+   DLLLOCAL ExternalTypeInfo(const char* n_tname, const QoreTypeInfoHelper& n_helper) :
       QoreTypeInfo(0, NT_NOTHING,
-                   false,  // returns_mult 
+                   false,  // returns_mult
                    false,  // accepts_mult
                    false,  // input_filter
                    false,  // has_subtype
@@ -2198,27 +2204,27 @@ public:
                    false,  // is_int
                    true,   // exact_return
                    false   // accepts_all
-         ), 
+         ),
       tname(n_tname), helper(n_helper) {
    }
    // used for assigning a class after the fact
-   DLLLOCAL ExternalTypeInfo(const QoreTypeInfoHelper &n_helper) : tname(0), helper(n_helper) {
+   DLLLOCAL ExternalTypeInfo(const QoreTypeInfoHelper& n_helper) : tname(0), helper(n_helper) {
    }
-   DLLLOCAL void assign(qore_type_t n_qt, const char *n_tname = 0) {
+   DLLLOCAL void assign(qore_type_t n_qt, const char* n_tname = 0) {
       qt = n_qt;
       if (n_tname) {
          has_name = true;
          tname = n_tname;
       }
    }
-   DLLLOCAL void assign(const QoreClass *n_qc) {
+   DLLLOCAL void assign(const QoreClass* n_qc) {
       assert(n_qc);
       qt = NT_OBJECT;
       qc = n_qc;
       assert(!tname);
       //tname = qc->getName();
    }
-   DLLLOCAL void addAcceptsType(const QoreTypeInfo *typeInfo) {
+   DLLLOCAL void addAcceptsType(const QoreTypeInfo* typeInfo) {
       assert(typeInfo);
       assert(typeInfo != this);
 
@@ -2243,8 +2249,8 @@ public:
 };
 
 // returns type info for base types
-DLLLOCAL const QoreTypeInfo *getTypeInfoForType(qore_type_t t);
+DLLLOCAL const QoreTypeInfo* getTypeInfoForType(qore_type_t t);
 // returns type info information for parse types (values)
-DLLLOCAL const QoreTypeInfo *getTypeInfoForValue(const AbstractQoreNode *n);
+DLLLOCAL const QoreTypeInfo* getTypeInfoForValue(const AbstractQoreNode* n);
 
 #endif // _QORE_QORETYPEINFO_H

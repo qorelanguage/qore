@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,11 +33,29 @@
 #include <qore/intern/QC_Program.h>
 #include <qore/intern/QC_TimeZone.h>
 #include <qore/intern/qore_program_private.h>
+#include <qore/intern/QoreObjectIntern.h>
+
+#include <qore/intern/ModuleInfo.h>
+extern QoreModuleManager QMM;
 
 /** @defgroup parse_options Parse Option Constants
     These are the possible values that can be or'ed together to set @ref Qore::Program "Program" parse options
 */
 //@{
+//! Maps from parse option code values (as string keys) to parse option names
+/** @see ParseOptionStringMap for the reverse mapping
+
+    @since %Qore 0.8.12
+ */
+const ParseOptionCodeMap = qore(pomaps.getCodeToStringMap());
+
+//! Maps from parse option strings to parse option integer codes
+/** @see ParseOptionCodeMap for the reverse mapping
+
+    @since %Qore 0.8.12
+ */
+const ParseOptionStringMap = qore(pomaps.getStringToCodeMap());
+
 //! Prohibits the use of the '$' character in variable names, method calls, and object member references
 /** This option should probably be named \c "PO_REQUIRE_BARE_REFS" as it is an error to use the \c "$" character when this option is set
 
@@ -72,7 +90,7 @@ const PO_NO_INHERIT_GLOBAL_VARS = PO_NO_INHERIT_GLOBAL_VARS;
 const PO_NO_INHERIT_USER_FUNC_VARIANTS = PO_NO_INHERIT_USER_FUNC_VARIANTS;
 
 //! Disallows changes to the warning mask
-/** 
+/**
     @see @ref lock-warnings "%lock-warnings"
 */
 const PO_LOCK_WARNINGS = PO_LOCK_WARNINGS;
@@ -92,31 +110,31 @@ const PO_LOCKDOWN = PO_LOCKDOWN;
 const PO_NEW_STYLE = PO_NEW_STYLE;
 
 //! Disallows loading @ref qore_modules "modules" with the @ref requires "%requires" directive or at runtime with load_module()
-/** 
+/**
     @see @ref no-modules "%no-modules"
 */
 const PO_NO_MODULES = PO_NO_MODULES;
 
 //! Allows child program objects to have fewer parse restrictions (i.e. more capabilies) than the parent object
-/** 
+/**
     @see @ref no-child-restrictions "%no-child-restrictions"
 */
 const PO_NO_CHILD_PO_RESTRICTIONS = PO_NO_CHILD_PO_RESTRICTIONS;
 
 //! Disallows class definitions
-/** 
+/**
     @see @ref no-class-defs "%no-class-defs"
 */
 const PO_NO_CLASS_DEFS = PO_NO_CLASS_DEFS;
 
 //! Disallows constant definitions
-/** 
+/**
     @see @ref no-constant-defs "%no-constant-defs"
 */
 const PO_NO_CONSTANT_DEFS = PO_NO_CONSTANT_DEFS;
 
 //! Disallows access to database functionality
-/** 
+/**
     @see @ref no-database "%no-database"
 */
 const PO_NO_DATABASE = PO_NO_DATABASE;
@@ -132,31 +150,31 @@ const PO_NO_EMBEDDED_LOGIC = PO_NO_EMBEDDED_LOGIC;
 const PO_NO_EXTERNAL_ACCESS = PO_NO_EXTERNAL_ACCESS;
 
 //! Disallows access to functionality that provides information about the computing environment
-/** 
+/**
     @see @ref no-external-info "%no-external-info"
 */
 const PO_NO_EXTERNAL_INFO = PO_NO_EXTERNAL_INFO;
 
 //! Disallows any access to external processes (with system(), backquote(), exec(), etc)
-/** 
+/**
     @see @ref no-external-process "%no-external-process"
 */
 const PO_NO_EXTERNAL_PROCESS = PO_NO_EXTERNAL_PROCESS;
 
 //! Disallows access to the filesystem
-/** 
+/**
     @see @ref no-filesystem "%no-filesystem"
 */
 const PO_NO_FILESYSTEM = PO_NO_FILESYSTEM;
 
 //! Disallows the use of global variables
-/** 
+/**
     @see @ref no-global-vars "%no-global-vars"
 */
 const PO_NO_GLOBAL_VARS = PO_NO_GLOBAL_VARS;
 
 //! Disallows access to functionality that draws graphics to the display
-/** @see PO_NO_TERMINAL_IO 
+/** @see PO_NO_TERMINAL_IO
     @see @ref no-gui "%no-gui"
  */
 const PO_NO_GUI = PO_NO_GUI;
@@ -169,19 +187,19 @@ const PO_NO_GUI = PO_NO_GUI;
 const PO_NO_IO = PO_NO_IO;
 
 //! Disallows access to functionality that can change locale parameters
-/** 
+/**
     @see @ref no-locale-control "%no-locale-control"
 */
 const PO_NO_LOCALE_CONTROL = PO_NO_LOCALE_CONTROL;
 
 //! Disallows new namespace definitions
-/** 
+/**
     @see @ref no-namespace-defs "%no-namespace-defs"
 */
 const PO_NO_NAMESPACE_DEFS = PO_NO_NAMESPACE_DEFS;
 
 //! Disallows access to network functionality
-/** 
+/**
     @see @ref no-network "%no-network"
 */
 const PO_NO_NETWORK = PO_NO_NETWORK;
@@ -197,55 +215,85 @@ my Mutex $m();
 const PO_NO_NEW = PO_NO_NEW;
 
 //! Disallows access to functions that would affect the current process (exit(), exec(), fork(), etc)
-/** 
+/**
     @see @ref no-process-control "%no-process-control"
 */
 const PO_NO_PROCESS_CONTROL = PO_NO_PROCESS_CONTROL;
 
 //! Disallows subroutine (function) definitions
-/** 
+/**
     @see @ref no-subroutine-defs "%no-subroutine-defs"
 */
 const PO_NO_SUBROUTINE_DEFS = PO_NO_SUBROUTINE_DEFS;
 
 //! Prohibits system classes from being imported into the new Program object
-const PO_NO_SYSTEM_CLASSES = PO_NO_SYSTEM_CLASSES;
+/** @note: PO_NO_SYSTEM_CLASSES is a synonym of this constant
+
+    @since %Qore 0.8.12 to harmonize permission names
+ */
+const PO_NO_INHERIT_SYSTEM_CLASSES = PO_NO_INHERIT_SYSTEM_CLASSES;
+
+//! Prohibits system classes from being imported into the new Program object
+/**
+    @note PO_NO_INHERIT_SYSTEM_CLASSES was added in %Qore 0.8.12 with the same value of this constant to provide a consistent naming convention for inheritance permissions
+ */
+const PO_NO_SYSTEM_CLASSES = PO_NO_INHERIT_SYSTEM_CLASSES;
 
 //! Prohibits builtin/system function variants from being imported into the new Program object
-const PO_NO_SYSTEM_FUNC_VARIANTS = PO_NO_SYSTEM_FUNC_VARIANTS;
+/** @note: PO_NO_SYSTEM_FUNC_VARIANTS is a synonym of this constant
+
+    @since %Qore 0.8.12 to harmonize permission names
+ */
+const PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS = PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS;
+
+//! Prohibits builtin/system function variants from being imported into the new Program object
+/**
+    @note PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS was added in %Qore 0.8.12 with the same value of this constant to provide a consistent naming convention for inheritance permissions
+*/
+const PO_NO_SYSTEM_FUNC_VARIANTS = PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS;
 
 //! Disallows access to reading from and/or writing to the terminal
-/** 
+/**
     @see @ref no-terminal-io "%no-terminal-io"
 */
 const PO_NO_TERMINAL_IO = PO_NO_TERMINAL_IO;
 
 //! Disallows access to any thread-control functions and thread-relevant statements and operators (for example the @ref background "background operator" and the @ref thread_exit "thread_exit statement")
-/** 
+/**
     @see @ref no-thread-control "%no-thread-control"
 */
 const PO_NO_THREAD_CONTROL = PO_NO_THREAD_CONTROL;
 
 //! Disallows access to any thread classes
-/** 
+/**
     @see @ref no-thread-classes "%no-thread-classes"
 */
 const PO_NO_THREAD_CLASSES = PO_NO_THREAD_CLASSES;
 
 //! Disallows access to functionality that provides information about threading
-/** 
+/**
     @see @ref no-thread-info "%no-thread-info"
 */
 const PO_NO_THREAD_INFO = PO_NO_THREAD_INFO;
 
 //! Disallows top level code
-/** 
+/**
     @see @ref no-top-level "%no-top-level"
 */
 const PO_NO_TOP_LEVEL_STATEMENTS = PO_NO_TOP_LEVEL_STATEMENTS;
 
 //! Prohibits user classes from being imported into the new Program object
-const PO_NO_USER_CLASSES = PO_NO_USER_CLASSES;
+/** @note: PO_NO_USER_CLASSES is a synonym of this constant
+
+    @since %Qore 0.8.12 to harmonize permission names
+ */
+const PO_NO_INHERIT_USER_CLASSES = PO_NO_INHERIT_USER_CLASSES;
+
+//! Prohibits user classes from being imported into the new Program object
+/**
+    @note PO_NO_INHERIT_USER_CLASSES was added in %Qore 0.8.12 with the same value of this constant to provide a consistent naming convention for inheritance permissions
+ */
+const PO_NO_USER_CLASSES = PO_NO_INHERIT_USER_CLASSES;
 
 //! Prohibits access to all threading information
 /** made up of @ref PO_NO_THREAD_CONTROL | @ref PO_NO_THREAD_CLASSES | @ref PO_NO_THREAD_INFO
@@ -255,12 +303,14 @@ const PO_NO_USER_CLASSES = PO_NO_USER_CLASSES;
 const PO_NO_THREADS = PO_NO_THREADS;
 
 //! mask of all parse options allowing for more freedom (instead of less)
-/** made up of only @ref PO_NO_CHILD_PO_RESTRICTIONS
+/** made up of a binary-or'ed combination of:
+    - @ref PO_NO_CHILD_PO_RESTRICTIONS
+    - @ref PO_ALLOW_INJECTION
  */
 const PO_POSITIVE_OPTIONS = PO_POSITIVE_OPTIONS;
 
 //! Requires global variables to be declared with our before use
-/** 
+/**
     @see @ref require-our "%require-our"
 */
 const PO_REQUIRE_OUR = PO_REQUIRE_OUR;
@@ -283,7 +333,7 @@ const PO_REQUIRE_PROTOTYPES = PO_REQUIRE_PROTOTYPES;
 const PO_REQUIRE_TYPES = PO_REQUIRE_TYPES;
 
 //! Prohibits access to builtin functions and methods flagged with RT_NOOP and also causes errors to be raised if excess arguments are given to functions that do not access excess arguments
-/** This option is set implicitly with @ref PO_REQUIRE_TYPES 
+/** This option is set implicitly with @ref PO_REQUIRE_TYPES
 
     @see @ref strict-args "%strict-args"
  */
@@ -295,6 +345,71 @@ const PO_STRICT_ARGS = PO_STRICT_ARGS;
     @since %Qore 0.8.6
  */
 const PO_STRICT_BOOLEAN_EVAL = PO_STRICT_BOOLEAN_EVAL;
+
+//! Allows code/dependency injections in the contained Program object
+/** @see
+    - @ref Qore::Program::importClass()
+    - @ref Qore::Program::importFunction()
+
+    @since %Qore 0.8.12
+ */
+const PO_ALLOW_INJECTION = PO_ALLOW_INJECTION;
+
+//! Prohibits user constants from being imported into the new Program object
+/** @note this does not apply to class constants
+
+    @since %Qore 0.8.12
+ */
+const PO_NO_INHERIT_USER_CONSTANTS = PO_NO_INHERIT_USER_CONSTANTS;
+
+//! Prohibits system constants from being imported into the new Program object
+/** @note this does not apply to class constants
+
+    @since %Qore 0.8.12
+ */
+const PO_NO_INHERIT_SYSTEM_CONSTANTS = PO_NO_INHERIT_SYSTEM_CONSTANTS;
+
+//! Prohibits any user code from being inherited into the Program object
+/** made up of:
+    - @ref PO_NO_INHERIT_GLOBAL_VARS
+    - @ref PO_NO_INHERIT_USER_CLASSES
+    - @ref PO_NO_INHERIT_USER_CONSTANTS
+    - @ref PO_NO_INHERIT_USER_FUNC_VARIANTS
+
+    @since %Qore 0.8.12
+ */
+const PO_NO_USER_API = PO_NO_USER_API;
+
+//! Prohibits any code from being inherited into the Program object, including the system API
+/** made up of:
+    - @ref PO_NO_INHERIT_SYSTEM_CLASSES
+    - @ref PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
+    - @ref PO_NO_INHERIT_SYSTEM_CONSTANTS
+
+    @since %Qore 0.8.12
+ */
+const PO_NO_SYSTEM_API = PO_NO_SYSTEM_API;
+
+//! Prohibits any code from being inherited into the Program object, including the system API
+/** made up of:
+    - @ref PO_NO_INHERIT_SYSTEM_CLASSES
+    - @ref PO_NO_INHERIT_SYSTEM_CONSTANTS
+    - @ref PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
+    - @ref PO_NO_INHERIT_GLOBAL_VARS
+    - @ref PO_NO_INHERIT_USER_CLASSES
+    - @ref PO_NO_INHERIT_USER_CONSTANTS
+    - @ref PO_NO_INHERIT_USER_FUNC_VARIANTS
+
+    @since %Qore 0.8.12
+ */
+const PO_NO_API = PO_NO_API;
+
+//! allows for old pre-%Qore 0.8.12 broken list rewriting in the parser
+/** @see @ref broken-list-parsing
+
+    @since %Qore 0.8.12
+*/
+const PO_BROKEN_LIST_PARSING = PO_BROKEN_LIST_PARSING;
 //@}
 
 /** @defgroup warning_constants Warning Constants
@@ -469,7 +584,7 @@ Program::constructor(softint po = PO_DEFAULT) [dom=EMBEDDED_LOGIC] {
 }
 
 //! Throws an exception to prevent objects of this class from being copied
-/** 
+/**
     @throw PROGRAM-COPY-ERROR copying Program objects is currently unsupported
  */
 Program::copy() {
@@ -514,6 +629,8 @@ while ($wh) {
     - Qore::Program::parseCommit()
     - Qore::parse()
 
+    @throw PROGRAM-PARSE-ERROR this exception is thrown if any parse actions are started while the Program object has running threads
+
     @since %Qore 0.8.7 the \a source, \a offset, and \a format_label arguments were added
  */
 *hash Program::parse(string code, string label, *softint warning_mask, *string source, *softint offset, softbool format_label = True) [dom=EMBEDDED_LOGIC] {
@@ -523,7 +640,7 @@ while ($wh) {
       ExceptionSink wsink;
       p->parse(code, &nlabel, xsink, &wsink, warning_mask, source, offset);
       if (!wsink.isException())
-         return 0;
+         return QoreValue();
 
       QoreException *e = wsink.catchException();
       return e->makeExceptionObjectAndDelete(xsink);
@@ -533,7 +650,7 @@ while ($wh) {
 }
 
 //! Parses the text passed to pending lists in the Program object; does not resolve all references or commit the code to the Program object
-/** References are resolved in the Program::parseCommit() method.  
+/** References are resolved in the Program::parseCommit() method.
 
     Program::parseCommit() must be called to resolve all references and commit the code to the Program object; until Program::parseCommit() is called, none of the code parsed by this method will be available for execution in the Program object.
 
@@ -566,6 +683,8 @@ $pgm.parseCommit();
     - Qore::Program::parseRollback()
     - Qore::parse()
 
+    @throw PROGRAM-PARSE-ERROR this exception is thrown if any parse actions are started while the Program object has running threads
+
     @since %Qore 0.8.7 the \a source, \a offset, and \a format_label arguments were added
  */
 *hash Program::parsePending(string code, string label, *softint warning_mask, *string source, *softint offset, softbool format_label = True) [dom=EMBEDDED_LOGIC] {
@@ -575,7 +694,7 @@ $pgm.parseCommit();
       ExceptionSink wsink;
       p->parsePending(code, &nlabel, xsink, &wsink, warning_mask, source, offset);
       if (!wsink.isException())
-         return 0;
+         return QoreValue();
 
       QoreException *e = wsink.catchException();
       return e->makeExceptionObjectAndDelete(xsink);
@@ -599,6 +718,8 @@ $pgm.parseCommit();
     - Qore::Program::parsePending()
     - Qore::Program::parseRollback()
     - Qore::parse()
+
+    @throw PROGRAM-PARSE-ERROR this exception is thrown if any parse actions are started while the Program object has running threads
  */
 nothing Program::parseCommit() {
    p->parseCommit(xsink);
@@ -623,19 +744,21 @@ while (exists $wh) {
     - Qore::Program::parsePending()
     - Qore::Program::parseRollback()
     - Qore::parse()
+
+    @throw PROGRAM-PARSE-ERROR this exception is thrown if any parse actions are started while the Program object has running threads
  */
 *hash Program::parseCommit(int warning_mask) {
    ExceptionSink wsink;
    p->parseCommit(xsink, &wsink, warning_mask);
    if (!wsink.isException())
-      return 0;
+      return QoreValue();
 
    QoreException *e = wsink.catchException();
    return e->makeExceptionObjectAndDelete(xsink);
 }
 
 //! Rolls back any pending code processed with Program::parsePending() that has not yet been committed to the Program object with Program::parseCommit()
-/** 
+/**
     @par Example:
     @code
 $pgm.parseRollback();
@@ -646,9 +769,11 @@ $pgm.parseRollback();
     - Qore::Program::parseCommit()
     - Qore::Program::parsePending()
     - Qore::parse()
+
+    @throw PROGRAM-PARSE-ERROR this exception is thrown if any parse actions are started while the Program object has running threads
  */
 nothing Program::parseRollback() {
-   p->parseRollback();
+   p->parseRollback(xsink);
 }
 
 //! Calls a function in the program object and returns the return value
@@ -673,11 +798,11 @@ my any $result = $pgm.callFunction("func_name", $arg1, $arg2);
 any Program::callFunction(string name, ...) {
    TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
    if (!tmp)
-      return 0;
+      return QoreValue();
 
    ReferenceHolder<QoreListNode> vargs(xsink);
    if (args->size() > 1)
-      vargs = args->copyListFrom(1);
+      vargs = args->getOldList(1);
 
    return p->callFunction(tmp->getBuffer(), *vargs, xsink);
 }
@@ -704,7 +829,7 @@ my any $result = $pgm.callFunctionArgs("func_name", ($arg1, $arg2));
 any Program::callFunctionArgs(string name, *softlist vargs) {
    TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
    if (!tmp)
-      return 0;
+      return QoreValue();
    return p->callFunction(tmp->getBuffer(), vargs, xsink);
 }
 
@@ -759,7 +884,7 @@ $pgm.importFunction("log");
 nothing Program::importFunction(string func) {
    TempEncodingHelper tmp(func, QCS_DEFAULT, xsink);
    if (!tmp)
-      return 0;
+      return QoreValue();
    qore_program_private::exportFunction(getProgram(), xsink, p, tmp->getBuffer());
 }
 
@@ -767,34 +892,40 @@ nothing Program::importFunction(string func) {
 /** This allows a user-defined API with greater capabilities than the embedded Program object to be imported into the embedded code.
 
     @param func the name of the function to import into the Program object
-    @param new_name the name of the function as it will be known in the Program object once imported
+    @param new_name the name of the function as it will be known in the Program object once imported; can be a fully-qualified namespace path, in which case the namespace path will be created in the target Program object if necessary as well (ex: \c "Ns1::Ns2::my_func")
+    @param inject if @ref Qore::True "True" then the imported function will be marked as a dependency injection and therefore will not be overritten by subsequent calls to Program::importSystemFunctions(), Program::importSystemApi(), Program::loadApplyToPrivateUserModule(), or Program::loadApplyToUserModule(); note that for this call to succeed, the Program must have @ref Qore::PO_ALLOW_INJECTION set
 
     @par Example:
     @code
 $pgm.importFunction("service_log", "log");
     @endcode
 
-    @throw FUNCTION-IMPORT-ERROR Cannot import a function into the same Program object; function with this name already exists; target namespace does not exist
+    @throw FUNCTION-IMPORT-ERROR Cannot import a function into the same Program object; function with this name already exists; target namespace does not exist; injection indicated but @ref Qore::PO_ALLOW_INJECTION not set
     @throw PROGRAM-IMPORTFUNCTION-NO-FUNCTION The function does not exist
     @throw ENCODING-CONVERSION-ERROR the function name could not be converted to the @ref default_encoding "default character encoding"
 
-    @since %Qore 0.8.4 the function name can include a namespace path (ex \c "Namespace::func")
+    @since
+    - %Qore 0.8.4 the function name can include a namespace path (ex \c "Namespace::func")
+    - %Qore 0.8.12 added the \a inject parameter
  */
-nothing Program::importFunction(string func, string new_name) {
+nothing Program::importFunction(string func, string new_name, *softbool inject) {
    TempEncodingHelper tfunc(func, QCS_DEFAULT, xsink);
    if (!tfunc)
-      return 0;
+      return QoreValue();
    TempEncodingHelper tnew_name(new_name, QCS_DEFAULT, xsink);
    if (!tnew_name)
-      return 0;
-   qore_program_private::exportFunction(getProgram(), xsink, p, tfunc->getBuffer(), tnew_name->getBuffer());
+      return QoreValue();
+   if (tnew_name->empty())
+      xsink->raiseException("FUNCTION-IMPORT-ERROR", "the new function name while importing function '%s' may not be empty", func);
+
+   qore_program_private::exportFunction(getProgram(), xsink, p, tfunc->getBuffer(), tnew_name->getBuffer(), inject);
 }
 
 //! Imports a global variable into the program object's space
 /** If the variable is an object, then any methods called from the subprogram will run in the parent's space
 
     @param varname The name of the global variable without the \c "$"
-    @param readonly If this argument is @ref True, then the variable will be imported read-only, and cannot be changed by the subprogram (note that if the imported 
+    @param readonly If this argument is @ref True, then the variable will be imported read-only, and cannot be changed by the subprogram (note that if the imported
 
     @par Example:
     @code
@@ -807,7 +938,7 @@ $pgm.importGlobalVariable("var");
 nothing Program::importGlobalVariable(string varname, bool readonly = False) {
    TempEncodingHelper tmp(varname, QCS_DEFAULT, xsink);
    if (!tmp)
-      return 0;
+      return QoreValue();
    qore_program_private::exportGlobalVariable(getProgram(), tmp->getBuffer(), readonly, p, xsink);
 }
 
@@ -815,22 +946,40 @@ nothing Program::importGlobalVariable(string varname, bool readonly = False) {
 /** This allows a user-defined API with greater capabilities than the embedded Program object to be imported into the embedded code.
 
     @param cls the name of the class to import into the Program object
+    @param new_name the name of the class in the imported Program object; can be a fully-qualified namespace path, in which case the namespace path will be created in the target Program object if necessary as well (ex: \c "Ns1::Ns2::MyClass")
+    @param inject if @ref Qore::True "True" then the imported class will be marked as a dependency injection and therefore will not be overritten by subsequent calls to Program::importSystemClasses(), Program::importSystemConstants(), Program::importSystemApi(), Program::loadApplyToPrivateUserModule(), or Program::loadApplyToUserModule(); note that for this call to succeed, the Program must have @ref Qore::PO_ALLOW_INJECTION set
 
     @par Example:
     @code
 $pgm.importClass("MyNamespace::MyClass");
     @endcode
 
-    @throw CLASS-IMPORT-ERROR Cannot import a class into the same Program object; class or namespace with this name already exists or the source class does not exist
+    @throw CLASS-IMPORT-ERROR Cannot import a class into the same Program object; class or namespace with this name already exists or the source class does not exist; injection indicated but @ref Qore::PO_ALLOW_INJECTION not set
     @throw ENCODING-CONVERSION-ERROR the class name could not be converted to the @ref default_encoding "default character encoding"
 
-    @since %Qore 0.8.7
+    @since
+    - This method was first implemented in %Qore 0.8.7
+    - %Qore 0.8.12 added the \a new_name and \a inject parameters
  */
-nothing Program::importClass(string cls) {
+nothing Program::importClass(string cls, *string new_name, *softbool inject) {
    TempEncodingHelper tmp(cls, QCS_DEFAULT, xsink);
-   if (!tmp)
-      return 0;
-   qore_program_private::importClass(*p, *(getProgram()), tmp->getBuffer(), xsink);
+   if (!tmp) {
+      assert(*xsink);
+      return QoreValue();
+   }
+
+   TempEncodingHelper nn;
+   if (new_name) {
+      nn.set(new_name, QCS_DEFAULT, xsink);
+      if (!nn) {
+         assert(*xsink);
+         return QoreValue();
+      }
+
+      if (nn->empty())
+         return xsink->raiseException("CLASS-IMPORT-ERROR", "the new class name while importing class '%s' may not be empty", cls);
+   }
+   qore_program_private::importClass(xsink, *p, *(getProgram()), tmp->getBuffer(), new_name ? nn->getBuffer() : 0, inject);
 }
 
 //! Returns a list of strings of all user functions defined in the program object
@@ -841,7 +990,7 @@ nothing Program::importClass(string cls) {
 my list $l = $pgm.getUserFunctionList();
     @endcode
  */
-list Program::getUserFunctionList() {
+softlist Program::getUserFunctionList() {
    return p->getUserFunctionList();
 }
 
@@ -874,10 +1023,8 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);
     @see Program::disableParseOptions() for a reciprocal method that disables parse options; also see Program::replaceParseOptions()
  */
 nothing Program::setParseOptions(softint opt = PO_DEFAULT) {
-   if (opt & PO_SYSTEM_OPS) {
-      xsink->raiseException("PROGRAM-OPTION-ERROR", "parse options (0x" QLLX ") contain restricted options that can only be set by the system", opt);
-      return 0;
-   }
+   if (opt & PO_SYSTEM_OPS)
+      return xsink->raiseException("PROGRAM-OPTION-ERROR", "parse options (0x" QLLX ") contain restricted options that can only be set by the system", opt);
 
    p->setParseOptions(opt, xsink);
 }
@@ -899,10 +1046,8 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);
     @see Program::setParseOptions() for a reciprocal method that enables parse options; also see Program::replaceParseOptions()
  */
 nothing Program::disableParseOptions(softint opt) {
-   if (opt & PO_SYSTEM_OPS) {
-      xsink->raiseException("PROGRAM-OPTION-ERROR", "parse options (0x" QLLX ") contain restricted options that can only be set by the system", opt);
-      return 0;
-   }
+   if (opt & PO_SYSTEM_OPS)
+      return xsink->raiseException("PROGRAM-OPTION-ERROR", "parse options (0x" QLLX ") contain restricted options that can only be set by the system", opt);
 
    p->disableParseOptions(opt, xsink);
 }
@@ -981,7 +1126,7 @@ my *string $path = $pgm.getScriptPath();
 }
 
 //! Locks parse options so that they cannot be changed
-/** 
+/**
     @par Example:
     @code
  $pgm.lockOptions();
@@ -992,7 +1137,7 @@ nothing Program::lockOptions() {
 }
 
 //! Returns a the value of the global variable identified by the first string argument
-/** 
+/**
     @param varname The string name of the global variable to find, not including the leading \c "$" character
     @param rexists An lvalue reference to a @ref bool_type to determine if the global variable exists (because this method could return @ref nothing when the variable exists as well as when it does not)
 
@@ -1007,7 +1152,7 @@ my any $val = $pgm.getGlobalVariable("error_count", \$exists);
 any Program::getGlobalVariable(string varname, *reference rexists) {
    TempEncodingHelper t(varname, QCS_DEFAULT, xsink);
    if (!t)
-      return 0;
+      return QoreValue();
 
     bool found;
     ReferenceHolder<AbstractQoreNode> rv(p->getGlobalVariableValue(t->getBuffer(), found), xsink);
@@ -1015,10 +1160,10 @@ any Program::getGlobalVariable(string varname, *reference rexists) {
     if (rexists) {
 	QoreTypeSafeReferenceHelper r(rexists, xsink);
 	if (!r)
-	    return 0;
+	    return QoreValue();
 
 	if (r.assign(get_bool_node(found), xsink))
-	    return 0;
+	    return QoreValue();
     }
 
     return rv.release();
@@ -1067,7 +1212,7 @@ nothing Program::setTimeZoneUTCOffset(softint seconds_east) {
 }
 
 //! Sets the default local time zone for the object
-/** 
+/**
     @par Example:
     @code
 my TimeZone $tz("Europe/Prague");
@@ -1104,7 +1249,7 @@ $pgm.define("PRODUCTION", True);
 nothing Program::define(string def, any val) {
    TempEncodingHelper t(def, QCS_DEFAULT, xsink);
    if (t)
-      qore_program_private::runTimeDefine(p, t->getBuffer(), val ? val->refSelf() : 0, xsink);
+      qore_program_private::runTimeDefine(p, t->getBuffer(), val.getReferencedValue(), xsink);
 }
 
 //! Unsets a @ref conditional_parsing "parse define" for the current Program
@@ -1165,10 +1310,176 @@ $pgm.loadModule("mysql");
 
     @throw LOAD-MODULE-ERROR module cannot be loaded: API incompatibility, module defines symbols already defined in the target object, etc
 
-    @see getModuleHash(), getFeatureList()
+    @see
+    - Program::loadApplyToPrivateUserModule()
+    - Program::loadApplyToUserModule()
+    - Program::loadUserModuleWithProgram()
+    - get_module_hash()
+    - get_feature_list()
 
     @since %Qore 0.8.7
 */
-Program::loadModule(string name)  [dom=MODULES] {
-   QMM.runTimeLoadModule(name->getBuffer(), p, *xsink);
+Program::loadModule(string name) [dom=MODULES] {
+   QMM.runTimeLoadModule(*xsink, name->getBuffer(), p);
+}
+
+//! Loads a %Qore user module into the Program object at run-time using the given @ref Qore::Program "Program" object as the container for the user module code
+/** This function allows a user module to be loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
+    If a feature with the same name already exists, then this feature's code is imported into the current Program object if necessary and no further action is taken.
+
+    Note that modules providing objects resolved at parse time (classes, constants, functions, etc) must be loaded prior to parsing.
+
+    @par Example:
+    @code
+$pgm.loadUserModuleWithProgram("MyModule", $p);
+    @endcode
+
+    @param name the name or path of the user module to load
+    @param pgm the @ref Qore::Program "Program" object to use as a container for the new user module, presumably this has a custom API that the user module can use; note that after this call the @ref Qore::Program "Program" object will be owned by the user module, therefore the object itself will no longer be valid and any accesses to the object after this call will result in an exception
+
+    @throw LOAD-MODULE-ERROR module cannot be loaded: binary modules cannot be loaded in @ref Qore::Program "Program" containers, module defines symbols already defined in the target object, etc
+
+    @see
+    - Program::loadApplyToPrivateUserModule()
+    - Program::loadApplyToUserModule()
+    - Program::loadModule()
+    - get_module_hash()
+    - get_feature_list()
+
+    @since %Qore 0.8.12
+*/
+Program::loadUserModuleWithProgram(string name, !Qore::Program[QoreProgram] pgm) [dom=MODULES,INJECTION] {
+   QMM.runTimeLoadModule(*xsink, name->getBuffer(), p, pgm, QMLO_INJECT);
+}
+
+//! Loads a %Qore user module into the given Program container at run-time; after this call the Program object is owned by the user module and is no longer accessible in the object used for the call
+/** This function allows a user module to be loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
+
+    @param name the name or path of the user module to load
+    @param reinject if @ref Qore::True "True" then the module will be reloaded even if already loaded previously; if the module was not already loaded then it is loaded with this call
+
+    @throw LOAD-MODULE-ERROR module cannot be loaded: binary modules cannot be loaded in @ref Qore::Program "Program" containers, etc
+
+    @note
+    - it is not an error to set the \a reinject argument to @ref Qore::True "True" when the given module has not already been loaded
+    - after this call the Program object will be owned by the user module and will no longer be valid, so any accesses to the object after this call will result in an exception
+
+    @see
+    - Program::loadApplyToPrivateUserModule()
+    - Program::loadModule()
+    - Program::loadUserModuleWithProgram()
+    - get_module_hash()
+    - get_feature_list()
+ */
+Program::loadApplyToUserModule(string name, *softbool reinject) [dom=MODULES,INJECTION] {
+   // remove the QoreProgram private data from the object
+#ifdef DEBUG
+   QoreProgram* pgm = (QoreProgram*)
+#endif
+   qore_object_private::get(*self)->getAndRemovePrivateData(CID_PROGRAM, xsink);
+#ifdef DEBUG
+   assert(pgm == p);
+#endif
+   if (!*xsink) {
+      QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, p, QMLO_INJECT | (reinject ? QMLO_REINJECT : 0));
+      self->doDelete(xsink);
+   }
+}
+
+//! Loads a %Qore user module privately into the given Program container at run-time; after this call the Program object is owned by the user module and is no longer accessible in the object used for the call
+/** This function allows a user module to be privately loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
+
+    @param name the name or path of the user module to load
+    @param reinject if @ref Qore::True "True" then the module will be reloaded even if already loaded previously
+
+    @throw LOAD-MODULE-ERROR module cannot be loaded: binary modules cannot be loaded in @ref Qore::Program "Program" containers, etc
+
+    @note
+    - after this call the Program object will be owned by the user module and will no longer be valid, so any accesses to the object after this call will result in an exception
+    - this module will not be available for use in other Program objects; this method is useful for loading modules that register themselves with an injected API in code that does not have @ref Qore::PO_ALLOW_INJECTION set or where the module's functionality should be protected from other %Qore code
+
+    @see
+    - Program::loadApplyToUserModule()
+    - Program::loadModule()
+    - Program::loadUserModuleWithProgram()
+    - get_module_hash()
+    - get_feature_list()
+ */
+Program::loadApplyToPrivateUserModule(string name) [dom=MODULES] {
+   // remove the QoreProgram private data from the object
+#ifdef DEBUG
+   QoreProgram* pgm = (QoreProgram*)
+#endif
+   qore_object_private::get(*self)->getAndRemovePrivateData(CID_PROGRAM, xsink);
+#ifdef DEBUG
+   assert(pgm == p);
+#endif
+   if (!*xsink) {
+      QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, p, QMLO_INJECT | QMLO_PRIVATE);
+      self->doDelete(xsink);
+   }
+}
+
+//! imports system classes into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES
+/** @par Example:
+    @code
+$pgm.importSystemClasses();
+    @endcode
+
+    @throw IMPORT-SYSTEM-API-ERROR objects already imported; parse options are locked on the Program object; conflicting object found; system API incorrectly imported; in case this exception is raised, the Program object will not contain the full system API and is most likely unusable
+
+    @note removes @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES from the parse option mask after a successful completion
+
+    @since %Qore 0.8.12
+*/
+Program::importSystemClasses() {
+   qore_program_private::runtimeImportSystemClasses(*p, xsink);
+}
+
+//! imports system constants into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS
+/** @par Example:
+    @code
+$pgm.importSystemConstants();
+    @endcode
+
+    @throw IMPORT-SYSTEM-API-ERROR objects already imported; parse options are locked on the Program object; conflicting object found; system API incorrectly imported; in case this exception is raised, the Program object will not contain the full system API and is most likely unusable
+
+    @note removes @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS from the parse option mask after a successful completion
+
+    @since %Qore 0.8.12
+*/
+Program::importSystemConstants() {
+   qore_program_private::runtimeImportSystemConstants(*p, xsink);
+}
+
+//! imports system functions into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
+/** @par Example:
+    @code
+$pgm.importSystemFunctions();
+    @endcode
+
+    @throw IMPORT-SYSTEM-API-ERROR objects already imported; parse options are locked on the Program object; conflicting object found; system API incorrectly imported; in case this exception is raised, the Program object will not contain the full system API and is most likely unusable
+
+    @note removes @ref Qore::PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS from the parse option mask after a successful completion
+
+    @since %Qore 0.8.12
+*/
+Program::importSystemFunctions() {
+   qore_program_private::runtimeImportSystemFunctions(*p, xsink);
+}
+
+//! imports system classes and functions into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS, @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS, and @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES
+/** @par Example:
+    @code
+$pgm.importSystemApi();
+    @endcode
+
+    @throw IMPORT-SYSTEM-API-ERROR objects already imported; parse options are locked on the Program object; conflicting object found; system API incorrectly imported; in case this exception is raised, the Program object will not contain the full system API and is most likely unusable
+
+    @note removes @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES, @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS, and @ref Qore::PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS from the parse option mask after a successful completion
+
+    @since %Qore 0.8.12
+*/
+Program::importSystemApi() {
+   qore_program_private::runtimeImportSystemApi(*p, xsink);
 }
