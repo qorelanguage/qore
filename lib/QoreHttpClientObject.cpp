@@ -545,6 +545,8 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
 }
 
 void QoreHttpClientObject::setConnectTimeout(int ms) {
+   SafeLocker sl(priv->m);
+   http_priv->connect_timeout_ms = ms < 0 ? -1 : ms;
 }
 
 int QoreHttpClientObject::getConnectTimeout() const {

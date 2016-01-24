@@ -57,7 +57,7 @@
 
 QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink *xsink) : AbstractQoreZoneInfo(n_name), first_pos(-1), valid(false), std_abbr(0) {
    printd(5, "QoreZoneInfo::QoreZoneInfo() this=%p root=%s name=%s\n", this, root.getBuffer(), name.c_str());
-   
+
    std::string fn = root.getBuffer();
    fn += "/" + name;
 
@@ -88,7 +88,7 @@ QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink 
       tzh_timecnt,           // The number of "QoreDSTTransition times" for which data is stored in the file
       tzh_typecnt,           // The number of "local time types" for which data is stored in the file (must not be zero)
       tzh_charcnt;           // The number of characters of "timezone abbreviation strings" stored in the file
-   
+
    // read in header count variables
    if (f.readu4(&tzh_ttisutccnt, xsink))
       return;
@@ -121,7 +121,7 @@ QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink 
    for (unsigned i = 0; i < tzh_timecnt; ++i) {
       if (f.readi4(&QoreDSTTransitions[i].time, xsink))
 	 return;
-      
+
       if (first_pos == -1 && QoreDSTTransitions[i].time >= 0)
          first_pos = i;
       //printd(5, "QoreZoneInfo::QoreZoneInfo() trans_time[%d]: %u\n", i, QoreDSTTransitions[i].time);
@@ -153,7 +153,7 @@ QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink 
    for (unsigned i = 0; i < tzh_typecnt; ++i) {
       if (f.readi4(&tti[i].utcoff, xsink))
 	 return;
-      
+
       //printd(5, "QoreZoneInfo::QoreZoneInfo() utcoff=%d\n", tti[i].utcoff);
 
       unsigned char c;
@@ -170,9 +170,26 @@ QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink 
       ai.push_back(c);
    }
 
-   // set QoreDSTTransition pointers
-   for (unsigned i = 0; i < tzh_timecnt; ++i) {
-      QoreDSTTransitions[i].trans = &tti[trans_type[i]];
+   // set QoreDSTTransition pointers and remove invalid bands
+   {
+      dst_transition_vec_t::iterator di = QoreDSTTransitions.begin();
+      for (unsigned i = 0; i < tzh_timecnt; ++i) {
+         QoreDSTTransition& t = *di;
+         t.trans = &tti[trans_type[i]];
+         if (di != QoreDSTTransitions.begin()) {
+            dst_transition_vec_t::iterator prev = di;
+            --prev;
+            if (t.trans->utcoff == prev->trans->utcoff) {
+               // invalid transition found
+               printd(1, "QoreZoneInfo::QoreZoneInfo() skipping invalid transition [%d] at %d\n", i, t.time);
+               QoreDSTTransitions.erase(di);
+               di = prev;
+               if (i < first_pos)
+                 --first_pos;
+            }
+         }
+         ++di;
+      }
    }
 
    // read in abbreviation list
@@ -189,7 +206,7 @@ QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink 
    // read in leap info
    leapinfo.resize(tzh_leapcnt);
    for (unsigned i = 0; i < tzh_leapcnt; ++i) {
-      if (f.readi4(&leapinfo[i].ttime, xsink) 
+      if (f.readi4(&leapinfo[i].ttime, xsink)
 	  || f.readi4(&leapinfo[i].total, xsink))
 	 return;
    }
@@ -227,11 +244,11 @@ QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink 
    }
 
 #if 0
-   for (unsigned i = 0; i < tzh_timecnt; ++i) {
+   for (unsigned i = 0; i < QoreDSTTransitions.size(); ++i) {
       DateTime d((int64)QoreDSTTransitions[i].time);
       str.clear();
       d.format(str, "Dy Mon DD YYYY HH:mm:SS");
-      QoreTransitionInfo &trans = *QoreDSTTransitions[i].trans; 
+      QoreTransitionInfo &trans = *QoreDSTTransitions[i].trans;
       DateTime local(d.getEpochSeconds() + trans.utcoff);
       QoreString lstr;
       local.format(lstr, "Dy Mon DD YYYY HH:mm:SS");
@@ -737,7 +754,7 @@ QoreWindowsZoneInfo::QoreWindowsZoneInfo(const char *n_name, ExceptionSink *xsin
 
    // set name from display name
    name = standard.getBuffer();
-   
+
    // get TZI value
    REG_TZI_FORMAT tzi;
    DWORD size = sizeof(tzi);
@@ -768,7 +785,7 @@ QoreWindowsZoneInfo::QoreWindowsZoneInfo(const char *n_name, ExceptionSink *xsin
    if (!has_dst)
       return;
 
-   if (!standard_date.wYear && !daylight_date.wYear) {      
+   if (!standard_date.wYear && !daylight_date.wYear) {
       rule = true;
       if (daylight_date.wMonth < standard_date.wMonth)
          daylight_first = true;
@@ -845,7 +862,7 @@ void QoreTimeZoneManager::init_intern(QoreString &TZ) {
       setFromLocalTimeFile();
       return;
    }
-   
+
    if (!TZ.strlen())
       return;
 
@@ -954,7 +971,7 @@ void QoreTimeZoneManager::setFromLocalTimeFile() {
               path.concat('/');
               path.concat(buf);
               //printd(5, "QoreTimeZoneManager::QoreTimeZoneManager() path: '%s'\n", path.getBuffer());
-              setLocalTZ(path.getBuffer());              
+              setLocalTZ(path.getBuffer());
            }
            else
               setLocalTZ(buf);

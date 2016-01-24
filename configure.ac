@@ -1662,7 +1662,11 @@ if test "$windows" = yes; then
   USER_MODULE_DIR="${MODULE_DIR}"
 else
   MODULE_DIR="${myprefix}/lib${LIBSUFFIX}/${mypkglibdir}"
-  if test -n "echo ${datarootdir}|grep \$"; then
+  if test -z "${datarootdir}"; then
+     datarootdir="${prefix}/share"
+     AC_SUBST([datarootdir])
+     USER_MODULE_DIR="${datarootdir}/${mypkglibdir}"
+  elif test -n "echo ${datarootdir}|grep \$"; then
      USER_MODULE_DIR="`eval echo ${datarootdir}`/${mypkglibdir}"
   else
      USER_MODULE_DIR="${datarootdir}/${mypkglibdir}"
