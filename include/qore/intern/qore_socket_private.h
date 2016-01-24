@@ -50,7 +50,7 @@
 #include <poll.h>
 #elif defined HAVE_SYS_SELECT_H && defined HAVE_SELECT
 #include <sys/select.h>
-#elif defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#elif (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
 #define HAVE_SELECT 1
 #else
 #error no async socket I/O APIs available
@@ -804,7 +804,7 @@ struct qore_socket_private {
 #if defined HAVE_POLL
    DLLLOCAL int poll_intern(int timeout_ms, bool read, const char* mname, ExceptionSink* xsink) {
       int rc;
-      pollfd fds = {sock, read ? POLLIN : POLLOUT, 0};
+      pollfd fds = {sock, (short)(read ? POLLIN : POLLOUT), 0};
       while (true) {
          rc = poll(&fds, 1, timeout_ms);
          if (rc == -1 && errno == EINTR)
