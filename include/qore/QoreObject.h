@@ -8,7 +8,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -56,7 +56,7 @@ class QoreProgram;
     objects have two levels of reference counts - one is for the existence of the c++ object (tRefs below)
     the other is for the scope of the object (the parent QoreReferenceCounter) - when this reaches 0 the
     object will have its destructor run (if it hasn't already been deleted).
-    Only when the tRef counter reaches 0, meaning that no more pointers are pointing to this object will the 
+    Only when the tRef counter reaches 0, meaning that no more pointers are pointing to this object will the
     object actually be deleted.
 
     @see QoreClass
@@ -336,45 +336,73 @@ public:
       @param args the arguments for the method (may be 0)
       @param xsink if an error occurs, the Qore-language exception information will be added here
    */
+   DLLEXPORT QoreValue evalMethodValue(const QoreString* name, const QoreListNode* args, ExceptionSink* xsink);
+
+   //! evaluates the given method with the arguments passed and returns the return value, caller owns the AbstractQoreNode (reference) returned
+   /**
+      @param name the name of the method to evaluate, must be in QCS_DEFAULT encoding
+      @param args the arguments for the method (may be 0)
+      @param xsink if an error occurs, the Qore-language exception information will be added here
+   */
+   DLLEXPORT QoreValue evalMethodValue(const char* name, const QoreListNode* args, ExceptionSink* xsink);
+
+   //! evaluates the given method with the arguments passed and returns the return value, caller owns the AbstractQoreNode (reference) returned
+   /**
+      @param name the name of the method to evaluate
+      @param args the arguments for the method (may be 0)
+      @param xsink if an error occurs, the Qore-language exception information will be added here
+
+      @deprecated use evalMethodValue() instead
+   */
    DLLEXPORT AbstractQoreNode* evalMethod(const QoreString* name, const QoreListNode* args, ExceptionSink* xsink);
 
    //! evaluates the given method with the arguments passed and returns the return value, caller owns the AbstractQoreNode (reference) returned
    /**
-      @param name the name of the method to evaluate, must be in QCS_DEFAULT encoding 
+      @param name the name of the method to evaluate, must be in QCS_DEFAULT encoding
       @param args the arguments for the method (may be 0)
       @param xsink if an error occurs, the Qore-language exception information will be added here
+
+      @deprecated use evalMethodValue() instead
    */
    DLLEXPORT AbstractQoreNode* evalMethod(const char* name, const QoreListNode* args, ExceptionSink* xsink);
 
    //! evaluates the given method with the arguments passed and returns the return value as an int64
    /**
-      @param name the name of the method to evaluate, must be in QCS_DEFAULT encoding 
+      @param name the name of the method to evaluate, must be in QCS_DEFAULT encoding
       @param args the arguments for the method (may be 0)
       @param xsink if an error occurs, the Qore-language exception information will be added here
+
+      @deprecated use evalMethodValue() instead
    */
    DLLEXPORT int64 bigIntEvalMethod(const char* name, const QoreListNode* args, ExceptionSink* xsink);
 
    //! evaluates the given method with the arguments passed and returns the return value as an int
    /**
-      @param name the name of the method to evaluate, must be in QCS_DEFAULT encoding 
+      @param name the name of the method to evaluate, must be in QCS_DEFAULT encoding
       @param args the arguments for the method (may be 0)
       @param xsink if an error occurs, the Qore-language exception information will be added here
+
+      @deprecated use evalMethodValue() instead
    */
    DLLEXPORT int intEvalMethod(const char* name, const QoreListNode* args, ExceptionSink* xsink);
 
    //! evaluates the given method with the arguments passed and returns the return value as a bool
    /**
-      @param name the name of the method to evaluate, must be in QCS_DEFAULT encoding 
+      @param name the name of the method to evaluate, must be in QCS_DEFAULT encoding
       @param args the arguments for the method (may be 0)
       @param xsink if an error occurs, the Qore-language exception information will be added here
+
+      @deprecated use evalMethodValue() instead
    */
    DLLEXPORT bool boolEvalMethod(const char* name, const QoreListNode* args, ExceptionSink* xsink);
 
    //! evaluates the given method with the arguments passed and returns the return value as a double
    /**
-      @param name the name of the method to evaluate, must be in QCS_DEFAULT encoding 
+      @param name the name of the method to evaluate, must be in QCS_DEFAULT encoding
       @param args the arguments for the method (may be 0)
       @param xsink if an error occurs, the Qore-language exception information will be added here
+
+      @deprecated use evalMethodValue() instead
    */
    DLLEXPORT double floatEvalMethod(const char* name, const QoreListNode* args, ExceptionSink* xsink);
 
@@ -384,6 +412,16 @@ public:
       @param args the arguments for the method (may be 0)
       @param xsink if an error occurs, the Qore-language exception information will be added here
    */
+   DLLEXPORT QoreValue evalMethodValue(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink);
+
+   //! evaluates the given method with the arguments passed and returns the return value, caller owns the AbstractQoreNode (reference) returned
+   /**
+      @param method the method to evaluate
+      @param args the arguments for the method (may be 0)
+      @param xsink if an error occurs, the Qore-language exception information will be added here
+
+      @deprecated use evalMethodValue() instead
+   */
    DLLEXPORT AbstractQoreNode* evalMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink);
 
    //! evaluates the given method with the arguments passed and returns the return value as an int64
@@ -391,6 +429,8 @@ public:
       @param method the method to evaluate
       @param args the arguments for the method (may be 0)
       @param xsink if an error occurs, the Qore-language exception information will be added here
+
+      @deprecated use evalMethodValue() instead
    */
    DLLEXPORT int64 bigIntEvalMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink);
 
@@ -399,6 +439,8 @@ public:
       @param method the method to evaluate
       @param args the arguments for the method (may be 0)
       @param xsink if an error occurs, the Qore-language exception information will be added here
+
+      @deprecated use evalMethodValue() instead
    */
    DLLEXPORT int intEvalMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink);
 
@@ -407,6 +449,8 @@ public:
       @param method the method to evaluate
       @param args the arguments for the method (may be 0)
       @param xsink if an error occurs, the Qore-language exception information will be added here
+
+      @deprecated use evalMethodValue() instead
    */
    DLLEXPORT bool boolEvalMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink);
 
@@ -415,6 +459,8 @@ public:
       @param method the method to evaluate
       @param args the arguments for the method (may be 0)
       @param xsink if an error occurs, the Qore-language exception information will be added here
+
+      @deprecated use evalMethodValue() instead
    */
    DLLEXPORT double floatEvalMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink);
 
@@ -431,13 +477,13 @@ public:
    */
    DLLEXPORT const QoreClass* getClass(qore_classid_t cid) const;
 
-   //! returns a pointer to the QoreClass object representing the class ID passed if it exists in the class hierarchy and sets a flag indicating if it's privately inherited or not                                                                             
-   /** if the class ID is equal to the current class or is a base class                                                        
-       of the current class, the appropriate QoreClass pointer will be                                                         
-       returned.                                                                                                               
-       @param cid the class ID of the QoreClass to find                                                                        
-       @param priv a flag indicating if the class is privately inherited or not                                                
-       @return a pointer to the QoreClass object representing the class ID passed if it exists in the class hierarchy          
+   //! returns a pointer to the QoreClass object representing the class ID passed if it exists in the class hierarchy and sets a flag indicating if it's privately inherited or not
+   /** if the class ID is equal to the current class or is a base class
+       of the current class, the appropriate QoreClass pointer will be
+       returned.
+       @param cid the class ID of the QoreClass to find
+       @param priv a flag indicating if the class is privately inherited or not
+       @return a pointer to the QoreClass object representing the class ID passed if it exists in the class hierarchy
    */
    DLLEXPORT const QoreClass* getClass(qore_classid_t cid, bool& priv) const;
 
@@ -472,7 +518,7 @@ public:
    DLLEXPORT bool isSystemObject() const;
 
    //! increments the existence reference count
-   /** Will not prolong the scope of the object (use QoreObject::ref() to prolong the scope of the object).  
+   /** Will not prolong the scope of the object (use QoreObject::ref() to prolong the scope of the object).
        To derecrement the count, call QoreObject::tDeref()
        @see QoreObject::tDeref()
        @see QoreObject::ref()
@@ -513,7 +559,7 @@ public:
    //! call this function when an object's private data is deleted externally
    /** this function will clear the private data and delete the object
        @param key the class ID of the class that owns the private data
-       @param xsink if an error occurs, the Qore-language exception information will be added here	  
+       @param xsink if an error occurs, the Qore-language exception information will be added here
    */
    DLLEXPORT void externalDelete(qore_classid_t key, ExceptionSink* xsink);
 
@@ -527,7 +573,7 @@ public:
       @param member the name of the member to get the value for (or evaluate the memberGate() method against)
       @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLLOCAL AbstractQoreNode* evalMember(const QoreString* member, ExceptionSink* xsink);
+   DLLLOCAL QoreValue evalMember(const QoreString* member, ExceptionSink* xsink);
 
    //! retuns member data of the object (or 0 if there's an exception), private members are excluded if called outside the class, caller owns the QoreHashNode reference returned
    /**
@@ -552,11 +598,7 @@ public:
       @param args the arguments for the method
       @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLLOCAL AbstractQoreNode* evalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, ExceptionSink* xsink);
-   DLLLOCAL int64 bigIntEvalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, ExceptionSink* xsink);
-   DLLLOCAL int intEvalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, ExceptionSink* xsink);
-   DLLLOCAL bool boolEvalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, ExceptionSink* xsink);
-   DLLLOCAL double floatEvalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, ExceptionSink* xsink);
+   DLLLOCAL QoreValue evalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, ExceptionSink* xsink);
 
    //! called on the old object (this) to acquire private data, copy method called with pointer to "self" (new copy)
    DLLLOCAL void evalCopyMethodWithPrivateData(const QoreClass &thisclass, const BuiltinCopyVariantBase* meth, QoreObject* self, ExceptionSink* xsink);
@@ -618,7 +660,7 @@ public:
    DLLLOCAL void execMemberNotification(const char* member, ExceptionSink* xsink);
 
    //! returns a pointer to an object member during initialization (no locking; interal use only)
-   DLLLOCAL AbstractQoreNode** getMemberValuePtrForInitialization(const char* member);   
+   DLLLOCAL AbstractQoreNode** getMemberValuePtrForInitialization(const char* member);
 };
 
 //! convenience class for holding AbstractPrivateData references

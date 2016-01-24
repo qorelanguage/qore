@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   ql_env.qpp
-  
+
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@
 */
 //@{
 //! Retrieves the value of an environment variable or @ref nothing if the variable is not set
-/** 
+/**
     @param var the name of the environment variable
 
     @return the value of an environment variable or @ref nothing if the variable is not set
@@ -57,13 +57,13 @@ my *string $v = getenv("PATH");
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing getenv() [flags=NOOP;dom=EXTERNAL_INFO] {
 }
 
 //! Sets an environment variable to a value
-/** 
+/**
     @param env the name of the environment variable
     @param val the new value of the environment variable
 
@@ -84,13 +84,13 @@ int setenv(string env, softstring val) [dom=PROCESS] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing setenv() [flags=NOOP;dom=PROCESS] {
 }
 
 //! Unsets an environment variable
-/** 
+/**
     @param env the name of the environment variable to unset
 
     @return -1 for error or 0 for success; if an error occurs, errno() and/or strerror() can be used to get the error code or message
@@ -110,7 +110,7 @@ int unsetenv(string env) [dom=PROCESS] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing unsetenv() [flags=NOOP;dom=EXTERNAL_INFO] {
 }

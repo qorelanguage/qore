@@ -1,0 +1,41 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class CreateIso88591FileTest
+
+class CreateIso88591FileTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Create ISO-8859-1 file test", "1.0") {
+        addTestCase("Test", \testCreateAndCheck());
+        set_return_value(main());
+    }
+
+    testCreateAndCheck() {
+%ifdef Windows
+        testSkip("skipping because the test is being run on Windows");
+%endif
+
+        string tmp = tmp_location();
+        string file = tmp + "/iso-8859-1.txt";
+        string str = "Öffentl. Körperschaft/\n\n";
+
+        File f = new File("ISO-8859-1");
+        f.open(file, O_WRONLY | O_CREAT);
+        f.write(str);
+        f.close();
+
+        string content = backquote('cat ' + file);
+        content = force_encoding(content, "iso-8859-1");
+
+        assertEq(str, content, "file content check");
+
+        unlink(file);
+    }
+}

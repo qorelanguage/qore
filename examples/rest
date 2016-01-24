@@ -3,7 +3,7 @@
 
 # @file rest example program for the RestClient module
 
-/*  Copyright 2013 David Nichols
+/*  Copyright 2013 - 2015 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -25,8 +25,9 @@
 */
 
 %new-style
-%strict-args
 %enable-all-warnings
+%require-types
+%strict-args
 
 %requires RestClient
 
@@ -87,7 +88,7 @@ sub main() {
         printf("ERROR: unrecognized HTTP method %y; allowed methods: %y\n", meth, Methods.keys());
         usage();
     }
-    
+
     *string url = shift ARGV;
     if (!url) {
         printf("ERROR: missing URL for REST server\n");

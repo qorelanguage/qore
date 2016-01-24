@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -64,18 +64,26 @@ class qore_hash_private {
 public:
    qhlist_t member_list;
    hm_hm_t hm;
+   unsigned obj_count;
+#ifdef DEBUG
+   bool is_obj;
+#endif
 
-   DLLLOCAL qore_hash_private() {
+   DLLLOCAL qore_hash_private() : obj_count(0)
+#ifdef DEBUG
+                                , is_obj(0)
+#endif
+   {
    }
-      
-   // hashes should always be empty by the time they are deleted 
+
+   // hashes should always be empty by the time they are deleted
    // because object destructors need to be run...
    DLLLOCAL ~qore_hash_private() {
       assert(member_list.empty());
    }
 
    DLLLOCAL int64 getKeyAsBigInt(const char* key, bool &found) const {
-      assert(key);	 
+      assert(key);
       hm_hm_t::const_iterator i = hm.find(key);
 
       if (i != hm.end()) {
@@ -88,7 +96,7 @@ public:
    }
 
    DLLLOCAL bool getKeyAsBool(const char* key, bool& found) const {
-      assert(key);	 
+      assert(key);
       hm_hm_t::const_iterator i = hm.find(key);
 
       if (i != hm.end()) {
@@ -101,12 +109,12 @@ public:
    }
 
    DLLLOCAL bool existsKey(const char* key) const {
-      assert(key);	 
+      assert(key);
       return hm.find(key) != hm.end();
    }
 
    DLLLOCAL bool existsKeyValue(const char* key) const {
-      assert(key);	 
+      assert(key);
       hm_hm_t::const_iterator i = hm.find(key);
       if (i == hm.end())
          return false;
@@ -154,41 +162,47 @@ public:
 
    DLLLOCAL void deleteKey(const char* key, ExceptionSink *xsink) {
       assert(key);
-      
+
       hm_hm_t::iterator i = hm.find(key);
-      
+
       if (i == hm.end())
          return;
 
-      qhlist_t::iterator li = i->second;      
+      qhlist_t::iterator li = i->second;
       hm.erase(i);
-      
+
       // dereference node if present
       if ((*li)->node) {
+         if (needs_scan((*li)->node))
+            incScanCount(-1);
+
          if ((*li)->node->getType() == NT_OBJECT)
             reinterpret_cast<QoreObject*>((*li)->node)->doDelete(xsink);
          (*li)->node->deref(xsink);
       }
-      
+
       internDeleteKey(li);
    }
 
    // removes the value and dereferences it, without performing a delete on it
    DLLLOCAL void removeKey(const char* key, ExceptionSink *xsink) {
       assert(key);
-      
+
       hm_hm_t::iterator i = hm.find(key);
-      
+
       if (i == hm.end())
          return;
-      
-      qhlist_t::iterator li = i->second;      
+
+      qhlist_t::iterator li = i->second;
       hm.erase(i);
-      
+
       // dereference node if present
-      if ((*li)->node)
+      if ((*li)->node) {
+         if (needs_scan((*li)->node))
+            incScanCount(-1);
          (*li)->node->deref(xsink);
-      
+      }
+
       internDeleteKey(li);
    }
 
@@ -196,24 +210,28 @@ public:
       assert(key);
 
       hm_hm_t::iterator i = hm.find(key);
-      
+
       if (i == hm.end())
          return 0;
-      
-      qhlist_t::iterator li = i->second;      
+
+      qhlist_t::iterator li = i->second;
       hm.erase(i);
-      
+
       AbstractQoreNode *rv = (*li)->node;
       internDeleteKey(li);
+
+      if (needs_scan(rv))
+         incScanCount(-1);
+
       return rv;
    }
 
    DLLLOCAL const char* getFirstKey() const  {
-      return member_list.empty() ? 0 : member_list.front()->key.c_str(); 
+      return member_list.empty() ? 0 : member_list.front()->key.c_str();
    }
-   
+
    DLLLOCAL const char* getLastKey() const {
-      return member_list.empty() ? 0 : member_list.back()->key.c_str(); 
+      return member_list.empty() ? 0 : member_list.back()->key.c_str();
    }
 
    DLLLOCAL QoreListNode* getKeys() const {
@@ -268,6 +286,7 @@ public:
 
       member_list.clear();
       hm.clear();
+      obj_count = 0;
       return true;
    }
 
@@ -283,10 +302,25 @@ public:
       return member_list.empty();
    }
 
-   DLLLOCAL static AbstractQoreNode* getFirstKeyValue(const QoreHashNode* h) { 
+   DLLLOCAL void incScanCount(int dt) {
+      assert(dt);
+      assert(obj_count || dt > 0);
+      //printd(5, "qore_hash_private::incScanCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
+      obj_count += dt;
+   }
+
+   DLLLOCAL static unsigned getScanCount(const QoreHashNode& h) {
+      return h.priv->obj_count;
+   }
+
+   DLLLOCAL static void incScanCount(const QoreHashNode& h, int dt) {
+      h.priv->incScanCount(dt);
+   }
+
+   DLLLOCAL static AbstractQoreNode* getFirstKeyValue(const QoreHashNode* h) {
       return h->priv->member_list.empty() ? 0 : h->priv->member_list.front()->node;
-   }  
-   
+   }
+
    DLLLOCAL static AbstractQoreNode* getLastKeyValue(const QoreHashNode* h) {
       return h->priv->member_list.empty() ? 0 : h->priv->member_list.back()->node;
    }

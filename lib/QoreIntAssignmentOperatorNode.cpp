@@ -3,7 +3,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,38 +30,13 @@
 
 #include <qore/Qore.h>
 
-AbstractQoreNode *QoreIntAssignmentOperatorNode::evalImpl(ExceptionSink *xsink) const {
-   int64 rv = QoreIntAssignmentOperatorNode::bigIntEvalImpl(xsink);
-   if (!ref_rv || *xsink)
-      return 0;
-
-   return new QoreBigIntNode(rv);
-}
-
-AbstractQoreNode *QoreIntAssignmentOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = ref_rv;
-   return QoreIntAssignmentOperatorNode::evalImpl(xsink);
-}
-
-int64 QoreIntAssignmentOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const {
+QoreValue QoreIntAssignmentOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    int64 rv = right->bigIntEval(xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
    LValueHelper v(left, xsink);
    if (*xsink)
-      return 0;
-   v.assignBigInt(rv, "<+= operator>");
+      return QoreValue();
+   v.assign(rv, "<+= operator>");
    return rv;
-}
-
-int QoreIntAssignmentOperatorNode::integerEvalImpl(ExceptionSink *xsink) const {
-   return QoreIntAssignmentOperatorNode::bigIntEvalImpl(xsink);
-}
-
-double QoreIntAssignmentOperatorNode::floatEvalImpl(ExceptionSink *xsink) const {
-   return QoreIntAssignmentOperatorNode::bigIntEvalImpl(xsink);
-}
-
-bool QoreIntAssignmentOperatorNode::boolEvalImpl(ExceptionSink *xsink) const {
-   return QoreIntAssignmentOperatorNode::bigIntEvalImpl(xsink);
 }

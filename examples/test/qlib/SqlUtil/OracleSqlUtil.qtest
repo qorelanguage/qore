@@ -1,0 +1,170 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/SqlUtil.qm
+%requires ../../../../qlib/BulkSqlUtil.qm
+%requires ../../../../qlib/OracleSqlUtil.qm
+%requires ../../../../qlib/Schema.qm
+
+%requires ./SqlUtilTestBase.qm
+#/;
+
+%try-module oracle
+%define NoOracle
+%endtry
+
+%exec-class OracleTest
+
+class OracleTestSchema inherits SqlUtilTestSchema {
+    public {
+        const SchemaName = "OracleTestSchema";
+        const SchemaVersion = "1.0";
+    }
+
+    private {
+        const GenericOptions = (
+            "replace": True,
+            );
+
+        const IndexOptions = {};
+
+        const ColumnOptions = {};
+
+        const T_OracleTest = (
+            "columns": (
+                "id": c_number(14, True),
+            ),
+            "indexes": (
+                "pk_freetds_test": ("columns": ("id"), "unique": True),
+            ),
+            "primary_key": ("name": "pk_oracle_test", "columns": ("id")),
+            );
+
+        const Tables = (
+            "oracle_test": T_OracleTest,
+            );
+    }
+
+    constructor(AbstractDatasource ds, *string dts, *string its) :  SqlUtilTestSchema(ds, dts, its) {
+    }
+
+    private string getNameImpl() {
+        return SchemaName;
+    }
+
+    private string getVersionImpl() {
+        return SchemaVersion;
+    }
+
+    private *hash getTablesImpl() {
+        hash tables = Tables;
+        # add custom columns to oracle_test
+        foreach hash h in (OracleTest::CustomColumns.pairIterator()) {
+            hash ch = (
+                "native_type": h.key,
+                "notnull": True,
+                );
+            if (h.value.typeCode() == NT_HASH)
+                ch += (h.value - ("value", "bind"));
+            tables.oracle_test.columns{SqlTestBase::getColumnName(h.key)} = ch;
+        }
+        return tables;
+    }
+
+    private *hash getIndexOptionsImpl() {
+        return IndexOptions;
+    }
+
+    private *hash getGenericOptionsImpl() {
+        return GenericOptions;
+    }
+
+    private *hash getColumnOptionsImpl() {
+        return ColumnOptions;
+    }
+}
+
+class OracleTest inherits SqlTestBase {
+    public {
+        const CustomColumns = (
+            "varchar2": (
+                "value": "hello",
+                "size": "20",
+            ),
+            "char": (
+                "value": "hello",
+                "size": "20",
+            ),
+            "number": (
+                "size": 15,
+                "scale": 2,
+                "value": 400.95n,
+                ),
+            "date": 2016-01-11,
+            "timestamp": 2016-01-11T09:26:14.502134,
+            "timestamp with time zone": 2016-01-11T09:26:14.502134,
+            "timestamp with local time zone": 2016-01-11T09:26:14.502134,
+            #"interval year to month": 2Y + 6M,
+            #"interval day to second": 2D + 3h + 4m + 1s,
+            "clob": "test",
+            "blob": <bead>,
+            "binary_float": 1.1,
+            "binary_double": 1.1,
+            #raw
+            #bfile
+            #long
+            );
+    }
+
+    constructor() : SqlTestBase("OracleTest", "1.0", \ARGV, MyOpts) {
+        Datasource ds;
+        try {
+            ds = getDatasource();
+        }
+        catch (hash ex) {
+            if (m_options.verbose)
+                printf("%s: %s\n", ex.err, ex.desc);
+            # skip tests if we can't create the datasource
+        }
+
+        if (ds) {
+            foreach hash h in (CustomColumns.pairIterator()) {
+                any val = h.value.typeCode() == NT_HASH ? h.value.value : h.value;
+                row{OracleTest::getColumnName(h.key)} = val;
+            }
+            insert_data = (("id": 1,) + row, ("id": 2,) + row,);
+            upsert_data = (("id": 2,) + row, ("id": 3,) + row,);
+
+            # create the test schema
+            schema = new OracleTestSchema(ds);
+
+            schema.align(False, m_options.verbose);
+
+            # get table object
+            table = (new Table(schema.getDatasource(), "oracle_test")).getTable();
+        }
+
+        set_return_value(main());
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"oracle:user/pass@db\")", OptionColumn);
+    }
+
+    Datasource getDatasource() {
+        if (!m_options.connstr)
+            m_options.connstr = ENV.QORE_DB_CONNSTR_ORACLE ?? "oracle:omquser/omquser@xbox";
+        Datasource ds(m_options.connstr);
+        if (ds.getDriverName() != "oracle")
+            throw "ORACLE-ERROR", sprintf("cannot execute the oracle tests on a connection using driver %y", ds.getDriverName());
+        ds.open();
+        return ds;
+    }
+}

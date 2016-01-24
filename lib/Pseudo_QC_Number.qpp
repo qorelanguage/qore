@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -52,12 +52,12 @@ const NF_Raw = QORE_NF_RAW;
 //@}
 
 //! Methods in this pseudo-class can be executed on @ref number "arbitrary precision number values"
-/** 
+/**
  */
-qclass <number> [arg=const QoreNumberNode* n;vparent=<value>];
+qclass <number> [arg=const QoreNumberNode* n = v.get<const QoreNumberNode>();vparent=<value>];
 
 //! Returns Qore::NT_NUMBER
-/** 
+/**
     @return Qore::NT_NUMBER
 
     @par Example:
@@ -76,7 +76,7 @@ int <number>::typeCode() [flags=CONSTANT] {
 }
 
 //! Returns @ref True if the number is non-zero, @ref False if zero
-/** 
+/**
     @return @ref True if the number is non-zero, @ref False if zero
 
     @par Example:

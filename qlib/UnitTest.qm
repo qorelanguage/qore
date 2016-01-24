@@ -1,0 +1,486 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file UnitTest.qm Qore user module for automatic testing
+
+/*  UnitTest.qm Copyright 2012 - 2015 Qore Technologies, sro
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 0.8.12
+%new-style
+
+%try-module xml
+%define NO_XML
+%endtry
+
+module UnitTest {
+    version = "0.1";
+    desc = "user module for unit testing";
+    author = "Petr Vanek <petr@yarpen.cz>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+/* see release notes below for version history
+*/
+
+/** @mainpage UnitTest Module
+
+@tableofcontents
+
+    @section unittestintro Introduction to the UnitTest Module
+
+    The %UnitTest module provides functionality for automatic testing.
+
+    To use this module, use \c "%requires UnitTest" in your code.
+
+    <b>Examples:</b>
+    @code
+#!/usr/bin/env qore
+%requires UnitTest
+%requires Util
+%requires Cow # module that we want to test
+%exec-class TestCow
+
+class TestCow inherits UnitTest {
+    constructor() {
+        string testfile = tmp_location() + '/test.txt';
+        # some processing
+        unlink(testfile);
+
+        cmp(Cow.sound(), 'moo', "cow's sound is correct");
+
+        ok(Cow.hasFourLegs(), "number of cow's legs correct");
+
+        like(Cow.sound(), 'moo+', "cow's sound is correct");
+
+        sub fly (string animal) {
+            if (animal === "cow") {
+                throw 'UNABLE-FLY', 'cow cannot fly'
+            }
+        }
+
+                exception(\fly(), ('cow'), 'invoked exception when cow trying to fly', UNABLE-FLY, 'cow cannot fly');
+
+        cmploop(
+            \eat(),
+            (
+                (
+                    "args" : ("grass"),
+                    "cmp"  : True,
+                    "msg"  : "cow can eat grass",
+                ),
+                (
+                    "args" : ("itself"),
+                    "cmp"  : False,
+                    "msg"  : "cow cannot eat itself",
+                ),
+            ),
+        );
+    }
+}
+    @endcode
+
+    @subsection unittestsrun How to run tests
+
+    Suppose that you created some file test.qtest with automatic tests.
+    Following command invokes them:
+
+    @verbatim
+    qore test.qtest [OPTIONS]
+    @endverbatim
+
+    Options table:
+
+    @subsection unittestformats Supported output formats of test reports
+
+    Currently the module provides the following output formats:
+    - Plaintext - human readable format for manually invoked test runs
+    - JUnit - machine readable format for further processing
+
+    Plaintext format also supports verbose mode which reports also passing
+    tests.
+
+    @section unittest_relnotes Release Notes
+
+    @subsection unittest_v0_1 Version 0.1
+    - initial version of module
+*/
+
+#! the UnitTest namespace contains all the definitions in the UnitTest module
+public namespace UnitTest {
+
+    public const QUIET = 0;
+    public const PLAIN = 1;
+    public const JUNIT = 2;
+
+    public const OUT_TYPES = (
+        "quiet" : QUIET,
+        "plain" : PLAIN,
+        "junit" : JUNIT,
+        );
+}
+
+#! Base class that exports functions for unit testing. For realworld examples see @ref unittestintro.
+public class UnitTest::UnitTest {
+    private {
+        list m_results = list();
+        int m_output;
+
+        hash m_options;
+
+        # A map of print methods, categorised into three types: header, summary, testreport, log
+        hash m_printMethods;
+    }
+
+    public {
+        const Opts = (
+            "help"    : "help,h",
+            "verbose" : "verbose,v",
+            "quiet"   : "quiet,q",
+            "iters"   : "iters,i=i",
+            "threads" : "threads,t=i",
+            "format"  : "format=s",
+        );
+    }
+
+    private usage() {
+        printf("usage: %s [options]
+ -h,--help         this help text
+ -t,--threads=ARG  runs tests in ARG threads
+ -i,--iters=ARGS   run tests with this many iterations
+    --format=type  output format [default: quiet]
+        Format descriptions:
+            quiet      ... only print failed tests and a summary at the end
+            plain      ... print a status for each test performed
+            junit      ... print a junit xml output
+ -v.--verbose      shorthand for --format=plain
+ -q.--quiet        shorthand for --format=quiet
+
+", get_script_name());
+
+        map printf("    %s\n", $1), keys OUT_TYPES;
+        exit(1);
+    }
+
+    private processOptions(reference p_argv) {
+        if (m_options.help)
+            usage();
+
+        if (m_options.verbose && m_options.quiet && m_options.format) {
+            printf("Please only select one format type\n");
+            exit(1);
+        }
+
+        if (p_argv) {
+            printf("error, excess arguments on command-line\n");
+            usage();
+        }
+
+        if (!m_options.iters)
+            m_options.iters = 1;
+        if (!m_options.threads)
+            m_options.threads = 1;
+
+        if (m_options.format) {
+            if (!exists OUT_TYPES{m_options.format})
+                throw "UNIT-TEST-ERROR", sprintf("Unknown output format: %s", m_options.format);
+            m_output = OUT_TYPES{m_options.format};
+        } else if (m_options.quiet) {
+            m_output = QUIET;
+        } else if (m_options.verbose) {
+            m_output = PLAIN;
+        } else {
+            # Default
+            m_output = QUIET;
+        }
+    }
+
+    constructor(*reference p_argv, hash opts = Opts) {
+        if (!p_argv)
+            p_argv = ARGV;
+        m_options = new GetOpt(opts).parse2(\p_argv);
+        processOptions(\p_argv);
+
+        # A map of print methods, categorised into three types: header, summary, testreport
+        m_printMethods = (
+            QUIET: (
+                "header" : \self.printPlaintextHeader(),
+                "testreport" : \self.printPlaintextOneTest(),
+                "summary" : \self.printPlaintextSummary(),
+            ),
+            PLAIN: (
+                "header" : \self.printPlaintextHeader(),
+                "testreport" : \self.printPlaintextOneTest(),
+                "summary" : \self.printPlaintextSummary(),
+                "print" : \self.printSimpleLog(),
+            ),
+            JUNIT: (
+                "summary" : \self.printJunitSummary(),
+            )
+        );
+
+        printHeader();
+    }
+
+    destructor() {
+        printSummary();
+        # Return the number of errors as exit code, as >0 means failure in unix terms.
+        int nerrs = errors();
+        if (nerrs)
+            exit(nerrs);
+    }
+
+    private callPrinterFunction(string type, list args) {
+        *code c = m_printMethods{m_output}{type};
+        if (c) {
+            call_function_args(c, args);
+        }
+    }
+
+    private printHeader() { callPrinterFunction("header", list()); }
+    private printSummary() { callPrinterFunction("summary", list()); }
+    private printTestReport(hash testcase) { callPrinterFunction("testreport", (testcase,)); }
+    public printLog(string text) { callPrinterFunction("print", (text,)); }
+
+    private printPlaintextHeader() {
+        printf("QORE v%s Test Script (%d thread%s, %d iteration%s per thread)\n",
+            Qore::VersionString,
+            m_options.threads,
+            m_options.threads == 1 ? "" : "s",
+            m_options.iters,
+            m_options.iters == 1 ? "" : "s"
+        );
+    }
+
+    private printPlaintextSummary() {
+        printf("%d tests started, %d failed\n", testCount(), errors());
+    }
+
+    private printPlaintextOneTest(hash testcase) {
+        if (m_output == QUIET && testcase.result) {
+            return;
+        }
+        printf("%s: %s\n", testcase.result ? "OK" : "ERROR", testcase.msg);
+        if (m_options.verbose && !testcase.result) {
+            printf("-----\n%s\n-----\n", testcase.detail);
+        }
+    }
+
+    private printSimpleLog(string text) {
+        printf("%s\n", text);
+    }
+
+    private printJunitSummary() {
+%ifdef NO_XML
+        stderr.printf("No XML module found. Use --format=plain instead\n");
+        exit(1);
+%else
+        hash junit;
+        junit.testsuites."^attributes^" = ( "errors" : errors(),
+                                            "tests"  : testCount(),
+                                          );
+        junit.testsuites.testcase = list();
+
+        ListIterator it(m_results);
+        while (it.next()) {
+             hash testcase;
+             if (it.getValue().result) {
+                 testcase."^attributes^" = ( "name" : it.getValue().msg, "status" : "OK" );
+             }
+             else {
+                 testcase."^attributes^" = ( "name" : it.getValue().msg, "status" : "ERROR" );
+                 testcase.error."^attributes^" = ( "message" : it.getValue().detail, "type" : "ERROR" );
+             }
+             push junit."testsuites"."testcase", testcase;
+        }
+
+        printf("%s\n", makeFormattedXMLString(junit));
+%endif
+    }
+
+
+    int errors() {
+        int errs = 0;
+        ListIterator it(m_results);
+        while (it.next()) {
+            if (!it.getValue(){"result"}) {
+                errs++;
+            }
+        }
+        return errs;
+    }
+
+    int testCount() {
+        int tot = 0;
+        ListIterator it(m_results);
+        while (it.next()) {
+            tot++;
+        }
+        return tot;
+    }
+
+    private addTestResult(string name, bool success, *string detail) {
+        hash testcase = ("msg": name, "result": success, "detail": detail);
+
+        printTestReport(testcase);
+
+        push m_results, testcase;
+    }
+
+    #! Performs a compare test
+    /** @param v1 result of tested function
+        @param v2 expected value
+        @param msg test message that will be printed
+        @param detail Only for internal use: chainer reason for failure
+        @par Example:
+        @code
+test_id = cmp(Cow.sound(), 'moo', "cow's sound is correct");
+        @endcode
+    */
+    int cmp(any v1, any v2, string msg, string detail) {
+        bool result = (v1 === v2);
+
+        addTestResult(msg, result, detail);
+
+        return elements m_results - 1;
+    }
+
+    #! Performs a compare test
+    /** @param v1 result of tested function
+        @param v2 expected value
+        @param msg test message that will be printed
+        @par Example:
+        @code
+test_id = cmp(Cow.sound(), 'moo', "cow's sound is correct");
+        @endcode
+    */
+    int cmp(any v1, any v2, string msg) {
+        return cmp(v1, v2, msg, sprintf("%N != %N", v1, v2));
+    }
+
+    #! Performs an OK test
+    /** @param v result of some statement
+        @param msg test message that will be printed
+        @par Example:
+        @code
+ok(Cow.hasFourLegs(), "number of cow's legs correct");
+        @endcode
+    */
+    int ok(softbool v, string msg) {
+        return cmp(v, True, msg);
+    }
+
+    #! Performs an OK test
+    /** @param v result of some statement
+        @param msg test message that will be printed
+        @param detail Only for internal use: chained reason for failure
+        @par Example:
+        @code
+ok(Cow.hasFourLegs(), "number of cow's legs correct");
+        @endcode
+    */
+    int ok(softbool v, string msg, string detail) {
+        return cmp(v, True, msg, detail);
+    }
+
+    #! Performs a LIKE test
+    /** @param str result fo some operation
+        @param regex a regexp that expected value should match
+        @param msg test message that will be printed
+        @par Example:
+        @code
+like(Cow.sound(), 'moo+', "cow's sound is correct");
+        @endcode
+    */
+    int like(string str, string regex, string msg) {
+        bool match = str.regex(regex);
+        string msgstr = "#     string: " + str + "\n not match: " + regex;
+        string detail = regex_subst(msgstr, "\n(?=.)", "\n# ");
+        return ok(match, msg, detail);
+    }
+
+    #! Performs a test for exception
+    /** @param f tested function
+        @param params params for tested function
+        @param msg test message that will be printed
+        @param err exception code
+        @param regex a regexp that expected exception desc value of callref with given params should match
+        @par Example:
+        @code
+sub fly (string animal) {
+    if (animal === "cow") {
+        throw 'UNABLE-FLY', 'cow cannot fly'
+    }
+}
+
+exception(\fly(), ('cow'), 'invoked exception when cow trying to fly', UNABLE-FLY, 'cow cannot fly');
+        @endcode
+    */
+    int exception(callref f, *softlist params, string msg, string err, *string regex) {
+        try {
+            call_function_args(f, params);
+        }
+        catch (ex) {
+            cmp(err, ex.err, msg + ' (err check)');
+            if (exists regex) {
+                like(ex.desc, regex, msg + ' (desc check)');
+            }
+            return 2;
+        }
+        string detail = '# found normal exit instead of exception';
+        return ok(0, msg, detail);
+    }
+
+    #! Performs a serie of batched CMP tests
+    /** @param f tested function
+        @param testcases testcases
+
+        each testcase is a hash with folowing parameters:
+        * list of arguments for tested function
+        * expected value returned from the tested function
+        * test message for this particular testcase
+        @par Example:
+        @code
+cmploop(
+    \eat(),
+    (
+        (
+            "args" : ("grass"),
+            "cmp"  : True,
+            "msg"  : "cow can eat grass",
+        ),
+        (
+            "args" : ("itself"),
+            "cmp"  : False,
+            "msg"  : "cow cannot eat itself",
+        ),
+    ),
+);
+        @endcode
+    */
+    cmploop(callref f, list testcases) {
+        foreach hash testcase in (testcases) {
+            list args = testcase.args;
+            any bak = call_function_args(f, args);
+            cmp(bak, testcase.cmp, testcase.msg);
+        }
+    }
+}

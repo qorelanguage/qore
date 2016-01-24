@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,9 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/qore_qf_private.h>
+
+#include <errno.h>
 
 class FileLineIterator : public QoreIteratorBase, public QoreFile {
 protected:
@@ -37,6 +40,7 @@ protected:
    int64 num;
    bool validp;
    bool trim;
+   bool convert_to_utf8;
 
    DLLLOCAL ~FileLineIterator() {
       if (eol)
@@ -47,13 +51,13 @@ protected:
 
 public:
    DLLLOCAL FileLineIterator(ExceptionSink* xsink, const char* name, const QoreEncoding* enc = QCS_DEFAULT, QoreStringNode* n_eol = 0, bool n_trim = true)
-   : QoreFile(enc), line(new QoreStringNode(enc)), eol(n_eol), num(0), validp(false), trim(n_trim) {
+      : QoreFile(enc), line(new QoreStringNode(enc->isAsciiCompat() ? enc : QCS_UTF8)), eol(n_eol), num(0), validp(false), trim(n_trim), convert_to_utf8(!enc->isAsciiCompat()) {
       if (open(name, O_RDONLY, 0, enc))
          xsink->raiseErrnoException("FILELINEITERATOR-OPEN-ERROR", errno, "cannot open '%s'", name);
    }
 
    DLLLOCAL FileLineIterator(ExceptionSink* xsink, const FileLineIterator& old)
-      : QoreFile(old.getEncoding()), line(new QoreStringNode(old.getEncoding())), eol(old.eol ? old.eol->stringRefSelf() : 0), num(old.num), validp(old.validp), trim(old.trim) {
+      : QoreFile(old.getEncoding()), line(new QoreStringNode(old.getEncoding())), eol(old.eol ? old.eol->stringRefSelf() : 0), num(old.num), validp(old.validp), trim(old.trim), convert_to_utf8(old.convert_to_utf8) {
       // reopen file
       std::string fn = old.getFileNameStr();
       if (open(fn.c_str(), O_RDONLY, 0, old.getEncoding()))
@@ -68,9 +72,13 @@ public:
       // make sure and use a new string if the iterator was already valid
       if (validp) {
          line->deref();
-         line = new QoreStringNode(getEncoding());
+         line = new QoreStringNode(convert_to_utf8 ? QCS_UTF8 : getEncoding());
       }
-      validp = eol ? !readUntil(eol->getBuffer(), *line, !trim) : !readLine(*line, !trim);
+      if (convert_to_utf8)
+         validp = eol ? !priv->readUntilUnicode(eol->getBuffer(), *line, !trim) : !priv->readLineUnicode(*line, !trim);
+      else
+         validp = eol ? !readUntil(eol->getBuffer(), *line, !trim) : !readLine(*line, !trim);
+
       if (validp) {
          // increment line number
          ++num;
@@ -150,6 +158,8 @@ public:
     ...
     /export/home/pvanek/ren.list:2155 = "zypper-1.4.5-1.10.x86_64"
     @endcode
+
+    @see @ref Qore::DataLineIterator
  */
 qclass FileLineIterator [arg=FileLineIterator* i; ns=Qore; vparent=AbstractIterator; dom=FILESYSTEM];
 
@@ -168,7 +178,7 @@ FileLineIterator::constructor(string path, *string encoding, *string eol, bool t
    if (eol && eol->empty())
       eol = 0;
    // make sure that we use the same encoding for the EOL marker as for the file, convert if necessary
-   SimpleRefHolder<QoreStringNode> neol(eol ? new QoreStringNode(qe) : 0);
+   SimpleRefHolder<QoreStringNode> neol(eol ? new QoreStringNode(qe->isAsciiCompat() ? qe : QCS_UTF8) : 0);
    if (eol) {
       neol->concat(eol, xsink);
       if (*xsink)
@@ -346,6 +356,34 @@ string FileLineIterator::getFileName() [flags=CONSTANT] {
    return i->getFileName();
 }
 
+//! returns @ref stat_list of stat() of the underlying file
+/** If any errors occur, a \c FILE-HSTAT-ERROR exception is thrown
+    @par Example:
+    @code
+my list $l = $f.stat();
+    @endcode
+
+    @return @ref stat_list of stat() of the underlying file
+    @since %Qore 0.8.12
+ */
+list FileLineIterator::stat() [flags=CONSTANT] {
+   return i->stat(xsink);
+}
+
+//! returns @ref stat_hash of hstat() of the underlying file
+/** If any errors occur, a \c FILE-HSTAT-ERROR exception is thrown
+    @par Example:
+    @code
+my hash $h = $f.hstat();
+    @endcode
+
+    @return @ref stat_hash of hstat() of the underlying file
+    @since %Qore 0.8.12
+ */
+hash FileLineIterator::hstat() [flags=CONSTANT] {
+   return i->hstat(xsink);
+}
+
 //! Reset the iterator instance to its initial state
 /** Reset the iterator instance to its initial state
 
@@ -357,7 +395,6 @@ $i.reset();
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 FileLineIterator::reset() {
-   if (i->check(xsink))
-       return 0;
-   i->reset();
+   if (!i->check(xsink))
+      i->reset();
 }

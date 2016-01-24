@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -115,18 +115,18 @@ void AutoVLock::clear() {
    assert(!o);
 }
 
-void AutoVLock::set(QoreRWLock *n_m) {
+void AutoVLock::set(QoreVarRWLock *n_m) {
    assert(!lock.isSet());
    lock.set(n_m);
 }
 
-void AutoVLock::set(QoreObject *n_o, QoreRWLock *n_m) {
+void AutoVLock::set(QoreObject *n_o, QoreVarRWLock *n_m) {
    assert(!lock.isSet());
    o = n_o;
    lock.set(n_m);
 }
 
-QoreRWLock* AutoVLock::getRWL() const {
+QoreVarRWLock* AutoVLock::getRWL() const {
    return lock.getRWL();
 }
 

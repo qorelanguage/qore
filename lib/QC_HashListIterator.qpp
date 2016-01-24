@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -54,6 +54,7 @@
     @endcode
 
     @note
+    - a hash with non-list values will be iterated as if each key value were a single element list
     - In general, the HashListIterator class is not designed to be accessed from multiple threads; it was created without locking for
       fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of
       such methods in threads other than the thread where the constructor was called will cause an \c ITERATOR-THREAD-ERROR to be thrown.
@@ -69,6 +70,8 @@ qclass HashListIterator [arg=QoreHashListIterator* i; ns=Qore; vparent=AbstractQ
     @code
 my HashListIterator $i($h);
     @endcode
+
+    @note a hash with non-list values will be iterated as if each key value were a single element list
  */
 HashListIterator::constructor(hash h) {
    self->setPrivate(CID_HASHLISTITERATOR, new QoreHashListIterator(h));
@@ -199,7 +202,7 @@ while ($i.next()) {
  */
 hash HashListIterator::getValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
    return i->getRow(xsink);
 }
 
@@ -221,7 +224,7 @@ while ($i.next()) {
  */
 hash HashListIterator::getRow() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
    return i->getRow(xsink);
 }
 
@@ -292,7 +295,7 @@ while ($i.next()) {
  */
 any HashListIterator::memberGate(string key) [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
 
    return i->getReferencedKeyValue(key->getBuffer(), xsink);
 }
@@ -317,7 +320,7 @@ while ($i.next()) {
  */
 any HashListIterator::getKeyValue(string key) [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
 
    return i->getReferencedKeyValue(key->getBuffer(), xsink);
 }
@@ -347,7 +350,6 @@ $i.reset();
  */
 HashListIterator::reset() {
    if (i->check(xsink))
-       return 0;
+       return QoreValue();
    i->reset();
 }
-

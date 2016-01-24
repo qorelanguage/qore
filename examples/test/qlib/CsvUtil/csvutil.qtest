@@ -1,0 +1,48 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/CsvUtil.qm
+
+%exec-class CsvUtilTest
+
+public class CsvUtilTest inherits QUnit::Test {
+    private {
+        const CsvInput = "UK,1234567890,\"Sony, Xperia S\",31052012
+UK,1234567891,\"Sony, Xperia S\",31052012
+UK,1234567892,\"Sony, Xperia S\",31052012
+UK,1234567893,\"Sony, Xperia S\",31052012";
+
+        const CsvRecords = (
+            ("cc": "UK", "serno": 1234567890, "desc": "Sony, Xperia S", "received": 2012-05-31),
+            ("cc": "UK", "serno": 1234567891, "desc": "Sony, Xperia S", "received": 2012-05-31),
+            ("cc": "UK", "serno": 1234567892, "desc": "Sony, Xperia S", "received": 2012-05-31),
+            ("cc": "UK", "serno": 1234567893, "desc": "Sony, Xperia S", "received": 2012-05-31),
+        );
+    }
+
+    constructor() : Test("CsvUtilTest", "1.0") {
+        addTestCase("Basic CSV tests", \csvTest(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    csvTest() {
+        hash opts = ("fields": ("cc": "string", "serno": "int", "desc": "string", "received": ("type": "date", "format": "DDMMYYYY")),);
+
+        # Iterate through source
+        CsvDataIterator i(CsvInput, opts);
+        list l = map $1, i;
+        testAssertion("CsvDataIterator 1", \equalsIterated(), (i, new ListIterator(l)));
+
+        # test with empty data and header lines
+        i = new CsvDataIterator("", ("header-lines": 1));
+        testAssertion("CsvDataIterator 2", \i.next(), (), RESULT_FAILURE);
+    }
+}

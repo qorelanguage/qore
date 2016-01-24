@@ -1,0 +1,1513 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file FreetdsSqlUtil.qm Qore user module for working with PostgreSQL SQL data
+
+/*  FreetdsSqlUtil.qm Copyright (C) 2015 Qore Technologies, sro
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum qore version
+%requires qore >= 0.8.12
+
+# requires the SqlUtil module
+%requires SqlUtil >= 1.2
+
+# don't use "$" signs for variables and class members, assume local variable scope
+%new-style
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+
+module FreetdsSqlUtil {
+    version = "1.1";
+    desc = "user module for working with FreeTDS SQL data";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+# version history is included below in the docs
+
+/** @mainpage FreetdsSqlUtil Module
+
+    @tableofcontents
+
+    @section freetdssqlutilintro FreetdsSqlUtil Module Introduction
+
+    The %FreetdsSqlUtil module provides a high level API for working with database objects through the freetds driver.
+
+    Usually this module is loaded on demand from the SqlUtil module, however to use this module
+    directly, use \c "%requires FreetdsSqlUtil" in your code.
+
+    All the public symbols in the module are defined in the FreetdsSqlUtil namespace
+
+    @note This module requires the <a href="https://github.com/qorelanguage/module-sybase">freetds</a> binary module for communication with MS SQL Server and Sybase databases
+
+    @section freetds_schema_management Schema Management with the FreeTDS Driver
+
+    @subsection freetds_type_mapping Type Mapping
+
+    Column types are mapped from %Qore types as follows:
+
+    <b>FreeTDS Column Type Mappings</b>
+    |!Generic Type Name|!FreeTDS Type Used
+    |\c float|\c float
+    |\c integer|\c bigint
+    |\c number|\c numeric
+    |\c string|\c varchar
+    |\c date|\c datetime
+    |\c binary|\c varbinary
+    |\c bool|\c tinyint
+    |@ref SqlUtil::BLOB|\c varbinary
+    |@ref SqlUtil::CHAR|\c char
+    |@ref SqlUtil::CLOB|\c text
+    |@ref SqlUtil::NUMERIC|\c numeric
+    |@ref SqlUtil::VARCHAR|\c varchar
+
+    To use other types, use the \c "native_type" @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the
+    native FreeTDS type name instead (under the \c "driver" and \c "freetds" keys for schemas supporting multiple databases).
+
+    @subsection freetdssqlutilv10 FreetdsSqlUtil v1.0
+    - initial release
+*/
+
+#! the FreetdsSqlUtil namespace contains all the objects in the FreetdsSqlUtil module
+public namespace FreetdsSqlUtil {
+    #! returns a FreetdsTable object corresponding to the arguments
+    public FreetdsTable sub get_table(AbstractDatasource nds, string nname, *hash opts) {
+        return new FreetdsTable(nds, nname, opts);
+    }
+
+    #! returns a FreetdsDatabase object corresponding to the arguments
+    public FreetdsDatabase sub get_database(AbstractDatasource nds, *hash opts) {
+        return new FreetdsDatabase(nds, opts);
+    }
+
+    sub parse_schema_name(string nname, reference schema, reference name) {
+        *string sstr = (nname =~ x/^(\w+)\.\w+/)[0];
+        if (sstr) {
+            schema = sstr;
+            splice nname, 0, schema.size() + 1;
+            name = nname;
+        }
+        else {
+            schema = "dbo";
+            name = nname;
+        }
+    }
+
+    #! represents a FreeTDS-specific index
+    public class FreetdsIndex inherits SqlUtil::AbstractIndex {
+        public {
+            #! the tablespace (filegroup) name of the index
+            *string filegroup;
+        }
+
+        #! creates the object from the arguments
+        constructor(string n_name, bool n_unique, hash n_cols, *string n_filegroup) : AbstractIndex(n_name, n_unique, n_cols) {
+            filegroup = n_filegroup;
+        }
+
+        #! returns a string that can be used to create the index in the database
+        string getCreateSql(string table_name, *hash opt) {
+            string sql = sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.keyIterator()));
+
+            *string ts = opt.index_filegroup ? opt.index_filegroup : filegroup;
+            if (ts)
+                sql += sprintf(" on %s", ts);
+            return sql;
+        }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current index, @ref Qore::False "False" if not
+        private bool equalImpl(AbstractIndex ix) {
+            return True;
+        }
+
+        #! returns a string that can be used to rename the index in the database
+        string getRenameSql(string table_name, string new_name) {
+            return sprintf("exec sp_rename '%s.%s', '%s', 'INDEX'", table_name, name, new_name);
+        }
+    }
+
+    #! represents a FreeTDS-specific foreign constraint
+    public class FreetdsForeignConstraint inherits SqlUtil::AbstractForeignConstraint {
+        #! creates the constraint from the supplied arguments
+        constructor(string n, Columns c, ForeignConstraintTarget t) : AbstractForeignConstraint(n, c, t) {
+        }
+
+        #! returns a string that can be used to create the constraint in the database
+        string getCreateSql(string table_name, *hash opt) {
+            return getCreateSql(name, table_name, opt);
+        }
+
+        softlist getRenameSql(string table_name, string new_name) {
+            # the following is only valid with FreeTDS 9.2+
+            #return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
+            list l += getDropSql(table_name);
+            l += getCreateSql(new_name, table_name);
+            return l;
+        }
+
+        #! returns a string that can be used to create the constraint in the database
+        string getCreateSql(string name, string table_name, *hash opt) {
+            return sprintf("alter table %s add constraint %s foreign key (%s) references %s (%s)", table_name, name, (foldl $1 + ", " + $2, h.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
+        }
+    }
+
+    #! represents a FreeTDS-specific check constraint
+    public class FreetdsCheckConstraint inherits SqlUtil::AbstractCheckConstraint {
+        #! creates the constraint from the supplied arguments
+        constructor(string n, string n_src) : AbstractCheckConstraint(n, n_src) {
+        }
+
+        #! returns a string that can be used to create the constraint in the database
+        string getCreateSql(string table_name, *hash opt) {
+            return getCreateSql(name, table_name, opt);
+        }
+
+        list getRenameSql(string table_name, string new_name) {
+            # the following is only valid with FreeTDS 9.2+
+            #return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
+            list l += getDropSql(table_name);
+            l += getCreateSql(new_name, table_name);
+            return l;
+        }
+
+        #! returns a string that can be used to create the constraint in the database
+        string getCreateSql(string name, string table_name, *hash opt) {
+            return sprintf("alter table %s add constraint %s check (%s)", table_name, name, src);
+        }
+    }
+
+    #! represents a FreeTDS-specific column
+    public class FreetdsColumn inherits SqlUtil::AbstractColumn {
+        public {
+            #! byte size of the column
+            int byte_size;
+        }
+
+        #! creates the column from the supplied arguments
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
+            byte_size = bs;
+        }
+
+        #! returns a string giving the native type of the column
+        string getNativeTypeString() {
+            string sql = native_type;
+            if (size)
+                sql += sprintf("(%d)", size);
+            return sql;
+        }
+
+        #! returns a list of sql strings that can be used to add the column to an existing table
+        /** @par Example:
+            @code
+my list $l = $col.getAddColumnSql($t);
+            @endcode
+
+            @param t the SqlUtil::AbstractTable object to modify
+         */
+        list getAddColumnSql(AbstractTable t) {
+            list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
+            return l;
+        }
+
+        #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
+        /** @par Example:
+            @code
+my list $l = $col.getModifySql($t, $newcol);
+            @endcode
+
+            The column names are assumed to be equal.
+
+            @param t the SqlUtil::AbstractTable object to modify
+            @param col the new column definition
+
+            @return a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
+         */
+        list getModifySqlImpl(AbstractTable t, AbstractColumn col, *hash opt) {
+            list l = ();
+            FreetdsColumn c = col;
+
+            # get new native type declaration string
+            string nts = c.getNativeTypeString();
+            if (getNativeTypeString() != nts) {
+                #printf("ME: %s\nDB: %s\n", nts, getNativeTypeString());
+                if (exists def_val && def_val !== c.def_val)
+                    l += sprintf("alter table %s drop constraint dv_%s", t.getSqlName(), name);
+
+                l += sprintf("alter table %s alter column %s %s %snull", t.getSqlName(), name, nts, c.nullable ? "" : "not ");
+
+                if (def_val !== c.def_val && exists c.def_val && c.def_val !== NULL)
+                    l += sprintf("alter table %s add constraint dv_%s default %s for %s", t.getSqlName(), name, c.def_val, name);
+            }
+            else {
+                if (def_val !== c.def_val) {
+                    #printf("L: %N\nXXXXXXXXXXXXXXX\nR: %N\n\n", self, c);
+                    if (exists c.def_val && c.def_val !== NULL)
+                        l += sprintf("alter table %s add constraint dv_%s default %s for %s", t.getSqlName(), name, c.def_val, name);
+                    else
+                        l += sprintf("alter table %s drop constraint dv_%s", t.getSqlName(), name);
+                }
+                if (nullable != c.nullable) {
+                    l += sprintf("alter table %s alter column %s %s %snull", t.getSqlName(), name, nts, c.nullable ? "" : "not ");
+                }
+            }
+
+            return l;
+        }
+
+        #! returns a string that can be used to rename the column
+        /** @par Example:
+            @code
+my string $str = $col.getRenameSql($t, "new_name");
+            @endcode
+
+            @param t the SqlUtil::AbstractTable object to modify
+            @param new_name the new name for the column
+
+            @return a string that can be used to rename the column
+        */
+        string getRenameSql(AbstractTable t, string new_name) {
+            return sprintf("sp_rename '%s.%s', '%s', 'COLUMNS'", t.getSqlName(), name, new_name);
+        }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        private bool equalImpl(AbstractColumn c) {
+            return True;
+        }
+    }
+
+    #! represents a FreeTDS-specific numeric column
+    public class FreetdsNumericColumn inherits FreetdsColumn, SqlUtil::NumericColumnInfo {
+        #! creates the column from the supplied arguments
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale) : FreetdsColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
+        }
+
+        #! returns a string giving the native type of the column
+        string getNativeTypeString() {
+            return NumericColumnInfo::getNativeTypeString(native_type, size);
+        }
+    }
+
+    #! common base class for unique constraints
+    public class FreetdsUniqueConstraintCommon inherits SqlUtil::AbstractUniqueConstraint {
+        private {
+            #! any filegroup for the unique key index
+            *string filegroup;
+        }
+
+        #! creates the constraint with an optional filegroup name
+        constructor(*string ts) {
+            filegroup = ts;
+        }
+
+        #! returns the filegroup name used for this constraint, if known
+        *string getTablespace() {
+            return filegroup;
+        }
+
+        #! sets or clears the filegroup name
+        setTablespace(*string ts) {
+            filegroup = ts;
+        }
+
+        #! sets the supporting index name
+        bool setIndexBase(string ix) {
+            if (index && index != ix)
+                return False;
+            index = ix;
+            delete filegroup;
+            return True;
+        }
+
+        #! clears any index base for the constraint
+        clearIndex() {
+            delete index;
+        }
+
+        #! adds index options onto the sql creation string
+        getIndexSql(reference sql, string name, *hash opts) {
+            sql += sprintf(" (%s)", (foldl $1 + ", " + $2, keyIterator()));
+        }
+
+        #! returns an iterator for keys iterating a list of string key names
+        abstract AbstractIterator keyIterator();
+    }
+
+    #! class modeling a unique constraint
+    public class FreetdsUniqueConstraint inherits SqlUtil::AbstractUniqueConstraint, FreetdsUniqueConstraintCommon {
+        private {
+            #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
+            bool enabled;
+        }
+
+        #! creates the object with the given attributes
+        /** @param n name of the constraint
+            @param n_cols column hash
+            @param e the enabled status of the constraint
+            @param ts optional filegroup name
+        */
+        constructor(string n, hash n_cols, bool e = True, *string ts) : AbstractUniqueConstraint(n, n_cols), FreetdsUniqueConstraintCommon(ts) {
+            enabled = e;
+        }
+
+        #! returns the FreetdsColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
+        /** @par Example:
+            @code
+my any $v = $c.name;
+            @endcode
+
+            @param k the name of the key to access
+
+            @return the value of the given key in the contained hash if it exists
+
+            @throw KEY-ERROR the given key does not exist in the contained hash
+
+            @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
+
+            @see @ref memberGate_methods
+        */
+        FreetdsColumn memberGate(string k) {
+            if (!h.hasKey(k))
+                throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k, h.keys());
+            return h{k};
+        }
+
+        #! returns a string that can be used to create the constraint
+        string getCreateSql(string table_name, *hash opts) {
+            return getCreateSql(name, table_name, opts);
+        }
+
+        list getRenameSql(string table_name, string new_name) {
+            # the following is only valid with FreeTDS 9.2+
+            #return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
+            list l += getDropSql(table_name);
+            l += getCreateSql(new_name, table_name);
+            return l;
+        }
+
+        #! returns a string that can be used to rename the constraint
+        string getCreateSql(string name, string table_name, *hash opts) {
+            string sql = sprintf("alter table %s add constraint %s unique ", table_name, name);
+            return sql;
+        }
+
+        #! returns @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
+        bool isEnabled() {
+            return enabled;
+        }
+    }
+
+    #! represents a FreeTDS-specific primary key constraint
+    public class FreetdsPrimaryKey inherits SqlUtil::AbstractPrimaryKey, FreetdsUniqueConstraintCommon {
+        #! creates an empty primary key object
+        constructor() {
+        }
+
+        #! creates the object with the given attributes
+        /** @param n name of the constraint
+            @param c column hash
+            @param ts optional filegroup name
+        */
+        constructor(string n, *hash c, *string ts) : AbstractPrimaryKey(n, c), FreetdsUniqueConstraintCommon(ts) {
+        }
+
+        #! returns the FreetdsColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
+        /** @par Example:
+            @code
+my any $v = $c.name;
+            @endcode
+
+            @param k the name of the key to access
+
+            @return the value of the given key in the contained hash if it exists
+
+            @throw KEY-ERROR the given key does not exist in the contained hash
+
+            @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
+
+            @see @ref memberGate_methods
+        */
+        FreetdsColumn memberGate(string k) {
+            if (!h.hasKey(k))
+                throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k, h.keys());
+            return h{k};
+        }
+
+        #! returns a string that can be used to create the constraint
+        string getCreateSql(string table_name, *hash opts) {
+            string sql = sprintf("alter table %s add constraint %s primary key", table_name, name);
+            getIndexSql(\sql, name, opts);
+            return sql;
+        }
+
+        #! returns a string that can be used to rename the constraint
+        softlist getRenameSql(string table_name, string new_name) {
+            return sprintf("sp_rename '%s.%s', '%s', 'OBJECT'", table_name, name, new_name);
+        }
+    }
+
+    #! class for FreeTDS sequences
+    public class FreetdsSequence inherits SqlUtil::AbstractSequence {
+        #! creates the object from the arguments
+        constructor(string n_name, number n_start = 1, number n_increment = 1, *softnumber n_end) : AbstractSequence(n_name, n_start, n_increment, n_end) {
+        }
+
+        #! returns a string that can be used to create the sequence in the database
+        string getCreateSql(*hash opt) {
+            string sql = sprintf("create sequence %s start with %d increment by %d ", name, start, increment);
+            sql += max ? sprintf("maxvalue %d", max) : "no maxvalue";
+            return sql;
+        }
+
+        #! returns a string that can be used to rename the sequence in the database
+        string getRenameSql(string new_name) {
+            # no idea if this will work
+            return sprintf("sp_rename '%s', '%s', 'OBJECT'", name, new_name);
+        }
+    }
+
+    #! represents a FreeTDS view
+    public class FreetdsView inherits SqlUtil::AbstractView {
+        #! creates the object from the arguments
+        constructor(string n_name, string n_src, *string n_schemaname) : AbstractView(n_name, n_src) {
+            schema = n_schemaname;
+            updatable = False;
+        }
+
+        #! returns a string that can be used to create the view in the database
+        string getCreateSql(*hash opt) {
+            # TODO/FIXME: more freetds options - what's allows in "opt"?
+            return sprintf("create %s%sview %s as %s",
+                           opt.replace ? "or replace " : "",
+                           opt.temp ? "temp " : "",
+                           name,
+                           src
+                          );
+        }
+
+        #! returns a string that can be used to rename the view in the database
+        softlist getRenameSql(string new_name) {
+            # no idea if this will work
+            return sprintf("sp_rename '%s', '%s', 'OBJECT'", name, new_name);
+        }
+    }
+
+    #! represents a FreeTDS-specific trigger
+    public class FreetdsTrigger inherits SqlUtil::AbstractTrigger {
+        #! creates the object and sets its name and the trigger source
+        constructor(string n, string n_src) : AbstractTrigger(n, n_src) {
+        }
+
+        #! returns a string that can be used to create the trigger in the database
+        softlist getCreateSql(string table_name, *hash opt) {
+            return sprintf("create trigger %s %s", name, src);
+        }
+
+        #! returns a string that can be used to drop the trigger from the database
+        softlist getDropSql(string table_name) {
+            return sprintf("drop trigger %s", name);
+        }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        private bool equalImpl(AbstractFunctionBase t) {
+            return True;
+        }
+
+        #! returns a string that can be used to rename the trigger in the database
+        softlist getRenameSql(string table_name, string new_name) {
+            # no idea if this will work
+            return sprintf("sp_rename '%s', '%s', 'OBJECT'", name, new_name);
+        }
+    }
+
+    #! represents a FreeTDS-specific function
+    public class FreetdsFunction inherits SqlUtil::AbstractFunction {
+        public {
+            *string args;
+        }
+
+        constructor(string n, string n_src, *string a) : AbstractFunction(n, "function", n_src) {
+            args = a;
+        }
+
+        #! returns a string that can be used to create the function in the database
+        softlist getCreateSql(*hash opt) {
+            return sprintf("create function %s %s", name, src);
+        }
+
+        #! returns a string that can be used to drop the function from the database
+        string getDropSql() {
+            return sprintf("drop function %s", name);
+        }
+
+        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        private bool equalImpl(AbstractFunctionBase t) {
+            return True;
+        }
+
+        #! returns a string that can be used to rename the function in the database
+        softlist getRenameSql(string new_name) {
+            # no idea if this will work
+            return sprintf("sp_rename '%s', '%s', 'OBJECT'", name, new_name);
+        }
+
+        #! sets the new name of the function
+        setName(string new_name) {
+            name = new_name;
+        }
+    }
+
+    #! provides the FreeTDS-specific implementation of the AbstractDatabase interface
+    public class FreetdsDatabase inherits SqlUtil::AbstractDatabase {
+        public {
+            #! sybase flag
+            bool is_sybase;
+
+            #! FreeTDS-specific schema description keys
+            const FreetdsSchemaDescriptionOptions = AbstractDatabase::SchemaDescriptionOptions;
+
+            const FreeTDS_TempSavepoint = "qore_freetds_tmp_savepoint";
+
+            #! Options for reclaimSpace()
+            const FreetdsReclaimSpaceOptions = ReclaimSpaceOptions;
+        }
+
+        constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
+            is_sybase = FreetdsDatabase::isSybase(ds);
+        }
+
+        private list featuresImpl() {
+            return (DB_SEQUENCES, DB_TABLES, DB_VIEWS);
+        }
+
+        private FreetdsSequence makeSequenceImpl(string name, number start = 1, number increment = 1, *softnumber end, *hash opts) {
+            return new FreetdsSequence(name, start, increment, end);
+        }
+
+        private *AbstractSequence getSequenceImpl(string name) {
+            throw "UNIMPLEMENTED", "unimplemented";
+        }
+
+        private *AbstractView getViewImpl(string name) {
+            string schema;
+            parse_schema_name(name, \schema, \name);
+
+            *hash row = ds.selectRow("select * from information_schema.views where tabke_chema = %v and table_name = %v", schema, name);
+            if (!row)
+                return;
+
+            return new FreetdsView(name, row.view_definition, row.table_schema);
+        }
+
+        private FreetdsFunction makeFunctionImpl(string name, string src, *hash opts) {
+            throw "UNIMPLEMENTED", "unimplemented";
+        }
+
+        private FreetdsFunction makeProcedureImpl(string name, string src, *hash opts) {
+            return makeFunctionImpl(name, src, opts);
+        }
+
+        private *AbstractFunction getFunctionImpl(string name) {
+            throw "UNIMPLEMENTED", "unimplemented";
+        }
+
+        private AbstractFunction getProcedureImpl(string name) {
+            return getFunctionImpl(name);
+        }
+
+        private list getDropSchemaSqlImpl(hash schema_hash, *hash opt) {
+            return ();
+        }
+
+        private list getAlignSqlImpl(hash schema_hash, *hash opt) {
+            return ();
+        }
+
+        #! returns a list of string table names in the database
+        private softlist listTablesImpl() {
+            return ds.select("select name from sysobjects where type = %v", "U").name;
+            #return ds.select("select table_name from information_schema.tables").table_name;
+        }
+
+        #! returns a list of string function names in the database
+        /** The function names will include arguments in parentheses after the names
+
+            @return a list of string function names in the database
+        */
+        private list listFunctionsImpl() {
+            return ds.select("select routine_name from information_schema.routines").routine_name;
+        }
+
+        #! since FreeTDS only supports functions, this method is identical to listFunctionsImpl()
+        /** @see listFunctionsImpl()
+        */
+        private list listProceduresImpl() {
+            return listFunctionsImpl();
+        }
+
+        private list listSequencesImpl() {
+            throw "UNIMPLEMENTED", "unimplemented";
+        }
+
+        private list listViewsImpl() {
+            return ds.select("select name from sysobjects where type = %v", "V").name;
+            #return ds.select("select table_name from information_schema.views").table_name;
+        }
+
+        #! returns a string that can be used to create the schema in the database
+        private string getCreateSqlImpl(list l) {
+            return FreetdsDatabase::getCreateSql(l);
+        }
+
+        #! returns @ref True if the DB is a Sybase database
+        static bool isSybase(AbstractDatasource ds) {
+            return ds.getServerVersion() =~ /Adaptive Server/;
+        }
+
+        #! returns a string that can be used to create the schema in the database
+        static string getCreateSql(list l) {
+            return !l ? "" : foldl $1 + "\n" + $2, l;
+        }
+
+        #! returns driver-specific options to the base abstract class
+        private hash getSchemaDescriptionOptions() {
+            return FreetdsSchemaDescriptionOptions;
+        }
+
+        #! returns driver-specific options to the base abstract class
+        private hash getReclaimSpaceOptions() {
+            return FreetdsReclaimSpaceOptions;
+        }
+
+        #! returns the next value in the given sequence
+        private softint getNextSequenceValueImpl(string name) {
+            return ds.selectRow("select next value for %v as nextval", name).nextval;
+        }
+
+        #! returns the last value issued for the given sequence in the current session
+        private softint getCurrentSequenceValueImpl(string name) {
+            return ds.selectRow("select current_value from sys.sequences where name = %v", name).current_value;
+        }
+
+        #! returns @ref Qore::True "True" if the database supports sequences
+        private bool supportsSequencesImpl() {
+            return True;
+        }
+
+        #! returns @ref Qore::True "True" if the database supports named types
+        private bool supportsTypesImpl() {
+            return True;
+        }
+
+        #! returns @ref Qore::True "True" if the database supports packages
+        private bool supportsPackagesImpl() {
+            return False;
+        }
+
+        #! rebuild index implementation. See @ref SqlUtil::AbstractDatabase::rebuildIndex()
+        private bool rebuildIndexImpl(string name, *hash options) {
+            ds.select("alter index %v on %v reorganize", name, options.table_name);
+            return True;
+        }
+
+        #! compute statistics implementation. See @ref SqlUtil::AbstractDatabase::computeStatistics()
+        private computeStatisticsImpl(*hash options) {
+            if (options.tables)
+                map ds.select("update statistics %v", $1), options.tables;
+            else # otherwise update all statistics in the DB
+                ds.select("exec sp_updatestats");
+        }
+
+        #! reclaim space implementation. See @ref SqlUtil::AbstractDatabase::reclaimSpace()
+        private reclaimSpaceImpl(*hash options) {
+            ds.select("dbcc shrinkdatabase");
+        }
+
+        #! tries to execute a command so that if an error occurs the current transaction status is not lost
+        private any tryExecArgsImpl(string sql, *softlist args) {
+            return FreetdsDatabase::tryExecArgs(ds, sql, args);
+        }
+
+        #! tries to execute a command so that if an error occurs the current transaction status is not lost
+        private any tryExecRawImpl(string sql, *softlist args) {
+            return FreetdsDatabase::tryExecRaw(ds, sql);
+        }
+
+        #! tries to execute a command so that if an error occurs the current transaction status is not lost
+        static any tryExecArgs(AbstractDatasource ds, string sql, *softlist args) {
+            ds.exec("save tran " + FreeTDS_TempSavepoint);
+
+            any rv;
+            try {
+                rv = ds.vexec(sql, args);
+            }
+            catch (hash ex) {
+                ds.exec("rollback transaction " + FreeTDS_TempSavepoint);
+                rethrow;
+            }
+            return rv;
+        }
+
+        #! tries to execute a command so that if an error occurs the current transaction status is not lost
+        static any tryExecRaw(AbstractDatasource ds, string sql) {
+            ds.exec("save tran " + FreeTDS_TempSavepoint);
+
+            any rv;
+            try {
+                rv = ds.execRaw(sql);
+            }
+            catch (hash ex) {
+                ds.exec("rollback transaction " + FreeTDS_TempSavepoint);
+                rethrow;
+            }
+            return rv;
+        }
+    }
+
+    #! provides the FreeTDS-specific implementation of the SqlUtil::AbstractTable interface
+    public class FreetdsTable inherits SqlUtil::AbstractTable {
+        public {
+            #! sybase flag
+            bool is_sybase;
+
+            #! "has merge" flag for SQL server
+            bool ss_has_merge = False;
+
+            #! maps postgresql type names to type configurations
+            const FreetdsTypeMap = (
+                "numeric": ("qore": Type::Number, "size": SZ_NUM,),
+                "decimal": ("qore": Type::Number, "size": SZ_NUM,),
+                "tinyint": ("qore": Type::Int,),
+                "smallint": ("qore": Type::Int,),
+                "int": ("qore": Type::Int,),
+                "bigint": ("qore": Type::Int,),
+                "float": ("qore": Type::Float,),
+                "real": ("qore": Type::Float,),
+                "money": ("qore": Type::Number,),
+                "smallmoney": ("qore": Type::Number,),
+                "datetime": ("qore": Type::Date,),
+                "smalldatetime": ("qore": Type::Date,),
+                "date": ("qore": Type::Date,),
+                "time": ("qore": Type::Date,),
+                "char": ("qore": Type::String, "size": SZ_MAND,),
+                "character varying": ("qore": Type::String, "size": SZ_MAND,),
+                "varchar": ("qore": Type::String, "size": SZ_MAND,),
+                "unichar": ("qore": Type::String, "size": SZ_MAND,),
+                "univarchar": ("qore": Type::String, "size": SZ_MAND,),
+                "text": ("qore": Type::String,),
+                "unitext": ("qore": Type::String,),
+                "binary": ("qore": Type::Binary,),
+                "varbinary": ("qore": Type::Binary,),
+                "image": ("qore": Type::Binary,),
+                );
+
+            #! maps qore type names to postgresql type names
+            const QoreTypeMap = (
+                "integer": "bigint",
+                "float": "float",
+                "number": "numeric",
+                "string": "varchar",
+                "date": "datetime",
+                "binary": "varbinary",
+                "bool": "tinyint",
+                SqlUtil::CHAR: "char",
+                SqlUtil::CLOB: "text",
+                SqlUtil::BLOB: "varbinary",
+                );
+
+            #! equal to @ref SqlUtil::AbstractTable::TableDescriptionHashOptions
+            const FreetdsTableDescriptionHashOptions = AbstractTable::TableDescriptionHashOptions;
+
+            const FreetdsColumnDescOptions = AbstractTable::ColumnDescOptions;
+
+            const FreetdsIndexOptions = AbstractTable::IndexOptions;
+
+            const FreetdsConstraintOptions = AbstractTable::ConstraintOptions + FreetdsIndexOptions;
+
+            const FreetdsTableCreationOptions = AbstractTable::TableCreationOptions + FreetdsConstraintOptions;
+
+            const FreetdsAlignTableOptions = AbstractTable::AlignTableOptions + FreetdsTableCreationOptions;
+
+            #! column operator specializations for FreeTDS
+            const FreetdsCopMap = DefaultCopMap + (
+                COP_OVER: (
+                    "argcolumn": True,
+                    "argoptional": True,
+                    "code": string sub (*string cve, *string arg) {
+                        string sql = cve + " over (";
+                        if (arg)
+                            sql += sprintf("partition by %s", arg);
+                        sql += ")";
+                        return sql;
+                    },
+                ),
+                COP_YEAR: (
+                    "code": string sub (string arg1, any arg) {
+                        return sprintf("substring(convert(varchar, dt, 120), 1, 4)", arg1);
+                    }
+                ),
+                COP_YEAR_MONTH: (
+                    "code": string sub (string arg1, any arg) {
+                        return sprintf("substring(convert(varchar, dt, 120), 1, 7)", arg1);
+                    }
+                ),
+                COP_YEAR_DAY: (
+                    "code": string sub (string arg1, any arg) {
+                        return sprintf("substring(convert(varchar, dt, 120), 1, 10)", arg1);
+                    }
+                ),
+                COP_YEAR_HOUR: (
+                    "code": string sub (string arg1, any arg) {
+                        return sprintf("substring(convert(varchar, dt, 120), 1, 13)", arg1);
+                    }
+                ),
+                COP_SEQ: (
+                    "code": string sub (string arg1, string arg) {
+                        return sprintf("next value for %s", arg);
+                    }
+                ),
+                );
+
+            #! a hash of default value operator descriptions for FreeTDS
+            const FreetdsIopMap = DefaultIopMap + (
+                IOP_SEQ: (
+                    "arg": Type::String,
+                    "placeholder": "next value for %v",
+                ),
+                );
+        }
+
+        private {
+            #! filegroup name for the table, if known
+            *string filegroup;
+
+            #! schema name for the table
+            string schema;
+
+            #! contains any trigger functions supporting triggers on the table
+            Functions triggerFunctions;
+        }
+
+        constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
+            is_sybase = FreetdsDatabase::isSybase(ds);
+            # set vars for MS SQL Server
+            if (!is_sybase) {
+                *softint ver = (ds.getServerVersion() =~ x/Microsoft SQL Server ([0-9]+)/)[0];
+                if (ver >= 2008)
+                    ss_has_merge = True;
+            }
+            # see if there is a schema in the name
+            parse_schema_name(nname, \schema, \name);
+        }
+
+        #! returns the schema name
+        string getSchemaName() {
+            return schema;
+        }
+
+        #! returns the data filegroup name for the table or @ref nothing if none is known
+        *string getTablespaceName() {
+            return filegroup;
+        }
+
+        #! returns a closure for performing upserts; if the underlying dataserver supports an optimized \c MERGE statement (Microsoft SQL Server 2008+), the \a upsert_strategy argument is ignored and a closure using a merge statement is returned, otherwise the standard upsert closure is returned according to @ref SqlUtil::AbstractTable::getUpsertClosure()
+        code getUpsertClosure(hash row, int upsert_strategy = UpsertAuto) {
+            if (!ss_has_merge)
+                return AbstractTable::getUpsertClosure(row, upsert_strategy);
+
+            Columns cols = checkUpsertRow(row, \upsert_strategy);
+
+            # get update columns
+            list updc = ();
+            map updc += $1, row.keyIterator(), !cols.hasKey($1);
+            # cannot use merge where only the join columns are present
+            if (!updc)
+                return getUpsertInsertOnly(cols, row);
+
+            string sql = sprintf("merge %s t using (select ", getSqlName());
+            sql += foldl $1 + "," + $2, (map "%v", row.keyIterator());
+            sql += ") as source (";
+            sql += foldl $1 + "," + $2, row.keyIterator();
+            sql += ") on (";
+            sql += foldl $1 + " and " + $2, (map sprintf("t.%s=source.%s", $1, $1), getColumnSqlNames(cols.keys()));
+            sql += sprintf(") when matched then update set ");
+            # get update columns
+            sql += (foldl $1 + "," + $2, (map sprintf("t.%s=source.%s", $1, $1), getColumnSqlNames(updc)));
+            sql += sprintf(" when not matched then insert (");
+            sql += (foldl $1 + "," + $2, getColumnSqlNames(row.keys()));
+            sql += ") values (";
+            sql += (foldl $1 + "," + $2, (map "source." + $1, row.keyIterator()));
+            sql += ");";
+
+            #printf("sql: %s\n", sql);
+
+            return int sub (hash crow) {
+                list args = crow.values();
+                #on_error printf("SQL: %s args: %y\n", sql, args);
+                ds.vexec(sql, args);
+                return UR_Verified;
+            };
+        }
+
+        #! returns @ref Qore::False "False" because the freetds driver does not support array binds / bulk DML operations
+        bool hasArrayBind() {
+            return False;
+        }
+
+        #! returns the name of the table to be used in SQL (with a possible qualifiers for schema, etc)
+        string getSqlName() {
+            return schema + "." + name;
+        }
+
+        private hash getTableCreationOptions() {
+            return FreetdsTableCreationOptions;
+        }
+
+        private hash getTableDescriptionHashOptions() {
+            return FreetdsTableDescriptionHashOptions;
+        }
+
+        private hash getColumnDescOptions() {
+            return FreetdsColumnDescOptions;
+        }
+
+        private hash getIndexOptions() {
+            return FreetdsIndexOptions;
+        }
+
+        private hash getConstraintOptions() {
+            return FreetdsConstraintOptions;
+        }
+
+        private hash getAlignTableOptions() {
+            return FreetdsAlignTableOptions;
+        }
+
+        #! returns the column operator map for this object
+        private hash getColumnOperatorMap() {
+            return FreetdsCopMap;
+        }
+
+        #! returns the insert operator map for this object
+        private hash getInsertOperatorMap() {
+            return FreetdsIopMap;
+        }
+
+        private bool checkExistenceImpl() {
+            *hash qh = ds.selectRow("select name from sysobjects where type = %v and name = %v", "U", name);
+            #*hash qh = ds.selectRow("select * from information_schema.tables where table_schema = %v and table_name = %v", schema, name);
+            if (qh)
+                return inDb = True;
+            return False;
+        }
+
+        private Columns describeImpl() {
+            return is_sybase ? describeSybaseImpl() : describeMssqlImpl();
+        }
+
+        private Columns describeSybaseImpl() {
+            # get column descriptions
+            *hash qh = ds.select("select
+	sc.name column_name, t.name data_type, sc.prec numeric_precision, sc.scale numeric_scale, sc.length, substring(cm.text, 10, 500) column_default,
+        case sc.status & 0x8 when 0x8 then 'YES' else 'NO' end is_nullable
+from
+	syscolumns sc
+	join sysobjects so on (sc.id = so.id)
+	left join systypes t on (/*sc.type = t.type and */sc.usertype = t.usertype)
+	left join syscomments cm on (cm.id = case when sc.cdefault = 0 then sc.computedcol else sc.cdefault end)
+where
+	so.name = %v", name);
+            if (!qh.column_name)
+                throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", getSqlName(), dsdesc);
+
+            hash rv;
+            foreach hash row in (qh.contextIterator()) {
+                row.column_name = row.column_name.lwr();
+                *hash th = FreetdsTypeMap.(row.data_type);
+                softint size = row.length;
+                switch (th.qore) {
+                    case Type::Int:
+                    case Type::Float: {
+                        row.numeric_precision = 0;
+                        size = 0;
+                        break;
+                    }
+                }
+
+                FreetdsColumn c;
+                *string defval = row.column_default;
+                if (row.numeric_precision)
+                    c = new FreetdsNumericColumn(row.column_name, row.data_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, NOTHING, 0, row.numeric_scale);
+                else
+                    c = new FreetdsColumn(row.column_name, row.data_type, th.qore, exists size ? size : 0, row.is_nullable == "YES", defval, NOTHING, row.length);
+
+                rv.(row.column_name) = c;
+            }
+
+            return new Columns(rv);
+        }
+
+        private Columns describeMssqlImpl() {
+            # get column descriptions
+            *hash qh = ds.select("select * from information_schema.columns where table_schema = %v and table_name = %v order by ordinal_position",
+                                 schema, name);
+            if (!qh.column_name)
+                throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", getSqlName(), dsdesc);
+
+            hash rv;
+            foreach hash row in (qh.contextIterator()) {
+                row.column_name = row.column_name.lwr();
+                *hash th = FreetdsTypeMap.(row.data_type);
+                softint size = row.character_maximum_length ? row.character_maximum_length : row.numeric_precision;
+                switch (th.qore) {
+                    case Type::Int:
+                    case Type::Float: {
+                        row.numeric_precision = 0;
+                        size = 0;
+                        break;
+                    }
+                }
+
+                FreetdsColumn c;
+                *string defval = row.column_default;
+                # normalize default value expressions
+                if (defval =~ /^\(\(.*\)\)$/)
+                    defval =~ s/^\(\((.*)\)\)$/$1/;
+                if (row.numeric_precision)
+                    c = new FreetdsNumericColumn(row.column_name, row.data_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, NOTHING, 0, row.numeric_scale);
+                else
+                    c = new FreetdsColumn(row.column_name, row.data_type, th.qore, exists size ? size : 0, row.is_nullable == "YES", defval, NOTHING, row.character_octet_length);
+
+                rv.(row.column_name) = c;
+            }
+
+            return new Columns(rv);
+        }
+
+        private FreetdsPrimaryKey getPrimaryKeyImpl() {
+            return is_sybase ? getPrimaryKeySybaseImpl() : getPrimaryKeyMssqlImpl();
+        }
+
+        private FreetdsPrimaryKey getPrimaryKeySybaseImpl() {
+            *hash pkh = ds.selectRow("select
+	object_name(i.id) table_name, i.indid, i.keycnt,
+	-- i.status & 2048,
+	i.name constraint_name, i.id,
+	case (i.status2 & 512) when 512 then 'YES' else 'NO' END is_clustered, --this identifies pkey constrained clustered indexes
+	index_col(object_name(i.id),i.indid,1) col1,
+	index_col(object_name(i.id),i.indid,2) col2,
+	index_col(object_name(i.id),i.indid,3) col3,
+	index_col(object_name(i.id),i.indid,4) col4,
+	index_col(object_name(i.id),i.indid,5) col5,
+	index_col(object_name(i.id),i.indid,6) col6,
+	index_col(object_name(i.id),i.indid,7) col7,
+	index_col(object_name(i.id),i.indid,8) col8,
+	index_col(object_name(i.id),i.indid,9) col9,
+	index_col(object_name(i.id),i.indid,10) col10,
+	index_col(object_name(i.id),i.indid,11) col11,
+	index_col(object_name(i.id),i.indid,12) col12,
+	index_col(object_name(i.id),i.indid,13) col13,
+	index_col(object_name(i.id),i.indid,14) col14,
+	index_col(object_name(i.id),i.indid,15) col15,
+	index_col(object_name(i.id),i.indid,16) col16,
+	s.name segment_name
+from sysindexes i
+	inner join sysobjects o on (o.id = i.id)
+	inner join syssegments s on (i.segment = s.segment)
+where
+	o.type = 'U'
+	and i.indid between 1 and 254
+	and o.uid = 1
+	and (((i.status2 & 3) > 0)
+		 or charindex(convert(varchar,i.id),i.name) > 0)
+    and object_name(i.id) = %v", name);
+            if (!pkh.constraint_name)
+                return new FreetdsPrimaryKey();
+
+            hash rv;
+            for (int i = 1; i <= pkh.keycnt; ++i) {
+                string key = pkh{"col" + i}.lwr();
+                rv{key} = columns{key};
+            }
+            return new FreetdsPrimaryKey(pkh.constraint_name, rv);
+        }
+
+        private FreetdsPrimaryKey getPrimaryKeyMssqlImpl() {
+            *hash pkh = ds.selectRow("select * from information_schema.table_constraints where table_schema = %v and table_name = %v and constraint_type = 'PRIMARY KEY'", schema, name);
+            if (!pkh.constraint_name)
+                return new FreetdsPrimaryKey();
+
+            # get primary key description
+            *hash qh = ds.select("select * from information_schema.key_column_usage where table_schema = %v and table_name = %v and constraint_name = %v order by ordinal_position", schema, name, pkh.constraint_name);
+            if (!qh.constraint_name)
+                return new FreetdsPrimaryKey();
+
+            #printf("FreetdsTable::getPrimaryKeyImpl(): %s: %N\n", getName(), qh);
+            hash rv = map {$1: columns.$1}, (map $1.lwr(), qh.column_name);
+
+            return new FreetdsPrimaryKey(pkh.constraint_name.lwr(), rv);
+        }
+
+        private Indexes getIndexesImpl() {
+            return is_sybase ? getIndexesSybaseImpl() : getIndexesMssqlImpl();
+        }
+
+        private Indexes getIndexesSybaseImpl() {
+            return new Indexes();
+        }
+
+        private Indexes getIndexesMssqlImpl() {
+            hash rv;
+
+            # get index descriptions
+            *hash qh = ds.select("select
+	t.name table_name, i.name index_name, i.is_unique, i.is_primary_key, c.name column_name
+from
+	sys.indexes i, sys.tables t, sys.schemas s, sys.index_columns ic, sys.columns c
+where
+	t.type_desc = 'USER_TABLE' and i.object_id = t.object_id
+        and i.index_id = ic.index_id and t.schema_id = s.schema_id
+	and t.object_id = ic.object_id and c.object_id = t.object_id and ic.column_id = c.column_id
+        and i.name is not null and i.is_primary_key != 1
+	and s.name = %v and t.name = %v order by i.name, ic.key_ordinal", schema, name);
+
+            if (qh.index_name) {
+                hash ih;
+                foreach hash row in (qh.contextIterator()) {
+                    row.column_name = row.column_name.lwr();
+                    row.index_name = row.index_name.lwr();
+
+                    if (!ih.(row.index_name)) {
+                        ih.(row.index_name) = (
+                            "unique": row.is_unique,
+                            "primary": row.is_primary_key,
+                        );
+                    }
+                    # send "blank" column for function index
+                    if (row.column_name =~ /\(.*\)/ || !columns.hasKey(row.column_name))
+                        ih.(row.index_name).columns{row.column_name} = {};
+                    else
+                        ih.(row.index_name).columns{row.column_name} = columns{row.column_name};
+                }
+
+                foreach hash i in (ih.pairIterator()) {
+                    # check primary key index and add filegroup to primary key definition
+                    if (i.primary && !primaryKey.empty()) {
+                        FreetdsPrimaryKey pk = cast<FreetdsPrimaryKey>(primaryKey);
+                        if (i.value.filegroup && !pk.filegroup)
+                            pk.filegroup = i.value.filegroup;
+                        continue;
+                    }
+                    # check unique indexes to make sure they are not matched with a unique constraint
+                    if (i.value.unique && constraints.hasKey(i.key) && (constraints{i.key} instanceof AbstractUniqueConstraint)) {
+                        FreetdsUniqueConstraint uk = cast<FreetdsUniqueConstraint>(constraints{i.key});
+                        if (uk.matchKeys(i.value.columns)) {
+                            # set filegroup in constraint
+                            if (i.value.filegroup && !uk.getTablespace())
+                                uk.setTablespace(i.value.filegroup);
+                            continue;
+                        }
+                    }
+                    rv.(i.key) = new FreetdsIndex(i.key, i.value.unique, i.value.columns, i.value.filegroup ? i.value.filegroup : NOTHING);
+                }
+            }
+
+            return new Indexes(rv);
+        }
+
+        private ForeignConstraints getForeignConstraintsImpl(*hash opts) {
+            return is_sybase ? getForeignConstraintsSybaseImpl() : getForeignConstraintsMssqlImpl();
+        }
+
+        private ForeignConstraints getForeignConstraintsSybaseImpl() {
+            return new ForeignConstraints();
+        }
+
+        private ForeignConstraints getForeignConstraintsMssqlImpl() {
+            hash rv;
+            # get foreign referential constraints
+            *hash qh = ds.select("select tc.constraint_name, c1.column_name source_column, c2.column_name target_column
+from
+    information_schema.table_constraints tc,
+    information_schema.referential_constraints rc,
+    information_schema.key_column_usage c1,
+    information_schema.key_column_usage c2
+where
+	tc.table_schema = %v and tc.table_name = %v and tc.constraint_type = 'FOREIGN KEY'
+	and tc.constraint_catalog = rc.constraint_catalog and tc.constraint_name = rc.constraint_name
+	and rc.constraint_catalog = c1.constraint_catalog and rc.constraint_schema = c1.constraint_schema and rc.constraint_name = c1.constraint_name
+	and rc.unique_constraint_catalog = c2.constraint_catalog and rc.unique_constraint_schema = c2.constraint_schema and rc.unique_constraint_name = c2.constraint_name
+	and c2.ordinal_position = c1.ordinal_position
+order by
+	rc.constraint_name, c1.ordinal_position",
+                                 name, schema);
+            if (qh.constraint_name) {
+                hash ch;
+                foreach hash row in (qh.contextIterator()) {
+                    reference c = \ch.(row.constraint_name.lwr());
+                    row.source_column = row.source_column.lwr();
+                    c.columns.(row.source_column) = columns{row.source_column};
+                    c.target.table = row.target_table.lwr();
+                    c.target.columns.(row.target_column.lwr()) = True;
+                }
+
+                foreach hash c in (ch.pairIterator()) {
+                    # get a description of the target table's columns
+                    Columns targ_columns = getReferencedTableColumnsUnlocked(c.value.target.table, opts.table_cache);
+                    ForeignConstraintTarget fct(c.value.target.table, targ_columns.subset(c.value.target.columns.keys()));
+                    rv.(c.key) = new FreetdsForeignConstraint(c.key, new Columns(c.value.columns), fct);
+                }
+            }
+
+            return new ForeignConstraints(rv);
+        }
+
+        private Constraints getConstraintsImpl() {
+            return is_sybase ? getConstraintsSybaseImpl() : getConstraintsMssqlImpl();
+        }
+
+        private Constraints getConstraintsSybaseImpl() {
+            return new Constraints();
+        }
+
+        private Constraints getConstraintsMssqlImpl() {
+            # get check constraints
+            *hash qh;
+            hash rv;
+            #foreach hash row in (qh.contextIterator())
+            #    rv.(row.constraint_name) = new FreetdsCheckConstraint(row.constraint_name, row.consrc);
+
+            Constraints c = new Constraints(rv);
+
+            # get unique constraints
+            qh = ds.select("select
+	tc.constraint_name, c1.column_name
+from
+	information_schema.table_constraints tc,
+	information_schema.key_column_usage c1
+where
+	tc.table_schema = %v and tc.table_name = %v and tc.constraint_type = 'UNIQUE'
+	and tc.constraint_catalog = c1.constraint_catalog and tc.constraint_schema = c1.constraint_schema and tc.constraint_name = c1.constraint_name
+order by
+	tc.constraint_name, c1.ordinal_position", schema, name);
+            delete rv;
+            foreach hash row in (qh.contextIterator()) {
+                reference ch = \rv.(row.constraint_name.lwr());
+                if (!ch)
+                    ch = new FreetdsUniqueConstraint(row.constraint_name, {}, row.status == "ENABLED");
+                row.column_name = row.column_name.lwr();
+                ch.add(row.column_name, columns{row.column_name});
+            }
+
+            # add unique constraints to constraint hash
+            map c.add($1.key, $1.value), rv.pairIterator();
+
+            return c;
+        }
+
+        private Triggers getTriggersImpl() {
+            return new Triggers();
+        }
+
+        #! returns a string that can be used to create the table in the database
+        private string getCreateTableSqlImpl(*hash opt) {
+            string sql = sprintf("create table %s (\n", name);
+
+            sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(self), columns.iterator());
+            sql += "\n)";
+
+            *string ts = opt.tablespace ? opt.tablespace : filegroup;
+            if (ts)
+                sql += sprintf(" on %s", ts);
+
+            return sql;
+        }
+
+        private *list getCreateMiscSqlImpl(*hash opt, bool cache) {
+        }
+
+        private *list getAlignSqlImpl(AbstractTable table, *hash opt) {
+        }
+
+        #! returns a string that can be used to create the table in the database
+        private string getCreateSqlImpl(list l) {
+            return FreetdsDatabase::getCreateSql(l);
+        }
+
+        private string getRenameSqlImpl(string new_name) {
+            return sprintf("exec cp_name '%s', '%s'", getSqlName(), new_name);
+        }
+
+        private AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True) {
+            if (opt.precision)
+                return new FreetdsNumericColumn(cname, opt.native_type, opt.qore_type, opt.precision, nullable, opt.default_value, opt.comment, 0, opt.scale);
+            return new FreetdsColumn(cname, opt.native_type, opt.qore_type, opt.size, nullable, opt.default_value, opt.comment, 0);
+        }
+
+        private AbstractPrimaryKey addPrimaryKeyImpl(string cname, hash ch, *hash opt) {
+            return new FreetdsPrimaryKey(cname, ch, opt.index_filegroup);
+        }
+
+        private AbstractIndex addIndexImpl(string iname, bool enabled, hash ch, *hash opt) {
+            return new FreetdsIndex(iname, enabled, ch, opt.index_filegroup);
+        }
+
+        private AbstractForeignConstraint addForeignConstraintImpl(string cname, hash ch, string table, hash tch, *hash opt) {
+            ForeignConstraintTarget fct(table, new Columns(tch));
+            return new FreetdsForeignConstraint(cname, new Columns(ch), fct);
+        }
+
+        private AbstractCheckConstraint addCheckConstraintImpl(string cname, string src, *hash opt) {
+            return new FreetdsCheckConstraint(cname, src);
+        }
+
+        private AbstractUniqueConstraint addUniqueConstraintImpl(string cname, hash ch, *hash opt) {
+            return new FreetdsUniqueConstraint(cname, ch, True, opt.index_filegroup);
+        }
+
+        private AbstractTrigger addTriggerImpl(string tname, string src, *hash opt) {
+            return new FreetdsTrigger(tname, src);
+        }
+
+        private bool tryInsertImpl(string sql, hash row) {
+            try {
+                ds.vexec(sql, row.values());
+            }
+            catch (hash ex) {
+                if (ex.desc =~ /Cannot insert duplicate/)
+                    return False;
+                rethrow;
+            }
+            return True;
+        }
+
+        private hash getQoreTypeMapImpl() {
+            return QoreTypeMap;
+        }
+
+        private hash getTypeMapImpl() {
+            return FreetdsTypeMap;
+        }
+
+        #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
+        private *string getSqlValueImpl(any v) {
+            switch (v.typeCode()) {
+                case NT_FLOAT:
+                case NT_INT: return v.toString();
+
+                case NT_NUMBER: return string(v);
+
+                # double any single quotes in strings
+                case NT_STRING: v =~ s/'/''/g; return "'" + v + "'";
+
+                case NT_NULL:
+                case NT_NOTHING: return "null";
+
+                case NT_BOOLEAN: return v ? "true" : "false";
+
+                case NT_DATE: return v.format("'YYYY-MM-DD HH:mm:SS.us'");
+            }
+        }
+
+        private bool emptyImpl() {
+            return True;
+        }
+
+        #! clears FreeTDS-specific table information
+        private clearImpl() {
+        }
+
+        private setupTableImpl(hash desc, *hash opt) {
+        }
+
+        #! returns @ref Qore::True "True" if the database links constraints to indexes (ie dropping the constraint drops the index, etc)
+        private bool constraintsLinkedToIndexesImpl() {
+            return True;
+        }
+
+        #! returns @ref Qore::True "True" if the database automatically creates a unique constraint when a unique index is created (ex: mysql)
+        private bool uniqueIndexCreatesConstraintImpl() {
+            return True;
+        }
+
+        #! returns @ref Qore::True "True" if the database support tablespaces
+        private bool supportsTablespacesImpl() {
+            return False;
+        }
+
+        #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
+        private doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh) {
+            if (!qh.limit)
+                return;
+
+            # this rule is broken here with reason:
+            # In a SELECT statement, always use an ORDER BY clause with the TOP clause.
+            # This is the only way to predictably indicate which rows are affected by TOP
+            sql = regex_subst(sql, "^select ", sprintf("select top %d ", qh.limit));
+            args += qh.limit;
+        }
+
+        #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch) {
+            throw "UNIMPLEMENTED", "offset not yet implemented";
+        }
+
+        #! tries to execute a command so that if an error occurs the current transaction status is not lost
+        private any tryExecArgsImpl(string sql, *softlist args) {
+            return FreetdsDatabase::tryExecArgs(ds, sql, args);
+        }
+
+        #! tries to execute a command so that if an error occurs the current transaction status is not lost
+        private any tryExecRawImpl(string sql, *softlist args) {
+            return FreetdsDatabase::tryExecRaw(ds, sql);
+        }
+
+        #! db-specific copy actions
+        private copyImpl(AbstractTable old) {
+        }
+
+        private *hash doReturningImpl(hash opt, reference sql, list args) {
+            list l = ();
+            foreach softstring k in (opt.returning) {
+                *FreetdsColumn c = columns{k};
+                if (!c)
+                    throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column for the \"returning\" option (valid columns: %y)", name, k, columns.keys());
+                l += k;
+                args += c.qore_type ?* Type::String;
+            }
+            if (l) {
+                throw "UNIMPLEMENTED", "output not yet implemented";
+            }
+
+            *hash h = execData(opt, sql, args);
+            return h ? map {$1.key: $1.value[0]}, h.pairIterator() : h;
+        }
+
+        private softbool tryUpdate(string sql, hash row, Columns cols, list updc) {
+            list args = row{updc}.values() + row{cols.keys()}.values();
+            any x = ds.vexec(sql, args);
+            return x.typeCode() == NT_HASH ? x.firstValue() : x;
+        }
+    }
+}

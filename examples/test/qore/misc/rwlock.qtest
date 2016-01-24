@@ -1,0 +1,101 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%disable-warning non-existent-method-call
+
+%requires UnitTest
+
+our UnitTest t();
+
+int RWLock::methodGate(any m) {
+    return 0;
+}
+
+our hash o = (
+    "key1" : "key1",
+    "key2" : "key2",
+    "key3" : "key3",
+    "key4" : "key4",
+);
+
+int iters   = 1000;
+int writers = 10;
+int readers = 10;
+
+RWLock rwl = new RWLock();
+while (writers) {
+    background write_thread();
+    writers--;
+}
+while (readers) {
+    background read_thread();
+    readers--;
+}
+
+#printf("%s\n", dbg_node_info($rwl));
+
+sub read_thread() {
+    my bool pass = True;
+    for (my int i = 0; i < iters; i++) {
+        my int t;
+        rwl.readLock();
+        if (o.key1 == o.key2)
+            t = 1;
+            #printf("read_thread (%02d) %d/%d:  key1 = key2\n", gettid(), $i, iters);
+        else
+            t = 1;
+        #printf("read_thread (%02d) %d/%d: key1 != key2\n", gettid(), $i, iters);
+
+        rwl.readLock();
+        if (o.key3 == o.key4)
+            t = 1;
+            #printf("read_thread (%02d) %d/%d: key3 = key4\n", gettid(), $i, iters);
+        else
+            t = 1;
+        #printf("read_thread (%02d) %d/%d: key3 != key4\n", gettid(), $i, iters);
+        rwl.readUnlock();
+
+        if (my int n = rwl.numWriters()) {
+            pass = False;
+            n++;
+            break;
+        }
+        rwl.readUnlock();
+    }
+    t.ok(pass, "read check");
+}
+
+sub write_thread() {
+    my bool pass = True;
+    for (my int i = 0; i < iters; i++) {
+        #printf("write_thread (%02d) %d/%d trying to get lock\n",
+        #       gettid(), $i, iters);
+        rwl.writeLock();
+        my any t = o.key2;
+        o.key2 = o.key1;
+        o.key1 = t;
+
+        if (my bool n = rwl.numWriters() > 1) {
+            pass = False;
+            n = False;
+            break;
+        }
+
+        t = o.key4;
+        o.key4 = o.key3;
+        o.key3 = t;
+
+        t = rand() % 100;
+        o.t = rand() % 1000;
+
+        #printf("write_thread (%02d) %d/%d: 1: %s 2: %s 3: %s 4: %s (new %s)\n",
+        #       gettid(), $i, iters, $o.key1, $o.key2, $o.key3, $o.key4, $t);
+
+        rwl.writeUnlock();
+    }
+    t.ok(pass, "write check");
+}

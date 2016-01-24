@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1090,19 +1090,55 @@ nothing get_midnight() [flags=RUNTIME_NOOP] {
 
     @return an integer representing the ordinal day number in the year (corresponding to the <a href="http://en.wikipedia.org/wiki/ISO_8601#Ordinal_dates">ISO-8601 day number</a>) for the @ref absolute_dates "absolute date" value passed; if a @ref relative_dates "relative date" value is passed, then this function will return 0
 
-    @par Example:
-    @code
-my int $dn = getDayNumber($dt);
-    @endcode
+    @deprecated use get_day_number(); camel-case function names were deprecated in %Qore 0.8.12
 */
-int getDayNumber(date dt) [flags=CONSTANT] {
+int getDayNumber(date dt) [flags=CONSTANT,DEPRECATED] {
    return dt->getDayNumber();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing getDayNumber() [flags=RUNTIME_NOOP] {
+nothing getDayNumber() [flags=RUNTIME_NOOP,DEPRECATED] {
+}
+
+//! Returns an integer representing the ordinal day number in the year (corresponding to the <a href="http://en.wikipedia.org/wiki/ISO_8601#Ordinal_dates">ISO-8601 day number</a>) for the @ref absolute_dates "absolute date" value passed
+/** 
+    @param dt an @ref absolute_dates "absolute date" value to get the ordinal day number
+
+    @return an integer representing the ordinal day number in the year (corresponding to the <a href="http://en.wikipedia.org/wiki/ISO_8601#Ordinal_dates">ISO-8601 day number</a>) for the @ref absolute_dates "absolute date" value passed; if a @ref relative_dates "relative date" value is passed, then this function will return 0
+
+    @par Example:
+    @code
+my int $dn = get_day_number($dt);
+    @endcode
+
+    @note equivalent to <date>::dayNumber()
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case getDayNumber()
+*/
+int get_day_number(date dt) [flags=CONSTANT] {
+   return dt->getDayNumber();
+}
+
+//! Returns an integer representing the day of the week for the @ref absolute_dates "absolute date" value passed (0=Sunday, 6=Saturday)
+/** 
+    @param dt an @ref absolute_dates "absolute date" value to get the number for the day of the week
+
+    @return an integer representing the day of the week for the @ref absolute_dates "absolute date" value passed (0=Sunday, 6=Saturday); if a @ref relative_dates "relative date" value is passed, then this function will return 0
+
+    @see get_iso_day_of_week()
+
+    @deprecated use get_day_of_week(); camel-case function names were deprecated in %Qore 0.8.12
+*/
+int getDayOfWeek(date dt) [flags=CONSTANT,DEPRECATED] {
+   return dt->getDayOfWeek();
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing getDayOfWeek() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
 //! Returns an integer representing the day of the week for the @ref absolute_dates "absolute date" value passed (0=Sunday, 6=Saturday)
@@ -1113,19 +1149,38 @@ nothing getDayNumber() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code
-my int $dn = getDayOfWeek($dt);
+my int $dn = get_day_of_week($dt);
     @endcode
 
-    @see getISODayOfWeek(date)
+    @note equivalent to <date>::dayOfWeek()
+
+    @see get_iso_day_of_week()
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case getDayOfWeek()
 */
-int getDayOfWeek(date dt) [flags=CONSTANT] {
+int get_day_of_week(date dt) [flags=CONSTANT] {
    return dt->getDayOfWeek();
+}
+
+//! Returns an integer representing the ISO-8601 day of the week for the @ref absolute_dates "absolute date" value passed (1=Monday, 7=Sunday)
+/** 
+    @param dt an @ref absolute_dates "absolute date" value to get the number for the day of the week
+
+    @return an integer representing the day of the week for the @ref absolute_dates "absolute date" value passed (1=Monday, 7=Sunday); if a @ref relative_dates "relative date" value is passed, then this function will return 7
+
+    @see get_day_of_week()
+
+    @deprecated use get_iso_day_of_week(); camel-case function names were deprecated in %Qore 0.8.12
+*/
+int getISODayOfWeek(date dt) [flags=CONSTANT,DEPRECATED] {
+   int d = dt->getDayOfWeek();
+   return (!d ? 7 : d);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing getDayOfWeek() [flags=RUNTIME_NOOP] {
+nothing getISODayOfWeek() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
 //! Returns an integer representing the ISO-8601 day of the week for the @ref absolute_dates "absolute date" value passed (1=Monday, 7=Sunday)
@@ -1136,20 +1191,18 @@ nothing getDayOfWeek() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code
-my int $dn = getISODayOfWeek($dt);
+my int $dn = get_iso_day_of_week($dt);
     @endcode
 
-    @see getDayOfWeek(date)
+    @note equivalent to <date>::isoDayOfWeek()
+
+    @see get_day_of_week()
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case getISODayOfWeek()
 */
-int getISODayOfWeek(date dt) [flags=CONSTANT] {
+int get_iso_day_of_week(date dt) [flags=CONSTANT] {
    int d = dt->getDayOfWeek();
    return (!d ? 7 : d);
-}
-
-//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
- */
-nothing getISODayOfWeek() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns a hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (hash keys: \c "year", \c "week", \c "day")
@@ -1159,14 +1212,11 @@ nothing getISODayOfWeek() [flags=RUNTIME_NOOP] {
 
     @return a hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (hash keys: \c "year", \c "week", \c "day"); if a @ref relative_dates "relative date" value is passed, then this function will return year=1970, week=1, day=1
 
-    @par Example:
-    @code
-my hash $h = getISOWeekHash(2007-05-15); # returns year=2007, week=20, day=2
-    @endcode
+    @see get_iso_week_string()
 
-    @see getISOWeekString(date)
+    @deprecated use get_iso_week_hash(); camel-case function names were deprecated in %Qore 0.8.12
 */
-hash getISOWeekHash(date dt) [flags=CONSTANT] {
+hash getISOWeekHash(date dt) [flags=CONSTANT,DEPRECATED] {
    int year, week, day;
    dt->getISOWeek(year, week, day);
    QoreHashNode *h = new QoreHashNode;
@@ -1180,7 +1230,36 @@ hash getISOWeekHash(date dt) [flags=CONSTANT] {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing getISOWeekHash() [flags=RUNTIME_NOOP] {
+nothing getISOWeekHash() [flags=RUNTIME_NOOP,DEPRECATED] {
+}
+
+//! Returns a hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (hash keys: \c "year", \c "week", \c "day")
+/** @note that the ISO-8601 year does not always correspond with the calendar year at the end and the beginning of every year (for example 2006-01-01 in ISO-8601 calendar week format is: year=2005, week=52, day=7)
+
+    @param dt the date to get information for
+
+    @return a hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (hash keys: \c "year", \c "week", \c "day"); if a @ref relative_dates "relative date" value is passed, then this function will return year=1970, week=1, day=1
+
+    @par Example:
+    @code
+my hash $h = get_iso_week_hash(2007-05-15); # returns year=2007, week=20, day=2
+    @endcode
+
+    @note equivalent to <date>::isoWeekHash()
+
+    @see get_iso_week_string()
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case getISOWeekHash()
+*/
+hash get_iso_week_hash(date dt) [flags=CONSTANT] {
+   int year, week, day;
+   dt->getISOWeek(year, week, day);
+   QoreHashNode *h = new QoreHashNode;
+   h->setKeyValue("year", new QoreBigIntNode(year), 0);
+   h->setKeyValue("week", new QoreBigIntNode(week), 0);
+   h->setKeyValue("day", new QoreBigIntNode(day), 0);
+
+   return h;
 }
 
 //! Returns a string representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (ex: 2006-01-01 = "2005-W52-7")
@@ -1194,9 +1273,11 @@ nothing getISOWeekHash() [flags=RUNTIME_NOOP] {
 my string $str = getISOWeekString(2007-05-15); # returns "2007-W20-2"
     @endcode
 
-    @see getISOWeekHash(date)
+    @see get_iso_week_hash()
+
+    @deprecated use get_iso_week_string(); camel-case function names were deprecated in %Qore 0.8.12
 */
-string getISOWeekString(date dt) [flags=CONSTANT] {
+string getISOWeekString(date dt) [flags=CONSTANT,DEPRECATED] {
    int year, week, day;
    dt->getISOWeek(year, week, day);
    QoreStringNode *str = new QoreStringNode();
@@ -1207,7 +1288,50 @@ string getISOWeekString(date dt) [flags=CONSTANT] {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing getISOWeekString() [flags=RUNTIME_NOOP] {
+nothing getISOWeekString() [flags=RUNTIME_NOOP,DEPRECATED] {
+}
+
+//! Returns a string representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (ex: 2006-01-01 = "2005-W52-7")
+/** 
+    @param dt the date to get information for
+
+    @return a string representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (ex: 2006-01-01 = "2005-W52-7"); if a @ref relative_dates "relative date" value is passed, then this function will return \c "1970-W01-1"
+
+    @par Example:
+    @code
+my string $str = get_iso_week_string(2007-05-15); # returns "2007-W20-2"
+    @endcode
+
+    @note equivalent to <date>::isoWeekString()
+
+    @see get_iso_week_hash()
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case getISOWeekString()
+*/
+string get_iso_week_string(date dt) [flags=CONSTANT] {
+   int year, week, day;
+   dt->getISOWeek(year, week, day);
+   QoreStringNode *str = new QoreStringNode();
+   str->sprintf("%04d-W%02d-%d", year, week, day);
+   return str;
+}
+
+//! Retuns an @ref absolute_dates "absolute date value" for the <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 calendar week information</a> passed (year, week number, optional: weekday, where 1=Monday, 7=Sunday) in the current time zone
+/** Throws an exception if the arguments are invalid
+
+    @param year the ISO-8601 year (which for some special days does not always correspond to the actual calendar year)
+    @param week the ISO-8601 week number; if this argument is invalid, an \c ISO-8601-INVALID-WEEK exception is thrown
+    @param day the day of the week, where 1=Monday and 7=Sunday; if this argument is invalid, an \c ISO-8601-INVALID-DAY exception is thrown
+
+    @return an @ref absolute_dates "absolute date value" for the <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 calendar week information</a> passed (year, week number, optional: weekday, where 1=Monday, 7=Sunday) in the current time zone
+
+    @throw ISO-8601-INVALID-WEEK The week number is not valid for the given year
+    @throw ISO-8601-INVALID-DAY The day number is not between 1 (Monday) and 7 (Sunday) inclusive
+
+    @deprecated use get_date_from_iso_week(); camel-case function names were deprecated in %Qore 0.8.12
+*/
+date getDateFromISOWeek(softint year, softint week, softint day = 1) [flags=RET_VALUE_ONLY,DEPRECATED] {
+   return DateTimeNode::getDateFromISOWeek(year, week, day, xsink);
 }
 
 //! Retuns an @ref absolute_dates "absolute date value" for the <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 calendar week information</a> passed (year, week number, optional: weekday, where 1=Monday, 7=Sunday) in the current time zone
@@ -1226,8 +1350,10 @@ my date $d = getDateFromISOWeek(2007, 3); # returns 2007-01-15
 
     @throw ISO-8601-INVALID-WEEK The week number is not valid for the given year
     @throw ISO-8601-INVALID-DAY The day number is not between 1 (Monday) and 7 (Sunday) inclusive
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case getDateFromISOWeek()
 */
-date getDateFromISOWeek(softint year, softint week, softint day = 1) [flags=RET_VALUE_ONLY] {
+date get_date_from_iso_week(softint year, softint week, softint day = 1) [flags=RET_VALUE_ONLY] {
    return DateTimeNode::getDateFromISOWeek(year, week, day, xsink);
 }
 
@@ -1334,9 +1460,11 @@ my int $us = get_duration_seconds(PT2M15S3u); # returns 135
 
     @note
     - equivalent to <date>::durationSeconds()
+    - to get a similar floating-point value with microseconds providing the digits to the right of the decimal place, use @ref get_duration_seconds_f()
     - to get the literal seconds integer value from a date/time value without calculating a duration, use @ref get_seconds(date)
 
     @see
+    - get_duration_seconds_f()
     - get_duration_milliseconds()
     - get_duration_microseconds()
 */
@@ -1361,6 +1489,7 @@ my int $ms = get_duration_milliseconds(PT2M15S3u); # returns 135000
     - to get the literal milliseconds integer value from a date/time value without calculating a duration, use @ref get_milliseconds(date)
 
     @see
+    - get_duration_seconds_f()
     - get_duration_seconds()
     - get_duration_microseconds()
 */
@@ -1384,11 +1513,39 @@ my int $us = get_duration_microseconds(PT2M15S3u); # returns 135000003
     - to get the literal microseconds integer value from a date/time value without calculating a duration, use @ref get_microseconds(date)
 
     @see
+    - get_duration_seconds_f()
     - get_duration_seconds()
     - get_duration_milliseconds()
 */
 int get_duration_microseconds(date dt) [flags=CONSTANT] {
    return dt->getRelativeMicroseconds();
+}
+
+//! Returns a floating-point value representing the the number of seconds of duration in the value of the date passed (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
+/** The duration in seconds is calculated and any fractional seconds are returned as digits to the right of the decimal point.
+
+    @param dt a @ref relative_dates "relative" or @ref absolute_dates "absolute" date argument
+
+    @return a floating-point vlaue representing the the number of seconds of duration in the value of the date passed; if the argument is a @ref relative_dates "relative date", the value is normalized to seconds and the floating-point seconds value is returned with microseconds providing the digits to the right of the decimal place, if the argument is an @ref absolute_dates "absolute date", the duration in seconds is calculated from the present time; so if the present time is sent as an argument, 0 is returned, if a future date is used, the number of seconds from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is passed as an argument, also 0 is returned (the function does not calculate second differences for @ref absolute_dates "absolute dates" in the past (for this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
+
+    @par Example:
+    @code
+my float $dt = get_duration_seconds_f(PT2M15S3u); # returns 135.000003
+    @endcode
+
+    @note
+    - equivalent to <date>::durationSecondsFloat()
+    - to get the literal seconds integer value from a date/time value without calculating a duration, use @ref get_seconds(date)
+
+    @see
+    - get_duration_seconds()
+    - get_duration_milliseconds()
+    - get_duration_microseconds()
+
+    @since %Qore 0.8.12
+*/
+float get_duration_seconds_f(date dt) [flags=CONSTANT] {
+   return dt->getRelativeSecondsDouble();
 }
 
 //! Returns a hash of @ref date_info_hash "broken-down date/time information" for the given date argument (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
