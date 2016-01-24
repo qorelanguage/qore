@@ -46,8 +46,14 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-#ifdef HAVE_SYS_SELECT_H
+#if defined HAVE_POLL_H && defined HAVE_POLL
+#include <poll.h>
+#elif defined HAVE_SYS_SELECT_H && defined HAVE_SELECT
 #include <sys/select.h>
+#elif defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#define HAVE_SELECT 1
+#else
+#error no async socket I/O APIs available
 #endif
 
 #ifndef DEFAULT_SOCKET_BUFSIZE
@@ -773,7 +779,12 @@ struct qore_socket_private {
 #endif // windows
    }
 
-   // socket must be open!
+   // socket must be open or -1 is returned and a Qore-language exception is raised
+   /* return values:
+      -1: error
+      0: timeout
+      > 0: I/O can continue
+    */
    DLLLOCAL int select(int timeout_ms, bool read, const char* mname, ExceptionSink* xsink) {
       if (sock == QORE_INVALID_SOCKET) {
 	 if (xsink)
@@ -781,14 +792,54 @@ struct qore_socket_private {
 	 return -1;
       }
 
-      fd_set sfs;
-      
-      FD_ZERO(&sfs);
-      FD_SET(sock, &sfs);
+#if defined HAVE_POLL
+      return poll_intern(timeout_ms, read, mname, xsink);
+#elif defined HAVE_SELECT
+      return select_intern(timeout_ms, read, mname, xsink);
+#else
+#error no async socket operations supported
+#endif
+   }
 
+#if defined HAVE_POLL
+   DLLLOCAL int poll_intern(int timeout_ms, bool read, const char* mname, ExceptionSink* xsink) {
+      int rc;
+      pollfd fds = {sock, read ? POLLIN : POLLOUT, 0};
+      while (true) {
+         rc = poll(&fds, 1, timeout_ms);
+         if (rc == -1 && errno == EINTR)
+            continue;
+         break;
+      }
+      if (rc < 0)
+         qore_socket_error(xsink, "SOCKET-SELECT-ERROR", "poll(2) returned an error");
+      else if (fds.revents & POLLHUP) {
+         close();
+         if (xsink)
+            se_closed(mname, xsink);
+      }
+      else if (!rc && (fds.revents & (POLLERR|POLLNVAL)))
+         rc = -1;
+      
+      return rc;
+   }
+#elif defined HAVE_SELECT
+   DLLLOCAL int select_intern(int timeout_ms, bool read, const char* mname, ExceptionSink* xsink) {
+      // select is inherently broken since it can only handle descriptors < FD_SETSIZE, which is 1024 on Linux for example
+      if (sock >= FD_SETSIZE) {
+         if (xsink)
+            xsink->raiseException("SOCKET-SELECT-ERROR", "fd is %d which is >= %d; contact the Qore developers to implement an alternative to select() on this platform", sock, FD_SETSIZE);
+         return -1;
+      }
       struct timeval tv;
       int rc;
       while (true) {
+         // to be safe, we set the file descriptor arg after each EINTR (required on Linux for example)
+         fd_set sfs;
+      
+         FD_ZERO(&sfs);
+         FD_SET(sock, &sfs);
+
 	 tv.tv_sec  = timeout_ms / 1000;
 	 tv.tv_usec = (timeout_ms % 1000) * 1000;
 
@@ -808,14 +859,15 @@ struct qore_socket_private {
                break;
 #endif
             default:
-               qore_socket_error(xsink, "SOCKET-SELECT-ERROR", "select() returned an error");
+               qore_socket_error(xsink, "SOCKET-SELECT-ERROR", "select(2) returned an error");
                break;
          }
       }
 
       return rc;
    }
-
+#endif
+   
    DLLLOCAL bool isDataAvailable(int timeout_ms, const char* mname, ExceptionSink* xsink) {
       if (buflen)
 	 return true;
@@ -827,7 +879,8 @@ struct qore_socket_private {
    }
 
    DLLLOCAL int close_and_exit() {
-      close_and_reset();
+      if (sock != QORE_INVALID_SOCKET)
+         close_and_reset();
       return -1;
    }
 
