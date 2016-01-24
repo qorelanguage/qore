@@ -416,7 +416,9 @@
     - fixed a bug handling return type information for method and pseudo-method calls; uninitialized memory could be used which could cause a runtime crash (<a href="https://github.com/qorelanguage/qore/issues/364">bug 364</a>)
     - corrected the name of the @ref modulo_operator "modulo operator" (was incorrectly referred to as the "modula" operator earlier: <a href="">bug 389</a>)
     - fixed a bug handling identifiers in parentheses used to dereference hashes or objects; the identifer is not resolved properly whereas previoulsy it was incorrectly interpreted as a string literal (<a href="https://github.com/qorelanguage/qore/issues/416">bug 416</a>)
-    - fixed a bug with handling local variables in const initializers
+    - fixed a bug with handling local variables in const initializers (<a href="https://github.com/qorelanguage/qore/issues/421">bug 421</a>)
+    - fixed a bug where \c select(2) was called after \c EINTR without reinitializing the descriptor array argument (<a href="https://github.com/qorelanguage/qore/issues/435">bug 435</a>)
+    - fixed a crashing bug on all platforms where select(2) was being called with socket descriptor values > \c FD_SETSIZE (<a href="https://github.com/qorelanguage/qore/issues/436">bug 436</a>)
 
     @section qore_0811 Qore 0.8.11
 
