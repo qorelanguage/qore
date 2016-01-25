@@ -34,12 +34,12 @@ fi
 
 QORE=""
 QR=""
-QORE_LIB_PATH=./lib/.libs:$LD_LIBRARY_PATH
+QORE_LIB_PATH="./lib/.libs:./qlib:$LD_LIBRARY_PATH"
 
 # Test that qore is built.
-if [ -s "./.libs/qore" ] && [ -r "./lib/.libs/libqore.so" ]; then
-    QORE="./.libs/qore"
-    QR="./.libs/qr"
+if [ -s "./.libs/qore" ] && [ -f "./qore" ] && [ -r "./lib/.libs/libqore.so" ]; then
+    QORE="./qore"
+    QR="./qr"
 else
     echo "Qore is not built. Exiting."
     exit 1

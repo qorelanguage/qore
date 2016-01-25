@@ -105,6 +105,7 @@
 #include "QoreTimeZoneManager.cpp"
 #include "QoreString.cpp"
 #include "QoreObject.cpp"
+#include "RSet.cpp"
 #include "QoreListNode.cpp"
 #include "QoreValueList.cpp"
 #include "qore-main.cpp"
