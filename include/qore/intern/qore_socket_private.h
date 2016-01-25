@@ -828,14 +828,9 @@ struct qore_socket_private {
       }
       if (rc < 0)
          qore_socket_error(xsink, "SOCKET-SELECT-ERROR", "poll(2) returned an error");
-      else if (fds.revents & POLLHUP) {
-         close();
-         if (xsink)
-            se_closed(mname, xsink);
-      }
-      else if (!rc && (fds.revents & (POLLERR|POLLNVAL)))
+      else if (!rc && ((fds.revents & POLLHUP) || (fds.revents & (POLLERR|POLLNVAL))))
          rc = -1;
-      
+
       return rc;
    }
 #elif defined HAVE_SELECT
@@ -851,7 +846,7 @@ struct qore_socket_private {
       while (true) {
          // to be safe, we set the file descriptor arg after each EINTR (required on Linux for example)
          fd_set sfs;
-      
+
          FD_ZERO(&sfs);
          FD_SET(sock, &sfs);
 
@@ -882,7 +877,7 @@ struct qore_socket_private {
       return rc;
    }
 #endif
-   
+
    DLLLOCAL bool isSocketDataAvailable(int timeout_ms, const char* mname, ExceptionSink* xsink) {
       return select(timeout_ms, true, mname, xsink);
    }
@@ -924,7 +919,7 @@ struct qore_socket_private {
 	    break;
 #endif
 
-	 //printd(5, "qore_socket_private::connectINETTimeout() errno=%d\n", errno);
+	 //printd(5, "qore_socket_private::connectINETTimeout() errno: %d\n", errno);
 
 	 // check for timeout or connection with EINPROGRESS
 	 while (true) {
