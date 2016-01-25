@@ -228,12 +228,19 @@ int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
       bool error = *xsink;
       for (block_list_t::iterator i = popBlock(), e = on_block_exit_list.end(); i != e; ++i) {
 	 enum obe_type_e type = (*i).first;
-	 if (type == OBE_Unconditional || (!error && type == OBE_Success) || (error && type == OBE_Error))
-	    if ((*i).second)
+	 if (type == OBE_Unconditional || (!error && type == OBE_Success) || (error && type == OBE_Error)) {
+	    if ((*i).second) {
 	       nrc = (*i).second->execImpl(return_value, &obe_xsink);
+	       // bug 380: make sure and merge every exception after every conditional execution to ensure
+	       // that all on_(exit|success) statements are executed
+	       if (obe_xsink) {
+		  xsink->assimilate(obe_xsink);
+		  if (!error)
+		     error = true;
+	       }
+	    }
+	 }
       }
-      if (obe_xsink)
-	 xsink->assimilate(obe_xsink);
       if (nrc)
 	 rc = nrc;
    }
