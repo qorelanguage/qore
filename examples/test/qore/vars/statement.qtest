@@ -211,6 +211,6 @@ class StatementTest inherits QUnit::Test {
         }
         catch (hash ex) {
         }
-        assertEq(i, 2);
+        assertEq(2, i);
     }
 }
