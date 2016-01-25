@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -796,25 +796,28 @@ public:
 class qore_relative_time : public qore_simple_tm {
    friend class qore_absolute_time;
 protected:
-   DLLLOCAL void normalize() {
+   DLLLOCAL void normalize(bool for_comparison = false) {
       //printd(5, "DT:cD() sec: %lld ms: %d\n", sec, ms);
-
-      // normalize years from months
-      normalize_units<int, int>(year, month, 12);
 
       // normalize seconds from microseconds
       normalize_units<int, int>(second, us, 1000000);
 
-      // no longer normalize days, as with DST not all days are 24 hours
-
-      // normalize hours from seconds
-      //normalize_units<int, int>(hour, second, 3600);
+      // normalize minutes from seconds
+      normalize_units<int, int>(minute, second, 60);
 
       // normalize hours from minutes
       normalize_units<int, int>(hour, minute, 60);
 
-      // normalize minutes from seconds
-      normalize_units<int, int>(minute, second, 60);
+      // only normalize hours to days and days to months if we are comparing
+      // we use a standard year length of 365 days and a maximum month length of 31 days
+      if (for_comparison) {
+         normalize_units<int, int>(day, hour, 24);
+         normalize_units<int, int>(year, day, 365);
+         normalize_units<int, int>(month, day, 31);
+      }
+
+      // normalize years from months
+      normalize_units<int, int>(year, month, 12);
    }
 
    DLLLOCAL void setIso8601(const char* str);
@@ -915,34 +918,42 @@ public:
       return us;
    }
 
-   DLLLOCAL int compare(const qore_relative_time& r) const {
-      if (year > r.year)
+   DLLLOCAL int compare(const qore_relative_time& rt) const {
+      // compare normalized values
+      qore_relative_time l;
+      l.set(year, month, day, hour, minute, second, us);
+      l.normalize(true);
+      qore_relative_time r;
+      r.set(rt.year, rt.month, rt.day, rt.hour, rt.minute, rt.second, rt.us);
+      r.normalize(true);
+
+      if (l.year > r.year)
          return 1;
-      if (year < r.year)
+      if (l.year < r.year)
          return -1;
-      if (month > r.month)
+      if (l.month > r.month)
          return 1;
-      if (month < r.month)
+      if (l.month < r.month)
          return -1;
-      if (day > r.day)
+      if (l.day > r.day)
          return 1;
-      if (day < r.day)
+      if (l.day < r.day)
          return -1;
-      if (hour > r.hour)
+      if (l.hour > r.hour)
          return 1;
-      if (hour < r.hour)
+      if (l.hour < r.hour)
          return -1;
-      if (minute > r.minute)
+      if (l.minute > r.minute)
          return 1;
-      if (minute < r.minute)
+      if (l.minute < r.minute)
          return -1;
-      if (second > r.second)
+      if (l.second > r.second)
          return 1;
-      if (second < r.second)
+      if (l.second < r.second)
          return -1;
-      if (us > r.us)
+      if (l.us > r.us)
          return 1;
-      if (us < r.us)
+      if (l.us < r.us)
          return -1;
       return 0;
    }

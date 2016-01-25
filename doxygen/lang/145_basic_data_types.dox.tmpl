@@ -88,7 +88,7 @@ on more than 1 line";
     @par Type Name:
     \c "integer"
 
-    @see 
+    @see
     - @ref int_type, @ref softint_type
     - @ref Qore::MAXINT, @ref Qore::MININT
 
@@ -218,8 +218,7 @@ prompt% qore -X '18:35:26+08:00'
     - @ref short_reldates "Short Relative Time Format" (ex: <tt>P3DT21H</tt>; based on <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>)
     - @ref long_reldates "Long Relative Time Format" (ex: <tt>P0001-03-00T00:00:04</tt>; based on <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>)
 
-    @anchor single_reldates
-    @par Single Relative Time Format
+    @subsubsection single_reldates Single Relative Time Format
     A single relative date/time value (or a duration) may be specified as follows (note that this format is specific to %Qore and not based on <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>):
     - @verbatim <integer><date component specifier>@endverbatim
     .
@@ -231,11 +230,11 @@ prompt% qore -X '18:35:26+08:00'
     Such values are recommended to give to functions and methods taking a timeout value as the units are then clear in the source code (whereas if an integer is given, it may not be clear that the function or method expects a value in milliseconds, for example); for example:
     @code{.py}
 my any $val = $q.pop(20s);
-    @endcode \n
+    @endcode
     is clearer than the alternative with an argument given as a value in implied milliseconds to the @ref Qore::Thread::Queue::pop(timeout) "Queue::pop()" method:
     @code{.py}
 my any $val = $q.pop(20000);
-    @endcode \n
+    @endcode
     <b>Date Specifiers For Single Values For Relative Dates (non-<a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> syntax)</b>
     |!Component|!Meaning|!Example|!Description
     |\c Y|Years|\c 2Y|2 Years
@@ -247,8 +246,7 @@ my any $val = $q.pop(20000);
     |\c ms|Milliseconds|\c 250ms|250 milliseconds
     |\c us|Microseconds|\c 21194us|21194 microseconds
 
-    @anchor short_reldates
-    @par Short Relative Time Format
+    @subsubsection short_reldates Short Relative Time Format
     This and the next duration format for composite relative date/time values are both based on <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>.\n\n
     This first format has the following syntax:
     - \c PnYnMnDTnHnMnSnu
@@ -266,13 +264,12 @@ prompt% qore -X 'P3DT21H'
 
     @note the \c "u" charater is a %Qore-specific extension to <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>
 
-    @anchor long_reldates
-    @par Long Relative Time Format
+    @subsubsection long_reldates Long Relative Time Format
     The second <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>-based format for specifing complex durations with multiple time units has the following syntax:
     - \c PYYYY-MM-DDTHH:mm:SS
     .
     This format is more limited than the first format, in that all values must be non-negative, and furthermore, all values must be present (although they may be zero).\n\n
-    Here are some examples of the second format (equivalent to the first examples):\n\n
+    Here are some examples of the second format (equivalent to the first examples):
     @code{.py}
 prompt% qore -X 'P0001-03-00T00:00:04'
 <time: 1 year 3 months 4 seconds>
@@ -280,8 +277,17 @@ prompt% qore -X 'P0000-00-00T00:04:00.000551'
 <time: 4 minutes 551 microseconds>
 prompt% qore -X 'P0000-00-03T21:00:00'
 <time: 3 days 21 hours>
-    @endcode \n
+    @endcode
     @see @ref date_type, @ref softdate_type
+
+    @subsubsection reldate_comparisons Relative Date/Time Comparisons
+
+    Comparisons with two relative date/time values are made with normalized representations of each component of the date/time value.  Because the actual value of a relative date/time value only makes sense when used with an @ref absolute_dates "absolute date value" (ex: adding \c 1M to an absolute date value will result in a different number of days being added depending on the month and day of the @ref absolute_dates "absolute date value" operand), comparisons with mixed day, month, and year components must be based on approximations.   When mixing day, month, and year components, the following approximations are used:
+    - one day is treated as equivalent to 24 hours (\c 1D == \c 24h)
+    - one month is treated as equivalent to 31 days (\c 1M == \c 31D)
+    - 365 days are treated as equivalent to one year (\c 365D == \c 1Y)
+
+    These assumptions try to make sense of expressions like: @verbatim 45D > 1M @endverbatim for example.  Month lengths can range from 28 to 31 days, therefore while the expression: @verbatim 30D < 1M @endverbatim will be evaluated as @ref True, when adding \c 30D to an @ref absolute_dates "absolute date value", the result could be less than adding \c 1M (for example, when the operand is an @ref absolute_dates "absolute date" in February).
 
     <hr>
     @section binary Binary
