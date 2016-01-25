@@ -13,7 +13,7 @@
 
 class HttpTestServer {
     public {
-        const Port = 19881;
+        const Port = 49876;
     }
 
     private {
