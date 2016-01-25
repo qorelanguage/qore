@@ -13,8 +13,8 @@
 
 public class Main inherits QUnit::Test {
 
-    constructor() : Test("MapperTest", "1.0") {
-        addTestCase("Test serialzie()", \testSerialize(), NOTHING);
+    constructor() : Test("MailMessageTest", "1.0") {
+        addTestCase("Test serialize()", \testSerialize(), NOTHING);
 
         set_return_value(main());
     }
