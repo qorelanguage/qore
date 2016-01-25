@@ -13,6 +13,7 @@
 class RegexTest inherits QUnit::Test {
     constructor() : QUnit::Test("Regex test", "1.0") {
         addTestCase("Test", \test());
+        addTestCase("bug329", \test329());
         set_return_value(main());
     }
 
@@ -511,7 +512,7 @@ class RegexTest inherits QUnit::Test {
 
         t = 'Empty string';
         s = '';
-        p = '^$';
+        p = '^$';#';
         assertTrue(s =~ /^$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
         s = 'a';
         assertTrue(s !~ /^$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
@@ -542,7 +543,7 @@ class RegexTest inherits QUnit::Test {
         s =~ s/\t\n\r\s\S\w\W\d\D//;
         t = 'Symbolic character classes'; # do not work
         s = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789';
-        p = '^[\w]+$';
+        p = '^[\w]+$';#';
         #printf("%s %s: \"'%s' =~ /%s/\"\n",( s =~ /^[\w]+$/) ? 'PASS' : 'FAIL' ,t, s, p);
 
         # substitution
@@ -556,5 +557,9 @@ class RegexTest inherits QUnit::Test {
         #s =~ s/(a)/ \1 \n/; # does not work
         #print(s);
     }
-}
 
+    test329() {
+        string str = "hi|hi";
+        assertThrows("REGEX-SUBST-ERROR", sub () {str =~ s/|/\//g;});
+    }
+}

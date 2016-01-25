@@ -419,8 +419,9 @@
     - fixed a bug with handling local variables in const initializers (<a href="https://github.com/qorelanguage/qore/issues/421">bug 421</a>)
     - fixed a bug where \c select(2) was called after \c EINTR without reinitializing the descriptor array argument (<a href="https://github.com/qorelanguage/qore/issues/435">bug 435</a>)
     - fixed a crashing bug on all platforms where select(2) was being called with socket descriptor values > \c FD_SETSIZE (<a href="https://github.com/qorelanguage/qore/issues/436">bug 436</a>)
-    - fixed a bug where @ref Qore::HTTPClient::get() and @ref Qore::HTTPClient::post() would try to retrieve a message body even if <tt>Content-Length: 0</tt> was returned (or if no \c Content-Length header was returned at all) which would result in a deadlock (<a href="https://github.com/qorelanguage/qore/issues/434">bug 434</a>) until the server would close the connection
     - fixed a bug where @ref on_exit and @ref on_error statements were not being executed if an exception was raised in an earlier-executed @ref on_exit, @ref on_error, or @ref on_success statement (<a href="https://github.com/qorelanguage/qore/issues/380">bug 380</a>)
+    - fixed a bug where @ref Qore::HTTPClient::get() and @ref Qore::HTTPClient::post() would try to retrieve a message body even if <tt>Content-Length: 0</tt> was returned (or if no \c Content-Length header was returned at all) which would result in a deadlock until the server would close the connection (<a href="https://github.com/qorelanguage/qore/issues/434">bug 434</a>)
+    - fixed a bug where regular expression substitution would go into an infinite loop when used with an empty pattern and the global flag (@ref Qore::RE_Global, <a href="https://github.com/qorelanguage/qore/issues/329">bug 329</a>)
 
     @section qore_0811 Qore 0.8.11
 
