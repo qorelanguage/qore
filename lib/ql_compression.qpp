@@ -749,7 +749,7 @@ nothing uncompress_to_binary() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code
-my binary $data = bzip($str);
+my binary $data = gzip($str);
     @endcode
 
     @throw ZLIB-LEVEL-ERROR level must be between 1 - 9 or -1
@@ -827,7 +827,7 @@ nothing gunzip_to_string() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code
-my binary $bin = gunzip_to_string($data);
+my binary $bin = gunzip_to_binary($data);
     @endcode
 
     @throw ZLIB-ERROR The zlib library returned an error during processing (possibly due to corrupt input data)
@@ -850,7 +850,7 @@ nothing gunzip_to_binary() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code
-my binary $bin = compress($data);
+my binary $bin = bzip2($data);
     @endcode
 
     @throw BZLIB2-LEVEL-ERROR level must be between 1 - 9
@@ -873,7 +873,7 @@ binary bzip2(binary bin, softint level = BZ2_DEFAULT_COMPRESSION) {
 
     @par Example:
     @code
-my binary $bin = compress($str);
+my binary $bin = bzip2($str);
     @endcode
 
     @throw BZLIB2-LEVEL-ERROR level must be between 1 - 9
@@ -899,7 +899,7 @@ nothing bzip2() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code
-my string $str = bunzip2_to_binary($bzip2_string);
+my binary $bin = bunzip2_to_binary($bzip2_string);
     @endcode
 
     @throw BZIP2-DECOMPRESS-ERROR the bzip2 library returned an internal error during processing (possibly due to corrupt input data)
