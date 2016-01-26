@@ -813,14 +813,9 @@ struct qore_socket_private {
       }
       if (rc < 0)
          qore_socket_error(xsink, "SOCKET-SELECT-ERROR", "poll(2) returned an error");
-      else if (fds.revents & POLLHUP) {
-         close();
-         if (xsink)
-            se_closed(mname, xsink);
-      }
-      else if (!rc && (fds.revents & (POLLERR|POLLNVAL)))
+      else if (!rc && ((fds.revents & POLLHUP) || (fds.revents & (POLLERR|POLLNVAL))))
          rc = -1;
-      
+
       return rc;
    }
 #elif defined HAVE_SELECT
