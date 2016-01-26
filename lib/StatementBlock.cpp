@@ -232,7 +232,7 @@ int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
 	    if ((*i).second) {
 	       nrc = (*i).second->execImpl(return_value, &obe_xsink);
 	       // bug 380: make sure and merge every exception after every conditional execution to ensure
-	       // that all on_(exit|success) statements are executed
+	       // that all on_(exit|error) statements are executed even if exceptions are thrown
 	       if (obe_xsink) {
 		  xsink->assimilate(obe_xsink);
 		  if (!error)

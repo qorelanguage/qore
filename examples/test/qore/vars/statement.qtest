@@ -202,9 +202,9 @@ class StatementTest inherits QUnit::Test {
         # bug 380: on_(exit|error) need to be run even if there is an active exception
         int i = 0;
         try {
-            on_exit
+            on_error
                 ++i;
-            on_error {
+            on_exit {
                 ++i;
                 throw True;
             }
