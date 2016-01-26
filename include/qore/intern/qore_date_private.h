@@ -41,7 +41,7 @@
 
 #define SECS_PER_MINUTE          60
 // 3600
-#define SECS_PER_HOUR            (SECS_PER_MINUTE*  60)
+#define SECS_PER_HOUR            (SECS_PER_MINUTE * 60)
 // number of seconds in a normal day (no DST) = 86400
 #define SECS_PER_DAY             (SECS_PER_HOUR * 24)
 // number of seconds in a normal year (no leap day)
@@ -51,13 +51,13 @@
 
 #define MICROSECS_PER_SEC        1000000ll
 #define MICROSECS_PER_MINUTE     (MICROSECS_PER_SEC * 60)
-#define MICROSECS_PER_HOUR       (MICROSECS_PER_MINUTE*  60)
-// number of microseconds in a day (no DST)
-#define MICROSECS_PER_DAY        (MICROSECS_PER_HOUR * 24)
-// number of microseconds in an average month (30 days)
-#define MICROSECS_PER_AVG_MONTH  (MICROSECS_PER_HOUR * 24)
-// number of microseconds in a year
-#define MICROSECS_PER_YEAR       (MICROSECS_PER_DAY * 365)
+#define MICROSECS_PER_HOUR       (MICROSECS_PER_MINUTE * 60)
+// number of microseconds in an average day (no DST = 24h)
+#define MICROSECS_PER_AVG_DAY    (MICROSECS_PER_HOUR * 24)
+// number of microseconds in a maximum month (31 days)
+#define MICROSECS_PER_MAX_MONTH  (MICROSECS_PER_HOUR * 24 * 31)
+// number of microseconds in an average year (365 days)
+#define MICROSECS_PER_AVG_YEAR   (MICROSECS_PER_AVG_DAY * 365)
 
 // number of seconds from 1970-01-01 to 2000-01-01, 30 years with 7 leap days: 1972, 1976, 1980, 1984, 1988, 1992, 1996
 #define SECS_TO_2K               (SECS_PER_YEAR * 30 + SECS_PER_DAY * 7ll)
@@ -809,7 +809,7 @@ protected:
       normalize_units<int, int>(hour, minute, 60);
 
       // only normalize hours to days and days to months if we are comparing
-      // we use a standard year length of 365 days and a maximum month length of 31 days
+      // we use an average year length of 365 days and an maximum month length of 31 days
       if (for_comparison) {
          normalize_units<int, int>(day, hour, 24);
          normalize_units<int, int>(year, day, 365);
@@ -980,9 +980,9 @@ public:
       return (int64)us + (int64)second * MICROSECS_PER_SEC
          + (int64)minute*  MICROSECS_PER_MINUTE
          + (int64)hour * MICROSECS_PER_HOUR
-         + (int64)day * MICROSECS_PER_DAY
-         + (month ? (int64)month * MICROSECS_PER_AVG_MONTH : 0ll)
-         + (year ? (int64)year * MICROSECS_PER_YEAR : 0ll);
+         + (int64)day * MICROSECS_PER_AVG_DAY
+         + (month ? (int64)month * MICROSECS_PER_MAX_MONTH : 0ll)
+         + (year ? (int64)year * MICROSECS_PER_AVG_YEAR : 0ll);
    }
 
    DLLLOCAL double getRelativeSecondsDouble() const {

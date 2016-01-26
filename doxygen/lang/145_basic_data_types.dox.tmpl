@@ -282,7 +282,7 @@ prompt% qore -X 'P0000-00-03T21:00:00'
 
     @subsubsection reldate_comparisons Relative Date/Time Comparisons
 
-    Comparisons with two relative date/time values are made with normalized representations of each component of the date/time value.  Because the actual value of a relative date/time value only makes sense when used with an @ref absolute_dates "absolute date value" (ex: adding \c 1M to an absolute date value will result in a different number of days being added depending on the month and day of the @ref absolute_dates "absolute date value" operand), comparisons with mixed day, month, and year components must be based on approximations.   When mixing day, month, and year components, the following approximations are used:
+    Comparisons with two relative date/time values are made with normalized representations of each component of the date/time value.  Because the actual value of a relative date/time value only makes sense when used with an @ref absolute_dates "absolute date value" (ex: adding \c 1M to an absolute date value will result in a different number of days being added depending on the month and day of the @ref absolute_dates "absolute date value" operand), comparisons of relative date/time values with mixed day, month, and year components must be based on approximations.   When mixing day, month, and year components, the following approximations are used:
     - one day is treated as equivalent to 24 hours (\c 1D == \c 24h)
     - one month is treated as equivalent to 31 days (\c 1M == \c 31D)
     - 365 days are treated as equivalent to one year (\c 365D == \c 1Y)
