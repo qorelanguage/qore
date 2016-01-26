@@ -198,6 +198,19 @@ class StatementTest inherits QUnit::Test {
         assertEq(99, v, "third on_exit");
         assertTrue(err, "on_error");
         assertFalse(success, "on_success");
+
+        # bug 380: on_(exit|error) need to be run even if there is an active exception
+        int i = 0;
+        try {
+            on_error
+                ++i;
+            on_exit {
+                ++i;
+                throw True;
+            }
+        }
+        catch (hash ex) {
+        }
+        assertEq(2, i);
     }
 }
-

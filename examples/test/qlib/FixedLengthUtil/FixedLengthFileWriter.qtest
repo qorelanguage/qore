@@ -67,11 +67,21 @@ class Test inherits QUnit::Test {
     basicTests() {
         string file = tmp_location() + "/file.fll";
 
-        FixedLengthFileWriter w(file, Specs, GlobalOptions);
-        on_exit unlink(file);
-        w.write(Data1);
-        w.write(Data2);
+        {
+            FixedLengthFileWriter w(file, Specs, GlobalOptions);
+            on_exit unlink(file);
+            w.write(Data1);
+            w.write(Data2);
 
-        testAssertionValue("file content check", ReadOnlyFile::readTextFile(file), DataText);
+            testAssertionValue("file content check", ReadOnlyFile::readTextFile(file), DataText);
+        }
+        {
+            FixedLengthFileWriter w(file, Specs, GlobalOptions + ("eol": "\r\n"));
+            on_exit unlink(file);
+            w.write(Data1);
+            w.write(Data2);
+
+            testAssertionValue("file content check", ReadOnlyFile::readTextFile(file), replace(DataText, "\n", "\r\n"));
+        }
     }
 }
