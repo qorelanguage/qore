@@ -280,7 +280,6 @@ private:
 
 protected:
    typedef std::map<RObject*, RSetStat> omap_t;
-   typedef std::set<RSectionLock*> rsl_set_t;
    typedef std::set<QoreClosureBase*> closure_set_t;
    // map of all objects scanned to rset (rset = finalized, 0 = not finalized, in current list)
    omap_t fomap;
@@ -297,9 +296,6 @@ protected:
 
    // RSectionLock notification helper when waiting on locks
    RNotifier notifier;
-
-   // set of rsections held to be unlocked at the end of the scan
-   rsl_set_t rsl_set;
 
    // set of scanned closures
    closure_set_t closure_set;
@@ -355,10 +351,12 @@ public:
       return fomap_size;
    }
 
-   DLLLOCAL void add(RSectionLock* rsl) {
-      rsl_set_t::iterator i = rsl_set.lower_bound(rsl);
-      if (i == rsl_set.end() || *i != rsl)
-         rsl_set.insert(i, rsl);
+   DLLLOCAL void add(RObject* ro) {
+      if (fomap.find(ro) != fomap.end())
+         return;
+      rset_t::iterator i = tr_out.lower_bound(ro);
+      if (i == tr_out.end() || *i != ro)
+         tr_out.insert(i, ro);
    }
 };
 
