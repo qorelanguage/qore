@@ -1212,7 +1212,7 @@ int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
    if (typeInfo->needsScan())
       lvh.setClosure(const_cast<ClosureVarValue*>(this));
 
-   QoreSafeVarRWWriteLocker sl(const_cast<ClosureVarValue*>(this));
+   QoreSafeVarRWWriteLocker sl(rml);
    if (val.getType() == NT_REFERENCE) {
       ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), lvh.vl.xsink);
       sl.unlock();
@@ -1221,14 +1221,14 @@ int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
    }
 
    lvh.setTypeInfo(typeInfo);
-   lvh.set(*const_cast<ClosureVarValue*>(this));
+   lvh.set(rml);
    sl.stay_locked();
    lvh.setValue((QoreLValueGeneric&)val);
    return 0;
 }
 
 void ClosureVarValue::remove(LValueRemoveHelper& lvrh) {
-   QoreSafeVarRWWriteLocker sl(this);
+   QoreSafeVarRWWriteLocker sl(rml);
    if (val.getType() == NT_REFERENCE) {
       ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), lvrh.getExceptionSink());
       sl.unlock();
