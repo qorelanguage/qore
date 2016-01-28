@@ -1,3 +1,4 @@
+#!/usr/bin/env qore
 %requires Qorize
 %requires SqlUtil
 %new-style
@@ -9,7 +10,9 @@ const TYPE_ATTRIBUTES = (
     "date"      : ("qore_type", "native_type", "scale", "default_value", "comment"), 
     "varchar"   : ("qore_type", "native_type", "size", "scale", "default_value", "comment"), 
     "char"      : ("qore_type", "native_type", "size", "scale", "default_value", "comment"), 
-    "timestamp" : ("qore_type", "native_type", "scale", "default_value", "comment"), 
+    "timestamp" : ("qore_type", "native_type", "scale", "default_value", "comment"),
+    "text"      : ("qore_type", "native_type", "scale", "default_value", "comment"), 
+    "bytea"     : ("qore_type", "native_type", "scale", "default_value", "comment"), 
 );
 
 const opts = (
@@ -21,7 +24,7 @@ const opts = (
 GetOpt g(opts);
 hash opt = g.parse3(\ARGV);
 
-if (opt.help) {
+if (opt.help || !ARGV[0]) {
     printf("Usage: get_schema.q -t TABLES -s SEQUENCES DATASOURCE
 Options:
     -t,--table     list of tables to export
@@ -35,10 +38,12 @@ if (!ARGV[0]) {
     throw 'NO-DATASOURCE-GIVEN', 'Please provide datasource where the definition should be taken';
 }
 
-list tables_to_export = opt.table;
-list sequences_to_export = opt.sequence;
-
 Datasource ds(ARGV[0]);
+SqlUtil::Database db(ds);
+
+list tables_to_export = opt.table ?* db.listTables();
+list sequences_to_export = opt.sequence ?* db.listSequences();
+
 
 hash data;
 
