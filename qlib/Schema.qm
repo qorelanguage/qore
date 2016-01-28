@@ -198,8 +198,7 @@ public namespace Schema {
     }
 
     #! returns a column hash for a \c DATE column
-    /** @param size the size of the column
-        @param comment the comment for the column
+    /** @param comment the comment for the column
 
         @see c_timestamp()
      */
@@ -227,8 +226,7 @@ public namespace Schema {
     }
 
     #! returns a column hash for a \c TIMESTAMP column
-    /** @param size the size of the column
-        @param comment the comment for the column
+    /** @param comment the comment for the column
 
         @see c_date()
      */

@@ -585,8 +585,6 @@ int <date>::isoDayOfWeek() [flags=CONSTANT] {
 //! Returns a hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" (hash keys: \c "year", \c "week", \c "day")
 /** @note that the ISO-8601 year does not always correspond with the calendar year at the end and the beginning of every year (for example 2006-01-01 in ISO-8601 calendar week format is: year=2005, week=52, day=7)
 
-    @param dt the date to get information for
-
     @return a hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" (hash keys: \c "year", \c "week", \c "day"); if a @ref relative_dates "relative date" value is used, then this method will return year=1970, week=1, day=1
 
     @par Example:

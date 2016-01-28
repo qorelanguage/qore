@@ -68,7 +68,7 @@
 #define QDBI_METHOD_COMMIT                    6
 #define QDBI_METHOD_ROLLBACK                  7
 #define QDBI_METHOD_BEGIN_TRANSACTION         8
-#define QDBI_METHOD_ABORT_TRANSACTION_START   9 //!< @deprected this is no longer called / used as of Qore 0.8.12
+#define QDBI_METHOD_ABORT_TRANSACTION_START   9 //!< @deprecated this is no longer called / used as of Qore 0.8.12
 #define QDBI_METHOD_GET_SERVER_VERSION       10
 #define QDBI_METHOD_GET_CLIENT_VERSION       11
 #define QDBI_METHOD_EXECRAW                  12

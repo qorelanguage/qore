@@ -1390,7 +1390,6 @@ Program::loadApplyToUserModule(string name, *softbool reinject) [dom=MODULES,INJ
 /** This function allows a user module to be privately loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
 
     @param name the name or path of the user module to load
-    @param reinject if @ref Qore::True "True" then the module will be reloaded even if already loaded previously
 
     @throw LOAD-MODULE-ERROR module cannot be loaded: binary modules cannot be loaded in @ref Qore::Program "Program" containers, etc
 
