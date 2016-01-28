@@ -20,18 +20,24 @@ const opts = (
     "table"    : "t,table=s@",
     "sequence" : "s,sequence=s@",
     "help"     : "h,help",
+    "tds"      : "d,target-datasource=s",
 );
 
 GetOpt g(opts);
 hash opt = g.parse3(\ARGV);
 if (opt.help || !ARGV[0]) {
-    printf("Usage: get_schema.q -t TABLES -s SEQUENCES DATASOURCE
+    printf("Usage: get_schema.q -t TABLES -d TARGET-DATASOURCE -s SEQUENCES DATASOURCE
 Options:
-    -t,--table     list of tables to export
-    -s,--sequence  list of sequences to export
-    -h,--help      prints this
+    -t,--table             list of tables to export
+    -d,--target-datasource list of tables to export
+    -s,--sequence          list of sequences to export
+    -h,--help              prints this
 ");
     exit(1);
+}
+
+if (!exists opt.tds) {
+    opt.tds = 'omquser';
 }
 
 if (!ARGV[0]) {
@@ -67,7 +73,7 @@ string str_index_options   = create_index_options_string();
 string str_tables          = create_table_string(data);
 string str_private         = create_private_namespace_string(str_tables, str_sequences, str_coloptions, str_generic_options, str_index_options);
 
-string str_public = create_str_public();
+string str_public = create_str_public(opt.tds);
 
 string str = create_qsm(str_header, str_private, str_public);
 
@@ -147,10 +153,10 @@ module MySchema {
 ';
 }
 
-sub create_str_public() {
+sub create_str_public(string tds) {
     return 'public namespace SchemaClass {
     public string sub get_datasource_name() {
-        return "omquser";
+        return "' + tds + '";
     }
 
     public SchemaClass sub get_user_schema(AbstractDatasource ds, *string dts, *string its) {
