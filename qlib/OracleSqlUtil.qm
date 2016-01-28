@@ -1485,7 +1485,7 @@ my any $v = $c.name;
 
             @warning content of this method can be changed anytime when there will be any better way how to analyze indexes.
 
-            @param index index name
+            @param name index name
             @param maxh maximum oracle index height before rebuilding index
             @param maxleaf maximum oracle percentage of deleted leaf nodes before rebuilding index
 

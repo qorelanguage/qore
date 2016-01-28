@@ -301,7 +301,7 @@ on_error ds.rollback();
 }
             @endcode
 
-            @param data a list of hashes representing the input row data; each hash represents a row (keys are column names and values are column values); when inserting, @ref sql_iop_funcs can also be used
+            @param l a list of hashes representing the input row data; each hash represents a row (keys are column names and values are column values); when inserting, @ref sql_iop_funcs can also be used
 
             @note
             - the first row passed is taken as a template row; every other row must always have the same keys in the same order, otherwise the results are unpredictable
