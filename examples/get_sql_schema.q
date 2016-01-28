@@ -9,6 +9,7 @@ const TYPE_ATTRIBUTES = (
     "numeric"   : ("qore_type", "native_type", "size", "scale", "default_value", "comment"),
     "date"      : ("qore_type", "native_type", "scale", "default_value", "comment"), 
     "varchar"   : ("qore_type", "native_type", "size", "scale", "default_value", "comment"), 
+    "varchar2"  : ("qore_type", "native_type", "size", "scale", "default_value", "comment"), 
     "char"      : ("qore_type", "native_type", "size", "scale", "default_value", "comment"), 
     "timestamp" : ("qore_type", "native_type", "scale", "default_value", "comment"),
     "text"      : ("qore_type", "native_type", "scale", "default_value", "comment"), 
@@ -23,7 +24,6 @@ const opts = (
 
 GetOpt g(opts);
 hash opt = g.parse3(\ARGV);
-
 if (opt.help || !ARGV[0]) {
     printf("Usage: get_schema.q -t TABLES -s SEQUENCES DATASOURCE
 Options:
