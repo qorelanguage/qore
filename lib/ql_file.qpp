@@ -385,7 +385,7 @@ bool is_executable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    int rc;
 
    if ((rc = stat(path->getBuffer(), &sbuf)))
-      return QoreValue();
+      return false;
 
    if (sbuf.st_mode & S_IXOTH
        || (geteuid() == sbuf.st_uid && (sbuf.st_mode & S_IXUSR))
