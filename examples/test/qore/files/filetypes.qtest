@@ -29,9 +29,8 @@ class FiletypesTest inherits QUnit::Test {
 
         assertEq(True, is_executable("/bin/sh"), "is_executable()");
         assertEq(False, is_executable("/dev/null"), "is_executable() false 1");
-        # commented out because it wrongly returns NOTHING instead of False
-        #assertEq(False, is_executable(nonExistantPath), "is_executable() false 2");
-        #assertEq(False, is_executable(""), "is_executable() false 3");
+        assertEq(False, is_executable(nonExistantPath), "is_executable() false 2");
+        assertEq(False, is_executable(""), "is_executable() false 3");
 
         assertEq(True, is_dir("/"), "is_dir()");
         assertEq(False, is_dir(nonExistantPath), "is_dir() false 1");
