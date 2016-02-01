@@ -6709,7 +6709,7 @@ list l = db.getAlignSql(schema_hash);
             }
 
             # create template tables
-            table_cache.populate(ds, schema_hash.tables- "db_table_cache");
+            table_cache.populate(ds, schema_hash.tables, opt - "db_table_cache");
 
             # rename any tables
             AbstractDatabase::checkDriverOptions(\schema_hash.table_map, drv);
