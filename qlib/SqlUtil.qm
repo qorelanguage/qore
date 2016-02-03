@@ -118,6 +118,7 @@ module SqlUtil {
     - fixed a bug in schema alignment; when aligning a schema and an index supporting a PK constraint is introduced in the new schema, the alignment would fail when a constraint is attempted to be disabled that doesn't exist
     - fixed a bug generating select statements for tables accessed through a synonym when used with join clauses; previously inconsistent schema prefixes could be used which could cause errors parsing the SQL statements generated
     - fixed a bug where the @ref SqlUtil::AbstractTable "AbstractTable" lock was held while executing SQL to determine the upsert strategy to use with @ref SqlUtil::AbstractTable::UpsertAuto "UpsertAuto" (<a href="https://github.com/qorelanguage/qore/issues/408">bug 409</a>)
+    - fixed a bug where complex bind values as hashes (such as used by the pgsql and oracle drivers) were rejected by SqlUtil (<a href="https://github.com/qorelanguage/qore/issues/494">bug 494</a>) when updating
 
     @subsection sqlutilv1_2 SqlUtil v1.2
     - added insert operator support; for example, for inserting with values from sequences
@@ -14892,7 +14893,7 @@ int ucnt = table.updateNoCommit(("id": id), ("name": name));
                 string key = i.getKey();
                 any value = i.getValue();
                 string exp = sprintf("%s = ", getColumnSqlName(key));
-                if (value.typeCode() == NT_HASH)
+                if (value.uop)
                     exp += getUpdateExpression(key, value);
                 else {
                     exp += "%v";
