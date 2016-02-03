@@ -131,7 +131,7 @@ public:
    */
    DLLEXPORT QoreStringNode* readLine(ExceptionSink* xsink);
 
-   //! reads string data from the file up to and optionally including the terminating EOL characters (can be '\n', '\r' or '\r\n') and returns the string read
+   //! reads string data from the file up to and optionally including the terminating EOL characters (can be \c "\n", \c "\r" or \c "\r\n") and returns the string read
    /** if an error occurs (file is not open), a Qore-language exception is raised
 
        @param incl_eol if this parameter is true, then the EOL character(s) read will be written to the string, if false, then they are not
@@ -143,7 +143,7 @@ public:
    */
    DLLEXPORT QoreStringNode* readLine(bool incl_eol, ExceptionSink* xsink);
 
-   //! clears the string passed, then reads string data from the file up to and including the terminating EOL characters (can be '\n', '\r' or '\r\n'), returns 0 for no error, -1 for EOF, -2 for file not opened
+   //! clears the string passed, then reads string data from the file up to and including the terminating EOL characters (can be \c "\n", \c "\r" or \c "\r\n"), returns 0 for no error, -1 for EOF, -2 for file not opened
    /** @note string data will be appended to the string with the assumption that the string's encoding is the same as the file's
 
        @param str the string container that will have the line from the file written into
@@ -154,7 +154,7 @@ public:
    */
    DLLEXPORT int readLine(QoreString &str);
 
-   //! clears the string passed, then reads string data from the file up to and optionally including the terminating EOL characters (can be '\n', '\r' or '\r\n'), returns 0 for no error, -1 for EOF, -2 for file not opened
+   //! clears the string passed, then reads string data from the file up to and optionally including the terminating EOL characters (can be \c "\n", \c "\r" or \c "\r\n"), returns 0 for no error, -1 for EOF, -2 for file not opened
    /** @note string data will be appended to the string with the assumption that the string's encoding is the same as the file's
 
        @param str the string container that will have the line from the file written into

@@ -154,7 +154,7 @@ $function$
 
     @subsection pgsqlsqlutilv11 PgsqlSqlUtil v1.1
     - added support for the following datatypes and aliases: bool, float, int, timetz, timestamptz, varbit
-    - fixed support for the following datatypes and aliases: bit, bit varying, char, character, character varying, oid, varchar
+    - fixed support for the following datatypes and aliases: bit, bit varying, char, character, character varying, char varying, oid, varchar
     - fixed bugs handling "bigint" and "double precision" column types with schema alignments
     - fixed a bug with PgsqlTable::tryInsertImpl(); added an explicit "begin" call to make the savepoint work with PostgreSQL 9.3+ servers
     - fixed a bug retrieving foreign constraints; columns were not guaranteed to be returned in declaration order
@@ -263,7 +263,7 @@ public namespace PgsqlSqlUtil {
             return sprintf("alter type %s rename to %s", name, new_name);
         }
 
-         bool equal(PgsqlType type) {
+        bool equal(PgsqlType type) {
             return name == type.name && src == type.src;
         }
     }
@@ -1260,6 +1260,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                 "bit varying": "varbit",
                 "character": "char",
                 "character varying": "varchar",
+                "char varying": "varchar",
                 "double precision": "float",
                 "time with time zone": "timetz",
                 "time without time zone": "time",

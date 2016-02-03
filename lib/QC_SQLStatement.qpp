@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -57,6 +57,7 @@
     - Most commands are executed implicitly; for example, in the example above there is no call to SQLStatement::exec() as it is executed implicitly in the initial call to SQLStatement::next().
     - Current column values in query results iterated with SQLStatement::next() as above can also be dereferenced directly from the SQLStatement object by using the column name in lower case as a member name (using SQLStatement::memberGate(), see that method for an example)
     - Query results can also be returned in blocks using SQLStatement::fetchRows() and SQLStatement::fetchColumns() ("rows" and "columns" in this case refer to the output data format; also using these methods there is no need to call SQLStatement::next())
+    - When using an SQLStatement object with a DatasourcePool, the statement must be prepared and executed on the same connection.  Attempts to execute a prepared statement on another connection will cause an \c SQLSTATEMENT-ERROR exception to be raised.
 
     The following methods are useful when executing all statements:
     - SQLStatement::prepare()
@@ -407,7 +408,7 @@ foreach my hash $h in ($l) {
 }
     @endcode
 
-    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare(); the SQLStatement uses a DatasourcePool an the statement was prepared on another connection
 
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed; see the relevant DBI driver docs for more information
 
@@ -440,7 +441,7 @@ foreach my hash $h in ($l) {
 }
     @endcode
 
-    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw(); the SQLStatement uses a DatasourcePool an the statement was prepared on another connection
 
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed; see the relevant DBI driver docs for more information
 

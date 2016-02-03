@@ -326,7 +326,7 @@ const DbMapper = (
 InboundTableMapper mapper(table, DbMapper);
             @endcode
 
-            @param table the target table object
+            @param target the target table object
             @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref tablemapperkeys for detailed documentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
             - \c "unstable_input": set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
@@ -855,7 +855,7 @@ const DbMapper = (
 InboundIdentityTableMapper mapper(table, DbMapper);
             @endcode
 
-            @param table the target table object
+            @param target the target table object
             @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
             - \c "unstable_input": set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
@@ -989,7 +989,7 @@ InboundTableMapperIterator i(input, mapper);
             @endcode
 
             @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
-            @param map the mapper to transform the data
+            @param mapv the mapper to transform the data
             @param commit_limit row count before a commit is made; if <= 0 then no commits are made by this object, otherwise a commit is made for each \a commit_limit rows processed by this object, commits are made in calls to @ref next()
         */
         constructor(Qore::AbstractIterator i, TableMapper::InboundTableMapper mapv, int commit_limit = 0) : Mapper::AbstractMapperIterator(i) {
@@ -1109,7 +1109,8 @@ InboundTableMapperIterator i(input, mapper);
 
         #! creates the iterator from the arguments passed
         /** @param stmt already constructed SQLStatement object
-            @param map the mapper to transform the data
+            @param mapv the mapper to transform the data
+            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
         */
         constructor(Qore::SQL::SQLStatement stmt, hash mapv, *hash opts)
             : Mapper::AbstractMapperIterator(stmt)

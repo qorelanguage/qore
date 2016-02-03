@@ -128,20 +128,25 @@ int RSet::canDelete(int ref_copy, int rcount) {
 class RSectionScanHelper {
 protected:
    RSetHelper* orsh;
-   RSectionLock* rsl;
+   RObject* ro;
    unsigned size;
 
 public:
-   DLLLOCAL RSectionScanHelper(RSetHelper* n_orsh, RSectionLock* n_rsl) {
-      // try to lock
-      if (n_rsl->tryRSectionLockNotifyWaitRead(&n_orsh->notifier)) {
-	 orsh = 0;
-	 return;
-      }
-      orsh = n_orsh;
-      rsl = n_rsl;
+   DLLLOCAL RSectionScanHelper(RSetHelper* n_orsh, RObject* n_ro) : orsh(0), ro(0) {
+      int tid = gettid();
+      // if we already have the rsection lock, then ignore; already processed (either in fomap or tr_out)
+      if (n_ro->rml.hasRSectionLock(tid))
+         return;
 
+      ro = n_ro;
+
+      // try to lock
+      if (ro->rml.tryRSectionLockNotifyWaitRead(&n_orsh->notifier))
+	 return;
+
+      orsh = n_orsh;
       size = n_orsh->size();
+      orsh->inccnt();
    }
 
    DLLLOCAL ~RSectionScanHelper() {
@@ -150,16 +155,21 @@ public:
 
       // if no objects were added to the set, then unlock the lock
       if (orsh->size() == size) {
-	 rsl->rSectionUnlock();
+	 ro->rml.rSectionUnlock();
+         orsh->deccnt();
 	 return;
       }
 
-      // otherwise add the lock to the list to be released at the end of the scan
-      orsh->add(rsl);
+      // otherwise try to add the lock to the list to be released at the end of the scan
+      orsh->add(ro);
    }
 
-   DLLLOCAL operator bool() const {
-      return (bool)orsh;
+   DLLLOCAL bool skip() const {
+      return !(bool)ro;
+   }
+
+   DLLLOCAL bool lockError() const {
+      return !(bool)orsh;
    }
 };
 
@@ -221,8 +231,12 @@ bool RSetHelper::checkIntern(AbstractQoreNode* n) {
                continue;
             }
 	    RSectionScanHelper rssh(this, i->second);
-	    if (!rssh)
-	       return true;
+            if (rssh.lockError())
+               return true;
+	    if (rssh.skip()) {
+               printd(QRO_LVL, "RSetHelper::checkIntern() closure var '%s' already scanned; skipping (type: %s)\n", i->first->getName(), i->second->val.getTypeName());
+	       continue;
+            }
 #ifdef DEBUG
 	    unsigned csize = size();
 #endif
@@ -660,12 +674,6 @@ void RSetHelper::commit(RObject& obj) {
    }
 #endif
 
-   // exit rsection of objects in rsl_set
-   for (rsl_set_t::iterator i = rsl_set.begin(), e = rsl_set.end(); i != e; ++i) {
-      (*i)->rSectionUnlock();
-   }
-   rsl_set.clear();
-
    assert(fomap.empty() || has_obj);
    assert(!lcnt);
 }
@@ -687,12 +695,6 @@ void RSetHelper::rollback() {
       (*i)->rml.rSectionUnlock();
       deccnt();
    }
-
-   // exit rsection of objects in rsl_set
-   for (rsl_set_t::iterator i = rsl_set.begin(), e = rsl_set.end(); i != e; ++i) {
-      (*i)->rSectionUnlock();
-   }
-   rsl_set.clear();
 
    fomap.clear();
    fomap_size = 0;

@@ -2358,9 +2358,9 @@ my string $decoded_uri = decode_uri_request("path/to/something%20else?query=1%2b
 
     @since %Qore 0.8.12
 */
-string decode_uri_request(string url) [flags=CONSTANT] {
+string decode_uri_request(string uri) [flags=CONSTANT] {
    QoreStringNodeHolder str(new QoreStringNode(QCS_UTF8));
-   str->concatDecodeUriRequest(*url, xsink);
+   str->concatDecodeUriRequest(*uri, xsink);
    return *xsink ? 0 : str.release();
 }
 
