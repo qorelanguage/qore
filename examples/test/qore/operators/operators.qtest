@@ -91,6 +91,35 @@ class Test inherits QUnit::Test {
         # rel date - abs date is performed by using the seconds + us offset from the epoch in the absolute date
         assertEq(15s, 30s - 1970-01-01T00:00:15Z);
 
+        # relative date comparison tests
+        assertEq(True, 72h > 2D);
+        assertEq(True, 72h == 3D);
+        assertEq(True, 72h < 4D);
+        assertEq(True, 7201s > 2h);
+        assertEq(True, 7200s == 2h);
+        assertEq(True, 7199s < 2h);
+        assertEq(True, 86401s > 1D);
+        assertEq(True, 86400s == 1D);
+        assertEq(True, 86399s < 1D);
+        assertEq(True, 32D > 1M);
+        assertEq(True, 31D == 1M);
+        assertEq(True, 30D < 1M);
+        assertEq(True, 2678399s < 1M);
+        assertEq(True, 2678400s == 1M);
+        assertEq(True, 2678401s > 1M);
+        assertEq(True, P1M32D > 2M);
+        assertEq(True, P1M31D == 2M);
+        assertEq(True, P1M30D < 2M);
+        assertEq(True, 13M > 1Y);
+        assertEq(True, 12M == 1Y);
+        assertEq(True, 11M < 1Y);
+        assertEq(True, 366D > 1Y);
+        assertEq(True, 365D == 1Y);
+        assertEq(True, 364D < 1Y);
+        assertEq(True, 86400s + 1us > 1D);
+        assertEq(True, 86400s + 1000ms == 1D + 1s);
+        assertEq(True, 86400s + 20ms < 1D + 1s);
+
         any ni += 3.2;
         testAssertionValue("float +=, lhs NOTHING", ni, 3.2);
         delete ni;
