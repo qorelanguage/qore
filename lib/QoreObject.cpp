@@ -624,7 +624,7 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
                   return;
                }
 
-               printd(QRO_LVL, "QoreObject::customDeref() this: %p '%s' rset: %p (valid: %d in_del: %d) rcount: %d ref_copy: %d references: %d\n", this, getClassName(), priv->rset, priv->rset->isValid(), priv->rset->isInDel(), priv->rcount, ref_copy, references);
+               printd(QRO_LVL, "QoreObject::customDeref() this: %p '%s' rset: %p (valid: %d) rcount: %d ref_copy: %d references: %d\n", this, getClassName(), priv->rset, priv->rset->isValid(), priv->rcount, ref_copy, references);
 
                int rc;
                RSet* rs = priv->rset;

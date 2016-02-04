@@ -80,7 +80,7 @@ void RObject::removeInvalidateRSet() {
 void RSet::dbg() {
    QoreAutoRWReadLocker al(rwl);
 
-   printd(0, "RSet::dbg() this: %p in_del: %d valid: %d ssize: %d size: %d\n", this, (int)in_del, (int)valid, (int)set.size(), (int)size());
+   printd(0, "RSet::dbg() this: %p valid: %d ssize: %d size: %d\n", this, (int)valid, (int)set.size(), (int)size());
    for (rset_t::iterator i = begin(), e = end(); i != e; ++i) {
       printd(0, " + %p '%s' rcount: %d refs: %d\n", *i, (*i)->getName(), (int)(*i)->rcount, (int)(*i)->refs());
    }
@@ -88,22 +88,18 @@ void RSet::dbg() {
 #endif
 
 int RSet::canDelete(int ref_copy, int rcount) {
-   printd(QRO_LVL, "RSet::canDelete() this: %p valid: %d in_del: %d\n", this, valid, in_del);
+   printd(QRO_LVL, "RSet::canDelete() this: %p valid: %d\n", this, valid);
 
    if (q_disable_gc)
       return 0;
 
    if (!valid)
       return -1;
-   if (in_del)
-      return 1;
 
    {
       QoreAutoRWReadLocker al(rwl);
       if (!valid)
          return -1;
-      if (in_del)
-         return 1;
 
       // to avoid race conditions, we only delete in the thread where the references == rcount for the current object
       if (ref_copy != rcount)
@@ -119,7 +115,8 @@ int RSet::canDelete(int ref_copy, int rcount) {
          }
          printd(QRO_LVL, "RSet::canDelete() this: %p can delete graph obj %p '%s' rcount: %d refs: %d\n", this, *i, (*i)->getName(), (*i)->rcount, (*i)->refs());
       }
-      in_del = true;
+      // invalidate the rset
+      valid = false;
    }
    printd(QRO_LVL, "RSet::canDelete() this: %p can delete all objects in graph\n", this);
    return 1;

@@ -145,7 +145,7 @@ protected:
    // we assume set::size() is O(1); this should be a safe assumption
    rset_t set;
    int acnt;
-   bool valid, in_del;
+   bool valid;
 
    DLLLOCAL void invalidateIntern() {
       assert(valid);
@@ -160,10 +160,10 @@ protected:
 public:
    QoreRWLock rwl;
 
-   DLLLOCAL RSet() : acnt(0), valid(true), in_del(false) {
+   DLLLOCAL RSet() : acnt(0), valid(true) {
    }
 
-   DLLLOCAL RSet(RObject* o) : acnt(0), valid(true), in_del(false) {
+   DLLLOCAL RSet(RObject* o) : acnt(0), valid(true) {
       set.insert(o);
    }
 
@@ -176,8 +176,8 @@ public:
       bool del = false;
       {
          QoreAutoRWWriteLocker al(rwl);
-         if (!in_del)
-            in_del = true;
+         if (valid)
+            valid = false;
          //printd(5, "RSet::deref() this: %p %d -> %d\n", this, acnt, acnt - 1);
          assert(acnt > 0);
          del = !--acnt;
@@ -197,7 +197,7 @@ public:
    }
 
    DLLLOCAL bool active() const {
-      return valid && !in_del;
+      return valid;
    }
 
    DLLLOCAL int canDelete(int ref_copy, int rcount);
@@ -207,10 +207,6 @@ public:
 
    DLLLOCAL bool isValid() const {
       return qore_check_this(this) ? valid : false;
-   }
-
-   DLLLOCAL bool isInDel() const {
-      return qore_check_this(this) ? in_del : false;
    }
 #endif
 
