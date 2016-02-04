@@ -741,6 +741,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%perl-bool-eval{WS}*$                  getProgram()->parseDisableParseOptions(PO_STRICT_BOOLEAN_EVAL);
 ^%strict-bool-eval{WS}*$                getProgram()->parseSetParseOptions(PO_STRICT_BOOLEAN_EVAL);
 ^%broken-list-parsing{WS}*$             getProgram()->parseSetParseOptions(PO_BROKEN_LIST_PARSING);
+^%broken-logic-precedence{WS}*$         getProgram()->parseSetParseOptions(PO_BROKEN_LOGIC_PRECEDENCE);
 ^%push-parse-options{WS}*$              push_parse_options();
 ^%append-include-path{WS}*$             { parse_error("missing argument to %%append-include-path"); }
 ^%append-include-path{WS}+              BEGIN(append_path_state);
@@ -1510,7 +1511,9 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
 ==                                      return LOGICAL_EQ;
 \<=\>                                   return LOGICAL_CMP;
 &&                                      return LOGICAL_AND;
-\|\|                                    return LOGICAL_OR;
+\|\|                                    return (getProgram()->getParseOptions64() & PO_BROKEN_LOGIC_PRECEDENCE) ? BROKEN_LOGICAL_OR : LOGICAL_OR;
+\|                                      return (getProgram()->getParseOptions64() & PO_BROKEN_LOGIC_PRECEDENCE) ? BROKEN_BINARY_OR : '|';
+\^                                      return (getProgram()->getParseOptions64() & PO_BROKEN_LOGIC_PRECEDENCE) ? BROKEN_BINARY_XOR : '^';
 \>\>                                    return SHIFT_RIGHT;
 \<\<                                    return SHIFT_LEFT;
 \+\+                                    return P_INCREMENT;
