@@ -81,6 +81,7 @@ void ParseOptionMap::static_init() {
    DO_MAP("no-user-constants",        PO_NO_INHERIT_USER_CONSTANTS);
    DO_MAP("no-system-constants",      PO_NO_INHERIT_SYSTEM_CONSTANTS);
    DO_MAP("broken-list-parsing",      PO_BROKEN_LIST_PARSING);
+   DO_MAP("legacy-logic-precedence",  PO_LEGACY_LOGIC_PRECEDENCE);
 }
 
 int ParseOptionMap::find_code(const char *name) {

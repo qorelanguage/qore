@@ -59,6 +59,7 @@
       - @ref Qore::ParseOptionCodeMap
       - @ref Qore::ParseOptionStringMap
       - @ref Qore::PO_BROKEN_LIST_PARSING
+      - @ref Qore::PO_LEGACY_LOGIC_PRECEDENCE
       - @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS
       - @ref Qore::PO_NO_INHERIT_USER_CONSTANTS
       - @ref Qore::PO_NO_API
@@ -427,6 +428,7 @@
     - fixed a bug where regular expression substitution would go into an infinite loop when used with an empty pattern and the global flag (@ref Qore::RE_Global, <a href="https://github.com/qorelanguage/qore/issues/329">bug 329</a>)
     - fixed a bug with connection handling in the @ref Qore::SQL::SQLStatement "SQLStatement" class; an exception is now thrown if a @ref Qore::SQL::SQLStatement "SQLStatement" object tries to execute its prepared SQL on a connection other than the original connection used to prepare the statement (<a href="https://github.com/qorelanguage/qore/issues/465">bug 465</a>)
     - fixed a bug where @ref Qore::is_executable() would return NOTHING instead of False (as per documentation) when called with non-existent path as it's parameter
+    - fixed precedence of logical and bitwise \ref operators
 
     @section qore_0811 Qore 0.8.11
 

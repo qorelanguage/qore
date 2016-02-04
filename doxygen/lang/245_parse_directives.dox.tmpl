@@ -27,6 +27,7 @@
     |@ref ifdef "%ifdef"|Opens a @ref conditional_parsing "conditionally-parsed" block; if the given @ref conditional_parsing "parse define" is defined, then the block after the @ref ifdef "%ifdef" is parsed until either an @ref else "%else" or an @ref endif "%endif" <br><br>Since %Qore 0.8.3
     |@ref ifndef "%ifndef"|Opens a @ref conditional_parsing "conditionally-parsed" block; if the given @ref conditional_parsing "parse define" is not defined, then the block after the @ref ifdef "%ifdef" is parsed until either an @ref else "%else" or an @ref endif "%endif" <br><br>Since %Qore 0.8.3
     |@ref include "%include" <em>file_name</em>|Starts parsing \a file_name immediately. Parsing resumes with the current input after \a file_name has been completely parsed
+    |@ref legacy-logic-precedence "%legacy-logic-precedence"|Use old pre-0.8.12 precedence of logical and bitwise operators
     |@ref lockdown "%lockdown"|Made up of @ref no-external-access "%no-external-access", @ref no-threads "%no-threads", and @ref no-io "%no-io"; equivalent to parse option @ref Qore::PO_LOCKDOWN and the \c --lockdown command line option
     |@ref lock-options "%lock-options"|Prohibits further changes to parse options (equivalent to the <tt>-</tt><tt>-lock-options</tt> command line option)
     |@ref lock-warnings "%lock-warnings"|Prohibits further changes to the warning mask (equivalent to the <tt>-</tt><tt>-lock-warnings</tt> command line option)
@@ -407,6 +408,24 @@
     If the first character of the include target is \c '$', then environment variable substitution is performed on the leading environment variable
 
     @since %Qore 0.8.9 added environment variable substitution
+
+    <hr>
+    @section legacy-logic-precedence %legacy-logic-precedence
+
+    @par Parse Directive:
+    <tt>%%legacy-logic-precedence</tt>
+
+    @par Command Line:
+    <tt>-</tt><tt>-legacy-logic-precedence</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_LEGACY_LOGIC_PRECEDENCE
+
+    @par Description:
+    Use old pre-0.8.12 precedence where the \ref logical_and_operator "&&" had the same precedence as \ref logical_or_operator "||" and all three bitwise operators (
+    \ref bitwise_and_operator "&", \ref bitwise_or_operator "|", \ref bitwise_xor_operator "^") shared the same precedence.
+
+    @since %Qore 0.8.12
 
     <hr>
     @section lockdown %lockdown
