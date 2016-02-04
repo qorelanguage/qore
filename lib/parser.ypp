@@ -909,6 +909,12 @@ public:
    }
 };
 
+class EmptyPrivateMemberList : public MemberList {
+public:
+   DLLLOCAL EmptyPrivateMemberList() {
+   }
+};
+
 struct ParserTypeStruct {
 protected:
    DLLLOCAL ParserTypeStruct(QoreParseTypeInfo* n_parseTypeInfo) : typeInfo(0), parseTypeInfo(n_parseTypeInfo) {
@@ -2282,26 +2288,17 @@ qtypedef:
         }
         ;
 
-private_member_list:
-	TOK_PRIVATE member_list ';' {
-	   $$ = $2;
-	}
-        | TOK_PRIVATE '{' member_list2 '}' {
-	   $$ = $3;
-	}
-        ;
+private_member_list
+    : TOK_PRIVATE member_list ';'           { $$ = $2; }
+    | TOK_PRIVATE '{' member_list2 '}'      { $$ = $3; }
+    | TOK_PRIVATE '{' '}'                   { $$ = new EmptyPrivateMemberList; }
+    ;
 
-public_member_list:
-	TOK_PUBLIC member_list ';' {
-	   $$ = $2;
-	}
-	| TOK_PUBLIC '{' member_list2 '}' {
-	   $$ = $3;
-	}
-	| TOK_PUBLIC '{' '}' {
-	   $$ = new EmptyPublicMemberList;
-	}
-        ;
+public_member_list
+    : TOK_PUBLIC member_list ';'            { $$ = $2; }
+    | TOK_PUBLIC '{' member_list2 '}'       { $$ = $3; }
+    | TOK_PUBLIC '{' '}'                    { $$ = new EmptyPublicMemberList; }
+    ;
 
 classvardecl:
 	TOK_STATIC uncqtypedef IDENTIFIER ';' {
