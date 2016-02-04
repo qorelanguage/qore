@@ -86,7 +86,7 @@ public class LogicTest inherits QUnit::Test {
         assertTrue(True || False && x());
         assertTrue(True || True && x());
         assertTrue(True || x() && x());
-%legacy-logic-precedence
+%broken-logic-precedence
         assertEq(0, True | False & False);
         assertEq(0, True | True & False);
         assertEq(0, True | False ^ True);
