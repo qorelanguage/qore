@@ -1511,7 +1511,9 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
 ==                                      return LOGICAL_EQ;
 \<=\>                                   return LOGICAL_CMP;
 &&                                      return LOGICAL_AND;
-\|\|                                    return LOGICAL_OR;
+\|\|                                    return (getProgram()->getParseOptions64() & PO_LEGACY_LOGIC_PRECEDENCE) ? LEGACY_LOGICAL_OR : LOGICAL_OR;
+\|                                      return (getProgram()->getParseOptions64() & PO_LEGACY_LOGIC_PRECEDENCE) ? LEGACY_BINARY_OR : '|';
+\^                                      return (getProgram()->getParseOptions64() & PO_LEGACY_LOGIC_PRECEDENCE) ? LEGACY_BINARY_XOR : '^';
 \>\>                                    return SHIFT_RIGHT;
 \<\<                                    return SHIFT_LEFT;
 \+\+                                    return P_INCREMENT;

@@ -77,15 +77,15 @@ public class LogicTest inherits QUnit::Test {
 
     testPrecedence() {
         code x = sub(){ fail("Should not be called"); };
-#        assertEq(1, True | False & False);
-#        assertEq(1, True | True & False);
-#        assertEq(1, True | False ^ True);
-#        assertEq(1, True | True ^ True);
-#        assertEq(1, True ^ False & False);
-#        assertEq(1, True ^ True & False);
-#        assertTrue(True || False && x());
-#        assertTrue(True || True && x());
-#        assertTrue(True || x() && x());
+        assertEq(1, True | False & False);
+        assertEq(1, True | True & False);
+        assertEq(1, True | False ^ True);
+        assertEq(1, True | True ^ True);
+        assertEq(1, True ^ False & False);
+        assertEq(1, True ^ True & False);
+        assertTrue(True || False && x());
+        assertTrue(True || True && x());
+        assertTrue(True || x() && x());
 %legacy-logic-precedence
         assertEq(0, True | False & False);
         assertEq(0, True | True & False);
