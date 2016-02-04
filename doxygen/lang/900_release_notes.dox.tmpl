@@ -427,8 +427,9 @@
     - fixed a bug where @ref Qore::HTTPClient::get() and @ref Qore::HTTPClient::post() would try to retrieve a message body even if <tt>Content-Length: 0</tt> was returned (or if no \c Content-Length header was returned at all) which would result in a deadlock until the server would close the connection (<a href="https://github.com/qorelanguage/qore/issues/434">bug 434</a>)
     - fixed a bug where regular expression substitution would go into an infinite loop when used with an empty pattern and the global flag (@ref Qore::RE_Global, <a href="https://github.com/qorelanguage/qore/issues/329">bug 329</a>)
     - fixed a bug with connection handling in the @ref Qore::SQL::SQLStatement "SQLStatement" class; an exception is now thrown if a @ref Qore::SQL::SQLStatement "SQLStatement" object tries to execute its prepared SQL on a connection other than the original connection used to prepare the statement (<a href="https://github.com/qorelanguage/qore/issues/465">bug 465</a>)
-    - fixed a bug where @ref Qore::is_executable() would return NOTHING instead of False (as per documentation) when called with non-existent path as it's parameter
-    - fixed precedence of logical and bitwise \ref operators
+    - fixed a bug where @ref Qore::is_executable() would return NOTHING instead of False (as per documentation) when called with non-existent path as it's parameter (<a href="https://github.com/qorelanguage/qore/issues/470">bug 470</a>)
+    - fixed precedence of logical and bitwise \ref operators (<a href="https://github.com/qorelanguage/qore/issues/481">bug 481</a>)
+    - fixed a bug where nested lists were not parsed correctly in some cases (<a href="https://github.com/qorelanguage/qore/issues/320">bug 320</a>)
 
     @section qore_0811 Qore 0.8.11
 
