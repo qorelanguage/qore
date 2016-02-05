@@ -558,12 +558,17 @@ my any $v = $c.name;
     #! provides the MySQL-specific implementation of the AbstractDatabase interface
     public class MysqlDatabase inherits SqlUtil::AbstractDatabase {
         public {
-            #! MySQL-specific schema description keys
-            const MysqlSchemaDescriptionOptions = AbstractDatabase::SchemaDescriptionOptions + (
+            #! MySQL-specific options
+            const MysqlOptions = (
                 "sequence_table": Type::String,
                 "sequence_function": Type::String,
                 );
 
+            #! MySQL-specific schema description keys
+            const MysqlSchemaDescriptionOptions = AbstractDatabase::SchemaDescriptionOptions + MysqlOptions;
+
+            #! MySQL-specific database options
+            const MysqlDatabaseOptions = AbstractDatabase::DatabaseOptions + MysqlOptions;
 
             #! MySQL sequence emulation table
             const MysqlSequenceTable = (
@@ -791,6 +796,11 @@ end";
 
         static string getCreateSql(list l) {
             return !l ? "" : foldl $1 + "\n" + $2, (map sprintf("%s%s", $1, $1 =~ /(;|\$)$/ ? "" : ";"), l);
+        }
+
+        #! returns driver-specific options to the base abstract class
+        private hash getDatabaseOptions() {
+            return MysqlDatabaseOptions;
         }
 
         #! returns driver-specific options to the base abstract class
