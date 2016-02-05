@@ -119,6 +119,8 @@ module SqlUtil {
     - fixed a bug generating select statements for tables accessed through a synonym when used with join clauses; previously inconsistent schema prefixes could be used which could cause errors parsing the SQL statements generated
     - fixed a bug where the @ref SqlUtil::AbstractTable "AbstractTable" lock was held while executing SQL to determine the upsert strategy to use with @ref SqlUtil::AbstractTable::UpsertAuto "UpsertAuto" (<a href="https://github.com/qorelanguage/qore/issues/408">bug 409</a>)
     - fixed a bug where complex bind values as hashes (such as used by the pgsql and oracle drivers) were rejected by SqlUtil (<a href="https://github.com/qorelanguage/qore/issues/494">bug 494</a>) when updating
+    - fixed a bug where wildcard columns in join tables were not working (<a href="https://github.com/qorelanguage/qore/issues/499">bug 499</a>)
+    - fixed a bug in @ref SqlUtil::op_in() where invalid SQL was generated with an argument of 0 (<a href="https://github.com/qorelanguage/qore/issues/500">bug 500</a>)
 
     @subsection sqlutilv1_2 SqlUtil v1.2
     - added insert operator support; for example, for inserting with values from sequences
@@ -3271,7 +3273,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
         OP_IN: (
             "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 *string ins = (foldl $1 + "," + $2, (map t.getSqlValue($1), arg));
-                return ins ? sprintf("%s in (%s)", cn, ins) : "1 != 1";
+                return exists ins ? sprintf("%s in (%s)", cn, ins) : "1 != 1";
             },
         ),
         OP_NOT: (
@@ -5099,9 +5101,11 @@ AbstractConstraint ix = constraints.uk_jobs;
         */
         Qore::AbstractIterator getSourceConstraintIterator() {
             list l = ();
-            HashIterator i(sourceConstraints);
-            while (i.next())
-                map l += ("fk": $1, "table": i.getKey()), i.getValue().iterator();
+            if (sourceConstraints) {
+                HashIterator i(sourceConstraints);
+                while (i.next())
+                    map l += ("fk": $1, "table": i.getKey()), i.getValue().iterator();
+            }
 
             return l.iterator();
         }
@@ -7513,6 +7517,9 @@ string sql = t.getSqlFromList(list);
 
         static AbstractDatabase getDatabase(AbstractDatasource nds, *hash opts) {
             string drv = nds.getDriverName();
+
+            if (opts)
+                AbstractDatabase::checkDriverOptions(\opts, drv);
 
             # generate module and module namespace name
             string mn = drv[0].upr() + drv.substr(1) + "SqlUtil";
@@ -14636,7 +14643,7 @@ string sql = table.getSelectSql(sh, \args);
                 return cv;
 
             # see if we have a table.column spec
-            *string tp = (cv =~ x/(\w+)\.\w+/)[0];
+            *string tp = (cv =~ x/(\w+)\..+/)[0];
             if (tp) {
                 if (!jch{tp})
                     throw "SELECT-ERROR", sprintf("%s: query references unknown alias %y in %y; known aliases in this query: %y", getDesc(), tp, cv, jch.keys());

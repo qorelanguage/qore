@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file Schema.qm Qore user module for working with SQL data
 
-/*  Schema.qm Copyright 2014 - 2015 Qore Technologies, sro
+/*  Schema.qm Copyright 2014 - 2016 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -69,8 +69,6 @@ module Schema {
     @section schema_relnotes Schema Module Release History
 
     @subsection schema_v1_1 Schema Module v1.1
-    - fixed @ref Schema::AbstractSchema::combineOptions() "AbstractSchema::combineOptions()" to accept NOTHING as well as a valid option hash
-    - fixed a bug with <i>"insert-only reference data"</i> with the verbose option; the upsert strategy was changed to \c UpsertSelectFirst which means that insert-only reference data could also be updated
     - added the following public functions:
       - Schema::c_char()
       - Schema::c_date()
@@ -81,6 +79,10 @@ module Schema {
     - added the following public constants:
       - Schema::C_NULL
       - Schema::C_NOT_NULL
+    - bug fixes:
+      - fixed @ref Schema::AbstractSchema::combineOptions() "AbstractSchema::combineOptions()" to accept NOTHING as well as a valid option hash
+      - fixed a bug with <i>"insert-only reference data"</i> with the verbose option; the upsert strategy was changed to \c UpsertSelectFirst which means that insert-only reference data could also be updated
+      - fixed a bug where it was not possible to provide Database options when creating schemas (<a href="https://github.com/qorelanguage/qore/issues/501">bug 501</a>)
 
     @subsection schema_v1_0 Schema Module v1.0
     - initial release
@@ -88,7 +90,6 @@ module Schema {
 
 #! this namespace contains all public definitions in the %Schema module
 public namespace Schema {
-
     #! Helper constant for column hash functions with "NULL" constraint for better readability
     public const C_NULL = False;
     #! Helper constant for column hash functions with "NOT NULL" constraint for better readability
@@ -439,8 +440,9 @@ public namespace Schema {
         /** @param n_ds the datasource for the schema
             @param dts an optional data tablespace name for the schema
             @param its an optional index tablespace name for the schema
+            @param opts options for @ref SqlUtil::Database::constructor()
         */
-        constructor(AbstractDatasource n_ds, *string dts, *string its) {
+        constructor(AbstractDatasource n_ds, *string dts, *string its, *hash opts) {
             ds = n_ds;
             name = getName();
             version = getVersion();
@@ -449,7 +451,7 @@ public namespace Schema {
 
             drv = ds.getDriverName();
 
-            db = new Database(ds);
+            db = new Database(ds, opts);
 
             index_options = getIndexOptions();
             creation_options = getCreationOptions();
@@ -1042,9 +1044,12 @@ public namespace Schema {
         }
 
         #! creates the object based on the arguments giving the location of the schema
-        /**
+        /** @param ds the datasource for the schema
+            @param dts an optional data tablespace name for the schema
+            @param its an optional index tablespace name for the schema
+            @param opts options for @ref SqlUtil::Database::constructor()
         */
-        constructor(AbstractDatasource ds, *string dts, *string its) : AbstractSchema(ds, dts, its) {
+        constructor(AbstractDatasource ds, *string dts, *string its, *hash opts) : AbstractSchema(ds, dts, its, opts) {
             version_table = getVersionTable();
             version_column = getVersionColumn();
             version_where = getVersionWhere();
