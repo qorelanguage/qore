@@ -8239,6 +8239,24 @@ map printf("unique constraint %s\n", $1.getName()), table.getUniqueConstraintIte
         #! drops the table from the database; releases the transaction lock after dropping the table
         /** @par Example:
             @code
+table.dropCommit();
+            @endcode
+
+            @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
+
+            @throw OPTION-ERROR invalid or unknown callback option
+
+            @note The transaction is committed if successful or rolled back if an exception occurs; use @ref drop() to execute without any transaction management
+         */
+        dropCommit(*hash opt) {
+            on_exit ds.commit();
+            on_error ds.rollback();
+            drop(opt);
+        }
+
+        #! drops the table from the database without any transaction management
+        /** @par Example:
+            @code
 table.drop();
             @endcode
 
@@ -8246,12 +8264,16 @@ table.drop();
 
             @throw OPTION-ERROR invalid or unknown callback option
 
-            @note The transaction is committed if successful or rolled back if an exception occurs; use @ref dropNoCommit() to execute without any transaction management
+            @note Transaction management is normally not performed when dropping tables, however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
          */
         drop(*hash opt) {
-            on_exit ds.commit();
-            on_error ds.rollback();
-            dropNoCommit(opt);
+            map ds.execRaw($1), getDropSql(opt);
+            inDb = False;
+        }
+
+        #! A legacy wrapper for drop()
+        deprecated dropNoCommit(*hash opt) {
+            drop(opt);
         }
 
         #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
@@ -8299,23 +8321,6 @@ t.tryExecRaw("drop table tmp_table");
          */
         any tryExecRaw(string sql) {
             return tryExecRawImpl(sql);
-        }
-
-        #! drops the table from the database without any transaction management
-        /** @par Example:
-            @code
-table.dropNoCommit();
-            @endcode
-
-            @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
-
-            @throw OPTION-ERROR invalid or unknown callback option
-
-            @note Transaction management is normally not performed when dropping tables, however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
-         */
-        dropNoCommit(*hash opt) {
-            map ds.execRaw($1), getDropSql(opt);
-            inDb = False;
         }
 
         #! returns the sql required to drop the table; reimplement in subclasses if necessary

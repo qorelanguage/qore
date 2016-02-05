@@ -1258,8 +1258,8 @@ InboundTableMapperIterator i(input, mapper);
             return input;
         }
 
-        #! Get SqlStatementMapperIterator for easy line-by-line processing
-        /** @return TableMapper::SqlStatementMapperIterator object
+        #! Get MapperIterator for easy line-by-line processing
+        /** @return Mapper::MapperIterator object
 
             Data are retrieved with standard Qore::AbstractIterator::getValue() or similar.
             Value is a hash with column names as keys.

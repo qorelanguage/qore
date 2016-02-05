@@ -121,6 +121,7 @@ t.cmp(elements data.id, 0, "delete: no rows with removed id found");
 
 # DROP TABLE test
 db.dropTableIfExists(TEST_TABLE_NAME);
+ds.commit();
 my Table removed_table(connstr, TEST_TABLE_NAME);
 t.ok(!removed_table.checkExistence(), "drop table: no table found");
 
