@@ -10454,6 +10454,52 @@ string sql = table.getDropColumnSql("notes_2");
         #! inserts a row into the table; the transaction is committed if successful, if an error occurs, it is rolled back
         /** @par Example:
             @code
+table.insertCommit(row);
+            @endcode
+
+            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
+            @param sql an optional reference to a string to return the SQL generated for the insert statement
+            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
+
+            @return in case the \c "returning" @ref AbstractTable::InsertOptions "insert option" is used, a hash of return values is returned, otherwise @ref nothing is returned
+
+            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
+         */
+        *hash insertCommit(hash row) {
+            on_success ds.commit();
+            on_error ds.rollback();
+
+            return insertIntern(row);
+        }
+
+        #! An @ref SqlUtil::AbstractTable::insertCommit() variant
+        *hash insertCommit(hash row, reference sql) {
+            on_success ds.commit();
+            on_error ds.rollback();
+
+            return insertIntern(row, \sql);
+        }
+
+        #! An @ref SqlUtil::AbstractTable::insertCommit() variant
+        *hash insertCommit(hash row, hash opt) {
+            on_success ds.commit();
+            on_error ds.rollback();
+
+            return insertIntern(row, NOTHING, opt);
+        }
+
+        #! An @ref SqlUtil::AbstractTable::insertCommit() variant
+        *hash insertCommit(hash row, reference sql, hash opt) {
+            on_success ds.commit();
+            on_error ds.rollback();
+
+            return insertIntern(row, \sql, opt);
+        }
+
+        #! inserts a row into the table without any transaction management; a transaction will be in progress after this method is successfully executed
+        /** @ingroup inserts
+            @par Example:
+            @code
 table.insert(row);
             @endcode
 
@@ -10465,32 +10511,31 @@ table.insert(row);
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
-        *hash insert(hash row, *reference sql, *hash opt) {
-            on_success ds.commit();
-            on_error ds.rollback();
-
-            return insertNoCommit(row, \sql, opt);
+        *hash insert(hash row) {
+            return insertIntern(row);
         }
 
-        #! inserts a row into the table without any transaction management; a transaction will be in progress after this method is successfully executed
-        /** @par Example:
-            @code
-table.insertNoCommi(row);
-            @endcode
-
-            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
-            @param sql an optional reference to a string to return the SQL generated for the insert statement
-            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
-
-            @return in case the \c "returning" @ref AbstractTable::InsertOptions "insert option" is used, a hash of return values is returned, otherwise @ref nothing is returned
-
-            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
-         */
-        *hash insertNoCommit(hash row, *reference sql, *hash opt) {
-            return insertNoCommitIntern(row, \sql, opt);
+        #! An @ref SqlUtil::AbstractTable::insert() variant
+        *hash insert(hash row, reference sql) {
+            return insertIntern(row, \sql);
         }
 
-        private *hash insertNoCommitIntern(hash row, *reference sql, *hash opt) {
+        #! An @ref SqlUtil::AbstractTable::insert() variant
+        *hash insert(hash row, hash opt) {
+            return insertIntern(row, NOTHING, opt);
+        }
+
+        #! An @ref SqlUtil::AbstractTable::insert() variant
+        *hash insert(hash row, reference sql, hash opt) {
+            return insertIntern(row, \sql, opt);
+        }
+
+        #! A legacy wrapper for @ref SqlUtil::AbstractTable::insert()
+        deprecated *hash insertNoCommit(hash row, *reference sql, *hash opt) {
+            return insertIntern(row, \sql, opt);
+        }
+
+        private *hash insertIntern(hash row, *reference sql, *hash opt) {
             # check data callback options if any
             validateOptionsIntern("OPTION-ERROR", getInsertOptions(), \opt);
 
@@ -10612,43 +10657,6 @@ table.insertNoCommi(row);
         */
         bool hasReturning() {
             return hasReturningImpl();
-        }
-
-        #! inserts a row into the table; the transaction is committed if successful, if an error occurs, it is rolled back
-        /** @par Example:
-            @code
-table.insert(row);
-            @endcode
-
-            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
-            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
-
-            @return in case the \c "returning" @ref AbstractTable::InsertOptions "insert option" is used, a hash of return values is returned, otherwise @ref nothing is returned
-
-            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
-         */
-        *hash insert(hash row, *hash opt) {
-            on_success ds.commit();
-            on_error ds.rollback();
-
-            return insertNoCommitIntern(row, NOTHING, opt);
-        }
-
-        #! inserts a row into the table without any transaction management; a transaction will be in progress after this method is successfully executed
-        /** @par Example:
-            @code
-table.insertNoCommit(row);
-            @endcode
-
-            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
-            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
-
-            @return in case the \c "returning" @ref AbstractTable::InsertOptions "insert option" is used, a hash of return values is returned, otherwise @ref nothing is returned
-
-            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
-         */
-        *hash insertNoCommit(hash row, *hash opt) {
-            return insertNoCommitIntern(row, NOTHING, opt);
         }
 
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); the transaction is committed if successful, if an error occurs, it is rolled back
