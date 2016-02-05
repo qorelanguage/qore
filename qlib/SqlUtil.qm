@@ -623,8 +623,8 @@ return ds.vexec("update schema.table set permission_type = concat(lower(permissi
     The following methods can be used to dekete data:
     - @ref SqlUtil::AbstractTable::del(): updates the table based on a @ref where_clauses "where clause" and commits the transaction
     - @ref SqlUtil::AbstractTable::delNoCommit(): updates the table based on a @ref where_clauses "where clause" and does not commit the transaction
-    - @ref SqlUtil::AbstractTable::truncate(): truncates the table and commits the transaction releasing the transaction lock on the underlying datasource object
-    - @ref SqlUtil::AbstractTable::truncateNoCommit(): truncates the table and does not commit the transaction
+    - @ref SqlUtil::AbstractTable::truncateCommit(): truncates the table and commits the transaction releasing the transaction lock on the underlying datasource object
+    - @ref SqlUtil::AbstractTable::truncate(): truncates the table and does not commit the transaction
 
     @par Example:
     @code
@@ -8343,28 +8343,33 @@ list l = table.getDropSql();
         #! truncates all the table data; releases the transaction lock after executing
         /** @par Example:
             @code
-table.truncate();
+table.truncateCommit();
             @endcode
 
-            @note The transaction is committed if successful or rolled back if an exception occurs; use @ref truncateNoCommit() to execute without any transaction management
+            @note The transaction is committed if successful or rolled back if an exception occurs; use @ref truncate() to execute without any transaction management
          */
-        truncate() {
+        truncateCommit() {
             on_exit ds.commit();
             on_error ds.rollback();
-            truncateNoCommit();
+            truncate();
         }
 
         #! truncates all the table data without any transaction management
         /** @par Example:
             @code
-table.truncateNoCommit();
+table.truncate();
             @endcode
 
             @note Transaction management may not be applied when truncating tables depending on the database driver (for example truncating tables in Oracle does not participate in transaction management), however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
          */
-        truncateNoCommit() {
+        truncate() {
             ds.exec(getTruncateSqlImpl());
             inDb = False;
+        }
+
+        #! A legacy warpper for truncate()
+        deprecated truncateNoCommit() {
+            truncate();
         }
 
         #! gets the SQL that can be used to truncate the table
