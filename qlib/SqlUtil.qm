@@ -283,12 +283,12 @@ while (True) {
     - @ref SqlUtil::AbstractTable::getRowIterator()
     - @ref SqlUtil::AbstractTable::getSelectSql()
     - @ref SqlUtil::AbstractTable::insertFromSelect()
-    - @ref SqlUtil::AbstractTable::insertFromSelectNoCommit()
+    - @ref SqlUtil::AbstractTable::insertFromSelectCommit()
     - @ref SqlUtil::AbstractTable::select()
     - @ref SqlUtil::AbstractTable::selectRow()
     - @ref SqlUtil::AbstractTable::selectRows()
     - @ref SqlUtil::AbstractTable::upsertFromSelect()
-    - @ref SqlUtil::AbstractTable::upsertFromSelectNoCommit()
+    - @ref SqlUtil::AbstractTable::upsertFromSelectCommit()
 
     SQL strings for select statements are constructed programmatically based on a select option hash described below.
 
@@ -548,10 +548,10 @@ if (h)
     @section inserting_data Inserting Data into the Database
 
     The following methods can be used to insert data into the database:
-    - @ref SqlUtil::AbstractTable::insert(): inserts a single row into a table and commits the transaction
-    - @ref SqlUtil::AbstractTable::insertNoCommit(): inserts a single row into a table without committing the transaction
-    - @ref SqlUtil::AbstractTable::insertFromSelect(): inserts data in a table based on a select statement created from the @ref select_option_hash "select option hash" argument and commits the transaction
-    - @ref SqlUtil::AbstractTable::insertFromSelectNoCommit(): inserts data in a table based on a select statement created from the @ref select_option_hash "select option hash" argument and without committing the transaction
+    - @ref SqlUtil::AbstractTable::insert(): inserts a single row into a table without committing the transaction
+    - @ref SqlUtil::AbstractTable::insertCommit(): inserts a single row into a table and commits the transaction
+    - @ref SqlUtil::AbstractTable::insertFromSelect(): inserts data in a table based on a select statement created from the @ref select_option_hash "select option hash" argument and without committing the transaction
+    - @ref SqlUtil::AbstractTable::insertFromSelectCommit(): inserts data in a table based on a select statement created from the @ref select_option_hash "select option hash" argument and commits the transaction
 
     @see @ref sql_upsert for information about upserting or merging data
 
@@ -562,7 +562,7 @@ if (h)
 table.insert(("id": id, "name": name, "created": now_us()));
     @endcode
 
-    Data can be explicitly inserted into the database with immediate values with @ref SqlUtil::AbstractTable::insert() and @ref SqlUtil::AbstractTable::insertNoCommit() as in the above example.
+    Data can be explicitly inserted into the database with immediate values with @ref SqlUtil::AbstractTable::insert() and @ref SqlUtil::AbstractTable::insertCommit() as in the above example.
 
     Additionally, instead of giving a literal value to be inserted, @ref sql_iop_funcs can be used to insert values based on SQL operations used directly in the insert statement.
 
@@ -573,7 +573,7 @@ table.insert(("id": id, "name": name, "created": now_us()));
 int rows = table.insertFromSelect(("id", "name", "created"), source_table, (("columns": ("cid", "fullname", "created"), "where": ("type": "CUSTOMER"))));
     @endcode
 
-    Data can be inserted into the database based on the results of a select statement with @ref SqlUtil::AbstractTable::insertFromSelect() and @ref SqlUtil::AbstractTable::insertFromSelectNoCommit() as in the above example.
+    Data can be inserted into the database based on the results of a select statement with @ref SqlUtil::AbstractTable::insertFromSelect() and @ref SqlUtil::AbstractTable::insertFromSelectCommit() as in the above example.
 
     The example above would generate a %Qore SQL command like the following:
     @code
@@ -584,7 +584,7 @@ return ds.vexec("insert into schema.table (id,name,created) select cid,fullname,
 
     @subsection inserting_data_from_iterator Inserting Data from an Iterator Source
 
-    To insert data from an iterator source (such as an @ref Qore::SQL::SQLStatement object), call @ref SqlUtil::AbstractTable::insertFromIterator() or @ref SqlUtil::AbstractTable::insertFromIteratorNoCommit() as in the following example:
+    To insert data from an iterator source (such as an @ref Qore::SQL::SQLStatement object), call @ref SqlUtil::AbstractTable::insertFromIterator() or @ref SqlUtil::AbstractTable::insertFromIteratorCommit() as in the following example:
 
     @par Example:
     @code
@@ -594,15 +594,15 @@ list l = get_table_rows();
 table.insertFromIterator(l.iterator(), ("commit_block": 5000));
     @endcode
 
-    The iterator given to the @ref SqlUtil::AbstractTable::insertFromIterator() or @ref SqlUtil::AbstractTable::insertFromIteratorNoCommit() methods can be any iterator whose @ref Qore::AbstractIterator::getValue() "getValue()" method returns a @ref hash_type "hash".
+    The iterator given to the @ref SqlUtil::AbstractTable::insertFromIterator() or @ref SqlUtil::AbstractTable::insertFromIteratorCommit() methods can be any iterator whose @ref Qore::AbstractIterator::getValue() "getValue()" method returns a @ref hash_type "hash".
 
     @note the @ref SqlUtil::AbstractTable::InsertFromIteratorOptions "insert option" \c "commit_block" can be used to insert a large amount of data in pieces in order to avoid overwhelming the database server's rollback cache
 
     @section updating_data Updating Data
 
     The following methods can be used to update data:
-    - @ref SqlUtil::AbstractTable::update(): updates a single row and commits the transaction
-    - @ref SqlUtil::AbstractTable::updateNoCommit(): updates a single row and does not commit the transaction
+    - @ref SqlUtil::AbstractTable::update(): updates a single row and does not commit the transaction
+    - @ref SqlUtil::AbstractTable::updateCommit(): updates a single row and commits the transaction
 
     @par Example:
     @code
@@ -621,10 +621,10 @@ return ds.vexec("update schema.table set permission_type = concat(lower(permissi
     @section deleting_data Deleting Data
 
     The following methods can be used to dekete data:
-    - @ref SqlUtil::AbstractTable::del(): updates the table based on a @ref where_clauses "where clause" and commits the transaction
-    - @ref SqlUtil::AbstractTable::delNoCommit(): updates the table based on a @ref where_clauses "where clause" and does not commit the transaction
-    - @ref SqlUtil::AbstractTable::truncateCommit(): truncates the table and commits the transaction releasing the transaction lock on the underlying datasource object
+    - @ref SqlUtil::AbstractTable::delete(): updates the table based on a @ref where_clauses "where clause" and does not commit the transaction
+    - @ref SqlUtil::AbstractTable::deleteCommit(): updates the table based on a @ref where_clauses "where clause" and commits the transaction
     - @ref SqlUtil::AbstractTable::truncate(): truncates the table and does not commit the transaction
+    - @ref SqlUtil::AbstractTable::truncateCommit(): truncates the table and commits the transaction releasing the transaction lock on the underlying datasource object
 
     @par Example:
     @code
@@ -636,7 +636,7 @@ int dcnt = table.del(("record_type": "OLD-CUSTOMER"));
 return ds.vexec("delete from schema.table where record_type = %v", ("OLD-CUSTOMER"));
     @endcode
 
-    The @ref SqlUtil::AbstractTable::del() and @ref SqlUtil::AbstractTable::delNoCommit() methods can be used to delete data from the database.
+    The @ref SqlUtil::AbstractTable::delete() and @ref SqlUtil::AbstractTable::deleteCommit() methods can be used to delete data from the database.
 
     See @ref where_clauses for information about specifying the criteria for the rows to be deleted.
 
@@ -670,21 +670,21 @@ return ds.vexec("delete from schema.table where record_type = %v", ("OLD-CUSTOME
     @section where_clauses Where Clauses
 
     Several methods accept a hash of conditions to build a \c "where" clause to restrict the rows that are operated on or returned; for example:
-    - @ref SqlUtil::AbstractTable::del()
-    - @ref SqlUtil::AbstractTable::delNoCommit()
+    - @ref SqlUtil::AbstractTable::delete()
+    - @ref SqlUtil::AbstractTable::deleteCommit()
     - @ref SqlUtil::AbstractTable::findAll()
     - @ref SqlUtil::AbstractTable::findSingle()
     - @ref SqlUtil::AbstractTable::getRowIterator()
     - @ref SqlUtil::AbstractTable::getSelectSql()
     - @ref SqlUtil::AbstractTable::insertFromSelect()
-    - @ref SqlUtil::AbstractTable::insertFromSelectNoCommit()
+    - @ref SqlUtil::AbstractTable::insertFromSelectCommit()
     - @ref SqlUtil::AbstractTable::select()
     - @ref SqlUtil::AbstractTable::selectRow()
     - @ref SqlUtil::AbstractTable::selectRows()
     - @ref SqlUtil::AbstractTable::update()
-    - @ref SqlUtil::AbstractTable::updateNoCommit()
+    - @ref SqlUtil::AbstractTable::updateCommit()
     - @ref SqlUtil::AbstractTable::upsertFromSelect()
-    - @ref SqlUtil::AbstractTable::upsertFromSelectNoCommit()
+    - @ref SqlUtil::AbstractTable::upsertFromSelectCommit()
 
     @note the above list also applies to the corresponding @ref SqlUtil::AbstractTable methods
 
@@ -770,13 +770,13 @@ ds.vexec("select * from table where id > %v and created > %v", (100, 2013-03-01)
 
     This module offers a high-level api for "upserting" or merging data from one table into another table through the following methods:
     - @ref SqlUtil::AbstractTable::upsert()
-    - @ref SqlUtil::AbstractTable::upsertNoCommit()
+    - @ref SqlUtil::AbstractTable::upsertCommit()
     - @ref SqlUtil::AbstractTable::getUpsertClosure()
     - @ref SqlUtil::AbstractTable::getUpsertClosureWithValidation()
     - @ref SqlUtil::AbstractTable::upsertFromIterator()
-    - @ref SqlUtil::AbstractTable::upsertFromIteratorNoCommit()
+    - @ref SqlUtil::AbstractTable::upsertFromIteratorCommit()
     - @ref SqlUtil::AbstractTable::upsertFromSelect()
-    - @ref SqlUtil::AbstractTable::upsertFromSelectNoCommit()
+    - @ref SqlUtil::AbstractTable::upsertFromSelectCommit()
 
     @subsection sql_upsert_single Upsert a Single Row
 
@@ -785,7 +785,7 @@ ds.vexec("select * from table where id > %v and created > %v", (100, 2013-03-01)
 table.upsert(("id": id, "name": name, "account_type": account_type));
     @endcode
 
-    To upsert or merge a single row in the database, call @ref SqlUtil::AbstractTable::upsert() or @ref SqlUtil::AbstractTable::upsertNoCommit() with the
+    To upsert or merge a single row in the database, call @ref SqlUtil::AbstractTable::upsert() or @ref SqlUtil::AbstractTable::upsertCommit() with the
     single row to be upserted or merged as a hash as in the preceding example.
 
     @subsection sql_upsert_many Upserting Many Rows Using An Upsert Closure
@@ -853,7 +853,7 @@ if (l) {
 
     @subsection sql_upsert_from_iterator Upserting Many Rows from an Iterator Source
 
-    To upsert or merge many rows from an iterator source (such as an @ref Qore::SQL::SQLStatement object), call @ref SqlUtil::AbstractTable::upsertFromIterator() or @ref SqlUtil::AbstractTable::upsertFromIteratorNoCommit() as in the following example:
+    To upsert or merge many rows from an iterator source (such as an @ref Qore::SQL::SQLStatement object), call @ref SqlUtil::AbstractTable::upsertFromIterator() or @ref SqlUtil::AbstractTable::upsertFromIteratorCommit() as in the following example:
 
     @par Simple Example:
     @code
@@ -885,13 +885,13 @@ else
     printf("*** reference data %s: OK\n", table.getName());
     @endcode
 
-    The iterator given to the @ref SqlUtil::AbstractTable::upsertFromIterator() or @ref SqlUtil::AbstractTable::upsertFromIteratorNoCommit() methods can be any iterator whose @ref Qore::AbstractIterator::getValue() "getValue()" method returns a @ref hash_type "hash".
+    The iterator given to the @ref SqlUtil::AbstractTable::upsertFromIterator() or @ref SqlUtil::AbstractTable::upsertFromIteratorCommit() methods can be any iterator whose @ref Qore::AbstractIterator::getValue() "getValue()" method returns a @ref hash_type "hash".
 
     @note the @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c "commit_block" can be used to insert a large amount of data in pieces in order to avoid overwhelming the database server's rollback cache
 
     @subsection sql_upsert_from_select Upserting Many Rows from a Select Statement
 
-    To upsert or merge many rows from a select statement, use @ref SqlUtil::AbstractTable::upsertFromSelect() or @ref SqlUtil::AbstractTable::upsertFromSelectNoCommit() as in the following example:
+    To upsert or merge many rows from a select statement, use @ref SqlUtil::AbstractTable::upsertFromSelect() or @ref SqlUtil::AbstractTable::upsertFromSelectCommit() as in the following example:
 
     @par Simple Example:
     @code
@@ -2141,7 +2141,7 @@ public namespace SqlUtil {
 
         SQL literals can be useful in some cases - as dummy values for select
         statements where there is exact columns required, unions, expected values
-        for \c arc.insertFromIteratorNoCommit(src.getRowIterator(sh))
+        for \c arc.insertFromIterator(src.getRowIterator(sh))
         "insert as select", etc.
 
         The term literal refers to a fixed data value. For example, 123, 'foobar' etc.
@@ -7977,11 +7977,11 @@ Table table("pgsql:user/pass@db%host", "table");
                 - @ref SqlUtil::AbstractTable::getUpsertClosure()
                 - @ref SqlUtil::AbstractTable::getUpsertClosureWithValidation()
                 - @ref SqlUtil::AbstractTable::upsert()
-                - @ref SqlUtil::AbstractTable::upsertNoCommit()
+                - @ref SqlUtil::AbstractTable::upsertCommit()
                 - @ref SqlUtil::AbstractTable::upsertFromIterator()
-                - @ref SqlUtil::AbstractTable::upsertFromIteratorNoCommit()
+                - @ref SqlUtil::AbstractTable::upsertFromIteratorCommit()
                 - @ref SqlUtil::AbstractTable::upsertFromSelect()
-                - @ref SqlUtil::AbstractTable::upsertFromSelectNoCommit()
+                - @ref SqlUtil::AbstractTable::upsertFromSelectCommit()
 
                 to specify the upsert strategy when synchronizing table data
              */
