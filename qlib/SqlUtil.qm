@@ -8396,23 +8396,23 @@ string sql = table.getTruncateSql();
         #! creates the table in the database; releases the transaction lock after creating the table
         /** @par Example:
             @code
-table.create();
+table.createCommit();
             @endcode
 
             @param opt a hash of options for the SQL creation strings
 
-            @note The transaction is committed if successful or rolled back if an exception occurs; use @ref createNoCommit() to execute without any transaction management
+            @note The transaction is committed if successful or rolled back if an exception occurs; use @ref create() to execute without any transaction management
          */
-        create(*hash opt) {
+        createCommit(*hash opt) {
             on_exit ds.commit();
             on_error ds.rollback();
-            createNoCommit(opt);
+            create(opt);
         }
 
         #! creates the table with all associated properties (indexes, constraints, etc) without any transaction management
         /** @par Example:
             @code
-table.createNoCommit();
+table.create();
             @endcode
 
             @param opt a hash of options for the SQL creation strings
@@ -8421,7 +8421,7 @@ table.createNoCommit();
 
             @throw CREATE-TABLE-ERROR table has already been read from or created in the database
          */
-        createNoCommit(*hash opt) {
+        create(*hash opt) {
             if (inDb)
                 throw "CREATE-TABLE-ERROR", sprintf("%s has already been read from or created in the database", getDesc());
 
@@ -8429,6 +8429,11 @@ table.createNoCommit();
             map ds.execRaw($1), getCreateSql(opt);
             inDb = True;
             manual = False;
+        }
+
+        #! A legacy wrapper for create()
+        deprecated createNoCommit(*hash opt) {
+            create(opt);
         }
 
         #! renames the table; if the table is already known to be in the database in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally
