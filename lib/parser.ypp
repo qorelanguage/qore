@@ -2114,21 +2114,29 @@ case_code:
 
 try_statement:
         TOK_TRY statement_or_block TOK_CATCH '(' myexp ')' statement_or_block {
-	   char* param = 0;
-	   if ($5) {
-	      if ($5->getType() == NT_VARREF)
-		 param = reinterpret_cast<VarRefNode*>($5)->takeName();
-	      else if ($5->getType() == NT_BAREWORD) {
-		 param = reinterpret_cast<BarewordNode*>($5)->takeString();
-		 if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
-		    parse_error("local variable '%s' in catch parameter list declared without '$' prefix, but parse option 'allow-bare-refs' is not set", param);
-	      }
-	      else
-		 parse_error("only one parameter accepted in catch block for exception hash");
-	      $5->deref(0);
-	   }
-	   $$ = new TryStatement(@1.first_line, @7.last_line, $2, $7, param);
-	}
+           char* param = 0;
+           const QoreTypeInfo *typeInfo = 0;
+           if ($5) {
+              if ($5->getType() == NT_VARREF) {
+                 VarRefNode *varRefNode = static_cast<VarRefNode*>($5);
+                 param = varRefNode->takeName();
+                 if (varRefNode->isDecl()) {
+                    VarRefDeclNode *varRefDeclNode = static_cast<VarRefDeclNode*>(varRefNode);
+                    if (varRefDeclNode->getParseTypeInfo() || varRefDeclNode->getTypeInfo()->parseAccepts(hashTypeInfo) == QTI_NOT_EQUAL) {
+                       parse_error("the type of catch parameter '%s' must be 'hash'", param);
+                    }
+                    typeInfo = varRefDeclNode->getTypeInfo();
+                 }
+              } else if ($5->getType() == NT_BAREWORD) {
+                 param = reinterpret_cast<BarewordNode*>($5)->takeString();
+                 if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
+                    parse_error("local variable '%s' in catch parameter list declared without '$' prefix, but parse option 'allow-bare-refs' is not set", param);
+              } else
+                 parse_error("only one parameter accepted in catch block for exception hash");
+           $5->deref(0);
+           }
+           $$ = new TryStatement(@1.first_line, @7.last_line, $2, $7, param, typeInfo);
+        }
         ;
 
 myexp:  /* empty */  { $$ = 0; }

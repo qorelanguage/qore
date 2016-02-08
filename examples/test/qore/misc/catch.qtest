@@ -1,0 +1,33 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class CatchTypeTest
+
+class CatchTypeTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Catch type test", "1.0") {
+        addTestCase("Test catch type", \testCatch());
+        set_return_value(main());
+    }
+
+    testCatch() {
+        Program p();
+        p.replaceParseOptions(PO_NEW_STYLE);
+        p.parse("try{}catch(ex){ ex = 5; }", "");
+        p.parse("try{}catch(my ex){ ex = 5; }", "");
+        p.parse("try{}catch(my hash ex){ ex = {}; }", "");
+        p.parse("try{}catch(*hash ex){ ex = NOTHING; }", "");
+        p.parse("try{}catch(any ex){ ex = 5; }", "");
+        assertThrows("PARSE-EXCEPTION", "the type of catch parameter 'ex' must be 'hash'",
+            \p.parse(), ("try{}catch(my int ex){}", ""));
+        assertThrows("PARSE-TYPE-ERROR", "lvalue for assignment operator (=) expects type 'hash', but right-hand side is type 'int'",
+            \p.parse(), ("try{}catch(hash ex){ ex = 5; }", ""));
+    }
+}
