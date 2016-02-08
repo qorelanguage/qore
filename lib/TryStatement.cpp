@@ -45,7 +45,7 @@ public:
    }
 };
 
-TryStatement::TryStatement(int start_line, int end_line, class StatementBlock *t, class StatementBlock *c, char *p) : AbstractStatement(start_line, end_line) {
+TryStatement::TryStatement(int start_line, int end_line, class StatementBlock *t, class StatementBlock *c, char *p, const QoreTypeInfo *typeInfo) : AbstractStatement(start_line, end_line), typeInfo(typeInfo) {
    try_block = t;
    catch_block = c;
    param = p;
@@ -114,7 +114,7 @@ int TryStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    if (param) {
       // push as if the variable is already referenced so no warning will be emitted
       // in case the variable is not actually referenced in the catch block
-      id = push_local_var(param, loc, 0, true, 1);
+      id = push_local_var(param, loc, typeInfo, true, 1);
       printd(3, "TryStatement::parseInitImpl() reg. local var %s (id=%p)\n", param, id);
    }
    else

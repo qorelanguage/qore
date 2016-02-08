@@ -42,12 +42,13 @@ public:
    //class StatementBlock *finally;
    char *param;
    LocalVar *id;
+   const QoreTypeInfo *typeInfo;
 
    DLLLOCAL virtual int execImpl(QoreValue& return_value, class ExceptionSink *xsink);
    DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
 
 public:
-   DLLLOCAL TryStatement(int start_line, int end_line, class StatementBlock *t, class StatementBlock *c, char *p);
+   DLLLOCAL TryStatement(int start_line, int end_line, class StatementBlock *t, class StatementBlock *c, char *p, const QoreTypeInfo *typeInfo);
    DLLLOCAL virtual ~TryStatement();
 
    DLLLOCAL virtual bool hasFinalReturn() const;
