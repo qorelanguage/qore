@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2015 Qore Technologies, sro
+  Copyright (C) 2006 - 2016 Qore Technologies, sro
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -47,7 +47,16 @@ public:
    bool nt; // new transaction flag
 
    DLLLOCAL DBActionHelper(QoreSQLStatement& n_stmt, ExceptionSink* n_xsink, char n_cmd = DAH_NOCHANGE) : stmt(n_stmt), xsink(n_xsink), valid(false), cmd(n_cmd), nt(false) {
+      Datasource* oldds = stmt.priv->ds;
+      //printd(5, "DBActionHelper::DBActionHelper() old ds: %p cmd: %s\n", stmt.priv->ds, DAH_TEXT(cmd));
       stmt.priv->ds = stmt.dsh->helperStartAction(xsink, nt);
+
+      // if we are trying to start a new transaction on a new Datasource connection, but we have
+      // already prepared the statement on another connection, we have to raise an exception
+      // otherwise the statement will actually be executed on the original connection which is
+      // cached in the driver (https://github.com/qorelanguage/qore/issues/465)
+      if (oldds && stmt.priv->ds != oldds && cmd == DAH_ACQUIRE)
+         xsink->raiseException("SQLSTATEMENT-ERROR", "statement was prepared on another Datasource; you must close the statement before executing this action on a new connection");
 
       //printd(5, "DBActionHelper::DBActionHelper() ds: %p cmd: %s nt: %d\n", stmt.priv->ds, DAH_TEXT(cmd), nt);
       valid = *xsink ? false : true;
@@ -150,7 +159,6 @@ int QoreSQLStatement::closeIntern(ExceptionSink* xsink) {
       return 0;
 
    assert(priv->ds);
-
    int rc = qore_dbi_private::get(*priv->ds->getDriver())->stmt_close(this, xsink);
    assert(!priv->data);
    status = STMT_IDLE;
@@ -175,9 +183,12 @@ int QoreSQLStatement::prepareArgs(bool n_raw, const QoreString& n_str, const Qor
 }
 
 int QoreSQLStatement::prepareIntern(ExceptionSink* xsink) {
+   //assert(!stmtds);
    int rc = qore_dbi_private::get(*priv->ds->getDriver())->stmt_prepare(this, str, prepare_args, xsink);
-   if (!rc)
+   if (!rc) {
       status = STMT_PREPARED;
+      //stmtds = ds;
+   }
    else
       closeIntern(xsink);
    return rc;

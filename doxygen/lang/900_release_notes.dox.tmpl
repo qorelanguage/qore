@@ -59,6 +59,7 @@
       - @ref Qore::ParseOptionCodeMap
       - @ref Qore::ParseOptionStringMap
       - @ref Qore::PO_BROKEN_LIST_PARSING
+      - @ref Qore::PO_BROKEN_LOGIC_PRECEDENCE
       - @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS
       - @ref Qore::PO_NO_INHERIT_USER_CONSTANTS
       - @ref Qore::PO_NO_API
@@ -100,7 +101,7 @@
     - new pseudo-methods:
       - @ref <date>::dayNumber()
       - @ref <date>::dayOfWeek()
-      - @ref <date>::getRelativeSecondsFloat()
+      - @ref <date>::durationSecondsFloat()
       - @ref <date>::isoDayOfWeek()
       - @ref <date>::isoWeekHash()
       - @ref <date>::isoWeekString()
@@ -201,7 +202,7 @@
     - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module:
       - added this new module for handling fixed length line data
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module updates:
-        - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> module split from the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module containing supporting definitions for handler classes and other code interfacing with the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
+      - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> module split from the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module containing supporting definitions for handler classes and other code interfacing with the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
       - added the PermissiveAuthenticator class
       - translate \c "+" (plus) to \c " " (space) in the query portion of URIs in parse_uri_query()
       - implemented support for notifying persistent connections when the connection is terminated while a persistent connection is in place
@@ -256,7 +257,8 @@
       - @ref Qore::DataLineIterator
       - @ref Qore::FileLineIterator
     - removed support for the C++ \c QDBI_METHOD_ABORT_TRANSACTION_START DBI method; transactions are always assumed to be in progress even if an exec call throws an exception in the first statement in a new transaction; this is necessary to handle bulk DML where a single statement can partially succeed and partially fail; the ABI remains unchanged; drivers that set this DBI method will no longer have it called because it's not necessary; in the upcoming API/ABI change this C++ DBI method will be removed entirely
-    - added suport for @ref unary_plus_operator "unary plus"
+    - added support for @ref unary_plus_operator "unary plus"
+    - added support for empty private blocks in classes
 
     @subsection qore_0812_bug_fixes Bug Fixes in Qore
     - fixed format of octal constant - there was an error if a string contained octal constant that is shorter than 3 digit
@@ -277,6 +279,7 @@
     - <a href="../../modules/Schema/html/index.html">Schema</a> module fixes:
       - AbstractSchema::combineOptions() fails when an option variable contains @ref nothing instead of a valid hash
       - fixed a bug with <i>"insert-only reference data"</i> with the verbose option; the upsert strategy was changed to \c UpsertSelectFirst which means that insert-only reference data could also be updated
+      - fixed a bug where it was not possible to provide Database options when creating schemas (<a href="https://github.com/qorelanguage/qore/issues/501">bug 501</a>)
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module fixes:
       - moved field length checks after all transformations have been applied
       - fixed bugs in the \c "timezone" and \c "input_timezone" options, documented those options
@@ -289,6 +292,9 @@
       - fixed a bug in schema alignment; when aligning a schema and an index supporting a PK constraint is introduced in the new schema, the alignment would fail when a constraint is attempted to be disabled that doesn't exist
       - fixed a bug generating select statements for tables accessed through a synonym when used with join clauses; previously inconsistent schema prefixes could be used which could cause errors parsing the SQL statements generated
       - fixed a bug where the AbstractTable lock was held while executing SQL to determine the upsert strategy to use with UpsertAuto
+      - fixed a bug where complex bind values as hashes (such as used by the pgsql and oracle drivers) were rejected by SqlUtil (<a href="https://github.com/qorelanguage/qore/issues/494">bug 494</a>) when updating
+      - fixed a bug where wildcard columns in join tables were not working (<a href="https://github.com/qorelanguage/qore/issues/499">bug 499</a>)
+      - fixed a bug in op_in() where invalid SQL was generated with an argument of 0 (<a href="https://github.com/qorelanguage/qore/issues/500">bug 500</a>)
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module fixes:
       - fixed a bug where column names that are reserved words were not quoted in generated SQL
     - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module fixes:
@@ -296,7 +302,7 @@
       - fixed a bug retrieving foreign constraints; columns were not guaranteed to be returned in declaration order
       - fixed a bug handling tablespaces in unique constraints
       - fixed a bug handling \c "time" columns; they were being issued as \c "time6" instead of "time(6)" (<a href="https://github.com/qorelanguage/qore/issues/385">bug 385</a>)
-      - fixed support for the following datatypes and aliases: \c bit, \c "bit varying", \c char, \c character, \c "character varying", \c oid, \c varchar
+      - fixed support for the following datatypes and aliases: \c "bit", \c "bit varying", \c "char", \c "character", \c "character varying", \c "char varying", \c "oid", \c "varchar"
     -  <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module fixes:
       - fixed a bug where template programs with @ref Qore::PO_ALLOW_BARE_REFS set did not work
     - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a> module fixes:
@@ -419,7 +425,15 @@
     - fixed a bug with handling local variables in const initializers (<a href="https://github.com/qorelanguage/qore/issues/421">bug 421</a>)
     - fixed a bug where \c select(2) was called after \c EINTR without reinitializing the descriptor array argument (<a href="https://github.com/qorelanguage/qore/issues/435">bug 435</a>)
     - fixed a crashing bug on all platforms where select(2) was being called with socket descriptor values > \c FD_SETSIZE (<a href="https://github.com/qorelanguage/qore/issues/436">bug 436</a>)
-    - fixed a bug where @ref Qore::HTTPClient::get() and @ref Qore::HTTPClient::post() would try to retrieve a message body even if <tt>Content-Length: 0</tt> was returned (or if no \c Content-Length header was returned at all) which would result in a deadlock (<a href="https://github.com/qorelanguage/qore/issues/434">bug 434</a>) until the server would close the connection
+    - fixed inconsistencies @ref reldate_comparisons "comparing relative date/time values" (<a href="https://github.com/qorelanguage/qore/issues/437">bug 437</a>)
+    - fixed a bug where @ref on_exit and @ref on_error statements were not being executed if an exception was raised in an earlier-executed @ref on_exit, @ref on_error, or @ref on_success statement (<a href="https://github.com/qorelanguage/qore/issues/380">bug 380</a>)
+    - fixed a bug where @ref Qore::HTTPClient::get() and @ref Qore::HTTPClient::post() would try to retrieve a message body even if <tt>Content-Length: 0</tt> was returned (or if no \c Content-Length header was returned at all) which would result in a deadlock until the server would close the connection (<a href="https://github.com/qorelanguage/qore/issues/434">bug 434</a>)
+    - fixed a bug where regular expression substitution would go into an infinite loop when used with an empty pattern and the global flag (@ref Qore::RE_Global, <a href="https://github.com/qorelanguage/qore/issues/329">bug 329</a>)
+    - fixed a bug with connection handling in the @ref Qore::SQL::SQLStatement "SQLStatement" class; an exception is now thrown if a @ref Qore::SQL::SQLStatement "SQLStatement" object tries to execute its prepared SQL on a connection other than the original connection used to prepare the statement (<a href="https://github.com/qorelanguage/qore/issues/465">bug 465</a>)
+    - fixed a bug where @ref Qore::is_executable() would return NOTHING instead of False (as per documentation) when called with non-existent path as it's parameter (<a href="https://github.com/qorelanguage/qore/issues/470">bug 470</a>)
+    - fixed precedence of logical and bitwise \ref operators (<a href="https://github.com/qorelanguage/qore/issues/481">bug 481</a>)
+    - fixed a bug where nested lists were not parsed correctly in some cases (<a href="https://github.com/qorelanguage/qore/issues/320">bug 320</a>)
+    - fixed a bug where the type of catch parameter was ignored (<a href="https://github.com/qorelanguage/qore/issues/28">bug 28</a>)
 
     @section qore_0811 Qore 0.8.11
 
@@ -1141,7 +1155,7 @@ class MyConcreteClass inherits MyAbstractClass {
     - the @ref foreach "foreach statement" now iterates objects derived from @ref Qore::AbstractIterator "AbstractIterator" automatically
     - added a @ref Qore::Option::HAVE_SYMLINK "HAVE_SYMLINK" constant for the symlink() function added in qore 0.8.5
     - added the @ref Qore::SQL::SQLStatement::memberGate() "SQLStatement::memberGate()" method so @ref Qore::SQL::SQLStatement "SQLStatement" objects can be dereferenced directly to a column value when iterated with @ref Qore::SQL::SQLStatement::next() "SQLStatement::next()"; also this method will throw exceptions when an unknown column name is used so that typos in column names can be caught (instead of being silently ignored producing hard to find bugs)
-    - implemented @ref Qore::SQL::Datasource::constructor(string) "Datasource::constructor(string)" and @ref Qore::SQL::DatasourcePool::constructor(string) "DatasourcePool::constructor(string)" variants to allow for creating datasources from a string that can be parsed by Qore::SQL::parse_datasource(string) "parse_datasource(string)"
+    - implemented @ref Qore::SQL::Datasource::constructor() "Datasource::constructor(string)" and @ref Qore::SQL::DatasourcePool::constructor() "DatasourcePool::constructor(string)" variants to allow for creating datasources from a string that can be parsed by Qore::SQL::parse_datasource(string) "parse_datasource(string)"
     - added the following new DBI-related functions:
       - @ref Qore::SQL::dbi_get_driver_list() "dbi_get_driver_list()"
       - @ref Qore::SQL::dbi_get_driver_capability_list(string) "dbi_get_driver_capability_list(string)"

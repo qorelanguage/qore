@@ -183,7 +183,7 @@ public:
    }
 };
 
-struct ClosureVarValue : public VarValueBase, public RObject, public RSectionLock {
+struct ClosureVarValue : public VarValueBase, public RObject {
 public:
    // reference count; access serialized with rlck from RObject
    mutable int references;
@@ -225,12 +225,12 @@ public:
 
    // sets the current variable to finalized, sets the value to 0, and returns the value held (for dereferencing outside the lock)
    DLLLOCAL AbstractQoreNode* finalize() {
-      QoreSafeVarRWWriteLocker sl(this);
+      QoreSafeVarRWWriteLocker sl(rml);
       return VarValueBase::finalize();
    }
 
    DLLLOCAL QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) {
-      QoreSafeVarRWReadLocker sl(this);
+      QoreSafeVarRWReadLocker sl(rml);
       if (val.getType() == NT_REFERENCE) {
          ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), xsink);
          sl.unlock();

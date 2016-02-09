@@ -10,6 +10,9 @@
 
 %exec-class SprintfTest
 
+public class A {
+}
+
 public class SprintfTest inherits QUnit::Test {
     constructor() : Test("Sprintf test", "1.0") {
         addTestCase("Test 1", \test(), NOTHING);
@@ -19,8 +22,15 @@ public class SprintfTest inherits QUnit::Test {
     }
 
     test() {
-        assertEq("0025-101.24", sprintf("%04d-%.2f", 25, 101.239), "sprintf()");
-        assertEq("0025-101.24", vsprintf("%04d-%.2f", (25, 101.239)), "vsprintf()");
+        assertEq("0025-101.24", sprintf("%04d-%.2f", 25, 101.239));
+        assertEq("0025-101.24", vsprintf("%04d-%.2f", (25, 101.239)));
+        assertEq("   +101.24", sprintf("%+10.2f", 101.239));
+        assertEq("+101.24   ", sprintf("%-+10.2f", 101.239));
+        assertEq("+000101.24", sprintf("%+010.2f", 101.239));
+        assertEq("%%%%", sprintf("%%%%%%%%"));
+        assertEq("99", sprintf("%N%n", 9, 9));
+        assertEq("7f 1C FFFF", sprintf("%x %X %X", 127, 28, 65535));
+        assertEq("class A: <NO MEMBERS>", sprintf("%n", new A()));
         assertEq("niñ", f_sprintf("%3s", "niña"), "UTF-8 f_sprintf()");
     }
 }

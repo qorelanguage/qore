@@ -1385,6 +1385,7 @@ public:
 
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @param timeout_ms in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+       @param source the event source code for socket events
 
        @return if 0, an exception was raised, if not 0, caller owns the reference count returned
    */
@@ -1608,7 +1609,6 @@ public:
    //! returns information for the current socket; the socket must be open
    /** if the socket is not open, a Qore-language exception is thrown
        @param xsink if an error occurs, the Qore-language exception information will be added here
-       @param host_lookup do a host lookup (if this is false the \c "hostname" and \c "hostname_desc" are not present in the response hash)
 
        @return a hash with the following keys:
        - \c hostname: the hostname of the remote end (if known or appropriate for the socket type, only performed if \a host_lookup is true)
@@ -1624,6 +1624,7 @@ public:
    //! returns information for the current socket; the socket must be open
    /** if the socket is not open, a Qore-language exception is thrown
        @param xsink if an error occurs, the Qore-language exception information will be added here
+       @param host_lookup do a host lookup (if this is false the \c "hostname" and \c "hostname_desc" are not present in the response hash)
 
        @return a hash with the following keys:
        - \c hostname: the hostname for the local interface (if known or appropriate for the socket type)

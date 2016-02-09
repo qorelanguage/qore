@@ -69,6 +69,11 @@ void qore_queue_private::clearIntern(ExceptionSink* xsink) {
 int qore_queue_private::waitReadIntern(ExceptionSink *xsink, int timeout_ms) {
    // if there is no data, then wait for condition variable
    while (!head) {
+      if (!err.empty()) {
+         xsink->raiseException(err.c_str(), desc->stringRefSelf());
+         return QW_ERROR;
+      }
+
       ++read_waiting;
       int rc = timeout_ms ? read_cond.wait(l, timeout_ms) : read_cond.wait(l);
       --read_waiting;
@@ -101,6 +106,11 @@ int qore_queue_private::waitReadIntern(ExceptionSink *xsink, int timeout_ms) {
 int qore_queue_private::waitWriteIntern(ExceptionSink *xsink, int timeout_ms) {
    // if the queue is full, then wait for condition variable
    while (max > 0 && len >= max) {
+      if (!err.empty()) {
+         xsink->raiseException(err.c_str(), desc->stringRefSelf());
+         return QW_ERROR;
+      }
+
       ++write_waiting;
       int rc = timeout_ms ? write_cond.wait(l, timeout_ms) : write_cond.wait(l);
       --write_waiting;

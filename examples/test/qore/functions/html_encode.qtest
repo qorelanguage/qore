@@ -19,32 +19,36 @@ public class HtmlEncodeTest inherits QUnit::Test {
     }
 
     htmlEncodeTestMethod() {
-        string str1 = "&<>\"";
-        string str2 = "&amp;&lt;&gt;&quot;";
+        assertEq("&<>\"", html_decode("&amp;&lt;&gt;&quot;"));
+        assertEq("©®", html_decode("&copy;&reg;"));
+        assertEq("€¢£¥¤", html_decode("&euro;&cent;&pound;&yen;&curren;"));
+        assertEq("¦§°", html_decode("&brvbar;&sect;&deg;"));
 
-        testAssertion("html_encode()", \html_encode(), (str1,), new TestResultValue(str2));
-        testAssertion("html_decode()", \html_decode(), (str2,), new TestResultValue(str1));
+        assertEq("&amp;&lt;&gt;&quot;", html_encode("&<>\""));
+        assertEq("&copy;&reg;", html_encode("©®"));
+        assertEq("&euro;&cent;&pound;&yen;&curren;", html_encode("€¢£¥¤"));
+        assertEq("&brvbar;&sect;&deg;", html_encode("¦§°"));
 
-        str1 = "text &Theta; &apos; &#345;";
-        testAssertionValue("<string>::getEncoded(0)", str1.getEncoded(0), str1);
-        testAssertionValue("<string>::getDecoded()", str1.getDecoded(), "text Θ ' ř");
-        testAssertionValue("<string>::getDecoded(CD_ALL)", str1.getDecoded(CE_ALL), "text Θ ' ř");
+        string str1 = "text &Theta; &apos; &#345;";
+        assertEq(str1, str1.getEncoded(0));
+        assertEq("text Θ ' ř", str1.getDecoded());
+        assertEq("text Θ ' ř", str1.getDecoded(CE_ALL));
 
-        testAssertionValue("<string>::getDecoded(CD_XHTML)", str1.getDecoded(CE_XHTML), "text Θ ' &#345;");
-        testAssertionValue("<string>::getDecoded(CD_XML)", str1.getDecoded(CE_XML), "text &Theta; ' &#345;");
-        testAssertionValue("<string>::getDecoded(CD_HTML)", str1.getDecoded(CE_HTML), "text Θ &apos; &#345;");
+        assertEq("text Θ ' &#345;", str1.getDecoded(CE_XHTML));
+        assertEq("text &Theta; ' &#345;", str1.getDecoded(CE_XML));
+        assertEq("text Θ &apos; &#345;", str1.getDecoded(CE_HTML));
 
-        testAssertionValue("<string>::getDecoded(CD_XML|CD_NUM_REF)", str1.getDecoded(CE_XML|CE_NONASCII), "text &Theta; ' ř");
-        testAssertionValue("<string>::getDecoded(CD_HTML|CD_NUM_REF)", str1.getDecoded(CE_HTML|CE_NONASCII), "text Θ &apos; ř");
+        assertEq("text &Theta; ' ř", str1.getDecoded(CE_XML|CE_NONASCII));
+        assertEq("text Θ &apos; ř", str1.getDecoded(CE_HTML|CE_NONASCII));
 
         str1 = "text Θ ' ř";
-        testAssertionValue("<string>::getEncoded(CE_XHTML)", str1.getEncoded(CE_XHTML), "text &Theta; &apos; ř");
-        testAssertionValue("<string>::getEncoded()", str1.getEncoded(), "text &Theta; &apos; ř");
-        testAssertionValue("<string>::getEncoded(CE_ALL)", str1.getEncoded(CE_ALL), "text &Theta; &apos; &#345;");
-        testAssertionValue("<string>::getEncoded(CE_XML)", str1.getEncoded(CE_XML), "text &Theta; &apos; ř");
-        testAssertionValue("<string>::getEncoded(CE_HTML)", str1.getEncoded(CE_HTML), "text &Theta; ' ř");
-        testAssertionValue("<string>::getEncoded(CE_XHTML|CE_NONASCII)", str1.getEncoded(CE_XHTML|CE_NONASCII), "text &Theta; &apos; &#345;");
-        testAssertionValue("<string>::getEncoded(CE_XML|CE_NONASCII)", str1.getEncoded(CE_XML|CE_NONASCII), "text &Theta; &apos; &#345;");
-        testAssertionValue("<string>::getEncoded(CE_HTML|CE_NONASCII)", str1.getEncoded(CE_HTML|CE_NONASCII), "text &Theta; ' &#345;");
+        assertEq("text &Theta; &apos; ř", str1.getEncoded(CE_XHTML));
+        assertEq("text &Theta; &apos; ř", str1.getEncoded());
+        assertEq("text &Theta; &apos; &#345;", str1.getEncoded(CE_ALL));
+        assertEq("text &Theta; &apos; ř", str1.getEncoded(CE_XML));
+        assertEq("text &Theta; ' ř", str1.getEncoded(CE_HTML));
+        assertEq("text &Theta; &apos; &#345;", str1.getEncoded(CE_XHTML|CE_NONASCII));
+        assertEq("text &Theta; &apos; &#345;", str1.getEncoded(CE_XML|CE_NONASCII));
+        assertEq("text &Theta; ' &#345;", str1.getEncoded(CE_HTML|CE_NONASCII));
     }
 }

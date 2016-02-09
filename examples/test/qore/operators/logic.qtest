@@ -20,6 +20,7 @@ public class LogicTest inherits QUnit::Test {
         addTestCase("And/or test", \testAndOr(), NOTHING);
         addTestCase("Question-colon test", \testQuestionColon(), NOTHING);
         addTestCase("Comparison test", \testComparison(), NOTHING);
+        addTestCase("Precedence", \testPrecedence());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -72,5 +73,27 @@ public class LogicTest inherits QUnit::Test {
         a[3].chello = "hi";
         assertEq(False, a[3] == b[3], "negative hash comparison");
         assertEq(True, a[3] != b[3], "hash unequal comparison");
+    }
+
+    testPrecedence() {
+        code x = sub(){ fail("Should not be called"); };
+        assertEq(1, True | False & False);
+        assertEq(1, True | True & False);
+        assertEq(1, True | False ^ True);
+        assertEq(1, True | True ^ True);
+        assertEq(1, True ^ False & False);
+        assertEq(1, True ^ True & False);
+        assertTrue(True || False && x());
+        assertTrue(True || True && x());
+        assertTrue(True || x() && x());
+%broken-logic-precedence
+        assertEq(0, True | False & False);
+        assertEq(0, True | True & False);
+        assertEq(0, True | False ^ True);
+        assertEq(0, True | True ^ True);
+        assertEq(0, True ^ False & False);
+        assertEq(0, True ^ True & False);
+        assertFalse(True || x() && False);
+        assertTrue(True || x() && True);
     }
 }

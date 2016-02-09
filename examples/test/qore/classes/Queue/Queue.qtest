@@ -30,5 +30,20 @@ class Test inherits QUnit::Test {
         q.push(1);
         assertEq(1, q.get());
         assertEq(0, q.size());
+
+        Counter c(1);
+        background wait(q, c);
+        # wait for background thread to start waiting
+        while (!q.getReadWaiting())
+            usleep(1ms);
+
+        # set queue to error
+        q.setError("ERR", "desc");
+        c.waitForZero();
+    }
+
+    wait(Queue q, Counter c) {
+        on_exit c.dec();
+        assertThrows("ERR", \q.get());
     }
 }

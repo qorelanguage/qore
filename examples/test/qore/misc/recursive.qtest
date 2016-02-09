@@ -10,8 +10,7 @@
 
 int sub factorial(int num) {
     if (num <= 0) return 0;
-    if (num == 1 || num == 2)
-        return num;
+    if (num == 1 || num == 2) return num;
     return num * factorial(num - 1);
 }
 
