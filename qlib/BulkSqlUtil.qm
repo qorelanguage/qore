@@ -659,7 +659,7 @@ inserter.setRowCode(rowcode);
             if (!stmt) {
                 string sql;
                 # insert the data
-                rh = table.insertNoCommit(hbuf + cval + static_ret_expr, \sql, rowcode ? ("returning": ret_args) : NOTHING);
+                rh = table.insert(hbuf + cval + static_ret_expr, \sql, rowcode ? ("returning": ret_args) : NOTHING);
                 # create the statement for future inserts
                 stmt = new SQLStatement(table.getDatasource());
                 stmt.prepare(sql);

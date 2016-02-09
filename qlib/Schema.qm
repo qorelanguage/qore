@@ -973,7 +973,7 @@ public namespace Schema {
                 }
             };
 
-            table.upsertFromIteratorNoCommit(AbstractSchema::getRows(rows).iterator(), upsert_strategy, ("delete_others": delete_others, "info_callback": cb));
+            table.upsertFromIterator(AbstractSchema::getRows(rows).iterator(), upsert_strategy, ("delete_others": delete_others, "info_callback": cb));
 
             # show table summary if verbose = 1
             if (verbose) {

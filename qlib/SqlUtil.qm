@@ -10677,7 +10677,7 @@ int rows = table.insertFromSelectCommit(("id", "name", "created"), source_table,
             @throw COLUMN-ERROR unknown or invalid column in insert list
             @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
-            @note this method does not take insert options because it is executed entirely in the database server; use insertFromIterator() or insertFromIteratorNoCommit() to insert arbitrary data with insert options
+            @note this method does not take insert options because it is executed entirely in the database server; use insertFromIterator() or insertFromIteratorCommit() to insert arbitrary data with insert options
         */
         int insertFromSelectCommit(list cols, AbstractTable source, hash sh, reference sql, hash opt) {
             on_success ds.commit();
@@ -10791,7 +10791,7 @@ int rows = table.insertFromSelect(("id", "name", "created"), source_table, (("co
         #! this method inserts data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; the transaction is committed if successful, if an error occurs then it is rolled back
         /** @par Example:
             @code
-int rows = table.insertFromIterator(i);
+int rows = table.insertFromIteratorCommit(i);
             @endcode
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in every element
@@ -10803,21 +10803,21 @@ int rows = table.insertFromIterator(i);
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
 
             @see
-            - insertFromIteratorNoCommit()
+            - insertFromIterator()
             - upsertFromIterator()
-            - upsertFromIteratorNoCommit()
+            - upsertFromIteratorCommit()
         */
-        int insertFromIterator(Qore::AbstractIterator i, *hash opt) {
+        int insertFromIteratorCommit(Qore::AbstractIterator i, *hash opt) {
             on_success ds.commit();
             on_error ds.rollback();
 
-            return insertFromIteratorNoCommitIntern(i, opt);
+            return insertFromIteratorIntern(i, opt);
         }
 
         #! this method inserts data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; no transaction management is performed with this method
         /** @par Example:
             @code
-int rows = table.insertFromIteratorNoCommit(i);
+int rows = table.insertFromIterator(i);
             @endcode
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in the same order in every element
@@ -10831,13 +10831,18 @@ int rows = table.insertFromIteratorNoCommit(i);
             @see
             - insertFromIterator()
             - upsertFromIterator()
-            - upsertFromIteratorNoCommit()
+            - upsertFromIteratorCommit()
         */
-        int insertFromIteratorNoCommit(Qore::AbstractIterator i, *hash opt) {
-            return insertFromIteratorNoCommitIntern(i, opt - "commit_block");
+        int insertFromIterator(Qore::AbstractIterator i, *hash opt) {
+            return insertFromIteratorIntern(i, opt - "commit_block");
         }
 
-        private int insertFromIteratorNoCommitIntern(Qore::AbstractIterator i, *hash opt) {
+        #! A legacy @ref SqlUtil::AbstractTable::insertFromIterator() wrapper
+        deprecated int insertFromIteratorNoCommit(Qore::AbstractIterator i, *hash opt) {
+            return insertFromIteratorIntern(i, opt - "commit_block");
+        }
+
+        private int insertFromIteratorIntern(Qore::AbstractIterator i, *hash opt) {
             # check upsert options
             validateOptionsIntern("OPTION-ERROR", getInsertFromIteratorOptions(), \opt);
 
@@ -10875,6 +10880,29 @@ int rows = table.insertFromIteratorNoCommit(i);
         #! update or insert the data in the table according to the hash argument; the table must have a unique key to do this; the transaction is committed if successful, if an error occurs then it is rolled back
         /** @par Example:
             @code
+table.upsertCommit(row);
+            @endcode
+
+            @param row a hash representing the row to insert or update
+            @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
+
+            @return an integer code giving the result of the update; see @ref upsert_results for more information
+
+            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
+            @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
+
+            @note if upserting multiple rows; it's better to use getBulkUpsertClosure(), getUpsertClosure(), or getUpsertClosureWithValidation() and execute the closure on each row; when using this method, the overhead for setting up the upsert is made for each row which is very inefficient
+         */
+        int upsertCommit(hash row, int upsert_strategy = UpsertAuto) {
+            on_success ds.commit();
+            on_error ds.rollback();
+
+            return upsert(row, upsert_strategy);
+        }
+
+        #! update or insert the data in the table according to the hash argument; the table must have a unique key to do this
+        /** @par Example:
+            @code
 table.upsert(row);
             @endcode
 
@@ -10889,29 +10917,11 @@ table.upsert(row);
             @note if upserting multiple rows; it's better to use getBulkUpsertClosure(), getUpsertClosure(), or getUpsertClosureWithValidation() and execute the closure on each row; when using this method, the overhead for setting up the upsert is made for each row which is very inefficient
          */
         int upsert(hash row, int upsert_strategy = UpsertAuto) {
-            on_success ds.commit();
-            on_error ds.rollback();
-
-            return upsertNoCommit(row, upsert_strategy);
+            return getUpsertClosure(row, upsert_strategy)(row);
         }
 
-        #! update or insert the data in the table according to the hash argument; the table must have a unique key to do this
-        /** @par Example:
-            @code
-table.upsertNoCommit(row);
-            @endcode
-
-            @param row a hash representing the row to insert or update
-            @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-
-            @return an integer code giving the result of the update; see @ref upsert_results for more information
-
-            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
-            @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
-
-            @note if upserting multiple rows; it's better to use getBulkUpsertClosure(), getUpsertClosure(), or getUpsertClosureWithValidation() and execute the closure on each row; when using this method, the overhead for setting up the upsert is made for each row which is very inefficient
-         */
-        int upsertNoCommit(hash row, int upsert_strategy = UpsertAuto) {
+        #! A legacy @ref SqlUtil::AbstractTable::upsert() wrapper
+        deprecated int upsertNoCommit(hash row, int upsert_strategy = UpsertAuto) {
             return getUpsertClosure(row, upsert_strategy)(row);
         }
 
@@ -10986,7 +10996,7 @@ upsert(row_hash);
 
             @see
             - upsert()
-            - upsertNoCommit()
+            - upsertCommit()
             - getUpsertClosure()
             - getUpsertClosureWithValidation()
          */
@@ -11053,26 +11063,26 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
             @note if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
 
             @see
-            - upsertFromIteratorNoCommit()
+            - upsertFromIteratorCommit()
             - upsertFromSelect()
-            - upsertFromSelectNoCommit()
+            - upsertFromSelectCommit()
             - upsert()
-            - upsertNoCommit()
+            - upsertCommit()
             - getUpsertClosure()
-            - insertFromIteratorNoCommit()
+            - insertFromIteratorCommit()
             - insertFromIterator()
         */
-        *hash upsertFromIterator(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
+        *hash upsertFromIteratorCommit(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
             on_success ds.commit();
             on_error ds.rollback();
 
-            return upsertFromIteratorNoCommitIntern(i, upsert_strategy, opt);
+            return upsertFromIteratorIntern(i, upsert_strategy, opt);
         }
 
         #! this method upserts or merges data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; no transaction management is performed with this method
         /** @par Example:
             @code
-hash h = table.upsertFromIteratorNoCommit(i, AbstractTable::UpsertUpdateFirst);
+hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
             @endcode
 
             @param i the @ref Qore::AbstractIterator argument that will provide the data to upsert or merge into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here)
@@ -11093,20 +11103,25 @@ hash h = table.upsertFromIteratorNoCommit(i, AbstractTable::UpsertUpdateFirst);
             @note if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
 
             @see
-            - upsertFromIteratorNoCommit()
+            - upsertFromIteratorCommit()
             - upsertFromSelect()
-            - upsertFromSelectNoCommit()
+            - upsertFromSelectCommit()
             - upsert()
-            - upsertNoCommit()
+            - upsertCommit()
             - getUpsertClosure()
-            - insertFromIteratorNoCommit()
+            - insertFromIteratorCommit()
             - insertFromIterator()
         */
-        *hash upsertFromIteratorNoCommit(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
-            return upsertFromIteratorNoCommitIntern(i, upsert_strategy, opt - "commit_block");
-         }
+        *hash upsertFromIterator(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
+            return upsertFromIteratorIntern(i, upsert_strategy, opt - "commit_block");
+        }
 
-        private *hash upsertFromIteratorNoCommitIntern(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
+        #! A legacy SqlUtik::AbstractTable::upsertFromIterator() wrapper
+        deprecated *hash upsertFromIteratorNoCommit(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
+            return upsertFromIteratorIntern(i, upsert_strategy, opt - "commit_block");
+        }
+
+        private *hash upsertFromIteratorIntern(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
             # check upsert options
             validateOptionsIntern("OPTION-ERROR", getUpsertOptions(), \opt);
 
@@ -11159,7 +11174,7 @@ hash h = table.upsertFromIteratorNoCommit(i, AbstractTable::UpsertUpdateFirst);
                     continue;
 
                 hash h = row{pkl};
-                delNoCommit(h);
+                self.delete(h);
 
                 ++rh.deleted;
                 if (opt.info_callback)
@@ -11178,7 +11193,7 @@ hash h = table.upsertFromIteratorNoCommit(i, AbstractTable::UpsertUpdateFirst);
         #! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; the transaction is committed if successful, if an error occurs then it is rolled back
         /** @par Example:
             @code
-hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")), AbstractTable::UpsertUpdateFirst);
+hash h = table.upsertFromSelectCommit(table2, ("where": ("account_type": "CUSTOMER")), AbstractTable::UpsertUpdateFirst);
             @endcode
 
             The table argument does not need to be in the same database as the current table; it can also
@@ -11203,158 +11218,90 @@ hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")),
 
             @note
             - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
-            - this method also calls commit() or rollback() on the source table to release the transaction lock on the underlying source table datasource as an @ref Qore::SQL::SQLStatement "SQLStatement" object is used to pipeline the data to the upsert code; use upsertFromSelectNoCommit() to do manual transaction management instead
-            - unlike insertFromSelect() and insertFromSelectNoCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
+            - this method also calls commit() or rollback() on the source table to release the transaction lock on the underlying source table datasource as an @ref Qore::SQL::SQLStatement "SQLStatement" object is used to pipeline the data to the upsert code; use upsertFromSelect() to do manual transaction management instead
+            - unlike insertFromSelect() and insertFromSelectCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
 
             @see
-            - upsertFromSelectNoCommit()
+            - upsertFromSelect()
             - upsertFromIterator()
-            - upsertFromIteratorNoCommit()
+            - upsertFromIteratorCommit()
             - upsert()
-            - upsertNoCommit()
+            - upsertCommit()
+            - getUpsertClosure()
+        */
+        *hash upsertFromSelectCommit(AbstractTable t, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
+            on_success { ds.commit(); t.commit(); }
+            on_error { ds.rollback(); t.rollback(); }
+
+            return upsertFromSelect(t, sh, upsert_strategy, opt);
+        }
+
+        #! @ref SqlUtil::AbstractTable::upsertFromSelectCommit() variant
+        *hash upsertFromSelectCommit(Table t, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
+            on_success { ds.commit(); t.commit(); }
+            on_error { ds.rollback(); t.rollback(); }
+
+            return upsertFromIteratorIntern(t.getRowIterator(sh), upsert_strategy, opt);
+        }
+
+        #! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; no transaction management is performed with this method
+        /** @par Example:
+            @code
+on_success { table.commit(); table2.commit(); }
+on_error { table.rollback(); table2.rollback(); }
+hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")), AbstractTable::UpsertUpdateFirst);
+            @endcode
+
+            The table argument does not need to be in the same database as the current table; it can also
+            be in a different database server or a database server of a different type (you can use this method to upsert or
+            merge data to or from any database supported by SqlUtil).
+
+            @param t the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
+            @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options; note that this method ignores any \c "commit_block" option
+
+            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref SqlUtil::AbstractTable::UpsertResultDescriptionMap keys):
+            - \c "inserted": the number of rows inserted
+            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
+            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
+            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst or @ref SqlUtil::AbstractTable::UpsertInsertOnly
+            - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
+
+            @throw OPTION-ERROR invalid or unsupported option
+            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
+            @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
+
+            @note
+            - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
+           - this method uses an @ref Qore::SQL::SQLStatement "SQLStatement" object to pipeline the select data to the upsert code; to release the transaction lock acquired by the @ref Qore::SQL::SQLStatement "SQLStatement" object, a commit() or rollback() action must be executed on the underlying datasource object as in the example above
+            - unlike insertFromSelect() and insertFromSelectCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
+
+            @see
+            - upsertFromSelect()
+            - upsertFromIterator()
+            - upsertFromIteratorCommit()
+            - upsert()
+            - upsertCommit()
             - getUpsertClosure()
         */
         *hash upsertFromSelect(AbstractTable t, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
-            on_success { ds.commit(); t.commit(); }
-            on_error { ds.rollback(); t.rollback(); }
-
-            return upsertFromSelectNoCommit(t, sh, upsert_strategy, opt);
+            return upsertFromIteratorIntern(t.getRowIterator(sh), upsert_strategy, opt - "commit_block");
         }
 
-        #! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; no transaction management is performed with this method
-        /** @par Example:
-            @code
-on_success { table.commit(); table2.commit(); }
-on_error { table.rollback(); table2.rollback(); }
-hash h = table.upsertFromSelectNoCommit(table2, ("where": ("account_type": "CUSTOMER")), AbstractTable::UpsertUpdateFirst);
-            @endcode
-
-            The table argument does not need to be in the same database as the current table; it can also
-            be in a different database server or a database server of a different type (you can use this method to upsert or
-            merge data to or from any database supported by SqlUtil).
-
-            @param t the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
-            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
-            @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options; note that this method ignores any \c "commit_block" option
-
-            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref SqlUtil::AbstractTable::UpsertResultDescriptionMap keys):
-            - \c "inserted": the number of rows inserted
-            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
-            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst or @ref SqlUtil::AbstractTable::UpsertInsertOnly
-            - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
-
-            @throw OPTION-ERROR invalid or unsupported option
-            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
-            @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
-
-            @note
-            - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
-           - this method uses an @ref Qore::SQL::SQLStatement "SQLStatement" object to pipeline the select data to the upsert code; to release the transaction lock acquired by the @ref Qore::SQL::SQLStatement "SQLStatement" object, a commit() or rollback() action must be executed on the underlying datasource object as in the example above
-            - unlike insertFromSelect() and insertFromSelectNoCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
-
-            @see
-            - upsertFromSelect()
-            - upsertFromIterator()
-            - upsertFromIteratorNoCommit()
-            - upsert()
-            - upsertNoCommit()
-            - getUpsertClosure()
-        */
-        *hash upsertFromSelectNoCommit(AbstractTable t, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
-            return upsertFromIteratorNoCommitIntern(t.getRowIterator(sh), upsert_strategy, opt - "commit_block");
+        #! A legacy @ref SqlUtil::AbstractTable::upsertFromSelect() wrapper
+        deprecated *hash upsertFromSelectNoCommit(AbstractTable t, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
+            return upsertFromIteratorIntern(t.getRowIterator(sh), upsert_strategy, opt - "commit_block");
         }
 
-        #! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; the transaction is committed if successful, if an error occurs then it is rolled back
-        /** @par Example:
-            @code
-hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")), AbstractTable::UpsertUpdateFirst);
-            @endcode
-
-            The table argument does not need to be in the same database as the current table; it can also
-            be in a different database server or a database server of a different type (you can use this method to upsert or
-            merge data to or from any database supported by SqlUtil).
-
-            @param t the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
-            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
-            @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
-
-            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref SqlUtil::AbstractTable::UpsertResultDescriptionMap keys):
-            - \c "inserted": the number of rows inserted
-            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
-            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst or @ref SqlUtil::AbstractTable::UpsertInsertOnly
-            - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
-
-            @throw OPTION-ERROR invalid or unsupported option
-            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
-            @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
-
-            @note
-            - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
-            - this method also calls commit() or rollback() on the source table to release the transaction lock on the underlying source table datasource as an @ref Qore::SQL::SQLStatement "SQLStatement" object is used to pipeline the data to the upsert code; use upsertFromSelectNoCommit() to do manual transaction management instead
-            - unlike insertFromSelect() and insertFromSelectNoCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
-
-            @see
-            - upsertFromSelectNoCommit()
-            - upsertFromIterator()
-            - upsertFromIteratorNoCommit()
-            - upsert()
-            - upsertNoCommit()
-            - getUpsertClosure()
-        */
-        *hash upsertFromSelect(Table t, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
-            on_success { ds.commit(); t.commit(); }
-            on_error { ds.rollback(); t.rollback(); }
-
-            return upsertFromIteratorNoCommitIntern(t.getRowIterator(sh), upsert_strategy, opt);
+        #! @ref SqlUtil::AbstractTable::upsertFromSelect() variant
+        deprecated *hash upsertFromSelect(Table t, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
+            return upsertFromIteratorIntern(t.getRowIterator(sh), upsert_strategy, opt - "commit_block");
         }
 
-        #! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; no transaction management is performed with this method
-        /** @par Example:
-            @code
-on_success { table.commit(); table2.commit(); }
-on_error { table.rollback(); table2.rollback(); }
-hash h = table.upsertFromSelectNoCommit(table2, ("where": ("account_type": "CUSTOMER")), AbstractTable::UpsertUpdateFirst);
-            @endcode
-
-            The table argument does not need to be in the same database as the current table; it can also
-            be in a different database server or a database server of a different type (you can use this method to upsert or
-            merge data to or from any database supported by SqlUtil).
-
-            @param t the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
-            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
-            @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-            @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options; note that this method ignores any \c "commit_block" option
-
-            @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref SqlUtil::AbstractTable::UpsertResultDescriptionMap keys):
-            - \c "inserted": the number of rows inserted
-            - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
-            - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst or @ref SqlUtil::AbstractTable::UpsertInsertOnly
-            - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
-
-            @throw OPTION-ERROR invalid or unsupported option
-            @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
-            @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
-
-            @note
-            - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
-           - this method uses an @ref Qore::SQL::SQLStatement "SQLStatement" object to pipeline the select data to the upsert code; to release the transaction lock acquired by the @ref Qore::SQL::SQLStatement "SQLStatement" object, a commit() or rollback() action must be executed on the underlying datasource object as in the example above
-            - unlike insertFromSelect() and insertFromSelectNoCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
-
-            @see
-            - upsertFromSelect()
-            - upsertFromIterator()
-            - upsertFromIteratorNoCommit()
-            - upsert()
-            - upsertNoCommit()
-            - getUpsertClosure()
-        */
-        *hash upsertFromSelectNoCommit(Table t, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
-            return upsertFromIteratorNoCommitIntern(t.getRowIterator(sh), upsert_strategy, opt - "commit_block");
+        #! A legacy @ref SqlUtil::AbstractTable::upsertFromSelect() wrapper
+        deprecated *hash upsertFromSelectNoCommit(Table t, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
+            return upsertFromIteratorIntern(t.getRowIterator(sh), upsert_strategy, opt - "commit_block");
         }
 
         #! returns the number of rows in the table
@@ -12196,45 +12143,100 @@ string sql = table.getSelectSql(sh, \args);
         #! deletes rows in the table matching the condition and returns the count of rows deleted; the transaction is committed if successful, if an error occurs then it is rolled back
         /** @par Example:
             @code
-int dcnt = table.del(("name": name));
+int dcnt = table.deleteCommit(("name": name));
             @endcode
 
             @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
             @param sql an optional reference to a string to return the SQL generated for the select statement
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
 
             @return the count of rows deleted
 
             @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
 
-            @see delNoCommit(*hash)
+            @see delete(*hash)
          */
-        int del(*hash cond, *reference sql) {
+        int deleteCommit(hash cond, reference sql, hash opt) {
+            on_success ds.commit();
+            on_error ds.rollback();
+            return deleteIntern(cond, \sql, opt);
+        }
+
+        #! @ref SqlUtil::AbstractTable::deleteCommit() variant
+        int deleteCommit(hash cond, hash opt) {
+            on_success ds.commit();
+            on_error ds.rollback();
+            return deleteIntern(cond, NOTHING, opt);
+        }
+
+        #! @ref SqlUtil::AbstractTable::deleteCommit() variant
+        int deleteCommit(hash cond, reference sql) {
+            on_success ds.commit();
+            on_error ds.rollback();
+            return deleteIntern(cond, \sql);
+        }
+
+        #! @ref SqlUtil::AbstractTable::deleteCommit() variant
+        int deleteCommit(hash cond) {
+            on_success ds.commit();
+            on_error ds.rollback();
+            return deleteIntern(cond);
+        }
+
+        #! @ref SqlUtil::AbstractTable::deleteCommit() variant
+        int deleteCommit() {
             on_success ds.commit();
             on_error ds.rollback();
 
-            return delNoCommit(cond, \sql);
+            return deleteIntern();
         }
 
         #! deletes rows in the table matching the condition and returns the count of rows deleted; no transaction management is performed with this method
         /** @par Example:
             @code
-int dcnt = table.delNoCommit(("name": name));
+int dcnt = table.delete(("name": name));
             @endcode
 
             @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
             @param sql an optional reference to a string to return the SQL generated for the select statement
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
 
             @return the count of rows deleted
 
             @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
 
-            @see del(*hash)
+            @see deleteCommit(*hash)
          */
-        int delNoCommit(*hash cond, *reference sql) {
-            return delNoCommitIntern(cond, \sql);
+        int delete(hash cond, reference sql, hash opt) {
+            return deleteIntern(cond, \sql, opt);
         }
 
-        private int delNoCommitIntern(*hash cond, *reference sql, *hash opt) {
+        #! @ref SqlUtil::AbstractTable::delete() variant
+        int delete(hash cond, hash opt) {
+            return deleteIntern(cond, NOTHING, opt);
+        }
+
+        #! @ref SqlUtil::AbstractTable::delete() variant
+        int delete(hash cond, reference sql) {
+            return deleteIntern(cond, \sql);
+        }
+
+        #! @ref SqlUtil::AbstractTable::delete() variant
+        int delete(hash cond) {
+            return deleteIntern(cond);
+        }
+
+        #! @ref SqlUtil::AbstractTable::delete() variant
+        int delete() {
+            return deleteIntern();
+        }
+
+        #! A legacy @ref SqlUtil::AbstractTable::delete() wrapper
+        deprecated int delNoCommit(*hash cond, *reference sql) {
+            return deleteIntern(cond, \sql);
+        }
+
+        private int deleteIntern(*hash cond, *reference sql, *hash opt) {
             # make query
             sql = sprintf("delete from %s", getSqlName());
             list args;
@@ -12247,36 +12249,13 @@ int dcnt = table.delNoCommit(("name": name));
         #! updates rows in the table matching an optional condition and returns the count of rows updated; the transaction is committed if successful, if an error occurs then it is rolled back
         /** @par Example:
             @code
-int ucnt = table.update(("id": id), ("name": name));
+int ucnt = table.updateCommit(("id": id), ("name": name));
             @endcode
 
             @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns or update operators (see @ref sql_uop_funcs)
             @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
             @param sql an optional reference to a string to return the SQL generated for the select statement
-
-            @return the count of rows updated
-
-            @throw UPDATE-ERROR the set hash is empty
-            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
-
-            @see updateNoCommit()
-         */
-        int update(hash set, *hash cond, *reference sql) {
-            on_success ds.commit();
-            on_error ds.rollback();
-
-            return updateNoCommitIntern(set, cond, \sql);
-        }
-
-        #! updates rows in the table matching an optional condition and returns the count of rows updated; no transaction management is performed with this method
-        /** @par Example:
-            @code
-int ucnt = table.updateNoCommit(("id": id), ("name": name));
-            @endcode
-
-            @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns or update operators (see @ref sql_uop_funcs)
-            @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
-            @param sql an optional reference to a string to return the SQL generated for the select statement
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
 
             @return the count of rows updated
 
@@ -12285,11 +12264,93 @@ int ucnt = table.updateNoCommit(("id": id), ("name": name));
 
             @see update()
          */
-        int updateNoCommit(hash set, *hash cond, *reference sql) {
-            return updateNoCommitIntern(set, cond, \sql);
+        int updateCommit(hash set, hash cond, reference sql, hash opt) {
+            on_success ds.commit();
+            on_error ds.rollback();
+            return updateIntern(set, cond, \sql, opt);
         }
 
-        private int updateNoCommitIntern(hash set, *hash cond, *reference sql, *hash opt) {
+        #! A @ref SqlUtil::AbstractTable::updateCommit() variant
+        int updateCommit(hash set, hash cond, reference sql) {
+            on_success ds.commit();
+            on_error ds.rollback();
+            return updateIntern(set, cond, \sql);
+        }
+
+        #! A @ref SqlUtil::AbstractTable::updateCommit() variant
+        int updateCommit(hash set, hash cond, hash opt) {
+            on_success ds.commit();
+            on_error ds.rollback();
+            return updateIntern(set, cond, NOTHING, opt);
+        }
+
+        #! A @ref SqlUtil::AbstractTable::updateCommit() variant
+        int updateCommit(hash set, hash cond) {
+            on_success ds.commit();
+            on_error ds.rollback();
+            return updateIntern(set, cond);
+        }
+
+        #! A @ref SqlUtil::AbstractTable::updateCommit() variant
+        int updateCommit(hash set) {
+            on_success ds.commit();
+            on_error ds.rollback();
+            return updateIntern(set);
+        }
+
+        #! updates rows in the table matching an optional condition and returns the count of rows updated; no transaction management is performed with this method
+        /** @par Example:
+            @code
+int ucnt = table.update(("id": id), ("name": name));
+            @endcode
+
+            @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns or update operators (see @ref sql_uop_funcs)
+            @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+            @param sql an optional reference to a string to return the SQL generated for the select statement
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return the count of rows updated
+
+            @throw UPDATE-ERROR the set hash is empty
+            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
+
+            @see updateCommit()
+         */
+        int update(hash set, hash cond, reference sql, hash opt) {
+            return updateIntern(set, cond, \sql, opt);
+        }
+
+        #! A @ref SqlUtil::AbstractTable::update() variant
+        int update(hash set, hash cond, reference sql) {
+            return updateIntern(set, cond, \sql);
+        }
+
+        #! A @ref SqlUtil::AbstractTable::update() variant
+        int update(hash set, hash cond, hash opt) {
+            return updateIntern(set, cond, NOTHING, opt);
+        }
+
+        #! A @ref SqlUtil::AbstractTable::update() variant
+        int update(hash set, hash cond) {
+            return updateIntern(set, cond);
+        }
+
+        #! A @ref SqlUtil::AbstractTable::update() variant
+        int update(hash set) {
+            return updateIntern(set);
+        }
+
+        #! A legacy @ref SqlUtil::AbstractTable::update() wrapper
+        deprecated int updateNoCommit(hash set, *hash cond, *reference sql) {
+            return updateIntern(set, cond, \sql);
+        }
+
+        #! A legacy @ref SqlUtil::AbstractTable::update() wrapper
+        deprecated int updateNoCommit(hash set, *hash cond, *hash opt) {
+            return updateIntern(set, cond, NOTHING, opt);
+        }
+
+        private int updateIntern(hash set, *hash cond, *reference sql, *hash opt) {
             # make query
             sql = sprintf("update %s set ", getSqlName());
 
@@ -12320,92 +12381,6 @@ int ucnt = table.updateNoCommit(("id": id), ("name": name));
 
             #printf("sql: %y\nargs: %y\n", sql, args);
             return execData(opt, sql, args);
-        }
-
-        #! deletes rows in the table matching the condition and returns the count of rows deleted; the transaction is committed if successful, if an error occurs then it is rolled back
-        /** @par Example:
-            @code
-int dcnt = table.del(("name": name));
-            @endcode
-
-            @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
-            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
-
-            @return the count of rows deleted
-
-            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
-
-            @see delNoCommit(*hash)
-         */
-        int del(*hash cond, *hash opt) {
-            on_success ds.commit();
-            on_error ds.rollback();
-
-            return delNoCommitIntern(cond, NOTHING, opt);
-        }
-
-        #! deletes rows in the table matching the condition and returns the count of rows deleted; no transaction management is performed with this method
-        /** @par Example:
-            @code
-int dcnt = table.delNoCommit(("name": name));
-            @endcode
-
-            @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
-            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
-
-            @return the count of rows deleted
-
-            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
-
-            @see del(*hash)
-         */
-        int delNoCommit(*hash cond, *hash opt) {
-            return delNoCommitIntern(cond, NOTHING, opt);
-        }
-
-        #! updates rows in the table matching an optional condition and returns the count of rows updated; the transaction is committed if successful, if an error occurs then it is rolled back
-        /** @par Example:
-            @code
-int ucnt = table.update(("id": id), ("name": name));
-            @endcode
-
-            @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns or update operators (see @ref sql_uop_funcs)
-            @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
-            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
-
-            @return the count of rows updated
-
-            @throw UPDATE-ERROR the set hash is empty
-            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
-
-            @see updateNoCommit()
-         */
-        int update(hash set, *hash cond, *hash opt) {
-            on_success ds.commit();
-            on_error ds.rollback();
-
-            return updateNoCommitIntern(set, cond, NOTHING, opt);
-        }
-
-        #! updates rows in the table matching an optional condition and returns the count of rows updated; no transaction management is performed with this method
-        /** @par Example:
-            @code
-int ucnt = table.updateNoCommit(("id": id), ("name": name));
-            @endcode
-
-            @param set the hash of values to set, key values are column names, hash values are the values to assign to those columns or update operators (see @ref sql_uop_funcs)
-            @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
-            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
-
-            @return the count of rows updated
-
-            @throw UPDATE-ERROR the set hash is empty
-            @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
-
-            @see update()
-         */
-        int updateNoCommit(hash set, *hash cond, *hash opt) {
-            return updateNoCommitIntern(set, cond, NOTHING, opt);
         }
 
         private string getUpdateExpression(string col, hash uh) {
