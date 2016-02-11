@@ -112,11 +112,11 @@ class FreetdsTest inherits SqlTestBase {
             "float": 2.5,
             "real": 5.5,
 
-            # freetds returns date values as CS_CHAR, so comparisons will fail
-            #"date": 2015-01-01,
+            # freetds returns date values as CS_CHAR, so direct comparison would fail
+            "date": ("value": 2015-01-01, "expect": "2015-01-01"),
 
-            # freetds returns time values as CS_CHAR, so comparisons will fail
-            #"time": 12:45,
+            # freetds returns time values as CS_CHAR, so direct comparison would fail
+            "time": ("value": 12:45, "expect": "12:45"),
 
             "datetime": 2015-01-01T12:45:00.450,
             "smalldatetime": 2015-01-01T12:45,
