@@ -6,6 +6,7 @@
 %require-types
 %strict-args
 
+%requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/SqlUtil.qm
 %requires ../../../../qlib/BulkSqlUtil.qm
@@ -71,7 +72,7 @@ class OracleTestSchema inherits SqlUtilTestSchema {
                 "notnull": True,
                 );
             if (h.value.typeCode() == NT_HASH)
-                ch += (h.value - ("value", "bind"));
+                ch += (h.value - ("value", "bind", "expect"));
             tables.oracle_test.columns{SqlTestBase::getColumnName(h.key)} = ch;
         }
         return tables;
@@ -100,6 +101,7 @@ class OracleTest inherits SqlTestBase {
             "char": (
                 "value": "hello",
                 "size": "20",
+                "expect": rpad ("hello", 20),
             ),
             "number": (
                 "size": 15,
@@ -114,8 +116,8 @@ class OracleTest inherits SqlTestBase {
             #"interval day to second": 2D + 3h + 4m + 1s,
             "clob": "test",
             "blob": <bead>,
-            "binary_float": 1.1,
-            "binary_double": 1.1,
+            "binary_float": 1.5,
+            "binary_double": 1.5,
             #raw
             #bfile
             #long
@@ -134,12 +136,7 @@ class OracleTest inherits SqlTestBase {
         }
 
         if (ds) {
-            foreach hash h in (CustomColumns.pairIterator()) {
-                any val = h.value.typeCode() == NT_HASH ? h.value.value : h.value;
-                row{OracleTest::getColumnName(h.key)} = val;
-            }
-            insert_data = (("id": 1,) + row, ("id": 2,) + row,);
-            upsert_data = (("id": 2,) + row, ("id": 3,) + row,);
+            init_test_data (CustomColumns);
 
             # create the test schema
             schema = new OracleTestSchema(ds);

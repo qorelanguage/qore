@@ -65,7 +65,7 @@ class FreetdsTestSchema inherits SqlUtilTestSchema {
                 "notnull": True,
                 );
             if (h.value.typeCode() == NT_HASH)
-                ch += (h.value - ("value", "bind"));
+                ch += (h.value - ("value", "bind", "expect"));
             tables.sqlutil_test.columns{SqlTestBase::getColumnName(h.key)} = ch;
         }
         return tables;
@@ -111,8 +111,13 @@ class FreetdsTest inherits SqlTestBase {
             "int": 12345,
             "float": 2.5,
             "real": 5.5,
-            "date": 2015-01-01,
-            "time": 12:45,
+
+            # freetds returns date values as CS_CHAR, so direct comparison would fail
+            "date": ("value": 2015-01-01, "expect": "2015-01-01"),
+
+            # freetds returns time values as CS_CHAR, so direct comparison would fail
+            "time": ("value": 12:45, "expect": "12:45"),
+
             "datetime": 2015-01-01T12:45:00.450,
             "smalldatetime": 2015-01-01T12:45,
 
@@ -138,12 +143,7 @@ class FreetdsTest inherits SqlTestBase {
         }
 
         if (ds) {
-            foreach hash h in (CustomColumns.pairIterator()) {
-                any val = h.value.typeCode() == NT_HASH ? h.value.value : h.value;
-                row{SqlTestBase::getColumnName(h.key)} = val;
-            }
-            insert_data = (("id": 1,) + row, ("id": 2,) + row,);
-            upsert_data = (("id": 2,) + row, ("id": 3,) + row,);
+            init_test_data (CustomColumns);
 
             # create the test schema
             schema = new FreetdsTestSchema(ds);
