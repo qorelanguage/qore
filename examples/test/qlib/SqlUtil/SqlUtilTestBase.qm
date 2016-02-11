@@ -60,6 +60,7 @@ public class SqlTestBase inherits QUnit::Test {
         addTestCase("Upsert", \upsertTest());
         addTestCase("BulkInsert", \bulkInsertTest());
         addTestCase("BulkUpsert", \bulkUpsertTest());
+        addTestCase("Column Operators", \columnOperatorTest());
     }
 
     globalTearDown() {
@@ -154,6 +155,49 @@ public class SqlTestBase inherits QUnit::Test {
 
         foreach hash data in (upsert_data)
             assertEq(NOTHING, insert.queueData(data));
+    }
+
+    columnOperatorTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        hash soh = ("columns": (
+                cop_as (cop_value (0), "cop_value"), # triggers bug #511 (GitHub)
+                cop_as (cop_lower (cop_value ("Ahoj")), "cop_lower"),
+                cop_as (cop_upper (cop_value ("Ahoj")), "cop_upper"),
+                cop_as (cop_prepend ("id", "abc"), "cop_prepend"),
+                cop_as (cop_append ("id", "abc"), "cop_append"),
+                cop_as (cop_minus ("id", "id"), "cop_minus"),
+                cop_as (cop_plus ("id", "id"), "cop_plus"),
+                cop_as (cop_divide ("id", "id"), "cop_divide"),
+                cop_as (cop_multiply ("id", "id"), "cop_multiply"),
+                # cop_as (cop_minus ("id", cop_value(2)), "cop_minus"),
+                # cop_as (cop_plus ("id", cop_value(2)), "cop_plus"),
+                # cop_as (cop_divide ("id", cop_value(2)), "cop_divide"),
+                # cop_as (cop_multiply ("id", cop_value(2)), "cop_multiply"),
+                ),
+                "where": ("id": 2)
+                );
+
+        *hash row = table.selectRow (soh);
+
+        hash expect = (
+                "cop_value": 0,
+                "cop_lower": "ahoj",
+                "cop_upper": "AHOJ",
+                "cop_prepend": "abc2",
+                "cop_append": "2abc",
+                "cop_minus": 0,
+                "cop_plus": 4,
+                "cop_divide": 1,
+                "cop_multiply": 4,
+                );
+
+        foreach hash e in (expect.pairIterator())
+            assertEq (e.value, row{e.key}, "checking column operator " + e.key);
     }
 
     static string getColumnName(string n) {
