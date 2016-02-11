@@ -14629,7 +14629,7 @@ string sql = table.getSelectSql(sh, \args);
                 }
             }
 
-            if (!cve && !cmd.nocolumn)
+            if (!exists cve && !cmd.nocolumn)
                 throw "SELECT-ERROR", sprintf("%s: column operator %y requires a column argument name but none was provided", getDesc(), cop);
 
             return cmd.code(cve, arg);
