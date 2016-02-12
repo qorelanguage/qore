@@ -67,7 +67,7 @@ class MysqlTestSchema inherits AbstractSchema {
                 "notnull": True,
                 );
             if (h.value.typeCode() == NT_HASH)
-                ch += (h.value - ("value", "bind"));
+                ch += (h.value - ("value", "bind", "expect"));
             tables.mysql_test.columns{MysqlTest::getColumnName(h.key)} = ch;
         }
         return tables;
@@ -120,7 +120,7 @@ class MysqlTest inherits SqlTestBase {
             "mediumint": 192932,
             "int": 49349839,
             "bigint": 34839203948394,
-            "float": 1.1,
+            "float": 1.5,
             "double": 3.1415927,
 
             "date": 2016-01-11,
@@ -162,12 +162,7 @@ class MysqlTest inherits SqlTestBase {
         }
 
         if (ds) {
-            foreach hash h in (CustomColumns.pairIterator()) {
-                any val = h.value.typeCode() == NT_HASH ? h.value.value : h.value;
-                row{MysqlTest::getColumnName(h.key)} = val;
-            }
-            insert_data = (("id": 1,) + row, ("id": 2,) + row,);
-            upsert_data = (("id": 2,) + row, ("id": 3,) + row,);
+            init_test_data (CustomColumns);
 
             # create the test schema
             schema = new MysqlTestSchema(ds);
