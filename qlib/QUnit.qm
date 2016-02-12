@@ -319,6 +319,9 @@ public class QUnit::TestCase {
 
         #! number of successful assertions in current test case
         int num_asserts_ok = 0;
+
+        #! number of skipped assertions in current test case
+        int num_asserts_skip = 0;
     }
 
     #! creates the TestCase object from the given arguments
@@ -402,12 +405,20 @@ public class QUnit::TestCase {
         ++num_asserts_ok;
     }
 
+    incAssertionsSkip() {
+        ++num_asserts_skip;
+    }
+
     int getAssertionCount() {
         return num_asserts;
     }
 
     int getAssertionOkCount() {
         return num_asserts_ok;
+    }
+
+    int getAssertionSkipCount() {
+        return num_asserts_skip;
     }
 
     setupThread() {
@@ -471,6 +482,9 @@ public class QUnit::TestReporter {
 
         #! total number of successful assertions in script
         int num_asserts_ok = 0;
+
+        #! total number of skipped assertions in script
+        int num_asserts_skip = 0;
     }
 
     public {
@@ -596,6 +610,8 @@ public class QUnit::TestReporter {
         string assert_str = sprintf(" (%d assertion%s", num_asserts, num_asserts == 1 ? "" : "s");
         if (num_asserts != num_asserts_ok)
             assert_str += sprintf(", %d succeeded", num_asserts_ok);
+        if (num_asserts_skip > 0)
+            assert_str += sprintf(", %d skipped", num_asserts_skip);
         assert_str += ")";
         int cnt = testCount();
         printf("Ran %d test case%s%s%s%s%s\n", cnt, cnt == 1 ? "" : "s", succeeded > 0 ? ssucceeded : "", errors() > 0 ? serrors : "", skipped() > 0 ? sskipped : "", assert_str);
@@ -610,6 +626,8 @@ public class QUnit::TestReporter {
         printf("%s: %s: %d assertion%s", resultType, testcase.testcase.getName(), testcase.testcase.getAssertionCount(), testcase.testcase.getAssertionCount() == 1 ? "" : "s");
         if (testcase.testcase.getAssertionCount() != testcase.testcase.getAssertionOkCount())
             printf(", %d succeeded", testcase.testcase.getAssertionOkCount());
+        if (testcase.testcase.getAssertionSkipCount() > 0)
+            printf(", %d skipped", testcase.testcase.getAssertionSkipCount());
         print("\n");
         if (testcase.result != TEST_SUCCESS) {
             string out = "";
@@ -992,7 +1010,28 @@ assertThrows("DIVISION-BY-ZERO", sub(int a) {print(5/a);}, 0);
         assertThrows(expectedErr, NOTHING, theCode, args);
     }
 
-    #! Fails the test anconditionally
+    #! Skips assertion on purpose
+    /**
+        @param name the name or description of the assertion
+
+        @par Example:
+        @code
+assertSkip("assertion name or reason to skip");
+        @endcode
+     */
+    public assertSkip (*string name) {
+        *TestCase tc = get_thread_data("tc");
+        # increment assertion counters
+        tc.incAssertions();
+        ++num_asserts;
+        tc.incAssertionsSkip();
+        ++num_asserts_skip;
+        # display optional message
+        if (m_options.verbose > 1)
+            printf("+ SKIP: %y assertion %s\n", m_name, Test::getAssertionName(name));
+    }
+
+    #! Fails the test unconditionally
     /** @par Example:
         @code
 fail("Unexpected code executed");
