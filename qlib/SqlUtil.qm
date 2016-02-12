@@ -2329,7 +2329,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_count(string column = "") {
+    public hash sub cop_count(any column = "") {
         return make_cop(COP_COUNT, column);
     }
 
