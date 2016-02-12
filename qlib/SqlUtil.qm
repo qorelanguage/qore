@@ -2019,6 +2019,12 @@ public namespace SqlUtil {
             },
             "group": True,
         ),
+        COP_SUM: (
+            "code": string sub (string cve, any arg) {
+                return sprintf("sum(%s)", cve);
+            },
+            "group": True,
+        ),
         COP_COUNT: (
             "nocolumn": True,
             "code": string sub (*string cve, any arg) {
