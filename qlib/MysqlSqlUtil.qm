@@ -1008,7 +1008,7 @@ end";
                 name = nname;
             }
             else
-                schema = ds.getUserName();
+                schema = ds.getDBName();
 
             if (opts.engine)
                 engine = opts.engine;
