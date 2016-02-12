@@ -1353,7 +1353,7 @@ fail("Unexpected code executed");
     #! returns the assertion name for display purposes
     static string getAssertionName(*string name) {
         if (exists name)
-            return name;
+            return sprintf("%y", name);
         *string np = TestCase::getStackPos(get_all_thread_call_stacks(){gettid()});
         return np ? sprintf("at %s", np) : "<no name>";
     }
