@@ -198,6 +198,32 @@ public class SqlTestBase inherits QUnit::Test {
 
         foreach hash e in (expect.pairIterator())
             assertEq (e.value, row{e.key}, "checking column operator " + e.key);
+
+        soh = ("columns": (
+                cop_as ("char_f", "pivot"),
+                cop_as (cop_min ("id"), "cop_min"),
+                cop_as (cop_max ("id"), "cop_max"),
+                cop_as (cop_avg ("id"), "cop_avg"),
+                cop_as (cop_sum ("id"), "cop_sum"),
+                cop_as (cop_count ("char_f"), "cop_count"),
+                cop_as (cop_count (cop_distinct ("char_f")), "cop_distinct"),
+                ),
+                "groupby": ("char_f")
+                );
+
+        row = table.selectRow (soh);
+
+        expect = (
+                "cop_min": 1,
+                "cop_max": 22,
+                "cop_avg": 1.5n,
+                "cop_sum": 3,
+                "cop_count": 2,
+                "cop_distinct": 1,
+                );
+
+        foreach hash e in (expect.pairIterator())
+            assertEq (e.value, row{e.key}, "checking column operator " + e.key);
     }
 
     static string getColumnName(string n) {
