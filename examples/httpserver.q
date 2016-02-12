@@ -57,60 +57,60 @@ class ExampleFileHandler inherits public FileHandler {
 
 class httpServer {
     private {
-	const Opts = (
-	    "dir"    : "d,dir=s",
-	    "bind"   : "b,bind=s@",
-	    "help"   : "h,help",
-	    "verbose": "verbose:i+"
-	    );
+        const Opts = (
+            "dir"    : "d,dir=s",
+            "bind"   : "b,bind=s@",
+            "help"   : "h,help",
+            "verbose": "verbose:i+"
+            );
 
-	# HttpServer object
-	HttpServer hs;
+        # HttpServer object
+        HttpServer hs;
 
-	# command line options
-	hash opt;
+        # command line options
+        hash opt;
     }
 
     # no public members
     public {}
 
     constructor() {
-	# process command line options
-	GetOpt g(Opts);
+        # process command line options
+        GetOpt g(Opts);
         # NOTE: by passing a reference to the list, the arguments parsed will be removed from the list
         # NOTE: calling GetOpt::parse3() means that errors will cause the script to exit immediately
         #       with an informative message
-	opt = g.parse3(\ARGV);
+        opt = g.parse3(\ARGV);
 
-	# --help: show help text and exit
-	if (opt.help)
-	    usage();
+        # --help: show help text and exit
+        if (opt.help)
+            usage();
 
-	# need bind argument
-	if (opt.bind.empty()) {
-	    stderr.print("ERROR: missing bind argument\n");
-	    usage();
-	}
+        # need bind argument
+        if (opt.bind.empty()) {
+            stderr.print("ERROR: missing bind argument\n");
+            usage();
+        }
 
-	# need dir argument
-	if (opt.dir.empty()) {
-	    stderr.print("ERROR: missing directory argument\n");
-	    usage();
-	}
+        # need dir argument
+        if (opt.dir.empty()) {
+            stderr.print("ERROR: missing directory argument\n");
+            usage();
+        }
 
-	# make sure we can read the directory
-	if (!is_readable(opt.dir)) {
-	    stderr.printf("ERROR: %y: is not readable\n", opt.dir);
-	    exit(2);
-	}
+        # make sure we can read the directory
+        if (!is_readable(opt.dir)) {
+            stderr.printf("ERROR: %y: is not readable\n", opt.dir);
+            exit(2);
+        }
 
-	# create our example file handler object to serve files from the filesystem
-	ExampleFileHandler fh(opt.dir);
+        # create our example file handler object to serve files from the filesystem
+        ExampleFileHandler fh(opt.dir);
 
         try {
-	    # create the HttpServer object and add the example file handler
+            # create the HttpServer object and add the example file handler
             hs = new HttpServer(\log(), \errorLog());
-	    hs.setHandler("example-handler", "", MimeTypeHtml, fh);
+            hs.setHandler("example-handler", "", MimeTypeHtml, fh);
             hs.setDefaultHandler("example-handler", fh);
 
             # start a listener on each bind address
@@ -124,7 +124,7 @@ class httpServer {
             if (!hs.getListenerCount())
                 throw "NO-LISTENERS", "no listeners could be started";
 
-	    # install signal handlers
+            # install signal handlers
             installShutdownHandlers();
         }
         catch (hash ex) {
@@ -134,9 +134,9 @@ class httpServer {
         }
 
         /* wait for the HttpServer to stop and then exit the program
-	   also we have to ensure that our Program object does not go out of scope before the HttpServer does
+           also we have to ensure that our Program object does not go out of scope before the HttpServer does
         */
-	hs.waitStop();
+        hs.waitStop();
     }
 
     private installShutdownHandlers() {
@@ -167,22 +167,22 @@ class httpServer {
     }
 
     private log(string fmt) {
-	stdout.printf("%y: %s\n", now_us(), vsprintf(fmt, argv));
+        stdout.printf("%y: %s\n", now_us(), vsprintf(fmt, argv));
     }
 
     private errorLog(string fmt) {
-	stdout.printf("%y: ERROR: %s\n", now_us(), vsprintf(fmt, argv));
+        stdout.printf("%y: ERROR: %s\n", now_us(), vsprintf(fmt, argv));
     }
 
     static usage() {
-	stderr.printf("usage: %s [options]\n"
-		      "options:\n"
-		      " -b,--bind=ARG     (required) gives a bind address, if only a port number is\n"
-		      "                   given, then that port is bound on all interfaces\n"
-		      " -d,--dir=ARG      (required) base directory for serving files\n"
-		      " -h,--help         this help text\n"
-		      " -v,--verbose      show verbose operational messages\n",
-		      get_script_name());
-	exit(1);
+        stderr.printf("usage: %s [options]\n"
+                      "options:\n"
+                      " -b,--bind=ARG     (required) gives a bind address, if only a port number is\n"
+                      "                   given, then that port is bound on all interfaces\n"
+                      " -d,--dir=ARG      (required) base directory for serving files\n"
+                      " -h,--help         this help text\n"
+                      " -v,--verbose      show verbose operational messages\n",
+                      get_script_name());
+        exit(1);
     }
 }

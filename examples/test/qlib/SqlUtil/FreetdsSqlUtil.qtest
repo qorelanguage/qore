@@ -6,127 +6,46 @@
 %require-types
 %strict-args
 
+%requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/SqlUtil.qm
 %requires ../../../../qlib/BulkSqlUtil.qm
 %requires ../../../../qlib/FreetdsSqlUtil.qm
 %requires ../../../../qlib/Schema.qm
 
+%requires ./SqlUtilTestBase.qm
+#/;
+
 %exec-class FreetdsTest
 
-class FreetdsTestSchema inherits AbstractSchema {
+class FreetdsTestSchema inherits SqlUtilTestSchema {
     public {
         const SchemaName = "FreetdsTestSchema";
         const SchemaVersion = "1.0";
     }
 
-    const GenericOptions = (
-        "replace": True,
-        );
+    private {
+        const GenericOptions = (
+            "replace": True,
+            );
 
-    const IndexOptions = {};
+        const IndexOptions = {};
 
-    const ColumnOptions = {};
+        const ColumnOptions = {};
 
-    const T_FreetdsTest = (
-        "columns": (
-            "id": c_number(14, True),
-            "varchar_f": c_varchar(40, True),
-            "char_f": c_char(40, True),
-            "text_f": (
-                "native_type": "text",
-                "notnull": True,
+        const T_SqlUtilTest = (
+            "columns": (
+                "id": c_number(14, True),
             ),
-            /*
-            "unitext_f": (
-                "native_type": "unitext",
-                "notnull": True,
-            ),
-            */
-            /*
-            "bit_f": (
-                "native_type": "bit",
-                "notnull": True,
-            ),
-            */
-            "tinyint_f": (
-                "native_type": "tinyint",
-                "notnull": True,
-            ),
-            "smallint_f": (
-                "native_type": "smallint",
-                "notnull": True,
-            ),
-            "int_f": (
-                "native_type": "int",
-                "notnull": True,
-            ),
-            "decimal_f": (
-                "native_type": "decimal",
-                "notnull": True,
-            ),
-            "float_f": (
-                "native_type": "float",
-                "notnull": True,
-            ),
-            "real_f": (
-                "native_type": "real",
-                "notnull": True,
-            ),
-            /*
-            "money_f": (
-                "native_type": "money",
-                "notnull": True,
-            ),
-            "smallmoney_f": (
-                "native_type": "smallmoney",
-                "notnull": True,
-            ),
-            */
-            "date_f": (
-                "native_type": "date",
-                "notnull": True,
-            ),
-            "time_f": (
-                "native_type": "time",
-                "notnull": True,
-            ),
-            "datetime_f": (
-                "native_type": "datetime",
-                "notnull": True,
-            ),
-            "smalldatetime_f": (
-                "native_type": "smalldatetime",
-                "notnull": True,
-            ),
-            /*
-            "binary_f": (
-                "native_type": "binary",
-                "notnull": True,
-            ),
-            "varbinary_f": (
-                "native_type": "varbinary",
-                "notnull": True,
-            ),
-            "image_f": (
-                "native_type": "image",
-                "notnull": True,
-            ),
-            */
-        ),
-        /*
-        "indexes": (
-            "pk_freetds_test": ("columns": ("id"), "unique": True),
-        ),
-        */
-        "primary_key": ("name": "pk_freetds_test", "columns": ("id")),
-        );
+            "primary_key": ("name": "pk_sqlutil_test", "columns": ("id")),
+            );
 
-    const Tables = (
-        "freetds_test": T_FreetdsTest,
-        );
+        const Tables = (
+            "sqlutil_test": T_SqlUtilTest,
+            );
+    }
 
-    constructor(AbstractDatasource ds, *string dts, *string its) :  AbstractSchema(ds, dts, its) {
+    constructor(AbstractDatasource ds, *string dts, *string its) :  SqlUtilTestSchema(ds, dts, its) {
     }
 
     private string getNameImpl() {
@@ -138,7 +57,18 @@ class FreetdsTestSchema inherits AbstractSchema {
     }
 
     private *hash getTablesImpl() {
-        return Tables;
+        hash tables = Tables;
+        # add custom columns to sqlutil_test
+        foreach hash h in (FreetdsTest::CustomColumns.pairIterator()) {
+            hash ch = (
+                "native_type": h.key,
+                "notnull": True,
+                );
+            if (h.value.typeCode() == NT_HASH)
+                ch += (h.value - ("value", "bind", "expect"));
+            tables.sqlutil_test.columns{SqlTestBase::getColumnName(h.key)} = ch;
+        }
+        return tables;
     }
 
     private *hash getIndexOptionsImpl() {
@@ -154,91 +84,77 @@ class FreetdsTestSchema inherits AbstractSchema {
     }
 }
 
-class FreetdsTest inherits QUnit::Test {
+class FreetdsTest inherits SqlTestBase {
     public {
-    }
+        const CustomColumns = (
+            "varchar": (
+                "value": "hello",
+                "size": "20",
+            ),
+            "char": (
+                "value": "hello",
+                "size": "20",
+            ),
+            "decimal": (
+                "size": 15,
+                "scale": 2,
+                "value": 400.95n,
+                ),
 
-    private {
-        FreetdsTestSchema schema;
-        AbstractTable table;
+            "text": "test",
 
-        const MyOpts = Opts + (
-            "connstr": "c,conn=s",
-            );
+            #"unitext": ,
+            #"bit": 100,
 
-        const OptionColumn = 22;
+            "tinyint": 8,
+            "smallint": 1024,
+            "int": 12345,
+            "float": 2.5,
+            "real": 5.5,
 
-        const Row = (
-            "varchar_f": "varchar",
-            "char_f": "char",
-            "text_f": "text",
-            #"unitext_f": "unitext",
-            #"bit_f": "",
-            "tinyint_f": 8,
-            "smallint_f": 1024,
-            "int_f": 12345,
-            "decimal_f": 1.5,
-            "float_f": 2.5,
-            "real_f": 5.5,
-            "date_f": 2015-01-01,
-            "time_f": 12:45,
-            "datetime_f": 2015-01-01T12:45:00.450,
-            "smalldatetime_f": 2015-01-01T12:45,
-            #"binary_f": <bead>,
-            #"varbinary_f": <bead>,
-            #"image_f": <bead>,
-            );
+            # freetds returns date values as CS_CHAR, so direct comparison would fail
+            "date": ("value": 2015-01-01, "expect": "2015-01-01"),
 
-        const InsertData = (
-            (
-             "id": 1,
-            ) + Row,
-            (
-             "id": 2,
-            ) + Row,
-            );
+            # freetds returns time values as CS_CHAR, so direct comparison would fail
+            "time": ("value": 12:45, "expect": "12:45"),
 
-        const UpsertData = (
-            (
-             "id": 2,
-            ) + Row,
-            (
-             "id": 3,
-            ) + Row,
+            "datetime": 2015-01-01T12:45:00.450,
+            "smalldatetime": 2015-01-01T12:45,
+
+            #"money": ,
+            #"smallmoney": ,
+
+            #"binary": <bead>,
+            #"varbinary": <bead>,
+
+            "image": <bead>,
             );
     }
 
-    constructor() : Test("FreetdsTest", "1.0", \ARGV, MyOpts) {
-        addTestCase("Insert", \insertTest());
-        addTestCase("Upsert", \upsertTest());
-        addTestCase("BulkInsert", \bulkInsertTest());
-        addTestCase("BulkUpsert", \bulkUpsertTest());
-
+    constructor() : SqlTestBase("FreetdsTest", "1.0", \ARGV, MyOpts) {
         Datasource ds;
         try {
             ds = getDatasource();
         }
         catch (hash ex) {
+            if (m_options.verbose)
+                printf("%s: %s\n", ex.err, ex.desc);
             # skip tests if we can't create the datasource
         }
 
         if (ds) {
+            init_test_data (CustomColumns);
+
             # create the test schema
             schema = new FreetdsTestSchema(ds);
 
             schema.align(False, m_options.verbose);
 
             # get table object
-            table = (new Table(schema.getDatasource(), "freetds_test")).getTable();
+            table = (new Table(schema.getDatasource(), "sqlutil_test")).getTable();
         }
 
         set_return_value(main());
-    }
-
-    globalTearDown() {
-        # drop the test schema
-        if (schema)
-            schema.drop(False, m_options.verbose);
     }
 
     private usageIntern() {
@@ -254,59 +170,5 @@ class FreetdsTest inherits QUnit::Test {
             throw "FREETDS-ERROR", sprintf("cannot execute the freetds tests on a connection using driver %y", ds.getDriverName());
         ds.open();
         return ds;
-    }
-
-    insertTest() {
-        if (!table)
-            testSkip("no DB connection");
-
-        on_success table.commit();
-        on_error table.rollback();
-
-        map assertEq(NOTHING, table.insertNoCommit($1)), InsertData;
-    }
-
-    upsertTest() {
-        if (!table)
-            testSkip("no DB connection");
-
-        on_success table.commit();
-        on_error table.rollback();
-
-        code upsert = table.getUpsertClosure(InsertData[0]);
-        assertEq(AbstractTable::UR_Verified, upsert(UpsertData[0]));
-        assertEq(AbstractTable::UR_Inserted, upsert(UpsertData[1]));
-    }
-
-    bulkInsertTest() {
-        if (!table)
-            testSkip("no DB connection");
-
-        on_success table.commit();
-        on_error table.rollback();
-
-        table.delNoCommit();
-
-        BulkInsertOperation insert(table);
-        on_success insert.flush();
-        on_error insert.discard();
-
-        map assertEq(NOTHING, insert.queueData($1)), InsertData;
-    }
-
-    bulkUpsertTest() {
-        if (!table)
-            testSkip("no DB connection");
-
-        on_success table.commit();
-        on_error table.rollback();
-
-        table.delNoCommit();
-
-        BulkUpsertOperation insert(table);
-        on_success insert.flush();
-        on_error insert.discard();
-
-        map assertEq(NOTHING, insert.queueData($1)), UpsertData;
     }
 }

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -228,12 +228,19 @@ int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
       bool error = *xsink;
       for (block_list_t::iterator i = popBlock(), e = on_block_exit_list.end(); i != e; ++i) {
 	 enum obe_type_e type = (*i).first;
-	 if (type == OBE_Unconditional || (!error && type == OBE_Success) || (error && type == OBE_Error))
-	    if ((*i).second)
+	 if (type == OBE_Unconditional || (!error && type == OBE_Success) || (error && type == OBE_Error)) {
+	    if ((*i).second) {
 	       nrc = (*i).second->execImpl(return_value, &obe_xsink);
+	       // bug 380: make sure and merge every exception after every conditional execution to ensure
+	       // that all on_(exit|error) statements are executed even if exceptions are thrown
+	       if (obe_xsink) {
+		  xsink->assimilate(obe_xsink);
+		  if (!error)
+		     error = true;
+	       }
+	    }
+	 }
       }
-      if (obe_xsink)
-	 xsink->assimilate(obe_xsink);
       if (nrc)
 	 rc = nrc;
    }
@@ -460,11 +467,11 @@ void StatementBlock::parseInitConstructor(const QoreTypeInfo* typeInfo, UserVari
    parseInitImpl(qore_class_private::getSelfId(cls));
 }
 
-void StatementBlock::parseInitClosure(UserVariantBase* uvb, const QoreTypeInfo* classTypeInfo, lvar_set_t* vlist) {
+void StatementBlock::parseInitClosure(UserVariantBase* uvb, UserClosureFunction* cf) {
    QORE_TRACE("StatementBlock::parseInitClosure");
 
-   ClosureParseEnvironment cenv(vlist);
-   UserParamListLocalVarHelper ph(uvb, classTypeInfo);
+   ClosureParseEnvironment cenv(cf->getVList());
+   UserParamListLocalVarHelper ph(uvb, cf->getClassType());
 
    // initialize code block
    parseInitImpl(uvb->getUserSignature()->selfid);

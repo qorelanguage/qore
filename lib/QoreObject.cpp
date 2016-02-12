@@ -1,3 +1,4 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   Object.cpp
 
@@ -5,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,14 +35,14 @@
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/QoreObjectIntern.h>
 #include <qore/intern/QoreHashNodeIntern.h>
+#include <qore/intern/QoreClosureNode.h>
 
 qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass* oc, QoreProgram* p, QoreHashNode* n_data) :
+   RObject(n_obj->references, true),
    theclass(oc), status(OS_OK),
    privateData(0), data(n_data), pgm(p), system_object(!p),
    delete_blocker_run(false), in_destructor(false),
    recursive_ref_found(false),
-   rscan(0),
-   rcount(0), rwaiting(0), rcycle(0), rset(0),
    obj(n_obj) {
    //printd(5, "qore_object_private::qore_object_private() this: %p obj: %p '%s'\n", this, obj, oc->getName());
 #ifdef QORE_DEBUG_OBJ_REFS
@@ -62,6 +63,21 @@ qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass* oc,
 #endif
 }
 
+// returns true if a lock error has occurred and the transaction should be aborted or restarted; the rsection lock is held when this function is called
+bool qore_object_private::scanMembers(RSetHelper& rsh) {
+   HashIterator hi(data);
+   while (hi.next()) {
+#ifdef DEBUG
+      if (get_node_type(hi.getValue()) == NT_OBJECT || get_node_type(hi.getValue()) == NT_RUNTIME_CLOSURE)
+         printd(QRO_LVL, "RSetHelper::checkIntern() search %p '%s' key '%s' %p (%s)\n", obj, theclass->getName(), hi.getKey(), hi.getValue(), get_type_name(hi.getValue()));
+#endif
+      if (scanCheck(rsh, hi.getValue()))
+          return true;
+      printd(QRO_LVL, "RSetHelper::checkIntern() result %p '%s' key '%s' %p (%s)\n", obj, theclass->getName(), hi.getKey(), hi.getValue(), get_type_name(hi.getValue()));
+   }
+   return false;
+}
+
 void qore_object_private::merge(const QoreHashNode* h, AutoVLock& vl, ExceptionSink* xsink) {
    bool check_recursive = false;
 
@@ -74,51 +90,51 @@ void qore_object_private::merge(const QoreHashNode* h, AutoVLock& vl, ExceptionS
       QoreAutoVarRWWriteLocker al(rml);
 
       if (status == OS_DELETED) {
-	 makeAccessDeletedObjectException(xsink, theclass->getName());
-	 return;
+         makeAccessDeletedObjectException(xsink, theclass->getName());
+         return;
       }
 
       //printd(5, "qore_object_private::merge() obj: %p\n", obj);
 
       ConstHashIterator hi(h);
       while (hi.next()) {
-	 const QoreTypeInfo* ti;
+         const QoreTypeInfo* ti;
 
-	 // check member status
-	 if (checkMemberAccessGetTypeInfo(xsink, hi.getKey(), ti, !inclass))
-	    return;
+         // check member status
+         if (checkMemberAccessGetTypeInfo(xsink, hi.getKey(), ti, !inclass))
+            return;
 
-	 // check type compatibility and perform type translations, if any
-	 ReferenceHolder<AbstractQoreNode> val(ti->acceptInputMember(hi.getKey(), hi.getReferencedValue(), xsink), xsink);
-	 if (*xsink)
-	    return;
+         // check type compatibility and perform type translations, if any
+         ReferenceHolder<AbstractQoreNode> val(ti->acceptInputMember(hi.getKey(), hi.getReferencedValue(), xsink), xsink);
+         if (*xsink)
+            return;
 
-	 AbstractQoreNode* nv = *val;
-	 AbstractQoreNode* n = data->swapKeyValue(hi.getKey(), val.release());
-	 if (!check_recursive && (is_container(n) || is_container(nv)))
-	    check_recursive = true;
+         AbstractQoreNode* nv = *val;
+         AbstractQoreNode* n = data->swapKeyValue(hi.getKey(), val.release());
+         if (!check_recursive && (needs_scan(n) || needs_scan(nv)))
+            check_recursive = true;
 
-	 //printd(5, "QoreObject::merge() n: %p (rc: %d, type: %s)\n", n, n ? n->isReferenceCounted() : 0, get_type_name(n));
-	 // if we are overwriting a value, then save it in the list for dereferencing after the lock is released
-	 if (n && n->isReferenceCounted()) {
-	    if (!holder)
-	       holder = new QoreListNode;
-	    holder->push(n);
-	 }
+         //printd(5, "QoreObject::merge() n: %p (rc: %d, type: %s)\n", n, n ? n->isReferenceCounted() : 0, get_type_name(n));
+         // if we are overwriting a value, then save it in the list for dereferencing after the lock is released
+         if (n && n->isReferenceCounted()) {
+            if (!holder)
+               holder = new QoreListNode;
+            holder->push(n);
+         }
       }
    }
 
    if (check_recursive) {
-      ObjectRSetHelper orsh(*obj);
+      RSetHelper orsh(*this);
    }
 }
 
-unsigned qore_object_private::getObjectCount() {
+unsigned qore_object_private::getScanCount() const {
    return data->priv->obj_count;
 }
 
-void qore_object_private::incObjectCount(int dt) {
-   data->priv->incObjectCount(dt);
+void qore_object_private::incScanCount(int dt) {
+   data->priv->incScanCount(dt);
 }
 
 AbstractQoreNode* qore_object_private::takeMember(ExceptionSink* xsink, const char* key, bool check_access) {
@@ -161,9 +177,9 @@ AbstractQoreNode* qore_object_private::takeMember(LValueHelper& lvh, const char*
    rv = data->swapKeyValue(key, 0);
 #endif
 
-   if (get_container_obj(rv)) {
-      if (!getObjectCount())
-	 lvh.setDelta(-1);
+   if (needs_scan(rv)) {
+      if (!getScanCount())
+         lvh.setDelta(-1);
    }
 
    return rv;
@@ -182,18 +198,18 @@ void qore_object_private::takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, 
       return;
    }
 
-   unsigned old_count = getObjectCount();
+   unsigned old_count = getScanCount();
 
    ConstListIterator li(l);
    while (li.next()) {
       QoreStringValueHelper mem(li.getValue(), QCS_DEFAULT, lvh.vl.xsink);
       if (*lvh.vl.xsink)
-	 return;
+         return;
       const char* key = mem->getBuffer();
 
       const QoreTypeInfo* mti = 0;
       if (checkMemberAccessGetTypeInfo(lvh.vl.xsink, key, mti, check_access))
-	 return;
+         return;
 
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
       AbstractQoreNode* n = data->swapKeyValue(key, mti->getDefaultValue());
@@ -206,7 +222,7 @@ void qore_object_private::takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, 
       assert(!*lvh.vl.xsink);
    }
 
-   if (old_count && !getObjectCount())
+   if (old_count && !getScanCount())
       lvh.setDelta(-1);
 }
 
@@ -246,9 +262,9 @@ int qore_object_private::getLValue(const char* key, LValueHelper& lvh, bool inte
 static void check_meth_eval(const QoreClass* cls, const char* mname, const QoreClass* mclass, ExceptionSink* xsink) {
    if (!xsink->isException()) {
       if (cls == mclass)
-	 xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() cannot be executed because the object has already been deleted", cls->getName(), mname);
+         xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() cannot be executed because the object has already been deleted", cls->getName(), mname);
       else
-	 xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() (base class of '%s') cannot be executed because the object has already been deleted", mclass->getName(), mname, cls->getName());
+         xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() (base class of '%s') cannot be executed because the object has already been deleted", mclass->getName(), mname, cls->getName());
    }
 }
 
@@ -280,7 +296,7 @@ void QoreObject::externalDelete(qore_classid_t key, ExceptionSink* xsink) {
       QoreAutoVarRWWriteLocker al(priv->rml);
 
       if (priv->in_destructor || priv->status == OS_DELETED || !priv->privateData)
-	 return;
+         return;
 
       // remove the private data that's already been deleted
 #ifdef DEBUG
@@ -492,12 +508,12 @@ QoreValue QoreObject::evalMember(const QoreString* member, ExceptionSink* xsink)
    if (rc) {
       // run memberGate if it exists
       if (priv->theclass->hasMemberGate())
-	 return priv->theclass->evalMemberGate(this, *tstr, xsink);
+         return priv->theclass->evalMemberGate(this, *tstr, xsink);
 
       if (rc == QOA_PRIV_ERROR)
-	 priv->doPrivateException(mem, xsink);
+         priv->doPrivateException(mem, xsink);
       else
-	 priv->doPublicException(mem, xsink);
+         priv->doPublicException(mem, xsink);
       return QoreValue();
    }
 
@@ -507,7 +523,7 @@ QoreValue QoreObject::evalMember(const QoreString* member, ExceptionSink* xsink)
       QoreAutoVarRWReadLocker al(priv->rml);
 
       if (priv->status == OS_DELETED)
-	 return QoreValue();
+         return QoreValue();
 
       rv = priv->data->getReferencedKeyValue(mem, exists);
    }
@@ -538,11 +554,11 @@ void QoreObject::doDelete(ExceptionSink* xsink) {
       QoreAutoVarRWWriteLocker al(priv->rml);
 
       if (priv->status == OS_DELETED)
-	 return;
+         return;
 
       if (priv->in_destructor || priv->status > 0) {
-	 xsink->raiseException("DOUBLE-DELETE-EXCEPTION", "destructor called from within destructor for class %s", getClassName());
-	 return;
+         xsink->raiseException("DOUBLE-DELETE-EXCEPTION", "destructor called from within destructor for class %s", getClassName());
+         return;
       }
 
       // mark status as in destructor
@@ -590,8 +606,8 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 
       int ref_copy;
       {
-	 AutoLocker slr(priv->ref_mutex);
-	 ref_copy = --references;
+         AutoLocker slr(priv->ref_mutex);
+         ref_copy = --references;
       }
 
       // in case this is the last reference (even in recursive cases), ref_copy will remain equal to references throughout this code
@@ -599,75 +615,74 @@ void QoreObject::customDeref(ExceptionSink* xsink) {
 
       bool rrf = false;
       if (ref_copy) {
-	 while (true) {
-	    bool recalc = false;
-	    {
-	       QoreSafeVarRWReadLocker sl(priv->rml);
+         while (true) {
+            bool recalc = false;
+            {
+               QoreSafeVarRWReadLocker sl(priv->rml);
 
-	       if (priv->in_destructor || priv->status != OS_OK || priv->recursive_ref_found) {
-		  return;
-	       }
+               if (priv->in_destructor || priv->status != OS_OK || priv->recursive_ref_found) {
+                  return;
+               }
 
-	       printd(QRO_LVL, "QoreObject::customDeref() this: %p '%s' rset: %p (valid: %d in_del: %d) rcount: %d ref_copy: %d references: %d\n", this, getClassName(), priv->rset, priv->rset->isValid(), priv->rset->isInDel(), priv->rcount, ref_copy, references);
+               printd(QRO_LVL, "QoreObject::customDeref() this: %p '%s' rset: %p (valid: %d) rcount: %d ref_copy: %d references: %d\n", this, getClassName(), priv->rset, priv->rset->isValid(), priv->rcount, ref_copy, references);
 
-	       int rc;
-	       ObjectRSet* rs = priv->rset;
+               int rc;
+               RSet* rs = priv->rset;
 
-	       if (!rs) {
-		  if (priv->rcount == ref_copy) {
-		     // this must be true if we really are dealing with an object with no more valid (non-recursive) references
-		     assert(references == ref_copy);
-		     rc = 1;
-		  }
-		  else
-		     return;
-	       }
-	       else
-		  rc = rs->canDelete(ref_copy, priv->rcount);
+               if (!rs) {
+                  if (priv->rcount == ref_copy) {
+                     // this must be true if we really are dealing with an object with no more valid (non-recursive) references
+                     assert(references == ref_copy);
+                     rc = 1;
+                  }
+                  else
+                     return;
+               }
+               else
+                  rc = rs->canDelete(ref_copy, priv->rcount);
 
-	       if (!rc)
-		  return;
+               if (!rc)
+                  return;
 
-	       if (rc == -1) {
-		  printd(QRO_LVL, "QoreObject::customDeref() this: %p '%s' invalid rset, recalculating\n", this, getClassName());
-		  recalc = true;
-	       }
-	    }
-	    if (recalc) {
-	       // recalculate rset
-	       ObjectRSetHelper rsh(*this);
-	       continue;
-	    }
+               if (rc == -1) {
+                  printd(QRO_LVL, "QoreObject::customDeref() this: %p '%s' invalid rset, recalculating\n", this, getClassName());
+                  recalc = true;
+               }
+            }
+            if (recalc) {
+               // recalculate rset
+               RSetHelper rsh(*priv);
+               continue;
+            }
 
-	    // output in any case even when debugging is disabled
 	    printd(QRO_LVL, "QoreObject::customDeref() this: %p rcount/refs: %d/%d collecting object (%s) with only recursive references\n", this, priv->rcount, ref_copy, getClassName());
 
-	    rrf = true;
-	    break;
-	 }
+            rrf = true;
+            break;
+         }
       }
 
       QoreSafeVarRWWriteLocker sl(priv->rml);
 
       if (rrf)
-	 priv->recursive_ref_found = true;
+         priv->recursive_ref_found = true;
 
       // if the destructor has already been run, then just run tDeref() which should delete the QoreObject
       if (priv->in_destructor || priv->status != OS_OK) {
-	 sl.unlock();
-	 if (!ref_copy)
-	    priv->tDeref();
-	 return;
+         sl.unlock();
+         if (!ref_copy)
+            priv->tDeref();
+         return;
       }
 
       // if the scope deletion is blocked, then do not run the destructor
       if (!priv->delete_blocker_run && priv->theclass->has_delete_blocker()) {
-	 if (priv->theclass->execDeleteBlocker(this, xsink)) {
-	    //printd(5, "QoreObject::customDeref() this: %p class: %s blocking delete\n", this, getClassName());
-	    priv->delete_blocker_run = true;
-	    //printd(5, "Object lock %p unlocked (safe)\n", &priv->rml);
-	    return;
-	 }
+         if (priv->theclass->execDeleteBlocker(this, xsink)) {
+            //printd(5, "QoreObject::customDeref() this: %p class: %s blocking delete\n", this, getClassName());
+            priv->delete_blocker_run = true;
+            //printd(5, "Object lock %p unlocked (safe)\n", &priv->rml);
+            return;
+         }
       }
 
       priv->in_destructor = true;
@@ -743,8 +758,8 @@ void QoreObject::deleteMemberValue(const char* key, ExceptionSink* xsink) {
       QoreSafeVarRWWriteLocker sl(priv->rml);
 
       if (priv->status == OS_DELETED) {
-	 makeAccessDeletedObjectException(xsink, key, priv->theclass->getName());
-	 return;
+         makeAccessDeletedObjectException(xsink, key, priv->theclass->getName());
+         return;
       }
 
       v = priv->data->takeKeyValue(key);
@@ -804,8 +819,8 @@ void QoreObject::setValue(const char* key, AbstractQoreNode* val, ExceptionSink*
       QoreSafeVarRWWriteLocker sl(priv->rml);
 
       if (priv->status == OS_DELETED) {
-	 makeAccessDeletedObjectException(xsink, key, priv->theclass->getName());
-	 return;
+         makeAccessDeletedObjectException(xsink, key, priv->theclass->getName());
+         return;
       }
 
       old_value = priv->data->takeKeyValue(key);
@@ -841,7 +856,7 @@ AbstractQoreNode* QoreObject::getReferencedMemberNoMethod(const char* mem, Excep
    QoreSafeVarRWReadLocker sl(priv->rml);
 
    printd(5, "QoreObject::getReferencedMemberNoMethod(this: %p, mem: %p (%s), xsink: %p, data->size(): %d)\n",
-	  this, mem, mem, xsink, priv->data ? priv->data->size() : -1);
+          this, mem, mem, xsink, priv->data ? priv->data->size() : -1);
 
    if (priv->status == OS_DELETED) {
       makeAccessDeletedObjectException(xsink, mem, priv->theclass->getName());
@@ -879,7 +894,7 @@ QoreHashNode* QoreObject::getRuntimeMemberHash(ExceptionSink* xsink) const {
    ConstHashIterator hi(priv->data);
    while (hi.next()) {
       if (priv->theclass->isPrivateMember(hi.getKey()))
-	 continue;
+         continue;
 
       // not possible for an exception to happen here
       h->setKeyValue(hi.getKey(), hi.getReferencedValue(), xsink);
@@ -997,18 +1012,18 @@ int QoreObject::getAsString(QoreString& str, int foff, ExceptionSink* xsink) con
    if (foff == FMT_YAML_SHORT) {
       str.sprintf("{<%s object>", getClassName());
       if (!h->empty()) {
-	 str.concat(": ");
-	 ConstHashIterator hi(*h);
+         str.concat(": ");
+         ConstHashIterator hi(*h);
 
-	 while (hi.next()) {
-	    str.sprintf("%s: ", hi.getKey());
-	    const AbstractQoreNode* n = hi.getValue();
-	    if (!n) n = &Nothing;
-	    if (n->getAsString(str, foff, xsink))
-	       return -1;
-	    if (!hi.last())
-	       str.concat(", ");
-	 }
+         while (hi.next()) {
+            str.sprintf("%s: ", hi.getKey());
+            const AbstractQoreNode* n = hi.getValue();
+            if (!n) n = &Nothing;
+            if (n->getAsString(str, foff, xsink))
+               return -1;
+            if (!hi.last())
+               str.concat(", ");
+         }
       }
       str.concat('}');
       return 0;
@@ -1034,26 +1049,26 @@ int QoreObject::getAsString(QoreString& str, int foff, ExceptionSink* xsink) con
 
       ConstHashIterator hi(*h);
       while (hi.next()) {
-	 // skip private members when accessed outside the class
-	 //if (!private_access_ok && priv->checkMemberAccessIntern(hi.getKey(), false, false) == QOA_PRIV_ERROR)
-	 //   continue;
+         // skip private members when accessed outside the class
+         //if (!private_access_ok && priv->checkMemberAccessIntern(hi.getKey(), false, false) == QOA_PRIV_ERROR)
+         //   continue;
 
          if (foff != FMT_NONE)
             str.addch(' ', foff + 2);
 
          str.sprintf("%s : ", hi.getKey());
 
-	 const AbstractQoreNode* n = hi.getValue();
-	 if (!n) n = &Nothing;
-	 if (n->getAsString(str, foff != FMT_NONE ? foff + 2 : foff, xsink))
-	    return -1;
+         const AbstractQoreNode* n = hi.getValue();
+         if (!n) n = &Nothing;
+         if (n->getAsString(str, foff != FMT_NONE ? foff + 2 : foff, xsink))
+            return -1;
 
          if (!hi.last()) {
             if (foff != FMT_NONE)
                str.concat('\n');
             else
                str.concat(", ");
-	 }
+         }
       }
       if (foff == FMT_NONE)
          str.concat(')');
@@ -1138,545 +1153,4 @@ bool QoreObject::getAsBoolImpl() const {
 
    QoreSafeVarRWReadLocker sl(priv->rml);
    return priv->status != OS_DELETED;
-}
-
-bool ObjectRSetHelper::checkIntern(AbstractQoreNode* n) {
-   if (!get_container_obj(n))
-      return false;
-
-   switch (get_node_type(n)) {
-      case NT_OBJECT:
-	 return checkIntern(*reinterpret_cast<QoreObject*>(n));
-
-      case NT_LIST: {
-	 QoreListNode* l = reinterpret_cast<QoreListNode*>(n);
-	 ListIterator li(l);
-	 while (li.next()) {
-	    if (checkIntern(li.getValue()))
-	       return true;
-	 }
-
-	 return false;
-      }
-
-      case NT_HASH: {
-	 QoreHashNode* h = reinterpret_cast<QoreHashNode*>(n);
-	 HashIterator hi(h);
-	 while (hi.next()) {
-            assert(hi.getValue() != h);
-	    if (checkIntern(hi.getValue()))
-	       return true;
-	 }
-
-	 return false;
-      }
-
-      case NT_VALUE_LIST:
-	 assert(false);
-   }
-
-   return false;
-}
-
-bool ObjectRSetHelper::removeInvalidate(ObjectRSet* ors, int tid) {
-   // get a list of objects to be invalidated
-   obj_vec_t rovec;
-
-   {
-      QoreAutoRWReadLocker al(ors->rwl);
-
-      if (!ors->active())
-	 return false;
-
-      // first grab all rsection locks
-      for (obj_set_t::iterator ri = ors->begin(), re = ors->end(); ri != re; ++ri) {
-	 // if we already have the rsection lock, then ignore; already processed (either in fomap or tr_out)
-	 if ((*ri)->priv->rml.hasRSectionLock(tid))
-	    continue;
-
-	 if ((*ri)->priv->rml.tryRSectionLockNotifyWaitRead(&notifier)) {
-	    printd(QRO_LVL, "ObjectRSetHelper::removeInvalidate() obj %p '%s' cannot enter rsection: tid: %d\n", *ri, (*ri)->getClassName(), (*ri)->priv->rml.rSectionTid());
-
-	    // release other rsection locks
-	    for (unsigned i = 0; i < rovec.size(); ++i) {
-	       rovec[i]->priv->rml.rSectionUnlock();
-	       deccnt();
-	    }
-	    return true;
-	 }
-#ifdef DEBUG
-	 // we always have the rsection lock here
-	 inccnt();
-#endif
-
-	 // check object status; do not scan invalid objects or objects being deleted
-	 if ((*ri)->priv->in_destructor || (*ri)->priv->status != OS_OK) {
-	    (*ri)->priv->rml.rSectionUnlock();
-	    deccnt();
-	    continue;
-	 }
-
-	 rovec.push_back(*ri);
-      }
-   }
-
-   // invalidate old rset when transaction is committed
-   tr_invalidate.insert(ors);
-
-   // now process old rset
-   for (unsigned i = 0; i < rovec.size(); ++i) {
-      assert(rovec[i]->priv->rml.hasRSectionLock());
-      assert(rovec[i]->priv->rset == ors);
-
-      if (rovec[i]->priv->status == OS_OK)
-	 tr_out.insert(rovec[i]);
-   }
-
-   return false;
-}
-
-bool ObjectRSetHelper::addToRSet(omap_t::iterator oi, ObjectRSet* rset, int tid) {
-   // ensure that the current object is not in the rset
-   assert(rset->find(oi->first) == rset->end());
-
-   // queue mark object as finalized
-   oi->second.finalize(rset);
-   assert(oi->second.rset);
-
-   // insert into new rset
-   rset->insert(oi->first);
-
-   // queue any nodes not scanned for rset invalidation
-   if (oi->first->priv->rset) {
-      assert(rset != oi->first->priv->rset);
-      if (removeInvalidate(oi->first->priv->rset, tid))
-	 return true;
-   }
-
-   printd(QRO_LVL, " + %p '%s': finalized with rset: %p (rcount: %d)\n", oi->first, oi->first->getClassName(), rset, oi->second.rcount);
-
-   assert(!oi->second.in_cycle);
-   oi->second.in_cycle = true;
-   assert(oi->second.rset);
-   // increment rcount
-   printd(QRO_LVL, " + %p '%s': second.rset: %p final: %d ok: %d rcount: %d -> %d\n", oi->first, oi->first->getClassName(), oi->second.rset, oi->second.in_cycle, oi->second.ok, oi->second.rcount, oi->second.rcount + 1);
-   ++oi->second.rcount;
-   return false;
-}
-
-void ObjectRSetHelper::mergeRSet(int i, ObjectRSet*& rset) {
-   omap_t::iterator oi = ovec[i];
-   assert(oi->second.rset);
-
-   printd(QRO_LVL, " + %p '%s': already finalized with rset: %p (size: %d, rcount: %d) current rset: %p (size: %d)\n", oi->first, oi->first->getClassName(), oi->second.rset, (int)oi->second.rset->size(), oi->second.rcount, rset ? rset : 0, rset ? (int)rset->size() : 0);
-
-   if (rset == oi->second.rset) {
-      printd(QRO_LVL, " + %p '%s': rset: %p (%d) already in set\n", oi->first, oi->first->getClassName(), rset, (int)rset->size());
-   }
-   else {
-      // here we have to merge rsets
-      if (!rset)
-	 rset = oi->second.rset;
-      else if (rset->size() > oi->second.rset->size()) {
-	 printd(QRO_LVL, " + %p '%s': rset: %p (%d) assimilating %p (%d)\n", oi->first, oi->first->getClassName(), rset, (int)rset->size(), oi->second.rset, (int)oi->second.rset->size());
-	 // merge oi->second.rset into rset and retag objects
-	 ObjectRSet* old_rset = oi->second.rset;
-	 for (obj_set_t::iterator i = old_rset->begin(), e = old_rset->end(); i != e; ++i) {
-	    rset->insert(*i);
-	    omap_t::iterator noi = fomap.find(*i);
-	    assert(noi != fomap.end());
-	    noi->second.rset = rset;
-	 }
-	 delete old_rset;
-      }
-      else {
-	 printd(QRO_LVL, " + %p '%s': oi->second.rset: %p (%d) assimilating %p (%d)\n", oi->first, oi->first->getClassName(), oi->second.rset, (int)oi->second.rset->size(), rset, (int)rset->size());
-	 // merge rset into oi->second.rset and retag objects
-	 ObjectRSet*old_rset = rset;
-	 rset = oi->second.rset;
-	 for (obj_set_t::iterator i = old_rset->begin(), e = old_rset->end(); i != e; ++i) {
-	    rset->insert(*i);
-	    omap_t::iterator noi = fomap.find(*i);
-	    assert(noi != fomap.end());
-	    noi->second.rset = rset;
-	 }
-	 delete old_rset;
-      }
-   }
-}
-
-bool ObjectRSetHelper::makeChain(int i, omap_t::iterator fi, int tid) {
-   for (++i; i < (int)ovec.size(); ++i) {
-      if (!ovec[i]->second.rset) {
-	 printd(QRO_LVL, " + %p '%s': adding parent to rset\n", ovec[i]->first, ovec[i]->first->getClassName());
-	 if (addToRSet(ovec[i], fi->second.rset, tid))
-	    return true;
-	 if (i == (int)(ovec.size() - 1)) {
-	    printd(QRO_LVL, " + %p '%s': parent object %p '%s' was not in cycle (rcount: %d -> %d)\n", fi->first, fi->first->getClassName(), ovec[i]->first, ovec[i]->first->getClassName(), fi->second.rcount, fi->second.rcount + 1);
-	    ++fi->second.rcount;
-	 }
-      }
-      else
-	 mergeRSet(i, fi->second.rset);
-   }
-   return false;
-}
-
-bool ObjectRSetHelper::checkIntern(QoreObject& obj) {
-#ifdef DEBUG
-   bool hl = obj.priv->rml.hasRSectionLock();
-#endif
-   if (obj.priv->rml.tryRSectionLockNotifyWaitRead(&notifier)) {
-      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() + obj %p '%s' cannot enter rsection: rsection tid: %d\n", &obj, obj.getClassName(), obj.priv->rml.rSectionTid());
-      return true;
-   }
-#ifdef DEBUG
-   if (!hl)
-      inccnt();
-#endif
-
-   // check object status; do not scan invalid objects or objects being deleted
-   if (obj.priv->in_destructor || obj.priv->status != OS_OK) {
-      obj.priv->rml.rSectionUnlock();
-      deccnt();
-      return false;
-   }
-
-   int tid = gettid();
-
-   // see if the object has been scanned
-   omap_t::iterator fi = fomap.lower_bound(&obj);
-   if (fi != fomap.end() && fi->first == &obj) {
-      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() + found obj %p '%s' rcount: %d in_cycle: %d ok: %d\n", &obj, obj.getClassName(), fi->second.rcount, fi->second.in_cycle, fi->second.ok);
-      //printd(QRO_LVL, "ObjectRSetHelper::checkIntern() found obj %p '%s' incrementing rcount: %d -> %d\n", &obj, obj.getClassName(), fi->second.rcount, fi->second.rcount + 1);
-
-      if (fi->second.ok) {
-	 assert(!fi->second.in_cycle);
-	 printd(QRO_LVL, " + %p '%s' already scanned and ok\n", &obj, obj.getClassName());
-	 return false;
-      }
-
-      if (fi->second.in_cycle) {
-	 assert(fi->second.rset);
-	 // check if this object is part of the current cycle already - if
-	 // 1) it's already in the current scan vector, or
-	 // 2) the parent object of the current object is already a part of the recursive set
-	 if (inCurrentSet(fi)) {
-	    printd(QRO_LVL, " + recursive obj %p '%s' already finalized and in current cycle (rcount: %d -> %d)\n", &obj, obj.getClassName(), fi->second.rcount, fi->second.rcount + 1);
-	    ++fi->second.rcount;
-	 }
-	 else if (!ovec.empty()) {
-	    // FIXME: use this optimization in the loop below
-	    if (ovec.back()->second.rset == fi->second.rset) {
-	       printd(QRO_LVL, " + %p '%s': parent object %p '%s' in same cycle (rcount: %d -> %d)\n", &obj, obj.getClassName(), ovec.back()->first, ovec.back()->first->getClassName(), fi->second.rcount, fi->second.rcount + 1);
-	       ++fi->second.rcount;
-	       return false;
-	    }
-
-	    // see if any parent of the current object is already in the same recursive cycle, if so, we have a new chain (quick comparison first)
-	    for (int i = ovec.size() - 1; i >= 0; --i) {
-	       if (fi->second.rset == ovec[i]->second.rset) {
-		  printd(QRO_LVL, " + recursive obj %p '%s' already finalized, cyclic ancestor %p '%s' in current cycle\n", &obj, obj.getClassName(), ovec[i]->first, ovec[i]->first->getClassName());
-
-		  return makeChain(i, fi, tid);
-	       }
-	    }
-
-	    // see if any parent of the current object is already in a recursive cycle to be joined, if so, we have a new chain	(slower comparison second)
-	    for (int i = ovec.size() - 1; i >= 0; --i) {
-	       if (fi->second.rset->find((ovec[i])->first) != fi->second.rset->end()) {
-		  printd(QRO_LVL, " + recursive obj %p '%s' already finalized, cyclic ancestor %p '%s' in current cycle\n", &obj, obj.getClassName(), ovec[i]->first, ovec[i]->first->getClassName());
-
-		  return makeChain(i, fi, tid);
-	       }
-	    }
-
-	    printd(QRO_LVL, " + recursive obj %p '%s' already finalized but not in current cycle\n", &obj, obj.getClassName());
-	    return false;
-	 }
-      }
-      else {
-	 if (!inCurrentSet(fi)) {
-	    printd(QRO_LVL, " + recursive obj %p '%s' not in current cycle\n", &obj, obj.getClassName());
-	    return false;
-	 }
-      }
-
-      // finalize current objects immediately
-      ObjectRSet* rset = fi->second.rset;
-#ifdef DEBUG
-      if (rset)
-	 printd(QRO_LVL, " + %p '%s': reusing ObjectRSet: %p\n", &obj, obj.getClassName(), rset);
-#endif
-
-      int i = (int)ovec.size() - 1;
-      while (i >= 0) {
-	 assert(i >= 0);
-
-	 // get iterator to object record
-	 omap_t::iterator oi = ovec[i];
-
-	 // merge rsets
-	 if (!oi->second.rset) {
-	    if (!rset) {
-	       rset = new ObjectRSet;
-	       printd(QRO_LVL, " + %p '%s': rcycle: %d second.rset: %p new ObjectRSet: %p\n", oi->first, oi->first->getClassName(), obj.priv->rcycle, oi->second.rset, rset);
-	    }
-
-	    if (addToRSet(oi, rset, tid))
-	       return true;
-	 }
-	 else {
-	    if (i > 0 && oi->first != &obj && !ovec[i-1]->second.in_cycle) {
-	       printd(QRO_LVL, " + %p '%s': parent not yet in cycle (rcount: %d -> %d)\n", &obj, obj.getClassName(), oi->second.rcount, oi->second.rcount + 1);
-	       ++oi->second.rcount;
-	    }
-
-	    mergeRSet(i, rset);
-	 }
-
-	 if (oi->first == &obj)
-	    break;
-
-	 --i;
-      }
-
-      return false;
-   }
-   else {
-      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() + adding new obj %p '%s' setting rcount = 0 (current: %d rset: %p)\n", &obj, obj.getClassName(), obj.priv->rcount, obj.priv->rset);
-
-      // insert into total scanned object set
-      fi = fomap.insert(fi, omap_t::value_type(&obj, RSetStat()));
-
-      // check if the object should be iterated
-      if (!qore_object_private::getObjectCount(obj)) {
-	 printd(QRO_LVL, "ObjectRSetHelper::checkIntern() obj %p '%s' will not be iterated since object count is 0\n", &obj, obj.getClassName());
-	 fi->second.ok = true;
-	 assert(!fi->second.rset);
-	 return false;
-      }
-   }
-
-   // push on current vector chain
-   ovec.push_back(fi);
-
-   // remove from invalidation set if present
-   tr_out.erase(&obj);
-
-   // recursively check data members
-   HashIterator hi(obj.priv->data);
-   while (hi.next()) {
-#ifdef DEBUG
-      if (get_node_type(hi.getValue()) == NT_OBJECT)
-	 printd(QRO_LVL, "ObjectRSetHelper::checkIntern() search %p '%s' key '%s' %p (%s)\n", &obj, obj.getClassName(), hi.getKey(), hi.getValue(), get_type_name(hi.getValue()));
-#endif
-      if (checkIntern(hi.getValue()))
-	 return true;
-      printd(QRO_LVL, "ObjectRSetHelper::checkIntern() result %p '%s' key '%s' %p (%s)\n", &obj, obj.getClassName(), hi.getKey(), hi.getValue(), get_type_name(hi.getValue()));
-   }
-
-   // remove from current vector chain
-   ovec.pop_back();
-
-   return false;
-}
-
-class ObjectRScanHelper {
-public:
-   qore_object_private& obj;
-   int rcycle;
-
-   DLLLOCAL ObjectRScanHelper(qore_object_private& o) : obj(o), rcycle(o.rcycle) {
-      AutoLocker al(obj.rlck);
-      while (obj.rscan) {
-	 ++obj.rwaiting;
-	 obj.rdone.wait(obj.rlck);
-	 --obj.rwaiting;
-      }
-      obj.rscan = gettid();
-   }
-
-   DLLLOCAL ~ObjectRScanHelper() {
-      AutoLocker al(obj.rlck);
-      assert(obj.rscan == gettid());
-      if (obj.rwaiting)
-	 obj.rdone.signal();
-      obj.rscan = 0;
-   }
-
-   DLLLOCAL bool needScan() const {
-      return rcycle == obj.rcycle;
-   }
-};
-
-ObjectRSetHelper::ObjectRSetHelper(QoreObject& obj) {
-#ifdef DEBUG
-   lcnt = 0;
-#endif
-   if (q_disable_gc)
-      return;
-
-   printd(QRO_LVL, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p) ENTER\n", this, &obj);
-
-   ObjectRScanHelper rsh(*obj.priv);
-
-   while (true) {
-      if (checkIntern(obj)) {
-	 rollback();
-	 // wait for foreign transaction to finish if necessary
-	 notifier.wait();
-
-	 if (!rsh.needScan()) {
-	    printd(QRO_LVL, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p: %s) TRANSACTION COMPLETE IN ANOTHER THREAD\n", this, &obj, obj.getClassName());
-	    return;
-	 }
-	 printd(QRO_LVL, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p: %s) RESTARTING TRANSACTION: %d\n", this, &obj, obj.getClassName(), obj.priv->rcycle);
-	 continue;
-      }
-
-      break;
-   }
-
-   commit(obj);
-
-   printd(QRO_LVL, "ObjectRSetHelper::ObjectRSetHelper() this: %p (%p) EXIT\n", this, &obj);
-}
-
-void ObjectRSetHelper::commit(QoreObject& obj) {
-#ifdef DEBUG
-   bool has_obj = false;
-#endif
-
-   // invalidate rsets
-   for (rs_set_t::iterator i = tr_invalidate.begin(), e = tr_invalidate.end(); i != e; ++i) {
-      (*i)->invalidate();
-   }
-
-   // unlock rsection
-   for (obj_set_t::iterator i = tr_out.begin(), e = tr_out.end(); i != e; ++i) {
-      assert(fomap.find(*i) == fomap.end());
-      (*i)->priv->rml.rSectionUnlock();
-      deccnt();
-   }
-
-   // finalize graph - exit rsection
-#ifdef DEBUG
-   // DEBUG
-   for (omap_t::iterator i = fomap.begin(), e = fomap.end(); i != e; ++i) {
-      QoreObject* tobj = i->first;
-      ObjectRSet* rs = i->second.rset;
-      int rcount = i->second.rcount;
-      assert(tr_out.find(tobj) == tr_out.end());
-      tobj->priv->setRSet(rs, rcount);
-
-      if (tobj == &obj)
-	 has_obj = true;
-   }
-
-   for (omap_t::iterator i = fomap.begin(), e = fomap.end(); i != e; ++i) {
-      ObjectRSet* rs = i->second.rset;
-      if (!rs)
-	 continue;
-      for (obj_set_t::iterator ri = rs->begin(), re = rs->end(); ri != re; ++ri) {
-	 QoreObject* o = (*ri);
-	 assert(o->priv->rset == rs);
-      }
-   }
-
-   for (omap_t::iterator i = fomap.begin(), e = fomap.end(); i != e; ++i) {
-      i->first->priv->rml.rSectionUnlock();
-      deccnt();
-   }
-#else
-   for (omap_t::iterator i = fomap.begin(), e = fomap.end(); i != e; ++i) {
-      i->first->priv->setRSet(i->second.rset, i->second.rcount);
-   }
-   for (omap_t::iterator i = fomap.begin(), e = fomap.end(); i != e; ++i) {
-      i->first->priv->rml.rSectionUnlock();
-   }
-#endif
-
-   assert(fomap.empty() || has_obj);
-   assert(!lcnt);
-}
-
-void ObjectRSetHelper::rollback() {
-   for (omap_t::iterator i = fomap.begin(), e = fomap.end(); i != e; ++i) {
-      if (i->second.rset) {
-	 ObjectRSet* r = i->second.rset;
-	 if (r->pop())
-	    delete r;
-      }
-      i->first->priv->rml.rSectionUnlock();
-      deccnt();
-   }
-
-   // exit rsection of objects in tr_out
-   for (obj_set_t::iterator i = tr_out.begin(), e = tr_out.end(); i != e; ++i) {
-      assert(fomap.find(*i) == fomap.end());
-      (*i)->priv->rml.rSectionUnlock();
-      deccnt();
-   }
-
-   fomap.clear();
-   ovec.clear();
-   tr_out.clear();
-   tr_invalidate.clear();
-
-   assert(!lcnt);
-
-#ifdef _POSIX_PRIORITY_SCHEDULING
-   sched_yield();
-#endif
-}
-
-#ifdef DEBUG
-void ObjectRSet::dbg() {
-   QoreAutoRWReadLocker al(rwl);
-
-   printd(0, "ObjectRSet::dbg() this: %p in_del: %d valid: %d ssize: %d size: %d\n", this, (int)in_del, (int)valid, (int)set.size(), (int)size());
-   for (obj_set_t::iterator i = begin(), e = end(); i != e; ++i) {
-      printd(0, " + %p '%s' rcount: %d refs: %d\n", *i, (*i)->getClassName(), (int)(*i)->priv->rcount, (int)(*i)->references);
-   }
-}
-#endif
-
-int ObjectRSet::canDelete(int ref_copy, int rcount) {
-   printd(QRO_LVL, "ObjectRSet::canDelete() this: %p valid: %d in_del: %d\n", this, valid, in_del);
-
-   if (q_disable_gc)
-      return 0;
-
-   if (!valid)
-      return -1;
-   if (in_del)
-      return 1;
-
-   {
-      QoreAutoRWReadLocker al(rwl);
-      if (!valid)
-	 return -1;
-      if (in_del)
-	 return 1;
-
-      // to avoid race conditions, we only delete in the thread where the references == rcount for the current object
-      if (ref_copy != rcount)
-	 return 0;
-
-      for (obj_set_t::iterator i = begin(), e = end(); i != e; ++i) {
-	 if ((*i)->priv->status != OS_OK || (*i)->priv->in_destructor) {
-	    printd(QRO_LVL, "ObjectRSet::canDelete() this: %p cannot delete graph obj %p '%s' status: %d in_destructor: %d\n", this, *i, (*i)->getClassName(), (*i)->priv->status, (*i)->priv->in_destructor);
-	    return 0;
-	 }
-	 if ((*i)->priv->rcount != (*i)->references) {
-	    printd(QRO_LVL, "ObjectRSet::canDelete() this: %p cannot delete graph obj %p '%s' rcount: %d refs: %d\n", this, *i, (*i)->getClassName(), (*i)->priv->rcount, (*i)->references);
-	    return 0;
-	 }
-	 printd(QRO_LVL, "ObjectRSet::canDelete() this: %p can delete graph obj %p '%s' rcount: %d refs: %d\n", this, *i, (*i)->getClassName(), (*i)->priv->rcount, (*i)->references);
-      }
-      in_del = true;
-   }
-   printd(QRO_LVL, "ObjectRSet::canDelete() this: %p can delete all objects in graph\n", this);
-   return 1;
 }

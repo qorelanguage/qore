@@ -31,6 +31,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/ql_object.h>
+#include <qore/intern/qore_program_private.h>
 
 static QoreObject* create_object_intern(const QoreStringNode* class_name, unsigned arg_offset, const QoreValueList* args, ExceptionSink* xsink) {
    TempEncodingHelper tmp(class_name, QCS_DEFAULT, xsink);
@@ -308,7 +309,7 @@ object obj = create_object_args(class_name, arg_list);
     @endcode
 
     @param class_name the name of the class to instantiate (can be prefixed with a namespace path)
-    @param args any other arguments to the constructor
+    @param argv any other arguments to the constructor
 
     @return the object created
 

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -98,12 +98,25 @@ public:
       return closure_env.hasVar(cvv);
    }
 
+   DLLLOCAL const cvar_map_t& getMap() const {
+      return closure_env.getMap();
+   }
+
+   // returns true if at least one variable in the set of closure-bound local variables could contain an object or a closure (also through a container)
+   DLLLOCAL bool needsScan() const {
+      return closure->needsScan();
+   }
+
    DLLLOCAL static const char* getStaticTypeName() {
       return "closure";
    }
 
    DLLLOCAL virtual QoreFunction* getFunction() {
       return closure->getFunction();
+   }
+
+   DLLLOCAL virtual QoreObject* getObject() const {
+      return 0;
    }
 };
 
@@ -211,6 +224,10 @@ public:
 
    DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const {
       return v == this;
+   }
+
+   DLLLOCAL virtual QoreObject* getObject() const {
+      return obj;
    }
 };
 

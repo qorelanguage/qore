@@ -134,16 +134,17 @@ list: (2 elements)
       - @ref any_type "any" <i>value</i>: the input field value (with the same name as the output field; to use a different name, see the \a code hash option below)
       - @ref hash_type "hash" <i>rec</i>: the current input record
     - a @ref hash_type "hash" describing the mapping; the following keys are all optional (an empty hash means map from an input field with the same name with no translations):
-      - \c "code": a closure or call reference to process the field data; cannot be used with the \c "constant" key
-      - \c "constant": the value of this key will be returned as a constant value; this key cannot be used with the \c "name", \c "struct", \c "code", or \c "default" keys
+      - \c "code": a closure or call reference to process the field data; cannot be used with the \c "constant" or \c "index" keys
+      - \c "constant": the value of this key will be returned as a constant value; this key cannot be used with the \c "name", \c "struct", \c "code", \c "index" or \c "default" keys
+      - \c "index": gives current index/count of the row. The initial int value is the start offset. So value 0 means that mapped values will be: 0, 1, ..., N; 1 means: 1, 2, ..., N; etc.
       - \c "date_format": gives the format for converting an input string to a date; see @ref date_formatting for the format of this string; note that this also implies \c "type" = \c "date"
       - \c "default": gives a default value for the field in case no input or translated value is provided
       - \c "mand": assign to boolean @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
       - \c "maxlen": an integer giving the maximum output string field length in bytes
-      - \c "name": the value of this key gives the name of the input field; only use this if the input record name is different than the output field name; note that if this value contains \c "." characters and the \a allow_dot option is not set (see @ref mapperoptions), then the value will be treated like \c "struct" (the \c "struct" key value will be created automatically); cannot be used with the \c "constant" key
+      - \c "name": the value of this key gives the name of the input field; only use this if the input record name is different than the output field name; note that if this value contains \c "." characters and the \a allow_dot option is not set (see @ref mapperoptions), then the value will be treated like \c "struct" (the \c "struct" key value will be created automatically); cannot be used with the \c "constant" ior \c "index" keys
       - \c "number_format": gives the format for converting an input string to a number; see @ref Qore::parse_number() for the format of this string; note that this also implies \c "type" = \c "number"
       - \c "runtime": a reference to @ref mapper_runtime_handling current status. The value is key in the current runtime structure.
-      - \c "struct": the value of this key gives the location of the input field in an input hash in dot notation, ex: \c "element.name" would look for the field's value in the \c "name" key of the \c "element" hash in the input record; cannot be used with the \c "constant" key; this option is only necessary in place of the "name" option if the \a allow_dot option is set, otherwise use \c "name" instead
+      - \c "struct": the value of this key gives the location of the input field in an input hash in dot notation, ex: \c "element.name" would look for the field's value in the \c "name" key of the \c "element" hash in the input record; cannot be used with the \c "constant" or \c "index" keys; this option is only necessary in place of the "name" option if the \a allow_dot option is set, otherwise use \c "name" instead
       - \c "trunc": assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
       - \c "type": this gives the output field type, can be:
         - \c "date": date/time field
@@ -237,6 +238,7 @@ m.mapData(input2);           # date_begin is still the same as from beginning of
       - @ref Mapper::Mapper::getRuntime()
       - @ref Mapper::Mapper::replaceRuntime()
       - @ref Mapper::Mapper::setRuntime()
+    - implemented \c "index" field tag for current row index
 
     @subsection mapperv1_0 Mapper v1.0
     - Initial release
@@ -248,7 +250,7 @@ public namespace Mapper {
     #! this class is a base class for mapping data; see @ref mapperexamples for usage examples
     public class Mapper {
         public {
-            #! field keys that conflict with "constant"
+            #! field keys that conflict with "constant" and "index"
             const ConstantConflictList = ("name", "struct", "code", "default");
 
             #! constructor option keys (can be extended by subclassing and reimplementing optionKeys())
@@ -272,6 +274,7 @@ public namespace Mapper {
                 "name": True,
                 "struct": True,
                 "constant": True,
+                "index" : True,
                 "code": True,
                 "default": True,
                 "maxlen": True,
@@ -376,7 +379,7 @@ const DataMap = (
 Mapper mapv(DataMap);
             @endcode
 
-            @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
+            @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
@@ -527,7 +530,7 @@ Mapper mapv(DataMap);
             if (fh.name) {
                 if (fh.struct)
                     error("output field %y has both 'name' (%y) and 'struct' (%y) values; only one can be given to identify the input field", getFieldName(k), fh.name, fh.struct);
-                if (input && !exists fh.constant && !fh.code)
+                if (input && !exists fh.constant && !fh.code && !exists fh.index)
                     checkInputField(k, fh.name);
                 if (!allow_dot && fh.name =~ /\./)
                     fh.struct = (remove fh.name).split(".");
@@ -536,12 +539,16 @@ Mapper mapv(DataMap);
                 if (!m_runtime.hasKey(fh.runtime))
                     error("output field %y requires unregistered runtime key %y", getFieldName(k), fh.runtime);
             }
-            else if (!fh.struct && input && !exists fh.constant && !fh.code)
+            else if (!fh.struct && input && !exists fh.constant && !fh.code && !exists fh.index)
                 checkInputField(k, k);
-            if (exists fh.constant) {
+            if (exists fh.constant && exists fh.index) {
+                error("output field %y has a 'constant' and 'index' together. It's a conflict.", getFieldName(k));
+            }
+            if (exists fh.constant || exists fh.index) {
                 *list cl = map $1, fh.keys(){ConstantConflictList};
+                string fieldType = exists fh.constant ? "constant" : "index";
                 if (cl)
-                    error("output field %y has a \"constant\" key giving a constant output value and also the following conflicting keys: %y", getFieldName(k), cl);
+                    error("output field %y has a \"%s\" key conflicts with following key(s): %y", fieldType, getFieldName(k), cl);
             }
 
             switch (fh.struct.typeCode()) {
@@ -555,7 +562,7 @@ Mapper mapv(DataMap);
                         if (input)
                             checkInputField(k, fh.name);
                     }
-                    else if (input && !exists fh.constant && !fh.code)
+                    else if (input && !exists fh.constant && !fh.code && !exists fh.index)
                         checkInputField(k, (foldl $1 + "." + $2, fh.struct));
                     break;
                 }
@@ -816,6 +823,8 @@ Mapper mapv(DataMap);
                 any v;
                 if (exists m.constant)
                     v = m.constant;
+                else if (exists m.index)
+                    v = m.index + count;
                 else if (m.runtime) {
                     v = m_runtime{m.runtime}; # TODO/FIXME: throw an exception if it does not exist?
                 }
@@ -1081,7 +1090,7 @@ Mapper mapv(DataMap);
 
         #! creates the iterator from the arguments passed
         /** @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
-            @param map a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+            @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
@@ -1092,7 +1101,7 @@ Mapper mapv(DataMap);
 
         #! creates the iterator from the arguments passed
         /** @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
-            @param map the mapper to transform the data
+            @param mapv the mapper to transform the data
         */
         constructor(Qore::AbstractIterator i, Mapper::Mapper mapv) : Mapper::AbstractMapperIterator(i) {
             mapc = mapv;

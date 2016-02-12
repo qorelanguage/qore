@@ -173,6 +173,7 @@ libqore_la_SOURCES = \
 	QoreTimeZoneManager.cpp \
 	QoreString.cpp \
 	QoreObject.cpp \
+	RSet.cpp \
 	QoreListNode.cpp \
 	qore-main.cpp \
 	QoreGetOpt.cpp \

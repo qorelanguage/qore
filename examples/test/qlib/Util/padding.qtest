@@ -1,0 +1,50 @@
+#!/usr/bin/env qore
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class PaddingTest
+
+public class PaddingTest inherits QUnit::Test {
+    constructor() : Test ("PaddingTest", "1.0") {
+        addTestCase ("Tests for lpad() function", \test_lpad());
+        addTestCase ("Tests for rpad() function", \test_rpad());
+        set_return_value(main());
+    }
+
+    test_lpad() {
+        # input shorter than output
+        assertEq ('*.*.*.*.*Page 1', lpad ('Page 1', 15, '*.'));
+        assertEq ('         Page 1', lpad ('Page 1', 15));
+        # input longer than output
+        assertEq ('12345', lpad ('012345', 5));
+        # both lengths same
+        assertEq ('12345', lpad ('12345', 5));
+        # "empty" input
+        assertEq ('     ', lpad ('', 5));
+        # zero length
+        assertEq ('', lpad ('abc', 0));
+        # negative length
+        assertEq ('', lpad ('abc', -1));
+    }
+
+    test_rpad() {
+        # input shorter than output
+        assertEq ('Page 1*.*.*.*.*', rpad ('Page 1', 15, '*.'));
+        assertEq ('Page 1         ', rpad ('Page 1', 15));
+        # input longer than output
+        assertEq ('01234', rpad ('012345', 5));
+        # both lengths same
+        assertEq ('12345', rpad ('12345', 5));
+        # "empty" input
+        assertEq ('     ', rpad ('', 5));
+        # zero length
+        assertEq ('', rpad ('abc', 0));
+        # negative length
+        assertEq ('', rpad ('abc', -1));
+    }
+}

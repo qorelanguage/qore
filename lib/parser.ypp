@@ -909,6 +909,12 @@ public:
    }
 };
 
+class EmptyPrivateMemberList : public MemberList {
+public:
+   DLLLOCAL EmptyPrivateMemberList() {
+   }
+};
+
 struct ParserTypeStruct {
 protected:
    DLLLOCAL ParserTypeStruct(QoreParseTypeInfo* n_parseTypeInfo) : typeInfo(0), parseTypeInfo(n_parseTypeInfo) {
@@ -992,21 +998,27 @@ struct ParserScopedOrNothingTypeStruct : public ParserTypeStruct {
 
 static AbstractQoreNode* process_dot(AbstractQoreNode* l, AbstractQoreNode* r) {
    qore_type_t rtype = r->getType();
-   if (rtype == NT_BAREWORD) {
-      BarewordNode* b = reinterpret_cast<BarewordNode*>(r);
-      AbstractQoreNode* rv = new QoreTreeNode(l, OP_OBJECT_REF, b->makeQoreStringNode());
-      b->deref();
-      return rv;
-   }
+   switch (rtype) {
+      case NT_BAREWORD: {
+         BarewordNode* b = reinterpret_cast<BarewordNode*>(r);
+         if (!b->isFinalized()) {
+            AbstractQoreNode* rv = new QoreTreeNode(l, OP_OBJECT_REF, b->makeQoreStringNode());
+            b->deref();
+            return rv;
+         }
+         break;
+      }
 
-   if (rtype == NT_FUNCTION_CALL) {
-      FunctionCallNode* f = reinterpret_cast<FunctionCallNode*>(r);
-      assert(!f->getFunction());
-      if (!f->isFinalized()) {
-         MethodCallNode* m = new MethodCallNode(f->takeName(), f->takeArgs());
-         f->deref();
+      case NT_FUNCTION_CALL: {
+         FunctionCallNode* f = reinterpret_cast<FunctionCallNode*>(r);
+         assert(!f->getFunction());
+         if (!f->isFinalized()) {
+            MethodCallNode* m = new MethodCallNode(f->takeName(), f->takeArgs());
+            f->deref();
 
-         return new QoreDotEvalOperatorNode(l, m);
+            return new QoreDotEvalOperatorNode(l, m);
+         }
+         break;
       }
    }
 
@@ -1443,6 +1455,9 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %token TOK_TRIM "trim"
 %token LOGICAL_AND "&& operator"
 %token LOGICAL_OR "|| operator"
+%token BROKEN_LOGICAL_OR "|| operator"
+%token BROKEN_BINARY_OR "| operator"
+%token BROKEN_BINARY_XOR "^ operator"
 %token LOGICAL_EQ "== operator"
 %token LOGICAL_NE "!= operator"
 %token LOGICAL_LE "<= operator"
@@ -1510,14 +1525,17 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %right PLUS_EQUALS MINUS_EQUALS AND_EQUALS OR_EQUALS MODULA_EQUALS MULTIPLY_EQUALS DIVIDE_EQUALS XOR_EQUALS SHIFT_LEFT_EQUALS SHIFT_RIGHT_EQUALS '='
 %right '?' ':'
 %right NULL_COALESCING VALUE_COALESCING
-%left LOGICAL_AND LOGICAL_OR
-%left '&' '|' '^'	      // binary and, or, and xor
+%left LOGICAL_OR
+%left LOGICAL_AND BROKEN_LOGICAL_OR
+%left '|'
+%left '^'
+%left '&' BROKEN_BINARY_OR BROKEN_BINARY_XOR
 %left '<' '>' LOGICAL_EQ LOGICAL_NE LOGICAL_LE LOGICAL_GE LOGICAL_CMP ABSOLUTE_EQ ABSOLUTE_NE REGEX_MATCH REGEX_NMATCH
 %right TOK_EXISTS TOK_INSTANCEOF
-%left SHIFT_RIGHT SHIFT_LEFT  // binary shift right and left
-%left '+' '-'		      // arithmetic plus and minus
-%left '%'		      // modula
-%left '*' '/'		      // arithmetic multiply and divide
+%left SHIFT_RIGHT SHIFT_LEFT    // binary shift right and left
+%left '+' '-'                   // arithmetic plus and minus
+%left '%'                       // modulo
+%left '*' '/'                   // arithmetic multiply and divide
 %right TOK_ELEMENTS TOK_KEYS
 %nonassoc TOK_SHIFT TOK_POP TOK_CHOMP TOK_TRIM
 %left NEG		      // unary minus, defined for precedence
@@ -1590,7 +1608,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %destructor { delete $$; } TRY_MODULE_ERROR REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod inline_methoddef class_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl outofline_methoddef hash alt_hash
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF SCOPED_VREF KW_IDENTIFIER_OPENPAREN QORE_CAST CLASS_STRING optname ident_openparen
 %destructor { if ($$) $$->deref(); } namespace_decl namespace_decls string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
-%destructor { if ($$) $$->deref(0); } exp myexp scalar list
+%destructor { if ($$) $$->deref(0); } exp exp_n exp_c myexp scalar list
 
 %%
 top_level_commands:
@@ -2096,21 +2114,29 @@ case_code:
 
 try_statement:
         TOK_TRY statement_or_block TOK_CATCH '(' myexp ')' statement_or_block {
-	   char* param = 0;
-	   if ($5) {
-	      if ($5->getType() == NT_VARREF)
-		 param = reinterpret_cast<VarRefNode*>($5)->takeName();
-	      else if ($5->getType() == NT_BAREWORD) {
-		 param = reinterpret_cast<BarewordNode*>($5)->takeString();
-		 if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
-		    parse_error("local variable '%s' in catch parameter list declared without '$' prefix, but parse option 'allow-bare-refs' is not set", param);
-	      }
-	      else
-		 parse_error("only one parameter accepted in catch block for exception hash");
-	      $5->deref(0);
-	   }
-	   $$ = new TryStatement(@1.first_line, @7.last_line, $2, $7, param);
-	}
+           char* param = 0;
+           const QoreTypeInfo *typeInfo = 0;
+           if ($5) {
+              if ($5->getType() == NT_VARREF) {
+                 VarRefNode *varRefNode = static_cast<VarRefNode*>($5);
+                 param = varRefNode->takeName();
+                 if (varRefNode->isDecl()) {
+                    VarRefDeclNode *varRefDeclNode = static_cast<VarRefDeclNode*>(varRefNode);
+                    if (varRefDeclNode->getParseTypeInfo() || varRefDeclNode->getTypeInfo()->parseAccepts(hashTypeInfo) == QTI_NOT_EQUAL) {
+                       parse_error("the type of catch parameter '%s' must be 'hash'", param);
+                    }
+                    typeInfo = varRefDeclNode->getTypeInfo();
+                 }
+              } else if ($5->getType() == NT_BAREWORD) {
+                 param = reinterpret_cast<BarewordNode*>($5)->takeString();
+                 if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
+                    parse_error("local variable '%s' in catch parameter list declared without '$' prefix, but parse option 'allow-bare-refs' is not set", param);
+              } else
+                 parse_error("only one parameter accepted in catch block for exception hash");
+           $5->deref(0);
+           }
+           $$ = new TryStatement(@1.first_line, @7.last_line, $2, $7, param, typeInfo);
+        }
         ;
 
 myexp:  /* empty */  { $$ = 0; }
@@ -2276,26 +2302,17 @@ qtypedef:
         }
         ;
 
-private_member_list:
-	TOK_PRIVATE member_list ';' {
-	   $$ = $2;
-	}
-        | TOK_PRIVATE '{' member_list2 '}' {
-	   $$ = $3;
-	}
-        ;
+private_member_list
+    : TOK_PRIVATE member_list ';'           { $$ = $2; }
+    | TOK_PRIVATE '{' member_list2 '}'      { $$ = $3; }
+    | TOK_PRIVATE '{' '}'                   { $$ = new EmptyPrivateMemberList; }
+    ;
 
-public_member_list:
-	TOK_PUBLIC member_list ';' {
-	   $$ = $2;
-	}
-	| TOK_PUBLIC '{' member_list2 '}' {
-	   $$ = $3;
-	}
-	| TOK_PUBLIC '{' '}' {
-	   $$ = new EmptyPublicMemberList;
-	}
-        ;
+public_member_list
+    : TOK_PUBLIC member_list ';'            { $$ = $2; }
+    | TOK_PUBLIC '{' member_list2 '}'       { $$ = $3; }
+    | TOK_PUBLIC '{' '}'                    { $$ = new EmptyPublicMemberList; }
+    ;
 
 classvardecl:
 	TOK_STATIC uncqtypedef IDENTIFIER ';' {
@@ -2708,8 +2725,14 @@ list:
         { $$ = splice_expressions($1, $3); }
         | exp ',' {
 	   QoreListNode* l;
-	   if ($1 && $1->getType() == NT_LIST)
+	   if ($1 && $1->getType() == NT_LIST) {
 	      l = reinterpret_cast<QoreListNode*>($1);
+              if (l->isFinalized()) {
+                 QoreListNode* nl = new QoreListNode;
+                 nl->push(l);
+                 l = nl;
+              }
+           }
 	   else {
 	      l = new QoreListNode;
 	      l->push($1);
@@ -3136,6 +3159,9 @@ exp_c:  scalar
                  case NT_FUNCTION_CALL:
                     reinterpret_cast<FunctionCallNode*>($2)->setFinalized();
                     break;
+                 case NT_BAREWORD:
+                    reinterpret_cast<BarewordNode*>($2)->setFinalized();
+                    break;
               }
            }
 	}
@@ -3215,6 +3241,9 @@ exp
     | exp '(' myexp ')'                 { $$ = processCall($1, $3); }
     | exp LOGICAL_AND exp               { $$ = new QoreTreeNode($1, OP_LOG_AND, $3); }
     | exp LOGICAL_OR exp                { $$ = new QoreTreeNode($1, OP_LOG_OR, $3); }
+    | exp BROKEN_LOGICAL_OR exp         { $$ = new QoreTreeNode($1, OP_LOG_OR, $3); }
+    | exp BROKEN_BINARY_OR exp          { $$ = new QoreTreeNode($1, OP_BIN_OR, $3); }
+    | exp BROKEN_BINARY_XOR exp         { $$ = new QoreTreeNode($1, OP_BIN_XOR, $3); }
     | exp '|' exp                       { $$ = new QoreTreeNode($1, OP_BIN_OR, $3); }
     | exp '&' exp                       { $$ = new QoreTreeNode($1, OP_BIN_AND, $3); }
     | exp '^' exp                       { $$ = new QoreTreeNode($1, OP_BIN_XOR, $3); }
@@ -3269,6 +3298,9 @@ exp_n
     | exp_n '(' myexp ')'               { $$ = processCall($1, $3); }
     | exp_n LOGICAL_AND exp             { $$ = new QoreTreeNode($1, OP_LOG_AND, $3); }
     | exp_n LOGICAL_OR exp              { $$ = new QoreTreeNode($1, OP_LOG_OR, $3); }
+    | exp_n BROKEN_LOGICAL_OR exp       { $$ = new QoreTreeNode($1, OP_LOG_OR, $3); }
+    | exp_n BROKEN_BINARY_OR exp        { $$ = new QoreTreeNode($1, OP_BIN_OR, $3); }
+    | exp_n BROKEN_BINARY_XOR exp       { $$ = new QoreTreeNode($1, OP_BIN_XOR, $3); }
     | exp_n '|' exp                     { $$ = new QoreTreeNode($1, OP_BIN_OR, $3); }
     | exp_n '&' exp                     { $$ = new QoreTreeNode($1, OP_BIN_AND, $3); }
     | exp_n '^' exp                     { $$ = new QoreTreeNode($1, OP_BIN_XOR, $3); }

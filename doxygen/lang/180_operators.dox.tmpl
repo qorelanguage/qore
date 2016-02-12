@@ -53,34 +53,34 @@
     |@ref regex_extract_operator "=~ x//"|\c 14|@ref regex_extract_operator "regular expression pattern extraction operator"|@code{.py} $a =~ x/(\w+):(\w+)/@endcode
     |@ref transliteration_operator "=~ tr"|\c 14|@ref transliteration_operator "transliteration operator"|@code{.py} $a =~ tr/a-z/A-Z/@endcode
     |@ref bitwise_and_operator "&"|\c 15|@ref bitwise_and_operator "bitwise/binary AND operator"|@code{.py} $a & 0xff@endcode
-    |@ref bitwise_or_operator "|"|\c 15|@ref bitwise_or_operator "bitwise/binary OR operator"|@code{.py} $a | 0xff@endcode
-    |@ref bitwise_xor_operator "^"|\c 15|@ref bitwise_xor_operator "bitwise/binary XOR operator"|@code{.py} $a ^ 0xff@endcode
-    |@ref logical_and_operator "&&"|\c 16|@ref logical_and_operator "logical AND operator"|@code{.py} ($a = 1) && ($b < 10)@endcode
-    |@ref logical_or_operator "||"|\c 16|@ref logical_or_operator "logical OR operator"|@code{.py} ($a = 1) || ($b < 10)@endcode
-    |@ref conditional_operator "? :"|\c 17|@ref conditional_operator "conditional operator"|@code{.py} $a == 2 ? "yes" : "no"@endcode
-    |@ref null_coalescing_operator "??"|\c 17|@ref null_coalescing_operator "null coalescing operator"|@code{.py} any var = $a ?? $b@endcode
-    |@ref value_coalescing_operator "?*"|\c 17|@ref value_coalescing_operator "value coalescing operator"|@code{.py} any var = $a ?* $b@endcode
-    |@ref comma_operator ","|\c 18|@ref comma_operator "comma operator"|@code{.py} 1, 2, 3, 4, 5@endcode
-    |@ref unshift "unshift"|\c 19|@ref unshift "unshift list element operator"|@code{.py} unshift $list, $val@endcode
-    |@ref push "push"|\c 19|@ref push "push list element operator"|@code{.py} push $list, $val@endcode
-    |@ref splice "splice"|\c 19|@ref splice "splice list or string operator"|@code{.py} splice $list, 2, 2, (1, 2, 3)@endcode
-    |@ref extract "extract"|\c 19|@ref extract "extract list or string operator"|@code{.py} my $sublist = extract $list, 2, 2, (1, 2, 3)@endcode
-    |@ref map "map"|\c 19|@ref map "map operator"|@code{.py} map $closure($1), $list@endcode
-    |@ref hmap "hash map"|\c 19|@ref hmap "hash map operator"|@code{.py} map {expr($1) : expr($1)}, $list@endcode
-    |@ref foldl "foldl"|\c 19|@ref foldl "fold left to right operator"|@code{.py} foldl $closure($1 - $2), $list@endcode
-    |@ref foldr "foldr"|\c 19|@ref foldr "fold right to left operator"|@code{.py} foldr $closure($1 - $2), $list@endcode
-    |@ref select "select"|\c 19|@ref select "select elements from list operator"|@code{.py} select $list, $1 > 1@endcode
-    |@ref assignment_operator "="|\c 20|@ref assignment_operator "assignment operator"|@code{.py} $var = 1@endcode
-    |@ref plus_equals_operator "+="|\c 20|@ref plus_equals_operator "plus-equals (add-to) operator"|@code{.py} $var += 5@endcode
-    |@ref minus_equals_operator "-="|\c 20|@ref minus_equals_operator "minus-equals (subtract-from) operator"|@code{.py} $var -= 5@endcode
-    |@ref and_equals_operator "&="|\c 20|@ref and_equals_operator "and-equals operator"|@code{.py} $var &= 0x2000@endcode
-    |@ref or_equals_operator "|="|\c 20|@ref or_equals_operator "or-equals operator"|@code{.py} $var |= 0x2000@endcode
-    |@ref modulo_equals_operator "%="|\c 20|@ref modulo_equals_operator "modulo-equals operator"|@code{.py} $var %= 100@endcode
-    |@ref multiply_equals_operator "*="|\c 20|@ref multiply_equals_operator "multiply-equals operator"|@code{.py} $var *= 10@endcode
-    |@ref divide_equals_operator "/="|\c 20|@ref divide_equals_operator "divide-equals operator"|@code{.py} $var /= 10@endcode
-    |@ref xor_equals_operator "^="|\c 20|@ref xor_equals_operator "xor-equals operator"|@code{.py} $var ^= 0x2000@endcode
-    |@ref shift_left_equals_operator "<<="|\c 20|@ref shift_left_equals_operator "shift-left-equals operator"|@code{.py} $var <<= 0x2000@endcode
-    |@ref shift_right_equals_operator ">>="|\c 20|@ref shift_right_equals_operator "shift-right-equals operator"|@code{.py} $var >>= 0x2000@endcode
+    |@ref bitwise_xor_operator "^"|\c 16|@ref bitwise_xor_operator "bitwise/binary XOR operator"|@code{.py} $a ^ 0xff@endcode
+    |@ref bitwise_or_operator "|"|\c 17|@ref bitwise_or_operator "bitwise/binary OR operator"|@code{.py} $a | 0xff@endcode
+    |@ref logical_and_operator "&&"|\c 18|@ref logical_and_operator "logical AND operator"|@code{.py} ($a = 1) && ($b < 10)@endcode
+    |@ref logical_or_operator "||"|\c 19|@ref logical_or_operator "logical OR operator"|@code{.py} ($a = 1) || ($b < 10)@endcode
+    |@ref conditional_operator "? :"|\c 20|@ref conditional_operator "conditional operator"|@code{.py} $a == 2 ? "yes" : "no"@endcode
+    |@ref null_coalescing_operator "??"|\c 20|@ref null_coalescing_operator "null coalescing operator"|@code{.py} any var = $a ?? $b@endcode
+    |@ref value_coalescing_operator "?*"|\c 20|@ref value_coalescing_operator "value coalescing operator"|@code{.py} any var = $a ?* $b@endcode
+    |@ref comma_operator ","|\c 21|@ref comma_operator "comma operator"|@code{.py} 1, 2, 3, 4, 5@endcode
+    |@ref unshift "unshift"|\c 22|@ref unshift "unshift list element operator"|@code{.py} unshift $list, $val@endcode
+    |@ref push "push"|\c 22|@ref push "push list element operator"|@code{.py} push $list, $val@endcode
+    |@ref splice "splice"|\c 22|@ref splice "splice list or string operator"|@code{.py} splice $list, 2, 2, (1, 2, 3)@endcode
+    |@ref extract "extract"|\c 22|@ref extract "extract list or string operator"|@code{.py} my $sublist = extract $list, 2, 2, (1, 2, 3)@endcode
+    |@ref map "map"|\c 22|@ref map "map operator"|@code{.py} map $closure($1), $list@endcode
+    |@ref hmap "hash map"|\c 22|@ref hmap "hash map operator"|@code{.py} map {expr($1) : expr($1)}, $list@endcode
+    |@ref foldl "foldl"|\c 22|@ref foldl "fold left to right operator"|@code{.py} foldl $closure($1 - $2), $list@endcode
+    |@ref foldr "foldr"|\c 22|@ref foldr "fold right to left operator"|@code{.py} foldr $closure($1 - $2), $list@endcode
+    |@ref select "select"|\c 22|@ref select "select elements from list operator"|@code{.py} select $list, $1 > 1@endcode
+    |@ref assignment_operator "="|\c 23|@ref assignment_operator "assignment operator"|@code{.py} $var = 1@endcode
+    |@ref plus_equals_operator "+="|\c 23|@ref plus_equals_operator "plus-equals (add-to) operator"|@code{.py} $var += 5@endcode
+    |@ref minus_equals_operator "-="|\c 23|@ref minus_equals_operator "minus-equals (subtract-from) operator"|@code{.py} $var -= 5@endcode
+    |@ref and_equals_operator "&="|\c 23|@ref and_equals_operator "and-equals operator"|@code{.py} $var &= 0x2000@endcode
+    |@ref or_equals_operator "|="|\c 23|@ref or_equals_operator "or-equals operator"|@code{.py} $var |= 0x2000@endcode
+    |@ref modulo_equals_operator "%="|\c 23|@ref modulo_equals_operator "modulo-equals operator"|@code{.py} $var %= 100@endcode
+    |@ref multiply_equals_operator "*="|\c 23|@ref multiply_equals_operator "multiply-equals operator"|@code{.py} $var *= 10@endcode
+    |@ref divide_equals_operator "/="|\c 23|@ref divide_equals_operator "divide-equals operator"|@code{.py} $var /= 10@endcode
+    |@ref xor_equals_operator "^="|\c 23|@ref xor_equals_operator "xor-equals operator"|@code{.py} $var ^= 0x2000@endcode
+    |@ref shift_left_equals_operator "<<="|\c 23|@ref shift_left_equals_operator "shift-left-equals operator"|@code{.py} $var <<= 0x2000@endcode
+    |@ref shift_right_equals_operator ">>="|\c 23|@ref shift_right_equals_operator "shift-right-equals operator"|@code{.py} $var >>= 0x2000@endcode
 
     @note All %Qore operators perform thread-atomic actions with respect to the immediate arguments of the operator. If the operators are used in a complex expression, the entire expression is not thread-atomic unless explicit user-level locking is used. For example: <tt>$a += 5</tt> is a thread-atomic action, but <tt>$a += $b--</tt> is not atomic, but rather made up of two atomic actions.\n\n
     When an operator taking more than one argument is used with arguments of different data types, %Qore automatically converts one or both data types to a data type supported by the operator in order to evaluate the result, according to the precedence lists given for each operator. That is; when an operator operates on mixed types, the types listed first in the following sections have precedence over types listed farther down in the lists. The result type will always be equal to the final operation type after any conversions due to type precedence per operator. If no type of either argument matches a supported data type for the operator, both types will be converted to the highest precedence data type for the operator and then the operator will evaluate the result. For explicit type conversion, please see the boolean(), string(), date(), int(), float(), etc functions.

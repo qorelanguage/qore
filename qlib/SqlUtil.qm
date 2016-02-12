@@ -117,6 +117,10 @@ module SqlUtil {
     - fixed a bug in the partition by/over operator where column names as given in the query argument hash were not properly recognized
     - fixed a bug in schema alignment; when aligning a schema and an index supporting a PK constraint is introduced in the new schema, the alignment would fail when a constraint is attempted to be disabled that doesn't exist
     - fixed a bug generating select statements for tables accessed through a synonym when used with join clauses; previously inconsistent schema prefixes could be used which could cause errors parsing the SQL statements generated
+    - fixed a bug where the @ref SqlUtil::AbstractTable "AbstractTable" lock was held while executing SQL to determine the upsert strategy to use with @ref SqlUtil::AbstractTable::UpsertAuto "UpsertAuto" (<a href="https://github.com/qorelanguage/qore/issues/408">bug 409</a>)
+    - fixed a bug where complex bind values as hashes (such as used by the pgsql and oracle drivers) were rejected by SqlUtil (<a href="https://github.com/qorelanguage/qore/issues/494">bug 494</a>) when updating
+    - fixed a bug where wildcard columns in join tables were not working (<a href="https://github.com/qorelanguage/qore/issues/499">bug 499</a>)
+    - fixed a bug in @ref SqlUtil::op_in() where invalid SQL was generated with an argument of 0 (<a href="https://github.com/qorelanguage/qore/issues/500">bug 500</a>)
 
     @subsection sqlutilv1_2 SqlUtil v1.2
     - added insert operator support; for example, for inserting with values from sequences
@@ -2343,7 +2347,6 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @param column1 the column specification for the first argument (string name or dot notation for use in joins)
         @param column2 the column specification for the second argument (string name or dot notation for use in joins)
-        @param arg the new name of the output column
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
@@ -2359,7 +2362,6 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @param column1 the column specification for the first argument (string name or dot notation for use in joins)
         @param column2 the column specification for the second argument (string name or dot notation for use in joins)
-        @param arg the new name of the output column
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
@@ -2375,7 +2377,6 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @param column1 the column specification for the first argument (string name or dot notation for use in joins)
         @param column2 the column specification for the second argument (string name or dot notation for use in joins)
-        @param arg the new name of the output column
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
@@ -2391,7 +2392,6 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @param column1 the column specification for the first argument (string name or dot notation for use in joins)
         @param column2 the column specification for the second argument (string name or dot notation for use in joins)
-        @param arg the new name of the output column
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
@@ -3273,7 +3273,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
         OP_IN: (
             "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 *string ins = (foldl $1 + "," + $2, (map t.getSqlValue($1), arg));
-                return ins ? sprintf("%s in (%s)", cn, ins) : "1 != 1";
+                return exists ins ? sprintf("%s in (%s)", cn, ins) : "1 != 1";
             },
         ),
         OP_NOT: (
@@ -5101,9 +5101,11 @@ AbstractConstraint ix = constraints.uk_jobs;
         */
         Qore::AbstractIterator getSourceConstraintIterator() {
             list l = ();
-            HashIterator i(sourceConstraints);
-            while (i.next())
-                map l += ("fk": $1, "table": i.getKey()), i.getValue().iterator();
+            if (sourceConstraints) {
+                HashIterator i(sourceConstraints);
+                while (i.next())
+                    map l += ("fk": $1, "table": i.getKey()), i.getValue().iterator();
+            }
 
             return l.iterator();
         }
@@ -5489,7 +5491,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
         abstract list getCreateSql(*hash opt);
 
         #! returns a string that can be used to rename the function in the database
-	abstract list getRenameSql(string new_name);
+        abstract list getRenameSql(string new_name);
 
         #! sets the new name of the object
         setName(string new_name) {
@@ -5547,10 +5549,10 @@ AbstractFunction f = funcs.func1;
         abstract list getCreateSql(string table_name, *hash opt);
 
         #! returns a string that can be used to rename the trigger in the database
-	abstract list getRenameSql(string table_name, string new_name);
+        abstract list getRenameSql(string table_name, string new_name);
 
         #! returns a string that can be used to drop the trigger in the database
-	abstract list getDropSql(string table_name);
+        abstract list getDropSql(string table_name);
     }
 
     #! trigger container class that throws an exception if an unknown trigger is accessed
@@ -7515,6 +7517,9 @@ string sql = t.getSqlFromList(list);
 
         static AbstractDatabase getDatabase(AbstractDatasource nds, *hash opts) {
             string drv = nds.getDriverName();
+
+            if (opts)
+                AbstractDatabase::checkDriverOptions(\opts, drv);
 
             # generate module and module namespace name
             string mn = drv[0].upr() + drv.substr(1) + "SqlUtil";
@@ -11534,7 +11539,7 @@ string sql = table.getRenameColumnSql("name", "family_name");
             c.name = new_name;
 
             # replaces the column in the internal column representation with the new definition
-	    columns.renameKey(old_name, new_name);
+            columns.renameKey(old_name, new_name);
 
             # now rename column in any constraints
             # check primary key
@@ -13503,12 +13508,7 @@ table.upsertNoCommit(row);
             @note if upserting multiple rows; it's better to use getBulkUpsertClosure(), getUpsertClosure(), or getUpsertClosureWithValidation() and execute the closure on each row; when using this method, the overhead for setting up the upsert is made for each row which is very inefficient
          */
         int upsertNoCommit(hash row, int upsert_strategy = UpsertAuto) {
-            l.lock();
-            on_exit l.unlock();
-
-            code upsert = getUpsertClosureUnlocked(row, upsert_strategy);
-
-            return upsert(row);
+            return getUpsertClosure(row, upsert_strategy)(row);
         }
 
         #! returns a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the table must have a unique key to do this; the closure returned does not check the input hash for validity
@@ -13522,7 +13522,7 @@ on_error ds.rollback();
 map upsert($1), row_list;
             @endcode
 
-            @param example_row a hash representing an example row to insert or update; every row passed to the upsert closure returned must have the same keys in the same order
+            @param row a hash representing an example row to insert or update; every row passed to the upsert closure returned must have the same keys in the same order
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
 
             @return a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the closure returned does not check the input hash for validity; the closure has the following signature: @code int sub upsert(hash row) {} @endcode The return value of the closure is an integer code giving the result of the update; see @ref upsert_results for more information
@@ -13532,11 +13532,31 @@ map upsert($1), row_list;
 
             @note the row values passed to the closure for upserting are not checked if they match the example row passed to the getUpsertClosure() method; passing non-conforming data will cause errors; see @ref SqlUtil::AbstractTable::getUpsertClosureWithValidation() for a similar method that returns a validating closure; the closure returned by this method is faster than the one returned by @ref SqlUtil::AbstractTable::getUpsertClosure() since there is no validation
          */
-        code getUpsertClosure(hash example_row, int upsert_strategy = UpsertAuto) {
-            l.lock();
-            on_exit l.unlock();
+        code getUpsertClosure(hash row, int upsert_strategy = UpsertAuto) {
+            if (upsert_strategy == UpsertAuto)
+                upsert_strategy = emptyDataIntern() ? UpsertInsertFirst : UpsertUpdateFirst;
 
-            return getUpsertClosureUnlocked(example_row, upsert_strategy);
+            # accommodate for bulk DML
+            if (row.firstValue().typeCode() == NT_LIST)
+                row = map {$1.key : $1.value[0]}, row.pairIterator();
+
+            Columns cols = checkUpsertRow(row, \upsert_strategy);
+
+            switch (upsert_strategy) {
+                case UpsertInsertFirst:
+                    return getUpsertInsertFirst(cols, row);
+
+                case UpsertUpdateFirst:
+                    return getUpsertUpdateFirst(cols, row);
+
+                case UpsertSelectFirst:
+                    return getUpsertSelectFirst(cols, row);
+
+                case UpsertInsertOnly:
+                    return getUpsertInsertOnly(cols, row);
+            }
+
+            throw "UPSERT-ERROR", sprintf("%s: invalid upsert code: %d", getDesc(), upsert_strategy);
         }
 
         #! returns a closure that can be executed given a hash argument representing either a single row or a set of rows (where each key value is a list of column values) that will be updated or inserted in the database with the given upsert strategy; the table must have a unique key to do this; the closure returned does not check the input hash for validity
@@ -13567,10 +13587,7 @@ upsert(row_hash);
             - getUpsertClosureWithValidation()
          */
         code getBulkUpsertClosure(hash example_row, int upsert_strategy = AbstractTable::UpsertAuto) {
-            l.lock();
-            on_exit l.unlock();
-
-            code upsert = getUpsertClosureUnlocked(example_row, upsert_strategy);
+            code upsert = getUpsertClosure(example_row, upsert_strategy);
             return int sub (hash h) {
                 map upsert($1), h.contextIterator();
                 return UR_Verified;
@@ -14626,7 +14643,7 @@ string sql = table.getSelectSql(sh, \args);
                 return cv;
 
             # see if we have a table.column spec
-            *string tp = (cv =~ x/(\w+)\.\w+/)[0];
+            *string tp = (cv =~ x/(\w+)\..+/)[0];
             if (tp) {
                 if (!jch{tp})
                     throw "SELECT-ERROR", sprintf("%s: query references unknown alias %y in %y; known aliases in this query: %y", getDesc(), tp, cv, jch.keys());
@@ -14883,7 +14900,7 @@ int ucnt = table.updateNoCommit(("id": id), ("name": name));
                 string key = i.getKey();
                 any value = i.getValue();
                 string exp = sprintf("%s = ", getColumnSqlName(key));
-                if (value.typeCode() == NT_HASH)
+                if (value.uop)
                     exp += getUpdateExpression(key, value);
                 else {
                     exp += "%v";
@@ -15012,37 +15029,10 @@ int ucnt = table.updateNoCommit(("id": id), ("name": name));
             return cmd.code(arg, uh.arg);
         }
 
-        private bool emptyDataUnlocked() {
+        private bool emptyDataIntern() {
             list args;
-            string sql = getSelectSqlUnlocked(("limit": 1), \args);
+            string sql = getSelectSql(("limit": 1), \args);
             return boolean(ds.vselectRow(sql, args));
-        }
-
-        private code getUpsertClosureUnlocked(hash row, int upsert_strategy = UpsertAuto) {
-            if (upsert_strategy == UpsertAuto)
-                upsert_strategy = emptyDataUnlocked() ? UpsertInsertFirst : UpsertUpdateFirst;
-
-            # accommodate for bulk DML
-            if (row.firstValue().typeCode() == NT_LIST)
-                row = map {$1.key : $1.value[0]}, row.pairIterator();
-
-            Columns cols = checkUpsertRow(row, \upsert_strategy);
-
-            switch (upsert_strategy) {
-                case UpsertInsertFirst:
-                    return getUpsertInsertFirst(cols, row);
-
-                case UpsertUpdateFirst:
-                    return getUpsertUpdateFirst(cols, row);
-
-                case UpsertSelectFirst:
-                    return getUpsertSelectFirst(cols, row);
-
-                case UpsertInsertOnly:
-                    return getUpsertInsertOnly(cols, row);
-            }
-
-            throw "UPSERT-ERROR", sprintf("%s: invalid upsert code: %d", getDesc(), upsert_strategy);
         }
 
         private Columns checkUpsertRow(hash row, reference upsert_strategy) {
@@ -15134,6 +15124,9 @@ int ucnt = table.updateNoCommit(("id": id), ("name": name));
         }
 
         private Columns getUpsertColumns(reference csrc) {
+            l.lock();
+            on_exit l.unlock();
+
             getColumnsUnlocked();
             getPrimaryKeyUnlocked();
 
@@ -15211,7 +15204,6 @@ int ucnt = table.updateNoCommit(("id": id), ("name": name));
 
         private softbool tryUpdate(string sql, hash row, Columns cols, list updc) {
             list args = row{updc}.values() + row{cols.keys()}.values();
-            #printf("sql: %s args: %y\n", sql, args);
             return ds.vexec(sql, args);
         }
 
@@ -15836,7 +15828,7 @@ list l = table.getAlignSql(table2);
                             *string pk_index = t.primaryKey.getIndex();
                             if (pk_index && t.indexes.hasKey(pk_index))
                                 t.indexes{pk_index}.setSupportingConstraint();
-			    if (constraintsLinkedToIndexesImpl() && indexes.hasKey(primaryKey.getName()))
+                            if (constraintsLinkedToIndexesImpl() && indexes.hasKey(primaryKey.getName()))
                                 t.primaryKey.clearIndex();
 
                             delete primaryKey;

@@ -60,10 +60,9 @@ class Test inherits QUnit::Test {
     }
 
     pushEmptyListToEmptyList() {
-        #list l = ();
-        #broken, see issue #320
-        #assertEq(((),), push l, ());
-        #assertEq(((),), l);
+        list l = ();
+        assertEq(((),), push l, ());
+        assertEq(((),), l);
     }
 
     pushElementToNothing() {
@@ -120,10 +119,9 @@ class Test inherits QUnit::Test {
     }
 
     unshiftEmptyListToEmptyList() {
-        #list l = ();
-        #broken, see issue #320
-        #assertEq(((),), unshift l, ());
-        #assertEq(((),), l);
+        list l = ();
+        assertEq(((),), unshift l, ());
+        assertEq(((),), l);
     }
 
     unshiftElementToNothing() {
@@ -153,7 +151,6 @@ class Test inherits QUnit::Test {
         assertEq((3,), unshift l3, 3);
         assertThrows("UNSHIFT-ERROR", sub() { unshift l4, 3; });
     }
-
 
     popBasics() {
         list l = (1, 2);

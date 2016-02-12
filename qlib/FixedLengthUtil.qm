@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file FixedLengthUtil.qm Qore user module for working with files with fixed lines length
 
-/*  FixedLengthUtil.qm Copyright 2012 - 2015 Qore Technologies, sro
+/*  FixedLengthUtil.qm Copyright 2012 - 2016 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 module FixedLengthUtil {
     version = "1.0";
     desc    = "user module for working with files with fixed length lines";
-    author  = "Jiri Vaclavik <jiri.vaclavik@qoretechnologies.com>, Zdenek Behan <zdenek.behan@qoretechnologies.com>";
+    author  = "Jiri Vaclavik <jiri.vaclavik@qoretechnologies.com>";
     url     = "http://qore.org";
     license = "MIT";
 }
@@ -65,6 +65,7 @@ module FixedLengthUtil {
     Valid options are:
     - \c "date_format": the default date format for \c "date" fields (see @ref date_formatting for the value in this case)
     - \c "encoding": the output encoding for strings parsed or returned
+    - \c "eol": the end of line characters for parsing or generation
     - \c "file_flags": additional writer @ref file_open_constants; @ref Qore::O_WRONLY | @ref Qore::O_CREAT are used by default. Use eg. @ref Qore::O_EXCL to ensure not to overwrite the target or @ref Qore::O_TRUNC to replace any existing file
     - \c "ignore_empty": if @ref Qore::True "True" then ignore empty lines
     - \c "number_format": the default number format for \c "float" or \c "number" fields (see @ref Qore::parse_number() and @ref Qore::parse_float() for the value in these cases)
@@ -228,8 +229,12 @@ public namespace FixedLengthUtil {
     #! Old (pre-OSX) Macintosh end of line character sequence
     public const EOL_MACINTOSH = "\r";
 
-    # helper list of end of line values
-    const EOLS = (EOL_UNIX, EOL_WIN, EOL_MACINTOSH);
+    # helper hash (for O(ln(n)) lookups in the worst case) of end of line values
+    const EOLS = (
+        EOL_UNIX: True,
+        EOL_WIN: True,
+        EOL_MACINTOSH: True,
+        );
 }
 
 
@@ -376,14 +381,14 @@ my hash $h = $i.getValue();
     private *hash checkOptions(*hash opts) {
         string errname = 'RECORD-ITERATOR-ERROR';
 
-        foreach my hash i in (opts.pairIterator()) {
+        foreach hash i in (opts.pairIterator()) {
             switch (i.key) {
                 case "eol": {
                     if (i.value.typeCode() != NT_STRING) {
                         throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
                     }
-                    if (!inlist(i.value, EOLS)) {
-                        throw errname, sprintf("expecting a known end of line value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                    if (!EOLS{i.value}) {
+                        throw errname, sprintf("expecting a known end of line value to option %y; got %y instead", i.key, i.value);
                     }
                     opts.eol = i.value;
                     break;
@@ -637,7 +642,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
         hash m_specs;
         string m_state;
         int m_linescount = 0;
-        hash m_opts = {};
+        *hash m_opts;
     }
 
     #! creates the FixedLengthAbstractWriter object
@@ -647,8 +652,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
     */
     constructor(hash specs, *hash opts) {
         m_specs = specs;
-        delete opts.eol;
-        m_opts = m_opts + checkOptions(opts);
+        m_opts = checkOptions(opts);
 
         # validate padding options
         HashIterator hit(specs);
@@ -671,20 +675,14 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
     private *hash checkOptions(*hash opts) {
         string errname = 'RECORD-WRITER-ERROR';
 
-        foreach my hash i in (opts.pairIterator()) {
-            switch (i.key) {
-                case "eol": {
-                    if (i.value.typeCode() != NT_STRING) {
-                        throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
-                    }
-                    if (!inlist(i.value, EOLS)) {
-                        throw errname, sprintf("expecting a known end of line value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
-                    }
-                    opts.eol = i.value;
-                    break;
-                }
-            }
+        if (exists opts.eol) {
+            if (opts.eol.typeCode() != NT_STRING)
+                throw errname, sprintf("expecting a string value to option \"eol\"; got %y (type %s) instead", opts.eol, opts.eol.type());
+            if (!EOLS{opts.eol})
+                throw errname, sprintf("expecting a known end of line value to option \"eol\"; got %y instead", opts.eol);
         }
+        else
+            opts.eol = "\n";
 
         return opts;
     }
@@ -793,7 +791,6 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
     }
 }
 
-
 #! Writer for fixed-length-line output files
 /** @par Example:
     @code
@@ -847,8 +844,9 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
         @param opts Global options; see @ref fixedlengthglobals for valid values
     */
     constructor(string file_name, hash specs, *hash opts) : FixedLengthUtil::FixedLengthAbstractWriter(specs, opts)  {
+        if (opts.encoding)
+            m_file.setEncoding(opts.encoding);
         file = file_name;
-        m_opts.eol = m_opts.eol ?? "\n";
         m_file.open2(file, O_WRONLY | O_CREAT | m_opts.file_flags);
     }
 
@@ -988,7 +986,7 @@ string file = w.write(input_list);
     */
     string write(list lines) {
         string result = "";
-        string eol = m_opts.eol ? m_opts.eol : "\n";
+        string eol = m_opts.eol;
         map result += formatLine($1) + eol, lines;
         return result;
     }
@@ -1026,7 +1024,7 @@ string line = w.write(hh);
         @throw RECORD-TRANSITION-ERROR a record transition error occurred; an invalid record sequence was given in the input data
     */
     string write(hash line) {
-        return formatLine(line) + (m_opts.eol ? m_opts.eol : "\n");
+        return formatLine(line) + m_opts.eol;
     }
 
     #! iterates the input records and returns a string corresponding to the rendered versions of all input records
@@ -1048,7 +1046,7 @@ string file = w.write(i);
     */
     string write(Qore::AbstractIterator lines) {
         string result = "";
-        string eol = m_opts.eol ? m_opts.eol : "\n";
+        string eol = m_opts.eol;
         map result += formatLine($1) + eol, lines;
         return result;
     }

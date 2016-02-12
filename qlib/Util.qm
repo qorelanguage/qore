@@ -65,11 +65,13 @@ module Util {
     - @ref Util::is_int()
     - @ref Util::is_float()
     - @ref Util::is_number()
+    - @ref Util::lpad()
     - @ref Util::normalize_dir()
       - @ref Util::normalize_dir_unix()
       - @ref Util::normalize_dir_windows()
     - @ref Util::ordinal()
     - @ref Util::plural()
+    - @ref Util::rpad()
     - @ref Util::parse_to_qore_value()
     - @ref Util::slice()
     - @ref Util::same()
@@ -88,6 +90,8 @@ module Util {
     - added Util::is_int()
     - added Util::is_float()
     - added Util::is_number()
+    - added Util::lpad()
+    - added Util::rpad()
     - added Util::ordinal()
     - added Util::plural()
     - added Util::slice()
@@ -803,6 +807,62 @@ match = is_number("1.2x");
         if (text.regex(RE_NUMBER) || (!pure && is_float(text, pure)))
             return True;
         return False;
+    }
+
+    #! Returns a string left-padded to a specified length with the specified characters.
+    /** Returns a string, left-padded to a specified length with the specified characters; or, when the string to be padded is longer than the length specified after padding, only that portion of the string that fits into the specified length.
+
+        @param  text input string that you want to pad
+        @param  length total length of output string (in characters)
+        @param  padding padding character(s); default value is a single blank
+        @return a string left-padded to the specified length
+
+        @par Example:
+        @code
+string s = lpad ("123", 5); # returns "  123"
+string s = lpad ("ABC", 9, "-"); # returns "------ABC"
+        @endcode
+
+        @since Util 1.2
+    */
+    public string sub lpad (softstring text, int length, string padding = ' ') {
+        int d = length - text.length();
+        if (d > 0) {
+            string p = strmul (padding, d / padding.length() + 1);
+            return p.substr(0, d) + text;
+        }
+        else if (d < 0)
+            return text.substr(-d);
+        else
+            return text;
+    }
+
+    #! Returns a string right-padded to a specified length with the specified characters.
+    /** Returns a string, right-padded to a specified length with the specified characters; or, when the string to be padded is longer than the length specified after padding, only that portion of the string that fits into the specified length.
+
+        @param  text input string that you want to pad
+        @param  length total length of output string (in characters)
+        @param  padding padding character(s); default value is a single blank
+        @return a string right-padded to the specified length
+
+        @par Example:
+        @code
+string s = rpad ("123", 5); # returns "123  "
+string s = rpad ("ABC", 9, "-"); # returns "ABC------"
+        @endcode
+
+        @since Util 1.2
+    */
+    public string sub rpad (softstring text, int length, string padding = ' ') {
+        int d = length - text.length();
+        if (d > 0) {
+            string p = strmul (padding, d / padding.length() + 1);
+            return text + p.substr(0, d);
+        }
+        else if (d < 0)
+            return text.substr(0, d);
+        else
+            return text;
     }
 
     #! Returns string with partially textual representation of ordinal integer value

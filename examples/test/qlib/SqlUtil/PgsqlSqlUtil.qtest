@@ -12,6 +12,8 @@
 %requires ../../../../qlib/PgsqlSqlUtil.qm
 %requires ../../../../qlib/Schema.qm
 
+%requires ./SqlUtilTestBase.qm
+#/;
 %try-module pgsql
 %define NoPgsql
 %endtry
@@ -65,7 +67,7 @@ class PgsqlTestSchema inherits AbstractSchema {
                 "notnull": True,
                 );
             if (h.value.typeCode() == NT_HASH)
-                ch += (h.value - ("value", "bind"));
+                ch += (h.value - ("value", "bind", "expect"));
             tables.pgsql_test.columns{PgsqlTest::getColumnName(h.key)} = ch;
         }
         return tables;
@@ -96,7 +98,7 @@ class PgsqlTestSchema inherits AbstractSchema {
     }
 }
 
-class PgsqlTest inherits QUnit::Test {
+class PgsqlTest inherits SqlTestBase {
     public {
         const CustomColumns = (
             "varchar": (
@@ -111,15 +113,30 @@ class PgsqlTest inherits QUnit::Test {
                 "size": 15,
                 "scale": 2,
                 "value": 400.95n,
-                ),
+            ),
+
+            "smallint": 100,
+            "integer": 1928381,
+            "bigint": 2198374739812,
+            "smallserial": 100,
+            "serial": 39484392,
+            "bigserial": 129383948393,
+            "real": 1.5,
+            "double precision": 3.1415927,
+            "float": 3.141592653589793238,
+            "oid": 1234, # should not be used
+
             "date": 2016-01-11,
             "abstime": 2016-01-11T09:26:14,
-            "reltime": 5M + 71D + 19h + 245m + 51s,
+            "reltime": ("value": 5M + 71D + 19h + 245m + 51s, "expect": NOTHING), # TODO: would fail selectTest()
             "interval": 6M + 3D + 2h + 45m + 15s,
             "time": 09:26:52,
             "time with time zone": 09:27:03-06,
+            "timetz": 09:27:03-06,
             "timestamp": 2016-01-11T09:27:59,
             "timestamp with time zone": 2016-01-11T09:28:12.384629+03,
+            "timestamptz": 2016-01-11T09:28:12.384629+03,
+
             /*
             "money": (
                 "value": 400.56,
@@ -128,49 +145,38 @@ class PgsqlTest inherits QUnit::Test {
 %endif
             ),
             */
+            "text": "test",
+            "character": "c",
+            "character varying": "character varying",
+
+            "bool": True,
+            "boolean": False,
+
             "bytea": <bead>,
-            #"bit": ,
-            #"varbit": ,
+%ifndef NoPgsql
+            "bit": ("bind": pgsql_bind (PG_TYPE_BIT, "10011001"), "size": 8, "expect": <99>),
+            "varbit": ("bind": pgsql_bind (PG_TYPE_VARBIT, "xBEAF"), "expect": <BEAF>),
+
+            "macaddr": ("bind": pgsql_bind (PG_TYPE_MACADDR, "0a:1e:df:e4:4f:da")),
+            "inet": ("bind": pgsql_bind (PG_TYPE_INET, "192.168.11.1"), "expect": "192.168.11.1/32"),
+            "cidr": ("bind": pgsql_bind (PG_TYPE_CIDR, "192.168"), "expect": "192.168.0.0/24"),
+%endif
             );
     }
 
-    private {
-        PgsqlTestSchema schema;
-        AbstractTable table;
-
-        const MyOpts = Opts + (
-            "connstr": "c,conn=s",
-            );
-
-        const OptionColumn = 22;
-
-        hash row;
-
-        list insert_data;
-        list upsert_data;
-    }
-
-    constructor() : Test("PgsqlTest", "1.0", \ARGV, MyOpts) {
-        addTestCase("Insert", \insertTest());
-        addTestCase("Upsert", \upsertTest());
-        addTestCase("BulkInsert", \bulkInsertTest());
-        addTestCase("BulkUpsert", \bulkUpsertTest());
-
+    constructor() : SqlTestBase("PgsqlTest", "1.0", \ARGV, MyOpts) {
         Datasource ds;
         try {
             ds = getDatasource();
         }
         catch (hash ex) {
+            if (m_options.verbose)
+                printf("%s: %s\n", ex.err, ex.desc);
             # skip tests if we can't create the datasource
         }
 
         if (ds) {
-            foreach hash h in (CustomColumns.pairIterator()) {
-                any val = h.value.typeCode() == NT_HASH ? h.value.value : h.value;
-                row{PgsqlTest::getColumnName(h.key)} = val;
-            }
-            insert_data = (("id": 1,) + row, ("id": 2,) + row,);
-            upsert_data = (("id": 2,) + row, ("id": 3,) + row,);
+            init_test_data (CustomColumns);
 
             # create the test schema
             schema = new PgsqlTestSchema(ds);
@@ -182,12 +188,6 @@ class PgsqlTest inherits QUnit::Test {
         }
 
         set_return_value(main());
-    }
-
-    globalTearDown() {
-        # drop the test schema
-        if (schema)
-            schema.drop(False, m_options.verbose);
     }
 
     private usageIntern() {
@@ -203,64 +203,5 @@ class PgsqlTest inherits QUnit::Test {
             throw "PGSQL-ERROR", sprintf("cannot execute the pgsql tests on a connection using driver %y", ds.getDriverName());
         ds.open();
         return ds;
-    }
-
-    insertTest() {
-        if (!table)
-            testSkip("no DB connection");
-
-        on_success table.commit();
-        on_error table.rollback();
-
-        map assertEq(NOTHING, table.insertNoCommit($1)), insert_data;
-    }
-
-    upsertTest() {
-        if (!table)
-            testSkip("no DB connection");
-
-        on_success table.commit();
-        on_error table.rollback();
-
-        code upsert = table.getUpsertClosure(insert_data[0]);
-        assertEq(AbstractTable::UR_Verified, upsert(upsert_data[0]));
-        assertEq(AbstractTable::UR_Inserted, upsert(upsert_data[1]));
-    }
-
-    bulkInsertTest() {
-        if (!table)
-            testSkip("no DB connection");
-
-        on_success table.commit();
-        on_error table.rollback();
-
-        table.delNoCommit();
-
-        BulkInsertOperation insert(table);
-        on_success insert.flush();
-        on_error insert.discard();
-
-        map assertEq(NOTHING, insert.queueData($1)), insert_data;
-    }
-
-    bulkUpsertTest() {
-        if (!table)
-            testSkip("no DB connection");
-
-        on_success table.commit();
-        on_error table.rollback();
-
-        table.delNoCommit();
-
-        BulkUpsertOperation insert(table);
-        on_success insert.flush();
-        on_error insert.discard();
-
-        map assertEq(NOTHING, insert.queueData($1)), upsert_data;
-    }
-
-    static string getColumnName(string n) {
-        n =~ s/ //g;
-        return n + "_f";
     }
 }

@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -640,6 +640,14 @@ public:
    DLLLOCAL ClosureVarValue* find(const LocalVar* id) const;
    DLLLOCAL bool hasVar(ClosureVarValue* cvv) const;
    DLLLOCAL void del(ExceptionSink* xsink);
+
+   DLLLOCAL bool empty() {
+      return cmap.empty();
+   }
+
+   DLLLOCAL const cvar_map_t& getMap() const {
+      return cmap;
+   }
 };
 
 struct ThreadLocalProgramData;

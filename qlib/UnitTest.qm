@@ -60,41 +60,41 @@ module UnitTest {
 %exec-class TestCow
 
 class TestCow inherits UnitTest {
-	constructor() {
-		string testfile = tmp_location() + '/test.txt';
-		# some processing
-		unlink(testfile);
+    constructor() {
+        string testfile = tmp_location() + '/test.txt';
+        # some processing
+        unlink(testfile);
 
-		cmp(Cow.sound(), 'moo', "cow's sound is correct");
+        cmp(Cow.sound(), 'moo', "cow's sound is correct");
 
-		ok(Cow.hasFourLegs(), "number of cow's legs correct");
+        ok(Cow.hasFourLegs(), "number of cow's legs correct");
 
-		like(Cow.sound(), 'moo+', "cow's sound is correct");
+        like(Cow.sound(), 'moo+', "cow's sound is correct");
 
-		sub fly (string animal) {
-			if (animal === "cow") {
-				throw 'UNABLE-FLY', 'cow cannot fly'
-			}
-		}
+        sub fly (string animal) {
+            if (animal === "cow") {
+                throw 'UNABLE-FLY', 'cow cannot fly'
+            }
+        }
 
                 exception(\fly(), ('cow'), 'invoked exception when cow trying to fly', UNABLE-FLY, 'cow cannot fly');
 
-		cmploop(
-			\eat(),
-			(
-				(
-					"args" : ("grass"),
-					"cmp"  : True,
-					"msg"  : "cow can eat grass",
-				),
-				(
-					"args" : ("itself"),
-					"cmp"  : False,
-					"msg"  : "cow cannot eat itself",
-				),
-			),
-		);
-	}
+        cmploop(
+            \eat(),
+            (
+                (
+                    "args" : ("grass"),
+                    "cmp"  : True,
+                    "msg"  : "cow can eat grass",
+                ),
+                (
+                    "args" : ("itself"),
+                    "cmp"  : False,
+                    "msg"  : "cow cannot eat itself",
+                ),
+            ),
+        );
+    }
 }
     @endcode
 

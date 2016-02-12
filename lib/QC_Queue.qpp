@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -36,6 +36,8 @@
 /** %Queue objects can also be used as a stack or as a blocking message channel, if a maximum size is given to Queue::constructor() when the object is created.
     In this case when the %Queue is full, adding new elements to the %Queue will block until the %Queue shrinks below the maximum size.
     All read and write methods to %Queue also take timeout values; if a timeout occurs a \c QUEUE-TIMEOUT exception is thrown.
+
+    Queues can be atomically flagged with an error status by calling Queue::setError().  This method will cause any write operations on the Queue to fail with the error information provided with this call.  Calling Queue::clearError() causes the error status to be removed and allows the Queue to be usable again.
 
     @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option
  */
@@ -261,4 +263,37 @@ int Queue::getReadWaiting() [flags=CONSTANT] {
  */
 int Queue::getWriteWaiting() [flags=CONSTANT] {
    return q->getWriteWaiting();
+}
+
+//! sets an error status on the Queue and clears the Queue; while a Queue object has an error status, any write operations to the queue will fail and cause an exception to be raised with the information provided to this method
+/** @par Example:
+    @code $queue.setError("INVALID-OPERATION", "the data queue has been closed");
+    @endcode
+
+    @param err the exception error code string
+    @param desc the exception description string
+
+    Any threads blocked on this Queue will be woken up immediately and have the given exception thrown
+
+    @note This method does not throw any exceptions, but exceptions could be thrown by in destructors of objects that go out of scope by being removed from the Queue
+
+    @see clearError()
+
+    @since %Qore 0.8.12
+*/
+Queue::setError(string err, string desc) {
+   q->setError(err->c_str(), desc, xsink);
+}
+
+//! clears the error setting from the Queue; if error information is set, then after this call, the Queue is usable again
+/** @par Example:
+    @code $queue.clearError()
+    @endcode
+
+    @see setError()
+
+    @since %Qore 0.8.12
+*/
+Queue::clearError() {
+   q->clearError();
 }

@@ -4,8 +4,8 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2015 Qore Technologies, sro
-  
+  Copyright (C) 2006 - 2016 Qore Technologies, sro
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -41,6 +41,6 @@ struct sql_statement_private {
 
    DLLLOCAL sql_statement_private() : ds(0), data(0) {
    }
-}; 
+};
 
 #endif

@@ -321,7 +321,7 @@ TextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
 hash h = qft.render(ctx);
             @endcode
 
-            @param mtime the modified date/time of the file, used to determine if the template should be recomiled or not
+            @param new_mtime the modified date/time of the file, used to determine if the template should be recomiled or not
             @param ctx the context argument for the template
             @param code the HTTP response code for the response, if not present then 200 \c "OK" is assumed
             @param hdr any optional headers for the response (the \c "Content-Type" header is set from the template's \c "Content-Type" value automatically)
@@ -700,7 +700,7 @@ hash h = tm.render("html/index.qhtml", ctx);
         #! create the object optionally with the given HttpServer::AbstractAuthenticator
         /** @param new_file_root the filesystem root directory for serving files
             @param url_root the root part of the URL path without the leading \c "/"
-            @param options an optional with one or more of the following option keys:
+            @param opt an optional with one or more of the following option keys:
             - \c default_target: the default relative path to use if a request cannot be satisfied
             - \c po: the @ref parse_options "Program parse options" for the template file @ref Qore::Program "programs"
             - \c psetup: an optional @ref closure "closure" or @ref call_reference "call reference" taking a single @ref Qore::Program "Program" argument to be called when initializing template @ref Qore::Program "programs" to set up a custom template API, etc
