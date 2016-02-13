@@ -106,7 +106,8 @@ class qdx {
         # get module name and version (the easy way)
         string name = substr(basename(src), 0, -3);
         Program p();
-        string msrc = sprintf("%%requires %s\nhash sub get() { return getModuleHash().'%s'; }\n", src, name);
+        p.define("QORE_QDX_RUN", 1);
+        string msrc = sprintf("%%requires %s\nhash sub get() { return get_module_hash().'%s'; }\n", src, name);
         p.parse(msrc, "mod");
         hash h = p.callFunction("get");
 
