@@ -129,13 +129,14 @@ class MysqlTest inherits SqlTestBase {
             "time": 09:26:52,
             "year": 2016,
 
-            "binary": <bead>,
-            /*
+            "binary": (
+                "size": "2",
+                "value": <bead>,
+            ),
             "varbinary": (
                 "value": <bead>,
-                "size": "20",
+                "size": "10",
             ),
-            */
 
             "tinyblob": <bead>,
             "blob": <bead>,
@@ -146,7 +147,7 @@ class MysqlTest inherits SqlTestBase {
             "mediumtext": "test",
             "longtext": "test",
 
-            "bit": 100,
+            #"bit": 100,
             );
     }
 
