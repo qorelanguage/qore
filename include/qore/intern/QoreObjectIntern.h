@@ -156,12 +156,7 @@ public:
 
    DLLLOCAL qore_object_private(QoreObject* n_obj, const QoreClass *oc, QoreProgram* p, QoreHashNode* n_data);
 
-   DLLLOCAL ~qore_object_private() {
-      assert(!pgm);
-      assert(!data);
-      assert(!privateData);
-      assert(!rset);
-   }
+   DLLLOCAL ~qore_object_private();
 
    DLLLOCAL void plusEquals(const AbstractQoreNode* v, AutoVLock& vl, ExceptionSink* xsink) {
       if (!v)

@@ -87,6 +87,7 @@ void RSet::dbg() {
 }
 #endif
 
+// if we return 1, the rset has been invalidated already
 int RSet::canDelete(int ref_copy, int rcount) {
    printd(QRO_LVL, "RSet::canDelete() this: %p valid: %d\n", this, valid);
 
@@ -95,6 +96,8 @@ int RSet::canDelete(int ref_copy, int rcount) {
 
    if (!valid)
       return -1;
+
+   bool make_invalid = false;
 
    {
       QoreAutoRWReadLocker al(rwl);
@@ -116,8 +119,17 @@ int RSet::canDelete(int ref_copy, int rcount) {
          printd(QRO_LVL, "RSet::canDelete() this: %p can delete graph obj %p '%s' rcount: %d refs: %d\n", this, *i, (*i)->getName(), (*i)->rcount, (*i)->refs());
       }
       // invalidate the rset
-      valid = false;
+      make_invalid = true;
    }
+
+   if (make_invalid) {
+      QoreAutoRWWriteLocker al(rwl);
+      if (!valid)
+         return -1;
+
+      invalidateIntern();
+   }
+
    printd(QRO_LVL, "RSet::canDelete() this: %p can delete all objects in graph\n", this);
    return 1;
 }
