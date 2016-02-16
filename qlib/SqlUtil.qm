@@ -2028,7 +2028,7 @@ public namespace SqlUtil {
         COP_COUNT: (
             "nocolumn": True,
             "code": string sub (*string cve, any arg) {
-                return sprintf("count(%s)", cve ? cve : "1");
+                return sprintf("count(%s)", cve ? cve : "*");
             },
         ),
         COP_MINUS: (
