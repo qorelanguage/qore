@@ -316,6 +316,69 @@ public class SqlTestBase inherits QUnit::Test {
                         "data": (("id": 2),),
                         ),
                     ),
+                "op_like": (
+                    "in": (
+                        "where": ("char_f": op_like (insert_data[0].char_f + "%")),
+                        ),
+                    "out": (
+                        "count": 2,
+                        "data": (("char_f": insert_data[0].char_f), ("char_f": insert_data[1].char_f)),
+                        ),
+                    ),
+                "op_clt": (
+                    "in": (
+                        "where": ("id": op_clt("id_")),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 1),),
+                        ),
+                    ),
+                "op_cle": (
+                    "in": (
+                        "where": ("id": op_cle("id_")),
+                        ),
+                    "out": (
+                        "count": 2,
+                        "data": (("id": 1), ("id": 2)),
+                        ),
+                    ),
+                "op_cgt": (
+                    "in": (
+                        "where": ("id_": op_cgt("id")),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 1),),
+                        ),
+                    ),
+                "op_cge": (
+                    "in": (
+                        "where": ("id_": op_cge("id")),
+                        ),
+                    "out": (
+                        "count": 2,
+                        "data": (("id": 1), ("id": 2)),
+                        ),
+                    ),
+                "op_cne": (
+                    "in": (
+                        "where": ("id": op_cne("id_")),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 1),),
+                        ),
+                    ),
+                "op_ceq": (
+                    "in": (
+                        "where": ("id": op_ceq("id_")),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 2),),
+                        ),
+                    ),
                 "wop_or": (
                     "in": (
                         "where": wop_or (("id": op_eq(1)), ("id": op_eq(2))),
@@ -357,7 +420,7 @@ public class SqlTestBase inherits QUnit::Test {
             else
                 expect_data{cn} = h.value.bind.'^value^' ?? h.value.value ?? h.value;
         }
-        insert_data = (("id": 1,) + row, ("id": 2,) + row,);
-        upsert_data = (("id": 2,) + row, ("id": 3,) + row,);
+        insert_data = (("id": 1, "id_": 2) + row, ("id": 2, "id_": 2) + row,);
+        upsert_data = (("id": 2, "id_": 2) + row, ("id": 3, "id_": 2) + row,);
     }
 }

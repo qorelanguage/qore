@@ -38,6 +38,7 @@ class PgsqlTestSchema inherits AbstractSchema {
         const T_PgsqlTest = (
             "columns": (
                 "id": c_number(14, True),
+                "id_": c_number(14, True),
             ),
             "primary_key": ("name": "pk_pgsql_test", "columns": ("id")),
             );

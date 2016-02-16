@@ -40,6 +40,7 @@ class OracleTestSchema inherits SqlUtilTestSchema {
         const T_OracleTest = (
             "columns": (
                 "id": c_number(14, True),
+                "id_": c_number(14, True),
             ),
             "indexes": (
                 "pk_freetds_test": ("columns": ("id"), "unique": True),

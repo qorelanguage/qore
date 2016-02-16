@@ -38,6 +38,7 @@ class MysqlTestSchema inherits AbstractSchema {
         const T_MysqlTest = (
             "columns": (
                 "id": c_number(14, True),
+                "id_": c_number(14, True),
             ),
             "primary_key": ("name": "pk_mysql_test", "columns": ("id")),
             );
