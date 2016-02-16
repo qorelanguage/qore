@@ -249,6 +249,8 @@
       - implemented support for Oracle pseudocolumns in queries
     - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module updates:
       - added support for the following datatypes and aliases: \c bool, \c float, \c int, \c timetz, \c timestamptz, \c varbit
+    - <a href="../../modules/MysqlSqlUtil/html/index.html">MysqlSqlUtil</a> module updates:
+      - added support for the following datatypes: \c binary, \c varbinary
     - <a href="../../modules/Util/html/index.html">Util</a> module updates:
       - added public functions \c lpad() and \c rpad()
       - added public function \c ordinal()
@@ -303,6 +305,10 @@
       - fixed a bug handling tablespaces in unique constraints
       - fixed a bug handling \c "time" columns; they were being issued as \c "time6" instead of "time(6)" (<a href="https://github.com/qorelanguage/qore/issues/385">bug 385</a>)
       - fixed support for the following datatypes and aliases: \c "bit", \c "bit varying", \c "char", \c "character", \c "character varying", \c "char varying", \c "oid", \c "varchar"
+    - <a href="../../modules/MysqlSqlUtil/html/index.html">MysqlSqlUtil</a> module fixes:
+      - corrected support for the \c varbinary type (<a href="https://github.com/qorelanguage/qore/issues/403">bug 403</a>)
+      - corrected support for the \c binary type (<a href="https://github.com/qorelanguage/qore/issues/524">bug 524</a>)
+      - \c schema member incorrectly set by @ref Qore::SQL::AbstractDatasource::getUserName() "AbstractDatasource::getUserName()" instead of @ref Qore::SQL::AbstractDatasource::getDBName() "AbstractDatasource::getDBName()" (<a href="https://github.com/qorelanguage/qore/pull/519">bug 519</a>)
     -  <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module fixes:
       - fixed a bug where template programs with @ref Qore::PO_ALLOW_BARE_REFS set did not work
     - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a> module fixes:
