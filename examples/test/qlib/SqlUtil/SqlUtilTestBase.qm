@@ -56,11 +56,12 @@ public class SqlTestBase inherits QUnit::Test {
     constructor(string testName, string testVer, any args, *hash mopts) : Test(testName, testVer, \args, mopts) {
         addTestCase("Insert", \insertTest());
         addTestCase("Select", \selectTest());
+        addTestCase("Column Operators", \columnOperatorTest());
+        addTestCase("Where Operators", \whereOperatorTest());
         addTestCase("Update", \updateTest());
         addTestCase("Upsert", \upsertTest());
         addTestCase("BulkInsert", \bulkInsertTest());
         addTestCase("BulkUpsert", \bulkUpsertTest());
-        addTestCase("Column Operators", \columnOperatorTest());
     }
 
     globalTearDown() {
@@ -215,7 +216,7 @@ public class SqlTestBase inherits QUnit::Test {
 
         expect = (
                 "cop_min": 1,
-                "cop_max": 22,
+                "cop_max": 2,
                 "cop_avg": 1.5n,
                 "cop_sum": 3,
                 "cop_count": 2,
@@ -224,6 +225,119 @@ public class SqlTestBase inherits QUnit::Test {
 
         foreach hash e in (expect.pairIterator())
             assertEq (e.value, row{e.key}, "checking column operator " + e.key);
+    }
+
+    whereOperatorTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        hash test_set = (
+                "op_lt": (
+                    "in": (
+                        "where": ("id": op_lt(2)),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 1),),
+                        ),
+                    ),
+                "op_le": (
+                    "in": (
+                        "where": ("id": op_le(2)),
+                        ),
+                    "out": (
+                        "count": 2,
+                        "data": (("id": 1), ("id": 2)),
+                        ),
+                    ),
+                "op_gt": (
+                    "in": (
+                        "where": ("id": op_gt(1)),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 2),),
+                        ),
+                    ),
+                "op_ge": (
+                    "in": (
+                        "where": ("id": op_ge(1)),
+                        ),
+                    "out": (
+                        "count": 2,
+                        "data": (("id": 1), ("id": 2)),
+                        ),
+                    ),
+                "op_ne": (
+                    "in": (
+                        "where": ("id": op_ne(1)),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 2),),
+                        ),
+                    ),
+                "op_eq": (
+                    "in": (
+                        "where": ("id": op_eq(2)),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 2),),
+                        ),
+                    ),
+                "op_between": (
+                    "in": (
+                        "where": ("id": op_between(0,1)),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 1),),
+                        ),
+                    ),
+                "op_in": (
+                    "in": (
+                        "where": ("id": op_in((0,1,3))),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 1),),
+                        ),
+                    ),
+                "op_not": (
+                    "in": (
+                        "where": ("id": op_not (op_in((0,1,3)))),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 2),),
+                        ),
+                    ),
+                "wop_or": (
+                    "in": (
+                        "where": wop_or (("id": op_eq(1)), ("id": op_eq(2))),
+                        ),
+                    "out": (
+                        "count": 2,
+                        "data": (("id": 1), ("id": 2)),
+                        ),
+                    ),
+                );
+
+        foreach hash t in (test_set.pairIterator()) {
+            *list rows = table.selectRows (t.value.in);
+            hash out = t.value.out;
+            assertEq (out.count, rows.size(), "checking where operator " + t.key);
+
+            foreach hash row in (rows) {
+                int rn = $#;
+                foreach hash d in (out.data[rn].pairIterator())
+                    assertEq (d.value, row{d.key}, sprintf ("checking where operator %s row %s column %s", t.key, rn, d.key));
+            }
+        }
     }
 
     static string getColumnName(string n) {
