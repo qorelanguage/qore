@@ -147,9 +147,9 @@ module SqlUtil {
 
     @section sql_operations_intro Introduction to SQL Operations
 
-    The @ref SqlUtil::Table "Table" class (which is a wrapper for @ref SqlUtil::AbstractTable "AbstractTable") provides methods for SQL operations.
+    The @ref SqlUtil::AbstractTable "AbstractTable" class provides methods for SQL operations. Instances of this class are returned from most of the API calls working with tables. You need to use a helper class @ref SqlUtil::Table "Table" if you need to create table object in your own.
 
-    This class uses knowledge about the internal structure of database tables to create and execute SQL on the database.
+    @ref SqlUtil::AbstractTable "AbstractTable" uses knowledge about the internal structure of database tables to create and execute SQL on the database.
 
     SQL strings are constructed programmatically for the following reasons:
     - to present an abstract, database-independent interface to the programmer
@@ -161,7 +161,7 @@ module SqlUtil {
 
     @section retrieving_data Retrieving Data from the Database
 
-    There are many methods in the @ref SqlUtil::Table "Table" class for retrieving data from the database; here is an overview:
+    There are many methods in the @ref SqlUtil::AbstractTable "AbstractTable" class for retrieving data from the database; here is an overview:
     - @ref SqlUtil::AbstractTable::find(any): finds a row corresponding to the given single value of the primary key; if not present @ref nothing is returned
     - @ref SqlUtil::AbstractTable::find(list): finds all rows corresponding to the given list of values of the primary key; if none are present @ref nothing is returned
     - @ref SqlUtil::AbstractTable::find(hash): find a row corresponding to the given hash of column name/value pairs, which must at least reference all columns of the table's primary key; if no row matches, @ref nothing is returned
@@ -274,7 +274,7 @@ while (True) {
 
     @subsection column_spec Specifying Columns in Query Output
     @par From Complex Select Criteria
-    @ref SqlUtil::Table "Table" methods taking a @ref select_option_hash "select option hash argument" support specifying output columns including column operators by assigning a column / column operator list to the @ref select_option_columns "columns" key.
+    @ref SqlUtil::AbstractTable "AbstractTable" methods taking a @ref select_option_hash "select option hash argument" support specifying output columns including column operators by assigning a column / column operator list to the @ref select_option_columns "columns" key.
     @code
 *list rows = table.selectRows(("columns": ("id", "name", "started", cop_as("warnings", "warning_count"), cop_as("errors", "error_count")), "where": ("type": "user")));
     @endcode
@@ -981,7 +981,7 @@ else
 
     Most schema management is performed by using the @ref SqlUtil::Database "Database" class (which is a wrapper for the @ref SqlUtil::AbstractDatabase "AbstractDatabase" class).
 
-    The most complex object is the @ref SqlUtil::Table "Table", which has its own @ref table_management "section".
+    The most complex object is the @ref SqlUtil::AbstractTable "AbstarctTable", which has its own @ref table_management "section".
 
     One of the primary goals of schema management in %SqlUtil is to facilitate automatic schema management from a database-independent schema
     description. The idea is that a schema can be described in a generic way and then %SqlUtil can use the generic schema description to align
@@ -1009,7 +1009,7 @@ else
     |@ref SqlUtil::AbstractIndex "Indexes"|dropped and recreated
     |@ref SqlUtil::AbstractSequence "Sequences"|dropped and recreated
     |@ref SqlUtil::AbstractTrigger "Triggers"|dropped and recreated
-    |@ref SqlUtil::Table "Tables"|aligned in place
+    |@ref SqlUtil::AbstractTable "AbstractTables"|aligned in place
 
     @note
     - For objects that are dropped and recreated, renaming the object is generally supported if the underlying database server supports
@@ -1254,6 +1254,8 @@ const Schema = (
     @section table_management Table Management
 
     The main class to be used for table management is @ref SqlUtil::Table "Table" (which is a wrapper for @ref SqlUtil::AbstractTable "AbstractTable").  This class can be used both for building a table from scratch or for retrieving the structure of a table from the database.
+
+    Real table related work is done in @ref SqlUtil::AbstractTable "AbstractTable". AbstractTable is also instance returned from most of API calls used.
 
     @subsection creating_new_tables Creating New Tables
 
