@@ -20,7 +20,7 @@ module SqlUtilTestBase {
 %requires ../../../../qlib/Schema.qm
 
 public class SqlUtilTestSchema inherits AbstractSchema {
-    constructor(AbstractDatasource ds, *string dts, *string its) :  AbstractSchema(ds, dts, its) {
+    constructor(AbstractDatasource ds, *string dts, *string its) : AbstractSchema(ds, dts, its) {
     }
 
     log(string fmt) {
@@ -47,7 +47,7 @@ public class SqlTestBase inherits QUnit::Test {
 
         const OptionColumn = 22;
 
-        hash row;
+        hash expect_data;
 
         list insert_data;
         list upsert_data;
@@ -55,6 +55,7 @@ public class SqlTestBase inherits QUnit::Test {
 
     constructor(string testName, string testVer, any args, *hash mopts) : Test(testName, testVer, \args, mopts) {
         addTestCase("Insert", \insertTest());
+        addTestCase("Select", \selectTest());
         addTestCase("Update", \updateTest());
         addTestCase("Upsert", \upsertTest());
         addTestCase("BulkInsert", \bulkInsertTest());
@@ -76,6 +77,26 @@ public class SqlTestBase inherits QUnit::Test {
 
         foreach hash data in (insert_data)
             assertEq(NOTHING, table.insert(data));
+    }
+
+    selectTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        *list rows = table.selectRows();
+        assertEq (2, rows.size());
+
+        foreach hash e in (expect_data.pairIterator()) {
+            # printf("* %s\n", e.key);
+            # printf("  I: %s: %N\n", insert_data[0]{e.key}.type(), insert_data[0]{e.key});
+            # printf("  R: %s: %N\n", rows[0]{e.key}.type(), rows[0]{e.key});
+            if (e.value === NOTHING)
+                continue; # skipping assertion
+            assertEq (e.value, rows[0]{e.key}, "checking data in column " + e.key);
+        }
     }
 
     updateTest() {
@@ -138,5 +159,21 @@ public class SqlTestBase inherits QUnit::Test {
     static string getColumnName(string n) {
         n =~ s/ //g;
         return n + "_f";
+    }
+
+    init_test_data (hash custom_columns) {
+        hash row;
+
+        foreach hash h in (custom_columns.pairIterator()) {
+            string cn = getColumnName(h.key);
+            row{cn} = h.value.bind ?? h.value.value ?? h.value;
+
+            if (h.value.typeCode() == NT_HASH && h.value.hasKey('expect'))
+                expect_data{cn} = h.value.expect;
+            else
+                expect_data{cn} = h.value.bind.'^value^' ?? h.value.value ?? h.value;
+        }
+        insert_data = (("id": 1,) + row, ("id": 2,) + row,);
+        upsert_data = (("id": 2,) + row, ("id": 3,) + row,);
     }
 }

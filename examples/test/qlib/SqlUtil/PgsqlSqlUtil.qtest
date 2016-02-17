@@ -67,7 +67,7 @@ class PgsqlTestSchema inherits AbstractSchema {
                 "notnull": True,
                 );
             if (h.value.typeCode() == NT_HASH)
-                ch += (h.value - ("value", "bind"));
+                ch += (h.value - ("value", "bind", "expect"));
             tables.pgsql_test.columns{PgsqlTest::getColumnName(h.key)} = ch;
         }
         return tables;
@@ -121,14 +121,14 @@ class PgsqlTest inherits SqlTestBase {
             "smallserial": 100,
             "serial": 39484392,
             "bigserial": 129383948393,
-            "real": 1.1,
+            "real": 1.5,
             "double precision": 3.1415927,
             "float": 3.141592653589793238,
             "oid": 1234, # should not be used
 
             "date": 2016-01-11,
             "abstime": 2016-01-11T09:26:14,
-            "reltime": 5M + 71D + 19h + 245m + 51s,
+            "reltime": ("value": 5M + 71D + 19h + 245m + 51s, "expect": NOTHING), # TODO: would fail selectTest()
             "interval": 6M + 3D + 2h + 45m + 15s,
             "time": 09:26:52,
             "time with time zone": 09:27:03-06,
@@ -154,12 +154,12 @@ class PgsqlTest inherits SqlTestBase {
 
             "bytea": <bead>,
 %ifndef NoPgsql
-            "bit": ("bind": pgsql_bind (PG_TYPE_BIT, "1001"), "size": 4),
-            "varbit": ("bind": pgsql_bind (PG_TYPE_VARBIT, "xBEAF")),
+            "bit": ("bind": pgsql_bind (PG_TYPE_BIT, "10011001"), "size": 8, "expect": <99>),
+            "varbit": ("bind": pgsql_bind (PG_TYPE_VARBIT, "xBEAF"), "expect": <BEAF>),
 
             "macaddr": ("bind": pgsql_bind (PG_TYPE_MACADDR, "0a:1e:df:e4:4f:da")),
-            "inet": ("bind": pgsql_bind (PG_TYPE_INET, "192.168.11.1")),
-            "cidr": ("bind": pgsql_bind (PG_TYPE_CIDR, "192.168")),
+            "inet": ("bind": pgsql_bind (PG_TYPE_INET, "192.168.11.1"), "expect": "192.168.11.1/32"),
+            "cidr": ("bind": pgsql_bind (PG_TYPE_CIDR, "192.168"), "expect": "192.168.0.0/24"),
 %endif
             );
     }
@@ -176,12 +176,7 @@ class PgsqlTest inherits SqlTestBase {
         }
 
         if (ds) {
-            foreach hash h in (CustomColumns.pairIterator()) {
-                any val = h.value.bind ?? h.value.value ?? h.value;
-                row{PgsqlTest::getColumnName(h.key)} = val;
-            }
-            insert_data = (("id": 1,) + row, ("id": 2,) + row,);
-            upsert_data = (("id": 2,) + row, ("id": 3,) + row,);
+            init_test_data (CustomColumns);
 
             # create the test schema
             schema = new PgsqlTestSchema(ds);
