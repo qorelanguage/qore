@@ -166,6 +166,7 @@ public class SqlTestBase inherits QUnit::Test {
         on_error table.rollback();
 
         hash soh = ("columns": (
+                cop_as (cop_cast ("id", "string"), "cop_cast"),
                 cop_as (cop_value (0), "cop_value"), # triggers bug #511 (GitHub)
                 cop_as (cop_lower (cop_value ("Ahoj")), "cop_lower"),
                 cop_as (cop_upper (cop_value ("Ahoj")), "cop_upper"),
@@ -186,6 +187,7 @@ public class SqlTestBase inherits QUnit::Test {
         *hash row = table.selectRow (soh);
 
         hash expect = (
+                "cop_cast": "2",
                 "cop_value": 0,
                 "cop_lower": "ahoj",
                 "cop_upper": "AHOJ",

@@ -1847,6 +1847,11 @@ public namespace SqlUtil {
     */
     public const COP_AS = "as";
 
+    #! to convert column value into another datatype
+    /** @see cop_cast()
+    */
+    public const COP_CAST = "cast";
+
     #! to prepend a string to a column on output
     /** @see cop_prepend()
     */
@@ -2061,9 +2066,10 @@ public namespace SqlUtil {
     /** @defgroup sql_cop_funcs SQL Column Operator Functions
         These are functions that can be used in the \c "columns" argument for select statements:
         - @ref cop_as(): rename columns
+        - @ref cop_cast(): convert column value into another datatype
         - @ref cop_prepend(): prepend a string to the output of a column
         - @ref cop_append(): append a string to the output of a column
-        - @ref cop_value(): return a constant value (SQL Literal) in a column
+        - @ref cop_value(): return a constant value (SQL literal) in a column
         - @ref cop_upper(): return a column in upper case
         - @ref cop_lower(): return a column in lower case
 
@@ -2106,6 +2112,25 @@ public namespace SqlUtil {
     */
     public hash sub cop_as(any column, string arg) {
         return make_cop(COP_AS, column, arg);
+    }
+
+    #! returns a hash for the \c "cast" operator with the given argument(s)
+    /** @par Example:
+        @code
+*list rows = table.selectRows(("columns": ("id", cop_cast("id", "string")), "where": ("type": "user")));
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins) or any other column "cop_..." function
+        @param arg the new datatype to cast the column value(s) to
+        @param arg1 optional, type dependent, specification (e.g. size or precision)
+        @param arg2 optional, type dependent, specification (e.g. scale)
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+
+        @see SqlUtil::cop_value for SQL literals handling
+    */
+    public hash sub cop_cast(any column, string arg, *any arg1, *any arg2) {
+        return make_cop(COP_CAST, column, (arg, arg1, arg2));
     }
 
     #! returns a hash for the \c "prepend" operator with the given argument
@@ -2174,7 +2199,7 @@ public namespace SqlUtil {
         The most useful SqlUtil::cop_value usage is with cooperation of SqlUtil::cop_as which allows
         nice and human readable column name aliases.
 
-        @warning Using SqlUtil::cop_value withtou SqlUtil::cop_as can result in errors
+        @warning Using SqlUtil::cop_value without SqlUtil::cop_as can result in errors
                  depending on the DB backend. For example Oracle's use of <tt>cop_value(1), cop_value(True)</tt>
                  ends with <tt>ORA-00918: column ambiguously defined</tt>
                  because both values are interpreted as 1 in the resulting SQL.
