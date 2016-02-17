@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file MysqlSqlUtil.qm Qore user module for working with MySQL SQL data
 
-/*  MysqlSqlUtil.qm Copyright 2013 - 2015 Qore Technologies, sro
+/*  MysqlSqlUtil.qm Copyright 2013 - 2016 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -38,17 +38,12 @@
 %enable-all-warnings
 
 module MysqlSqlUtil {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for working with MySQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
 }
-
-/*  Version History
-    * 2013-10-04 v1.0: David Nichols <david@qore.org>
-      + the initial version of the MysqlSqlUtil module
-*/
 
 /** @mainpage MysqlSqlUtil Module
 
@@ -93,6 +88,16 @@ module MysqlSqlUtil {
     MySQL currently does not support firing "before insert" or "before update" triggers before constraints are checked, so in other databases
     where a trigger will set a default value for a column when a NULL is inserted, MySQL will raise an error if there is a NOT NULL
     constraint on the column.
+
+    @section mysql_relnotes Release Notes
+
+    @subsection mysqlsqlutilv11 MysqlSqlUtil v1.1
+    - corrected support for the \c varbinary type (<a href="https://github.com/qorelanguage/qore/issues/403">bug 403</a>)
+    - corrected support for the \c binary type (<a href="https://github.com/qorelanguage/qore/issues/524">bug 524</a>)
+    - \c schema member incorrectly set by @ref Qore::SQL::AbstractDatasource::getUserName() "AbstractDatasource::getUserName()" instead of @ref Qore::SQL::AbstractDatasource::getDBName() "AbstractDatasource::getDBName()" (<a href="https://github.com/qorelanguage/qore/pull/519">bug 519</a>)
+
+    @subsection mysqlsqlutilv10 MysqlSqlUtil v1.0
+    - initial release
 */
 
 #! the MysqlSqlUtil namespace contains all the objects in the MysqlSqlUtil module
@@ -1008,7 +1013,7 @@ end";
                 name = nname;
             }
             else
-                schema = ds.getUserName();
+                schema = ds.getDBName();
 
             if (opts.engine)
                 engine = opts.engine;
