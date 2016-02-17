@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -106,9 +106,13 @@ int ConstantEntry::scanValue(const AbstractQoreNode* n) const {
 	 return 0;
       }
 
+      // do not allow any closure or structure containing a closure to be copied directly into the parse tree
+      // since a recursive loop can be created: https://github.com/qorelanguage/qore/issues/44
+      case NT_RUNTIME_CLOSURE:
       // could have any value and could change at runtime
       case NT_OBJECT:
       case NT_FUNCREF:
+         //printd(5, "ConstantEntry::scanValue() this: %p n: %p nt: %d\n", this, n, get_node_type(n));
 	 return -1;
    }
 
