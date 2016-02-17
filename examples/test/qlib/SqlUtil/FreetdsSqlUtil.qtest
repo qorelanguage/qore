@@ -46,7 +46,7 @@ class FreetdsTestSchema inherits SqlUtilTestSchema {
             );
     }
 
-    constructor(AbstractDatasource ds, *string dts, *string its) :  SqlUtilTestSchema(ds, dts, its) {
+    constructor(AbstractDatasource ds, *string dts, *string its) : SqlUtilTestSchema(ds, dts, its) {
     }
 
     private string getNameImpl() {
