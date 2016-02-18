@@ -110,6 +110,7 @@ data = table.select(("where" : ("id" : 2)));
 t.cmp(elements data.id, 0, "delete: no rows with removed id found");
 
 # tryExec
+/*
 {
     hash tval = ( "1" : (1,),);
     on_exit table.commit();
@@ -118,6 +119,7 @@ t.cmp(elements data.id, 0, "delete: no rows with removed id found");
     data = table.tryExecArgs("select 1 from t_some_table where 1=%v", (1,));
     t.cmp(tval, data, "tryExecArgs");
 }
+*/
 
 # DROP TABLE test
 db.dropTableIfExists(TEST_TABLE_NAME);
