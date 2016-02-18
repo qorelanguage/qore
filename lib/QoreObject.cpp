@@ -46,7 +46,7 @@ qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass* oc,
    obj(n_obj) {
    //printd(5, "qore_object_private::qore_object_private() this: %p obj: %p '%s'\n", this, obj, oc->getName());
 #ifdef QORE_DEBUG_OBJ_REFS
-   printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::qore_object_private() obj: %p, pgm: %p, class: %s, references 0->1\n", obj, p, oc->getName());
+   printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::qore_object_private() this: %p obj: %p, pgm: %p, class: %s, references 0->1\n", this, obj, p, oc->getName());
 #endif
    /* instead of referencing the class, we reference the program, because the
       program contains the namespace that contains the class, and the class'
@@ -61,6 +61,14 @@ qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass* oc,
 #ifdef DEBUG
    n_data->priv->is_obj = true;
 #endif
+}
+
+qore_object_private::~qore_object_private() {
+   //printd(5, "qore_object_private::~qore_object_private() this: %p obj: %p '%s'\n", this, obj, theclass ? theclass->getName() : "<n/a>");
+   assert(!pgm);
+   assert(!data);
+   assert(!privateData);
+   assert(!rset);
 }
 
 // returns true if a lock error has occurred and the transaction should be aborted or restarted; the rsection lock is held when this function is called
