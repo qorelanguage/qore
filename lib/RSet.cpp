@@ -141,17 +141,18 @@ protected:
    unsigned size;
 
 public:
-   DLLLOCAL RSectionScanHelper(RSetHelper* n_orsh, RObject* n_ro) : orsh(0), ro(0) {
+   DLLLOCAL RSectionScanHelper(RSetHelper* n_orsh, RObject* n_ro) : orsh(0), ro(n_ro) {
       int tid = gettid();
+
       // if we already have the rsection lock, then ignore; already processed (either in fomap or tr_out)
       if (n_ro->rml.hasRSectionLock(tid))
          return;
 
-      ro = n_ro;
-
       // try to lock
-      if (ro->rml.tryRSectionLockNotifyWaitRead(&n_orsh->notifier))
+      if (ro->rml.tryRSectionLockNotifyWaitRead(&n_orsh->notifier)) {
+         ro = 0;
 	 return;
+      }
 
       orsh = n_orsh;
       size = n_orsh->size();
@@ -173,12 +174,8 @@ public:
       orsh->add(ro);
    }
 
-   DLLLOCAL bool skip() const {
-      return !(bool)ro;
-   }
-
    DLLLOCAL bool lockError() const {
-      return !(bool)orsh;
+      return !ro;
    }
 };
 
@@ -242,10 +239,6 @@ bool RSetHelper::checkIntern(AbstractQoreNode* n) {
 	    RSectionScanHelper rssh(this, i->second);
             if (rssh.lockError())
                return true;
-	    if (rssh.skip()) {
-               printd(QRO_LVL, "RSetHelper::checkIntern() closure var '%s' already scanned; skipping (type: %s)\n", i->first->getName(), i->second->val.getTypeName());
-	       continue;
-            }
 #ifdef DEBUG
 	    unsigned csize = size();
 #endif

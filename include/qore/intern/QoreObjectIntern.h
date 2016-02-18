@@ -40,14 +40,21 @@
 #include <set>
 #include <vector>
 
+//#define _QORE_CYCLE_CHECK 1
+#ifdef _QORE_CYCLE_CHECK
+#define QORE_DEBUG_OBJ_REFS 0
+#define QRO_LVL 0
+#else
+#define QORE_DEBUG_OBJ_REFS 5
+#define QRO_LVL 1
+#endif
+
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/RSection.h>
 #include <qore/intern/RSet.h>
 
 #define OS_OK            0
 #define OS_DELETED      -1
-
-#define QRO_LVL 1
 
 // object access constants
 #define QOA_OK           0
