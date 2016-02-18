@@ -37,13 +37,6 @@
 
 #include <set>
 
-//#define _QORE_CYCLE_CHECK 1
-#ifdef _QORE_CYCLE_CHECK
-#define QORE_DEBUG_OBJ_REFS 0
-#else
-#define QORE_DEBUG_OBJ_REFS 5
-#endif
-
 class RSet;
 class RSetHelper;
 
