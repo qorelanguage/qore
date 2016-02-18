@@ -802,7 +802,8 @@ my any $v = $c.name;
                 "smallint": ("qore": Type::Int,),
                 "int": ("qore": Type::Int,),
                 "bigint": ("qore": Type::Int,),
-                "float": ("qore": Type::Float,),
+                "double": ("qore": Type::Float,),
+                "float": ("qore": Type::Float,), # NOTE: optional precision
                 "real": ("qore": Type::Float,),
                 "money": ("qore": Type::Number,),
                 "smallmoney": ("qore": Type::Number,),
@@ -810,16 +811,29 @@ my any $v = $c.name;
                 "smalldatetime": ("qore": Type::Date,),
                 "date": ("qore": Type::Date,),
                 "time": ("qore": Type::Date,),
-                "char": ("qore": Type::String, "size": SZ_MAND,),
-                "character varying": ("qore": Type::String, "size": SZ_MAND,),
-                "varchar": ("qore": Type::String, "size": SZ_MAND,),
+                # NOTE: "size_range" is different between MS SQL Server and Sybase SQL Anywhere Server
+                # MS SQL: range is (1, 8000) or special keyword "max" for varchar types
+                # Sybase: range is (1, 32767) and size is mandatory for character-length semantics
+                "char": ("qore": Type::String, "size": SZ_OPT),
+                "char varying": ("qore": Type::String, "size": SZ_OPT),
+                "character varying": ("qore": Type::String, "size": SZ_OPT),
+                "varchar": ("qore": Type::String, "size": SZ_OPT),
+                # The following uni* types are used in Sybase Adaptive Server
                 "unichar": ("qore": Type::String, "size": SZ_MAND,),
                 "univarchar": ("qore": Type::String, "size": SZ_MAND,),
-                "text": ("qore": Type::String,),
                 "unitext": ("qore": Type::String,),
-                "binary": ("qore": Type::Binary,),
-                "varbinary": ("qore": Type::Binary,),
-                "image": ("qore": Type::Binary,),
+                # NOTE: "size_range" is different between MS SQL Server and Sybase SQL Anywhere Server
+                # MS SQL: range is (1, 8000) or special keyword "max" for varbinary types
+                # Sybase: range is (1, 32767)
+                "binary": ("qore": Type::Binary, "size": SZ_OPT, "size_range": (1, 8000)),
+                "binary varying": ("qore": Type::Binary, "size": SZ_OPT, "size_range": (1, 8000)),
+                "varbinary": ("qore": Type::Binary, "size": SZ_OPT, "size_range": (1, 8000)),
+                # The following are used in Sybase, supported & deprecated in MS SQL
+                "text": ("qore": Type::String,), # domain, implemented as "long varchar"
+                "image": ("qore": Type::Binary,), # domain, implemented as "long binary"
+                # The following are Sybase specific
+                "long binary": ("qore": Type::Binary,),
+                "long varchar": ("qore": Type::String,),
                 );
 
             #! maps qore type names to postgresql type names
