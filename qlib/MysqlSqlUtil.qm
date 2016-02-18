@@ -895,11 +895,11 @@ end";
                 "time": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
                 "year": ("qore": Type::Int,),
 
-                "char": ("qore": Type::String, "size": SZ_MAND,),
-                "varchar": ("qore": Type::String, "size": SZ_MAND,),
+                "char": ("qore": Type::String, "size": SZ_MAND, "size_range": (0, 255)),
+                "varchar": ("qore": Type::String, "size": SZ_MAND, "size_range": (0, 65535)),
 
-                "binary": ("qore": Type::Binary,),
-                "varbinary": ("qore": Type::Binary, "size": SZ_MAND,),
+                "binary": ("qore": Type::Binary, "size": SZ_MAND, "size_range": (0, 255)),
+                "varbinary": ("qore": Type::Binary, "size": SZ_MAND, "size_range": (0, 65535)),
 
                 "tinytext": ("qore": Type::String,),
                 "text": ("qore": Type::String,),
