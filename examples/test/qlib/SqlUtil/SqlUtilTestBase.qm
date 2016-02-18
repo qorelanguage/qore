@@ -324,7 +324,7 @@ public class SqlTestBase inherits QUnit::Test {
                         ),
                     "out": (
                         "count": 2,
-                        "data": (("char_f": insert_data[0].char_f), ("char_f": insert_data[1].char_f)),
+                        "data": (("char_f": expect_data.char_f), ("char_f": expect_data.char_f)),
                         ),
                     ),
                 "op_clt": (
