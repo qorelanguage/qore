@@ -825,9 +825,9 @@ my any $v = $c.name;
                 # NOTE: "size_range" is different between MS SQL Server and Sybase SQL Anywhere Server
                 # MS SQL: range is (1, 8000) or special keyword "max" for varbinary types
                 # Sybase: range is (1, 32767)
-                "binary": ("qore": Type::Binary, "size": SZ_OPT, "size_range": (1, 8000)),
-                "binary varying": ("qore": Type::Binary, "size": SZ_OPT, "size_range": (1, 8000)),
-                "varbinary": ("qore": Type::Binary, "size": SZ_OPT, "size_range": (1, 8000)),
+                "binary": ("qore": Type::Binary, "size": SZ_OPT),
+                "binary varying": ("qore": Type::Binary, "size": SZ_OPT),
+                "varbinary": ("qore": Type::Binary, "size": SZ_OPT),
                 # The following are used in Sybase, supported & deprecated in MS SQL
                 "text": ("qore": Type::String,), # domain, implemented as "long varchar"
                 "image": ("qore": Type::Binary,), # domain, implemented as "long binary"
