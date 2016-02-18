@@ -116,15 +116,15 @@ class MysqlTest inherits SqlTestBase {
             "datetime": 2016-01-11T09:26:14,
             "timestamp": 2016-01-11T09:27:59,
             "time": 09:26:52,
-            "year": 2016,
+            "year": 2016, # XXX: this is likely just an integer
 
             "binary": (
-                "size": "2",
                 "value": <bead>,
+                "size": 2, # must be 2 as default is 1
             ),
             "varbinary": (
                 "value": <bead>,
-                "size": "10",
+                "size": 10,
             ),
 
             "tinyblob": <bead>,
