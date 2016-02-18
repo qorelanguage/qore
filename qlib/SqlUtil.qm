@@ -624,8 +624,8 @@ return ds.vexec("update schema.table set permission_type = concat(lower(permissi
     @section deleting_data Deleting Data
 
     The following methods can be used to dekete data:
-    - @ref SqlUtil::AbstractTable::delete(): updates the table based on a @ref where_clauses "where clause" and does not commit the transaction
-    - @ref SqlUtil::AbstractTable::deleteCommit(): updates the table based on a @ref where_clauses "where clause" and commits the transaction
+    - @ref SqlUtil::AbstractTable::del(): updates the table based on a @ref where_clauses "where clause" and does not commit the transaction
+    - @ref SqlUtil::AbstractTable::delCommit(): updates the table based on a @ref where_clauses "where clause" and commits the transaction
     - @ref SqlUtil::AbstractTable::truncate(): truncates the table and does not commit the transaction
     - @ref SqlUtil::AbstractTable::truncateCommit(): truncates the table and commits the transaction releasing the transaction lock on the underlying datasource object
 
@@ -639,7 +639,7 @@ int dcnt = table.del(("record_type": "OLD-CUSTOMER"));
 return ds.vexec("delete from schema.table where record_type = %v", ("OLD-CUSTOMER"));
     @endcode
 
-    The @ref SqlUtil::AbstractTable::delete() and @ref SqlUtil::AbstractTable::deleteCommit() methods can be used to delete data from the database.
+    The @ref SqlUtil::AbstractTable::del() and @ref SqlUtil::AbstractTable::delCommit() methods can be used to delete data from the database.
 
     See @ref where_clauses for information about specifying the criteria for the rows to be deleted.
 
@@ -673,8 +673,8 @@ return ds.vexec("delete from schema.table where record_type = %v", ("OLD-CUSTOME
     @section where_clauses Where Clauses
 
     Several methods accept a hash of conditions to build a \c "where" clause to restrict the rows that are operated on or returned; for example:
-    - @ref SqlUtil::AbstractTable::delete()
-    - @ref SqlUtil::AbstractTable::deleteCommit()
+    - @ref SqlUtil::AbstractTable::del()
+    - @ref SqlUtil::AbstractTable::delCommit()
     - @ref SqlUtil::AbstractTable::findAll()
     - @ref SqlUtil::AbstractTable::findSingle()
     - @ref SqlUtil::AbstractTable::getRowIterator()
@@ -11180,7 +11180,7 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
                     continue;
 
                 hash h = row{pkl};
-                self.delete(h);
+                self.del(h);
 
                 ++rh.deleted;
                 if (opt.info_callback)
@@ -12149,7 +12149,7 @@ string sql = table.getSelectSql(sh, \args);
         #! deletes rows in the table matching the condition and returns the count of rows deleted; the transaction is committed if successful, if an error occurs then it is rolled back
         /** @par Example:
             @code
-int dcnt = table.deleteCommit(("name": name));
+int dcnt = table.delCommit(("name": name));
             @endcode
 
             @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
@@ -12162,45 +12162,45 @@ int dcnt = table.deleteCommit(("name": name));
 
             @see delete(*hash)
          */
-        int deleteCommit(hash cond, reference sql, hash opt) {
+        int delCommit(hash cond, reference sql, hash opt) {
             on_success ds.commit();
             on_error ds.rollback();
-            return deleteIntern(cond, \sql, opt);
+            return delIntern(cond, \sql, opt);
         }
 
-        #! @ref SqlUtil::AbstractTable::deleteCommit() variant
-        int deleteCommit(hash cond, hash opt) {
+        #! @ref SqlUtil::AbstractTable::delCommit() variant
+        int delCommit(hash cond, hash opt) {
             on_success ds.commit();
             on_error ds.rollback();
-            return deleteIntern(cond, NOTHING, opt);
+            return delIntern(cond, NOTHING, opt);
         }
 
-        #! @ref SqlUtil::AbstractTable::deleteCommit() variant
-        int deleteCommit(hash cond, reference sql) {
+        #! @ref SqlUtil::AbstractTable::delCommit() variant
+        int delCommit(hash cond, reference sql) {
             on_success ds.commit();
             on_error ds.rollback();
-            return deleteIntern(cond, \sql);
+            return delIntern(cond, \sql);
         }
 
-        #! @ref SqlUtil::AbstractTable::deleteCommit() variant
-        int deleteCommit(hash cond) {
+        #! @ref SqlUtil::AbstractTable::delCommit() variant
+        int delCommit(hash cond) {
             on_success ds.commit();
             on_error ds.rollback();
-            return deleteIntern(cond);
+            return delIntern(cond);
         }
 
-        #! @ref SqlUtil::AbstractTable::deleteCommit() variant
-        int deleteCommit() {
+        #! @ref SqlUtil::AbstractTable::delCommit() variant
+        int delCommit() {
             on_success ds.commit();
             on_error ds.rollback();
 
-            return deleteIntern();
+            return delIntern();
         }
 
         #! deletes rows in the table matching the condition and returns the count of rows deleted; no transaction management is performed with this method
         /** @par Example:
             @code
-int dcnt = table.delete(("name": name));
+int dcnt = table.del(("name": name));
             @endcode
 
             @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
@@ -12211,38 +12211,38 @@ int dcnt = table.delete(("name": name));
 
             @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
 
-            @see deleteCommit(*hash)
+            @see delCommit(*hash)
          */
-        int delete(hash cond, reference sql, hash opt) {
-            return deleteIntern(cond, \sql, opt);
+        int del(hash cond, reference sql, hash opt) {
+            return delIntern(cond, \sql, opt);
         }
 
-        #! @ref SqlUtil::AbstractTable::delete() variant
-        int delete(hash cond, hash opt) {
-            return deleteIntern(cond, NOTHING, opt);
+        #! @ref SqlUtil::AbstractTable::del() variant
+        int del(hash cond, hash opt) {
+            return delIntern(cond, NOTHING, opt);
         }
 
-        #! @ref SqlUtil::AbstractTable::delete() variant
-        int delete(hash cond, reference sql) {
-            return deleteIntern(cond, \sql);
+        #! @ref SqlUtil::AbstractTable::del() variant
+        int del(hash cond, reference sql) {
+            return delIntern(cond, \sql);
         }
 
-        #! @ref SqlUtil::AbstractTable::delete() variant
-        int delete(hash cond) {
-            return deleteIntern(cond);
+        #! @ref SqlUtil::AbstractTable::del() variant
+        int del(hash cond) {
+            return delIntern(cond);
         }
 
-        #! @ref SqlUtil::AbstractTable::delete() variant
-        int delete() {
-            return deleteIntern();
+        #! @ref SqlUtil::AbstractTable::del() variant
+        int del() {
+            return delIntern();
         }
 
-        #! A legacy @ref SqlUtil::AbstractTable::delete() wrapper
+        #! A legacy @ref SqlUtil::AbstractTable::del() wrapper
         deprecated int delNoCommit(*hash cond, *reference sql) {
-            return deleteIntern(cond, \sql);
+            return del(cond, \sql);
         }
 
-        private int deleteIntern(*hash cond, *reference sql, *hash opt) {
+        private int delIntern(*hash cond, *reference sql, *hash opt) {
             # make query
             sql = sprintf("delete from %s", getSqlName());
             list args;

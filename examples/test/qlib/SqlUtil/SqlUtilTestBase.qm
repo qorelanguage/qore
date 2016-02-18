@@ -129,7 +129,7 @@ public class SqlTestBase inherits QUnit::Test {
         on_success table.commit();
         on_error table.rollback();
 
-        table.delete();
+        table.del();
 
         BulkInsertOperation insert(table);
         on_success insert.flush();
@@ -146,7 +146,7 @@ public class SqlTestBase inherits QUnit::Test {
         on_success table.commit();
         on_error table.rollback();
 
-        table.delete();
+        table.del();
 
         BulkUpsertOperation insert(table);
         on_success insert.flush();
