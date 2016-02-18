@@ -109,8 +109,21 @@ t.cmp(table.rowCount(), 1, "delete: we have only row rest");
 data = table.select(("where" : ("id" : 2)));
 t.cmp(elements data.id, 0, "delete: no rows with removed id found");
 
+# tryExec
+/*
+{
+    hash tval = ( "1" : (1,),);
+    on_exit table.commit();
+    data = table.tryExec("select 1 from t_some_table where 1 = %v", 1);
+    t.cmp(tval, data, "tryExec");
+    data = table.tryExecArgs("select 1 from t_some_table where 1=%v", (1,));
+    t.cmp(tval, data, "tryExecArgs");
+}
+*/
+
 # DROP TABLE test
 db.dropTableIfExists(TEST_TABLE_NAME);
+ds.commit();
 my Table removed_table(ds, TEST_TABLE_NAME);
 t.ok(!removed_table.checkExistence(), "drop table: no table found");
 
