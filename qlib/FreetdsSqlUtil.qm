@@ -889,6 +889,20 @@ my any $v = $c.name;
                         return sql;
                     },
                 ),
+                COP_PREPEND: (
+                    "arg": Type::String,
+                    "sqlvalue": True,
+                    "code": string sub (string cve, string arg) {
+                        return sprintf("%s + %s", arg, cve);
+                    },
+                ),
+                COP_APPEND: (
+                    "arg": Type::String,
+                    "sqlvalue": True,
+                    "code": string sub (string cve, string arg) {
+                        return sprintf("%s + %s", cve, arg);
+                    },
+                ),
                 COP_OVER: (
                     "argcolumn": True,
                     "argoptional": True,

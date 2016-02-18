@@ -1974,14 +1974,14 @@ public namespace SqlUtil {
             "arg": Type::String,
             "sqlvalue": True,
             "code": string sub (string cve, string arg) {
-                return sprintf("%s||%s", arg, cve);
+                return sprintf("%s || %s", arg, cve);
             },
         ),
         COP_APPEND: (
             "arg": Type::String,
             "sqlvalue": True,
             "code": string sub (string cve, string arg) {
-                return sprintf("%s||%s", cve, arg);
+                return sprintf("%s || %s", cve, arg);
             },
         ),
         COP_VALUE: (
