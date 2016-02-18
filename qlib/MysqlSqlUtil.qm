@@ -960,8 +960,9 @@ end";
                 COP_CAST: (
                     "code": string sub (string cve, list args) {
                         string name = QoreTypeMap{args[0]} ?? args[0];
+                        if (name == "varchar") name = "char"; # NOTE: due to current MariaSQL issue ("ERROR 1064 (42000)")
                         hash desc = MysqlTypeMap{name};
-                        string sql = sprintf ("cast (%s as %s", cve, name);
+                        string sql = sprintf ("cast(%s as %s", cve, name);
                         switch (name) {
                             default:
                                 if (desc.size == SZ_MAND) {
