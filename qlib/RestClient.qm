@@ -55,7 +55,6 @@ module RestClient {
     url = "http://qore.org";
     license = "MIT";
 
-# do not throw an exception when no modules can be loaded when generating documentation with qdx
 %ifndef QORE_QDX_RUN
     init = sub () {
         # if no modules for data de/serialization can be loaded, then throw an exception

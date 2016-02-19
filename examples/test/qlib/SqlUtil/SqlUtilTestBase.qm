@@ -78,7 +78,7 @@ public class SqlTestBase inherits QUnit::Test {
         on_error table.rollback();
 
         foreach hash data in (insert_data)
-            assertEq(NOTHING, table.insertNoCommit(data));
+            assertEq(NOTHING, table.insert(data));
     }
 
     selectTest() {
@@ -108,7 +108,7 @@ public class SqlTestBase inherits QUnit::Test {
         on_success table.commit();
         on_error table.rollback();
 
-        map assertEq(1, table.updateNoCommit($1 - "id", ("id": $1.id))), insert_data;
+        map assertEq(1, table.update($1 - "id", ("id": $1.id))), insert_data;
     }
 
     upsertTest() {
@@ -131,7 +131,7 @@ public class SqlTestBase inherits QUnit::Test {
         on_success table.commit();
         on_error table.rollback();
 
-        table.delNoCommit();
+        table.del();
 
         BulkInsertOperation insert(table);
         on_success insert.flush();
@@ -148,7 +148,7 @@ public class SqlTestBase inherits QUnit::Test {
         on_success table.commit();
         on_error table.rollback();
 
-        table.delNoCommit();
+        table.del();
 
         BulkUpsertOperation insert(table);
         on_success insert.flush();

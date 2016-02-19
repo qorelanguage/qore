@@ -524,12 +524,12 @@ InboundTableMapper mapper(table, DbMapper);
             *hash rh;
 
             if (unstable_input || (insert_block == 1))
-                rh = table.insertNoCommit(h, ("returning": ret_args));
+                rh = table.insert(h, ("returning": ret_args));
             else {
                 # when executing for the first time on stable input data, get an SQLStatement for the SQL used to insert
                 if (!stmt) {
                     string sql;
-                    rh = table.insertNoCommit(h, \sql, ("returning": ret_args));
+                    rh = table.insert(h, \sql, ("returning": ret_args));
                     stmt = new SQLStatement(table.getDatasource());
                     stmt.prepare(sql);
                 }
@@ -731,7 +731,7 @@ on_error table_mapper.rollback();
                     if (ret_args && hbuf{ret_args[0]}.typeCode() == NT_LIST)
                         map hbuf.$1 = hbuf.$1[0], ret_args;
                     out_args = map Type::Number, ret_args.iterator();
-                    rh = table.insertNoCommit(hbuf, \sql, ("returning": ret_args));
+                    rh = table.insert(hbuf, \sql, ("returning": ret_args));
                     # create the statement for future inserts
                     stmt = new SQLStatement(table.getDatasource());
                     stmt.prepare(sql);
@@ -1014,7 +1014,7 @@ InboundTableMapperIterator i(input, mapper);
             bool rv = i.next();
 
             if (rv)
-                mapc.getTable().insertNoCommit(getValue());
+                mapc.getTable().insert(getValue());
 
             # commit transaction if necessary
             if (commit_limit && ((rv && (++cnt == commit_limit)) || (!rv && cnt))) {
@@ -1259,8 +1259,8 @@ InboundTableMapperIterator i(input, mapper);
             return input;
         }
 
-        #! Get SqlStatementMapperIterator for easy line-by-line processing
-        /** @return TableMapper::SqlStatementMapperIterator object
+        #! Get MapperIterator for easy line-by-line processing
+        /** @return Mapper::MapperIterator object
 
             Data are retrieved with standard Qore::AbstractIterator::getValue() or similar.
             Value is a hash with column names as keys.
