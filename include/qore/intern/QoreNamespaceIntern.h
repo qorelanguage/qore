@@ -431,10 +431,20 @@ struct namespace_iterator_element {
    qore_ns_private* ns;
    nsmap_t::iterator i;
    bool committed;        // use committed or pending namespace list
+   bool all;              // iterate both committed and uncommitted ns
 
-   DLLLOCAL namespace_iterator_element(qore_ns_private* n_ns, bool n_committed) :
-      ns(n_ns), i(n_committed ? ns->nsl.nsmap.begin() : ns->pendNSL.nsmap.begin()), committed(n_committed) {
+   DLLLOCAL namespace_iterator_element(qore_ns_private* n_ns, bool n_committed, bool n_all = false) :
+      ns(n_ns), committed(n_committed), all(n_all) {
+      assert(!all || committed);
       assert(ns);
+
+      if (all && ns->nsl.nsmap.empty()) {
+         committed = false;
+         all = false;
+         i = ns->pendNSL.nsmap.begin();
+      }
+      else
+         i = committed ? ns->nsl.nsmap.begin() : ns->pendNSL.nsmap.begin();
    }
 
    DLLLOCAL bool atEnd() const {
@@ -443,7 +453,15 @@ struct namespace_iterator_element {
 
    DLLLOCAL QoreNamespace* next() {
       ++i;
-      return atEnd() ? 0 : i->second;
+      if (atEnd()) {
+         if (!all || ns->pendNSL.nsmap.empty())
+            return 0;
+         assert(committed);
+         committed = false;
+         all = false;
+         i = ns->pendNSL.nsmap.begin();
+      }
+      return i->second;
    }
 };
 
@@ -453,19 +471,30 @@ protected:
    nsv_t nsv;             // stack of namespaces
    qore_ns_private* root; // for starting over when done
    bool committed;        // use committed or pending namespace list
+   bool all;              // iterate all namespaces
 
    DLLLOCAL void set(qore_ns_private* rns) {
-      nsv.push_back(namespace_iterator_element(rns, committed));
+      nsv.push_back(namespace_iterator_element(rns, committed, all));
+
+      if (all) {
+         if (!rns->nsl.empty())
+            set(qore_ns_private::get(*rns->nsl.nsmap.begin()->second));
+         if (!rns->pendNSL.empty())
+            set(qore_ns_private::get(*rns->pendNSL.nsmap.begin()->second));
+         return;
+      }
 
       //printd(5, "QorePrivateNamespaceIterator::set() %p:%s committed: %d\n", rns, rns->name.c_str(), committed);
       while (!(committed ? rns->nsl.empty() : rns->pendNSL.empty())) {
          rns = qore_ns_private::get(*((committed ? rns->nsl.nsmap.begin()->second : rns->pendNSL.nsmap.begin()->second)));
+         //printd(5, "QorePrivateNamespaceIterator::set() -> %p:%s committed: %d\n", rns, rns->name.c_str(), committed);
          nsv.push_back(namespace_iterator_element(rns, committed));
       }
    }
 
 public:
-   DLLLOCAL QorePrivateNamespaceIterator(qore_ns_private* rns, bool n_committed) : root(rns), committed(n_committed) {
+   DLLLOCAL QorePrivateNamespaceIterator(qore_ns_private* rns, bool n_committed, bool n_all = false) : root(rns), committed(n_committed), all(n_all) {
+      assert(!all || committed);
       assert(rns);
    }
 
@@ -1386,7 +1415,7 @@ protected:
       {
          // rebuild root indexes for pending data in committed objects
          // https://github.com/qorelanguage/qore/issues/538
-         QorePrivateNamespaceIterator qpni(this, true);
+         QorePrivateNamespaceIterator qpni(ns, true, true);
          while (qpni.next())
             parseRebuildIndexes(qpni.get());
       }

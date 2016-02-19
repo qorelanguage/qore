@@ -22,8 +22,12 @@ class Test inherits QUnit::Test {
         Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
         p.loadModule(get_script_dir() + "/T.qm");
 
-        string code = "namespace T { namespace T1 { class X {} class X1 inherits X {} } }";
-        list args = (code, "issue-538");
-        testNullAssertion("issue-538", \p.parse(), args);
+        string code = "namespace T { namespace T1 { namespace T2 { class X {} class X1 inherits X {} } }}";
+        list args = (code, "issue-538-1");
+        testNullAssertion("issue-538-1", \p.parse(), args);
+
+        code = "namespace T { namespace T1 { class X {} class X1 inherits X {} } }";
+        args = (code, "issue-538-2");
+        testNullAssertion("issue-538-2", \p.parse(), args);
     }
 }
