@@ -1705,8 +1705,8 @@ int qore_ns_private::parseAddPendingClass(QoreClass* oc) {
    }
 
    qore_class_private::setNamespace(oc, this);
-
    och.release();
+
    return 0;
 }
 

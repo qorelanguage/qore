@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -450,12 +450,14 @@ struct namespace_iterator_element {
 class QorePrivateNamespaceIterator {
 protected:
    typedef std::vector<namespace_iterator_element> nsv_t;
-   nsv_t nsv; // stack of namespaces
+   nsv_t nsv;             // stack of namespaces
    qore_ns_private* root; // for starting over when done
    bool committed;        // use committed or pending namespace list
 
    DLLLOCAL void set(qore_ns_private* rns) {
       nsv.push_back(namespace_iterator_element(rns, committed));
+
+      //printd(5, "QorePrivateNamespaceIterator::set() %p:%s committed: %d\n", rns, rns->name.c_str(), committed);
       while (!(committed ? rns->nsl.empty() : rns->pendNSL.empty())) {
          rns = qore_ns_private::get(*((committed ? rns->nsl.nsmap.begin()->second : rns->pendNSL.nsmap.begin()->second)));
          nsv.push_back(namespace_iterator_element(rns, committed));
@@ -1375,9 +1377,19 @@ protected:
       }
       ns->pend_gvblist.zero();
 
-      QorePrivateNamespaceIterator qpni(ns, false);
-      while (qpni.next())
-         parseRebuildIndexes(qpni.get());
+      {
+         QorePrivateNamespaceIterator qpni(ns, false);
+         while (qpni.next())
+            parseRebuildIndexes(qpni.get());
+      }
+
+      {
+         // rebuild root indexes for pending data in committed objects
+         // https://github.com/qorelanguage/qore/issues/538
+         QorePrivateNamespaceIterator qpni(this, true);
+         while (qpni.next())
+            parseRebuildIndexes(qpni.get());
+      }
    }
 
    DLLLOCAL void rebuildAllIndexes() {
