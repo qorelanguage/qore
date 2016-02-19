@@ -110,6 +110,8 @@ module SqlUtil {
     - implemented support for \c "or" logic in @ref where_clauses
     - implemented AbstractTable::getBulkUpsertClosure() to better support bulk SQL merge operations
     - implemented @ref SqlUtil::wop_or() to allow for generating complex SQL strings with \a "or" and \a "and" expressions
+    - implemented @ref SqlUtil::cop_cast() operator for converting [column] value into another datatype
+    - implemented @ref SqlUtil::cop_sum() aggregate operator for returning sum of column values
     - fixed a bug with queries using a \a desc argument with the \a orderby query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
     - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
     - fixed a bug where driver-specific objects were not included when dropping a schema
@@ -121,6 +123,8 @@ module SqlUtil {
     - fixed a bug where complex bind values as hashes (such as used by the pgsql and oracle drivers) were rejected by SqlUtil (<a href="https://github.com/qorelanguage/qore/issues/494">bug 494</a>) when updating
     - fixed a bug where wildcard columns in join tables were not working (<a href="https://github.com/qorelanguage/qore/issues/499">bug 499</a>)
     - fixed a bug in @ref SqlUtil::op_in() where invalid SQL was generated with an argument of 0 (<a href="https://github.com/qorelanguage/qore/issues/500">bug 500</a>)
+    - fixed a bug in @ref SqlUtil::cop_value() where an exception was thrown with an argument of 0 (<a href="https://github.com/qorelanguage/qore/issues/511">bug 511</a>)
+    - fixed @ref SqlUtil::cop_count() operator to allow other operators as its argument (<a href="https://github.com/qorelanguage/qore/issues/517">bug 517</a>)
 
     @subsection sqlutilv1_2 SqlUtil v1.2
     - added insert operator support; for example, for inserting with values from sequences

@@ -807,10 +807,12 @@ my any $v = $c.name;
                 "real": ("qore": Type::Float,),
                 "money": ("qore": Type::Number,),
                 "smallmoney": ("qore": Type::Number,),
+
                 "datetime": ("qore": Type::Date,),
                 "smalldatetime": ("qore": Type::Date,),
                 "date": ("qore": Type::Date,),
                 "time": ("qore": Type::Date,),
+
                 # NOTE: "size_range" is different between MS SQL Server and Sybase SQL Anywhere Server
                 # MS SQL: range is (1, 8000) or special keyword "max" for varchar types
                 # Sybase: range is (1, 32767) and size is mandatory for character-length semantics
@@ -818,16 +820,19 @@ my any $v = $c.name;
                 "char varying": ("qore": Type::String, "size": SZ_OPT),
                 "character varying": ("qore": Type::String, "size": SZ_OPT),
                 "varchar": ("qore": Type::String, "size": SZ_OPT),
+
                 # The following uni* types are used in Sybase Adaptive Server
                 "unichar": ("qore": Type::String, "size": SZ_MAND,),
                 "univarchar": ("qore": Type::String, "size": SZ_MAND,),
                 "unitext": ("qore": Type::String,),
+
                 # NOTE: "size_range" is different between MS SQL Server and Sybase SQL Anywhere Server
                 # MS SQL: range is (1, 8000) or special keyword "max" for varbinary types
                 # Sybase: range is (1, 32767)
                 "binary": ("qore": Type::Binary, "size": SZ_OPT),
                 "binary varying": ("qore": Type::Binary, "size": SZ_OPT),
                 "varbinary": ("qore": Type::Binary, "size": SZ_OPT),
+
                 # The following are used in Sybase, supported & deprecated in MS SQL
                 "text": ("qore": Type::String,), # domain, implemented as "long varchar"
                 "image": ("qore": Type::Binary,), # domain, implemented as "long binary"

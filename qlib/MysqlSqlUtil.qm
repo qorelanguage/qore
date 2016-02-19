@@ -95,6 +95,8 @@ module MysqlSqlUtil {
     - corrected support for the \c varbinary type (<a href="https://github.com/qorelanguage/qore/issues/403">bug 403</a>)
     - corrected support for the \c binary type (<a href="https://github.com/qorelanguage/qore/issues/524">bug 524</a>)
     - \c schema member incorrectly set by @ref Qore::SQL::AbstractDatasource::getUserName() "AbstractDatasource::getUserName()" instead of @ref Qore::SQL::AbstractDatasource::getDBName() "AbstractDatasource::getDBName()" (<a href="https://github.com/qorelanguage/qore/pull/519">bug 519</a>)
+    - corrected support for datatypes \c binary, \c char, \c varbinary, \c varchar
+    - added support for \c cop_cast operator (<a href="https://github.com/qorelanguage/qore/issues/535">feature 535</a>)
 
     @subsection mysqlsqlutilv10 MysqlSqlUtil v1.0
     - initial release

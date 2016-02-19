@@ -261,6 +261,7 @@ my hash $schema = (
     - implemented support for views for DML in the @ref OracleSqlUtil::OracleTable class
     - implemented @ref OracleSqlUtil::OracleTable::getBaseType()
     - implemented support for Oracle pseudocolumns in queries
+    - implemented support for \c cop_cast operator
 
     @subsection v11 OracleSqlUtil v1.1
     - fixed selects with "limit" but no "offset"

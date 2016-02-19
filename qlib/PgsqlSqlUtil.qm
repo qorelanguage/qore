@@ -153,6 +153,7 @@ $function$
     @section pgsql_relnotes Release Notes
 
     @subsection pgsqlsqlutilv11 PgsqlSqlUtil v1.1
+    - added support for \c cop_cast operator (<a href="https://github.com/qorelanguage/qore/issues/535">feature 535</a>)
     - added support for the following datatypes and aliases: bool, float, int, timetz, timestamptz, varbit
     - fixed support for the following datatypes and aliases: bit, bit varying, char, character, character varying, char varying, oid, varchar
     - fixed bugs handling "bigint" and "double precision" column types with schema alignments
