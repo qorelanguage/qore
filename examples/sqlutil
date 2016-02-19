@@ -423,7 +423,7 @@ sub main() {
         FileLineIterator it(arg[1]);
         while (it.next()) {
             hash row = parseYAML(it.getValue());
-            table.insertNoCommit(row);
+            table.insert(row);
 
             if (it.index() % 1000 == 0)
                 source.commit();

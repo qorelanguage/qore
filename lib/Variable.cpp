@@ -1276,9 +1276,7 @@ void ClosureVarValue::ref() const {
 }
 
 void ClosureVarValue::deref(ExceptionSink* xsink) {
-   bool do_del = false;
-
-   //printd(5, "ClosureVarValue::deref() this: %p refs: %d -> %d rcount: %d rset: %p val: %s\n", this, references, references - 1, rcount, rset, val.getTypeName());
+   printd(QORE_DEBUG_OBJ_REFS, "ClosureVarValue::deref() this: %p refs: %d -> %d rcount: %d rset: %p val: %s\n", this, references, references - 1, rcount, rset, val.getTypeName());
 
    int ref_copy;
    {
@@ -1287,27 +1285,28 @@ void ClosureVarValue::deref(ExceptionSink* xsink) {
    }
 
    if (!ref_copy) {
-      del(xsink);
+      // first invalidate any rset
       {
 	 QoreAutoVarRWWriteLocker al(rml);
 	 removeInvalidateRSet();
       }
-      //printd(5, "ClosureVarValue::deref() this: %p deleting\n", this);
+      del(xsink);
+      printd(QORE_DEBUG_OBJ_REFS, "ClosureVarValue::deref() this: %p deleting\n", this);
       delete this;
       return;
    }
 
+   bool do_del = false;
+
    while (true) {
-      if (ref_copy != rcount)
-	 break;
       if (!rset) {
-	 //printd(5, "ClosureVarValue::deref() this: %p found recursive reference; deleting value\n", this);
-	 do_del = true;
-	 break;
+         if (ref_copy == rcount)
+            do_del = true;
+         break;
       }
       int rc = rset->canDelete(ref_copy, rcount);
       if (rc == 1) {
-	 //printd(5, "ClosureVarValue::deref() this: %p found recursive reference; deleting value\n", this);
+	 printd(QORE_DEBUG_OBJ_REFS, "ClosureVarValue::deref() this: %p found recursive reference; deleting value\n", this);
 	 do_del = true;
 	 break;
       }
@@ -1319,7 +1318,7 @@ void ClosureVarValue::deref(ExceptionSink* xsink) {
    }
 
    if (do_del) {
-      // first invalidate the rset
+      // first invalidate any rset
       {
 	 QoreAutoVarRWWriteLocker al(rml);
 	 removeInvalidateRSet();
