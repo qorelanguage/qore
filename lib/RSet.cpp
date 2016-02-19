@@ -87,6 +87,7 @@ void RSet::dbg() {
 }
 #endif
 
+// if we return 1, the rset has been invalidated already
 int RSet::canDelete(int ref_copy, int rcount) {
    printd(QRO_LVL, "RSet::canDelete() this: %p valid: %d\n", this, valid);
 
@@ -95,6 +96,8 @@ int RSet::canDelete(int ref_copy, int rcount) {
 
    if (!valid)
       return -1;
+
+   bool make_invalid = false;
 
    {
       QoreAutoRWReadLocker al(rwl);
@@ -116,8 +119,17 @@ int RSet::canDelete(int ref_copy, int rcount) {
          printd(QRO_LVL, "RSet::canDelete() this: %p can delete graph obj %p '%s' rcount: %d refs: %d\n", this, *i, (*i)->getName(), (*i)->rcount, (*i)->refs());
       }
       // invalidate the rset
-      valid = false;
+      make_invalid = true;
    }
+
+   if (make_invalid) {
+      QoreAutoRWWriteLocker al(rwl);
+      if (!valid)
+         return -1;
+
+      invalidateIntern();
+   }
+
    printd(QRO_LVL, "RSet::canDelete() this: %p can delete all objects in graph\n", this);
    return 1;
 }
@@ -129,17 +141,18 @@ protected:
    unsigned size;
 
 public:
-   DLLLOCAL RSectionScanHelper(RSetHelper* n_orsh, RObject* n_ro) : orsh(0), ro(0) {
+   DLLLOCAL RSectionScanHelper(RSetHelper* n_orsh, RObject* n_ro) : orsh(0), ro(n_ro) {
       int tid = gettid();
+
       // if we already have the rsection lock, then ignore; already processed (either in fomap or tr_out)
       if (n_ro->rml.hasRSectionLock(tid))
          return;
 
-      ro = n_ro;
-
       // try to lock
-      if (ro->rml.tryRSectionLockNotifyWaitRead(&n_orsh->notifier))
+      if (ro->rml.tryRSectionLockNotifyWaitRead(&n_orsh->notifier)) {
+         ro = 0;
 	 return;
+      }
 
       orsh = n_orsh;
       size = n_orsh->size();
@@ -161,12 +174,8 @@ public:
       orsh->add(ro);
    }
 
-   DLLLOCAL bool skip() const {
-      return !(bool)ro;
-   }
-
    DLLLOCAL bool lockError() const {
-      return !(bool)orsh;
+      return !ro;
    }
 };
 
@@ -230,10 +239,6 @@ bool RSetHelper::checkIntern(AbstractQoreNode* n) {
 	    RSectionScanHelper rssh(this, i->second);
             if (rssh.lockError())
                return true;
-	    if (rssh.skip()) {
-               printd(QRO_LVL, "RSetHelper::checkIntern() closure var '%s' already scanned; skipping (type: %s)\n", i->first->getName(), i->second->val.getTypeName());
-	       continue;
-            }
 #ifdef DEBUG
 	    unsigned csize = size();
 #endif

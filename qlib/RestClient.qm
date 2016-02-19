@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file RestClient.qm Qore user module for calling REST services
 
-/*  RestClient.qm Copyright (C) 2013 - 2015 Qore Technologies, sro
+/*  RestClient.qm Copyright (C) 2013 - 2016 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -55,11 +55,13 @@ module RestClient {
     url = "http://qore.org";
     license = "MIT";
 
+%ifndef QORE_QDX_RUN
     init = sub () {
         # if no modules for data de/serialization can be loaded, then throw an exception
         if (!RestClient::Accept)
             throw "RESTCLIENT-ERROR", sprintf("none of the 'yaml', 'xml', or 'json' modules can be loaded; at least one of which is required to support data de/serialization for REST requests and responses");
     };
+%endif
 }
 
 /*  Version History - see below in docs
