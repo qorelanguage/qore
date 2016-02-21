@@ -76,7 +76,7 @@ nothing getpwuid() [flags=RUNTIME_NOOP;dom=EXTERNAL_INFO] {
 
     @par Example:
     @code{.py}
-my *hash $hash = getpwuid(0);
+*hash hash = getpwuid(0);
     @endcode
 
     @see getpwuid2() for a similar function that throws an exception if the user ID is invalid
@@ -100,7 +100,7 @@ my *hash $hash = getpwuid(0);
 
     @par Example:
     @code{.py}
-my *hash $hash = getpwuid2(0);
+*hash hash = getpwuid2(0);
     @endcode
 
     @throw GETPWUID2-ERROR invalid uid or error reading user information
@@ -134,7 +134,7 @@ hash getpwuid2(softint uid) [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
 
     @par Example:
     @code{.py}
-my *hash $hash = getpwnam("root");
+*hash hash = getpwnam("root");
     @endcode
 
     @see getpwnam2() for a similar function that throws an exception if the user is invalid
@@ -158,7 +158,7 @@ hash getpwnam(string name) [flags=CONSTANT;dom=EXTERNAL_INFO] {
 
     @par Example:
     @code{.py}
-my *hash $hash = getpwnam2("root");
+*hash hash = getpwnam2("root");
     @endcode
 
     @throw GETPWNAM2-ERROR invalid user or error reading user information
@@ -192,7 +192,7 @@ hash getpwnam2(string name) [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
 
     @par Example:
     @code{.py}
-my *hash $hash = getgrgid(0);
+*hash hash = getgrgid(0);
     @endcode
 
     @see getgrgid2() for a similar function that throws an exception if the group ID is invalid
@@ -216,7 +216,7 @@ my *hash $hash = getgrgid(0);
 
     @par Example:
     @code{.py}
-my *hash $hash = getgrgid2(0);
+*hash hash = getgrgid2(0);
     @endcode
 
     @throw GETGRGID2-ERROR invalid gid or error reading group information
@@ -250,7 +250,7 @@ hash getgrgid2(softint gid) [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
 
     @par Example:
     @code{.py}
-my *hash $hash = getgrnam("root");
+*hash hash = getgrnam("root");
     @endcode
 
     @see getgrnam2() for a similar function that throws an exception if the group is invalid
@@ -274,7 +274,7 @@ my *hash $hash = getgrnam("root");
 
     @par Example:
     @code{.py}
-my *hash $hash = getgrnam2("root");
+*hash hash = getgrnam2("root");
     @endcode
 
     @throw GETGRNAM2-ERROR invalid group or error reading group information
@@ -305,7 +305,7 @@ hash getgrnam2(string name) [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
 //! returns the current username
 /** @par Example:
     @code{.py}
-my string $name = getusername();
+string name = getusername();
     @endcode
 
     @return the current username

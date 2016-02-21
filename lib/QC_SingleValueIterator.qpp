@@ -36,10 +36,10 @@
 
     @par Example: SingleValueIterator basic usage
     @code{.py}
-    my any $val = 1;
-    my SingleValueIterator $it($val);
-    while ($it.next()) {
-        printf("iter: %n\n", $it.getValue());
+    any val = 1;
+    SingleValueIterator it(val);
+    while (it.next()) {
+        printf("iter: %n\n", it.getValue());
     }
 
     iter: 1
@@ -48,7 +48,7 @@
     Remember that input value is taken as a single token so result of the code above for a list as an input argument will be like this:
 
     @code{.py}
-    my any $val = (1, 2, 3);
+    any val = (1, 2, 3);
     iter: list: (1, 2, 3)
     @endcode
 
@@ -60,7 +60,7 @@ qclass SingleValueIterator [arg=SingleValueIterator* i; ns=Qore; vparent=Abstrac
 
     @par Example:
     @code{.py}
-my SingleValueIterator i($v);
+SingleValueIterator i(v);
     @endcode
  */
 SingleValueIterator::constructor(any v) {
@@ -70,7 +70,7 @@ SingleValueIterator::constructor(any v) {
 //! Creates a copy of the SingleValueIterator object, iterating the same object as the original and in the same position
 /** @par Example:
     @code{.py}
-my SingleValueIterator $ni = $i.copy();
+SingleValueIterator ni = i.copy();
     @endcode
  */
 SingleValueIterator::copy() {
@@ -84,8 +84,8 @@ SingleValueIterator::copy() {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("value: %y\n", $i.getValue());
+while (i.next()) {
+    printf("value: %y\n", i.getValue());
 }
     @endcode
 
@@ -102,8 +102,8 @@ bool SingleValueIterator::next() {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("+ %y\n", $i.getValue());
+while (i.next()) {
+    printf("+ %y\n", i.getValue());
 }
     @endcode
 
@@ -118,8 +118,8 @@ any SingleValueIterator::getValue() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-if ($i.valid())
-    printf("current value: %y\n", $i.getValue());
+if (i.valid())
+    printf("current value: %y\n", i.getValue());
     @endcode
  */
 bool SingleValueIterator::valid() [flags=CONSTANT] {
@@ -131,7 +131,7 @@ bool SingleValueIterator::valid() [flags=CONSTANT] {
 
    @par Example
    @code{.py}
-$i.reset();
+i.reset();
    @endcode
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object

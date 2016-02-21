@@ -296,13 +296,13 @@ public:
 
     @par Example: DataLineIterator basic usage
     @code{.py}
-my string $str = "a2ps-4.13-1332.1.x86_64
+string str = "a2ps-4.13-1332.1.x86_64
 a2ps-devel-4.13-1332.1.x86_64
 aaa_base-11.3-7.2.x86_64";
 
-my DataLineIterator $it($str);
-while ($it.next()) {
-    printf("line %d = %n\n", $it.index(), $it.getValue());
+DataLineIterator it(str);
+while (it.next()) {
+    printf("line %d = %n\n", it.index(), it.getValue());
 }
 
 line 1 = "a2ps-4.13-1332.1.x86_64"
@@ -344,7 +344,7 @@ DataLineIterator::constructor(string string, *string eol, bool trim = True) {
 //! Creates a new DataLineIterator object, based on the same object being iterated in the original object
 /** @par Example:
     @code{.py}
-my DataLineIterator $ni = $i.copy();
+DataLineIterator ni = i.copy();
     @endcode
  */
 DataLineIterator::copy() {
@@ -362,8 +362,8 @@ DataLineIterator::copy() {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("line: %y\n", $i.getValue());
+while (i.next()) {
+    printf("line: %y\n", i.getValue());
 }
     @endcode
 
@@ -380,8 +380,8 @@ bool DataLineIterator::next() {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("+ %y\n", $i.getValue());
+while (i.next()) {
+    printf("+ %y\n", i.getValue());
 }
     @endcode
 
@@ -399,8 +399,8 @@ string DataLineIterator::getValue() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("+ %y\n", $i.getLine());
+while (i.next()) {
+    printf("+ %y\n", i.getLine());
 }
     @endcode
 
@@ -418,8 +418,8 @@ string DataLineIterator::getLine() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-if ($i.valid())
-    printf("current value: %y\n", $i.getValue());
+if (i.valid())
+    printf("current value: %y\n", i.getValue());
     @endcode
  */
 bool DataLineIterator::valid() [flags=CONSTANT] {
@@ -431,8 +431,8 @@ bool DataLineIterator::valid() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("+ %d: %y\n", $i.index(), $i.getValue());
+while (i.next()) {
+    printf("+ %d: %y\n", i.index(), i.getValue());
 }
     @endcode
  */
@@ -443,7 +443,7 @@ int DataLineIterator::index() [flags=CONSTANT] {
 //! Returns the @ref character_encoding "character encoding" for the %DataLineIterator
 /** @par Example:
     @code{.py}
-my string $encoding = $f.getEncoding();
+string encoding = f.getEncoding();
     @endcode
 
     @return the @ref character_encoding "character encoding" for the %DataLineIterator
@@ -455,7 +455,7 @@ string DataLineIterator::getEncoding() [flags=CONSTANT] {
 //! Returns the current data position as an integer giving the offset in bytes from the beginning of the data (starting from zero)
 /** @par Example:
     @code{.py}
-my int $pos = $i.getPos();
+int pos = i.getPos();
     @endcode
 
     @return the current data position as an integer giving the offset in bytes from the beginning of the data (starting from zero)
@@ -469,7 +469,7 @@ int DataLineIterator::getPos() [flags=RET_VALUE_ONLY] {
 
    @par Example
    @code{.py}
-$i.reset();
+i.reset();
    @endcode
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object

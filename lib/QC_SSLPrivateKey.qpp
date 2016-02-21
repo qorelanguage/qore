@@ -46,7 +46,7 @@ qclass SSLPrivateKey [arg=QoreSSLPrivateKey* pk];
 
     @par Example:
     @code{.py}
-my SSLPrivateKey $key($pem);
+SSLPrivateKey key(pem);
     @endcode
 
     @throw SSLPRIVATEKEY-CONSTRUCTOR-ERROR error in private key data
@@ -65,7 +65,7 @@ SSLPrivateKey::constructor(string pem, *string pass) {
 
     @par Example:
     @code{.py}
-my SSLPrivateKey $key($der);
+SSLPrivateKey key(der);
     @endcode
 
     @throw SSLPRIVATEKEY-CONSTRUCTOR-ERROR error in private key data
@@ -92,7 +92,7 @@ SSLPrivateKey::copy() {
 
     @par Example:
     @code{.py}
-my hash $h = $key.getInfo();
+hash h = key.getInfo();
     @endcode
  */
 hash SSLPrivateKey::getInfo() [flags=CONSTANT] {
@@ -104,7 +104,7 @@ hash SSLPrivateKey::getInfo() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my string $str = $pkey.getType();
+string str = pkey.getType();
     @endcode
  */
 string SSLPrivateKey::getType() [flags=CONSTANT] {
@@ -125,7 +125,7 @@ int SSLPrivateKey::getVersion() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $len = $key.getBitLength();
+int len = key.getBitLength();
     @endcode
  */
 int SSLPrivateKey::getBitLength() [flags=CONSTANT] {
@@ -137,7 +137,7 @@ int SSLPrivateKey::getBitLength() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my string $pem = $key.getPEM();
+string pem = key.getPEM();
     @endcode
 
     @throw SSLPRIVATEKEY-ERROR could not create PEM string from private key data

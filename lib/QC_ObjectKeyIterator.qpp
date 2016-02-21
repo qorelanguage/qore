@@ -41,19 +41,19 @@ extern QoreClass* QC_OBJECTITERATOR;
     @code{.py}
     class Class1 {
        public {
-          int $.attr1;
-          date $.attr2;
+          int attr1;
+          date attr2;
        }
        constructor() {
-          $.attr1 = 1;
-          $.attr2 = now();
+          attr1 = 1;
+          attr2 = now();
        }
     }
-    my Class1 $o();
+    Class1 o();
 
-    my ObjectKeyIterator $it($o);
-    while ($it.next()) {
-        printf("iter: %n\n", $it.getValue());
+    ObjectKeyIterator it(o);
+    while (it.next()) {
+        printf("iter: %n\n", it.getValue());
     }
 
     iter: "attr1"
@@ -74,7 +74,7 @@ qclass ObjectKeyIterator [arg=QoreObjectIterator* i; ns=Qore; vparent=ObjectIter
 
     @par Example:
     @code{.py}
-my ObjectKeyIterator $i($h);
+ObjectKeyIterator i(h);
     @endcode
  */
 ObjectKeyIterator::constructor(object o) {
@@ -84,8 +84,8 @@ ObjectKeyIterator::constructor(object o) {
 //! Creates an empty object iterator object
 /** @par Example:
     @code{.py}
-my *object $o = get_object_or_nothing();
-my ObjectKeyIterator $i($o);
+*object o = get_object_or_nothing();
+ObjectKeyIterator i(o);
     @endcode
  */
 ObjectKeyIterator::constructor() {
@@ -95,7 +95,7 @@ ObjectKeyIterator::constructor() {
 //! Creates a copy of the ObjectKeyIterator object, iterating the same object as the original and in the same position
 /** @par Example:
     @code{.py}
-my ObjectKeyIterator $ni = $i.copy();
+ObjectKeyIterator ni = i.copy();
     @endcode
  */
 ObjectKeyIterator::copy() {
@@ -107,8 +107,8 @@ ObjectKeyIterator::copy() {
 
     @par Example:
     @code{.py}
-foreach my string $key in ($object.keyIterator())
-    printf("key: %s\n", $key);
+foreach string key in (object.keyIterator())
+    printf("key: %s\n", key);
     @endcode
 
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element

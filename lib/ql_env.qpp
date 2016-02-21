@@ -47,7 +47,7 @@
 
     @par Example:
     @code{.py}
-my *string $v = getenv("PATH");
+*string v = getenv("PATH");
     @endcode
 
     @since %Qore 0.8.4 tagged with PO_NO_EXTERNAL_INFO

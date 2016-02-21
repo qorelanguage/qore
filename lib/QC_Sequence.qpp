@@ -41,7 +41,7 @@ qclass Sequence [arg=QoreSequence* s; ns=Qore::Thread];
 /** 
     @par Example:
     @code{.py}
-my Sequence $seq();
+Sequence seq();
     @endcode
  */
 Sequence::constructor() {
@@ -52,7 +52,7 @@ Sequence::constructor() {
 /** 
     @par Example:
     @code{.py}
-my Sequence $seq(20);
+Sequence seq(20);
     @endcode
  */
 Sequence::constructor(softint start) {
@@ -63,7 +63,7 @@ Sequence::constructor(softint start) {
 /** 
     @par Example:
     @code{.py}
-my Sequence $s2 = $seq.copy();
+Sequence s2 = seq.copy();
     @endcode
  */
 Sequence::copy() {
@@ -74,7 +74,7 @@ Sequence::copy() {
 /** @return the last value of the sequence
     @par Example:
     @code{.py}
-my int $next = $seq.next();
+int next = seq.next();
     @endcode
  */
 int Sequence::next() {
@@ -85,7 +85,7 @@ int Sequence::next() {
 /** @return current value of the sequence
     @par Example:
     @code{.py}
-my int $v = $seq.getCurrent();
+int v = seq.getCurrent();
     @endcode
  */
 int Sequence::getCurrent() [flags=CONSTANT] {

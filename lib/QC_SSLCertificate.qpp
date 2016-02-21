@@ -42,7 +42,7 @@ qclass SSLCertificate [arg=QoreSSLCertificate* s];
 
     @par Example:
     @code{.py}
-my SSLCertificate $cert($pem_cert_string);
+SSLCertificate cert(pem_cert_string);
     @endcode
 
     @throw SSLCERTIFICATE-CONSTRUCTOR-ERROR invalid X.509 certificate data
@@ -61,7 +61,7 @@ SSLCertificate::constructor(string pem) {
 
     @par Example:
     @code{.py}
-my SSLCertificate $cert($der_cert);
+SSLCertificate cert(der_cert);
     @endcode
 
     @throw SSLCERTIFICATE-CONSTRUCTOR-ERROR invalid X.509 certificate data
@@ -85,7 +85,7 @@ SSLCertificate::copy() {
 
     @par Example:
     @code{.py}
-my string $pem_str = $cert.getPEM();
+string pem_str = cert.getPEM();
     @endcode
 
     @throw X509-ERROR could not create PEM string from X509 certificate data
@@ -109,7 +109,7 @@ string SSLCertificate::getPEM() {
 
     @par Example:
     @code{.py}
-my hash $hash = $cert.getInfo();
+hash hash = cert.getInfo();
     @endcode
  */
 hash SSLCertificate::getInfo() [flags=CONSTANT] {
@@ -121,7 +121,7 @@ hash SSLCertificate::getInfo() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my binary $bin = $cert.getSignature();
+binary bin = cert.getSignature();
     @endcode
  */
 binary SSLCertificate::getSignature() [flags=CONSTANT] {
@@ -133,7 +133,7 @@ binary SSLCertificate::getSignature() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my string $str = $cert.getSignatureType();
+string str = cert.getSignatureType();
     @endcode
  */
 string SSLCertificate::getSignatureType() [flags=CONSTANT] {
@@ -145,7 +145,7 @@ string SSLCertificate::getSignatureType() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my *binary $bin = $cert.getPublicKey();
+*binary bin = cert.getPublicKey();
     @endcode
  */
 *binary SSLCertificate::getPublicKey() [flags=CONSTANT] {
@@ -157,7 +157,7 @@ my *binary $bin = $cert.getPublicKey();
 
     @par Example:
     @code{.py}
-my string $str = $cert.getPublicKeyAlgorithm();
+string str = cert.getPublicKeyAlgorithm();
     @endcode
  */
 string SSLCertificate::getPublicKeyAlgorithm() [flags=CONSTANT] {
@@ -169,7 +169,7 @@ string SSLCertificate::getPublicKeyAlgorithm() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my hash $h = $cert.getSubjectHash();
+hash h = cert.getSubjectHash();
     @endcode
  */
 hash SSLCertificate::getSubjectHash() [flags=CONSTANT] {
@@ -181,7 +181,7 @@ hash SSLCertificate::getSubjectHash() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my hash $h = $cert.getIssuerHash();
+hash h = cert.getIssuerHash();
     @endcode
  */
 hash SSLCertificate::getIssuerHash() [flags=CONSTANT] {
@@ -193,7 +193,7 @@ hash SSLCertificate::getIssuerHash() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $sn = $cert.getSerialNumber();
+int sn = cert.getSerialNumber();
     @endcode
  */
 int SSLCertificate::getSerialNumber() [flags=CONSTANT] {
@@ -205,7 +205,7 @@ int SSLCertificate::getSerialNumber() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $ver = $cert.getVersion();
+int ver = cert.getVersion();
     @endcode
  */
 int SSLCertificate::getVersion() [flags=CONSTANT] {
@@ -217,7 +217,7 @@ int SSLCertificate::getVersion() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my hash $h = $cert.getPurposeHash();
+hash h = cert.getPurposeHash();
     @endcode
  */
 hash SSLCertificate::getPurposeHash() [flags=CONSTANT] {
@@ -229,7 +229,7 @@ hash SSLCertificate::getPurposeHash() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my date $start = $cert.getNotBeforeDate();
+date start = cert.getNotBeforeDate();
     @endcode
  */
 date SSLCertificate::getNotBeforeDate() [flags=CONSTANT] {
@@ -241,7 +241,7 @@ date SSLCertificate::getNotBeforeDate() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my date $end = $cert.getNotAfterDate();
+date end = cert.getNotAfterDate();
     @endcode
  */
 date SSLCertificate::getNotAfterDate() [flags=CONSTANT] {

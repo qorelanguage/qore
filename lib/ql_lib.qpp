@@ -246,7 +246,7 @@ nothing system() [flags=RUNTIME_NOOP;dom=EXTERNAL_PROCESS] {
 
     @par Example:
     @code{.py}
-my int $uid = getuid();
+int uid = getuid();
     @endcode
  */
 int getuid() [dom=EXTERNAL_INFO] {
@@ -265,7 +265,7 @@ int getuid() [dom=EXTERNAL_INFO] {
 
     @par Example:
     @code{.py}
-my int $euid = geteuid();
+int euid = geteuid();
     @endcode
  */
 int geteuid() [dom=EXTERNAL_INFO] {
@@ -284,7 +284,7 @@ int geteuid() [dom=EXTERNAL_INFO] {
 
     @par Example:
     @code{.py}
-my int $gid = getgid();
+int gid = getgid();
     @endcode
  */
 int getgid() [dom=EXTERNAL_INFO] {
@@ -303,7 +303,7 @@ int getgid() [dom=EXTERNAL_INFO] {
 
     @par Example:
     @code{.py}
-my int $egid = getegid();
+int egid = getegid();
     @endcode
  */
 int getegid() [dom=EXTERNAL_INFO] {
@@ -320,7 +320,7 @@ int getegid() [dom=EXTERNAL_INFO] {
 
     @par Example:
     @code{.py}
-my list $l = getgroups();
+list l = getgroups();
     @endcode
 
     @return a list of group IDs that the user is a member of
@@ -350,7 +350,7 @@ list getgroups() [dom=EXTERNAL_INFO] {
 
     @par Example:
     @code{.py}
-setgroups($l);
+setgroups(l);
     @endcode
 
     @param gids a list of supplementary group IDs for the current process
@@ -458,7 +458,7 @@ nothing usleep() [flags=RUNTIME_NOOP;dom=PROCESS] {
 
     @par Example:
     @code{.py}
-my int $pid = getpid();
+int pid = getpid();
     @endcode
  */
 int getpid() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
@@ -473,7 +473,7 @@ int getpid() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
 
     @par Example:
     @code{.py}
-my int $ppid = HAVE_GETPPID ? getppid() : -1;
+int ppid = HAVE_GETPPID ? getppid() : -1;
     @endcode
  */
 int getppid() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
@@ -494,9 +494,9 @@ int getppid() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
 
     @par Example:
     @code{.py}
-my int $pid;
-if ($pid = fork())
-    printf("child has PID %d\n", $pid);
+int pid;
+if (pid = fork())
+    printf("child has PID %d\n", pid);
     @endcode
 
     @throw ILLEGAL-FORK Cannot fork if more than one thread is running
@@ -556,8 +556,8 @@ int fork() [dom=PROCESS] {
 
     @par Example:
     @code{.py}
-if (kill($pid, SIGTERM))
-    printf("error sending signal to pid %d: %s\n", $pid, strerror());
+if (kill(pid, SIGTERM))
+    printf("error sending signal to pid %d: %s\n", pid, strerror());
     @endcode
  */
 int kill(softint pid, softint sig = SIGHUP) [dom=EXTERNAL_PROCESS] {
@@ -581,7 +581,7 @@ nothing kill() [flags=RUNTIME_NOOP;dom=EXTERNAL_PROCESS] {
 
     @par Example:
     @code{.py}
-my int $num = rand();
+int num = rand();
     @endcode
 
     @see srand() for a function to seed the random number generator
@@ -625,7 +625,7 @@ nothing srand() [flags=RUNTIME_NOOP;dom=PROCESS] {
 
     @par Example:
     @code{.py}
-my string $host = gethostname();
+string host = gethostname();
     @endcode
  */
 string gethostname() [flags=CONSTANT;dom=EXTERNAL_INFO] {
@@ -641,8 +641,8 @@ string gethostname() [flags=CONSTANT;dom=EXTERNAL_INFO] {
 
     @par Example:
     @code{.py}
-if (unlink($path))
-    printf("%s: %s\n", $path, strerror(errno()));
+if (unlink(path))
+    printf("%s: %s\n", path, strerror(errno()));
     @endcode
 
     @see strerror() for a function that gives the string description for the error number returned by this function
@@ -658,8 +658,8 @@ int errno() {
 
     @par Example:
     @code{.py}
-if (unlink($path))
-    printf("%s: %s\n", $path, strerror(errno()));
+if (unlink(path))
+    printf("%s: %s\n", path, strerror(errno()));
     @endcode
  */
 string strerror(softint err) [flags=CONSTANT] {
@@ -671,8 +671,8 @@ string strerror(softint err) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-if (unlink($path))
-    printf("%s: %s\n", $path, strerror());
+if (unlink(path))
+    printf("%s: %s\n", path, strerror());
     @endcode
 
     @since %Qore 0.8.4 this variant of the function automatically uses the last error value for the current thread
@@ -688,7 +688,7 @@ string strerror() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my string $fn = basename("/usr/local/bin/file_name");
+string fn = basename("/usr/local/bin/file_name");
     @endcode
 
     @see dirname()
@@ -712,7 +712,7 @@ nothing basename() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my string $dir = dirname("/usr/local/bin/file_name");
+string dir = dirname("/usr/local/bin/file_name");
     @endcode
 
     @see basename()
@@ -739,8 +739,8 @@ nothing dirname() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-if (setuid($uid))
-    printf("setuid %d: %s\n", $uid, strerror());
+if (setuid(uid))
+    printf("setuid %d: %s\n", uid, strerror());
     @endcode
  */
 int setuid(softint uid) [dom=PROCESS] {
@@ -761,8 +761,8 @@ int setuid(softint uid) [dom=PROCESS] {
 
     @par Example:
     @code{.py}
-if (seteuid($uid))
-    printf("seteuid %d: %s\n", $uid, strerror());
+if (seteuid(uid))
+    printf("seteuid %d: %s\n", uid, strerror());
     @endcode
  */
 int seteuid(softint uid) [dom=PROCESS] {
@@ -783,8 +783,8 @@ int seteuid(softint uid) [dom=PROCESS] {
 
     @par Example:
     @code{.py}
-if (setgid($gid))
-    printf("setgid %d: %s\n", $gid, strerror());
+if (setgid(gid))
+    printf("setgid %d: %s\n", gid, strerror());
     @endcode
  */
 int setgid(softint gid) [dom=PROCESS] {
@@ -805,8 +805,8 @@ int setgid(softint gid) [dom=PROCESS] {
 
     @par Example:
     @code{.py}
-if (setegid($gid))
-    printf("setegid %d: %s\n", $gid, strerror());
+if (setegid(gid))
+    printf("setegid %d: %s\n", gid, strerror());
     @endcode
  */
 int setegid(softint gid) [dom=PROCESS] {
@@ -843,9 +843,9 @@ int setsid() [dom=PROCESS] {
 
     @par Example:
     @code{.py}
-my *string $addr = gethostbyname($host);
-if (!exists $host)
-    printf("address lookup on %y failed; hostname unknown\n", $host);
+*string addr = gethostbyname(host);
+if (!exists host)
+    printf("address lookup on %y failed; hostname unknown\n", host);
     @endcode
 
     @see gethostbyname_long() for a version of this function that returns all host information, including all hostname aliases and all addresses
@@ -870,9 +870,9 @@ nothing gethostbyname() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my *string $hostname = gethostbyaddr("192.168.0.33");
-if (!exists $hostname)
-    printf("address lookup on 192.168.0.33 failed\n", $host);
+*string hostname = gethostbyaddr("192.168.0.33");
+if (!exists hostname)
+    printf("address lookup on 192.168.0.33 failed\n", host);
     @endcode
 
     @throw GETHOSTBYADDR-ERROR invalid address for the given family or invalid address family
@@ -897,9 +897,9 @@ nothing gethostbyaddr() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my *hash $ah = gethostbyname_long($host);
-if (!exists $host)
-    printf("address lookup on %y failed; hostname unknown\n", $host);
+*hash ah = gethostbyname_long(host);
+if (!exists host)
+    printf("address lookup on %y failed; hostname unknown\n", host);
     @endcode
 
     @see gethostbyname() for a version of this function that returns just the first network address corresponding to the hostname
@@ -924,9 +924,9 @@ nothing gethostbyname_long() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my *hash $ah = gethostbyaddr_long("192.168.0.33");
-if (!exists $ah)
-    printf("address lookup on 192.168.0.33 failed\n", $host);
+*hash ah = gethostbyaddr_long("192.168.0.33");
+if (!exists ah)
+    printf("address lookup on 192.168.0.33 failed\n", host);
     @endcode
 
     @throw GETHOSTBYADDR-ERROR invalid address for the given family or invalid address family
@@ -955,7 +955,7 @@ nothing gethostbyaddr_long() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my list $l = getaddrinfo("localhost");
+list l = getaddrinfo("localhost");
     @endcode
 
     @throw QOREADDRINFO-GETINFO-ERROR nodename nor servname provided, or not known

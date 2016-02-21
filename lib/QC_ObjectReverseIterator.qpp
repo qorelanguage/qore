@@ -41,19 +41,19 @@ extern QoreClass* QC_OBJECTITERATOR;
     @code{.py}
     class Class1 {
        public {
-          int $.attr1;
-          date $.attr2;
+          int attr1;
+          date attr2;
        }
        constructor() {
-          $.attr1 = 1;
-          $.attr2 = now();
+          attr1 = 1;
+          attr2 = now();
        }
     }
-    my Class1 $o();
+    Class1 o();
 
-    my ObjectReverseIterator $it($o);
-    while ($it.next()) {
-        printf("iter: %n\n", $it.getValue());
+    ObjectReverseIterator it(o);
+    while (it.next()) {
+        printf("iter: %n\n", it.getValue());
     }
 
     iter: 2013-04-17 16:31:03 Wed +02:00 (CEST)
@@ -79,7 +79,7 @@ qclass ObjectReverseIterator [arg=QoreObjectReverseIterator* i; ns=Qore; vparent
 
     @par Example:
     @code{.py}
-my ObjectReverseIterator $i($obj);
+ObjectReverseIterator i(obj);
     @endcode
  */
 ObjectReverseIterator::constructor(object o) {
@@ -89,8 +89,8 @@ ObjectReverseIterator::constructor(object o) {
 //! Creates an empty iterator object
 /** @par Example:
     @code{.py}
-my *object $obj = get_object_or_nothing();
-my ObjectReverseIterator $i($obj);
+*object obj = get_object_or_nothing();
+ObjectReverseIterator i(obj);
     @endcode
  */
 ObjectReverseIterator::constructor() {
@@ -100,7 +100,7 @@ ObjectReverseIterator::constructor() {
 //! Creates a copy of the ObjectReverseIterator object, iterating the same object as the original and in the same position
 /** @par Example:
     @code{.py}
-my ObjectReverseIterator $ni = $i.copy();
+ObjectReverseIterator ni = i.copy();
     @endcode
  */
 ObjectReverseIterator::copy() {
@@ -115,8 +115,8 @@ ObjectReverseIterator::copy() {
 
     @par Example:
     @code{.py}
-while ($i.prev()) {
-    printf(" + %y\n", $i.getValue());
+while (i.prev()) {
+    printf(" + %y\n", i.getValue());
 }
     @endcode
 
@@ -139,8 +139,8 @@ bool ObjectReverseIterator::next() {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf(" + %y\n", $i.getValue());
+while (i.next()) {
+    printf(" + %y\n", i.getValue());
 }
     @endcode
 
@@ -160,8 +160,8 @@ bool ObjectReverseIterator::prev() {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    if ($i.first())
+while (i.next()) {
+    if (i.first())
         printf("START:\n");
 }
     @endcode
@@ -175,8 +175,8 @@ bool ObjectReverseIterator::first() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    if ($i.last())
+while (i.next()) {
+    if (i.last())
         printf("END.\n");
 }
     @endcode

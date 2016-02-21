@@ -51,7 +51,7 @@ AbstractSmartLock::constructor() {
 //! Returns the name of the threading class directly inheriting this class
 /** @par Example:
     @code{.py}
-my string $name = $lock.getName();
+string name = lock.getName();
     @endcode
 
     @return the name of the threading class directly inheriting this class
@@ -64,12 +64,12 @@ string AbstractSmartLock::getName() [flags=CONSTANT] {
 /** @par Example:
     @code{.py}
 # only grab and release lock if we don't already own it
-my bool $lck = !$lock.lockOwner();
-if ($lck)
-    $lock.lock();
+bool lck = !lock.lockOwner();
+if (lck)
+    lock.lock();
 on_exit
-    if ($lck)
-	$lock.unlock();
+    if (lck)
+	lock.unlock();
     @endcode
 
     @return @ref True if the calling thread owns the lock, @ref False if not
@@ -83,7 +83,7 @@ bool AbstractSmartLock::lockOwner() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $tid = $lock.lockTID();
+int tid = lock.lockTID();
     @endcode
 
     @return the TID of the thread owning the lock or -1 if the lock is currently not acquired

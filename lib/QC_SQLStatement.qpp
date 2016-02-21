@@ -42,13 +42,13 @@
     Here is an example executing a select statement:
     @code{.py}
 {
-    my SQLStatement $stmt($ds);
+    SQLStatement stmt(ds);
     # release transaction lock on exit
-    on_exit $stmt.commit();
-    $stmt.prepare("select * from table");
-    while ($stmt.next()) {
-        my hash $row = $stmt.fetchRow();
-        do_something($row);
+    on_exit stmt.commit();
+    stmt.prepare("select * from table");
+    while (stmt.next()) {
+        hash row = stmt.fetchRow();
+        do_something(row);
     }
 }
     @endcode
@@ -98,7 +98,7 @@ qclass SQLStatement [dom=DATABASE; arg=QoreSQLStatement* stmt; ns=Qore::SQL; vpa
 
     @par Example:
     @code{.py}
-my SQLStatement $stmt($db);
+SQLStatement stmt(db);
     @endcode
 
     @throw SQLSTATEMENT-ERROR the DBI driver for the given object does not support the prepared statement API
@@ -126,7 +126,7 @@ SQLStatement::constructor(Datasource[ManagedDatasource] ds) {
 
     @par Example:
     @code{.py}
-my SQLStatement $stmt($db);
+SQLStatement stmt(db);
     @endcode
 
     @throw SQLSTATEMENT-ERROR the DBI driver for the given object does not support the prepared statement API
@@ -151,7 +151,7 @@ SQLStatement::constructor(DatasourcePool[DatasourcePool] dsp) {
 /**
     @par Example:
     @code{.py}
-delete $stmt;
+delete stmt;
     @endcode
  */
 SQLStatement::destructor() {
@@ -177,7 +177,7 @@ SQLStatement::copy() {
 
     @par Example:
     @code{.py}
-$stmt.prepare("select * from table where id = %v");
+stmt.prepare("select * from table where id = %v");
     @endcode
  */
 nothing SQLStatement::prepare(string sql, ...) {
@@ -198,7 +198,7 @@ nothing SQLStatement::prepare(string sql, ...) {
 
     @par Example:
     @code{.py}
-$stmt.prepareRaw("select * from table");
+stmt.prepareRaw("select * from table");
     @endcode
  */
 nothing SQLStatement::prepareRaw(string sql) {
@@ -218,10 +218,10 @@ nothing SQLStatement::prepareRaw(string sql) {
 
     @par Example:
     @code{.py}
-$stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach my hash $h in ($l) {
-    $stmt.bind($h.id, $h.name);
-    $stmt.exec();
+stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach hash h in (l) {
+    stmt.bind(h.id, h.name);
+    stmt.exec();
 }
     @endcode
 
@@ -249,11 +249,11 @@ nothing SQLStatement::bind(...) {
 
     @par Example:
     @code{.py}
-$stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach my hash $h in ($l) {
-    my list $args = ($h.id, $h.name);
-    $stmt.bindArgs($args);
-    $stmt.exec();
+stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach hash h in (l) {
+    list args = (h.id, h.name);
+    stmt.bindArgs(args);
+    stmt.exec();
 }
     @endcode
 
@@ -281,9 +281,9 @@ nothing SQLStatement::bindArgs(softlist vargs) {
 
     @par Example:
     @code{.py}
-$stmt.prepare("begin select sysdate into :sd from dual", Type::Date); end;
-$stmt.bindPlaceholders(Type::Date);
-my date $d = $stmt.getOutput().sd;
+stmt.prepare("begin select sysdate into :sd from dual", Type::Date); end;
+stmt.bindPlaceholders(Type::Date);
+date d = stmt.getOutput().sd;
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
@@ -311,10 +311,10 @@ nothing SQLStatement::bindPlaceholders(...) {
 
     @par Example:
     @code{.py}
-$stmt.prepare("begin select sysdate into :sd from dual", Type::Date); end;
-my list $l = list(Type::Date);
-$stmt.bindPlaceholdersArgs($l);
-my date $d = $stmt.getOutput().sd;
+stmt.prepare("begin select sysdate into :sd from dual", Type::Date); end;
+list l = list(Type::Date);
+stmt.bindPlaceholdersArgs(l);
+date d = stmt.getOutput().sd;
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
@@ -340,10 +340,10 @@ nothing SQLStatement::bindPlaceholdersArgs(softlist vargs) {
 
     @par Example:
     @code{.py}
-$stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach my hash $h in ($l) {
-    $stmt.bindValues($h.id, $h.name);
-    $stmt.exec();
+stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach hash h in (l) {
+    stmt.bindValues(h.id, h.name);
+    stmt.exec();
 }
     @endcode
 
@@ -371,11 +371,11 @@ nothing SQLStatement::bindValues(...) {
 
     @par Example:
     @code{.py}
-$stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach my hash $h in ($l) {
-    my list $args = ($h.id, $h.name);
-    $stmt.bindValuesArgs($args);
-    $stmt.exec();
+stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach hash h in (l) {
+    list args = (h.id, h.name);
+    stmt.bindValuesArgs(args);
+    stmt.exec();
 }
     @endcode
 
@@ -402,9 +402,9 @@ nothing SQLStatement::bindValuesArgs(softlist vargs) {
 
     @par Example:
     @code{.py}
-$stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach my hash $h in ($l) {
-    $stmt.exec($h.id, $h.name);
+stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach hash h in (l) {
+    stmt.exec(h.id, h.name);
 }
     @endcode
 
@@ -434,10 +434,10 @@ nothing SQLStatement::exec(...) {
 
     @par Example:
     @code{.py}
-$stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach my hash $h in ($l) {
-    my list $args = ($h.id, $h.name);
-    $stmt.execArgs($args);
+stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach hash h in (l) {
+    list args = (h.id, h.name);
+    stmt.execArgs(args);
 }
     @endcode
 
@@ -456,7 +456,7 @@ nothing SQLStatement::execArgs(softlist vargs) {
 
     @par Example:
     @code{.py}
-my int $rc = $stmt.affectedRows();
+int rc = stmt.affectedRows();
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
@@ -472,7 +472,7 @@ int SQLStatement::affectedRows() {
 
     @par Example:
     @code{.py}
-my hash $h = $stmt.getOutput();
+hash h = stmt.getOutput();
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
@@ -488,7 +488,7 @@ hash SQLStatement::getOutput() {
 
     @par Example:
     @code{.py}
-my hash $h = $stmt.getOutputRows();
+hash h = stmt.getOutputRows();
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
@@ -505,16 +505,16 @@ hash SQLStatement::getOutputRows() {
     @par Example:
     @code{.py}
 {
-    my SQLStatement $stmt($ds);
+    SQLStatement stmt(ds);
     # release transaction lock on exit
-    on_exit $stmt.commit();
-    $stmt.prepare("select * from table");
-    $stmt.exec();
-    $stmt.define();
+    on_exit stmt.commit();
+    stmt.prepare("select * from table");
+    stmt.exec();
+    stmt.define();
     # note that the SQLStatement::next() would implicitly execute exec() and define()
-    while ($stmt.next()) {
-        my hash $row = $stmt.fetchRow();
-        do_something($row);
+    while (stmt.next()) {
+        hash row = stmt.fetchRow();
+        do_something(row);
     }
 }
     @endcode
@@ -527,7 +527,7 @@ nothing SQLStatement::define() {
 /**
     @par Example:
     @code{.py}
-$stmt.close();
+stmt.close();
     @endcode
  */
 nothing SQLStatement::close() {
@@ -538,7 +538,7 @@ nothing SQLStatement::close() {
 /**
     @par Example:
     @code{.py}
-$stmt.commit();
+stmt.commit();
     @endcode
 
     @note For possible exceptions; see DBI driver docs for the commit() method
@@ -551,7 +551,7 @@ nothing SQLStatement::commit() {
 /**
     @par Example:
     @code{.py}
-$stmt.rollback();
+stmt.rollback();
     @endcode
 
     @note For possible exceptions; see DBI driver docs for the rollback() method
@@ -564,7 +564,7 @@ nothing SQLStatement::rollback() {
 /**
     @par Example:
     @code{.py}
-$stmt.beginTransaction();
+stmt.beginTransaction();
     @endcode
  */
 nothing SQLStatement::beginTransaction() {
@@ -578,8 +578,8 @@ nothing SQLStatement::beginTransaction() {
 
     @par Example:
     @code{.py}
-while ($stmt.next()) {
-    my hash $h = $stmt.fetchRow();
+while (stmt.next()) {
+    hash h = stmt.fetchRow();
 }
     @endcode
 
@@ -596,8 +596,8 @@ bool SQLStatement::next() {
 
     @par Example:
     @code{.py}
-if ($i.valid())
-    printf("current value: %y\n", $i.getValue());
+if (i.valid())
+    printf("current value: %y\n", i.getValue());
     @endcode
  */
 bool SQLStatement::valid() [flags=CONSTANT] {
@@ -611,8 +611,8 @@ bool SQLStatement::valid() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($stmt.next()) {
-    my hash $h = $stmt.fetchRow();
+while (stmt.next()) {
+    hash h = stmt.fetchRow();
 }
     @endcode
 
@@ -631,8 +631,8 @@ while ($stmt.next()) {
 
     @par Example:
     @code{.py}
-while ($stmt.next()) {
-    my hash $h = $stmt.getValue();
+while (stmt.next()) {
+    hash h = stmt.getValue();
 }
     @endcode
 
@@ -657,7 +657,7 @@ while ($stmt.next()) {
 
     @par Example:
     @code{.py}
-my list $l = $stmt.fetchRows(-1);
+list l = stmt.fetchRows(-1);
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
@@ -679,7 +679,7 @@ list SQLStatement::fetchRows(softint rows = -1) {
 
     @par Example:
     @code{.py}
-my hash $h = $stmt.fetchColumns(-1);
+hash h = stmt.fetchColumns(-1);
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
@@ -717,7 +717,7 @@ hash SQLStatement::describe() {
 
     @par Example:
     @code{.py}
-my *string $sql = $stmt.getSQL();
+*string sql = stmt.getSQL();
     @endcode
  */
 *string SQLStatement::getSQL() {
@@ -729,8 +729,8 @@ my *string $sql = $stmt.getSQL();
 
     @par Example:
     @code{.py}
-if ($stmt.active())
-    $stmt.commit();
+if (stmt.active())
+    stmt.commit();
     @endcode
  */
 bool SQLStatement::active() [flags=CONSTANT] {
@@ -744,12 +744,12 @@ bool SQLStatement::active() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my SQLStatement $stmt($ds);
+SQLStatement stmt(ds);
 # release transaction lock on exit
-on_exit $stmt.commit();
-$stmt.prepare("select name, birthdate from table");
-while ($stmt.next()) {
-    printf("name: %s birthdate: %y", $stmt.name, $stmt.birthdate);
+on_exit stmt.commit();
+stmt.prepare("select name, birthdate from table");
+while (stmt.next()) {
+    printf("name: %s birthdate: %y", stmt.name, stmt.birthdate);
 }
     @endcode
 

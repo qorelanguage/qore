@@ -179,7 +179,7 @@ static bool is_writable_intern(const QoreStringNode* path) {
 
     @par Example:
     @code{.py}
-my bool $b = is_file("/etc/hosts");
+bool b = is_file("/etc/hosts");
     @endcode
  */
 bool is_file(string path) [flags=CONSTANT;dom=FILESYSTEM] {
@@ -194,7 +194,7 @@ bool is_file(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-my bool $b = is_dir("/tmp/mydir");
+bool b = is_dir("/tmp/mydir");
     @endcode
  */
 bool is_dir(string path) [flags=CONSTANT;dom=FILESYSTEM] {
@@ -211,7 +211,7 @@ bool is_dir(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-my bool $b = is_socket("/tmp/X0");
+bool b = is_socket("/tmp/X0");
     @endcode
  */
 bool is_socket(string path) [flags=CONSTANT;dom=FILESYSTEM] {
@@ -231,7 +231,7 @@ bool is_socket(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-my bool $b = is_pipe("/tmp/mypipe");
+bool b = is_pipe("/tmp/mypipe");
     @endcode
  */
 bool is_pipe(string path) [flags=CONSTANT;dom=FILESYSTEM] {
@@ -246,7 +246,7 @@ bool is_pipe(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-my bool $b = is_cdev("/tmp/tty");
+bool b = is_cdev("/tmp/tty");
     @endcode
  */
 bool is_cdev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
@@ -261,7 +261,7 @@ bool is_cdev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-my bool $b = is_bdev("/tmp/sda1");
+bool b = is_bdev("/tmp/sda1");
     @endcode
  */
 bool is_bdev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
@@ -276,7 +276,7 @@ bool is_bdev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-my bool $b = is_dev("/tmp/scanner");
+bool b = is_dev("/tmp/scanner");
     @endcode
  */
 bool is_dev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
@@ -303,7 +303,7 @@ bool is_dev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-my bool $b = is_link("/etc/hosts");
+bool b = is_link("/etc/hosts");
     @endcode
  */
 bool is_link(string path) [flags=CONSTANT;dom=FILESYSTEM] {
@@ -323,7 +323,7 @@ bool is_link(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-my bool $b = is_readable("/etc/hosts");
+bool b = is_readable("/etc/hosts");
     @endcode
 
     @bug on Windows this function always returns @ref Qore::True "True" for directories; this will be fixed in a later version of Qore
@@ -340,7 +340,7 @@ bool is_readable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-my bool $b = is_writable("/etc/hosts");
+bool b = is_writable("/etc/hosts");
     @endcode
 
     @since %Qore 0.8.12 this function works properly on Windows
@@ -357,7 +357,7 @@ bool is_writable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-my bool $b = is_writeable("/etc/hosts");
+bool b = is_writeable("/etc/hosts");
     @endcode
 
     @since %Qore 0.8.12 this function works properly on Windows
@@ -376,7 +376,7 @@ bool is_writeable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-my bool $b = is_executable("/bin/login");
+bool b = is_executable("/bin/login");
     @endcode
  */
 bool is_executable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
@@ -438,7 +438,7 @@ nothing rename(string old_path, string new_path) [dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-my *hash $h = statvfs("/tmp")
+*hash h = statvfs("/tmp")
     @endcode
 
     @see File::statvfs() for a static method in the @ref Qore::File "File class" that throws an exception instead of returning @ref nothing when errors occur
@@ -462,8 +462,8 @@ my *hash $h = statvfs("/tmp")
 
     @par Example:
     @code{.py}
-my *list $l = stat("/tmp/file.txt");
-if (!exists $l)
+*list l = stat("/tmp/file.txt");
+if (!exists l)
     printf("could not stat /tmp/file.txt: %s\n", strerror());
     @endcode
 
@@ -491,8 +491,8 @@ nothing stat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
     @return a @ref stat_list "list of file status values" for the path argument and does not follow symbolic links; if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
     @par Example:
     @code{.py}
-my *list $l = lstat("/tmp/file.txt");
-if (!exists $l)
+*list l = lstat("/tmp/file.txt");
+if (!exists l)
     printf("could not lstat /tmp/file.txt: %s\n", strerror());
     @endcode
 
@@ -527,8 +527,8 @@ nothing lstat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-my *hash $h = hstat("/tmp/file.txt");
-if (!exists $h)
+*hash h = hstat("/tmp/file.txt");
+if (!exists h)
     printf("could not hstat /tmp/file.txt: %s\n", strerror());
     @endcode
 
@@ -557,8 +557,8 @@ nothing hstat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-my *hash $h = hlstat("/tmp/file.txt");
-if (!exists $h)
+*hash h = hlstat("/tmp/file.txt");
+if (!exists h)
     printf("could not hlstat /tmp/file.txt: %s\n", strerror());
     @endcode
 
@@ -592,8 +592,8 @@ nothing hlstat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-my *list $gl = glob("*.txt");
-if (!exists $gl)
+*list gl = glob("*.txt");
+if (!exists gl)
     printf("failed to glob *.txt: %s\n", strerror());
     @endcode
  */
@@ -627,8 +627,8 @@ nothing glob() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-if (unlink($path))
-    printf("%s: %s\n", $path, strerror());
+if (unlink(path))
+    printf("%s: %s\n", path, strerror());
     @endcode
  */
 int unlink(string path) [dom=FILESYSTEM] {
@@ -648,8 +648,8 @@ nothing unlink() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-if (unlink($path))
-    printf("%s: %s\n", $path, strerror());
+if (unlink(path))
+    printf("%s: %s\n", path, strerror());
     @endcode
  */
 int umask(softint mask) [dom=PROCESS] {
@@ -723,8 +723,8 @@ int chmod(string path, softint mode) [dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-if (chdir($dir))
-    printf("chdir %s: %s\n", $dir, strerror());
+if (chdir(dir))
+    printf("chdir %s: %s\n", dir, strerror());
     @endcode
 
     @since %Qore 0.8.4 this function is tagged with @ref Qore::PO_NO_PROCESS_CONTROL
@@ -738,7 +738,7 @@ int chdir(string path) [dom=PROCESS,FILESYSTEM] {
 
     @par Example:
     @code{.py}
-my *string $cwd = getcwd();
+*string cwd = getcwd();
     @endcode
 
     @see getcwd2() for a similar function that throws an exception if an error occurs instead
@@ -752,7 +752,7 @@ my *string $cwd = getcwd();
 /**
     @par Example:
     @code{.py}
-my string $cwd = getcwd2();
+string cwd = getcwd2();
     @endcode
 
     @see getcwd() for a similar function that returns @ref nothing instead of throwing an exception if an error occurs
@@ -850,7 +850,7 @@ int lchown(string path, softint uid = -1, softint gid = -1) [dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-my string $str = readlink("/tmp/symbolic_link");
+string str = readlink("/tmp/symbolic_link");
     @endcode
 
     @throw READLINK-ERROR Invalid arguments or a system error occured (ex: file does not exist or is not a symbolic link)
@@ -910,7 +910,7 @@ nothing symlink(string old_path, string new_path) [dom=FILESYSTEM] {
 //! returns @ref Qore::True "True" if the argument is an absolute path on the current platform, @ref Qore::False "False" if not
 /** @par Example:
     @code{.py}
-my bool $abs = absolute_path($path);
+bool abs = absolute_path(path);
     @endcode
 
     @param path the path to check
@@ -930,7 +930,7 @@ bool absolute_path(string path) [flags=CONSTANT] {
 //! returns @ref Qore::True "True" if the argument is a UNIX absolute path, @ref Qore::False "False" if not
 /** @par Example:
     @code{.py}
-my bool $abs = absolute_path_unix($path);
+bool abs = absolute_path_unix(path);
     @endcode
 
     @param path the path to check
@@ -950,7 +950,7 @@ bool absolute_path_unix(string path) [flags=CONSTANT] {
 //! returns @ref Qore::True "True" if the argument is a Windows absolute path, @ref Qore::False "False" if not
 /** @par Example:
     @code{.py}
-my bool $abs = absolute_path_windows($path);
+bool abs = absolute_path_windows(path);
     @endcode
 
     @param path the path to check
@@ -970,7 +970,7 @@ bool absolute_path_windows(string path) [flags=CONSTANT] {
 //! Returns the canonicalized absolute pathname from the given path
 /** @par Example:
     @code{.py}
-my string $realpath = realpath($path);
+string realpath = realpath(path);
     @endcode
 
     @param path the path to process

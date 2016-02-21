@@ -60,13 +60,13 @@ public:
 
     @par Example: HashListReverseIterator basic usge
     @code{.py}
-    my hash $data = ( "column1" : ( 1, 2, 3, ),
+    hash data = ( "column1" : ( 1, 2, 3, ),
                       "column2" : ( "a", "b", "c", ) );
 
-    my HashListReverseIterator $it($data);
-    while ($it.next()) {
+    HashListReverseIterator it(data);
+    while (it.next()) {
         printf("iter %d: getValue: %n; getKeyValue('column1'): %n\n",
-               $it.index(), $it.getValue(), $it.getKeyValue('column1'));
+               it.index(), it.getValue(), it.getKeyValue('column1'));
     }
 
     iter 2: getValue: hash: (column1 : 3, column2 : "c"); getKeyValue('column1'): 3
@@ -93,7 +93,7 @@ qclass HashListReverseIterator [arg=QoreHashListReverseIterator* i; ns=Qore; vpa
 
     @par Example:
     @code{.py}
-my HashListReverseIterator $i($h);
+HashListReverseIterator i(h);
     @endcode
  */
 HashListReverseIterator::constructor(hash h) {
@@ -103,8 +103,8 @@ HashListReverseIterator::constructor(hash h) {
 //! Creates an empty hash list iterator object
 /** @par Example:
     @code{.py}
-my *hash $q = $ds.select("select * from some_table");
-my HashListReverseIterator $i($q);
+*hash q = ds.select("select * from some_table");
+HashListReverseIterator i(q);
     @endcode
  */
 HashListReverseIterator::constructor() {
@@ -114,7 +114,7 @@ HashListReverseIterator::constructor() {
 //! Creates a copy of the HashListReverseIterator object, iterating the same object as the original and in the same position
 /** @par Example:
     @code{.py}
-my HashListReverseIterator $ni = $i.copy();
+HashListReverseIterator ni = i.copy();
     @endcode
  */
 HashListReverseIterator::copy() {
@@ -129,8 +129,8 @@ HashListReverseIterator::copy() {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf(" + row %d: %y\n", $i.index(), $i.getValue());
+while (i.next()) {
+    printf(" + row %d: %y\n", i.index(), i.getValue());
 }
     @endcode
 
@@ -150,8 +150,8 @@ bool HashListReverseIterator::next() {
 
     @par Example:
     @code{.py}
-while ($i.prev()) {
-    printf(" + row %d: %y\n", $i.index(), $i.getValue());
+while (i.prev()) {
+    printf(" + row %d: %y\n", i.index(), i.getValue());
 }
     @endcode
 
@@ -168,8 +168,8 @@ bool HashListReverseIterator::prev() {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    if ($i.first())
+while (i.next()) {
+    if (i.first())
         printf("START:\n");
 }
     @endcode
@@ -183,8 +183,8 @@ bool HashListReverseIterator::first() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    if ($i.last())
+while (i.next()) {
+    if (i.last())
         printf("END.\n");
 }
     @endcode
@@ -200,8 +200,8 @@ bool HashListReverseIterator::last() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("%d: value: %y", $i.index(), $i.value);
+while (i.next()) {
+    printf("%d: value: %y", i.index(), i.value);
 }
     @endcode
 

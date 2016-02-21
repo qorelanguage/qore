@@ -42,14 +42,14 @@
 
     For example:
     @code{.py}
-our Mutex $mutex();
+our Mutex mutex();
 
-sub check_error($error) {
+sub check_error(error) {
     # note that the Mutex is acquired in the AutoLock constructor, and
     # the Mutex will be released as soon as the block is exited below.
     # (with either the throw statement or the return statement)
-    my AutoLock $al($mutex);
-    if ($error)
+    AutoLock al(mutex);
+    if (error)
         throw "ERROR", "sorry, an error happened";
 
     return "OK";
@@ -69,7 +69,7 @@ qclass AutoLock [dom=THREAD_CLASS; arg=QoreAutoLock* al; ns=Qore::Thread];
     @code{.py}
 {
     # when the block exits, the lock is automatically released
-    my AutoLock $al($mutex);
+    AutoLock al(mutex);
 }
     @endcode
 
@@ -91,7 +91,7 @@ AutoLock::constructor(Mutex[SmartMutex] mutex) {
 
     @par Example:
     @code{.py}
-delete $al;
+delete al;
     @endcode
  */
 AutoLock::destructor() {
@@ -112,7 +112,7 @@ AutoLock::copy() {
 
     @par Example:
     @code{.py}
-$al.lock();
+al.lock();
     @endcode
 
     @throw LOCK-ERROR lock called twice in the same thread, @ref Qore::Thread::Mutex "Mutex" object has already been deleted in another thread, etc
@@ -128,7 +128,7 @@ nothing AutoLock::lock() {
 
     @par Example:
     @code{.py}
-my int $i = $al.trylock();
+int i = al.trylock();
     @endcode
 
     @throw LOCK-ERROR object deleted in another thread, etc
@@ -142,7 +142,7 @@ int AutoLock::trylock() {
 /** 
     @par Example:
     @code{.py}
-$al.unlock();
+al.unlock();
     @endcode
 
     @throw LOCK-ERROR unlock called by a thread that does not own the lock or the lock is not locked, object deleted in another thread, etc

@@ -39,13 +39,13 @@
 
     @par Example: HashListIterator basic usge
     @code{.py}
-    my hash $data = ( "column1" : ( 1, 2, 3, ),
+    hash data = ( "column1" : ( 1, 2, 3, ),
                       "column2" : ( "a", "b", "c", ) );
 
-    my HashListIterator $it($data);
-    while ($it.next()) {
+    HashListIterator it(data);
+    while (it.next()) {
         printf("iter %d: getValue: %n; getKeyValue('column1'): %n\n",
-               $it.index(), $it.getValue(), $it.getKeyValue('column1'));
+               it.index(), it.getValue(), it.getKeyValue('column1'));
     }
 
     iter 0: getValue: hash: (column1 : 1, column2 : "a"); getKeyValue('column1'): 1
@@ -68,7 +68,7 @@ qclass HashListIterator [arg=QoreHashListIterator* i; ns=Qore; vparent=AbstractQ
 
     @par Example:
     @code{.py}
-my HashListIterator $i($h);
+HashListIterator i(h);
     @endcode
 
     @note a hash with non-list values will be iterated as if each key value were a single element list
@@ -80,8 +80,8 @@ HashListIterator::constructor(hash h) {
 //! Creates an empty hash list iterator object
 /** @par Example:
     @code{.py}
-my *hash $q = $ds.select("select * from some_table");
-my HashListIterator $i($q);
+*hash q = ds.select("select * from some_table");
+HashListIterator i(q);
     @endcode
  */
 HashListIterator::constructor() {
@@ -91,7 +91,7 @@ HashListIterator::constructor() {
 //! Creates a copy of the HashListIterator object, iterating the same object as the original and in the same position
 /** @par Example:
     @code{.py}
-my HashListIterator $ni = $i.copy();
+HashListIterator ni = i.copy();
     @endcode
  */
 HashListIterator::copy() {
@@ -106,8 +106,8 @@ HashListIterator::copy() {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf(" + row %d: %y\n", $i.index(), $i.getValue());
+while (i.next()) {
+    printf(" + row %d: %y\n", i.index(), i.getValue());
 }
     @endcode
 
@@ -127,8 +127,8 @@ bool HashListIterator::next() {
 
     @par Example:
     @code{.py}
-while ($i.prev()) {
-    printf(" + row %d: %y\n", $i.index(), $i.getValue());
+while (i.prev()) {
+    printf(" + row %d: %y\n", i.index(), i.getValue());
 }
     @endcode
 
@@ -145,7 +145,7 @@ bool HashListIterator::prev() {
 
     @par Example:
     @code{.py}
-if ($i.empty())
+if (i.empty())
     printf("the result list is empty\n");
     @endcode
  */
@@ -158,8 +158,8 @@ bool HashListIterator::empty() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    if ($i.first())
+while (i.next()) {
+    if (i.first())
         printf("START:\n");
 }
     @endcode
@@ -173,8 +173,8 @@ bool HashListIterator::first() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    if ($i.last())
+while (i.next()) {
+    if (i.last())
         printf("END.\n");
 }
     @endcode
@@ -188,8 +188,8 @@ bool HashListIterator::last() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf(" + row %d: %y\n", $i.index(), $i.getValue());
+while (i.next()) {
+    printf(" + row %d: %y\n", i.index(), i.getValue());
 }
     @endcode
 
@@ -211,8 +211,8 @@ hash HashListIterator::getValue() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf(" + row %d: %y\n", $i.index(), $i.getValue());
+while (i.next()) {
+    printf(" + row %d: %y\n", i.index(), i.getValue());
 }
     @endcode
 
@@ -233,8 +233,8 @@ hash HashListIterator::getRow() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("+ %d/%d: %y\n", $i.index(), $i.max(), $i.getValue());
+while (i.next()) {
+    printf("+ %d/%d: %y\n", i.index(), i.max(), i.getValue());
 }
     @endcode
  */
@@ -247,8 +247,8 @@ int HashListIterator::index() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("+ %d/%d: %y\n", $i.index(), $i.max(), $i.getValue());
+while (i.next()) {
+    printf("+ %d/%d: %y\n", i.index(), i.max(), i.getValue());
 }
     @endcode
  */
@@ -263,8 +263,8 @@ int HashListIterator::max() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-if (!$i.set($pos))
-    throw "INVALID-POSITION", sprintf("%d is an invalid position", $pos);
+if (!i.set(pos))
+    throw "INVALID-POSITION", sprintf("%d is an invalid position", pos);
     @endcode
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
@@ -282,8 +282,8 @@ bool HashListIterator::set(int pos) {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("%d: value: %y", $i.index(), $i.value);
+while (i.next()) {
+    printf("%d: value: %y", i.index(), i.value);
 }
     @endcode
 
@@ -307,8 +307,8 @@ any HashListIterator::memberGate(string key) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("%d: value: %y", $i.index(), $i.getKeyValue("value"));
+while (i.next()) {
+    printf("%d: value: %y", i.index(), i.getKeyValue("value"));
 }
     @endcode
 
@@ -330,8 +330,8 @@ any HashListIterator::getKeyValue(string key) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-if ($i.valid())
-    printf("current value: %y\n", $i.getValue());
+if (i.valid())
+    printf("current value: %y\n", i.getValue());
     @endcode
  */
 bool HashListIterator::valid() [flags=CONSTANT] {
@@ -343,7 +343,7 @@ bool HashListIterator::valid() [flags=CONSTANT] {
 
    @par Example
    @code{.py}
-$i.reset();
+i.reset();
    @endcode
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object

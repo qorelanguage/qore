@@ -43,9 +43,9 @@
     Additionally, the @ref on_exit "on_exit statement" can provide exception-safe RWLock handling at the lexical block level as in the following example:
     @code{.py}
 {
-    $rwl.writeLock();
+    rwl.writeLock();
     on_exit
-        $rwl.writeUnlock();
+        rwl.writeUnlock();
 
     # ... when this block exits the lock will be released, even in the
     #     case of return statements or exceptions
@@ -71,7 +71,7 @@ qclass RWLock [dom=THREAD_CLASS; arg=RWLock* rwl; ns=Qore::Thread; vparent=Abstr
 /**
     @par Example:
     @code{.py}
-my RWLock $rwl();
+RWLock rwl();
     @endcode
  */
 RWLock::constructor() {
@@ -83,7 +83,7 @@ RWLock::constructor() {
 
     @par Example:
     @code{.py}
-delete $rwl;
+delete rwl;
     @endcode
 
     @throw LOCK-ERROR Object deleted while other threads blocked on it
@@ -97,7 +97,7 @@ RWLock::destructor() {
 /**
     @par Example:
     @code{.py}
-my RWLock $new_rwl = $rwl.copy();
+RWLock new_rwl = rwl.copy();
     @endcode
  */
 RWLock::copy() {
@@ -108,7 +108,7 @@ RWLock::copy() {
 /**
     @par Example:
     @code{.py}
-$rwl.readLock();
+rwl.readLock();
     @endcode
 
     @throw THREAD-DEADLOCK A deadlock was detected while trying to acquire the lock
@@ -127,7 +127,7 @@ nothing RWLock::readLock() {
 
     @par Example:
     @code{.py}
-if ($rwl.readLock(1500ms))
+if (rwl.readLock(1500ms))
     throw "TIMEOUT", "timed out after 1.5s waiting for the read lock";
     @endcode
 
@@ -142,7 +142,7 @@ int RWLock::readLock(timeout timeout_ms) {
 /**
     @par Example:
     @code{.py}
-$rwl.readUnlock();
+rwl.readUnlock();
     @endcode
 
     @throw LOCK-ERROR RWLock::readUnlock() called while not holding the read lock, object deleted in another thread, etc
@@ -160,7 +160,7 @@ nothing RWLock::readUnlock() {
 
     @par Example:
     @code{.py}
-if ($rwl.writeLock(1500ms))
+if (rwl.writeLock(1500ms))
     throw "TIMEOUT", "timed out after 1.5s waiting for the write lock";
     @endcode
 
@@ -175,7 +175,7 @@ int RWLock::writeLock(timeout timeout_ms) {
 /**
     @par Example:
     @code{.py}
-$rwl.writeLock();
+rwl.writeLock();
     @endcode
 
     @throw THREAD-DEADLOCK A deadlock was detected while trying to acquire the lock
@@ -189,7 +189,7 @@ nothing RWLock::writeLock() {
 /**
     @par Example:
     @code{.py}
-$rwl.writeUnlock();
+rwl.writeUnlock();
     @endcode
 
     @throw LOCK-ERROR RWLock::writeUnlock() called while not holding the write lock, object deleted in another thread, etc
@@ -203,8 +203,8 @@ nothing RWLock::writeUnlock() {
 
     @par Example:
     @code{.py}
-if (!$rwl.tryReadLock()) {
-    on_exit $rwl.readUnlock();
+if (!rwl.tryReadLock()) {
+    on_exit rwl.readUnlock();
     do_something_in_read_lock();
 }
     @endcode
@@ -217,8 +217,8 @@ int RWLock::tryReadLock() {
 /** @return 0 for success (write lock acquired) or -1 if the call would block (read lock owned by another thread) or an error occured
     @par Example:
     @code{.py}
-if (!$rwl.tryWriteLock()) {
-    on_exit $rwl.writeUnlock();
+if (!rwl.tryWriteLock()) {
+    on_exit rwl.writeUnlock();
     do_something_in_write_lock();
 }
     @endcode
@@ -233,7 +233,7 @@ int RWLock::tryWriteLock() {
 
     @par Example:
     @code{.py}
-my int $num = $rwl.numReaders();
+int num = rwl.numReaders();
     @endcode
  */
 int RWLock::numReaders() [flags=CONSTANT] {
@@ -245,7 +245,7 @@ int RWLock::numReaders() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $num = $rwl.getReadWaiting();
+int num = rwl.getReadWaiting();
     @endcode
  */
 int RWLock::getReadWaiting() [flags=CONSTANT] {
@@ -257,7 +257,7 @@ int RWLock::getReadWaiting() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $num = $rwl.getWriteWaiting();
+int num = rwl.getWriteWaiting();
     @endcode
  */
 int RWLock::getWriteWaiting() [flags=CONSTANT] {
@@ -269,7 +269,7 @@ int RWLock::getWriteWaiting() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-if ($rwl.lockOwner())
+if (rwl.lockOwner())
     printf("TID %d has either the read lock or the write lock\n", gettid());
     @endcode
  */
@@ -282,7 +282,7 @@ bool RWLock::lockOwner() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-if ($rwl.readLockOwner())
+if (rwl.readLockOwner())
     printf("TID %d has the read lock\n", gettid());
     @endcode
  */
@@ -295,7 +295,7 @@ bool RWLock::readLockOwner() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-if ($rwl.writeLockOwner())
+if (rwl.writeLockOwner())
     printf("TID %d has the write lock\n", gettid());
     @endcode
  */

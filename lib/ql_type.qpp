@@ -96,7 +96,7 @@ const Closure = "closure";
 
     @par Example:
     @code{.py}
-my bool $b = boolean(1); # returns True
+bool b = boolean(1); # returns True
     @endcode
 
     @note this function behaves differently when @ref strict-bool-eval "%strict-bool-eval" is set
@@ -114,7 +114,7 @@ bool boolean(any arg) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $i = int("fabc9", 16);
+int i = int("fabc9", 16);
     @endcode
 
     @throw INVALID-BASE the base is invalid; must be 0 or 2 - 36 inclusive
@@ -135,7 +135,7 @@ int int(string str, softint base) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my int $i = int("1");
+int i = int("1");
     @endcode
 */
 int int(softint i) [flags=CONSTANT] {
@@ -159,7 +159,7 @@ int int() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my float $i = float("3.1415");
+float i = float("3.1415");
     @endcode
 */
 float float(softfloat f) [flags=CONSTANT] {
@@ -183,7 +183,7 @@ float float() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my number $n = number("2.23040945718005e35");
+number n = number("2.23040945718005e35");
     @endcode
 */
 number number(softnumber n) [flags=CONSTANT] {
@@ -208,7 +208,7 @@ number number() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my string $str = string(100);
+string str = string(100);
     @endcode
 
     @since the \c enc argument was added in %Qore 0.8.12
@@ -256,7 +256,7 @@ binary binary(null[doc] x) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my binary $b = binary($str);
+binary b = binary(str);
     @endcode
 */
 binary binary(softstring str) [flags=CONSTANT] {
@@ -279,7 +279,7 @@ binary binary(binary bin) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my list $l = list(1, 2, 3, 4);
+list l = list(1, 2, 3, 4);
     @endcode
 */
 list list(...) [flags=CONSTANT] {
@@ -304,7 +304,7 @@ list list(...) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my hash $h = hash($obj);
+hash h = hash(obj);
     @endcode
 */
 hash hash(object obj) [flags=RET_VALUE_ONLY] {
@@ -319,7 +319,7 @@ hash hash(object obj) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my hash $h = hash(("a", 1, "b", "two"));
+hash h = hash(("a", 1, "b", "two"));
     @endcode
 */
 hash hash(list l) [flags=RET_VALUE_ONLY] {
@@ -345,7 +345,7 @@ hash hash(list l) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my hash $h = hash($keys, $values);
+hash h = hash(keysv, values);
     @endcode
 */
 hash hash(list keys, list values) [flags=RET_VALUE_ONLY] {
@@ -376,7 +376,7 @@ hash hash(list keys, list values) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my hash $h = hash($h);
+hash h = hash(h);
     @endcode
 */
 hash hash(hash h) [flags=CONSTANT] {
@@ -398,7 +398,7 @@ hash hash() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my string $type = type($v);
+string type = type(v);
     @endcode
 
     @note
@@ -419,7 +419,7 @@ string type(any arg) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my string $type = typename($v);
+string type = typename(v);
     @endcode
 
     @note
@@ -439,7 +439,7 @@ string typename(any arg) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my string $str = binary_to_string($b, "iso-8859-1");
+string str = binary_to_string(b, "iso-8859-1");
     @endcode
 */
 string binary_to_string(binary b, *string encoding) [flags=CONSTANT] {

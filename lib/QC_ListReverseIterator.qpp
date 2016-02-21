@@ -54,10 +54,10 @@ public:
 
     @par Example: ListIterator basic usage
     @code{.py}
-    my list $data = (1, "foo", 2);
-    my ListReverseIterator $it($data);
-    while ($it.next()) {
-        printf("iter: %n\n", $it.getValue());
+    list data = (1, "foo", 2);
+    ListReverseIterator it(data);
+    while (it.next()) {
+        printf("iter: %n\n", it.getValue());
     }
 
     iter: 2
@@ -84,7 +84,7 @@ qclass ListReverseIterator [arg=QoreListReverseIterator* i; ns=Qore; vparent=Lis
 
     @par Example:
     @code{.py}
-my ListReverseIterator $li($l);
+ListReverseIterator li(l);
     @endcode
 
     @note the constructor's argument is @ref softlist_type "softlist" so that it can also accept @ref nothing
@@ -96,7 +96,7 @@ ListReverseIterator::constructor(softlist l) {
 //! Creates a copy of the ListReverseIterator object, iterating the same object as the original and in the same position
 /** @par Example:
     @code{.py}
-my ListReverseIterator $ni = $i.copy();
+ListReverseIterator ni = i.copy();
     @endcode
  */
 ListReverseIterator::copy() {
@@ -111,8 +111,8 @@ ListReverseIterator::copy() {
 
     @par Example:
     @code{.py}
-while ($i.prev()) {
-    printf(" + %y\n", $i.getValue());
+while (i.prev()) {
+    printf(" + %y\n", i.getValue());
 }
     @endcode
 
@@ -135,8 +135,8 @@ bool ListReverseIterator::next() {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf(" + %y\n", $i.getValue());
+while (i.next()) {
+    printf(" + %y\n", i.getValue());
 }
     @endcode
 
@@ -156,8 +156,8 @@ bool ListReverseIterator::prev() {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    if ($i.first())
+while (i.next()) {
+    if (i.first())
         printf("START:\n");
 }
     @endcode
@@ -171,8 +171,8 @@ bool ListReverseIterator::first() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    if ($i.last())
+while (i.next()) {
+    if (i.last())
         printf("END.\n");
 }
     @endcode

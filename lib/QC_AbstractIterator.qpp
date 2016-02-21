@@ -47,8 +47,8 @@ qclass AbstractIterator [arg=AbstractIterator* i; ns=Qore];
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf(" + %y\n", $i.getValue());
+while (i.next()) {
+    printf(" + %y\n", i.getValue());
 }
     @endcode
  */
@@ -59,8 +59,8 @@ abstract bool AbstractIterator::next();
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("+ %y\n", $i.getValue());
+while (i.next()) {
+    printf("+ %y\n", i.getValue());
 }
     @endcode
 
@@ -75,8 +75,8 @@ abstract any AbstractIterator::getValue();
 
     @par Example:
     @code{.py}
-if ($i.valid())
-    printf("current value: %y\n", $i.getValue());
+if (i.valid())
+    printf("current value: %y\n", i.getValue());
     @endcode
  */
 abstract bool AbstractIterator::valid();

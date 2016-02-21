@@ -44,7 +44,7 @@ qclass TimeZone [arg=TimeZoneData* z];
 
     @par Example:
     @code{.py}
-my TimeZone $tz("Europe/Prague");
+TimeZone tz("Europe/Prague");
     @endcode
 
     @throw TZINFO-ERROR Unable to read zoneinfo file; invalid file magic; error parsing zoneinfo file, etc
@@ -70,7 +70,7 @@ TimeZone::constructor(string region) {
 
     @par Example:
     @code{.py}
-my TimeZone $tz(3600);
+TimeZone tz(3600);
     @endcode
  */
 TimeZone::constructor(softint seconds_east) {
@@ -82,7 +82,7 @@ TimeZone::constructor(softint seconds_east) {
 /**
     @par Example:
     @code{.py}
-my TimeZone $newzone = $tz.copy();
+TimeZone newzone = tz.copy();
     @endcode
  */
 TimeZone::copy() {
@@ -94,7 +94,7 @@ TimeZone::copy() {
 
     @par Example:
     @code{.py}
-my int $offset = $tz.UTCOffset();
+int offset = tz.UTCOffset();
     @endcode
  */
 int TimeZone::UTCOffset() [flags=CONSTANT] {
@@ -108,7 +108,7 @@ int TimeZone::UTCOffset() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my bool $hasdst = $tz.hasDST();
+bool hasdst = tz.hasDST();
     @endcode
  */
 bool TimeZone::hasDST() [flags=CONSTANT] {
@@ -120,7 +120,7 @@ bool TimeZone::hasDST() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my string $region = $tz.region();
+string region = tz.region();
     @endcode
  */
 string TimeZone::region() [flags=CONSTANT] {
@@ -133,7 +133,7 @@ string TimeZone::region() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my date $dt = $tz.date($secs);
+date dt = tz.date(secs);
     @endcode
  */
 date TimeZone::date(softint secs, softint us = 0) [flags=CONSTANT] {
@@ -145,7 +145,7 @@ date TimeZone::date(softint secs, softint us = 0) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my date $dt = $tz.date(2012-01-01T13:56:23+01:00);
+date dt = tz.date(2012-01-01T13:56:23+01:00);
     @endcode
  */
 date TimeZone::date(date d) [flags=CONSTANT] {
@@ -157,7 +157,7 @@ date TimeZone::date(date d) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my date $dt = $tz.date("2012-01-01T13:56:23");
+date dt = tz.date("2012-01-01T13:56:23");
     @endcode
 
     @since %Qore 0.8.4
@@ -175,8 +175,8 @@ date TimeZone::date(string dtstr) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my TimeZone $tz("Europe/London");
-printf("%y\n", $tz.date("05/02/2012", "DD/MM/YYYY")); # outputs: 2012-02-05 00:00:00 Sun Z (GMT)
+TimeZone tz("Europe/London");
+printf("%y\n", tz.date("05/02/2012", "DD/MM/YYYY")); # outputs: 2012-02-05 00:00:00 Sun Z (GMT)
     @endcode
 
     @throw DATE-CONVERT-ERROR invalid mask specification
@@ -196,7 +196,7 @@ date TimeZone::date(string dtstr, string mask) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my date $dt = $tz.dateMs($offset_ms);
+date dt = tz.dateMs(offset_ms);
     @endcode
  */
 date TimeZone::dateMs(softint ms) [flags=CONSTANT] {
@@ -210,7 +210,7 @@ date TimeZone::dateMs(softint ms) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my date $dt = $tz.dateUs($offset_uss);
+date dt = tz.dateUs(offset_uss);
     @endcode
  */
 date TimeZone::dateUs(softint us) [flags=CONSTANT] {
@@ -223,7 +223,7 @@ date TimeZone::dateUs(softint us) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my TimeZone $tz = TimeZone::get();
+TimeZone tz = TimeZone::get();
     @endcode
  */
 static TimeZone TimeZone::get() [flags=CONSTANT] {
@@ -236,8 +236,8 @@ static TimeZone TimeZone::get() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my TimeZone $tz("Europe/Prague");
-TimeZone::set($tz);
+TimeZone tz("Europe/Prague");
+TimeZone::set(tz);
     @endcode
  */
 static nothing TimeZone::set(TimeZone[TimeZoneData] zone) [dom=LOCALE_CONTROL] {

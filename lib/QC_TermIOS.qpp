@@ -539,20 +539,20 @@ const TCSASOFT = TCSASOFT;
 
     For example, here is some code to set terminal attributes, read in a character from standard input with a timeout, and reset the terminal attributes:
     @code{.py}
-my TermIOS $t();
-stdin.getTerminalAttributes($t);
-my TermIOS $orig = $t.copy();
+TermIOS t();
+stdin.getTerminalAttributes(t);
+TermIOS orig = t.copy();
 on_exit
-    stdin.setTerminalAttributes(TCSADRAIN, $orig);
+    stdin.setTerminalAttributes(TCSADRAIN, orig);
 
-my $lflag = $t.getLFlag();
-$lflag &= ~ICANON;
-$lflag &= ~ECHO;
-$lflag &= ~ISIG;
-$t.setLFlag($lflag);
-$t.setCC(VMIN, 1);
-$t.setCC(VTIME, 0);
-stdin.setTerminalAttributes(TCSADRAIN, $t);
+int lflag = t.getLFlag();
+lflag &= ~ICANON;
+lflag &= ~ECHO;
+lflag &= ~ISIG;
+t.setLFlag(lflag);
+t.setCC(VMIN, 1);
+t.setCC(VTIME, 0);
+stdin.setTerminalAttributes(TCSADRAIN, t);
 
 stdout.printf("Press any key: ");
 while (!stdin.isDataAvailable(20ms)) {
@@ -560,8 +560,8 @@ while (!stdin.isDataAvailable(20ms)) {
     stdout.sync();
     usleep(1ms);
 }
-my $c = stdin.read(1);
-stdout.printf(" GOT ASCII 0x%02x (%d) '%s'\n", ord($c), ord($c), $c);
+string c = stdin.read(1);
+stdout.printf(" GOT ASCII 0x%02x (%d) '%s'\n", ord(c), ord(c), c);
     @endcode
 
     For more information on terminal attributes, see your system's manual pages for "termios".
@@ -578,8 +578,8 @@ qclass TermIOS [dom=TERMINAL_IO; arg=QoreTermIOS*s];
 
     @par Example:
     @code{.py}
-my TermIOS $termios();
-stdin.getTerminalAttributes($termios);
+TermIOS termios();
+stdin.getTerminalAttributes(termios);
     @endcode
  */
 TermIOS::constructor() {
@@ -596,7 +596,7 @@ TermIOS::constructor() {
 
     @par Example:
     @code{.py}
-my TermIOS $t2 = $t.copy();
+TermIOS t2 = t.copy();
     @endcode
  */
 TermIOS::copy() {
@@ -615,7 +615,7 @@ TermIOS::copy() {
 
     @par Example:
     @code{.py}
-my int $flag = $termios.getLFlag();
+int flag = termios.getLFlag();
     @endcode
  */
 int TermIOS::getLFlag() {
@@ -634,7 +634,7 @@ int TermIOS::getLFlag() {
 
     @par Example:
     @code{.py}
-my int $flag = $termios.getCFlag();
+int flag = termios.getCFlag();
     @endcode
  */
 int TermIOS::getCFlag() {
@@ -653,7 +653,7 @@ int TermIOS::getCFlag() {
 
     @par Example:
     @code{.py}
-my int $flag = $termios.getOFlag();
+int flag = termios.getOFlag();
     @endcode
  */
 int TermIOS::getOFlag() {
@@ -672,7 +672,7 @@ int TermIOS::getOFlag() {
 
     @par Example:
     @code{.py}
-my int $flag = $termios.getIFlag();
+int flag = termios.getIFlag();
     @endcode
  */
 int TermIOS::getIFlag() {
@@ -691,14 +691,14 @@ int TermIOS::getIFlag() {
 
     @par Example:
     @code{.py}
-my int $lflag = $termios.getLFlag();
+int lflag = termios.getLFlag();
 # disable canonical input mode (= turn on "raw" mode)
-$lflag &= ~ICANON;
+lflag &= ~ICANON;
 # turn off echo mode
-$lflag &= ~ECHO;
+lflag &= ~ECHO;
 # do not check for special input characters (INTR, QUIT, and SUSP)
-$lflag &= ~ISIG;
-$termios.setLFlag($lflag);
+lflag &= ~ISIG;
+termios.setLFlag(lflag);
     @endcode
  */
 nothing TermIOS::setLFlag(softint flag) {
@@ -718,10 +718,10 @@ nothing TermIOS::setLFlag(softint flag) {
 
     @par Example:
     @code{.py}
-my int $cflag = $termios.getCFlag();
-$cflag = ($cflag & ~CSIZE) | CS8 | CSTOPB;
-$cflag = ($cflag | CLOCAL | CREAD) & ~CRTSCTS;
-$termios.setCFlag($cflag);
+int cflag = termios.getCFlag();
+cflag = (cflag & ~CSIZE) | CS8 | CSTOPB;
+cflag = (cflag | CLOCAL | CREAD) & ~CRTSCTS;
+termios.setCFlag(cflag);
     @endcode
  */
 nothing TermIOS::setCFlag(softint flag) {
@@ -741,10 +741,10 @@ nothing TermIOS::setCFlag(softint flag) {
 
     @par Example:
     @code{.py}
-my int $oflag = $termios.getOFlag();
+int oflag = termios.getOFlag();
 # translate linefeeds to crlf
-$oflag |= ONLCR;
-$termios.setOFlag($oflag);
+oflag |= ONLCR;
+termios.setOFlag(oflag);
     @endcode
  */
 nothing TermIOS::setOFlag(softint flag) {
@@ -764,10 +764,10 @@ nothing TermIOS::setOFlag(softint flag) {
 
     @par Example:
     @code{.py}
-my int $iflag = $termios.getIFlag();
+int iflag = termios.getIFlag();
 # ring bell on input queue full
-$iflag |= IMAXBEL;
-$termios.setIFlag($iflag);
+iflag |= IMAXBEL;
+termios.setIFlag(iflag);
     @endcode
  */
 nothing TermIOS::setIFlag(softint flag) {
@@ -790,9 +790,9 @@ nothing TermIOS::setIFlag(softint flag) {
     @par Example:
     @code{.py}
 # get minimum characters to return on a read
-my int $vmin = $t.getCC(VMIN);
+int vmin = t.getCC(VMIN);
 # get character input timer in 0.1 second increments
-my int $vtime = $t.getCC(VTIME);
+int vtime = t.getCC(VTIME);
     @endcode
 
     @throw TERMIOS-CC-ERROR the @ref tattr_control_character_constants "control character" is invalid
@@ -815,10 +815,10 @@ int TermIOS::getCC(softint cc) {
     @par Example:
     @code{.py}
 # set minimum characters to return on a read
-$t.setCC(VMIN, 1);
+t.setCC(VMIN, 1);
 
 # set character input timer in 0.1 second increments (= no timer)
-$t.setCC(VTIME, 0);
+t.setCC(VTIME, 0);
     @endcode
 
     @throw TERMIOS-CC-ERROR the @ref tattr_control_character_constants "control character" is invalid
@@ -840,7 +840,7 @@ nothing TermIOS::setCC(softint offset, softint value) {
 
     @par Example:
     @code{.py}
-my bool $b = $termios.isEqual($termios2);
+bool b = termios.isEqual(termios2);
     @endcode
  */
 bool TermIOS::isEqual(Termios[QoreTermIOS] termios) [flags=CONSTANT] {
@@ -860,7 +860,7 @@ bool TermIOS::isEqual(Termios[QoreTermIOS] termios) [flags=CONSTANT] {
     @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
-my hash $wh = $termios.getWindowSize();
+hash wh = termios.getWindowSize();
     @code{.py}
 
     @endcode

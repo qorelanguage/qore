@@ -44,9 +44,9 @@ qclass <float> [arg=double f = v.getAsFloat();vparent=<value>];
 
     @par Example:
     @code{.py}
-switch ($f.typeCode()) {
+switch (f.typeCode()) {
     case NT_FLOAT:
-        printf("%y: is a float\n", $f);
+        printf("%y: is a float\n", f);
         break;
 }
     @endcode
@@ -61,7 +61,7 @@ int <float>::typeCode() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my bool $b = $f.val();
+bool b = f.val();
     @endcode
 
     @see
@@ -78,8 +78,8 @@ bool <float>::val() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-if ($n.intp())
-    printf("%y: can be converted to an integer: %d\n", $n, int($n));
+if (n.intp())
+    printf("%y: can be converted to an integer: %d\n", n, int(n));
     @endcode
 */
 bool <float>::intp() [flags=CONSTANT] {
@@ -92,8 +92,8 @@ bool <float>::intp() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-if ($n.strp())
-    printf("%y: can be converted to a string: '%s'\n", $n, string($n));
+if (n.strp())
+    printf("%y: can be converted to a string: '%s'\n", n, string(n));
     @endcode
 */
 bool <float>::strp() [flags=CONSTANT] {
@@ -111,8 +111,8 @@ bool <float>::strp() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my float $f = -48392093894.2349;
-my string $nstr = $f.format(".,3"); # returns "-48.392.093.894,235"
+float f = -48392093894.2349;
+string nstr = f.format(".,3"); # returns "-48.392.093.894,235"
     @endcode
 
     @note equivalent to format_number(string, softfloat)
@@ -128,7 +128,7 @@ string <float>::format(string fmt) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-printf("sign: %d\n", $f.sign());
+printf("sign: %d\n", f.sign());
     @endcode
 
     @since %Qore 0.8.6
@@ -142,7 +142,7 @@ int <float>::sign() [flags=CONSTANT] {
 //! Returns the absolute value of the number
 /** @par Example:
     @code{.py}
-$f = $f.abs();
+f = f.abs();
     @endcode
 
     @return the absolute value of the number

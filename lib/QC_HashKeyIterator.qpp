@@ -39,15 +39,15 @@ extern QoreClass* QC_HASHITERATOR;
 
     @par Example: HashKeyIterator basic usage
     @code{.py}
-    my hash $data = (
+    hash data = (
             "key1" : 1,
             "key2" : 2,
             "key3" : 3,
         );
 
-    my HashKeyIterator $it($data);
-    while ($it.next()) {
-        printf("iter: %n\n", $it.getValue());
+    HashKeyIterator it(data);
+    while (it.next()) {
+        printf("iter: %n\n", it.getValue());
     }
 
     iter: "key1"
@@ -69,7 +69,7 @@ qclass HashKeyIterator [arg=QoreHashIterator* i; ns=Qore; vparent=HashIterator];
 
     @par Example:
     @code{.py}
-my HashKeyIterator $hi($h);
+HashKeyIterator hi(h);
     @endcode
  */
 HashKeyIterator::constructor(hash h) {
@@ -79,8 +79,8 @@ HashKeyIterator::constructor(hash h) {
 //! Creates an empty hash iterator object
 /** @par Example:
     @code{.py}
-my *hash $h = get_hash_or_nothing();
-my HashKeyIterator $hi($h);
+*hash h = get_hash_or_nothing();
+HashKeyIterator hi(h);
     @endcode
  */
 HashKeyIterator::constructor() {
@@ -90,7 +90,7 @@ HashKeyIterator::constructor() {
 //! Creates a copy of the HashKeyIterator object, iterating the same object as the original and in the same position
 /** @par Example:
     @code{.py}
-my HashKeyIterator $ni = $i.copy();
+HashKeyIterator ni = i.copy();
     @endcode
  */
 HashKeyIterator::copy() {
@@ -102,8 +102,8 @@ HashKeyIterator::copy() {
 
     @par Example:
     @code{.py}
-foreach my string $key in ($hash.keyIterator())
-    printf("key: %s\n", $key);
+foreach string key in (hash.keyIterator())
+    printf("key: %s\n", key);
     @endcode
 
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element

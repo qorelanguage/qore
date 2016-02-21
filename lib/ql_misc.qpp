@@ -546,7 +546,7 @@ nothing remove_signal_handler(softint signal) [dom=PROCESS] {
 
     @par Example:
     @code{.py}
-my any $result = call_function("func_name", $arg1, $arg2);
+any result = call_function("func_name", arg1, arg2);
     @endcode
 
     @throw INVALID-FUNCTION-ACCESS Parse options do not allow access to the function
@@ -570,7 +570,7 @@ any call_function(string name, ...) {
 
     @par Example:
     @code{.py}
-my any $result = call_function($call_ref, $arg1, $arg2);
+any result = call_function(call_ref, arg1, arg2);
     @endcode
 
     @note The @ref call_reference "call reference" or @ref closure "closure" called could also throw other exceptions
@@ -593,7 +593,7 @@ any call_function(code f, ...) {
 
     @par Example:
     @code{.py}
-my any $result = call_function_args("func_name", ($arg1, $arg2));
+any result = call_function_args("func_name", (arg1, arg2));
     @endcode
 
     @throw INVALID-FUNCTION-ACCESS Parse options do not allow access to the function
@@ -612,7 +612,7 @@ any call_function_args(string name, *softlist vargs) {
 
     @par Example:
     @code{.py}
-my any $result = call_function_args($call_ref, ($arg1, $arg2));
+any result = call_function_args(call_ref, (arg1, arg2));
     @endcode
 
     @note The @ref call_reference "call reference" or @ref closure "closure" called could also throw other exceptions
@@ -630,7 +630,7 @@ any call_function_args(code f, *softlist vargs) {
 
     @par Example:
     @code{.py}
-my any $result = call_builtin_function("func_name", $arg1, $arg2);
+any result = call_builtin_function("func_name", arg1, arg2);
     @endcode
 
     @throw INVALID-FUNCTION-ACCESS Parse options do not allow access to the function
@@ -662,7 +662,7 @@ any call_builtin_function(string name, ...) {
 
     @par Example:
     @code{.py}
-my any $result = call_builtin_function_args("func_name", ($arg1, $arg2));
+any result = call_builtin_function_args("func_name", (arg1, arg2));
     @endcode
 
     @throw INVALID-FUNCTION-ACCESS Parse options do not allow access to the function
@@ -687,7 +687,7 @@ any call_builtin_function_args(string name, *softlist vargs) {
 
     @par Example:
     @code{.py}
-my bool $b = exists($val);
+bool b = exists(val);
     @endcode
 */
 bool exists(...) [flags=CONSTANT] {
@@ -733,7 +733,7 @@ nothing existsFunction() [flags=RUNTIME_NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-my bool $b = exists_function("func_name");
+bool b = exists_function("func_name");
     @endcode
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case existsFunction()
@@ -784,7 +784,7 @@ nothing functionType() [flags=RUNTIME_NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-my *string $type = function_type("print");
+*string type = function_type("print");
     @endcode
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case functionType()
@@ -805,7 +805,7 @@ my *string $type = function_type("print");
 
     @par Example:
     @code{.py}
-my string $str = html_encode("<hello>"); # returns "&lt;hello&gt;"
+string str = html_encode("<hello>"); # returns "&lt;hello&gt;"
     @endcode
 
     @note equivalent to <string>::getEncoded() with @ref Qore::CE_HTML
@@ -830,7 +830,7 @@ nothing html_encode() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my string $str = html_decode("&lt;hello&gt;"); # returns "<hello>"
+string str = html_decode("&lt;hello&gt;"); # returns "<hello>"
     @endcode
 
     @note equivalent to <string>::getDecoded() with @ref Qore::CD_HTML
@@ -853,7 +853,7 @@ nothing html_decode() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my string $encoding = get_default_encoding();
+string encoding = get_default_encoding();
     @endcode
 */
 string get_default_encoding() {
@@ -871,7 +871,7 @@ string get_default_encoding() {
 
     @par Example:
     @code{.py}
-parse($code, $filename);
+parse(code, filename);
     @endcode
 
     @note This function could throw many parse exceptions which are not enumerated here; any parse errors will result in an appropriate exception.
@@ -930,7 +930,7 @@ nothing getClassName() [flags=RUNTIME_NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-my string $name = get_class_name($obj);
+string name = get_class_name(obj);
     @endcode
 
     @note equivalent to <object>::className()
@@ -955,7 +955,7 @@ string get_class_name(object obj) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my hash $hash = parse_url($url_string);
+hash hash = parse_url(url_string);
     @endcode
 
     @throw PARSE-URL-ERROR The URL string given could not be parsed
@@ -986,7 +986,7 @@ hash parse_url(string url, bool keep_brackets = False) {
 
     @par Example:
     @code{.py}
-my *hash $hash = parseURL($url_string);
+*hash hash = parseURL(url_string);
     @endcode
 
     @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=<url_encoded_path>/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
@@ -1013,8 +1013,8 @@ nothing parseURL() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my int $rc;
-my string $files = $files = backquote("ls", \$rc);
+int rc;
+string files = files = backquote("ls", \rc);
     @endcode
 
     @throw BACKQUOTE-ERROR An error occurred with the fork() or opening the stdout pipe
@@ -1102,7 +1102,7 @@ nothing makeBase64String() [flags=RUNTIME_NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-my string $base64 = make_base64_string($data, 64);
+string base64 = make_base64_string(data, 64);
     @endcode
 
     @see
@@ -1127,7 +1127,7 @@ string make_base64_string(string str, softint maxlinelen = -1) [flags=CONSTANT] 
 
     @par Example:
     @code{.py}
-my string $base64 = make_base64_string($data, 64);
+string base64 = make_base64_string(data, 64);
     @endcode
 
     @see
@@ -1174,7 +1174,7 @@ nothing parseBase64String() [flags=RUNTIME_NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-my binary $bin = parse_base64_string($base64_string);
+binary bin = parse_base64_string(base64_string);
     @endcode
 
     @throw BASE64-PARSE-ERROR A syntax error occurred parsing the base64 string (invalid character, etc)
@@ -1228,7 +1228,7 @@ nothing parseBase64StringToString() [flags=RUNTIME_NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-my string $str = parse_base64_string_to_string($base64_string);
+string str = parse_base64_string_to_string(base64_string);
     @endcode
 
     @throw BASE64-PARSE-ERROR A syntax error occurred parsing the base64 string (invalid character, etc)
@@ -1282,7 +1282,7 @@ list getModuleList() [flags=DEPRECATED] {
 
     @par Example:
     @code{.py}
-my list $list = get_module_list();
+list list = get_module_list();
     @endcode
 
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
@@ -1331,7 +1331,7 @@ hash getModuleHash() [flags=DEPRECATED] {
 
     @par Example:
     @code{.py}
-my hash $mh = get_module_hash();
+hash mh = get_module_hash();
     @endcode
 
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
@@ -1358,7 +1358,7 @@ list getFeatureList() [flags=DEPRECATED] {
 
     @par Example:
     @code{.py}
-my list $list = get_feature_list();
+list list = get_feature_list();
     @endcode
 
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
@@ -1376,7 +1376,7 @@ list get_feature_list() {
 
     @par Example:
     @code{.py}
-my list $vl = hash_values($vl);
+list vl = hash_values(vl);
     @endcode
 
     @note equivalent to <hash>::values()
@@ -1408,7 +1408,7 @@ nothing hash_values() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my bool $b = has_key($hash, "key");
+bool b = has_key(hash, "key");
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this error is thrown if the given key cannot be converted to the @ref default_encoding "default character encoding"
@@ -1423,7 +1423,7 @@ bool has_key(hash h, string key) {
 /**
     @par Example:
     @code{.py}
-my bool $b = has_key($obj, "key");
+bool b = has_key(obj, "key");
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this error is thrown if the given key cannot be converted to the @ref default_encoding "default character encoding"
@@ -1445,7 +1445,7 @@ bool has_key(object obj, string key) {
 
     @par Example:
     @code{.py}
-my *int $byte = get_byte($str, 2); # returns the third byte of the string
+*int byte = get_byte(str, 2); # returns the third byte of the string
     @endcode
 
     @note that for strings this function is not equivalent to the @ref list_element_operator "[] operator" for multi-byte character encodings, as this function works purely on bytes and the @ref list_element_operator "[] operator" operates on characters\n\n
@@ -1470,7 +1470,7 @@ my *int $byte = get_byte($str, 2); # returns the third byte of the string
 
     @par Example:
     @code{.py}
-my *int $byte = get_byte($bin, 2); # returns the third byte of the binary object
+*int byte = get_byte(bin, 2); # returns the third byte of the binary object
     @endcode
 
     @note this function is equivalent to the more efficient @ref list_element_operator "[] operator" when used with a binary argument\n\n
@@ -1546,7 +1546,7 @@ nothing getByte() [flags=RUNTIME_NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-my *int $val = get_word_16($str, 2); # returns the third 2-byte (16-bit) value in the string
+*int val = get_word_16(str, 2); # returns the third 2-byte (16-bit) value in the string
     @endcode
 
     @see get_word_16_lsb()
@@ -1571,7 +1571,7 @@ my *int $val = get_word_16($str, 2); # returns the third 2-byte (16-bit) value i
 
     @par Example:
     @code{.py}
-my *int $val = get_word_16($bin, 2); # returns the third 2-byte (16-bit) value in the binary object
+*int val = get_word_16(bin, 2); # returns the third 2-byte (16-bit) value in the binary object
     @endcode
 
     @see get_word_16_lsb()
@@ -1596,7 +1596,7 @@ my *int $val = get_word_16($bin, 2); # returns the third 2-byte (16-bit) value i
 
     @par Example:
     @code{.py}
-my *int $val = get_word_32($str, 4); # returns the third 4-byte (32-bit) value in the string
+*int val = get_word_32(str, 4); # returns the third 4-byte (32-bit) value in the string
     @endcode
 
     @note This function is identical to getWord32(), except this function has no @ref RUNTIME_NOOP variant
@@ -1623,7 +1623,7 @@ my *int $val = get_word_32($str, 4); # returns the third 4-byte (32-bit) value i
 
     @par Example:
     @code{.py}
-my *int $val = get_word_32($bin, 2); # returns the third 4-byte (32-bit) value in the binary object
+*int val = get_word_32(bin, 2); # returns the third 4-byte (32-bit) value in the binary object
     @endcode
 
     @note This function is identical to getWord32(), except this function has no @ref RUNTIME_NOOP variant
@@ -1700,7 +1700,7 @@ nothing getWord32() [flags=RUNTIME_NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-my *int $val = get_word_64($str, 4); # returns the third 8-byte (64-bit) value in the string
+*int val = get_word_64(str, 4); # returns the third 8-byte (64-bit) value in the string
     @endcode
 
     @see get_word_64_lsb()
@@ -1725,7 +1725,7 @@ my *int $val = get_word_64($str, 4); # returns the third 8-byte (64-bit) value i
 
     @par Example:
     @code{.py}
-my *int $val = get_word_64($bin, 2); # returns the third 8-byte (64-bit) value in the binary object
+*int val = get_word_64(bin, 2); # returns the third 8-byte (64-bit) value in the binary object
     @endcode
 
     @see get_word_64_lsb()
@@ -1750,7 +1750,7 @@ my *int $val = get_word_64($bin, 2); # returns the third 8-byte (64-bit) value i
 
     @par Example:
     @code{.py}
-my *int $val = get_word_16_lsb($str, 2); # returns the third 2-byte (16-bit) value in the string
+*int val = get_word_16_lsb(str, 2); # returns the third 2-byte (16-bit) value in the string
     @endcode
 
     @see get_word_16()
@@ -1775,7 +1775,7 @@ my *int $val = get_word_16_lsb($str, 2); # returns the third 2-byte (16-bit) val
 
     @par Example:
     @code{.py}
-my *int $val = get_word_16_lsb($bin, 2); # returns the third 2-byte (16-bit) value in the binary object
+*int val = get_word_16_lsb(bin, 2); # returns the third 2-byte (16-bit) value in the binary object
     @endcode
 
     @see get_word_16()
@@ -1800,7 +1800,7 @@ my *int $val = get_word_16_lsb($bin, 2); # returns the third 2-byte (16-bit) val
 
     @par Example:
     @code{.py}
-my *int $val = get_word_32_lsb($str, 4); # returns the third 4-byte (32-bit) value in the string
+*int val = get_word_32_lsb(str, 4); # returns the third 4-byte (32-bit) value in the string
     @endcode
 
     @note This function is identical to getWord32(), except this function has no @ref RUNTIME_NOOP variant
@@ -1827,7 +1827,7 @@ my *int $val = get_word_32_lsb($str, 4); # returns the third 4-byte (32-bit) val
 
     @par Example:
     @code{.py}
-my *int $val = get_word_32_lsb($bin, 2); # returns the third 4-byte (32-bit) value in the binary object
+*int val = get_word_32_lsb(bin, 2); # returns the third 4-byte (32-bit) value in the binary object
     @endcode
 
     @see get_word_32()
@@ -1852,7 +1852,7 @@ my *int $val = get_word_32_lsb($bin, 2); # returns the third 4-byte (32-bit) val
 
     @par Example:
     @code{.py}
-my *int $val = get_word_64_lsb($str, 4); # returns the third 8-byte (64-bit) value in the string
+*int val = get_word_64_lsb(str, 4); # returns the third 8-byte (64-bit) value in the string
     @endcode
 
     @see get_word_64()
@@ -1877,7 +1877,7 @@ my *int $val = get_word_64_lsb($str, 4); # returns the third 8-byte (64-bit) val
 
     @par Example:
     @code{.py}
-my *int $val = get_word_64_lsb($bin, 2); # returns the third 8-byte (64-bit) value in the binary object
+*int val = get_word_64_lsb(bin, 2); # returns the third 8-byte (64-bit) value in the binary object
     @endcode
 
     @see get_word_64()
@@ -1913,7 +1913,7 @@ string splice(string[doc] str) [flags=NOOP] {
 
     @par Example:
     @code{.py}
-my string $str = splice($str2, 5);
+string str = splice(str2, 5);
     @endcode
 
     @see the @ref splice "splice operator"
@@ -1936,7 +1936,7 @@ string splice(string str, softint start) {
 
     @par Example:
     @code{.py}
-my string $str = splice($str2, 5, 7, "hello");
+string str = splice(str2, 5, 7, "hello");
     @endcode
 
     @see the @ref splice "splice operator"
@@ -1955,7 +1955,7 @@ string splice(string str, softint start, softint len, *string nstr) {
 
     @par Example:
     @code{.py}
-my list $l = splice($l2, 5);
+list l = splice(l2, 5);
     @endcode
 
     @see the @ref splice "splice operator"
@@ -1978,7 +1978,7 @@ list splice(list l, softint start) {
 
     @par Example:
     @code{.py}
-my list $l = splice($l2, 5, 7, "hello");
+list l = splice(l2, 5, 7, "hello");
     @endcode
 
     @see the @ref splice "splice operator"
@@ -2044,7 +2044,7 @@ nothing makeHexString() [flags=RUNTIME_NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-my string $str = make_hex_string($str2);
+string str = make_hex_string(str2);
     @endcode
 
     @see
@@ -2067,7 +2067,7 @@ string make_hex_string(string str) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my string $str = make_hex_string($bin);
+string str = make_hex_string(bin);
     @endcode
 
     @see
@@ -2113,7 +2113,7 @@ nothing parseHexString() [flags=RUNTIME_NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-my binary $bin = parseHexString($hex_string);
+binary bin = parseHexString(hex_string);
     @endcode
 
     @throw PARSE-HEX-ERROR A syntax error occurred parsing the hex string (odd number of digits, invalid hex character, etc)
@@ -2135,7 +2135,7 @@ binary parse_hex_string(string hexstr) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my int $i = hextoint("ab3d4e0f12");
+int i = hextoint("ab3d4e0f12");
     @endcode
 
     @throw PARSE-HEX-ERROR invalid hex digit found
@@ -2186,7 +2186,7 @@ nothing hextoint() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my int $i = strtoint("41", 8);
+int i = strtoint("41", 8);
     @endcode
 
     @throw STRTOINT-ERROR cannot parse string; unsupported base, etc
@@ -2240,7 +2240,7 @@ nothing load_module() [flags=RUNTIME_NOOP;dom=MODULES] {
 
     @par Example:
     @code{.py}
-load_user_module_with_program("MyModule", $p);
+load_user_module_with_program("MyModule", p);
     @endcode
 
     @param name the name or path of the user module to load
@@ -2285,7 +2285,7 @@ nothing reload_module(string name) [dom=MODULES,INJECTION] {
 
     @par Example:
     @code{.py}
-my string $decoded_url = decode_url($encoded_url);
+string decoded_url = decode_url(encoded_url);
     @endcode
 
     @note percent decoding is made according to <a href="http://tools.ietf.org/html/rfc3986#section-2.1">RFC 3986 2.1</a>
@@ -2315,7 +2315,7 @@ nothing decode_url() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my string $encoded_url = encode_url($url);
+string encoded_url = encode_url(url);
     @endcode
 
     @see
@@ -2334,7 +2334,7 @@ string encode_url(string url, softbool encode_all = False) [flags=CONSTANT] {
 //! Decodes percent-encoded codes in a URI path and converts \c "+" signs in the query component to spaces and returns the decoded string in UTF-8 encoding
 /** @par Example:
     @code{.py}
-my string $decoded_uri = decode_uri_request("path/to/something%20else?query=1%2b1+%2b2");
+string decoded_uri = decode_uri_request("path/to/something%20else?query=1%2b1+%2b2");
 # results in: "path/to/something else?query=1+1 +2"
     @endcode
 
@@ -2367,7 +2367,7 @@ string decode_uri_request(string uri) [flags=CONSTANT] {
 //! Encodes URI requests by substituting special characters in the path with percent-encoded ewquivalents and substituting spaces with \c "+" and \c "+" with the percent-encoded equivalent in the URI query component
 /** @par Example:
     @code{.py}
-my string $encoded_uri = encode_uri_request("path/to/something else?query=1+1 +2")'
+string encoded_uri = encode_uri_request("path/to/something else?query=1+1 +2")'
 # results in: "path/to/something%20else?query=1%2b1+%2b2"
     @endcode
 
@@ -2404,7 +2404,7 @@ string encode_uri_request(string url) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my *string $str = get_script_path();
+*string str = get_script_path();
     @endcode
 */
 *string get_script_path() {
@@ -2416,7 +2416,7 @@ my *string $str = get_script_path();
 
     @par Example:
     @code{.py}
-my *string $str = get_script_dir();
+*string str = get_script_dir();
     @endcode
 */
 *string get_script_dir() {
@@ -2428,7 +2428,7 @@ my *string $str = get_script_dir();
 
     @par Example:
     @code{.py}
-my *string $str = get_script_name();
+*string str = get_script_name();
     @endcode
 */
 *string get_script_name() {
@@ -2444,7 +2444,7 @@ my *string $str = get_script_name();
 
     @par Example:
     @code{.py}
-my list $l = get_qore_option_list();
+list l = get_qore_option_list();
     @endcode
 
     @see get_qore_option_hash()
@@ -2472,7 +2472,7 @@ list get_qore_option_list() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my hash $h = get_qore_option_hash();
+hash h = get_qore_option_hash();
     @endcode
 
     @see get_qore_option_list()
@@ -2511,7 +2511,7 @@ hash get_qore_option_hash() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my hash $h = get_qore_library_info();
+hash h = get_qore_library_info();
     @endcode
 */
 hash get_qore_library_info() [flags=CONSTANT] {
@@ -2542,7 +2542,7 @@ hash get_qore_library_info() [flags=CONSTANT] {
 //! returns the current @ref parse_options "parse options" for the current @ref Qore::Program "Program" object
 /** @par Example:
     @code{.py}
-my int $i = get_parse_options();
+int i = get_parse_options();
     @endcode
 
     @return the current @ref parse_options "parse options" for the current @ref Qore::Program "Program" object
@@ -2573,10 +2573,10 @@ set_return_value(any val) [dom=PROCESS] {
 /** @par Example:
     @code{.py}
 try {
-    throw "oops", sprintf("arg %y is invalid", $arg);
+    throw "oops", sprintf("arg %y is invalid", arg);
 }
-catch (hash $ex) {
-    log("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc);
+catch (hash ex) {
+    log("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
 }
     @endcode
 

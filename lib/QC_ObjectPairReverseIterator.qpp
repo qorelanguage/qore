@@ -41,19 +41,19 @@ extern QoreClass* QC_OBJECTREVERSEITERATOR;
     @code{.py}
     class Class1 {
        public {
-          int $.attr1;
-          date $.attr2;
+          int attr1;
+          date attr2;
        }
        constructor() {
-          $.attr1 = 1;
-          $.attr2 = now();
+          attr1 = 1;
+          attr2 = now();
        }
     }
-    my Class1 $o();
+    Class1 o();
 
-    my ObjectPairReverseIterator $it($o);
-    while ($it.next()) {
-        printf("iter: %n\n", $it.getValue());
+    ObjectPairReverseIterator it(o);
+    while (it.next()) {
+        printf("iter: %n\n", it.getValue());
     }
 
     iter: hash: (key : "attr2", value : 2013-04-17 16:38:31 Wed +02:00 (CEST))
@@ -79,7 +79,7 @@ qclass ObjectPairReverseIterator [arg=QoreObjectReverseIterator* i; ns=Qore; vpa
 
     @par Example:
     @code{.py}
-my ObjectPairReverseIterator $i($obj);
+ObjectPairReverseIterator i(obj);
     @endcode
  */
 ObjectPairReverseIterator::constructor(object o) {
@@ -89,8 +89,8 @@ ObjectPairReverseIterator::constructor(object o) {
 //! Creates an empty iterator object
 /** @par Example:
     @code{.py}
-my *object $obj = get_object_or_nothing();
-my ObjectPairReverseIterator $i($obj);
+*object obj = get_object_or_nothing();
+ObjectPairReverseIterator i(obj);
     @endcode
  */
 ObjectPairReverseIterator::constructor() {
@@ -100,7 +100,7 @@ ObjectPairReverseIterator::constructor() {
 //! Creates a copy of the ObjectPairReverseIterator object, iterating the same object as the original and in the same position
 /** @par Example:
     @code{.py}
-my ObjectPairReverseIterator $ni = $i.copy();
+ObjectPairReverseIterator ni = i.copy();
     @endcode
  */
 ObjectPairReverseIterator::copy() {
@@ -112,8 +112,8 @@ ObjectPairReverseIterator::copy() {
 
     @par Example:
     @code{.py}
-foreach my hash $h in (new ObjectPairReverseIterator($obj))
-    printf("%s: %y\n", $h.key, $h.value);
+foreach hash h in (new ObjectPairReverseIterator(obj))
+    printf("%s: %y\n", h.key, h.value);
     @endcode
 
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element

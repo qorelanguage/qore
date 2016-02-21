@@ -43,8 +43,8 @@ qclass AbstractBidirectionalIterator [arg=AbstractBidirectionalIterator* i; ns=Q
 
     @par Example:
     @code{.py}
-while ($i.prev()) {
-    printf(" + %y\n", $i.getValue());
+while (i.prev()) {
+    printf(" + %y\n", i.getValue());
 }
     @endcode
 

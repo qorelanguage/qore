@@ -136,7 +136,7 @@ namespace Qore::SQL;
 
     @par Example:
     @code{.py}
-my hash $h = parse_datasource("pgsql:user/pass@dbname(utf8)%dbhost.internal:1521{min=4,max=10}");
+hash h = parse_datasource("pgsql:user/pass@dbname(utf8)%dbhost.internal:1521{min=4,max=10}");
     @endcode
 
     @throw DATASOURCE-PARSE-ERROR a syntax error occurred parsing the datasource string (missing field, unexpected character, etc)
@@ -155,7 +155,7 @@ hash parse_datasource(string ds) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my *list $l = dbi_get_driver_list();
+*list l = dbi_get_driver_list();
     @endcode
 
     @note similar to getDBIDriverList() except uses the standard function naming scheme (ie \c "names_like_this()" instead of \c "camelCase()")
@@ -174,7 +174,7 @@ my *list $l = dbi_get_driver_list();
 
     @par Example:
     @code{.py}
-my *list $l = dbi_get_driver_capability_list("pgsql");
+*list l = dbi_get_driver_capability_list("pgsql");
     @endcode
 
     @note similar to getDBIDriverCapabilityList() except uses the standard function naming scheme (ie \c "names_like_this()" instead of \c "camelCase()") and does not have a @ref NOOP variant
@@ -193,7 +193,7 @@ my *list $l = dbi_get_driver_capability_list("pgsql");
 
     @par Example:
     @code{.py}
-my int $caps = dbi_get_driver_capabilities("pgsql");
+int caps = dbi_get_driver_capabilities("pgsql");
     @endcode
 
     @note similar to getDBIDriverCapabilities() except uses the standard function naming scheme (ie \c "names_like_this()" instead of \c "camelCase()"), always returns an @ref int_type, and does not have a @ref NOOP variant
@@ -215,7 +215,7 @@ int dbi_get_driver_capabilities(string driver) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my *hash $h = dbi_get_driver_options("pgsql");
+*hash h = dbi_get_driver_options("pgsql");
     @endcode
 
     @since %Qore 0.8.6

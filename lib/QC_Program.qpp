@@ -207,7 +207,7 @@ const PO_NO_NETWORK = PO_NO_NETWORK;
 //! Disallows use of the @ref new "new operator"
 /** Note that objects can still be instantiated with syntax like:
     @code{.py}
-my Mutex $m();
+Mutex m();
     @endcode
 
     @see @ref no-new "%no-new"
@@ -575,7 +575,7 @@ qclass Program [arg=QoreProgram* p];
 
     @par Example:
     @code{.py}
-my Program $pgm();
+Program pgm();
     @endcode
 
     @throw PROGRAM-OPTION-ERROR invalid parse options used
@@ -622,10 +622,10 @@ Program::destructor() {
 
     @par Example:
     @code{.py}
-my *hash $wh = $pgm.parse($code, "label", WARN_DEFAULT);
-while ($wh) {
-    printf("warning: %s:%d: %s: %s\n", $wh.file, $wh.line, $wh.err, $wh.desc);
-    $wh = $wh.next;
+*hash wh = pgm.parse(code, "label", WARN_DEFAULT);
+while (wh) {
+    printf("warning: %s:%d: %s: %s\n", wh.file, wh.line, wh.err, wh.desc);
+    wh = wh.next;
 }
     @endcode
 
@@ -674,12 +674,12 @@ while ($wh) {
 
     @par Example:
     @code{.py}
-my *hash $wh = $pgm.parsePending($code, "label", WARN_DEFAULT);
-while ($wh) {
-    printf("warning: %s:%d: %s: %s\n", $wh.file, $wh.line, $wh.err, $wh.desc);
-    $wh = $wh.next;
+*hash wh = pgm.parsePending(code, "label", WARN_DEFAULT);
+while (wh) {
+    printf("warning: %s:%d: %s: %s\n", wh.file, wh.line, wh.err, wh.desc);
+    wh = wh.next;
 }
-$pgm.parseCommit();
+pgm.parseCommit();
     @endcode
 
     @note This method could throw many parse exceptions which are not enumerated here; any parse errors will result in an appropriate exception.
@@ -715,7 +715,7 @@ $pgm.parseCommit();
 
     @par Example:
     @code{.py}
-$pgm.parseCommit();
+pgm.parseCommit();
     @endcode
 
     @note This method could throw many parse exceptions related to resolving references which are not enumerated here; any parse errors will result in an appropriate exception.
@@ -737,10 +737,10 @@ nothing Program::parseCommit() {
 
     @par Example:
     @code{.py}
-my *hash $wh = $pgm.parseCommit(WARN_DEFAULT);
-while (exists $wh) {
-    printf("warning: %s:%d: %s: %s\n", $wh.file, $wh.line, $wh.err, $wh.desc);
-    $wh = $wh.next;
+*hash wh = pgm.parseCommit(WARN_DEFAULT);
+while (exists wh) {
+    printf("warning: %s:%d: %s: %s\n", wh.file, wh.line, wh.err, wh.desc);
+    wh = wh.next;
 }
     @endcode
 
@@ -768,7 +768,7 @@ while (exists $wh) {
 /**
     @par Example:
     @code{.py}
-$pgm.parseRollback();
+pgm.parseRollback();
     @endcode
 
     @see
@@ -793,7 +793,7 @@ nothing Program::parseRollback() {
 
     @par Example:
     @code{.py}
-my any $result = $pgm.callFunction("func_name", $arg1, $arg2);
+any result = pgm.callFunction("func_name", arg1, arg2);
     @endcode
 
     @throw INVALID-FUNCTION-ACCESS @ref parse_options "Parse options" do not allow this builtin function to be called
@@ -824,7 +824,7 @@ any Program::callFunction(string name, ...) {
 
     @par Example:
     @code{.py}
-my any $result = $pgm.callFunctionArgs("func_name", ($arg1, $arg2));
+any result = pgm.callFunctionArgs("func_name", (arg1, arg2));
     @endcode
 
     @throw INVALID-FUNCTION-ACCESS @ref parse_options "Parse options" do not allow this builtin function to be called
@@ -847,7 +847,7 @@ any Program::callFunctionArgs(string name, *softlist vargs) {
 
     @par Example:
     @code{.py}
-if ($pgm.existsFunction("my_func"))
+if (pgm.existsFunction("my_func"))
     printf("my_func() exists in the Program\n");
     @endcode
 
@@ -865,7 +865,7 @@ bool Program::existsFunction(string name) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-$pgm.run();
+pgm.run();
     @endcode
  */
 any Program::run() {
@@ -879,7 +879,7 @@ any Program::run() {
 
     @par Example:
     @code{.py}
-$pgm.importFunction("log");
+pgm.importFunction("log");
     @endcode
 
     @throw FUNCTION-IMPORT-ERROR Cannot import a function into the same Program object; function with this name already exists
@@ -904,7 +904,7 @@ nothing Program::importFunction(string func) {
 
     @par Example:
     @code{.py}
-$pgm.importFunction("service_log", "log");
+pgm.importFunction("service_log", "log");
     @endcode
 
     @throw FUNCTION-IMPORT-ERROR Cannot import a function into the same Program object; function with this name already exists; target namespace does not exist; injection indicated but @ref Qore::PO_ALLOW_INJECTION not set
@@ -936,7 +936,7 @@ nothing Program::importFunction(string func, string new_name, *softbool inject) 
 
     @par Example:
     @code{.py}
-$pgm.importGlobalVariable("var");
+pgm.importGlobalVariable("var");
     @endcode
 
     @throw PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION The global variable does not exist in the source program, or the target variable already exists
@@ -958,7 +958,7 @@ nothing Program::importGlobalVariable(string varname, bool readonly = False) {
 
     @par Example:
     @code{.py}
-$pgm.importClass("MyNamespace::MyClass");
+pgm.importClass("MyNamespace::MyClass");
     @endcode
 
     @throw CLASS-IMPORT-ERROR Cannot import a class into the same Program object; class or namespace with this name already exists or the source class does not exist; injection indicated but @ref Qore::PO_ALLOW_INJECTION not set
@@ -994,7 +994,7 @@ nothing Program::importClass(string cls, *string new_name, *softbool inject) {
 
     @par Example:
     @code{.py}
-my list $l = $pgm.getUserFunctionList();
+list l = pgm.getUserFunctionList();
     @endcode
  */
 softlist Program::getUserFunctionList() {
@@ -1006,7 +1006,7 @@ softlist Program::getUserFunctionList() {
 
     @par Example:
     @code{.py}
-my int $mask = $pgm.getParseOptions();
+int mask = pgm.getParseOptions();
     @endcode
  */
 int Program::getParseOptions() {
@@ -1021,7 +1021,7 @@ int Program::getParseOptions() {
     @par Example:
     @code{.py}
 # disable threading and GUI operations
-$pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);
+pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);
     @endcode
 
     @throw OPTIONS-LOCKED Parse options have been locked and cannot be changed
@@ -1044,7 +1044,7 @@ nothing Program::setParseOptions(softint opt = PO_DEFAULT) {
     @par Example:
     @code{.py}
 # allow threading and GUI operations
-$pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);
+pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);
     @endcode
 
     @throw OPTIONS-LOCKED Parse options have been locked and cannot be changed
@@ -1067,7 +1067,7 @@ nothing Program::disableParseOptions(softint opt) {
     @par Example:
     @code{.py}
 # disallow threading and GUI operations
-$pgm.replaceParseOptions(PO_NO_THREADS | PO_NO_GUI);
+pgm.replaceParseOptions(PO_NO_THREADS | PO_NO_GUI);
     @endcode
 
     @throw OPTION-ERROR The calling Program does not have the @ref PO_NO_CHILD_PO_RESTRICTIONS option set, and therefore cannot call Program::replaceParseOptions()
@@ -1083,7 +1083,7 @@ nothing Program::replaceParseOptions(softint opt) {
 
     @par Example:
     @code{.py}
-$pgm.setScriptPath("/users/test/test.q");
+pgm.setScriptPath("/users/test/test.q");
     @endcode
  */
 nothing Program::setScriptPath(*string path) {
@@ -1097,7 +1097,7 @@ nothing Program::setScriptPath(*string path) {
 
     @par Example:
     @code{.py}
-my *string $dir = $pgm.getScriptDir();
+*string dir = pgm.getScriptDir();
     @endcode
  */
 *string Program::getScriptDir() {
@@ -1111,7 +1111,7 @@ my *string $dir = $pgm.getScriptDir();
 
     @par Example:
     @code{.py}
-my *string $name = $pgm.getScriptName();
+*string name = pgm.getScriptName();
     @endcode
  */
 *string Program::getScriptName() {
@@ -1125,7 +1125,7 @@ my *string $name = $pgm.getScriptName();
 
     @par Example:
     @code{.py}
-my *string $path = $pgm.getScriptPath();
+*string path = pgm.getScriptPath();
     @endcode
  */
 *string Program::getScriptPath() {
@@ -1136,7 +1136,7 @@ my *string $path = $pgm.getScriptPath();
 /**
     @par Example:
     @code{.py}
- $pgm.lockOptions();
+ pgm.lockOptions();
    @endcode
  */
 nothing Program::lockOptions() {
@@ -1152,8 +1152,8 @@ nothing Program::lockOptions() {
 
     @par Example:
     @code{.py}
-my bool $exists;
-my any $val = $pgm.getGlobalVariable("error_count", \$exists);
+bool existsv;
+any val = pgm.getGlobalVariable("error_count", \existsv);
     @endcode
  */
 any Program::getGlobalVariable(string varname, *reference rexists) {
@@ -1183,7 +1183,7 @@ any Program::getGlobalVariable(string varname, *reference rexists) {
 
     @par Example:
     @code{.py}
-$pgm.setTimeZoneRegion("Europe/Prague");
+pgm.setTimeZoneRegion("Europe/Prague");
     @endcode
 
     @throw TZINFO-ERROR Unable to read zoneinfo file; invalid file magic; error parsing zoneinfo file, etc
@@ -1202,13 +1202,13 @@ nothing Program::setTimeZoneRegion(string region) {
     @par Example:
 The following examples are all equivalent, setting the time zone to +02 UTC:
     @code{.py}
-$pgm.setTimeZoneUTCOffset(7200);
+pgm.setTimeZoneUTCOffset(7200);
     @endcode
     @code{.py}
-$pgm.setTimeZoneUTCOffset(2h);
+pgm.setTimeZoneUTCOffset(2h);
     @endcode
     @code{.py}
-$pgm.setTimeZoneUTCOffset(PT2H);
+pgm.setTimeZoneUTCOffset(PT2H);
     @endcode
 
     @see TimeZone::setUTCOffset()
@@ -1222,8 +1222,8 @@ nothing Program::setTimeZoneUTCOffset(softint seconds_east) {
 /**
     @par Example:
     @code{.py}
-my TimeZone $tz("Europe/Prague");
-$pgm.setTimeZone($tz);
+TimeZone tz("Europe/Prague");
+pgm.setTimeZone(tz);
     @endcode
 
     @see TimeZone::set()
@@ -1237,7 +1237,7 @@ nothing Program::setTimeZone(TimeZone[TimeZoneData] zone) {
 
     @par Example:
     @code{.py}
-my TimeZone $tz = $pgm.getTimeZone();
+TimeZone tz = pgm.getTimeZone();
     @endcode
  */
 TimeZone Program::getTimeZone() {
@@ -1250,7 +1250,7 @@ TimeZone Program::getTimeZone() {
 
     @par Example:
     @code{.py}
-$pgm.define("PRODUCTION", True);
+pgm.define("PRODUCTION", True);
     @endcode
  */
 nothing Program::define(string def, any val) {
@@ -1264,7 +1264,7 @@ nothing Program::define(string def, any val) {
 
     @par Example:
     @code{.py}
-$pgm.undefine("PRODUCTION");
+pgm.undefine("PRODUCTION");
     @endcode
  */
 nothing Program::undefine(string def) {
@@ -1280,7 +1280,7 @@ nothing Program::undefine(string def) {
 
     @par Example:
     @code{.py}
-my bool $b = $pgm.isDefined("PRODUCTION");
+bool b = pgm.isDefined("PRODUCTION");
     @endcode
  */
 bool Program::isDefined(string def) {
@@ -1293,7 +1293,7 @@ bool Program::isDefined(string def) {
 
     @par Example:
     @code{.py}
-my any $val = $pgm.getDefine("PRODUCTION");
+any val = pgm.getDefine("PRODUCTION");
     @endcode
 
     @note A parse define may be defined with no value; use Program::isDefined to check if a parse define is actually defined or not
@@ -1312,7 +1312,7 @@ any Program::getDefine(string def) {
 
     @par Example:
     @code{.py}
-$pgm.loadModule("mysql");
+pgm.loadModule("mysql");
     @endcode
 
     @throw LOAD-MODULE-ERROR module cannot be loaded: API incompatibility, module defines symbols already defined in the target object, etc
@@ -1338,7 +1338,7 @@ Program::loadModule(string name) [dom=MODULES] {
 
     @par Example:
     @code{.py}
-$pgm.loadUserModuleWithProgram("MyModule", $p);
+pgm.loadUserModuleWithProgram("MyModule", p);
     @endcode
 
     @param name the name or path of the user module to load
@@ -1429,7 +1429,7 @@ Program::loadApplyToPrivateUserModule(string name) [dom=MODULES] {
 //! imports system classes into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES
 /** @par Example:
     @code{.py}
-$pgm.importSystemClasses();
+pgm.importSystemClasses();
     @endcode
 
     @throw IMPORT-SYSTEM-API-ERROR objects already imported; parse options are locked on the Program object; conflicting object found; system API incorrectly imported; in case this exception is raised, the Program object will not contain the full system API and is most likely unusable
@@ -1445,7 +1445,7 @@ Program::importSystemClasses() {
 //! imports system constants into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS
 /** @par Example:
     @code{.py}
-$pgm.importSystemConstants();
+pgm.importSystemConstants();
     @endcode
 
     @throw IMPORT-SYSTEM-API-ERROR objects already imported; parse options are locked on the Program object; conflicting object found; system API incorrectly imported; in case this exception is raised, the Program object will not contain the full system API and is most likely unusable
@@ -1461,7 +1461,7 @@ Program::importSystemConstants() {
 //! imports system functions into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
 /** @par Example:
     @code{.py}
-$pgm.importSystemFunctions();
+pgm.importSystemFunctions();
     @endcode
 
     @throw IMPORT-SYSTEM-API-ERROR objects already imported; parse options are locked on the Program object; conflicting object found; system API incorrectly imported; in case this exception is raised, the Program object will not contain the full system API and is most likely unusable
@@ -1477,7 +1477,7 @@ Program::importSystemFunctions() {
 //! imports system classes and functions into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS, @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS, and @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES
 /** @par Example:
     @code{.py}
-$pgm.importSystemApi();
+pgm.importSystemApi();
     @endcode
 
     @throw IMPORT-SYSTEM-API-ERROR objects already imported; parse options are locked on the Program object; conflicting object found; system API incorrectly imported; in case this exception is raised, the Program object will not contain the full system API and is most likely unusable

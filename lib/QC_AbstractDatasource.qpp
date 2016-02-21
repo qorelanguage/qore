@@ -41,7 +41,7 @@ qclass AbstractDatasource [dom=DATABASE; arg=AbstractDatasource* ds; ns=Qore::SQ
 /**
     @par Example:
     @code{.py}
-$db.commit();
+db.commit();
     @endcode
  */
 abstract nothing AbstractDatasource::commit();
@@ -50,7 +50,7 @@ abstract nothing AbstractDatasource::commit();
 /**
     @par Example:
     @code{.py}
-$db.rollback();
+db.rollback();
     @endcode
  */
 abstract nothing AbstractDatasource::rollback();
@@ -63,7 +63,7 @@ abstract nothing AbstractDatasource::rollback();
 
     @par Example:
     @code{.py}
-my int $rows = $db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", $string, now(), $binary, 100);
+int rows = db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", string, now(), binary, 100);
     @endcode
  */
 abstract any AbstractDatasource::exec(string sql, ...);
@@ -78,7 +78,7 @@ abstract any AbstractDatasource::exec(string sql, ...);
 
     @par Example:
     @code{.py}
-my int $rows = $db.vexec("insert into example_table value (%v, %v, %v)", $arg_list);
+int rows = db.vexec("insert into example_table value (%v, %v, %v)", arg_list);
     @endcode
  */
 abstract any AbstractDatasource::vexec(string sql, *softlist vargs);
@@ -95,7 +95,7 @@ abstract any AbstractDatasource::vexec(string sql, *softlist vargs);
 
     @par Example:
     @code{.py}
-$db.execRaw("create table my_tab (id number, some_text varchar2(30))");
+db.execRaw("create table my_tab (id number, some_text varchar2(30))");
     @endcode
  */
 abstract any AbstractDatasource::execRaw(string sql);
@@ -117,7 +117,7 @@ abstract any AbstractDatasource::execRaw(string sql);
     @par Example:
     @code{.py}
 # bind a string and a date/time value by value in a query
-$query = $db.select("select * from table where varchar_column = %v and timestamp_column > %v", $string, 2007-10-11T15:31:26.289);
+query = db.select("select * from table where varchar_column = %v and timestamp_column > %v", string, 2007-10-11T15:31:26.289);
     @endcode
 
     @note This method returns all the data available immediately; to process query data piecewise, use the SQLStatement class
@@ -139,7 +139,7 @@ abstract any AbstractDatasource::select(string sql, ...);
 
     @par Example:
     @code{.py}
-my *hash $h = $db.selectRow("select * from example_table where id = 1");
+*hash h = db.selectRow("select * from example_table where id = 1");
     @endcode
 
     @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
@@ -162,7 +162,7 @@ abstract any AbstractDatasource::selectRow(string sql, ...);
 
     @par Example:
     @code{.py}
-my *list $list = $db.selectRows("select * from example_table");
+*list list = db.selectRows("select * from example_table");
     @endcode
 
     @see AbstractDatasource::select()
@@ -187,7 +187,7 @@ abstract any AbstractDatasource::selectRows(string sql, ...);
 
     @par Example:
     @code{.py}
-my *hash $query = $db.vselect("select * from example_table where id = %v and name = %v", $arg_list);
+*hash query = db.vselect("select * from example_table where id = %v and name = %v", arg_list);
     @endcode
 
     @see AbstractDatasource::select()
@@ -211,7 +211,7 @@ abstract any AbstractDatasource::vselect(string sql, *softlist vargs);
 
     @par Example:
     @code{.py}
-my *hash $h = $db.vselectRow("select * from example_table where id = %v and type = %v", $arg_list);
+*hash h = db.vselectRow("select * from example_table where id = %v and type = %v", arg_list);
     @endcode
 
     @see AbstractDatasource::selectRow()
@@ -237,7 +237,7 @@ abstract any AbstractDatasource::vselectRow(string sql, *softlist vargs);
 
     @par Example:
     @code{.py}
-my *list $list = $db.vselectRows("select * from example_table where id = %v and type = %v", $arg_list);
+*list list = db.vselectRows("select * from example_table where id = %v and type = %v", arg_list);
     @endcode
 
     @see AbstractDatasource::selectRows()
@@ -253,7 +253,7 @@ abstract any AbstractDatasource::vselectRows(string sql, *softlist vargs);
 
     @par Example:
     @code{.py}
-$db.beginTransaction();
+db.beginTransaction();
     @endcode
  */
 abstract nothing AbstractDatasource::beginTransaction();
@@ -263,7 +263,7 @@ abstract nothing AbstractDatasource::beginTransaction();
 
     @par Example:
     @code{.py}
-my *string $user = $db.getUserName();
+*string user = db.getUserName();
     @endcode
  */
 abstract *string AbstractDatasource::getUserName();
@@ -273,7 +273,7 @@ abstract *string AbstractDatasource::getUserName();
 
     @par Example:
     @code{.py}
-my *string $pass = $db.getPassword();
+*string pass = db.getPassword();
     @endcode
  */
 abstract *string AbstractDatasource::getPassword();
@@ -283,7 +283,7 @@ abstract *string AbstractDatasource::getPassword();
 
     @par Example:
     @code{.py}
-my *string $db = $db.getDBName();
+*string db = db.getDBName();
     @endcode
  */
 abstract *string AbstractDatasource::getDBName();
@@ -293,7 +293,7 @@ abstract *string AbstractDatasource::getDBName();
 
     @par Example:
     @code{.py}
-my string $enc = $db.getDBEncoding();
+string enc = db.getDBEncoding();
     @endcode
 
     @see AbstractDatasource::getOSEncoding();
@@ -305,7 +305,7 @@ abstract string AbstractDatasource::getDBEncoding();
 
     @par Example:
     @code{.py}
-my *string $enc = $db.getOSEncoding();
+*string enc = db.getOSEncoding();
     @endcode
  */
 abstract *string AbstractDatasource::getOSEncoding();
@@ -315,7 +315,7 @@ abstract *string AbstractDatasource::getOSEncoding();
 
     @par Example:
     @code{.py}
-my *string $host = $db.getHostName();
+*string host = db.getHostName();
     @endcode
  */
 abstract *string AbstractDatasource::getHostName();
@@ -325,7 +325,7 @@ abstract *string AbstractDatasource::getHostName();
 
     @par Example:
     @code{.py}
-my *int $port = $db.getPort();
+*int port = db.getPort();
     @endcode
  */
 abstract *int AbstractDatasource::getPort();
@@ -335,7 +335,7 @@ abstract *int AbstractDatasource::getPort();
 
     @par Example:
     @code{.py}
-my string $driver = $db.getDriverName();
+string driver = db.getDriverName();
     @endcode
  */
 abstract string AbstractDatasource::getDriverName();
@@ -345,7 +345,7 @@ abstract string AbstractDatasource::getDriverName();
 
     @par Example:
     @code{.py}
-my any $ver = $db.getServerVersion();
+any ver = db.getServerVersion();
     @endcode
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
@@ -357,7 +357,7 @@ abstract any AbstractDatasource::getServerVersion();
 
     @par Example:
     @code{.py}
-my any $ver = $db.getClientVersion();
+any ver = db.getClientVersion();
     @endcode
 
     @note see the documentation for the DBI driver being used for possible exceptions
@@ -369,7 +369,7 @@ abstract any AbstractDatasource::getClientVersion();
 
     @par Example:
     @code{.py}
-my bool $b = $db.inTransaction();
+bool b = db.inTransaction();
     @endcode
  */
 abstract bool AbstractDatasource::inTransaction();
@@ -377,7 +377,7 @@ abstract bool AbstractDatasource::inTransaction();
 //! Returns a @ref datasource_hash "datasource hash" describing the configuration of the current object
 /** @par Example:
     @code{.py}
-my hash $h = $ds.getConfigHash();
+hash h = ds.getConfigHash();
     @endcode
 
     @return a @ref datasource_hash "datasource hash" describing the configuration of the current object
@@ -389,7 +389,7 @@ abstract hash AbstractDatasource::getConfigHash();
 //! Returns a string giving the configuration of the current object in a format that can be parsed by parse_datasource()
 /** @par Example:
     @code{.py}
-my string $str = $ds.getConfigString();
+string str = ds.getConfigString();
     @endcode
 
     @return a string giving the configuration of the current object in a format that can be parsed by parse_datasource()

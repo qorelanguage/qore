@@ -41,9 +41,9 @@
     Additionally, the @ref on_exit "on_exit statement" can provide exception-safe unlocking at the lexical block level for Mutex objects as in the following example:
     @code{.py}
 {
-    $m.lock();
+    m.lock();
     on_exit
-        $m.unlock();
+        m.unlock();
 
     # ... when this block exits the lock will be released, even in the
     #     case of return statements or exceptions
@@ -67,7 +67,7 @@ qclass Mutex [dom=THREAD_CLASS; arg=SmartMutex* m; ns=Qore::Thread; vparent=Abst
 //! Creates the Mutex object
 /** @par Example:
     @code{.py}
-my Mutex $mutex();
+Mutex mutex();
     @endcode
  */
 Mutex::constructor() {
@@ -79,7 +79,7 @@ Mutex::constructor() {
 
     @par Example:
     @code{.py}
-delete $mutex;
+delete mutex;
     @endcode
 
     @throw LOCK-ERROR Object deleted while other threads blocked on it
@@ -92,7 +92,7 @@ Mutex::destructor() {
 //! Creates a new Mutex object, not based on the original
 /** @par Example:
     @code{.py}
-my Mutex $nm = $m.copy();
+Mutex nm = m.copy();
     @endcode
 */
 Mutex::copy() {
@@ -104,7 +104,7 @@ Mutex::copy() {
 
     @par Example:
     @code{.py}
-$mutex.lock();
+mutex.lock();
     @endcode
 
     @throw LOCK-ERROR lock called twice in the same thread, object deleted in another thread, etc
@@ -121,7 +121,7 @@ nothing Mutex::lock() {
 
     @par Example:
     @code{.py}
-if ($mutex.lock(1250ms))
+if (mutex.lock(1250ms))
     throw "TIMEOUT-ERROR", "lock acquisition timed out after 1.25s";
     @endcode
 
@@ -142,7 +142,7 @@ int Mutex::lock(timeout timeout_ms) {
 
     @par Example:
     @code{.py}
-my int $i = $mutex.trylock();
+int i = mutex.trylock();
     @endcode
 
     @throw LOCK-ERROR object deleted in another thread, etc
@@ -156,7 +156,7 @@ int Mutex::trylock() {
 /**
     @par Example:
     @code{.py}
-$mutex.unlock();
+mutex.unlock();
     @endcode
 
     @throw LOCK-ERROR unlock called by a thread that does not own the lock or the lock is not locked, object deleted in another thread, etc

@@ -40,14 +40,14 @@
 
     For example:
     @code{.py}
-our RWLock $rwl();
+our RWLock rwl();
 
-sub check_error($error) {
+sub check_error(error) {
     # note that the write lock is acquired in the AutoWriteLock constructor, and
     # the write lock will be released as soon as the block is exited below.
     # (with either the throw statement or the return statement)
-    my AutoWriteLock $awl($rwl);
-    if ($error)
+    AutoWriteLock awl(rwl);
+    if (error)
         throw "ERROR", "sorry, an error happened";
 
     return "OK";
@@ -63,7 +63,7 @@ qclass AutoWriteLock [dom=THREAD_CLASS; arg=QoreAutoWriteLock* arwl; ns=Qore::Th
 
     @par Example:
     @code{.py}
-my AutoWriteLock $awl($rwlock);
+AutoWriteLock awl(rwlock);
     @endcode
 
     @throw THREAD-DEADLOCK A deadlock was detected while trying to acquire the lock
@@ -79,7 +79,7 @@ AutoWriteLock::constructor(RWLock[RWLock] rwl) {
 /** 
     @par Example:
     @code{.py}
-delete $awl;
+delete awl;
     @endcode
 
     @throw LOCK-ERROR RWLock::writeUnlock() called while not holding the write lock, RWLock object deleted in another thread, etc

@@ -37,14 +37,14 @@
 
     @par Example: ListHashIterator basic usage
     @code{.py}
-    my list $data = (
+    list data = (
              ( "column1" : 1, "column2" : "a"),
              ( "column1" : 2, "column2" : "b"),
         );
 
-    my ListHashIterator $it($data);
-    while ($it.next()) {
-        printf("iter %d: %n\n", $it.index(), $it.getValue());
+    ListHashIterator it(data);
+    while (it.next()) {
+        printf("iter %d: %n\n", it.index(), it.getValue());
     }
 
     iter 0: hash: (column1 : 1, column2 : "a")
@@ -65,7 +65,7 @@ qclass ListHashIterator [arg=QoreListHashIterator* i; ns=Qore; vparent=AbstractQ
 
     @par Example:
     @code{.py}
-my ListHashIterator $i($l);
+ListHashIterator i(l);
     @endcode
 
     @note the constructor's argument is @ref softlist_type "softlist" so that it can also accept @ref nothing
@@ -77,7 +77,7 @@ ListHashIterator::constructor(softlist l) {
 //! Creates a copy of the ListHashIterator object, iterating the same object as the original and in the same position
 /** @par Example:
     @code{.py}
-my ListHashIterator $ni = $i.copy();
+ListHashIterator ni = i.copy();
     @endcode
  */
 ListHashIterator::copy() {
@@ -92,8 +92,8 @@ ListHashIterator::copy() {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf(" + row %d: %y\n", $i.index(), $i.getValue());
+while (i.next()) {
+    printf(" + row %d: %y\n", i.index(), i.getValue());
 }
     @endcode
 
@@ -113,8 +113,8 @@ bool ListHashIterator::next() {
 
     @par Example:
     @code{.py}
-while ($i.prev()) {
-    printf(" + row %d: %y\n", $i.index(), $i.getValue());
+while (i.prev()) {
+    printf(" + row %d: %y\n", i.index(), i.getValue());
 }
     @endcode
 
@@ -131,7 +131,7 @@ bool ListHashIterator::prev() {
 
     @par Example:
     @code{.py}
-if ($i.empty())
+if (i.empty())
     printf("the result list is empty\n");
     @endcode
  */
@@ -144,8 +144,8 @@ bool ListHashIterator::empty() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    if ($i.first())
+while (i.next()) {
+    if (i.first())
         printf("START:\n");
 }
     @endcode
@@ -159,8 +159,8 @@ bool ListHashIterator::first() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    if ($i.last())
+while (i.next()) {
+    if (i.last())
         printf("END.\n");
 }
     @endcode
@@ -174,8 +174,8 @@ bool ListHashIterator::last() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf(" + row %d: %y\n", $i.index(), $i.getValue());
+while (i.next()) {
+    printf(" + row %d: %y\n", i.index(), i.getValue());
 }
     @endcode
 
@@ -196,8 +196,8 @@ hash ListHashIterator::getValue() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf(" + row %d: %y\n", $i.index(), $i.getValue());
+while (i.next()) {
+    printf(" + row %d: %y\n", i.index(), i.getValue());
 }
     @endcode
 
@@ -217,8 +217,8 @@ hash ListHashIterator::getRow() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("+ %d/%d: %y\n", $i.index(), $i.max(), $i.getValue());
+while (i.next()) {
+    printf("+ %d/%d: %y\n", i.index(), i.max(), i.getValue());
 }
     @endcode
  */
@@ -231,8 +231,8 @@ int ListHashIterator::index() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("+ %d/%d: %y\n", $i.index(), $i.max(), $i.getValue());
+while (i.next()) {
+    printf("+ %d/%d: %y\n", i.index(), i.max(), i.getValue());
 }
     @endcode
  */
@@ -247,8 +247,8 @@ int ListHashIterator::max() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-if (!$i.set($pos))
-    throw "INVALID-POSITION", sprintf("%d is an invalid position", $pos);
+if (!i.set(pos))
+    throw "INVALID-POSITION", sprintf("%d is an invalid position", pos);
     @endcode
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
@@ -266,8 +266,8 @@ bool ListHashIterator::set(int pos) {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("%d: value: %y", $i.index(), $i.value);
+while (i.next()) {
+    printf("%d: value: %y", i.index(), i.value);
 }
     @endcode
 
@@ -290,8 +290,8 @@ any ListHashIterator::memberGate(string key) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("%d: value: %y", $i.index(), $i.getKeyValue("value"));
+while (i.next()) {
+    printf("%d: value: %y", i.index(), i.getKeyValue("value"));
 }
     @endcode
 
@@ -312,8 +312,8 @@ any ListHashIterator::getKeyValue(string key) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-if ($i.valid())
-    printf("current value: %y\n", $i.getValue());
+if (i.valid())
+    printf("current value: %y\n", i.getValue());
     @endcode
  */
 bool ListHashIterator::valid() [flags=CONSTANT] {
@@ -325,7 +325,7 @@ bool ListHashIterator::valid() [flags=CONSTANT] {
 
    @par Example
    @code{.py}
-$i.reset();
+i.reset();
    @endcode
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object

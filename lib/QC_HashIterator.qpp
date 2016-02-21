@@ -37,12 +37,12 @@
 
     @par Example: HashIterator basic usage
     @code{.py}
-    my hash $h = ( "key1" : 1, "key2" : 2, );
+    hash h = ( "key1" : 1, "key2" : 2, );
 
-    my HashIterator $it($h);
-    while ($it.next()) {
+    HashIterator it(h);
+    while (it.next()) {
         printf("getKey: %n; getKeyValue: %n; getValue: %n; getValuePair: %n\n",
-               $it.getKey(), $it.getKeyValue(), $it.getValue(), $it.getValuePair());
+               it.getKey(), it.getKeyValue(), it.getValue(), it.getValuePair());
     }
 
     getKey: "key1"; getKeyValue: 1; getValue: 1; getValuePair: hash: (key : "key1", value : 1)
@@ -63,7 +63,7 @@ qclass HashIterator [arg=QoreHashIterator* i; ns=Qore; vparent=AbstractQuantifie
 
     @par Example:
     @code{.py}
-my HashIterator $hi($h);
+HashIterator hi(h);
     @endcode
  */
 HashIterator::constructor(hash h) {
@@ -73,8 +73,8 @@ HashIterator::constructor(hash h) {
 //! Creates an empty hash iterator object
 /** @par Example:
     @code{.py}
-my *hash $h = get_hash_or_nothing();
-my HashIterator $hi($h);
+*hash h = get_hash_or_nothing();
+HashIterator hi(h);
     @endcode
  */
 HashIterator::constructor() {
@@ -84,7 +84,7 @@ HashIterator::constructor() {
 //! Creates a copy of the HashIterator object, iterating the same object as the original and in the same position
 /** @par Example:
     @code{.py}
-my HashIterator $ni = $i.copy();
+HashIterator ni = i.copy();
     @endcode
  */
 HashIterator::copy() {
@@ -99,8 +99,8 @@ HashIterator::copy() {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf(" + %y = %y\n", $i.getKey(), $i.getValue());
+while (i.next()) {
+    printf(" + %y = %y\n", i.getKey(), i.getValue());
 }
     @endcode
 
@@ -120,8 +120,8 @@ bool HashIterator::next() {
 
     @par Example:
     @code{.py}
-while ($i.prev()) {
-    printf(" + %y = %y\n", $i.getKey(), $i.getValue());
+while (i.prev()) {
+    printf(" + %y = %y\n", i.getKey(), i.getValue());
 }
     @endcode
 
@@ -138,7 +138,7 @@ bool HashIterator::prev() {
 
     @par Example:
     @code{.py}
-if ($i.empty())
+if (i.empty())
     printf("the hash is empty\n");
     @endcode
  */
@@ -151,8 +151,8 @@ bool HashIterator::empty() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    if ($i.first())
+while (i.next()) {
+    if (i.first())
         printf("START:\n");
 }
     @endcode
@@ -166,8 +166,8 @@ bool HashIterator::first() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    if ($i.last())
+while (i.next()) {
+    if (i.last())
         printf("END.\n");
 }
     @endcode
@@ -183,8 +183,8 @@ bool HashIterator::last() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("+ %y\n", $i.getValue());
+while (i.next()) {
+    printf("+ %y\n", i.getValue());
 }
     @endcode
 
@@ -202,8 +202,8 @@ any HashIterator::getValue() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("+ %y\n", $i.getKeyValue());
+while (i.next()) {
+    printf("+ %y\n", i.getKeyValue());
 }
     @endcode
 
@@ -223,8 +223,8 @@ any HashIterator::getKeyValue() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("+ %y\n", $i.getValuePair());
+while (i.next()) {
+    printf("+ %y\n", i.getValuePair());
 }
     @endcode
 
@@ -244,8 +244,8 @@ hash HashIterator::getValuePair() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("+ %y\n", $i.getKey());
+while (i.next()) {
+    printf("+ %y\n", i.getKey());
 }
     @endcode
 
@@ -263,8 +263,8 @@ string HashIterator::getKey() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-if ($i.valid())
-    printf("current value: %y\n", $i.getValue());
+if (i.valid())
+    printf("current value: %y\n", i.getValue());
     @endcode
  */
 bool HashIterator::valid() [flags=CONSTANT] {
@@ -276,7 +276,7 @@ bool HashIterator::valid() [flags=CONSTANT] {
 
    @par Example
    @code{.py}
-$i.reset();
+i.reset();
    @endcode
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object

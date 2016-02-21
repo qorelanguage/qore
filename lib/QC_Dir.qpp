@@ -52,7 +52,7 @@ qclass Dir [arg=Dir* d; dom=FILESYSTEM];
 
     @par Example:
     @code{.py}
-my Dir $dir("utf-8");
+Dir dir("utf-8");
     @endcode
  */
 Dir::constructor(*string encoding) {
@@ -67,7 +67,7 @@ Dir::constructor(*string encoding) {
 /**
     @par Example:
     @code{.py}
-my Dir $nd = $dir.copy();
+Dir nd = dir.copy();
     @endcode
  */
 Dir::copy() {
@@ -87,8 +87,8 @@ Dir::copy() {
 
     @par Example:
     @code{.py}
-if (!$d.chdir("../doc")) {
-    $d.create(0755);
+if (!d.chdir("../doc")) {
+    d.create(0755);
 }
     @endcode
 
@@ -107,7 +107,7 @@ bool Dir::chdir(string path) {
 
     @par Example:
     @code{.py}
-my *string $mypath = $d.path();
+*string mypath = d.path();
     @endcode
  */
 *string Dir::path() {
@@ -119,8 +119,8 @@ my *string $mypath = $d.path();
 
     @par Example:
     @code{.py}
-if (!$d.exists())
-   printf("%y: does not exist or cannot be opened\n", $d.path());
+if (!d.exists())
+   printf("%y: does not exist or cannot be opened\n", d.path());
     @endcode
  */
 bool Dir::exists() {
@@ -134,16 +134,16 @@ bool Dir::exists() {
     @par Example:
     @code{.py}
 try {
-    if (!$d.exists()) {
-        printf("%y: does not exist; creating...\n", $d.path());
-        $cnt = $d.create(0755);
+    if (!d.exists()) {
+        printf("%y: does not exist; creating...\n", d.path());
+        cnt = d.create(0755);
     }
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -160,13 +160,13 @@ int Dir::create(softint mode = 0777) {
     @par Example:
     @code{.py}
 try {
-    $dir.chmod(0750);
+    dir.chmod(0750);
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -186,13 +186,13 @@ nothing Dir::chmod(softint mode) {
     @par Example:
     @code{.py}
 try {
-    $dir.chown($uid);
+    dir.chown(uid);
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -217,13 +217,13 @@ nothing Dir::chown(int uid) {
     @par Example:
     @code{.py}
 try {
-    $dir.chown($username);
+    dir.chown(username);
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -256,13 +256,13 @@ nothing Dir::chown(string username) {
     @par Example:
     @code{.py}
 try {
-    $dir.chgrp($gid);
+    dir.chgrp(gid);
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -287,13 +287,13 @@ nothing Dir::chgrp(int gid) {
     @par Example:
     @code{.py}
 try {
-    $dir.chgrp($groupname);
+    dir.chgrp(groupname);
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -324,13 +324,13 @@ nothing Dir::chgrp(string groupname) {
     @par Example:
     @code{.py}
 try {
-    $dir.mkdir("subdir", 0750);
+    dir.mkdir("subdir", 0750);
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -351,13 +351,13 @@ nothing Dir::mkdir(string subdir, softint mode = 0777) {
     @par Example:
     @code{.py}
 try {
-    $dir.rmdir("subdir");
+    dir.rmdir("subdir");
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -380,12 +380,12 @@ nothing Dir::rmdir(string subdir) {
     @par Example:
     @code{.py}
 try {
-    map printf("entry: %s\n", $1), $d.list();
+    map printf("entry: %s\n", $1), d.list();
 }
-catch (hash $ex) {
-    stderr.printf("%s: %s", $ex.err, $ex.desc);
-    if ($ex.arg)
-        stderr.printf(": %s", strerror($ex.arg));
+catch (hash ex) {
+    stderr.printf("%s: %s", ex.err, ex.desc);
+    if (ex.arg)
+        stderr.printf(": %s", strerror(ex.arg));
     stderr.printf("\n");
 }
     @endcode
@@ -409,14 +409,14 @@ list Dir::list(bool full = False) {
     @par Example:
     @code{.py}
 try {
-    foreach my string $e in ($d.list("\\.txt$")) {
+    foreach string e in (d.list("\\.txt$")) {
         printf("entry: %s\n");
     }
 }
-catch (hash $ex) {
-    stderr.printf("%s: %s", $ex.err, $ex.desc);
-    if ($ex.arg)
-        stderr.printf(": %s", strerror($ex.arg));
+catch (hash ex) {
+    stderr.printf("%s: %s", ex.err, ex.desc);
+    if (ex.arg)
+        stderr.printf(": %s", strerror(ex.arg));
     stderr.printf("\n");
 }
     @endcode
@@ -441,14 +441,14 @@ list Dir::list(string regex, softint regex_options = 0, softbool full = False) {
     @par Example:
     @code{.py}
 try {
-    foreach my string $e in ($d.listFiles()) {
+    foreach string e in (d.listFiles()) {
         printf("entry: %s\n");
     }
 }
-catch (hash $ex) {
-    stderr.printf("%s: %s", $ex.err, $ex.desc);
-    if ($ex.arg)
-        stderr.printf(": %s", strerror($ex.arg));
+catch (hash ex) {
+    stderr.printf("%s: %s", ex.err, ex.desc);
+    if (ex.arg)
+        stderr.printf(": %s", strerror(ex.arg));
     stderr.printf("\n");
 }
     @endcode
@@ -472,15 +472,15 @@ list Dir::listFiles(bool full = False) {
     @par Example:
     @code{.py}
 try {
-    foreach my string $e in ($d.listFiles("\\.txt$")) {
+    foreach string e in (d.listFiles("\\.txt$")) {
         printf("entry: %s\n");
     }
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -503,15 +503,15 @@ list Dir::listFiles(string regex, softint regex_options = 0, softbool full = Fal
     @par Example:
     @code{.py}
 try {
-    foreach my string $e in ($d.listDirs()) {
+    foreach string e in (d.listDirs()) {
         printf("entry: %s\n");
     }
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -534,15 +534,15 @@ list Dir::listDirs(bool full = False) {
     @par Example:
     @code{.py}
 try {
-    foreach my string $e in ($d.listDirs("^pgsql-")) {
+    foreach string e in (d.listDirs("^pgsql-")) {
         printf("entry: %s\n");
     }
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -568,7 +568,7 @@ list Dir::listDirs(string regex, softint regex_options = 0, softbool full = Fals
     @par Example:
     @code{.py}
 # open a file for writing in the directory and set the mode to 0644 and the encoding to UTF-8
-my File $f = $d.openFile("myfile.txt", O_CREAT|O_WRONLY, 0644, "utf-8");
+File f = d.openFile("myfile.txt", O_CREAT|O_WRONLY, 0644, "utf-8");
     @endcode
 
     @throw DIR-OPENFILE-PARAMETER-ERROR only direct subdirectory names without path separators are allowed
@@ -602,7 +602,7 @@ File Dir::openFile(string filename, int flags = O_RDONLY, int mode = 0666, *stri
 
     @par Example:
     @code{.py}
-my Dir $sd = $d.openDir("mysubdir");
+Dir sd = d.openDir("mysubdir");
     @endcode
 
     @throw DIR-OPENDIR-PARAMETER-ERROR only direct subdirectory names without path separators are allowed
@@ -628,13 +628,13 @@ Dir Dir::openDir(string subdir, *string encoding) {
     @par Example:
     @code{.py}
 try {
-    my bool $b = $dir.removeFile($filename);
+    bool b = dir.removeFile(filename);
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -664,13 +664,13 @@ bool Dir::removeFile(string file) {
     @par Example:
     @code{.py}
 try {
-    my list $l = $dir.stat();
+    list l = dir.stat();
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -689,13 +689,13 @@ list Dir::stat() {
     @par Example:
     @code{.py}
 try {
-    my hash $h = $dir.hstat();
+    hash h = dir.hstat();
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -715,13 +715,13 @@ hash Dir::hstat() {
     @par Example:
     @code{.py}
 try {
-    my hash $h = $dir.statvfs();
+    hash h = dir.statvfs();
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 

@@ -44,9 +44,9 @@
 
    @par Example: RangeIterator basic usage
    @code{.py}
-my RangeIterator $r(0, 2);
-foreach my int $i in ($r)
-    printf("i=%d\n", $i);
+RangeIterator r(0, 2);
+foreach int i in (r)
+    printf("i=%d\n", i);
 # i=0
 # i=1
 # i=2
@@ -67,7 +67,7 @@ qclass RangeIterator [arg=RangeIterator* i; ns=Qore; vparent=AbstractIterator];
 
     @par Example:
     @code{.py}
-my RangeIterator $i(5, 10, 2);
+RangeIterator i(5, 10, 2);
     @endcode
 
     @see xrange()
@@ -87,7 +87,7 @@ RangeIterator::constructor(int start, int stop, int step = 1, any val) {
 
     @par Example:
     @code{.py}
-my RangeIterator $i(5);
+RangeIterator i(5);
     @endcode
 
     @see xrange()
@@ -104,7 +104,7 @@ RangeIterator::constructor(int stop, any val) {
 //! Creates a copy of the RangeIterator object, iterating the same object as the original and in the same position
 /** @par Example:
     @code{.py}
-my RangeIterator $ni = $i.copy();
+RangeIterator ni = i.copy();
     @endcode
  */
 RangeIterator::copy() {
@@ -118,8 +118,8 @@ RangeIterator::copy() {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("value: %y\n", $i.getValue());
+while (i.next()) {
+    printf("value: %y\n", i.getValue());
 }
     @endcode
 
@@ -136,8 +136,8 @@ bool RangeIterator::next() {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("+ %y\n", $i.getValue());
+while (i.next()) {
+    printf("+ %y\n", i.getValue());
 }
     @endcode
 
@@ -158,19 +158,19 @@ any RangeIterator::getValue() [flags=RET_VALUE_ONLY] {
    @par Example
    @code{.py}
 # raw RangeIterator object usage
-my RangeIterator $r(0, 2);
-foreach my int $i in ($r) {
-    printf("i=%d\n", $i);
-    if ($i == 1)
+RangeIterator r(0, 2);
+foreach int i in (r) {
+    printf("i=%d\n", i);
+    if (i == 1)
         break;
 }
 # i=0
 # i=1
 
 # show the reset feature; start iterating all over again
-$r.reset();
-foreach my int $i in ($r)
-    printf("reused i=%d\n", $i);
+r.reset();
+foreach int i in (r)
+    printf("reused i=%d\n", i);
 # reused i=0
 # reused i=1
 # reused i=2
@@ -189,8 +189,8 @@ RangeIterator::reset() {
 
     @par Example:
     @code{.py}
-if ($i.valid())
-    printf("current value: %y\n", $i.getValue());
+if (i.valid())
+    printf("current value: %y\n", i.getValue());
     @endcode
  */
 bool RangeIterator::valid() [flags=CONSTANT] {
@@ -203,8 +203,8 @@ bool RangeIterator::valid() [flags=CONSTANT] {
 
     @par Example
     @code{.py}
-foreach my int $i in(xrange(5))
-    printf("i=%d\n", $i);
+foreach int i in(xrange(5))
+    printf("i=%d\n", i);
 # resulting in:
 # i=0
 # i=1

@@ -147,9 +147,9 @@ public:
     aaa_base-11.3-7.2.x86_64
     ...
 
-    my FileLineIterator $it("/export/home/pvanek/ren.list");
-    while ($it.next()) {
-        printf("%s:%d = %n\n", $it.getFileName(), $it.index(), $it.getValue());
+    FileLineIterator it("/export/home/pvanek/ren.list");
+    while (it.next()) {
+        printf("%s:%d = %n\n", it.getFileName(), it.index(), it.getValue());
     }
 
     /export/home/pvanek/ren.list:1 = "a2ps-4.13-1332.1.x86_64"
@@ -200,7 +200,7 @@ FileLineIterator::constructor(string path, *string encoding, *string eol, bool t
 //! Creates a new FileLineIterator object, based on the same object being iterated in the original object (the original file is reopened)
 /** @par Example:
     @code{.py}
-my FileLineIterator $ni = $i.copy();
+FileLineIterator ni = i.copy();
     @endcode
 
     @throw FILELINEITERATOR-COPY-ERROR the original file cannot be reopened for reading (\c arg will be assigned to the errno value)
@@ -226,8 +226,8 @@ FileLineIterator::copy() {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("line: %y\n", $i.getValue());
+while (i.next()) {
+    printf("line: %y\n", i.getValue());
 }
     @endcode
 
@@ -244,8 +244,8 @@ bool FileLineIterator::next() {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("+ %y\n", $i.getValue());
+while (i.next()) {
+    printf("+ %y\n", i.getValue());
 }
     @endcode
 
@@ -263,8 +263,8 @@ string FileLineIterator::getValue() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("+ %y\n", $i.getLine());
+while (i.next()) {
+    printf("+ %y\n", i.getLine());
 }
     @endcode
 
@@ -282,8 +282,8 @@ string FileLineIterator::getLine() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-if ($i.valid())
-    printf("current value: %y\n", $i.getValue());
+if (i.valid())
+    printf("current value: %y\n", i.getValue());
     @endcode
  */
 bool FileLineIterator::valid() [flags=CONSTANT] {
@@ -295,8 +295,8 @@ bool FileLineIterator::valid() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("+ %d: %y\n", $i.index(), $i.getValue());
+while (i.next()) {
+    printf("+ %d: %y\n", i.index(), i.getValue());
 }
     @endcode
  */
@@ -307,7 +307,7 @@ int FileLineIterator::index() [flags=CONSTANT] {
 //! Returns the @ref character_encoding "character encoding" for the %FileLineIterator
 /** @par Example:
     @code{.py}
-my string $encoding = $f.getEncoding();
+string encoding = f.getEncoding();
     @endcode
 
     @return the @ref character_encoding "character encoding" for the %FileLineIterator
@@ -319,7 +319,7 @@ string FileLineIterator::getEncoding() [flags=CONSTANT] {
 //! Returns the current file position as an integer giving the offset in bytes from the beginning of the file (starting from zero)
 /** @par Example:
     @code{.py}
-my int $pos = $i.getPos();
+int pos = i.getPos();
     @endcode
 
     @return the current file position as an integer giving the offset in bytes from the beginning of the file (starting from zero)
@@ -337,7 +337,7 @@ int FileLineIterator::getPos() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my bool $b = $i.isTty();
+bool b = i.isTty();
     @endcode
 */
 bool FileLineIterator::isTty() [flags=CONSTANT] {
@@ -347,7 +347,7 @@ bool FileLineIterator::isTty() [flags=CONSTANT] {
 //! returns the file path/name used to open the file
 /** @par Example:
     @code{.py}
-my string $fn = $f.getFileName();
+string fn = f.getFileName();
     @endcode
 
     @return the file path/name used to open the file
@@ -360,7 +360,7 @@ string FileLineIterator::getFileName() [flags=CONSTANT] {
 /** If any errors occur, a \c FILE-HSTAT-ERROR exception is thrown
     @par Example:
     @code{.py}
-my list $l = $f.stat();
+list l = f.stat();
     @endcode
 
     @return @ref stat_list of stat() of the underlying file
@@ -374,7 +374,7 @@ list FileLineIterator::stat() [flags=CONSTANT] {
 /** If any errors occur, a \c FILE-HSTAT-ERROR exception is thrown
     @par Example:
     @code{.py}
-my hash $h = $f.hstat();
+hash h = f.hstat();
     @endcode
 
     @return @ref stat_hash of hstat() of the underlying file
@@ -389,7 +389,7 @@ hash FileLineIterator::hstat() [flags=CONSTANT] {
 
    @par Example
    @code{.py}
-$i.reset();
+i.reset();
    @endcode
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object

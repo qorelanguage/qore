@@ -48,9 +48,9 @@ qclass <list> [arg=const QoreListNode* l = v.get<const QoreListNode>();vparent=<
 
     @par Example:
     @code{.py}
-switch ($l.typeCode()) {
+switch (l.typeCode()) {
     case NT_LIST:
-        printf("%y: is a list\n", $l);
+        printf("%y: is a list\n", l);
         break;
 }
     @endcode
@@ -65,7 +65,7 @@ int <list>::typeCode() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $len = $l.size();
+int len = l.size();
     @endcode
 
     @see <list>::sizep()
@@ -81,7 +81,7 @@ int <list>::size() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my bool $b = $l.empty();
+bool b = l.empty();
     @endcode
 */
 bool <list>::empty() [flags=CONSTANT] {
@@ -95,7 +95,7 @@ bool <list>::empty() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my bool $b = $l.val();
+bool b = l.val();
     @endcode
 
     @see
@@ -111,7 +111,7 @@ bool <list>::val() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my any $e = $l.first();
+any e = l.first();
     @endcode
 
     @see <list>::last()
@@ -127,7 +127,7 @@ any <list>::first() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my any $e = $l.last();
+any e = l.last();
     @endcode
 
     @see <list>::first()
@@ -147,7 +147,7 @@ any <list>::last() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my string $str = ("a", "b", "c").join(":"); # returns "a:b:c"
+string str = ("a", "b", "c").join(":"); # returns "a:b:c"
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -167,9 +167,9 @@ string <list>::join(string str) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-printf("iterating %d element%s\n", $val.lsize(), $val.lsize() == 1 ? "" : "s");
-foreach my any $element in ($val) {
-    do_something($element);
+printf("iterating %d element%s\n", val.lsize(), val.lsize() == 1 ? "" : "s");
+foreach any element in (val) {
+    do_something(element);
 }
     @endcode
 */
@@ -187,8 +187,8 @@ int <list>::lsize() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my list $l = (1, 2, 3);
-my bool $b = $l.contains(5); # returns False
+list l = (1, 2, 3);
+bool b = l.contains(5); # returns False
     @endcode
 */
 bool <list>::contains(any arg) [flags=RET_VALUE_ONLY] {
@@ -200,7 +200,7 @@ bool <list>::contains(any arg) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-map printf("+ %y\n", $1), $l.iterator();
+map printf("+ %y\n", $1), l.iterator();
     @endcode
 
     @since %Qore 0.8.6
@@ -212,7 +212,7 @@ AbstractIterator <list>::iterator() [flags=CONSTANT] {
 //! Returns a @ref Qore::RangeIterator "RangeIterator" object for the list elements
 /** @par Example:
     @code{.py}
-map printf("+ %y\n", $1), $l.ranegIterator();
+map printf("+ %y\n", $1), l.ranegIterator();
     @endcode
 
     @param val an optional value to be returned instead of the default integer value

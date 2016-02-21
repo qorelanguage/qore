@@ -107,7 +107,7 @@ qclass HTTPClient [dom=NETWORK; arg=QoreHttpClientObject* client; vparent=Socket
 
     @par Example:
     @code{.py}
-my HTTPClient $httpclient(("url":"http://hostname:8080/path"));
+HTTPClient httpclient(("url":"http://hostname:8080/path"));
     @endcode
 
     @param opts sets options and changes default behaviour for the object, etc; key names are case-sensitive and therefore must all be in lower-case:
@@ -144,7 +144,7 @@ HTTPClient::constructor(hash opts) {
 /**
     @par Example:
     @code{.py}
-my HTTPClient $httpclient();
+HTTPClient httpclient();
     @endcode
  */
 HTTPClient::constructor() {
@@ -163,7 +163,7 @@ HTTPClient::copy() {
 /**
     @par Example:
     @code{.py}
-delete $httpclient;
+delete httpclient;
     @endcode
  */
 HTTPClient::destructor() {
@@ -177,7 +177,7 @@ HTTPClient::destructor() {
 
     @par Example:
     @code{.py}
-$httpclient.setHTTPVersion("1.1");
+httpclient.setHTTPVersion("1.1");
     @endcode
 
     @throw HTTP-VERSION-ERROR invalid HTTP version passed (allowed values: \c "1.0" and \"1.1\")
@@ -191,7 +191,7 @@ nothing HTTPClient::setHTTPVersion(string ver) {
 
     @par Example:
     @code{.py}
-my string $version = $httpclient.getHTTPVersion();
+string version = httpclient.getHTTPVersion();
     @endcode
  */
 string HTTPClient::getHTTPVersion() [flags=CONSTANT] {
@@ -205,7 +205,7 @@ string HTTPClient::getHTTPVersion() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-$httpclient.setSecure(True);
+httpclient.setSecure(True);
     @endcode
 
     @param secure if @ref True, a SSL/TLS connection will be attempted on the next connection. If @ref False, an unencrypted cleartext connection will be established
@@ -219,8 +219,8 @@ nothing HTTPClient::setSecure(softbool secure = True) {
 
     @par Example:
     @code{.py}
-if ($httpclient.isSecure())
-    printf("secure connection: %s %s\n", $httpclient.getSSLCipherName(), $httpclient.getSSLCipherVersion());
+if (httpclient.isSecure())
+    printf("secure connection: %s %s\n", httpclient.getSSLCipherName(), httpclient.getSSLCipherVersion());
     @endcode
  */
 bool HTTPClient::isSecure() [flags=CONSTANT] {
@@ -234,7 +234,7 @@ bool HTTPClient::isSecure() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-$httpclient.connect();
+httpclient.connect();
     @endcode
 
     @par Events:
@@ -250,7 +250,7 @@ nothing HTTPClient::connect() {
 /**
     @par Example:
     @code{.py}
-$httpclient.disconnect();
+httpclient.disconnect();
     @endcode
  */
 nothing HTTPClient::disconnect() {
@@ -262,7 +262,7 @@ nothing HTTPClient::disconnect() {
 
     @par Example:
     @code{.py}
-my hash $msg = $httpclient.send($body, "POST", "/path", ("Content-Type":"application/x-yaml"));
+hash msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x-yaml"));
     @endcode
 
     @param body The message body to send
@@ -299,7 +299,7 @@ hash HTTPClient::send(string body, string method, *string path, *hash headers, s
 
     @par Example:
     @code{.py}
-my hash $msg = $httpclient.send($body, "POST", "/path", ("Content-Type":"application/x-yaml"));
+hash msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x-yaml"));
     @endcode
 
     @param body The message body to send; pass @ref nothing (no value) to send no body
@@ -336,7 +336,7 @@ hash HTTPClient::send(*binary body, string method, *string path, *hash headers, 
 
     @par Example:
     @code{.py}
-my hash $msg = $httpclient.sendWithSendCallback($callback, "POST", "/path", ("Content-Type":"application/x-yaml"));
+hash msg = httpclient.sendWithSendCallback(callback, "POST", "/path", ("Content-Type":"application/x-yaml"));
     @endcode
 
     @param scb The callback giving the chunked HTTP data to send; this callback must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be sent or simply @ref nothing which will close the chunked message
@@ -380,7 +380,7 @@ hash HTTPClient::sendWithSendCallback(code scb, string method, *string path, *ha
 
     @par Example:
     @code{.py}
-$httpclient.sendWithRecvCallback($rcv_callback, $data, "POST", "/path", ("Content-Type":"application/x-yaml"));
+httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-Type":"application/x-yaml"));
     @endcode
 
     @param rcb The receive callback for the data received; first this method is called with a hash of the message headers, and then with any message body; if a chunked HTTP message is received, then the callback is called once for each chunk; when the message has been received, then the receive callback is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
@@ -426,7 +426,7 @@ nothing HTTPClient::sendWithRecvCallback(code rcb, string body, string method, *
 
     @par Example:
     @code{.py}
-$httpclient.sendWithRecvCallback($rcv_callback, $data, "POST", "/path", ("Content-Type":"application/x-yaml"));
+httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-Type":"application/x-yaml"));
     @endcode
 
     @param rcb The receive callback for the data received; first this method is called with a hash of the message headers, and then with any message body; if a chunked HTTP message is received, then the callback is called once for each chunk; when the message has been received, then the receive callback is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
@@ -472,7 +472,7 @@ nothing HTTPClient::sendWithRecvCallback(code rcb, *binary body, string method, 
 
     @par Example:
     @code{.py}
-$httpclient.sendWithCallbacks($send_callback, $rcv_callback, "POST", "/path", ("Content-Type":"application/x-yaml"));
+httpclient.sendWithCallbacks(send_callback, rcv_callback, "POST", "/path", ("Content-Type":"application/x-yaml"));
     @endcode
 
     @param scb The callback giving the chunked HTTP data to send; this callback must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be sent or simply @ref nothing which will close the chunked message
@@ -525,7 +525,7 @@ nothing HTTPClient::sendWithCallbacks(code scb, code rcb, string method, *string
 
     @par Example:
     @code{.py}
-my *string $html = $httpclient.get("/path/file.html");
+*string html = httpclient.get("/path/file.html");
     @endcode
 
     @param path the path for the message (i.e. \c "/path/resource?method&param=value")
@@ -560,7 +560,7 @@ my *string $html = $httpclient.get("/path/file.html");
 
     @par Example:
     @code{.py}
-my hash $msg = $httpclient.head("/path");
+hash msg = httpclient.head("/path");
     @endcode
 
     @param path the path for the message (i.e. \c "/path/resource?method&param=value")
@@ -597,7 +597,7 @@ hash HTTPClient::head(string path, *hash headers, *reference info) {
 
     @par Example:
     @code{.py}
-$httpclient.post("/path", $body);
+httpclient.post("/path", body);
     @endcode
 
     @param path the path for the message (i.e. \c "/path/resource?method&param=value")
@@ -639,7 +639,7 @@ $httpclient.post("/path", $body);
 
     @par Example:
     @code{.py}
-$httpclient.post("/path", $body);
+httpclient.post("/path", body);
     @endcode
 
     @param path the path for the message (i.e. \c "/path/resource?method&param=value")
@@ -678,7 +678,7 @@ $httpclient.post("/path", $body);
 
     @par Example:
     @code{.py}
-$httpclient.setTimeout(2m);
+httpclient.setTimeout(2m);
     @endcode
  */
 nothing HTTPClient::setTimeout(timeout timeout_ms = 0) {
@@ -690,7 +690,7 @@ nothing HTTPClient::setTimeout(timeout timeout_ms = 0) {
 
     @par Example:
     @code{.py}
-my int $timeout = $httpclient.getTimeout();
+int timeout = httpclient.getTimeout();
     @endcode
  */
 int HTTPClient::getTimeout() [flags=CONSTANT] {
@@ -702,7 +702,7 @@ int HTTPClient::getTimeout() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-$httpclient.setEncoding("UTF-8");
+httpclient.setEncoding("UTF-8");
     @endcode
  */
 nothing HTTPClient::setEncoding(string encoding) {
@@ -714,7 +714,7 @@ nothing HTTPClient::setEncoding(string encoding) {
 
     @par Example:
     @code{.py}
-my string $encoding = $httpclient.getEncoding();
+string encoding = httpclient.getEncoding();
     @endcode
  */
 string HTTPClient::getEncoding() [flags=CONSTANT] {
@@ -726,7 +726,7 @@ string HTTPClient::getEncoding() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-$httpclient.setURL("https://user:password@hostname:8080/path");
+httpclient.setURL("https://user:password@hostname:8080/path");
     @endcode
 
     @param url the new URL for the object
@@ -747,7 +747,7 @@ HTTPClient::setURL(string url) {
 
     @par Example:
     @code{.py}
-my *string $url = $httpclient.getURL();
+*string url = httpclient.getURL();
     @endcode
  */
 *string HTTPClient::getURL() [flags=CONSTANT] {
@@ -759,7 +759,7 @@ my *string $url = $httpclient.getURL();
 
     @par Example:
     @code{.py}
-$httpclient.setProxyURL();
+httpclient.setProxyURL();
     @endcode
  */
 nothing HTTPClient::setProxyURL() {
@@ -771,7 +771,7 @@ nothing HTTPClient::setProxyURL() {
 
     @par Example:
     @code{.py}
-$httpclient.setProxyURL("http://user:password@proxy_host:8080/path");
+httpclient.setProxyURL("http://user:password@proxy_host:8080/path");
     @endcode
 
     @throw HTTP-CLIENT-URL-ERROR invalid proxy URL string; invalid authorization credentials in proxy URL (username without password or vice-versa)
@@ -788,7 +788,7 @@ nothing HTTPClient::setProxyURL(string url) {
 
     @par Example:
     @code{.py}
-my *string $proxy_url = $httpclient.getProxyURL();
+*string proxy_url = httpclient.getProxyURL();
     @endcode
  */
 *string HTTPClient::getProxyURL() [flags=CONSTANT] {
@@ -799,7 +799,7 @@ my *string $proxy_url = $httpclient.getProxyURL();
 /**
     @par Example:
     @code{.py}
-$httpclient.setProxyURL();
+httpclient.setProxyURL();
     @endcode
  */
 nothing HTTPClient::clearProxyURL() {
@@ -810,7 +810,7 @@ nothing HTTPClient::clearProxyURL() {
 /**
     @par Example:
     @code{.py}
-$httpclient.setProxySecure(True);
+httpclient.setProxySecure(True);
     @endcode
 
     @see HTTPClient::isProxySecure() to check the flag
@@ -824,7 +824,7 @@ nothing HTTPClient::setProxySecure(softbool b = True) {
 
     @par Example:
     @code{.py}
-my bool $b = $httpclient.isProxySecure();
+bool b = httpclient.isProxySecure();
     @endcode
  */
 bool HTTPClient::isProxySecure() [flags=CONSTANT] {
@@ -836,7 +836,7 @@ bool HTTPClient::isProxySecure() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-$httpclient.setMaxRedirects(5);
+httpclient.setMaxRedirects(5);
     @endcode
 
     @see HTTPClient::getMaxRedirects() to retrieve this value
@@ -850,7 +850,7 @@ nothing HTTPClient::setMaxRedirects(softint mr = 0) {
 
     @par Example:
     @code{.py}
-my int $mr = $httpclient.getMaxRedirects();
+int mr = httpclient.getMaxRedirects();
     @endcode
  */
 int HTTPClient::getMaxRedirects() [flags=CONSTANT] {
@@ -861,7 +861,7 @@ int HTTPClient::getMaxRedirects() [flags=CONSTANT] {
 /**
     @par Example:
     @code{.py}
-$httpclient.setEventQueue();
+httpclient.setEventQueue();
     @endcode
  */
 nothing HTTPClient::setEventQueue() {
@@ -873,7 +873,7 @@ nothing HTTPClient::setEventQueue() {
 
     @par Example:
     @code{.py}
-$httpclient.setEventQueue($queue);
+httpclient.setEventQueue(queue);
     @endcode
 
     @throw QUEUE-ERROR the Queue passed has a maximum size set
@@ -893,7 +893,7 @@ nothing HTTPClient::setEventQueue(Qore::Thread::Queue[Queue] queue) {
 
     @par Example:
     @code{.py}
-$httpclient.setConnectTimeout(2m);
+httpclient.setConnectTimeout(2m);
     @endcode
  */
 nothing HTTPClient::setConnectTimeout(timeout timeout_ms = -1) {
@@ -905,7 +905,7 @@ nothing HTTPClient::setConnectTimeout(timeout timeout_ms = -1) {
 
     @par Example:
     @code{.py}
-my int $to = $httpclient.getConnectTimeout();
+int to = httpclient.getConnectTimeout();
     @endcode
  */
 int HTTPClient::getConnectTimeout() [flags=CONSTANT] {
@@ -923,7 +923,7 @@ int HTTPClient::getConnectTimeout() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-$httpclient.setNoDelay(True);
+httpclient.setNoDelay(True);
     @endcode
 
     @param b the \c TCP_NODELAY setting for the object
@@ -938,7 +938,7 @@ int HTTPClient::setNoDelay(softbool b = True) {
 /**
     @par Example:
     @code{.py}
-my bool $b = $httpclient.getNoDelay();
+bool b = httpclient.getNoDelay();
     @endcode
 
     @see also HTTPClient::setNoDelay()
@@ -952,7 +952,7 @@ bool HTTPClient::getNoDelay() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my bool $b = $httpclient.isConnected();
+bool b = httpclient.isConnected();
     @endcode
  */
 bool HTTPClient::isConnected() [flags=CONSTANT] {
@@ -967,7 +967,7 @@ bool HTTPClient::isConnected() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-$httpclient.setUserPassword($user, $pass);
+httpclient.setUserPassword(user, pass);
     @endcode
  */
 nothing HTTPClient::setUserPassword(string user, string pass) {
@@ -981,7 +981,7 @@ nothing HTTPClient::setUserPassword(string user, string pass) {
 
     @par Example:
     @code{.py}
-$httpclient.setUserPassword();
+httpclient.setUserPassword();
     @endcode
 
     @see HTTPClient::clearUserPassword()
@@ -995,7 +995,7 @@ nothing HTTPClient::setUserPassword() {
 
     @par Example:
     @code{.py}
-$httpclient.clearUserPassword();
+httpclient.clearUserPassword();
     @endcode
  */
 nothing HTTPClient::clearUserPassword() {
@@ -1007,7 +1007,7 @@ nothing HTTPClient::clearUserPassword() {
 
     @par Example:
     @code{.py}
-$httpclient.setProxyUserPassword($user, $pass);
+httpclient.setProxyUserPassword(user, pass);
     @endcode
 
     @param user the username to use for proxy authentication in the next HTTP connection
@@ -1024,7 +1024,7 @@ nothing HTTPClient::setProxyUserPassword(string user, string pass) {
 
     @par Example:
     @code{.py}
-$httpclient.setProxyUserPassword();
+httpclient.setProxyUserPassword();
     @endcode
 
     @see HTTPClient::clearProxyUserPassword()
@@ -1038,7 +1038,7 @@ nothing HTTPClient::setProxyUserPassword() {
 
     @par Example:
     @code{.py}
-$httpclient.clearProxyUserPassword();
+httpclient.clearProxyUserPassword();
     @endcode
  */
 nothing HTTPClient::clearProxyUserPassword() {
@@ -1050,7 +1050,7 @@ nothing HTTPClient::clearProxyUserPassword() {
 
     @par Example:
     @code{.py}
-$httpclient.setDefaultPath();
+httpclient.setDefaultPath();
     @endcode
  */
 nothing HTTPClient::setDefaultPath(*string path) {
@@ -1062,7 +1062,7 @@ nothing HTTPClient::setDefaultPath(*string path) {
 
     @par Example:
     @code{.py}
-my *string $def_path = $httpclient.getDefaultPath();
+*string def_path = httpclient.getDefaultPath();
     @endcode
  */
 string HTTPClient::getDefaultPath() [flags=CONSTANT] {
@@ -1075,7 +1075,7 @@ string HTTPClient::getDefaultPath() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my *string $path = $httpclient.getConnectionPath();
+*string path = httpclient.getConnectionPath();
     @endcode
  */
 *string HTTPClient::getConnectionPath() [flags=CONSTANT] {
@@ -1086,7 +1086,7 @@ my *string $path = $httpclient.getConnectionPath();
 //! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
 /** @par Example:
     @code{.py}
-$httpclient.clearWarningQueue();
+httpclient.clearWarningQueue();
     @endcode
 
     @see HTTPClient::setWarningQueue()
@@ -1100,7 +1100,7 @@ nothing HTTPClient::clearWarningQueue() {
 //! Sets a @ref Qore::Thread::Queue "Queue" object to receive socket warnings
 /** @par Example:
     @code{.py}
-$httpclient.setWarningQueue(5000, 5000, $queue, "socket-1");
+httpclient.setWarningQueue(5000, 5000, queue, "socket-1");
     @endcode
 
     @param warning_ms the threshold in milliseconds for individual socket actions (send, receive, connect), if exceeded, a socket warning is placed on the warning queue with the following keys:
@@ -1139,7 +1139,7 @@ nothing HTTPClient::setWarningQueue(int warning_ms, int warning_bs, Queue[Queue]
 //! Returns performance statistics for the socket
 /** @par Example:
     @code{.py}
-my hash $h = $httpclient.getUsageInfo();
+hash h = httpclient.getUsageInfo();
     @endcode
 
     @return a hash with the following keys:
@@ -1162,7 +1162,7 @@ hash HTTPClient::getUsageInfo() [flags=CONSTANT] {
 //! Clears performance statistics
 /** @par Example:
     @code{.py}
-$httpclient.clearStats();
+httpclient.clearStats();
     @endcode
 
     @since Qore 0.8.9
@@ -1176,8 +1176,8 @@ HTTPClient::clearStats() {
 //! temporarily disables implicit reconnections; must be called when the server is already connected
 /** @par Example:
     @code{.py}
-$httpclient.connect();
-$httpclient.setPersistent();
+httpclient.connect();
+httpclient.setPersistent();
     @endcode
 
     The persistent flag is automatically reset to @ref Qore::False "False" whenever the connection is closed; it must be called manually for every connection to turn off implicit reconnections.

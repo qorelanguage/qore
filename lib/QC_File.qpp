@@ -218,8 +218,8 @@ qclass File [system_constructor=FILE_system_constructor; arg=File* f; vparent=Re
 
     @par Example:
     @code{.py}
-my File $f();
-$f.open2("/tmp/my-file.txt");
+File f();
+f.open2("/tmp/my-file.txt");
     @endcode
 
     @param encoding The @ref character_encoding "character encoding" for the %File. Any strings written to the %File will be converted to this @ref character_encoding "character encoding" if necessary; if this argument is not given then the %File will receive the @ref default_encoding "default encoding"
@@ -251,7 +251,7 @@ File::destructor() [doconly=true] {
 //! Creates a new %File object with the same @ref character_encoding "character encoding" specification as the original, otherwise no other information is copied
 /** @par Example:
     @code{.py}
-my File $f1 = $f.copy();
+File f1 = f.copy();
     @endcode
  */
 File::copy() {
@@ -268,8 +268,8 @@ File::copy() {
     @code{.py}
 # open a file for writing, truncate data if already exists, create the file if doesn't exist
 # set 0644 permissions, and convert all string data to ISO-8859-1 encoding
-if ($f.open($fn, O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1"))
-    printf("%s: %s\n", $fn, strerror(errno()));
+if (f.open(fn, O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1"))
+    printf("%s: %s\n", fn, strerror(errno()));
     @endcode
 
     @par Events:
@@ -307,10 +307,10 @@ int File::open(string path, softint flags = O_RDONLY, softint mode = 0666, *stri
 # open a file for writing, truncate data if already exists, create the file if doesn't exist
 # set 0644 permissions, and convert all string data to ISO-8859-1 encoding
 try {
-    $f.open2($fn, O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");
+    f.open2(fn, O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");
 }
-catch (hash $ex) {
-    printf("%s: %s: %s\n", $fn, $ex.err, $ex.desc);
+catch (hash ex) {
+    printf("%s: %s: %s\n", fn, ex.err, ex.desc);
 }
     @endcode
 
@@ -338,7 +338,7 @@ nothing File::open2(string path, softint flags = O_RDONLY, softint mode = 0666, 
 //! Flushes the file's buffer to disk
 /** @par Example:
     @code{.py}
-if ($f.sync())
+if (f.sync())
     printf("error in File::sync(): %s\n", strerror(errno()));
     @endcode
 
@@ -356,7 +356,7 @@ int File::sync() {
 //! Writes binary data to a file
 /** @par Example:
     @code{.py}
-$f.write($data);
+f.write(data);
     @endcode
 
     @par Events:
@@ -381,7 +381,7 @@ int File::write(binary data) {
 //! Writes string data to a file; string data is converted to the %File's @ref character_encoding "character encoding" if necessary before writing
 /** @par Example:
     @code{.py}
-$f.write($data);
+f.write(data);
     @endcode
 
     @par Events:
@@ -409,7 +409,7 @@ int File::write(string data) {
 //! Writes string data to a file; string data is converted to the %File's @ref character_encoding "character encoding" if necessary before writing
 /** @par Example:
     @code{.py}
-$f.print($data);
+f.print(data);
     @endcode
 
     @par Events:
@@ -437,7 +437,7 @@ int File::print(string data) {
 //! Writes a 1-byte integer to the file
 /** @par Example:
     @code{.py}
-$f.writei1($val);
+f.writei1(val);
     @endcode
 
     @par Events:
@@ -462,7 +462,7 @@ int File::writei1(int c) {
 //! Writes a 2-byte (16 bit) integer to the file in binary big-endian format
 /** @par Example:
     @code{.py}
-$f.writei2($val);
+f.writei2(val);
     @endcode
 
     @par Events:
@@ -487,7 +487,7 @@ int File::writei2(int s) {
 //! Writes a 4-byte (32 bit) integer to the file in binary big-endian format
 /** @par Example:
     @code{.py}
-$f.writei4($val);
+f.writei4(val);
     @endcode
 
     @par Events:
@@ -512,7 +512,7 @@ int File::writei4(int i) {
 //! Writes an 8-byte (64 bit) integer to the file in binary big-endian format
 /** @par Example:
     @code{.py}
-$f.writei8($val);
+f.writei8(val);
     @endcode
 
     @par Events:
@@ -537,7 +537,7 @@ int File::writei8(int i) {
 //! Writes a 2-byte (16 bit) integer to the file in binary little-endian format
 /** @par Example:
     @code{.py}
-$f.writei2LSB($val);
+f.writei2LSB(val);
     @endcode
 
     @par Events:
@@ -562,7 +562,7 @@ int File::writei2LSB(int s) {
 //! Writes a 4-byte (32 bit) integer to the file in binary little-endian format
 /** @par Example:
     @code{.py}
-$f.writei4LSB($val);
+f.writei4LSB(val);
     @endcode
 
     @par Events:
@@ -587,7 +587,7 @@ int File::writei4LSB(int i) {
 //! Writes an 8-byte (64 bit) integer to the file in binary little-endian format
 /** @par Example:
     @code{.py}
-$f.writei8LSB($val);
+f.writei8LSB(val);
     @endcode
 
     @par Events:
@@ -614,7 +614,7 @@ int File::writei8LSB(int i) {
 
     @par Example:
     @code{.py}
-$f.printf("%5s\n", "hello there"); # outputs "hello there\n", exceeding field width
+f.printf("%5s\n", "hello there"); # outputs "hello there\n", exceeding field width
     @endcode
 
     @par Events:
@@ -654,7 +654,7 @@ int File::printf() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-$f.vprintf("%5s: %d\n", ("hello there", 2)); # outputs "hello there: 2\n", exceeding field width
+f.vprintf("%5s: %d\n", ("hello there", 2)); # outputs "hello there: 2\n", exceeding field width
     @endcode
 
     @par Events:
@@ -695,7 +695,7 @@ int File::vprintf() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-$f.f_printf("%5s\n", "hello there"); # outputs "hello\n", enforcing the field width
+f.f_printf("%5s\n", "hello there"); # outputs "hello\n", enforcing the field width
     @endcode
 
     @par Events:
@@ -735,7 +735,7 @@ int File::f_printf() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-$f.f_vprintf("%5s: %d\n", ("hello there", 2)); # outputs "hello: 2\n", enforcing the field width
+f.f_vprintf("%5s: %d\n", ("hello there", 2)); # outputs "hello: 2\n", enforcing the field width
     @endcode
 
     @par Events:
@@ -803,13 +803,13 @@ string File::getCharset() [flags=CONSTANT] {
     @par Example:
     @code{.py}
 # lock the entire file exclusively
-$f.lock(F_WRLCK);
+f.lock(F_WRLCK);
 
 # lock a section of the file for reading, start byte 512, 2K range
-$f.lock(F_RDLCK, 512, 2048);
+f.lock(F_RDLCK, 512, 2048);
 
 # release all locks
-$f.lock(F_UNLCK);
+f.lock(F_UNLCK);
     @endcode
 
     @param type %Type of lock (or unlock); see @ref file_locking_constants
@@ -849,13 +849,13 @@ int File::lock(softint[doc] type = F_RDLCK, softint[doc] start = 0, softint[doc]
     @par Example:
     @code{.py}
 # lock the entire file exclusively
-$f.lockBlocking(F_WRLCK);
+f.lockBlocking(F_WRLCK);
 
 # lock a section of the file for reading, start byte 512, 2K range
-$f.lockBlocking(F_RDLCK, 512, 2048);
+f.lockBlocking(F_RDLCK, 512, 2048);
 
 # release all locks
-$f.lockBlocking(F_UNLCK);
+f.lockBlocking(F_UNLCK);
     @endcode
 
     @param type %Type of lock (or unlock); see @ref file_locking_constants
@@ -892,7 +892,7 @@ nothing File::lockBlocking(softint[doc] type = F_RDLCK, softint[doc] start = 0, 
 
     @par Example:
     @code{.py}
-my hash $hash = $f.getLockInfo();
+hash hash = f.getLockInfo();
     @endcode
 
     @return a hash with the following keys:
@@ -935,7 +935,7 @@ hash File::getLockInfo() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-$f.chown(0, 0);
+f.chown(0, 0);
     @endcode
 
     @param uid The user id of the user to change to; -1 means do not change uid
@@ -965,8 +965,8 @@ nothing File::chown(softint uid, softint gid = -1) {
 
     @par Example:
     @code{.py}
-my TermIOS $termios();
-stdin.getTerminalAttributes($termios);
+TermIOS termios();
+stdin.getTerminalAttributes(termios);
     @endcode
 
     @param termios The method writes the current terminal attributes for the file to the object passed
@@ -995,7 +995,7 @@ nothing File::getTerminalAttributes(TermIOS[QoreTermIOS] termios) {
 
     @par Example:
     @code{.py}
-my TermIOS $termios = stdin.getTerminalAttributes();
+TermIOS termios = stdin.getTerminalAttributes();
     @endcode
 
     @return the current terminal attributes for the File
@@ -1028,20 +1028,20 @@ TermIOS File::getTerminalAttributes() {
 
     @par Example:
     @code{.py}
-my TermIOS $termios();
-stdin.getTerminalAttributes($termios);
-my TermIOS $orig = $termios.copy();
+TermIOS termios();
+stdin.getTerminalAttributes(termios);
+TermIOS orig = termios.copy();
 on_exit
-    stdin.setTerminalAttributes(TCSADRAIN, $orig);
+    stdin.setTerminalAttributes(TCSADRAIN, orig);
 
-my int $lflag = $termios.getLFlag();
-$lflag &= ~ICANON;
-$lflag &= ~ECHO;
-$lflag &= ~ISIG;
-$termios.setLFlag($lflag);
-$termios.setCC(VMIN, 1);
-$termios.setCC(VTIME, 0);
-stdin.setTerminalAttributes(TCSADRAIN, $termios);
+int lflag = termios.getLFlag();
+lflag &= ~ICANON;
+lflag &= ~ECHO;
+lflag &= ~ISIG;
+termios.setLFlag(lflag);
+termios.setCC(VMIN, 1);
+termios.setCC(VTIME, 0);
+stdin.setTerminalAttributes(TCSADRAIN, termios);
     @endcode
 
     @param action a binary or'ed value of the following actions:
@@ -1075,7 +1075,7 @@ nothing File::setTerminalAttributes(softint action = TCSANOW, TermIOS[QoreTermIO
 
     @par Example:
     @code{.py}
-my int $mode = File::stat($path)[2];
+int mode = File::stat(path)[2];
     @endcode
 
     @param path the file to stat()
@@ -1100,7 +1100,7 @@ static list File::stat(string path) [dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-my int $mode = File::lstat($path)[2];
+int mode = File::lstat(path)[2];
     @endcode
 
     @param path the file to stat()
@@ -1130,7 +1130,7 @@ static list File::lstat(string path) [dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-my hash $h = File::hstat($path);
+hash h = File::hstat(path);
     @endcode
 
     @param path the file to stat()
@@ -1155,7 +1155,7 @@ static hash File::hstat(string path) [dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-my hash $h = File::hstat($path);
+hash h = File::hstat(path);
     @endcode
 
     @param path the file to stat()
@@ -1186,7 +1186,7 @@ static hash File::hlstat(string path) [dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-my hash $h = File::statvfs($path);
+hash h = File::statvfs(path);
     @endcode
 
     @param path the path to the filesystem to check

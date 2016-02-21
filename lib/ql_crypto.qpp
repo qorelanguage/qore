@@ -242,14 +242,14 @@ const DefaultIV = <0000000000000000>;
 
     @code{.py}
 # read a key from /dev/random and return the key
-binary sub get_key(int $size) {
+binary sub get_key(int size) {
     # throw an exception if an invalid key size was passed
-    if (!$size || $size < 0)
-        throw "GET-KEY-ERROR", sprintf("invalid size = %n", $size);
-    my File $f();
+    if (!size || size < 0)
+        throw "GET-KEY-ERROR", sprintf("invalid size = %n", size);
+    File f();
     # File::open2() will throw an exception if /dev/random cannot be opened for reading
-    $f.open2("/dev/random");
-    return $f.readBinary($size);
+    f.open2("/dev/random");
+    return f.readBinary(size);
 }
     @endcode
  */
@@ -260,7 +260,7 @@ binary sub get_key(int $size) {
 
     @par Example:
     @code{.py}
-my binary $bin = des_random_key();
+binary bin = des_random_key();
     @endcode
  */
 binary des_random_key() [flags=CONSTANT] [flags=CONSTANT] {
@@ -278,7 +278,7 @@ binary des_random_key() [flags=CONSTANT] [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my binary $bin = blowfish_encrypt_cbc($data, $key);
+binary bin = blowfish_encrypt_cbc(data, key);
     @endcode
 
     @throw BLOWFISH-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -303,7 +303,7 @@ binary blowfish_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::
 
     @par Example:
     @code{.py}
-my binary $bin = blowfish_decrypt_cbc($data, $key);
+binary bin = blowfish_decrypt_cbc(data, key);
     @endcode
 
     @throw BLOWFISH-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -329,7 +329,7 @@ binary blowfish_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore
 
     @par Example:
     @code{.py}
-my string $str = blowfish_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
+string str = blowfish_decrypt_cbc_to_string(data, key, NOTHING, "iso-8859-1");
     @endcode
 
     @throw BLOWFISH-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -356,7 +356,7 @@ string blowfish_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc]
 
     @par Example:
     @code{.py}
-my binary $bin = des_encrypt_cbc($data, $key);
+binary bin = des_encrypt_cbc(data, key);
     @endcode
 
     @throw DES-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -383,7 +383,7 @@ binary des_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defau
 
     @par Example:
     @code{.py}
-my binary $bin = des_decrypt_cbc($data, $key);
+binary bin = des_decrypt_cbc(data, key);
     @endcode
 
     @throw DES-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -411,7 +411,7 @@ binary des_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::Def
 
     @par Example:
     @code{.py}
-my string $bin = des_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
+string bin = des_decrypt_cbc_to_string(data, key, NOTHING, "iso-8859-1");
     @endcode
 
     @throw DES-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -440,7 +440,7 @@ string des_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
 
     @par Example:
     @code{.py}
-my binary $bin = des_ede_encrypt_cbc($data, $key);
+binary bin = des_ede_encrypt_cbc(data, key);
     @endcode
 
     @throw DES-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -467,7 +467,7 @@ binary des_ede_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::D
 
     @par Example:
     @code{.py}
-my binary $bin = des_ede_decrypt_cbc($data, $key);
+binary bin = des_ede_decrypt_cbc(data, key);
     @endcode
 
     @throw DES-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -495,7 +495,7 @@ binary des_ede_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore:
 
     @par Example:
     @code{.py}
-my string $bin = des_ede_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
+string bin = des_ede_decrypt_cbc_to_string(data, key, NOTHING, "iso-8859-1");
     @endcode
 
     @throw DES-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -524,7 +524,7 @@ string des_ede_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] 
 
     @par Example:
     @code{.py}
-my binary $bin = des_ede3_encrypt_cbc($data, $key);
+binary bin = des_ede3_encrypt_cbc(data, key);
     @endcode
 
     @throw DES-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -551,7 +551,7 @@ binary des_ede3_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::
 
     @par Example:
     @code{.py}
-my binary $bin = des_ede3_decrypt_cbc($data, $key);
+binary bin = des_ede3_decrypt_cbc(data, key);
     @endcode
 
     @throw DES-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -579,7 +579,7 @@ binary des_ede3_decrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::
 
     @par Example:
     @code{.py}
-my string $bin = des_ede3_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
+string bin = des_ede3_decrypt_cbc_to_string(data, key, NOTHING, "iso-8859-1");
     @endcode
 
     @throw DES-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -608,7 +608,7 @@ string des_ede3_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc]
 
     @par Example:
     @code{.py}
-my binary $bin = desx_encrypt_cbc($data, $key);
+binary bin = desx_encrypt_cbc(data, key);
     @endcode
 
     @throw DESX-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -635,7 +635,7 @@ binary desx_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defa
 
     @par Example:
     @code{.py}
-my binary $bin = desx_decrypt_cbc($data, $key);
+binary bin = desx_decrypt_cbc(data, key);
     @endcode
 
     @throw DESX-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -663,7 +663,7 @@ binary desx_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::De
 
     @par Example:
     @code{.py}
-my string $str = desx_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
+string str = desx_decrypt_cbc_to_string(data, key, NOTHING, "iso-8859-1");
     @endcode
 
     @throw DESX-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -692,7 +692,7 @@ string desx_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv 
 
     @par Example:
     @code{.py}
-my binary $bin = rc4_encrypt($data, $key);
+binary bin = rc4_encrypt(data, key);
     @endcode
 
     @throw RC4-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -717,7 +717,7 @@ binary rc4_encrypt(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV
 
     @par Example:
     @code{.py}
-my binary $bin = rc4_decrypt($data, $key);
+binary bin = rc4_decrypt(data, key);
     @endcode
 
     @throw RC4-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -743,7 +743,7 @@ binary rc4_decrypt(binary[doc] data, data[doc] key, data[doc] iv = Qore::Default
 
     @par Example:
     @code{.py}
-my string $str = rc4_decrypt_to_string($encrypted_data, $key, NOTHING, "iso-8859-1");
+string str = rc4_decrypt_to_string(encrypted_data, key, NOTHING, "iso-8859-1");
     @endcode
 
     @throw RC4-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -770,7 +770,7 @@ string rc4_decrypt_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qor
 
     @par Example:
     @code{.py}
-my binary $bin = rc2_encrypt_cbc($data, $key);
+binary bin = rc2_encrypt_cbc(data, key);
     @endcode
 
     @throw RC2-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -795,7 +795,7 @@ binary rc2_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defau
 
     @par Example:
     @code{.py}
-my binary $bin = rc2_decrypt_cbc($data, $key);
+binary bin = rc2_decrypt_cbc(data, key);
     @endcode
 
     @throw RC2-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -821,7 +821,7 @@ binary rc2_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::Def
 
     @par Example:
     @code{.py}
-my string $str = rc2_decrypt_cbc_to_string($data, $key);
+string str = rc2_decrypt_cbc_to_string(data, key);
     @endcode
 
     @throw RC2-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -848,7 +848,7 @@ string rc2_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
 
     @par Example:
     @code{.py}
-my binary $bin = cast5_encrypt_cbc($data, $key);
+binary bin = cast5_encrypt_cbc(data, key);
     @endcode
 
     @throw CAST5-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -873,7 +873,7 @@ binary cast5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Def
 
     @par Example:
     @code{.py}
-my binary $bin = cast5_decrypt_cbc($data, $key);
+binary bin = cast5_decrypt_cbc(data, key);
     @endcode
 
     @throw CAST5-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -899,7 +899,7 @@ binary cast5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::D
 
     @par Example:
     @code{.py}
-my string $bin = cast5_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
+string bin = cast5_decrypt_cbc_to_string(data, key, NOTHING, "iso-8859-1");
     @endcode
 
     @throw CAST5-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -929,7 +929,7 @@ string cast5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv
 
     @par Example:
     @code{.py}
-my binary $bin = rc2_encrypt_cbc($data, $key);
+binary bin = rc2_encrypt_cbc(data, key);
     @endcode
 
     @throw RC5-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -961,7 +961,7 @@ binary rc5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defau
 
     @par Example:
     @code{.py}
-my binary $bin = rc2_decrypt_cbc($data, $key);
+binary bin = rc2_decrypt_cbc(data, key);
     @endcode
 
     @throw RC5-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -994,7 +994,7 @@ binary rc5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::Def
 
     @par Example:
     @code{.py}
-my string $str = rc2_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
+string str = rc2_decrypt_cbc_to_string(data, key, NOTHING, "iso-8859-1");
     @endcode
 
     @throw RC5-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -1050,7 +1050,7 @@ string rc5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
 
     @par Example:
     @code{.py}
-my string $str = MD2("hello"); # returns "a9046c73e00331af68917d3804f70655"
+string str = MD2("hello"); # returns "a9046c73e00331af68917d3804f70655"
     @endcode
 
     @throw MD2-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1077,7 +1077,7 @@ string MD2(data[doc] data) {
 
     @par Example:
     @code{.py}
-my string $str = MD4("hello"); # returns "866437cb7a794bce2b727acc0362ee27"
+string str = MD4("hello"); # returns "866437cb7a794bce2b727acc0362ee27"
     @endcode
 
     @throw MD4-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1100,7 +1100,7 @@ string MD4(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my string $str = MD5("hello"); # returns "5d41402abc4b2a76b9719d911017c592"
+string str = MD5("hello"); # returns "5d41402abc4b2a76b9719d911017c592"
     @endcode
 
     @throw MD5-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1128,7 +1128,7 @@ string MD5(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my string $str = SHA("hello"); returns "ac62a630ca850b4ea07eda664eaecf9480843152"
+string str = SHA("hello"); returns "ac62a630ca850b4ea07eda664eaecf9480843152"
     @endcode
 
     @throw SHA-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1156,7 +1156,7 @@ string SHA(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my string $str = SHA1("hello"); # "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+string str = SHA1("hello"); # "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
     @endcode
 
     @throw SHA1-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1184,7 +1184,7 @@ string SHA1(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my string $str = SHA224("hello"); # returns "ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193"
+string str = SHA224("hello"); # returns "ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193"
     @endcode
 
     @throw SHA224-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1216,7 +1216,7 @@ string SHA224(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my string $str = SHA256("hello"); # returns "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+string str = SHA256("hello"); # returns "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
     @endcode
 
     @throw SHA256-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1248,7 +1248,7 @@ string SHA256(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my string $str = SHA384("hello"); # returns "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f"
+string str = SHA384("hello"); # returns "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f"
     @endcode
 
     @throw SHA384-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1280,7 +1280,7 @@ string SHA384(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my string $str = SHA512("hello"); # returns "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043"
+string str = SHA512("hello"); # returns "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043"
     @endcode
 
     @throw SHA512-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1309,7 +1309,7 @@ string SHA512(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my string $str = DSS("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+string str = DSS("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
     @endcode
 
     @throw DSS-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1334,7 +1334,7 @@ string DSS(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my string $str = DSS1("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+string str = DSS1("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
     @endcode
 
     @throw DSS1-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1362,7 +1362,7 @@ string DSS1(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my string $str = MDC2("hello"); # returns "4517036cf97b2407d6fe22aa5ab878a3"
+string str = MDC2("hello"); # returns "4517036cf97b2407d6fe22aa5ab878a3"
     @endcode
 
     @throw MDC2-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1389,7 +1389,7 @@ string MDC2(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my string $str = RIPEMD160("hello"); # returns "108f07b8382412612c048d07d13f814118445acd"
+string str = RIPEMD160("hello"); # returns "108f07b8382412612c048d07d13f814118445acd"
     @endcode
 
     @throw RIPEMD160-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1415,7 +1415,7 @@ string RIPEMD160(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my binary $bin = MD2_bin("hello");
+binary bin = MD2_bin("hello");
     @endcode
 
     @throw MD2-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1442,7 +1442,7 @@ binary MD2_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my binary $bin = MD4_bin("hello");
+binary bin = MD4_bin("hello");
     @endcode
 
     @throw MD4-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1465,7 +1465,7 @@ binary MD4_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my binary $bin = MD5_bin("hello");
+binary bin = MD5_bin("hello");
     @endcode
 
     @throw MD5-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1489,7 +1489,7 @@ binary MD5_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my binary $bin = SHA_bin("hello");
+binary bin = SHA_bin("hello");
     @endcode
 
     @throw SHA-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1517,7 +1517,7 @@ binary SHA_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my binary $bin = SHA1_bin("hello");
+binary bin = SHA1_bin("hello");
     @endcode
 
     @throw SHA1-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1543,7 +1543,7 @@ binary SHA1_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my binary $bin = SHA224_bin("hello");
+binary bin = SHA224_bin("hello");
     @endcode
 
     @throw SHA224-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1573,7 +1573,7 @@ binary SHA224_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my binary $bin = SHA256_bin("hello");
+binary bin = SHA256_bin("hello");
     @endcode
 
     @throw SHA256-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1603,7 +1603,7 @@ binary SHA256_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my binary $bin = SHA384_bin("hello");
+binary bin = SHA384_bin("hello");
     @endcode
 
     @throw SHA384-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1633,7 +1633,7 @@ binary SHA384_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my binary $bin = SHA512_bin("hello");
+binary bin = SHA512_bin("hello");
     @endcode
 
     @throw SHA512-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1660,7 +1660,7 @@ binary SHA512_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my binary $bin = DSS_bin("hello");
+binary bin = DSS_bin("hello");
     @endcode
 
     @throw DSS-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1685,7 +1685,7 @@ binary DSS_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my binary $bin = DSS1_bin("hello");
+binary bin = DSS1_bin("hello");
     @endcode
 
     @throw DSS1-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1713,7 +1713,7 @@ binary DSS1_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my binary $bin = MDC2_bin("hello");
+binary bin = MDC2_bin("hello");
     @endcode
 
     @throw MDC2-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1740,7 +1740,7 @@ binary MDC2_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my binary $bin = RIPEMD160_bin("hello");
+binary bin = RIPEMD160_bin("hello");
     @endcode
 
     @throw RIPEMD160-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1791,7 +1791,7 @@ binary RIPEMD160_binary(data[doc] data) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my string $str = MD2_hmac("Hello There This is a Test - 1234567890", "a key");
+string str = MD2_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "27f5f17500b408e97643403ea8ef1413"
     @endcode
 
@@ -1821,7 +1821,7 @@ string MD2_hmac(data[doc] data, string key) {
 
     @par Example:
     @code{.py}
-my string $str = MD4_hmac("Hello There This is a Test - 1234567890", "a key");
+string str = MD4_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "053d084f321a3886e60166ebd9609ce1"
     @endcode
 
@@ -1844,7 +1844,7 @@ string MD4_hmac(data[doc] data, string key) {
 
     @par Example:
     @code{.py}
-my string $str = MD5_hmac("Hello There This is a Test - 1234567890", "a key");
+string str = MD5_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "87505c6164aaf6ca6315233902a01ef4"
     @endcode
 
@@ -1869,7 +1869,7 @@ string MD5_hmac(data[doc] data, string key) {
 
     @par Example:
     @code{.py}
-my string $str = SHA_hmac("Hello There This is a Test - 1234567890", "a key");
+string str = SHA_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "0ad47c8d36dc4606d52f7e4cbd144ef2fda492a0"
     @endcode
 
@@ -1900,7 +1900,7 @@ string SHA_hmac(data[doc] data, string key) {
 
     @par Example:
     @code{.py}
-my string $str = SHA1_hmac("Hello There This is a Test - 1234567890", "a key");
+string str = SHA1_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "37a3cc73159aa129b0eb22bbdf4b9309d389f629"
     @endcode
 
@@ -1928,7 +1928,7 @@ string SHA1_hmac(data[doc] data, string key) {
 
     @par Example:
     @code{.py}
-my string $str = SHA224_hmac("Hello There This is a Test - 1234567890", "a key");
+string str = SHA224_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "fad5667fa5aa412044555b7e077fced62372fe9c6ce20815609da12c"
     @endcode
 
@@ -1960,7 +1960,7 @@ string SHA224_hmac(data[doc] data, string key) {
 
     @par Example:
     @code{.py}
-my string $str = SHA256_hmac("Hello There This is a Test - 1234567890", "a key");
+string str = SHA256_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "1c90c21e227712b62019ff831f34cba22c2e70f1a902651ef69a70705ee0f754"
     @endcode
 
@@ -1991,7 +1991,7 @@ string SHA256_hmac(data[doc] data, string key) {
 
     @par Example:
     @code{.py}
-my string $str = SHA384_hmac("Hello There This is a Test - 1234567890", "a key");
+string str = SHA384_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "e2c253c6dcb050990b4da3cee95cd7b227f43388fa8116f476f59395af295d0d3bb7156ab2fcd0663b0500249a7a0865"
     @endcode
 
@@ -2022,7 +2022,7 @@ string SHA384_hmac(data[doc] data, string key) {
 
     @par Example:
     @code{.py}
-my string $str = SHA512_hmac("Hello There This is a Test - 1234567890", "a key");
+string str = SHA512_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "8dcefd7ea3f90ff1c822b5e9547fc36edf78c3e4ce13d47510a212a406bdda1a4094e7ea5ade90e1c736e204d331a814520eba49f3d074e2c261208de07264f6"
     @endcode
 
@@ -2050,7 +2050,7 @@ string SHA512_hmac(data[doc] data, string key) {
 
     @par Example:
     @code{.py}
-my string $str = DSS_hmac("Hello There This is a Test - 1234567890", "a key");
+string str = DSS_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "37a3cc73159aa129b0eb22bbdf4b9309d389f629"
     @endcode
 
@@ -2075,7 +2075,7 @@ string DSS_hmac(data[doc] data, string key) {
 
     @par Example:
     @code{.py}
-my string $str = DSS1_hmac("Hello There This is a Test - 1234567890", "a key");
+string str = DSS1_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "37a3cc73159aa129b0eb22bbdf4b9309d389f629"
     @endcode
 
@@ -2100,7 +2100,7 @@ string DSS1_hmac(data[doc] data, string key) {
 
     @par Example:
     @code{.py}
-my string $str = MDC2_hmac("Hello There This is a Test - 1234567890", "a key");
+string str = MDC2_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "e0ef6a6803e58807c5db395e180a999c"
     @endcode
 
@@ -2128,7 +2128,7 @@ string MDC2_hmac(data[doc] data, string key) {
 
     @par Example:
     @code{.py}
-my string $str = RIPEMD160_hmac("Hello There This is a Test - 1234567890", "a key");
+string str = RIPEMD160_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "4bca70bca1601aba57624eeb2606535cb12f2079"
     @endcode
 

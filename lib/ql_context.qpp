@@ -47,8 +47,8 @@ static AbstractQoreNode* cx_err(const char* func, ExceptionSink* xsink) {
 
     @par Example:
     @code{.py}
-context ($ds.select($sql)) {
-    my any $val = cx_value("column1");
+context (ds.select(sql)) {
+    any val = cx_value("column1");
 }
     @endcode
 
@@ -75,7 +75,7 @@ any cx_value(string key) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-context ($ds.select($sql)) {
+context (ds.select(sql)) {
     if (cx_first())
         print("first row!\n");
 }
@@ -99,7 +99,7 @@ bool cx_first() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-context ($ds.select($sql)) {
+context (ds.select(sql)) {
     if (cx_last())
         print("last row!\n");
 }
@@ -123,7 +123,7 @@ bool cx_last() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-context ($ds.select($sql)) {
+context (ds.select(sql)) {
     printf("row %d/%d:\n", cx_pos(), cx_total());
 }
     @endcode
@@ -146,7 +146,7 @@ int cx_pos() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-context ($ds.select($sql)) {
+context (ds.select(sql)) {
     printf("row %d/%d:\n", cx_total(), cx_total());
 }
     @endcode

@@ -40,7 +40,7 @@ qclass AbstractQuantifiedIterator [arg=AbstractQuantifiedIterator* i; ns=Qore; v
 
     @par Example:
     @code{.py}
-if ($i.empty())
+if (i.empty())
     printf("object is empty\n");
     @endcode
  */
@@ -51,8 +51,8 @@ abstract bool AbstractQuantifiedIterator::empty();
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    if ($i.first())
+while (i.next()) {
+    if (i.first())
         printf("START:\n");
 }
     @endcode
@@ -64,8 +64,8 @@ abstract bool AbstractQuantifiedIterator::first();
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    if ($i.last())
+while (i.next()) {
+    if (i.last())
         printf("END.\n");
 }
     @endcode

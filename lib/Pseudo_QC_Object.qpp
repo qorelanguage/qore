@@ -51,9 +51,9 @@ qclass <object> [arg=QoreObject* obj = const_cast<QoreObject*>(v.get<QoreObject>
 
     @par Example:
     @code{.py}
-switch ($o.typeCode()) {
+switch (o.typeCode()) {
     case Qore::NT_OBJECT:
-        printf("%y: is an object\n", $o);
+        printf("%y: is an object\n", o);
         break;
 }
     @endcode
@@ -68,7 +68,7 @@ int <object>::typeCode() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my list $l = $o.keys();
+list l = o.keys();
     @endcode
  */
 list <object>::keys() [flags=RET_VALUE_ONLY] {
@@ -81,7 +81,7 @@ list <object>::keys() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my *string $n = $o.firstKey();
+*string n = o.firstKey();
     @endcode
 
     @see <object>::lastKey()
@@ -96,7 +96,7 @@ my *string $n = $o.firstKey();
 
     @par Example:
     @code{.py}
-my *string $n = $o.lastKey();
+*string n = o.lastKey();
     @endcode
 
     @see <object>::firstKey()
@@ -112,7 +112,7 @@ my *string $n = $o.lastKey();
 
     @par Example:
     @code{.py}
-my bool $b = $o.empty();
+bool b = o.empty();
     @endcode
  */
 bool <object>::empty() [flags=RET_VALUE_ONLY] {
@@ -125,7 +125,7 @@ bool <object>::empty() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my int $num = $o.size();
+int num = o.size();
     @endcode
 
     @see <object>::sizep()
@@ -140,7 +140,7 @@ int <object>::size() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my string $cn = $o.className();
+string cn = o.className();
     @endcode
 
     @note equivalent to get_class_name()
@@ -155,7 +155,7 @@ string <object>::className() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my bool $b = $i.isSystem();
+bool b = i.isSystem();
     @endcode
  */
 bool <object>::isSystem() [flags=CONSTANT] {
@@ -169,7 +169,7 @@ bool <object>::isSystem() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my bool $b = $o.val();
+bool b = o.val();
     @endcode
 
     @see
@@ -180,15 +180,15 @@ bool <object>::val() [flags=RET_VALUE_ONLY] {
    return (bool)obj->size(xsink);
 }
 
-// bool <object>::hasKey(softstring $key) [flags=RET_VALUE_ONLY] {}
-// bool <object>::hasKeyValue(softstring $key) [flags=RET_VALUE_ONLY] {}
+// bool <object>::hasKey(softstring key) [flags=RET_VALUE_ONLY] {}
+// bool <object>::hasKeyValue(softstring key) [flags=RET_VALUE_ONLY] {}
 
 //! Returns an @ref Qore::ObjectIterator "ObjectIterator" object for the object's members
 /** @return an @ref Qore::ObjectIterator "ObjectIterator" object for the object's members
 
     @par Example:
     @code{.py}
-map printf("+ %y\n", $1), $obj.iterator();
+map printf("+ %y\n", $1), obj.iterator();
     @endcode
 
     @since %Qore 0.8.6
@@ -202,7 +202,7 @@ AbstractIterator <object>::iterator() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-map printf("+ %s\n", $1), $obj.keyIterator();
+map printf("+ %s\n", $1), obj.keyIterator();
     @endcode
 
     @since %Qore 0.8.6.2
@@ -216,7 +216,7 @@ ObjectKeyIterator <object>::keyIterator() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-map printf("+ %s\n", $1), $obj.pairIterator();
+map printf("+ %s\n", $1), obj.pairIterator();
     @endcode
 
     @since %Qore 0.8.6.2
@@ -228,7 +228,7 @@ ObjectPairIterator <object>::pairIterator() [flags=CONSTANT] {
 //! Returns @ref Qore::True "True" if the given method exists (can be non-static or static) and is callable from the current context
 /** @par Example:
     @code{.py}
-my bool $b = $obj.hasCallableMethod("getStatus");
+bool b = obj.hasCallableMethod("getStatus");
     @endcode
 
     @return @ref Qore::True "True" if the given method exists (can be non-static or static) and is callable from the current context
@@ -251,7 +251,7 @@ bool <object>::hasCallableMethod(string name) [flags=CONSTANT] {
 //! Returns @ref Qore::True "True" if the given non-static method exists and is callable from the current context
 /** @par Example:
     @code{.py}
-my bool $b = $obj.hasCallableNormalMethod("getStatus");
+bool b = obj.hasCallableNormalMethod("getStatus");
     @endcode
 
     @return @ref Qore::True "True" if the given non-static method exists and is callable from the current context
@@ -274,7 +274,7 @@ bool <object>::hasCallableNormalMethod(string name) [flags=CONSTANT] {
 //! Returns @ref Qore::True "True" if the given static method exists and is callable from the current context
 /** @par Example:
     @code{.py}
-my bool $b = $obj.hasCallableStaticMethod("getStatus");
+bool b = obj.hasCallableStaticMethod("getStatus");
     @endcode
 
     @return @ref Qore::True "True" if the given static method exists and is callable from the current context

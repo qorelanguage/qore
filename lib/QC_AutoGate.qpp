@@ -40,14 +40,14 @@
 
     For example:
     @code{.py}
-our Gate $gate();
+our Gate gate();
 
-sub check_error($error) {
+sub check_error(error) {
     # note that the Gate is entered in the AutoGate constructor, and
     # the Gate will be exited as soon as the block is exited below.
     # (with either the throw statement or the return statement)
-    my AutoGate $ag($gate);
-    if ($error)
+    AutoGate ag(gate);
+    if (error)
         throw "ERROR", "sorry, an error happened";
 
     return "OK";
@@ -62,7 +62,7 @@ qclass AutoGate [dom=THREAD_CLASS; arg=QoreAutoGate* ag; ns=Qore::Thread];
 /** @param gate the @ref Qore::Thread::Gate "Gate" object to enter for the lifetime of the AutoGate object
     @par Example:
     @code{.py}
-my AutoGate $ag($gate);
+AutoGate ag(gate);
     @endcode
  */
 AutoGate::constructor(Gate[QoreGate] gate) {
@@ -77,7 +77,7 @@ AutoGate::constructor(Gate[QoreGate] gate) {
 /** 
     @par Example:
     @code{.py}
-delete $ag;
+delete ag;
     @endcode
  */
 AutoGate::destructor() {

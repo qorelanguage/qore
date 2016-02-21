@@ -37,10 +37,10 @@
 
     @par Example: ListIterator basic usage
     @code{.py}
-    my list $data = (1, "foo", 2);
-    my ListIterator $it($data);
-    while ($it.next()) {
-        printf("iter: %n\n", $it.getValue());
+    list data = (1, "foo", 2);
+    ListIterator it(data);
+    while (it.next()) {
+        printf("iter: %n\n", it.getValue());
     }
 
     iter: 1
@@ -63,7 +63,7 @@ qclass ListIterator [arg=QoreListIterator* i; ns=Qore; vparent=AbstractQuantifie
 
     @par Example:
     @code{.py}
-my ListIterator $li($l);
+ListIterator li(l);
     @endcode
 
     @note the constructor's argument is @ref softlist_type "softlist" so that it can also accept @ref nothing
@@ -75,7 +75,7 @@ ListIterator::constructor(softlist l) {
 //! Creates a copy of the ListIterator object, iterating the same object as the original and in the same position
 /** @par Example:
     @code{.py}
-my ListIterator $ni = $i.copy();
+ListIterator ni = i.copy();
     @endcode
  */
 ListIterator::copy() {
@@ -90,8 +90,8 @@ ListIterator::copy() {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf(" + %y\n", $i.getValue());
+while (i.next()) {
+    printf(" + %y\n", i.getValue());
 }
     @endcode
 
@@ -111,8 +111,8 @@ bool ListIterator::next() {
 
     @par Example:
     @code{.py}
-while ($i.prev()) {
-    printf(" + %y\n", $i.getValue());
+while (i.prev()) {
+    printf(" + %y\n", i.getValue());
 }
     @endcode
 
@@ -129,7 +129,7 @@ bool ListIterator::prev() {
 
     @par Example:
     @code{.py}
-if ($i.empty())
+if (i.empty())
     printf("the list is empty\n");
     @endcode
  */
@@ -142,8 +142,8 @@ bool ListIterator::empty() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    if ($i.first())
+while (i.next()) {
+    if (i.first())
         printf("START:\n");
 }
     @endcode
@@ -157,8 +157,8 @@ bool ListIterator::first() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    if ($i.last())
+while (i.next()) {
+    if (i.last())
         printf("END.\n");
 }
     @endcode
@@ -172,8 +172,8 @@ bool ListIterator::last() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("+ %y\n", $i.getValue());
+while (i.next()) {
+    printf("+ %y\n", i.getValue());
 }
     @endcode
 
@@ -191,8 +191,8 @@ any ListIterator::getValue() [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("+ %d/%d: %y\n", $i.index(), $i.max(), $i.getValue());
+while (i.next()) {
+    printf("+ %d/%d: %y\n", i.index(), i.max(), i.getValue());
 }
     @endcode
  */
@@ -205,8 +205,8 @@ int ListIterator::index() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("+ %d/%d: %y\n", $i.index(), $i.max(), $i.getValue());
+while (i.next()) {
+    printf("+ %d/%d: %y\n", i.index(), i.max(), i.getValue());
 }
     @endcode
  */
@@ -221,8 +221,8 @@ int ListIterator::max() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-if (!$i.set($pos))
-    throw "INVALID-POSITION", sprintf("%d is an invalid position", $pos);
+if (!i.set(pos))
+    throw "INVALID-POSITION", sprintf("%d is an invalid position", pos);
     @endcode
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
@@ -238,8 +238,8 @@ bool ListIterator::set(int pos) {
 
     @par Example:
     @code{.py}
-if ($i.valid())
-    printf("current value: %y\n", $i.getValue());
+if (i.valid())
+    printf("current value: %y\n", i.getValue());
     @endcode
  */
 bool ListIterator::valid() [flags=CONSTANT] {
@@ -251,7 +251,7 @@ bool ListIterator::valid() [flags=CONSTANT] {
 
    @par Example
    @code{.py}
-$i.reset();
+i.reset();
    @endcode
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object

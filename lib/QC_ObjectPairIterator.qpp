@@ -41,19 +41,19 @@ extern QoreClass* QC_OBJECTITERATOR;
     @code{.py}
     class Class1 {
        public {
-          int $.attr1;
-          date $.attr2;
+          int attr1;
+          date attr2;
        }
        constructor() {
-          $.attr1 = 1;
-          $.attr2 = now();
+          attr1 = 1;
+          attr2 = now();
        }
     }
-    my Class1 $o();
+    Class1 o();
 
-    my ObjectPairIterator $it($o);
-    while ($it.next()) {
-        printf("iter: %n\n", $it.getValue());
+    ObjectPairIterator it(o);
+    while (it.next()) {
+        printf("iter: %n\n", it.getValue());
     }
 
     iter: hash: (key : "attr1", value : 1)
@@ -74,7 +74,7 @@ qclass ObjectPairIterator [arg=QoreObjectIterator* i; ns=Qore; vparent=ObjectIte
 
     @par Example:
     @code{.py}
-my ObjectPairIterator $i($obj);
+ObjectPairIterator i(obj);
     @endcode
  */
 ObjectPairIterator::constructor(object o) {
@@ -84,8 +84,8 @@ ObjectPairIterator::constructor(object o) {
 //! Creates an empty object iterator object
 /** @par Example:
     @code{.py}
-my *object $obj = get_object_or_nothing();
-my ObjectPairIterator $i($obj);
+*object obj = get_object_or_nothing();
+ObjectPairIterator i(obj);
     @endcode
  */
 ObjectPairIterator::constructor() {
@@ -95,7 +95,7 @@ ObjectPairIterator::constructor() {
 //! Creates a copy of the ObjectPairIterator object, iterating the same object as the original and in the same position
 /** @par Example:
     @code{.py}
-my ObjectPairIterator $ni = $i.copy();
+ObjectPairIterator ni = i.copy();
     @endcode
  */
 ObjectPairIterator::copy() {
@@ -107,7 +107,7 @@ ObjectPairIterator::copy() {
 
     @par Example:
     @code{.py}
-map printf("%s: %y\n", $1.key, $1.value), $object.pairIterator();
+map printf("%s: %y\n", $1.key, $1.value), object.pairIterator();
     @endcode
 
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element

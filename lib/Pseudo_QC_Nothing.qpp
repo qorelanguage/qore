@@ -42,9 +42,9 @@ qclass <nothing> [arg=;vparent=<value>];
 
     @par Example:
     @code{.py}
-switch ($n.typeCode()) {
+switch (n.typeCode()) {
     case NT_NOTHING:
-        printf("%y: no value\n", $n);
+        printf("%y: no value\n", n);
         break;
 }
     @endcode
@@ -59,9 +59,9 @@ int <nothing>::typeCode() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-printf("iterating %d element%s\n", $val.lsize(), $val.lsize() == 1 ? "" : "s");
-foreach my any $element in ($val) {
-    do_something($element);
+printf("iterating %d element%s\n", val.lsize(), val.lsize() == 1 ? "" : "s");
+foreach any element in (val) {
+    do_something(element);
 }
     @endcode
 */
@@ -121,8 +121,8 @@ SingleValueIterator <nothing>::contextIterator() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my *hash $h = hash_or_nothing();
-my list $l = $h.keys();
+*hash h = hash_or_nothing();
+list l = h.keys();
     @endcode
 
     @see <hash>::keys()
@@ -139,8 +139,8 @@ list <nothing>::keys() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my *hash $h = hash_or_nothing();
-my list $l = $h.values();
+*hash h = hash_or_nothing();
+list l = h.values();
     @endcode
 
     @see <hash>::values()
@@ -157,8 +157,8 @@ list <nothing>::values() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my *hash $h = hash_or_nothing();
-my *string $n = $h.firstKey();
+*hash h = hash_or_nothing();
+*string n = h.firstKey();
     @endcode
 
     @see <hash>::firstKey()
@@ -174,8 +174,8 @@ nothing <nothing>::firstKey() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my *hash $h = hash_or_nothing();
-my any $n = $h.firstValue();
+*hash h = hash_or_nothing();
+any n = h.firstValue();
     @endcode
 
     @see <hash>::firstValue()
@@ -191,8 +191,8 @@ nothing <nothing>::firstValue() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my *hash $h = hash_or_nothing();
-my *string $n = $h.firstKey();
+*hash h = hash_or_nothing();
+*string n = h.firstKey();
     @endcode
 
     @see <hash>::firstKey()
@@ -208,8 +208,8 @@ nothing <nothing>::lastKey() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my *hash $h = hash_or_nothing();
-my any $n = $h.firstValue();
+*hash h = hash_or_nothing();
+any n = h.firstValue();
     @endcode
 
     @see <hash>::lastValue()
@@ -227,8 +227,8 @@ nothing <nothing>::lastValue() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my *hash $h = hash_or_nothing();
-my bool $b = $h.hasKey($key);
+*hash h = hash_or_nothing();
+bool b = h.hasKey(key);
     @endcode
 
     @see <hash>::hasKey(softstring)
@@ -247,8 +247,8 @@ bool <nothing>::hasKey(softstring[doc] key) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my *hash $h = hash_or_nothing();
-my bool $b = $h.hasKeyValue($key);
+*hash h = hash_or_nothing();
+bool b = h.hasKeyValue(key);
     @endcode
 
     @see <hash>::hasKeyValue(softstring)

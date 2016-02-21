@@ -54,14 +54,14 @@ public:
 
     @par Example: ListHashReverseIterator basic usage
     @code{.py}
-    my list $data = (
+    list data = (
              ( "column1" : 1, "column2" : "a"),
              ( "column1" : 2, "column2" : "b"),
         );
 
-    my ListHashReverseIterator $it($data);
-    while ($it.next()) {
-        printf("iter %d: %n\n", $it.index(), $it.getValue());
+    ListHashReverseIterator it(data);
+    while (it.next()) {
+        printf("iter %d: %n\n", it.index(), it.getValue());
     }
 
     iter 1: hash: (column1 : 2, column2 : "b")
@@ -87,7 +87,7 @@ qclass ListHashReverseIterator [arg=QoreListHashReverseIterator* i; ns=Qore; vpa
 
     @par Example:
     @code{.py}
-my ListHashIterator $i($l);
+ListHashIterator i(l);
     @endcode
 
     @note the constructor's argument is @ref softlist_type "softlist" so that it can also accept @ref nothing
@@ -99,7 +99,7 @@ ListHashReverseIterator::constructor(softlist l) {
 //! Creates a copy of the ListHashReverseIterator object, iterating the same object as the original and in the same position
 /** @par Example:
     @code{.py}
-my ListHashReverseIterator $ni = $i.copy();
+ListHashReverseIterator ni = i.copy();
     @endcode
  */
 ListHashReverseIterator::copy() {
@@ -114,8 +114,8 @@ ListHashReverseIterator::copy() {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf(" + row %d: %y\n", $i.index(), $i.getValue());
+while (i.next()) {
+    printf(" + row %d: %y\n", i.index(), i.getValue());
 }
     @endcode
 
@@ -135,8 +135,8 @@ bool ListHashReverseIterator::next() {
 
     @par Example:
     @code{.py}
-while ($i.prev()) {
-    printf(" + row %d: %y\n", $i.index(), $i.getValue());
+while (i.prev()) {
+    printf(" + row %d: %y\n", i.index(), i.getValue());
 }
     @endcode
 
@@ -153,8 +153,8 @@ bool ListHashReverseIterator::prev() {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    if ($i.first())
+while (i.next()) {
+    if (i.first())
         printf("START:\n");
 }
     @endcode
@@ -168,8 +168,8 @@ bool ListHashReverseIterator::first() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    if ($i.last())
+while (i.next()) {
+    if (i.last())
         printf("END.\n");
 }
     @endcode
@@ -185,8 +185,8 @@ bool ListHashReverseIterator::last() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf("%d: value: %y", $i.index(), $i.value);
+while (i.next()) {
+    printf("%d: value: %y", i.index(), i.value);
 }
     @endcode
 

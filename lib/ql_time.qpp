@@ -346,7 +346,7 @@ DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreStri
 
     @par Example:
     @code{.py}
-my date $d = now_ms();
+date d = now_ms();
     @endcode
 
     @see
@@ -369,7 +369,7 @@ date now_ms() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my date $d = now_us();
+date d = now_us();
     @endcode
 
     @see
@@ -392,7 +392,7 @@ date now_us() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my date $d = now_utc();
+date d = now_utc();
     @endcode
 
     @see now_us() for a similar function that returns the current date and time in the local time zone
@@ -412,7 +412,7 @@ date now_utc() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my string $str = format_date("Day, Mon D, YYYY-MM-DD HH:mm:SS", 2004-02-01T12:30:00);
+string str = format_date("Day, Mon D, YYYY-MM-DD HH:mm:SS", 2004-02-01T12:30:00);
 # returns "Sunday, Feb 1, 2004-02-01 12:30:00"
     @endcode
 
@@ -436,7 +436,7 @@ nothing format_date() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my date $d = now();
+date d = now();
     @endcode
 
     @see
@@ -456,7 +456,7 @@ date now() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my date $d = localtime();
+date d = localtime();
     @endcode
 
     @see gmtime()
@@ -476,7 +476,7 @@ date localtime() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my date $dt = localtime(10);
+date dt = localtime(10);
     @endcode
 
     @see gmtime(softint, softint)
@@ -493,7 +493,7 @@ date localtime(softint secs, softint us = 0) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my date $dt = localtime(2012-01-19T15:00:00-07:00);
+date dt = localtime(2012-01-19T15:00:00-07:00);
     @endcode
     
     @see gmtime(date)
@@ -508,7 +508,7 @@ date localtime(date dt) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my date $utc = gmtime();
+date utc = gmtime();
     @endcode
 
     @see
@@ -528,7 +528,7 @@ date gmtime() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my date $dt = gmtime(10);
+date dt = gmtime(10);
     @endcode
 
     @see localtime(softint, softint)
@@ -545,7 +545,7 @@ date gmtime(softint secs, softint us = 0) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my date $dt = gmtime(2012-01-19T15:00:00-07:00);
+date dt = gmtime(2012-01-19T15:00:00-07:00);
     @endcode
 
     @see localtime(date)
@@ -562,7 +562,7 @@ date gmtime(date dt) [flags=CONSTANT] {
     
     @par Example:
     @code{.py}
-int secs = timegm($dt);
+int secs = timegm(dt);
     @endcode
 
     @see get_epoch_seconds(date)
@@ -585,7 +585,7 @@ nothing timegm() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my int $i = get_epoch_seconds(2012-01-19T08:02:15+01:00);
+int i = get_epoch_seconds(2012-01-19T08:02:15+01:00);
     @endcode
 
     @see timegm(date)
@@ -610,7 +610,7 @@ nothing get_epoch_seconds() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my int $i = mktime(2012-01-19T08:02:15+01:00);
+int i = mktime(2012-01-19T08:02:15+01:00);
     @endcode
 
     @see timegm(date)
@@ -635,7 +635,7 @@ nothing mktime() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my date $y = years(100);
+date y = years(100);
     @endcode
 
     @see
@@ -665,7 +665,7 @@ nothing years() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my date $rd = months(100);
+date rd = months(100);
     @endcode
 
     @see
@@ -695,7 +695,7 @@ nothing months() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my date $rd = days(100);
+date rd = days(100);
     @endcode
 
     @see
@@ -725,7 +725,7 @@ nothing days() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my date $rd = hours(100);
+date rd = hours(100);
     @endcode
 
     @see
@@ -755,7 +755,7 @@ nothing hours() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my date $rd = minutes(100);
+date rd = minutes(100);
     @endcode
 
     @see
@@ -785,7 +785,7 @@ nothing minutes() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my date $rd = seconds(100);
+date rd = seconds(100);
     @endcode
 
     @see
@@ -815,7 +815,7 @@ nothing seconds() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my date $rd = milliseconds(100);
+date rd = milliseconds(100);
     @endcode
 
     @see
@@ -852,7 +852,7 @@ nothing milliseconds() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my date $rd = microseconds(100);
+date rd = microseconds(100);
     @endcode
 
     @see
@@ -883,7 +883,7 @@ date microseconds(softint us) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $n = get_years($dt);
+int n = get_years(dt);
     @endcode
 
     @note equivalent to pseudo-method <date>::years()
@@ -906,7 +906,7 @@ nothing get_years() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my int $n = get_months($dt);
+int n = get_months(dt);
     @endcode
 
     @note equivalent to pseudo-method <date>::months()
@@ -929,7 +929,7 @@ nothing get_months() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my int $n = get_days($dt);
+int n = get_days(dt);
     @endcode
 
     @note equivalent to pseudo-method <date>::days()
@@ -952,7 +952,7 @@ nothing get_days() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my int $n = get_hours($dt);
+int n = get_hours(dt);
     @endcode
 
     @note equivalent to pseudo-method <date>::hours()
@@ -975,7 +975,7 @@ nothing get_hours() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my int $n = get_minutes($dt);
+int n = get_minutes(dt);
     @endcode
 
     @note equivalent to pseudo-method <date>::minutes()
@@ -998,7 +998,7 @@ nothing get_minutes() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my int $n = get_seconds($dt);
+int n = get_seconds(dt);
     @endcode
 
     @note
@@ -1023,7 +1023,7 @@ nothing get_seconds() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my int $n = get_milliseconds($dt);
+int n = get_milliseconds(dt);
     @endcode
 
     @note
@@ -1048,7 +1048,7 @@ nothing get_milliseconds() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my int $n = get_microseconds($dt);
+int n = get_microseconds(dt);
     @endcode
 
     @note
@@ -1067,7 +1067,7 @@ int get_microseconds(date dt) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my date $midnight = get_midnight($dt);
+date midnight = get_midnight(dt);
     @endcode
 
     @note equivalent to pseudo-method <date>::midnight()
@@ -1110,7 +1110,7 @@ nothing getDayNumber() [flags=RUNTIME_NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-my int $dn = get_day_number($dt);
+int dn = get_day_number(dt);
     @endcode
 
     @note equivalent to <date>::dayNumber()
@@ -1149,7 +1149,7 @@ nothing getDayOfWeek() [flags=RUNTIME_NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-my int $dn = get_day_of_week($dt);
+int dn = get_day_of_week(dt);
     @endcode
 
     @note equivalent to <date>::dayOfWeek()
@@ -1191,7 +1191,7 @@ nothing getISODayOfWeek() [flags=RUNTIME_NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-my int $dn = get_iso_day_of_week($dt);
+int dn = get_iso_day_of_week(dt);
     @endcode
 
     @note equivalent to <date>::isoDayOfWeek()
@@ -1242,7 +1242,7 @@ nothing getISOWeekHash() [flags=RUNTIME_NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-my hash $h = get_iso_week_hash(2007-05-15); # returns year=2007, week=20, day=2
+hash h = get_iso_week_hash(2007-05-15); # returns year=2007, week=20, day=2
     @endcode
 
     @note equivalent to <date>::isoWeekHash()
@@ -1270,7 +1270,7 @@ hash get_iso_week_hash(date dt) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my string $str = getISOWeekString(2007-05-15); # returns "2007-W20-2"
+string str = getISOWeekString(2007-05-15); # returns "2007-W20-2"
     @endcode
 
     @see get_iso_week_hash()
@@ -1299,7 +1299,7 @@ nothing getISOWeekString() [flags=RUNTIME_NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-my string $str = get_iso_week_string(2007-05-15); # returns "2007-W20-2"
+string str = get_iso_week_string(2007-05-15); # returns "2007-W20-2"
     @endcode
 
     @note equivalent to <date>::isoWeekString()
@@ -1345,7 +1345,7 @@ date getDateFromISOWeek(softint year, softint week, softint day = 1) [flags=RET_
 
     @par Example:
     @code{.py}
-my date $d = getDateFromISOWeek(2007, 3); # returns 2007-01-15
+date d = getDateFromISOWeek(2007, 3); # returns 2007-01-15
     @endcode
 
     @throw ISO-8601-INVALID-WEEK The week number is not valid for the given year
@@ -1363,7 +1363,7 @@ date get_date_from_iso_week(softint year, softint week, softint day = 1) [flags=
 
     @par Example:
     @code{.py}
-my int $ms = clock_getmillis();
+int ms = clock_getmillis();
     @endcode
     
     @see
@@ -1380,7 +1380,7 @@ int clock_getmillis() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $ns = clock_getnanos();
+int ns = clock_getnanos();
     @endcode
 
     @see
@@ -1397,7 +1397,7 @@ int clock_getnanos() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $us = clock_getmicros();
+int us = clock_getmicros();
     @endcode
 
     @see
@@ -1415,7 +1415,7 @@ int clock_getmicros() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my date $date = date_ms(1); # returns 1970-01-01T00:00:00.001 in the local time zone
+date date = date_ms(1); # returns 1970-01-01T00:00:00.001 in the local time zone
     @endcode
 
     @see date_us(softint)
@@ -1437,7 +1437,7 @@ nothing date_ms() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-my date $date = date_us(1); # returns 1970-01-01T00:00:00.000001 in the local time zone
+date date = date_us(1); # returns 1970-01-01T00:00:00.000001 in the local time zone
     @endcode
 
     @see date_ms(softint)
@@ -1455,7 +1455,7 @@ date date_us(softint us) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $us = get_duration_seconds(PT2M15S3u); # returns 135
+int us = get_duration_seconds(PT2M15S3u); # returns 135
     @endcode
 
     @note
@@ -1481,7 +1481,7 @@ int get_duration_seconds(date dt) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $ms = get_duration_milliseconds(PT2M15S3u); # returns 135000
+int ms = get_duration_milliseconds(PT2M15S3u); # returns 135000
     @endcode
 
     @note
@@ -1505,7 +1505,7 @@ int get_duration_milliseconds(date dt) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $us = get_duration_microseconds(PT2M15S3u); # returns 135000003
+int us = get_duration_microseconds(PT2M15S3u); # returns 135000003
     @endcode
 
     @note
@@ -1530,7 +1530,7 @@ int get_duration_microseconds(date dt) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my float $dt = get_duration_seconds_f(PT2M15S3u); # returns 135.000003
+float dt = get_duration_seconds_f(PT2M15S3u); # returns 135.000003
     @endcode
 
     @note
@@ -1556,7 +1556,7 @@ float get_duration_seconds_f(date dt) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my hash $h = date_info($date);
+hash h = date_info(date);
     @endcode
 
     @note equivalent to <date>::info()
@@ -1571,7 +1571,7 @@ hash date_info(date dt) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my hash $h = date_info();
+hash h = date_info();
     @endcode
 */
 hash date_info() [flags=CONSTANT] {
@@ -1590,7 +1590,7 @@ hash date_info() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my bool $b = is_date_relative($dt)
+bool b = is_date_relative(dt)
     @endcode
 
     @see is_date_absolute()
@@ -1614,7 +1614,7 @@ bool is_date_relative() [flags=NOOP] {
 
     @par Example:
     @code{.py}
-my bool $b = is_date_absolute($dt)
+bool b = is_date_absolute(dt)
     @endcode
 
     @see is_date_relative()
@@ -1649,13 +1649,13 @@ date date(date dt) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my date $d = date("2001-01-01T15:35:23"); # returns 2001-01-01 15:35:23 Mon +01:00 (CET)
-my date $d = date("20010101 15:35:23Z"); # returns 2001-01-01 15:35:23 Mon Z (UTC)
-my date $d = date("20010101 153523Z"); # returns 2001-01-01 15:35:23 Mon Z (UTC)
-my date $d = date("20010101 153523-02"); # returns 2001-01-01 15:35:23 Mon -02:00 (-02:00)
-my date $d = date("20010101 153523-02:00:00"); # returns 2001-01-01 15:35:23 Mon -02:00 (-02:00)
-my date $d = date("2001-01-01-153523-020000"); # returns 2001-01-01 15:35:23 Mon -02:00 (-02:00)
-my date $d = date("20010101-153523"); # returns 2001-01-01 15:35:23 Mon +01:00 (CET)
+date d = date("2001-01-01T15:35:23"); # returns 2001-01-01 15:35:23 Mon +01:00 (CET)
+date d = date("20010101 15:35:23Z"); # returns 2001-01-01 15:35:23 Mon Z (UTC)
+date d = date("20010101 153523Z"); # returns 2001-01-01 15:35:23 Mon Z (UTC)
+date d = date("20010101 153523-02"); # returns 2001-01-01 15:35:23 Mon -02:00 (-02:00)
+date d = date("20010101 153523-02:00:00"); # returns 2001-01-01 15:35:23 Mon -02:00 (-02:00)
+date d = date("2001-01-01-153523-020000"); # returns 2001-01-01 15:35:23 Mon -02:00 (-02:00)
+date d = date("20010101-153523"); # returns 2001-01-01 15:35:23 Mon +01:00 (CET)
     @endcode
 
     @see date(string, string)
@@ -1673,7 +1673,7 @@ date date(string dtstr) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my date $d = date($f);
+date d = date(f);
     @endcode
  */
 date date(float f) [flags=CONSTANT] {
@@ -1688,7 +1688,7 @@ date date(float f) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my date $d = date($i);
+date d = date(i);
     @endcode
  */
 date date(softint i) [flags=CONSTANT] {
@@ -1722,7 +1722,7 @@ date date(null[doc] null) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my date $dt = date("20100401 234520 230394", "YYYYMMDD HHmmSS ssssss"); # returns 2010-04-01T23:45:20.230394
+date dt = date("20100401 234520 230394", "YYYYMMDD HHmmSS ssssss"); # returns 2010-04-01T23:45:20.230394
     @endcode
 
     @throw DATE-CONVERT-ERROR invalid mask specification

@@ -41,19 +41,19 @@ extern QoreClass* QC_HASHITERATOR;
     @code{.py}
     class Class1 {
        public {
-          int $.attr1;
-          date $.attr2;
+          int attr1;
+          date attr2;
        }
        constructor() {
-          $.attr1 = 1;
-          $.attr2 = now();
+          attr1 = 1;
+          attr2 = now();
        }
     }
-    my Class1 $o();
+    Class1 o();
 
-    my ObjectIterator $it($o);
-    while ($it.next()) {
-        printf("iter: %n\n", $it.getValue());
+    ObjectIterator it(o);
+    while (it.next()) {
+        printf("iter: %n\n", it.getValue());
     }
 
     iter: 1
@@ -74,7 +74,7 @@ qclass ObjectIterator [arg=QoreObjectIterator* i; ns=Qore; vparent=HashIterator]
 
     @par Example:
     @code{.py}
-my ObjectIterator $i($obj);
+ObjectIterator i(obj);
     @endcode
  */
 ObjectIterator::constructor(object o) {
@@ -84,8 +84,8 @@ ObjectIterator::constructor(object o) {
 //! Creates an empty object iterator object
 /** @par Example:
     @code{.py}
-my *object $obj = get_object_or_nothing();
-my ObjectIterator $i($obj);
+*object obj = get_object_or_nothing();
+ObjectIterator i(obj);
     @endcode
  */
 ObjectIterator::constructor() {
@@ -95,7 +95,7 @@ ObjectIterator::constructor() {
 //! Creates a copy of the ObjectIterator object, iterating the same object as the original and in the same position
 /** @par Example:
     @code{.py}
-my ObjectIterator $ni = $i.copy();
+ObjectIterator ni = i.copy();
     @endcode
  */
 ObjectIterator::copy() {

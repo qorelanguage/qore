@@ -177,7 +177,7 @@ qclass DatasourcePool [dom=DATABASE; arg=DatasourcePool* ds; ns=Qore::SQL; vpare
 
     @par Example:
     @code{.py}
-my DatasourcePool $db(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 3, 10, 5432);
+DatasourcePool db(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 3, 10, 5432);
     @endcode
 
     @throw DATASOURCEPOOL-UNSUPPORTED-DATABASE DBI driver cannot be found
@@ -234,7 +234,7 @@ DatasourcePool::constructor(string driver, *string user, *string pass, *string d
 
     @par Example:
     @code{.py}
-my DatasourcePool ds("pgsql:user/pass@db01(utf8)%localhost:5432");
+DatasourcePool ds("pgsql:user/pass@db01(utf8)%localhost:5432");
     @endcode
 
     @throw DATASOURCE-UNSUPPORTED-DATABASE DBI driver cannot be loaded
@@ -268,7 +268,7 @@ DatasourcePool::constructor(string desc, *Qore::Thread::Queue[Queue] queue, any 
 
     @par Example:
     @code{.py}
-my Datasource $db(("type": DSPGSQL, "user": "username", "pass": "password", "db": "database", "charset": "utf8", "host": "localhost", "port": 5432, "options": ("min": 3, "max": 10)));
+Datasource db(("type": DSPGSQL, "user": "username", "pass": "password", "db": "database", "charset": "utf8", "host": "localhost", "port": 5432, "options": ("min": 3, "max": 10)));
     @endcode
 
     @throw DATASOURCEPOOL-UNSUPPORTED-DATABASE DBI driver cannot be loaded
@@ -283,7 +283,7 @@ DatasourcePool::constructor(hash opts, *Qore::Thread::Queue[Queue] queue, any ar
 /**
     @par Example:
     @code{.py}
-delete $db;
+delete db;
     @endcode
 
     @throw DATASOURCEPOOL-ERROR The destructor was called while a transaction was still in progress
@@ -297,7 +297,7 @@ DatasourcePool::destructor() {
 /**
     @par Example:
     @code{.py}
-my DatasourcePool $new_dsp = $dsp.copy();
+DatasourcePool new_dsp = dsp.copy();
     @endcode
  */
 DatasourcePool::copy() {
@@ -308,7 +308,7 @@ DatasourcePool::copy() {
 /**
     @par Example:
     @code{.py}
-$db.commit();
+db.commit();
     @endcode
 
  */
@@ -320,7 +320,7 @@ nothing DatasourcePool::commit() {
 /**
     @par Example:
     @code{.py}
-$db.rollback();
+db.rollback();
     @endcode
 
  */
@@ -338,7 +338,7 @@ nothing DatasourcePool::rollback() {
 
     @par Example:
     @code{.py}
-my int $rows = $db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", $string, now(), $binary, 100);
+int rows = db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", string, now(), binary, 100);
     @endcode
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
@@ -360,7 +360,7 @@ any DatasourcePool::exec(string sql, ...) {
 
     @par Example:
     @code{.py}
-my int $rows = $db.vexec("insert into example_table value (%v, %v, %v)", $arg_list);
+int rows = db.vexec("insert into example_table value (%v, %v, %v)", arg_list);
     @endcode
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
@@ -381,7 +381,7 @@ any DatasourcePool::vexec(string sql, *softlist vargs) {
 
     @par Example:
     @code{.py}
-$db.execRaw("create table my_tab (id number, some_text varchar2(30))");
+db.execRaw("create table my_tab (id number, some_text varchar2(30))");
     @endcode
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
@@ -408,7 +408,7 @@ any DatasourcePool::execRaw(string sql) {
     @par Example:
     @code{.py}
 # bind a string and a date/time value by value in a query
-$query = $db.select("select * from table where varchar_column = %v and timestamp_column > %v", $string, 2007-10-11T15:31:26.289);
+query = db.select("select * from table where varchar_column = %v and timestamp_column > %v", string, 2007-10-11T15:31:26.289);
     @endcode
 
     @note
@@ -439,7 +439,7 @@ any DatasourcePool::select(string sql, ...) {
 
     @par Example:
     @code{.py}
-my *hash $h = $db.selectRow("select * from example_table where id = 1");
+*hash h = db.selectRow("select * from example_table where id = 1");
     @endcode
 
     @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
@@ -467,7 +467,7 @@ any DatasourcePool::selectRow(string sql, ...) {
 
     @par Example:
     @code{.py}
-my *list $list = $db.selectRows("select * from example_table");
+*list list = db.selectRows("select * from example_table");
     @endcode
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
@@ -494,7 +494,7 @@ any DatasourcePool::selectRows(string sql, ...) {
 
     @par Example:
     @code{.py}
-my *hash $query = $db.vselect("select * from example_table where id = %v and name = %v", $arg_list);
+*hash query = db.vselect("select * from example_table where id = %v and name = %v", arg_list);
     @endcode
 
     @note
@@ -524,7 +524,7 @@ any DatasourcePool::vselect(string sql, *softlist vargs) {
 
     @par Example:
     @code{.py}
-my *hash $h = $db.vselectRow("select * from example_table where id = %v and type = %v", $arg_list);
+*hash h = db.vselectRow("select * from example_table where id = %v and type = %v", arg_list);
     @endcode
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
@@ -553,7 +553,7 @@ any DatasourcePool::vselectRow(string sql, *softlist vargs) {
 
     @par Example:
     @code{.py}
-my *list $list = $db.vselectRows("select * from example_table where id = %v and type = %v", $arg_list);
+*list list = db.vselectRows("select * from example_table where id = %v and type = %v", arg_list);
     @endcode
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
@@ -573,7 +573,7 @@ any DatasourcePool::vselectRows(string sql, *softlist vargs) {
 
     @par Example:
     @code{.py}
-$db.beginTransaction();
+db.beginTransaction();
     @endcode
  */
 nothing DatasourcePool::beginTransaction() {
@@ -585,7 +585,7 @@ nothing DatasourcePool::beginTransaction() {
 
     @par Example:
     @code{.py}
-my *string $user = $db.getUserName();
+*string user = db.getUserName();
     @endcode
  */
 *string DatasourcePool::getUserName() [flags=CONSTANT] {
@@ -597,7 +597,7 @@ my *string $user = $db.getUserName();
 
     @par Example:
     @code{.py}
-my *string $pass = $db.getPassword();
+*string pass = db.getPassword();
     @endcode
  */
 *string DatasourcePool::getPassword() [flags=CONSTANT] {
@@ -609,7 +609,7 @@ my *string $pass = $db.getPassword();
 
     @par Example:
     @code{.py}
-my *string $db = $db.getDBName();
+*string db = db.getDBName();
     @endcode
  */
 *string DatasourcePool::getDBName() [flags=CONSTANT] {
@@ -623,7 +623,7 @@ my *string $db = $db.getDBName();
 
     @par Example:
     @code{.py}
-my string $enc = $db.getDBCharset();
+string enc = db.getDBCharset();
     @endcode
  */
 *string DatasourcePool::getDBCharset() [flags=CONSTANT] {
@@ -635,7 +635,7 @@ my string $enc = $db.getDBCharset();
 
     @par Example:
     @code{.py}
-my string $enc = $db.getDBEncoding();
+string enc = db.getDBEncoding();
     @endcode
 
     @see DatasourcePool::getOSEncoding()
@@ -649,7 +649,7 @@ string DatasourcePool::getDBEncoding() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my string $enc = $db.getOSCharset();
+string enc = db.getOSCharset();
     @endcode
 
     @see DatasourcePool::getOSEncoding()
@@ -664,7 +664,7 @@ string DatasourcePool::getOSCharset() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my *string $enc = $db.getOSEncoding();
+*string enc = db.getOSEncoding();
     @endcode
  */
 *string DatasourcePool::getOSEncoding() [flags=CONSTANT] {
@@ -677,7 +677,7 @@ my *string $enc = $db.getOSEncoding();
 
     @par Example:
     @code{.py}
-my *string $host = $db.getHostName();
+*string host = db.getHostName();
     @endcode
  */
 *string DatasourcePool::getHostName() [flags=CONSTANT] {
@@ -689,7 +689,7 @@ my *string $host = $db.getHostName();
 
     @par Example:
     @code{.py}
-my *int $port = $db.getPort();
+*int port = db.getPort();
     @endcode
  */
 *int DatasourcePool::getPort() [flags=CONSTANT] {
@@ -702,7 +702,7 @@ my *int $port = $db.getPort();
 
     @par Example:
     @code{.py}
-my string $driver = $db.getDriverName();
+string driver = db.getDriverName();
     @endcode
  */
 string DatasourcePool::getDriverName() [flags=CONSTANT] {
@@ -713,7 +713,7 @@ string DatasourcePool::getDriverName() [flags=CONSTANT] {
 /** @return the minimum number of connections in this object
 
     @par Example:
-my int $min = $db.getMinimum();
+int min = db.getMinimum();
     @code{.py}
 
     @endcode
@@ -728,7 +728,7 @@ int DatasourcePool::getMinimum() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $max = $db.getMaximum();
+int max = db.getMaximum();
     @endcode
 
  */
@@ -741,7 +741,7 @@ int DatasourcePool::getMaximum() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my string $str = $db.toString();
+string str = db.toString();
     @endcode
 
  */
@@ -754,7 +754,7 @@ string DatasourcePool::toString() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my any $ver = $db.getServerVersion();
+any ver = db.getServerVersion();
     @endcode
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
@@ -768,7 +768,7 @@ any DatasourcePool::getServerVersion() {
 
     @par Example:
     @code{.py}
-my any $ver = $db.getClientVersion();
+any ver = db.getClientVersion();
     @endcode
 
     @note see the documentation for the DBI driver being used for possible exceptions
@@ -782,7 +782,7 @@ any DatasourcePool::getClientVersion() {
 
     @par Example:
     @code{.py}
-my bool $b = $db.inTransaction();
+bool b = db.inTransaction();
     @endcode
  */
 bool DatasourcePool::inTransaction() [flags=CONSTANT] {
@@ -794,7 +794,7 @@ bool DatasourcePool::inTransaction() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my bool $b = $db.currentThreadInTransaction();
+bool b = db.currentThreadInTransaction();
     @endcode
 
     @since %Qore 0.8.7
@@ -829,7 +829,7 @@ any DatasourcePool::getOption(string opt) [flags=RET_VALUE_ONLY] {
 //! Returns a @ref datasource_hash "datasource hash" describing the configuration of the current object
 /** @par Example:
     @code{.py}
-my hash $h = $ds.getConfigHash();
+hash h = ds.getConfigHash();
     @endcode
 
     @return a @ref datasource_hash "datasource hash" describing the configuration of the current object
@@ -843,7 +843,7 @@ hash DatasourcePool::getConfigHash() [flags=CONSTANT] {
 //! Returns a string giving the configuration of the current object in a format that can be parsed by parse_datasource()
 /** @par Example:
     @code{.py}
-my string $str = $ds.getConfigString();
+string str = ds.getConfigString();
     @endcode
 
     @return a string giving the configuration of the current object in a format that can be parsed by parse_datasource()
@@ -857,7 +857,7 @@ string DatasourcePool::getConfigString() [flags=CONSTANT] {
 //! clears any connection delay warning callback from the object
 /** @par Example:
     @code{.py}
-$ds.clearWarningCallback();
+ds.clearWarningCallback();
     @endcode
 
     @since %Qore 0.8.9
@@ -869,10 +869,10 @@ DatasourcePool::clearWarningCallback() {
 //! sets a connection delay warning callback to be called any time the delay assigning a connection from the pool exceeds the given timeout in milliseconds
 /** @par Example:
     @code{.py}
-my code $cb = sub (string $dsstr, int $us, int $to) {
-    printf("WARNING: datasource pool %y took %f ms (threshold %d ms) to assign a new connection\n", $dsstr, $us.toNumber() / 1000n, $to);
+code cb = sub (string dsstr, int us, int to) {
+    printf("WARNING: datasource pool %y took %f ms (threshold %d ms) to assign a new connection\n", dsstr, us.toNumber() / 1000n, to);
 };
-$ds.setWarningCallback(5s, $cb);
+ds.setWarningCallback(5s, cb);
     @endcode
 
     @param ms the period of time with a resolution of milliseconds after which the callback will be called if a connection cannot be allocated in the given time period
@@ -890,7 +890,7 @@ DatasourcePool::setWarningCallback(timeout ms, code callback, any arg) {
 //! Returns a hash with usage information about the DatasourcePool object
 /** @par Example:
     @code{.py}
-my hash $h = $ds.getUsageInfo();
+hash h = ds.getUsageInfo();
     @endcode
 
     @return a hash with the following keys (note that the \c callback, \c timeout, and optionally \c arg keys are only set if a warning callback is set):
@@ -912,7 +912,7 @@ my hash $h = $ds.getUsageInfo();
 //! Sets the timeout period for waiting for a connection to come free; note that timeout values less than or equal to zero mean that requests for a connection will wait indefinitely
 /** @par Example:
     @code{.py}
-$ds.setErrorTimeout(30s);
+ds.setErrorTimeout(30s);
     @endcode
 
     @since %Qore 0.8.9
@@ -926,7 +926,7 @@ DatasourcePool::setErrorTimeout(timeout ts) {
 //! Returns the error timeout period for waiting for a connection to come free as an integer giving milliseconds; note that timeout values less than or equal to zero mean that requests for a connection will wait indefinitely
 /** @par Example:
     @code{.py}
-my int $ms = $ds.getErrorTimeout();
+int ms = ds.getErrorTimeout();
     @endcode
 
     @return the error timeout period for waiting for a connection to come free as an integer giving milliseconds; note that timeout values less than or equal to zero mean that requests for a connection will wait indefinitely
@@ -968,9 +968,9 @@ nothing DatasourcePool::clearEventQueue() {
 
     @par Example:
     @code{.py}
-my int $caps = $pool.getCapabilities();
-if (!($caps & DBI_CAP_TRANSACTION_MANAGEMENT))
-    throw "DATASOURCE-ERROR", sprintf("DBI driver %y does not support transaction management", $db.getDriverName());
+int caps = pool.getCapabilities();
+if (!(caps & DBI_CAP_TRANSACTION_MANAGEMENT))
+    throw "DATASOURCE-ERROR", sprintf("DBI driver %y does not support transaction management", db.getDriverName());
     @endcode
 
     @since %Qore 0.8.12
@@ -984,9 +984,9 @@ int DatasourcePool::getCapabilities() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-printf("driver %y has the following capabilities:\n", $db.getDriverName());
-foreach my string $cap in ($db.getCapabilityList())
-    printf("- %s\n", $cap);
+printf("driver %y has the following capabilities:\n", db.getDriverName());
+foreach string cap in (db.getCapabilityList())
+    printf("- %s\n", cap);
     @endcode
 
     @since %Qore 0.8.12

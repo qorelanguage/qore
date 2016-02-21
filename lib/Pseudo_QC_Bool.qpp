@@ -42,9 +42,9 @@ qclass <bool> [arg=bool b = v.getAsBool();vparent=<value>];
 
     @par Example:
     @code{.py}
-switch ($b.typeCode()) {
+switch (b.typeCode()) {
     case NT_BOOLEAN:
-        printf("%y: is a bool\n", $b);
+        printf("%y: is a bool\n", b);
         break;
 }
     @endcode
@@ -59,7 +59,7 @@ int <bool>::typeCode() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my bool $bool = $b.val();
+bool bool = b.val();
     @endcode
 
     @see
@@ -76,8 +76,8 @@ bool <bool>::val() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-if ($n.intp())
-    printf("%y: can be converted to an integer: %d\n", $n, int($n));
+if (n.intp())
+    printf("%y: can be converted to an integer: %d\n", n, int(n));
     @endcode
 */
 bool <bool>::intp() [flags=CONSTANT] {
@@ -90,8 +90,8 @@ bool <bool>::intp() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-if ($n.strp())
-    printf("%y: can be converted to a string: '%s'\n", $n, string($n));
+if (n.strp())
+    printf("%y: can be converted to a string: '%s'\n", n, string(n));
     @endcode
 */
 bool <bool>::strp() [flags=CONSTANT] {

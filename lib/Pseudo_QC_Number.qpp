@@ -45,7 +45,7 @@ const NF_Scientific = QORE_NF_SCIENTIFIC;
 /** note that this can be combined with binary or with @ref NF_Scientific as well to get an exponential output without rounding
     @par Example:
     @code{.py}
-    my string $str = $n.toString(NF_Scientific|NF_Raw);
+    string str = n.toString(NF_Scientific|NF_Raw);
     @endcode
  */
 const NF_Raw = QORE_NF_RAW;
@@ -62,9 +62,9 @@ qclass <number> [arg=const QoreNumberNode* n = v.get<const QoreNumberNode>();vpa
 
     @par Example:
     @code{.py}
-switch ($f.typeCode()) {
+switch (f.typeCode()) {
     case NT_NUMBER:
-        printf("%y: is a number\n", $f);
+        printf("%y: is a number\n", f);
         break;
 }
     @endcode
@@ -81,7 +81,7 @@ int <number>::typeCode() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my bool $b = $f.val();
+bool b = f.val();
     @endcode
 
     @see
@@ -100,8 +100,8 @@ bool <number>::val() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-if ($n.intp())
-    printf("%y: can be converted to an integer: %d\n", $n, int($n));
+if (n.intp())
+    printf("%y: can be converted to an integer: %d\n", n, int(n));
     @endcode
 
     @since %Qore 0.8.6
@@ -116,8 +116,8 @@ bool <number>::intp() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-if ($n.strp())
-    printf("%y: can be converted to a string: '%s'\n", $n, string($n));
+if (n.strp())
+    printf("%y: can be converted to a string: '%s'\n", n, string(n));
     @endcode
 
     @since %Qore 0.8.6
@@ -132,7 +132,7 @@ bool <number>::strp() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-if ($n.nanp())
+if (n.nanp())
     print("the operation resulted in NaN\n");
     @endcode
 
@@ -148,7 +148,7 @@ bool <number>::nanp() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-if ($n.infp())
+if (n.infp())
     print("the operation resulted in infinity\n");
     @endcode
 
@@ -163,7 +163,7 @@ bool <number>::infp() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-printf("sign: %d\n", $n.sign());
+printf("sign: %d\n", n.sign());
     @endcode
 
     @since %Qore 0.8.6
@@ -177,7 +177,7 @@ int <number>::sign() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-printf("precision: %d\n", $n.prec());
+printf("precision: %d\n", n.prec());
     @endcode
 
     @since %Qore 0.8.6
@@ -210,8 +210,8 @@ string <number>::toString(int fmt) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my number $n = -48392093894.2349n;
-my string $nstr = $n.format(".,3"); # returns "-48.392.093.894,235"
+number n = -48392093894.2349n;
+string nstr = n.format(".,3"); # returns "-48.392.093.894,235"
     @endcode
 
     @see
@@ -228,7 +228,7 @@ string <number>::format(string fmt) [flags=CONSTANT] {
 //! Returns the absolute value of the number
 /** @par Example:
     @code{.py}
-$n = $n.abs();
+n = n.abs();
     @endcode
 
     @return the absolute value of the number

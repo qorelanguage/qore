@@ -89,7 +89,7 @@ any sort(any arg) [flags=NOOP] {
 
     @par Example:
     @code{.py}
-my list $nl = sort($l);
+list nl = sort(l);
     @endcode
 
     @param l the list to sort
@@ -109,7 +109,7 @@ list sort(list l) [flags=CONSTANT] {
 /**
     @par Example:
     @code{.py}
-my list $nl = sort($l, "my_sort_function");
+list nl = sort(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
@@ -131,8 +131,8 @@ list sort(list l, string func) [flags=RET_VALUE_ONLY] {
 /**
     @par Example:
     @code{.py}
-my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
-my list $nl = sort($l, $sort_func);
+code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
+list nl = sort(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -223,7 +223,7 @@ any sort_descending(any arg) [flags=NOOP] {
 
     @par Example:
     @code{.py}
-my list $nl = sort_descending($l);
+list nl = sort_descending(l);
     @endcode
 
     @param l the list to sort
@@ -245,7 +245,7 @@ list sort_descending(list l) [flags=CONSTANT] {
 /**
     @par Example:
     @code{.py}
-my list $nl = sort_descending($l, "my_sort_function");
+list nl = sort_descending(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
@@ -269,8 +269,8 @@ list sort_descending(list l, string func) [flags=CONSTANT] {
 /**
     @par Example:
     @code{.py}
-my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
-my list $nl = sort_descending($l, $sort_func);
+code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
+list nl = sort_descending(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -337,8 +337,8 @@ list sortStable(list l, string func) [flags=RET_VALUE_ONLY,DEPRECATED] {
 /**
     @par Example:
     @code{.py}
-my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
-my list $nl = sortStable($l, $sort_func);
+code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
+list nl = sortStable(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -369,7 +369,7 @@ any sort_stable(any arg) [flags=NOOP] {
 
     @par Example:
     @code{.py}
-my list $nl = sort_stable($l);
+list nl = sort_stable(l);
     @endcode
 
     @param l the list to sort
@@ -391,7 +391,7 @@ list sort_stable(list l) [flags=CONSTANT] {
 /**
     @par Example:
     @code{.py}
-my list $nl = sort_stable($l, "my_sort_function");
+list nl = sort_stable(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
@@ -415,8 +415,8 @@ list sort_stable(list l, string func) [flags=RET_VALUE_ONLY] {
 /**
     @par Example:
     @code{.py}
-my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
-my list $nl = sort_stable($l, $sort_func);
+code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
+list nl = sort_stable(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -447,7 +447,7 @@ any sortDescendingStable(any arg) [flags=NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-my list $nl = sortDescendingStable($l);
+list nl = sortDescendingStable(l);
     @endcode
 
     @param l the list to sort
@@ -469,7 +469,7 @@ list sortDescendingStable(list l) [flags=CONSTANT,DEPRECATED] {
 /**
     @par Example:
     @code{.py}
-my list $nl = sortDescending($l, "my_sort_function");
+list nl = sortDescending(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
@@ -493,8 +493,8 @@ list sortDescendingStable(list l, string func) [flags=RET_VALUE_ONLY,DEPRECATED]
 /**
     @par Example:
     @code{.py}
-my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
-my list $nl = sortDescending($l, $sort_func);
+code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
+list nl = sortDescending(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -525,7 +525,7 @@ any sort_descending_stable(any arg) [flags=NOOP] {
 
     @par Example:
     @code{.py}
-my list $nl = sort_descending_stable($l);
+list nl = sort_descending_stable(l);
     @endcode
 
     @param l the list to sort
@@ -547,7 +547,7 @@ list sort_descending_stable(list l) [flags=CONSTANT] {
 /**
     @par Example:
     @code{.py}
-my list $nl = sort_descending_stable($l, "my_sort_function");
+list nl = sort_descending_stable(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
@@ -571,8 +571,8 @@ list sort_descending_stable(list l, string func) [flags=RET_VALUE_ONLY] {
 /**
     @par Example:
     @code{.py}
-my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
-my list $nl = sort_descending_stable($l, $sort_func);
+code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
+list nl = sort_descending_stable(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -596,7 +596,7 @@ list sort_descending_stable(list l, code f) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my any $v = min($l);
+any v = min(l);
     @endcode
 
     @param l the list to process
@@ -613,7 +613,7 @@ any min(list l) [flags=CONSTANT] {
 /**
     @par Example:
     @code{.py}
-my any $v = min($l, "my_sort_function");
+any v = min(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
@@ -632,8 +632,8 @@ any min(list l, string func) [flags=RET_VALUE_ONLY] {
 /**
     @par Example:
     @code{.py}
-my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
-my any $v = min($l, $sort_func);
+code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
+any v = min(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -652,7 +652,7 @@ any min(list l, code f) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my any $v = min($v1, $v2, $v3);
+any v = min(v1, v2, v3);
     @endcode
 
     @param ... the list of values to process given directly to the function
@@ -670,7 +670,7 @@ any min(...) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my any $v = max($l);
+any v = max(l);
     @endcode
 
     @param l the list to process
@@ -687,7 +687,7 @@ any max(list l) [flags=CONSTANT] {
 /**
     @par Example:
     @code{.py}
-my any $v = max($l, "my_sort_function");
+any v = max(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
@@ -706,8 +706,8 @@ any max(list l, string func) [flags=RET_VALUE_ONLY] {
 /**
     @par Example:
     @code{.py}
-my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
-my any $v = max($l, $sort_func);
+code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
+any v = max(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -726,7 +726,7 @@ any max(list l, code f) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-my any $v = max($v1, $v2, $v3);
+any v = max(v1, v2, v3);
     @endcode
 
     @param ... the list of values to process given directly to the function
@@ -749,7 +749,7 @@ nothing reverse() [flags=NOOP] {
 /**
     @par Example:
     @code{.py}
-my list $nl = reverse($l);
+list nl = reverse(l);
     @endcode
 
     @param l the list to reverse
@@ -780,8 +780,8 @@ bool inlist(any[doc] arg, nothing[doc] x) [flags=NOOP] {
 /**
     @par Example:
     @code{.py}
-if (inlist($str, $strlist))
-    printf("%y is in %y\n", $str, $strlist);
+if (inlist(str, strlist))
+    printf("%y is in %y\n", str, strlist);
     @endcode
 
     @param arg the argument to look for in the list
@@ -813,8 +813,8 @@ bool inlist_hard(any[doc] arg, nothing[doc] x) [flags=NOOP] {
 /**
     @par Example:
     @code{.py}
-if (inlist_hard($str, $strlist))
-    printf("%y is in %y\n", $str, $strlist);
+if (inlist_hard(str, strlist))
+    printf("%y is in %y\n", str, strlist);
     @endcode
 
     @param arg the argument to look for in the list

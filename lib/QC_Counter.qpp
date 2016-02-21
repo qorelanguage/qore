@@ -44,7 +44,7 @@ qclass Counter [dom=THREAD_CLASS; arg=Counter* c; ns=Qore::Thread];
 
     @par Example:
     @code{.py}
-my Counter $counter();
+Counter counter();
     @endcode
 
     @throw COUNTER-ERROR a negative number was passed to initialize the Counter
@@ -62,7 +62,7 @@ Counter::constructor(softint c = 0) {
 
     @par Example:
     @code{.py}
-delete $counter;
+delete counter;
     @endcode
 
     @throw COUNTER-ERROR Object deleted while other threads blocked on it
@@ -76,7 +76,7 @@ Counter::destructor() {
 /** 
     @par Example:
     @code{.py}
-my Counter $new_counter = $counter.copy();
+Counter new_counter = counter.copy();
     @endcode
  */
 Counter::copy() {
@@ -87,7 +87,7 @@ Counter::copy() {
 /** 
     @par Example:
     @code{.py}
-$counter.inc();
+counter.inc();
     @endcode
  */
 nothing Counter::inc() {
@@ -99,7 +99,7 @@ nothing Counter::inc() {
 
     @par Example:
     @code{.py}
-$counter.dec();
+counter.dec();
     @endcode
 
     @throw COUNTER-ERROR Counter has been deleted in another thread or Counter is already at 0
@@ -112,7 +112,7 @@ nothing Counter::dec() {
 /** 
     @par Example:
     @code{.py}
-$counter.waitForZero();
+counter.waitForZero();
     @endcode
 
     @throw COUNTER-ERROR Counter has been deleted in another thread
@@ -128,7 +128,7 @@ nothing Counter::waitForZero() {
 
     @par Example:
     @code{.py}
-if ($counter.waitForZero(1500))
+if (counter.waitForZero(1500))
     throw "TIMEOUT", "counter did not reach 0 in 1.5s";
     @endcode
 
@@ -143,7 +143,7 @@ int Counter::waitForZero(timeout timeout_ms) {
 
     @par Example:
     @code{.py}
-my int $c = $counter.getCount();
+int c = counter.getCount();
     @endcode
  */
 int Counter::getCount() [flags=CONSTANT] {
@@ -155,7 +155,7 @@ int Counter::getCount() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $c = $counter.getWaiting();
+int c = counter.getWaiting();
     @endcode
  */
 int Counter::getWaiting() [flags=CONSTANT] {

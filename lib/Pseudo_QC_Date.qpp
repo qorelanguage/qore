@@ -43,9 +43,9 @@ qclass <date> [arg=const DateTimeNode *dt = v.get<DateTimeNode>();vparent=<value
 
     @par Example:
     @code{.py}
-switch ($d.typeCode()) {
+switch (d.typeCode()) {
     case NT_DATE:
-        printf("%y: is a date\n", $d);
+        printf("%y: is a date\n", d);
 	break;
 }
     @endcode
@@ -60,7 +60,7 @@ int <date>::typeCode() {
 
     @par Example:
     @code{.py}
-my bool $b = $d.absolute();
+bool b = d.absolute();
     @endcode
 */
 bool <date>::absolute() {
@@ -73,7 +73,7 @@ bool <date>::absolute() {
 
     @par Example:
     @code{.py}
-my bool $b = $d.relative();
+bool b = d.relative();
     @endcode
 */
 bool <date>::relative() {
@@ -86,7 +86,7 @@ bool <date>::relative() {
 
     @par Example:
     @code{.py}
-my int $n = $d.years();
+int n = d.years();
     @endcode
 
     @note equivalent to get_years(date)
@@ -103,7 +103,7 @@ int <date>::years() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $n = $d.months();
+int n = d.months();
     @endcode
 
     @note equivalent to get_months(date)
@@ -120,7 +120,7 @@ int <date>::months() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $n = $d.days();
+int n = d.days();
     @endcode
 
     @note equivalent to get_days(date)
@@ -137,7 +137,7 @@ int <date>::days() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $n = $d.hours();
+int n = d.hours();
     @endcode
 
     @note equivalent to get_hours(date)
@@ -154,7 +154,7 @@ int <date>::hours() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $n = $d.minutes();
+int n = d.minutes();
     @endcode
 
     @note equivalent to get_minutes(date)
@@ -171,7 +171,7 @@ int <date>::minutes() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $n = $d.seconds();
+int n = d.seconds();
     @endcode
 
     @note
@@ -190,7 +190,7 @@ int <date>::seconds() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $n = $d.milliseconds();
+int n = d.milliseconds();
     @endcode
 
     @note
@@ -209,7 +209,7 @@ int <date>::milliseconds() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $n = $d.microseconds();
+int n = d.microseconds();
     @endcode
 
     @note
@@ -233,7 +233,7 @@ int <date>::microseconds() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $us = PT2M15S3u.durationSeconds(); # returns 135
+int us = PT2M15S3u.durationSeconds(); # returns 135
     @endcode
 
     @note
@@ -264,7 +264,7 @@ int <date>::durationSeconds() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $us = PT2M15S3u.durationMilliseconds(); # returns 135000
+int us = PT2M15S3u.durationMilliseconds(); # returns 135000
     @endcode
 
     @note
@@ -293,7 +293,7 @@ int <date>::durationMilliseconds() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $us = PT2M15S3u.durationMicroseconds(); # returns 135000003
+int us = PT2M15S3u.durationMicroseconds(); # returns 135000003
     @endcode
 
     @note
@@ -318,7 +318,7 @@ int <date>::durationMicroseconds() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my float $dt = PT2M15S3u.durationSecondsFloat(); # returns 135.000003
+float dt = PT2M15S3u.durationSecondsFloat(); # returns 135.000003
     @endcode
 
     @note
@@ -344,7 +344,7 @@ float <date>::durationSecondsFloat() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my string $str = $d.format("Day, Mon D, YYYY-MM-DD HH:mm:SS");
+string str = d.format("Day, Mon D, YYYY-MM-DD HH:mm:SS");
     @endcode
 
     @bug there is no locale support; day and month names and abbreviations are only returned in English
@@ -363,7 +363,7 @@ string <date>::format(string format) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my bool $b = $d.isDst();
+bool b = d.isDst();
     @endcode
  */
 bool <date>::isDst() [flags=CONSTANT] {
@@ -379,7 +379,7 @@ bool <date>::isDst() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my *TimeZone $zone = $d.zone();
+*TimeZone zone = d.zone();
     @endcode
  */
 *TimeZone <date>::zone() [flags=CONSTANT] {
@@ -392,7 +392,7 @@ my *TimeZone $zone = $d.zone();
 
     @par Example:
     @code{.py}
-my *string $zn = $d.currentZoneName();
+*string zn = d.currentZoneName();
     @endcode
  */
 *string <date>::currentZoneName() [flags=CONSTANT] {
@@ -412,7 +412,7 @@ my *string $zn = $d.currentZoneName();
 
     @par Example:
     @code{.py}
-my int $utcoffset = $d.getUtcOffset();
+int utcoffset = d.getUtcOffset();
     @endcode
  */
 int <date>::getUtcOffset() [flags=CONSTANT] {
@@ -424,7 +424,7 @@ int <date>::getUtcOffset() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my bool $b = $d.val();
+bool b = d.val();
     @endcode
 
     @see
@@ -441,8 +441,8 @@ bool <date>::val() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-if ($n.intp())
-    printf("%y: can be converted to an integer: %d\n", $n, int($n));
+if (n.intp())
+    printf("%y: can be converted to an integer: %d\n", n, int(n));
     @endcode
 */
 bool <date>::intp() [flags=CONSTANT] {
@@ -455,8 +455,8 @@ bool <date>::intp() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-if ($n.strp())
-    printf("%y: can be converted to a string: '%s'\n", $n, string($n));
+if (n.strp())
+    printf("%y: can be converted to a string: '%s'\n", n, string(n));
     @endcode
 */
 bool <date>::strp() [flags=CONSTANT] {
@@ -469,7 +469,7 @@ bool <date>::strp() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my date $midnight = $dt.midnight();
+date midnight = dt.midnight();
     @endcode
 
     @note equivalent to get_midnight()
@@ -485,7 +485,7 @@ date <date>::midnight() [flags=CONSTANT] {
 //! Returns the number of seconds since the start of the epoch (1970-01-01Z) for the current date for @ref absolute_dates "absolute date/time values"; returns 0 for @ref relative_dates "relative date/time values"
 /** @par Example:
     @code{.py}
-my int $secs = $d.getEpochSeconds();
+int secs = d.getEpochSeconds();
     @endcode
 
     @return the number of seconds since the start of the epoch (1970-01-01Z) for the current date for @ref absolute_dates "absolute date/time values"; returns 0 for @ref relative_dates "relative date/time values"
@@ -499,7 +499,7 @@ int <date>::getEpochSeconds() [flags=CONSTANT] {
 //! Returns the number of seconds since the start of the epoch (1970-01-01) for the current date in the local time zone for @ref absolute_dates "absolute date/time values"; returns 0 for @ref relative_dates "relative date/time values"
 /** @par Example:
     @code{.py}
-my int $secs = $d.getEpochSecondsLocalTime();
+int secs = d.getEpochSecondsLocalTime();
     @endcode
 
     @return the number of seconds since the start of the epoch (1970-01-01) for the current date in the local time zone for @ref absolute_dates "absolute date/time values"; returns 0 for @ref relative_dates "relative date/time values"
@@ -513,7 +513,7 @@ int <date>::getEpochSecondsLocalTime() [flags=CONSTANT] {
 //! Returns a hash of @ref date_info_hash "broken-down date/time information" for the date (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
 /** @par Example:
     @code{.py}
-my hash $h = date_info($date);
+hash h = date_info(date);
     @endcode
 
     @return a hash of @ref date_info_hash "broken-down date/time information" for the given date argument
@@ -532,7 +532,7 @@ hash <date>::info() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $dn = $dt.dayNumber();
+int dn = dt.dayNumber();
     @endcode
 
     @note equivalent to @ref Qore::get_day_number()
@@ -549,7 +549,7 @@ int <date>::dayNumber() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $dn = $dt.dayOfWeek();
+int dn = dt.dayOfWeek();
     @endcode
 
     @note equivalent to @ref Qore::get_day_of_week()
@@ -568,7 +568,7 @@ int <date>::dayOfWeek() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $dn = $dt.isoDayOfWeek();
+int dn = dt.isoDayOfWeek();
     @endcode
 
     @note equivalent to @ref Qore::get_iso_day_of_week()
@@ -589,7 +589,7 @@ int <date>::isoDayOfWeek() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my hash $h = 2007-05-15.isoWeekHash(); # returns year=2007, week=20, day=2
+hash h = 2007-05-15.isoWeekHash(); # returns year=2007, week=20, day=2
     @endcode
 
     @note equivalent to @ref Qore::get_iso_week_hash()
@@ -615,7 +615,7 @@ hash <date>::isoWeekHash() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my string $str = 2007-05-15.isoWeekString(); # returns "2007-W20-2"
+string str = 2007-05-15.isoWeekString(); # returns "2007-W20-2"
     @endcode
 
     @note equivalent to @ref Qore::get_iso_week_string()

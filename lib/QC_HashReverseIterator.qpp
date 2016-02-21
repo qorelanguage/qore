@@ -39,12 +39,12 @@ extern QoreClass* QC_HASHITERATOR;
 
     @par Example: HashReverseIterator basic usage
     @code{.py}
-    my hash $h = ( "key1" : 1, "key2" : 2, );
+    hash h = ( "key1" : 1, "key2" : 2, );
 
-    my HashReverseIterator $it($h);
-    while ($it.next()) {
+    HashReverseIterator it(h);
+    while (it.next()) {
         printf("getKey: %n; getKeyValue: %n; getValue: %n; getValuePair: %n\n",
-               $it.getKey(), $it.getKeyValue(), $it.getValue(), $it.getValuePair());
+               it.getKey(), it.getKeyValue(), it.getValue(), it.getValuePair());
     }
 
     getKey: "key2"; getKeyValue: 2; getValue: 2; getValuePair: hash: (key : "key2", value : 2)
@@ -70,7 +70,7 @@ qclass HashReverseIterator [arg=QoreHashReverseIterator* i; ns=Qore; vparent=Has
 
     @par Example:
     @code{.py}
-my HashReverseIterator $hi($h);
+HashReverseIterator hi(h);
     @endcode
  */
 HashReverseIterator::constructor(hash h) {
@@ -80,8 +80,8 @@ HashReverseIterator::constructor(hash h) {
 //! Creates an empty iterator object
 /** @par Example:
     @code{.py}
-my *hash $h = get_hash_or_nothing();
-my HashReverseIterator $hi($h);
+*hash h = get_hash_or_nothing();
+HashReverseIterator hi(h);
     @endcode
  */
 HashReverseIterator::constructor() {
@@ -91,7 +91,7 @@ HashReverseIterator::constructor() {
 //! Creates a copy of the HashReverseIterator object, iterating the same object as the original and in the same position
 /** @par Example:
     @code{.py}
-my HashReverseIterator $ni = $i.copy();
+HashReverseIterator ni = i.copy();
     @endcode
  */
 HashReverseIterator::copy() {
@@ -106,8 +106,8 @@ HashReverseIterator::copy() {
 
     @par Example:
     @code{.py}
-while ($i.prev()) {
-    printf(" + %y\n", $i.getValue());
+while (i.prev()) {
+    printf(" + %y\n", i.getValue());
 }
     @endcode
 
@@ -130,8 +130,8 @@ bool HashReverseIterator::next() {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    printf(" + %y\n", $i.getValue());
+while (i.next()) {
+    printf(" + %y\n", i.getValue());
 }
     @endcode
 
@@ -151,8 +151,8 @@ bool HashReverseIterator::prev() {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    if ($i.first())
+while (i.next()) {
+    if (i.first())
         printf("START:\n");
 }
     @endcode
@@ -166,8 +166,8 @@ bool HashReverseIterator::first() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-while ($i.next()) {
-    if ($i.last())
+while (i.next()) {
+    if (i.last())
         printf("END.\n");
 }
     @endcode

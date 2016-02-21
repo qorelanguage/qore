@@ -39,15 +39,15 @@ extern QoreClass* QC_HASHREVERSEITERATOR;
 
     @par Example: HashPairReverseIterator basic usage
     @code{.py}
-    my hash $data = (
+    hash data = (
             "key1" : 1,
             "key2" : 2,
             "key3" : 3,
         );
 
-    my HashPairReverseIterator $it($data);
-    while ($it.next()) {
-        printf("iter: %n\n", $it.getValue());
+    HashPairReverseIterator it(data);
+    while (it.next()) {
+        printf("iter: %n\n", it.getValue());
     }
 
     iter: hash: (key : "key3", value : 3)
@@ -74,7 +74,7 @@ qclass HashPairReverseIterator [arg=QoreHashReverseIterator* i; ns=Qore; vparent
 
     @par Example:
     @code{.py}
-my HashPairReverseIterator $hi($h);
+HashPairReverseIterator hi(h);
     @endcode
  */
 HashPairReverseIterator::constructor(hash h) {
@@ -84,8 +84,8 @@ HashPairReverseIterator::constructor(hash h) {
 //! Creates an empty iterator object
 /** @par Example:
     @code{.py}
-my *hash $h = get_hash_or_nothing();
-my HashPairReverseIterator $hi($h);
+*hash h = get_hash_or_nothing();
+HashPairReverseIterator hi(h);
     @endcode
  */
 HashPairReverseIterator::constructor() {
@@ -95,7 +95,7 @@ HashPairReverseIterator::constructor() {
 //! Creates a copy of the HashPairReverseIterator object, iterating the same object as the original and in the same position
 /** @par Example:
     @code{.py}
-my HashPairReverseIterator $ni = $i.copy();
+HashPairReverseIterator ni = i.copy();
     @endcode
  */
 HashPairReverseIterator::copy() {
@@ -107,7 +107,7 @@ HashPairReverseIterator::copy() {
 
     @par Example:
     @code{.py}
-map printf("%s: %y\n", $1.key, $1.value), $hash.pairIterator();
+map printf("%s: %y\n", $1.key, $1.value), hash.pairIterator();
     @endcode
 
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element

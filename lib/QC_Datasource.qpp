@@ -232,7 +232,7 @@ const DBI_CAP_HAS_ARRAY_BIND = DBI_CAP_HAS_ARRAY_BIND;
     To bind %Qore data values directly in a binary format in an %SQL command, use <tt>%%v</tt> in the command string, and include the value as an argument after the string. Binding by value allows the DBI driver to take care of formatting the data properly for use in the query with the database server. When binding by value, strings do not need to be quoted, date/time values do not need special formatting, binary objects (with BLOB columns, for example) can be used directly in queries, etc.\n\n
     Here is an example:
     @code{.py}
-my int $rows = $db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", $string, now(), $binary, 100);
+int rows = db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", string, now(), binary, 100);
     @endcode \n
     When using dynamic SQL, to insert a numeric value or a literal \c "null" in a query, use \c %%d in the command string, and include the value as an argument after the string. If the value is @ref nothing or @ref null, a literal \c "null" will be written to the string; otherwise the argument is converted to an arbitrary-precision number or integer value if necessary and written to the string. This is useful for working with \c DECIMAL (\c NUMERIC, \c NUMBER) types in a database-independent way; for example PostgreSQL servers do not do type conversions to \c DECIMAL types when a string, integer, or float is bound by value, therefore to ensure that integral decimal values can be used in a database-independent way (with \c "null" substitution when no value is bound), a valid approach is to use the \c %%d code in the command string instead of \c %%v.  However please note that \c %%v is normally preferred to keep the server-side statement cache a manageable size, in the previous example using the int(), float(), or number() functions to convert string values before binding with \c %%v may be better.\n\n
     For binding placeholders for output variables, write a unique name in the string and prefix it with a colon (ex: \c ":code"). In this case the method will return a hash of the output variables using the placeholder names as keys, but without the colon prefix. By default, a string type will be bound to the position. To bind other variable types to placeholder positions, include the type constant (see @ref sql_constants) as an argument after the command string. For BLOBs, use Binary, for CLOBs, use the string "clob" (constants will be provided in a future release). Not all DBI drivers require placeholder buffer specifications; see the documentation for the DBI driver in question for more information and examples regarding placeholder buffer specifications.
@@ -276,7 +276,7 @@ qclass Datasource [dom=DATABASE; arg=ManagedDatasource* ds; ns=Qore::SQL; vparen
 
     @par Example:
     @code{.py}
-my Datasource $db(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 5432);
+Datasource db(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 5432);
     @endcode
 
     @throw DATASOURCE-UNSUPPORTED-DATABASE DBI driver cannot be loaded
@@ -344,7 +344,7 @@ Datasource::constructor(string driver, *string user, *string pass, *string db, *
 
     @par Example:
     @code{.py}
-my Datasource ds("pgsql:user/pass@db01(utf8)%localhost:5432");
+Datasource ds("pgsql:user/pass@db01(utf8)%localhost:5432");
     @endcode
 
     @throw DATASOURCE-UNSUPPORTED-DATABASE DBI driver cannot be loaded
@@ -379,7 +379,7 @@ Datasource::constructor(string desc, *Qore::Thread::Queue[Queue] queue, any arg)
 
     @par Example:
     @code{.py}
-my Datasource $db(("type": DSPGSQL, "user": "username", "pass": "password", "db": "database", "charset": "utf8", "host": "localhost", "port": 5432);
+Datasource db(("type": DSPGSQL, "user": "username", "pass": "password", "db": "database", "charset": "utf8", "host": "localhost", "port": 5432);
     @endcode
 
     @throw DATASOURCE-UNSUPPORTED-DATABASE DBI driver cannot be loaded
@@ -394,7 +394,7 @@ Datasource::constructor(hash opts, *Qore::Thread::Queue[Queue] queue, any arg) {
 /**
     @par Example:
     @code{.py}
-delete $db;
+delete db;
     @endcode
 
     @throw DATASOURCE-TRANSACTION-EXCEPTION The Datasource was destroyed while a transaction was still in progress; the transaction will be automatically rolled back
@@ -408,7 +408,7 @@ Datasource::destructor() {
 /**
     @par Example:
     @code{.py}
-my Datasource $new_ds = $ds.copy();
+Datasource new_ds = ds.copy();
     @endcode
  */
 Datasource::copy() {
@@ -420,7 +420,7 @@ Datasource::copy() {
 
     @par Example:
     @code{.py}
-$db.open();
+db.open();
     @endcode
 
     @note see the documentation for the DBI driver being used for possible exceptions
@@ -435,7 +435,7 @@ nothing Datasource::open() {
 /**
     @par Example:
     @code{.py}
-$db.close();
+db.close();
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
@@ -450,7 +450,7 @@ nothing Datasource::close() {
 /**
     @par Example:
     @code{.py}
-$db.commit();
+db.commit();
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
@@ -465,7 +465,7 @@ nothing Datasource::commit() {
 /**
     @par Example:
     @code{.py}
-$db.rollback();
+db.rollback();
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
@@ -480,7 +480,7 @@ nothing Datasource::rollback() {
 /** @param ac @ref True to turn on autocommit (a commit will be executed after every %SQL call to the server), @ref False to turn off autocommit (commits must be manually triggered)
     @par Example:
     @code{.py}
-$db.setAutoCommit(False);
+db.setAutoCommit(False);
     @endcode
  */
 nothing Datasource::setAutoCommit(bool ac = True) {
@@ -492,7 +492,7 @@ nothing Datasource::setAutoCommit(bool ac = True) {
 
     @par Example:
     @code{.py}
-my bool $b = $db.getAutoCommit();
+bool b = db.getAutoCommit();
     @endcode
  */
 bool Datasource::getAutoCommit() [flags=CONSTANT] {
@@ -509,7 +509,7 @@ bool Datasource::getAutoCommit() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $rows = $db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", $string, now(), $binary, 100);
+int rows = db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", string, now(), binary, 100);
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
@@ -533,7 +533,7 @@ any Datasource::exec(string sql, ...) {
 
     @par Example:
     @code{.py}
-my int $rows = $db.vexec("insert into example_table value (%v, %v, %v)", $arg_list);
+int rows = db.vexec("insert into example_table value (%v, %v, %v)", arg_list);
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
@@ -556,7 +556,7 @@ any Datasource::vexec(string sql, *softlist vargs) {
 
     @par Example:
     @code{.py}
-$db.execRaw("create table my_tab (id number, some_text varchar2(30))");
+db.execRaw("create table my_tab (id number, some_text varchar2(30))");
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
@@ -585,7 +585,7 @@ any Datasource::execRaw(string sql) {
     @par Example:
     @code{.py}
 # bind a string and a date/time value by value in a query
-$query = $db.select("select * from table where varchar_column = %v and timestamp_column > %v", $string, 2007-10-11T15:31:26.289);
+query = db.select("select * from table where varchar_column = %v and timestamp_column > %v", string, 2007-10-11T15:31:26.289);
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
@@ -618,7 +618,7 @@ any Datasource::select(string sql, ...) {
 
     @par Example:
     @code{.py}
-my *hash $h = $db.selectRow("select * from example_table where id = 1");
+*hash h = db.selectRow("select * from example_table where id = 1");
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
@@ -647,7 +647,7 @@ my *hash $h = $db.selectRow("select * from example_table where id = 1");
 
     @par Example:
     @code{.py}
-my *list $list = $db.selectRows("select * from example_table");
+*list list = db.selectRows("select * from example_table");
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
@@ -678,7 +678,7 @@ any Datasource::selectRows(string sql, ...) {
 
     @par Example:
     @code{.py}
-my *hash $query = $db.vselect("select * from example_table where id = %v and name = %v", $arg_list);
+*hash query = db.vselect("select * from example_table where id = %v and name = %v", arg_list);
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
@@ -710,7 +710,7 @@ any Datasource::vselect(string sql, *softlist vargs) {
 
     @par Example:
     @code{.py}
-my *hash $h = $db.vselectRow("select * from example_table where id = %v and type = %v", $arg_list);
+*hash h = db.vselectRow("select * from example_table where id = %v and type = %v", arg_list);
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
@@ -741,7 +741,7 @@ my *hash $h = $db.vselectRow("select * from example_table where id = %v and type
 
     @par Example:
     @code{.py}
-my *list $list = $db.vselectRows("select * from example_table where id = %v and type = %v", $arg_list);
+*list list = db.vselectRows("select * from example_table where id = %v and type = %v", arg_list);
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
@@ -773,7 +773,7 @@ any Datasource::vselectRows(string sql, *softlist vargs) {
 
     @par Example:
     @code{.py}
-my *hash $h = $db.describe("select * from example_table where id = 1");
+*hash h = db.describe("select * from example_table where id = 1");
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
@@ -796,7 +796,7 @@ my *hash $h = $db.describe("select * from example_table where id = 1");
 
     @par Example:
     @code{.py}
-$db.beginTransaction();
+db.beginTransaction();
     @endcode
 
     @throw AUTOCOMMIT-ERROR Cannot start a transaction when autocommit is enabled
@@ -810,7 +810,7 @@ nothing Datasource::beginTransaction() {
 /**
     @par Example:
     @code{.py}
-$db.reset();
+db.reset();
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
@@ -826,9 +826,9 @@ nothing Datasource::reset() {
 
     @par Example:
     @code{.py}
-my int $caps = $db.getCapabilities();
-if (!($caps & DBI_CAP_TRANSACTION_MANAGEMENT))
-    throw "DATASOURCE-ERROR", sprintf("DBI driver %y does not support transaction management", $db.getDriverName());
+int caps = db.getCapabilities();
+if (!(caps & DBI_CAP_TRANSACTION_MANAGEMENT))
+    throw "DATASOURCE-ERROR", sprintf("DBI driver %y does not support transaction management", db.getDriverName());
     @endcode
  */
 int Datasource::getCapabilities() [flags=CONSTANT] {
@@ -840,9 +840,9 @@ int Datasource::getCapabilities() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-printf("driver %y has the following capabilities:\n", $db.getDriverName());
-foreach my string $cap in ($db.getCapabilityList())
-    printf("- %s\n", $cap);
+printf("driver %y has the following capabilities:\n", db.getDriverName());
+foreach string cap in (db.getCapabilityList())
+    printf("- %s\n", cap);
     @endcode
  */
 list Datasource::getCapabilityList() [flags=CONSTANT] {
@@ -856,7 +856,7 @@ list Datasource::getCapabilityList() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-$db.setUserName($user);
+db.setUserName(user);
     @endcode
  */
 nothing Datasource::setUserName(string user) {
@@ -870,7 +870,7 @@ nothing Datasource::setUserName(string user) {
 
     @par Example:
     @code{.py}
-$db.setPassword($pass);
+db.setPassword(pass);
     @endcode
  */
 nothing Datasource::setPassword(string pass) {
@@ -884,7 +884,7 @@ nothing Datasource::setPassword(string pass) {
 
     @par Example:
     @code{.py}
-$db.setDBName($db);
+db.setDBName(db);
     @endcode
  */
 nothing Datasource::setDBName(string db) {
@@ -900,7 +900,7 @@ nothing Datasource::setDBName(string db) {
 
     @par Example:
     @code{.py}
-$db.setDBCharset($encoding);
+db.setDBCharset(encoding);
     @endcode
  */
 nothing Datasource::setDBCharset(string encoding) {
@@ -914,7 +914,7 @@ nothing Datasource::setDBCharset(string encoding) {
 
     @par Example:
     @code{.py}
-$db.setDBEncoding($encoding);
+db.setDBEncoding(encoding);
     @endcode
  */
 nothing Datasource::setDBEncoding(string encoding) {
@@ -928,7 +928,7 @@ nothing Datasource::setDBEncoding(string encoding) {
 
     @par Example:
     @code{.py}
-$db.setHostName($host);
+db.setHostName(host);
     @endcode
  */
 nothing Datasource::setHostName(string host) {
@@ -942,7 +942,7 @@ nothing Datasource::setHostName(string host) {
 
     @par Example:
     @code{.py}
-$db.setPort($port);
+db.setPort(port);
     @endcode
  */
 nothing Datasource::setPort(softint port = 0) {
@@ -954,7 +954,7 @@ nothing Datasource::setPort(softint port = 0) {
 
     @par Example:
     @code{.py}
-my *string $user = $db.getUserName();
+*string user = db.getUserName();
     @endcode
  */
 *string Datasource::getUserName() [flags=CONSTANT] {
@@ -966,7 +966,7 @@ my *string $user = $db.getUserName();
 
     @par Example:
     @code{.py}
-my *string $pass = $db.getPassword();
+*string pass = db.getPassword();
     @endcode
  */
 *string Datasource::getPassword() [flags=CONSTANT] {
@@ -978,7 +978,7 @@ my *string $pass = $db.getPassword();
 
     @par Example:
     @code{.py}
-my *string $db = $db.getDBName();
+*string db = db.getDBName();
     @endcode
  */
 *string Datasource::getDBName() [flags=CONSTANT] {
@@ -992,7 +992,7 @@ my *string $db = $db.getDBName();
 
     @par Example:
     @code{.py}
-my string $enc = $db.getDBCharset();
+string enc = db.getDBCharset();
     @endcode
  */
 string Datasource::getDBCharset() [flags=CONSTANT] {
@@ -1004,7 +1004,7 @@ string Datasource::getDBCharset() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my string $enc = $db.getDBEncoding();
+string enc = db.getDBEncoding();
     @endcode
 
     @see Datasource::getOSEncoding();
@@ -1018,7 +1018,7 @@ string Datasource::getDBEncoding() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my string $enc = $db.getOSCharset();
+string enc = db.getOSCharset();
     @endcode
 
     @see Datasource::getOSEncoding()
@@ -1033,7 +1033,7 @@ string Datasource::getOSCharset() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my *string $enc = $db.getOSEncoding();
+*string enc = db.getOSEncoding();
     @endcode
  */
 *string Datasource::getOSEncoding() [flags=CONSTANT] {
@@ -1046,7 +1046,7 @@ my *string $enc = $db.getOSEncoding();
 
     @par Example:
     @code{.py}
-my *string $host = $db.getHostName();
+*string host = db.getHostName();
     @endcode
  */
 *string Datasource::getHostName() [flags=CONSTANT] {
@@ -1058,7 +1058,7 @@ my *string $host = $db.getHostName();
 
     @par Example:
     @code{.py}
-my *int $port = $db.getPort();
+*int port = db.getPort();
     @endcode
  */
 *int Datasource::getPort() [flags=CONSTANT] {
@@ -1071,7 +1071,7 @@ my *int $port = $db.getPort();
 
     @par Example:
     @code{.py}
-$db.setTransactionLockTimeout(4s);
+db.setTransactionLockTimeout(4s);
     @endcode
  */
 nothing Datasource::setTransactionLockTimeout(timeout timeout_ms = 0) {
@@ -1083,7 +1083,7 @@ nothing Datasource::setTransactionLockTimeout(timeout timeout_ms = 0) {
 
     @par Example:
     @code{.py}
-my int $to_ms = $db.getTransactionLockTimeout();
+int to_ms = db.getTransactionLockTimeout();
     @endcode
  */
 int Datasource::getTransactionLockTimeout() [flags=CONSTANT] {
@@ -1095,7 +1095,7 @@ int Datasource::getTransactionLockTimeout() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my string $driver = $db.getDriverName();
+string driver = db.getDriverName();
     @endcode
  */
 string Datasource::getDriverName() [flags=CONSTANT] {
@@ -1107,7 +1107,7 @@ string Datasource::getDriverName() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my any $ver = $db.getServerVersion();
+any ver = db.getServerVersion();
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
@@ -1123,7 +1123,7 @@ any Datasource::getServerVersion() {
 
     @par Example:
     @code{.py}
-my any $ver = $db.getClientVersion();
+any ver = db.getClientVersion();
     @endcode
 
     @note see the documentation for the DBI driver being used for possible exceptions
@@ -1137,7 +1137,7 @@ any Datasource::getClientVersion() {
 
     @par Example:
     @code{.py}
-my bool $b = $db.inTransaction();
+bool b = db.inTransaction();
     @endcode
  */
 bool Datasource::inTransaction() [flags=CONSTANT] {
@@ -1149,7 +1149,7 @@ bool Datasource::inTransaction() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my bool $b = $db.currentThreadInTransaction();
+bool b = db.currentThreadInTransaction();
     @endcode
 
     @see Datasource::transactionTid()
@@ -1168,7 +1168,7 @@ bool Datasource::currentThreadInTransaction() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my int $tid = $db.transactionTid();
+int tid = db.transactionTid();
     @endcode
 
     @see Datasource::currentThreadInTransaction()
@@ -1227,7 +1227,7 @@ any Datasource::getOption(string opt) [flags=RET_VALUE_ONLY] {
 //! Returns a @ref datasource_hash "datasource hash" describing the configuration of the current object
 /** @par Example:
     @code{.py}
-my hash $h = $ds.getConfigHash();
+hash h = ds.getConfigHash();
     @endcode
 
     @return a @ref datasource_hash "datasource hash" describing the configuration of the current object
@@ -1241,7 +1241,7 @@ hash Datasource::getConfigHash() [flags=CONSTANT] {
 //! Returns a string giving the configuration of the current object in a format that can be parsed by parse_datasource()
 /** @par Example:
     @code{.py}
-my string $str = $ds.getConfigString();
+string str = ds.getConfigString();
     @endcode
 
     @return a string giving the configuration of the current object in a format that can be parsed by parse_datasource()

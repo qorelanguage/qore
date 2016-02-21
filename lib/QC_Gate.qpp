@@ -39,9 +39,9 @@
     Additionally, the @ref on_exit "on_exit statement" can provide exception-safe Gate handling at the lexical block level as in the following example:
     @code{.py}
 {
-    $g.enter();
+    g.enter();
     on_exit
-        $g.exit();
+        g.exit();
     # ... when this block exits the gate lock counter will be decremented,
     #     even in the case of return statements or exceptions
 }
@@ -65,7 +65,7 @@ qclass Gate [dom=THREAD_CLASS; arg=QoreGate* g; ns=Qore::Thread];
 /**
     @par Example:
     @code{.py}
-my Gate $gate();
+Gate gate();
     @endcode
  */
 Gate::constructor() {
@@ -77,7 +77,7 @@ Gate::constructor() {
 
     @par Example:
     @code{.py}
-delete $gate;
+delete gate;
     @endcode
 
     @throw LOCK-ERROR Object deleted while other threads blocked on it
@@ -91,7 +91,7 @@ Gate::destructor() {
 /**
     @par Example:
     @code{.py}
-my Gate $new_gate = $gate.copy();
+Gate new_gate = gate.copy();
     @endcode
  */
 Gate::copy() {
@@ -106,7 +106,7 @@ Gate::copy() {
 
     @par Example:
     @code{.py}
-if ($gate.enter(1500ms))
+if (gate.enter(1500ms))
     throw "TIMEOUT-ERROR", "gate acquisition timed out after 1.5s";
     @endcode
 
@@ -121,7 +121,7 @@ int Gate::enter(timeout timeout_ms) {
 /**
     @par Example:
     @code{.py}
-$gate.enter();
+gate.enter();
     @endcode
 
     @throw LOCK-ERROR object deleted in another thread, etc
@@ -137,7 +137,7 @@ nothing Gate::enter() {
 
     @par Example:
     @code{.py}
-$gate.exit();
+gate.exit();
     @endcode
 
     @throw LOCK-ERROR lock not owned by the current thread, object deleted in another thread, etc
@@ -152,8 +152,8 @@ int Gate::exit() {
 
     @par Example:
     @code{.py}
-if ($gate.tryEnter()) {
-    on_exit $gate.exit();
+if (gate.tryEnter()) {
+    on_exit gate.exit();
     printf("YIPEE!  We finally got the gate!\n");
 }
     @endcode
@@ -169,7 +169,7 @@ int Gate::tryEnter() {
 
     @par Example:
     @code{.py}
-my int $c = $gate.numInside();
+int c = gate.numInside();
     @endcode
  */
 int Gate::numInside() [flags=CONSTANT] {
@@ -180,7 +180,7 @@ int Gate::numInside() [flags=CONSTANT] {
 /**
     @par Example:
     @code{.py}
-my int $c = $gate.numWaiting();
+int c = gate.numWaiting();
     @endcode
  */
 int Gate::numWaiting() [flags=CONSTANT] {

@@ -47,7 +47,7 @@ qclass Condition [dom=THREAD_CLASS; arg=Condition* c; ns=Qore::Thread];
 /** 
     @par Example:
     @code{.py}
-my Condition $cond();
+Condition cond();
     @endcode
  */
 Condition::constructor() {
@@ -58,7 +58,7 @@ Condition::constructor() {
 /** 
     @par Example:
     @code{.py}
-my Condition $new_cond = $cond.copy();
+Condition new_cond = cond.copy();
     @endcode
  */
 Condition::copy() {
@@ -70,9 +70,9 @@ Condition::copy() {
 
     @par Example:
     @code{.py}
-$m.lock();
-$cond.signal();
-$m.unlock();
+m.lock();
+cond.signal();
+m.unlock();
     @endcode
 
     @throw CONDITION-SIGNAL-ERROR This exception should never be thrown - it indicates a low-level error in executing the method
@@ -87,9 +87,9 @@ nothing Condition::signal() {
 
     @par Example:
     @code{.py}
-$m.lock();
-$cond.broadcast();
-$m.unlock();
+m.lock();
+cond.broadcast();
+m.unlock();
     @endcode
 
     @throw CONDITION-BROADCAST-ERROR This exception should never be thrown - it indicates a low-level error in executing the method
@@ -109,12 +109,12 @@ nothing Condition::broadcast() {
 
     @par Example:
     @code{.py}
-$m.lock();
-on_exit $m.unlock();
-while ($some_value > 0) {
-    $cond.wait($m);    
+m.lock();
+on_exit m.unlock();
+while (some_value > 0) {
+    cond.wait(m);    
 }
-printf("finally $some_value is 0\n");
+printf("finally some_value is 0\n");
     @endcode
 
     @throw CONDITION-WAIT-ERROR This exception should never be thrown - it indicates a low-level error in executing the method
@@ -139,7 +139,7 @@ int Condition::wait(AbstractSmartLock[AbstractSmartLock] lock, timeout timeout_m
 
     @par Example:
     @code{.py}
-printf("%d thread(s) waiting on the Condition\n", $cond.wait_count($m));
+printf("%d thread(s) waiting on the Condition\n", cond.wait_count(m));
     @endcode
  */
 int Condition::wait_count(AbstractSmartLock[AbstractSmartLock] lock) {
