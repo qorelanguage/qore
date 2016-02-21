@@ -39,7 +39,7 @@
     AutoWriteLock objects are helper objects that acquire a write lock for the lifetime of the AutoWriteLock object. For this reason, it is only appropriate to assign an AutoWriteLock object to a local variable, so when the local variable goes out of scope, the AutoWriteLock object will be deleted and the write lock will be automatically released.
 
     For example:
-    @code
+    @code{.py}
 our RWLock $rwl();
 
 sub check_error($error) {
@@ -62,7 +62,7 @@ qclass AutoWriteLock [dom=THREAD_CLASS; arg=QoreAutoWriteLock* arwl; ns=Qore::Th
 /** The AutoReadLock object immediately calls RWLock::writeLock() on the RWLock object passed, and saves it so it can be released when the AutoReadLock object is destroyed.
 
     @par Example:
-    @code
+    @code{.py}
 my AutoWriteLock $awl($rwlock);
     @endcode
 
@@ -78,7 +78,7 @@ AutoWriteLock::constructor(RWLock[RWLock] rwl) {
 //! Calls RWLock::writeUnlock() on the saved RWLock and destroys the AutoWriteLock object
 /** 
     @par Example:
-    @code
+    @code{.py}
 delete $awl;
     @endcode
 

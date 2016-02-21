@@ -35,7 +35,7 @@
 /** @since %Qore 0.8.6
 
     @par Example: SingleValueIterator basic usage
-    @code
+    @code{.py}
     my any $val = 1;
     my SingleValueIterator $it($val);
     while ($it.next()) {
@@ -47,7 +47,7 @@
 
     Remember that input value is taken as a single token so result of the code above for a list as an input argument will be like this:
 
-    @code
+    @code{.py}
     my any $val = (1, 2, 3);
     iter: list: (1, 2, 3)
     @endcode
@@ -59,7 +59,7 @@ qclass SingleValueIterator [arg=SingleValueIterator* i; ns=Qore; vparent=Abstrac
 /** @param v the value to iterate
 
     @par Example:
-    @code
+    @code{.py}
 my SingleValueIterator i($v);
     @endcode
  */
@@ -69,7 +69,7 @@ SingleValueIterator::constructor(any v) {
 
 //! Creates a copy of the SingleValueIterator object, iterating the same object as the original and in the same position
 /** @par Example:
-    @code
+    @code{.py}
 my SingleValueIterator $ni = $i.copy();
     @endcode
  */
@@ -83,7 +83,7 @@ SingleValueIterator::copy() {
     @return @ref Qore::True "True" and @ref Qore::False "False" alternately unless it has no value to iterate, in which case it returns only @ref Qore::False "False"
 
     @par Example:
-    @code
+    @code{.py}
 while ($i.next()) {
     printf("value: %y\n", $i.getValue());
 }
@@ -101,7 +101,7 @@ bool SingleValueIterator::next() {
 /** @return the current value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
 
     @par Example:
-    @code
+    @code{.py}
 while ($i.next()) {
     printf("+ %y\n", $i.getValue());
 }
@@ -117,7 +117,7 @@ any SingleValueIterator::getValue() [flags=RET_VALUE_ONLY] {
 /** @return @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
 
     @par Example:
-    @code
+    @code{.py}
 if ($i.valid())
     printf("current value: %y\n", $i.getValue());
     @endcode
@@ -130,7 +130,7 @@ bool SingleValueIterator::valid() [flags=CONSTANT] {
 /** Reset the iterator instance to its initial state
 
    @par Example
-   @code
+   @code{.py}
 $i.reset();
    @endcode
 

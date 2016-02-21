@@ -135,7 +135,7 @@ namespace Qore::SQL;
     @return a @ref datasource_hash "datasource hash" of the components of a datasource string
 
     @par Example:
-    @code
+    @code{.py}
 my hash $h = parse_datasource("pgsql:user/pass@dbname(utf8)%dbhost.internal:1521{min=4,max=10}");
     @endcode
 
@@ -154,7 +154,7 @@ hash parse_datasource(string ds) [flags=RET_VALUE_ONLY] {
     @return a list of strings of DBI drivers currently loaded or @ref nothing if no drivers are loaded
 
     @par Example:
-    @code
+    @code{.py}
 my *list $l = dbi_get_driver_list();
     @endcode
 
@@ -173,7 +173,7 @@ my *list $l = dbi_get_driver_list();
     @return a list of each capability supported by the given DBI driver (see @ref dbi_capabilities) or @ref nothing if the driver cannot be found
 
     @par Example:
-    @code
+    @code{.py}
 my *list $l = dbi_get_driver_capability_list("pgsql");
     @endcode
 
@@ -192,7 +192,7 @@ my *list $l = dbi_get_driver_capability_list("pgsql");
     @return an integer representing the capabilities of a DBI driver binary-OR'ed together (see @ref dbi_capabilities) or 0 if the driver is not already loaded
 
     @par Example:
-    @code
+    @code{.py}
 my int $caps = dbi_get_driver_capabilities("pgsql");
     @endcode
 
@@ -214,7 +214,7 @@ int dbi_get_driver_capabilities(string driver) [flags=CONSTANT] {
     - \c "type": a string giving the data type restriction for the option
 
     @par Example:
-    @code
+    @code{.py}
 my *hash $h = dbi_get_driver_options("pgsql");
     @endcode
 

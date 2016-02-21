@@ -39,7 +39,7 @@ qclass <callref> [arg=const ResolvedCallReferenceNode* c = v.get<ResolvedCallRef
 //! Returns Qore::NT_CALLREF
 /**
     @par Example:
-    @code
+    @code{.py}
 switch ($c.typeCode()) {
     case NT_CALLREF:
         printf("%y: is a call reference\n", $c);
@@ -56,7 +56,7 @@ int <callref>::typeCode() [flags=CONSTANT] {
 //! Returns @ref True
 /**
     @par Example:
-    @code
+    @code{.py}
 my bool $b = $c.val();
     @endcode
 
@@ -83,7 +83,7 @@ any <callref>::exec(...) {
 //! Returns @ref True because this is a callable type
 /**
     @par Example:
-    @code
+    @code{.py}
 if ($n.callp())
     printf("the result of calling the value: %y\n", $n());
     @endcode

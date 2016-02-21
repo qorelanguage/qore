@@ -178,7 +178,7 @@ static bool is_writable_intern(const QoreStringNode* path) {
     @return @ref True if the string passed identifies a regular file on the filesystem, @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = is_file("/etc/hosts");
     @endcode
  */
@@ -193,7 +193,7 @@ bool is_file(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @return @ref True if the string passed identifies a directory on the filesystem, @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = is_dir("/tmp/mydir");
     @endcode
  */
@@ -210,7 +210,7 @@ bool is_dir(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @return @ref True if the string passed identifies a socket on the filesystem, @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = is_socket("/tmp/X0");
     @endcode
  */
@@ -230,7 +230,7 @@ bool is_socket(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @return @ref True if the string passed identifies a pipe (FIFO) on the filesystem, @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = is_pipe("/tmp/mypipe");
     @endcode
  */
@@ -245,7 +245,7 @@ bool is_pipe(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @return @ref True if the string passed identifies a character device on the filesystem, @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = is_cdev("/tmp/tty");
     @endcode
  */
@@ -260,7 +260,7 @@ bool is_cdev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @return @ref True if the string passed identifies a block device on the filesystem, @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = is_bdev("/tmp/sda1");
     @endcode
  */
@@ -275,7 +275,7 @@ bool is_bdev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @return @ref True if the string passed identifies a device (either block or character) on the filesystem, @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = is_dev("/tmp/scanner");
     @endcode
  */
@@ -302,7 +302,7 @@ bool is_dev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @return @ref True if the string passed identifies a symbolic link on the filesystem, @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = is_link("/etc/hosts");
     @endcode
  */
@@ -322,7 +322,7 @@ bool is_link(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @return @ref True if the string passed identifies a file readable by the current user, @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = is_readable("/etc/hosts");
     @endcode
 
@@ -339,7 +339,7 @@ bool is_readable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @return @ref True if the string passed identifies a file writable by the current user, @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = is_writable("/etc/hosts");
     @endcode
 
@@ -356,7 +356,7 @@ bool is_writable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @return @ref True if the string passed identifies a file writable by the current user, @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = is_writeable("/etc/hosts");
     @endcode
 
@@ -375,7 +375,7 @@ bool is_writeable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @return @ref True if the string passed identifies an executable on the filesystem, @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = is_executable("/bin/login");
     @endcode
  */
@@ -405,7 +405,7 @@ bool is_executable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @param new_path The target path for the file
 
     @par Example:
-    @code
+    @code{.py}
 rename("/tmp/myfile", "/tmp/myfile.txt");
     @endcode
 
@@ -437,7 +437,7 @@ nothing rename(string old_path, string new_path) [dom=FILESYSTEM] {
     @return a @ref filesystem_status_hash; or, if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
 
     @par Example:
-    @code
+    @code{.py}
 my *hash $h = statvfs("/tmp")
     @endcode
 
@@ -461,7 +461,7 @@ my *hash $h = statvfs("/tmp")
     @return a @ref stat_list "list of file status values" for the path argument, following any symbolic links; if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
 
     @par Example:
-    @code
+    @code{.py}
 my *list $l = stat("/tmp/file.txt");
 if (!exists $l)
     printf("could not stat /tmp/file.txt: %s\n", strerror());
@@ -490,7 +490,7 @@ nothing stat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 
     @return a @ref stat_list "list of file status values" for the path argument and does not follow symbolic links; if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
     @par Example:
-    @code
+    @code{.py}
 my *list $l = lstat("/tmp/file.txt");
 if (!exists $l)
     printf("could not lstat /tmp/file.txt: %s\n", strerror());
@@ -526,7 +526,7 @@ nothing lstat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
     @return a @ref stat_hash "hash of file status values" for the path argument, following any symbolic links; if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
 
     @par Example:
-    @code
+    @code{.py}
 my *hash $h = hstat("/tmp/file.txt");
 if (!exists $h)
     printf("could not hstat /tmp/file.txt: %s\n", strerror());
@@ -556,7 +556,7 @@ nothing hstat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
     @return a @ref stat_hash "hash of file status values" for the path argument and does not follow symbolic links; if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
 
     @par Example:
-    @code
+    @code{.py}
 my *hash $h = hlstat("/tmp/file.txt");
 if (!exists $h)
     printf("could not hlstat /tmp/file.txt: %s\n", strerror());
@@ -591,7 +591,7 @@ nothing hlstat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
     @return a list of files matching the string argument or @ref nothing if the call to glob() fails, in which case errno() can be used to get the error
 
     @par Example:
-    @code
+    @code{.py}
 my *list $gl = glob("*.txt");
 if (!exists $gl)
     printf("failed to glob *.txt: %s\n", strerror());
@@ -626,7 +626,7 @@ nothing glob() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
     @return 0 for success, -1 for error (in which case errno() can be used to get the error)
 
     @par Example:
-    @code
+    @code{.py}
 if (unlink($path))
     printf("%s: %s\n", $path, strerror());
     @endcode
@@ -647,7 +647,7 @@ nothing unlink() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
     @return the old file creation mode mask for the process
 
     @par Example:
-    @code
+    @code{.py}
 if (unlink($path))
     printf("%s: %s\n", $path, strerror());
     @endcode
@@ -669,7 +669,7 @@ nothing umask() [flags=RUNTIME_NOOP;dom=PROCESS] {
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
-    @code
+    @code{.py}
 if (mkdir("/tmp/newdir", 0755))
     printf("mkdir /tmp/newdir: %s\n", strerror());
     @endcode
@@ -690,7 +690,7 @@ int mkdir(string path, softint mode = 0777) [dom=FILESYSTEM] {
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
-    @code
+    @code{.py}
 if (rmdir("/tmp/newdir"))
     printf("rmdir /tmp/newdir: %s\n", strerror());
     @endcode
@@ -706,7 +706,7 @@ int rmdir(string path) [dom=FILESYSTEM] {
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
-    @code
+    @code{.py}
 if (chmod("/bin/login", 0755))
     printf("rmdir /tmp/newdir: %s\n", strerror());
     @endcode
@@ -722,7 +722,7 @@ int chmod(string path, softint mode) [dom=FILESYSTEM] {
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
-    @code
+    @code{.py}
 if (chdir($dir))
     printf("chdir %s: %s\n", $dir, strerror());
     @endcode
@@ -737,7 +737,7 @@ int chdir(string path) [dom=PROCESS,FILESYSTEM] {
 /** @return a string giving the current working directory or @ref nothing if the current working directory could not be read
 
     @par Example:
-    @code
+    @code{.py}
 my *string $cwd = getcwd();
     @endcode
 
@@ -751,7 +751,7 @@ my *string $cwd = getcwd();
 //! Returns a string giving the current working directory; throws an exception if the current directory cannot be read
 /**
     @par Example:
-    @code
+    @code{.py}
 my string $cwd = getcwd2();
     @endcode
 
@@ -775,7 +775,7 @@ string getcwd2() [flags=RET_VALUE_ONLY;dom=FILESYSTEM,EXTERNAL_INFO] {
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
-    @code
+    @code{.py}
 if (mkfifo("/tmp/pipe"))
     printf("mkfifo /tmp/pipe: %s\n", strerror());
     @endcode
@@ -799,7 +799,7 @@ int mkfifo(string path, softint mode = 0600) [dom=FILESYSTEM] {
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
-    @code
+    @code{.py}
 if (chown("/bin/login", 0, 0))
     printf("chown /bin/login: %s\n", strerror());
     @endcode
@@ -825,7 +825,7 @@ int chown(string path, softint owner = -1, softint group = -1) [dom=FILESYSTEM] 
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
-    @code
+    @code{.py}
 if (lchown("/tmp/socket", 0, 0))
     printf("lchown /tmp/socket: %s\n", strerror());
     @endcode
@@ -849,7 +849,7 @@ int lchown(string path, softint uid = -1, softint gid = -1) [dom=FILESYSTEM] {
     @return the target of the link; throws an exception if the given path is not a symbolic link (or if another error occurs)
 
     @par Example:
-    @code
+    @code{.py}
 my string $str = readlink("/tmp/symbolic_link");
     @endcode
 
@@ -880,7 +880,7 @@ string readlink(string path) [dom=FILESYSTEM] {
     @param new_path The path to the location of the new symbolic link to be created with this function call
 
     @par Example:
-    @code
+    @code{.py}
 symlink("/tmp/temporary-dir", "/users/oracle/install");
     @endcode
 
@@ -909,7 +909,7 @@ nothing symlink(string old_path, string new_path) [dom=FILESYSTEM] {
 
 //! returns @ref Qore::True "True" if the argument is an absolute path on the current platform, @ref Qore::False "False" if not
 /** @par Example:
-    @code
+    @code{.py}
 my bool $abs = absolute_path($path);
     @endcode
 
@@ -929,7 +929,7 @@ bool absolute_path(string path) [flags=CONSTANT] {
 
 //! returns @ref Qore::True "True" if the argument is a UNIX absolute path, @ref Qore::False "False" if not
 /** @par Example:
-    @code
+    @code{.py}
 my bool $abs = absolute_path_unix($path);
     @endcode
 
@@ -949,7 +949,7 @@ bool absolute_path_unix(string path) [flags=CONSTANT] {
 
 //! returns @ref Qore::True "True" if the argument is a Windows absolute path, @ref Qore::False "False" if not
 /** @par Example:
-    @code
+    @code{.py}
 my bool $abs = absolute_path_windows($path);
     @endcode
 
@@ -969,7 +969,7 @@ bool absolute_path_windows(string path) [flags=CONSTANT] {
 
 //! Returns the canonicalized absolute pathname from the given path
 /** @par Example:
-    @code
+    @code{.py}
 my string $realpath = realpath($path);
     @endcode
 

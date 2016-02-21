@@ -79,7 +79,7 @@ qclass FtpClient [dom=NETWORK; arg=QoreFtpClientClass* f];
 //! Creates an empty FtpClient object
 /**
     @par Example:
-    @code
+    @code{.py}
 my FtpClient $ftp();
     @endcode
  */
@@ -93,7 +93,7 @@ FtpClient::constructor() {
     @param url The URL of the server to connect to; must have at least a hostname
 
     @par Example:
-    @code
+    @code{.py}
 my FtpClient $ftp("ftp://user:pass@example.com:2021");
     @endcode
 
@@ -122,7 +122,7 @@ FtpClient::copy() {
     @ref EVENT_CHANNEL_CLOSED, @ref EVENT_DELETED
 
     @par Example:
-    @code
+    @code{.py}
 delete $ftp;
     @endcode
  */
@@ -141,7 +141,7 @@ FtpClient::destructor() {
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED, @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
+    @code{.py}
 $ftp.connect();
     @endcode
 
@@ -159,7 +159,7 @@ nothing FtpClient::connect() {
     @ref EVENT_CHANNEL_CLOSED
 
     @par Example:
-    @code
+    @code{.py}
 delete $ftp;
     @endcode
  */
@@ -174,7 +174,7 @@ nothing FtpClient::disconnect() {
     @return a list of files from the FTP server in the server's long format in the current working directory or @ref nothing if the path cannot be found
 
     @par Example:
-    @code
+    @code{.py}
 my *string $str = $ftp.list();
     @endcode
 
@@ -199,7 +199,7 @@ my *string $str = $ftp.list();
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
+    @code{.py}
 my *string $str = $ftp.list("/tmp/*.txt");
     @endcode
 
@@ -221,7 +221,7 @@ my *string $str = $ftp.list("/tmp/*.txt");
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
+    @code{.py}
 my *string $str = $ftp.nlst();
     @endcode
 
@@ -245,7 +245,7 @@ my *string $str = $ftp.nlst();
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
+    @code{.py}
 my *string $str = $ftp.nlst("/tmp/*.txt");
     @endcode
 
@@ -267,7 +267,7 @@ my *string $str = $ftp.nlst("/tmp/*.txt");
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
+    @code{.py}
 my string $str = $ftp.pwd();
     @endcode
 
@@ -285,7 +285,7 @@ string FtpClient::pwd() {
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
+    @code{.py}
 $ftp.cwd("/foo/bar");
     @endcode
 
@@ -306,7 +306,7 @@ nothing FtpClient::cwd(string path) {
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
+    @code{.py}
 $ftp.put("/tmp/file-1.txt", "file.txt");
     @endcode
 
@@ -331,7 +331,7 @@ nothing FtpClient::put(string local_path, *string remote_path) [dom=FILESYSTEM] 
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
+    @code{.py}
 $ftp.rename("file.txt", "file.txt.orig");
     @endcode
 
@@ -352,7 +352,7 @@ nothing FtpClient::rename(string from, string to) {
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
+    @code{.py}
 $ftp.get("file.txt", "/tmp/file-1.txt");
     @endcode
 
@@ -376,7 +376,7 @@ nothing FtpClient::get(string remote_path, *string local_path) [dom=FILESYSTEM] 
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
+    @code{.py}
 $ftp.putData($str, "file.txt");
     @endcode
 
@@ -397,7 +397,7 @@ nothing FtpClient::putData(string data, string remote_path) {
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
+    @code{.py}
 $ftp.putData($bin, "file.pdf");
     @endcode
 
@@ -419,7 +419,7 @@ nothing FtpClient::putData(binary data, string remote_path) {
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
+    @code{.py}
 my string $str = $ftp.getAsString("file.txt");
     @endcode
 
@@ -444,7 +444,7 @@ string FtpClient::getAsString(string remote_path) {
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
+    @code{.py}
 my binary $b = $ftp.getAsBinary("file.pdf");
     @endcode
 
@@ -467,7 +467,7 @@ binary FtpClient::getAsBinary(string remote_path) {
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
+    @code{.py}
 $ftp.del("file-2.txt");
     @endcode
 
@@ -487,7 +487,7 @@ nothing FtpClient::del(string remote_path) {
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
+    @code{.py}
 $ftp.mkdir("tmp");
     @endcode
 
@@ -507,7 +507,7 @@ nothing FtpClient::mkdir(string remote_path) {
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
+    @code{.py}
 $ftp.rmdir("tmp");
     @endcode
 
@@ -524,7 +524,7 @@ nothing FtpClient::rmdir(string remote_path) {
 /** @param user the user name to use for the next connection
 
     @par Example:
-    @code
+    @code{.py}
 $ftp.setUserName("ftp");
     @endcode
  */
@@ -536,7 +536,7 @@ nothing FtpClient::setUserName(string user) {
 /** @param pass the password to use for the next connection
 
     @par Example:
-    @code
+    @code{.py}
 $ftp.setPassword("ftp");
     @endcode
  */
@@ -549,7 +549,7 @@ nothing FtpClient::setPassword(string pass) {
     @param host the hostname or address to use to connect to for the next connection
 
     @par Example:
-    @code
+    @code{.py}
 $ftp.setHostName("example.com");
     @endcode
  */
@@ -561,7 +561,7 @@ nothing FtpClient::setHostName(string host) {
 /** @param port the control port value to use for the next connection (the FTP protocol default is 21); must be \> 0 or an FTPCLIENT-SETPORT-PARAMETER-ERROR exception is raised
 
     @par Example:
-    @code
+    @code{.py}
 $ftp.setPort(2021);
     @endcode
 
@@ -580,7 +580,7 @@ nothing FtpClient::setPort(int port) {
     @param url The URL to use for the next connection; the URL must contain at least a hostname
 
     @par Example:
-    @code
+    @code{.py}
 $ftp.setURL("ftps://user:pass@example.com:2021");
     @endcode
 
@@ -596,7 +596,7 @@ nothing FtpClient::setURL(string url) {
     @return the current username value that will be used for the next connection or @ref nothing if none is set
 
     @par Example:
-    @code
+    @code{.py}
 my *string $user = $ftp.getUserName();
     @endcode
  */
@@ -610,7 +610,7 @@ my *string $user = $ftp.getUserName();
     @return the current password value that will be used for the next connection or @ref nothing if none is set
 
     @par Example:
-    @code
+    @code{.py}
 my *string $pass = $ftp.getPassword();
     @endcode
  */
@@ -624,7 +624,7 @@ my *string $pass = $ftp.getPassword();
     @return the current hostname value that will be used for the next connection or @ref nothing if none is set
 
     @par Example:
-    @code
+    @code{.py}
 my *string $host = $ftp.getHostName();
     @endcode
  */
@@ -638,7 +638,7 @@ my *string $host = $ftp.getHostName();
     @return the current port value that will be used for the next connection
 
     @par Example:
-    @code
+    @code{.py}
 my int $port = $ftp.getPort();
     @endcode
  */
@@ -651,7 +651,7 @@ int FtpClient::getPort() {
     @return the current connection URL string for this object
 
     @par Example:
-    @code
+    @code{.py}
 my string $url = $ftp.getURL();
     @endcode
  */
@@ -663,7 +663,7 @@ string FtpClient::getURL() {
 /** @param secure Make an FTPS connection to the server on the next connect if the argument is @ref True; make a cleartext connection if the argument is @ref False
 
     @par Example:
-    @code
+    @code{.py}
 $ftp.setSecure(True);
     @endcode
 
@@ -677,7 +677,7 @@ nothing FtpClient::setSecure(bool secure = True) {
 //! Make a non-encrypted connection to the server on the next connect
 /**
     @par Example:
-    @code
+    @code{.py}
 $ftp.setInsecure();
     @endcode
 
@@ -691,7 +691,7 @@ nothing FtpClient::setInsecure() {
 //! Make a non-encrypted data connection to the server on the next connect even if the control connection is secure
 /**
     @par Example:
-    @code
+    @code{.py}
 $ftp.setSecure();
 $ftp.setInsecureData();
     @endcode
@@ -707,7 +707,7 @@ nothing FtpClient::setInsecureData() {
 /** @return @ref True if the control connection is a secure TLS/SSL connection, @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = $ftp.isSecure();
     @endcode
  */
@@ -720,7 +720,7 @@ bool FtpClient::isSecure() [flags=CONSTANT] {
     @return @ref True if the data connections are secure TLS/SSL connections, @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = $ftp.isDataSecure();
     @endcode
 
@@ -733,7 +733,7 @@ bool FtpClient::isDataSecure() [flags=CONSTANT] {
 /** @return the name of the cipher for an encrypted connection or @ref nothing if an encrypted connection is not established
 
     @par Example:
-    @code
+    @code{.py}
 if ($ftp.isSecure())
     printf("secure connection: %s %s\n", $ftp.getSSLCipherName(), $ftp.getSSLCipherVersion());
     @endcode
@@ -747,7 +747,7 @@ if ($ftp.isSecure())
 /** @return the version of the cipher for an encrypted connection or @ref nothing if an encrypted connection is not established
 
     @par Example:
-    @code
+    @code{.py}
 if ($ftp.isSecure())
     printf("secure connection: %s %s\n", $ftp.getSSLCipherName(), $ftp.getSSLCipherVersion());
     @endcode
@@ -761,7 +761,7 @@ if ($ftp.isSecure())
 /** @return A string code giving the result of verifying the peer's certificate or @ref nothing if a secure connection has not been established. The possible values are found in the keys of the @ref X509_VerificationReasons hash constant. This hash can also be used to generate a textual description of the verification result.
 
     @par Example:
-    @code
+    @code{.py}
 if ($ftp.isSecure() && (my *string $str = $ftp.verifyPeerCertificate())) {
     printf("certificate: %s: %s\n", $str, X509_VerificationReasons.$str);
     @endcode
@@ -774,7 +774,7 @@ if ($ftp.isSecure() && (my *string $str = $ftp.verifyPeerCertificate())) {
 //! Sets the object to automatically try to negotiate the data connections in \c EPSV, \c PASV, and \c PORT modes, in that order
 /**
     @par Example:
-    @code
+    @code{.py}
 $ftp.setModeAuto();
     @endcode
  */
@@ -785,7 +785,7 @@ nothing FtpClient::setModeAuto() {
 //! Sets the object to only try to make data connections using \c EPSV (<a href="http://tools.ietf.org/html/rfc2428">RFC-2428</a> extended passive) mode
 /**
     @par Example:
-    @code
+    @code{.py}
 $ftp.setModeEPSV();
     @endcode
  */
@@ -796,7 +796,7 @@ nothing FtpClient::setModeEPSV() {
 //! Sets the object to only try to make data connections using \c PASV (<a href="http://tools.ietf.org/html/rfc959">RFC-959</a> passive) mode
 /**
     @par Example:
-    @code
+    @code{.py}
 $ftp.setModePASV();
     @endcode
  */
@@ -807,7 +807,7 @@ nothing FtpClient::setModePASV() {
 //! Sets the object to only try to make data connections using \c PORT mode
 /**
     @par Example:
-    @code
+    @code{.py}
 $ftp.setModePORT();
     @endcode
  */
@@ -817,7 +817,7 @@ nothing FtpClient::setModePORT() {
 
 //! returns a string for the connection mode: \c "port", \c "pasv", \c "epsv", or \c "auto" if not connected and auto mode is set
 /** @par Example:
-    @code
+    @code{.py}
 my string $mode = $ftp.getMode();
     @endcode
 
@@ -830,7 +830,7 @@ string FtpClient::getMode() [flags=CONSTANT] {
 //! Clears any Queue object that may be set on the FtpClient object so that @ref event_handling "I/O events" are no longer captured on the object on either the data or control connections
 /**
     @par Example:
-    @code
+    @code{.py}
 $ftp.setEventQueue();
     @endcode
  */
@@ -842,7 +842,7 @@ nothing FtpClient::setEventQueue() {
 /** @param queue a @ref Qore::Thread::Queue "Queue" object to receive FtpClient and Socket events on both the data and control connections; note that the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
 
     @par Example:
-    @code
+    @code{.py}
 $ftp.setEventQueue($queue);
     @endcode
 
@@ -861,7 +861,7 @@ nothing FtpClient::setEventQueue(Qore::Thread::Queue[Queue] queue) {
 //! Clears any Queue object that may be set on the FtpClient object so that @ref event_handling "I/O events" are no longer captured on the object on the data connection
 /**
     @par Example:
-    @code
+    @code{.py}
 $ftp.setDataEventQueue();
     @endcode
  */
@@ -873,7 +873,7 @@ nothing FtpClient::setDataEventQueue() {
 /** @param queue a @ref Qore::Thread::Queue "Queue" object to receive FtpClient and Socket events on the data connection; note that the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
 
     @par Example:
-    @code
+    @code{.py}
 $ftp.setDataEventQueue($queue);
     @endcode
 
@@ -892,7 +892,7 @@ nothing FtpClient::setDataEventQueue(Qore::Thread::Queue[Queue] queue) {
 //! Clears any Queue object that may be set on the FtpClient object so that @ref event_handling "I/O events" are no longer captured on the object on the control connection
 /**
     @par Example:
-    @code
+    @code{.py}
 $ftp.setControlEventQueue();
     @endcode
  */
@@ -904,7 +904,7 @@ nothing FtpClient::setControlEventQueue() {
 /** @param queue a @ref Qore::Thread::Queue "Queue" object to receive FtpClient and Socket events on the control connection; note that the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
 
     @par Example:
-    @code
+    @code{.py}
 $ftp.setControlEventQueue($queue);
     @endcode
 
@@ -922,7 +922,7 @@ nothing FtpClient::setControlEventQueue(Qore::Thread::Queue[Queue] queue) {
 
 //! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
 /** @par Example:
-    @code
+    @code{.py}
 $ftp.clearWarningQueue();
     @endcode
 
@@ -936,7 +936,7 @@ nothing FtpClient::clearWarningQueue() {
 
 //! Sets a @ref Qore::Thread::Queue "Queue" object to receive socket warnings
 /** @par Example:
-    @code
+    @code{.py}
 $ftp.setWarningQueue(5000, 5000, $queue, "socket-1");
     @endcode
 
@@ -975,7 +975,7 @@ nothing FtpClient::setWarningQueue(int warning_ms, int warning_bs, Queue[Queue] 
 
 //! Returns performance statistics for the socket
 /** @par Example:
-    @code
+    @code{.py}
 my hash $h = $ftp.getUsageInfo();
     @endcode
 
@@ -998,7 +998,7 @@ hash FtpClient::getUsageInfo() [flags=CONSTANT] {
 
 //! Clears performance statistics
 /** @par Example:
-    @code
+    @code{.py}
 $ftp.clearStats();
     @endcode
 

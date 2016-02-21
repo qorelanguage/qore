@@ -45,7 +45,7 @@ qclass SSLPrivateKey [arg=QoreSSLPrivateKey* pk];
     @param pass The optional password or passphrase for the private key
 
     @par Example:
-    @code
+    @code{.py}
 my SSLPrivateKey $key($pem);
     @endcode
 
@@ -64,7 +64,7 @@ SSLPrivateKey::constructor(string pem, *string pass) {
 /** @param der The DER-encoded binary representation of the private key
 
     @par Example:
-    @code
+    @code{.py}
 my SSLPrivateKey $key($der);
     @endcode
 
@@ -91,7 +91,7 @@ SSLPrivateKey::copy() {
     - \c "bitLength": The bit length of the private key (see SSLPrivateKey::getBitLength())
 
     @par Example:
-    @code
+    @code{.py}
 my hash $h = $key.getInfo();
     @endcode
  */
@@ -103,7 +103,7 @@ hash SSLPrivateKey::getInfo() [flags=CONSTANT] {
 /** @return a string giving the algorithm used for the private key (ex: \c "RSA", \c "RSA2", \c "DSA", \c "DSA1", \c "DSA2", \c "DAS3", \c "DAS4", \c "DH", \c "unknown")
 
     @par Example:
-    @code
+    @code{.py}
 my string $str = $pkey.getType();
     @endcode
  */
@@ -124,7 +124,7 @@ int SSLPrivateKey::getVersion() [flags=CONSTANT] {
 /** @return the bit length of the private key
 
     @par Example:
-    @code
+    @code{.py}
 my int $len = $key.getBitLength();
     @endcode
  */
@@ -136,7 +136,7 @@ int SSLPrivateKey::getBitLength() [flags=CONSTANT] {
 /** @return a string in PEM format representing the private key
 
     @par Example:
-    @code
+    @code{.py}
 my string $pem = $key.getPEM();
     @endcode
 

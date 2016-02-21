@@ -38,7 +38,7 @@ extern QoreClass* QC_OBJECTITERATOR;
     A object can be iterated in reverse order by calling ObjectKeyIterator::prev() instead of ObjectKeyIterator::next()
 
     @par Example: ObjectKeyIterator basic usage
-    @code
+    @code{.py}
     class Class1 {
        public {
           int $.attr1;
@@ -73,7 +73,7 @@ qclass ObjectKeyIterator [arg=QoreObjectIterator* i; ns=Qore; vparent=ObjectIter
 /** @param o the object to iterate
 
     @par Example:
-    @code
+    @code{.py}
 my ObjectKeyIterator $i($h);
     @endcode
  */
@@ -83,7 +83,7 @@ ObjectKeyIterator::constructor(object o) {
 
 //! Creates an empty object iterator object
 /** @par Example:
-    @code
+    @code{.py}
 my *object $o = get_object_or_nothing();
 my ObjectKeyIterator $i($o);
     @endcode
@@ -94,7 +94,7 @@ ObjectKeyIterator::constructor() {
 
 //! Creates a copy of the ObjectKeyIterator object, iterating the same object as the original and in the same position
 /** @par Example:
-    @code
+    @code{.py}
 my ObjectKeyIterator $ni = $i.copy();
     @endcode
  */
@@ -106,7 +106,7 @@ ObjectKeyIterator::copy() {
 /** @return the current key value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
 
     @par Example:
-    @code
+    @code{.py}
 foreach my string $key in ($object.keyIterator())
     printf("key: %s\n", $key);
     @endcode

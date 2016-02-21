@@ -41,7 +41,7 @@ qclass <binary> [arg=const BinaryNode* b = v.get<const BinaryNode>();vparent=<va
     @return Qore::NT_BINARY
 
     @par Example:
-    @code
+    @code{.py}
 switch ($b.typeCode()) {
     case NT_BINARY:
         printf("%y: is a binary\n", $b);
@@ -58,7 +58,7 @@ int <binary>::typeCode() [flags=CONSTANT] {
     @return the number of bytes in the binary object
 
     @par Example:
-    @code
+    @code{.py}
 my int $len = $b.size();
     @endcode
 
@@ -74,7 +74,7 @@ int <binary>::size() [flags=CONSTANT] {
     @return @ref True if the binary object is empty (size = 0), @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = $bin.empty();
     @endcode
 */
@@ -88,7 +88,7 @@ bool <binary>::empty() [flags=CONSTANT] {
     @return @ref False if the binary object is empty (size = 0), @ref True if not
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = $bin.val();
     @endcode
 
@@ -107,7 +107,7 @@ bool <binary>::val() [flags=CONSTANT] {
     @return a list of binary objects representing each component of the binary object separated by the bytes identified by the separator argument, with the separator removed
 
     @par Example:
-    @code
+    @code{.py}
 my list $l = $bin.split($sep);
     @endcode
 
@@ -125,7 +125,7 @@ list <binary>::split(binary sep) [flags=CONSTANT] {
     @return a hex string of the digest (ex: \c "5d41402abc4b2a76b9719d911017c592")
 
     @par Example:
-    @code
+    @code{.py}
 my string $str = binary("hello").toMD5(); # returns "5d41402abc4b2a76b9719d911017c592"
     @endcode
 
@@ -155,7 +155,7 @@ string <binary>::toMD5() [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
 
     @par Example:
-    @code
+    @code{.py}
 my string $str = binary("hello").toSHA1(); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
     @endcode
 
@@ -186,7 +186,7 @@ string <binary>::toSHA1() [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193")
 
     @par Example:
-    @code
+    @code{.py}
 my string $str = binary("hello").toSHA224("hello"); # returns "ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193"
     @endcode
 
@@ -222,7 +222,7 @@ string <binary>::toSHA224() [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824")
 
     @par Example:
-    @code
+    @code{.py}
 my string $str = binary("hello").toSHA256(); # returns "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
     @endcode
 
@@ -258,7 +258,7 @@ string <binary>::toSHA256() [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f")
 
     @par Example:
-    @code
+    @code{.py}
 my string $str = binary("hello").toSHA384(); # returns "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f"
     @endcode
 
@@ -294,7 +294,7 @@ string <binary>::toSHA384() [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043")
 
     @par Example:
-    @code
+    @code{.py}
 my string $str = binary("hello").toSHA512(); # returns "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043"
     @endcode
 
@@ -323,7 +323,7 @@ string <binary>::toSHA512() [flags=RET_VALUE_ONLY] {
 
 //! returns a string of hexadecimal digits corresponding to the contents of the binary object
 /** @par Example:
-    @code
+    @code{.py}
 my string $str = $b.toHex();
     @endcode
 
@@ -344,7 +344,7 @@ string <binary>::toHex() [flags=CONSTANT] {
 
 //! Returns the base64-encoded representation of the binary object
 /** @par Example:
-    @code
+    @code{.py}
 my string $base64 = $bin.toBase64(64);
     @endcode
 
@@ -372,7 +372,7 @@ string <binary>::toBase64(softint maxlinelen = -1) [flags=CONSTANT] {
     @return the portion of the data starting from an integer bte offset; the rest of the data is returned after this offset
 
     @par Example:
-    @code
+    @code{.py}
 # get the last 10 bytes of a binary object
 my binary $b1 = $b0.substr(-10);
     @endcode
@@ -396,7 +396,7 @@ binary <binary>::substr(softint start) [flags=CONSTANT] {
     @return the portion of the data starting from an integer bte offset; the rest of the data is returned after this offset
 
     @par Example:
-    @code
+    @code{.py}
 # get the last 5 bytes of the last 10 bytes of a binary object
 my binary $b1 = $b0.substr(-10, 5);
     @endcode
@@ -418,7 +418,7 @@ binary <binary>::substr(softint start, softint len) [flags=CONSTANT] {
     @return a string created from the binary data passed
 
     @par Example:
-    @code
+    @code{.py}
 my string $str = $b.toString($b, "iso-8859-1");
     @endcode
 

@@ -38,7 +38,7 @@ extern QoreClass* QC_OBJECTITERATOR;
     A object can be iterated in reverse order by calling ObjectPairIterator::prev() instead of ObjectPairIterator::next()
 
     @par Example: ObjectPairIterator basic usage
-    @code
+    @code{.py}
     class Class1 {
        public {
           int $.attr1;
@@ -73,7 +73,7 @@ qclass ObjectPairIterator [arg=QoreObjectIterator* i; ns=Qore; vparent=ObjectIte
 /** @param o the object to iterate
 
     @par Example:
-    @code
+    @code{.py}
 my ObjectPairIterator $i($obj);
     @endcode
  */
@@ -83,7 +83,7 @@ ObjectPairIterator::constructor(object o) {
 
 //! Creates an empty object iterator object
 /** @par Example:
-    @code
+    @code{.py}
 my *object $obj = get_object_or_nothing();
 my ObjectPairIterator $i($obj);
     @endcode
@@ -94,7 +94,7 @@ ObjectPairIterator::constructor() {
 
 //! Creates a copy of the ObjectPairIterator object, iterating the same object as the original and in the same position
 /** @par Example:
-    @code
+    @code{.py}
 my ObjectPairIterator $ni = $i.copy();
     @endcode
  */
@@ -106,7 +106,7 @@ ObjectPairIterator::copy() {
 /** @return a hash with the current key and value (a hash with 2 keys: \c "key" and \c "value") or throws an \c INVALID-ITERATOR exception if the iterator is invalid
 
     @par Example:
-    @code
+    @code{.py}
 map printf("%s: %y\n", $1.key, $1.value), $object.pairIterator();
     @endcode
 

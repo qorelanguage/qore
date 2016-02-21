@@ -46,7 +46,7 @@ qclass Condition [dom=THREAD_CLASS; arg=Condition* c; ns=Qore::Thread];
 //! Creates the Condition object
 /** 
     @par Example:
-    @code
+    @code{.py}
 my Condition $cond();
     @endcode
  */
@@ -57,7 +57,7 @@ Condition::constructor() {
 //! Creates a new Condition object, not based on the original
 /** 
     @par Example:
-    @code
+    @code{.py}
 my Condition $new_cond = $cond.copy();
     @endcode
  */
@@ -69,7 +69,7 @@ Condition::copy() {
 /** Normally this method call will be made while the same AbstractSmartLock object used for Condition::wait() calls is locked. Then, when the thread calling this method unlocks the AbstractSmartLock object, the thread woken up by this call can continue executing.
 
     @par Example:
-    @code
+    @code{.py}
 $m.lock();
 $cond.signal();
 $m.unlock();
@@ -86,7 +86,7 @@ nothing Condition::signal() {
 /** Normally this method call will be made while the same AbstractSmartLock object used for Condition::wait() calls is locked. Then, when the thread calling this method unlocks the AbstractSmartLock object, the thread(s) woken up by this call can continue executing.
 
     @par Example:
-    @code
+    @code{.py}
 $m.lock();
 $cond.broadcast();
 $m.unlock();
@@ -108,7 +108,7 @@ nothing Condition::broadcast() {
     @return 0 for success, \c ETIMEDOUT if a timeout has occurred
 
     @par Example:
-    @code
+    @code{.py}
 $m.lock();
 on_exit $m.unlock();
 while ($some_value > 0) {
@@ -138,7 +138,7 @@ int Condition::wait(AbstractSmartLock[AbstractSmartLock] lock, timeout timeout_m
     @return The number of threads currently blocked on this object using the AbstractSmartLock object passed
 
     @par Example:
-    @code
+    @code{.py}
 printf("%d thread(s) waiting on the Condition\n", $cond.wait_count($m));
     @endcode
  */

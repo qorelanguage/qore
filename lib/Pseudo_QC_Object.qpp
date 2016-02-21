@@ -50,7 +50,7 @@ qclass <object> [arg=QoreObject* obj = const_cast<QoreObject*>(v.get<QoreObject>
     @return Qore::NT_OBJECT
 
     @par Example:
-    @code
+    @code{.py}
 switch ($o.typeCode()) {
     case Qore::NT_OBJECT:
         printf("%y: is an object\n", $o);
@@ -67,7 +67,7 @@ int <object>::typeCode() [flags=CONSTANT] {
     @return a list of member names of the object; if called from outside the object, only public members are returned
 
     @par Example:
-    @code
+    @code{.py}
 my list $l = $o.keys();
     @endcode
  */
@@ -80,7 +80,7 @@ list <object>::keys() [flags=RET_VALUE_ONLY] {
     @return the first member name in the object or @ref nothing if the object has no members; if called from outside the object, the first public member name is returned (if any)
 
     @par Example:
-    @code
+    @code{.py}
 my *string $n = $o.firstKey();
     @endcode
 
@@ -95,7 +95,7 @@ my *string $n = $o.firstKey();
     @return the last member name in the object or @ref nothing if the object has no members; if called from outside the object, the last public member name is returned (if any)
 
     @par Example:
-    @code
+    @code{.py}
 my *string $n = $o.lastKey();
     @endcode
 
@@ -111,7 +111,7 @@ my *string $n = $o.lastKey();
     @return @ref True if the object has no public or private members, @ref False if it does
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = $o.empty();
     @endcode
  */
@@ -124,7 +124,7 @@ bool <object>::empty() [flags=RET_VALUE_ONLY] {
     @return the number of members in the object, public and private
 
     @par Example:
-    @code
+    @code{.py}
 my int $num = $o.size();
     @endcode
 
@@ -139,7 +139,7 @@ int <object>::size() [flags=RET_VALUE_ONLY] {
     @return the class name of the object
 
     @par Example:
-    @code
+    @code{.py}
 my string $cn = $o.className();
     @endcode
 
@@ -154,7 +154,7 @@ string <object>::className() [flags=CONSTANT] {
     @return @ref True if the object is a system object (ie a constant object like @ref stdin, etc), @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = $i.isSystem();
     @endcode
  */
@@ -168,7 +168,7 @@ bool <object>::isSystem() [flags=CONSTANT] {
     @return @ref False if the object has no public or private members, @ref True if it does
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = $o.val();
     @endcode
 
@@ -187,7 +187,7 @@ bool <object>::val() [flags=RET_VALUE_ONLY] {
 /** @return an @ref Qore::ObjectIterator "ObjectIterator" object for the object's members
 
     @par Example:
-    @code
+    @code{.py}
 map printf("+ %y\n", $1), $obj.iterator();
     @endcode
 
@@ -201,7 +201,7 @@ AbstractIterator <object>::iterator() [flags=CONSTANT] {
 /** @return a @ref Qore::ObjectKeyIterator "ObjectKeyIterator" object for the object, iterating the object's members
 
     @par Example:
-    @code
+    @code{.py}
 map printf("+ %s\n", $1), $obj.keyIterator();
     @endcode
 
@@ -215,7 +215,7 @@ ObjectKeyIterator <object>::keyIterator() [flags=CONSTANT] {
 /** @return a @ref Qore::ObjectPairIterator "ObjectPairIterator" object for the object's members
 
     @par Example:
-    @code
+    @code{.py}
 map printf("+ %s\n", $1), $obj.pairIterator();
     @endcode
 
@@ -227,7 +227,7 @@ ObjectPairIterator <object>::pairIterator() [flags=CONSTANT] {
 
 //! Returns @ref Qore::True "True" if the given method exists (can be non-static or static) and is callable from the current context
 /** @par Example:
-    @code
+    @code{.py}
 my bool $b = $obj.hasCallableMethod("getStatus");
     @endcode
 
@@ -250,7 +250,7 @@ bool <object>::hasCallableMethod(string name) [flags=CONSTANT] {
 
 //! Returns @ref Qore::True "True" if the given non-static method exists and is callable from the current context
 /** @par Example:
-    @code
+    @code{.py}
 my bool $b = $obj.hasCallableNormalMethod("getStatus");
     @endcode
 
@@ -273,7 +273,7 @@ bool <object>::hasCallableNormalMethod(string name) [flags=CONSTANT] {
 
 //! Returns @ref Qore::True "True" if the given static method exists and is callable from the current context
 /** @par Example:
-    @code
+    @code{.py}
 my bool $b = $obj.hasCallableStaticMethod("getStatus");
     @endcode
 

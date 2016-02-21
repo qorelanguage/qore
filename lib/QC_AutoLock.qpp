@@ -41,7 +41,7 @@
     For this reason, it is only appropriate to assign an AutoLock object to a local variable, so when the local variable goes out of scope, the AutoLock object will be deleted and the @ref Qore::Thread::Mutex "Mutex" will be automatically released.
 
     For example:
-    @code
+    @code{.py}
 our Mutex $mutex();
 
 sub check_error($error) {
@@ -66,7 +66,7 @@ qclass AutoLock [dom=THREAD_CLASS; arg=QoreAutoLock* al; ns=Qore::Thread];
 /** The AutoLock object immediately calls Mutex::lock() on the @ref Qore::Thread::Mutex "Mutex" object passed, and saves it; Mutex::unlock() is called in the destructor if the lock is still held by the current thread.
  
     @par Example:
-    @code
+    @code{.py}
 {
     # when the block exits, the lock is automatically released
     my AutoLock $al($mutex);
@@ -90,7 +90,7 @@ AutoLock::constructor(Mutex[SmartMutex] mutex) {
 /** @ref Qore::Thread::Mutex::unlock() "Mutex::unlock()" is only called if the current thread owns the lock
 
     @par Example:
-    @code
+    @code{.py}
 delete $al;
     @endcode
  */
@@ -111,7 +111,7 @@ AutoLock::copy() {
 /** Do not call this method unless the @ref Qore::Thread::Mutex "Mutex" object being managed has been unlocked since the constructor
 
     @par Example:
-    @code
+    @code{.py}
 $al.lock();
     @endcode
 
@@ -127,7 +127,7 @@ nothing AutoLock::lock() {
     @return 0 for success (lock acquired) or -1 if the call would block (lock not acquired because it's held by another thread)
 
     @par Example:
-    @code
+    @code{.py}
 my int $i = $al.trylock();
     @endcode
 
@@ -141,7 +141,7 @@ int AutoLock::trylock() {
 //! Unlocks the @ref Qore::Thread::Mutex "Mutex" object being managed; wakes up one thread if any threads are blocked on this lock
 /** 
     @par Example:
-    @code
+    @code{.py}
 $al.unlock();
     @endcode
 

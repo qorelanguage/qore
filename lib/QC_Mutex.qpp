@@ -39,7 +39,7 @@
     The Mutex class implements a mutual-exclusion lock for thread locking. Like all %Qore thread primitives, objects of this class participate in deadlock detection and throw exceptions when threading errors occur (ex: unlocking a Mutex object locked by another thread, etc). See individual methods for more information on exceptions thrown.\n\n
     See the  @ref Qore::Thread::AutoLock "AutoLock" class for a class that assists in exception-safe Mutex locking.\n\n
     Additionally, the @ref on_exit "on_exit statement" can provide exception-safe unlocking at the lexical block level for Mutex objects as in the following example:
-    @code
+    @code{.py}
 {
     $m.lock();
     on_exit
@@ -66,7 +66,7 @@ qclass Mutex [dom=THREAD_CLASS; arg=SmartMutex* m; ns=Qore::Thread; vparent=Abst
 
 //! Creates the Mutex object
 /** @par Example:
-    @code
+    @code{.py}
 my Mutex $mutex();
     @endcode
  */
@@ -78,7 +78,7 @@ Mutex::constructor() {
 /** Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and in each thread blocked on this object when it is deleted.
 
     @par Example:
-    @code
+    @code{.py}
 delete $mutex;
     @endcode
 
@@ -91,7 +91,7 @@ Mutex::destructor() {
 
 //! Creates a new Mutex object, not based on the original
 /** @par Example:
-    @code
+    @code{.py}
 my Mutex $nm = $m.copy();
     @endcode
 */
@@ -103,7 +103,7 @@ Mutex::copy() {
 /** To release the Mutex, use @ref Mutex::unlock()
 
     @par Example:
-    @code
+    @code{.py}
 $mutex.lock();
     @endcode
 
@@ -120,7 +120,7 @@ nothing Mutex::lock() {
     To release the Mutex, use @ref Mutex::unlock()
 
     @par Example:
-    @code
+    @code{.py}
 if ($mutex.lock(1250ms))
     throw "TIMEOUT-ERROR", "lock acquisition timed out after 1.25s";
     @endcode
@@ -141,7 +141,7 @@ int Mutex::lock(timeout timeout_ms) {
     @return 0 for success (lock acquired) or -1 if the call would block (lock not acquired)
 
     @par Example:
-    @code
+    @code{.py}
 my int $i = $mutex.trylock();
     @endcode
 
@@ -155,7 +155,7 @@ int Mutex::trylock() {
 //! Unlocks the Mutex object; wakes up one thread if any threads are blocked on this lock
 /**
     @par Example:
-    @code
+    @code{.py}
 $mutex.unlock();
     @endcode
 

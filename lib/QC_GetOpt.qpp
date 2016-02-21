@@ -169,7 +169,7 @@ qclass GetOpt [arg=GetOpt* g];
     - <em>modifier</em>: \c "@" specifies a list, \c "+" an additive value (sum; must be integer or float type)
 
     @par Example:
-    @code
+    @code{.py}
 const ProgramPptions = (
      "url"  : "u,url=s",
      "xml"  : "x,xml",
@@ -292,7 +292,7 @@ GetOpt::copy() {
     @return A hash keyed by option names (as given in the hash to the GetOpt constructor), where each key's value is the value of the argument passed in the list argument. The hash key \c "_ERRORS_" will contain any errors.
 
     @par Example:
-    @code
+    @code{.py}
 my hash $o = $getopt.parse(\$ARGV);
 if (exists $o."_ERRORS_") {
     foreach my string $err in ($o."_ERRORS_")
@@ -326,7 +326,7 @@ hash GetOpt::parse(reference pgm_args) {
     @return A hash keyed by option names (as given in the hash to the GetOpt constructor), where each key's value is the value of the argument passed in the list argument. The hash key \c "_ERRORS_" will contain any errors.
 
     @par Example:
-    @code
+    @code{.py}
 my hash $o = $getopt.parse($ARGV);
 if (exists $o."_ERRORS_") {
     foreach my string $err in ($o."_ERRORS_")
@@ -349,7 +349,7 @@ hash GetOpt::parse(softlist pgm_args) {
     @return A hash keyed by option names (as given in the hash to the GetOpt constructor), where each key's value is the value of the argument passed in the list argument
 
     @par Example:
-    @code
+    @code{.py}
 try {
    my hash $o = $getopt.parse2(\$ARGV);
 }
@@ -387,7 +387,7 @@ hash GetOpt::parse2(reference pgm_args) {
     @return A hash keyed by option names (as given in the hash to the GetOpt constructor), where each key's value is the value of the argument passed in the list argument
 
     @par Example:
-    @code
+    @code{.py}
 try {
    my hash $o = $getopt.parse2($ARGV);
 }
@@ -412,7 +412,7 @@ hash GetOpt::parse2(softlist pgm_args) {
     @return A hash keyed by option names (as given in the hash to the GetOpt constructor), where each key's value is the value of the argument passed in the list argument
 
     @par Example:
-    @code
+    @code{.py}
 my hash $o = $getopt.parse3(\$ARGV);
     @endcode
 
@@ -442,7 +442,7 @@ hash GetOpt::parse3(reference pgm_args) [dom=PROCESS] {
     @return A hash keyed by option names (as given in the hash to the GetOpt constructor), where each key's value is the value of the argument passed in the list argument
 
     @par Example:
-    @code
+    @code{.py}
 my hash $o = $getopt.parse3($ARGV);
     @endcode
 

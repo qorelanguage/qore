@@ -50,7 +50,7 @@ qclass <hash> [arg=const QoreHashNode* h = v.get<QoreHashNode>();vparent=<value>
     @return Qore::NT_HASH
 
     @par Example:
-    @code
+    @code{.py}
 switch ($h.typeCode()) {
     case NT_HASH:
         printf("%y: is a hash\n", $h);
@@ -69,7 +69,7 @@ int <hash>::typeCode() [flags=CONSTANT] {
     @return a list of key names of the hash
 
     @par Example:
-    @code
+    @code{.py}
 my list $l = $h.keys();
     @endcode
 
@@ -86,7 +86,7 @@ list <hash>::keys() [flags=CONSTANT] {
     @return a list of values of the hash
 
     @par Example:
-    @code
+    @code{.py}
 my list $l = $h.values();
     @endcode
 
@@ -111,7 +111,7 @@ list <hash>::values() [flags=CONSTANT] {
     @return the first key name in the hash or @ref nothing if the hash has no keys
 
     @par Example:
-    @code
+    @code{.py}
 my *string $n = $h.firstKey();
     @endcode
 
@@ -129,7 +129,7 @@ my *string $n = $h.firstKey();
     @return the value assigned to the first key in the hash if any or @ref nothing if the hash has no keys
 
     @par Example:
-    @code
+    @code{.py}
 my any $v = $h.firstValue();
     @endcode
 
@@ -147,7 +147,7 @@ any <hash>::firstValue() [flags=CONSTANT] {
     @return the last key name in the hash or @ref nothing if the hash has no keys
 
     @par Example:
-    @code
+    @code{.py}
 my *string $n = $h.lastKey();
     @endcode
 
@@ -165,7 +165,7 @@ my *string $n = $h.lastKey();
     @return the value assigned to the last key in the hash if any or @ref nothing if the hash has no keys
 
     @par Example:
-    @code
+    @code{.py}
 my any $v = $h.lastValue();
     @endcode
 
@@ -185,7 +185,7 @@ any <hash>::lastValue() [flags=CONSTANT] {
     @return @ref True if the key exists in the hash (may or may not be assigned a value), @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = $h.hasKey($key);
     @endcode
 
@@ -208,7 +208,7 @@ bool <hash>::hasKey(softstring key) [flags=RET_VALUE_ONLY] {
     @return @ref True if the key exists and is assigned to a value, @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = $h.hasKeyValue($key);
     @endcode
 
@@ -229,7 +229,7 @@ bool <hash>::hasKeyValue(softstring key) [flags=RET_VALUE_ONLY] {
     @return @ref True if the hash has no keys, @ref False if it does
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = $h.empty();
     @endcode
 
@@ -245,7 +245,7 @@ bool <hash>::empty() [flags=CONSTANT] {
     @return the number of keys in the hash
 
     @par Example:
-    @code
+    @code{.py}
 my int $num = $h.size();
     @endcode
 
@@ -263,7 +263,7 @@ int <hash>::size() [flags=CONSTANT] {
     @return @ref False if the hash has no keys, @ref True if it does
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = $h.val();
     @endcode
 
@@ -281,7 +281,7 @@ bool <hash>::val() [flags=CONSTANT] {
 /** @return a @ref Qore::HashIterator "HashIterator" object for the hash
 
     @par Example:
-    @code
+    @code{.py}
 map printf("value: %y\n", $1), $h.iterator();
     @endcode
 
@@ -297,7 +297,7 @@ AbstractIterator <hash>::iterator() [flags=CONSTANT] {
 /** @return a @ref Qore::HashKeyIterator "HashKeyIterator" object for the hash
 
     @par Example:
-    @code
+    @code{.py}
 map printf("key: %s\n", $1), $h.keyIterator();
     @endcode
 
@@ -315,7 +315,7 @@ HashKeyIterator <hash>::keyIterator() [flags=CONSTANT] {
 /** @return a @ref Qore::HashPairIterator "HashPairIterator" object for the hash
 
     @par Example:
-    @code
+    @code{.py}
 map printf("%s: %y\n", $1.key, $1.value), $h.pairIterator());
     @endcode
 
@@ -331,7 +331,7 @@ HashPairIterator <hash>::pairIterator() [flags=CONSTANT] {
 /** @return a @ref Qore::HashListIterator "HashListIterator" object for the hash
 
     @par Example:
-    @code
+    @code{.py}
 my *hash $q = $db.select("select * from table_name");
 map printf("+ %s\n", $1), $h.contextIterator();
     @endcode
@@ -349,7 +349,7 @@ HashListIterator <hash>::contextIterator() [flags=CONSTANT] {
 
 //! Returns @ref Qore::True "True" if the hash argument passed has the same keys in the same order as the current hash, @ref Qore::False "False" if not
 /** @par Example:
-    @code
+    @code{.py}
 my bool $b = $h.compareKeys($oh);
     @endcode
 

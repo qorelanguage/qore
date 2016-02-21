@@ -37,7 +37,7 @@
     Once a thread grabs the lock, it can call the Gate::enter() method again without blocking. Other threads that try to enter the lock will block until the thread holding the lock calls Gate::exit() an equal number of times to Gate::enter() calls.\n\n
     See the @ref Qore::Thread::AutoGate "AutoGate" class for a class that assists in exception-safe Gate locking.\n\n
     Additionally, the @ref on_exit "on_exit statement" can provide exception-safe Gate handling at the lexical block level as in the following example:
-    @code
+    @code{.py}
 {
     $g.enter();
     on_exit
@@ -64,7 +64,7 @@ qclass Gate [dom=THREAD_CLASS; arg=QoreGate* g; ns=Qore::Thread];
 //! Creates a new Gate object
 /**
     @par Example:
-    @code
+    @code{.py}
 my Gate $gate();
     @endcode
  */
@@ -76,7 +76,7 @@ Gate::constructor() {
 /** Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and in each thread blocked on this object when it is deleted.
 
     @par Example:
-    @code
+    @code{.py}
 delete $gate;
     @endcode
 
@@ -90,7 +90,7 @@ Gate::destructor() {
 //! Creates a new Gate object, not based on the original
 /**
     @par Example:
-    @code
+    @code{.py}
 my Gate $new_gate = $gate.copy();
     @endcode
  */
@@ -105,7 +105,7 @@ Gate::copy() {
     @return 0 if no timeout occurred, non-zero if a timeout occurred.
 
     @par Example:
-    @code
+    @code{.py}
 if ($gate.enter(1500ms))
     throw "TIMEOUT-ERROR", "gate acquisition timed out after 1.5s";
     @endcode
@@ -120,7 +120,7 @@ int Gate::enter(timeout timeout_ms) {
 //! Increments the lock count if the lock is unlocked or already owned by the same thread, otherwise blocks until the lock counter reaches zero
 /**
     @par Example:
-    @code
+    @code{.py}
 $gate.enter();
     @endcode
 
@@ -136,7 +136,7 @@ nothing Gate::enter() {
     @return returns 0 if the Gate was unlocked; otherwise returns non-zero
 
     @par Example:
-    @code
+    @code{.py}
 $gate.exit();
     @endcode
 
@@ -151,7 +151,7 @@ int Gate::exit() {
     @return 0 for success (acquired the lock) or -1 for failure (would block)
 
     @par Example:
-    @code
+    @code{.py}
 if ($gate.tryEnter()) {
     on_exit $gate.exit();
     printf("YIPEE!  We finally got the gate!\n");
@@ -168,7 +168,7 @@ int Gate::tryEnter() {
 /** @return the current lock count
 
     @par Example:
-    @code
+    @code{.py}
 my int $c = $gate.numInside();
     @endcode
  */
@@ -179,7 +179,7 @@ int Gate::numInside() [flags=CONSTANT] {
 //! Returns the number of threads blocked on the Gate
 /**
     @par Example:
-    @code
+    @code{.py}
 my int $c = $gate.numWaiting();
     @endcode
  */

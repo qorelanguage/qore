@@ -38,7 +38,7 @@ extern QoreClass* QC_HASHITERATOR;
     A hash can be iterated in reverse order by calling HashKeyIterator::prev() instead of HashKeyIterator::next()
 
     @par Example: HashKeyIterator basic usage
-    @code
+    @code{.py}
     my hash $data = (
             "key1" : 1,
             "key2" : 2,
@@ -68,7 +68,7 @@ qclass HashKeyIterator [arg=QoreHashIterator* i; ns=Qore; vparent=HashIterator];
 /** @param h the hash to iterate
 
     @par Example:
-    @code
+    @code{.py}
 my HashKeyIterator $hi($h);
     @endcode
  */
@@ -78,7 +78,7 @@ HashKeyIterator::constructor(hash h) {
 
 //! Creates an empty hash iterator object
 /** @par Example:
-    @code
+    @code{.py}
 my *hash $h = get_hash_or_nothing();
 my HashKeyIterator $hi($h);
     @endcode
@@ -89,7 +89,7 @@ HashKeyIterator::constructor() {
 
 //! Creates a copy of the HashKeyIterator object, iterating the same object as the original and in the same position
 /** @par Example:
-    @code
+    @code{.py}
 my HashKeyIterator $ni = $i.copy();
     @endcode
  */
@@ -101,7 +101,7 @@ HashKeyIterator::copy() {
 /** @return the current key value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
 
     @par Example:
-    @code
+    @code{.py}
 foreach my string $key in ($hash.keyIterator())
     printf("key: %s\n", $key);
     @endcode

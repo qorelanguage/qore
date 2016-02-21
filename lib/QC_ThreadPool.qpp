@@ -218,7 +218,7 @@ void ThreadPool::worker(ExceptionSink* xsink) {
     for more information.
 
     @par Example:
-    @code
+    @code{.py}
 my ThreadPool $tp(10, 2, 4);
     @endcode
 
@@ -228,7 +228,7 @@ qclass ThreadPool [dom=THREAD_CLASS; arg=ThreadPool* tp; ns=Qore::Thread];
 
 //! creates the pool with the given parameters; idle threads are started immediately if necessary
 /** @par Example:
-    @code
+    @code{.py}
 my ThreadPool $tp(10, 2, 4);
     @endcode
 
@@ -272,7 +272,7 @@ ThreadPool::constructor(int max = 0, int minidle = 0, int maxidle = 0, timeout r
 
 //! destroys the pool; any task threads are detached and pending tasks not yet executed are canceled; to wait for all task threads to complete, call ThreadPool::stopWait() first
 /** @par Example:
-    @code
+    @code{.py}
 delete $tp;
     @endcode
  */
@@ -283,7 +283,7 @@ ThreadPool::destructor() {
 
 //! stops the thread pool and returns immediately; after this method has been executed once no more tasks can be submitted to the ThreadPool
 /** @par Example:
-    @code
+    @code{.py}
 $tp.stop();
     @endcode
 
@@ -299,7 +299,7 @@ ThreadPool::stop() {
 
 //! stops the thread pool and does not return until all child threads have also been stopped; after this method has been executed once no more tasks can be submitted to the ThreadPool
 /** @par Example:
-    @code
+    @code{.py}
 $tp.stopWait();
     @endcode
 
@@ -313,7 +313,7 @@ ThreadPool::stopWait() {
 
 //! submit a task to the pool
 /** @par Example:
-    @code
+    @code{.py}
 $tp.submit(sub () { call_function($arg); });
     @endcode
 
@@ -326,7 +326,7 @@ ThreadPool::submit(code task, *code cancel) {
 
 //! returns a description of the ThreadPool
 /** @par Example:
-    @code
+    @code{.py}
 my string $desc = $tp.toString();
     @endcode
 

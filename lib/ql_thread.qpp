@@ -132,7 +132,7 @@ static QoreHashNode *remove_thread_data_intern(const QoreListNode* args, Excepti
     @return the %Qore thread ID (TID) of the current thread
 
     @par Example:
-    @code
+    @code{.py}
 my int $tid = gettid();
     @endcode
 
@@ -147,7 +147,7 @@ int gettid() [flags=RET_VALUE_ONLY;dom=THREAD_INFO] {
     @return the current number of threads in the process (not including the special @ref signal_handling "signal handling thread")
 
     @par Example:
-    @code
+    @code{.py}
 my int $num = num_threads();
     @endcode
 
@@ -163,7 +163,7 @@ int num_threads() [flags=RET_VALUE_ONLY;dom=THREAD_INFO] {
     @return a list of all current thread IDs
 
     @par Example:
-    @code
+    @code{.py}
 my list $l = thread_list();
     @endcode
 
@@ -177,7 +177,7 @@ list thread_list() [flags=RET_VALUE_ONLY;dom=THREAD_INFO] {
 /** @param h a hash of data to save in the thread-local data hash
 
     @par Example:
-    @code
+    @code{.py}
 save_thread_data($h);
     @endcode
 
@@ -193,7 +193,7 @@ nothing save_thread_data(hash h) [dom=THREAD_CONTROL] {
     @param value the value to save in the thread-local hash against the key
 
     @par Example:
-    @code
+    @code{.py}
 save_thread_data("key1", $value);
     @endcode
 
@@ -215,7 +215,7 @@ nothing save_thread_data() [dom=THREAD_CONTROL;flags=RUNTIME_NOOP] {
     @param ... Deletes the data associated to one or more keys in the thread-local data hash corresponding to each string argument in the top-level argument list; arguments are converted to strings if necessary
 
     @par Example:
-    @code
+    @code{.py}
 delete_thread_data("key1", "key2");
     @endcode
 
@@ -233,7 +233,7 @@ nothing delete_thread_data(...) [dom=THREAD_CONTROL] {
     @param l a list of key names for deleting keys in the thread-local data hash; values are converted to strings if necessary
 
     @par Example:
-    @code
+    @code{.py}
 delete_thread_data($list_of_keys);
     @endcode
 
@@ -252,7 +252,7 @@ nothing delete_thread_data(list l) [dom=THREAD_CONTROL] {
     @return a hash of the data removed or @ref nothing if no arguments were passed to the function
 
     @par Example:
-    @code
+    @code{.py}
 my hash $h = remove_thread_data("filename");
     @endcode
 
@@ -269,7 +269,7 @@ my hash $h = remove_thread_data("filename");
     @return a hash of the data removed
 
     @par Example:
-    @code
+    @code{.py}
 my hash $h = remove_thread_data($key_list);
     @endcode
 
@@ -282,7 +282,7 @@ hash remove_thread_data(list l) [dom=THREAD_CONTROL] {
 //! Deletes all keys in the thread-local data hash
 /**
     @par Example:
-    @code
+    @code{.py}
 delete_all_thread_data();
     @endcode
 
@@ -297,7 +297,7 @@ nothing delete_all_thread_data() [dom=THREAD_CONTROL] {
     @return the value of the thread-local data attached to the key passed
 
     @par Example:
-    @code
+    @code{.py}
 my any $data = get_thread_data("key1");
     @endcode
 
@@ -322,7 +322,7 @@ nothing get_thread_data() [dom=THREAD_CONTROL,THREAD_INFO;flags=RUNTIME_NOOP] {
     @return the entire thread-local data hash
 
     @par Example:
-    @code
+    @code{.py}
 my hash $th = get_all_thread_data();
     @endcode
 
@@ -358,7 +358,7 @@ hash getAllThreadCallStacks() [dom=THREAD_CONTROL,THREAD_INFO;flags=DEPRECATED] 
     @return a hash of call stacks keyed by each TID (thread ID); see @ref callstack "call stacks" for the format of the hash values
 
     @par Example:
-    @code
+    @code{.py}
 my hash $cs = get_all_thread_call_stacks();
 foreach my string $tid in ($cs.keyIterator()) {
     printf("TID %d\n", $tid);
@@ -411,7 +411,7 @@ nothing throwThreadResourceExceptions() [dom=THREAD_CONTROL;flags=DEPRECATED] {
     When exceptions are thrown by this function, thread-local resources are also cleaned up at the same time.
 
     @par Example:
-    @code
+    @code{.py}
 try {
     throw_thread_resource_exceptions();
 }
@@ -443,7 +443,7 @@ nothing throw_thread_resource_exceptions() [dom=THREAD_CONTROL] {
     @return @ref True if there are additional thread resource marks to process, @ref False if there are no more
 
     @par Example:
-    @code
+    @code{.py}
 try {
     mark_thread_resources();
     # ... some code or calls that may allocate thread resources
@@ -479,7 +479,7 @@ bool throw_thread_resource_exceptions_to_mark() [dom=THREAD_CONTROL] {
     When exceptions are thrown by this function, thread-local resources are also cleaned up at the same time.
 
     @par Example:
-    @code
+    @code{.py}
 try {
     mark_thread_resources();
 
@@ -515,7 +515,7 @@ nothing mark_thread_resources() [dom=THREAD_CONTROL] {
     @return @ref True if there was already user initialization code set, @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 set_thread_init(sub () { $var = 123; });
     @endcode
 
@@ -531,7 +531,7 @@ bool set_thread_init(code init) [dom=THREAD_CONTROL] {
     This will cause the TimeZone::get() method to return the given TimeZone when called from the same thread
 
     @par Example:
-    @code
+    @code{.py}
 my *TimeZone $tz = get_thread_tz();
 set_thread_tz(new TimeZone("Europe/Prague"));
 on_exit set_thread_tz($tz);
@@ -552,7 +552,7 @@ nothing set_thread_tz(TimeZone[TimeZoneData] zone) [dom=LOCALE_CONTROL] {
 
 //! Clears the thread-local time zone for the current thread; after this call TimeZone::get() will return the value set for the current Program
 /** @par Example:
-    @code
+    @code{.py}
 my *TimeZone $tz = get_thread_tz();
 set_thread_tz(new TimeZone("Europe/Prague"));
 on_exit set_thread_tz($tz);
@@ -574,7 +574,7 @@ nothing set_thread_tz() [dom=LOCALE_CONTROL] {
 /** @return any TimeZone set for the current thread, @ref nothing if none is set
 
     @par Example:
-    @code
+    @code{.py}
 my *TimeZone $tz = get_thread_tz();
 set_thread_tz(new TimeZone("Europe/Prague"));
 on_exit set_thread_tz($tz);
@@ -596,7 +596,7 @@ on_exit set_thread_tz($tz);
 
 //! sets a thread resource for the current thread
 /** @par Example:
-    @code
+    @code{.py}
 set_thread_resource($obj);
     @endcode
 
@@ -619,7 +619,7 @@ nothing set_thread_resource(AbstractThreadResource[AbstractQoreThreadResource] r
 
 //! removes a thread resource from the current thread
 /** @par Example:
-    @code
+    @code{.py}
 remove_thread_resource($obj);
     @endcode
 
@@ -644,7 +644,7 @@ bool remove_thread_resource(AbstractThreadResource[AbstractQoreThreadResource] r
 
 //! sets a callable thread resource for the current thread
 /** @par Example:
-    @code
+    @code{.py}
 set_thread_resource(\func(), code);
     @endcode
 
@@ -666,7 +666,7 @@ nothing set_thread_resource(code resource, any arg) [dom=THREAD_CONTROL] {
 
 //! removes a callable thread resource from the current thread
 /** @par Example:
-    @code
+    @code{.py}
 remove_thread_resource(\func());
     @endcode
 

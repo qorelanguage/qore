@@ -46,7 +46,7 @@ static AbstractQoreNode* cx_err(const char* func, ExceptionSink* xsink) {
     @return the current value of the given column while iterating a @ref context "context statement"
 
     @par Example:
-    @code
+    @code{.py}
 context ($ds.select($sql)) {
     my any $val = cx_value("column1");
 }
@@ -74,7 +74,7 @@ any cx_value(string key) [flags=RET_VALUE_ONLY] {
     @return @ref True if currently iterating the first element in a @ref context "context statement", @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 context ($ds.select($sql)) {
     if (cx_first())
         print("first row!\n");
@@ -98,7 +98,7 @@ bool cx_first() [flags=RET_VALUE_ONLY] {
     @return @ref True if currently iterating the last element in a @ref context "context statement", @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 context ($ds.select($sql)) {
     if (cx_last())
         print("last row!\n");
@@ -122,7 +122,7 @@ bool cx_last() [flags=RET_VALUE_ONLY] {
     @return the current row number within the active @ref context "context statement" (starting from 0)
 
     @par Example:
-    @code
+    @code{.py}
 context ($ds.select($sql)) {
     printf("row %d/%d:\n", cx_pos(), cx_total());
 }
@@ -145,7 +145,7 @@ int cx_pos() [flags=RET_VALUE_ONLY] {
     @return the total number of rows within the active @ref context "context statement"
 
     @par Example:
-    @code
+    @code{.py}
 context ($ds.select($sql)) {
     printf("row %d/%d:\n", cx_total(), cx_total());
 }

@@ -39,7 +39,7 @@
     AutoReadLock objects are helper objects that acquire a read lock for the lifetime of the AutoReadLock object. For this reason, it is only appropriate to assign an AutoReadLock object to a local variable, so when the local variable goes out of scope, the AutoReadLock object will be deleted and the read lock will be automatically released.
 
     For example:
-    @code
+    @code{.py}
 our RWLock $rwl();
 
 sub check_error($error) {
@@ -62,7 +62,7 @@ qclass AutoReadLock [dom=THREAD_CLASS; arg=QoreAutoReadLock* arwl; ns=Qore::Thre
 /** Creates the AutoReadLock object based on the RWLock argument passed. The AutoReadLock object immediately calls RWLock::readLock() on the RWLock object passed, and saves it so it can be released when the AutoReadLock object is destroyed.
 
     @par Example:
-    @code
+    @code{.py}
 my AutoReadLock $arl($rwlock);
     @endcode
 
@@ -78,7 +78,7 @@ AutoReadLock::constructor(RWLock[RWLock] rwl) {
 //! Calls RWLock::readUnlock() on the saved RWLock and destroys the AutoReadLock object
 /** 
     @par Example:
-    @code
+    @code{.py}
 delete $arl;
     @endcode
 

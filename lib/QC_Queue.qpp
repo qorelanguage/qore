@@ -267,7 +267,7 @@ int Queue::getWriteWaiting() [flags=CONSTANT] {
 
 //! sets an error status on the Queue and clears the Queue; while a Queue object has an error status, any write operations to the queue will fail and cause an exception to be raised with the information provided to this method
 /** @par Example:
-    @code $queue.setError("INVALID-OPERATION", "the data queue has been closed");
+    @code{.py} $queue.setError("INVALID-OPERATION", "the data queue has been closed");
     @endcode
 
     @param err the exception error code string
@@ -287,7 +287,7 @@ Queue::setError(string err, string desc) {
 
 //! clears the error setting from the Queue; if error information is set, then after this call, the Queue is usable again
 /** @par Example:
-    @code $queue.clearError()
+    @code{.py} $queue.clearError()
     @endcode
 
     @see setError()

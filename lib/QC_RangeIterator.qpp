@@ -43,7 +43,7 @@
     generating a list in memory and iterating that list (as with @ref Qore::range()).
 
    @par Example: RangeIterator basic usage
-   @code
+   @code{.py}
 my RangeIterator $r(0, 2);
 foreach my int $i in ($r)
     printf("i=%d\n", $i);
@@ -66,7 +66,7 @@ qclass RangeIterator [arg=RangeIterator* i; ns=Qore; vparent=AbstractIterator];
     @param val an optional value to be returned instead of the default integer value
 
     @par Example:
-    @code
+    @code{.py}
 my RangeIterator $i(5, 10, 2);
     @endcode
 
@@ -86,7 +86,7 @@ RangeIterator::constructor(int start, int stop, int step = 1, any val) {
     @param val an optional value to be returned instead of the default integer value
 
     @par Example:
-    @code
+    @code{.py}
 my RangeIterator $i(5);
     @endcode
 
@@ -103,7 +103,7 @@ RangeIterator::constructor(int stop, any val) {
 
 //! Creates a copy of the RangeIterator object, iterating the same object as the original and in the same position
 /** @par Example:
-    @code
+    @code{.py}
 my RangeIterator $ni = $i.copy();
     @endcode
  */
@@ -117,7 +117,7 @@ RangeIterator::copy() {
     @return @ref Qore::True "True" and @ref Qore::False "False" alternately unless it has no value iterate.
 
     @par Example:
-    @code
+    @code{.py}
 while ($i.next()) {
     printf("value: %y\n", $i.getValue());
 }
@@ -135,7 +135,7 @@ bool RangeIterator::next() {
 /** @return the current value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
 
     @par Example:
-    @code
+    @code{.py}
 while ($i.next()) {
     printf("+ %y\n", $i.getValue());
 }
@@ -156,7 +156,7 @@ any RangeIterator::getValue() [flags=RET_VALUE_ONLY] {
 /** Reset the iterator instance to its initial state (start, stop, and step).
 
    @par Example
-   @code
+   @code{.py}
 # raw RangeIterator object usage
 my RangeIterator $r(0, 2);
 foreach my int $i in ($r) {
@@ -188,7 +188,7 @@ RangeIterator::reset() {
 /** @return @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
 
     @par Example:
-    @code
+    @code{.py}
 if ($i.valid())
     printf("current value: %y\n", $i.getValue());
     @endcode
@@ -202,7 +202,7 @@ bool RangeIterator::valid() [flags=CONSTANT] {
     in easier usage in loop statements.
 
     @par Example
-    @code
+    @code{.py}
 foreach my int $i in(xrange(5))
     printf("i=%d\n", $i);
 # resulting in:
@@ -218,7 +218,7 @@ foreach my int $i in(xrange(5))
 //! Returns a RangeIterator containing an arithmetic progression of integers.
 /**
     @par Example:
-    @code
+    @code{.py}
 xrange(2, 5); # 2, 3, 4, 5
 xrange(2, -2); # 2, 1, 0, -1, -2
 xrange(1, 10, 5); # 1, 6
@@ -256,7 +256,7 @@ RangeIterator xrange(int start, int stop, int step = 1, any val) [flags=RET_VALU
     This is an overloaded version of xrange(int, int, int) meaning \c xrange(0, \c stop, 1)
 
     @par Example:
-    @code
+    @code{.py}
 xrange(1); # 0, 1
 xrange(-3); # 0, -1, -2, -3
     @endcode

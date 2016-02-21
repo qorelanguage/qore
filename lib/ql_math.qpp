@@ -81,7 +81,7 @@ const MININT = qore(new QoreBigIntNode(-LLONG_MAX - 1));
     @return a number equal to the closest integer to the argument passed; numbers halfway between two integers are rounded away from zero
 
     @par Example:
-    @code
+    @code{.py}
 my number $n = round($num);
     @endcode
  */
@@ -98,7 +98,7 @@ number round(number n) [flags=CONSTANT] {
     @return a floating-point number equal to the closest integer to the argument passed; numbers halfway between two integers are rounded away from zero
 
     @par Example:
-    @code
+    @code{.py}
 my float $n = round($num);
     @endcode
  */
@@ -124,7 +124,7 @@ float round() [flags=RUNTIME_NOOP] {
     @return a number equal to the smallest integral value greater than or equal to the argument passed
 
     @par Example:
-    @code
+    @code{.py}
 my number $x = ceil(3.2n); # returns 4.0n
     @endcode
 
@@ -141,7 +141,7 @@ number ceil(number n) [flags=CONSTANT] {
     @return a floating-point number equal to the smallest integral value greater than or equal to the argument passed
 
     @par Example:
-    @code
+    @code{.py}
 my float $x = ceil(3.2); # returns 4.0
     @endcode
 
@@ -163,7 +163,7 @@ float ceil() [flags=RUNTIME_NOOP] {
     @param n the value to process
 
     @par Example:
-    @code
+    @code{.py}
 my number $x = floor(3.9n); # returns 3.0n
     @endcode
 
@@ -178,7 +178,7 @@ number floor(softnumber n) [flags=CONSTANT] {
     @param f the value to process
 
     @par Example:
-    @code
+    @code{.py}
 my float $x = floor(3.9); # returns 3.0
     @endcode
 
@@ -203,7 +203,7 @@ float floor() [flags=RUNTIME_NOOP] {
     @return a number raised to the power of another number
 
     @par Example:
-    @code
+    @code{.py}
 my number $z = pow($x, $y);
     @endcode
 
@@ -221,7 +221,7 @@ number pow(number x, number y) [flags=RET_VALUE_ONLY] {
     @return a number raised to the power of another number
 
     @par Example:
-    @code
+    @code{.py}
 my float $z = pow($x, $y);
     @endcode
 
@@ -245,7 +245,7 @@ float pow(softfloat x = 0.0, softfloat y = 0.0) [flags=RET_VALUE_ONLY] {
     @return the absolute value of the argument passed
 
     @par Example:
-    @code
+    @code{.py}
 my int $i = abs(-20); # returns 20
     @endcode
 
@@ -262,7 +262,7 @@ int abs(int i) [flags=CONSTANT] {
     @return the absolute value of the argument passed
 
     @par Example:
-    @code
+    @code{.py}
 my number $n = abs(-20n); # returns 20n
     @endcode
 
@@ -279,7 +279,7 @@ number abs(number n) [flags=CONSTANT] {
     @return the absolute value of the argument passed
 
     @par Example:
-    @code
+    @code{.py}
 my float $f = abs(-20.2); # returns 20.2
     @endcode
 
@@ -304,7 +304,7 @@ float abs() [flags=RUNTIME_NOOP] {
     @return the length of the hypotenuse of a right-angle triangle with sides given as the two arguments
 
     @par Example:
-    @code
+    @code{.py}
 my number $z = hypot($x, $y);
     @endcode
  */
@@ -320,7 +320,7 @@ number hypot(number x, number y) [flags=CONSTANT] {
     @return the length of the hypotenuse of a right-angle triangle with sides given as the two arguments
 
     @par Example:
-    @code
+    @code{.py}
 my float $z = hypot($x, $y);
     @endcode
  */
@@ -342,7 +342,7 @@ float hypot() [flags=RUNTIME_NOOP] {
     @return the square root of the number passed
 
     @par Example:
-    @code
+    @code{.py}
 my number $x = sqrt($y);
     @endcode
  */
@@ -357,7 +357,7 @@ number sqrt(number n) [flags=CONSTANT] {
     @return the square root of the number passed
 
     @par Example:
-    @code
+    @code{.py}
 my float $x = sqrt($y);
     @endcode
  */
@@ -379,7 +379,7 @@ float sqrt() [flags=RUNTIME_NOOP] {
     @return the cube root of the number passed
 
     @par Example:
-    @code
+    @code{.py}
 my number $x = cbrt($y);
     @endcode
  */
@@ -394,7 +394,7 @@ number cbrt(number n) [flags=CONSTANT] {
     @return the cube root of the number passed
 
     @par Example:
-    @code
+    @code{.py}
 my float $x = cbrt($y);
     @endcode
  */
@@ -416,7 +416,7 @@ float cbrt() [flags=RUNTIME_NOOP] {
     @return the sine of the number in radians passed
 
     @par Example:
-    @code
+    @code{.py}
 my number $x = sin($y);
     @endcode
  */
@@ -431,7 +431,7 @@ number sin(number n) [flags=CONSTANT] {
     @return the sine of the number in radians passed
 
     @par Example:
-    @code
+    @code{.py}
 my float $x = sin($y);
     @endcode
  */
@@ -453,7 +453,7 @@ float sin() [flags=RUNTIME_NOOP] {
     @return the cosine of the number in radians passed
 
     @par Example:
-    @code
+    @code{.py}
 my number $x = cos($y);
     @endcode
  */
@@ -468,7 +468,7 @@ number cos(number n) [flags=CONSTANT] {
     @return the cosine of the number in radians passed
 
     @par Example:
-    @code
+    @code{.py}
 my float $x = cos($y);
     @endcode
  */
@@ -490,7 +490,7 @@ float cos() [flags=RUNTIME_NOOP] {
     @return the tangent of the number in radians passed
 
     @par Example:
-    @code
+    @code{.py}
 my number $x = tan($y);
     @endcode
  */
@@ -505,7 +505,7 @@ number tan(number n) [flags=CONSTANT] {
     @return the tangent of the number in radians passed
 
     @par Example:
-    @code
+    @code{.py}
 my float $x = tan($y);
     @endcode
  */
@@ -527,7 +527,7 @@ float tan() [flags=RUNTIME_NOOP] {
     @return the value in radians of the arc sine of the given value
 
     @par Example:
-    @code
+    @code{.py}
 my number $x = asin($y);
     @endcode
  */
@@ -542,7 +542,7 @@ number asin(number n) [flags=CONSTANT] {
     @return the value in radians of the arc sine of the given value
 
     @par Example:
-    @code
+    @code{.py}
 my float $x = asin($y);
     @endcode
  */
@@ -564,7 +564,7 @@ float asin() [flags=RUNTIME_NOOP] {
     @return the value in radians of the arc cosine of the given value
 
     @par Example:
-    @code
+    @code{.py}
 my number $x = acos($y);
     @endcode
  */
@@ -579,7 +579,7 @@ number acos(number n) [flags=CONSTANT] {
     @return the value in radians of the arc cosine of the given value
 
     @par Example:
-    @code
+    @code{.py}
 my float $x = acos($y);
     @endcode
  */
@@ -594,7 +594,7 @@ float acos(softfloat f) [flags=CONSTANT] {
     @return the value in radians of the arc tangent of the given value
 
     @par Example:
-    @code
+    @code{.py}
 my number $x = atan($y);
     @endcode
  */
@@ -609,7 +609,7 @@ number atan(number n) [flags=CONSTANT] {
     @return the value in radians of the arc tangent of the given value
 
     @par Example:
-    @code
+    @code{.py}
 my float $x = atan($y);
     @endcode
  */
@@ -632,7 +632,7 @@ float atan() [flags=RUNTIME_NOOP] {
     @return the principal value of the arc tangent of y/x, using the signs of the two arguments to determine the quadrant of the result
 
     @par Example:
-    @code
+    @code{.py}
 my number $f = atan2($y, $x);
     @endcode
  */
@@ -648,7 +648,7 @@ number atan2(number y, number x) [flags=CONSTANT] {
     @return the principal value of the arc tangent of y/x, using the signs of the two arguments to determine the quadrant of the result
 
     @par Example:
-    @code
+    @code{.py}
 my float $f = atan2($y, $x);
     @endcode
  */
@@ -670,7 +670,7 @@ float atan2() [flags=RUNTIME_NOOP] {
     @return the hyperbolic sine of the given value
 
     @par Example:
-    @code
+    @code{.py}
 my number $x = sinh($y);
     @endcode
  */
@@ -685,7 +685,7 @@ number sinh(number n) [flags=CONSTANT] {
     @return the hyperbolic sine of the given value
 
     @par Example:
-    @code
+    @code{.py}
 my float $x = sinh($y);
     @endcode
  */
@@ -707,7 +707,7 @@ float sinh() [flags=RUNTIME_NOOP] {
     @return the hyperbolic cosine of the given value
 
     @par Example:
-    @code
+    @code{.py}
 my number $x = cosh($y);
     @endcode
  */
@@ -722,7 +722,7 @@ number cosh(number n) [flags=CONSTANT] {
     @return the hyperbolic cosine of the given value
 
     @par Example:
-    @code
+    @code{.py}
 my float $x = cosh($y);
     @endcode
  */
@@ -744,7 +744,7 @@ float cosh() [flags=RUNTIME_NOOP] {
     @return the hyperbolic tangent of the given value
 
     @par Example:
-    @code
+    @code{.py}
 my number $x = tanh($y);
     @endcode
  */
@@ -759,7 +759,7 @@ number tanh(number n) [flags=CONSTANT] {
     @return the hyperbolic tangent of the given value
 
     @par Example:
-    @code
+    @code{.py}
 my float $x = tanh($y);
     @endcode
  */
@@ -781,7 +781,7 @@ float tanh() [flags=RUNTIME_NOOP] {
     @return the natural logarithm of the given value
 
     @par Example:
-    @code
+    @code{.py}
 my float $x = nlog($y);
     @endcode
  */
@@ -796,7 +796,7 @@ number nlog(number n) [flags=CONSTANT] {
     @return the natural logarithm of the given value
 
     @par Example:
-    @code
+    @code{.py}
 my float $x = nlog($y);
     @endcode
  */
@@ -818,7 +818,7 @@ float nlog() [flags=RUNTIME_NOOP] {
     @return the base 10 logarithm of the given value
 
     @par Example:
-    @code
+    @code{.py}
 my number $x = log10($y);
     @endcode
  */
@@ -833,7 +833,7 @@ number log10(number n) [flags=CONSTANT] {
     @return the base 10 logarithm of the given value
 
     @par Example:
-    @code
+    @code{.py}
 my float $x = log10($y);
     @endcode
  */
@@ -855,7 +855,7 @@ float log10() [flags=RUNTIME_NOOP] {
     @return the natural logarithm of 1 + the given number
 
     @par Example:
-    @code
+    @code{.py}
 my number $x = log1p($y);
     @endcode
  */
@@ -870,7 +870,7 @@ number log1p(number n) [flags=CONSTANT] {
     @return the natural logarithm of 1 + the given number
 
     @par Example:
-    @code
+    @code{.py}
 my float $x = log1p($y);
     @endcode
  */
@@ -892,7 +892,7 @@ float log1p() [flags=RUNTIME_NOOP] {
     @return the exponent of the given number
 
     @par Example:
-    @code
+    @code{.py}
 my float $x = logb($y);
     @endcode
  */
@@ -914,7 +914,7 @@ float logb() [flags=RUNTIME_NOOP] {
     @return the value of \a e (the base of natural logarithms) raised to the power of the given number
 
     @par Example:
-    @code
+    @code{.py}
 my number $x = exp($y);
     @endcode
  */
@@ -929,7 +929,7 @@ number exp(number n) [flags=CONSTANT] {
     @return the value of \a e (the base of natural logarithms) raised to the power of the given number
 
     @par Example:
-    @code
+    @code{.py}
 my float $x = exp($y);
     @endcode
  */
@@ -951,7 +951,7 @@ float exp() [flags=RUNTIME_NOOP] {
     @return the value of 2 raised to the power of the given number
 
     @par Example:
-    @code
+    @code{.py}
 my number $x = exp2($y);
     @endcode
  */
@@ -966,7 +966,7 @@ number exp2(number n) [flags=CONSTANT] {
     @return the value of 2 raised to the power of the given number
 
     @par Example:
-    @code
+    @code{.py}
 my float $x = exp2($y);
     @endcode
  */
@@ -992,7 +992,7 @@ float exp2() [flags=RUNTIME_NOOP] {
     @return the value of \a e (the base of natural logarithms) raised to the power of the given number - 1
 
     @par Example:
-    @code
+    @code{.py}
 my number $x = exp1m($y);
     @endcode
  */
@@ -1007,7 +1007,7 @@ number expm1(number n) [flags=CONSTANT] {
     @return the value of \a e (the base of natural logarithms) raised to the power of the given number - 1
 
     @par Example:
-    @code
+    @code{.py}
 my float $x = exp1m($y);
     @endcode
  */

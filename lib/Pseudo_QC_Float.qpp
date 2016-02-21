@@ -43,7 +43,7 @@ qclass <float> [arg=double f = v.getAsFloat();vparent=<value>];
     @return Qore::NT_FLOAT
 
     @par Example:
-    @code
+    @code{.py}
 switch ($f.typeCode()) {
     case NT_FLOAT:
         printf("%y: is a float\n", $f);
@@ -60,7 +60,7 @@ int <float>::typeCode() [flags=CONSTANT] {
     @return @ref True if the float is non-zero, @ref False if zero
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = $f.val();
     @endcode
 
@@ -77,7 +77,7 @@ bool <float>::val() [flags=CONSTANT] {
     @return @ref True because float values can be converted to integers
 
     @par Example:
-    @code
+    @code{.py}
 if ($n.intp())
     printf("%y: can be converted to an integer: %d\n", $n, int($n));
     @endcode
@@ -91,7 +91,7 @@ bool <float>::intp() [flags=CONSTANT] {
     @return @ref True because float values can be converted to strings
 
     @par Example:
-    @code
+    @code{.py}
 if ($n.strp())
     printf("%y: can be converted to a string: '%s'\n", $n, string($n));
     @endcode
@@ -110,7 +110,7 @@ bool <float>::strp() [flags=CONSTANT] {
     @return a string of a formatted number according to a format string; if the format string does not follow the given format, then an empty string is returned
 
     @par Example:
-    @code
+    @code{.py}
 my float $f = -48392093894.2349;
 my string $nstr = $f.format(".,3"); # returns "-48.392.093.894,235"
     @endcode
@@ -127,7 +127,7 @@ string <float>::format(string fmt) [flags=CONSTANT] {
 /** @return -1 if the number is negative, 0 if it is zero, or 1 if it is positive
 
     @par Example:
-    @code
+    @code{.py}
 printf("sign: %d\n", $f.sign());
     @endcode
 
@@ -141,7 +141,7 @@ int <float>::sign() [flags=CONSTANT] {
 
 //! Returns the absolute value of the number
 /** @par Example:
-    @code
+    @code{.py}
 $f = $f.abs();
     @endcode
 

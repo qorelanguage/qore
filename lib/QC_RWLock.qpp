@@ -41,7 +41,7 @@
     This read-write lock favors readers, so the read lock can be safely acquired recursively.\n\n
     See the @ref Qore::Thread::AutoReadLock "AutoReadLock" and the @ref Qore::Thread::AutoWriteLock "AutoWriteLock" classes for classes that assist in exception-safe RWLock locking.\n\n
     Additionally, the @ref on_exit "on_exit statement" can provide exception-safe RWLock handling at the lexical block level as in the following example:
-    @code
+    @code{.py}
 {
     $rwl.writeLock();
     on_exit
@@ -70,7 +70,7 @@ qclass RWLock [dom=THREAD_CLASS; arg=RWLock* rwl; ns=Qore::Thread; vparent=Abstr
 //! Creates the RWLock object
 /**
     @par Example:
-    @code
+    @code{.py}
 my RWLock $rwl();
     @endcode
  */
@@ -82,7 +82,7 @@ RWLock::constructor() {
 /** Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and in each thread blocked on this object when it is deleted.
 
     @par Example:
-    @code
+    @code{.py}
 delete $rwl;
     @endcode
 
@@ -96,7 +96,7 @@ RWLock::destructor() {
 //! Creates a new RWLock object, not based on the original
 /**
     @par Example:
-    @code
+    @code{.py}
 my RWLock $new_rwl = $rwl.copy();
     @endcode
  */
@@ -107,7 +107,7 @@ RWLock::copy() {
 //! Acquires the read lock; blocks if the write lock is already acquired by another thread
 /**
     @par Example:
-    @code
+    @code{.py}
 $rwl.readLock();
     @endcode
 
@@ -126,7 +126,7 @@ nothing RWLock::readLock() {
     @return 0 for success, non-zero for timeout; exceptions are thrown for other errors
 
     @par Example:
-    @code
+    @code{.py}
 if ($rwl.readLock(1500ms))
     throw "TIMEOUT", "timed out after 1.5s waiting for the read lock";
     @endcode
@@ -141,7 +141,7 @@ int RWLock::readLock(timeout timeout_ms) {
 //! Decrements the read lock counter and releases the read lock if the counter is zero. If at least one thread is blocked trying to acquire the write lock and the read counter reaches zero, then one thread waiting on the write lock is woken up
 /**
     @par Example:
-    @code
+    @code{.py}
 $rwl.readUnlock();
     @endcode
 
@@ -159,7 +159,7 @@ nothing RWLock::readUnlock() {
     @return 0 for success, non-zero for timeout; exceptions are thrown for other errors
 
     @par Example:
-    @code
+    @code{.py}
 if ($rwl.writeLock(1500ms))
     throw "TIMEOUT", "timed out after 1.5s waiting for the write lock";
     @endcode
@@ -174,7 +174,7 @@ int RWLock::writeLock(timeout timeout_ms) {
 //! Acquires the write lock; blocks if the read lock is already acquired by another thread
 /**
     @par Example:
-    @code
+    @code{.py}
 $rwl.writeLock();
     @endcode
 
@@ -188,7 +188,7 @@ nothing RWLock::writeLock() {
 //! Releases the write lock, if any readers are waiting, wakes up all readers, otherwise if any writers are waiting, then wakes one up
 /**
     @par Example:
-    @code
+    @code{.py}
 $rwl.writeUnlock();
     @endcode
 
@@ -202,7 +202,7 @@ nothing RWLock::writeUnlock() {
 /** @return 0 for success (read lock acquired, read lock count incremented) or -1 if the call would block (write lock owned by another thread) or an error occured
 
     @par Example:
-    @code
+    @code{.py}
 if (!$rwl.tryReadLock()) {
     on_exit $rwl.readUnlock();
     do_something_in_read_lock();
@@ -216,7 +216,7 @@ int RWLock::tryReadLock() {
 //! Acquires the write lock only if it can be acquired immediately
 /** @return 0 for success (write lock acquired) or -1 if the call would block (read lock owned by another thread) or an error occured
     @par Example:
-    @code
+    @code{.py}
 if (!$rwl.tryWriteLock()) {
     on_exit $rwl.writeUnlock();
     do_something_in_write_lock();
@@ -232,7 +232,7 @@ int RWLock::tryWriteLock() {
     @return the read lock count
 
     @par Example:
-    @code
+    @code{.py}
 my int $num = $rwl.numReaders();
     @endcode
  */
@@ -244,7 +244,7 @@ int RWLock::numReaders() [flags=CONSTANT] {
 /** @return the number of threads waiting on the read lock
 
     @par Example:
-    @code
+    @code{.py}
 my int $num = $rwl.getReadWaiting();
     @endcode
  */
@@ -256,7 +256,7 @@ int RWLock::getReadWaiting() [flags=CONSTANT] {
 /** @return the number of threads waiting on the write lock
 
     @par Example:
-    @code
+    @code{.py}
 my int $num = $rwl.getWriteWaiting();
     @endcode
  */
@@ -268,7 +268,7 @@ int RWLock::getWriteWaiting() [flags=CONSTANT] {
 /** @return @ref True if the current thread is holding either the read lock or the write lock, @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 if ($rwl.lockOwner())
     printf("TID %d has either the read lock or the write lock\n", gettid());
     @endcode
@@ -281,7 +281,7 @@ bool RWLock::lockOwner() [flags=CONSTANT] {
 /** @return @ref True if the current thread is holding the read lock, @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 if ($rwl.readLockOwner())
     printf("TID %d has the read lock\n", gettid());
     @endcode
@@ -294,7 +294,7 @@ bool RWLock::readLockOwner() [flags=CONSTANT] {
 /** @return @ref True if the current thread is holding the write lock, @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 if ($rwl.writeLockOwner())
     printf("TID %d has the write lock\n", gettid());
     @endcode

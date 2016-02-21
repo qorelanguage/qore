@@ -44,7 +44,7 @@ const NF_Scientific = QORE_NF_SCIENTIFIC;
 //! for the raw format without the noise reduction heuristic in the @ref NF_Default format
 /** note that this can be combined with binary or with @ref NF_Scientific as well to get an exponential output without rounding
     @par Example:
-    @code
+    @code{.py}
     my string $str = $n.toString(NF_Scientific|NF_Raw);
     @endcode
  */
@@ -61,7 +61,7 @@ qclass <number> [arg=const QoreNumberNode* n = v.get<const QoreNumberNode>();vpa
     @return Qore::NT_NUMBER
 
     @par Example:
-    @code
+    @code{.py}
 switch ($f.typeCode()) {
     case NT_NUMBER:
         printf("%y: is a number\n", $f);
@@ -80,7 +80,7 @@ int <number>::typeCode() [flags=CONSTANT] {
     @return @ref True if the number is non-zero, @ref False if zero
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = $f.val();
     @endcode
 
@@ -99,7 +99,7 @@ bool <number>::val() [flags=CONSTANT] {
     @return @ref True because number values can be converted to integers
 
     @par Example:
-    @code
+    @code{.py}
 if ($n.intp())
     printf("%y: can be converted to an integer: %d\n", $n, int($n));
     @endcode
@@ -115,7 +115,7 @@ bool <number>::intp() [flags=CONSTANT] {
     @return @ref True because number values can be converted to strings
 
     @par Example:
-    @code
+    @code{.py}
 if ($n.strp())
     printf("%y: can be converted to a string: '%s'\n", $n, string($n));
     @endcode
@@ -131,7 +131,7 @@ bool <number>::strp() [flags=CONSTANT] {
     @return @ref True if the number is NaN (not a number)
 
     @par Example:
-    @code
+    @code{.py}
 if ($n.nanp())
     print("the operation resulted in NaN\n");
     @endcode
@@ -147,7 +147,7 @@ bool <number>::nanp() [flags=CONSTANT] {
     @return @ref True if the number is infinity (+ or -)
 
     @par Example:
-    @code
+    @code{.py}
 if ($n.infp())
     print("the operation resulted in infinity\n");
     @endcode
@@ -162,7 +162,7 @@ bool <number>::infp() [flags=CONSTANT] {
 /** @return -1 if the number is negative, 0 if it is zero, or 1 if it is positive
 
     @par Example:
-    @code
+    @code{.py}
 printf("sign: %d\n", $n.sign());
     @endcode
 
@@ -176,7 +176,7 @@ int <number>::sign() [flags=CONSTANT] {
 /** @return the precision of the current number
 
     @par Example:
-    @code
+    @code{.py}
 printf("precision: %d\n", $n.prec());
     @endcode
 
@@ -209,7 +209,7 @@ string <number>::toString(int fmt) [flags=CONSTANT] {
     @return a string of a formatted number according to a format string; if the format string does not follow the given format, then an empty string is returned
 
     @par Example:
-    @code
+    @code{.py}
 my number $n = -48392093894.2349n;
 my string $nstr = $n.format(".,3"); # returns "-48.392.093.894,235"
     @endcode
@@ -227,7 +227,7 @@ string <number>::format(string fmt) [flags=CONSTANT] {
 
 //! Returns the absolute value of the number
 /** @par Example:
-    @code
+    @code{.py}
 $n = $n.abs();
     @endcode
 

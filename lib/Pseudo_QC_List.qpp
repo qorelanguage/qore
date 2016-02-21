@@ -47,7 +47,7 @@ qclass <list> [arg=const QoreListNode* l = v.get<const QoreListNode>();vparent=<
     @return Qore::NT_LIST
 
     @par Example:
-    @code
+    @code{.py}
 switch ($l.typeCode()) {
     case NT_LIST:
         printf("%y: is a list\n", $l);
@@ -64,7 +64,7 @@ int <list>::typeCode() [flags=CONSTANT] {
     @return the number of elements in the list
 
     @par Example:
-    @code
+    @code{.py}
 my int $len = $l.size();
     @endcode
 
@@ -80,7 +80,7 @@ int <list>::size() [flags=CONSTANT] {
     @return @ref True if the list is empty (size = 0), @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = $l.empty();
     @endcode
 */
@@ -94,7 +94,7 @@ bool <list>::empty() [flags=CONSTANT] {
     @return @ref False if the list is empty (size = 0), @ref True if not
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = $l.val();
     @endcode
 
@@ -110,7 +110,7 @@ bool <list>::val() [flags=CONSTANT] {
 /** @return the first entry in the list
 
     @par Example:
-    @code
+    @code{.py}
 my any $e = $l.first();
     @endcode
 
@@ -126,7 +126,7 @@ any <list>::first() [flags=CONSTANT] {
 /** @return the last entry in the list
 
     @par Example:
-    @code
+    @code{.py}
 my any $e = $l.last();
     @endcode
 
@@ -146,7 +146,7 @@ any <list>::last() [flags=CONSTANT] {
     @return a string created from a list and a separator string, each element in the list will be present in the return value separated by the separator string; the string returned with have the same @ref character_encoding "character encoding" as \a str
 
     @par Example:
-    @code
+    @code{.py}
 my string $str = ("a", "b", "c").join(":"); # returns "a:b:c"
     @endcode
 
@@ -166,7 +166,7 @@ string <list>::join(string str) [flags=RET_VALUE_ONLY] {
     @return the number of elements in the list
 
     @par Example:
-    @code
+    @code{.py}
 printf("iterating %d element%s\n", $val.lsize(), $val.lsize() == 1 ? "" : "s");
 foreach my any $element in ($val) {
     do_something($element);
@@ -186,7 +186,7 @@ int <list>::lsize() [flags=CONSTANT] {
     @return @ref True if the list contains arg, @ref False if it does not
 
     @par Example:
-    @code
+    @code{.py}
 my list $l = (1, 2, 3);
 my bool $b = $l.contains(5); # returns False
     @endcode
@@ -199,7 +199,7 @@ bool <list>::contains(any arg) [flags=RET_VALUE_ONLY] {
 /** @return a @ref Qore::ListIterator "ListIterator" object for the list
 
     @par Example:
-    @code
+    @code{.py}
 map printf("+ %y\n", $1), $l.iterator();
     @endcode
 
@@ -211,7 +211,7 @@ AbstractIterator <list>::iterator() [flags=CONSTANT] {
 
 //! Returns a @ref Qore::RangeIterator "RangeIterator" object for the list elements
 /** @par Example:
-    @code
+    @code{.py}
 map printf("+ %y\n", $1), $l.ranegIterator();
     @endcode
 

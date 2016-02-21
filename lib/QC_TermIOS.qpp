@@ -538,7 +538,7 @@ const TCSASOFT = TCSASOFT;
     This class is used with File::getTerminalAttributes(), File::setTerminalAttributes(), and the terminal I/O constants to manipulate terminal attributes.
 
     For example, here is some code to set terminal attributes, read in a character from standard input with a timeout, and reset the terminal attributes:
-    @code
+    @code{.py}
 my TermIOS $t();
 stdin.getTerminalAttributes($t);
 my TermIOS $orig = $t.copy();
@@ -577,7 +577,7 @@ qclass TermIOS [dom=TERMINAL_IO; arg=QoreTermIOS*s];
     @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
-    @code
+    @code{.py}
 my TermIOS $termios();
 stdin.getTerminalAttributes($termios);
     @endcode
@@ -595,7 +595,7 @@ TermIOS::constructor() {
     @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
-    @code
+    @code{.py}
 my TermIOS $t2 = $t.copy();
     @endcode
  */
@@ -614,7 +614,7 @@ TermIOS::copy() {
     @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
-    @code
+    @code{.py}
 my int $flag = $termios.getLFlag();
     @endcode
  */
@@ -633,7 +633,7 @@ int TermIOS::getLFlag() {
     @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
-    @code
+    @code{.py}
 my int $flag = $termios.getCFlag();
     @endcode
  */
@@ -652,7 +652,7 @@ int TermIOS::getCFlag() {
     @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
-    @code
+    @code{.py}
 my int $flag = $termios.getOFlag();
     @endcode
  */
@@ -671,7 +671,7 @@ int TermIOS::getOFlag() {
     @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
-    @code
+    @code{.py}
 my int $flag = $termios.getIFlag();
     @endcode
  */
@@ -690,7 +690,7 @@ int TermIOS::getIFlag() {
     @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
-    @code
+    @code{.py}
 my int $lflag = $termios.getLFlag();
 # disable canonical input mode (= turn on "raw" mode)
 $lflag &= ~ICANON;
@@ -717,7 +717,7 @@ nothing TermIOS::setLFlag(softint flag) {
     @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
-    @code
+    @code{.py}
 my int $cflag = $termios.getCFlag();
 $cflag = ($cflag & ~CSIZE) | CS8 | CSTOPB;
 $cflag = ($cflag | CLOCAL | CREAD) & ~CRTSCTS;
@@ -740,7 +740,7 @@ nothing TermIOS::setCFlag(softint flag) {
     @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
-    @code
+    @code{.py}
 my int $oflag = $termios.getOFlag();
 # translate linefeeds to crlf
 $oflag |= ONLCR;
@@ -763,7 +763,7 @@ nothing TermIOS::setOFlag(softint flag) {
     @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
-    @code
+    @code{.py}
 my int $iflag = $termios.getIFlag();
 # ring bell on input queue full
 $iflag |= IMAXBEL;
@@ -788,7 +788,7 @@ nothing TermIOS::setIFlag(softint flag) {
     @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
-    @code
+    @code{.py}
 # get minimum characters to return on a read
 my int $vmin = $t.getCC(VMIN);
 # get character input timer in 0.1 second increments
@@ -813,7 +813,7 @@ int TermIOS::getCC(softint cc) {
     @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
-    @code
+    @code{.py}
 # set minimum characters to return on a read
 $t.setCC(VMIN, 1);
 
@@ -839,7 +839,7 @@ nothing TermIOS::setCC(softint offset, softint value) {
     @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = $termios.isEqual($termios2);
     @endcode
  */
@@ -861,7 +861,7 @@ bool TermIOS::isEqual(Termios[QoreTermIOS] termios) [flags=CONSTANT] {
 
     @par Example:
 my hash $wh = $termios.getWindowSize();
-    @code
+    @code{.py}
 
     @endcode
  */

@@ -41,7 +41,7 @@ qclass <closure> [arg=const ResolvedCallReferenceNode* c = v.get<ResolvedCallRef
     @return Qore::NT_CLOSURE
 
     @par Example:
-    @code
+    @code{.py}
 switch ($c.typeCode()) {
     case NT_CLOSURE:
         printf("%y: is a closure\n", $c);

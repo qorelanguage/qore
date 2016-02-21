@@ -40,7 +40,7 @@
     This class does not differentiate between executing select statement or stored procedures or functions or other SQL code; the transaction lock for Datasource objects and a dedicated connection for DatasourcePool objects is allocated to the object when the connection is necessary, and it is not automatically released by this class. The transaction lock or connection must be manually released by calling SQLStatement::commit() or SQLStatement::rollback() (or the methods with the same name in the parent Datasource or DatasourcePool object).
 
     Here is an example executing a select statement:
-    @code
+    @code{.py}
 {
     my SQLStatement $stmt($ds);
     # release transaction lock on exit
@@ -97,7 +97,7 @@ qclass SQLStatement [dom=DATABASE; arg=QoreSQLStatement* stmt; ns=Qore::SQL; vpa
     @param ds The Datasource object to use for the DB connection for the SQLStatement object
 
     @par Example:
-    @code
+    @code{.py}
 my SQLStatement $stmt($db);
     @endcode
 
@@ -125,7 +125,7 @@ SQLStatement::constructor(Datasource[ManagedDatasource] ds) {
     @param dsp The DatasourcePool object to use for the DB connection for the SQLStatement object
 
     @par Example:
-    @code
+    @code{.py}
 my SQLStatement $stmt($db);
     @endcode
 
@@ -150,7 +150,7 @@ SQLStatement::constructor(DatasourcePool[DatasourcePool] dsp) {
 //! Closes the statement if it is open and destroys the object
 /**
     @par Example:
-    @code
+    @code{.py}
 delete $stmt;
     @endcode
  */
@@ -176,7 +176,7 @@ SQLStatement::copy() {
     @param sql The SQL string to prepare for execution on the DB server
 
     @par Example:
-    @code
+    @code{.py}
 $stmt.prepare("select * from table where id = %v");
     @endcode
  */
@@ -197,7 +197,7 @@ nothing SQLStatement::prepare(string sql, ...) {
     @param sql The SQL string to prepare for execution on the DB server
 
     @par Example:
-    @code
+    @code{.py}
 $stmt.prepareRaw("select * from table");
     @endcode
  */
@@ -217,7 +217,7 @@ nothing SQLStatement::prepareRaw(string sql) {
     @param ... Arguments to placeholder specifications (if required by the underlying DBI driver) and bind by value arguments
 
     @par Example:
-    @code
+    @code{.py}
 $stmt.prepare("insert into table (id, name) values (%v, %v)");
 foreach my hash $h in ($l) {
     $stmt.bind($h.id, $h.name);
@@ -248,7 +248,7 @@ nothing SQLStatement::bind(...) {
     @param vargs Arguments to placeholder specifications (if required by the underlying DBI driver) and bind by value arguments
 
     @par Example:
-    @code
+    @code{.py}
 $stmt.prepare("insert into table (id, name) values (%v, %v)");
 foreach my hash $h in ($l) {
     my list $args = ($h.id, $h.name);
@@ -280,7 +280,7 @@ nothing SQLStatement::bindArgs(softlist vargs) {
     @param ... Arguments to placeholder specifications (if required by the underlying DBI driver)
 
     @par Example:
-    @code
+    @code{.py}
 $stmt.prepare("begin select sysdate into :sd from dual", Type::Date); end;
 $stmt.bindPlaceholders(Type::Date);
 my date $d = $stmt.getOutput().sd;
@@ -310,7 +310,7 @@ nothing SQLStatement::bindPlaceholders(...) {
     @param vargs Arguments to placeholder specifications (if required by the underlying DBI driver)
 
     @par Example:
-    @code
+    @code{.py}
 $stmt.prepare("begin select sysdate into :sd from dual", Type::Date); end;
 my list $l = list(Type::Date);
 $stmt.bindPlaceholdersArgs($l);
@@ -339,7 +339,7 @@ nothing SQLStatement::bindPlaceholdersArgs(softlist vargs) {
     @param ... Arguments to bind by value arguments
 
     @par Example:
-    @code
+    @code{.py}
 $stmt.prepare("insert into table (id, name) values (%v, %v)");
 foreach my hash $h in ($l) {
     $stmt.bindValues($h.id, $h.name);
@@ -370,7 +370,7 @@ nothing SQLStatement::bindValues(...) {
     @param vargs Arguments to bind by value arguments
 
     @par Example:
-    @code
+    @code{.py}
 $stmt.prepare("insert into table (id, name) values (%v, %v)");
 foreach my hash $h in ($l) {
     my list $args = ($h.id, $h.name);
@@ -401,7 +401,7 @@ nothing SQLStatement::bindValuesArgs(softlist vargs) {
     @param ... Optional arguments to placeholder specifications (if required by the underlying DBI driver) and bind by value arguments can be given in the call to the method; if present, arguments are bound before the statement is executed
 
     @par Example:
-    @code
+    @code{.py}
 $stmt.prepare("insert into table (id, name) values (%v, %v)");
 foreach my hash $h in ($l) {
     $stmt.exec($h.id, $h.name);
@@ -433,7 +433,7 @@ nothing SQLStatement::exec(...) {
     @param vargs Optional arguments to placeholder specifications (if required by the underlying DBI driver) and bind by value arguments can be given in the call to the method; if present, arguments are bound before the statement is executed
 
     @par Example:
-    @code
+    @code{.py}
 $stmt.prepare("insert into table (id, name) values (%v, %v)");
 foreach my hash $h in ($l) {
     my list $args = ($h.id, $h.name);
@@ -455,7 +455,7 @@ nothing SQLStatement::execArgs(softlist vargs) {
 /** @return the number of rows affected by the last call to SQLStatement::exec()
 
     @par Example:
-    @code
+    @code{.py}
 my int $rc = $stmt.affectedRows();
     @endcode
 
@@ -471,7 +471,7 @@ int SQLStatement::affectedRows() {
 /** @return Returns a hash of output buffers; result sets will be returned as hashes of lists. Each key in the hash is the same as the name given to the placeholder specification in the call to SQLStatement::prepare() or SQLStatement::prepareRaw()
 
     @par Example:
-    @code
+    @code{.py}
 my hash $h = $stmt.getOutput();
     @endcode
 
@@ -487,7 +487,7 @@ hash SQLStatement::getOutput() {
 /** @return Retrieves output buffers as a hash; result sets will be returned as lists of hashes. Each key in the hash is the same as the name given to the placeholder specification in the call to SQLStatement::prepare() or SQLStatement::prepareRaw()
 
     @par Example:
-    @code
+    @code{.py}
 my hash $h = $stmt.getOutputRows();
     @endcode
 
@@ -503,7 +503,7 @@ hash SQLStatement::getOutputRows() {
 /** It is not encessary to call this method manually; define operations are implicitly executed when needed when retrieving values from a select statement
 
     @par Example:
-    @code
+    @code{.py}
 {
     my SQLStatement $stmt($ds);
     # release transaction lock on exit
@@ -526,7 +526,7 @@ nothing SQLStatement::define() {
 //! Closes the statement if it is open, however this method does not release the connection or transaction lock
 /**
     @par Example:
-    @code
+    @code{.py}
 $stmt.close();
     @endcode
  */
@@ -537,7 +537,7 @@ nothing SQLStatement::close() {
 //! Commits the transaction, releases the connection or the transaction lock according to the object used in the SQLStatement::constructor(), and closes the SQLStatement
 /**
     @par Example:
-    @code
+    @code{.py}
 $stmt.commit();
     @endcode
 
@@ -550,7 +550,7 @@ nothing SQLStatement::commit() {
 //! Closes the SQLStatement, performs a transaction rollback, and releases the connection or the transaction lock according to the object used in the SQLStatement::constructor(), and closes the SQLStatement
 /**
     @par Example:
-    @code
+    @code{.py}
 $stmt.rollback();
     @endcode
 
@@ -563,7 +563,7 @@ nothing SQLStatement::rollback() {
 //! Manually starts a transaction and allocates a connection or grabs the transaction lock according to the object used in the SQLStatement::constructor()
 /**
     @par Example:
-    @code
+    @code{.py}
 $stmt.beginTransaction();
     @endcode
  */
@@ -577,7 +577,7 @@ nothing SQLStatement::beginTransaction() {
     @return @ref True if there is a row to retrieve, @ref False if not (no more rows to be retrieved)
 
     @par Example:
-    @code
+    @code{.py}
 while ($stmt.next()) {
     my hash $h = $stmt.fetchRow();
 }
@@ -595,7 +595,7 @@ bool SQLStatement::next() {
 /** @return @ref Qore::True "True" if the object is currently pointing at a valid element, @ref Qore::False "False" if not
 
     @par Example:
-    @code
+    @code{.py}
 if ($i.valid())
     printf("current value: %y\n", $i.getValue());
     @endcode
@@ -610,7 +610,7 @@ bool SQLStatement::valid() [flags=CONSTANT] {
     @return the current row as a hash where the keys are the column names and the values are the column values
 
     @par Example:
-    @code
+    @code{.py}
 while ($stmt.next()) {
     my hash $h = $stmt.fetchRow();
 }
@@ -630,7 +630,7 @@ while ($stmt.next()) {
     @return the current row as a hash where the keys are the column names and the values are the column values
 
     @par Example:
-    @code
+    @code{.py}
 while ($stmt.next()) {
     my hash $h = $stmt.getValue();
 }
@@ -656,7 +656,7 @@ while ($stmt.next()) {
     @param rows The maximum number of rows to retrieve, if this argument is omitted, negative, or equal to zero, then all available rows from the current row position are retrieved
 
     @par Example:
-    @code
+    @code{.py}
 my list $l = $stmt.fetchRows(-1);
     @endcode
 
@@ -678,7 +678,7 @@ list SQLStatement::fetchRows(softint rows = -1) {
     @param rows The maximum number of rows to retrieve, if this argument is omitted, negative, or equal to zero, then all available rows from the current row position are retrieved
 
     @par Example:
-    @code
+    @code{.py}
 my hash $h = $stmt.fetchColumns(-1);
     @endcode
 
@@ -716,7 +716,7 @@ hash SQLStatement::describe() {
 /** @return Returns the current SQL string set with the call to SQLStatement::prepare() or SQLStatement::prepareRaw() or @ref nothing if no SQL has been set
 
     @par Example:
-    @code
+    @code{.py}
 my *string $sql = $stmt.getSQL();
     @endcode
  */
@@ -728,7 +728,7 @@ my *string $sql = $stmt.getSQL();
 /** @return @ref True if the object is currently active and has a connection or transaction lock allocated to it, or @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 if ($stmt.active())
     $stmt.commit();
     @endcode
@@ -743,7 +743,7 @@ bool SQLStatement::active() [flags=CONSTANT] {
     @return the current column value of the given row
 
     @par Example:
-    @code
+    @code{.py}
 my SQLStatement $stmt($ds);
 # release transaction lock on exit
 on_exit $stmt.commit();

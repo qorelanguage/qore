@@ -476,7 +476,7 @@ public namespace TelnetClient {
 
         #! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
         /** @par Example:
-            @code
+            @code{.py}
 telnet.clearWarningQueue();
             @endcode
 
@@ -490,7 +490,7 @@ telnet.clearWarningQueue();
 
         #! Sets a @ref Qore::Thread::Queue "Queue" object to receive socket warnings
         /** @par Example:
-            @code
+            @code{.py}
 telnet.setWarningQueue(5000, 5000, queue, "socket-1");
             @endcode
 
@@ -525,7 +525,7 @@ telnet.setWarningQueue(5000, 5000, queue, "socket-1");
 
         #! Returns performance statistics for the socket
         /** @par Example:
-            @code
+            @code{.py}
 hash h = telnet.getUsageInfo();
             @endcode
 
@@ -548,7 +548,7 @@ hash h = telnet.getUsageInfo();
 
         #! Clears performance statistics
         /** @par Example:
-            @code
+            @code{.py}
 telnet.clearStats();
             @endcode
 

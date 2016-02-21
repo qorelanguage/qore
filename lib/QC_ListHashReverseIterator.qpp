@@ -53,7 +53,7 @@ public:
     A result list can be iterated in reverse order by calling ListHashReverseIterator::prev() instead of ListHashReverseIterator::next()
 
     @par Example: ListHashReverseIterator basic usage
-    @code
+    @code{.py}
     my list $data = (
              ( "column1" : 1, "column2" : "a"),
              ( "column1" : 2, "column2" : "b"),
@@ -86,7 +86,7 @@ qclass ListHashReverseIterator [arg=QoreListHashReverseIterator* i; ns=Qore; vpa
 /** @param l the list of hashes to iterate
 
     @par Example:
-    @code
+    @code{.py}
 my ListHashIterator $i($l);
     @endcode
 
@@ -98,7 +98,7 @@ ListHashReverseIterator::constructor(softlist l) {
 
 //! Creates a copy of the ListHashReverseIterator object, iterating the same object as the original and in the same position
 /** @par Example:
-    @code
+    @code{.py}
 my ListHashReverseIterator $ni = $i.copy();
     @endcode
  */
@@ -113,7 +113,7 @@ ListHashReverseIterator::copy() {
     @return @ref False if there are no more elements in the result list (in which case the iterator object is invalid and should not be used); @ref True if successful (meaning that the iterator object is valid)
 
     @par Example:
-    @code
+    @code{.py}
 while ($i.next()) {
     printf(" + row %d: %y\n", $i.index(), $i.getValue());
 }
@@ -134,7 +134,7 @@ bool ListHashReverseIterator::next() {
     @return @ref False if there are no more elements in the result list (in which case the iterator object is invalid and should not be used); @ref True if successful (meaning that the iterator object is valid)
 
     @par Example:
-    @code
+    @code{.py}
 while ($i.prev()) {
     printf(" + row %d: %y\n", $i.index(), $i.getValue());
 }
@@ -152,7 +152,7 @@ bool ListHashReverseIterator::prev() {
 /** @return @ref True if on the first element being iterated (ie the last element in the list)
 
     @par Example:
-    @code
+    @code{.py}
 while ($i.next()) {
     if ($i.first())
         printf("START:\n");
@@ -167,7 +167,7 @@ bool ListHashReverseIterator::first() [flags=CONSTANT] {
 /** @return @ref True if on the last element being iterated (ie the first element in the list)
 
     @par Example:
-    @code
+    @code{.py}
 while ($i.next()) {
     if ($i.last())
         printf("END.\n");
@@ -184,7 +184,7 @@ bool ListHashReverseIterator::last() [flags=CONSTANT] {
     @return the current column value of the given row
 
     @par Example:
-    @code
+    @code{.py}
 while ($i.next()) {
     printf("%d: value: %y", $i.index(), $i.value);
 }

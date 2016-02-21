@@ -41,7 +41,7 @@ qclass <nothing> [arg=;vparent=<value>];
     @return Qore::NT_NOTHING
 
     @par Example:
-    @code
+    @code{.py}
 switch ($n.typeCode()) {
     case NT_NOTHING:
         printf("%y: no value\n", $n);
@@ -58,7 +58,7 @@ int <nothing>::typeCode() [flags=CONSTANT] {
     @return 0
 
     @par Example:
-    @code
+    @code{.py}
 printf("iterating %d element%s\n", $val.lsize(), $val.lsize() == 1 ? "" : "s");
 foreach my any $element in ($val) {
     do_something($element);
@@ -73,7 +73,7 @@ int <nothing>::lsize() [flags=CONSTANT] {
 /** @return an empty @ref Qore::SingleValueIterator "SingleValueIterator" object
 
     @par Example:
-    @code
+    @code{.py}
 map printf("+ %y\n", $1), get_hash_or_nothing().pairIterator();
     @endcode
 
@@ -87,7 +87,7 @@ SingleValueIterator <nothing>::pairIterator() [flags=CONSTANT] {
 /** @return an empty @ref Qore::SingleValueIterator "SingleValueIterator" object
 
     @par Example:
-    @code
+    @code{.py}
 map printf("+ %y\n", $1), get_hash_or_nothing().keyIterator();
     @endcode
 
@@ -103,7 +103,7 @@ SingleValueIterator <nothing>::keyIterator() [flags=CONSTANT] {
 /** @return an empty @ref Qore::SingleValueIterator "SingleValueIterator" object
 
     @par Example:
-    @code
+    @code{.py}
 map printf("+ %y\n", $1), get_hash_or_nothing().contextIterator();
     @endcode
 
@@ -120,7 +120,7 @@ SingleValueIterator <nothing>::contextIterator() [flags=CONSTANT] {
     @return an empty list
 
     @par Example:
-    @code
+    @code{.py}
 my *hash $h = hash_or_nothing();
 my list $l = $h.keys();
     @endcode
@@ -138,7 +138,7 @@ list <nothing>::keys() [flags=CONSTANT] {
     @return an empty list
 
     @par Example:
-    @code
+    @code{.py}
 my *hash $h = hash_or_nothing();
 my list $l = $h.values();
     @endcode
@@ -156,7 +156,7 @@ list <nothing>::values() [flags=CONSTANT] {
     @return @ref nothing
 
     @par Example:
-    @code
+    @code{.py}
 my *hash $h = hash_or_nothing();
 my *string $n = $h.firstKey();
     @endcode
@@ -173,7 +173,7 @@ nothing <nothing>::firstKey() [flags=CONSTANT] {
     @return @ref nothing
 
     @par Example:
-    @code
+    @code{.py}
 my *hash $h = hash_or_nothing();
 my any $n = $h.firstValue();
     @endcode
@@ -190,7 +190,7 @@ nothing <nothing>::firstValue() [flags=CONSTANT] {
     @return @ref nothing
 
     @par Example:
-    @code
+    @code{.py}
 my *hash $h = hash_or_nothing();
 my *string $n = $h.firstKey();
     @endcode
@@ -207,7 +207,7 @@ nothing <nothing>::lastKey() [flags=CONSTANT] {
     @return @ref nothing
 
     @par Example:
-    @code
+    @code{.py}
 my *hash $h = hash_or_nothing();
 my any $n = $h.firstValue();
     @endcode
@@ -226,7 +226,7 @@ nothing <nothing>::lastValue() [flags=CONSTANT] {
     @return @ref True if the key exists in the hash (may or may not be assigned a value), @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 my *hash $h = hash_or_nothing();
 my bool $b = $h.hasKey($key);
     @endcode
@@ -246,7 +246,7 @@ bool <nothing>::hasKey(softstring[doc] key) [flags=CONSTANT] {
     @return @ref True if the key exists and is assigned to a value, @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 my *hash $h = hash_or_nothing();
 my bool $b = $h.hasKeyValue($key);
     @endcode
@@ -263,7 +263,7 @@ bool <nothing>::hasKeyValue(softstring[doc] key) [flags=CONSTANT] {
 /** @return an empty @ref Qore::SingleValueIterator "SingleValueIterator" object
 
     @par Example:
-    @code
+    @code{.py}
 map printf("+ %y\n", $1), get_list_or_nothing().rangeIterator();
     @endcode
 

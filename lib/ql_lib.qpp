@@ -145,7 +145,7 @@ TEST() {
 /** @param rc the return code for the process (0 = no error; success)
 
     @par Example:
-    @code
+    @code{.py}
 exit(0);
     @endcode
 
@@ -159,7 +159,7 @@ nothing exit(softint rc = 0) [dom=PROCESS] {
 /** This function causes the current process to terminate abnormally; a core dump or crash report may be generated if enabled
 
     @par Example:
-    @code
+    @code{.py}
 abort();
     @endcode
 
@@ -174,7 +174,7 @@ nothing abort() [dom=PROCESS] {
 /** @param command the executable to execute and any command-line arguments; the command is executed internally by a call to execvp() (3)
 
     @par Example:
-    @code
+    @code{.py}
 exec("/usr/bin/xterm -bg black -fg white -sb -sl 2000");
     @endcode
  */
@@ -194,7 +194,7 @@ nothing exec(string command) [dom=EXTERNAL_PROCESS,PROCESS] {
     @return the exit code of the process executed
 
     @par Example:
-    @code
+    @code{.py}
 int rc = system("ls -l");
     @endcode
 
@@ -245,7 +245,7 @@ nothing system() [flags=RUNTIME_NOOP;dom=EXTERNAL_PROCESS] {
     @return the real user ID of the current process
 
     @par Example:
-    @code
+    @code{.py}
 my int $uid = getuid();
     @endcode
  */
@@ -264,7 +264,7 @@ int getuid() [dom=EXTERNAL_INFO] {
     @return the effective user ID of the current process
 
     @par Example:
-    @code
+    @code{.py}
 my int $euid = geteuid();
     @endcode
  */
@@ -283,7 +283,7 @@ int geteuid() [dom=EXTERNAL_INFO] {
     @return the real group ID of the current process
 
     @par Example:
-    @code
+    @code{.py}
 my int $gid = getgid();
     @endcode
  */
@@ -302,7 +302,7 @@ int getgid() [dom=EXTERNAL_INFO] {
     @return the effective group ID of the current process
 
     @par Example:
-    @code
+    @code{.py}
 my int $egid = getegid();
     @endcode
  */
@@ -319,7 +319,7 @@ int getegid() [dom=EXTERNAL_INFO] {
     @ref Qore::Option::HAVE_UNIX_USERMGT
 
     @par Example:
-    @code
+    @code{.py}
 my list $l = getgroups();
     @endcode
 
@@ -349,7 +349,7 @@ list getgroups() [dom=EXTERNAL_INFO] {
     @ref Qore::Option::HAVE_UNIX_USERMGT
 
     @par Example:
-    @code
+    @code{.py}
 setgroups($l);
     @endcode
 
@@ -389,7 +389,7 @@ nothing setgroups(softlist gids) [dom=PROCESS] {
     @return should always return 0 for success
 
     @par Example:
-    @code
+    @code{.py}
 sleep(10s);
     @endcode
 
@@ -414,7 +414,7 @@ nothing sleep() [flags=RUNTIME_NOOP;dom=PROCESS] {
     @return should always return 0 for success
 
     @par Example:
-    @code
+    @code{.py}
 usleep(5000);
     @endcode
 
@@ -435,7 +435,7 @@ int usleep(softint usecs) [dom=PROCESS] {
     @return should always return 0 for success
 
     @par Example:
-    @code
+    @code{.py}
 usleep(250ms);
     @endcode
 
@@ -457,7 +457,7 @@ nothing usleep() [flags=RUNTIME_NOOP;dom=PROCESS] {
 /** @return the PID (process ID) of the current process
 
     @par Example:
-    @code
+    @code{.py}
 my int $pid = getpid();
     @endcode
  */
@@ -472,7 +472,7 @@ int getpid() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
     @return the PID (process ID) of the parent process of the current process
 
     @par Example:
-    @code
+    @code{.py}
 my int $ppid = HAVE_GETPPID ? getppid() : -1;
     @endcode
  */
@@ -493,7 +493,7 @@ int getppid() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
     @return 0 in the child process; returns the child's PID in the parent process; if an error occurs, then -1 is returned, in this case no child process was started and the error number can be retrieved with the errno() function
 
     @par Example:
-    @code
+    @code{.py}
 my int $pid;
 if ($pid = fork())
     printf("child has PID %d\n", $pid);
@@ -555,7 +555,7 @@ int fork() [dom=PROCESS] {
     @return 0 means success (no error), or -1 meaning an error occurred; in this case check errno() for the error
 
     @par Example:
-    @code
+    @code{.py}
 if (kill($pid, SIGTERM))
     printf("error sending signal to pid %d: %s\n", $pid, strerror());
     @endcode
@@ -580,7 +580,7 @@ nothing kill() [flags=RUNTIME_NOOP;dom=EXTERNAL_PROCESS] {
     @return a random 64-bit integer number
 
     @par Example:
-    @code
+    @code{.py}
 my int $num = rand();
     @endcode
 
@@ -601,7 +601,7 @@ int rand() [flags=CONSTANT] {
     @param seed the seed for the random number generator (only the least-significant 32-bits are used)
 
     @par Example:
-    @code
+    @code{.py}
 srand(now());
     @endcode
  */
@@ -624,7 +624,7 @@ nothing srand() [flags=RUNTIME_NOOP;dom=PROCESS] {
 /** @return the hostname of the system
 
     @par Example:
-    @code
+    @code{.py}
 my string $host = gethostname();
     @endcode
  */
@@ -640,7 +640,7 @@ string gethostname() [flags=CONSTANT;dom=EXTERNAL_INFO] {
 /** @return the error code of the last error that occurred in the current thread (see @ref error_constants for possible error code values)
 
     @par Example:
-    @code
+    @code{.py}
 if (unlink($path))
     printf("%s: %s\n", $path, strerror(errno()));
     @endcode
@@ -657,7 +657,7 @@ int errno() {
     @return the string corresponding to the error code passed; if the error code is unknown, then a string like \c "Unknown error: -1" is returned
 
     @par Example:
-    @code
+    @code{.py}
 if (unlink($path))
     printf("%s: %s\n", $path, strerror(errno()));
     @endcode
@@ -670,7 +670,7 @@ string strerror(softint err) [flags=CONSTANT] {
 /** @return the string corresponding to the last error that occurred in the current thread
 
     @par Example:
-    @code
+    @code{.py}
 if (unlink($path))
     printf("%s: %s\n", $path, strerror());
     @endcode
@@ -687,7 +687,7 @@ string strerror() [flags=CONSTANT] {
     @return a string giving the last element of the given file path (meant to be the filename)
 
     @par Example:
-    @code
+    @code{.py}
 my string $fn = basename("/usr/local/bin/file_name");
     @endcode
 
@@ -711,7 +711,7 @@ nothing basename() [flags=RUNTIME_NOOP] {
     @return a string giving the path up to a file but not the filename itself; if no directory separator characters can be found in the path, \c "." is returned (meaning the current directory)
 
     @par Example:
-    @code
+    @code{.py}
 my string $dir = dirname("/usr/local/bin/file_name");
     @endcode
 
@@ -738,7 +738,7 @@ nothing dirname() [flags=RUNTIME_NOOP] {
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
-    @code
+    @code{.py}
 if (setuid($uid))
     printf("setuid %d: %s\n", $uid, strerror());
     @endcode
@@ -760,7 +760,7 @@ int setuid(softint uid) [dom=PROCESS] {
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
-    @code
+    @code{.py}
 if (seteuid($uid))
     printf("seteuid %d: %s\n", $uid, strerror());
     @endcode
@@ -782,7 +782,7 @@ int seteuid(softint uid) [dom=PROCESS] {
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
-    @code
+    @code{.py}
 if (setgid($gid))
     printf("setgid %d: %s\n", $gid, strerror());
     @endcode
@@ -804,7 +804,7 @@ int setgid(softint gid) [dom=PROCESS] {
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
-    @code
+    @code{.py}
 if (setegid($gid))
     printf("setegid %d: %s\n", $gid, strerror());
     @endcode
@@ -823,7 +823,7 @@ int setegid(softint gid) [dom=PROCESS] {
     @return Upon successful completion, the setsid() function returns the value of the process group ID of the new process group, which is the same as the process ID of the calling process; if an error occurs, setsid() returns -1 and errno() and/or strerror() can be used to check the error.
 
     @par Example:
-    @code
+    @code{.py}
 if (setsid() == -1)
     printf("setsid(): %s\n", strerror());
     @endcode
@@ -842,7 +842,7 @@ int setsid() [dom=PROCESS] {
     @return the first address corresponding to the hostname passed as an argument or @ref nothing if the lookup fails
 
     @par Example:
-    @code
+    @code{.py}
 my *string $addr = gethostbyname($host);
 if (!exists $host)
     printf("address lookup on %y failed; hostname unknown\n", $host);
@@ -869,7 +869,7 @@ nothing gethostbyname() [flags=RUNTIME_NOOP] {
     @return the official hostname corresponding to the network addressed passed as an argument
 
     @par Example:
-    @code
+    @code{.py}
 my *string $hostname = gethostbyaddr("192.168.0.33");
 if (!exists $hostname)
     printf("address lookup on 192.168.0.33 failed\n", $host);
@@ -896,7 +896,7 @@ nothing gethostbyaddr() [flags=RUNTIME_NOOP] {
     @return @ref host_information_hash "a hash" representing all host and address information corresponding to the hostname passed as an argument
 
     @par Example:
-    @code
+    @code{.py}
 my *hash $ah = gethostbyname_long($host);
 if (!exists $host)
     printf("address lookup on %y failed; hostname unknown\n", $host);
@@ -923,7 +923,7 @@ nothing gethostbyname_long() [flags=RUNTIME_NOOP] {
     @return @ref host_information_hash "a hash" representing all host and address information corresponding to the address and address type passed as arguments
 
     @par Example:
-    @code
+    @code{.py}
 my *hash $ah = gethostbyaddr_long("192.168.0.33");
 if (!exists $ah)
     printf("address lookup on 192.168.0.33 failed\n", $host);
@@ -954,7 +954,7 @@ nothing gethostbyaddr_long() [flags=RUNTIME_NOOP] {
     @return a list of @ref address_information_hash for the given node name or string address; if no lookup can be performed then an exception is thrown
 
     @par Example:
-    @code
+    @code{.py}
 my list $l = getaddrinfo("localhost");
     @endcode
 
@@ -971,7 +971,7 @@ list getaddrinfo(*string node, *softstring service, softint family = AF_UNSPEC, 
     @param strd if @ref Qore::True "True" then also stdin, stdout, and stderr are closed, otherwise fds > 2 are closed
 
     @par Example:
-    @code
+    @code{.py}
 close_all_fd();
     @endcode
 

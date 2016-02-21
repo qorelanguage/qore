@@ -206,7 +206,7 @@ const PO_NO_NETWORK = PO_NO_NETWORK;
 
 //! Disallows use of the @ref new "new operator"
 /** Note that objects can still be instantiated with syntax like:
-    @code
+    @code{.py}
 my Mutex $m();
     @endcode
 
@@ -574,7 +574,7 @@ qclass Program [arg=QoreProgram* p];
     @param po A binary OR'ed product of @ref parse_options "parse options"
 
     @par Example:
-    @code
+    @code{.py}
 my Program $pgm();
     @endcode
 
@@ -621,7 +621,7 @@ Program::destructor() {
     @return If warning included in the warning mask are raised during parsing, this method will return an @ref exception_hash "exception hash" with warning information, otherwise @ref nothing is returned
 
     @par Example:
-    @code
+    @code{.py}
 my *hash $wh = $pgm.parse($code, "label", WARN_DEFAULT);
 while ($wh) {
     printf("warning: %s:%d: %s: %s\n", $wh.file, $wh.line, $wh.err, $wh.desc);
@@ -673,7 +673,7 @@ while ($wh) {
     @return If warning included in the warning mask are raised during parsing, this method will return an @ref exception_hash "exception hash" with warning information, otherwise @ref nothing is returned
 
     @par Example:
-    @code
+    @code{.py}
 my *hash $wh = $pgm.parsePending($code, "label", WARN_DEFAULT);
 while ($wh) {
     printf("warning: %s:%d: %s: %s\n", $wh.file, $wh.line, $wh.err, $wh.desc);
@@ -714,7 +714,7 @@ $pgm.parseCommit();
 /** An exception in this method causes all pending code to be rolled back immediately.
 
     @par Example:
-    @code
+    @code{.py}
 $pgm.parseCommit();
     @endcode
 
@@ -736,7 +736,7 @@ nothing Program::parseCommit() {
 /** An exception in this method causes all pending code to be rolled back immediately.
 
     @par Example:
-    @code
+    @code{.py}
 my *hash $wh = $pgm.parseCommit(WARN_DEFAULT);
 while (exists $wh) {
     printf("warning: %s:%d: %s: %s\n", $wh.file, $wh.line, $wh.err, $wh.desc);
@@ -767,7 +767,7 @@ while (exists $wh) {
 //! Rolls back any pending code processed with Program::parsePending() that has not yet been committed to the Program object with Program::parseCommit()
 /**
     @par Example:
-    @code
+    @code{.py}
 $pgm.parseRollback();
     @endcode
 
@@ -792,7 +792,7 @@ nothing Program::parseRollback() {
     @return Depends on the function being called
 
     @par Example:
-    @code
+    @code{.py}
 my any $result = $pgm.callFunction("func_name", $arg1, $arg2);
     @endcode
 
@@ -823,7 +823,7 @@ any Program::callFunction(string name, ...) {
     @return Depends on the function being called
 
     @par Example:
-    @code
+    @code{.py}
 my any $result = $pgm.callFunctionArgs("func_name", ($arg1, $arg2));
     @endcode
 
@@ -846,7 +846,7 @@ any Program::callFunctionArgs(string name, *softlist vargs) {
     @return @ref True if the function exists, @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 if ($pgm.existsFunction("my_func"))
     printf("my_func() exists in the Program\n");
     @endcode
@@ -864,7 +864,7 @@ bool Program::existsFunction(string name) [flags=RET_VALUE_ONLY] {
 /** @return the value given to the @ref return "return statement" at the top-level, if any, otherwise @ref nothing
 
     @par Example:
-    @code
+    @code{.py}
 $pgm.run();
     @endcode
  */
@@ -878,7 +878,7 @@ any Program::run() {
     @param func the name of the function to import into the Program object
 
     @par Example:
-    @code
+    @code{.py}
 $pgm.importFunction("log");
     @endcode
 
@@ -903,7 +903,7 @@ nothing Program::importFunction(string func) {
     @param inject if @ref Qore::True "True" then the imported function will be marked as a dependency injection and therefore will not be overritten by subsequent calls to Program::importSystemFunctions(), Program::importSystemApi(), Program::loadApplyToPrivateUserModule(), or Program::loadApplyToUserModule(); note that for this call to succeed, the Program must have @ref Qore::PO_ALLOW_INJECTION set
 
     @par Example:
-    @code
+    @code{.py}
 $pgm.importFunction("service_log", "log");
     @endcode
 
@@ -935,7 +935,7 @@ nothing Program::importFunction(string func, string new_name, *softbool inject) 
     @param readonly If this argument is @ref True, then the variable will be imported read-only, and cannot be changed by the subprogram (note that if the imported
 
     @par Example:
-    @code
+    @code{.py}
 $pgm.importGlobalVariable("var");
     @endcode
 
@@ -957,7 +957,7 @@ nothing Program::importGlobalVariable(string varname, bool readonly = False) {
     @param inject if @ref Qore::True "True" then the imported class will be marked as a dependency injection and therefore will not be overritten by subsequent calls to Program::importSystemClasses(), Program::importSystemConstants(), Program::importSystemApi(), Program::loadApplyToPrivateUserModule(), or Program::loadApplyToUserModule(); note that for this call to succeed, the Program must have @ref Qore::PO_ALLOW_INJECTION set
 
     @par Example:
-    @code
+    @code{.py}
 $pgm.importClass("MyNamespace::MyClass");
     @endcode
 
@@ -993,7 +993,7 @@ nothing Program::importClass(string cls, *string new_name, *softbool inject) {
 /** @return a list of strings of all user functions defined in the program object
 
     @par Example:
-    @code
+    @code{.py}
 my list $l = $pgm.getUserFunctionList();
     @endcode
  */
@@ -1005,7 +1005,7 @@ softlist Program::getUserFunctionList() {
 /** @return the current binary-or'ed parse option mask for the Program object
 
     @par Example:
-    @code
+    @code{.py}
 my int $mask = $pgm.getParseOptions();
     @endcode
  */
@@ -1019,7 +1019,7 @@ int Program::getParseOptions() {
     @param opt A single @ref parse_options "parse option" or binary-or'ed combination of @ref parse_options "parse options" to set in the parse option mask for the object; the given argument will be combined with binary or with the existing parse option mask
 
     @par Example:
-    @code
+    @code{.py}
 # disable threading and GUI operations
 $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);
     @endcode
@@ -1042,7 +1042,7 @@ nothing Program::setParseOptions(softint opt = PO_DEFAULT) {
     @param opt A single @ref parse_options "parse option" or binary-or'ed combination of @ref parse_options "parse options" to unset in the parse option mask for the object; any bit set in this argument will be unset (ie zeroed out or combined with inverse binary and) in the Program's parse option mask
 
     @par Example:
-    @code
+    @code{.py}
 # allow threading and GUI operations
 $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);
     @endcode
@@ -1065,7 +1065,7 @@ nothing Program::disableParseOptions(softint opt) {
     @param opt A single @ref parse_options "parse option" or binary-or'ed combination of @ref parse_options "parse options" to unset in the parse option mask for the object
 
     @par Example:
-    @code
+    @code{.py}
 # disallow threading and GUI operations
 $pgm.replaceParseOptions(PO_NO_THREADS | PO_NO_GUI);
     @endcode
@@ -1082,7 +1082,7 @@ nothing Program::replaceParseOptions(softint opt) {
 /** @param path The path (directory and filename) for the current script; if the directory component is missing, then the current directory is assumed
 
     @par Example:
-    @code
+    @code{.py}
 $pgm.setScriptPath("/users/test/test.q");
     @endcode
  */
@@ -1096,7 +1096,7 @@ nothing Program::setScriptPath(*string path) {
     @return Returns the current script directory as a string or @ref nothing if not set; if a string is returned, it should normally include the trailing directory separator character (\c "/" on UNIX, \c "\\" on Windows)
 
     @par Example:
-    @code
+    @code{.py}
 my *string $dir = $pgm.getScriptDir();
     @endcode
  */
@@ -1110,7 +1110,7 @@ my *string $dir = $pgm.getScriptDir();
     @return the current script name as a string or @ref nothing if not set
 
     @par Example:
-    @code
+    @code{.py}
 my *string $name = $pgm.getScriptName();
     @endcode
  */
@@ -1124,7 +1124,7 @@ my *string $name = $pgm.getScriptName();
     @return the current script directory and filename if known, otherwise returns @ref nothing
 
     @par Example:
-    @code
+    @code{.py}
 my *string $path = $pgm.getScriptPath();
     @endcode
  */
@@ -1135,7 +1135,7 @@ my *string $path = $pgm.getScriptPath();
 //! Locks parse options so that they cannot be changed
 /**
     @par Example:
-    @code
+    @code{.py}
  $pgm.lockOptions();
    @endcode
  */
@@ -1151,7 +1151,7 @@ nothing Program::lockOptions() {
     @return the value of the global variable identified by the first string argument giving the name of the variable (without any leading \c "$" symbol)
 
     @par Example:
-    @code
+    @code{.py}
 my bool $exists;
 my any $val = $pgm.getGlobalVariable("error_count", \$exists);
     @endcode
@@ -1182,7 +1182,7 @@ any Program::getGlobalVariable(string varname, *reference rexists) {
     @param region The path to the zoneinfo file for the time zone region to set as the local time zone for the Program object
 
     @par Example:
-    @code
+    @code{.py}
 $pgm.setTimeZoneRegion("Europe/Prague");
     @endcode
 
@@ -1201,13 +1201,13 @@ nothing Program::setTimeZoneRegion(string region) {
 
     @par Example:
 The following examples are all equivalent, setting the time zone to +02 UTC:
-    @code
+    @code{.py}
 $pgm.setTimeZoneUTCOffset(7200);
     @endcode
-    @code
+    @code{.py}
 $pgm.setTimeZoneUTCOffset(2h);
     @endcode
-    @code
+    @code{.py}
 $pgm.setTimeZoneUTCOffset(PT2H);
     @endcode
 
@@ -1221,7 +1221,7 @@ nothing Program::setTimeZoneUTCOffset(softint seconds_east) {
 //! Sets the default local time zone for the object
 /**
     @par Example:
-    @code
+    @code{.py}
 my TimeZone $tz("Europe/Prague");
 $pgm.setTimeZone($tz);
     @endcode
@@ -1236,7 +1236,7 @@ nothing Program::setTimeZone(TimeZone[TimeZoneData] zone) {
 /** @return the default local time zone for the object
 
     @par Example:
-    @code
+    @code{.py}
 my TimeZone $tz = $pgm.getTimeZone();
     @endcode
  */
@@ -1249,7 +1249,7 @@ TimeZone Program::getTimeZone() {
     @param val The value to assign to the define
 
     @par Example:
-    @code
+    @code{.py}
 $pgm.define("PRODUCTION", True);
     @endcode
  */
@@ -1263,7 +1263,7 @@ nothing Program::define(string def, any val) {
 /** @param def The name of the define to undefine; if the given define is not defined anyway, the operation is ignored
 
     @par Example:
-    @code
+    @code{.py}
 $pgm.undefine("PRODUCTION");
     @endcode
  */
@@ -1279,7 +1279,7 @@ nothing Program::undefine(string def) {
     @return @ref True if the given @ref conditional_parsing "parse define" is defined in the current Program (does not have to have a value defined to return @ref True), @ref False if not
 
     @par Example:
-    @code
+    @code{.py}
 my bool $b = $pgm.isDefined("PRODUCTION");
     @endcode
  */
@@ -1292,7 +1292,7 @@ bool Program::isDefined(string def) {
 /** @return the value of the given @ref conditional_parsing "parse define" in the current Program
 
     @par Example:
-    @code
+    @code{.py}
 my any $val = $pgm.getDefine("PRODUCTION");
     @endcode
 
@@ -1311,7 +1311,7 @@ any Program::getDefine(string def) {
     @param name either a feature name (a module will be searched with this feature name) or a path to a module to load
 
     @par Example:
-    @code
+    @code{.py}
 $pgm.loadModule("mysql");
     @endcode
 
@@ -1337,7 +1337,7 @@ Program::loadModule(string name) [dom=MODULES] {
     Note that modules providing objects resolved at parse time (classes, constants, functions, etc) must be loaded prior to parsing.
 
     @par Example:
-    @code
+    @code{.py}
 $pgm.loadUserModuleWithProgram("MyModule", $p);
     @endcode
 
@@ -1428,7 +1428,7 @@ Program::loadApplyToPrivateUserModule(string name) [dom=MODULES] {
 
 //! imports system classes into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES
 /** @par Example:
-    @code
+    @code{.py}
 $pgm.importSystemClasses();
     @endcode
 
@@ -1444,7 +1444,7 @@ Program::importSystemClasses() {
 
 //! imports system constants into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS
 /** @par Example:
-    @code
+    @code{.py}
 $pgm.importSystemConstants();
     @endcode
 
@@ -1460,7 +1460,7 @@ Program::importSystemConstants() {
 
 //! imports system functions into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
 /** @par Example:
-    @code
+    @code{.py}
 $pgm.importSystemFunctions();
     @endcode
 
@@ -1476,7 +1476,7 @@ Program::importSystemFunctions() {
 
 //! imports system classes and functions into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS, @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS, and @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES
 /** @par Example:
-    @code
+    @code{.py}
 $pgm.importSystemApi();
     @endcode
 

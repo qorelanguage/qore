@@ -53,7 +53,7 @@ public:
     A list can be iterated in reverse order by calling ListReverseIterator::prev() instead of ListReverseIterator::next()
 
     @par Example: ListIterator basic usage
-    @code
+    @code{.py}
     my list $data = (1, "foo", 2);
     my ListReverseIterator $it($data);
     while ($it.next()) {
@@ -83,7 +83,7 @@ qclass ListReverseIterator [arg=QoreListReverseIterator* i; ns=Qore; vparent=Lis
 /** @param l the list to iterate
 
     @par Example:
-    @code
+    @code{.py}
 my ListReverseIterator $li($l);
     @endcode
 
@@ -95,7 +95,7 @@ ListReverseIterator::constructor(softlist l) {
 
 //! Creates a copy of the ListReverseIterator object, iterating the same object as the original and in the same position
 /** @par Example:
-    @code
+    @code{.py}
 my ListReverseIterator $ni = $i.copy();
     @endcode
  */
@@ -110,7 +110,7 @@ ListReverseIterator::copy() {
     @return @ref False if there are no more elements in the list (in which case the iterator object is invalid and should not be used); @ref True if successful (meaning that the iterator object is valid)
 
     @par Example:
-    @code
+    @code{.py}
 while ($i.prev()) {
     printf(" + %y\n", $i.getValue());
 }
@@ -134,7 +134,7 @@ bool ListReverseIterator::next() {
     @return @ref False if there are no more elements in the list (in which case the iterator object is invalid and should not be used); @ref True if successful (meaning that the iterator object is valid)
 
     @par Example:
-    @code
+    @code{.py}
 while ($i.next()) {
     printf(" + %y\n", $i.getValue());
 }
@@ -155,7 +155,7 @@ bool ListReverseIterator::prev() {
 /** @return @ref True if on the first element iterated with this iterator (ie the last element in the list)
 
     @par Example:
-    @code
+    @code{.py}
 while ($i.next()) {
     if ($i.first())
         printf("START:\n");
@@ -170,7 +170,7 @@ bool ListReverseIterator::first() [flags=CONSTANT] {
 /** @return @ref True if on the last element iterated with this iterator (ie the first element in the list)
 
     @par Example:
-    @code
+    @code{.py}
 while ($i.next()) {
     if ($i.last())
         printf("END.\n");
