@@ -36,7 +36,7 @@
 /** The primary use of this class is in HttpServer for matching request URIs to handlers.
 
     Example:
-    @code
+    @code{.py}
 TreeMap tm();
 
 tm.put("path/to/resource", handler1);

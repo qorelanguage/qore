@@ -46,7 +46,7 @@
     resource and calls cleanup().
 
     @par Example
-    @code
+    @code{.py}
 # this class starts a background thread in the constructor that is managed as a thread resource in the creating thread
 class ThreadResourceExample inherits AbstractThreadResource {
     public {}

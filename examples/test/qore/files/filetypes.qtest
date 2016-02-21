@@ -22,7 +22,7 @@ class FiletypesTest inherits QUnit::Test {
 %endif
         string nonExistantPath = "/abcdefgh/XYZ/X987654321/asde7g1b23m6u7e9s2c0h4g5sd6sf";
 
-        assertEq(True, is_file("/bin/tar"), "is_file()");
+        assertEq(True, is_file(get_script_path()), "is_file()");
         assertEq(False, is_file("/"), "is_file() false 1");
         assertEq(False, is_file(nonExistantPath), "is_file() false 2");
         assertEq(False, is_file(""), "is_file() false 3");

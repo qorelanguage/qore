@@ -147,7 +147,7 @@ public namespace WebUtil {
 
         #! adds a template function to a template @ref Qore::Program "Program" object
         /** @par Example:
-            @code
+            @code{.py}
 string qhtml = "<form id=\"upload_form\" enctype=\"multipart/form-data\" method=\"post\" action=\"{{ $URL_PREFIX }}upload-file">
     <fieldset class=\"workflow_list\">
         <legend>Step 1: Select Workflow</legend>
@@ -317,7 +317,7 @@ TextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
 
         #! explicitly renders the given template with the given argument
         /** @par Example:
-            @code
+            @code{.py}
 hash h = qft.render(ctx);
             @endcode
 
@@ -405,7 +405,7 @@ hash h = qft.render(ctx);
 
         #! explicitly renders the given template with the given path and context argument
         /** @par Example:
-            @code
+            @code{.py}
 hash h = tm.render(resource_path, path, mtime, ctx);
             @endcode
 
@@ -477,7 +477,7 @@ hash h = tm.render(resource_path, path, mtime, ctx);
 
         #! adds a template to the object
         /** @par Example:
-            @code
+            @code{.py}
 string qhtml = "<form id=\"upload_form\" enctype=\"multipart/form-data\" method=\"post\" action=\"{{ $URL_PREFIX }}upload-file">
     <fieldset class=\"workflow_list\">
         <legend>Step 1: Select Workflow</legend>
@@ -528,7 +528,7 @@ tm.add("/html/index.qhtml", qhtml);
 
         #! explicitly renders the given template with the given argument
         /** @par Example:
-            @code
+            @code{.py}
 hash h = tm.render("html/index.qhtml", ctx);
             @endcode
 
@@ -558,7 +558,7 @@ hash h = tm.render("html/index.qhtml", ctx);
 
         #! explicitly renders the given template with the given argument context hash if the template exists; if not, returns @ref nothing
         /** @par Example:
-            @code
+            @code{.py}
 *hash h = tm.tryRender("html/index.qhtml", ctx);
             @endcode
 

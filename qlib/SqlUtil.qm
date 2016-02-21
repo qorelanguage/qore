@@ -182,31 +182,31 @@ module SqlUtil {
 
     @par From the Primary Key
     To retrieve a single row based on a single primary key value, use @ref SqlUtil::AbstractTable::find(any):
-    @code
+    @code{.py}
 *hash row = table.find(id);
     @endcode
     If no primary key value matches the given argument, then @ref nothing is returned. A %Qore SQL statement like the following is generated from the above:
-    @code
+    @code{.py}
 *hash row = ds.selectRow("select * from schema.table where id = %v", id);
     @endcode
     \n
     To retrieve a single row based on a complex primary key value, or a single primary key value and extra criteria, use @ref SqlUtil::AbstractTable::find(hash):
-    @code
+    @code{.py}
 *hash row = table.find(("account_type": type, "name": name));
     @endcode
     If no row value matches the given argument hash, then @ref nothing is returned. A %Qore SQL statement like the following is generated from the above:
-    @code
+    @code{.py}
 *hash row = ds.selectRow("select * from schema.table where account_type = %v and name = %v", type, name);
     @endcode
 
     @par At Most One Matching Row From the Table
     To retrieve at most one matching row from the table, use @ref SqlUtil::AbstractTable::findSingle():
-    @code
+    @code{.py}
 *hash row = table.findSingle(("permission_type": op_between("US", "UX")));
     @endcode
     This method can be used to efficiently check the table if at least one record matches the given \c where criteria; even if more rows match,
     only a single row is returned.  If no rows match, then @ref nothing is returned. A %Qore SQL statement like the following is generated from the above:
-    @code
+    @code{.py}
 *hash row = ds.selectRow("select * from schema.table where permission_type between %v and %v limit %v", "US", "UX", 1);
     @endcode
 
@@ -216,21 +216,21 @@ module SqlUtil {
 
     @par From the Primary Key
     To retrieve multiple rows from a list of single primary key values, use @ref SqlUtil::AbstractTable::find(list)
-    @code
+    @code{.py}
 *list rows = table.find(list);
     @endcode
     All rows matching the single primary key values in the argument list are returned; if no rows match, @ref nothing is returned.
 
     @par From Simple Where Criteria
     To find all rows matching simple where criteria, use @ref SqlUtil::AbstractTable::findAll():
-    @code
+    @code{.py}
 *list rows = table.findAll(("id": op_gt(100), "created": op_gt(2013-03-01)));
     @endcode
     See @ref where_clauses for a description of the hash argument; if no rows match, @ref nothing is returned.
 
     @par From Complex Select Criteria
     To select a hash keyed by column name of lists (row values) based on complex select criteria, use @ref SqlUtil::AbstractTable::select():
-    @code
+    @code{.py}
 hash sh = (
     "columns": ("id", "name", "q.*"),
     "where": ("type": "user"),
@@ -243,7 +243,7 @@ hash sh = (
     See @ref select_option_hash for a description of the hash argument; if no rows match, then a hash with column
     names assigned to empty lists is returned.\n\n
     To select a list of row hashes based on complex select criteria, use @ref SqlUtil::AbstractTable::selectRows():
-    @code
+    @code{.py}
 *list rows = table.selectRows(sh);
     @endcode
     If no rows match, then @ref nothing is returned.
@@ -251,7 +251,7 @@ hash sh = (
     @subsection get_row_iterator Acquiring a Row Iterator for Query Results
     @par From Complex Select Criteria
     To get an iterator for the row values corresponding to a select statement, use @ref SqlUtil::AbstractTable::getRowIterator():
-    @code
+    @code{.py}
 Table t(ds, "table_name");
 SQLStatement i = table.getRowIterator(sh);
 on_exit table.commit();
@@ -263,7 +263,7 @@ map printf("row: %y\n", $1), i;
     @subsection get_rows_in_batches Retrieving Multiple Rows in Batches
     @par From Complex Select Criteria
     Multiple rows can be retrieved from a single call to an @ref Qore::SQL::SQLStatement object as returned by @ref SqlUtil::AbstractTable::getRowIterator():
-    @code
+    @code{.py}
 Table t(ds, "table_name");
 SQLStatement i = table.getRowIterator(sh);
 on_exit table.commit();
@@ -280,7 +280,7 @@ while (True) {
     @subsection column_spec Specifying Columns in Query Output
     @par From Complex Select Criteria
     @ref SqlUtil::AbstractTable "AbstractTable" methods taking a @ref select_option_hash "select option hash argument" support specifying output columns including column operators by assigning a column / column operator list to the @ref select_option_columns "columns" key.
-    @code
+    @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", "started", cop_as("warnings", "warning_count"), cop_as("errors", "error_count")), "where": ("type": "user")));
     @endcode
     @see @ref select_option_columns "select option columns" for details about the \c "columns" option of the @ref select_option_hash "select option hash"
@@ -301,7 +301,7 @@ while (True) {
     SQL strings for select statements are constructed programmatically based on a select option hash described below.
 
     @par Select Option Hash Example:
-    @code
+    @code{.py}
 hash soh = (
     "columns": ("id", "name", "q.*"),
     "where": ("type": "user"),
@@ -331,11 +331,11 @@ hash soh = (
     The comment does not have any impact to data returned from the statement but it can help with statement finding and optimizations.
 
     <b>Comment Example:</b>
-    @code
+    @code{.py}
 table.selectRows( ("comment" : "foo bar") );
     @endcode
     will produce select statement like this:
-    @code
+    @code{.py}
 select /* foo bar *<!--%%-->/ ...
     @endcode
     @warning Oracle: using different comments in the same SQL can lead to new optimizer statement hard parsing.
@@ -345,11 +345,11 @@ select /* foo bar *<!--%%-->/ ...
     In database query operations, various SQL implementations use hints as additions to the SQL standard that instruct the database engine on how to execute the query. For example, a hint may tell the engine to use as little memory as possible (even if the query will run slowly), or to use or not to use an index (even if the query optimizer would decide otherwise).
 
     <b>Hint Example:</b>
-    @code
+    @code{.py}
 table.selectRows( ("hint" : "full(t1)") );
     @endcode
     will produce select statement like this:
-    @code
+    @code{.py}
 select /*+ full(a) *<!--%%-->/ ...
     @endcode
     The string is taken as is and it's up to user to handle correct aliases in join functions etc.
@@ -359,7 +359,7 @@ select /*+ full(a) *<!--%%-->/ ...
     @anchor select_option_columns
     @par Select Option "columns"
     <b>Columns Example:</b>
-    @code
+    @code{.py}
 list columns = ("id", "name", "started", cop_as("warnings", "warning_count"), cop_as("errors", "error_count"));
 *list rows = table.selectRows(("columns": columns, "where": ("type": "user")));
     @endcode
@@ -367,37 +367,37 @@ list columns = ("id", "name", "started", cop_as("warnings", "warning_count"), co
     This option takes a list, each element of the list can be one of the following.\n\n
     <b>A Simple String Giving a Column Name</b>\n
     ex: \c "name"
-    @code
+    @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", "started")));
     @endcode \n
     <b>A String in Dot Notation</b>\n
     This format is for use with @ref select_option_join "joins"; ex: \c "q.name"
-    @code
+    @code{.py}
 *list rows = table.selectRows(("columns": ("table.id", "t2.customer_name"), "join": join_inner(table2, "t2", ("id": "altid"))));
     @endcode \n
     <b>A Column Operation Specified by a Column Operator Function</b>\n
     ex: <tt>cop_as("column_name", "column_alias")</tt> \n
     See @ref sql_cop_funcs "column operator function" for more information on column operator functions
-    @code
+    @code{.py}
 *list rows = table.selectRows(("columns": ("id", cop_as("warnings", "warning_count"), cop_as("errors", "error_count"))));
     @endcode
     For @ref sql_cop_funcs "column operator functions" taking a column name, either a string name or a name in dot notation is acceptable\n\n
     <b>The Value \c "*", Meaning All Columns</b>\n
     ex: \c "*"
-    @code
+    @code{.py}
 *list rows = table.selectRows(("columns": "*"));
     @endcode
     This is the default if no \c "columns" key is included in the @ref select_option_hash "select option hash" \n\n
     <b>An \c "*" in Dot Notation</b>\n
     ex: \c "q.*"
-    @code
+    @code{.py}
 *list rows = table.selectRows(("columns": ("table.id", "t2.*"), "join": join_inner(table2, "t2", ("id": "altid"))));
     @endcode
 
     @anchor select_option_where
     @par Select Option "where"
     <b>Where Example:</b>
-    @code
+    @code{.py}
 *list rows = table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
     @endcode
     The hash value assigned to this key describes how the \c "where" clause in the query is built.  Because the \c "where" clause logic is common to many SQL methods, this topic is covered in a separate section.  See @ref where_clauses for a detailed description of the value of this key.
@@ -405,7 +405,7 @@ list columns = ("id", "name", "started", cop_as("warnings", "warning_count"), co
     @anchor select_option_orderby
     @par Select Option "orderby"
     <b>Orderby Example:</b>
-    @code
+    @code{.py}
 *list rows = table.selectRows(("where": ("account_type": "CUSTOMER"), "orderby": "created_date"));
     @endcode
     This option is a list of the following values:
@@ -418,7 +418,7 @@ list columns = ("id", "name", "started", cop_as("warnings", "warning_count"), co
     @anchor select_option_desc
     @par Select Option "desc"
     <b>Desc Example:</b>
-    @code
+    @code{.py}
 *list rows = table.selectRows(("where": ("account_type": "CUSTOMER"), "orderby": "created_date", "desc": True));
     @endcode
     If the value of this key is @ref Qore::True "True" and results are ordered (either due to the @ref select_option_orderby "orderby option" or due to implicit ordering by the primary key due to the use of the @ref select_option_offset "offset option"), then results will be sorted in descending order.\n\n
@@ -429,7 +429,7 @@ list columns = ("id", "name", "started", cop_as("warnings", "warning_count"), co
     @anchor select_option_limit
     @par Select Option "limit"
     <b>Limit Example:</b>
-    @code
+    @code{.py}
 *list rows = table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
     @endcode
     This option will limit the number of rows returned.
@@ -440,7 +440,7 @@ list columns = ("id", "name", "started", cop_as("warnings", "warning_count"), co
     @anchor select_option_offset
     @par Select Option "offset"
     <b>Offset Example:</b>
-    @code
+    @code{.py}
 *list rows = table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
     @endcode
     This option specifies the row number offset for the rows returned where the first row is at offset zero.
@@ -452,7 +452,7 @@ list columns = ("id", "name", "started", cop_as("warnings", "warning_count"), co
     @anchor select_option_join
     @par Select Option "join"
     <b>Join Example:</b>
-    @code
+    @code{.py}
 *list rows = table.selectRows(("columns": ("name", "version", "id", cop_as("st.value", "source"), cop_as("st.value", "offset")),
                                     "join": join_left(function_instance_tags, "st", NOTHING, ("st.tag": "_source"))
                                             + join_left(function_instance_tags, "lt", NOTHING, ("st.tag": "_offset"))));
@@ -465,7 +465,7 @@ list columns = ("id", "name", "started", cop_as("warnings", "warning_count"), co
     @anchor select_option_groupby
     @par Select Option "groupby"
     <b>Groupby Example:</b>
-    @code
+    @code{.py}
 *list rows = table.selectRows(("columns": (cop_as(cop_max("service_type"), "type"), cop_count()), "groupby": "service_type"));
     @endcode
     The \c "groupby" option allows for aggregate SQL column operator functions to be used (ex: @ref cop_max(), cop_min()) in select statements.
@@ -475,7 +475,7 @@ list columns = ("id", "name", "started", cop_as("warnings", "warning_count"), co
     @anchor select_option_having
     @par Select Option "having"
     <b>Having Example:</b>
-    @code
+    @code{.py}
 *list rows = table.selectRows(("columns": (cop_as(cop_max("service_type"), "type"), cop_count()), "groupby": "service_type", "having": ("service_type": (COP_COUNT, op_ge(100)))));
     @endcode
     The \c "having" option allows for query results with aggregate SQL column operator functions to be filtered by user-defined criteria.
@@ -484,12 +484,12 @@ list columns = ("id", "name", "started", cop_as("warnings", "warning_count"), co
     @anchor select_option_superquery
     @par Select Option "superquery"
     <b>Superquery Example:</b>
-    @code
+    @code{.py}
 *list rows = table.selectRows("columns": ("serviceid", "service_methodid", cop_as(cop_over(cop_max("service_methodid"), "serviceid"), "max_methodid")), "superquery": ("columns": ("serviceid", "service_methodid"), "where": ("max_methodid": op_ceq("service_methodid"))));
     @endcode
     The \c "superquery" option allows for the rest of the query arguments to define a subquery where as the hash arguments assigned to the \c "superquery" key define the select made from the subquery.  In the example above, the \c "OVER" sql windowing function is used and then rows matching the \c "max_methodid)" result value are selected.\n\n
     The above example results in an SQL command equivalent to the following:
-    @code
+    @code{.py}
 *list rows = table.vselectRows("select serviceid,service_methodid from (select serviceid,service_methodid,max(service_methodid) over (partition by serviceid) as max_methodid from schema.service_methods) subquery where max_methodid = service_methodid");
     @endcode
     @note that MySQL does not support SQL windowing functions so the above example would fail on MySQL.
@@ -497,7 +497,7 @@ list columns = ("id", "name", "started", cop_as("warnings", "warning_count"), co
     @anchor select_option_forupdate
     @par Select Option "forupdate"
     <b>For Update Example:</b>
-    @code
+    @code{.py}
 on_success ds.commit();
 on_error ds.rollback();
 
@@ -505,7 +505,7 @@ on_error ds.rollback();
     @endcode
     \n The \c "forupdate" option allows for the rows selected to be locked for updating; to release the locks, call commit() or rollback() on the underlying datasource object.
   The above example results in an SQL commit equivalent to the following:
-    @code
+    @code{.py}
 *list rows = table.vselectRows("select serviceid,service_methodid from schema.service_methods for update");
     @endcode
 
@@ -525,29 +525,29 @@ on_error ds.rollback();
 
     @par Example:
     Select 100 rows starting at row 200 (the table's primary key will be used for the \c "orderby" option by default): \n
-    @code
+    @code{.py}
 *list rows = table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
     @endcode
     As an illustration of the different SQL that is generated for different database types; for the above query, here is the SQL generated for Oracle:
-    @code
+    @code{.py}
 ds.vselectRows("select * from (select /*+ first_rows(100) *<!--%%-->/ a.*, rownum rnum from (select * from schema.table where type = %v order by type) a where rownum <= %v) where rnum > %v", ("user", 300, 200));
     @endcode
     And for PostgreSQL:
-    @code
+    @code{.py}
 ds.vselectRows("select * from public.table where type = %v order by type limit %v offset %v", ("user", 100, 200));
     @endcode
 
     @subsection check_matching_rows Check For At Least One Matching Row
 
     Use the @ref SqlUtil::AbstractTable::findSingle() method to find at least one matching row:
-    @code
+    @code{.py}
 *hash h = table.findSingle(("account_type": "CUSTOMER"));
 if (h)
     printf("found 1 customer row: %y\n", l[0]);
     @endcode
 
     Also it's possible to use the \c "limit" option to make an efficient check for at least one matching row as in the following example (which is functionally equivalent to the previous example):
-    @code
+    @code{.py}
 *hash h = table.selectRow(("where": ("account_type": "CUSTOMER"), "limit": 1));
 if (h)
     printf("found 1 customer row: %y\n", l[0]);
@@ -566,7 +566,7 @@ if (h)
     @subsection inserting_data_explicitly Inserting Data Explicitly
 
     @par Example:
-    @code
+    @code{.py}
 table.insert(("id": id, "name": name, "created": now_us()));
     @endcode
 
@@ -577,14 +577,14 @@ table.insert(("id": id, "name": name, "created": now_us()));
     @subsection inserting_data_from_select Inserting Data From a Select Statement
 
     @par Example:
-    @code
+    @code{.py}
 int rows = table.insertFromSelect(("id", "name", "created"), source_table, (("columns": ("cid", "fullname", "created"), "where": ("type": "CUSTOMER"))));
     @endcode
 
     Data can be inserted into the database based on the results of a select statement with @ref SqlUtil::AbstractTable::insertFromSelect() and @ref SqlUtil::AbstractTable::insertFromSelectCommit() as in the above example.
 
     The example above would generate a %Qore SQL command like the following:
-    @code
+    @code{.py}
 return ds.vexec("insert into schema.table (id,name,created) select cid,fullname,created from schema.source_table where type = %v", ("CUSTOMER"));
     @endcode
 
@@ -595,7 +595,7 @@ return ds.vexec("insert into schema.table (id,name,created) select cid,fullname,
     To insert data from an iterator source (such as an @ref Qore::SQL::SQLStatement object), call @ref SqlUtil::AbstractTable::insertFromIterator() or @ref SqlUtil::AbstractTable::insertFromIteratorCommit() as in the following example:
 
     @par Example:
-    @code
+    @code{.py}
 # get the rows to be inserted
 list l = get_table_rows();
 # insert the data and commit after every 5000 rows
@@ -613,16 +613,16 @@ table.insertFromIterator(l.iterator(), ("commit_block": 5000));
     - @ref SqlUtil::AbstractTable::updateCommit(): updates a single row and commits the transaction
 
     @par Example:
-    @code
+    @code{.py}
 int rows_updated = t.update(("permission_type": uop_append("-migrated", uop_lower())));
     @endcode
 
     The example above generates a %Qore SQL command like the following on Oracle and PostgreSQL for example:
-    @code
+    @code{.py}
 return ds.vexec("update schema.table set permission_type = lower(permission_type) || '-migrated');
     @endcode
     And the following on MySQL:
-    @code
+    @code{.py}
 return ds.vexec("update schema.table set permission_type = concat(lower(permission_type), '-migrated'));
     @endcode
 
@@ -635,12 +635,12 @@ return ds.vexec("update schema.table set permission_type = concat(lower(permissi
     - @ref SqlUtil::AbstractTable::truncateCommit(): truncates the table and commits the transaction releasing the transaction lock on the underlying datasource object
 
     @par Example:
-    @code
+    @code{.py}
 int dcnt = table.del(("record_type": "OLD-CUSTOMER"));
     @endcode
 
     The above example would generate a %Qore SQL command like the following:
-    @code
+    @code{.py}
 return ds.vexec("delete from schema.table where record_type = %v", ("OLD-CUSTOMER"));
     @endcode
 
@@ -652,14 +652,14 @@ return ds.vexec("delete from schema.table where record_type = %v", ("OLD-CUSTOME
 
     Joining tables is made by providing a join specification to the @ref select_option_join "join select option" in
     a @ref select_option_hash "select option hash" as in the following example:
-    @code
+    @code{.py}
 *list rows = table.selectRows(("columns": ("table.id", "t2.customer_name"), "join": join_inner(table2, "t2", ("id": "altid"))));
     @endcode
     In the above example, \a table is joined with \a table2 on <tt>table.id = table2.altid</tt>.
 
     Joins on multiple tables are performed by combining the results of @ref sql_op_funcs "join functions" with the @ref plus_operator "+ operator"
     as follows:
-    @code
+    @code{.py}
 *list rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid")) + join_inner(table3, "t3")));
     @endcode
     In the above example, \a table is joined with \a table2 on <tt>table.id = table2.altid</tt> and with \a table3 on an
@@ -667,7 +667,7 @@ return ds.vexec("delete from schema.table where record_type = %v", ("OLD-CUSTOME
 
     Joins are by default made with the primary table; to join with another join table, then give the alias for the table as the first
     argument to the @ref sql_op_funcs "join function" as in the following example:
-    @code
+    @code{.py}
 *list rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid")) + join_inner("t2", table3, "t3")));
     @endcode
     In the above example, \a table is joined with \a table2 on <tt>table.id = table2.altid</tt> and \a table2 (aliased as \c t2) is joined
@@ -704,12 +704,12 @@ return ds.vexec("delete from schema.table where record_type = %v", ("OLD-CUSTOME
     - each key gives a column name or a table/alias with column name in dot notation
     - the values are either direct values, meaning that the equality operator (\c "=") is used, or a @ref sql_op_funcs "SQL operator function" for operators in the where clause
 
-    @note To reference a column more than once in a where clause, prefix the column specification with a unique number and a colon as in the following example: @code hash w = ("0:created": op_ge(mindate), "1:created": op_lt(maxdate)); @endcode
+    @note To reference a column more than once in a where clause, prefix the column specification with a unique number and a colon as in the following example: @code{.py} hash w = ("0:created": op_ge(mindate), "1:created": op_lt(maxdate)); @endcode
 
     See @ref sql_op_funcs for a list of operator functions.
 
     @par Where Hash Example:
-    @code
+    @code{.py}
 hash w = (
     "name": "Smith",
     "account_type": op_like("%CUSTOMER%"),
@@ -718,18 +718,18 @@ hash w = (
     @endcode \n
     The preceding example results in a where clause equivalent to: \c "name = 'Smith' and type like '%CUSTOMER%' and id >= 500", except
     that bind by value is used, so, if used in a context like the following:
-    @code
+    @code{.py}
 Table t(ds, "table");
 *hash qh = t.select(("where": w));
     @endcode \n
     the complete query would look instead as follows:
-    @code
+    @code{.py}
 ds.vselect("select * from table where name = %v and account_type like %v and id >= %v", ("Smith", "%CUSTOMER%", 500));
     @endcode
 
     @anchor where_list
     @par Where List Example:
-    @code
+    @code{.py}
 hash w1 = (
     "name": "Smith",
     "account_type": op_like("%CUSTOMER%"),
@@ -744,33 +744,33 @@ Table t(ds, "table");
 *hash qh = t.select(("where": (w1, w2)));
     @endcode \n
     the complete query would look instead as follows:
-    @code
+    @code{.py}
 ds.vselect("select * from table where (name = %v and account_type like %v and id >= %v) or (name = %v and account_type like %v and id >= %v)", ("Smith", "%CUSTOMER%", 500, "Jones", "%VENDOR%", 2500));
     @endcode
 
     @par Code Examples:
     Find a single row in the table where the \c "permission_type" column is a value between \c "US" and \c "UX":\n
-    @code
+    @code{.py}
 *hash row = table.findSingle(("permission_type": op_between("US", "UX")));
     @endcode
     resulting in an internal SQL command that looks as follows (depending on the database):
-    @code
+    @code{.py}
 *hash row = ds.vselectRow("select * from table where permission_type between %v and %v limit %v", ("US", "UX", 1));
     @endcode \n
     Delete all rows in the table where the \c "name" column is like \c "%Smith%":\n
-    @code
+    @code{.py}
 int row_count = table.del(("name": op_like("%Smith%")));
     @endcode
     resulting in an internal SQL command that looks as follows:
-    @code
+    @code{.py}
 ds.vexec("delete from table where name like %v", ("%Smith%"));
     @endcode \n
     Find all rows where \c "id" is greater than \c 100 and \c "created" is after \c 2013-03-01:\n
-    @code
+    @code{.py}
 *list rows = table.findAll(("id": op_gt(100), "created": op_gt(2013-03-01)));
     @endcode
     resulting in an internal SQL command that looks as follows:
-    @code
+    @code{.py}
 ds.vexec("select * from table where id > %v and created > %v", (100, 2013-03-01));
     @endcode \n
 
@@ -789,7 +789,7 @@ ds.vexec("select * from table where id > %v and created > %v", (100, 2013-03-01)
     @subsection sql_upsert_single Upsert a Single Row
 
     @par Example:
-    @code
+    @code{.py}
 table.upsert(("id": id, "name": name, "account_type": account_type));
     @endcode
 
@@ -801,7 +801,7 @@ table.upsert(("id": id, "name": name, "account_type": account_type));
     To upsert or merge many rows by using an upsert closure, call @ref SqlUtil::AbstractTable::getUpsertClosure() or @ref SqlUtil::AbstractTable::getUpsertClosureWithValidation() and provide an example row as an argument to acquire a closure that will be executed on the rest of the rows as in the following example.
 
     @par Simple Example:
-    @code
+    @code{.py}
 # get the rows to be inserted
 list l = get_table_rows();
 
@@ -817,7 +817,7 @@ if (l) {
     @endcode
 
     @par Complex Example With Callbacks:
-    @code
+    @code{.py}
 # set the upsert strategy depending on the use case
 int upsert_strategy = verbose ? AbstractTable::UpsertSelectFirst : AbstractTable::UpsertAuto;
 
@@ -864,14 +864,14 @@ if (l) {
     To upsert or merge many rows from an iterator source (such as an @ref Qore::SQL::SQLStatement object), call @ref SqlUtil::AbstractTable::upsertFromIterator() or @ref SqlUtil::AbstractTable::upsertFromIteratorCommit() as in the following example:
 
     @par Simple Example:
-    @code
+    @code{.py}
 # get the rows to be inserted
 list l = get_table_rows();
 table.upsertFromIterator(l.iterator());
     @endcode
 
     @par Complex Example With Callbacks:
-    @code
+    @code{.py}
 # set the upsert strategy depending on the use case
 int upsert_strategy = verbose ? AbstractTable::UpsertSelectFirst : AbstractTable::UpsertAuto;
 
@@ -902,12 +902,12 @@ else
     To upsert or merge many rows from a select statement, use @ref SqlUtil::AbstractTable::upsertFromSelect() or @ref SqlUtil::AbstractTable::upsertFromSelectCommit() as in the following example:
 
     @par Simple Example:
-    @code
+    @code{.py}
 table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")));
     @endcode
 
     @par Complex Example With Callbacks:
-    @code
+    @code{.py}
 # set the upsert strategy depending on the use case
 int upsert_strategy = verbose ? AbstractTable::UpsertSelectFirst : AbstractTable::UpsertAuto;
 
@@ -937,14 +937,14 @@ else
     The only difference in the following examples and the preceding ones is that @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True" in these examples.
 
     @par Simple Example:
-    @code
+    @code{.py}
 # get the rows to be inserted
 list l = get_table_rows();
 table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")), AbstractTable::UpsertAuto, ("delete_others": True, "commit_block": 5000));
     @endcode
 
     @par Complex Example With Callbacks:
-    @code
+    @code{.py}
 # set the upsert strategy depending on the use case
 int upsert_strategy = verbose ? AbstractTable::UpsertSelectFirst : AbstractTable::UpsertAuto;
 
@@ -1074,13 +1074,13 @@ else
 
     @par Cache All Tables from a Schema
     To load all tables in a particular schema into an object of class @ref SqlUtil::Tables "Tables":
-    @code
+    @code{.py}
 Tables tables(ds);
     @endcode
 
     @par Drop All Foreign Constraints to a Table
     The following is an example of how all foreign constraints to a particular table can be dropped:
-    @code
+    @code{.py}
 *list l = tables.getDropAllForeignConstraintsOnTableSql("table_name", ("sql_callback_executed": True));
 {
     on_success ds.commit();
@@ -1094,7 +1094,7 @@ Tables tables(ds);
 
     @par Drop a Constraint If It Exists
     The following code provides an example of how to unconditionally drop a constraint from a table and update the internal links between unique constraints and foreign constraints (if a foreign constraint is dropped):
-    @code
+    @code{.py}
 *string sql = tables.getDropConstraintIfExistsSql("table_name", "fk_table_name_other_table", ("sql_callback_executed": True));
 if (sql) {
     on_success ds.commit();
@@ -1107,7 +1107,7 @@ if (sql) {
 
     @par Rename a Table
     The following code gives an example of renaming a table and updating all foreign constraint and unique key links in impacted tables if the source table exists and the target name does not exist:
-    @code
+    @code{.py}
 *string sql = tables.getRenameTableIfExistsSql("old_table_name", "new_table_name", ("sql_callback_executed": True));
 if (sql) {
     on_success ds.commit();
@@ -1123,7 +1123,7 @@ if (sql) {
     A schema template can be created any way required (ie by hand, or by retrieving the description from another database), but typically they will be created from a @ref schema_desc_hash "schema description hash".
 
     The following code provides an example of creating a schema template and using it to align the schema in the database with the template using callbacks:
-    @code
+    @code{.py}
 int change_count;
 code info_callback = sub (string str, int ac, string type, string name, *string table, *string new_name, *string info) {
     if (ac != AbstractDatabase::AC_NotFound && ac != AbstractDatabase::AC_Unchanged)
@@ -1162,7 +1162,7 @@ db.getAlignSql(schema_template, callback_opts, table_cache);
     driver-specific documentation for more information.
 
     The following is an example of a schema description hash:
-    @code
+    @code{.py}
 const Options = (
     "driver": (
         "oracle": (
@@ -1303,21 +1303,21 @@ const Schema = (
     - @ref SqlUtil::AbstractTable::getTriggers() "Table::getTriggers()": this method returns an object of class @ref SqlUtil::Triggers describing the table's triggers
 
     The @ref SqlUtil::AbstractTable::cache() method can be used to retrieve all table information from the database immediately as in the following example:
-    @code
+    @code{.py}
 Table table(ds, "table_name");
 table.cache();
 string sql = table.getCreateSqlString();
     @endcode
 
     Use the following code to test if a table exists:
-    @code
+    @code{.py}
 Table table(ds, "table_name");
 if (table.checkExistence())
     printf("table exists\n");
     @endcode
 
     Or the following:
-    @code
+    @code{.py}
 Database db(ds);
 *AbstractTable table = db.getTable("table_name");
     @endcode
@@ -1327,7 +1327,7 @@ Database db(ds);
     Template tables can be created any way required (ie by hand, or by retrieving the description from another database), but typically they will be created from a @ref table_desc_hash "table description hash".
 
     The following code provides an example of creating a template table and using it to align a table in the database with the template using callbacks:
-    @code
+    @code{.py}
 int change_count;
 code info_callback = sub (string str, int ac, string type, string name, *string table, *string new_name, *string info) {
     if (ac != AbstractDatabase::AC_NotFound && ac != AbstractDatabase::AC_Unchanged)
@@ -1365,7 +1365,7 @@ db_table.getAlignSql(template_table, callback_opts);
     - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the table description hash before processing; this way a table description hash can contain all the information required for the table including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys, see below for an example
 
     Here is an example of a table description hash:
-    @code
+    @code{.py}
 hash table_desc = (
     "columns": (
         "domain": (
@@ -1450,7 +1450,7 @@ hash table_desc = (
     Note that the above structure is an extension of the fields in @ref SqlUtil::AbstractTable::ColumnDescOptions, adding \c notnull and \c driver keys for additional information to create the column in the table.
 
     Here is an example of a column description hash:
-    @code
+    @code{.py}
 hash date_col_desc = (
     "qore_type": Type::Date,
     "notnull": True,
@@ -1471,7 +1471,7 @@ hash date_col_desc = (
     - \c columns: (required) a single column name or a list of column names making up the primary key
 
     Here is an example of a primary key description hash:
-    @code
+    @code{.py}
 hash pk_desc = (
     "name": "pk_queue",
     "columns": "queueid",
@@ -1486,7 +1486,7 @@ hash pk_desc = (
     - \c target_columns: (optional) this key is only necessary if the columns in the foreign table have different names than in the current table; if so, it must be assigned to a single column name or a list of column names in the foreign table; if this key is present then the same number of columns must appear in each key
 
     The following is an example of a foreign key description hash:
-    @code
+    @code{.py}
 hash fk_desc = (
     "columns": "queueid",
     "tables": "queues",
@@ -1499,7 +1499,7 @@ hash fk_desc = (
     - \c columns: (required) a single column name or a list of column names in the current table making up the unique constraint
 
     The following is an example of a unique constraint description hash:
-    @code
+    @code{.py}
 hash uk_desc = (
     "columns": ("type", "name"),
 );
@@ -1512,7 +1512,7 @@ hash uk_desc = (
     - \c unique: a boolean value indicating if the index is unique or not, if missing, then the index is assumed to e not unique
 
     The following is an example of an index description hash:
-    @code
+    @code{.py}
 hash ix_desc = (
     "columns": ("type", "name"),
     "unique": True,
@@ -1529,7 +1529,7 @@ hash ix_desc = (
 
     The \c "info_callback" @ref closure "closure" or @ref call_reference "call reference" is called with information about the current SQL
     operation and can be specified as in the following example:
-    @code
+    @code{.py}
 int change_count;
 code info_callback = sub (string str, int ac, string type, string name, *string table, *string new_name, *string info) {
     if (ac != AbstractDatabase::AC_NotFound && ac != AbstractDatabase::AC_Unchanged)
@@ -1550,7 +1550,7 @@ db.getAlignSql(schema, callback_opts);
 
     The \c "sql_callback" @ref closure "closure" or @ref call_reference "call reference" is called with an SQL string suitable for raw execution for each SQL command that is returned
     or generated for a particular operation and can be specified as in the following example:
-    @code
+    @code{.py}
 code sql_callback = sub (string str) {
     ds.execRaw(str);
     if (verbose > 1)
@@ -1566,7 +1566,7 @@ db.getAlignSql(schema, callback_opts);
     @subsection sql_callback_executed SQL CallBack Executed Flag
 
     If the \c "sql_callback_executed" flag is set to @ref Qore::True "True" then the called method knows that the changes are made in the database and the internal representation of the affected object(s) is also updated accordingly.  Here is an example:
-    @code
+    @code{.py}
 code sql_callback = sub (string str) {
     if (verbose > 1)
         printf("%s\n", str);
@@ -1581,7 +1581,7 @@ db.getAlignSql(schema, callback_opts);
 
     The \c "sqlarg_callback" @ref closure "closure" or @ref call_reference "call reference" is called with an SQL string and arguments for each SQL command that is executed
     during SQL data operations and can be specified as in the following example:
-    @code
+    @code{.py}
 code sqlarg_callback = sub (string str, *list args) {
     if (verbose > 1)
         printf("SQL: %s\nargs: %y", str, args);
@@ -1601,7 +1601,7 @@ table.insertFromIterator(i, sqlarg_callback);
     - @ref int_type "int" result: the upsert result code (see @ref upsert_results) for possible values
 
     Here is an example of an upsert callback:
-    @code
+    @code{.py}
 code upsert_callback = sub (string table_name, hash row, int result) {
     # verbosity threshold
     int t = 0;
@@ -1655,7 +1655,7 @@ hash sh = table.upsertFromIterator(i, upsert_strategy, False, ("info_callback": 
     rebuildIndex() methods always takes a index name or an SqlUtil::AbstractIndex instance as first argument. The second argument is an optional hash with rebuild index options. These options are specific for each database server.
     See driver-specific modules for more info.
 
-    @code
+    @code{.py}
 new Database(ds).rebuildIndex("ix_foo_bar");
     @endcode
 
@@ -1717,7 +1717,7 @@ new Database(ds).rebuildIndex("ix_foo_bar");
 
     <b>Example:</b>
     Compute statistics for enumerated tables only.
-    @code
+    @code{.py}
 hash opts = (
         "tables" : ( "workflows", "workflow_instance"),
     );
@@ -2082,7 +2082,7 @@ public namespace SqlUtil {
 
         Column operator functions can be nested as in the following example:
         @par Example:
-        @code
+        @code{.py}
 *hash rows = t.selectRows(("columns": cop_as(cop_lower("permission_type"), "perm"), "where": ("permission_type": "USER"), "limit": 100, "offset": 200));
         @endcode
      */
@@ -2106,7 +2106,7 @@ public namespace SqlUtil {
 
     #! returns a hash for the \c "as" operator with the given argument
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_as("errors", "error_count")), "where": ("type": "user")));
         @endcode
 
@@ -2123,7 +2123,7 @@ public namespace SqlUtil {
 
     #! returns a hash for the \c "cast" operator with the given argument(s)
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": ("id", cop_cast("id", "string")), "where": ("type": "user")));
         @endcode
 
@@ -2142,7 +2142,7 @@ public namespace SqlUtil {
 
     #! returns a hash for the \c "prepend" operator with the given argument
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": ("id", cop_prepend("name", "migrated-")), "where": ("type": "user")));
         @endcode
 
@@ -2157,7 +2157,7 @@ public namespace SqlUtil {
 
     #! returns a hash for the \c "append" operator with the given argument
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": ("id", cop_append("name", "-migrated")), "where": ("type": "user")));
         @endcode
 
@@ -2172,7 +2172,7 @@ public namespace SqlUtil {
 
     #! returns a hash for the \c "value" (literal) operator with the given argument
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_value(100)), "where": ("type": "user")));
         @endcode
 
@@ -2212,7 +2212,7 @@ public namespace SqlUtil {
                  because both values are interpreted as 1 in the resulting SQL.
 
     <b>Example</b>
-    @code
+    @code{.py}
 %new-style
 %requires SqlUtil
 
@@ -2257,7 +2257,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
     #! returns a hash for the \c "upper" operator with the given argument; returns a column value in upper case
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": ("id", cop_upper("name")), "where": ("type": "user")));
         @endcode
 
@@ -2271,7 +2271,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
     #! returns a hash for the \c "lower" operator with the given argument; returns a column value in lower case
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": ("id", cop_lower("name")), "where": ("type": "user")));
         @endcode
 
@@ -2285,7 +2285,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
     #! returns a hash for the \c "distinct" operator with the given argument; returns distinct column values
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": ("id", cop_distinct("name")), "where": ("type": "user")));
         @endcode
 
@@ -2299,7 +2299,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
     #! returns a hash for the \c "min" operator; returns minimum column values
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": (cop_min("id")), "where": ("type": "user")));
         @endcode
 
@@ -2313,7 +2313,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
     #! returns a hash for the \c "max" operator; returns maximum column values
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": (cop_max("id")), "where": ("type": "user")));
         @endcode
 
@@ -2327,7 +2327,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
     #! returns a hash for the \c "avg" operator; returns average column values
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": (cop_avg("quantity")), "where": ("order_type": "wholesale")));
         @endcode
 
@@ -2341,7 +2341,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
     #! returns a hash for the \c "sum" operator; returns the total sum of a numeric column.
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": (cop_sum("quantity")), "where": ("order_type": "wholesale")));
         @endcode
 
@@ -2355,7 +2355,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
     #! returns a hash for the \c "count" operator; returns row counts
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": ("account_type", cop_count()), "where": ("type": "user"), "groupby": "account_type"));
         @endcode
 
@@ -2367,7 +2367,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
     #! returns a hash for the \c "over" clause
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": ("account_type", cop_count(), cop_as(cop_over(cop_max("qty"), "account_id"), "max_qty_per_account")), "where": ("type": "user"), "groupby": "account_type"));
         @endcode
 
@@ -2379,7 +2379,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
     #! returns a hash for the \c "-" operator with the given arguments
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_minus("complete_count", "error_count")), "where": ("type": "user")));
         @endcode
 
@@ -2394,7 +2394,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
     #! returns a hash for the \c "+" operator with the given arguments
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_plus("complete_count", "error_count")), "where": ("type": "user")));
         @endcode
 
@@ -2409,7 +2409,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
     #! returns a hash for the \c "/" operator with the given arguments
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_divide("complete_count", "error_count")), "where": ("type": "user")));
         @endcode
 
@@ -2424,7 +2424,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
     #! returns a hash for the \c "*" operator with the given arguments
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_multiply("complete_count", "error_count")), "where": ("type": "user")));
         @endcode
 
@@ -2439,7 +2439,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
     #! returns a hash for the \c "year" operator with the given argument
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_year("error_time")), "where": ("type": "user")));
         @endcode
 
@@ -2453,7 +2453,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
     #! returns a hash for the \c "year_month" operator with the given argument
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_year_month("error_time")), "where": ("type": "user")));
         @endcode
 
@@ -2467,7 +2467,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
     #! returns a hash for the \c "year_day" operator with the given argument
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_year_day("error_time")), "where": ("type": "user")));
         @endcode
 
@@ -2481,7 +2481,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
     #! returns a hash for the \c "year_hour" operator with the given argument
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_year_hour("error_time")), "where": ("type": "user")));
         @endcode
 
@@ -2495,7 +2495,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
     #! returns a hash for the \c "seq" operator with the given argument giving the sequence name whose value should be returned
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_seq("xid")), "where": ("type": "user")));
         @endcode
 
@@ -2509,7 +2509,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
     #! returns a hash for the \c "seq_currval" operator with the given argument giving the sequence name whose current value should be returned
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_seq("xid"), cop_seq_currval("xid")), "where": ("type": "user")));
         @endcode
 
@@ -2548,7 +2548,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         Update operator functions can be nested as in the following example:
         @par Example:
-        @code
+        @code{.py}
 int rows_updated = t.update(("permission_type": uop_append("-migrated", uop_lower())));
         @endcode
      */
@@ -2568,7 +2568,7 @@ int rows_updated = t.update(("permission_type": uop_append("-migrated", uop_lowe
 
     #! returns a hash for the \c "prepend" operator with the given argument
     /** @par Example:
-        @code
+        @code{.py}
 int rows_updated = t.update(("permission_type": uop_prepend("migrated-", uop_lower())));
         @endcode
 
@@ -2583,7 +2583,7 @@ int rows_updated = t.update(("permission_type": uop_prepend("migrated-", uop_low
 
     #! returns a hash for the \c "append" or concatenate operator with the given argument
     /** @par Example:
-        @code
+        @code{.py}
 int rows_updated = t.update(("permission_type": uop_append("-migrated", uop_lower())));
         @endcode
 
@@ -2598,7 +2598,7 @@ int rows_updated = t.update(("permission_type": uop_append("-migrated", uop_lowe
 
     #! returns a hash for the \c "upper" operator with the given argument; returns a column value in upper case
     /** @par Example:
-        @code
+        @code{.py}
 int rows_updated = t.update(("permission_type": uop_upper()));
         @endcode
 
@@ -2612,7 +2612,7 @@ int rows_updated = t.update(("permission_type": uop_upper()));
 
     #! returns a hash for the \c "lower" operator with the given argument; returns a column value in lower case
     /** @par Example:
-        @code
+        @code{.py}
 int rows_updated = t.update(("permission_type": uop_lower()));
         @endcode
 
@@ -2626,7 +2626,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for the \c "seq" operator with the given argument giving the sequence name whose value should be returned
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = t.update(("id": uop_seq("xid")), ("type": "user"));
         @endcode
 
@@ -2640,7 +2640,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for the \c "seq" operator with the given argument giving the sequence name whose current value should be returned
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = t.update(("id": uop_seq("xid")), ("type": "user"));
         @endcode
 
@@ -2714,13 +2714,13 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for standard inner joins with the given arguments
     /** @par Example With Explicit Join Columns:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid"))));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_inner(table2)));
         @endcode
 
@@ -2738,13 +2738,13 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for standard inner joins with the given arguments
     /** @par Example With Explicit Join Columns:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid"))));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_inner(table2)));
         @endcode
 
@@ -2762,13 +2762,13 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for standard inner joins with the given arguments
     /** @par Example With Explicit Join Columns:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid"))));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_inner(table2)));
         @endcode
 
@@ -2786,13 +2786,13 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for standard inner joins with the given arguments for use when joining with a table other than the primary table
     /** @par Example With Explicit Join Columns:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid")) + join_inner("t2", table3)));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_inner(table2)));
         @endcode
 
@@ -2813,13 +2813,13 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for standard inner joins with the given arguments for use when joining with a table other than the primary table
     /** @par Example With Explicit Join Columns:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid")) + join_inner("t2", table3)));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_inner(table2)));
         @endcode
 
@@ -2838,13 +2838,13 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for standard inner joins with the given arguments for use when joining with a table other than the primary table
     /** @par Example With Explicit Join Columns:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid")) + join_inner("t2", table3)));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_inner(table2)));
         @endcode
 
@@ -2865,13 +2865,13 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for left outer joins with the given arguments
     /** @par Example With Explicit Join Columns:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_left(table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_left(table2, "t2", NOTHING, ("tag", op_like("offset%")))));
         @endcode
 
@@ -2889,13 +2889,13 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for left outer joins with the given arguments
     /** @par Example With Explicit Join Columns:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_left(table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_left(table2, "t2", NOTHING, ("tag", op_like("offset%")))));
         @endcode
 
@@ -2913,13 +2913,13 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for left outer joins with the given arguments
     /** @par Example With Explicit Join Columns:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_left(table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_left(table2, "t2", NOTHING, ("tag", op_like("offset%")))));
         @endcode
 
@@ -2939,13 +2939,13 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for left outer joins with the given arguments for use when joining with a table other than the primary table
     /** @par Example With Explicit Join Columns:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_left(table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_left("t2", table3, "t3")));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_left(table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_left("t2", table3, "t3")));
         @endcode
 
@@ -2964,13 +2964,13 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for left outer joins with the given arguments for use when joining with a table other than the primary table
     /** @par Example With Explicit Join Columns:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_left(table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_left("t2", table3, "t3")));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_left(table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_left("t2", table3, "t3")));
         @endcode
 
@@ -2989,13 +2989,13 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for left outer joins with the given arguments for use when joining with a table other than the primary table
     /** @par Example With Explicit Join Columns:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_left(table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_left("t2", table3, "t3")));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_left(table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_left("t2", table3, "t3")));
         @endcode
 
@@ -3016,13 +3016,13 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for right outer joins with the given arguments
     /** @par Example With Explicit Join Columns:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_right(table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_right(table2, "t2", NOTHING, ("tag", op_like("offset%")))));
         @endcode
 
@@ -3040,13 +3040,13 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for right outer joins with the given arguments
     /** @par Example With Explicit Join Columns:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_right(table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_right(table2, "t2", NOTHING, ("tag", op_like("offset%")))));
         @endcode
 
@@ -3064,13 +3064,13 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for right outer joins with the given arguments
     /** @par Example With Explicit Join Columns:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_right(table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_right(table2, "t2", NOTHING, ("tag", op_like("offset%")))));
         @endcode
 
@@ -3090,13 +3090,13 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for right outer joins with the given arguments for use when joining with a table other than the primary table
     /** @par Example With Explicit Join Columns:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_right(table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_right("t2", table3, "t3")));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_right(table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_right("t2", table3, "t3")));
         @endcode
 
@@ -3115,13 +3115,13 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for right outer joins with the given arguments for use when joining with a table other than the primary table
     /** @par Example With Explicit Join Columns:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_right(table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_right("t2", table3, "t3")));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_right(table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_right("t2", table3, "t3")));
         @endcode
 
@@ -3140,13 +3140,13 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for right outer joins with the given arguments for use when joining with a table other than the primary table
     /** @par Example With Explicit Join Columns:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_right(table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_right("t2", table3, "t3")));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
-        @code
+        @code{.py}
 *list rows = table.selectRows(("join": join_right(table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_right("t2", table3, "t3")));
         @endcode
 
@@ -3392,7 +3392,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for the \c "like" operator with the given argument for use in @ref where_clauses "where clauses"
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("where": ("name": op_like("%smith%"))));
         @endcode
 
@@ -3406,7 +3406,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for the \c "<" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("where": ("name": op_lt("Zebra"))));
         @endcode
 
@@ -3422,7 +3422,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for the \c "<=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("where": ("name": op_le("Zebra"))));
         @endcode
 
@@ -3438,7 +3438,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for the \c ">" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("where": ("name": op_gt("Apple"))));
         @endcode
 
@@ -3454,7 +3454,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for the \c ">=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("where": ("name": op_ge("Apple"))));
         @endcode
 
@@ -3470,7 +3470,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for the \c "!=" or \c "<>" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("where": ("name": op_ne("Smith"))));
         @endcode
 
@@ -3488,7 +3488,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for the \c "=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("where": ("name": op_eq("Smith"))));
         @endcode
 
@@ -3506,7 +3506,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for the \c "between" operator with the given arguments, neither of which can be @ref null or @ref nothing; for use in @ref where_clauses "where clauses"
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("where": ("name": op_between("US", "UX"))));
         @endcode
 
@@ -3527,7 +3527,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for the \c "in" operator with all arguments passed to the function; for use in @ref where_clauses "where clauses"
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("where": ("name": op_in(200, 300, 500, 9))));
         @endcode
 
@@ -3539,7 +3539,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for the \c "in" operator with the given argument list as the first argument; for use in @ref where_clauses "where clauses"
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("where": ("name": op_in(idlist))));
         @endcode
 
@@ -3553,7 +3553,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for the \c "not" operator; for use in @ref where_clauses "where clauses"
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("where": ("name": opt_not(op_in(200, 300, 500, 9))))_;
         @endcode
 
@@ -3565,7 +3565,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for the \c "<" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("where": ("name": op_clt("other_name"))));
         @endcode
 
@@ -3581,7 +3581,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for the \c "<=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("where": ("name": op_cle("other_name"))));
         @endcode
 
@@ -3597,7 +3597,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for the \c ">" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("where": ("name": op_cgt("other_name"))));
         @endcode
 
@@ -3613,7 +3613,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for the \c ">=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("where": ("name": op_cge("other_name"))));
         @endcode
 
@@ -3629,7 +3629,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for the \c "!=" or \c "<>" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("where": ("name": op_cne("other_name"))));
         @endcode
 
@@ -3645,7 +3645,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash for the \c "=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("where": ("name": op_ceq("other_name"))));
         @endcode
 
@@ -3661,7 +3661,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
     #! returns a hash with a fake \c "_OR_" column name; the list of arguments to the function is combined such that each hash in the list generates SQL expressions combined with \a "and" logic, and each of those clauses is combined with \a "or" logic; this is for use in @ref where_clauses "where clauses"
     /** @par Example:
-        @code
+        @code{.py}
 *list rows = table.selectRows(("where": ("name": op_ceq("other_name")) + wop_or(("type": "C", "validation_flag": op_ne(NULL)), ("expiration_date": op_ge(date)))));
         @endcode
         Generates:
@@ -3723,7 +3723,7 @@ select * from table where name != other_name and ((type != 'C' and validation fl
 
     #! returns a hash for retrieving the value of the given sequence in insert queries
     /** @par Example:
-        @code
+        @code{.py}
 table.insert(("id": id, "ref": iop_seq("xid")));
         @endcode
 
@@ -3737,7 +3737,7 @@ table.insert(("id": id, "ref": iop_seq("xid")));
 
     #! returns a hash for retrieving the current value of the given sequence in insert queries
     /** @par Example:
-        @code
+        @code{.py}
 table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
         @endcode
 
@@ -3775,7 +3775,7 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
 
         #! returns the value of the given key in the contained hash if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 any v = c.name;
             @endcode
 
@@ -3797,7 +3797,7 @@ any v = c.name;
 
         #! purges the contained data
         /** @par Example:
-            @code
+            @code{.py}
 c.clear();
             @endcode
 
@@ -3821,7 +3821,7 @@ c.clear();
 
         #! returns @ref Qore::True "True" if the hash argument has the same keys (in any order), @ref Qore::False "False" if not
         /** @par Example:
-            @code
+            @code{.py}
 bool b = c.matchKeys(h);
             @endcode
 
@@ -3843,7 +3843,7 @@ bool b = c.matchKeys(h);
 
         #! returns @ref Qore::True "True" if the list argument has the same list of key strings as the keys in the object (in any order), @ref Qore::False "False" if not
         /** @par Example:
-            @code
+            @code{.py}
 bool b = c.matchKeys(l);
             @endcode
 
@@ -3865,7 +3865,7 @@ bool b = c.matchKeys(l);
 
         #! returns @ref Qore::True "True" if the container argument has the same keys (in any order), @ref Qore::False "False" if not
         /** @par Example:
-            @code
+            @code{.py}
 bool b = c.matchKeys(c1);
             @endcode
 
@@ -3879,7 +3879,7 @@ bool b = c.matchKeys(c1);
 
         #! returns @ref Qore::True "True" if the hash argument has at least the same keys (in any order, can have more keys), @ref Qore::False "False" if not
         /** @par Example:
-            @code
+            @code{.py}
 bool b = c.partialMatchKeys(h);
             @endcode
 
@@ -3901,7 +3901,7 @@ bool b = c.partialMatchKeys(h);
 
         #! returns @ref Qore::True "True" if the list argument has at least the same keys (in any order, can have more keys), @ref Qore::False "False" if not
         /** @par Example:
-            @code
+            @code{.py}
 bool b = c.partialMatchKeys(l);
             @endcode
 
@@ -3927,7 +3927,7 @@ bool b = c.partialMatchKeys(l);
 
         #! returns @ref Qore::True "True" if the container argument has at least the same keys (in any order, can have more keys), @ref Qore::False "False" if not
         /** @par Example:
-            @code
+            @code{.py}
 bool b = c.partialMatchKeys(c1);
             @endcode
 
@@ -3941,7 +3941,7 @@ bool b = c.partialMatchKeys(c1);
 
         #! Returns @ref Qore::False "False" if the contained hash has no keys, @ref Qore::True "True" if it does
         /** @par Example:
-            @code
+            @code{.py}
 bool b = h.val();
             @endcode
 
@@ -3955,7 +3955,7 @@ bool b = h.val();
 
         #! Returns a list of key names of the contained hash
         /** @par Example:
-            @code
+            @code{.py}
 list l = h.keys();
             @endcode
 
@@ -3967,7 +3967,7 @@ list l = h.keys();
 
         #! Returns a list of values of the contained hash
         /** @par Example:
-            @code
+            @code{.py}
 list l = h.values();
             @endcode
 
@@ -3979,7 +3979,7 @@ list l = h.values();
 
         #! Returns a @ref Qore::HashIterator "HashIterator" object for the contained hash
         /** @par Example:
-            @code
+            @code{.py}
 map printf("+ %y\n", $1.value), h.iterator();
             @endcode
 
@@ -3991,7 +3991,7 @@ map printf("+ %y\n", $1.value), h.iterator();
 
         #! Returns a @ref Qore::HashKeyIterator "HashKeyIterator" object for the contained hash
         /** @par Example:
-            @code
+            @code{.py}
 map printf("+ %s\n", $1), h.keyIterator();
             @endcode
 
@@ -4003,7 +4003,7 @@ map printf("+ %s\n", $1), h.keyIterator();
 
         #! Returns a @ref Qore::HashPairIterator "HashPairIterator" object for the contained hash
         /** @par Example:
-            @code
+            @code{.py}
 map printf("+ %s: %y\n", $1.key, $1.value), h.pairIterator();
             @endcode
 
@@ -4020,7 +4020,7 @@ map printf("+ %s: %y\n", $1.key, $1.value), h.pairIterator();
 
         #! Returns the number of keys in the contained hash
         /** @par Example:
-            @code
+            @code{.py}
 int num = h.size();
             @endcode
 
@@ -4032,7 +4032,7 @@ int num = h.size();
 
         #! Returns @ref Qore::True "True" if the key exists in the contained hash (may or may not be assigned a value), @ref Qore::False "False" if not
         /** @par Example:
-            @code
+            @code{.py}
 bool b = h.hasKey(key);
             @endcode
 
@@ -4046,7 +4046,7 @@ bool b = h.hasKey(key);
 
         #! Returns @ref Qore::True "True" if the key exists in the contained hash and is assigned a value, @ref Qore::False "False" if not
         /** @par Example:
-            @code
+            @code{.py}
 bool b = h.hasKeyValue(key);
             @endcode
 
@@ -4060,7 +4060,7 @@ bool b = h.hasKeyValue(key);
 
         #! Returns the first key name in the contained hash or @ref nothing if the contained hash has no keys
         /** @par Example:
-            @code
+            @code{.py}
 *string n = h.firstKey();
             @endcode
 
@@ -4074,7 +4074,7 @@ bool b = h.hasKeyValue(key);
 
         #! Returns the last key name in the contained hash or @ref nothing if the contained hash has no keys
         /** @par Example:
-            @code
+            @code{.py}
 *string n = h.lastKey();
             @endcode
 
@@ -4105,7 +4105,7 @@ bool b = h.hasKeyValue(key);
 
         #! returns the value of the given element in the contained list if it exists, otherwise throws an \c ELEMENT-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 any v = c.get(2);
             @endcode
 
@@ -4135,7 +4135,7 @@ any v = c.get(2);
 
         #! Returns @ref Qore::False "False" if the contained list is empty, @ref Qore::True "True" if not
         /** @par Example:
-            @code
+            @code{.py}
 bool b = l.val();
             @endcode
 
@@ -4149,7 +4149,7 @@ bool b = l.val();
 
         #! Returns a @ref Qore::ListIterator "ListIterator" object for the contained list
         /** @par Example:
-            @code
+            @code{.py}
 map printf("+ %s: %y\n", $1), h.iterator();
             @endcode
 
@@ -4166,7 +4166,7 @@ map printf("+ %s: %y\n", $1), h.iterator();
 
         #! Returns the number of elements in the contained list
         /** @par Example:
-            @code
+            @code{.py}
 int num = l.size();
             @endcode
 
@@ -4258,7 +4258,7 @@ int num = l.size();
 
         #! returns a list of SQL strings that can be used to drop all the foreign constraints on a particular table
         /** @par Example:
-            @code
+            @code{.py}
 *list l = tables.getDropAllForeignConstraintsOnTableSql(name);
             @endcode
 
@@ -4293,7 +4293,7 @@ int num = l.size();
 
         #! returns the AbstractTable object corresponding to the key given or throws a KEY-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 AbstractTable t = tables.table_name;
             @endcode
 
@@ -4340,7 +4340,7 @@ AbstractTable t = tables.table_name;
 
         #! returns an SQL string that can be used to rename the given table if it exists and the target does not exist, otherwise returns @ref nothing
         /** @par Example:
-            @code
+            @code{.py}
 *string sql = tables.getRenameTableIfExistsSql(old_name, new_name);
             @endcode
 
@@ -4369,7 +4369,7 @@ AbstractTable t = tables.table_name;
 
         #! updates table names and internal references for renamed tables
         /** @par Example:
-            @code
+            @code{.py}
 tables.tableRenamed(old, newv);
             @endcode
 
@@ -4413,7 +4413,7 @@ tables.tableRenamed(old, newv);
 
         #! returns an SQL string that can be used to drop an existing constraint on a table, if the table is not already cached or the constraint does not exist, then @ref nothing is returned
         /** @par Example:
-            @code
+            @code{.py}
 *string sql = tables.getDropConstraintIfExistsSql("table", "pk_table");
             @endcode
 
@@ -4485,7 +4485,7 @@ tables.tableRenamed(old, newv);
 
         #! returns a list of cached table names in the order that can be used to drop the tables, taking into account foreign constraint dependencies
         /** @par Example:
-            @code
+            @code{.py}
 list l = tables.getDropList();
 map $1.drop(), l;
             @endcode
@@ -4529,7 +4529,7 @@ map $1.drop(), l;
 
         #! returns an iterator for a list of cached table names in the order that can be used to drop the tables, taking into account foreign constraint dependencies
         /** @par Example:
-            @code
+            @code{.py}
 map $1.drop(), tables.getDropIterator();
             @endcode
 
@@ -4588,7 +4588,7 @@ map $1.drop(), tables.getDropIterator();
 
         #! returns the AbstractColumn object corresponding to the key given or throws a KEY-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 AbstractColumn c = cols.id;
             @endcode
 
@@ -4687,7 +4687,7 @@ AbstractColumn c = cols.id;
 
         #! returns a list of sql strings that can be used to add the column to an existing table
         /** @par Example:
-            @code
+            @code{.py}
 list l = col.getAddColumnSql(t);
             @endcode
 
@@ -4704,7 +4704,7 @@ list l = col.getAddColumnSql(t);
 
         #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
         /** @par Example:
-            @code
+            @code{.py}
 list l = col.getModifySql(t, newcol);
             @endcode
 
@@ -4737,7 +4737,7 @@ list l = col.getModifySql(t, newcol);
 
         #! returns a string that can be used to rename the column
         /** @par Example:
-            @code
+            @code{.py}
 string str = col.getRenameSql(t, "new_name");
             @endcode
 
@@ -4763,7 +4763,7 @@ string str = col.getRenameSql(t, "new_name");
 
         #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
         /** @par Example:
-            @code
+            @code{.py}
 list l = col.getModifySql(t, newcol);
             @endcode
 
@@ -4831,7 +4831,7 @@ list l = col.getModifySql(t, newcol);
 
         #! returns the AbstractIndex object corresponding to the key given or throws a KEY-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 AbstractIndex ix = indexes.pk_jobs;
             @endcode
 
@@ -4993,7 +4993,7 @@ AbstractIndex ix = indexes.pk_jobs;
 
         #! returns the AbstractConstraint object corresponding to the key given or throws a KEY-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 AbstractConstraint ix = constraints.uk_jobs;
             @endcode
 
@@ -5202,7 +5202,7 @@ AbstractConstraint ix = constraints.uk_jobs;
 
         #! adds a foreign constraint source to the unique constraint
         /** @par Example:
-            @code
+            @code{.py}
 uk.addSourceConstraint(table_name, constraint_name);
             @endcode
 
@@ -5303,7 +5303,7 @@ uk.addSourceConstraint(table_name, constraint_name);
 
         #! returns the AbstractForeignConstraint object corresponding to the key given or throws a KEY-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
             @endcode
 
@@ -5554,7 +5554,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
 
         #! returns the AbstractFunction object corresponding to the key given or throws a KEY-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 AbstractFunction f = funcs.func1;
             @endcode
 
@@ -5610,7 +5610,7 @@ AbstractFunction f = funcs.func1;
 
         #! returns the AbstractTrigger object corresponding to the key given or throws a KEY-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 AbstractTrigger trig = trigs.job_trig;
             @endcode
 
@@ -5652,7 +5652,7 @@ AbstractTrigger trig = trigs.job_trig;
 
         #! creates the Database object
         /** @par Example:
-            @code
+            @code{.py}
 Database db(ds);
             @endcode
 
@@ -5668,7 +5668,7 @@ Database db(ds);
 
         #! creates the AbstractDatabase object
         /** @par Example:
-            @code
+            @code{.py}
 AbstractDatabase db("pgsql:user/pass@db%host");
             @endcode
 
@@ -5683,7 +5683,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
 
         #! creates the AbstractDatabase object
         /** @par Example:
-            @code
+            @code{.py}
 AbstractDatabase db("pgsql:user/pass@db%host");
             @endcode
 
@@ -6207,7 +6207,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
 
         #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
         /** @par Example:
-            @code
+            @code{.py}
 t.tryExec("drop table tmp_table");
             @endcode
 
@@ -6223,7 +6223,7 @@ t.tryExec("drop table tmp_table");
 
         #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
         /** @par Example:
-            @code
+            @code{.py}
 t.tryExec("delete from tmp_table where id = %v and name = %v", arglist);
             @endcode
 
@@ -6238,7 +6238,7 @@ t.tryExec("delete from tmp_table where id = %v and name = %v", arglist);
 
         #! executes some SQL so that if an error occurs the current transaction state is not lost
         /** @par Example:
-            @code
+            @code{.py}
 t.tryExecRaw("drop table tmp_table");
             @endcode
 
@@ -6254,7 +6254,7 @@ t.tryExecRaw("drop table tmp_table");
 
         #! accepts a hash argument describing a database schema and returns a list of SQL strings that can be used to align the structure and configuration of the current schema with that of the argument; if the objects described are identical then an empty list is returned
         /** @par Example:
-            @code
+            @code{.py}
 list l = db.getAlignSql(schema_hash);
             @endcode
 
@@ -6369,7 +6369,7 @@ list l = db.getAlignSql(schema_hash);
 
         #! accepts a hash argument describing a database schema and returns a list of SQL strings that can be used to drop any existing objects described in the schema; if none of the described objects exist, then an empty list is returned
         /** @par Example:
-            @code
+            @code{.py}
 list l = db.getDropSchemaSql(schema_hash);
             @endcode
 
@@ -6528,7 +6528,7 @@ list l = db.getDropSchemaSql(schema_hash);
 
         #! creates a database-specific AbstractSequence object corresponding to the arguments
         /** @par Example:
-            @code
+            @code{.py}
 AbstractSequence seq = db.makeSequence("seq_queues");
             @endcode
 
@@ -6555,7 +6555,7 @@ AbstractSequence seq = db.makeSequence("seq_queues");
 
         #! creates a database-specific AbstractTable object corresponding to the arguments
         /** @par Example:
-            @code
+            @code{.py}
 AbstractTable table = db.makeTable("table", th);
             @endcode
 
@@ -6575,7 +6575,7 @@ AbstractTable table = db.makeTable("table", th);
 
         #! creates a database-specific AbstractFunction object corresponding to the arguments
         /** @par Example:
-            @code
+            @code{.py}
 AbstractFunction f = db.makeFunction("update_queue", src);
             @endcode
 
@@ -6593,7 +6593,7 @@ AbstractFunction f = db.makeFunction("update_queue", src);
 
         #! creates a database-specific AbstractFunction object for a stored procedure corresponding to the arguments
         /** @par Example:
-            @code
+            @code{.py}
 AbstractFunction f = db.makeProcedure("get_queue_info", src);
             @endcode
 
@@ -6611,7 +6611,7 @@ AbstractFunction f = db.makeProcedure("get_queue_info", src);
 
         #! drops the given function if it exists; returns @ref Qore::True "True" if the function was dropped, @ref Qore::False "False" if not
         /** @par Example:
-            @code
+            @code{.py}
 db.dropFunctionIfExists(name);
             @endcode
 
@@ -6632,7 +6632,7 @@ db.dropFunctionIfExists(name);
 
         #! drops the given procedure if it exists; returns @ref Qore::True "True" if the procedure was dropped, @ref Qore::False "False" if not
         /** @par Example:
-            @code
+            @code{.py}
 db.dropProcedureIfExists(name);
             @endcode
 
@@ -6653,7 +6653,7 @@ db.dropProcedureIfExists(name);
 
         #! drops the given sequence if it exists; returns @ref Qore::True "True" if the sequence was dropped, @ref Qore::False "False" if not
         /** @par Example:
-            @code
+            @code{.py}
 db.dropSequenceIfExists(name);
             @endcode
 
@@ -6674,7 +6674,7 @@ db.dropSequenceIfExists(name);
 
         #! drops the given view if it exists; returns @ref Qore::True "True" if the view was dropped, @ref Qore::False "False" if not
         /** @par Example:
-            @code
+            @code{.py}
 db.dropViewIfExists(name);
             @endcode
 
@@ -6695,7 +6695,7 @@ db.dropViewIfExists(name);
 
         #! drops the given table if it exists; returns @ref Qore::True "True" if the table was dropped, @ref Qore::False "False" if not
         /** @par Example:
-            @code
+            @code{.py}
 db.dropTableIfExists(name);
             @endcode
 
@@ -6717,7 +6717,7 @@ db.dropTableIfExists(name);
 
         #! returns the SQL require to drop the given function if it exists or @ref nothing if the named function does not exist
         /** @par Example:
-            @code
+            @code{.py}
 string sql = db.getDropFunctionSqlIfExists(name);
             @endcode
 
@@ -6738,7 +6738,7 @@ string sql = db.getDropFunctionSqlIfExists(name);
 
         #! returns the SQL require to drop the given procedure if it exists or @ref nothing if the named procedure does not exist
         /** @par Example:
-            @code
+            @code{.py}
 string sql = db.getDropProcedureSqlIfExists(name);
             @endcode
 
@@ -6759,7 +6759,7 @@ string sql = db.getDropProcedureSqlIfExists(name);
 
         #! returns the SQL require to drop the given sequence if it exists or @ref nothing if the named sequence does not exist
         /** @par Example:
-            @code
+            @code{.py}
 string sql = db.getDropSequenceSqlIfExists(name);
             @endcode
 
@@ -6780,7 +6780,7 @@ string sql = db.getDropSequenceSqlIfExists(name);
 
         #! returns the SQL require to drop the given table if it exists or @ref nothing if the named table does not exist
         /** @par Example:
-            @code
+            @code{.py}
 string sql = db.getDropTableSqlIfExists(name);
             @endcode
 
@@ -6817,7 +6817,7 @@ string sql = db.getDropTableSqlIfExists(name);
 
         #! returns a list of SQL strings that can be used to update a function in the database to the function definition passed as an argument
         /** @par Example:
-            @code
+            @code{.py}
 list l = db.getAlignFunctionSql(f);
             @endcode
 
@@ -6850,7 +6850,7 @@ list l = db.getAlignFunctionSql(f);
 
         #! returns a list of SQL strings that can be used to update a stored procedure in the database to the stored procedure definition passed as an argument
         /** @par Example:
-            @code
+            @code{.py}
 list l = db.getAlignProcedureSql(f);
             @endcode
 
@@ -6878,7 +6878,7 @@ list l = db.getAlignProcedureSql(f);
 
         #! returns an AbstractTable argument for the given table name or @ref nothing if the table cannot be found
         /** @par Example:
-            @code
+            @code{.py}
 *AbstractTable table = db.getTable("queues");
             @endcode
 
@@ -6893,7 +6893,7 @@ list l = db.getAlignProcedureSql(f);
 
         #! returns an AbstractSequence argument for the given sequence name or @ref nothing if the sequence cannot be found
         /** @par Example:
-            @code
+            @code{.py}
 *AbstractSequence seq = db.getSequence("seq_queues");
             @endcode
 
@@ -6907,7 +6907,7 @@ list l = db.getAlignProcedureSql(f);
 
         #! returns an AbstractFunction argument for the given function name or @ref nothing if the function cannot be found
         /** @par Example:
-            @code
+            @code{.py}
 *AbstractFunction f = db.getFunction("update_queue");
             @endcode
 
@@ -6923,7 +6923,7 @@ list l = db.getAlignProcedureSql(f);
 
         #! returns an AbstractFunction argument for the given stored procedure name or @ref nothing if the stored procedure cannot be found
         /** @par Example:
-            @code
+            @code{.py}
 *AbstractFunction f = db.getProcedure("update_queue");
             @endcode
 
@@ -6939,7 +6939,7 @@ list l = db.getAlignProcedureSql(f);
 
         #! returns an AbstractView argument for the given view name or @ref nothing if the view cannot be found
         /** @par Example:
-            @code
+            @code{.py}
 *AbstractFunction f = db.getView("my_view");
             @endcode
 
@@ -6953,7 +6953,7 @@ list l = db.getAlignProcedureSql(f);
 
         #! returns the next value in the given sequence
         /** @par Example:
-            @code
+            @code{.py}
 number n = db.getNextSequenceValue("seq_customers");
             @endcode
 
@@ -6967,7 +6967,7 @@ number n = db.getNextSequenceValue("seq_customers");
 
         #! returns the last value issued for the given sequence in the current session
         /** @par Example:
-            @code
+            @code{.py}
 number n = db.getCurrentSequenceValue("seq_customers");
             @endcode
 
@@ -6981,7 +6981,7 @@ number n = db.getCurrentSequenceValue("seq_customers");
 
         #! returns an SQL string corresponding to the list of commands in the argument
         /** @par Example:
-            @code
+            @code{.py}
 string sql = t.getSqlFromList(list);
             @endcode
 
@@ -7291,7 +7291,7 @@ string sql = t.getSqlFromList(list);
 
         #! creates the Table object
         /** @par Example:
-            @code
+            @code{.py}
 Table table(ds, "table");
             @endcode
 
@@ -7308,7 +7308,7 @@ Table table(ds, "table");
 
         #! creates the Table object
         /** @par Example:
-            @code
+            @code{.py}
 Table table("pgsql:user/pass@db%host", "table");
             @endcode
 
@@ -7325,7 +7325,7 @@ Table table("pgsql:user/pass@db%host", "table");
 
         #! creates the Table object
         /** @par Example:
-            @code
+            @code{.py}
 Table table("pgsql:user/pass@db%host", "table");
             @endcode
 
@@ -7767,7 +7767,7 @@ Table table("pgsql:user/pass@db%host", "table");
 
         #! changes the datasource for the table; if the \c inDb flag is @ref Qore::True "True", then it is set to @ref Qore::False "False" by calling this method
         /** @par Example:
-            @code
+            @code{.py}
 Table table(ds1, "table_name");
 table.setDatasource(ds2);
 table.create();
@@ -7803,7 +7803,7 @@ table.create();
 
         #! returns @ref Qore::True "True" if the table has been read from or created in the database, @ref Qore::False "False" if not
         /** @par Example:
-            @code
+            @code{.py}
 bool b = table.inDb();
             @endcode
 
@@ -7817,7 +7817,7 @@ bool b = table.inDb();
 
         #! returns an iterator for all unique constraints on the table (including the primary key if any)
         /** @par Example:
-            @code
+            @code{.py}
 map printf("unique constraint %s\n", $1.getName()), table.getUniqueConstraintIterator();
             @endcode
 
@@ -7849,7 +7849,7 @@ map printf("unique constraint %s\n", $1.getName()), table.getUniqueConstraintIte
 
         #! drops the table from the database; releases the transaction lock after dropping the table
         /** @par Example:
-            @code
+            @code{.py}
 table.dropCommit();
             @endcode
 
@@ -7867,7 +7867,7 @@ table.dropCommit();
 
         #! drops the table from the database without any transaction management
         /** @par Example:
-            @code
+            @code{.py}
 table.drop();
             @endcode
 
@@ -7889,7 +7889,7 @@ table.drop();
 
         #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
         /** @par Example:
-            @code
+            @code{.py}
 t.tryExec("drop table tmp_table");
             @endcode
 
@@ -7905,7 +7905,7 @@ t.tryExec("drop table tmp_table");
 
         #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
         /** @par Example:
-            @code
+            @code{.py}
 t.tryExec("delete from tmp_table where id = %v and name = %v", arglist);
             @endcode
 
@@ -7920,7 +7920,7 @@ t.tryExec("delete from tmp_table where id = %v and name = %v", arglist);
 
         #! executes some SQL so that if an error occurs the current transaction state is not lost
         /** @par Example:
-            @code
+            @code{.py}
 t.tryExecRaw("drop table tmp_table");
             @endcode
 
@@ -7936,7 +7936,7 @@ t.tryExecRaw("drop table tmp_table");
 
         #! returns the sql required to drop the table; reimplement in subclasses if necessary
         /** @par Example:
-            @code
+            @code{.py}
 list l = table.getDropSql();
             @endcode
 
@@ -7953,7 +7953,7 @@ list l = table.getDropSql();
 
         #! truncates all the table data; releases the transaction lock after executing
         /** @par Example:
-            @code
+            @code{.py}
 table.truncateCommit();
             @endcode
 
@@ -7967,7 +7967,7 @@ table.truncateCommit();
 
         #! truncates all the table data without any transaction management
         /** @par Example:
-            @code
+            @code{.py}
 table.truncate();
             @endcode
 
@@ -7985,7 +7985,7 @@ table.truncate();
 
         #! gets the SQL that can be used to truncate the table
         /** @par Example:
-            @code
+            @code{.py}
 string sql = table.getTruncateSql();
             @endcode
 
@@ -8006,7 +8006,7 @@ string sql = table.getTruncateSql();
 
         #! creates the table in the database; releases the transaction lock after creating the table
         /** @par Example:
-            @code
+            @code{.py}
 table.createCommit();
             @endcode
 
@@ -8022,7 +8022,7 @@ table.createCommit();
 
         #! creates the table with all associated properties (indexes, constraints, etc) without any transaction management
         /** @par Example:
-            @code
+            @code{.py}
 table.create();
             @endcode
 
@@ -8049,7 +8049,7 @@ table.create();
 
         #! renames the table; if the table is already known to be in the database in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally
         /** @par Example:
-            @code
+            @code{.py}
 table.rename("new_name");
             @endcode
 
@@ -8075,7 +8075,7 @@ table.rename("new_name");
 
         #! returns @ref Qore::True "True" if the table has no data rows, @ref Qore::False "False" if not
         /** @par Example:
-            @code
+            @code{.py}
 bool b = table.emptyData();
             @endcode
 
@@ -8091,7 +8091,7 @@ bool b = table.emptyData();
 
         #! returns @ref Qore::True "True" if the table has no definitions, @ref Qore::False "False" if not
         /** @par Example:
-            @code
+            @code{.py}
 bool b = table.empty();
             @endcode
 
@@ -8256,7 +8256,7 @@ bool b = table.empty();
 
         #! adds a column to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
-            @code
+            @code{.py}
 table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             @endcode
 
@@ -8287,7 +8287,7 @@ table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
 
         #! returns a list of SQL strings that can be use to add a column to the table
         /** @par Example:
-            @code
+            @code{.py}
 list l = table.getAddColumnSql("name", ("qore_type": Type::String, "size": 50), False);
             @endcode
 
@@ -8360,7 +8360,7 @@ list l = table.getAddColumnSql("name", ("qore_type": Type::String, "size": 50), 
 
         #! modifies an existing column in the table; if the table is already known to be in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally and the new column definition will be created when create() is called for example
         /** @par Example:
-            @code
+            @code{.py}
 table.modifyColumn("name", ("qore_type": Type::String, "size": 240), False);
             @endcode
 
@@ -8408,7 +8408,7 @@ table.modifyColumn("name", ("qore_type": Type::String, "size": 240), False);
 
         #! gets a list of SQL strings that can be used to modify an existing column in the table
         /** @par Example:
-            @code
+            @code{.py}
 list l = table.getModifyColumnSql("name", ("qore_type": Type::String, "size": 240), False);
             @endcode
 
@@ -8458,7 +8458,7 @@ list l = table.getModifyColumnSql("name", ("qore_type": Type::String, "size": 24
 
         #! renames an existing column; if the table is already known to be in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally
         /** @par Example:
-            @code
+            @code{.py}
 AbstractColumn col = table.renameColumn("name", "family_name");
             @endcode
 
@@ -8493,7 +8493,7 @@ AbstractColumn col = table.renameColumn("name", "family_name");
 
         #! gets an SQL string that can be used to rename an existing column in the table
         /** @par Example:
-            @code
+            @code{.py}
 string sql = table.getRenameColumnSql("name", "family_name");
             @endcode
 
@@ -8584,7 +8584,7 @@ string sql = table.getRenameColumnSql("name", "family_name");
 
         #! adds a primary key to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
-            @code
+            @code{.py}
 string sql;
 AbstractPrimaryKey pk = table.addPrimaryKey("pk_mytable", "id", ("index_tablespace": "index1"), \sql);
 printf("%s;\n", sql);
@@ -8612,7 +8612,7 @@ printf("%s;\n", sql);
 
         #! returns the SQL that can be used to add a primary key to the table
         /** @par Example:
-            @code
+            @code{.py}
 string sql = table.getAddPrimaryKeySql("pk_mytable", "id", ("index_tablespace": "index1"), opt);
 printf("%s;\n", sql);
             @endcode
@@ -8696,7 +8696,7 @@ printf("%s;\n", sql);
 
         #! gets a list of SQL strings to drop all constraints and indexes with the given column name; if the column does not exist then an empty list is returned
         /** @par Example:
-            @code
+            @code{.py}
 list l = table.getDropAllConstraintsAndIndexesOnColumnSql("status");
             @endcode
 
@@ -8769,7 +8769,7 @@ list l = table.getDropAllConstraintsAndIndexesOnColumnSql("status");
 
         #! gets a list of SQL strings that can be used to drop the primary key from the table
         /** @par Example:
-            @code
+            @code{.py}
 list l = table.getDropPrimaryKeySql();
             @endcode
 
@@ -8809,7 +8809,7 @@ list l = table.getDropPrimaryKeySql();
 
         #! drops the primary key from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
         /** @par Example:
-            @code
+            @code{.py}
 table.dropPrimaryKey();
             @endcode
 
@@ -8844,7 +8844,7 @@ table.dropPrimaryKey();
 
         #! adds a unique constraint to the table; if the table is known to be in the database already, then the constraint is added to the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
-            @code
+            @code{.py}
 string sql;
 AbstractUniqueConstraint c = table.addUniqueConstraint("uk_mytable", "name", ("index_tablespace": "index1"), \sql);
 printf("%s;\n", sql);
@@ -8872,7 +8872,7 @@ printf("%s;\n", sql);
 
         #! returns an SQL string that can be used to add a unique constraint to the table
         /** @par Example:
-            @code
+            @code{.py}
 string sql = table.getAddUniqueConstraintSql("uk_mytable", "name", ("index_tablespace": "index1"));
 printf("%s;\n", sql);
             @endcode
@@ -8956,7 +8956,7 @@ printf("%s;\n", sql);
 
         #! adds an index to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
-            @code
+            @code{.py}
 string sql;
 AbstractIndex ix = table.addIndex("uk_mytable_name", True, "name", ("index_tablespace": "index1"), \sql);
 printf("%s;\n", sql);
@@ -8985,7 +8985,7 @@ printf("%s;\n", sql);
 
         #! returns an SQL string that can be used to add an index to the table
         /** @par Example:
-            @code
+            @code{.py}
 string sql = table.getAddIndexSql("uk_mytable_name", True, "name", ("index_tablespace": "index1"));
 printf("%s;\n", sql);
             @endcode
@@ -9085,7 +9085,7 @@ printf("%s;\n", sql);
 
         #! renames an existing index; if the table is already known to be in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally
         /** @par Example:
-            @code
+            @code{.py}
 AbstractIndex ix = table.renameIndex("uk_table_name", "unique_table_name");
             @endcode
 
@@ -9125,7 +9125,7 @@ AbstractIndex ix = table.renameIndex("uk_table_name", "unique_table_name");
 
         #! drops the given index from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
         /** @par Example:
-            @code
+            @code{.py}
 table.dropIndex("uk_mytable_name");
             @endcode
 
@@ -9158,7 +9158,7 @@ table.dropIndex("uk_mytable_name");
 
         #! gets the SQL that can be used to drop an index from the table
         /** @par Example:
-            @code
+            @code{.py}
 string sql = table.getDropIndexSql("uk_mytable_name");
             @endcode
 
@@ -9194,7 +9194,7 @@ string sql = table.getDropIndexSql("uk_mytable_name");
 
         #! adds a foreign constraint to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
-            @code
+            @code{.py}
 string sql;
 AbstractForeignConstraint fc = table.addForeignConstraint("fk_mytable_other_table", ("name", "version"), "other_table", NOTHING, \sql);
 printf("%s;\n", sql);
@@ -9224,7 +9224,7 @@ printf("%s;\n", sql);
 
         #! returns an SQL string that can be used to add a foreign constraint to the table
         /** @par Example:
-            @code
+            @code{.py}
 string sql = table.getAddForeignConstraintSql("fk_mytable_other_table", ("name", "version"), "other_table");
 printf("%s;\n", sql);
             @endcode
@@ -9341,7 +9341,7 @@ printf("%s;\n", sql);
 
         #! drops a foreign constraint from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
         /** @par Example:
-            @code
+            @code{.py}
 table.dropForeignConstraint("uk_mytable_name");
             @endcode
 
@@ -9374,7 +9374,7 @@ table.dropForeignConstraint("uk_mytable_name");
 
         #! removes the named foreign constraint from the table; no SQL is executed in any case, only the named foreign constraint is removed from the table definition
         /** @par Example:
-            @code
+            @code{.py}
 table.removeForeignConstraint("uk_mytable_name");
             @endcode
 
@@ -9401,7 +9401,7 @@ table.removeForeignConstraint("uk_mytable_name");
 
         #! adds a check constraint to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
-            @code
+            @code{.py}
 string sql;
 AbstractCheckConstraint cc = table.addCheckConstraint("check_mytable_id", "id > 10", NOTHING, \sql);
 printf("%s;\n", sql);
@@ -9428,7 +9428,7 @@ printf("%s;\n", sql);
 
         #! returns an SQL string that can be used to add a check constraint to the table
         /** @par Example:
-            @code
+            @code{.py}
 string sql = table.getAddCheckConstraintSql("check_mytable_id", "id > 10");
 printf("%s;\n", sql);
             @endcode
@@ -9496,7 +9496,7 @@ printf("%s;\n", sql);
 
         #! renames an existing constraint; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint; if the table is already known to be in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally
         /** @par Example:
-            @code
+            @code{.py}
 AbstractConstraint con = table.renameConstraint("pk_table_name", "pkey_table_name");
             @endcode
 
@@ -9563,7 +9563,7 @@ AbstractConstraint con = table.renameConstraint("pk_table_name", "pkey_table_nam
 
         #! gets the SQL that can be used to drop a constraint from the table; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
         /** @par Example:
-            @code
+            @code{.py}
 string sql = table.getDropConstraintSql("uk_mytable_name");
             @endcode
 
@@ -9598,7 +9598,7 @@ string sql = table.getDropConstraintSql("uk_mytable_name");
 
         #! gets the SQL that can be used to drop a constraint from the table if it exists, otherwise returns @ref nothing; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint
         /** @par Example:
-            @code
+            @code{.py}
 *string sql = table.getDropConstraintIfExistsSql("uk_mytable_name");
             @endcode
 
@@ -9686,7 +9686,7 @@ string sql = table.getDropConstraintSql("uk_mytable_name");
 
         #! drops a constraint from the table; this can be any constraint on the table, a primary key, a foreign key constraint, or a generic constraint; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
         /** @par Example:
-            @code
+            @code{.py}
 table.dropConstraint("uk_mytable_name");
             @endcode
 
@@ -9720,7 +9720,7 @@ table.dropConstraint("uk_mytable_name");
 
         #! adds a trigger to the table; if the table is already known to be in the database, then it is added in the database also immediately; otherwise it is only added internally and can be created when create() is called for example
         /** @par Example:
-            @code
+            @code{.py}
 string sql;
 AbstractTrigger trig = table.addTrigger("trig_mytable", "", NOTHING, \sql);
 printf("%s;\n", sql);
@@ -9748,7 +9748,7 @@ printf("%s;\n", sql);
 
         #! returns a list of SQL strings that can be used to add a trigger to the table
         /** @par Example:
-            @code
+            @code{.py}
 string sql = table.getAddTriggerSql("trig_mytable", trigger_src);
 printf("%s;\n", sql);
             @endcode
@@ -9825,7 +9825,7 @@ printf("%s;\n", sql);
 
         #! drops the given trigger from the table; if the table is known to be in the database already, then it is also dropped from the database immediately; otherwise it is only removed internally
         /** @par Example:
-            @code
+            @code{.py}
 table.dropTrigger("trig_mytable");
             @endcode
 
@@ -9858,7 +9858,7 @@ table.dropTrigger("trig_mytable");
 
         #! returns SQL that can be used to drop the given trigger from the table
         /** @par Example:
-            @code
+            @code{.py}
 string sql = table.getDropTriggerSql("trig_mytable");
             @endcode
 
@@ -9985,7 +9985,7 @@ string sql = table.getDropTriggerSql("trig_mytable");
 
         #! drops a column from the table
         /** @par Example:
-            @code
+            @code{.py}
 table.dropColumn("notes_2");
             @endcode
 
@@ -10026,7 +10026,7 @@ table.dropColumn("notes_2");
 
         #! returns the SQL that can be used to drop a column from the table
         /** @par Example:
-            @code
+            @code{.py}
 string sql = table.getDropColumnSql("notes_2");
             @endcode
 
@@ -10064,7 +10064,7 @@ string sql = table.getDropColumnSql("notes_2");
 
         #! inserts a row into the table; the transaction is committed if successful, if an error occurs, it is rolled back
         /** @par Example:
-            @code
+            @code{.py}
 table.insertCommit(row);
             @endcode
 
@@ -10110,7 +10110,7 @@ table.insertCommit(row);
         #! inserts a row into the table without any transaction management; a transaction will be in progress after this method is successfully executed
         /** @ingroup inserts
             @par Example:
-            @code
+            @code{.py}
 table.insert(row);
             @endcode
 
@@ -10277,7 +10277,7 @@ table.insert(row);
 
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); the transaction is committed if successful, if an error occurs, it is rolled back
         /** @par Example:
-            @code
+            @code{.py}
 int rows = table.insertFromSelectCommit(("id", "name", "created"), source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER"))));
             @endcode
 
@@ -10336,7 +10336,7 @@ int rows = table.insertFromSelectCommit(("id", "name", "created"), source_table,
 
         #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table); a transaction will be in progress after this method is successfully executed
         /** @par Example:
-            @code
+            @code{.py}
 int rows = table.insertFromSelect(("id", "name", "created"), source_table, (("columns": ("id", "name", "created"), "where": ("type": "CUSTOMER"))));
             @endcode
 
@@ -10406,7 +10406,7 @@ int rows = table.insertFromSelect(("id", "name", "created"), source_table, (("co
 
         #! this method inserts data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; the transaction is committed if successful, if an error occurs then it is rolled back
         /** @par Example:
-            @code
+            @code{.py}
 int rows = table.insertFromIteratorCommit(i);
             @endcode
 
@@ -10432,7 +10432,7 @@ int rows = table.insertFromIteratorCommit(i);
 
         #! this method inserts data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; no transaction management is performed with this method
         /** @par Example:
-            @code
+            @code{.py}
 int rows = table.insertFromIterator(i);
             @endcode
 
@@ -10495,7 +10495,7 @@ int rows = table.insertFromIterator(i);
 
         #! update or insert the data in the table according to the hash argument; the table must have a unique key to do this; the transaction is committed if successful, if an error occurs then it is rolled back
         /** @par Example:
-            @code
+            @code{.py}
 table.upsertCommit(row);
             @endcode
 
@@ -10518,7 +10518,7 @@ table.upsertCommit(row);
 
         #! update or insert the data in the table according to the hash argument; the table must have a unique key to do this
         /** @par Example:
-            @code
+            @code{.py}
 table.upsert(row);
             @endcode
 
@@ -10543,7 +10543,7 @@ table.upsert(row);
 
         #! returns a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the table must have a unique key to do this; the closure returned does not check the input hash for validity
         /** @par Example:
-            @code
+            @code{.py}
 Datasource ds("pgsql:user/pass@db%localhost");
 Table table(ds, "table_name");
 code upsert = table.getUpsertClosure(row, AbstractTable::UpsertSelectFirst);
@@ -10555,7 +10555,7 @@ map upsert($1), row_list;
             @param row a hash representing an example row to insert or update; every row passed to the upsert closure returned must have the same keys in the same order
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
 
-            @return a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the closure returned does not check the input hash for validity; the closure has the following signature: @code int sub upsert(hash row) {} @endcode The return value of the closure is an integer code giving the result of the update; see @ref upsert_results for more information
+            @return a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the closure returned does not check the input hash for validity; the closure has the following signature: @code{.py} int sub upsert(hash row) {} @endcode The return value of the closure is an integer code giving the result of the update; see @ref upsert_results for more information
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
@@ -10591,7 +10591,7 @@ map upsert($1), row_list;
 
         #! returns a closure that can be executed given a hash argument representing either a single row or a set of rows (where each key value is a list of column values) that will be updated or inserted in the database with the given upsert strategy; the table must have a unique key to do this; the closure returned does not check the input hash for validity
         /** @par Example:
-            @code
+            @code{.py}
 Datasource ds("pgsql:user/pass@db%localhost");
 Table table(ds, "table_name");
 code upsert = table.getBulkUpsertClosure(row, AbstractTable::UpsertSelectFirst);
@@ -10603,7 +10603,7 @@ upsert(row_hash);
             @param example_row a hash representing an example row to insert or update; every hash passed to the upsert closure returned must have the same keys in the same order
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
 
-            @return a closure that can be executed given a hash argument representing either a single row or a set of rows (where each key value is a list of column values) that will be updated or inserted in the database with the given upsert strategy; the closure returned does not check the input hash for validity; the closure has the following signature: @code int sub upsert(hash row) {} @endcode The return value of the closure is always @ref SqlUtil::AbstractTable::UR_Verified; see @ref upsert_results for more information
+            @return a closure that can be executed given a hash argument representing either a single row or a set of rows (where each key value is a list of column values) that will be updated or inserted in the database with the given upsert strategy; the closure returned does not check the input hash for validity; the closure has the following signature: @code{.py} int sub upsert(hash row) {} @endcode The return value of the closure is always @ref SqlUtil::AbstractTable::UR_Verified; see @ref upsert_results for more information
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
@@ -10626,7 +10626,7 @@ upsert(row_hash);
 
         #! returns a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the table must have a unique key to do this; the closure returned checks the input hash for validity
         /** @par Example:
-            @code
+            @code{.py}
 Datasource ds("pgsql:user/pass@db%localhost");
 Table table(ds, "table_name");
 code upsert = table.getUpsertClosureWithValidation(row, AbstractTable::UpsertSelectFirst);
@@ -10638,7 +10638,7 @@ map upsert($1), row_list;
             @param example_row a hash representing an example row to insert or update; every row passed to the upsert closure returned must have the same keys in the same order or the closure returned will throw an \c UPSERT-ERROR exception
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
 
-            @return a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the closure has the following signature: @code int sub upsert(hash row) {} @endcode The return value of the closure is an integer code giving the result of the update; see @ref upsert_results for more information
+            @return a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the closure has the following signature: @code{.py} int sub upsert(hash row) {} @endcode The return value of the closure is an integer code giving the result of the update; see @ref upsert_results for more information
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
             @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
@@ -10657,7 +10657,7 @@ map upsert($1), row_list;
 
         #! this method upserts or merges data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; the transaction is committed if successful, if an error occurs then it is rolled back
         /** @par Example:
-            @code
+            @code{.py}
 hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
             @endcode
 
@@ -10697,7 +10697,7 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
 
         #! this method upserts or merges data from the given iterator argument (whose @ref Qore::AbstractIterator::getValue() "getValue()" method must return a hash giving row values) into the current table; no transaction management is performed with this method
         /** @par Example:
-            @code
+            @code{.py}
 hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
             @endcode
 
@@ -10808,7 +10808,7 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
 
         #! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; the transaction is committed if successful, if an error occurs then it is rolled back
         /** @par Example:
-            @code
+            @code{.py}
 hash h = table.upsertFromSelectCommit(table2, ("where": ("account_type": "CUSTOMER")), AbstractTable::UpsertUpdateFirst);
             @endcode
 
@@ -10862,7 +10862,7 @@ hash h = table.upsertFromSelectCommit(table2, ("where": ("account_type": "CUSTOM
 
         #! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; no transaction management is performed with this method
         /** @par Example:
-            @code
+            @code{.py}
 on_success { table.commit(); table2.commit(); }
 on_error { table.rollback(); table2.rollback(); }
 hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")), AbstractTable::UpsertUpdateFirst);
@@ -10922,7 +10922,7 @@ hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")),
 
         #! returns the number of rows in the table
         /** @par Example:
-            @code
+            @code{.py}
 int cnt = table.rowCount();
             @endcode
 
@@ -10938,7 +10938,7 @@ int cnt = table.rowCount();
 
         #! returns an @ref Qore::SQL::SQLStatement "SQLStatement" object that will iterate the results of a select statement matching the arguments
         /** @par Example:
-            @code
+            @code{.py}
 SQLStatement i = table.getRowIterator(sh);
             @endcode
 
@@ -10974,7 +10974,7 @@ SQLStatement i = table.getRowIterator(sh);
 
         #! returns an @ref Qore::SQL::SQLStatement "SQLStatement" object that will iterate the results of a select statement matching the arguments
         /** @par Example:
-            @code
+            @code{.py}
 SQLStatement i = table.getRowIterator();
             @endcode
 
@@ -10996,7 +10996,7 @@ SQLStatement i = table.getRowIterator();
 
         #! returns a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
         /** @par Example:
-            @code
+            @code{.py}
 *hash h = table.selectRow(sh);
             @endcode
 
@@ -11034,7 +11034,7 @@ SQLStatement i = table.getRowIterator();
 
         #! returns a list of hashes representing the rows in the table that match the argument hash
         /** @par Example:
-            @code
+            @code{.py}
 *list l = table.selectRows(sh);
             @endcode
 
@@ -11071,7 +11071,7 @@ SQLStatement i = table.getRowIterator();
 
         #! returns a hash of lists representing the columns and rows in the table that match the argument hahs
         /** @par Example:
-            @code
+            @code{.py}
 *hash h = table.select(sh);
             @endcode
 
@@ -11108,7 +11108,7 @@ SQLStatement i = table.getRowIterator();
 
         #! returns a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
         /** @par Example:
-            @code
+            @code{.py}
 *hash h = table.selectRow(sh);
             @endcode
 
@@ -11150,7 +11150,7 @@ SQLStatement i = table.getRowIterator();
 
         #! returns a list of hashes representing the rows in the table that match the argument hash
         /** @par Example:
-            @code
+            @code{.py}
 *list l = table.selectRows(sh);
             @endcode
 
@@ -11191,7 +11191,7 @@ SQLStatement i = table.getRowIterator();
 
         #! returns a hash of lists representing the columns and rows in the table that match the argument hahs
         /** @par Example:
-            @code
+            @code{.py}
 *hash h = table.select(sh);
             @endcode
 
@@ -11232,7 +11232,7 @@ SQLStatement i = table.getRowIterator();
 
         #! returns the SQL string to be executed corresponding to the argument hash with an output parameter for the select bind arguments
         /** @par Example:
-            @code
+            @code{.py}
 list args;
 string sql = table.getSelectSql(sh, \args);
             @endcode
@@ -11758,7 +11758,7 @@ string sql = table.getSelectSql(sh, \args);
 
         #! deletes rows in the table matching the condition and returns the count of rows deleted; the transaction is committed if successful, if an error occurs then it is rolled back
         /** @par Example:
-            @code
+            @code{.py}
 int dcnt = table.delCommit(("name": name));
             @endcode
 
@@ -11809,7 +11809,7 @@ int dcnt = table.delCommit(("name": name));
 
         #! deletes rows in the table matching the condition and returns the count of rows deleted; no transaction management is performed with this method
         /** @par Example:
-            @code
+            @code{.py}
 int dcnt = table.del(("name": name));
             @endcode
 
@@ -11864,7 +11864,7 @@ int dcnt = table.del(("name": name));
 
         #! updates rows in the table matching an optional condition and returns the count of rows updated; the transaction is committed if successful, if an error occurs then it is rolled back
         /** @par Example:
-            @code
+            @code{.py}
 int ucnt = table.updateCommit(("id": id), ("name": name));
             @endcode
 
@@ -11916,7 +11916,7 @@ int ucnt = table.updateCommit(("id": id), ("name": name));
 
         #! updates rows in the table matching an optional condition and returns the count of rows updated; no transaction management is performed with this method
         /** @par Example:
-            @code
+            @code{.py}
 int ucnt = table.update(("id": id), ("name": name));
             @endcode
 
@@ -12254,7 +12254,7 @@ int ucnt = table.update(("id": id), ("name": name));
 
         #! returns an SQL string corresponding to the list of commands in the argument
         /** @par Example:
-            @code
+            @code{.py}
 string sql = t.getSqlFromList(list);
             @endcode
 
@@ -12268,7 +12268,7 @@ string sql = t.getSqlFromList(list);
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument
         /** @par Example:
-            @code
+            @code{.py}
 string str = table.getSqlValue(date);
             @endcode
 
@@ -12293,7 +12293,7 @@ string str = table.getSqlValue(date);
 
         #! reads in all attributes of the table from the database
         /** @par Example:
-            @code
+            @code{.py}
 table.cache();
             @endcode
 
@@ -12307,7 +12307,7 @@ table.cache();
 
         #! purges the current table definition
         /** @par Example:
-            @code
+            @code{.py}
 table.clear();
             @endcode
         */
@@ -12327,7 +12327,7 @@ table.clear();
 
         #! returns an object of class Columns describing the table
         /** @par Example:
-            @code
+            @code{.py}
 Columns cols = table.describe();
             @endcode
 
@@ -12344,7 +12344,7 @@ Columns cols = table.describe();
         /** If there is no primary key then the object returned will be empty (see @ref SqlUtil::AbstractPrimaryKey::empty())
 
             @par Example:
-            @code
+            @code{.py}
             @endcode
 
             @return an object of class AbstractPrimaryKey describing the primary key of the table
@@ -12358,7 +12358,7 @@ Columns cols = table.describe();
 
         #! returns the given AbstractUniqueConstraint object if defined for the table (also includes the primary key)
         /** @par Example:
-            @code
+            @code{.py}
 my *AbstractUniqueConstraint uk = table.findUniqueConstraint("uk_table2");
             @endcode
 
@@ -12386,7 +12386,7 @@ my *AbstractUniqueConstraint uk = table.findUniqueConstraint("uk_table2");
         /** If there are no indexes on the table then the object returned will be empty (see @ref SqlUtil::Indexes::empty())
 
             @par Example:
-            @code
+            @code{.py}
 Indexes ix = table.getIndexes();
             @endcode
 
@@ -12419,7 +12419,7 @@ Indexes ix = table.getIndexes();
         /** If there are no triggers on the table then the object returned will be empty (see @ref SqlUtil::Triggers::empty())
 
             @par Example:
-            @code
+            @code{.py}
 Triggers trig = table.getTriggers();
             @endcode
 
@@ -12434,7 +12434,7 @@ Triggers trig = table.getTriggers();
 
         #! returns an SQL string that could be used to rename the table in the database
         /** @par Example:
-            @code
+            @code{.py}
 string sql = table.getRenameSql("new_name");
             @endcode
 
@@ -12465,7 +12465,7 @@ string sql = table.getRenameSql("new_name");
 
         #! returns an SQL string that could be used to create the table and all known properties of the table
         /** @par Example:
-            @code
+            @code{.py}
 printf("%s\n", table.getCreateSql());
             @endcode
 
@@ -12488,7 +12488,7 @@ printf("%s\n", table.getCreateSql());
 
         #! returns a list of SQL strings that could be used to create the table and all known properties of the table
         /** @par Example:
-            @code
+            @code{.py}
 map printf("$1;\n", $1), table.getCreateSql();
             @endcode
 
@@ -12509,7 +12509,7 @@ map printf("$1;\n", $1), table.getCreateSql();
 
         #! returns an SQL string that could be used to create the basic table structure without indexes and constraints
         /** @par Example:
-            @code
+            @code{.py}
 string sql = table.getCreateTableSql();
             @endcode
 
@@ -12558,7 +12558,7 @@ string sql = table.getCreateTableSql();
 
         #! accepts an AbstractTable argument and returns a list of SQL strings required to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty list is returned
         /** @par Example:
-            @code
+            @code{.py}
 list l = table.getAlignSql(table2);
             @endcode
 
@@ -13010,7 +13010,7 @@ list l = table.getAlignSql(table2);
 
         #! accepts an AbstractTable argument and returns an SQL string that could be executed to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty string is returned
         /** @par Example:
-            @code
+            @code{.py}
 string sql = table.getAlignSqlString(table2);
             @endcode
 
@@ -13028,7 +13028,7 @@ string sql = table.getAlignSqlString(table2);
 
         #! returns a list of SQL strings that could be used to create indexes on the table or @ref nothing if there are no indexes on the table
         /** @par Example:
-            @code
+            @code{.py}
 *list l = table.getCreateIndexesSql();
             @endcode
 
@@ -13048,7 +13048,7 @@ string sql = table.getAlignSqlString(table2);
 
         #! returns an SQL string that could be used to create the primary key on the table
         /** @par Example:
-            @code
+            @code{.py}
 *string sql = table.getCreatePrimaryKeySql();
             @endcode
 
@@ -13068,7 +13068,7 @@ string sql = table.getAlignSqlString(table2);
 
         #! returns a list of SQL strings that could be used to create foreign constraints on the table or @ref nothing if there are no foreign constraints on the table
         /** @par Example:
-            @code
+            @code{.py}
 *list l = table.getCreateForeignConstraintsSql();
             @endcode
 
@@ -13088,7 +13088,7 @@ string sql = table.getAlignSqlString(table2);
 
         #! returns a list of SQL strings that could be used to create non-foreign constraints on the table or @ref nothing if there are no non-foreign constraints on the table
         /** @par Example:
-            @code
+            @code{.py}
 *list l = table.getCreateConstraintsSql();
             @endcode
 
@@ -13110,7 +13110,7 @@ string sql = table.getAlignSqlString(table2);
 
         #! returns a list of SQL strings that could be used to create other table attributes (such as comments, if supported and present) or @ref nothing if there are none
         /** @par Example:
-            @code
+            @code{.py}
 *list l = table.getCreateMiscSql();
             @endcode
 
@@ -13130,7 +13130,7 @@ string sql = table.getAlignSqlString(table2);
 
         #! returns a list of SQL strings that could be used to create triggers on the table or @ref nothing if there are no triggers on the table
         /** @par Example:
-            @code
+            @code{.py}
 *list l = table.getCreateTriggersSql();
             @endcode
 
@@ -13152,7 +13152,7 @@ string sql = table.getAlignSqlString(table2);
 
         #! finds a row in the table with the given primary key value; if no row matches the primary key value passed then @ref nothing is returned
         /** @par Example:
-            @code
+            @code{.py}
 *hash row = table.find(id);
             @endcode
 
@@ -13166,7 +13166,7 @@ string sql = table.getAlignSqlString(table2);
 
         #! finds rows in the table with the given primary key values; if no row matches any primary key value passed then @ref nothing is returned
         /** @par Example:
-            @code
+            @code{.py}
 *list rows = table.find(list);
             @endcode
 
@@ -13202,7 +13202,7 @@ string sql = table.getAlignSqlString(table2);
 
         #! finds a row in the table with the given primary key value given as a hash; if no row matches the primary key value passed then @ref nothing is returned
         /** @par Example:
-            @code
+            @code{.py}
 *hash row = table.find(("account_type": type, "name": name));
             @endcode
 
@@ -13239,7 +13239,7 @@ string sql = table.getAlignSqlString(table2);
 
         #! finds a single row in the table that match the row condition passed; multiple rows may match, but only one row will be returned from the database; if no row matches the condition hash passed then @ref nothing is returned
         /** @par Example:
-            @code
+            @code{.py}
 *hash row = table.findSingle(h);
             @endcode
 
@@ -13257,7 +13257,7 @@ string sql = table.getAlignSqlString(table2);
 
         #! finds all rows in the table with the given column values; a list of hashes is returned representing the rows returned
         /** @par Example:
-            @code
+            @code{.py}
 *list rows = table.findAll(h);
             @endcode
 

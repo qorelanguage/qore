@@ -111,7 +111,7 @@ module SmtpClient {
     |\c "esmtptls"|587|like \c "smtptls" just using port 587
 
     @par Example:
-    @code
+    @code{.py}
 %requires SmtpClient
 %requires Mime
 
@@ -266,7 +266,7 @@ public namespace SmtpClient {
 
         #! creates the SmtpClient object
         /** @par Example:
-            @code
+            @code{.py}
 SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log());
             @endcode
 
@@ -490,7 +490,7 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
 
         #! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
         /** @par Example:
-            @code
+            @code{.py}
 smtp.clearWarningQueue();
             @endcode
 
@@ -504,7 +504,7 @@ smtp.clearWarningQueue();
 
         #! Sets a @ref Qore::Thread::Queue "Queue" object to receive socket warnings
         /** @par Example:
-            @code
+            @code{.py}
 smtp.setWarningQueue(5000, 5000, queue, "socket-1");
             @endcode
 
@@ -539,7 +539,7 @@ smtp.setWarningQueue(5000, 5000, queue, "socket-1");
 
         #! Returns performance statistics for the socket
         /** @par Example:
-            @code
+            @code{.py}
 hash h = smtp.getUsageInfo();
             @endcode
 
@@ -562,7 +562,7 @@ hash h = smtp.getUsageInfo();
 
         #! Clears performance statistics
         /** @par Example:
-            @code
+            @code{.py}
 smtp.clearStats();
             @endcode
 

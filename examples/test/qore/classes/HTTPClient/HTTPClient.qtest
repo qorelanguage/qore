@@ -42,6 +42,8 @@ class HttpTestServer {
         Socket s1 = s.accept();
         s1.send(resp);
         end.waitForZero();
+        s.close();
+        s.shutdown();
     }
 }
 
