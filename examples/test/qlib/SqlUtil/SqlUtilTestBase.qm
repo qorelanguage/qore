@@ -203,7 +203,7 @@ public class SqlTestBase inherits QUnit::Test {
             assertEq (e.value, row{e.key}, "checking column operator " + e.key);
 
         soh = ("columns": (
-                cop_as ("char_f", "pivot"),
+                cop_as ("char_f", "pivot_col"),
                 cop_as (cop_min ("id"), "cop_min"),
                 cop_as (cop_max ("id"), "cop_max"),
                 cop_as (cop_avg ("id"), "cop_avg"),
