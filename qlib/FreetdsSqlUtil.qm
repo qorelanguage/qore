@@ -802,24 +802,43 @@ my any $v = $c.name;
                 "smallint": ("qore": Type::Int,),
                 "int": ("qore": Type::Int,),
                 "bigint": ("qore": Type::Int,),
-                "float": ("qore": Type::Float,),
+                "double": ("qore": Type::Float,),
+                "float": ("qore": Type::Float,), # NOTE: optional precision
                 "real": ("qore": Type::Float,),
                 "money": ("qore": Type::Number,),
                 "smallmoney": ("qore": Type::Number,),
+
                 "datetime": ("qore": Type::Date,),
                 "smalldatetime": ("qore": Type::Date,),
                 "date": ("qore": Type::Date,),
                 "time": ("qore": Type::Date,),
-                "char": ("qore": Type::String, "size": SZ_MAND,),
-                "character varying": ("qore": Type::String, "size": SZ_MAND,),
-                "varchar": ("qore": Type::String, "size": SZ_MAND,),
+
+                # NOTE: "size_range" is different between MS SQL Server and Sybase SQL Anywhere Server
+                # MS SQL: range is (1, 8000) or special keyword "max" for varchar types
+                # Sybase: range is (1, 32767) and size is mandatory for character-length semantics
+                "char": ("qore": Type::String, "size": SZ_OPT),
+                "char varying": ("qore": Type::String, "size": SZ_OPT),
+                "character varying": ("qore": Type::String, "size": SZ_OPT),
+                "varchar": ("qore": Type::String, "size": SZ_OPT),
+
+                # The following uni* types are used in Sybase Adaptive Server
                 "unichar": ("qore": Type::String, "size": SZ_MAND,),
                 "univarchar": ("qore": Type::String, "size": SZ_MAND,),
-                "text": ("qore": Type::String,),
                 "unitext": ("qore": Type::String,),
-                "binary": ("qore": Type::Binary,),
-                "varbinary": ("qore": Type::Binary,),
-                "image": ("qore": Type::Binary,),
+
+                # NOTE: "size_range" is different between MS SQL Server and Sybase SQL Anywhere Server
+                # MS SQL: range is (1, 8000) or special keyword "max" for varbinary types
+                # Sybase: range is (1, 32767)
+                "binary": ("qore": Type::Binary, "size": SZ_OPT),
+                "binary varying": ("qore": Type::Binary, "size": SZ_OPT),
+                "varbinary": ("qore": Type::Binary, "size": SZ_OPT),
+
+                # The following are used in Sybase, supported & deprecated in MS SQL
+                "text": ("qore": Type::String,), # domain, implemented as "long varchar"
+                "image": ("qore": Type::Binary,), # domain, implemented as "long binary"
+                # The following are Sybase specific
+                "long binary": ("qore": Type::Binary,),
+                "long varchar": ("qore": Type::String,),
                 );
 
             #! maps qore type names to postgresql type names
@@ -851,6 +870,44 @@ my any $v = $c.name;
 
             #! column operator specializations for FreeTDS
             const FreetdsCopMap = DefaultCopMap + (
+                COP_CAST: (
+                    "code": string sub (string cve, list args) {
+                        string name = QoreTypeMap{args[0]} ?? args[0];
+                        hash desc = FreetdsTypeMap{name};
+                        string sql = sprintf ("cast (%s as %s", cve, name);
+                        switch (name) {
+                            default:
+                                if (desc.size == SZ_MAND) {
+                                    if (!exists args[1] && !exists desc.size_range)
+                                        throw "OPERATOR-ERROR", sprintf ("op_cast operator missing size for type %s", name);
+                                    sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
+                                }
+                                else if (desc.size == SZ_NUM && exists args[1]) {
+                                    sql += sprintf("(%d", args[1]);
+                                    sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
+                                }
+                                else if (desc.size == SZ_OPT && exists args[1]) {
+                                    sql += sprintf("(%d)", args[1]);
+                                }
+                        }
+                        sql += ")";
+                        return sql;
+                    },
+                ),
+                COP_PREPEND: (
+                    "arg": Type::String,
+                    "sqlvalue": True,
+                    "code": string sub (string cve, string arg) {
+                        return sprintf("%s + %s", arg, cve);
+                    },
+                ),
+                COP_APPEND: (
+                    "arg": Type::String,
+                    "sqlvalue": True,
+                    "code": string sub (string cve, string arg) {
+                        return sprintf("%s + %s", cve, arg);
+                    },
+                ),
                 COP_OVER: (
                     "argcolumn": True,
                     "argoptional": True,

@@ -261,6 +261,7 @@ my hash $schema = (
     - implemented support for views for DML in the @ref OracleSqlUtil::OracleTable class
     - implemented @ref OracleSqlUtil::OracleTable::getBaseType()
     - implemented support for Oracle pseudocolumns in queries
+    - implemented support for \c cop_cast operator
 
     @subsection v11 OracleSqlUtil v1.1
     - fixed selects with "limit" but no "offset"
@@ -1835,6 +1836,30 @@ my any $v = $c.name;
 
             #! column operator specializations for Oracle
             const OracleCopMap = DefaultCopMap + (
+                COP_CAST: (
+                    "code": string sub (string cve, list args) {
+                        string name = QoreTypeMap{args[0]} ?? args[0];
+                        hash desc = OraTypeMap{name};
+                        string sql = sprintf ("cast (%s as %s", cve, name);
+                        switch (name) {
+                            default:
+                                if (desc.size == SZ_MAND) {
+                                    if (!exists args[1] && !exists desc.size_range)
+                                        throw "OPERATOR-ERROR", sprintf ("op_cast operator missing size for type %s", name);
+                                    sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
+                                }
+                                else if (desc.size == SZ_NUM && exists args[1]) {
+                                    sql += args[1] == "*" ? "(*" : sprintf("(%d", args[1]);
+                                    sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
+                                }
+                                else if (desc.size == SZ_OPT && exists args[1]) {
+                                    sql += sprintf("(%d)", args[1]);
+                                }
+                        }
+                        sql += ")";
+                        return sql;
+                    },
+                ),
                 COP_OVER: (
                     "argcolumn": True,
                     "argoptional": True,

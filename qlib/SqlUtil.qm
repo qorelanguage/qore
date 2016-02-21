@@ -110,6 +110,8 @@ module SqlUtil {
     - implemented support for \c "or" logic in @ref where_clauses
     - implemented AbstractTable::getBulkUpsertClosure() to better support bulk SQL merge operations
     - implemented @ref SqlUtil::wop_or() to allow for generating complex SQL strings with \a "or" and \a "and" expressions
+    - implemented @ref SqlUtil::cop_cast() operator for converting [column] value into another datatype
+    - implemented @ref SqlUtil::cop_sum() aggregate operator for returning sum of column values
     - removed all APIs that handle implicit transactions; APIs must commit transactions explicitly (<a href="https://github.com/qorelanguage/qore/issues/533">issue 533</a>)
     - fixed a bug with queries using a \a desc argument with the \a orderby query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
     - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
@@ -122,6 +124,8 @@ module SqlUtil {
     - fixed a bug where complex bind values as hashes (such as used by the pgsql and oracle drivers) were rejected by SqlUtil (<a href="https://github.com/qorelanguage/qore/issues/494">issue 494</a>) when updating
     - fixed a bug where wildcard columns in join tables were not working (<a href="https://github.com/qorelanguage/qore/issues/499">issue 499</a>)
     - fixed a bug in @ref SqlUtil::op_in() where invalid SQL was generated with an argument of 0 (<a href="https://github.com/qorelanguage/qore/issues/500">issue 500</a>)
+    - fixed a bug in @ref SqlUtil::cop_value() where an exception was thrown with an argument of 0 (<a href="https://github.com/qorelanguage/qore/issues/511">issue 511</a>)
+    - fixed @ref SqlUtil::cop_count() operator to allow other operators as its argument (<a href="https://github.com/qorelanguage/qore/issues/517">issue 517</a>)
 
     @subsection sqlutilv1_2 SqlUtil v1.2
     - added insert operator support; for example, for inserting with values from sequences
@@ -1850,6 +1854,11 @@ public namespace SqlUtil {
     */
     public const COP_AS = "as";
 
+    #! to convert column value into another datatype
+    /** @see cop_cast()
+    */
+    public const COP_CAST = "cast";
+
     #! to prepend a string to a column on output
     /** @see cop_prepend()
     */
@@ -1972,14 +1981,14 @@ public namespace SqlUtil {
             "arg": Type::String,
             "sqlvalue": True,
             "code": string sub (string cve, string arg) {
-                return sprintf("%s||%s", arg, cve);
+                return sprintf("%s || %s", arg, cve);
             },
         ),
         COP_APPEND: (
             "arg": Type::String,
             "sqlvalue": True,
             "code": string sub (string cve, string arg) {
-                return sprintf("%s||%s", cve, arg);
+                return sprintf("%s || %s", cve, arg);
             },
         ),
         COP_VALUE: (
@@ -2022,10 +2031,16 @@ public namespace SqlUtil {
             },
             "group": True,
         ),
+        COP_SUM: (
+            "code": string sub (string cve, any arg) {
+                return sprintf("sum(%s)", cve);
+            },
+            "group": True,
+        ),
         COP_COUNT: (
             "nocolumn": True,
             "code": string sub (*string cve, any arg) {
-                return sprintf("count(%s)", cve ? cve : "1");
+                return sprintf("count(%s)", cve ? cve : "*");
             },
         ),
         COP_MINUS: (
@@ -2058,9 +2073,10 @@ public namespace SqlUtil {
     /** @defgroup sql_cop_funcs SQL Column Operator Functions
         These are functions that can be used in the \c "columns" argument for select statements:
         - @ref cop_as(): rename columns
+        - @ref cop_cast(): convert column value into another datatype
         - @ref cop_prepend(): prepend a string to the output of a column
         - @ref cop_append(): append a string to the output of a column
-        - @ref cop_value(): return a constant value (SQL Literal) in a column
+        - @ref cop_value(): return a constant value (SQL literal) in a column
         - @ref cop_upper(): return a column in upper case
         - @ref cop_lower(): return a column in lower case
 
@@ -2103,6 +2119,25 @@ public namespace SqlUtil {
     */
     public hash sub cop_as(any column, string arg) {
         return make_cop(COP_AS, column, arg);
+    }
+
+    #! returns a hash for the \c "cast" operator with the given argument(s)
+    /** @par Example:
+        @code
+*list rows = table.selectRows(("columns": ("id", cop_cast("id", "string")), "where": ("type": "user")));
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins) or any other column "cop_..." function
+        @param arg the new datatype to cast the column value(s) to
+        @param arg1 optional, type dependent, specification (e.g. size or precision)
+        @param arg2 optional, type dependent, specification (e.g. scale)
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+
+        @see SqlUtil::cop_value for SQL literals handling
+    */
+    public hash sub cop_cast(any column, string arg, *any arg1, *any arg2) {
+        return make_cop(COP_CAST, column, (arg, arg1, arg2));
     }
 
     #! returns a hash for the \c "prepend" operator with the given argument
@@ -2171,7 +2206,7 @@ public namespace SqlUtil {
         The most useful SqlUtil::cop_value usage is with cooperation of SqlUtil::cop_as which allows
         nice and human readable column name aliases.
 
-        @warning Using SqlUtil::cop_value withtou SqlUtil::cop_as can result in errors
+        @warning Using SqlUtil::cop_value without SqlUtil::cop_as can result in errors
                  depending on the DB backend. For example Oracle's use of <tt>cop_value(1), cop_value(True)</tt>
                  ends with <tt>ORA-00918: column ambiguously defined</tt>
                  because both values are interpreted as 1 in the resulting SQL.
@@ -2326,7 +2361,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_count(string column = "") {
+    public hash sub cop_count(any column = "") {
         return make_cop(COP_COUNT, column);
     }
 
@@ -11561,7 +11596,7 @@ string sql = table.getSelectSql(sh, \args);
                 }
             }
 
-            if (!cve && !cmd.nocolumn)
+            if (!exists cve && !cmd.nocolumn)
                 throw "SELECT-ERROR", sprintf("%s: column operator %y requires a column argument name but none was provided", getDesc(), cop);
 
             return cmd.code(cve, arg);

@@ -95,6 +95,8 @@ module MysqlSqlUtil {
     - corrected support for the \c varbinary type (<a href="https://github.com/qorelanguage/qore/issues/403">bug 403</a>)
     - corrected support for the \c binary type (<a href="https://github.com/qorelanguage/qore/issues/524">bug 524</a>)
     - \c schema member incorrectly set by @ref Qore::SQL::AbstractDatasource::getUserName() "AbstractDatasource::getUserName()" instead of @ref Qore::SQL::AbstractDatasource::getDBName() "AbstractDatasource::getDBName()" (<a href="https://github.com/qorelanguage/qore/pull/519">bug 519</a>)
+    - corrected support for datatypes \c binary, \c char, \c varbinary, \c varchar
+    - added support for \c cop_cast operator (<a href="https://github.com/qorelanguage/qore/issues/535">feature 535</a>)
 
     @subsection mysqlsqlutilv10 MysqlSqlUtil v1.0
     - initial release
@@ -900,11 +902,11 @@ end";
                 "time": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
                 "year": ("qore": Type::Int,),
 
-                "char": ("qore": Type::String, "size": SZ_MAND,),
-                "varchar": ("qore": Type::String, "size": SZ_MAND,),
+                "char": ("qore": Type::String, "size": SZ_OPT, "size_range": (0, 255)),
+                "varchar": ("qore": Type::String, "size": SZ_MAND, "size_range": (0, 65535)),
 
-                "binary": ("qore": Type::Binary, "size": SZ_MAND,),
-                "varbinary": ("qore": Type::Binary, "size": SZ_MAND,),
+                "binary": ("qore": Type::Binary, "size": SZ_OPT, "size_range": (0, 255)),
+                "varbinary": ("qore": Type::Binary, "size": SZ_MAND, "size_range": (0, 65535)),
 
                 "tinytext": ("qore": Type::String,),
                 "text": ("qore": Type::String,),
@@ -962,6 +964,31 @@ end";
 
             #! column operator specializations for MySQL
             const MysqlCopMap = DefaultCopMap + (
+                COP_CAST: (
+                    "code": string sub (string cve, list args) {
+                        string name = QoreTypeMap{args[0]} ?? args[0];
+                        if (name == "varchar") name = "char"; # NOTE: due to current MariaSQL issue ("ERROR 1064 (42000)")
+                        hash desc = MysqlTypeMap{name};
+                        string sql = sprintf ("cast(%s as %s", cve, name);
+                        switch (name) {
+                            default:
+                                if (desc.size == SZ_MAND) {
+                                    if (!exists args[1] && !exists desc.size_range)
+                                        throw "OPERATOR-ERROR", sprintf ("op_cast operator missing size for type %s", name);
+                                    sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
+                                }
+                                else if (desc.size == SZ_NUM && exists args[1]) {
+                                    sql += sprintf("(%d", args[1]);
+                                    sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
+                                }
+                                else if (desc.size == SZ_OPT && exists args[1]) {
+                                    sql += sprintf("(%d)", args[1]);
+                                }
+                        }
+                        sql += ")";
+                        return sql;
+                    },
+                ),
                 COP_PREPEND: (
                     "arg": Type::String,
                     "sqlvalue": True,
