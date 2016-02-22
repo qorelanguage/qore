@@ -62,6 +62,7 @@ public class SqlTestBase inherits QUnit::Test {
         addTestCase("Upsert", \upsertTest());
         addTestCase("BulkInsert", \bulkInsertTest());
         addTestCase("BulkUpsert", \bulkUpsertTest());
+        addTestCase("Group By", \groupByTest());
     }
 
     globalTearDown() {
@@ -203,7 +204,7 @@ public class SqlTestBase inherits QUnit::Test {
             assertEq (e.value, row{e.key}, "checking column operator " + e.key);
 
         soh = ("columns": (
-                cop_as ("char_f", "pivot_col"),
+                cop_as ("char_f", "pivo"),
                 cop_as (cop_min ("id"), "cop_min"),
                 cop_as (cop_max ("id"), "cop_max"),
                 cop_as (cop_avg ("id"), "cop_avg"),
@@ -403,6 +404,32 @@ public class SqlTestBase inherits QUnit::Test {
                     assertEq (d.value, row{d.key}, sprintf ("checking where operator %s row %s column %s", t.key, rn, d.key));
             }
         }
+    }
+
+    groupByTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        hash soh = ("columns": (
+                cop_as ("char_f", "pivo"),
+                cop_as (cop_count(), "cop_count"),
+                ),
+                "groupby": (1)
+                );
+        *hash row = table.selectRow (soh);
+        assertEq (2, row.cop_count, "checking group by 1");
+
+        soh = ("columns": (
+                cop_as ("char_f", "pivo"),
+                cop_as (cop_count(), "cop_count"),
+                ),
+                "groupby": ("pivo")
+                );
+        row = table.selectRow (soh);
+        assertEq (2, row.cop_count, "checking group by alias");
     }
 
     static string getColumnName(string n) {
