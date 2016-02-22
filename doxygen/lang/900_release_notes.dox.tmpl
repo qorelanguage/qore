@@ -245,6 +245,7 @@
       - implemented the \c "wop_or()" function to allow complex SQL expressions to be generated with \c "or" as well as \c "and"
       - implemented AbstractTable::getBulkUpsertClosure() to better support bulk SQL merge operations
       - removed all APIs that handle implicit transactions; APIs must commit transactions explicitly
+      - \a orderby and \a groupby select options now take positive integers as column identifiers
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module updates:
       - implemented support for views for DML in the OracleTable class
       - implemented support for Oracle pseudocolumns in queries

@@ -112,8 +112,9 @@ module SqlUtil {
     - implemented @ref SqlUtil::wop_or() to allow for generating complex SQL strings with \a "or" and \a "and" expressions
     - implemented @ref SqlUtil::cop_cast() operator for converting [column] value into another datatype
     - implemented @ref SqlUtil::cop_sum() aggregate operator for returning sum of column values
+    - implemented support for numeric column arguments for the @ref select_option_orderby "orderby" and @ref select_option_groupby "groupby" options
     - removed all APIs that handle implicit transactions; APIs must commit transactions explicitly (<a href="https://github.com/qorelanguage/qore/issues/533">issue 533</a>)
-    - fixed a bug with queries using a \a desc argument with the \a orderby query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
+    - fixed a bug with queries using a \a desc argument with the @ref select_option_orderby "orderby" query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
     - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
     - fixed a bug where driver-specific objects were not included when dropping a schema
     - fixed a bug in subquery handling where bind-by-value arguments from the subquery were lost
@@ -412,6 +413,7 @@ list columns = ("id", "name", "started", cop_as("warnings", "warning_count"), co
     - a simple string giving a column name; ex: \c "name"
     - a simple string with a column name preceded by a \c "-" sign; ex: \c "-name", meaning that that column should be sorted in descending order
     - a string giving a table or table alias and a column name in dot notation (for use with @ref select_option_join "joins"); ex: \c "q.name"
+    - a positive integer giving the column number for the ordering
     @note
     - By using the @ref select_option_offset "offset option" the results will be automatically ordered according to the primary key of the table
 
@@ -469,8 +471,8 @@ list columns = ("id", "name", "started", cop_as("warnings", "warning_count"), co
 *list rows = table.selectRows(("columns": (cop_as(cop_max("service_type"), "type"), cop_count()), "groupby": "service_type"));
     @endcode
     The \c "groupby" option allows for aggregate SQL column operator functions to be used (ex: @ref cop_max(), cop_min()) in select statements.
-    The \c "groupby" hash key should be assigned to a list of column specifiers or a single column specifier.  Column specifies for the \c "groupby"
-    key are strings giving column names, optionally in dot notation.
+    The \c "groupby" hash key should be assigned to a list of column specifiers or a single column specifier.  Column specifiers for the \c "groupby"
+    key are strings giving column names, optionally in dot notation or positive column numbers.
 
     @anchor select_option_having
     @par Select Option "having"
@@ -5817,11 +5819,25 @@ AbstractDatabase db("pgsql:user/pass@db%host");
                     opt = l;
                     break;
                 }
-                case "softstringhashlist": {
+                case "softstringinthashlist": {
                     softlist l = opt;
                     foreach any v in (l) {
-                        if (v.typeCode() != NT_STRING && v.typeCode() != NT_HASH)
-                            throw err, sprintf("%s: key %y element %d/%d (first is 0) has type %y, expecting \"string\" or \"hash\" (value: %y)", tag, k, $#, l.size(), v.type(), opt);
+                        int t = v.typeCode();
+                        bool ok;
+                        if (t == NT_STRING) {
+                            if (v.toInt() == v)
+                                v = v.toInt();
+                            else
+                                ok = True;
+                        }
+                        if (!ok) {
+                            if (t == NT_INT) {
+                                if (v < 1)
+                                    throw err, sprintf("%s: key %y element %d/%d (first is 0) is %d, column numbers must be positive integers", tag, k, $#, l.size(), v);
+                            }
+                            else if (v.typeCode() != NT_HASH)
+                                throw err, sprintf("%s: key %y element %d/%d (first is 0) has type %y, expecting \"string\" or \"hash\" (value: %y)", tag, k, $#, l.size(), v.type(), opt);
+                        }
                     }
 
                     opt = l;
@@ -7443,12 +7459,12 @@ Table table("pgsql:user/pass@db%host", "table");
                 "hint": Type::String,
                 "columns": Type::NothingType,
                 "where": "hash/list",
-                "orderby": "softstringhashlist",
+                "orderby": "softstringinthashlist",
                 "desc": Type::Boolean,
                 "limit": Type::Int,
                 "offset": Type::Int,
                 "join": Type::Hash,
-                "groupby": "softstringhashlist",
+                "groupby": "softstringinthashlist",
                 "having": Type::Hash,
                 "superquery": Type::Hash,
                 "forupdate": Type::Boolean,
@@ -11028,7 +11044,6 @@ SQLStatement i = table.getRowIterator();
             }
             on_error if (rollback_on_error)
                 ds.rollback();
-
             return ds.vselectRow(sql, args);
         }
 
@@ -11322,6 +11337,7 @@ string sql = table.getSelectSql(sh, \args);
 
             string cstr;
             # make query
+            list coll = ();
             if (qh.columns) {
                 # column expressions
                 list ce = ();
@@ -11339,7 +11355,13 @@ string sql = table.getSelectSql(sh, \args);
                             if (!cv.cop)
                                 throw "SELECT-ERROR", sprintf("%s: missing column operator in \"columns\" hash element %d/%d; the \"columns\" select option must be assigned to a list of strings giving the column names or a list of column operator hashes as returned from column operator functions; this element is missing hash key \"cop\" giving the column operator; keys provided: %y", getDesc(), $# + 1, qh.columns.lsize(), cv.keys());
                             try {
-                                ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch);
+                                string val = doColumnOperatorIntern(cv, jch, boolean(qh.join), ch);
+                                ce += val;
+                                # add any column aliases to pseudo-column hash
+                                if (cv.cop == COP_AS) {
+                                    val =~ s/ as .*$//;
+                                    psch{cv.arg} = val;
+                                }
                             }
                             catch (hash ex) {
                                 # rethrow exception with additional contextual information
@@ -11355,6 +11377,7 @@ string sql = table.getSelectSql(sh, \args);
                     }
                 }
                 cstr = foldl $1 + "," + $2, ce.iterator();
+                coll = ce;
             }
             else
                 cstr = "*";
@@ -11469,24 +11492,7 @@ string sql = table.getSelectSql(sh, \args);
             getSelectWhereSqlUnlocked(\sql, \args, qh, jch, boolean(qh.join), ch, psch);
 
             if (qh.groupby) {
-                list ce = ();
-                foreach any cv in (qh.groupby) {
-                    switch (cv.typeCode()) {
-                        case NT_STRING: {
-                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch);
-                            break;
-                        }
-
-                        case NT_HASH: {
-                            ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch, psch);
-                            break;
-                        }
-
-                        default:
-                            throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in group by list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv);
-                    }
-                }
-
+                list ce = getGroupByList(qh, jch, ch, psch, coll);
                 sql += " group by " + (foldl $1 + "," + $2, ce.iterator());
             }
 
@@ -11546,6 +11552,35 @@ string sql = table.getSelectSql(sh, \args);
             return sql;
         }
 
+        private list getGroupByList(hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+            list ce = ();
+            foreach any cv in (qh.groupby) {
+                switch (cv.typeCode()) {
+                    case NT_STRING: {
+                        if (cv.toInt() == cv)
+                            ce += cv;
+                        else
+                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch);
+                        break;
+                    }
+
+                    case NT_HASH: {
+                        ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch, psch);
+                        break;
+                    }
+
+                    case NT_INT: {
+                        ce += cv.toString();
+                        break;
+                    }
+
+                    default:
+                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in group by list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv);
+                }
+            }
+            return ce;
+        }
+
         private doForUpdate(reference sql) {
             sql += " for update";
         }
@@ -11602,7 +11637,7 @@ string sql = table.getSelectSql(sh, \args);
             return cmd.code(cve, arg);
         }
 
-        private string getColumnNameIntern(string cv, *hash jch, bool join, *hash ch, *hash psch) {
+        private string getColumnNameIntern(string cv, *hash jch, bool join, *hash ch, *hash psch, *bool subst_psch) {
             # remove any disposable unique prefix
             cv =~ s/^[0-9]+://;
             # return the name if it's a "technical name" (starts with "_")
@@ -11619,6 +11654,10 @@ string sql = table.getSelectSql(sh, \args);
 
                 if (cv != "*" && !jch{tp}.describe().hasKey(cv) && !psch{cv})
                     throw "SELECT-ERROR", sprintf("%s: query references unknown column \"%s.%s\" (%y is aliased to table %y); known columns: %y", getDesc(), tp, cv, tp, jch{tp}.getSqlName(), jch{tp}.describe().keys());
+            }
+            else if (psch{cv}) {
+                if (subst_psch && psch{cv}.typeCode() == NT_STRING)
+                    cv = psch{cv};
             }
             else if (ch) {
                 if (!ch{cv} && !psch{cv})
@@ -11734,12 +11773,20 @@ string sql = table.getSelectSql(sh, \args);
             foreach any cv in (qh.orderby) {
                 switch (cv.typeCode()) {
                     case NT_STRING: {
-                        ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch);
+                        if (cv.toInt() == cv)
+                            ce += cv;
+                        else
+                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch);
                         break;
                     }
 
                     case NT_HASH: {
                         ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch);
+                        break;
+                    }
+
+                    case NT_INT: {
+                        ce += cv.toString();
                         break;
                     }
 

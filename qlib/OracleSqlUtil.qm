@@ -2670,6 +2670,51 @@ my any $v = $c.name;
             };
         }
 
+        private list getGroupByList(hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+            list ce = ();
+
+            code do_int = sub (int cv) {
+                if (!coll) {
+                    if (cv > columns.size())
+                        throw "ORACLE-TABLE-ERROR", sprintf("group by %d: this database does not support numeric column offsets for the group by expression, and the table has %d column%s", cv, columns.size(), columns.size() == 1 ? "" : "s");
+                    ce += columns.keys()[cv - 1];
+                }
+                else {
+                    if (cv > coll.size())
+                        throw "ORACLE-TABLE-ERROR", sprintf("group by %d: this database does not support numeric column offsets for the group by expression, and %d column%s %s given in the select argument", cv, coll.size(), coll.size() == 1 ? "" : "s", coll.size() == 1 ? "was" : "were");
+                    string val = coll[cv - 1];
+                    val =~ s/ as .*$//;
+                    ce += val;
+                }
+            };
+
+            foreach any cv in (qh.groupby) {
+                switch (cv.typeCode()) {
+                    case NT_STRING: {
+                        if (cv.toInt() == cv)
+                            do_int(cv.toInt());
+                        else
+                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch, True);
+                        break;
+                    }
+
+                    case NT_HASH: {
+                        ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch, psch);
+                        break;
+                    }
+
+                    case NT_INT: {
+                        do_int(cv);
+                        break;
+                    }
+
+                    default:
+                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in group by list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv);
+                }
+            }
+            return ce;
+        }
+
         #! returns @ref Qore::True "True" because the oracle driver supports array binds / bulk DML operations
         bool hasArrayBind() {
             return True;
