@@ -52,13 +52,6 @@
 #include <algorithm>
 #include <set>
 
-#if defined _MSC_VER || ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
-#define _Q_WINDOWS 1
-#ifdef _WIN64
-#define _Q_WINDOWS64 1
-#endif
-#endif
-
 //! cross-platform define for AF_UNSPEC
 #define Q_AF_UNSPEC -1
 
@@ -96,6 +89,14 @@ enum qore_license_t {
    QL_LGPL = 1,        //!< code to be used under the LGPL license
    QL_MIT = 2          //!< code to be used under the MIT license
 };
+
+#if defined _MSC_VER || ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
+#define _Q_WINDOWS 1
+#ifdef _WIN64
+#define _Q_WINDOWS 1
+#define _Q_WINDOWS64 1
+#endif
+#endif
 
 #ifdef _Q_WINDOWS
   #ifdef BUILDING_DLL
