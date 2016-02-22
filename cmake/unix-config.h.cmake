@@ -28,6 +28,7 @@
 #cmakedefine HAVE_SYS_WAIT_H
 #cmakedefine HAVE_GETOPT_H
 #cmakedefine HAVE_STDINT_H
+#cmakedefine HAVE_POLL_H
 #cmakedefine HAVE_GRP_H
 #cmakedefine HAVE_UMEM_H
 
