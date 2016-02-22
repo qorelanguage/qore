@@ -842,12 +842,16 @@ struct qore_socket_private {
    }
 #elif defined HAVE_SELECT
    DLLLOCAL int select_intern(int timeout_ms, bool read, const char* mname, ExceptionSink* xsink) {
+      // windows does not use FD_SETSIZE to limit the value of the highest socket descriptor in the set
+      // instead it has a maximum of 64 sockets in the set; we only need one anyway
+#ifndef _Q_WINDOWS
       // select is inherently broken since it can only handle descriptors < FD_SETSIZE, which is 1024 on Linux for example
       if (sock >= FD_SETSIZE) {
          if (xsink)
             xsink->raiseException("SOCKET-SELECT-ERROR", "fd is %d which is >= %d; contact the Qore developers to implement an alternative to select() on this platform", sock, FD_SETSIZE);
          return -1;
       }
+#endif
       struct timeval tv;
       int rc;
       while (true) {
