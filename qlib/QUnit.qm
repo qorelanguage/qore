@@ -4,7 +4,7 @@
 %requires qore >= 0.8.12
 %new-style
 
-%try-module xml
+%try-module xml >= 1.3
 %define NO_XML
 %endtry
 
@@ -734,7 +734,7 @@ public class QUnit::Test inherits QUnit::TestReporter {
 
     #! adds a test case to run
     /** @par Example:
-        @code
+        @code{.py}
 addTestCase("MyTest", \myTest());
         @endcode
 
@@ -748,7 +748,7 @@ addTestCase("MyTest", \myTest());
 
     #! adds a test case to run
     /** @par Example:
-        @code
+        @code{.py}
 addTestCase(obj);
         @endcode
 
@@ -851,7 +851,7 @@ addTestCase(obj);
 
     #! Tests a value for equality to an expected value
     /** @par Example:
-        @code
+        @code{.py}
 testAssertionValue("date > operator", now() > (now() - 1D), True);
         @endcode
 
@@ -870,7 +870,7 @@ testAssertionValue("date > operator", now() > (now() - 1D), True);
 
     #! Tests a value for equality to an expected value with soft comparisons (types may differ)
     /** @par Example:
-        @code
+        @code{.py}
 assertEqSoft("5", functionThatShouldReturnFive());
         @endcode
 
@@ -896,7 +896,7 @@ assertEqSoft("5", functionThatShouldReturnFive());
 
     #! Tests a value for equality to an expected value with hard comparisons (types and values must be identical)
     /** @par Example:
-        @code
+        @code{.py}
 assertEq(5, functionThatShouldReturnFive());
         @endcode
 
@@ -922,7 +922,7 @@ assertEq(5, functionThatShouldReturnFive());
 
     #! Tests a boolean value
     /** @par Example:
-        @code
+        @code{.py}
 assertTrue(functionThatShouldReturnTrue());
         @endcode
 
@@ -935,7 +935,7 @@ assertTrue(functionThatShouldReturnTrue());
 
     #! Tests a boolean value
     /** @par Example:
-        @code
+        @code{.py}
 assertFalse(functionThatShouldReturnFalse());
         @endcode
 
@@ -948,7 +948,7 @@ assertFalse(functionThatShouldReturnFalse());
 
     #! Tests that a piece of code throws an exception with given description
     /** @par Example:
-        @code
+        @code{.py}
 assertThrows("DIVISION-BY-ZERO", "division by zero found in integer expression", sub(int a) {print(5/a);}, 0);
         @endcode
 
@@ -980,7 +980,7 @@ assertThrows("DIVISION-BY-ZERO", "division by zero found in integer expression",
 
     #! Tests that a piece of code throws an exception
     /** @par Example:
-        @code
+        @code{.py}
 assertThrows("DIVISION-BY-ZERO", sub(int a) {print(5/a);}, 0);
         @endcode
 
@@ -994,7 +994,7 @@ assertThrows("DIVISION-BY-ZERO", sub(int a) {print(5/a);}, 0);
 
     #! Fails the test anconditionally
     /** @par Example:
-        @code
+        @code{.py}
 fail("Unexpected code executed");
         @endcode
 

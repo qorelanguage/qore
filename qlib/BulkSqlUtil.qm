@@ -96,7 +96,7 @@ public namespace BulkSqlUtil {
         throw an exception if any data is left in the internal queue when the object is destroyed, a call
         to discard() must be made prior to the destruction of the object in case of errors.
 
-        @code
+        @code{.py}
 # single commit and rollback
 on_success ds.commit();
 on_error ds.rollback();
@@ -214,7 +214,7 @@ on_error ds.rollback();
 
         #! queues row data in the block buffer; the block buffer is flushed to the DB if the buffer size reaches the limit defined by the \c block_size option; does not commit the transaction
         /** @par Example:
-            @code
+            @code{.py}
 # single commit and rollback
 on_success ds.commit();
 on_error ds.rollback();
@@ -280,7 +280,7 @@ on_error ds.rollback();
 
         #! queues row data in the block buffer; the block buffer is flushed to the DB if the buffer size reaches the limit defined by the \c block_size option; does not commit the transaction
         /** @par Example:
-            @code
+            @code{.py}
 # single commit and rollback
 on_success ds.commit();
 on_error ds.rollback();
@@ -375,7 +375,7 @@ on_error ds.rollback();
 
         #! flushes any remaining batched data to the database; this method should always be called before committing the transaction or destroying the object
         /** @par Example:
-            @code
+            @code{.py}
 # single commit and rollback
 on_success ds.commit();
 on_error ds.rollback();
@@ -424,7 +424,7 @@ on_error ds.rollback();
 
         #! discards any buffered batched data; this method should be called before destroying the object if an error occurs
         /** @par Example:
-            @code
+            @code{.py}
 # single commit and rollback
 on_success ds.commit();
 on_error ds.rollback();
@@ -520,7 +520,7 @@ on_error ds.rollback();
         throw an exception if any data is left in the internal queue when the object is destroyed, a call
         to discard() must be made prior to the destruction of the object in case of errors.
 
-        @code
+        @code{.py}
 # single commit and rollback
 on_success ds.commit();
 on_error ds.rollback();
@@ -587,7 +587,7 @@ on_error ds.rollback();
 
         #! sets a @ref closure "closure" or @ref call_reference "call reference" that will be called when data has been sent to the database and all output data is available; must accept a hash argument that represents the data written to the database including any output arguments. This code will be reset, once the transaction is commited.
         /** @par Example:
-            @code
+            @code{.py}
 # single commit and rollback
 on_success ds.commit();
 on_error ds.rollback();
@@ -694,7 +694,7 @@ inserter.setRowCode(rowcode);
         throw an exception if any data is left in the internal queue when the object is destroyed, a call
         to discard() must be made prior to the destruction of the object in case of errors.
 
-        @code
+        @code{.py}
 # single commit and rollback
 on_success ds.commit();
 on_error ds.rollback();

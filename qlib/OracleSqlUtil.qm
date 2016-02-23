@@ -80,15 +80,15 @@ module OracleSqlUtil {
     support (applies to Oracle pre 12c).
 
     For example, for the following select:
-    @code
+    @code{.py}
 my *list $rows = $table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
     @endcode
     the following SQL is generated for Oracle with a pre 12c server:
-    @code
+    @code{.py}
 $ds.vselectRows("select * from (select /*+ first_rows(100) *<!--%%-->/ a.*, rownum rnum from (select * from schema.table where type = %v order by type) a where rownum <= %v) where rnum > %v", ("user", 300, 200));
     @endcode
     note that the following simpler SQL is generated for Oracle 12c+ servers:
-    @code
+    @code{.py}
 $ds.vselectRows("select * from schema.table where type = %v order by type offset %v rows fetch next %v rows only", ("user", 200, 100));
     @endcode
 
@@ -98,12 +98,12 @@ $ds.vselectRows("select * from schema.table where type = %v order by type offset
     module uses bind by value with the SQL \c IN operator.
 
     For example, the following query:
-    @code
+    @code{.py}
 my *hash $q = $table.select(("where": ("col1": op_in(1, 2, 3, 4))));
     @endcode
 
     Results in the equivalent of the following SQL:
-    @code
+    @code{.py}
 my *hash $q = $ds.select("select * from schema.table where col1 in (select column_value from table(%v))", bindOracleCollection("SYS.ODCIVARCHAR2LIST", (1,2,3,4)));
     @endcode
 
@@ -121,11 +121,11 @@ my *hash $q = $ds.select("select * from schema.table where col1 in (select colum
     It's possible to select from a particular partition of a table with %OracleSqlUtil;
     @ref OracleSqlUtil::OracleTable::OracleSelectOptions "OracleSelectOptions" defines the \c "partition" key which can be added to a
     @ref select_option_hash "select option hash" to specify the partition to select from as in the following example:
-    @code
+    @code{.py}
 my *list $rows = $table.selectRows(("created": op_gt(2012-05-01), "partition": "p1"));
     @endcode
     Which generates an SQL command like the following:
-    @code
+    @code{.py}
 my *list $rows = $ds.vselectRows("select * from schema.table partition(p1) where created > %v", (2012-05-01));
     @endcode
 
@@ -133,11 +133,11 @@ my *list $rows = $ds.vselectRows("select * from schema.table partition(p1) where
 
     It's possible to perform a join on a particular partition of a table with %OracleSqlUtil; the join option \c "partition" is
     supported to specify the partition to join on as in the following example:
-    @code
+    @code{.py}
 my *list $rows = $table.selectRows(("join": join_inner($table2, "t2", ("id": "altid"), NOTHING, ("partition": "p2"))));
     @endcode
     Which generates an SQL command like the following:
-    @code
+    @code{.py}
 my *list $rows = $ds.vselectRows("select * from schema.table inner join schema.table2 partition(p2) t2 on (schema.table.id = t2.altid)");
     @endcode
 
@@ -187,7 +187,7 @@ my *list $rows = $ds.vselectRows("select * from schema.table inner join schema.t
 
     The \c "materialized_views" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or, for schemas targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following example:
 
-    @code
+    @code{.py}
 my hash $schema = (
     "driver": (
         "oracle": (
@@ -213,7 +213,7 @@ my hash $schema = (
 
     The \c "packages" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or, for schemas targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following example:
 
-    @code
+    @code{.py}
 my hash $schema = (
     "driver": (
         "oracle": (
@@ -239,7 +239,7 @@ MYSTATERROR constant order_status.orderstatus%type := 'E';
 
     The \c "types" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or, for schemas targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following example:
 
-    @code
+    @code{.py}
 my hash $schema = (
     "driver": (
         "oracle": (
@@ -308,7 +308,7 @@ public namespace OracleSqlUtil {
 
         #! returns a list of sql strings that can be used to add the column to an existing table
         /** @par Example:
-            @code
+            @code{.py}
 my list $l = $col.getAddColumnSql($t);
             @endcode
 
@@ -323,7 +323,7 @@ my list $l = $col.getAddColumnSql($t);
 
         #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
         /** @par Example:
-            @code
+            @code{.py}
 my list $l = $col.getModifySql($t, $newcol);
             @endcode
 
@@ -367,7 +367,7 @@ my list $l = $col.getModifySql($t, $newcol);
 
         #! returns a string that can be used to rename the column
         /** @par Example:
-            @code
+            @code{.py}
 my string $str = $col.getRenameSql($t, "new_name");
             @endcode
 
@@ -514,7 +514,7 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         #! returns the OracleColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 my any $v = $c.name;
             @endcode
 
@@ -605,7 +605,7 @@ my any $v = $c.name;
 
         #! returns the OracleColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 my any $v = $c.name;
             @endcode
 

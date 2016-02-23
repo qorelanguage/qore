@@ -66,7 +66,7 @@ module Mime {
     - http://tools.ietf.org/html/rfc2047: "Q" and "B" encoded words (implemented by the Mime module)
 
     @par Example:
-    @code
+    @code{.py}
 #!/usr/bin/env qore
 
 %requires Mime
@@ -749,7 +749,7 @@ public namespace Mime {
 
             @par Example:
             For example, given the following code:
-            @code
+            @code{.py}
 string body = "This is a message with multiple parts in MIME format.\r
 --frontier\r
 Content-Type: text/plain\r

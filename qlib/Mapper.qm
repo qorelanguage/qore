@@ -62,7 +62,7 @@ module Mapper {
     @section mapperexamples Mapper Examples
 
     The following is an example map hash with comments:
-    @code
+    @code{.py}
 const DataMap = (
     # output field: "id" mapper from the "Id" element of any "^attributes^" hash in the input record
     "id": "^attributes^.Id",
@@ -78,7 +78,7 @@ const DataMap = (
     @endcode
 
     If this map is applied to the following data in the following way:
-    @code
+    @code{.py}
 const MapInput = ((
     "^attributes^": ("Id": 1),
     "name": "John Smith",
@@ -195,7 +195,7 @@ list: (2 elements)
         - grouping of the output data
 
     @par Example:
-    @code{.py}
+    @code{.py}{.py}
 hash mapv = (
     "foo": ("constant": "bar"),
      # ...
@@ -362,7 +362,7 @@ public namespace Mapper {
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
         /** @par Example:
-            @code{.py}
+            @code{.py}{.py}
 const DataMap = (
     # output field: "id" mapper from the "Id" element of any "^attributes^" hash in the input record
     "id": "^attributes^.Id",

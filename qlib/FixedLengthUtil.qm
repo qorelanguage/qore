@@ -75,7 +75,7 @@ module FixedLengthUtil {
 
     Fixed length specification hash is in the form of a hash, where each hash key is the name of a record, and each value
     is a @ref fixedlengthspecrecordhash "record description hash" describing the record; see the following example:
-    @code
+    @code{.py}
 # the following spec is suitable for input and output
 const Specs = (
     "header": (
@@ -135,12 +135,12 @@ const Specs = (
     - \c "type": a string with name of the type
     - \c "record": a hash with line data in field - value map
 
-    @code
+    @code{.py}
     ("type": "type1", "record": {"col1" : 11111, "col2" : "bb"}),
     @endcode
 
     <b>Example of reading:</b>
-    @code
+    @code{.py}
 #!/usr/bin/env qore
 
 %new-style
@@ -178,7 +178,7 @@ while (i.next()) {
     @endcode
 
     <b>Example of writing:</b>
-    @code
+    @code{.py}
 #!/usr/bin/env qore
 
 %new-style
@@ -283,7 +283,7 @@ public class FixedLengthUtil::FixedLengthAbstractIterator {
 
     #! Returns the current record as a hash
     /** @par Example:
-        @code
+        @code{.py}
 my hash $h = $i.getValue();
         @endcode
 
@@ -467,7 +467,7 @@ my hash $h = $i.getValue();
 #! Structured line iterator for fixed-length line files allowing efficient "pipelined" processing.
 /**
     @par Example:
-    @code
+    @code{.py}
 #!/usr/bin/env qore
 
 %new-style
@@ -541,7 +541,7 @@ public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::
 #! Structured line iterator for fixed-length line strings allowing efficient "pipelined" processing.
 /**
     @par Example:
-    @code
+    @code{.py}
 hash specs = (
     "type1" : (
         "col1": ("length": 5, "type": "int"),
@@ -582,7 +582,7 @@ public class FixedLengthUtil::FixedLengthDataIterator inherits FixedLengthUtil::
 
     #! Instantiates the FixedLengthFileIterator object
     /** @par Example:
-        @code
+        @code{.py}
 hash specs = (
     "type1" : (
         "col1": ("length": 5, "type": "int"),
@@ -793,7 +793,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
 
 #! Writer for fixed-length-line output files
 /** @par Example:
-    @code
+    @code{.py}
 #!/usr/bin/env qore
 
 %new-style
@@ -857,7 +857,7 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
 
     #! Renders a single line for a single input record hash to the output file
     /** @par Example:
-        @code
+        @code{.py}
 const Spec = (
     "header": (
         "flow_type": ("length": 3, "type": "string"),
@@ -891,7 +891,7 @@ w.write(hh);
 
     #! iterates the input records and writes rendered versions of all input records to the file
     /** @par Example:
-        @code
+        @code{.py}
 FixedLengthFileWriter w(output_file, Spec);
 w.write(i);
         @endcode
@@ -910,7 +910,7 @@ w.write(i);
 
     #! iterates the input records and writes rendered versions of all input records to the file
     /** @par Example:
-        @code
+        @code{.py}
 FixedLengthFileWriter w(output_file, Spec);
 w.write(i);
         @endcode
@@ -931,7 +931,7 @@ w.write(i);
 
 #! Writer class for fixed-length-line data
 /** @par Example:
-    @code
+    @code{.py}
 const Spec = (
     "header": (
         "flow_type": ("length": 3, "type": "string"),
@@ -969,7 +969,7 @@ public class FixedLengthUtil::FixedLengthDataWriter inherits FixedLengthUtil::Fi
 
     #! iterates the input records and returns a string corresponding to the rendered versions of all input records
     /** @par Example:
-        @code
+        @code{.py}
 FixedLengthDataWriter w(Spec);
 string file = w.write(input_list);
         @endcode
@@ -993,7 +993,7 @@ string file = w.write(input_list);
 
     #! Return a single line for a single input record hash
     /** @par Example:
-        @code
+        @code{.py}
 const Spec = (
     "header": (
         "flow_type": ("length": 3, "type": "string"),
@@ -1029,7 +1029,7 @@ string line = w.write(hh);
 
     #! iterates the input records and returns a string corresponding to the rendered versions of all input records
     /** @par Example:
-        @code
+        @code{.py}
 FixedLengthDataWriter w(Spec);
 string file = w.write(i);
         @endcode

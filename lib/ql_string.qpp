@@ -456,8 +456,8 @@ const RE_Global = QRE_GLOBAL;
     @return the length in characters for the string passed
 
     @par Example:
-    @code
-my int $len = length($str);
+    @code{.py}
+int len = length(str);
     @endcode
 
     @note
@@ -481,8 +481,8 @@ int length(softstring str) [flags=CONSTANT] {
     @return the number of bytes in the binary object
 
     @par Example:
-    @code
-my int $nbytes = length($bin);
+    @code{.py}
+int nbytes = length(bin);
     @endcode
  */
 int length(binary bin) [flags=CONSTANT] {
@@ -510,8 +510,8 @@ int length(any[doc] arg) [flags=NOOP] {
     @return the length in bytes for the string passed
 
     @par Example:
-    @code
-my int $size = strlen($str);
+    @code{.py}
+int size = strlen(str);
     @endcode
 
     @note equivalent to <string>::strlen() and <string>::size()
@@ -539,8 +539,8 @@ int strlen(any[doc] arg) [flags=NOOP] {
 
 //! Returns a string in all lower-case characters based on the argument passed
 /** @par Example:
-    @code
-my string $lwr = tolower($str);
+    @code{.py}
+string lwr = tolower(str);
     @endcode
 
     This function operates on a very wide range of non-ASCII characters using a Unicode lookup table for mapping Latin, Cyrillic, Greek, Armenian, Georgian, etc characters.
@@ -575,8 +575,8 @@ nothing tolower() [flags=RUNTIME_NOOP] {
 
 //! Returns a string in all upper-case characters based on the argument passed
 /** @par Example:
-    @code
-my string $upr = toupper($str);
+    @code{.py}
+string upr = toupper(str);
     @endcode
 
     This function operates on a very wide range of non-ASCII characters using a Unicode lookup table for mapping Latin, Cyrillic, Greek, Armenian, Georgian, etc characters.
@@ -618,9 +618,9 @@ nothing toupper() [flags=RUNTIME_NOOP] {
     @return the substring of the string starting from an integer character offset; the rest of the string is returned after this offset; an empty string is returned if the argument cannot be satisfied
 
     @par Example:
-    @code
+    @code{.py}
 # get the last 10 characters of a string
-my string $substr = substr($str, -10);
+string substr = substr(str, -10);
     @endcode
 
     @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
@@ -644,9 +644,9 @@ string substr(softstring str, softint start) [flags=RET_VALUE_ONLY] {
     @return the substring of the string according to the arguments passed; an empty string is returned if the argument cannot be satisfied
 
     @par Example:
-    @code
+    @code{.py}
 # get a substring 10 characters into the string except omitting the last 2 characters of the string
-my string $substr = substr($str, 10, -2);
+string substr = substr(str, 10, -2);
     @endcode
 
     @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
@@ -669,9 +669,9 @@ string substr(softstring str, softint start, softint len) [flags=RET_VALUE_ONLY]
     @return the portion of the binary data argument starting from an integer byte offset; the rest of the data is returned after this offset
 
     @par Example:
-    @code
+    @code{.py}
 # get the last 10 bytes
-my binary $b1 = substr($b, -10);
+binary b1 = substr(b, -10);
     @endcode
 
     @note equivalent to <binary>::substr(softint)
@@ -694,9 +694,9 @@ binary substr(binary b, softint start) [flags=CONSTANT] {
     @return the portion of the binary data argument according to the arguments passed
 
     @par Example:
-    @code
+    @code{.py}
 # get a binary object 10 characters into the data except omitting the last 2 bytes
-my binary $b1 = substr($b, 10, -2);
+binary b1 = substr(b, 10, -2);
     @endcode
 
     @note equivalent to <binary>::substr(softint, softint)
@@ -725,10 +725,10 @@ nothing substr() [flags=NOOP] {
     @return the character position of a substring within a string, -1 is returned if the substring is not found
 
     @par Example:
-    @code
-my int $i = index($str, $substr);
-if ($i == -1)
-    printf("could not find %y in %y\n", $substr, $str);
+    @code{.py}
+int i = index(str, substr);
+if (i == -1)
+    printf("could not find %y in %y\n", substr, str);
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -763,10 +763,10 @@ int index() [flags=RUNTIME_NOOP] {
     @return the byte position of a substring within a string, -1 is returned if the substring is not found
 
     @par Example:
-    @code
-my int $i = bindex($str, $substr);
-if ($i == -1)
-    printf("could not find %y in %y\n", $substr, $str);
+    @code{.py}
+int i = bindex(str, substr);
+if (i == -1)
+    printf("could not find %y in %y\n", substr, str);
     @endcode
 
     @note no character encoding conversions are made by this function even if the string arguments have different @ref character_encoding "character encodings"
@@ -799,10 +799,10 @@ int bindex() [flags=RUNTIME_NOOP] {
     @return the character position of a substring within a string, -1 is returned if the substring is not found
 
     @par Example:
-    @code
-my int $i = rindex($str, $substr);
-if ($i == -1)
-    printf("could not find %y in %y\n", $substr, $str);
+    @code{.py}
+int i = rindex(str, substr);
+if (i == -1)
+    printf("could not find %y in %y\n", substr, str);
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -837,10 +837,10 @@ int rindex() [flags=RUNTIME_NOOP] {
     @return the byte position of a substring within a string, -1 is returned if the substring is not found
 
     @par Example:
-    @code
-my int $i = brindex($str, $substr);
-if ($i == -1)
-    printf("could not find %y in %y\n", $substr, $str);
+    @code{.py}
+int i = brindex(str, substr);
+if (i == -1)
+    printf("could not find %y in %y\n", substr, str);
     @endcode
 
     @note no character encoding conversions are made by this function even if the string arguments have different @ref character_encoding "character encodings"
@@ -871,8 +871,8 @@ int brindex() [flags=RUNTIME_NOOP] {
     @return the numeric value of the given byte in the string passed; if the offset is after the end of the string or negative, -1 is returned
 
     @par Example:
-    @code
-my int $i = ord($str);
+    @code{.py}
+int i = ord(str);
     @endcode
 
     @note ord() only works on byte offsets and returns byte values
@@ -898,8 +898,8 @@ int ord() [flags=RUNTIME_NOOP] {
     @return a string containing a single ASCII character represented by the numeric value passed
 
     @par Example:
-    @code
-my string $char = chr(13);
+    @code{.py}
+string char = chr(13);
     @endcode
 
     @since %Qore 0.8.5 the encoding argument is supported
@@ -933,8 +933,8 @@ nothing chr() [flags=RUNTIME_NOOP] {
     @return a list of each component of a string separated by a separator string, with the separator removed; the separator pattern will not be included in the elements of the list returned unless the \a with_separator argument is @ref True
 
     @par Example:
-    @code
-my list $list = split(":", "some:text:here"); # returns ("some", "text", "here")
+    @code{.py}
+list list = split(":", "some:text:here"); # returns ("some", "text", "here")
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -961,8 +961,8 @@ list split(string sep, string str, bool with_separator = False) [flags=RET_VALUE
     @return a list of each component of a string separated by a separator string, with the separator and any enclosing quote characters removed
 
     @par Example:
-    @code
-my list $list = split(",", "some,'text with spaces',here", "'"); # returns ("some", "text with spaces", "here")
+    @code{.py}
+list list = split(",", "some,'text with spaces',here", "'"); # returns ("some", "text with spaces", "here")
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -984,8 +984,8 @@ list split(string sep, string str, string quote, bool trim_unquoted = False) [fl
     @return a list of binary objects representing each component of the binary object separated by the bytes identified by the separator argument, with the separator removed
 
     @par Example:
-    @code
-my list $l = split($sep, $bin);
+    @code{.py}
+list l = split(sep, bin);
     @endcode
 
     @note equivalent to <binary>::split(binary)
@@ -1008,8 +1008,8 @@ list split() [flags=RUNTIME_NOOP] {
     @return a string describing the character encoding of the string argument passed
 
     @par Example:
-    @code
-my string $enc = get_encoding($str);
+    @code{.py}
+string enc = get_encoding(str);
     @endcode
 
     @note equivalent to <string>::encoding()
@@ -1032,8 +1032,8 @@ nothing get_encoding() [flags=RUNTIME_NOOP] {
     @return a string corresponding to the string argument converted to the encoding given
 
     @par Example:
-    @code
-my string $enc = convert_encoding($str, "iso-8859-1");
+    @code{.py}
+string enc = convert_encoding(str, "iso-8859-1");
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -1057,8 +1057,8 @@ nothing convert_encoding() [flags=RUNTIME_NOOP] {
     @return the first string argument tagged with the character encoding given as the second argument; does not actually change the string data
 
     @par Example:
-    @code
-my string $nstr = force_encoding($str, "iso-8859-1");
+    @code{.py}
+string nstr = force_encoding(str, "iso-8859-1");
     @endcode
  */
 string force_encoding(string str, string encoding) [flags=CONSTANT] {
@@ -1081,8 +1081,8 @@ nothing force_encoding() [flags=RUNTIME_NOOP] {
     @return @ref True if the regular expression matches the string passed, otherwise returns @ref False
 
     @par Example:
-    @code
-my bool $b = regex("hello", "^hel"); # returns True
+    @code{.py}
+bool b = regex("hello", "^hel"); # returns True
     @endcode
 
     @throw REGEX-COMPILATION-ERROR There was an error compiling the regular expression
@@ -1118,17 +1118,17 @@ nothing regex() [flags=RUNTIME_NOOP] {
     @return a string with patterns substituted according to the arguments passed
 
     @par Example:
-    @code
+    @code{.py}
 regex_subst("hello there", "^(.*) there$", "you $1"); #returns "you hello"
     @endcode
 
     @par Example of global replacement:
-    @code
-my $content = "123
+    @code{.py}
+string content = "123
 123
 123";
 
-printf("%s\n", regex_subst($content, "123", "456", Qore::RE_Global));
+printf("%s\n", regex_subst(content, "123", "456", Qore::RE_Global));
 
 resulting in:
 456
@@ -1178,8 +1178,8 @@ nothing regex_subst() [flags=RUNTIME_NOOP] {
     @return a list of substrings in a string based on matching patterns defined by a regular expression or @ref nothing if no match was made
 
     @par Example:
-    @code
-my *list $rv = regex_extract("ns:element", "(\\w+):(\\w+)");
+    @code{.py}
+*list rv = regex_extract("ns:element", "(\\w+):(\\w+)");
     @endcode
 
     @throw REGEX-COMPILATION-ERROR There was an error compiling the regular expression
@@ -1217,8 +1217,8 @@ nothing regex_extract() [flags=RUNTIME_NOOP] {
     @return a string with all occurrences of \a source replaced with \a target
 
     @par Example:
-    @code
-my string $str = replace("hello there", "there", "you"); # returns "hello you"
+    @code{.py}
+string str = replace("hello there", "there", "you"); # returns "hello you"
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -1300,8 +1300,8 @@ nothing replace() [flags=RUNTIME_NOOP] {
     @return a string created from a list and a seperator string, each element in the list will be present in the return value separated by the separator string
 
     @par Example:
-    @code
-my string $str = join(":", "a", "b", "c"); # returns "a:b:c"
+    @code{.py}
+string str = join(":", "a", "b", "c"); # returns "a:b:c"
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -1318,8 +1318,8 @@ string join(string str, ...) [flags=RET_VALUE_ONLY] {
     @return a string created from a list and a separator string, each element in the list will be present in the return value separated by the separator string; the string returned with have the same @ref character_encoding "character encoding" as \a str
 
     @par Example:
-    @code
-my string $str = join(":", ("a", "b", "c")); # returns "a:b:c"
+    @code{.py}
+string str = join(":", ("a", "b", "c")); # returns "a:b:c"
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -1344,8 +1344,8 @@ nothing join() [flags=RUNTIME_NOOP] {
     @return the new string with any end-of-line character(s) removed
 
     @par Example:
-    @code
-my string $line = chomp("hello\n"); # returns "hello"
+    @code{.py}
+string line = chomp("hello\n"); # returns "hello"
     @endcode
 
     @see the @ref chomp "chomp operator"
@@ -1364,8 +1364,8 @@ string chomp(string str) [flags=CONSTANT] {
     @return the string as modified
 
     @par Example:
-    @code
-chomp(\$str);
+    @code{.py}
+chomp(\str);
     @endcode
  */
 *string chomp(reference str) {
@@ -1396,8 +1396,8 @@ nothing chomp() [flags=RUNTIME_NOOP] {
     @return the trimmed string
 
     @par Example:
-    @code
-my string $tstr = trim($str);
+    @code{.py}
+string tstr = trim(str);
     @endcode
 
     @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
@@ -1420,8 +1420,8 @@ string trim(string str, *string chars) [flags=CONSTANT] {
     @return the trimmed string
 
     @par Example:
-    @code
-trim(\$str);
+    @code{.py}
+trim(\str);
     @endcode
 
     @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
@@ -1455,8 +1455,8 @@ nothing trim() [flags=RUNTIME_NOOP] {
     @return the trimmed string
 
     @par Example:
-    @code
-my string $tstr = ltrim(" ABC ");
+    @code{.py}
+string tstr = ltrim(" ABC ");
 # returns string "ABC "
     @endcode
 
@@ -1480,8 +1480,8 @@ string ltrim(string str, *string chars) [flags=CONSTANT] {
     @return the trimmed string
 
     @par Example:
-    @code
-ltrim(\$str);
+    @code{.py}
+ltrim(\str);
     @endcode
 
     @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
@@ -1509,8 +1509,8 @@ ltrim(\$str);
     @return the trimmed string
 
     @par Example:
-    @code
-my string $tstr = rtrim($str);
+    @code{.py}
+string tstr = rtrim(str);
 # returns string " ABC"
     @endcode
 
@@ -1534,8 +1534,8 @@ string rtrim(string str, *string chars) [flags=CONSTANT] {
     @return the trimmed string
 
     @par Example:
-    @code
-rtrim(\$str);
+    @code{.py}
+rtrim(\str);
     @endcode
 
     @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
@@ -1563,8 +1563,8 @@ rtrim(\$str);
     @return the string truncated to be no longer than the given byte length in the @ref character_encoding "character encoding" given (or in the original string's @ref character_encoding "character encoding" if no \a encoding argument was passed to the function); if the string has a multi-byte @ref character_encoding "character encoding", this function will guarantee that the returned string ends on a valid character (in this case the byte length of the string could be less than the limit given)
 
     @par Example:
-    @code
-my string $column = trunc_str($str, 80, $dsp.getOSEncoding());
+    @code{.py}
+string column = trunc_str(str, 80, dsp.getOSEncoding());
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if an explicit @ref character_encoding "character encoding" was given and an error occurs during encoding conversion
@@ -1607,8 +1607,8 @@ string trunc_str(softstring str, softint len, *string encoding) [flags=RET_VALUE
     @param offset the number of characters that should be removed from the end of the string after processing
 
     @par Example:
-    @code
-my string $ret = strmul("%s,", 3, 1); # returns "%s,%s,%s"
+    @code{.py}
+string ret = strmul("%s,", 3, 1); # returns "%s,%s,%s"
     @endcode
 
     @throw STRMUL-ERROR \a offset is < 0 or \a smul < 1
@@ -1648,8 +1648,8 @@ string strmul(softstring str, softint smul, *softint offset) [flags=RET_VALUE_ON
     @return a string of a formatted number according to a number argument and a format string; if the format string does not follow the given format, then an empty string is returned
 
     @par Example:
-    @code
-my string $nstr = format_number(".,3", -48392093894.2349); # returns "-48.392.093.894,235"
+    @code{.py}
+string nstr = format_number(".,3", -48392093894.2349); # returns "-48.392.093.894,235"
     @endcode
 
     @see <float>::format()
@@ -1672,8 +1672,8 @@ nothing format_number() [flags=RUNTIME_NOOP] {
     @return a string with all characters in reverse order
 
     @par Example:
-    @code
-my string $ns = reverse($str);
+    @code{.py}
+string ns = reverse(str);
     @endcode
 
     @see reverse(list)
@@ -1687,7 +1687,7 @@ string reverse(softstring str) [flags=CONSTANT] {
     @param ... each of the arguments passed to this function will be output literally with no output formatting
 
     @par Example:
-    @code
+    @code{.py}
 print("hello\n");
     @endcode
 
@@ -1711,8 +1711,8 @@ nothing print(...) [dom=TERMINAL_IO] {
     @return a formatted string corresponding to the arguments given
 
     @par Example:
-    @code
-my string $str = f_sprintf("%5s", "a long string"); # will return "a lon"
+    @code{.py}
+string str = f_sprintf("%5s", "a long string"); # will return "a lon"
     @endcode
 
     @see
@@ -1740,8 +1740,8 @@ string f_sprintf() [flags=NOOP] {
     @return a formatted string corresponding to the arguments given
 
     @par Example:
-    @code
-my string $str = sprintf("%5s", "a long string"); # will return "a long string"
+    @code{.py}
+string str = sprintf("%5s", "a long string"); # will return "a long string"
     @endcode
 
     @see
@@ -1769,8 +1769,8 @@ string sprintf() [flags=NOOP] {
     @return a formatted string corresponding to the arguments given
 
     @par Example:
-    @code
-my string $str = f_vsprintf("%5s %3d\n", ("a lon", 500)); # will return "a lon 500"
+    @code{.py}
+string str = f_vsprintf("%5s %3d\n", ("a lon", 500)); # will return "a lon 500"
     @endcode
 
     @see
@@ -1793,8 +1793,8 @@ string f_vsprintf(string[doc] fmt, any[doc] varg) [flags=CONSTANT] {
     @return a formatted string corresponding to the arguments given
 
     @par Example:
-    @code
-my string $str = vsprintf("%5s %3d\n", ("a long string", 5000)); # will return "a long string 5000"
+    @code{.py}
+string str = vsprintf("%5s %3d\n", ("a long string", 5000)); # will return "a long string 5000"
     @endcode
 
     @see
@@ -1822,7 +1822,7 @@ string vsprintf() [flags=NOOP] {
     @return the formatted string output corresponding to the arguments given
 
     @par Example:
-    @code
+    @code{.py}
 f_printf("%5s", "a long string"); # will print out "a lon"
     @endcode
 
@@ -1853,7 +1853,7 @@ string f_printf() [flags=NOOP] {
     @return the formatted string output corresponding to the arguments given
 
     @par Example:
-    @code
+    @code{.py}
 printf("%5s", "a long string"); # will print out "a long string"
     @endcode
 
@@ -1884,7 +1884,7 @@ string printf() [flags=NOOP;dom=TERMINAL_IO] {
     @return the formatted string output corresponding to the arguments given
 
     @par Example:
-    @code
+    @code{.py}
 f_vprintf("%5s %3d", ("a long string", 5000)); # will print out "a lon 500"
     @endcode
 
@@ -1910,7 +1910,7 @@ string f_vprintf(string[doc] fmt, any[doc] varg) [dom=TERMINAL_IO] {
     @return the formatted string output corresponding to the arguments given
 
     @par Example:
-    @code
+    @code{.py}
 vprintf("%5s %3d", ("a long string", 5000)); # will print out "a long string 5000"
     @endcode
 
@@ -1934,7 +1934,7 @@ string vprintf() [flags=NOOP] {
 //! Flushes output to the console output with print(), printf(), etc
 /**
     @par Example:
-    @code
+    @code{.py}
 flush();
     @endcode
  */
@@ -1944,8 +1944,8 @@ nothing flush() [dom=TERMINAL_IO] {
 
 //! tries to parse a string value as a boolean
 /** @par Example:
-    @code
-my bool $b = parse_boolean($str);
+    @code{.py}
+bool b = parse_boolean(str);
     @endcode
 
     @param str case-insensitive \c "on", \c "true", \c "enable*", \c "yes", \c "y" are @ref Qore::True "True", the rest is interpreted as a number where 0 is @ref Qore::False "False", everything else is  @ref Qore::True "True"
@@ -1960,8 +1960,8 @@ bool parse_boolean(string str) [flags=CONSTANT] {
 
 //! returns the first value passed as a boolean
 /** @par Example:
-    @code
-my bool $b = parse_boolean($i);
+    @code{.py}
+bool b = parse_boolean(i);
     @endcode
 
     @param val the value to convert to a boolean
@@ -1974,8 +1974,8 @@ bool parse_boolean(any val) [flags=CONSTANT] {
 
 //! returns a number corresponding to the string and the argument, giving the format
 /** @par Example:
-    @code
-my number $n = parse_number("1.150.200,55", ".,");
+    @code{.py}
+number n = parse_number("1.150.200,55", ".,");
     @endcode
 
     @param str the string to parse
@@ -1999,8 +1999,8 @@ number parse_number(string str, string fmt) [flags=RET_VALUE_ONLY] {
 
 //! returns a number corresponding to the string and the argument, giving the format
 /** @par Example:
-    @code
-my number $n = parse_number("1.150.200,55", ".,");
+    @code{.py}
+number n = parse_number("1.150.200,55", ".,");
     @endcode
 
     @param str the string to parse

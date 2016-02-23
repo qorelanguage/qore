@@ -93,7 +93,7 @@ module RestClient {
     is chosen and the \c "json" module is available.
 
     @par Example:
-    @code
+    @code{.py}
 #!/usr/bin/env qore
 
 %requires RestClient
@@ -278,7 +278,7 @@ public namespace RestClient {
 
         #! calls the base class HTTPClient constructor and optionally connects to the REST server
         /** @par Example:
-            @code
+            @code{.py}
 RestClient rest(("url": "http://localhost:8001/rest"));
             @endcode
 
@@ -325,7 +325,7 @@ RestClient rest(("url": "http://localhost:8001/rest"));
 
         #! change the serialization option for the object; see @ref DataSerializationOptions for valid options
         /** @par Example:
-            @code
+            @code{.py}
 rest.setSerialization("yaml");
             @endcode
 
@@ -350,7 +350,7 @@ rest.setSerialization("yaml");
 
         #! change the data content encoding (compression) option for the object; see @ref EncodingSupport for valid options
         /** @par Example:
-            @code
+            @code{.py}
 rest.setSendEncoding("gzip");
             @endcode
 
@@ -376,7 +376,7 @@ rest.setSendEncoding("gzip");
 
         #! sets the request and desired response encoding for the object; see @ref EncodingSupport for valid options
         /** @par Example:
-            @code
+            @code{.py}
 rest.setContentEncoding("gzip");
             @endcode
 
@@ -401,7 +401,7 @@ rest.setContentEncoding("gzip");
 
         #! adds default headers to each request; these headers will be sent in all requests but can be overridden in requests as well
         /** @par Example:
-            @code
+            @code{.py}
 # disable gzip and bzip encoding in responses
 rest.addDefaultHeaders(("Accept-Encoding": "compress"));
             @endcode
@@ -420,7 +420,7 @@ rest.addDefaultHeaders(("Accept-Encoding": "compress"));
 
         #! returns the hash of default headers to sent in all requests
         /** @par Example:
-            @code
+            @code{.py}
 hash h = rest.getDefaultHeaders();
             @endcode
 
@@ -438,7 +438,7 @@ hash h = rest.getDefaultHeaders();
 
         #! returns the current data content encoding (compression) object or @ref nothing if no encoding option is set; see @ref EncodingSupport for valid options
         /** @par Example:
-            @code
+            @code{.py}
 *string ce = rest.getSendEncoding();
             @endcode
 
@@ -456,7 +456,7 @@ hash h = rest.getDefaultHeaders();
 
         #! returns the current data serialization format currently in effect for the object (see @ref DataSerializationOptions for possible values)
         /** @par Example:
-            @code
+            @code{.py}
 string ser = rest.getSerialization();
             @endcode
 
@@ -470,7 +470,7 @@ string ser = rest.getSerialization();
 
         #! sends an HTTP GET request to the REST server and returns the response
         /** @par Example:
-            @code
+            @code{.py}
 hash ans = rest.get("/orders/1?info=verbose");
             @endcode
 
@@ -499,7 +499,7 @@ hash ans = rest.get("/orders/1?info=verbose");
 
         #! sends an HTTP PUT request to the REST server and returns the response
         /** @par Example:
-            @code
+            @code{.py}
 hash ans = rest.put("/orders/1", ("action": "cancel"));
             @endcode
 
@@ -528,7 +528,7 @@ hash ans = rest.put("/orders/1", ("action": "cancel"));
 
         #! sends an HTTP POST request to the REST server and returns the response
         /** @par Example:
-            @code
+            @code{.py}
 hash ans = rest.post("/orders", ("product": "xyz123", "options": 500));
             @endcode
 
@@ -557,7 +557,7 @@ hash ans = rest.post("/orders", ("product": "xyz123", "options": 500));
 
         #! sends an HTTP DELETE request to the REST server and returns the response
         /** @par Example:
-            @code
+            @code{.py}
 hash ans = rest.post("/orders/1");
             @endcode
 
@@ -622,7 +622,7 @@ hash ans = rest.post("/orders/1");
 
         #! sends an HTTP request to the REST server and returns the response
         /** @par Example:
-            @code
+            @code{.py}
 hash ans = rest.doRequest("DELETE", "/orders/1");
             @endcode
 

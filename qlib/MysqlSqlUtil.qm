@@ -200,7 +200,7 @@ public namespace MysqlSqlUtil {
 
         #! returns a list of sql strings that can be used to add the column to an existing table
         /** @par Example:
-            @code
+            @code{.py}
 my list $l = $col.getAddColumnSql($t);
             @endcode
 
@@ -223,7 +223,7 @@ my list $l = $col.getAddColumnSql($t);
 
         #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
         /** @par Example:
-            @code
+            @code{.py}
 my list $l = $col.getModifySql($t, $newcol);
             @endcode
 
@@ -251,7 +251,7 @@ my list $l = $col.getModifySql($t, $newcol);
 
         #! returns a string that can be used to rename the column
         /** @par Example:
-            @code
+            @code{.py}
 my string $str = $col.getRenameSql($t, "new_name");
             @endcode
 
@@ -334,7 +334,7 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         #! returns the MysqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 my any $v = $c.name;
             @endcode
 
@@ -388,7 +388,7 @@ my any $v = $c.name;
 
         #! returns the MysqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 my any $v = $c.name;
             @endcode
 
@@ -1449,7 +1449,7 @@ end";
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument
         /** @par Example:
-            @code
+            @code{.py}
 my string $str = $table.getSqlValue($date);
             @endcode
 

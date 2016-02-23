@@ -107,9 +107,13 @@ class PgsqlTest inherits SqlTestBase {
             "smallint": 100,
             "integer": 1928381,
             "bigint": 2198374739812,
-            "smallserial": 100,
-            "serial": 39484392,
-            "bigserial": 129383948393,
+
+            # "serial" types are not true types but merely a notational convenience for creating unique identifier columns
+            # tests will fail if these types are included
+            #"smallserial": 100,
+            #"serial": 39484392,
+            #"bigserial": 129383948393,
+
             "real": 1.5,
             "double precision": 3.1415927,
             "float": 3.141592653589793238,

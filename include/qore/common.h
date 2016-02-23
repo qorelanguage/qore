@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -71,7 +71,11 @@ typedef int16_t qore_type_t;
 typedef size_t qore_size_t;
 
 //! used for offsets that could be negative
+#ifdef Q_WINDOWS
+typedef long qore_offset_t;
+#else
 typedef intptr_t qore_offset_t;
+#endif
 
 //! used for the unique class ID for QoreClass objects
 typedef unsigned qore_classid_t;
@@ -89,6 +93,7 @@ enum qore_license_t {
 #if defined _MSC_VER || ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
 #define _Q_WINDOWS 1
 #ifdef _WIN64
+#define _Q_WINDOWS 1
 #define _Q_WINDOWS64 1
 #endif
 #endif

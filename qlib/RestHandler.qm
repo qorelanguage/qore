@@ -116,7 +116,7 @@ module RestHandler {
     |\c OPTIONS|\c AbstractRestClass::options()
 
     In all cases, the signature for these methods looks like:
-    @code
+    @code{.py}
     hash method(hash cx, *hash ah) {}
     @endcode
 
@@ -132,7 +132,7 @@ module RestHandler {
     The return value for these methods is the same as the return value for @ref HttpServer::AbstractHttpRequestHandler::handleRequest().
 
     consider the following example class:
-    @code
+    @code{.py}
 class AbstractExampleInstanceBaseClass inherits AbstractRestClass {
     private {
         hash h;
@@ -187,7 +187,7 @@ class AbstractExampleInstanceBaseClass inherits AbstractRestClass {
     If no such sub object exists, then the method should return @ref nothing, which will cause a \c "REST-CLASS-ERROR" exception to be thrown by default (to change this behavior, reimplement @ref RestHandler::RestHandler::unknownSubClassError() "unknownSubClassError()" in your specialization of @ref RestHandler::RestHandler "RestHandler".  See @ref restexceptions for more information
 
     The following is an example of a class implementing a @ref RestHandler::AbstractRestClass::subClass() "subClass()" method:
-    @code
+    @code{.py}
 class WorkflowOrderRestClass inherits AbstractRestClass {
     private {
         # this holds the information or state of the REST object
@@ -252,7 +252,7 @@ class WorkflowOrderInstanceRestClass inherits AbstractRestClass {
     - 2: pass them as a hash in the message body
 
     REST action methods have the following signature:
-    @code
+    @code{.py}
     hash method(hash cx, *hash ah) {}
     @endcode
 

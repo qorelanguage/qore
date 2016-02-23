@@ -1788,9 +1788,11 @@ const char* q_mode_to_perm(mode_t mode, QoreString& perm) {
    // add other permission flags
    perm.concat(mode & S_IROTH ? 'r' : '-');
    perm.concat(mode & S_IWOTH ? 'w' : '-');
+#ifdef S_ISVTX
    if (mode & S_ISVTX)
       perm.concat(mode & S_IXOTH ? 't' : 'T');
    else
+#endif
       perm.concat(mode & S_IXOTH ? 'x' : '-');
 #else
    // Windows
