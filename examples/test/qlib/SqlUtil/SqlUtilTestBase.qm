@@ -63,6 +63,7 @@ public class SqlTestBase inherits QUnit::Test {
         addTestCase("BulkInsert", \bulkInsertTest());
         addTestCase("BulkUpsert", \bulkUpsertTest());
         addTestCase("Group By", \groupByTest());
+        addTestCase("Order By", \orderByTest());
     }
 
     globalTearDown() {
@@ -430,6 +431,22 @@ public class SqlTestBase inherits QUnit::Test {
                 );
         row = table.selectRow (soh);
         assertEq (2, row.cop_count, "checking group by alias");
+    }
+
+    orderByTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        hash soh = ("columns": ("id",), "orderby": (1,));
+        *list rows = table.selectRows (soh);
+        assertEq ((("id": 1), ("id": 2)), rows, "checking order by 1");
+
+        soh = ("columns": ("id",), "orderby": ("-id",));
+        rows = table.selectRows (soh);
+        assertEq ((("id": 2), ("id": 1)), rows, "checking order by id desc");
     }
 
     static string getColumnName(string n) {
