@@ -112,7 +112,7 @@
 #cmakedefine HAVE_GETHOSTBYNAME_R
 #cmakedefine HAVE_STRTOIMAX
 #cmakedefine HAVE_STRERROR_R
-#cmakedefine STRERROR_R_CHAR_P 1
+#cmakedefine STRERROR_R_CHAR_P
 
 /* OpenSSL */
 
