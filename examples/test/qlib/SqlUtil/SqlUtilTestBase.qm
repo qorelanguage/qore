@@ -447,6 +447,10 @@ public class SqlTestBase inherits QUnit::Test {
         soh = ("columns": ("id",), "orderby": ("-id",));
         rows = table.selectRows (soh);
         assertEq ((("id": 2), ("id": 1)), rows, "checking order by id desc");
+
+        soh = ("columns": (cop_as ("id", "alias"),), "orderby": ("alias",));
+        rows = table.selectRows (soh);
+        assertEq ((("alias": 1), ("alias": 2)), rows, "checking order by alias");
     }
 
     static string getColumnName(string n) {
