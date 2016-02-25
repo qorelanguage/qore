@@ -613,11 +613,21 @@ my any $v = $c.name;
             string schema;
             parse_schema_name(name, \schema, \name);
 
-            *hash row = ds.selectRow("select * from information_schema.views where tabke_chema = %v and table_name = %v", schema, name);
-            if (!row)
-                return;
+            *string view_definition = ds.selectRow("select object_definition(object_id(%v)) as view_definition", name).view_definition;
+            *string table_schema = schema;
+            if (!view_definition) {
+                *hash row = ds.selectRow("select * from information_schema.views where table_schema = %v and table_name = %v", schema, name);
+                if (!row)
+                    return;
+                view_definition = row.view_definition;
+                table_schema = row.table_schema;
+            }
 
-            return new FreetdsView(name, row.view_definition, row.table_schema);
+            # there are quite many ways how to get view definition in MS SQL Server...
+            if (!view_definition)
+                 throw "UNIMPLEMENTED", "Obtaining view definition from information_schema.views failed (view_definition is empty). Please report MS SQL Server version and view definition size.";
+
+            return new FreetdsView(name, view_definition, table_schema);
         }
 
         private FreetdsFunction makeFunctionImpl(string name, string src, *hash opts) {
