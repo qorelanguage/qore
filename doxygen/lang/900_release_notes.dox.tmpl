@@ -246,6 +246,7 @@
       - implemented AbstractTable::getBulkUpsertClosure() to better support bulk SQL merge operations
       - removed all APIs that handle implicit transactions; APIs must commit transactions explicitly
       - \a orderby and \a groupby select options now take positive integers as column identifiers
+      - column aliases (defined with cop_as()) can now be used in the where hash argument and in join criteria
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module updates:
       - implemented support for views for DML in the OracleTable class
       - implemented support for Oracle pseudocolumns in queries
