@@ -39,15 +39,15 @@
     AutoReadLock objects are helper objects that acquire a read lock for the lifetime of the AutoReadLock object. For this reason, it is only appropriate to assign an AutoReadLock object to a local variable, so when the local variable goes out of scope, the AutoReadLock object will be deleted and the read lock will be automatically released.
 
     For example:
-    @code
-our RWLock $rwl();
+    @code{.py}
+our RWLock rwl();
 
-sub check_error($error) {
+sub check_error(error) {
     # note that the read lock is acquired in the AutoReadLock constructor, and
     # the read lock will be released as soon as the block is exited below.
     # (with either the throw statement or the return statement)
-    my AutoReadLock $arl($rwl);
-    if ($error)
+    AutoReadLock arl(rwl);
+    if (error)
         throw "ERROR", "sorry, an error happened";
 
     return "OK";
@@ -62,8 +62,8 @@ qclass AutoReadLock [dom=THREAD_CLASS; arg=QoreAutoReadLock* arwl; ns=Qore::Thre
 /** Creates the AutoReadLock object based on the RWLock argument passed. The AutoReadLock object immediately calls RWLock::readLock() on the RWLock object passed, and saves it so it can be released when the AutoReadLock object is destroyed.
 
     @par Example:
-    @code
-my AutoReadLock $arl($rwlock);
+    @code{.py}
+AutoReadLock arl(rwlock);
     @endcode
 
     @throw THREAD-DEADLOCK A deadlock was detected while trying to acquire the lock
@@ -78,8 +78,8 @@ AutoReadLock::constructor(RWLock[RWLock] rwl) {
 //! Calls RWLock::readUnlock() on the saved RWLock and destroys the AutoReadLock object
 /** 
     @par Example:
-    @code
-delete $arl;
+    @code{.py}
+delete arl;
     @endcode
 
     @throw LOCK-ERROR RWLock::readUnlock() called while not holding the read lock, RWLock object deleted in another thread, etc

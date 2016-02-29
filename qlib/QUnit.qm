@@ -4,7 +4,7 @@
 %requires qore >= 0.8.12
 %new-style
 
-%try-module xml
+%try-module xml >= 1.3
 %define NO_XML
 %endtry
 
@@ -734,7 +734,7 @@ public class QUnit::Test inherits QUnit::TestReporter {
 
     #! adds a test case to run
     /** @par Example:
-        @code
+        @code{.py}
 addTestCase("MyTest", \myTest());
         @endcode
 
@@ -748,7 +748,7 @@ addTestCase("MyTest", \myTest());
 
     #! adds a test case to run
     /** @par Example:
-        @code
+        @code{.py}
 addTestCase(obj);
         @endcode
 
@@ -760,8 +760,17 @@ addTestCase(obj);
 
     #! Helper function for printing out human-readable comparison of two values.
     private string printUnexpectedData(any exp, any act, *bool neg, *bool soft_comparisons) {
-        string expected = sprintf("%N", exp);
-        string actual = neg ? "<identical>" : sprintf("%N", act);
+        string expected;
+        string actual;
+        # if values are "soft equal", then they must have different types, so we make the type differences explicit here
+        if (exp == act) {
+            expected = sprintf("(%s) %N", exp.type(), exp);
+            actual = neg ? "<identical>" : sprintf("(%s) %N", act.type(), act);
+        }
+        else {
+            expected = sprintf("%N", exp);
+            actual = neg ? "<identical>" : sprintf("%N", act);
+        }
         list expectedLines = expected.split("\n");
         list actualLines = actual.split("\n");
 
@@ -851,7 +860,7 @@ addTestCase(obj);
 
     #! Tests a value for equality to an expected value
     /** @par Example:
-        @code
+        @code{.py}
 testAssertionValue("date > operator", now() > (now() - 1D), True);
         @endcode
 
@@ -870,7 +879,7 @@ testAssertionValue("date > operator", now() > (now() - 1D), True);
 
     #! Tests a value for equality to an expected value with soft comparisons (types may differ)
     /** @par Example:
-        @code
+        @code{.py}
 assertEqSoft("5", functionThatShouldReturnFive());
         @endcode
 
@@ -879,7 +888,7 @@ assertEqSoft("5", functionThatShouldReturnFive());
         @param name the name or description of the assertion
      */
     public assertEqSoft(any expected, any actual, *string name = NOTHING) {
-        *TestCase tc = get_thread_data("tc");
+        TestCase tc = getTestCase("assertEqSoft");
         # increment assertion count
         tc.incAssertions();
         ++num_asserts;
@@ -896,7 +905,7 @@ assertEqSoft("5", functionThatShouldReturnFive());
 
     #! Tests a value for equality to an expected value with hard comparisons (types and values must be identical)
     /** @par Example:
-        @code
+        @code{.py}
 assertEq(5, functionThatShouldReturnFive());
         @endcode
 
@@ -905,7 +914,7 @@ assertEq(5, functionThatShouldReturnFive());
         @param name the name or description of the assertion
      */
     public assertEq(any expected, any actual, *string name = NOTHING) {
-        *TestCase tc = get_thread_data("tc");
+        TestCase tc = getTestCase("assertEq");
         # increment assertion count
         tc.incAssertions();
         ++num_asserts;
@@ -922,7 +931,7 @@ assertEq(5, functionThatShouldReturnFive());
 
     #! Tests a boolean value
     /** @par Example:
-        @code
+        @code{.py}
 assertTrue(functionThatShouldReturnTrue());
         @endcode
 
@@ -935,7 +944,7 @@ assertTrue(functionThatShouldReturnTrue());
 
     #! Tests a boolean value
     /** @par Example:
-        @code
+        @code{.py}
 assertFalse(functionThatShouldReturnFalse());
         @endcode
 
@@ -948,7 +957,7 @@ assertFalse(functionThatShouldReturnFalse());
 
     #! Tests that a piece of code throws an exception with given description
     /** @par Example:
-        @code
+        @code{.py}
 assertThrows("DIVISION-BY-ZERO", "division by zero found in integer expression", sub(int a) {print(5/a);}, 0);
         @endcode
 
@@ -958,9 +967,7 @@ assertThrows("DIVISION-BY-ZERO", "division by zero found in integer expression",
         @param args optional arguments to the code
      */
     public assertThrows(string expectedErr, *string expectedDesc, code theCode, *softlist args) {
-        *TestCase tc = get_thread_data("tc");
-        if (!tc)
-            throw "TEST-ERROR", sprintf("cannot test assertion while not executing a test case; testAssertion() can only be called in code executed in a test case (added with %s::addTestCase())", self.className());
+        TestCase tc = getTestCase("assertEqThrows");
         tc.incAssertions();
         ++num_asserts;
 
@@ -980,7 +987,7 @@ assertThrows("DIVISION-BY-ZERO", "division by zero found in integer expression",
 
     #! Tests that a piece of code throws an exception
     /** @par Example:
-        @code
+        @code{.py}
 assertThrows("DIVISION-BY-ZERO", sub(int a) {print(5/a);}, 0);
         @endcode
 
@@ -992,9 +999,17 @@ assertThrows("DIVISION-BY-ZERO", sub(int a) {print(5/a);}, 0);
         assertThrows(expectedErr, NOTHING, theCode, args);
     }
 
+    #! returns the current test case
+    TestCase getTestCase(string meth) {
+        *TestCase tc = get_thread_data("tc");
+        if (!tc)
+            throw "TEST-ERROR", sprintf("cannot test assertion while not executing a test case; %s() can only be called in code executed in a test case (added with %s::addTestCase())", meth, self.className());
+        return tc;
+    }
+
     #! Fails the test anconditionally
     /** @par Example:
-        @code
+        @code{.py}
 fail("Unexpected code executed");
         @endcode
 
@@ -1143,9 +1158,7 @@ fail("Unexpected code executed");
      * @return the result of the \a condition call, if the immediate value has any further use
      */
     public any testAssertion(string name, code condition, *softlist args, QUnit::AbstractTestResult expectedResult = new QUnit::TestResultSuccess()) {
-        *TestCase tc = get_thread_data("tc");
-        if (!tc)
-            throw "TEST-ERROR", sprintf("cannot test assertion %s while not executing a test case; testAssertion() can only be called in code executed in a test case (added with %s::addTestCase())", name, self.className());
+        TestCase tc = getTestCase("testAssertion");
         tc.incAssertions();
         ++num_asserts;
 

@@ -72,7 +72,7 @@ module HttpServer {
     - <a href="http://www.qore.org/manual/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a>: provides infrastructure for implementing SOAP server-side services using the HttpServer module
 
     @par Example:
-    @code
+    @code{.py}
 #!/usr/bin/env qore
 
 %requires HttpServer
@@ -618,8 +618,8 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     #! creates the HttpServer
     /** call @ref addListener() to add and start listeners
 
-        @param n_logfunc an optional closure or call reference that will be called with logging information; must take an initial string with optional arguments; ex: @code code log = sub (string fmt) { vprintf(fmt, argv); }@endcode
-        @param n_errlogfunc an optional closure or call reference that will be called with error information; must take an initial string with optional arguments; ex: @code code errloglog = sub (string fmt) { vprintf(fmt, argv); }@endcode
+        @param n_logfunc an optional closure or call reference that will be called with logging information; must take an initial string with optional arguments; ex: @code{.py} code log = sub (string fmt) { vprintf(fmt, argv); }@endcode
+        @param n_errlogfunc an optional closure or call reference that will be called with error information; must take an initial string with optional arguments; ex: @code{.py} code errloglog = sub (string fmt) { vprintf(fmt, argv); }@endcode
         @param n_dbg if this parameter is set to @ref Qore::True "True", then additional information will be logged when errors occur
         @param n_name the name of the HTTP server as returned in the Server header (should be formatted according to RFC 2616 section 3.8 http://tools.ietf.org/html/rfc2616#section-3.8)
         @param n_hdr a hash of headers to return in every response by default; to clear the default send an empty hash as the argument here
@@ -1031,7 +1031,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
 
     #! turns on or off header and body logging options for receive operations for the given listener
     /** @par Example:
-        @code
+        @code{.py}
 http.setListenerLogOptions("app", LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         @endcode
 
@@ -1047,7 +1047,7 @@ http.setListenerLogOptions("app", LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
     #! turns on or off header and body logging options for receive operations for the given listener
     /** @par Example:
-        @code
+        @code{.py}
 http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         @endcode
 

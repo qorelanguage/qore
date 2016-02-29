@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -46,9 +46,9 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-#if defined HAVE_POLL_H && defined HAVE_POLL
+#if defined HAVE_POLL
 #include <poll.h>
-#elif defined HAVE_SYS_SELECT_H && defined HAVE_SELECT
+#elif defined HAVE_SELECT
 #include <sys/select.h>
 #elif (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
 #define HAVE_SELECT 1
@@ -75,6 +75,7 @@ DLLLOCAL int sock_get_error();
 DLLLOCAL void qore_socket_error(ExceptionSink* xsink, const char* err, const char* cdesc, const char* mname = 0, const char* host = 0, const char* svc = 0, const struct sockaddr *addr = 0);
 DLLLOCAL void qore_socket_error_intern(int rc, ExceptionSink* xsink, const char* err, const char* cdesc, const char* mname = 0, const char* host = 0, const char* svc = 0, const struct sockaddr *addr = 0);
 DLLLOCAL void se_in_op(const char* meth, ExceptionSink* xsink);
+DLLLOCAL void se_in_op_thread(const char* meth, ExceptionSink* xsink);
 DLLLOCAL void se_not_open(const char* meth, ExceptionSink* xsink);
 DLLLOCAL void se_timeout(const char* meth, int timeout_ms, ExceptionSink* xsink);
 DLLLOCAL void se_closed(const char* mname, ExceptionSink* xsink);
@@ -223,13 +224,14 @@ struct qore_socket_private {
       tp_us_min             // throughput: minimum time for transfer to be considered
       ;
    AbstractQoreNode* callback_arg;
-   bool del, in_op, http_exp_chunked_body;
+   bool del, http_exp_chunked_body;
+   int in_op;
 
    DLLLOCAL qore_socket_private(int n_sock = QORE_INVALID_SOCKET, int n_sfamily = AF_UNSPEC, int n_stype = SOCK_STREAM, int n_prot = 0, const QoreEncoding* n_enc = QCS_DEFAULT) :
       sock(n_sock), sfamily(n_sfamily), port(-1), stype(n_stype), sprot(n_prot), enc(n_enc),
       ssl(0), cb_queue(0), warn_queue(0), buflen(0), bufoffset(0), tl_warning_us(0), tp_warning_bs(0),
       tp_bytes_sent(0), tp_bytes_recv(0), tp_us_sent(0), tp_us_recv(0), tp_us_min(0),
-      callback_arg(0), del(false), in_op(false), http_exp_chunked_body(false) {
+      callback_arg(0), del(false), http_exp_chunked_body(false), in_op(-1) {
       //sendTimeout = recvTimeout = -1
    }
 
@@ -247,8 +249,8 @@ struct qore_socket_private {
 
    DLLLOCAL int close() {
       int rc = close_internal();
-      if (in_op)
-         in_op = false;
+      if (in_op >= 0)
+         in_op = -1;
       if (http_exp_chunked_body)
          http_exp_chunked_body = false;
       sfamily = AF_UNSPEC;
@@ -425,7 +427,7 @@ struct qore_socket_private {
    DLLLOCAL int listen(int backlog = 20) {
       if (sock == QORE_INVALID_SOCKET)
 	 return QSE_NOT_OPEN;
-      if (in_op)
+      if (in_op >= 0)
          return QSE_IN_OP;
 #ifdef _Q_WINDOWS
       if (::listen(sock, backlog)) {
@@ -468,10 +470,15 @@ struct qore_socket_private {
 	    xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened, bound, and in a listening state before new connections can be accepted");
 	 return QSE_NOT_OPEN;
       }
-      if (in_op) {
+      if (in_op >= 0) {
+         if (in_op == gettid()) {
+            if (xsink)
+               se_in_op("accept", xsink);
+            return QSE_IN_OP;
+         }
          if (xsink)
-            se_in_op("accept", xsink);
-         return QSE_IN_OP;
+            se_in_op_thread("accept", xsink);
+         return QSE_IN_OP_THREAD;
       }
 
       int rc;
@@ -835,12 +842,16 @@ struct qore_socket_private {
    }
 #elif defined HAVE_SELECT
    DLLLOCAL int select_intern(int timeout_ms, bool read, const char* mname, ExceptionSink* xsink) {
+      // windows does not use FD_SETSIZE to limit the value of the highest socket descriptor in the set
+      // instead it has a maximum of 64 sockets in the set; we only need one anyway
+#ifndef _Q_WINDOWS
       // select is inherently broken since it can only handle descriptors < FD_SETSIZE, which is 1024 on Linux for example
       if (sock >= FD_SETSIZE) {
          if (xsink)
             xsink->raiseException("SOCKET-SELECT-ERROR", "fd is %d which is >= %d; contact the Qore developers to implement an alternative to select() on this platform", sock, FD_SETSIZE);
          return -1;
       }
+#endif
       struct timeval tv;
       int rc;
       while (true) {
@@ -1584,10 +1595,14 @@ struct qore_socket_private {
 	 rc = QSE_NOT_OPEN;
 	 return 0;
       }
-      if (in_op) {
+      if (in_op >= 0) {
+         if (in_op == gettid()) {
+            if (xsink)
+               se_in_op("recv", xsink);
+            return 0;
+         }
          if (xsink)
-            se_in_op("recv", xsink);
-         rc = QSE_IN_OP;
+            se_in_op_thread("recv", xsink);
          return 0;
       }
 
@@ -1638,10 +1653,14 @@ struct qore_socket_private {
 	 rc = QSE_NOT_OPEN;
 	 return 0;
       }
-      if (in_op) {
+      if (in_op >= 0) {
+         if (in_op == gettid()) {
+            if (xsink)
+               se_in_op("recv", xsink);
+            return 0;
+         }
          if (xsink)
-            se_in_op("recv", xsink);
-         rc = QSE_IN_OP;
+            se_in_op_thread("recv", xsink);
          return 0;
       }
 
@@ -1695,10 +1714,14 @@ struct qore_socket_private {
 	 rc = QSE_NOT_OPEN;
 	 return 0;
       }
-      if (in_op) {
+      if (in_op >= 0) {
+         if (in_op == gettid()) {
+            if (xsink)
+               se_in_op("recvBinary", xsink);
+            return 0;
+         }
          if (xsink)
-            se_in_op("recvBinary", xsink);
-         rc = QSE_IN_OP;
+            se_in_op_thread("recvBinary", xsink);
          return 0;
       }
 
@@ -1744,10 +1767,14 @@ struct qore_socket_private {
 	 rc = QSE_NOT_OPEN;
 	 return 0;
       }
-      if (in_op) {
+      if (in_op >= 0) {
+         if (in_op == gettid()) {
+            if (xsink)
+               se_in_op("recvBinary", xsink);
+            return 0;
+         }
          if (xsink)
-            se_in_op("recvBinary", xsink);
-         rc = QSE_IN_OP;
+            se_in_op_thread("recvBinary", xsink);
          return 0;
       }
 
@@ -1962,10 +1989,15 @@ struct qore_socket_private {
          se_not_open(mname, xsink);
 	 return QSE_NOT_OPEN;
       }
-      if (in_op) {
+      if (in_op >= 0) {
+         if (in_op == gettid()) {
+            if (xsink)
+               se_in_op(mname, xsink);
+            return 0;
+         }
          if (xsink)
-            se_in_op(mname, xsink);
-         return QSE_IN_OP;
+            se_in_op_thread(mname, xsink);
+         return 0;
       }
 
       PrivateQoreSocketThroughputHelper th(this, true);
@@ -2157,10 +2189,15 @@ struct qore_socket_private {
 
 	 return QSE_NOT_OPEN;
       }
-      if (in_op) {
+      if (in_op >= 0) {
+         if (in_op == gettid()) {
+            if (xsink)
+               se_in_op(mname, xsink);
+            return 0;
+         }
          if (xsink)
-            se_in_op(mname, xsink);
-         return QSE_IN_OP;
+            se_in_op_thread(mname, xsink);
+         return 0;
       }
 
       PrivateQoreSocketThroughputHelper th(this, true);
@@ -2250,8 +2287,12 @@ struct qore_socket_private {
          se_not_open("readHTTPChunkedBodyBinary", xsink);
          return 0;
       }
-      if (in_op) {
-         se_in_op("readHTTPChunkedBodyBinary", xsink);
+      if (in_op >= 0) {
+         if (in_op == gettid()) {
+            se_in_op("readHTTPChunkedBodyBinary", xsink);
+            return 0;
+         }
+         se_in_op_thread("readHTTPChunkedBodyBinary", xsink);
          return 0;
       }
 
@@ -2402,8 +2443,12 @@ struct qore_socket_private {
          se_not_open("readHTTPChunkedBody", xsink);
          return 0;
       }
-      if (in_op) {
-         se_in_op("readHTTPChunkedBody", xsink);
+      if (in_op >= 0) {
+         if (in_op == gettid()) {
+            se_in_op("readHTTPChunkedBody", xsink);
+            return 0;
+         }
+         se_in_op_thread("readHTTPChunkedBody", xsink);
          return 0;
       }
 
@@ -2779,10 +2824,15 @@ struct qore_socket_private {
 	    se_not_open(meth, xsink);
 	 return QSE_NOT_OPEN;
       }
-      if (in_op) {
+      if (in_op >= 0) {
+         if (in_op == gettid()) {
+            if (xsink)
+               se_in_op(meth, xsink);
+            return 0;
+         }
          if (xsink)
-            se_in_op(meth, xsink);
-         return QSE_IN_OP;
+            se_in_op_thread(meth, xsink);
+         return 0;
       }
 
       PrivateQoreSocketThroughputHelper th(this, false);

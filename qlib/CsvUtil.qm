@@ -62,7 +62,7 @@ module CsvUtil {
     Note that the @ref CsvUtil::CsvFileIterator "CsvFileIterator" class can be used to parse arbitrary text files; the field separator character can be specified in the @ref CsvUtil::CsvFileIterator::constructor() "constructor", as well as the quote character and end of line sequence.  See the @ref CsvUtil::CsvFileIterator::constructor() "constructor documentation" for more information.
 
     <b>Examples:</b>
-    @code
+    @code{.py}
 #!/usr/bin/env qore
 
 %new-style
@@ -96,7 +96,7 @@ UK,1234567893,"Sony, Xperia S",31052012
 
     @anchor complex_example
     If header names are provided and field types are specified, the output looks different:
-    @code
+    @code{.py}
 #!/usr/bin/env qore
 
 %new-style
@@ -572,7 +572,7 @@ public namespace CsvUtil {
 
         #! returns the current record as a hash
         /** @par Example:
-            @code
+            @code{.py}
 hash h = i.getValue();
             @endcode
 
@@ -586,7 +586,7 @@ hash h = i.getValue();
 
         #! returns the current record as a hash
         /** @par Example:
-            @code
+            @code{.py}
 hash h = i.getRecord();
             @endcode
 
@@ -607,7 +607,7 @@ hash h = i.getRecord();
 
         #! returns the current record as a list
         /** @par Example:
-            @code
+            @code{.py}
 list l = i.getRecordList();
             @endcode
 
@@ -621,7 +621,7 @@ list l = i.getRecordList();
 
         #! returns the current separator string
         /** @par Example:
-            @code
+            @code{.py}
 string sep = i.getSeparator();
             @endcode
 
@@ -633,7 +633,7 @@ string sep = i.getSeparator();
 
         #! returns the current quote string
         /** @par Example:
-            @code
+            @code{.py}
 string quote = i.getQuote();
             @endcode
 
@@ -645,7 +645,7 @@ string quote = i.getQuote();
 
         #! returns the current column headers or @ref nothing if no headers have been detected or saved yet
         /** @par Example:
-            @code
+            @code{.py}
             @endcode
 
             @note if headers are not saved against the object in the @ref constructor(), then they are written to the object after the first call to @ref next()
@@ -656,7 +656,7 @@ string quote = i.getQuote();
 
         #! returns the row index being iterated, which does not necessarily correspond to the line number when there are header rows and blank lines are skipped
         /** @par Example:
-            @code
+            @code{.py}
 int index = i.index();
             @endcode
 
@@ -672,7 +672,7 @@ int index = i.index();
 
         #! returns the current iterator line number in the file (the first line is line 1) or 0 if not pointing at a valid element
         /** @par Example:
-            @code
+            @code{.py}
 while (i.next()) {
     printf("+ line %d: %y\n", i.lineNumber(), i.getValue());
 }
@@ -839,7 +839,7 @@ while (i.next()) {
     Any inherited class has to implement pure virtual (abstract) method, where should
     be the real physical write action placed.
 
-    @code private writeRawLine(list values) @endcode
+    @code{.py} private writeRawLine(list values) @endcode
 
     @section csvwiter_options AbstractCsvWriter Constructor Option Hash Overview
     The AbstractCsvWriter class constructor takes an optional hash with possible keys given in the following table.
@@ -874,8 +874,8 @@ while (i.next()) {
                 "optimal-quotes": True,
                 );
 
-            # TODO/FIXME
-            string encoding = get_default_encoding();
+            # out (file) encoding
+            string encoding;
 
             # field separator
             string separator = ",";
@@ -916,6 +916,8 @@ while (i.next()) {
          */
         constructor(string n_errname, *hash n_opts) {
             errname = sprintf("CSV%sWRITER-ERROR", n_errname);
+
+            encoding = n_opts.encoding.typeCode() == NT_STRING ? n_opts.encoding : get_default_encoding();
 
             # set headers automatically from field names if not set
             if (n_opts.fields && !n_opts.headers)

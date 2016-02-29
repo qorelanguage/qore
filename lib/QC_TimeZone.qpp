@@ -43,8 +43,8 @@ qclass TimeZone [arg=TimeZoneData* z];
     @note On Windows the zoneinfo region names (ex: \c "Europe/Prague") are converted to registry entries under <tt>HKEY_LOCAL_MACHINE SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones</tt> (ex: \c "Central Europe Standard Time")
 
     @par Example:
-    @code
-my TimeZone $tz("Europe/Prague");
+    @code{.py}
+TimeZone tz("Europe/Prague");
     @endcode
 
     @throw TZINFO-ERROR Unable to read zoneinfo file; invalid file magic; error parsing zoneinfo file, etc
@@ -69,8 +69,8 @@ TimeZone::constructor(string region) {
 /** @param seconds_east The number of seconds east of UTC for the time zone; for zones west of UTC, use negative numbers
 
     @par Example:
-    @code
-my TimeZone $tz(3600);
+    @code{.py}
+TimeZone tz(3600);
     @endcode
  */
 TimeZone::constructor(softint seconds_east) {
@@ -81,8 +81,8 @@ TimeZone::constructor(softint seconds_east) {
 //! Creates a copy of the TimeZone object
 /**
     @par Example:
-    @code
-my TimeZone $newzone = $tz.copy();
+    @code{.py}
+TimeZone newzone = tz.copy();
     @endcode
  */
 TimeZone::copy() {
@@ -93,8 +93,8 @@ TimeZone::copy() {
 /** @return the number of seconds east of UTC for the zone; negative numbers indicate a zone west of UTC
 
     @par Example:
-    @code
-my int $offset = $tz.UTCOffset();
+    @code{.py}
+int offset = tz.UTCOffset();
     @endcode
  */
 int TimeZone::UTCOffset() [flags=CONSTANT] {
@@ -107,8 +107,8 @@ int TimeZone::UTCOffset() [flags=CONSTANT] {
     @return @ref True if the current zone has daylight saving's time rules, @ref False if not
 
     @par Example:
-    @code
-my bool $hasdst = $tz.hasDST();
+    @code{.py}
+bool hasdst = tz.hasDST();
     @endcode
  */
 bool TimeZone::hasDST() [flags=CONSTANT] {
@@ -119,8 +119,8 @@ bool TimeZone::hasDST() [flags=CONSTANT] {
 /** @return the region name as a string; if the current zone is based on a UTC offset, then the UTC offset is returned as a string like \c "+01:00"
 
     @par Example:
-    @code
-my string $region = $tz.region();
+    @code{.py}
+string region = tz.region();
     @endcode
  */
 string TimeZone::region() [flags=CONSTANT] {
@@ -132,8 +132,8 @@ string TimeZone::region() [flags=CONSTANT] {
     @param us offset are in microseconds from \c 1970-01-01Z
 
     @par Example:
-    @code
-my date $dt = $tz.date($secs);
+    @code{.py}
+date dt = tz.date(secs);
     @endcode
  */
 date TimeZone::date(softint secs, softint us = 0) [flags=CONSTANT] {
@@ -144,8 +144,8 @@ date TimeZone::date(softint secs, softint us = 0) [flags=CONSTANT] {
 /** @param d A date that will be used to create the date in the time zone of the objects; the same point in time will be returned but in the time zone of the object
 
     @par Example:
-    @code
-my date $dt = $tz.date(2012-01-01T13:56:23+01:00);
+    @code{.py}
+date dt = tz.date(2012-01-01T13:56:23+01:00);
     @endcode
  */
 date TimeZone::date(date d) [flags=CONSTANT] {
@@ -156,8 +156,8 @@ date TimeZone::date(date d) [flags=CONSTANT] {
 /** @param dtstr The string to be used to return a date in the object's time zone
 
     @par Example:
-    @code
-my date $dt = $tz.date("2012-01-01T13:56:23");
+    @code{.py}
+date dt = tz.date("2012-01-01T13:56:23");
     @endcode
 
     @since %Qore 0.8.4
@@ -174,9 +174,9 @@ date TimeZone::date(string dtstr) [flags=CONSTANT] {
     @return the @ref date "date/time" value in the current TimeZone corresponding to parsing the \a dtstr string argument according to \a mask serving as a @ref date_mask "format mask"
 
     @par Example:
-    @code
-my TimeZone $tz("Europe/London");
-printf("%y\n", $tz.date("05/02/2012", "DD/MM/YYYY")); # outputs: 2012-02-05 00:00:00 Sun Z (GMT)
+    @code{.py}
+TimeZone tz("Europe/London");
+printf("%y\n", tz.date("05/02/2012", "DD/MM/YYYY")); # outputs: 2012-02-05 00:00:00 Sun Z (GMT)
     @endcode
 
     @throw DATE-CONVERT-ERROR invalid mask specification
@@ -195,8 +195,8 @@ date TimeZone::date(string dtstr, string mask) [flags=RET_VALUE_ONLY] {
     @return a date in the object's zone based on the given offsets in milliseconds from \c 1970-01-01Z
 
     @par Example:
-    @code
-my date $dt = $tz.dateMs($offset_ms);
+    @code{.py}
+date dt = tz.dateMs(offset_ms);
     @endcode
  */
 date TimeZone::dateMs(softint ms) [flags=CONSTANT] {
@@ -209,8 +209,8 @@ date TimeZone::dateMs(softint ms) [flags=CONSTANT] {
     @return a date in the object's zone based on the given offsets in microseconds from \c 1970-01-01Z
 
     @par Example:
-    @code
-my date $dt = $tz.dateUs($offset_uss);
+    @code{.py}
+date dt = tz.dateUs(offset_uss);
     @endcode
  */
 date TimeZone::dateUs(softint us) [flags=CONSTANT] {
@@ -222,8 +222,8 @@ date TimeZone::dateUs(softint us) [flags=CONSTANT] {
     @return a TimeZone object for the current time zone
 
     @par Example:
-    @code
-my TimeZone $tz = TimeZone::get();
+    @code{.py}
+TimeZone tz = TimeZone::get();
     @endcode
  */
 static TimeZone TimeZone::get() [flags=CONSTANT] {
@@ -235,9 +235,9 @@ static TimeZone TimeZone::get() [flags=CONSTANT] {
     @param zone the time zone to set
 
     @par Example:
-    @code
-my TimeZone $tz("Europe/Prague");
-TimeZone::set($tz);
+    @code{.py}
+TimeZone tz("Europe/Prague");
+TimeZone::set(tz);
     @endcode
  */
 static nothing TimeZone::set(TimeZone[TimeZoneData] zone) [dom=LOCALE_CONTROL] {
@@ -250,7 +250,7 @@ static nothing TimeZone::set(TimeZone[TimeZoneData] zone) [dom=LOCALE_CONTROL] {
     @param seconds_east the number of seconds east of UTC for the new time zone (negative numbers give seconds west of UTC)
 
     @par Example:
-    @code
+    @code{.py}
 TimeZone::setUTCOffset(3600);
     @endcode
  */
@@ -266,7 +266,7 @@ static nothing TimeZone::setUTCOffset(softint seconds_east) [dom=LOCALE_CONTROL]
     @note On Windows the region names correspond to registry entries under <tt>HKEY_LOCAL_MACHINE SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones</tt> (ex: \c "Central Europe Standard Time)
 
     @par Example:
-    @code
+    @code{.py}
 TimeZone::setRegion("Europe/Prague");
     @endcode
  */

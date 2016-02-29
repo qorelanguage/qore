@@ -245,6 +245,8 @@
       - implemented the \c "wop_or()" function to allow complex SQL expressions to be generated with \c "or" as well as \c "and"
       - implemented AbstractTable::getBulkUpsertClosure() to better support bulk SQL merge operations
       - removed all APIs that handle implicit transactions; APIs must commit transactions explicitly
+      - \a orderby and \a groupby select options now take positive integers as column identifiers
+      - column aliases (defined with cop_as()) can now be used in the where hash argument and in join criteria
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module updates:
       - implemented support for views for DML in the OracleTable class
       - implemented support for Oracle pseudocolumns in queries
@@ -442,6 +444,7 @@
     - fixed a bug where nested lists were not parsed correctly in some cases (<a href="https://github.com/qorelanguage/qore/issues/320">issue 320</a>)
     - fixed a bug where the type of catch parameter was ignored (<a href="https://github.com/qorelanguage/qore/issues/28">issue 28</a>)
     - fixed a bug where namespace hierarchies were not indexed during parse time when added to already-committed namespaces which lead to symbol resolution errors for valid code (<a href="https://github.com/qorelanguage/qore/issues/538">issue 538</a>)
+    - fixed a bug where a @ref Qore::Socket "Socket" operation attempted in another thread while a callback operation on the same socket was in progress would result in a confusing error message (<a href="https://github.com/qorelanguage/qore/issues/530">issue 530</a>)
 
     @section qore_0811 Qore 0.8.11
 

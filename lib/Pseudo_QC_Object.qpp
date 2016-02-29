@@ -50,10 +50,10 @@ qclass <object> [arg=QoreObject* obj = const_cast<QoreObject*>(v.get<QoreObject>
     @return Qore::NT_OBJECT
 
     @par Example:
-    @code
-switch ($o.typeCode()) {
+    @code{.py}
+switch (o.typeCode()) {
     case Qore::NT_OBJECT:
-        printf("%y: is an object\n", $o);
+        printf("%y: is an object\n", o);
         break;
 }
     @endcode
@@ -67,8 +67,8 @@ int <object>::typeCode() [flags=CONSTANT] {
     @return a list of member names of the object; if called from outside the object, only public members are returned
 
     @par Example:
-    @code
-my list $l = $o.keys();
+    @code{.py}
+list l = o.keys();
     @endcode
  */
 list <object>::keys() [flags=RET_VALUE_ONLY] {
@@ -80,8 +80,8 @@ list <object>::keys() [flags=RET_VALUE_ONLY] {
     @return the first member name in the object or @ref nothing if the object has no members; if called from outside the object, the first public member name is returned (if any)
 
     @par Example:
-    @code
-my *string $n = $o.firstKey();
+    @code{.py}
+*string n = o.firstKey();
     @endcode
 
     @see <object>::lastKey()
@@ -95,8 +95,8 @@ my *string $n = $o.firstKey();
     @return the last member name in the object or @ref nothing if the object has no members; if called from outside the object, the last public member name is returned (if any)
 
     @par Example:
-    @code
-my *string $n = $o.lastKey();
+    @code{.py}
+*string n = o.lastKey();
     @endcode
 
     @see <object>::firstKey()
@@ -111,8 +111,8 @@ my *string $n = $o.lastKey();
     @return @ref True if the object has no public or private members, @ref False if it does
 
     @par Example:
-    @code
-my bool $b = $o.empty();
+    @code{.py}
+bool b = o.empty();
     @endcode
  */
 bool <object>::empty() [flags=RET_VALUE_ONLY] {
@@ -124,8 +124,8 @@ bool <object>::empty() [flags=RET_VALUE_ONLY] {
     @return the number of members in the object, public and private
 
     @par Example:
-    @code
-my int $num = $o.size();
+    @code{.py}
+int num = o.size();
     @endcode
 
     @see <object>::sizep()
@@ -139,8 +139,8 @@ int <object>::size() [flags=RET_VALUE_ONLY] {
     @return the class name of the object
 
     @par Example:
-    @code
-my string $cn = $o.className();
+    @code{.py}
+string cn = o.className();
     @endcode
 
     @note equivalent to get_class_name()
@@ -154,8 +154,8 @@ string <object>::className() [flags=CONSTANT] {
     @return @ref True if the object is a system object (ie a constant object like @ref stdin, etc), @ref False if not
 
     @par Example:
-    @code
-my bool $b = $i.isSystem();
+    @code{.py}
+bool b = i.isSystem();
     @endcode
  */
 bool <object>::isSystem() [flags=CONSTANT] {
@@ -168,8 +168,8 @@ bool <object>::isSystem() [flags=CONSTANT] {
     @return @ref False if the object has no public or private members, @ref True if it does
 
     @par Example:
-    @code
-my bool $b = $o.val();
+    @code{.py}
+bool b = o.val();
     @endcode
 
     @see
@@ -180,15 +180,15 @@ bool <object>::val() [flags=RET_VALUE_ONLY] {
    return (bool)obj->size(xsink);
 }
 
-// bool <object>::hasKey(softstring $key) [flags=RET_VALUE_ONLY] {}
-// bool <object>::hasKeyValue(softstring $key) [flags=RET_VALUE_ONLY] {}
+// bool <object>::hasKey(softstring key) [flags=RET_VALUE_ONLY] {}
+// bool <object>::hasKeyValue(softstring key) [flags=RET_VALUE_ONLY] {}
 
 //! Returns an @ref Qore::ObjectIterator "ObjectIterator" object for the object's members
 /** @return an @ref Qore::ObjectIterator "ObjectIterator" object for the object's members
 
     @par Example:
-    @code
-map printf("+ %y\n", $1), $obj.iterator();
+    @code{.py}
+map printf("+ %y\n", $1), obj.iterator();
     @endcode
 
     @since %Qore 0.8.6
@@ -201,8 +201,8 @@ AbstractIterator <object>::iterator() [flags=CONSTANT] {
 /** @return a @ref Qore::ObjectKeyIterator "ObjectKeyIterator" object for the object, iterating the object's members
 
     @par Example:
-    @code
-map printf("+ %s\n", $1), $obj.keyIterator();
+    @code{.py}
+map printf("+ %s\n", $1), obj.keyIterator();
     @endcode
 
     @since %Qore 0.8.6.2
@@ -215,8 +215,8 @@ ObjectKeyIterator <object>::keyIterator() [flags=CONSTANT] {
 /** @return a @ref Qore::ObjectPairIterator "ObjectPairIterator" object for the object's members
 
     @par Example:
-    @code
-map printf("+ %s\n", $1), $obj.pairIterator();
+    @code{.py}
+map printf("+ %s\n", $1), obj.pairIterator();
     @endcode
 
     @since %Qore 0.8.6.2
@@ -227,8 +227,8 @@ ObjectPairIterator <object>::pairIterator() [flags=CONSTANT] {
 
 //! Returns @ref Qore::True "True" if the given method exists (can be non-static or static) and is callable from the current context
 /** @par Example:
-    @code
-my bool $b = $obj.hasCallableMethod("getStatus");
+    @code{.py}
+bool b = obj.hasCallableMethod("getStatus");
     @endcode
 
     @return @ref Qore::True "True" if the given method exists (can be non-static or static) and is callable from the current context
@@ -250,8 +250,8 @@ bool <object>::hasCallableMethod(string name) [flags=CONSTANT] {
 
 //! Returns @ref Qore::True "True" if the given non-static method exists and is callable from the current context
 /** @par Example:
-    @code
-my bool $b = $obj.hasCallableNormalMethod("getStatus");
+    @code{.py}
+bool b = obj.hasCallableNormalMethod("getStatus");
     @endcode
 
     @return @ref Qore::True "True" if the given non-static method exists and is callable from the current context
@@ -273,8 +273,8 @@ bool <object>::hasCallableNormalMethod(string name) [flags=CONSTANT] {
 
 //! Returns @ref Qore::True "True" if the given static method exists and is callable from the current context
 /** @par Example:
-    @code
-my bool $b = $obj.hasCallableStaticMethod("getStatus");
+    @code{.py}
+bool b = obj.hasCallableStaticMethod("getStatus");
     @endcode
 
     @return @ref Qore::True "True" if the given static method exists and is callable from the current context

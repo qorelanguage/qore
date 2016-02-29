@@ -51,8 +51,8 @@ qclass Dir [arg=Dir* d; dom=FILESYSTEM];
     @param encoding the name of the default character encoding for filenames retrieved; if this argument is not given, filename strings retrieved will be tagged with the @ref default_encoding "default character encoding" of the process
 
     @par Example:
-    @code
-my Dir $dir("utf-8");
+    @code{.py}
+Dir dir("utf-8");
     @endcode
  */
 Dir::constructor(*string encoding) {
@@ -66,8 +66,8 @@ Dir::constructor(*string encoding) {
 //! Creates a new directory object with the same character encoding specification and the same path as the original
 /**
     @par Example:
-    @code
-my Dir $nd = $dir.copy();
+    @code{.py}
+Dir nd = dir.copy();
     @endcode
  */
 Dir::copy() {
@@ -86,9 +86,9 @@ Dir::copy() {
     @return @ref True if the new path is openable as directory (see Dir::exists())
 
     @par Example:
-    @code
-if (!$d.chdir("../doc")) {
-    $d.create(0755);
+    @code{.py}
+if (!d.chdir("../doc")) {
+    d.create(0755);
 }
     @endcode
 
@@ -106,8 +106,8 @@ bool Dir::chdir(string path) {
     @return the path of the Dir object or @ref nothing if no path is set
 
     @par Example:
-    @code
-my *string $mypath = $d.path();
+    @code{.py}
+*string mypath = d.path();
     @endcode
  */
 *string Dir::path() {
@@ -118,9 +118,9 @@ my *string $mypath = $d.path();
 /** @return @ref True if the path in the Dir object points to a directory that already exists and is openable by the current user, @ref False otherwise
 
     @par Example:
-    @code
-if (!$d.exists())
-   printf("%y: does not exist or cannot be opened\n", $d.path());
+    @code{.py}
+if (!d.exists())
+   printf("%y: does not exist or cannot be opened\n", d.path());
     @endcode
  */
 bool Dir::exists() {
@@ -132,18 +132,18 @@ bool Dir::exists() {
     @return the number of directories actually created
 
     @par Example:
-    @code
+    @code{.py}
 try {
-    if (!$d.exists()) {
-        printf("%y: does not exist; creating...\n", $d.path());
-        $cnt = $d.create(0755);
+    if (!d.exists()) {
+        printf("%y: does not exist; creating...\n", d.path());
+        cnt = d.create(0755);
     }
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -158,15 +158,15 @@ int Dir::create(softint mode = 0777) {
 /** @param mode The mode of the directory
 
     @par Example:
-    @code
+    @code{.py}
 try {
-    $dir.chmod(0750);
+    dir.chmod(0750);
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -184,15 +184,15 @@ nothing Dir::chmod(softint mode) {
     @ref Qore::Option::HAVE_UNIX_FILEMGT
 
     @par Example:
-    @code
+    @code{.py}
 try {
-    $dir.chown($uid);
+    dir.chown(uid);
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -215,15 +215,15 @@ nothing Dir::chown(int uid) {
     @ref Qore::Option::HAVE_UNIX_FILEMGT
 
     @par Example:
-    @code
+    @code{.py}
 try {
-    $dir.chown($username);
+    dir.chown(username);
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -254,15 +254,15 @@ nothing Dir::chown(string username) {
     @ref Qore::Option::HAVE_UNIX_FILEMGT
 
     @par Example:
-    @code
+    @code{.py}
 try {
-    $dir.chgrp($gid);
+    dir.chgrp(gid);
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -285,15 +285,15 @@ nothing Dir::chgrp(int gid) {
     @ref Qore::Option::HAVE_UNIX_FILEMGT
 
     @par Example:
-    @code
+    @code{.py}
 try {
-    $dir.chgrp($groupname);
+    dir.chgrp(groupname);
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -322,15 +322,15 @@ nothing Dir::chgrp(string groupname) {
     @param mode The mode of the directory
 
     @par Example:
-    @code
+    @code{.py}
 try {
-    $dir.mkdir("subdir", 0750);
+    dir.mkdir("subdir", 0750);
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -349,15 +349,15 @@ nothing Dir::mkdir(string subdir, softint mode = 0777) {
 /** @param subdir The subdirectory name to remove; only direct subdirectories are allowed; directory separator characters are not allowed
 
     @par Example:
-    @code
+    @code{.py}
 try {
-    $dir.rmdir("subdir");
+    dir.rmdir("subdir");
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -378,14 +378,14 @@ nothing Dir::rmdir(string subdir) {
     @returns a list of all entries in the directory (except \c "." and \c ".." directories); if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
 
     @par Example:
-    @code
+    @code{.py}
 try {
-    map printf("entry: %s\n", $1), $d.list();
+    map printf("entry: %s\n", $1), d.list();
 }
-catch (hash $ex) {
-    stderr.printf("%s: %s", $ex.err, $ex.desc);
-    if ($ex.arg)
-        stderr.printf(": %s", strerror($ex.arg));
+catch (hash ex) {
+    stderr.printf("%s: %s", ex.err, ex.desc);
+    if (ex.arg)
+        stderr.printf(": %s", strerror(ex.arg));
     stderr.printf("\n");
 }
     @endcode
@@ -407,16 +407,16 @@ list Dir::list(bool full = False) {
     @return a list of all entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
 
     @par Example:
-    @code
+    @code{.py}
 try {
-    foreach my string $e in ($d.list("\\.txt$")) {
+    foreach string e in (d.list("\\.txt$")) {
         printf("entry: %s\n");
     }
 }
-catch (hash $ex) {
-    stderr.printf("%s: %s", $ex.err, $ex.desc);
-    if ($ex.arg)
-        stderr.printf(": %s", strerror($ex.arg));
+catch (hash ex) {
+    stderr.printf("%s: %s", ex.err, ex.desc);
+    if (ex.arg)
+        stderr.printf(": %s", strerror(ex.arg));
     stderr.printf("\n");
 }
     @endcode
@@ -439,16 +439,16 @@ list Dir::list(string regex, softint regex_options = 0, softbool full = False) {
     @return a list of all files in the current directory of the object; if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
 
     @par Example:
-    @code
+    @code{.py}
 try {
-    foreach my string $e in ($d.listFiles()) {
+    foreach string e in (d.listFiles()) {
         printf("entry: %s\n");
     }
 }
-catch (hash $ex) {
-    stderr.printf("%s: %s", $ex.err, $ex.desc);
-    if ($ex.arg)
-        stderr.printf(": %s", strerror($ex.arg));
+catch (hash ex) {
+    stderr.printf("%s: %s", ex.err, ex.desc);
+    if (ex.arg)
+        stderr.printf(": %s", strerror(ex.arg));
     stderr.printf("\n");
 }
     @endcode
@@ -470,17 +470,17 @@ list Dir::listFiles(bool full = False) {
     @return a list of all files in the directory that match the given regular expression; if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
 
     @par Example:
-    @code
+    @code{.py}
 try {
-    foreach my string $e in ($d.listFiles("\\.txt$")) {
+    foreach string e in (d.listFiles("\\.txt$")) {
         printf("entry: %s\n");
     }
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -501,17 +501,17 @@ list Dir::listFiles(string regex, softint regex_options = 0, softbool full = Fal
     @return a list of all subdirectory entries in this directory, except \c "." and \c ".." directories; if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
 
     @par Example:
-    @code
+    @code{.py}
 try {
-    foreach my string $e in ($d.listDirs()) {
+    foreach string e in (d.listDirs()) {
         printf("entry: %s\n");
     }
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -532,17 +532,17 @@ list Dir::listDirs(bool full = False) {
     @return a list of all subdirectory entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
 
     @par Example:
-    @code
+    @code{.py}
 try {
-    foreach my string $e in ($d.listDirs("^pgsql-")) {
+    foreach string e in (d.listDirs("^pgsql-")) {
         printf("entry: %s\n");
     }
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -566,9 +566,9 @@ list Dir::listDirs(string regex, softint regex_options = 0, softbool full = Fals
     @param encoding The name of the default character encoding for this file; if this argument is not given, the file will be tagged with the @ref default_encoding "default character encoding" for the process
 
     @par Example:
-    @code
+    @code{.py}
 # open a file for writing in the directory and set the mode to 0644 and the encoding to UTF-8
-my File $f = $d.openFile("myfile.txt", O_CREAT|O_WRONLY, 0644, "utf-8");
+File f = d.openFile("myfile.txt", O_CREAT|O_WRONLY, 0644, "utf-8");
     @endcode
 
     @throw DIR-OPENFILE-PARAMETER-ERROR only direct subdirectory names without path separators are allowed
@@ -601,8 +601,8 @@ File Dir::openFile(string filename, int flags = O_RDONLY, int mode = 0666, *stri
     @return The Dir object created for the directory
 
     @par Example:
-    @code
-my Dir $sd = $d.openDir("mysubdir");
+    @code{.py}
+Dir sd = d.openDir("mysubdir");
     @endcode
 
     @throw DIR-OPENDIR-PARAMETER-ERROR only direct subdirectory names without path separators are allowed
@@ -626,15 +626,15 @@ Dir Dir::openDir(string subdir, *string encoding) {
     @return @ref True if the file was present and could be removed, @ref False if the file did not exist
 
     @par Example:
-    @code
+    @code{.py}
 try {
-    my bool $b = $dir.removeFile($filename);
+    bool b = dir.removeFile(filename);
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -662,15 +662,15 @@ bool Dir::removeFile(string file) {
     @return a @ref stat_list giving information about the current directory
 
     @par Example:
-    @code
+    @code{.py}
 try {
-    my list $l = $dir.stat();
+    list l = dir.stat();
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -687,15 +687,15 @@ list Dir::stat() {
     @return a @ref stat_hash giving information about the current directory
 
     @par Example:
-    @code
+    @code{.py}
 try {
-    my hash $h = $dir.hstat();
+    hash h = dir.hstat();
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -713,15 +713,15 @@ hash Dir::hstat() {
     @ref Qore::Option::HAVE_STATVFS
 
     @par Example:
-    @code
+    @code{.py}
 try {
-    my hash $h = $dir.statvfs();
+    hash h = dir.statvfs();
 }
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+catch (hash ex) {
+    if (ex.arg)
+        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
-        printf("%s: %s", $ex.err, $ex.desc);
+        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 

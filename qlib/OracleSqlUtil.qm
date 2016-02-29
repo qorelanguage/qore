@@ -80,15 +80,15 @@ module OracleSqlUtil {
     support (applies to Oracle pre 12c).
 
     For example, for the following select:
-    @code
+    @code{.py}
 my *list $rows = $table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
     @endcode
     the following SQL is generated for Oracle with a pre 12c server:
-    @code
+    @code{.py}
 $ds.vselectRows("select * from (select /*+ first_rows(100) *<!--%%-->/ a.*, rownum rnum from (select * from schema.table where type = %v order by type) a where rownum <= %v) where rnum > %v", ("user", 300, 200));
     @endcode
     note that the following simpler SQL is generated for Oracle 12c+ servers:
-    @code
+    @code{.py}
 $ds.vselectRows("select * from schema.table where type = %v order by type offset %v rows fetch next %v rows only", ("user", 200, 100));
     @endcode
 
@@ -98,12 +98,12 @@ $ds.vselectRows("select * from schema.table where type = %v order by type offset
     module uses bind by value with the SQL \c IN operator.
 
     For example, the following query:
-    @code
+    @code{.py}
 my *hash $q = $table.select(("where": ("col1": op_in(1, 2, 3, 4))));
     @endcode
 
     Results in the equivalent of the following SQL:
-    @code
+    @code{.py}
 my *hash $q = $ds.select("select * from schema.table where col1 in (select column_value from table(%v))", bindOracleCollection("SYS.ODCIVARCHAR2LIST", (1,2,3,4)));
     @endcode
 
@@ -121,11 +121,11 @@ my *hash $q = $ds.select("select * from schema.table where col1 in (select colum
     It's possible to select from a particular partition of a table with %OracleSqlUtil;
     @ref OracleSqlUtil::OracleTable::OracleSelectOptions "OracleSelectOptions" defines the \c "partition" key which can be added to a
     @ref select_option_hash "select option hash" to specify the partition to select from as in the following example:
-    @code
+    @code{.py}
 my *list $rows = $table.selectRows(("created": op_gt(2012-05-01), "partition": "p1"));
     @endcode
     Which generates an SQL command like the following:
-    @code
+    @code{.py}
 my *list $rows = $ds.vselectRows("select * from schema.table partition(p1) where created > %v", (2012-05-01));
     @endcode
 
@@ -133,11 +133,11 @@ my *list $rows = $ds.vselectRows("select * from schema.table partition(p1) where
 
     It's possible to perform a join on a particular partition of a table with %OracleSqlUtil; the join option \c "partition" is
     supported to specify the partition to join on as in the following example:
-    @code
+    @code{.py}
 my *list $rows = $table.selectRows(("join": join_inner($table2, "t2", ("id": "altid"), NOTHING, ("partition": "p2"))));
     @endcode
     Which generates an SQL command like the following:
-    @code
+    @code{.py}
 my *list $rows = $ds.vselectRows("select * from schema.table inner join schema.table2 partition(p2) t2 on (schema.table.id = t2.altid)");
     @endcode
 
@@ -187,7 +187,7 @@ my *list $rows = $ds.vselectRows("select * from schema.table inner join schema.t
 
     The \c "materialized_views" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or, for schemas targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following example:
 
-    @code
+    @code{.py}
 my hash $schema = (
     "driver": (
         "oracle": (
@@ -213,7 +213,7 @@ my hash $schema = (
 
     The \c "packages" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or, for schemas targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following example:
 
-    @code
+    @code{.py}
 my hash $schema = (
     "driver": (
         "oracle": (
@@ -239,7 +239,7 @@ MYSTATERROR constant order_status.orderstatus%type := 'E';
 
     The \c "types" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or, for schemas targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following example:
 
-    @code
+    @code{.py}
 my hash $schema = (
     "driver": (
         "oracle": (
@@ -261,6 +261,7 @@ my hash $schema = (
     - implemented support for views for DML in the @ref OracleSqlUtil::OracleTable class
     - implemented @ref OracleSqlUtil::OracleTable::getBaseType()
     - implemented support for Oracle pseudocolumns in queries
+    - implemented support for \c cop_cast operator
 
     @subsection v11 OracleSqlUtil v1.1
     - fixed selects with "limit" but no "offset"
@@ -307,7 +308,7 @@ public namespace OracleSqlUtil {
 
         #! returns a list of sql strings that can be used to add the column to an existing table
         /** @par Example:
-            @code
+            @code{.py}
 my list $l = $col.getAddColumnSql($t);
             @endcode
 
@@ -322,7 +323,7 @@ my list $l = $col.getAddColumnSql($t);
 
         #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
         /** @par Example:
-            @code
+            @code{.py}
 my list $l = $col.getModifySql($t, $newcol);
             @endcode
 
@@ -366,7 +367,7 @@ my list $l = $col.getModifySql($t, $newcol);
 
         #! returns a string that can be used to rename the column
         /** @par Example:
-            @code
+            @code{.py}
 my string $str = $col.getRenameSql($t, "new_name");
             @endcode
 
@@ -513,7 +514,7 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         #! returns the OracleColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 my any $v = $c.name;
             @endcode
 
@@ -604,7 +605,7 @@ my any $v = $c.name;
 
         #! returns the OracleColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 my any $v = $c.name;
             @endcode
 
@@ -1835,6 +1836,30 @@ my any $v = $c.name;
 
             #! column operator specializations for Oracle
             const OracleCopMap = DefaultCopMap + (
+                COP_CAST: (
+                    "code": string sub (string cve, list args) {
+                        string name = QoreTypeMap{args[0]} ?? args[0];
+                        hash desc = OraTypeMap{name};
+                        string sql = sprintf ("cast (%s as %s", cve, name);
+                        switch (name) {
+                            default:
+                                if (desc.size == SZ_MAND) {
+                                    if (!exists args[1] && !exists desc.size_range)
+                                        throw "OPERATOR-ERROR", sprintf ("op_cast operator missing size for type %s", name);
+                                    sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
+                                }
+                                else if (desc.size == SZ_NUM && exists args[1]) {
+                                    sql += args[1] == "*" ? "(*" : sprintf("(%d", args[1]);
+                                    sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
+                                }
+                                else if (desc.size == SZ_OPT && exists args[1]) {
+                                    sql += sprintf("(%d)", args[1]);
+                                }
+                        }
+                        sql += ")";
+                        return sql;
+                    },
+                ),
                 COP_OVER: (
                     "argcolumn": True,
                     "argoptional": True,
@@ -2643,6 +2668,51 @@ my any $v = $c.name;
                 ds.vexec(sql, args);
                 return UR_Verified;
             };
+        }
+
+        private list getGroupByList(hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+            list ce = ();
+
+            code do_int = sub (int cv) {
+                if (!coll) {
+                    if (cv > columns.size())
+                        throw "ORACLE-TABLE-ERROR", sprintf("group by %d: this database does not support numeric column offsets for the group by expression, and the table has %d column%s", cv, columns.size(), columns.size() == 1 ? "" : "s");
+                    ce += columns.keys()[cv - 1];
+                }
+                else {
+                    if (cv > coll.size())
+                        throw "ORACLE-TABLE-ERROR", sprintf("group by %d: this database does not support numeric column offsets for the group by expression, and %d column%s %s given in the select argument", cv, coll.size(), coll.size() == 1 ? "" : "s", coll.size() == 1 ? "was" : "were");
+                    string val = coll[cv - 1];
+                    val =~ s/ as .*$//;
+                    ce += val;
+                }
+            };
+
+            foreach any cv in (qh.groupby) {
+                switch (cv.typeCode()) {
+                    case NT_STRING: {
+                        if (cv.toInt() == cv)
+                            do_int(cv.toInt());
+                        else
+                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch, True);
+                        break;
+                    }
+
+                    case NT_HASH: {
+                        ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch, psch);
+                        break;
+                    }
+
+                    case NT_INT: {
+                        do_int(cv);
+                        break;
+                    }
+
+                    default:
+                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in group by list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv);
+                }
+            }
+            return ce;
         }
 
         #! returns @ref Qore::True "True" because the oracle driver supports array binds / bulk DML operations

@@ -99,7 +99,7 @@ module PgsqlSqlUtil {
 
     The \c "types" key can go in the top level of the @ref schema_desc_hash for PostgreSQL-only schemas, or, for schemas targeting multiple database types, under the \c "driver" and \c "pgsql" keys as in the following example:
 
-    @code
+    @code{.py}
 my hash $schema = (
     "driver": (
         "pgsql": (
@@ -135,7 +135,7 @@ my hash $schema = (
     If your function is reported as needing updating even though it's already in the database correctly, then the logic in this module
     needs to be update to provide more flexibility (please report to david@qore.org).  Until the module can be enhanced, try the format as
     in the following example:
-    @code
+    @code{.py}
 update_queue_data(qkey varchar, qdata text) returns integer language plpgsql as $function$
 declare
   rowcount integer;
@@ -153,6 +153,7 @@ $function$
     @section pgsql_relnotes Release Notes
 
     @subsection pgsqlsqlutilv11 PgsqlSqlUtil v1.1
+    - added support for \c cop_cast operator (<a href="https://github.com/qorelanguage/qore/issues/535">feature 535</a>)
     - added support for the following datatypes and aliases: bool, float, int, timetz, timestamptz, varbit
     - fixed support for the following datatypes and aliases: bit, bit varying, char, character, character varying, char varying, oid, varchar
     - fixed bugs handling "bigint" and "double precision" column types with schema alignments
@@ -380,7 +381,7 @@ public namespace PgsqlSqlUtil {
 
         #! returns a list of sql strings that can be used to add the column to an existing table
         /** @par Example:
-            @code
+            @code{.py}
 my list $l = $col.getAddColumnSql($t);
             @endcode
 
@@ -395,7 +396,7 @@ my list $l = $col.getAddColumnSql($t);
 
         #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
         /** @par Example:
-            @code
+            @code{.py}
 my list $l = $col.getModifySql($t, $newcol);
             @endcode
 
@@ -441,7 +442,7 @@ my list $l = $col.getModifySql($t, $newcol);
 
         #! returns a string that can be used to rename the column
         /** @par Example:
-            @code
+            @code{.py}
 my string $str = $col.getRenameSql($t, "new_name");
             @endcode
 
@@ -551,7 +552,7 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         #! returns the PgsqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 my any $v = $c.name;
             @endcode
 
@@ -613,7 +614,7 @@ my any $v = $c.name;
 
         #! returns the PgsqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 my any $v = $c.name;
             @endcode
 
@@ -1303,6 +1304,30 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
             #! column operator specializations for PostgreSQL
             const PgsqlCopMap = DefaultCopMap + (
+                COP_CAST: (
+                    "code": string sub (string cve, list args) {
+                        string name = QoreTypeMap{args[0]} ?? args[0];
+                        hash desc = PgsqlTypeMap{name};
+                        string sql = sprintf ("cast (%s as %s", cve, name);
+                        switch (name) {
+                            default:
+                                if (desc.size == SZ_MAND) {
+                                    if (!exists args[1] && !exists desc.size_range)
+                                        throw "OPERATOR-ERROR", sprintf ("op_cast operator missing size for type %s", name);
+                                    sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
+                                }
+                                else if (desc.size == SZ_NUM && exists args[1]) {
+                                    sql += sprintf("(%d", args[1]);
+                                    sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
+                                }
+                                else if (desc.size == SZ_OPT && exists args[1]) {
+                                    sql += sprintf("(%d)", args[1]);
+                                }
+                        }
+                        sql += ")";
+                        return sql;
+                    },
+                ),
                 COP_OVER: (
                     "argcolumn": True,
                     "argoptional": True,

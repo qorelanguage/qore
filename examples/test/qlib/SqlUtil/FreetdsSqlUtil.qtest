@@ -36,6 +36,7 @@ class FreetdsTestSchema inherits SqlUtilTestSchema {
         const T_SqlUtilTest = (
             "columns": (
                 "id": c_number(14, True),
+                "id_": c_number(14, True),
             ),
             "primary_key": ("name": "pk_sqlutil_test", "columns": ("id")),
             );
@@ -45,7 +46,7 @@ class FreetdsTestSchema inherits SqlUtilTestSchema {
             );
     }
 
-    constructor(AbstractDatasource ds, *string dts, *string its) :  SqlUtilTestSchema(ds, dts, its) {
+    constructor(AbstractDatasource ds, *string dts, *string its) : SqlUtilTestSchema(ds, dts, its) {
     }
 
     private string getNameImpl() {

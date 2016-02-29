@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -42,6 +42,10 @@ QoreValue::QoreValue(bool b) : type(QV_Bool) {
 
 QoreValue::QoreValue(int64 i) : type(QV_Int) {
    v.i = i;
+}
+
+QoreValue::QoreValue(unsigned long long i) : type(QV_Int) {
+   v.i = (long long)i;
 }
 
 QoreValue::QoreValue(int i) : type(QV_Int) {

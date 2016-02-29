@@ -88,8 +88,8 @@ any sort(any arg) [flags=NOOP] {
 /** This variant will only sort basic data types
 
     @par Example:
-    @code
-my list $nl = sort($l);
+    @code{.py}
+list nl = sort(l);
     @endcode
 
     @param l the list to sort
@@ -108,8 +108,8 @@ list sort(list l) [flags=CONSTANT] {
 //! Performs an unstable sort in ascending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
 /**
     @par Example:
-    @code
-my list $nl = sort($l, "my_sort_function");
+    @code{.py}
+list nl = sort(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
@@ -130,9 +130,9 @@ list sort(list l, string func) [flags=RET_VALUE_ONLY] {
 //! Performs an unstable sort in ascending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
 /**
     @par Example:
-    @code
-my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
-my list $nl = sort($l, $sort_func);
+    @code{.py}
+code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
+list nl = sort(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -222,8 +222,8 @@ any sort_descending(any arg) [flags=NOOP] {
 /** This variant will only sort basic data types
 
     @par Example:
-    @code
-my list $nl = sort_descending($l);
+    @code{.py}
+list nl = sort_descending(l);
     @endcode
 
     @param l the list to sort
@@ -244,8 +244,8 @@ list sort_descending(list l) [flags=CONSTANT] {
 //! Performs an unstable sort in descending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
 /**
     @par Example:
-    @code
-my list $nl = sort_descending($l, "my_sort_function");
+    @code{.py}
+list nl = sort_descending(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
@@ -268,9 +268,9 @@ list sort_descending(list l, string func) [flags=CONSTANT] {
 //! Performs an unstable sort in descending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
 /**
     @par Example:
-    @code
-my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
-my list $nl = sort_descending($l, $sort_func);
+    @code{.py}
+code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
+list nl = sort_descending(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -336,9 +336,9 @@ list sortStable(list l, string func) [flags=RET_VALUE_ONLY,DEPRECATED] {
 //! Performs a stable sort in ascending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
 /**
     @par Example:
-    @code
-my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
-my list $nl = sortStable($l, $sort_func);
+    @code{.py}
+code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
+list nl = sortStable(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -368,8 +368,8 @@ any sort_stable(any arg) [flags=NOOP] {
 /** This variant will only sort basic data types
 
     @par Example:
-    @code
-my list $nl = sort_stable($l);
+    @code{.py}
+list nl = sort_stable(l);
     @endcode
 
     @param l the list to sort
@@ -390,8 +390,8 @@ list sort_stable(list l) [flags=CONSTANT] {
 //! Performs a stable sort in ascending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
 /**
     @par Example:
-    @code
-my list $nl = sort_stable($l, "my_sort_function");
+    @code{.py}
+list nl = sort_stable(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
@@ -414,9 +414,9 @@ list sort_stable(list l, string func) [flags=RET_VALUE_ONLY] {
 //! Performs a stable sort in ascending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
 /**
     @par Example:
-    @code
-my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
-my list $nl = sort_stable($l, $sort_func);
+    @code{.py}
+code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
+list nl = sort_stable(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -446,8 +446,8 @@ any sortDescendingStable(any arg) [flags=NOOP,DEPRECATED] {
 /** This variant will only sort basic data types
 
     @par Example:
-    @code
-my list $nl = sortDescendingStable($l);
+    @code{.py}
+list nl = sortDescendingStable(l);
     @endcode
 
     @param l the list to sort
@@ -468,8 +468,8 @@ list sortDescendingStable(list l) [flags=CONSTANT,DEPRECATED] {
 //! Performs a stable sort in descending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
 /**
     @par Example:
-    @code
-my list $nl = sortDescending($l, "my_sort_function");
+    @code{.py}
+list nl = sortDescending(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
@@ -492,9 +492,9 @@ list sortDescendingStable(list l, string func) [flags=RET_VALUE_ONLY,DEPRECATED]
 //! Performs a stable sort in descending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
 /**
     @par Example:
-    @code
-my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
-my list $nl = sortDescending($l, $sort_func);
+    @code{.py}
+code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
+list nl = sortDescending(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -524,8 +524,8 @@ any sort_descending_stable(any arg) [flags=NOOP] {
 /** This variant will only sort basic data types
 
     @par Example:
-    @code
-my list $nl = sort_descending_stable($l);
+    @code{.py}
+list nl = sort_descending_stable(l);
     @endcode
 
     @param l the list to sort
@@ -546,8 +546,8 @@ list sort_descending_stable(list l) [flags=CONSTANT] {
 //! Performs a stable sort in descending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
 /**
     @par Example:
-    @code
-my list $nl = sort_descending_stable($l, "my_sort_function");
+    @code{.py}
+list nl = sort_descending_stable(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
@@ -570,9 +570,9 @@ list sort_descending_stable(list l, string func) [flags=RET_VALUE_ONLY] {
 //! Performs a stable sort in descending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
 /**
     @par Example:
-    @code
-my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
-my list $nl = sort_descending_stable($l, $sort_func);
+    @code{.py}
+code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
+list nl = sort_descending_stable(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -595,8 +595,8 @@ list sort_descending_stable(list l, code f) [flags=RET_VALUE_ONLY] {
 /** This variant will only work on basic data types
 
     @par Example:
-    @code
-my any $v = min($l);
+    @code{.py}
+any v = min(l);
     @endcode
 
     @param l the list to process
@@ -612,8 +612,8 @@ any min(list l) [flags=CONSTANT] {
 //! Returns the minumum value in a list; accepts the name of a function to use to compare complex data types or to give a special sort order
 /**
     @par Example:
-    @code
-my any $v = min($l, "my_sort_function");
+    @code{.py}
+any v = min(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
@@ -631,9 +631,9 @@ any min(list l, string func) [flags=RET_VALUE_ONLY] {
 //! Returns the minumum value in a list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to compare complex data types or to give a special sort order
 /**
     @par Example:
-    @code
-my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
-my any $v = min($l, $sort_func);
+    @code{.py}
+code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
+any v = min(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -651,8 +651,8 @@ any min(list l, code f) [flags=RET_VALUE_ONLY] {
 /** This variant will only work on basic data types
 
     @par Example:
-    @code
-my any $v = min($v1, $v2, $v3);
+    @code{.py}
+any v = min(v1, v2, v3);
     @endcode
 
     @param ... the list of values to process given directly to the function
@@ -669,8 +669,8 @@ any min(...) [flags=CONSTANT] {
 /** This variant will only work on basic data types
 
     @par Example:
-    @code
-my any $v = max($l);
+    @code{.py}
+any v = max(l);
     @endcode
 
     @param l the list to process
@@ -686,8 +686,8 @@ any max(list l) [flags=CONSTANT] {
 //! Returns the maximum value in a list; accepts the name of a function to use to compare complex data types or to give a special sort order
 /**
     @par Example:
-    @code
-my any $v = max($l, "my_sort_function");
+    @code{.py}
+any v = max(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
@@ -705,9 +705,9 @@ any max(list l, string func) [flags=RET_VALUE_ONLY] {
 //! Returns the maximum value in a list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to compare complex data types or to give a special sort order
 /**
     @par Example:
-    @code
-my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
-my any $v = max($l, $sort_func);
+    @code{.py}
+code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
+any v = max(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -725,8 +725,8 @@ any max(list l, code f) [flags=RET_VALUE_ONLY] {
 /** This variant will only work on basic data types
 
     @par Example:
-    @code
-my any $v = max($v1, $v2, $v3);
+    @code{.py}
+any v = max(v1, v2, v3);
     @endcode
 
     @param ... the list of values to process given directly to the function
@@ -748,8 +748,8 @@ nothing reverse() [flags=NOOP] {
 //! Reverses a list and returns the new list
 /**
     @par Example:
-    @code
-my list $nl = reverse($l);
+    @code{.py}
+list nl = reverse(l);
     @endcode
 
     @param l the list to reverse
@@ -779,9 +779,9 @@ bool inlist(any[doc] arg, nothing[doc] x) [flags=NOOP] {
 //! Returns @ref True if the first argument is a member of the second argument list using soft comparisons (with implicit type conversions), @ref False if not
 /**
     @par Example:
-    @code
-if (inlist($str, $strlist))
-    printf("%y is in %y\n", $str, $strlist);
+    @code{.py}
+if (inlist(str, strlist))
+    printf("%y is in %y\n", str, strlist);
     @endcode
 
     @param arg the argument to look for in the list
@@ -812,9 +812,9 @@ bool inlist_hard(any[doc] arg, nothing[doc] x) [flags=NOOP] {
 //! Returns @ref True if the first argument is a member of the second argument list using hard comparisons (without any implicit type conversions), @ref False if not
 /**
     @par Example:
-    @code
-if (inlist_hard($str, $strlist))
-    printf("%y is in %y\n", $str, $strlist);
+    @code{.py}
+if (inlist_hard(str, strlist))
+    printf("%y is in %y\n", str, strlist);
     @endcode
 
     @param arg the argument to look for in the list
@@ -853,7 +853,7 @@ bool inlist_hard(any arg, softlist l) [flags=RET_VALUE_ONLY] {
 //! Returns a list containing an arithmetic progression of integers.
 /**
     @par Example:
-    @code
+    @code{.py}
 range(2, 5); # (2, 3, 4, 5)
 range(2, -2); # (2, 1, 0, -1, -2)
 range(1, 10, 5); # (1, 6)
@@ -885,7 +885,7 @@ list range(int start, int stop, int step = 1) [flags=RET_VALUE_ONLY] {
     This is an overloaded version of range(int, int, int) meaning \c range(0, \c stop, 1)
 
     @par Example:
-    @code
+    @code{.py}
 range(1); # (0, 1)
 range(-3); # (0, -1, -2, -3)
     @endcode
