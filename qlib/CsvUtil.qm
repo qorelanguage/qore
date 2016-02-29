@@ -874,8 +874,8 @@ while (i.next()) {
                 "optimal-quotes": True,
                 );
 
-            # TODO/FIXME
-            string encoding = get_default_encoding();
+            # out (file) encoding
+            string encoding;
 
             # field separator
             string separator = ",";
@@ -916,6 +916,8 @@ while (i.next()) {
          */
         constructor(string n_errname, *hash n_opts) {
             errname = sprintf("CSV%sWRITER-ERROR", n_errname);
+
+            encoding = n_opts.encoding.typeCode() == NT_STRING ? n_opts.encoding : get_default_encoding();
 
             # set headers automatically from field names if not set
             if (n_opts.fields && !n_opts.headers)
