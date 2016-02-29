@@ -113,7 +113,7 @@ namespace Init {
 public namespace Util {
     #! compares complex versions by breaking down strings into component parts
     /** @par Example:
-        @code
+        @code{.py}
 int result = compare_version("2.11.1", "2.2");
         @endcode
 
@@ -163,7 +163,7 @@ int result = compare_version("2.11.1", "2.2");
 
     #! returns a platform-specific normalized path name (starting from /, eliminates \c ".", \c "..", and \c "//")
     /** @par Example:
-        @code
+        @code{.py}
 string dir = normalize_dir(dir);
         @endcode
 
@@ -186,14 +186,14 @@ string dir = normalize_dir(dir);
 
     #! returns a normalized UNIX path name (starting from /, eliminates \c ".", \c "..", and \c "//")
     /** @par Example:
-        @code
+        @code{.py}
 string dir = normalize_dir_unix(dir, "/var/tmp");
         @endcode
 
         For example, calling:
-        @code normalize_dir("../../test/.//dir"); @endcode
+        @code{.py} normalize_dir("../../test/.//dir"); @endcode
         from current directory \c "/opt/qorus/sub/dir" returns:
-        @code "/opt/qorus/test/dir" @endcode
+        @code{.py} "/opt/qorus/test/dir" @endcode
 
         @param dir the directory name to normalize
         @param cwd the current working directory
@@ -235,14 +235,14 @@ string dir = normalize_dir_unix(dir, "/var/tmp");
 
     #! returns a normalized Windows path name (eliminates \c ".", \c "..", and \c "//")
     /** @par Example:
-        @code
+        @code{.py}
 string dir = normalize_dir_windows(dir, "c:\\qore"));
         @endcode
 
         For example, calling:
-        @code normalize_dir("..\..\test\.\\dir"); @endcode
+        @code{.py} normalize_dir("..\..\test\.\\dir"); @endcode
         from current directory \c "c:\\lang\\qore\\prog1" returns:
-        @code "c:\\lang\\test\\dir" @endcode
+        @code{.py} "c:\\lang\\test\\dir" @endcode
 
         @param dir the directory name to normalize
         @param cwd the current working directory
@@ -284,7 +284,7 @@ string dir = normalize_dir_windows(dir, "c:\\qore"));
 
     #! returns @ref Qore::True "True" if the argument is an absolute path, @ref Qore::False "False" if not
     /** @par Example:
-        @code
+        @code{.py}
 bool abs = absolute_path(path);
         @endcode
 
@@ -302,7 +302,7 @@ bool abs = absolute_path(path);
 
     #! returns @ref Qore::True "True" if the argument is a UNIX absolute path, @ref Qore::False "False" if not
     /** @par Example:
-        @code
+        @code{.py}
 bool abs = absolute_path_unix(path);
         @endcode
 
@@ -320,7 +320,7 @@ bool abs = absolute_path_unix(path);
 
     #! returns @ref Qore::True "True" if the argument is a Windows absolute path, @ref Qore::False "False" if not
     /** @par Example:
-        @code
+        @code{.py}
 bool abs = absolute_path_windows(path);
         @endcode
 
@@ -493,7 +493,7 @@ bool abs = absolute_path_windows(path);
 
     #! function that returns a random string
     /** @par Example:
-        @code
+        @code{.py}
 string pass = get_random_string();
         @endcode
 
@@ -583,7 +583,7 @@ string pass = get_random_string();
 
     #! returns a string giving a user-friendly real storage size (ie based on 1KiB = 1024 bytes) in KiB, MiB, GiB, TiB, etc for the given byte size
     /** @par Example:
-        @code
+        @code{.py}
 string str = get_byte_size(n);
         @endcode
 
@@ -615,7 +615,7 @@ string str = get_byte_size(n);
 
     #! returns a string giving a user-friendly "marketing storage" size (ie based on 1KB = 1000 bytes) in KB, MB, GB, TB, etc for the given byte size
     /** @par Example:
-        @code
+        @code{.py}
 string str = get_marketing_byte_size(n);
         @endcode
 
@@ -648,7 +648,7 @@ string str = get_marketing_byte_size(n);
 
     #! checks whether given list has only uniq element
     /** @par Example:
-        @code
+        @code{.py}
         if (same((1, 1, 1)) {
             printf("only uniq element");
         };
@@ -673,7 +673,7 @@ string str = get_marketing_byte_size(n);
 
     #! list slice implementation
     /** @par Example:
-        @code
+        @code{.py}
         list_slice(("a", "b", "c", "d"), (1, 3)); # returns ("b", "d")
         @endcode
 
@@ -688,7 +688,7 @@ string str = get_marketing_byte_size(n);
 
     #! Returns a path for temporary files
     /** @par Example:
-        @code
+        @code{.py}
 string testfile = tmp_location() + '/test.txt';
 # some processing
 unlink(testfile);
@@ -727,7 +727,7 @@ unlink(testfile);
         @return a string left-padded to the specified length
 
         @par Example:
-        @code
+        @code{.py}
 string s = lpad ("123", 5); # returns "  123"
 string s = lpad ("ABC", 9, "-"); # returns "------ABC"
         @endcode
@@ -755,7 +755,7 @@ string s = lpad ("ABC", 9, "-"); # returns "------ABC"
         @return a string right-padded to the specified length
 
         @par Example:
-        @code
+        @code{.py}
 string s = rpad ("123", 5); # returns "123  "
 string s = rpad ("ABC", 9, "-"); # returns "ABC------"
         @endcode
@@ -776,7 +776,7 @@ string s = rpad ("ABC", 9, "-"); # returns "ABC------"
 
     #! Returns string with partially textual representation of ordinal integer value
     /** @par Example:
-        @code
+        @code{.py}
 printf ("%s grade", ordinal(1));
 # would print "1st grade"
         @endcode
@@ -808,7 +808,7 @@ printf ("%s grade", ordinal(1));
         @return a string representation of number plus noun
 
         @par Example:
-        @code
+        @code{.py}
 printf (plural(1, "beer"));
 # would print "1 beer"
 printf (plural(1, "lad", "y", "ies"));

@@ -81,7 +81,7 @@ module MailMessage {
     - @ref MailMessage::Attachment "Attachment": used for files attached to a @ref MailMessage::Message "Message"
 
     @par Example:
-    @code
+    @code{.py}
 #!/usr/bin/env qore
 
 %requires MailMessage
@@ -129,7 +129,7 @@ public namespace MailMessage {
 
     #! The %Message class holds the information for a single email %Message
     /** @par Example:
-        @code
+        @code{.py}
 my MailMessage::Message msg("The Sender <sender@email.com>", "My Subject");
 msg.setBody(body);
 msg.addTO("My Best Friend <you@friend.com>");
@@ -156,7 +156,7 @@ msg.addTO("My Best Friend <you@friend.com>");
         set with setHeader()
 
         For example, to set the messageid:
-        @code
+        @code{.py}
 m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 
         Other useful methods:
@@ -1102,7 +1102,7 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
         - the encoding type for the attachment
 
         @par Example:
-        @code
+        @code{.py}
 File f();
 f.open2("file.jpg");
 Attachment att("file.jpg", MimeTypeJpeg, f.readBinary(-1));

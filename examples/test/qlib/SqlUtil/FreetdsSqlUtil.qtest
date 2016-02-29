@@ -36,6 +36,7 @@ class FreetdsTestSchema inherits SqlUtilTestSchema {
         const T_SqlUtilTest = (
             "columns": (
                 "id": c_number(14, True),
+                "id_": c_number(14, True),
             ),
             "primary_key": ("name": "pk_sqlutil_test", "columns": ("id")),
             );
@@ -45,7 +46,7 @@ class FreetdsTestSchema inherits SqlUtilTestSchema {
             );
     }
 
-    constructor(AbstractDatasource ds, *string dts, *string its) :  SqlUtilTestSchema(ds, dts, its) {
+    constructor(AbstractDatasource ds, *string dts, *string its) : SqlUtilTestSchema(ds, dts, its) {
     }
 
     private string getNameImpl() {
@@ -116,7 +117,7 @@ class FreetdsTest inherits SqlTestBase {
             "date": ("value": 2015-01-01, "expect": "2015-01-01"),
 
             # freetds returns time values as CS_CHAR, so direct comparison would fail
-            "time": ("value": 12:45, "expect": "12:45"),
+            "time": ("value": 12:45, "expect": "12:45:00.0000000"),
 
             "datetime": 2015-01-01T12:45:00.450,
             "smalldatetime": 2015-01-01T12:45,

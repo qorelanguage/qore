@@ -643,8 +643,8 @@ const BZ2_DEFAULT_COMPRESSION = BZ2_DEFAULT_COMPRESSION;
     @return a binary object of the compressed data
 
     @par Example:
-    @code
-my binary $bin = compress($str_data);
+    @code{.py}
+binary bin = compress(str_data);
     @endcode
 
     @throw ZLIB-LEVEL-ERROR level must be between 1 - 9 or -1
@@ -669,8 +669,8 @@ binary compress(string str, int level = Z_DEFAULT_COMPRESSION) {
     @return a binary object of the compressed data
 
     @par Example:
-    @code
-my binary $bin = compress($bin_data);
+    @code{.py}
+binary bin = compress(bin_data);
     @endcode
 
     @throw ZLIB-LEVEL-ERROR level must be between 1 - 9 or -1
@@ -700,8 +700,8 @@ nothing compress() [flags=RUNTIME_NOOP] {
     @return the uncompressed data as a string
 
     @par Example:
-    @code
-my string $str = uncompress_to_string($bin, "iso-8859-1");
+    @code{.py}
+string str = uncompress_to_string(bin, "iso-8859-1");
     @endcode
 
     @throw ZLIB-ERROR The zlib library returned an error during processing (possibly due to corrupt input data)
@@ -723,8 +723,8 @@ nothing uncompress_to_string() [flags=RUNTIME_NOOP] {
     @return a binary object of the decompressed data
 
     @par Example:
-    @code
-my binary $bin = uncompress_to_binary($data);
+    @code{.py}
+binary bin = uncompress_to_binary(data);
     @endcode
 
     @throw ZLIB-ERROR The zlib library returned an error during processing (possibly due to corrupt input data)
@@ -748,8 +748,8 @@ nothing uncompress_to_binary() [flags=RUNTIME_NOOP] {
     @return the compressed data as a binary object
 
     @par Example:
-    @code
-my binary $data = gzip($str);
+    @code{.py}
+binary data = gzip(str);
     @endcode
 
     @throw ZLIB-LEVEL-ERROR level must be between 1 - 9 or -1
@@ -773,8 +773,8 @@ binary gzip(string str, int level = Z_DEFAULT_COMPRESSION) {
     @return the compressed data as a binary object
 
     @par Example:
-    @code
-my binary $data = gzip($bin);
+    @code{.py}
+binary data = gzip(bin);
     @endcode
 
     @throw ZLIB-LEVEL-ERROR level must be between 1 - 9 or -1
@@ -803,8 +803,8 @@ nothing gzip() [flags=RUNTIME_NOOP] {
     @return the uncompressed data as a string
 
     @par Example:
-    @code
-my string $str = gunzip_to_string($bin, "iso-8859-1");
+    @code{.py}
+string str = gunzip_to_string(bin, "iso-8859-1");
     @endcode
 
     @throw ZLIB-ERROR The zlib library returned an error during processing (possibly due to corrupt input data)
@@ -826,8 +826,8 @@ nothing gunzip_to_string() [flags=RUNTIME_NOOP] {
     @return the uncompressed data as a binary object
 
     @par Example:
-    @code
-my binary $bin = gunzip_to_binary($data);
+    @code{.py}
+binary bin = gunzip_to_binary(data);
     @endcode
 
     @throw ZLIB-ERROR The zlib library returned an error during processing (possibly due to corrupt input data)
@@ -849,8 +849,8 @@ nothing gunzip_to_binary() [flags=RUNTIME_NOOP] {
     @return the compressed data as a binary object
 
     @par Example:
-    @code
-my binary $bin = bzip2($data);
+    @code{.py}
+binary bin = bzip2(data);
     @endcode
 
     @throw BZLIB2-LEVEL-ERROR level must be between 1 - 9
@@ -872,8 +872,8 @@ binary bzip2(binary bin, softint level = BZ2_DEFAULT_COMPRESSION) {
     @return the compressed data as a binary object
 
     @par Example:
-    @code
-my binary $bin = bzip2($str);
+    @code{.py}
+binary bin = bzip2(str);
     @endcode
 
     @throw BZLIB2-LEVEL-ERROR level must be between 1 - 9
@@ -898,8 +898,8 @@ nothing bzip2() [flags=RUNTIME_NOOP] {
     @return the uncompressed data as a binary object
 
     @par Example:
-    @code
-my binary $bin = bunzip2_to_binary($bzip2_string);
+    @code{.py}
+binary bin = bunzip2_to_binary(bzip2_string);
     @endcode
 
     @throw BZIP2-DECOMPRESS-ERROR the bzip2 library returned an internal error during processing (possibly due to corrupt input data)
@@ -921,8 +921,8 @@ nothing bunzip2_to_binary() [flags=RUNTIME_NOOP] {
     @return the uncompressed data as a string
 
     @par Example:
-    @code
-my string $str = bunzip2_to_string($bzip2_string, "iso-8859-1");
+    @code{.py}
+string str = bunzip2_to_string(bzip2_string, "iso-8859-1");
     @endcode
 
     @throw BZIP2-DECOMPRESS-ERROR the bzip2 library returned an internal error during processing (possibly due to corrupt input data)

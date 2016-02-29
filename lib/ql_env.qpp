@@ -46,8 +46,8 @@
     @return the value of an environment variable or @ref nothing if the variable is not set
 
     @par Example:
-    @code
-my *string $v = getenv("PATH");
+    @code{.py}
+*string v = getenv("PATH");
     @endcode
 
     @since %Qore 0.8.4 tagged with PO_NO_EXTERNAL_INFO
@@ -70,7 +70,7 @@ nothing getenv() [flags=NOOP;dom=EXTERNAL_INFO] {
     @return -1 for error or 0 for success; if an error occurs, errno() and/or strerror() can be used to get the error code or message
 
     @par Example:
-    @code
+    @code{.py}
 if (setenv("PATH", "/bin:/usr/bin"))
     printf("error setting PATH: %s\n", strerror());
     @endcode
@@ -96,7 +96,7 @@ nothing setenv() [flags=NOOP;dom=PROCESS] {
     @return -1 for error or 0 for success; if an error occurs, errno() and/or strerror() can be used to get the error code or message
 
     @par Example:
-    @code
+    @code{.py}
 if (unsetenv("PATH"))
     printf("error unsetting PATH: %s\n", strerror());
     @endcode

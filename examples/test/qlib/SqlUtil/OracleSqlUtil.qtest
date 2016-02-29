@@ -15,7 +15,6 @@
 
 %requires ./SqlUtilTestBase.qm
 #/;
-
 %try-module oracle
 %define NoOracle
 %endtry
@@ -40,9 +39,7 @@ class OracleTestSchema inherits SqlUtilTestSchema {
         const T_OracleTest = (
             "columns": (
                 "id": c_number(14, True),
-            ),
-            "indexes": (
-                "pk_freetds_test": ("columns": ("id"), "unique": True),
+                "id_": c_number(14, True),
             ),
             "primary_key": ("name": "pk_oracle_test", "columns": ("id")),
             );
@@ -52,7 +49,7 @@ class OracleTestSchema inherits SqlUtilTestSchema {
             );
     }
 
-    constructor(AbstractDatasource ds, *string dts, *string its) :  SqlUtilTestSchema(ds, dts, its) {
+    constructor(AbstractDatasource ds, *string dts, *string its) : SqlUtilTestSchema(ds, dts, its) {
     }
 
     private string getNameImpl() {

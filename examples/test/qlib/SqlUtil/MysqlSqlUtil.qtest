@@ -20,7 +20,7 @@
 
 %exec-class MysqlTest
 
-class MysqlTestSchema inherits AbstractSchema {
+class MysqlTestSchema inherits SqlUtilTestSchema {
     public {
         const SchemaName = "MysqlTestSchema";
         const SchemaVersion = "1.0";
@@ -38,6 +38,7 @@ class MysqlTestSchema inherits AbstractSchema {
         const T_MysqlTest = (
             "columns": (
                 "id": c_number(14, True),
+                "id_": c_number(14, True),
             ),
             "primary_key": ("name": "pk_mysql_test", "columns": ("id")),
             );
@@ -47,7 +48,7 @@ class MysqlTestSchema inherits AbstractSchema {
             );
     }
 
-    constructor(AbstractDatasource ds, *string dts, *string its) :  AbstractSchema(ds, dts, its) {
+    constructor(AbstractDatasource ds, *string dts, *string its) : SqlUtilTestSchema(ds, dts, its) {
     }
 
     private string getNameImpl() {
@@ -68,7 +69,7 @@ class MysqlTestSchema inherits AbstractSchema {
                 );
             if (h.value.typeCode() == NT_HASH)
                 ch += (h.value - ("value", "bind", "expect"));
-            tables.mysql_test.columns{MysqlTest::getColumnName(h.key)} = ch;
+            tables.mysql_test.columns{SqlTestBase::getColumnName(h.key)} = ch;
         }
         return tables;
     }
@@ -83,18 +84,6 @@ class MysqlTestSchema inherits AbstractSchema {
 
     private *hash getColumnOptionsImpl() {
         return ColumnOptions;
-    }
-
-    log(string fmt) {
-        delete argv;
-    }
-
-    logpf(string fmt) {
-        delete argv;
-    }
-
-    logProgress(string fmt) {
-        delete argv;
     }
 }
 
@@ -127,15 +116,16 @@ class MysqlTest inherits SqlTestBase {
             "datetime": 2016-01-11T09:26:14,
             "timestamp": 2016-01-11T09:27:59,
             "time": 09:26:52,
-            "year": 2016,
+            "year": 2016, # XXX: this is likely just an integer
 
-            "binary": <bead>,
-            /*
+            "binary": (
+                "value": <bead>,
+                "size": 2, # must be 2 as default is 1
+            ),
             "varbinary": (
                 "value": <bead>,
-                "size": "20",
+                "size": 10,
             ),
-            */
 
             "tinyblob": <bead>,
             "blob": <bead>,
@@ -146,7 +136,7 @@ class MysqlTest inherits SqlTestBase {
             "mediumtext": "test",
             "longtext": "test",
 
-            "bit": 100,
+            #"bit": 100,
             );
     }
 

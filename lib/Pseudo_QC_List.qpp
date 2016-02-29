@@ -47,10 +47,10 @@ qclass <list> [arg=const QoreListNode* l = v.get<const QoreListNode>();vparent=<
     @return Qore::NT_LIST
 
     @par Example:
-    @code
-switch ($l.typeCode()) {
+    @code{.py}
+switch (l.typeCode()) {
     case NT_LIST:
-        printf("%y: is a list\n", $l);
+        printf("%y: is a list\n", l);
         break;
 }
     @endcode
@@ -64,8 +64,8 @@ int <list>::typeCode() [flags=CONSTANT] {
     @return the number of elements in the list
 
     @par Example:
-    @code
-my int $len = $l.size();
+    @code{.py}
+int len = l.size();
     @endcode
 
     @see <list>::sizep()
@@ -80,8 +80,8 @@ int <list>::size() [flags=CONSTANT] {
     @return @ref True if the list is empty (size = 0), @ref False if not
 
     @par Example:
-    @code
-my bool $b = $l.empty();
+    @code{.py}
+bool b = l.empty();
     @endcode
 */
 bool <list>::empty() [flags=CONSTANT] {
@@ -94,8 +94,8 @@ bool <list>::empty() [flags=CONSTANT] {
     @return @ref False if the list is empty (size = 0), @ref True if not
 
     @par Example:
-    @code
-my bool $b = $l.val();
+    @code{.py}
+bool b = l.val();
     @endcode
 
     @see
@@ -110,8 +110,8 @@ bool <list>::val() [flags=CONSTANT] {
 /** @return the first entry in the list
 
     @par Example:
-    @code
-my any $e = $l.first();
+    @code{.py}
+any e = l.first();
     @endcode
 
     @see <list>::last()
@@ -126,8 +126,8 @@ any <list>::first() [flags=CONSTANT] {
 /** @return the last entry in the list
 
     @par Example:
-    @code
-my any $e = $l.last();
+    @code{.py}
+any e = l.last();
     @endcode
 
     @see <list>::first()
@@ -146,8 +146,8 @@ any <list>::last() [flags=CONSTANT] {
     @return a string created from a list and a separator string, each element in the list will be present in the return value separated by the separator string; the string returned with have the same @ref character_encoding "character encoding" as \a str
 
     @par Example:
-    @code
-my string $str = ("a", "b", "c").join(":"); # returns "a:b:c"
+    @code{.py}
+string str = ("a", "b", "c").join(":"); # returns "a:b:c"
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -166,10 +166,10 @@ string <list>::join(string str) [flags=RET_VALUE_ONLY] {
     @return the number of elements in the list
 
     @par Example:
-    @code
-printf("iterating %d element%s\n", $val.lsize(), $val.lsize() == 1 ? "" : "s");
-foreach my any $element in ($val) {
-    do_something($element);
+    @code{.py}
+printf("iterating %d element%s\n", val.lsize(), val.lsize() == 1 ? "" : "s");
+foreach any element in (val) {
+    do_something(element);
 }
     @endcode
 */
@@ -186,9 +186,9 @@ int <list>::lsize() [flags=CONSTANT] {
     @return @ref True if the list contains arg, @ref False if it does not
 
     @par Example:
-    @code
-my list $l = (1, 2, 3);
-my bool $b = $l.contains(5); # returns False
+    @code{.py}
+list l = (1, 2, 3);
+bool b = l.contains(5); # returns False
     @endcode
 */
 bool <list>::contains(any arg) [flags=RET_VALUE_ONLY] {
@@ -199,8 +199,8 @@ bool <list>::contains(any arg) [flags=RET_VALUE_ONLY] {
 /** @return a @ref Qore::ListIterator "ListIterator" object for the list
 
     @par Example:
-    @code
-map printf("+ %y\n", $1), $l.iterator();
+    @code{.py}
+map printf("+ %y\n", $1), l.iterator();
     @endcode
 
     @since %Qore 0.8.6
@@ -211,8 +211,8 @@ AbstractIterator <list>::iterator() [flags=CONSTANT] {
 
 //! Returns a @ref Qore::RangeIterator "RangeIterator" object for the list elements
 /** @par Example:
-    @code
-map printf("+ %y\n", $1), $l.ranegIterator();
+    @code{.py}
+map printf("+ %y\n", $1), l.ranegIterator();
     @endcode
 
     @param val an optional value to be returned instead of the default integer value

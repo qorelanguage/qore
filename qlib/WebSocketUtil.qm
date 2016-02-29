@@ -212,7 +212,7 @@ public namespace WebSocketUtil {
 
     #! read and decode a message from a socket
     /** @par Example:
-        @code
+        @code{.py}
 hash h = ws_read_message(sock);
         @endcode
 

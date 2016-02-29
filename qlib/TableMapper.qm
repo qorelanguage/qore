@@ -64,7 +64,7 @@ module TableMapper {
     @section tablemapperexamples TableMapper Examples
 
     The following is an example map hash with comments:
-    @code
+    @code{.py}
 const DataMap = (
     # output column: "id" mapper from the "Id" element of any "^attributes^" hash in the input record
     "id": "^attributes^.Id",
@@ -82,7 +82,7 @@ const DataMap = (
     @endcode
 
     If this map is applied in the following way:
-    @code
+    @code{.py}
 Table table(ds, "order_table");
 InboundTableMapper map1(table, DataMap);
 {
@@ -100,7 +100,7 @@ printf("%d record%s inserted\n", map.getCount(), map.getCount() == 1 ? "" : "s")
     This is an example for TableMapper::SqlStatementOutboundMapper. It selects data
     from the \c ORDER_DATE and it transforms rows regarding mapping used.
 
-    @code
+    @code{.py}
 # SqlUtil Table object
 Table table(ds, "order_table");
 # mapping definition
@@ -160,7 +160,7 @@ while (*hash h = m.getData()) {
     @subsection tablemapper_bulk_insert_api_examples InboundTableMapper Bulk Insert API Examples
 
     Consider the following example:
-    @code
+    @code{.py}
 # table1 and table2 must use the same @ref Qore::SQL::Datasource "Datasource" or @ref Qore::SQL::DatasourcePool "DatasourcePool" to participate in the same transaction
 TableMapper::InboundTableMapper map1(table1, maph1);
 TableMapper::InboundTableMapper map2(table2, maph2);
@@ -274,7 +274,7 @@ public namespace TableMapper {
         /** The target table is also scanned using @ref sqlutilintro "SqlUtil" and column definitions are used to update the target record specification, also if there are any columns with NOT NULL constraints and no default value, mapping, or constant value, then a MAP-ERROR exception is thrown
 
             @par Example:
-            @code
+            @code{.py}
 const DbMapper = (
     "id": ("sequence": "seq_inventory_example"),
     "store_code": "StoreCode",
@@ -310,7 +310,7 @@ InboundTableMapper mapper(table, DbMapper);
         /** The target table is also scanned using @ref sqlutilintro "SqlUtil" and column definitions are used to update the target record specification, also if there are any columns with NOT NULL constraints and no default value, mapping, or constant value, then a MAP-ERROR exception is thrown
 
             @par Example:
-            @code
+            @code{.py}
 const DbMapper = (
     "id": ("sequence": "seq_inventory_example"),
     "store_code": "StoreCode",
@@ -524,12 +524,12 @@ InboundTableMapper mapper(table, DbMapper);
             *hash rh;
 
             if (unstable_input || (insert_block == 1))
-                rh = table.insertNoCommit(h, ("returning": ret_args));
+                rh = table.insert(h, ("returning": ret_args));
             else {
                 # when executing for the first time on stable input data, get an SQLStatement for the SQL used to insert
                 if (!stmt) {
                     string sql;
-                    rh = table.insertNoCommit(h, \sql, ("returning": ret_args));
+                    rh = table.insert(h, \sql, ("returning": ret_args));
                     stmt = new SQLStatement(table.getDatasource());
                     stmt.prepare(sql);
                 }
@@ -554,7 +554,7 @@ InboundTableMapper mapper(table, DbMapper);
 
         #! sets a @ref closure "closure" or @ref call_reference "call reference" that will be called when data has been sent to the database and all output data is available; must accept a hash argument that represents the data written to the database including any output arguments. This code will be reset, once the transaction is commited.
         /** @par Example:
-            @code
+            @code{.py}
 code rowcode = sub (hash row) {
     # process row data
 };
@@ -571,7 +571,7 @@ table_mapper.setRowCode(rowcode);
 
         #! inserts a row (or a set of rows, in case a hash of lists is passed) into the block buffer based on a mapped input record; the block buffer is flushed to the DB if the buffer size reaches the limit defined by the \c "insert_block" option; does not commit the transaction
         /** @par Example:
-            @code
+            @code{.py}
 on_success table_mapper.commit();
 on_error table_mapper.rollback();
 {
@@ -661,7 +661,7 @@ on_error table_mapper.rollback();
 
         #! flushes any remaining batched data to the database; this method should always be called before committing the transaction or destroying the object
         /** @par Example:
-            @code
+            @code{.py}
 on_success table_mapper.commit();
 on_error table_mapper.rollback();
 {
@@ -691,7 +691,7 @@ on_error table_mapper.rollback();
 
         #! discards any buffered batched data; this method should be called after using the batch APIs (queueData()) and an error occurs
         /** @par Example:
-            @code
+            @code{.py}
 on_success table_mapper.commit();
 on_error table_mapper.rollback();
 {
@@ -731,7 +731,7 @@ on_error table_mapper.rollback();
                     if (ret_args && hbuf{ret_args[0]}.typeCode() == NT_LIST)
                         map hbuf.$1 = hbuf.$1[0], ret_args;
                     out_args = map Type::Number, ret_args.iterator();
-                    rh = table.insertNoCommit(hbuf, \sql, ("returning": ret_args));
+                    rh = table.insert(hbuf, \sql, ("returning": ret_args));
                     # create the statement for future inserts
                     stmt = new SQLStatement(table.getDatasource());
                     stmt.prepare(sql);
@@ -824,7 +824,7 @@ on_error table_mapper.rollback();
         /** The target table is also scanned using @ref sqlutilintro "SqlUtil" and column definitions are used to update the target record specification, also if there are any columns with NOT NULL constraints and no default value, mapping, or constant value, then a MAP-ERROR exception is thrown
 
             @par Example:
-            @code
+            @code{.py}
 const DbMapper = (
     "id": ("sequence": "seq_inventory_example"),
     );
@@ -847,7 +847,7 @@ InboundIdentityTableMapper mapper(table, DbMapper);
         /** The target table is also scanned using @ref sqlutilintro "SqlUtil" and column definitions are used to update the target record specification, also if there are any columns with NOT NULL constraints and no default value, mapping, or constant value, then a MAP-ERROR exception is thrown
 
             @par Example:
-            @code
+            @code{.py}
 const DbMapper = (
     "id": ("sequence": "seq_inventory_example"),
     );
@@ -904,7 +904,7 @@ InboundIdentityTableMapper mapper(table, DbMapper);
         /** The target table is also scanned using @ref sqlutilintro "SqlUtil" and column definitions are used to update the target record specification, also if there are any columns with NOT NULL constraints and no default value, mapping, or constant value, then a MAP-ERROR exception is thrown
 
             @par Example:
-            @code
+            @code{.py}
 const DbMapper = (
     "id": ("sequence": "seq_inventory_example"),
     "store_code": "StoreCode",
@@ -938,7 +938,7 @@ InboundTableMapperIterator i(input, table, DbMapper);
         /** The target table is also scanned using @ref sqlutilintro "SqlUtil" and column definitions are used to update the target record specification, also if there are any columns with NOT NULL constraints and no default value, mapping, or constant value, then a MAP-ERROR exception is thrown
 
             @par Example:
-            @code
+            @code{.py}
 const DbMapper = (
     "id": ("sequence": "seq_inventory_example"),
     "store_code": "StoreCode",
@@ -972,7 +972,7 @@ InboundTableMapperIterator i(input, table, DbMapper);
         /** The target table is also scanned using @ref sqlutilintro "SqlUtil" and column definitions are used to update the target record specification, also if there are any columns with NOT NULL constraints and no default value, mapping, or constant value, then a MAP-ERROR exception is thrown
 
             @par Example:
-            @code
+            @code{.py}
 const DbMapper = (
     "id": ("sequence": "seq_inventory_example"),
     "store_code": "StoreCode",
@@ -1014,7 +1014,7 @@ InboundTableMapperIterator i(input, mapper);
             bool rv = i.next();
 
             if (rv)
-                mapc.getTable().insertNoCommit(getValue());
+                mapc.getTable().insert(getValue());
 
             # commit transaction if necessary
             if (commit_limit && ((rv && (++cnt == commit_limit)) || (!rv && cnt))) {
@@ -1259,8 +1259,8 @@ InboundTableMapperIterator i(input, mapper);
             return input;
         }
 
-        #! Get SqlStatementMapperIterator for easy line-by-line processing
-        /** @return TableMapper::SqlStatementMapperIterator object
+        #! Get MapperIterator for easy line-by-line processing
+        /** @return Mapper::MapperIterator object
 
             Data are retrieved with standard Qore::AbstractIterator::getValue() or similar.
             Value is a hash with column names as keys.
@@ -1424,7 +1424,7 @@ InboundTableMapperIterator i(input, mapper);
             - \c "select_block": for size of the batch returned from TableMapper::AbstarctSqlStatementOutboundMapper::getData() or AbstarctSqlStatementOutboundMapper::getDataRows()
 
         @par Example
-        @code{.py}
+        @code{.py}{.py}
 %new-style
 %requires TableMapper
 

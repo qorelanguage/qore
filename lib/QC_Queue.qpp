@@ -45,7 +45,7 @@ qclass Queue [dom=THREAD_CLASS; arg=Queue *q; ns=Qore::Thread];
 
 //! Creates the Queue object
 /** @par Example:
-    <code>my Queue $queue();</code>
+    <code>Queue queue();</code>
 
     @param max the maximum size of the Queue; -1 means no limit; if 0 or a negative number other than -1 is passed then a \c QUEUE-SIZE-ERROR exception will be thrown
 
@@ -81,7 +81,7 @@ Queue::copy() {
 
 //! Pushes a value on the end of the queue
 /** @par Example:
-    <code>$queue.push($value);</code>
+    <code>queue.push(value);</code>
 
     @param arg value to be put on the queue
     @param timeout_ms a timeout value to wait for a free entry to become available on the queue; integers are interpreted as milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  Values <= 0 mean do not timeout.  If a non-zero timeout argument is passed, and no data is available in the timeout period, a \c "QUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until a slot becomes available on the queue.  Queue slots are only limited if a maximum size is passed to Queue::constructor().
@@ -100,7 +100,7 @@ nothing Queue::push(any arg, timeout timeout_ms = 0) {
 
 //! Inserts a value at the beginning of the queue
 /** @par Example:
-    <code>$queue.insert($value);</code>
+    <code>queue.insert(value);</code>
 
     @param arg value to be put on the queue
     @param timeout_ms a timeout value to wait for a free entry to become available on the queue; integers are interpreted as milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  Values <= 0 mean do not timeout.  If a non-zero timeout argument is passed, and no data is available in the timeout period, a \c "QUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until a slot becomes available on the queue.  Queue slots are only limited if a maximum size is passed to Queue::constructor().
@@ -119,7 +119,7 @@ nothing Queue::insert(any arg, timeout timeout_ms = 0) {
 
 //! Blocks until at least one entry is available on the queue, then returns the first entry in the queue. If a timeout occurs, an exception is thrown. If the timeout is less than or equal to zero, then the call does not timeout until data is available
 /** @par Example:
-    <code>my any $data = $queue.get();</code>
+    <code>any data = queue.get();</code>
 
     @param timeout_ms a timeout value to wait for data to become available on the queue; integers are interpreted as milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  Values <= 0 mean do not timeout.  If a non-zero timeout argument is passed, and no data is available in the timeout period, a \c "QUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue.
 
@@ -147,7 +147,7 @@ any Queue::get(timeout timeout_ms = 0) {
 
 //! Blocks until at least one entry is available on the queue, then returns the last entry in the queue. If a timeout occurs, an exception is thrown. If the timeout is less than or equal to zero, then the call does not timeout until data is available
 /** @par Example:
-    <code>my any $data = $queue.pop();</code>
+    <code>any data = queue.pop();</code>
 
     @param timeout_ms a timeout value to wait for data to become available on the queue; integers are interpreted as milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  Values <= 0 mean do not timeout.  If a non-zero timeout argument is passed, and no data is available in the timeout period, a \c "QUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue.
 
@@ -175,7 +175,7 @@ any Queue::pop(timeout timeout_ms = 0) {
 
 //! Clears the Queue of all data
 /** @par Example:
-    <code>$queue.clear();</code>
+    <code>queue.clear();</code>
 
     @note This method does not throw any exceptions, but exceptions could be thrown by in destructors of objects that go out of scope by being removed from the Queue
  */
@@ -185,7 +185,7 @@ nothing Queue::clear() {
 
 //! Returns the number of elements in the Queue
 /** @par Example:
-    <code>my int $size = $queue.size();</code>
+    <code>int size = queue.size();</code>
 
     @return the number of elements in the Queue
 
@@ -197,7 +197,7 @@ int Queue::size() [flags=CONSTANT] {
 
 //! Returns @ref Qore::True "True" if the Queue is empty, @ref Qore::False "False" if not
 /** @par Example:
-    <code>my bool $b = $queue.empty();</code>
+    <code>bool b = queue.empty();</code>
 
     @return @ref Qore::True "True" if the Queue is empty, @ref Qore::False "False" if not
 
@@ -211,7 +211,7 @@ bool Queue::empty() [flags=CONSTANT] {
 
 //! Returns the upper limit of the number of elements in the Queue
 /** @par Example:
-    <code>my int $max = $queue.max();</code>
+    <code>int max = queue.max();</code>
 
     @return the upper limit of the number of elements in the Queu
 
@@ -225,7 +225,7 @@ int Queue::max() [flags=CONSTANT] {
 /** This is a "synonym" for Queue::getReadWaiting()
 
     @par Example:
-    <code>my int $waiting = $queue.numWaiting();</code>
+    <code>int waiting = queue.numWaiting();</code>
 
     @return the number of threads currently blocked on this queue for reading
 
@@ -239,7 +239,7 @@ int Queue::getWaiting() [flags=CONSTANT] {
 /** This is a "synonym" for Queue::getWaiting()
 
     @par Example:
-    <code>my int $waiting = $queue.numReadWaiting();</code>
+    <code>int waiting = queue.numReadWaiting();</code>
 
     @return the number of threads currently blocked on this queue for reading
 
@@ -253,7 +253,7 @@ int Queue::getReadWaiting() [flags=CONSTANT] {
 
 //! Returns the number of threads currently blocked on this queue for writing
 /** @par Example:
-    <code>my int $waiting = $queue.getWriteWaiting();</code>
+    <code>int waiting = queue.getWriteWaiting();</code>
 
     @return the number of threads currently blocked on this queue for writing
 
@@ -267,7 +267,7 @@ int Queue::getWriteWaiting() [flags=CONSTANT] {
 
 //! sets an error status on the Queue and clears the Queue; while a Queue object has an error status, any write operations to the queue will fail and cause an exception to be raised with the information provided to this method
 /** @par Example:
-    @code $queue.setError("INVALID-OPERATION", "the data queue has been closed");
+    @code{.py} queue.setError("INVALID-OPERATION", "the data queue has been closed");
     @endcode
 
     @param err the exception error code string
@@ -287,7 +287,7 @@ Queue::setError(string err, string desc) {
 
 //! clears the error setting from the Queue; if error information is set, then after this call, the Queue is usable again
 /** @par Example:
-    @code $queue.clearError()
+    @code{.py} queue.clearError()
     @endcode
 
     @see setError()

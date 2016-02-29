@@ -1,0 +1,33 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class Test
+
+class Test inherits QUnit::Test {
+    constructor() : QUnit::Test("ns", "1.0") {
+        addTestCase("ns", \nsTests());
+
+        set_return_value(main());
+    }
+
+    nsTests() {
+        Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+        p.loadModule(get_script_dir() + "/T.qm");
+
+        string code = "namespace T { namespace T1 { namespace T2 { class X {} class X1 inherits X {} } }}";
+        list args = (code, "issue-538-1");
+        testNullAssertion("issue-538-1", \p.parse(), args);
+
+        code = "namespace T { namespace T1 { class X {} class X1 inherits X {} } }";
+        args = (code, "issue-538-2");
+        testNullAssertion("issue-538-2", \p.parse(), args);
+    }
+}
