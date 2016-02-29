@@ -594,9 +594,7 @@ public class QUnit::TestReporter {
         int succeeded = testCount() - errors() - skipped();
         string ssucceeded = sprintf(", %d succeeded", succeeded);
         string assert_str = sprintf(" (%d assertion%s", num_asserts, num_asserts == 1 ? "" : "s");
-        if (num_asserts != num_asserts_ok)
-            assert_str += sprintf(", %d succeeded", num_asserts_ok);
-        assert_str += ")";
+        assert_str += sprintf(", %d succeeded)", num_asserts_ok);
         int cnt = testCount();
         printf("Ran %d test case%s%s%s%s%s\n", cnt, cnt == 1 ? "" : "s", succeeded > 0 ? ssucceeded : "", errors() > 0 ? serrors : "", skipped() > 0 ? sskipped : "", assert_str);
     }
