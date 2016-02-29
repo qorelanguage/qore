@@ -58,12 +58,12 @@ public class SqlTestBase inherits QUnit::Test {
         addTestCase("Select", \selectTest());
         addTestCase("Column Operators", \columnOperatorTest());
         addTestCase("Where Operators", \whereOperatorTest());
+        addTestCase("Group By", \groupByTest());
+        addTestCase("Order By", \orderByTest());
         addTestCase("Update", \updateTest());
         addTestCase("Upsert", \upsertTest());
         addTestCase("BulkInsert", \bulkInsertTest());
         addTestCase("BulkUpsert", \bulkUpsertTest());
-        addTestCase("Group By", \groupByTest());
-        addTestCase("Order By", \orderByTest());
     }
 
     globalTearDown() {
