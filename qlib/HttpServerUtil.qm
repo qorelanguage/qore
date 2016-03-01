@@ -267,11 +267,13 @@ public namespace HttpServer {
         # however we support both
         string sep = path.find(";") == -1 ? "&" : ";";
         foreach any arg in (split(sep, path)) {
-            (*string key, *string value) = (arg =~ x/([^=]+)=(.*)$/);
-            if (!exists value)
-                value = True;
-
-            h.params{key} = value;
+            if (arg.val()) {
+                (*string key, *string value) = (arg =~ x/([^=]+)=(.*)$/);
+                if (key)
+                    h.params{key} = value;
+                else
+                    h.params{arg} = True;
+            }
         }
         return h;
     }
