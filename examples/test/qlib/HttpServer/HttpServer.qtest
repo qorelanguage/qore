@@ -8,6 +8,7 @@
 
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/HttpServerUtil.qm
 %requires ../../../../qlib/HttpServer.qm
 
 %exec-class HttpServerTest
