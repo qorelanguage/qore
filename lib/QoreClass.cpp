@@ -4247,7 +4247,7 @@ void QoreMemberInfo::parseInit(const char* name, bool priv) {
       exp = exp->parseInit(0, 0, lvids, argTypeInfo);
       if (lvids) {
 	 parse_error(loc, "illegal local variable declaration in member initialization expression");
-	 while (lvids)
+	 while (lvids--)
 	    pop_local_var();
       }
       // throw a type exception only if parse exceptions are enabled
