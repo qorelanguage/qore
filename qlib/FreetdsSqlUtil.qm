@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file FreetdsSqlUtil.qm Qore user module for working with PostgreSQL SQL data
 
-/*  FreetdsSqlUtil.qm Copyright (C) 2015 Qore Technologies, sro
+/*  FreetdsSqlUtil.qm Copyright (C) 2015 - 2016 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -226,9 +226,8 @@ my list $l = $col.getAddColumnSql($t);
 
             @param t the SqlUtil::AbstractTable object to modify
          */
-        list getAddColumnSql(AbstractTable t) {
-            list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
-            return l;
+        softlist getAddColumnSql(AbstractTable t) {
+            return sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
         }
 
         #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
@@ -497,7 +496,7 @@ my any $v = $c.name;
 
         #! returns a string that can be used to create the view in the database
         string getCreateSql(*hash opt) {
-            # TODO/FIXME: more freetds options - what's allows in "opt"?
+            # TODO/FIXME: more freetds options - what's allowed in "opt"?
             return sprintf("create %s%sview %s as %s",
                            opt.replace ? "or replace " : "",
                            opt.temp ? "temp " : "",
@@ -613,21 +612,18 @@ my any $v = $c.name;
             string schema;
             parse_schema_name(name, \schema, \name);
 
-            *string view_definition = ds.selectRow("select object_definition(object_id(%v)) as view_definition", name).view_definition;
-            *string table_schema = schema;
-            if (!view_definition) {
-                *hash row = ds.selectRow("select * from information_schema.views where table_schema = %v and table_name = %v", schema, name);
-                if (!row)
-                    return;
-                view_definition = row.view_definition;
-                table_schema = row.table_schema;
-            }
+            # information_schema will return NULL if the view definition > 4000 chars, so we use system tables
+            *hash row = ds.selectRow("select smv.definition from sys.all_views v join sys.sql_modules smv on smv.object_id = v.object_id join sys.schemas s on s.schema_id = v.schema_id where s.name = %v and v.name = %v", schema, name);
 
-            # there are quite many ways how to get view definition in MS SQL Server...
-            if (!view_definition)
-                 throw "UNIMPLEMENTED", "Obtaining view definition from information_schema.views failed (view_definition is empty). Please report MS SQL Server version and view definition size.";
+            if (!row)
+                return;
 
-            return new FreetdsView(name, view_definition, table_schema);
+            if (!row.definition)
+                throw "VIEW-ERROR", sprintf("view %y exists but the current user does not have permission to read the view", name);
+
+            row.definition =~ s/create view .* as //ig;
+
+            return new FreetdsView(name, row.definition, schema);
         }
 
         private FreetdsFunction makeFunctionImpl(string name, string src, *hash opts) {
