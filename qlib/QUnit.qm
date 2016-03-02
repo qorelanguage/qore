@@ -594,9 +594,7 @@ public class QUnit::TestReporter {
         int succeeded = testCount() - errors() - skipped();
         string ssucceeded = sprintf(", %d succeeded", succeeded);
         string assert_str = sprintf(" (%d assertion%s", num_asserts, num_asserts == 1 ? "" : "s");
-        if (num_asserts != num_asserts_ok)
-            assert_str += sprintf(", %d succeeded", num_asserts_ok);
-        assert_str += ")";
+        assert_str += sprintf(", %d succeeded)", num_asserts_ok);
         int cnt = testCount();
         printf("Ran %d test case%s%s%s%s%s\n", cnt, cnt == 1 ? "" : "s", succeeded > 0 ? ssucceeded : "", errors() > 0 ? serrors : "", skipped() > 0 ? sskipped : "", assert_str);
     }
@@ -760,8 +758,17 @@ addTestCase(obj);
 
     #! Helper function for printing out human-readable comparison of two values.
     private string printUnexpectedData(any exp, any act, *bool neg, *bool soft_comparisons) {
-        string expected = sprintf("%N", exp);
-        string actual = neg ? "<identical>" : sprintf("%N", act);
+        string expected;
+        string actual;
+        # if values are "soft equal", then they must have different types, so we make the type differences explicit here
+        if (exp == act) {
+            expected = sprintf("(%s) %N", exp.type(), exp);
+            actual = neg ? "<identical>" : sprintf("(%s) %N", act.type(), act);
+        }
+        else {
+            expected = sprintf("%N", exp);
+            actual = neg ? "<identical>" : sprintf("%N", act);
+        }
         list expectedLines = expected.split("\n");
         list actualLines = actual.split("\n");
 
@@ -879,7 +886,7 @@ assertEqSoft("5", functionThatShouldReturnFive());
         @param name the name or description of the assertion
      */
     public assertEqSoft(any expected, any actual, *string name = NOTHING) {
-        *TestCase tc = get_thread_data("tc");
+        TestCase tc = getTestCase("assertEqSoft");
         # increment assertion count
         tc.incAssertions();
         ++num_asserts;
@@ -905,7 +912,7 @@ assertEq(5, functionThatShouldReturnFive());
         @param name the name or description of the assertion
      */
     public assertEq(any expected, any actual, *string name = NOTHING) {
-        *TestCase tc = get_thread_data("tc");
+        TestCase tc = getTestCase("assertEq");
         # increment assertion count
         tc.incAssertions();
         ++num_asserts;
@@ -958,9 +965,7 @@ assertThrows("DIVISION-BY-ZERO", "division by zero found in integer expression",
         @param args optional arguments to the code
      */
     public assertThrows(string expectedErr, *string expectedDesc, code theCode, *softlist args) {
-        *TestCase tc = get_thread_data("tc");
-        if (!tc)
-            throw "TEST-ERROR", sprintf("cannot test assertion while not executing a test case; testAssertion() can only be called in code executed in a test case (added with %s::addTestCase())", self.className());
+        TestCase tc = getTestCase("assertEqThrows");
         tc.incAssertions();
         ++num_asserts;
 
@@ -990,6 +995,14 @@ assertThrows("DIVISION-BY-ZERO", sub(int a) {print(5/a);}, 0);
      */
     public assertThrows(string expectedErr, code theCode, *softlist args) {
         assertThrows(expectedErr, NOTHING, theCode, args);
+    }
+
+    #! returns the current test case
+    TestCase getTestCase(string meth) {
+        *TestCase tc = get_thread_data("tc");
+        if (!tc)
+            throw "TEST-ERROR", sprintf("cannot test assertion while not executing a test case; %s() can only be called in code executed in a test case (added with %s::addTestCase())", meth, self.className());
+        return tc;
     }
 
     #! Fails the test anconditionally
@@ -1143,9 +1156,7 @@ fail("Unexpected code executed");
      * @return the result of the \a condition call, if the immediate value has any further use
      */
     public any testAssertion(string name, code condition, *softlist args, QUnit::AbstractTestResult expectedResult = new QUnit::TestResultSuccess()) {
-        *TestCase tc = get_thread_data("tc");
-        if (!tc)
-            throw "TEST-ERROR", sprintf("cannot test assertion %s while not executing a test case; testAssertion() can only be called in code executed in a test case (added with %s::addTestCase())", name, self.className());
+        TestCase tc = getTestCase("testAssertion");
         tc.incAssertions();
         ++num_asserts;
 
