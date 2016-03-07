@@ -850,6 +850,7 @@ while (i.next()) {
     |\c "encoding"|@ref string|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
     |\c "separator"|@ref string|the string separating the fields in the file (default: \c ",")
     |\c "quote"|@ref string|the field quote character (default: \c '\"')
+    |\c "quote_escape"|@ref string|the escape character(s) used for \c "quote" (default: \c '\\')
     |\c "eol"|@ref string|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
     |\c "fields"|@ref hash|describes the data to be output; see @ref abstractcsviterator_option_field_hash "option field hash" and @ref abstractcsviterator_option_field_types "option field types" for more information on the possible values of this option; if no field type is given, the default is \c "*string"
     |\c "headers"|@ref list of strings|list of header / column names for the data iterated
@@ -865,6 +866,7 @@ while (i.next()) {
                 "encoding": True,
                 "separator": True,
                 "quote": True,
+                "quote_escape": True,
                 "eol": True,
                 "verify-columns": True,
                 "fields": True,
@@ -882,6 +884,9 @@ while (i.next()) {
 
             # field content delimiter
             string quote = "\"";
+
+            # 'quote' escape character
+            string m_quoteEscapeChar = "\\";
 
             # end of line sequence
             string eol = EOL_UNIX;
@@ -940,6 +945,13 @@ while (i.next()) {
                         if (i.value.typeCode() != NT_STRING)
                             throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
                         quote = i.value;
+                        break;
+                    }
+                    case "quote_escape": {
+                        if (i.value.typeCode() != NT_STRING) {
+                            throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                        }
+                        m_quoteEscapeChar = i.value;
                         break;
                     }
                     case "eol": {
@@ -1192,7 +1204,7 @@ while (i.next()) {
                 # make full line template
                 string template = strmul(baseTemplate, elements values, 1) + eol;
                 # escape separators in strings
-                list row = map replace(string($1), quote, "\\" + quote), values;
+                list row = map replace(string($1), quote, m_quoteEscapeChar + quote), values;
 
                 return vsprintf(template, row);
             }
@@ -1201,7 +1213,7 @@ while (i.next()) {
             foreach any v in (values) {
                 if (v.typeCode() == NT_STRING) {
                     if (v.find(quote) >= 0) {
-                        v = replace(v, quote, "\\" + quote);
+                        v = replace(v, quote, m_quoteEscapeChar + quote);
                         v = sprintf("\"%s\"", v);
                     }
                     else if (v.find(separator) >= 0)

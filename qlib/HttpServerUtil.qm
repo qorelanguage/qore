@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file HttpServerUtil.qm HTTP server base code
 
-/*  HttpServerUtil.qm Copyright (C) 2014 - 2015 David Nichols
+/*  HttpServerUtil.qm Copyright (C) 2014 - 2016 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -74,6 +74,8 @@ module HttpServerUtil {
     - initial version of the module
     - implemented support for notifying persistent connections when the connection is terminated while a persistent connection is in place
     - removed unused AbstractStreamRequestHandler class
+    - fixed @ref HttpServer::parse_uri_query() to always return \a params as a hash (<a href="https://github.com/qorelanguage/qore/issues/569">issue 569</a>)
+    - added \c root_path to the context hash if the path was matched by a URL path prefix (<a href="https://github.com/qorelanguage/qore/issues/570">issue 570</a>)
  */
 
 #! the main namespace for the HttpServer and HttpServerUtil modules
@@ -241,7 +243,9 @@ public namespace HttpServer {
 
         @return a hash with the following keys:
         - \c method: (@ref string_type "string") the part of the path before the first \c "?" character or the entire path if no \c "?" character is present in the path
-        - \c params: (@ref hash_type "hash", assuming all values are key/value pairs like \c "key=value", otherwise it will be a @ref list_type "list") optional, only if a "?" character is present in the input; the part of the path after the first \c "?" character; arguments should be separated by ";" characters (according to a w3c recommendation: http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2), however this function supports both \c ";" and \c "&" as argument separators
+        - \c params: (@ref hash_type "hash") optional, only if a "?" character is present in the input; the part of the path after the first \c "?" character; arguments should be separated by ";" characters (according to a w3c recommendation: http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2), however this function supports both \c ";" and \c "&" as argument separators; if the arguments are not key=value, then each element without a value is assigned @ref True
+
+        @since 0.3.11 the \a params key value is always returned as a hash
     */
     public hash sub parse_uri_query(string path) {
         int i = path.find("?");
@@ -263,21 +267,14 @@ public namespace HttpServer {
         # however we support both
         string sep = path.find(";") == -1 ? "&" : ";";
         foreach any arg in (split(sep, path)) {
-            my (*string key, *string value) = (arg =~ x/([^=]+)=(.*)$/);
-            if (!exists value) {
-                h.params += arg;
-                continue;
+            if (arg.val()) {
+                (*string key, *string value) = (arg =~ x/([^=]+)=(.*)$/);
+                if (key)
+                    h.params{key} = value;
+                else
+                    h.params{arg} = True;
             }
-
-            hash ah{key} = value;
-            if (h.params.last().typeCode() != NT_HASH)
-                h.params += ah;
-            else
-                h.params[h.params.size() - 1] += ah;
         }
-        if (h.params.size() == 1 && h.params[0].typeCode() == NT_HASH)
-            h.params = h.params[0];
-
         return h;
     }
 
@@ -758,6 +755,7 @@ public class HttpServer::AbstractHttpRequestHandler {
         - \c id: the unique HTTP connection ID
         - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
         - \c user: the current RBAC username (if any)
+        - \c root_path: the root URL path matched if the request was matched by a URL prefix
         @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
         - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
         - \c path: the HTTP path given in the request, after processing by @ref Qore::decode_uri_request()
@@ -1033,6 +1031,7 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
         - \c id: the unique HTTP connection ID
         - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
         - \c user: the current RBAC username (if any)
+        - \c root_path: the root URL path matched if the request was matched by a URL prefix
         @param hdr a hash of headers in the request
         @param s the @ref Qore::Socket "Socket" object for the dedicated connection
      */
@@ -1090,6 +1089,7 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
         - \c id: the unique HTTP connection ID
         - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
         - \c user: the current RBAC username (if any)
+        - \c root_path: the root URL path matched if the request was matched by a URL prefix
         @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
         - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
         - \c path: the HTTP path given in the request, after processing by @ref Qore::decode_uri_request()
@@ -1120,6 +1120,7 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
         - \c id: the unique HTTP connection ID
         - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
         - \c user: the current RBAC username (if any)
+        - \c root_path: the root URL path matched if the request was matched by a URL prefix
         @param hdr a hash of headers in the request
         @param s the @ref Qore::Socket "Socket" object for the dedicated connection
      */

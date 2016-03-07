@@ -963,6 +963,9 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 	    return 0;
       }
 
+      if (!ans->is_unique())
+         ans = ans->copy();
+
       if (code >= 300 && code < 400) {
 	 disconnect_unlocked();
 
@@ -1051,7 +1054,6 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
       disconnect_unlocked();
       return 0;
    }
-   //ans->getKeyValue("content-type");
 
    // see if there is a character set specification in the content-type header
    if (v) {
@@ -1080,7 +1082,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 	 // set new encoding
 	 msock->socket->setEncoding(QEM.findCreate(&enc));
 	 // strip from content-type
-	 QoreStringNode* nc = new QoreStringNode();
+	 QoreStringNode* nc = new QoreStringNode;
 	 // skip any spaces before the charset=
 	 while (p != str && (*(p - 1) == ' ' || *(p - 1) == ';'))
 	    p--;
@@ -1095,7 +1097,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
       p = strchr(str, ';');
       if (p) {
 	 bool multipart = false;
-	 QoreListNode* l = new QoreListNode();
+	 QoreListNode* l = new QoreListNode;
 	 do {
 	    // skip whitespace
 	    while (*str == ' ') str++;
@@ -1215,8 +1217,15 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 	 }
 
 	 if (!recv_callback) {
-	    body = nah->takeKeyValue("body");
-	    ans->merge(*nah, xsink);
+            // merge all keys except the "body" key into ans
+            ConstHashIterator hi(*nah);
+            while (hi.next()) {
+               if (!strcmp(hi.getKey(), "body"))
+                  continue;
+               ans->setKeyValue(hi.getKey(), hi.getReferencedValue(), xsink);
+               if (*xsink)
+                  return 0;
+            }
 	 }
       }
       else if (getbody || len) {
@@ -1279,8 +1288,9 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 		|| msock->socket->priv->runHeaderCallback(xsink, mname, *recv_callback, 0, 0, send_aborted, obj))
 	       return 0;
 	 }
-	 else
+	 else {
 	    ans->setKeyValue("body", body, xsink);
+         }
       }
    }
 
