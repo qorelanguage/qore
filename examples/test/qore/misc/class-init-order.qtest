@@ -67,7 +67,7 @@ class C3 inherits Base2, Base3 {
 class Test inherits QUnit::Test {
     constructor() : QUnit::Test("class member initialization order", "1.0", \ARGV) {
         addTestCase("non-static members", \nonStaticMembers());
-#        addTestCase("static members", \staticMembers());
+        addTestCase("static members", \staticMembers());
         addTestCase("inherited members", \inheritedMembers());
         set_return_value(main());
     }

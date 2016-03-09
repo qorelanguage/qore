@@ -625,8 +625,8 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
       members.addNoCheck(strdup(i->first), i->second->copy(this));
 
    // copy static var list
-   for (var_map_t::const_iterator i = old.vars.begin(), e = old.vars.end(); i != e; ++i)
-      vars[strdup(i->first)] = i->second->copy();
+   for (QoreVarMap::DeclOrderIterator i = old.vars.beginDeclOrder(), e = old.vars.endDeclOrder(); i != e; ++i)
+      vars.addNoCheck(strdup(i->first), i->second->copy());
 }
 
 qore_class_private::~qore_class_private() {
@@ -692,7 +692,7 @@ static void do_sig(QoreString& csig, QoreMemberMap::SigOrderIterator i) {
 }
 
 // process signature entries for class static vars
-static void do_sig(QoreString& csig, var_map_t::iterator i) {
+static void do_sig(QoreString& csig, QoreVarMap::SigOrderIterator i) {
    if (i->second)
       csig.sprintf("%s var %s %s %s\n", privpub(i->second->priv), i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
    else
@@ -801,7 +801,7 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
 
    if (has_sig_changes) {
       // add committed vars to signature first before members
-      for (var_map_t::iterator i = vars.begin(), e = vars.end(); i != e; ++i) {
+      for (QoreVarMap::SigOrderIterator i = vars.beginSigOrder(), e = vars.endSigOrder(); i != e; ++i) {
 	 do_sig(csig, i);
       }
    }
@@ -810,7 +810,7 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
       VariableBlockHelper vbh;
 
       // initialize new static vars
-      for (var_map_t::iterator i = pending_vars.begin(), e = pending_vars.end(); i != e; ++i) {
+      for (QoreVarMap::SigOrderIterator i = pending_vars.beginSigOrder(), e = pending_vars.endSigOrder(); i != e; ++i) {
 	 if (has_sig_changes)
 	    do_sig(csig, i);
 	 if (i->second)
@@ -1144,12 +1144,12 @@ void qore_class_private::parseCommit() {
 
       if (has_sig_changes) {
 	 // add all committed static vars to signature
-	 for (var_map_t::iterator i = vars.begin(), e = vars.end(); i != e; ++i) {
+	 for (QoreVarMap::SigOrderIterator i = vars.beginSigOrder(), e = vars.endSigOrder(); i != e; ++i) {
 	    do_sig(csig, i);
 	 }
 	 // add all pending static vars to signature
 	 // pending static vars are committed in the "runtime init" step after this call
-	 for (var_map_t::iterator i = pending_vars.begin(), e = pending_vars.end(); i != e; ++i)
+	 for (QoreVarMap::SigOrderIterator i = pending_vars.beginSigOrder(), e = pending_vars.endSigOrder(); i != e; ++i)
 	    do_sig(csig, i);
 
 	 for (QoreMemberMap::SigOrderIterator i = members.beginSigOrder(), e = members.endSigOrder(); i != e; ++i)
@@ -1216,13 +1216,13 @@ void qore_class_private::parseCommit() {
 void qore_class_private::parseCommitRuntimeInit(ExceptionSink* xsink) {
    // add all pending static vars to real list and initialize them
    if (!pending_vars.empty()) {
-      for (var_map_t::iterator i = pending_vars.begin(), e = pending_vars.end(); i != e; ++i) {
-	 //printd(5, "QoreClass::parseCommitRuntimeInit() %s committing %s var %p %s\n", name.c_str(), privpub(i->second->priv), l->first, l->first);
-	 vars[i->first] = i->second;
-	 // initialize variable
-	 initVar(i->first, *(i->second), xsink);
+      for (QoreVarMap::DeclOrderIterator i = pending_vars.beginDeclOrder(), e = pending_vars.endDeclOrder(); i != e; ++i) {
+         //printd(5, "QoreClass::parseCommitRuntimeInit() %s committing %s var %p %s\n", name.c_str(), privpub(i->second->priv), l->first, l->first);
+         vars.addNoCheck(i->first, i->second);
+         // initialize variable
+         initVar(i->first, *(i->second), xsink);
       }
-      pending_vars.var_map_t::clear();
+      pending_vars.clearNoFree();
    }
 }
 
@@ -4313,6 +4313,26 @@ void QoreMemberMap::moveAllToPublic(QoreClass* qc) {
    }
    for (DeclOrderIterator i = beginDeclOrder(); i != endDeclOrder(); ++i) {
       qore_class_private::parseAddPublicMember(*qc, i->first, i->second);
+   }
+   map.clear();
+   list.clear();
+}
+
+void QoreVarMap::moveAllToPrivate(QoreClass* qc) {
+   for (DeclOrderIterator i = beginDeclOrder(); i != endDeclOrder(); ++i) {
+      qore_class_private::parseAddPrivateStaticVar(qc, i->first, i->second);
+   }
+   map.clear();
+   list.clear();
+}
+
+void QoreVarMap::moveAllToPublic(QoreClass* qc) {
+   if (empty()) {
+      qc->parseSetEmptyPublicMemberDeclaration();
+      return;
+   }
+   for (DeclOrderIterator i = beginDeclOrder(); i != endDeclOrder(); ++i) {
+      qore_class_private::parseAddPublicStaticVar(qc, i->first, i->second);
    }
    map.clear();
    list.clear();

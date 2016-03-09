@@ -1337,10 +1337,16 @@ private:
    member_list_t::size_type inheritedCount;
 };
 
-class QoreVarMap : public var_map_t {
+class QoreVarMap {
+public:
+   typedef std::pair<char *, QoreVarInfo*> list_element_t;
+   typedef std::vector<list_element_t> var_list_t;
+   typedef var_list_t::const_iterator DeclOrderIterator;
+   typedef var_map_t::const_iterator SigOrderIterator;
+
 public:
    DLLLOCAL ~QoreVarMap() {
-      for (var_map_t::iterator i = begin(), e = end(); i != e; ++i) {
+      for (var_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
          //printd(5, "QoreVarMap::~QoreVarMap() deleting static var %s\n", i->first);
          assert(i->second->empty());
          i->second->del();
@@ -1349,37 +1355,83 @@ public:
    }
 
    DLLLOCAL void clear(ExceptionSink* xsink) {
-      for (var_map_t::iterator i = begin(), e = end(); i != e; ++i) {
+      for (var_list_t::reverse_iterator i = list.rbegin(), e = list.rend(); i != e; ++i) {
          i->second->clear(xsink);
       }
    }
 
    DLLLOCAL void del(ExceptionSink* xsink) {
-      for (var_map_t::iterator i = begin(), e = end(); i != e; ++i) {
+      for (var_list_t::reverse_iterator i = list.rbegin(), e = list.rend(); i != e; ++i) {
          i->second->delVar(xsink);
          free(i->first);
          delete i->second;
       }
-      var_map_t::clear();
+      map.clear();
+      list.clear();
    }
 
    DLLLOCAL void del() {
-      for (var_map_t::iterator i = begin(), e = end(); i != e; ++i) {
+      for (var_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
          assert(!i->second->val.hasValue());
          free(i->first);
          delete i->second;
       }
-      var_map_t::clear();
+      map.clear();
+      list.clear();
    }
 
    DLLLOCAL bool inList(const char* name) const {
-      return var_map_t::find((char* )name) != end();
+      return map.find(const_cast<char*>(name)) != map.end();
    }
 
    DLLLOCAL QoreVarInfo* find(const char* name) const {
-      var_map_t::const_iterator i = var_map_t::find((char* )name);
-      return i == end() ? 0 : i->second;
+      var_map_t::const_iterator i = map.find(const_cast<char*>(name));
+      return i == map.end() ? 0 : i->second;
    }
+
+   DLLLOCAL void addNoCheck(char* name, QoreVarInfo* info) {
+      assert(name);
+      assert(info);
+      assert(!inList(name));
+      map[name] = info;
+      list.push_back(std::make_pair(name, info));
+   }
+
+   DLLLOCAL void addNoCheck(std::pair<char*, QoreVarInfo*> pair) {
+      addNoCheck(pair.first, pair.second);
+   }
+
+   DLLLOCAL bool empty() const {
+      return map.empty();
+   }
+
+   DLLLOCAL void clearNoFree() {
+      map.clear();
+      list.clear();
+   }
+
+   DLLLOCAL void moveAllToPrivate(QoreClass* qc);
+   DLLLOCAL void moveAllToPublic(QoreClass* qc);
+
+   DLLLOCAL DeclOrderIterator beginDeclOrder() const {
+      return list.begin();
+   }
+
+   DLLLOCAL DeclOrderIterator endDeclOrder() const {
+      return list.end();
+   }
+
+   DLLLOCAL SigOrderIterator beginSigOrder() const {
+      return map.begin();
+   }
+
+   DLLLOCAL SigOrderIterator endSigOrder() const {
+      return map.end();
+   }
+
+private:
+   var_list_t list;
+   var_map_t map;
 };
 
 /*
@@ -2126,9 +2178,9 @@ public:
    DLLLOCAL void parseAddPrivateStaticVar(char* dname, QoreVarInfo* VarInfo) {
       VarInfo->priv = true;
       if (!parseCheckVar(dname, VarInfo)) {
-	 //printd(5, "qore_class_private::parseAddPrivateStaticVar() this: %p %s adding %p %s\n", this, name.c_str(), mem, mem);
-	 pending_vars[dname] = VarInfo;
-	 return;
+         //printd(5, "qore_class_private::parseAddPrivateStaticVar() this: %p %s adding %p %s\n", this, name.c_str(), mem, mem);
+         pending_vars.addNoCheck(dname, VarInfo);
+         return;
       }
 
       free(dname);
@@ -2137,9 +2189,9 @@ public:
 
    DLLLOCAL void parseAddPublicStaticVar(char* dname, QoreVarInfo* VarInfo) {
       if (!parseCheckVar(dname, VarInfo)) {
-	 //printd(5, "QoreClass::parseAddPublicStaticVar() this: %p %s adding %p %s\n", this, name.c_str(), mem, mem);
-	 pending_vars[dname] = VarInfo;
-	 return;
+         //printd(5, "QoreClass::parseAddPublicStaticVar() this: %p %s adding %p %s\n", this, name.c_str(), mem, mem);
+         pending_vars.addNoCheck(dname, VarInfo);
+         return;
       }
 
       free(dname);
@@ -2158,7 +2210,7 @@ public:
    DLLLOCAL void addBuiltinStaticVar(const char* vname, AbstractQoreNode* value, bool priv = false, const QoreTypeInfo* vTypeInfo = 0) {
       assert(!vars.inList(vname));
 
-      vars[strdup(vname)] = new QoreVarInfo(0, 0, vTypeInfo, 0, value, priv);
+      vars.addNoCheck(strdup(vname), new QoreVarInfo(0, 0, vTypeInfo, 0, value, priv));
    }
 
    DLLLOCAL void parseAssimilatePublicConstants(ConstantList &cmap) {
