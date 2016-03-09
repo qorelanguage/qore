@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file TableMapper.qm provides mapping functionality to an SQL Table target
 
-/*  TableMapper.qm Copyright 2014 - 2015 Qore Technologies, sro
+/*  TableMapper.qm Copyright 2014 - 2016 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1088,8 +1088,7 @@ InboundTableMapperIterator i(input, mapper);
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
          */
         constructor(SqlUtil::AbstractTable table, hash sh, hash mapv, *hash opts)
-            : Mapper::AbstractMapperIterator(table.getRowIterator(sh))
-        {
+            : Mapper::AbstractMapperIterator(table.getRowIterator(sh)) {
             setup(mapv, opts);
         }
 
@@ -1102,8 +1101,7 @@ InboundTableMapperIterator i(input, mapper);
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
          */
         constructor(SqlUtil::Table table, hash sh, hash mapv, *hash opts)
-            : Mapper::AbstractMapperIterator(table.getRowIterator(sh))
-        {
+            : Mapper::AbstractMapperIterator(table.getRowIterator(sh)) {
             setup(mapv, opts);
         }
 
@@ -1113,8 +1111,7 @@ InboundTableMapperIterator i(input, mapper);
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
         */
         constructor(Qore::SQL::SQLStatement stmt, hash mapv, *hash opts)
-            : Mapper::AbstractMapperIterator(stmt)
-        {
+            : Mapper::AbstractMapperIterator(stmt) {
             setup(mapv, opts);
         }
 
@@ -1168,7 +1165,6 @@ InboundTableMapperIterator i(input, mapper);
 
             return map m_mapper.mapData($1), l;
         }
-
     } # class SqlStatementMapperIterator
 
     #! provides an abstract base for all SQL based outbound mappers
@@ -1176,12 +1172,12 @@ InboundTableMapperIterator i(input, mapper);
         public {
             #! option keys for this object
             const OptionKeys = Mapper::OptionKeys + (
-                    "select_block" : sprintf("the row block size used when bulk DML / batch inserts are used; default: %y", OptionDefaults.select_block),
+                "select_block" : sprintf("the row block size used when bulk DML / batch inserts are used; default: %y", OptionDefaults.select_block),
                 );
 
             #! default option values
             const OptionDefaults = (
-                    "select_block": 500,
+                "select_block": 500,
                 );
         }
 
@@ -1189,7 +1185,7 @@ InboundTableMapperIterator i(input, mapper);
             # internal SQLStatement
             SQLStatement m_stmt;
             # current options
-            *hash m_opts;
+            #*hash m_opts;
             # a select_block size. Taken from m_opts
             int select_block;
         }
@@ -1204,6 +1200,11 @@ InboundTableMapperIterator i(input, mapper);
             @throw MAP-ERROR
         */
         constructor(hash mapv, *hash opts) {
+            initStatement(opts);
+            opts.input = getInputRecord(m_stmt);
+
+            printf("opts: %N\n", opts);
+
             setup(mapv, opts);
             # check map for logical errors
             checkMap();
@@ -1211,13 +1212,10 @@ InboundTableMapperIterator i(input, mapper);
             # set options with defaults
             map self{$1.key} = opts{$1.key} ?* $1.value, OptionDefaults.pairIterator();
 
-            m_opts = opts;
+            #m_opts = opts;
 
             if (select_block < 1)
                 throw "MAP-ERROR", sprintf("the select_block option is set to %d; this value must be >= 1", select_block);
-
-            # moved to fetch methods because of potential Qorus runtime options
-            # m_stmt = m_table.getRowIterator(m_sh);
         }
 
         #! returns a list of valid constructor options for this class (can be overridden in subclasses)
@@ -1227,36 +1225,26 @@ InboundTableMapperIterator i(input, mapper);
             return OptionKeys;
         }
 
-        #! commits the transaction and free the AbstractDatasource resource
+        #! commits the transaction and frees the AbstractDatasource resource
         commit() {
-            if (!m_stmt)
-                initStatement();
             m_stmt.commit();
         }
 
-        #! rollbacks the transaction and free the AbstractDatasource resource
+        #! rolls the transaction back and frees the AbstractDatasource resource
         rollback() {
-            if (!m_stmt)
-                initStatement();
             m_stmt.rollback();
         }
 
         #! returns the @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object associated with this object
         abstract Qore::SQL::AbstractDatasource getDatasource();
 
-        #! re-implement to initialize Qore::SQLStatement
-        abstract private initStatement();
+        #! re-implement to initialize Qore::SQLStatement and initialize the input option
+        abstract private initStatement(*hash opts);
 
-        #! returns a description of the input record based on the @ref Qore::SQLStatement decribe()
-        *hash getInputRecord() {
-            if (!m_stmt)
-                initStatement();
-            HashIterator it(m_stmt.describe());
-            while (it.next()) {
-                hash c = it.getValue();
-                input{it.getKey().lwr()} = sprintf("%s: %s(%d)", c.name, c.native_type, c.maxsize);
-            }
-            return input;
+        #! returns a description of the input record based on the @ref Qore::SQLStatement decribe)(
+        static *hash getInputRecord(SQLStatement stmt) {
+            on_exit stmt.rollback();
+            return map {$1.key.lwr(): ("desc": sprintf("%s: %s%s", $1.value.name, $1.value.native_type, $1.value.maxsize ? sprintf("(%d)", $1.value.maxsize) : ""))}, stmt.describe().pairIterator();
         }
 
         #! Get MapperIterator for easy line-by-line processing
@@ -1266,8 +1254,6 @@ InboundTableMapperIterator i(input, mapper);
             Value is a hash with column names as keys.
          */
         Mapper::MapperIterator iterator() {
-            if (!m_stmt)
-                initStatement();
             return new MapperIterator(m_stmt, self);
         }
 
@@ -1282,9 +1268,6 @@ InboundTableMapperIterator i(input, mapper);
             operations.
          */
         *hash getData() {
-            if (!m_stmt)
-                initStatement();
-
             *list tmp = mapAll(m_stmt.fetchRows(select_block));
 
             if (tmp && tmp.size()) {
@@ -1317,18 +1300,13 @@ InboundTableMapperIterator i(input, mapper);
             hash values.
          */
         *list getDataRows() {
-            if (!m_stmt)
-                initStatement();
-
             return mapAll(m_stmt.fetchRows(select_block));
         }
 
     } # AbstractSqlStatementOutboundMapper
 
-
     #! provides an outbound data mapper to a Table with SqlUtil select hash as a asource
     public class SqlStatementOutboundMapper inherits AbstractSqlStatementOutboundMapper {
-
         private {
             # the target table object
             SqlUtil::AbstractTable m_table;
@@ -1348,10 +1326,7 @@ InboundTableMapperIterator i(input, mapper);
             @throw MAP-ERROR
         */
         constructor(SqlUtil::Table source, *hash sh, hash mapv, *hash opts)
-            : AbstractSqlStatementOutboundMapper(mapv, opts)
-        {
-            m_table = source.getTable();
-            m_sh = sh;
+            : AbstractSqlStatementOutboundMapper(mapv, opts + ("table": source.getTable(), "select_hash": sh)) {
         }
 
         #! builds the object based on an optional hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -1366,10 +1341,7 @@ InboundTableMapperIterator i(input, mapper);
             @throw MAP-ERROR
         */
         constructor(SqlUtil::AbstractTable source, *hash sh, hash mapv, *hash opts)
-            : AbstractSqlStatementOutboundMapper(mapv, opts)
-        {
-            m_table = source;
-            m_sh = sh;
+            : AbstractSqlStatementOutboundMapper(mapv, opts + ("table": source, "select_hash": sh)) {
         }
 
         #! returns the table name
@@ -1386,27 +1358,33 @@ InboundTableMapperIterator i(input, mapper);
             return m_table;
         }
 
-
         #! returns the @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object associated with this object
         Qore::SQL::AbstractDatasource getDatasource() {
                 return m_table.getDatasource();
         }
 
-        private initStatement() {
+        #! returns a statement object corresponding to the arguments
+        static Qore::SQL::SQLStatement getStatement(AbstractTable table, *hash select_hash, *reference sql) {
+            return table.getRowIterator(select_hash, \sql);
+        }
+
+        #! initializes the internal statement object
+        private initStatement(*hash opts) {
+            m_table = opts.table;
+            m_sh = opts.select_hash;
+
             string sql;
-            m_stmt = m_table.getRowIterator(m_sh, \sql);
+            m_stmt = getStatement(m_table, m_sh, \sql);
             if (info_log) {
-                info_log("Mapper: %s: %n", self.className(), sql);
+                info_log("Mapper: %s: %y", self.className(), sql);
                 info_log("Mapper: %s: binding: %y", self.className(), m_sh."where");
             }
         }
-
     } # SqlStatementOutboundMapper
 
 
     #! provides an outbound data mapper to a raw SQL statement
     public class RawSqlStatementOutboundMapper inherits AbstractSqlStatementOutboundMapper {
-
         private {
             AbstractDatasource m_ds;
             string m_sql;
@@ -1445,11 +1423,7 @@ printf("%N\n", m.getDataRows());
         @endcode
          */
         constructor(AbstractDatasource ds, string sql, *softlist sqlargs, hash mapv, *hash opts)
-            : AbstractSqlStatementOutboundMapper(mapv, opts)
-        {
-            m_ds = ds;
-            m_sql = sql;
-            m_sqlargs = sqlargs;
+            : AbstractSqlStatementOutboundMapper(mapv, opts + ("datasource": ds, "sql": sql, "sqlargs": sqlargs))  {
         }
 
         #! returns the @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object associated with this object
@@ -1457,16 +1431,26 @@ printf("%N\n", m.getDataRows());
             return m_ds;
         }
 
-        private initStatement() {
-            m_stmt = new SQLStatement(m_ds);
-            m_stmt.prepare(m_sql);
-            m_stmt.bindArgs(m_sqlargs);
+        #! returns a statement object corresponding to the arguments
+        static Qore::SQL::SQLStatement getStatement(AbstractDatasource ds, string sql, *softlist args) {
+            SQLStatement stmt(ds);
+            stmt.prepare(sql);
+            if (args)
+                stmt.bindArgs(args);
+            return stmt;
+        }
+
+        #! initializes the internal statement object
+        private initStatement(*hash opts) {
+            m_ds = opts.datasource;
+            m_sql = opts.sql;
+            m_sqlargs = opts.sqlargs;
+
+            m_stmt = getStatement(m_ds, m_sql, m_sqlargs);
             if (info_log) {
                 info_log("Mapper: %s: %n", self.className(), m_sql);
                 info_log("Mapper: %s: binding: %y", self.className(), m_sqlargs);
             }
         }
-
     } # RawSqlStatementOutboundMapper
-
 }
