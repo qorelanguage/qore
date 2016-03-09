@@ -1251,24 +1251,90 @@ typedef std::map<char*, QoreMemberInfo*, ltstr> member_map_t;
 typedef std::map<char*, QoreVarInfo*, ltstr> var_map_t;
 #endif
 
-class QoreMemberMap : public member_map_t {
+class QoreMemberMap {
 public:
-   DLLLOCAL ~QoreMemberMap() {
-      del();
+   typedef std::pair<char *, QoreMemberInfo*> list_element_t;
+   typedef std::vector<list_element_t> member_list_t;
+   typedef member_list_t::const_iterator DeclOrderIterator;
+   typedef member_map_t::const_iterator SigOrderIterator;
+
+public:
+   DLLLOCAL QoreMemberMap() : inheritedCount(0) {
    }
 
-   DLLLOCAL void del() {
-      for (member_map_t::iterator i = begin(), e = end(); i != e; ++i) {
+   DLLLOCAL ~QoreMemberMap() {
+      for (member_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
          //printd(5, "QoreMemberMap::~QoreMemberMap() this: %p freeing pending private member %p '%s'\n", this, i->second, i->first);
          delete i->second;
          free(i->first);
       }
-      clear();
+      map.clear();
+      list.clear();
    }
 
    DLLLOCAL bool inList(const char* name) const {
-      return find((char* )name) != end();
+      return map.find(const_cast<char*>(name)) != map.end();
    }
+
+   DLLLOCAL QoreMemberInfo *findByName(const char *name) const {
+      member_map_t::const_iterator it = map.find(const_cast<char*>(name));
+      return it == map.end() ? NULL : it->second;
+   }
+
+   DLLLOCAL bool empty() const {
+      return map.empty();
+   }
+
+   DLLLOCAL void addNoCheck(char *name, QoreMemberInfo *info) {
+      assert(name);
+      assert(info);
+      assert(!inList(name));
+      map[name] = info;
+      list.push_back(std::make_pair(name, info));
+   }
+
+   DLLLOCAL void addNoCheck(std::pair<char *, QoreMemberInfo *> pair) {
+      addNoCheck(pair.first, pair.second);
+   }
+
+   DLLLOCAL void addInheritedNoCheck(char *name, QoreMemberInfo *info) {
+      assert(name);
+      assert(info);
+      assert(!inList(name));
+      map[name] = info;
+      list.insert(list.begin() + inheritedCount++, std::make_pair(name, info));
+   }
+
+   DLLLOCAL void moveAllTo(QoreMemberMap &dest) {
+      dest.map.insert(map.begin(), map.end());
+      dest.list.insert(dest.list.end(), list.begin(), list.end());
+      map.clear();
+      list.clear();
+   }
+
+   DLLLOCAL void moveAllToPrivate(QoreClass* qc);
+   DLLLOCAL void moveAllToPublic(QoreClass* qc);
+
+   DLLLOCAL DeclOrderIterator beginDeclOrder() const {
+      return list.begin();
+   }
+
+   DLLLOCAL DeclOrderIterator endDeclOrder() const {
+      return list.end();
+   }
+
+   DLLLOCAL SigOrderIterator beginSigOrder() const {
+      return map.begin();
+   }
+
+   DLLLOCAL SigOrderIterator endSigOrder() const {
+      return map.end();
+   }
+
+private:
+   member_list_t list;
+   member_map_t map;
+   member_list_t::size_type inheritedCount;
 };
 
 class QoreVarMap : public var_map_t {
@@ -1955,11 +2021,11 @@ public:
 
    // returns true = found, false = not found
    DLLLOCAL bool runtimeGetMemberInfo(const char* mem, const QoreTypeInfo*& memberTypeInfo, bool& priv) const {
-      member_map_t::const_iterator i = members.find(const_cast<char*>(mem));
-      if (i != members.end()) {
-	 priv = i->second->priv;
-	 memberTypeInfo = i->second->getTypeInfo();
-	 return true;
+      QoreMemberInfo *info = members.findByName(mem);
+      if (info) {
+         priv = info->priv;
+         memberTypeInfo = info->getTypeInfo();
+         return true;
       }
 
       return scl ? scl->runtimeGetMemberInfo(mem, memberTypeInfo, priv) : false;
@@ -1971,15 +2037,10 @@ public:
    }
 
    DLLLOCAL const QoreMemberInfo* parseFindLocalPublicPrivateMemberNoInit(const char* mem) const {
-      member_map_t::const_iterator i = members.find(const_cast<char*>(mem));
-      if (i != members.end())
-         return i->second;
-
-      i = pending_members.find(const_cast<char*>(mem));
-      if (i != pending_members.end())
-         return i->second;
-
-      return 0;
+      QoreMemberInfo *info = members.findByName(mem);
+      if (!info)
+         info = pending_members.findByName(mem);
+      return info;
    }
 
    DLLLOCAL const QoreMemberInfo* parseFindMemberNoInit(const char* mem, const qore_class_private*& qc) const {
@@ -2049,13 +2110,13 @@ public:
    DLLLOCAL void parseAddPrivateMember(char* mem, QoreMemberInfo* MemberInfo) {
       MemberInfo->priv = true;
       if (!parseCheckMember(mem, MemberInfo)) {
-	 if (!has_new_user_changes)
-	    has_new_user_changes = true;
+         if (!has_new_user_changes)
+            has_new_user_changes = true;
          if (!has_sig_changes)
             has_sig_changes = true;
-	 //printd(5, "qore_class_private::parseAddPrivateMember() this: %p %s adding %p %s\n", this, name.c_str(), mem, mem);
-	 pending_members[mem] = MemberInfo;
-	 return;
+         //printd(5, "qore_class_private::parseAddPrivateMember() this: %p %s adding %p %s\n", this, name.c_str(), mem, mem);
+         pending_members.addNoCheck(mem, MemberInfo);
+         return;
       }
 
       free(mem);
@@ -2234,16 +2295,16 @@ public:
 
    DLLLOCAL void parseAddPublicMember(char* mem, QoreMemberInfo* MemberInfo) {
       if (!parseCheckMember(mem, MemberInfo)) {
-	 if (!has_new_user_changes)
-	    has_new_user_changes = true;
+         if (!has_new_user_changes)
+            has_new_user_changes = true;
          if (!has_sig_changes)
             has_sig_changes = true;
 
-	 //printd(5, "QoreClass::parseAddPublicMember() this: %p %s adding %p %s\n", this, name.c_str(), mem, mem);
-	 pending_members[mem] = MemberInfo;
-	 if (!pending_has_public_memdecl)
-	    pending_has_public_memdecl = true;
-	 return;
+         //printd(5, "QoreClass::parseAddPublicMember() this: %p %s adding %p %s\n", this, name.c_str(), mem, mem);
+         pending_members.addNoCheck(mem, MemberInfo);
+         if (!pending_has_public_memdecl)
+            pending_has_public_memdecl = true;
+         return;
       }
 
       free(mem);
@@ -2251,15 +2312,15 @@ public:
    }
 
    DLLLOCAL void addPublicMember(const char* mem, const QoreTypeInfo* n_typeinfo, AbstractQoreNode* initial_value) {
-      assert(members.find((char*)name.c_str()) == members.end());
-      members[strdup(mem)] = new QoreMemberInfo(0, 0, n_typeinfo, 0, initial_value);
+      assert(!members.inList(mem));
+      members.addNoCheck(strdup(mem), new QoreMemberInfo(0, 0, n_typeinfo, 0, initial_value));
       if (!has_public_memdecl)
-	 has_public_memdecl = true;
+         has_public_memdecl = true;
    }
 
    DLLLOCAL void addPrivateMember(const char* mem, const QoreTypeInfo* n_typeinfo, AbstractQoreNode* initial_value) {
-      assert(members.find((char*)name.c_str()) == members.end());
-      members[strdup(mem)] = new QoreMemberInfo(0, 0, n_typeinfo, 0, initial_value, true);
+      assert(!members.inList(mem));
+      members.addNoCheck(strdup(mem), new QoreMemberInfo(0, 0, n_typeinfo, 0, initial_value, true));
    }
 
    DLLLOCAL void insertBuiltinStaticMethod(QoreMethod* m) {
@@ -2338,10 +2399,10 @@ public:
    }
 
    DLLLOCAL const qore_class_private* isPublicOrPrivateMember(const char* mem, bool& priv) const {
-      member_map_t::const_iterator i = members.find(const_cast<char*>(mem));
-      if (i != members.end()) {
-	 priv = i->second->priv;
-	 return this;
+      QoreMemberInfo *info = members.findByName(mem);
+      if (info) {
+         priv = info->priv;
+         return this;
       }
 
       return scl ? scl->isPublicOrPrivateMember(mem, priv) : 0;

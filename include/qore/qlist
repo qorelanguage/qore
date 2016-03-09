@@ -47,6 +47,7 @@ protected:
 public:
    typedef typename list_t::iterator iterator;
    typedef typename list_t::const_iterator const_iterator;
+   typedef typename list_t::reverse_iterator reverse_iterator;
 
    DLLLOCAL qlist() : len(0) {
    }
@@ -65,6 +66,14 @@ public:
 
    DLLLOCAL const_iterator end() const {
       return l.end();
+   }
+
+   DLLLOCAL reverse_iterator rbegin() {
+      return l.rbegin();
+   }
+
+   DLLLOCAL reverse_iterator rend() {
+      return l.rend();
    }
 
    DLLLOCAL T& front() {
@@ -93,7 +102,7 @@ public:
       l.push_back(t);
       ++len;
    }
-   
+
    DLLLOCAL iterator insert(iterator i, const T& val) {
       ++len;
       return l.insert(i, val);
