@@ -450,6 +450,7 @@
     - fixed a bug where a @ref Qore::Socket "Socket" operation attempted in another thread while a callback operation on the same socket was in progress would result in a confusing error message (<a href="https://github.com/qorelanguage/qore/issues/530">issue 530</a>)
     - fixed a bug where local variable declarations in class member initialization expressions caused a crash (<a href="https://github.com/qorelanguage/qore/issues/574">issue 574</a>)
     - fixed a bug where HTTP data in HTTP socket events was modified even though it was shared which caused data consistency problems and crashes in the worst case (<a href="https://github.com/qorelanguage/qore/issues/576">issue 576</a>)
+    - fixed a bug where the `+=` operator handled NOTHING values incorrectly (<a href="https://github.com/qorelanguage/qore/issues/582">issue 582</a>)
 
     @section qore_0811 Qore 0.8.11
 
