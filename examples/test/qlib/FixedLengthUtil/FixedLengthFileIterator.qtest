@@ -38,7 +38,7 @@ class Test inherits QUnit::Test {
                     "length"   : 8,
                     "type"     : "date",
                     "format"   : "DDMMYYYY",
-                    #"timezone" : "Europe/Prague", # use global if omitted
+                    #"timezone" : "UTC", # use global if omitted
                 ),
             ),
             );
@@ -47,7 +47,7 @@ class Test inherits QUnit::Test {
             "encoding"     : "UTF-8",
             "eol"          : "\n",
             "ignore_empty" : True,
-            "timezone"     : "Europe/Prague", # used if not in some date column specification
+            "timezone"     : "UTC", # used if not in some date column specification
             );
     }
 
@@ -70,7 +70,7 @@ class Test inherits QUnit::Test {
         testAssertionValue("line 1 is there", i.next(), True);
         testAssertionValue("line 1 content check", i.getValue(), ("type": "type1", "record": ("col1" : 11111, "col2" : "bb")));
         testAssertionValue("line 2 is there", i.next(), True);
-        testAssertionValue("line 2 content check", i.getValue(), ("type": "type2", "record": ("col3" : "c", "col4" : "ddd", "col5" : 2014-12-31)));
+        testAssertionValue("line 2 content check", i.getValue(), ("type": "type2", "record": ("col3" : "c", "col4" : "ddd", "col5" : 2014-12-31Z)));
         testAssertionValue("line 3 is there", i.next(), True);
         testAssertionValue("line 3 content check", i.getValue(), ("type": "type1", "record": ("col1" : 22222, "col2" : "gg")));
         testAssertionValue("line 4 is not there", i.next(), False);
