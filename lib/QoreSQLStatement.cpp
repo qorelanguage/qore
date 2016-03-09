@@ -380,7 +380,7 @@ QoreHashNode* QoreSQLStatement::fetchColumns(int rows, ExceptionSink* xsink) {
 }
 
 QoreHashNode* QoreSQLStatement::describe(ExceptionSink* xsink) {
-    DBActionHelper dba(*this, xsink, DAH_NOCHANGE);
+    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
     if (!dba)
        return 0;
 

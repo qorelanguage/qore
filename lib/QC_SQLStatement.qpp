@@ -694,20 +694,13 @@ hash SQLStatement::fetchColumns(softint rows = -1) {
 
 //! Describes columns in the statement result.
 /**
-    @retval hash with ( column name : description hash ) pairs
-
-    This method has to be called after first \c next() (or its equivalent) call.
-
-    <b>Description Hash Structure</b>
-    <table>
-    <tr><th>Key</th><th>Description</th></tr>
-    <tr><td>name</td><td>Column name. String.</td></tr>
-    <tr><td>type</td><td>Qore data type constant as used in <value>::typeCode(). Integer.</td></tr>
-    <tr><td>maxsize</td><td>Maximum size of the data value as in the DB server. Integer.</td></tr>
-    <tr><td>native_type</td><td>Database data type. String.</td></tr>
-    <tr><td>internal_id</td><td>Database data type identifier. Integer.</td></tr>
-    </table>
-  */
+    @return a hash with (<i>column_name</i>: <i>description_hash</i>) format, where each <i>description_hash</i> has the following keys:
+    - \c "name": (string) the column name
+    - \c "type": (integer) the column type code (as returned by <value>::typeCode())
+    - \c "maxsize": (integer) the maximum size of the column
+    - \c "native_type": (string) the database-specific name of the type
+    - \c "internal_id": (integer) the database-specific type code of the type
+ */
 hash SQLStatement::describe() {
     return stmt->describe(xsink);
 }
