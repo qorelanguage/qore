@@ -889,12 +889,18 @@ int qore_main_intern(int argc, char* argv[], int other_po) {
    ExceptionSink wsink, xsink;
    {
       QoreProgramHelper qpgm(parse_options, xsink);
+      bool mod_errs = false;
 
       // set parse defines
       qpgm->parseCmdLineDefines(defmap, xsink, wsink, warnings);
 
+      if (xsink.isException()) {
+         rc = 2;
+         xsink.handleExceptions();
+         goto exit;
+      }
+
       // load any modules requested on the command-line
-      bool mod_errs = false;
       for (cl_mod_list_t::iterator i = cl_mod_list.begin(), e = cl_mod_list.end(); i != e; ++i) {
 	 // display any error messages
 	 SimpleRefHolder<QoreStringNode> err(MM.parseLoadModule((*i).c_str(), *qpgm));
