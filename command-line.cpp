@@ -948,7 +948,7 @@ int qore_main_intern(int argc, char* argv[], int other_po) {
 	    qpgm->parse(cl_pgm, "<command-line>", &xsink, &wsink, warnings);
 	 else if (program_file_name)
 	    qpgm->parseFile(program_file_name, &xsink, &wsink, warnings, only_first_except);
-	 else if (!xsink.isException())
+	 else
 	    qpgm->parse(stdin, "<stdin>", &xsink, &wsink, warnings);
       }
 
