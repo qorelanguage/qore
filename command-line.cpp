@@ -891,8 +891,7 @@ int qore_main_intern(int argc, char* argv[], int other_po) {
       QoreProgramHelper qpgm(parse_options, xsink);
 
       // set parse defines
-      for (defmap_t::iterator i = defmap.begin(), e = defmap.end(); i != e; ++i)
-	 qpgm->parseDefine(i->first.c_str(), i->second.c_str());
+      qpgm->parseCmdLineDefines(defmap, xsink, wsink, warnings);
 
       // load any modules requested on the command-line
       bool mod_errs = false;
@@ -949,7 +948,7 @@ int qore_main_intern(int argc, char* argv[], int other_po) {
 	    qpgm->parse(cl_pgm, "<command-line>", &xsink, &wsink, warnings);
 	 else if (program_file_name)
 	    qpgm->parseFile(program_file_name, &xsink, &wsink, warnings, only_first_except);
-	 else
+	 else if (!xsink.isException())
 	    qpgm->parse(stdin, "<stdin>", &xsink, &wsink, warnings);
       }
 
