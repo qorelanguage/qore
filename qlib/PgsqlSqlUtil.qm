@@ -256,14 +256,22 @@ public namespace PgsqlSqlUtil {
             return sprintf("create type %s as (%s)", name, src);
         }
 
+        #! returns a string that can be used to drop a type
         string getDropSql(*hash opt) {
             return sprintf("drop type %s%s", name, opt.cascade ? " cascade" : "");
         }
 
+        #! returns a string that can be used to drop a type and all dependencies
+        string getDropSqlForce() {
+            return sprintf("drop type %s cascade", name);
+        }
+
+        #! returns a string that can be used to rename a type
         string getRenameSql(string new_name) {
             return sprintf("alter type %s rename to %s", name, new_name);
         }
 
+        #! returns @ref True if the types are equal
         bool equal(PgsqlType type) {
             return name == type.name && src == type.src;
         }

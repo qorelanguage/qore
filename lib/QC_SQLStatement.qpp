@@ -772,3 +772,17 @@ any SQLStatement::memberGate(string key) [flags=RET_VALUE_ONLY] {
 
    return rv ? rv->refSelf() : QoreValue();
 }
+
+//! Returns @ref True if the current thread is in a transaction (i.e. holds the transaction lock), @ref False if not
+/** @return @ref True if the current thread is in a transaction (i.e. holds the transaction lock), @ref False if not
+
+    @par Example:
+    @code{.py}
+bool b = stmt.currentThreadInTransaction();
+    @endcode
+
+    @since %Qore 0.8.12
+ */
+bool SQLStatement::currentThreadInTransaction() [flags=CONSTANT] {
+   return stmt->currentThreadInTransaction(xsink);
+}
