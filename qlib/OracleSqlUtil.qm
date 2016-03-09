@@ -814,10 +814,10 @@ my any $v = $c.name;
         #! Force to drop named type (object or collection)
         /** Named types in schema can have dependencies between each other.
             But the FORCE keyword used in drop allows us to avoid complex
-            dependency tree calculation because all objects will be droped
+            dependency tree calculation because all objects will be dropped
             at the end
 
-            @note It should be used only in Schema management
+            @note this method is intended for use in schema management
          */
         string getDropSqlForce() {
             return sprintf("drop %s %s force", type, name);
