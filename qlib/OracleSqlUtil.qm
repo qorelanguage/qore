@@ -1372,10 +1372,10 @@ my any $v = $c.name;
         }
 
         private list listTablesImpl() {
-            list l = getListIntern(ds.select("select table_name from user_tables").table_name);
+            list l = getListIntern(ds.select("select table_name from user_tables order by 1").table_name);
 
             # add all tables accessible with synonyms
-            *list tl = ds.select("select synonym_name from user_synonyms s, all_tables t where s.table_owner = t.owner and s.table_name = t.table_name").synonym_name;
+            *list tl = ds.select("select synonym_name from user_synonyms s, all_tables t where s.table_owner = t.owner and s.table_name = t.table_name order by 1").synonym_name;
             if (tl)
                 l += native_case ? tl : (map $1.lwr(), tl);
 
@@ -1399,7 +1399,7 @@ my any $v = $c.name;
         }
 
         private list getListIntern(string type) {
-            return getListIntern(ds.select("select object_name from user_objects where object_type = %v", type).object_name);
+            return getListIntern(ds.select("select object_name from user_objects where object_type = %v order by 1", type).object_name);
         }
 
         private list getListIntern(list l) {
