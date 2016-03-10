@@ -40,6 +40,7 @@ class OracleTestSchema inherits SqlUtilTestSchema {
             "columns": (
                 "id": c_number(14, True),
                 "id_": c_number(14, True),
+                "null_f": c_int(),
             ),
             "primary_key": ("name": "pk_oracle_test", "columns": ("id")),
             );
