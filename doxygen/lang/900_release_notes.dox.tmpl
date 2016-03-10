@@ -455,6 +455,7 @@
     - fixed a bug where a non-numeric define specified on the command line could cause a crash (<a href="https://github.com/qorelanguage/qore/issues/583">issue 583</a>)
     - fixed a bug where the @ref Qore::SQL::SQLStatement::describe() method would not grab the transation lock even when statements were implicitly executed (<a href="https://github.com/qorelanguage/qore/issues/591">issue 591</a>)
     - fixed the order of initialization of class members (<a href="https://github.com/qorelanguage/qore/issues/42">issue 42</a>)
+    - fixed a bug in @ref Qore::TimeZone::date(string) where the date returned was in the current contextual time zone and not that of the object (<a href="https://github.com/qorelanguage/qore/issues/584">issue 584</a>)
 
     @section qore_0811 Qore 0.8.11
 
