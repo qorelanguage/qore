@@ -39,7 +39,7 @@ class Test inherits QUnit::Test {
                     "length"   : 8,
                     "type"     : "date",
                     "format"   : "DDMMYYYY",
-                    # "timezone" : "Europe/Prague", # use global if omitted
+                    # "timezone" : "UTC", # use global if omitted
                 ),
             ),
             );
@@ -70,7 +70,7 @@ class Test inherits QUnit::Test {
 
         const HashData = (
             ("type": "type1", "record": ("col1": 11111, "col2": "bb")),
-            ("type": "type2", "record": ("col3": "c", "col4": "ddd", "col5": 2014-12-31)),
+            ("type": "type2", "record": ("col3": "c", "col4": "ddd", "col5": 2014-12-31Z)),
             ("type": "type1", "record": ("col1": 22222, "col2": "gggg")),
             );
 
@@ -78,7 +78,7 @@ class Test inherits QUnit::Test {
             "encoding"     : "UTF-8",
             "eol"          : "\n",
             "ignore_empty" : True,
-            "timezone"     : "Europe/Prague", # used if not in some date column specification
+            "timezone"     : "UTC", # used if not in some date column specification
             );
 
         # Writer

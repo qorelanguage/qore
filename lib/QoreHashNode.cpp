@@ -171,11 +171,13 @@ void QoreHashNode::setKeyValue(const QoreString& key, AbstractQoreNode* val, Exc
 }
 
 void QoreHashNode::setKeyValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink) {
+   assert(reference_count() == 1);
    hash_assignment_priv ha(*priv, key);
    ha.assign(val, xsink);
 }
 
 AbstractQoreNode* QoreHashNode::swapKeyValue(const QoreString* key, AbstractQoreNode* val, ExceptionSink* xsink) {
+   assert(reference_count() == 1);
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
    if (*xsink) {
       if (val)
@@ -406,9 +408,9 @@ bool QoreHashNode::derefImpl(ExceptionSink* xsink) {
    return priv->derefImpl(xsink);
 }
 
-void QoreHashNode::clear(ExceptionSink* xsink) {
+void QoreHashNode::clear(ExceptionSink* xsink, bool reverse) {
    assert(is_unique());
-   priv->clear(xsink);
+   priv->clear(xsink, reverse);
 }
 
 void QoreHashNode::deleteKey(const char* key, ExceptionSink* xsink) {
@@ -422,7 +424,7 @@ void QoreHashNode::removeKey(const char* key, ExceptionSink* xsink) {
 }
 
 AbstractQoreNode* QoreHashNode::takeKeyValue(const char* key) {
-   // cannot assert reference_count == 1 here because the HttpClient class modifies a hash with refcount > 1
+   assert(reference_count() == 1);
    return priv->takeKeyValue(key);
 }
 

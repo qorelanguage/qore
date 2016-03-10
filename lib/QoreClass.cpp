@@ -621,12 +621,12 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
    }
 
    // copy member list
-   for (member_map_t::const_iterator i = old.members.begin(), e = old.members.end(); i != e; ++i)
-      members[strdup(i->first)] = i->second->copy(this);
+   for (QoreMemberMap::DeclOrderIterator i = old.members.beginDeclOrder(), e = old.members.endDeclOrder(); i != e; ++i)
+      members.addNoCheck(strdup(i->first), i->second->copy(this));
 
    // copy static var list
-   for (var_map_t::const_iterator i = old.vars.begin(), e = old.vars.end(); i != e; ++i)
-      vars[strdup(i->first)] = i->second->copy();
+   for (QoreVarMap::DeclOrderIterator i = old.vars.beginDeclOrder(), e = old.vars.endDeclOrder(); i != e; ++i)
+      vars.addNoCheck(strdup(i->first), i->second->copy());
 }
 
 qore_class_private::~qore_class_private() {
@@ -684,7 +684,7 @@ static void do_sig(QoreString& csig, BCNode& n) {
 }
 
 // process signature entries for class members
-static void do_sig(QoreString& csig, member_map_t::iterator i) {
+static void do_sig(QoreString& csig, QoreMemberMap::SigOrderIterator i) {
    if (i->second)
       csig.sprintf("%s mem %s %s %s\n", privpub(i->second->priv), i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
    else
@@ -692,7 +692,7 @@ static void do_sig(QoreString& csig, member_map_t::iterator i) {
 }
 
 // process signature entries for class static vars
-static void do_sig(QoreString& csig, var_map_t::iterator i) {
+static void do_sig(QoreString& csig, QoreVarMap::SigOrderIterator i) {
    if (i->second)
       csig.sprintf("%s var %s %s %s\n", privpub(i->second->priv), i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
    else
@@ -801,7 +801,7 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
 
    if (has_sig_changes) {
       // add committed vars to signature first before members
-      for (var_map_t::iterator i = vars.begin(), e = vars.end(); i != e; ++i) {
+      for (QoreVarMap::SigOrderIterator i = vars.beginSigOrder(), e = vars.endSigOrder(); i != e; ++i) {
 	 do_sig(csig, i);
       }
    }
@@ -810,7 +810,7 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
       VariableBlockHelper vbh;
 
       // initialize new static vars
-      for (var_map_t::iterator i = pending_vars.begin(), e = pending_vars.end(); i != e; ++i) {
+      for (QoreVarMap::SigOrderIterator i = pending_vars.beginSigOrder(), e = pending_vars.endSigOrder(); i != e; ++i) {
 	 if (has_sig_changes)
 	    do_sig(csig, i);
 	 if (i->second)
@@ -822,13 +822,13 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
 
 	 // add committed members to signature
 	 if (has_sig_changes) {
-	    for (member_map_t::iterator i = members.begin(), e = members.end(); i != e; ++i) {
+	    for (QoreMemberMap::SigOrderIterator i = members.beginSigOrder(), e = members.endSigOrder(); i != e; ++i) {
 	       do_sig(csig, i);
 	    }
 	 }
 
 	 // initialize new members
-	 for (member_map_t::iterator i = pending_members.begin(), e = pending_members.end(); i != e; ++i) {
+	 for (QoreMemberMap::SigOrderIterator i = pending_members.beginSigOrder(), e = pending_members.endSigOrder(); i != e; ++i) {
 	    if (has_sig_changes)
 	       do_sig(csig, i);
 	    if (i->second)
@@ -893,7 +893,7 @@ int qore_class_private::initMembers(QoreObject& o, bool& need_scan, ExceptionSin
    CodeContextHelper cch("constructor", &o, xsink);
    SelfInstantiatorHelper sih(&selfid, &o);
 
-   for (member_map_t::const_iterator i = members.begin(), e = members.end(); i != e; ++i) {
+   for (QoreMemberMap::DeclOrderIterator i = members.beginDeclOrder(), e = members.endDeclOrder(); i != e; ++i) {
       if (i->second) {
 	 AbstractQoreNode** v = o.getMemberValuePtrForInitialization(i->first);
 	 assert(!*v);
@@ -1139,28 +1139,20 @@ void qore_class_private::parseCommit() {
       // commit abstract method variant list changes
       ahm.parseCommit();
 
-      {
-	 // add all pending members to real member list
-	 member_map_t::iterator i = pending_members.begin();
-	 while (i != pending_members.end()) {
-	    //printd(5, "QoreClass::parseCommit() %s committing %s member %p %s\n", name.c_str(), privpub(i->second->priv), j->first, j->first);
-	    members[i->first] = i->second;
-	    pending_members.erase(i);
-	    i = pending_members.begin();
-	 }
-      }
+      // add all pending members to real member list
+      pending_members.moveAllTo(members);
 
       if (has_sig_changes) {
 	 // add all committed static vars to signature
-	 for (var_map_t::iterator i = vars.begin(), e = vars.end(); i != e; ++i) {
+	 for (QoreVarMap::SigOrderIterator i = vars.beginSigOrder(), e = vars.endSigOrder(); i != e; ++i) {
 	    do_sig(csig, i);
 	 }
 	 // add all pending static vars to signature
 	 // pending static vars are committed in the "runtime init" step after this call
-	 for (var_map_t::iterator i = pending_vars.begin(), e = pending_vars.end(); i != e; ++i)
+	 for (QoreVarMap::SigOrderIterator i = pending_vars.beginSigOrder(), e = pending_vars.endSigOrder(); i != e; ++i)
 	    do_sig(csig, i);
 
-	 for (member_map_t::iterator i = members.begin(), e = members.end(); i != e; ++i)
+	 for (QoreMemberMap::SigOrderIterator i = members.beginSigOrder(), e = members.endSigOrder(); i != e; ++i)
 	    do_sig(csig, i);
       }
 
@@ -1224,13 +1216,13 @@ void qore_class_private::parseCommit() {
 void qore_class_private::parseCommitRuntimeInit(ExceptionSink* xsink) {
    // add all pending static vars to real list and initialize them
    if (!pending_vars.empty()) {
-      for (var_map_t::iterator i = pending_vars.begin(), e = pending_vars.end(); i != e; ++i) {
-	 //printd(5, "QoreClass::parseCommitRuntimeInit() %s committing %s var %p %s\n", name.c_str(), privpub(i->second->priv), l->first, l->first);
-	 vars[i->first] = i->second;
-	 // initialize variable
-	 initVar(i->first, *(i->second), xsink);
+      for (QoreVarMap::DeclOrderIterator i = pending_vars.beginDeclOrder(), e = pending_vars.endDeclOrder(); i != e; ++i) {
+         //printd(5, "QoreClass::parseCommitRuntimeInit() %s committing %s var %p %s\n", name.c_str(), privpub(i->second->priv), l->first, l->first);
+         vars.addNoCheck(i->first, i->second);
+         // initialize variable
+         initVar(i->first, *(i->second), xsink);
       }
-      pending_vars.var_map_t::clear();
+      pending_vars.clearNoFree();
    }
 }
 
@@ -2132,23 +2124,23 @@ int qore_class_private::parseCheckClassHierarchyMembers(const char* mname, const
 }
 
 void qore_class_private::parseImportMembers(qore_class_private& qc, bool pflag) {
-   for (member_map_t::iterator i = qc.members.begin(), e = qc.members.end(); i != e; ++i) {
+   for (QoreMemberMap::DeclOrderIterator i = qc.members.beginDeclOrder(), e = qc.members.endDeclOrder(); i != e; ++i) {
       const QoreMemberInfo* mi = parseFindLocalPublicPrivateMemberNoInit(i->first);
       if (mi) {
-	 if (!mi->getClass(this)->equal(*i->second->getClass(&qc)))
-	    parseCheckClassHierarchyMembers(i->first, *(i->second), qc, *mi);
-	 continue;
+         if (!mi->getClass(this)->equal(*i->second->getClass(&qc)))
+            parseCheckClassHierarchyMembers(i->first, *(i->second), qc, *mi);
+         continue;
       }
-      members[strdup(i->first)] = i->second->copy(&qc, pflag);
+      members.addInheritedNoCheck(strdup(i->first), i->second->copy(&qc, pflag));
    }
-   for (member_map_t::iterator i = qc.pending_members.begin(), e = qc.pending_members.end(); i != e; ++i) {
+   for (QoreMemberMap::DeclOrderIterator i = qc.pending_members.beginDeclOrder(), e = qc.pending_members.endDeclOrder(); i != e; ++i) {
       const QoreMemberInfo* mi = parseFindLocalPublicPrivateMemberNoInit(i->first);
       if (mi) {
-	 if (!mi->getClass(this)->equal(*i->second->getClass(&qc)))
-	    parseCheckClassHierarchyMembers(i->first, *(i->second), qc, *mi);
-	 continue;
+         if (!mi->getClass(this)->equal(*i->second->getClass(&qc)))
+            parseCheckClassHierarchyMembers(i->first, *(i->second), qc, *mi);
+         continue;
       }
-      pending_members[strdup(i->first)] = i->second->copy(&qc, pflag);
+      pending_members.addInheritedNoCheck(strdup(i->first), i->second->copy(&qc, pflag));
    }
 }
 
@@ -2587,9 +2579,9 @@ QoreValue QoreClass::evalMethodGate(QoreObject* self, const char* nme, const Qor
 }
 
 bool QoreClass::isPrivateMember(const char* str) const {
-   member_map_t::const_iterator i = priv->members.find((char *)str);
-   if (i != priv->members.end())
-      return i->second->priv;
+   QoreMemberInfo *info = priv->members.findByName(str);
+   if (info)
+      return info->priv;
 
    if (priv->scl)
       return priv->scl->isPrivateMember(str);
@@ -4247,7 +4239,7 @@ void QoreMemberInfo::parseInit(const char* name, bool priv) {
       exp = exp->parseInit(0, 0, lvids, argTypeInfo);
       if (lvids) {
 	 parse_error(loc, "illegal local variable declaration in member initialization expression");
-	 while (lvids)
+	 while (lvids--)
 	    pop_local_var();
       }
       // throw a type exception only if parse exceptions are enabled
@@ -4279,7 +4271,7 @@ void QoreVarInfo::parseInit(const char* name, bool priv) {
       exp = exp->parseInit(0, 0, lvids, argTypeInfo);
       if (lvids) {
 	 parse_error(loc, "illegal local variable declaration in class static variable initialization expression");
-	 while (lvids)
+	 while (lvids--)
 	    pop_local_var();
       }
       // throw a type exception only if parse exceptions are enabled
@@ -4304,4 +4296,44 @@ QoreParseClassHelper::~QoreParseClassHelper() {
    if (rn)
       parse_set_ns(oldns);
    setParseClass(old);
+}
+
+void QoreMemberMap::moveAllToPrivate(QoreClass* qc) {
+   for (DeclOrderIterator i = beginDeclOrder(); i != endDeclOrder(); ++i) {
+      qore_class_private::parseAddPrivateMember(*qc, i->first, i->second);
+   }
+   map.clear();
+   list.clear();
+}
+
+void QoreMemberMap::moveAllToPublic(QoreClass* qc) {
+   if (empty()) {
+      qc->parseSetEmptyPublicMemberDeclaration();
+      return;
+   }
+   for (DeclOrderIterator i = beginDeclOrder(); i != endDeclOrder(); ++i) {
+      qore_class_private::parseAddPublicMember(*qc, i->first, i->second);
+   }
+   map.clear();
+   list.clear();
+}
+
+void QoreVarMap::moveAllToPrivate(QoreClass* qc) {
+   for (DeclOrderIterator i = beginDeclOrder(); i != endDeclOrder(); ++i) {
+      qore_class_private::parseAddPrivateStaticVar(qc, i->first, i->second);
+   }
+   map.clear();
+   list.clear();
+}
+
+void QoreVarMap::moveAllToPublic(QoreClass* qc) {
+   if (empty()) {
+      qc->parseSetEmptyPublicMemberDeclaration();
+      return;
+   }
+   for (DeclOrderIterator i = beginDeclOrder(); i != endDeclOrder(); ++i) {
+      qore_class_private::parseAddPublicStaticVar(qc, i->first, i->second);
+   }
+   map.clear();
+   list.clear();
 }

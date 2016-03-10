@@ -74,6 +74,7 @@
     - other new methods:
       - @ref Qore::SQL::DatasourcePool::getCapabilities()
       - @ref Qore::SQL::DatasourcePool::getCapabilityList()
+      - @ref Qore::SQL::SQLStatement::currentThreadInTransaction()
       - @ref Qore::Thread::Queue::setError()
       - @ref Qore::Thread::Queue::clearError()
     - updated methods:
@@ -159,6 +160,7 @@
       - new \c "tolwr" option in structured text parsing classes
       - AbstractCsvWriter will set \c "headers" from the \c "fields" option if \c "headers" are not explicitly set
       -  added write() methods returning the generated strings to the CsvStringWriter class for API compatibility with the corresponding FixedLengthDataWriter methods
+      - \c quote_escape option implemented in AbstractCsvWriter
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module updates:
       - implemented the \c "constant" field tag, allowing a contant value for an output field to be specified directly in the mapper hash
       - implemented the \c "default" field tag, giving a default value if no input value is specified
@@ -216,6 +218,8 @@
       - added the \c "ssl" key to the listener socket info hash
       - implemented support for notifying persistent connections when the connection is terminated while a persistent connection is in place
       - removed the unused AbstractStreamRequestHandler class
+      - fixed parse_uri_query() to always return \a params as a hash (<a href="https://github.com/qorelanguage/qore/issues/569">issue 569</a>)
+      - added \c root_path to the context hash if the path was matched by a URL path prefix (<a href="https://github.com/qorelanguage/qore/issues/570">issue 570</a>)
     - <a href="../../modules/Schema/html/index.html">Schema</a> module updates:
       - added the following public functions to make column definitions easier:
         - c_char()
@@ -445,6 +449,13 @@
     - fixed a bug where the type of catch parameter was ignored (<a href="https://github.com/qorelanguage/qore/issues/28">issue 28</a>)
     - fixed a bug where namespace hierarchies were not indexed during parse time when added to already-committed namespaces which lead to symbol resolution errors for valid code (<a href="https://github.com/qorelanguage/qore/issues/538">issue 538</a>)
     - fixed a bug where a @ref Qore::Socket "Socket" operation attempted in another thread while a callback operation on the same socket was in progress would result in a confusing error message (<a href="https://github.com/qorelanguage/qore/issues/530">issue 530</a>)
+    - fixed a bug where local variable declarations in class member initialization expressions caused a crash (<a href="https://github.com/qorelanguage/qore/issues/574">issue 574</a>)
+    - fixed a bug where HTTP data in HTTP socket events was modified even though it was shared which caused data consistency problems and crashes in the worst case (<a href="https://github.com/qorelanguage/qore/issues/576">issue 576</a>)
+    - fixed a bug where the `+=` operator handled NOTHING values incorrectly (<a href="https://github.com/qorelanguage/qore/issues/582">issue 582</a>)
+    - fixed a bug where a non-numeric define specified on the command line could cause a crash (<a href="https://github.com/qorelanguage/qore/issues/583">issue 583</a>)
+    - fixed a bug where the @ref Qore::SQL::SQLStatement::describe() method would not grab the transation lock even when statements were implicitly executed (<a href="https://github.com/qorelanguage/qore/issues/591">issue 591</a>)
+    - fixed the order of initialization of class members (<a href="https://github.com/qorelanguage/qore/issues/42">issue 42</a>)
+    - fixed a bug in @ref Qore::TimeZone::date(string) where the date returned was in the current contextual time zone and not that of the object (<a href="https://github.com/qorelanguage/qore/issues/584">issue 584</a>)
 
     @section qore_0811 Qore 0.8.11
 
