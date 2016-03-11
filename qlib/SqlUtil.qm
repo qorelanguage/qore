@@ -11493,7 +11493,7 @@ string sql = table.getSelectSql(sh, \args);
             getSelectWhereSqlUnlocked(\sql, \args, qh, jch, boolean(qh.join), ch, psch);
 
             if (qh.groupby) {
-                list ce = getGroupByList(qh, jch, ch, psch, coll);
+                list ce = getGroupByListUnlocked(qh, jch, ch, psch, coll);
                 sql += " group by " + (foldl $1 + "," + $2, ce.iterator());
             }
 
@@ -11531,10 +11531,10 @@ string sql = table.getSelectSql(sh, \args);
                     if (!matchAnyUnique(qh.orderby))
                         throw "SELECT-ERROR", sprintf("%s: 'orderby': %y with 'offset' = %d, 'limit' = %d does not match any unique constraint", getDesc(), qh.orderby, qh.offset, qh.limit);
 
-                    doSelectOrderByWithOffsetSqlUnlockedImpl(\sql, \args, qh, jch, ch);
+                    doSelectOrderByWithOffsetSqlUnlockedImpl(\sql, \args, qh, jch, ch, psch, coll);
                 }
                 else
-                    doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch);
+                    doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
             }
             else if (qh.limit)
                 doSelectLimitOnlyUnlockedImpl(\sql, \args, qh);
@@ -11553,15 +11553,39 @@ string sql = table.getSelectSql(sh, \args);
             return sql;
         }
 
-        private list getGroupByList(hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+        private list getGroupByListUnlocked(hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+            return getGroupOrderByListUnlocked("groupby", qh, jch, ch, psch, coll);
+        }
+
+        private list getOrderByListUnlocked(hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+            return getGroupOrderByListUnlocked("orderby", qh, jch, ch, psch, coll);
+        }
+
+        private list getGroupOrderByListUnlocked(string key, hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             list ce = ();
-            foreach any cv in (qh.groupby) {
+
+            code do_int = sub (int cv) {
+                if (!coll) {
+                    if (cv > columns.size())
+                        throw "SELECT-ERROR", sprintf("%s %d: %s does not support numeric column offsets for the %s expression, and the table has %d column%s", key, cv, ds.getDriverName(), key, columns.size(), columns.size() == 1 ? "" : "s");
+                    ce += columns.keys()[cv - 1];
+                }
+                else {
+                    if (cv > coll.size())
+                        throw "SELECT-ERROR", sprintf("%s %d: %s does not support numeric column offsets for the %s expression, and %d column%s %s given in the select argument", key, cv, ds.getDriverName(), key, coll.size(), coll.size() == 1 ? "" : "s", coll.size() == 1 ? "was" : "were");
+                    string val = coll[cv - 1];
+                    val =~ s/ as .*$//;
+                    ce += val;
+                }
+            };
+
+            foreach any cv in (qh{key}) {
                 switch (cv.typeCode()) {
                     case NT_STRING: {
                         if (cv.toInt() == cv)
-                            ce += cv;
+                            do_int(cv.toInt());
                         else
-                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch);
+                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch, True);
                         break;
                     }
 
@@ -11571,12 +11595,12 @@ string sql = table.getSelectSql(sh, \args);
                     }
 
                     case NT_INT: {
-                        ce += cv.toString();
+                        do_int(cv);
                         break;
                     }
 
                     default:
-                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in group by list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv);
+                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in %s list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv, key);
                 }
             }
             return ce;
@@ -11768,37 +11792,8 @@ string sql = table.getSelectSql(sh, \args);
             return wl ? ("(" + (foldl $1 + " and " + $2, wl) + ")") : "";
         }
 
-        private list getOrderByListUnlocked(*hash qh, *hash jch, *hash ch) {
-            list ce = ();
-            foreach any cv in (qh.orderby) {
-                switch (cv.typeCode()) {
-                    case NT_STRING: {
-                        if (cv.toInt() == cv)
-                            ce += cv;
-                        else
-                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch);
-                        break;
-                    }
-
-                    case NT_HASH: {
-                        ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch);
-                        break;
-                    }
-
-                    case NT_INT: {
-                        ce += cv.toString();
-                        break;
-                    }
-
-                    default:
-                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in orderby list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv);
-                }
-            }
-            return ce;
-        }
-
-        private doSelectOrderBySqlUnlocked(reference sql, reference args, *hash qh, *hash jch, *hash ch) {
-            list ce = getOrderByListUnlocked(qh, jch, ch);
+        private doSelectOrderBySqlUnlocked(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+            list ce = getOrderByListUnlocked(qh, jch, ch, psch, coll);
 
             sql += " order by " + (foldl $1 + "," + $2, (map $1 + (qh.desc || qh.orderbydesc.$1 ? " desc" : ""), ce));
         }
@@ -13861,7 +13856,7 @@ string sql = table.getAlignSqlString(table2);
         private abstract hash getTypeMapImpl();
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private abstract doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch);
+        private abstract doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll);
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
         private abstract doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh);
