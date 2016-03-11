@@ -3293,7 +3293,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
                 if (arg === NULL || !exists arg)
                     return sprintf("%s is not null", cn);
                 args += arg;
-                return sprintf("%s != %v", cn);
+                return sprintf("(%s != %v or %s is null)", cn, cn);
             },
         ),
         OP_EQ: (

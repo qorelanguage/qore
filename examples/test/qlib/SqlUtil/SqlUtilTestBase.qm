@@ -275,6 +275,15 @@ public class SqlTestBase inherits QUnit::Test {
                         "data": (("id": 1), ("id": 2)),
                         ),
                     ),
+                "op_eq": (
+                    "in": (
+                        "where": ("id": op_eq(2)),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 2),),
+                        ),
+                    ),
                 "op_ne": (
                     "in": (
                         "where": ("id": op_ne(1)),
@@ -284,13 +293,13 @@ public class SqlTestBase inherits QUnit::Test {
                         "data": (("id": 2),),
                         ),
                     ),
-                "op_eq": (
+                "op_ne_null": (
                     "in": (
-                        "where": ("id": op_eq(2)),
+                        "where": ("null_f": op_ne(1)),
                         ),
                     "out": (
                         "count": 1,
-                        "data": (("id": 2),),
+                        "data": (("id": 2, "null_f": NULL),),
                         ),
                     ),
                 "op_between": (
@@ -470,7 +479,7 @@ public class SqlTestBase inherits QUnit::Test {
             else
                 expect_data{cn} = h.value.bind.'^value^' ?? h.value.value ?? h.value;
         }
-        insert_data = (("id": 1, "id_": 2) + row, ("id": 2, "id_": 2) + row,);
-        upsert_data = (("id": 2, "id_": 2) + row, ("id": 3, "id_": 2) + row,);
+        insert_data = (("id": 1, "id_": 2, "null_f": 1) + row, ("id": 2, "id_": 2, "null_f": NULL) + row,);
+        upsert_data = (("id": 2, "id_": 2, "null_f": 1) + row, ("id": 3, "id_": 2, "null_f": NULL) + row,);
     }
 }
