@@ -1514,8 +1514,8 @@ my string $str = $table.getSqlValue($date);
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch) {
-            doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch);
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+            doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
             if (qh.limit) {
                 sql += " limit %v";
                 args += qh.limit;
@@ -1529,6 +1529,35 @@ my string $str = $table.getSqlValue($date);
 
         private *hash doReturningImpl(hash opt, reference sql, list args) {
             throw "RETURNING-ERROR", sprintf("table %s: the mysql driver does not support the returning clause in an insert statement", getSqlName());
+        }
+
+        private list getGroupOrderByListUnlocked(string key, hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+            list ce = ();
+            foreach any cv in (qh{key}) {
+                switch (cv.typeCode()) {
+                    case NT_STRING: {
+                        if (cv.toInt() == cv)
+                            ce += cv;
+                        else
+                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch);
+                        break;
+                    }
+
+                    case NT_HASH: {
+                        ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch, psch);
+                        break;
+                    }
+
+                    case NT_INT: {
+                        ce += cv.toString();
+                        break;
+                    }
+
+                    default:
+                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in %s list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv, key);
+                }
+            }
+            return ce;
         }
 
         #! returns @ref Qore::True "True" if the current database driver supports the \c "returning" clause in insert statements, @ref Qore::False "False" if not
