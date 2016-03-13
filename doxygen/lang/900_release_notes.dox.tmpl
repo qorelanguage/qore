@@ -79,6 +79,10 @@
       - @ref Qore::Thread::Queue::clearError()
     - updated methods:
       - @ref Qore::TimeZone::constructor() "TimeZone::constructor()": now accepts a path to the zoneinfo file if the @ref Qore::PO_NO_FILESYSTEM sandboxing restrictions is not set
+    - the \c SOCKET-THROUGHPUT-WARNING event is no longer raised on the warning queue if the transfer size is less than 1024 bytes; this affects:
+      - @ref Qore::FtpClient::setWarningQueue()
+      - @ref Qore::HTTPClient::setWarningQueue()
+      - @ref Qore::Socket::setWarningQueue()
     - new functions:
       - @ref Qore::create_object()
       - @ref Qore::create_object_args()

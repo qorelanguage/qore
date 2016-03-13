@@ -642,13 +642,14 @@ bool remove_thread_resource(AbstractThreadResource[AbstractQoreThreadResource] r
    return remove_thread_resource(resource) ? false : true;
 }
 
-//! sets a callable thread resource for the current thread
+//! sets a callable thread resource for the current thread with an optional argument
 /** @par Example:
     @code{.py}
 set_thread_resource(\func(), code);
     @endcode
 
-    @param resource the callable thread resource to set
+    @param resource the thread resource handler to set
+    @param arg an argument to use when calling the thread resource handler
 
     @see
     - @ref thread_resources
