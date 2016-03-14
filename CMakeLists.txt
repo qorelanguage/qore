@@ -6,6 +6,10 @@ option(ICONV_TRANSLIT
 "Force //Translit to iconv encoding to do transliteration, if OFF it is tested for"
 OFF)
 
+option(QORE_RUNTIME_THREAD_STACK_TRACE
+"enable runtime thread stack trace (performance penalty), only for debug builds"
+OFF)
+
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 8)
 set(VERSION_SUB 12)
@@ -19,6 +23,10 @@ if (${QORE_BUILD_TYPE_LWR} MATCHES "debug")
 else ()
     add_definitions(-DNDEBUG)
 endif ()
+
+if ((NOT ${QORE_BUILD_TYPE_LWR} MATCHES "debug") AND QORE_RUNTIME_THREAD_STACK_TRACE)
+    message(FATAL_ERROR "QORE_RUNTIME_THREAD_STACK_TRACE only available on debug builds")
+endif()
 
 execute_process(COMMAND ${CMAKE_SOURCE_DIR}/cmake/get-define.sh QORE_MODULE_API_MAJOR ${CMAKE_SOURCE_DIR}/include/qore/ModuleManager.h
                 OUTPUT_VARIABLE MODULE_API_MAJOR 
