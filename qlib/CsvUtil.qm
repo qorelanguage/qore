@@ -229,6 +229,7 @@ public namespace CsvUtil {
         |\c "encoding"|@ref string|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
         |\c "separator"|@ref string|the string separating the fields in the file (default: \c ",")
         |\c "quote"|@ref string|the field quote character (default: \c '\"')
+        |\c "quote_escape"|@ref string|the escape character(s) used for \c "quote" (default: \c '\\')
         |\c "eol"|@ref string|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
         |\c "ignore-empty"|@ref boolean|if @ref Qore::True "True" (the default) then empty lines will be ignored; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
         |\c "ignore-whitespace"|@ref boolean|if @ref Qore::True "True" (the default) then leading and trailing whitespace will be stripped from non-quoted fields; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
@@ -895,6 +896,7 @@ while ($i.next()) {
                 "encoding": True,
                 "separator": True,
                 "quote": True,
+                "quote_escape": True,
                 "eol": True,
                 "verify-columns": True,
                 "fields": True,
@@ -918,6 +920,9 @@ while ($i.next()) {
             
             # default date->string format
             string $.dateFormat = 'DD/MM/YYYY hh:mm:SS';
+
+            # default escape character in the double-quoted text fields
+            string $.quoteEscapeChar = "\\";
 
             # headers / column names for lines iterated
             *softlist $.headers;
@@ -973,6 +978,13 @@ while ($i.next()) {
                         if ($i.value.typeCode() != NT_STRING)
                             throw $.errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
                         $.quote = $i.value;
+                        break;
+                    }
+                    case "quote_escape": {
+                        if ($i.value.typeCode() != NT_STRING) {
+                            throw $.errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
+                        }
+                        $.quoteEscapeChar = $i.value;
                         break;
                     }
                     case "eol": {
@@ -1213,7 +1225,7 @@ while ($i.next()) {
                 # make full line template
                 my string $template = strmul($.baseTemplate, elements $values, 1) + $.eol;
                 # escape separators in strings
-                my list $row = map replace(string($1), $.quote, "\\" + $.quote), $values;
+                my list $row = map replace(string($1), $.quote, $.quoteEscapeChar + $.quote), $values;
 
                 return vsprintf($template, $row);
             }
@@ -1222,7 +1234,7 @@ while ($i.next()) {
             foreach my any $v in ($values) {
                 if ($v.typeCode() == NT_STRING) {
                     if ($v.find($.quote) >= 0) {
-                        $v = replace($v, $.quote, "\\" + $.quote);
+                        $v = replace($v, $.quote, $.quoteEscapeChar + $.quote);
                         $v = sprintf("\"%s\"", $v);
                     }
                     else if ($v.find($.separator) >= 0)
