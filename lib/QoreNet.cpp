@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -90,7 +90,7 @@ int q_addr_to_string2(const struct sockaddr* ai_addr, QoreString& str) {
       addr = &(ipv6->sin6_addr);
       str.reserve(slen + INET6_ADDRSTRLEN + 1);
    }
-#if HAVE_SYS_UN_H
+#ifdef HAVE_SYS_UN_H
    // windows does not support UNIX sockets, for example
    else if (ai_addr->sa_family == AF_UNIX) {
       struct sockaddr_un* un = (struct sockaddr_un*)ai_addr;

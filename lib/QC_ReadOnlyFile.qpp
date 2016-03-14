@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,8 @@
   licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
   information.
 */
+
+#include <errno.h>
 
 #include <qore/Qore.h>
 #include <qore/intern/QC_File.h>
@@ -183,8 +185,8 @@ qclass ReadOnlyFile [arg=File* f; dom=FILESYSTEM];
     or changed by the ReadOnlyFile::open() or ReadOnlyFile::setEncoding() methods.
 
     @par Example:
-    @code
-my ReadOnlyFile $f("/tmp/my-file.txt", "iso-8859-1");
+    @code{.py}
+ReadOnlyFile f("/tmp/my-file.txt", "iso-8859-1");
     @endcode
 
     @param path the path to open for reading
@@ -222,8 +224,8 @@ ReadOnlyFile::destructor() [doconly=true] {
 
 //! Creates a new %ReadOnlyFile object with the same @ref character_encoding "character encoding" specification as the original, otherwise no other information is copied
 /** @par Example:
-    @code
-my ReadOnlyFile $f1 = $f.copy();
+    @code{.py}
+ReadOnlyFile f1 = f.copy();
     @endcode
  */
 ReadOnlyFile::copy() {
@@ -239,12 +241,12 @@ ReadOnlyFile::copy() {
     If an error occurs, a \c READONLYFILE-OPEN-ERROR exception is thrown.
 
     @par Example:
-    @code
+    @code{.py}
 try {
-    $f.open($fn, "iso-8859-1");
+    f.open(fn, "iso-8859-1");
 }
-catch (hash $ex) {
-    printf("%s: %s: %s\n", $fn, $ex.err, $ex.desc);
+catch (hash ex) {
+    printf("%s: %s: %s\n", fn, ex.err, ex.desc);
 }
     @endcode
 
@@ -259,7 +261,7 @@ catch (hash $ex) {
  */
 nothing ReadOnlyFile::open(string path, *string encoding) {
    if (check_terminal_io(self, "ReadOnlyFile::open", xsink))
-      return 0;
+      return QoreValue();
 
    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : f->getEncoding();
    if (f->open(path->getBuffer(), O_RDONLY, 0, qe))
@@ -268,8 +270,8 @@ nothing ReadOnlyFile::open(string path, *string encoding) {
 
 //! Closes the %ReadOnlyFile object
 /** @par Example:
-    @code
-if ($f.close())
+    @code{.py}
+if (f.close())
     printf("error closing file: %s\n", strerror(errno()));
     @endcode
 
@@ -282,7 +284,7 @@ if ($f.close())
  */
 int ReadOnlyFile::close() {
    if (check_terminal_io(self, "ReadOnlyFile::close", xsink))
-      return 0;
+      return QoreValue();
 
    return f->close();
 }
@@ -295,8 +297,8 @@ int ReadOnlyFile::close() {
     An optional timeout period in milliseconds can be passed as well (or a @ref relative_dates "relative date/time value" may be passed instead of an integer to make the timeout units clear; ex: \c 25ms). If a timeout value is passed and the data cannot be read within the timeout period, then a \c READONLYFILE-READ-TIMEOUT exception is thrown. If no timeout value is passed or a negative value is given, then the call will never timeout until either the requested amount of data has been read from the %ReadOnlyFile or an end-of-file condition has been reached.
 
     @par Example:
-    @code
-my *string $data = $f.read(-1); # read an entire text file into a variable
+    @code{.py}
+*string data = f.read(-1); # read an entire text file into a variable
     @endcode
 
     @par Events:
@@ -316,20 +318,18 @@ my *string $data = $f.read(-1); # read an entire text file into a variable
  */
 *string ReadOnlyFile::read(softint size, timeout timeout_ms = -1) {
    if (check_terminal_io(self, "ReadOnlyFile::read", xsink))
-      return 0;
+      return QoreValue();
 
-   if (!size) {
-      xsink->raiseException("READONLYFILE-READ-PARAMETER-ERROR", "expecting non-zero size as first parameter of ReadOnlyFile::read()");
-      return 0;
-   }
+   if (!size)
+      return xsink->raiseException("READONLYFILE-READ-PARAMETER-ERROR", "expecting non-zero size as first parameter of ReadOnlyFile::read()");
 
    return f->read((qore_offset_t)size, timeout_ms, xsink);
 }
 
 //! Reads a 1-byte unsigned integer from the %ReadOnlyFile in binary format or @ref nothing if no data can be read
 /** @par Example:
-    @code
-my *int $i = $f.readu1();
+    @code{.py}
+*int i = f.readu1();
     @endcode
 
     @par Events:
@@ -342,18 +342,18 @@ my *int $i = $f.readu1();
  */
 *int ReadOnlyFile::readu1() {
    if (check_terminal_io(self, "ReadOnlyFile::readu1", xsink))
-      return 0;
+      return QoreValue();
 
    unsigned char c;
    if (f->readu1(&c, xsink))
-      return 0;
+      return QoreValue();
    return new QoreBigIntNode(c);
 }
 
 //! Reads a 2-byte (16 bit) unsigned integer from the %ReadOnlyFile in binary big-endian format or @ref nothing if no data can be read
 /** @par Example:
-    @code
-my *int $i = $f.readu2();
+    @code{.py}
+*int i = f.readu2();
     @endcode
 
     @par Events:
@@ -366,18 +366,18 @@ my *int $i = $f.readu2();
  */
 *int ReadOnlyFile::readu2() {
    if (check_terminal_io(self, "ReadOnlyFile::readu2", xsink))
-      return 0;
+      return QoreValue();
 
    unsigned short s;
    if (f->readu2(&s, xsink))
-      return 0;
+      return QoreValue();
    return new QoreBigIntNode(s);
 }
 
 //! Reads a 4-byte (32 bit) unsigned integer from the file in big-endian format or @ref nothing if no data can be read
 /** @par Example:
-    @code
-my *int $i = $f.readu4();
+    @code{.py}
+*int i = f.readu4();
     @endcode
 
     @par Events:
@@ -390,18 +390,18 @@ my *int $i = $f.readu4();
  */
 *int ReadOnlyFile::readu4() {
    if (check_terminal_io(self, "ReadOnlyFile::readu4", xsink))
-      return 0;
+      return QoreValue();
 
    unsigned int i;
    if (f->readu4(&i, xsink))
-      return 0;
+      return QoreValue();
    return new QoreBigIntNode(i);
 }
 
 //! Reads a 2-byte (16 bit) unsigned integer from the file in binary little-endian format or @ref nothing if no data can be read
 /** @par Example:
-    @code
-my *int $i = $f.readu2LSB();
+    @code{.py}
+*int i = f.readu2LSB();
     @endcode
 
     @par Events:
@@ -414,19 +414,19 @@ my *int $i = $f.readu2LSB();
  */
 *int ReadOnlyFile::readu2LSB() {
    if (check_terminal_io(self, "ReadOnlyFile::readu2LSB", xsink))
-      return 0;
+      return QoreValue();
 
    unsigned short s;
    if (f->readu2LSB(&s, xsink))
-      return 0;
+      return QoreValue();
 
    return new QoreBigIntNode(s);
 }
 
 //! Reads a 4-byte (32 bit) unsigned integer from the file in binary little-endian format or @ref nothing if no data can be read
 /** @par Example:
-    @code
-my *int $i = $f.readu4LSB();
+    @code{.py}
+*int i = f.readu4LSB();
     @endcode
 
     @par Events:
@@ -439,19 +439,19 @@ my *int $i = $f.readu4LSB();
  */
 *int ReadOnlyFile::readu4LSB() {
    if (check_terminal_io(self, "ReadOnlyFile::readu4LSB", xsink))
-      return 0;
+      return QoreValue();
 
    unsigned int i;
    if (f->readu4LSB(&i, xsink))
-      return 0;
+      return QoreValue();
 
    return new QoreBigIntNode(i);
 }
 
 //! Reads a 1-byte signed integer from the file in binary format or @ref nothing if no data can be read
 /** @par Example:
-    @code
-my *int $i = $f.readi1();
+    @code{.py}
+*int i = f.readi1();
     @endcode
 
     @par Events:
@@ -464,18 +464,18 @@ my *int $i = $f.readi1();
  */
 *int ReadOnlyFile::readi1() {
    if (check_terminal_io(self, "ReadOnlyFile::readi1", xsink))
-      return 0;
+      return QoreValue();
 
    char c;
    if (f->readi1(&c, xsink))
-      return 0;
+      return QoreValue();
    return new QoreBigIntNode(c);
 }
 
 //! Reads a 2-byte (16 bit) signed integer from the file in binary big-endian format or @ref nothing if no data can be read
 /** @par Example:
-    @code
-my *int $i = $f.readi2();
+    @code{.py}
+*int i = f.readi2();
     @endcode
 
     @par Events:
@@ -488,18 +488,18 @@ my *int $i = $f.readi2();
  */
 *int ReadOnlyFile::readi2() {
    if (check_terminal_io(self, "ReadOnlyFile::readi2", xsink))
-      return 0;
+      return QoreValue();
 
    short s;
    if (f->readi2(&s, xsink))
-      return 0;
+      return QoreValue();
    return new QoreBigIntNode(s);
 }
 
 //! Reads a 4-byte (32 bit) signed integer from the file in binary big-endian format or @ref nothing if no data can be read
 /** @par Example:
-    @code
-my *int $i = $f.readi4();
+    @code{.py}
+*int i = f.readi4();
     @endcode
 
     @par Events:
@@ -512,18 +512,18 @@ my *int $i = $f.readi4();
  */
 *int ReadOnlyFile::readi4() {
    if (check_terminal_io(self, "ReadOnlyFile::readi4", xsink))
-      return 0;
+      return QoreValue();
 
    int i;
    if (f->readi4(&i, xsink))
-      return 0;
+      return QoreValue();
    return new QoreBigIntNode(i);
 }
 
 //! Reads an 8-byte (64 bit) signed integer from the file in binary big-endian format or @ref nothing if no data can be read
 /** @par Example:
-    @code
-my *int $i = $f.readi8();
+    @code{.py}
+*int i = f.readi8();
     @endcode
 
     @par Events:
@@ -536,19 +536,19 @@ my *int $i = $f.readi8();
  */
 *int ReadOnlyFile::readi8() {
    if (check_terminal_io(self, "ReadOnlyFile::readi8", xsink))
-      return 0;
+      return QoreValue();
 
    int64 i;
    if (f->readi8(&i, xsink))
-      return 0;
+      return QoreValue();
 
    return new QoreBigIntNode(i);
 }
 
 //! Reads a 2-byte (16 bit) signed integer from the file in binary little-endian format or @ref nothing if no data can be read
 /** @par Example:
-    @code
-my *int $i = $f.readi2LSB();
+    @code{.py}
+*int i = f.readi2LSB();
     @endcode
 
     @par Events:
@@ -561,19 +561,19 @@ my *int $i = $f.readi2LSB();
  */
 *int ReadOnlyFile::readi2LSB() {
    if (check_terminal_io(self, "ReadOnlyFile::readi2LSB", xsink))
-      return 0;
+      return QoreValue();
 
    short s;
    if (f->readi2LSB(&s, xsink))
-      return 0;
+      return QoreValue();
 
    return new QoreBigIntNode(s);
 }
 
 //! Reads a 4-byte (32 bit) signed integer from the file in binary little-endian format or @ref nothing if no data can be read
 /** @par Example:
-    @code
-my *int $i = $f.readi4LSB();
+    @code{.py}
+*int i = f.readi4LSB();
     @endcode
 
     @par Events:
@@ -586,18 +586,18 @@ my *int $i = $f.readi4LSB();
  */
 *int ReadOnlyFile::readi4LSB() {
    if (check_terminal_io(self, "ReadOnlyFile::readi4LSB", xsink))
-      return 0;
+      return QoreValue();
 
    int i;
    if (f->readi4LSB(&i, xsink))
-      return 0;
+      return QoreValue();
    return new QoreBigIntNode(i);
 }
 
 //! Reads an 8-byte (64 bit) signed integer from the file in binary little-endian format or @ref nothing if no data can be read
 /** @par Example:
-    @code
-my *int $i = $f.readi8LSB();
+    @code{.py}
+*int i = f.readi8LSB();
     @endcode
 
     @par Events:
@@ -610,11 +610,11 @@ my *int $i = $f.readi8LSB();
  */
 *int ReadOnlyFile::readi8LSB() {
    if (check_terminal_io(self, "ReadOnlyFile::readi8LSB", xsink))
-      return 0;
+      return QoreValue();
 
    int64 i;
    if (f->readi8LSB(&i, xsink))
-      return 0;
+      return QoreValue();
    return new QoreBigIntNode(i);
 }
 
@@ -629,8 +629,8 @@ my *int $i = $f.readi8LSB();
     @ref EVENT_DATA_READ
 
     @par Example:
-    @code
-my *binary $data = $f.readBinary(-1); # read an entire file into a variable
+    @code{.py}
+*binary data = f.readBinary(-1); # read an entire file into a variable
     @endcode
 
     @param size the number of bytes to read of the file, -1 will read the entire file
@@ -647,12 +647,10 @@ my *binary $data = $f.readBinary(-1); # read an entire file into a variable
  */
 *binary ReadOnlyFile::readBinary(softint size, timeout timeout_ms = -1) {
    if (check_terminal_io(self, "ReadOnlyFile::readBinary", xsink))
-      return 0;
+      return QoreValue();
 
-   if (!size) {
-      xsink->raiseException("READONLYFILE-READ-BINARY-PARAMETER-ERROR", "expecting size as first parameter of File::readBinary()");
-      return 0;
-   }
+   if (!size)
+      return xsink->raiseException("READONLYFILE-READ-BINARY-PARAMETER-ERROR", "expecting size as first parameter of File::readBinary()");
 
    return f->readBinary((qore_offset_t)size, timeout_ms, xsink);
 }
@@ -661,11 +659,11 @@ my *binary $data = $f.readBinary(-1); # read an entire file into a variable
 /** Any string returned will be tagged with the %ReadOnlyFile's @ref character_encoding "character encoding".
 
     @par Example:
-    @code
+    @code{.py}
 # remove EOL marker
-while (exists (my *string $line = $f.readLine(False))) {
+while (exists (*string line = f.readLine(False))) {
     # print out the line just read
-    printf("%s\n", $line);
+    printf("%s\n", line);
 }
     @endcode
 
@@ -685,7 +683,7 @@ while (exists (my *string $line = $f.readLine(False))) {
  */
 *string ReadOnlyFile::readLine(bool incl_eol = True, *string eol) {
    if (check_terminal_io(self, "ReadOnlyFile::readLine", xsink))
-      return 0;
+      return QoreValue();
 
    if (eol && eol->empty())
       eol = 0;
@@ -695,8 +693,8 @@ while (exists (my *string $line = $f.readLine(False))) {
 
 //! Sets the @ref character_encoding "character encoding" for the %ReadOnlyFile; if called with no argument, the @ref default_encoding "default encoding" is set
 /** @par Example:
-    @code
-$f.setEncoding("ISO-8859-1");
+    @code{.py}
+f.setEncoding("ISO-8859-1");
     @endcode
 
     @param encoding the @ref character_encoding "character encoding" for the file; if called with no argument, the @ref default_encoding "default encoding" is set
@@ -705,7 +703,7 @@ $f.setEncoding("ISO-8859-1");
  */
 nothing ReadOnlyFile::setEncoding(*string encoding) {
    if (check_terminal_io(self, "ReadOnlyFile::setEncoding", xsink))
-      return 0;
+      return QoreValue();
 
    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
    f->setEncoding(qe);
@@ -713,8 +711,8 @@ nothing ReadOnlyFile::setEncoding(*string encoding) {
 
 //! Returns the @ref character_encoding "character encoding" for the %ReadOnlyFile
 /** @par Example:
-    @code
-my string $encoding = $f.getEncoding();
+    @code{.py}
+string encoding = f.getEncoding();
     @endcode
 
     @return the @ref character_encoding "character encoding" for the %ReadOnlyFile
@@ -725,8 +723,8 @@ string ReadOnlyFile::getEncoding() [flags=CONSTANT] {
 
 //! Sets the current file position (in bytes from the beginning of the file)
 /** @par Example:
-    @code
-$f.setPos(0); # go to the beginning of the file
+    @code{.py}
+f.setPos(0); # go to the beginning of the file
     @endcode
 
     @param pos the position in the file as offset from position 0
@@ -739,15 +737,15 @@ $f.setPos(0); # go to the beginning of the file
  */
 int ReadOnlyFile::setPos(int pos = 0) {
    if (check_terminal_io(self, "ReadOnlyFile::setPos", xsink))
-      return 0;
+      return QoreValue();
 
    return f->setPos(pos);
 }
 
 //! Returns the current file position as an integer giving the offset in bytes from the beginning of the file (starting from zero)
 /** @par Example:
-    @code
-my int $pos = $f.getPos();
+    @code{.py}
+int pos = f.getPos();
     @endcode
 
     @return the current file position as an integer giving the offset in bytes from the beginning of the file (starting from zero)
@@ -758,7 +756,7 @@ my int $pos = $f.getPos();
  */
 int ReadOnlyFile::getPos() [flags=RET_VALUE_ONLY] {
    if (check_terminal_io(self, "ReadOnlyFile::getPos", xsink))
-      return 0;
+      return QoreValue();
 
    return f->getPos();
 }
@@ -767,8 +765,8 @@ int ReadOnlyFile::getPos() [flags=RET_VALUE_ONLY] {
 /** Multi-byte characters are also read; use ReadOnlyFile::readu1() or ReadOnlyFile::readi1() to read a single byte from a file regardless of the %ReadOnlyFile's @ref character_encoding "character encoding".
 
     @par Example:
-    @code
-my *string $str = $f.getchar();
+    @code{.py}
+*string str = f.getchar();
     @endcode
 
     @return the single character read from the file or @ref nothing if no data can be read from the %ReadOnlyFile
@@ -779,7 +777,7 @@ my *string $str = $f.getchar();
  */
 *string ReadOnlyFile::getchar() {
    if (check_terminal_io(self, "ReadOnlyFile::getchar", xsink))
-      return 0;
+      return QoreValue();
 
    return f->getchar(xsink);
 }
@@ -788,7 +786,7 @@ my *string $str = $f.getchar();
 /** With a timeout of zero (the default if no timeout value is passed), this method can be used for non-blocking polling the file for data. Like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" may be passed instead of an integer to make the timeout units clear (ex: \c 25ms).
 
     @par Example:
-    @code
+    @code{.py}
 if (!isDataAvailable(30s))
     return;
     @endcode
@@ -801,15 +799,15 @@ if (!isDataAvailable(30s))
  */
 bool ReadOnlyFile::isDataAvailable(timeout timeout_ms = 0) [flags=RET_VALUE_ONLY] {
    if (check_terminal_io(self, "ReadOnlyFile::isDataAvailable", xsink))
-      return 0;
+      return QoreValue();
 
    return f->isDataAvailable(timeout_ms, xsink);
 }
 
 //! Sets a @ref Qore::Thread::Queue "Queue" object to receive @ref file_events "file events"
 /** @par Example:
-    @code
-$f.setEventQueue($queue);
+    @code{.py}
+f.setEventQueue(queue);
     @endcode
 
     @param queue the @ref Qore::Thread::Queue "Queue" object to receive @ref file_events "file events"; note that the @ref Qore::Thread::Queue "Queue" passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
@@ -822,22 +820,19 @@ $f.setEventQueue($queue);
 nothing ReadOnlyFile::setEventQueue(Qore::Thread::Queue[Queue] queue) {
    ReferenceHolder<Queue> q(queue, xsink);
    if (check_terminal_io(self, "ReadOnlyFile::setEventQueue", xsink))
-      return 0;
+      return QoreValue();
 
-   if (queue->getMax() != -1) {
-      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the File object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
-      return 0;
-   }
+   if (queue->getMax() != -1)
+      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the File object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
 
    // pass reference from QoreObject::getReferencedPrivateData() to function
    f->setEventQueue(q.release(), xsink);
-   return 0;
 }
 
 //! Removes any @ref Qore::Thread::Queue "Queue" object from the %ReadOnlyFile object so that @ref file_events "file events" are no longer added to the @ref Qore::Thread::Queue "Queue"
 /** @par Example:
-    @code
-$f.setEventQueue();
+    @code{.py}
+f.setEventQueue();
     @endcode
 
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
@@ -846,18 +841,17 @@ $f.setEventQueue();
  */
 nothing ReadOnlyFile::setEventQueue() {
    if (check_terminal_io(self, "ReadOnlyFile::setEventQueue", xsink))
-      return 0;
+      return QoreValue();
 
    f->setEventQueue(0, xsink);
-   return 0;
 }
 
 //! Returns a @ref stat_list about the file's status or throws an exception if any errors occur
 /** If any errors occur, a \c FILE-STAT-ERROR exception is thrown.
 
     @par Example:
-    @code
-my int $mode = $file.stat()[2];
+    @code{.py}
+int mode = file.stat()[2];
     @endcode
 
     @return a @ref stat_list "list of file status values" for the current file (must be open).
@@ -871,7 +865,7 @@ my int $mode = $file.stat()[2];
  */
 list ReadOnlyFile::stat() {
    if (check_terminal_io(self, "ReadOnlyFile::stat", xsink))
-      return 0;
+      return QoreValue();
 
    return f->stat(xsink);
 }
@@ -880,8 +874,8 @@ list ReadOnlyFile::stat() {
 /** If any errors occur, a \c FILE-HSTAT-ERROR exception is thrown
 
     @par Example:
-    @code
-my hash $h = $file.hstat();
+    @code{.py}
+hash h = file.hstat();
     @endcode
 
     @return a @ref stat_hash about the file's status
@@ -895,7 +889,7 @@ my hash $h = $file.hstat();
  */
 hash ReadOnlyFile::hstat() {
    if (check_terminal_io(self, "ReadOnlyFile::hstat", xsink))
-      return 0;
+      return QoreValue();
 
    return f->hstat(xsink);
 }
@@ -907,8 +901,8 @@ hash ReadOnlyFile::hstat() {
     @ref Qore::Option::HAVE_STATVFS
 
     @par Example:
-    @code
-my hash $h = $file.statvfs();
+    @code{.py}
+hash h = file.statvfs();
     @endcode
 
     @return a @ref filesystem_status_hash about the filesystem where the file resides
@@ -920,7 +914,7 @@ my hash $h = $file.statvfs();
 hash ReadOnlyFile::statvfs() {
 #ifdef HAVE_SYS_STATVFS_H
    if (check_terminal_io(self, "ReadOnlyFile::statvfs", xsink))
-      return 0;
+      return QoreValue();
 
    return f->statvfs(xsink);
 #else
@@ -932,8 +926,8 @@ hash ReadOnlyFile::statvfs() {
 /** @return @ref Qore::True "True" if the File is open, @ref Qore::False "False" if not
 
     @par Example:
-    @code
-my bool $b = $file.isOpen();
+    @code{.py}
+bool b = file.isOpen();
     @endcode
 */
 bool ReadOnlyFile::isOpen() [flags=CONSTANT] {
@@ -942,8 +936,8 @@ bool ReadOnlyFile::isOpen() [flags=CONSTANT] {
 
 //! returns @ref Qore::True "True" if the File is connected to a terminal device, @ref Qore::False "False" if not
 /** @par Example:
-    @code
-my bool $b = $file.isTty();
+    @code{.py}
+bool b = file.isTty();
     @endcode
 
     @return @ref Qore::True "True" if the File is connected to a terminal device, @ref Qore::False "False" if not
@@ -956,8 +950,8 @@ bool ReadOnlyFile::isTty() [flags=CONSTANT] {
 
 //! returns the file path/name used to open the file if the file is open, otherwise @ref nothing
 /** @par Example:
-    @code
-my *string $fn = $f.getFileName();
+    @code{.py}
+*string fn = f.getFileName();
     @endcode
 
     @return the file path/name used to open the file if the file is open, otherwise @ref nothing
@@ -970,45 +964,45 @@ my *string $fn = $f.getFileName();
 
 //! returns the contents of a text file as a string optionally tagged with the given @ref character_encoding "character encoding"
 /** @par Example:
-    @code
-my string $data = File::readTextFile($path);
+    @code{.py}
+string data = File::readTextFile(path);
     @endcode
-    
+
     @param path the path of the file to retrieve
     @param encoding the name of the @ref character_encoding "character encoding" for the string returned; if this argument is not given, then the @ref default_encoding "default character encoding" is assumed
 
-    @return the contents of a text file as a string optionally tagged with the given @ref character_encoding "character encoding"
+    @return the contents of a text file as a string optionally tagged with the given @ref character_encoding "character encoding" or @ref nothing if the file is empty or cannot be read
 
     @since %Qore 0.8.8
 */
-static string ReadOnlyFile::readTextFile(string path, *string encoding) [dom=FILESYSTEM] {
+static *string ReadOnlyFile::readTextFile(string path, *string encoding) [dom=FILESYSTEM] {
    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
 
    QoreFile qf;
 
    if (qf.open2(xsink, path->getBuffer(), O_RDONLY, 0777, qe))
-      return 0;
+      return QoreValue();
 
    return qf.read(-1, xsink);
 }
 
 //! returns the contents of a binary file as a binary object
 /** @par Example:
-    @code
-my binary $data = File::readBinaryFile($path);
+    @code{.py}
+binary data = File::readBinaryFile(path);
     @endcode
-    
+
     @param path the path of the file to retrieve
 
-    @return the contents of a binary file as a binary object
+    @return the contents of a binary file as a binary object or @ref nothing if the file is empty or cannot be read
 
     @since %Qore 0.8.8
 */
-static binary ReadOnlyFile::readBinaryFile(string path) [dom=FILESYSTEM] {
+static *binary ReadOnlyFile::readBinaryFile(string path) [dom=FILESYSTEM] {
    QoreFile qf;
 
    if (qf.open2(xsink, path->getBuffer()))
-      return 0;
+      return QoreValue();
 
    return qf.readBinary(-1, xsink);
 }

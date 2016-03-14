@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   provides a thread-safe interface to the QoreSocket object
 
@@ -49,7 +49,7 @@ private:
    friend class my_socket_priv;
    friend struct qore_httpclient_priv;
 
-   DLLLOCAL QoreSocketObject(QoreSocket* s);
+   DLLLOCAL QoreSocketObject(QoreSocket* s, QoreSSLCertificate* cert = 0, QoreSSLPrivateKey* pk = 0);
 
 protected:
    my_socket_priv* priv;
@@ -182,6 +182,9 @@ public:
 
    DLLEXPORT void upgradeClientToSSL(ExceptionSink* xsink);
    DLLEXPORT void upgradeServerToSSL(ExceptionSink* xsink);
+
+   DLLEXPORT void upgradeClientToSSL(int timeout_ms, ExceptionSink* xsink);
+   DLLEXPORT void upgradeServerToSSL(int timeout_ms, ExceptionSink* xsink);
 
    DLLEXPORT void clearWarningQueue(ExceptionSink* xsink);
    DLLEXPORT void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, class Queue* wq, AbstractQoreNode* arg, int64 min_ms = 1000);

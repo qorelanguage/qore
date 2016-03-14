@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   DatasourcePool.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
- 
+
+  Copyright (C) 2003 - 2016 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -68,7 +68,7 @@ protected:
    Queue* q;
    // Queue argument
    AbstractQoreNode* arg;
-   
+
 public:
    DLLLOCAL DatasourceConfig(DBIDriver* n_driver, const char* n_user, const char* n_pass, const char* n_db,
                              const char* n_encoding, const char* n_host, int n_port,
@@ -83,7 +83,7 @@ public:
       port(old.port), opts(old.opts ? old.opts->hashRefSelf() : 0),
       q(old.q ? old.q->queueRefSelf() : 0), arg(old.arg ? old.arg->refSelf() : 0) {
    }
-   
+
    DLLLOCAL ~DatasourceConfig() {
       assert(!q);
       assert(!arg);
@@ -170,7 +170,7 @@ protected:
    thread_use_t tmap;        // map from tids to pool index
    free_list_t free_list;
 
-   unsigned min, 
+   unsigned min,
       max,
       cmax,			 // current max
       wait_count,
@@ -203,7 +203,7 @@ protected:
    DLLLOCAL AbstractQoreNode* exec_internal(bool doBind, const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink);
    DLLLOCAL int checkWait(int64 warn_total, ExceptionSink* xsink);
    DLLLOCAL void init(ExceptionSink* xsink);
-   
+
 public:
 #ifdef DEBUG
    QoreString* getAndResetSQL();
@@ -242,6 +242,9 @@ public:
       return pool[0]->getDriverName();
    }
 
+   DLLLOCAL QoreListNode* getCapabilityList() const;
+   DLLLOCAL int getCapabilities() const;
+
    DLLLOCAL AbstractQoreNode* getServerVersion(ExceptionSink* xsink);
    DLLLOCAL AbstractQoreNode* getClientVersion(ExceptionSink* xsink) {
       return pool[0]->getClientVersion(xsink);
@@ -273,7 +276,7 @@ public:
    }
 
    DLLLOCAL virtual Datasource* helperEndAction(char cmd, bool new_transaction, ExceptionSink* xsink) {
-      //printd(0, "DatasourcePool::helperEndAction() cmd=%d, nt=%d\n", cmd, new_transaction);
+      //printd(5, "DatasourcePool::helperEndAction() cmd: %d '%s', nt: %d\n", cmd, DAH_TEXT(cmd), new_transaction);
       if (cmd == DAH_RELEASE) {
          freeDS();
          return 0;
@@ -317,19 +320,25 @@ public:
    DLLLOCAL DatasourcePoolActionHelper(DatasourcePool& n_dsp, ExceptionSink* n_xsink, char n_cmd = DAH_NOCHANGE) : dsp(n_dsp), xsink(n_xsink), new_ds(false), cmd(n_cmd) {
       ds = dsp.getDS(new_ds, xsink);
    }
+
+   /* release the connection if:
+         1) the connection was aborted (exception already raised)
+         2) the connection was acquired for this call, and
+              the command was NOCHANGE, meaning, leave the connection in the same state it was before the call
+   */
    DLLLOCAL ~DatasourcePoolActionHelper() {
       if (!ds)
 	 return;
 
-      if (cmd == DAH_RELEASE 
+      if (cmd == DAH_RELEASE
           || ds->wasConnectionAborted()
-          || (new_ds && ((cmd == DAH_NOCHANGE) || *xsink)))
+          || (new_ds && (cmd == DAH_NOCHANGE)))
 	 dsp.freeDS();
    }
 
 #if 0
    DLLLOCAL void addSQL(const QoreString* sql) {
-      if (ds && !((cmd == DAH_RELEASE) || (new_ds && ((cmd == DAH_NOCHANGE) || *xsink)) || ds->wasConnectionAborted()))
+      if (ds && !((cmd == DAH_RELEASE) || (new_ds && (cmd == DAH_NOCHANGE)) || ds->wasConnectionAborted()))
          dsp.addSQL(cmd == DAH_NOCHANGE ? "select" : "exec", sql);
    }
 #endif

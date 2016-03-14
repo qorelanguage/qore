@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -28,12 +28,12 @@
   licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
   information.
 
-  Flex scanner: 
-    no string length limits, 
-    no include file depth limits, 
+  Flex scanner:
+    no string length limits,
+    no include file depth limits,
     thread-safe
 
-  requires flex 2.5.31 or better (2.5.37 recommended, 2.5.4 will not work) 
+  requires flex 2.5.31 or better (2.5.37+ recommended, 2.5.4 will not work)
   so a thread-safe scanner can be generated
 
   see: http://flex.sourceforge.net/
@@ -43,6 +43,7 @@
 #include <qore/intern/ParserSupport.h>
 #include <qore/intern/qore_program_private.h>
 #include <qore/intern/ModuleInfo.h>
+#include <qore/intern/QoreParseHashNode.h>
 
 #include "parser.hpp"
 
@@ -87,7 +88,7 @@ static char* make_scoped_vref(const char* str) {
    size_t i = 0;
    while (*str) {
       if (*str != '$')
-	 rv[i++] = *str;
+         rv[i++] = *str;
       ++str;
    }
    rv[i] = '\0';
@@ -95,17 +96,17 @@ static char* make_scoped_vref(const char* str) {
 }
 
 // the return value of this function must be freed if non-0
-static char *trim(const char *str) {
+static char* trim(const char* str) {
    while ((*str) == ' ' || (*str) == '\t')
       str++;
    // duplicate string
-   char *n = strdup(str);
+   char* n = strdup(str);
    // find end of string
    unsigned l = (unsigned)strlen(n);
    if (l) {
-      char *e = n + l - 1;
+      char* e = n + l - 1;
       while ((*e) == ' ' || (*e) == '\t')
-	 *(e--) = '\0';
+         *(e--) = '\0';
    }
    if (!n[0]) {
       free(n);
@@ -115,17 +116,17 @@ static char *trim(const char *str) {
 }
 
 // edits the string (even though it's a 'const char*') and returns a pointer to a string with leading and trailing whitespace removed
-static const char *trim_inplace(const char *str) {
+static char* trim_inplace(const char* str) {
    while ((*str) == ' ' || (*str) == '\t')
       str++;
    // find end of string
    unsigned l = (unsigned)strlen(str);
    if (l) {
-      const char *e = str + l - 1;
+      const char* e = str + l - 1;
       while ((*e) == ' ' || (*e) == '\t')
-	 *((char *)(e--)) = '\0';
+         *((char*)(e--)) = '\0';
    }
-   return str[0] ? str : 0;
+   return str[0] ? (char*)str : 0;
 }
 
 #if 0
@@ -134,8 +135,8 @@ static const char* get_last_word(const char* str) {
    unsigned l = (unsigned)strlen(str);
    assert(l);
 
-   const char *e = str + l - 2;
-   
+   const char* e = str + l - 2;
+
    while (e != str && *e != ' ' && *e != '\t' && *e != '\r' && *e != '\n')
       --e;
 
@@ -145,7 +146,7 @@ static const char* get_last_word(const char* str) {
 #endif
 
 // sets the time zone at parse time - this function is exported in the library
-void parse_set_time_zone(const char *zone) {
+void parse_set_time_zone(const char* zone) {
    zone = trim_inplace(zone);
    if (!zone) {
       parse_error("empty argument to %set-time-zone");
@@ -159,11 +160,11 @@ static void scanner_process_path(QoreString& npath, char* ip) {
     // scan through paths and:
     // 1: do environment variable substitution
     // 2: remove the paths that don't exist
-    char *lp, *p;
+    char* lp, *p;
     p = lp = ip;
-    
+
     while (true) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
        // do not assume ':' separates paths on windows if it's the second character in a path
        if ((*p == ':' && p != lp + 1) || !*p)
 #else
@@ -174,15 +175,15 @@ static void scanner_process_path(QoreString& npath, char* ip) {
           if (p != lp) {
              QoreString tpath;
              tpath.concat(lp, p - lp);
-             const char *sp = tpath.getBuffer();
+             const char* sp = tpath.getBuffer();
              //printd(5, "got path string: '%s'\n", sp);
 
-             const char *i, *spt;
+             const char* i, *spt;
              spt = sp;
 
              while ((i = strchr(spt, '$'))) {
                 // find end of environment variable
-                char *ep = (char *)++i;
+                char* ep = (char*)++i;
                 while (*ep && (*ep == '_' || isalnum(*ep)))
                    ++ep;
                 spt = i + 1;
@@ -215,6 +216,17 @@ static void scanner_process_path(QoreString& npath, char* ip) {
              }
              struct stat sb;
 
+             if (tpath[0] == '.' && tpath[1] == '.') {
+                // substitue program path if available
+                const char* sp = getProgram()->parseGetScriptDir();
+                if (sp) {
+                   size_t l = strlen(sp);
+                   if (tpath[0] != '/' && tpath[0] != '\\' && sp[l-1] != '/' && sp[l-1] != '\\')
+                      tpath.replace(0, 0, QORE_DIR_SEP_STR);
+                   tpath.replace(0, 0, sp);
+                }
+             }
+
              //printd(5, "set_include_path() trying '%s'\n", sp);
              // add to path list if the directory exists
              if (!stat(sp, &sb)) {
@@ -230,7 +242,7 @@ static void scanner_process_path(QoreString& npath, char* ip) {
           lp = ++p;
           continue;
        }
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
        // transform '/ characters to '\' characters
        if (*p == '/')
           *p = '\\';
@@ -238,14 +250,15 @@ static void scanner_process_path(QoreString& npath, char* ip) {
 
        ++p;
     }
+    //printd(5, "ip: '%s' npath: '%s'\n", ip, npath.getBuffer());
 }
 
-static QoreString* getIncludeFileName(char* file) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+static QoreString* get_include_file_name(char* file) {
+#ifdef _Q_WINDOWS
    // convert UNIX-style '/' character to '\'
-   for (char *p = file; *p; ++p)
+   for (char* p = file; *p; ++p)
       if (*p == '/')
-	 *p = '\\';
+         *p = '\\';
 #endif
 
    // if the filename begins with an environment variable, then try to do environment variable substitution
@@ -255,22 +268,22 @@ static QoreString* getIncludeFileName(char* file) {
       QoreString var;
       char* p = file + 1;
       while (*p && (*p == '_' || isalnum(*p))) {
-	 var.concat(*p);
-	 ++p;
+         var.concat(*p);
+         ++p;
       }
 
       QoreString val;
       if (SystemEnvironment::get(var.getBuffer(), val))
-	 rv->concat(file);
+         rv->concat(file);
       else {
-	 rv->concat(&val);
-	 rv->concat(file + var.size() + 1);
+         rv->concat(&val);
+         rv->concat(file + var.size() + 1);
       }
 
       return rv;
    }
 
-   //printd(5, "getIncludeFileName(%s)\n", file);
+   //printd(5, "get_include_file_name(%s)\n", file);
    // FIXME: UNIX-specific - need to check for drive name on windows
    if (file[0] == QORE_DIR_SEP)
       return new QoreString(file);
@@ -278,27 +291,27 @@ static QoreString* getIncludeFileName(char* file) {
    QoreString *rv;
 
    // check in current directory of script first
-   const char *sp = getProgram()->parseGetScriptDir();
+   const char* sp = getProgram()->parseGetScriptDir();
    if (sp) {
       rv = findFileInPath(file, sp);
       if (rv)
-	 return rv;
+         return rv;
    }
 
    rv = findFileInEnvPath(file, "QORE_INCLUDE_DIR");
    if (!rv) {
-       const char *pp = getProgram()->parseGetIncludePath();
-       if (pp) 
-	   rv = findFileInPath(file, pp);
+       const char* pp = getProgram()->parseGetIncludePath();
+       if (pp)
+           rv = findFileInPath(file, pp);
        if (!rv)
-	   rv = new QoreString(file);
+           rv = new QoreString(file);
    }
 
    return rv;
 }
 
 static void append_module_path(const char* path) {
-   char *ip = trim(path);
+   char* ip = trim(path);
    if (!ip)
       return;
    ON_BLOCK_EXIT(free, ip);
@@ -312,8 +325,8 @@ static void append_module_path(const char* path) {
    //getProgram()->parseSetIncludePath(npath.getBuffer());
 }
 
-static void set_include_path(const char *path) {
-   char *ip = trim(path);
+static void set_include_path(const char* path) {
+   char* ip = trim(path);
    if (!ip)
       return;
    ON_BLOCK_EXIT(free, ip);
@@ -326,9 +339,35 @@ static void set_include_path(const char *path) {
    getProgram()->parseSetIncludePath(npath.getBuffer());
 }
 
-static inline char *remove_quotes(char *str) {
+static char* remove_quotes(char* str) {
    str[strlen(str) - 1] = '\0';
    return str + 1;
+}
+
+static int check_reexport(const char* directive, char*& cn, bool& reexport) {
+   if (*cn != '(')
+      return 0;
+   char* p = strchr(cn, ')');
+   if (!p) {
+      parse_error("missing end parenthesis in %%%s directive", directive);
+      return -1;
+   }
+
+   const char* ropt = cn + 1;
+   *p = '\0';
+   cn = p + 1;
+   if (strcmp(ropt, "reexport")) {
+      parse_error("unrecognized %%%s option '%s'; expected 'reexport'", directive, ropt);
+      return -1;
+   }
+
+   reexport = true;
+   cn = trim_inplace(cn);
+   if (!cn) {
+      parse_error("missing argument to %%%s", directive);
+      return -1;
+   }
+   return 0;
 }
 
 static inline DateTimeNode *makeYears(int years) {
@@ -363,7 +402,7 @@ static inline DateTimeNode *makeMicroseconds(int us) {
    return DateTimeNode::makeRelative(0, 0, 0, 0, 0, 0, us);
 }
 
-static int64 parse_get_integer(const char *str) {
+static int64 parse_get_integer(const char* str) {
    errno = 0;
    int64 rv = strtoll(str, 0, 10);
    if (errno == ERANGE)
@@ -371,7 +410,7 @@ static int64 parse_get_integer(const char *str) {
    return rv;
 }
 
-static inline int get_int_2(const char *&p) {
+static inline int get_int_2(const char* &p) {
    int rv = (*p - '0') * 10;
    ++p;
    rv += (*p - '0');
@@ -379,7 +418,7 @@ static inline int get_int_2(const char *&p) {
    return rv;
 }
 
-static inline int get_int_4(const char *&p) {
+static inline int get_int_4(const char* &p) {
    int rv = (*p - '0') * 1000;
    ++p;
    rv += (*p - '0') * 100;
@@ -391,7 +430,7 @@ static inline int get_int_4(const char *&p) {
    return rv;
 }
 
-static void parse_time(const char *&p, int &hour, int &minute, int &second, int &us) {
+static void parse_time(const char* &p, int &hour, int &minute, int &second, int &us) {
    assert(!hour && !minute && !second && !us);
 
    // get hour
@@ -408,32 +447,32 @@ static void parse_time(const char *&p, int &hour, int &minute, int &second, int 
 
       // get milliseconds or microseconds if present
       if ((*p) == '.') {
-	 ++p;
+         ++p;
 
-	 // read all digits
-	 int len = 0;
-	 while (isdigit(*p)) {
-	    us *= 10;
-	    us += *p - '0';
-	    ++len;
-	    ++p;
-	 }
-	 
-	 // adjust to microseconds
-	 while (len < 6) {
-	    us *= 10;
-	    ++len;
-	 }
-	 while (len > 6) {
-	    us /= 10;
-	    --len;
-	 }
+         // read all digits
+         int len = 0;
+         while (isdigit(*p)) {
+            us *= 10;
+            us += *p - '0';
+            ++len;
+            ++p;
+         }
+
+         // adjust to microseconds
+         while (len < 6) {
+            us *= 10;
+            ++len;
+         }
+         while (len > 6) {
+            us /= 10;
+            --len;
+         }
       }
    }
 }
 
-static DateTimeNode *makeDateTime(char *str, bool has_time) {
-   const char *p = str;
+static DateTimeNode *makeDateTime(char* str, bool has_time) {
+   const char* p = str;
 
    // get year
    int year = get_int_4(p);
@@ -466,8 +505,8 @@ static DateTimeNode *makeDateTime(char *str, bool has_time) {
    return DateTimeNode::makeAbsolute(zone, year, month, day, hour, minute, second, us);
 }
 
-static inline DateTimeNode *makeTime(char *str) {
-   const char *p = str;
+static inline DateTimeNode *makeTime(char* str) {
+   const char* p = str;
 
    int hour = 0, minute = 0, second = 0, us = 0;
    parse_time(p, hour, minute, second, us);
@@ -484,8 +523,8 @@ static inline DateTimeNode *makeTime(char *str) {
    return DateTimeNode::makeAbsolute(zone, 1970, 01, 01, hour, minute, second, us);
 }
 
-static inline DateTimeNode *makeRelativeDateTime(char *str) {
-   const char *p = str;
+static inline DateTimeNode *makeRelativeDateTime(char* str) {
+   const char* p = str;
 
    // get year
    int year = get_int_4(p);
@@ -507,8 +546,8 @@ static inline DateTimeNode *makeRelativeDateTime(char *str) {
    return DateTimeNode::makeRelative(year, month, day, hour, minute, second, us);
 }
 
-static DateTimeNode *makeRelativeTime(char *str) {
-   const char *p = str;
+static DateTimeNode *makeRelativeTime(char* str) {
+   const char* p = str;
 
    int hour = 0, minute = 0, second = 0, us = 0;
    parse_time(p, hour, minute, second, us);
@@ -556,18 +595,18 @@ static bool isRegexSubstModifier(RegexSubstNode *qr, int c) {
    return true;
 }
 
-static char *make_cast(const char *s) {
+static char* make_cast(const char* s) {
    QoreString str(s + 5);
    str.trim_trailing('>');
    str.trim();
    return str.giveBuffer();
 }
 
-static void qore_parse_define(const char *pstr) {
+static void qore_parse_define(const char* pstr) {
    QoreString str(pstr);
    // trim trailing and leading whitespace
    str.trim();
-   const char *p = strchr(str.getBuffer(), ' ');
+   const char* p = strchr(str.getBuffer(), ' ');
    QoreString arg;
    if (p) {
       // copy arg to arg string
@@ -588,13 +627,13 @@ static void qore_parse_define(const char *pstr) {
       bool ok;
       v = qore_parse_get_define_value(str.getBuffer(), arg, ok);
       if (!ok)
-	 return;
+         return;
    }
- 
+
    qore_program_private::parseDefine(getProgram(), QoreProgramLocation(ParseLocation), str.getBuffer(), v);
 }
 
-static bool parse_is_defined(const char *pstr, bool def = true) {
+static bool parse_is_defined(const char* pstr, bool def = true) {
    QoreString str(pstr);
    str.trim();
    if (str.empty()) {
@@ -604,12 +643,29 @@ static bool parse_is_defined(const char *pstr, bool def = true) {
    return qore_program_private::parseIsDefined(getProgram(), str.getBuffer());
 }
 
+static bool is_identifier(const char *str) {
+    if (!(getProgram()->getParseOptions64() & PO_REQUIRE_BARE_REFS)) {
+        if (*str++ != '$') {
+            return false;
+        }
+    }
+    if (!isalpha(*str) && *str != '_') {
+        return false;
+    }
+    while (*++str) {
+        if (!isalpha(*str) && !isdigit(*str) && *str != '_') {
+            return false;
+        }
+    }
+    return true;
+}
+
 #define DO_DOT_KW_IDENTIFIER(kw) { yylval->String = new QoreStringNode(kw); qore_size_t pos = yylval->String->size() + 1; if (yytext[pos]) unput(yytext[pos]); return DOT_KW_IDENTIFIER; }
 
 #define QORE_FLEX_DO_EOF { /* delete current buffer */ yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner); \
       /* get last parse state */ YY_BUFFER_STATE yybs = (YY_BUFFER_STATE)endParsing(); \
       if (yybs) { /* need to close file and switch to previous buffer */ \
-	 fclose(yyin); if (yybs) yy_switch_to_buffer(yybs, yyscanner);	\
+         fclose(yyin); if (yybs) yy_switch_to_buffer(yybs, yyscanner);  \
       } else yyterminate();  \
    }
 %}
@@ -625,11 +681,11 @@ static bool parse_is_defined(const char *pstr, bool def = true) {
 
 HEX_DIGIT       [0-9A-Fa-f]
 HEX_CONST       0x{HEX_DIGIT}+
-OCTAL_CONST     \\[0-7]{0,3}
-DIGIT		[0-9]
-WORD		[a-zA-Z][a-zA-Z0-9_]*
-WS		[ \t\r]
-WSNL		[ \t\r\n]
+OCTAL_CONST     \\[0-7]{1,3}
+DIGIT           [0-9]
+WORD            [a-zA-Z_][a-zA-Z0-9_]*
+WS              [ \t\r]
+WSNL            [ \t\r\n]
 YEAR            [0-9]{4}
 MONTH           (0[1-9])|(1[012])
 DAY             ((0[1-9])|([12][0-9])|(3[01]))
@@ -667,6 +723,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%no-new{WS}*$                          getProgram()->parseSetParseOptions(PO_NO_NEW);
 ^%no-network{WS}*$                      getProgram()->parseSetParseOptions(PO_NO_NETWORK);
 ^%no-child-restrictions{WS}*$           getProgram()->parseSetParseOptions(PO_NO_CHILD_PO_RESTRICTIONS);
+^%allow-injection{WS}*$                 getProgram()->parseSetParseOptions(PO_ALLOW_INJECTION);
 ^%no-database{WS}*$                     getProgram()->parseSetParseOptions(PO_NO_DATABASE);
 ^%no-gui{WS}*$                          getProgram()->parseSetParseOptions(PO_NO_GUI);
 ^%no-terminal-io{WS}*$                  getProgram()->parseSetParseOptions(PO_NO_TERMINAL_IO);
@@ -683,88 +740,102 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%old-style{WS}*$                       getProgram()->parseDisableParseOptions(PO_NEW_STYLE);
 ^%perl-bool-eval{WS}*$                  getProgram()->parseDisableParseOptions(PO_STRICT_BOOLEAN_EVAL);
 ^%strict-bool-eval{WS}*$                getProgram()->parseSetParseOptions(PO_STRICT_BOOLEAN_EVAL);
+^%broken-list-parsing{WS}*$             getProgram()->parseSetParseOptions(PO_BROKEN_LIST_PARSING);
+^%broken-logic-precedence{WS}*$         getProgram()->parseSetParseOptions(PO_BROKEN_LOGIC_PRECEDENCE);
 ^%push-parse-options{WS}*$              push_parse_options();
+^%append-include-path{WS}*$             { parse_error("missing argument to %%append-include-path"); }
 ^%append-include-path{WS}+              BEGIN(append_path_state);
-<append_path_state>[^\t\n\r]+           {
-					   set_include_path(yytext);
-					   BEGIN(INITIAL);
+<append_path_state>[^\n\r]+             {
+                                           set_include_path(yytext);
+                                           BEGIN(INITIAL);
                                         }
+^%append-module-path{WS}*$              { parse_error("missing argument to %%append-module-path"); }
 ^%append-module-path{WS}+               BEGIN(append_module_state);
-<append_module_state>[^\t\n\r]+         {
+<append_module_state>[^\n\r]+           {
                                            append_module_path(yytext);
                                            BEGIN(INITIAL);
                                         }
+^%set-time-zone{WS}*$                   { parse_error("missing argument to %%set-time-zone"); }
 ^%set-time-zone{WS}+                    BEGIN(set_zone);
-<set_zone>[^\t\n\r]+                    {
-					   parse_set_time_zone(yytext);
-					   BEGIN(INITIAL);
+<set_zone>[^\n\r]+                      {
+                                           parse_set_time_zone(yytext);
+                                           BEGIN(INITIAL);
                                         }
-^%enable-all-warnings{WS}*$             { 
+^%enable-all-warnings{WS}*$             {
                                            if (getProgram()->setWarningMask(-1))
-					      qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable all warnings");
-			                }
-^%disable-all-warnings{WS}*$            { 
+                                              qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable all warnings");
+                                        }
+^%disable-all-warnings{WS}*$            {
                                            if (getProgram()->setWarningMask(0))
-					      qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot disable all warnings");
-			                }
+                                              qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot disable all warnings");
+                                        }
 ^%disable-warning{WS}*$                 { parse_error("missing argument to %%disable-warning"); }
 ^%disable-warning{WS}+                  BEGIN(disable_warning);
-<disable_warning>[^\t\n\r]+             {
-                                           char *cn = trim(yytext);
-					   //printd(5, "scanner: disable warning '%s'\n", cn);
-					   int code = get_warning_code(cn);
-					   if (!code)
-					      qore_program_private::makeParseWarning(getProgram(), QP_WARN_UNKNOWN_WARNING, "UNKNOWN-WARNING", "cannot disable unknown warning '%s'", cn);
-					   else if (getProgram()->disableWarning(code))
-					      qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot disable warning '%s'", cn);
-					   //printd(5, "scanner: disable warning '%s' code=%d\n", cn, code);
-					   free(cn);
-					   BEGIN(INITIAL);
+<disable_warning>[^\n\r]+               {
+                                           char* cn = trim(yytext);
+                                           //printd(5, "scanner: disable warning '%s'\n", cn);
+                                           int code = get_warning_code(cn);
+                                           if (!code)
+                                              qore_program_private::makeParseWarning(getProgram(), QP_WARN_UNKNOWN_WARNING, "UNKNOWN-WARNING", "cannot disable unknown warning '%s'", cn);
+                                           else if (getProgram()->disableWarning(code))
+                                              qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot disable warning '%s'", cn);
+                                           //printd(5, "scanner: disable warning '%s' code=%d\n", cn, code);
+                                           free(cn);
+                                           BEGIN(INITIAL);
                                         }
-^%ensable-warning{WS}*$                 { parse_error("missing argument to %%enable-warning"); }
+^%enable-warning{WS}*$                  { parse_error("missing argument to %%enable-warning"); }
 ^%enable-warning{WS}+                   BEGIN(enable_warning);
-<enable_warning>[^\t\n\r]+              {
-                                           char *cn = trim(yytext);
-					   //printd(5, "scanner: enable warning '%s'\n", cn);
-					   int code = get_warning_code(cn);
-					   if (!code)
-					      qore_program_private::makeParseWarning(getProgram(), QP_WARN_UNKNOWN_WARNING, "UNKNOWN-WARNING", "cannot enable unknown warning '%s'", cn);
-					   else if (getProgram()->enableWarning(code))
-					      qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable warning '%s'", cn);
-					   free(cn);
-					   BEGIN(INITIAL);
+<enable_warning>[^\n\r]+                {
+                                           char* cn = trim(yytext);
+                                           //printd(5, "scanner: enable warning '%s'\n", cn);
+                                           int code = get_warning_code(cn);
+                                           if (!code)
+                                              qore_program_private::makeParseWarning(getProgram(), QP_WARN_UNKNOWN_WARNING, "UNKNOWN-WARNING", "cannot enable unknown warning '%s'", cn);
+                                           else if (getProgram()->enableWarning(code))
+                                              qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable warning '%s'", cn);
+                                           free(cn);
+                                           BEGIN(INITIAL);
                                         }
 ^%exec-class{WS}*$                      { parse_error("missing argument to %%exec-class"); }
-^%exec-class{WS}*                       BEGIN(exec_class_state);
-^%try-module                            BEGIN(try_module);
-<try_module>[^\t\n\r]+                  {
+^%exec-class{WS}+                       BEGIN(exec_class_state);
+^%try-module{WS}*$                      { parse_error("missing argument to %%try-module"); }
+^%try-module{WS}+                       BEGIN(try_module);
+<try_module>[^\n\r]+                    {
                                            parse_try_module_inc();
                                            QoreString str(yytext);
                                            str.trim();
-                                           const char *p = str.getBuffer();
-                                           const char *op = strchr(p, '(');
+                                           const char* p = str.getBuffer();
+                                           const char* op = strchr(p, '(');
                                            bool require_dollar = !(getProgram()->getParseOptions64() & PO_REQUIRE_BARE_REFS);
                                            QoreString var;
                                            bool ok = true;
                                            if (op) {
-                                              p = op + 1;
+                                              if (op != p) {
+                                                 parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; extra text before '('; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
+                                                 ok = false;
+                                              }
+                                              ++p;
                                               const char* cp = strchr(p, ')');
                                               if (!cp) {
-                                                 parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; missing close parenthesis ')' after variable name; text given: '%%try-module %s'", require_dollar ? "%" : "", str.getBuffer());
+                                                 parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; missing close parenthesis ')' after variable name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
                                                  ok = false;
                                               }
                                               else {
                                                  // get variable name
                                                  var.concat(p, cp - p);
-                                                 var.trim();
+                                                 var.trim("\t ");
 
                                                  if (var.empty()) {
-                                                    parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; missing exception variable name; text given: '%%try-module %s'", require_dollar ? "%" : "", str.getBuffer());
+                                                    parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; missing exception variable name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
                                                     ok = false;
                                                  }
                                                  else {
                                                     // remove preface from string leaving only the rest
-                                                    str.replace(0, cp - str.getBuffer() + 1, (const char *)0);
+                                                    str.replace(0, cp - str.getBuffer() + 1, (const char*)0);
+                                                    if (!is_identifier(var.getBuffer())) {
+                                                       parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; invalid exception variable name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
+                                                       ok = false;
+                                                    }
                                                  }
                                               }
                                            }
@@ -778,14 +849,14 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                                  if (var.empty())
                                                     parse_error("%%try-module not in format %%try-module <module>; missing module name; text given: '%%try-module %s'", str.getBuffer());
                                                  else
-                                                    parse_error("%%try-module not in format %%try-module (%svarname) <module>; missing module name; text given: '%%try-module %s'", require_dollar ? "%" : "", str.getBuffer());
+                                                    parse_error("%%try-module not in format %%try-module (%svarname) <module>; missing module name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
                                                  BEGIN(INITIAL);
                                               }
                                               else {
                                                  //printd(5, "scanner requesting feature: '%s'\n", cn);
                                                  QoreProgram* pgm = getProgram();
                                                  ExceptionSink xsink;
-                                                 QMM.parseLoadModule(str.getBuffer(), pgm, xsink);
+                                                 QMM.parseLoadModule(xsink, str.getBuffer(), pgm);
                                                  if (!xsink) {
                                                     BEGIN(p_skip_to_endtry);
                                                  }
@@ -816,7 +887,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                         }
    ^.*                                  {
                                            if (!strncmp("%try-module", yytext, 11)) {
-                                              //printd(5, "p_skip_to_endif: found %%ifdef (%s); skipping\n", yytext);
+                                              //printd(5, "p_skip_to_endtry: found %%try-module (%s); skipping\n", yytext);
                                               parse_try_module_inc();
                                            }
 #ifdef DEBUG
@@ -827,113 +898,117 @@ RTIME           PT(-?[0-9]+[HMSu])+
    \n                                   // ignore
 }
 ^%endtry{WS}*$                          parse_try_module_dec();
+^%requires{WS}*$                        { parse_error("missing argument to %%requires"); }
 ^%requires                              BEGIN(requires);
-<requires>[^\t\n\r]+                    {
-                                           const char *cn = trim_inplace(yytext);
-					   if (!cn)
-					      parse_error("missing argument to %%requires");
-					   else {
-					      //printd(5, "scanner requesting feature: '%s'\n", cn);
-					      QoreProgram* pgm = getProgram();
-					      QMM.parseLoadModule(cn, pgm, *(pgm->getParseExceptionSink()));
-					   }
-					   BEGIN(INITIAL);
+<requires>[^\n\r]+                      {
+                                           char* cn = trim_inplace(yytext);
+                                           if (!cn)
+                                              parse_error("missing argument to %%requires");
+                                           else {
+                                              bool reexport = false;
+                                              if (!check_reexport("requires", cn, reexport)) {
+                                                 //printd(5, "scanner requesting feature: '%s'\n", cn);
+                                                 QoreProgram* pgm = getProgram();
+                                                 QMM.parseLoadModule(*(pgm->getParseExceptionSink()), cn, pgm, reexport);
+                                              }
+                                           }
+                                           BEGIN(INITIAL);
                                         }
 ^%module-cmd{WS}*$                      { parse_error("missing argument to %%module-cmd"); }
 ^%module-cmd                            BEGIN(module_cmd);
 <module_cmd>{WS}*                       // ignore white space
 <module_cmd>[^\n\r]+                    {
                                            QoreString str(yytext);
-					   str.trim();
-					   const char *p = str.getBuffer();
-					   const char *op = strchr(p, '(');
-					   if (!op)
-					      parse_error("%%module-cmd not in format '%%module-cmd(<module-name>) <command>'; missing open parenthesis '(' before module name; text given: '%%module-cmd %s'", p);
-					   else {
-					      p = op + 1;
-					      const char *cp = strchr(p, ')');
-					      if (!cp)
-						 parse_error("%%module-cmd not in format '%%module-cmd(<module-name>) <command>'; missing close parenthesis ')' after module name; text given: '%%module-cmd %s'", str.getBuffer());
-					      else {
-						 // get module name
-						 QoreString module(p, cp - p);
-						 module.trim();
+                                           str.trim();
+                                           const char* p = str.getBuffer();
+                                           const char* op = strchr(p, '(');
+                                           if (!op)
+                                              parse_error("%%module-cmd not in format '%%module-cmd(<module-name>) <command>'; missing open parenthesis '(' before module name; text given: '%%module-cmd %s'", p);
+                                           else {
+                                              p = op + 1;
+                                              const char* cp = strchr(p, ')');
+                                              if (!cp)
+                                                 parse_error("%%module-cmd not in format '%%module-cmd(<module-name>) <command>'; missing close parenthesis ')' after module name; text given: '%%module-cmd %s'", str.getBuffer());
+                                              else {
+                                                 // get module name
+                                                 QoreString module(p, cp - p);
+                                                 module.trim();
 
-						 // remove preface from string leaving only command
-						 str.replace(0, cp - str.getBuffer() + 1, (const char *)0);
-						 str.trim();
-						 if (str.empty())
-						    parse_error("%%module-cmd not in format %%module-cmd(<module-name>) <command>; missing command; text given: '%%module-cmd %s'", str.getBuffer());
-						 else {
-						    QMM.issueParseCmd(module.getBuffer(), 0, str);
-						 }
-					      }
-					   }
-					   BEGIN(INITIAL);
+                                                 // remove preface from string leaving only command
+                                                 str.replace(0, cp - str.getBuffer() + 1, (const char*)0);
+                                                 str.trim();
+                                                 if (str.empty())
+                                                    parse_error("%%module-cmd not in format %%module-cmd(<module-name>) <command>; missing command; text given: '%%module-cmd %s'", str.getBuffer());
+                                                 else {
+                                                    QMM.issueParseCmd(module.getBuffer(), 0, str);
+                                                 }
+                                              }
+                                           }
+                                           BEGIN(INITIAL);
                                         }
 ^%define{WS}*$                          { parse_error("missing argument to %%define"); }
-^%define{WS}+				BEGIN(p_def);
+^%define{WS}+                           BEGIN(p_def);
 <p_def>{WS}*                            // ignore white space
-<p_def>[^\t\n\r]+                       {
+<p_def>[^\n\r]+                         {
                                            qore_parse_define(yytext);
-					   BEGIN(INITIAL);
+                                           BEGIN(INITIAL);
                                         }
 ^%ifdef{WS}*$                           { parse_error("missing argument to %%ifdef"); }
 ^%ifdef{WS}+                            BEGIN(p_ifdef);
 <p_ifdef>{
-   [^\t\n\r]+$                          {
+   [^\n\r]+$                            {
                                            parse_cond_push(true);
                                            if (parse_is_defined(yytext)) {
-					      //printd(5, "ifdef: '%s' is defined\n", yytext);
-					      BEGIN(INITIAL);
-					   }
-					   else {
-					      //printd(5, "ifdef: '%s' is not defined\n", yytext);
-					      // skip to the next %else or %endif
-					      BEGIN(p_skip_to_endif_or_else);
-					   }
+                                              //printd(5, "ifdef: '%s' is defined\n", yytext);
+                                              BEGIN(INITIAL);
+                                           }
+                                           else {
+                                              //printd(5, "ifdef: '%s' is not defined\n", yytext);
+                                              // skip to the next %else or %endif
+                                              BEGIN(p_skip_to_endif_or_else);
+                                           }
                                         }
 }
 ^%ifndef{WS}*$                           { parse_error("missing argument to %%ifndef"); }
 ^%ifndef{WS}+                            BEGIN(p_ifndef);
 <p_ifndef>{
-   [^\t\n\r]+$                          {
+   [^\n\r]+$                            {
                                            parse_cond_push(true);
                                            if (!parse_is_defined(yytext)) {
-					      //printd(5, "ifndef: '%s' is not defined\n", yytext);
-					      BEGIN(INITIAL);
-					   }
-					   else {
-					      //printd(5, "ifndef: '%s' is defined\n", yytext);
-					      // skip to the next %else or %endif
-					      BEGIN(p_skip_to_endif_or_else);
-					   }
+                                              //printd(5, "ifndef: '%s' is not defined\n", yytext);
+                                              BEGIN(INITIAL);
+                                           }
+                                           else {
+                                              //printd(5, "ifndef: '%s' is defined\n", yytext);
+                                              // skip to the next %else or %endif
+                                              BEGIN(p_skip_to_endif_or_else);
+                                           }
                                         }
 }
 ^%else{WS}*$                            {
                                               if (!parse_cond_else()) {
-						 parse_error("%%else found without %%if");
-					      }
-					      else {
-						 BEGIN(p_skip_to_endif);
-					      }                                           
+                                                 parse_error("%%else found without %%if");
+                                              }
+                                              else {
+                                                 BEGIN(p_skip_to_endif);
+                                              }
                                         }
 <p_skip_to_endif>{
    ^%endif{WS}*$                        {
                                            if (parse_cond_pop()) {
-					      printd(5, "p_skip_to_endif: found %%endif (%s) (final)\n", yytext);
-					      BEGIN(INITIAL);
-					   }
+                                              printd(5, "p_skip_to_endif: found %%endif (%s) (final)\n", yytext);
+                                              BEGIN(INITIAL);
+                                           }
 #ifdef DEBUG
-					   //else
-					   //printd(5, "p_skip_to_endif: found %%endif (%s) (not final)\n", yytext);
+                                           //else
+                                           //printd(5, "p_skip_to_endif: found %%endif (%s) (not final)\n", yytext);
 #endif
                                         }
    ^.*                                  {
                                            if (!strncmp("%ifdef", yytext, 6)) {
-					      //printd(5, "p_skip_to_endif: found %%ifdef (%s); skipping\n", yytext);
-					      parse_cond_push();
-					   }
+                                              //printd(5, "p_skip_to_endif: found %%ifdef (%s); skipping\n", yytext);
+                                              parse_cond_push();
+                                           }
 #ifdef DEBUG
                                            // ignore other text
                                            //printd(5, "p_skip_to_endif: %s\n", yytext);
@@ -950,19 +1025,19 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                         }
    ^%endif{WS}*$                        {
                                            if (parse_cond_pop()) {
-					      //printd(5, "p_skip_to_endif_or_else: found %%endif (%s) (final)\n", yytext);
-					      BEGIN(INITIAL);
-					   }
+                                              //printd(5, "p_skip_to_endif_or_else: found %%endif (%s) (final)\n", yytext);
+                                              BEGIN(INITIAL);
+                                           }
 #ifdef DEBUG
-					   //else
-					   //printd(5, "p_skip_to_endif_or_else: found %%endif (%s) (not final)\n", yytext);
+                                           //else
+                                           //printd(5, "p_skip_to_endif_or_else: found %%endif (%s) (not final)\n", yytext);
 #endif
                                         }
    ^.*                                  {
                                            if (!strncmp("%ifdef", yytext, 6)) {
-					      //printd(5, "p_skip_to_endif_or_else: found %%ifdef (%s); skipping\n", yytext);
-					      parse_cond_push();
-					   }
+                                              //printd(5, "p_skip_to_endif_or_else: found %%ifdef (%s); skipping\n", yytext);
+                                              parse_cond_push();
+                                           }
 #ifdef DEBUG
                                            // ignore other text
                                            //printd(5, "p_skip_to_endif_or_else: %s\n", yytext);
@@ -972,238 +1047,245 @@ RTIME           PT(-?[0-9]+[HMSu])+
 }
 ^%endif{WS}*$                           parse_cond_pop();
 ^%include{WS}*$                         { parse_error("missing argument to %%include"); }
-^%include{WS}+				BEGIN(incl);
+^%include{WS}+                          BEGIN(incl);
 <exec_class_state>{
-   [^\t\n\r]+$   	                {
-                                           char *cn = trim(yytext);
-					   //printf("setting class name to: '%s'\n", cn);
-	 				   getProgram()->setExecClass(cn);
-					   getProgram()->parseSetParseOptions(PO_NO_TOP_LEVEL_STATEMENTS);
-					   free(cn);
-					   BEGIN(INITIAL);
+   [^\n\r]+$                            {
+                                           char* cn = trim(yytext);
+                                           //printf("setting class name to: '%s'\n", cn);
+                                           getProgram()->setExecClass(cn);
+                                           getProgram()->parseSetParseOptions(PO_NO_TOP_LEVEL_STATEMENTS);
+                                           free(cn);
+                                           BEGIN(INITIAL);
                                         }
 }
-<incl>{WS}*				// ignore white space
-<incl>[^\t\n\r]+			{
-					   TempString fname(getIncludeFileName(yytext));
-					   const char *fn = fname->getBuffer();
-					   // remove enclosing quotes if any
-					   if (fname->strlen() 
-					       && ((fn[0] == '\"' && fn[fname->strlen() - 1] == '\"')
-						   || (fn[0] == '\'' && fn[fname->strlen() - 1] == '\''))) {
-					      fname->trim(fn[0]);
-					   }
-
-					   if (getProgram()->getParseOptions64() & PO_NO_FILESYSTEM) {
-					      parse_error("cannot use the %%include parse directive when PO_NO_FILESYSTEM is in force");
-					      BEGIN(INITIAL);
+<incl>{WS}*                             // ignore white space
+<incl>[^\n\r]+                          {
+                                           TempString fname(get_include_file_name(yytext));
+                                           const char* fn = fname->getBuffer();
+                                           // remove enclosing quotes if any
+                                           if (fname->strlen()
+                                               && ((fn[0] == '\"' && fn[fname->strlen() - 1] == '\"')
+                                                   || (fn[0] == '\'' && fn[fname->strlen() - 1] == '\''))) {
+                                              fname->trim(fn[0]);
                                            }
-					   else if (fname->empty()) {
-					      parse_error("missing argument to %%include", yytext);
-					      BEGIN(INITIAL);
-					   }
-					   else {
-					      // re-get the buffer pointer
-					      fn = fname->getBuffer();
-					      // check if regular file
-					      struct stat sbuf;
-					      int rc = stat(fn, &sbuf);
-					      if (rc) {
-					         ExceptionSink *xsink = getProgram()->getParseExceptionSink();
-						 if (xsink)
-						    xsink->raiseErrnoException("PARSE-ERROR", errno, "stat() failed on include file: \"%s\"", fn);
-						 BEGIN(INITIAL);
-					      }
-					      else {
-						 //printd(0, "%s: mode=%o, s_ifmt=%o, &=%o, reg=%o comp=%s\n", fname->getBuffer(), sbuf.st_mode, S_IFMT, sbuf.st_mode & S_IFMT, S_IFREG, (sbuf.st_mode & S_IFMT) != S_IFREG ? "true" : "false");
-						 if ((sbuf.st_mode & S_IFMT) != S_IFREG) {
-						    parse_error("cannot include \"%s\"; is not a regular file", fn);
-						    BEGIN(INITIAL);
-						 }
-						 else {
-						    FILE *save_yyin = yyin;
-						    yyin = fopen(fn, "r");
-						    
-						    if (!yyin) {
-						       parse_error("cannot open include file \"%s\"", fn);
-						       yyin = save_yyin;
-						       BEGIN(INITIAL);
-						    }
-						    else {
-						       // take string from buffer
-						       char *str = fname->giveBuffer();
-						       // save file name string in QoreProgram's list - the list now owns the string memory
-						       qore_program_private::addFile(*(getProgram()), str);
-						       beginParsing(str, (void*)YY_CURRENT_BUFFER);
-						       yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE, yyscanner), yyscanner);
-						       BEGIN(INITIAL);
-						    }
-						 }
-					      }
-					   }
+
+                                           QoreProgram* pgm = getProgram();
+
+                                           if (pgm->getParseOptions64() & PO_NO_FILESYSTEM) {
+                                              parse_error("cannot use the %%include parse directive when PO_NO_FILESYSTEM is in force");
+                                              BEGIN(INITIAL);
+                                           }
+                                           else if (fname->empty()) {
+                                              parse_error("missing argument to %%include", yytext);
+                                              BEGIN(INITIAL);
+                                           }
+                                           else {
+                                              // re-get the buffer pointer
+                                              fn = fname->getBuffer();
+                                              // check if regular file
+                                              struct stat sbuf;
+                                              int rc = stat(fn, &sbuf);
+                                              if (rc) {
+                                                 ExceptionSink* xsink = pgm->getParseExceptionSink();
+                                                 if (xsink)
+                                                    xsink->raiseErrnoException("PARSE-ERROR", errno, "stat() failed on include file: \"%s\"", fn);
+                                                 BEGIN(INITIAL);
+                                              }
+                                              else {
+                                                 //printd(0, "%s: mode=%o, s_ifmt=%o, &=%o, reg=%o comp=%s\n", fname->getBuffer(), sbuf.st_mode, S_IFMT, sbuf.st_mode & S_IFMT, S_IFREG, (sbuf.st_mode & S_IFMT) != S_IFREG ? "true" : "false");
+                                                 if ((sbuf.st_mode & S_IFMT) != S_IFREG) {
+                                                    parse_error("cannot include \"%s\"; is not a regular file", fn);
+                                                    BEGIN(INITIAL);
+                                                 }
+                                                 else {
+                                                    FILE *save_yyin = yyin;
+                                                    yyin = fopen(fn, "r");
+
+                                                    if (!yyin) {
+                                                       parse_error("cannot open include file \"%s\"", fn);
+                                                       yyin = save_yyin;
+                                                       BEGIN(INITIAL);
+                                                    }
+                                                    else {
+                                                       // take string from buffer
+                                                       char* str = fname->giveBuffer();
+                                                       // save file name string in QoreProgram's list - the list now owns the string memory
+                                                       qore_program_private::addFile(*pgm, str);
+                                                       beginParsing(str, (void*)YY_CURRENT_BUFFER);
+                                                       yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE, yyscanner), yyscanner);
+                                                       BEGIN(INITIAL);
+                                                    }
+                                                 }
+                                              }
+                                           }
                                         }
 <<EOF>>                                 {
                                            QORE_FLEX_DO_EOF
                                         }
-\"					yylval->String = new QoreStringNode; yylloc->setExplicitFirst(yylineno); BEGIN(str_state);
+\"                                      yylval->String = new QoreStringNode; yylloc->setExplicitFirst(yylineno); BEGIN(str_state);
 <str_state>{
-      \"				BEGIN(INITIAL); return QUOTED_WORD;
-      \n				yylval->String->concat('\n');
-      {OCTAL_CONST}			{
+      \"                                BEGIN(INITIAL); return QUOTED_WORD;
+      \n                                yylval->String->concat('\n');
+      {OCTAL_CONST}                     {
+                                           int token_lenght = strlen(yytext);
                                            int val;
-                                           if (isoctaldigit(*(yytext + 2))) {
-					      val = ascii_to_octal(*(yytext + 3)) 
-						 + (8 * ascii_to_octal(*(yytext + 2)))
-						 + (64 * ascii_to_octal(*(yytext + 1)));
+                                           if (token_lenght == 4) {
+                                              val = ascii_to_octal(*(yytext + 3))
+                                                 + (8 * ascii_to_octal(*(yytext + 2)))
+                                                 + (64 * ascii_to_octal(*(yytext + 1)));
                                            }
-					   else {
-					      val = ascii_to_octal(*(yytext + 1));
+                                           else if (token_lenght == 3) {
+                                              val = ascii_to_octal(*(yytext + 2))
+                                                 + (8 * ascii_to_octal(*(yytext + 1)));
                                            }
-					   yylval->String->concat((char)val);
-					}
-      \\n				yylval->String->concat('\n');
-      \\t				yylval->String->concat('\t');
-      \\r				yylval->String->concat('\r');
-      \\b				yylval->String->concat('\b');
-      \\f				yylval->String->concat('\f');
-      \\v				yylval->String->concat('\v');
-      \\.				yylval->String->concat(yytext[1]);
+                                           else { // here token_lenght == 2
+                                              val = ascii_to_octal(*(yytext + 1));
+                                           }
+                                           yylval->String->concat((char)val);
+                                        }
+      \\n                               yylval->String->concat('\n');
+      \\t                               yylval->String->concat('\t');
+      \\r                               yylval->String->concat('\r');
+      \\b                               yylval->String->concat('\b');
+      \\f                               yylval->String->concat('\f');
+      \\v                               yylval->String->concat('\v');
+      \\.                               yylval->String->concat(yytext[1]);
       \\\n                              yylval->String->concat('\n');
-      [^\\\n\"]+			{
-					   char *yptr = yytext;
-					   while (*yptr)
-					      yylval->String->concat(*(yptr++));
-					}
+      [^\\\n\"]+                        {
+                                           char* yptr = yytext;
+                                           while (*yptr)
+                                              yylval->String->concat(*(yptr++));
+                                        }
 }
 <regex_subst2>{
-      \/				{
+      \/                                {
                                            // get regex modifiers
-	                                   int c;
-	                                   do {
-					      c = yyinput(yyscanner);
-					   } while (isRegexSubstModifier(yylval->RegexSubst, c));
-					   unput(c);
-					   BEGIN(INITIAL); 
-					   yylval->RegexSubst->parse(); 
-					   return REGEX_SUBST;
+                                           int c;
+                                           do {
+                                              c = yyinput(yyscanner);
+                                           } while (isRegexSubstModifier(yylval->RegexSubst, c));
+                                           unput(c);
+                                           BEGIN(INITIAL);
+                                           yylval->RegexSubst->parse();
+                                           return REGEX_SUBST;
                                         }
-      \n				{
-					   yylval->RegexSubst->concatTarget('\n');
+      \n                                {
+                                           yylval->RegexSubst->concatTarget('\n');
                                         }
       \\\/                              yylval->RegexSubst->concatTarget('/');
       \\\\                              yylval->RegexSubst->concatTarget('\\');
       \\.                               { yylval->RegexSubst->concatTarget('\\'); yylval->RegexSubst->concatTarget(yytext[1]); }
-      [^\n\\/]+			        {
-					   char *yptr = yytext;
-					   while (*yptr)
-					      yylval->RegexSubst->concatTarget(*(yptr++));
-					}
+      [^\n\\/]+                         {
+                                           char* yptr = yytext;
+                                           while (*yptr)
+                                              yylval->RegexSubst->concatTarget(*(yptr++));
+                                        }
 }
 <regex_subst1>{
-      \/  	                        BEGIN(regex_subst2);
-      \n				yylval->RegexSubst->concatSource('\n');
+      \/                                BEGIN(regex_subst2);
+      \n                                yylval->RegexSubst->concatSource('\n');
       \\\/                              yylval->RegexSubst->concatSource('/');
       \\.                               { yylval->RegexSubst->concatSource('\\'); yylval->RegexSubst->concatSource(yytext[1]); }
-      [^\n\\/]+			        {
-					   char *yptr = yytext;
-					   while (*yptr)
-					      yylval->RegexSubst->concatSource(*(yptr++));
-					}
+      [^\n\\/]+                         {
+                                           char* yptr = yytext;
+                                           while (*yptr)
+                                              yylval->RegexSubst->concatSource(*(yptr++));
+                                        }
 }
 <regex_trans2>{
       -                                 yylval->RegexTrans->setTargetRange();
-      \/				{
-					   BEGIN(INITIAL); 
-					   yylval->RegexTrans->finishTarget(); 
-					   return REGEX_TRANS;
+      \/                                {
+                                           BEGIN(INITIAL);
+                                           yylval->RegexTrans->finishTarget();
+                                           return REGEX_TRANS;
                                         }
-      \n				yylval->RegexTrans->concatTarget('\n');
-      \\n				yylval->RegexTrans->concatTarget('\n');
-      \\t				yylval->RegexTrans->concatTarget('\t');
-      \\r				yylval->RegexTrans->concatTarget('\r');
-      \\b				yylval->RegexTrans->concatTarget('\b');
-      \\f				yylval->RegexTrans->concatTarget('\f');
+      \n                                yylval->RegexTrans->concatTarget('\n');
+      \\n                               yylval->RegexTrans->concatTarget('\n');
+      \\t                               yylval->RegexTrans->concatTarget('\t');
+      \\r                               yylval->RegexTrans->concatTarget('\r');
+      \\b                               yylval->RegexTrans->concatTarget('\b');
+      \\f                               yylval->RegexTrans->concatTarget('\f');
       \\\n                              yylval->RegexTrans->concatTarget('\n');
       \\\/                              yylval->RegexTrans->concatTarget('/');
-      \\.				yylval->RegexTrans->concatTarget(yytext[1]);
-      [^\n\\/\-]+			        {
-					   char *yptr = yytext;
-					   while (*yptr)
-					      yylval->RegexTrans->concatTarget(*(yptr++));
-					}
+      \\.                               yylval->RegexTrans->concatTarget(yytext[1]);
+      [^\n\\/\-]+                               {
+                                           char* yptr = yytext;
+                                           while (*yptr)
+                                              yylval->RegexTrans->concatTarget(*(yptr++));
+                                        }
 }
 <regex_trans1>{
       -                                 yylval->RegexTrans->setSourceRange();
-      \/  	                        BEGIN(regex_trans2); yylval->RegexTrans->finishSource();
-      \n				yylval->RegexTrans->concatSource('\n');
-      \\n				yylval->RegexTrans->concatSource('\n');
-      \\t				yylval->RegexTrans->concatSource('\t');
-      \\r				yylval->RegexTrans->concatSource('\r');
-      \\b				yylval->RegexTrans->concatSource('\b');
-      \\f				yylval->RegexTrans->concatSource('\f');
+      \/                                BEGIN(regex_trans2); yylval->RegexTrans->finishSource();
+      \n                                yylval->RegexTrans->concatSource('\n');
+      \\n                               yylval->RegexTrans->concatSource('\n');
+      \\t                               yylval->RegexTrans->concatSource('\t');
+      \\r                               yylval->RegexTrans->concatSource('\r');
+      \\b                               yylval->RegexTrans->concatSource('\b');
+      \\f                               yylval->RegexTrans->concatSource('\f');
       \\\n                              yylval->RegexTrans->concatSource('\n');
       \\\/                              yylval->RegexTrans->concatSource('/');
-      \\.				yylval->RegexTrans->concatSource(yytext[1]);
-      [^\n\\/\-]+			        {
-					   char *yptr = yytext;
-					   while (*yptr)
-					      yylval->RegexTrans->concatSource(*(yptr++));
-					}
+      \\.                               yylval->RegexTrans->concatSource(yytext[1]);
+      [^\n\\/\-]+                               {
+                                           char* yptr = yytext;
+                                           while (*yptr)
+                                              yylval->RegexTrans->concatSource(*(yptr++));
+                                        }
 }
 <regex_state>{
-      \/				{
+      \/                                {
                                            // get regex modifiers
-	                                   int c;
-	                                   do {
-					      c = yyinput(yyscanner);
-					   } while (isRegexModifier(yylval->Regex, c));
-					   unput(c);
-					   BEGIN(INITIAL); 
-					   yylval->Regex->parse(); 
-					   return REGEX;
+                                           int c;
+                                           do {
+                                              c = yyinput(yyscanner);
+                                           } while (isRegexModifier(yylval->Regex, c));
+                                           unput(c);
+                                           BEGIN(INITIAL);
+                                           yylval->Regex->parse();
+                                           return REGEX;
                                         }
-      \n				yylval->Regex->concat('\n');
+      \n                                yylval->Regex->concat('\n');
       \\\/                              yylval->Regex->concat('/');
       \\.                               { yylval->Regex->concat('\\'); yylval->Regex->concat(yytext[1]); }
-      [^\n\\/]+			        {
-					   char *yptr = yytext;
-					   while (*yptr)
-					      yylval->Regex->concat(*(yptr++));
-					}
+      [^\n\\/]+                         {
+                                           char* yptr = yytext;
+                                           while (*yptr)
+                                              yylval->Regex->concat(*(yptr++));
+                                        }
 }
 <regex_extract_state>{
-      \/				{
+      \/                                {
                                            // get regex modifiers
-	                                   int c;
-	                                   do {
-					      c = yyinput(yyscanner);
-					   } while (isRegexExtractModifier(yylval->Regex, c));
-					   unput(c);
-					   BEGIN(INITIAL); 
-					   yylval->Regex->parse(); 
-					   return REGEX_EXTRACT;
+                                           int c;
+                                           do {
+                                              c = yyinput(yyscanner);
+                                           } while (isRegexExtractModifier(yylval->Regex, c));
+                                           unput(c);
+                                           BEGIN(INITIAL);
+                                           yylval->Regex->parse();
+                                           return REGEX_EXTRACT;
                                         }
-      \n				yylval->Regex->concat('\n');
+      \n                                yylval->Regex->concat('\n');
       \\\/                              yylval->Regex->concat('/');
       \\.                               { yylval->Regex->concat('\\'); yylval->Regex->concat(yytext[1]); }
-      [^\n\\/]+			        {
-					   char *yptr = yytext;
-					   while (*yptr)
-					      yylval->Regex->concat(*(yptr++));
-					}
+      [^\n\\/]+                         {
+                                           char* yptr = yytext;
+                                           while (*yptr)
+                                              yylval->Regex->concat(*(yptr++));
+                                        }
 }
 \#                                      {
                                            int c;
-					   while ((c = yyinput(yyscanner))) {
-					      if (c == '\n')
-						 break;
-					      else if (c == EOF) {
-						 QORE_FLEX_DO_EOF
-						 break;
-					      }
-					   }
+                                           while ((c = yyinput(yyscanner))) {
+                                              if (c == '\n')
+                                                 break;
+                                              else if (c == EOF) {
+                                                 QORE_FLEX_DO_EOF
+                                                 break;
+                                              }
+                                           }
                                         }
-where					return TOK_WHERE;
+where                                   return TOK_WHERE;
 private                                 return TOK_PRIVATE;
 public                                  return TOK_PUBLIC;
 abstract                                return TOK_ABSTRACT;
@@ -1211,23 +1293,23 @@ unreference                             return TOK_UNREFERENCE;
 new                                     return TOK_NEW;
 shift                                   return TOK_SHIFT;
 unshift                                 return TOK_UNSHIFT;
-do					return TOK_DO;
-while					return TOK_WHILE;
-if					return TOK_IF;
-else					return TOK_ELSE;
-for					return TOK_FOR;
+do                                      return TOK_DO;
+while                                   return TOK_WHILE;
+if                                      return TOK_IF;
+else                                    return TOK_ELSE;
+for                                     return TOK_FOR;
 foreach                                 return TOK_FOREACH;
 in                                      return TOK_IN;
 elements                                return TOK_ELEMENTS;
 keys                                    return TOK_KEYS;
 sub                                     { new_argv_ref(); return TOK_SUB; }
 const                                   return TOK_CONST;
-return					return TOK_RETURN;
+return                                  return TOK_RETURN;
 returns                                 return TOK_RETURNS;
-my					return TOK_MY;
-our 					return TOK_OUR;
-break					return TOK_BREAK;
-continue				return TOK_CONTINUE;
+my                                      return TOK_MY;
+our                                     return TOK_OUR;
+break                                   return TOK_BREAK;
+continue                                return TOK_CONTINUE;
 try                                     return TOK_TRY;
 throw                                   return TOK_THROW;
 rethrow                                 return TOK_RETHROW;
@@ -1238,15 +1320,15 @@ delete                                  return TOK_DELETE;
 remove                                  return TOK_REMOVE;
 background                              return TOK_BACKGROUND;
 synchronized                            return TOK_SYNCHRONIZED;
-deprecated				return TOK_DEPRECATED;
+deprecated                              return TOK_DEPRECATED;
 thread_exit                             return TOK_THREAD_EXIT;
 exists                                  return TOK_EXISTS;
-context				        return TOK_CONTEXT;
-summarize				return TOK_SUMMARIZE;
-subcontext				return TOK_SUB_CONTEXT;
-sortBy				        return TOK_SORT_BY;
-sortDescendingBy			return TOK_SORT_DESCENDING_BY;
-by					return TOK_BY;
+context                                 return TOK_CONTEXT;
+summarize                               return TOK_SUMMARIZE;
+subcontext                              return TOK_SUB_CONTEXT;
+sortBy                                  return TOK_SORT_BY;
+sortDescendingBy                        return TOK_SORT_DESCENDING_BY;
+by                                      return TOK_BY;
 switch                                  return TOK_SWITCH;
 case                                    BEGIN(case_state); return TOK_CASE;
 <case_state>{
@@ -1261,11 +1343,11 @@ pop                                     return TOK_POP;
 splice                                  return TOK_SPLICE;
 extract                                 return TOK_EXTRACT;
 instanceof                              return TOK_INSTANCEOF;
-chomp					return TOK_CHOMP;
-trim					return TOK_TRIM;
-on_exit 		 		return TOK_ON_EXIT;
-on_success				return TOK_ON_SUCCESS;
-on_error 				return TOK_ON_ERROR;
+chomp                                   return TOK_CHOMP;
+trim                                    return TOK_TRIM;
+on_exit                                 return TOK_ON_EXIT;
+on_success                              return TOK_ON_SUCCESS;
+on_error                                return TOK_ON_ERROR;
 map                                     { push_ignore_numeric_argv_ref(); return TOK_MAP; }
 foldr                                   { push_ignore_numeric_argv_ref(); return TOK_FOLDR; }
 foldl                                   { push_ignore_numeric_argv_ref(); return TOK_FOLDL; }
@@ -1285,7 +1367,7 @@ pop\(                                   yylval->string = strdup("pop"); return K
 splice\(                                yylval->string = strdup("splice"); return KW_IDENTIFIER_OPENPAREN;
 shift\(                                 yylval->string = strdup("shift"); return KW_IDENTIFIER_OPENPAREN;
 unshift\(                               yylval->string = strdup("unshift"); return KW_IDENTIFIER_OPENPAREN;
-background\(	   			yylval->string = strdup("background"); return KW_IDENTIFIER_OPENPAREN;
+background\(                            yylval->string = strdup("background"); return KW_IDENTIFIER_OPENPAREN;
 exists\(                                yylval->string = strdup("exists"); return KW_IDENTIFIER_OPENPAREN;
 map\(                                   yylval->string = strdup("map"); return KW_IDENTIFIER_OPENPAREN;
 foldr\(                                 yylval->string = strdup("foldr"); return KW_IDENTIFIER_OPENPAREN;
@@ -1325,11 +1407,11 @@ module{WS}*\(                           yylval->string = strdup("module"); retur
 \.static[^A-Za-z_0-9]                   DO_DOT_KW_IDENTIFIER("static")
 \.abstract[^A-Za-z_0-9]                 DO_DOT_KW_IDENTIFIER("abstract")
 \.deprecated[^A-Za-z_0-9]               DO_DOT_KW_IDENTIFIER("deprecated")
-\.summarize[^A-Za-z_0-9]		DO_DOT_KW_IDENTIFIER("summarize")
+\.summarize[^A-Za-z_0-9]                DO_DOT_KW_IDENTIFIER("summarize")
 \.sub[^A-Za-z_0-9]                      DO_DOT_KW_IDENTIFIER("sub")
-\.subcontext[^A-Za-z_0-9]		DO_DOT_KW_IDENTIFIER("subcontext")
-\.sortBy[^A-Za-z_0-9]           	DO_DOT_KW_IDENTIFIER("sortBy")
-\.sortDescendingBy[^A-Za-z_0-9]		DO_DOT_KW_IDENTIFIER("sortDescendingBy")
+\.subcontext[^A-Za-z_0-9]               DO_DOT_KW_IDENTIFIER("subcontext")
+\.sortBy[^A-Za-z_0-9]                   DO_DOT_KW_IDENTIFIER("sortBy")
+\.sortDescendingBy[^A-Za-z_0-9]         DO_DOT_KW_IDENTIFIER("sortDescendingBy")
 \.by[^A-Za-z_0-9]                       DO_DOT_KW_IDENTIFIER("by")
 \.switch[^A-Za-z_0-9]                   DO_DOT_KW_IDENTIFIER("switch")
 \.return[^A-Za-z_0-9]                   DO_DOT_KW_IDENTIFIER("return")
@@ -1381,7 +1463,7 @@ cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); retu
 ({WORD}::)+\$\.{WORD}                   yylval->nscope = new NamedScope(strdup(yytext)); yylval->nscope->fixBCCall(); return BASE_CLASS_CALL;
 @[Nn][Aa][Nn]@                          yylval->decimal = strtod("NAN", 0); return QFLOAT;
 @[Ii][Nn][Ff]@                          yylval->decimal = strtod("INFINITY", 0); return QFLOAT;
-{DIGIT}+"."{DIGIT}+			yylval->decimal = strtod(yytext, 0); return QFLOAT;
+{DIGIT}+"."{DIGIT}+                     yylval->decimal = strtod(yytext, 0); return QFLOAT;
 {DIGIT}+[eE][+-]?{DIGIT}+               yylval->decimal = strtod(yytext, 0); return QFLOAT;
 {DIGIT}+"."{DIGIT}+[eE][+-]?{DIGIT}+    yylval->decimal = strtod(yytext, 0); return QFLOAT;
 @[Nn][Aa][Nn]@n                         yylval->num = new QoreNumberNode("@nan@"); return NUMBER;
@@ -1390,8 +1472,8 @@ cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); retu
 {DIGIT}+"."{DIGIT}+n                    yylval->num = new QoreNumberNode(yytext); return NUMBER;
 {DIGIT}+[eE][+-]?{DIGIT}+n              yylval->num = new QoreNumberNode(yytext); return NUMBER;
 {DIGIT}+"."{DIGIT}+[eE][+-]?{DIGIT}+n   yylval->num = new QoreNumberNode(yytext); return NUMBER;
-0[0-7]+				        yylval->integer = strtoll(yytext+1, 0, 8); return INTEGER;
-{DIGIT}+				yylval->integer = parse_get_integer(yytext); return INTEGER;
+0[0-7]+                                 yylval->integer = strtoll(yytext+1, 0, 8); return INTEGER;
+{DIGIT}+                                yylval->integer = parse_get_integer(yytext); return INTEGER;
 {DIGIT}+Y                               yylval->datetime = makeYears(strtol(yytext, 0, 10));   return DATETIME;
 {DIGIT}+M                               yylval->datetime = makeMonths(strtol(yytext, 0, 10));  return DATETIME;
 {DIGIT}+D                               yylval->datetime = makeDays(strtol(yytext, 0, 10));    return DATETIME;
@@ -1400,83 +1482,87 @@ cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); retu
 {DIGIT}+us                              yylval->datetime = makeMicroseconds(strtol(yytext, 0, 10)); return DATETIME;
 {DIGIT}+m                               yylval->datetime = makeMinutes(strtol(yytext, 0, 10)); return DATETIME;
 {DIGIT}+s                               yylval->datetime = makeSeconds(strtol(yytext, 0, 10)); return DATETIME;
-{HEX_CONST}				yylval->integer = strtoll(yytext, 0, 16); return INTEGER;
+{HEX_CONST}                             yylval->integer = strtoll(yytext, 0, 16); return INTEGER;
 {BINARY}                                yylval->binary = parseHex(yytext + 1, strlen(yytext + 1) - 1); return BINARY;
 \$\.{WORD}                              yylval->string = strdup(yytext + 2); return SELF_REF;
-\${WORD}				yylval->string = strdup(yytext + 1); return VAR_REF;
+\${WORD}                                yylval->string = strdup(yytext + 1); return VAR_REF;
 class{WS}+({WORD}::)+{WORD}             { yylval->nscope = new NamedScope(trim(yytext + 6)); parse_push_name(yylval->nscope->getIdentifier()); return CLASS_SCOPED_REF; }
 class{WS}+(::{WORD})+                   { yylval->nscope = new NamedScope(trim(yytext + 6)); parse_push_name(yylval->nscope->getIdentifier()); return CLASS_SCOPED_REF; }
 class{WS}+{WORD}                        { yylval->string = trim(yytext + 6); parse_push_name(yylval->string); return CLASS_STRING; }
-namespace{WS}+{WORD}			{ const char* ns = trim_inplace(yytext + 10); parse_push_name(ns); return TOK_NAMESPACE; }
+namespace{WS}+{WORD}                    { const char* ns = trim_inplace(yytext + 10); parse_push_name(ns); return TOK_NAMESPACE; }
 module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext + 7); parse_set_module_def_context_name(mod); return TOK_MODULE; }
-{WORD}					yylval->string = strdup(yytext); return IDENTIFIER;
+{WORD}                                  yylval->string = strdup(yytext); return IDENTIFIER;
 \%{WORD}                                yylval->string = strdup(yytext + 1); return CONTEXT_REF;
 \%{WORD}\:{WORD}                        yylval->string = strdup(yytext + 1); return COMPLEX_CONTEXT_REF;
 \%\%                                    return TOK_CONTEXT_ROW;
 \`[^`]*\`                               yylval->string = strdup(remove_quotes(yytext)); return BACKQUOTE;
-\'[^\']*\'				yylval->String = new QoreStringNode(remove_quotes(yytext)); return QUOTED_WORD;
+\'[^\']*\'                              yylval->String = new QoreStringNode(remove_quotes(yytext)); return QUOTED_WORD;
 \$\$                                    yylval->implicit_arg = new QoreImplicitArgumentNode(-1); return IMPLICIT_ARG_REF;
 \$[0-9][0-9]*                           yylval->implicit_arg = new QoreImplicitArgumentNode(strtol(yytext + 1, 0, 0)); return IMPLICIT_ARG_REF;
 \$#                                     return IMPLICIT_ELEMENT;
-\<{WS}*=				return LOGICAL_LE;
-\>{WS}*=				return LOGICAL_GE;
-\!{WS}*=				return LOGICAL_NE;
-\<{WS}*\>				return LOGICAL_NE;
-={WS}*={WS}*=                           return ABSOLUTE_EQ;
-\!{WS}*={WS}*=                          return ABSOLUTE_NE;
-={WS}*= 				return LOGICAL_EQ;
-\<{WS}*={WS}*\>                         return LOGICAL_CMP;
-&{WS}*& 	 			return LOGICAL_AND;
-\|{WS}*\|				return LOGICAL_OR;
-\>{WS}*\>				return SHIFT_RIGHT;
-\<{WS}*\<				return SHIFT_LEFT;
-\+{WS}*\+				return P_INCREMENT;
--{WS}*- 				return P_DECREMENT;
-\+{WS}*=				return PLUS_EQUALS;
--{WS}*= 	 			return MINUS_EQUALS;
-&{WS}*= 				return AND_EQUALS;
-\|{WS}*=				return OR_EQUALS;
-\%{WS}*=                                return MODULA_EQUALS;
-\*{WS}*=                                return MULTIPLY_EQUALS;
-\/{WS}*=                                return DIVIDE_EQUALS;
-\^{WS}*=                                return XOR_EQUALS;
-\>{WS}*\>{WS}*=				return SHIFT_RIGHT_EQUALS;
-\<{WS}*\<{WS}*=				return SHIFT_LEFT_EQUALS;
+\?\?                                    return NULL_COALESCING;
+\?\*                                    return VALUE_COALESCING;
+\<=                                     return LOGICAL_LE;
+\>=                                     return LOGICAL_GE;
+\!=                                     return LOGICAL_NE;
+\<\>                                    return LOGICAL_NE;
+===                                     return ABSOLUTE_EQ;
+\!==                                    return ABSOLUTE_NE;
+==                                      return LOGICAL_EQ;
+\<=\>                                   return LOGICAL_CMP;
+&&                                      return LOGICAL_AND;
+\|\|                                    return (getProgram()->getParseOptions64() & PO_BROKEN_LOGIC_PRECEDENCE) ? BROKEN_LOGICAL_OR : LOGICAL_OR;
+\|                                      return (getProgram()->getParseOptions64() & PO_BROKEN_LOGIC_PRECEDENCE) ? BROKEN_BINARY_OR : '|';
+\^                                      return (getProgram()->getParseOptions64() & PO_BROKEN_LOGIC_PRECEDENCE) ? BROKEN_BINARY_XOR : '^';
+\>\>                                    return SHIFT_RIGHT;
+\<\<                                    return SHIFT_LEFT;
+\+\+                                    return P_INCREMENT;
+--                                      return P_DECREMENT;
+\+=                                     return PLUS_EQUALS;
+-=                                      return MINUS_EQUALS;
+&=                                      return AND_EQUALS;
+\|=                                     return OR_EQUALS;
+\%=                                     return MODULA_EQUALS;
+\*=                                     return MULTIPLY_EQUALS;
+\/=                                     return DIVIDE_EQUALS;
+\^=                                     return XOR_EQUALS;
+\>\>=                                   return SHIFT_RIGHT_EQUALS;
+\<\<=                                   return SHIFT_LEFT_EQUALS;
 \/\*                                    {
                                            int c;
-					   while ((c = yyinput(yyscanner))) {
-					      if (c == '*') {
-						 do {
-						    c = yyinput(yyscanner);
-						 }
-						 while (c == '*');
-						 if (c == '/') 
-						    break;
-					      }
-					      if (c == EOF) {
-						 parse_error("open block comment at EOF");
-						 QORE_FLEX_DO_EOF;
-						 break;
-					      }
-					   }
+                                           while ((c = yyinput(yyscanner))) {
+                                              if (c == '*') {
+                                                 do {
+                                                    c = yyinput(yyscanner);
+                                                 }
+                                                 while (c == '*');
+                                                 if (c == '/')
+                                                    break;
+                                              }
+                                              if (c == EOF) {
+                                                 parse_error("open block comment at EOF");
+                                                 QORE_FLEX_DO_EOF;
+                                                 break;
+                                              }
+                                           }
                                         }
 <regex_googleplex>{
    s\/                                  yylval->RegexSubst = new RegexSubstNode(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_subst1);
    x\/                                  yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_extract_state);
    tr\/                                 yylval->RegexTrans = new RegexTransNode(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_trans1);
-   m\/                                  yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state); 
+   m\/                                  yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
    \/                                   yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
    {WSNL}+                              /* ignore whitespace */
    [^sxmt\/]                            parse_error("missing regular expression after =~"); BEGIN(INITIAL);
 }
 <regex_negative_universe>{
-   m\/                                  yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state); 
+   m\/                                  yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
    \/                                   yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
    {WSNL}+                              /* ignore whitespace */
    [^m\/]                               parse_error("missing regular expression after !~"); BEGIN(INITIAL);
 }
 =\~                                     BEGIN(regex_googleplex); return REGEX_MATCH;
 \!\~                                    BEGIN(regex_negative_universe); return REGEX_NMATCH;
-{WSNL}+					/* ignore whitespace */
-.					return yytext[0];
+{WSNL}+                                 /* ignore whitespace */
+.                                       return yytext[0];
 %%

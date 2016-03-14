@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -167,6 +167,7 @@ const char *BinaryNode::getTypeName() const {
 }
 
 int BinaryNode::preallocate(qore_size_t size) {
+   //printd(5, "BinaryNode::preallocate("QLLD") this: %p ptr: %p len: "QLLD"\n", size, this, ptr, len);
    ptr = q_realloc(ptr, size);
    if (ptr) {
       len = size;

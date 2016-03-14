@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -36,30 +36,8 @@ class QoreOrEqualsOperatorNode : public QoreBinaryIntLValueOperatorNode {
 OP_COMMON
 protected:
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
-   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
 
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const {
-      int64 rv = QoreOrEqualsOperatorNode::bigIntEvalImpl(xsink);
-      return *xsink || !ref_rv ? 0 : new QoreBigIntNode(rv);
-   }
-
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-      needs_deref = ref_rv;
-      int64 rv = QoreOrEqualsOperatorNode::bigIntEvalImpl(xsink);
-      return *xsink || ! ref_rv ? 0 : new QoreBigIntNode(rv);
-   }
-
-   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const {
-      return (int)QoreOrEqualsOperatorNode::bigIntEvalImpl(xsink);
-   }
-
-   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const {
-      return (double)QoreOrEqualsOperatorNode::bigIntEvalImpl(xsink);
-   }
-
-   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const {
-      return (bool)QoreOrEqualsOperatorNode::bigIntEvalImpl(xsink);
-   }
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
    DLLLOCAL QoreOrEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryIntLValueOperatorNode(n_left, n_right) {

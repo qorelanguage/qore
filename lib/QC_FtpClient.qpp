@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -77,10 +77,10 @@
 qclass FtpClient [dom=NETWORK; arg=QoreFtpClientClass* f];
 
 //! Creates an empty FtpClient object
-/** 
+/**
     @par Example:
-    @code
-my FtpClient $ftp();
+    @code{.py}
+FtpClient ftp();
     @endcode
  */
 FtpClient::constructor() {
@@ -93,8 +93,8 @@ FtpClient::constructor() {
     @param url The URL of the server to connect to; must have at least a hostname
 
     @par Example:
-    @code
-my FtpClient $ftp("ftp://user:pass@example.com:2021");
+    @code{.py}
+FtpClient ftp("ftp://user:pass@example.com:2021");
     @endcode
 
     @throw UNSUPPORTED-PROTOCOL Only \c "ftp" or \c "ftps" are allowed as the protocol in the URL
@@ -109,7 +109,7 @@ FtpClient::constructor(string url) {
 }
 
 //! Throws an exception to prevent copying of objects this class
-/** 
+/**
     @throw FTPCLIENT-COPY-ERROR FtpClient objects cannot be copied
  */
 FtpClient::copy() {
@@ -117,13 +117,13 @@ FtpClient::copy() {
 }
 
 //! Disconnects any remote connection and destroys the object
-/** 
+/**
     @par Events:
     @ref EVENT_CHANNEL_CLOSED, @ref EVENT_DELETED
 
     @par Example:
-    @code
-delete $ftp;
+    @code{.py}
+delete ftp;
     @endcode
  */
 FtpClient::destructor() {
@@ -141,8 +141,8 @@ FtpClient::destructor() {
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED, @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
-$ftp.connect();
+    @code{.py}
+ftp.connect();
     @endcode
 
     @throw FTP-RESPONSE-ERROR Invalid response received from FTP server
@@ -159,8 +159,8 @@ nothing FtpClient::connect() {
     @ref EVENT_CHANNEL_CLOSED
 
     @par Example:
-    @code
-delete $ftp;
+    @code{.py}
+delete ftp;
     @endcode
  */
 nothing FtpClient::disconnect() {
@@ -174,8 +174,8 @@ nothing FtpClient::disconnect() {
     @return a list of files from the FTP server in the server's long format in the current working directory or @ref nothing if the path cannot be found
 
     @par Example:
-    @code
-my *string $str = $ftp.list();
+    @code{.py}
+*string str = ftp.list();
     @endcode
 
     @throw FTP-RECEIVE-ERROR Incomplete message received on control port
@@ -190,7 +190,7 @@ my *string $str = $ftp.list();
 }
 
 //! Returns a list of files from the FTP server in the server's long format for the given path or @ref nothing if the path cannot be found
-/** 
+/**
     @param path The path or filename (or filename filter) to list (ex: \c "/tmp/*.txt")
 
     @return a list of files from the FTP server in the server's long format for the given path or @ref nothing if the path cannot be found
@@ -199,8 +199,8 @@ my *string $str = $ftp.list();
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
-my *string $str = $ftp.list("/tmp/*.txt");
+    @code{.py}
+*string str = ftp.list("/tmp/*.txt");
     @endcode
 
     @throw FTP-RECEIVE-ERROR Incomplete message received on control port
@@ -221,8 +221,8 @@ my *string $str = $ftp.list("/tmp/*.txt");
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
-my *string $str = $ftp.nlst();
+    @code{.py}
+*string str = ftp.nlst();
     @endcode
 
     @throw FTP-RECEIVE-ERROR Incomplete message received on control port
@@ -245,8 +245,8 @@ my *string $str = $ftp.nlst();
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
-my *string $str = $ftp.nlst("/tmp/*.txt");
+    @code{.py}
+*string str = ftp.nlst("/tmp/*.txt");
     @endcode
 
     @throw FTP-RECEIVE-ERROR Incomplete message received on control port
@@ -267,8 +267,8 @@ my *string $str = $ftp.nlst("/tmp/*.txt");
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
-my string $str = $ftp.pwd();
+    @code{.py}
+string str = ftp.pwd();
     @endcode
 
     @throw FTP-RECEIVE-ERROR Incomplete message received on control port
@@ -285,8 +285,8 @@ string FtpClient::pwd() {
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
-$ftp.cwd("/foo/bar");
+    @code{.py}
+ftp.cwd("/foo/bar");
     @endcode
 
     @throw FTP-RECEIVE-ERROR Incomplete message received on control port
@@ -306,12 +306,12 @@ nothing FtpClient::cwd(string path) {
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
-$ftp.put("/tmp/file-1.txt", "file.txt");
+    @code{.py}
+ftp.put("/tmp/file-1.txt", "file.txt");
     @endcode
 
     @throw FTP-RECEIVE-ERROR Incomplete message received on control port
-    @throw FTP-FILE-OPEN-ERROR Could not open local file for reading 
+    @throw FTP-FILE-OPEN-ERROR Could not open local file for reading
     @throw FTP-FILE-PUT-ERROR Could not determine file size of local file (stat() failed)
     @throw FTP-PUT-ERROR An error occurred while sending the file
 
@@ -331,8 +331,8 @@ nothing FtpClient::put(string local_path, *string remote_path) [dom=FILESYSTEM] 
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
-$ftp.rename("file.txt", "file.txt.orig");
+    @code{.py}
+ftp.rename("file.txt", "file.txt.orig");
     @endcode
 
     @throw FTP-RECEIVE-ERROR Incomplete message received on control port
@@ -352,8 +352,8 @@ nothing FtpClient::rename(string from, string to) {
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
-$ftp.get("file.txt", "/tmp/file-1.txt");
+    @code{.py}
+ftp.get("file.txt", "/tmp/file-1.txt");
     @endcode
 
     @throw FTP-RECEIVE-ERROR Incomplete message received on control port
@@ -376,8 +376,8 @@ nothing FtpClient::get(string remote_path, *string local_path) [dom=FILESYSTEM] 
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
-$ftp.putData($str, "file.txt");
+    @code{.py}
+ftp.putData(str, "file.txt");
     @endcode
 
     @throw FTP-RECEIVE-ERROR Incomplete message received on control port
@@ -397,8 +397,8 @@ nothing FtpClient::putData(string data, string remote_path) {
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
-$ftp.putData($bin, "file.pdf");
+    @code{.py}
+ftp.putData(bin, "file.pdf");
     @endcode
 
     @throw FTP-RECEIVE-ERROR Incomplete message received on control port
@@ -419,8 +419,8 @@ nothing FtpClient::putData(binary data, string remote_path) {
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
-my string $str = $ftp.getAsString("file.txt");
+    @code{.py}
+string str = ftp.getAsString("file.txt");
     @endcode
 
     @throw FTP-RECEIVE-ERROR Incomplete message received on control port
@@ -444,8 +444,8 @@ string FtpClient::getAsString(string remote_path) {
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
-my binary $b = $ftp.getAsBinary("file.pdf");
+    @code{.py}
+binary b = ftp.getAsBinary("file.pdf");
     @endcode
 
     @throw FTP-RECEIVE-ERROR Incomplete message received on control port
@@ -467,8 +467,8 @@ binary FtpClient::getAsBinary(string remote_path) {
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
-$ftp.del("file-2.txt");
+    @code{.py}
+ftp.del("file-2.txt");
     @endcode
 
     @throw FTP-RECEIVE-ERROR Incomplete message received on control port
@@ -487,14 +487,14 @@ nothing FtpClient::del(string remote_path) {
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
-$ftp.mkdir("tmp");
+    @code{.py}
+ftp.mkdir("tmp");
     @endcode
 
     @throw FTP-RECEIVE-ERROR Incomplete message received on control port
     @throw FTP-MKDIR-ERROR FTP server returned an error to the \c MKD command
 
-    @note see FtpClient::connect() for additional exceptions that could be thrown when connections are implicitly established    
+    @note see FtpClient::connect() for additional exceptions that could be thrown when connections are implicitly established
  */
 nothing FtpClient::mkdir(string remote_path) {
    f->mkdir(remote_path->getBuffer(), xsink);
@@ -507,14 +507,14 @@ nothing FtpClient::mkdir(string remote_path) {
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @par Example:
-    @code
-$ftp.rmdir("tmp");
+    @code{.py}
+ftp.rmdir("tmp");
     @endcode
 
     @throw FTP-RECEIVE-ERROR Incomplete message received on control port
     @throw FTP-RMDIR-ERROR FTP server returned an error to the \c RMD command
 
-    @note see FtpClient::connect() for additional exceptions that could be thrown when connections are implicitly established    
+    @note see FtpClient::connect() for additional exceptions that could be thrown when connections are implicitly established
  */
 nothing FtpClient::rmdir(string remote_path) {
    f->rmdir(remote_path->getBuffer(), xsink);
@@ -524,8 +524,8 @@ nothing FtpClient::rmdir(string remote_path) {
 /** @param user the user name to use for the next connection
 
     @par Example:
-    @code
-$ftp.setUserName("ftp");
+    @code{.py}
+ftp.setUserName("ftp");
     @endcode
  */
 nothing FtpClient::setUserName(string user) {
@@ -536,8 +536,8 @@ nothing FtpClient::setUserName(string user) {
 /** @param pass the password to use for the next connection
 
     @par Example:
-    @code
-$ftp.setPassword("ftp");
+    @code{.py}
+ftp.setPassword("ftp");
     @endcode
  */
 nothing FtpClient::setPassword(string pass) {
@@ -545,12 +545,12 @@ nothing FtpClient::setPassword(string pass) {
 }
 
 //! Sets the hostname or address to use to connect to for the next connection
-/** 
+/**
     @param host the hostname or address to use to connect to for the next connection
 
     @par Example:
-    @code
-$ftp.setHostName("example.com");
+    @code{.py}
+ftp.setHostName("example.com");
     @endcode
  */
 nothing FtpClient::setHostName(string host) {
@@ -561,15 +561,15 @@ nothing FtpClient::setHostName(string host) {
 /** @param port the control port value to use for the next connection (the FTP protocol default is 21); must be \> 0 or an FTPCLIENT-SETPORT-PARAMETER-ERROR exception is raised
 
     @par Example:
-    @code
-$ftp.setPort(2021);
+    @code{.py}
+ftp.setPort(2021);
     @endcode
 
     @throw FTPCLIENT-SETPORT-PARAMETER-ERROR port \<= 0 number passed as argument
  */
 nothing FtpClient::setPort(int port) {
    if (port <= 0)
-      xsink->raiseException("FTPCLIENT-SETPORT-PARAMETER-ERROR", "expecting positive port number as first parameter of FtpClient::setPort(softint $port); got %d", port);
+      xsink->raiseException("FTPCLIENT-SETPORT-PARAMETER-ERROR", "expecting positive port number as first parameter of FtpClient::setPort(softint port); got %d", port);
    else
       f->setPort(port);
 }
@@ -580,8 +580,8 @@ nothing FtpClient::setPort(int port) {
     @param url The URL to use for the next connection; the URL must contain at least a hostname
 
     @par Example:
-    @code
-$ftp.setURL("ftps://user:pass@example.com:2021");
+    @code{.py}
+ftp.setURL("ftps://user:pass@example.com:2021");
     @endcode
 
     @throw UNSUPPORTED-PROTOCOL Only \c "ftp" and "ftps" are allowed as the protocol (scheme) in the URL
@@ -592,12 +592,12 @@ nothing FtpClient::setURL(string url) {
 }
 
 //! Returns the current username value or @ref nothing if none is set
-/** 
+/**
     @return the current username value that will be used for the next connection or @ref nothing if none is set
 
     @par Example:
-    @code
-my *string $user = $ftp.getUserName();
+    @code{.py}
+*string user = ftp.getUserName();
     @endcode
  */
 *string FtpClient::getUserName() {
@@ -606,12 +606,12 @@ my *string $user = $ftp.getUserName();
 }
 
 //! Returns the current password value or @ref nothing if none is set
-/** 
+/**
     @return the current password value that will be used for the next connection or @ref nothing if none is set
 
     @par Example:
-    @code
-my *string $pass = $ftp.getPassword();
+    @code{.py}
+*string pass = ftp.getPassword();
     @endcode
  */
 *string FtpClient::getPassword() {
@@ -620,12 +620,12 @@ my *string $pass = $ftp.getPassword();
 }
 
 //! Returns the current hostname value or @ref nothing if none is set
-/** 
+/**
     @return the current hostname value that will be used for the next connection or @ref nothing if none is set
 
     @par Example:
-    @code
-my *string $host = $ftp.getHostName();
+    @code{.py}
+*string host = ftp.getHostName();
     @endcode
  */
 *string FtpClient::getHostName() {
@@ -634,12 +634,12 @@ my *string $host = $ftp.getHostName();
 }
 
 //! Retrieves the current connection port value for this object
-/** 
+/**
     @return the current port value that will be used for the next connection
 
     @par Example:
-    @code
-my int $port = $ftp.getPort();
+    @code{.py}
+int port = ftp.getPort();
     @endcode
  */
 int FtpClient::getPort() {
@@ -647,12 +647,12 @@ int FtpClient::getPort() {
 }
 
 //! Retrieves the current connection URL string for this object
-/** 
+/**
     @return the current connection URL string for this object
 
     @par Example:
-    @code
-my string $url = $ftp.getURL();
+    @code{.py}
+string url = ftp.getURL();
     @endcode
  */
 string FtpClient::getURL() {
@@ -663,8 +663,8 @@ string FtpClient::getURL() {
 /** @param secure Make an FTPS connection to the server on the next connect if the argument is @ref True; make a cleartext connection if the argument is @ref False
 
     @par Example:
-    @code
-$ftp.setSecure(True);
+    @code{.py}
+ftp.setSecure(True);
     @endcode
 
     @throw SET-SECURE-ERROR this method cannot be called while the control connection is established
@@ -675,10 +675,10 @@ nothing FtpClient::setSecure(bool secure = True) {
 }
 
 //! Make a non-encrypted connection to the server on the next connect
-/** 
+/**
     @par Example:
-    @code
-$ftp.setInsecure();
+    @code{.py}
+ftp.setInsecure();
     @endcode
 
     @throw SET-INSECURE-ERROR this method cannot be called while the control connection is established
@@ -689,11 +689,11 @@ nothing FtpClient::setInsecure() {
 }
 
 //! Make a non-encrypted data connection to the server on the next connect even if the control connection is secure
-/** 
+/**
     @par Example:
-    @code
-$ftp.setSecure();
-$ftp.setInsecureData();
+    @code{.py}
+ftp.setSecure();
+ftp.setInsecureData();
     @endcode
 
     @throw SET-INSECUREDATA-ERROR this method cannot be called while the control connection is established
@@ -707,8 +707,8 @@ nothing FtpClient::setInsecureData() {
 /** @return @ref True if the control connection is a secure TLS/SSL connection, @ref False if not
 
     @par Example:
-    @code
-my bool $b = $ftp.isSecure();
+    @code{.py}
+bool b = ftp.isSecure();
     @endcode
  */
 bool FtpClient::isSecure() [flags=CONSTANT] {
@@ -716,12 +716,12 @@ bool FtpClient::isSecure() [flags=CONSTANT] {
 }
 
 //! Returns @ref True if the data connections are secure TLS/SSL connections, @ref False if not
-/** 
+/**
     @return @ref True if the data connections are secure TLS/SSL connections, @ref False if not
 
     @par Example:
-    @code
-my bool $b = $ftp.isDataSecure();
+    @code{.py}
+bool b = ftp.isDataSecure();
     @endcode
 
  */
@@ -733,9 +733,9 @@ bool FtpClient::isDataSecure() [flags=CONSTANT] {
 /** @return the name of the cipher for an encrypted connection or @ref nothing if an encrypted connection is not established
 
     @par Example:
-    @code
-if ($ftp.isSecure())
-    printf("secure connection: %s %s\n", $ftp.getSSLCipherName(), $ftp.getSSLCipherVersion());
+    @code{.py}
+if (ftp.isSecure())
+    printf("secure connection: %s %s\n", ftp.getSSLCipherName(), ftp.getSSLCipherVersion());
     @endcode
  */
 *string FtpClient::getSSLCipherName() [flags=CONSTANT] {
@@ -747,9 +747,9 @@ if ($ftp.isSecure())
 /** @return the version of the cipher for an encrypted connection or @ref nothing if an encrypted connection is not established
 
     @par Example:
-    @code
-if ($ftp.isSecure())
-    printf("secure connection: %s %s\n", $ftp.getSSLCipherName(), $ftp.getSSLCipherVersion());
+    @code{.py}
+if (ftp.isSecure())
+    printf("secure connection: %s %s\n", ftp.getSSLCipherName(), ftp.getSSLCipherVersion());
     @endcode
  */
 *string FtpClient::getSSLCipherVersion() [flags=CONSTANT] {
@@ -761,9 +761,9 @@ if ($ftp.isSecure())
 /** @return A string code giving the result of verifying the peer's certificate or @ref nothing if a secure connection has not been established. The possible values are found in the keys of the @ref X509_VerificationReasons hash constant. This hash can also be used to generate a textual description of the verification result.
 
     @par Example:
-    @code
-if ($ftp.isSecure() && (my *string $str = $ftp.verifyPeerCertificate())) {
-    printf("certificate: %s: %s\n", $str, X509_VerificationReasons.$str);
+    @code{.py}
+if (ftp.isSecure() && (*string str = ftp.verifyPeerCertificate())) {
+    printf("certificate: %s: %s\n", str, X509_VerificationReasons{str});
     @endcode
  */
 *string FtpClient::verifyPeerCertificate() [flags=CONSTANT] {
@@ -772,10 +772,10 @@ if ($ftp.isSecure() && (my *string $str = $ftp.verifyPeerCertificate())) {
 }
 
 //! Sets the object to automatically try to negotiate the data connections in \c EPSV, \c PASV, and \c PORT modes, in that order
-/** 
+/**
     @par Example:
-    @code
-$ftp.setModeAuto();
+    @code{.py}
+ftp.setModeAuto();
     @endcode
  */
 nothing FtpClient::setModeAuto() {
@@ -783,10 +783,10 @@ nothing FtpClient::setModeAuto() {
 }
 
 //! Sets the object to only try to make data connections using \c EPSV (<a href="http://tools.ietf.org/html/rfc2428">RFC-2428</a> extended passive) mode
-/** 
+/**
     @par Example:
-    @code
-$ftp.setModeEPSV();
+    @code{.py}
+ftp.setModeEPSV();
     @endcode
  */
 nothing FtpClient::setModeEPSV() {
@@ -794,10 +794,10 @@ nothing FtpClient::setModeEPSV() {
 }
 
 //! Sets the object to only try to make data connections using \c PASV (<a href="http://tools.ietf.org/html/rfc959">RFC-959</a> passive) mode
-/** 
+/**
     @par Example:
-    @code
-$ftp.setModePASV();
+    @code{.py}
+ftp.setModePASV();
     @endcode
  */
 nothing FtpClient::setModePASV() {
@@ -805,21 +805,33 @@ nothing FtpClient::setModePASV() {
 }
 
 //! Sets the object to only try to make data connections using \c PORT mode
-/** 
+/**
     @par Example:
-    @code
-$ftp.setModePORT();
+    @code{.py}
+ftp.setModePORT();
     @endcode
  */
 nothing FtpClient::setModePORT() {
    f->setModePORT();
 }
 
+//! returns a string for the connection mode: \c "port", \c "pasv", \c "epsv", or \c "auto" if not connected and auto mode is set
+/** @par Example:
+    @code{.py}
+string mode = ftp.getMode();
+    @endcode
+
+    @since %Qore 0.8.12
+*/
+string FtpClient::getMode() [flags=CONSTANT] {
+   return new QoreStringNode(f->getMode());
+}
+
 //! Clears any Queue object that may be set on the FtpClient object so that @ref event_handling "I/O events" are no longer captured on the object on either the data or control connections
-/** 
+/**
     @par Example:
-    @code
-$ftp.setEventQueue();
+    @code{.py}
+ftp.setEventQueue();
     @endcode
  */
 nothing FtpClient::setEventQueue() {
@@ -830,8 +842,8 @@ nothing FtpClient::setEventQueue() {
 /** @param queue a @ref Qore::Thread::Queue "Queue" object to receive FtpClient and Socket events on both the data and control connections; note that the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
 
     @par Example:
-    @code
-$ftp.setEventQueue($queue);
+    @code{.py}
+ftp.setEventQueue(queue);
     @endcode
 
     @throw QUEUE-ERROR the Queue passed has a maximum size set
@@ -840,19 +852,17 @@ $ftp.setEventQueue($queue);
  */
 nothing FtpClient::setEventQueue(Qore::Thread::Queue[Queue] queue) {
    ReferenceHolder<Queue> q(queue, xsink);
-   if (queue->getMax() != -1) {
-      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the FtpClient object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
-      return 0;
-   }
+   if (queue->getMax() != -1)
+      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the FtpClient object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
    // pass reference from QoreObject::getReferencedPrivateData() to function
    f->setEventQueue(q.release(), xsink);
 }
 
 //! Clears any Queue object that may be set on the FtpClient object so that @ref event_handling "I/O events" are no longer captured on the object on the data connection
-/** 
+/**
     @par Example:
-    @code
-$ftp.setDataEventQueue();
+    @code{.py}
+ftp.setDataEventQueue();
     @endcode
  */
 nothing FtpClient::setDataEventQueue() {
@@ -863,8 +873,8 @@ nothing FtpClient::setDataEventQueue() {
 /** @param queue a @ref Qore::Thread::Queue "Queue" object to receive FtpClient and Socket events on the data connection; note that the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
 
     @par Example:
-    @code
-$ftp.setDataEventQueue($queue);
+    @code{.py}
+ftp.setDataEventQueue(queue);
     @endcode
 
     @throw QUEUE-ERROR the Queue passed has a maximum size set
@@ -873,19 +883,17 @@ $ftp.setDataEventQueue($queue);
  */
 nothing FtpClient::setDataEventQueue(Qore::Thread::Queue[Queue] queue) {
    ReferenceHolder<Queue> q(queue, xsink);
-   if (queue->getMax() != -1) {
-      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the FtpClient object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
-      return 0;
-   }
+   if (queue->getMax() != -1)
+      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the FtpClient object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
    // pass reference from QoreObject::getReferencedPrivateData() to function
    f->setDataEventQueue(q.release(), xsink);
 }
 
 //! Clears any Queue object that may be set on the FtpClient object so that @ref event_handling "I/O events" are no longer captured on the object on the control connection
-/** 
+/**
     @par Example:
-    @code
-$ftp.setControlEventQueue();
+    @code{.py}
+ftp.setControlEventQueue();
     @endcode
  */
 nothing FtpClient::setControlEventQueue() {
@@ -896,8 +904,8 @@ nothing FtpClient::setControlEventQueue() {
 /** @param queue a @ref Qore::Thread::Queue "Queue" object to receive FtpClient and Socket events on the control connection; note that the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
 
     @par Example:
-    @code
-$ftp.setControlEventQueue($queue);
+    @code{.py}
+ftp.setControlEventQueue(queue);
     @endcode
 
     @throw QUEUE-ERROR the Queue passed has a maximum size set
@@ -906,18 +914,16 @@ $ftp.setControlEventQueue($queue);
  */
 nothing FtpClient::setControlEventQueue(Qore::Thread::Queue[Queue] queue) {
    ReferenceHolder<Queue> q(queue, xsink);
-   if (queue->getMax() != -1) {
-      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the FtpClient object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
-      return 0;
-   }
+   if (queue->getMax() != -1)
+      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the FtpClient object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
    // pass reference from QoreObject::getReferencedPrivateData() to function
    f->setControlEventQueue(q.release(), xsink);
 }
 
 //! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
 /** @par Example:
-    @code
-$ftp.clearWarningQueue();
+    @code{.py}
+ftp.clearWarningQueue();
     @endcode
 
     @see FtpClient::setWarningQueue()
@@ -930,16 +936,16 @@ nothing FtpClient::clearWarningQueue() {
 
 //! Sets a @ref Qore::Thread::Queue "Queue" object to receive socket warnings
 /** @par Example:
-    @code
-$ftp.setWarningQueue(5000, 5000, $queue, "socket-1");
+    @code{.py}
+ftp.setWarningQueue(5000, 5000, queue, "socket-1");
     @endcode
 
     @param warning_ms the threshold in milliseconds for individual socket actions (send, receive, connect), if exceeded, a socket warning is placed on the warning queue with the following keys:
     - \c "type": a string with the constant value \c "SOCKET-OPERATION-WARNING"
     - \c "operation": a string giving the operation that caused the warning (ex: \c "connect")
     - \c "us": an integer giving the number of microseconds for the operation
-    - \c "timeout": an integer giving the warning threshold in microseconds 
-    - \c "arg": if any \c "arg" argument is passed to the @ref Qore::FtpClient::setWarningQueue() "FtpClient::setWarningQueue()" method, it will be included in the warning hash here 
+    - \c "timeout": an integer giving the warning threshold in microseconds
+    - \c "arg": if any \c "arg" argument is passed to the @ref Qore::FtpClient::setWarningQueue() "FtpClient::setWarningQueue()" method, it will be included in the warning hash here
     @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket warning is placed on the warning queue with the following keys:
     - \c "type": a string with the constant value \c "SOCKET-THROUGHPUT-WARNING"
     - \c "dir": either \c "send" or \c "recv" depending on the direction of the data flow
@@ -947,7 +953,7 @@ $ftp.setWarningQueue(5000, 5000, $queue, "socket-1");
     - \c "us": an integer giving the number of microseconds for the operation
     - \c "bytes_sec": a float giving the transfer speed in bytes per second
     - \c "threshold": an integer giving the warning threshold in bytes per second
-    - \c "arg": if any \c "arg" argument is passed to the @ref Qore::FtpClient::setWarningQueue() "FtpClient::setWarningQueue()" method, it will be included in the warning hash here 
+    - \c "arg": if any \c "arg" argument is passed to the @ref Qore::FtpClient::setWarningQueue() "FtpClient::setWarningQueue()" method, it will be included in the warning hash here
     @param queue the @ref Qore::Thread::Queue "Queue" object to receive warning events
     @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to identify the socket for example)
     @param min_ms the minimum transfer time with a resolution of milliseconds for a transfer to be eligible for triggering a warning; transfers that take less than this period of time are not eligible for raising a warning
@@ -957,22 +963,22 @@ $ftp.setWarningQueue(5000, 5000, $queue, "socket-1");
 
     @see FtpClient::clearWarningQueue()
 
-    @since Qore 0.8.9
+    @since
+    - %Qore 0.8.9
+    - %Qore 0.8.12 the minimum threshold for a warning is a transfer of at least 1024 bytes, smaller transfers will not result in a warning
  */
 nothing FtpClient::setWarningQueue(int warning_ms, int warning_bs, Queue[Queue] queue, any arg, timeout min_ms = 1s) {
    ReferenceHolder<Queue> q(queue, xsink);
-   if (queue->getMax() != -1) {
-      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Socket object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
-      return 0;
-   }
+   if (queue->getMax() != -1)
+      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Socket object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
    // pass reference from QoreObject::getReferencedPrivateData() to function
-   f->setWarningQueue(xsink, warning_ms, warning_bs, q.release(), arg ? arg->refSelf() : 0, min_ms);
+   f->setWarningQueue(xsink, warning_ms, warning_bs, q.release(), arg.getReferencedValue(), min_ms);
 }
 
 //! Returns performance statistics for the socket
 /** @par Example:
-    @code
-my hash $h = $ftp.getUsageInfo();
+    @code{.py}
+hash h = ftp.getUsageInfo();
     @endcode
 
     @return a hash with the following keys:
@@ -994,8 +1000,8 @@ hash FtpClient::getUsageInfo() [flags=CONSTANT] {
 
 //! Clears performance statistics
 /** @par Example:
-    @code
-$ftp.clearStats();
+    @code{.py}
+ftp.clearStats();
     @endcode
 
     @since Qore 0.8.9

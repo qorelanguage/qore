@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file MysqlSqlUtil.qm Qore user module for working with MySQL SQL data
 
-/*  MysqlSqlUtil.qm Copyright 2013 - 2014 Qore Technologies, sro
+/*  MysqlSqlUtil.qm Copyright 2013 - 2016 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.11
+%requires qore >= 0.8.12
 
 # requires the SqlUtil module
 %requires SqlUtil >= 1.0
@@ -38,17 +38,12 @@
 %enable-all-warnings
 
 module MysqlSqlUtil {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for working with MySQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
 }
-
-/*  Version History
-    * 2013-10-04 v1.0: David Nichols <david@qore.org>
-      + the initial version of the MysqlSqlUtil module
-*/
 
 /** @mainpage MysqlSqlUtil Module
 
@@ -60,7 +55,7 @@ module MysqlSqlUtil {
 
     Usually this module is loaded on demand from the SqlUtil module, however to use this module
     directly, use \c "%requires MysqlSqlUtil" in your code.
-    
+
     All the public symbols in the module are defined in the MysqlSqlUtil namespace
 
     @note This module requires the <a href="http://qore.org/qore-modules/16-mysql-module">mysql</a> binary module for communication with MySQL databases
@@ -85,7 +80,7 @@ module MysqlSqlUtil {
     |@ref SqlUtil::NUMERIC|\c decimal
     |@ref SqlUtil::VARCHAR|\c varchar
 
-    To use other types, use the \c "native_type" @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the 
+    To use other types, use the \c "native_type" @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the
     native MySQL type name instead (under the \c "driver" and \c "mysql" keys for schemas supporting multiple databases).
 
     @subsection mysql_column_notnull NOT NULL Constraints on MySQL
@@ -93,6 +88,18 @@ module MysqlSqlUtil {
     MySQL currently does not support firing "before insert" or "before update" triggers before constraints are checked, so in other databases
     where a trigger will set a default value for a column when a NULL is inserted, MySQL will raise an error if there is a NOT NULL
     constraint on the column.
+
+    @section mysql_relnotes Release Notes
+
+    @subsection mysqlsqlutilv11 MysqlSqlUtil v1.1
+    - corrected support for the \c varbinary type (<a href="https://github.com/qorelanguage/qore/issues/403">bug 403</a>)
+    - corrected support for the \c binary type (<a href="https://github.com/qorelanguage/qore/issues/524">bug 524</a>)
+    - \c schema member incorrectly set by @ref Qore::SQL::AbstractDatasource::getUserName() "AbstractDatasource::getUserName()" instead of @ref Qore::SQL::AbstractDatasource::getDBName() "AbstractDatasource::getDBName()" (<a href="https://github.com/qorelanguage/qore/pull/519">bug 519</a>)
+    - corrected support for datatypes \c binary, \c char, \c varbinary, \c varchar
+    - added support for \c cop_cast operator (<a href="https://github.com/qorelanguage/qore/issues/535">feature 535</a>)
+
+    @subsection mysqlsqlutilv10 MysqlSqlUtil v1.0
+    - initial release
 */
 
 #! the MysqlSqlUtil namespace contains all the objects in the MysqlSqlUtil module
@@ -104,9 +111,9 @@ public namespace MysqlSqlUtil {
 
     #! returns a MysqlDatabase object corresponding to the arguments
     public MysqlDatabase sub get_database(AbstractDatasource nds, *hash opts) {
-	return new MysqlDatabase(nds, opts);
+        return new MysqlDatabase(nds, opts);
     }
-    
+
     sub parse_schema_name(string nname, reference schema, reference name) {
         *string sstr = (nname =~ x/^(\w+)\.\w+/)[0];
         if (sstr) {
@@ -127,7 +134,7 @@ public namespace MysqlSqlUtil {
         }
 
         #! creates the object from the arguments
-	constructor(string n_name, bool n_unique, hash n_cols, string n_type = "BTREE") : AbstractIndex(n_name, n_unique, n_cols) {
+        constructor(string n_name, bool n_unique, hash n_cols, string n_type = "BTREE") : AbstractIndex(n_name, n_unique, n_cols) {
             type = n_type;
         }
 
@@ -171,7 +178,7 @@ public namespace MysqlSqlUtil {
         }
 
         string getAddSql(string name, string table_name, *hash opt) {
-            return sprintf("add constraint %s foreign key (%s) references %s (%s)", name, (foldl $1 + ", " + $2, columns.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
+            return sprintf("add constraint %s foreign key (%s) references %s (%s)", name, (foldl $1 + ", " + $2, h.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
         }
 
         #! returns a string that can be used to drop the foreign constraint from the database
@@ -193,7 +200,7 @@ public namespace MysqlSqlUtil {
 
         #! returns a list of sql strings that can be used to add the column to an existing table
         /** @par Example:
-            @code
+            @code{.py}
 my list $l = $col.getAddColumnSql($t);
             @endcode
 
@@ -201,22 +208,22 @@ my list $l = $col.getAddColumnSql($t);
          */
         softlist getAddColumnSql(AbstractTable t) {
             string sql = sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
-	    if (comment)
-		sql += " comment " + t.getSqlValue(comment);
+            if (comment)
+                sql += " comment " + t.getSqlValue(comment);
             return sql;
         }
 
         #! returns an sql string that can be used to add the column to a table
         string getCreateSql(AbstractTable t) {
             string sql = AbstractColumn::getCreateSql(t);
-	    if (comment)
-		sql += " comment " + t.getSqlValue(comment);
+            if (comment)
+                sql += " comment " + t.getSqlValue(comment);
             return sql;
         }
 
         #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
         /** @par Example:
-            @code
+            @code{.py}
 my list $l = $col.getModifySql($t, $newcol);
             @endcode
 
@@ -238,13 +245,13 @@ my list $l = $col.getModifySql($t, $newcol);
 
             string sql = sprintf("alter table %s modify %s", t.getSqlName(), ntd);
             if (c.comment)
-		sql += " comment " + t.getSqlValue(c.comment);
+                sql += " comment " + t.getSqlValue(c.comment);
             return sql;
         }
 
         #! returns a string that can be used to rename the column
         /** @par Example:
-            @code
+            @code{.py}
 my string $str = $col.getRenameSql($t, "new_name");
             @endcode
 
@@ -327,7 +334,7 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         #! returns the MysqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 my any $v = $c.name;
             @endcode
 
@@ -338,7 +345,7 @@ my any $v = $c.name;
             @throw KEY-ERROR the given key does not exist in the contained hash
 
             @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
-            
+
             @see @ref memberGate_methods
         */
         MysqlColumn memberGate(string k) {
@@ -381,7 +388,7 @@ my any $v = $c.name;
 
         #! returns the MysqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 my any $v = $c.name;
             @endcode
 
@@ -392,7 +399,7 @@ my any $v = $c.name;
             @throw KEY-ERROR the given key does not exist in the contained hash
 
             @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
-            
+
             @see @ref memberGate_methods
         */
         MysqlColumn memberGate(string k) {
@@ -445,9 +452,9 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the trigger in the database
-	softlist getRenameSql(string table_name, string new_name) {
-	    return sprintf("alter trigger %s on %s rename to %s", name, table_name, new_name);
-	}
+        softlist getRenameSql(string table_name, string new_name) {
+            return sprintf("alter trigger %s on %s rename to %s", name, table_name, new_name);
+        }
     }
 
     #! represents a MySQL-specific function
@@ -471,11 +478,11 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the function in the database
-	softlist getRenameSql(string new_name) {
-	    return sprintf("alter function %s rename to %s", name, new_name);
-	}
+        softlist getRenameSql(string new_name) {
+            return sprintf("alter function %s rename to %s", name, new_name);
+        }
     }
-    
+
     #! class for MySQL sequences based on a sequence table and autonomous transactions
     public class MysqlSequence inherits SqlUtil::AbstractSequence {
         private {
@@ -504,10 +511,10 @@ my any $v = $c.name;
             return sprintf("delete from %s where name = '%s'", table_name, name);
         }
     }
-    
+
     #! represents a MySQL view
     public class MysqlView inherits SqlUtil::AbstractView {
-    
+
         public {
             #! table catalog value
             *string tablecatalog;
@@ -558,12 +565,17 @@ my any $v = $c.name;
     #! provides the MySQL-specific implementation of the AbstractDatabase interface
     public class MysqlDatabase inherits SqlUtil::AbstractDatabase {
         public {
-            #! MySQL-specific schema description keys
-            const MysqlSchemaDescriptionOptions = AbstractDatabase::SchemaDescriptionOptions + (
+            #! MySQL-specific options
+            const MysqlOptions = (
                 "sequence_table": Type::String,
                 "sequence_function": Type::String,
                 );
 
+            #! MySQL-specific schema description keys
+            const MysqlSchemaDescriptionOptions = AbstractDatabase::SchemaDescriptionOptions + MysqlOptions;
+
+            #! MySQL-specific database options
+            const MysqlDatabaseOptions = AbstractDatabase::DatabaseOptions + MysqlOptions;
 
             #! MySQL sequence emulation table
             const MysqlSequenceTable = (
@@ -590,6 +602,16 @@ begin
   update %s set id = last_insert_id(id + 1) where name = seq_name;
   return last_insert_id();
 end";
+
+            #! Options for computeStatistics()
+            const MysqlComputeStatisticsOptions = ComputeStatisticsOptions + (
+                "no-binlog"         : Type::Boolean,
+                );
+
+            #! Options for reclaimSpace()
+            const MysqlReclaimSpaceOptions = ReclaimSpaceOptions + (
+                "no-binlog"         : Type::Boolean,
+                );
         }
 
         private {
@@ -636,7 +658,7 @@ end";
                 return;
             return new MysqlSequence(sequence_table, name);
         }
-        
+
         private *AbstractView getViewImpl(string name) {
             *string schema;
             parse_schema_name(name, \schema, \name);
@@ -676,7 +698,7 @@ end";
             list params = ();
             if (al) {
                 rt = MysqlDatabase::makeParameter(shift al);
-                
+
                 map params += MysqlDatabase::makeParameter($1), al;
             }
 
@@ -710,7 +732,7 @@ end";
             if (opt.start) {
                 return l;
             }
-            
+
             return l;
         }
 
@@ -784,8 +806,23 @@ end";
         }
 
         #! returns driver-specific options to the base abstract class
+        private hash getDatabaseOptions() {
+            return MysqlDatabaseOptions;
+        }
+
+        #! returns driver-specific options to the base abstract class
         private hash getSchemaDescriptionOptions() {
             return MysqlSchemaDescriptionOptions;
+        }
+
+        #! returns driver-specific options to the base abstract class
+        private hash getComputeStatisticsOptions() {
+            return MysqlComputeStatisticsOptions;
+        }
+
+        #! returns driver-specific options to the base abstract class
+        private hash getReclaimSpaceOptions() {
+            return MysqlReclaimSpaceOptions;
         }
 
         #! returns the next value in the given sequence
@@ -793,11 +830,16 @@ end";
             return seqds.selectRow("select nextval(%s)", name).nextval;
         }
 
+        #! returns the last value issued for the given sequence in the current session
+        private softint getCurrentSequenceValueImpl(string name) {
+            throw "MYSQL-SEQUENCE-ERROR", "currval is not supported for emulated MySQL sequences";
+        }
+
         #! returns @ref Qore::True "True" since we have a workaround implementation for sequences in MySQL
         private bool supportsSequencesImpl() {
             return False;
         }
-        
+
         #! returns @ref Qore::True "True" if the database supports named types
         private bool supportsTypesImpl() {
             return False;
@@ -806,6 +848,37 @@ end";
         #! returns @ref Qore::True "True" if the database supports packages
         private bool supportsPackagesImpl() {
             return False;
+        }
+
+        #! rebuild index implementation. See @ref SqlUtil::AbstractDatabase::rebuildIndex()
+        private bool rebuildIndexImpl(string name, *hash options) {
+            throw "REBUILD-INDEX-ERROR", "MySQL does not support index rebuilding. Use reclaimSpace()";
+        }
+
+        #! compute statistics implementation. See @ref SqlUtil::AbstractDatabase::computeStatistics()
+        private computeStatisticsImpl(*hash options) {
+            string sql = "analyze ";
+            sql += options."no-binlog" ? "no_write_to_binlog " : "local ";
+            sql += "table ";
+
+            softlist tables = options.tables ? options.tables : listTables();
+
+            sql += sprintf("%s", tables.join(", "));
+
+            ds.select(sql);
+        }
+
+        #! reclaim space implementation. See @ref SqlUtil::AbstractDatabase::reclaimSpace()
+        private reclaimSpaceImpl(*hash options) {
+            string sql = "optimize ";
+            sql += options."no-binlog" ? "no_write_to_binlog " : "local ";
+            sql += "table ";
+
+            softlist tables = options.tables ? options.tables : listTables();
+
+            sql += sprintf("%s", tables.join(", "));
+
+            ds.select(sql);
         }
     }
 
@@ -829,11 +902,11 @@ end";
                 "time": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
                 "year": ("qore": Type::Int,),
 
-                "char": ("qore": Type::String, "size": SZ_MAND,),
-                "varchar": ("qore": Type::String, "size": SZ_MAND,),
+                "char": ("qore": Type::String, "size": SZ_OPT, "size_range": (0, 255)),
+                "varchar": ("qore": Type::String, "size": SZ_MAND, "size_range": (0, 65535)),
 
-                "binary": ("qore": Type::Binary,),
-                "varbinary": ("qore": Type::Binary,),
+                "binary": ("qore": Type::Binary, "size": SZ_OPT, "size_range": (0, 255)),
+                "varbinary": ("qore": Type::Binary, "size": SZ_MAND, "size_range": (0, 65535)),
 
                 "tinytext": ("qore": Type::String,),
                 "text": ("qore": Type::String,),
@@ -891,6 +964,31 @@ end";
 
             #! column operator specializations for MySQL
             const MysqlCopMap = DefaultCopMap + (
+                COP_CAST: (
+                    "code": string sub (string cve, list args) {
+                        string name = QoreTypeMap{args[0]} ?? args[0];
+                        if (name == "varchar") name = "char"; # NOTE: due to current MariaSQL issue ("ERROR 1064 (42000)")
+                        hash desc = MysqlTypeMap{name};
+                        string sql = sprintf ("cast(%s as %s", cve, name);
+                        switch (name) {
+                            default:
+                                if (desc.size == SZ_MAND) {
+                                    if (!exists args[1] && !exists desc.size_range)
+                                        throw "OPERATOR-ERROR", sprintf ("op_cast operator missing size for type %s", name);
+                                    sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
+                                }
+                                else if (desc.size == SZ_NUM && exists args[1]) {
+                                    sql += sprintf("(%d", args[1]);
+                                    sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
+                                }
+                                else if (desc.size == SZ_OPT && exists args[1]) {
+                                    sql += sprintf("(%d)", args[1]);
+                                }
+                        }
+                        sql += ")";
+                        return sql;
+                    },
+                ),
                 COP_PREPEND: (
                     "arg": Type::String,
                     "sqlvalue": True,
@@ -942,7 +1040,7 @@ end";
                 name = nname;
             }
             else
-                schema = ds.getUserName();
+                schema = ds.getDBName();
 
             if (opts.engine)
                 engine = opts.engine;
@@ -1020,7 +1118,7 @@ end";
                     case "int":
                     case "bigint":
                     case "double":
-                    case "float": 
+                    case "float":
                     case /text$/:
                     case /blob$/: {
                         row.numeric_precision = 0;
@@ -1071,7 +1169,7 @@ end";
             }
             return AbstractDatabase::doCallback(opt, primaryKey.getCreateSql(name, opt), AbstractDatabase::AC_Add, "primary key", primaryKey.getName(), name);
         }
-        
+
         private MysqlPrimaryKey getPrimaryKeyImpl() {
             hash rv;
 
@@ -1104,7 +1202,7 @@ end";
                     }
                     # send "blank" column for function index
                     if (row.column_name =~ /\(.*\)/ || !columns.hasKey(row.column_name))
-                        ih.(row.index_name).columns{row.column_name} = hash();
+                        ih.(row.index_name).columns{row.column_name} = {};
                     else
                         ih.(row.index_name).columns{row.column_name} = columns{row.column_name};
                 }
@@ -1119,18 +1217,18 @@ end";
 
         private ForeignConstraints getForeignConstraintsImpl(*hash opts) {
             hash rv;
-            # get foreign referential constraints 
+            # get foreign referential constraints
             # FIXME: use schema name
             *hash qh = ds.select("select t.constraint_name, column_name source_column, referenced_table_name target_table, referenced_column_name target_column from information_schema.table_constraints t inner join information_schema.key_column_usage k on (t.constraint_schema = k.constraint_schema and t.table_name = k.table_name and t.table_schema = k.table_schema and t.constraint_name = k.constraint_name) where constraint_type = 'FOREIGN KEY' and t.table_name = %v and t.table_schema = %v order by position_in_unique_constraint", name, schema);
             if (qh.constraint_name) {
                 hash ch;
                 foreach hash row in (qh.contextIterator()) {
-                    reference c = \ch.(row.constraint_name); 
+                    reference c = \ch.(row.constraint_name);
                     c.columns.(row.source_column) = columns{row.source_column};
                     c.target.table = row.target_table;
                     c.target.columns.(row.target_column) = True;
                 }
-                
+
                 foreach hash c in (ch.pairIterator()) {
                     # get a description of the target table's columns
                     Columns targ_columns = getReferencedTableColumnsUnlocked(c.value.target.table, opts.table_cache);
@@ -1154,10 +1252,10 @@ end";
             foreach hash row in (qh.contextIterator()) {
                 reference ch = \rv.(row.constraint_name);
                 if (!ch)
-                    ch = new MysqlUniqueConstraint(row.constraint_name, hash());
+                    ch = new MysqlUniqueConstraint(row.constraint_name, {});
                 ch.add(row.column_name, columns{row.column_name});
             }
-            
+
             # add unique constraints to constraint hash
             map c.add($1.key, $1.value), rv.pairIterator();
 
@@ -1182,9 +1280,14 @@ end";
             string sql = sprintf("create table %s (\n", name);
 
             sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(self), columns.iterator());
-            sql += sprintf("\n) engine %s", engine);            
+            sql += sprintf("\n) engine %s", engine);
 
             return sql;
+        }
+
+        #! returns @ref Qore::False "False" because the mysql driver does not support array binds / bulk DML operations
+        bool hasArrayBind() {
+            return False;
         }
 
         private *list getCreateMiscSqlImpl(*hash opt, bool cache) {
@@ -1256,7 +1359,7 @@ end";
                         if (constraints.hasKey(c.name)) {
                             if (!(constraints{c.name} instanceof AbstractUniqueConstraint))
                                 throw "AUTO-INCREMENT-ERROR", sprintf("column %y.%y which has \"auto-increment\" set and is also flagged as a unique constraint for the table does not match with the existing constraint type: %y", name, c.name, constraints{c.name}.className());
-                                
+
                             uk = constraints{c.name};
                             if (uk.size() > 1 || uk.firstKey() != c.name)
                                 throw "AUTO-INCREMENT-ERROR", sprintf("column %y.%y which has \"auto-increment\" set and is also flagged as a unique constraint for the table does not match with the existing unique constraint's column definition: %y", name, c.name, uk.keys());
@@ -1346,7 +1449,7 @@ end";
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument
         /** @par Example:
-            @code
+            @code{.py}
 my string $str = $table.getSqlValue($date);
             @endcode
 
@@ -1411,8 +1514,8 @@ my string $str = $table.getSqlValue($date);
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch) {
-            doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch);
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+            doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
             if (qh.limit) {
                 sql += " limit %v";
                 args += qh.limit;
@@ -1422,6 +1525,44 @@ my string $str = $table.getSqlValue($date);
                 sql += " offset %v";
                 args += qh.offset;
             }
+        }
+
+        private *hash doReturningImpl(hash opt, reference sql, list args) {
+            throw "RETURNING-ERROR", sprintf("table %s: the mysql driver does not support the returning clause in an insert statement", getSqlName());
+        }
+
+        private list getGroupOrderByListUnlocked(string key, hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+            list ce = ();
+            foreach any cv in (qh{key}) {
+                switch (cv.typeCode()) {
+                    case NT_STRING: {
+                        if (cv.toInt() == cv)
+                            ce += cv;
+                        else
+                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch);
+                        break;
+                    }
+
+                    case NT_HASH: {
+                        ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch, psch);
+                        break;
+                    }
+
+                    case NT_INT: {
+                        ce += cv.toString();
+                        break;
+                    }
+
+                    default:
+                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in %s list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv, key);
+                }
+            }
+            return ce;
+        }
+
+        #! returns @ref Qore::True "True" if the current database driver supports the \c "returning" clause in insert statements, @ref Qore::False "False" if not
+        bool hasReturningImpl() {
+            return False;
         }
 
         #! db-specific copy actions
