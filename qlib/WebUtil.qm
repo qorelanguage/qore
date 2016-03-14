@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file WebUtil.qm Qore user module supprting web server operations
 
-/*  WebUtil.qm Copyright (C) 2013 - 2015 Qore Technologies, sro
+/*  WebUtil.qm Copyright (C) 2013 - 2016 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 
 # do not use "$" signs, assume local vars
 %new-style
-    
+
 module WebUtil {
     version = "1.3";
     desc = "user module supporting web server operations";
@@ -55,7 +55,7 @@ module WebUtil {
     The %WebUtil module provides code that support higher-level web server operations.
 
     To use this module, use \c "%requires WebUtil" in your code.
-    
+
     All the public symbols in the module are defined in the WebUtil namespace
 
     Classes:
@@ -69,6 +69,8 @@ module WebUtil {
 
     @subsection webutil_v1_3 WebUtil v1.3
     - updated @ref WebUtil::FileHandler::handleRequest() "FileHandler::handleRequest()" to allow for chunked sends
+    - fixed a bug where template programs with @ref Qore::PO_ALLOW_BARE_REFS set did not work
+    - fixed a bug serviing index files in @ref WebUtil::FileHandler::tryServeRequest() "FileHandler::tryServeRequest()" where index files could be incorrectly served with a \c "204 No Content" response (<a href="https://github.com/qorelanguage/qore/issues/616">issue 616</a>)
 
     @subsection webutil_v1_2 WebUtil v1.2
     - fixed a bug where template programs with parse option @ref Qore::PO_ALLOW_BARE_REFS set did not work
@@ -210,7 +212,7 @@ TextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
             int vc = 0;
             # check if PO_ALLOW_BARE_REFS is set in the template program
             softbool bare_refs = (p.getParseOptions() & PO_ALLOW_BARE_REFS);
-            
+
             foreach hash h in (\l) {
                 switch (h.type) {
                     case "text": h.text =~ s/"/\"/g; src += h.text; break;
@@ -238,7 +240,7 @@ TextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
                 str =~ s/\$//g;
             return str;
         }
-        
+
         #! a helper method used in parsing
         private static bool doBlock(string end, reference src, string type, reference i, reference l) {
             int j = src.find(end, i + 1);
@@ -390,11 +392,11 @@ hash h = qft.render(ctx);
             int po;
 
             #! code to perform Program initialization when creating a new Program object (inport API, etc)
-            *code psetup;            
+            *code psetup;
         }
 
         #! creates the object with optional @ref Qore::Program "Program" options
-        /** 
+        /**
             @param parse_opts the @ref parse_options "Program parse options" for the template file @ref Qore::Program "programs"
             @param pgm_setup an optional @ref closure "closure" or @ref call_reference "call reference" taking a single @ref Qore::Program "Program" argument to be called when initializing template @ref Qore::Program "programs" to set up a custom template API, etc
         */
@@ -435,7 +437,7 @@ hash h = tm.render(resource_path, path, mtime, ctx);
 
             if (!th{tname})
                 th{tname} = new FileTemplate(path, po, psetup);
-            
+
             return th{tname}.render(mtime, ctx, code, hdr);
         }
 
@@ -615,7 +617,7 @@ hash h = tm.render("html/index.qhtml", ctx);
 
             #! HTTP chunk size in bytes
             softint chunk_size = Defaults.ChunkSize;
-            
+
             #! set for error info level
             /** The following are valid error levels:
                 - 0: no details
@@ -644,7 +646,7 @@ hash h = tm.render("html/index.qhtml", ctx);
                 "ChunkedThreshold": 10 * 1024,
                 "ChunkSize": 4096,
                 );
-            
+
             #! dirlisting template
             const Dirlisting = "<html lang=\"en\" >"
 "{%"
@@ -721,7 +723,7 @@ hash h = tm.render("html/index.qhtml", ctx);
                 chunked_threshold = opt.chunked_threshold;
             if (opt.chunk_size)
                 chunk_size = opt.chunk_size;
-            
+
             # setup :dirlisting template
             stm.add(":dirlisting", getDirlistingTemplate(), MimeTypeHtml);
         }
@@ -838,11 +840,11 @@ hash h = tm.render("html/index.qhtml", ctx);
 
         private *hash tryServeRequest(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash cx, hash hdr, *data body) {
             *string path = cx.resource_path;
-            
+
             # use Windows directory separator chars on Windows
             if (!Unix)
                 path =~ s/\//\\/g;
-            
+
             path = file_root + path;
 
             *hash sh = hstat(path);
@@ -872,24 +874,25 @@ hash h = tm.render("html/index.qhtml", ctx);
             *string ext = (cx.resource_path =~ x/\.([a-z0-9]+)$/i)[0];
             if (ext && template_extensions{ext})
                 return render(cx.resource_path, path, sh.mtime, cx);
-            
+
             ReadOnlyFile f;
             try {
                 f = new ReadOnlyFile(path);
+                sh = f.hstat();
             }
             catch (hash ex) {
                 if (ex.err == "READONLYFILE-OPEN-ERROR")
                     return;
                 rethrow;
             }
-            
+
             if (!sh.size)
                 return makeResponse(204, "");
-            
+
             string ct = get_mime_type_from_ext(path);
             bool txt = (ext =~ /^text\//) || (ext =~ /^application\/.*(json|xml|yaml|javascript|tex|tcl|troff|postscript)/);
-            
-            return f.hstat().size > chunked_threshold ? sendFileChunked(listener, s, cx, hdr, body, f, txt, ct) : sendFile(f, txt, ct);
+
+            return sh.size > chunked_threshold ? sendFileChunked(listener, s, cx, hdr, body, f, txt, ct) : sendFile(f, txt, ct);
         }
 
         #! must return a FileStreamRequest object to stream the requested file with chunked transfer encoding
@@ -905,7 +908,7 @@ hash h = tm.render("html/index.qhtml", ctx);
                 "hdr": ("Content-Type": ct),
                 );
         }
-        
+
         #! returns a handler hash response with the file's data to be sent in a HTTP message with chunked transfer encoding
         private hash sendFileChunked(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash cx, hash hdr, *data body, Qore::ReadOnlyFile f, bool txt, string ct) {
             FileStreamRequest fsr = getFileStreamRequestImpl(listener, s, cx, hdr, body, f, txt, ct);
@@ -913,7 +916,7 @@ hash h = tm.render("html/index.qhtml", ctx);
         }
 
         #! this method is called when a directory should be rendered
-        /** if this method returns @ref nothing then any \a default_target will be used, so to turn off directory rendering, 
+        /** if this method returns @ref nothing then any \a default_target will be used, so to turn off directory rendering,
             subclass this class and have the reimplemented method return @ref nothing
         */
         *hash renderDirectory(hash cx, string path) {
@@ -944,7 +947,7 @@ hash h = tm.render("html/index.qhtml", ctx);
             - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
             - \c params: holds the URI query parameters as returned in the \a params key from @ref HttpServer::parse_uri_query()
             @param body message body, if any
-            
+
             @return a hash with the following keys:
             - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
             - \c "body": the message body to return in the response
