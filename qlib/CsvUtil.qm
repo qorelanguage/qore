@@ -229,6 +229,7 @@ public namespace CsvUtil {
         |\c "encoding"|@ref string|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
         |\c "separator"|@ref string|the string separating the fields in the file (default: \c ",")
         |\c "quote"|@ref string|the field quote character (default: \c '\"')
+        |\c "quote_escape"|@ref string|the escape character(s) used for \c "quote" (default: \c '\\')
         |\c "eol"|@ref string|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
         |\c "ignore-empty"|@ref boolean|if @ref Qore::True "True" (the default) then empty lines will be ignored; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
         |\c "ignore-whitespace"|@ref boolean|if @ref Qore::True "True" (the default) then leading and trailing whitespace will be stripped from non-quoted fields; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
