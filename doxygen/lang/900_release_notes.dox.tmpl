@@ -17,7 +17,6 @@
     - the @ref push "push", @ref unshift "unshift", @ref pop "pop" and @ref shift "shift" operators now throw an exception when their first operand is not a list
 
     @subsection qore_0812_new_features New Features in Qore
-    - new \c qr binary that assumes @ref new-style "%new-style" with %Qore code to make it easier to write programs in @ref new-style "%new-style"
     - Added the @ref value_coalescing_operator which checks first argument if it evaluates to @ref Qore::False "False" with @ref <value>::val() and if so assigns the second argument. The operator can be further chained; for example: @code{.py} expr1 ?* expr2 ?* expr3 @endcode
     - Added the @ref null_coalescing_operator which checks the first operand for @ref nothing or @ref null; if true returns the second argument. The operator can be further chained, in which case the first operand with a value is returned; ex: @code{.py} expr1 ?? expr2 ?? expr3 @endcode
     - %Qore identifiers can now begin with an underscore character \c "_"; the following is now a valid (with @ref new-style "%new-style"): @code{.py}int _var = 1;@endcode
@@ -323,6 +322,7 @@
       - \c schema member incorrectly set by @ref Qore::SQL::AbstractDatasource::getUserName() "AbstractDatasource::getUserName()" instead of @ref Qore::SQL::AbstractDatasource::getDBName() "AbstractDatasource::getDBName()" (<a href="https://github.com/qorelanguage/qore/pull/519">issue 519</a>)
     -  <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module fixes:
       - fixed a bug where template programs with @ref Qore::PO_ALLOW_BARE_REFS set did not work
+      - fixed a bug serviing index files in @ref WebUtil::FileHandler::tryServeRequest() "FileHandler::tryServeRequest()" where index files could be incorrectly served with a \c "204 No Content" response (<a href="https://github.com/qorelanguage/qore/issues/616">issue 616</a>)
     - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a> module fixes:
       - fixed a bug where the connection object was deleted when the connection closes which could cause excess exceptions in multithreaded server code
       - added the WebSocketConnection::connectionClosed() method to be called when the connection is closed
