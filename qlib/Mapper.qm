@@ -530,7 +530,7 @@ Mapper mapv(DataMap);
             if (fh.name) {
                 if (fh.struct)
                     error("output field %y has both 'name' (%y) and 'struct' (%y) values; only one can be given to identify the input field", getFieldName(k), fh.name, fh.struct);
-                if (input && !exists fh.constant && !fh.code && !exists fh.index)
+                if (input && !fh.hasKey("constant") && !fh.code && !exists fh.index)
                     checkInputField(k, fh.name);
                 if (!allow_dot && fh.name =~ /\./)
                     fh.struct = (remove fh.name).split(".");
