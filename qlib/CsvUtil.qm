@@ -895,6 +895,7 @@ while ($i.next()) {
                 "encoding": True,
                 "separator": True,
                 "quote": True,
+                "quote_escape": True,
                 "eol": True,
                 "verify-columns": True,
                 "fields": True,
@@ -918,6 +919,9 @@ while ($i.next()) {
             
             # default date->string format
             string $.dateFormat = 'DD/MM/YYYY hh:mm:SS';
+
+            # default escape character in the double-quoted text fields
+            string $.quoteEscapeChar = "\\";
 
             # headers / column names for lines iterated
             *softlist $.headers;
@@ -973,6 +977,13 @@ while ($i.next()) {
                         if ($i.value.typeCode() != NT_STRING)
                             throw $.errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
                         $.quote = $i.value;
+                        break;
+                    }
+                    case "quote_escape": {
+                        if ($i.value.typeCode() != NT_STRING) {
+                            throw $.errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", $i.key, $i.value, $i.value.type());
+                        }
+                        $.quoteEscapeChar = $i.value;
                         break;
                     }
                     case "eol": {
@@ -1213,7 +1224,7 @@ while ($i.next()) {
                 # make full line template
                 my string $template = strmul($.baseTemplate, elements $values, 1) + $.eol;
                 # escape separators in strings
-                my list $row = map replace(string($1), $.quote, "\\" + $.quote), $values;
+                my list $row = map replace(string($1), $.quote, $.quoteEscapeChar + $.quote), $values;
 
                 return vsprintf($template, $row);
             }
@@ -1222,7 +1233,7 @@ while ($i.next()) {
             foreach my any $v in ($values) {
                 if ($v.typeCode() == NT_STRING) {
                     if ($v.find($.quote) >= 0) {
-                        $v = replace($v, $.quote, "\\" + $.quote);
+                        $v = replace($v, $.quote, $.quoteEscapeChar + $.quote);
                         $v = sprintf("\"%s\"", $v);
                     }
                     else if ($v.find($.separator) >= 0)
