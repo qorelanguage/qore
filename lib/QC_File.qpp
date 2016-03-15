@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1196,7 +1196,7 @@ hash h = File::statvfs(path);
     @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check Option::HAVE_STATVFS before calling this method to avoid this exception
  */
 static hash File::statvfs(string path) [dom=FILESYSTEM] {
-#ifdef HAVE_SYS_STATVFS_H
+#ifdef Q_HAVE_STATVFS
    struct statvfs vfs;
    if (statvfs(path->getBuffer(), &vfs))
       return xsink->raiseErrnoException("FILE-STATVFS-ERROR", errno, "statvfs() call failed");
