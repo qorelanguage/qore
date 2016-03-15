@@ -2041,5 +2041,4 @@ int q_fstatvfs(const char* filepath, struct statvfs* buf) {
 
    return statvfs(dir, buf);
 }
-
 #endif
