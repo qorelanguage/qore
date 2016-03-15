@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -813,7 +813,7 @@ QoreHashNode *QoreFile::hstat(ExceptionSink *xsink) const {
    return priv->hstat(xsink);
 }
 
-#ifdef HAVE_SYS_STATVFS_H
+#ifdef Q_HAVE_STATVFS
 QoreHashNode *QoreFile::statvfs(ExceptionSink *xsink) const {
    return priv->statvfs(xsink);
 }
