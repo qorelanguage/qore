@@ -136,7 +136,7 @@ case "${host_os}" in
 		mingw=yes
 		need_user_dl=yes # set to make sure there's a user-provided dlfcn.h and libdl.(a|dll) available
 		# DEBUG
-		#make_dll=no
+		#make_dll=yes
 		# libraries to find
 		need_libs="$need_libs wsock32 ws2_32 gdi32 iconv pthread"
 		# DEBUG: cannot create dll without these libraries for some reason
@@ -623,7 +623,7 @@ find_mpfr() {
     mpfr_sprintf=`grep mpfr_sprintf "$with_mpfr_includes/mpfr.h" 2>/dev/null`
     mpfr_buildopt_tls_p=`grep mpfr_buildopt_tls_p "$with_mpfr_includes/mpfr.h" 2>/dev/null`
 
-    QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $MPFR_LDFLAGS"
+    QORE_LIB_LDFLAGS="$MPFR_LDFLAGS $QORE_LIB_LDFLAGS"
     QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $MPFR_CPPFLAGS"
 }
 
