@@ -988,6 +988,10 @@ find_openssl() {
     QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $OPENSSL_CPPFLAGS"
 }
 
+if test "$mingw" = yes; then
+    LIBS="$LIBS -lgdi32 -lz"
+fi
+
 # see if we can figure out where the openssl library is
 AC_ARG_WITH([openssl-dir],
   [AS_HELP_STRING([--with-openssl-dir@<:@=DIR@:>@],
@@ -1008,10 +1012,10 @@ else
     SAVE_CPPFLAGS="$CPPFLAGS"
     SAVE_LIBS="$LIBS"
     CPPFLAGS="$CPPFLAGS $QORE_LIB_CPPFLAGS $OPENSSL_CPPFLAGS"
-    LIBS="$LIBS $QORE_LIB_LDFLAGS $OPENSSL_LDFLAGS"
+    LIBS="$OPENSSL_LDFLAGS $QORE_LIB_LDFLAGS $LIBS"
 
     # check for SHA-0 algorithm
-    AC_MSG_CHECKING([for SHA0 in openssl])
+    AC_MSG_CHECKING([for SHA in openssl])
     AC_LINK_IFELSE([AC_LANG_PROGRAM(
     [[#include <openssl/evp.h>]],
     [[const EVP_MD *evp = EVP_sha();]])],
@@ -1057,10 +1061,6 @@ else
 
     CPPFLAGS="$SAVE_CPPFLAGS"
     LIBS="$SAVE_LIBS"
-fi
-
-if test "$mingw" = yes; then
-    LIBS="$LIBS -lgdi32 -lz"
 fi
 
 set_dl_cppflags() {
