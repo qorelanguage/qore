@@ -91,5 +91,14 @@ public class NumbersTest inherits QUnit::Test {
 
         n1 *= n1;
         assertEq("1461501637330902918203684832716283019655932542976", sprintf("%n", n1));       #2^160
+
+        number n3 = 1;
+        number n4 = 1;
+        for (int i = 0; i < 160; i++) {
+            n3 = n3 + n3;
+            n4 += n4;
+        }
+        assertEq("1461501637330902918203684832716283019655932542976", sprintf("%n", n3));       #2^160
+        assertEq("1461501637330902918203684832716283019655932542976", sprintf("%n", n4));       #2^160
     }
 }
