@@ -297,8 +297,12 @@ struct qore_qf_private {
 	 while (true) {
 	    rc = ::read(fd, buf, bs);
 	    // try again if we were interrupted by a signal
-	    if (rc >= 0 || errno != EINTR)
+	    if (rc >= 0)
 	       break;
+            if (errno != EINTR) {
+               xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after "QLLD" bytes read", br);
+               break;
+            }
 	 }
 	 //printd(5, "readBlock(fd: %d, buf: %p, bs: %d) rc: %d\n", fd, buf, bs, rc);
 	 if (rc <= 0)
@@ -320,7 +324,7 @@ struct qore_qf_private {
 	 }
       }
       free(buf);
-      if (!br) {
+      if (*xsink) {
 	 if (bbuf)
 	    free(bbuf);
 	 return 0;

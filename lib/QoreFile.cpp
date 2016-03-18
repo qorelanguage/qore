@@ -449,9 +449,13 @@ QoreStringNode *QoreFile::read(qore_offset_t size, ExceptionSink *xsink) {
    if (!buf)
       return 0;
 
-   QoreStringNode *str = new QoreStringNode(buf, size, size, priv->charset);
-   //str->terminate(buf[size - 1] ? size : size - 1);
-   str->terminate(size);
+   QoreStringNode* str;
+   if (size) {
+      str = new QoreStringNode(buf, size, size, priv->charset);
+      str->terminate(size);
+   }
+   else
+      str = new QoreStringNode(priv->charset);
    return str;
 }
 
@@ -473,7 +477,8 @@ int QoreFile::readBinary(BinaryNode &b, qore_offset_t size, ExceptionSink *xsink
    if (!buf)
       return -1;
 
-   b.append(buf, size);
+   if (size)
+      b.append(buf, size);
    free(buf);
    return 0;
 }
