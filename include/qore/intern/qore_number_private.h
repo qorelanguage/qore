@@ -88,7 +88,7 @@ struct qore_number_private_intern {
       if (func == mpfr_mul || func == mpfr_div) {
          prec = mpfr_get_prec(num) + mpfr_get_prec(r);
       } else {
-         prec = QORE_MAX(mpfr_get_prec(num), mpfr_get_prec(r));
+         prec = QORE_MAX(mpfr_get_prec(num), mpfr_get_prec(r)) + 1;
       }
       if (prec > mpfr_get_prec(num))
          mpfr_prec_round(num, prec, QORE_MPFR_RND);
@@ -276,7 +276,7 @@ struct qore_number_private : public qore_number_private_intern {
       if (func == mpfr_mul || func == mpfr_div) {
          prec = mpfr_get_prec(num) + mpfr_get_prec(r.num);
       } else {
-         prec = QORE_MAX(mpfr_get_prec(num), mpfr_get_prec(r.num));
+         prec = QORE_MAX(mpfr_get_prec(num), mpfr_get_prec(r.num)) + 1;
       }
       std::auto_ptr<qore_number_private> p(new qore_number_private(prec));
       func(p->num, num, r.num, QORE_MPFR_RND);
