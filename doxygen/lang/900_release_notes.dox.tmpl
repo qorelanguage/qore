@@ -463,6 +463,9 @@
     - fixed the order of initialization of class members (<a href="https://github.com/qorelanguage/qore/issues/42">issue 42</a>)
     - fixed a bug in @ref Qore::TimeZone::date(string) where the date returned was in the current contextual time zone and not that of the object (<a href="https://github.com/qorelanguage/qore/issues/584">issue 584</a>)
     - fixed a bug parsing windows paths in URLs with @ref Qore::parse_url() (<a href="https://github.com/qorelanguage/qore/issues/618">issue 618</a>)
+    - fixed a bug in @ref Qore::TimeZone::constructor(string) on Windows when used with an absolute path (<a href="https://github.com/qorelanguage/qore/issues/626">issue 626</a>)
+    - fixed an I/O-handling bug in the @ref Qore::ReadOnlyFile and @ref Qore::File classes where I/O errors in read operations were silently ignored (<a href="https://github.com/qorelanguage/qore/issues/627">issue 627</a>)
+    - fixed bugs in @ref Qore::ReadOnlyFile::readTextFile() and @ref Qore::ReadOnlyFile::readBinaryFile() would return @ref nothing instead of an empty object when reading empty files; now empty objects are returned in these cases (<a href="https://github.com/qorelanguage/qore/issues/508">issue 508</a>)
 
     @section qore_0811 Qore 0.8.11
 
