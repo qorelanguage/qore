@@ -15,6 +15,7 @@ public class NumbersTest inherits QUnit::Test {
         addTestCase("Test number to string conversions", \stringConversionTest());
         addTestCase("Test number rounding during string conversions", \roundingTest());
         addTestCase("Test number operations", \opTest());
+        addTestCase("Test number precision", \precTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -46,6 +47,14 @@ public class NumbersTest inherits QUnit::Test {
         testAssertion("conversion no. " + string(i++), \helperToString(), (-0.10001999999999n,), new TestResultValue("-0.10001999999999"));
         testAssertion("conversion no. " + string(i++), \helperToString(), (1.0001999999999n,), new TestResultValue("1.0001999999999"));
         testAssertion("conversion no. " + string(i++), \helperToString(), (-1.0001999999999n,), new TestResultValue("-1.0001999999999"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.99999999999999991234n,), new TestResultValue("0.99999999999999991234"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.999999999999999991234n,), new TestResultValue("1"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.0000000000000000012345n,), new TestResultValue("0"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.00000000000000001234n,), new TestResultValue("0.00000000000000001234"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.899999999999999991234n,), new TestResultValue("0.899999999999999991234"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.8999999999999999991234n,), new TestResultValue("0.9"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.8000000000000000001234n,), new TestResultValue("0.8"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.800000000000000001234n,), new TestResultValue("0.800000000000000001234"));
         # fixed in svn rev 6914
         testAssertion("conversion no. " + string(i++), \helperToString(), (738.38.toNumber(),), new TestResultValue(helperToString(738.38)));
     }
@@ -72,5 +81,15 @@ public class NumbersTest inherits QUnit::Test {
 
         assertEq(False, 1 < 1n);
         assertEq(False, 1 > 1n);
+    }
+
+    precTest() {
+        number n1 = 1208925819614629174706176n;                                                 #2^80
+
+        number n2 = n1 * n1;
+        assertEq("1461501637330902918203684832716283019655932542976", sprintf("%n", n2));       #2^160
+
+        n1 *= n1;
+        assertEq("1461501637330902918203684832716283019655932542976", sprintf("%n", n1));       #2^160
     }
 }
