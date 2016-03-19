@@ -946,8 +946,21 @@ my any $v = $c.name;
                     }
                 ),
                 COP_SEQ: (
-                    "code": string sub (string arg1, string arg) {
-                        return sprintf("next value for %s", arg);
+                    "nocolumn": True,
+                    "withalias": True,
+                    "code": string sub (*string cve, hash arg, reference psch) {
+                        string sql = sprintf("next value for %s", arg.seq);
+                        if (arg.as) {
+                            psch{arg.as} = sql;
+                            sql += " as " + arg.as;
+                        }
+                        return sql;
+                    }
+                ),
+                COP_SEQ_CURRVAL: (
+                    "nocolumn": True,
+                    "code": string sub (*string cve, hash arg) {
+                        throw "SEQUENCE-ERROR", sprintf("cannot select the current value of sequence %y because this database does not support this operation", arg.seq);
                     }
                 ),
                 );
