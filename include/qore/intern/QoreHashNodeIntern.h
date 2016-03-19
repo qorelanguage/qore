@@ -277,11 +277,19 @@ public:
       ha.assign(val, xsink);
    }
 
-   DLLLOCAL bool derefImpl(ExceptionSink* xsink) {
-      for (qhlist_t::iterator i = member_list.begin(), e = member_list.end(); i != e; ++i) {
-         if ((*i)->node)
-            (*i)->node->deref(xsink);
-         delete *i;
+   DLLLOCAL bool derefImpl(ExceptionSink* xsink, bool reverse = false) {
+      if (reverse) {
+         for (qhlist_t::reverse_iterator i = member_list.rbegin(), e = member_list.rend(); i != e; ++i) {
+            if ((*i)->node)
+               (*i)->node->deref(xsink);
+            delete *i;
+         }
+      } else {
+         for (qhlist_t::iterator i = member_list.begin(), e = member_list.end(); i != e; ++i) {
+            if ((*i)->node)
+               (*i)->node->deref(xsink);
+            delete *i;
+         }
       }
 
       member_list.clear();
@@ -290,8 +298,8 @@ public:
       return true;
    }
 
-   DLLLOCAL void clear(ExceptionSink* xsink) {
-      derefImpl(xsink);
+   DLLLOCAL void clear(ExceptionSink* xsink, bool reverse) {
+      derefImpl(xsink, reverse);
    }
 
    DLLLOCAL size_t size() const {

@@ -68,6 +68,10 @@
 #define CHF_PROCESS (1 << 1)
 #define CHF_REQUEST (1 << 2)
 
+#ifndef DEFAULT_SOCKET_MIN_THRESHOLD_BYTES
+#define DEFAULT_SOCKET_MIN_THRESHOLD_BYTES 1024
+#endif
+
 DLLLOCAL void concat_target(QoreString& str, const struct sockaddr *addr, const char* type = "target");
 DLLLOCAL int do_read_error(qore_offset_t rc, const char* method_name, int timeout_ms, ExceptionSink* xsink);
 DLLLOCAL int sock_get_raw_error();

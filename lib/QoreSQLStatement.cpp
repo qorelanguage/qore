@@ -69,19 +69,23 @@ public:
       /* release the Datasource if:
          1) the connection was lost (exception already raised)
          2) the Datasource was acquired for this call, and
-              the command was NOCHGANGE, meaning, leave the Datasource in the same state it was before the call
+              the command was NOCHANGE, meaning, leave the Datasource in the same state it was before the call
        */
       if (stmt.priv->ds->wasConnectionAborted() || (nt && (cmd == DAH_NOCHANGE)))
          cmd = DAH_RELEASE;
 
+      //printd(5, "DBActionHelper::~DBActionHelper() ds: %p cmd: %s nt: %d xsink: %d\n", stmt.priv->ds, DAH_TEXT(cmd), nt, xsink->isEvent());
+
       // call end action with the command
       stmt.priv->ds = stmt.dsh->helperEndAction(cmd, nt, xsink);
-
-      //printd(5, "DBActionHelper::~DBActionHelper() ds: %p cmd: %s nt: %d xsink: %d\n", stmt.priv->ds, DAH_TEXT(cmd), nt, xsink->isEvent());
    }
 
    DLLLOCAL operator bool() const {
       return valid;
+   }
+
+   DLLLOCAL bool inTransaction() const {
+      return valid && !nt;
    }
 };
 
@@ -128,7 +132,7 @@ int QoreSQLStatement::checkStatus(ExceptionSink* xsink, DBActionHelper& dba, int
       if (stat == STMT_DEFINED && status == STMT_EXECED)
          return defineIntern(xsink);
 
-      xsink->raiseException("SQLSTATMENT-ERROR", "SQLStatement::%s() called expecting status '%s', but statement has status '%s'", action, stmt_statuses[stat], stmt_statuses[status]);
+      xsink->raiseException("SQLSTATEMENT-ERROR", "SQLStatement::%s() called expecting status '%s', but statement has status '%s'", action, stmt_statuses[stat], stmt_statuses[status]);
       return -1;
    }
 
@@ -380,7 +384,7 @@ QoreHashNode* QoreSQLStatement::fetchColumns(int rows, ExceptionSink* xsink) {
 }
 
 QoreHashNode* QoreSQLStatement::describe(ExceptionSink* xsink) {
-    DBActionHelper dba(*this, xsink, DAH_NOCHANGE);
+    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
     if (!dba)
        return 0;
 
@@ -392,6 +396,14 @@ QoreHashNode* QoreSQLStatement::describe(ExceptionSink* xsink) {
 
 bool QoreSQLStatement::active() const {
    return status != STMT_IDLE;
+}
+
+bool QoreSQLStatement::currentThreadInTransaction(ExceptionSink* xsink) {
+    DBActionHelper dba(*this, xsink, DAH_NOCHANGE);
+    if (!dba)
+       return false;
+
+    return dba.inTransaction();
 }
 
 int QoreSQLStatement::close(ExceptionSink* xsink) {

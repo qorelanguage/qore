@@ -17,7 +17,6 @@
     - the @ref push "push", @ref unshift "unshift", @ref pop "pop" and @ref shift "shift" operators now throw an exception when their first operand is not a list
 
     @subsection qore_0812_new_features New Features in Qore
-    - new \c qr binary that assumes @ref new-style "%new-style" with %Qore code to make it easier to write programs in @ref new-style "%new-style"
     - Added the @ref value_coalescing_operator which checks first argument if it evaluates to @ref Qore::False "False" with @ref <value>::val() and if so assigns the second argument. The operator can be further chained; for example: @code{.py} expr1 ?* expr2 ?* expr3 @endcode
     - Added the @ref null_coalescing_operator which checks the first operand for @ref nothing or @ref null; if true returns the second argument. The operator can be further chained, in which case the first operand with a value is returned; ex: @code{.py} expr1 ?? expr2 ?? expr3 @endcode
     - %Qore identifiers can now begin with an underscore character \c "_"; the following is now a valid (with @ref new-style "%new-style"): @code{.py}int _var = 1;@endcode
@@ -74,10 +73,15 @@
     - other new methods:
       - @ref Qore::SQL::DatasourcePool::getCapabilities()
       - @ref Qore::SQL::DatasourcePool::getCapabilityList()
+      - @ref Qore::SQL::SQLStatement::currentThreadInTransaction()
       - @ref Qore::Thread::Queue::setError()
       - @ref Qore::Thread::Queue::clearError()
     - updated methods:
       - @ref Qore::TimeZone::constructor() "TimeZone::constructor()": now accepts a path to the zoneinfo file if the @ref Qore::PO_NO_FILESYSTEM sandboxing restrictions is not set
+    - the \c SOCKET-THROUGHPUT-WARNING event is no longer raised on the warning queue if the transfer size is less than 1024 bytes; this affects:
+      - @ref Qore::FtpClient::setWarningQueue()
+      - @ref Qore::HTTPClient::setWarningQueue()
+      - @ref Qore::Socket::setWarningQueue()
     - new functions:
       - @ref Qore::create_object()
       - @ref Qore::create_object_args()
@@ -159,6 +163,7 @@
       - new \c "tolwr" option in structured text parsing classes
       - AbstractCsvWriter will set \c "headers" from the \c "fields" option if \c "headers" are not explicitly set
       -  added write() methods returning the generated strings to the CsvStringWriter class for API compatibility with the corresponding FixedLengthDataWriter methods
+      - \c quote_escape option implemented in AbstractCsvWriter
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module updates:
       - implemented the \c "constant" field tag, allowing a contant value for an output field to be specified directly in the mapper hash
       - implemented the \c "default" field tag, giving a default value if no input value is specified
@@ -216,6 +221,8 @@
       - added the \c "ssl" key to the listener socket info hash
       - implemented support for notifying persistent connections when the connection is terminated while a persistent connection is in place
       - removed the unused AbstractStreamRequestHandler class
+      - fixed parse_uri_query() to always return \a params as a hash (<a href="https://github.com/qorelanguage/qore/issues/569">issue 569</a>)
+      - added \c root_path to the context hash if the path was matched by a URL path prefix (<a href="https://github.com/qorelanguage/qore/issues/570">issue 570</a>)
     - <a href="../../modules/Schema/html/index.html">Schema</a> module updates:
       - added the following public functions to make column definitions easier:
         - c_char()
@@ -264,6 +271,7 @@
     - removed support for the C++ \c QDBI_METHOD_ABORT_TRANSACTION_START DBI method; transactions are always assumed to be in progress even if an exec call throws an exception in the first statement in a new transaction; this is necessary to handle bulk DML where a single statement can partially succeed and partially fail; the ABI remains unchanged; drivers that set this DBI method will no longer have it called because it's not necessary; in the upcoming API/ABI change this C++ DBI method will be removed entirely
     - added support for @ref unary_plus_operator "unary plus"
     - added support for empty private blocks in classes
+    - added support for @ref Qore::statvfs() on Windows (simulated from \c GetDiskFreeSpaceEx() <a href="https://github.com/qorelanguage/qore/issues/618">issue 618</a>)
 
     @subsection qore_0812_bug_fixes Bug Fixes in Qore
     - fixed format of octal constant - there was an error if a string contained octal constant that is shorter than 3 digit
@@ -288,6 +296,7 @@
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module fixes:
       - moved field length checks after all transformations have been applied
       - fixed bugs in the \c "timezone" and \c "input_timezone" options, documented those options
+      - fixed a bug where \c "constant" field tags assigned to a value that evaluated to boolean @ref False were not recognized (<a href="https://github.com/qorelanguage/qore/issues/610">issue 610</a>)
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module fixes:
       - fixed a bug with queries using a \a desc argument with the \a orderby query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
       - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
@@ -314,6 +323,7 @@
       - \c schema member incorrectly set by @ref Qore::SQL::AbstractDatasource::getUserName() "AbstractDatasource::getUserName()" instead of @ref Qore::SQL::AbstractDatasource::getDBName() "AbstractDatasource::getDBName()" (<a href="https://github.com/qorelanguage/qore/pull/519">issue 519</a>)
     -  <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module fixes:
       - fixed a bug where template programs with @ref Qore::PO_ALLOW_BARE_REFS set did not work
+      - fixed a bug serviing index files in @ref WebUtil::FileHandler::tryServeRequest() "FileHandler::tryServeRequest()" where index files could be incorrectly served with a \c "204 No Content" response (<a href="https://github.com/qorelanguage/qore/issues/616">issue 616</a>)
     - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a> module fixes:
       - fixed a bug where the connection object was deleted when the connection closes which could cause excess exceptions in multithreaded server code
       - added the WebSocketConnection::connectionClosed() method to be called when the connection is closed
@@ -445,6 +455,20 @@
     - fixed a bug where the type of catch parameter was ignored (<a href="https://github.com/qorelanguage/qore/issues/28">issue 28</a>)
     - fixed a bug where namespace hierarchies were not indexed during parse time when added to already-committed namespaces which lead to symbol resolution errors for valid code (<a href="https://github.com/qorelanguage/qore/issues/538">issue 538</a>)
     - fixed a bug where a @ref Qore::Socket "Socket" operation attempted in another thread while a callback operation on the same socket was in progress would result in a confusing error message (<a href="https://github.com/qorelanguage/qore/issues/530">issue 530</a>)
+    - fixed a bug where local variable declarations in class member initialization expressions caused a crash (<a href="https://github.com/qorelanguage/qore/issues/574">issue 574</a>)
+    - fixed a bug where HTTP data in HTTP socket events was modified even though it was shared which caused data consistency problems and crashes in the worst case (<a href="https://github.com/qorelanguage/qore/issues/576">issue 576</a>)
+    - fixed a bug where the `+=` operator handled NOTHING values incorrectly (<a href="https://github.com/qorelanguage/qore/issues/582">issue 582</a>)
+    - fixed a bug where a non-numeric define specified on the command line could cause a crash (<a href="https://github.com/qorelanguage/qore/issues/583">issue 583</a>)
+    - fixed a bug where the @ref Qore::SQL::SQLStatement::describe() method would not grab the transation lock even when statements were implicitly executed (<a href="https://github.com/qorelanguage/qore/issues/591">issue 591</a>)
+    - fixed the order of initialization of class members (<a href="https://github.com/qorelanguage/qore/issues/42">issue 42</a>)
+    - fixed a bug in @ref Qore::TimeZone::date(string) where the date returned was in the current contextual time zone and not that of the object (<a href="https://github.com/qorelanguage/qore/issues/584">issue 584</a>)
+    - fixed a bug parsing windows paths in URLs with @ref Qore::parse_url() (<a href="https://github.com/qorelanguage/qore/issues/618">issue 618</a>)
+    - fixed a bug in @ref Qore::TimeZone::constructor(string) on Windows when used with an absolute path (<a href="https://github.com/qorelanguage/qore/issues/626">issue 626</a>)
+    - fixed an I/O-handling bug in the @ref Qore::ReadOnlyFile and @ref Qore::File classes where I/O errors in read operations were silently ignored (<a href="https://github.com/qorelanguage/qore/issues/627">issue 627</a>)
+    - fixed bugs in @ref Qore::ReadOnlyFile::readTextFile() and @ref Qore::ReadOnlyFile::readBinaryFile() would return @ref nothing instead of an empty object when reading empty files; now empty objects are returned in these cases (<a href="https://github.com/qorelanguage/qore/issues/508">issue 508</a>)
+    - fixed a bug in *printf() outputs on Windows with scientific notation with floating-point values (<a href="https://github.com/qorelanguage/qore/issues/631">issue 621</a>)
+    - fixed a bug where the precision of numbers during arithmetic operations was not adjusted correctly (<a href="https://github.com/qorelanguage/qore/issues/630">issue 630</a>)
+    - fixed a bug where the type of subtraction of two numbers was inferred as NOTHING during parsing (<a href="https://github.com/qorelanguage/qore/issues/636">issue 636</a>)
 
     @section qore_0811 Qore 0.8.11
 

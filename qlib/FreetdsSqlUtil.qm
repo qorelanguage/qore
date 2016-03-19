@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file FreetdsSqlUtil.qm Qore user module for working with PostgreSQL SQL data
 
-/*  FreetdsSqlUtil.qm Copyright (C) 2015 Qore Technologies, sro
+/*  FreetdsSqlUtil.qm Copyright (C) 2015 - 2016 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -226,9 +226,8 @@ my list $l = $col.getAddColumnSql($t);
 
             @param t the SqlUtil::AbstractTable object to modify
          */
-        list getAddColumnSql(AbstractTable t) {
-            list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
-            return l;
+        softlist getAddColumnSql(AbstractTable t) {
+            return sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
         }
 
         #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
@@ -497,7 +496,7 @@ my any $v = $c.name;
 
         #! returns a string that can be used to create the view in the database
         string getCreateSql(*hash opt) {
-            # TODO/FIXME: more freetds options - what's allows in "opt"?
+            # TODO/FIXME: more freetds options - what's allowed in "opt"?
             return sprintf("create %s%sview %s as %s",
                            opt.replace ? "or replace " : "",
                            opt.temp ? "temp " : "",
@@ -613,11 +612,18 @@ my any $v = $c.name;
             string schema;
             parse_schema_name(name, \schema, \name);
 
-            *hash row = ds.selectRow("select * from information_schema.views where tabke_chema = %v and table_name = %v", schema, name);
+            # information_schema will return NULL if the view definition > 4000 chars, so we use system tables
+            *hash row = ds.selectRow("select smv.definition from sys.all_views v join sys.sql_modules smv on smv.object_id = v.object_id join sys.schemas s on s.schema_id = v.schema_id where s.name = %v and v.name = %v", schema, name);
+
             if (!row)
                 return;
 
-            return new FreetdsView(name, row.view_definition, row.table_schema);
+            if (!row.definition)
+                throw "VIEW-ERROR", sprintf("view %y exists but the current user does not have permission to read the view", name);
+
+            row.definition =~ s/create view .* as //ig;
+
+            return new FreetdsView(name, row.definition, schema);
         }
 
         private FreetdsFunction makeFunctionImpl(string name, string src, *hash opts) {
@@ -1526,53 +1532,8 @@ order by
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch) {
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             throw "UNIMPLEMENTED", "offset not yet implemented";
-        }
-
-        private list getGroupByList(hash qh, *hash jch, *hash ch, *hash psch, list coll) {
-            list ce = ();
-
-            code do_int = sub (int cv) {
-                if (!coll) {
-                    if (cv > columns.size())
-                        throw "FREETDS-TABLE-ERROR", sprintf("group by %d: this database does not support numeric column offsets for the group by expression, and the table has %d column%s", cv, columns.size(), columns.size() == 1 ? "" : "s");
-                    ce += columns.keys()[cv - 1];
-                }
-                else {
-                    if (cv > coll.size())
-                        throw "FREETDS-TABLE-ERROR", sprintf("group by %d: this database does not support numeric column offsets for the group by expression, and %d column%s %s given in the select argument", cv, coll.size(), coll.size() == 1 ? "" : "s", coll.size() == 1 ? "was" : "were");
-                    string val = coll[cv - 1];
-                    val =~ s/ as .*$//;
-                    ce += val;
-                }
-            };
-
-            foreach any cv in (qh.groupby) {
-                switch (cv.typeCode()) {
-                    case NT_STRING: {
-                        if (cv.toInt() == cv)
-                            do_int(cv.toInt());
-                        else
-                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch, True);
-                        break;
-                    }
-
-                    case NT_HASH: {
-                        ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch, psch);
-                        break;
-                    }
-
-                    case NT_INT: {
-                        do_int(cv);
-                        break;
-                    }
-
-                    default:
-                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in group by list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv);
-                }
-            }
-            return ce;
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost

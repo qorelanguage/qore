@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -639,7 +639,8 @@ int ReadOnlyFile::close() {
     @return the data read from the file, returned as a binary object.  @ref nothing is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and @ref nothing (signifying EOF) will be returned on the next call to this method.
 
     @throw READONLYFILE-READ-BINARY-PARAMETER-ERROR zero size argument passed
-    @throw FILE-READ-ERROR file is not open
+    @throw FILE-READ-ERROR file is not open, or an I/O or other error occurred when reading the file
+
     @throw FILE-READ-TIMEOUT timeout limit exceeded
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
@@ -912,7 +913,7 @@ hash h = file.statvfs();
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 hash ReadOnlyFile::statvfs() {
-#ifdef HAVE_SYS_STATVFS_H
+#ifdef Q_HAVE_STATVFS
    if (check_terminal_io(self, "ReadOnlyFile::statvfs", xsink))
       return QoreValue();
 
@@ -973,9 +974,13 @@ string data = File::readTextFile(path);
 
     @return the contents of a text file as a string optionally tagged with the given @ref character_encoding "character encoding" or @ref nothing if the file is empty or cannot be read
 
-    @since %Qore 0.8.8
+    @throw FILE-READ-ERROR an I/O or other error occurred when reading the file
+
+    @since
+    - %Qore 0.8.8 introduced this method
+    - %Qore 0.8.12 changed the behavior of the method; either a string (possibly an empty string for an empty file) will be returned, or an exception will be raised
 */
-static *string ReadOnlyFile::readTextFile(string path, *string encoding) [dom=FILESYSTEM] {
+static string ReadOnlyFile::readTextFile(string path, *string encoding) [dom=FILESYSTEM] {
    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
 
    QoreFile qf;
@@ -983,7 +988,10 @@ static *string ReadOnlyFile::readTextFile(string path, *string encoding) [dom=FI
    if (qf.open2(xsink, path->getBuffer(), O_RDONLY, 0777, qe))
       return QoreValue();
 
-   return qf.read(-1, xsink);
+   QoreStringNode* str = qf.read(-1, xsink);
+   if (!str && !*xsink)
+      str = new QoreStringNode(qe);
+   return str;
 }
 
 //! returns the contents of a binary file as a binary object
@@ -994,15 +1002,22 @@ binary data = File::readBinaryFile(path);
 
     @param path the path of the file to retrieve
 
-    @return the contents of a binary file as a binary object or @ref nothing if the file is empty or cannot be read
+    @return the contents of a binary file as a binary object
 
-    @since %Qore 0.8.8
+    @throw FILE-READ-ERROR an I/O or other error occurred when reading the file
+
+    @since
+    - %Qore 0.8.8 introduced this method
+    - %Qore 0.8.12 changed the behavior of the method; either a binary object (possibly an empty binary object for an empty file) will be returned, or an exception will be raised
 */
-static *binary ReadOnlyFile::readBinaryFile(string path) [dom=FILESYSTEM] {
+static binary ReadOnlyFile::readBinaryFile(string path) [dom=FILESYSTEM] {
    QoreFile qf;
 
    if (qf.open2(xsink, path->getBuffer()))
       return QoreValue();
 
-   return qf.readBinary(-1, xsink);
+   BinaryNode* b = qf.readBinary(-1, xsink);
+   if (!b && !*xsink)
+      b = new BinaryNode;
+   return b;
 }

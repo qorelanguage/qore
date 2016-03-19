@@ -1,9 +1,10 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   qore_qd_private.h
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -44,14 +45,14 @@
 
 #include <string>
 
-#ifdef _Q_WINDOWS 
+#ifdef _Q_WINDOWS
 static int mkdir(const char *path, mode_t mode) {
    return mkdir(path);
 }
 #endif
 
 class qore_qd_private {
-protected:  
+protected:
    const QoreEncoding *enc;
    std::string dirname;
    mutable QoreThreadLock m;
@@ -81,7 +82,7 @@ protected:
       }
       return std::string::npos;
    }
-   
+
    DLLLOCAL static std::string::size_type get_first_dir_sep(const std::string& str, std::string::size_type pos = 0) {
       for (std::string::size_type i = pos, e = str.size(); i < e; ++i) {
 #ifdef _Q_WINDOWS
@@ -94,7 +95,7 @@ protected:
       }
       return std::string::npos;
    }
-   
+
    // tokenize the strings by directory separators
    DLLLOCAL static void tokenize(const std::string& str, name_vec_t& tokens) {
       // accommodate case when the string consists of only the delimiter (ex: "/")
@@ -107,7 +108,7 @@ protected:
       std::string::size_type lastPos = get_first_non_dir_sep(str, 0);
       // Find first "non-delimiter".
       std::string::size_type pos     = get_first_dir_sep(str, lastPos);
-	 
+
       while (std::string::npos != pos || std::string::npos != lastPos) {
 	 // Found a token, add it to the vector.
 	 tokens.push_back(str.substr(lastPos, pos - lastPos));
@@ -129,7 +130,7 @@ protected:
 
       // free again
       closedir(dptr);
-	 
+
       return 0;
    }
 
@@ -172,7 +173,7 @@ public:
       enc = old.enc;
       dirname = old.dirname;
    }
-      
+
    DLLLOCAL QoreStringNode *get_dir_string() const {
       AutoLocker al(m);
       return !dirname.empty() ? new QoreStringNode(dirname, enc) : 0;
@@ -183,7 +184,7 @@ public:
 
       return getPathIntern(sub);
    }
- 
+
    DLLLOCAL int checkPath() const {
       AutoLocker al(m);
 
@@ -194,7 +195,7 @@ public:
       assert(ndir);
 
       //printd(5, "qore_qd_private::chdir() ndir: '%s' dirname: '%s'\n", ndir, dirname.c_str());
-      
+
       // if changing to the current directory, then ignore
       if (ndir[0] == '.') {
 	 const char* p = ndir + 1;
@@ -207,7 +208,7 @@ public:
 	 if (!*p)
 	    return 0;
       }
-      
+
       // if relative path then join with the old path and strip the path
       std::string ds;
 
@@ -217,7 +218,7 @@ public:
 	    xsink->raiseException("DIR-CHDIR-ERROR", "cannot change to relative directory because no current directory is set");
 	    return -1;
 	 }
-      
+
 	 ds = dirname + QORE_DIR_SEP + std::string(ndir);
       }
       else
@@ -227,7 +228,7 @@ public:
       dirname = ds;
 
       //printd(5, "qore_qd_private::chdir() ndir: '%s' ds: '%s'\n", ndir, ds.c_str());
- 
+
       return checkPathIntern();
    }
 
@@ -252,7 +253,7 @@ public:
 	 xsink->raiseErrnoException("DIR-RMDIR-FAILURE", errno, "error removing directory '%s'", path.c_str());
 	 return -1;
       }
-	 
+
       return 0;
    }
 
@@ -263,9 +264,9 @@ public:
 	 xsink->raiseException("DIR-READ-ERROR", "cannot list directory; no directory is set");
 	 return 0;
       }
-   
+
       SimpleRefHolder<QoreRegexNode> re(0);
-   
+
       if (regex) {
 	 re = new QoreRegexNode(*regex, regex_options, xsink);
 	 if (*xsink)
@@ -273,14 +274,14 @@ public:
       }
       // avoid memory leaks...
       ReferenceHolder<QoreListNode> lst(new QoreListNode, xsink);
-	 
+
       DIR *dptr = opendir(dirname.c_str());
       if (!dptr) {
 	 xsink->raiseErrnoException("DIR-READ-FAILURE", errno, "error opening directory '%s' for reading", dirname.c_str());
 	 return 0;
       }
       ON_BLOCK_EXIT(closedir, dptr);
-	 
+
       struct dirent *de;
       while ((de = readdir(dptr))) {
 	 if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
@@ -332,7 +333,7 @@ public:
 	       }
 
 	       if (stat(fname.getBuffer(), buf, xsink))
-		  return 0;	       
+		  return 0;
 	    }
 #else
 	    if (stat(fname.getBuffer(), buf, xsink))
@@ -354,7 +355,7 @@ public:
 	 lst->push(new QoreStringNode(de->d_name, enc));
 	 continue;
       }
-	    
+
       return lst.release();
    }
 
@@ -369,7 +370,7 @@ public:
       // split the directory in its subdirectories tree
       name_vec_t dirs;
       tokenize(dirname, dirs);
-      
+
       // iterate through all directories and try to create them if
       // they do not exist (should happen only on the first level)
       name_vec_t::iterator it;
@@ -387,7 +388,7 @@ public:
 	    cnt++;
 	 }
       }
-	 
+
       return cnt;
    }
 
@@ -459,7 +460,7 @@ public:
       return stat_to_hash(sbuf);
    }
 
-#ifdef HAVE_SYS_STATVFS_H
+#ifdef Q_HAVE_STATVFS
    DLLLOCAL QoreHashNode *statvfs(ExceptionSink *xsink) const {
       AutoLocker al(m);
 
@@ -467,7 +468,7 @@ public:
 	 xsink->raiseException("DIR-STATVFS-ERROR", "cannot execute File::statvfs(); no directory is set");
 	 return 0;
       }
-  
+
       struct statvfs vfs;
       if (::statvfs(dirname.c_str(), &vfs)) {
 	 xsink->raiseErrnoException("DIR-STATVFS-FAILURE", errno, "statvfs() call failed on '%s'", dirname.c_str());
@@ -507,13 +508,13 @@ public:
       // tokenize the string
       name_vec_t ptoken, dirs;
       tokenize(odir, ptoken);
-      
+
       // push them to the new path
       for (name_vec_t::iterator it = ptoken.begin(), et = ptoken.end(); it != et; ++it) {
 	 std::string d = *it;
 	 if (d == "." || d == "") // ignore
 	    continue;
-	    
+
 	 if (d == ".." && !dirs.empty()) // step back one step
 	    dirs.pop_back();
 	 else

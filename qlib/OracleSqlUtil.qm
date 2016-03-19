@@ -814,10 +814,10 @@ my any $v = $c.name;
         #! Force to drop named type (object or collection)
         /** Named types in schema can have dependencies between each other.
             But the FORCE keyword used in drop allows us to avoid complex
-            dependency tree calculation because all objects will be droped
+            dependency tree calculation because all objects will be dropped
             at the end
 
-            @note It should be used only in Schema management
+            @note this method is intended for use in schema management
          */
         string getDropSqlForce() {
             return sprintf("drop %s %s force", type, name);
@@ -2172,10 +2172,10 @@ my any $v = $c.name;
             }
         }
 
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch) {
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             # Oracle 12c+ supports limit (fetch) and offset
             if (ora_major >= 12) {
-                doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch);
+                doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
 
                 if (qh.offset) {
                     sql += " offset %v rows";
@@ -2190,7 +2190,7 @@ my any $v = $c.name;
                 return;
             }
 
-            list ce = getOrderByListUnlocked(qh, jch, ch);
+            list ce = getOrderByListUnlocked(qh, jch, ch, psch, coll);
             string sort = foldl $1 + ", " + $2, ce;
             # http://www.oracle.com/technetwork/issue-archive/2006/06-sep/o56asktom-086197.html
             # /*+ first_rows(n) */ is an optimizer hint that we want the first rows as fast as possible
@@ -2668,51 +2668,6 @@ my any $v = $c.name;
                 ds.vexec(sql, args);
                 return UR_Verified;
             };
-        }
-
-        private list getGroupByList(hash qh, *hash jch, *hash ch, *hash psch, list coll) {
-            list ce = ();
-
-            code do_int = sub (int cv) {
-                if (!coll) {
-                    if (cv > columns.size())
-                        throw "ORACLE-TABLE-ERROR", sprintf("group by %d: this database does not support numeric column offsets for the group by expression, and the table has %d column%s", cv, columns.size(), columns.size() == 1 ? "" : "s");
-                    ce += columns.keys()[cv - 1];
-                }
-                else {
-                    if (cv > coll.size())
-                        throw "ORACLE-TABLE-ERROR", sprintf("group by %d: this database does not support numeric column offsets for the group by expression, and %d column%s %s given in the select argument", cv, coll.size(), coll.size() == 1 ? "" : "s", coll.size() == 1 ? "was" : "were");
-                    string val = coll[cv - 1];
-                    val =~ s/ as .*$//;
-                    ce += val;
-                }
-            };
-
-            foreach any cv in (qh.groupby) {
-                switch (cv.typeCode()) {
-                    case NT_STRING: {
-                        if (cv.toInt() == cv)
-                            do_int(cv.toInt());
-                        else
-                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch, True);
-                        break;
-                    }
-
-                    case NT_HASH: {
-                        ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch, psch);
-                        break;
-                    }
-
-                    case NT_INT: {
-                        do_int(cv);
-                        break;
-                    }
-
-                    default:
-                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in group by list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv);
-                }
-            }
-            return ce;
         }
 
         #! returns @ref Qore::True "True" because the oracle driver supports array binds / bulk DML operations

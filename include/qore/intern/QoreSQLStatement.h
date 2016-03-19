@@ -117,6 +117,7 @@ public:
    DLLLOCAL int beginTransaction(ExceptionSink* xsink);
 
    DLLLOCAL bool active() const;
+   DLLLOCAL bool currentThreadInTransaction(ExceptionSink* xsink);
 
    DLLLOCAL QoreStringNode* getSQL(ExceptionSink* xsink);
 };

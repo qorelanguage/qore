@@ -963,7 +963,9 @@ ftp.setWarningQueue(5000, 5000, queue, "socket-1");
 
     @see FtpClient::clearWarningQueue()
 
-    @since Qore 0.8.9
+    @since
+    - %Qore 0.8.9
+    - %Qore 0.8.12 the minimum threshold for a warning is a transfer of at least 1024 bytes, smaller transfers will not result in a warning
  */
 nothing FtpClient::setWarningQueue(int warning_ms, int warning_bs, Queue[Queue] queue, any arg, timeout min_ms = 1s) {
    ReferenceHolder<Queue> q(queue, xsink);

@@ -1,9 +1,10 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   qore_qf_private.h
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -65,7 +66,7 @@ struct qore_qf_private {
 
    DLLLOCAL qore_qf_private(const QoreEncoding* cs) : is_open(false),
 						      special_file(false),
-						      charset(cs), 
+						      charset(cs),
 						      cb_queue(0) {
    }
 
@@ -83,7 +84,7 @@ struct qore_qf_private {
       if (is_open) {
 	 if (special_file)
 	    rc = -1;
-	 else {	    
+	 else {
 	    rc = ::close(fd);
 	    is_open = false;
 	    do_close_event_unlocked();
@@ -133,7 +134,7 @@ struct qore_qf_private {
    DLLLOCAL int check_read_open(ExceptionSink* xsink) const {
       if (is_open)
 	 return 0;
-   
+
       xsink->raiseException("FILE-READ-ERROR", "file has not been opened");
       return -1;
    }
@@ -142,7 +143,7 @@ struct qore_qf_private {
    DLLLOCAL int check_write_open(ExceptionSink* xsink) const {
       if (is_open)
 	 return 0;
-      
+
       xsink->raiseException("FILE-WRITE-ERROR", "file has not been opened");
       return -1;
    }
@@ -151,7 +152,7 @@ struct qore_qf_private {
    DLLLOCAL int check_open(ExceptionSink* xsink) const {
       if (is_open)
 	 return 0;
-      
+
       xsink->raiseException("FILE-OPERATION-ERROR", "file has not been opened");
       return -1;
    }
@@ -165,14 +166,14 @@ struct qore_qf_private {
 
       if (check_read_open(xsink))
 	 return false;
-      
+
       return isDataAvailableIntern(timeout_ms);
    }
 
    // assumes lock is held and file is open
    DLLLOCAL bool isDataAvailableIntern(int timeout_ms) const {
       fd_set sfs;
-      
+
       FD_ZERO(&sfs);
       FD_SET(fd, &sfs);
 
@@ -181,8 +182,8 @@ struct qore_qf_private {
       while (true) {
 	 tv.tv_sec  = timeout_ms / 1000;
 	 tv.tv_usec = (timeout_ms % 1000) * 1000;
-      
-	 rc = select(fd + 1, &sfs, 0, 0, &tv);   
+
+	 rc = select(fd + 1, &sfs, 0, 0, &tv);
 	 // retry if we were interrupted by a signal
 	 if (rc >= 0 || errno != EINTR)
 	    break;
@@ -193,7 +194,7 @@ struct qore_qf_private {
 #ifdef HAVE_TERMIOS_H
    DLLLOCAL int setTerminalAttributes(int action, QoreTermIOS* ios, ExceptionSink* xsink) const {
       AutoLocker al(m);
-      
+
       if (check_open(xsink))
 	 return -1;
 
@@ -202,7 +203,7 @@ struct qore_qf_private {
 
    DLLLOCAL int getTerminalAttributes(QoreTermIOS* ios, ExceptionSink* xsink) const {
       AutoLocker al(m);
-      
+
       if (check_open(xsink))
 	 return -1;
 
@@ -274,7 +275,7 @@ struct qore_qf_private {
 
       if (n_len)
 	 *n_len = len;
-      
+
       return charset->getUnicode(buf);
    }
 
@@ -296,8 +297,12 @@ struct qore_qf_private {
 	 while (true) {
 	    rc = ::read(fd, buf, bs);
 	    // try again if we were interrupted by a signal
-	    if (rc >= 0 || errno != EINTR)
+	    if (rc >= 0)
 	       break;
+            if (errno != EINTR) {
+               xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after "QLLD" bytes read", br);
+               break;
+            }
 	 }
 	 //printd(5, "readBlock(fd: %d, buf: %p, bs: %d) rc: %d\n", fd, buf, bs, rc);
 	 if (rc <= 0)
@@ -310,7 +315,7 @@ struct qore_qf_private {
 	 br += rc;
 
 	 do_read_event_unlocked(rc, br, size);
-      
+
 	 if (size > 0) {
 	    if (size - br < bs)
 	       bs = size - br;
@@ -319,7 +324,7 @@ struct qore_qf_private {
 	 }
       }
       free(buf);
-      if (!br) {
+      if (*xsink) {
 	 if (bbuf)
 	    free(bbuf);
 	 return 0;
@@ -446,14 +451,14 @@ struct qore_qf_private {
 	    charset = QCS_UTF16LE;
 	    continue;
 	 }
-	 
+
 	 str.concatUnicode(ch);
-	 
+
          if (rc == -1)
 	    rc = 0;
 
 	 char c = str[str.size() - 1];
-	 
+
          if (c == '\r') {
             // see if next byte is \n' if we're not connected to a terminal device
             if (!tty) {
@@ -484,7 +489,7 @@ struct qore_qf_private {
 
       return rc;
    }
-   
+
    DLLLOCAL int readUntilUnicode(char byte, QoreString& str, bool incl_byte = true) {
       str.clear();
 
@@ -505,7 +510,7 @@ struct qore_qf_private {
 	 }
 
 	 str.concatUnicode(ch);
-	 
+
          if (rc == -1)
             rc = 0;
          if (ch == byte) {
@@ -575,7 +580,7 @@ struct qore_qf_private {
          }
       }
 
-      return rc;      
+      return rc;
    }
 
    // not the most efficient search algorithm, restarts the search the byte after it fails for multi-byte patterns
@@ -666,13 +671,13 @@ struct qore_qf_private {
 	 // close the file before the delete message is put on the queue
 	 // the file would be closed anyway in the destructor
 	 close_intern();
-	 
+
 	 QoreHashNode* h = new QoreHashNode;
 	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_DELETED), 0);
 	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FILE), 0);
 	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
 	 cb_queue->pushAndTakeRef(h);
-	 
+
 	 // deref and remove event queue
 	 cb_queue->deref(xsink);
 	 cb_queue = 0;
@@ -750,7 +755,7 @@ struct qore_qf_private {
 
       if (check_read_open(xsink))
 	 return 0;
-   
+
       struct stat sbuf;
       if (fstat(fd, &sbuf)) {
 	 xsink->raiseErrnoException("FILE-STAT-ERROR", errno, "fstat() call failed");
@@ -765,7 +770,7 @@ struct qore_qf_private {
 
       if (check_read_open(xsink))
 	 return 0;
-   
+
       struct stat sbuf;
       if (fstat(fd, &sbuf)) {
 	 xsink->raiseErrnoException("FILE-HSTAT-ERROR", errno, "fstat() call failed");
@@ -775,18 +780,25 @@ struct qore_qf_private {
       return stat_to_hash(sbuf);
    }
 
-#ifdef HAVE_SYS_STATVFS_H
+#ifdef Q_HAVE_STATVFS
    DLLLOCAL QoreHashNode* statvfs(ExceptionSink* xsink) const {
       AutoLocker al(m);
 
       if (check_read_open(xsink))
 	 return 0;
-   
+
       struct statvfs vfs;
+#ifdef HAVE_SYS_STATVFS_H
       if (fstatvfs(fd, &vfs)) {
 	 xsink->raiseErrnoException("FILE-STATVFS-ERROR", errno, "fstatvfs() call failed");
 	 return 0;
       }
+#else
+      if (q_fstatvfs(filename.c_str(), &vfs)) {
+	 xsink->raiseErrnoException("FILE-STATVFS-ERROR", errno, "fstatvfs() call failed");
+	 return 0;
+      }
+#endif
 
       return statvfs_to_hash(vfs);
    }
