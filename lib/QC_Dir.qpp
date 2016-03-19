@@ -729,7 +729,7 @@ catch (hash ex) {
     @throw DIR-STATVFS-FAILURE error in statvfs (\c arg will be assigned to the errno value)
  */
 hash Dir::statvfs() {
-#ifdef HAVE_SYS_STATVFS_H
+#ifdef Q_HAVE_STATVFS
    return d->statvfs(xsink);
 #else
    return missing_method_error("Dir::statvfs", "STATVFS", xsink);

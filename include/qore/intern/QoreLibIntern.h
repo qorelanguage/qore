@@ -39,6 +39,7 @@
 #include <sys/types.h>
 
 #ifdef HAVE_SYS_STATVFS_H
+#define Q_HAVE_STATVFS
 #include <sys/statvfs.h>
 #endif
 #include <sys/stat.h>
@@ -338,6 +339,41 @@ DLLLOCAL extern QoreClass* QC_PSEUDOVALUE;
 DLLLOCAL extern QoreClass* QC_PSEUDONOTHING;
 
 DLLLOCAL bool node_has_effect(const AbstractQoreNode* n);
+
+#ifdef _Q_WINDOWS
+// simulated block size for statvfs() on Windows
+#define Q_SVF_BSIZE 4096
+#define Q_HAVE_STATVFS
+struct statvfs {
+   unsigned long   f_bsize;        /* File system block size */
+   unsigned long   f_frsize;       /* Fundamental file system block size */
+   unsigned int    f_blocks;       /* Blocks on FS in units of f_frsize */
+   unsigned int    f_bfree;        /* Free blocks */
+   unsigned int    f_bavail;       /* Blocks available to non-root */
+   unsigned int    f_files;        /* Total inodes */
+   unsigned int    f_ffree;        /* Free inodes */
+   unsigned int    f_favail;       /* Free inodes for non-root */
+   unsigned long   f_fsid;         /* Filesystem ID */
+   unsigned long   f_flag;         /* Bit mask of values */
+   unsigned long   f_namemax;      /* Max file name length */
+
+   DLLLOCAL void set(int64 avail, int64 total, int64 free) {
+      f_frsize = f_bsize = Q_SVF_BSIZE;
+      f_blocks = total / Q_SVF_BSIZE;
+      f_bfree = free / Q_SVF_BSIZE;
+      f_bavail = avail / Q_SVF_BSIZE;
+      // simulate inodes
+      f_files = f_blocks / 8;
+      f_ffree = f_bfree / 8;
+      f_favail = f_bavail / 8;
+      f_fsid = 0;
+      f_flag = 0;
+      f_namemax = 256;
+   }
+};
+DLLLOCAL int statvfs(const char* path, struct statvfs* buf);
+DLLLOCAL int q_fstatvfs(const char* filepath, struct statvfs* buf);
+#endif
 
 #include <qore/intern/NamedScope.h>
 #include <qore/intern/QoreTypeInfo.h>

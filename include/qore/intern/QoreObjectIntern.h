@@ -416,7 +416,7 @@ public:
             pgm = 0;
          }
       }
-
+      td->clear(xsink, true);
       td->deref(xsink);
    }
 

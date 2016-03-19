@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -105,10 +105,10 @@
 #define QORE_CONST_HAVE_GETPPID 0
 #endif
 
-#ifdef HAVE_SYS_STATVFS_H
-#define QORE_CONST_HAVE_SYS_STATVFS_H 1
+#ifdef Q_HAVE_STATVFS
+#define QORE_CONST_Q_HAVE_STATVFS 1
 #else
-#define QORE_CONST_HAVE_SYS_STATVFS_H 0
+#define QORE_CONST_Q_HAVE_STATVFS 0
 #endif
 
 #ifdef HAVE_SETSID
@@ -255,9 +255,7 @@ const HAVE_FORK = bool(QORE_CONST_HAVE_FORK);
 const HAVE_GETPPID = bool(QORE_CONST_HAVE_GETPPID);
 
 //! Indicates if the statvfs() function is available
-/** @note This constant is always @ref False on native Windows ports
- */
-const HAVE_STATVFS = bool(QORE_CONST_HAVE_SYS_STATVFS_H);
+const HAVE_STATVFS = bool(QORE_CONST_Q_HAVE_STATVFS);
 
 //! Indicates if the setsid() function is available
 /** @note This constant is always @ref False on native Windows ports
@@ -326,5 +324,3 @@ const HAVE_RC5 = bool(QORE_CONST_HAVE_RC5);
 //! Indicates if the close_all_fd() function is available
 const HAVE_CLOSE_ALL_FD = bool(QORE_CONST_HAVE_CLOSE_ALL_FD);
 //@}
-
-

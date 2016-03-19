@@ -408,9 +408,9 @@ bool QoreHashNode::derefImpl(ExceptionSink* xsink) {
    return priv->derefImpl(xsink);
 }
 
-void QoreHashNode::clear(ExceptionSink* xsink) {
+void QoreHashNode::clear(ExceptionSink* xsink, bool reverse) {
    assert(is_unique());
-   priv->clear(xsink);
+   priv->clear(xsink, reverse);
 }
 
 void QoreHashNode::deleteKey(const char* key, ExceptionSink* xsink) {

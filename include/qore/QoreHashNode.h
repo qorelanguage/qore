@@ -464,7 +464,7 @@ public:
    DLLLOCAL virtual AbstractQoreNode* parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
    DLLLOCAL QoreHashNode(bool ne);
-   DLLLOCAL void clear(ExceptionSink* xsink);
+   DLLLOCAL void clear(ExceptionSink* xsink, bool reverse = false);
 
    //! sets "needs_eval" to false and "value" to true
    DLLLOCAL void clearNeedsEval();

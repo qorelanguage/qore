@@ -1227,15 +1227,28 @@ void QoreProgram::parseDefine(const char* str, AbstractQoreNode* val) {
    priv->parseDefine(qoreCommandLineLocation, str, val);
 }
 
-void QoreProgram::parseDefine(const char* str, const char* val) {
-   QoreString arg(val);
-   arg.trim();
-
-   bool ok;
-   AbstractQoreNode* v = qore_parse_get_define_value(str, arg, ok);
-   if (!ok)
+void QoreProgram::parseCmdLineDefines(const std::map<std::string, std::string> defmap, ExceptionSink& xs, ExceptionSink& ws, int wm) {
+   ProgramRuntimeParseCommitContextHelper pch(&xs, this);
+   if (xs)
       return;
-   priv->parseDefine(qoreCommandLineLocation, str, v);
+
+   priv->startParsing(&xs, &ws, wm);
+
+   for (std::map<std::string, std::string>::const_iterator it = defmap.begin(); it != defmap.end(); ++it) {
+      const char *str = it->first.c_str();
+      const char *val = it->second.c_str();
+      QoreString arg(val);
+      arg.trim();
+
+      bool ok;
+      AbstractQoreNode* v = qore_parse_get_define_value(str, arg, ok);
+      if (!ok)
+         break;
+      priv->parseDefine(qoreCommandLineLocation, str, v);
+   }
+
+   priv->parseSink = 0;
+   priv->warnSink = 0;
 }
 
 QoreProgram* QoreProgram::programRefSelf() const {

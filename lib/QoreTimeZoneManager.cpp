@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -281,15 +281,28 @@ const AbstractQoreZoneInfo *QoreTimeZoneManager::processFile(const char *fn, boo
    if (i != tzmap.end())
       return i->second;
 
-   //printd(5, "QoreTimeZoneManager::processFile() %s: loading from registry\n", fn);
 
-   std::auto_ptr<QoreWindowsZoneInfo> tzi(new QoreWindowsZoneInfo(fn, xsink));
-   if (!*(tzi.get())) {
-      return 0;
+   AbstractQoreZoneInfo* rv;
+
+   if (q_absolute_path_windows(fn)) {
+      //printd(5, "QoreTimeZoneManager::processFile() %s: loading absolute path\n", fn);
+      std::string name = fn;
+      std::auto_ptr<QoreZoneInfo> tzi(new QoreZoneInfo(*NullString, name, xsink));
+      if (!*(tzi.get())) {
+         //printd(1, "skipping %s/%s\n", root.getBuffer(), name.c_str());
+         return 0;
+      }
+      rv = tzi.release();
    }
+   else {
+      //printd(5, "QoreTimeZoneManager::processFile() %s: loading from registry\n", fn);
+      std::auto_ptr<QoreWindowsZoneInfo> tzi(new QoreWindowsZoneInfo(fn, xsink));
+      if (!*(tzi.get()))
+         return 0;
 
-   //printd(5, "QoreTimeZoneManager::processFile() %s -> %p\n", name.c_str(), tzi.get());
-   QoreWindowsZoneInfo *rv = tzi.release();
+      //printd(5, "QoreTimeZoneManager::processFile() %s -> %p\n", name.c_str(), tzi.get());
+      rv = tzi.release();
+   }
    tzmap[fn] = rv;
    ++tzsize;
 

@@ -786,11 +786,11 @@ public:
 	 return;
 
       if (member->type == MI_Member)
-	 mmap.insert(member->getPair());
+         mmap.addNoCheck(member->getPair());
       else if (member->type == MI_Constant)
 	 cmap.parseAdd(member->name, member->takeExp());
       else
-	 vmap.insert(member->getVarPair());
+	 vmap.addNoCheck(member->getVarPair());
 
       delete member;
    }
@@ -806,14 +806,14 @@ public:
       //std::auto_ptr<MemberInfo> mem(member);
 
       if (member->type == MI_Member) {
-	 if (mmap.find(member->name) != mmap.end()) {
-	    parse_error("duplicate member declaration '%s'", member->name);
+         if (mmap.inList(member->name)) {
+            parse_error("duplicate member declaration '%s'", member->name);
             delete member;
-	    return -1;
-	 }
+            return -1;
+         }
 
-	 // add new member to list
-	 mmap.insert(member->getPair());
+         // add new member to list
+         mmap.addNoCheck(member->getPair());
          delete member;
       }
       else if (member->type == MI_Constant) {
@@ -846,7 +846,7 @@ public:
 	 }
 
 	 // add new member to list
-	 vmap.insert(member->getVarPair());
+	 vmap.addNoCheck(member->getVarPair());
          delete member;
       }
 
@@ -854,49 +854,16 @@ public:
    }
 
    DLLLOCAL void mergePrivate(QoreClass* qc) {
-      {
-	 member_map_t::iterator i;
-	 // merge private members
-	 while ((i = mmap.begin()) != mmap.end()) {
-	    qore_class_private::parseAddPrivateMember(*qc, i->first, i->second);
-	    mmap.erase(i);
-	 }
-      }
-
-      {
-	 var_map_t::iterator i;
-	 // merge private static class variables
-	 while ((i = vmap.begin()) != vmap.end()) {
-	    qore_class_private::parseAddPrivateStaticVar(qc, i->first, i->second);
-	    vmap.erase(i);
-	 }
-      }
+      mmap.moveAllToPrivate(qc);
+      vmap.moveAllToPrivate(qc);
 
       // merge private constants
       qc->parseAssimilatePrivateConstants(cmap);
    }
 
    DLLLOCAL void mergePublic(QoreClass* qc) {
-      // merge public members
-      if (mmap.empty())
-	 qc->parseSetEmptyPublicMemberDeclaration();
-      else {
-	 member_map_t::iterator i;
-
-	 while ((i = mmap.begin()) != mmap.end()) {
-	    qore_class_private::parseAddPublicMember(*qc, i->first, i->second);
-	    mmap.erase(i);
-	 }
-      }
-
-      {
-	 var_map_t::iterator i;
-	 // merge public static class variables
-	 while ((i = vmap.begin()) != vmap.end()) {
-	    qore_class_private::parseAddPublicStaticVar(qc, i->first, i->second);
-	    vmap.erase(i);
-	 }
-      }
+      mmap.moveAllToPublic(qc);
+      vmap.moveAllToPublic(qc);
 
       // merge public constants
       qc->parseAssimilatePublicConstants(cmap);
