@@ -128,6 +128,7 @@ module SqlUtil {
     - fixed a bug in @ref SqlUtil::op_in() where invalid SQL was generated with an argument of 0 (<a href="https://github.com/qorelanguage/qore/issues/500">issue 500</a>)
     - fixed a bug in @ref SqlUtil::cop_value() where an exception was thrown with an argument of 0 (<a href="https://github.com/qorelanguage/qore/issues/511">issue 511</a>)
     - fixed @ref SqlUtil::cop_count() operator to allow other operators as its argument (<a href="https://github.com/qorelanguage/qore/issues/517">issue 517</a>)
+    - fixed bugs in @ref SqlUtil::cop_seq() and @ref SqlUtil::cop_seq_currval() (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
 
     @subsection sqlutilv1_2 SqlUtil v1.2
     - added insert operator support; for example, for inserting with values from sequences
@@ -2070,6 +2071,18 @@ public namespace SqlUtil {
                 return sprintf("%s * %s", arg1, arg2);
             },
         ),
+        COP_SEQ: (
+            "nocolumn": True,
+            "code": string sub (*string cve, hash arg) {
+                throw "SEQUENCE-ERROR", sprintf("cannot select sequence %y because this database does not support sequences", arg.seq);
+            }
+        ),
+        COP_SEQ_CURRVAL: (
+            "nocolumn": True,
+            "code": string sub (*string cve, hash arg) {
+                throw "SEQUENCE-ERROR", sprintf("cannot select the current value of sequence %y because this database does not support sequences", arg.seq);
+            }
+        ),
         );
     #@}
 
@@ -2499,29 +2512,31 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a hash for the \c "seq" operator with the given argument giving the sequence name whose value should be returned
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", "name", cop_seq("xid")), "where": ("type": "user")));
+*list rows = table.selectRows(("columns": ("id", "name", cop_seq("xid", "xis")), "where": ("type": "user")));
         @endcode
 
         @param seq the name of the sequence whose value should be returned
+        @param as an optional column name that should be returned for the sequence value (so that @ref SqlUtil::cop_as() need not be used)
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_seq(string seq) {
-        return make_cop(COP_SEQ, seq);
+    public hash sub cop_seq(string seq, *string as) {
+        return make_cop(COP_SEQ, "", ("seq": seq, "as": as));
     }
 
     #! returns a hash for the \c "seq_currval" operator with the given argument giving the sequence name whose current value should be returned
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", "name", cop_seq("xid"), cop_seq_currval("xid")), "where": ("type": "user")));
+*list rows = table.selectRows(("columns": ("id", "name", cop_seq("xid", "xid_val"), cop_seq_currval("xid", "xid_current")), "where": ("type": "user")));
         @endcode
 
         @param seq the name of the sequence whose current value should be returned
+        @param as an optional column name that should be returned for the sequence value (so that @ref SqlUtil::cop_as() need not be used)
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_seq_currval(string seq) {
-        return make_cop(COP_SEQ_CURRVAL, seq);
+    public hash sub cop_seq_currval(string seq, *string as) {
+        return make_cop(COP_SEQ_CURRVAL, "", ("seq": seq, "as": as));
     }
     #@}
 
@@ -11659,7 +11674,7 @@ string sql = table.getSelectSql(sh, \args);
             if (!exists cve && !cmd.nocolumn)
                 throw "SELECT-ERROR", sprintf("%s: column operator %y requires a column argument name but none was provided", getDesc(), cop);
 
-            return cmd.code(cve, arg);
+            return cmd.withalias ? cmd.code(cve, arg, \psch) : cmd.code(cve, arg);
         }
 
         private string getColumnNameIntern(string cv, *hash jch, bool join, *hash ch, *hash psch, *bool subst_psch) {

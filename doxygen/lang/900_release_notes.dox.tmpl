@@ -309,14 +309,17 @@
       - fixed a bug where complex bind values as hashes (such as used by the pgsql and oracle drivers) were rejected by SqlUtil (<a href="https://github.com/qorelanguage/qore/issues/494">issue 494</a>) when updating
       - fixed a bug where wildcard columns in join tables were not working (<a href="https://github.com/qorelanguage/qore/issues/499">issue 499</a>)
       - fixed a bug in op_in() where invalid SQL was generated with an argument of 0 (<a href="https://github.com/qorelanguage/qore/issues/500">issue 500</a>)
+      - fixed bugs in \c cop_seq() and \c cop_seq_currval() (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module fixes:
       - fixed a bug where column names that are reserved words were not quoted in generated SQL
+      - fixed bugs in \c cop_seq() and \c cop_seq_currval() (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
     - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module fixes:
       - fixed a bug in PgsqlTable::tryInsertImpl(); added an explicit \c "begin" call to make the savepoint work with PostgreSQL 9.3+ servers
       - fixed a bug retrieving foreign constraints; columns were not guaranteed to be returned in declaration order
       - fixed a bug handling tablespaces in unique constraints
       - fixed a bug handling \c "time" columns; they were being issued as \c "time6" instead of "time(6)" (<a href="https://github.com/qorelanguage/qore/issues/385">issue 385</a>)
       - fixed support for the following datatypes and aliases: \c "bit", \c "bit varying", \c "char", \c "character", \c "character varying", \c "char varying", \c "oid", \c "varchar"
+      - fixed bugs in \c cop_seq() and \c cop_seq_currval() (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
     - <a href="../../modules/MysqlSqlUtil/html/index.html">MysqlSqlUtil</a> module fixes:
       - corrected support for the \c varbinary type (<a href="https://github.com/qorelanguage/qore/issues/403">issue 403</a>)
       - corrected support for the \c binary type (<a href="https://github.com/qorelanguage/qore/issues/524">issue 524</a>)
