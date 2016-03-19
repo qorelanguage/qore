@@ -1,3 +1,4 @@
+/* -*- indent-tabs-mode: nil -*- */
 /*
   QoreSocket.cpp
 
@@ -5,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -40,6 +41,11 @@
 void se_in_op(const char* meth, ExceptionSink* xsink) {
    assert(xsink);
    xsink->raiseException("SOCKET-IN-CALLBACK", "calls to Socket::%s() cannot be made from a callback on an operation on the same socket", meth);
+}
+
+void se_in_op_thread(const char* meth, ExceptionSink* xsink) {
+   assert(xsink);
+   xsink->raiseException("SOCKET-IN-CALLBACK", "calls to Socket::%s() cannot be made from another thread while a callback operation is in progress on the same socket", meth);
 }
 
 void se_not_open(const char* meth, ExceptionSink* xsink) {
@@ -248,11 +254,13 @@ void concat_target(QoreString& str, const struct sockaddr *addr, const char* typ
 }
 
 qore_socket_op_helper::qore_socket_op_helper(qore_socket_private* sock) : s(sock) {
-   s->in_op = true;
+   assert(s->in_op == -1);
+   s->in_op = gettid();;
 }
 
 qore_socket_op_helper::~qore_socket_op_helper() {
-   s->in_op = false;
+   assert(s->in_op >= 0);
+   s->in_op = -1;
 }
 
 SSLSocketHelperHelper::SSLSocketHelperHelper(qore_socket_private* sock) : s(sock) {
@@ -490,6 +498,9 @@ void QoreSocket::doException(int rc, const char* meth, int timeout_ms, Exception
 	 break;
       case QSE_IN_OP:
 	 se_in_op(meth, xsink);
+	 break;
+      case QSE_IN_OP_THREAD:
+	 se_in_op_thread(meth, xsink);
 	 break;
       default:
 	 xsink->raiseException("SOCKET-ERROR", "unknown internal error code %d in Socket::%s() call", rc, meth);
@@ -730,7 +741,7 @@ PrivateQoreSocketThroughputHelper::~PrivateQoreSocketThroughputHelper() {
 void PrivateQoreSocketThroughputHelper::finalize(int64 bytes) {
    //printd(5, "PrivateQoreSocketThroughputHelper::finalize() bytes: "QLLD" us: "QLLD" (min: "QLLD") bs: %.6f threshold: %.6f\n", bytes, (q_clock_getmicros() - start), sock->tp_us_min, ((double)bytes / ((double)(q_clock_getmicros() - start) / (double)1000000.0)), sock->tp_warning_bs);
 
-   if (bytes <= 0)
+   if (bytes < DEFAULT_SOCKET_MIN_THRESHOLD_BYTES)
       return;
 
    if (send)

@@ -35,11 +35,11 @@
 /** @since %Qore 0.8.6
 
     @par Example: SingleValueIterator basic usage
-    @code
-    my any $val = 1;
-    my SingleValueIterator $it($val);
-    while ($it.next()) {
-        printf("iter: %n\n", $it.getValue());
+    @code{.py}
+    any val = 1;
+    SingleValueIterator it(val);
+    while (it.next()) {
+        printf("iter: %n\n", it.getValue());
     }
 
     iter: 1
@@ -47,8 +47,8 @@
 
     Remember that input value is taken as a single token so result of the code above for a list as an input argument will be like this:
 
-    @code
-    my any $val = (1, 2, 3);
+    @code{.py}
+    any val = (1, 2, 3);
     iter: list: (1, 2, 3)
     @endcode
 
@@ -59,8 +59,8 @@ qclass SingleValueIterator [arg=SingleValueIterator* i; ns=Qore; vparent=Abstrac
 /** @param v the value to iterate
 
     @par Example:
-    @code
-my SingleValueIterator i($v);
+    @code{.py}
+SingleValueIterator i(v);
     @endcode
  */
 SingleValueIterator::constructor(any v) {
@@ -69,8 +69,8 @@ SingleValueIterator::constructor(any v) {
 
 //! Creates a copy of the SingleValueIterator object, iterating the same object as the original and in the same position
 /** @par Example:
-    @code
-my SingleValueIterator $ni = $i.copy();
+    @code{.py}
+SingleValueIterator ni = i.copy();
     @endcode
  */
 SingleValueIterator::copy() {
@@ -83,9 +83,9 @@ SingleValueIterator::copy() {
     @return @ref Qore::True "True" and @ref Qore::False "False" alternately unless it has no value to iterate, in which case it returns only @ref Qore::False "False"
 
     @par Example:
-    @code
-while ($i.next()) {
-    printf("value: %y\n", $i.getValue());
+    @code{.py}
+while (i.next()) {
+    printf("value: %y\n", i.getValue());
 }
     @endcode
 
@@ -101,9 +101,9 @@ bool SingleValueIterator::next() {
 /** @return the current value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
 
     @par Example:
-    @code
-while ($i.next()) {
-    printf("+ %y\n", $i.getValue());
+    @code{.py}
+while (i.next()) {
+    printf("+ %y\n", i.getValue());
 }
     @endcode
 
@@ -117,9 +117,9 @@ any SingleValueIterator::getValue() [flags=RET_VALUE_ONLY] {
 /** @return @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
 
     @par Example:
-    @code
-if ($i.valid())
-    printf("current value: %y\n", $i.getValue());
+    @code{.py}
+if (i.valid())
+    printf("current value: %y\n", i.getValue());
     @endcode
  */
 bool SingleValueIterator::valid() [flags=CONSTANT] {
@@ -130,8 +130,8 @@ bool SingleValueIterator::valid() [flags=CONSTANT] {
 /** Reset the iterator instance to its initial state
 
    @par Example
-   @code
-$i.reset();
+   @code{.py}
+i.reset();
    @endcode
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object

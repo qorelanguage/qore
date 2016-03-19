@@ -1,3 +1,4 @@
+/* -*- indent-tabs-mode: nil -*- */
 /*
   QoreLib.cpp
 
@@ -358,7 +359,7 @@ const qore_option_s qore_option_list_l[] = {
    { QORE_OPT_FUNC_STATVFS,
      "HAVE_STATVFS",
      QO_FUNCTION,
-#ifdef HAVE_SYS_STATVFS_H
+#ifdef Q_HAVE_STATVFS
      true
 #else
      false
@@ -1138,10 +1139,10 @@ char* q_basenameptr(const char* path) {
    const char* p = q_find_last_path_sep(path);
    if (!p)
       return (char* )path;
-   return (char* )p + 1;
+   return (char*)p + 1;
 }
 
-// thread-safe basename function (resulting pointer must be free()ed)
+// thread-safe dirname function (resulting pointer must be free()ed)
 char* q_dirname(const char* path) {
    const char* p = q_find_last_path_sep(path);
    if (!p || p == path) {
@@ -1412,7 +1413,7 @@ void q_strerror(QoreString &str, int err) {
 
    str.allocate(str.strlen() + STRERR_BUFSIZE);
    // ignore strerror() error message
-#if STRERROR_R_CHAR_P
+#ifdef STRERROR_R_CHAR_P
    // we can't help but get this version because some of the Linux
    // header files define _GNU_SOURCE for us :-(
    str.concat(strerror_r(err, (char* )(str.getBuffer() + str.strlen()), STRERR_BUFSIZE));
@@ -1549,7 +1550,7 @@ QoreHashNode* stat_to_hash(const struct stat& sbuf) {
    return h;
 }
 
-#ifdef HAVE_SYS_STATVFS_H
+#ifdef Q_HAVE_STATVFS
 QoreHashNode* statvfs_to_hash(const struct statvfs& vfs) {
    QoreHashNode* h = new QoreHashNode;
 
@@ -1788,9 +1789,11 @@ const char* q_mode_to_perm(mode_t mode, QoreString& perm) {
    // add other permission flags
    perm.concat(mode & S_IROTH ? 'r' : '-');
    perm.concat(mode & S_IWOTH ? 'w' : '-');
+#ifdef S_ISVTX
    if (mode & S_ISVTX)
       perm.concat(mode & S_IXOTH ? 't' : 'T');
    else
+#endif
       perm.concat(mode & S_IXOTH ? 'x' : '-');
 #else
    // Windows
@@ -2015,3 +2018,27 @@ void* q_memmem(const void* big, size_t big_len, const void* little, size_t littl
    return 0;
 #endif
 }
+
+#ifdef _Q_WINDOWS
+int statvfs(const char* path, struct statvfs* buf) {
+   ULARGE_INTEGER avail;
+   ULARGE_INTEGER total;
+   ULARGE_INTEGER free;
+
+   if (!GetDiskFreeSpaceEx(path, &avail, &total, &free)) {
+      return -1;
+   }
+
+   buf->set(avail.QuadPart, total.QuadPart, free.QuadPart);
+   return 0;
+}
+
+int q_fstatvfs(const char* filepath, struct statvfs* buf) {
+   char* dir = q_dirname(filepath);
+   if (!dir)
+      return -1;
+   ON_BLOCK_EXIT(free, dir);
+
+   return statvfs(dir, buf);
+}
+#endif

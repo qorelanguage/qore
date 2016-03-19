@@ -7,7 +7,7 @@
 
   it should offer POSIX style command-line handling on any platform...
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -508,7 +508,7 @@ static void show_build_options(const char* arg) {
 }
 
 static void do_version(const char* arg) {
-   printf("QORE for %s %s (%d-bit build), Copyright (C) 2003 - 2015 David Nichols\n", qore_target_os, qore_target_arch, qore_target_bits);
+   printf("QORE for %s %s (%d-bit build), Copyright (C) 2003 - 2016 David Nichols\n", qore_target_os, qore_target_arch, qore_target_bits);
 
    printf("version %s", qore_version_string);
    FeatureList::iterator i = qoreFeatureList.begin();
@@ -889,13 +889,18 @@ int qore_main_intern(int argc, char* argv[], int other_po) {
    ExceptionSink wsink, xsink;
    {
       QoreProgramHelper qpgm(parse_options, xsink);
+      bool mod_errs = false;
 
       // set parse defines
-      for (defmap_t::iterator i = defmap.begin(), e = defmap.end(); i != e; ++i)
-	 qpgm->parseDefine(i->first.c_str(), i->second.c_str());
+      qpgm->parseCmdLineDefines(defmap, xsink, wsink, warnings);
+
+      if (xsink.isException()) {
+         rc = 2;
+         xsink.handleExceptions();
+         goto exit;
+      }
 
       // load any modules requested on the command-line
-      bool mod_errs = false;
       for (cl_mod_list_t::iterator i = cl_mod_list.begin(), e = cl_mod_list.end(); i != e; ++i) {
 	 // display any error messages
 	 SimpleRefHolder<QoreStringNode> err(MM.parseLoadModule((*i).c_str(), *qpgm));

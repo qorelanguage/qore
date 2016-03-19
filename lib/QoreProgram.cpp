@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -342,7 +342,7 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
       // purge thread resources before clearing pgm
       purge_pgm_thread_resources(pgm, xsink);
 
-      //printd(5, "qore_program_private::waitForTerminationAndClear() this: %p clr: %d\n", this, clr);
+      printd(5, "qore_program_private::waitForTerminationAndClear() this: %p clr: %d\n", this, clr);
       // delete all global variables, etc
       qore_root_ns_private::clearData(*RootNS, xsink);
 
@@ -702,7 +702,7 @@ QoreThreadLock* QoreProgram::getParseLock() {
 }
 
 void QoreProgram::deref(ExceptionSink* xsink) {
-   //printd(5, "QoreProgram::deref() this: %p %d->%d\n", this, reference_count(), reference_count() - 1);
+   printd(QPP_DBG_LVL, "QoreProgram::deref() this: %p priv: %p %d->%d\n", this, priv, reference_count(), reference_count() - 1);
    if (ROdereference())
       priv->clear(xsink);
 }
@@ -795,8 +795,7 @@ QoreNamespace* QoreProgram::getQoreNS() const {
 }
 
 void QoreProgram::depRef() {
-   //printd(5, "QoreProgram::depRef() this: %p %d->%d\n", this, priv->dc.reference_count(), priv->dc.reference_count() + 1);
-   priv->dc.ROreference();
+   priv->depRef();
 }
 
 void QoreProgram::depDeref(ExceptionSink* xsink) {
@@ -1228,15 +1227,28 @@ void QoreProgram::parseDefine(const char* str, AbstractQoreNode* val) {
    priv->parseDefine(qoreCommandLineLocation, str, val);
 }
 
-void QoreProgram::parseDefine(const char* str, const char* val) {
-   QoreString arg(val);
-   arg.trim();
-
-   bool ok;
-   AbstractQoreNode* v = qore_parse_get_define_value(str, arg, ok);
-   if (!ok)
+void QoreProgram::parseCmdLineDefines(const std::map<std::string, std::string> defmap, ExceptionSink& xs, ExceptionSink& ws, int wm) {
+   ProgramRuntimeParseCommitContextHelper pch(&xs, this);
+   if (xs)
       return;
-   priv->parseDefine(qoreCommandLineLocation, str, v);
+
+   priv->startParsing(&xs, &ws, wm);
+
+   for (std::map<std::string, std::string>::const_iterator it = defmap.begin(); it != defmap.end(); ++it) {
+      const char *str = it->first.c_str();
+      const char *val = it->second.c_str();
+      QoreString arg(val);
+      arg.trim();
+
+      bool ok;
+      AbstractQoreNode* v = qore_parse_get_define_value(str, arg, ok);
+      if (!ok)
+         break;
+      priv->parseDefine(qoreCommandLineLocation, str, v);
+   }
+
+   priv->parseSink = 0;
+   priv->warnSink = 0;
 }
 
 QoreProgram* QoreProgram::programRefSelf() const {

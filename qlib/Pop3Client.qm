@@ -77,7 +77,7 @@ module Pop3Client {
     - @ref Pop3Client::Pop3Client "Pop3Client": provides an interface to a <a href="http://en.wikipedia.org/wiki/Post_Office_Protocol">POP3</a> server for retrieving emails
 
     @par Example:
-    @code
+    @code{.py}
 #!/usr/bin/env qore -n
 
 %requires Pop3Client
@@ -197,7 +197,7 @@ public namespace Pop3Client {
             @param dbglog an optional closure or call reference for debugging/technical log messages; a single string argument will be passed to this code for logging
 
             @par Example:
-            @code
+            @code{.py}
 Pop3Client pop3("pop3s://user@gmail.com:password@pop.gmail.com");
             @endcode
 
@@ -264,7 +264,7 @@ Pop3Client pop3("pop3s://user@gmail.com:password@pop.gmail.com");
         /** @param pwd if @ref Qore::True "True" then log the password in the debug log (if any is set)
 
             @par Example:
-            @code
+            @code{.py}
 pop3.logPassword(True);
             @endcode
          */
@@ -275,7 +275,7 @@ pop3.logPassword(True);
         #! returns the log password flag
         /**
             @par Example:
-            @code
+            @code{.py}
 bool b = pop3.logPassword();
             @endcode
         */
@@ -287,7 +287,7 @@ bool b = pop3.logPassword();
         /** @param n_tls if @ref Qore::True "True" then use TLS/SSL; if the TLS/SSL flag is set then the client will negotiate a TLS/SSL connection with the server after connecting
 
             @par Example:
-            @code
+            @code{.py}
 pop3.tls(True);
             @endcode
          */
@@ -298,7 +298,7 @@ pop3.tls(True);
         #! returns the TLS/SSL flag
         /**
             @par Example:
-            @code
+            @code{.py}
 bool b = pop3.tls();
             @endcode
         */
@@ -310,7 +310,7 @@ bool b = pop3.tls();
         /** @param n_starttls if @ref Qore::True "True" then issue the \c "STLS" command after making an unencrypted connection; if this  flag is set then the client will negotiate a TLS/SSL connection with the server after making an unencrypted connection
 
             @par Example:
-            @code
+            @code{.py}
 pop3.starttls(True);
             @endcode
          */
@@ -321,7 +321,7 @@ pop3.starttls(True);
         #! returns the \c "starttls" flag (<a href="http://tools.ietf.org/html/rfc2595">RFC 2595</a>)
         /**
             @par Example:
-            @code
+            @code{.py}
 bool b = pop3.starttls();
             @endcode
         */
@@ -333,7 +333,7 @@ bool b = pop3.starttls();
         /** @param n_noquit if @ref Qore::True "True" then no \c "QUIT" command is sent when disconnecting from the POP3 server; this can ensure that no changes are committed to the server (for example with gmail)
 
             @par Example:
-            @code
+            @code{.py}
 pop3.noquit(True);
             @endcode
          */
@@ -347,7 +347,7 @@ pop3.noquit(True);
             @return the \c "noquit" flag; if this flag is @ref Qore::True "True", then no \c "QUIT" command is sent to the POP3 server when disconnecting, which can ensure that no changes are committed to the server (for example with gmail)
 
             @par Example:
-            @code
+            @code{.py}
 bool b = pop3.noquit();
             @endcode
          */
@@ -357,7 +357,7 @@ bool b = pop3.noquit();
 
         #! Connect to the server with the connection parameters set in the @ref constructor()
         /** @par Example:
-            @code
+            @code{.py}
 pop3.connect();
             @endcode
 
@@ -379,7 +379,7 @@ pop3.connect();
             - \c msg: a MailMessage::Message object representing the message and any attachments
 
             @par Example:
-            @code
+            @code{.py}
 *hash mh = pop3.getMail();
             @endcode
 
@@ -411,7 +411,7 @@ pop3.connect();
             - \c size: the size of data available in bytes
 
             @par Example:
-            @code
+            @code{.py}
 hash h = pop3.stat();
             @endcode
 
@@ -433,7 +433,7 @@ hash h = pop3.stat();
             @return @ref nothing "NOTHING" if no messages are available, or a hash with message information from the \c "LIST" command, where each hash key is a unique message ID, and the value of each key is a hash with a single key: \c "size", giving the size of the message in bytes
 
             @par Example:
-            @code
+            @code{.py}
 *hash h = pop3.list();
 HashIterator hi(h);
 map printf("%s: %d byte%s\n", $1.getKey(), $1.getValue(), $1.getValue() == 1 ? "" : "s"), hi;
@@ -455,7 +455,7 @@ map printf("%s: %d byte%s\n", $1.getKey(), $1.getValue(), $1.getValue() == 1 ? "
         /** @param msg the message number to delete
 
             @par Example:
-            @code
+            @code{.py}
 pop3.del(msgid);
             @endcode
 
@@ -475,7 +475,7 @@ pop3.del(msgid);
         /** @param l the list of message numbers to delete
 
             @par Example:
-            @code
+            @code{.py}
 pop3.del(msgidlist);
             @endcode
 
@@ -492,7 +492,7 @@ pop3.del(msgidlist);
 
         #! send a \c "NOOP" command (<a href="http://tools.ietf.org/html/rfc1939#page-9">http://tools.ietf.org/html/rfc1939#page-9</a>) to the POP3 server
         /** @par Example:
-            @code
+            @code{.py}
 pop3.noop();
             @endcode
 
@@ -510,7 +510,7 @@ pop3.noop();
 
         #! send a \c "RSET" command (<a href="http://tools.ietf.org/html/rfc1939#page-9">http://tools.ietf.org/html/rfc1939#page-9</a>) to the POP3 server which will unmark messages marked for deletion
         /** @par Example:
-            @code
+            @code{.py}
 pop3.reset();
             @endcode
 
@@ -528,7 +528,7 @@ pop3.reset();
 
         #! return connection status
         /** @par Example:
-            @code
+            @code{.py}
 bool b = pop3.isConnected();
 printf("connected to the POP3 server: %y\n", b);
             @endcode
@@ -539,7 +539,7 @@ printf("connected to the POP3 server: %y\n", b);
 
         #! disconnect from the server
         /** @par Example:
-            @code
+            @code{.py}
 pop3.disconnect();
             @endcode
          */
@@ -550,7 +550,7 @@ pop3.disconnect();
 
         #! sets the read timeout
         /** @par Example:
-            @code
+            @code{.py}
 pop3.setReadTimeout(20s);
             @endcode
          */
@@ -560,7 +560,7 @@ pop3.setReadTimeout(20s);
 
         #! returns the read timeout as an integer giving milliseconds
         /** @par Example:
-            @code
+            @code{.py}
 int ms = pop3.getReadTimeoutMs();
             @endcode
          */
@@ -570,7 +570,7 @@ int ms = pop3.getReadTimeoutMs();
 
         #! returns the read timeout as a relative time value
         /** @par Example:
-            @code
+            @code{.py}
 date timeout = pop3.getReadTimeoutDate();
             @endcode
          */
@@ -580,7 +580,7 @@ date timeout = pop3.getReadTimeoutDate();
 
         #! sets the connect timeout
         /** @par Example:
-            @code
+            @code{.py}
 pop3.setConnectTimeout(10s);
             @endcode
          */
@@ -590,7 +590,7 @@ pop3.setConnectTimeout(10s);
 
         #! returns the connect timeout as an integer giving milliseconds
         /** @par Example:
-            @code
+            @code{.py}
 int ms = pop3.getConnectTimeoutMs();
             @endcode
          */
@@ -600,7 +600,7 @@ int ms = pop3.getConnectTimeoutMs();
 
         #! returns the connect timeout as a relative time value
         /** @par Example:
-            @code
+            @code{.py}
 date timeout = pop3.getConnectTimeoutDate();
             @endcode
          */
@@ -610,7 +610,7 @@ date timeout = pop3.getConnectTimeoutDate();
 
         #! force disconnect of socket without error
         /** @par Example:
-            @code
+            @code{.py}
 pop3.forceDisconnect();
             @endcode
 
@@ -623,7 +623,7 @@ pop3.forceDisconnect();
 
         #! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
         /** @par Example:
-            @code
+            @code{.py}
 pop3.clearWarningQueue();
             @endcode
 
@@ -637,7 +637,7 @@ pop3.clearWarningQueue();
 
         #! Sets a @ref Qore::Thread::Queue "Queue" object to receive socket warnings
         /** @par Example:
-            @code
+            @code{.py}
 pop3.setWarningQueue(5000, 5000, queue, "socket-1");
             @endcode
 
@@ -672,7 +672,7 @@ pop3.setWarningQueue(5000, 5000, queue, "socket-1");
 
         #! Returns performance statistics for the socket
         /** @par Example:
-            @code
+            @code{.py}
 hash h = pop3.getUsageInfo();
             @endcode
 
@@ -695,7 +695,7 @@ hash h = pop3.getUsageInfo();
 
         #! Clears performance statistics
         /** @par Example:
-            @code
+            @code{.py}
 pop3.clearStats();
             @endcode
 

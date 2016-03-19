@@ -42,10 +42,10 @@ qclass <int> [arg=int64 i = v.getAsBigInt();vparent=<value>];
     @return Qore::NT_INT
 
     @par Example:
-    @code
-switch ($i.typeCode()) {
+    @code{.py}
+switch (i.typeCode()) {
     case NT_INT:
-        printf("%y: is a int\n", $i);
+        printf("%y: is a int\n", i);
         break;
 }
     @endcode
@@ -59,8 +59,8 @@ int <int>::typeCode() [flags=CONSTANT] {
     @return @ref True if the int is non-zero, @ref False if zero
 
     @par Example:
-    @code
-my bool $b = $i.val();
+    @code{.py}
+bool b = i.val();
     @endcode
 
     @see
@@ -76,9 +76,9 @@ bool <int>::val() [flags=CONSTANT] {
     @return @ref True by default
 
     @par Example:
-    @code
-if ($n.intp())
-    printf("%y: can be converted to an integer: %d\n", $n, int($n));
+    @code{.py}
+if (n.intp())
+    printf("%y: can be converted to an integer: %d\n", n, int(n));
     @endcode
 */
 bool <int>::intp() [flags=CONSTANT] {
@@ -90,9 +90,9 @@ bool <int>::intp() [flags=CONSTANT] {
     @return @ref True because integer values can be converted to strings
 
     @par Example:
-    @code
-if ($n.strp())
-    printf("%y: can be converted to a string: '%s'\n", $n, string($n));
+    @code{.py}
+if (n.strp())
+    printf("%y: can be converted to a string: '%s'\n", n, string(n));
     @endcode
 */
 bool <int>::strp() [flags=CONSTANT] {
@@ -109,9 +109,9 @@ bool <int>::strp() [flags=CONSTANT] {
     @return a string of a formatted number according to a format string; if the format string does not follow the given format, then an empty string is returned
 
     @par Example:
-    @code
-my int $i = -48392093894;
-my string $nstr = $i.format(".,3"); # returns "-48.392.093.894,000"
+    @code{.py}
+int i = -48392093894;
+string nstr = i.format(".,3"); # returns "-48.392.093.894,000"
     @endcode
 
     @see
@@ -130,8 +130,8 @@ string <int>::format(string fmt) [flags=CONSTANT] {
 /** @return -1 if the number is negative, 0 if it is zero, or 1 if it is positive
 
     @par Example:
-    @code
-printf("sign: %d\n", $i.sign());
+    @code{.py}
+printf("sign: %d\n", i.sign());
     @endcode
 
     @since %Qore 0.8.6
@@ -144,8 +144,8 @@ int <int>::sign() [flags=CONSTANT] {
 
 //! returns a binary object with the integer encoded in the given number of bytes in most significant byte order
 /** @par Example:
-    @code
-$b += $i.encodeMsb(8);
+    @code{.py}
+b += i.encodeMsb(8);
     @endcode
 
     @param size the size of the encoded binary object; must be 1, 2, 4, or 8 or a SIZE-ERROR exception is raised
@@ -199,8 +199,8 @@ binary <int>::encodeMsb(int size = 4) [flags=RET_VALUE_ONLY] {
 
 //! returns a binary object with the integer encoded in the given number of bytes in least significant byte order
 /** @par Example:
-    @code
-$b += $i.encodeLsb(8);
+    @code{.py}
+b += i.encodeLsb(8);
     @endcode
 
     @param size the size of the encoded binary object; must be 1, 2, 4, or 8 or a SIZE-ERROR exception is raised
@@ -254,8 +254,8 @@ binary <int>::encodeLsb(int size = 4) [flags=RET_VALUE_ONLY] {
 
 //! Returns the absolute value of the number
 /** @par Example:
-    @code
-$i = $i.abs();
+    @code{.py}
+i = i.abs();
     @endcode
 
     @return the absolute value of the number
@@ -270,8 +270,8 @@ int <int>::abs() [flags=CONSTANT] {
 
 //! Returns a single character string in UTF-8 encoding for the integer value treated as a unicode value
 /** @par Example:
-    @code
-my string $str = 0x00f8.toUnicode()
+    @code{.py}
+string str = 0x00f8.toUnicode()
     @endcode
 
     @return a single character string in UTF-8 encoding for the integer value treated as a unicode value

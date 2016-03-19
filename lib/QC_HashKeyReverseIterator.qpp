@@ -38,16 +38,16 @@ extern QoreClass* QC_HASHREVERSEITERATOR;
     A hash can be iterated in reverse order by calling HashKeyReverseIterator::prev() instead of HashKeyReverseIterator::next()
 
     @par Example: HashKeyReverseIterator basic usage
-    @code
-    my hash $data = (
+    @code{.py}
+    hash data = (
             "key1" : 1,
             "key2" : 2,
             "key3" : 3,
         );
 
-    my HashKeyReverseIterator $it($data);
-    while ($it.next()) {
-        printf("iter: %n\n", $it.getValue());
+    HashKeyReverseIterator it(data);
+    while (it.next()) {
+        printf("iter: %n\n", it.getValue());
     }
 
     iter: "key3"
@@ -73,8 +73,8 @@ qclass HashKeyReverseIterator [arg=QoreHashReverseIterator* i; ns=Qore; vparent=
 /** @param h the hash to iterate
 
     @par Example:
-    @code
-my HashKeyReverseIterator $hi($h);
+    @code{.py}
+HashKeyReverseIterator hi(h);
     @endcode
  */
 HashKeyReverseIterator::constructor(hash h) {
@@ -83,9 +83,9 @@ HashKeyReverseIterator::constructor(hash h) {
 
 //! Creates an empty iterator object
 /** @par Example:
-    @code
-my *hash $h = get_hash_or_nothing();
-my HashKeyReverseIterator $hi($h);
+    @code{.py}
+*hash h = get_hash_or_nothing();
+HashKeyReverseIterator hi(h);
     @endcode
  */
 HashKeyReverseIterator::constructor() {
@@ -94,8 +94,8 @@ HashKeyReverseIterator::constructor() {
 
 //! Creates a copy of the HashKeyReverseIterator object, iterating the same object as the original and in the same position
 /** @par Example:
-    @code
-my HashKeyReverseIterator $ni = $i.copy();
+    @code{.py}
+HashKeyReverseIterator ni = i.copy();
     @endcode
  */
 HashKeyReverseIterator::copy() {
@@ -106,10 +106,10 @@ HashKeyReverseIterator::copy() {
 /** @return the current key value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
 
     @par Example:
-    @code
-my HashKeyReverseIterator $hi($hash);
-while ($hi.next())
-    printf("key: %s\n", $hi.getValue());
+    @code{.py}
+HashKeyReverseIterator hi(hash);
+while (hi.next())
+    printf("key: %s\n", hi.getValue());
     @endcode
 
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element

@@ -20,7 +20,7 @@
 
 %exec-class PgsqlTest
 
-class PgsqlTestSchema inherits AbstractSchema {
+class PgsqlTestSchema inherits SqlUtilTestSchema {
     public {
         const SchemaName = "PgsqlTestSchema";
         const SchemaVersion = "1.0";
@@ -38,6 +38,8 @@ class PgsqlTestSchema inherits AbstractSchema {
         const T_PgsqlTest = (
             "columns": (
                 "id": c_number(14, True),
+                "id_": c_number(14, True),
+                "null_f": c_int(),
             ),
             "primary_key": ("name": "pk_pgsql_test", "columns": ("id")),
             );
@@ -45,9 +47,13 @@ class PgsqlTestSchema inherits AbstractSchema {
         const Tables = (
             "pgsql_test": T_PgsqlTest,
             );
+
+        const Sequences = (
+            "pgsql_test_seq": {},
+            );
     }
 
-    constructor(AbstractDatasource ds, *string dts, *string its) :  AbstractSchema(ds, dts, its) {
+    constructor(AbstractDatasource ds, *string dts, *string its) : SqlUtilTestSchema(ds, dts, its) {
     }
 
     private string getNameImpl() {
@@ -68,9 +74,13 @@ class PgsqlTestSchema inherits AbstractSchema {
                 );
             if (h.value.typeCode() == NT_HASH)
                 ch += (h.value - ("value", "bind", "expect"));
-            tables.pgsql_test.columns{PgsqlTest::getColumnName(h.key)} = ch;
+            tables.pgsql_test.columns{SqlTestBase::getColumnName(h.key)} = ch;
         }
         return tables;
+    }
+
+    private *hash getSequencesImpl() {
+        return Sequences;
     }
 
     private *hash getIndexOptionsImpl() {
@@ -83,18 +93,6 @@ class PgsqlTestSchema inherits AbstractSchema {
 
     private *hash getColumnOptionsImpl() {
         return ColumnOptions;
-    }
-
-    log(string fmt) {
-        delete argv;
-    }
-
-    logpf(string fmt) {
-        delete argv;
-    }
-
-    logProgress(string fmt) {
-        delete argv;
     }
 }
 
@@ -118,9 +116,11 @@ class PgsqlTest inherits SqlTestBase {
             "smallint": 100,
             "integer": 1928381,
             "bigint": 2198374739812,
+
             "smallserial": 100,
             "serial": 39484392,
             "bigserial": 129383948393,
+
             "real": 1.5,
             "double precision": 3.1415927,
             "float": 3.141592653589793238,
@@ -185,9 +185,23 @@ class PgsqlTest inherits SqlTestBase {
 
             # get table object
             table = (new Table(schema.getDatasource(), "pgsql_test")).getTable();
+
+            addTestCase("sequence operators", \testSequenceOperators());
         }
 
         set_return_value(main());
+    }
+
+    testSequenceOperators() {
+        if (!table)
+            testSkip("no DB connection");
+
+        hash sh = (
+            "columns": ("id", cop_seq("pgsql_test_seq", "seq"), cop_seq_currval("pgsql_test_seq", "seq_currval")),
+            "where": ("id": 2),
+            );
+
+        assertEq(("id": 2, "seq": 1, "seq_currval": 1), table.selectRow(sh));
     }
 
     private usageIntern() {

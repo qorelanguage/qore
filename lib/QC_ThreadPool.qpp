@@ -218,8 +218,8 @@ void ThreadPool::worker(ExceptionSink* xsink) {
     for more information.
 
     @par Example:
-    @code
-my ThreadPool $tp(10, 2, 4);
+    @code{.py}
+ThreadPool tp(10, 2, 4);
     @endcode
 
     @since %Qore 0.8.8
@@ -228,8 +228,8 @@ qclass ThreadPool [dom=THREAD_CLASS; arg=ThreadPool* tp; ns=Qore::Thread];
 
 //! creates the pool with the given parameters; idle threads are started immediately if necessary
 /** @par Example:
-    @code
-my ThreadPool $tp(10, 2, 4);
+    @code{.py}
+ThreadPool tp(10, 2, 4);
     @endcode
 
     When task threads complete, the thread is returned to the pool if there are less than \a minidle threads in the idle list or there are more tasks in the queue than the number of idle threads.
@@ -272,8 +272,8 @@ ThreadPool::constructor(int max = 0, int minidle = 0, int maxidle = 0, timeout r
 
 //! destroys the pool; any task threads are detached and pending tasks not yet executed are canceled; to wait for all task threads to complete, call ThreadPool::stopWait() first
 /** @par Example:
-    @code
-delete $tp;
+    @code{.py}
+delete tp;
     @endcode
  */
 ThreadPool::destructor() {
@@ -283,8 +283,8 @@ ThreadPool::destructor() {
 
 //! stops the thread pool and returns immediately; after this method has been executed once no more tasks can be submitted to the ThreadPool
 /** @par Example:
-    @code
-$tp.stop();
+    @code{.py}
+tp.stop();
     @endcode
 
     This method detaches all child threads immediately, stops the ThreadPool, and returns immediately.
@@ -299,8 +299,8 @@ ThreadPool::stop() {
 
 //! stops the thread pool and does not return until all child threads have also been stopped; after this method has been executed once no more tasks can be submitted to the ThreadPool
 /** @par Example:
-    @code
-$tp.stopWait();
+    @code{.py}
+tp.stopWait();
     @endcode
 
     This method does not return until the ThreadPool has been stopped and all child threads have also been stopped.
@@ -313,8 +313,8 @@ ThreadPool::stopWait() {
 
 //! submit a task to the pool
 /** @par Example:
-    @code
-$tp.submit(sub () { call_function($arg); });
+    @code{.py}
+tp.submit(sub () { call_function(arg); });
     @endcode
 
     @param task the @ref closure "closure" or @ref call_reference "call reference" to execute
@@ -326,8 +326,8 @@ ThreadPool::submit(code task, *code cancel) {
 
 //! returns a description of the ThreadPool
 /** @par Example:
-    @code
-my string $desc = $tp.toString();
+    @code{.py}
+string desc = tp.toString();
     @endcode
 
     @return a description of the ThreadPool

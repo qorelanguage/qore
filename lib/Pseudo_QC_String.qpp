@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -45,10 +45,10 @@ qclass <string> [arg=const QoreStringNode* str = v.get<const QoreStringNode>();v
     @return Qore::NT_STRING
 
     @par Example:
-    @code
-switch ($str.typeCode()) {
+    @code{.py}
+switch (str.typeCode()) {
     case NT_STRING:
-        printf("%y: is a string\n", $str);
+        printf("%y: is a string\n", str);
         break;
 }
     @endcode
@@ -62,8 +62,8 @@ int <string>::typeCode() [flags=CONSTANT] {
     @return the number of bytes in the string (not including the terminating null character (\c '\0')
 
     @par Example:
-    @code
-my int $len = $str.strlen();
+    @code{.py}
+int len = str.strlen();
     @endcode
 
     @note
@@ -81,8 +81,8 @@ int <string>::strlen() [flags=CONSTANT] {
     @return the number of bytes in the string (not including the terminating null character (\c '\0')
 
     @par Example:
-    @code
-my int $len = $str.size();
+    @code{.py}
+int len = str.size();
     @endcode
 
     @note
@@ -102,8 +102,8 @@ int <string>::size() [flags=CONSTANT] {
     @return the number of characters in the string; may not be equal to the byte length (returned by <string>::strlen() and <string>::size()) for @ref character_encoding "multi-byte character encodings"
 
     @par Example:
-    @code
-my int $len = $str.length();
+    @code{.py}
+int len = str.length();
     @endcode
 
     @note
@@ -124,8 +124,8 @@ int <string>::length() [flags=CONSTANT] {
     @return @ref True if the string is empty, @ref False if not
 
     @par Example:
-    @code
-my bool $b = $str.empty();
+    @code{.py}
+bool b = str.empty();
     @endcode
 */
 bool <string>::empty() [flags=CONSTANT] {
@@ -137,8 +137,8 @@ bool <string>::empty() [flags=CONSTANT] {
     @return the name of the string's @ref character_encoding "character encoding"
 
     @par Example:
-    @code
-my string $enc = $str.encoding();
+    @code{.py}
+string enc = str.encoding();
     @endcode
 
     @note equivalent to @ref Qore::get_encoding(string)
@@ -149,7 +149,7 @@ string <string>::encoding() [flags=CONSTANT] {
 
 //! Returns the string in lower case
 /** @par Example:
-    @code
+    @code{.py}
 printf("%y", "PŘÍLIŠ ŽLUŤOUČKÝ KŮŇ ÚPĚL ĎÁBELSKÉ ÓDY".lwr());
 # outputs: "příliš žluťoučký kůň úpěl ďábelské ódy"
     @endcode
@@ -178,7 +178,7 @@ string <string>::lwr() [flags=CONSTANT] {
 
 //! Returns the string in upper case
 /** @par Example:
-    @code
+    @code{.py}
 printf("%y", "příliš žluťoučký kůň úpěl ďábelské ódy".upr());
 # outputs: "PŘÍLIŠ ŽLUŤOUČKÝ KŮŇ ÚPĚL ĎÁBELSKÉ ÓDY"
     @endcode
@@ -214,10 +214,10 @@ string <string>::upr() [flags=CONSTANT] {
     @return the character position of a substring within a string, -1 is returned if the substring is not found
 
     @par Example:
-    @code
-my int $i = $str.find($substr);
-if ($i == -1)
-    printf("could not find %y in %y\n", $substr, $str);
+    @code{.py}
+int i = str.find(substr);
+if (i == -1)
+    printf("could not find %y in %y\n", substr, str);
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -244,10 +244,10 @@ int <string>::find(softstring substr, softint pos = 0) [flags=RET_VALUE_ONLY] {
     @return the character position of a substring within a string, -1 is returned if the substring is not found
 
     @par Example:
-    @code
-my int $i = $str.rfind($substr);
-if ($i == -1)
-    printf("could not find %y in %y\n", $substr, $str);
+    @code{.py}
+int i = str.rfind(substr);
+if (i == -1)
+    printf("could not find %y in %y\n", substr, str);
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -269,8 +269,8 @@ int <string>::rfind(softstring substr, softint pos = -1) [flags=RET_VALUE_ONLY] 
 /** @return @ref False if the string is empty, @ref True if not
 
     @par Example:
-    @code
-my bool $b = $str.val();
+    @code{.py}
+bool b = str.val();
     @endcode
 */
 bool <string>::val() [flags=CONSTANT] {
@@ -282,9 +282,9 @@ bool <string>::val() [flags=CONSTANT] {
     @return @ref True if the string can be converted to an integer, @ref False if not, this depends on the first (or possibly second) character of the string, if it's 0 - 9 (possibly preceded by \c "-"), then the method returns @ref True
 
     @par Example:
-    @code
-if ($n.intp())
-    printf("%y: can be converted to an integer: %d\n", $n, int($n));
+    @code{.py}
+if (n.intp())
+    printf("%y: can be converted to an integer: %d\n", n, int(n));
     @endcode
 */
 bool <string>::intp() [flags=CONSTANT] {
@@ -301,9 +301,9 @@ bool <string>::intp() [flags=CONSTANT] {
     @return @ref True by default
 
     @par Example:
-    @code
-if ($n.strp())
-    printf("%y: can be converted to a string: '%s'\n", $n, string($n));
+    @code{.py}
+if (n.strp())
+    printf("%y: can be converted to a string: '%s'\n", n, string(n));
     @endcode
 */
 bool <string>::strp() [flags=CONSTANT] {
@@ -318,9 +318,9 @@ bool <string>::strp() [flags=CONSTANT] {
     @return the substring of the string starting from an integer character offset; the rest of the string is returned after this offset; an emtpy string is returned if the argument cannot be satisfied
 
     @par Example:
-    @code
+    @code{.py}
 # get the last 10 characters of a string
-my string $substr = $str.substr(-10);
+string substr = str.substr(-10);
     @endcode
 
     @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
@@ -343,9 +343,9 @@ string <string>::substr(softint start) [flags=RET_VALUE_ONLY] {
     @return the substring of the string according to the arguments passed; an emtpy string is returned if the argument cannot be satisfied
 
     @par Example:
-    @code
+    @code{.py}
 # get a substring 10 characters into the string except omitting the last 2 characters of the string
-my string $substr = $str.substr(10, -2);
+string substr = str.substr(10, -2);
     @endcode
 
     @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
@@ -369,9 +369,9 @@ string <string>::substr(softint start, softint len) [flags=RET_VALUE_ONLY] {
     @return a list of each component of a string separated by a separator string, with the separator removed; the separator pattern will not be included in the elements of the list returned unless the \a with_separator argument is @ref True
 
     @par Example:
-    @code
-my string $str = "some:text:here";
-my list $list = $str.split(":"); # returns ("some", "text", "here")
+    @code{.py}
+string str = "some:text:here";
+list list = str.split(":"); # returns ("some", "text", "here")
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -401,8 +401,8 @@ list <string>::split(string sep, bool with_separator = False) [flags=RET_VALUE_O
     @return a list of each component of a string separated by a separator string, with the separator and any enclosing quote characters removed
 
     @par Example:
-    @code
-my list $list = "some,'text with spaces, and commas, here is another one! ,',here".split(",", "'"); # returns ("some", ", and commas, here is another one! ,", "here")
+    @code{.py}
+list list = "some,'text with spaces, and commas, here is another one! ,',here".split(",", "'"); # returns ("some", ", and commas, here is another one! ,", "here")
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -427,8 +427,8 @@ list <string>::split(string sep, string quote, bool trim_unquoted = False) [flag
     @return @ref True if the regular expression matches the string passed, otherwise returns @ref False
 
     @par Example:
-    @code
-my bool $b = "hello".regex("^hel"); # returns True
+    @code{.py}
+bool b = "hello".regex("^hel"); # returns True
     @endcode
 
     @throw REGEX-COMPILATION-ERROR There was an error compiling the regular expression
@@ -458,9 +458,9 @@ bool <string>::regex(string regex, int options = 0) [flags=RET_VALUE_ONLY] {
     @return a list of substrings in a string based on matching patterns defined by a regular expression or @ref nothing if no match was made
 
     @par Example:
-    @code
-my string $str = "ns:element";
-my *list $rv = $str.regexExtract("(\\w+):(\\w+)");
+    @code{.py}
+string str = "ns:element";
+*list rv = str.regexExtract("(\\w+):(\\w+)");
     @endcode
 
     @throw REGEX-COMPILATION-ERROR There was an error compiling the regular expression
@@ -489,8 +489,8 @@ my *list $rv = $str.regexExtract("(\\w+):(\\w+)");
     @return a hex string of the digest (ex: \c "5d41402abc4b2a76b9719d911017c592")
 
     @par Example:
-    @code
-my string $str = "hello".toMD5(); # returns "5d41402abc4b2a76b9719d911017c592"
+    @code{.py}
+string str = "hello".toMD5(); # returns "5d41402abc4b2a76b9719d911017c592"
     @endcode
 
     @throw MD5-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -519,8 +519,8 @@ string <string>::toMD5() [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
 
     @par Example:
-    @code
-my string $str = "hello".toSHA1(); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+    @code{.py}
+string str = "hello".toSHA1(); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
     @endcode
 
     @throw SHA1-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -550,8 +550,8 @@ string <string>::toSHA1() [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193")
 
     @par Example:
-    @code
-my string $str = "hello".toSHA224("hello"); # returns "ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193"
+    @code{.py}
+string str = "hello".toSHA224("hello"); # returns "ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193"
     @endcode
 
     @throw SHA224-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -586,8 +586,8 @@ string <string>::toSHA224() [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824")
 
     @par Example:
-    @code
-my string $str = "hello".toSHA256(); # returns "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+    @code{.py}
+string str = "hello".toSHA256(); # returns "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
     @endcode
 
     @throw SHA256-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -622,8 +622,8 @@ string <string>::toSHA256() [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f")
 
     @par Example:
-    @code
-my string $str = "hello".toSHA384(); # returns "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f"
+    @code{.py}
+string str = "hello".toSHA384(); # returns "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f"
     @endcode
 
     @throw SHA384-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -658,8 +658,8 @@ string <string>::toSHA384() [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043")
 
     @par Example:
-    @code
-my string $str = "hello".toSHA512(); # returns "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043"
+    @code{.py}
+string str = "hello".toSHA512(); # returns "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043"
     @endcode
 
     @throw SHA512-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -689,8 +689,8 @@ string <string>::toSHA512() [flags=RET_VALUE_ONLY] {
 /** @return @ref True if the string is empty or has no characters with the high bit set (ie all characters < 128)
 
     @par Example:
-    @code
-my bool $b = $str.isDataAscii();
+    @code{.py}
+bool b = str.isDataAscii();
     @endcode
 
     @since %Qore 0.8.6
@@ -703,8 +703,8 @@ bool <string>::isDataAscii() [flags=CONSTANT] {
 /** @return @ref True if the string is empty or only contains printable non-control ASCII characters (ie all characters > 31 && < 127)
 
     @par Example:
-    @code
-my bool $b = $str.isDataPrintableAscii();
+    @code{.py}
+bool b = str.isDataPrintableAscii();
     @endcode
 
     @since %Qore 0.8.6
@@ -715,8 +715,8 @@ bool <string>::isDataPrintableAscii() [flags=CONSTANT] {
 
 //! returns a string of hexadecimal digits corresponding to the contents of the string
 /** @par Example:
-    @code
-my string $str = $str.toHex();
+    @code{.py}
+string str = str.toHex();
     @endcode
 
     @return a string of hexadecimal digits corresponding to the contents of the string
@@ -735,8 +735,8 @@ string <string>::toHex() [flags=CONSTANT] {
 
 //! Returns the base64-encoded representation of the string
 /** @par Example:
-    @code
-my string $base64 = $str.toBase64(64);
+    @code{.py}
+string base64 = str.toBase64(64);
     @endcode
 
     Implementation based on <a href="http://www.ietf.org/rfc/rfc1421.txt">RFC-1421</a> and <a href="http://www.ietf.org/rfc/rfc2045.txt">RFC-2045</a>
@@ -759,8 +759,8 @@ string <string>::toBase64(softint maxlinelen = -1) [flags=CONSTANT] {
 
 //! Compares the beginning of the current string with a shorter string passed as an argument, returns -1, 0, or 1 if the argument string is less than, equal, or greater than the beginning of the current string; returns also -1 if the argument string is equal to the beginning of the current string but the argument string is longer than the current string
 /** @par Example:
-    @code
-my int $i = $str.comparePartial($ostr);
+    @code{.py}
+int i = str.comparePartial(ostr);
     @endcode
 
     @param ostr the partial string to compare the current string to
@@ -781,8 +781,8 @@ int <string>::comparePartial(string ostr) [flags=RET_VALUE_ONLY] {
 
 //! Compares the beginning of the current string with a shorter string passed as an argument for equality only, returns @ref Qore::True "True" if the string argument matches the beginning of the string, @ref Qore::False "False" if not
 /** @par Example:
-    @code
-my bool $b = $str.equalPartial($ostr);
+    @code{.py}
+bool b = str.equalPartial(ostr);
     @endcode
 
     This pseudo-method is slightly faster than comparePartial() since the length of the substring can be used to determine if the strings can match or not.
@@ -799,8 +799,8 @@ bool <string>::equalPartial(string ostr) [flags=RET_VALUE_ONLY] {
 
 //! Compares the beginning of the current string assumed to be a path with a shorter string passed as an argument for equality only, returns @ref Qore::True "True" if the string argument matches the beginning of the string where either both strings are the same size or the current string has a '/' or '?' character after the point where the argument string stops, @ref Qore::False "False" if not
 /** @par Example:
-    @code
-my bool $b = $str.equalPartialPath($ostr);
+    @code{.py}
+bool b = str.equalPartialPath(ostr);
     @endcode
 
     @param ostr the partial string to compare the current string to
@@ -815,9 +815,9 @@ bool <string>::equalPartialPath(string ostr) [flags=RET_VALUE_ONLY] {
 
 //! Returns a string with all accented characters removed
 /** @par Example:
-    @code
-my string $s = "příliš žluťoučký kůň úpěl ďábelské ódy";
-printf("%y\n", $s.unaccent()); # result: "prilis zlutoucky kun upel dabelske ody"
+    @code{.py}
+string s = "příliš žluťoučký kůň úpěl ďábelské ódy";
+printf("%y\n", s.unaccent()); # result: "prilis zlutoucky kun upel dabelske ody"
     @endcode
 
     The returned string has the same encoding as the original input.
@@ -836,8 +836,8 @@ string <string>::unaccent() [flags=RET_VALUE_ONLY] {
 
 //! returns the Unicode code for the given character offset in the string
 /** @par Example:
-    @code
-my int $uc = $str.getUnicode(0);
+    @code{.py}
+int uc = str.getUnicode(0);
     @endcode
 
     @param offset the offset in characters in the string; negative numbers give offsets from the end of the string
@@ -863,8 +863,8 @@ bool <string>::sizep() [flags=CONSTANT] {
 
 //! returns a string for the next line in the string buffer starting at the given offset (or at the beginning if no offset is given)
 /** @par Example:
-    @code
-my *string $line = $string.getLine($pos);
+    @code{.py}
+*string line = string.getLine(pos);
     @endcode
 
     @param offset the offset in bytes from the beginning of the string; negative numbers give an offset from the end of the string
@@ -958,7 +958,7 @@ my *string $line = $string.getLine($pos);
 
 //! returns a string based on the string value with encodings as per the \a code argument
 /** @par
-    @code
+    @code{.py}
 string ns = string.getEncoded(CE_XML);
     @endcode
 
@@ -975,7 +975,7 @@ string <string>::getEncoded(int code = CE_XHTML) {
 
 //! returns a string based on the string value, decoded as per the \a code argument
 /** @par
-    @code
+    @code{.py}
 string ns = string.getDecoded(CE_XML);
     @endcode
 

@@ -8,6 +8,7 @@
 
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/HttpServerUtil.qm
 %requires ../../../../qlib/HttpServer.qm
 
 %exec-class HttpServerTest
@@ -60,9 +61,10 @@ public class HttpServerTest inherits QUnit::Test {
     }
 
     constructor() : Test("HttpServerTest", "1.0") {
-        addTestCase("Test basics", \basicTest(), NOTHING);
-        addTestCase("Test routing", \routingTest(), NOTHING);
-        addTestCase("Test status codes", \testStatusCodes(), NOTHING);
+        addTestCase("Test basics", \basicTest());
+        addTestCase("Test routing", \routingTest());
+        addTestCase("Test status codes", \testStatusCodes());
+        addTestCase("misc", \misc());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -127,5 +129,9 @@ public class HttpServerTest inherits QUnit::Test {
         c = sub() { mClient.get("/nonexistingcode/abc"); };
         testAssertion("non-existing status code", c, NOTHING, new QUnit::TestResultExceptionRegexp("HTTP-CLIENT-RECEIVE-ERROR", "status code 500 received"));
     }
-}
 
+    misc() {
+        assertEq(("method": "path", "params": ("a": "1", "b": "2")), parse_uri_query("path?a=1;b=2"));
+        assertEq(("method": "path", "params": ("a": "1", "b": True)), parse_uri_query("path?a=1;b"));
+    }
+}

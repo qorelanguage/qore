@@ -62,7 +62,7 @@ module WebSocketClient {
     - @ref WebSocketClient::WebSocketClient "WebSocketClient": the web socket client class
 
     <b>Example</b>
-    @code
+    @code{.py}
 #!/usr/bin/env qore
 
 %require-our
@@ -143,7 +143,7 @@ public namespace WebSocketClient {
 
         #! creates the object and optionally sets logging targets
         /** @par Example:
-            @code
+            @code{.py}
 sub event(*data msg) {
     if (!msg)
         printf("connection closed\n");
@@ -189,7 +189,7 @@ WebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
 
         #! connects to the websocket server
         /** @par Example:
-            @code
+            @code{.py}
 sub event(*data msg) {
     if (!msg)
         printf("connection closed\n");
@@ -250,7 +250,7 @@ ws.connect();
 
         #! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
         /** @par Example:
-            @code
+            @code{.py}
 ws.clearWarningQueue();
             @endcode
 
@@ -264,7 +264,7 @@ ws.clearWarningQueue();
 
         #! Sets a @ref Qore::Thread::Queue "Queue" object to receive socket warnings
         /** @par Example:
-            @code
+            @code{.py}
 ws.setWarningQueue(5000, 5000, queue, "socket-1");
             @endcode
 
@@ -299,7 +299,7 @@ ws.setWarningQueue(5000, 5000, queue, "socket-1");
 
         #! Returns performance statistics for the socket
         /** @par Example:
-            @code
+            @code{.py}
 hash h = ws.getUsageInfo();
             @endcode
 
@@ -322,7 +322,7 @@ hash h = ws.getUsageInfo();
 
         #! Clears performance statistics
         /** @par Example:
-            @code
+            @code{.py}
 ws.clearStats();
             @endcode
 

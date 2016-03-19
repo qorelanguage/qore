@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Mapper.qm data mapping module
 
-/*  Mapper.qm Copyright 2014 - 2015 Qore Technologies, sro
+/*  Mapper.qm Copyright 2014 - 2016 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -62,7 +62,7 @@ module Mapper {
     @section mapperexamples Mapper Examples
 
     The following is an example map hash with comments:
-    @code
+    @code{.py}
 const DataMap = (
     # output field: "id" mapper from the "Id" element of any "^attributes^" hash in the input record
     "id": "^attributes^.Id",
@@ -78,7 +78,7 @@ const DataMap = (
     @endcode
 
     If this map is applied to the following data in the following way:
-    @code
+    @code{.py}
 const MapInput = ((
     "^attributes^": ("Id": 1),
     "name": "John Smith",
@@ -195,7 +195,7 @@ list: (2 elements)
         - grouping of the output data
 
     @par Example:
-    @code{.py}
+    @code{.py}{.py}
 hash mapv = (
     "foo": ("constant": "bar"),
      # ...
@@ -362,7 +362,7 @@ public namespace Mapper {
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
         /** @par Example:
-            @code{.py}
+            @code{.py}{.py}
 const DataMap = (
     # output field: "id" mapper from the "Id" element of any "^attributes^" hash in the input record
     "id": "^attributes^.Id",
@@ -530,7 +530,7 @@ Mapper mapv(DataMap);
             if (fh.name) {
                 if (fh.struct)
                     error("output field %y has both 'name' (%y) and 'struct' (%y) values; only one can be given to identify the input field", getFieldName(k), fh.name, fh.struct);
-                if (input && !exists fh.constant && !fh.code && !exists fh.index)
+                if (input && !fh.hasKey("constant") && !fh.code && !exists fh.index)
                     checkInputField(k, fh.name);
                 if (!allow_dot && fh.name =~ /\./)
                     fh.struct = (remove fh.name).split(".");

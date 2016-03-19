@@ -39,15 +39,15 @@
     AutoGate objects enter the gate lock for the lifetime of the AutoGate object. For this reason, it is only appropriate to assign an AutoGate object to a local variable, so when the local variable goes out of scope, the AutoGate object will be deleted and the gate automatically exited.
 
     For example:
-    @code
-our Gate $gate();
+    @code{.py}
+our Gate gate();
 
-sub check_error($error) {
+sub check_error(error) {
     # note that the Gate is entered in the AutoGate constructor, and
     # the Gate will be exited as soon as the block is exited below.
     # (with either the throw statement or the return statement)
-    my AutoGate $ag($gate);
-    if ($error)
+    AutoGate ag(gate);
+    if (error)
         throw "ERROR", "sorry, an error happened";
 
     return "OK";
@@ -61,8 +61,8 @@ qclass AutoGate [dom=THREAD_CLASS; arg=QoreAutoGate* ag; ns=Qore::Thread];
 //! Creates the AutoGate object based on the Gate argument passed and immediately calls Gate::enter()
 /** @param gate the @ref Qore::Thread::Gate "Gate" object to enter for the lifetime of the AutoGate object
     @par Example:
-    @code
-my AutoGate $ag($gate);
+    @code{.py}
+AutoGate ag(gate);
     @endcode
  */
 AutoGate::constructor(Gate[QoreGate] gate) {
@@ -76,8 +76,8 @@ AutoGate::constructor(Gate[QoreGate] gate) {
 //! Calls Gate::exit() and destroys the AutoGate object
 /** 
     @par Example:
-    @code
-delete $ag;
+    @code{.py}
+delete ag;
     @endcode
  */
 AutoGate::destructor() {

@@ -40,8 +40,8 @@ qclass AbstractDatasource [dom=DATABASE; arg=AbstractDatasource* ds; ns=Qore::SQ
 //! Commits the current transaction and releases any thread resources associated with the transaction
 /**
     @par Example:
-    @code
-$db.commit();
+    @code{.py}
+db.commit();
     @endcode
  */
 abstract nothing AbstractDatasource::commit();
@@ -49,8 +49,8 @@ abstract nothing AbstractDatasource::commit();
 //! Rolls the current transaction back and releases any thread resources associated with the transaction
 /**
     @par Example:
-    @code
-$db.rollback();
+    @code{.py}
+db.rollback();
     @endcode
  */
 abstract nothing AbstractDatasource::rollback();
@@ -62,8 +62,8 @@ abstract nothing AbstractDatasource::rollback();
     @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the %SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
 
     @par Example:
-    @code
-my int $rows = $db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", $string, now(), $binary, 100);
+    @code{.py}
+int rows = db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", string, now(), binary, 100);
     @endcode
  */
 abstract any AbstractDatasource::exec(string sql, ...);
@@ -77,8 +77,8 @@ abstract any AbstractDatasource::exec(string sql, ...);
     @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the %SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
 
     @par Example:
-    @code
-my int $rows = $db.vexec("insert into example_table value (%v, %v, %v)", $arg_list);
+    @code{.py}
+int rows = db.vexec("insert into example_table value (%v, %v, %v)", arg_list);
     @endcode
  */
 abstract any AbstractDatasource::vexec(string sql, *softlist vargs);
@@ -94,8 +94,8 @@ abstract any AbstractDatasource::vexec(string sql, *softlist vargs);
     @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the %SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
 
     @par Example:
-    @code
-$db.execRaw("create table my_tab (id number, some_text varchar2(30))");
+    @code{.py}
+db.execRaw("create table my_tab (id number, some_text varchar2(30))");
     @endcode
  */
 abstract any AbstractDatasource::execRaw(string sql);
@@ -115,9 +115,9 @@ abstract any AbstractDatasource::execRaw(string sql);
     @return This method returns a hash (the keys are the column names) of lists (the column data per row) when executed with an %SQL select statement, however some DBI drivers allow any %SQL to be executed through this method, in which case other data types can be returned (such as an integer for a row count or a hash for output parameters when executing a stored procedure)
 
     @par Example:
-    @code
+    @code{.py}
 # bind a string and a date/time value by value in a query
-$query = $db.select("select * from table where varchar_column = %v and timestamp_column > %v", $string, 2007-10-11T15:31:26.289);
+query = db.select("select * from table where varchar_column = %v and timestamp_column > %v", string, 2007-10-11T15:31:26.289);
     @endcode
 
     @note This method returns all the data available immediately; to process query data piecewise, use the SQLStatement class
@@ -138,8 +138,8 @@ abstract any AbstractDatasource::select(string sql, ...);
     @return This method normally returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an %SQL select statement, however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
     @par Example:
-    @code
-my *hash $h = $db.selectRow("select * from example_table where id = 1");
+    @code{.py}
+*hash h = db.selectRow("select * from example_table where id = 1");
     @endcode
 
     @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
@@ -161,8 +161,8 @@ abstract any AbstractDatasource::selectRow(string sql, ...);
     @return Normally returns a list (rows) of hash (where the keys are the column names of each row) or @ref nothing if no rows are found for the query, however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
     @par Example:
-    @code
-my *list $list = $db.selectRows("select * from example_table");
+    @code{.py}
+*list list = db.selectRows("select * from example_table");
     @endcode
 
     @see AbstractDatasource::select()
@@ -186,8 +186,8 @@ abstract any AbstractDatasource::selectRows(string sql, ...);
     @return Normally returns a hash (the keys are the column names) of list (each hash key's value is a list giving the row data), however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
     @par Example:
-    @code
-my *hash $query = $db.vselect("select * from example_table where id = %v and name = %v", $arg_list);
+    @code{.py}
+*hash query = db.vselect("select * from example_table where id = %v and name = %v", arg_list);
     @endcode
 
     @see AbstractDatasource::select()
@@ -210,8 +210,8 @@ abstract any AbstractDatasource::vselect(string sql, *softlist vargs);
     @return This method normally returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an %SQL select statement, however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
     @par Example:
-    @code
-my *hash $h = $db.vselectRow("select * from example_table where id = %v and type = %v", $arg_list);
+    @code{.py}
+*hash h = db.vselectRow("select * from example_table where id = %v and type = %v", arg_list);
     @endcode
 
     @see AbstractDatasource::selectRow()
@@ -236,8 +236,8 @@ abstract any AbstractDatasource::vselectRow(string sql, *softlist vargs);
     @return Normally returns a list (rows) of hash (where the keys are the column names of each row) or @ref nothing if no rows are found for the query, however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
     @par Example:
-    @code
-my *list $list = $db.vselectRows("select * from example_table where id = %v and type = %v", $arg_list);
+    @code{.py}
+*list list = db.vselectRows("select * from example_table where id = %v and type = %v", arg_list);
     @endcode
 
     @see AbstractDatasource::selectRows()
@@ -252,8 +252,8 @@ abstract any AbstractDatasource::vselectRows(string sql, *softlist vargs);
     This method does not make any communication with the server to start a transaction; it only allocates the transaction lock to the current thread in %Qore.
 
     @par Example:
-    @code
-$db.beginTransaction();
+    @code{.py}
+db.beginTransaction();
     @endcode
  */
 abstract nothing AbstractDatasource::beginTransaction();
@@ -262,8 +262,8 @@ abstract nothing AbstractDatasource::beginTransaction();
 /** @return the username parameter as a string or @ref nothing if none is set
 
     @par Example:
-    @code
-my *string $user = $db.getUserName();
+    @code{.py}
+*string user = db.getUserName();
     @endcode
  */
 abstract *string AbstractDatasource::getUserName();
@@ -272,8 +272,8 @@ abstract *string AbstractDatasource::getUserName();
 /** @return the password parameter as a string or @ref nothing if none is set
 
     @par Example:
-    @code
-my *string $pass = $db.getPassword();
+    @code{.py}
+*string pass = db.getPassword();
     @endcode
  */
 abstract *string AbstractDatasource::getPassword();
@@ -282,8 +282,8 @@ abstract *string AbstractDatasource::getPassword();
 /** @return the database name parameter as a string or @ref nothing if none is set
 
     @par Example:
-    @code
-my *string $db = $db.getDBName();
+    @code{.py}
+*string db = db.getDBName();
     @endcode
  */
 abstract *string AbstractDatasource::getDBName();
@@ -292,8 +292,8 @@ abstract *string AbstractDatasource::getDBName();
 /** @return the database-specific charset set encoding for the object
 
     @par Example:
-    @code
-my string $enc = $db.getDBEncoding();
+    @code{.py}
+string enc = db.getDBEncoding();
     @endcode
 
     @see AbstractDatasource::getOSEncoding();
@@ -304,8 +304,8 @@ abstract string AbstractDatasource::getDBEncoding();
 /** @return the %Qore character encoding name for the object as a string or @ref nothing if none is set
 
     @par Example:
-    @code
-my *string $enc = $db.getOSEncoding();
+    @code{.py}
+*string enc = db.getOSEncoding();
     @endcode
  */
 abstract *string AbstractDatasource::getOSEncoding();
@@ -314,8 +314,8 @@ abstract *string AbstractDatasource::getOSEncoding();
 /** @return the hostname parameter as a string or @ref nothing if none is set
 
     @par Example:
-    @code
-my *string $host = $db.getHostName();
+    @code{.py}
+*string host = db.getHostName();
     @endcode
  */
 abstract *string AbstractDatasource::getHostName();
@@ -324,8 +324,8 @@ abstract *string AbstractDatasource::getHostName();
 /** Invalid port numbers will cause an exception to be thrown when the connection is opened
 
     @par Example:
-    @code
-my *int $port = $db.getPort();
+    @code{.py}
+*int port = db.getPort();
     @endcode
  */
 abstract *int AbstractDatasource::getPort();
@@ -334,8 +334,8 @@ abstract *int AbstractDatasource::getPort();
 /** @return the name of the driver used for the object
 
     @par Example:
-    @code
-my string $driver = $db.getDriverName();
+    @code{.py}
+string driver = db.getDriverName();
     @endcode
  */
 abstract string AbstractDatasource::getDriverName();
@@ -344,8 +344,8 @@ abstract string AbstractDatasource::getDriverName();
 /** @return the driver-specific server version data for the current connection
 
     @par Example:
-    @code
-my any $ver = $db.getServerVersion();
+    @code{.py}
+any ver = db.getServerVersion();
     @endcode
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
@@ -356,8 +356,8 @@ abstract any AbstractDatasource::getServerVersion();
 /** @return the driver-specific client library version information
 
     @par Example:
-    @code
-my any $ver = $db.getClientVersion();
+    @code{.py}
+any ver = db.getClientVersion();
     @endcode
 
     @note see the documentation for the DBI driver being used for possible exceptions
@@ -368,16 +368,16 @@ abstract any AbstractDatasource::getClientVersion();
 /** @return @ref True if a transaction is currently in progress
 
     @par Example:
-    @code
-my bool $b = $db.inTransaction();
+    @code{.py}
+bool b = db.inTransaction();
     @endcode
  */
 abstract bool AbstractDatasource::inTransaction();
 
 //! Returns a @ref datasource_hash "datasource hash" describing the configuration of the current object
 /** @par Example:
-    @code
-my hash $h = $ds.getConfigHash();
+    @code{.py}
+hash h = ds.getConfigHash();
     @endcode
 
     @return a @ref datasource_hash "datasource hash" describing the configuration of the current object
@@ -388,8 +388,8 @@ abstract hash AbstractDatasource::getConfigHash();
 
 //! Returns a string giving the configuration of the current object in a format that can be parsed by parse_datasource()
 /** @par Example:
-    @code
-my string $str = $ds.getConfigString();
+    @code{.py}
+string str = ds.getConfigString();
     @endcode
 
     @return a string giving the configuration of the current object in a format that can be parsed by parse_datasource()

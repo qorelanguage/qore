@@ -41,8 +41,8 @@ qclass SSLCertificate [arg=QoreSSLCertificate* s];
 /** @param pem the PEM representation of the X.509 certificate
 
     @par Example:
-    @code
-my SSLCertificate $cert($pem_cert_string);
+    @code{.py}
+SSLCertificate cert(pem_cert_string);
     @endcode
 
     @throw SSLCERTIFICATE-CONSTRUCTOR-ERROR invalid X.509 certificate data
@@ -60,8 +60,8 @@ SSLCertificate::constructor(string pem) {
 /** @param der the DER-encoded representation of the X.509 certificate
 
     @par Example:
-    @code
-my SSLCertificate $cert($der_cert);
+    @code{.py}
+SSLCertificate cert(der_cert);
     @endcode
 
     @throw SSLCERTIFICATE-CONSTRUCTOR-ERROR invalid X.509 certificate data
@@ -84,8 +84,8 @@ SSLCertificate::copy() {
 /** @return a string in PEM format representing the certificate
 
     @par Example:
-    @code
-my string $pem_str = $cert.getPEM();
+    @code{.py}
+string pem_str = cert.getPEM();
     @endcode
 
     @throw X509-ERROR could not create PEM string from X509 certificate data
@@ -108,8 +108,8 @@ string SSLCertificate::getPEM() {
     - \c "publicKey": The binary public key of the X.509 certificate (see SSLCertificate::getPublicKey())
 
     @par Example:
-    @code
-my hash $hash = $cert.getInfo();
+    @code{.py}
+hash hash = cert.getInfo();
     @endcode
  */
 hash SSLCertificate::getInfo() [flags=CONSTANT] {
@@ -120,8 +120,8 @@ hash SSLCertificate::getInfo() [flags=CONSTANT] {
 /** @return a binary object representing the signature of the certificate
 
     @par Example:
-    @code
-my binary $bin = $cert.getSignature();
+    @code{.py}
+binary bin = cert.getSignature();
     @endcode
  */
 binary SSLCertificate::getSignature() [flags=CONSTANT] {
@@ -132,8 +132,8 @@ binary SSLCertificate::getSignature() [flags=CONSTANT] {
 /** @return the signature type of the certificate
 
     @par Example:
-    @code
-my string $str = $cert.getSignatureType();
+    @code{.py}
+string str = cert.getSignatureType();
     @endcode
  */
 string SSLCertificate::getSignatureType() [flags=CONSTANT] {
@@ -144,8 +144,8 @@ string SSLCertificate::getSignatureType() [flags=CONSTANT] {
 /** @return a binary object representing the public key of the certificate in DER (Distinguished Encoding Rules) format or @ref nothing if no public key is present in the certificate
 
     @par Example:
-    @code
-my *binary $bin = $cert.getPublicKey();
+    @code{.py}
+*binary bin = cert.getPublicKey();
     @endcode
  */
 *binary SSLCertificate::getPublicKey() [flags=CONSTANT] {
@@ -156,8 +156,8 @@ my *binary $bin = $cert.getPublicKey();
 /** @return the name of the public key algorithm of the certificate
 
     @par Example:
-    @code
-my string $str = $cert.getPublicKeyAlgorithm();
+    @code{.py}
+string str = cert.getPublicKeyAlgorithm();
     @endcode
  */
 string SSLCertificate::getPublicKeyAlgorithm() [flags=CONSTANT] {
@@ -168,8 +168,8 @@ string SSLCertificate::getPublicKeyAlgorithm() [flags=CONSTANT] {
 /** @return a hash of key-value pairs representing the subject information of the certificate
 
     @par Example:
-    @code
-my hash $h = $cert.getSubjectHash();
+    @code{.py}
+hash h = cert.getSubjectHash();
     @endcode
  */
 hash SSLCertificate::getSubjectHash() [flags=CONSTANT] {
@@ -180,8 +180,8 @@ hash SSLCertificate::getSubjectHash() [flags=CONSTANT] {
 /** @return a hash of key-value pairs representing the issuer information of the certificate
 
     @par Example:
-    @code
-my hash $h = $cert.getIssuerHash();
+    @code{.py}
+hash h = cert.getIssuerHash();
     @endcode
  */
 hash SSLCertificate::getIssuerHash() [flags=CONSTANT] {
@@ -192,8 +192,8 @@ hash SSLCertificate::getIssuerHash() [flags=CONSTANT] {
 /** @return the integer serial number of the certificate
 
     @par Example:
-    @code
-my int $sn = $cert.getSerialNumber();
+    @code{.py}
+int sn = cert.getSerialNumber();
     @endcode
  */
 int SSLCertificate::getSerialNumber() [flags=CONSTANT] {
@@ -204,8 +204,8 @@ int SSLCertificate::getSerialNumber() [flags=CONSTANT] {
 /** @return the version of the certificate as an integer
 
     @par Example:
-    @code
-my int $ver = $cert.getVersion();
+    @code{.py}
+int ver = cert.getVersion();
     @endcode
  */
 int SSLCertificate::getVersion() [flags=CONSTANT] {
@@ -216,8 +216,8 @@ int SSLCertificate::getVersion() [flags=CONSTANT] {
 /** @return a hash of booleans representing the allowed purposes of the certificate
 
     @par Example:
-    @code
-my hash $h = $cert.getPurposeHash();
+    @code{.py}
+hash h = cert.getPurposeHash();
     @endcode
  */
 hash SSLCertificate::getPurposeHash() [flags=CONSTANT] {
@@ -228,8 +228,8 @@ hash SSLCertificate::getPurposeHash() [flags=CONSTANT] {
 /** @return a date/time value representing the start date of the certificate
 
     @par Example:
-    @code
-my date $start = $cert.getNotBeforeDate();
+    @code{.py}
+date start = cert.getNotBeforeDate();
     @endcode
  */
 date SSLCertificate::getNotBeforeDate() [flags=CONSTANT] {
@@ -240,8 +240,8 @@ date SSLCertificate::getNotBeforeDate() [flags=CONSTANT] {
 /** @return a date/time value representing the end date of the certificate
 
     @par Example:
-    @code
-my date $end = $cert.getNotAfterDate();
+    @code{.py}
+date end = cert.getNotAfterDate();
     @endcode
  */
 date SSLCertificate::getNotAfterDate() [flags=CONSTANT] {

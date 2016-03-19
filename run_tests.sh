@@ -37,7 +37,7 @@ QR=""
 QORE_LIB_PATH="./lib/.libs:./qlib:$LD_LIBRARY_PATH"
 
 # Test that qore is built.
-if [ -s "./.libs/qore" ] && [ -f "./qore" ] && [ -r "./lib/.libs/libqore.so" ]; then
+if [ -s "./.libs/qore" ] && [ -f "./qore" ] && [ -r "./lib/.libs/libqore.so" -o "./lib/.libs/libqore.dylib" ]; then
     QORE="./qore"
     QR="./qr"
 else
@@ -61,7 +61,7 @@ for test in $TESTS; do
         echo "Running test ($i/$TEST_COUNT): $test"
         echo "-------------------------------------"
     fi
-    
+
     if [ "$test" = "./examples/test/qore/classes/FtpClient/FtpClient.qtest" ]; then
         echo "Skipping $test because it doesn't really test what it should. Need to fix it."
         echo "-------------------------------------"; echo
@@ -69,10 +69,10 @@ for test in $TESTS; do
         i=$((i+1))
         continue
     fi
-    
+
     # Run single test.
     LD_LIBRARY_PATH=$QORE_LIB_PATH $QORE $test $TEST_OUTPUT_FORMAT
-    
+
     if [ $? -eq 0 ]; then
         PASSED_TEST_COUNT=$((PASSED_TEST_COUNT+1))
     else
@@ -103,7 +103,7 @@ if [ $PRINT_TEXT -eq 1 ]; then
             echo $test
         done
     fi
-    
+
     echo "*************************************"
 fi
 

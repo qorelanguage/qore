@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file HttpServer.qm HTTP multi-threaded server module definition
 
-/*  HttpServer.qm Copyright (C) 2012 - 2015 David Nichols
+/*  HttpServer.qm Copyright (C) 2012 - 2016 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -72,7 +72,7 @@ module HttpServer {
     - <a href="http://www.qore.org/manual/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a>: provides infrastructure for implementing SOAP server-side services using the HttpServer module
 
     @par Example:
-    @code
+    @code{.py}
 #!/usr/bin/env qore
 
 %requires HttpServer
@@ -353,7 +353,7 @@ class HttpServer::HttpHandlerList {
     }
 
     # matches a handler to the request
-    *HandlerInfo findHandler(hash hdr, reference score, bool finalv = False) {
+    *HandlerInfo findHandler(hash hdr, reference score, bool finalv = False, *reference root_path) {
         if (!handlers)
             return;
 
@@ -365,6 +365,7 @@ class HttpServer::HttpHandlerList {
         if (handlerInfo) {
             # must set score to 3 to stop searching; a path match trumps all other matches
             score = 3;
+            root_path = handlerInfo.path;
             return handlerInfo;
         }
 
@@ -478,11 +479,11 @@ class HttpServer::DynamicHttpHandlerList inherits HttpServer::HttpHandlerList {
         c.waitForZero();
     }
 
-    *DynamicHandlerInfo findHandler(hash hdr, reference score, reference dhh) {
+    *DynamicHandlerInfo findHandler(hash hdr, reference score, reference dhh, *reference root_path) {
         dhl.readLock();
         on_exit dhl.readUnlock();
 
-        *DynamicHandlerInfo h = HttpHandlerList::findHandler(hdr, \score);
+        *DynamicHandlerInfo h = HttpHandlerList::findHandler(hdr, \score, False, \root_path);
         if (!h)
             return;
 
@@ -618,8 +619,8 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     #! creates the HttpServer
     /** call @ref addListener() to add and start listeners
 
-        @param n_logfunc an optional closure or call reference that will be called with logging information; must take an initial string with optional arguments; ex: @code code log = sub (string fmt) { vprintf(fmt, argv); }@endcode
-        @param n_errlogfunc an optional closure or call reference that will be called with error information; must take an initial string with optional arguments; ex: @code code errloglog = sub (string fmt) { vprintf(fmt, argv); }@endcode
+        @param n_logfunc an optional closure or call reference that will be called with logging information; must take an initial string with optional arguments; ex: @code{.py} code log = sub (string fmt) { vprintf(fmt, argv); }@endcode
+        @param n_errlogfunc an optional closure or call reference that will be called with error information; must take an initial string with optional arguments; ex: @code{.py} code errloglog = sub (string fmt) { vprintf(fmt, argv); }@endcode
         @param n_dbg if this parameter is set to @ref Qore::True "True", then additional information will be logged when errors occur
         @param n_name the name of the HTTP server as returned in the Server header (should be formatted according to RFC 2616 section 3.8 http://tools.ietf.org/html/rfc2616#section-3.8)
         @param n_hdr a hash of headers to return in every response by default; to clear the default send an empty hash as the argument here
@@ -1031,7 +1032,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
 
     #! turns on or off header and body logging options for receive operations for the given listener
     /** @par Example:
-        @code
+        @code{.py}
 http.setListenerLogOptions("app", LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         @endcode
 
@@ -1047,7 +1048,7 @@ http.setListenerLogOptions("app", LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
     #! turns on or off header and body logging options for receive operations for the given listener
     /** @par Example:
-        @code
+        @code{.py}
 http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         @endcode
 
@@ -1370,8 +1371,9 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             # find a handler for the request
             *HandlerInfo hi;
             int score = 0;
+            string root_path;
             if (!listener.handlers.empty()) {
-                hi = listener.handlers.findHandler(hdr, \score, True);
+                hi = listener.handlers.findHandler(hdr, \score, True, \root_path);
                 if (!hi) {
                     if (listener.defaultHandler)
                         hi = listener.defaultHandler;
@@ -1382,9 +1384,9 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                 }
             }
             else {
-                hi = handlers.findHandler(hdr, \score);
+                hi = handlers.findHandler(hdr, \score, False, \root_path);
                 if (score < 3) {
-                    *HandlerInfo dhi = dhandlers.findHandler(hdr, \score, \dhh);
+                    *HandlerInfo dhi = dhandlers.findHandler(hdr, \score, \dhh, \root_path);
                     if (dhi)
                         hi = dhi;
                 }
@@ -1393,6 +1395,8 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             if (hi) {
                 handler = hi.obj;
                 cx.handler_name = hi.name;
+                if (root_path)
+                    cx.root_path = root_path;
             }
         }
 

@@ -212,6 +212,9 @@ class DateTest inherits QUnit::Test {
 
         # test for issue #259
         assertEq(7200, new TimeZone("Europe/Vienna").date("1980-07-01").info().utc_secs_east);
+
+        # test for issue #584
+        assertEq(-14400, new TimeZone("America/New_York").date("1980-07-01").info().utc_secs_east);
     }
 
     testDate(date d, int y, int w, int day, int n, reference ri) {

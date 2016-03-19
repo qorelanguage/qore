@@ -92,18 +92,19 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
       // see if the lvalue has a default type
       const QoreTypeInfo *typeInfo = v.getTypeInfo();
       if (typeInfo->hasDefaultValue()) {
-	 if (v.assign(typeInfo->getDefaultValue()))
-	    return QoreValue();
-	 vtype = v.getType();
+         if (v.assign(typeInfo->getDefaultValue()))
+            return QoreValue();
+         vtype = v.getType();
       }
-      else if (!new_right->isNothing()) {
-	 // assign rhs to lhs (take reference for plusequals)
-	 if (v.assign(new_right.getReferencedValue()))
-	    return QoreValue();
-
-	 // v has been assigned to a value by this point
-	 // reference return value
-	 return ref_rv ? v.getReferencedValue() : QoreValue();
+      else {
+         if (!new_right->isNothing()) {
+            // assign rhs to lhs (take reference for plusequals)
+            if (v.assign(new_right.getReferencedValue()))
+               return QoreValue();
+         }
+         // v has been assigned to a value by this point
+         // reference return value
+         return ref_rv ? v.getReferencedValue() : QoreValue();
       }
    }
 
