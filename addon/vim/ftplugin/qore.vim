@@ -1,7 +1,7 @@
 " Vim filetype plugin file for Qore * mato [26-oct-2015]
 " Language:	Qore
 " Maintainer:	Martin Otto <martin@qore.org>
-" Last Change:	2015 Dec 13
+" Last Change:	2016 Mar 07
 
 " Only do this when not done yet for this buffer
 if exists("b:did_ftplugin")
@@ -9,7 +9,7 @@ if exists("b:did_ftplugin")
 endif
 let b:did_ftplugin = 1
 
-let b:undo_ftplugin = "setl et< sw< sts< com< def< inc< sua< path<"
+let b:undo_ftplugin = "setl et< sw< sts< com< def< inc< sua< path< ofu<"
 
 " let tab keys always be expanded to spaces
 setlocal expandtab
@@ -27,7 +27,6 @@ setlocal include=^%\\(include\\\|requires\\)\\>
 
 " suffixes to use when searching for files for some commands
 setlocal suffixesadd=.q,.qm,.qtest
-setlocal suffixesadd+=.qc,.qclass,.qconn,.qconst,.qfd,.qjob,.ql,.qmapper,.qrf,.qsd,.qsm,.qvmap,.qwf
 
 " Set this once, globally.
 if !exists("qorepath")
@@ -50,7 +49,7 @@ endif
 " directories to be searched for files for some commands
 let &l:path = qorepath
 
-" this is for Qorus but it's very unreliable and breaks other stuff (!)
-"setlocal includeexpr=substitute(v:fname,'$','-v1.0','')
+" enable syntax code completion
+setlocal omnifunc=syntaxcomplete#Complete
 
 " vim: ts=8 sw=2
