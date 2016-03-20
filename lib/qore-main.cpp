@@ -161,6 +161,12 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
 // unloaded in case there are any module-specific thread
 // cleanup functions to be run...
 void qore_cleanup() {
+   // purge thread resources before deleting modules
+   {
+      ExceptionSink xsink;
+      purge_thread_resources(&xsink);
+   }
+
    // first delete all user modules
    QMM.delUser();
 
@@ -173,12 +179,6 @@ void qore_cleanup() {
    // stop signal manager
    QSM.del();
 #endif
-
-   // purge thread resources before deleting modules
-   {
-      ExceptionSink xsink;
-      purge_thread_resources(&xsink);
-   }
 
    // delete all loadable modules
    QMM.cleanup();
