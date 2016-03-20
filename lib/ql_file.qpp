@@ -694,6 +694,8 @@ int mkdir(string path, softint mode = 0777) [dom=FILESYSTEM] {
 if (rmdir("/tmp/newdir"))
     printf("rmdir /tmp/newdir: %s\n", strerror());
     @endcode
+
+    @see @ref Qore::Dir::rmdir()
  */
 int rmdir(string path) [dom=FILESYSTEM] {
    return rmdir(path->getBuffer());
