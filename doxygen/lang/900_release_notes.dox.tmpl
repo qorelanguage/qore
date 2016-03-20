@@ -311,6 +311,7 @@
       - fixed a bug where wildcard columns in join tables were not working (<a href="https://github.com/qorelanguage/qore/issues/499">issue 499</a>)
       - fixed a bug in op_in() where invalid SQL was generated with an argument of 0 (<a href="https://github.com/qorelanguage/qore/issues/500">issue 500</a>)
       - fixed bugs in \c cop_seq() and \c cop_seq_currval() (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
+      - fixed a buf in \c join_inner() where the \a cond argument was ignored (<a href="https://github.com/qorelanguage/qore/issues/645">issue 645</a>)
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module fixes:
       - fixed a bug where column names that are reserved words were not quoted in generated SQL
       - fixed bugs in \c cop_seq() and \c cop_seq_currval() (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
