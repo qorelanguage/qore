@@ -227,7 +227,7 @@ public:
       ds = normalizePath(ds);
       dirname = ds;
 
-      printd(5, "qore_qd_private::chdir() ndir: '%s' ds: '%s'\n", ndir, ds.c_str());
+      //printd(5, "qore_qd_private::chdir() ndir: '%s' ds: '%s'\n", ndir, ds.c_str());
 
       return checkPathIntern();
    }
