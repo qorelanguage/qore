@@ -376,13 +376,16 @@ public:
       name_vec_t::iterator it;
       std::string path;
       int cnt = 0;
-      const char *path_str;
       for (it = dirs.begin(); it < dirs.end(); it++) {
+#ifdef _Q_WINDOWS
+	 if (it == dirs.begin() && q_absolute_path_windows((*it).c_str()))
+            path += *it;
+         else
+#endif
 	 path += QORE_DIR_SEP_STR + (*it); // the actual path
-	 path_str = path.c_str();
 	 if (verifyDirectory(path)) { // not existing
-	    if (::mkdir(path_str, mode)) { // failed
-	       xsink->raiseErrnoException("DIR-CREATE-FAILURE", errno, "cannot mkdir '%s'", path_str);
+	    if (::mkdir(path.c_str(), mode)) { // failed
+	       xsink->raiseErrnoException("DIR-CREATE-FAILURE", errno, "cannot mkdir '%s'", path.c_str());
 	       return -1;
 	    }
 	    cnt++;
