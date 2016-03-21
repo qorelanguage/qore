@@ -1,8 +1,8 @@
 /*
   QoreUnaryMinusOperatorNode.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
@@ -51,13 +51,14 @@ QoreValue QoreUnaryMinusOperatorNode::evalValueImpl(bool& needs_deref, Exception
 
    switch (v->getType()) {
       case NT_NUMBER: {
-	 return v.takeReferencedNode<QoreNumberNode>()->negate();
+         needs_deref = true;
+         return static_cast<QoreNumberNode *>(v->v.n)->negate();
       }
 
       case NT_FLOAT: {
 	 return -(v->getAsFloat());
       }
-	 
+
       case NT_DATE: {
 	 return v->get<const DateTimeNode>()->unaryMinus();
       }
@@ -96,7 +97,7 @@ AbstractQoreNode *QoreUnaryMinusOperatorNode::parseInitImpl(LocalVar *oflag, int
 	    return reinterpret_cast<const DateTimeNode*>(exp)->unaryMinus();
 	 }
 
-	 th.release();	 
+	 th.release();
       }
 
       if (typeInfo->hasType()) {
