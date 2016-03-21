@@ -15,6 +15,7 @@ class Test inherits QUnit::Test {
         addTestCase("basic operator tests", \basicTests());
         addTestCase("lvalue tests", \lvalueTests());
         addTestCase("const modulo", \constModulo());
+        addTestCase("post/pre inc/dec", \postPreIncDec());
         set_return_value(main());
     }
 
@@ -49,13 +50,6 @@ class Test inherits QUnit::Test {
         testAssertionValue("<<= shift-left-equals operator", a, 0x10bd1e188);
         a >>= 3;
         testAssertionValue(">>= shift-right-equals operator", a, 0x217a3c31);
-        a = 1;
-        testAssertionValue("pre post-increment (++) operator", a++, 1);
-        testAssertionValue("post post-increment (++) operator", a, 2);
-        testAssertionValue("pre post-decrement (--) operator", a--, 2);
-        testAssertionValue("post post-decrement (--) operator", a, 1);
-        testAssertionValue("pre-increment (++) operator", ++a, 2);
-        testAssertionValue("pre-decrement (--) operator", --a, 1);
 
         string astr = "hello" + " there";
         testAssertionValue("string concatenation", astr, "hello there");
@@ -192,5 +186,47 @@ class Test inherits QUnit::Test {
 
     static code mapClosure(any v) {
         return any sub(any v1) { return v * v1; };
+    }
+
+    postPreIncDec() {
+        int i = 1;
+        assertEq(1, i++);
+        assertEq(2, i);
+        assertEq(2, i--);
+        assertEq(1, i);
+        assertEq(2, ++i);
+        assertEq(2, i);
+        assertEq(1, --i);
+        assertEq(1, i);
+
+        float f = 1.8;
+        assertFloatEq(1.8, f++);
+        assertFloatEq(2.8, f);
+        assertFloatEq(2.8, f--);
+        assertFloatEq(1.8, f);
+        assertFloatEq(2.8, ++f);
+        assertFloatEq(2.8, f);
+        assertFloatEq(1.8, --f);
+        assertFloatEq(1.8, f);
+
+        number n = 123.456n;
+        assertNumberEq(123.456, n++);
+        assertNumberEq(124.456, n);
+        assertNumberEq(124.456, n--);
+        assertNumberEq(123.456, n);
+        assertNumberEq(124.456, ++n);
+        assertNumberEq(124.456, n);
+        assertNumberEq(123.456, --n);
+        assertNumberEq(123.456, n);
+
+        any x = 1;
+        assertEq(1, x++);
+        assertEq(2, x);
+        assertEq(2, x--);
+        assertEq(1, x);
+        assertEq(2, ++x);
+        assertEq(2, x);
+        assertEq(1, --x);
+        assertEq(1, x);
     }
 }
