@@ -28,6 +28,7 @@ public class ParseDirectiveTest inherits QUnit::Test {
         addTestCase("correct %try-module", \correctTryModule());
         addTestCase("correct %requires", \correctRequires());
         addTestCase("%exec-class tests", \execClass());
+        addTestCase("%exec-class crlf", \execClassCrlf());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -144,5 +145,10 @@ $y = 9;
         Program p(PO_NEW_STYLE);
         p.parse("%exec-class T\nclass T {abstract t();}", "exec-class");
         assertThrows("ABSTRACT-CLASS-ERROR", \p.run());
+    }
+
+    execClassCrlf() {
+        Program p(PO_NEW_STYLE);
+        p.parse("%exec-class T\r\nclass T {}\r\n", "exec-class-clrf");
     }
 }
