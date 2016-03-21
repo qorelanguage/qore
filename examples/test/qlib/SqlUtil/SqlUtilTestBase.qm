@@ -57,6 +57,7 @@ public class SqlTestBase inherits QUnit::Test {
         addTestCase("Insert", \insertTest());
         addTestCase("Select", \selectTest());
         addTestCase("Column Operators", \columnOperatorTest());
+        addTestCase("Update Operators", \updateOperatorTest());
         addTestCase("Where Operators", \whereOperatorTest());
         addTestCase("Group By", \groupByTest());
         addTestCase("Order By", \orderByTest());
@@ -229,6 +230,43 @@ public class SqlTestBase inherits QUnit::Test {
 
         foreach hash e in (expect.pairIterator())
             assertEq (e.value, row{e.key}, "checking column operator " + e.key);
+    }
+
+    updateOperatorTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        hash test_set = (
+                "uop_prepend": (
+                    "set": ("null_f": uop_prepend ("123")),
+                    "out": ("null_f": "123abc"),
+                    ),
+                "uop_append": (
+                    "set": ("null_f": uop_append ("123")),
+                    "out": ("null_f": "123abc123"),
+                    ),
+                "uop_upper": (
+                    "set": ("null_f": uop_upper()),
+                    "out": ("null_f": "123ABC123"),
+                    ),
+                "uop_lower": (
+                    "set": ("null_f": uop_lower()),
+                    "out": ("null_f": "123abc123"),
+                    ),
+                );
+
+        hash cond = ("id": 1);
+
+        foreach hash t in (test_set.pairIterator()) {
+            table.update (t.value.set, cond);
+            hash row = table.selectRow (("where": cond));
+
+            foreach hash d in (t.value.out.pairIterator())
+                assertEq (d.value, row{d.key}, sprintf ("checking update operator %s column %s", t.key, d.key));
+        }
     }
 
     whereOperatorTest() {
