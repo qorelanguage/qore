@@ -184,10 +184,11 @@ public class SqlTestBase inherits QUnit::Test {
                 # cop_as (cop_divide ("id", cop_value(2)), "cop_divide"),
                 # cop_as (cop_multiply ("id", cop_value(2)), "cop_multiply"),
                 ),
-                "where": ("id": 2)
+                "where": ("id": 2, "cop_lower": cop_lower("cop_upper")),
                 );
 
-        *hash row = table.selectRow (soh);
+        string sql; on_error printf("SQL: %s\n", sql);
+        *hash row = table.selectRow (soh, \sql);
 
         hash expect = (
                 "cop_cast": "2",

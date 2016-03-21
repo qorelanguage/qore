@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file OracleSqlUtil.qm Qore user module for working with Oracle SQL data
 
-/*  OracleSqlUtil.qm Copyright 2013 - 2015 Qore Technologies, sro
+/*  OracleSqlUtil.qm Copyright 2013 - 2016 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,7 +35,6 @@
 %try-module oracle
 %define NO_ORACLE
 %endtry
-
 
 # don't use "$" signs for variables and class members, assume local variable scope
 %new-style
@@ -261,7 +260,8 @@ my hash $schema = (
     - implemented support for views for DML in the @ref OracleSqlUtil::OracleTable class
     - implemented @ref OracleSqlUtil::OracleTable::getBaseType()
     - implemented support for Oracle pseudocolumns in queries
-    - implemented support for \c cop_cast operator
+    - implemented support for @ref SqlUtil::cop_cast() operator
+    - fixed bugs in @ref SqlUtil::cop_seq() and @ref SqlUtil::cop_seq_currval() (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
 
     @subsection v11 OracleSqlUtil v1.1
     - fixed selects with "limit" but no "offset"
@@ -1892,13 +1892,27 @@ my any $v = $c.name;
                     }
                 ),
                 COP_SEQ: (
-                    "code": string sub (string arg1, any arg) {
-                        return sprintf("%s.nextval", arg);
+                    "nocolumn": True,
+                    "withalias": True,
+                    "code": string sub (*string cve, hash arg, reference psch) {
+                        string sql = sprintf("%s.nextval", arg.seq);
+                        if (arg.as) {
+                            psch{arg.as} = sql;
+                            sql += " " + arg.as;
+                        }
+                        return sql;
                     }
                 ),
                 COP_SEQ_CURRVAL: (
-                    "code": string sub (string arg1, any arg) {
-                        return sprintf("%s.currval", arg);
+                    "nocolumn": True,
+                    "withalias": True,
+                    "code": string sub (*string cve, hash arg, reference psch) {
+                        string sql = sprintf("%s.currval", arg.seq);
+                        if (arg.as) {
+                            psch{arg.as} = sql;
+                            sql += " " + arg.as;
+                        }
+                        return sql;
                     }
                 ),
                 );

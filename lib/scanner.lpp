@@ -1049,7 +1049,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%include{WS}*$                         { parse_error("missing argument to %%include"); }
 ^%include{WS}+                          BEGIN(incl);
 <exec_class_state>{
-   [^\n\r]+$                            {
+   [^\n\r]+                             {
                                            char* cn = trim(yytext);
                                            //printf("setting class name to: '%s'\n", cn);
                                            getProgram()->setExecClass(cn);

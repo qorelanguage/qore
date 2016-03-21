@@ -47,6 +47,10 @@ class PgsqlTestSchema inherits SqlUtilTestSchema {
         const Tables = (
             "pgsql_test": T_PgsqlTest,
             );
+
+        const Sequences = (
+            "pgsql_test_seq": {},
+            );
     }
 
     constructor(AbstractDatasource ds, *string dts, *string its) : SqlUtilTestSchema(ds, dts, its) {
@@ -73,6 +77,10 @@ class PgsqlTestSchema inherits SqlUtilTestSchema {
             tables.pgsql_test.columns{SqlTestBase::getColumnName(h.key)} = ch;
         }
         return tables;
+    }
+
+    private *hash getSequencesImpl() {
+        return Sequences;
     }
 
     private *hash getIndexOptionsImpl() {
@@ -177,9 +185,23 @@ class PgsqlTest inherits SqlTestBase {
 
             # get table object
             table = (new Table(schema.getDatasource(), "pgsql_test")).getTable();
+
+            addTestCase("sequence operators", \testSequenceOperators());
         }
 
         set_return_value(main());
+    }
+
+    testSequenceOperators() {
+        if (!table)
+            testSkip("no DB connection");
+
+        hash sh = (
+            "columns": ("id", cop_seq("pgsql_test_seq", "seq"), cop_seq_currval("pgsql_test_seq", "seq_currval")),
+            "where": ("id": 2),
+            );
+
+        assertEq(("id": 2, "seq": 1, "seq_currval": 1), table.selectRow(sh));
     }
 
     private usageIntern() {

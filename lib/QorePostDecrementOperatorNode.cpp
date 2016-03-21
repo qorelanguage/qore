@@ -1,10 +1,10 @@
 /*
   QorePostDecrementOperatorNode.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -44,15 +44,15 @@ QoreValue QorePostDecrementOperatorNode::evalValueImpl(bool& needs_deref, Except
    LValueHelper n(exp, xsink);
    if (!n)
       return QoreValue();
+
    if (n.getType() == NT_NUMBER)
       return n.postDecrementNumber(ref_rv, "<-- (post) operator>");
 
    if (n.getType() == NT_FLOAT) {
       double f = n.postDecrementFloat("<-- (post) operator>");
       assert(!*xsink);
-      return ref_rv ? QoreValue(f) : QoreValue();
+      return f;
    }
 
-   int64 rc = n.postDecrementBigInt("<-- (post) operator>");
-   return *xsink || !ref_rv ? QoreValue() : QoreValue(rc);
+   return n.postDecrementBigInt("<-- (post) operator>");
 }

@@ -511,7 +511,6 @@ static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, in
    switch (*param) {
       case 's': {
 	 QoreStringValueHelper astr(qv);
-
 	 length = astr->strlen();
 	 if ((width != -1) && (length > width) && !type)
 	    width = length;
