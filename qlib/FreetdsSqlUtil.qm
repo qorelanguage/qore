@@ -64,7 +64,7 @@ module FreetdsSqlUtil {
 
     @section freetds_sql_operations SQL Operations with the FreeTDS Driver
 
-    %FreetdsSqlUtil supports the following additional @ref select_option_hash "select option":
+    %FreetdsSqlUtil supports the following additional @ref select_option_hash "select option" when working with MS SQL Server databases:
     - \c "queryhint": A single string or a list of strings with the following possible values:
       - \c "fastfirstrow": Equivalent to SQL Server option \c "(FAST 1)"
       - \c "holdlock": Makes shared locks more restrictive by holding them until the completion of a transaction (instead of releasing the shared lock as soon as the required table or data page is no longer needed, whether or not the transaction has been completed). The scan is performed with the same semantics as a transaction running at the \c "SERIALIZABLE" isolation level.  equivalent to \c "serializable"
