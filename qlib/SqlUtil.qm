@@ -1927,7 +1927,7 @@ public namespace SqlUtil {
     */
     public const COP_MINUS = "minus";
 
-    #! the SQL \c "minus" operator
+    #! the SQL \c "plus" operator
     /** @see cop_plus()
     */
     public const COP_PLUS = "plus";
@@ -2537,6 +2537,30 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
         COP_LOWER: True,
         COP_SEQ: True,
         COP_SEQ_CURRVAL: True,
+        COP_MINUS: (
+            "sqlvalue": True,
+            "code": string sub (string cve, any arg) {
+                return sprintf("%s - %s", cve, arg);
+            },
+        ),
+        COP_PLUS: (
+            "sqlvalue": True,
+            "code": string sub (string cve, any arg) {
+                return sprintf("%s + %s", cve, arg);
+            },
+        ),
+        COP_DIVIDE: (
+            "sqlvalue": True,
+            "code": string sub (string cve, any arg) {
+                return sprintf("%s / %s", cve, arg);
+            },
+        ),
+        COP_MULTIPLY: (
+            "sqlvalue": True,
+            "code": string sub (string cve, any arg) {
+                return sprintf("%s * %s", cve, arg);
+            },
+        ),
         );
     #@}
 
@@ -2546,6 +2570,10 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
         - @ref uop_append(): append a string to the output of a column
         - @ref uop_upper(): return a column in upper case
         - @ref uop_lower(): return a column in lower case
+        - @ref uop_plus(): add a numeric value to a column
+        - @ref uop_minus(): subtract a numeric value from a column
+        - @ref uop_multiply(): multiply a column by a numeric value
+        - @ref uop_divide(): divide a column by a numeric value
         - @ref uop_seq(): returns the value of the given sequence
         - @ref uop_seq_currval(): returns the last value issued in the current session for the given sequence
 
@@ -2625,6 +2653,66 @@ int rows_updated = t.update(("permission_type": uop_lower()));
     */
     public hash sub uop_lower(*hash nest) {
         return make_uop(COP_LOWER, NOTHING, nest);
+    }
+
+    #! returns a hash for the \c "+" operator with the given arguments
+    /** @par Example:
+        @code{.py}
+int rows_updated = t.update(("counter": uop_plus(1)));
+        @endcode
+
+        @param arg numeric value to add to the column
+        @param nest any nested operation to the operator
+
+        @return an update operator description hash corresponding to the arguments for use in update statements
+    */
+    public hash sub uop_plus (any arg, *hash nest) {
+        return make_uop (COP_PLUS, arg, nest);
+    }
+
+    #! returns a hash for the \c "-" operator with the given arguments
+    /** @par Example:
+        @code{.py}
+int rows_updated = t.update(("counter": uop_minus(1)));
+        @endcode
+
+        @param arg numeric value to subtract from the column
+        @param nest any nested operation to the operator
+
+        @return an update operator description hash corresponding to the arguments for use in update statements
+    */
+    public hash sub uop_minus (any arg, *hash nest) {
+        return make_uop (COP_MINUS, arg, nest);
+    }
+
+    #! returns a hash for the \c "*" operator with the given arguments
+    /** @par Example:
+        @code{.py}
+int rows_updated = t.update(("counter": uop_multiply(2)));
+        @endcode
+
+        @param arg numeric value to multiply the column by
+        @param nest any nested operation to the operator
+
+        @return an update operator description hash corresponding to the arguments for use in update statements
+    */
+    public hash sub uop_multiply (any arg, *hash nest) {
+        return make_uop (COP_MULTIPLY, arg, nest);
+    }
+
+    #! returns a hash for the \c "/" operator with the given arguments
+    /** @par Example:
+        @code{.py}
+int rows_updated = t.update(("counter": uop_divide(2)));
+        @endcode
+
+        @param arg numeric value to divide the column by
+        @param nest any nested operation to the operator
+
+        @return an update operator description hash corresponding to the arguments for use in update statements
+    */
+    public hash sub uop_divide (any arg, *hash nest) {
+        return make_uop (COP_DIVIDE, arg, nest);
     }
 
     #! returns a hash for the \c "seq" operator with the given argument giving the sequence name whose value should be returned
@@ -13491,7 +13579,8 @@ string sql = table.getAlignSqlString(table2);
         /** override in subclasses to return driver-specific options
         */
         private hash getUpdateOperatorMap() {
-            return getColumnOperatorMap().(DefaultUopMap.keys());
+            return getColumnOperatorMap().(DefaultUopMap.keys())
+                + DefaultUopMap.(select DefaultUopMap.keys(), DefaultUopMap{$1}.typeCode() == NT_HASH);
         }
 
         #! returns a hash of valid pseudocolumns
