@@ -99,8 +99,9 @@ public class SqlTestBase inherits QUnit::Test {
             # printf("  I: %s: %N\n", insert_data[0]{e.key}.type(), insert_data[0]{e.key});
             # printf("  R: %s: %N\n", rows[0]{e.key}.type(), rows[0]{e.key});
             if (e.value === NOTHING)
-                continue; # skipping assertion
-            assertEq (e.value, rows[0]{e.key}, "checking data in column " + e.key);
+                assertSkip ("checking data in column " + e.key);
+            else
+                assertEq (e.value, rows[0]{e.key}, "checking data in column " + e.key);
         }
     }
 
