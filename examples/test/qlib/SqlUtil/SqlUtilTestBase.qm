@@ -267,6 +267,9 @@ public class SqlTestBase inherits QUnit::Test {
             foreach hash d in (t.value.out.pairIterator())
                 assertEq (d.value, row{d.key}, sprintf ("checking update operator %s column %s", t.key, d.key));
         }
+
+        # reset the row to what it was before this test
+        table.update (("null_f": "abc"), cond);
     }
 
     whereOperatorTest() {
@@ -289,6 +292,7 @@ public class SqlTestBase inherits QUnit::Test {
                 "op_le": (
                     "in": (
                         "where": ("id": op_le(2)),
+                        "orderby": ("id",)
                         ),
                     "out": (
                         "count": 2,
@@ -307,6 +311,7 @@ public class SqlTestBase inherits QUnit::Test {
                 "op_ge": (
                     "in": (
                         "where": ("id": op_ge(1)),
+                        "orderby": ("id",)
                         ),
                     "out": (
                         "count": 2,
@@ -388,6 +393,7 @@ public class SqlTestBase inherits QUnit::Test {
                 "op_cle": (
                     "in": (
                         "where": ("id": op_cle("id_")),
+                        "orderby": ("id",)
                         ),
                     "out": (
                         "count": 2,
@@ -406,6 +412,7 @@ public class SqlTestBase inherits QUnit::Test {
                 "op_cge": (
                     "in": (
                         "where": ("id_": op_cge("id")),
+                        "orderby": ("id",)
                         ),
                     "out": (
                         "count": 2,
@@ -433,6 +440,7 @@ public class SqlTestBase inherits QUnit::Test {
                 "wop_or": (
                     "in": (
                         "where": wop_or (("id": op_eq(1)), ("id": op_eq(2))),
+                        "orderby": ("id",)
                         ),
                     "out": (
                         "count": 2,
