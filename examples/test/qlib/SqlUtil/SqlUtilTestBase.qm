@@ -256,6 +256,14 @@ public class SqlTestBase inherits QUnit::Test {
                     "set": ("null_f": uop_lower()),
                     "out": ("null_f": "123abc123"),
                     ),
+                "uop_append(uop_upper)": (
+                    "set": ("null_f": uop_append ("abc", uop_upper())),
+                    "out": ("null_f": "123ABC123abc"),
+                    ),
+                "uop_lower(uop_append)": (
+                    "set": ("null_f": uop_lower (uop_append ("DEF"))),
+                    "out": ("null_f": "123abc123abcdef"),
+                    ),
                 );
 
         hash cond = ("id": 1);

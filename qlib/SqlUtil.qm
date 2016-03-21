@@ -2610,7 +2610,7 @@ int rows_updated = t.update(("permission_type": uop_upper()));
         @return an update operator description hash corresponding to the arguments for use in update statements
     */
     public hash sub uop_upper(*hash nest) {
-        return make_uop(COP_UPPER, nest);
+        return make_uop(COP_UPPER, NOTHING, nest);
     }
 
     #! returns a hash for the \c "lower" operator with the given argument; returns a column value in lower case
@@ -2624,7 +2624,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
         @return an update operator description hash corresponding to the arguments for use in update statements
     */
     public hash sub uop_lower(*hash nest) {
-        return make_uop(COP_LOWER, nest);
+        return make_uop(COP_LOWER, NOTHING, nest);
     }
 
     #! returns a hash for the \c "seq" operator with the given argument giving the sequence name whose value should be returned
