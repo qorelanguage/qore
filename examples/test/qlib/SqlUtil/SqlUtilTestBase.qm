@@ -295,7 +295,7 @@ public class SqlTestBase inherits QUnit::Test {
                     ),
                 "op_ne_null": (
                     "in": (
-                        "where": ("null_f": op_ne(1)),
+                        "where": ("null_f": op_ne("abc")),
                         ),
                     "out": (
                         "count": 1,
@@ -479,7 +479,7 @@ public class SqlTestBase inherits QUnit::Test {
             else
                 expect_data{cn} = h.value.bind.'^value^' ?? h.value.value ?? h.value;
         }
-        insert_data = (("id": 1, "id_": 2, "null_f": 1) + row, ("id": 2, "id_": 2, "null_f": NULL) + row,);
-        upsert_data = (("id": 2, "id_": 2, "null_f": 1) + row, ("id": 3, "id_": 2, "null_f": NULL) + row,);
+        insert_data = (("id": 1, "id_": 2, "null_f": "abc") + row, ("id": 2, "id_": 2, "null_f": NULL) + row,);
+        upsert_data = (("id": 2, "id_": 2, "null_f": "abc") + row, ("id": 3, "id_": 2, "null_f": NULL) + row,);
     }
 }
