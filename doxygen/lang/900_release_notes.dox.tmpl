@@ -249,7 +249,10 @@
       - implemented support for DBA management actions
       - implemented support for driver-dependent pseudocolumns
       - implemented per-column support for the \c "desc" keyword in orderby expressions
-      - implemented the \c "wop_or()" function to allow complex SQL expressions to be generated with \c "or" as well as \c "and"
+      - implemented \c "wop_or()" function to allow complex SQL expressions to be generated with \c "or" as well as \c "and"
+      - implemented \c "cop_cast()" operator for converting [column] value into another datatype
+      - implemented \c "cop_sum()" aggregate operator for returning sum of column values
+      - implemented update operators \c "uop_plus()", \c "uop_minus()", \c "uop_multiply()", \c "uop_divide()"
       - implemented AbstractTable::getBulkUpsertClosure() to better support bulk SQL merge operations
       - removed all APIs that handle implicit transactions; APIs must commit transactions explicitly
       - \a orderby and \a groupby select options now take positive integers as column identifiers
@@ -308,7 +311,8 @@
       - fixed a bug where the AbstractTable lock was held while executing SQL to determine the upsert strategy to use with UpsertAuto
       - fixed a bug where complex bind values as hashes (such as used by the pgsql and oracle drivers) were rejected by SqlUtil (<a href="https://github.com/qorelanguage/qore/issues/494">issue 494</a>) when updating
       - fixed a bug where wildcard columns in join tables were not working (<a href="https://github.com/qorelanguage/qore/issues/499">issue 499</a>)
-      - fixed a bug in op_in() where invalid SQL was generated with an argument of 0 (<a href="https://github.com/qorelanguage/qore/issues/500">issue 500</a>)
+      - fixed a bug in \c "op_in()" where invalid SQL was generated with an argument of 0 (<a href="https://github.com/qorelanguage/qore/issues/500">issue 500</a>)
+      - fixed \c "uop_lower()" and \c "uop_upper()" operators to allow nesting (<a href="https://github.com/qorelanguage/qore/issues/657">issue 657</a>)
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module fixes:
       - fixed a bug where column names that are reserved words were not quoted in generated SQL
     - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module fixes:
