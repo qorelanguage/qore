@@ -112,6 +112,7 @@ module SqlUtil {
     - implemented @ref SqlUtil::wop_or() to allow for generating complex SQL strings with \a "or" and \a "and" expressions
     - implemented @ref SqlUtil::cop_cast() operator for converting [column] value into another datatype
     - implemented @ref SqlUtil::cop_sum() aggregate operator for returning sum of column values
+    - implemented update operators @ref SqlUtil::uop_plus(), @ref SqlUtil::uop_minus(), @ref SqlUtil::uop_multiply(), @ref SqlUtil::uop_divide()
     - implemented support for numeric column arguments for the @ref select_option_orderby "orderby" and @ref select_option_groupby "groupby" options
     - column aliases (defined with @ref SqlUtil::cop_as()) can now be used in the @ref where_clauses "where hash argument" and in join criteria
     - removed all APIs that handle implicit transactions; APIs must commit transactions explicitly (<a href="https://github.com/qorelanguage/qore/issues/533">issue 533</a>)
@@ -131,6 +132,7 @@ module SqlUtil {
     - fixed @ref SqlUtil::cop_count() operator to allow other operators as its argument (<a href="https://github.com/qorelanguage/qore/issues/517">issue 517</a>)
     - fixed bugs in @ref SqlUtil::cop_seq() and @ref SqlUtil::cop_seq_currval() (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
     - fixed a bug in @ref SqlUtil::join_inner() where the \a cond argument was ignored (<a href="https://github.com/qorelanguage/qore/issues/645">issue 645</a>)
+    - fixed @ref SqlUtil::uop_lower() and @ref SqlUtil::uop_upper() operators to allow nesting (<a href="https://github.com/qorelanguage/qore/issues/657">issue 657</a>)
 
     @subsection sqlutilv1_2 SqlUtil v1.2
     - added insert operator support; for example, for inserting with values from sequences
@@ -1930,7 +1932,7 @@ public namespace SqlUtil {
     */
     public const COP_MINUS = "minus";
 
-    #! the SQL \c "minus" operator
+    #! the SQL \c "plus" operator
     /** @see cop_plus()
     */
     public const COP_PLUS = "plus";
@@ -2556,6 +2558,30 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
         COP_LOWER: True,
         COP_SEQ: True,
         COP_SEQ_CURRVAL: True,
+        COP_MINUS: (
+            "sqlvalue": True,
+            "code": string sub (string cve, any arg) {
+                return sprintf("%s - %s", cve, arg);
+            },
+        ),
+        COP_PLUS: (
+            "sqlvalue": True,
+            "code": string sub (string cve, any arg) {
+                return sprintf("%s + %s", cve, arg);
+            },
+        ),
+        COP_DIVIDE: (
+            "sqlvalue": True,
+            "code": string sub (string cve, any arg) {
+                return sprintf("%s / %s", cve, arg);
+            },
+        ),
+        COP_MULTIPLY: (
+            "sqlvalue": True,
+            "code": string sub (string cve, any arg) {
+                return sprintf("%s * %s", cve, arg);
+            },
+        ),
         );
     #@}
 
@@ -2565,6 +2591,10 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
         - @ref uop_append(): append a string to the output of a column
         - @ref uop_upper(): return a column in upper case
         - @ref uop_lower(): return a column in lower case
+        - @ref uop_plus(): add a numeric value to a column
+        - @ref uop_minus(): subtract a numeric value from a column
+        - @ref uop_multiply(): multiply a column by a numeric value
+        - @ref uop_divide(): divide a column by a numeric value
         - @ref uop_seq(): returns the value of the given sequence
         - @ref uop_seq_currval(): returns the last value issued in the current session for the given sequence
 
@@ -2629,7 +2659,7 @@ int rows_updated = t.update(("permission_type": uop_upper()));
         @return an update operator description hash corresponding to the arguments for use in update statements
     */
     public hash sub uop_upper(*hash nest) {
-        return make_uop(COP_UPPER, nest);
+        return make_uop(COP_UPPER, NOTHING, nest);
     }
 
     #! returns a hash for the \c "lower" operator with the given argument; returns a column value in lower case
@@ -2643,7 +2673,67 @@ int rows_updated = t.update(("permission_type": uop_lower()));
         @return an update operator description hash corresponding to the arguments for use in update statements
     */
     public hash sub uop_lower(*hash nest) {
-        return make_uop(COP_LOWER, nest);
+        return make_uop(COP_LOWER, NOTHING, nest);
+    }
+
+    #! returns a hash for the \c "+" operator with the given arguments
+    /** @par Example:
+        @code{.py}
+int rows_updated = t.update(("counter": uop_plus(1)));
+        @endcode
+
+        @param arg numeric value to add to the column
+        @param nest any nested operation to the operator
+
+        @return an update operator description hash corresponding to the arguments for use in update statements
+    */
+    public hash sub uop_plus (any arg, *hash nest) {
+        return make_uop (COP_PLUS, arg, nest);
+    }
+
+    #! returns a hash for the \c "-" operator with the given arguments
+    /** @par Example:
+        @code{.py}
+int rows_updated = t.update(("counter": uop_minus(1)));
+        @endcode
+
+        @param arg numeric value to subtract from the column
+        @param nest any nested operation to the operator
+
+        @return an update operator description hash corresponding to the arguments for use in update statements
+    */
+    public hash sub uop_minus (any arg, *hash nest) {
+        return make_uop (COP_MINUS, arg, nest);
+    }
+
+    #! returns a hash for the \c "*" operator with the given arguments
+    /** @par Example:
+        @code{.py}
+int rows_updated = t.update(("counter": uop_multiply(2)));
+        @endcode
+
+        @param arg numeric value to multiply the column by
+        @param nest any nested operation to the operator
+
+        @return an update operator description hash corresponding to the arguments for use in update statements
+    */
+    public hash sub uop_multiply (any arg, *hash nest) {
+        return make_uop (COP_MULTIPLY, arg, nest);
+    }
+
+    #! returns a hash for the \c "/" operator with the given arguments
+    /** @par Example:
+        @code{.py}
+int rows_updated = t.update(("counter": uop_divide(2)));
+        @endcode
+
+        @param arg numeric value to divide the column by
+        @param nest any nested operation to the operator
+
+        @return an update operator description hash corresponding to the arguments for use in update statements
+    */
+    public hash sub uop_divide (any arg, *hash nest) {
+        return make_uop (COP_DIVIDE, arg, nest);
     }
 
     #! returns a hash for the \c "seq" operator with the given argument giving the sequence name whose value should be returned
@@ -13518,7 +13608,8 @@ string sql = table.getAlignSqlString(table2);
         /** override in subclasses to return driver-specific options
         */
         private hash getUpdateOperatorMap() {
-            return getColumnOperatorMap().(DefaultUopMap.keys());
+            return getColumnOperatorMap().(DefaultUopMap.keys())
+                + DefaultUopMap.(select DefaultUopMap.keys(), DefaultUopMap{$1}.typeCode() == NT_HASH);
         }
 
         #! returns a hash of valid pseudocolumns
