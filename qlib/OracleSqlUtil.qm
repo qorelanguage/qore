@@ -262,6 +262,7 @@ my hash $schema = (
     - implemented support for Oracle pseudocolumns in queries
     - implemented support for @ref SqlUtil::cop_cast() operator
     - fixed bugs in @ref SqlUtil::cop_seq() and @ref SqlUtil::cop_seq_currval() (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
+    - return lists from Oracle's data dictionary ordered
 
     @subsection v11 OracleSqlUtil v1.1
     - fixed selects with "limit" but no "offset"
@@ -1366,16 +1367,16 @@ my any $v = $c.name;
             return getListIntern("MATERIALIZED VIEW");
         }
 
-        #! returns an iterator listing the string materialized view  names in the database
+        #! returns an iterator listing the string materialized view names in the database
         ListIterator materializedViewIterator() {
             return listMaterializedViews().iterator();
         }
 
         private list listTablesImpl() {
-            list l = getListIntern(ds.select("select table_name from user_tables").table_name);
+            list l = getListIntern(ds.select("select table_name from user_tables order by 1").table_name);
 
             # add all tables accessible with synonyms
-            *list tl = ds.select("select synonym_name from user_synonyms s, all_tables t where s.table_owner = t.owner and s.table_name = t.table_name").synonym_name;
+            *list tl = ds.select("select synonym_name from user_synonyms s, all_tables t where s.table_owner = t.owner and s.table_name = t.table_name order by 1").synonym_name;
             if (tl)
                 l += native_case ? tl : (map $1.lwr(), tl);
 
@@ -1399,7 +1400,7 @@ my any $v = $c.name;
         }
 
         private list getListIntern(string type) {
-            return getListIntern(ds.select("select object_name from user_objects where object_type = %v", type).object_name);
+            return getListIntern(ds.select("select object_name from user_objects where object_type = %v order by 1", type).object_name);
         }
 
         private list getListIntern(list l) {
@@ -2025,7 +2026,7 @@ my any $v = $c.name;
             inDb = True;
         }
 
-        #! returns the schema and table naem in dot notation
+        #! returns the schema and table name in dot notation
         string getSqlName() {
             return sprintf("%s.%s" + (dblink ? "@" + dblink : ""), schema, name);
         }

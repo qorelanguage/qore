@@ -249,9 +249,9 @@
       - implemented support for DBA management actions
       - implemented support for driver-dependent pseudocolumns
       - implemented per-column support for the \c "desc" keyword in orderby expressions
-      - implemented \c "wop_or()" function to allow complex SQL expressions to be generated with \c "or" as well as \c "and"
-      - implemented \c "cop_cast()" operator for converting [column] value into another datatype
-      - implemented \c "cop_sum()" aggregate operator for returning sum of column values
+      - implemented the \c "wop_or()" function to allow complex SQL expressions to be generated with \c "or" as well as \c "and"
+      - implemented the \c "cop_cast()" operator for converting [column] value into another datatype
+      - implemented the \c "cop_sum()" aggregate operator for returning sum of column values
       - implemented update operators \c "uop_plus()", \c "uop_minus()", \c "uop_multiply()", \c "uop_divide()"
       - implemented AbstractTable::getBulkUpsertClosure() to better support bulk SQL merge operations
       - removed all APIs that handle implicit transactions; APIs must commit transactions explicitly
@@ -261,6 +261,7 @@
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module updates:
       - implemented support for views for DML in the OracleTable class
       - implemented support for Oracle pseudocolumns in queries
+      - return lists from Oracle's data dictionary ordered
     - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module updates:
       - added support for the following datatypes and aliases: \c bool, \c float, \c int, \c timetz, \c timestamptz, \c varbit
     - <a href="../../modules/MysqlSqlUtil/html/index.html">MysqlSqlUtil</a> module updates:
