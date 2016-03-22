@@ -57,6 +57,7 @@ public class SqlTestBase inherits QUnit::Test {
         addTestCase("Insert", \insertTest());
         addTestCase("Select", \selectTest());
         addTestCase("Column Operators", \columnOperatorTest());
+        addTestCase("Update Operators", \updateOperatorTest());
         addTestCase("Where Operators", \whereOperatorTest());
         addTestCase("Group By", \groupByTest());
         addTestCase("Order By", \orderByTest());
@@ -98,8 +99,9 @@ public class SqlTestBase inherits QUnit::Test {
             # printf("  I: %s: %N\n", insert_data[0]{e.key}.type(), insert_data[0]{e.key});
             # printf("  R: %s: %N\n", rows[0]{e.key}.type(), rows[0]{e.key});
             if (e.value === NOTHING)
-                continue; # skipping assertion
-            assertEq (e.value, rows[0]{e.key}, "checking data in column " + e.key);
+                assertSkip ("checking data in column " + e.key);
+            else
+                assertEq (e.value, rows[0]{e.key}, "checking data in column " + e.key);
         }
     }
 
@@ -186,7 +188,7 @@ public class SqlTestBase inherits QUnit::Test {
                 "where": ("id": 2, "cop_lower": cop_lower("cop_upper")),
                 );
 
-        string sql; on_error printf("sql: %s\n", sql);
+        string sql; on_error printf("SQL: %s\n", sql);
         *hash row = table.selectRow (soh, \sql);
 
         hash expect = (
@@ -232,6 +234,70 @@ public class SqlTestBase inherits QUnit::Test {
             assertEq (e.value, row{e.key}, "checking column operator " + e.key);
     }
 
+    updateOperatorTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        hash test_set = (
+                "uop_prepend": (
+                    "set": ("null_f": uop_prepend ("123")),
+                    "out": ("null_f": "123abc"),
+                    ),
+                "uop_append": (
+                    "set": ("null_f": uop_append ("123")),
+                    "out": ("null_f": "123abc123"),
+                    ),
+                "uop_upper": (
+                    "set": ("null_f": uop_upper()),
+                    "out": ("null_f": "123ABC123"),
+                    ),
+                "uop_lower": (
+                    "set": ("null_f": uop_lower()),
+                    "out": ("null_f": "123abc123"),
+                    ),
+                "uop_append(uop_upper)": (
+                    "set": ("null_f": uop_append ("abc", uop_upper())),
+                    "out": ("null_f": "123ABC123abc"),
+                    ),
+                "uop_lower(uop_append)": (
+                    "set": ("null_f": uop_lower (uop_append ("DEF"))),
+                    "out": ("null_f": "123abc123abcdef"),
+                    ),
+                "uop_plus": (
+                    "set": ("id_": uop_plus(3)),
+                    "out": ("id_": 2+3),
+                    ),
+                "uop_minus": (
+                    "set": ("id_": uop_minus(3)),
+                    "out": ("id_": 5-3),
+                    ),
+                "uop_multiply": (
+                    "set": ("id_": uop_multiply(3)),
+                    "out": ("id_": 2*3),
+                    ),
+                "uop_divide": (
+                    "set": ("id_": uop_divide(3)),
+                    "out": ("id_": 6/3),
+                    ),
+                );
+
+        hash cond = ("id": 1);
+
+        foreach hash t in (test_set.pairIterator()) {
+            table.update (t.value.set, cond);
+            hash row = table.selectRow (("where": cond));
+
+            foreach hash d in (t.value.out.pairIterator())
+                assertEq (d.value, row{d.key}, sprintf ("checking update operator %s column %s", t.key, d.key));
+        }
+
+        # reset the row to what it was before this test
+        table.update (("null_f": "abc"), cond);
+    }
+
     whereOperatorTest() {
         if (!table)
             testSkip("no DB connection");
@@ -252,6 +318,7 @@ public class SqlTestBase inherits QUnit::Test {
                 "op_le": (
                     "in": (
                         "where": ("id": op_le(2)),
+                        "orderby": ("id",)
                         ),
                     "out": (
                         "count": 2,
@@ -270,6 +337,7 @@ public class SqlTestBase inherits QUnit::Test {
                 "op_ge": (
                     "in": (
                         "where": ("id": op_ge(1)),
+                        "orderby": ("id",)
                         ),
                     "out": (
                         "count": 2,
@@ -296,7 +364,7 @@ public class SqlTestBase inherits QUnit::Test {
                     ),
                 "op_ne_null": (
                     "in": (
-                        "where": ("null_f": op_ne(1)),
+                        "where": ("null_f": op_ne("abc")),
                         ),
                     "out": (
                         "count": 1,
@@ -351,6 +419,7 @@ public class SqlTestBase inherits QUnit::Test {
                 "op_cle": (
                     "in": (
                         "where": ("id": op_cle("id_")),
+                        "orderby": ("id",)
                         ),
                     "out": (
                         "count": 2,
@@ -369,6 +438,7 @@ public class SqlTestBase inherits QUnit::Test {
                 "op_cge": (
                     "in": (
                         "where": ("id_": op_cge("id")),
+                        "orderby": ("id",)
                         ),
                     "out": (
                         "count": 2,
@@ -396,6 +466,7 @@ public class SqlTestBase inherits QUnit::Test {
                 "wop_or": (
                     "in": (
                         "where": wop_or (("id": op_eq(1)), ("id": op_eq(2))),
+                        "orderby": ("id",)
                         ),
                     "out": (
                         "count": 2,
@@ -480,7 +551,7 @@ public class SqlTestBase inherits QUnit::Test {
             else
                 expect_data{cn} = h.value.bind.'^value^' ?? h.value.value ?? h.value;
         }
-        insert_data = (("id": 1, "id_": 2, "null_f": 1) + row, ("id": 2, "id_": 2, "null_f": NULL) + row,);
-        upsert_data = (("id": 2, "id_": 2, "null_f": 1) + row, ("id": 3, "id_": 2, "null_f": NULL) + row,);
+        insert_data = (("id": 1, "id_": 2, "null_f": "abc") + row, ("id": 2, "id_": 2, "null_f": NULL) + row,);
+        upsert_data = (("id": 2, "id_": 2, "null_f": "abc") + row, ("id": 3, "id_": 2, "null_f": NULL) + row,);
     }
 }
