@@ -986,7 +986,7 @@ assertNumberEq(2.5n, 2.50001n, 0.001n);
         @param name the name or description of the assertion
      */
     public assertNumberEq(number expected, number actual, number epsilon = 0.0000000001, *string name = NOTHING) {
-        TestCase tc = getTestCase("assertFloatEq");
+        TestCase tc = getTestCase("assertNumberEq");
         # increment assertion count
         tc.incAssertions();
         ++num_asserts;

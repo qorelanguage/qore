@@ -260,7 +260,7 @@ my hash $schema = (
     - implemented support for views for DML in the @ref OracleSqlUtil::OracleTable class
     - implemented @ref OracleSqlUtil::OracleTable::getBaseType()
     - implemented support for Oracle pseudocolumns in queries
-    - implemented support for the @ref SqlUtil::cop_cast() operator
+    - implemented support for @ref SqlUtil::cop_cast() operator
     - fixed bugs in @ref SqlUtil::cop_seq() and @ref SqlUtil::cop_seq_currval() (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
 
     @subsection v11 OracleSqlUtil v1.1
