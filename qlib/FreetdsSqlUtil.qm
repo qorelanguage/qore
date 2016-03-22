@@ -62,6 +62,30 @@ module FreetdsSqlUtil {
 
     @note This module requires the <a href="https://github.com/qorelanguage/module-sybase">freetds</a> binary module for communication with MS SQL Server and Sybase databases
 
+    @section freetds_sql_operations SQL Operations with the FreeTDS Driver
+
+    %FreetdsSqlUtil supports the following additional @ref select_option_hash "select option" when working with MS SQL Server databases:
+    - \c "tablehint": A single string or a list of strings with the following possible values:
+      - \c "index(...)": Specifies the name or ID of the indexes to be used by SQL Server when processing the statement. Only one index hint per table can be specified.  If a clustered index exists, \c "index(0)" forces a clustered index scan and \c "index(1)" forces a clustered index scan or seek. If no clustered index exists, \c "index(0)" forces a table scan and \c "index(1)" is interpreted as an error.  See SQL Server docs for more information.
+      - \c "fastfirstrow": Equivalent to SQL Server option \c "(FAST 1)"
+      - \c "holdlock": Makes shared locks more restrictive by holding them until the completion of a transaction (instead of releasing the shared lock as soon as the required table or data page is no longer needed, whether or not the transaction has been completed). The scan is performed with the same semantics as a transaction running at the \c "SERIALIZABLE" isolation level.  equivalent to \c "serializable"
+      - \c "nolock": Equivalent to \c "readuncommitted"
+      - \c "paglock": Takes shared page locks where a single shared table lock is normally taken
+      - \c "readcommitted": Specifies that a scan is performed with the same locking semantics as a transaction running at \c "READ COMMITTED" isolation level
+      - \c "readpast": Specifies that locked rows are skipped (read past)
+      - \c "readuncommitted": Specifies that dirty reads are allowed
+      - \c "repeatableread": Specifies that a scan is performed with the same locking semantics as a transaction running at \c "REPEATABLE READ" isolation level
+      - \c "rowlock": Specifies that a shared row lock is taken when a single shared page or table lock is normally taken
+      - \c "serializable": Makes shared locks more restrictive by holding them until the completion of a transaction (instead of releasing the shared lock as soon as the required table or data page is no longer needed, whether or not the transaction has been completed). The scan is performed with the same semantics as a transaction running at the \c "SERIALIZABLE" isolation level.  Equivalent to \c "holdlock".
+      - \c "tablock": Specifies that a shared lock is taken on the table held until the end-of-statement. If \c "holdlock" is also specified, the shared table lock is held until the end of the transaction.
+      - \c "tablockx": Specifies that an exclusive lock is taken on the table held until the end-of-statement or end-of-transaction.
+      - \c "updlock": Specifies that update locks instead of shared locks are taken while reading the table, and that they are held until the end-of-statement or end-of-transaction.
+      - \c "xlock": Specifies that exclusive locks should be taken and held until the end of transaction on all data processed by the statement. If specified with \c "paglock" or \c "tablock", the exclusive locks apply to the appropriate level of granularity.
+
+    @note
+    - From the SQL Server docs: The SQL Server query optimizer automatically makes the correct determination. It is recommended that table-level locking hints be used to change the default locking behavior only when necessary. Disallowing a locking level can affect concurrency adversely.
+    - For more details on the above hints as well as information on which hints are supported for your particular version of SQL Server, see the SQL Server docs
+
     @section freetds_schema_management Schema Management with the FreeTDS Driver
 
     @subsection freetds_type_mapping Type Mapping
@@ -874,6 +898,29 @@ my any $v = $c.name;
 
             const FreetdsAlignTableOptions = AbstractTable::AlignTableOptions + FreetdsTableCreationOptions;
 
+            #! select options supported by FreetdsSqlUtil
+            const FreetdsSelectOptions = AbstractTable::SelectOptions + (
+                "tablehint": "softstringlist",
+                );
+
+            #! query hints
+            const MsSqlServerTableHints = (
+                "fastfirstrow": True,
+                "holdlock": True,
+                "nolock": True,
+                "paglock": True,
+                "readcommitted": True,
+                "readpast": True,
+                "readuncommitted": True,
+                "repeatableread": True,
+                "rowlock": True,
+                "serializable": True,
+                "tablock": True,
+                "tablockx": True,
+                "updlock": True,
+                "xlock": True,
+                );
+
             #! column operator specializations for FreeTDS
             const FreetdsCopMap = DefaultCopMap + (
                 COP_CAST: (
@@ -1056,6 +1103,35 @@ my any $v = $c.name;
             return schema + "." + name;
         }
 
+        private string getFromIntern(string from, *hash qh) {
+            # grep from clause with optional hints
+            string hstr = from;
+            *hash hh = !is_sybase ? MsSqlServerTableHints : NOTHING;
+            list l;
+            foreach string hint in (qh.tablehint) {
+                # explicit support for index() hints
+                if (hint =~ /^index/) {
+                    # remove whitespace
+                    string istr = replace(hint, " ", "");
+                    # get index list
+                    *string ilstr = (istr =~ x/^index\((.*)\)$/)[0];
+                    if (!ilstr.val())
+                        throw "TABLEHINT-ERROR", sprintf("\"index\" table hint is missing the index arguments in parentheses: %y", hint);
+                    # manually process hints as integers to ensure there are no SQL injections
+                    l += ("index(" + (foldl $1 + "," + $2, (map $1.toInt(), ilstr.split(","))) + ")");
+                    continue;
+                }
+
+                if (!hh{hint})
+                    throw "TABLEHINT-ERROR", sprintf("unknown hint %y; known hints: %y", hint, hh.keys());
+                l += hint;
+            }
+            if (l)
+                hstr += " with (" + (foldl $1 + "," + $2, l) + ")";
+            #printf("from: %y opt: %y hstr: %y\n", from, qh, hstr);
+            return hstr;
+        }
+
         private hash getTableCreationOptions() {
             return FreetdsTableCreationOptions;
         }
@@ -1088,6 +1164,11 @@ my any $v = $c.name;
         #! returns the insert operator map for this object
         private hash getInsertOperatorMap() {
             return FreetdsIopMap;
+        }
+
+        #! returns the select options for this driver
+        private hash getSelectOptions() {
+            return FreetdsSelectOptions;
         }
 
         private bool checkExistenceImpl() {

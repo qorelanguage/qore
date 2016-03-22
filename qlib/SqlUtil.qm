@@ -11497,7 +11497,7 @@ string sql = table.getSelectSql(sh, \args);
                 comment += sprintf("/*+ %s */ ", replace(qh.hint, "*/", ""));
             }
 
-            string sql = sprintf("select %s%s from %s", comment, cstr, from);
+            string sql = sprintf("select %s%s from %s", comment, cstr, getFromIntern(from, qh));
 
             # process join specifications
             foreach any js in (qh.join.iterator()) {
@@ -11659,6 +11659,10 @@ string sql = table.getSelectSql(sh, \args);
             }
 
             return sql;
+        }
+
+        private string getFromIntern(string from, *hash qh) {
+            return from;
         }
 
         private list getGroupByListUnlocked(hash qh, *hash jch, *hash ch, *hash psch, list coll) {
