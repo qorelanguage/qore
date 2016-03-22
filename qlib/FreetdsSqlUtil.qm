@@ -66,6 +66,7 @@ module FreetdsSqlUtil {
 
     %FreetdsSqlUtil supports the following additional @ref select_option_hash "select option" when working with MS SQL Server databases:
     - \c "tablehint": A single string or a list of strings with the following possible values:
+      - \c "index(...)": Specifies the name or ID of the indexes to be used by SQL Server when processing the statement. Only one index hint per table can be specified.  If a clustered index exists, \c "index(0)" forces a clustered index scan and \c "index(1)" forces a clustered index scan or seek. If no clustered index exists, \c "index(0)" forces a table scan and \c "index(1)" is interpreted as an error.  See SQL Server docs for more information.
       - \c "fastfirstrow": Equivalent to SQL Server option \c "(FAST 1)"
       - \c "holdlock": Makes shared locks more restrictive by holding them until the completion of a transaction (instead of releasing the shared lock as soon as the required table or data page is no longer needed, whether or not the transaction has been completed). The scan is performed with the same semantics as a transaction running at the \c "SERIALIZABLE" isolation level.  equivalent to \c "serializable"
       - \c "nolock": Equivalent to \c "readuncommitted"
@@ -81,7 +82,9 @@ module FreetdsSqlUtil {
       - \c "updlock": Specifies that update locks instead of shared locks are taken while reading the table, and that they are held until the end-of-statement or end-of-transaction.
       - \c "xlock": Specifies that exclusive locks should be taken and held until the end of transaction on all data processed by the statement. If specified with \c "paglock" or \c "tablock", the exclusive locks apply to the appropriate level of granularity.
 
-    @note From the SQL Server docs: The SQL Server query optimizer automatically makes the correct determination. It is recommended that table-level locking hints be used to change the default locking behavior only when necessary. Disallowing a locking level can affect concurrency adversely.
+    @note
+    - From the SQL Server docs: The SQL Server query optimizer automatically makes the correct determination. It is recommended that table-level locking hints be used to change the default locking behavior only when necessary. Disallowing a locking level can affect concurrency adversely.
+    - For more details on the above hints as well as information on which hints are supported for your particular version of SQL Server, see the SQL Server docs
 
     @section freetds_schema_management Schema Management with the FreeTDS Driver
 
@@ -1106,6 +1109,19 @@ my any $v = $c.name;
             *hash hh = !is_sybase ? MsSqlServerTableHints : NOTHING;
             list l;
             foreach string hint in (qh.tablehint) {
+                # explicit support for index() hints
+                if (hint =~ /^index/) {
+                    # remove whitespace
+                    string istr = replace(hint, " ", "");
+                    # get index list
+                    *string ilstr = (istr =~ x/^index\((.*)\)$/)[0];
+                    if (!ilstr.val())
+                        throw "TABLEHINT-ERROR", sprintf("\"index\" table hint is missing the index arguments in parentheses: %y", hint);
+                    # manually process hints as integers to ensure there are no SQL injections
+                    l += ("index(" + (foldl $1 + "," + $2, (map $1.toInt(), ilstr.split(","))) + ")");
+                    continue;
+                }
+
                 if (!hh{hint})
                     throw "TABLEHINT-ERROR", sprintf("unknown hint %y; known hints: %y", hint, hh.keys());
                 l += hint;
