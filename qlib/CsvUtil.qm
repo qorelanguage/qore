@@ -709,13 +709,13 @@ while (i.next()) {
                     break;
                 }
                 case "float": {
-                    if (!is_int(val) and !is_float(val))
+                    if (!is_float(val))
                         throw "FIELD-VALUE-ERROR", sprintf("invalid %s value: %y", type, val);
                     rv = float(val);
                     break;
                 }
                 case "number": {
-                    if (!is_int(val) and !is_float(val) and !is_number(val))
+                    if (!is_number(val))
                         throw "FIELD-VALUE-ERROR", sprintf("invalid %s value: %y", type, val);
                     rv = number(val);
                     break;
