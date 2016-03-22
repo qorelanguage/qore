@@ -81,6 +81,8 @@ module FreetdsSqlUtil {
       - \c "updlock": Specifies that update locks instead of shared locks are taken while reading the table, and that they are held until the end-of-statement or end-of-transaction.
       - \c "xlock": Specifies that exclusive locks should be taken and held until the end of transaction on all data processed by the statement. If specified with \c "paglock" or \c "tablock", the exclusive locks apply to the appropriate level of granularity.
 
+    @note From the SQL Server docs: The SQL Server query optimizer automatically makes the correct determination. It is recommended that table-level locking hints be used to change the default locking behavior only when necessary. Disallowing a locking level can affect concurrency adversely.
+
     @section freetds_schema_management Schema Management with the FreeTDS Driver
 
     @subsection freetds_type_mapping Type Mapping
