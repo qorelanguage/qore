@@ -8,7 +8,7 @@ Release: 7%{?dist}
 License: LGPLv2+ or GPLv2+ or MIT
 Group: Development/Languages
 URL: http://qore.org
-Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.bz2
+Source0: https://github.com/qorelanguage/qore/releases/download/release-%{version}/%{name}-%{version}.tar.bz2
 Requires: /usr/bin/env
 BuildRequires: flex >= 2.5.31
 BuildRequires: bison

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -75,8 +75,8 @@ nothing getpwuid() [flags=RUNTIME_NOOP;dom=EXTERNAL_INFO] {
     @return a @ref password_info_hash "password information hash" representing the user information for the user ID passed, or, if the user ID does not exist @ref nothing is returned
 
     @par Example:
-    @code
-my *hash $hash = getpwuid(0);
+    @code{.py}
+*hash hash = getpwuid(0);
     @endcode
 
     @see getpwuid2() for a similar function that throws an exception if the user ID is invalid
@@ -99,8 +99,8 @@ my *hash $hash = getpwuid(0);
     @return a @ref password_info_hash "password information hash" representing the user information for the user ID passed, or, if the user ID does not exist, a \c GETPWUID2-ERROR exception is thrown
 
     @par Example:
-    @code
-my *hash $hash = getpwuid2(0);
+    @code{.py}
+*hash hash = getpwuid2(0);
     @endcode
 
     @throw GETPWUID2-ERROR invalid uid or error reading user information
@@ -133,8 +133,8 @@ hash getpwuid2(softint uid) [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
     @return a @ref password_info_hash "password information hash" representing the user information for the user name passed, or, if the user does not exist @ref nothing is returned
 
     @par Example:
-    @code
-my *hash $hash = getpwnam("root");
+    @code{.py}
+*hash hash = getpwnam("root");
     @endcode
 
     @see getpwnam2() for a similar function that throws an exception if the user is invalid
@@ -157,8 +157,8 @@ hash getpwnam(string name) [flags=CONSTANT;dom=EXTERNAL_INFO] {
     @return a @ref password_info_hash "password information hash" representing the user information for the user name passed, or, if the user does not exist, a \c GETPWNAM2-ERROR exception is thrown
 
     @par Example:
-    @code
-my *hash $hash = getpwnam2("root");
+    @code{.py}
+*hash hash = getpwnam2("root");
     @endcode
 
     @throw GETPWNAM2-ERROR invalid user or error reading user information
@@ -191,8 +191,8 @@ hash getpwnam2(string name) [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
     @return a @ref group_info_hash "group information hash" representing the group information for the group ID passed, or, if the group ID does not exist @ref nothing is returned
 
     @par Example:
-    @code
-my *hash $hash = getgrgid(0);
+    @code{.py}
+*hash hash = getgrgid(0);
     @endcode
 
     @see getgrgid2() for a similar function that throws an exception if the group ID is invalid
@@ -215,8 +215,8 @@ my *hash $hash = getgrgid(0);
     @return a @ref group_info_hash "group information hash" representing the group information for the group ID passed, or, if the group ID does not exist, a \c GETGRGID2-ERROR exception is thrown
 
     @par Example:
-    @code
-my *hash $hash = getgrgid2(0);
+    @code{.py}
+*hash hash = getgrgid2(0);
     @endcode
 
     @throw GETGRGID2-ERROR invalid gid or error reading group information
@@ -249,8 +249,8 @@ hash getgrgid2(softint gid) [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
     @return a @ref group_info_hash "group information hash" representing the group information for the group name passed, or, if the group does not exist @ref nothing is returned
 
     @par Example:
-    @code
-my *hash $hash = getgrnam("root");
+    @code{.py}
+*hash hash = getgrnam("root");
     @endcode
 
     @see getgrnam2() for a similar function that throws an exception if the group is invalid
@@ -273,8 +273,8 @@ my *hash $hash = getgrnam("root");
     @return a @ref group_info_hash "group information hash" representing the group information for the group name passed, or, if the group does not exist, a \c GETGRNAM2-ERROR exception is thrown
 
     @par Example:
-    @code
-my *hash $hash = getgrnam2("root");
+    @code{.py}
+*hash hash = getgrnam2("root");
     @endcode
 
     @throw GETGRNAM2-ERROR invalid group or error reading group information
@@ -304,8 +304,8 @@ hash getgrnam2(string name) [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
 //@{
 //! returns the current username
 /** @par Example:
-    @code
-my string $name = getusername();
+    @code{.py}
+string name = getusername();
     @endcode
 
     @return the current username
@@ -344,7 +344,7 @@ string getusername() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
 
       return xsink->raiseException("GET-USERNAME-ERROR", desc);
    }
-   name->terminate(size);
+   name->terminate(size ? size - 1 : 0);
    return name.release();
 #else
 #error need getusername() support for this platform

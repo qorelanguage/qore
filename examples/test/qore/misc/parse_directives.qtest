@@ -28,6 +28,7 @@ public class ParseDirectiveTest inherits QUnit::Test {
         addTestCase("correct %try-module", \correctTryModule());
         addTestCase("correct %requires", \correctRequires());
         addTestCase("%exec-class tests", \execClass());
+        addTestCase("%exec-class crlf", \execClassCrlf());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -117,32 +118,37 @@ $y = 9;
     invalidIdInTryModule() {
         Program p();
         p.replaceParseOptions(PO_DEFAULT);
-        assertThrows("PARSE-EXCEPTION", "%try-module not in format '%try-module ($varname) <module>'; invalid exception variable name; text given: '%try-module  xml'",
-            \p.parse(), ("%try-module (\"2%) xml\nprint();\n%endtry\nprint();\n", ""));
+        assertThrows("PARSE-EXCEPTION", "%try-module not in format '%try-module ($varname) <module>'; invalid exception variable name; text given: '%try-module  Util'",
+            \p.parse(), ("%try-module (\"2%) Util\nprint();\n%endtry\nprint();\n", ""));
     }
 
     ignoredTextTryModule() {
         Program p();
         p.replaceParseOptions(PO_DEFAULT);
-        assertThrows("PARSE-EXCEPTION", "%try-module not in format '%try-module ($varname) <module>'; extra text before '('; text given: '%try-module whatever \"$@ except a parenthesis ($x) xml'",
-            \p.parse(), ("%try-module whatever \"$@ except a parenthesis ($x) xml\nprint();\n%endtry\nprint();\n", ""));
+        assertThrows("PARSE-EXCEPTION", "%try-module not in format '%try-module ($varname) <module>'; extra text before '('; text given: '%try-module whatever \"$@ except a parenthesis ($x) Util'",
+            \p.parse(), ("%try-module whatever \"$@ except a parenthesis ($x) Util\nprint();\n%endtry\nprint();\n", ""));
     }
 
     correctTryModule() {
         Program p();
         p.replaceParseOptions(PO_DEFAULT);
-        p.parse("%try-module\t         (\t     $x\t     \t) xml\nprint();\n%endtry\nprint();\n", "");
+        p.parse("%try-module\t         (\t     $x\t     \t) Util\nprint();\n%endtry\nprint();\n", "");
     }
 
     correctRequires() {
         Program p();
         p.replaceParseOptions(PO_DEFAULT);
-        p.parse("%requires \t xml  \t   \nprint();\n", "");
+        p.parse("%requires \t Util  \t   \nprint();\n", "");
     }
 
     execClass() {
         Program p(PO_NEW_STYLE);
         p.parse("%exec-class T\nclass T {abstract t();}", "exec-class");
         assertThrows("ABSTRACT-CLASS-ERROR", \p.run());
+    }
+
+    execClassCrlf() {
+        Program p(PO_NEW_STYLE);
+        p.parse("%exec-class T\r\nclass T {}\r\n", "exec-class-clrf");
     }
 }

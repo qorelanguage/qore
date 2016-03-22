@@ -105,7 +105,7 @@ public namespace WebSocketUtil {
         WSOP_Close: "CLOSE",
         WSOP_Ping: "PING",
         WSOP_Pong: "PONG",
-	);
+        );
     #@}
 
     /** @defgroup closecodes WebSocket Close Codes
@@ -161,13 +161,13 @@ public namespace WebSocketUtil {
         WSCC_MandatoryExt: "Mandatory Ext.",
         WSCC_InternalServerError: "Internal Server Error",
         WSCC_TlsHandshake: "TLS Handshake",
-	);
+        );
     #@}
 
     #! encodes a message for sending over a websocket socket
     public binary sub ws_encode_message(data msg, int op = -1, *bool masked) {
-	if (op == -1)
-	    op = msg.typeCode() == NT_STRING ? WSOP_Text : WSOP_Binary;
+        if (op == -1)
+            op = msg.typeCode() == NT_STRING ? WSOP_Text : WSOP_Binary;
 
         *binary mask;
         if (masked) {
@@ -176,111 +176,111 @@ public namespace WebSocketUtil {
             } while (mask == <00000000>);
         }
 
-	binary frame += chr(WS_FIN | op);
+        binary frame += chr(WS_FIN | op);
 
-	# encode frames with a message size < 126 directly in the second byte
-	switch (msg.size()) {
-	    case < 126: {
-		frame += chr(msg.size() | (masked ? 0x80 : 0));
-		break;
-	    }
-	    case < 65536: {
-		frame += chr(126 | (masked ? 0x80 : 0));
-		frame += msg.size().encodeMsb(2);
-		break;
-	    }
-  	    default: {
-	        frame += chr(127 | (masked ? 0x80 : 0));
-		frame += msg.size().encodeMsb(8);
-	    }
-	}
+        # encode frames with a message size < 126 directly in the second byte
+        switch (msg.size()) {
+            case < 126: {
+                frame += chr(msg.size() | (masked ? 0x80 : 0));
+                break;
+            }
+            case < 65536: {
+                frame += chr(126 | (masked ? 0x80 : 0));
+                frame += msg.size().encodeMsb(2);
+                break;
+            }
+            default: {
+                frame += chr(127 | (masked ? 0x80 : 0));
+                frame += msg.size().encodeMsb(8);
+            }
+        }
 
-	if (masked) {
-	    frame += mask;
-	    binary udata;
-	    if (msg.typeCode() == NT_STRING)
-		msg = binary(msg);
-	    for (int i = 0; i < msg.size(); ++i)
-		udata += chr((msg[i] ^ mask[i % 4]));
-	    msg = udata;
-	}
+        if (masked) {
+            frame += mask;
+            binary udata;
+            if (msg.typeCode() == NT_STRING)
+                msg = binary(msg);
+            for (int i = 0; i < msg.size(); ++i)
+                udata += chr((msg[i] ^ mask[i % 4]));
+            msg = udata;
+        }
 
-	frame += msg;
+        frame += msg;
 
-	return frame;
+        return frame;
     }
 
     #! read and decode a message from a socket
     /** @par Example:
-        @code
+        @code{.py}
 hash h = ws_read_message(sock);
-	@endcode
+        @endcode
 
-	@param sock the @ref Qore::Socket "Socket" object to receive the message
-	@param to an optional read timeout
+        @param sock the @ref Qore::Socket "Socket" object to receive the message
+        @param to an optional read timeout
 
-	@return a hash with the following keys:
-	- \c op: the operation code (one of @ref opcodes)
-	- \c masked a boolean flag indicating if the message was masked or not
-	- \c msg: the message received; if a CLOSE opcode is received (see @ref WSOP_Close) then any close message is decoded and included here in text form
-	- \c close: the close code (one of @ref closecodes); only included if \a op is @ref WSOP_Close
+        @return a hash with the following keys:
+        - \c op: the operation code (one of @ref opcodes)
+        - \c masked a boolean flag indicating if the message was masked or not
+        - \c msg: the message received; if a CLOSE opcode is received (see @ref WSOP_Close) then any close message is decoded and included here in text form
+        - \c close: the close code (one of @ref closecodes); only included if \a op is @ref WSOP_Close
     */
     public hash sub ws_read_message(Socket sock, *timeout to) {
-	int b0 = sock.recvu1(to);
+        int b0 = sock.recvu1(to);
 
-	# get opcode
-	int op = b0 & 0xf;
+        # get opcode
+        int op = b0 & 0xf;
 
-	# get next byte
-	int b1 = sock.recvu1();
-	softbool masked = b1 & 0x80;
-	b1 &= 0x7f;
+        # get next byte
+        int b1 = sock.recvu1();
+        softbool masked = b1 & 0x80;
+        b1 &= 0x7f;
 
-	int data_len;
-	if (b1 < 126)
-	    data_len = b1;
-	else if (b1 == 126)
-	    data_len = sock.recvu2();
-	else
-	    data_len = sock.recvi8();
+        int data_len;
+        if (b1 < 126)
+            data_len = b1;
+        else if (b1 == 126)
+            data_len = sock.recvu2();
+        else
+            data_len = sock.recvi8();
 
-	*binary mask;
-	if (masked) {
-	    mask = sock.recvBinary(4);
-	    #logDebug("mask: %s", mask.toHex());
-	}
+        *binary mask;
+        if (masked) {
+            mask = sock.recvBinary(4);
+            #logDebug("mask: %s", mask.toHex());
+        }
 
-	*data data;
-	if (data_len)
-	    data = sock.recvBinary(data_len);
+        *data data;
+        if (data_len)
+            data = sock.recvBinary(data_len);
 
-	# unmask data if necessary
-	if (mask) {
-	    # unmasked data
-	    binary udata;
-	    for (int i = 0; i < data.size(); ++i)
-		udata += chr((data[i] ^ mask[i % 4]));
-	    data = udata;
-	}
+        # unmask data if necessary
+        if (mask) {
+            # unmasked data
+            binary udata;
+            for (int i = 0; i < data.size(); ++i)
+                udata += chr((data[i] ^ mask[i % 4]));
+            data = udata;
+        }
 
-	hash h = (
-	    "op": op,
-	    "masked": masked,
-	    );
-	if (h.op == WSOP_Close) {
-	    if (data) {
-		h.close = get_word_32(data, 0);
-		# remove the first 4 bytes extracted above
-		splice data, 0, 4;
-		*string txtmsg = data ? data.toString("utf8") : NOTHING;
-		data = txtmsg;
-	    }
-	}
-	else if (op == WSOP_Text)
-	    data = data.toString(sock.getEncoding());
+        hash h = (
+            "op": op,
+            "masked": masked,
+            );
+        if (h.op == WSOP_Close) {
+            if (data) {
+                h.close = get_word_32(data, 0);
+                # remove the first 4 bytes extracted above
+                splice data, 0, 4;
+                *string txtmsg = data ? data.toString("utf8") : NOTHING;
+                data = txtmsg;
+            }
+        }
+        else if (op == WSOP_Text)
+            data = data.toString(sock.getEncoding());
 
-	return h + (
-	    "msg": data,
-	    );
+        return h + (
+            "msg": data,
+            );
     }
 }

@@ -52,7 +52,7 @@ module UnitTest {
     To use this module, use \c "%requires UnitTest" in your code.
 
     <b>Examples:</b>
-    @code
+    @code{.py}
 #!/usr/bin/env qore
 %requires UnitTest
 %requires Util
@@ -60,41 +60,41 @@ module UnitTest {
 %exec-class TestCow
 
 class TestCow inherits UnitTest {
-	constructor() {
-		string testfile = tmp_location() + '/test.txt';
-		# some processing
-		unlink(testfile);
+    constructor() {
+        string testfile = tmp_location() + '/test.txt';
+        # some processing
+        unlink(testfile);
 
-		cmp(Cow.sound(), 'moo', "cow's sound is correct");
+        cmp(Cow.sound(), 'moo', "cow's sound is correct");
 
-		ok(Cow.hasFourLegs(), "number of cow's legs correct");
+        ok(Cow.hasFourLegs(), "number of cow's legs correct");
 
-		like(Cow.sound(), 'moo+', "cow's sound is correct");
+        like(Cow.sound(), 'moo+', "cow's sound is correct");
 
-		sub fly (string animal) {
-			if (animal === "cow") {
-				throw 'UNABLE-FLY', 'cow cannot fly'
-			}
-		}
+        sub fly (string animal) {
+            if (animal === "cow") {
+                throw 'UNABLE-FLY', 'cow cannot fly'
+            }
+        }
 
                 exception(\fly(), ('cow'), 'invoked exception when cow trying to fly', UNABLE-FLY, 'cow cannot fly');
 
-		cmploop(
-			\eat(),
-			(
-				(
-					"args" : ("grass"),
-					"cmp"  : True,
-					"msg"  : "cow can eat grass",
-				),
-				(
-					"args" : ("itself"),
-					"cmp"  : False,
-					"msg"  : "cow cannot eat itself",
-				),
-			),
-		);
-	}
+        cmploop(
+            \eat(),
+            (
+                (
+                    "args" : ("grass"),
+                    "cmp"  : True,
+                    "msg"  : "cow can eat grass",
+                ),
+                (
+                    "args" : ("itself"),
+                    "cmp"  : False,
+                    "msg"  : "cow cannot eat itself",
+                ),
+            ),
+        );
+    }
 }
     @endcode
 
@@ -351,7 +351,7 @@ public class UnitTest::UnitTest {
         @param msg test message that will be printed
         @param detail Only for internal use: chainer reason for failure
         @par Example:
-        @code
+        @code{.py}
 test_id = cmp(Cow.sound(), 'moo', "cow's sound is correct");
         @endcode
     */
@@ -368,7 +368,7 @@ test_id = cmp(Cow.sound(), 'moo', "cow's sound is correct");
         @param v2 expected value
         @param msg test message that will be printed
         @par Example:
-        @code
+        @code{.py}
 test_id = cmp(Cow.sound(), 'moo', "cow's sound is correct");
         @endcode
     */
@@ -380,7 +380,7 @@ test_id = cmp(Cow.sound(), 'moo', "cow's sound is correct");
     /** @param v result of some statement
         @param msg test message that will be printed
         @par Example:
-        @code
+        @code{.py}
 ok(Cow.hasFourLegs(), "number of cow's legs correct");
         @endcode
     */
@@ -393,7 +393,7 @@ ok(Cow.hasFourLegs(), "number of cow's legs correct");
         @param msg test message that will be printed
         @param detail Only for internal use: chained reason for failure
         @par Example:
-        @code
+        @code{.py}
 ok(Cow.hasFourLegs(), "number of cow's legs correct");
         @endcode
     */
@@ -406,7 +406,7 @@ ok(Cow.hasFourLegs(), "number of cow's legs correct");
         @param regex a regexp that expected value should match
         @param msg test message that will be printed
         @par Example:
-        @code
+        @code{.py}
 like(Cow.sound(), 'moo+', "cow's sound is correct");
         @endcode
     */
@@ -424,7 +424,7 @@ like(Cow.sound(), 'moo+', "cow's sound is correct");
         @param err exception code
         @param regex a regexp that expected exception desc value of callref with given params should match
         @par Example:
-        @code
+        @code{.py}
 sub fly (string animal) {
     if (animal === "cow") {
         throw 'UNABLE-FLY', 'cow cannot fly'
@@ -458,7 +458,7 @@ exception(\fly(), ('cow'), 'invoked exception when cow trying to fly', UNABLE-FL
         * expected value returned from the tested function
         * test message for this particular testcase
         @par Example:
-        @code
+        @code{.py}
 cmploop(
     \eat(),
     (

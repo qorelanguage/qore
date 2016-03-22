@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -217,9 +217,9 @@ qclass File [system_constructor=FILE_system_constructor; arg=File* f; vparent=Re
     changed by the File::open(), File::open2(), or File::setEncoding() methods.
 
     @par Example:
-    @code
-my File $f();
-$f.open2("/tmp/my-file.txt");
+    @code{.py}
+File f();
+f.open2("/tmp/my-file.txt");
     @endcode
 
     @param encoding The @ref character_encoding "character encoding" for the %File. Any strings written to the %File will be converted to this @ref character_encoding "character encoding" if necessary; if this argument is not given then the %File will receive the @ref default_encoding "default encoding"
@@ -250,8 +250,8 @@ File::destructor() [doconly=true] {
 
 //! Creates a new %File object with the same @ref character_encoding "character encoding" specification as the original, otherwise no other information is copied
 /** @par Example:
-    @code
-my File $f1 = $f.copy();
+    @code{.py}
+File f1 = f.copy();
     @endcode
  */
 File::copy() {
@@ -265,11 +265,11 @@ File::copy() {
     Any string data written to the %File will be converted to the %File's encoding, and any string data read from the %File will be automatically tagged with the %File's encoding.
 
     @par Example:
-    @code
+    @code{.py}
 # open a file for writing, truncate data if already exists, create the file if doesn't exist
 # set 0644 permissions, and convert all string data to ISO-8859-1 encoding
-if ($f.open($fn, O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1"))
-    printf("%s: %s\n", $fn, strerror(errno()));
+if (f.open(fn, O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1"))
+    printf("%s: %s\n", fn, strerror(errno()));
     @endcode
 
     @par Events:
@@ -303,14 +303,14 @@ int File::open(string path, softint flags = O_RDONLY, softint mode = 0666, *stri
     If an error occurs, a \c FILE-OPEN2-ERROR exception is thrown. For a version of this method that returns an error code, see File::open().
 
     @par Example:
-    @code
+    @code{.py}
 # open a file for writing, truncate data if already exists, create the file if doesn't exist
 # set 0644 permissions, and convert all string data to ISO-8859-1 encoding
 try {
-    $f.open2($fn, O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");
+    f.open2(fn, O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");
 }
-catch (hash $ex) {
-    printf("%s: %s: %s\n", $fn, $ex.err, $ex.desc);
+catch (hash ex) {
+    printf("%s: %s: %s\n", fn, ex.err, ex.desc);
 }
     @endcode
 
@@ -337,8 +337,8 @@ nothing File::open2(string path, softint flags = O_RDONLY, softint mode = 0666, 
 
 //! Flushes the file's buffer to disk
 /** @par Example:
-    @code
-if ($f.sync())
+    @code{.py}
+if (f.sync())
     printf("error in File::sync(): %s\n", strerror(errno()));
     @endcode
 
@@ -355,8 +355,8 @@ int File::sync() {
 
 //! Writes binary data to a file
 /** @par Example:
-    @code
-$f.write($data);
+    @code{.py}
+f.write(data);
     @endcode
 
     @par Events:
@@ -380,8 +380,8 @@ int File::write(binary data) {
 
 //! Writes string data to a file; string data is converted to the %File's @ref character_encoding "character encoding" if necessary before writing
 /** @par Example:
-    @code
-$f.write($data);
+    @code{.py}
+f.write(data);
     @endcode
 
     @par Events:
@@ -408,8 +408,8 @@ int File::write(string data) {
 
 //! Writes string data to a file; string data is converted to the %File's @ref character_encoding "character encoding" if necessary before writing
 /** @par Example:
-    @code
-$f.print($data);
+    @code{.py}
+f.print(data);
     @endcode
 
     @par Events:
@@ -436,8 +436,8 @@ int File::print(string data) {
 
 //! Writes a 1-byte integer to the file
 /** @par Example:
-    @code
-$f.writei1($val);
+    @code{.py}
+f.writei1(val);
     @endcode
 
     @par Events:
@@ -461,8 +461,8 @@ int File::writei1(int c) {
 
 //! Writes a 2-byte (16 bit) integer to the file in binary big-endian format
 /** @par Example:
-    @code
-$f.writei2($val);
+    @code{.py}
+f.writei2(val);
     @endcode
 
     @par Events:
@@ -486,8 +486,8 @@ int File::writei2(int s) {
 
 //! Writes a 4-byte (32 bit) integer to the file in binary big-endian format
 /** @par Example:
-    @code
-$f.writei4($val);
+    @code{.py}
+f.writei4(val);
     @endcode
 
     @par Events:
@@ -511,8 +511,8 @@ int File::writei4(int i) {
 
 //! Writes an 8-byte (64 bit) integer to the file in binary big-endian format
 /** @par Example:
-    @code
-$f.writei8($val);
+    @code{.py}
+f.writei8(val);
     @endcode
 
     @par Events:
@@ -536,8 +536,8 @@ int File::writei8(int i) {
 
 //! Writes a 2-byte (16 bit) integer to the file in binary little-endian format
 /** @par Example:
-    @code
-$f.writei2LSB($val);
+    @code{.py}
+f.writei2LSB(val);
     @endcode
 
     @par Events:
@@ -561,8 +561,8 @@ int File::writei2LSB(int s) {
 
 //! Writes a 4-byte (32 bit) integer to the file in binary little-endian format
 /** @par Example:
-    @code
-$f.writei4LSB($val);
+    @code{.py}
+f.writei4LSB(val);
     @endcode
 
     @par Events:
@@ -586,8 +586,8 @@ int File::writei4LSB(int i) {
 
 //! Writes an 8-byte (64 bit) integer to the file in binary little-endian format
 /** @par Example:
-    @code
-$f.writei8LSB($val);
+    @code{.py}
+f.writei8LSB(val);
     @endcode
 
     @par Events:
@@ -613,8 +613,8 @@ int File::writei8LSB(int i) {
 /** This method will allow arguments to overrun field width specifiers in the format string.
 
     @par Example:
-    @code
-$f.printf("%5s\n", "hello there"); # outputs "hello there\n", exceeding field width
+    @code{.py}
+f.printf("%5s\n", "hello there"); # outputs "hello there\n", exceeding field width
     @endcode
 
     @par Events:
@@ -653,8 +653,8 @@ int File::printf() [flags=RUNTIME_NOOP] {
 /** This method will allow arguments to overrun field width specifiers in the format string.
 
     @par Example:
-    @code
-$f.vprintf("%5s: %d\n", ("hello there", 2)); # outputs "hello there: 2\n", exceeding field width
+    @code{.py}
+f.vprintf("%5s: %d\n", ("hello there", 2)); # outputs "hello there: 2\n", exceeding field width
     @endcode
 
     @par Events:
@@ -694,8 +694,8 @@ int File::vprintf() [flags=RUNTIME_NOOP] {
 /** This method does not allow arguments to overrun field width specifiers in the format string.
 
     @par Example:
-    @code
-$f.f_printf("%5s\n", "hello there"); # outputs "hello\n", enforcing the field width
+    @code{.py}
+f.f_printf("%5s\n", "hello there"); # outputs "hello\n", enforcing the field width
     @endcode
 
     @par Events:
@@ -734,8 +734,8 @@ int File::f_printf() [flags=RUNTIME_NOOP] {
 /** This method will not allow arguments to overrun field width specifiers in the format string.
 
     @par Example:
-    @code
-$f.f_vprintf("%5s: %d\n", ("hello there", 2)); # outputs "hello: 2\n", enforcing the field width
+    @code{.py}
+f.f_vprintf("%5s: %d\n", ("hello there", 2)); # outputs "hello: 2\n", enforcing the field width
     @endcode
 
     @par Events:
@@ -801,15 +801,15 @@ string File::getCharset() [flags=CONSTANT] {
     @ref Qore::Option::HAVE_FILE_LOCKING
 
     @par Example:
-    @code
+    @code{.py}
 # lock the entire file exclusively
-$f.lock(F_WRLCK);
+f.lock(F_WRLCK);
 
 # lock a section of the file for reading, start byte 512, 2K range
-$f.lock(F_RDLCK, 512, 2048);
+f.lock(F_RDLCK, 512, 2048);
 
 # release all locks
-$f.lock(F_UNLCK);
+f.lock(F_UNLCK);
     @endcode
 
     @param type %Type of lock (or unlock); see @ref file_locking_constants
@@ -847,15 +847,15 @@ int File::lock(softint[doc] type = F_RDLCK, softint[doc] start = 0, softint[doc]
     @ref Qore::Option::HAVE_FILE_LOCKING
 
     @par Example:
-    @code
+    @code{.py}
 # lock the entire file exclusively
-$f.lockBlocking(F_WRLCK);
+f.lockBlocking(F_WRLCK);
 
 # lock a section of the file for reading, start byte 512, 2K range
-$f.lockBlocking(F_RDLCK, 512, 2048);
+f.lockBlocking(F_RDLCK, 512, 2048);
 
 # release all locks
-$f.lockBlocking(F_UNLCK);
+f.lockBlocking(F_UNLCK);
     @endcode
 
     @param type %Type of lock (or unlock); see @ref file_locking_constants
@@ -891,8 +891,8 @@ nothing File::lockBlocking(softint[doc] type = F_RDLCK, softint[doc] start = 0, 
     @ref Qore::Option::HAVE_FILE_LOCKING
 
     @par Example:
-    @code
-my hash $hash = $f.getLockInfo();
+    @code{.py}
+hash hash = f.getLockInfo();
     @endcode
 
     @return a hash with the following keys:
@@ -934,8 +934,8 @@ hash File::getLockInfo() [flags=RET_VALUE_ONLY] {
     @ref Qore::Option::HAVE_UNIX_FILEMGT
 
     @par Example:
-    @code
-$f.chown(0, 0);
+    @code{.py}
+f.chown(0, 0);
     @endcode
 
     @param uid The user id of the user to change to; -1 means do not change uid
@@ -964,9 +964,9 @@ nothing File::chown(softint uid, softint gid = -1) {
     @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
-    @code
-my TermIOS $termios();
-stdin.getTerminalAttributes($termios);
+    @code{.py}
+TermIOS termios();
+stdin.getTerminalAttributes(termios);
     @endcode
 
     @param termios The method writes the current terminal attributes for the file to the object passed
@@ -994,8 +994,8 @@ nothing File::getTerminalAttributes(TermIOS[QoreTermIOS] termios) {
     @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
-    @code
-my TermIOS $termios = stdin.getTerminalAttributes();
+    @code{.py}
+TermIOS termios = stdin.getTerminalAttributes();
     @endcode
 
     @return the current terminal attributes for the File
@@ -1027,21 +1027,21 @@ TermIOS File::getTerminalAttributes() {
     @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
-    @code
-my TermIOS $termios();
-stdin.getTerminalAttributes($termios);
-my TermIOS $orig = $termios.copy();
+    @code{.py}
+TermIOS termios();
+stdin.getTerminalAttributes(termios);
+TermIOS orig = termios.copy();
 on_exit
-    stdin.setTerminalAttributes(TCSADRAIN, $orig);
+    stdin.setTerminalAttributes(TCSADRAIN, orig);
 
-my int $lflag = $termios.getLFlag();
-$lflag &= ~ICANON;
-$lflag &= ~ECHO;
-$lflag &= ~ISIG;
-$termios.setLFlag($lflag);
-$termios.setCC(VMIN, 1);
-$termios.setCC(VTIME, 0);
-stdin.setTerminalAttributes(TCSADRAIN, $termios);
+int lflag = termios.getLFlag();
+lflag &= ~ICANON;
+lflag &= ~ECHO;
+lflag &= ~ISIG;
+termios.setLFlag(lflag);
+termios.setCC(VMIN, 1);
+termios.setCC(VTIME, 0);
+stdin.setTerminalAttributes(TCSADRAIN, termios);
     @endcode
 
     @param action a binary or'ed value of the following actions:
@@ -1074,8 +1074,8 @@ nothing File::setTerminalAttributes(softint action = TCSANOW, TermIOS[QoreTermIO
     If any errors occur, a \c FILE-STAT-ERROR exception is thrown
 
     @par Example:
-    @code
-my int $mode = File::stat($path)[2];
+    @code{.py}
+int mode = File::stat(path)[2];
     @endcode
 
     @param path the file to stat()
@@ -1099,8 +1099,8 @@ static list File::stat(string path) [dom=FILESYSTEM] {
     If any errors occur, a \c FILE-LSTAT-ERROR exception is thrown
 
     @par Example:
-    @code
-my int $mode = File::lstat($path)[2];
+    @code{.py}
+int mode = File::lstat(path)[2];
     @endcode
 
     @param path the file to stat()
@@ -1129,8 +1129,8 @@ static list File::lstat(string path) [dom=FILESYSTEM] {
     If any errors occur, a \c FILE-HSTAT-ERROR exception is thrown
 
     @par Example:
-    @code
-my hash $h = File::hstat($path);
+    @code{.py}
+hash h = File::hstat(path);
     @endcode
 
     @param path the file to stat()
@@ -1154,8 +1154,8 @@ static hash File::hstat(string path) [dom=FILESYSTEM] {
     If any errors occur, a \c FILE-HSTAT-ERROR exception is thrown
 
     @par Example:
-    @code
-my hash $h = File::hstat($path);
+    @code{.py}
+hash h = File::hstat(path);
     @endcode
 
     @param path the file to stat()
@@ -1185,8 +1185,8 @@ static hash File::hlstat(string path) [dom=FILESYSTEM] {
     @ref Qore::Option::HAVE_STATVFS
 
     @par Example:
-    @code
-my hash $h = File::statvfs($path);
+    @code{.py}
+hash h = File::statvfs(path);
     @endcode
 
     @param path the path to the filesystem to check
@@ -1196,7 +1196,7 @@ my hash $h = File::statvfs($path);
     @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check Option::HAVE_STATVFS before calling this method to avoid this exception
  */
 static hash File::statvfs(string path) [dom=FILESYSTEM] {
-#ifdef HAVE_SYS_STATVFS_H
+#ifdef Q_HAVE_STATVFS
    struct statvfs vfs;
    if (statvfs(path->getBuffer(), &vfs))
       return xsink->raiseErrnoException("FILE-STATVFS-ERROR", errno, "statvfs() call failed");

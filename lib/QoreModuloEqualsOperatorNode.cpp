@@ -1,11 +1,10 @@
-/* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreModulaEqualsOperatorNode.h
-
+  QoreModuloEqualsOperatorNode.cpp
+ 
   Qore Programming Language
-
+ 
   Copyright (C) 2003 - 2015 David Nichols
-
+ 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -29,20 +28,30 @@
   information.
 */
 
-#ifndef _QORE_QOREMODULAEQUALSOPERATORNODE_H
-#define _QORE_QOREMODULAEQUALSOPERATORNODE_H
+#include <qore/Qore.h>
 
-class QoreModulaEqualsOperatorNode : public QoreBinaryIntLValueOperatorNode {
-OP_COMMON
-protected:
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+QoreString QoreModuloEqualsOperatorNode::op_str("%= operator expression");
 
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+AbstractQoreNode *QoreModuloEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   parseInitIntLValue(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
+   return this;
+}
 
-public:
-   DLLLOCAL QoreModulaEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryIntLValueOperatorNode(n_left, n_right) {
+QoreValue QoreModuloEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+   int64 val = right->bigIntEval(xsink);
+   if (*xsink)
+      return QoreValue();
+
+   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
+   LValueHelper v(left, xsink);
+   if (!v)
+      return QoreValue();
+
+   // do not try to execute %= 0 or a runtime exception will occur
+   if (!val) {
+      v.assign(0ll, "<%= operator>");
+      return 0ll;
    }
-};
-
-#endif
-
+   
+   return v.modulaEqualsBigInt(val, "<%= operator>");
+}

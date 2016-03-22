@@ -3,7 +3,7 @@
 
 # @file sqlutil example program for the SqlUtil module
 
-/*  Copyright 2013 - 2015 David Nichols
+/*  Copyright 2013 - 2016 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -423,7 +423,7 @@ sub main() {
         FileLineIterator it(arg[1]);
         while (it.next()) {
             hash row = parseYAML(it.getValue());
-            table.insertNoCommit(row);
+            table.insert(row);
 
             if (it.index() % 1000 == 0)
                 source.commit();

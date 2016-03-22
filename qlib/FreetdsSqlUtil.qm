@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file FreetdsSqlUtil.qm Qore user module for working with PostgreSQL SQL data
 
-/*  FreetdsSqlUtil.qm Copyright (C) 2015 Qore Technologies, sro
+/*  FreetdsSqlUtil.qm Copyright (C) 2015 - 2016 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -99,7 +99,7 @@ public namespace FreetdsSqlUtil {
 
     #! returns a FreetdsDatabase object corresponding to the arguments
     public FreetdsDatabase sub get_database(AbstractDatasource nds, *hash opts) {
-	return new FreetdsDatabase(nds, opts);
+        return new FreetdsDatabase(nds, opts);
     }
 
     sub parse_schema_name(string nname, reference schema, reference name) {
@@ -117,7 +117,7 @@ public namespace FreetdsSqlUtil {
 
     #! represents a FreeTDS-specific index
     public class FreetdsIndex inherits SqlUtil::AbstractIndex {
-	public {
+        public {
             #! the tablespace (filegroup) name of the index
             *string filegroup;
         }
@@ -220,20 +220,19 @@ public namespace FreetdsSqlUtil {
 
         #! returns a list of sql strings that can be used to add the column to an existing table
         /** @par Example:
-            @code
+            @code{.py}
 my list $l = $col.getAddColumnSql($t);
             @endcode
 
             @param t the SqlUtil::AbstractTable object to modify
          */
-        list getAddColumnSql(AbstractTable t) {
-	    list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
-            return l;
+        softlist getAddColumnSql(AbstractTable t) {
+            return sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
         }
 
         #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
         /** @par Example:
-            @code
+            @code{.py}
 my list $l = $col.getModifySql($t, $newcol);
             @endcode
 
@@ -278,7 +277,7 @@ my list $l = $col.getModifySql($t, $newcol);
 
         #! returns a string that can be used to rename the column
         /** @par Example:
-            @code
+            @code{.py}
 my string $str = $col.getRenameSql($t, "new_name");
             @endcode
 
@@ -373,7 +372,7 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         #! returns the FreetdsColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 my any $v = $c.name;
             @endcode
 
@@ -434,7 +433,7 @@ my any $v = $c.name;
 
         #! returns the FreetdsColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 my any $v = $c.name;
             @endcode
 
@@ -497,7 +496,7 @@ my any $v = $c.name;
 
         #! returns a string that can be used to create the view in the database
         string getCreateSql(*hash opt) {
-            # TODO/FIXME: more freetds options - what's allows in "opt"?
+            # TODO/FIXME: more freetds options - what's allowed in "opt"?
             return sprintf("create %s%sview %s as %s",
                            opt.replace ? "or replace " : "",
                            opt.temp ? "temp " : "",
@@ -535,10 +534,10 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the trigger in the database
-	softlist getRenameSql(string table_name, string new_name) {
+        softlist getRenameSql(string table_name, string new_name) {
             # no idea if this will work
             return sprintf("sp_rename '%s', '%s', 'OBJECT'", name, new_name);
-	}
+        }
     }
 
     #! represents a FreeTDS-specific function
@@ -567,10 +566,10 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the function in the database
-	softlist getRenameSql(string new_name) {
+        softlist getRenameSql(string new_name) {
             # no idea if this will work
             return sprintf("sp_rename '%s', '%s', 'OBJECT'", name, new_name);
-	}
+        }
 
         #! sets the new name of the function
         setName(string new_name) {
@@ -613,11 +612,18 @@ my any $v = $c.name;
             string schema;
             parse_schema_name(name, \schema, \name);
 
-            *hash row = ds.selectRow("select * from information_schema.views where tabke_chema = %v and table_name = %v", schema, name);
+            # information_schema will return NULL if the view definition > 4000 chars, so we use system tables
+            *hash row = ds.selectRow("select smv.definition from sys.all_views v join sys.sql_modules smv on smv.object_id = v.object_id join sys.schemas s on s.schema_id = v.schema_id where s.name = %v and v.name = %v", schema, name);
+
             if (!row)
                 return;
 
-            return new FreetdsView(name, row.view_definition, row.table_schema);
+            if (!row.definition)
+                throw "VIEW-ERROR", sprintf("view %y exists but the current user does not have permission to read the view", name);
+
+            row.definition =~ s/create view .* as //ig;
+
+            return new FreetdsView(name, row.definition, schema);
         }
 
         private FreetdsFunction makeFunctionImpl(string name, string src, *hash opts) {
@@ -791,6 +797,9 @@ my any $v = $c.name;
             #! sybase flag
             bool is_sybase;
 
+            #! "has merge" flag for SQL server
+            bool ss_has_merge = False;
+
             #! maps postgresql type names to type configurations
             const FreetdsTypeMap = (
                 "numeric": ("qore": Type::Number, "size": SZ_NUM,),
@@ -799,24 +808,43 @@ my any $v = $c.name;
                 "smallint": ("qore": Type::Int,),
                 "int": ("qore": Type::Int,),
                 "bigint": ("qore": Type::Int,),
-                "float": ("qore": Type::Float,),
+                "double": ("qore": Type::Float,),
+                "float": ("qore": Type::Float,), # NOTE: optional precision
                 "real": ("qore": Type::Float,),
                 "money": ("qore": Type::Number,),
                 "smallmoney": ("qore": Type::Number,),
+
                 "datetime": ("qore": Type::Date,),
                 "smalldatetime": ("qore": Type::Date,),
                 "date": ("qore": Type::Date,),
                 "time": ("qore": Type::Date,),
-                "char": ("qore": Type::String, "size": SZ_MAND,),
-                "character varying": ("qore": Type::String, "size": SZ_MAND,),
-                "varchar": ("qore": Type::String, "size": SZ_MAND,),
+
+                # NOTE: "size_range" is different between MS SQL Server and Sybase SQL Anywhere Server
+                # MS SQL: range is (1, 8000) or special keyword "max" for varchar types
+                # Sybase: range is (1, 32767) and size is mandatory for character-length semantics
+                "char": ("qore": Type::String, "size": SZ_OPT),
+                "char varying": ("qore": Type::String, "size": SZ_OPT),
+                "character varying": ("qore": Type::String, "size": SZ_OPT),
+                "varchar": ("qore": Type::String, "size": SZ_OPT),
+
+                # The following uni* types are used in Sybase Adaptive Server
                 "unichar": ("qore": Type::String, "size": SZ_MAND,),
                 "univarchar": ("qore": Type::String, "size": SZ_MAND,),
-                "text": ("qore": Type::String,),
                 "unitext": ("qore": Type::String,),
-                "binary": ("qore": Type::Binary,),
-                "varbinary": ("qore": Type::Binary,),
-                "image": ("qore": Type::Binary,),
+
+                # NOTE: "size_range" is different between MS SQL Server and Sybase SQL Anywhere Server
+                # MS SQL: range is (1, 8000) or special keyword "max" for varbinary types
+                # Sybase: range is (1, 32767)
+                "binary": ("qore": Type::Binary, "size": SZ_OPT),
+                "binary varying": ("qore": Type::Binary, "size": SZ_OPT),
+                "varbinary": ("qore": Type::Binary, "size": SZ_OPT),
+
+                # The following are used in Sybase, supported & deprecated in MS SQL
+                "text": ("qore": Type::String,), # domain, implemented as "long varchar"
+                "image": ("qore": Type::Binary,), # domain, implemented as "long binary"
+                # The following are Sybase specific
+                "long binary": ("qore": Type::Binary,),
+                "long varchar": ("qore": Type::String,),
                 );
 
             #! maps qore type names to postgresql type names
@@ -848,6 +876,44 @@ my any $v = $c.name;
 
             #! column operator specializations for FreeTDS
             const FreetdsCopMap = DefaultCopMap + (
+                COP_CAST: (
+                    "code": string sub (string cve, list args) {
+                        string name = QoreTypeMap{args[0]} ?? args[0];
+                        hash desc = FreetdsTypeMap{name};
+                        string sql = sprintf ("cast (%s as %s", cve, name);
+                        switch (name) {
+                            default:
+                                if (desc.size == SZ_MAND) {
+                                    if (!exists args[1] && !exists desc.size_range)
+                                        throw "OPERATOR-ERROR", sprintf ("op_cast operator missing size for type %s", name);
+                                    sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
+                                }
+                                else if (desc.size == SZ_NUM && exists args[1]) {
+                                    sql += sprintf("(%d", args[1]);
+                                    sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
+                                }
+                                else if (desc.size == SZ_OPT && exists args[1]) {
+                                    sql += sprintf("(%d)", args[1]);
+                                }
+                        }
+                        sql += ")";
+                        return sql;
+                    },
+                ),
+                COP_PREPEND: (
+                    "arg": Type::String,
+                    "sqlvalue": True,
+                    "code": string sub (string cve, string arg) {
+                        return sprintf("%s + %s", arg, cve);
+                    },
+                ),
+                COP_APPEND: (
+                    "arg": Type::String,
+                    "sqlvalue": True,
+                    "code": string sub (string cve, string arg) {
+                        return sprintf("%s + %s", cve, arg);
+                    },
+                ),
                 COP_OVER: (
                     "argcolumn": True,
                     "argoptional": True,
@@ -880,8 +946,21 @@ my any $v = $c.name;
                     }
                 ),
                 COP_SEQ: (
-                    "code": string sub (string arg1, string arg) {
-                        return sprintf("next value for %s", arg);
+                    "nocolumn": True,
+                    "withalias": True,
+                    "code": string sub (*string cve, hash arg, reference psch) {
+                        string sql = sprintf("next value for %s", arg.seq);
+                        if (arg.as) {
+                            psch{arg.as} = sql;
+                            sql += " as " + arg.as;
+                        }
+                        return sql;
+                    }
+                ),
+                COP_SEQ_CURRVAL: (
+                    "nocolumn": True,
+                    "code": string sub (*string cve, hash arg) {
+                        throw "SEQUENCE-ERROR", sprintf("cannot select the current value of sequence %y because this database does not support this operation", arg.seq);
                     }
                 ),
                 );
@@ -908,6 +987,12 @@ my any $v = $c.name;
 
         constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
             is_sybase = FreetdsDatabase::isSybase(ds);
+            # set vars for MS SQL Server
+            if (!is_sybase) {
+                *softint ver = (ds.getServerVersion() =~ x/Microsoft SQL Server ([0-9]+)/)[0];
+                if (ver >= 2008)
+                    ss_has_merge = True;
+            }
             # see if there is a schema in the name
             parse_schema_name(nname, \schema, \name);
         }
@@ -920,6 +1005,45 @@ my any $v = $c.name;
         #! returns the data filegroup name for the table or @ref nothing if none is known
         *string getTablespaceName() {
             return filegroup;
+        }
+
+        #! returns a closure for performing upserts; if the underlying dataserver supports an optimized \c MERGE statement (Microsoft SQL Server 2008+), the \a upsert_strategy argument is ignored and a closure using a merge statement is returned, otherwise the standard upsert closure is returned according to @ref SqlUtil::AbstractTable::getUpsertClosure()
+        code getUpsertClosure(hash row, int upsert_strategy = UpsertAuto) {
+            if (!ss_has_merge)
+                return AbstractTable::getUpsertClosure(row, upsert_strategy);
+
+            Columns cols = checkUpsertRow(row, \upsert_strategy);
+
+            # get update columns
+            list updc = ();
+            map updc += $1, row.keyIterator(), !cols.hasKey($1);
+            # cannot use merge where only the join columns are present
+            if (!updc)
+                return getUpsertInsertOnly(cols, row);
+
+            string sql = sprintf("merge %s t using (select ", getSqlName());
+            sql += foldl $1 + "," + $2, (map "%v", row.keyIterator());
+            sql += ") as source (";
+            sql += foldl $1 + "," + $2, row.keyIterator();
+            sql += ") on (";
+            sql += foldl $1 + " and " + $2, (map sprintf("t.%s=source.%s", $1, $1), getColumnSqlNames(cols.keys()));
+            sql += sprintf(") when matched then update set ");
+            # get update columns
+            sql += (foldl $1 + "," + $2, (map sprintf("t.%s=source.%s", $1, $1), getColumnSqlNames(updc)));
+            sql += sprintf(" when not matched then insert (");
+            sql += (foldl $1 + "," + $2, getColumnSqlNames(row.keys()));
+            sql += ") values (";
+            sql += (foldl $1 + "," + $2, (map "source." + $1, row.keyIterator()));
+            sql += ");";
+
+            #printf("sql: %s\n", sql);
+
+            return int sub (hash crow) {
+                list args = crow.values();
+                #on_error printf("SQL: %s args: %y\n", sql, args);
+                ds.vexec(sql, args);
+                return UR_Verified;
+            };
         }
 
         #! returns @ref Qore::False "False" because the freetds driver does not support array binds / bulk DML operations
@@ -1343,17 +1467,12 @@ order by
         }
 
         private bool tryInsertImpl(string sql, hash row) {
-            ds.exec("begin tran");
-            ds.exec("save tran " + FreetdsDatabase::FreeTDS_TempSavepoint);
-
             try {
                 ds.vexec(sql, row.values());
             }
             catch (hash ex) {
-                if (ex.desc =~ /Cannot insert duplicate/) {
-                    ds.exec("rollback tran " + FreetdsDatabase::FreeTDS_TempSavepoint);
+                if (ex.desc =~ /Cannot insert duplicate/)
                     return False;
-                }
                 rethrow;
             }
             return True;
@@ -1426,7 +1545,7 @@ order by
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch) {
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             throw "UNIMPLEMENTED", "offset not yet implemented";
         }
 
@@ -1459,6 +1578,12 @@ order by
 
             *hash h = execData(opt, sql, args);
             return h ? map {$1.key: $1.value[0]}, h.pairIterator() : h;
+        }
+
+        private softbool tryUpdate(string sql, hash row, Columns cols, list updc) {
+            list args = row{updc}.values() + row{cols.keys()}.values();
+            any x = ds.vexec(sql, args);
+            return x.typeCode() == NT_HASH ? x.firstValue() : x;
         }
     }
 }

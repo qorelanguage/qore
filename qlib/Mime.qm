@@ -66,7 +66,7 @@ module Mime {
     - http://tools.ietf.org/html/rfc2047: "Q" and "B" encoded words (implemented by the Mime module)
 
     @par Example:
-    @code
+    @code{.py}
 #!/usr/bin/env qore
 
 %requires Mime
@@ -124,7 +124,7 @@ printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b(s
 #! public Mime namespace defines constants and functions relevant to MIME
 public namespace Mime {
     /** @defgroup MimeTypeDefinitions MIME Type Definitions
-	These are constants for common MIME types
+        These are constants for common MIME types
      */
     #@{
     public const MimeTypeUnknown = MimeTypeOctetStream;
@@ -181,127 +181,127 @@ public namespace Mime {
     /** @showinitializer
      */
     public const MimeTypes = (
-	"7z": "application/x-7z-compressed",
-	"ai": "application/postscript",
-	"aif": "audio/x-aiff",
-	"aifc": "audio/x-aiff",
-	"aiff": "audio/x-aiff",
-	"asc": MimeTypeText,
-	"atom": "application/atom+xml",
-	"au": "audio/basic",
-	"avi": "video/x-msvideo",
-	"bcpio": "application/x-bcpio",
-	"bin": MimeTypeUnknown,
-	"bmp": "image/bmp",
-	"bz2": "application/x-bzip",
-	"cc": MimeTypeText,
-	"cdf": "application/x-netcdf",
-	"cgm": "image/cgm",
-	"class": MimeTypeUnknown,
-	"cpio": "application/x-cpio",
-	"cpp": MimeTypeText,
-	"cpt": "application/mac-compactpro",
-	"csh": "application/x-csh",
-	"css": MimeTypeCss,
-	"csv": MimeTypeCsv,
-	"dcr": "application/x-director",
-	"dif": "video/x-dv",
-	"dir": "application/x-director",
-	"djv": "image/vnd.djvu",
-	"djvu": "image/vnd.djvu",
-	"dll": MimeTypeUnknown,
-	"dmg": MimeTypeUnknown,
-	"dms": MimeTypeUnknown,
-	"doc": "application/msword",
-	"dtd": "application/xml-dtd",
-	"dv": "video/x-dv",
-	"dvi": "application/x-dvi",
-	"dxr": "application/x-director",
-	"eps": "application/postscript",
-	"etx": "text/x-setext",
-	"exe": MimeTypeUnknown,
-	"ez": "application/andrew-inset",
-	"gif": "image/gif",
-	"gram": "application/srgs",
-	"grxml": "application/srgs+xml",
-	"gtar": "application/x-gtar",
-	"gz": "application/x-gzip",
-	"h": MimeTypeText,
-	"hdf": "application/x-hdf",
-	"hh": MimeTypeText,
-	"hpp": MimeTypeText,
-	"hqx": "application/mac-binhex40",
-	"htm": MimeTypeHtml,
-	"html": MimeTypeHtml,
-	"ice": "x-conference/x-cooltalk",
-	"ico": "image/x-icon",
-	"ics": "text/calendar",
-	"ief": "image/ief",
-	"ifb": "text/calendar",
-	"iges": "model/iges",
-	"igs": "model/iges",
-	"jar": "application/java-archive",
-	"java": MimeTypeText,
-	"jnlp": "application/x-java-jnlp-file",
-	"jp2": "image/jp2",
-	"jpe": MimeTypeJpeg,
-	"jpeg": MimeTypeJpeg,
-	"jpg": MimeTypeJpeg,
-	"js": MimeTypeJavascript,
-	"kar": "audio/midi",
-	"latex": "application/x-latex",
-	"lha": MimeTypeUnknown,
-	"lzh": MimeTypeUnknown,
-	"m3u": "audio/x-mpegurl",
-	"m4a": "audio/mp4a-latm",
-	"m4b": "audio/mp4a-latm",
-	"m4p": "audio/mp4a-latm",
-	"m4u": "video/vnd.mpegurl",
-	"m4v": "video/x-m4v",
-	"mac": "image/x-macpaint",
-	"man": "application/x-troff-man",
-	"mathml": "application/mathml+xml",
-	"me": "application/x-troff-me",
-	"mesh": "model/mesh",
-	"mid": "audio/midi",
-	"midi": "audio/midi",
-	"mif": "application/vnd.mif",
-	"mov": "video/quicktime",
-	"movie": "video/x-sgi-movie",
-	"mp2": "audio/mpeg",
-	"mp3": "audio/mpeg",
-	"mp4": "video/mp4",
-	"mpe": "video/mpeg",
-	"mpeg": "video/mpeg",
-	"mpg": "video/mpeg",
-	"mpga": "audio/mpeg",
-	"ms": "application/x-troff-ms",
-	"msh": "model/mesh",
-	"mxu": "video/vnd.mpegurl",
-	"nc": "application/x-netcdf",
-	"oda": "application/oda",
-	"ogg": "application/ogg",
-	"pbm": "image/x-portable-bitmap",
-	"pct": "image/pict",
-	"pdb": "chemical/x-pdb",
-	"pdf": "application/pdf",
-	"pgm": "image/x-portable-graymap",
-	"pgn": "application/x-chess-pgn",
-	"pic": "image/pict",
-	"pict": "image/pict",
-	"png": MimeTypePng,
-	"pnm": "image/x-portable-anymap",
-	"pnt": "image/x-macpaint",
-	"pntg": "image/x-macpaint",
-	"ppm": "image/x-portable-pixmap",
-	"ppt": "application/vnd.ms-powerpoint",
-	"ps": "application/postscript",
+        "7z": "application/x-7z-compressed",
+        "ai": "application/postscript",
+        "aif": "audio/x-aiff",
+        "aifc": "audio/x-aiff",
+        "aiff": "audio/x-aiff",
+        "asc": MimeTypeText,
+        "atom": "application/atom+xml",
+        "au": "audio/basic",
+        "avi": "video/x-msvideo",
+        "bcpio": "application/x-bcpio",
+        "bin": MimeTypeUnknown,
+        "bmp": "image/bmp",
+        "bz2": "application/x-bzip",
+        "cc": MimeTypeText,
+        "cdf": "application/x-netcdf",
+        "cgm": "image/cgm",
+        "class": MimeTypeUnknown,
+        "cpio": "application/x-cpio",
+        "cpp": MimeTypeText,
+        "cpt": "application/mac-compactpro",
+        "csh": "application/x-csh",
+        "css": MimeTypeCss,
+        "csv": MimeTypeCsv,
+        "dcr": "application/x-director",
+        "dif": "video/x-dv",
+        "dir": "application/x-director",
+        "djv": "image/vnd.djvu",
+        "djvu": "image/vnd.djvu",
+        "dll": MimeTypeUnknown,
+        "dmg": MimeTypeUnknown,
+        "dms": MimeTypeUnknown,
+        "doc": "application/msword",
+        "dtd": "application/xml-dtd",
+        "dv": "video/x-dv",
+        "dvi": "application/x-dvi",
+        "dxr": "application/x-director",
+        "eps": "application/postscript",
+        "etx": "text/x-setext",
+        "exe": MimeTypeUnknown,
+        "ez": "application/andrew-inset",
+        "gif": "image/gif",
+        "gram": "application/srgs",
+        "grxml": "application/srgs+xml",
+        "gtar": "application/x-gtar",
+        "gz": "application/x-gzip",
+        "h": MimeTypeText,
+        "hdf": "application/x-hdf",
+        "hh": MimeTypeText,
+        "hpp": MimeTypeText,
+        "hqx": "application/mac-binhex40",
+        "htm": MimeTypeHtml,
+        "html": MimeTypeHtml,
+        "ice": "x-conference/x-cooltalk",
+        "ico": "image/x-icon",
+        "ics": "text/calendar",
+        "ief": "image/ief",
+        "ifb": "text/calendar",
+        "iges": "model/iges",
+        "igs": "model/iges",
+        "jar": "application/java-archive",
+        "java": MimeTypeText,
+        "jnlp": "application/x-java-jnlp-file",
+        "jp2": "image/jp2",
+        "jpe": MimeTypeJpeg,
+        "jpeg": MimeTypeJpeg,
+        "jpg": MimeTypeJpeg,
+        "js": MimeTypeJavascript,
+        "kar": "audio/midi",
+        "latex": "application/x-latex",
+        "lha": MimeTypeUnknown,
+        "lzh": MimeTypeUnknown,
+        "m3u": "audio/x-mpegurl",
+        "m4a": "audio/mp4a-latm",
+        "m4b": "audio/mp4a-latm",
+        "m4p": "audio/mp4a-latm",
+        "m4u": "video/vnd.mpegurl",
+        "m4v": "video/x-m4v",
+        "mac": "image/x-macpaint",
+        "man": "application/x-troff-man",
+        "mathml": "application/mathml+xml",
+        "me": "application/x-troff-me",
+        "mesh": "model/mesh",
+        "mid": "audio/midi",
+        "midi": "audio/midi",
+        "mif": "application/vnd.mif",
+        "mov": "video/quicktime",
+        "movie": "video/x-sgi-movie",
+        "mp2": "audio/mpeg",
+        "mp3": "audio/mpeg",
+        "mp4": "video/mp4",
+        "mpe": "video/mpeg",
+        "mpeg": "video/mpeg",
+        "mpg": "video/mpeg",
+        "mpga": "audio/mpeg",
+        "ms": "application/x-troff-ms",
+        "msh": "model/mesh",
+        "mxu": "video/vnd.mpegurl",
+        "nc": "application/x-netcdf",
+        "oda": "application/oda",
+        "ogg": "application/ogg",
+        "pbm": "image/x-portable-bitmap",
+        "pct": "image/pict",
+        "pdb": "chemical/x-pdb",
+        "pdf": "application/pdf",
+        "pgm": "image/x-portable-graymap",
+        "pgn": "application/x-chess-pgn",
+        "pic": "image/pict",
+        "pict": "image/pict",
+        "png": MimeTypePng,
+        "pnm": "image/x-portable-anymap",
+        "pnt": "image/x-macpaint",
+        "pntg": "image/x-macpaint",
+        "ppm": "image/x-portable-pixmap",
+        "ppt": "application/vnd.ms-powerpoint",
+        "ps": "application/postscript",
 
-	# Qore script
-	"q": MimeTypeText,
+        # Qore script
+        "q": MimeTypeText,
 
-	# Qore class include file
-	"qc": MimeTypeText,
+        # Qore class include file
+        "qc": MimeTypeText,
 
         # Qorus function definition file
         "qfd": MimeTypeText,
@@ -315,11 +315,11 @@ public namespace Mime {
         # Qorus job definition
         "qjob": MimeTypeText,
 
-	# Qore include file
-	"ql": MimeTypeText,
+        # Qore include file
+        "ql": MimeTypeText,
 
-	# Qore user module source
-	"qm": MimeTypeText,
+        # Qore user module source
+        "qm": MimeTypeText,
 
         # Qorus service definition
         "qsd": MimeTypeText,
@@ -327,82 +327,82 @@ public namespace Mime {
         # Qorus workflow definition
         "qwf": MimeTypeText,
 
-	"qt": "video/quicktime",
-	"qti": "image/x-quicktime",
-	"qtif": "image/x-quicktime",
-	"ra": "audio/x-pn-realaudio",
-	"ram": "audio/x-pn-realaudio",
-	"ras": "image/x-cmu-raster",
-	"rdf": "application/rdf+xml",
-	"rgb": "image/x-rgb",
-	"rm": "application/vnd.rn-realmedia",
-	"roff": "application/x-troff",
-	"rtf": "text/rtf",
-	"rtx": "text/richtext",
-	"sgm": "text/sgml",
-	"sgml": "text/sgml",
-	"sh": "application/x-sh",
-	"shar": "application/x-shar",
-	"silo": "model/mesh",
-	"sit": "application/x-stuffit",
-	"skd": "application/x-koan",
-	"skm": "application/x-koan",
-	"skp": "application/x-koan",
-	"skt": "application/x-koan",
-	"smi": "application/smil",
-	"smil": "application/smil",
-	"snd": "audio/basic",
-	"so": MimeTypeUnknown,
-	"spl": "application/x-futuresplash",
-	"src": "application/x-wais-source",
-	"sv4cpio": "application/x-sv4cpio",
-	"sv4crc": "application/x-sv4crc",
-	"svg": "image/svg+xml",
-	"swf": "application/x-shockwave-flash",
-	"t": "application/x-troff",
-	"tar": "application/x-tar",
-	"tar.bz2": "application/x-bzip-compressed-tar",
-	"tar.gz": "application/x-tar-gz",
-	"tbz": "application/x-bzip-compressed-tar",
-	"tcl": "application/x-tcl",
-	"tex": "application/x-tex",
-	"texi": "application/x-texinfo",
-	"texinfo": "application/x-texinfo",
-	"text": MimeTypeText,
-	"tgz": "application/x-tar-gz",
-	"tif": "image/tiff",
-	"tiff": "image/tiff",
-	"tr": "application/x-troff",
-	"tsv": "text/tab-separated-values",
-	"txt": MimeTypeText,
-	"ustar": "application/x-ustar",
-	"vcd": "application/x-cdlink",
-	"vrml": "model/vrml",
-	"vxml": "application/voicexml+xml",
-	"wav": "audio/x-wav",
-	"wbmp": "image/vnd.wap.wbmp",
-	"wbmxl": "application/vnd.wap.wbxml",
-	"wml": "text/vnd.wap.wml",
-	"wmlc": "application/vnd.wap.wmlc",
-	"wmls": "text/vnd.wap.wmlscript",
-	"wmlsc": "application/vnd.wap.wmlscriptc",
-	"wrl": "model/vrml",
+        "qt": "video/quicktime",
+        "qti": "image/x-quicktime",
+        "qtif": "image/x-quicktime",
+        "ra": "audio/x-pn-realaudio",
+        "ram": "audio/x-pn-realaudio",
+        "ras": "image/x-cmu-raster",
+        "rdf": "application/rdf+xml",
+        "rgb": "image/x-rgb",
+        "rm": "application/vnd.rn-realmedia",
+        "roff": "application/x-troff",
+        "rtf": "text/rtf",
+        "rtx": "text/richtext",
+        "sgm": "text/sgml",
+        "sgml": "text/sgml",
+        "sh": "application/x-sh",
+        "shar": "application/x-shar",
+        "silo": "model/mesh",
+        "sit": "application/x-stuffit",
+        "skd": "application/x-koan",
+        "skm": "application/x-koan",
+        "skp": "application/x-koan",
+        "skt": "application/x-koan",
+        "smi": "application/smil",
+        "smil": "application/smil",
+        "snd": "audio/basic",
+        "so": MimeTypeUnknown,
+        "spl": "application/x-futuresplash",
+        "src": "application/x-wais-source",
+        "sv4cpio": "application/x-sv4cpio",
+        "sv4crc": "application/x-sv4crc",
+        "svg": "image/svg+xml",
+        "swf": "application/x-shockwave-flash",
+        "t": "application/x-troff",
+        "tar": "application/x-tar",
+        "tar.bz2": "application/x-bzip-compressed-tar",
+        "tar.gz": "application/x-tar-gz",
+        "tbz": "application/x-bzip-compressed-tar",
+        "tcl": "application/x-tcl",
+        "tex": "application/x-tex",
+        "texi": "application/x-texinfo",
+        "texinfo": "application/x-texinfo",
+        "text": MimeTypeText,
+        "tgz": "application/x-tar-gz",
+        "tif": "image/tiff",
+        "tiff": "image/tiff",
+        "tr": "application/x-troff",
+        "tsv": "text/tab-separated-values",
+        "txt": MimeTypeText,
+        "ustar": "application/x-ustar",
+        "vcd": "application/x-cdlink",
+        "vrml": "model/vrml",
+        "vxml": "application/voicexml+xml",
+        "wav": "audio/x-wav",
+        "wbmp": "image/vnd.wap.wbmp",
+        "wbmxl": "application/vnd.wap.wbxml",
+        "wml": "text/vnd.wap.wml",
+        "wmlc": "application/vnd.wap.wmlc",
+        "wmls": "text/vnd.wap.wmlscript",
+        "wmlsc": "application/vnd.wap.wmlscriptc",
+        "wrl": "model/vrml",
         "wsdl": "application/wsdl+xml",
-	"xbm": "image/x-xbitmap",
-	"xht": "application/xhtml+xml",
-	"xhtml": "application/xhtml+xml",
-	"xls": "application/vnd.ms-excel",
-	"xml": MimeTypeXml,
-	"xpm": "image/x-xpixmap",
+        "xbm": "image/x-xbitmap",
+        "xht": "application/xhtml+xml",
+        "xhtml": "application/xhtml+xml",
+        "xls": "application/vnd.ms-excel",
+        "xml": MimeTypeXml,
+        "xpm": "image/x-xpixmap",
         "xsd": MimeTypeXml,
-	"xsl": "application/xml",
-	"xslt": "application/xslt+xml",
-	"xul": "application/vnd.mozilla.xul+xml",
-	"xwd": "image/x-xwindowdump",
-	"xyz": "chemical/x-xyz",
-	"yaml": MimeTypeYaml,
-	"zip": "application/zip",
-	);
+        "xsl": "application/xml",
+        "xslt": "application/xslt+xml",
+        "xul": "application/vnd.mozilla.xul+xml",
+        "xwd": "image/x-xwindowdump",
+        "xyz": "chemical/x-xyz",
+        "yaml": MimeTypeYaml,
+        "zip": "application/zip",
+        );
     #@}
 
     /** @defgroup MimeContentTransferEncodingConstants MIME Content Transfer Encoding Constants
@@ -439,63 +439,63 @@ public namespace Mime {
     #@{
     #! returns a string in "BASE64" encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
     /** @param str the string to encode
-	@param len the maximum line length
+        @param len the maximum line length
 
-	@note this function is basically just a wrapper for the standard %Qore function make_base64_string()
+        @note this function is basically just a wrapper for the standard %Qore function make_base64_string()
      */
     public string sub mime_encode_base64(data str, int len = MimeBase64LineLen) {
-	return make_base64_string(str, len);
+        return make_base64_string(str, len);
     }
 
     #! returns a string in "quoted-printable" (or "QP") encoding according to <a href="http://tools.ietf.org/html/rfc2045#section-6.7">RFC 2045 section 6.7</a>
     /** @param str the string to encode
-	@param hdr use rules for a MIME header (<a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>)
+        @param hdr use rules for a MIME header (<a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>)
      */
     public string sub mime_encode_quoted_printable(string str, bool hdr = False) {
-	string rv;
-	int lp = 0;
+        string rv;
+        int lp = 0;
 
-	for (int i = 0; i < str.size(); ++i) {
-	    int c = get_byte(str, i);
+        for (int i = 0; i < str.size(); ++i) {
+            int c = get_byte(str, i);
 
-	    # check if we're processing a UNIX '\n' line break
-	    if (c == 10) {
-		# we MUST encode this as a CRLF sequence (we assume it's a UNIX line break)
-		rv += "\r\n";
-		lp = 0;
-		continue;
-	    }
+            # check if we're processing a UNIX '\n' line break
+            if (c == 10) {
+                # we MUST encode this as a CRLF sequence (we assume it's a UNIX line break)
+                rv += "\r\n";
+                lp = 0;
+                continue;
+            }
 
-	    # check if we're processing a CRLF line break
-	    if (c == 13 && get_byte(str, i + 1) == 10) {
-		rv += "\r\n";
-		lp = 0;
-		++i;
-		continue;
-	    }
+            # check if we're processing a CRLF line break
+            if (c == 13 && get_byte(str, i + 1) == 10) {
+                rv += "\r\n";
+                lp = 0;
+                ++i;
+                continue;
+            }
 
-	    # new string to append
-	    string nc;
-	    # if we are encoding a header and we have a space, transform to "_"
-	    if (hdr && c == 32)
-		nc = "_";
-	    # check if the high bit is set or if it's an ASCII control character or '=', or we are encoding a header and the char is not '?' and '_', encode
-	    else if ((c & 0x80) || c < 32 || c == 61 || (hdr && (c == 63 || c == 95 || c == 137)))
-		nc = sprintf("=%02x", c).upr();
-	    else
-		nc = chr(c);
+            # new string to append
+            string nc;
+            # if we are encoding a header and we have a space, transform to "_"
+            if (hdr && c == 32)
+                nc = "_";
+            # check if the high bit is set or if it's an ASCII control character or '=', or we are encoding a header and the char is not '?' and '_', encode
+            else if ((c & 0x80) || c < 32 || c == 61 || (hdr && (c == 63 || c == 95 || c == 137)))
+                nc = sprintf("=%02x", c).upr();
+            else
+                nc = chr(c);
 
-	    # we MUST break up lines longer than 76 characters (the line length includes the '=' but not the CRLF
-	    if ((nc.size() + lp) >= (MimeQuotedPrintableLineLen - 1)) {
-		# insert soft line break
-		rv += "=\r\n";
-		lp = 0;
-	    }
+            # we MUST break up lines longer than 76 characters (the line length includes the '=' but not the CRLF
+            if ((nc.size() + lp) >= (MimeQuotedPrintableLineLen - 1)) {
+                # insert soft line break
+                rv += "=\r\n";
+                lp = 0;
+            }
 
-	    rv += nc;
-	    lp += nc.size();
-	}
-	return rv;
+            rv += nc;
+            lp += nc.size();
+        }
+        return rv;
     }
 
     #! encodes data according to the given encoding
@@ -524,12 +524,12 @@ public namespace Mime {
 
     #! returns a string in "B" ("BASE64") encoding for MIME header string words according to <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>
     public string sub mime_encode_header_word_b(string str) {
-	return sprintf("=?%s?B?%s?=", get_encoding(str), make_base64_string(str, MimeBase64LineLen));
+        return sprintf("=?%s?B?%s?=", get_encoding(str), make_base64_string(str, MimeBase64LineLen));
     }
 
     #! returns a string in "Q" ("quoted-printable") encoding for MIME header string words according to <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>
     public string sub mime_encode_header_word_q(string str) {
-	return sprintf("=?%s?Q?%s?=", get_encoding(str), mime_encode_quoted_printable(str, True));
+        return sprintf("=?%s?Q?%s?=", get_encoding(str), mime_encode_quoted_printable(str, True));
     }
     #@}
 
@@ -539,20 +539,20 @@ public namespace Mime {
     #! returns a binary value from a string in "BASE64" encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
     /** @param str the string to decode
 
-	@note this function is basically just a wrapper for the standard %Qore function parse_base64_string()
+        @note this function is basically just a wrapper for the standard %Qore function parse_base64_string()
      */
     public binary sub mime_decode_base64(data str) {
-	return parse_base64_string(str);
+        return parse_base64_string(str);
     }
 
     #! returns a string value from a string in "BASE64" encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
     /** @param str the string to decode
         @param encoding the character encoding to use for the string returned (if not present the default encoding is used)
 
-	@note this function is basically just a wrapper for the standard %Qore function parse_base64_string_to_string()
+        @note this function is basically just a wrapper for the standard %Qore function parse_base64_string_to_string()
      */
     public string sub mime_decode_base64_to_string(data str, *string encoding) {
-	return parse_base64_string_to_string(str, encoding);
+        return parse_base64_string_to_string(str, encoding);
     }
 
     #! returns a string parsed from "quoted-printable" (or "QP") encoding according to <a href="http://tools.ietf.org/html/rfc2045#section-6.7">RFC 2045 section 6.7</a>
@@ -567,8 +567,8 @@ public namespace Mime {
         if (encoding.empty())
             encoding = get_default_encoding();
 
-	string rv;
-	int lp = 0;
+        string rv;
+        int lp = 0;
 
         # recombine broken lines
         str = replace(str, "=\r\n", "");
@@ -749,7 +749,7 @@ public namespace Mime {
 
             @par Example:
             For example, given the following code:
-            @code
+            @code{.py}
 string body = "This is a message with multiple parts in MIME format.\r
 --frontier\r
 Content-Type: text/plain\r
@@ -868,25 +868,25 @@ hash: (2 members)
 
                 # decode the part if necessary
                 if (decode) {
-		    # part content type (default = no encoding)
-		    string pct = Mime::ContentTransEnc7Bit;
-		    # part content transfer encoding (default: no encoding)
-		    string pcte = ContentTransEncBinary;
+                    # part content type (default = no encoding)
+                    string pct = Mime::ContentTransEnc7Bit;
+                    # part content transfer encoding (default: no encoding)
+                    string pcte = ContentTransEncBinary;
 
                     # process part headers
                     foreach hash hh in (h.pairIterator()) {
-			if (hh.key == "content-transfer-encoding")
-			    pcte = hh.value.lwr();
-			else if (hh.key == "content-type")
-			    pct = hh.value;
+                        if (hh.key == "content-transfer-encoding")
+                            pcte = hh.value.lwr();
+                        else if (hh.key == "content-type")
+                            pct = hh.value;
                     }
 
                     # decode the part's body
-		    pstr = mime_decode_transfer_data(pstr, pcte, pct);
+                    pstr = mime_decode_transfer_data(pstr, pcte, pct);
                     if (pstr.typeCode() == NT_BINARY && pct =~ /text/)
                         pstr = binary_to_string(pstr);
 
-		    # see if the part has parts itself
+                    # see if the part has parts itself
                     if (pct =~ /multipart\//i) {
                         *string part_boundary = (pct =~ x/boundary="?([^"]+)"?/)[0];
                         if (!exists part_boundary)

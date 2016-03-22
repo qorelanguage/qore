@@ -173,6 +173,7 @@ libqore_la_SOURCES = \
 	QoreTimeZoneManager.cpp \
 	QoreString.cpp \
 	QoreObject.cpp \
+	RSet.cpp \
 	QoreListNode.cpp \
 	qore-main.cpp \
 	QoreGetOpt.cpp \
@@ -229,7 +230,7 @@ libqore_la_SOURCES = \
 	QoreLogicalNotOperatorNode.cpp \
 	QoreDotEvalOperatorNode.cpp \
 	QoreLogicalEqualsOperatorNode.cpp \
-	QoreModulaOperatorNode.cpp \
+	QoreModuloOperatorNode.cpp \
 	QoreAssignmentOperatorNode.cpp \
 	QoreIntAssignmentOperatorNode.cpp \
 	QorePlusEqualsOperatorNode.cpp \
@@ -238,7 +239,7 @@ libqore_la_SOURCES = \
 	QoreIntMinusEqualsOperatorNode.cpp \
 	QoreOrEqualsOperatorNode.cpp \
 	QoreAndEqualsOperatorNode.cpp \
-	QoreModulaEqualsOperatorNode.cpp \
+	QoreModuloEqualsOperatorNode.cpp \
 	QoreMultiplyEqualsOperatorNode.cpp \
 	QoreDivideEqualsOperatorNode.cpp \
 	QoreDivisionOperatorNode.cpp \
@@ -263,6 +264,7 @@ libqore_la_SOURCES = \
 	QoreValueCoalescingOperatorNode.cpp \
 	QoreChompOperatorNode.cpp \
 	QoreTrimOperatorNode.cpp \
+	QoreSquareBracketsOperatorNode.cpp \
 	QorePseudoMethods.cpp \
 	QoreHTTPClient.cpp \
 	QoreHttpClientObject.cpp \

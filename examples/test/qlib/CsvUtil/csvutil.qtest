@@ -29,6 +29,7 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
     constructor() : Test("CsvUtilTest", "1.0") {
         addTestCase("Basic CSV tests", \csvTest(), NOTHING);
         addTestCase("CsvUtil non-numeric values", \test_non_numeric());
+        addTestCase("Escaping", \escapeTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -53,6 +54,19 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
         CsvDataIterator i("1x2,1.2x,1e2n3", opts);
         i.next();
         testAssertion ("Non-numeric field value", \i.getValue(), (), new TestResultExceptionType("FIELD-VALUE-ERROR"));
+
+    escapeTest() {
+        list row = ( ( '12"', 'a"bc"', ), );
+        string esc_default = '"12\"","a\"bc\""'+"\n";
+        string esc_double = '"12""","a""bc"""'+"\n";
+
+        CsvStringWriter csv_default( ("optimal-quotes" : False) );
+        string out_default = csv_default.write(row);
+        testAssertion("default escaping", \equals(), (esc_default, out_default));
+
+        CsvStringWriter csv_double( ("optimal-quotes" : False, "quote_escape" : '"') );
+        string out_double = csv_double.write(row);
+        testAssertion("double escaping", \equals(), (esc_double, out_double));
     }
 }
 

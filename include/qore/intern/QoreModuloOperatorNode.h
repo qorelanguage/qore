@@ -1,5 +1,6 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreModulaEqualsOperatorNode.cpp
+  QoreModuloOperatorNode.h
  
   Qore Programming Language
  
@@ -28,30 +29,20 @@
   information.
 */
 
-#include <qore/Qore.h>
+#ifndef _QORE_QOREMODULAOPERATORNODE_H
 
-QoreString QoreModulaEqualsOperatorNode::op_str("%= operator expression");
+#define _QORE_QOREMODULAOPERATORNODE_H
 
-AbstractQoreNode *QoreModulaEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   parseInitIntLValue(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
-   return this;
-}
+class QoreModuloOperatorNode : public QoreIntBinaryOperatorNode {
+OP_COMMON
+protected:
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-QoreValue QoreModulaEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   int64 val = right->bigIntEval(xsink);
-   if (*xsink)
-      return QoreValue();
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper v(left, xsink);
-   if (!v)
-      return QoreValue();
-
-   // do not try to execute %= 0 or a runtime exception will occur
-   if (!val) {
-      v.assign(0ll, "<%= operator>");
-      return 0ll;
+public:
+   DLLLOCAL QoreModuloOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreIntBinaryOperatorNode(n_left, n_right) {
    }
-   
-   return v.modulaEqualsBigInt(val, "<%= operator>");
-}
+};
+
+#endif

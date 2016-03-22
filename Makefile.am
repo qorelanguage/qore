@@ -360,6 +360,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreTypeInfo.h \
 	include/qore/intern/QoreSSLIntern.h \
 	include/qore/intern/QoreObjectIntern.h \
+	include/qore/intern/RSection.h \
 	include/qore/intern/QoreHashNodeIntern.h \
 	include/qore/intern/QoreOperatorNode.h \
 	include/qore/intern/QoreDeleteOperatorNode.h \
@@ -372,7 +373,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreDotEvalOperatorNode.h \
 	include/qore/intern/QoreLogicalEqualsOperatorNode.h \
 	include/qore/intern/QoreLogicalNotEqualsOperatorNode.h \
-	include/qore/intern/QoreModulaOperatorNode.h \
+	include/qore/intern/QoreModuloOperatorNode.h \
 	include/qore/intern/QoreAssignmentOperatorNode.h \
 	include/qore/intern/QoreIntAssignmentOperatorNode.h \
 	include/qore/intern/QorePlusEqualsOperatorNode.h \
@@ -381,7 +382,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreIntMinusEqualsOperatorNode.h \
 	include/qore/intern/QoreOrEqualsOperatorNode.h \
 	include/qore/intern/QoreAndEqualsOperatorNode.h \
-	include/qore/intern/QoreModulaEqualsOperatorNode.h \
+	include/qore/intern/QoreModuloEqualsOperatorNode.h \
 	include/qore/intern/QoreMultiplyEqualsOperatorNode.h \
 	include/qore/intern/QoreDivideEqualsOperatorNode.h \
 	include/qore/intern/QoreXorEqualsOperatorNode.h \
@@ -410,6 +411,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreHashMapSelectOperatorNode.h \
 	include/qore/intern/QoreChompOperatorNode.h \
 	include/qore/intern/QoreTrimOperatorNode.h \
+	include/qore/intern/QoreSquareBracketsOperatorNode.h \
 	include/qore/intern/QorePseudoMethods.h \
 	include/qore/intern/QoreHashIterator.h \
 	include/qore/intern/QoreListIterator.h \

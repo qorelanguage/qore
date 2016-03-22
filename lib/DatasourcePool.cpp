@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -187,7 +187,7 @@ void DatasourcePool::destructor(ExceptionSink* xsink) {
    config.del(xsink);
 }
 
-#ifdef DEBUG
+#if 0
 void DatasourcePool::addSQL(const char* cmd, const QoreString* sql) {
    QoreString* str = thread_local_storage.get();
    if (!str)
@@ -215,7 +215,8 @@ QoreString* DatasourcePool::getAndResetSQL() {
 
 void DatasourcePool::freeDS() {
    // remove from thread resource list
-   //printd(5, "DatasourcePool::freeDS() remove_thread_resource(this: %p), tid: %d\n", this, tid);
+   //printd(5, "DatasourcePool::freeDS() remove_thread_resource(this: %p)\n", this);
+
    remove_thread_resource(this);
 
    int tid = gettid();
@@ -318,6 +319,7 @@ Datasource* DatasourcePool::getDSIntern(bool& new_ds, int64& wait_total, Excepti
    thread_use_t::iterator i = tmap.find(tid);
    if (i != tmap.end()) {
       ++stats_hits;
+      //printd(5, "DatasourcePool::getDSIntern() this: %p returning already allocated ds: %p\n", this, pool[i->second]);
       return pool[i->second];
    }
 
@@ -392,7 +394,8 @@ Datasource* DatasourcePool::getDSIntern(bool& new_ds, int64& wait_total, Excepti
    sl.unlock();
 
    // add to thread resource list
-   //printd(5, "DatasourcePool::getDS() set_thread_resource(this: %p), tid: %d\n", this, gettid());
+   //printd(5, "DatasourcePool::getDSIntern() set_thread_resource(this: %p) ds: %p\n", this, ds);
+
    set_thread_resource(this);
 
    assert(ds);
@@ -443,8 +446,6 @@ AbstractQoreNode* DatasourcePool::exec_internal(bool doBind, const QoreString* s
    DatasourcePoolActionHelper dpah(*this, xsink, DAH_ACQUIRE);
    if (!dpah)
       return 0;
-
-   //printd(5, "DatasourcePool::exec_internal() this: %p ds: %p: %s\n", this, *dpah, sql->getBuffer());
 
    return doBind ? dpah->exec(sql, args, xsink) : dpah->execRaw(sql, args, xsink);;
 }

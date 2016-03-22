@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -341,12 +341,12 @@ DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreStri
 //@{
 
 //! Returns the current date and time with a resolution to the millisecond
-/** 
+/**
     @return the current date and time with a resolution to the millisecond
 
     @par Example:
-    @code
-my date $d = now_ms();
+    @code{.py}
+date d = now_ms();
     @endcode
 
     @see
@@ -364,12 +364,12 @@ date now_ms() [flags=CONSTANT] {
 }
 
 //! Returns the current date and time with a resolution to the microsecond
-/** 
+/**
     @return the current date and time with a resolution to the microsecond
 
     @par Example:
-    @code
-my date $d = now_us();
+    @code{.py}
+date d = now_us();
     @endcode
 
     @see
@@ -387,12 +387,12 @@ date now_us() [flags=CONSTANT] {
 }
 
 //! Returns the current UTC date and time with a resolution to the microsecond
-/** 
+/**
     @return the current UTC date and time with a resolution to the microsecond
 
     @par Example:
-    @code
-my date $d = now_utc();
+    @code{.py}
+date d = now_utc();
     @endcode
 
     @see now_us() for a similar function that returns the current date and time in the local time zone
@@ -404,15 +404,15 @@ date now_utc() [flags=CONSTANT] {
 }
 
 //! Returns a formatted string for a date argument passed
-/** 
+/**
     @param format a string giving the format for the date; see @ref date_formatting for more information about this string
     @param dt the date to use for the string output
 
     @return a formatted string for a date argument passed
 
     @par Example:
-    @code
-my string $str = format_date("Day, Mon D, YYYY-MM-DD HH:mm:SS", 2004-02-01T12:30:00);
+    @code{.py}
+string str = format_date("Day, Mon D, YYYY-MM-DD HH:mm:SS", 2004-02-01T12:30:00);
 # returns "Sunday, Feb 1, 2004-02-01 12:30:00"
     @endcode
 
@@ -425,18 +425,18 @@ string format_date(string format, date dt) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing format_date() [flags=RUNTIME_NOOP] {
 }
 
-//! Returns the current date and time with a resolution to the second 
-/** 
-    @return the current date and time with a resolution to the second 
+//! Returns the current date and time with a resolution to the second
+/**
+    @return the current date and time with a resolution to the second
 
     @par Example:
-    @code
-my date $d = now();
+    @code{.py}
+date d = now();
     @endcode
 
     @see
@@ -450,13 +450,13 @@ date now() [flags=CONSTANT] {
    return DateTimeNode::makeAbsolute(currentTZ(), (int64)time(0), 0);
 }
 
-//! Returns the current date and time with a resolution to the second 
-/** 
-    @return the current date and time with a resolution to the second 
+//! Returns the current date and time with a resolution to the second
+/**
+    @return the current date and time with a resolution to the second
 
     @par Example:
-    @code
-my date $d = localtime();
+    @code{.py}
+date d = localtime();
     @endcode
 
     @see gmtime()
@@ -468,15 +468,15 @@ date localtime() [flags=CONSTANT] {
 }
 
 //! Returns the date and time in the local time zone corresponding to the integer arguments passed, which are interpreted as the number of seconds and microseconds since Jan 1, 1970, 00:00:00 Z (UTC)
-/** 
+/**
     @param secs the number of seconds and microseconds since Jan 1, 1970, 00:00:00 Z (UTC)
     @param us a microsecond offset for the time returned
 
     @return the date and time in the local time zone corresponding to the arguments passed
 
     @par Example:
-    @code
-my date $dt = localtime(10);
+    @code{.py}
+date dt = localtime(10);
     @endcode
 
     @see gmtime(softint, softint)
@@ -486,16 +486,16 @@ date localtime(softint secs, softint us = 0) [flags=CONSTANT] {
 }
 
 //! Returns the date and time in the local time zone corresponding to the date argument passed
-/** 
+/**
     @param dt a date to process; if the date passed is in the local time zone, then the same value is returned
 
     @return the date and time in the local time zone corresponding to the date argument passed
 
     @par Example:
-    @code
-my date $dt = localtime(2012-01-19T15:00:00-07:00);
+    @code{.py}
+date dt = localtime(2012-01-19T15:00:00-07:00);
     @endcode
-    
+
     @see gmtime(date)
 */
 date localtime(date dt) [flags=CONSTANT] {
@@ -503,12 +503,12 @@ date localtime(date dt) [flags=CONSTANT] {
 }
 
 //! Returns the current UTC (GMT) time with a resolution of a second
-/** 
+/**
     @return the current UTC (GMT) time with a resolution of a second
 
     @par Example:
-    @code
-my date $utc = gmtime();
+    @code{.py}
+date utc = gmtime();
     @endcode
 
     @see
@@ -520,15 +520,15 @@ date gmtime() [flags=CONSTANT] {
 }
 
 //! Returns a date/time value in UTC (GMT) from arguments giving the number of seconds and microseconds since Jan 1, 1970, 00:00:00 Z (UTC)
-/** 
+/**
     @param secs the number of seconds and microseconds since Jan 1, 1970, 00:00:00 Z (UTC)
     @param us a microsecond offset for the time returned
 
     @return a date/time value in UTC (GMT) from arguments giving the number of seconds and microseconds since Jan 1, 1970, 00:00:00 Z (UTC)
 
     @par Example:
-    @code
-my date $dt = gmtime(10);
+    @code{.py}
+date dt = gmtime(10);
     @endcode
 
     @see localtime(softint, softint)
@@ -538,14 +538,14 @@ date gmtime(softint secs, softint us = 0) [flags=CONSTANT] {
 }
 
 //! Returns the date and time in UTC (GMT) corresponding to the date argument passed
-/** 
+/**
     @param dt a date to process; if the date passed is already in UTC, then the same value is returned
 
     @return the date and time in UTC (GMT) corresponding to the date argument passed
 
     @par Example:
-    @code
-my date $dt = gmtime(2012-01-19T15:00:00-07:00);
+    @code{.py}
+date dt = gmtime(2012-01-19T15:00:00-07:00);
     @endcode
 
     @see localtime(date)
@@ -555,14 +555,14 @@ date gmtime(date dt) [flags=CONSTANT] {
 }
 
 //! Returns the number of seconds since January 1, 1970 00:00:00 in the local time zone for the given date
-/** 
+/**
     @param dt The date to process
 
     @return the number of seconds since January 1, 1970 00:00:00 in the local time zone for the given date
-    
+
     @par Example:
-    @code
-int secs = timegm($dt);
+    @code{.py}
+int secs = timegm(dt);
     @endcode
 
     @see get_epoch_seconds(date)
@@ -572,20 +572,20 @@ int timegm(date dt) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing timegm() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns the number of seconds of the date and time in local time passed since Jan 1, 1970, 00:00:00 Z (UTC); negative values are returned for dates before the epoch
-/** 
+/**
     @param dt The date to process
 
     @return the number of seconds of the date and time in local time passed since Jan 1, 1970, 00:00:00 Z (UTC); negative values are returned for dates before the epoch
 
     @par Example:
-    @code
-my int $i = get_epoch_seconds(2012-01-19T08:02:15+01:00);
+    @code{.py}
+int i = get_epoch_seconds(2012-01-19T08:02:15+01:00);
     @endcode
 
     @see timegm(date)
@@ -597,20 +597,20 @@ int get_epoch_seconds(date dt) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing get_epoch_seconds() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns the number of seconds of the date and time in local time passed since Jan 1, 1970, 00:00:00 Z (UTC); negative values are returned for dates before the epoch
-/** 
+/**
     @param dt The date to process
 
     @return the number of seconds of the date and time in local time passed since Jan 1, 1970, 00:00:00 Z (UTC); negative values are returned for dates before the epoch
 
     @par Example:
-    @code
-my int $i = mktime(2012-01-19T08:02:15+01:00);
+    @code{.py}
+int i = mktime(2012-01-19T08:02:15+01:00);
     @endcode
 
     @see timegm(date)
@@ -622,20 +622,20 @@ int mktime(date dt) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing mktime() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns a @ref relative_dates "relative date/time value" in years based on the integer argument passed to be used in date arithmetic
-/** 
+/**
     @param years the number of years to return
 
     @return a @ref relative_dates "relative date/time value" in years based on the integer argument passed to be used in date arithmetic
 
     @par Example:
-    @code
-my date $y = years(100);
+    @code{.py}
+date y = years(100);
     @endcode
 
     @see
@@ -652,20 +652,20 @@ date years(softint years) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing years() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns a @ref relative_dates "relative date/time value" in months based on the integer argument passed to be used in date arithmetic
-/** 
+/**
     @param months the number of months to return
 
     @return a @ref relative_dates "relative date/time value" in months based on the integer argument passed to be used in date arithmetic
 
     @par Example:
-    @code
-my date $rd = months(100);
+    @code{.py}
+date rd = months(100);
     @endcode
 
     @see
@@ -682,20 +682,20 @@ date months(softint months) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing months() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns a @ref relative_dates "relative date/time value" in days based on the integer argument passed to be used in date arithmetic
-/** 
+/**
     @param days the number of days to return
 
     @return a @ref relative_dates "relative date/time value" in days based on the integer argument passed to be used in date arithmetic
 
     @par Example:
-    @code
-my date $rd = days(100);
+    @code{.py}
+date rd = days(100);
     @endcode
 
     @see
@@ -712,20 +712,20 @@ date days(softint days) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing days() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns a @ref relative_dates "relative date/time value" in hours based on the integer argument passed to be used in date arithmetic
-/** 
+/**
     @param hours the number of hours to return
 
     @return a @ref relative_dates "relative date/time value" in hours based on the integer argument passed to be used in date arithmetic
 
     @par Example:
-    @code
-my date $rd = hours(100);
+    @code{.py}
+date rd = hours(100);
     @endcode
 
     @see
@@ -742,20 +742,20 @@ date hours(softint hours) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing hours() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns a @ref relative_dates "relative date/time value" in minutes based on the integer argument passed to be used in date arithmetic
-/** 
+/**
     @param minutes the number of minutes to return
 
     @return a @ref relative_dates "relative date/time value" in minutes based on the integer argument passed to be used in date arithmetic
 
     @par Example:
-    @code
-my date $rd = minutes(100);
+    @code{.py}
+date rd = minutes(100);
     @endcode
 
     @see
@@ -772,20 +772,20 @@ date minutes(softint minutes) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing minutes() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns a @ref relative_dates "relative date/time value" in seconds based on the integer argument passed to be used in date arithmetic
-/** 
+/**
     @param seconds the number of seconds to return
 
     @return a @ref relative_dates "relative date/time value" in seconds based on the integer argument passed to be used in date arithmetic
 
     @par Example:
-    @code
-my date $rd = seconds(100);
+    @code{.py}
+date rd = seconds(100);
     @endcode
 
     @see
@@ -802,20 +802,20 @@ date seconds(softint seconds) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing seconds() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns a @ref relative_dates "relative date/time value" in milliseconds based on the integer argument passed to be used in date arithmetic
-/** 
+/**
     @param ms the number of milliseconds to return
 
     @return a @ref relative_dates "relative date/time value" in milliseconds based on the integer argument passed to be used in date arithmetic
 
     @par Example:
-    @code
-my date $rd = milliseconds(100);
+    @code{.py}
+date rd = milliseconds(100);
     @endcode
 
     @see
@@ -827,7 +827,7 @@ my date $rd = milliseconds(100);
     - seconds(softint)
     - microseconds(softint)
 */
-date milliseconds(softint ms) [flags=CONSTANT] {   
+date milliseconds(softint ms) [flags=CONSTANT] {
    int64 secs = ms / 1000;
    ms -= (secs * 1000);
    int64 minutes = secs / 60;
@@ -839,20 +839,20 @@ date milliseconds(softint ms) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing milliseconds() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns a @ref relative_dates "relative date/time value" in microseconds based on the integer argument passed to be used in date arithmetic
-/** 
+/**
     @param us the number of microseconds to return
 
     @return a @ref relative_dates "relative date/time value" in microseconds based on the integer argument passed to be used in date arithmetic
 
     @par Example:
-    @code
-my date $rd = microseconds(100);
+    @code{.py}
+date rd = microseconds(100);
     @endcode
 
     @see
@@ -876,14 +876,14 @@ date microseconds(softint us) [flags=CONSTANT] {
 }
 
 //! Returns an integer corresponding to the literal year value in the date (does not calculate a duration)
-/** 
+/**
     @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
 
     @return an integer corresponding to the year value in the date
 
     @par Example:
-    @code
-my int $n = get_years($dt);
+    @code{.py}
+int n = get_years(dt);
     @endcode
 
     @note equivalent to pseudo-method <date>::years()
@@ -893,20 +893,20 @@ int get_years(date dt) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing get_years() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns an integer corresponding to the literal month value in the date (does not calculate a duration)
-/** 
+/**
     @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
 
     @return an integer corresponding to the month value in the date
 
     @par Example:
-    @code
-my int $n = get_months($dt);
+    @code{.py}
+int n = get_months(dt);
     @endcode
 
     @note equivalent to pseudo-method <date>::months()
@@ -916,20 +916,20 @@ int get_months(date dt) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing get_months() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns an integer corresponding to the literal day value in the date (does not calculate a duration)
-/** 
+/**
     @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
 
     @return an integer corresponding to the day value in the date
 
     @par Example:
-    @code
-my int $n = get_days($dt);
+    @code{.py}
+int n = get_days(dt);
     @endcode
 
     @note equivalent to pseudo-method <date>::days()
@@ -939,20 +939,20 @@ int get_days(date dt) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing get_days() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns an integer corresponding to the literal hour value in the date (does not calculate a duration)
-/** 
+/**
     @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
 
     @return an integer corresponding to the hour value in the date
 
     @par Example:
-    @code
-my int $n = get_hours($dt);
+    @code{.py}
+int n = get_hours(dt);
     @endcode
 
     @note equivalent to pseudo-method <date>::hours()
@@ -962,20 +962,20 @@ int get_hours(date dt) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing get_hours() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns an integer corresponding to the literal minute value in the date (does not calculate a duration)
-/** 
+/**
     @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
 
     @return an integer corresponding to the minute value in the date
 
     @par Example:
-    @code
-my int $n = get_minutes($dt);
+    @code{.py}
+int n = get_minutes(dt);
     @endcode
 
     @note equivalent to pseudo-method <date>::minutes()
@@ -985,20 +985,20 @@ int get_minutes(date dt) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing get_minutes() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns an integer corresponding to the literal second value in the date (does not calculate a duration)
-/** 
+/**
     @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
 
     @return an integer corresponding to the literal second value in the date (does not calculate a duration)
 
     @par Example:
-    @code
-my int $n = get_seconds($dt);
+    @code{.py}
+int n = get_seconds(dt);
     @endcode
 
     @note
@@ -1010,20 +1010,20 @@ int get_seconds(date dt) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing get_seconds() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns an integer corresponding to the literal millisecond value in the date (does not calculate a duration)
-/** 
+/**
     @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
 
     @return an integer corresponding to the literal millisecond value in the date (does not calculate a duration)
 
     @par Example:
-    @code
-my int $n = get_milliseconds($dt);
+    @code{.py}
+int n = get_milliseconds(dt);
     @endcode
 
     @note
@@ -1035,20 +1035,20 @@ int get_milliseconds(date dt) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing get_milliseconds() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns an integer corresponding to the literal microsecond value in the date (does not calculate a duration)
-/** 
+/**
     @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
 
     @return an integer corresponding to the literal microsecond value in the date (does not calculate a duration)
 
     @par Example:
-    @code
-my int $n = get_microseconds($dt);
+    @code{.py}
+int n = get_microseconds(dt);
     @endcode
 
     @note
@@ -1060,14 +1060,14 @@ int get_microseconds(date dt) [flags=CONSTANT] {
 }
 
 //! Returns midnight on the date passed (strips the time component on the new value)
-/** 
+/**
     @param dt the date to process
 
     @return midnight on the date passed (strips the time component on the new value)
 
     @par Example:
-    @code
-my date $midnight = get_midnight($dt);
+    @code{.py}
+date midnight = get_midnight(dt);
     @endcode
 
     @note equivalent to pseudo-method <date>::midnight()
@@ -1079,13 +1079,13 @@ date get_midnight(date dt) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing get_midnight() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns an integer representing the ordinal day number in the year (corresponding to the <a href="http://en.wikipedia.org/wiki/ISO_8601#Ordinal_dates">ISO-8601 day number</a>) for the @ref absolute_dates "absolute date" value passed
-/** 
+/**
     @param dt an @ref absolute_dates "absolute date" value to get the ordinal day number
 
     @return an integer representing the ordinal day number in the year (corresponding to the <a href="http://en.wikipedia.org/wiki/ISO_8601#Ordinal_dates">ISO-8601 day number</a>) for the @ref absolute_dates "absolute date" value passed; if a @ref relative_dates "relative date" value is passed, then this function will return 0
@@ -1097,20 +1097,20 @@ int getDayNumber(date dt) [flags=CONSTANT,DEPRECATED] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing getDayNumber() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
 //! Returns an integer representing the ordinal day number in the year (corresponding to the <a href="http://en.wikipedia.org/wiki/ISO_8601#Ordinal_dates">ISO-8601 day number</a>) for the @ref absolute_dates "absolute date" value passed
-/** 
+/**
     @param dt an @ref absolute_dates "absolute date" value to get the ordinal day number
 
     @return an integer representing the ordinal day number in the year (corresponding to the <a href="http://en.wikipedia.org/wiki/ISO_8601#Ordinal_dates">ISO-8601 day number</a>) for the @ref absolute_dates "absolute date" value passed; if a @ref relative_dates "relative date" value is passed, then this function will return 0
 
     @par Example:
-    @code
-my int $dn = get_day_number($dt);
+    @code{.py}
+int dn = get_day_number(dt);
     @endcode
 
     @note equivalent to <date>::dayNumber()
@@ -1122,7 +1122,7 @@ int get_day_number(date dt) [flags=CONSTANT] {
 }
 
 //! Returns an integer representing the day of the week for the @ref absolute_dates "absolute date" value passed (0=Sunday, 6=Saturday)
-/** 
+/**
     @param dt an @ref absolute_dates "absolute date" value to get the number for the day of the week
 
     @return an integer representing the day of the week for the @ref absolute_dates "absolute date" value passed (0=Sunday, 6=Saturday); if a @ref relative_dates "relative date" value is passed, then this function will return 0
@@ -1136,20 +1136,20 @@ int getDayOfWeek(date dt) [flags=CONSTANT,DEPRECATED] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing getDayOfWeek() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
 //! Returns an integer representing the day of the week for the @ref absolute_dates "absolute date" value passed (0=Sunday, 6=Saturday)
-/** 
+/**
     @param dt an @ref absolute_dates "absolute date" value to get the number for the day of the week
 
     @return an integer representing the day of the week for the @ref absolute_dates "absolute date" value passed (0=Sunday, 6=Saturday); if a @ref relative_dates "relative date" value is passed, then this function will return 0
 
     @par Example:
-    @code
-my int $dn = get_day_of_week($dt);
+    @code{.py}
+int dn = get_day_of_week(dt);
     @endcode
 
     @note equivalent to <date>::dayOfWeek()
@@ -1163,7 +1163,7 @@ int get_day_of_week(date dt) [flags=CONSTANT] {
 }
 
 //! Returns an integer representing the ISO-8601 day of the week for the @ref absolute_dates "absolute date" value passed (1=Monday, 7=Sunday)
-/** 
+/**
     @param dt an @ref absolute_dates "absolute date" value to get the number for the day of the week
 
     @return an integer representing the day of the week for the @ref absolute_dates "absolute date" value passed (1=Monday, 7=Sunday); if a @ref relative_dates "relative date" value is passed, then this function will return 7
@@ -1178,20 +1178,20 @@ int getISODayOfWeek(date dt) [flags=CONSTANT,DEPRECATED] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing getISODayOfWeek() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
 //! Returns an integer representing the ISO-8601 day of the week for the @ref absolute_dates "absolute date" value passed (1=Monday, 7=Sunday)
-/** 
+/**
     @param dt an @ref absolute_dates "absolute date" value to get the number for the day of the week
 
     @return an integer representing the day of the week for the @ref absolute_dates "absolute date" value passed (1=Monday, 7=Sunday); if a @ref relative_dates "relative date" value is passed, then this function will return 7
 
     @par Example:
-    @code
-my int $dn = get_iso_day_of_week($dt);
+    @code{.py}
+int dn = get_iso_day_of_week(dt);
     @endcode
 
     @note equivalent to <date>::isoDayOfWeek()
@@ -1228,7 +1228,7 @@ hash getISOWeekHash(date dt) [flags=CONSTANT,DEPRECATED] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing getISOWeekHash() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
@@ -1241,8 +1241,8 @@ nothing getISOWeekHash() [flags=RUNTIME_NOOP,DEPRECATED] {
     @return a hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (hash keys: \c "year", \c "week", \c "day"); if a @ref relative_dates "relative date" value is passed, then this function will return year=1970, week=1, day=1
 
     @par Example:
-    @code
-my hash $h = get_iso_week_hash(2007-05-15); # returns year=2007, week=20, day=2
+    @code{.py}
+hash h = get_iso_week_hash(2007-05-15); # returns year=2007, week=20, day=2
     @endcode
 
     @note equivalent to <date>::isoWeekHash()
@@ -1263,14 +1263,14 @@ hash get_iso_week_hash(date dt) [flags=CONSTANT] {
 }
 
 //! Returns a string representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (ex: 2006-01-01 = "2005-W52-7")
-/** 
+/**
     @param dt the date to get information for
 
     @return a string representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (ex: 2006-01-01 = "2005-W52-7"); if a @ref relative_dates "relative date" value is passed, then this function will return \c "1970-W01-1"
 
     @par Example:
-    @code
-my string $str = getISOWeekString(2007-05-15); # returns "2007-W20-2"
+    @code{.py}
+string str = getISOWeekString(2007-05-15); # returns "2007-W20-2"
     @endcode
 
     @see get_iso_week_hash()
@@ -1286,20 +1286,20 @@ string getISOWeekString(date dt) [flags=CONSTANT,DEPRECATED] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing getISOWeekString() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
 //! Returns a string representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (ex: 2006-01-01 = "2005-W52-7")
-/** 
+/**
     @param dt the date to get information for
 
     @return a string representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (ex: 2006-01-01 = "2005-W52-7"); if a @ref relative_dates "relative date" value is passed, then this function will return \c "1970-W01-1"
 
     @par Example:
-    @code
-my string $str = get_iso_week_string(2007-05-15); # returns "2007-W20-2"
+    @code{.py}
+string str = get_iso_week_string(2007-05-15); # returns "2007-W20-2"
     @endcode
 
     @note equivalent to <date>::isoWeekString()
@@ -1344,8 +1344,8 @@ date getDateFromISOWeek(softint year, softint week, softint day = 1) [flags=RET_
     @return an @ref absolute_dates "absolute date value" for the <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 calendar week information</a> passed (year, week number, optional: weekday, where 1=Monday, 7=Sunday) in the current time zone
 
     @par Example:
-    @code
-my date $d = getDateFromISOWeek(2007, 3); # returns 2007-01-15
+    @code{.py}
+date d = getDateFromISOWeek(2007, 3); # returns 2007-01-15
     @endcode
 
     @throw ISO-8601-INVALID-WEEK The week number is not valid for the given year
@@ -1358,14 +1358,14 @@ date get_date_from_iso_week(softint year, softint week, softint day = 1) [flags=
 }
 
 //! Returns an integer representing the system time in milliseconds (1/1000 second intervals since Jan 1, 1970 00:00)
-/** 
+/**
     @return an integer representing the system time in milliseconds (1/1000 second intervals since Jan 1, 1970 00:00)
 
     @par Example:
-    @code
-my int $ms = clock_getmillis();
+    @code{.py}
+int ms = clock_getmillis();
     @endcode
-    
+
     @see
     - clock_getnanos()
     - clock_getmicros()
@@ -1375,12 +1375,12 @@ int clock_getmillis() [flags=CONSTANT] {
 }
 
 //! Returns an integer representing the system time in nanoseconds (1/1000000000 second intervals) since Jan 1, 1970 00:00:00Z
-/** 
+/**
     @return an integer representing the system time in nanoseconds (1/1000000000 second intervals) since Jan 1, 1970 00:00:00Z
 
     @par Example:
-    @code
-my int $ns = clock_getnanos();
+    @code{.py}
+int ns = clock_getnanos();
     @endcode
 
     @see
@@ -1392,12 +1392,12 @@ int clock_getnanos() [flags=CONSTANT] {
 }
 
 //! Returns an integer representing the system time in microseconds (1/1000000 second intervals) since Jan 1, 1970 00:00:00Z
-/** 
+/**
     @return an integer representing the system time in microseconds (1/1000000 second intervals) since Jan 1, 1970 00:00:00Z
 
     @par Example:
-    @code
-my int $us = clock_getmicros();
+    @code{.py}
+int us = clock_getmicros();
     @endcode
 
     @see
@@ -1414,8 +1414,8 @@ int clock_getmicros() [flags=CONSTANT] {
     @return a date in the local time zone corresponding to the argument passed which is an offset in milliseconds from January 1, 1970 in the local time zone
 
     @par Example:
-    @code
-my date $date = date_ms(1); # returns 1970-01-01T00:00:00.001 in the local time zone
+    @code{.py}
+date date = date_ms(1); # returns 1970-01-01T00:00:00.001 in the local time zone
     @endcode
 
     @see date_us(softint)
@@ -1425,7 +1425,7 @@ date date_ms(softint ms) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing date_ms() [flags=RUNTIME_NOOP] {
 }
@@ -1436,8 +1436,8 @@ nothing date_ms() [flags=RUNTIME_NOOP] {
     @return a date in the local time zone corresponding to the argument passed which is an offset in microseconds from January 1, 1970 in the local time zone
 
     @par Example:
-    @code
-my date $date = date_us(1); # returns 1970-01-01T00:00:00.000001 in the local time zone
+    @code{.py}
+date date = date_us(1); # returns 1970-01-01T00:00:00.000001 in the local time zone
     @endcode
 
     @see date_ms(softint)
@@ -1454,8 +1454,8 @@ date date_us(softint us) [flags=CONSTANT] {
     @return an integer value representing the the number of seconds of duration in the value of the date passed; if the argument is a @ref relative_dates "relative date", the value is normalized to seconds and the integer seconds value is returned, if the argument is an @ref absolute_dates "absolute date", the duration in seconds is calculated from the present time; so if the present time is sent as an argument, 0 is returned, if a future date is used, the number of seconds from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is passed as an argument, also 0 is returned (the function does not calculate second differences for @ref absolute_dates "absolute dates" in the past (for this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
 
     @par Example:
-    @code
-my int $us = get_duration_seconds(PT2M15S3u); # returns 135
+    @code{.py}
+int us = get_duration_seconds(PT2M15S3u); # returns 135
     @endcode
 
     @note
@@ -1480,8 +1480,8 @@ int get_duration_seconds(date dt) [flags=CONSTANT] {
     @return an integer value representing the the number of milliseconds of duration in the value of the date passed; if the argument is a @ref relative_dates "relative date", the value is normalized to milliseconds and the integer milliseconds value is returned, if the argument is an @ref absolute_dates "absolute date", the duration in milliseconds is calculated from the present time; so if the present time is sent as an argument, 0 is returned, if a future date is used, the number of milliseconds from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is passed as an argument, also 0 is returned (the function does not calculate millisecond differences for @ref absolute_dates "absolute dates" in the past (for this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
 
     @par Example:
-    @code
-my int $ms = get_duration_milliseconds(PT2M15S3u); # returns 135000
+    @code{.py}
+int ms = get_duration_milliseconds(PT2M15S3u); # returns 135000
     @endcode
 
     @note
@@ -1493,19 +1493,19 @@ my int $ms = get_duration_milliseconds(PT2M15S3u); # returns 135000
     - get_duration_seconds()
     - get_duration_microseconds()
 */
-int get_duration_milliseconds(date dt) [flags=CONSTANT] {  
+int get_duration_milliseconds(date dt) [flags=CONSTANT] {
    return dt->getRelativeMilliseconds();
 }
 
 //! Returns an integer value representing the the number of microseconds of duration in the value of the date passed (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
-/** 
+/**
     @param dt a @ref relative_dates "relative" or @ref absolute_dates "absolute" date argument
 
     @return an integer value representing the the number of microseconds of duration in the value of the date passed; if the argument is a @ref relative_dates "relative date", the value is normalized to microseconds and the integer microseconds value is returned, if the argument is an @ref absolute_dates "absolute date", the duration in microseconds is calculated from the present time; so if the present time is sent as an argument, 0 is returned, if a future date is used, the number of microseconds from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is passed as an argument, also 0 is returned (the function does not calculate microsecond differences for @ref absolute_dates "absolute dates" in the past (for this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
 
     @par Example:
-    @code
-my int $us = get_duration_microseconds(PT2M15S3u); # returns 135000003
+    @code{.py}
+int us = get_duration_microseconds(PT2M15S3u); # returns 135000003
     @endcode
 
     @note
@@ -1529,8 +1529,8 @@ int get_duration_microseconds(date dt) [flags=CONSTANT] {
     @return a floating-point vlaue representing the the number of seconds of duration in the value of the date passed; if the argument is a @ref relative_dates "relative date", the value is normalized to seconds and the floating-point seconds value is returned with microseconds providing the digits to the right of the decimal place, if the argument is an @ref absolute_dates "absolute date", the duration in seconds is calculated from the present time; so if the present time is sent as an argument, 0 is returned, if a future date is used, the number of seconds from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is passed as an argument, also 0 is returned (the function does not calculate second differences for @ref absolute_dates "absolute dates" in the past (for this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
 
     @par Example:
-    @code
-my float $dt = get_duration_seconds_f(PT2M15S3u); # returns 135.000003
+    @code{.py}
+float dt = get_duration_seconds_f(PT2M15S3u); # returns 135.000003
     @endcode
 
     @note
@@ -1549,14 +1549,14 @@ float get_duration_seconds_f(date dt) [flags=CONSTANT] {
 }
 
 //! Returns a hash of @ref date_info_hash "broken-down date/time information" for the given date argument (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
-/** 
+/**
     @param dt the date to return information for
 
     @return a hash of @ref date_info_hash "broken-down date/time information" for the given date argument
 
     @par Example:
-    @code
-my hash $h = date_info($date);
+    @code{.py}
+hash h = date_info(date);
     @endcode
 
     @note equivalent to <date>::info()
@@ -1566,12 +1566,12 @@ hash date_info(date dt) [flags=CONSTANT] {
 }
 
 //! Returns a hash of @ref date_info_hash "broken-down date/time information" for the current date and time
-/** 
+/**
     @return a hash of @ref date_info_hash "broken-down date/time information" for the current date and time
 
     @par Example:
-    @code
-my hash $h = date_info();
+    @code{.py}
+hash h = date_info();
     @endcode
 */
 hash date_info() [flags=CONSTANT] {
@@ -1583,14 +1583,14 @@ hash date_info() [flags=CONSTANT] {
 }
 
 //! Returns @ref True if the argument is an @ref relative_dates "relative date/time value", @ref False if not
-/** 
+/**
     @param dt the date to check
 
     @return @ref True if the argument is an @ref relative_dates "relative date/time value", @ref False if not
 
     @par Example:
-    @code
-my bool $b = is_date_relative($dt)
+    @code{.py}
+bool b = is_date_relative(dt)
     @endcode
 
     @see is_date_absolute()
@@ -1600,21 +1600,21 @@ bool is_date_relative(date dt) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 bool is_date_relative() [flags=NOOP] {
    return false;
 }
 
 //! Returns @ref True if the argument is an @ref absolute_dates "absolute date/time value", @ref False if not
-/** 
+/**
     @param dt the date to check
 
     @return @ref True if the argument is an @ref absolute_dates "absolute date/time value", @ref False if not
 
     @par Example:
-    @code
-my bool $b = is_date_absolute($dt)
+    @code{.py}
+bool b = is_date_absolute(dt)
     @endcode
 
     @see is_date_relative()
@@ -1624,7 +1624,7 @@ bool is_date_absolute(date dt) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 bool is_date_absolute() [flags=NOOP] {
    return false;
@@ -1634,7 +1634,7 @@ bool is_date_absolute() [flags=NOOP] {
 /** This function is included because the date() function is used to convert values to dates (similar to a C/C++ cast)
 
     @param dt the date to return
-    
+
     @return the date passed
  */
 date date(date dt) [flags=CONSTANT] {
@@ -1642,20 +1642,20 @@ date date(date dt) [flags=CONSTANT] {
 }
 
 //! Converts the argument to a date and returns the date
-/** 
+/**
     @param dtstr string a string to bo converted literally to an @ref absolute_dates "absolute date/time value"; if no time zone information is present, the local time zone is assumed
 
     @return the @ref absolute_dates "absolute date/time value" corresponding to the string argument passed
 
     @par Example:
-    @code
-my date $d = date("2001-01-01T15:35:23"); # returns 2001-01-01 15:35:23 Mon +01:00 (CET)
-my date $d = date("20010101 15:35:23Z"); # returns 2001-01-01 15:35:23 Mon Z (UTC)
-my date $d = date("20010101 153523Z"); # returns 2001-01-01 15:35:23 Mon Z (UTC)
-my date $d = date("20010101 153523-02"); # returns 2001-01-01 15:35:23 Mon -02:00 (-02:00)
-my date $d = date("20010101 153523-02:00:00"); # returns 2001-01-01 15:35:23 Mon -02:00 (-02:00)
-my date $d = date("2001-01-01-153523-020000"); # returns 2001-01-01 15:35:23 Mon -02:00 (-02:00)
-my date $d = date("20010101-153523"); # returns 2001-01-01 15:35:23 Mon +01:00 (CET)
+    @code{.py}
+date d = date("2001-01-01T15:35:23"); # returns 2001-01-01 15:35:23 Mon +01:00 (CET)
+date d = date("20010101 15:35:23Z"); # returns 2001-01-01 15:35:23 Mon Z (UTC)
+date d = date("20010101 153523Z"); # returns 2001-01-01 15:35:23 Mon Z (UTC)
+date d = date("20010101 153523-02"); # returns 2001-01-01 15:35:23 Mon -02:00 (-02:00)
+date d = date("20010101 153523-02:00:00"); # returns 2001-01-01 15:35:23 Mon -02:00 (-02:00)
+date d = date("2001-01-01-153523-020000"); # returns 2001-01-01 15:35:23 Mon -02:00 (-02:00)
+date d = date("20010101-153523"); # returns 2001-01-01 15:35:23 Mon +01:00 (CET)
     @endcode
 
     @see date(string, string)
@@ -1666,14 +1666,14 @@ date date(string dtstr) [flags=CONSTANT] {
 }
 
 //! The argument is assumed to be the number of seconds and fractions of a second since 1970-01-01 in the local time zone; this value is used to produce the date value that is returned
-/** 
+/**
     @param f the number of seconds and fractions of a second since 1970-01-01 in the local time zone
 
     @return a date corresponding to the number of seconds and fractions of a second since 1970-01-01 in the local time zone passed as the sole argument
 
     @par Example:
-    @code
-my date $d = date($f);
+    @code{.py}
+date d = date(f);
     @endcode
  */
 date date(float f) [flags=CONSTANT] {
@@ -1681,14 +1681,14 @@ date date(float f) [flags=CONSTANT] {
 }
 
 //! The argument is assumed to be the number of seconds since 1970-01-01 in the local time zone; this value is used to produce the date value that is returned
-/** 
+/**
     @param i the number of seconds since 1970-01-01 in the local time zone
 
     @return a date corresponding to the number of seconds since 1970-01-01 in the local time zone passed as the sole argument
 
     @par Example:
-    @code
-my date $d = date($i);
+    @code{.py}
+date d = date(i);
     @endcode
  */
 date date(softint i) [flags=CONSTANT] {
@@ -1714,15 +1714,15 @@ date date(null[doc] null) [flags=CONSTANT] {
 }
 
 //! Returns the @ref date "date/time" value corresponding to parsing a string argument according to a @ref date_mask "format mask"
-/** 
+/**
     @param dtstr a string giving a date
     @param mask the mask for the date value; see @ref date_mask for information on the format of the @ref date_mask "format mask"
-    
+
     @return the @ref date "date/time" value corresponding to parsing the \a dtstr string argument according to \a mask serving as a @ref date_mask "format mask"
 
     @par Example:
-    @code
-my date $dt = date("20100401 234520 230394", "YYYYMMDD HHmmSS ssssss"); # returns 2010-04-01T23:45:20.230394
+    @code{.py}
+date dt = date("20100401 234520 230394", "YYYYMMDD HHmmSS ssssss"); # returns 2010-04-01T23:45:20.230394
     @endcode
 
     @throw DATE-CONVERT-ERROR invalid mask specification

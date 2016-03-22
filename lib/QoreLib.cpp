@@ -1,9 +1,10 @@
+/* -*- indent-tabs-mode: nil -*- */
 /*
   QoreLib.cpp
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -358,7 +359,7 @@ const qore_option_s qore_option_list_l[] = {
    { QORE_OPT_FUNC_STATVFS,
      "HAVE_STATVFS",
      QO_FUNCTION,
-#ifdef HAVE_SYS_STATVFS_H
+#ifdef Q_HAVE_STATVFS
      true
 #else
      false
@@ -510,7 +511,6 @@ static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, in
    switch (*param) {
       case 's': {
 	 QoreStringValueHelper astr(qv);
-
 	 length = astr->strlen();
 	 if ((width != -1) && (length > width) && !type)
 	    width = length;
@@ -1138,10 +1138,10 @@ char* q_basenameptr(const char* path) {
    const char* p = q_find_last_path_sep(path);
    if (!p)
       return (char* )path;
-   return (char* )p + 1;
+   return (char*)p + 1;
 }
 
-// thread-safe basename function (resulting pointer must be free()ed)
+// thread-safe dirname function (resulting pointer must be free()ed)
 char* q_dirname(const char* path) {
    const char* p = q_find_last_path_sep(path);
    if (!p || p == path) {
@@ -1413,8 +1413,8 @@ void q_strerror(QoreString &str, int err) {
    str.allocate(str.strlen() + STRERR_BUFSIZE);
    // ignore strerror() error message
 #ifdef STRERROR_R_CHAR_P
-   // we can't help but get this version because g++ needs and defines
-   // _GNU_SOURCE for us on linux (GLIBC) systems :-(
+   // we can't help but get this version because some of the Linux
+   // header files define _GNU_SOURCE for us :-(
    str.concat(strerror_r(err, (char* )(str.getBuffer() + str.strlen()), STRERR_BUFSIZE));
 #else
    // use portable XSI version of strerror_r()
@@ -1462,12 +1462,17 @@ int check_lvalue(AbstractQoreNode* node, bool assignment) {
    if (ntype == NT_CLASS_VARREF)
       return 0;
 
+   if (ntype == NT_OPERATOR) {
+      QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(node);
+      if (op) {
+	 return check_lvalue(op->getLeft(), assignment);
+      }
+      return -1;
+   }
+
    if (ntype == NT_TREE) {
-      const QoreTreeNode* t = reinterpret_cast<const QoreTreeNode*>(node);
-      if (t->getOp() == OP_LIST_REF || t->getOp() == OP_OBJECT_REF)
-	 return check_lvalue(t->left);
-      else
-	 return -1;
+      QoreTreeNode* t = reinterpret_cast<QoreTreeNode*>(node);
+      return t->getOp() == OP_OBJECT_REF ? check_lvalue(t->left, assignment) : -1;
    }
    return -1;
 }
@@ -1544,7 +1549,7 @@ QoreHashNode* stat_to_hash(const struct stat& sbuf) {
    return h;
 }
 
-#ifdef HAVE_SYS_STATVFS_H
+#ifdef Q_HAVE_STATVFS
 QoreHashNode* statvfs_to_hash(const struct statvfs& vfs) {
    QoreHashNode* h = new QoreHashNode;
 
@@ -1676,6 +1681,13 @@ void QoreProgramLocation::toString(QoreString& str) const {
       str.sprintf(" (source \"%s\":%d)", source, start_line + offset);
 }
 
+void LVarSet::add(LocalVar* var) {
+   if (!needs_scan && var->needsScan())
+      needs_scan = true;
+   // insert var into the set
+   insert(var);
+}
+
 bool q_parse_bool(const AbstractQoreNode* n) {
    if (get_node_type(n) == NT_STRING)
       return q_parse_bool(reinterpret_cast<const QoreStringNode*>(n)->getBuffer());
@@ -1776,9 +1788,11 @@ const char* q_mode_to_perm(mode_t mode, QoreString& perm) {
    // add other permission flags
    perm.concat(mode & S_IROTH ? 'r' : '-');
    perm.concat(mode & S_IWOTH ? 'w' : '-');
+#ifdef S_ISVTX
    if (mode & S_ISVTX)
       perm.concat(mode & S_IXOTH ? 't' : 'T');
    else
+#endif
       perm.concat(mode & S_IXOTH ? 'x' : '-');
 #else
    // Windows
@@ -2003,3 +2017,27 @@ void* q_memmem(const void* big, size_t big_len, const void* little, size_t littl
    return 0;
 #endif
 }
+
+#ifdef _Q_WINDOWS
+int statvfs(const char* path, struct statvfs* buf) {
+   ULARGE_INTEGER avail;
+   ULARGE_INTEGER total;
+   ULARGE_INTEGER free;
+
+   if (!GetDiskFreeSpaceEx(path, &avail, &total, &free)) {
+      return -1;
+   }
+
+   buf->set(avail.QuadPart, total.QuadPart, free.QuadPart);
+   return 0;
+}
+
+int q_fstatvfs(const char* filepath, struct statvfs* buf) {
+   char* dir = q_dirname(filepath);
+   if (!dir)
+      return -1;
+   ON_BLOCK_EXIT(free, dir);
+
+   return statvfs(dir, buf);
+}
+#endif

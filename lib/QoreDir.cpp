@@ -1,3 +1,4 @@
+/* -*- indent-tabs-mode: nil -*- */
 /*
   QoreDir.cpp
 
@@ -5,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -49,10 +50,10 @@ QoreDir::~QoreDir() {
 }
 
 // return the actual dirname
-QoreStringNode *QoreDir::dirname() const { 
+QoreStringNode *QoreDir::dirname() const {
    return priv->get_dir_string();
 }
- 
+
 // change directory from current location on
 // return 0 if directory exists and is openable
 int QoreDir::chdir(const char* ndir, ExceptionSink *xsink) {
@@ -106,7 +107,7 @@ QoreHashNode *QoreDir::hstat(ExceptionSink *xsink) const {
    return priv->hstat(xsink);
 }
 
-#ifdef HAVE_SYS_STATVFS_H
+#ifdef Q_HAVE_STATVFS
 QoreHashNode *QoreDir::statvfs(ExceptionSink *xsink) const {
    return priv->statvfs(xsink);
 }

@@ -136,7 +136,7 @@ case "${host_os}" in
 		mingw=yes
 		need_user_dl=yes # set to make sure there's a user-provided dlfcn.h and libdl.(a|dll) available
 		# DEBUG
-		#make_dll=no
+		#make_dll=yes
 		# libraries to find
 		need_libs="$need_libs wsock32 ws2_32 gdi32 iconv pthread"
 		# DEBUG: cannot create dll without these libraries for some reason
@@ -623,7 +623,7 @@ find_mpfr() {
     mpfr_sprintf=`grep mpfr_sprintf "$with_mpfr_includes/mpfr.h" 2>/dev/null`
     mpfr_buildopt_tls_p=`grep mpfr_buildopt_tls_p "$with_mpfr_includes/mpfr.h" 2>/dev/null`
 
-    QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $MPFR_LDFLAGS"
+    QORE_LIB_LDFLAGS="$MPFR_LDFLAGS $QORE_LIB_LDFLAGS"
     QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $MPFR_CPPFLAGS"
 }
 
@@ -988,6 +988,10 @@ find_openssl() {
     QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $OPENSSL_CPPFLAGS"
 }
 
+if test "$mingw" = yes; then
+    LIBS="$LIBS -lgdi32 -lz"
+fi
+
 # see if we can figure out where the openssl library is
 AC_ARG_WITH([openssl-dir],
   [AS_HELP_STRING([--with-openssl-dir@<:@=DIR@:>@],
@@ -1008,10 +1012,10 @@ else
     SAVE_CPPFLAGS="$CPPFLAGS"
     SAVE_LIBS="$LIBS"
     CPPFLAGS="$CPPFLAGS $QORE_LIB_CPPFLAGS $OPENSSL_CPPFLAGS"
-    LIBS="$LIBS $QORE_LIB_LDFLAGS $OPENSSL_LDFLAGS"
+    LIBS="$OPENSSL_LDFLAGS $QORE_LIB_LDFLAGS $LIBS"
 
     # check for SHA-0 algorithm
-    AC_MSG_CHECKING([for SHA0 in openssl])
+    AC_MSG_CHECKING([for SHA in openssl])
     AC_LINK_IFELSE([AC_LANG_PROGRAM(
     [[#include <openssl/evp.h>]],
     [[const EVP_MD *evp = EVP_sha();]])],
@@ -1057,10 +1061,6 @@ else
 
     CPPFLAGS="$SAVE_CPPFLAGS"
     LIBS="$SAVE_LIBS"
-fi
-
-if test "$mingw" = yes; then
-    LIBS="$LIBS -lgdi32 -lz"
 fi
 
 set_dl_cppflags() {
@@ -1367,7 +1367,7 @@ AC_SEARCH_LIBS(clock_gettime, rt)
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h execinfo.h cxxabi.h arpa/inet.h sys/socket.h sys/statvfs.h winsock2.h ws2tcpip.h glob.h sys/un.h termios.h netinet/tcp.h pwd.h sys/wait.h getopt.h stdint.h grp.h])
+AC_CHECK_HEADERS([fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h execinfo.h cxxabi.h arpa/inet.h sys/socket.h sys/statvfs.h winsock2.h ws2tcpip.h glob.h sys/un.h termios.h netinet/tcp.h pwd.h sys/wait.h getopt.h stdint.h poll.h grp.h])
 
 # check for umem.h
 AC_CHECK_HEADER([umem.h], have_umem_h=yes, have_umem_h=no)
@@ -1445,7 +1445,7 @@ AC_FUNC_STAT
 AC_FUNC_STRERROR_R
 AC_FUNC_STRTOD
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([bzero floor gethostbyaddr gethostbyname gethostname gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups realpath memmem])
+AC_CHECK_FUNCS([bzero floor gethostbyaddr gethostbyname gethostname gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups poll realpath memmem])
 
 # some systems have internal gethostby*_r in libc but don't hide the
 # symbols, so we look if they are declared before checking in the libraries

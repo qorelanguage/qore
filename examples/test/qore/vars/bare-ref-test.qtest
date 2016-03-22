@@ -33,8 +33,9 @@ public class BarerefTest inherits QUnit::Test {
     }
 
     constructor() : Test("BarerefTest", "1.0") {
-        addTestCase("Closures test", \closuresTest(), NOTHING);
-        addTestCase("Skipped test", \lvarTest(), NOTHING);
+        addTestCase("Closures test", \closuresTest());
+        addTestCase("Skipped test", \lvarTest());
+        addTestCase("Deref test", \derefTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -105,10 +106,10 @@ public class BarerefTest inherits QUnit::Test {
     }
 
     lvarTest() {
-        my int a = 1;
-        my any b = "1";
+        int a = 1;
+        any b = "1";
         our any c = 2.1;
-   	    my (int a1, string b1, any c1) = (2, "four", "hi");
+        my (int a1, string b1, any c1) = (2, "four", "hi");
         our (int a2, string b2, any c2) = (4, "eight", "hello");
 
         testAssertionValue("var test 1", a, 1);
@@ -122,4 +123,16 @@ public class BarerefTest inherits QUnit::Test {
         testAssertionValue("var test 9", c2, "hello");
     }
 
+    derefTest() {
+        string a = "b";
+        hash h = (
+            "a": "a",
+            "b": "b",
+            );
+
+        assertEq("a", h.a);
+        # the following line should use the lvar a's value "b" to dereference the hash
+        # https://github.com/qorelanguage/qore/issues/416
+        assertEq("b", h.(a));
+    }
 }

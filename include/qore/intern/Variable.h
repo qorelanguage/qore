@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,8 +32,6 @@
 #ifndef _QORE_VARIABLE_H
 #define _QORE_VARIABLE_H
 
-#include <set>
-
 enum qore_var_t {
    VT_UNRESOLVED = 1,
    VT_LOCAL      = 2,
@@ -43,6 +41,7 @@ enum qore_var_t {
    VT_IMMEDIATE  = 6   // used in references with immediate variable storage
 };
 
+#include <qore/intern/RSet.h>
 #include <qore/intern/VRMutex.h>
 #include <qore/intern/QoreLValue.h>
 #include <qore/intern/qore_var_rwlock_priv.h>
@@ -52,6 +51,7 @@ enum qore_var_t {
 
 #include <string>
 #include <memory>
+#include <set>
 
 #ifndef QORE_THREAD_STACK_BLOCK
 #define QORE_THREAD_STACK_BLOCK 128
@@ -59,6 +59,7 @@ enum qore_var_t {
 
 class Var;
 class ScopedObjectCallNode;
+class QoreSquareBracketsOperatorNode;
 
 union qore_gvar_ref_u {
    bool b;
@@ -325,7 +326,7 @@ typedef std::set<const void*> lvid_set_t;
 struct ObjCountRec {
    // container
    const AbstractQoreNode* con;
-   // initial count (true = objects, false = none)
+   // initial count (true = possible recursive cycle, false = no cycle possible)
    bool before;
 
    DLLLOCAL ObjCountRec(const QoreListNode* c);
@@ -384,7 +385,7 @@ protected:
          *v = n;
    }
 
-   DLLLOCAL int doListLValue(const QoreTreeNode* tree, bool for_remove);
+   DLLLOCAL int doListLValue(const QoreSquareBracketsOperatorNode* op, bool for_remove);
    DLLLOCAL int doHashObjLValue(const QoreTreeNode* tree, bool for_remove);
 
    DLLLOCAL int makeInt(const char* desc);
@@ -406,7 +407,7 @@ private:
    // recursive delta: change to recursive reference count
    int rdt;
 
-   QoreObject* robj;
+   RObject* robj;
 
 public:
    QoreLValueGeneric* val;
@@ -419,6 +420,10 @@ public:
    DLLLOCAL LValueHelper(QoreObject& obj, ExceptionSink* xsink);
 
    DLLLOCAL ~LValueHelper();
+
+   DLLLOCAL void setClosure(RObject* c) {
+      robj = c;
+   }
 
    DLLLOCAL void saveTemp(QoreValue& n);
    DLLLOCAL void saveTemp(AbstractQoreNode* n);
@@ -447,7 +452,7 @@ public:
       assert(!v);
       assert(!val);
       v = &ptr;
-      before = get_container_obj(ptr);
+      before = needs_scan(ptr);
    }
 
    DLLLOCAL void setValue(QoreLValueGeneric& nv);
@@ -466,7 +471,7 @@ public:
       v = ptr;
       typeInfo = ti;
 
-      before = get_container_obj(*ptr);
+      before = needs_scan(*ptr);
    }
 
    DLLLOCAL void clearPtr() {

@@ -7,7 +7,7 @@ Later, if any subfolder mentioned in this text is missing from `~/.vim`, just cr
 
 ## File type detection
 
-Vim can detect the type of file that is edited.  So we just teach it to recognise the files we use.  
+Vim can detect the type of file that it opens.  So we just teach it to recognise the files we use.  
 Here's an example of how to do it -- just save the following into file `~/.vim/filetype.vim` :
 
 ```vim
@@ -20,7 +20,7 @@ endif
 augroup filetypedetect
   " Qore and Qorus files
   au! BufRead,BufNewFile *.q,*.qm,*.qtest       setfiletype qore
-  au! BufRead,BufNewFile *.qc,*.qclass,*.qconn,*.qconst,*.qfd,*.qjob,*.ql,*.qmapper,*.qrf,*.qsd,*.qsm,*.qvmap,*.qwf       setfiletype qore
+  au! BufRead,BufNewFile *.qc,*.qclass,*.qconn,*.qconst,*.qfd,*.qjob,*.ql,*.qmapper,*.qrf,*.qsd,*.qsm,*.qvmap,*.qwf       setfiletype qorus
   au! BufRead,BufNewFile *.qpp                  setfiletype cpp
 augroup END
 ```

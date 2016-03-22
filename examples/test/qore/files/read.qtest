@@ -45,6 +45,6 @@ class ReadTest inherits QUnit::Test {
         testAssertionValue('end position check', fr.getPos(), 11);
         testAssertionValue('read string check', s, String);
         testAssertionValue('ReadOnlyFile::readTextFile() string check', ReadOnlyFile::readTextFile(file), String);
-        testAssertionValue('ReadOnlyFile::readTextFile() no value check', ReadOnlyFile::readTextFile(tmp_location()));
+        assertThrows("FILE-OPEN2-ERROR", \ReadOnlyFile::readTextFile(), tmp_location() + DirSep + get_random_string());
     }
 }

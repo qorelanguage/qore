@@ -31,6 +31,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/ql_object.h>
+#include <qore/intern/qore_program_private.h>
 
 static QoreObject* create_object_intern(const QoreStringNode* class_name, unsigned arg_offset, const QoreValueList* args, ExceptionSink* xsink) {
    TempEncodingHelper tmp(class_name, QCS_DEFAULT, xsink);
@@ -96,7 +97,7 @@ nothing getMethodList() [flags=RUNTIME_NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-my list $l = get_method_list($obj);
+list l = get_method_list(obj);
     @endcode
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case getMethodList()
@@ -115,7 +116,7 @@ list get_method_list(object obj) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-my any $result = callObjectMethod($obj, "method", $arg1, $arg2);
+any result = callObjectMethod(obj, "method", arg1, arg2);
     @endcode
 
     @throw METHOD-DOES-NOT-EXIST The named method does not exist in this class
@@ -157,7 +158,7 @@ nothing callObjectMethod() [flags=RUNTIME_NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-my any $result = call_object_method($obj, "method", $arg1, $arg2);
+any result = call_object_method(obj, "method", arg1, arg2);
     @endcode
 
     @throw METHOD-DOES-NOT-EXIST The named method does not exist in this class
@@ -221,7 +222,7 @@ nothing callObjectMethodArgs() [flags=RUNTIME_NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-my any $result = call_object_method_args($obj, "method", $arglist);
+any result = call_object_method_args(obj, "method", arglist);
     @endcode
 
     @throw METHOD-DOES-NOT-EXIST The named method does not exist in this class
@@ -308,7 +309,7 @@ object obj = create_object_args(class_name, arg_list);
     @endcode
 
     @param class_name the name of the class to instantiate (can be prefixed with a namespace path)
-    @param args any other arguments to the constructor
+    @param argv any other arguments to the constructor
 
     @return the object created
 

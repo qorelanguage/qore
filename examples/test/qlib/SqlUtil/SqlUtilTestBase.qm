@@ -1,0 +1,486 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+module SqlUtilTestBase {
+    version = "0.1";
+    desc = "SqlUtil test base module";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/SqlUtil.qm
+%requires ../../../../qlib/BulkSqlUtil.qm
+%requires ../../../../qlib/Schema.qm
+
+public class SqlUtilTestSchema inherits AbstractSchema {
+    constructor(AbstractDatasource ds, *string dts, *string its) : AbstractSchema(ds, dts, its) {
+    }
+
+    log(string fmt) {
+        delete argv;
+    }
+
+    logpf(string fmt) {
+        delete argv;
+    }
+
+    logProgress(string fmt) {
+        delete argv;
+    }
+}
+
+public class SqlTestBase inherits QUnit::Test {
+    private {
+        AbstractSchema schema;
+        AbstractTable table;
+
+        const MyOpts = Opts + (
+            "connstr": "c,conn=s",
+            );
+
+        const OptionColumn = 22;
+
+        hash expect_data;
+
+        list insert_data;
+        list upsert_data;
+    }
+
+    constructor(string testName, string testVer, any args, *hash mopts) : Test(testName, testVer, \args, mopts) {
+        addTestCase("Insert", \insertTest());
+        addTestCase("Select", \selectTest());
+        addTestCase("Column Operators", \columnOperatorTest());
+        addTestCase("Where Operators", \whereOperatorTest());
+        addTestCase("Group By", \groupByTest());
+        addTestCase("Order By", \orderByTest());
+        addTestCase("Update", \updateTest());
+        addTestCase("Upsert", \upsertTest());
+        addTestCase("BulkInsert", \bulkInsertTest());
+        addTestCase("BulkUpsert", \bulkUpsertTest());
+    }
+
+    globalTearDown() {
+        # drop the test schema
+        if (schema)
+            schema.drop(False, m_options.verbose);
+    }
+
+    insertTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        foreach hash data in (insert_data)
+            assertEq(NOTHING, table.insert(data));
+    }
+
+    selectTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        *list rows = table.selectRows();
+        assertEq (2, rows.size());
+
+        foreach hash e in (expect_data.pairIterator()) {
+            # printf("* %s\n", e.key);
+            # printf("  I: %s: %N\n", insert_data[0]{e.key}.type(), insert_data[0]{e.key});
+            # printf("  R: %s: %N\n", rows[0]{e.key}.type(), rows[0]{e.key});
+            if (e.value === NOTHING)
+                continue; # skipping assertion
+            assertEq (e.value, rows[0]{e.key}, "checking data in column " + e.key);
+        }
+    }
+
+    updateTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        map assertEq(1, table.update($1 - "id", ("id": $1.id))), insert_data;
+    }
+
+    upsertTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        code upsert = table.getUpsertClosure(upsert_data[0]);
+        assertEq(AbstractTable::UR_Verified, upsert(upsert_data[0]));
+        # upsert can return UR_Verified even when rows are upserted when there is an optimized upsert implementation used in the driver-specific SqlUtil module
+        assertEq(True, inlist(upsert(upsert_data[1]), (AbstractTable::UR_Inserted, AbstractTable::UR_Verified)));
+    }
+
+    bulkInsertTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        table.del();
+
+        BulkInsertOperation insert(table);
+        on_success insert.flush();
+        on_error insert.discard();
+
+        foreach hash data in (insert_data)
+            assertEq(NOTHING, insert.queueData(data));
+    }
+
+    bulkUpsertTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        table.del();
+
+        BulkUpsertOperation insert(table);
+        on_success insert.flush();
+        on_error insert.discard();
+
+        foreach hash data in (upsert_data)
+            assertEq(NOTHING, insert.queueData(data));
+    }
+
+    columnOperatorTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        hash soh = ("columns": (
+                cop_as (cop_cast ("id", "string"), "cop_cast"),
+                cop_as (cop_value (0), "cop_value"), # triggers bug #511 (GitHub)
+                cop_as (cop_lower (cop_value ("Ahoj")), "cop_lower"),
+                cop_as (cop_upper (cop_value ("Ahoj")), "cop_upper"),
+                cop_as (cop_prepend (cop_value ("abc"), "def"), "cop_prepend"),
+                cop_as (cop_append (cop_value ("abc"), "def"), "cop_append"),
+                cop_as (cop_minus ("id", "id"), "cop_minus"),
+                cop_as (cop_plus ("id", "id"), "cop_plus"),
+                cop_as (cop_divide ("id", "id"), "cop_divide"),
+                cop_as (cop_multiply ("id", "id"), "cop_multiply"),
+                # cop_as (cop_minus ("id", cop_value(2)), "cop_minus"),
+                # cop_as (cop_plus ("id", cop_value(2)), "cop_plus"),
+                # cop_as (cop_divide ("id", cop_value(2)), "cop_divide"),
+                # cop_as (cop_multiply ("id", cop_value(2)), "cop_multiply"),
+                ),
+                "where": ("id": 2, "cop_lower": cop_lower("cop_upper")),
+                );
+
+        string sql; on_error printf("sql: %s\n", sql);
+        *hash row = table.selectRow (soh, \sql);
+
+        hash expect = (
+                "cop_cast": "2",
+                "cop_value": 0,
+                "cop_lower": "ahoj",
+                "cop_upper": "AHOJ",
+                "cop_prepend": "defabc",
+                "cop_append": "abcdef",
+                "cop_minus": 0,
+                "cop_plus": 4,
+                "cop_divide": 1,
+                "cop_multiply": 4,
+                );
+
+        foreach hash e in (expect.pairIterator())
+            assertEq (e.value, row{e.key}, "checking column operator " + e.key);
+
+        soh = ("columns": (
+                cop_as ("char_f", "pivo"),
+                cop_as (cop_min ("id"), "cop_min"),
+                cop_as (cop_max ("id"), "cop_max"),
+                cop_as (cop_avg ("id"), "cop_avg"),
+                cop_as (cop_sum ("id"), "cop_sum"),
+                cop_as (cop_count ("char_f"), "cop_count"),
+                cop_as (cop_count (cop_distinct ("char_f")), "cop_distinct"),
+                ),
+                "groupby": ("char_f")
+                );
+
+        row = table.selectRow (soh);
+
+        expect = (
+                "cop_min": 1,
+                "cop_max": 2,
+                "cop_avg": 1.5n,
+                "cop_sum": 3,
+                "cop_count": 2,
+                "cop_distinct": 1,
+                );
+
+        foreach hash e in (expect.pairIterator())
+            assertEq (e.value, row{e.key}, "checking column operator " + e.key);
+    }
+
+    whereOperatorTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        hash test_set = (
+                "op_lt": (
+                    "in": (
+                        "where": ("id": op_lt(2)),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 1),),
+                        ),
+                    ),
+                "op_le": (
+                    "in": (
+                        "where": ("id": op_le(2)),
+                        ),
+                    "out": (
+                        "count": 2,
+                        "data": (("id": 1), ("id": 2)),
+                        ),
+                    ),
+                "op_gt": (
+                    "in": (
+                        "where": ("id": op_gt(1)),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 2),),
+                        ),
+                    ),
+                "op_ge": (
+                    "in": (
+                        "where": ("id": op_ge(1)),
+                        ),
+                    "out": (
+                        "count": 2,
+                        "data": (("id": 1), ("id": 2)),
+                        ),
+                    ),
+                "op_eq": (
+                    "in": (
+                        "where": ("id": op_eq(2)),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 2),),
+                        ),
+                    ),
+                "op_ne": (
+                    "in": (
+                        "where": ("id": op_ne(1)),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 2),),
+                        ),
+                    ),
+                "op_ne_null": (
+                    "in": (
+                        "where": ("null_f": op_ne(1)),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 2, "null_f": NULL),),
+                        ),
+                    ),
+                "op_between": (
+                    "in": (
+                        "where": ("id": op_between(0,1)),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 1),),
+                        ),
+                    ),
+                "op_in": (
+                    "in": (
+                        "where": ("id": op_in((0,1,3))),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 1),),
+                        ),
+                    ),
+                "op_not": (
+                    "in": (
+                        "where": ("id": op_not (op_in((0,1,3)))),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 2),),
+                        ),
+                    ),
+                "op_like": (
+                    "in": (
+                        "where": ("char_f": op_like (insert_data[0].char_f + "%")),
+                        ),
+                    "out": (
+                        "count": 2,
+                        "data": (("char_f": expect_data.char_f), ("char_f": expect_data.char_f)),
+                        ),
+                    ),
+                "op_clt": (
+                    "in": (
+                        "where": ("id": op_clt("id_")),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 1),),
+                        ),
+                    ),
+                "op_cle": (
+                    "in": (
+                        "where": ("id": op_cle("id_")),
+                        ),
+                    "out": (
+                        "count": 2,
+                        "data": (("id": 1), ("id": 2)),
+                        ),
+                    ),
+                "op_cgt": (
+                    "in": (
+                        "where": ("id_": op_cgt("id")),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 1),),
+                        ),
+                    ),
+                "op_cge": (
+                    "in": (
+                        "where": ("id_": op_cge("id")),
+                        ),
+                    "out": (
+                        "count": 2,
+                        "data": (("id": 1), ("id": 2)),
+                        ),
+                    ),
+                "op_cne": (
+                    "in": (
+                        "where": ("id": op_cne("id_")),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 1),),
+                        ),
+                    ),
+                "op_ceq": (
+                    "in": (
+                        "where": ("id": op_ceq("id_")),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 2),),
+                        ),
+                    ),
+                "wop_or": (
+                    "in": (
+                        "where": wop_or (("id": op_eq(1)), ("id": op_eq(2))),
+                        ),
+                    "out": (
+                        "count": 2,
+                        "data": (("id": 1), ("id": 2)),
+                        ),
+                    ),
+                );
+
+        foreach hash t in (test_set.pairIterator()) {
+            *list rows = table.selectRows (t.value.in);
+            hash out = t.value.out;
+            assertEq (out.count, rows.size(), "checking where operator " + t.key);
+
+            foreach hash row in (rows) {
+                int rn = $#;
+                foreach hash d in (out.data[rn].pairIterator())
+                    assertEq (d.value, row{d.key}, sprintf ("checking where operator %s row %s column %s", t.key, rn, d.key));
+            }
+        }
+    }
+
+    groupByTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        hash soh = ("columns": (
+                cop_as ("char_f", "pivo"),
+                cop_as (cop_count(), "cop_count"),
+                ),
+                "groupby": (1)
+                );
+        *hash row = table.selectRow (soh);
+        assertEq (2, row.cop_count, "checking group by 1");
+
+        soh = ("columns": (
+                cop_as ("char_f", "pivo"),
+                cop_as (cop_count(), "cop_count"),
+                ),
+                "groupby": ("pivo")
+                );
+        row = table.selectRow (soh);
+        assertEq (2, row.cop_count, "checking group by alias");
+    }
+
+    orderByTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        hash soh = ("columns": ("id",), "orderby": (1,));
+        *list rows = table.selectRows (soh);
+        assertEq ((("id": 1), ("id": 2)), rows, "checking order by 1");
+
+        soh = ("columns": ("id",), "orderby": ("-id",));
+        rows = table.selectRows (soh);
+        assertEq ((("id": 2), ("id": 1)), rows, "checking order by id desc");
+
+        soh = ("columns": (cop_as ("id", "alias"),), "orderby": ("alias",));
+        rows = table.selectRows (soh);
+        assertEq ((("alias": 1), ("alias": 2)), rows, "checking order by alias");
+    }
+
+    static string getColumnName(string n) {
+        n =~ s/ //g;
+        return n + "_f";
+    }
+
+    init_test_data (hash custom_columns) {
+        hash row;
+
+        foreach hash h in (custom_columns.pairIterator()) {
+            string cn = getColumnName(h.key);
+            row{cn} = h.value.bind ?? h.value.value ?? h.value;
+
+            if (h.value.typeCode() == NT_HASH && h.value.hasKey('expect'))
+                expect_data{cn} = h.value.expect;
+            else
+                expect_data{cn} = h.value.bind.'^value^' ?? h.value.value ?? h.value;
+        }
+        insert_data = (("id": 1, "id_": 2, "null_f": 1) + row, ("id": 2, "id_": 2, "null_f": NULL) + row,);
+        upsert_data = (("id": 2, "id_": 2, "null_f": 1) + row, ("id": 3, "id_": 2, "null_f": NULL) + row,);
+    }
+}
