@@ -95,8 +95,6 @@ void qore_number_private::getAsString(QoreString& str, bool round) const {
 }
 
 void qore_number_private::applyRoundingHeuristic(QoreString& str, qore_size_t dp, qore_size_t last) {
-   // if there are some significant digits after the decimal point (signal)
-   bool signal = false;
    // the position of the last significant digit
    qore_offset_t pos = (qore_offset_t)dp;
    qore_size_t i = dp;
@@ -118,19 +116,16 @@ void qore_number_private::applyRoundingHeuristic(QoreString& str, qore_size_t dp
          }
 
 	 // check for 2nd threshold
-         if ((i == last) && cnt > QORE_MPFR_ROUND_THRESHOLD_2) {
+         if (cnt > QORE_MPFR_ROUND_THRESHOLD_2) {
             break;
          }
 
          // set last digit to digit found
          lc = c;
-         // if first digit, then do not set signal flag
-         if (i == (dp + 1))
-            continue;
       }
       else {
          // check for 2nd threshold
-         if ((i == last) && cnt > QORE_MPFR_ROUND_THRESHOLD_2) {
+         if (cnt > QORE_MPFR_ROUND_THRESHOLD_2) {
             break;
          }
          // no 0 or 9 digit found
@@ -141,15 +136,12 @@ void qore_number_private::applyRoundingHeuristic(QoreString& str, qore_size_t dp
       pos = i - 2;
       //printd(5, "qore_number_private::applyRoundingHeuristic('%s') set pos: %lld ('%c') dp: %lld\n", str.getBuffer(), pos, str[pos], dp);
 
-      // found a non-noise digit
-      if (!signal)
-         signal = true;
       // reset count
       cnt = 0;
    }
 
    // round the number for display
-   if (signal && cnt > QORE_MPFR_ROUND_THRESHOLD) {
+   if (cnt > QORE_MPFR_ROUND_THRESHOLD) {
       //printd(5, "ROUND BEFORE: (pos: %d dp: %d cnt: %d has_e: %d e: %c) %s\n", pos, dp, cnt, has_e, has_e ? str[pos + cnt + 4] : 'x', str.getBuffer());
       // if rounding right after the decimal point, then remove the decimal point
       if (pos == (qore_offset_t)dp)

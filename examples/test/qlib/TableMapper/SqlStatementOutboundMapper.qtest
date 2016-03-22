@@ -134,7 +134,7 @@ class FakeAbstractTable inherits SqlUtil::AbstractTable {
     bool hasArrayBind(any a)  {}
     nothing doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh)  {}
     nothing copyImpl(AbstractTable old)  {}
-    nothing doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch) {}
+    nothing doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {}
 }
 
 

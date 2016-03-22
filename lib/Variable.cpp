@@ -803,7 +803,7 @@ int64 LValueHelper::postDecrementBigInt(const char* desc) {
 
 double LValueHelper::preIncrementFloat(const char* desc) {
    if (val) {
-      if (!makeFloat(desc))
+      if (makeFloat(desc))
 	 return 0;
       return val->preIncrementFloat(getTempRef());
    }

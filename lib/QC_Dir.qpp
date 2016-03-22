@@ -363,6 +363,8 @@ catch (hash ex) {
 
     @throw DIR-RMDIR-PARAMETER-ERROR only direct subdirectories are allowed
     @throw DIR-RMDIR-FAILURE error removing directory (\c arg will be assigned to the errno value)
+
+    @see @ref Qore::rmdir()
  */
 nothing Dir::rmdir(string subdir) {
    // check if there is a path delimiter
@@ -729,7 +731,7 @@ catch (hash ex) {
     @throw DIR-STATVFS-FAILURE error in statvfs (\c arg will be assigned to the errno value)
  */
 hash Dir::statvfs() {
-#ifdef HAVE_SYS_STATVFS_H
+#ifdef Q_HAVE_STATVFS
    return d->statvfs(xsink);
 #else
    return missing_method_error("Dir::statvfs", "STATVFS", xsink);

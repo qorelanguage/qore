@@ -115,6 +115,7 @@ module SqlUtil {
     - implemented support for numeric column arguments for the @ref select_option_orderby "orderby" and @ref select_option_groupby "groupby" options
     - column aliases (defined with @ref SqlUtil::cop_as()) can now be used in the @ref where_clauses "where hash argument" and in join criteria
     - removed all APIs that handle implicit transactions; APIs must commit transactions explicitly (<a href="https://github.com/qorelanguage/qore/issues/533">issue 533</a>)
+    - @ref sql_cop_funcs "column operator functions" can be used in @ref where_clauses "where hashes" and in @ref select_option_join "join conditions": (<a href="https://github.com/qorelanguage/qore/issues/529">issue 529</a>)
     - fixed a bug with queries using a \a desc argument with the @ref select_option_orderby "orderby" query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
     - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
     - fixed a bug where driver-specific objects were not included when dropping a schema
@@ -128,6 +129,8 @@ module SqlUtil {
     - fixed a bug in @ref SqlUtil::op_in() where invalid SQL was generated with an argument of 0 (<a href="https://github.com/qorelanguage/qore/issues/500">issue 500</a>)
     - fixed a bug in @ref SqlUtil::cop_value() where an exception was thrown with an argument of 0 (<a href="https://github.com/qorelanguage/qore/issues/511">issue 511</a>)
     - fixed @ref SqlUtil::cop_count() operator to allow other operators as its argument (<a href="https://github.com/qorelanguage/qore/issues/517">issue 517</a>)
+    - fixed bugs in @ref SqlUtil::cop_seq() and @ref SqlUtil::cop_seq_currval() (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
+    - fixed a bug in @ref SqlUtil::join_inner() where the \a cond argument was ignored (<a href="https://github.com/qorelanguage/qore/issues/645">issue 645</a>)
 
     @subsection sqlutilv1_2 SqlUtil v1.2
     - added insert operator support; for example, for inserting with values from sequences
@@ -1976,7 +1979,9 @@ public namespace SqlUtil {
     public const DefaultCopMap = (
         COP_AS: (
             "arg": Type::String,
-            "code": string sub (string cve, string arg) {
+            "withalias": True,
+            "code": string sub (string cve, string arg, reference psch) {
+                psch{arg} = cve;
                 return sprintf("%s as %s", cve, arg);
             },
         ),
@@ -2069,6 +2074,18 @@ public namespace SqlUtil {
             "code": string sub (string arg1, string arg2) {
                 return sprintf("%s * %s", arg1, arg2);
             },
+        ),
+        COP_SEQ: (
+            "nocolumn": True,
+            "code": string sub (*string cve, hash arg) {
+                throw "SEQUENCE-ERROR", sprintf("cannot select sequence %y because this database does not support sequences", arg.seq);
+            }
+        ),
+        COP_SEQ_CURRVAL: (
+            "nocolumn": True,
+            "code": string sub (*string cve, hash arg) {
+                throw "SEQUENCE-ERROR", sprintf("cannot select the current value of sequence %y because this database does not support sequences", arg.seq);
+            }
         ),
         );
     #@}
@@ -2499,29 +2516,31 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a hash for the \c "seq" operator with the given argument giving the sequence name whose value should be returned
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", "name", cop_seq("xid")), "where": ("type": "user")));
+*list rows = table.selectRows(("columns": ("id", "name", cop_seq("xid", "xis")), "where": ("type": "user")));
         @endcode
 
         @param seq the name of the sequence whose value should be returned
+        @param as an optional column name that should be returned for the sequence value (so that @ref SqlUtil::cop_as() need not be used)
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_seq(string seq) {
-        return make_cop(COP_SEQ, seq);
+    public hash sub cop_seq(string seq, *string as) {
+        return make_cop(COP_SEQ, "", ("seq": seq, "as": as));
     }
 
     #! returns a hash for the \c "seq_currval" operator with the given argument giving the sequence name whose current value should be returned
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", "name", cop_seq("xid"), cop_seq_currval("xid")), "where": ("type": "user")));
+*list rows = table.selectRows(("columns": ("id", "name", cop_seq("xid", "xid_val"), cop_seq_currval("xid", "xid_current")), "where": ("type": "user")));
         @endcode
 
         @param seq the name of the sequence whose current value should be returned
+        @param as an optional column name that should be returned for the sequence value (so that @ref SqlUtil::cop_as() need not be used)
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_seq_currval(string seq) {
-        return make_cop(COP_SEQ_CURRVAL, seq);
+    public hash sub cop_seq_currval(string seq, *string as) {
+        return make_cop(COP_SEQ_CURRVAL, "", ("seq": seq, "as": as));
     }
     #@}
 
@@ -2736,7 +2755,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
     public hash sub join_inner(AbstractTable table, *string alias, *hash jcols, *hash cond, *hash opt) {
-        return make_jop(JOP_INNER, table, alias, jcols, NOTHING, NOTHING, opt);
+        return make_jop(JOP_INNER, table, alias, jcols, cond, NOTHING, opt);
     }
 
     #! returns a hash for standard inner joins with the given arguments
@@ -3293,7 +3312,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
                 if (arg === NULL || !exists arg)
                     return sprintf("%s is not null", cn);
                 args += arg;
-                return sprintf("%s != %v", cn);
+                return sprintf("(%s != %v or %s is null)", cn, cn);
             },
         ),
         OP_EQ: (
@@ -3672,7 +3691,8 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 select * from table where name != other_name and ((type != 'C' and validation flag is not null) or (expiration_date >= %v))
         @endverbatim
 
-        @param h the hash of expressions to combine with \c "or" logic
+        @param h1 the hash of expressions to combine with \c "or" logic
+        @param ... remaining expressions to combine with \c "or" logic
 
         @return a hash with a fake column name (\c "_OR_" with a numeric prefix for uniqueness) for use in a where operation description hash for use in @ref where_clauses "where clauses"
 
@@ -3683,7 +3703,7 @@ select * from table where name != other_name and ((type != 'C' and validation fl
         l += h2;
         if (argv)
             l += argv;
-        return (sprintf("%d:_OR_", rand() % 100000): make_op(OP_OR, l));
+        return (sprintf("%d:_OR_", rand() % 10000000): make_op(OP_OR, l));
     }
     #@}
 
@@ -11356,13 +11376,8 @@ string sql = table.getSelectSql(sh, \args);
                             if (!cv.cop)
                                 throw "SELECT-ERROR", sprintf("%s: missing column operator in \"columns\" hash element %d/%d; the \"columns\" select option must be assigned to a list of strings giving the column names or a list of column operator hashes as returned from column operator functions; this element is missing hash key \"cop\" giving the column operator; keys provided: %y", getDesc(), $# + 1, qh.columns.lsize(), cv.keys());
                             try {
-                                string val = doColumnOperatorIntern(cv, jch, boolean(qh.join), ch);
+                                string val = doColumnOperatorIntern(cv, jch, boolean(qh.join), ch, psch, \psch);
                                 ce += val;
-                                # add any column aliases to pseudo-column hash
-                                if (cv.cop == COP_AS) {
-                                    val =~ s/ as .*$//;
-                                    psch{cv.arg} = val;
-                                }
                             }
                             catch (hash ex) {
                                 # rethrow exception with additional contextual information
@@ -11493,7 +11508,7 @@ string sql = table.getSelectSql(sh, \args);
             getSelectWhereSqlUnlocked(\sql, \args, qh, jch, boolean(qh.join), ch, psch);
 
             if (qh.groupby) {
-                list ce = getGroupByList(qh, jch, ch, psch, coll);
+                list ce = getGroupByListUnlocked(qh, jch, ch, psch, coll);
                 sql += " group by " + (foldl $1 + "," + $2, ce.iterator());
             }
 
@@ -11512,7 +11527,10 @@ string sql = table.getSelectSql(sh, \args);
                     if (value[0].typeCode() != NT_STRING)
                         throw "SELECT-ERROR", sprintf("%s: expecting a string argument to the \"having\" condition in the first position giving the column operator code for column %y; got type %y instead (value: %y)", getDesc(), key, value[0].type(), value[0]);
 
-                    string hstr = doColumnOperatorIntern(value[0], NOTHING, getColumnExpressionIntern(key, jch, boolean(qh.join), ch), cm, jch, boolean(qh.join), ch);
+                    *hash psch_copy = psch;
+                    string hstr = doColumnOperatorIntern(value[0], NOTHING, getColumnExpressionIntern(key, jch, boolean(qh.join), ch, psch), cm, jch, boolean(qh.join), ch, psch);
+                    if (psch_copy != psch)
+                        throw "HAVING-ERROR", sprintf("%s: cannot use column operator functions in the having clause with column alias specifications", getDesc());
                     hl += doWhereExpressionIntern(hstr, value[1], \args, jch, boolean(qh.join), ch);
                 }
                 if (hl)
@@ -11531,10 +11549,10 @@ string sql = table.getSelectSql(sh, \args);
                     if (!matchAnyUnique(qh.orderby))
                         throw "SELECT-ERROR", sprintf("%s: 'orderby': %y with 'offset' = %d, 'limit' = %d does not match any unique constraint", getDesc(), qh.orderby, qh.offset, qh.limit);
 
-                    doSelectOrderByWithOffsetSqlUnlockedImpl(\sql, \args, qh, jch, ch);
+                    doSelectOrderByWithOffsetSqlUnlockedImpl(\sql, \args, qh, jch, ch, psch, coll);
                 }
                 else
-                    doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch);
+                    doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
             }
             else if (qh.limit)
                 doSelectLimitOnlyUnlockedImpl(\sql, \args, qh);
@@ -11553,13 +11571,37 @@ string sql = table.getSelectSql(sh, \args);
             return sql;
         }
 
-        private list getGroupByList(hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+        private list getGroupByListUnlocked(hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+            return getGroupOrderByListUnlocked("groupby", qh, jch, ch, psch, coll);
+        }
+
+        private list getOrderByListUnlocked(hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+            return getGroupOrderByListUnlocked("orderby", qh, jch, ch, psch, coll);
+        }
+
+        private list getGroupOrderByListUnlocked(string key, hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             list ce = ();
-            foreach any cv in (qh.groupby) {
+
+            code do_int = sub (int cv) {
+                if (!coll) {
+                    if (cv > columns.size())
+                        throw "SELECT-ERROR", sprintf("%s %d: %s does not support numeric column offsets for the %s expression, and the table has %d column%s", key, cv, ds.getDriverName(), key, columns.size(), columns.size() == 1 ? "" : "s");
+                    ce += columns.keys()[cv - 1];
+                }
+                else {
+                    if (cv > coll.size())
+                        throw "SELECT-ERROR", sprintf("%s %d: %s does not support numeric column offsets for the %s expression, and %d column%s %s given in the select argument", key, cv, ds.getDriverName(), key, coll.size(), coll.size() == 1 ? "" : "s", coll.size() == 1 ? "was" : "were");
+                    string val = coll[cv - 1];
+                    val =~ s/ as .*$//;
+                    ce += val;
+                }
+            };
+
+            foreach any cv in (qh{key}) {
                 switch (cv.typeCode()) {
                     case NT_STRING: {
                         if (cv.toInt() == cv)
-                            ce += cv;
+                            do_int(cv.toInt());
                         else
                             ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch);
                         break;
@@ -11571,12 +11613,12 @@ string sql = table.getSelectSql(sh, \args);
                     }
 
                     case NT_INT: {
-                        ce += cv.toString();
+                        do_int(cv);
                         break;
                     }
 
                     default:
-                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in group by list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv);
+                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in %s list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv, key);
                 }
             }
             return ce;
@@ -11590,21 +11632,21 @@ string sql = table.getSelectSql(sh, \args);
             return getSqlName();
         }
 
-        private string getColumnExpressionIntern(any cvc, *hash jch, bool join, *hash ch) {
+        private string getColumnExpressionIntern(any cvc, *hash jch, bool join, *hash ch, *hash psch) {
             switch (cvc.typeCode()) {
                 case NT_HASH:
-                    return doColumnOperatorIntern(cvc, jch, join, ch);
+                    return doColumnOperatorIntern(cvc, jch, join, ch, psch);
                 case NT_STRING:
-                    return getColumnNameIntern(cvc, jch, join, ch);
+                    return getColumnNameIntern(cvc, jch, join, ch, psch);
             }
             throw "SELECT-ERROR", sprintf("%s: column operator hash %y has an invalid \"column\" key; expecting a string column specification or a column operator description hash", getDesc(), cvc);
         }
 
-        private string doColumnOperatorIntern(hash cvc, *hash jch, bool join, *hash ch, *hash psch) {
-            return doColumnOperatorIntern(cvc.cop, cvc.arg, (cvc.column ? getColumnExpressionIntern(cvc.column, jch, join, ch) : NOTHING), getColumnOperatorMap(), jch, join, ch, psch);
+        private string doColumnOperatorIntern(hash cvc, *hash jch, bool join, *hash ch, *hash psch, *reference psch_ref) {
+            return doColumnOperatorIntern(cvc.cop, cvc.arg, (cvc.column ? getColumnExpressionIntern(cvc.column, jch, join, ch, psch) : NOTHING), getColumnOperatorMap(), jch, join, ch, psch, \psch_ref);
         }
 
-        private string doColumnOperatorIntern(any cop, any arg, *string cve, hash cm, *hash jch, bool join, *hash ch, *hash psch) {
+        private string doColumnOperatorIntern(any cop, any arg, *string cve, hash cm, *hash jch, bool join, *hash ch, *hash psch, *reference psch_ref) {
             if (cop.typeCode() != NT_STRING)
                 throw "SELECT-ERROR", sprintf("%s: invalid column operator code %y; use column operator functions to create valid column specifications with supported column operators", getDesc(), cop);
 
@@ -11635,10 +11677,10 @@ string sql = table.getSelectSql(sh, \args);
             if (!exists cve && !cmd.nocolumn)
                 throw "SELECT-ERROR", sprintf("%s: column operator %y requires a column argument name but none was provided", getDesc(), cop);
 
-            return cmd.code(cve, arg);
+            return cmd.withalias ? cmd.code(cve, arg, \psch_ref) : cmd.code(cve, arg);
         }
 
-        private string getColumnNameIntern(string cv, *hash jch, bool join, *hash ch, *hash psch, *bool subst_psch) {
+        private string getColumnNameIntern(string cv, *hash jch, bool join, *hash ch, *hash psch) {
             # remove any disposable unique prefix
             cv =~ s/^[0-9]+://;
             # return the name if it's a "technical name" (starts with "_")
@@ -11656,7 +11698,8 @@ string sql = table.getSelectSql(sh, \args);
                 if (cv != "*" && !jch{tp}.describe().hasKey(cv) && !psch{cv})
                     throw "SELECT-ERROR", sprintf("%s: query references unknown column \"%s.%s\" (%y is aliased to table %y); known columns: %y", getDesc(), tp, cv, tp, jch{tp}.getSqlName(), jch{tp}.describe().keys());
             }
-            else if (psch{cv} && subst_psch && psch{cv}.typeCode() == NT_STRING) {
+            # substitute aliases with their actual definition
+            else if (psch{cv} && psch{cv}.typeCode() == NT_STRING) {
                 return psch{cv};
             }
             else if (ch) {
@@ -11726,6 +11769,14 @@ string sql = table.getSelectSql(sh, \args);
         private string doWhereExpressionIntern(string cn, any we, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
             int wt = we.typeCode();
             if (wt == NT_HASH) {
+                if (we.cop) {
+                    *hash psch_copy = psch;
+                    string val = doColumnOperatorIntern(we, jch, join, ch, psch, \psch_copy);
+                    if (psch_copy != psch)
+                        throw "WHERE-ERROR", sprintf("%s: cannot use column operator function %y in the where clause with column alias specifications", getDesc(), we.cop);
+                    return sprintf("%s = %s", cn, val);
+                }
+
                 if (!we.op)
                     throw "WHERE-ERROR", sprintf("%s: argument to key %y is a hash without an \"op\" key: %y", getDesc(), cn, we);
 
@@ -11768,37 +11819,8 @@ string sql = table.getSelectSql(sh, \args);
             return wl ? ("(" + (foldl $1 + " and " + $2, wl) + ")") : "";
         }
 
-        private list getOrderByListUnlocked(*hash qh, *hash jch, *hash ch) {
-            list ce = ();
-            foreach any cv in (qh.orderby) {
-                switch (cv.typeCode()) {
-                    case NT_STRING: {
-                        if (cv.toInt() == cv)
-                            ce += cv;
-                        else
-                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch);
-                        break;
-                    }
-
-                    case NT_HASH: {
-                        ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch);
-                        break;
-                    }
-
-                    case NT_INT: {
-                        ce += cv.toString();
-                        break;
-                    }
-
-                    default:
-                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in orderby list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv);
-                }
-            }
-            return ce;
-        }
-
-        private doSelectOrderBySqlUnlocked(reference sql, reference args, *hash qh, *hash jch, *hash ch) {
-            list ce = getOrderByListUnlocked(qh, jch, ch);
+        private doSelectOrderBySqlUnlocked(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+            list ce = getOrderByListUnlocked(qh, jch, ch, psch, coll);
 
             sql += " order by " + (foldl $1 + "," + $2, (map $1 + (qh.desc || qh.orderbydesc.$1 ? " desc" : ""), ce));
         }
@@ -13861,7 +13883,7 @@ string sql = table.getAlignSqlString(table2);
         private abstract hash getTypeMapImpl();
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private abstract doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch);
+        private abstract doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll);
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
         private abstract doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh);

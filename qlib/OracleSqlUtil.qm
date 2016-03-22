@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file OracleSqlUtil.qm Qore user module for working with Oracle SQL data
 
-/*  OracleSqlUtil.qm Copyright 2013 - 2015 Qore Technologies, sro
+/*  OracleSqlUtil.qm Copyright 2013 - 2016 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,7 +35,6 @@
 %try-module oracle
 %define NO_ORACLE
 %endtry
-
 
 # don't use "$" signs for variables and class members, assume local variable scope
 %new-style
@@ -261,7 +260,8 @@ my hash $schema = (
     - implemented support for views for DML in the @ref OracleSqlUtil::OracleTable class
     - implemented @ref OracleSqlUtil::OracleTable::getBaseType()
     - implemented support for Oracle pseudocolumns in queries
-    - implemented support for \c cop_cast operator
+    - implemented support for the @ref SqlUtil::cop_cast() operator
+    - fixed bugs in @ref SqlUtil::cop_seq() and @ref SqlUtil::cop_seq_currval() (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
 
     @subsection v11 OracleSqlUtil v1.1
     - fixed selects with "limit" but no "offset"
@@ -1892,13 +1892,27 @@ my any $v = $c.name;
                     }
                 ),
                 COP_SEQ: (
-                    "code": string sub (string arg1, any arg) {
-                        return sprintf("%s.nextval", arg);
+                    "nocolumn": True,
+                    "withalias": True,
+                    "code": string sub (*string cve, hash arg, reference psch) {
+                        string sql = sprintf("%s.nextval", arg.seq);
+                        if (arg.as) {
+                            psch{arg.as} = sql;
+                            sql += " " + arg.as;
+                        }
+                        return sql;
                     }
                 ),
                 COP_SEQ_CURRVAL: (
-                    "code": string sub (string arg1, any arg) {
-                        return sprintf("%s.currval", arg);
+                    "nocolumn": True,
+                    "withalias": True,
+                    "code": string sub (*string cve, hash arg, reference psch) {
+                        string sql = sprintf("%s.currval", arg.seq);
+                        if (arg.as) {
+                            psch{arg.as} = sql;
+                            sql += " " + arg.as;
+                        }
+                        return sql;
                     }
                 ),
                 );
@@ -2172,10 +2186,10 @@ my any $v = $c.name;
             }
         }
 
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch) {
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             # Oracle 12c+ supports limit (fetch) and offset
             if (ora_major >= 12) {
-                doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch);
+                doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
 
                 if (qh.offset) {
                     sql += " offset %v rows";
@@ -2190,7 +2204,7 @@ my any $v = $c.name;
                 return;
             }
 
-            list ce = getOrderByListUnlocked(qh, jch, ch);
+            list ce = getOrderByListUnlocked(qh, jch, ch, psch, coll);
             string sort = foldl $1 + ", " + $2, ce;
             # http://www.oracle.com/technetwork/issue-archive/2006/06-sep/o56asktom-086197.html
             # /*+ first_rows(n) */ is an optimizer hint that we want the first rows as fast as possible
@@ -2668,51 +2682,6 @@ my any $v = $c.name;
                 ds.vexec(sql, args);
                 return UR_Verified;
             };
-        }
-
-        private list getGroupByList(hash qh, *hash jch, *hash ch, *hash psch, list coll) {
-            list ce = ();
-
-            code do_int = sub (int cv) {
-                if (!coll) {
-                    if (cv > columns.size())
-                        throw "ORACLE-TABLE-ERROR", sprintf("group by %d: this database does not support numeric column offsets for the group by expression, and the table has %d column%s", cv, columns.size(), columns.size() == 1 ? "" : "s");
-                    ce += columns.keys()[cv - 1];
-                }
-                else {
-                    if (cv > coll.size())
-                        throw "ORACLE-TABLE-ERROR", sprintf("group by %d: this database does not support numeric column offsets for the group by expression, and %d column%s %s given in the select argument", cv, coll.size(), coll.size() == 1 ? "" : "s", coll.size() == 1 ? "was" : "were");
-                    string val = coll[cv - 1];
-                    val =~ s/ as .*$//;
-                    ce += val;
-                }
-            };
-
-            foreach any cv in (qh.groupby) {
-                switch (cv.typeCode()) {
-                    case NT_STRING: {
-                        if (cv.toInt() == cv)
-                            do_int(cv.toInt());
-                        else
-                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch, True);
-                        break;
-                    }
-
-                    case NT_HASH: {
-                        ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch, psch);
-                        break;
-                    }
-
-                    case NT_INT: {
-                        do_int(cv);
-                        break;
-                    }
-
-                    default:
-                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in group by list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv);
-                }
-            }
-            return ce;
         }
 
         #! returns @ref Qore::True "True" because the oracle driver supports array binds / bulk DML operations

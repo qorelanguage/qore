@@ -1,10 +1,10 @@
 /*
   QorePreDecrementOperatorNode.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -39,24 +39,23 @@ AbstractQoreNode *QorePreDecrementOperatorNode::parseInitImpl(LocalVar *oflag, i
    return (typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo) ? makeSpecialization<QoreIntPreDecrementOperatorNode>() : this;
 }
 
-QoreValue QorePreDecrementOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {   
+QoreValue QorePreDecrementOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper n(exp, xsink);
    if (!n)
       return QoreValue();
+
    if (n.getType() == NT_NUMBER) {
       n.preDecrementNumber("<-- (pre) operator>");
       assert(!*xsink);
+      return !ref_rv ? QoreValue() : n.getReferencedValue();
    }
-   else if (n.getType() == NT_FLOAT) {
-      n.preDecrementFloat("<-- (pre) operator>");
+
+   if (n.getType() == NT_FLOAT) {
+      double f = n.preDecrementFloat("<-- (pre) operator>");
       assert(!*xsink);
+      return f;
    }
-   else
-      n.preDecrementBigInt("<-- (pre) operator>");
 
-   if (*xsink || !ref_rv)
-      return QoreValue();
-
-   return n.getReferencedValue();
+   return n.preDecrementBigInt("<-- (pre) operator>");
 }

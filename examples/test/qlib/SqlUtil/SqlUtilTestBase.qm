@@ -58,11 +58,12 @@ public class SqlTestBase inherits QUnit::Test {
         addTestCase("Select", \selectTest());
         addTestCase("Column Operators", \columnOperatorTest());
         addTestCase("Where Operators", \whereOperatorTest());
+        addTestCase("Group By", \groupByTest());
+        addTestCase("Order By", \orderByTest());
         addTestCase("Update", \updateTest());
         addTestCase("Upsert", \upsertTest());
         addTestCase("BulkInsert", \bulkInsertTest());
         addTestCase("BulkUpsert", \bulkUpsertTest());
-        addTestCase("Group By", \groupByTest());
     }
 
     globalTearDown() {
@@ -182,10 +183,11 @@ public class SqlTestBase inherits QUnit::Test {
                 # cop_as (cop_divide ("id", cop_value(2)), "cop_divide"),
                 # cop_as (cop_multiply ("id", cop_value(2)), "cop_multiply"),
                 ),
-                "where": ("id": 2)
+                "where": ("id": 2, "cop_lower": cop_lower("cop_upper")),
                 );
 
-        *hash row = table.selectRow (soh);
+        string sql; on_error printf("sql: %s\n", sql);
+        *hash row = table.selectRow (soh, \sql);
 
         hash expect = (
                 "cop_cast": "2",
@@ -274,6 +276,15 @@ public class SqlTestBase inherits QUnit::Test {
                         "data": (("id": 1), ("id": 2)),
                         ),
                     ),
+                "op_eq": (
+                    "in": (
+                        "where": ("id": op_eq(2)),
+                        ),
+                    "out": (
+                        "count": 1,
+                        "data": (("id": 2),),
+                        ),
+                    ),
                 "op_ne": (
                     "in": (
                         "where": ("id": op_ne(1)),
@@ -283,13 +294,13 @@ public class SqlTestBase inherits QUnit::Test {
                         "data": (("id": 2),),
                         ),
                     ),
-                "op_eq": (
+                "op_ne_null": (
                     "in": (
-                        "where": ("id": op_eq(2)),
+                        "where": ("null_f": op_ne(1)),
                         ),
                     "out": (
                         "count": 1,
-                        "data": (("id": 2),),
+                        "data": (("id": 2, "null_f": NULL),),
                         ),
                     ),
                 "op_between": (
@@ -432,6 +443,26 @@ public class SqlTestBase inherits QUnit::Test {
         assertEq (2, row.cop_count, "checking group by alias");
     }
 
+    orderByTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        hash soh = ("columns": ("id",), "orderby": (1,));
+        *list rows = table.selectRows (soh);
+        assertEq ((("id": 1), ("id": 2)), rows, "checking order by 1");
+
+        soh = ("columns": ("id",), "orderby": ("-id",));
+        rows = table.selectRows (soh);
+        assertEq ((("id": 2), ("id": 1)), rows, "checking order by id desc");
+
+        soh = ("columns": (cop_as ("id", "alias"),), "orderby": ("alias",));
+        rows = table.selectRows (soh);
+        assertEq ((("alias": 1), ("alias": 2)), rows, "checking order by alias");
+    }
+
     static string getColumnName(string n) {
         n =~ s/ //g;
         return n + "_f";
@@ -449,7 +480,7 @@ public class SqlTestBase inherits QUnit::Test {
             else
                 expect_data{cn} = h.value.bind.'^value^' ?? h.value.value ?? h.value;
         }
-        insert_data = (("id": 1, "id_": 2) + row, ("id": 2, "id_": 2) + row,);
-        upsert_data = (("id": 2, "id_": 2) + row, ("id": 3, "id_": 2) + row,);
+        insert_data = (("id": 1, "id_": 2, "null_f": 1) + row, ("id": 2, "id_": 2, "null_f": NULL) + row,);
+        upsert_data = (("id": 2, "id_": 2, "null_f": 1) + row, ("id": 3, "id_": 2, "null_f": NULL) + row,);
     }
 }

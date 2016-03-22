@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@ qclass TimeZone [arg=TimeZoneData* z];
 //! Creates the TimeZone object based on the region name (ex: \c "America/Chicago")
 /** @param region The region name for the time zone (ex: \c "America/Chicago"); if the zoneinfo file for the region cannot be found or parsed (on UNIX) or if the registry entry cannot be found (on Windows), then an exception is thrown
 
-    @note On Windows the zoneinfo region names (ex: \c "Europe/Prague") are converted to registry entries under <tt>HKEY_LOCAL_MACHINE SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones</tt> (ex: \c "Central Europe Standard Time")
+    @note On Windows the zoneinfo region names (ex: \c "Europe/Prague") are converted to registry entries under <tt>HKEY_LOCAL_MACHINE SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones</tt> (ex: \c "Central Europe Standard Time"); if an absolute path to a file is given as the argument, then a zoneinfo file is read and parsed from the given location
 
     @par Example:
     @code{.py}

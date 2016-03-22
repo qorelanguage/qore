@@ -1907,20 +1907,23 @@ static AbstractQoreNode* check_op_minus(QoreTreeNode* tree, LocalVar* oflag, int
       returnTypeInfo = dateTypeInfo;
    // otherwise we have to make sure types are known on both sides of the expression
    else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) {
-      if (leftTypeInfo->isType(NT_FLOAT)
-	  || rightTypeInfo->isType(NT_FLOAT))
-	 returnTypeInfo = floatTypeInfo;
+      if (leftTypeInfo->isType(NT_NUMBER)
+            || rightTypeInfo->isType(NT_NUMBER))
+         returnTypeInfo = numberTypeInfo;
+      else if (leftTypeInfo->isType(NT_FLOAT)
+            || rightTypeInfo->isType(NT_FLOAT))
+         returnTypeInfo = floatTypeInfo;
       else if (leftTypeInfo->isType(NT_INT)
-	       || rightTypeInfo->isType(NT_INT))
-	 returnTypeInfo = bigIntTypeInfo;
+            || rightTypeInfo->isType(NT_INT))
+         returnTypeInfo = bigIntTypeInfo;
       else if ((leftTypeInfo->isType(NT_HASH)
-		|| leftTypeInfo->isType(NT_OBJECT))
-	       && (rightTypeInfo->isType(NT_STRING)
-		   || rightTypeInfo->isType(NT_LIST)))
-	 returnTypeInfo = hashTypeInfo;
+               || leftTypeInfo->isType(NT_OBJECT))
+            && (rightTypeInfo->isType(NT_STRING)
+               || rightTypeInfo->isType(NT_LIST)))
+         returnTypeInfo = hashTypeInfo;
       else if (leftTypeInfo->returnsSingle() && rightTypeInfo->returnsSingle())
-	 // only return type nothing if both types are available and return a single type
-	 returnTypeInfo = nothingTypeInfo;
+         // only return type nothing if both types are available and return a single type
+         returnTypeInfo = nothingTypeInfo;
    }
    else
       returnTypeInfo = 0;

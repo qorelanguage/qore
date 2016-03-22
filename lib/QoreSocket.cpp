@@ -741,7 +741,7 @@ PrivateQoreSocketThroughputHelper::~PrivateQoreSocketThroughputHelper() {
 void PrivateQoreSocketThroughputHelper::finalize(int64 bytes) {
    //printd(5, "PrivateQoreSocketThroughputHelper::finalize() bytes: "QLLD" us: "QLLD" (min: "QLLD") bs: %.6f threshold: %.6f\n", bytes, (q_clock_getmicros() - start), sock->tp_us_min, ((double)bytes / ((double)(q_clock_getmicros() - start) / (double)1000000.0)), sock->tp_warning_bs);
 
-   if (bytes <= 0)
+   if (bytes < DEFAULT_SOCKET_MIN_THRESHOLD_BYTES)
       return;
 
    if (send)

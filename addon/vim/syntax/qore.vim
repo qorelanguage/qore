@@ -1,7 +1,7 @@
 " Vim syntax file for Qore * mato [25-oct-2015]
 " Language:	Qore
 " Maintainer:	Martin Otto <martin@qore.org>
-" Last Change:	2015 Dec 12
+" Last Change:	2016 Feb 11
 
 if version < 600
   syntax clear
@@ -235,7 +235,7 @@ syn match qoreFloat display "[-+]\?\.\d\+\(e[-+]\=\d\+\)\=n\?\>"
 syn match qoreFloat display "\(\<\|[-+]\)\d\+e[-+]\=\d\+n\?\>"
 
 "absolute date/time
-syn match qoreDateTime "\<\d\{4}-\d\{2}-\d\{2}\([T-]\d\{2}:\d\{2}:\d\{2}\(\.\d\{1,6}\)\?\)\?\(Z\|[+-]\?\d\{2}\(:\d\{2}\(:\d\{2}\)\?\)\?\)\?\>"
+syn match qoreDateTime "\<\d\{4}-\d\{2}-\d\{2}\([T-]\d\{2}:\d\{2}\(:\d\{2}\(\.\d\{1,6}\)\?\)\?\)\?\(Z\|[+-]\?\d\{2}\(:\d\{2}\(:\d\{2}\)\?\)\?\)\?\>"
 "relative date/time
 syn match qoreDateTime "\<\d\+\([YMDhms]\|ms\|us\)\>"
 syn match qoreDateTime "\<P\(T\?[0-9]\)\@=\(\d\+Y\)\?\(\d\+M\)\?\(\d\+D\)\?\(T\(\d\+H\)\?\(\d\+M\)\?\(\d\+S\)\?\(\d\+u\)\?\)\?\>"

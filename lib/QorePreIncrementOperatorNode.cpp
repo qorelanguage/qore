@@ -1,10 +1,10 @@
 /*
   QorePreIncrementOperatorNode.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -44,14 +44,18 @@ QoreValue QorePreIncrementOperatorNode::evalValueImpl(bool& needs_deref, Excepti
    LValueHelper n(exp, xsink);
    if (!n)
       return QoreValue();
+
    if (n.getType() == NT_NUMBER) {
       n.preIncrementNumber("<++ (pre) operator>");
       assert(!*xsink);
+      return !ref_rv ? QoreValue() : n.getReferencedValue();
    }
-   else if (n.getType() == NT_FLOAT)
-      return n.preIncrementFloat("<++ (pre) operator>");
-   else
-      return n.preIncrementBigInt("<++ (pre) operator>");
 
-   return *xsink || !ref_rv ? QoreValue() : n.getReferencedValue();
+   if (n.getType() == NT_FLOAT) {
+      double f = n.preIncrementFloat("<++ (pre) operator>");
+      assert(!*xsink);
+      return f;
+   }
+
+   return n.preIncrementBigInt("<++ (pre) operator>");
 }

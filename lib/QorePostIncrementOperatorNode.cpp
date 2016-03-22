@@ -1,10 +1,10 @@
 /*
   QorePostIncrementOperatorNode.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -44,7 +44,7 @@ QoreValue QorePostIncrementOperatorNode::evalValueImpl(bool& needs_deref, Except
    LValueHelper n(exp, xsink);
    if (!n)
       return QoreValue();
-   
+
    if (n.getType() == NT_NUMBER)
       return n.postIncrementNumber(ref_rv, "<-- (post) operator>");
 
@@ -54,6 +54,5 @@ QoreValue QorePostIncrementOperatorNode::evalValueImpl(bool& needs_deref, Except
       return f;
    }
 
-   int64 rc = n.postIncrementBigInt("<++ (post) operator>");
-   return rc;
+   return n.postIncrementBigInt("<++ (post) operator>");
 }

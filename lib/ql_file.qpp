@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -444,7 +444,7 @@ nothing rename(string old_path, string new_path) [dom=FILESYSTEM] {
     @see File::statvfs() for a static method in the @ref Qore::File "File class" that throws an exception instead of returning @ref nothing when errors occur
  */
 *hash statvfs(string path) [dom=FILESYSTEM] {
-#ifdef HAVE_SYS_STATVFS_H
+#ifdef Q_HAVE_STATVFS
    struct statvfs vfs;
    if (statvfs(path->getBuffer(), &vfs))
       return QoreValue();
@@ -694,6 +694,8 @@ int mkdir(string path, softint mode = 0777) [dom=FILESYSTEM] {
 if (rmdir("/tmp/newdir"))
     printf("rmdir /tmp/newdir: %s\n", strerror());
     @endcode
+
+    @see @ref Qore::Dir::rmdir()
  */
 int rmdir(string path) [dom=FILESYSTEM] {
    return rmdir(path->getBuffer());
