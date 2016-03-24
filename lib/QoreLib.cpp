@@ -45,6 +45,7 @@
 #include <errno.h>
 #include <time.h>
 #include <sys/time.h>
+#include <string.h>
 #include <strings.h>
 #include <errno.h>
 #include <sys/param.h>
@@ -1867,6 +1868,41 @@ bool q_absolute_path(const char* path) {
 #endif
 }
 
+#ifdef _Q_WINDOWS
+// this appends the root path
+int q_get_root_path(QoreString& root, const char* cwd = 0) {
+   QoreString Cwd;
+   if (cwd) {
+      Cwd.set(cwd);
+      q_realpath(Cwd, Cwd);
+   }
+   else
+      q_getcwd(Cwd);
+
+   // return without making any changes in case of an error
+   if (Cwd.empty())
+      return -1;
+
+   // see if we have a drive letter + ':'
+   if (isalpha(Cwd[0])) {
+      root.concat(Cwd[0]);
+      root.concat(':');
+      return 0;
+   }
+
+   // see if we have a UNC path, so we need to find the end of the \\server\share\ component
+   if (Cwd[0] == '\\' && Cwd[1] == '\\') {
+      char* c = strchr(Cwd.c_str() + 2, '\\');
+      if (c) {
+         c = strchr(c + 1, '\\');
+         root.concat(Cwd.c_str(), c ? c - Cwd.c_str() : Cwd.size());
+         return 0;
+      }
+   }
+   return -1;
+}
+#endif
+
 static void add_cwd(QoreString& path) {
    QoreString cwd_str;
    if (!q_getcwd(cwd_str))
@@ -1875,19 +1911,31 @@ static void add_cwd(QoreString& path) {
 
 void q_normalize_path(QoreString& path, const char* cwd) {
    //printd(5, "q_normalize_path(path: '%s', cwd: '%s')\n", path.getBuffer(), cwd);
-   if (!path.empty() && !q_absolute_path(path.getBuffer())) {
-      path.insertch(QORE_DIR_SEP, 0, 1);
-      if (cwd) {
-	 QoreString Cwd(cwd);
-	 q_realpath(Cwd, Cwd);
-	 path.prepend(Cwd.getBuffer());
-	 if (path[0] == '.') {
-	    path.insertch(QORE_DIR_SEP, 0, 1);
-	    add_cwd(path);
-	 }
+   if (!path.empty()) {
+      if (!q_absolute_path(path.getBuffer())) {
+         path.insertch(QORE_DIR_SEP, 0, 1);
+         if (cwd) {
+            QoreString Cwd(cwd);
+            q_realpath(Cwd, Cwd);
+            path.prepend(Cwd.getBuffer());
+            if (path[0] == '.') {
+               path.insertch(QORE_DIR_SEP, 0, 1);
+               add_cwd(path);
+            }
+         }
+         else
+            add_cwd(path);
       }
-      else
-	 add_cwd(path);
+#ifdef _Q_WINDOWS
+      // prepend drive or UNC path root to path if the path begins with a single slash or backslash
+      else if ((path[0] == '/' || path[0] == '\\')
+               && (path[1] != '/' && path[1] != '\\')) {
+         QoreString root;
+         q_get_root_path(root, cwd);
+         path.prepend(root.c_str());
+         //printd(5, "normalized root: '%s' path: '%s'\n", root.c_str(), path.c_str());
+      }
+#endif
    }
    std::string str = path.getBuffer();
    str = qore_qd_private::normalizePath(str);
