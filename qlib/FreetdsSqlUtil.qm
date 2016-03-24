@@ -621,7 +621,8 @@ my any $v = $c.name;
         }
 
         private list featuresImpl() {
-            return (DB_SEQUENCES, DB_TABLES, DB_VIEWS);
+            return (DB_TABLES, DB_VIEWS, DB_SEQUENCES,
+                    DB_FUNCTIONS, DB_PROCEDURES);
         }
 
         private FreetdsSequence makeSequenceImpl(string name, number start = 1, number increment = 1, *softnumber end, *hash opts) {

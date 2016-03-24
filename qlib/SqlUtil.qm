@@ -1800,7 +1800,7 @@ public namespace SqlUtil {
 
     #! Feature: functions
     public const DB_FUNCTIONS = "functions";
-    #! Feature: materialized views/snapshots
+    #! Feature: materialized views / snapshots
     public const DB_MVIEWS = "materialized views";
     #! Feature: packages
     public const DB_PACKAGES = "packages";
@@ -1814,6 +1814,8 @@ public namespace SqlUtil {
     public const DB_TYPES = "named types";
     #! Feature: views
     public const DB_VIEWS = "views";
+    #! Feature: synonyms
+    public const DB_SYNONYMS = "synonyms";
     #@}
 
     /* @defgroup SqlTypeConstants SQL Type Constants
