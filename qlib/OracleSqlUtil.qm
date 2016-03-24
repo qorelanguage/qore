@@ -1122,7 +1122,7 @@ my any $v = $c.name;
 
         private list featuresImpl() {
             return list(DB_FUNCTIONS, DB_MVIEWS, DB_PACKAGES, DB_PROCEDURES,
-                        DB_SEQUENCES, DB_TABLES, DB_TYPES, DB_VIEWS);
+                        DB_SEQUENCES, DB_TABLES, DB_TYPES, DB_VIEWS, DB_SYNONYMS);
         }
 
         private OracleSequence makeSequenceImpl(string name, number start = 1, number increment = 1, *softnumber end, *hash opts) {
