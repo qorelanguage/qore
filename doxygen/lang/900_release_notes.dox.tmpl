@@ -481,6 +481,10 @@
     - fixed a bug where the type of subtraction of two numbers was inferred as NOTHING during parsing (<a href="https://github.com/qorelanguage/qore/issues/636">issue 636</a>)
     - fixed a bug on Windows with @ref Qore::Dir::create() (<a href="https://github.com/qorelanguage/qore/issues/643">issue 643</a>)
     - fixed a bug where CRLF line endings were not handled correctly by the %exec-class parse directive (<a href="https://github.com/qorelanguage/qore/issues/653">issue 653</a>)
+    - fixed a bug on Windows where @ref Qore::glob() would return paths beginning with \c "." by default (<a href="https://github.com/qorelanguage/qore/issues/660">issue 660</a>)
+    - fixed a bug on Windows where @ref Qore::glob() would fail on \c "\*" or \c "/*" (<a href="https://github.com/qorelanguage/qore/issues/664">issue 664</a>)
+    - fixed a bug on Windows where @ref Qore::glob() would not return paths in sorted order by default (<a href="https://github.com/qorelanguage/qore/issues/665">issue 665</a>)
+    - fixed a bug on Windows where the @ref Qore::Dir class would incorrectly normalize UNC paths by stripping the leading backslash (<a href="https://github.com/qorelanguage/qore/issues/666">issue 666</a>)
 
     @section qore_0811 Qore 0.8.11
 

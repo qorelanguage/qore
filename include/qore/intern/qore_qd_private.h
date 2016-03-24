@@ -367,6 +367,13 @@ public:
 	 return -1;
       }
 
+#ifdef _Q_WINDOWS
+      // flag UNC paths for special processing, because the first two components of UNC paths designate the server location and cannot be created with mkdir()
+      bool unc = (dirname[0] == '/' || dirname[0] == '\\')
+         && (dirname[1] == '/' || dirname[1] == '\\')
+         && (dirname[2] != '/' && dirname[2] != '\\');
+#endif
+
       // split the directory in its subdirectories tree
       name_vec_t dirs;
       tokenize(dirname, dirs);
@@ -383,6 +390,13 @@ public:
          else
 #endif
 	 path += QORE_DIR_SEP_STR + (*it); // the actual path
+#ifdef _Q_WINDOWS
+         // ignore the first two components of UNC paths
+         if (unc && cnt < 2) {
+            ++cnt;
+            continue;
+         }
+#endif
 	 if (verifyDirectory(path)) { // not existing
 	    if (::mkdir(path.c_str(), mode)) { // failed
 	       xsink->raiseErrnoException("DIR-CREATE-FAILURE", errno, "cannot mkdir '%s'", path.c_str());
@@ -508,6 +522,13 @@ public:
 
    // tokenizes the string (path) and recreates it
    DLLLOCAL static const std::string normalizePath(const std::string& odir) {
+#ifdef _Q_WINDOWS
+      // flag UNC paths for special processing, because otherwise they will be normalized to a single leading backslash
+      bool unc = (odir[0] == '/' || odir[0] == '\\')
+         && (odir[1] == '/' || odir[1] == '\\')
+         && (odir[2] != '/' && odir[2] != '\\');
+#endif
+
       // tokenize the string
       name_vec_t ptoken, dirs;
       tokenize(odir, ptoken);
@@ -526,6 +547,10 @@ public:
 
       // create string out of rest..
       std::string ret;
+#ifdef _Q_WINDOWS
+      if (unc)
+         ret += '\\';
+#endif
       for (name_vec_t::iterator it = dirs.begin(), et = dirs.end(); it != et; ++it) {
 #ifdef _Q_WINDOWS
 	 if (it == dirs.begin() && q_absolute_path_windows((*it).c_str()))
