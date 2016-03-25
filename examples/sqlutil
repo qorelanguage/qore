@@ -64,14 +64,15 @@ const RequiresTarget = (
 const LIST_OBJECTS = (
     "tables"        : "tableIterator",
     "views"         : "viewIterator",
+    "mviews"        : "materializedViewIterator",
     "sequences"     : "sequenceIterator",
-    "procedures"    : "procedureIterator",
     "functions"     : "functionIterator",
+    "procedures"    : "procedureIterator",
+    "packages"      : "packageIterator",
     "types"         : "typeIterator",
     "synonyms"      : "synonymIterator",
-    "packages"      : "packageIterator",
-    "mviews"        : "materializedViewIterator",
     );
+
 # 'meta' keys for list objects listings
 const META_LIST_OBJECTS = (
     "all"           : LIST_OBJECTS.keys(),
@@ -82,14 +83,15 @@ const META_LIST_OBJECTS = (
 const DUMP_OBJECTS = (
     "tables"        : ( "getobj" : "getTable", "sql" : "getCreateSqlString"),
     "views"         : ( "getobj" : "getView", "sql" : "getCreateSql"),
+    "mviews"        : ( "getobj" : "getMaterializedView", "sql" : "getCreateSql"),
     "sequences"     : ( "getobj" : "getSequence", "sql" : "getCreateSql"),
-    "procedures"    : ( "getobj" : "getProcedure", "sql" : "getCreateSql"),
     "functions"     : ( "getobj" : "getFunction", "sql" : "getCreateSql"),
+    "procedures"    : ( "getobj" : "getProcedure", "sql" : "getCreateSql"),
+    "packages"      : ( "getobj" : "getPackage", "sql" : "getCreateSql"),
     "types"         : ( "getobj" : "getType", "sql" : "getCreateSql"),
     "synonyms"      : ( "getobj" : "getSynonym", "sql" : "getCreateSql"),
-    "packages"      : ( "getobj" : "getPackage", "sql" : "getCreateSql"),
-    "mviews"        : ( "getobj" : "getMaterializedView", "sql" : "getCreateSql"),
     );
+
 main();
 
 sub usage() {
