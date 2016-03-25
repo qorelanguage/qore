@@ -60,18 +60,32 @@ const RequiresTarget = (
     "align_table": True,
     );
 
+# map of the keyword : Database feature name
+const MAP_OBJECT_FEATURE = (
+    "tables"        : SqlUtil::DB_TABLES,
+    "views"         : SqlUtil::DB_VIEWS,
+    "mviews"        : SqlUtil::DB_MVIEWS,
+    "sequences"     : SqlUtil::DB_SEQUENCES,
+    "functions"     : SqlUtil::DB_FUNCTIONS,
+    "procedures"    : SqlUtil::DB_PROCEDURES,
+    "packages"      : SqlUtil::DB_PACKAGES,
+    "types"         : SqlUtil::DB_TYPES,
+    "synonyms"      : SqlUtil::DB_SYNONYMS,
+    );
+
 # map of the keyword : Database iterator method name
 const LIST_OBJECTS = (
     "tables"        : "tableIterator",
     "views"         : "viewIterator",
+    "mviews"        : "materializedViewIterator",
     "sequences"     : "sequenceIterator",
-    "procedures"    : "procedureIterator",
     "functions"     : "functionIterator",
+    "procedures"    : "procedureIterator",
+    "packages"      : "packageIterator",
     "types"         : "typeIterator",
     "synonyms"      : "synonymIterator",
-    "packages"      : "packageIterator",
-    "mviews"        : "materializedViewIterator",
     );
+
 # 'meta' keys for list objects listings
 const META_LIST_OBJECTS = (
     "all"           : LIST_OBJECTS.keys(),
@@ -82,14 +96,15 @@ const META_LIST_OBJECTS = (
 const DUMP_OBJECTS = (
     "tables"        : ( "getobj" : "getTable", "sql" : "getCreateSqlString"),
     "views"         : ( "getobj" : "getView", "sql" : "getCreateSql"),
+    "mviews"        : ( "getobj" : "getMaterializedView", "sql" : "getCreateSql"),
     "sequences"     : ( "getobj" : "getSequence", "sql" : "getCreateSql"),
-    "procedures"    : ( "getobj" : "getProcedure", "sql" : "getCreateSql"),
     "functions"     : ( "getobj" : "getFunction", "sql" : "getCreateSql"),
+    "procedures"    : ( "getobj" : "getProcedure", "sql" : "getCreateSql"),
+    "packages"      : ( "getobj" : "getPackage", "sql" : "getCreateSql"),
     "types"         : ( "getobj" : "getType", "sql" : "getCreateSql"),
     "synonyms"      : ( "getobj" : "getSynonym", "sql" : "getCreateSql"),
-    "packages"      : ( "getobj" : "getPackage", "sql" : "getCreateSql"),
-    "mviews"        : ( "getobj" : "getMaterializedView", "sql" : "getCreateSql"),
     );
+
 main();
 
 sub usage() {
@@ -155,6 +170,9 @@ string sub get_regex(string str) {
     return str;
 }
 
+bool sub is_object_supported (SqlUtil::Database db, string type) {
+    return inlist (MAP_OBJECT_FEATURE{type}, db.features());
+}
 
 sub list_objects(SqlUtil::Database db, softlist types) {
     list processed = list();
@@ -164,11 +182,15 @@ sub list_objects(SqlUtil::Database db, softlist types) {
             continue;
         push processed, i;
         if (exists LIST_OBJECTS{i}) {
-            map printf("%-30s %s\n", $1, i), call_object_method(db, LIST_OBJECTS{i});
+            if (is_object_supported (db, i))
+                map printf("%-30s %s\n", $1, i), call_object_method(db, LIST_OBJECTS{i});
+            else
+                printf("Unsupported object type/key: %s\n", i);
         }
         else if (exists META_LIST_OBJECTS{i}) {
             foreach string j in (META_LIST_OBJECTS{i})
-                map printf("%-30s %s\n", $1, j), call_object_method(db, LIST_OBJECTS{j});
+                if (is_object_supported (db, j))
+                    map printf("%-30s %s\n", $1, j), call_object_method(db, LIST_OBJECTS{j});
         }
         else {
             printf("Unknown object type/key: %s\n", i);
@@ -204,10 +226,15 @@ class DumpObjects {
 
             if (type == "all") {
                 foreach string i in (DUMP_OBJECTS.keys())
-                    doObjects(sprintf("%s:all", i));
+                    if (is_object_supported (m_db, i))
+                        doObjects(sprintf("%s:all", i));
                 continue;
             }
             else if (!DUMP_OBJECTS{type}) {
+                printf("Unable to dump object of type: %n\n", type);
+                continue;
+            }
+            else if (!is_object_supported (m_db, type))
                 printf("Unable to dump object of type: %n\n", type);
                 continue;
             }
@@ -359,7 +386,7 @@ sub main() {
 
     bool done = False;
 
-    # bcakward compatibility
+    # backward compatibility
     if (opt.list_tables) {
         opt.list_objects = "tables";
     }
@@ -399,7 +426,7 @@ sub main() {
         SQLStatement sql = table.getRowIterator();
         while (sql.next()) {
             hash row = sql.fetchRow();
-            printf("%s", makeYAML(row));
+            printf("%s", make_yaml(row));
         }
 %endif
     }
@@ -422,7 +449,7 @@ sub main() {
 
         FileLineIterator it(arg[1]);
         while (it.next()) {
-            hash row = parseYAML(it.getValue());
+            hash row = parse_yaml(it.getValue());
             table.insert(row);
 
             if (it.index() % 1000 == 0)
