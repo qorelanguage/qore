@@ -226,10 +226,15 @@ class DumpObjects {
 
             if (type == "all") {
                 foreach string i in (DUMP_OBJECTS.keys())
-                    doObjects(sprintf("%s:all", i));
+                    if (is_object_supported (m_db, i))
+                        doObjects(sprintf("%s:all", i));
                 continue;
             }
             else if (!DUMP_OBJECTS{type}) {
+                printf("Unable to dump object of type: %n\n", type);
+                continue;
+            }
+            else if (!is_object_supported (m_db, type))
                 printf("Unable to dump object of type: %n\n", type);
                 continue;
             }
@@ -381,7 +386,7 @@ sub main() {
 
     bool done = False;
 
-    # bcakward compatibility
+    # backward compatibility
     if (opt.list_tables) {
         opt.list_objects = "tables";
     }
