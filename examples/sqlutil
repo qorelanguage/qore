@@ -421,7 +421,7 @@ sub main() {
         SQLStatement sql = table.getRowIterator();
         while (sql.next()) {
             hash row = sql.fetchRow();
-            printf("%s", makeYAML(row));
+            printf("%s", make_yaml(row));
         }
 %endif
     }
@@ -444,7 +444,7 @@ sub main() {
 
         FileLineIterator it(arg[1]);
         while (it.next()) {
-            hash row = parseYAML(it.getValue());
+            hash row = parse_yaml(it.getValue());
             table.insert(row);
 
             if (it.index() % 1000 == 0)
