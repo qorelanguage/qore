@@ -65,9 +65,10 @@ our int start; # global variable for start time
 const cstr = "*************************************************";
 const bstr = "-------------------------------------------------";
 
-const opts =
-    ( "verbose"  : "v,verbose:i+",
-      "help"     : "h,help"
+const opts = (
+    "verbose"  : "v,verbose:i+",
+    "output"   : "o,output-file=s",
+    "help"     : "h,help"
     );
 
 # run the "main" function
@@ -263,8 +264,9 @@ class QueueCallBack {
 sub usage(*bool long) {
     printf("usage: %s [-vh] URL\n", get_script_name());
     if (long) {
-    	printf("  -v,--verbose       show socket events\n");
-	printf("  -h,--help          this help text\n");
+        printf(" -o,--output-file=ARG    save the output to the given file name\n");
+    	printf(" -v,--verbose            show socket events\n");
+	printf(" -h,--help               this help text\n");
     }
     exit(1);
 }
@@ -332,9 +334,7 @@ sub main() {
     }
 
     # get the filename to save
-    string fn = basename(u.path);
-    if (!exists fn)
-	fn = u.host;
+    string fn = o.output ?? basename(u.path ?? u.host);
 
     # wait for the event monitoring thread to complete
     cb.wait();
