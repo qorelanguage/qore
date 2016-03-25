@@ -169,40 +169,45 @@ public class SqlTestBase inherits QUnit::Test {
         on_success table.commit();
         on_error table.rollback();
 
+        Columns cols = table.describe();
+        string vc = cols.hasKey("varchar_f") ? "varchar_f" : "varchar2_f";
+
         hash soh = ("columns": (
-                cop_as (cop_cast ("id", "string"), "cop_cast"),
-                cop_as (cop_value (0), "cop_value"), # triggers bug #511 (GitHub)
-                cop_as (cop_lower (cop_value ("Ahoj")), "cop_lower"),
-                cop_as (cop_upper (cop_value ("Ahoj")), "cop_upper"),
-                cop_as (cop_prepend (cop_value ("abc"), "def"), "cop_prepend"),
-                cop_as (cop_append (cop_value ("abc"), "def"), "cop_append"),
-                cop_as (cop_minus ("id", "id"), "cop_minus"),
-                cop_as (cop_plus ("id", "id"), "cop_plus"),
-                cop_as (cop_divide ("id", "id"), "cop_divide"),
-                cop_as (cop_multiply ("id", "id"), "cop_multiply"),
-                # cop_as (cop_minus ("id", cop_value(2)), "cop_minus"),
-                # cop_as (cop_plus ("id", cop_value(2)), "cop_plus"),
-                # cop_as (cop_divide ("id", cop_value(2)), "cop_divide"),
-                # cop_as (cop_multiply ("id", cop_value(2)), "cop_multiply"),
-                ),
-                "where": ("id": 2, "cop_lower": cop_lower("cop_upper")),
-                );
+                        cop_as (cop_cast ("id", "string"), "cop_cast"),
+                        cop_as (cop_value (0), "cop_value"), # triggers bug #511 (GitHub)
+                        cop_as (cop_lower (cop_value ("Ahoj")), "cop_lower"),
+                        cop_as (cop_upper (cop_value ("Ahoj")), "cop_upper"),
+                        cop_as (cop_prepend (cop_value ("abc"), "def"), "cop_prepend"),
+                        cop_as (cop_append (cop_value ("abc"), "def"), "cop_append"),
+                        cop_as (cop_minus ("id", "id"), "cop_minus"),
+                        cop_as (cop_plus ("id", "id"), "cop_plus"),
+                        cop_as (cop_divide ("id", "id"), "cop_divide"),
+                        cop_as (cop_multiply ("id", "id"), "cop_multiply"),
+                        cop_as (cop_coalesce("null_f", vc, "char_f"), "cop_coalesce"),
+                        # cop_as (cop_minus ("id", cop_value(2)), "cop_minus"),
+                        # cop_as (cop_plus ("id", cop_value(2)), "cop_plus"),
+                        # cop_as (cop_divide ("id", cop_value(2)), "cop_divide"),
+                        # cop_as (cop_multiply ("id", cop_value(2)), "cop_multiply"),
+                    ),
+                    "where": ("id": 2, "cop_lower": cop_lower("cop_upper")),
+            );
 
         string sql; on_error printf("SQL: %s\n", sql);
         *hash row = table.selectRow (soh, \sql);
 
         hash expect = (
-                "cop_cast": "2",
-                "cop_value": 0,
-                "cop_lower": "ahoj",
-                "cop_upper": "AHOJ",
-                "cop_prepend": "defabc",
-                "cop_append": "abcdef",
-                "cop_minus": 0,
-                "cop_plus": 4,
-                "cop_divide": 1,
-                "cop_multiply": 4,
-                );
+            "cop_cast": "2",
+            "cop_value": 0,
+            "cop_lower": "ahoj",
+            "cop_upper": "AHOJ",
+            "cop_prepend": "defabc",
+            "cop_append": "abcdef",
+            "cop_minus": 0,
+            "cop_plus": 4,
+            "cop_divide": 1,
+            "cop_multiply": 4,
+            "cop_coalesce": "hello",
+            );
 
         foreach hash e in (expect.pairIterator())
             assertEq (e.value, row{e.key}, "checking column operator " + e.key);

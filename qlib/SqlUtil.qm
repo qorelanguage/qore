@@ -110,10 +110,11 @@ module SqlUtil {
     - implemented support for \c "or" logic in @ref where_clauses
     - implemented AbstractTable::getBulkUpsertClosure() to better support bulk SQL merge operations
     - implemented @ref SqlUtil::wop_or() to allow for generating complex SQL strings with \a "or" and \a "and" expressions
-    - implemented @ref SqlUtil::cop_cast() operator for converting [column] value into another datatype
-    - implemented @ref SqlUtil::cop_sum() aggregate operator for returning sum of column values
+    - implemented the @ref SqlUtil::cop_cast() operator for converting [column] value into another datatype
+    - implemented the @ref SqlUtil::cop_sum() aggregate operator for returning sum of column values
     - implemented update operators @ref SqlUtil::uop_plus(), @ref SqlUtil::uop_minus(), @ref SqlUtil::uop_multiply(), @ref SqlUtil::uop_divide()
     - implemented support for numeric column arguments for the @ref select_option_orderby "orderby" and @ref select_option_groupby "groupby" options
+    - implemented the @ref SqlUtil::cop_coalesce() column operator functions for the \c "COALESCE" operator returning the first non-NULL value in a list of columns (<a href="https://github.com/qorelanguage/qore/issues/671">issue 671</a>)
     - column aliases (defined with @ref SqlUtil::cop_as()) can now be used in the @ref where_clauses "where hash argument" and in join criteria
     - removed all APIs that handle implicit transactions; APIs must commit transactions explicitly (<a href="https://github.com/qorelanguage/qore/issues/533">issue 533</a>)
     - @ref sql_cop_funcs "column operator functions" can be used in @ref where_clauses "where hashes" and in @ref select_option_join "join conditions": (<a href="https://github.com/qorelanguage/qore/issues/529">issue 529</a>)
@@ -1979,6 +1980,11 @@ public namespace SqlUtil {
     */
     public const COP_SEQ_CURRVAL = "seq_currval";
 
+    #! to return the first non-null argument in the list
+    /** @see cop_coalesce()
+    */
+    public const COP_COALESCE = "coalesce";
+
     #! a hash of default column operator descriptions
     public const DefaultCopMap = (
         COP_AS: (
@@ -2089,6 +2095,12 @@ public namespace SqlUtil {
             "nocolumn": True,
             "code": string sub (*string cve, hash arg) {
                 throw "SEQUENCE-ERROR", sprintf("cannot select the current value of sequence %y because this database does not support sequences", arg.seq);
+            }
+        ),
+        COP_COALESCE: (
+            "columnargs": True,
+            "code": string sub (*string cve, hash arg) {
+                return sprintf("coalesce(%s)", (foldl $1 + "," + $2, arg.args));
             }
         ),
         );
@@ -2545,6 +2557,21 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     */
     public hash sub cop_seq_currval(string seq, *string as) {
         return make_cop(COP_SEQ_CURRVAL, "", ("seq": seq, "as": as));
+    }
+
+    #! returns a hash for the \c "coalesce" operator with the given column arguments; the first non-NULL column value will be returned
+    /** @par Example:
+        @code{.py}
+*list rows = table.selectRows(("columns": ("first_name", "last_name", cop_colesce("first_name", "last_name")), "where": ("type": "user")));
+        @endcode
+
+        @param col1 the name of the first column
+        @param col2 the name of the second column, additional column names should follow this argument
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_coalesce(string col1, string col2) {
+        return make_cop(COP_COALESCE, "", ("args": (col1, col2) + argv));
     }
     #@}
 
@@ -11769,8 +11796,14 @@ string sql = table.getSelectSql(sh, \args);
                     arg = getColumnNameIntern(arg, jch, join, ch, psch);
                 }
             }
+            else if (cmd.columnargs) {
+                if (arg.args.typeCode() != NT_LIST)
+                    throw "SELECT-ERROR", sprintf("%s: expecting a list of column designators for column operator %y; got type %y instead", getDesc(), cop, arg.args.type());
+                foreach any narg in (\arg.args)
+                    narg = getColumnNameIntern(narg, jch, join, ch, psch);
+            }
 
-            if (!exists cve && !cmd.nocolumn)
+            if (!exists cve && !cmd.nocolumn && !cmd.columnargs)
                 throw "SELECT-ERROR", sprintf("%s: column operator %y requires a column argument name but none was provided", getDesc(), cop);
 
             return cmd.withalias ? cmd.code(cve, arg, \psch_ref) : cmd.code(cve, arg);
