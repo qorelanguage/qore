@@ -60,6 +60,19 @@ const RequiresTarget = (
     "align_table": True,
     );
 
+# map of the keyword : Database feature name
+const MAP_OBJECT_FEATURE = (
+    "tables"        : SqlUtil::DB_TABLES,
+    "views"         : SqlUtil::DB_VIEWS,
+    "mviews"        : SqlUtil::DB_MVIEWS,
+    "sequences"     : SqlUtil::DB_SEQUENCES,
+    "functions"     : SqlUtil::DB_FUNCTIONS,
+    "procedures"    : SqlUtil::DB_PROCEDURES,
+    "packages"      : SqlUtil::DB_PACKAGES,
+    "types"         : SqlUtil::DB_TYPES,
+    "synonyms"      : SqlUtil::DB_SYNONYMS,
+    );
+
 # map of the keyword : Database iterator method name
 const LIST_OBJECTS = (
     "tables"        : "tableIterator",
@@ -157,6 +170,9 @@ string sub get_regex(string str) {
     return str;
 }
 
+bool sub is_object_supported (SqlUtil::Database db, string type) {
+    return inlist (MAP_OBJECT_FEATURE{type}, db.features());
+}
 
 sub list_objects(SqlUtil::Database db, softlist types) {
     list processed = list();
@@ -166,11 +182,15 @@ sub list_objects(SqlUtil::Database db, softlist types) {
             continue;
         push processed, i;
         if (exists LIST_OBJECTS{i}) {
-            map printf("%-30s %s\n", $1, i), call_object_method(db, LIST_OBJECTS{i});
+            if (is_object_supported (db, i))
+                map printf("%-30s %s\n", $1, i), call_object_method(db, LIST_OBJECTS{i});
+            else
+                printf("Unsupported object type/key: %s\n", i);
         }
         else if (exists META_LIST_OBJECTS{i}) {
             foreach string j in (META_LIST_OBJECTS{i})
-                map printf("%-30s %s\n", $1, j), call_object_method(db, LIST_OBJECTS{j});
+                if (is_object_supported (db, j))
+                    map printf("%-30s %s\n", $1, j), call_object_method(db, LIST_OBJECTS{j});
         }
         else {
             printf("Unknown object type/key: %s\n", i);
