@@ -174,7 +174,7 @@ class MysqlTest inherits SqlTestBase {
 
     Datasource getDatasource() {
         if (!m_options.connstr)
-            m_options.connstr = ENV.QORE_DB_CONNSTR_MYSQL ?? "mysql:omquser/omquser@omquser";
+            m_options.connstr = ENV.QORE_DB_CONNSTR_MYSQL;
         Datasource ds(m_options.connstr);
         if (ds.getDriverName() != "mysql")
             throw "MYSQL-ERROR", sprintf("cannot execute the mysql tests on a connection using driver %y", ds.getDriverName());

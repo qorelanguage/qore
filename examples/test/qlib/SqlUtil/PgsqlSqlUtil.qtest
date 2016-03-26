@@ -211,7 +211,7 @@ class PgsqlTest inherits SqlTestBase {
 
     Datasource getDatasource() {
         if (!m_options.connstr)
-            m_options.connstr = ENV.QORE_DB_CONNSTR_PGSQL ?? "pgsql:omquser/omquser@omquser";
+            m_options.connstr = ENV.QORE_DB_CONNSTR_PGSQL;
         Datasource ds(m_options.connstr);
         if (ds.getDriverName() != "pgsql")
             throw "PGSQL-ERROR", sprintf("cannot execute the pgsql tests on a connection using driver %y", ds.getDriverName());
