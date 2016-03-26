@@ -184,6 +184,7 @@ public class SqlTestBase inherits QUnit::Test {
                         cop_as (cop_divide ("id", "id"), "cop_divide"),
                         cop_as (cop_multiply ("id", "id"), "cop_multiply"),
                         cop_as (cop_coalesce("null_f", vc, "char_f"), "cop_coalesce"),
+                        cop_as (cop_coalesce("null_f", cop_value("test")), "cop_coalesce2"),
                         # cop_as (cop_minus ("id", cop_value(2)), "cop_minus"),
                         # cop_as (cop_plus ("id", cop_value(2)), "cop_plus"),
                         # cop_as (cop_divide ("id", cop_value(2)), "cop_divide"),

@@ -166,7 +166,7 @@ class FreetdsTest inherits SqlTestBase {
 
     Datasource getDatasource() {
         if (!m_options.connstr)
-            m_options.connstr = ENV.QORE_DB_CONNSTR_FREETDS ?? "freetds:test/test@mssql";
+            m_options.connstr = ENV.QORE_DB_CONNSTR_FREETDS;
         Datasource ds(m_options.connstr);
         if (ds.getDriverName() != "freetds")
             throw "FREETDS-ERROR", sprintf("cannot execute the freetds tests on a connection using driver %y", ds.getDriverName());
