@@ -2565,13 +2565,29 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 *list rows = table.selectRows(("columns": ("first_name", "last_name", cop_colesce("first_name", "last_name")), "where": ("type": "user")));
         @endcode
 
-        @param col1 the name of the first column
-        @param col2 the name of the second column, additional column names should follow this argument
+        @param col1 the name or column operator hash for the first value
+        @param col2 the name or column operator hash for the second value, additional values should follow this argument
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+
+        @throw COALESCE-ERROR the arguments must be either string column designators or column operator hashes
     */
-    public hash sub cop_coalesce(string col1, string col2) {
-        return make_cop(COP_COALESCE, "", ("args": (col1, col2) + argv));
+    public hash sub cop_coalesce(any col1, any col2) {
+        code check = sub (any c) {
+            if (c.typeCode() != NT_STRING && c.typeCode() != NT_HASH)
+                throw "COALESCE-ERROR", sprintf("cop_colaesce() accepts string column designators or column operator hashes as arguments; got: %y", c);
+        };
+        # ensure at least two arguments
+        check(col1);
+        check(col2);
+        # validate any remaining args
+        map check($1), argv;
+
+        list args = (col1, col2);
+        if (argv)
+            args += argv;
+
+        return make_cop(COP_COALESCE, "", ("args": args));
     }
     #@}
 
@@ -11500,8 +11516,8 @@ string sql = table.getSelectSql(sh, \args);
                             }
                             catch (hash ex) {
                                 # rethrow exception with additional contextual information
-                                throw ex.err, sprintf("%s: in \"columns\" hash element %d/%d: %s", getName(), $# + 1, qh.columns.lsize(), ex.desc), ex.arg;
-                             }
+                                throw ex.err, sprintf("%s: %s: in \"columns\" hash element %d/%d: %s", get_ex_pos(ex), getName(), $# + 1, qh.columns.lsize(), ex.desc), ex.arg;
+                            }
                             if (qh.superquery && cv.cop == COP_AS && cv.arg)
                                 mch{cv.arg} = True;
                             break;
@@ -11799,8 +11815,13 @@ string sql = table.getSelectSql(sh, \args);
             else if (cmd.columnargs) {
                 if (arg.args.typeCode() != NT_LIST)
                     throw "SELECT-ERROR", sprintf("%s: expecting a list of column designators for column operator %y; got type %y instead", getDesc(), cop, arg.args.type());
-                foreach any narg in (\arg.args)
-                    narg = getColumnNameIntern(narg, jch, join, ch, psch);
+                foreach any narg in (\arg.args) {
+                    switch (narg.typeCode()) {
+                        case NT_STRING: narg = getColumnNameIntern(narg, jch, join, ch, psch); break;
+                        case NT_HASH: narg = doColumnOperatorIntern(narg, jch, join, ch, psch); break;
+                        default: throw "COLUMN-ERROR", sprintf("%s: expecting a string column designator or a column operator hash; got %y in position %d/%d instead", getDesc(), narg, $#, arg.args.lsize());
+                    }
+                }
             }
 
             if (!exists cve && !cmd.nocolumn && !cmd.columnargs)
