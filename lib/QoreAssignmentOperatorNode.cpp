@@ -54,6 +54,15 @@ AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int
 
    //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() this: %p left: %s ti: %p '%s', right: %s ti: %s\n", this, get_type_name(left), ti, ti->getName(), get_type_name(right), r->getName());
 
+   if (left->getType() == NT_VARREF && right->getType() == NT_VARREF) {
+      if (!strcmp(static_cast<VarRefNode *>(left)->getName(), static_cast<VarRefNode *>(right)->getName())) {
+         QoreStringNode *edesc = new QoreStringNode("variable ");
+         edesc->concat(static_cast<VarRefNode *>(left)->getName());
+         edesc->concat(" assigned to itself");
+         qore_program_private::makeParseException(getProgram(), loc, "PARSE-EXCEPTION", edesc);
+      }
+   }
+
    if (ti->hasType() && r->hasType() && !ti->parseAccepts(r)) {
       if (getProgram()->getParseExceptionSink()) {
 	 QoreStringNode *edesc = new QoreStringNode("lvalue for assignment operator (=) expects ");
