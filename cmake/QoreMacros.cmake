@@ -159,8 +159,6 @@ MACRO (QORE_BINARY_MODULE _module_name _version)
     else (DOXYGEN_FOUND)
         message(WARNING "Doxygen not found. Documentation won't be built")
     endif (DOXYGEN_FOUND)
-
-
 ENDMACRO (QORE_BINARY_MODULE)
 
 # Install qore native/user modules (qm files) into proper location.
@@ -169,6 +167,26 @@ ENDMACRO (QORE_BINARY_MODULE)
 #   qore_user_modules(${QM_FILES})
 # Files will be installed automatically in 'make install' target
 MACRO (QORE_USER_MODULES _inputs)
+    # first - handle qlib documentation
+    find_package(Doxygen)
+    if (DOXYGEN_FOUND)
+        foreach(i ${_inputs})
+            get_filename_component(f ${i} NAME_WE)
+            message(STATUS "Doxyfile for ${f}")
+            set(QORE_QMOD_FNAME ${f}) # used for configure_file line below
+            configure_file(${CMAKE_SOURCE_DIR}/doxygen/qlib/Doxyfile.in ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f} @ONLY)
+            file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/${f}/)
+            add_custom_target(docs-${f}
+                ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f}
+                COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/html/*.html
+                COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/html/search/*.html
+                WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+                COMMENT "Generating API documentation with Doxygen for: ${f}" VERBATIM
+            )
+            add_dependencies(docs docs-${f})
+        endforeach()
+    endif (DOXYGEN_FOUND)
+    # install qm files
     install(FILES ${_inputs} DESTINATION ${QORE_USER_MODULES_DIR})
 ENDMACRO (QORE_USER_MODULES)
 
