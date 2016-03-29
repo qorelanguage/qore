@@ -17,7 +17,7 @@ class Test inherits QUnit::Test {
         addTestCase("lvalue tests", \lvalueTests());
         addTestCase("const modulo", \constModulo());
         addTestCase("post/pre inc/dec", \postPreIncDec());
-        addTestCase("identity assignemnt", \idAssignment());
+        addTestCase("identity assignment", \idAssignment());
         set_return_value(main());
     }
 
@@ -233,8 +233,13 @@ class Test inherits QUnit::Test {
     }
 
     idAssignment() {
-        Program p();
-        p.replaceParseOptions(PO_DEFAULT);
-        assertThrows("PARSE-EXCEPTION", "variable a assigned to itself", \p.parse(), ("%new-style\nany a = a;", ""));
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", "illegal assignment of variable \"a\" to itself", \p.parse(), ("any a = a;", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", "illegal assignment of variable \"a\" to itself", \p.parse(), ("any a = (a,);", ""));
+        }
     }
 }

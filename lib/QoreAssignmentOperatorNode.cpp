@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -54,14 +54,9 @@ AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int
 
    //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() this: %p left: %s ti: %p '%s', right: %s ti: %s\n", this, get_type_name(left), ti, ti->getName(), get_type_name(right), r->getName());
 
-   if (left->getType() == NT_VARREF && right->getType() == NT_VARREF) {
-      if (!strcmp(static_cast<VarRefNode *>(left)->getName(), static_cast<VarRefNode *>(right)->getName())) {
-         QoreStringNode *edesc = new QoreStringNode("variable ");
-         edesc->concat(static_cast<VarRefNode *>(left)->getName());
-         edesc->concat(" assigned to itself");
-         qore_program_private::makeParseException(getProgram(), loc, "PARSE-EXCEPTION", edesc);
-      }
-   }
+   if (left->getType() == NT_VARREF && right->getType() == NT_VARREF
+       && !strcmp(static_cast<VarRefNode *>(left)->getName(), static_cast<VarRefNode *>(right)->getName()))
+      qore_program_private::makeParseException(getProgram(), loc, "PARSE-EXCEPTION", new QoreStringNodeMaker("illegal assignment of variable \"%s\" to itself", static_cast<VarRefNode *>(left)->getName()));
 
    if (ti->hasType() && r->hasType() && !ti->parseAccepts(r)) {
       if (getProgram()->getParseExceptionSink()) {
