@@ -1,8 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -27,4 +29,3 @@ public class FunctionTypeTest inherits QUnit::Test {
         testAssertion("function_type() non-existing", \function_type(), ("abcdefgh_XYZ_123456789_1337",), new TestResultValue(NOTHING));
     }
 }
-

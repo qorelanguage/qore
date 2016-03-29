@@ -52,7 +52,7 @@ module CsvUtil {
     All the public symbols in the module are defined in the CsvUtil namespace
 
     Currently the module provides the following classes:
-    - @ref CsvUtil::CsvAbstractIterator "CsvAbstractIterator": base abstract iterator class for iterating line-based CSV data
+    - @ref CsvUtil::AbstractCsvIterator "AbstractCsvIterator": base abstract iterator class for iterating line-based CSV data
     - @ref CsvUtil::CsvDataIterator "CsvDataIterator": iterator class allowing for CSV string data to be processed line by line on a record basis
     - @ref CsvUtil::CsvFileIterator "CsvFileIterator": iterator class allowing for CSV files to be processed line by line on a record basis
     - @ref CsvUtil::AbstractCsvWriter "AbstractCsvWriter": a base class for new CSV writer implementations
@@ -62,7 +62,7 @@ module CsvUtil {
     Note that the @ref CsvUtil::CsvFileIterator "CsvFileIterator" class can be used to parse arbitrary text files; the field separator character can be specified in the @ref CsvUtil::CsvFileIterator::constructor() "constructor", as well as the quote character and end of line sequence.  See the @ref CsvUtil::CsvFileIterator::constructor() "constructor documentation" for more information.
 
     <b>Examples:</b>
-    @code
+    @code{.py}
 #!/usr/bin/env qore
 
 %new-style
@@ -96,7 +96,7 @@ UK,1234567893,"Sony, Xperia S",31052012
 
     @anchor complex_example
     If header names are provided and field types are specified, the output looks different:
-    @code
+    @code{.py}
 #!/usr/bin/env qore
 
 %new-style
@@ -115,13 +115,15 @@ while (i.next())
 4: {cc: "UK", serno: 1234567893, desc: "Sony, Xperia S", received: 2012-05-31 00:00:00 Thu +02:00 (CEST)}
     @endverbatim
 
-    Use the \c "header-lines" and \c "header-names" @ref csvabstractiterator_options "options" to automatically read the header names from the file if present.  Use the \c "fields" @ref csvabstractiterator_options "option" to describe the fields and perform transformations on the data read.  For more information, see the @ref CsvUtil::CsvFileIterator "CsvFileIterator" class.
+    Use the \c "header-lines" and \c "header-names" @ref abstractcsviterator_options "options" to automatically read the header names from the file if present.  Use the \c "fields" @ref abstractcsviterator_options "option" to describe the fields and perform transformations on the data read.  For more information, see the @ref CsvUtil::CsvFileIterator "CsvFileIterator" class.
 
     @section csvutil_relnotes Release Notes
 
     @subsection csvutil_v1_5 Version 1.5
     - bugfixed handling eol global option
     - converted to new-style
+    - if "headers" are not given in the @ref CsvUtil::AbstractCsvWriter::constructor() but "fields" are, then set the headers from the field descriptions automatically
+    - added write() methods returning the generated strings to the @ref CsvUtil::CsvStringWriter class for API compatibility with the corresponding FixedLengthDataWriter methods
 
     @subsection csvutil_v1_4 Version 1.4
     - fixed the \c "format" field option when used with \c "*date" field types
@@ -237,13 +239,13 @@ public namespace CsvUtil {
     # helper list of end of line values
     const EOLS = (EOL_UNIX, EOL_WIN, EOL_MACINTOSH, );
 
-    #! the CsvAbstractIterator class is an abstract base class that allows abstract CSV data to be iterated
+    #! the AbstractCsvIterator class is an abstract base class that allows abstract CSV data to be iterated
     /**
-        @section csvabstractiterator_options CsvAbstractIterator Constructor Option Hash Overview
-        The CsvAbstractIterator class constructor takes an optional hash with possible keys given in the following table.  Note that
+        @section abstractcsviterator_options AbstractCsvIterator Constructor Option Hash Overview
+        The AbstractCsvIterator class constructor takes an optional hash with possible keys given in the following table.  Note that
         key names are case-sensitive, and data types are soft (conversions are made when possible).
 
-        <b>CsvAbstractIterator Options</b>
+        <b>AbstractCsvIterator Options</b>
         |!Option|!Data Type|!Description
         |\c "encoding"|@ref string|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
         |\c "separator"|@ref string|the string separating the fields in the file (default: \c ",")
@@ -255,13 +257,13 @@ public namespace CsvUtil {
         |\c "header-lines"|@ref integer|the number of headers lines in the file (must be &gt; 0 if \c "header-names" is @ref Qore::True "True")
         |\c "headers"|@ref list of strings|list of header / column names for the data iterated; if this is present, then \c "header-names" must be @ref Qore::False "False"
         |\c "verify-columns"|@ref boolean|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEITERATOR-DATA-ERROR exception is thrown
-        |\c "fields"|@ref hash|the keys are column names (or numbers in case column names are not used) and the values are either strings (one of @ref csvabstractiterator_option_field_types giving the data type for the field) or a @ref csvabstractiterator_option_field_hash describing the field; also sets \a headers if not set automatically with \c "header-names"; if no field type is given, the default is \c "*string"
+        |\c "fields"|@ref hash|the keys are column names (or numbers in case column names are not used) and the values are either strings (one of @ref abstractcsviterator_option_field_types giving the data type for the field) or a @ref abstractcsviterator_option_field_hash describing the field; also sets \a headers if not set automatically with \c "header-names"; if no field type is given, the default is \c "*string"
         |\c "timezone"|@ref string|the timezone to use when parsing dates (will be passed to @ref Qore::TimeZone::constructor())
         |\c "tolwr"|@ref boolean|if @ref Qore::True "True" then all header names will be converted to lower case letters
 
-        @subsection csvabstractiterator_option_field_types Option Field Types
+        @subsection abstractcsviterator_option_field_types Option Field Types
 
-        <b>CsvAbstractIterator Option Field Types</b>
+        <b>AbstractCsvIterator Option Field Types</b>
         |!Name|!Description
         |\c "int"|the value will be unconditionally converted to an @ref integer "integer" using the @ref Qore::int() function
         |\c "*int"|the value will be converted to @ref nothing if empty, otherwise it will be converted to an @ref integer "integer" using the @ref Qore::int() function
@@ -271,20 +273,20 @@ public namespace CsvUtil {
         |\c "*number"|the value will be converted to @ref nothing if empty, otherwise it will be converted to an @ref number "arbitrary-precision number value" using the @ref Qore::number() function
         |\c "string"|(the default) the value remains a string; no transformation is done on the input data
         |\c "*string"|the value will be converted to @ref nothing if empty, otherwise, it remains a string
-        |\c "date"|in this case dates are parsed directly with the @ref Qore::date() function (and therefore are tagged automatically with the current @ref time_zones "time zone"); to specify another date format, use the @ref csvabstractiterator_option_field_hash "hash format" documented below
-        |\c "*date"|the value will be converted to @ref nothing if empty, otherwise dates are parsed directly with the @ref Qore::date() function (and therefore are tagged automatically with the current @ref time_zones "time zone"); to specify another date format, use the @ref csvabstractiterator_option_field_hash "hash format" documented below
+        |\c "date"|in this case dates are parsed directly with the @ref Qore::date() function (and therefore are tagged automatically with the current @ref time_zones "time zone"); to specify another date format, use the @ref abstractcsviterator_option_field_hash "hash format" documented below
+        |\c "*date"|the value will be converted to @ref nothing if empty, otherwise dates are parsed directly with the @ref Qore::date() function (and therefore are tagged automatically with the current @ref time_zones "time zone"); to specify another date format, use the @ref abstractcsviterator_option_field_hash "hash format" documented below
 
-        @subsection csvabstractiterator_option_field_hash Option Field Hash
+        @subsection abstractcsviterator_option_field_hash Option Field Hash
         See @ref complex_example "here" for an example of using the hash field description in the @ref CsvUtil::CsvFileIterator::constructor() "constructor()".
 
-        <b>CsvAbstractIterator Option Field Hash</b>
+        <b>AbstractCsvIterator Option Field Hash</b>
         |!Key|!Value Description
-        |\c "type"|one of the @ref csvabstractiterator_option_field_types "option type values" giving the field type
+        |\c "type"|one of the @ref abstractcsviterator_option_field_types "option type values" giving the field type
         |\c "format"|used only with the \c "date" type; this is a @ref date_mask "date/time format mask" for parsing dates
         |\c "timezone"|used only with the \c "date" type; this value is passed to @ref Qore::TimeZone::constructor() and the resulting timezone is used to parse the date (this value overrides any default time zone for the object; use only in the rare case that date/time values from different time zones are present in different columns of the same file)
         |\c "code"|this is a @ref closure or @ref call_reference that takes a single argument of the value (after formatting with any optional \c "type" formats) and returns the value that will be output for the field
      */
-    public class CsvAbstractIterator inherits Qore::AbstractIterator, private CsvHelper {
+    public class AbstractCsvIterator inherits Qore::AbstractIterator, private CsvHelper {
         private {
             #! valid options for the object (a hash for quick lookups of valid keys)
             const Options = (
@@ -334,25 +336,25 @@ public namespace CsvUtil {
             int rc = 0;
         }
 
-        #! creates the CsvAbstractIterator with an option hash
-        /** @param opts a hash of optional options; see @ref csvabstractiterator_options for more information
+        #! creates the AbstractCsvIterator with an option hash
+        /** @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
 
-            @throw CSVABSTRACTITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header-names" is @ref Qore::True "True" and \c "header-lines" is 0 or \c "headers" is also present; unknown field type
+            @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header-names" is @ref Qore::True "True" and \c "header-lines" is 0 or \c "headers" is also present; unknown field type
          */
         constructor(*hash opts) {
             foreach hash i in (opts.pairIterator()) {
                 if (!exists Options.(i.key))
-                    throw "CSVABSTRACTITERATOR-ERROR", sprintf("unknown option %y passed to CsvAbstractIterator::constructor() (valid options: %y)", i.key, Options.keys());
+                    throw "ABSTRACTCSVITERATOR-ERROR", sprintf("unknown option %y passed to AbstractCsvIterator::constructor() (valid options: %y)", i.key, Options.keys());
                 switch (i.key) {
                     case "separator": {
                         if (i.value.typeCode() != NT_STRING)
-                            throw "CSVABSTRACTITERATOR-ERROR", sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                            throw "ABSTRACTCSVITERATOR-ERROR", sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
                         separator = i.value;
                         break;
                     }
                     case "quote": {
                         if (i.value.typeCode() != NT_STRING)
-                            throw "CSVABSTRACTITERATOR-ERROR", sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                            throw "ABSTRACTCSVITERATOR-ERROR", sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
                         quote = i.value;
                         break;
                     }
@@ -377,7 +379,7 @@ public namespace CsvUtil {
                             headerLines = i.value;
                         }
                         catch (hash ex) {
-                            throw "CSVABSTRACTITERATOR-ERROR", sprintf("expecting integer value or a value that can be converted to an integer for option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                            throw "ABSTRACTCSVITERATOR-ERROR", sprintf("expecting integer value or a value that can be converted to an integer for option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
                         }
                         break;
                     }
@@ -389,7 +391,7 @@ public namespace CsvUtil {
                                 headers += v;
                             }
                             catch (hash ex) {
-                                throw "CSVABSTRACTITERATOR-ERROR", sprintf("expecting a string value or a value that can be converted to a string for option %y; got %y (type %s) in header list position %d instead (full arg: %y)", i.key, c, c.type(), $#, i.value);
+                                throw "ABSTRACTCSVITERATOR-ERROR", sprintf("expecting a string value or a value that can be converted to a string for option %y; got %y (type %s) in header list position %d instead (full arg: %y)", i.key, c, c.type(), $#, i.value);
                             }
                         }
                         break;
@@ -404,7 +406,7 @@ public namespace CsvUtil {
                     }
                     case "fields": {
                         if (i.value.typeCode() != NT_HASH)
-                            throw "CSVABSTRACTITERATOR-ERROR", sprintf("expecting a hash value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                            throw "ABSTRACTCSVITERATOR-ERROR", sprintf("expecting a hash value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
 
                         # iterate hash to process field descriptions
                         foreach hash hi in (i.value.pairIterator()) {
@@ -416,7 +418,7 @@ public namespace CsvUtil {
                                 }
                                 case NT_HASH: {
                                     if (hi.value.empty())
-                                        throw "CSVABSTRACTITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": empty hash passed as description for field %y", hi.key);
+                                        throw "ABSTRACTCSVITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": empty hash passed as description for field %y", hi.key);
                                     hash h;
                                     foreach hash fh in (hi.value.pairIterator()) {
                                         switch (fh.key) {
@@ -427,7 +429,7 @@ public namespace CsvUtil {
                                             }
                                             case "format": {
                                                 if (fh.value.typeCode() != NT_STRING)
-                                                    throw "CSVABSTRACTITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": field %y \"format\" attributes expects a string value; got %y instead", hi.key, fh.value.type());
+                                                    throw "ABSTRACTCSVITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": field %y \"format\" attributes expects a string value; got %y instead", hi.key, fh.value.type());
                                                 h.format = fh.value;
                                                 break;
                                             }
@@ -437,12 +439,12 @@ public namespace CsvUtil {
                                             }
                                             case "code": {
                                                 if (!fh.value.callp())
-                                                    throw "CSVABSTRACTITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": field %y \"code\" attributes expects a callable value to process the field value; got %y instead", hi.key, fh.value.type());
+                                                    throw "ABSTRACTCSVITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": field %y \"code\" attributes expects a callable value to process the field value; got %y instead", hi.key, fh.value.type());
                                                 h.code = fh.value;
                                                 break;
                                             }
                                             default: {
-                                                throw "CSVABSTRACTITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": unknown field attribute value %y given for field %y (supported attribute values: %y)", fh.key, hi.key, FieldAttrs);
+                                                throw "ABSTRACTCSVITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": unknown field attribute value %y given for field %y (supported attribute values: %y)", fh.key, hi.key, FieldAttrs);
 
                                             }
                                         }
@@ -452,14 +454,14 @@ public namespace CsvUtil {
                                     if (h.type != "date" && h.type != "*date") {
                                         foreach string f in ("timezone", "format") {
                                             if (h{f})
-                                                throw "CSVABSTRACTITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": field %y is type %y, but the %y attribute was also given, which is only valid for \"date\" fields", hi.key, h.type, f);
+                                                throw "ABSTRACTCSVITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": field %y is type %y, but the %y attribute was also given, which is only valid for \"date\" fields", hi.key, h.type, f);
                                         }
                                     }
                                     fields.(hi.key) = h;
                                     break;
                                 }
                                 default: {
-                                    throw "CSVABSTRACTITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": invalid value passed as the field description for field %y; expecting \"string\" or \"hash\"; got %y instead", i.key, hi.value.type());
+                                    throw "ABSTRACTCSVITERATOR-ERROR", sprintf("while processing the hash value for option key \"fields\": invalid value passed as the field description for field %y; expecting \"string\" or \"hash\"; got %y instead", i.key, hi.value.type());
                                 }
                             }
                         }
@@ -469,9 +471,9 @@ public namespace CsvUtil {
                 }
             }
             if (headerNames && !headerLines)
-                throw "CSVABSTRACTITERATOR-ERROR", sprintf("\"header-names\" is True but \"header-lines\" is 0; there must be at least 1 header line to get header names");
+                throw "ABSTRACTCSVITERATOR-ERROR", sprintf("\"header-names\" is True but \"header-lines\" is 0; there must be at least 1 header line to get header names");
             if (headerNames && headers)
-                throw "CSVABSTRACTITERATOR-ERROR", sprintf("\"header-names\" is True but \"headers\" has a value (%y)", headers);
+                throw "ABSTRACTCSVITERATOR-ERROR", sprintf("\"header-names\" is True but \"headers\" has a value (%y)", headers);
 
             # set headers automatically from field names if not set
             if (fields && !headers && !headerNames)
@@ -499,7 +501,7 @@ public namespace CsvUtil {
         /** This method will return @ref True again after it returns @ref False once if the file being iterated has data that can be iterated, otherwise it will always return @ref False. The iterator object should not be used to retrieve a value after this method returns @ref False.
             @return @ref False if there are no lines / records to iterate (in which case the iterator object is invalid and should not be used); @ref True if successful (meaning that the iterator object is valid)
 
-            @note that if headers are not given as an option to the constructor, then they are detected and set the first time CsvAbstractIterator::next() is run on a file (see @ref getHeaders())
+            @note that if headers are not given as an option to the constructor, then they are detected and set the first time AbstractCsvIterator::next() is run on a file (see @ref getHeaders())
          */
         bool next() {
             # try to parse any header and skip to data if we haven't started iterating yet
@@ -558,19 +560,19 @@ public namespace CsvUtil {
             @return the value of the given header for the current record
 
             @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
-            @throw CSVABSTRACTITERATOR-FIELD-ERROR invalid or unknown field name given
+            @throw ABSTRACTCSVITERATOR-FIELD-ERROR invalid or unknown field name given
          */
         any memberGate(string name) {
             hash h = getRecord();
             if (!h.hasKey(name))
-                throw "CSVABSTRACTITERATOR-FIELD-ERROR", sprintf("the requested header %y does not exist (known headers: %y)", name, headers);
+                throw "ABSTRACTCSVITERATOR-FIELD-ERROR", sprintf("the requested header %y does not exist (known headers: %y)", name, headers);
 
             return h{name};
         }
 
         #! returns the current record as a hash
         /** @par Example:
-            @code
+            @code{.py}
 hash h = i.getValue();
             @endcode
 
@@ -584,7 +586,7 @@ hash h = i.getValue();
 
         #! returns the current record as a hash
         /** @par Example:
-            @code
+            @code{.py}
 hash h = i.getRecord();
             @endcode
 
@@ -605,7 +607,7 @@ hash h = i.getRecord();
 
         #! returns the current record as a list
         /** @par Example:
-            @code
+            @code{.py}
 list l = i.getRecordList();
             @endcode
 
@@ -619,7 +621,7 @@ list l = i.getRecordList();
 
         #! returns the current separator string
         /** @par Example:
-            @code
+            @code{.py}
 string sep = i.getSeparator();
             @endcode
 
@@ -631,7 +633,7 @@ string sep = i.getSeparator();
 
         #! returns the current quote string
         /** @par Example:
-            @code
+            @code{.py}
 string quote = i.getQuote();
             @endcode
 
@@ -643,7 +645,7 @@ string quote = i.getQuote();
 
         #! returns the current column headers or @ref nothing if no headers have been detected or saved yet
         /** @par Example:
-            @code
+            @code{.py}
             @endcode
 
             @note if headers are not saved against the object in the @ref constructor(), then they are written to the object after the first call to @ref next()
@@ -654,7 +656,7 @@ string quote = i.getQuote();
 
         #! returns the row index being iterated, which does not necessarily correspond to the line number when there are header rows and blank lines are skipped
         /** @par Example:
-            @code
+            @code{.py}
 int index = i.index();
             @endcode
 
@@ -670,7 +672,7 @@ int index = i.index();
 
         #! returns the current iterator line number in the file (the first line is line 1) or 0 if not pointing at a valid element
         /** @par Example:
-            @code
+            @code{.py}
 while (i.next()) {
     printf("+ line %d: %y\n", i.lineNumber(), i.getValue());
 }
@@ -738,7 +740,7 @@ while (i.next()) {
                 if (!exists cc)
                     cc = l.size();
                 else if (l.size() != cc)
-                    throw "CSVABSTRACTITERATOR-DATA-ERROR", sprintf("%s:%d line contained %d field%s, however the template record has %d (and option \"verify-columns\" is set)", getDataName(), lineNumberImpl(), l.size(), l.size() == 1 ? "" : "s", cc);
+                    throw "ABSTRACTCSVITERATOR-DATA-ERROR", sprintf("%s:%d line contained %d field%s, however the template record has %d (and option \"verify-columns\" is set)", getDataName(), lineNumberImpl(), l.size(), l.size() == 1 ? "" : "s", cc);
             }
 
             # appy transformations to data read if there are any transformations to apply
@@ -760,18 +762,18 @@ while (i.next()) {
 
     #! the CsvFileIterator class allows CSV files to be iterated on a record basis
     /** @see
-        - @ref csvabstractiterator_options
-        - @ref csvabstractiterator_option_field_types
-        - @ref csvabstractiterator_option_field_hash
+        - @ref abstractcsviterator_options
+        - @ref abstractcsviterator_option_field_types
+        - @ref abstractcsviterator_option_field_hash
      */
-    public class CsvFileIterator inherits CsvUtil::CsvAbstractIterator, Qore::FileLineIterator {
+    public class CsvFileIterator inherits CsvUtil::AbstractCsvIterator, Qore::FileLineIterator {
         #! creates the CsvFileIterator with the path of the file to read and optionally an option hash
         /** @param path the path to the CSV file to read
-            @param opts a hash of optional options; see @ref csvabstractiterator_options for more information
+            @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
 
-            @throw CSVABSTRACTITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header-names" is @ref Qore::True "True" and \c "header-lines" is 0 or \c "headers" is also present; unknown field type
+            @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header-names" is @ref Qore::True "True" and \c "header-lines" is 0 or \c "headers" is also present; unknown field type
          */
-        constructor(string path, *hash opts) : CsvAbstractIterator(opts), FileLineIterator(path, opts.encoding.typeCode() == NT_STRING ? opts.encoding : NOTHING, opts.eol.typeCode() == NT_STRING ? opts.eol : NOTHING) {
+        constructor(string path, *hash opts) : AbstractCsvIterator(opts), FileLineIterator(path, opts.encoding.typeCode() == NT_STRING ? opts.encoding : NOTHING, opts.eol.typeCode() == NT_STRING ? opts.eol : NOTHING) {
         }
 
         #! Returns the name of the input data
@@ -797,20 +799,20 @@ while (i.next()) {
 
     #! the CsvDataIterator class allows arbitrary CSV string data to be iterated on a record basis
     /** @see
-        - @ref csvabstractiterator_options
-        - @ref csvabstractiterator_option_field_types
-        - @ref csvabstractiterator_option_field_hash
+        - @ref abstractcsviterator_options
+        - @ref abstractcsviterator_option_field_types
+        - @ref abstractcsviterator_option_field_hash
      */
-    public class CsvDataIterator inherits CsvUtil::CsvAbstractIterator, DataLineIterator {
+    public class CsvDataIterator inherits CsvUtil::AbstractCsvIterator, DataLineIterator {
 
         #! creates the CsvDataIterator with the input data and optionally an option hash
         /** @param data the input data to iterate
-            @param opts a hash of optional options; see @ref csvabstractiterator_options for more information
+            @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
 
-            @throw CSVABSTRACTITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header-names" is @ref Qore::True "True" and \c "header-lines" is 0 or \c "headers" is also present; unknown field type
+            @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header-names" is @ref Qore::True "True" and \c "header-lines" is 0 or \c "headers" is also present; unknown field type
          */
         constructor(string data, *hash opts)
-            : CsvAbstractIterator(opts),
+            : AbstractCsvIterator(opts),
               DataLineIterator(data, opts.eol)
         {
         }
@@ -837,7 +839,7 @@ while (i.next()) {
     Any inherited class has to implement pure virtual (abstract) method, where should
     be the real physical write action placed.
 
-    @code private writeRawLine(list values) @endcode
+    @code{.py} private writeRawLine(list values) @endcode
 
     @section csvwiter_options AbstractCsvWriter Constructor Option Hash Overview
     The AbstractCsvWriter class constructor takes an optional hash with possible keys given in the following table.
@@ -848,8 +850,9 @@ while (i.next()) {
     |\c "encoding"|@ref string|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
     |\c "separator"|@ref string|the string separating the fields in the file (default: \c ",")
     |\c "quote"|@ref string|the field quote character (default: \c '\"')
+    |\c "quote_escape"|@ref string|the escape character(s) used for \c "quote" (default: \c '\\')
     |\c "eol"|@ref string|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
-    |\c "fields"|@ref hash|describes the data to be output; see @ref csvabstractiterator_option_field_hash "option field hash" and @ref csvabstractiterator_option_field_types "option field types" for more information on the possible values of this option; if no field type is given, the default is \c "*string"
+    |\c "fields"|@ref hash|describes the data to be output; see @ref abstractcsviterator_option_field_hash "option field hash" and @ref abstractcsviterator_option_field_types "option field types" for more information on the possible values of this option; if no field type is given, the default is \c "*string"
     |\c "headers"|@ref list of strings|list of header / column names for the data iterated
     |\c "verify-columns"|@ref boolean|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEWRITER-DATA-ERROR exception is thrown
     |\c "date-format"|@ref string|the default mask for date values formatting
@@ -863,6 +866,7 @@ while (i.next()) {
                 "encoding": True,
                 "separator": True,
                 "quote": True,
+                "quote_escape": True,
                 "eol": True,
                 "verify-columns": True,
                 "fields": True,
@@ -872,14 +876,17 @@ while (i.next()) {
                 "optimal-quotes": True,
                 );
 
-            # TODO/FIXME
-            string encoding = get_default_encoding();
+            # out (file) encoding
+            string encoding;
 
             # field separator
             string separator = ",";
 
             # field content delimiter
             string quote = "\"";
+
+            # 'quote' escape character
+            string m_quoteEscapeChar = "\\";
 
             # end of line sequence
             string eol = EOL_UNIX;
@@ -907,19 +914,25 @@ while (i.next()) {
 
         #! creates the AbstractCsvWriter
         /**
-            @param errname a string to construct child class error message. For example: value 'FOO' will result in exception names 'CSVFOOWRITER-ERROR'
-            @param opts @ref csvwiter_options
+            @param n_errname a string to construct child class error message. For example: value 'FOO' will result in exception names 'CSVFOOWRITER-ERROR'
+            @param n_opts @ref csvwiter_options
 
             @throw CSV<errname>ITER-ERROR in the case of incorrect options
          */
-        constructor(string errname, *hash opts) {
-            errname = sprintf("CSV%sWRITER-ERROR", errname);
+        constructor(string n_errname, *hash n_opts) {
+            errname = sprintf("CSV%sWRITER-ERROR", n_errname);
+
+            encoding = n_opts.encoding.typeCode() == NT_STRING ? n_opts.encoding : get_default_encoding();
+
+            # set headers automatically from field names if not set
+            if (n_opts.fields && !n_opts.headers)
+                n_opts.headers = n_opts.fields.keys();
 
             # TODO/FIXME: shared with CsvFileIterator?
-            foreach hash i in (opts.pairIterator()) {
+            foreach hash i in (n_opts.pairIterator()) {
 
                 if (!exists Options.(i.key))
-                    throw errname, sprintf("unknown option %y passed to CsvFileIterator::constructor() (valid options: %y)", i.key, Options.keys());
+                    throw errname, sprintf("unknown option %y passed to %s::constructor() (valid options: %y)", i.key, self.className(), Options.keys());
 
                 switch (i.key) {
                     case "separator": {
@@ -932,6 +945,13 @@ while (i.next()) {
                         if (i.value.typeCode() != NT_STRING)
                             throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
                         quote = i.value;
+                        break;
+                    }
+                    case "quote_escape": {
+                        if (i.value.typeCode() != NT_STRING) {
+                            throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                        }
+                        m_quoteEscapeChar = i.value;
                         break;
                     }
                     case "eol": {
@@ -1137,11 +1157,11 @@ while (i.next()) {
 
         #! stream iterator into the file.
         /**
-        @param iterator an iterator to stream data into file
+            @param iterator an iterator to stream data into file
 
-        The iterator has to contain @ref list or @ref hash as a return value of \c getValue() method.
+            The iterator has to contain @ref list or @ref hash as a return value of \c getValue() method.
 
-        @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints or when \c getValue does not return list or hash
+            @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints or when \c getValue does not return list or hash
          */
         write(AbstractIterator iterator) {
             while (iterator.next()) {
@@ -1159,6 +1179,18 @@ while (i.next()) {
             }
         }
 
+        #! stream the contents of the list into the output
+        /**
+            @param l a list of input data to format as CSV output
+
+            The list has to contain @ref list or @ref hash elements that can be formatted according to the CSV definition
+
+            @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints or when the list elements have the wrong type or values
+         */
+        write(list l) {
+            write(l.iterator());
+        }
+
         #! real write implementation. Without any checking.
         abstract private writeRawLine(list values);
 
@@ -1172,7 +1204,7 @@ while (i.next()) {
                 # make full line template
                 string template = strmul(baseTemplate, elements values, 1) + eol;
                 # escape separators in strings
-                list row = map replace(string($1), quote, "\\" + quote), values;
+                list row = map replace(string($1), quote, m_quoteEscapeChar + quote), values;
 
                 return vsprintf(template, row);
             }
@@ -1181,7 +1213,7 @@ while (i.next()) {
             foreach any v in (values) {
                 if (v.typeCode() == NT_STRING) {
                     if (v.find(quote) >= 0) {
-                        v = replace(v, quote, "\\" + quote);
+                        v = replace(v, quote, m_quoteEscapeChar + quote);
                         v = sprintf("\"%s\"", v);
                     }
                     else if (v.find(separator) >= 0)
@@ -1256,6 +1288,36 @@ while (i.next()) {
 
         private writeRawLine(list values) {
             content += prepareRawLine(values);
+        }
+
+        #! stream iterator and return CSV-formatted output string
+        /**
+            @param iterator an iterator to stream data
+
+            @return the CSV-formatted output string corresponding to the input data
+
+            The iterator has to contain @ref list or @ref hash as a return value of \c getValue() method.
+
+            @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints or when \c getValue does not return list or hash
+         */
+        string write(AbstractIterator iterator) {
+            AbstractCsvWriter::write(iterator);
+            return content;
+        }
+
+        #! stream the contents of the list and return CSV-formatted output as a string
+        /**
+            @param l a list of input data to format as CSV output
+
+            @return the CSV-formatted output string corresponding to the input data
+
+            The list has to contain @ref list or @ref hash elements that can be formatted according to the CSV definition
+
+            @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints or when the list elements have the wrong type or values
+         */
+        string write(list l) {
+            AbstractCsvWriter::write(l);
+            return content;
         }
 
         #! Get the current in-memory content as a string

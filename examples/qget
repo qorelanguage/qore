@@ -2,7 +2,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file qget example program showing I/O event monitoring
 
-/*  get Copyright 2011 - 2012 David Nichols
+/*  get Copyright 2011 - 2016 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -36,10 +36,10 @@
 # functionality from the Socket class without using qore events, but would
 # require on the order of 2 or more levels of magnitude more code to be
 # written.
-# 
+#
 # one glaring weakness of the design of this script is that it reads all the
 # data into memory and then saves the data to a file; support for pipelining
-# I/O tasks will be added to the next release of qore so that data read from 
+# I/O tasks will be added to the next release of qore so that data read from
 # any I/O source (in this case the network) can be streamed directly to another
 # I/O handler, which in this case will be a file writer, so the file can be
 # written as it is being read.
@@ -55,24 +55,28 @@
 
 %require-our
 %enable-all-warnings
+%new-style
+%require-types
+%strict-args
 
-our $o; # global variable for options
-our $start; # global variable for start time
+our hash o; # global variable for options
+our int start; # global variable for start time
 
 const cstr = "*************************************************";
 const bstr = "-------------------------------------------------";
 
-const opts = 
-    ( "verbose"  : "v,verbose:i+",
-      "help"     : "h,help" 
+const opts = (
+    "verbose"  : "v,verbose:i+",
+    "output"   : "o,output-file=s",
+    "help"     : "h,help"
     );
 
 # run the "main" function
 main();
 
 # display the output and flush output buffers
-sub myprintf($fmt) {
-    vprintf($fmt, $argv);
+sub myprintf(string fmt) {
+    vprintf(fmt, argv);
     flush();
 }
 
@@ -89,38 +93,34 @@ sub myprintf($fmt) {
 
 class QueueCallBack {
     private {
-        Queue $.queue();
-        Counter $.counter(1);
+        Queue queue();
+        Counter counter(1);
 
-        bool $.lookup = False;
-        int $.ignore = 0;
-        int $.total_read = 0;
-        int $.body_len = 0;
-        bool $.in_body = False;
-        int $.stime = 0;
-        int $.utime = 0;
-        string $.units;
-        float $.bps;
+        bool lookup = False;
+        int ignore = 0;
+        int total_read = 0;
+        int body_len = 0;
+        bool in_body = False;
+        int stime = 0;
+        int utime = 0;
+        string units;
+        float bps;
     }
 
     public {}
 
-    constructor(object $o, $url) {
-	myprintf("retrieving %s\n", $url);
-	$o.setEventQueue($.queue);
-	background $.listen();
+    constructor(object o, string url) {
+	myprintf("retrieving %s\n", url);
+	o.setEventQueue(queue);
+	background listen();
     }
 
     # static function returning a string with key=value format for a hash
-    static string getstr(hash $h) {
-	my string $str;
-
+    static string getstr(hash h) {
 	# we create the string by mapping our string format function on a list
-	# of the hash keys.  this is more consise than iterating the keys with 
+	# of the hash keys.  this is more efficient than iterating the keys with
 	# a "foreach" statement, for example
-
-	map ($str += sprintf("%s=%y ", $1, $h.$1)), keys $h;
-	return $str;
+        return foldl $1 + $2, (map sprintf("%s=%y ", $1.key, $1.value), h.pairIterator());
     }
 
     listen() {
@@ -130,19 +130,19 @@ class QueueCallBack {
 	    # least the following keys: "event" with the event code, and
 	    # "source" with the event source identifier
 
-	    my hash $e = $.queue.get();
+	    hash e = queue.get();
 
 	    # if the source object is deleted, then stop listening for events
-	    if ($e.event == EVENT_DELETED) {
-		$.counter.dec();
+	    if (e.event == EVENT_DELETED) {
+		counter.dec();
 		return;
 	    }
 
 	    # if the verbose flag is set, then show all literal messages
-	    if ($o.verbose) {
-		if ($o.verbose > 1)
-		    printf("%.9f: ", (clock_getmicros() - $start) / 1000000.0);
-		myprintf("%s %s: %s\n", EVENT_SOURCE_MAP.($e.source), EVENT_MAP.($e.event), QueueCallBack::getstr($e - ("event", "source")));
+	    if (o.verbose) {
+		if (o.verbose > 1)
+		    printf("%.9f: ", (clock_getmicros() - start) / 1000000.0);
+		myprintf("%s %s: %s\n", EVENT_SOURCE_MAP.(e.source), EVENT_MAP.(e.event), QueueCallBack::getstr(e - ("event", "source")));
 		continue;
 	    }
 
@@ -151,206 +151,205 @@ class QueueCallBack {
 	    # to ensure that emacs formats the text properly while editing;
 	    # they are not necessary for execution
 
-	    switch ($e.event) {
+	    switch (e.event) {
 		case EVENT_HOSTNAME_LOOKUP: {
-                    if (!$.lookup)
-			myprintf("resolving %s: ", $e.name);
+                    if (!lookup)
+			myprintf("resolving %s: ", e.name);
 		    break;
 		}
 
 		case EVENT_HOSTNAME_RESOLVED: {
-		    if (!$.lookup) {
-			myprintf("%s\n", $e.address, $e);
-			$.lookup = True;
+		    if (!lookup) {
+			myprintf("%s\n", e.address, e);
+			lookup = True;
 		    }
 		    break;
 		}
 
 		case EVENT_HTTP_CHUNKED_DATA_RECEIVED:
 		case EVENT_PACKET_READ: {
-		    if ($.in_body && $e.id != $.ignore) {
-			$.total_read += $e.read;
-			$.update_total();
+		    if (in_body && e.id != ignore) {
+			total_read += e.read;
+			update_total();
 		    }
 		    break;
 		}
 
 		case EVENT_HTTP_CONTENT_LENGTH: {
-		    myprintf("content length: %d", $e.len);
-		    $.body_len = $e.len;
-		    $.in_body = True;
+		    myprintf("content length: %d", e.len);
+		    body_len = e.len;
+		    in_body = True;
 		    break;
 		}
 
 		case EVENT_FTP_MESSAGE_RECEIVED: {
 		    # ignore reads on FTP control channel
-		    if (!$.ignore)
-			$.ignore = $e.id;
-		    if (($e.code / 100) == 1) {
-			#printf("%s\n", $e.message);
-			my $l = ($e.message =~ x/opening.*connection for.*\(([0-9]*) byte/i);
-			$.body_len = $l[0];
-			$.in_body = True;
+		    if (!ignore)
+			ignore = e.id;
+		    if ((e.code / 100) == 1) {
+			#printf("%s\n", e.message);
+			list l = (e.message =~ x/opening.*connection for.*\(([0-9]*) byte/i);
+			body_len = l[0];
+			in_body = True;
 		    }
 		}
-		
+
 		case EVENT_HTTP_CHUNKED_START: {
-		    $.in_body = True;
+		    in_body = True;
 		    break;
 		}
-		
+
 		case EVENT_HTTP_CHUNKED_END: {
-		    $.in_body = False;
+		    in_body = False;
 		    break;
 		}
-		
+
 		case EVENT_HTTP_REDIRECT: {
-		    printf("redirected to %s", $e.location);
-		    if (exists $e.status_message)
-			printf(" (%s)", $e.status_message);
+		    printf("redirected to %s", e.location);
+		    if (exists e.status_message)
+			printf(" (%s)", e.status_message);
 		    myprintf("\n");
 		    flush();
 		    break;
 		}
-	    }	    
+	    }
 	}
     }
-    
+
     # display a running total of the download
     update_total() {
-	my int $now = clock_getmillis();
-	if (!exists $.stime) {
-	    $.stime = $now;
-	    $.utime = $now;
-	    $.units = "n/a";
+	int now = clock_getmillis();
+	if (!exists stime) {
+	    stime = now;
+	    utime = now;
+	    units = "n/a";
 	}
 	else {
-	    if (!$.bps || $now - $.utime > 250 || $.total_read == $.body_len) {
-		$.utime = $now;
-		if (my int $diff = $now - $.stime) {
-		    $.bps = 1000 * $.total_read / float($diff);
+	    if (!bps || now - utime > 250 || total_read == body_len) {
+		utime = now;
+		if (int diff = now - stime) {
+		    bps = 1000 * total_read / float(diff);
 
-		    if ($.bps > 1024 * 1024 * 1024) {
-			$.units = "GB/s";
-			$.bps /= 1024 * 1024 * 1024;
+		    if (bps > 1024 * 1024 * 1024) {
+			units = "GB/s";
+			bps /= 1024 * 1024 * 1024;
 		    }
-		    else if ($.bps > 1024 * 1024) {
-			$.units = "MB/s";
-			$.bps /= 1024 * 1024;
+		    else if (bps > 1024 * 1024) {
+			units = "MB/s";
+			bps /= 1024 * 1024;
 		    }
-		    else if ($.bps > 1024) {
-			$.units = "KB/s";
-			$.bps /= 1024;
+		    else if (bps > 1024) {
+			units = "KB/s";
+			bps /= 1024;
 		    }
 		    else
-			$.units = "B/s";
+			units = "B/s";
 		}
 	    }
 	}
 
-	if ($.body_len) {
-	    my float $nh = $.total_read * 50 / float($.body_len); 
-	    myprintf("\r%3d% %s%s %f %s (%d/%d)    ", $.total_read * 100 / float($.body_len), substr(cstr, 0, $nh), substr(bstr, $nh), $.bps, $.units, $.total_read, $.body_len);
+	if (body_len) {
+	    float nh = total_read * 50 / float(body_len);
+	    myprintf("\r%3d% %s%s %f %s (%d/%d)    ", total_read * 100 / float(body_len), substr(cstr, 0, nh), substr(bstr, nh), bps, units, total_read, body_len);
 	}
 	else {
-	    myprintf("\r%d bytes %f %s     ", $.total_read, $.bps, $.units);
+	    myprintf("\r%d bytes %f %s     ", total_read, bps, units);
 	}
 	flush();
     }
 
-    wait() { $.counter.waitForZero(); }
+    wait() { counter.waitForZero(); }
 }
 
-sub usage($long) {
+sub usage(*bool long) {
     printf("usage: %s [-vh] URL\n", get_script_name());
-    if ($long) {
-    	printf("  -v,--verbose       show socket events\n");
-	printf("  -h,--help          this help text\n");
+    if (long) {
+        printf(" -o,--output-file=ARG    save the output to the given file name\n");
+    	printf(" -v,--verbose            show socket events\n");
+	printf(" -h,--help               this help text\n");
     }
     exit(1);
 }
 
-sub main() {    
-    my $g = new GetOpt(opts);
+sub main() {
+    GetOpt g(opts);
 
     try {
-	$o = $g.parse2(\$ARGV);
+	o = g.parse2(\ARGV);
     }
-    catch ($ex) {
-	printf("option error: %s\n", $ex.desc);
+    catch (ex) {
+	printf("option error: %s\n", ex.desc);
 	exit(1);
     }
 
-    if ($o.help)
+    if (o.help)
 	usage(True);
 
-    my $url = shift $ARGV;
-    if (!exists $url)
+    *string url = shift ARGV;
+    if (!exists url)
 	usage();
 
-    my $u = parseURL($url);
-    my $x;
-    my $cb;
+    hash u = parse_url(url);
+    any x;
+    QueueCallBack cb;
     # get start time
-    $start = clock_getmicros();
+    start = clock_getmicros();
     try {
-	switch ($u.protocol) {
+	switch (u.protocol) {
 	    case NOTHING:
 	    case "https":
 	    case "http": {
-		my $hc = new HTTPClient(("url" : $url));
-		$cb = new QueueCallBack($hc, $url);	
-	
-		$x = $hc.get(exists $u.path ? $u.path : "/");
+		HTTPClient hc(("url" : url));
+		cb = new QueueCallBack(hc, url);
+
+		x = hc.get(exists u.path ? u.path : "/");
 		break;
 	    }
 	    case "ftps":
 	    case "ftp": {
-		my $file = basename($u.path);
-		if (!exists $file) {
-		    printf("missing file name in url %n\n", $url);
+		string file = basename(u.path);
+		if (!exists file) {
+		    printf("missing file name in url %n\n", url);
 		    exit(1);
 		}
-		
-		my $f = new FtpClient($url);
-		$cb = new QueueCallBack($f, $url);
-		$f.connect();
-		
-		my $dir = dirname($u.path);
-		if (exists $dir) {
-		    #printf("dir=%n\n", $dir);
-		    $f.cwd($dir);
+
+		FtpClient f(url);
+		cb = new QueueCallBack(f, url);
+		f.connect();
+
+		string dir = dirname(u.path);
+		if (exists dir) {
+		    #printf("dir=%n\n", dir);
+		    f.cwd(dir);
 		}
-		
-		#printf("%n: %n + %n\n", $f.pwd(), $dir, $file);
-		$x = $f.getAsBinary($file);
+
+		#printf("%n: %n + %n\n", f.pwd(), dir, file);
+		x = f.getAsBinary(file);
 	    }
 	}
     }
-    catch ($ex) {
-	printf("%s: %s\n", $ex.err, $ex.desc);
+    catch (ex) {
+	printf("%s: %s\n", ex.err, ex.desc);
 	thread_exit;
     }
 
     # get the filename to save
-    my $fn = basename($u.path);
-    if (!exists $fn)
-	$fn = $u.host;
+    string fn = o.output ?? basename(u.path ?? u.host);
 
     # wait for the event monitoring thread to complete
-    $cb.wait();
+    cb.wait();
 
-    if (!$o.verbose) 
+    if (!o.verbose)
 	print("\n");
-    myprintf("done, saving %s (%d bytes)\n", $fn, type($x) == Type::String ? strlen($x) : elements $x);
+    myprintf("done, saving %s (%d bytes)\n", fn, type(x) == Type::String ? strlen(x) : elements x);
 
     # save the file read
-    my $f = new File();
+    File f();
 
     # show file events if verbose is set
-    if ($o.verbose)
-	$cb = new QueueCallBack($f, $fn);
+    if (o.verbose)
+	cb = new QueueCallBack(f, fn);
 
-    $f.open2($fn, O_CREAT | O_TRUNC | O_WRONLY);
-    $f.write(binary($x));
+    f.open2(fn, O_CREAT | O_TRUNC | O_WRONLY);
+    f.write(binary(x));
 }

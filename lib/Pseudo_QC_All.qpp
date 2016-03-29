@@ -45,18 +45,18 @@ qclass <value> [];
     @return the type code for the value; see @ref type_code_constants for possible return values for each type
 
     @par Example:
-    @code
-switch ($v.typeCode()) {
+    @code{.py}
+switch (v.typeCode()) {
     case NT_INT:
-        printf("%y: is an integer\n", $v);
+        printf("%y: is an integer\n", v);
 	break;
 
     case NT_DATE:
-        printf("%y: is a date\n", $v);
+        printf("%y: is a date\n", v);
 	break;
 
     default:
-        printf("%y: is something else entirely\n", $v);
+        printf("%y: is something else entirely\n", v);
 	break;
 }
     @endcode
@@ -70,8 +70,8 @@ int <value>::typeCode() [flags=CONSTANT] {
     @return the string type for the value; see @ref string_type_constants for possible return values for each type
 
     @par Example:
-    @code
-my string $t = $n.type();
+    @code{.py}
+string t = n.type();
     @endcode
 
     @note It is faster and more efficient to use <value>::typeCode() for comparing data types
@@ -87,10 +87,10 @@ string <value>::type() [flags=CONSTANT] {
     @return @ref True; this method will be reimplemented in container types where it may return @ref False
 
     @par Example:
-    @code
-my int $i = 100;
-if ($i.empty())
-    printf("%y: is empty (probably because it's a value of type %y)\n", $i, $i.type());
+    @code{.py}
+int i = 100;
+if (i.empty())
+    printf("%y: is empty (probably because it's a value of type %y)\n", i, i.type());
     @endcode
 
     @see <value>::val()
@@ -106,10 +106,10 @@ bool <value>::empty() [flags=CONSTANT] {
     @return zero; this method will be reimplemented in container types where it may return a non-zero value
 
     @par Example:
-    @code
-my int $i = 100;
-if (!$i.size())
-    printf("%y: has size 0 (probably because it's a value of type %y)\n", $i, $i.type());
+    @code{.py}
+int i = 100;
+if (!i.size())
+    printf("%y: has size 0 (probably because it's a value of type %y)\n", i, i.type());
     @endcode
 
     @see
@@ -134,9 +134,9 @@ int <value>::size() [flags=CONSTANT] {
     @ref perl-bool-eval "%perl-bool-eval" is enabled (the default)
 
     @par Example:
-    @code
-if ($n.val())
-    printf("%y: has a value\n", $n);
+    @code{.py}
+if (n.val())
+    printf("%y: has a value\n", n);
     @endcode
 
     @note use @ref exists to tell if an expression has a value or not
@@ -154,9 +154,9 @@ bool <value>::val() [flags=CONSTANT] {
     @return @ref False; this method is reimplemented in other types and will return @ref True if the given expression can be converted to an integer
 
     @par Example:
-    @code
-if ($n.intp())
-    printf("%y: can be converted to an integer: %d\n", $n, int($n));
+    @code{.py}
+if (n.intp())
+    printf("%y: can be converted to an integer: %d\n", n, int(n));
     @endcode
 
     @see <string>::intp() for an example of an implementation of this method where the result depends on the value and not the type
@@ -170,9 +170,9 @@ bool <value>::intp() [flags=CONSTANT] {
     @return @ref False; this method is reimplemented in other types and will return @ref True if the given expression can be converted to a string
 
     @par Example:
-    @code
-if ($n.strp())
-    printf("%y: can be converted to a string: '%s'\n", $n, string($n));
+    @code{.py}
+if (n.strp())
+    printf("%y: can be converted to a string: '%s'\n", n, string(n));
     @endcode
 */
 bool <value>::strp() [flags=CONSTANT] {
@@ -184,9 +184,9 @@ bool <value>::strp() [flags=CONSTANT] {
     @return @ref False; this method is reimplemented in other types and will return @ref True if the given expression is a callable value (ie @ref closure "closures" or @ref call_reference "call references")
 
     @par Example:
-    @code
-if ($n.callp())
-    printf("the reuslt of calling the value: %y\n", $n());
+    @code{.py}
+if (n.callp())
+    printf("the reuslt of calling the value: %y\n", n());
     @endcode
 */
 bool <value>::callp() [flags=CONSTANT] {
@@ -198,10 +198,10 @@ bool <value>::callp() [flags=CONSTANT] {
     @return 1; the return value of this method should give the list size of the value, which is normally 1 for non-lists (except for @ref nothing where the size will be 0) and the number of the elements in the list for lists; this method will be reimplemented in other types where it may return other values
 
     @par Example:
-    @code
-printf("iterating %d element%s\n", $val.lsize(), $val.lsize() == 1 ? "" : "s");
-foreach my any $element in ($val) {
-    do_something($element);
+    @code{.py}
+printf("iterating %d element%s\n", val.lsize(), val.lsize() == 1 ? "" : "s");
+foreach any element in (val) {
+    do_something(element);
 }
     @endcode
 */
@@ -271,8 +271,8 @@ number <value>::toNumber() [flags=CONSTANT] {
 /** @return an iterator object for the value; the default iterator object returned is @ref Qore::SingleValueIterator "SingleValueIterator"
 
     @par Example:
-    @code
-map printf("+ %y\n", $1), $v.iterator();
+    @code{.py}
+map printf("+ %y\n", $1), v.iterator();
     @endcode
 
     @since %Qore 0.8.6

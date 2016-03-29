@@ -70,7 +70,7 @@ if COND_MINGWCC
 # when cross-compiling, we just hope that qore is installed also natively, otherwise the documentation can't be built
 QDX=QORE_MODULE_DIR=./qlib $(QDX_SRC)
 else
-QDX=QORE_MODULE_DIR=./qlib ./qr $(QDX_SRC)
+QDX=QORE_MODULE_DIR=./qlib ./qore $(QDX_SRC)
 endif
 
 LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
@@ -360,6 +360,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreTypeInfo.h \
 	include/qore/intern/QoreSSLIntern.h \
 	include/qore/intern/QoreObjectIntern.h \
+	include/qore/intern/RSection.h \
 	include/qore/intern/QoreHashNodeIntern.h \
 	include/qore/intern/QoreOperatorNode.h \
 	include/qore/intern/QoreDeleteOperatorNode.h \
@@ -372,7 +373,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreDotEvalOperatorNode.h \
 	include/qore/intern/QoreLogicalEqualsOperatorNode.h \
 	include/qore/intern/QoreLogicalNotEqualsOperatorNode.h \
-	include/qore/intern/QoreModulaOperatorNode.h \
+	include/qore/intern/QoreModuloOperatorNode.h \
 	include/qore/intern/QoreAssignmentOperatorNode.h \
 	include/qore/intern/QoreIntAssignmentOperatorNode.h \
 	include/qore/intern/QorePlusEqualsOperatorNode.h \
@@ -381,7 +382,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreIntMinusEqualsOperatorNode.h \
 	include/qore/intern/QoreOrEqualsOperatorNode.h \
 	include/qore/intern/QoreAndEqualsOperatorNode.h \
-	include/qore/intern/QoreModulaEqualsOperatorNode.h \
+	include/qore/intern/QoreModuloEqualsOperatorNode.h \
 	include/qore/intern/QoreMultiplyEqualsOperatorNode.h \
 	include/qore/intern/QoreDivideEqualsOperatorNode.h \
 	include/qore/intern/QoreXorEqualsOperatorNode.h \
@@ -410,6 +411,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreHashMapSelectOperatorNode.h \
 	include/qore/intern/QoreChompOperatorNode.h \
 	include/qore/intern/QoreTrimOperatorNode.h \
+	include/qore/intern/QoreSquareBracketsOperatorNode.h \
 	include/qore/intern/QorePseudoMethods.h \
 	include/qore/intern/QoreHashIterator.h \
 	include/qore/intern/QoreListIterator.h \
@@ -534,7 +536,7 @@ LANG_DOXYFILES_SRC = \
 
 EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
 	AUTHORS BUILDING \
-	README README-LICENSE README-MODULES \
+	README.md README-LICENSE README-MODULES \
 	COPYING.LGPL COPYING.GPL COPYING.MIT \
 	$(TESTSCRIPTS) \
 	examples/test/qore/misc/module-loader/A.qm \
@@ -620,7 +622,7 @@ lib/libqore.la: dummy
 
 if COND_MINGWCC
 else
-$(QDX): qr
+$(QDX): qore
 endif
 
 QDX_MTAG_ARGS = $(foreach m,$(basename $(notdir $(DOX_SRC_MODULES))),-t$(m).tag=../../$(m)/html)
@@ -711,7 +713,7 @@ dist_man_MANS = qore.1
 #$(dist_man_MANS): doxygen-doc
 
 qore_LDADD = lib/libqore.la
-qr_LDADD = lib/libqore.la
+#qr_LDADD = lib/libqore.la
 
 ACLOCAL_AMFLAGS=-I m4
 
@@ -720,29 +722,30 @@ AM_CXXFLAGS = ${PTHREAD_CFLAGS}
 if COND_PROFILE
 AM_CXXFLAGS += -g -pg
 qore_LDFLAGS=-g -pg
-qr_LDFLAGS=-g -pg
+#qr_LDFLAGS=-g -pg
 else
 if COND_DEBUG
 AM_CXXFLAGS += -g
 qore_LDFLAGS=-g
-qr_LDFLAGS=-g
+#qr_LDFLAGS=-g
 else
 ##qore_LDFLAGS=-s
 endif
 endif
 
-bin_PROGRAMS = qore qr
+bin_PROGRAMS = qore
+# qr
 dist_bin_SCRIPTS = doxygen/qdx
 if COND_SINGLE_COMPILATION_UNIT
 qore_SOURCES = qore-single-compilation-unit.cpp
-qr_SOURCES = qr-single-compilation-unit.cpp
+#qr_SOURCES = qr-single-compilation-unit.cpp
 else
 qore_SOURCES = \
 	qore-main.cpp \
 	command-line.cpp
-qr_SOURCES = \
-	qr-main.cpp \
-	command-line.cpp
+#qr_SOURCES = \
+#	qr-main.cpp \
+#	command-line.cpp
 endif
 
 pkgconfigdir = $(libdir)/pkgconfig

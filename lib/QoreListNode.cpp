@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -198,15 +198,15 @@ void QoreListNode::set_entry(qore_size_t index, AbstractQoreNode* val, Exception
       val = 0;
    AbstractQoreNode** v = get_entry_ptr(index);
    if (*v) {
-      if (get_container_obj(*v))
-	 priv->incObjectCount(-1);
+      if (needs_scan(*v))
+	 priv->incScanCount(-1);
 
       (*v)->deref(xsink);
    }
    *v = val;
 
-   if (get_container_obj(val))
-      priv->incObjectCount(1);
+   if (needs_scan(val))
+      priv->incScanCount(1);
 }
 
 AbstractQoreNode* QoreListNode::eval_entry(qore_size_t num, ExceptionSink* xsink) const {
@@ -222,8 +222,8 @@ void QoreListNode::push(AbstractQoreNode* val) {
    assert(reference_count() == 1);
    AbstractQoreNode** v = get_entry_ptr(priv->length);
    *v = val;
-   if (get_container_obj(val))
-      priv->incObjectCount(1);
+   if (needs_scan(val))
+      priv->incScanCount(1);
 }
 
 void QoreListNode::merge(const QoreListNode* list) {
@@ -234,8 +234,8 @@ void QoreListNode::merge(const QoreListNode* list) {
       AbstractQoreNode* p = list->priv->entry[i];
       if (p) {
 	 priv->entry[start + i] = p->refSelf();
-	 if (get_container_obj(p))
-	    priv->incObjectCount(1);
+	 if (needs_scan(p))
+	    priv->incScanCount(1);
       }
       else
 	 priv->entry[start + i] = 0;
@@ -254,8 +254,8 @@ int QoreListNode::delete_entry(qore_size_t ind, ExceptionSink* xsink) {
       return -1;
 
    AbstractQoreNode* e = priv->entry[ind];
-   if (get_container_obj(e))
-      priv->incObjectCount(-1);
+   if (needs_scan(e))
+      priv->incScanCount(-1);
 
    if (e && e->getType() == NT_OBJECT)
       reinterpret_cast<QoreObject *>(e)->doDelete(xsink);
@@ -290,8 +290,8 @@ void QoreListNode::pop_entry(qore_size_t ind, ExceptionSink* xsink) {
    if (e && e->getType() == NT_OBJECT)
       reinterpret_cast<QoreObject *>(e)->doDelete(xsink);
 
-   if (get_container_obj(e))
-      priv->incObjectCount(-1);
+   if (needs_scan(e))
+      priv->incScanCount(-1);
 
    if (e) {
       e->deref(xsink);
@@ -311,8 +311,8 @@ void QoreListNode::insert(AbstractQoreNode* val) {
    if (priv->length - 1)
       memmove(priv->entry + 1, priv->entry, sizeof(AbstractQoreNode* ) * (priv->length - 1));
    priv->entry[0] = val;
-   if (get_container_obj(val))
-      priv->incObjectCount(1);
+   if (needs_scan(val))
+      priv->incScanCount(1);
 }
 
 AbstractQoreNode* QoreListNode::shift() {
@@ -325,8 +325,8 @@ AbstractQoreNode* QoreListNode::shift() {
    priv->entry[pos] = 0;
    resize(pos);
 
-   if (get_container_obj(rv))
-      priv->incObjectCount(-1);
+   if (needs_scan(rv))
+      priv->incScanCount(-1);
 
    return rv;
 }
@@ -339,8 +339,8 @@ AbstractQoreNode* QoreListNode::pop() {
    priv->entry[priv->length - 1] = 0;
    resize(priv->length - 1);
 
-   if (get_container_obj(rv))
-      priv->incObjectCount(-1);
+   if (needs_scan(rv))
+      priv->incScanCount(-1);
 
    return rv;
 }
@@ -506,8 +506,8 @@ AbstractQoreNode* StackList::getAndClear(qore_size_t i) {
    AbstractQoreNode* rv = priv->entry[i];
    priv->entry[i] = 0;
 
-   if (get_container_obj(rv))
-      priv->incObjectCount(-1);
+   if (needs_scan(rv))
+      priv->incScanCount(-1);
 
    return rv;
 }
@@ -712,8 +712,8 @@ QoreListNode* QoreListNode::splice_intern(qore_size_t offset, qore_size_t len, E
    for (qore_size_t i = offset; i < end; i++) {
       AbstractQoreNode* v = priv->entry[i];
       if (v) {
-	 if (get_container_obj(v))
-	    priv->incObjectCount(-1);
+	 if (needs_scan(v))
+	    priv->incScanCount(-1);
 	 if (!rv)
 	    v->deref(xsink);
       }
@@ -754,8 +754,8 @@ QoreListNode* QoreListNode::splice_intern(qore_size_t offset, qore_size_t len, c
    for (qore_size_t i = offset; i < end; i++) {
       AbstractQoreNode* v = priv->entry[i];
       if (v) {
-	 if (get_container_obj(v))
-	    priv->incObjectCount(-1);
+	 if (needs_scan(v))
+	    priv->incScanCount(-1);
 	 if (!rv)
 	    v->deref(xsink);
       }
@@ -791,8 +791,8 @@ QoreListNode* QoreListNode::splice_intern(qore_size_t offset, qore_size_t len, c
    // add in new entries
    if (!l || l->getType() != NT_LIST) {
       if (l) {
-	 if (get_container_obj(l))
-	    priv->incObjectCount(1);
+	 if (needs_scan(l))
+	    priv->incScanCount(1);
 	 priv->entry[offset] = l->refSelf();
       }
       else
@@ -804,8 +804,8 @@ QoreListNode* QoreListNode::splice_intern(qore_size_t offset, qore_size_t len, c
 	 const AbstractQoreNode* v = lst->retrieve_entry(i);
 	 if (v) {
 	    priv->entry[offset + i] = v->refSelf();
-	    if (get_container_obj(v))
-	       priv->incObjectCount(1);
+	    if (needs_scan(v))
+	       priv->incScanCount(1);
 	 }
 	 else
 	    priv->entry[offset + i] = 0;

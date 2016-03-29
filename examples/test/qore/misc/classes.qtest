@@ -1,116 +1,118 @@
 #!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
+%new-style
 %enable-all-warnings
-%old-style
+%require-types
+%strict-args
 
 %requires UnitTest
 
-my UnitTest $unit();
+UnitTest unit();
 class_library_tests();
 
 sub class_test_Condition() {
-    my Mutex $m(); 
-    $m.lock(); 
-    on_exit $m.unlock();
-    my Condition $c();
-    my code $dc = sub() { while (True) { if (!$c.wait_count($m)) continue; $c.signal(); break; } };
-    background $dc();
-    $c.wait($m, 2191769000);
+    Mutex m();
+    m.lock();
+    on_exit m.unlock();
+    Condition c();
+    code dc = sub() { while (True) { if (!c.wait_count(m)) continue; c.signal(); break; } };
+    background dc();
+    c.wait(m, 2191769000);
 }
 
-sub err(string $test) {
-    $unit.cmp(True, False, $test);
+sub err(string test) {
+    unit.cmp(True, False, test);
 }
 
-sub check(string $err, string $test) {
-    $unit.cmp($err, "PRIVATE-MEMBER", $test);
+sub check(string err, string test) {
+    unit.cmp(err, "PRIVATE-MEMBER", test);
 }
 
-class Test2 { private { any $.a; } }
+class Test2 { private { any a; } }
 
 
 sub class_library_tests() {
-    my Test $t(1, "gee", 2);
-    $unit.cmp($t.getData(1), "gee", "first object");
-    $unit.cmp(exists $t.testing, True, "memberGate() existence");
-    $unit.cmp($t.testing, "memberGate-testing", "memberGate() value");
-    $unit.cmp($t.test(), "test", "methodGate() value");
-    $unit.cmp($t instanceof Test, True, "first instanceof");
-    $unit.cmp($t instanceof Qore::Socket, True, "second instanceof");
+    Test t(1, "gee", 2);
+    unit.cmp(t.getData(1), "gee", "first object");
+    unit.cmp(exists t.testing, True, "memberGate() existence");
+    unit.cmp(t.testing, "memberGate-testing", "memberGate() value");
+    unit.cmp(t.test(), "test", "methodGate() value");
+    unit.cmp(t instanceof Test, True, "first instanceof");
+    unit.cmp(t instanceof Qore::Socket, True, "second instanceof");
 
     # verify private member access protection
-    my string $test = "object -= private member";
-    try { $t -= "a"; err($test); } catch($ex) { check($ex.err, $test); }
-    $test = "object -= list of private members";
-    try { $t -= ("a", "b"); err($test); } catch($ex) { check($ex.err, $test); }
+    string test = "object -= private member";
+    try { t -= "a"; err(test); } catch(ex) { check(ex.err, test); }
+    test = "object -= list of private members";
+    try { t -= ("a", "b"); err(test); } catch(ex) { check(ex.err, test); }
 
-    my any $t1 = new Test(1, "gee", 2);
-    $test = "delete object's private member";
-    try { delete $t1.a; err($test); } catch($ex) { check($ex.err, $test); }
-    $test = "reassign object's private member";
-    try { $t1.a = 3; err($test); } catch($ex) { check($ex.err, $test); }
+    any t1 = new Test(1, "gee", 2);
+    test = "delete object's private member";
+    try { delete t1.a; err(test); } catch(ex) { check(ex.err, test); }
+    test = "reassign object's private member";
+    try { t1.a = 3; err(test); } catch(ex) { check(ex.err, test); }
 
-    my any $t2 = new Test2();
-    $test = "read object's private member";
-    try { my any $x = $t2.a + $x; err($test); } catch($ex) { check($ex.err, $test); }
+    any t2 = new Test2();
+    test = "read object's private member";
+    try { any x = t2.a + x; err(test); } catch(ex) { check(ex.err, test); }
 
     # test memberGate
-    $unit.cmp($t.a, "memberGate-a", "object memberGate() methods");
+    unit.cmp(t.a, "memberGate-a", "object memberGate() methods");
 
     # test memberNotification()
-    $t.x = 1;
+    t.x = 1;
     # test object closure
-    my code $c = $t.closure(1);
-    $unit.cmp($c(2), "gee-1-2-2", "first object closure");
-    $unit.cmp($c(2), "gee-1-2-3", "second object closure");
-    $unit.cmp($t.t.x, 1, "memberNotification() method");
+    code c = t.closure(1);
+    unit.cmp(c(2), "gee-1-2-2", "first object closure");
+    unit.cmp(c(2), "gee-1-2-3", "second object closure");
+    unit.cmp(t.t.x, 1, "memberNotification() method");
 
     # test call_object_method*()
-    $unit.cmp(call_object_method($t1, "argTest", 1, 2), (1, 2), "call_object_method()");
-    $unit.cmp(call_object_method_args($t1, "argTest"), NOTHING, "first call_object_method_args()");
-    $unit.cmp(call_object_method_args($t1, "argTest", 1), list(1), "second call_object_method_args()");
-    $unit.cmp(call_object_method_args($t1, "argTest", (1, 2)), (1, 2), "third call_object_method_args()");
+    unit.cmp(call_object_method(t1, "argTest", 1, 2), (1, 2), "call_object_method()");
+    unit.cmp(call_object_method_args(t1, "argTest"), NOTHING, "first call_object_method_args()");
+    unit.cmp(call_object_method_args(t1, "argTest", 1), list(1), "second call_object_method_args()");
+    unit.cmp(call_object_method_args(t1, "argTest", (1, 2)), (1, 2), "third call_object_method_args()");
 }
 
 class Test inherits Socket {
     private {
-        int $.a;
-        int $.b;
+        int a;
+        int b;
     }
     public {
-        list $.data;
-        hash $.t;
-        int $.x;
+        list data;
+        hash t;
+        int x;
     }
 
-    constructor(any $a, any $b, any $c) {
-        $.a = 1;
-        $.b = 2;
-        $.data = ($a, $b, $c);
+    constructor(any n_a, any n_b, any n_c) {
+        a = 1;
+        b = 2;
+        data = (n_a, n_b, n_c);
     }
-    any getData(int $elem) {
-        if (exists $elem)
-            return $.data[$elem];
-        return $.data;
+    any getData(int elem) {
+        if (exists elem)
+            return data[elem];
+        return data;
     }
-    string methodGate(string $m) {
-        return $m;
+    string methodGate(string m) {
+        return m;
     }
-    string memberGate(string $m) {
-        return "memberGate-" + $m;
+    string memberGate(string m) {
+        return "memberGate-" + m;
     }
-    memberNotification(string $m) {
-        $.t.$m = $self.$m;
+    memberNotification(string m) {
+        t{m} = self{m};
     }
-    code closure(any $x) {
-        my int $a = 1;
+    code closure(any x) {
+        int a = 1;
         # return a closure encapsulating the state of the object
-        return string sub (any $y) {
-            return sprintf("%s-%n-%n-%n", $.data[1], $x, $y, ++$a);
+        return string sub (any y) {
+            return sprintf("%s-%n-%n-%n", data[1], x, y, ++a);
         };
     }
     any argTest() {
-        return $argv;
+        return argv;
     }
 }

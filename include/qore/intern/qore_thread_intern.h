@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -231,6 +231,7 @@ public:
 // returns 0 if the last mark has been cleared, -1 if there are more marks to check
 DLLLOCAL int purge_thread_resources_to_mark(ExceptionSink* xsink);
 DLLLOCAL void purge_thread_resources(ExceptionSink* xsink);
+DLLLOCAL void purge_pgm_thread_resources(const QoreProgram* pgm, ExceptionSink* xsink);
 DLLLOCAL void mark_thread_resources();
 DLLLOCAL void beginParsing(const char* file, void* ps = NULL, const char* src = 0, int offset = 0);
 DLLLOCAL void* endParsing();
@@ -639,6 +640,14 @@ public:
    DLLLOCAL ClosureVarValue* find(const LocalVar* id) const;
    DLLLOCAL bool hasVar(ClosureVarValue* cvv) const;
    DLLLOCAL void del(ExceptionSink* xsink);
+
+   DLLLOCAL bool empty() {
+      return cmap.empty();
+   }
+
+   DLLLOCAL const cvar_map_t& getMap() const {
+      return cmap;
+   }
 };
 
 struct ThreadLocalProgramData;

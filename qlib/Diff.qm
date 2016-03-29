@@ -62,11 +62,11 @@ module Diff {
 public namespace Diff {
     #! returns differences in two lists
     /** @par Example:
-        @code
+        @code{.py}
 my list $diff = diff((1, 2, 3, 4), (2, 3, 5));
         @endcode
-        @param softlist some list
-        @param softlist another list
+        @param old some list
+        @param neww another list
         */
     public list sub diff(softlist old, softlist neww) {
         list matrix = list();
@@ -108,11 +108,11 @@ my list $diff = diff((1, 2, 3, 4), (2, 3, 5));
 
     #! shows differences between two strings considering lines as elementary unit. This function clones standard unix diff
     /** @par Example:
-        @code
+        @code{.py}
 my string $diff = diff_text($str1, $str2);
         @endcode
-        @param string some string
-        @param string another string
+        @param s1 some string
+        @param s2 another string
         */
     public string sub diff_text(string s1, string s2) {
         list lines1 = split("\n", s1);

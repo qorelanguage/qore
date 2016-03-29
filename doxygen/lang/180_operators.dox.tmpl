@@ -6,80 +6,81 @@
 
     <b>Operators</b>
     |!Operator|!Prec.|!Description|!Example
-    |@ref backquote_operator "``"|\c 1|@ref backquote_operator "backquote/backtick operator"|@code `ls -l`@endcode
-    |@ref hash_element_operator "{}"|\c 1|@ref hash_element_operator "hash element or object member expression dereference operator"|@code $hash{"na" + "me"}@endcode
-    |@ref dot_operator "."|\c 1|@ref dot_operator "hash element or object member literal dereference operator"|@code $hash.name@endcode @code $obj.method()@endcode
-    |@ref list_element_operator "[]"|\c 1|@ref list_element_operator "list element, string, and binary dereference operator"|@code $list[1]@endcode
-    |@ref pre_increment_operator "++"|\c 2|@ref pre_increment_operator "pre-increment operator"|@code ++$a@endcode
-    |@ref post_increment_operator "++"|\c 2|@ref post_increment_operator "post-increment operator"|@code $a++@endcode
-    |@ref pre_decrement_operator "--"|\c 2|@ref pre_decrement_operator "pre-decrement operator"|@code --$a@endcode
-    |@ref post_decrement_operator "--"|\c 2|@ref post_decrement_operator "post-decrement operator"|@code $a--@endcode
-    |@ref new "new"|\c 3|@ref new "class instantiation/new object operator"|@code new Socket()@endcode
-    |@ref background "background"|\c 3|@ref background "background/thread creation operator"|@code background mainThread()@endcode
-    |@ref delete "delete"|\c 3|@ref delete "delete operator"|@code delete $var@endcode
-    |@ref remove "remove"|\c 3|@ref remove "remove operator"|@code remove $var@endcode
-    |@ref cast "cast<>()"|\c 3|@ref cast "cast<>() operator"|@code cast<SubClass>($var)@endcode
-    |@ref logical_negation_operator "!"|\c 4|@ref logical_negation_operator "logical negation operator"|@code if (!($a > 10)) {}@endcode
-    |@ref binary_not_operator "~"|\c 5|@ref binary_not_operator "binary not/bit inversion operator"|@code $var = ~$var@endcode
-    |@ref unary_minus_operator "- (unary minus)"|\c 6|@ref unary_minus_operator "unary minus operator"|@code $var = -$var@endcode
-    |@ref shift "shift"|\c 7|@ref shift "shift list element operator"|@code shift $list@endcode
-    |@ref pop "pop"|\c 7|@ref pop "pop list element operator"|@code pop $list@endcode
-    |@ref chomp "chomp"|\c 7|@ref chomp "chomp end-of-line character operator"|@code chomp $string@endcode
-    |@ref trim "trim"|\c 7|@ref trim "trim characters operator"|@code trim $string@endcode
-    |@ref elements "elements"|\c 8|@ref elements "number of elements operator (list, hash, string, binary)"|@code elements $list@endcode
-    |@ref keys "keys"|\c 8|@ref keys "hash key list operator"|@code keys $hash@endcode
-    |@ref multiplication_operator "*"|\c 9|@ref multiplication_operator "multiplication operator"|@code $var = $a * 10@endcode
-    |@ref division_operator "/"|\c 9|@ref division_operator "division operator"|@code $var = $a / 10@endcode
-    |@ref modula_operator "%"|\c 10|@ref modula_operator "modula operator"|@code $var = $a % 10@endcode
-    |@ref plus_operator "+"|\c 11|@ref plus_operator "plus operator: string, binary, list, and hash concatenation, integer and float addition"|@code $a + 10@endcode @code "hello" + "there"@endcode @code $list + "new value"@endcode @code $hash + ( "newkey" : 100 )@endcode
-    |@ref minus_operator "-"|\c 11|@ref minus_operator "minus operator (arithmetic subtraction, hash key removal)"|@code $a - 10@endcode
-    |@ref shift_right_operator ">>"|\c 12|@ref shift_right_operator "bitwise shift right operator"|@code 0xff00 >> 8@endcode
-    |@ref shift_left_operator "<<"|\c 12|@ref shift_left_operator "bitwise shift left operator"|@code 0xff00 << 8@endcode
-    |@ref exists "exists"|\c 13|@ref exists "exists value operator"|@code exists $var@endcode
-    |@ref instanceof "instanceof"|\c 13|@ref instanceof "instanceof class operator"|@code instanceof Qore::Mutex@endcode
-    |@ref logical_less_than_operator "<"|\c 14|@ref logical_less_than_operator "Logical less than operator"|@code $a < 10@endcode
-    |@ref logical_greater_than_operator ">"|\c 14|@ref logical_greater_than_operator "Logical greater than operator"|@code $a > 10@endcode
-    |@ref logical_equality_operator "=="|\c 14|@ref logical_equality_operator "Logical equality operator"|@code $a == 10@endcode
-    |@ref logical_inequality_operator "!="|\c 14|@ref logical_inequality_operator "logical inequality operator"|@code $a != 10@endcode
-    |@ref logical_less_than_or_equals_operator "<="|\c 14|@ref logical_less_than_or_equals_operator "Logical less then or equals operator"|@code $a <= 10@endcode
-    |@ref logical_greater_than_or_equals_operator ">="|\c 14|@ref logical_greater_than_or_equals_operator "logical greater than or equals operator"|@code $a >= 10@endcode
-    |@ref logical_comparison_operator "<=>"|\c 14|@ref logical_comparison_operator "logical comparison operator"|@code $a <=> $b@endcode
-    |@ref logical_absolute_equality_operator "==="|\c 14|@ref logical_absolute_equality_operator "absolute logical equality operator"|@code $a === 10@endcode
-    |@ref logical_absolute_inequality_operator "!=="|\c 14|@ref logical_absolute_inequality_operator "absolute logical inequality operator"|@code $a !== 10@endcode
-    |@ref regex_match_operator "=~ //"|\c 14|@ref regex_match_operator "regular expression match operator"|@code $a =~ /text/@endcode
-    |@ref regex_no_match_operator "!~ //"|\c 14|@ref regex_no_match_operator "regular expression no match operator"|@code $a !~ /text/@endcode
-    |@ref regex_subst_operator "=~ s///"|\c 14|@ref regex_subst_operator "regular expression substitution operator"|@code $a =~ s/text/text/@endcode
-    |@ref regex_extract_operator "=~ x//"|\c 14|@ref regex_extract_operator "regular expression pattern extraction operator"|@code $a =~ x/(\w+):(\w+)/@endcode
-    |@ref transliteration_operator "=~ tr"|\c 14|@ref transliteration_operator "transliteration operator"|@code $a =~ tr/a-z/A-Z/@endcode
-    |@ref bitwise_and_operator "&"|\c 15|@ref bitwise_and_operator "bitwise/binary AND operator"|@code $a & 0xff@endcode
-    |@ref bitwise_or_operator "|"|\c 15|@ref bitwise_or_operator "bitwise/binary OR operator"|@code $a | 0xff@endcode
-    |@ref bitwise_xor_operator "^"|\c 15|@ref bitwise_xor_operator "bitwise/binary XOR operator"|@code $a ^ 0xff@endcode
-    |@ref logical_and_operator "&&"|\c 16|@ref logical_and_operator "logical AND operator"|@code ($a = 1) && ($b < 10)@endcode
-    |@ref logical_or_operator "||"|\c 16|@ref logical_or_operator "logical OR operator"|@code ($a = 1) || ($b < 10)@endcode
-    |@ref conditional_operator "? :"|\c 17|@ref conditional_operator "conditional operator"|@code $a == 2 ? "yes" : "no"@endcode
-    |@ref null_coalescing_operator "??"|\c 17|@ref null_coalescing_operator "null coalescing operator"|@code any var = $a ?? $b@endcode
-    |@ref value_coalescing_operator "?*"|\c 17|@ref value_coalescing_operator "value coalescing operator"|@code any var = $a ?* $b@endcode
-    |@ref comma_operator ","|\c 18|@ref comma_operator "comma operator"|@code 1, 2, 3, 4, 5@endcode
-    |@ref unshift "unshift"|\c 19|@ref unshift "unshift list element operator"|@code unshift $list, $val@endcode
-    |@ref push "push"|\c 19|@ref push "push list element operator"|@code push $list, $val@endcode
-    |@ref splice "splice"|\c 19|@ref splice "splice list or string operator"|@code splice $list, 2, 2, (1, 2, 3)@endcode
-    |@ref extract "extract"|\c 19|@ref extract "extract list or string operator"|@code my $sublist = extract $list, 2, 2, (1, 2, 3)@endcode
-    |@ref map "map"|\c 19|@ref map "map operator"|@code map $closure($1), $list@endcode
-    |@ref hmap "hash map"|\c 19|@ref hmap "hash map operator"|@code map {expr($1) : expr($1)}, $list@endcode
-    |@ref foldl "foldl"|\c 19|@ref foldl "fold left to right operator"|@code foldl $closure($1 - $2), $list@endcode
-    |@ref foldr "foldr"|\c 19|@ref foldr "fold right to left operator"|@code foldr $closure($1 - $2), $list@endcode
-    |@ref select "select"|\c 19|@ref select "select elements from list operator"|@code select $list, $1 > 1@endcode
-    |@ref assignment_operator "="|\c 20|@ref assignment_operator "assignment operator"|@code $var = 1@endcode
-    |@ref plus_equals_operator "+="|\c 20|@ref plus_equals_operator "plus-equals (add-to) operator"|@code $var += 5@endcode
-    |@ref minus_equals_operator "-="|\c 20|@ref minus_equals_operator "minus-equals (subtract-from) operator"|@code $var -= 5@endcode
-    |@ref and_equals_operator "&="|\c 20|@ref and_equals_operator "and-equals operator"|@code $var &= 0x2000@endcode
-    |@ref or_equals_operator "|="|\c 20|@ref or_equals_operator "or-equals operator"|@code $var |= 0x2000@endcode
-    |@ref modula_equals_operator "%="|\c 20|@ref modula_equals_operator "modula-equals operator"|@code $var %= 100@endcode
-    |@ref multiply_equals_operator "*="|\c 20|@ref multiply_equals_operator "multiply-equals operator"|@code $var *= 10@endcode
-    |@ref divide_equals_operator "/="|\c 20|@ref divide_equals_operator "divide-equals operator"|@code $var /= 10@endcode
-    |@ref xor_equals_operator "^="|\c 20|@ref xor_equals_operator "xor-equals operator"|@code $var ^= 0x2000@endcode
-    |@ref shift_left_equals_operator "<<="|\c 20|@ref shift_left_equals_operator "shift-left-equals operator"|@code $var <<= 0x2000@endcode
-    |@ref shift_right_equals_operator ">>="|\c 20|@ref shift_right_equals_operator "shift-right-equals operator"|@code $var >>= 0x2000@endcode
+    |@ref backquote_operator "``"|\c 1|@ref backquote_operator "backquote/backtick operator"|@code{.py} `ls -l`@endcode
+    |@ref hash_element_operator "{}"|\c 1|@ref hash_element_operator "hash element or object member expression dereference operator"|@code{.py} $hash{"na" + "me"}@endcode
+    |@ref dot_operator "."|\c 1|@ref dot_operator "hash element or object member literal dereference operator"|@code{.py} $hash.name@endcode @code{.py} $obj.method()@endcode
+    |@ref list_element_operator "[]"|\c 1|@ref list_element_operator "list element, string, and binary dereference operator"|@code{.py} $list[1]@endcode
+    |@ref pre_increment_operator "++"|\c 2|@ref pre_increment_operator "pre-increment operator"|@code{.py} ++$a@endcode
+    |@ref post_increment_operator "++"|\c 2|@ref post_increment_operator "post-increment operator"|@code{.py} $a++@endcode
+    |@ref pre_decrement_operator "--"|\c 2|@ref pre_decrement_operator "pre-decrement operator"|@code{.py} --$a@endcode
+    |@ref post_decrement_operator "--"|\c 2|@ref post_decrement_operator "post-decrement operator"|@code{.py} $a--@endcode
+    |@ref new "new"|\c 3|@ref new "class instantiation/new object operator"|@code{.py} new Socket()@endcode
+    |@ref background "background"|\c 3|@ref background "background/thread creation operator"|@code{.py} background mainThread()@endcode
+    |@ref delete "delete"|\c 3|@ref delete "delete operator"|@code{.py} delete $var@endcode
+    |@ref remove "remove"|\c 3|@ref remove "remove operator"|@code{.py} remove $var@endcode
+    |@ref cast "cast<>()"|\c 3|@ref cast "cast<>() operator"|@code{.py} cast<SubClass>($var)@endcode
+    |@ref logical_negation_operator "!"|\c 4|@ref logical_negation_operator "logical negation operator"|@code{.py} if (!($a > 10)) {}@endcode
+    |@ref binary_not_operator "~"|\c 5|@ref binary_not_operator "binary not/bit inversion operator"|@code{.py} $var = ~$var@endcode
+    |@ref unary_plus_operator "+ (unary plus)"|\c 6|@ref unary_plus_operator "unary plus operator"|@code $v{.py}ar = +$var@endcode
+    |@ref unary_minus_operator "- (unary minus)"|\c 6|@ref unary_minus_operator "unary minus operator"|@code{.py} $var = -$var@endcode
+    |@ref shift "shift"|\c 7|@ref shift "shift list element operator"|@code{.py} shift $list@endcode
+    |@ref pop "pop"|\c 7|@ref pop "pop list element operator"|@code{.py} pop $list@endcode
+    |@ref chomp "chomp"|\c 7|@ref chomp "chomp end-of-line character operator"|@code{.py} chomp $string@endcode
+    |@ref trim "trim"|\c 7|@ref trim "trim characters operator"|@code{.py} trim $string@endcode
+    |@ref elements "elements"|\c 8|@ref elements "number of elements operator (list, hash, string, binary)"|@code{.py} elements $list@endcode
+    |@ref keys "keys"|\c 8|@ref keys "hash key list operator"|@code{.py} keys $hash@endcode
+    |@ref multiplication_operator "*"|\c 9|@ref multiplication_operator "multiplication operator"|@code{.py} $var = $a * 10@endcode
+    |@ref division_operator "/"|\c 9|@ref division_operator "division operator"|@code{.py} $var = $a / 10@endcode
+    |@ref modulo_operator "%"|\c 10|@ref modulo_operator "modulo operator"|@code{.py} $var = $a % 10@endcode
+    |@ref plus_operator "+"|\c 11|@ref plus_operator "plus operator: string, binary, list, and hash concatenation, integer and float addition"|@code{.py} $a + 10@endcode @code{.py} "hello" + "there"@endcode @code{.py} $list + "new value"@endcode @code{.py} $hash + ( "newkey" : 100 )@endcode
+    |@ref minus_operator "-"|\c 11|@ref minus_operator "minus operator (arithmetic subtraction, hash key removal)"|@code{.py} $a - 10@endcode
+    |@ref shift_right_operator ">>"|\c 12|@ref shift_right_operator "bitwise shift right operator"|@code{.py} 0xff00 >> 8@endcode
+    |@ref shift_left_operator "<<"|\c 12|@ref shift_left_operator "bitwise shift left operator"|@code{.py} 0xff00 << 8@endcode
+    |@ref exists "exists"|\c 13|@ref exists "exists value operator"|@code{.py} exists $var@endcode
+    |@ref instanceof "instanceof"|\c 13|@ref instanceof "instanceof class operator"|@code{.py} instanceof Qore::Mutex@endcode
+    |@ref logical_less_than_operator "<"|\c 14|@ref logical_less_than_operator "Logical less than operator"|@code{.py} $a < 10@endcode
+    |@ref logical_greater_than_operator ">"|\c 14|@ref logical_greater_than_operator "Logical greater than operator"|@code{.py} $a > 10@endcode
+    |@ref logical_equality_operator "=="|\c 14|@ref logical_equality_operator "Logical equality operator"|@code{.py} $a == 10@endcode
+    |@ref logical_inequality_operator "!="|\c 14|@ref logical_inequality_operator "logical inequality operator"|@code{.py} $a != 10@endcode
+    |@ref logical_less_than_or_equals_operator "<="|\c 14|@ref logical_less_than_or_equals_operator "Logical less then or equals operator"|@code{.py} $a <= 10@endcode
+    |@ref logical_greater_than_or_equals_operator ">="|\c 14|@ref logical_greater_than_or_equals_operator "logical greater than or equals operator"|@code{.py} $a >= 10@endcode
+    |@ref logical_comparison_operator "<=>"|\c 14|@ref logical_comparison_operator "logical comparison operator"|@code{.py} $a <=> $b@endcode
+    |@ref logical_absolute_equality_operator "==="|\c 14|@ref logical_absolute_equality_operator "absolute logical equality operator"|@code{.py} $a === 10@endcode
+    |@ref logical_absolute_inequality_operator "!=="|\c 14|@ref logical_absolute_inequality_operator "absolute logical inequality operator"|@code{.py} $a !== 10@endcode
+    |@ref regex_match_operator "=~ //"|\c 14|@ref regex_match_operator "regular expression match operator"|@code{.py} $a =~ /text/@endcode
+    |@ref regex_no_match_operator "!~ //"|\c 14|@ref regex_no_match_operator "regular expression no match operator"|@code{.py} $a !~ /text/@endcode
+    |@ref regex_subst_operator "=~ s///"|\c 14|@ref regex_subst_operator "regular expression substitution operator"|@code{.py} $a =~ s/text/text/@endcode
+    |@ref regex_extract_operator "=~ x//"|\c 14|@ref regex_extract_operator "regular expression pattern extraction operator"|@code{.py} $a =~ x/(\w+):(\w+)/@endcode
+    |@ref transliteration_operator "=~ tr"|\c 14|@ref transliteration_operator "transliteration operator"|@code{.py} $a =~ tr/a-z/A-Z/@endcode
+    |@ref bitwise_and_operator "&"|\c 15|@ref bitwise_and_operator "bitwise/binary AND operator"|@code{.py} $a & 0xff@endcode
+    |@ref bitwise_xor_operator "^"|\c 16|@ref bitwise_xor_operator "bitwise/binary XOR operator"|@code{.py} $a ^ 0xff@endcode
+    |@ref bitwise_or_operator "|"|\c 17|@ref bitwise_or_operator "bitwise/binary OR operator"|@code{.py} $a | 0xff@endcode
+    |@ref logical_and_operator "&&"|\c 18|@ref logical_and_operator "logical AND operator"|@code{.py} ($a = 1) && ($b < 10)@endcode
+    |@ref logical_or_operator "||"|\c 19|@ref logical_or_operator "logical OR operator"|@code{.py} ($a = 1) || ($b < 10)@endcode
+    |@ref conditional_operator "? :"|\c 20|@ref conditional_operator "conditional operator"|@code{.py} $a == 2 ? "yes" : "no"@endcode
+    |@ref null_coalescing_operator "??"|\c 20|@ref null_coalescing_operator "null coalescing operator"|@code{.py} any var = $a ?? $b@endcode
+    |@ref value_coalescing_operator "?*"|\c 20|@ref value_coalescing_operator "value coalescing operator"|@code{.py} any var = $a ?* $b@endcode
+    |@ref comma_operator ","|\c 21|@ref comma_operator "comma operator"|@code{.py} 1, 2, 3, 4, 5@endcode
+    |@ref unshift "unshift"|\c 22|@ref unshift "unshift list element operator"|@code{.py} unshift $list, $val@endcode
+    |@ref push "push"|\c 22|@ref push "push list element operator"|@code{.py} push $list, $val@endcode
+    |@ref splice "splice"|\c 22|@ref splice "splice list or string operator"|@code{.py} splice $list, 2, 2, (1, 2, 3)@endcode
+    |@ref extract "extract"|\c 22|@ref extract "extract list or string operator"|@code{.py} my $sublist = extract $list, 2, 2, (1, 2, 3)@endcode
+    |@ref map "map"|\c 22|@ref map "map operator"|@code{.py} map $closure($1), $list@endcode
+    |@ref hmap "hash map"|\c 22|@ref hmap "hash map operator"|@code{.py} map {expr($1) : expr($1)}, $list@endcode
+    |@ref foldl "foldl"|\c 22|@ref foldl "fold left to right operator"|@code{.py} foldl $closure($1 - $2), $list@endcode
+    |@ref foldr "foldr"|\c 22|@ref foldr "fold right to left operator"|@code{.py} foldr $closure($1 - $2), $list@endcode
+    |@ref select "select"|\c 22|@ref select "select elements from list operator"|@code{.py} select $list, $1 > 1@endcode
+    |@ref assignment_operator "="|\c 23|@ref assignment_operator "assignment operator"|@code{.py} $var = 1@endcode
+    |@ref plus_equals_operator "+="|\c 23|@ref plus_equals_operator "plus-equals (add-to) operator"|@code{.py} $var += 5@endcode
+    |@ref minus_equals_operator "-="|\c 23|@ref minus_equals_operator "minus-equals (subtract-from) operator"|@code{.py} $var -= 5@endcode
+    |@ref and_equals_operator "&="|\c 23|@ref and_equals_operator "and-equals operator"|@code{.py} $var &= 0x2000@endcode
+    |@ref or_equals_operator "|="|\c 23|@ref or_equals_operator "or-equals operator"|@code{.py} $var |= 0x2000@endcode
+    |@ref modulo_equals_operator "%="|\c 23|@ref modulo_equals_operator "modulo-equals operator"|@code{.py} $var %= 100@endcode
+    |@ref multiply_equals_operator "*="|\c 23|@ref multiply_equals_operator "multiply-equals operator"|@code{.py} $var *= 10@endcode
+    |@ref divide_equals_operator "/="|\c 23|@ref divide_equals_operator "divide-equals operator"|@code{.py} $var /= 10@endcode
+    |@ref xor_equals_operator "^="|\c 23|@ref xor_equals_operator "xor-equals operator"|@code{.py} $var ^= 0x2000@endcode
+    |@ref shift_left_equals_operator "<<="|\c 23|@ref shift_left_equals_operator "shift-left-equals operator"|@code{.py} $var <<= 0x2000@endcode
+    |@ref shift_right_equals_operator ">>="|\c 23|@ref shift_right_equals_operator "shift-right-equals operator"|@code{.py} $var >>= 0x2000@endcode
 
     @note All %Qore operators perform thread-atomic actions with respect to the immediate arguments of the operator. If the operators are used in a complex expression, the entire expression is not thread-atomic unless explicit user-level locking is used. For example: <tt>$a += 5</tt> is a thread-atomic action, but <tt>$a += $b--</tt> is not atomic, but rather made up of two atomic actions.\n\n
     When an operator taking more than one argument is used with arguments of different data types, %Qore automatically converts one or both data types to a data type supported by the operator in order to evaluate the result, according to the precedence lists given for each operator. That is; when an operator operates on mixed types, the types listed first in the following sections have precedence over types listed farther down in the lists. The result type will always be equal to the final operation type after any conversions due to type precedence per operator. If no type of either argument matches a supported data type for the operator, both types will be converted to the highest precedence data type for the operator and then the operator will evaluate the result. For explicit type conversion, please see the boolean(), string(), date(), int(), float(), etc functions.
@@ -97,7 +98,7 @@
     @ref string_type "string"
 
     @par Example
-    @code my string $dir = `ls -l`@endcode
+    @code{.py} my string $dir = `ls -l`@endcode
 
     <b>Arguments Processed by ``</b>
     |!Argument|!Returns|!Processing
@@ -118,7 +119,7 @@
     @ref any_type "any"
 
     @par Example
-    @code printf("%s\n", $hash{getName()});@endcode
+    @code{.py} printf("%s\n", $hash{getName()});@endcode
 
     <b>Arguments Processed by {}</b>
     |!Argument|!Processing
@@ -142,8 +143,8 @@
     @ref any_type "any"
 
     @par Example
-    @code printf("%s\n", $hash.name);@endcode
-    @code $obj.method("argument");@endcode
+    @code{.py} printf("%s\n", $hash.name);@endcode
+    @code{.py} $obj.method("argument");@endcode
 
     <b>Arguments Processed by . (hash key or object member literal dereference)</b>
     |!Argument|!Processing
@@ -181,9 +182,9 @@
     @ref any_type "any"
 
     @par Example
-    @code printf("%s\n", $list[2]);@endcode
-    @code printf("%s\n", $str[2]);@endcode
-    @code printf("0x%x\n", $binary[2]);@endcode
+    @code{.py} printf("%s\n", $list[2]);@endcode
+    @code{.py} printf("%s\n", $str[2]);@endcode
+    @code{.py} printf("0x%x\n", $binary[2]);@endcode
 
     <b>Arguments Processed by []</b>
     |!Argument|!Processing
@@ -207,7 +208,7 @@
     @ref int_type "int" or @ref float_type "float"
 
     @par Example
-    @code ++$i;@endcode
+    @code{.py} ++$i;@endcode
 
     <b>Arguments Processed by ++ (pre-increement)</b>
     |!Argument|!Processing
@@ -229,7 +230,7 @@
     @ref any_type "any"
 
     @par Example
-    @code $i++;@endcode
+    @code{.py} $i++;@endcode
 
     <b>Arguments Processed by ++ (post-increment)</b>
     |!Argument|!Processing
@@ -251,7 +252,7 @@
     @ref int_type "int" or @ref float_type "float"
 
     @par Example
-    @code --$i;@endcode
+    @code{.py} --$i;@endcode
 
     <b>Arguments Processed by -- (pre-decrement)</b>
     |!Argument|!Processing
@@ -288,7 +289,7 @@
     @par Synopsis
     Creates an instance of a class by running the class' constructor on the new class (if any exists) and returns the new object.\n\n
     Note that if possible it is normally better to declare an object with its type and use the abbreviated form to construct the object as follows:\n
-    @code my Mutex $m();@endcode
+    @code{.py} my Mutex $m();@endcode
     This provides type information to the parser which allows more errors to be caught at parse time (instead of at run time), and furthermore allows %Qore to improve performance by performing more work once at parse time rather than for every time the object is accessed at run time (for example, method and variant resolution), and normally requires less typing.
 
     @par Syntax
@@ -298,7 +299,7 @@
     an object of the specific class given
 
     @par Example
-    @code my Mutex $obj = new Qore::Mutex();@endcode
+    @code{.py} my Mutex $obj = new Qore::Mutex();@endcode
 
     <b>Arguments Processed by new</b>
     |!Argument|!Processing
@@ -325,7 +326,7 @@
     @ref int_type "int"
 
     @par Example
-    @code my int $tid = background startThread();@endcode
+    @code{.py} my int $tid = background startThread();@endcode
 
     <b>Arguments Processed by background</b>
     |!Argument|!Processing
@@ -350,7 +351,7 @@
     Does not return any value
 
     @par Example
-    @code
+    @code{.py}
 # delete a single key from a hash
 delete $value;
 # delete multiple values from a hash
@@ -376,7 +377,7 @@ delete $h.("a", "b", "c");
     @ref any_type "any"
 
     @par Example
-    @code
+    @code{.py}
 # remove a single value from a hash
 my any $var = remove $hash.value;
 # remove a slice from a hash
@@ -398,7 +399,7 @@ my hash $nh = remove $h.("a", "b", "c");
     the specific class given
 
     @par Example
-    @code cast<SubClass>($obj).method();@endcode
+    @code{.py} cast<SubClass>($obj).method();@endcode
 
     <b>Arguments Processed by cast<>()</b>
     |!Argument|!Processing
@@ -420,7 +421,7 @@ my hash $nh = remove $h.("a", "b", "c");
     @ref bool_type "bool"
 
     @par Example
-    @code
+    @code{.py}
 if (!exists $error_code)
     do_something();
     @endcode
@@ -444,7 +445,7 @@ if (!exists $error_code)
     @ref int_type "int"
 
     @par Example
-    @code $a = ~$b;@endcode
+    @code{.py} $a = ~$b;@endcode
 
     <b>Arguments Processed by ~</b>
     |!Argument|!Processing
@@ -462,15 +463,43 @@ if (!exists $error_code)
     -expression
 
     @par Return Type
-    @ref int_type "int" or @ref float_type "float"
+    @ref int_type "int", @ref number_type "number", @ref float_type "float" or @ref date_type "date"
 
     @par Example
-    @code $a = -$b;@endcode
+    @code{.py} $a = -$b;@endcode
 
     <b>Arguments Processed by - (unary minus)</b>
     |!Argument|!Processing
-    |@ref float|Gives the negative of its argument as a @ref float (ex: <tt>-(-1.1) = 1.1, -(1.1) = -1.1</tt>
-    |@ref integer|Gives the negative of its argument as an @ref integer (ex: <tt>-(-1) = 1, -(1) = -1</tt>
+    |@ref float|Gives the negative of its argument as a @ref float, ex: <tt>-(-1.1) = 1.1, -(1.1) = -1.1</tt>
+    |@ref integer|Gives the negative of its argument as an @ref integer, ex: <tt>-(-1) = 1, -(1) = -1</tt>
+    |@ref number|Gives the negative of its argument as a @ref number, ex: <tt>-(-1.1n) = 1.1n, -(1.1n) = -1.1n</tt>
+    |@ref date|Gives the negative of its argument as a @ref date, ex: <tt>-(-1s) = 1s, -(1s) = -1s</tt>
+    |@ref other|Returns 0
+
+    This operator does not throw any exceptions
+
+    <hr>
+    @section unary_plus_operator Unary Plus Operator (+)
+
+    @par Synopsis
+    Does nothing with numeric values, converts others to 0.
+
+    @par Syntax
+    +expression
+
+    @par Return Type
+    @ref int_type "int", @ref number_type "number", @ref float_type "float" or @ref date_type "date"
+
+    @par Example
+    @code{.py} $a = +$b;@endcode
+
+    <b>Arguments Processed by + (unary minus)</b>
+    |!Argument|!Processing
+    |@ref float|Gives the value of its argument as a @ref float, ex: <tt>+1.1 = 1.1</tt>
+    |@ref integer|Gives the value of its argument as an @ref integer, ex: <tt>+1 = 1</tt>
+    |@ref number|Gives the value of its argument as a @ref number, ex: <tt>+1.1n = 1.1n</tt>
+    |@ref date|Gives the value of its argument as a @ref date, ex: <tt>+1s = 1s</tt>
+    |@ref other|Returns 0
 
     This operator does not throw any exceptions
 
@@ -487,13 +516,13 @@ if (!exists $error_code)
     @ref any_type "any"
 
     @par Example
-    @code my *string $a = shift $ARGV;@endcode
+    @code{.py} my *string $a = shift $ARGV;@endcode
 
     <b>Arguments Processed by shift</b>
     |!Argument|!Processing
-    |\a lvalue|Returns the first element of the list, and the list is modified by having the first element removed from the list.  If the \a lvalue is not a list, no action is performed and the operator returns no value (@ref nothing)
+    |\a lvalue|Returns the first element of the list, and the list is modified by having the first element removed from the list. If the \a lvalue is an empty list, the operator returns no value (@ref nothing).
 
-    This operator does not throw any exceptions.
+    This operator throws an exception if the \a lvalue is not a list.
 
     <hr>
     @section pop Pop Operator (pop)
@@ -508,13 +537,13 @@ if (!exists $error_code)
     @ref any_type "any"
 
     @par Example
-    @code $a = pop $list;@endcode
+    @code{.py} $a = pop $list;@endcode
 
     <b>Arguments Processed by pop</b>
     |!Argument|!Processing
-    |\a lvalue|Returns the last element of the list, and the list is modified, having the last element removed from the list. If the \a lvalue is not a list, no action is performed and the operator returns no value (@ref nothing)
+    |\a lvalue|Returns the last element of the list, and the list is modified, having the last element removed from the list. If the \a lvalue is an empty list, the operator returns no value (@ref nothing).
 
-    This operator does not throw any exceptions.
+    This operator throws an exception if the \a lvalue is not a list.
 
     <hr>
     @section chomp Chomp Operator (chomp)
@@ -530,7 +559,7 @@ if (!exists $error_code)
     @ref int_type "int"
 
     @par Example
-    @code chomp $str;@endcode
+    @code{.py} chomp $str;@endcode
 
     <b>Arguments Processed by chomp</b>
     |!Argument|!Processing
@@ -555,7 +584,7 @@ if (!exists $error_code)
     @ref string_type "string", @ref list_type "list", or @ref hash_type "hash"
 
     @par Example
-    @code trim $str;@endcode
+    @code{.py} trim $str;@endcode
 
     <b>Arguments Processed by trim</b>
     |!Argument|!Processing
@@ -581,11 +610,11 @@ if (!exists $error_code)
     <tt><b>map</b></tt> \a map_expression, <em>list_expression [, select_expression]</em>
 
     @par Examples
-    @code
+    @code{.py}
 # returns (2, 4, 6)
 my list $l = map $1 * 2, (1, 2, 3);
     @endcode
-    @code
+    @code{.py}
 # prints out the keys of a hash; one to a line
 map printf("%s\n", $1), $hash.keyIterator();
     @endcode
@@ -618,11 +647,11 @@ map printf("%s\n", $1), $hash.keyIterator();
     <tt><b>map</b></tt> {\a key_expression,  : \a value_expression},  <em>list_expression [, select_expression]</em>
 
     @par Examples
-    @code
+    @code{.py}
 my hash $h = map {$1 : $1 * 2}, (1, 2, 3);
 # returns: {"1": 2, "2": 4, "3": 6}
     @endcode
-    @code
+    @code{.py}
 my hash $h = map {$1 : $1 * 2}, (1, 2, 3), $1 > 1;
 # returns: {"2": 4, "3": 6}
     @endcode
@@ -656,11 +685,11 @@ my hash $h = map {$1 : $1 * 2}, (1, 2, 3), $1 > 1;
 
     @par Examples
     The following returns <tt><b>foldl</b></tt> expression returns \c 5
-    @code
+    @code{.py}
 my int $result = foldl $1 - $2, (10, 4, 1);
     @endcode
     \n The following <tt><b>foldl</b></tt> expression joins a list with \c ", " or returns a single argument (if the second operand is not a list)
-    @code
+    @code{.py}
 my string $str = foldl $1 + ", " + $2, $list;
     @endcode
 
@@ -686,7 +715,7 @@ my string $str = foldl $1 + ", " + $2, $list;
     @ref any_type "any"
 
     @par Example
-    @code
+    @code{.py}
 # returns -13
 foldr $1 - $2, (10, 4, 1);
     @endcode
@@ -713,7 +742,7 @@ foldr $1 - $2, (10, 4, 1);
     @ref any_type "any"
 
     @par Example
-    @code
+    @code{.py}
 # returns (2, 4, 6)
 select (1, 2, 3, 4, 5, 6), !($1 % 2);
     @endcode
@@ -740,7 +769,7 @@ select (1, 2, 3, 4, 5, 6), !($1 % 2);
     @ref int_type "int"
 
     @par Example
-    @code my int $size = elements $list;@endcode
+    @code{.py} my int $size = elements $list;@endcode
 
     <b>Arguments Processed by elements</b>
     |!Argument|!Processing
@@ -766,7 +795,7 @@ select (1, 2, 3, 4, 5, 6), !($1 % 2);
     @ref list_type "list" or @ref nothing
 
     @par Example
-    @code
+    @code{.py}
 foreach my string $key in (keys $hash)
     printf("%s = %s\n", $key, $hash.$key);
     @endcode
@@ -794,7 +823,7 @@ foreach my string $key in (keys $hash)
     @ref int_type "int", @ref float_type "float", or @ref number_type "number"
 
     @par Example
-    @code $value = $x * $y;@endcode
+    @code{.py} $value = $x * $y;@endcode
 
     <b>Arguments Processed by * (in order of precedence)</b>
     |!Argument|!Processing
@@ -818,7 +847,7 @@ foreach my string $key in (keys $hash)
     @ref int_type "int", @ref float_type "float", or @ref number_type "number"
 
     @par Example
-    @code $value = $x / $y;@endcode
+    @code{.py} $value = $x / $y;@endcode
 
     <b>Arguments Processed by / (in order of precedence)</b>
     |!Argument|!Processing
@@ -830,7 +859,7 @@ foreach my string $key in (keys $hash)
     @throw DIVISION-BY-ZERO division by zero error
 
     <hr>
-    @section modula_operator Modula Operator (%)
+    @section modulo_operator Modulo Operator (%)
 
     @par Synopsis
     Gives the integer remainder after division of one number by another.
@@ -842,11 +871,11 @@ foreach my string $key in (keys $hash)
     @ref int_type "int"
 
     @par Example
-    @code $mod = $x % $y;@endcode
+    @code{.py} $mod = $x % $y;@endcode
 
     <b>Arguments Processed by %</b>
     |!Argument|!Processing
-    |@ref int_type "int"|Gives \a expression1 modula \a expression2 (ex: <tt>12 % 10</tt> result in \c 2). Arguments are converted to integers if necessary.
+    |@ref int_type "int"|Gives \a expression1 modulo \a expression2 (ex: <tt>12 % 10</tt> result in \c 2). Arguments are converted to integers if necessary.
 
     This operator does not throw any exceptions.
 
@@ -863,11 +892,11 @@ foreach my string $key in (keys $hash)
     @ref int_type "int", @ref float_type "float", @ref number_type "number", @ref date_type "date", @ref list_type "list", @ref string_type "string", @ref binary_type "binary", or @ref hash_type "hash"
 
     @par Example
-    @code $a = 1 + 2;@endcode
-    @code $string = "hello" + "-there";@endcode
-    @code $list = (1, 2) + ("three", "four", "five");@endcode
-    @code $hash = ( "key1" : 1, "key2" : 2) + ( "key3" : "three", "key4": "four");@endcode
-    @code $bin = $bin1 + $bin2;@endcode
+    @code{.py} $a = 1 + 2;@endcode
+    @code{.py} $string = "hello" + "-there";@endcode
+    @code{.py} $list = (1, 2) + ("three", "four", "five");@endcode
+    @code{.py} $hash = ( "key1" : 1, "key2" : 2) + ( "key3" : "three", "key4": "four");@endcode
+    @code{.py} $bin = $bin1 + $bin2;@endcode
 
     <b>Arguments Processed by + (in order of precedence)</b>
     |!Argument|!Processing
@@ -886,7 +915,7 @@ foreach my string $key in (keys $hash)
 
     @par Synopsis
     With @ref float "float", @ref integer "integer", or @ref number "number" arguments, subtracts one number from another.\n\n
-    With @ref date "date" arguments, subtracts one date from another; if both date arguments are absolute dates, the result is a relative date (duration) giving the time between them; if the first date argument is an absolute date and the second is a relative date (duration), then the result is an absolute date. If both date arguments are relative dates, then the result is a relative date. If the first argument is a relative date and the second date is an absolute date, the result is an absolute date as if the operands were reversed.\n\n
+    With @ref date "date" arguments, subtracts one date from another; if both date arguments are @ref absolute_dates "absolute dates", the result is a @ref relative_dates "relative date" (duration) giving the time between them; if the first date argument is an @ref absolute_dates "absolute date" and the second is a @ref relative_dates "relative date" (duration), then the result is an @ref absolute_dates "absolute date". If both date arguments are @ref relative_dates "relative dates", then the result is a @ref relative_dates "relative date". If the first argument is a @ref relative_dates "relative date" and the second date is an @ref absolute_dates "absolute date", the @ref absolute_dates "absolute date"'s epoch offset (offset in seconds and microseconds from \c 1970-01-01Z) is used to perform the calculation, and a @ref relative_dates "relative date/time value" is produced.\n\n
     However, if the left-hand side is a @ref hash "hash", and the right-hand side is a string, then the hash key represented by the string will be removed from the hash. If the left-hand side is a hash and the right-hand side is a list, then each element in the list will be converted to a string and any hash key with that name will be deleted from the hash.
 
     @par Syntax
@@ -896,10 +925,10 @@ foreach my string $key in (keys $hash)
     @ref int_type "int", @ref float_type "float", @ref number_type "number", @ref date_type "date", or @ref hash_type "hash"
 
     @par Example
-    @code $num = $x - $y;@endcode
-    @code $date = 2010-05-13 - P3MT14H10M;@endcode
-    @code $hash = $hash - "key";@endcode
-    @code $hash = $hash - ("key1", "key2", "key3");@endcode
+    @code{.py} $num = $x - $y;@endcode
+    @code{.py} $date = 2010-05-13 - P3MT14H10M;@endcode
+    @code{.py} $hash = $hash - "key";@endcode
+    @code{.py} $hash = $hash - ("key1", "key2", "key3");@endcode
 
     <b>Arguments Processed by - (in order of precedence)</b>
     |!Argument|!Processing
@@ -925,7 +954,7 @@ foreach my string $key in (keys $hash)
     @ref int_type "int"
 
     @par Example
-    @code $a = $x >> $y;@endcode
+    @code{.py} $a = $x >> $y;@endcode
 
     <b>Arguments Processed by >></b>
     |!Argument|!Processing
@@ -946,7 +975,7 @@ foreach my string $key in (keys $hash)
     @ref int_type "int"
 
     @par Example
-    @code $a = $x << $y;@endcode
+    @code{.py} $a = $x << $y;@endcode
 
     <b>Arguments Processed by <<</b>
     |!Argument|!Processing
@@ -967,7 +996,7 @@ foreach my string $key in (keys $hash)
     @ref bool_type "bool"
 
     @par Example
-    @code
+    @code{.py}
 if ($obj instanceof Qore::Mutex)
     print("object is Mutex\n");
     @endcode
@@ -991,7 +1020,7 @@ if ($obj instanceof Qore::Mutex)
     @ref bool_type "bool"
 
     @par Example
-    @code
+    @code{.py}
 if (exists $a)
     printf("a = $n\n", $a);
     @endcode
@@ -1015,7 +1044,7 @@ if (exists $a)
     @ref bool_type "bool"
 
     @par Example
-    @code
+    @code{.py}
 if ($x < $y)
     printf("%n is less than %n\n", $x, $y);
     @endcode
@@ -1043,7 +1072,7 @@ if ($x < $y)
     @ref bool_type "bool"
 
     @par Example
-    @code
+    @code{.py}
 if ($x > $y)
     printf("%n is less than %n\n", $x, $y);
     @endcode
@@ -1071,7 +1100,7 @@ if ($x > $y)
     @ref bool_type "bool"
 
     @par Example
-    @code
+    @code{.py}
 if ($x == $y)
     printf("%n is equal to %n\n", $x, $y);
     @endcode
@@ -1105,7 +1134,7 @@ if ($x == $y)
     @ref bool_type "bool"
 
     @par Example
-    @code
+    @code{.py}
 if ($x != $y)
     printf("%n is not equal to %n\n", $x, $y);
     @endcode
@@ -1139,7 +1168,7 @@ if ($x != $y)
     @ref bool_type "bool"
 
     @par Example
-    @code
+    @code{.py}
 if ($x <= $y)
     printf("%n is less than or equal to %n\n", $x, $y);
     @endcode
@@ -1167,7 +1196,7 @@ if ($x <= $y)
     @ref bool_type "bool"
 
     @par Example
-    @code
+    @code{.py}
 if ($x >= $y)
     printf("%n is greater than or equal to %n\n", $x, $y);
     @endcode
@@ -1195,7 +1224,7 @@ if ($x >= $y)
     @ref int_type "int"
 
     @par Example
-    @code
+    @code{.py}
 switch ($x <=> $y) {
     case -1:
         print("$x is less than $y\n");
@@ -1234,7 +1263,7 @@ switch ($x <=> $y) {
     @ref bool_type "bool"
 
     @par Example
-    @code
+    @code{.py}
 if ($x === $y)
     printf("%n is equal to %n and has the same data type as well\n", $x, $y);
     @endcode
@@ -1258,7 +1287,7 @@ if ($x === $y)
     @ref bool_type "bool"
 
     @par Example
-    @code
+    @code{.py}
 if ($x !== $y)
     printf("%n is not equal to %n and may not have the data type as well\n", $x, $y);
     @endcode
@@ -1283,7 +1312,7 @@ if ($x !== $y)
     @ref bool_type "bool"
 
     @par Example
-    @code
+    @code{.py}
 if ($str =~ /hello/)
     printf("%s contains 'hello'\n", $str);
     @endcode
@@ -1308,7 +1337,7 @@ if ($str =~ /hello/)
     @ref bool_type "bool"
 
     @par Example
-    @code
+    @code{.py}
 if ($str !~ /hello/)
     printf("%s does not contain 'hello'\n", $str);
     @endcode
@@ -1333,7 +1362,7 @@ if ($str !~ /hello/)
     @ref string_type "string" or @ref nothing (if the lvalue does not hold a string)
 
     @par Example
-    @code
+    @code{.py}
 $str =~ s/hello/goodbye/i;
 $str =~ s/(\w+) +(\w+)/$2, $1/;
     @endcode
@@ -1358,7 +1387,7 @@ $str =~ s/(\w+) +(\w+)/$2, $1/;
     @ref list_type "list" or @ref nothing (if the lvalue does not hold a string or if the pattern is not matched)
 
     @par Example
-    @code
+    @code{.py}
 $list =~ x/(\w+):(\w+)/;
 $list =~ x/(.*)\.(.*)/;
     @endcode
@@ -1382,7 +1411,7 @@ $list =~ x/(.*)\.(.*)/;
     @ref string_type "string" or @ref nothing (if the lvalue does not hold a string)
 
     @par Example
-    @code $str =~ tr/a-z/A-Z/;@endcode
+    @code{.py} $str =~ tr/a-z/A-Z/;@endcode
 
     <b>Arguments Processed by =~ tr//</b>
     |!Argument|!Processing
@@ -1403,7 +1432,7 @@ $list =~ x/(.*)\.(.*)/;
     @ref int_type "int"
 
     @par Example
-    @code $a = $x & $y;@endcode
+    @code{.py} $a = $x & $y;@endcode
 
     <b>Arguments Processed by &</b>
     |!Argument|!Processing
@@ -1424,7 +1453,7 @@ $list =~ x/(.*)\.(.*)/;
     @ref int_type "int"
 
     @par Example
-    @code $a = $x | $y;@endcode
+    @code{.py} $a = $x | $y;@endcode
 
     <b>Arguments Processed by |</b>
     |!Argument|!Processing
@@ -1445,7 +1474,7 @@ $list =~ x/(.*)\.(.*)/;
     @ref int_type "int"
 
     @par Example
-    @code $a = $x ^ $y;@endcode
+    @code{.py} $a = $x ^ $y;@endcode
 
     <b>Arguments Processed by ^</b>
     |!Argument|!Processing
@@ -1466,7 +1495,7 @@ $list =~ x/(.*)\.(.*)/;
     @ref bool_type "bool"
 
     @par Example
-    @code
+    @code{.py}
 if ($x && $y)
     printf("%n and %n are both True\n", $x, $y);
     @endcode
@@ -1490,7 +1519,7 @@ if ($x && $y)
     @ref bool_type "bool"
 
     @par Example
-    @code
+    @code{.py}
 if ($x || $y)
     printf("either %n or %n or both are True\n", $x, $y);
     @endcode
@@ -1514,7 +1543,7 @@ if ($x || $y)
     @ref any_type "any"
 
     @par Example
-    @code $a = ($z > 100 ? "Big" : "Small");@endcode
+    @code{.py} $a = ($z > 100 ? "Big" : "Small");@endcode
 
     <b>Arguments Processed by ? :</b>
     |!Argument|!Processing
@@ -1535,7 +1564,7 @@ if ($x || $y)
     @ref any_type "any"
 
     @par Example
-    @code $x = $a ?? $b ?? $c;@endcode
+    @code{.py} $x = $a ?? $b ?? $c;@endcode
 
     <b>Arguments Processed by ??</b>
     |!Argument|!Processing
@@ -1559,7 +1588,7 @@ if ($x || $y)
     @ref any_type "any"
 
     @par Example
-    @code $x = $a ?* $b ?* $c;@endcode
+    @code{.py} $x = $a ?* $b ?* $c;@endcode
 
     <b>Arguments Processed by ?*</b>
     |!Argument|!Processing
@@ -1583,7 +1612,7 @@ if ($x || $y)
     @ref list_type "list"
 
     @par Example
-    @code $a = 1, 2, "three";@endcode
+    @code{.py} $a = 1, 2, "three";@endcode
 
     <b>Arguments Processed by ,</b>
     |!Argument|!Processing
@@ -1595,35 +1624,35 @@ if ($x || $y)
     @section unshift Unshift Operator (unshift)
 
     @par Synopsis
-    Inserts an element into the first position of a list and moves all other elements up one position.
+    Inserts an element into the first position of a list, moves all other elements up one position and returns the list processed. Throws an exception if the \a lvalue is not a list.
 
     @par Syntax
     <tt><b>unshift</b></tt> \a lvalue, \a expression
 
     @par Return Type
-    @ref any_type "any"
+    @ref list_type "list"
 
     @par Example
-    @code unshift $list, "one";@endcode
+    @code{.py} unshift $list, "one";@endcode
 
     <b>Arguments Processed by unshift</b>
     |!Argument|!Processing
-    |All|Inserts the value of \a expression as the first element in the list given by \a lvalue. All other elements in the list are moved forward.
+    |All|Inserts the value of \a expression as the first element in the list given by \a lvalue. All other elements in the list are moved forward. If \a expression evaluates to a list, this list will be appended as the last element of \a lvalue. To concatenate lists, use the @ref plus_operator "plus operator".
 
     <hr>
     @section push Push Operator (push)
 
     @par Synopsis
-    Adds one element to the end of a list and returns the list processed (or @ref nothing if the \a lvalue is not a list).
+    Adds one element to the end of a list and returns the list processed. Throws an exception if the \a lvalue is not a list.
 
     @par Syntax
     <tt><b>push</b></tt> \a lvalue, \a expression
 
     @par Return Type
-    @ref list_type "list" or @ref nothing (if the lvalue is not a list)
+    @ref list_type "list"
 
     @par Example
-    @code push $list, "last";@endcode
+    @code{.py} push $list, "last";@endcode
 
     <b>Arguments Processed by push</b>
     |!Argument|!Processing
@@ -1644,9 +1673,9 @@ if ($x || $y)
     @ref list_type "list", @ref string_type "string", or @ref binary_type "binary" (returns \a lvalue after processing)
 
     @par Example
-    @code splice $list, 2, 2;@endcode
-    @code splice $string, 2, 2, "-text-";@endcode
-    @code splice $bin, 2, 2, <deadbeef>;@endcode
+    @code{.py} splice $list, 2, 2;@endcode
+    @code{.py} splice $string, 2, 2, "-text-";@endcode
+    @code{.py} splice $bin, 2, 2, <deadbeef>;@endcode
 
     <b>Arguments Processed by splice</b>
     |!Argument|!Processing
@@ -1671,9 +1700,9 @@ if ($x || $y)
     @ref list_type "list", @ref string_type "string", or @ref binary_type "binary" (the value(s) removed from \a lvalue)
 
     @par Example
-    @code my list $sublist = extract $list, 2, 2;@endcode
-    @code my string $substring = extract $string, 2, 2, "-text-";@endcode
-    @code my binary $b = extract $bin, 2, 2, <deadbeef>;@endcode
+    @code{.py} my list $sublist = extract $list, 2, 2;@endcode
+    @code{.py} my string $substring = extract $string, 2, 2, "-text-";@endcode
+    @code{.py} my binary $b = extract $bin, 2, 2, <deadbeef>;@endcode
 
     <b>Arguments Processed by extract</b>
     |!Argument|!Processing
@@ -1695,7 +1724,7 @@ if ($x || $y)
     @ref any_type "any"
 
     @par Example
-    @code $a = 1;@endcode
+    @code{.py} $a = 1;@endcode
 
     <b>Arguments Processed by =</b>
     |!Argument|!Processing
@@ -1714,13 +1743,13 @@ if ($x || $y)
     @ref int_type "int", @ref float_type "float", @ref number_type "number", @ref date_type "date", @ref list_type "list", @ref string_type "string", @ref binary_type "binary", @ref hash_type "hash", or @ref object_type "object"
 
     @par Example
-    @code $a += 10;@endcode
-    @code $date += P1M2DT45M;@endcode
-    @code $list += $new_element;@endcode
-    @code $string += ".foo";@endcode
-    @code $binary += <0c67a374>@endcode
-    @code $hash += ("new-key" : 1, "other" : "two");@endcode
-    @code $object += $hash;@endcode
+    @code{.py} $a += 10;@endcode
+    @code{.py} $date += P1M2DT45M;@endcode
+    @code{.py} $list += $new_element;@endcode
+    @code{.py} $string += ".foo";@endcode
+    @code{.py} $binary += <0c67a374>@endcode
+    @code{.py} $hash += ("new-key" : 1, "other" : "two");@endcode
+    @code{.py} $object += $hash;@endcode
 
     <b>Arguments Processed by +=</b>
     |!Argument|!Processing
@@ -1747,12 +1776,12 @@ if ($x || $y)
     @ref int_type "int", @ref float_type "float", @ref number_type "number", @ref date_type "date", @ref hash_type "hash", or @ref object_type "object"
 
     @par Example
-    @code $a -= 10;@endcode
-    @code $date -= PT45H213S;@endcode
-    @code $hash -= "key";@endcode
-    @code $hash -= ("key1", "key2");@endcode
-    @code $object -= "key";@endcode
-    @code $object -= $list_of_keys;@endcode
+    @code{.py} $a -= 10;@endcode
+    @code{.py} $date -= PT45H213S;@endcode
+    @code{.py} $hash -= "key";@endcode
+    @code{.py} $hash -= ("key1", "key2");@endcode
+    @code{.py} $object -= "key";@endcode
+    @code{.py} $object -= $list_of_keys;@endcode
 
     <b>Arguments Processed by -=</b>
     |!Argument|!Processing
@@ -1777,7 +1806,7 @@ if ($x || $y)
     @ref int_type "int"
 
     @par Example
-    @code $a &= 0xfe;@endcode
+    @code{.py} $a &= 0xfe;@endcode
 
     <b>Arguments Processed by &=</b>
     |!Argument|!Processing
@@ -1796,17 +1825,17 @@ if ($x || $y)
     @ref int_type "int"
 
     @par Example
-    @code $a |= 0xba;@endcode
+    @code{.py} $a |= 0xba;@endcode
 
     <b>Arguments Processed by |=</b>
     |!Argument|!Processing
     |All|the \a lvalue's type will be converted to an integer if necessary, and the \a expression will be evaluated and converted to an integer as well if necessary, and then the result will be binary or'ed to the \a lvalue
 
     <hr>
-    @section modula_equals_operator Modula Equals Operator (%=)
+    @section modulo_equals_operator Modulo Equals Operator (%=)
 
     @par Synopsis
-    Performs a modula calculation on an lvalue using the value of an expression and returns the new value.
+    Performs a modulo calculation on an lvalue using the value of an expression and returns the new value.
 
     @par Syntax
     \a lvalue <tt>%=</tt> \a expression
@@ -1815,7 +1844,7 @@ if ($x || $y)
     @ref int_type "int"
 
     @par Example
-    @code $a %= 100;@endcode
+    @code{.py} $a %= 100;@endcode
 
     <b>Arguments Processed by %=</b>
     |!Argument|!Processing
@@ -1834,7 +1863,7 @@ if ($x || $y)
     @ref int_type "int", @ref float_type "float", or @ref number_type "number"
 
     @par Example
-    @code $a *= 10;@endcode
+    @code{.py} $a *= 10;@endcode
 
     <b>Arguments Processed by *=</b>
     |!Argument|!Processing
@@ -1853,7 +1882,7 @@ if ($x || $y)
     @ref int_type "int", @ref float_type "float", or @ref number_type "number"
 
     @par Example
-    @code $a /= 10;@endcode
+    @code{.py} $a /= 10;@endcode
 
     <b>Arguments Processed by /=</b>
     |!Argument|!Processing
@@ -1874,7 +1903,7 @@ if ($x || $y)
     @ref int_type "int"
 
     @par Example
-    @code $a ^= 0xf9034ba7;@endcode
+    @code{.py} $a ^= 0xf9034ba7;@endcode
 
     <b>Arguments Processed by ^=</b>
     |!Argument|!Processing
@@ -1893,7 +1922,7 @@ if ($x || $y)
     @ref int_type "int"
 
     @par Example
-    @code $a <<= 3;@endcode
+    @code{.py} $a <<= 3;@endcode
 
     <b>Arguments Processed by \<\<=</b>
     |!Argument|!Processing
@@ -1912,7 +1941,7 @@ if ($x || $y)
     @ref int_type "int"
 
     @par Example$
-    @code $a >>= 3;@endcode
+    @code{.py} $a >>= 3;@endcode
 
     <b>Arguments Processed by >>=</b>
     |!Argument|!Processing

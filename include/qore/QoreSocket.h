@@ -3,10 +3,10 @@
   QoreSocket.h
 
   IPv4, IPv6, unix socket class with SSL support
-  
+
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   will unlink (delete) UNIX domain socket files when closed
 
@@ -50,12 +50,13 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-#define QSE_MISC_ERR  0 //!< error in errno
-#define QSE_RECV_ERR -1 //!< error in recv()
-#define QSE_NOT_OPEN -2 //!< socket is not open
-#define QSE_TIMEOUT  -3 //!< timeout occured
-#define QSE_SSL_ERR  -4 //!< SSL error occured
-#define QSE_IN_OP    -5 //!< in another operation (socket call made in socket callback)
+#define QSE_MISC_ERR      0 //!< error in errno
+#define QSE_RECV_ERR     -1 //!< error in recv()
+#define QSE_NOT_OPEN     -2 //!< socket is not open
+#define QSE_TIMEOUT      -3 //!< timeout occured
+#define QSE_SSL_ERR      -4 //!< SSL error occured
+#define QSE_IN_OP        -5 //!< in another operation (socket call made in socket callback)
+#define QSE_IN_OP_THREAD -6 //!< in another operation (socket call made in another thread while a callback operation is in progress)
 
 class Queue;
 
@@ -127,13 +128,13 @@ class QoreSocket {
 
 private:
    //! private implementation of the class
-   struct qore_socket_private *priv; 
+   struct qore_socket_private *priv;
 
    //! private constructor, not exported in the library's public interface
    DLLLOCAL QoreSocket(int n_sock, int n_sfamily, int n_stype, int s_prot, const QoreEncoding *csid);
 
    DLLLOCAL static void convertHeaderToHash(QoreHashNode* h, char* p);
-      
+
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreSocket(const QoreSocket&);
 
@@ -552,7 +553,7 @@ public:
    DLLEXPORT int acceptAndReplace(int timeout_ms, ExceptionSink* xsink);
 
    //! sets an open socket to the listening state
-   /** 
+   /**
        @return 0 for OK, not 0 if an error occured
    */
    DLLEXPORT int listen();
@@ -567,16 +568,16 @@ public:
    DLLEXPORT int listen(int backlog);
 
    //! sends binary data on a connected socket
-   /** 
+   /**
        @param buf the data to send
        @param size the size of the data to send
 
        @return 0 for OK, not 0 if an error occured
    */
    DLLEXPORT int send(const char* buf, qore_size_t size);
-  
+
    //! sends binary data on a connected socket
-   /** 
+   /**
        @param buf the data to send
        @param size the size of the data to send
        @param xsink if an error occurs in socket communication, the Qore-language exception information will be added here
@@ -584,7 +585,7 @@ public:
        @return 0 for OK, not 0 if an error occured
    */
    DLLEXPORT int send(const char* buf, qore_size_t size, ExceptionSink* xsink);
-  
+
    //! sends binary data on a connected socket
    /**
        @param buf the data to send
@@ -597,7 +598,7 @@ public:
    DLLEXPORT int send(const char* buf, qore_size_t size, int timeout_ms, ExceptionSink* xsink);
 
    //! sends string data on a connected socket, converts the string encoding to the socket's encoding if necessary
-   /** 
+   /**
        @param msg the string to send (must not be 0)
        @param xsink if an error occurs in converting the string's character encoding or in socket communication, the Qore-language exception information will be added here
 
@@ -616,7 +617,7 @@ public:
    DLLEXPORT int send(const QoreString *msg, int timeout_ms, ExceptionSink* xsink);
 
    //! sends binary data on a connected socket
-   /** 
+   /**
        @param msg the data to send
 
        @return 0 for OK, not 0 if an error occured
@@ -624,7 +625,7 @@ public:
    DLLEXPORT int send(const BinaryNode* msg);
 
    //! sends binary data on a connected socket
-   /** 
+   /**
        @param msg the data to send
        @param xsink if an error occurs in socket communication, the Qore-language exception information will be added here
 
@@ -643,7 +644,7 @@ public:
    DLLEXPORT int send(const BinaryNode* msg, int timeout_ms, ExceptionSink* xsink);
 
    //! sends untranslated data from an open file descriptor
-   /** 
+   /**
        @param fd a file descriptor, open for reading
        @param size the number of bytes to send (-1 = send all until EOF)
 
@@ -1119,7 +1120,7 @@ public:
    //! receive a certain number of bytes with a timeout value and return a QoreStringNode, caller owns the reference count returned
    /** The socket must be connected before this call is made.
        @param bufsize number of bytes to read from the socket; if <= 0, read all data available from the socket until the socket is closed from the other side
-       @param timeout_ms in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting 
+       @param timeout_ms in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the data read as a QoreStringNode tagged with the socket's QoreEncoding, caller owns the reference count returned (0 if an error occurs)
        @see QoreEncoding
@@ -1385,6 +1386,7 @@ public:
 
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @param timeout_ms in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+       @param source the event source code for socket events
 
        @return if 0, an exception was raised, if not 0, caller owns the reference count returned
    */
@@ -1516,7 +1518,7 @@ public:
        @param pkey the private key to use for the connection, may be 0 if no private key should be used
        @param xsink if an error occurs, the Qore-language exception information will be added here
 
-       @return 0 if OK, not 0 on error	  
+       @return 0 if OK, not 0 on error
    */
    DLLEXPORT int upgradeClientToSSL(X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink);
 
@@ -1528,7 +1530,7 @@ public:
        @param timeout_ms timeout in milliseconds, -1 = never timeout
        @param xsink if an error occurs, the Qore-language exception information will be added here
 
-       @return 0 if OK, not 0 on error	  
+       @return 0 if OK, not 0 on error
    */
    DLLEXPORT int upgradeServerToSSL(X509* cert, EVP_PKEY* pkey, int timeout_ms, ExceptionSink* xsink);
 
@@ -1540,7 +1542,7 @@ public:
        @param timeout_ms timeout in milliseconds, -1 = never timeout
        @param xsink if an error occurs, the Qore-language exception information will be added here
 
-       @return 0 if OK, not 0 on error	  
+       @return 0 if OK, not 0 on error
    */
    DLLEXPORT int upgradeClientToSSL(X509* cert, EVP_PKEY* pkey, int timeout_ms, ExceptionSink* xsink);
 
@@ -1551,7 +1553,7 @@ public:
        @param pkey the private key to use for the connection, may be 0 if no private key should be used
        @param xsink if an error occurs, the Qore-language exception information will be added here
 
-       @return 0 if OK, not 0 on error	  
+       @return 0 if OK, not 0 on error
    */
    DLLEXPORT int upgradeServerToSSL(X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink);
 
@@ -1608,7 +1610,6 @@ public:
    //! returns information for the current socket; the socket must be open
    /** if the socket is not open, a Qore-language exception is thrown
        @param xsink if an error occurs, the Qore-language exception information will be added here
-       @param host_lookup do a host lookup (if this is false the \c "hostname" and \c "hostname_desc" are not present in the response hash)
 
        @return a hash with the following keys:
        - \c hostname: the hostname of the remote end (if known or appropriate for the socket type, only performed if \a host_lookup is true)
@@ -1624,6 +1625,7 @@ public:
    //! returns information for the current socket; the socket must be open
    /** if the socket is not open, a Qore-language exception is thrown
        @param xsink if an error occurs, the Qore-language exception information will be added here
+       @param host_lookup do a host lookup (if this is false the \c "hostname" and \c "hostname_desc" are not present in the response hash)
 
        @return a hash with the following keys:
        - \c hostname: the hostname for the local interface (if known or appropriate for the socket type)

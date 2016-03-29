@@ -1,40 +1,48 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
-%requires UnitTest
-%exec-class App
+%requires ../../../../qlib/QUnit.qm
 
-class App {
+%exec-class RegexExtractTest
+
+class RegexExtractTest inherits QUnit::Test {
     private {
         int SUBPATTERNS_TO_TEST  = 10000;
         int SUBPATTERNS_AT_LEAST = 1;
         list CAPTURE_LENGTHS = (1, 10, 100, 1000, 10000, 100000);
     }
-    constructor() {
-        UnitTest unit();
 
+    constructor() : QUnit::Test("Regex extract test", "1.0") {
+        addTestCase("Test", \testRegexExtract());
+        set_return_value(main());
+    }
+
+    testRegexExtract() {
         foreach int capture_length in (CAPTURE_LENGTHS) {
-            string fixedlenstr = (map 'a', xrange(1, capture_length)).join('');
+            string fixedlenstr = (map "a", xrange(1, capture_length)).join('');
             foreach int i in (xrange(1, SUBPATTERNS_TO_TEST)) {
                 string str   = (map fixedlenstr, xrange(1, i)).join('');
-                string regex = (map '(' + fixedlenstr + ')', xrange(1, i)).join('');
+                string regex = (map "(" + fixedlenstr + ")", xrange(1, i)).join('');
 
                 any result;
                 try {
                     result = regex_extract(str, regex);
                 }
                 catch(hash ex) {
-                    unit.ok(i >= SUBPATTERNS_AT_LEAST, i + ' subpatterns of the length ' + capture_length + ' available');
+                    assertTrue(i >= SUBPATTERNS_AT_LEAST, i + " subpatterns of the length " + capture_length + " available");
                     break;
                 }
 
                 if (!exists result) {
-                    unit.ok(False, 'no subpatterns found but it either should or throw an exception for subpattern length ' + capture_length);
+                    fail("no subpatterns found but it either should or throw an exception for subpattern length " + capture_length);
                 }
             }
         }
     }
 }
+

@@ -51,7 +51,7 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreDotEvalOperatorNode(AbstractQoreNode *n_left, MethodCallNode *n_m) : left(n_left), m(n_m) {
+   DLLLOCAL QoreDotEvalOperatorNode(AbstractQoreNode *n_left, MethodCallNode *n_m) : left(n_left), m(n_m), returnTypeInfo(0) {
    }
 
    DLLLOCAL ~QoreDotEvalOperatorNode() {

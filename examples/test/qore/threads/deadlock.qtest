@@ -1,8 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires UnitTest
 
@@ -116,7 +118,7 @@ sub test_thread_resources() {
     mark_thread_resources();
 
     # no exception should be thrown here
-    throw_thread_resource_exceptions_to_mark();    
+    throw_thread_resource_exceptions_to_mark();
 
     unit.exception(sub () {throw_thread_resource_exceptions();}, NOTHING, "rwl-resource-error-3", 'LOCK-ERROR', "terminated while holding");
 }
@@ -129,7 +131,7 @@ sub cond_test(Counter c, Condition cond, Mutex m, int n) {
     }
     catch (ex) {
         unit.cmp(ex.err, "LOCK-ERROR", "cond-error-" + n);
-    }        
+    }
 }
 
 sub rwl_cond_test(Counter c, Condition cond, RWLock rwl, int n) {
@@ -140,7 +142,7 @@ sub rwl_cond_test(Counter c, Condition cond, RWLock rwl, int n) {
     }
     catch (ex) {
         unit.cmp(ex.err, "LOCK-ERROR", "rwl-cond-error-" + n);
-    }        
+    }
 }
 
 sub counter_test(Counter c, int n) {
@@ -170,7 +172,7 @@ sub main() {
     # deadlock tests with qore classes and explicit locking
     my Mutex m();
     my Gate g();
-    
+
     # increment counter for synchronization
     c.inc();
     c.inc();
@@ -213,7 +215,7 @@ sub main() {
 
     rw1.readUnlock();
 
-    # make sure threads sleeping on Condition variable wake up with an exception 
+    # make sure threads sleeping on Condition variable wake up with an exception
     # if the mutex object is deleted in another thread
     my Condition cond();
     m = new Mutex();
@@ -239,7 +241,7 @@ sub main() {
     rw1.writeUnlock();
     unit.exception(sub () {delete rw1;}, NOTHING, "rwl-destructor-error", 'RWLOCK-ERROR', "RWLock object deleted");
 
-    # make sure threads sleeping on a counter wake up with an exception 
+    # make sure threads sleeping on a counter wake up with an exception
     # when the counter is deleted
     my Counter c1();
     c1.inc();
@@ -250,7 +252,7 @@ sub main() {
         usleep(10ms);
     unit.exception(sub () {delete c1;}, NOTHING, "counter-destructor-error", 'COUNTER-ERROR', "Counter deleted while");
 
-    # make sure threads sleeping on a Queue wake up with an exception 
+    # make sure threads sleeping on a Queue wake up with an exception
     # when the Queue is deleted
     my Queue q();
     background queue_test(q, 1);

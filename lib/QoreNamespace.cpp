@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -911,7 +911,7 @@ AbstractQoreNode* qore_root_ns_private::parseResolveBarewordIntern(const QorePro
 
    bool abr = (bool)(parse_get_parse_options() & PO_ALLOW_BARE_REFS);
 
-   // if bare refs are enabled, first look for a local variablee
+   // if bare refs are enabled, first look for a local variable
    if (abr) {
       bool in_closure;
       LocalVar* id = find_local_var(bword, in_closure);
@@ -967,7 +967,7 @@ AbstractQoreNode* qore_root_ns_private::parseResolveBarewordIntern(const QorePro
 
    parse_error(loc, "cannot resolve bareword '%s' to any reachable object", bword);
 
-   //printd(5, "qore_root_ns_private::parseResolveBarewordIntern(%s) %p %s\n", bword, rv, get_type_name(rv));
+   //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() this: %p '%s' abr: %d\n", this, bword, abr);
    return 0;
 }
 
@@ -1705,8 +1705,8 @@ int qore_ns_private::parseAddPendingClass(QoreClass* oc) {
    }
 
    qore_class_private::setNamespace(oc, this);
-
    och.release();
+
    return 0;
 }
 

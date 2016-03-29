@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -919,9 +919,11 @@ void mark_thread_resources() {
    td->trlist = trl;
 }
 
+
 // returns 0 if the last mark has been cleared, -1 if there are more marks to check
 static int purge_thread_resources_to_mark(ThreadData* td, ExceptionSink* xsink) {
    td->trlist->purge(xsink);
+
    if (td->trlist->prev) {
       ThreadResourceList* tr = td->trlist;
       td->trlist = tr->prev;
@@ -940,6 +942,16 @@ int purge_thread_resources_to_mark(ExceptionSink* xsink) {
 void purge_thread_resources(ExceptionSink* xsink) {
    ThreadData* td = thread_data.get();
    while (purge_thread_resources_to_mark(td, xsink));
+}
+
+void purge_pgm_thread_resources(const QoreProgram* pgm, ExceptionSink* xsink) {
+   ThreadData* td = thread_data.get();
+
+   ThreadResourceList* tr = td->trlist;
+   while (tr) {
+      tr->purge(pgm, xsink);
+      tr = tr->prev;
+   }
 }
 
 void parse_try_module_inc() {
@@ -1862,11 +1874,11 @@ namespace {
          {
             ta->run(&xsink);
 
-            // delete any thread data
-            thread_data.get()->del(&xsink);
-
             // cleanup thread resources
             purge_thread_resources(&xsink);
+
+            // delete any thread data
+            thread_data.get()->del(&xsink);
 
             xsink.handleExceptions();
 
@@ -1883,7 +1895,7 @@ namespace {
          }
       }
 
-      pthread_cleanup_pop(1);
+      pthread_cleanup_pop((int)1);
       thread_counter.dec();
       pthread_exit(0);
       return 0;
@@ -1928,15 +1940,15 @@ namespace {
             if (rv)
                rv->deref(&xsink);
 
+            // cleanup thread resources
+            purge_thread_resources(&xsink);
+
             int tid = btp->tid;
             // dereference current Program object
             btp->del(&xsink);
 
             // delete any thread data
             thread_data.get()->del(&xsink);
-
-            // cleanup thread resources
-            purge_thread_resources(&xsink);
 
             xsink.handleExceptions();
 

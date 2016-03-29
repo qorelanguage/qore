@@ -38,22 +38,22 @@ extern QoreClass* QC_OBJECTREVERSEITERATOR;
     A object can be iterated in reverse order by calling ObjectKeyReverseIterator::prev() instead of ObjectKeyReverseIterator::next()
 
     @par Example: ObjectKeyReverseIterator basic usage
-    @code
+    @code{.py}
     class Class1 {
        public {
-          int $.attr1;
-          date $.attr2;
+          int attr1;
+          date attr2;
        }
        constructor() {
-          $.attr1 = 1;
-          $.attr2 = now();
+          attr1 = 1;
+          attr2 = now();
        }
     }
-    my Class1 $o();
+    Class1 o();
 
-    my ObjectKeyReverseIterator $it($o);
-    while ($it.next()) {
-        printf("iter: %n\n", $it.getValue());
+    ObjectKeyReverseIterator it(o);
+    while (it.next()) {
+        printf("iter: %n\n", it.getValue());
     }
 
     iter: "attr2"
@@ -78,8 +78,8 @@ qclass ObjectKeyReverseIterator [arg=QoreObjectReverseIterator* i; ns=Qore; vpar
 /** @param o the object to iterate
 
     @par Example:
-    @code
-my ObjectKeyReverseIterator $i($obj);
+    @code{.py}
+ObjectKeyReverseIterator i(obj);
     @endcode
  */
 ObjectKeyReverseIterator::constructor(object o) {
@@ -88,9 +88,9 @@ ObjectKeyReverseIterator::constructor(object o) {
 
 //! Creates an empty iterator object
 /** @par Example:
-    @code
-my *object $obj = get_object();
-my ObjectKeyReverseIterator $i($obj);
+    @code{.py}
+*object obj = get_object();
+ObjectKeyReverseIterator i(obj);
     @endcode
  */
 ObjectKeyReverseIterator::constructor() {
@@ -99,8 +99,8 @@ ObjectKeyReverseIterator::constructor() {
 
 //! Creates a copy of the ObjectKeyReverseIterator object, iterating the same object as the original and in the same position
 /** @par Example:
-    @code
-my ObjectKeyReverseIterator $ni = $i.copy();
+    @code{.py}
+ObjectKeyReverseIterator ni = i.copy();
     @endcode
  */
 ObjectKeyReverseIterator::copy() {
@@ -111,10 +111,10 @@ ObjectKeyReverseIterator::copy() {
 /** @return the current key value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
 
     @par Example:
-    @code
-my ObjectKeyReverseIterator $i($obj);
-while ($i.next())
-    printf("key: %s\n", $i.getValue());
+    @code{.py}
+ObjectKeyReverseIterator i(obj);
+while (i.next())
+    printf("key: %s\n", i.getValue());
     @endcode
 
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element

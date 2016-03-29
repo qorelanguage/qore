@@ -1,3 +1,6 @@
+2014-12-03 11:36 temnoregg
+	* qlib/SqlUtil.qm: Added SUM operator: cop_sum
+
 2014-07-16 12:12  subik
 
 	* lib/QC_HTTPClient.qpp, lib/QoreHttpClientObject.cpp: HTTPClient:
@@ -272,7 +275,7 @@
 	  include/qore/intern/QoreLogicalLessThanOperatorNode.h,
 	  include/qore/intern/QoreLogicalNotEqualsOperatorNode.h,
 	  include/qore/intern/QoreMinusEqualsOperatorNode.h,
-	  include/qore/intern/QoreModulaEqualsOperatorNode.h,
+	  include/qore/intern/QoreModuloEqualsOperatorNode.h,
 	  include/qore/intern/QoreMultiplyEqualsOperatorNode.h,
 	  include/qore/intern/QoreNamespaceIntern.h,
 	  include/qore/intern/QoreNamespaceList.h,
@@ -436,7 +439,7 @@
 	  lib/QoreLogicalGreaterThanOperatorNode.cpp,
 	  lib/QoreLogicalLessThanOperatorNode.cpp,
 	  lib/QoreMinusEqualsOperatorNode.cpp,
-	  lib/QoreModulaEqualsOperatorNode.cpp,
+	  lib/QoreModuloEqualsOperatorNode.cpp,
 	  lib/QoreMultiplyEqualsOperatorNode.cpp, lib/QoreNamespace.cpp,
 	  lib/QoreNet.cpp, lib/QoreNothingNode.cpp, lib/QoreNullNode.cpp,
 	  lib/QoreNumberNode.cpp, lib/QoreObject.cpp,
@@ -5887,7 +5890,7 @@
 	  include/qore/intern/QoreLogicalLessThanOrEqualsOperatorNode.h,
 	  include/qore/intern/QoreLogicalNotEqualsOperatorNode.h,
 	  include/qore/intern/QoreMinusEqualsOperatorNode.h,
-	  include/qore/intern/QoreModulaEqualsOperatorNode.h,
+	  include/qore/intern/QoreModuloEqualsOperatorNode.h,
 	  include/qore/intern/QoreMultiplyEqualsOperatorNode.h,
 	  include/qore/intern/QoreNamespaceIntern.h,
 	  include/qore/intern/QoreNamespaceList.h,
@@ -6047,7 +6050,7 @@
 	  lib/QoreLogicalGreaterThanOrEqualsOperatorNode.cpp,
 	  lib/QoreLogicalLessThanOperatorNode.cpp,
 	  lib/QoreMinusEqualsOperatorNode.cpp,
-	  lib/QoreModulaEqualsOperatorNode.cpp,
+	  lib/QoreModuloEqualsOperatorNode.cpp,
 	  lib/QoreMultiplyEqualsOperatorNode.cpp, lib/QoreNamespace.cpp,
 	  lib/QoreNet.cpp, lib/QoreNothingNode.cpp, lib/QoreNullNode.cpp,
 	  lib/QoreNumberNode.cpp, lib/QoreObject.cpp,
@@ -9441,7 +9444,7 @@
 
 2012-04-30 15:46  david_nichols
 
-	* lib/QoreModulaEqualsOperatorNode.cpp: do not try to execute %= 0
+	* lib/QoreModuloEqualsOperatorNode.cpp: do not try to execute %= 0
 	  or a runtime exception will occur
 
 2012-04-30 15:39  david_nichols
@@ -9611,12 +9614,12 @@
 	  include/qore/intern/QoreBinaryLValueOperatorNode.h,
 	  include/qore/intern/QoreClassIntern.h,
 	  include/qore/intern/QoreIntAndEqualsOperatorNode.h,
-	  include/qore/intern/QoreIntModulaEqualsOperatorNode.h,
+	  include/qore/intern/QoreIntModuloEqualsOperatorNode.h,
 	  include/qore/intern/QoreIntOrEqualsOperatorNode.h,
 	  include/qore/intern/QoreIntShiftLeftEqualsOperatorNode.h,
 	  include/qore/intern/QoreIntShiftRightEqualsOperatorNode.h,
 	  include/qore/intern/QoreIntXorEqualsOperatorNode.h,
-	  include/qore/intern/QoreModulaEqualsOperatorNode.h,
+	  include/qore/intern/QoreModuloEqualsOperatorNode.h,
 	  include/qore/intern/QoreObjectIntern.h,
 	  include/qore/intern/QoreOperatorNode.h,
 	  include/qore/intern/QoreOrEqualsOperatorNode.h,
@@ -9638,7 +9641,7 @@
 	  lib/QoreIntAssignmentOperatorNode.cpp,
 	  lib/QoreIntDivideEqualsOperatorNode.cpp,
 	  lib/QoreIntMinusEqualsOperatorNode.cpp,
-	  lib/QoreIntModulaEqualsOperatorNode.cpp,
+	  lib/QoreIntModuloEqualsOperatorNode.cpp,
 	  lib/QoreIntMultiplyEqualsOperatorNode.cpp,
 	  lib/QoreIntOrEqualsOperatorNode.cpp,
 	  lib/QoreIntPlusEqualsOperatorNode.cpp,
@@ -9650,7 +9653,7 @@
 	  lib/QoreIntShiftRightEqualsOperatorNode.cpp,
 	  lib/QoreIntXorEqualsOperatorNode.cpp, lib/QoreLib.cpp,
 	  lib/QoreMinusEqualsOperatorNode.cpp,
-	  lib/QoreModulaEqualsOperatorNode.cpp,
+	  lib/QoreModuloEqualsOperatorNode.cpp,
 	  lib/QoreMultiplyEqualsOperatorNode.cpp, lib/QoreObject.cpp,
 	  lib/QoreOrEqualsOperatorNode.cpp,
 	  lib/QorePlusEqualsOperatorNode.cpp,
@@ -11303,7 +11306,7 @@
 	  include/qore/intern/QoreIntAssignmentOperatorNode.h,
 	  include/qore/intern/QoreIntDivideEqualsOperatorNode.h,
 	  include/qore/intern/QoreIntMinusEqualsOperatorNode.h,
-	  include/qore/intern/QoreIntModulaEqualsOperatorNode.h,
+	  include/qore/intern/QoreIntModuloEqualsOperatorNode.h,
 	  include/qore/intern/QoreIntMultiplyEqualsOperatorNode.h,
 	  include/qore/intern/QoreIntOrEqualsOperatorNode.h,
 	  include/qore/intern/QoreIntPlusEqualsOperatorNode.h,
@@ -11322,7 +11325,7 @@
 	  include/qore/intern/QoreLogicalLessThanOrEqualsOperatorNode.h,
 	  include/qore/intern/QoreLogicalNotEqualsOperatorNode.h,
 	  include/qore/intern/QoreMinusEqualsOperatorNode.h,
-	  include/qore/intern/QoreModulaEqualsOperatorNode.h,
+	  include/qore/intern/QoreModuloEqualsOperatorNode.h,
 	  include/qore/intern/QoreMultiplyEqualsOperatorNode.h,
 	  include/qore/intern/QoreNamespaceIntern.h,
 	  include/qore/intern/QoreNamespaceList.h,
@@ -11448,7 +11451,7 @@
 	  lib/QoreIntAssignmentOperatorNode.cpp,
 	  lib/QoreIntDivideEqualsOperatorNode.cpp,
 	  lib/QoreIntMinusEqualsOperatorNode.cpp,
-	  lib/QoreIntModulaEqualsOperatorNode.cpp,
+	  lib/QoreIntModuloEqualsOperatorNode.cpp,
 	  lib/QoreIntMultiplyEqualsOperatorNode.cpp,
 	  lib/QoreIntOrEqualsOperatorNode.cpp,
 	  lib/QoreIntPlusEqualsOperatorNode.cpp,
@@ -11464,7 +11467,7 @@
 	  lib/QoreLogicalGreaterThanOrEqualsOperatorNode.cpp,
 	  lib/QoreLogicalLessThanOperatorNode.cpp,
 	  lib/QoreMinusEqualsOperatorNode.cpp,
-	  lib/QoreModulaEqualsOperatorNode.cpp,
+	  lib/QoreModuloEqualsOperatorNode.cpp,
 	  lib/QoreMultiplyEqualsOperatorNode.cpp, lib/QoreNamespace.cpp,
 	  lib/QoreNet.cpp, lib/QoreNothingNode.cpp, lib/QoreNullNode.cpp,
 	  lib/QoreObject.cpp, lib/QoreOrEqualsOperatorNode.cpp,
@@ -12494,7 +12497,7 @@
 	  include/qore/intern/QoreIntAssignmentOperatorNode.h,
 	  include/qore/intern/QoreIntDivideEqualsOperatorNode.h,
 	  include/qore/intern/QoreIntMinusEqualsOperatorNode.h,
-	  include/qore/intern/QoreIntModulaEqualsOperatorNode.h,
+	  include/qore/intern/QoreIntModuloEqualsOperatorNode.h,
 	  include/qore/intern/QoreIntMultiplyEqualsOperatorNode.h,
 	  include/qore/intern/QoreIntOrEqualsOperatorNode.h,
 	  include/qore/intern/QoreIntPlusEqualsOperatorNode.h,
@@ -12507,7 +12510,7 @@
 	  include/qore/intern/QoreIntXorEqualsOperatorNode.h,
 	  include/qore/intern/QoreLibIntern.h,
 	  include/qore/intern/QoreMinusEqualsOperatorNode.h,
-	  include/qore/intern/QoreModulaEqualsOperatorNode.h,
+	  include/qore/intern/QoreModuloEqualsOperatorNode.h,
 	  include/qore/intern/QoreMultiplyEqualsOperatorNode.h,
 	  include/qore/intern/QoreOperatorNode.h,
 	  include/qore/intern/QoreOrEqualsOperatorNode.h,
@@ -12531,7 +12534,7 @@
 	  lib/QoreIntAssignmentOperatorNode.cpp,
 	  lib/QoreIntDivideEqualsOperatorNode.cpp,
 	  lib/QoreIntMinusEqualsOperatorNode.cpp,
-	  lib/QoreIntModulaEqualsOperatorNode.cpp,
+	  lib/QoreIntModuloEqualsOperatorNode.cpp,
 	  lib/QoreIntMultiplyEqualsOperatorNode.cpp,
 	  lib/QoreIntOrEqualsOperatorNode.cpp,
 	  lib/QoreIntPlusEqualsOperatorNode.cpp,
@@ -12543,7 +12546,7 @@
 	  lib/QoreIntShiftRightEqualsOperatorNode.cpp,
 	  lib/QoreIntXorEqualsOperatorNode.cpp,
 	  lib/QoreMinusEqualsOperatorNode.cpp,
-	  lib/QoreModulaEqualsOperatorNode.cpp,
+	  lib/QoreModuloEqualsOperatorNode.cpp,
 	  lib/QoreMultiplyEqualsOperatorNode.cpp,
 	  lib/QoreOrEqualsOperatorNode.cpp,
 	  lib/QorePlusEqualsOperatorNode.cpp,

@@ -646,7 +646,7 @@ public:
    DLLEXPORT const char* getBuffer() const;
 
    //! returns the string's buffer; this data should not be changed
-   DLLEXPORT const char* c_str() const { return getBuffer(); }
+   DLLEXPORT const char* c_str() const;
 
    //! Ensure the internal buffer has at least expected size in bytes
    /** Useful to eliminate repeated buffer reallocations when data are appended in a loop
@@ -747,6 +747,8 @@ public:
    /** if the string is not in UTF-8 encoding, only a single character is converted to make the unicode code point calculation
        @param offset the offset in bytes in the string
        @param len the length of the character in bytes in the source string in the original encoding
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+
        @return the unicode code for the character at the given byte offset
 
        @since Qore 0.8.8

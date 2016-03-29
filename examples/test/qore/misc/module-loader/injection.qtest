@@ -1,4 +1,4 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
 %require-types
@@ -88,7 +88,7 @@ sub test() {
         unit.cmp(p.callFunction("get_value"), "test", "injection-2");
         unit.cmp(p.callFunction("next"), False, "injection-3");
 
-        unit.exception(sub() {p.callFunction("get_value");}, "iterator not valid", "neg-injection-1", 'ITERATOR-ERROR');
+        unit.exception(sub() {p.callFunction("get_value");}, NOTHING, "neg-injection-1", 'ITERATOR-ERROR');
     }
 
     {

@@ -1,8 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
 %require-types
 %enable-all-warnings
 %new-style
+%strict-args
 
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/FixedLengthUtil.qm
@@ -61,5 +63,8 @@ class Test inherits QUnit::Test {
     basicTests() {
         FixedLengthDataWriter w(Specs, GlobalOptions);
         testAssertionValue("file content check", w.write(Data), DataText);
+
+        w = new FixedLengthDataWriter(Specs, GlobalOptions + ("eol": "\r\n"));
+        testAssertionValue("file content check", w.write(Data), replace(DataText, "\n", "\r\n"));
     }
 }

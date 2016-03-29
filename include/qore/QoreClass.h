@@ -650,6 +650,15 @@ public:
        @param xsink Qore-language exception information is added here
 
        @return the object created
+   */
+   DLLEXPORT QoreObject* execConstructor(const QoreValueList* args, ExceptionSink* xsink) const;
+
+   //! creates a new object and executes the constructor on it and returns the new object
+   /** if a Qore-language exception occurs, 0 is returned.
+       @param args the arguments for the method
+       @param xsink Qore-language exception information is added here
+
+       @return the object created
 
        @deprecated use execConstructor(const QoreValueList*, ExceptionSink*) instead
    */

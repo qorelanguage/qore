@@ -1,6 +1,6 @@
 /*
   ReferenceNode.h
-  
+
   Qore Programming Language
 
   Copyright (C) 2003 - 2015 David Nichols
@@ -37,6 +37,7 @@ AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObj
 
    if (ntype == NT_TREE) {
       QoreTreeNode* tree = reinterpret_cast<QoreTreeNode*>(n);
+      assert(tree->getOp() == OP_OBJECT_REF);
       ReferenceHolder<> nn(tree->right->eval(xsink), xsink);
       if (*xsink)
          return 0;
@@ -69,6 +70,22 @@ AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObj
          //printd(5, "ParseReferenceNode::doPartialEval() this: %p '%s' cvv: %p\n", this, name, cvv);
 	 lvalue_id = cvv;
          return new VarRefImmediateNode(strdup(name), cvv, v->ref.id->getTypeInfo());
+      }
+   }
+
+   if (ntype == NT_OPERATOR) {
+      QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(n);
+      if (op) {
+	 ValueEvalRefHolder rh(op->getRight(), xsink);
+	 if (*xsink)
+	    return 0;
+
+	 AbstractQoreNode* nl = doPartialEval(op->getLeft(), self, lvalue_id, xsink);
+	 if (*xsink) {
+	    assert(!nl);
+	    return 0;
+	 }
+	 return new QoreSquareBracketsOperatorNode(nl, rh.getReferencedValue());
       }
    }
 
@@ -116,6 +133,11 @@ AbstractQoreNode* ParseReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, 
       if (ntype == NT_VARREF) {
          reinterpret_cast<VarRefNode*>(n)->setThreadSafe();
          break;
+      }
+      QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(n);
+      if (op) {
+	 n = op->getLeft();
+	 continue;
       }
       assert(ntype == NT_TREE);
       // must be a tree

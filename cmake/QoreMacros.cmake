@@ -143,8 +143,7 @@ MACRO (QORE_BINARY_MODULE _module_name _version)
 
             add_custom_target(docs
                 ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/Doxyfile
-                COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/html/*.html
-                COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/html/search/*.html
+                COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/html ${CMAKE_BINARY_DIR}/html/search
                 WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
                 COMMENT "Generating API documentation with Doxygen" VERBATIM
             )
@@ -232,7 +231,7 @@ ENDMACRO (QORE_CONFIG_INFO)
 # Find Pthreads.
 # Uses FindThreads with pthreads preference to look for pthreads.
 # Cmake generation will break if pthreads are not found.
-# For variables and targets defined by this, see docs for FindThreads. 
+# For variables and targets defined by this, see docs for FindThreads.
 #
 macro(QORE_FIND_PTHREADS)
 set(CMAKE_THREAD_PREFER_PTHREAD ON)

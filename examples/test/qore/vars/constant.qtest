@@ -1,8 +1,10 @@
 #!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires UnitTest
 
@@ -82,7 +84,7 @@ const Qore::myconst = 1;
 unit.cmp(i, 1, "simple constant");
 unit.cmp(type(Type::val1), "integer", "first namespace constant");
 unit.cmp(Qore::myconst, NTest::Type::val1, "second namespace constant");
-unit.cmp(NTest::Type::i, 1, "third namespace constant"); 
+unit.cmp(NTest::Type::i, 1, "third namespace constant");
 unit.cmp(chash{b}, (1, 2, 3), "indirect constant");
 unit.cmp(exp, 3, "evaluated constant");
 unit.cmp(hexp2, (1, 2, 3), "evaluated constant hash");

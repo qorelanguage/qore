@@ -1,8 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -40,7 +42,7 @@ public class OverloadTest inherits QUnit::Test {
         assertEq("float", f1_test(1.1));
         assertEq("string", f1_test("str"));
         assertEq("string", f1_test("1.11"));
-        
+
         testAssertion("test not-existing overload", \f1_test(), (123.456n,), new TestResultExceptionType("RUNTIME-OVERLOAD-ERROR"));
     }
 
@@ -53,4 +55,3 @@ public class OverloadTest inherits QUnit::Test {
         assertEq("float", f1_test(fi));
     }
 }
-

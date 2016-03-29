@@ -62,9 +62,13 @@ module Util {
     - @ref Util::get_exception_string()
     - @ref Util::get_marketing_byte_size()
     - @ref Util::get_random_string()
+    - @ref Util::lpad()
     - @ref Util::normalize_dir()
       - @ref Util::normalize_dir_unix()
       - @ref Util::normalize_dir_windows()
+    - @ref Util::ordinal()
+    - @ref Util::plural()
+    - @ref Util::rpad()
     - @ref Util::parse_to_qore_value()
     - @ref Util::slice()
     - @ref Util::same()
@@ -80,6 +84,10 @@ module Util {
       - @ref Qore::absolute_path()
       - @ref Qore::absolute_path_windows()
       - @ref Qore::absolute_path_unix()
+    - added Util::lpad()
+    - added Util::rpad()
+    - added Util::ordinal()
+    - added Util::plural()
     - added Util::slice()
     - added Util::same()
     - added Util::tmp_location()
@@ -105,7 +113,7 @@ namespace Init {
 public namespace Util {
     #! compares complex versions by breaking down strings into component parts
     /** @par Example:
-        @code
+        @code{.py}
 int result = compare_version("2.11.1", "2.2");
         @endcode
 
@@ -155,7 +163,7 @@ int result = compare_version("2.11.1", "2.2");
 
     #! returns a platform-specific normalized path name (starting from /, eliminates \c ".", \c "..", and \c "//")
     /** @par Example:
-        @code
+        @code{.py}
 string dir = normalize_dir(dir);
         @endcode
 
@@ -178,14 +186,14 @@ string dir = normalize_dir(dir);
 
     #! returns a normalized UNIX path name (starting from /, eliminates \c ".", \c "..", and \c "//")
     /** @par Example:
-        @code
+        @code{.py}
 string dir = normalize_dir_unix(dir, "/var/tmp");
         @endcode
 
         For example, calling:
-        @code normalize_dir("../../test/.//dir"); @endcode
+        @code{.py} normalize_dir("../../test/.//dir"); @endcode
         from current directory \c "/opt/qorus/sub/dir" returns:
-        @code "/opt/qorus/test/dir" @endcode
+        @code{.py} "/opt/qorus/test/dir" @endcode
 
         @param dir the directory name to normalize
         @param cwd the current working directory
@@ -227,14 +235,14 @@ string dir = normalize_dir_unix(dir, "/var/tmp");
 
     #! returns a normalized Windows path name (eliminates \c ".", \c "..", and \c "//")
     /** @par Example:
-        @code
+        @code{.py}
 string dir = normalize_dir_windows(dir, "c:\\qore"));
         @endcode
 
         For example, calling:
-        @code normalize_dir("..\..\test\.\\dir"); @endcode
+        @code{.py} normalize_dir("..\..\test\.\\dir"); @endcode
         from current directory \c "c:\\lang\\qore\\prog1" returns:
-        @code "c:\\lang\\test\\dir" @endcode
+        @code{.py} "c:\\lang\\test\\dir" @endcode
 
         @param dir the directory name to normalize
         @param cwd the current working directory
@@ -276,7 +284,7 @@ string dir = normalize_dir_windows(dir, "c:\\qore"));
 
     #! returns @ref Qore::True "True" if the argument is an absolute path, @ref Qore::False "False" if not
     /** @par Example:
-        @code
+        @code{.py}
 bool abs = absolute_path(path);
         @endcode
 
@@ -294,7 +302,7 @@ bool abs = absolute_path(path);
 
     #! returns @ref Qore::True "True" if the argument is a UNIX absolute path, @ref Qore::False "False" if not
     /** @par Example:
-        @code
+        @code{.py}
 bool abs = absolute_path_unix(path);
         @endcode
 
@@ -312,7 +320,7 @@ bool abs = absolute_path_unix(path);
 
     #! returns @ref Qore::True "True" if the argument is a Windows absolute path, @ref Qore::False "False" if not
     /** @par Example:
-        @code
+        @code{.py}
 bool abs = absolute_path_windows(path);
         @endcode
 
@@ -485,7 +493,7 @@ bool abs = absolute_path_windows(path);
 
     #! function that returns a random string
     /** @par Example:
-        @code
+        @code{.py}
 string pass = get_random_string();
         @endcode
 
@@ -575,7 +583,7 @@ string pass = get_random_string();
 
     #! returns a string giving a user-friendly real storage size (ie based on 1KiB = 1024 bytes) in KiB, MiB, GiB, TiB, etc for the given byte size
     /** @par Example:
-        @code
+        @code{.py}
 string str = get_byte_size(n);
         @endcode
 
@@ -607,7 +615,7 @@ string str = get_byte_size(n);
 
     #! returns a string giving a user-friendly "marketing storage" size (ie based on 1KB = 1000 bytes) in KB, MB, GB, TB, etc for the given byte size
     /** @par Example:
-        @code
+        @code{.py}
 string str = get_marketing_byte_size(n);
         @endcode
 
@@ -640,7 +648,7 @@ string str = get_marketing_byte_size(n);
 
     #! checks whether given list has only uniq element
     /** @par Example:
-        @code
+        @code{.py}
         if (same((1, 1, 1)) {
             printf("only uniq element");
         };
@@ -665,7 +673,7 @@ string str = get_marketing_byte_size(n);
 
     #! list slice implementation
     /** @par Example:
-        @code
+        @code{.py}
         list_slice(("a", "b", "c", "d"), (1, 3)); # returns ("b", "d")
         @endcode
 
@@ -680,7 +688,7 @@ string str = get_marketing_byte_size(n);
 
     #! Returns a path for temporary files
     /** @par Example:
-        @code
+        @code{.py}
 string testfile = tmp_location() + '/test.txt';
 # some processing
 unlink(testfile);
@@ -708,5 +716,110 @@ unlink(testfile);
             throw "TMP-ERROR", sprintf("unable to find the location of the temporary directory; %y is not writable", dir);
 
         return realpath(dir);
+    }
+
+    #! Returns a string left-padded to a specified length with the specified characters.
+    /** Returns a string, left-padded to a specified length with the specified characters; or, when the string to be padded is longer than the length specified after padding, only that portion of the string that fits into the specified length.
+
+        @param  text input string that you want to pad
+        @param  length total length of output string (in characters)
+        @param  padding padding character(s); default value is a single blank
+        @return a string left-padded to the specified length
+
+        @par Example:
+        @code{.py}
+string s = lpad ("123", 5); # returns "  123"
+string s = lpad ("ABC", 9, "-"); # returns "------ABC"
+        @endcode
+
+        @since Util 1.2
+    */
+    public string sub lpad (softstring text, int length, string padding = ' ') {
+        int d = length - text.length();
+        if (d > 0) {
+            string p = strmul (padding, d / padding.length() + 1);
+            return p.substr(0, d) + text;
+        }
+        else if (d < 0)
+            return text.substr(-d);
+        else
+            return text;
+    }
+
+    #! Returns a string right-padded to a specified length with the specified characters.
+    /** Returns a string, right-padded to a specified length with the specified characters; or, when the string to be padded is longer than the length specified after padding, only that portion of the string that fits into the specified length.
+
+        @param  text input string that you want to pad
+        @param  length total length of output string (in characters)
+        @param  padding padding character(s); default value is a single blank
+        @return a string right-padded to the specified length
+
+        @par Example:
+        @code{.py}
+string s = rpad ("123", 5); # returns "123  "
+string s = rpad ("ABC", 9, "-"); # returns "ABC------"
+        @endcode
+
+        @since Util 1.2
+    */
+    public string sub rpad (softstring text, int length, string padding = ' ') {
+        int d = length - text.length();
+        if (d > 0) {
+            string p = strmul (padding, d / padding.length() + 1);
+            return text + p.substr(0, d);
+        }
+        else if (d < 0)
+            return text.substr(0, d);
+        else
+            return text;
+    }
+
+    #! Returns string with partially textual representation of ordinal integer value
+    /** @par Example:
+        @code{.py}
+printf ("%s grade", ordinal(1));
+# would print "1st grade"
+        @endcode
+
+        @param i integer value to convert to textual representation
+        @return a string representation of ordinal value of the argument
+
+        @since Util 1.2
+    */
+    public string sub ordinal (int i) {
+        list suffixes = ("th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th");
+
+        switch (i % 100) {
+            case 11:
+            case 12:
+            case 13:
+                return sprintf("%dth", i);
+            default:
+                return sprintf("%d%s", i, suffixes[i % 10]);
+        }
+    }
+
+    #! Returns string with number and proper singular/plural form of noun.
+    /**
+        @param  count integer value to convert
+        @param  base base word or possibly nothing
+        @param  singular singular form suffix or whole word
+        @param  plural plural form suffix or whole word
+        @return a string representation of number plus noun
+
+        @par Example:
+        @code{.py}
+printf (plural(1, "beer"));
+# would print "1 beer"
+printf (plural(1, "lad", "y", "ies"));
+# would print "1 lady"
+printf (plural(32, "", "tooth", "teeth"));
+# would print "32 teeth"
+        @endcode
+
+        @since Util 1.2
+    */
+    public string sub plural (int count, string base, string singular = "", string plural = "s") {
+        return sprintf("%d %s", count, count == 1 ? base + singular : base + plural);
     }
 }

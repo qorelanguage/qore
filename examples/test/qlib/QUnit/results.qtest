@@ -1,4 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %include ../../../../qlib/QUnit.qm
 
@@ -75,7 +81,7 @@ public class ResultsTest inherits QUnit::Test {
     }
 
     testPartialHashResult() {
-        code returnHash = sub (hash h) { return h; };
+        code returnHash = hash sub (hash h) { return h; };
 
         hash testHash = (
             "a" : "b",
@@ -144,7 +150,7 @@ public class ResultsTest inherits QUnit::Test {
         # Check the return value of the assertion
         list lret = testAssertion("assertion list", \returnsList(), (list(1,2,3),), new TestResultValue((1,2,3)));
         bool bret = testAssertion("assertion bool", \equals(), (lret, (1,2,3)));
-        testAssertion("assertion return value", \returnsTrue(), (bret));
+        testAssertion("assertion return value", \returnsTrue());
     }
 
     testPrintouts() {

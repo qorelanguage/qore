@@ -1,33 +1,26 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
-%requires UnitTest
+%requires ../../../../qlib/QUnit.qm
 
-our UnitTest t();
+%exec-class OctalConstTest
 
-t.cmploop(any sub (any a) {return a;}, (
-    (
-        "args" : list("\066"),
-        "cmp"  : "6",
-        "msg"  : "\\066 is 6",
-    ),
-    (
-        "args" : list("\866"),
-        "cmp"  : "866",
-        "msg"  : "\\866 is 866 - just escaped 8",
-    ),
-    (
-        "args" : list("\66"),
-        "cmp"  : "6",
-        "msg"  : "\\66 is 6",
-    ),
-    (
-        "args" : list("\668"),
-        "cmp"  : "68",
-        "msg"  : "\\66 and 8 is 68",
-    ),
-));
+class OctalConstTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Octal constant test", "1.0") {
+        addTestCase("Test", \test());
+        set_return_value(main());
+    }
+
+    test() {
+        assertEq("6", "\066", "\\066 is 6");
+        assertEq("866", "\866", "\\866 is 866 - just escaped 8");
+        assertEq("6", "\66", "\\66 is 6");
+        assertEq("68", "\668", "\\66 and 8 is 68");
+    }
+}
+

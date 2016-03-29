@@ -1,8 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -43,7 +45,6 @@ public class MaxThreadCountTest inherits QUnit::Test {
         }
 
         int nt = num_threads();
-        assertEq(True, (nt > 1), "number of threads is " + nt);
+        assertTrue(nt > 1, "number of threads is " + nt);
     }
 }
-

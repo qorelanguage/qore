@@ -8,7 +8,7 @@ Release: 7%{?dist}
 License: LGPLv2+ or GPLv2+ or MIT
 Group: Development/Languages
 URL: http://qore.org
-Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.bz2
+Source0: https://github.com/qorelanguage/qore/releases/download/release-%{version}/%{name}-%{version}.tar.bz2
 Requires: /usr/bin/env
 BuildRequires: flex >= 2.5.31
 BuildRequires: bison
@@ -61,7 +61,7 @@ functionality.
 %{_libdir}/libqore.so.5.13.0
 %{_libdir}/libqore.so.5
 %{module_dir}
-%doc COPYING.LGPL COPYING.GPL COPYING.MIT README README-LICENSE README-MODULES RELEASE-NOTES AUTHORS WHATISQORE
+%doc COPYING.LGPL COPYING.GPL COPYING.MIT README,md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS WHATISQORE
 
 %post -n libqore -p /sbin/ldconfig
 
@@ -157,13 +157,11 @@ make check
 
 %files
 %{_bindir}/qore
-%{_bindir}/qr
 %{_mandir}/man1/qore.1.*
 
 %changelog
-* Wed Aug 12 2015 David Nichols <david@qore.org> 0.8.12-2
+* Wed Aug 12 2015 David Nichols <david@qore.org> 0.8.12-1
 - updated version to 0.8.12-1
-- added qr binary
 
 * Tue Jul 29 2014 David Nichols <david@qore.org> 0.8.11.1-7
 - removed irrelevant license files from stdlib package, only the MIT license applies there

@@ -59,10 +59,10 @@ protected:
       std::string kstr(key);
       kmap_t::iterator i = kmap.lower_bound(kstr);
       if (i == kmap.end() || i->first != kstr)
-	 kmap.insert(i, kmap_t::value_type(kstr, false));
+         kmap.insert(i, kmap_t::value_type(kstr, false));
       else if (!i->second) {
-	 doDuplicateWarning(loc, key);
-	 i->second = true;
+         doDuplicateWarning(loc, key);
+         i->second = true;
       }
    }
 
@@ -76,32 +76,32 @@ protected:
       pflag &= ~PF_RETURN_VALUE_IGNORED;
 
       for (size_t i = 0; i < keys.size(); ++i) {
-	 const QoreTypeInfo* argTypeInfo = 0;
-	 AbstractQoreNode* p = keys[i];
-	 keys[i] = keys[i]->parseInit(oflag, pflag, lvids, argTypeInfo);
+         const QoreTypeInfo* argTypeInfo = 0;
+         AbstractQoreNode* p = keys[i];
+         keys[i] = keys[i]->parseInit(oflag, pflag, lvids, argTypeInfo);
 
-	 if (p != keys[i] && (!keys[i] || keys[i]->is_value())) {
-	    QoreStringValueHelper key(keys[i]);
-	    checkDup(loc, key->getBuffer());
-	 }
-	 else if (!needs_eval && keys[i] && keys[i]->needs_eval())
-	    needs_eval = true;
-   
-	 if (argTypeInfo->nonStringValue()) {
+         if (p != keys[i] && (!keys[i] || keys[i]->is_value())) {
+            QoreStringValueHelper key(keys[i]);
+            checkDup(loc, key->getBuffer());
+         }
+         else if (!needs_eval && keys[i] && keys[i]->needs_eval())
+            needs_eval = true;
+
+         if (argTypeInfo->nonStringValue()) {
             QoreStringMaker str("key number %ld (starting from 0) in the hash is ", i);
             argTypeInfo->doNonStringWarning(loc, str.getBuffer());
          }
-         
-	 argTypeInfo = 0;
-	 values[i] = values[i]->parseInit(oflag, pflag, lvids, argTypeInfo);
-	 if (!needs_eval && values[i] && values[i]->needs_eval())
-	    needs_eval = true;
+
+         argTypeInfo = 0;
+         values[i] = values[i]->parseInit(oflag, pflag, lvids, argTypeInfo);
+         if (!needs_eval && values[i] && values[i]->needs_eval())
+            needs_eval = true;
       }
 
       kmap.clear();
 
       if (needs_eval)
-	 return this;
+         return this;
 
       // evaluate immediately
       ValueEvalRefHolder rv(this, 0);
@@ -113,31 +113,31 @@ protected:
       assert(keys.size() == values.size());
       ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
       for (size_t i = 0; i < keys.size(); ++i) {
-	 QoreNodeEvalOptionalRefHolder k(keys[i], xsink);
-	 if (*xsink)
-	    return QoreValue();
+         QoreNodeEvalOptionalRefHolder k(keys[i], xsink);
+         if (*xsink)
+            return QoreValue();
 
-	 QoreNodeEvalOptionalRefHolder v(values[i], xsink);
-	 if (*xsink)
-	    return QoreValue();
+         QoreNodeEvalOptionalRefHolder v(values[i], xsink);
+         if (*xsink)
+            return QoreValue();
 
-	 QoreStringValueHelper key(*k);
-	 h->setKeyValue(key->getBuffer(), v.getReferencedValue(), xsink);
-	 if (*xsink)
-	    return QoreValue();
+         QoreStringValueHelper key(*k);
+         h->setKeyValue(key->getBuffer(), v.getReferencedValue(), xsink);
+         if (*xsink)
+            return QoreValue();
       }
       return h.release();
    }
 
 public:
-   DLLLOCAL QoreParseHashNode() : ParseNode(NT_PARSE_HASH, true), curly(false) {
+   DLLLOCAL QoreParseHashNode(bool curly = false) : ParseNode(NT_PARSE_HASH, true), curly(curly) {
    }
 
    DLLLOCAL ~QoreParseHashNode() {
       assert(keys.size() == values.size());
       for (size_t i = 0; i < keys.size(); ++i) {
-	 discard(keys[i], 0);
-	 discard(values[i], 0);
+         discard(keys[i], 0);
+         discard(values[i], 0);
       }
       keys.clear();
       values.clear();
@@ -148,9 +148,9 @@ public:
       values.push_back(v);
 
       if (!n || n->is_value()) {
-	 QoreStringValueHelper key(n);
-	 QoreProgramLocation loc = get_parse_location();
-	 checkDup(loc, key->getBuffer());
+         QoreStringValueHelper key(n);
+         QoreProgramLocation loc = get_parse_location();
+         checkDup(loc, key->getBuffer());
       }
    }
 
@@ -178,11 +178,11 @@ public:
       assert(!curly);
       curly = true;
    }
-   
+
    DLLLOCAL bool isCurly() const {
       return curly;
    }
-   
+
    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;

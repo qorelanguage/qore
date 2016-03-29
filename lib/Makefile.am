@@ -161,6 +161,7 @@ libqore_la_SOURCES = \
 	charset.cpp \
 	unicode-charmaps.cpp \
 	QoreProgram.cpp \
+	QoreProgramHelper.cpp \
 	QoreNamespace.cpp \
 	QoreNet.cpp \
 	QoreURL.cpp \
@@ -172,6 +173,7 @@ libqore_la_SOURCES = \
 	QoreTimeZoneManager.cpp \
 	QoreString.cpp \
 	QoreObject.cpp \
+	RSet.cpp \
 	QoreListNode.cpp \
 	qore-main.cpp \
 	QoreGetOpt.cpp \
@@ -228,21 +230,22 @@ libqore_la_SOURCES = \
 	QoreLogicalNotOperatorNode.cpp \
 	QoreDotEvalOperatorNode.cpp \
 	QoreLogicalEqualsOperatorNode.cpp \
-	QoreModulaOperatorNode.cpp \
+	QoreModuloOperatorNode.cpp \
 	QoreAssignmentOperatorNode.cpp \
 	QoreIntAssignmentOperatorNode.cpp \
 	QorePlusEqualsOperatorNode.cpp \
 	QoreIntPlusEqualsOperatorNode.cpp \
 	QoreMinusEqualsOperatorNode.cpp \
 	QoreIntMinusEqualsOperatorNode.cpp \
-        QoreOrEqualsOperatorNode.cpp \
-        QoreAndEqualsOperatorNode.cpp \
-        QoreModulaEqualsOperatorNode.cpp \
-        QoreMultiplyEqualsOperatorNode.cpp \
-        QoreDivideEqualsOperatorNode.cpp \
-        QoreXorEqualsOperatorNode.cpp \
-        QoreShiftLeftEqualsOperatorNode.cpp \
-        QoreShiftRightEqualsOperatorNode.cpp \
+	QoreOrEqualsOperatorNode.cpp \
+	QoreAndEqualsOperatorNode.cpp \
+	QoreModuloEqualsOperatorNode.cpp \
+	QoreMultiplyEqualsOperatorNode.cpp \
+	QoreDivideEqualsOperatorNode.cpp \
+	QoreDivisionOperatorNode.cpp \
+	QoreXorEqualsOperatorNode.cpp \
+	QoreShiftLeftEqualsOperatorNode.cpp \
+	QoreShiftRightEqualsOperatorNode.cpp \
 	QorePostIncrementOperatorNode.cpp \
 	QorePostDecrementOperatorNode.cpp \
 	QorePreIncrementOperatorNode.cpp \
@@ -261,6 +264,7 @@ libqore_la_SOURCES = \
 	QoreValueCoalescingOperatorNode.cpp \
 	QoreChompOperatorNode.cpp \
 	QoreTrimOperatorNode.cpp \
+	QoreSquareBracketsOperatorNode.cpp \
 	QorePseudoMethods.cpp \
 	QoreHTTPClient.cpp \
 	QoreHttpClientObject.cpp \

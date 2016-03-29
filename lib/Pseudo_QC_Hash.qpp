@@ -50,10 +50,10 @@ qclass <hash> [arg=const QoreHashNode* h = v.get<QoreHashNode>();vparent=<value>
     @return Qore::NT_HASH
 
     @par Example:
-    @code
-switch ($h.typeCode()) {
+    @code{.py}
+switch (h.typeCode()) {
     case NT_HASH:
-        printf("%y: is a hash\n", $h);
+        printf("%y: is a hash\n", h);
         break;
 }
     @endcode
@@ -69,8 +69,8 @@ int <hash>::typeCode() [flags=CONSTANT] {
     @return a list of key names of the hash
 
     @par Example:
-    @code
-my list $l = $h.keys();
+    @code{.py}
+list l = h.keys();
     @endcode
 
     @note this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
@@ -86,8 +86,8 @@ list <hash>::keys() [flags=CONSTANT] {
     @return a list of values of the hash
 
     @par Example:
-    @code
-my list $l = $h.values();
+    @code{.py}
+list l = h.values();
     @endcode
 
     @note
@@ -111,8 +111,8 @@ list <hash>::values() [flags=CONSTANT] {
     @return the first key name in the hash or @ref nothing if the hash has no keys
 
     @par Example:
-    @code
-my *string $n = $h.firstKey();
+    @code{.py}
+*string n = h.firstKey();
     @endcode
 
     @note this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
@@ -129,8 +129,8 @@ my *string $n = $h.firstKey();
     @return the value assigned to the first key in the hash if any or @ref nothing if the hash has no keys
 
     @par Example:
-    @code
-my any $v = $h.firstValue();
+    @code{.py}
+any v = h.firstValue();
     @endcode
 
     @note this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
@@ -147,8 +147,8 @@ any <hash>::firstValue() [flags=CONSTANT] {
     @return the last key name in the hash or @ref nothing if the hash has no keys
 
     @par Example:
-    @code
-my *string $n = $h.lastKey();
+    @code{.py}
+*string n = h.lastKey();
     @endcode
 
     @note this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
@@ -165,8 +165,8 @@ my *string $n = $h.lastKey();
     @return the value assigned to the last key in the hash if any or @ref nothing if the hash has no keys
 
     @par Example:
-    @code
-my any $v = $h.lastValue();
+    @code{.py}
+any v = h.lastValue();
     @endcode
 
     @note this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
@@ -185,8 +185,8 @@ any <hash>::lastValue() [flags=CONSTANT] {
     @return @ref True if the key exists in the hash (may or may not be assigned a value), @ref False if not
 
     @par Example:
-    @code
-my bool $b = $h.hasKey($key);
+    @code{.py}
+bool b = h.hasKey(key);
     @endcode
 
     @note this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
@@ -208,8 +208,8 @@ bool <hash>::hasKey(softstring key) [flags=RET_VALUE_ONLY] {
     @return @ref True if the key exists and is assigned to a value, @ref False if not
 
     @par Example:
-    @code
-my bool $b = $h.hasKeyValue($key);
+    @code{.py}
+bool b = h.hasKeyValue(key);
     @endcode
 
     @note this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
@@ -229,8 +229,8 @@ bool <hash>::hasKeyValue(softstring key) [flags=RET_VALUE_ONLY] {
     @return @ref True if the hash has no keys, @ref False if it does
 
     @par Example:
-    @code
-my bool $b = $h.empty();
+    @code{.py}
+bool b = h.empty();
     @endcode
 
     @note this pseudo-method is also implemented in Qore::zzz8valuezzz9, so it's safe to use on all data types
@@ -245,8 +245,8 @@ bool <hash>::empty() [flags=CONSTANT] {
     @return the number of keys in the hash
 
     @par Example:
-    @code
-my int $num = $h.size();
+    @code{.py}
+int num = h.size();
     @endcode
 
     @note this pseudo-method is also implemented in Qore::zzz8valuezzz9, so it's safe to use on all data types
@@ -263,8 +263,8 @@ int <hash>::size() [flags=CONSTANT] {
     @return @ref False if the hash has no keys, @ref True if it does
 
     @par Example:
-    @code
-my bool $b = $h.val();
+    @code{.py}
+bool b = h.val();
     @endcode
 
     @note this pseudo-method is also implemented in Qore::zzz8valuezzz9, so it's safe to use on all data types
@@ -281,8 +281,8 @@ bool <hash>::val() [flags=CONSTANT] {
 /** @return a @ref Qore::HashIterator "HashIterator" object for the hash
 
     @par Example:
-    @code
-map printf("value: %y\n", $1), $h.iterator();
+    @code{.py}
+map printf("value: %y\n", $1), h.iterator();
     @endcode
 
     @note this pseudo-method is also implemented in Qore::zzz8valuezzz9, so it's safe to use on all data types
@@ -297,8 +297,8 @@ AbstractIterator <hash>::iterator() [flags=CONSTANT] {
 /** @return a @ref Qore::HashKeyIterator "HashKeyIterator" object for the hash
 
     @par Example:
-    @code
-map printf("key: %s\n", $1), $h.keyIterator();
+    @code{.py}
+map printf("key: %s\n", $1), h.keyIterator();
     @endcode
 
     @note
@@ -315,8 +315,8 @@ HashKeyIterator <hash>::keyIterator() [flags=CONSTANT] {
 /** @return a @ref Qore::HashPairIterator "HashPairIterator" object for the hash
 
     @par Example:
-    @code
-map printf("%s: %y\n", $1.key, $1.value), $h.pairIterator());
+    @code{.py}
+map printf("%s: %y\n", $1.key, $1.value), h.pairIterator());
     @endcode
 
     @note this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
@@ -331,12 +331,13 @@ HashPairIterator <hash>::pairIterator() [flags=CONSTANT] {
 /** @return a @ref Qore::HashListIterator "HashListIterator" object for the hash
 
     @par Example:
-    @code
-my *hash $q = $db.select("select * from table_name");
-map printf("+ %s\n", $1), $h.contextIterator();
+    @code{.py}
+*hash q = db.select("select * from table_name");
+map printf("+ %s\n", $1), h.contextIterator();
     @endcode
 
     @note
+    - a hash with non-list values will be iterated as if each key value were a single element list
     - this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
     - this pseudo-method is very useful when iterating query results from @ref Qore::SQL::Datasource::select() "Datasource::select()" or @ref Qore::SQL::DatasourcePool::select() "DatasourcePool::select()" with the @ref map "map operator", for example
 
@@ -348,8 +349,8 @@ HashListIterator <hash>::contextIterator() [flags=CONSTANT] {
 
 //! Returns @ref Qore::True "True" if the hash argument passed has the same keys in the same order as the current hash, @ref Qore::False "False" if not
 /** @par Example:
-    @code
-my bool $b = $h.compareKeys($oh);
+    @code{.py}
+bool b = h.compareKeys(oh);
     @endcode
 
     Values are not compraed, only the key names and order

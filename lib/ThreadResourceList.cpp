@@ -53,7 +53,11 @@ void ThreadResourceList::set(const ResolvedCallReferenceNode* rcr, QoreValue arg
    if (i != crmap.end() && i->first == rcr)
       return;
 
-   crmap.insert(i, crmap_t::value_type(rcr->refRefSelf(), arg.getReferencedValue()));
+   QoreProgram* pgm = rcr->getProgram();
+   if (!pgm)
+      pgm = getProgram();
+
+   crmap.insert(i, crmap_t::value_type(rcr->refRefSelf(), ArgPgm(arg.getReferencedValue(), pgm)));
 }
 
 bool ThreadResourceList::check(AbstractThreadResource* atr) const {
@@ -62,6 +66,8 @@ bool ThreadResourceList::check(AbstractThreadResource* atr) const {
 }
 
 void ThreadResourceList::purge(ExceptionSink* xsink) {
+   purge(0, xsink);
+   /*
    while (true) {
       trset_t::iterator i = trset.begin();
       if (i == trset.end())
@@ -98,8 +104,57 @@ void ThreadResourceList::purge(ExceptionSink* xsink) {
       rcr->execValue(*args, xsink).discard(xsink);
       rcr->deref(xsink);
    }
+   */
 
    //printd(5, "TRL::purge() this: %p done\n", this);
+}
+
+void ThreadResourceList::purge(const QoreProgram* pgm, ExceptionSink* xsink) {
+   for (trset_t::iterator i = trset.begin(), e = trset.end(); i != e;) {
+      AbstractThreadResource* atr = *i;
+      if (!pgm || ((*i)->getProgram() == pgm)) {
+	 trset_t::iterator j = i;
+	 ++i;
+
+	 //printd(5, "TRL::purge() this: %p cleaning up atr: %p\n", this, atr);
+	 // we have to remove the thread resource from the list before running cleanup in case of user thread resources
+	 // where the cleanup routine will cause the object to be deleted and therefore for remove_thread_resource() to
+	 // be called which can result in a crash
+	 trset.erase(j);
+
+	 atr->cleanup(xsink);
+	 atr->deref();
+      }
+      else
+	 ++i;
+   }
+
+   for (crmap_t::iterator i = crmap.begin(), e = crmap.end(); i != e;) {
+      ResolvedCallReferenceNode* rcr = i->first;
+      //printd(5, "TRL::purge() this: %p cleaning up rcr: %p (pgm: %p) pgm: %p\n", this, rcr, i->second.pgm, pgm);
+      if (!pgm || (i->second.pgm == pgm)) {
+	 AbstractQoreNode* arg = i->second.arg;
+	 crmap_t::iterator j = i;
+	 ++i;
+
+	 //printd(5, "TRL::purge() this: %p cleaning up rcr: %p\n", this, rcr);
+	 // we have to remove the thread resource from the list before running cleanup
+	 crmap.erase(j);
+
+	 ReferenceHolder<QoreListNode> args(xsink);
+	 if (arg) {
+	    args = new QoreListNode;
+	    args->push(arg);
+	 }
+
+	 rcr->execValue(*args, xsink).discard(xsink);
+	 rcr->deref(xsink);
+      }
+      else
+	 ++i;
+   }
+
+   //printd(5, "TRL::purge() this: %p pgm: %p done\n", this, pgm);
 }
 
 int ThreadResourceList::remove(AbstractThreadResource* atr) {
@@ -122,7 +177,7 @@ int ThreadResourceList::remove(const ResolvedCallReferenceNode* rcr, ExceptionSi
       return -1;
 
    i->first->deref(xsink);
-   discard(i->second, xsink);
+   discard(i->second.arg, xsink);
    crmap.erase(i);
    return 0;
 }

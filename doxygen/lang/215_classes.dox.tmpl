@@ -28,7 +28,7 @@
     When defining a @ref user_modules "user module", class declarations can be preceded by @ref mod_public "public", which means that the class will be available (imported) in the @ref Qore::Program "Program" object importing the module.  When a class is declared @ref mod_public "public" outside of a @ref user_modules "user module", it means that the class can be inherited in any child @ref Qore::Program "Program" objects created in the same scope. See @ref mod_public "public" for more information. Note that classes can also be imported singly by using the @ref Qore::Program::importClass() "Program::importClass()" method.
 
     @par In-Line Class Declaration Example
-    @code
+    @code{.py}
 class MyClass inherits MyBaseClass {
     public {
          string $.pub_attr = "hello";
@@ -59,7 +59,7 @@ class MyClass inherits MyBaseClass {
     As with inline class definitions, when defining a @ref user_modules "user module", class declarations can be preceded by @ref mod_public "public", which means that the class will be available (imported) in the @ref Qore::Program "Program" object importing the module. When a class is declared @ref mod_public "public" outside of a @ref user_modules "user module", it means that the class can be inherited in any child @ref Qore::Program "Program" objects created in the same scope. See @ref mod_public "public" for more information. Note that classes can also be imported singly by using the @ref Qore::Program::importClass() "Program::importClass()" method.
 
     @par Out-Of-Line Class Declaration Example
-    @code
+    @code{.py}
 class MyNamespace::MyClass inherits MyBaseClass;
 
 MyNamespace::MyClass::constructor(string $arg = "temp") : MyBaseClass($arg + ".txt") {
@@ -138,7 +138,7 @@ softstring MyNamespace::MyClass::myMethod(softint $i) {
     Class constants, like non-class constants, allow programmers to refer to values with %Qore identifiers rather than using the value or the expression that generates the value.\n\n
     See @ref class_overview for a description of the syntax required to declare a class constant.\n\n
     Like other attributes of classes, class constants may be declared <tt><b>private</b></tt> or <tt><b>public</b></tt>. The following is an example of a class constant definition:\n
-    @code
+    @code{.py}
 class Test {
     public {
         const Version = "1.0";
@@ -157,7 +157,7 @@ class Test {
     Static class variables are like global variables that belong to a class. They are not associated with any particular object.\n\n
     See @ref class_overview for a description of the syntax required to declare a static class variable.\n\n
     Like other attributes of classes, static class variables may be declared <tt><b>private</b></tt> or <tt><b>public</b></tt>. The following is an example of a static class variable definition:\n
-    @code
+    @code{.py}
 class Test {
     public {
         static string lastFile = "none";
@@ -185,7 +185,7 @@ class Test {
     When defining a class, members of instantiated objects are referred to with a special syntax as follows:\n
     <tt>$.</tt><em>member_name</em>\n\n
     Furthermore, the automatic variable <tt>$self</tt> is instantiated in every non-static method, representing the current object (similar to <tt>this</tt> in C++ or Java). Therefore if you need to access hash members which are not valid %Qore identifiers, then enclose the member name in double quotes after the dot operator as follows:\n
-    @code $self."&member-name"@endcode
+    @code{.py} $self."&member-name"@endcode
 
     @anchor memberGate_methods
     @par memberGate() Method
@@ -207,7 +207,7 @@ class Test {
     <tt>[[</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>parent_class_name</em><tt>::]$.</tt><em>method_name</em><tt>([</tt><em>args</em><tt>, ...])</tt>
 
     @par In-Class Method Call Example
-    @code
+    @code{.py}
 # to call a specific method in a base class
 Thread::Mutex::$.lock();
 # to call lock() in the current (or lower base) class
@@ -216,7 +216,7 @@ $.lock();
 
     @par In-Class Method Calls with %allow-bare-refs
     When the @ref allow-bare-refs "%allow-bare-refs" parse directive is set, then object methods are called without the \c "$." prefix as in the following example:\n
-    @code
+    @code{.py}
 # to call a specific method in a base class
 Thread::Mutex::lock();
 # to call lock() in the current (or lower base) class
@@ -235,7 +235,7 @@ lock();
     Classes inherit the methods of a parent class by using the <tt><b>inherits</b></tt> keyword as specified above. Multiple inheritance is supported; a single %Qore class can inherit one or more classes. When a class is inherited by another class, it is called a base class or parent class. @ref private_inheritance "Private inheritance" is specified by including the keyword <tt><b>private</b></tt> before the inherited class's name. When a class is privately inherited, it means that the inherited class's public declarations (members, constants, methods, etc) are treated as private in the context of accesses outside the class.
 
     Inheritance is <tt><b>public</b></tt> @ref public_inheritance "by default", to inherit a class privately, use the <tt><b>private</b></tt> keyword before the class name or class path to inherit as follows:
-    @code
+    @code{.py}
 class ChildClass inherits private ParentClass {
 }
     @endcode
@@ -251,7 +251,7 @@ class ChildClass inherits private ParentClass {
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>
 
     Here is a concrete example of giving arguments to an inherited base class:
-    @code
+    @code{.py}
 class XmlRpcClient inherits Qore::HTTPClient {
     # calls the base class HTTPClient constructor, overrides the "protocols" key to "xmlrpc"
     constructor(hash $opts = hash()) : Qore::HTTPClient($opts + ( "protocols" : "xmlrpc" )) {

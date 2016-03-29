@@ -1,17 +1,33 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
-%requires UnitTest
+%requires ../../../../qlib/QUnit.qm
 
-my UnitTest unit();
+%exec-class ParseDatasourceTest
 
-my hash dh = ( "user"    : "user",
-    "pass"    : "123pass@word",
-    "db"      : "dbname",
-    "charset" : "utf8",
-    "host"    : "hostname" );
-my string ds = "user/123pass@word@dbname(utf8)%hostname";
-unit.cmp(dh, parse_datasource(ds), "first parseDatasource()"); 
+public class ParseDatasourceTest inherits QUnit::Test {
+    constructor() : Test("Parse_datasource test", "1.0") {
+        addTestCase("Test 1", \test(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    test() {
+        hash dh = (
+            "user"    : "user",
+            "pass"    : "123pass@word",
+            "db"      : "dbname",
+            "charset" : "utf8",
+            "host"    : "hostname",
+            );
+        string ds = "user/123pass@word@dbname(utf8)%hostname";
+
+        assertEq(dh, parse_datasource(ds));
+    }
+}

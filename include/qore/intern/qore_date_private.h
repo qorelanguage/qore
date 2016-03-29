@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -41,7 +41,7 @@
 
 #define SECS_PER_MINUTE          60
 // 3600
-#define SECS_PER_HOUR            (SECS_PER_MINUTE*  60)
+#define SECS_PER_HOUR            (SECS_PER_MINUTE * 60)
 // number of seconds in a normal day (no DST) = 86400
 #define SECS_PER_DAY             (SECS_PER_HOUR * 24)
 // number of seconds in a normal year (no leap day)
@@ -51,13 +51,13 @@
 
 #define MICROSECS_PER_SEC        1000000ll
 #define MICROSECS_PER_MINUTE     (MICROSECS_PER_SEC * 60)
-#define MICROSECS_PER_HOUR       (MICROSECS_PER_MINUTE*  60)
-// number of microseconds in a day (no DST)
-#define MICROSECS_PER_DAY        (MICROSECS_PER_HOUR * 24)
-// number of microseconds in an average month (30 days)
-#define MICROSECS_PER_AVG_MONTH  (MICROSECS_PER_HOUR * 24)
-// number of microseconds in a year
-#define MICROSECS_PER_YEAR       (MICROSECS_PER_DAY * 365)
+#define MICROSECS_PER_HOUR       (MICROSECS_PER_MINUTE * 60)
+// number of microseconds in an average day (no DST = 24h)
+#define MICROSECS_PER_AVG_DAY    (MICROSECS_PER_HOUR * 24)
+// number of microseconds in a maximum month (31 days)
+#define MICROSECS_PER_MAX_MONTH  (MICROSECS_PER_HOUR * 24 * 31)
+// number of microseconds in an average year (365 days)
+#define MICROSECS_PER_AVG_YEAR   (MICROSECS_PER_AVG_DAY * 365)
 
 // number of seconds from 1970-01-01 to 2000-01-01, 30 years with 7 leap days: 1972, 1976, 1980, 1984, 1988, 1992, 1996
 #define SECS_TO_2K               (SECS_PER_YEAR * 30 + SECS_PER_DAY * 7ll)
@@ -654,15 +654,39 @@ public:
    }
 
    DLLLOCAL int getHour() const {
-      return (int)(((epoch + zone->getUTCOffset(epoch)) % SECS_PER_DAY) / SECS_PER_HOUR);
+      if (epoch >= 0)
+         return (int)(((epoch + zone->getUTCOffset(epoch)) % SECS_PER_DAY) / SECS_PER_HOUR);
+
+      qore_time_info info;
+      const char* zname;
+      bool isdst;
+      int offset = zone->getUTCOffset(epoch, isdst, zname);
+      info.set(epoch, us, offset, isdst, zname, zone);
+      return info.hour;
    }
 
    DLLLOCAL int getMinute() const {
-      return (int)(((epoch + zone->getUTCOffset(epoch)) % SECS_PER_HOUR) / SECS_PER_MINUTE);
+      if (epoch >= 0)
+         return (int)(((epoch + zone->getUTCOffset(epoch)) % SECS_PER_HOUR) / SECS_PER_MINUTE);
+
+      qore_time_info info;
+      const char* zname;
+      bool isdst;
+      int offset = zone->getUTCOffset(epoch, isdst, zname);
+      info.set(epoch, us, offset, isdst, zname, zone);
+      return info.minute;
    }
 
    DLLLOCAL int getSecond() const {
-      return (int)((epoch + zone->getUTCOffset(epoch)) % SECS_PER_MINUTE);
+      if (epoch >= 0)
+         return ((epoch + zone->getUTCOffset(epoch)) % SECS_PER_MINUTE);
+
+      qore_time_info info;
+      const char* zname;
+      bool isdst;
+      int offset = zone->getUTCOffset(epoch, isdst, zname);
+      info.set(epoch, us, offset, isdst, zname, zone);
+      return info.second;
    }
 
    DLLLOCAL int getMillisecond() const {
@@ -772,22 +796,28 @@ public:
 class qore_relative_time : public qore_simple_tm {
    friend class qore_absolute_time;
 protected:
-   DLLLOCAL void normalize() {
+   DLLLOCAL void normalize(bool for_comparison = false) {
       //printd(5, "DT:cD() sec: %lld ms: %d\n", sec, ms);
-
-      // normalize years from months
-      normalize_units<int, int>(year, month, 12);
 
       // normalize seconds from microseconds
       normalize_units<int, int>(second, us, 1000000);
 
-      // no longer normalize days, as with DST not all days are 24 hours
-
-      // normalize hours from seconds
-      normalize_units<int, int>(hour, second, 3600);
-
       // normalize minutes from seconds
       normalize_units<int, int>(minute, second, 60);
+
+      // normalize hours from minutes
+      normalize_units<int, int>(hour, minute, 60);
+
+      // only normalize hours to days and days to months if we are comparing
+      // we use an average year length of 365 days and an maximum month length of 31 days
+      if (for_comparison) {
+         normalize_units<int, int>(day, hour, 24);
+         normalize_units<int, int>(year, day, 365);
+         normalize_units<int, int>(month, day, 31);
+      }
+
+      // normalize years from months
+      normalize_units<int, int>(year, month, 12);
    }
 
    DLLLOCAL void setIso8601(const char* str);
@@ -888,34 +918,42 @@ public:
       return us;
    }
 
-   DLLLOCAL int compare(const qore_relative_time& r) const {
-      if (year > r.year)
+   DLLLOCAL int compare(const qore_relative_time& rt) const {
+      // compare normalized values
+      qore_relative_time l;
+      l.set(year, month, day, hour, minute, second, us);
+      l.normalize(true);
+      qore_relative_time r;
+      r.set(rt.year, rt.month, rt.day, rt.hour, rt.minute, rt.second, rt.us);
+      r.normalize(true);
+
+      if (l.year > r.year)
          return 1;
-      if (year < r.year)
+      if (l.year < r.year)
          return -1;
-      if (month > r.month)
+      if (l.month > r.month)
          return 1;
-      if (month < r.month)
+      if (l.month < r.month)
          return -1;
-      if (day > r.day)
+      if (l.day > r.day)
          return 1;
-      if (day < r.day)
+      if (l.day < r.day)
          return -1;
-      if (hour > r.hour)
+      if (l.hour > r.hour)
          return 1;
-      if (hour < r.hour)
+      if (l.hour < r.hour)
          return -1;
-      if (minute > r.minute)
+      if (l.minute > r.minute)
          return 1;
-      if (minute < r.minute)
+      if (l.minute < r.minute)
          return -1;
-      if (second > r.second)
+      if (l.second > r.second)
          return 1;
-      if (second < r.second)
+      if (l.second < r.second)
          return -1;
-      if (us > r.us)
+      if (l.us > r.us)
          return 1;
-      if (us < r.us)
+      if (l.us < r.us)
          return -1;
       return 0;
    }
@@ -942,9 +980,9 @@ public:
       return (int64)us + (int64)second * MICROSECS_PER_SEC
          + (int64)minute*  MICROSECS_PER_MINUTE
          + (int64)hour * MICROSECS_PER_HOUR
-         + (int64)day * MICROSECS_PER_DAY
-         + (month ? (int64)month * MICROSECS_PER_AVG_MONTH : 0ll)
-         + (year ? (int64)year * MICROSECS_PER_YEAR : 0ll);
+         + (int64)day * MICROSECS_PER_AVG_DAY
+         + (month ? (int64)month * MICROSECS_PER_MAX_MONTH : 0ll)
+         + (year ? (int64)year * MICROSECS_PER_AVG_YEAR : 0ll);
    }
 
    DLLLOCAL double getRelativeSecondsDouble() const {
@@ -953,6 +991,7 @@ public:
 
    DLLLOCAL qore_relative_time& operator+=(const qore_relative_time& dt);
    DLLLOCAL qore_relative_time& operator-=(const qore_relative_time& dt);
+   DLLLOCAL qore_relative_time& operator-=(const qore_absolute_time& dt);
 
    DLLLOCAL void getAsString(QoreString& str) const {
       int f = 0;
@@ -1237,8 +1276,10 @@ public:
          return;
       }
 
-      assert(dt.relative);
-      d.rel -= dt.d.rel;
+      if (dt.relative)
+         d.rel -= dt.d.rel;
+      else
+         d.rel -= dt.d.abs;
    }
 
    DLLLOCAL void addSecondsTo(int64 secs, int us) {

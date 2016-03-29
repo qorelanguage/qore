@@ -1,14 +1,18 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires ../../../../qlib/QUnit.qm
-
-%allow-bare-refs
 
 %exec-class BarerefTest
 
 # Global test data
-const closure = sub () { return "global const closure"; };
-const mclosure = sub () { return "global const mclosure"; };
+const closure = string sub () { return "global const closure"; };
+const mclosure = string sub () { return "global const mclosure"; };
 
 namespace Ns {
     our code vclosure;
@@ -21,32 +25,32 @@ public class BarerefTest inherits QUnit::Test {
 
     public {
         static string var1 = "var1";
-        mem1 = "mem1";
         string mem2 = "mem2";
 
-        code mclosure = sub () { return "BarerefTest::mclosure member"; };
-        static vclosure = sub () { return "BarerefTest::vclosure var"; };
-        const closure = sub () { return "BarerefTest::closure const"; };
+        code mclosure = string sub () { return "BarerefTest::mclosure member"; };
+        static code vclosure = string sub () { return "BarerefTest::vclosure var"; };
+        const closure = string sub () { return "BarerefTest::closure const"; };
     }
 
     constructor() : Test("BarerefTest", "1.0") {
-        addTestCase("Closures test", \closuresTest(), NOTHING);
-        addTestCase("Skipped test", \lvarTest(), NOTHING);
+        addTestCase("Closures test", \closuresTest());
+        addTestCase("Skipped test", \lvarTest());
+        addTestCase("Deref test", \derefTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
     }
 
-    argTest(string str, any) {
-        return (str, any);
+    list argTest(string str, any a) {
+        return (str, a);
     }
-    static t1() {
+    static string t1() {
         return "t1";
     }
 
     closuresTest() {
-        Ns::vclosure = sub () { return "Ns var vclosure"; };
-        our code ::vclosure = sub () { return "global var vclosure"; };
+        Ns::vclosure = string sub () { return "Ns var vclosure"; };
+        our code ::vclosure = string sub () { return "global var vclosure"; };
 
         testAssertion( "static method call 1", \t1(), NOTHING, new TestResultValue( "t1"));
         my code func = \t1();
@@ -102,11 +106,11 @@ public class BarerefTest inherits QUnit::Test {
     }
 
     lvarTest() {
-        my int a = 1;
-        my b = "1";
-        our c = 2.1;
-   	    my (int a1, string b1, c1) = (2, "four", "hi");
-        our (int a2, string b2, c2) = (4, "eight", "hello");
+        int a = 1;
+        any b = "1";
+        our any c = 2.1;
+        my (int a1, string b1, any c1) = (2, "four", "hi");
+        our (int a2, string b2, any c2) = (4, "eight", "hello");
 
         testAssertionValue("var test 1", a, 1);
         testAssertionValue("var test 2", b, "1");
@@ -119,4 +123,16 @@ public class BarerefTest inherits QUnit::Test {
         testAssertionValue("var test 9", c2, "hello");
     }
 
+    derefTest() {
+        string a = "b";
+        hash h = (
+            "a": "a",
+            "b": "b",
+            );
+
+        assertEq("a", h.a);
+        # the following line should use the lvar a's value "b" to dereference the hash
+        # https://github.com/qorelanguage/qore/issues/416
+        assertEq("b", h.(a));
+    }
 }
