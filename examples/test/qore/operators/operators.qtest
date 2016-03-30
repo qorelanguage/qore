@@ -239,7 +239,7 @@ class Test inherits QUnit::Test {
         }
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", "illegal assignment of variable \"a\" to itself", \p.parse(), ("any a = (a,);", ""));
+            assertThrows("PARSE-EXCEPTION", "illegal assignment of variable \"a\" to itself", \p.parse(), ("any a; a = a;", ""));
         }
     }
 }
