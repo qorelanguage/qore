@@ -5,6 +5,7 @@
 %enable-all-warnings
 %require-types
 %strict-args
+%no-child-restrictions
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -16,6 +17,7 @@ class Test inherits QUnit::Test {
         addTestCase("lvalue tests", \lvalueTests());
         addTestCase("const modulo", \constModulo());
         addTestCase("post/pre inc/dec", \postPreIncDec());
+        addTestCase("identity assignment", \idAssignment());
         set_return_value(main());
     }
 
@@ -228,5 +230,16 @@ class Test inherits QUnit::Test {
         assertEq(2, x);
         assertEq(1, --x);
         assertEq(1, x);
+    }
+
+    idAssignment() {
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", "illegal assignment of variable \"a\" to itself", \p.parse(), ("any a = a;", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", "illegal assignment of variable \"a\" to itself", \p.parse(), ("any a; a = a;", ""));
+        }
     }
 }
