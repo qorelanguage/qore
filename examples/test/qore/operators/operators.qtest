@@ -18,6 +18,7 @@ class Test inherits QUnit::Test {
         addTestCase("const modulo", \constModulo());
         addTestCase("post/pre inc/dec", \postPreIncDec());
         addTestCase("identity assignment", \idAssignment());
+        addTestCase("int test", \intTest());
         set_return_value(main());
     }
 
@@ -241,5 +242,12 @@ class Test inherits QUnit::Test {
             Program p(PO_NEW_STYLE);
             assertThrows("PARSE-EXCEPTION", "illegal assignment of variable \"a\" to itself", \p.parse(), ("any a; a = a;", ""));
         }
+    }
+
+    intTest() {
+        int i;
+        any h = {};
+        # test issue 683
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {i = h;});
     }
 }

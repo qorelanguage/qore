@@ -68,10 +68,6 @@ AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int
       }
    }
 
-   // replace this node with optimized operator implementations, if possible
-   if (ti == bigIntTypeInfo || ti == softBigIntTypeInfo)
-      return makeSpecialization<QoreIntAssignmentOperatorNode>();
-
    return this;
 }
 
