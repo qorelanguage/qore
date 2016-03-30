@@ -278,6 +278,7 @@
     - added support for @ref unary_plus_operator "unary plus"
     - added support for empty private blocks in classes
     - added support for @ref Qore::statvfs() on Windows (simulated from \c GetDiskFreeSpaceEx() <a href="https://github.com/qorelanguage/qore/issues/618">issue 618</a>)
+    - assignment of a variable to itself is now illegal (<a href="https://github.com/qorelanguage/qore/issues/526">issue 526</a>)
 
     @subsection qore_0812_bug_fixes Bug Fixes in Qore
     - fixed format of octal constant - there was an error if a string contained octal constant that is shorter than 3 digit
