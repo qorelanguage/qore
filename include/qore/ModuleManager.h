@@ -42,6 +42,9 @@
     provides definitions required to load qore modules
  */
 
+// If changing the module API numbers, make sure to change the appropriate
+// variables in CMakeLists.txt too.
+
 #define QORE_MODULE_API_MAJOR 0  //!< the major number of the Qore module API implemented
 #define QORE_MODULE_API_MINOR 19 //!< the minor number of the Qore module API implemented
 

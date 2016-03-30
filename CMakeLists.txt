@@ -14,6 +14,11 @@ set(VERSION_MAJOR 0)
 set(VERSION_MINOR 8)
 set(VERSION_SUB 12)
 
+# If changing the module API numbers, make sure to change the appropriate
+# defines in include/qore/ModuleManager.h too.
+set(MODULE_API_MAJOR 0)
+set(MODULE_API_MINOR 19)
+
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "release")
 endif (NOT CMAKE_BUILD_TYPE)
@@ -27,13 +32,6 @@ endif ()
 if ((NOT ${QORE_BUILD_TYPE_LWR} MATCHES "debug") AND QORE_RUNTIME_THREAD_STACK_TRACE)
     message(FATAL_ERROR "QORE_RUNTIME_THREAD_STACK_TRACE only available on debug builds")
 endif()
-
-execute_process(COMMAND ${CMAKE_SOURCE_DIR}/cmake/get-define.sh QORE_MODULE_API_MAJOR ${CMAKE_SOURCE_DIR}/include/qore/ModuleManager.h
-                OUTPUT_VARIABLE MODULE_API_MAJOR 
-                OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND ${CMAKE_SOURCE_DIR}/cmake/get-define.sh QORE_MODULE_API_MINOR ${CMAKE_SOURCE_DIR}/include/qore/ModuleManager.h
-                OUTPUT_VARIABLE MODULE_API_MINOR 
-                OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 # simulate QoreConfig
 set(QORE_QDX_EXECUTABLE "${CMAKE_SOURCE_DIR}/doxygen/qdx")
@@ -213,7 +211,9 @@ find_package(MPFR REQUIRED)
 find_package(BZip2 REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(PCRE REQUIRED libpcre)
-find_package(Backtrace)
+if (NOT (WIN32 AND MINGW AND MSYS))
+    find_package(Backtrace)
+endif (NOT (WIN32 AND MINGW AND MSYS))
 
 if (WIN32 AND MINGW AND MSYS)
     SET(CMAKE_DL_LIBS dl)
@@ -555,17 +555,23 @@ endif ()
 add_library(libqore SHARED ${LIBQORE_CPP_SRC} ${LIBQORE_ASM_SRC})
 add_dependencies(QPP_GENERATED_FILES qpp)
 add_dependencies(libqore QPP_GENERATED_FILES BISON_GENERATED_FILES FLEX_GENERATED_FILES)
+
 target_compile_definitions(libqore PUBLIC _QORE_LIB_INTERN HAVE_UNIX_CONFIG_H)
-target_include_directories(libqore PUBLIC ${Backtrace_INCLUDE_DIRS} ${BZIP2_INCLUDE_DIR} ${ICONV_INCLUDE_DIR} ${MPFR_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${PCRE_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/lib)
-target_link_libraries(libqore ${Backtrace_LIBRARIES} ${BZIP2_LIBRARIES} ${CMAKE_DL_LIBS} ${CMAKE_THREAD_LIBS_INIT} ${ICONV_LIBRARY} ${LIBQORE_LIBS} ${MPFR_LIBRARIES} ${OPENSSL_LIBRARIES} ${PCRE_LDFLAGS} ${ZLIB_LIBRARIES})
-set_target_properties(libqore PROPERTIES OUTPUT_NAME qore)
-if (APPLE)
-    set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
-endif (APPLE)
 if (WIN32 AND MINGW AND MSYS)
     target_compile_definitions(libqore PUBLIC BUILDING_DLL)
 endif (WIN32 AND MINGW AND MSYS)
 
+target_include_directories(libqore PUBLIC ${Backtrace_INCLUDE_DIRS} ${BZIP2_INCLUDE_DIR} ${ICONV_INCLUDE_DIR} ${MPFR_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${PCRE_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/lib)
+
+target_link_libraries(libqore ${Backtrace_LIBRARIES} ${BZIP2_LIBRARIES} ${CMAKE_DL_LIBS} ${CMAKE_THREAD_LIBS_INIT} ${ICONV_LIBRARY} ${LIBQORE_LIBS} ${MPFR_LIBRARIES} ${OPENSSL_LIBRARIES} ${PCRE_LDFLAGS} ${ZLIB_LIBRARIES})
+if (WIN32 AND MINGW AND MSYS)
+    target_link_libraries(libqore ${WINSOCKET_LIBRARIES})
+endif (WIN32 AND MINGW AND MSYS)
+
+set_target_properties(libqore PROPERTIES OUTPUT_NAME qore)
+if (APPLE)
+    set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
+endif (APPLE)
 
 add_executable(qore ${QORE_CPP_SRC})
 target_link_libraries(qore libqore)
