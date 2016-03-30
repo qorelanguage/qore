@@ -1210,11 +1210,11 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 	    return 0;
 	 }
 
-	 if (info) {
+         if (info)
 	    info->setKeyValue("chunked", &True, xsink);
-	    if (*xsink)
-	       return 0;
-	 }
+
+         if (*xsink)
+            return 0;
 
 	 if (!recv_callback) {
             // merge all keys except the "body" key into ans

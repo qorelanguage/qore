@@ -2020,10 +2020,15 @@ struct qore_socket_private {
       bool done = false;
 
       while (!done) {
-         // if we have reponse data already, then we assume an error and abort
-         if (aborted && isDataAvailable(0, mname, xsink)) {
-            *aborted = true;
-            return *xsink ? -1 : 0;
+         // if we have response data already, then we assume an error and abort
+         //if (aborted && isDataAvailable(0, mname, xsink)) {
+         if (aborted) {
+            bool data_available = isDataAvailable(0, mname, xsink);
+            //printd(5, "qore_socket_private::sendHttpChunkedWithCallback() this: %p aborted: %p iDA: %d\n", this, aborted, data_available);
+            if (data_available || *xsink) {
+               *aborted = true;
+               return *xsink ? -1 : 0;
+            }
          }
 
          // FIXME: subtract callback execution time from socket performance measurement
@@ -2564,8 +2569,7 @@ struct qore_socket_private {
          do_chunked_read(QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED, size, size + 2, source);
 
          if (recv_callback) {
-            int rc = runDataCallback(xsink, "readHTTPChunkedBody", *recv_callback, l, *buf, true);
-            if (rc)
+            if (runDataCallback(xsink, "readHTTPChunkedBody", *recv_callback, l, *buf, true))
                return 0;
             buf->clear();
          }
