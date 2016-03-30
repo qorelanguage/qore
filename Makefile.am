@@ -375,7 +375,6 @@ noinst_HEADERS = \
 	include/qore/intern/QoreLogicalNotEqualsOperatorNode.h \
 	include/qore/intern/QoreModuloOperatorNode.h \
 	include/qore/intern/QoreAssignmentOperatorNode.h \
-	include/qore/intern/QoreIntAssignmentOperatorNode.h \
 	include/qore/intern/QorePlusEqualsOperatorNode.h \
 	include/qore/intern/QoreIntPlusEqualsOperatorNode.h \
 	include/qore/intern/QoreMinusEqualsOperatorNode.h \

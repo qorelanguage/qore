@@ -487,6 +487,7 @@
     - fixed a bug on Windows where @ref Qore::glob() would fail on \c "\*" or \c "/*" (<a href="https://github.com/qorelanguage/qore/issues/664">issue 664</a>)
     - fixed a bug on Windows where @ref Qore::glob() would not return paths in sorted order by default (<a href="https://github.com/qorelanguage/qore/issues/665">issue 665</a>)
     - fixed a bug on Windows where the @ref Qore::Dir class would incorrectly normalize UNC paths by stripping the leading backslash (<a href="https://github.com/qorelanguage/qore/issues/666">issue 666</a>)
+    - fixed a bug where the @ref int_type "int" type restriction would accept any data type at runtime instead of throwing a \c RUNTIME-TYPE-ERROR exception (<a href="https://github.com/qorelanguage/qore/issues/683">issue 683</a>)
 
     @section qore_0811 Qore 0.8.11
 

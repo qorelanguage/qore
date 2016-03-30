@@ -166,7 +166,6 @@
 #include "QoreLogicalEqualsOperatorNode.cpp"
 #include "QoreModuloOperatorNode.cpp"
 #include "QoreAssignmentOperatorNode.cpp"
-#include "QoreIntAssignmentOperatorNode.cpp"
 #include "QorePlusEqualsOperatorNode.cpp"
 #include "QoreIntPlusEqualsOperatorNode.cpp"
 #include "QoreMinusEqualsOperatorNode.cpp"
