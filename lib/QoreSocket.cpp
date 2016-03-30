@@ -117,11 +117,14 @@ int sock_get_error() {
 	 errno = ECONNRESET;
 	 break;
 
+      case WSAEWOULDBLOCK:
+	 errno = EAGAIN;
+	 break;
+
 #ifdef DEBUG
       case WSAEALREADY:
       case WSAEINTR:
       case WSAEINPROGRESS:
-      case WSAEWOULDBLOCK:
 	 // should never get these here
 	 printd(0, "sock_get_error() got unexpected error code %d; about to assert()\n", rc);
 	 assert(false);
@@ -259,7 +262,6 @@ qore_socket_op_helper::qore_socket_op_helper(qore_socket_private* sock) : s(sock
 }
 
 qore_socket_op_helper::~qore_socket_op_helper() {
-   assert(s->in_op >= 0);
    s->in_op = -1;
 }
 
