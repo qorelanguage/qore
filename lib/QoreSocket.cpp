@@ -38,28 +38,28 @@
 
 #include <qore/intern/qore_socket_private.h>
 
-void se_in_op(const char* meth, ExceptionSink* xsink) {
+void se_in_op(const char* cname, const char* meth, ExceptionSink* xsink) {
    assert(xsink);
-   xsink->raiseException("SOCKET-IN-CALLBACK", "calls to Socket::%s() cannot be made from a callback on an operation on the same socket", meth);
+   xsink->raiseException("SOCKET-IN-CALLBACK", "calls to %s::%s() cannot be made from a callback on an operation on the same socket", cname, meth);
 }
 
-void se_in_op_thread(const char* meth, ExceptionSink* xsink) {
+void se_in_op_thread(const char* cname, const char* meth, ExceptionSink* xsink) {
    assert(xsink);
-   xsink->raiseException("SOCKET-IN-CALLBACK", "calls to Socket::%s() cannot be made from another thread while a callback operation is in progress on the same socket", meth);
+   xsink->raiseException("SOCKET-IN-CALLBACK", "calls to %s::%s() cannot be made from another thread while a callback operation is in progress on the same socket", cname, meth);
 }
 
-void se_not_open(const char* meth, ExceptionSink* xsink) {
+void se_not_open(const char* cname, const char* meth, ExceptionSink* xsink) {
    assert(xsink);
-   xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::%s() call", meth);
+   xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before %s::%s() call", cname, meth);
 }
 
-void se_timeout(const char* meth, int timeout_ms, ExceptionSink* xsink) {
+void se_timeout(const char* cname, const char* meth, int timeout_ms, ExceptionSink* xsink) {
    assert(xsink);
-   xsink->raiseException("SOCKET-TIMEOUT", "timed out after %d millisecond%s in Socket::%s() call", timeout_ms, timeout_ms == 1 ? "" : "s", meth);
+   xsink->raiseException("SOCKET-TIMEOUT", "timed out after %d millisecond%s in %s::%s() call", timeout_ms, timeout_ms == 1 ? "" : "s", cname, meth);
 }
 
-void se_closed(const char* mname, ExceptionSink* xsink) {
-   xsink->raiseException("SOCKET-CLOSED", "error in Socket::%s(): remote end closed the connection", mname);
+void se_closed(const char* cname, const char* mname, ExceptionSink* xsink) {
+   xsink->raiseException("SOCKET-CLOSED", "error in %s::%s(): remote end closed the connection", cname, mname);
 }
 
 #ifdef _Q_WINDOWS
@@ -484,25 +484,25 @@ void SocketSource::setAll(QoreObject *o, ExceptionSink* xsink) {
 void QoreSocket::doException(int rc, const char* meth, int timeout_ms, ExceptionSink* xsink) {
    switch (rc) {
       case 0:
-	 se_closed(meth, xsink);
+	 se_closed("Socket", meth, xsink);
 	 break;
       case QSE_RECV_ERR: // recv() error
 	 xsink->raiseException("SOCKET-RECV-ERROR", q_strerror(errno));
 	 break;
       case QSE_NOT_OPEN:
-	 se_not_open(meth, xsink);
+	 se_not_open("Socket", meth, xsink);
 	 break;
       case QSE_TIMEOUT:
-	 se_timeout(meth, timeout_ms, xsink);
+	 se_timeout("Socket", meth, timeout_ms, xsink);
 	 break;
       case QSE_SSL_ERR:
 	 xsink->raiseException("SOCKET-SSL-ERROR", "SSL error in Socket::%s() call", meth);
 	 break;
       case QSE_IN_OP:
-	 se_in_op(meth, xsink);
+	 se_in_op("Socket", meth, xsink);
 	 break;
       case QSE_IN_OP_THREAD:
-	 se_in_op_thread(meth, xsink);
+	 se_in_op_thread("Socket", meth, xsink);
 	 break;
       default:
 	 xsink->raiseException("SOCKET-ERROR", "unknown internal error code %d in Socket::%s() call", rc, meth);
@@ -553,7 +553,7 @@ int SSLSocketHelper::doSSLRW(const char* mname, void* buf, int size, int timeout
                if (xsink) {
 		  if (*xsink)
 		     return -1;
-                  se_timeout(mname, timeout_ms, xsink);
+                  se_timeout("Socket", mname, timeout_ms, xsink);
 	       }
                rc = QSE_TIMEOUT;
                break;
@@ -564,7 +564,7 @@ int SSLSocketHelper::doSSLRW(const char* mname, void* buf, int size, int timeout
                if (xsink) {
 		  if (*xsink)
 		     return -1;
-                  se_timeout(mname, timeout_ms, xsink);
+                  se_timeout("Socket", mname, timeout_ms, xsink);
 	       }
                rc = QSE_TIMEOUT;
                break;
@@ -632,7 +632,7 @@ int SSLSocketHelper::doSSLUpgradeNonBlockingIO(int rc, const char* mname, int ti
 
       if (*xsink)
 	 return -1;
-      se_timeout(mname, timeout_ms, xsink);
+      se_timeout("Socket", mname, timeout_ms, xsink);
       return QSE_TIMEOUT;
    }
 
@@ -642,7 +642,7 @@ int SSLSocketHelper::doSSLUpgradeNonBlockingIO(int rc, const char* mname, int ti
 
       if (*xsink)
 	 return -1;
-      se_timeout(mname, timeout_ms, xsink);
+      se_timeout("Socket", mname, timeout_ms, xsink);
       return QSE_TIMEOUT;
    }
 
@@ -1363,41 +1363,41 @@ int QoreSocket::recv(int fd, qore_offset_t size, int timeout) {
 
 // returns 0 for success
 int QoreSocket::sendHTTPMessage(const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source) {
-   return priv->sendHttpMessage(0, 0, method, path, http_version, headers, data, size, 0, source);
+   return priv->sendHttpMessage(0, 0, "Socket", "sendHTTPMessage", method, path, http_version, headers, data, size, 0, source);
 }
 
 // returns 0 for success
 int QoreSocket::sendHTTPMessage(QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source) {
-   return priv->sendHttpMessage(0, info, method, path, http_version, headers, data, size, 0, source);
+   return priv->sendHttpMessage(0, info, "Socket", "sendHTTPMessage", method, path, http_version, headers, data, size, 0, source);
 }
 
 int QoreSocket::sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source) {
-   return priv->sendHttpMessage(xsink, info, method, path, http_version, headers, data, size, 0, source);
+   return priv->sendHttpMessage(xsink, info, "Socket", "sendHTTPMessage", method, path, http_version, headers, data, size, 0, source);
 }
 
 int QoreSocket::sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source, int timeout_ms) {
-   return priv->sendHttpMessage(xsink, info, method, path, http_version, headers, data, size, 0, source, timeout_ms);
+   return priv->sendHttpMessage(xsink, info, "Socket", "sendHTTPMessage", method, path, http_version, headers, data, size, 0, source, timeout_ms);
 }
 
 int QoreSocket::sendHTTPMessageWithCallback(ExceptionSink* xsink, QoreHashNode *info, const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms) {
-   return priv->sendHttpMessage(xsink, info, method, path, http_version, headers, 0, 0, &send_callback, source, timeout_ms);
+   return priv->sendHttpMessage(xsink, info, "Socket", "sendHTTPMessageWithCallback", method, path, http_version, headers, 0, 0, &send_callback, source, timeout_ms);
 }
 
 // returns 0 for success
 int QoreSocket::sendHTTPResponse(int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source) {
-   return priv->sendHttpResponse(0, code, desc, http_version, headers, data, size, 0, source);
+   return priv->sendHttpResponse(0, "Socket", "sendHTTPResponse", code, desc, http_version, headers, data, size, 0, source);
 }
 
 int QoreSocket::sendHTTPResponse(ExceptionSink* xsink, int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source) {
-   return priv->sendHttpResponse(xsink, code, desc, http_version, headers, data, size, 0, source);
+   return priv->sendHttpResponse(xsink, "Socket", "sendHTTPResponse", code, desc, http_version, headers, data, size, 0, source);
 }
 
 int QoreSocket::sendHTTPResponse(ExceptionSink* xsink, int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source, int timeout_ms) {
-   return priv->sendHttpResponse(xsink, code, desc, http_version, headers, data, size, 0, source, timeout_ms);
+   return priv->sendHttpResponse(xsink, "Socket", "sendHTTPResponse", code, desc, http_version, headers, data, size, 0, source, timeout_ms);
 }
 
 int QoreSocket::sendHTTPResponseWithCallback(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms) {
-   return priv->sendHttpResponse(xsink, code, desc, http_version, headers, 0, 0, &send_callback, source, timeout_ms);
+   return priv->sendHttpResponse(xsink, "Socket", "sendHTTPResponseWithCallback", code, desc, http_version, headers, 0, 0, &send_callback, source, timeout_ms);
 }
 
 AbstractQoreNode* QoreSocket::readHTTPHeader(int timeout, int *rc, int source) {
@@ -1435,12 +1435,12 @@ QoreStringNode* QoreSocket::readHTTPHeaderString(ExceptionSink* xsink, int timeo
 
 // receive a binary message in HTTP chunked format
 QoreHashNode* QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink* xsink, int source) {
-   return priv->readHttpChunkedBodyBinary(timeout, xsink, source);
+   return priv->readHttpChunkedBodyBinary(timeout, xsink, "Socket", source);
 }
 
 // receive a message in HTTP chunked format
 QoreHashNode* QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink* xsink, int source) {
-   return priv->readHttpChunkedBody(timeout, xsink, source);
+   return priv->readHttpChunkedBody(timeout, xsink, "Socket", source);
 }
 
 bool QoreSocket::isDataAvailable(int timeout) const {
