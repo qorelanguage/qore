@@ -14,11 +14,12 @@
 class Test inherits QUnit::Test {
     constructor() : QUnit::Test("operators", "1.0", \ARGV) {
         addTestCase("basic operator tests", \basicTests());
+        addTestCase("date tests", \dateTests());
         addTestCase("lvalue tests", \lvalueTests());
         addTestCase("const modulo", \constModulo());
         addTestCase("post/pre inc/dec", \postPreIncDec());
         addTestCase("identity assignment", \idAssignment());
-        addTestCase("int test", \intTest());
+        addTestCase("assignment type restriction test", \assignmentTypeRestrictionTest());
         set_return_value(main());
     }
 
@@ -66,56 +67,6 @@ class Test inherits QUnit::Test {
         testAssertionValue("float -= operator", f, 1.1);
         f = 5.5 * 2.0;
         testAssertionValue("float * operator", f, 11.0);
-
-        testAssertionValue("date > operator", now() > (now() - 1D), True);
-        testAssertionValue("date >= operator", now() >= (now() - 1h), True);
-        testAssertionValue("date < operator", (now() - 1m) < now(), True);
-        testAssertionValue("date <= operator", (now() - 1M) <= now(), True);
-
-        date bt = date at = now();
-        testAssertionValue("date == operator", at, bt);
-        at = 2004-02-28-12:00:00;
-        at += 1D;
-        testAssertionValue("first date += operator", at, 2004-02-29-12:00:00);
-        at -= (3h + 5m);
-        testAssertionValue("second date += operator", at, 2004-02-29-08:55:00);
-
-        # relative date arithmetic tests
-        assertEq(3s, 5s - 2s);
-        assertEq(-1s, 2s - 3s);
-        # check for normalization between hours & minutes
-        assertEq(30m, 1h - 30m);
-        # rel date - abs date is performed by using the seconds + us offset from the epoch in the absolute date
-        assertEq(15s, 30s - 1970-01-01T00:00:15Z);
-
-        # relative date comparison tests
-        assertEq(True, 72h > 2D);
-        assertEq(True, 72h == 3D);
-        assertEq(True, 72h < 4D);
-        assertEq(True, 7201s > 2h);
-        assertEq(True, 7200s == 2h);
-        assertEq(True, 7199s < 2h);
-        assertEq(True, 86401s > 1D);
-        assertEq(True, 86400s == 1D);
-        assertEq(True, 86399s < 1D);
-        assertEq(True, 32D > 1M);
-        assertEq(True, 31D == 1M);
-        assertEq(True, 30D < 1M);
-        assertEq(True, 2678399s < 1M);
-        assertEq(True, 2678400s == 1M);
-        assertEq(True, 2678401s > 1M);
-        assertEq(True, P1M32D > 2M);
-        assertEq(True, P1M31D == 2M);
-        assertEq(True, P1M30D < 2M);
-        assertEq(True, 13M > 1Y);
-        assertEq(True, 12M == 1Y);
-        assertEq(True, 11M < 1Y);
-        assertEq(True, 366D > 1Y);
-        assertEq(True, 365D == 1Y);
-        assertEq(True, 364D < 1Y);
-        assertEq(True, 86400s + 1us > 1D);
-        assertEq(True, 86400s + 1000ms == 1D + 1s);
-        assertEq(True, 86400s + 20ms < 1D + 1s);
 
         any ni += 3.2;
         testAssertionValue("float +=, lhs NOTHING", ni, 3.2);
@@ -171,6 +122,58 @@ class Test inherits QUnit::Test {
         Program p(PO_NEW_STYLE);
         testAssertion("trim operator parse-time return value", \p.parse(), ("string sub test() {string str = \"a string \\n\"; string astr = trim str; return astr;}", "trim operator test"), new TestResultValue(NOTHING));
         testAssertionValue("trim operator", p.callFunction("test"), "a string");
+    }
+
+    dateTests() {
+        assertTrue(now() > (now() - 1D));
+        assertTrue(now() >= (now() - 1h));
+        assertTrue((now() - 1m) < now());
+        assertTrue((now() - 1M) <= now());
+
+        date bt = date at = now();
+        assertTrue(at == bt);
+        at = 2004-02-28-12:00:00;
+        at += 1D;
+        assertEq(2004-02-29-12:00:00, at);
+        at -= (3h + 5m);
+        assertEq(2004-02-29-08:55:00, at);
+
+        # relative date arithmetic tests
+        assertEq(3s, 5s - 2s);
+        assertEq(-1s, 2s - 3s);
+        # check for normalization between hours & minutes
+        assertEq(30m, 1h - 30m);
+        # rel date - abs date is performed by using the seconds + us offset from the epoch in the absolute date
+        assertEq(15s, 30s - 1970-01-01T00:00:15Z);
+
+        # relative date comparison tests
+        assertEq(True, 72h > 2D);
+        assertEq(True, 72h == 3D);
+        assertEq(True, 72h < 4D);
+        assertEq(True, 7201s > 2h);
+        assertEq(True, 7200s == 2h);
+        assertEq(True, 7199s < 2h);
+        assertEq(True, 86401s > 1D);
+        assertEq(True, 86400s == 1D);
+        assertEq(True, 86399s < 1D);
+        assertEq(True, 32D > 1M);
+        assertEq(True, 31D == 1M);
+        assertEq(True, 30D < 1M);
+        assertEq(True, 2678399s < 1M);
+        assertEq(True, 2678400s == 1M);
+        assertEq(True, 2678401s > 1M);
+        assertEq(True, P1M32D > 2M);
+        assertEq(True, P1M31D == 2M);
+        assertEq(True, P1M30D < 2M);
+        assertEq(True, 13M > 1Y);
+        assertEq(True, 12M == 1Y);
+        assertEq(True, 11M < 1Y);
+        assertEq(True, 366D > 1Y);
+        assertEq(True, 365D == 1Y);
+        assertEq(True, 364D < 1Y);
+        assertEq(True, 86400s + 1us > 1D);
+        assertEq(True, 86400s + 1000ms == 1D + 1s);
+        assertEq(True, 86400s + 20ms < 1D + 1s);
     }
 
     lvalueTests() {
@@ -244,10 +247,59 @@ class Test inherits QUnit::Test {
         }
     }
 
-    intTest() {
+    assignmentTypeRestrictionTest() {
+        bool b;
+        binary bn;
+        code c;
+        date d;
+        float f;
+        hash h;
         int i;
-        any h = {};
-        # test issue 683
-        assertThrows("RUNTIME-TYPE-ERROR", sub () {i = h;});
+        list lst;
+        number n;
+        string s;
+        timeout t;
+        softbool sb;
+        softdate sd;
+        softfloat sf;
+        softint si;
+        softnumber sn;
+        softstring ss;
+
+        any x = {};
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {b = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {bn = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {c = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {d = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {f = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {i = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {lst = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {n = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {s = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {t = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {sb = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {sd = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {sf = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {si = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {sn = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {ss = x;});
+
+        x = list();
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {b = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {bn = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {c = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {d = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {f = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {h = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {i = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {n = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {s = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {t = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {sb = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {sd = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {sf = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {si = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {sn = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {ss = x;});
     }
 }
