@@ -488,6 +488,8 @@
     - fixed a bug on Windows where @ref Qore::glob() would not return paths in sorted order by default (<a href="https://github.com/qorelanguage/qore/issues/665">issue 665</a>)
     - fixed a bug on Windows where the @ref Qore::Dir class would incorrectly normalize UNC paths by stripping the leading backslash (<a href="https://github.com/qorelanguage/qore/issues/666">issue 666</a>)
     - fixed a bug where the @ref int_type "int" type restriction would accept any data type at runtime instead of throwing a \c RUNTIME-TYPE-ERROR exception (<a href="https://github.com/qorelanguage/qore/issues/683">issue 683</a>)
+    - fixed bugs reporting the current method context with certain @ref Qore::HTTPClient "HTTPClient" methods that would report the @ref Qore::Socket "Socket" class instead (<a href="https://github.com/qorelanguage/qore/issues/689">issue 689</a>)
+    - fixed a bug handling aborted HTTP chunked transfers; now any data available for reading on a socket when a chunked transfer is aborted is read instead of having a \c SOCKET-SEND-ERROR thrown when the remote end closes the socket during the transfer (<a href="https://github.com/qorelanguage/qore/issues/691">issue 691</a>)
 
     @section qore_0811 Qore 0.8.11
 
