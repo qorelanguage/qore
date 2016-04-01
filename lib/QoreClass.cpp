@@ -2266,6 +2266,12 @@ void QoreMethod::assign_class(const QoreClass* p_class) {
    priv->parent_class = p_class;
 }
 
+QoreValue QoreMethod::execManaged(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
+   // to ensure the object does not get referenced for the call
+   ObjectSubstitutionHelper osh(self);
+   return qore_method_private::eval(*this, self, args, xsink);
+}
+
 // FIXME: DEPRECATED API non functional
 bool QoreMethod::isSynchronized() const {
    return false;

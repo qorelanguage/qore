@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -165,6 +165,13 @@ public:
       overloaded)
    */
    DLLEXPORT const QoreTypeInfo* getUniqueReturnTypeInfo() const;
+
+   //! evaluates the method and returns the value, does not reference the object for the call
+   /** @note this method should only be used when the caller can guarantee that the object will not go out of scope during the call
+
+       @since %Qore 0.8.12
+    */
+   DLLEXPORT QoreValue execManaged(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const;
 
    DLLLOCAL QoreMethod(const QoreClass* p_class, MethodFunctionBase* n_func, bool n_static = false);
 
