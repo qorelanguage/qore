@@ -808,8 +808,8 @@ my any $v = $c.name;
         }
 
         private list featuresImpl() {
-            return list(DB_FUNCTIONS, DB_PROCEDURES,
-                        DB_SEQUENCES, DB_TABLES, DB_TYPES, DB_VIEWS);
+            return (DB_FUNCTIONS, DB_PROCEDURES, DB_SEQUENCES,
+                    DB_TABLES, DB_TYPES, DB_VIEWS, DB_MVIEWS);
         }
 
         PgsqlType makeType(string name, string src, *hash opts) {
@@ -1067,8 +1067,11 @@ my any $v = $c.name;
 
         #! returns a list of string table names in the database
         private list listTablesImpl() {
-            return ds.select("select n.nspname \"schema\", c.relname \"name\", case c.relkind when 'r' then 'table' when 'v' then 'view' when 'i' then 'index' when 'S' then 'sequence' when 's' then 'special' when 'f' then 'foreign table' end \"Type\", pg_catalog.pg_get_userbyid(c.relowner) \"owner\" from pg_catalog.pg_class c left join pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'information_schema' and n.nspname !~ '^pg_toast' and pg_catalog.pg_table_is_visible(c.oid) order by 1,2").name;
+            string sql = "select n.nspname as schema, c.relname as name, pg_catalog.pg_get_userbyid(c.relowner) as owner,"
+                               " case c.relkind when 'r' then 'table' when 'v' then 'view' when 'i' then 'index' when 'S' then 'sequence' when 's' then 'special' when 'f' then 'foreign table' end as type"
+                          " from pg_catalog.pg_class c left join pg_catalog.pg_namespace n ON n.oid = c.relnamespace"
+                         " where c.relkind in ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'information_schema' and n.nspname !~ '^pg_toast' and pg_catalog.pg_table_is_visible(c.oid) order by 1,2";
+            return ds.select(sql).name;
         }
 
         #! returns a list of string function names in the database
@@ -1077,7 +1080,11 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             @return a list of string function names in the database
         */
         private list listFunctionsImpl() {
-            *hash qh = ds.select("select n.nspname schema, p.proname name, pg_catalog.pg_get_function_result(p.oid) result_type, pg_catalog.pg_get_function_arguments(p.oid) args, case when p.proisagg then 'agg' when p.proiswindow then 'window' when p.prorettype = 'pg_catalog.trigger'::pg_catalog.regtype then 'trigger' else 'normal' end type from pg_catalog.pg_proc p left join pg_catalog.pg_namespace n ON n.oid = p.pronamespace where n.nspname ~ '^(public)$' order by 1, 2, 4");
+            string sql = "select n.nspname as schema, p.proname as name, pg_catalog.pg_get_function_result(p.oid) as result_type, pg_catalog.pg_get_function_arguments(p.oid) as args,"
+                               " case when p.proisagg then 'agg' when p.proiswindow then 'window' when p.prorettype = 'pg_catalog.trigger'::pg_catalog.regtype then 'trigger' else 'normal' end as type"
+                          " from pg_catalog.pg_proc p left join pg_catalog.pg_namespace n on n.oid = p.pronamespace"
+                         " where n.nspname ~ '^(public)$' order by 1, 2, 4";
+            *hash qh = ds.select(sql);
 
             return map sprintf("%s(%s)", $1.name, $1.args), qh.contextIterator();
         }
@@ -1090,11 +1097,36 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
 
         private list listSequencesImpl() {
-            return ds.select("select relname from pg_class where relkind = 'S'").relname;
+            return ds.select("select relname from pg_class where relkind = 'S' order by 1").relname;
         }
 
         private list listViewsImpl() {
-            return ds.select("select table_name from information_schema.views where table_schema = any (current_schemas(false))").table_name;
+            return ds.select("select table_name from information_schema.views where table_schema = any (current_schemas(false)) order by 1").table_name;
+        }
+
+        #! returns a list of string materialized view names in the database
+        list listMaterializedViews() {
+            string sql = "select relname from pg_class"
+                         " where relkind = 'r' and relnamespace in"
+                               " (select oid from pg_namespace"
+                                 " where nspname != 'information_schema' and nspname not like 'pg\_%')"
+                         " order by 1";
+            return ds.select(sql).relname;
+        }
+
+        #! returns an iterator listing the string materialized view names in the database
+        ListIterator materializedViewIterator() {
+            return listMaterializedViews().iterator();
+        }
+
+        #! returns a list of string type names in the database
+        list listTypes() {
+            return ds.select("select user_defined_type_name as name from information_schema.user_defined_types order by 1").name;
+        }
+
+        #! returns an iterator listing the string type names in the database
+        ListIterator typeIterator() {
+            return listTypes().iterator();
         }
 
         #! returns a string that can be used to create the schema in the database
