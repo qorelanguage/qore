@@ -808,8 +808,8 @@ my any $v = $c.name;
         }
 
         private list featuresImpl() {
-            return list(DB_FUNCTIONS, DB_PROCEDURES,
-                        DB_SEQUENCES, DB_TABLES, DB_TYPES, DB_VIEWS);
+            return (DB_FUNCTIONS, DB_PROCEDURES, DB_SEQUENCES,
+                    DB_TABLES, DB_TYPES, DB_VIEWS, DB_MVIEWS);
         }
 
         PgsqlType makeType(string name, string src, *hash opts) {
@@ -1102,6 +1102,21 @@ my any $v = $c.name;
 
         private list listViewsImpl() {
             return ds.select("select table_name from information_schema.views where table_schema = any (current_schemas(false)) order by 1").table_name;
+        }
+
+        #! returns a list of string materialized view names in the database
+        list listMaterializedViews() {
+            string sql = "select relname from pg_class"
+                         " where relkind = 'r' and relnamespace in"
+                               " (select oid from pg_namespace"
+                                 " where nspname != 'information_schema' and nspname not like 'pg\_%')"
+                         " order by 1";
+            return ds.select(sql).relname;
+        }
+
+        #! returns an iterator listing the string materialized view names in the database
+        ListIterator materializedViewIterator() {
+            return listMaterializedViews().iterator();
         }
 
         #! returns a list of string type names in the database
