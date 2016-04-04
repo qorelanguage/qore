@@ -1104,6 +1104,16 @@ my any $v = $c.name;
             return ds.select("select table_name from information_schema.views where table_schema = any (current_schemas(false)) order by 1").table_name;
         }
 
+        #! returns a list of string type names in the database
+        list listTypes() {
+            return ds.select("select user_defined_type_name as name from information_schema.user_defined_types order by 1").name;
+        }
+
+        #! returns an iterator listing the string type names in the database
+        ListIterator typeIterator() {
+            return listTypes().iterator();
+        }
+
         #! returns a string that can be used to create the schema in the database
         private string getCreateSqlImpl(list l) {
             return PgsqlDatabase::getCreateSql(l);
