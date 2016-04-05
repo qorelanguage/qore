@@ -65,6 +65,7 @@ class ProgramTest inherits QUnit::Test {
     constructor() : QUnit::Test("ProgramTest", "1.0", \ARGV) {
 	addTestCase("Program test", \programTest());
 	addTestCase("Combine test", \combineTest());
+        addTestCase("Int assignments test", \intAssignmentsTest());
 	set_return_value(main());
     }
 
@@ -149,5 +150,21 @@ class ProgramTest inherits QUnit::Test {
     combineTest() {
 	Program p(PO_NEW_STYLE);
 	testAssertion("combine", \p.parse(), (CombineSrc, "combine-test"), new TestResultExceptionRegexp("PARSE-ERROR", "B2"));
+    }
+
+    intAssignmentsTest() {
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("any h = {}; int i = h;", "");
+
+            assertThrows("RUNTIME-TYPE-ERROR", \p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_BROKEN_INT_ASSIGNMENTS);
+            p.parse("any h = {}; int i = h;", "");
+
+            assertEq(NOTHING, p.run());
+        }
     }
 }

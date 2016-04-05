@@ -3,7 +3,7 @@
 
   Qore Programming language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -82,6 +82,7 @@ void ParseOptionMap::static_init() {
    DO_MAP("no-system-constants",      PO_NO_INHERIT_SYSTEM_CONSTANTS);
    DO_MAP("broken-list-parsing",      PO_BROKEN_LIST_PARSING);
    DO_MAP("broken-logic-precedence",  PO_BROKEN_LOGIC_PRECEDENCE);
+   DO_MAP("broken-int-assignments",   PO_BROKEN_INT_ASSIGNMENTS);
 }
 
 int ParseOptionMap::find_code(const char *name) {

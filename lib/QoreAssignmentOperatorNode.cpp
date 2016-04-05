@@ -45,6 +45,11 @@ AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int
    // return type info is the same as the lvalue's typeinfo
    typeInfo = ti;
 
+   // if "broken-int-assignments" is set, then cle if applicable
+   if ((ti == bigIntTypeInfo || ti == softBigIntTypeInfo)
+       && (getProgram()->getParseOptions64() & PO_BROKEN_INT_ASSIGNMENTS))
+      broken_int = true;
+
    const QoreTypeInfo* r = 0;
    right = right->parseInit(oflag, pflag, lvids, r);
 
@@ -81,9 +86,17 @@ QoreValue QoreAssignmentOperatorNode::evalValueImpl(bool& needs_deref, Exception
    if (*xsink)
       return QoreValue();
 
-   // we have to ensure that the value is referenced before the assignment in case the lvalue
-   // is the same value, so it can be copied in the LValueHelper constructor
-   new_value.ensureReferencedValue();
+   if (broken_int) {
+      // convert the value to an int unconditionally
+      new_value.setTemp(new_value->getAsBigInt());
+      if (*xsink)
+         return QoreValue();
+   }
+   else {
+      // we have to ensure that the value is referenced before the assignment in case the lvalue
+      // is the same value, so it can be copied in the LValueHelper constructor
+      new_value.ensureReferencedValue();
+   }
 
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);

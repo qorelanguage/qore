@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -417,6 +417,13 @@ const PO_BROKEN_LIST_PARSING = PO_BROKEN_LIST_PARSING;
     @since %Qore 0.8.12
 */
 const PO_BROKEN_LOGIC_PRECEDENCE = PO_BROKEN_LOGIC_PRECEDENCE;
+
+//! allows for old pre-%Qore 0.8.12 broken runtime @ref int_type "int" assignmetns where runtime type errors were ignored
+/** @see @ref broken-int-assignments
+
+    @since %Qore 0.8.12
+*/
+const PO_BROKEN_INT_ASSIGNMENTS = PO_BROKEN_INT_ASSIGNMENTS;
 //@}
 
 /** @defgroup warning_constants Warning Constants
