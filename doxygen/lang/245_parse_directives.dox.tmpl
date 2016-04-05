@@ -197,23 +197,6 @@
     @see @ref assume-global "%assume-global"
 
     <hr>
-    @section broken-list-parsing %broken-list-parsing
-
-    @par Parse Directive:
-    <tt>%%broken-list-parsing</tt>
-
-    @par Command Line:
-    <tt>-</tt><tt>-broken-list-parsing</tt>
-
-    @par Parse Option Constant:
-    @ref Qore::PO_BROKEN_LIST_PARSING
-
-    @par Description:
-    Use old pre-0.8.12 broken list parsing where certain lists without parentheses would be rewritten to make top-level statements like <tt>list l = 1, 2, 3;</tt> valid.
-
-    @since %Qore 0.8.12
-
-    <hr>
     @section broken-int-assignments %broken-int-assignments
 
     @par Parse Directive:
@@ -227,6 +210,23 @@
 
     @par Description:
     Use old pre-0.8.12 broken @ref int_type "int" and @ref softint_type "softint" runtime handling where type errors were ignored at runtime.
+
+    @since %Qore 0.8.12
+
+    <hr>
+    @section broken-list-parsing %broken-list-parsing
+
+    @par Parse Directive:
+    <tt>%%broken-list-parsing</tt>
+
+    @par Command Line:
+    <tt>-</tt><tt>-broken-list-parsing</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_BROKEN_LIST_PARSING
+
+    @par Description:
+    Use old pre-0.8.12 broken list parsing where certain lists without parentheses would be rewritten to make top-level statements like <tt>list l = 1, 2, 3;</tt> valid.
 
     @since %Qore 0.8.12
 
