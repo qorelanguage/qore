@@ -989,7 +989,7 @@ find_openssl() {
 }
 
 if test "$mingw" = yes; then
-    LIBS="$LIBS -lgdi32 -lz"
+    LIBS="$LIBS -lgdi32 -lz -lpsapi"
 fi
 
 # see if we can figure out where the openssl library is
