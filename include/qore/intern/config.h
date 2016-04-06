@@ -38,7 +38,7 @@
 #endif
 
 #ifdef HAVE_UNIX_CONFIG_H
-#include <qore/intern/unix-config.h>
+#include "unix-config.h"
 #else
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #include "win32-config.h"
