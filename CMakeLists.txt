@@ -68,8 +68,8 @@ set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB})
 
 set(MODULE_DIR ${CMAKE_INSTALL_FULL_LIBDIR}/qore-modules)
 set(MODULE_VER_DIR ${MODULE_DIR}/${VERSION})
-set(QORE_USER_MODULES_DIR ${CMAKE_INSTALL_FULL_DATADIR}/qore-modules/)
-set(QORE_USER_MODULES_VER_DIR ${QORE_USER_MODULES_DIR}${VERSION})
+set(USER_MODULE_DIR ${CMAKE_INSTALL_FULL_DATADIR}/qore-modules/)
+set(USER_MODULE_VER_DIR ${USER_MODULE_DIR}${VERSION})
 
 
 set(LIBQORE_QPP_SRC
@@ -646,7 +646,7 @@ endif (DOXYGEN_FOUND)
 # HACK: we need to simulate QORE_USER_MODULES_DIR as the versioned one
 #       for qore core qlib modules.
 # NOTE: anything below will be installed into versioned dirs!
-set(QORE_USER_MODULES_DIR ${QORE_USER_MODULES_VER_DIR})
+set(QORE_USER_MODULES_DIR ${USER_MODULE_VER_DIR})
 # modules must go after docs target - it’s depending on it
 qore_user_modules("${QMOD}")
 
