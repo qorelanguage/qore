@@ -2690,6 +2690,11 @@ my any $v = $c.name;
             return True;
         }
 
+        #! returns @ref True if the database requires a wildcard \c "*" to be prefixed with the table name when it appears with other column arguments in a select statement
+        private bool asteriskRequiresPrefix() {
+            return True;
+        }
+
         private *hash doReturningImpl(hash opt, reference sql, list args) {
             list l = ();
             foreach softstring k in (opt.returning) {
