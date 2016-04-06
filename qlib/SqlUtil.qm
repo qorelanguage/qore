@@ -134,6 +134,7 @@ module SqlUtil {
     - fixed bugs in @ref SqlUtil::cop_seq() and @ref SqlUtil::cop_seq_currval() (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
     - fixed a bug in @ref SqlUtil::join_inner() where the \a cond argument was ignored (<a href="https://github.com/qorelanguage/qore/issues/645">issue 645</a>)
     - fixed @ref SqlUtil::uop_lower() and @ref SqlUtil::uop_upper() operators to allow nesting (<a href="https://github.com/qorelanguage/qore/issues/657">issue 657</a>)
+    - fixed a bug where SqlUtil was generating invalid SQL for some DBs where a wilcard was used with explicit column names (<a href="https://github.com/qorelanguage/qore/issues/708">issue 708</a>)
 
     @subsection sqlutilv1_2 SqlUtil v1.2
     - added insert operator support; for example, for inserting with values from sequences
@@ -5664,7 +5665,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
                 #printf("%s\nXXXXXXXXXXXXXXX\n%s\n", src1, src2);
                 return False;
             }
-            #printf("%s\nXXXXXX EQUAL XXXXXXXXX\n%s\n", src1, src2);
+            #printf("%s\nXXXXXX EQUAL XXXXXX\n%s\n", src1, src2);
 
             return equalImpl(t);
         }
@@ -11837,6 +11838,8 @@ string sql = table.getSelectSql(sh, \args);
             if (cv =~ /^_/)
                 return cv;
 
+            bool use_prefix = join;
+
             # see if we have a table.column spec
             *string tp = (cv =~ x/(\w+)\..+/)[0];
             if (tp) {
@@ -11859,14 +11862,21 @@ string sql = table.getSelectSql(sh, \args);
             }
             else {
                 tp = getSqlName();
-                if (cv != "*" && !columns.hasKey(cv) && !psch{cv})
+                if (cv == "*")
+                   use_prefix = asteriskRequiresPrefix();
+                else if (!columns.hasKey(cv) && !psch{cv})
                     throw "SELECT-ERROR", sprintf("%s: query references unknown column \"%s.%s\"; known columns: %y", getDesc(), tp, cv, columns.keys());
             }
 
             # ensure that reserved words are properly quoted
             cv = getColumnSqlName(cv);
 
-            return join ? sprintf("%s.%s", tp, cv) : cv;
+            return use_prefix ? sprintf("%s.%s", tp, cv) : cv;
+        }
+
+        #! returns @ref True if the database requires a wildcard \c "*" to be prefixed with the table name when it appears with other column arguments in a select statement
+        private bool asteriskRequiresPrefix() {
+            return False;
         }
 
         private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False, *hash ch, *hash psch) {
