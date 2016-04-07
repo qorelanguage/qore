@@ -47,7 +47,7 @@
     For detailed information on %Qore character encoding handling, please see @ref character_encoding.\n\n
     It is legal to specify a string literal with newline characters like the following:\n
     @code{.py}
-$str = "this string is
+str = "this string is
 on more than 1 line";
     @endcode \n
     See @ref string_escape_chars "string escape characters" for a description of escape characters in double-quoted strings.\n\n
@@ -229,11 +229,11 @@ prompt% qore -X '18:35:26+08:00'
     .
     Such values are recommended to give to functions and methods taking a timeout value as the units are then clear in the source code (whereas if an integer is given, it may not be clear that the function or method expects a value in milliseconds, for example); for example:
     @code{.py}
-my any $val = $q.pop(20s);
+any val = q.pop(20s);
     @endcode
     is clearer than the alternative with an argument given as a value in implied milliseconds to the @ref Qore::Thread::Queue::pop(timeout) "Queue::pop()" method:
     @code{.py}
-my any $val = $q.pop(20000);
+any val = q.pop(20000);
     @endcode
     <b>Date Specifiers For Single Values For Relative Dates (non-<a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> syntax)</b>
     |!Component|!Meaning|!Example|!Description

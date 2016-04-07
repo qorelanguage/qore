@@ -1527,6 +1527,11 @@ my string $str = $table.getSqlValue($date);
             }
         }
 
+        #! returns @ref True if the database requires a wildcard \c "*" to be prefixed with the table name when it appears with other column arguments in a select statement
+        private bool asteriskRequiresPrefix() {
+            return True;
+        }
+
         private *hash doReturningImpl(hash opt, reference sql, list args) {
             throw "RETURNING-ERROR", sprintf("table %s: the mysql driver does not support the returning clause in an insert statement", getSqlName());
         }

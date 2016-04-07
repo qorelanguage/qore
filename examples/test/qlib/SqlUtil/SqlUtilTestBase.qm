@@ -103,6 +103,15 @@ public class SqlTestBase inherits QUnit::Test {
             else
                 assertEq (e.value, rows[0]{e.key}, "checking data in column " + e.key);
         }
+
+        # select a single column and then asterisk
+        string col = table.describe().firstKey();
+        hash sh = (
+            "columns": (cop_as(col, "col"), "*"),
+            "limit": 1,
+            );
+
+        assertEq(Type::Hash, table.selectRow(sh).type());
     }
 
     updateTest() {

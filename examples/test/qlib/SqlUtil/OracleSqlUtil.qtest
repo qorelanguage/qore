@@ -153,6 +153,7 @@ class OracleTest inherits SqlTestBase {
             table = (new Table(schema.getDatasource(), "oracle_test")).getTable();
 
             addTestCase("sequence operators", \testSequenceOperators());
+            addTestCase("pseudo-columns", \testPseudoColumns());
         }
 
         set_return_value(main());
@@ -168,6 +169,18 @@ class OracleTest inherits SqlTestBase {
             );
 
         assertEq(("id": 2, "seq": 1, "seq_currval": 1), table.selectRow(sh));
+    }
+
+    testPseudoColumns() {
+        if (!table)
+            testSkip("no DB connection");
+
+        hash sh = (
+            "columns": ("rowid", "*"),
+            "limit": 1,
+            );
+
+        assertEq(Type::String, table.selectRow(sh).rowid.type());
     }
 
     private usageIntern() {

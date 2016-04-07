@@ -3,14 +3,14 @@
     Functions and methods can be overloaded if parameter types are declared as in the following example:
 
     @code{.py}
-int sub example(int $i) {
-    printf("i=%d\n", $i);
-    return $i + 1;
+int sub example(int i) {
+    printf("i=%d\n", i);
+    return i + 1;
 }
 
-string sub example(string $str) {
-    printf("str=%s\n", $str);
-    return $str + "foo";
+string sub example(string str) {
+    printf("str=%s\n", str);
+    return str + "foo";
 }
     @endcode
 
