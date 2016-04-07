@@ -21,6 +21,7 @@ class StringTest inherits QUnit::Test {
         addTestCase("Regex test", \testRegex());
         addTestCase("Chomp and trim test", \testChompAndTrim());
         addTestCase("Float strings test", \testFloat());
+        addTestCase("String conversion test", \testConversions());
         set_return_value(main());
     }
 
@@ -321,5 +322,8 @@ class StringTest inherits QUnit::Test {
         assertEq(sprintf("%g", 1.5), "1.5", "%f float");
         assertEq(sprintf("%g", 1.5n), "1.5", "%f number");
     }
-}
 
+    testConversions() {
+        assertEq("", string(NULL));
+    }
+}

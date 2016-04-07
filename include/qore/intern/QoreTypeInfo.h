@@ -1886,9 +1886,13 @@ protected:
          return true;
 
       if (t == NT_INT
-          || t == NT_BOOLEAN
-          || t == NT_NULL) {
+          || t == NT_BOOLEAN) {
          discard(n.assign(new QoreStringNodeMaker(QLLD, n.getAsBigInt())), xsink);
+         return true;
+      }
+
+      if (t == NT_NULL) {
+         n.assign(NullString->stringRefSelf());
          return true;
       }
 
