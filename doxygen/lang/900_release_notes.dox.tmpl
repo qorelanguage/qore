@@ -157,8 +157,8 @@
     - Performance improvements:
       - @ref Qore::HashPairIterator and @ref Qore::ObjectPairIterator objects (returned by @ref <hash>::pairIterator() and @ref <object>::pairIterator(), respectively and the associated reverse iterators) have had their performance improved by approximately 70% by reusing the hash iterator object when possible
     - module directory handling changed
-      - user modules are now stored in $prefix/share/qore-modules/$version
-      - $prefix/share/qore-modules is also added to the module path
+      - user modules are now stored in prefix/share/qore-modules/version
+      - prefix/share/qore-modules is also added to the module path
       - version-specific module directories are added first, then the "generic" directories
     - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
       - new \c "tolwr" option in structured text parsing classes
@@ -1066,8 +1066,8 @@
     To get the old strict mathematical boolean evaluation, use the @ref strict-bool-eval "%strict-bool-eval" parse option.\n\n
     An example of the change; now the following @ref if "if statement" block will be executed as the <tt><b>if</b></tt> expression is now evaluated as @ref Qore::True "True":
     @code{.py}
-    my string $str = "hello";
-    if ($str)
+    string str = "hello";
+    if (str)
         printf("Qore says hello\n");
     @endcode
     Previously (i.e. with @ref strict-bool-eval "%strict-bool-eval") the <tt><b>if</b></tt> expression above would be evaluated as @ref Qore::False "False" because the string value was converted to an integer 0, however as of %Qore 0.8.6 (with the default @ref perl-bool-eval "perl-bool-eval") it is @ref Qore::True "True" since the string is not empty; empty strings and string value \c "0" are evaluated as @ref Qore::False "False".\n\n
@@ -1116,7 +1116,7 @@
     The new @ref try-module "%try-module" parse directive allows for module load errors to be handled at parse time; ex:
     @code{.py}
 %try-module($ex) some-module > 1.0
-    printf("error loading module %y: %s: %s\n", $ex.arg, $ex.err, $ex.desc);
+    printf("error loading module %y: %s: %s\n", ex.arg, ex.err, ex.desc);
     exit(1);
 %endtry
     @endcode
@@ -1293,8 +1293,8 @@ class MyConcreteClass inherits MyAbstractClass {
     Abstract methods are defined with the following syntax:
     @code{.py}
 class MyAbstractInterface {
-    abstract string doSomething(int $param);
-    abstract bool checkSomething(string $arg);
+    abstract string doSomething(int param);
+    abstract bool checkSomething(string arg);
 }
     @endcode
     The following abstract classes now exist in %Qore:
@@ -1440,8 +1440,8 @@ class MyAbstractInterface {
     Are examples of pseudo-methods on literal values.\n\n
     Some expensive operations such as getting the first or last key (or value) of a hash are now cheap using pseudo-methods, for example:
     @code{.py}
-$hash.firstKey()
-$hash.lastValue()
+hash.firstKey()
+hash.lastValue()
     @endcode
 
     @par New Doxygen-Based Documentation
@@ -1455,8 +1455,8 @@ if it is a non-empty string, it returns @ref Qore::True "True", etc.
    Furthermore, medium-term, an architectural goal of %Qore is to store all ints, floats, and bools internally as the basic C++ type instead of using a class wrapper for each value, which needs dynamic allocation and destruction, which takes up more memory and negatively affects execution speed.\n\n
    With %Qore 0.8.4, all local and global variables are stored using optimized C++ types when declared with the appropriate type restrictions; for example:
    @code{.py}
-my int $i0;
-our int $i1;
+int i0;
+our int i1;
    @endcode
    These declares local and global variables that can only be assigned integer values; in %Qore 0.8.4 the value internally will be stored as an "int64" value (and not a dynamically-allocated QoreBigIntNode object).\n\n
    The same holds for:
@@ -1569,7 +1569,7 @@ our int $i1;
     - fixed a crashing bug in the C++ API function QoreHashNode::setKeyValue() when the value is 0 and an exception occurs or is already active before the call is made
     - fixed a bug in date parsing with a format string - off by one with integer months - added a regression test for this case
     - fixed a memory error with the @ref rethrow "rethrow statement" in enclosing but nested try-catch blocks
-    - fixed a crashing bug where qore would try to instantiate a class for a type that did not represent a class (ex: \c "my int $i();")
+    - fixed a crashing bug where qore would try to instantiate a class for a type that did not represent a class (ex: \c "int i();")
     - fixed a memory leak in the @ref softlist_type "softlist" and @ref softlist_or_nothing_type "*softlist" type implementation
     - make sure and raise a \c SOCKET-CLOSED error when reading a HTTP header if no data is received
     - make sure and convert encodings with @ref Qore::index() "index()" and @ref Qore::rindex() "rindex()" functions if the encodings don't match

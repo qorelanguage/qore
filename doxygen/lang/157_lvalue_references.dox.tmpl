@@ -2,20 +2,20 @@
 
     References allow for addressing other lvalues, including complex lvalue expressions, with an alias called a reference.  References to lvalues are defined by placing a \c "\" character in front of an expression that gives an lvalue, such as in the following examples:
     @code{.py}
-my reference $r1 = \$a;
-my reference $r2 = \$recs[$rn].order[$on];
+reference r1 = \a;
+reference r2 = \recs[rn].order[on];
     @endcode
 
     References are especially convenient when aliasing an internal part of a complex data structure.  Consider the following example (a list of records, where each record is a hash with a list of orders under the \c "order" key - in the following example, we want to set the last record's last order's \c "numberofitems" key to be equal to the number of elements under the order's \c "items" key):
     @code{.py}
-$recs[$recs.size() - 1].order[$recs[$recs.size() - 1].order.size() - 1].numberofitems = $recs[$recs.size() - 1].order[$recs[$recs.size() - 1].order.size() - 1].items.size();
+recs[recs.size() - 1].order[recs[recs.size() - 1].order.size() - 1].numberofitems = recs[recs.size() - 1].order[recs[recs.size() - 1].order.size() - 1].items.size();
     @endcode
 
     In the above code, using references could greatly simplify the readability of the code:
     @code{.py}
-my reference $lastrec = \$recs[$recs.size() - 1];
-my reference $lastorder = \$lastrec.order[$lastrec.order.size() - 1];
-$lastorder.numberofitems = $lastorder.items.size();
+reference lastrec = \recs[recs.size() - 1];
+reference lastorder = \lastrec.order[lastrec.order.size() - 1];
+lastorder.numberofitems = lastorder.items.size();
     @endcode
 
     @note Local variables that are referenced are automatically converted to a special type of local variable that is protected by a mutual-exclusion thread lock so that the reference can be safely used in background threads.  The lvalue represented by the local variable will exist beyond its local scope; as long as the reference to the lvalue exists, the local variable's lvalue will exist and remain valid.

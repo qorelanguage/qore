@@ -6,6 +6,12 @@
 
     Parse directives that set parsing options can be used any time parse options have not been locked on a @ref Qore::Program "Program object". They are used most often when it's not possible or desirable to set the parse options in the qore command line.
 
+    The following are the recommended parse directives for %Qore programming (note that %Qore is moving toward establishing @ref new-style "%new-style" as the default syntax; all examples given in the %Qore documentation are given assuming @ref new-style "%new-style"):
+    - @ref new-style "%new-style"
+    - @ref strict-args "%strict-args"
+    - @ref require-types "%require-types"
+    - @ref enable-all-warnings "%enable-all-warnings"
+
     <b>Parse Directives</b>
     |!Directive|!Description
     |@ref allow-bare-refs "%allow-bare-refs"|Prohibits the use of the \c "$" character in variable names, method calls, and object member references. This makes %Qore scripts appear superficially more like C++ or Java programs.<br><br>This parse option is set by default with @ref new-style "%new-style".<br><br>Name resolution is made in the following order when this option is set: local variables, class constants and static class vars (when parsing in class code), global variables, and (non-class) constants.<br><br>Note that @ref implicit_arguments "implicit arguments" are still referenced with the \c "$" character even when this parse option is set; see also @ref require-dollar "%require-dollar" <br><br>Since %Qore 0.8.1
@@ -506,6 +512,8 @@
     Sets both @ref allow-bare-refs "%allow-bare-refs" and @ref assume-local "%assume-local". These two options together make programming in %Qore superficially more like programming in C++ or Java programs; use this if you dislike programming with the \c "$" sign, for example.
 
     @see @ref old-style "%old-style"
+
+    @note %Qore is moving toward establishing @ref new-style "%new-style" as the default syntax; all examples given in the %Qore documentation are given assuming @ref new-style "%new-style".
 
     @since %Qore 0.8.1
 
@@ -1049,9 +1057,9 @@
     As of %Qore 0.8.6+, <tt>%%perl-bool-eval</tt> is the default behavior and therefore only needs to be set if @ref strict-bool-eval "%strict-bool-eval" was set first.\n\n
     When this option is set, boolean evaluation follows the same rules as <value>::val(); for example:\n
     @code{.py}
-my string $str = "hello";
-if ($str)
-    printf("string is: %y\n", $str);
+string str = "hello";
+if (str)
+    printf("string is: %y\n", str);
     @endcode \n
     With this option set (the default), the above prints out: @verbatim string is: "hello"@endverbatim When it's not set (i.e. @ref strict-bool-eval "%strict-bool-eval" is set), nothing is printed out as the string expression evaluates to @ref Qore::False "False" due to qore's old strict mathematical boolean evaluation.\n\n
     Basically with this option set, qore's boolean evaluation becomes like perl's and Python's, whereas any expression that has the following values is @ref Qore::False "False": @ref nothing, @ref string "string" \c "0" and @ref string "empty strings", @ref integer "integer", @ref float "float", and @ref number "number" \c 0 (zero), @ref absolute_dates "absolute date" \c 1970-01-01Z (ie the start of the epoch with an offset of 0), @ref relative_dates "relative date" \c PT0H (ie any  @ref relative_dates "relative date" with a 0 duration), @ref null, @ref binary "empty binary objects", @ref hash "empty hashes", and @ref list "empty lists".  All other values are @ref Qore::True "True".
@@ -1224,9 +1232,9 @@ if ($str)
     This option takes effect at runtime.\n\n
     For example:\n
     @code{.py}
-my string $str = "hello";
-if ($str)
-    printf("string is: %y\n", $str);
+string str = "hello";
+if (str)
+    printf("string is: %y\n", str);
     @endcode \n
     If <tt>%%strict-bool-eval</tt> is set, then %Qore's boolean evaluation will evaluate \c "hello" in a strict mathematical sense and convert it to 0, which is @ref Qore::False "False", so nothing would be printed out, but when <tt>%%perl-bool-eval</tt> is enabled, this will be @ref Qore::True "True" (following the rules for <string>::val()).\n\n
     %Qore's strict mathematical boolean evaluation was the default prior to %Qore 0.8.6, however it was considered non-intuitive and a design bug, and therefore the default behavior of the language was changed to a more intuitive form of boolean evaluation as documented in @ref perl-bool-eval "%perl-bool-eval".
@@ -1255,7 +1263,7 @@ if ($str)
     For example:\n
     @code{.py}
 %try-module($ex) some_module > 2.0
-    printf("error loading module %y: %s: %s\n", $ex.arg, $ex.err, $ex.desc);
+    printf("error loading module %y: %s: %s\n", ex.arg, ex.err, ex.desc);
     exit(1);
 %endtry
     @endcode \n

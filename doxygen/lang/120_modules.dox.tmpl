@@ -160,7 +160,7 @@ public MyNamespace {
 }@endcode
     - @ref global_variables "global variables": only global variables declared <b><tt>public</tt></b> will be exported. ex: @code{.py}
 public namespace MyNamespace {
-    public our int $OurInt;
+    public our int OurInt;
 }@endcode
 
     @note Global variable declarations in a namespace declaration cannot be initialized at the point they are declared, also, since @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS is set for user module @ref Qore::Program "Program" objects, global variables also cannot be initialized at the top-level.  Use the \c init closure to initialize the module and any global variables requiring initialization.
@@ -227,7 +227,7 @@ public namespace Bar {
 
     When using the @ref exec-class "%exec-class" parse directive, the application object will go out of scope as soon as the
     constructor terminates (unless there are valid scope-extending references to the application object, such as making an
-    assignment of <tt>$self</tt> to a global variable in the contructor).
+    assignment of <tt>self</tt> to a global variable in the contructor).
 
     Therefore when using a module that provides services in its own threads (such as, for example, the
     <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module), it's important to make sure that the application
