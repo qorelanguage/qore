@@ -67,8 +67,8 @@
 
     @par Example
     @code{.py}
-int sub foo(int $i) {
-    return $i;
+int sub foo(int i) {
+    return i;
 }
     @endcode
 
@@ -81,8 +81,8 @@ int sub foo(int $i) {
 
     @par Example
     @code{.py}
-float sub foo(float $f = M_PI) {
-    return $f;
+float sub foo(float f = M_PI) {
+    return f;
 }
     @endcode
 
@@ -95,8 +95,8 @@ float sub foo(float $f = M_PI) {
 
     @par Example
     @code{.py}
-number sub foo(number $n = 2.35e40) {
-    return $n;
+number sub foo(number n = 2.35e40) {
+    return n;
 }
     @endcode
 
@@ -111,8 +111,8 @@ number sub foo(number $n = 2.35e40) {
 
     @par Example
     @code{.py}
-bool sub foo(bool $b) {
-    return $b;
+bool sub foo(bool b) {
+    return b;
 }
     @endcode
 
@@ -125,8 +125,8 @@ bool sub foo(bool $b) {
 
     @par Example
     @code{.py}
-string sub foo(string $str = "bar") {
-    return $str;
+string sub foo(string str = "bar") {
+    return str;
 }
     @endcode
 
@@ -139,8 +139,8 @@ string sub foo(string $str = "bar") {
 
     @par Example
     @code{.py}
-date sub foo(date $d = now_us()) {
-    return $d;
+date sub foo(date d = now_us()) {
+    return d;
 }
     @endcode
 
@@ -153,8 +153,8 @@ date sub foo(date $d = now_us()) {
 
     @par Example
     @code{.py}
-binary sub foo(binary $b) {
-    return $b;
+binary sub foo(binary b) {
+    return b;
 }
     @endcode
 
@@ -167,8 +167,8 @@ binary sub foo(binary $b) {
 
     @par Example
     @code{.py}
-hash sub foo(hash $h = ("foo": "bar", "x": 2)) {
-    return $h;
+hash sub foo(hash h = ("foo": "bar", "x": 2)) {
+    return h;
 }
     @endcode
 
@@ -181,8 +181,8 @@ hash sub foo(hash $h = ("foo": "bar", "x": 2)) {
 
     @par Example
     @code{.py}
-list sub foo(list $l = ("foo", "bar")) {
-    return $l;
+list sub foo(list l = ("foo", "bar")) {
+    return l;
 }
     @endcode
 
@@ -195,8 +195,8 @@ list sub foo(list $l = ("foo", "bar")) {
 
     @par Example
     @code{.py}
-object sub foo(object $o = new Mutex()) {
-    return $o;
+object sub foo(object o = new Mutex()) {
+    return o;
 }
     @endcode
 
@@ -209,8 +209,8 @@ object sub foo(object $o = new Mutex()) {
 
     @par Example
     @code{.py}
-Mutex sub foo(Qore::Thread::Mutex $m = new Mutex()) {
-    return $m;
+Mutex sub foo(Qore::Thread::Mutex m = new Mutex()) {
+    return m;
 }
     @endcode
 
@@ -224,7 +224,7 @@ Mutex sub foo(Qore::Thread::Mutex $m = new Mutex()) {
     @par Example
     @code{.py}
 # I don't know if this type has any useful/practical applications...
-my null $n = NULL;
+null n = NULL;
     @endcode
 
     <hr>
@@ -250,8 +250,8 @@ nothing sub bar() {
 
     @par Example
     @code{.py}
-timeout sub foo(timeout $to = 1250ms) {
-    return $to;
+timeout sub foo(timeout to = 1250ms) {
+    return to;
 }
     @endcode
 
@@ -264,9 +264,9 @@ timeout sub foo(timeout $to = 1250ms) {
 
     @par Example
     @code{.py}
-softint sub foo(softint $i = "1000") {
+softint sub foo(softint i = "1000") {
     # note that "200" will be converted to an integer on return
-    return $i > 500 ? "200" : $i;
+    return i > 500 ? "200" : i;
 }
     @endcode
 
@@ -279,9 +279,9 @@ softint sub foo(softint $i = "1000") {
 
     @par Example
     @code{.py}
-softfloat sub foo(softfloat $f = "1000") {
+softfloat sub foo(softfloat f = "1000") {
     # note that "200" will be converted to a float on return
-    return $f > 500.0 ? "200" : $f;
+    return f > 500.0 ? "200" : f;
 }
     @endcode
 
@@ -294,9 +294,9 @@ softfloat sub foo(softfloat $f = "1000") {
 
     @par Example
     @code{.py}
-softnumber sub foo(softnumber $n = "1000") {
+softnumber sub foo(softnumber n = "1000") {
     # note that "200" will be converted to a number on return
-    return $n > 500.0n ? "200" : $n;
+    return n > 500.0n ? "200" : n;
 }
     @endcode
 
@@ -311,7 +311,7 @@ softnumber sub foo(softnumber $n = "1000") {
 
     @par Example
     @code{.py}
-my softbool $b = "0.5";
+softbool b = "0.5";
     @endcode
 
     <hr>
@@ -323,7 +323,7 @@ my softbool $b = "0.5";
 
     @par Example
     @code{.py}
-my softstring $str = 200;
+softstring str = 200;
     @endcode
 
     <hr>
@@ -335,7 +335,7 @@ my softstring $str = 200;
 
     @par Example
     @code{.py}
-my softdate $d = "2001-10-10T20:00:05 +04:00";
+softdate d = "2001-10-10T20:00:05 +04:00";
     @endcode
 
     <hr>
@@ -347,10 +347,10 @@ my softdate $d = "2001-10-10T20:00:05 +04:00";
 
     @par Example
     @code{.py}
-softlist sub foo(softlist $l) {
-    foreach my any $element in (\$l) {
+softlist sub foo(softlist l) {
+    foreach any element in (\l) {
     }
-    return $l;
+    return l;
 }
     @endcode
 
@@ -365,8 +365,8 @@ softlist sub foo(softlist $l) {
 
     @par Example
     @code{.py}
-data sub foo(data $d) {
-    return $d;
+data sub foo(data d) {
+    return d;
 }
     @endcode
 
@@ -379,8 +379,8 @@ data sub foo(data $d) {
 
     @par Example
     @code{.py}
-sub foo(code $c) {
-    $c();
+sub foo(code c) {
+    c();
 }
     @endcode
 
@@ -395,12 +395,12 @@ sub foo(code $c) {
 
     @par Example
     @code{.py}
-sub foo(reference $f) {
-    $f = 10;
+sub foo(reference f) {
+    f = 10;
 }
 
-my int $i;
-foo(\$i);
+int i;
+foo(\i);
     @endcode
 
     <hr>
@@ -412,8 +412,8 @@ foo(\$i);
 
     @par Example
     @code{.py}
-*int sub foo(*int $i) {
-    return $i;
+*int sub foo(*int i) {
+    return i;
 }
     @endcode
 
@@ -426,8 +426,8 @@ foo(\$i);
 
     @par Example
     @code{.py}
-*float sub foo(*float $f) {
-    return $f;
+*float sub foo(*float f) {
+    return f;
 }
     @endcode
 
@@ -440,8 +440,8 @@ foo(\$i);
 
     @par Example
     @code{.py}
-*number sub foo(*number $n) {
-    return $n;
+*number sub foo(*number n) {
+    return n;
 }
     @endcode
 
@@ -456,8 +456,8 @@ foo(\$i);
 
     @par Example
     @code{.py}
-*bool sub foo(*bool $b) {
-    return $b;
+*bool sub foo(*bool b) {
+    return b;
 }
     @endcode
 
@@ -470,8 +470,8 @@ foo(\$i);
 
     @par Example
     @code{.py}
-*string sub foo(*string $str) {
-    return $str;
+*string sub foo(*string str) {
+    return str;
 }
     @endcode
 
@@ -484,8 +484,8 @@ foo(\$i);
 
     @par Example
     @code{.py}
-*date sub foo(*date $str) {
-    return $str;
+*date sub foo(*date str) {
+    return str;
 }
     @endcode
 
@@ -498,8 +498,8 @@ foo(\$i);
 
     @par Example
     @code{.py}
-*binary sub foo(*binary $b) {
-    return $b;
+*binary sub foo(*binary b) {
+    return b;
 }
     @endcode
 
@@ -512,8 +512,8 @@ foo(\$i);
 
     @par Example
     @code{.py}
-*hash sub foo(*hash $h) {
-    return $h;
+*hash sub foo(*hash h) {
+    return h;
 }
     @endcode
 
@@ -526,8 +526,8 @@ foo(\$i);
 
     @par Example
     @code{.py}
-*list sub foo(*list $l) {
-    return $l;
+*list sub foo(*list l) {
+    return l;
 }
     @endcode
 
@@ -540,8 +540,8 @@ foo(\$i);
 
     @par Example
     @code{.py}
-*object sub foo(*object $obj) {
-    return $obj;
+*object sub foo(*object obj) {
+    return obj;
 }
     @endcode
 
@@ -554,7 +554,7 @@ foo(\$i);
 
     @par Example
     @code{.py}
-sub foo(*Mutex $m) {
+sub foo(*Mutex m) {
 }
     @endcode
 
@@ -567,7 +567,7 @@ sub foo(*Mutex $m) {
 
     @par Example
     @code{.py}
-sub foo(*data $d) {
+sub foo(*data d) {
 }
     @endcode
 
@@ -580,7 +580,7 @@ sub foo(*data $d) {
 
     @par Example
     @code{.py}
-sub foo(*code $c) {
+sub foo(*code c) {
 }
     @endcode
 
@@ -593,7 +593,7 @@ sub foo(*code $c) {
 
     @par Example
     @code{.py}
-sub foo(*timeout $c) {
+sub foo(*timeout c) {
 }
     @endcode
 
@@ -606,12 +606,12 @@ sub foo(*timeout $c) {
 
     @par Example
     @code{.py}
-sub foo(*reference $f) {
-    $f = 10;
+sub foo(*reference f) {
+    f = 10;
 }
 
-my int $i;
-foo(\$i);
+int i;
+foo(\i);
     @endcode
 
     <hr>
@@ -623,7 +623,7 @@ foo(\$i);
 
     @par Example
     @code{.py}
-sub foo(*softint $i) {
+sub foo(*softint i) {
 }
     @endcode
 
@@ -636,7 +636,7 @@ sub foo(*softint $i) {
 
     @par Example
     @code{.py}
-sub foo(*softfloat $f) {
+sub foo(*softfloat f) {
 }
     @endcode
 
@@ -649,7 +649,7 @@ sub foo(*softfloat $f) {
 
     @par Example
     @code{.py}
-sub foo(*softnumber $n) {
+sub foo(*softnumber n) {
 }
     @endcode
 
@@ -664,7 +664,7 @@ sub foo(*softnumber $n) {
 
     @par Example
     @code{.py}
-sub foo(*softbool $b) {
+sub foo(*softbool b) {
 }
     @endcode
 
@@ -677,7 +677,7 @@ sub foo(*softbool $b) {
 
     @par Example
     @code{.py}
-sub foo(*softstring $str) {
+sub foo(*softstring str) {
 }
     @endcode
 
@@ -690,7 +690,7 @@ sub foo(*softstring $str) {
 
     @par Example
     @code{.py}
-sub foo(*softdate $d) {
+sub foo(*softdate d) {
 }
     @endcode
 
@@ -703,7 +703,7 @@ sub foo(*softdate $d) {
 
     @par Example
     @code{.py}
-my *softlist $d = $v;
+*softlist d = v;
     @endcode
 
     @since %Qore 0.8.3 introduced the *softlist type
@@ -717,7 +717,7 @@ my *softlist $d = $v;
 
     @par Example
     @code{.py}
-my any $v = $bar;
+any v = bar;
     @endcode
 
     @note Complex types (hash of lists, reference to string, etc) are currently not possible to declare but support may be added in future versions of %Qore for this.

@@ -37,7 +37,7 @@
     @code{.py}
 namespace MyNamespace {
     # global variable declarations in a namespace declaration cannot be initialized at the point they are declared
-    our bool $my_bool;
+    our bool my_bool;
 
     const MyConst = 1;
     class MyClass {
@@ -45,10 +45,10 @@ namespace MyNamespace {
     namespace MySubNamespace;
 }
 
-# out of line initialization for MyNamespace::$my_bool
-MyNamespace::$my_bool = False;
-# out of line declaration and initialization for MyNamespace::$my_int
-our int MyNamespace::$my_int = 200;
+# out of line initialization for MyNamespace::my_bool
+MyNamespace::my_bool = False;
+# out of line declaration and initialization for MyNamespace::my_int
+our int MyNamespace::my_int = 200;
     @endcode
 
     @note No semicolon (\c ";") should follow the closing bracket in a namespace declaration (in fact using a semicolon in this case would raise a parse exception).

@@ -23,11 +23,14 @@
     The following code gives an example of declaring a global thread-local variable by using <tt><b>my</b></tt> at the top-level:
 
     @code{.py}
-%require-our
+%new-style
+%require-types
+%strict-args
+
 sub t() {
-    printf("x=%y\n", $x);
+    printf("x=%y\n", x);
 }
-my int $x = 2;
+int x = 2;
 t();
 background t();
     @endcode
