@@ -76,6 +76,7 @@ module HttpServerUtil {
     - removed unused AbstractStreamRequestHandler class
     - fixed @ref HttpServer::parse_uri_query() to always return \a params as a hash (<a href="https://github.com/qorelanguage/qore/issues/569">issue 569</a>)
     - added \c root_path to the context hash if the path was matched by a URL path prefix (<a href="https://github.com/qorelanguage/qore/issues/570">issue 570</a>)
+    - implemented support for custom timeout values in stream handlers (<a href="https://github.com/qorelanguage/qore/issues/719">issue 719</a>)
  */
 
 #! the main namespace for the HttpServer and HttpServerUtil modules
@@ -90,8 +91,11 @@ public namespace HttpServer {
     #! default HTTP server string
     public const HttpServerString = sprintf("Qore-HTTP-Server/%s", HttpServerVersion);
 
-    #! default read timeout in ms
-    public const ReadTimeout = 30s;  # recvs timeout after 30 seconds
+    #! default timeout in ms
+    public const DefaultTimeout = 30s;  # recvs timeout after 30 seconds
+
+    #! read timeout in ms
+    public const ReadTimeout = DefaultTimeout;
 
     #! map of HTTP result codes and text messages
     public const HttpCodes = (
@@ -505,6 +509,8 @@ public class HttpServer::AbstractStreamRequest {
         hash hdr;
         #! any message body given in a non-chunked request; could already be deserialized
         any body;
+        #! send and receive timeout
+        timeout timeout_ms = HttpServer::DefaultTimeout;
     }
 
     #! creates the object with the given attributes
@@ -541,9 +547,9 @@ public class HttpServer::AbstractStreamRequest {
         else {
             if (hdr."transfer-encoding" == "chunked") {
                 if (hdr."content-encoding")
-                    s.readHTTPChunkedBodyBinaryWithCallback(\recv(), HttpServer::ReadTimeout);
+                    s.readHTTPChunkedBodyBinaryWithCallback(\recv(), timeout_ms);
                 else
-                    s.readHTTPChunkedBodyWithCallback(\recv(), HttpServer::ReadTimeout);
+                    s.readHTTPChunkedBodyWithCallback(\recv(), timeout_ms);
             }
             else # signal end of data
                 recvImpl(("hdr": NOTHING));
@@ -566,7 +572,7 @@ public class HttpServer::AbstractStreamRequest {
         http_set_reply_headers(s, cx, \rv);
 
         # send chunked response
-        s.sendHTTPResponseWithCallback(\send(), rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr, HttpServer::ReadTimeout);
+        s.sendHTTPResponseWithCallback(\send(), rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr, timeout_ms);
 
         rv.reply_sent = True;
         return rv;
@@ -678,6 +684,9 @@ public class HttpServer::AbstractHttpRequestHandler {
 
         #! if the handler supports streaming requests/responses with chunked data
         bool stream;
+
+        #! send and receive socket timeout in milliseconds
+        timeout timeout_ms = HttpServer::DefaultTimeout;
 
         #! thread-local key string for notification callbacks
         const NotificationThreadKey = "_AHRH_pc";
@@ -837,7 +846,7 @@ public class HttpServer::AbstractHttpRequestHandler {
     #! optionally retrieves and post-processes any message body
     *data getMessageBody(Socket s, hash hdr, *data body, bool decode = True) {
         if (!body && hdr."transfer-encoding" == "chunked") {
-            hdr += (hdr."content-encoding" ? s.readHTTPChunkedBodyBinary(HttpServer::ReadTimeout) : s.readHTTPChunkedBody(HttpServer::ReadTimeout));
+            hdr += (hdr."content-encoding" ? s.readHTTPChunkedBodyBinary(timeout_ms) : s.readHTTPChunkedBody(timeout_ms));
             body = remove hdr.body;
         }
 
