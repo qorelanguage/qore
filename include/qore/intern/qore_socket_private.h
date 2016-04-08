@@ -2207,20 +2207,24 @@ struct qore_socket_private {
    }
 
    DLLLOCAL int send(ExceptionSink* xsink, const char* mname, const char* buf, qore_size_t size, int timeout_ms = -1) {
+      return send(xsink, "Socket", mname, buf, size, timeout_ms);
+   }
+
+   DLLLOCAL int send(ExceptionSink* xsink, const char* cname, const char* mname, const char* buf, qore_size_t size, int timeout_ms = -1) {
       if (sock == QORE_INVALID_SOCKET) {
 	 if (xsink)
-	    se_not_open("Socket", mname, xsink);
+	    se_not_open(cname, mname, xsink);
 
 	 return QSE_NOT_OPEN;
       }
       if (in_op >= 0) {
          if (in_op == gettid()) {
             if (xsink)
-               se_in_op("Socket", mname, xsink);
+               se_in_op(cname, mname, xsink);
             return 0;
          }
          if (xsink)
-            se_in_op_thread("Socket", mname, xsink);
+            se_in_op_thread(cname, mname, xsink);
          return 0;
       }
 
@@ -2234,7 +2238,7 @@ struct qore_socket_private {
          return -1;
 
       int64 total = 0;
-      qore_offset_t rc = sendIntern(xsink, "Socket", mname, buf, size, timeout_ms, total);
+      qore_offset_t rc = sendIntern(xsink, cname, mname, buf, size, timeout_ms, total);
       th.finalize(total);
 
       return rc < 0 || sock == QORE_INVALID_SOCKET ? rc : 0;
@@ -2260,11 +2264,11 @@ struct qore_socket_private {
       //printd(5, "qore_socket_private::sendHttpMessage() hdr: %s\n", hdr.getBuffer());
 
       int rc;
-      if ((rc = send(xsink, method, hdr.getBuffer(), hdr.strlen(), timeout_ms)))
+      if ((rc = send(xsink, cname, mname, hdr.getBuffer(), hdr.strlen(), timeout_ms)))
 	 return rc;
 
       if (size && data)
-         return send(xsink, method, (char*)data, size, timeout_ms);
+         return send(xsink, cname, mname, (char*)data, size, timeout_ms);
       else if (send_callback) {
          assert(l);
          assert(!aborted || !(*aborted));
@@ -2290,11 +2294,11 @@ struct qore_socket_private {
       //printd(5, "QoreSocket::sendHTTPResponse() this: %p data: %p size: %ld send_callback: %p hdr: %s", this, data, size, send_callback, hdr.getBuffer());
 
       int rc;
-      if ((rc = send(xsink, mname, hdr.getBuffer(), hdr.strlen(), timeout_ms)))
+      if ((rc = send(xsink, cname, mname, hdr.getBuffer(), hdr.strlen(), timeout_ms)))
 	 return rc;
 
       if (size && data)
-         return send(xsink, mname, (char*)data, size, timeout_ms);
+         return send(xsink, cname, mname, (char*)data, size, timeout_ms);
       else if (send_callback) {
          assert(l);
          assert(!aborted || !(*aborted));

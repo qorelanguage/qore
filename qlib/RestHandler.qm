@@ -329,6 +329,7 @@ public namespace RestHandler {
         private {
             #! call context hash
             hash cx;
+
             #! if an exception is raised in a callback then the exception hash is saved here
             *hash ex;
 
@@ -337,6 +338,9 @@ public namespace RestHandler {
 
             #! headers to add in the response
             hash rhdr;
+
+            #! socket I/O timeout in milliseconds
+            *int timeout_ms;
         }
 
         #! creates the object with the given arguments
@@ -427,6 +431,16 @@ public namespace RestHandler {
             return False;
         }
 
+        #! sets the internal socket I/O timeout value in ms
+        setTimeout(timeout n_timeout_ms) {
+            timeout_ms = n_timeout_ms;
+        }
+
+        #! returns the timeout in milliseconds or @ref nothing if no timeout is set
+        *int getTimeout() {
+            return timeout_ms;
+        }
+
         #! this method should return the response message description hash
         /**
             @return a hash with the following keys:
@@ -476,6 +490,17 @@ public namespace RestHandler {
                     handler.setPersistent();
                 }
             }
+
+            # set timeout if applicable
+            {
+                *int stream_timeout_ms = stream.getTimeout();
+                if (stream_timeout_ms) {
+                    timeout_ms = stream_timeout_ms;
+                    s.setSendTimeout(stream_timeout_ms);
+                    s.setRecvTimeout(stream_timeout_ms);
+                }
+            }
+
             deserialized = exists body;
         }
 
