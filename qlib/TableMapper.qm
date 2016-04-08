@@ -1158,12 +1158,8 @@ InboundTableMapperIterator i(input, mapper);
          */
         list mapBulk(int size) {
             SQLStatement stmt = cast<SQLStatement>(i);
-
-            list l = stmt.fetchRows(size);
-            if (!l)
-                return ();
-
-            return map m_mapper.mapData($1), l;
+            *hash h = stmt.fetchColumns(size);
+            return !h ? () : m_mapper.mapAll(h);
         }
     } # class SqlStatementMapperIterator
 
@@ -1266,7 +1262,7 @@ InboundTableMapperIterator i(input, mapper);
         *hash getData() {
             if (!m_stmt)
                 initStatement();
-            *list tmp = mapAll(m_stmt.fetchRows(select_block));
+            *list tmp = mapAll(m_stmt.fetchColumns(select_block));
 
             if (tmp && tmp.size()) {
                 # make "context" structure
@@ -1300,7 +1296,7 @@ InboundTableMapperIterator i(input, mapper);
         *list getDataRows() {
             if (!m_stmt)
                 initStatement();
-            return mapAll(m_stmt.fetchRows(select_block));
+            return mapAll(m_stmt.fetchColumns(select_block));
         }
 
     } # AbstractSqlStatementOutboundMapper
