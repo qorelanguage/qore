@@ -162,9 +162,10 @@
       - version-specific module directories are added first, then the "generic" directories
     - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
       - new \c "tolwr" option in structured text parsing classes
-      - AbstractCsvWriter will set \c "headers" from the \c "fields" option if \c "headers" are not explicitly set
-      -  added write() methods returning the generated strings to the CsvStringWriter class for API compatibility with the corresponding FixedLengthDataWriter methods
-      - \c quote_escape option implemented in AbstractCsvWriter
+      - \c AbstractCsvWriter will set \c "headers" from the \c "fields" option if \c "headers" are not explicitly set
+      - added write() methods returning the generated strings to the \c CsvStringWriter class for API compatibility with the corresponding FixedLengthDataWriter methods
+      - implemented support for @ref Qore::SQL::SQLStatement "SQLStatement" as an iterator source for \c AbstractCsvWriter::write()
+      - \c quote_escape option implemented in \c AbstractCsvWriter
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module updates:
       - implemented the \c "constant" field tag, allowing a contant value for an output field to be specified directly in the mapper hash
       - implemented the \c "default" field tag, giving a default value if no input value is specified
@@ -179,6 +180,7 @@
       - implemented the \c "info_log" option and removed the \c "trunc" option
       - implemented the \c "runtime" field tag
       - implemented the \c "index" field tag
+      - improved the Mapper::mapAll() method by adding support for hashes of lists to better support input from bulk DML (@ref Qore::SQL::SQLStatement::fetchColumns() "SQLStatement::fetchColumns()")
     - <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module updates:
       - added table name and datasource description to error messages
       - implemented more efficient support for inserts from a sequence for databases supporting the \c "returning" clause in insert statements; now such inserts are made in a single round trip instead of n + 1 where n is the number of sequences in the insert

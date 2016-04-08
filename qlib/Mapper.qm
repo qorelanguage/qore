@@ -239,10 +239,10 @@ m.mapData(input2);           # date_begin is still the same as from beginning of
       - @ref Mapper::Mapper::replaceRuntime()
       - @ref Mapper::Mapper::setRuntime()
     - implemented \c "index" field tag for current row index
+    - improved the @ref Mapper::Mapper::mapAll() method by adding support for hashes of lists to better support input from bulk DML (@ref Qore::SQL::SQLStatement::fetchColumns() "SQLStatement::fetchColumns()")
 
     @subsection mapperv1_0 Mapper v1.0
     - Initial release
-
 */
 
 #! the Mapper namespace contains all the definitions in the Mapper module
@@ -769,8 +769,22 @@ Mapper mapv(DataMap);
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
-        list mapAll(softlist recs) {
+        list mapAll(list recs) {
             return map mapData($1), recs;
+        }
+
+        #! maps all input records and returns the mapped data as a list of output records
+        /** this method applies the @ref mapData() method to all input records and returns the resulting list
+            @param recs a hash of lists of input records
+
+            @return the mapped data as a list of output records
+
+            @throw MISSING-INPUT a field marked mandatory is missing
+            @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
+            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
+        */
+        list mapAll(hash recs) {
+            return map mapData($1), recs.contextIterator();
         }
 
         #! processes the input record and returns a hash of the mapped values where the keys in the hash returned are the target field names; the order of the fields in the hash returned is the same order as the keys in the map hash.
