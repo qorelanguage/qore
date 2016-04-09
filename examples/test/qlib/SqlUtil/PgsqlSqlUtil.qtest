@@ -65,18 +65,22 @@ class PgsqlTestSchema inherits SqlUtilTestSchema {
     }
 
     private *hash getTablesImpl() {
+        return doTables(Tables, PgsqlTest::CustomColumns);
+        /*
         hash tables = Tables;
         # add custom columns to pgsql_test
         foreach hash h in (PgsqlTest::CustomColumns.pairIterator()) {
+            string type = h.value.type ?? h.key;
             hash ch = (
-                "native_type": h.key,
+                "native_type": type,
                 "notnull": True,
                 );
             if (h.value.typeCode() == NT_HASH)
-                ch += (h.value - ("value", "bind", "expect"));
+                ch += (h.value - ("value", "bind", "expect", type));
             tables.pgsql_test.columns{SqlTestBase::getColumnName(h.key)} = ch;
         }
         return tables;
+        */
     }
 
     private *hash getSequencesImpl() {
@@ -110,6 +114,10 @@ class PgsqlTest inherits SqlTestBase {
             "numeric": (
                 "size": 15,
                 "scale": 2,
+                "value": 400.95n,
+            ),
+            "numeric_def": (
+                "type": "numeric",
                 "value": 400.95n,
             ),
 
@@ -176,7 +184,7 @@ class PgsqlTest inherits SqlTestBase {
         }
 
         if (ds) {
-            init_test_data (CustomColumns);
+            initTestData(CustomColumns);
 
             # create the test schema
             schema = new PgsqlTestSchema(ds);

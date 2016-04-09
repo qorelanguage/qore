@@ -59,18 +59,7 @@ class FreetdsTestSchema inherits SqlUtilTestSchema {
     }
 
     private *hash getTablesImpl() {
-        hash tables = Tables;
-        # add custom columns to sqlutil_test
-        foreach hash h in (FreetdsTest::CustomColumns.pairIterator()) {
-            hash ch = (
-                "native_type": h.key,
-                "notnull": True,
-                );
-            if (h.value.typeCode() == NT_HASH)
-                ch += (h.value - ("value", "bind", "expect"));
-            tables.sqlutil_test.columns{SqlTestBase::getColumnName(h.key)} = ch;
-        }
-        return tables;
+        return doTables(Tables, FreetdsTest::CustomColumns);
     }
 
     private *hash getIndexOptionsImpl() {
@@ -101,7 +90,11 @@ class FreetdsTest inherits SqlTestBase {
                 "size": 15,
                 "scale": 2,
                 "value": 400.95n,
-                ),
+            ),
+            "decimal_def": (
+                "type": "decimal",
+                "value": 401,
+            ),
 
             "text": "test",
 
@@ -145,7 +138,7 @@ class FreetdsTest inherits SqlTestBase {
         }
 
         if (ds) {
-            init_test_data (CustomColumns);
+            initTestData(CustomColumns);
 
             # create the test schema
             schema = new FreetdsTestSchema(ds);

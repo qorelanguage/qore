@@ -66,18 +66,7 @@ class OracleTestSchema inherits SqlUtilTestSchema {
     }
 
     private *hash getTablesImpl() {
-        hash tables = Tables;
-        # add custom columns to oracle_test
-        foreach hash h in (OracleTest::CustomColumns.pairIterator()) {
-            hash ch = (
-                "native_type": h.key,
-                "notnull": True,
-                );
-            if (h.value.typeCode() == NT_HASH)
-                ch += (h.value - ("value", "bind", "expect"));
-            tables.oracle_test.columns{SqlTestBase::getColumnName(h.key)} = ch;
-        }
-        return tables;
+        return doTables(Tables, OracleTest::CustomColumns);
     }
 
     private *hash getSequencesImpl() {
@@ -113,7 +102,11 @@ class OracleTest inherits SqlTestBase {
                 "size": 15,
                 "scale": 2,
                 "value": 400.95n,
-                ),
+            ),
+            "number_def": (
+                "type": "number",
+                "value": 400.95n,
+            ),
             "date": 2016-01-11,
             "timestamp": 2016-01-11T09:26:14.502134,
             "timestamp with time zone": 2016-01-11T09:26:14.502134,
@@ -142,7 +135,7 @@ class OracleTest inherits SqlTestBase {
         }
 
         if (ds) {
-            init_test_data (CustomColumns);
+            initTestData(CustomColumns);
 
             # create the test schema
             schema = new OracleTestSchema(ds);

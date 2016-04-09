@@ -23,6 +23,23 @@ public class SqlUtilTestSchema inherits AbstractSchema {
     constructor(AbstractDatasource ds, *string dts, *string its) : AbstractSchema(ds, dts, its) {
     }
 
+    private *hash doTables(hash tables, hash columns) {
+        foreach string table in (tables.keyIterator()) {
+            foreach hash h in (columns.pairIterator()) {
+                string type = h.value.type ?? h.key;
+                hash ch = (
+                    "native_type": type,
+                    "notnull": True,
+                    );
+                if (h.value.typeCode() == NT_HASH)
+                    ch += (h.value - ("value", "bind", "expect", "type"));
+                tables{table}.columns{SqlTestBase::getColumnName(h.key)} = ch;
+            }
+        }
+        return tables;
+    }
+
+
     log(string fmt) {
         delete argv;
     }
@@ -181,25 +198,26 @@ public class SqlTestBase inherits QUnit::Test {
         Columns cols = table.describe();
         string vc = cols.hasKey("varchar_f") ? "varchar_f" : "varchar2_f";
 
-        hash soh = ("columns": (
-                        cop_as (cop_cast ("id", "string"), "cop_cast"),
-                        cop_as (cop_value (0), "cop_value"), # triggers bug #511 (GitHub)
-                        cop_as (cop_lower (cop_value ("Ahoj")), "cop_lower"),
-                        cop_as (cop_upper (cop_value ("Ahoj")), "cop_upper"),
-                        cop_as (cop_prepend (cop_value ("abc"), "def"), "cop_prepend"),
-                        cop_as (cop_append (cop_value ("abc"), "def"), "cop_append"),
-                        cop_as (cop_minus ("id", "id"), "cop_minus"),
-                        cop_as (cop_plus ("id", "id"), "cop_plus"),
-                        cop_as (cop_divide ("id", "id"), "cop_divide"),
-                        cop_as (cop_multiply ("id", "id"), "cop_multiply"),
-                        cop_as (cop_coalesce("null_f", vc, "char_f"), "cop_coalesce"),
-                        cop_as (cop_coalesce("null_f", cop_value("test")), "cop_coalesce2"),
-                        # cop_as (cop_minus ("id", cop_value(2)), "cop_minus"),
-                        # cop_as (cop_plus ("id", cop_value(2)), "cop_plus"),
-                        # cop_as (cop_divide ("id", cop_value(2)), "cop_divide"),
-                        # cop_as (cop_multiply ("id", cop_value(2)), "cop_multiply"),
-                    ),
-                    "where": ("id": 2, "cop_lower": cop_lower("cop_upper")),
+        hash soh = (
+            "columns": (
+                cop_as (cop_cast ("id", "string"), "cop_cast"),
+                cop_as (cop_value (0), "cop_value"), # triggers bug #511 (GitHub)
+                cop_as (cop_lower (cop_value ("Ahoj")), "cop_lower"),
+                cop_as (cop_upper (cop_value ("Ahoj")), "cop_upper"),
+                cop_as (cop_prepend (cop_value ("abc"), "def"), "cop_prepend"),
+                cop_as (cop_append (cop_value ("abc"), "def"), "cop_append"),
+                cop_as (cop_minus ("id", "id"), "cop_minus"),
+                cop_as (cop_plus ("id", "id"), "cop_plus"),
+                cop_as (cop_divide ("id", "id"), "cop_divide"),
+                cop_as (cop_multiply ("id", "id"), "cop_multiply"),
+                cop_as (cop_coalesce("null_f", vc, "char_f"), "cop_coalesce"),
+                cop_as (cop_coalesce("null_f", cop_value("test")), "cop_coalesce2"),
+                # cop_as (cop_minus ("id", cop_value(2)), "cop_minus"),
+                # cop_as (cop_plus ("id", cop_value(2)), "cop_plus"),
+                # cop_as (cop_divide ("id", cop_value(2)), "cop_divide"),
+                # cop_as (cop_multiply ("id", cop_value(2)), "cop_multiply"),
+            ),
+            "where": ("id": 2, "cop_lower": cop_lower("cop_upper")),
             );
 
         string sql; on_error printf("SQL: %s\n", sql);
@@ -554,7 +572,7 @@ public class SqlTestBase inherits QUnit::Test {
         return n + "_f";
     }
 
-    init_test_data (hash custom_columns) {
+    initTestData(hash custom_columns) {
         hash row;
 
         foreach hash h in (custom_columns.pairIterator()) {
