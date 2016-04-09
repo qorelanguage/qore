@@ -61,18 +61,7 @@ class MysqlTestSchema inherits SqlUtilTestSchema {
     }
 
     private *hash getTablesImpl() {
-        hash tables = Tables;
-        # add custom columns to mysql_test
-        foreach hash h in (MysqlTest::CustomColumns.pairIterator()) {
-            hash ch = (
-                "native_type": h.key,
-                "notnull": True,
-                );
-            if (h.value.typeCode() == NT_HASH)
-                ch += (h.value - ("value", "bind", "expect"));
-            tables.mysql_test.columns{SqlTestBase::getColumnName(h.key)} = ch;
-        }
-        return tables;
+        return doTables(Tables, MysqlTest::CustomColumns);
     }
 
     private *hash getIndexOptionsImpl() {
@@ -103,6 +92,10 @@ class MysqlTest inherits SqlTestBase {
                 "size": 15,
                 "scale": 2,
                 "value": 400.95n,
+            ),
+            "decimal_def": (
+                "type": "decimal",
+                "value": 401,
             ),
 
             "tinyint": 10,
@@ -153,7 +146,7 @@ class MysqlTest inherits SqlTestBase {
         }
 
         if (ds) {
-            init_test_data (CustomColumns);
+            initTestData(CustomColumns);
 
             # create the test schema
             schema = new MysqlTestSchema(ds);
