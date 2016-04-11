@@ -56,6 +56,10 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
         string outstr = w.write(row);
         testAssertion("default escaping", \equals(), (esc_default, outstr));
 
+        w = new CsvStringWriter(("optimal_quotes": False) );
+        outstr = w.write(row);
+        assertEq(esc_default, outstr);
+
         w = new CsvStringWriter( ("optimal-quotes" : False, "quote_escape" : '"') );
         outstr = w.write(row);
         testAssertion("double escaping", \equals(), (esc_double, outstr));
