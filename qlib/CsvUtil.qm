@@ -125,6 +125,7 @@ while (i.next())
     - if "headers" are not given in the @ref CsvUtil::AbstractCsvWriter::constructor() but "fields" are, then set the headers from the field descriptions automatically
     - added write() methods returning the generated strings to the @ref CsvUtil::CsvStringWriter class for API compatibility with the corresponding FixedLengthDataWriter methods
     - implemented support for @ref Qore::SQL::SQLStatement "SQLStatement" as an iterator source for @ref CsvUtil::AbstractCsvWriter::write()
+    - implemented the \c "datamap" and \c "info_log" options for CSV generation
 
     @subsection csvutil_v1_4 Version 1.4
     - fixed the \c "format" field option when used with \c "*date" field types
@@ -847,11 +848,13 @@ while (i.next()) {
         <b>AbstractCsvWriter Options</b>
         |!Option|!Data Type|!Description
         |\c "block"|@ref int|the block size when generating output based on a @ref Qore:SQL::SQLStatement "SQLStatement" source (default: \c 1000)
+        |\c "datamap"|@ref hash|a hash mapping actual data key names to the output field names, for use in case the data field names differ; does not have to include every data or output key; keys not present will be assumed to be mapped 1:1
         |\c "date-format"|@ref string|the default mask for date values formatting
         |\c "encoding"|@ref string|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
         |\c "eol"|@ref string|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
         |\c "fields"|@ref hash|describes the data to be output; see @ref abstractcsviterator_option_field_hash "option field hash" and @ref abstractcsviterator_option_field_types "option field types" for more information on the possible values of this option; if no field type is given, the default is \c "*string"
         |\c "headers"|@ref list of strings|list of header / column names for the data iterated
+        |\c "info_log"|a call reference / closure for informational logging when performing bulk generation with write(Qore::SQL::SQLStatement); must take a single string argument
         |\c "optimal-quotes"|@ref bool|set to @ref Qore::False "False" to disable optimal quoting; when optimal quoting is disabled, all fields are quoted regardless of type or content, when it is enabled, then fields are quoted only if they require quoting (i.e. they contain a quote or separator character); the default is @ref Qore::True "True"
         |\c "quote"|@ref string|the field quote character (default: \c '\"')
         |\c "quote_escape"|@ref string|the escape character(s) used for \c "quote" (default: \c '\\')
@@ -864,11 +867,13 @@ while (i.next()) {
             #! valid options for the object (a hash for quick lookups of valid keys)
             const Options = (
                 "block": True,
+                "datamap": True,
                 "date-format": True,
                 "encoding": True,
                 "eol": True,
                 "fields": True,
                 "headers": True,
+                "info_log": True,
                 "optimal-quotes": True,
                 "quote": True,
                 "quote_escape": True,
@@ -877,36 +882,37 @@ while (i.next()) {
                 "write-headers": True,
                 );
 
-            # out (file) encoding
+            #! output file character encoding
             string encoding;
 
-            # field separator
+            #! field separator
             string separator = ",";
 
-            # field content delimiter
+            #! field content delimiter
             string quote = "\"";
 
-            # 'quote' escape character
+            #! quote escape character
             string m_quoteEscapeChar = "\\";
 
-            # end of line sequence
+            #! end of line sequence
             string eol = EOL_UNIX;
 
-            # default date->string format
+            #! default date->string format
             string date_format = 'DD/MM/YYYY hh:mm:SS';
 
-            # verify the column count for every row; if a row does not match, then throw a \c CSVFILEITERATOR-DATA-ERROR exception
+            #! verify the column count for every row; if a row does not match, then throw a \c CSVFILEITERATOR-DATA-ERROR exception
             bool checkElementCounts = False;
 
-            # the latest line number
+            #! the latest line number
             int lineNo = 0;
 
-            # block size for bulk DML
+            #! block size for bulk DML
             int block = 1000;
 
-            # base template for value format
+            #! base template for value format
             string baseTemplate;
 
+            #! the exeption \c "err" string
             string errname;
 
             # this flag determines if any stored headers are output
@@ -914,6 +920,12 @@ while (i.next()) {
 
             # stores the optimal quotes option
             bool optimal_quotes = True;
+
+            # a hash mapping from output keys to data keys
+            *hash datamap;
+
+            # a closure/call reference for informational logging when using write(SQLStatement)
+            *code info_log;
         }
 
         #! creates the AbstractCsvWriter
@@ -936,6 +948,10 @@ while (i.next()) {
             foreach hash i in (n_opts.pairIterator()) {
                 if (!exists Options.(i.key))
                     throw errname, sprintf("unknown option %y passed to %s::constructor() (valid options: %y)", i.key, self.className(), Options.keys());
+
+                # if the option is not set, then ignore it
+                if (!exists i.value || i.value === NULL)
+                    continue;
 
                 switch (i.key) {
                     case "block": {
@@ -1002,6 +1018,25 @@ while (i.next()) {
                     }
                     case "optimal-quotes": {
                         optimal_quotes = parse_boolean(i.value);
+                        break;
+                    }
+                    case "info_log": {
+                        if (!i.value.callp())
+                            throw errname, sprintf("expecting a callable value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                        info_log = i.value;
+                        break;
+                    }
+                    case "datamap": {
+                        if (i.value.typeCode() != NT_HASH)
+                            throw errname, sprintf("expecting a hash value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                        # ensure that all the values are strings
+                        foreach hash h in (i.value.pairIterator()) {
+                            if (h.value.typeCode() != NT_STRING)
+                                throw errname, sprintf("\"datamap\" key %y has a non-string value; got type %y", h.key, h.value.type());
+                        }
+
+                        # reverse the mapping since we need output keys to input keys for later processing
+                        datamap = map {$1.value: $1.key}, i.value.pairIterator();
                         break;
                     }
                     case "fields": {
@@ -1157,8 +1192,11 @@ while (i.next()) {
                 throw errname, "No header set in AbstractCsvWriter instance to bind the hash key";
 
             foreach string i in (headers) {
+                # if we have mappings, then use the actual input field name if present
+                if (datamap)
+                    i = datamap{i} ?? i;
                 if (!values.hasKey(i))
-                    throw errname, sprintf("Line data does not contain key '%s'", i);
+                    throw errname, sprintf("Line data does not contain key %y", i);
                 else
                     push line, values{i};
             }
@@ -1198,9 +1236,12 @@ while (i.next()) {
          */
         write(Qore::SQL::SQLStatement iterator) {
             while (*hash h = iterator.fetchColumns(block)) {
-                if (!h.firstValue().lsize())
+                int n = h.firstValue().lsize();
+                if (!n)
                     break;
                 map writeLine($1), h.contextIterator();
+                if (info_log)
+                    info_log(sprintf("query input generated bulk output lines: %d", n));
             }
         }
 
