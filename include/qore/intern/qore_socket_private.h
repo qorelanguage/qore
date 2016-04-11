@@ -907,7 +907,7 @@ struct qore_socket_private {
          buflen = 1;
       else
          assert(!rc);
-      return !rc;
+      return rc;
    }
 
    DLLLOCAL bool isSocketDataAvailable(int timeout_ms, const char* mname, ExceptionSink* xsink) {
