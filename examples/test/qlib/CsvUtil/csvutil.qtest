@@ -52,12 +52,17 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
         string esc_default = '"12\"","a\"bc\""'+"\n";
         string esc_double = '"12""","a""bc"""'+"\n";
 
-        CsvStringWriter csv_default( ("optimal-quotes" : False) );
-        string out_default = csv_default.write(row);
-        testAssertion("default escaping", \equals(), (esc_default, out_default));
+        CsvStringWriter w( ("optimal-quotes" : False) );
+        string outstr = w.write(row);
+        testAssertion("default escaping", \equals(), (esc_default, outstr));
 
-        CsvStringWriter csv_double( ("optimal-quotes" : False, "quote_escape" : '"') );
-        string out_double = csv_double.write(row);
-        testAssertion("double escaping", \equals(), (esc_double, out_double));
+        w = new CsvStringWriter( ("optimal-quotes" : False, "quote_escape" : '"') );
+        outstr = w.write(row);
+        testAssertion("double escaping", \equals(), (esc_double, outstr));
+
+        hash dmh = ("cc": "XX");
+        w = new CsvStringWriter(("headers": ("XX", "serno", "desc", "received"), "fields": ("received": ("type": "date", "format": "DDMMYYYY")), "datamap": dmh));
+        outstr = w.write(CsvRecords.iterator());
+        assertEq("XX,serno,desc,received\n" + CsvInput + "\n", outstr);
     }
 }
