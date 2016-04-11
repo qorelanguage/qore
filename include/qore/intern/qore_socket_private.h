@@ -901,13 +901,13 @@ struct qore_socket_private {
       // select can return true if there is protocol negotiation data available,
       // so we try to read 1 byte with a timeout of 0 with the SSL connection
       int rc = ssl->doSSLRW(xsink, mname, rbuf, 1, 0, true, false);
-      if (*xsink || (rc = QSE_TIMEOUT))
+      if (*xsink || (rc == QSE_TIMEOUT))
          return false;
       if (rc == 1)
          buflen = 1;
       else
          assert(!rc);
-      return !rc;
+      return rc;
    }
 
    DLLLOCAL bool isSocketDataAvailable(int timeout_ms, const char* mname, ExceptionSink* xsink) {
