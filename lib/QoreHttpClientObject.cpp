@@ -707,6 +707,7 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
       break;
    }
 
+   // only clear exceptions if a streaming (ie chunked) send was aborted and we really got a response from the remote
    if (*xsink) {
       assert(aborted);
       xsink->clear();
