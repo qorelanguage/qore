@@ -542,76 +542,81 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
    while (true) {
       rc = read ? SSL_read(ssl, buf, size) : SSL_write(ssl, buf, size);
 
-      if (rc >= 0)
+      if (rc > 0)
          break;
 
-      if (rc < 0) {
-         int err = SSL_get_error(ssl, rc);
+      int err = SSL_get_error(ssl, rc);
 
-         if (err == SSL_ERROR_WANT_READ) {
-            if (!qs.isSocketDataAvailable(timeout_ms, mname, xsink)) {
-               if (xsink) {
-		  if (*xsink)
-		     return -1;
-                  if (do_timeout)
-                     se_timeout("Socket", mname, timeout_ms, xsink);
-	       }
-               rc = QSE_TIMEOUT;
-               break;
+      if (err == SSL_ERROR_WANT_READ) {
+         if (!qs.isSocketDataAvailable(timeout_ms, mname, xsink)) {
+            if (xsink) {
+               if (*xsink)
+                  return -1;
+               if (do_timeout)
+                  se_timeout("Socket", mname, timeout_ms, xsink);
             }
-         }
-         else if (err == SSL_ERROR_WANT_WRITE) {
-            if (!qs.isWriteFinished(timeout_ms, mname, xsink)) {
-               if (xsink) {
-		  if (*xsink)
-		     return -1;
-                  if (do_timeout)
-                     se_timeout("Socket", mname, timeout_ms, xsink);
-	       }
-               rc = QSE_TIMEOUT;
-               break;
-            }
-         }
-         // here we allow the remote side to disconnect and return 0 the first time just like regular recv()
-         else if (read && err == SSL_ERROR_ZERO_RETURN) {
-            rc = 0;
+            rc = QSE_TIMEOUT;
             break;
          }
-         else if (err == SSL_ERROR_SYSCALL) {
+      }
+      else if (err == SSL_ERROR_WANT_WRITE) {
+         if (!qs.isWriteFinished(timeout_ms, mname, xsink)) {
             if (xsink) {
-               if (!sslError(xsink, mname, read ? "SSL_read" : "SSL_write")) {
-                  if (!rc)
-                     xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported an EOF condition that violates the SSL protocol while calling SSL_%s()", mname, read ? "read" : "write");
-                  else if (rc == -1) {
-                     xsink->raiseErrnoException("SOCKET-SSL-ERROR", sock_get_error(), "error in Socket::%s(): the openssl library reported an I/O error while calling SSL_%s()", mname, read ? "read" : "write");
+               if (*xsink)
+                  return -1;
+               if (do_timeout)
+                  se_timeout("Socket", mname, timeout_ms, xsink);
+            }
+            rc = QSE_TIMEOUT;
+            break;
+         }
+      }
+      // here we allow the remote side to disconnect and return 0 the first time just like regular recv()
+      else if (err == SSL_ERROR_ZERO_RETURN) {
+         if (read)
+            rc = 0;
+         else if (xsink) {
+            if (!sslError(xsink, mname, "SSL_write"))
+               xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the socket was closed by the remote host while calling SSL_write()", mname);
+            rc = QSE_SSL_ERR;
+         }
+
+         break;
+      }
+      else if (err == SSL_ERROR_SYSCALL) {
+         if (xsink) {
+            if (!sslError(xsink, mname, read ? "SSL_read" : "SSL_write")) {
+               if (!rc)
+                  xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported an EOF condition that violates the SSL protocol while calling SSL_%s()", mname, read ? "read" : "write");
+               else if (rc == -1) {
+                  xsink->raiseErrnoException("SOCKET-SSL-ERROR", sock_get_error(), "error in Socket::%s(): the openssl library reported an I/O error while calling SSL_%s()", mname, read ? "read" : "write");
 
 #ifdef ECONNRESET
-                     // close the socket if connection reset received
-		     if (qs.isOpen() && sock_get_error() == ECONNRESET)
-			qs.close();
+                  // close the socket if connection reset received
+                  if (qs.isOpen() && sock_get_error() == ECONNRESET)
+                     qs.close();
 #endif
-		  }
-                  else
-                     xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported error code %d in SSL_%s() but the error queue is empty", mname, rc, read ? "read" : "write");
                }
-            }
+               else
+                  xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported error code %d in SSL_%s() but the error queue is empty", mname, rc, read ? "read" : "write");
+               }
+         }
 
-	    rc = xsink && !*xsink ? 0 : QSE_SSL_ERR;
-	    //rc = QSE_SSL_ERR;
-            break;
+         rc = xsink && !*xsink ? 0 : QSE_SSL_ERR;
+         //rc = QSE_SSL_ERR;
+         break;
+      }
+      else {
+         //printd(5, "SSLSocketHelper::doSSLRW(buf: %p, size: %d, to: %d) rc: %d err: %d\n", buf, size, timeout_ms, rc, err);
+         // always throw an exception if an error occurs while writing
+         if (xsink) {
+            if (!sslError(xsink, mname, read ? "SSL_read" : "SSL_write", !read))
+               rc = 0;
          }
          else {
-            //printd(5, "SSLSocketHelper::doSSLRW(buf: %p, size: %d, to: %d) rc: %d err: %d\n", buf, size, timeout_ms, rc, err);
-	    // always throw an exception if an error occurs while writing
-            if (xsink) {
-	       if (!sslError(xsink, mname, read ? "SSL_read" : "SSL_write", !read))
-		  rc = 0;
-	    }
-            else {
-               rc = xsink && !*xsink ? 0 : QSE_SSL_ERR;
-	    }
-            break;
+            rc = xsink && !*xsink ? 0 : QSE_SSL_ERR;
          }
+         break;
       }
    }
 

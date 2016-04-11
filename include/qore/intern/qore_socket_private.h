@@ -2038,7 +2038,6 @@ struct qore_socket_private {
 
       while (!done) {
          // if we have response data already, then we assume an error and abort
-         //if (aborted && isDataAvailable(0, mname, xsink)) {
          if (aborted) {
             bool data_available = tryReadSocketData(mname, xsink);
             //printd(5, "qore_socket_private::sendHttpChunkedWithCallback() this: %p aborted: %p iDA: %d\n", this, aborted, data_available);
