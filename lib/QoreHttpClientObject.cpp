@@ -707,6 +707,10 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
       break;
    }
 
+   if (*xsink) {
+      assert(aborted);
+      xsink->clear();
+   }
    return ah;
 }
 

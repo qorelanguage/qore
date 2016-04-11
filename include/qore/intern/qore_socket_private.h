@@ -2114,7 +2114,6 @@ struct qore_socket_private {
                //printd(5, "qore_socket_private::sendHttpChunkedWithCallback() this: %p aborted: %p iDA: %d\n", this, aborted, data_available);
                if (data_available) {
                   *aborted = true;
-                  xsink->clear();
                   return 0;
                }
             }
