@@ -424,7 +424,7 @@ int SSLSocketHelper::shutdown(ExceptionSink* xsink) {
 
 // returns 0 for success
 int SSLSocketHelper::write(const char* mname, const void* buf, int size, int timeout_ms, ExceptionSink* xsink) {
-   return doSSLRW(mname, (void*)buf, size, timeout_ms, false, xsink);
+   return doSSLRW(xsink, mname, (void*)buf, size, timeout_ms, false);
 }
 
 const char* SSLSocketHelper::getCipherName() const {
@@ -510,7 +510,7 @@ void QoreSocket::doException(int rc, const char* meth, int timeout_ms, Exception
    }
 }
 
-int SSLSocketHelper::doSSLRW(const char* mname, void* buf, int size, int timeout_ms, bool read, ExceptionSink* xsink) {
+int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf, int size, int timeout_ms, bool read, bool do_timeout) {
    SSLSocketReferenceHelper ssrh(this);
 
    if (timeout_ms < 0) {
@@ -553,7 +553,8 @@ int SSLSocketHelper::doSSLRW(const char* mname, void* buf, int size, int timeout
                if (xsink) {
 		  if (*xsink)
 		     return -1;
-                  se_timeout("Socket", mname, timeout_ms, xsink);
+                  if (do_timeout)
+                     se_timeout("Socket", mname, timeout_ms, xsink);
 	       }
                rc = QSE_TIMEOUT;
                break;
@@ -564,7 +565,8 @@ int SSLSocketHelper::doSSLRW(const char* mname, void* buf, int size, int timeout
                if (xsink) {
 		  if (*xsink)
 		     return -1;
-                  se_timeout("Socket", mname, timeout_ms, xsink);
+                  if (do_timeout)
+                     se_timeout("Socket", mname, timeout_ms, xsink);
 	       }
                rc = QSE_TIMEOUT;
                break;
@@ -690,7 +692,7 @@ DLLLOCAL OptionalNonBlockingHelper::~OptionalNonBlockingHelper() {
 }
 
 int SSLSocketHelper::read(const char* mname, char* buf, int size, int timeout_ms, ExceptionSink* xsink) {
-   return doSSLRW(mname, buf, size, timeout_ms, true, xsink);
+   return doSSLRW(xsink, mname, buf, size, timeout_ms, true);
 }
 
 // returns true if an error was raised or the connection was closed, false if not
