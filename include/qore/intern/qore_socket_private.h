@@ -893,6 +893,23 @@ struct qore_socket_private {
    }
 #endif
 
+   DLLLOCAL bool tryReadSocketData(const char* mname, ExceptionSink* xsink) {
+      assert(!buflen);
+      bool b = select(0, true, mname, xsink);
+      if (b || !ssl)
+         return b;
+      // select can return true if there is protocol negotiation data available,
+      // so we try to read 1 byte with a timeout of 0 with the SSL connection
+      int rc = ssl->doSSLRW(xsink, mname, rbuf, 1, 0, true, false);
+      if (*xsink || (rc = QSE_TIMEOUT))
+         return false;
+      if (rc == 1)
+         buflen = 1;
+      else
+         assert(!rc);
+      return !rc;
+   }
+
    DLLLOCAL bool isSocketDataAvailable(int timeout_ms, const char* mname, ExceptionSink* xsink) {
       return select(timeout_ms, true, mname, xsink);
    }
@@ -2023,7 +2040,7 @@ struct qore_socket_private {
          // if we have response data already, then we assume an error and abort
          //if (aborted && isDataAvailable(0, mname, xsink)) {
          if (aborted) {
-            bool data_available = isDataAvailable(0, mname, xsink);
+            bool data_available = tryReadSocketData(mname, xsink);
             //printd(5, "qore_socket_private::sendHttpChunkedWithCallback() this: %p aborted: %p iDA: %d\n", this, aborted, data_available);
             if (data_available || *xsink) {
                *aborted = true;
@@ -2110,11 +2127,11 @@ struct qore_socket_private {
          if (rc < 0) {
             // if we have a socket I/O error, but also data to be read on the socket, then clear the exception and return 0
             if (aborted && *xsink) {
-               bool data_available = isDataAvailable(0, mname, xsink);
+               bool data_available = tryReadSocketData(mname, xsink);
                //printd(5, "qore_socket_private::sendHttpChunkedWithCallback() this: %p aborted: %p iDA: %d\n", this, aborted, data_available);
                if (data_available) {
                   *aborted = true;
-                  return 0;
+                  return *xsink ? -1 : 0;
                }
             }
 
