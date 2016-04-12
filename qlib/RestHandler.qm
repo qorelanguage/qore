@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file RestHandler.qm Qore handler definition for the HttpServer module for exporting REST services
 
-/* RestHandler.qm Copyright (C) 2013 - 2015 Qore Technologies, sro
+/* RestHandler.qm Copyright (C) 2013 - 2016 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -308,6 +308,7 @@ Content-Length: 36
     - fixed a bug where an error calling an internal nonexistent method would be reported with an incorrect error message
     - implemented support for notifying persistent connections when the connection is terminated while a persistent connection is in place
     - @ref RestHandler::AbstractRestStreamRequestHandler is now the base abstract class for REST stream request handlers
+    - send errors are now reported in the @ref RestHandler::AbstractRestStreamRequestHandler object so they can be properly logged (<a href="https://github.com/qorelanguage/qore/issues/734">issue 734</a>)
 
     @subsection rh_1_0 RestHandler v1.0
     - the initial version of the RestHandler module
@@ -439,6 +440,12 @@ public namespace RestHandler {
         #! returns the timeout in milliseconds or @ref nothing if no timeout is set
         *int getTimeout() {
             return timeout_ms;
+        }
+
+        #! registers stream errors in the send operation with the stream handler if no error is already present
+        streamError(hash n_ex) {
+            if (!ex)
+                ex = n_ex;
         }
 
         #! this method should return the response message description hash
@@ -603,12 +610,10 @@ public namespace RestHandler {
         #! this method is called to dispatch streamed requests on the given object
         private hash dispatchStream(HttpListenerInterface listener, RestHandler rh, Socket s, string mn, *hash ah, hash cx) {
             string sn = "stream" + mn[0].upr() + mn.substr(1);
+            AbstractRestStreamRequestHandler rsh;
             try {
                 cx.socketobject = s;
-                AbstractRestStreamRequestHandler rsh = call_object_method_args(self, sn, (cx, ah));
-
-                RestStreamRequest req(rsh, listener, rh, s, cx, cx.hdr, cx.hdr."content-length" ? cx.body : NOTHING);
-                return req.handleRequest();
+                rsh = call_object_method_args(self, sn, (cx, ah));
             }
             catch (hash ex) {
                 if (ex.err == "METHOD-DOES-NOT-EXIST") {
@@ -617,6 +622,19 @@ public namespace RestHandler {
 
                     return dispatch(rh, mn, ah, cx);
                 }
+                string desc = !cx.debug
+                    ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
+                    : get_exception_string(ex);
+                rh.logDebug("REST DBG: class %y: stream method %y: %s", name(), sn, desc);
+                rethrow;
+            }
+            try {
+                RestStreamRequest req(rsh, listener, rh, s, cx, cx.hdr, cx.hdr."content-length" ? cx.body : NOTHING);
+                return req.handleRequest();
+            }
+            catch (hash ex) {
+                # make sure the error is registered with the stream handler
+                rsh.streamError(ex);
                 string desc = !cx.debug
                     ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
                     : get_exception_string(ex);
