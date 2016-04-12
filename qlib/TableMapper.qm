@@ -1383,9 +1383,9 @@ InboundTableMapperIterator i(input, mapper);
             string sql;
             opts.input = getStaticInputRecord(m_table, m_sh, \sql);
 
-            if (info_log) {
-                info_log("Mapper: %s: %y", self.className(), sql);
-                info_log("Mapper: %s: binding: %y", self.className(), m_sh."where");
+            if (opts.info_log) {
+                opts.info_log("Mapper: %s: %y", self.className(), sql);
+                opts.info_log("Mapper: %s: binding: %y", self.className(), m_sh."where");
             }
         }
     } # SqlStatementOutboundMapper
@@ -1468,9 +1468,9 @@ printf("%N\n", m.getDataRows());
 
             opts.input = getStaticInputRecord(m_ds, m_sql, m_sqlargs);
 
-            if (info_log) {
-                info_log("Mapper: %s: %n", self.className(), m_sql);
-                info_log("Mapper: %s: binding: %y", self.className(), m_sqlargs);
+            if (opts.info_log) {
+                opts.info_log("Mapper: %s: %y", self.className(), m_sql);
+                opts.info_log("Mapper: %s: binding: %y", self.className(), m_sqlargs);
             }
         }
     } # RawSqlStatementOutboundMapper
