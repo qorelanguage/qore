@@ -1086,7 +1086,7 @@ find_dl() {
         inc="$dir/include"
     fi
 
-    if test -f "$lib/libdl.${SHLIB_SUFFIX}"; then
+    if test -f "$lib/libdl.${SHLIB_SUFFIX}" -o -f "$lib/libdl.${SHLIB_SUFFIX}.a"; then
         if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
      	    DL_LDFLAGS="-L$lib"
         fi
