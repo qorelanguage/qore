@@ -675,13 +675,15 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
 
    //printd(5, "qore_httpclient_priv::sendMessageAndGetResponse() '%s' path: '%s' send_callback: %p aborted: %d rc: %d\n", meth, msgpath, send_callback, aborted, rc);
 
-   if (rc) {
+   // do not exit immediately if the transfer was aborted with a streaming send unless the socket was already closed
+   if (rc && (!send_callback || !aborted || !msock->socket->isOpen())) {
       assert(*xsink);
       if (rc == QSE_NOT_OPEN)
 	 disconnect_unlocked();
       return 0;
    }
 
+   // if the transfer was aborted with a streaming send, but the socket is still open, then try to read a response
    QoreHashNode* ah = 0;
    while (true) {
       ReferenceHolder<QoreHashNode> ans(msock->socket->readHTTPHeader(xsink, info, timeout, QORE_SOURCE_HTTPCLIENT), xsink);
