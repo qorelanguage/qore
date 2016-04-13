@@ -124,11 +124,13 @@ class MysqlTest inherits SqlTestBase {
             "tinyblob": <bead>,
             "blob": <bead>,
             "mediumblob": <bead>,
-            "longblob": <bead>,
+            # temporarily disabled due to a bug on rhel7 handling logblob columns with mariadb
+            #"longblob": <bead>,
 
             "tinytext": "test",
             "mediumtext": "test",
-            "longtext": "test",
+            # temporarily disabled due to a bug on rhel7 handling logtext columns with mariadb
+            #"longtext": "test",
 
             #"bit": 100,
             );
