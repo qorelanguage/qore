@@ -35,6 +35,11 @@
 
 #include <qore/intern/QoreHashIterator.h>
 
+extern QoreClass* QC_OBJECTITERATOR;
+extern QoreClass* QC_OBJECTKEYITERATOR;
+extern QoreClass* QC_OBJECTPAIRITERATOR;
+extern QoreClass* QC_OBJECTREVERSEITERATOR;
+
 // the c++ object
 class QoreObjectIterator : public QoreHashIterator {
 public:

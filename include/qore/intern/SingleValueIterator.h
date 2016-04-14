@@ -33,6 +33,8 @@
 
 #define _QORE_SINGLEVALUEITERATOR_H
 
+extern QoreClass* QC_SINGLEVALUEITERATOR;
+
 // the c++ object
 class SingleValueIterator : public QoreIteratorBase {
 protected:

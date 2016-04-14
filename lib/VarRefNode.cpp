@@ -32,6 +32,7 @@
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/ParserSupport.h>
 #include <qore/intern/QoreNamespaceIntern.h>
+#include <qore/intern/qore_program_private.h>
 
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
 // the ExceptionSink is only needed for QoreObject where a method may be executed
@@ -238,7 +239,7 @@ AbstractQoreNode *VarRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvi
    // this expression returns nothing if it's a new local variable
    // so if we're not assigning we return nothingTypeInfo as the
    // return type
-   if (!is_assignment && new_decl) { 
+   if (!is_assignment && new_decl) {
       assert(!outTypeInfo);
       outTypeInfo = nothingTypeInfo;
    }
@@ -345,7 +346,7 @@ AbstractQoreNode *VarRefDeclNode::makeNewCall(AbstractQoreNode *args) {
 }
 
 void VarRefDeclNode::makeGlobal() {
-   assert(type == VT_UNRESOLVED); 
+   assert(type == VT_UNRESOLVED);
 
    type = VT_GLOBAL;
    if (parseTypeInfo)

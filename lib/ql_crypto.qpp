@@ -1,7 +1,7 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   ql_crypto.qpp
-  
+
   Qore Programming Language
 
   Copyright (C) 2003 - 2014 David Nichols
@@ -43,20 +43,6 @@
 // default initialization vector
 static unsigned char def_iv[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
-#define MD2_ERR "MD2-DIGEST-ERROR"
-#define MD4_ERR "MD4-DIGEST-ERROR"
-#define MD5_ERR "MD5-DIGEST-ERROR"
-#define SHA_ERR "SHA-DIGEST-ERROR"
-#define SHA1_ERR "SHA1-DIGEST-ERROR"
-static const char SHA224_ERR[] = "SHA224-DIGEST-ERROR";
-static const char SHA256_ERR[] = "SHA256-DIGEST-ERROR";
-static const char SHA384_ERR[] = "SHA384-DIGEST-ERROR";
-static const char SHA512_ERR[] = "SHA512-DIGEST-ERROR";
-#define DSS_ERR "DSS-DIGEST-ERROR"
-#define DSS1_ERR "DSS1-DIGEST-ERROR"
-static const char MDC2_ERR[] = "MDC2-DIGEST-ERROR";
-#define RIPEMD160_ERR "RIPEMD160-DIGEST-ERROR"
-
 class CryptoHelper : public BaseHelper {
 private:
    unsigned char *iv, *output;
@@ -77,7 +63,7 @@ private:
 	 keylen[n - 1] = str->strlen();
 	 return;
       }
-	 
+
       const BinaryNode *b = reinterpret_cast<const BinaryNode *>(pt);
       key[n - 1] = (unsigned char *)b->getPtr();
       keylen[n - 1] = b->size();
@@ -100,7 +86,7 @@ private:
 	 iv = (unsigned char *)str->getBuffer();
 	 return 0;
       }
-      
+
       assert(pt->getType() == NT_BINARY);
       const BinaryNode *b = reinterpret_cast<const BinaryNode *>(pt);
       if (b->size() < 8) {
@@ -201,7 +187,7 @@ public:
 
 /*
    DLLLOCAL int setDESKey(int n, ExceptionSink *xsink) {
-      // force odd parity 
+      // force odd parity
       //DES_set_odd_parity((DES_cblock *)key[n]);
       // populate the schedule structure
       //DES_set_key_unchecked((DES_cblock *)key[n], schedule);
@@ -266,7 +252,7 @@ binary des_random_key() [flags=CONSTANT] [flags=CONSTANT] {
    DES_random_key(db);
    return new BinaryNode(db, sizeof(DES_cblock));
 }
- 
+
 //! Encrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for the <a href="http://www.counterpane.com/blowfish.html">blowfish algorithm</a>
 /** @param data the data to be encrypted
     @param key a variable-length key (recommended 16 bytes or more)
@@ -364,7 +350,7 @@ my binary $bin = des_encrypt_cbc($data, $key);
 binary des_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DES-ENCRYPT-PARAM-ERROR", args, xsink) 
+   if (ch.setSingleKey("DES-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 8, xsink)
        || ch.doCipher(EVP_des_cbc(), "DES", QCRYPTO_ENCRYPT, xsink))
 	    return 0;
@@ -391,7 +377,7 @@ my binary $bin = des_decrypt_cbc($data, $key);
 binary des_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink) 
+   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 8, xsink)
        || ch.doCipher(EVP_des_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
 	    return 0;
@@ -421,7 +407,7 @@ my string $bin = des_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
 string des_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true) 
+   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 8, xsink)
        || ch.doCipher(EVP_des_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
 	    return 0;
@@ -448,7 +434,7 @@ my binary $bin = des_ede_encrypt_cbc($data, $key);
 binary des_ede_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DES-ENCRYPT-PARAM-ERROR", args, xsink) 
+   if (ch.setSingleKey("DES-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 16, xsink)
        || ch.doCipher(EVP_des_ede_cbc(), "DES", QCRYPTO_ENCRYPT, xsink))
       return 0;
@@ -475,7 +461,7 @@ my binary $bin = des_ede_decrypt_cbc($data, $key);
 binary des_ede_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink) 
+   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 16, xsink)
        || ch.doCipher(EVP_des_ede_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
       return 0;
@@ -505,7 +491,7 @@ my string $bin = des_ede_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1
 string des_ede_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true) 
+   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 16, xsink)
        || ch.doCipher(EVP_des_ede_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
       return 0;
@@ -532,7 +518,7 @@ my binary $bin = des_ede3_encrypt_cbc($data, $key);
 binary des_ede3_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DES-ENCRYPT-PARAM-ERROR", args, xsink) 
+   if (ch.setSingleKey("DES-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 24, xsink)
        || ch.doCipher(EVP_des_ede3_cbc(), "DES", QCRYPTO_ENCRYPT, xsink))
       return 0;
@@ -559,7 +545,7 @@ my binary $bin = des_ede3_decrypt_cbc($data, $key);
 binary des_ede3_decrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink) 
+   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 24, xsink)
        || ch.doCipher(EVP_des_ede3_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
       return 0;
@@ -589,7 +575,7 @@ my string $bin = des_ede3_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-
 string des_ede3_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true) 
+   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 24, xsink)
        || ch.doCipher(EVP_des_ede3_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
       return 0;
@@ -616,7 +602,7 @@ my binary $bin = desx_encrypt_cbc($data, $key);
 binary desx_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DESX-ENCRYPT-PARAM-ERROR", args, xsink) 
+   if (ch.setSingleKey("DESX-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DESX-KEY-ERROR", 0, 24, xsink)
        || ch.doCipher(EVP_desx_cbc(), "DESX", QCRYPTO_ENCRYPT, xsink))
       return 0;
@@ -643,7 +629,7 @@ my binary $bin = desx_decrypt_cbc($data, $key);
 binary desx_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DESX-DECRYPT-PARAM-ERROR", args, xsink) 
+   if (ch.setSingleKey("DESX-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DESX-KEY-ERROR", 0, 24, xsink)
        || ch.doCipher(EVP_desx_cbc(), "DESX", QCRYPTO_DECRYPT, xsink))
       return 0;
@@ -1041,7 +1027,7 @@ string rc5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
 //@{
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD2_(cryptography)">MD2 message digest</a> of the supplied argument as a hex string
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_MD2
 
@@ -1072,7 +1058,7 @@ string MD2(data[doc] data) {
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD4">MD4 message digest</a> of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a hex string of the digest (ex: \c "866437cb7a794bce2b727acc0362ee27")
@@ -1095,7 +1081,7 @@ string MD4(data[doc] data) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD5">MD5 message digest</a> of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a hex string of the digest (ex: \c "5d41402abc4b2a76b9719d911017c592")
@@ -1146,7 +1132,7 @@ string SHA(data[doc] data) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1</a> message digest of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a hex string of the digest (ex: \c "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
@@ -1171,7 +1157,7 @@ string SHA1(data[doc] data) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the SHA-224 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a hex string
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA224
 
@@ -1204,7 +1190,7 @@ string SHA224(data[doc] data) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the SHA-256 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a hex string
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA256
 
@@ -1237,7 +1223,7 @@ string SHA256(data[doc] data) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the SHA-384 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a hex string
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA384
 
@@ -1270,7 +1256,7 @@ string SHA384(data[doc] data) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the SHA-512 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a hex string
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA512
 
@@ -1303,7 +1289,7 @@ string SHA512(data[doc] data) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the DSS message digest (based on SHA-0 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a hex string of the digest (ex: \c "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
@@ -1328,7 +1314,7 @@ string DSS(data[doc] data) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the DSS1 message digest (based on <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1</a> and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a hex string of the digest (ex: \c "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
@@ -1353,7 +1339,7 @@ string DSS1(data[doc] data) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2 message digest</a> of the supplied argument as a hex string
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_MDC2
 
@@ -1384,7 +1370,7 @@ string MDC2(data[doc] data) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/RIPEMD">RIPEMD message digest</a> of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a hex string of the digest (ex: \c "108f07b8382412612c048d07d13f814118445acd")
@@ -1407,7 +1393,7 @@ string RIPEMD160(data[doc] data) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD2_(cryptography)">MD2 message digest</a> of the supplied argument as binary object
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_MD2
 
@@ -1429,7 +1415,7 @@ binary MD2_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(MD2_ERR, EVP_md2(), xsink))
       return 0;
-   
+
    return dh.getBinary();
 #else
    missing_openssl_feature("MD2", xsink);
@@ -1438,7 +1424,7 @@ binary MD2_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD4">MD4 message digest</a> of the supplied argument as a binary object
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a binary object of the digest
@@ -1456,12 +1442,12 @@ binary MD4_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(MD4_ERR, EVP_md4(), xsink))
       return 0;
-   
+
    return dh.getBinary();
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD5">MD5 message digest</a> of the supplied argument as a binary object
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a binary object of the digest
@@ -1479,7 +1465,7 @@ binary MD5_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(MD5_ERR, EVP_md5(), xsink))
       return 0;
-   
+
    return dh.getBinary();
 }
 
@@ -1503,12 +1489,12 @@ binary SHA_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(SHA_ERR, EVP_sha(), xsink))
       return 0;
-   
+
    return dh.getBinary();
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1</a> message digest of the supplied argument as a binary object
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a binary object of the digest
@@ -1526,12 +1512,12 @@ binary SHA1_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(SHA1_ERR, EVP_sha1(), xsink))
       return 0;
-   
+
    return dh.getBinary();
 }
 
 //! Returns the SHA-224 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA224
 
@@ -1553,7 +1539,7 @@ binary SHA224_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(SHA224_ERR, EVP_sha224(), xsink))
       return 0;
-   
+
    return dh.getBinary();
 #else
    missing_openssl_feature("SHA224", xsink);
@@ -1562,7 +1548,7 @@ binary SHA224_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the SHA-256 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA256
 
@@ -1584,7 +1570,7 @@ binary SHA256_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(SHA256_ERR, EVP_sha256(), xsink))
       return 0;
-   
+
    return dh.getBinary();
 #else
    missing_openssl_feature("SHA256", xsink);
@@ -1593,7 +1579,7 @@ binary SHA256_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the SHA-384 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA384
 
@@ -1615,7 +1601,7 @@ binary SHA384_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(SHA384_ERR, EVP_sha384(), xsink))
       return 0;
-   
+
    return dh.getBinary();
 #else
    missing_openssl_feature("SHA384", xsink);
@@ -1624,7 +1610,7 @@ binary SHA384_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the SHA-512 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA512
 
@@ -1646,7 +1632,7 @@ binary SHA512_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(SHA512_ERR, EVP_sha512(), xsink))
       return 0;
-   
+
    return dh.getBinary();
 #else
    missing_openssl_feature("SHA512", xsink);
@@ -1655,7 +1641,7 @@ binary SHA512_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the DSS message digest (based on SHA-0 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) of the supplied argument as a binary object
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a binary object of the digest
@@ -1675,12 +1661,12 @@ binary DSS_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(DSS_ERR, EVP_dss(), xsink))
       return 0;
-   
+
    return dh.getBinary();
 }
 
 //! Returns the DSS1 message digest (based on SHA-0 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) of the supplied argument as a binary object
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a binary object of the digest
@@ -1700,12 +1686,12 @@ binary DSS1_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(DSS1_ERR, EVP_dss1(), xsink))
       return 0;
-   
+
    return dh.getBinary();
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2 message digest</a> of the supplied argument as a binary object
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_MDC2
 
@@ -1727,7 +1713,7 @@ binary MDC2_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(MDC2_ERR, EVP_mdc2(), xsink))
       return 0;
-   
+
    return dh.getBinary();
 #else
    missing_openssl_feature("MDC2", xsink);
@@ -1736,7 +1722,7 @@ binary MDC2_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/RIPEMD">RIPEMD message digest</a> of the supplied argument as a binary object
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a binary object of the digest
@@ -1754,7 +1740,7 @@ binary RIPEMD160_binary(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(RIPEMD160_ERR, EVP_ripemd160(), xsink))
       return 0;
-   
+
    return dh.getBinary();
 }
 
@@ -1783,7 +1769,7 @@ binary RIPEMD160_binary(data[doc] data) [flags=RET_VALUE_ONLY] {
  */
 //@{
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD2_(cryptography)">MD2</a> based HMAC of the supplied argument as a hex string
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_MD2
 
@@ -1817,7 +1803,7 @@ string MD2_hmac(data[doc] data, string key) {
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD4">MD4</a> based HMAC of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
     @param key a secret passphrase/key
 
@@ -1840,7 +1826,7 @@ string MD4_hmac(data[doc] data, string key) {
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD5">MD5</a> based HMAC of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
     @param key a secret passphrase/key
 
@@ -1865,7 +1851,7 @@ string MD5_hmac(data[doc] data, string key) {
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA</a> based HMAC of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
     @param key a secret passphrase/key
 
@@ -1890,7 +1876,7 @@ string SHA_hmac(data[doc] data, string key) {
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA1</a> based HMAC of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
     @param key a secret passphrase/key
 
@@ -1915,7 +1901,7 @@ string SHA1_hmac(data[doc] data, string key) {
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA224</a> based HMAC of the supplied argument as a hex string
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA224
 
@@ -1948,7 +1934,7 @@ string SHA224_hmac(data[doc] data, string key) {
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA256</a> based HMAC of the supplied argument as a hex string
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA256
 
@@ -1980,7 +1966,7 @@ string SHA256_hmac(data[doc] data, string key) {
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA384</a> based HMAC of the supplied argument as a hex string
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA384
 
@@ -2012,7 +1998,7 @@ string SHA384_hmac(data[doc] data, string key) {
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA512</a> based HMAC of the supplied argument as a hex string
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA512
 
@@ -2044,7 +2030,7 @@ string SHA512_hmac(data[doc] data, string key) {
 }
 
 //! Returns the DSS (SHA-0 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) based HMAC of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
     @param key a secret passphrase/key
 
@@ -2069,7 +2055,7 @@ string DSS_hmac(data[doc] data, string key) {
 }
 
 //! Returns the DSS1 (SHA-1 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) based HMAC of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
     @param key a secret passphrase/key
 
@@ -2094,7 +2080,7 @@ string DSS1_hmac(data[doc] data, string key) {
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2</a> based HMAC of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
     @param key a secret passphrase/key
 
@@ -2123,7 +2109,7 @@ string MDC2_hmac(data[doc] data, string key) {
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/RIPEMD">RIPEMD</a> based HMAC of the supplied argument as a hex string
-/** 
+/**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
     @param key a secret passphrase/key
 

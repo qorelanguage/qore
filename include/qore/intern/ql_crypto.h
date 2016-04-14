@@ -39,6 +39,20 @@
 #include <openssl/des.h>
 #include <openssl/hmac.h>
 
+#define MD2_ERR "MD2-DIGEST-ERROR"
+#define MD4_ERR "MD4-DIGEST-ERROR"
+#define MD5_ERR "MD5-DIGEST-ERROR"
+#define SHA_ERR "SHA-DIGEST-ERROR"
+#define SHA1_ERR "SHA1-DIGEST-ERROR"
+static const char SHA224_ERR[] = "SHA224-DIGEST-ERROR";
+static const char SHA256_ERR[] = "SHA256-DIGEST-ERROR";
+static const char SHA384_ERR[] = "SHA384-DIGEST-ERROR";
+static const char SHA512_ERR[] = "SHA512-DIGEST-ERROR";
+#define DSS_ERR "DSS-DIGEST-ERROR"
+#define DSS1_ERR "DSS1-DIGEST-ERROR"
+static const char MDC2_ERR[] = "MDC2-DIGEST-ERROR";
+#define RIPEMD160_ERR "RIPEMD160-DIGEST-ERROR"
+
 DLLLOCAL void init_crypto_functions(QoreNamespace& ns);
 
 class BaseHelper {
@@ -67,7 +81,7 @@ protected:
          setInput(*reinterpret_cast<const BinaryNode *>(pt));
       }
    }
-   
+
 public:
    DLLLOCAL unsigned int size() const {
       return md_len;
@@ -114,7 +128,7 @@ public:
    DLLLOCAL int doDigest(const char *err, const EVP_MD *md, ExceptionSink *xsink = 0) {
       EVP_MD_CTX mdctx;
       EVP_MD_CTX_init(&mdctx);
-	 
+
       EVP_DigestInit_ex(&mdctx, md, 0);
 
       if (!EVP_DigestUpdate(&mdctx, input, input_len) || !EVP_DigestFinal_ex(&mdctx, md_value, &md_len)) {
@@ -127,7 +141,7 @@ public:
       EVP_MD_CTX_cleanup(&mdctx);
       return 0;
    }
-   
+
 };
 
 class HMACHelper : public BaseHelper {
@@ -174,7 +188,7 @@ public:
         HMAC_Update(&ctx, input, input_len);
         HMAC_Final(&ctx, md_value, &md_len);
 #endif
-    
+
         HMAC_CTX_cleanup(&ctx);
         return 0;
     }

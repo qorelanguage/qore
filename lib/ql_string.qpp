@@ -81,7 +81,7 @@ static const char *memstr(const char *str, const char *pattern, qore_size_t pl, 
       }
       if (!found)
 	 continue;
-     
+
       // found
       //printd(5, "memstr() got it! p=%p\n", p);
       return p;
@@ -208,7 +208,7 @@ QoreStringNode *join_intern(const QoreStringNode *p0, const QoreListNode *l, int
    for (unsigned i = offset; i < l->size(); i++) {
       const AbstractQoreNode *p = l->retrieve_entry(i);
       if (p) {
-	 QoreStringValueHelper t(p, p0->getEncoding(), xsink);	 
+	 QoreStringValueHelper t(p, p0->getEncoding(), xsink);
 	 if (*xsink)
 	    return 0;
 
@@ -351,7 +351,7 @@ const RE_Global = QRE_GLOBAL;
 
     @note The percent sign \c "%" always starts a format specification unless it is followed by another \c "%" sign, in this case only one \c "%" is output (ie \c "%%" in the format string is output as a single \c "%")
 
-    @subsection format_specification 
+    @subsection format_specification
 
     After the \c "%" sign, there can be zero or more formatting flags as in the following table:
 
@@ -439,13 +439,13 @@ int length(binary bin) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing length() [flags=RUNTIME_NOOP] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 int length(any[doc] arg) [flags=NOOP] {
    return 0;
@@ -474,13 +474,13 @@ int strlen(softstring str) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing strlen() [flags=RUNTIME_NOOP] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 int strlen(any[doc] arg) [flags=NOOP] {
    return 0;
@@ -517,7 +517,7 @@ string tolower(string str) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing tolower() [flags=RUNTIME_NOOP] {
 }
@@ -553,7 +553,7 @@ string toupper(string str) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing toupper() [flags=RUNTIME_NOOP] {
 }
@@ -659,7 +659,7 @@ binary substr(binary b, softint start, softint len) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing substr() [flags=NOOP] {
 }
@@ -685,7 +685,7 @@ if ($i == -1)
 
     @note equivalent to <string>::find(softstring, softint)
 
-    @see 
+    @see
     - <string>::rfind(softstring, softint)
     - rindex(softstring, softstring, softint)
     - bindex(softstring, softstring, softint)
@@ -696,7 +696,7 @@ int index(softstring str, softstring substr, softint pos = 0) [flags=RET_VALUE_O
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 int index() [flags=RUNTIME_NOOP] {
    return -1;
@@ -720,7 +720,7 @@ if ($i == -1)
 
     @note no character encoding conversions are made by this function even if the string arguments have different @ref character_encoding "character encodings"
 
-    @see 
+    @see
     - <string>::find(softstring, softint)
     - <string>::rfind(softstring, softint)
     - index(softstring, softstring, softint)
@@ -732,7 +732,7 @@ int bindex(softstring str, softstring substr, softint pos = 0) [flags=CONSTANT] 
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 int bindex() [flags=RUNTIME_NOOP] {
    return -1;
@@ -770,7 +770,7 @@ int rindex(softstring str, softstring substr, softint pos = -1) [flags=RET_VALUE
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 int rindex() [flags=RUNTIME_NOOP] {
    return -1;
@@ -806,14 +806,14 @@ int brindex(softstring str, softstring substr, softint pos = -1) [flags=CONSTANT
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 int brindex() [flags=RUNTIME_NOOP] {
    return -1;
 }
 
 //! Gives the numeric value of the given byte in the string passed; if no string is passed or the offset is after the end of the string, -1 is returned
-/** 
+/**
     @param str the string containing the byte to be retrieved
     @param offset the byte offset of the byte to be retrieved
 
@@ -834,7 +834,7 @@ int ord(softstring str, softint offset = 0) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 int ord() [flags=RUNTIME_NOOP] {
    return 0;
@@ -868,19 +868,19 @@ string chr(any[doc] arg) [flags=NOOP] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing chr() [flags=RUNTIME_NOOP] {
 }
 
 //! Splits a string into a list of components based on a separator string
-/** 
+/**
     @param sep the separator string; if the separator string is not found in the string to split, then a list with only one element containing the entire string argument is returned'; if this string has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding"
     @param str the string to split
     @param with_separator include the separator string in every element
 
     @return a list of each component of a string separated by a separator string, with the separator removed; the separator pattern will not be included in the elements of the list returned unless the \a with_separator argument is @ref True
-    
+
     @par Example:
     @code
 my list $list = split(":", "some:text:here"); # returns ("some", "text", "here")
@@ -895,7 +895,7 @@ list split(string sep, string str, bool with_separator = False) [flags=RET_VALUE
    TempEncodingHelper temp(sep, str->getEncoding(), xsink);
    if (*xsink)
       return 0;
-   
+
    return split_intern(temp->getBuffer(), temp->strlen(), str->getBuffer(), str->strlen(), str->getEncoding(), with_separator);
 }
 
@@ -926,12 +926,12 @@ list split(string sep, string str, string quote, bool trim_unquoted = False) [fl
 }
 
 //! Returns a list of binary objects representing each component of the binary object separated by the bytes identified by the separator argument, with the separator removed
-/** 
+/**
     @param data the binary object to separate
     @param sep the bytes that separate the fields
 
     @return a list of binary objects representing each component of the binary object separated by the bytes identified by the separator argument, with the separator removed
-    
+
     @par Example:
     @code
 my list $l = split($sep, $bin);
@@ -944,14 +944,14 @@ list split(binary sep, binary data) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 list split() [flags=RUNTIME_NOOP] {
    return new QoreListNode;
 }
 
 //! Returns a string describing the character encoding of the string argument passed
-/** 
+/**
     @param str the string to get the encoding for
 
     @return a string describing the character encoding of the string argument passed
@@ -968,13 +968,13 @@ string get_encoding(string str) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing get_encoding() [flags=RUNTIME_NOOP] {
 }
 
 //! Performs explicit string character encoding conversions
-/** 
+/**
     @param str the string to convert
     @param encoding the encoding for the return value
 
@@ -992,7 +992,7 @@ string convert_encoding(string str, string encoding) [flags=RET_VALUE_ONLY] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing convert_encoding() [flags=RUNTIME_NOOP] {
 }
@@ -1015,7 +1015,7 @@ string force_encoding(string str, string encoding) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing force_encoding() [flags=RUNTIME_NOOP] {
 }
@@ -1051,7 +1051,7 @@ bool regex(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing regex() [flags=RUNTIME_NOOP] {
 }
@@ -1089,7 +1089,7 @@ resulting in:
     @throw REGEX-OPTION-ERROR the option argument contains invalid option bits
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if an encoding error is encountered when converting the given strings to UTF-8
 
-    @see 
+    @see
     - replace()
     - @ref qore_regex for more information about regular expression support in Qore
  */
@@ -1112,7 +1112,7 @@ string regex_subst(string str, string regex, string subst, int options = 0) [fla
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing regex_subst() [flags=RUNTIME_NOOP] {
 }
@@ -1150,13 +1150,13 @@ my *list $rv = regex_extract("ns:element", "(\\w+):(\\w+)");
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing regex_extract() [flags=RUNTIME_NOOP] {
 }
 
 //! Replaces all occurrences of a substring in a string with another string
-/** 
+/**
     @param str the string to process
     @param source the substring to replace; if this string has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding"
     @param target the replacement value for \a source; if this string has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding"
@@ -1190,7 +1190,7 @@ string replace(string str, string source, string target, int start = 0, int end 
    if (*xsink)
       return 0;
 
-   QoreStringNode *nstr = new QoreStringNode(ccs);   
+   QoreStringNode *nstr = new QoreStringNode(ccs);
 
    const char *cstr, *pattern;
    cstr = str->getBuffer();
@@ -1231,18 +1231,18 @@ string replace(string str, string source, string target, int start = 0, int end 
    // add last field
    if (*cstr)
       nstr->concat(cstr);
-   
+
    return nstr;
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing replace() [flags=RUNTIME_NOOP] {
 }
 
 //! Creates a string from separator string and a list of arguments
-/** 
+/**
     @param str the separator string
     @param ... the list of arguments to join; each argument will be converted to a string if necessary to be concatenated to the return value string; additionally if any string argument has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding" before concatentation to the return value string
 
@@ -1260,7 +1260,7 @@ string join(string str, ...) [flags=RET_VALUE_ONLY] {
 }
 
 //! Creates a string from separator string and a list of arguments
-/** 
+/**
     @param str the separator string
     @param l the list of arguments to join; each argument will be converted to a string if necessary to be concatenated to the return value string; additionally if any string argument has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding" before concatentation to the return value string
 
@@ -1280,7 +1280,7 @@ string join(string str, list l) [flags=RET_VALUE_ONLY] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing join() [flags=RUNTIME_NOOP] {
 }
@@ -1331,7 +1331,7 @@ chomp(\$str);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing chomp() [flags=RUNTIME_NOOP] {
 }
@@ -1390,13 +1390,13 @@ trim(\$str);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing trim() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns a truncated string with no more than the given number of bytes and optionally converted to a specific @ref character_encoding "character encoding"
-/** 
+/**
     @param str the string to truncate
     @param len the maximum byte length of the string
     @param encoding if given, the string returned will be returned in the given encoding, otherwise the encoding of \ str is used for the return value
@@ -1442,7 +1442,7 @@ string trunc_str(softstring str, softint len, *string encoding) [flags=RET_VALUE
 }
 
 //! Returns a new string with a repeated string element and optionally removing trailing characters
-/** 
+/**
     @param str the string element to repeat in the return value string
     @param smul the number of times the element should repeat
     @param offset the number of characters that should be removed from the end of the string after processing
@@ -1459,7 +1459,7 @@ string strmul(softstring str, softint smul, *softint offset) [flags=RET_VALUE_ON
       xsink->raiseException("STRMUL-ERROR", "Offset argument has to be >= 0; value: "QSD, offset);
       return 0;
    }
-   
+
    if (smul < 1) {
       xsink->raiseException("STRMUL-ERROR", "Multiple argument has to be > 0; value: "QSD, smul);
       return 0;
@@ -1470,7 +1470,7 @@ string strmul(softstring str, softint smul, *softint offset) [flags=RET_VALUE_ON
       ret->concat(str);
       --smul;
    }
-   
+
    if (offset) {
       if (offset > (int64)ret->length()) {
          xsink->raiseException("STRMUL-ERROR", "Offset (%d) is greater than string length (%d)", offset, ret->length());
@@ -1506,7 +1506,7 @@ string format_number(string fmt, softfloat num) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing format_number() [flags=RUNTIME_NOOP] {
 }
@@ -1530,7 +1530,7 @@ string reverse(softstring str) [flags=CONSTANT] {
 }
 
 //! Outputs a string to standard output with no formatting
-/** 
+/**
     @param ... each of the arguments passed to this function will be output literally with no output formatting
 
     @par Example:
@@ -1550,7 +1550,7 @@ nothing print(...) [dom=TERMINAL_IO] {
 }
 
 //! Returns a formatted string based on a @ref string_formatting "format string" and other arguments; enforces field widths on arguments larger than the given field width
-/** 
+/**
     This function will truncate output longer than any field width given in the @ref string_formatting "format string"
 
     @param fmt the @ref string_formatting "format string"
@@ -1572,14 +1572,14 @@ string f_sprintf(string[doc] fmt, ...) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 string f_sprintf() [flags=NOOP] {
    return null_string();
 }
 
 //! Returns a formatted string based on a @ref string_formatting "format string" and other arguments; does not enforce field widths on arguments larger than the given field width
-/** 
+/**
     This function will not truncate output longer than any field width given in the @ref string_formatting "format string"
 
     @param fmt the @ref string_formatting "format string"
@@ -1601,14 +1601,14 @@ string sprintf(string[doc] fmt, ...) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 string sprintf() [flags=NOOP] {
    return null_string();
 }
 
 //! Returns a formatted string based on a @ref string_formatting "format string" and other arguments given as a list after the format string; enforces field widths on arguments larger than the given field width
-/** 
+/**
     This function will truncate output longer than any field width given in the @ref string_formatting "format string"
 
     @param fmt the @ref string_formatting "format string"
@@ -1632,7 +1632,7 @@ string f_vsprintf(string[doc] fmt, any[doc] varg) [flags=CONSTANT] {
 }
 
 //! Returns a formatted string based on a @ref string_formatting "format string" and other arguments given as a list after the format string; does not enforce field widths on arguments larger than the given field width
-/** 
+/**
     This function will not truncate output longer than any field width given in the @ref string_formatting "format string"
 
     @param fmt the @ref string_formatting "format string"
@@ -1654,14 +1654,14 @@ string vsprintf(string[doc] fmt, any[doc] varg) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 string vsprintf() [flags=NOOP] {
    return null_string();
 }
 
 //! Outputs the string passed to standard output, using the first argument as a @ref string_formatting "format string"; enforces field widths on arguments larger than the given field width
-/** 
+/**
     This function will truncate output longer than any field width given in the @ref string_formatting "format string"
 
     @param fmt the @ref string_formatting "format string"
@@ -1685,14 +1685,14 @@ string f_printf(string[doc] fmt, ...) [dom=TERMINAL_IO] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 string f_printf() [flags=NOOP] {
    return null_string();
 }
 
 //! Outputs the string passed to standard output, using the first argument as a @ref string_formatting "format string"; does not enforce field widths on arguments larger than the given field width
-/** 
+/**
     This function will not truncate output longer than any field width given in the @ref string_formatting "format string"
 
     @param fmt the @ref string_formatting "format string"
@@ -1716,14 +1716,14 @@ string printf(string[doc] fmt, ...) [dom=TERMINAL_IO] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 string printf() [flags=NOOP;dom=TERMINAL_IO] {
    return null_string();
 }
 
 //! Outputs the string passed to standard output, using the first argument as a @ref string_formatting "format string" and a second argument giving a list or a single argument to the format string; enforces field widths on arguments larger than the given field width
-/** 
+/**
     This function will truncate output longer than any field width given in the @ref string_formatting "format string"
 
     @param fmt the @ref string_formatting "format string"
@@ -1749,7 +1749,7 @@ string f_vprintf(string[doc] fmt, any[doc] varg) [dom=TERMINAL_IO] {
 }
 
 //! Outputs the string passed to standard output, using the first argument as a @ref string_formatting "format string" and a second argument giving a list or a single argument to the format string; does not enforce field widths on arguments larger than the given field width
-/** 
+/**
     This function will not truncate output longer than any field width given in the @ref string_formatting "format string"
 
     @param fmt the @ref string_formatting "format string"
@@ -1773,14 +1773,14 @@ string vprintf(string[doc] fmt, ...) [dom=TERMINAL_IO] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 string vprintf() [flags=NOOP] {
    return null_string();
 }
 
 //! Flushes output to the console output with print(), printf(), etc
-/** 
+/**
     @par Example:
     @code
 flush();

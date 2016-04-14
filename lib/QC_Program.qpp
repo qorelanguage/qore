@@ -33,6 +33,7 @@
 #include <qore/intern/QC_Program.h>
 #include <qore/intern/QC_TimeZone.h>
 #include <qore/intern/qore_program_private.h>
+#include <qore/intern/ModuleInfo.h>
 
 /** @defgroup parse_options Parse Option Constants
     These are the possible values that can be or'ed together to set @ref Qore::Program "Program" parse options
@@ -72,7 +73,7 @@ const PO_NO_INHERIT_GLOBAL_VARS = PO_NO_INHERIT_GLOBAL_VARS;
 const PO_NO_INHERIT_USER_FUNC_VARIANTS = PO_NO_INHERIT_USER_FUNC_VARIANTS;
 
 //! Disallows changes to the warning mask
-/** 
+/**
     @see @ref lock-warnings "%lock-warnings"
 */
 const PO_LOCK_WARNINGS = PO_LOCK_WARNINGS;
@@ -92,31 +93,31 @@ const PO_LOCKDOWN = PO_LOCKDOWN;
 const PO_NEW_STYLE = PO_NEW_STYLE;
 
 //! Disallows loading @ref qore_modules "modules" with the @ref requires "%requires" directive or at runtime with load_module()
-/** 
+/**
     @see @ref no-modules "%no-modules"
 */
 const PO_NO_MODULES = PO_NO_MODULES;
 
 //! Allows child program objects to have fewer parse restrictions (i.e. more capabilies) than the parent object
-/** 
+/**
     @see @ref no-child-restrictions "%no-child-restrictions"
 */
 const PO_NO_CHILD_PO_RESTRICTIONS = PO_NO_CHILD_PO_RESTRICTIONS;
 
 //! Disallows class definitions
-/** 
+/**
     @see @ref no-class-defs "%no-class-defs"
 */
 const PO_NO_CLASS_DEFS = PO_NO_CLASS_DEFS;
 
 //! Disallows constant definitions
-/** 
+/**
     @see @ref no-constant-defs "%no-constant-defs"
 */
 const PO_NO_CONSTANT_DEFS = PO_NO_CONSTANT_DEFS;
 
 //! Disallows access to database functionality
-/** 
+/**
     @see @ref no-database "%no-database"
 */
 const PO_NO_DATABASE = PO_NO_DATABASE;
@@ -132,31 +133,31 @@ const PO_NO_EMBEDDED_LOGIC = PO_NO_EMBEDDED_LOGIC;
 const PO_NO_EXTERNAL_ACCESS = PO_NO_EXTERNAL_ACCESS;
 
 //! Disallows access to functionality that provides information about the computing environment
-/** 
+/**
     @see @ref no-external-info "%no-external-info"
 */
 const PO_NO_EXTERNAL_INFO = PO_NO_EXTERNAL_INFO;
 
 //! Disallows any access to external processes (with system(), backquote(), exec(), etc)
-/** 
+/**
     @see @ref no-external-process "%no-external-process"
 */
 const PO_NO_EXTERNAL_PROCESS = PO_NO_EXTERNAL_PROCESS;
 
 //! Disallows access to the filesystem
-/** 
+/**
     @see @ref no-filesystem "%no-filesystem"
 */
 const PO_NO_FILESYSTEM = PO_NO_FILESYSTEM;
 
 //! Disallows the use of global variables
-/** 
+/**
     @see @ref no-global-vars "%no-global-vars"
 */
 const PO_NO_GLOBAL_VARS = PO_NO_GLOBAL_VARS;
 
 //! Disallows access to functionality that draws graphics to the display
-/** @see PO_NO_TERMINAL_IO 
+/** @see PO_NO_TERMINAL_IO
     @see @ref no-gui "%no-gui"
  */
 const PO_NO_GUI = PO_NO_GUI;
@@ -169,19 +170,19 @@ const PO_NO_GUI = PO_NO_GUI;
 const PO_NO_IO = PO_NO_IO;
 
 //! Disallows access to functionality that can change locale parameters
-/** 
+/**
     @see @ref no-locale-control "%no-locale-control"
 */
 const PO_NO_LOCALE_CONTROL = PO_NO_LOCALE_CONTROL;
 
 //! Disallows new namespace definitions
-/** 
+/**
     @see @ref no-namespace-defs "%no-namespace-defs"
 */
 const PO_NO_NAMESPACE_DEFS = PO_NO_NAMESPACE_DEFS;
 
 //! Disallows access to network functionality
-/** 
+/**
     @see @ref no-network "%no-network"
 */
 const PO_NO_NETWORK = PO_NO_NETWORK;
@@ -197,13 +198,13 @@ my Mutex $m();
 const PO_NO_NEW = PO_NO_NEW;
 
 //! Disallows access to functions that would affect the current process (exit(), exec(), fork(), etc)
-/** 
+/**
     @see @ref no-process-control "%no-process-control"
 */
 const PO_NO_PROCESS_CONTROL = PO_NO_PROCESS_CONTROL;
 
 //! Disallows subroutine (function) definitions
-/** 
+/**
     @see @ref no-subroutine-defs "%no-subroutine-defs"
 */
 const PO_NO_SUBROUTINE_DEFS = PO_NO_SUBROUTINE_DEFS;
@@ -215,31 +216,31 @@ const PO_NO_SYSTEM_CLASSES = PO_NO_SYSTEM_CLASSES;
 const PO_NO_SYSTEM_FUNC_VARIANTS = PO_NO_SYSTEM_FUNC_VARIANTS;
 
 //! Disallows access to reading from and/or writing to the terminal
-/** 
+/**
     @see @ref no-terminal-io "%no-terminal-io"
 */
 const PO_NO_TERMINAL_IO = PO_NO_TERMINAL_IO;
 
 //! Disallows access to any thread-control functions and thread-relevant statements and operators (for example the @ref background "background operator" and the @ref thread_exit "thread_exit statement")
-/** 
+/**
     @see @ref no-thread-control "%no-thread-control"
 */
 const PO_NO_THREAD_CONTROL = PO_NO_THREAD_CONTROL;
 
 //! Disallows access to any thread classes
-/** 
+/**
     @see @ref no-thread-classes "%no-thread-classes"
 */
 const PO_NO_THREAD_CLASSES = PO_NO_THREAD_CLASSES;
 
 //! Disallows access to functionality that provides information about threading
-/** 
+/**
     @see @ref no-thread-info "%no-thread-info"
 */
 const PO_NO_THREAD_INFO = PO_NO_THREAD_INFO;
 
 //! Disallows top level code
-/** 
+/**
     @see @ref no-top-level "%no-top-level"
 */
 const PO_NO_TOP_LEVEL_STATEMENTS = PO_NO_TOP_LEVEL_STATEMENTS;
@@ -260,7 +261,7 @@ const PO_NO_THREADS = PO_NO_THREADS;
 const PO_POSITIVE_OPTIONS = PO_POSITIVE_OPTIONS;
 
 //! Requires global variables to be declared with our before use
-/** 
+/**
     @see @ref require-our "%require-our"
 */
 const PO_REQUIRE_OUR = PO_REQUIRE_OUR;
@@ -283,7 +284,7 @@ const PO_REQUIRE_PROTOTYPES = PO_REQUIRE_PROTOTYPES;
 const PO_REQUIRE_TYPES = PO_REQUIRE_TYPES;
 
 //! Prohibits access to builtin functions and methods flagged with RT_NOOP and also causes errors to be raised if excess arguments are given to functions that do not access excess arguments
-/** This option is set implicitly with @ref PO_REQUIRE_TYPES 
+/** This option is set implicitly with @ref PO_REQUIRE_TYPES
 
     @see @ref strict-args "%strict-args"
  */
@@ -469,7 +470,7 @@ Program::constructor(softint po = PO_DEFAULT) [dom=EMBEDDED_LOGIC] {
 }
 
 //! Throws an exception to prevent objects of this class from being copied
-/** 
+/**
     @throw PROGRAM-COPY-ERROR copying Program objects is currently unsupported
  */
 Program::copy() {
@@ -533,7 +534,7 @@ while ($wh) {
 }
 
 //! Parses the text passed to pending lists in the Program object; does not resolve all references or commit the code to the Program object
-/** References are resolved in the Program::parseCommit() method.  
+/** References are resolved in the Program::parseCommit() method.
 
     Program::parseCommit() must be called to resolve all references and commit the code to the Program object; until Program::parseCommit() is called, none of the code parsed by this method will be available for execution in the Program object.
 
@@ -635,7 +636,7 @@ while (exists $wh) {
 }
 
 //! Rolls back any pending code processed with Program::parsePending() that has not yet been committed to the Program object with Program::parseCommit()
-/** 
+/**
     @par Example:
     @code
 $pgm.parseRollback();
@@ -794,7 +795,7 @@ nothing Program::importFunction(string func, string new_name) {
 /** If the variable is an object, then any methods called from the subprogram will run in the parent's space
 
     @param varname The name of the global variable without the \c "$"
-    @param readonly If this argument is @ref True, then the variable will be imported read-only, and cannot be changed by the subprogram (note that if the imported 
+    @param readonly If this argument is @ref True, then the variable will be imported read-only, and cannot be changed by the subprogram (note that if the imported
 
     @par Example:
     @code
@@ -981,7 +982,7 @@ my *string $path = $pgm.getScriptPath();
 }
 
 //! Locks parse options so that they cannot be changed
-/** 
+/**
     @par Example:
     @code
  $pgm.lockOptions();
@@ -992,7 +993,7 @@ nothing Program::lockOptions() {
 }
 
 //! Returns a the value of the global variable identified by the first string argument
-/** 
+/**
     @param varname The string name of the global variable to find, not including the leading \c "$" character
     @param rexists An lvalue reference to a @ref bool_type to determine if the global variable exists (because this method could return @ref nothing when the variable exists as well as when it does not)
 
@@ -1067,7 +1068,7 @@ nothing Program::setTimeZoneUTCOffset(softint seconds_east) {
 }
 
 //! Sets the default local time zone for the object
-/** 
+/**
     @par Example:
     @code
 my TimeZone $tz("Europe/Prague");
