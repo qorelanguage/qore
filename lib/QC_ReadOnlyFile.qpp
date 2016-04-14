@@ -35,6 +35,8 @@
 #include <qore/intern/QC_File.h>
 #include <qore/intern/QC_Queue.h>
 
+#include <errno.h>
+
 /** @defgroup file_stat_constants File Stat Constants
     These are values that can be and'ed with the \c "mode" element of a file's status as returned by Qore::ReadOnlyFile::hstat(), Qore::hstat(), etc, or with element 2 of the status list as returned from Qore::ReadOnlyFile::stat(), Qore::stat(), etc.
 */

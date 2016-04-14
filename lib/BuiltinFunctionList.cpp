@@ -50,6 +50,8 @@
 #include <qore/intern/ql_debug.h>
 #endif // DEBUG
 
+#include <qore/intern/QoreNamespaceIntern.h>
+
 #include <string.h>
 #include <assert.h>
 
