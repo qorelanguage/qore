@@ -4,7 +4,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -44,27 +44,7 @@ protected:
 
    DLLLOCAL static QoreString logical_equals_str;
 
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const {
-      bool rc = QoreLogicalEqualsOperatorNode::boolEvalImpl(xsink);
-      return *xsink ? 0 : get_bool_node(rc);
-   }
-
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-      needs_deref = false;
-      return QoreLogicalEqualsOperatorNode::evalImpl(xsink);
-   }
-
-   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const {
-      return QoreLogicalEqualsOperatorNode::boolEvalImpl(xsink);
-   }
-   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const {
-      return QoreLogicalEqualsOperatorNode::boolEvalImpl(xsink);
-   }
-   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const {
-      return QoreLogicalEqualsOperatorNode::boolEvalImpl(xsink);
-   }
-
-   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreValue evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const;
 
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
@@ -107,7 +87,7 @@ public:
       return false;
    }
 
-   DLLLOCAL static bool softEqual(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink);
+   DLLLOCAL static bool softEqual(const QoreValue left, const QoreValue right, ExceptionSink *xsink);
 };
 
 #endif

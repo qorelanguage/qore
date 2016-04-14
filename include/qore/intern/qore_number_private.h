@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -83,10 +83,15 @@ struct qore_number_private_intern {
       mpfr_clear(num);
    }
 
-   DLLLOCAL void checkPrec(const mpfr_t r) {
-      mpfr_prec_t p = mpfr_get_prec(r);
-      if (p > mpfr_get_prec(num))
-         mpfr_prec_round(num, p, QORE_MPFR_RND);
+   DLLLOCAL void checkPrec(q_mpfr_binary_func_t func, const mpfr_t r) {
+      mpfr_prec_t prec;
+      if (func == mpfr_mul || func == mpfr_div) {
+         prec = mpfr_get_prec(num) + mpfr_get_prec(r);
+      } else {
+         prec = QORE_MAX(mpfr_get_prec(num), mpfr_get_prec(r)) + 1;
+      }
+      if (prec > mpfr_get_prec(num))
+         mpfr_prec_round(num, prec, QORE_MPFR_RND);
    }
 
    DLLLOCAL void setPrec(mpfr_prec_t prec) {
@@ -96,7 +101,7 @@ struct qore_number_private_intern {
    }
 
    DLLLOCAL static void do_divide_by_zero(ExceptionSink* xsink) {
-      xsink->raiseException("DIVISION-BY-ZERO", "division by zero error in numeric operatior");
+      xsink->raiseException("DIVISION-BY-ZERO", "division by zero error in numeric operator");
    }
 
    DLLLOCAL static void checkFlags(ExceptionSink* xsink) {
@@ -267,7 +272,12 @@ struct qore_number_private : public qore_number_private_intern {
    }
 
    DLLLOCAL qore_number_private* doBinary(q_mpfr_binary_func_t func, const qore_number_private& r, ExceptionSink* xsink = 0) const {
-      mpfr_prec_t prec = QORE_MAX(mpfr_get_prec(num), mpfr_get_prec(r.num));
+      mpfr_prec_t prec;
+      if (func == mpfr_mul || func == mpfr_div) {
+         prec = mpfr_get_prec(num) + mpfr_get_prec(r.num);
+      } else {
+         prec = QORE_MAX(mpfr_get_prec(num), mpfr_get_prec(r.num)) + 1;
+      }
       std::auto_ptr<qore_number_private> p(new qore_number_private(prec));
       func(p->num, num, r.num, QORE_MPFR_RND);
       if (xsink)
@@ -361,7 +371,7 @@ struct qore_number_private : public qore_number_private_intern {
    }
 
    DLLLOCAL void doBinaryInplace(q_mpfr_binary_func_t func, const qore_number_private& r, ExceptionSink* xsink = 0) {
-      checkPrec(r.num);
+      checkPrec(func, r.num);
       // some compilers (sun/oracle pro c++ notably) do not support arrays with a variable size
       // if not, we can't use the stack for the temporary variable and have to use a dynamically-allocated one
 #ifdef HAVE_LOCAL_VARIADIC_ARRAYS

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -71,7 +71,7 @@ typedef std::vector<QoreThreadLock*> mutex_vec_t;
 static mutex_vec_t q_openssl_mutex_list;
 
 static unsigned long q_openssl_id_function(void) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#ifdef _Q_WINDOWS
    return GetCurrentThreadId();
 #else
    return (unsigned long)pthread_self();
@@ -105,8 +105,14 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
       CRYPTO_set_locking_callback(q_openssl_locking_function);
    }
 
+   if (qore_library_options & QLO_DISABLE_GARBAGE_COLLECTION)
+      q_disable_gc = true;
+
    qore_string_init();
    QoreHttpClientObject::static_init();
+
+   // init random salt
+   qore_init_random_salt();
 
    // init threading infrastructure
    init_qore_threads();
@@ -139,13 +145,14 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
    // set up pseudo-methods
    pseudo_classes_init();
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#ifdef _Q_WINDOWS
    // do windows socket initialization
    WORD wsver = MAKEWORD(2, 2);
    WSADATA wsd;
    int err = WSAStartup(wsver, &wsd);
    if (err)
       printf("qore_init(): WSAStartup() failed with error: %d; sockets will not be available\n", err);
+   _set_output_format(_TWO_DIGIT_EXPONENT);
 #endif
 }
 
@@ -154,10 +161,16 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
 // unloaded in case there are any module-specific thread
 // cleanup functions to be run...
 void qore_cleanup() {
+   // purge thread resources before deleting modules
+   {
+      ExceptionSink xsink;
+      purge_thread_resources(&xsink);
+   }
+
    // first delete all user modules
    QMM.delUser();
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#ifdef _Q_WINDOWS
    // do windows socket cleanup
    WSACleanup();
 #endif
@@ -166,12 +179,6 @@ void qore_cleanup() {
    // stop signal manager
    QSM.del();
 #endif
-
-   // purge thread resources before deleting modules
-   {
-      ExceptionSink xsink;
-      purge_thread_resources(&xsink);
-   }
 
    // delete all loadable modules
    QMM.cleanup();

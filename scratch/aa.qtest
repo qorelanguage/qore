@@ -1,0 +1,12 @@
+#!/usr/bin/env qore 
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%requires UnitTest
+%requires SqlUtil
+%require-types
+
+my Table $x('pgsql:staging/staging@staging', 'h3g_it_brep_trans');
+
+printf("%N\n", $x.describe());

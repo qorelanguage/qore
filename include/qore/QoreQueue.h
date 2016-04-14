@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/* 
+/*
   QoreQueue.h
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -67,6 +67,12 @@ public:
    //! insert at the beginning of the queue
    DLLEXPORT void insert(ExceptionSink* xsink, const AbstractQoreNode* n, int timeout_ms = 0, bool* to = 0);
 
+   //! push at the end of the queue
+   DLLEXPORT void push(ExceptionSink* xsink, AbstractQoreNode* n, int timeout_ms = 0, bool* to = 0);
+
+   //! insert at the beginning of the queue
+   DLLEXPORT void insert(ExceptionSink* xsink, AbstractQoreNode* n, int timeout_ms = 0, bool* to = 0);
+
    //! remove a node from the beginning of the queue
    DLLEXPORT AbstractQoreNode* shift(ExceptionSink* xsink, int timeout_ms = 0, bool* to = 0);
 
@@ -92,6 +98,19 @@ public:
 
    //! clears the queue
    DLLEXPORT void clear(ExceptionSink* xsink);
+
+   //! sets a queue error status and provides exception information to throw if queue operations are attempted; the queue is also cleared and can no longer be written to after this operation
+   /** if called more than once, subsequent calls replace the data in the object
+
+       @since Qore 0.8.12
+    */
+   DLLEXPORT void setError(const char* err, const QoreStringNode* desc, ExceptionSink* xsink);
+
+   //! clears any queue error status to make the object usable again
+   /**
+      @since Qore 0.8.12
+   */
+   DLLEXPORT void clearError();
 };
 
 class Queue : public AbstractPrivateData, public QoreQueue {

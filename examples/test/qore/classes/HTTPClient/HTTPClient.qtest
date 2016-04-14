@@ -1,0 +1,83 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+
+%requires ../../../../../qlib/Util.qm
+%requires ../../../../../qlib/QUnit.qm
+
+%exec-class Main
+
+class HttpTestServer {
+    public {
+        const Port = 49876;
+    }
+
+    private {
+        Counter end(1);
+        string resp;
+    }
+
+    constructor(string r) {
+        resp = r;
+        # start a fake server
+        Socket s();
+        if (s.bind(Port, True))
+            throw "BIND-ERROR", strerror();
+
+        if (s.listen())
+            throw "LISTEN-ERROR", strerror();
+
+        background startListener(s);
+    }
+
+    done() {
+        end.dec();
+    }
+
+    private startListener(Socket s) {
+        Socket s1 = s.accept();
+        s1.send(resp);
+        end.waitForZero();
+        s.close();
+        s.shutdown();
+    }
+}
+
+
+public class Main inherits QUnit::Test {
+    public {
+        const ErrorReply1 = sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Type: text/html\r\nDate: %s GMT\r\nContent-Length: 0\r\n\r\n",
+                                    gmtime().format("Dy, DD Mon YYYY HH:mm:SS"));
+        const ErrorReply2 = sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Type: text/html\r\nDate: %s GMT\r\n\r\n",
+                                    gmtime().format("Dy, DD Mon YYYY HH:mm:SS"));
+    }
+
+    constructor() : Test("HttpClientTest", "1.0") {
+        addTestCase("HttpClient Test", \testClient());
+
+        set_return_value(main());
+    }
+
+    testClient() {
+        HTTPClient hc(("url": "http://localhost:" + HttpTestServer::Port));
+
+        {
+            HttpTestServer serv(ErrorReply1);
+            *string str = hc.get("/something");
+            assertEq(str, NOTHING);
+            serv.done();
+            hc.disconnect();
+        }
+        {
+            HttpTestServer serv(ErrorReply2);
+            *string str = hc.get("/something");
+            assertEq(str, NOTHING);
+            serv.done();
+        }
+    }
+
+}

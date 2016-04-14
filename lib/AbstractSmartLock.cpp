@@ -3,7 +3,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -69,7 +69,7 @@ void AbstractSmartLock::release_and_signal() {
 }
 
 void AbstractSmartLock::grab_intern(int mtid, VLock *nvl) {
-   printd(5, "AbstractSmartLock::grab_intern() (%s) this=%08p grabbed lock (nvl=%08p)\n", getName(), this, nvl);
+   printd(5, "AbstractSmartLock::grab_intern() (%s) this: %p grabbed lock (nvl: %p)\n", getName(), this, nvl);
    mark_and_push(mtid, nvl);
    set_thread_resource(this);
 }

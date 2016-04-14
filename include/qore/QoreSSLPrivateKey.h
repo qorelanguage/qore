@@ -4,7 +4,7 @@
   
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -57,30 +57,30 @@ public:
        @param pp the pass phase for the key (if any; may be NULL)
        @param xsink Qore-language exceptions are raised here in case of errors
    */
-   DLLEXPORT QoreSSLPrivateKey(const char *fn, const char *pp, ExceptionSink *xsink);
+   DLLEXPORT QoreSSLPrivateKey(const char* fn, const char* pp, ExceptionSink* xsink);
 
    //! creates the object from a pointer to a BinaryNode object (key data in DER format)
    /** @param bin a pointer to a BinaryNode object with the raw binary private key information
        @param xsink Qore-language exceptions are raised here in case of errors
    */
-   DLLEXPORT QoreSSLPrivateKey(const BinaryNode *bin, ExceptionSink *xsink);
+   DLLEXPORT QoreSSLPrivateKey(const BinaryNode* bin, ExceptionSink* xsink);
 
    //! create the object from a pointer to a QoreString representing the private key data in PEM format
    /** @param str a pointer to a QoreString with the private key data in PEM format
        @param pp the pass phase for the key (if any; may be NULL)
        @param xsink Qore-language exceptions are raised here in case of errors
    */
-   DLLEXPORT QoreSSLPrivateKey(const QoreString *str, const char *pp, ExceptionSink *xsink);
+   DLLEXPORT QoreSSLPrivateKey(const QoreString* str, const char* pp, ExceptionSink* xsink);
 
    //! returns a string in PEM format representing the private key, caller owns the QoreString reference count returned
    /** @return a string in PEM format representing the private key, caller owns the QoreString reference count returned
     */
-   DLLEXPORT QoreStringNode *getPEM(ExceptionSink *xsink) const;
+   DLLEXPORT QoreStringNode* getPEM(ExceptionSink* xsink) const;
 
    // caller does NOT own the EVP_PKEY returned; "const" cannot be used because of the openssl API does not support it
-   DLLEXPORT EVP_PKEY *getData() const;
+   DLLEXPORT EVP_PKEY* getData() const;
 
-   DLLEXPORT const char *getType() const;
+   DLLEXPORT const char* getType() const;
 
    //! returns a constant '1': do not use; only included for backwards-compatibility
    DLLEXPORT int64 getVersion() const;
@@ -89,10 +89,13 @@ public:
    DLLEXPORT int64 getBitLength() const;
 
    //! caller owns the QoreHashNode reference count returned
-   DLLEXPORT QoreHashNode *getInfo() const;
+   DLLEXPORT QoreHashNode* getInfo() const;
 
+   //! caller owns reference returned
+   DLLEXPORT QoreSSLPrivateKey* pkRefSelf() const;
+   
    //! private constructor; not exported
-   DLLLOCAL QoreSSLPrivateKey(EVP_PKEY *p);
+   DLLLOCAL QoreSSLPrivateKey(EVP_PKEY* p);
 };
 
 #endif

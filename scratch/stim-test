@@ -1,0 +1,134 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%requires qore >= 0.8.12
+
+# here we add fallback paths to the QORE_MODULE_DIR search path,
+# in case QORE_MODULE_DIR is not set properly for Qorus
+%append-module-path /var/opt/qorus/qlib:$OMQ_DIR/qlib:/opt/qorus/qlib
+
+%requires SqlUtil
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%requires TableMapper
+
+const Defaults = (
+    "Max": 20000,
+    "BlockSize": 1000,
+    );
+    
+main();
+
+sub usage() {
+    printf("usage: %s [options]
+ -b,--blocksize=ARG  set the insert block buffer size
+ -m,--max=ARG        set the total number of rows to generate
+ -h,--help           this help text
+", get_script_name());
+    exit(1);
+}
+
+const Opts = (
+    "max": "m,max=i",
+    "bs": "b,blocksize=i",
+    "help": "h,help",
+    );
+
+const Map = (
+    "id": ("sequence": "gsi_stock_reconciliation_s"),
+    "target_system": ("constant": "H3G"),
+    "message_type": ("constant": "INV_STOCK_RECONCILIATION"),
+    "source_system": ("constant": "UTL"),
+    "org_code": ("constant": "UTL"),
+    "transaction_id": "stockinfonumber",
+    "load_id": "loadid",
+    "org_description": "organizationdescription",
+    "item_id": "productcode",
+    "item_code": "productid",
+    "sub_inventory": "subinventory",
+    "revision": "revision",
+    "as_of_time": "asoftime",
+    "on_hand_quantity": ("code": int sub (nothing x, hash rec) { return int(rec.onhandquantity); }),
+    "unit_of_measure": ("code": *string sub (nothing x, hash rec) { return toupper(rec.unitofmeasure); }),
+    "i_sepl_created_id": ("constant": -100),
+    "created_date": date sub(nothing x, hash rec) { return now_us(); },
+    "status": ("constant": "N"),
+    );
+
+sub main() {
+    GetOpt opt(Opts);
+    our hash o = opt.parse3(\ARGV);
+
+    if (o.help)
+        usage();
+    
+    if (o.max <= 0)
+        o.max = Defaults.Max;
+
+    if (o.bs < 1)
+        o.bs = Defaults.BlockSize;
+
+    Table t("oracle:staging/staging@xbox", "gsi_stock_reconciliation");
+
+    hash opts = (
+        "output_log": \output_log(),
+        "info_log": \info_log(),
+        #"unstable_input": True,
+        "insert_block": o.bs,
+        );
+    
+    InboundTableMapper mapper(t, Map, opts);
+
+    printf("test rows: %d block size: %d\n", o.max, o.bs);
+
+    hash data = (
+        "organizationdescription": "TEST",
+        "productcode": "test",
+        "productid": 123,
+        "subinventory": "SUB",
+        "revision": 1,
+        "asoftime": 20150101,
+        "onhandquantity": 1,
+        "unitofmeasure": "ea",
+        );
+
+    date start = now_us();
+
+    {
+        on_exit {
+            mapper.flush();
+            mapper.rollback();
+        }
+    
+        for (int i = 0; i < o.max; ++i) {
+            data += (
+                "stockinfonumber": i,
+                "loadid": i,
+                );
+            
+            mapper.queueBatchRow(data);
+        }
+    }
+    
+    date dur = now_us() - start;
+    int secs = get_duration_seconds(dur);
+    int us = get_microseconds(dur - get_seconds(dur));
+    printf("\nelapsed time: %d.%06ds\n", secs, us);
+}
+
+our int cnt = 0;
+
+sub info_log(string fmt) {
+    vprintf("\n" + fmt + "\n", argv);
+}
+
+sub output_log(hash h) {
+    print(".");
+    ++cnt;
+    if (!(cnt % 100))
+        printf(" %6d / %5.1f %\n", cnt, (cnt / float(o.max)) * 100);
+    #flush();
+}
