@@ -30,17 +30,16 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreLibIntern.h>
 #include <qore/intern/QoreListIterator.h>
 #include <qore/intern/RangeIterator.h>
 
 //! Methods in this pseudo-class can be executed on @ref list "lists"
-/** 
+/**
  */
 qclass <list> [arg=const QoreListNode* l;vparent=<value>];
 
 //! Returns Qore::NT_LIST
-/** 
+/**
     @return Qore::NT_LIST
 
     @par Example:
@@ -57,7 +56,7 @@ int <list>::typeCode() [flags=CONSTANT] {
 }
 
 //! Returns the number of elements in the list
-/** 
+/**
     @return the number of elements in the list
 
     @par Example:
@@ -73,7 +72,7 @@ int <list>::size() [flags=CONSTANT] {
 
 //! Returns @ref True if the list is empty (size = 0), @ref False if not
 /** The opposite of <list>::val()
- 
+
     @return @ref True if the list is empty (size = 0), @ref False if not
 
     @par Example:
@@ -87,7 +86,7 @@ bool <list>::empty() [flags=CONSTANT] {
 
 //! Returns @ref False if the list is empty (size = 0), @ref True if not
 /** The opposite of <list>::empty()
- 
+
     @return @ref False if the list is empty (size = 0), @ref True if not
 
     @par Example:
@@ -217,7 +216,7 @@ map printf("+ %y\n", $1), $l.ranegIterator();
     @since %Qore 0.8.8
  */
 AbstractIterator <list>::rangeIterator() [flags=CONSTANT] {
-   return l->empty() 
+   return l->empty()
       ? new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator(0))
       : new QoreObject(QC_RANGEITERATOR, 0, new RangeIterator(0, l->size() - 1, 1, xsink));
 }

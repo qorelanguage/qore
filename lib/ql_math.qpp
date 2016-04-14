@@ -36,6 +36,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <limits.h>
 
 static double minus_infinity() {
 #ifdef INFINITY
@@ -93,7 +94,7 @@ number round(number n) [flags=CONSTANT] {
     @ref Qore::Option::HAVE_ROUND
 
     @param f a number to round
-    
+
     @return a floating-point number equal to the closest integer to the argument passed; numbers halfway between two integers are rounded away from zero
 
     @par Example:
@@ -111,14 +112,14 @@ float round(softfloat f) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float round() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
 //! Returns a number equal to the smallest integral value greater than or equal to the argument passed
-/** 
+/**
     @param n the value to process
 
     @return a number equal to the smallest integral value greater than or equal to the argument passed
@@ -152,14 +153,14 @@ float ceil(softfloat f) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float ceil() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
 //! Returns a number equal to the largest integral value less than or equal to the argument passed
-/** 
+/**
     @param n the value to process
 
     @par Example:
@@ -189,14 +190,14 @@ float floor(softfloat f) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float floor() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
 //! Returns a number raised to the power of another number
-/** 
+/**
     @param x the number to raise to the power of \a y
     @param y the power to raise \a x to
 
@@ -242,7 +243,7 @@ float pow(softfloat x = 0.0, softfloat y = 0.0) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns the absolute value of the argument passed
-/** 
+/**
     @param i the value to process
 
     @return the absolute value of the argument passed
@@ -259,7 +260,7 @@ int abs(int i) [flags=CONSTANT] {
 }
 
 //! Returns the absolute value of the argument passed
-/** 
+/**
     @param n the value to process
 
     @return the absolute value of the argument passed
@@ -293,14 +294,14 @@ float abs(softfloat f) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float abs() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
 //! Returns the length of the hypotenuse of a right-angle triangle with sides given as the two arguments
-/** 
+/**
     @param x the length of side x of the right-angle triangle
     @param y the length of side y of the right-angle triangle
 
@@ -332,14 +333,14 @@ float hypot(softfloat x, softfloat y) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float hypot() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
 //! Returns the square root of the number passed
-/** 
+/**
     @param n the value to process
 
     @return the square root of the number passed
@@ -369,14 +370,14 @@ float sqrt(softfloat f) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float sqrt() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
 //! Returns the cube root of the number passed
-/** 
+/**
     @param n the value to process
 
     @return the cube root of the number passed
@@ -406,14 +407,14 @@ float cbrt(softfloat f) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float cbrt() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
 //! Returns the sine of the number in radians passed
-/** 
+/**
     @param n the angle in radians
 
     @return the sine of the number in radians passed
@@ -443,14 +444,14 @@ float sin(softfloat f) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float sin() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
 //! Returns the cosine of the number in radians passed
-/** 
+/**
     @param n the angle in radians
 
     @return the cosine of the number in radians passed
@@ -480,14 +481,14 @@ float cos(float f) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float cos() [flags=RUNTIME_NOOP] {
    return 1;
 }
 
 //! Returns the tangent of the number in radians passed
-/** 
+/**
     @param n the angle in radians
 
     @return the tangent of the number in radians passed
@@ -517,14 +518,14 @@ float tan(softfloat f) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float tan() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
 //! Returns the value in radians of the arc sine of the given value
-/** 
+/**
     @param n the sine value to process
 
     @return the value in radians of the arc sine of the given value
@@ -554,14 +555,14 @@ float asin(softfloat f) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float asin() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
 //! Returns the value in radians of the arc cosine of the given value
-/** 
+/**
     @param n the cosine value to process
 
     @return the value in radians of the arc cosine of the given value
@@ -591,7 +592,7 @@ float acos(softfloat f) [flags=CONSTANT] {
 }
 
 //! Returns the value in radians of the arc tangent of the given value
-/** 
+/**
     @param n the tangent value to process
 
     @return the value in radians of the arc tangent of the given value
@@ -621,14 +622,14 @@ float atan(softfloat f) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float atan() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
 //! Returns the principal value of the arc tangent of y/x, using the signs of the two arguments to determine the quadrant of the result
-/** 
+/**
     @param y the y value for the function
     @param x the x value for the function
 
@@ -660,14 +661,14 @@ float atan2(softfloat y, softfloat x) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float atan2() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
 //! Returns the hyperbolic sine of the given value
-/** 
+/**
     @param n the value to process
 
     @return the hyperbolic sine of the given value
@@ -697,14 +698,14 @@ float sinh(softfloat f) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float sinh() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
 //! Returns the hyperbolic cosine of the given value
-/** 
+/**
     @param n the value to process
 
     @return the hyperbolic cosine of the given value
@@ -734,14 +735,14 @@ float cosh(softfloat f) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float cosh() [flags=RUNTIME_NOOP] {
    return 1;
 }
 
 //! Returns the hyperbolic tangent of the given value
-/** 
+/**
     @param n the value to process
 
     @return the hyperbolic tangent of the given value
@@ -771,14 +772,14 @@ float tanh(softfloat f) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float tanh() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
 //! Returns the natural logarithm of the given value
-/** 
+/**
     @param n the value to process
 
     @return the natural logarithm of the given value
@@ -808,14 +809,14 @@ float nlog(softfloat f) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float nlog() [flags=RUNTIME_NOOP] {
    return minus_infinity();
 }
 
 //! Returns the base 10 logarithm of the given number
-/** 
+/**
     @param n the value to process
 
     @return the base 10 logarithm of the given value
@@ -845,14 +846,14 @@ float log10(softfloat f) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float log10() [flags=RUNTIME_NOOP] {
    return minus_infinity();
 }
 
 //! Returns the natural logarithm of 1 + the given number
-/** 
+/**
     @param n the value to process
 
     @return the natural logarithm of 1 + the given number
@@ -882,14 +883,14 @@ float log1p(softfloat f) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float log1p() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
 //! Returns the exponent of the given number
-/** 
+/**
     @param f the value to process
 
     @return the exponent of the given number
@@ -904,14 +905,14 @@ float logb(softfloat f) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float logb() [flags=RUNTIME_NOOP] {
    return minus_infinity();
 }
 
 //! Returns the value of \a e (the base of natural logarithms) raised to the power of the given number
-/** 
+/**
     @param n the value to process
 
     @return the value of \a e (the base of natural logarithms) raised to the power of the given number
@@ -930,7 +931,7 @@ number exp(number n) [flags=CONSTANT] {
     @param f the value to process
 
     @return the value of \a e (the base of natural logarithms) raised to the power of the given number
-    
+
     @par Example:
     @code
 my float $x = exp($y);
@@ -941,14 +942,14 @@ float exp(softfloat f) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float exp() [flags=RUNTIME_NOOP] {
    return 1;
 }
 
 //! Returns the value of 2 raised to the power of the given number
-/** 
+/**
     @param n the value to process
 
     @return the value of 2 raised to the power of the given number
@@ -982,14 +983,14 @@ float exp2(softfloat f) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float exp2() [flags=RUNTIME_NOOP] {
    return 1;
 }
 
 //! Returns the value of \a e (the base of natural logarithms) raised to the power of the given number - 1
-/** 
+/**
     @param n the value to process
 
     @return the value of \a e (the base of natural logarithms) raised to the power of the given number - 1
@@ -1019,7 +1020,7 @@ float expm1(softfloat f) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 float expm1() [flags=RUNTIME_NOOP] {
    return 0;

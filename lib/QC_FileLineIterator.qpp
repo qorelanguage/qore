@@ -30,6 +30,8 @@
 
 #include <qore/Qore.h>
 
+#include <errno.h>
+
 class FileLineIterator : public QoreIteratorBase, public QoreFile {
 protected:
    QoreStringNode* line,

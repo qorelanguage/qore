@@ -33,6 +33,8 @@
 #include <qore/intern/QC_File.h>
 #include <qore/intern/QC_Queue.h>
 
+#include <errno.h>
+
 /** @defgroup file_stat_constants File Stat Constants
     These are values that can be and'ed with the \c "mode" element of a file's status as returned by Qore::ReadOnlyFile::hstat(), Qore::hstat(), etc, or with element 2 of the status list as returned from Qore::ReadOnlyFile::stat(), Qore::stat(), etc.
 */
@@ -973,7 +975,7 @@ my *string $fn = $f.getFileName();
     @code
 my string $data = File::readTextFile($path);
     @endcode
-    
+
     @param path the path of the file to retrieve
     @param encoding the name of the @ref character_encoding "character encoding" for the string returned; if this argument is not given, then the @ref default_encoding "default character encoding" is assumed
 
@@ -997,7 +999,7 @@ static string ReadOnlyFile::readTextFile(string path, *string encoding) [dom=FIL
     @code
 my binary $data = File::readBinaryFile($path);
     @endcode
-    
+
     @param path the path of the file to retrieve
 
     @return the contents of a binary file as a binary object

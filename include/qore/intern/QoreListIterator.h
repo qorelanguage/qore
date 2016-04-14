@@ -33,6 +33,8 @@
 
 #define _QORE_QORELISTITERATOR_H
 
+extern QoreClass* QC_LISTITERATOR;
+
 // the c++ object
 class QoreListIterator : public QoreIteratorBase, public ConstListIterator {
 protected:

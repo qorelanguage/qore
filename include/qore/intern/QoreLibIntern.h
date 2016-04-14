@@ -152,7 +152,7 @@ struct ParseWarnOptions {
       parse_options = pwo.parse_options;
       warn_mask = pwo.warn_mask;
    }
-   
+
    DLLLOCAL bool operator==(const ParseWarnOptions &pwo) const {
       return parse_options == pwo.parse_options && warn_mask == pwo.warn_mask;
    }
@@ -523,7 +523,7 @@ public:
    DLLLOCAL QoreListNodeParseInitHelper(QoreListNode* n_l, LocalVar *n_oflag, int n_pflag, int &n_lvids) :
       ListIterator(n_l), oflag(n_oflag), pflag(n_pflag), lvids(n_lvids) {
    }
-   
+
    DLLLOCAL AbstractQoreNode* parseInit(const QoreTypeInfo *&typeInfo) {
       assert(!typeInfo);
       //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, index(), getList()->size(), getList());
@@ -542,7 +542,7 @@ public:
       }
 
       return 0;
-   }   
+   }
 };
 
 class QorePossibleListNodeParseInitHelper {
@@ -557,9 +557,9 @@ private:
 
 public:
    DLLLOCAL QorePossibleListNodeParseInitHelper(AbstractQoreNode** n, LocalVar *n_oflag, int n_pflag, int &n_lvids) :
-      oflag(n_oflag), 
+      oflag(n_oflag),
       pflag(n_pflag),
-      lvids(n_lvids), 
+      lvids(n_lvids),
       l(n && *n && (*n)->getType() == NT_LIST ? reinterpret_cast<QoreListNode* >(*n) : 0),
       finished(!l),
       pos(-1),
@@ -585,14 +585,14 @@ public:
 
       if (finished)
 	 return false;
-      
+
       if (pos == l->size()) {
          finished = true;
          return false;
       }
       return true;
    }
-   
+
    DLLLOCAL AbstractQoreNode** getValuePtr() {
       if (finished)
 	 return 0;
@@ -758,13 +758,13 @@ template <typename T, int S1 = QORE_THREAD_STACK_BLOCK>
 class ThreadLocalData {
 private:
    DLLLOCAL ThreadLocalData(const ThreadLocalData &);
-   
+
 public:
    typedef ThreadBlock<T, S1> Block;
    typedef ThreadLocalDataIterator<T, S1> iterator;
 
    Block *curr;
-      
+
    DLLLOCAL ThreadLocalData() {
       curr = new Block;
       //printf("this=%p: first curr=%p\n", this, curr);
@@ -800,7 +800,7 @@ struct QoreParam {
    }
 
    DLLLOCAL QoreParam(const char* n_name, const QoreTypeInfo *n_type) : name(n_name), type(n_type) {
-   } 
+   }
 };
 
 typedef std::vector<QoreParam> param_vec_t;
@@ -894,7 +894,7 @@ DLLLOCAL AbstractQoreNode* missing_function_error(const char* func, ExceptionSin
 DLLLOCAL AbstractQoreNode* missing_function_error(const char* func, const char* opt, ExceptionSink* xsink);
 DLLLOCAL AbstractQoreNode* missing_method_error(const char* meth, const char* opt, ExceptionSink* xsink);
 
-// checks for illegal $self assignments in an object context                                        
+// checks for illegal $self assignments in an object context
 DLLLOCAL void check_self_assignment(AbstractQoreNode* n, LocalVar *selfid);
 
 DLLLOCAL void ignore_return_value(AbstractQoreNode* n);
@@ -902,7 +902,7 @@ DLLLOCAL void ignore_return_value(AbstractQoreNode* n);
 DLLLOCAL void qore_string_init();
 
 DLLLOCAL QoreListNode* split_intern(const char* pattern, qore_size_t pl, const char* str, qore_size_t sl, const QoreEncoding* enc, bool with_separator = false);
-DLLLOCAL QoreStringNode* join_intern(const QoreString* p0, const QoreListNode* l, int offset, ExceptionSink* xsink);
+DLLLOCAL QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNode* l, int offset, ExceptionSink* xsink);
 DLLLOCAL QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, const QoreString* quote, bool trim_unquoted, ExceptionSink* xsink);
 DLLLOCAL bool inlist_intern(const AbstractQoreNode *arg, const QoreListNode *l, ExceptionSink* xsink);
 DLLLOCAL QoreStringNode* format_float_intern(const QoreString& fmt, double num);
@@ -910,6 +910,7 @@ DLLLOCAL DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const
 DLLLOCAL QoreHashNode* date_info(const DateTime& d);
 DLLLOCAL void init_charmaps();
 DLLLOCAL int do_unaccent(QoreString& str, ExceptionSink* xsink);
+DLLLOCAL int do_unaccent(QoreString& str, const QoreString& src, ExceptionSink* xsink);
 DLLLOCAL int do_tolower(QoreString& str, const QoreString& src, ExceptionSink* xsink);
 DLLLOCAL int do_toupper(QoreString& str, const QoreString& src, ExceptionSink* xsink);
 
@@ -918,4 +919,3 @@ DLLLOCAL int64 q_clock_getmicros();
 DLLLOCAL int64 q_clock_getnanos();
 
 #endif
-

@@ -1,7 +1,7 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QC_File.h
-  
+
   Qore Programming Language
 
   Copyright (C) 2003 - 2014 David Nichols
@@ -35,6 +35,7 @@
 
 DLLEXPORT extern qore_classid_t CID_FILE;
 DLLEXPORT extern QoreClass *QC_FILE;
+DLLEXPORT extern QoreClass *QC_READONLYFILE;
 
 DLLLOCAL QoreClass *initFileClass(QoreNamespace &qorens);
 

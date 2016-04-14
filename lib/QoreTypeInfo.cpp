@@ -1,10 +1,10 @@
 /*
   QoreTypeInfo.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2014 David Nichols
-  
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -32,6 +32,7 @@
 #include <qore/QoreRWLock.h>
 #include <qore/intern/QoreNamespaceIntern.h>
 #include <qore/intern/qore_number_private.h>
+#include <qore/intern/qore_program_private.h>
 
 // provides for 2-way compatibility with classes derived from QoreBigIntNode and softint
 static BigIntTypeInfo staticBigIntTypeInfo;
@@ -65,9 +66,9 @@ const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *nullTypeInfo = &staticNullTypeInfo,
    *runTimeClosureTypeInfo = &staticRunTimeClosureTypeInfo,
    *callReferenceTypeInfo = &staticCallReferenceTypeInfo,
-   
+
    // assigned in init_qore_types()
-   *bigIntOrNothingTypeInfo = 0, 
+   *bigIntOrNothingTypeInfo = 0,
    *stringOrNothingTypeInfo = 0,
    *boolOrNothingTypeInfo = 0,
    *binaryOrNothingTypeInfo = 0,
@@ -231,7 +232,7 @@ void init_qore_types() {
    def_val_map[NT_NOTHING] = &Nothing;
 
    // static "or nothing" reference types
-   bigIntOrNothingTypeInfo    = new OrNothingTypeInfo(staticBigIntTypeInfo, "int"); 
+   bigIntOrNothingTypeInfo    = new OrNothingTypeInfo(staticBigIntTypeInfo, "int");
    stringOrNothingTypeInfo    = new OrNothingTypeInfo(staticStringTypeInfo, "string");
    boolOrNothingTypeInfo      = new OrNothingTypeInfo(staticBoolTypeInfo, "bool");
    binaryOrNothingTypeInfo    = new OrNothingTypeInfo(staticBinaryTypeInfo, "binary");
@@ -293,7 +294,7 @@ void delete_qore_types() {
    emptyHash->deref(0);
 
    // delete global typeinfo structures
-   delete bigIntOrNothingTypeInfo; 
+   delete bigIntOrNothingTypeInfo;
    delete stringOrNothingTypeInfo;
    delete boolOrNothingTypeInfo;
    delete binaryOrNothingTypeInfo;
@@ -368,7 +369,7 @@ const char* getBuiltinTypeName(qore_type_t type) {
    printd(0, "type: %d unknown (map size: %d)\n", type, type_str_map.size());
    for (type_str_map_t::iterator i = type_str_map.begin(), e = type_str_map.end(); i != e; ++i)
       printd(0, "map[%d] = %s\n", i->first, i->second);
-      
+
    assert(false);
    */
 
@@ -393,7 +394,7 @@ int QoreTypeInfo::runtimeAcceptInputIntern(bool &priv_error, AbstractQoreNode* n
       // inherited in the input argument's class
       if (qore_class_private::runtimeCheckPrivateClassAccess(*qc))
 	 return 0;
-      
+
       priv_error = true;
    }
 
@@ -543,7 +544,7 @@ bool QoreTypeInfo::isOutputIdentical(const QoreTypeInfo* typeInfo) const {
 qore_type_result_e QoreTypeInfo::matchClassIntern(const QoreClass *n_qc) const {
    if (qt == NT_ALL)
       return QTI_AMBIGUOUS;
-   
+
    if (qt != NT_OBJECT)
       return QTI_NOT_EQUAL;
 
@@ -639,7 +640,7 @@ bool OrNothingTypeInfo::acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsi
    }
    if (t == NT_NOTHING)
       return true;
-   
+
    if (qc) {
       if (t != NT_OBJECT)
 	 return false;

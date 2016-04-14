@@ -70,7 +70,7 @@ QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC
 	ql_env.cpp ql_dbi.cpp ql_context.cpp \
 	qc_option.cpp qc_errno.cpp qc_qore.cpp
 
-QORE_GENERATED_SOURCES = $(QORE_QPP_TARGETS) parser.cpp parser.hpp scanner.cpp
+QORE_GENERATED_SOURCES = $(QORE_QPP_TARGETS)
 
 dox-src: $(QORE_GENERATED_SOURCES)
 
