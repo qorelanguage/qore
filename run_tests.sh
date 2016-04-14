@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 print_usage ()
 {
@@ -108,4 +108,3 @@ if [ $PRINT_TEXT -eq 1 ]; then
 fi
 
 exit $FAILED_TEST_COUNT
-
