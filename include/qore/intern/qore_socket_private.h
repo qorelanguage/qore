@@ -854,7 +854,7 @@ struct qore_socket_private {
       return rc;
    }
 #elif defined HAVE_SELECT
-   DLLLOCAL int select_intern(int timeout_ms, bool read, ExceptionSink* xsink) const {
+   DLLLOCAL int select_intern(int timeout_ms, bool read, bool write, ExceptionSink* xsink) const {
       // windows does not use FD_SETSIZE to limit the value of the highest socket descriptor in the set
       // instead it has a maximum of 64 sockets in the set; we only need one anyway
 #ifndef _Q_WINDOWS
