@@ -1466,6 +1466,10 @@ bool QoreSocket::isWriteFinished(ExceptionSink* xsink, int timeout) const {
    return priv->isWriteFinished(timeout, "isWriteFinished", xsink);
 }
 
+int QoreSocket::asyncIoWait(int timeout_ms, bool read, bool write) const {
+   return priv->asyncIoWait(timeout_ms, read, write);
+}
+
 int QoreSocket::upgradeClientToSSL(X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {
    if (priv->sock == QORE_INVALID_SOCKET)
       return -1;

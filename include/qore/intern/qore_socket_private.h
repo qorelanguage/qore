@@ -811,26 +811,35 @@ struct qore_socket_private {
       0: timeout
       > 0: I/O can continue
     */
-   DLLLOCAL int select(int timeout_ms, bool read, const char* mname, ExceptionSink* xsink) {
+   DLLLOCAL int asyncIoWait(int timeout_ms, bool read, bool write, const char* cname, const char* mname, ExceptionSink* xsink) const {
+      assert(read || write);
       if (sock == QORE_INVALID_SOCKET) {
-	 if (xsink)
-	    se_not_open("Socket", mname, xsink);
+         se_not_open(cname, mname, xsink);
 	 return -1;
       }
 
+      return asyncIoWait(timeout_ms, read, write, xsink);
+   }
+
+   DLLLOCAL int asyncIoWait(int timeout_ms, bool read, bool write, ExceptionSink* xsink = 0) const {
 #if defined HAVE_POLL
-      return poll_intern(timeout_ms, read, mname, xsink);
+      return poll_intern(timeout_ms, read, write, xsink);
 #elif defined HAVE_SELECT
-      return select_intern(timeout_ms, read, mname, xsink);
+      return select_intern(timeout_ms, read, write, xsink);
 #else
 #error no async socket operations supported
 #endif
    }
 
 #if defined HAVE_POLL
-   DLLLOCAL int poll_intern(int timeout_ms, bool read, const char* mname, ExceptionSink* xsink) {
+   DLLLOCAL int poll_intern(int timeout_ms, bool read, bool write, ExceptionSink* xsink) const {
       int rc;
-      pollfd fds = {sock, (short)(read ? POLLIN : POLLOUT), 0};
+      short arg = 0;
+      if (read)
+         arg |= POLLIN;
+      if (write)
+         arg |= POLLOUT;
+      pollfd fds = {sock, arg, 0};
       while (true) {
          rc = poll(&fds, 1, timeout_ms);
          if (rc == -1 && errno == EINTR)
@@ -845,7 +854,7 @@ struct qore_socket_private {
       return rc;
    }
 #elif defined HAVE_SELECT
-   DLLLOCAL int select_intern(int timeout_ms, bool read, const char* mname, ExceptionSink* xsink) {
+   DLLLOCAL int select_intern(int timeout_ms, bool read, bool write, ExceptionSink* xsink) const {
       // windows does not use FD_SETSIZE to limit the value of the highest socket descriptor in the set
       // instead it has a maximum of 64 sockets in the set; we only need one anyway
 #ifndef _Q_WINDOWS
@@ -868,25 +877,17 @@ struct qore_socket_private {
 	 tv.tv_sec  = timeout_ms / 1000;
 	 tv.tv_usec = (timeout_ms % 1000) * 1000;
 
-	 rc = read ? ::select(sock + 1, &sfs, 0, 0, &tv) : ::select(sock + 1, 0, &sfs, 0, &tv);
+         fd_set* readfd = read ? &sfs : 0;
+         fd_set* writefd = write ? &sfs : 0;
+
+	 rc = select(sock + 1, readfd, writefd, 0, &tv);
 	 if (rc != QORE_SOCKET_ERROR || sock_get_error() != EINTR)
 	    break;
       }
       if (rc == QORE_SOCKET_ERROR) {
+         // do not close the socket here, even in case of EBADF, just return an error
          rc = 0;
-         switch (sock_get_error()) {
-#ifdef EBADF
-            // mark the socket as closed if the select call fails due to a bad file descriptor error
-            case EBADF:
-               close();
-               if (xsink)
-                  se_closed("Socket", mname, xsink);
-               break;
-#endif
-            default:
-               qore_socket_error(xsink, "SOCKET-SELECT-ERROR", "select(2) returned an error");
-               break;
-         }
+         qore_socket_error(xsink, "SOCKET-SELECT-ERROR", "select(2) returned an error");
       }
 
       return rc;
@@ -895,7 +896,7 @@ struct qore_socket_private {
 
    DLLLOCAL bool tryReadSocketData(const char* mname, ExceptionSink* xsink) {
       assert(!buflen);
-      bool b = select(0, true, mname, xsink);
+      bool b = asyncIoWait(0, true, false, "Socket", mname, xsink);
       if (b || !ssl)
          return b;
       // select can return true if there is protocol negotiation data available,
@@ -911,7 +912,7 @@ struct qore_socket_private {
    }
 
    DLLLOCAL bool isSocketDataAvailable(int timeout_ms, const char* mname, ExceptionSink* xsink) {
-      return select(timeout_ms, true, mname, xsink);
+      return asyncIoWait(timeout_ms, true, false, "Socket", mname, xsink);
    }
 
    DLLLOCAL bool isDataAvailable(int timeout_ms, const char* mname, ExceptionSink* xsink) {
@@ -921,7 +922,7 @@ struct qore_socket_private {
    }
 
    DLLLOCAL bool isWriteFinished(int timeout_ms, const char* mname, ExceptionSink* xsink) {
-      return select(timeout_ms, false, mname, xsink);
+      return asyncIoWait(timeout_ms, false, true, "Socket", mname, xsink);
    }
 
    DLLLOCAL int close_and_exit() {
@@ -955,14 +956,14 @@ struct qore_socket_private {
 
 	 // check for timeout or connection with EINPROGRESS
 	 while (true) {
-	    int rc = select(timeout_ms, false, "connectINETTimeout", xsink);
+	    int rc = asyncIoWait(timeout_ms, false, true, "Socket", "connectINETTimeout", xsink);
 	    if (xsink && *xsink)
 	       return -1;
 
-	    //printd(0, "select(%d) returned %d\n", timeout_ms, rc);
+	    //printd(0, "asyncIoWait(%d) returned %d\n", timeout_ms, rc);
 	    if (rc == QORE_SOCKET_ERROR && sock_get_error() != EINTR) {
 	       if (xsink && !only_timeout)
-		  qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in select() with Socket::connect() with timeout", 0, 0, 0, ai_addr);
+		  qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in asyncIoWait() with Socket::connect() with timeout", 0, 0, 0, ai_addr);
 	       return -1;
 	    }
 	    else if (rc > 0) {
