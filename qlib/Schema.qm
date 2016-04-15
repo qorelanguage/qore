@@ -40,6 +40,9 @@
 # enable all warnings
 %enable-all-warnings
 
+# strict args
+%strict-args
+
 module Schema {
     version = "1.1";
     desc = "user module for working with SQL schemas";

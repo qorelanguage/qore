@@ -5976,6 +5976,21 @@ AbstractDatabase db("pgsql:user/pass@db%host");
                     opt = l;
                     break;
                 }
+                case "stringhashlist": {
+                    softlist l = opt;
+                    foreach any v in (l) {
+                        switch (v.typeCode()) {
+                            case NT_STRING:
+                            case NT_HASH:
+                                break;
+                            default:
+                                throw err, sprintf("%s: key %y element %d/%d (first is 0) has type %y, expecting \"string\" or \"hash\" (value: %y)", tag, k, $#, l.size(), v.type(), opt);
+                        }
+                    }
+
+                    opt = l;
+                    break;
+                }
                 case "softstringinthashlist": {
                     softlist l = opt;
                     foreach any v in (l) {
@@ -7725,12 +7740,16 @@ Table table("pgsql:user/pass@db%host", "table");
 
             #! generic SQL insert options
             /** In addition to any @ref SqlDataCallbackOptions, the following keys can be set for this option:
-                - \c returning: a list of \c "returning" columns
+                - \c returning: a list having elements of one of the two following types:
+                  - @ref type_string "string": column names to return the value inserted
+                  - @ref type_hash "hash": a hash having the following keys:
+                    - \c "key": (required) the column name to return
+                    - \c "type": (optional) the data type for the output placeholder buffer (ex: @ref Qore::Type::Number "Type::Number")
 
                 @note using \c "returning" with a database that does not support this clause will cause an exception to be thrown; see @ref SqlUtil::AbstractTable::hasReturning()
             */
             const InsertOptions = SqlDataCallbackOptions + (
-                "returning": "softstringlist",
+                "returning": "stringhashlist",
             );
 
             #! default upsert option keys
