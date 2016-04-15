@@ -1433,22 +1433,48 @@ public:
    //! returns true if data is available on the socket in the timeout period in milliseconds
    /** The socket must be connected before this call is made.
        use a timeout of 0 to see if there is any data available on the socket
+
        @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+
        @return true if data is available within the timeout period
+
+       @see asyncIoWait()
+
+       @note if data is available in the socket buffer, this call returns immediately
    */
    DLLEXPORT bool isDataAvailable(int timeout_ms = 0) const;
 
    //! returns true if data is available on the socket in the timeout period in milliseconds
    /** The socket must be connected before this call is made.
        use a timeout of 0 to see if there is any data available on the socket
+
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
 
        @return true if data is available within the timeout period
 
+       @see asyncIoWait()
+
+       @note if data is available in the socket buffer, this call returns immediately
+
        @since Qore 0.8.8
    */
    DLLEXPORT bool isDataAvailable(ExceptionSink* xsink, int timeout_ms = 0) const;
+
+   //! returns 1 if the event was satisfied in the timeout period, 0 if not (= timeout), or -1 in case of an error (see errno in this case)
+   /** @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+       @param read wait for data to be available for reading from the socket
+       @param write wait for data to be written on the socket
+
+       @see
+       - isDataAvailable()
+       - isWriteFinished()
+
+       @note This is a low-level socket function, if an SSL connection is in progress, then this function could return 1 for reading due to SSL protocol renegotiation for example.  The socket buffer is ignored for this call (unlike isDataAvaialble())
+
+       @since Qore 0.8.12
+    */
+   DLLEXPORT int asyncIoWait(int timeout_ms, bool read, bool write) const;
 
    //! closes the socket
    /** Deletes the socket file if it was a UNIX domain socket and was created with the QoreSocket::bind() call.
@@ -1560,8 +1586,12 @@ public:
    //! returns true if all write data has been written within the timeout period in milliseconds
    /** The socket must be connected before this call is made.
        use a timeout of 0 to receive an answer immediately
+
        @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+
        @return true if data is available within the timeout period
+
+       @see asyncIoWait()
    */
    DLLEXPORT bool isWriteFinished(int timeout_ms = 0) const;
 
