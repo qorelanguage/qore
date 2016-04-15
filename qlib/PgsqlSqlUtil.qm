@@ -162,6 +162,7 @@ $function$
     - implemented support for the \c "returning" clause as an insert option
     - fixed a bug handling tablespaces in unique constraints
     - fixed bugs in @ref SqlUtil::cop_seq() and @ref SqlUtil::cop_seq_currval() (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
+    - added support for listing PostgreSQL types and materialized views (<a href="https://github.com/qorelanguage/qore/issues/699">issue 699</a>)
 
     @subsection pgsqlsqlutilv10 PgsqlSqlUtil v1.0
     - initial release
