@@ -1,0 +1,154 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%exec-class TableMapperTest
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/SqlUtil.qm
+%requires ../../../../qlib/Schema.qm
+%requires ../../../../qlib/TableMapper.qm
+
+public class TableMapperTestSchema inherits AbstractSchema {
+    public {
+        const T_TableMapperTest = (
+            "columns": (
+                "id": c_number(True),
+                "string": c_varchar(50, True),
+            ),
+            );
+
+        const Tables = (
+            "table_mapper_test": T_TableMapperTest,
+            );
+
+        const Sequences = (
+            "seq_table_mapper_test": {},
+            );
+    }
+
+    constructor(AbstractDatasource ds, *string dts, *string its) : AbstractSchema(ds, dts, its) {
+    }
+
+    private *hash getTablesImpl() {
+        return Tables;
+    }
+
+    private *hash getSequencesImpl() {
+        return Sequences;
+    }
+
+    string getNameImpl() {
+        return "TableMapperTestSchema";
+    }
+
+    string getVersionImpl() {
+        return "1.0";
+    }
+
+    log(string fmt) {
+        delete argv;
+    }
+
+    logpf(string fmt) {
+        delete argv;
+    }
+
+    logProgress(string fmt) {
+        delete argv;
+    }
+}
+
+public class TableMapperTest inherits QUnit::Test {
+    private {
+        AbstractSchema schema;
+        AbstractTable table;
+
+        const Map1 = (
+            "id": ("sequence": "seq_table_mapper_test"),
+            "string": True,
+            );
+
+        const Input1 = (("string": "string_1"), ("string": "string_2"));
+
+        const MyOpts = Opts + (
+            "connstr": "c,conn=s",
+            );
+
+        const OptionColumn = 22;
+    }
+
+    constructor(any args, *hash mopts) : Test("TableMapperTest", "1.0", \args, mopts) {
+        Datasource ds;
+        try {
+            ds = getDatasource();
+            # create the test schema
+            schema = new TableMapperTestSchema(ds);
+            schema.align(False, m_options.verbose);
+            # get table object
+            table = (new Table(schema.getDatasource(), "table_mapper_test")).getTable();
+
+            # add test cases
+            addTestCase("InboundTableMapper", \inboundTableMapperTest());
+        }
+        catch (hash ex) {
+            if (m_options.verbose)
+                printf("%s: %s\n", ex.err, ex.desc);
+            # skip tests if we can't create the datasource
+        }
+
+        set_return_value(main());
+    }
+
+    globalTearDown() {
+        # drop the test schema
+        if (schema)
+            schema.drop(False, m_options.verbose);
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"driver:user/pass@db\")", OptionColumn);
+    }
+
+    inboundTableMapperTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        {
+            on_exit table.rollback();
+
+            InboundTableMapper mapper(table, Map1);
+            checkMap((map mapper.insertRow($1), Input1), Input1);
+            checkMap(table.selectRows(("orderby": "id")), Input1);
+        }
+
+        {
+            on_exit table.rollback();
+
+            InboundTableMapper mapper(table, Map1);
+            map mapper.queueData($1), Input1;
+            checkMap((map $1, mapper.flush().contextIterator()), Input1);
+            checkMap(table.selectRows(("orderby": "id")), Input1);
+        }
+    }
+
+    checkMap(list l, list il) {
+        foreach hash h in (l) {
+            assertEq(Type::Int, h.id.type(), "id type for row " + $#);
+            assertEq(il[$#].string, h.string);
+        }
+    }
+
+    Datasource getDatasource() {
+        if (!m_options.connstr)
+            m_options.connstr = ENV.QORE_DB_CONNSTR_ORACLE ?? ENV.QORE_DB_CONNSTR_PGSQL ?? ENV.QORE_DB_CONNSTR_MYSQL ?? ENV.QORE_DB_CONNSTR_FREETDS ?? ENV.QORE_DB_CONNSTR_SYBASE;
+        Datasource ds(m_options.connstr);
+        ds.open();
+        return ds;
+    }
+}

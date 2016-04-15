@@ -187,8 +187,8 @@ on_error table1.rollback();
     @section tablemapperkeys TableMapper Specification Format
 
     The mapper hash is made up of target (ie output) column names as the key values assigned to field specifications as specified in @ref mapperkeys, plus the following hash options:
-    - \c "sequence": a name of a sequence to use to populate the column
-    - \c "sequence_currval": a name of a sequence to use to return the current value of the sequence; this is useful when assigning the same sequence value to multiple columns
+    - \c "sequence": a name of a sequence to use to populate the column; the output buffers for this option are bound as type @ref type_number "number", so the output type depends on the database driver's number option setting (for example, with \c "optimal-numbers", the values here are generally returned as strings)
+    - \c "sequence_currval": a name of a sequence to use to return the current value of the sequence; this is useful when assigning the same sequence value to multiple columns; the output buffers for this option are bound as type @ref type_number "number", so the output type depends on the database driver's number option setting (for example, with \c "optimal-numbers", the values here are generally returned as strings)
 
     In both cases, the actual value inserted in the table is available in the following APIs:
       - @ref TableMapper::InboundTableMapper::insertRow()
@@ -524,12 +524,13 @@ InboundTableMapper mapper(table, DbMapper);
             *hash rh;
 
             if (unstable_input || (insert_block == 1))
-                rh = table.insert(h, ("returning": ret_args));
+                rh = table.insert(h, ("returning": getReturning()));
             else {
                 # when executing for the first time on stable input data, get an SQLStatement for the SQL used to insert
                 if (!stmt) {
                     string sql;
-                    rh = table.insert(h, \sql, ("returning": ret_args));
+                    out_args = map Type::Number, ret_args;
+                    rh = table.insert(h, \sql, ("returning": getReturning()));
                     stmt = new SQLStatement(table.getDatasource());
                     stmt.prepare(sql);
                 }
@@ -537,7 +538,7 @@ InboundTableMapper mapper(table, DbMapper);
                     # remove sequences
                     map remove h.$1, ret_args;
                     # execute the SQLStatement on the args
-                    stmt.execArgs(h.values());
+                    stmt.execArgs(h.values() + out_args);
                     rh = stmt.getOutput();
                 }
             }
@@ -730,8 +731,8 @@ on_error table_mapper.rollback();
                     # update sequences to a single value for the insert
                     if (ret_args && hbuf{ret_args[0]}.typeCode() == NT_LIST)
                         map hbuf.$1 = hbuf.$1[0], ret_args;
-                    out_args = map Type::Number, ret_args.iterator();
-                    rh = table.insert(hbuf, \sql, ("returning": ret_args));
+                    out_args = map Type::Number, ret_args;
+                    rh = table.insert(hbuf, \sql, ("returning": getReturning()));
                     # create the statement for future inserts
                     stmt = new SQLStatement(table.getDatasource());
                     stmt.prepare(sql);
@@ -769,6 +770,11 @@ on_error table_mapper.rollback();
 
             # return all data inserted
             return rv;
+        }
+
+        #! returns a list argument for the SqlUtil "returning" option, if applicable
+        *list getReturning() {
+            return map ("key": $1, "type": Type::Int), ret_args;
         }
 
         #! ignore logging from Mapper since we may have to log sequence values; output logged manually in insertRow()
