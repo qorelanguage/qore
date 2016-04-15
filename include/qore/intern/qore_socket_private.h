@@ -880,7 +880,7 @@ struct qore_socket_private {
          fd_set* readfd = read ? &sfs : 0;
          fd_set* writefd = write ? &sfs : 0;
 
-	 rc = select(sock + 1, readfd, writefd, 0, &tv)
+	 rc = select(sock + 1, readfd, writefd, 0, &tv);
 	 if (rc != QORE_SOCKET_ERROR || sock_get_error() != EINTR)
 	    break;
       }
