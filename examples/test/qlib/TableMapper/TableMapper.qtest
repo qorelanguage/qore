@@ -10,6 +10,11 @@
 
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/SqlUtil.qm
+# load all possible SqlUtil driver-specific modules to ensure that our version is used when testing
+%requires ../../../../qlib/OracleSqlUtil.qm
+%requires ../../../../qlib/PgsqlSqlUtil.qm
+%requires ../../../../qlib/MysqlSqlUtil.qm
+%requires ../../../../qlib/FreetdsSqlUtil.qm
 %requires ../../../../qlib/Schema.qm
 %requires ../../../../qlib/TableMapper.qm
 
