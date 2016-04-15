@@ -33,6 +33,8 @@
 
 #define _QORE_QOREHASHLISTITERATOR_H
 
+extern QoreClass* QC_HASHLISTITERATOR;
+
 // the c++ object
 class QoreHashListIterator : public QoreIteratorBase {
 protected:

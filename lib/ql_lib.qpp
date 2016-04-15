@@ -59,14 +59,6 @@
 #include <qore/intern/glob.h>
 #endif
 
-#ifdef HAVE_SYS_TYPES
-#include <sys/types.h>
-#endif
-
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
 #ifndef SIGHUP
 #define SIGHUP 0
 #endif

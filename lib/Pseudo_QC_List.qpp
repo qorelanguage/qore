@@ -30,7 +30,6 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreLibIntern.h>
 #include <qore/intern/QoreListIterator.h>
 #include <qore/intern/RangeIterator.h>
 

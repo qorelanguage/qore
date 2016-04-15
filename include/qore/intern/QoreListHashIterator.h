@@ -37,6 +37,8 @@
 
 #include <assert.h>
 
+extern QoreClass* QC_LISTHASHITERATOR;
+
 // the c++ object
 class QoreListHashIterator : public QoreListIterator {
 protected:

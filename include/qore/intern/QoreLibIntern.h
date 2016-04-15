@@ -853,6 +853,7 @@ DLLLOCAL DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const
 DLLLOCAL QoreHashNode* date_info(const DateTime& d);
 DLLLOCAL void init_charmaps();
 DLLLOCAL int do_unaccent(QoreString& str, const QoreString& src, ExceptionSink* xsink);
+DLLLOCAL int do_unaccent(QoreString& str, const QoreString& src, ExceptionSink* xsink);
 DLLLOCAL int do_tolower(QoreString& str, const QoreString& src, ExceptionSink* xsink);
 DLLLOCAL int do_toupper(QoreString& str, const QoreString& src, ExceptionSink* xsink);
 
@@ -870,7 +871,6 @@ DLLLOCAL const char* q_find_last_path_sep(const char* path);
 
 // reutrns the given file's mode or 0 if the stat() call fails
 DLLLOCAL int q_get_mode(const QoreString& path);
-
 //! returns the byte length of the next UTF-8 character or 0 for an encoding error or a negative number if the string is too short to represent the character
 /** FIXME: change return type to qore_offset_t
  */
