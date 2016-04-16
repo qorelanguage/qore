@@ -71,8 +71,16 @@ public:
 
       // normalize the path
       QoreString path(pattern);
-      q_normalize_path(path);
 
+      // save the original dir name
+      QoreString orig_dir((const char*)q_dirname(path.c_str()));
+      printd(0, "glob() dir: '%s'\n", orig_dir.c_str());
+      if (orig_dir == ".")
+         orig_dir.clear();
+      else
+         orig_dir.concat('\\');
+
+      q_normalize_path(path);
       char* dirp = q_dirname(path.c_str());
       unsigned len = strlen(dirp);
       QoreString dir(dirp, len, len + 1, QCS_DEFAULT);
@@ -82,6 +90,12 @@ public:
       WIN32_FIND_DATA pfd;
       HANDLE h = ::FindFirstFile(dir.getBuffer(), &pfd);
       ON_BLOCK_EXIT(::FindClose, h);
+
+      // remove wildcard to reuse directory name for matches
+      if (len > 1)
+         dir.terminate(dir.size() - 3);
+      else
+         dir.clear();
 
       // make regex pattern
       QoreString str(q_basenameptr(path.c_str()));
@@ -105,7 +119,9 @@ public:
          if (pfd.cFileName[0] == '.' && !get_dot)
             continue;
 	 if (qrn->exec(pfd.cFileName, strlen(pfd.cFileName))) {
-	    names.push_back(pfd.cFileName);
+            QoreString str(orig_dir);
+            str.concat(pfd.cFileName);
+	    names.push_back(str.c_str());
 	    //printd(5, "QoreGlobWin::set(pattern='%s') dir='%s' regex='%s' %s MATCHED\n", pattern, dir.getBuffer(), str.getBuffer(), pfd.cFileName);
 	 }
       }
