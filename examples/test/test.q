@@ -1,7 +1,7 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-/*  Copyright (C) 2014 - 2015 Qore Technologies, sro
+/*  Copyright (C) 2014 - 2016 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -115,6 +115,10 @@ class Test {
         unit.printLog(sprintf("running %s", fname));
 
         Program pgm = getTestProgram(fname);
+        # save current directory and restore afterwards
+        string cwd = getcwd();
+        on_exit chdir(cwd);
+
         pgm.run();
     }
 
