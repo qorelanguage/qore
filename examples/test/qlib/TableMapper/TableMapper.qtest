@@ -96,15 +96,13 @@ public class TableMapperTest inherits QUnit::Test {
             schema.align(False, m_options.verbose);
             # get table object
             table = (new Table(schema.getDatasource(), "table_mapper_test")).getTable();
-
-            # add test cases
-            addTestCase("InboundTableMapper", \inboundTableMapperTest());
         }
         catch (hash ex) {
             if (m_options.verbose)
                 printf("%s: %s\n", ex.err, ex.desc);
-            # skip tests if we can't create the datasource
         }
+        # add test cases
+        addTestCase("InboundTableMapper", \inboundTableMapperTest());
 
         set_return_value(main());
     }
