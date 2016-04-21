@@ -1,0 +1,63 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%require-types
+%strict-args
+%enable-all-warnings
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/FilePoller.qm
+
+%exec-class FilePollerTest
+
+class MyFilePoller inherits FilePoller {
+    public {
+        list fl = ();
+    }
+
+    constructor(string dir) : FilePoller(dir, ".*") {
+    }
+
+    singleFileEvent(hash h) {
+        fl += h.
+    }
+}
+
+public class FilePollerTest inherits QUnit::Test {
+    public {
+    }
+
+    private {
+        const Files = (
+            "file1",
+            "file2",
+            "file3",
+            );
+    }
+
+    constructor() : Test("FilePoller", "1.0") {
+        addTestCase("FilePoller", \filePollerTest());
+
+        # Return for compatibility with test harness that checks return value
+        set_return_value(main());
+    }
+
+    private filePollerTest() {
+        string dir = tmp_location() + DirSep + get_random_string();
+        mkdir(dir);
+        chdir(dir);
+        on_exit
+            rmdir(dir);
+
+        File f();
+        map f.open2($1, O_CREAT|O_TRUNC|O_WRONLY), Files;
+        on_exit map unlink($1), Files;
+
+        MyFilePoller fp(dir);
+        fp.runOnce();
+        fp.stop();
+        assertEq(Files, fp.fl);
+    }
+}

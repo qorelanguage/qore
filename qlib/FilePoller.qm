@@ -1,0 +1,458 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+/*  FilePoller.qm Copyright (C) 2014 - 2016 Qore Technologies sro.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# make sure we have the required qore version
+%requires qore >= 0.8.12
+
+module FilePoller {
+    version = "0.1.0";
+    desc = "Filesystem polling solution";
+    author = "Petr Vanek <petr@yarpen.cz>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+%new-style
+%require-types
+%strict-args
+%enable-all-warnings
+
+%requires Util
+
+/** @mainpage FilePoller Module
+
+    The %FilePoller module provides a high level API for file polling.
+
+    Available classes:
+     - FilePoller::FilePoller
+
+    @section filepollersandbox FilePoller Module in Sandboxed Programs
+
+    The @ref FilePoller::FilePoller "FilePoller" class includes support for running in sandboxed Program objects with the following parse options set:
+    - \c PO_NO_THREAD_CONTROL: in this case the \c "start_thread" option is required in @ref FilePoller::FilePoller::constructor() "FilePoller::constructor()"
+    - \c PO_NO_PROCESS_CONTROL: in this case the \c "sleep" option is required in @ref FilePoller::FilePoller::constructor() "FilePoller::constructor()"
+
+    @section file_poller_relnotes FilePoller Release Notes
+
+    @subsection file_poller_0_1_0 FilePoller v0.1.0
+    - initial release
+*/
+
+#! main module namespace
+public namespace FilePoller {
+    #! file polling class
+    public class FilePoller {
+        public {
+            const OrderAsc = 0;
+            const OrderDesc = 1;
+
+            const SortNone = 0;
+            const SortName = 1;
+            const SortDate = 2;
+
+            #! known constructor() options
+            const Options = (
+                "log_info",
+                "log_detail",
+                "log_debug",
+                "poll_interval",
+                "reopt",
+                "sleep",
+                "sort_order",
+                "sort_type",
+                "start_thread",
+                );
+
+            #! minimum required keys for all constructors
+            const RequiredKeys = (
+%ifdef PO_NO_PROCESS_CONTROL
+                "sleep",
+%endif
+%ifdef PO_NO_THREAD_CONTROL
+                "start_thread",
+%endif
+            );
+        }
+
+        private {
+            #! path to monitor
+            string path;
+
+            #! file name mask
+            string mask;
+
+            #! poll interval in seconds
+            int poll_interval = 10;
+
+            #! run flag
+            bool runflag = False;
+
+            #! internal fatal error flag
+            bool fatal = False;
+
+            #! internal poll counter
+            int pollcnt = 0;
+
+            #! file sort type
+            int sort_type = SortName;
+
+            #! file sort order
+            int sort_order = OrderAsc;
+
+            #! start mutex
+            Mutex m();
+
+            #! polling tid
+            int tid;
+
+            #! stop counter
+            Counter sc();
+
+            #! regex options
+            int reopt;
+
+            #! optional info log closure
+            *code log_info;
+
+            #! optional detail log closure
+            *code log_detail;
+
+            #! optional debug log closure
+            *code log_debug;
+
+            #! optional start thread closure
+            *code start_thread;
+
+            #! optional sleep closure
+            *code sleep;
+        }
+
+        #! creates the object
+        /** @param n_path the path to poll
+            @param n_mask the regular expression mask to use to match the files
+            @param n_opts a hash with the following optional keys:
+            - \c "log_info": a @ref closure "closure" or @ref call_reference "call reference" taking a single string argument as an information message for logging
+            - \c "log_detail": a @ref closure "closure" or @ref call_reference "call reference" taking a single string argument as a detail information message for logging
+            - \c "log_debug": a @ref closure "closure" or @ref call_reference "call reference" taking a single string argument as a debug information message for logging
+            - \c "poll_interval": an integer poll interval in seconds; if this option is not supplied, then the default \c poll_inteval is 10 seconds
+            - \c "reopt": regular expression options; see @ref regex_constants for possible values (ex @ref Qore::RE_Caseless for case-insensitive matches)
+            - \c "sleep": (required when imported into a context where @ref Qore::PO_NO_PROCESS_CONTROL is set) a @ref closure "closure" or @ref call_reference "call reference" to use instead of @ref Qore::sleep() (if not set then @ref Qore::sleep() will be used)
+            - \c "sort_order": an integer constant giving the sort order; valid options are:
+              - @ref OrderAsc: ascending (the default)
+              - @ref OrderDesc: descending
+            - \c "sort_type": an integer constant giving the sort type; valid options are:
+              - @ref SortNone: no sort
+              - @ref SortName: sort by file name (the default)
+              - @ref SortDate: sort by the file's last modified date
+            - \c "start_thread": (required when imported into a context where @ref Qore::PO_NO_THREAD_CONTROL is set) a @ref closure "closure" or @ref call_reference "call reference" for starting threads; must return the integer thread ID (if not set then @ref background will be used)
+
+            @throw FILEPOLLER-CONSTRUCTOR-ERROR invalid option
+         */
+        constructor(string n_path, string n_mask, *hash n_opts) {
+            path = n_path;
+            mask = n_mask;
+
+            foreach string k in (RequiredKeys) {
+                if (!exists n_opts{k})
+                    throw "FILEPOLLER-CONSTRUCTOR-ERROR", sprintf("required key %y missing from constructor hash argument)", k);
+            }
+
+            foreach hash h in (n_opts.pairIterator()) {
+                switch (h.key) {
+                    case "log_info": {
+                        log_info = h.value;
+                        break;
+                    }
+                    case "log_detail": {
+                        log_detail = h.value;
+                        break;
+                    }
+                    case "log_debug": {
+                        log_debug = h.value;
+                        break;
+                    }
+                    case "poll_interval": {
+                        poll_interval = h.value;
+                        if (poll_interval <= 0)
+                            throw "FILEPOLLER-CONSTRUCTOR-ERROR", sprintf("invalid %y = %d; must be a positive number", h.key, h.value);
+                        break;
+                    }
+                    case "reopt": {
+                        reopt = h.value;
+                        break;
+                    }
+                    case "sleep": {
+                        sleep = h.value;
+                        break;
+                    }
+                    case "sort_order": {
+                        sort_order = h.value;
+                        break;
+                    }
+                    case "sort_type": {
+                        sort_type = h.value;
+                        break;
+                    }
+                    case "start_thread": {
+                        start_thread = h.value;
+                        break;
+                    }
+
+                    default:
+                        throw "FILEPOLLER-CONSTRUCTOR-ERROR", sprintf("unknown option %y; known options: %y", h.key, Options);
+                }
+            }
+        }
+
+        #! stops the polling operation if in progress and destroys the object
+        destructor() {
+            stop();
+        }
+
+        #! returns a list of regular file hashes matching any file name mask set for the object
+        /** @param sort the sort option for the list returned
+            @param order the ordering of sorted data returned
+
+            @return a list of regular file hashes with the following keys in each list element:
+            - \c name: the name of the file, link, or directory
+            - \c filepath: the complete file path
+            - \c size: the size of the file in bytes
+            - \c uid: the UID of the owner of the file
+            - \c gid: the GID of the owner of the file
+            - \c mode: the permissions / mode of the file
+            - \c atime: the last accessed date/time of the file
+            - \c mtime: the last modified date/time of the file
+            - \c type: the type of file is always \c "REGULAR"
+            - \c perm: a string giving UNIX-style permissions for the file (ex: "-rwxr-xr-x")
+        */
+        list getFiles(int sort = FilePoller::SortNone, int order = FilePoller::OrderAsc) {
+            Dir d();
+            d.chdir(path);
+
+            # file of file hashes
+            list ret = map $1 + ("filepath": path + DirSep + $1.name), d.listFiles(mask, reopt, True);
+
+            # return list of files
+            switch (sort) {
+                case FilePoller::SortName:
+                    # sort by file name
+                    return order == FilePoller::OrderAsc
+                        ? Qore::sort(ret, int sub (hash l, hash r) { return l.name <=> r.name; })
+                        : sort_descending(ret, int sub (hash l, hash r) { return l.name <=> r.name; });
+
+                case FilePoller::SortDate:
+                    # sort by last modification date
+                    return order == FilePoller::OrderAsc
+                        ? Qore::sort(ret, int sub (hash l, hash r) { return l.mtime <=> r.mtime; })
+                        : sort_descending(ret, int sub (hash l, hash r) { return l.name <=> r.name; });
+            }
+
+            return ret;
+        }
+
+        #! starts polling in the background; returns the thread ID of the polling thread
+        /** if polling had already been started, then the thread ID of the polling thread is
+            returned immediately
+        */
+        int start() {
+            m.lock();
+            on_exit m.unlock();
+
+            if (runflag)
+                return tid;
+
+            sc.waitForZero();
+
+            runflag = True;
+            sc.inc();
+
+            return (tid = (start_thread ? call_function(start_thread, \run()) : background run()));
+        }
+
+        #! stops the polling operation, returns when the polling operation has been stopped
+        /** if polling was not in progress then this method returns immediately
+
+            @throw THREAD-ERROR this exception is thrown if this method is called from the polling thread since it would result in a deadlock
+
+            @see
+            - stopNoWait()
+            - waitStop()
+        */
+        stop() {
+            if (gettid() == tid && sc.getCount())
+                throw "THREAD-ERROR", sprintf("cannot call %s::stop() from the event thread (%d)", self.className(), tid);
+
+            m.lock();
+            on_exit m.unlock();
+
+            runflag = False;
+
+            sc.waitForZero();
+        }
+
+        #! stops the polling operation, returns immediately
+        /** @see
+            - stop()
+            - waitStop()
+        */
+        stopNoWait() {
+            m.lock();
+            on_exit m.unlock();
+
+            runflag = False;
+        }
+
+        #! waits indefinitely for the polling operation to stop; if polling was not in progress then this method returns immediately
+        /**
+            @throw THREAD-ERROR this exception is thrown if this method is called from the event thread since it would result in a deadlock
+
+            @see
+            - stop()
+            - stopNoWait()
+        */
+        waitStop() {
+            if (gettid() == tid)
+                throw "THREAD-ERROR", sprintf("cannot call FilePoller::waitStop() from the event thread (%d)", tid);
+            sc.waitForZero();
+        }
+
+        #! starts the polling operation inline (not in a background thread)
+        /**
+            @throw FILEPOLLER-ERROR this exception is thrown if polling is already in progress
+        */
+        startInline() {
+            {
+                m.lock();
+                on_exit m.unlock();
+
+                if (runflag)
+                    throw "FILEPOLLER-ERROR", sprintf("the polling thread is already running in TID %d", tid);
+
+                runflag = True;
+                tid = gettid();
+            }
+            sc.inc();
+            run();
+        }
+
+        #! runs a single poll (useful for checking for errors inline before starting a background thread)
+        bool runOnce() {
+            ++pollcnt;
+
+            list files = getFiles(sort_type, sort_order);
+            if (files) {
+                logDebug("got files in %y: %y", path, files);
+                fileEvent(files);
+                return True;
+            }
+            return False;
+        }
+
+        #! sleeps for the specificed number of seconds
+        private sleep(softint secs) {
+            sleep ? call_function(sleep, secs) : Qore::sleep(secs);
+        }
+
+        #! starts the polling operation
+        synchronized private run() {
+            on_exit sc.dec();
+
+            while (runflag) {
+                try {
+                    if (runOnce())
+                        continue;
+                    sleep(poll_interval);
+                } catch (ex) {
+                    logInfo("cannot get file list from %y: %s: %s", path, ex.desc, ex.err);
+                    runflag = False;
+                    break;
+                }
+            }
+
+            logInfo("polling finished");
+        }
+
+        #! called for each poll event with a list of all files matched; calls singleFileEvent() on each file hash in the list
+        fileEvent(list files) {
+            foreach hash fih in (files) {
+                logInfo("got file: %y", fih.name);
+                logDebug("file info: %y", fih);
+                singleFileEvent(fih);
+            }
+        }
+
+        #! called for each matching file individually whenever matching files are polled with the list of matching file names; if any error occurs here, the error is logged and the polling operation is retried
+        /** @param fih a hash of file data and information with the following keys:
+            - \c name: the name of the file, link, or directory
+            - \c filepath: the complete path to the file including the directory
+            - \c size: the size of the file in bytes
+            - \c uid: the UID of the owner of the file
+            - \c gid: the GID of the owner of the file
+            - \c mode: the permissions / mode of the file
+            - \c atime: the last accessed date/time of the file
+            - \c mtime: the last modified date/time of the file
+            - \c type: the type of file; one of: \c "REGULAR", \c "DIRECTORY", \c "SYMBOLIC-LINK", \c "BLOCK-DEVICE", \c "CHARACTER-DEVICE", \c "FIFO", \c "SYMBOLIC-LINK", \c "SOCKET", or \c "UNKNOWN"
+            - \c perm: a string giving UNIX-style permissions for the file (ex: "-rwxr-xr-x")
+        */
+        abstract singleFileEvent(hash fih);
+
+        #! checks a path on the local file system
+        /**
+            @throw DIR-ERROR this exception is thrown if the local path does not exist, is not readable, is not a directory, or should be writable and is not
+        */
+        static checkPath(string path, string type, bool write = False) {
+            *hash h = hstat(path);
+            if (!exists h)
+                throw "DIR-ERROR", sprintf("%y: %s path does not exist", path, type);
+            if (h.type != "DIRECTORY")
+                throw "DIR-ERROR", sprintf("%y: %s path is not a directory (%s)", path, type, h.type);
+
+            # check if the directory is readable
+            if (!is_readable(path))
+                throw "DIR-ERROR", sprintf("%y: %s path is not readable", path, type);
+
+            # check if the directory is writable
+            if (write && !is_writable(path))
+                throw "DIR-ERROR", sprintf("%y: %s path is not writable", path, type);
+        }
+
+        #! calls the \c "log_info" @ref closure "closure" or @ref call_reference "call reference" with important information
+        private logInfo(string fmt) {
+            if (log_info)
+                log_info(vsprintf(fmt, argv));
+        }
+
+        #! calls the \c "log_detail" @ref closure "closure" or @ref call_reference "call reference" with detail information
+        private logDetail(string fmt) {
+            if (log_detail)
+                log_detail(vsprintf(fmt, argv));
+        }
+
+        #! calls the \c "log_debug" @ref closure "closure" or @ref call_reference "call reference" with verbose debugging information
+        private logDebug(string fmt) {
+            if (log_debug)
+                log_debug(vsprintf(fmt, argv));
+        }
+    }
+}
+# END
