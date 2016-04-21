@@ -1,0 +1,28 @@
+#!/usr/bin/env qore
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class ShellGlobToRegexTest
+
+public class ShellGlobToRegexTest inherits QUnit::Test {
+    constructor() : Test ("ShellGlobToRegexTest", "1.0") {
+        addTestCase ("Tests for shell_glob_to_regex() function", \test_shell_glob_to_regex());
+        set_return_value(main());
+    }
+
+    test_shell_glob_to_regex() {
+        assertEq ('', shell_glob_to_regex (''));
+        assertEq ('a.c', shell_glob_to_regex ('a?c'));
+        assertEq ('a.*c', shell_glob_to_regex ('a*c'));
+        assertEq ('.*\..*', shell_glob_to_regex ('*.*'));
+        assertEq ('[CB]at!', shell_glob_to_regex ('[CB]at!'));
+        assertEq ('Book-[0-9]', shell_glob_to_regex ('Book-[0-9]'));
+        assertEq ('Book-[^3-5]', shell_glob_to_regex ('Book-[!3-5]'));
+        assertEq ('\^test\$', shell_glob_to_regex ('^test$'));
+    }
+}

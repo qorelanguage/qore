@@ -822,4 +822,42 @@ printf (plural(32, "", "tooth", "teeth"));
     public string sub plural (int count, string base, string singular = "", string plural = "s") {
         return sprintf("%d %s", count, count == 1 ? base + singular : base + plural);
     }
+
+    #! Translates a shell pattern to a regular expression.
+    public string sub shell_glob_to_regex (string pat) {
+        string r = '';
+        int n = pat.length();
+        int i = 0;
+        while (i<n) {
+            string c = pat[i];
+            i++;
+            if (c == '?')
+                r += '.';
+            else if (c == '*')
+                r += '.*';
+            else if (c == '[') {
+                int j = i;
+                if (j < n && pat[j] == '!')
+                    j++;
+                if (j < n && pat[j] == ']')
+                    j++;
+                while (j < n && pat[j] != ']')
+                    j++;
+                if (j >= n)
+                    r += '\[';
+                else {
+                    string s = replace (pat.substr(i, j-i), '\', '\\');
+                    i = j + 1;
+                    if (s[0] == '!')
+                        s = '^' + s.substr(1);
+                    else if (s[0] == '^')
+                        s = '\' + s;
+                    r += '[' + s + ']';
+                }
+            }
+            else
+                r += c; # XXX: c should be escaped!
+        }
+        return r;
+    }
 }
