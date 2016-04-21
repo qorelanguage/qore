@@ -286,7 +286,11 @@ public namespace FilePoller {
             runflag = True;
             sc.inc();
 
-            return (tid = (start_thread ? call_function(start_thread, \run()) : background run()));
+%ifdef PO_NO_THREAD_CONTROL
+            return tid = call_function(start_thread, \run());
+%else
+            return tid = (start_thread ? call_function(start_thread, \run()) : background run());
+%endif
         }
 
         #! stops the polling operation, returns when the polling operation has been stopped
@@ -370,7 +374,11 @@ public namespace FilePoller {
 
         #! sleeps for the specificed number of seconds
         private sleep(softint secs) {
+%ifdef PO_NO_PROCESS_CONTROL
+            call_function(sleep, secs);
+%else
             sleep ? call_function(sleep, secs) : Qore::sleep(secs);
+%endif
         }
 
         #! starts the polling operation
