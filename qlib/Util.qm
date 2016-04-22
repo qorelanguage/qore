@@ -62,6 +62,7 @@ module Util {
     - @ref Util::get_exception_string()
     - @ref Util::get_marketing_byte_size()
     - @ref Util::get_random_string()
+    - @ref Util::glob_to_regex()
     - @ref Util::lpad()
     - @ref Util::normalize_dir()
       - @ref Util::normalize_dir_unix()
@@ -71,7 +72,6 @@ module Util {
     - @ref Util::regex_escape()
     - @ref Util::rpad()
     - @ref Util::parse_to_qore_value()
-    - @ref Util::shell_glob_to_regex()
     - @ref Util::slice()
     - @ref Util::same()
     - @ref Util::tmp_location()
@@ -86,14 +86,14 @@ module Util {
       - @ref Qore::absolute_path()
       - @ref Qore::absolute_path_windows()
       - @ref Qore::absolute_path_unix()
+    - added Util::glob_to_regex()
     - added Util::lpad()
-    - added Util::rpad()
     - added Util::ordinal()
     - added Util::plural()
     - added Util::regex_escape()
-    - added Util::shell_glob_to_regex()
-    - added Util::slice()
+    - added Util::rpad()
     - added Util::same()
+    - added Util::slice()
     - added Util::tmp_location()
 
     @subsection util_1_1 Util 1.1
@@ -853,12 +853,12 @@ string s = regex_escape ("Gain: $100"); # returns "Gain\\:\\ \\$100"
 
         @par Example:
         @code{.py}
-string s = shell_glob_to_regex ("*.*"); # returns ".*\\..*"
+string s = glob_to_regex ("*.*"); # returns ".*\\..*"
         @endcode
 
         @since Util 1.2
     */
-    public string sub shell_glob_to_regex (string pat) {
+    public string sub glob_to_regex (string pat) {
         string r = '';
         int n = pat.length();
         int i = 0;
