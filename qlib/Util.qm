@@ -841,6 +841,18 @@ string s = regex_escape ("Gain: $100"); # returns "Gain\\:\\ \\$100"
     }
 
     #! Translates a shell pattern to a regular expression.
+    /** Returns the shell-style pattern converted to a regular expression.
+
+        @param  pat the pattern to convert
+        @return a converted pattern
+
+        @par Example:
+        @code{.py}
+string s = shell_glob_to_regex ("*.*"); # returns ".*\\..*"
+        @endcode
+
+        @since Util 1.2
+    */
     public string sub shell_glob_to_regex (string pat) {
         string r = '';
         int n = pat.length();
