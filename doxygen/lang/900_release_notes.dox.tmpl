@@ -101,8 +101,9 @@
       - @ref Qore::Thread::remove_thread_resource()
       - @ref Qore::Thread::set_thread_resource()
     - updated functions:
-      - @ref Qore::string()
       - @ref Qore::parse_boolean()
+      - @ref Qore::string()
+      - @ref Qore::strmul()
     - new pseudo-methods:
       - @ref <date>::dayNumber()
       - @ref <date>::dayOfWeek()
@@ -205,10 +206,12 @@
     - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module updates:
       - implemented support for notifying persistent connections when the connection is terminated while a persistent connection is in place
       - the AbstractRestStreamRequestHandler class is now the base abstract class for REST stream request handlers
-    -  <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module updates:
+    - <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module updates:
       - updated FileHandler::handleRequest() to allow for chunked sends
-    - <a href="../../modules/BulkSqlUtil/html/index.html">BulkSqlUtil</a> module:
+    - <a href"=../../modules/BulkSqlUtil/html/index.html">BulkSqlUtil</a> module:
       - added this new module providing APIs supporting bulk DML with <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> with supported drivers
+    - <a href="../../modules/FilePoller/html/index.html">FilePoller</a> module:
+      - added this new module to support polling files in directories on the filesystem
     - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module:
       - added this new module for handling fixed length line data
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module updates:
