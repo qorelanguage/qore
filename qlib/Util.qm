@@ -873,8 +873,8 @@ string s = regex_escape ("Gain: $100"); # returns "Gain\\:\\ \\$100"
                 }
             }
             else
-                r += c; # XXX: c should be escaped!
+                r += regex_escape(c);
         }
-        return r;
+        return '\A' + r + '\Z';
     }
 }

@@ -16,13 +16,36 @@ public class ShellGlobToRegexTest inherits QUnit::Test {
     }
 
     test_shell_glob_to_regex() {
-        assertEq ('', shell_glob_to_regex (''));
-        assertEq ('a.c', shell_glob_to_regex ('a?c'));
-        assertEq ('a.*c', shell_glob_to_regex ('a*c'));
-        assertEq ('.*\..*', shell_glob_to_regex ('*.*'));
-        assertEq ('[CB]at!', shell_glob_to_regex ('[CB]at!'));
-        assertEq ('Book-[0-9]', shell_glob_to_regex ('Book-[0-9]'));
-        assertEq ('Book-[^3-5]', shell_glob_to_regex ('Book-[!3-5]'));
-        assertEq ('\^test\$', shell_glob_to_regex ('^test$'));
+        list cases = (
+                ('p': '',
+                 'r': '',
+                 'f': ''),
+                ('p': 'a?c',
+                 'r': 'a.c',
+                 'f': 'abc'),
+                ('p': 'a*d',
+                 'r': 'a.*d',
+                 'f': 'abcd'),
+                ('p': '*.*',
+                 'r': '.*\..*',
+                 'f': 'ab.cd'),
+                ('p': '[CB]at!',
+                 'r': '[CB]at\!',
+                 'f': 'Bat!'),
+                ('p': 'Book-[0-9]',
+                 'r': 'Book\-[0-9]',
+                 'f': 'Book-1'),
+                ('p': 'Book-[!3-5]',
+                 'r': 'Book\-[^3-5]',
+                 'f': 'Book-1'),
+                ('p': '^test$',
+                 'r': '\^test\$',
+                 'f': '^test$'),
+                );
+
+        foreach hash t in (cases) {
+            assertEq ('\A' + t.r + '\Z', shell_glob_to_regex (t.p), sprintf ("checking glob to regex for '%s'", t.p));
+            assertTrue (regex (t.f, shell_glob_to_regex (t.p)), sprintf ("checking regex match for '%s'", t.p));
+        }
     }
 }
