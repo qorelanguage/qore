@@ -823,6 +823,23 @@ printf (plural(32, "", "tooth", "teeth"));
         return sprintf("%d %s", count, count == 1 ? base + singular : base + plural);
     }
 
+    #! Escapes (backslashes) all non-alphanumeric characters in a string.
+    /** Returns string with all non-alphanumerics backslashed; this is useful if you want to match an arbitrary literal string that may have regular expression metacharacters in it.
+
+        @param  text string to escape / backslash
+        @return a string escaped / backslashed
+
+        @par Example:
+        @code{.py}
+string s = regex_escape ("Gain: $100"); # returns "Gain\\:\\ \\$100"
+        @endcode
+
+        @since Util 1.2
+    */
+    public string sub regex_escape (string text) {
+        return regex_subst (text, '([^[:alnum:]])', '\\$1', Qore::RE_Global);
+    }
+
     #! Translates a shell pattern to a regular expression.
     public string sub shell_glob_to_regex (string pat) {
         string r = '';
