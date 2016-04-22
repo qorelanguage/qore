@@ -1302,7 +1302,7 @@ if (x !== y)
     @section regex_match_operator Regular Expression Match Operator (=~)
 
     @par Synopsis
-    Checks for a regular expression match; returns @ref Qore::True "True" if the expression matches the string, @ref Qore::False "False" if not. See @ref regex_options for the meaning of the \c i, \c s, \c x, and \c m options after the regular expression.\n\n
+    Checks for a regular expression match; returns @ref Qore::True "True" if the expression matches the string, @ref Qore::False "False" if not. See @ref qore_regex_options for the meaning of the \c i, \c s, \c x, and \c m options after the regular expression.\n\n
     See @ref qore_regex for more information about regular expression support in %Qore.
 
     @par Syntax
@@ -1327,7 +1327,7 @@ if (str =~ /hello/)
     @section regex_no_match_operator Regular Expression No Match Operator (!~)
 
     @par Synopsis
-    Checks for a regular expression non match; returns @ref Qore::True "True" if the expression does not match the string, @ref Qore::False "False" if it does. See @ref regex_options for the meaning of the \c i, \c s, \c x, and \c m options after the regular expression.\n\n
+    Checks for a regular expression non match; returns @ref Qore::True "True" if the expression does not match the string, @ref Qore::False "False" if it does. See @ref qore_regex_options for the meaning of the \c i, \c s, \c x, and \c m options after the regular expression.\n\n
     See @ref qore_regex for more information about regular expression support in %Qore.
 
     @par Syntax
@@ -1352,7 +1352,7 @@ if (str !~ /hello/)
     @section regex_subst_operator Regular Expression Substitution Operator
 
     @par Synopsis
-    Looks for a regular expression match in a string, and, if found, substitutes the matched string with a new string. Subpattern backreferences are supported in the target string, <tt>$1</tt>=first subpattern, <tt>$2</tt>=second subpattern, etc... See @ref regex_options for the meaning of the \c i, \c s, \c x, and \c m options after the regular expression.\n\n
+    Looks for a regular expression match in a string, and, if found, substitutes the matched string with a new string. Subpattern backreferences are supported in the target string, <tt>$1</tt>=first subpattern, <tt>$2</tt>=second subpattern, etc... See @ref qore_regex_options for the meaning of the \c i, \c s, \c x, and \c m options after the regular expression.\n\n
     See @ref qore_regex for more information about regular expression support in %Qore.
 
     @par Syntax
@@ -1377,7 +1377,7 @@ str =~ s/(\w+) +(\w+)/$2, $1/;
     @section regex_extract_operator Regular Expression Pattern Extraction Operator
 
     @par Synopsis
-    Matches regular expression patterns (enclosed in parentheses) in a string and returns a list giving the text matched for each pattern. If the regular expression does not match, then no value (@ref nothing) is returned. See @ref regex_options for the meaning of the \c i, \c s, \c x, and \c m options after the regular expression.\n\n
+    Matches regular expression patterns (enclosed in parentheses) in a string and returns a list giving the text matched for each pattern. If the regular expression does not match, then no value (@ref nothing) is returned. See @ref qore_regex_options for the meaning of the \c i, \c s, \c x, and \c m options after the regular expression.\n\n
     See @ref qore_regex for more information about regular expression support in %Qore.
 
     @par Syntax
