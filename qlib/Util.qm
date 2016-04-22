@@ -62,12 +62,14 @@ module Util {
     - @ref Util::get_exception_string()
     - @ref Util::get_marketing_byte_size()
     - @ref Util::get_random_string()
+    - @ref Util::glob_to_regex()
     - @ref Util::lpad()
     - @ref Util::normalize_dir()
       - @ref Util::normalize_dir_unix()
       - @ref Util::normalize_dir_windows()
     - @ref Util::ordinal()
     - @ref Util::plural()
+    - @ref Util::regex_escape()
     - @ref Util::rpad()
     - @ref Util::parse_to_qore_value()
     - @ref Util::slice()
@@ -84,12 +86,14 @@ module Util {
       - @ref Qore::absolute_path()
       - @ref Qore::absolute_path_windows()
       - @ref Qore::absolute_path_unix()
+    - added Util::glob_to_regex()
     - added Util::lpad()
-    - added Util::rpad()
     - added Util::ordinal()
     - added Util::plural()
-    - added Util::slice()
+    - added Util::regex_escape()
+    - added Util::rpad()
     - added Util::same()
+    - added Util::slice()
     - added Util::tmp_location()
 
     @subsection util_1_1 Util 1.1
@@ -821,5 +825,73 @@ printf (plural(32, "", "tooth", "teeth"));
     */
     public string sub plural (int count, string base, string singular = "", string plural = "s") {
         return sprintf("%d %s", count, count == 1 ? base + singular : base + plural);
+    }
+
+    #! Escapes (backslashes) all non-alphanumeric characters in a string.
+    /** Returns string with all non-alphanumerics backslashed; this is useful if you want to match an arbitrary literal string that may have regular expression metacharacters in it.
+
+        @param  text string to escape / backslash
+        @return a string escaped / backslashed
+
+        @par Example:
+        @code{.py}
+string s = regex_escape ("Gain: $100"); # returns "Gain\\:\\ \\$100"
+        @endcode
+
+        @since Util 1.2
+    */
+    public string sub regex_escape (string text) {
+        text =~ s/([^[:alnum:]])/\\$1/g;
+        return text;
+    }
+
+    #! Translates a shell pattern to a regular expression.
+    /** Returns the shell-style pattern converted to a regular expression.
+
+        @param  pat the pattern to convert
+        @return a converted pattern
+
+        @par Example:
+        @code{.py}
+string s = glob_to_regex ("*.*"); # returns ".*\\..*"
+        @endcode
+
+        @since Util 1.2
+    */
+    public string sub glob_to_regex (string pat) {
+        string r = '';
+        int n = pat.length();
+        int i = 0;
+        while (i<n) {
+            string c = pat[i];
+            i++;
+            if (c == '?')
+                r += '.';
+            else if (c == '*')
+                r += '.*';
+            else if (c == '[') {
+                int j = i;
+                if (j < n && pat[j] == '!')
+                    j++;
+                if (j < n && pat[j] == ']')
+                    j++;
+                while (j < n && pat[j] != ']')
+                    j++;
+                if (j >= n)
+                    r += '\[';
+                else {
+                    string s = replace (pat.substr(i, j-i), '\', '\\');
+                    i = j + 1;
+                    if (s[0] == '!')
+                        s = '^' + s.substr(1);
+                    else if (s[0] == '^')
+                        s = '\' + s;
+                    r += '[' + s + ']';
+                }
+            }
+            else
+                r += regex_escape(c);
+        }
+        return '\A' + r + '\Z';
     }
 }
