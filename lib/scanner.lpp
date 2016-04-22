@@ -1174,6 +1174,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            yylval->RegexSubst->concatTarget('\n');
                                         }
       \\\/                              yylval->RegexSubst->concatTarget('/');
+      \\\.                              yylval->RegexSubst->concatTarget('.');
       \\.                               { yylval->RegexSubst->concatTarget('\\'); yylval->RegexSubst->concatTarget(yytext[1]); }
       [^\n\\/]+                         {
                                            char* yptr = yytext;
