@@ -506,8 +506,6 @@ class RegexTest inherits QUnit::Test {
         ## by the positions of their opening parentheses, left to right), so that
         ## (e.g.) '\([bc]\)\1' matches 'bb' or 'cc' but not 'bc'.
 
-
-
         # Metacharacters
 
         t = 'Empty string';
@@ -567,6 +565,13 @@ class RegexTest inherits QUnit::Test {
         s = 'abc0923_%^';
         s =~ s/([^[:alnum:]])/\\$1/g;
         assertEq("abc0923\\_\\%\\^", s);
+
+        # regex subst target escapes
+        s = "t.q";
+        s =~ s/\./\./g;
+        assertEq("t.q", s);
+        s =~ s/\./\\./g;
+        assertEq("t\\.q", s);
     }
 
     test329() {
