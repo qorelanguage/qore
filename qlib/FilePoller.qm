@@ -131,6 +131,9 @@ public namespace FilePoller {
             #! regex options
             int reopt;
 
+            #! minimum file age in seconds before the file will be included in the list returned
+            *softint minage;
+
             #! optional info log closure
             *code log_info;
 
@@ -154,6 +157,7 @@ public namespace FilePoller {
             - \c "log_info": a @ref closure "closure" or @ref call_reference "call reference" taking a single string argument as an information message for logging
             - \c "log_detail": a @ref closure "closure" or @ref call_reference "call reference" taking a single string argument as a detail information message for logging
             - \c "log_debug": a @ref closure "closure" or @ref call_reference "call reference" taking a single string argument as a debug information message for logging
+            - \c "minage": the minimum file age in seconds as calculated from the file's "last modified" timestamp (\c mtime attribute) before a file will be acquired (default: 0); use this option if files could be otherwise read while being written
             - \c "poll_interval": an integer poll interval in seconds; if this option is not supplied, then the default \c poll_inteval is 10 seconds
             - \c "reopt": regular expression options; see @ref regex_constants for possible values (ex @ref Qore::RE_Caseless for case-insensitive matches)
             - \c "sleep": (required when imported into a context where @ref Qore::PO_NO_PROCESS_CONTROL is set) a @ref closure "closure" or @ref call_reference "call reference" to use instead of @ref Qore::sleep() (if not set then @ref Qore::sleep() will be used)
@@ -189,6 +193,12 @@ public namespace FilePoller {
                     }
                     case "log_debug": {
                         log_debug = h.value;
+                        break;
+                    }
+                    case "minage": {
+                        minage = h.value;
+                        if (minage < 0)
+                            throw "FILEPOLLER-CONSTRUCTOR-ERROR", sprintf("invalid %y = %d; must be a non-negative number", h.key, h.value);
                         break;
                     }
                     case "poll_interval": {
@@ -251,6 +261,20 @@ public namespace FilePoller {
 
             # file of file hashes
             list ret = map $1 + ("filepath": path + DirSep + $1.name), d.listFiles(mask, reopt, True);
+
+            # remove all files that aren't old enough
+            if (minage) {
+                date now = Qore::now();
+                list n = ();
+                foreach hash h in (ret) {
+                    if ((now - h.mtime).durationSeconds() < minage) {
+                        logDebug("file %y is not old enough (minage: %d, current age: %d)", h.name, minage, (now - h.mtime).durationSeconds());
+                        continue;
+                    }
+                    n += h;
+                }
+                ret = n;
+            }
 
             # return list of files
             switch (sort) {
@@ -373,7 +397,7 @@ public namespace FilePoller {
         }
 
         #! sleeps for the specificed number of seconds
-        private sleep(softint secs) {
+        private fileSleep(softint secs) {
 %ifdef PO_NO_PROCESS_CONTROL
             call_function(sleep, secs);
 %else
@@ -389,7 +413,7 @@ public namespace FilePoller {
                 try {
                     if (runOnce())
                         continue;
-                    sleep(poll_interval);
+                    fileSleep(poll_interval);
                 } catch (ex) {
                     logInfo("cannot get file list from %y: %s: %s", path, ex.desc, ex.err);
                     runflag = False;
@@ -442,6 +466,11 @@ public namespace FilePoller {
             # check if the directory is writable
             if (write && !is_writable(path))
                 throw "DIR-ERROR", sprintf("%y: %s path is not writable", path, type);
+        }
+
+        #! returns the current poll count
+        int getPollCount() {
+            return pollcnt;
         }
 
         #! calls the \c "log_info" @ref closure "closure" or @ref call_reference "call reference" with important information
