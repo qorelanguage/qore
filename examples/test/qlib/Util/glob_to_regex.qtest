@@ -11,11 +11,11 @@
 
 public class ShellGlobToRegexTest inherits QUnit::Test {
     constructor() : Test ("ShellGlobToRegexTest", "1.0") {
-        addTestCase ("Tests for shell_glob_to_regex() function", \test_shell_glob_to_regex());
+        addTestCase ("Tests for glob_to_regex() function", \test_glob_to_regex());
         set_return_value(main());
     }
 
-    test_shell_glob_to_regex() {
+    test_glob_to_regex() {
         list cases = (
                 ('p': '',
                  'r': '',
@@ -44,8 +44,8 @@ public class ShellGlobToRegexTest inherits QUnit::Test {
                 );
 
         foreach hash t in (cases) {
-            assertEq ('\A' + t.r + '\Z', shell_glob_to_regex (t.p), sprintf ("checking glob to regex for '%s'", t.p));
-            assertTrue (regex (t.f, shell_glob_to_regex (t.p)), sprintf ("checking regex match for '%s'", t.p));
+            assertEq ('\A' + t.r + '\Z', glob_to_regex (t.p), sprintf ("checking glob to regex for '%s'", t.p));
+            assertTrue (regex (t.f, glob_to_regex (t.p)), sprintf ("checking regex match for '%s'", t.p));
         }
     }
 }
