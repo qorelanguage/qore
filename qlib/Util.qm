@@ -841,7 +841,8 @@ string s = regex_escape ("Gain: $100"); # returns "Gain\\:\\ \\$100"
         @since Util 1.2
     */
     public string sub regex_escape (string text) {
-        return regex_subst (text, '([^[:alnum:]])', '\\$1', Qore::RE_Global);
+        text =~ s/([^[:alnum:]])/\\$1/g;
+        return text;
     }
 
     #! Translates a shell pattern to a regular expression.
