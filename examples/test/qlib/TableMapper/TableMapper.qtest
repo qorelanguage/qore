@@ -137,6 +137,7 @@ public class TableMapperTest inherits QUnit::Test {
         if (table.bindEmptyStringsAsNull())
             output1[2].string = NULL;
 
+        # insertRow() test
         {
             on_exit table.rollback();
 
@@ -145,11 +146,22 @@ public class TableMapperTest inherits QUnit::Test {
             checkMap(table.selectRows(("orderby": "id")), Input1, output1);
         }
 
+        # queueData(hash) test
         {
             on_exit table.rollback();
 
             InboundTableMapper mapper(table, Map1);
             map mapper.queueData($1), Input1;
+            checkMap((map $1, mapper.flush().contextIterator()), Input1, output1);
+            checkMap(table.selectRows(("orderby": "id")), Input1, output1);
+        }
+
+        # queueData(list) test
+        {
+            on_exit table.rollback();
+
+            InboundTableMapper mapper(table, Map1);
+            mapper.queueData(Input1.iterator());
             checkMap((map $1, mapper.flush().contextIterator()), Input1, output1);
             checkMap(table.selectRows(("orderby": "id")), Input1, output1);
         }
