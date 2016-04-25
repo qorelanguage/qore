@@ -84,7 +84,7 @@ public class TableMapperTest inherits QUnit::Test {
                        );
         const Output1 = (("string" : "string_1"),
                          ("string" : "string_2"),
-                         ("string" : NULL),
+                         ("string" : NOTHING),
                         );
 
         const MyOpts = Opts + (
@@ -133,7 +133,7 @@ public class TableMapperTest inherits QUnit::Test {
             on_exit table.rollback();
 
             InboundTableMapper mapper(table, Map1);
-            checkMap((map mapper.insertRow($1), Input1), Input1, Input1);
+            checkMap((map mapper.insertRow($1), Input1), Input1, Output1);
             checkMap(table.selectRows(("orderby": "id")), Input1, Output1);
         }
 
@@ -142,7 +142,7 @@ public class TableMapperTest inherits QUnit::Test {
 
             InboundTableMapper mapper(table, Map1);
             map mapper.queueData($1), Input1;
-            checkMap((map $1, mapper.flush().contextIterator()), Input1, Input1);
+            checkMap((map $1, mapper.flush().contextIterator()), Input1, Output1);
             checkMap(table.selectRows(("orderby": "id")), Input1, Output1);
         }
     }
@@ -150,7 +150,9 @@ public class TableMapperTest inherits QUnit::Test {
     checkMap(list l, list il, list ol) {
         foreach hash h in (l) {
             assertEq(Type::Int, h.id.type(), "id type for row " + $#);
-            assertEq(ol[$#].string, h.string);
+            any hval = h.string === NULL ? NOTHING : h.string;
+            any oval = ol[$#].string === NULL ? NOTHING : ol[$#].string;
+            assertEq(oval, hval);
         }
     }
 
