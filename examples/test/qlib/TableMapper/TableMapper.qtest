@@ -23,7 +23,7 @@ public class TableMapperTestSchema inherits AbstractSchema {
         const T_TableMapperTest = (
             "columns": (
                 "id": c_number(True),
-                "string": c_varchar(50, True),
+                "string": c_varchar(50, C_NULL),
             ),
             );
 
@@ -78,7 +78,14 @@ public class TableMapperTest inherits QUnit::Test {
             "string": True,
             );
 
-        const Input1 = (("string": "string_1"), ("string": "string_2"));
+        const Input1 = (("string": "string_1"),
+                        ("string": "string_2"),
+                        ("string": ""),
+                       );
+        const Output1 = (("string" : "string_1"),
+                         ("string" : "string_2"),
+                         ("string" : NULL),
+                        );
 
         const MyOpts = Opts + (
             "connstr": "c,conn=s",
@@ -126,8 +133,8 @@ public class TableMapperTest inherits QUnit::Test {
             on_exit table.rollback();
 
             InboundTableMapper mapper(table, Map1);
-            checkMap((map mapper.insertRow($1), Input1), Input1);
-            checkMap(table.selectRows(("orderby": "id")), Input1);
+            checkMap((map mapper.insertRow($1), Input1), Input1, Input1);
+            checkMap(table.selectRows(("orderby": "id")), Input1, Output1);
         }
 
         {
@@ -135,15 +142,15 @@ public class TableMapperTest inherits QUnit::Test {
 
             InboundTableMapper mapper(table, Map1);
             map mapper.queueData($1), Input1;
-            checkMap((map $1, mapper.flush().contextIterator()), Input1);
-            checkMap(table.selectRows(("orderby": "id")), Input1);
+            checkMap((map $1, mapper.flush().contextIterator()), Input1, Input1);
+            checkMap(table.selectRows(("orderby": "id")), Input1, Output1);
         }
     }
 
-    checkMap(list l, list il) {
+    checkMap(list l, list il, list ol) {
         foreach hash h in (l) {
             assertEq(Type::Int, h.id.type(), "id type for row " + $#);
-            assertEq(il[$#].string, h.string);
+            assertEq(ol[$#].string, h.string);
         }
     }
 
