@@ -118,6 +118,7 @@ module SqlUtil {
     - column aliases (defined with @ref SqlUtil::cop_as()) can now be used in the @ref where_clauses "where hash argument" and in join criteria
     - removed all APIs that handle implicit transactions; APIs must commit transactions explicitly (<a href="https://github.com/qorelanguage/qore/issues/533">issue 533</a>)
     - @ref sql_cop_funcs "column operator functions" can be used in @ref where_clauses "where hashes" and in @ref select_option_join "join conditions": (<a href="https://github.com/qorelanguage/qore/issues/529">issue 529</a>)
+    - implemented @ref SqlUtil::AbstractTable::bindEmptyStringsAsNull()
     - fixed a bug with queries using a \a desc argument with the @ref select_option_orderby "orderby" query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
     - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
     - fixed a bug where driver-specific objects were not included when dropping a schema
@@ -13549,6 +13550,13 @@ string sql = table.getAlignSqlString(table2);
         #! returns a list of column names for use in SQL strings; subclasses can process the argument list in case a column name is a reserved word
         list getColumnSqlNames(softlist cols) {
             return cols;
+        }
+
+        #! returns @ref True if the DB treats empty strings as @ref NULL, @ref False if not; by default this method returns @ref False
+        /** @since SqlUtil 1.3
+        */
+        bool bindEmptyStringsAsNull() {
+            return False;
         }
 
         #! returns @ref Qore::True "True" if the underlying DB driver supports bulk DML operations

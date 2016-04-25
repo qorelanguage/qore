@@ -56,14 +56,17 @@ public class TableMapperTestSchema inherits AbstractSchema {
     }
 
     log(string fmt) {
+        #vprintf(fmt + "\n", argv);
         delete argv;
     }
 
     logpf(string fmt) {
+        #vprintf(fmt + "\n", argv);
         delete argv;
     }
 
     logProgress(string fmt) {
+        #vprintf(fmt + "\n", argv);
         delete argv;
     }
 }
@@ -84,7 +87,7 @@ public class TableMapperTest inherits QUnit::Test {
                        );
         const Output1 = (("string" : "string_1"),
                          ("string" : "string_2"),
-                         ("string" : NOTHING),
+                         ("string" : ""),
                         );
 
         const MyOpts = Opts + (
@@ -129,12 +132,16 @@ public class TableMapperTest inherits QUnit::Test {
         if (!table)
             testSkip("no DB connection");
 
+        list output1 = Output1;
+        if (table.bindEmptyStringsAsNull())
+            output1[2].string = NULL;
+
         {
             on_exit table.rollback();
 
             InboundTableMapper mapper(table, Map1);
-            checkMap((map mapper.insertRow($1), Input1), Input1, Output1);
-            checkMap(table.selectRows(("orderby": "id")), Input1, Output1);
+            checkMap((map mapper.insertRow($1), Input1), Input1, output1);
+            checkMap(table.selectRows(("orderby": "id")), Input1, output1);
         }
 
         {
@@ -142,8 +149,8 @@ public class TableMapperTest inherits QUnit::Test {
 
             InboundTableMapper mapper(table, Map1);
             map mapper.queueData($1), Input1;
-            checkMap((map $1, mapper.flush().contextIterator()), Input1, Output1);
-            checkMap(table.selectRows(("orderby": "id")), Input1, Output1);
+            checkMap((map $1, mapper.flush().contextIterator()), Input1, output1);
+            checkMap(table.selectRows(("orderby": "id")), Input1, output1);
         }
     }
 
