@@ -745,7 +745,7 @@ end";
                     # first create / align table
                     Table st(ds, MysqlSequenceTable, sequence_table, opt{MysqlTable::MysqlTableCreationOptions.keys()});
                     Table dbst(ds, sequence_table);
-                    list tl = dbst.getAlignSql(st, opt{MysqlTable::MysqlAlignTableOptions.keys()});
+                    list tl = dbst.getAlignSql(st.getTable(), opt{MysqlTable::MysqlAlignTableOptions.keys()});
                     if (tl)
                         l += tl;
 
@@ -827,7 +827,8 @@ end";
 
         #! returns the next value in the given sequence
         private softint getNextSequenceValueImpl(string name) {
-            return seqds.selectRow("select nextval(%s)", name).nextval;
+            on_exit seqds.commit();
+            return seqds.selectRow("select sqlutil_nextval(%v) nextval", name).nextval;
         }
 
         #! returns the last value issued for the given sequence in the current session
