@@ -388,6 +388,13 @@ InboundTableMapper mapper(table, DbMapper);
             # setup output description for Mapper
             opts.output = InboundTableMapper::getOutputRecord(opts.name, table, opts.output);
 
+            # Bug #787: Mapper.qm: empty string "" is mapped to NOTHING by default
+            # converting "" to NOTHING makes proper identification of NULLs
+            # in not null columns in Oracle. Remember: '' == NULL in oracle db.
+            if (table.bindEmptyStringsAsNull() && !exists opts.empty_strings_to_nothing) {
+                opts.empty_strings_to_nothing = True;
+            }
+
             setup(mapv, opts);
 
             # set options with defaults
@@ -412,12 +419,12 @@ InboundTableMapper mapper(table, DbMapper);
         private mapFieldType(string key, hash m, reference v, hash rec) {
             if (m.sequence) {
                 if (!has_returning) {
-                    try {
+                    #try {
                         v = db.getNextSequenceValue(m.sequence);
-                    }
-                    catch (hash ex) {
-                        throw ex.err, sprintf("%s (sequence: %y)", ex.desc, m.sequence), ex.arg;
-                    }
+                    #}
+                    #catch (hash ex) {
+                        #throw ex.err, sprintf("%s (sequence: %y)", ex.desc, m.sequence), ex.arg;
+                    #}
                 }
                 else
                     return;

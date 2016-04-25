@@ -23,7 +23,7 @@ public class TableMapperTestSchema inherits AbstractSchema {
         const T_TableMapperTest = (
             "columns": (
                 "id": c_number(True),
-                "string": c_varchar(50, True),
+                "string": c_varchar(50, C_NULL),
             ),
             );
 
@@ -56,14 +56,17 @@ public class TableMapperTestSchema inherits AbstractSchema {
     }
 
     log(string fmt) {
+        #vprintf(fmt + "\n", argv);
         delete argv;
     }
 
     logpf(string fmt) {
+        #vprintf(fmt + "\n", argv);
         delete argv;
     }
 
     logProgress(string fmt) {
+        #vprintf(fmt + "\n", argv);
         delete argv;
     }
 }
@@ -78,7 +81,14 @@ public class TableMapperTest inherits QUnit::Test {
             "string": True,
             );
 
-        const Input1 = (("string": "string_1"), ("string": "string_2"));
+        const Input1 = (("string": "string_1"),
+                        ("string": "string_2"),
+                        ("string": ""),
+                       );
+        const Output1 = (("string" : "string_1"),
+                         ("string" : "string_2"),
+                         ("string" : ""),
+                        );
 
         const MyOpts = Opts + (
             "connstr": "c,conn=s",
@@ -122,12 +132,16 @@ public class TableMapperTest inherits QUnit::Test {
         if (!table)
             testSkip("no DB connection");
 
+        list output1 = Output1;
+        if (table.bindEmptyStringsAsNull())
+            output1[2].string = NULL;
+
         {
             on_exit table.rollback();
 
             InboundTableMapper mapper(table, Map1);
-            checkMap((map mapper.insertRow($1), Input1), Input1);
-            checkMap(table.selectRows(("orderby": "id")), Input1);
+            checkMap((map mapper.insertRow($1), Input1), Input1, output1);
+            checkMap(table.selectRows(("orderby": "id")), Input1, output1);
         }
 
         {
@@ -135,15 +149,17 @@ public class TableMapperTest inherits QUnit::Test {
 
             InboundTableMapper mapper(table, Map1);
             map mapper.queueData($1), Input1;
-            checkMap((map $1, mapper.flush().contextIterator()), Input1);
-            checkMap(table.selectRows(("orderby": "id")), Input1);
+            checkMap((map $1, mapper.flush().contextIterator()), Input1, output1);
+            checkMap(table.selectRows(("orderby": "id")), Input1, output1);
         }
     }
 
-    checkMap(list l, list il) {
+    checkMap(list l, list il, list ol) {
         foreach hash h in (l) {
             assertEq(Type::Int, h.id.type(), "id type for row " + $#);
-            assertEq(il[$#].string, h.string);
+            any hval = h.string === NULL ? NOTHING : h.string;
+            any oval = ol[$#].string === NULL ? NOTHING : ol[$#].string;
+            assertEq(oval, hval);
         }
     }
 
