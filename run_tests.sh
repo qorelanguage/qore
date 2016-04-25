@@ -71,7 +71,7 @@ for test in $TESTS; do
     fi
 
     # Run single test.
-    LD_LIBRARY_PATH=$QORE_LIB_PATH $QORE $test $TEST_OUTPUT_FORMAT
+    QORE_MODULE_DIR=./qlib:$QORE_MODULE_DIR LD_LIBRARY_PATH=$QORE_LIB_PATH $QORE $test $TEST_OUTPUT_FORMAT
 
     if [ $? -eq 0 ]; then
         PASSED_TEST_COUNT=$((PASSED_TEST_COUNT+1))
