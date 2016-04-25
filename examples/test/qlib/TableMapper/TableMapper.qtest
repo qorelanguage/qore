@@ -16,6 +16,7 @@
 %requires ../../../../qlib/MysqlSqlUtil.qm
 %requires ../../../../qlib/FreetdsSqlUtil.qm
 %requires ../../../../qlib/Schema.qm
+%requires ../../../../qlib/Mapper.qm
 %requires ../../../../qlib/TableMapper.qm
 
 public class TableMapperTestSchema inherits AbstractSchema {
@@ -97,7 +98,7 @@ public class TableMapperTest inherits QUnit::Test {
         const OptionColumn = 22;
     }
 
-    constructor(any args, *hash mopts) : Test("TableMapperTest", "1.0", \args, mopts) {
+    constructor(any args, *hash mopts) : Test("TableMapperTest", "1.0", \args, mopts ?? MyOpts) {
         Datasource ds;
         try {
             ds = getDatasource();
