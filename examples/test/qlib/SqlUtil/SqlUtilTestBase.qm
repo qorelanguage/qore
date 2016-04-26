@@ -152,6 +152,20 @@ public class SqlTestBase inherits QUnit::Test {
         assertEq(AbstractTable::UR_Verified, upsert(upsert_data[0]));
         # upsert can return UR_Verified even when rows are upserted when there is an optimized upsert implementation used in the driver-specific SqlUtil module
         assertEq(True, inlist(upsert(upsert_data[1]), (AbstractTable::UR_Inserted, AbstractTable::UR_Verified)));
+
+        # test the omit_update upsert option
+        softlist ud = upsert_data[upsert_data.size() - 1];
+        #(("id": 2, "id_": 2, "null_f": "abc") + row, ("id": 3, "id_": 2, "null_f": NULL) + row,);
+        ud += ud[0];
+        ud[0]."id_" = 4;
+        ud[1]."id" = 4;
+        ud[1]."id_" = 4;
+        upsert = table.getUpsertClosure(upsert_data[0], AbstractTable::UpsertAuto, ("omit_update": "id_"));
+        assertEq(AbstractTable::UR_Verified, upsert(ud[0]));
+        # upsert can return UR_Verified even when rows are upserted when there is an optimized upsert implementation used in the driver-specific SqlUtil module
+        assertEq(True, inlist(upsert(ud[1]), (AbstractTable::UR_Inserted, AbstractTable::UR_Verified)));
+        assertEq(2, table.selectRow(("columns": ("id_"), "where": ("id": 3)))."id_");
+        assertEq(4, table.selectRow(("columns": ("id_"), "where": ("id": 4)))."id_");
     }
 
     bulkInsertTest() {

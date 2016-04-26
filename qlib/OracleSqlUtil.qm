@@ -264,6 +264,7 @@ my hash $schema = (
     - fixed bugs in @ref SqlUtil::cop_seq() and @ref SqlUtil::cop_seq_currval() (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
     - return lists from Oracle's data dictionary ordered
     - implemented @ref OracleSqlUtil::OracleTable::bindEmptyStringsAsNull()
+    - implemented high-performance "upsert" (merge) support also supporting bulk DML
 
     @subsection v11 OracleSqlUtil v1.1
     - fixed selects with "limit" but no "offset"
@@ -2650,20 +2651,26 @@ my any $v = $c.name;
         }
 
         #! Oracle always supports bulk merging
-        code getBulkUpsertClosure(hash example_row, int upsert_strategy = AbstractTable::UpsertAuto) {
+        code getBulkUpsertClosure(hash example_row, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
             return getUpsertClosure(example_row, upsert_strategy);
         }
 
         #! returns a closure for performing upserts; the upsert_strategy argument is ignored and a closure using an Oracle merge statement is returned
-        code getUpsertClosure(hash row, int upsert_strategy = UpsertAuto) {
+        code getUpsertClosure(hash row, int upsert_strategy = UpsertAuto, *hash opt) {
             Columns cols = checkUpsertRow(row, \upsert_strategy);
+
+            # if the strategy is "insert only", then respect this strategy (no updates)
+            if (upsert_strategy == AbstractTable::UpsertInsertOnly)
+                return getUpsertInsertOnly(cols, row, opt);
 
             # get update columns
             list updc = ();
-            map updc += $1, row.keyIterator(), !cols.hasKey($1);
+            # hash of columns to skip on update if applicable
+            *hash suh = map {$1: True}, opt.omit_update;
+            map updc += $1, row.keyIterator(), !cols.hasKey($1) && !suh.$1;
             # cannot use merge where only the join columns are present
             if (!updc)
-                return getUpsertInsertOnly(cols, row);
+                return getUpsertInsertOnly(cols, row, opt);
 
             string sql = sprintf("merge into %s t using dual on (", getSqlName());
             sql += foldl $1 + " and " + $2, (map sprintf("%s=%v", $1), getColumnSqlNames(cols.keys()));
@@ -2680,6 +2687,24 @@ my any $v = $c.name;
 
             return int sub (hash crow) {
                 list args = crow.(cols.keys()).values() + crow.values() + crow{updc}.values();
+                #on_error printf("SQL: %s args: %y\n", sql, args);
+                ds.vexec(sql, args);
+                return UR_Verified;
+            };
+        }
+
+        #! high-performance "insert only" upsert supporting bulk DML
+        private code getUpsertInsertOnly(Columns cols, hash row, *hash opt) {
+            string sql = sprintf("merge into %s t using dual on (", getSqlName());
+            sql += foldl $1 + " and " + $2, (map sprintf("%s=%v", $1), getColumnSqlNames(cols.keys()));
+            sql += sprintf(") when not matched then insert (");
+            sql += (foldl $1 + "," + $2, getColumnSqlNames(row.keys()));
+            sql += ") values (";
+            sql += (foldl $1 + "," + $2, (map "%v", row.keyIterator()));
+            sql += ")";
+
+            return int sub (hash crow) {
+                list args = crow.(cols.keys()).values() + crow.values();
                 #on_error printf("SQL: %s args: %y\n", sql, args);
                 ds.vexec(sql, args);
                 return UR_Verified;
