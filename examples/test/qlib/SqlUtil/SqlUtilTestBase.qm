@@ -214,10 +214,7 @@ public class SqlTestBase inherits QUnit::Test {
         assertEq(NOTHING, table.selectRow(("columns": ("id_"), "where": ("id": 6))));
 
         # test UpsertInsertOnly with bulk upsert
-        ud[0]."id" = 5;
         ud[0]."id_" = 5;
-        ud[1]."id" = 6;
-        ud[1]."id_" = 6;
         upsert = table.getBulkUpsertClosure(ud[0], AbstractTable::UpsertInsertOnly);
         # create hash of lists for bulk upsert
         delete uh;
