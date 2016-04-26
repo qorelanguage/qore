@@ -1062,9 +1062,9 @@ my any $v = $c.name;
 
             Columns cols = checkUpsertRow(row, \upsert_strategy);
 
-            # if the strategy is "insert only", then respect this strategy (no updates)
-            if (upsert_strategy == AbstractTable::UpsertInsertOnly)
-                return getUpsertInsertOnly(cols, row, opt);
+            # if the strategy is "select first", then respect this strategy; this is a slow upsert method anyway
+            if (upsert_strategy == UpsertSelectFirst)
+                return getUpsertSelectFirst(cols, row, opt);
 
             # get update columns
             list updc = ();
@@ -1081,16 +1081,38 @@ my any $v = $c.name;
             sql += foldl $1 + "," + $2, row.keyIterator();
             sql += ") on (";
             sql += foldl $1 + " and " + $2, (map sprintf("t.%s=source.%s", $1, $1), getColumnSqlNames(cols.keys()));
-            sql += sprintf(") when matched then update set ");
-            # get update columns
-            sql += (foldl $1 + "," + $2, (map sprintf("t.%s=source.%s", $1, $1), getColumnSqlNames(updc)));
-            sql += sprintf(" when not matched then insert (");
-            sql += (foldl $1 + "," + $2, getColumnSqlNames(row.keys()));
-            sql += ") values (";
-            sql += (foldl $1 + "," + $2, (map "source." + $1, row.keyIterator()));
-            sql += ");";
+            sql += ")";
+            if (upsert_strategy != UpsertInsertOnly) {
+                sql += sprintf(" when matched then update set ");
+                # get update columns
+                sql += (foldl $1 + "," + $2, (map sprintf("t.%s=source.%s", $1, $1), getColumnSqlNames(updc)));
+            }
+            if (upsert_strategy != UpsertUpdateOnly) {
+                sql += sprintf(" when not matched then insert (");
+                sql += (foldl $1 + "," + $2, getColumnSqlNames(row.keys()));
+                sql += ") values (";
+                sql += (foldl $1 + "," + $2, (map "source." + $1, row.keyIterator()));
+                sql += ")";
+            }
+            sql += ";";
 
             #printf("sql: %s\n", sql);
+
+            if (upsert_strategy == UpsertInsertOnly) {
+                return int sub (hash crow) {
+                    list args = crow.values();
+                    #on_error printf("SQL: %s args: %y\n", sql, args);
+                    return ds.vexec(sql, args) ? UR_Inserted : UR_Unchanged;
+                };
+            }
+
+            if (upsert_strategy == UpsertUpdateOnly) {
+                return int sub (hash crow) {
+                    list args = crow.values();
+                    #on_error printf("SQL: %s args: %y\n", sql, args);
+                    return ds.vexec(sql, args) ? UR_Verified : UR_Unchanged;
+                };
+            }
 
             return int sub (hash crow) {
                 list args = crow.values();
