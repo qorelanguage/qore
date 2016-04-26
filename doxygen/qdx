@@ -596,7 +596,7 @@ class qdx {
                 continue;
             }
             if (quote.val()) {
-                if (c == "\\")
+                if (c == "\\" && quote != "'")
                     inf.read(1);
                 continue;
             }
