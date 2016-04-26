@@ -118,8 +118,9 @@ module SqlUtil {
     - column aliases (defined with @ref SqlUtil::cop_as()) can now be used in the @ref where_clauses "where hash argument" and in join criteria
     - removed all APIs that handle implicit transactions; APIs must commit transactions explicitly (<a href="https://github.com/qorelanguage/qore/issues/533">issue 533</a>)
     - @ref sql_cop_funcs "column operator functions" can be used in @ref where_clauses "where hashes" (<a href="https://github.com/qorelanguage/qore/issues/529">issue 529</a>)
-    - implemented @ref SqlUtil::AbstractTable::bindEmptyStringsAsNull()
-    - implemented the \c "omit_update" @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" for asymmetrical upserts (updates only update a subset of the columns inserted)
+    - implemented @ref SqlUtil::AbstractTable::bindEmptyStringsAsNull() (<a href="https://github.com/qorelanguage/qore/issues/776">issue 776</a>)
+    - implemented the \c "omit_update" @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" for asymmetrical upserts (updates only update a subset of the columns inserted) (<a href="https://github.com/qorelanguage/qore/issues/791">issue 791</a>)
+    - implemented the @ref SqlUtil::AbstractTable::UpsertUpdateOnly upsert option (<a href="https://github.com/qorelanguage/qore/issues/793">issue 793</a>)
     - fixed a bug with queries using a \a desc argument with the @ref select_option_orderby "orderby" query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
     - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
     - fixed a bug where driver-specific objects were not included when dropping a schema
@@ -988,6 +989,7 @@ else
     - @ref SqlUtil::AbstractTable::UpsertUpdateFirst "AbstractTable::UpsertUpdateFirst": first an update will be attempted, if it fails due to missing data, then an insert is performed; this strategy should be used if more updates will be made then inserts
     - @ref SqlUtil::AbstractTable::UpsertSelectFirst "AbstractTable::UpsertSelectFirst": first a select is made on the unique key, if the data to be updated is equal, nothing is done and @ref upsert_results "upsert result" @ref SqlUtil::AbstractTable::UR_Unchanged is returned
     - @ref SqlUtil::AbstractTable::UpsertInsertOnly "AbstractTable::UpsertInsertOnly": insert if the row doesn't exist, otherwise do nothing and @ref upsert_results "upsert result" @ref SqlUtil::AbstractTable::UR_Unchanged is returned
+    - @ref SqlUtil::AbstractTable::UpsertUpdateOnly "AbstractTable::UpsertUpdateOnly": update if the row exists, otherwise do nothing and @ref upsert_results "upsert result" @ref SqlUtil::AbstractTable::UR_Unchanged is returned
 
     @note @ref SqlUtil::AbstractTable::UpsertSelectFirst "AbstractTable::UpsertSelectFirst" is the only upsert strategy that can return @ref SqlUtil::AbstractTable::UR_Updated; the @ref SqlUtil::AbstractTable::UpsertSelectFirst "AbstractTable::UpsertSelectFirst" strategy should be used when verbose reporting is required, particularly if it's necessary to report the actual number of changed rows.
 */
@@ -7798,7 +7800,7 @@ Table table("pgsql:user/pass@db%host", "table");
             /** with this option an insert is attempted, and if it fails due to a duplicate row, then an update is made unconditionally; with
                 this upsert strategy, the following row result codes are possible:
                 - @ref UR_Inserted
-                - @ref UR_Verified
+                - @ref UR_Verified (the only value returned by certain drivers with optimized upsert implementations)
              */
             const UpsertInsertFirst = 1;
 
@@ -7806,7 +7808,7 @@ Table table("pgsql:user/pass@db%host", "table");
             /** with this option an update is attempted, and if it fails due to a missing row, then an insert is performed; with
                 this upsert strategy, the following row result codes are possible:
                 - @ref UR_Inserted
-                - @ref UR_Verified
+                - @ref UR_Verified (the only value returned by certain drivers with optimized upsert implementations)
              */
             const UpsertUpdateFirst = 2;
 
@@ -7822,7 +7824,7 @@ Table table("pgsql:user/pass@db%host", "table");
             #! Upsert option: if the target table is empty, use @ref UpsertInsertFirst, otherwise use @ref UpsertUpdateFirst
             /** With this upsert strategy, the following row result codes are possible:
                 - @ref UR_Inserted
-                - @ref UR_Verified
+                - @ref UR_Verified (the only value returned by certain drivers with optimized upsert implementations)
              */
             const UpsertAuto = 4;
 
@@ -7833,6 +7835,13 @@ Table table("pgsql:user/pass@db%host", "table");
              */
             const UpsertInsertOnly = 5;
 
+            #! Upsert option: update if the row exists, otherwise ignore
+            /** With this upsert strategy, the following row result codes are possible:
+                - @ref UR_Verified
+                - @ref UR_Unchanged
+             */
+            const UpsertUpdateOnly = 6;
+
             #! hash mapping upsert strategy codes to a text description
             /** @see @ref UpsertStrategyDescriptionMap for a reverse mapping
             */
@@ -7842,6 +7851,7 @@ Table table("pgsql:user/pass@db%host", "table");
                 UpsertSelectFirst: "UpsertSelectFirst",
                 UpsertAuto: "UpsertAuto",
                 UpsertInsertOnly: "UpsertInsertOnly",
+                UpsertUpdateOnly: "UpsertUpdateOnly",
             );
 
             #! hash mapping upsert strategy descriptions to upsert strategy codes
@@ -7853,6 +7863,7 @@ Table table("pgsql:user/pass@db%host", "table");
                 "UpsertSelectFirst": UpsertSelectFirst,
                 "UpsertAuto": UpsertAuto,
                 "UpsertInsertOnly": UpsertInsertOnly,
+                "UpsertUpdateOnly": UpsertUpdateOnly,
             );
             #@}
 
@@ -7869,7 +7880,7 @@ Table table("pgsql:user/pass@db%host", "table");
             #! row was updated because it was different (only possible with @ref UpsertSelectFirst)
             const UR_Updated = 3;
 
-            #! row was unchanged (only possible with @ref UpsertSelectFirst)
+            #! row was unchanged (only possible with @ref UpsertSelectFirst, @ref UpsertInsertOnly, and @ref UpsertUpdateOnly)
             const UR_Unchanged = 4;
 
             #! row was deleted (only possible with batch upsert methods such as @ref AbstractTable::upsertFromIterator() where @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True")
@@ -10787,6 +10798,9 @@ map upsert($1), row_list;
 
                 case UpsertInsertOnly:
                     return getUpsertInsertOnly(cols, row, opt);
+
+                case UpsertUpdateOnly:
+                    return getUpsertUpdateOnly(cols, row, opt);
             }
 
             throw "UPSERT-ERROR", sprintf("%s: invalid upsert code: %d", getDesc(), upsert_strategy);
@@ -10874,7 +10888,7 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
             - \c "inserted": the number of rows inserted
             - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
             - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst or @ref SqlUtil::AbstractTable::UpsertInsertOnly
+            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, @ref SqlUtil::AbstractTable::UpsertInsertOnly, or @ref SqlUtil::AbstractTable::UpsertUpdateOnly
             - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw OPTION-ERROR invalid or unsupported option
@@ -10914,7 +10928,7 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
             - \c "inserted": the number of rows inserted
             - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
             - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst or @ref SqlUtil::AbstractTable::UpsertInsertOnly
+            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, @ref SqlUtil::AbstractTable::UpsertInsertOnly,  or @ref SqlUtil::AbstractTable::UpsertUpdateOnly
             - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw OPTION-ERROR invalid or unsupported option
@@ -11030,7 +11044,7 @@ hash h = table.upsertFromSelectCommit(table2, ("where": ("account_type": "CUSTOM
             - \c "inserted": the number of rows inserted
             - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
             - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst or @ref SqlUtil::AbstractTable::UpsertInsertOnly
+            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, @ref SqlUtil::AbstractTable::UpsertInsertOnly, or @ref SqlUtil::AbstractTable::UpsertUpdateOnly
             - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw OPTION-ERROR invalid or unsupported option
@@ -11086,7 +11100,7 @@ hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")),
             - \c "inserted": the number of rows inserted
             - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
             - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst or @ref SqlUtil::AbstractTable::UpsertInsertOnly
+            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, @ref SqlUtil::AbstractTable::UpsertInsertOnly, or @ref SqlUtil::AbstractTable::UpsertUpdateOnly
             - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw OPTION-ERROR invalid or unsupported option
@@ -12376,6 +12390,15 @@ int ucnt = table.update(("id": id), ("name": name));
 
             return int sub (hash row) {
                 return tryInsertImpl(insert_sql, row) ? UR_Inserted : UR_Unchanged;
+            };
+        }
+
+        private code getUpsertUpdateOnly(Columns cols, hash example_row, *hash opt) {
+            list updc = ();
+            string update_sql = getUpsertUpdateSql(example_row, cols, \updc, opt);
+
+            return int sub (hash row) {
+                return tryUpdate(update_sql, row, cols, updc) ? UR_Verified : UR_Unchanged;
             };
         }
 

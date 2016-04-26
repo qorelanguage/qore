@@ -2659,9 +2659,19 @@ my any $v = $c.name;
         code getUpsertClosure(hash row, int upsert_strategy = UpsertAuto, *hash opt) {
             Columns cols = checkUpsertRow(row, \upsert_strategy);
 
-            # if the strategy is "insert only", then respect this strategy (no updates)
-            if (upsert_strategy == AbstractTable::UpsertInsertOnly)
-                return getUpsertInsertOnly(cols, row, opt);
+            switch (upsert_strategy) {
+                case UpsertInsertOnly:
+                    # if the strategy is "insert only", then respect this strategy (no updates)
+                    return getUpsertInsertOnly(cols, row, opt);
+
+                case UpsertSelectFirst:
+                    # if the strategy is "select first", then respect this strategy; this is a slow upsert method anyway
+                    return getUpsertSelectFirst(cols, row, opt);
+
+                case UpsertUpdateOnly:
+                    # if the strategy is "update only", then respect this strategy
+                    return getUpsertUpdateOnly(cols, row, opt);
+            }
 
             # get update columns
             list updc = ();
@@ -2706,8 +2716,36 @@ my any $v = $c.name;
             return int sub (hash crow) {
                 list args = crow.(cols.keys()).values() + crow.values();
                 #on_error printf("SQL: %s args: %y\n", sql, args);
-                ds.vexec(sql, args);
-                return UR_Verified;
+                int rc = ds.vexec(sql, args);
+                return crow.firstValue().lsize() > 1 ? UR_Verified : (rc ? UR_Inserted : UR_Unchanged);
+            };
+        }
+
+        #! high-performance "update only" upsert supporting bulk DML
+        private code getUpsertUpdateOnly(Columns cols, hash row, *hash opt) {
+            # get update columns
+            list updc = ();
+            # hash of columns to skip on update if applicable
+            *hash suh = map {$1: True}, opt.omit_update;
+            map updc += $1, row.keyIterator(), !cols.hasKey($1) && !suh.$1;
+            # cannot use merge where only the join columns are present
+            if (!updc)
+                throw "UPSERT-ERROR", sprintf("cannot use the UpsertUpdateOnly upsert option on table %y when the only columns present are the columns for the unique key used for the update: %y", getSqlName(), row.keys());
+
+            string sql = sprintf("merge into %s t using dual on (", getSqlName());
+            sql += foldl $1 + " and " + $2, (map sprintf("%s=%v", $1), getColumnSqlNames(cols.keys()));
+            sql += sprintf(") when matched then update set ");
+
+            # get update columns
+            sql += (foldl $1 + "," + $2, (map sprintf("%s=%v", $1), getColumnSqlNames(updc)));
+
+            #printf("sql: %s\n", sql);
+
+            return int sub (hash crow) {
+                list args = crow.(cols.keys()).values() + crow{updc}.values();
+                #on_error printf("SQL: %s args: %y\n", sql, args);
+                int rc = ds.vexec(sql, args);
+                return crow.firstValue().lsize() > 1 ? UR_Verified : (rc ? UR_Verified : UR_Unchanged);
             };
         }
 

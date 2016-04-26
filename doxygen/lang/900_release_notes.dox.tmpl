@@ -268,12 +268,13 @@
       - column aliases (defined with cop_as()) can now be used in the where hash argument and in join criteria
       - column operator functions can be used in the where clause and in join conditions (<a href="https://github.com/qorelanguage/qore/issues/529">issue 529</a>)
       - implemented the \c "cop_coalesce()" column operation function to support the \c "COALESCE" operator in queries (<a href="https://github.com/qorelanguage/qore/issues/671">issue 671</a>)
+      - implemented the \c "omit_update" upsert option for asymmetrical upserts (updates only update a subset of the columns inserted) (<a href="https://github.com/qorelanguage/qore/issues/791">issue 791</a>)
+      - implemented the \c "UpsertUpdateOnly" upsert option (<a href="https://github.com/qorelanguage/qore/issues/793">issue 793</a>)
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module updates:
       - implemented support for views for DML in the OracleTable class
       - implemented support for Oracle pseudocolumns in queries
       - return lists from Oracle's data dictionary ordered
       - implemented AbstractTable::emptyStringsAsNull()
-      - implemented the \c "omit_update" upsert option for asymmetrical upserts (updates only update a subset of the columns inserted)
     - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module updates:
       - added support for the following datatypes and aliases: \c bool, \c float, \c int, \c timetz, \c timestamptz, \c varbit
     - <a href="../../modules/MysqlSqlUtil/html/index.html">MysqlSqlUtil</a> module updates:
