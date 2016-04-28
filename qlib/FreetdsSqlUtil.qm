@@ -965,7 +965,8 @@ my any $v = $c.name;
                 COP_SUBSTR: (
                     "code": string sub (string cve, list args) {
                         if (!exists args[1])
-                            return sprintf("substring(%s,%d)", cve, args[0]);
+                            # return sprintf("substring(%s,%d)", cve, args[0]);
+                            throw "SUBSTRING-ERROR", sprintf("cannot use substring() without length argument because this database does not support it");
                         return sprintf("substring(%s,%d,%d)", cve, args[0], args[1]);
                     },
                 ),
