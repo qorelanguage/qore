@@ -962,6 +962,13 @@ my any $v = $c.name;
                         return sprintf("%s + %s", cve, arg);
                     },
                 ),
+                COP_SUBSTR: (
+                    "code": string sub (string cve, list args) {
+                        if (!exists args[1])
+                            return sprintf("substring(%s,%d)", cve, args[0]);
+                        return sprintf("substring(%s,%d,%d)", cve, args[0], args[1]);
+                    },
+                ),
                 COP_OVER: (
                     "argcolumn": True,
                     "argoptional": True,

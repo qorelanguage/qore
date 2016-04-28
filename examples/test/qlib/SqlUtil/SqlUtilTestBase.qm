@@ -39,7 +39,6 @@ public class SqlUtilTestSchema inherits AbstractSchema {
         return tables;
     }
 
-
     log(string fmt) {
         delete argv;
     }
@@ -208,6 +207,8 @@ public class SqlTestBase inherits QUnit::Test {
                 cop_as (cop_upper (cop_value ("Ahoj")), "cop_upper"),
                 cop_as (cop_prepend (cop_value ("abc"), "def"), "cop_prepend"),
                 cop_as (cop_append (cop_value ("abc"), "def"), "cop_append"),
+                cop_as (cop_substr (cop_value ("honeymoon"), 6), "cop_substr_1"),
+                cop_as (cop_substr (cop_value ("hematology"), 3, 4), "cop_substr_2"),
                 cop_as (cop_minus ("id", "id"), "cop_minus"),
                 cop_as (cop_plus ("id", "id"), "cop_plus"),
                 cop_as (cop_divide ("id", "id"), "cop_divide"),
@@ -231,6 +232,8 @@ public class SqlTestBase inherits QUnit::Test {
             "cop_upper": "AHOJ",
             "cop_prepend": "defabc",
             "cop_append": "abcdef",
+            "cop_substr_1": "moon",
+            "cop_substr_2": "mato",
             "cop_minus": 0,
             "cop_plus": 4,
             "cop_divide": 1,

@@ -1986,6 +1986,11 @@ public namespace SqlUtil {
     */
     public const COP_COALESCE = "coalesce";
 
+    #! to extract a substring from a column
+    /** @see cop_substr()
+    */
+    public const COP_SUBSTR = "substr";
+
     #! a hash of default column operator descriptions
     public const DefaultCopMap = (
         COP_AS: (
@@ -2103,6 +2108,13 @@ public namespace SqlUtil {
             "code": string sub (*string cve, hash arg) {
                 return sprintf("coalesce(%s)", (foldl $1 + "," + $2, arg.args));
             }
+        ),
+        COP_SUBSTR: (
+            "code": string sub (string cve, list args) {
+                if (!exists args[1])
+                    return sprintf("substring(%s from %d)", cve, args[0]);
+                return sprintf("substring(%s from %d for %d)", cve, args[0], args[1]);
+            },
         ),
         );
     #@}
@@ -2576,7 +2588,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     public hash sub cop_coalesce(any col1, any col2) {
         code check = sub (any c) {
             if (c.typeCode() != NT_STRING && c.typeCode() != NT_HASH)
-                throw "COALESCE-ERROR", sprintf("cop_colaesce() accepts string column designators or column operator hashes as arguments; got: %y", c);
+                throw "COALESCE-ERROR", sprintf("cop_coalesce() accepts string column designators or column operator hashes as arguments; got: %y", c);
         };
         # ensure at least two arguments
         check(col1);
@@ -2589,6 +2601,22 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
             args += argv;
 
         return make_cop(COP_COALESCE, "", ("args": args));
+    }
+
+    #! returns a hash for the \c "substr" operator with the given arguments; returns a substring of a column value
+    /** @par Example:
+        @code{.py}
+*list rows = table.selectRows(("columns": ("id", cop_substr("name", 1, 1)), "where": ("type": "user")));
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins)
+        @param start position where the substring starts
+        @param count length of the substring in characters
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_substr(any column, int start, *int count) {
+        return make_cop(COP_SUBSTR, column, (start, count));
     }
     #@}
 

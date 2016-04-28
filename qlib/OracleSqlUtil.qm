@@ -1861,6 +1861,13 @@ my any $v = $c.name;
                         return sql;
                     },
                 ),
+                COP_SUBSTR: (
+                    "code": string sub (string cve, list args) {
+                        if (!exists args[1])
+                            return sprintf("substr(%s,%d)", cve, args[0]);
+                        return sprintf("substr(%s,%d,%d)", cve, args[0], args[1]);
+                    },
+                ),
                 COP_OVER: (
                     "argcolumn": True,
                     "argoptional": True,
