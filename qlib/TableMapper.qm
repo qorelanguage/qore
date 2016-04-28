@@ -187,8 +187,8 @@ on_error table1.rollback();
     @section tablemapperkeys TableMapper Specification Format
 
     The mapper hash is made up of target (ie output) column names as the key values assigned to field specifications as specified in @ref mapperkeys, plus the following hash options:
-    - \c "sequence": a name of a sequence to use to populate the column
-    - \c "sequence_currval": a name of a sequence to use to return the current value of the sequence; this is useful when assigning the same sequence value to multiple columns
+    - \c "sequence": a name of a sequence to use to populate the column; the output buffers for this option are bound as type @ref type_number "number", so the output type depends on the database driver's number option setting (for example, with \c "optimal-numbers", the values here are generally returned as strings)
+    - \c "sequence_currval": a name of a sequence to use to return the current value of the sequence; this is useful when assigning the same sequence value to multiple columns; the output buffers for this option are bound as type @ref type_number "number", so the output type depends on the database driver's number option setting (for example, with \c "optimal-numbers", the values here are generally returned as strings)
 
     In both cases, the actual value inserted in the table is available in the following APIs:
       - @ref TableMapper::InboundTableMapper::insertRow()
@@ -388,6 +388,13 @@ InboundTableMapper mapper(table, DbMapper);
             # setup output description for Mapper
             opts.output = InboundTableMapper::getOutputRecord(opts.name, table, opts.output);
 
+            # Bug #787: Mapper.qm: empty string "" is mapped to NOTHING by default
+            # converting "" to NOTHING makes proper identification of NULLs
+            # in not null columns in Oracle. Remember: '' == NULL in oracle db.
+            if (table.bindEmptyStringsAsNull() && !exists opts.empty_strings_to_nothing) {
+                opts.empty_strings_to_nothing = True;
+            }
+
             setup(mapv, opts);
 
             # set options with defaults
@@ -412,12 +419,12 @@ InboundTableMapper mapper(table, DbMapper);
         private mapFieldType(string key, hash m, reference v, hash rec) {
             if (m.sequence) {
                 if (!has_returning) {
-                    try {
+                    #try {
                         v = db.getNextSequenceValue(m.sequence);
-                    }
-                    catch (hash ex) {
-                        throw ex.err, sprintf("%s (sequence: %y)", ex.desc, m.sequence), ex.arg;
-                    }
+                    #}
+                    #catch (hash ex) {
+                        #throw ex.err, sprintf("%s (sequence: %y)", ex.desc, m.sequence), ex.arg;
+                    #}
                 }
                 else
                     return;
@@ -524,12 +531,13 @@ InboundTableMapper mapper(table, DbMapper);
             *hash rh;
 
             if (unstable_input || (insert_block == 1))
-                rh = table.insert(h, ("returning": ret_args));
+                rh = table.insert(h, ("returning": getReturning()));
             else {
                 # when executing for the first time on stable input data, get an SQLStatement for the SQL used to insert
                 if (!stmt) {
                     string sql;
-                    rh = table.insert(h, \sql, ("returning": ret_args));
+                    out_args = map Type::Number, ret_args;
+                    rh = table.insert(h, \sql, ("returning": getReturning()));
                     stmt = new SQLStatement(table.getDatasource());
                     stmt.prepare(sql);
                 }
@@ -537,7 +545,7 @@ InboundTableMapper mapper(table, DbMapper);
                     # remove sequences
                     map remove h.$1, ret_args;
                     # execute the SQLStatement on the args
-                    stmt.execArgs(h.values());
+                    stmt.execArgs(h.values() + out_args);
                     rh = stmt.getOutput();
                 }
             }
@@ -585,7 +593,7 @@ on_error table_mapper.rollback();
             Data is only inserted if the block buffer size reaches the limit defined by the \c "insert_block" option, in which case this method returns all the data inserted.  In case the mapped data is only inserted into the cache, no value is returned.
 
             @param rec the input record or record set in case a hash of lists is passed
-            @param crec an optional simple hash of data to be added to each row in case \a rec is a hash of lists
+            @param crec an optional simple hash of data to be added to each row
 
             @return if batch data was inserted then a hash (columns) of lists (row data) of all data inserted and potentially returned (in case of sequences) from the database server is returned
 
@@ -624,6 +632,59 @@ on_error table_mapper.rollback();
             }
 
             return queueDataIntern(rec + crec);
+        }
+
+        #! inserts a set of rows (list of hashes) into the block buffer based on a mapped input record; the block buffer is flushed to the DB if the buffer size reaches the limit defined by the \c "insert_block" option; does not commit the transaction
+        /** @par Example:
+            @code{.py}
+on_success table_mapper.commit();
+on_error table_mapper.rollback();
+{
+    on_success table_mapper.flush();
+    on_error table_mapper.discard();
+
+    table_mapper.queueData(data.iterator());
+}
+            @endcode
+
+            Data is only inserted if the block buffer size reaches the limit defined by the \c "insert_block" option, in which case this method returns all the data inserted.  In case the mapped data is only inserted into the cache, no value is returned.
+
+            @param iter iterator over the record set (list of hashes)
+            @param crec an optional simple hash of data to be added to each row
+
+            @return if batch data was inserted then a hash (columns) of lists (row data) of all data inserted and potentially returned (in case of sequences) from the database server is returned
+
+            @note
+            - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
+            - flush() or discard() needs to be executed for each mapper used in the block when using multiple mappers whereas the DB transaction needs to be committed or rolled back once per datasource
+            - this method and batched inserts in general cannot be used when the \c "unstable_input" option is given in the constructor
+            - if the \c "insert_block" option is set to 1, then this method simply calls insertRow()
+            - if an error occurs flushing data, the count is reset by calling @ref Mapper::Mapper::resetCount() "Mapper::resetCount()"
+
+            @see
+            - flush()
+            - discard()
+
+            @throw MAPPER-BATCH-ERROR this exception is thrown if this method is called when the \c "unstable_input" option was given in the constructor
+            @throw MISSING-INPUT a field marked mandatory is missing
+            @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
+            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
+        */
+        *hash queueData(AbstractIterator iter, *hash crec) {
+            if (unstable_input)
+                throw "MAPPER-BATCH-ERROR", sprintf("cannot call %s::queueData() when the unstable_input option is set", self.className());
+
+            hash h;
+            foreach hash row in (iter) {
+                *hash th = queueDataIntern(row + crec);
+                if (th) {
+                    if (h)
+                        map h.$1 += th.$1, th.keyIterator();
+                    else
+                        h = th;
+                }
+            }
+            return h;
         }
 
         #! inserts a row into the block buffer based on a mapped input record; does not commit the transaction
@@ -730,8 +791,8 @@ on_error table_mapper.rollback();
                     # update sequences to a single value for the insert
                     if (ret_args && hbuf{ret_args[0]}.typeCode() == NT_LIST)
                         map hbuf.$1 = hbuf.$1[0], ret_args;
-                    out_args = map Type::Number, ret_args.iterator();
-                    rh = table.insert(hbuf, \sql, ("returning": ret_args));
+                    out_args = map Type::Number, ret_args;
+                    rh = table.insert(hbuf, \sql, ("returning": getReturning()));
                     # create the statement for future inserts
                     stmt = new SQLStatement(table.getDatasource());
                     stmt.prepare(sql);
@@ -769,6 +830,11 @@ on_error table_mapper.rollback();
 
             # return all data inserted
             return rv;
+        }
+
+        #! returns a list argument for the SqlUtil "returning" option, if applicable
+        *list getReturning() {
+            return map ("key": $1, "type": Type::Int), ret_args;
         }
 
         #! ignore logging from Mapper since we may have to log sequence values; output logged manually in insertRow()

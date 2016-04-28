@@ -1977,12 +1977,20 @@ my any $v = $c.name;
 
         private *hash doReturningImpl(hash opt, reference sql, list args) {
             list l = ();
-            foreach softstring k in (opt.returning) {
-                *PgsqlColumn c = columns{k};
+            foreach any v in (opt.returning) {
+                hash rh;
+                switch (v.typeCode()) {
+                    case NT_STRING: rh.key = v; break;
+                    case NT_HASH: rh = v; break;
+                    default: throw "RETURNING-ERROR", sprintf("got type %y in \"returning\" option; expected \"string\" or \"hash\"", v.type());
+                }
+                if (!rh.key.val() || rh.key.typeCode() != NT_STRING)
+                    throw "RETURNING-ERROR", sprintf("got %y for \"returning\" option key value instead of name of output column", rh.key.type());
+                *PgsqlColumn c = columns{rh.key};
                 if (!c)
-                    throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column for the \"returning\" clause (valid columns: %y)", name, k, columns.keys());
-                l += k;
-                args += c.qore_type ?* Type::String;
+                    throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column for the \"returning\" clause (valid columns: %y)", name, rh.key, columns.keys());
+                l += rh.key;
+                args += rh.type ?* c.qore_type ?* Type::String;
             }
             sql += sprintf(" returning %s", (foldl $1 + "," + $2, l));
 

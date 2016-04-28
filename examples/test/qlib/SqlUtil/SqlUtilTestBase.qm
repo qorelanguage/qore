@@ -154,6 +154,76 @@ public class SqlTestBase inherits QUnit::Test {
         assertEq(AbstractTable::UR_Verified, upsert(upsert_data[0]));
         # upsert can return UR_Verified even when rows are upserted when there is an optimized upsert implementation used in the driver-specific SqlUtil module
         assertEq(True, inlist(upsert(upsert_data[1]), (AbstractTable::UR_Inserted, AbstractTable::UR_Verified)));
+
+        # test the omit_update upsert option
+        softlist ud = upsert_data[upsert_data.size() - 1];
+        ud += ud[0];
+        ud[0]."id_" = 4;
+        ud[1]."id" = 4;
+        ud[1]."id_" = 4;
+        upsert = table.getUpsertClosure(ud[0], AbstractTable::UpsertAuto, ("omit_update": "id_"));
+        assertEq(AbstractTable::UR_Verified, upsert(ud[0]));
+        # upsert can return UR_Verified even when rows are upserted when there is an optimized upsert implementation used in the driver-specific SqlUtil module
+        assertEq(True, inlist(upsert(ud[1]), (AbstractTable::UR_Inserted, AbstractTable::UR_Verified)));
+        assertEq(2, table.selectRow(("columns": ("id_"), "where": ("id": 3)))."id_");
+        assertEq(4, table.selectRow(("columns": ("id_"), "where": ("id": 4)))."id_");
+
+        # test UpsertUpdateOnly
+        ud[0]."id" = 4;
+        ud[0]."id_" = -4;
+        ud[1]."id" = 5;
+        ud[1]."id_" = 4;
+        upsert = table.getUpsertClosure(ud[0], AbstractTable::UpsertUpdateOnly);
+        assertEq(AbstractTable::UR_Verified, upsert(ud[0]));
+        assertEq(AbstractTable::UR_Unchanged, upsert(ud[1]));
+        assertEq(-4, table.selectRow(("columns": ("id_"), "where": ("id": 4)))."id_");
+        assertEq(NOTHING, table.selectRow(("columns": ("id_"), "where": ("id": 5))));
+
+        # test UpsertInsertOnly
+        ud[0]."id" = 4;
+        ud[0]."id_" = 4;
+        ud[1]."id" = 5;
+        ud[1]."id_" = 5;
+        upsert = table.getUpsertClosure(ud[0], AbstractTable::UpsertInsertOnly);
+        assertEq(AbstractTable::UR_Unchanged, upsert(ud[0]));
+        assertEq("inserted", AbstractTable::UpsertResultMap{upsert(ud[1])});
+        assertEq(-4, table.selectRow(("columns": ("id_"), "where": ("id": 4)))."id_");
+        assertEq(5, table.selectRow(("columns": ("id_"), "where": ("id": 5)))."id_");
+
+        # test the omit_update upsert option with bulk upserts
+        ud += ud[0];
+        ud[1]."id_" = -5;
+        # create hash of lists for bulk upsert
+        hash uh;
+        map (map uh{$1.key} += ($1.value,), $1.pairIterator()), ud;
+
+        upsert = table.getBulkUpsertClosure(ud[0], AbstractTable::UpsertAuto, ("omit_update": "id_"));
+        assertEq(AbstractTable::UR_Verified, upsert(uh));
+        assertEq(-4, table.selectRow(("columns": ("id_"), "where": ("id": 4)))."id_");
+        assertEq(5, table.selectRow(("columns": ("id_"), "where": ("id": 5)))."id_");
+
+        # test UpsertUpdateOnly with bulk upsert
+        ud[0]."id" = 5;
+        ud[0]."id_" = -5;
+        ud[1]."id" = 6;
+        ud[1]."id_" = 6;
+        upsert = table.getBulkUpsertClosure(ud[0], AbstractTable::UpsertUpdateOnly);
+        # create hash of lists for bulk upsert
+        delete uh;
+        map (map uh{$1.key} += ($1.value,), $1.pairIterator()), ud;
+        assertEq(AbstractTable::UR_Verified, upsert(uh));
+        assertEq(-5, table.selectRow(("columns": ("id_"), "where": ("id": 5)))."id_");
+        assertEq(NOTHING, table.selectRow(("columns": ("id_"), "where": ("id": 6))));
+
+        # test UpsertInsertOnly with bulk upsert
+        ud[0]."id_" = 5;
+        upsert = table.getBulkUpsertClosure(ud[0], AbstractTable::UpsertInsertOnly);
+        # create hash of lists for bulk upsert
+        delete uh;
+        map (map uh{$1.key} += ($1.value,), $1.pairIterator()), ud;
+        assertEq(AbstractTable::UR_Verified, upsert(uh));
+        assertEq(-5, table.selectRow(("columns": ("id_"), "where": ("id": 5)))."id_");
+        assertEq(6, table.selectRow(("columns": ("id_"), "where": ("id": 6)))."id_");
     }
 
     bulkInsertTest() {

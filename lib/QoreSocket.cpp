@@ -105,7 +105,7 @@ int sock_get_error() {
 	 break;
 
       case WSAECONNREFUSED:
-	 errno = ENOFILE;
+	 errno = ECONNREFUSED;
 	 break;
 
       case WSAEBADF:

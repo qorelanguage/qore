@@ -137,7 +137,7 @@ class RegexTest inherits QUnit::Test {
         ## an empty set of '()' (matching the null string)(!),
         t = 'Enclosed empty';
         s = '';
-        p = '^()$';
+        p = '^()$';#';
         assertTrue(s =~ /^()$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
         s = 'acd';
         assertTrue(s !~ /^()$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
@@ -163,7 +163,7 @@ class RegexTest inherits QUnit::Test {
         ## '$'  (matching the null string at the end of a line),
         t = 'end of line/string';
         s = 'abc';
-        p = 'bc$';
+        p = 'bc$';#';
         assertTrue(s =~ /bc$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
         s = 'bcd';
         assertTrue(s !~ /bc$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
@@ -255,7 +255,7 @@ class RegexTest inherits QUnit::Test {
         ## sequence, e.g. '[0-9]' in ASCII matches any decimal digit.
         t = 'char range';
         s = 'abc';
-        p = '^[a-z]+$';
+        p = '^[a-z]+$';#';
         assertTrue(s =~ /^[a-z]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
         s = 'ABC';
         assertTrue(s !~ /^[a-z]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
@@ -267,7 +267,7 @@ class RegexTest inherits QUnit::Test {
         ## a possible '^').
         t = 'literal bracket';
         s = 'abc]';
-        p = '^[]a-c]+$';
+        p = '^[]a-c]+$';#';
         assertTrue(s =~ /^[]a-c]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
         s = 'abc[';
         assertTrue(s !~ /^[]a-c]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
@@ -275,14 +275,14 @@ class RegexTest inherits QUnit::Test {
         ## To include a literal '-', make it the first
         t = 'literal hyphen first';
         s = 'abc-';
-        p = '^[-a-c]+$';
+        p = '^[-a-c]+$';#';
         s = 'abc[';
         assertTrue(s !~ /^[-a-c]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
 
         ## or last character,
         t = 'literal hyphen last';
         s = 'abc-';
-        p = '^[a-c-]+$';
+        p = '^[a-c-]+$';#';
         assertTrue(s =~ /^[a-c-]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
         s = 'abc[';
         assertTrue(s !~ /^[a-c-]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
@@ -290,7 +290,7 @@ class RegexTest inherits QUnit::Test {
         ## or the second endpoint of a range.
         t = 'hyphen range endpoint';
         s = '!#-';
-        p = '^[!--]+$';
+        p = '^[!--]+$';#';
         assertTrue(s =~ /^[!--]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
         s = 'abc[';
         assertTrue(s !~ /^[!--]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
@@ -299,7 +299,7 @@ class RegexTest inherits QUnit::Test {
         ## to make it a collating element (see below).
         t = 'hyphen range startpoint';
         s = 'abc-';
-        p = '^[--c]+$';
+        p = '^[--c]+$';#';
         # this is POSIX
         # printf("%s %s: \"'%s' =~ /%s/\"\n",( s =~ /^[[.-.]-c]+$/) ? 'PASS' : 'FAIL' ,t, s, p);
         # this is PCRE
@@ -314,7 +314,7 @@ class RegexTest inherits QUnit::Test {
         t = 'bracket unescaped';
         s = '.$()|*+?{}\<>';
         # p = '^[.$()|*+?{}\<>]+$'; # POSIX
-        p = '^[.$()|*+?{}\\<>]+$';   # PCRE
+        p = '^[.$()|*+?{}\\<>]+$';#';   # PCRE
         assertTrue(s =~ /^[.$()|*+?{}\\<>]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
         s = 'abc';
         assertTrue(s !~ /^[.$()|*+?{}\\<>]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
@@ -329,7 +329,7 @@ class RegexTest inherits QUnit::Test {
         ## first five characters of 'chchcc'.
         t = 'collating element';
         s = 'abcba';
-        p = '^[[.abc.]]+$';
+        p = '^[[.abc.]]+$';#';
         # REGEX-COMPILATION-ERROR: Invalid collation character
         #assertTrue(s =~ /^[[.abc.]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
         s = 'abcbaa';
@@ -355,77 +355,77 @@ class RegexTest inherits QUnit::Test {
 
         t = 'named character class';
         s = 'abc123';
-        p = '^[[:alnum:]]+$';
+        p = '^[[:alnum:]]+$';#';
         assertTrue(s =~ /^[[:alnum:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
         s = 'abcbaa.';
         assertTrue(s !~ /^[[:alnum:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
 
         t = 'named character class';
         s = 'abc';
-        p = '^[[:alpha:]]+$';
+        p = '^[[:alpha:]]+$';#';
         assertTrue(s =~ /^[[:alpha:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
         s = 'abcbaa.';
         assertTrue(s !~ /^[[:alpha:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
 
         t = 'named character class';
         s = ' ';
-        p = '^[[:blank:]]+$';
+        p = '^[[:blank:]]+$';#';
         assertTrue(s =~ /^[[:blank:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
         s = 'abcbaa.';
         assertTrue(s !~ /^[[:blank:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
 
         t = 'named character class';
         s = "\t\r\n";
-        p = '^[[:cntrl:]]+$';
+        p = '^[[:cntrl:]]+$';#';
         assertTrue(s =~ /^[[:cntrl:]]+$/, t + ' ' + '\t\r\n' + ": '" + '\t\r\n' + "' =~ /" + p + "'");
         s = 'abcbaa.';
         assertTrue(s !~ /^[[:cntrl:]]+$/, t + ' ' + '\t\r\n' + ": '" + '\t\r\n' + "' !~ /" + p + "'");
 
         t = 'named character class';
         s = '1234567890';
-        p = '^[[:digit:]]+$';
+        p = '^[[:digit:]]+$';#';
         assertTrue(s =~ /^[[:digit:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
         s = 'abcbaa.';
         assertTrue(s !~ /^[[:digit:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
 
         t = 'named character class';
         s = 'abc';
-        p = '^[[:lower:]]+$';
+        p = '^[[:lower:]]+$';#';
         assertTrue(s =~ /^[[:lower:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
         s = 'ABC';
         assertTrue(s !~ /^[[:lower:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
 
         t = 'named character class';
         s = 'abc';
-        p = '^[[:print:]]+$';
+        p = '^[[:print:]]+$';#';
         assertTrue(s =~ /^[[:print:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
         s = '';
         assertTrue(s !~ /^[[:print:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
 
         t = 'named character class';
         s = '!?,;.:';
-        p = '^[[:punct:]]+$';
+        p = '^[[:punct:]]+$';#';
         assertTrue(s =~ /^[[:punct:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
         s = 'abc1';
         assertTrue(s !~ /^[[:punct:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
 
         t = 'named character class';
         s = "\t\r\n ";
-        p = '^[[:space:]]+$';
+        p = '^[[:space:]]+$';#';
         assertTrue(s =~ /^[[:space:]]+$/, t + ' ' + '\t\r\n ' + ": '" + '\t\r\n ' + "' =~ /" + p + "'");
         s = 'abc1';
         assertTrue(s !~ /^[[:space:]]+$/, t + ' ' + '\t\r\n ' + ": '" + '\t\r\n ' + "' !~ /" + p + "'");
 
         t = 'named character class';
         s = 'ABC';
-        p = '^[[:upper:]]+$';
+        p = '^[[:upper:]]+$';#';
         assertTrue(s =~ /^[[:upper:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
         s = 'abc';
         assertTrue(s !~ /^[[:upper:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
 
         t = 'named character class';
         s = '0123456789abcdefABCDEF';
-        p = '^[[:xdigit:]]+$';
+        p = '^[[:xdigit:]]+$';#';
         assertTrue(s =~ /^[[:xdigit:]]+$/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
         s = 'g';
         assertTrue(s !~ /^[[:xdigit:]]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
@@ -506,8 +506,6 @@ class RegexTest inherits QUnit::Test {
         ## by the positions of their opening parentheses, left to right), so that
         ## (e.g.) '\([bc]\)\1' matches 'bb' or 'cc' but not 'bc'.
 
-
-
         # Metacharacters
 
         t = 'Empty string';
@@ -544,18 +542,36 @@ class RegexTest inherits QUnit::Test {
         t = 'Symbolic character classes'; # do not work
         s = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789';
         p = '^[\w]+$';#';
-        #printf("%s %s: \"'%s' =~ /%s/\"\n",( s =~ /^[\w]+$/) ? 'PASS' : 'FAIL' ,t, s, p);
+        assertTrue(s =~ /^[\w]+$/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");
 
         # substitution
-        #s =~ s/abc/xyz/;
+        s =~ s/abc/xyz/;
+        assertTrue(s =~ /^xyzdef/);
+
         #s =~ s/abc/xyz/g;
-        #s =  'xyz a bc';
-        #s =~ s/[a-c]{1,2}/ a /;
-        #s =~ s/\(a\)/ a /;
-        #s =~ s/\(a\)/ \1 \n/;
+        s =  'xyz a bc';
+        s =~ s/[a-c]{1,2}/ a /;
+        assertEq("xyz  a  bc", s);
+
+        s =~ s/\(a\)/ a /;
+        assertEq("xyz  a  bc", s);
+
+        s =~ s/\(a\)/ $1 /;
+        assertEq("xyz  a  bc", s);
         s = 'abc';
-        #s =~ s/(a)/ \1 \n/; # does not work
-        #print(s);
+        s =~ s/(a)/ $1 /;
+        assertEq(" a bc", s);
+
+        s = 'abc0923_%^';
+        s =~ s/([^[:alnum:]])/\\$1/g;
+        assertEq("abc0923\\_\\%\\^", s);
+
+        # regex subst target escapes
+        s = "t.q";
+        s =~ s/\./\./g;
+        assertEq("t.q", s);
+        s =~ s/\./\\./g;
+        assertEq("t\\.q", s);
     }
 
     test329() {

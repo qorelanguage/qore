@@ -39,6 +39,7 @@ public class MapperTest inherits QUnit::Test {
             "indextest1" : ("index" : 0),
             "indextest2" : ("index" : 1),
             "indextest3" : ("index" : "a"),
+            "empty_string" : "EmptyString",
         );
 
         const MapInput = ((
@@ -48,6 +49,7 @@ public class MapperTest inherits QUnit::Test {
             "OrderDate": "02.01.2014 10:37:45.103948",
             "UnitPrice": "1.543,50",
             "StoreInfo": ("StoreName": "Store1"),
+            "EmptyString" : "",
             "Products": ((
                 "ProductName": "Widget 1",
                 "Quantity": 1,
@@ -60,6 +62,7 @@ public class MapperTest inherits QUnit::Test {
             "OrderDate": "04.01.2014 19:21:08.882634",
             "UnitPrice": "9,95",
             "StoreInfo": ("StoreName": "Store2"),
+            "EmptyString" : "",
             "Products": ((
                 "ProductName": "Widget X",
                 "Quantity": 4,
@@ -94,6 +97,7 @@ public class MapperTest inherits QUnit::Test {
             "indextest1" : 0,
             "indextest2" : 1,
             "indextest3" : "a0",
+            "empty_string" : "",
             ), (
             "id": 2,
             "name": "Steve Austin",
@@ -118,6 +122,7 @@ public class MapperTest inherits QUnit::Test {
             "indextest1" : 1,
             "indextest2" : 2,
             "indextest3" : "a1",
+            "empty_string" : "",
             ),
         );
     }
@@ -129,6 +134,7 @@ public class MapperTest inherits QUnit::Test {
         addTestCase("Test 'input' option", \testMapperOptionInput());
         addTestCase("Bulk Test", \testMapperBulk());
         addTestCase("Index test", \testMapperIndex());
+        addTestCase("Empty String test", \testEmptyString());
         set_return_value(main());
     }
 
@@ -192,5 +198,15 @@ public class MapperTest inherits QUnit::Test {
             assertEq(rec, MapOutput[ix]);
             ix++;
         }
+    }
+
+    testEmptyString() {
+        Mapper m(DataMap, m_opts + ( "empty_strings_to_nothing" : True ) );
+        list l = m.mapAll(MapInput);
+        list o = MapOutput;
+        # simulate "old empty string to NOTHING conversion"
+        o[0].empty_string = NOTHING;
+        o[1].empty_string = NOTHING;
+        assertEq(l, o);
     }
 }

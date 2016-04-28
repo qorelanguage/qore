@@ -267,6 +267,7 @@ public namespace Mapper {
                 "output_log": "a call reference / closure for input record logging",
                 "timezone": "the default output timezone for date/time values",
                 "runtime": "runtime options as a hash (see also setRuntime(), replaceRuntime())",
+                "empty_strings_to_nothing": "converts out record's empty strings and into NOTHING - actually the value is deleted",
                 );
 
             #! default known mapper hash field keys (can be extended by subclassing and reimplementing validKeys())
@@ -285,6 +286,7 @@ public namespace Mapper {
                 "date_format": True,
                 "number_format": True,
                 "runtime" : True,
+                "empty_strings_to_nothing" : True,
                 );
 
             #! default known field types (can be extended by subclassing and reimplementing validTypes() and mapFieldType())
@@ -358,6 +360,11 @@ public namespace Mapper {
             /** @since Mapper 1.1
              */
             *hash m_runtime;
+
+            #! flag to enforce deletion of the empty string in the output record
+            /** @since Mapper 1.1
+             */
+            bool m_empty_strings_to_nothing = False;
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -475,6 +482,10 @@ Mapper mapv(DataMap);
                           self.className(), opts.runtime.type(), opts.runtime);
                 }
                 m_runtime = opts.runtime;
+            }
+
+            if (opts.empty_strings_to_nothing) {
+                m_empty_strings_to_nothing = parse_boolean(opts.empty_strings_to_nothing);
             }
         }
 
@@ -869,7 +880,7 @@ Mapper mapv(DataMap);
                     }
                 }
 
-                if (v === "" || v === NULL)
+                if ((m_empty_strings_to_nothing && v === "") || v === NULL)
                     delete v;
 
                 if (m.type)

@@ -291,7 +291,7 @@ struct qore_socket_private {
    }
 
    DLLLOCAL int close_internal() {
-      //printd(5, "qore_socket_private::close_internal(this=%p) sock=%d\n", this, sock);
+      //printd(5, "qore_socket_private::close_internal(this: %p) sock: %d\n", this, sock);
       if (sock >= 0) {
 	 // if an SSL connection has been established, shut it down first
 	 if (ssl) {
@@ -523,7 +523,7 @@ struct qore_socket_private {
 #endif
 
 	 rc = accept_intern((struct sockaddr *)&addr_in, (socklen_t *)&size, timeout_ms, xsink);
-	 //printd(1, "qore_socket_private::accept_internal() rc=%d, %d bytes returned\n", rc, size);
+	 //printd(1, "qore_socket_private::accept_internal() rc: %d, %d bytes returned\n", rc, size);
 
 	 if (rc >= 0 && source) {
 	    char host[NI_MAXHOST + 1];
@@ -668,7 +668,7 @@ struct qore_socket_private {
 	 h->setKeyValue("source", new QoreBigIntNode(source), 0);
 	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
 	 h->setKeyValue("message", new QoreStringNode(str), 0);
-	 //printd(0, "do_send_http_message() str='%s' headers=%p (%d %s)\n", str.getBuffer(), headers, headers->getType(), headers->getTypeName());
+	 //printd(5, "do_send_http_message() str='%s' headers: %p (%d %s)\n", str.getBuffer(), headers, headers->getType(), headers->getTypeName());
 	 h->setKeyValue("headers", headers->hashRefSelf(), 0);
 	 cb_queue->pushAndTakeRef(h);
       }
@@ -823,16 +823,16 @@ struct qore_socket_private {
 
    DLLLOCAL int asyncIoWait(int timeout_ms, bool read, bool write, ExceptionSink* xsink = 0) const {
 #if defined HAVE_POLL
-      return poll_intern(timeout_ms, read, write, xsink);
+      return poll_intern(xsink, timeout_ms, read, write);
 #elif defined HAVE_SELECT
-      return select_intern(timeout_ms, read, write, xsink);
+      return select_intern(xsink, timeout_ms, read, write);
 #else
 #error no async socket operations supported
 #endif
    }
 
 #if defined HAVE_POLL
-   DLLLOCAL int poll_intern(int timeout_ms, bool read, bool write, ExceptionSink* xsink) const {
+   DLLLOCAL int poll_intern(ExceptionSink* xsink, int timeout_ms, bool read, bool write) const {
       int rc;
       short arg = 0;
       if (read)
@@ -854,7 +854,16 @@ struct qore_socket_private {
       return rc;
    }
 #elif defined HAVE_SELECT
-   DLLLOCAL int select_intern(int timeout_ms, bool read, bool write, ExceptionSink* xsink) const {
+   DLLLOCAL int select_intern(ExceptionSink* xsink, int timeout_ms, bool read, bool write) const {
+      bool aborted = false;
+      int rc = select_intern(xsink, timeout_ms, read, write, aborted);
+      if (rc != QORE_SOCKET_ERROR && aborted)
+         rc = -1;
+      return rc;
+   }
+
+   DLLLOCAL int select_intern(ExceptionSink* xsink, int timeout_ms, bool read, bool write, bool& aborted) const {
+      assert(!aborted);
       // windows does not use FD_SETSIZE to limit the value of the highest socket descriptor in the set
       // instead it has a maximum of 64 sockets in the set; we only need one anyway
 #ifndef _Q_WINDOWS
@@ -869,10 +878,12 @@ struct qore_socket_private {
       int rc;
       while (true) {
          // to be safe, we set the file descriptor arg after each EINTR (required on Linux for example)
-         fd_set sfs;
+         fd_set sfs, err;
 
          FD_ZERO(&sfs);
+         FD_ZERO(&err);
          FD_SET(sock, &sfs);
+         FD_SET(sock, &err);
 
 	 tv.tv_sec  = timeout_ms / 1000;
 	 tv.tv_usec = (timeout_ms % 1000) * 1000;
@@ -880,9 +891,15 @@ struct qore_socket_private {
          fd_set* readfd = read ? &sfs : 0;
          fd_set* writefd = write ? &sfs : 0;
 
-	 rc = select(sock + 1, readfd, writefd, 0, &tv);
-	 if (rc != QORE_SOCKET_ERROR || sock_get_error() != EINTR)
-	    break;
+	 rc = select(sock + 1, readfd, writefd, &err, &tv);
+         //printd(5, "select_intern() rc: %d err: %d\n", rc, FD_ISSET(sock, &err));
+         if (rc != QORE_SOCKET_ERROR) {
+            if (FD_ISSET(sock, &err))
+               aborted = true;
+            break;
+         }
+         if (sock_get_error() != EINTR)
+            break;
       }
       if (rc == QORE_SOCKET_ERROR) {
          // do not close the socket here, even in case of EBADF, just return an error
@@ -939,7 +956,7 @@ struct qore_socket_private {
 	    return 0;
 
 #ifdef _Q_WINDOWS
-	 if (WSAGetLastError() != WSAEWOULDBLOCK) {
+	 if (sock_get_error() != EAGAIN) {
 	    qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()", 0, 0, 0, ai_addr);
 	    break;
 	 }
@@ -952,15 +969,29 @@ struct qore_socket_private {
 	    break;
 #endif
 
-	 //printd(5, "qore_socket_private::connectINETTimeout() errno: %d\n", errno);
+	 //printd(5, "qore_socket_private::connectINETTimeout() timeout_ms: %d errno: %d\n", timeout_ms, errno);
 
 	 // check for timeout or connection with EINPROGRESS
 	 while (true) {
-	    int rc = asyncIoWait(timeout_ms, false, true, "Socket", "connectINETTimeout", xsink);
-	    if (xsink && *xsink)
-	       return -1;
+#ifdef _Q_WINDOWS
+            bool aborted = false;
+            int rc = select_intern(xsink, timeout_ms, false, true, aborted);
 
-	    //printd(0, "asyncIoWait(%d) returned %d\n", timeout_ms, rc);
+            //printd(5, "qore_socket_private::connectINETTimeout() timeout_ms: %d rc: %d aborted: %d\n", timeout_ms, rc, aborted);
+
+            // windows select() returns an error in the error socket set instead of an WSAECONNREFUSED error like UNIX,
+            // so we simulate it here
+            if (rc != QORE_SOCKET_ERROR && aborted) {
+               qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()", 0, 0, 0, ai_addr);
+               return -1;
+            }
+#else
+	    int rc = asyncIoWait(timeout_ms, false, true, "Socket", "connectINETTimeout", xsink);
+#endif
+	    if (xsink && *xsink)
+               return -1;
+
+	    //printd(5, "asyncIoWait(%d) returned %d\n", timeout_ms, rc);
 	    if (rc == QORE_SOCKET_ERROR && sock_get_error() != EINTR) {
 	       if (xsink && !only_timeout)
 		  qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in asyncIoWait() with Socket::connect() with timeout", 0, 0, 0, ai_addr);
@@ -1079,7 +1110,7 @@ struct qore_socket_private {
    }
 
    DLLLOCAL int connectINETIntern(const char* host, const char* service, int ai_family, struct sockaddr* ai_addr, size_t ai_addrlen, int ai_socktype, int ai_protocol, int prt, int timeout_ms, ExceptionSink* xsink, bool only_timeout = false) {
-      //printd(5, "qore_socket_private::connectINETIntern() host=%s service=%s family=%d\n", host, service, ai_family);
+      printd(5, "qore_socket_private::connectINETIntern() host: %s service: %s family: %d timeout_ms: %d\n", host, service, ai_family, timeout_ms);
       if ((sock = socket(ai_family, ai_socktype, ai_protocol)) == QORE_INVALID_SOCKET) {
 	 if (xsink)
 	    xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "cannot establish a connection to %s:%s", host, service);
@@ -1087,7 +1118,7 @@ struct qore_socket_private {
 	 return -1;
       }
 
-      //printd(5, "qore_socket_private::connectINETIntern(this=%p, host='%s', port=%d, timeout_ms=%d) sock=%d\n", this, host, port, timeout_ms, sock);
+      //printd(5, "qore_socket_private::connectINETIntern(this: %p, host='%s', port: %d, timeout_ms: %d) sock: %d\n", this, host, port, timeout_ms, sock);
 
       int rc;
 
@@ -1100,7 +1131,7 @@ struct qore_socket_private {
 	 do_connect_event(ai_family, ai_addr, host, service, prt);
 
 	 rc = connectINETTimeout(timeout_ms, ai_addr, ai_addrlen, xsink, only_timeout);
-	 //printd(5, "qore_socket_private::connectINETIntern() errno=%d rc=%d, xsink=%d\n", errno, rc, xsink && *xsink);
+	 //printd(5, "qore_socket_private::connectINETIntern() errno: %d rc: %d, xsink: %d\n", errno, rc, xsink && *xsink);
 
 	 // set blocking
 	 if (set_non_blocking(false, xsink))
@@ -1129,7 +1160,7 @@ struct qore_socket_private {
       stype = ai_socktype;
       sprot = ai_protocol;
       port = prt;
-      //printd(5, "qore_socket_private::connectINETIntern(this=%p, host='%s', port=%d, timeout_ms=%d) success, rc=%d, sock=%d\n", this, host, port, timeout_ms, rc, sock);
+      //printd(5, "qore_socket_private::connectINETIntern(this: %p, host='%s', port: %d, timeout_ms: %d) success, rc: %d, sock: %d\n", this, host, port, timeout_ms, rc, sock);
 
       do_connected_event();
       return 0;
@@ -1290,12 +1321,12 @@ struct qore_socket_private {
       // iterate through addresses and bind to the first interface possible
       for (struct addrinfo *p = aip; p; p = p->ai_next) {
 	 if (!bindIntern(p->ai_addr, p->ai_addrlen, prt, reuseaddr)) {
-	   //printd(0, "qore_socket_private::bindINET(family: %d) bound: name: %s service: %s f: %d st: %d p: %d\n", family, name ? name : "(null)", service ? service : "(null)", p->ai_family, p->ai_socktype, p->ai_protocol);
+	   //printd(5, "qore_socket_private::bindINET(family: %d) bound: name: %s service: %s f: %d st: %d p: %d\n", family, name ? name : "(null)", service ? service : "(null)", p->ai_family, p->ai_socktype, p->ai_protocol);
 	    return 0;
 	 }
 
 	 en = sock_get_raw_error();
-	 //printd(0, "qore_socket_private::bindINET() failed to bind: name: %s service: %s f: %d st: %d p: %d, errno: %d (%s)\n", name ? name : "(null)", service ? service : "(null)", p->ai_family, p->ai_socktype, p->ai_protocol, en, strerror(en));
+	 //printd(5, "qore_socket_private::bindINET() failed to bind: name: %s service: %s f: %d st: %d p: %d, errno: %d (%s)\n", name ? name : "(null)", service ? service : "(null)", p->ai_family, p->ai_socktype, p->ai_protocol, en, strerror(en));
       }
 
       // if no bind was possible, then raise an exception
@@ -1445,7 +1476,7 @@ struct qore_socket_private {
 
       // real socket reads are only done when the buffer is empty
 
-      //printd(5, "qore_socket_private::brecv(buf=%p, bs=%d, flags=%d, timeout=%d, do_event=%d) this=%p ssl=%d\n", buf, (int)bs, flags, timeout, (int)do_event, this, ssl);
+      //printd(5, "qore_socket_private::brecv(buf: %p, bs: %d, flags: %d, timeout: %d, do_event: %d) this: %p ssl: %d\n", buf, (int)bs, flags, timeout, (int)do_event, this, ssl);
 
       qore_offset_t rc;
       if (!ssl) {
@@ -1480,7 +1511,7 @@ struct qore_socket_private {
 		  qore_socket_error(xsink, "SOCKET-RECV-ERROR", "error in recv()", meth);
 	       break;
 	    }
-	    //printd(5, "qore_socket_private::brecv(%d, %p, %ld, %d) rc=%ld errno=%d\n", sock, buf, bs, flags, rc, errno);
+	    //printd(5, "qore_socket_private::brecv(%d, %p, %ld, %d) rc: %ld errno: %d\n", sock, buf, bs, flags, rc, errno);
 	    // try again if we were interrupted by a signal
 	    if (rc >= 0)
 	       break;
@@ -1543,7 +1574,7 @@ struct qore_socket_private {
 	 rc = brecv(xsink, meth, buf, 1, 0, timeout, false);
 	 //printd(5, "qore_socket_private::readHTTPData() this: %p Socket::%s(): rc: "QLLD" read char: %c (%03d) (old state: %d)\n", this, meth, rc, rc > 0 && buf[0] > 31 ? buf[0] : '?', rc > 0 ? buf[0] : 0, state);
 	 if (rc <= 0) {
-	    //printd(5, "qore_socket_private::readHTTPData(timeout=%d) hdr='%s' (len: %d), rc="QSD", errno=%d: '%s'\n", timeout, hdr->getBuffer(), hdr->strlen(), rc, errno, strerror(errno));
+	    //printd(5, "qore_socket_private::readHTTPData(timeout: %d) hdr='%s' (len: %d), rc="QSD", errno: %d: '%s'\n", timeout, hdr->getBuffer(), hdr->strlen(), rc, errno, strerror(errno));
 
 	    if (xsink && !*xsink) {
 	       if (!count) {
@@ -1640,7 +1671,7 @@ struct qore_socket_private {
 	 rc = brecv(xsink, "recv", buf, bs, 0, timeout, false);
 
 	 if (rc <= 0) {
-	    printd(5, "qore_socket_private::recv(%d, %d) bs="QSD", br="QSD", rc="QSD", errno=%d (%s)\n", bufsize, timeout, bs, str->size(), rc, errno, strerror(errno));
+	    printd(5, "qore_socket_private::recv(%d, %d) bs="QSD", br="QSD", rc="QSD", errno: %d (%s)\n", bufsize, timeout, bs, str->size(), rc, errno, strerror(errno));
 	    break;
 	 }
 
@@ -1705,7 +1736,7 @@ struct qore_socket_private {
       if (isDataAvailable(0, "recv", xsink)) {
 	 do {
 	    rc = brecv(xsink, "recv", buf, DEFAULT_SOCKET_BUFSIZE, 0, 0, false);
-	    //printd(5, "qore_socket_private::recv(to=%d) rc="QSD" rd="QSD"\n", timeout, rc, str->size());
+	    //printd(5, "qore_socket_private::recv(to: %d) rc="QSD" rd="QSD"\n", timeout, rc, str->size());
 	    // if the remote end has closed the connection, return what we have
 	    if (!rc)
 	       break;
@@ -1804,7 +1835,7 @@ struct qore_socket_private {
 
       SimpleRefHolder<BinaryNode> b(new BinaryNode);
 
-      //printd(5, "QoreSocket::recvBinary(%d, "QSD") this=%p\n", timeout, rc, this);
+      //printd(5, "QoreSocket::recvBinary(%d, "QSD") this: %p\n", timeout, rc, this);
       // perform first read with timeout
       char* buf;
       rc = brecv(xsink, "recvBinary", buf, DEFAULT_SOCKET_BUFSIZE, 0, timeout, false);
@@ -2424,7 +2455,7 @@ struct qore_socket_private {
          }
 
          // DEBUG
-         //printd(5, "QoreSocket::readHTTPChunkedBodyBinary(): received binary chunk: size=%d br="QSD" total="QSD"\n", size, br, b->size());
+         //printd(5, "QoreSocket::readHTTPChunkedBodyBinary(): received binary chunk: size: %d br="QSD" total="QSD"\n", size, br, b->size());
 
          // read crlf after chunk
          // FIXME: bytes read are not checked if they equal CRLF
@@ -2615,7 +2646,7 @@ struct qore_socket_private {
       if (*xsink)
          return 0;
 
-      //printd(5, "chunked body encoding=%s\n", buf->getEncoding()->getCode());
+      //printd(5, "chunked body encoding: %s\n", buf->getEncoding()->getCode());
       ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
       if (!recv_callback)
          h->setKeyValue("body", buf.release(), xsink);

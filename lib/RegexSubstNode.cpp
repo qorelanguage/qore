@@ -138,7 +138,11 @@ void RegexSubstNode::parse() {
 // static function
 void RegexSubstNode::concat(QoreString *cstr, int *ovector, int olen, const char *ptr, const char *target, int rc) {
    while (*ptr) {
-      if (*ptr == '\\' && *(ptr+1) == '$') {
+      if (*ptr == '\\' && *(ptr+1) == '\\') {
+	 ++ptr;
+	 cstr->concat(*(ptr++));
+      }
+      else if (*ptr == '\\' && *(ptr+1) == '$') {
 	 ++ptr;
 	 cstr->concat(*(ptr++));
       }
@@ -157,6 +161,7 @@ void RegexSubstNode::concat(QoreString *cstr, int *ovector, int olen, const char
       else
 	 cstr->concat(*(ptr++));
    }
+   //printd(5, "RegexSubstNode::concat() target: '%s' cstr: '%s'\n", target, cstr->c_str());
 }
 
 #define SUBST_OVECSIZE 30
