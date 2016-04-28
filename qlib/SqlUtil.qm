@@ -2661,6 +2661,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
                 return sprintf("%s * %s", cve, arg);
             },
         ),
+        COP_SUBSTR: True,
         );
     #@}
 
@@ -2670,6 +2671,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
         - @ref uop_append(): append a string to the output of a column
         - @ref uop_upper(): return a column in upper case
         - @ref uop_lower(): return a column in lower case
+        - @ref uop_substr(): extract a substring from a column
         - @ref uop_plus(): add a numeric value to a column
         - @ref uop_minus(): subtract a numeric value from a column
         - @ref uop_multiply(): multiply a column by a numeric value
@@ -2753,6 +2755,22 @@ int rows_updated = t.update(("permission_type": uop_lower()));
     */
     public hash sub uop_lower(*hash nest) {
         return make_uop(COP_LOWER, NOTHING, nest);
+    }
+
+    #! returns a hash for the \c "substr" operator with the given arguments; returns a substring of a column value
+    /** @par Example:
+        @code{.py}
+int rows_updated = t.update(("first_name": uop_substr(1, 1)));
+        @endcode
+
+        @param start position where the substring starts
+        @param count length of the substring in characters
+        @param nest any nested operation to the operator
+
+        @return an update operator description hash corresponding to the arguments for use in update statements
+    */
+    public hash sub uop_substr(int start, *int count, *hash nest) {
+        return make_uop(COP_SUBSTR, (start, count), nest);
     }
 
     #! returns a hash for the \c "+" operator with the given arguments
