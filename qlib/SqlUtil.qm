@@ -11602,7 +11602,7 @@ string sql = table.getSelectSql(sh, \args);
                             throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in column list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv);
                     }
                 }
-                cstr = foldl $1 + "," + $2, ce.iterator();
+                cstr = foldl $1 + ", " + $2, ce.iterator();
                 coll = ce;
             }
             else
@@ -11719,7 +11719,7 @@ string sql = table.getSelectSql(sh, \args);
 
             if (qh.groupby) {
                 list ce = getGroupByListUnlocked(qh, jch, ch, psch, coll);
-                sql += " group by " + (foldl $1 + "," + $2, ce.iterator());
+                sql += " group by " + (foldl $1 + ", " + $2, ce.iterator());
             }
 
             if (qh.having) {
@@ -12056,7 +12056,7 @@ string sql = table.getSelectSql(sh, \args);
         private doSelectOrderBySqlUnlocked(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             list ce = getOrderByListUnlocked(qh, jch, ch, psch, coll);
 
-            sql += " order by " + (foldl $1 + "," + $2, (map $1 + (qh.desc || qh.orderbydesc.$1 ? " desc" : ""), ce));
+            sql += " order by " + (foldl $1 + ", " + $2, (map $1 + (qh.desc || qh.orderbydesc.$1 ? " desc" : ""), ce));
         }
 
         #! deletes rows in the table matching the condition and returns the count of rows deleted; the transaction is committed if successful, if an error occurs then it is rolled back
@@ -12293,7 +12293,7 @@ int ucnt = table.update(("id": id), ("name": name));
                 sl += exp;
             }
 
-            sql += foldl $1 + "," + $2, sl;
+            sql += foldl $1 + ", " + $2, sl;
 
             if (cond)
                 sql += getWhereClause(cond, \args);
@@ -12480,7 +12480,7 @@ int ucnt = table.update(("id": id), ("name": name));
                 updc = cols.keys();
 
             return sprintf("select %s from %s where %s",
-                           (foldl $1 + "," + $2, getColumnSqlNames(updc)),
+                           (foldl $1 + ", " + $2, getColumnSqlNames(updc)),
                            getSqlName(),
                            (foldl $1 + " and " + $2, (map sprintf("%s = %v", getColumnSqlName($1)), cols.keyIterator()))
                 );
@@ -12505,7 +12505,7 @@ int ucnt = table.update(("id": id), ("name": name));
 
             # make sql
             string sql = sprintf("update %s set ", getSqlName());
-            sql += foldl $1 + "," + $2, (map sprintf("%s = %v", getColumnSqlName($1)), updc);
+            sql += foldl $1 + ", " + $2, (map sprintf("%s = %v", getColumnSqlName($1)), updc);
             sql += " where ";
             sql += foldl $1 + " and " + $2, (map sprintf("%s = %v", getColumnSqlName($1)), cols.keyIterator());
 
