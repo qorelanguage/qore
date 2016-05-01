@@ -485,7 +485,7 @@ class HttpServer::DynamicHttpHandlerList inherits HttpServer::HttpHandlerList {
     }
 }
 
-#! The HttpServer class implements a multithreaded HTTP server primarily designed for serving RPC-style services
+#! The HttpServer class implements a multithreaded HTTP server
 public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     public {
         #! version of the HttpServer's implementation
