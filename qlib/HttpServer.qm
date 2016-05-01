@@ -129,7 +129,7 @@ log("started listener on %s", lh.desc);
         - otherwise, the first (in order of their registration) handler with regexp that matches the request URI is chosen
       - if no path matches the request, the same logic as before applies
     - fixed a bug in @ref HttpServer::HttpServer::addListener() with an integer argument; a UNIX socket was opened instead of a wildcard listener on the given port
-    - added the @ref HttpServer::HttpServer::listenerStarted() method to allow for reporting when listeners are actually running since they are started asynchronously
+    - added a log message for reporting when listeners are actually running since they are started asynchronously
     - added the \c "ssl" key to the listener socket info hash
     - fixed typos causing bugs in HTTP error logging (<a href="https://github.com/qorelanguage/qore/issues/308">bug 308</a>)
     - fixed bugs handling persistent connections
@@ -879,11 +879,6 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     #! waits for all listeners to be stopped; call after calling HttpServer::stopNoWait()
     waitStop() {
         c.waitForZero();
-    }
-
-    # only called from listeners; do not call externally
-    listenerStarted(int id, hash sinfo) {
-        log("HTTP listener %d started on %s", id, sinfo.desc);
     }
 
     # only called from the listeners - do not call externally
@@ -1942,7 +1937,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
     private mainThread() {
         on_exit cThreads.dec();
 
-        serv.listenerStarted(id, socket_info);
+        serv.log("HTTP listener %d started on %s", id, socket_info.desc);
         # DEBUG
         #printf("HTTP DEBUG: %y: mainThread() started TID %d\n", socket, gettid());
 
