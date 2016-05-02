@@ -682,13 +682,18 @@ public class SqlTestBase inherits QUnit::Test {
                     "in": ( "columns": ("id",), "orderby": ("id",), "offset": 1, "limit": 2 ),
                     "out": ( "count": 1, "data": (("id": 2),) ),
                     ),
-                # "case_6": ( # triggers bug #749 (GitHub)
-                #     "in": ( "columns": ("id",), "orderby": (1,), "offset": 1, "limit": 2 ),
-                #     "out": ( "count": 1, "data": (("id": 2),) ),
-                #     ),
+                "case_6": ( # triggers bug #749 (GitHub)
+                    "in": ( "columns": ("id",), "orderby": (1,), "offset": 1, "limit": 2 ),
+                    "out": ( "count": 1, "data": (("id": 2),) ),
+                    "skip": True, # TODO: remove this line once the bug is fixed
+                    ),
                 );
 
         foreach hash t in (test_set.pairIterator()) {
+            if (t.value.skip) {
+                assertSkip ("checking offset / limit " + t.key);
+                continue;
+            }
             *list rows = table.selectRows (t.value.in, \sql);
             assertEq (t.value.out.count, rows.size(), "checking offset / limit " + t.key);
 
