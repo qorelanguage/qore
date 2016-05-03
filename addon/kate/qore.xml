@@ -89,6 +89,7 @@
       <item> bool </item>
       <item> string </item>
       <item> date </item>
+      <item> timeout </item>
       <item> binary </item>
       <item> hash </item>
       <item> list </item>
@@ -104,6 +105,8 @@
       <item> softdate </item>
       <item> softlist </item>
       <item> data </item>
+      <item> callref </item>
+      <item> closure </item>
       <item> code </item>
       <item> reference </item> 
       <item> any </item>
