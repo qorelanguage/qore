@@ -513,6 +513,7 @@
     - fixed a bug on Windows where @ref Qore::glob() returned files matched without the leading path component (<a href="https://github.com/qorelanguage/qore/issues/761">issue 761</a>)
     - fixed a bug with socket connection refused handling on Windows where connections were waiting until the timeout instead of returning an error immediately (<a href="https://github.com/qorelanguage/qore/issues/763">issue 763</a>)
     - fixed a bug where it was not possible to escape an escape character before a \c '$' character in a regular expression substitution target string (<a href="https://github.com/qorelanguage/qore/issues/777">issue 777</a>)
+    - fixed a bug where object member references were treated as expressions returning a constant value which could cause a crash when used in an expression used to initialize a constant value at parse time (<a href="https://github.com/qorelanguage/qore/issues/817">issue 817</a>)
 
     @section qore_0811 Qore 0.8.11
 
