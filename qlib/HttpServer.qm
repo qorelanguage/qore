@@ -38,11 +38,6 @@ module HttpServer {
     license = "MIT";
 }
 
-/*  Version History: see docs below
-   note that this server suffers from the following limitations, among many others:
-   + not totally HTTP 1.1 compliant although claims to be
-*/
-
 /** @mainpage HttpServer Module
 
     @tableofcontents
@@ -51,9 +46,7 @@ module HttpServer {
 
     The %HttpServer module provides a multi-threaded HTTP server to Qore programs.
 
-    The %HttpServer implemented here was initially designed primarily for serving RPC-style requests, however it has been extended to support REST-style services, and additionally it can also be used to serve files or other content with an appropriate handler.
-
-    It has not been audited for security.
+    The %HttpServer implemented is designed for serving REST, RPC-style, and file-system-based requests as well as other types of traffic with an appropriate handler (for example handlers requiring protocol changes such as with the WebSocket protocol are supported as well).
 
     To use this module, use \c "%requires HttpServer" in your code.  See examples/httpserver.q for an example program using this module
 
@@ -492,7 +485,7 @@ class HttpServer::DynamicHttpHandlerList inherits HttpServer::HttpHandlerList {
     }
 }
 
-#! The HttpServer class implements a multithreaded HTTP server primarily designed for serving RPC-style services
+#! The HttpServer class implements a multithreaded HTTP server
 public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     public {
         #! version of the HttpServer's implementation
@@ -888,7 +881,10 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         c.waitForZero();
     }
 
-    # only called from listeners; do not call externally
+    #! called from listener when the actual listener thread is running
+    /** @param id the listener ID
+        @param sinfo a socket information hash as returned by @ref Qore::Socket::getSocketInfo()
+     */
     listenerStarted(int id, hash sinfo) {
         log("HTTP listener %d started on %s", id, sinfo.desc);
     }
