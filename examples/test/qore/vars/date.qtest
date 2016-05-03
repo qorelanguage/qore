@@ -201,7 +201,7 @@ class DateTest inherits QUnit::Test {
     timeZoneTests() {
         testAssertionValue("UTC offset", (new TimeZone("Europe/Prague")).UTCOffset(), 3600);
 
-        string fn = normalize_dir(get_script_dir() + "/" + TZ_File);
+        string fn = normalize_dir(get_script_dir() + DirSep + TZ_File);
         TimeZone z(fn);
         testAssertionValue("zone path", basename(z.region()), TZ_File);
         testAssertionValue("invalid band", z.date("1946-01-01").toString(), "19460101000000");

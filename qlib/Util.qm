@@ -79,9 +79,6 @@ module Util {
     @section utilrelnotes Release Notes
 
     @subsection util_1_2 Util 1.2
-    - fixed Util::get_random_string() on Windows
-    - fixed Util::absolute_path_windows()
-    - fixed Util::parse_to_qore_value() with hashes with a comma in the first key name
     - the following functions are now actually implemented in the %Qore library and only reexported here for backwards-compatibility:
       - @ref Qore::absolute_path()
       - @ref Qore::absolute_path_windows()
@@ -95,6 +92,10 @@ module Util {
     - added Util::same()
     - added Util::slice()
     - added Util::tmp_location()
+    - fixed Util::get_random_string() on Windows
+    - fixed Util::absolute_path_windows()
+    - fixed Util::parse_to_qore_value() with hashes with a comma in the first key name
+    - fixed Util::normalize_dir_windows() handling of UNC paths (<a href="https://github.com/qorelanguage/qore/issues/813">issue 813</a>)
 
     @subsection util_1_1 Util 1.1
     - added the Util::get_byte_size() and Util::get_marketing_byte_size() functions
@@ -251,9 +252,12 @@ string dir = normalize_dir_windows(dir, "c:\\qore"));
         @param dir the directory name to normalize
         @param cwd the current working directory
 
-        @return a normalized path name (eliminates \c ".", \c "..", and \c "\\")
+        @return a normalized path name; eliminates \c ".", \c "..", and \c "\\" (except at the beginning of a UNC path)
      */
     public string sub normalize_dir_windows(string dir, string cwd = getcwd()) {
+        # change all occurrences of "/" to "\"
+        dir =~ s/\//\\/g;
+
         # if the directory begins with a ".", prefix the cwd to the string
         if (!absolute_path_windows(dir))
             dir = cwd + "\\" + dir;
@@ -269,8 +273,8 @@ string dir = normalize_dir_windows(dir, "c:\\qore"));
         dir =~ s/^\.\\//;
         dir =~ s/\\\.$//;
 
-        # change \\ -> \
-        dir =~ s/\\\\+/\\/g;
+        # change \\ -> \ except at the beginning of the string
+        dir =~ s/([^^])\\\\+/$1\\/g;
 
         # separate into a list for eliminating occurences of ".."
         list l = dir.split("\\");
