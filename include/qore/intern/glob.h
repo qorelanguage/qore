@@ -74,7 +74,7 @@ public:
 
       // save the original dir name
       QoreString orig_dir((const char*)q_dirname(path.c_str()));
-      printd(0, "glob() dir: '%s'\n", orig_dir.c_str());
+      //printd(5, "glob() dir: '%s'\n", orig_dir.c_str());
       if (orig_dir == ".")
          orig_dir.clear();
       else
