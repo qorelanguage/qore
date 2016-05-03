@@ -121,6 +121,7 @@ module SqlUtil {
     - implemented @ref SqlUtil::AbstractTable::bindEmptyStringsAsNull() (<a href="https://github.com/qorelanguage/qore/issues/776">issue 776</a>)
     - implemented the \c "omit_update" @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" for asymmetrical upserts (updates only update a subset of the columns inserted) (<a href="https://github.com/qorelanguage/qore/issues/791">issue 791</a>)
     - implemented the @ref SqlUtil::AbstractTable::UpsertUpdateOnly upsert option (<a href="https://github.com/qorelanguage/qore/issues/793">issue 793</a>)
+    - implemented @ref SqlUtil::cop_substr() and @ref SqlUtil::uop_substr() operators (<a href="https://github.com/qorelanguage/qore/issues/801">issue 801</a>)
     - fixed a bug with queries using a \a desc argument with the @ref select_option_orderby "orderby" query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
     - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
     - fixed a bug where driver-specific objects were not included when dropping a schema
@@ -1991,6 +1992,11 @@ public namespace SqlUtil {
     */
     public const COP_COALESCE = "coalesce";
 
+    #! to extract a substring from a column
+    /** @see cop_substr()
+    */
+    public const COP_SUBSTR = "substr";
+
     #! a hash of default column operator descriptions
     public const DefaultCopMap = (
         COP_AS: (
@@ -2108,6 +2114,13 @@ public namespace SqlUtil {
             "code": string sub (*string cve, hash arg) {
                 return sprintf("coalesce(%s)", (foldl $1 + "," + $2, arg.args));
             }
+        ),
+        COP_SUBSTR: (
+            "code": string sub (string cve, list args) {
+                if (!exists args[1])
+                    return sprintf("substring(%s from %d)", cve, args[0]);
+                return sprintf("substring(%s from %d for %d)", cve, args[0], args[1]);
+            },
         ),
         );
     #@}
@@ -2581,7 +2594,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     public hash sub cop_coalesce(any col1, any col2) {
         code check = sub (any c) {
             if (c.typeCode() != NT_STRING && c.typeCode() != NT_HASH)
-                throw "COALESCE-ERROR", sprintf("cop_colaesce() accepts string column designators or column operator hashes as arguments; got: %y", c);
+                throw "COALESCE-ERROR", sprintf("cop_coalesce() accepts string column designators or column operator hashes as arguments; got: %y", c);
         };
         # ensure at least two arguments
         check(col1);
@@ -2594,6 +2607,22 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
             args += argv;
 
         return make_cop(COP_COALESCE, "", ("args": args));
+    }
+
+    #! returns a hash for the \c "substr" operator with the given arguments; returns a substring of a column value
+    /** @par Example:
+        @code{.py}
+*list rows = table.selectRows(("columns": ("id", cop_substr("name", 1, 1)), "where": ("type": "user")));
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins)
+        @param start position where the substring starts
+        @param count length of the substring in characters
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_substr(any column, int start, *int count) {
+        return make_cop(COP_SUBSTR, column, (start, count));
     }
     #@}
 
@@ -2633,6 +2662,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
                 return sprintf("%s * %s", cve, arg);
             },
         ),
+        COP_SUBSTR: True,
         );
     #@}
 
@@ -2642,6 +2672,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
         - @ref uop_append(): append a string to the output of a column
         - @ref uop_upper(): return a column in upper case
         - @ref uop_lower(): return a column in lower case
+        - @ref uop_substr(): extract a substring from a column
         - @ref uop_plus(): add a numeric value to a column
         - @ref uop_minus(): subtract a numeric value from a column
         - @ref uop_multiply(): multiply a column by a numeric value
@@ -2725,6 +2756,22 @@ int rows_updated = t.update(("permission_type": uop_lower()));
     */
     public hash sub uop_lower(*hash nest) {
         return make_uop(COP_LOWER, NOTHING, nest);
+    }
+
+    #! returns a hash for the \c "substr" operator with the given arguments; returns a substring of a column value
+    /** @par Example:
+        @code{.py}
+int rows_updated = t.update(("first_name": uop_substr(1, 1)));
+        @endcode
+
+        @param start position where the substring starts
+        @param count length of the substring in characters
+        @param nest any nested operation to the operator
+
+        @return an update operator description hash corresponding to the arguments for use in update statements
+    */
+    public hash sub uop_substr(int start, *int count, *hash nest) {
+        return make_uop(COP_SUBSTR, (start, count), nest);
     }
 
     #! returns a hash for the \c "+" operator with the given arguments
@@ -11574,7 +11621,7 @@ string sql = table.getSelectSql(sh, \args);
                             throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in column list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv);
                     }
                 }
-                cstr = foldl $1 + "," + $2, ce.iterator();
+                cstr = foldl $1 + ", " + $2, ce.iterator();
                 coll = ce;
             }
             else
@@ -11691,7 +11738,7 @@ string sql = table.getSelectSql(sh, \args);
 
             if (qh.groupby) {
                 list ce = getGroupByListUnlocked(qh, jch, ch, psch, coll);
-                sql += " group by " + (foldl $1 + "," + $2, ce.iterator());
+                sql += " group by " + (foldl $1 + ", " + $2, ce.iterator());
             }
 
             if (qh.having) {
@@ -12028,7 +12075,7 @@ string sql = table.getSelectSql(sh, \args);
         private doSelectOrderBySqlUnlocked(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             list ce = getOrderByListUnlocked(qh, jch, ch, psch, coll);
 
-            sql += " order by " + (foldl $1 + "," + $2, (map $1 + (qh.desc || qh.orderbydesc.$1 ? " desc" : ""), ce));
+            sql += " order by " + (foldl $1 + ", " + $2, (map $1 + (qh.desc || qh.orderbydesc.$1 ? " desc" : ""), ce));
         }
 
         #! deletes rows in the table matching the condition and returns the count of rows deleted; the transaction is committed if successful, if an error occurs then it is rolled back
@@ -12265,7 +12312,7 @@ int ucnt = table.update(("id": id), ("name": name));
                 sl += exp;
             }
 
-            sql += foldl $1 + "," + $2, sl;
+            sql += foldl $1 + ", " + $2, sl;
 
             if (cond)
                 sql += getWhereClause(cond, \args);
@@ -12452,7 +12499,7 @@ int ucnt = table.update(("id": id), ("name": name));
                 updc = cols.keys();
 
             return sprintf("select %s from %s where %s",
-                           (foldl $1 + "," + $2, getColumnSqlNames(updc)),
+                           (foldl $1 + ", " + $2, getColumnSqlNames(updc)),
                            getSqlName(),
                            (foldl $1 + " and " + $2, (map sprintf("%s = %v", getColumnSqlName($1)), cols.keyIterator()))
                 );
@@ -12477,7 +12524,7 @@ int ucnt = table.update(("id": id), ("name": name));
 
             # make sql
             string sql = sprintf("update %s set ", getSqlName());
-            sql += foldl $1 + "," + $2, (map sprintf("%s = %v", getColumnSqlName($1)), updc);
+            sql += foldl $1 + ", " + $2, (map sprintf("%s = %v", getColumnSqlName($1)), updc);
             sql += " where ";
             sql += foldl $1 + " and " + $2, (map sprintf("%s = %v", getColumnSqlName($1)), cols.keyIterator());
 

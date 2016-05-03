@@ -510,7 +510,7 @@ public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::
         @param spec Fixed-length line specification; see @ref fixedlengthspec for more information
         @param opts Global options; see @ref fixedlengthglobals for more information
     */
-    constructor(string file_name, hash spec, *hash opts) : FixedLengthUtil::FixedLengthAbstractIterator(spec, opts), FileLineIterator(file_name, opts.encoding.typeCode() == NT_STRING ? opts.encoding : NOTHING, opts.eol.typeCode() == NT_STRING ? opts.eol : NOTHING) {
+    constructor(string file_name, hash spec, *hash opts) : FixedLengthUtil::FixedLengthAbstractIterator(spec, opts), Qore::FileLineIterator(file_name, opts.encoding.typeCode() == NT_STRING ? opts.encoding : NOTHING, opts.eol.typeCode() == NT_STRING ? opts.eol : NOTHING) {
         # do not convert every string to the same encoding
         m_opts.input_encoding = remove m_opts.encoding;
     }

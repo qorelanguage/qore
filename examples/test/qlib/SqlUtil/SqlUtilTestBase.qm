@@ -39,7 +39,6 @@ public class SqlUtilTestSchema inherits AbstractSchema {
         return tables;
     }
 
-
     log(string fmt) {
         delete argv;
     }
@@ -78,6 +77,7 @@ public class SqlTestBase inherits QUnit::Test {
         addTestCase("Where Operators", \whereOperatorTest());
         addTestCase("Group By", \groupByTest());
         addTestCase("Order By", \orderByTest());
+        addTestCase("Offset / Limit", \offsetLimitTest());
         addTestCase("Update", \updateTest());
         addTestCase("Upsert", \upsertTest());
         addTestCase("BulkInsert", \bulkInsertTest());
@@ -91,22 +91,24 @@ public class SqlTestBase inherits QUnit::Test {
     }
 
     insertTest() {
-        if (!table)
-            testSkip("no DB connection");
+        if (!table) testSkip("no DB connection");
 
         on_success table.commit();
         on_error table.rollback();
 
+        string sql; on_error printf ("SQL: %s\n", sql);
+
         foreach hash data in (insert_data)
-            assertEq(NOTHING, table.insert(data));
+            assertEq(NOTHING, table.insert(data, \sql));
     }
 
     selectTest() {
-        if (!table)
-            testSkip("no DB connection");
+        if (!table) testSkip("no DB connection");
 
         on_success table.commit();
         on_error table.rollback();
+
+        string sql; on_error printf ("SQL: %s\n", sql);
 
         *list rows = table.selectRows();
         assertEq (2, rows.size());
@@ -128,22 +130,22 @@ public class SqlTestBase inherits QUnit::Test {
             "limit": 1,
             );
 
-        assertEq(Type::Hash, table.selectRow(sh).type());
+        assertEq(Type::Hash, table.selectRow(sh, \sql).type());
     }
 
     updateTest() {
-        if (!table)
-            testSkip("no DB connection");
+        if (!table) testSkip("no DB connection");
 
         on_success table.commit();
         on_error table.rollback();
 
-        map assertEq(1, table.update($1 - "id", ("id": $1.id))), insert_data;
+        string sql; on_error printf ("SQL: %s\n", sql);
+
+        map assertEq(1, table.update($1 - "id", ("id": $1.id), \sql)), insert_data;
     }
 
     upsertTest() {
-        if (!table)
-            testSkip("no DB connection");
+        if (!table) testSkip("no DB connection");
 
         on_success table.commit();
         on_error table.rollback();
@@ -225,8 +227,7 @@ public class SqlTestBase inherits QUnit::Test {
     }
 
     bulkInsertTest() {
-        if (!table)
-            testSkip("no DB connection");
+        if (!table) testSkip("no DB connection");
 
         on_success table.commit();
         on_error table.rollback();
@@ -242,8 +243,7 @@ public class SqlTestBase inherits QUnit::Test {
     }
 
     bulkUpsertTest() {
-        if (!table)
-            testSkip("no DB connection");
+        if (!table) testSkip("no DB connection");
 
         on_success table.commit();
         on_error table.rollback();
@@ -259,11 +259,12 @@ public class SqlTestBase inherits QUnit::Test {
     }
 
     columnOperatorTest() {
-        if (!table)
-            testSkip("no DB connection");
+        if (!table) testSkip("no DB connection");
 
         on_success table.commit();
         on_error table.rollback();
+
+        string sql; on_error printf ("SQL: %s\n", sql);
 
         Columns cols = table.describe();
         string vc = cols.hasKey("varchar_f") ? "varchar_f" : "varchar2_f";
@@ -276,6 +277,8 @@ public class SqlTestBase inherits QUnit::Test {
                 cop_as (cop_upper (cop_value ("Ahoj")), "cop_upper"),
                 cop_as (cop_prepend (cop_value ("abc"), "def"), "cop_prepend"),
                 cop_as (cop_append (cop_value ("abc"), "def"), "cop_append"),
+                cop_as (cop_substr (cop_value ("honeymoon"), 6), "cop_substr_1"),
+                cop_as (cop_substr (cop_value ("hematology"), 3, 4), "cop_substr_2"),
                 cop_as (cop_minus ("id", "id"), "cop_minus"),
                 cop_as (cop_plus ("id", "id"), "cop_plus"),
                 cop_as (cop_divide ("id", "id"), "cop_divide"),
@@ -290,7 +293,6 @@ public class SqlTestBase inherits QUnit::Test {
             "where": ("id": 2, "cop_lower": cop_lower("cop_upper")),
             );
 
-        string sql; on_error printf("SQL: %s\n", sql);
         *hash row = table.selectRow (soh, \sql);
 
         hash expect = (
@@ -300,6 +302,8 @@ public class SqlTestBase inherits QUnit::Test {
             "cop_upper": "AHOJ",
             "cop_prepend": "defabc",
             "cop_append": "abcdef",
+            "cop_substr_1": "moon",
+            "cop_substr_2": "mato",
             "cop_minus": 0,
             "cop_plus": 4,
             "cop_divide": 1,
@@ -322,7 +326,7 @@ public class SqlTestBase inherits QUnit::Test {
                 "groupby": ("char_f")
                 );
 
-        row = table.selectRow (soh);
+        row = table.selectRow (soh, \sql);
 
         expect = (
                 "cop_min": 1,
@@ -338,11 +342,12 @@ public class SqlTestBase inherits QUnit::Test {
     }
 
     updateOperatorTest() {
-        if (!table)
-            testSkip("no DB connection");
+        if (!table) testSkip("no DB connection");
 
         on_success table.commit();
         on_error table.rollback();
+
+        string sql; on_error printf ("SQL: %s\n", sql);
 
         hash test_set = (
                 "uop_prepend": (
@@ -369,6 +374,10 @@ public class SqlTestBase inherits QUnit::Test {
                     "set": ("null_f": uop_lower (uop_append ("DEF"))),
                     "out": ("null_f": "123abc123abcdef"),
                     ),
+                "uop_substr": (
+                    "set": ("null_f": uop_substr (4, 6)),
+                    "out": ("null_f": "abc123"),
+                    ),
                 "uop_plus": (
                     "set": ("id_": uop_plus(3)),
                     "out": ("id_": 2+3),
@@ -390,8 +399,8 @@ public class SqlTestBase inherits QUnit::Test {
         hash cond = ("id": 1);
 
         foreach hash t in (test_set.pairIterator()) {
-            table.update (t.value.set, cond);
-            hash row = table.selectRow (("where": cond));
+            table.update (t.value.set, cond, \sql);
+            hash row = table.selectRow (("where": cond), \sql);
 
             foreach hash d in (t.value.out.pairIterator())
                 assertEq (d.value, row{d.key}, sprintf ("checking update operator %s column %s", t.key, d.key));
@@ -402,11 +411,12 @@ public class SqlTestBase inherits QUnit::Test {
     }
 
     whereOperatorTest() {
-        if (!table)
-            testSkip("no DB connection");
+        if (!table) testSkip("no DB connection");
 
         on_success table.commit();
         on_error table.rollback();
+
+        string sql; on_error printf ("SQL: %s\n", sql);
 
         hash test_set = (
                 "op_lt": (
@@ -579,7 +589,7 @@ public class SqlTestBase inherits QUnit::Test {
                 );
 
         foreach hash t in (test_set.pairIterator()) {
-            *list rows = table.selectRows (t.value.in);
+            *list rows = table.selectRows (t.value.in, \sql);
             hash out = t.value.out;
             assertEq (out.count, rows.size(), "checking where operator " + t.key);
 
@@ -592,11 +602,12 @@ public class SqlTestBase inherits QUnit::Test {
     }
 
     groupByTest() {
-        if (!table)
-            testSkip("no DB connection");
+        if (!table) testSkip("no DB connection");
 
         on_success table.commit();
         on_error table.rollback();
+
+        string sql; on_error printf ("SQL: %s\n", sql);
 
         hash soh = ("columns": (
                 cop_as ("char_f", "pivo"),
@@ -604,7 +615,7 @@ public class SqlTestBase inherits QUnit::Test {
                 ),
                 "groupby": (1)
                 );
-        *hash row = table.selectRow (soh);
+        *hash row = table.selectRow (soh, \sql);
         assertEq (2, row.cop_count, "checking group by 1");
 
         soh = ("columns": (
@@ -613,28 +624,85 @@ public class SqlTestBase inherits QUnit::Test {
                 ),
                 "groupby": ("pivo")
                 );
-        row = table.selectRow (soh);
+        row = table.selectRow (soh, \sql);
         assertEq (2, row.cop_count, "checking group by alias");
     }
 
     orderByTest() {
-        if (!table)
-            testSkip("no DB connection");
+        if (!table) testSkip("no DB connection");
 
         on_success table.commit();
         on_error table.rollback();
 
+        string sql; on_error printf ("SQL: %s\n", sql);
+
         hash soh = ("columns": ("id",), "orderby": (1,));
-        *list rows = table.selectRows (soh);
+        *list rows = table.selectRows (soh, \sql);
         assertEq ((("id": 1), ("id": 2)), rows, "checking order by 1");
 
         soh = ("columns": ("id",), "orderby": ("-id",));
-        rows = table.selectRows (soh);
+        rows = table.selectRows (soh, \sql);
         assertEq ((("id": 2), ("id": 1)), rows, "checking order by id desc");
 
         soh = ("columns": (cop_as ("id", "alias"),), "orderby": ("alias",));
-        rows = table.selectRows (soh);
+        rows = table.selectRows (soh, \sql);
         assertEq ((("alias": 1), ("alias": 2)), rows, "checking order by alias");
+    }
+
+    offsetLimitTest() {
+        # TODO: remove once support for limit & offset is implemented in FreetdsSqlUtil
+        if (self.className() == "FreetdsTest")
+            testSkip ("FreetdsSqlUtil does not support this feature yet");
+
+        if (!table) testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        string sql; on_error printf ("SQL: %s\n", sql);
+
+        hash test_set = (
+                "case_1": (
+                    "in": ( "columns": ("id",), "limit": 1 ),
+                    "out": ( "count": 1 ),
+                    ),
+                "case_2": (
+                    "in": ( "columns": ("id",), "offset": 1, "limit": 2 ),
+                    "out": ( "count": 1 ),
+                    ),
+                "case_3": (
+                    "in": ( "columns": ("id",), "orderby": ("id",), "limit": 1 ),
+                    "out": ( "count": 1, "data": (("id": 1),) ),
+                    ),
+                "case_4": (
+                    "in": ( "columns": ("id",), "orderby": ("id",), "limit": 2 ),
+                    "out": ( "count": 2, "data": (("id": 1), ("id": 2)) ),
+                    ),
+                "case_5": (
+                    "in": ( "columns": ("id",), "orderby": ("id",), "offset": 1, "limit": 2 ),
+                    "out": ( "count": 1, "data": (("id": 2),) ),
+                    ),
+                "case_6": ( # triggers bug #749 (GitHub)
+                    "in": ( "columns": ("id",), "orderby": (1,), "offset": 1, "limit": 2 ),
+                    "out": ( "count": 1, "data": (("id": 2),) ),
+                    "skip": True, # TODO: remove this line once the bug is fixed
+                    ),
+                );
+
+        foreach hash t in (test_set.pairIterator()) {
+            if (t.value.skip) {
+                assertSkip ("checking offset / limit " + t.key);
+                continue;
+            }
+            *list rows = table.selectRows (t.value.in, \sql);
+            assertEq (t.value.out.count, rows.size(), "checking offset / limit " + t.key);
+
+            foreach hash row in (rows) {
+                int rn = $#;
+                foreach hash d in (t.value.out.data[rn].pairIterator())
+                    assertEq (d.value, row{d.key}, sprintf ("checking offset / limit %s row %s column %s", t.key, rn, d.key));
+            }
+        }
     }
 
     static string getColumnName(string n) {
