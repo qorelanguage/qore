@@ -1235,7 +1235,7 @@ QoreWindowsZoneInfo::QoreWindowsZoneInfo(const char *n_name, ExceptionSink *xsin
          key.concat(wz);
          rc = wopenkey(HKEY_LOCAL_MACHINE, key.getBuffer(), KEY_QUERY_VALUE, &hk);
          if (!rc)
-            name = wz;
+            name = n_name;
       }
 
       if (rc) {
