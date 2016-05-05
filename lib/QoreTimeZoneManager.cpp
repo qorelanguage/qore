@@ -703,6 +703,14 @@ static const char* win_lookup_tz(const char* tzr) {
    return i == win_tzmap.end() ? 0 : i->second;
 }
 
+static const char* win_inverse_lookup_tz(const char* tz) {
+   for (tzmap_t::const_iterator it = win_tzmap.begin(); it != win_tzmap.end(); ++it) {
+      if (strcmp(tz, it->second) == 0)
+         return it->first;
+   }
+   return 0;
+}
+
 static void win_init_maps() {
    win_add_map("AUS Central Standard Time", "Australia/Darwin");
    win_add_map("AUS Eastern Standard Time", "Australia/Sydney");
@@ -1215,22 +1223,29 @@ QoreWindowsZoneInfo::QoreWindowsZoneInfo(const char *n_name, ExceptionSink *xsin
 
    HKEY hk;
    LONG rc = wopenkey(HKEY_LOCAL_MACHINE, key.getBuffer(), KEY_QUERY_VALUE, &hk);
-   if (rc) {
+   if (!rc) { // success -> find zoneinfo name
+      const char* zoneinfoName = win_inverse_lookup_tz(n_name);
+      name = zoneinfoName ? zoneinfoName : n_name;
+   }
+   else {
       // try to lookup Windows timezone name from zoneinfo name
       const char* wz = win_lookup_tz(n_name);
       if (wz) {
          key.set(WTZ_INFO);
          key.concat(wz);
          rc = wopenkey(HKEY_LOCAL_MACHINE, key.getBuffer(), KEY_QUERY_VALUE, &hk);
+         if (!rc)
+            name = wz;
       }
-   }
-   if (rc) {
-      QoreStringNode *desc = get_windows_err(rc);
-      desc->prepend("': ");
-      desc->prepend(key.getBuffer());
-      desc->prepend("error opening windows registry key '");
-      xsink->raiseException("TZINFO-ERROR", desc);
-      return;
+
+      if (rc) {
+         QoreStringNode *desc = get_windows_err(rc);
+         desc->prepend("': ");
+         desc->prepend(key.getBuffer());
+         desc->prepend("error opening windows registry key '");
+         xsink->raiseException("TZINFO-ERROR", desc);
+         return;
+      }
    }
    ON_BLOCK_EXIT(RegCloseKey, hk);
 
@@ -1240,9 +1255,6 @@ QoreWindowsZoneInfo::QoreWindowsZoneInfo(const char *n_name, ExceptionSink *xsin
       return;
    if (wgetregstr(hk, "Std", standard, xsink))
       return;
-
-   // set name from display name
-   name = display.getBuffer();
 
    // get TZI value
    REG_TZI_FORMAT tzi;
