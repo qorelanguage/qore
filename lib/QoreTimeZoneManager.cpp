@@ -710,6 +710,7 @@ static void win_init_maps() {
    win_add_map("Afghanistan Standard Time", "Asia/Kabul");
    win_add_map("Alaskan Standard Time", "America/Anchorage");
    win_add_map("Alaskan Standard Time", "America/Juneau");
+   win_add_map("Alaskan Standard Time", "America/Metlakatla");
    win_add_map("Alaskan Standard Time", "America/Nome");
    win_add_map("Alaskan Standard Time", "America/Sitka");
    win_add_map("Alaskan Standard Time", "America/Yakutat");
@@ -746,6 +747,7 @@ static void win_init_maps() {
    win_add_map("Bahia Standard Time", "America/Bahia");
    win_add_map("Bangladesh Standard Time", "Asia/Dhaka");
    win_add_map("Bangladesh Standard Time", "Asia/Thimphu");
+   win_add_map("Belarus Standard Time", "Europe/Minsk");
    win_add_map("Canada Central Standard Time", "America/Regina");
    win_add_map("Canada Central Standard Time", "America/Swift_Current");
    win_add_map("Cape Verde Standard Time", "Atlantic/Cape_Verde");
@@ -786,6 +788,8 @@ static void win_init_maps() {
    win_add_map("Central Pacific Standard Time", "Pacific/Ponape");
    win_add_map("Central Pacific Standard Time", "Pacific/Kosrae");
    win_add_map("Central Pacific Standard Time", "Pacific/Noumea");
+   win_add_map("Central Pacific Standard Time", "Pacific/Norfolk");
+   win_add_map("Central Pacific Standard Time", "Pacific/Bougainville");
    win_add_map("Central Pacific Standard Time", "Pacific/Efate");
    win_add_map("Central Pacific Standard Time", "Etc/GMT-11");
    win_add_map("Central Standard Time", "America/Chicago");
@@ -803,7 +807,6 @@ static void win_init_maps() {
    win_add_map("Central Standard Time", "CST6CDT");
    win_add_map("Central Standard Time (Mexico)", "America/Mexico_City");
    win_add_map("Central Standard Time (Mexico)", "America/Bahia_Banderas");
-   win_add_map("Central Standard Time (Mexico)", "America/Cancun");
    win_add_map("Central Standard Time (Mexico)", "America/Merida");
    win_add_map("Central Standard Time (Mexico)", "America/Monterrey");
    win_add_map("China Standard Time", "Asia/Shanghai");
@@ -826,6 +829,7 @@ static void win_init_maps() {
    win_add_map("E. Africa Standard Time", "Etc/GMT-3");
    win_add_map("E. Australia Standard Time", "Australia/Brisbane");
    win_add_map("E. Australia Standard Time", "Australia/Lindeman");
+   win_add_map("E. Europe Standard Time", "Europe/Chisinau");
    win_add_map("E. South America Standard Time", "America/Sao_Paulo");
    win_add_map("Eastern Standard Time", "America/New_York");
    win_add_map("Eastern Standard Time", "America/Nassau");
@@ -844,6 +848,7 @@ static void win_init_maps() {
    win_add_map("Eastern Standard Time", "America/Kentucky/Monticello");
    win_add_map("Eastern Standard Time", "America/Louisville");
    win_add_map("Eastern Standard Time", "EST5EDT");
+   win_add_map("Eastern Standard Time (Mexico)", "America/Cancun");
    win_add_map("Egypt Standard Time", "Africa/Cairo");
    win_add_map("Ekaterinburg Standard Time", "Asia/Yekaterinburg");
    win_add_map("FLE Standard Time", "Europe/Kiev");
@@ -868,7 +873,6 @@ static void win_init_maps() {
    win_add_map("GTB Standard Time", "Europe/Bucharest");
    win_add_map("GTB Standard Time", "Asia/Nicosia");
    win_add_map("GTB Standard Time", "Europe/Athens");
-   win_add_map("GTB Standard Time", "Europe/Chisinau");
    win_add_map("Georgian Standard Time", "Asia/Tbilisi");
    win_add_map("Greenland Standard Time", "America/Godthab");
    win_add_map("Greenwich Standard Time", "Atlantic/Reykjavik");
@@ -895,19 +899,15 @@ static void win_init_maps() {
    win_add_map("Iran Standard Time", "Asia/Tehran");
    win_add_map("Israel Standard Time", "Asia/Jerusalem");
    win_add_map("Jordan Standard Time", "Asia/Amman");
-   win_add_map("Kaliningrad Standard Time", "Europe/Minsk");
    win_add_map("Kaliningrad Standard Time", "Europe/Kaliningrad");
    win_add_map("Korea Standard Time", "Asia/Seoul");
-   win_add_map("Korea Standard Time", "Asia/Pyongyang");
    win_add_map("Libya Standard Time", "Africa/Tripoli");
    win_add_map("Line Islands Standard Time", "Pacific/Kiritimati");
    win_add_map("Line Islands Standard Time", "Etc/GMT-14");
    win_add_map("Magadan Standard Time", "Asia/Magadan");
-   win_add_map("Magadan Standard Time", "Asia/Anadyr");
-   win_add_map("Magadan Standard Time", "Asia/Kamchatka");
-   win_add_map("Magadan Standard Time", "Asia/Srednekolymsk");
    win_add_map("Mauritius Standard Time", "Indian/Mauritius");
    win_add_map("Mauritius Standard Time", "Indian/Reunion");
+   win_add_map("Mauritius Standard Time", "Indian/Mahe");
    win_add_map("Middle East Standard Time", "Asia/Beirut");
    win_add_map("Montevideo Standard Time", "America/Montevideo");
    win_add_map("Morocco Standard Time", "Africa/Casablanca");
@@ -925,7 +925,6 @@ static void win_init_maps() {
    win_add_map("Myanmar Standard Time", "Asia/Rangoon");
    win_add_map("Myanmar Standard Time", "Indian/Cocos");
    win_add_map("N. Central Asia Standard Time", "Asia/Novosibirsk");
-   win_add_map("N. Central Asia Standard Time", "Asia/Novokuznetsk");
    win_add_map("N. Central Asia Standard Time", "Asia/Omsk");
    win_add_map("Namibia Standard Time", "Africa/Windhoek");
    win_add_map("Nepal Standard Time", "Asia/Katmandu");
@@ -934,6 +933,8 @@ static void win_init_maps() {
    win_add_map("Newfoundland Standard Time", "America/St_Johns");
    win_add_map("North Asia East Standard Time", "Asia/Irkutsk");
    win_add_map("North Asia Standard Time", "Asia/Krasnoyarsk");
+   win_add_map("North Asia Standard Time", "Asia/Novokuznetsk");
+   win_add_map("North Korea Standard Time", "Asia/Pyongyang");
    win_add_map("Pacific SA Standard Time", "America/Santiago");
    win_add_map("Pacific SA Standard Time", "Antarctica/Palmer");
    win_add_map("Pacific Standard Time", "America/Los_Angeles");
@@ -941,8 +942,8 @@ static void win_init_maps() {
    win_add_map("Pacific Standard Time", "America/Dawson");
    win_add_map("Pacific Standard Time", "America/Whitehorse");
    win_add_map("Pacific Standard Time", "America/Tijuana");
+   win_add_map("Pacific Standard Time", "America/Santa_Isabel");
    win_add_map("Pacific Standard Time", "PST8PDT");
-   win_add_map("Pacific Standard Time (Mexico)", "America/Santa_Isabel");
    win_add_map("Pakistan Standard Time", "Asia/Karachi");
    win_add_map("Paraguay Standard Time", "America/Asuncion");
    win_add_map("Romance Standard Time", "Europe/Paris");
@@ -950,8 +951,11 @@ static void win_init_maps() {
    win_add_map("Romance Standard Time", "Europe/Copenhagen");
    win_add_map("Romance Standard Time", "Europe/Madrid");
    win_add_map("Romance Standard Time", "Africa/Ceuta");
+   win_add_map("Russia Time Zone 10", "Asia/Srednekolymsk");
+   win_add_map("Russia Time Zone 11", "Asia/Kamchatka");
+   win_add_map("Russia Time Zone 11", "Asia/Anadyr");
+   win_add_map("Russia Time Zone 3", "Europe/Samara");
    win_add_map("Russian Standard Time", "Europe/Moscow");
-   win_add_map("Russian Standard Time", "Europe/Samara");
    win_add_map("Russian Standard Time", "Europe/Simferopol");
    win_add_map("Russian Standard Time", "Europe/Volgograd");
    win_add_map("SA Eastern Standard Time", "America/Cayenne");
@@ -969,6 +973,7 @@ static void win_init_maps() {
    win_add_map("SA Pacific Standard Time", "America/Rio_Branco");
    win_add_map("SA Pacific Standard Time", "America/Eirunepe");
    win_add_map("SA Pacific Standard Time", "America/Coral_Harbour");
+   win_add_map("SA Pacific Standard Time", "Pacific/Easter");
    win_add_map("SA Pacific Standard Time", "America/Guayaquil");
    win_add_map("SA Pacific Standard Time", "America/Jamaica");
    win_add_map("SA Pacific Standard Time", "America/Cayman");
@@ -1056,6 +1061,7 @@ static void win_init_maps() {
    win_add_map("US Mountain Standard Time", "America/Phoenix");
    win_add_map("US Mountain Standard Time", "America/Dawson_Creek");
    win_add_map("US Mountain Standard Time", "America/Creston");
+   win_add_map("US Mountain Standard Time", "America/Fort_Nelson");
    win_add_map("US Mountain Standard Time", "America/Hermosillo");
    win_add_map("US Mountain Standard Time", "Etc/GMT+7");
    win_add_map("UTC", "Etc/GMT");
