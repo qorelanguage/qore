@@ -232,6 +232,10 @@ public namespace HttpServer {
                 h.host = (!host || host == gethostname()) ? "localhost" : host;
         }
 
+        # encose IPv6 addresses in "[]"
+        if (h.host =~ /^[[:xdigit:]:]+$/)
+            h.host = "[" + h.host + "]";
+
         string login = h.password ? (h.password + ":") : "";
         if (h.username)
             login += sprintf("%s@", h.password);
