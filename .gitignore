@@ -12,7 +12,6 @@
 .deps
 .libs
 libtool
-libtool.orig
 ltmain.sh
 missing
 ylwrap
