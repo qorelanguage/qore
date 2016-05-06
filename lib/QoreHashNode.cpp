@@ -865,6 +865,10 @@ hash_assignment_priv::hash_assignment_priv(ExceptionSink* xsink, QoreHashNode& n
    om = must_already_exist ? h.findMember(k->getBuffer()) : h.findCreateMember(k->getBuffer());
 }
 
+void hash_assignment_priv::reassign(const char* key, bool must_already_exist) {
+   om = must_already_exist ? h.findMember(key) : h.findCreateMember(key);
+}
+
 AbstractQoreNode* hash_assignment_priv::swapImpl(AbstractQoreNode* v) {
    assert(om);
    // before we can entirely get rid of QoreNothingNode, try to convert pointers to NOTHING to 0
@@ -925,6 +929,14 @@ HashAssignmentHelper::HashAssignmentHelper(HashIterator &hi) : priv(new hash_ass
 
 HashAssignmentHelper::~HashAssignmentHelper() {
    delete priv;
+}
+
+void HashAssignmentHelper::reassign(const char* key, bool must_already_exist) {
+   priv->reassign(key);
+}
+
+void HashAssignmentHelper::reassign(const std::string& key, bool must_already_exist) {
+   priv->reassign(key.c_str());
 }
 
 HashAssignmentHelper::operator bool() const {
