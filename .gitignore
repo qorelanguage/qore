@@ -30,6 +30,8 @@ depcomp
 install-sh
 /qore
 qr
+qore.exe
+qr.exe
 qore.pc
 qore.spec
 test-driver
@@ -55,6 +57,8 @@ include/qore/intern/git-revision.h
 
 # lib/
 lib/qpp
+lib/qpp.exe
+lib/qpp_native
 lib/*.dox.h
 lib/Pseudo_QC_*.cpp
 lib/QC_*.cpp
