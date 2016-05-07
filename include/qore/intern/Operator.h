@@ -4,7 +4,7 @@
 
   Qore flexible operator support
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -527,8 +527,10 @@ typedef AbstractQoreNode* (*op_check_args_t)(QoreTreeNode* tree, LocalVar* oflag
 
 class Operator {
 private:
+   typedef std::vector<std::vector<int> > opmatrix_t;
+
    opfunc_list_t functions;
-   int (*opMatrix)[NUM_VALUE_TYPES];
+   opmatrix_t op_matrix;
    bool effect, lvalue;
    const char* name, *description;
    int args;
@@ -550,11 +552,12 @@ public:
        @param n_lvalue if the operator requires an lvalue on the left side (for modification, ex: $a =~ s/x/p/ )
    */
    DLLLOCAL Operator(int arg, const char* n, const char* desc, int n_evalArgs, bool n_effect, bool n_lvalue = false, op_check_args_t n_check_args = 0)
-      : opMatrix(0), effect(n_effect), lvalue(n_lvalue),
+      : effect(n_effect), lvalue(n_lvalue),
         name(n), description(desc), args(arg),
         evalArgs(n_evalArgs), check_args(n_check_args) {
    }
    DLLLOCAL ~Operator();
+
    // returns 0 = OK, -1 = parse exception raised
    DLLLOCAL AbstractQoreNode* parseInit(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& resultTypeInfo);
    DLLLOCAL void init();

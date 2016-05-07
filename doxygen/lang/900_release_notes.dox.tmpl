@@ -175,7 +175,6 @@
       - implemented the global \c "date_format" mapper option
       - implemented support for structured output fields with dot notation in the output field name
       - implemented per-field and global \c "number_format" mapper options
-      - fixed bugs in the \c "timezone" and \c "input_timezone" options, documented those options
       - changed the behavior of the \c "number" field type: now leaves numeric values in their original type, converts all other types to a number
       - removed the deprecated \c "crec" option
       - implemented the \c "input" option with input record validation
@@ -519,6 +518,7 @@
     - fixed a bug where object member references were treated as expressions returning a constant value which could cause a crash when used in an expression used to initialize a constant value at parse time (<a href="https://github.com/qorelanguage/qore/issues/817">issue 817</a>)
     - fixed a bug parsing IPv6 localhost (\c "::") with @ref Qore::parse_url() (<a href="https://github.com/qorelanguage/qore/issues/822">issue 822</a>)
     - fixed a bug in Windows timezone handling caused by erroneous region names (<a href="https://github.com/qorelanguage/qore/issues/824">issue 824</a>)
+    - fixed an internal memory-handling bug that caused a crash when cleaning up the qore library on FreeBSD with clang++ and possibly other platforms (<a href="https://github.com/qorelanguage/qore/issues/839">issue 839</a>)
 
     @section qore_0811 Qore 0.8.11
 
