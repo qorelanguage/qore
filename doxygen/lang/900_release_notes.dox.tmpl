@@ -519,6 +519,7 @@
     - fixed a bug parsing IPv6 localhost (\c "::") with @ref Qore::parse_url() (<a href="https://github.com/qorelanguage/qore/issues/822">issue 822</a>)
     - fixed a bug in Windows timezone handling caused by erroneous region names (<a href="https://github.com/qorelanguage/qore/issues/824">issue 824</a>)
     - fixed an internal memory-handling bug that caused a crash when cleaning up the qore library on FreeBSD with clang++ and possibly other platforms (<a href="https://github.com/qorelanguage/qore/issues/839">issue 839</a>)
+    - fixed a bug where \c CALL-WITH-TYPE-ERROR exceptions were thrown based on the parse options in the caller instead of in the target when calling across a @ref Qore::Program "Program" barrier (<a href="https://github.com/qorelanguage/qore/issues/841">issue 841</a>)
 
     @section qore_0811 Qore 0.8.11
 
