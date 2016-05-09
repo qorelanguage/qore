@@ -41,6 +41,10 @@ module FilePoller {
 
 /** @mainpage FilePoller Module
 
+    @tableofcontents
+
+    @section filepollerintro FilePoller Module Introduction
+
     The %FilePoller module provides a high level API for file polling.
 
     Available classes:
