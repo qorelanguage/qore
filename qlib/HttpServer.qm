@@ -721,6 +721,8 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         @throw HTTPSERVER-ADDLISTENER-ERROR duplicate bind address
 
         @note if \c bind begins with a "/" character then it is assumed to be a UNIX socket path and the \a family argument is ignored
+
+        @since HttpServer 0.3.11
      */
     final list addListeners(string bind, hash lp, *code logger, *code errorlogger, *code stopc, *string name, int family = AF_UNSPEC) {
         if (lp.cert_path && !lp.cert)
@@ -923,6 +925,8 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     #! called from listener when the actual listener thread is running
     /** @param id the listener ID
         @param sinfo a socket information hash as returned by @ref Qore::Socket::getSocketInfo()
+
+        @since HttpServer 0.3.11
      */
     listenerStarted(int id, hash sinfo) {
         log("HTTP listener %d started on %s", id, sinfo.desc);
@@ -1073,6 +1077,8 @@ http.setListenerLogOptions("app", LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
         @param bind the name of the listener or bind string
         @param code a binary-or'ed product of @ref ListenerLogOptions "listener log options"; bits set enable logging; bits not set disable logging
+
+        @since HttpServer 0.3.11
      */
     setListenerLogOptions(softstring bind, softint code) {
         lm.enter();
@@ -1089,6 +1095,8 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
         @param id the unique listener ID
         @param code a binary-or'ed product of @ref ListenerLogOptions "listener log options"; bits set enable logging; bits not set disable logging
+
+        @since HttpServer 0.3.11
      */
     setListenerLogOptionsID(softint id, softint code) {
         lm.enter();
@@ -1101,6 +1109,9 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     }
 
     #! returns a binary-or'ed product of @ref ListenerLogOptions "listener log options" corresponding to enabled log options for the given listener
+    /**
+        @since HttpServer 0.3.11
+    */
     int getListenerLogOptions(softstring bind) {
         lm.enter();
         on_exit lm.exit();
@@ -1109,6 +1120,9 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     }
 
     #! returns a binary-or'ed product of @ref ListenerLogOptions "listener log options" corresponding to enabled log options for the given listener
+    /**
+        @since HttpServer 0.3.11
+    */
     int getListenerLogOptionsID(softint id) {
         lm.enter();
         on_exit lm.exit();
