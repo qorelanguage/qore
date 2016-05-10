@@ -11,47 +11,6 @@
 
 %exec-class CsvUtilTest
 
-softstring sub detectLineType(any values) {
-    softint type = -1;
-    switch (values.typeCode()) {
-    case NT_HASH:
-        type = values.type;
-        break;
-    case NT_LIST:
-        type = values[0];
-        break;
-    }
-    switch (type) {
-    case 1:
-        return "header";
-    case 2:
-        return "item";
-    case 3:
-        return "footer";
-    }
-    return NULL;
-}
-
-public class CsvMultiDataIterator inherits CsvDataIterator {
-    constructor(string data, *hash opts)
-            : CsvDataIterator(data, opts) {
-    }
-
-    public softstring detectLineTypeImpl(any values) {
-        return detectLineType(values);
-    }
-}
-
-public class CsvMultiStringWriter inherits CsvStringWriter {
-    constructor(*hash opts) : CsvStringWriter(opts) {
-    }
-
-    public softstring detectLineTypeImpl(any values) {
-        return detectLineType(values);
-    }
-}
-
-
 public class CsvUtilTest inherits QUnit::Test {
     private {
         const CsvInput = "UK,1234567890,\"Sony, Xperia S\",31052012
@@ -94,7 +53,11 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
         # Iterate through source
         CsvDataIterator i(CsvInput, opts);
         #list l = map $1, i;
-        testAssertion("CsvDataIterator 1", \equalsIterated(), (i, new ListIterator(CsvRecords)));
+        testAssertion("CsvDataIterator 1", \equalsIterated(), (new ListIterator(CsvRecords), i));
+
+        CsvStringWriter w( ("write-headers": False, "optimal-quotes" : True, "quote_escape" : '"')+opts );
+        string outstr = w.write(CsvRecords);
+        testAssertion("CsvDataWriter writer", \equals(), (CsvInput+"\n", outstr));  # ending CR is assymetrical when empty lines are not ignored
 
         # test with empty data and header lines
         i = new CsvDataIterator("", ("header-lines": 1));
@@ -121,14 +84,27 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
                 "item":   ("type", "item_no", "item", "pcs", "price"),
                 "footer": ("type", "total"),
             ),
+            "resolve_type": softstring sub(hash values) {
+                softint type = exists values{'type'}?values{'type'}:values{'0'};
+                switch (type) {
+                    case 1:
+                        return "header";
+                    case 2:
+                        return "item";
+                    case 3:
+                        return "footer";
+                }
+                return NULL;
+            },
         );
 
         # Iterate through source
-        CsvMultiDataIterator i(CsvMultiInput, opts);
-        #list l = map $1, i;
-        testAssertion("CsvMultiDataIterator ", \equalsIterated(), (i, new ListIterator(CsvMultiRecords)));
+        CsvDataIterator i(CsvMultiInput, opts);
 
-        CsvMultiStringWriter w( ("write-headers": False, "optimal-quotes" : True, "quote_escape" : '"')+opts );
+        #list l = map $1, i;
+        testAssertion("multi iterator ", \equalsIterated(), (new ListIterator(CsvMultiRecords), i));
+
+        CsvStringWriter w( ("write-headers": False, "optimal-quotes" : True, "quote_escape" : '"')+opts );
         string outstr = w.write(CsvMultiRecords);
         testAssertion("multi writer", \equals(), (CsvMultiInput, outstr));
 
@@ -176,6 +152,6 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
 
         testAssertion("CsvDataIterator 2", \equalsIterated(), (i, new ListIterator(Output)));
 
-    } */
-
+    }
+*/
 }
