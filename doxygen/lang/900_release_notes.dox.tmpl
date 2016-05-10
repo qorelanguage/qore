@@ -40,15 +40,15 @@
         - @ref Qore::Program::importSystemClasses()
         - @ref Qore::Program::importSystemConstants()
         - @ref Qore::Program::importSystemFunctions()
-	.
-	additionally user modules can be loaded with overridden injected code with the following new functions / methods:
+        .
+        additionally user modules can be loaded with overridden injected code with the following new functions / methods:
         - @ref Qore::load_user_module_with_program() "load_user_module_with_program()"
         - @ref Qore::Program::loadApplyToPrivateUserModule() "Program::loadApplyToPrivateUserModule()"
         - @ref Qore::Program::loadApplyToUserModule() "Program::loadApplyToUserModule()"
         - @ref Qore::Program::loadUserModuleWithProgram() "Program::loadUserModuleWithProgram()"
-	.
-	furthermore the following function can be used to reload injected modules with the non-injected version:
-	- @ref Qore::reload_module() "reload_module()"
+        .
+        furthermore the following function can be used to reload injected modules with the non-injected version:
+        - @ref Qore::reload_module() "reload_module()"
     - implemented support for user-defined thread-resource management, allowing %Qore code to safely manage resources associated to a particular thread:
       - @ref Qore::Thread::AbstractThreadResource
       - @ref Qore::Thread::remove_thread_resource()
@@ -223,8 +223,8 @@
         - HttpServer::getListenerLogOptionsID()
         - HttpServer::setListenerLogOptions()
         - HttpServer::setListenerLogOptionsID()
-	- HttpServer::addListeners() (new variant taking a hash of SSL info)
-	- HttpServer::listenerStarted() (to allow for reporting when listeners are actually running since they are started asynchronously)
+        - HttpServer::addListeners() (new variant taking a hash of SSL info)
+        - HttpServer::listenerStarted() (to allow for reporting when listeners are actually running since they are started asynchronously)
       - improved performance matching request URIs to handlers
       - added the \c "ssl" key to the listener socket info hash
       - implemented support for notifying persistent connections when the connection is terminated while a persistent connection is in place
@@ -539,7 +539,7 @@
       - fixed TimeZone copying to use the standard name instead of the display name so that the info can be found in the registry
       - <a href="../../modules/Util/html/index.html">Util</a> module fixes:
         - fixed get_random_string() on Windows
-	- fixed absolute_path_windows()
+        - fixed absolute_path_windows()
       - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module fixes:
         - when binding a wildcard address with @ref Qore::AF_UNSPEC "AF_UNSPEC" on Windows with HttpServer::addListeners()
           and both IPv6 and IPv4 addresses are returned, bind both addresses since Windows doesn't direct the IPv4 requests to the wildcard-bound IPv6 listener
@@ -811,7 +811,7 @@
     - other new methods and method changes:
       - added new static methods in the @ref Qore::ReadOnlyFile "ReadOnlyFile" class making it easier to read entire files in one call:
         - @ref Qore::ReadOnlyFile::readTextFile()
-	- @ref Qore::ReadOnlyFile::readBinaryFile()
+        - @ref Qore::ReadOnlyFile::readBinaryFile()
       - changes to catch usage errors with the @ref Qore::Thread::Counter "Counter" class:
         - Qore::Thread::Counter::constructor() will throw an exception if called with an argument < 0
         - Qore::Thread::Counter::dec() will now throw an exception if called when the Counter is already at 0
@@ -967,8 +967,8 @@
     - new location tags \c "source" and \c "offset" added for parse and runtime exceptions to allow for error-reporting to display information about files where sections of a source file are parsed; this allows both the label and line offset in the label and the file name and absolute file line position to be reported in exception information
       - new parameters added to the following methods and function to accommodate the new location information:
         - @ref Qore::Program::parse() "Program::parse()"
-	- @ref Qore::Program::parsePending() "Program::parsePending()"
-	- @ref Qore::parse() "parse()"
+        - @ref Qore::Program::parsePending() "Program::parsePending()"
+        - @ref Qore::parse() "parse()"
       - see @ref exception_hash "Exception Hash" and @ref callstack "Call Stacks" for new keys in eception and call stack information hashes
     - <date>::format() now accepts \c "us" for microseconds (see @ref date_formatting)
     - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> module improvements:
