@@ -85,7 +85,7 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
                 "footer": ("type", "total"),
             ),
             "resolve_type": softstring sub(hash values) {
-                softint type = exists values{'type'}?values{'type'}:values{'0'};
+                softint type = values{'type'}??values{'0'};
                 switch (type) {
                     case 1:
                         return "header";
