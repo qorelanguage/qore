@@ -41,6 +41,7 @@
 #ifdef HAVE_PWD_H
 #include <pwd.h>
 #include <grp.h>
+#include <dirent.h>
 #endif
 #include <errno.h>
 #include <time.h>
@@ -1618,7 +1619,22 @@ int qore_usleep(int64 usecs) {
 
 bool q_path_is_readable(const char* path) {
 #if defined HAVE_PWD_H
-   int rc = open(path, O_RDONLY);
+   struct stat sbuf;
+   int rc;
+
+   if ((rc = stat(path, &sbuf)))
+      return false;
+   
+   if (S_ISDIR(sbuf.st_mode)) { // If path is a directory.
+      DIR* dp = opendir(path);
+      if (dp != NULL) {
+         closedir(dp);
+         return true;
+      }
+      return false;
+   }
+
+   rc = open(path, O_RDONLY);
    if (rc != -1) {
       close(rc);
       return true;

@@ -70,7 +70,24 @@ static bool check_lstat(unsigned code, const QoreString& path) {
 
 static bool is_writable_intern(const QoreStringNode* path) {
 #if defined HAVE_PWD_H
-   int rc = open(path->getBuffer(), O_WRONLY);
+   struct stat sbuf;
+   int rc;
+
+   if ((rc = stat(path->getBuffer(), &sbuf)))
+      return false;
+
+   if (S_ISDIR(sbuf.st_mode)) { // If path is a directory.
+      QoreStringMaker tfn("%s/xxx_qore_tmp_test_xxx", path->getBuffer());
+      rc = open(tfn.getBuffer(), O_WRONLY | O_CREAT);
+      if (rc != -1) {
+         close(rc);
+         unlink(tfn.getBuffer());
+         return true;
+      }
+      return false;
+   }
+
+   rc = open(path->getBuffer(), O_WRONLY);
    if (rc != -1) {
       close(rc);
       return true;
@@ -302,11 +319,11 @@ bool is_link(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 #endif
 }
 
-//! Returns @ref True if the string passed identifies a file readable by the current user, @ref False if not
+//! Returns @ref True if the string passed identifies a file or a directory readable by the current user, @ref False if not
 /**
     @param path the path to check
 
-    @return @ref True if the string passed identifies a file readable by the current user, @ref False if not
+    @return @ref True if the string passed identifies a file or a directory readable by the current user, @ref False if not
 
     @par Example:
     @code{.py}
@@ -319,11 +336,11 @@ bool is_readable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    return q_path_is_readable(path->getBuffer());
 }
 
-//! Returns @ref True if the string passed identifies a file writable by the current user, @ref False if not
+//! Returns @ref True if the string passed identifies a file or a directory writable by the current user, @ref False if not
 /**
     @param path the path to check
 
-    @return @ref True if the string passed identifies a file writable by the current user, @ref False if not
+    @return @ref True if the string passed identifies a file or a directory writable by the current user, @ref False if not
 
     @par Example:
     @code{.py}
@@ -336,11 +353,11 @@ bool is_writable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    return is_writable_intern(path);
 }
 
-//! Returns @ref True if the string passed identifies a file writable by the current user (backwards-compatible misspelling of is_writable())
+//! Returns @ref True if the string passed identifies a file or a directory writable by the current user (backwards-compatible misspelling of is_writable())
 /**
     @param path the path to check
 
-    @return @ref True if the string passed identifies a file writable by the current user, @ref False if not
+    @return @ref True if the string passed identifies a file or a directory writable by the current user, @ref False if not
 
     @par Example:
     @code{.py}
