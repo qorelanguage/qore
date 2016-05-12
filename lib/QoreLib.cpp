@@ -1618,19 +1618,13 @@ int qore_usleep(int64 usecs) {
 
 bool q_path_is_readable(const char* path) {
 #if defined HAVE_PWD_H
-   struct stat sbuf;
-   int rc;
-
-   if ((rc = stat(path, &sbuf)))
-      return false;
-
-   uid_t euid = geteuid();
-   if (!euid || sbuf.st_mode & S_IROTH
-         || (euid      == sbuf.st_uid && (sbuf.st_mode & S_IRUSR))
-         || (getegid() == sbuf.st_gid && (sbuf.st_mode & S_IRGRP)))
+   int rc = open(path, O_RDONLY);
+   if (rc != -1) {
+      close(rc);
       return true;
-
+   }
    return false;
+
 #elif defined(HAVE_ACCESS) && defined(_Q_WINDOWS)
    // only use access(2) on Windows
    return !access(path, R_OK);

@@ -70,26 +70,13 @@ static bool check_lstat(unsigned code, const QoreString& path) {
 
 static bool is_writable_intern(const QoreStringNode* path) {
 #if defined HAVE_PWD_H
-   // does not cover situations like:
-   // $ id
-   // uid=5920(user1) gid=6183(group1) groups=6003(group2),6183(group3)
-   // $ ls -la /foo/bar/
-   // drwxrwsr-x 2  5921 group2 4096 Aug  7 14:37 .
-   // where 6183(group1) is an effective group etc so geteuid() != dir group
-
-   struct stat sbuf;
-   int rc;
-
-   if ((rc = stat(path->getBuffer(), &sbuf)))
-      return false;
-
-   uid_t euid = geteuid();
-   if (!euid || sbuf.st_mode & S_IWOTH
-       || (euid      == sbuf.st_uid && (sbuf.st_mode & S_IWUSR))
-       || (getegid() == sbuf.st_gid && (sbuf.st_mode & S_IWGRP)))
+   int rc = open(path->getBuffer(), O_WRONLY);
+   if (rc != -1) {
+      close(rc);
       return true;
-
+   }
    return false;
+
 #elif defined(HAVE_ACCESS) && defined(_Q_WINDOWS)
    // only use access(2) on Windows
    return access(path->getBuffer(), W_OK) == 0;
