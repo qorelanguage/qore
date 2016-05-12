@@ -41,6 +41,7 @@
 #ifdef HAVE_PWD_H
 #include <pwd.h>
 #include <grp.h>
+#include <dirent.h>
 #endif
 #include <errno.h>
 #include <time.h>
@@ -1623,14 +1624,23 @@ bool q_path_is_readable(const char* path) {
 
    if ((rc = stat(path, &sbuf)))
       return false;
+   
+   if (S_ISDIR(sbuf.st_mode)) { // If path is a directory.
+      DIR* dp = opendir(path);
+      if (dp != NULL) {
+         closedir(dp);
+         return true;
+      }
+      return false;
+   }
 
-   uid_t euid = geteuid();
-   if (!euid || sbuf.st_mode & S_IROTH
-         || (euid      == sbuf.st_uid && (sbuf.st_mode & S_IRUSR))
-         || (getegid() == sbuf.st_gid && (sbuf.st_mode & S_IRGRP)))
+   rc = open(path, O_RDONLY);
+   if (rc != -1) {
+      close(rc);
       return true;
-
+   }
    return false;
+
 #elif defined(HAVE_ACCESS) && defined(_Q_WINDOWS)
    // only use access(2) on Windows
    return !access(path, R_OK);
