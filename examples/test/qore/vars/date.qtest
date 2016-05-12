@@ -19,6 +19,7 @@ class DateTest inherits QUnit::Test {
     constructor() : QUnit::Test("DateTest", "1.0") {
         addTestCase("DateTests", \dateTests());
         addTestCase("TimeZoneTests", \timeZoneTests());
+        addTestCase("WindowsTimeZoneTests", \windowsTimeZoneTests());
 
         set_return_value(main());
     }
@@ -215,6 +216,16 @@ class DateTest inherits QUnit::Test {
 
         # test for issue #584
         assertEq(-14400, new TimeZone("America/New_York").date("1980-07-01").info().utc_secs_east);
+    }
+
+    windowsTimeZoneTests() {
+        if (PlatformOS != "Windows")
+            testSkip("skipping because the test is not run on Windows");
+
+        assertEq("Europe/Vienna", new TimeZone("Europe/Vienna").region());
+        assertEq("Europe/Belgrade", new TimeZone("Central Europe Standard Time").region());
+        assertEq("Europe/Sarajevo", new TimeZone("Central European Standard Time").region());
+        assertThrows("TZINFO-ERROR", sub () { any x = new TimeZone("ABCDEF"); });
     }
 
     testDate(date d, int y, int w, int day, int n, reference ri) {

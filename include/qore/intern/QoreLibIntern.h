@@ -635,6 +635,8 @@ public:
 
    DLLLOCAL hash_assignment_priv(ExceptionSink* xsink, QoreHashNode& n_h, const QoreString* key, bool must_already_exist = false);
 
+   DLLLOCAL void reassign(const char* key, bool must_already_exist = false);
+
    DLLLOCAL AbstractQoreNode* swapImpl(AbstractQoreNode* v);
 
    DLLLOCAL AbstractQoreNode* getValueImpl() const;

@@ -265,6 +265,7 @@ my hash $schema = (
     - return lists from Oracle's data dictionary ordered
     - implemented @ref OracleSqlUtil::OracleTable::bindEmptyStringsAsNull()
     - implemented high-performance "upsert" (merge) support also supporting bulk DML
+    - implemented @ref SqlUtil::cop_substr() and @ref SqlUtil::uop_substr() operators (<a href="https://github.com/qorelanguage/qore/issues/801">issue 801</a>)
 
     @subsection v11 OracleSqlUtil v1.1
     - fixed selects with "limit" but no "offset"
@@ -1861,6 +1862,13 @@ my any $v = $c.name;
                         }
                         sql += ")";
                         return sql;
+                    },
+                ),
+                COP_SUBSTR: (
+                    "code": string sub (string cve, list args) {
+                        if (!exists args[1])
+                            return sprintf("substr(%s,%d)", cve, args[0]);
+                        return sprintf("substr(%s,%d,%d)", cve, args[0], args[1]);
                     },
                 ),
                 COP_OVER: (

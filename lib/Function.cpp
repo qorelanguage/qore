@@ -217,24 +217,34 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
 
    //printd(5, "processDefaultArgs() %s nargs: %d nparams: %d flags: %lld po: %d\n", func->getName(), nargs, nparams, variant->getFlags(), (bool)(getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS)));
    //if (nargs > nparams && (getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS))) {
-if (nargs > nparams && (runtime_get_parse_options() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS))) {
-      int64 flags = variant->getFlags();
+   if (nargs > nparams) {
+      // use the target program (if different than the current pgm) to check for argument errors
+      const UserVariantBase* uvb = variant->getUserVariantBase();
+      int64 po;
+      if (uvb)
+	 po = uvb->pgm->getParseOptions64();
+      else
+	 po = runtime_get_parse_options();
 
-      if (!(flags & QC_USES_EXTRA_ARGS)) {
-	 for (unsigned i = nparams; i < nargs; ++i) {
-	    //printd(5, "processDefaultArgs() %s arg %d nothing: %d\n", func->getName(), i, is_nothing(tmp->retrieve_entry(i)));
-	    if (!tmp->retrieveEntry(i).isNothing()) {
-	       QoreStringNode* desc = new QoreStringNode("call to ");
-	       do_call_name(*desc, func);
-	       if (nparams)
-		  desc->concat(sig->getSignatureText());
-	       desc->concat(") made as ");
-	       do_call_name(*desc, func);
-	       add_args(*desc, *tmp);
-	       unsigned diff = nargs - nparams;
-	       desc->sprintf(") with %d excess argument%s, which is an error when PO_REQUIRE_TYPES or PO_STRICT_ARGS is set", diff, diff == 1 ? "" : "s");
-	       xsink->raiseException("CALL-WITH-TYPE-ERRORS", desc);
-	       return -1;
+      if (po & (PO_REQUIRE_TYPES | PO_STRICT_ARGS)) {
+	 int64 flags = variant->getFlags();
+
+	 if (!(flags & QC_USES_EXTRA_ARGS)) {
+	    for (unsigned i = nparams; i < nargs; ++i) {
+	       //printd(5, "processDefaultArgs() %s arg %d nothing: %d\n", func->getName(), i, is_nothing(tmp->retrieve_entry(i)));
+	       if (!tmp->retrieveEntry(i).isNothing()) {
+		  QoreStringNode* desc = new QoreStringNode("call to ");
+		  do_call_name(*desc, func);
+		  if (nparams)
+		     desc->concat(sig->getSignatureText());
+		  desc->concat(") made as ");
+		  do_call_name(*desc, func);
+		  add_args(*desc, *tmp);
+		  unsigned diff = nargs - nparams;
+		  desc->sprintf(") with %d excess argument%s, which is an error when PO_REQUIRE_TYPES or PO_STRICT_ARGS is set", diff, diff == 1 ? "" : "s");
+		  xsink->raiseException("CALL-WITH-TYPE-ERRORS", desc);
+		  return -1;
+	       }
 	    }
 	 }
       }

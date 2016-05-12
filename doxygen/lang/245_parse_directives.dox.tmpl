@@ -1153,6 +1153,9 @@ if (str)
 
     @par Description:
     Requires type declarations for all function and method parameters, return types, variables, and object members.
+    Additionally causes \c CALL-WITH-TYPE-ERRORS exceptions to be thrown if a function, method, or @ref code_type "code" call is made
+    with excess arguments not handled by the target.  In case calls are made to user code over a @ref Qore::Program "Program" barrier,
+    the parse options of the target code determine if this exception is raised;
 
     @see @ref require-prototypes "%require-prototypes", which is a subset of this option.
 
@@ -1214,6 +1217,9 @@ if (str)
 
     @par Description:
     Prohibits access to builtin functions and methods flagged with @ref RUNTIME_NOOP and also causes errors to be raised if excess arguments are given to functions that do not access excess arguments.
+    Additionally, If a function, method, or @ref code_type "code" call is made with excess arguments not handled by the target, a
+    \c CALL-WITH-TYPE-ERRORS exception is thrown.  In case calls are made to user code over a @ref Qore::Program "Program" barrier,
+    the parse options of the target code determine if this exception is raised;
 
     <hr>
     @section strict-bool-eval %strict-bool-eval

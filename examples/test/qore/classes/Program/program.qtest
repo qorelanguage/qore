@@ -66,6 +66,8 @@ class ProgramTest inherits QUnit::Test {
 	addTestCase("Program test", \programTest());
 	addTestCase("Combine test", \combineTest());
         addTestCase("Int assignments test", \intAssignmentsTest());
+        addTestCase("constant exp test", \constantExpressionTest());
+        addTestCase("type error test", \typeErrorTest());
 	set_return_value(main());
     }
 
@@ -164,6 +166,25 @@ class ProgramTest inherits QUnit::Test {
             Program p(PO_NEW_STYLE|PO_BROKEN_INT_ASSIGNMENTS);
             p.parse("any h = {}; int i = h;", "");
 
+            assertEq(NOTHING, p.run());
+        }
+    }
+
+    constantExpressionTest() {
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("ILLEGAL-MEMBER-REFERENCE", \p.parse(), ("class T {public {int i;} t() {while (True) {switch (1) {case 1+i: break;}}}}", ""));
+        }
+    }
+
+    typeErrorTest() {
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS);
+            assertThrows("CALL-WITH-TYPE-ERRORS", \p.parse(), ("sub f() {} f(1);", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_NO_CHILD_PO_RESTRICTIONS|PO_STRICT_ARGS);
+            p.parse("Program p(PO_NEW_STYLE); p.parse('sub f() {}', ''); p.callFunction('f', 1);", "");
             assertEq(NOTHING, p.run());
         }
     }

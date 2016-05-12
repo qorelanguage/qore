@@ -40,15 +40,15 @@
         - @ref Qore::Program::importSystemClasses()
         - @ref Qore::Program::importSystemConstants()
         - @ref Qore::Program::importSystemFunctions()
-	.
-	additionally user modules can be loaded with overridden injected code with the following new functions / methods:
+        .
+        additionally user modules can be loaded with overridden injected code with the following new functions / methods:
         - @ref Qore::load_user_module_with_program() "load_user_module_with_program()"
         - @ref Qore::Program::loadApplyToPrivateUserModule() "Program::loadApplyToPrivateUserModule()"
         - @ref Qore::Program::loadApplyToUserModule() "Program::loadApplyToUserModule()"
         - @ref Qore::Program::loadUserModuleWithProgram() "Program::loadUserModuleWithProgram()"
-	.
-	furthermore the following function can be used to reload injected modules with the non-injected version:
-	- @ref Qore::reload_module() "reload_module()"
+        .
+        furthermore the following function can be used to reload injected modules with the non-injected version:
+        - @ref Qore::reload_module() "reload_module()"
     - implemented support for user-defined thread-resource management, allowing %Qore code to safely manage resources associated to a particular thread:
       - @ref Qore::Thread::AbstractThreadResource
       - @ref Qore::Thread::remove_thread_resource()
@@ -175,7 +175,6 @@
       - implemented the global \c "date_format" mapper option
       - implemented support for structured output fields with dot notation in the output field name
       - implemented per-field and global \c "number_format" mapper options
-      - fixed bugs in the \c "timezone" and \c "input_timezone" options, documented those options
       - changed the behavior of the \c "number" field type: now leaves numeric values in their original type, converts all other types to a number
       - removed the deprecated \c "crec" option
       - implemented the \c "input" option with input record validation
@@ -224,8 +223,9 @@
         - HttpServer::getListenerLogOptionsID()
         - HttpServer::setListenerLogOptions()
         - HttpServer::setListenerLogOptionsID()
+        - HttpServer::addListeners() (new variant taking a hash of SSL info)
+        - HttpServer::listenerStarted() (to allow for reporting when listeners are actually running since they are started asynchronously)
       - improved performance matching request URIs to handlers
-      - added the HttpServer::listenerStarted() method to allow for reporting when listeners are actually running since they are started asynchronously
       - added the \c "ssl" key to the listener socket info hash
       - implemented support for notifying persistent connections when the connection is terminated while a persistent connection is in place
       - removed the unused AbstractStreamRequestHandler class
@@ -268,6 +268,7 @@
       - column aliases (defined with cop_as()) can now be used in the where hash argument and in join criteria
       - column operator functions can be used in the where clause and in join conditions (<a href="https://github.com/qorelanguage/qore/issues/529">issue 529</a>)
       - implemented the \c "cop_coalesce()" column operation function to support the \c "COALESCE" operator in queries (<a href="https://github.com/qorelanguage/qore/issues/671">issue 671</a>)
+      - implemented @ref SqlUtil::cop_substr() and @ref SqlUtil::uop_substr() operators (<a href="https://github.com/qorelanguage/qore/issues/801">issue 801</a>)
       - implemented the \c "omit_update" upsert option for asymmetrical upserts (updates only update a subset of the columns inserted) (<a href="https://github.com/qorelanguage/qore/issues/791">issue 791</a>)
       - implemented the \c "UpsertUpdateOnly" upsert option (<a href="https://github.com/qorelanguage/qore/issues/793">issue 793</a>)
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module updates:
@@ -277,6 +278,7 @@
       - implemented AbstractTable::emptyStringsAsNull()
     - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module updates:
       - added support for the following datatypes and aliases: \c bool, \c float, \c int, \c timetz, \c timestamptz, \c varbit
+      - added support for listing PostgreSQL types and materialized views (<a href="https://github.com/qorelanguage/qore/issues/699">issue 699</a>)
     - <a href="../../modules/MysqlSqlUtil/html/index.html">MysqlSqlUtil</a> module updates:
       - added support for the following datatypes: \c binary, \c varbinary
     - <a href="../../modules/Util/html/index.html">Util</a> module updates:
@@ -285,6 +287,7 @@
       - added public function \c ordinal()
       - added public function \c plural()
       - added public function \c regex_escape()
+     - \c parse_to_qore_value() now respects parenthes when parsing lists and hashes (<a href="https://github.com/qorelanguage/qore/issues/846">issue 846</a>)
     - added initial support for UTF-16 character encoding; note that UTF-16 is not backwards-compatible with ASCII and therefore not supported universally in %Qore; it's recommended to convert these strings to UTF-8 in %Qore; do not use UTF-16 as the default character encoding in %Qore; currently UTF-16 data can be parsed using the following classes that convert the data to UTF-8:
       - @ref Qore::DataLineIterator
       - @ref Qore::FileLineIterator
@@ -303,6 +306,7 @@
       - fixed a bug in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module where chunked sends were not received and decoded properly in all cases for handlers that did not explicitly handle chunked messages
       - fixed a bug in HttpServer::addListener() with an integer argument; a UNIX socket was opened instead of a wildcard listener on the given port
       - fixed typos causing bugs in HTTP error logging (<a href="https://github.com/qorelanguage/qore/issues/308">issue 308</a>)
+      - fixed a bug formatting IPv6 host addresses in the return value to \c HttpServer::http_get_url_from_bind() (<a href="https://github.com/qorelanguage/qore/issues/821">issue 821</a>)
     - <a href="../../modules/RestClient/html/index.html">RestClient</a> module fixes:
       - fixed bugs where URI strings were improperly encoded and decoded (also fixed in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module)
       - fixed a bug where URI paths were sent as relative paths instead of absolute paths
@@ -513,6 +517,11 @@
     - fixed a bug on Windows where @ref Qore::glob() returned files matched without the leading path component (<a href="https://github.com/qorelanguage/qore/issues/761">issue 761</a>)
     - fixed a bug with socket connection refused handling on Windows where connections were waiting until the timeout instead of returning an error immediately (<a href="https://github.com/qorelanguage/qore/issues/763">issue 763</a>)
     - fixed a bug where it was not possible to escape an escape character before a \c '$' character in a regular expression substitution target string (<a href="https://github.com/qorelanguage/qore/issues/777">issue 777</a>)
+    - fixed a bug where object member references were treated as expressions returning a constant value which could cause a crash when used in an expression used to initialize a constant value at parse time (<a href="https://github.com/qorelanguage/qore/issues/817">issue 817</a>)
+    - fixed a bug parsing IPv6 localhost (\c "::") with @ref Qore::parse_url() (<a href="https://github.com/qorelanguage/qore/issues/822">issue 822</a>)
+    - fixed a bug in Windows timezone handling caused by erroneous region names (<a href="https://github.com/qorelanguage/qore/issues/824">issue 824</a>)
+    - fixed an internal memory-handling bug that caused a crash when cleaning up the qore library on FreeBSD with clang++ and possibly other platforms (<a href="https://github.com/qorelanguage/qore/issues/839">issue 839</a>)
+    - fixed a bug where \c CALL-WITH-TYPE-ERROR exceptions were thrown based on the parse options in the caller instead of in the target when calling across a @ref Qore::Program "Program" barrier (<a href="https://github.com/qorelanguage/qore/issues/841">issue 841</a>)
 
     @section qore_0811 Qore 0.8.11
 
@@ -530,7 +539,7 @@
       - fixed TimeZone copying to use the standard name instead of the display name so that the info can be found in the registry
       - <a href="../../modules/Util/html/index.html">Util</a> module fixes:
         - fixed get_random_string() on Windows
-	- fixed absolute_path_windows()
+        - fixed absolute_path_windows()
       - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module fixes:
         - when binding a wildcard address with @ref Qore::AF_UNSPEC "AF_UNSPEC" on Windows with HttpServer::addListeners()
           and both IPv6 and IPv4 addresses are returned, bind both addresses since Windows doesn't direct the IPv4 requests to the wildcard-bound IPv6 listener
@@ -802,7 +811,7 @@
     - other new methods and method changes:
       - added new static methods in the @ref Qore::ReadOnlyFile "ReadOnlyFile" class making it easier to read entire files in one call:
         - @ref Qore::ReadOnlyFile::readTextFile()
-	- @ref Qore::ReadOnlyFile::readBinaryFile()
+        - @ref Qore::ReadOnlyFile::readBinaryFile()
       - changes to catch usage errors with the @ref Qore::Thread::Counter "Counter" class:
         - Qore::Thread::Counter::constructor() will throw an exception if called with an argument < 0
         - Qore::Thread::Counter::dec() will now throw an exception if called when the Counter is already at 0
@@ -958,8 +967,8 @@
     - new location tags \c "source" and \c "offset" added for parse and runtime exceptions to allow for error-reporting to display information about files where sections of a source file are parsed; this allows both the label and line offset in the label and the file name and absolute file line position to be reported in exception information
       - new parameters added to the following methods and function to accommodate the new location information:
         - @ref Qore::Program::parse() "Program::parse()"
-	- @ref Qore::Program::parsePending() "Program::parsePending()"
-	- @ref Qore::parse() "parse()"
+        - @ref Qore::Program::parsePending() "Program::parsePending()"
+        - @ref Qore::parse() "parse()"
       - see @ref exception_hash "Exception Hash" and @ref callstack "Call Stacks" for new keys in eception and call stack information hashes
     - <date>::format() now accepts \c "us" for microseconds (see @ref date_formatting)
     - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> module improvements:

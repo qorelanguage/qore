@@ -106,10 +106,13 @@ private:
       bool has_port = false;
       // see if there's a port
       if ((p = (char* )strrchr(pos, ':'))) {
-	 *p = '\0';
-	 port = atoi(p + 1);
-	 has_port = true;
-	 printd(5, "QoreURL::parse_intern port=%d\n", port);
+         // see if it's Ipv6 localhost (::)
+         if (p != (pos + 1) || *pos != ':') {
+            *p = '\0';
+            port = atoi(p + 1);
+            has_port = true;
+            printd(5, "QoreURL::parse_intern port=%d\n", port);
+         }
       }
 
       // there is no hostname if there is no port specification and

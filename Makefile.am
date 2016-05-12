@@ -45,8 +45,6 @@ DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/Diff.qm \
 	qlib/BulkSqlUtil.qm
 
-TESTSCRIPTS=`find ./examples/test/ -name "*.qtest"`
-
 USER_MODULES = $(DOX_SRC_MODULES) \
 	$(DOX_MODULES)
 
@@ -130,6 +128,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_SSLPrivateKey.qpp \
 	lib/QC_ThreadPool.qpp \
 	lib/QC_TreeMap.qpp \
+	lib/QC_AbstractThreadResource.qpp \
 	lib/Pseudo_QC_All.qpp \
 	lib/Pseudo_QC_Nothing.qpp \
 	lib/Pseudo_QC_Date.qpp \
@@ -211,6 +210,7 @@ include_HEADERS = \
 	include/qore/macros-powerpc.h \
 	include/qore/macros-sparc.h \
 	include/qore/macros-ia64.h \
+	include/qore/macros-parisc.h \
 	include/qore/QoreSocket.h \
 	include/qore/QoreSocketObject.h \
 	include/qore/QoreNet.h \
@@ -256,6 +256,8 @@ noinst_HEADERS = \
 	include/qore/intern/win32-config.h \
 	include/qore/intern/git-revision.h \
 	include/qore/intern/glob.h \
+	include/qore/intern/RSet.h \
+	include/qore/intern/ParseList.h \
 	include/qore/intern/AbstractIteratorHelper.h \
 	include/qore/intern/ParseReferenceNode.h \
 	include/qore/intern/ReferenceHelper.h \
@@ -263,6 +265,7 @@ noinst_HEADERS = \
 	include/qore/intern/ssl_constants.h \
 	include/qore/intern/qore_thread_intern.h \
 	include/qore/intern/qore_list_private.h \
+	include/qore/intern/qore_value_list_private.h \
 	include/qore/intern/inline_printf.h \
 	include/qore/intern/qore_qf_private.h \
 	include/qore/intern/VRMutex.h \
@@ -538,14 +541,7 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
 	AUTHORS BUILDING \
 	README.md README-LICENSE README-MODULES \
 	COPYING.LGPL COPYING.GPL COPYING.MIT \
-	$(TESTSCRIPTS) \
-	examples/test/qore/misc/module-loader/A.qm \
-	examples/test/qore/misc/module-loader/B.qm \
-	examples/test/qore/misc/module-loader/C.qm \
-	examples/test/qore/misc/module-loader/R1.qm \
-	examples/test/qore/misc/module-loader/R2.qm \
-	examples/test/qore/misc/module-loader/MyTestModule.qm \
-	examples/test/qore/misc/module-loader/MyTestModule2.qm \
+	examples/test \
 	examples/HelloWorld.q \
 	examples/clisrv.q \
 	examples/email.q \
@@ -576,13 +572,21 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
 
 dist_modver_DATA = $(USER_MODULES)
 
-TESTS = $(TESTSCRIPTS)
+include $(srcdir)/qoretests.mk
+
+# all tests
+TESTS = $(qore_tests)
+#TESTS = `find ./examples/test/ -name "*.qtest"`
+
 AM_TESTS_ENVIRONMENT = QORE_MODULE_DIR='$(srcdir)/qlib'; export QORE_MODULE_DIR;
 
 BUILT_SOURCES = dummy
 
 dummy:
 	$(top_srcdir)/next_build.sh
+
+dist-hook:
+	$(RM) -rf `find $(distdir)/examples/test -type f -a \! -name \*.qtest -a \! -name \*.qm -a \! -name Europe_Vienna`
 
 if COND_DOXYGEN
 MOD_OUTPUT = $(addprefix docs/modules/,$(addsuffix /html,$(USER_MODS)))

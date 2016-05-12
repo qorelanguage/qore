@@ -1563,20 +1563,20 @@ QoreValue IntNumberOperatorFunction::eval(const AbstractQoreNode* left, const Ab
 
 Operator::~Operator() {
    // erase all functions
-   for (unsigned i = 0, size = functions.size(); i < size; i++)
-      delete functions[i];
-   if (opMatrix)
-      delete [] opMatrix;
+  for (unsigned i = 0, size = functions.size(); i < size; i++)
+     delete functions[i];
 }
 
 void Operator::init() {
    if (!evalArgs || (functions.size() == 1))
       return;
-   opMatrix = new int[NUM_VALUE_TYPES][NUM_VALUE_TYPES];
+   op_matrix.resize(NUM_VALUE_TYPES);
    // create function lookup matrix for value types
-   for (qore_type_t i = 0; i < NUM_VALUE_TYPES; i++)
+   for (qore_type_t i = 0; i < NUM_VALUE_TYPES; i++) {
+      op_matrix[i].resize(NUM_VALUE_TYPES);
       for (qore_type_t j = 0; j < NUM_VALUE_TYPES; j++)
-	 opMatrix[i][j] = findFunction(i, j);
+	 op_matrix[i][j] = findFunction(i, j);
+   }
 }
 
 AbstractQoreNode* Operator::parseInit(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& resultTypeInfo) {
@@ -1608,7 +1608,7 @@ int Operator::get_function(const QoreNodeEvalOptionalRefHolder &nleft, Exception
    if (functions.size() == 1)
       t = 0;
    else if (nleft->getType() < NUM_VALUE_TYPES)
-      t = opMatrix[nleft->getType()][NT_NOTHING];
+      t = op_matrix[nleft->getType()][NT_NOTHING];
    else
       t = findFunction(nleft->getType(), NT_NOTHING);
 
@@ -1622,7 +1622,7 @@ int Operator::get_function(const QoreNodeEvalOptionalRefHolder &nleft, const Qor
    if (functions.size() == 1)
       t = 0;
    else if (nleft->getType() < NUM_VALUE_TYPES && nright->getType() < NUM_VALUE_TYPES)
-      t = opMatrix[nleft->getType()][nright->getType()];
+      t = op_matrix[nleft->getType()][nright->getType()];
    else
       t = findFunction(nleft->getType(), nright->getType());
 
@@ -1731,11 +1731,9 @@ OperatorList::OperatorList() {
 }
 
 OperatorList::~OperatorList() {
-   oplist_t::iterator i;
-   while ((i = begin()) != end()) {
+   for (oplist_t::iterator i = begin(), e = end(); i != e; ++i)
       delete (*i);
-      erase(i);
-   }
+   clear();
 }
 
 Operator *OperatorList::add(Operator *o) {
