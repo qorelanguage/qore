@@ -714,7 +714,7 @@ public namespace CsvUtil {
                             return False;
 
                         # get and parse header row
-                        assignHeaders(parseLine());
+                        assignHeaders(getLineValueImpl().split(separator, quote, ignoreWhitespace));
 
                         # set field description list if necessary
                         if (fields)
@@ -936,9 +936,9 @@ while (i.next()) {
         #! parses a line in the file and returns a processed list of the fields
         private list parseLine() {
             list l = getLineValueImpl().split(separator, quote, ignoreWhitespace);
-            if (!setHFDef(l))
+            if (!setHFDef(l)) {
                 return ();
-
+            }
             # verify column count if requested
             if (checkElementCounts) {
                 if (!exists cc)
