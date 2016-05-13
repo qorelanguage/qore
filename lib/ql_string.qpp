@@ -96,7 +96,7 @@ static const char* memstr(const char* str, const char* pattern, qore_size_t pl, 
       if (!p)
 	 return 0;
 
-      //printd(5, "memstr() pattern=%s str=%p p=%p len=%d pl=%d remaining=%d (%c %c %c)\n", pattern, str, p, len, pl, len-(p-str), p[1], p[2], p[3]);
+      //printd(5, "memstr() pattern: %s str: %p p: %p len: %d pl: %d remaining: %d (%c %c %c)\n", pattern, str, p, len, pl, len-(p-str), p[1], p[2], p[3]);
 
       // if there is not enough string left for the pattern, then return
       if ((len - (p - str)) < pl)
@@ -115,7 +115,7 @@ static const char* memstr(const char* str, const char* pattern, qore_size_t pl, 
 	 continue;
 
       // found
-      //printd(5, "memstr() got it! p=%p\n", p);
+      //printd(5, "memstr() got it! p: %p\n", p);
       return p;
    }
    return 0;
@@ -293,7 +293,7 @@ QoreStringNode* format_float_intern(const QoreString& fmt, double num) {
    }
    val = (int64)num;
    // do not output the decimal character if there should be none
-   if (!val)
+   if (!decimals)
       len = 1;
    if (len == 3) {
       num -= (double)val;
@@ -311,7 +311,7 @@ QoreStringNode* format_float_intern(const QoreString& fmt, double num) {
    val -= mi * 1000000ll;
    th = val / 1000ll;
    val -= th * 1000ll;
-   //printd(0, "tr=%lld bi=%lld mi=%lld th=%lld val=%lld\n", tr, bi, mi, th, val);
+   //printd(5, "tr: %lld bi: %lld mi: %lld th: %lld val: %lld, decimals: %d\n", tr, bi, mi, th, val, decimals);
 
    if (tr) {
       if (len == 3)
@@ -1275,7 +1275,7 @@ string replace(string str, string source, string target, int start = 0, int end 
    }
 
    while (const char* p = strstr(cstr, pattern)) {
-      //printd(5, "str=%p p=%p '%s' '%s'->'%s'\n", cstr, p, cstr, pattern, t1->getBuffer());
+      //printd(5, "str: %p p: %p '%s' '%s'->'%s'\n", cstr, p, cstr, pattern, t1->getBuffer());
       if ((end > 0) && (p - str->getBuffer() + plen) > end)
          break;
 
