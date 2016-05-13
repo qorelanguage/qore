@@ -960,4 +960,14 @@ string s = glob_to_regex ("*.*"); # returns ".*\\..*"
         }
         return '\A' + r + '\Z';
     }
+
+    #! Returns a list of lists, where the i-th list contains the i-th element from each of the argument lists.
+    public list sub zip () {
+        int m = max (map $1.size(), argv);
+        list r;
+        for (int i=0; i < m; i++) {
+            r[i] = map $1[i], argv;
+        }
+        return r ?? ();
+    }
 }
