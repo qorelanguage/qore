@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -292,9 +292,15 @@ QoreStringNode* format_float_intern(const QoreString& fmt, double num) {
       num *= -1;
    }
    val = (int64)num;
+   // do not output the decimal character if there should be none
+   if (!val)
+      len = 1;
    if (len == 3) {
       num -= (double)val;
-      sprintf(chr, "%%.%df", decimals);
+      if (decimals)
+         sprintf(chr, "%%.%df", decimals);
+      else
+         strcpy(chr, "%%f");
       sprintf(dec, chr, num);
    }
    tr = val / 1000000000000ll;

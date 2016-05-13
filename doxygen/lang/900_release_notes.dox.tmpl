@@ -522,7 +522,8 @@
     - fixed a bug in Windows timezone handling caused by erroneous region names (<a href="https://github.com/qorelanguage/qore/issues/824">issue 824</a>)
     - fixed an internal memory-handling bug that caused a crash when cleaning up the qore library on FreeBSD with clang++ and possibly other platforms (<a href="https://github.com/qorelanguage/qore/issues/839">issue 839</a>)
     - fixed a bug where \c CALL-WITH-TYPE-ERROR exceptions were thrown based on the parse options in the caller instead of in the target when calling across a @ref Qore::Program "Program" barrier (<a href="https://github.com/qorelanguage/qore/issues/841">issue 841</a>)
-    - fixed a bug where is_writable and is_readable could return an incorrect value in some cases (<a href="https://github.com/qorelanguage/qore/issues/852">issue 852</a>)
+    - fixed a bug where @ref Qore::is_writable() and @ref Qore::is_readable() could return an incorrect value in some cases (<a href="https://github.com/qorelanguage/qore/issues/852">issue 852</a>)
+    - fixed a bug where @ref Qore::format_number() would return an invalid string when the number of decimals to be returned was 0 (<a href="https://github.com/qorelanguage/qore/issues/851">issue 851</a>)
 
     @section qore_0811 Qore 0.8.11
 
