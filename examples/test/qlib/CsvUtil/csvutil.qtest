@@ -84,7 +84,7 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
                 "item":   ("type", "item_no", "item", "pcs", "price"),
                 "footer": ("type", "total"),
             ),
-            "resolve_type": softstring sub(hash values) {
+            "resolve_type": string sub(hash values) {
                 softint type = values{'type'}??values{'0'};
                 switch (type) {
                     case 1:
@@ -94,7 +94,7 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
                     case 3:
                         return "footer";
                 }
-                return NULL;
+                return '';
             },
         );
 
