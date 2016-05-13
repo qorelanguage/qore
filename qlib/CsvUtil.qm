@@ -29,7 +29,7 @@
 %new-style
 
 module CsvUtil {
-    version = "1.6";
+    version = "1.5";
     desc = "user module for working with CSV files";
     author = "Petr Vanek <petr@yarpen.cz>, David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -118,7 +118,7 @@ while (i.next())
     Use the \c "header_lines" and \c "header_names" @ref abstractcsviterator_options "options" to automatically read the header names from the file if present.  Use the \c "fields" @ref abstractcsviterator_options "option" to describe the fields and perform transformations on the data read.  For more information, see the @ref CsvUtil::CsvFileIterator "CsvFileIterator" class.
 
     @anchor multi_type
-    Multi-type lines are supported as well. Multi-type means the line may have different structure, i.e.fields. The type of line is evaluated in run-time using \c "resolve_type" @ref abstractcsviterator_options "option", typically according to the value of the first field at line. It works for both @ref CsvUtil::AbstractCsvIterator "AbstractCsvIterator" and @ref CsvUtil::AbstractCsvWriter "AbstractCsvWriter".
+    Multi-type lines are supported as well. Multi-type means the line may have different structure, i.e.fields. The type of line is evaluated in run-time using \c "resolve_type" @ref abstractcsviterator_options "option", typically according to the value of the first field at line. It works for both @ref CsvUtil::AbstractCsvIterator "AbstractCsvIterator" and @ref CsvUtil::AbstractCsvWriter "AbstractCsvWriter". Since version 1.5.
     @code{.py}
 #!/usr/bin/env qore
 
@@ -145,7 +145,7 @@ const opts = (
         "item":   ("type", "item_no", "item", "pcs", "price"),
         "footer": ("type", "total"),
     ),
-    'resolve_type': softstring sub(hash values) {
+    'resolve_type': string sub(hash values) {
         softint type = values{'type'}??values{'0'};
         switch (type) {
             case 1:
@@ -155,7 +155,7 @@ const opts = (
             case 3:
                 return "footer";
         }
-        return NULL;
+        return '';
     },
 );
 
@@ -188,9 +188,6 @@ while (i.next()) {
 
     @section csvutil_relnotes Release Notes
 
-    @subsection csvutil_v1_6 Version 1.6
-    - implemented multi-type line support
-
     @subsection csvutil_v1_5 Version 1.5
     - fixed a bug handling the global option \c "eol"
     - converted to new-style
@@ -210,6 +207,7 @@ while (i.next()) {
         - \c "header-names" is now \c "header_names"
         - \c "header-lines" is now \c "header_lines"
         - \c "verify-columns" is now \c "verify_columns"
+    - implemented multi-type line support
 
     @subsection csvutil_v1_4 Version 1.4
     - fixed the \c "format" field option when used with \c "*date" field types
@@ -276,12 +274,12 @@ class CsvHelper {
         *hash fields;
 
         #! current line type
-        *hash curHFDef;
+        *hash curTypeDef;
 
         #! headers / column names for lines iterated and
         #! list of field descriptions (from fields, ordered when headers are set)
         #! for each line type or just one item when no multi type is used
-        hash hfDefs = {};
+        hash typeDefs = {};
 
         #! multi-line detection based on record. List record is hashed (i.e. index is transformed to key), softstring sub (hash values) {}
         code resolveType;
@@ -290,16 +288,16 @@ class CsvHelper {
 
     # multi type data lines
     private bool isMultiType() {
-        return hfDefs.size() > 1 || hfDefs.firstKey();
+        return typeDefs.size() > 1 || typeDefs.firstKey();
     }
 
     private bool hasHeaders() {
-        return hfDefs.size() > 0;
+        return typeDefs.size() > 0;
     }
 
     # sets field description list
     private setFields() {
-        foreach hash d in (hfDefs.pairIterator()) {
+        foreach hash d in (typeDefs.pairIterator()) {
             if (!d.value.fdesc) {
                 # TODO: can I modify value or is not ?
                 if (d.value.headers && tolwr)
@@ -323,7 +321,7 @@ class CsvHelper {
                 if (f && !isMultiType())
                     throw "CSVFILEWRITER-FIELD-ERROR", sprintf("field descriptions were given for the following non-existent fields: %y (known header / field names: %y)", f.keys(), d.value.headers);
 
-                hfDefs{d.key} = d.value;  # TODO: needed ?
+                typeDefs{d.key} = d.value;  # TODO: needed or d.value is already reference to typeDefs ?
             }
         }
     }
@@ -333,8 +331,8 @@ class CsvHelper {
             throw "CSV-TYPE-ERROR", sprintf("while processing the hash value for option key \"fields\": unknown field type %y for field %y (supported types: %y)", value, key, Types.keys());
     }
 
-    private addHeaders(softstring id, list h) {
-        remove hfDefs{id};
+    private addHeaders(*string id, list h) {
+        remove typeDefs{id};
         if (!h) return;
         hash d = (
             "headers": (),
@@ -350,46 +348,46 @@ class CsvHelper {
                 throw "CSVHELPER-ERROR", sprintf("expecting a string value or a value that can be converted to a string for header option; got %y (type %s) in header list position %d instead (full arg: %y)", c, c.type(), $#, h);
             }
         }
-        hfDefs{id} = d;
+        typeDefs{id} = d;
     }
 
     private assignHeaders(any h) {
         switch (h.typeCode()) {
             case NT_HASH:
                 # multi type lines
-                foreach hash i in (h.pairIterator()) {
-                    addHeaders(i.key, i.value);
-                }
+                if (h.hasKeyValue(''))
+                    throw "CSVHELPER-ERROR", sprintf("empty multi-type id is not allowed in headers: %y", h);
+                map addHeaders($1.key, $1.value), h.pairIterator();
                 break;
             case NT_LIST:
-                addHeaders(NULL, h);
+                addHeaders(NOTHING, h);
                 break;
             default:
                 throw "CSVHELPER-ERROR", sprintf("expecting a list or hash value for header option, got %y (type %s)", h, h.type());
         }
-        setHFDef(NULL);
+        setTypeDef(NOTHING);
     }
 
-    private bool setHFDef(any values) {
-        curHFDef = NULL;
+    private bool setTypeDef(any values) {
+        curTypeDef = NOTHING;
         if (isMultiType()) {
             if (values) {
-                softstring t = doResolveType(values);
-                if (exists hfDefs{t}) {
-                    curHFDef = hfDefs{t};
+                string t = doResolveType(values);
+                if (exists typeDefs{t}) {
+                    curTypeDef = typeDefs{t};
                 }
             }
         } else {
-            if (hfDefs) {
-                softstring t = hfDefs.firstKey();
-                curHFDef = hfDefs{t};
+            if (typeDefs) {
+                *string t = typeDefs.firstKey();
+                curTypeDef = typeDefs{t};
             }
         }
-        return curHFDef != NOTHING;
+        return exists curTypeDef;
     }
 
     #! resolve line type when multi-type is needed. Type of values parameter is list (index based values) or hash for name based values.
-    public softstring doResolveType(any values) {
+    public string doResolveType(any values) {
         softint type = -1;
         my hash hval;
         if (values.typeCode() == NT_LIST) {
@@ -399,10 +397,10 @@ class CsvHelper {
         } else {
             hval = values;
         }
-        if (resolveType.typeCode() == NT_CLOSURE) {
+        if (resolveType.callp()) {
             return resolveType(hval);  # evaluation defined via options
         } else {
-            return hfDefs.firstKey();
+            return typeDefs.firstKey();
         }
     }
 
@@ -438,7 +436,7 @@ public namespace CsvUtil {
         |\c "header_lines"|@ref integer|the number of headers lines in the file (must be &gt; 0 if \c "header_names" is @ref Qore::True "True")
         |\c "headers"|@ref list of strings|list of header / column names for the data iterated; if this is present, then \c "header_names" must be @ref Qore::False "False".
         |\c "headers"|@ref hash of lists of strings|Defines multi-type lines where key is name of type whose name is resolved by \c "resolve_type" custom function. Hash value is equal to \c "headers" as documented above.
-        |\c "resolve_type"|@ref softstring sub(@ref hash values)|implement a custom function as closure to inspect record value and return type name.\c "Values" keys are field indexes/positions. If \c ignore_empty is @ref Qore::False "False" and the function returns id not defined in \c headers then line is resolved as an empty record
+        |\c "resolve_type"|@ref string sub(@ref hash values)|implement a custom function as @ref closure or @ref call_reference to inspect record value and return type name.\c "Values" keys are field indexes/positions. If \c ignore_empty is @ref Qore::False "False" and the function returns id not defined in \c headers then line is resolved as an empty record
         |\c "verify_columns"|@ref boolean|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different
         column count than other lines, a \c CSVFILEITERATOR-DATA-ERROR exception is thrown
         |\c "fields"|@ref hash|the keys are column names (or numbers in case column names are not used) and the values are either strings (one of @ref abstractcsviterator_option_field_types giving the data type for the field) or a @ref abstractcsviterator_option_field_hash describing the field; also sets \a headers if not set automatically with \c "header_names"; if no field type is given, the default is \c "*string"
@@ -662,8 +660,8 @@ public namespace CsvUtil {
                         break;
                     }
                     case "resolve_type": {
-                        if (i.value.typeCode() != NT_CLOSURE) {
-                            throw "ABSTRACTCSVITERATOR-ERROR", sprintf("\"resolve_type\" option is not closure; got %y instead", i.value.type());
+                        if (!i.value.callp()) {
+                            throw "ABSTRACTCSVITERATOR-ERROR", sprintf("\"resolve_type\" option is not callable; got %y instead", i.value.type());
 
                         }
                         resolveType = i.value;
@@ -673,14 +671,14 @@ public namespace CsvUtil {
             }
             if (headerNames && !headerLines)
                 throw "ABSTRACTCSVITERATOR-ERROR", sprintf("\"header_names\" is True but \"header_lines\" is 0; there must be at least 1 header line to get header names");
-            if (headerNames && hfDefs)
-                throw "ABSTRACTCSVITERATOR-ERROR", sprintf("\"header_names\" is True but \"headers\" has a value (%y)", hfDefs);
+            if (headerNames && typeDefs)
+                throw "ABSTRACTCSVITERATOR-ERROR", sprintf("\"header_names\" is True but \"headers\" has a value (%y)", typeDefs);
 
             # set headers automatically from field names if not set
-            if (fields && !hfDefs && !headerNames)
+            if (fields && !typeDefs && !headerNames)
                 assignHeaders(fields.keys());
 
-            if (hfDefs && fields)
+            if (typeDefs && fields)
                 setFields();
         }
 
@@ -767,7 +765,7 @@ public namespace CsvUtil {
         any memberGate(string name) {
             hash h = getRecord();
             if (!h.hasKey(name))
-                throw "ABSTRACTCSVITERATOR-FIELD-ERROR", sprintf("the requested header %y does not exist (known headers: %y)", name, curHFDef?curHFDef.headers:() );
+                throw "ABSTRACTCSVITERATOR-FIELD-ERROR", sprintf("the requested header %y does not exist (known headers: %y)", name, curTypeDef?curTypeDef.headers:() );
 
             return h{name};
         }
@@ -800,7 +798,7 @@ hash h = i.getRecord();
             list l = parseLine();
             hash h = {};
             foreach any v in (l) {
-                string col = curHFDef.headers[$#] ? curHFDef.headers[$#] : string($#);
+                string col = curTypeDef.headers[$#] ?? string($#);
                 h{col} = v;
             }
 
@@ -853,7 +851,7 @@ string quote = i.getQuote();
             @note if headers are not saved against the object in the @ref constructor(), then they are written to the object after the first call to @ref next()
          */
         *list getHeaders() {
-            return curHFDef ? curHFDef.headers : NULL;
+            return curTypeDef ? curTypeDef.headers : NOTHING;
         }
 
         #! returns the row index being iterated, which does not necessarily correspond to the line number when there are header rows and blank lines are skipped
@@ -936,7 +934,7 @@ while (i.next()) {
         #! parses a line in the file and returns a processed list of the fields
         private list parseLine() {
             list l = getLineValueImpl().split(separator, quote, ignoreWhitespace);
-            if (!setHFDef(l)) {
+            if (!setTypeDef(l)) {
                 return ();
             }
             # verify column count if requested
@@ -948,7 +946,7 @@ while (i.next()) {
             }
 
             # appy transformations to data read if there are any transformations to apply
-            ListValueIterator i(curHFDef.fdesc);
+            ListValueIterator i(curTypeDef.fdesc);
             while (i.next()) {
                 hash fh = i.getValue();
                 reference val = \l[i.index()];
@@ -1057,7 +1055,7 @@ while (i.next()) {
         |\c "fields"|@ref hash|describes the data to be output; see @ref abstractcsviterator_option_field_hash "option field hash" and @ref abstractcsviterator_option_field_types "option field types" for more information on the possible values of this option; if no field type is given, the default is \c "*string"
         |\c "headers"|@ref list of strings|list of header / column names for the data iterated.
         |\c "headers"|@ref hash of lists of strings|Defines multi-type lines where key is name of type whose name is resolved by \c "resolve-type" custom function. Hash value is equal to \c "headers" as documented above.
-        |\c "resolve_type"|@ref softstring sub(@ref hash values)|implement a custom function as closure to inspect record value and return type name. "Values" keys are field names or field index. If function returns id not existing in \c "headers" then record is skipped
+        |\c "resolve_type"|@ref string sub(@ref hash values)|implement a custom function as @ref closure or @ref call_reference to inspect record value and return type name. "Values" keys are field names or field index. If function returns id not existing in \c "headers" then record is skipped
         |\c "info_log"|@ref code|a call reference / closure for informational logging when performing bulk generation with write(Qore::SQL::SQLStatement); must take a single string argument
         |\c "optimal_quotes"|@ref boolean|set to @ref Qore::False "False" to disable optimal quoting; when optimal quoting is disabled, all fields are quoted regardless of type or content, when it is enabled, then fields are quoted only if they require quoting (i.e. they contain a quote or separator character); the default is @ref Qore::True "True"
         |\c "quote"|@ref string|the field quote character (default: \c '\"')
@@ -1313,8 +1311,8 @@ while (i.next()) {
                         break;
                     }
                     case "resolve_type": {
-                        if (i.value.typeCode() != NT_CLOSURE) {
-                            throw errname, sprintf("\"resolve_type\" option is not closure; got %y instead", i.value.type());
+                        if (!i.value.callp()) {
+                            throw errname, sprintf("\"resolve_type\" option is not callable; got %y instead", i.value.type());
                         }
                         resolveType = i.value;
                         break;
@@ -1323,9 +1321,9 @@ while (i.next()) {
 
             }
             if (write_headers && isMultiType()) {
-                throw errname, sprintf("\"write_headers\" is True but \"headers\" defined as multi-type (%y)", hfDefs);
+                throw errname, sprintf("\"write_headers\" is True but \"headers\" defined as multi-type (%y)", typeDefs);
             }
-            if (hfDefs && fields)
+            if (typeDefs && fields)
                 setFields();
 
             # make eg. '"%s",' template
@@ -1339,18 +1337,18 @@ while (i.next()) {
             @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints
          */
         writeLine(list values) {
-            if (!setHFDef(values) && isMultiType())
+            if (!setTypeDef(values) && isMultiType())
                 return;
 
             lineNo++;
-            if (checkElementCounts && values.size() != curHFDef.headers.size())
-                throw errname, sprintf("Line (%d), Header size (%d) and line size (%d) are different (enforced by the \"verify_columns\" option)", lineNo, curHFDef.headers.size(), values.size());
+            if (checkElementCounts && values.size() != curTypeDef.headers.size())
+                throw errname, sprintf("Line (%d), Header size (%d) and line size (%d) are different (enforced by the \"verify_columns\" option)", lineNo, curTypeDef.headers.size(), values.size());
 
             for(int i = 0; i < values.size(); i++) {
 
-                if (checkElementCounts && curHFDef && exists curHFDef.fdesc[i] && exists values[i]) {
+                if (checkElementCounts && curTypeDef && exists curTypeDef.fdesc[i] && exists values[i]) {
 
-                    switch (curHFDef.fdesc[i].type) {
+                    switch (curTypeDef.fdesc[i].type) {
                         case "int": {
                             if (int(values[i]) != values[i])
                                 throw errname, sprintf("Line (%d), Column (%d) does not contain an integer value %n vs %n", lineNo, i, int(values[i]), values[i]);
@@ -1410,12 +1408,12 @@ while (i.next()) {
          */
         writeLine(hash values) {
             list line;
-            if (!setHFDef(values))
+            if (!setTypeDef(values))
                 return;
-            if (!curHFDef.headers)
+            if (!curTypeDef.headers)
                 throw errname, "No header set in AbstractCsvWriter instance to bind the hash key";
 
-            foreach string i in (curHFDef.headers) {
+            foreach string i in (curTypeDef.headers) {
                 # if we have mappings, then use the actual input field name if present
                 if (datamap)
                     i = datamap{i} ?? i;
@@ -1520,8 +1518,8 @@ while (i.next()) {
 
         #! format date to string by options. Priority: 1) column definition 2) standard format
         private string dateFormat(int ix) {
-            if (curHFDef && exists curHFDef.fdesc[ix] && (curHFDef.fdesc[ix].type == "date" || curHFDef.fdesc[ix].type == "*date") && exists curHFDef.fdesc[ix].format)
-                return curHFDef.fdesc[ix].format;
+            if (curTypeDef && exists curTypeDef.fdesc[ix] && (curTypeDef.fdesc[ix].type == "date" || curTypeDef.fdesc[ix].type == "*date") && exists curTypeDef.fdesc[ix].format)
+                return curTypeDef.fdesc[ix].format;
 
             return date_format;
         }
@@ -1550,7 +1548,7 @@ while (i.next()) {
             file.open2(path, O_CREAT | O_TRUNC | O_WRONLY, 0644);
 
             if (hasHeaders() && write_headers)
-                writeRawLine(hfDefs.firstValue().headers);  # multi-line impossible
+                writeRawLine(typeDefs.firstValue().headers);  # multi-line impossible
         }
 
         private writeRawLine(list values) {
@@ -1575,7 +1573,7 @@ while (i.next()) {
         */
         constructor(*hash opts) : AbstractCsvWriter("STRING", opts) {
             if (hasHeaders() && write_headers)
-                writeRawLine(hfDefs.firstValue().headers);  # multi-line impossible
+                writeRawLine(typeDefs.firstValue().headers);  # multi-line impossible
         }
 
         private writeRawLine(list values) {
