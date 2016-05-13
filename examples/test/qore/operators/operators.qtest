@@ -11,6 +11,12 @@
 
 %exec-class Test
 
+class DataTest {
+    public {
+        hash b;
+    }
+}
+
 class Test inherits QUnit::Test {
     constructor() : QUnit::Test("operators", "1.0", \ARGV) {
         addTestCase("basic operator tests", \basicTests());
@@ -20,6 +26,7 @@ class Test inherits QUnit::Test {
         addTestCase("post/pre inc/dec", \postPreIncDec());
         addTestCase("identity assignment", \idAssignment());
         addTestCase("assignment type restriction test", \assignmentTypeRestrictionTest());
+        addTestCase("delete/remove test", \deleteRemoveTest());
         set_return_value(main());
     }
 
@@ -301,5 +308,34 @@ class Test inherits QUnit::Test {
         assertThrows("RUNTIME-TYPE-ERROR", sub () {si = x;});
         assertThrows("RUNTIME-TYPE-ERROR", sub () {sn = x;});
         assertThrows("RUNTIME-TYPE-ERROR", sub () {ss = x;});
+    }
+
+    deleteRemoveTest() {
+        {
+            hash a.b.c = 1;
+            # should have no effect
+            delete a.a.c;
+            assertEq(("b": ("c": 1)), a);
+        }
+        {
+            hash a.b.c = 1;
+            # should have no effect
+            remove a.a.c;
+            assertEq(("b": ("c": 1)), a);
+        }
+        {
+            DataTest a();
+            a.b.c.d = 1;
+            # should have no effect
+            delete a.b.c.c;
+            assertEq(("c": ("d": 1)), a.b);
+        }
+        {
+            DataTest a();
+            a.b.c.d = 1;
+            # should have no effect
+            remove a.b.c.c;
+            assertEq(("c": ("d": 1)), a.b);
+        }
     }
 }

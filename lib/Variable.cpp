@@ -378,11 +378,17 @@ int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
       }
 
       //printd(5, "LValueHelper::doHashObjLValue() def: %s member %s \"%s\"\n", QCS_DEFAULT->getCode(), mem->getEncoding()->getCode(), mem->getBuffer());
-      resetPtr(h->getKeyValuePtr(mem->getBuffer()));
+      AbstractQoreNode** ptr = for_remove ? h->getExistingValuePtr(mem->getBuffer()) : h->getKeyValuePtr(mem->getBuffer());
+      if (!ptr) {
+	 assert(for_remove);
+	 return -1;
+      }
+
+      resetPtr(ptr);
       return 0;
    }
 
-   //printd(5, "LValueHelper::doHashObjLValue() obj: %p member: %s\n", o, mem->getBuffer());
+   //printd(5, "LValueHelper::doHashObjLValue() obj: %p member: '%s'\n", o, mem->getBuffer());
 
    // clear ocvec when we get to an object
    ocvec.clear();
