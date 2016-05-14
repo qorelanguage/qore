@@ -367,6 +367,7 @@
       - fold all possible arguments in the REST request body into the argument hash so that complex REST requests can be made with clear URI strings
       - fixed a bug where an error calling an internal nonexistent method would be reported with an incorrect error message
       - send errors are now reported in the \c AbstractRestStreamRequestHandler object so they can be properly logged (<a href="https://github.com/qorelanguage/qore/issues/734">issue 734</a>)
+      - unknown REST class errors with the base class are now reported consistently like all other such errors (<a href="https://github.com/qorelanguage/qore/issues/859">issue 859</a>)
     - <a href="../../modules/Util/html/index.html">Util</a> module fixes:
       - fixed \c normalize_dir_windows() handling of UNC paths (<a href="https://github.com/qorelanguage/qore/issues/813">issue 813</a>)
     - fixed a memory error in error-handling with type errors when parsing user module headers that could cause a crash
