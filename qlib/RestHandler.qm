@@ -309,6 +309,7 @@ Content-Length: 36
     - implemented support for notifying persistent connections when the connection is terminated while a persistent connection is in place
     - @ref RestHandler::AbstractRestStreamRequestHandler is now the base abstract class for REST stream request handlers
     - send errors are now reported in the @ref RestHandler::AbstractRestStreamRequestHandler object so they can be properly logged (<a href="https://github.com/qorelanguage/qore/issues/734">issue 734</a>)
+    - unknown REST class errors with the base class are now reported consistently like all other such errors (<a href="https://github.com/qorelanguage/qore/issues/859">issue 859</a>)
 
     @subsection rh_1_0 RestHandler v1.0
     - the initial version of the RestHandler module
@@ -891,29 +892,28 @@ public namespace RestHandler {
             # set up context hash
             cx += ("hdr": hdr, "body": body, "aih": aih);
 
-            AbstractRestClass rcls;
-
-            if (!cls)
-                rcls = self;
-            else {
-                if (!ch{cls}) {
-                    *AbstractRestClass c = subClass(cls, cx, args);
-                    if (!c)
-                        return RestHandler::make400("unknown REST class %y in path %y (valid classes: %y)", cls, cx.url.path, ch.keys());
-                    rcls = c;
-                }
-                else
-                    rcls = ch{cls};
-            }
-
-            # check method
-            if (!Methods.(hdr.method))
-                return RestHandler::make501("cannot handle HTTP method %y; valid methods: %y", hdr.method, Methods.keys());
-
             # handle call with class
             hash rv;
 
             try {
+                AbstractRestClass rcls;
+
+                if (!cls)
+                    rcls = self;
+                else {
+                    if (!ch{cls}) {
+                        *AbstractRestClass c = subClass(cls, cx, args);
+                        if (!c)
+                            throw "REST-CLASS-ERROR", sprintf("unknown root REST class %y in path %y (valid classes: %y)", cls, cx.url.path, ch.keys());
+                        rcls = c;
+                    }
+                    else
+                        rcls = ch{cls};
+                }
+
+                # check method
+                if (!Methods.(hdr.method))
+                    return RestHandler::make501("cannot handle HTTP method %y; valid methods: %y", hdr.method, Methods.keys());
                 rv = rcls.handleRequest(listener, self, s, cl, mn, cx, args);
             }
             catch (hash ex) {
