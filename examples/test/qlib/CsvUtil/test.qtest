@@ -1,0 +1,106 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/CsvUtil.qm
+
+# Need for tmp_location()
+%requires Util
+
+%exec-class CsvSampleTest
+
+public class CsvSampleTest inherits QUnit::Test {
+    private {
+        string str = "website,origin,name,image,mod_data,id
+http://www.myspace.com/alcestmusic,FR,Alcest,alcest.jpg,2013-01-31T13:20:51,345
+http://www.amorphis.net/,FI,Amorphis,amorphis.jpg,2012-10-15T23:08:04,384
+http://www.anthrax.com/,US,Anthrax,anthrax.jpg,2012-12-29T14:02:53,395
+";
+        string rfile = tmp_location() + "/test.csv";
+        File f = new File();
+
+        string wfile1;
+        string wfile2;
+        string wdir;
+    }
+
+    constructor() : Test("CsvSampleTest", "1.0") {
+        addTestCase("Csv Example test", \csvExampleTest(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    setUp() {
+        f.open(rfile, O_WRONLY | O_CREAT);
+        f.write(str);
+        f.close();
+
+        wdir = tmp_location();
+        wfile1 = wdir + "/file1.csv";
+        wfile2 = wdir + "/file2.csv";
+    }
+
+    tearDown() {
+        unlink(rfile);
+        unlink(wfile1);
+        unlink(wfile2);
+    }
+
+    csvExampleTest() {
+        hash iterator_opts = (
+            "header-lines" : 1,
+            "header-names" : True,
+            "verify-columns" : True,
+            "fields" : (
+            	"mod_data" : (
+                    "type" : "date",
+                    "format" : "YYYY-MM-DDTHH:mm:SS",
+                ),
+            	"id" : "int",
+            ),
+        );
+
+        hash write_opts = (
+            "date-format" : "YYYY/MM/DD",
+        );
+
+        CsvFileIterator it1(rfile, iterator_opts);
+        CsvFileWriter fw1(wfile2, write_opts);
+        CsvStringWriter sw1(write_opts);
+
+        list headers = ('website', 'origin', 'name', 'image', 'mod_data', 'id');
+        fw1.writeLine(headers);
+        sw1.writeLine(headers);
+        while (it1.next()) {
+            hash value = it1.getValue();
+            list list = (value.website, value.origin, value.name, value.image, format_date("YYYY-MM-DDTHH:mm:SS", value.mod_data), value.id);
+            fw1.writeLine(list);
+            sw1.writeLine(list);
+        }
+
+        File f1();
+        f1.open2(rfile);
+        testAssertion("case1: CsvFileWriter and CsvStringWriter results match", \f1.read(), (-1,), new TestResultValue(sw1.getContent()));
+
+        write_opts.headers = it1.getHeaders();
+
+        CsvFileIterator it2(rfile, iterator_opts);
+        CsvFileIterator it21(rfile, iterator_opts);
+        CsvFileWriter fw2(wfile2, write_opts);
+        CsvStringWriter sw2(write_opts);
+
+        fw2.write(it2);
+        sw2.write(it21);
+
+        File f2();
+        f2.open2(wfile2);
+
+        testAssertion("case2: CsvFileWriter and CsvStringWriter results match", \f2.read(), (-1,), new TestResultValue(sw2.getContent()));
+    }
+}

@@ -1,10 +1,10 @@
 /*
   ExpressionStatement.cpp
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2015 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -60,8 +60,8 @@ ExpressionStatement::~ExpressionStatement() {
       exp->deref(0);
 }
 
-int ExpressionStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
-   discard(exp->eval(xsink), xsink);
+int ExpressionStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
+   exp->bigIntEval(xsink);
    return 0;
 }
 
@@ -75,5 +75,3 @@ int ExpressionStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    //printd(5, "ExpressionStatement::parseInitImpl() this=%p exp=%p (%s) lvids=%d\n", this, exp, exp->getTypeName(), lvids);
    return lvids;
 }
-
-

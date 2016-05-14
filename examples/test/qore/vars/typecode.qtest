@@ -1,0 +1,33 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class TypecodeTest
+
+public class TypecodeTest inherits QUnit::Test {
+    constructor() : Test("Typecode test", "1.0") {
+        addTestCase("Typecode test", \testTypecode(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    testTypecode() {
+        assertEq(NT_BOOLEAN, True.typeCode());
+        assertEq(NT_STRING, "foo".typeCode());
+        assertEq(NT_INT, 1.typeCode());
+        assertEq(NT_NUMBER, 1n.typeCode());
+        assertEq(NT_DATE, now().typeCode());
+        assertEq(NT_FLOAT, 1.2.typeCode());
+        assertEq(NT_LIST, (1,2,).typeCode());
+        assertEq(NT_HASH, ("foo":1).typeCode());
+        assertEq(NT_NULL, NULL.typeCode());
+        assertEq(NT_NOTHING, NOTHING.typeCode());
+    }
+}

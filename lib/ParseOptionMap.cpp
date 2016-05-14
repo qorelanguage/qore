@@ -1,10 +1,10 @@
 /*
   ParseOptionMap.cpp
- 
+
   Qore Programming language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2016 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -53,8 +53,8 @@ void ParseOptionMap::static_init() {
    DO_MAP("no-namespace-defs",        PO_NO_NAMESPACE_DEFS);
    DO_MAP("no-constant-defs",         PO_NO_CONSTANT_DEFS);
    DO_MAP("no-new",                   PO_NO_NEW);
-   DO_MAP("no-system-classes",        PO_NO_SYSTEM_CLASSES);
-   DO_MAP("no-user-classes",          PO_NO_USER_CLASSES);
+   DO_MAP("no-system-classes",        PO_NO_INHERIT_SYSTEM_CLASSES);
+   DO_MAP("no-user-classes",          PO_NO_INHERIT_USER_CLASSES);
    DO_MAP("no-child-restrictions",    PO_NO_CHILD_PO_RESTRICTIONS);
    DO_MAP("no-external-access",       PO_NO_EXTERNAL_ACCESS);
    DO_MAP("no-external-info",         PO_NO_EXTERNAL_INFO);
@@ -74,6 +74,15 @@ void ParseOptionMap::static_init() {
    DO_MAP("lockdown",                 PO_LOCKDOWN);
    DO_MAP("no-embedded-logic",        PO_NO_EMBEDDED_LOGIC);
    DO_MAP("strict-bool-eval",         PO_STRICT_BOOLEAN_EVAL);
+   DO_MAP("allow-injection",          PO_ALLOW_INJECTION);
+   DO_MAP("no-user-api",              PO_NO_USER_API);
+   DO_MAP("no-system-api",            PO_NO_SYSTEM_API);
+   DO_MAP("no-api",                   PO_NO_API);
+   DO_MAP("no-user-constants",        PO_NO_INHERIT_USER_CONSTANTS);
+   DO_MAP("no-system-constants",      PO_NO_INHERIT_SYSTEM_CONSTANTS);
+   DO_MAP("broken-list-parsing",      PO_BROKEN_LIST_PARSING);
+   DO_MAP("broken-logic-precedence",  PO_BROKEN_LOGIC_PRECEDENCE);
+   DO_MAP("broken-int-assignments",   PO_BROKEN_INT_ASSIGNMENTS);
 }
 
 int ParseOptionMap::find_code(const char *name) {

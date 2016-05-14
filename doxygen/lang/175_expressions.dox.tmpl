@@ -2,30 +2,30 @@
 
     @tableofcontents
 
-    An expression can be any of the following (note that expressions are also recursively defined):
+    An expression can be any of the following (note that expressions are also recursively defined; also note that all examples are given in @ref new-style "%new-style"):
 
     <b>Expressions</b>
     |!Type|!Description|!Examples
-    |An immediate value|Qore values that can be expressed directly (see @ref basic_data_types and @ref container_data_types for more information)|@code True@endcode @code1.2@endcode @code "a string"@endcode @code 2005-10-27@endcode @code NULL@endcode @code NOTHING@endcode @code ("key" : $val)@endcode
-    |A variable reference|@ref variables<br>see also @ref allow-bare-refs "%allow-bare-refs"|@code $var@endcode
-    |A variable declaration|@ref variable_declarations, @ref variables<br>see also @ref assume-local "%assume-local"|@code my int $var@endcode
-    |An in-class object member reference|References to members of an object from within the class<br>see @ref class_members<br>see also allow-bare-refs "%allow-bare-refs"|@code $.member@endcode
-    |An lvalue assignment|Assigns a value to a lvalue (see @ref assignment_operator)|@code $var = 1@endcode @code ($a, $b, $c, $date) = (1, "two", 3.3, 2005-10-28)@endcode
-    |A function call|Qore function calls (see @ref qore_functions)|@code calculate($var1, $var2, "string", 4)@endcode
-    |A method call|Qore object method calls (see @ref object_method_calls)<br>see also @ref allow-bare-refs "%allow-bare-refs"|@code $object.method("argument")@endcode
-    |An in-class method call|Qore in-class object method calls (see @ref object_method_calls)<br>see also @ref allow-bare-refs "%allow-bare-refs"|@code $.method("argument")@endcode
-    |A @ref static_method_call "static method call"|Qore static method calls (see @ref static_methods)|@code ClassName::static_method("argument")@endcode
-    |Expressions with operators|Use of @ref operators "Qore operators"|@code 1 + 2@endcode @code $a || $b@endcode @code background my_function()@endcode
-    |An expression in parentheses|Use of parentheses for clarity or to specify evaluation precedence|@code (3 * (2 + $a))@endcode
-    |A @ref find "find expression"|Finds a value or values in a hash of lists, such as returned by the Qore::SQL::Datasource::select() or Qore::SQL::SQLStatement::fetchColumns() method|@code find %name, %id in $data where (%name =~ /Smith/)@endcode
-    |A context reference (<tt>%name</tt>)|A contextual reference to the value of a key of the current row being iterated by a @ref context "context", @ref summarize "summarize", @ref subcontext "subcontext" statement, or a @ref find "find expression"|@code %name@endcode
-    |A context row reference (<tt>%%</tt>)|A contextual reference to the current row being iterated by a @ref context "context", @ref summarize "summarize", @ref subcontext "subcontext" statement, or a @ref find "find expression"; this expression returns a hash of the current row|@code %%@endcode
-    |A @ref call_reference "call reference"|A reference to a function or object method call (similar to a function pointer in C or C++). Function references are resolved in the second phase of parsing (commit phase), while object method references are resolved at run-time|@code \function_call()@endcode @code \$object_expression.method_name()@endcode
-    |A @ref closure "closure"|An anonymous function used a value; technically a closure must have at least one bound variable, but in %Qore a closure is any function used as a value, whether or not it encloses local variables from the scope in which it was created or not|@code string sub (string $a) { return $a + $b; }@endcode
-    |A call reference call|An expression executing a @ref call_reference "call reference" or @ref closure "closure"|@code $my_closure($arg1, $arg2)@endcode
-    |An @ref implicit_arguments "implicit argument" reference (\c $1)|References an implicit argument|@code $1@endcode
-    |A reference to the entire @ref implicit_arguments "implicit argument" list (\c $$)|References the implicit argument list|@code $$@endcode
-    |An @ref implicit_index "implicit index" reference|Gives the list index position when implicitly iterating a list|@code $#@endcode
+    |An immediate value|Qore values that can be expressed directly (see @ref basic_data_types and @ref container_data_types for more information)|@code{.py} True@endcode @code{.py}1.2@endcode @code{.py} "a string"@endcode @code{.py} 2005-10-27@endcode @code{.py} NULL@endcode @code{.py} NOTHING@endcode @code{.py} ("key" : val)@endcode
+    |A variable reference|@ref variables<br>see also @ref allow-bare-refs "%allow-bare-refs"|@code{.py} var@endcode
+    |A variable declaration|@ref variable_declarations, @ref variables<br>see also @ref assume-local "%assume-local" and @ref new-style "%new-style"|@code{.py} int var@endcode
+    |An in-class object member reference|References to members of an object from within the class<br>see @ref class_members also allow-bare-refs "%allow-bare-refs"|@code{.py} member@endcode
+    |An lvalue assignment|Assigns a value to a lvalue (see @ref assignment_operator)|@code{.py} var = 1@endcode @code{.py} (a, b, c, date) = (1, "two", 3.3, 2005-10-28)@endcode
+    |A function call|Qore function calls (see @ref qore_functions)|@code{.py} calculate(var1, var2, "string", 4)@endcode
+    |A method call|Qore object method calls (see @ref object_method_calls)<br>see also @ref allow-bare-refs "%allow-bare-refs"|@code{.py} object.method("argument")@endcode
+    |An in-class method call|Qore in-class object method calls (see @ref object_method_calls)<br>see also @ref allow-bare-refs "%allow-bare-refs"|@code{.py} method("argument")@endcode
+    |A @ref static_method_call "static method call"|Qore static method calls (see @ref static_methods)|@code{.py} ClassName::static_method("argument")@endcode
+    |Expressions with operators|Use of @ref operators "Qore operators"|@code{.py} 1 + 2@endcode @code{.py} a || b@endcode @code{.py} background my_function()@endcode
+    |An expression in parentheses|Use of parentheses for clarity or to specify evaluation precedence|@code{.py} (3 * (2 + a))@endcode
+    |A @ref find "find expression"|Finds a value or values in a hash of lists, such as returned by the Qore::SQL::Datasource::select() or Qore::SQL::SQLStatement::fetchColumns() method|@code{.py} find %name, %id in data where (%name =~ /Smith/)@endcode
+    |A context reference (<tt>%name</tt>)|A contextual reference to the value of a key of the current row being iterated by a @ref context "context", @ref summarize "summarize", @ref subcontext "subcontext" statement, or a @ref find "find expression"|@code{.py} %name@endcode
+    |A context row reference (<tt>%%</tt>)|A contextual reference to the current row being iterated by a @ref context "context", @ref summarize "summarize", @ref subcontext "subcontext" statement, or a @ref find "find expression"; this expression returns a hash of the current row|@code{.py} %%@endcode
+    |A @ref call_reference "call reference"|A reference to a function or object method call (similar to a function pointer in C or C++). Function references are resolved in the second phase of parsing (commit phase), while object method references are resolved at run-time|@code{.py} \function_call()@endcode @code{.py} \object_expression.method_name()@endcode
+    |A @ref closure "closure"|An anonymous function used a value; technically a closure must have at least one bound variable, but in %Qore a closure is any function used as a value, whether or not it encloses local variables from the scope in which it was created or not|@code{.py} string sub (string a) { return a + b; }@endcode
+    |A call reference call|An expression executing a @ref call_reference "call reference" or @ref closure "closure"|@code{.py} my_closure(arg1, arg2)@endcode
+    |An @ref implicit_arguments "implicit argument" reference (\c $1)|References an implicit argument|@code{.py} $1@endcode
+    |A reference to the entire @ref implicit_arguments "implicit argument" list (\c $$)|References the implicit argument list|@code{.py} $$@endcode
+    |An @ref implicit_index "implicit index" reference|Gives the list index position when implicitly iterating a list|@code{.py} $#@endcode
 
     <hr>
     @section static_method_calls Static Method Calls
@@ -45,7 +45,7 @@
     Expressions passing arguments to the static method.
 
     @par Example
-    @code TimeZone::setRegion("Europe/Prague");@endcode
+    @code{.py} TimeZone::setRegion("Europe/Prague");@endcode
 
     <hr>
     @section find Find Expressions
@@ -67,7 +67,7 @@
     This expression will be evaluated for each row in the \a data_expression. Each time it evaluates to @ref Qore::True "True", the \a result_expression will be evaulated and used for the return value for the find expression.
 
     @par Example
-    @code $rlist = find %fname, %id in $data where (%lname =~ /^Smith/);@endcode
+    @code{.py} rlist = find %fname, %id in data where (%lname =~ /^Smith/);@endcode
 
     @see
     - context
@@ -99,14 +99,14 @@
     When called, a call reference to an object method will be executed in the context of the object originally referenced. Object method call references do not prolong the lifetime of an object; if the object is deleted (for example, by going out of scope), then if called the call reference will cause an \c OBJECT-ALREADY-DELETED exception to be thrown.
 
     @par Example
-    @code my code $c = \printf(); @endcode
-    @code my code $c = \MyClass::method(); @endcode
-    @code my code $c = \$obj.method(); @endcode
+    @code{.py} code c = \printf(); @endcode
+    @code{.py} code c = \MyClass::method(); @endcode
+    @code{.py} code c = \obj.method(); @endcode
 
     @note
     - The backslash at the beginning and the empty parentheses at the end; these are required when specifying a call reference.
     - call reference is a code data type; see @ref callref_type for more information
-    
+
     <hr>
     @section closure Closures
 
@@ -120,18 +120,18 @@
 
     @par Description
     Closures encapsulate the state and value of local variables of the outer code block referenced from within the closure when the closure is created. Whenever local variables are bound within a closure, these variables are subject to concurrent thread access protection (locking) just as with global variables, in order to allow closures to be used in any context without restriction and to preseve thread-safety regarding bound local variables.\n\n
-    Note that returning a closure from within an object method encapsulates the state of the object as well (it's legal to refer to \c $self and <tt>$.</tt><em>member</em> from within closures created from objects) and additionally prolongs the scope of the object for the lifetime of the closure.\n\n
+    Note that returning a closure from within an object method encapsulates the state of the object as well (it's legal to refer to \c self and <tt>$.</tt><em>member</em> from within closures created from objects) and additionally prolongs the scope of the object for the lifetime of the closure.\n\n
     Note that parameter and return types are required when the @ref Qore::PO_REQUIRE_TYPES or @ref Qore::PO_REQUIRE_PROTOTYPES parse options are set.
 
     @par Example
-    @code
-# if $b is a local variable in the function where the closure is created
-# then $b will be bound to the closure when the closure is created
-my code $closure = int sub (int $a) { return $a + $b; };
+    @code{.py}
+# if b is a local variable in the function where the closure is created
+# then b will be bound to the closure when the closure is created
+code closure = int sub (int a) { return a + b; };
     @endcode
 
     @note closure is a code data type; see @ref closure_type for more information
-    
+
     <hr>
     @section implicit_arguments Implicit Argument References
 
@@ -144,13 +144,13 @@ my code $closure = int sub (int $a) { return $a + $b; };
 
     @par Description
     Implicit arguments can be directly referenced using the dollar sign (<tt>$</tt>) and either a number from \c 1 onwards (giving the position in the argument list, where \c 1 is the first element) or a double dollar sign (<tt>$$</tt>) giving the entire implicit argument list.\n\n
-    For unassigned arguments to functions or methods, this syntax supplements the automatic $argv variable holding all function arguments not assigned to parameter variables.\n\n
+    For unassigned arguments to functions or methods, this syntax supplements the automatic argv variable holding all function arguments not assigned to parameter variables.\n\n
     This syntax is particularly useful when writing expressions for the @ref map "map", @ref foldl "foldl", @ref foldr "foldr", and @ref select "select" operators, where implicit argument references are the only way the operator expressions can reference the current list values that are populated as implicit arguments as the operators traverse the list.
 
     @par Example
-    @code
+    @code{.py}
 # extract a list of even numbers from a list
-my list $l = select $list, !($1 % 2);
+list l = select list, !($1 % 2);
     @endcode
 
     <hr>
@@ -166,8 +166,8 @@ my list $l = select $list, !($1 % 2);
     The implicit index reference expression (<tt>$#</tt>) can be used whenever a list is iterated implicitly, such as with @ref foreach "foreach statements" and the @ref map "map", @ref foldl "foldl", @ref foldr "foldr", and @ref select "select" operators.
 
     @par Example
-    @code
+    @code{.py}
 # create a list of indexes with negative values
-my list $l = map $#, $list, ($1 < 0);
+list l = map $#, list, ($1 < 0);
     @endcode
 */

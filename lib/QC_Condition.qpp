@@ -4,7 +4,7 @@
 
   Qore Programming Language
   
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
   
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -46,8 +46,8 @@ qclass Condition [dom=THREAD_CLASS; arg=Condition* c; ns=Qore::Thread];
 //! Creates the Condition object
 /** 
     @par Example:
-    @code
-my Condition $cond();
+    @code{.py}
+Condition cond();
     @endcode
  */
 Condition::constructor() {
@@ -57,8 +57,8 @@ Condition::constructor() {
 //! Creates a new Condition object, not based on the original
 /** 
     @par Example:
-    @code
-my Condition $new_cond = $cond.copy();
+    @code{.py}
+Condition new_cond = cond.copy();
     @endcode
  */
 Condition::copy() {
@@ -69,10 +69,10 @@ Condition::copy() {
 /** Normally this method call will be made while the same AbstractSmartLock object used for Condition::wait() calls is locked. Then, when the thread calling this method unlocks the AbstractSmartLock object, the thread woken up by this call can continue executing.
 
     @par Example:
-    @code
-$m.lock();
-$cond.signal();
-$m.unlock();
+    @code{.py}
+m.lock();
+cond.signal();
+m.unlock();
     @endcode
 
     @throw CONDITION-SIGNAL-ERROR This exception should never be thrown - it indicates a low-level error in executing the method
@@ -86,10 +86,10 @@ nothing Condition::signal() {
 /** Normally this method call will be made while the same AbstractSmartLock object used for Condition::wait() calls is locked. Then, when the thread calling this method unlocks the AbstractSmartLock object, the thread(s) woken up by this call can continue executing.
 
     @par Example:
-    @code
-$m.lock();
-$cond.broadcast();
-$m.unlock();
+    @code{.py}
+m.lock();
+cond.broadcast();
+m.unlock();
     @endcode
 
     @throw CONDITION-BROADCAST-ERROR This exception should never be thrown - it indicates a low-level error in executing the method
@@ -108,13 +108,13 @@ nothing Condition::broadcast() {
     @return 0 for success, \c ETIMEDOUT if a timeout has occurred
 
     @par Example:
-    @code
-$m.lock();
-on_exit $m.unlock();
-while ($some_value > 0) {
-    $cond.wait($m);    
+    @code{.py}
+m.lock();
+on_exit m.unlock();
+while (some_value > 0) {
+    cond.wait(m);    
 }
-printf("finally $some_value is 0\n");
+printf("finally some_value is 0\n");
     @endcode
 
     @throw CONDITION-WAIT-ERROR This exception should never be thrown - it indicates a low-level error in executing the method
@@ -138,8 +138,8 @@ int Condition::wait(AbstractSmartLock[AbstractSmartLock] lock, timeout timeout_m
     @return The number of threads currently blocked on this object using the AbstractSmartLock object passed
 
     @par Example:
-    @code
-printf("%d thread(s) waiting on the Condition\n", $cond.wait_count($m));
+    @code{.py}
+printf("%d thread(s) waiting on the Condition\n", cond.wait_count(m));
     @endcode
  */
 int Condition::wait_count(AbstractSmartLock[AbstractSmartLock] lock) {

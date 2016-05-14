@@ -1,0 +1,18 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+
+module A {
+    version = "1.0";
+    desc = "Test Module A";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+    init = sub () { AV = 1; };
+}
+
+public namespace Common {
+    public our int AV;
+    public const AC = 1;
+    public class A;
+}

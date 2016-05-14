@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   BreakStatement.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2015 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -33,17 +33,17 @@
 
 #define _QORE_BREAKSTATEMENT_H
 
-#include "intern/AbstractStatement.h"
+#include <qore/intern/AbstractStatement.h>
 
 class BreakStatement : public AbstractStatement {
 private:
-   DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, ExceptionSink *xsink) {
+   DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink *xsink) {
       return RC_BREAK;
    }
    DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0) {
       return 0;
    }
-   
+
 public:
    DLLLOCAL BreakStatement(int start_line, int end_line) : AbstractStatement(start_line, end_line) {
    }
