@@ -904,7 +904,7 @@ public namespace RestHandler {
                     if (!ch{cls}) {
                         *AbstractRestClass c = subClass(cls, cx, args);
                         if (!c)
-                            throw "REST-CLASS-ERROR", sprintf("unknown root REST class %y in path %y (valid classes: %y)", cls, cx.url.path, ch.keys());
+                            throw "REST-CLASS-ERROR", sprintf("unknown root REST class %y in path %y (valid classes: %y)", cls, cx.url.path, sort(ch.keys()));
                         rcls = c;
                     }
                     else
