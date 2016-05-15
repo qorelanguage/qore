@@ -1,9 +1,10 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-our
-%strict-args
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %exec-class qdx
 
@@ -11,7 +12,7 @@ const opts = (
     "moddx": "M,module-dx=s",
     "post": "p,post",
     "tag": "t,tag=s@",
-    "tex": "x,posttex",          # use TeX syntax for "post" processing
+    "tex": "x,posttex=s@",          # use TeX syntax for "post" processing
     "dox": "d,dox",
     "nmp": "N,no-mainpage",
     "keepdollar": "k,keep-dollar",
@@ -43,7 +44,7 @@ class qdx {
             usage();
 
         if (o.post) {
-            map (map postProcess($1), glob($1)), ARGV;
+            map postProcess($1), ARGV;
             return;
         }
 
@@ -60,7 +61,7 @@ class qdx {
         }
 
         if (o.tex) {
-            map (map postProcess($1, True), glob($1)), ARGV;
+            map postProcess($1, True), ARGV;
             return;
         }
 
@@ -82,10 +83,8 @@ class qdx {
       exit(1);
     }
 
-    private getQoreVersion() {
-        if (!exists qorever)
-            qorever = sprintf("%d.%d.%d", Qore::VersionMajor, Qore::VersionMinor, Qore::VersionSub);
-        return qorever;
+    private string getQoreVersion() {
+        return qorever ?? sprintf("%d.%d.%d", Qore::VersionMajor, Qore::VersionMinor, Qore::VersionSub);
     }
 
     private checkNames(string fn, string ofn) {
@@ -107,7 +106,9 @@ class qdx {
         # get module name and version (the easy way)
         string name = substr(basename(src), 0, -3);
         Program p();
-        p.parse(sprintf("%requires %s\nhash sub get() { return getModuleHash().'%s'; }\n", src, name), "mod");
+        p.define("QORE_QDX_RUN", 1);
+        string msrc = sprintf("%%requires %s\nhash sub get() { return get_module_hash().'%s'; }\n", src, name);
+        p.parse(msrc, "mod");
         hash h = p.callFunction("get");
 
         printf("processing %y -> %y (module %s %s src: %y trg: %y)\n", fn, ofn, name, h.version, src, trg);
@@ -117,11 +118,11 @@ class qdx {
 
         File of();
         of.open2(ofn, O_CREAT | O_TRUNC | O_WRONLY);
-        
+
         # get tags substitution string
         string tags = o.tag ? o.tag.join(" ") : "";
 
-        while ((*string line = inf.readLine()).val()) {            
+        while ((*string line = inf.readLine()).val()) {
             if (line =~ /{module}/)
                 line = replace(line, "{module}", name);
             else if (line =~ /{input}/)
@@ -148,7 +149,7 @@ class qdx {
 
         DocumentTableHelper dth();
 
-        while ((*string line = inf.readLine()).val()) {            
+        while ((*string line = inf.readLine()).val()) {
             line = dth.process(line);
 
             if (line =~ /{qore_version}/)
@@ -158,7 +159,19 @@ class qdx {
         }
     }
 
-    postProcess(string ifn, bool tex = False) {
+    private postProcess(string ifn, bool tex = False) {
+        *hash h = hstat(ifn);
+        if (h.type == "DIRECTORY") {
+            Dir d();
+            d.chdir(ifn);
+            list l = d.listFiles("\\.(html|js)$"); #");
+            map postProcessIntern(ifn + "/" + $1, tex), l;
+        }
+        else
+            map postProcessIntern($1, tex), glob(ifn);
+    }
+
+    postProcessIntern(string ifn, bool tex) {
         File inf();
         inf.open2(ifn);
 
@@ -183,7 +196,7 @@ class qdx {
                 line =~ s/\\_\\-\\_\\-5\\_\\-/-/g;
                 line =~ s/\\_\\-\\_\\-6\\_\\-/\$/g;
                 line =~ s/\\_\\-\\_\\-7\\_\\-/*/g; #//;
-            } 
+            }
 
             line =~ s/__1_/[/g;
             line =~ s/__2_/]/g;
@@ -200,6 +213,15 @@ class qdx {
             line =~ s/\[inline\]//g;
             line =~ s/, inline\]/]/g;
             line =~ s/\[inline, /[/g;
+
+            line =~ s/"Qore::zzz8([a-z]+)zzz9"/"<$1>"/g;
+            line =~ s/>([^<>]*)Qore::zzz8([a-z]+)zzz9([^<>]*)<\//\>$1\&lt;$2\&gt;$3<\//g;
+            line =~ s/>([^<>]*)zzz8([a-z]+)zzz9([^<>]*)<\//\>$1\&lt;$2\&gt;$3<\//g;
+            line =~ s/for Qore::zzz8([a-z]+)zzz9:/for Qore::\&lt;$1\&gt;:/g;
+            line =~ s/'Qore::zzz8([a-z]+)zzz9'/'\&lt;$1\&gt;'/g;
+            line =~ s/"zzz8([a-z]+)zzz9"/"<$1>"/g;
+            line =~ s/'Qore::zzz8([a-z]+)zzz9::([^']+)\(([^\)]*)\)'/'Qore::\&lt;$1\&gt;::$2($3)'/g;
+            line =~ s/'zzz8([a-z]+)zzz9'/'$1'/g;
 
             of.print(line);
         }
@@ -309,7 +331,7 @@ class qdx {
                 of.print(line);
                 continue;
             }
-            
+
             if (line =~ /^[[:blank:]]*\/\*/){ #/){
                 if (line !~ /\*\//)
                     in_doc = True;
@@ -332,11 +354,11 @@ class qdx {
             line =~ s/my //g;
             line =~ s/sub //;
 
-            # take public off namespace, class, constant and global variable declarations
+            # take "public" off namespace, class, constant and global variable declarations
             line =~ s/public[[:space:]]+(const|our|namespace|class)/$1/g;
 
             # remove regular expressions
-            line =~ s/[=!]~ *\/.*\//==1/g;        
+            line =~ s/[=!]~ *\/.*\//==1/g;
 
             # skip module declarations for now
             if (line =~ /^[[:space:]]*module[[:space:]]+/) {
@@ -346,12 +368,15 @@ class qdx {
             }
 
             # see if the line is the start of a method or function declaration
-            if (line =~ /\(.*\)[[:blank:]]*{[[:blank:]]*$/ && line !~ /const .*=/ && line !~ /extern .*=.*\(.*\)/
+            if (line =~ /\(.*\)[[:blank:]]*{[[:blank:]]*(#.*)?$/ && line !~ /const .*=/ && line !~ /extern .*=.*\(.*\)/
                 && line !~ /^[[:blank:]]*\"/) {
                 #printf("method or func: %s", line);
-                
+
                 # remove "$" signs
                 line =~ s/\$//g;
+
+                # remove any trailing line comment
+                line =~ s/#.*$//;
 
                 # make into a declaration (also remove any parent class constructor calls)
                 line =~ s/[[:blank:]]*([^:]:[^:].*\(.*)?{[[:blank:]]*$/;/;
@@ -362,10 +387,9 @@ class qdx {
 
             if (line =~ /[[:blank:]]*abstract .*;[[:blank:]]*$/) {
                 #printf("method or func: %s", line);
-                
+
                 # remove "$" signs
                 line =~ s/\$//g;
-
             }
 
             # convert Qore line comments to C++ line comments
@@ -384,7 +408,7 @@ class qdx {
             if (line =~ /inherits / && line !~ /\/(\/|\*)/) {
                 trim line;
                 xl = (line =~ x/(.*) inherits ([^{]+)(.*)/);
-                xl[1] = split(",", xl[1]);                
+                xl[1] = split(",", xl[1]);
                 foreach string e in (\xl[1]) {
                     if (e !~ /(private|public)[^A-Za-z0-9_]/)
                         e = "public " + e;
@@ -402,8 +426,8 @@ class qdx {
             }
 
             # temporary string variable
-            *string xs = (line =~ x/^[[:space:]]*namespace[[:space:]]+(\w+(::\w+)?)/)[0];
-            if (xs.val()) {
+            (*string xs, *string sc) = (line =~ x/^[[:space:]]*namespace[[:space:]]+(\w+(?:::\w+)?)[[:space:]]*(\;)?/);
+            if (xs) {
                 if (!ns_name.empty()) {
                     nss += ns_name;
                     #throw "NS-ERROR", sprintf("current ns: %s; found nested ns: %s", ns_name, line);
@@ -416,7 +440,10 @@ class qdx {
 
                 if (line =~ /{/ && line !~ /}/)
                     ++nbc;
-                    
+
+                if (sc)
+                    line =~ s/;/ {}/;
+
                 of.print(line);
                 continue;
             }
@@ -438,19 +465,19 @@ class qdx {
                             ++cbc;
                         }
                         else
-                            delete class_name;                            
+                            delete class_name;
                     }
-                    
+
                     of.print(line);
                     continue;
                 }
                 else if (class_name) {
-                    if (line =~ /{/) {
-                        if (line !~ /}/)
-                            ++cbc;
-                    }
-                    else if (line =~ /}/) {
-                        --cbc;
+                    if (line =~ /({|})/) {
+                        # count how many open curly brackets
+                        int ob = (line =~ x/({)/g).size();
+                        # count how many close curly brackets
+                        int cb = (line =~ x/(})/g).size();
+                        cbc += (ob - cb);
                         if (!cbc) {
                             line =~ s/}/};/;
                             delete class_name;
@@ -487,7 +514,7 @@ class qdx {
                     else if (line =~ /}/) {
                         --nbc;
                         if (!nbc) {
-                            line =~ s/}/};/;                            
+                            line =~ s/}/};/;
                         }
                         ns_name = pop nss;
                     }
@@ -537,7 +564,7 @@ class qdx {
             }
         }
     }
-    
+
     private readUntilCloseBracket(File inf) {
         int cnt = 1;
         string quote;
@@ -557,7 +584,7 @@ class qdx {
                     --regex;
                 continue;
             }
-            
+
             #printf("%s", c);
             if (c == "'" || c == '"') {
                 if (quote.val()) {
@@ -569,7 +596,7 @@ class qdx {
                 continue;
             }
             if (quote.val()) {
-                if (c == "\\")
+                if (c == "\\" && quote != "'")
                     inf.read(1);
                 continue;
             }
@@ -599,7 +626,7 @@ class qdx {
                 if (c != "#")
                     need = False;
             }
-            else if (c == "#") {                
+            else if (c == "#") {
                 # read until EOL
                 inf.readLine();
             }
@@ -669,12 +696,11 @@ class DocumentTableHelper {
         splice line, 0, 1;
         foreach *string cell in (split("|", line)) {
             trim cell;
-            *string cs;
             if (cell =~ /^!/)
                 str += sprintf("        <td class=\"qore\"><b>%s</b></td>\n", substr(cell, 1));
             else
                 str += sprintf("        <td>%s</td>\n", cell);
-        }        
+        }
         str += "      </tr>\n";
         return str;
     }

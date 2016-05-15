@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file SmtpClient.qm SmtpClient module definition
 
-/*  SmtpClient.qm Copyright 2012 - 2014 Qore Technologies, sro
+/*  SmtpClient.qm Copyright 2012 - 2015 Qore Technologies, sro
 
     Original Authors: Wolfgang Ritzinger, Marian Bonda, Pavol Potoncok
 
@@ -25,7 +25,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.8.11
+%requires qore >= 0.8.12
 
 # need mime definitions
 %requires Mime >= 1.0
@@ -33,8 +33,11 @@
 # need MailMessage classes
 %requires MailMessage >= 1.0
 
+# assume local var scope, do not use "$" for vars, members, and method calls
+%new-style
+
 module SmtpClient {
-    version = "1.4";
+    version = "1.5";
     desc = "SMTP client support module";
     author = "Wolfgang Ritzinger <aargon@rat.at>, Marian Bonda <marian_bonda@users.sourceforge.net>, Pavol Potoncok <ppotancok@gmail.com>";
     url = "http://qore.org";
@@ -42,6 +45,9 @@ module SmtpClient {
 }
 
 /*  Version History
+    * 2015-11-11 v1.5: David Nichols <david@qore.org>:
+      + converted to new-style
+
     * 2014-03-17 v1.4: David Nichols <david@qore.org>:
       + fixed missing username and missing password errors
 
@@ -51,15 +57,15 @@ module SmtpClient {
     * 2013-11-25 v1.3: David Nichols <david@qore.org>:
       + optimized connection and login code; HELO/EHLO and authorization are performed when connecting only; not before each email
 
-    * 2012-11-24 v1.2: David Nichols <david@qore.org>: 
+    * 2012-11-24 v1.2: David Nichols <david@qore.org>:
       + added support for parsing a full URL in the SmtpClient::constructor(); added protocol support and setting the username / password from the URL
       + use Message::checkSendPossible() to throw a more descriptive exception if the message is incomplete and not ready to be sent
       + implemented support for automatically detecting if the server accepts the STARTTLS command and, if so, automatically setting the STARTTLS flag if it's not already set
 
-    * 2012-06-14 v1.1: David Nichols <david@qore.org>: 
+    * 2012-06-14 v1.1: David Nichols <david@qore.org>:
       + removed the Message and Attachment classes to the MailMessage module to be reused in the Pop3Client module
 
-    * 2012-05-21 v1.0: David Nichols <david@qore.org>: 
+    * 2012-05-21 v1.0: David Nichols <david@qore.org>:
       + updated to a user module, added initial rudimentary ESMTP handling, STARTTLS and quoted-printable encoding support + the bane of all developers: documentation :)
 
     ritzinwo, 20090716
@@ -78,7 +84,7 @@ module SmtpClient {
     The %SmtpClient module provides a set of classes that can be used for easy communication with SMTP servers for sending emails, with or without TLS/SSL encryption.
 
     To use this module, use \c "%requires SmtpClient" in your code.  See examples/email.q for an example program using this module
-    
+
     All the public symbols in the module are defined in the SmtpClient namespace
 
     The main class is: @ref SmtpClient::SmtpClient "SmtpClient": manages a connection to an SMTP server
@@ -105,18 +111,18 @@ module SmtpClient {
     |\c "esmtptls"|587|like \c "smtptls" just using port 587
 
     @par Example:
-    @code
+    @code{.py}
 %requires SmtpClient
 %requires Mime
 
-my Message $msg("The Sender <sender@email.com>", "My Subject");
-$msg.setBody($body);
-$msg.addTO("My Best Friend <you@friend.com>");
-$msg.attach($filename, Mime::MimeTypeText, $data);
+Message msg("The Sender <sender@email.com>", "My Subject");
+msg.setBody(body);
+msg.addTO("My Best Friend <you@friend.com>");
+msg.attach(filename, Mime::MimeTypeText, data);
 
-my code $log = sub (string $str) {printf("%y: %s\n", now_us(), str);};
-my SmtpClient::SmtpClient $smtp("esmtptls://user@password:smtp.example.com", $log, $log);
-$smtp.sendMessage($msg);@endcode
+code log = sub (string str) {printf("%y: %s\n", now_us(), str);};
+my SmtpClient::SmtpClient smtp("esmtptls://user@password:smtp.example.com", log, log);
+smtp.sendMessage(msg);@endcode
  */
 
 #! the %SmtpClient namespace holds all public definitions in the %SmtpClient module
@@ -136,15 +142,15 @@ public namespace SmtpClient {
 
     #! for backwards-compatibility and convenience
     public class Message inherits MailMessage::Message {
-	#! creates a Message object from the arguments given; this variant of the constructor is designed to be used to create a Message object for sending with the SmtpClient class
-	/** Use the Message::addTo() method to add message recipients
+        #! creates a Message object from the arguments given; this variant of the constructor is designed to be used to create a Message object for sending with the SmtpClient class
+        /** Use the Message::addTo() method to add message recipients
 
-	    @param sender the sender's email address; can be in the format \c "Full Display Name <name@example.com>"
-	    @param subject the subject line for the email; the subject will be encoded with <a href="http://tools.ietf.org/html/rfc2047">"Q" encoding</a>
+            @param sender the sender's email address; can be in the format \c "Full Display Name <name@example.com>"
+            @param subject the subject line for the email; the subject will be encoded with <a href="http://tools.ietf.org/html/rfc2047">"Q" encoding</a>
 
-	    @throw MESSAGE-CONSTRUCTOR-ERROR the sender's email address is not valid; the subject is empty
-	 */
-	constructor(string $sender, string $subject) : MailMessage::Message($sender, $subject) {
+            @throw MESSAGE-CONSTRUCTOR-ERROR the sender's email address is not valid; the subject is empty
+         */
+        constructor(string sender, string subject) : MailMessage::Message(sender, subject) {
         }
     }
 
@@ -153,66 +159,66 @@ public namespace SmtpClient {
     }
 
     #! the class that's used to communicate with an SMTP server and supports optional TLS/SSL encryption
-    /** This class uses a Mutex lock in each SmtpClient object to ensure thread serialization to the underlying socket and its internal configuration, 
+    /** This class uses a Mutex lock in each SmtpClient object to ensure thread serialization to the underlying socket and its internal configuration,
         so it is safe to access in a multithreaded context.
      */
     public class SmtpClient {
         #! @cond nodoc
-	private {
-	    Socket $.sock();
+        private {
+            Socket sock();
 
-	    # connect string
-	    string $.connect;
+            # connect string
+            string connect;
 
-	    # ensures exclusive access to the object
-	    Mutex $.mutex();
-	    
-	    bool $.nosend = False;
+            # ensures exclusive access to the object
+            Mutex mutex();
 
-	    # optional info log closure
-	    *code $.log_info;
+            bool nosend = False;
 
-	    # optional debug log closure
-	    *code $.log_debug;
+            # optional info log closure
+            *code log_info;
 
-	    # tls flag (ie \c "STARTTLS" flag; ie application layer security)
-	    bool $.tls = False;
+            # optional debug log closure
+            *code log_debug;
+
+            # tls flag (ie \c "STARTTLS" flag; ie application layer security)
+            bool tls = False;
 
             # ssl flag (for TLS/SSL connections - ie transport layer instead of application layer security)
-            bool $.ssl = False;
+            bool ssl = False;
 
-	    # esmtp flag
-	    bool $.esmtp;
+            # esmtp flag
+            bool esmtp;
 
-	    # authentication credentials
-	    *string $.user;
-	    *string $.pass;
+            # authentication credentials
+            *string user;
+            *string pass;
 
-	    # logged in flag
-	    bool $.logged_in = False;
+            # logged in flag
+            bool logged_in = False;
 
             # read timeout in milliseconds
-            timeout $.readTimeout = DefaultReadTimeout;
+            timeout readTimeout = DefaultReadTimeout;
 
             # connect timeout in milliseconds
-            timeout $.connectTimeout = DefaultConnectTimeout;
+            timeout connectTimeout = DefaultConnectTimeout;
 
             # HELO/EHLO reply
-            hash $.hello_reply;
+            hash hello_reply;
 
             const MaxDebugLine = 2048;
-	}
+        }
         #! @endcond
 
-	public {
-	    #! default SMTP port
-	    const SmtpPort = 25;
+        public {
+            #! default SMTP port
+            const SmtpPort = 25;
 
-	    #! default SMTPS port; note that this port is currently assigned to source-specific multicast audio/video (http://www.iana.org/assignments/port-numbers); it's use as a port for secure SMTP listeners (where security is enforced at the transport layer because the server immediately negotiates a TLS/SSL connection before the application protocol communication starts) is deprecated
-	    const SmtpsPort = 465;
+            #! default SMTPS port; note that this port is currently assigned to source-specific multicast audio/video (http://www.iana.org/assignments/port-numbers); it's use as a port for secure SMTP listeners (where security is enforced at the transport layer because the server immediately negotiates a TLS/SSL connection before the application protocol communication starts) is deprecated
+            const SmtpsPort = 465;
 
-	    #! default ESMTP port
-	    const EsmtpPort = 587;
+            #! default ESMTP port
+            const EsmtpPort = 587;
 
             #! procotol config
             const Protocols = (
@@ -242,250 +248,250 @@ public namespace SmtpClient {
                     "tls": True,
                 ),
                 );
-	}
+        }
 
-	#! creates the SmtpClient object
-	/** @param host the hostname of the SMTP server (use \c "[hostname]" to explicitly specify an ipv6 connection)
-	    @param port the port number of the SMTP server
-	    @param log a closure or call reference for log messages; a single string argument will be passed to this code for logging 
-	    @param dbglog a closure for debugging/technical log messages; a single string argument will be passed to this code for logging 
-	 */
-	constructor(string $host, softint $port, *code $log, *code $dbglog) {
-	    $.log_info = $log;
-	    $.log_debug = $dbglog;
+        #! creates the SmtpClient object
+        /** @param host the hostname of the SMTP server (use \c "[hostname]" to explicitly specify an ipv6 connection)
+            @param port the port number of the SMTP server
+            @param log a closure or call reference for log messages; a single string argument will be passed to this code for logging
+            @param dbglog a closure for debugging/technical log messages; a single string argument will be passed to this code for logging
+         */
+        constructor(string host, softint port, *code log, *code dbglog) {
+            log_info = log;
+            log_debug = dbglog;
 
-	    $.connect = sprintf("%s:%d", $host, $port);
-	    $.logDbg("SmtpClient server: %y", $.connect);
-	}
+            connect = sprintf("%s:%d", host, port);
+            logDbg("SmtpClient server: %y", connect);
+        }
 
-	#! creates the SmtpClient object
-	/** @par Example:
-            @code
-my SmtpClient $smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log());
+        #! creates the SmtpClient object
+        /** @par Example:
+            @code{.py}
+SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log());
             @endcode
 
             @param url the URL of the SMTP server (use \c "[hostname]" or \c "[address]" for ipv6 connections); if no protocol (scheme) and no port is given for non-UNIX sockets, then @ref SmtpPort is used as the default port number.  This argument is parsed with parse_url(); see @ref smtpclient_protocols for a description of the handling of the protocol (scheme) component of the URL including default ports per protocol (scheme). If an unknown protocol (scheme) is given then a \c SMTP-UNKNOWN-PROTOCOL exception is raised
-	    @param log an optional closure or call reference for log messages; a single string argument will be passed to this code for logging 
-	    @param dbglog an optional closure or call reference for debugging/technical log messages; a single string argument will be passed to this code for logging 
+            @param log an optional closure or call reference for log messages; a single string argument will be passed to this code for logging
+            @param dbglog an optional closure or call reference for debugging/technical log messages; a single string argument will be passed to this code for logging
 
             @throw PARSE-URL-ERROR the \a url argument could not be parsed with parse_url()
             @throw SMTPCLIENT-UNKNOWN-PROTOCOL the protocol (scheme) given is unknown or unsupported
             @throw SMTPCLIENT-INVALID-AUTHENTICATION partial authentication credentials passed; the username or password is missing
-	 */
-	constructor(string $url, *code $log, *code $dbglog) {
-	    $.log_info = $log;
-	    $.log_debug = $dbglog;
+         */
+        constructor(string url, *code log, *code dbglog) {
+            log_info = log;
+            log_debug = dbglog;
 
-            my hash $uh = parse_url($url, True);
+            hash uh = parse_url(url, True);
 
-            if ($uh.protocol) {
-                my *hash $ph = Protocols.($uh.protocol);
-                if (!$ph)
-                    throw "SMTPCLIENT-UNKNOWN-PROTOCOL", sprintf("unsupported protocol %y in %y", $uh.protocol, $url);
+            if (uh.protocol) {
+                *hash ph = Protocols.(uh.protocol);
+                if (!ph)
+                    throw "SMTPCLIENT-UNKNOWN-PROTOCOL", sprintf("unsupported protocol %y in %y", uh.protocol, url);
 
-                if (!$uh.port)
-                    $uh.port = $ph.port;
+                if (!uh.port)
+                    uh.port = ph.port;
 
-                $self += $ph.("tls", "ssl");
+                self += ph.("tls", "ssl");
             }
-            else if (!$uh.port)
-                $uh.port = SmtpPort;
+            else if (!uh.port)
+                uh.port = SmtpPort;
 
-	    $.connect = sprintf("%s:%d", $uh.host, $uh.port);
-	    $.logDbg("SmtpClient server: %y", $.connect);
-            
-            if ($uh.username) {
-                if (!$uh.password)
-                    throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("username is set but password is missing in URL %y", $url);
-                $.user = $uh.username;
-                $.pass = $uh.password;
+            connect = sprintf("%s:%d", uh.host, uh.port);
+            logDbg("SmtpClient server: %y", connect);
 
-                $.logDbg("set authentication credentials to %s/xxx", $.user);
+            if (uh.username) {
+                if (!uh.password)
+                    throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("username is set but password is missing in URL %y", url);
+                user = uh.username;
+                pass = uh.password;
+
+                logDbg("set authentication credentials to %s/xxx", user);
             }
-            else if ($uh.password)
-                throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("password is set but username is missing in URL %y", $url);
-	}
+            else if (uh.password)
+                throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("password is set but username is missing in URL %y", url);
+        }
 
-	#! disconnects if connected and destroys the object
+        #! disconnects if connected and destroys the object
         /** if any exceptions occur during the disconnection, they are sent to the debug log closure/call reference
          */
-  	destructor() {
-	    try {
-		$.disconnect();
-	    }
-	    catch (hash $ex) {
-		$.logDbg("SmtpClient disconnect: %s: %s", $ex.err, $ex.desc);
-	    }
-  	}
+        destructor() {
+            try {
+                disconnect();
+            }
+            catch (hash ex) {
+                logDbg("SmtpClient disconnect: %s: %s", ex.err, ex.desc);
+            }
+        }
 
         #! sets the TLS/SSL flag
-        /** @param tls if @ref Qore::True "True" then use TLS/SSL; if the TLS/SSL flag is set then the client will issue a \c "STARTTLS" command after connecting and negotiate a secure TLS/SSL connection to the server; will also in this case turn off the SSL connection flag
+        /** @param n_tls if @ref Qore::True "True" then use TLS/SSL; if the TLS/SSL flag is set then the client will issue a \c "STARTTLS" command after connecting and negotiate a secure TLS/SSL connection to the server; will also in this case turn off the SSL connection flag
          */
-	tls(bool $tls) {
-	    $.tls = $tls;
-            if ($.ssl)
-                $.ssl = False;
-	}
+        tls(bool n_tls) {
+            tls = n_tls;
+            if (ssl)
+                ssl = False;
+        }
 
         #! returns the TLS/SSL flag
-	bool tls() {
-	    return $.tls;
-	}
+        bool tls() {
+            return tls;
+        }
 
         #! sets the SSL connection flag
-        /** @param ssl if @ref Qore::True "True" then connections to the SMTP server will immediately try to negotiate transport layer TSL/SSL security; will also in this case turn off the TLS/SSL \c "STARTTLS" application layer security flag
+        /** @param n_ssl if @ref Qore::True "True" then connections to the SMTP server will immediately try to negotiate transport layer TSL/SSL security; will also in this case turn off the TLS/SSL \c "STARTTLS" application layer security flag
          */
-	ssl(bool $ssl) {
-	    $.ssl = $ssl;
-            if ($.tls)
-                $.tls = False;
-	}
+        ssl(bool n_ssl) {
+            ssl = n_ssl;
+            if (tls)
+                tls = False;
+        }
 
         #! returns the SSL connection flag
-	bool ssl() {
-	    return $.ssl;
-	}
+        bool ssl() {
+            return ssl;
+        }
 
         #! sets the username and password for authenticated connections
-        /** @param user the username to set for authentication
-            @param pass the password to set for authentication
-            
+        /** @param n_user the username to set for authentication
+            @param n_pass the password to set for authentication
+
             @note
             - Currently this class only knows how to do AUTH PLAIN authentication
             - This method is subject to thread serialization
          */
-	setUserPass(string $user, string $pass) {
-	    my AutoLock $am($.mutex);
-	    $.user = $user;
-	    $.pass = $pass;
-	}
+        setUserPass(string n_user, string n_pass) {
+            AutoLock am(mutex);
+            user = n_user;
+            pass = n_pass;
+        }
 
-	#! sets or disables test mode; no connections are made in test mode
-	test(bool $ns) {
-	    $.nosend = $ns;
-	}
+        #! sets or disables test mode; no connections are made in test mode
+        test(bool ns) {
+            nosend = ns;
+        }
 
-	#! returns the test mode flag
-	bool test() {
-	    return $.nosend;
-	}
+        #! returns the test mode flag
+        bool test() {
+            return nosend;
+        }
 
-	#! Connect to the server with the connection parameters set in the @ref constructor()
+        #! Connect to the server with the connection parameters set in the @ref constructor()
         /** @note
             - For possible exceptions, see %Qore's @ref Qore::Socket::connect() "Socket::connect()" method
             - This method is subject to thread serialization
          */
-  	connect() {
-	    my AutoLock $am($.mutex);
-            $.connectIntern();
+        connect() {
+            AutoLock am(mutex);
+            connectIntern();
         }
 
-	#! return connection status
-  	bool isConnected() {
-	    return ($.nosend || $.sock.isOpen());
-  	}
-  	
-	#! disconnect from the server
+        #! return connection status
+        bool isConnected() {
+            return (nosend || sock.isOpen());
+        }
+
+        #! disconnect from the server
         /** @note This method is subject to thread serialization
          */
-  	disconnect() {
-	    my AutoLock $am($.mutex);
-            $.disconnectIntern();
-  	}
+        disconnect() {
+            AutoLock am(mutex);
+            disconnectIntern();
+        }
 
         #! sets the read timeout
-        setReadTimeout(timeout $to) {
-            $.readTimeout = $to;
+        setReadTimeout(timeout to) {
+            readTimeout = to;
         }
 
         #! returns the read timeout as an integer giving milliseconds
         int getReadTimeoutMs() {
-            return $.readTimeout;
+            return readTimeout;
         }
-        
+
         #! returns the read timeout as a relative time value
         date getReadTimeoutDate() {
-            return milliseconds($.readTimeout);
+            return milliseconds(readTimeout);
         }
 
         #! sets the connect timeout
-        setConnectTimeout(timeout $to) {
-            $.connectTimeout = $to;
+        setConnectTimeout(timeout to) {
+            connectTimeout = to;
         }
 
         #! returns the connect timeout as an integer giving milliseconds
         int getConnectTimeoutMs() {
-            return $.connectTimeout;
+            return connectTimeout;
         }
-        
+
         #! returns the connect timeout as a relative time value
         date getConnectTimeoutDate() {
-            return milliseconds($.connectTimeout);
+            return milliseconds(connectTimeout);
         }
 
-	#! send a Message to the server
-	/** @param message the Message to send
+        #! send a Message to the server
+        /** @param message the Message to send
 
-	    @return a hash of data returned by the SMTP server (the return structure hashes described below are made up of the following keys: \c "code": the return code, \c "desc": the string description):
-	    - \c HELO or \c EHLO: a hash of the reply received from the \c HELO or \c EHLO command
-	    - \c RCPT: hash keyed by email address with hash return structures values for the RCPT TO command   
-	    - \c MSGID: return structure after the send; generally contains message id
-	    - \c QUIT: the server response of the disconnect command
+            @return a hash of data returned by the SMTP server (the return structure hashes described below are made up of the following keys: \c "code": the return code, \c "desc": the string description):
+            - \c HELO or \c EHLO: a hash of the reply received from the \c HELO or \c EHLO command
+            - \c RCPT: hash keyed by email address with hash return structures values for the RCPT TO command
+            - \c MSGID: return structure after the send; generally contains message id
+            - \c QUIT: the server response of the disconnect command
 
             @note This method is subject to thread serialization
 
             @throw MESSAGE-ERROR the message is incomplete and cannot be sent
-	 */
-	hash sendMessage(MailMessage::Message $message) {
+         */
+        hash sendMessage(MailMessage::Message message) {
             # throws a MESSAGE-ERROR exception if the message cannot be sent
-            my string $mstr = $message.serialize();
+            string mstr = message.serialize();
 
-	    if ($.log_debug)
-		$.logDbg("message: %s", $message.toLine());
+            if (log_debug)
+                logDbg("message: %s", message.toLine());
 
-	    # lock for sending
-	    my AutoLock $am($.mutex);
+            # lock for sending
+            AutoLock am(mutex);
 
-	    my hash $reply;
-	    try {
+            hash reply;
+            try {
                 # send SMTP info for message
-		$reply = $.sendMessageInfoIntern($message);
+                reply = sendMessageInfoIntern(message);
 
                 # send message
-                $.sendData($mstr);
+                sendData(mstr);
 
-		# end of data
-		my hash $rh = $.sendCommand(".");
-		$reply.MSGID = $rh;
+                # end of data
+                hash rh = sendCommand(".");
+                reply.MSGID = rh;
 
-		# quit
-		$rh = $.sendCommand("QUIT");
-                $.logged_in = False;
-		$reply.QUIT = $rh;
-	    }
-	    catch($ex) {
-		$.logDbg("send error: %s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc);
-		$.forceDisconnectIntern();
-		rethrow;
-	    }
-	    # close connection
-	    $.forceDisconnectIntern();
+                # quit
+                rh = sendCommand("QUIT");
+                logged_in = False;
+                reply.QUIT = rh;
+            }
+            catch(ex) {
+                logDbg("send error: %s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
+                forceDisconnectIntern();
+                rethrow;
+            }
+            # close connection
+            forceDisconnectIntern();
 
-	    return $reply;
-	}
+            return reply;
+        }
 
-	#! force disconnect of socket without error
+        #! force disconnect of socket without error
         /** @note This method is subject to thread serialization
          */
         forceDisconnect() {
-	    my AutoLock $am($.mutex);
-            $.forceDisconnectIntern();
-	}
+            AutoLock am(mutex);
+            forceDisconnectIntern();
+        }
 
         #! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
         /** @par Example:
-            @code
-$smtp.clearWarningQueue();
+            @code{.py}
+smtp.clearWarningQueue();
             @endcode
 
             @see SmtpClient::setWarningQueue()
@@ -493,21 +499,21 @@ $smtp.clearWarningQueue();
             @since %SmtpClient 1.3
         */
         nothing clearWarningQueue() {
-            $.sock.clearWarningQueue();
+            sock.clearWarningQueue();
         }
 
         #! Sets a @ref Qore::Thread::Queue "Queue" object to receive socket warnings
         /** @par Example:
-            @code
-$smtp.setWarningQueue(5000, 5000, $queue, "socket-1");
+            @code{.py}
+smtp.setWarningQueue(5000, 5000, queue, "socket-1");
             @endcode
 
             @param warning_ms the threshold in milliseconds for individual socket actions (send, receive, connect), if exceeded, a socket warning is placed on the warning queue with the following keys:
             - \c "type": a string with the constant value \c "SOCKET-OPERATION-WARNING"
             - \c "operation": a string giving the operation that caused the warning (ex: \c "connect")
             - \c "us": an integer giving the number of microseconds for the operation
-            - \c "timeout": an integer giving the warning threshold in microseconds 
-            - \c "arg": if any \c "arg" argument is passed to the @ref Qore::SmtpClient::setWarningQueue() "SmtpClient::setWarningQueue()" method, it will be included in the warning hash here 
+            - \c "timeout": an integer giving the warning threshold in microseconds
+            - \c "arg": if any \c "arg" argument is passed to the @ref Qore::SmtpClient::setWarningQueue() "SmtpClient::setWarningQueue()" method, it will be included in the warning hash here
             @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket warning is placed on the warning queue with the following keys:
             - \c "type": a string with the constant value \c "SOCKET-THROUGHPUT-WARNING"
             - \c "dir": either \c "send" or \c "recv" depending on the direction of the data flow
@@ -515,11 +521,11 @@ $smtp.setWarningQueue(5000, 5000, $queue, "socket-1");
             - \c "us": an integer giving the number of microseconds for the operation
             - \c "bytes_sec": a float giving the transfer speed in bytes per second
             - \c "threshold": an integer giving the warning threshold in bytes per second
-            - \c "arg": if any \c "arg" argument is passed to the @ref Qore::SmtpClient::setWarningQueue() "SmtpClient::setWarningQueue()" method, it will be included in the warning hash here 
+            - \c "arg": if any \c "arg" argument is passed to the @ref Qore::SmtpClient::setWarningQueue() "SmtpClient::setWarningQueue()" method, it will be included in the warning hash here
             @param queue the @ref Qore::Thread::Queue "Queue" object to receive warning events
             @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to identify the socket for example)
             @param min_ms the minimum transfer time with a resolution of milliseconds for a transfer to be eligible for triggering a warning; transfers that take less than this period of time are not eligible for raising a warning
-            
+
             @throw QUEUE-ERROR the Queue passed has a maximum size set
             @throw SOCKET-SETWARNINGQUEUE-ERROR at least one of \a warning_ms and \a warning_bs must be > 0
 
@@ -527,14 +533,14 @@ $smtp.setWarningQueue(5000, 5000, $queue, "socket-1");
 
             @since %SmtpClient 1.3
         */
-        nothing setWarningQueue(int $warning_ms, int $warning_bs, Queue $queue, any $arg, timeout $min_ms = 1s) {
-            $.sock.setWarningQueue($warning_ms, $warning_bs, $queue, $arg, $min_ms);
+        nothing setWarningQueue(int warning_ms, int warning_bs, Queue queue, any arg, timeout min_ms = 1s) {
+            sock.setWarningQueue(warning_ms, warning_bs, queue, arg, min_ms);
         }
 
         #! Returns performance statistics for the socket
         /** @par Example:
-            @code
-my hash $h = $smtp.getUsageInfo();
+            @code{.py}
+hash h = smtp.getUsageInfo();
             @endcode
 
             @return a hash with the following keys:
@@ -551,13 +557,13 @@ my hash $h = $smtp.getUsageInfo();
             @see SmtpClient::clearStats()
         */
         hash getUsageInfo() {
-            return $.sock.getUsageInfo();
+            return sock.getUsageInfo();
         }
 
         #! Clears performance statistics
         /** @par Example:
-            @code
-$smtp.clearStats();
+            @code{.py}
+smtp.clearStats();
             @endcode
 
             @since %SmtpClient 1.3
@@ -565,227 +571,226 @@ $smtp.clearStats();
             @see SmtpClient::getUsageInfo()
         */
         clearStats() {
-            $.sock.clearStats();
+            sock.clearStats();
         }
 
         #! @cond nodoc
         # don't reimplement this method; fix/enhance it in the module
         final private disconnectIntern() {
-	    if ($.isConnected()) {
-		$.sock.close();
-		$.sock.shutdown();
-	    }
+            if (isConnected()) {
+                sock.close();
+                sock.shutdown();
+            }
         }
-  	
-	private log(string $msg) {
-	    if ($.log_info.val())
-		call_function($.log_info, "SmtpClient: " + trim(vsprintf($msg, $argv)));
-	}
 
-	private logDbg(string $msg) {
-	    if ($.log_debug.val())
-		call_function($.log_debug, "SmtpClient: " + trim(vsprintf($msg, $argv)));
-	}
+        private log(string msg) {
+            if (log_info.val())
+                call_function(log_info, "SmtpClient: " + trim(vsprintf(msg, argv)));
+        }
 
-        private connectIntern() {            
+        private logDbg(string msg) {
+            if (log_debug.val())
+                call_function(log_debug, "SmtpClient: " + trim(vsprintf(msg, argv)));
+        }
+
+        private connectIntern() {
             try {
-                $.sock.connect($.connect, $.connectTimeout);
-                if ($.ssl)
-                    $.sock.upgradeClientToSSL();
+                sock.connect(connect, connectTimeout);
+                if (ssl)
+                    sock.upgradeClientToSSL();
 
-                my string $rep = $.readLine($.readTimeout);
-                $.logDbg("connect reply: %y", trim($rep));
-                $.esmtp = ($rep =~ /ESMTP/);
+                string rep = readLine(readTimeout);
+                logDbg("connect reply: %y", trim(rep));
+                esmtp = (rep =~ /ESMTP/);
 
                 # send HELO/EHLO string
-                my string $hello = $.esmtp ? "EHLO" : "HELO";
-                my hash $rh = $.sendCommand($hello + "  %s", gethostname());
-                if ($rh.code >= 500)
-                    throw "SMTP-DATA-EXCEPTION", sprintf("error sending %s command: %y", $hello, $rh);
-                
-                $.hello_reply.$hello = $rh;
+                string hello = esmtp ? "EHLO" : "HELO";
+                hash rh = sendCommand(hello + "  %s", gethostname());
+                if (rh.code >= 500)
+                    throw "SMTP-DATA-EXCEPTION", sprintf("error sending %s command: %y", hello, rh);
+
+                hello_reply{hello} = rh;
 
                 # try to automatically set the tls flag if it's not already set and we are talking to an ESMTP server and we are not already in a secure connection
-                if (!$.tls && $.esmtp && !$.ssl && $rh.desc =~ /STARTTLS/) {
-                    $.logDbg("server supports STARTTLS; automatically setting STARTTLS flag");
-                    $.tls = True;
+                if (!tls && esmtp && !ssl && rh.desc =~ /STARTTLS/) {
+                    logDbg("server supports STARTTLS; automatically setting STARTTLS flag");
+                    tls = True;
                 }
 
                 # issue STARTTLS and upgrade to a TLS connection if the tls flag is set and we are not already secure
-                if ($.tls && !$.sock.isSecure()) {
-                    $rh = $.sendCommand("STARTTLS");
-                    if ($rh.code >= 500)
-                        throw "SMTP-DATA-EXCEPTION", sprintf("error sending STARTTLS command: %y", $rh);
+                if (tls && !sock.isSecure()) {
+                    rh = sendCommand("STARTTLS");
+                    if (rh.code >= 500)
+                        throw "SMTP-DATA-EXCEPTION", sprintf("error sending STARTTLS command: %y", rh);
 
-                    $.sock.upgradeClientToSSL();
-                    $.logDbg("upgrade to TLS/SSL connection %s %s", $.sock.getSSLCipherName(), $.sock.getSSLCipherVersion());
+                    sock.upgradeClientToSSL();
+                    logDbg("upgrade to TLS/SSL connection %s %s", sock.getSSLCipherName(), sock.getSSLCipherVersion());
                 }
-                
+
                 # issue login if credentials supplied and we have not already logged in
-                if (!$.logged_in && $.user)
-                    $.loginIntern();
+                if (!logged_in && user)
+                    loginIntern();
             }
-            catch (hash $ex) {
-                $.sock.close();
-                $.sock.shutdown();
+            catch (hash ex) {
+                sock.close();
+                sock.shutdown();
                 rethrow;
             }
         }
 
         private loginIntern() {
-            my hash $rh = $.sendCommand("AUTH PLAIN %s", makeBase64String(binary($.user) + <00> + binary($.user) + <00> + binary($.pass)));
-            if ($rh.code != 235)
-                throw "SMTP-DATA-EXCEPTION", sprintf("login failed: %y", $rh);
-            $.logged_in = True;
+            hash rh = sendCommand("AUTH PLAIN %s", make_base64_string(binary(user) + <00> + binary(user) + <00> + binary(pass)));
+            if (rh.code != 235)
+                throw "SMTP-DATA-EXCEPTION", sprintf("login failed: %y", rh);
+            logged_in = True;
         }
-  	
-	# send data over the socket
-	private sendDataIntern(data $str) {
-	    if (!$.isConnected()) {
-		$.logDbg("send: not connected; not sending");
-		throw "NOT-CONNECTED", "not connected in sendDataIntern()";
-	    }
 
-	    # send
-	    $.sock.send($str);
-	}
+        # send data over the socket
+        private sendDataIntern(data str) {
+            if (!isConnected()) {
+                logDbg("send: not connected; not sending");
+                throw "NOT-CONNECTED", "not connected in sendDataIntern()";
+            }
 
-	# send data and log in the debug log if set
-	private sendData(string $str) {
-	    # format additional arguments if necessary
-	    if (!$argv.empty())
-		$str = vsprintf($str, $argv);
+            # send
+            sock.send(str);
+        }
 
-	    if ($.log_debug.val()) {
-		my string $lstr = trim($str);
-		if ($lstr.size() > MaxDebugLine) {
-		    splice $lstr, MaxDebugLine;
-		    $lstr += "...";
-		}
-		$.logDbg("data: %y", $lstr);
-	    }
+        # send data and log in the debug log if set
+        private sendData(string str) {
+            # format additional arguments if necessary
+            if (!argv.empty())
+                str = vsprintf(str, argv);
 
-	    $.sendDataIntern($str);
-	}
+            if (log_debug.val()) {
+                string lstr = trim(str);
+                if (lstr.size() > MaxDebugLine) {
+                    splice lstr, MaxDebugLine;
+                    lstr += "...";
+                }
+                logDbg("data: %y", lstr);
+            }
 
-	# send data and log in the debug log if set
-	private sendData(binary $b) {
-            $.logDbg("binary data: %d bytes", $b.size());
-	    $.sendDataIntern($b);
-	}
+            sendDataIntern(str);
+        }
 
-	# send a command over the socket and return the response as a hash
+        # send data and log in the debug log if set
+        private sendData(binary b) {
+            logDbg("binary data: %d bytes", b.size());
+            sendDataIntern(b);
+        }
+
+        # send a command over the socket and return the response as a hash
         # don't reimplement this method; fix/enhance it in the module
-	final private hash sendCommand(string $str) {
-	    # format additional arguments if necessary
-	    if (!$argv.empty())
-		$str = vsprintf($str, $argv);
+        final private hash sendCommand(string str) {
+            # format additional arguments if necessary
+            if (!argv.empty())
+                str = vsprintf(str, argv);
 
-	    trim $str;
-	    $.logDbg("send %y", $str);
+            trim str;
+            logDbg("send %y", str);
 
-	    # send data
-	    $.sendDataIntern($str + "\r\n");
+            # send data
+            sendDataIntern(str + "\r\n");
 
-	    # read data
-	    my string $rep;
+            # read data
+            string rep;
 
-	    my softint $code;
-	    my string $desc;
+            softint code;
+            string desc;
 
-	    # process multi-line responses
-	    while (True) {
-		my string $l = $.readLine($.readTimeout);
-		trim $l;
-		$.logDbg("reply: %y", $l);
+            # process multi-line responses
+            while (True) {
+                string l = readLine(readTimeout);
+                trim l;
+                logDbg("reply: %y", l);
 
-		# if a continuation is signaled from the server, then keep reading
-		if ($l =~ /^[0-9]{3}-/) {
-		    if (!$code)
-			$code = int($l);
-		    # assume it's the same code every time
-		    if (!$desc.empty())
-			$desc += "\n";
-		    $desc += extract $l, 4;
-		    continue;
-		}
-		else {
-		    if ($l !~ /^[0-9]{3} /) {
-			$.log("cannot parse reply: %s\n", $l);
-			$desc += $l;
-			$code = -1;
-			break;
-		    }
-		    if (!$code)
-			$code = int($l);
-		    # assume it's the same code every time
-		    if (!$desc.empty())
-			$desc += "\n";
-		    $desc += extract $l, 4;
-		    break;
-		}
-	    }
+                # if a continuation is signaled from the server, then keep reading
+                if (l =~ /^[0-9]{3}-/) {
+                    if (!code)
+                        code = int(l);
+                    # assume it's the same code every time
+                    if (!desc.empty())
+                        desc += "\n";
+                    desc += extract l, 4;
+                    continue;
+                }
+                else {
+                    if (l !~ /^[0-9]{3} /) {
+                        log("cannot parse reply: %s\n", l);
+                        desc += l;
+                        code = -1;
+                        break;
+                    }
+                    if (!code)
+                        code = int(l);
+                    # assume it's the same code every time
+                    if (!desc.empty())
+                        desc += "\n";
+                    desc += extract l, 4;
+                    break;
+                }
+            }
 
-	    return ("code": $code, "desc": $desc);
-	}
+            return ("code": code, "desc": desc);
+        }
 
-	# read a line from the socket (terminated with \n)
-	private string readLine(timeout $to) {
-	    my string $str;
-	    my int $c = 0;
-	    do {
-		$c = $.sock.recvu1($to);
-		$str += chr($c);
-	    } while ($c != 10);
+        # read a line from the socket (terminated with \n)
+        private string readLine(timeout to) {
+            string str;
+            int c = 0;
+            do {
+                c = sock.recvu1(to);
+                str += chr(c);
+            } while (c != 10);
 
-	    return $str;
-	}
+            return str;
+        }
 
         # sends the message header (without body & attachments) to the SMTP server
         # don't reimplement this method; fix/enhance it in the module
-        final private hash sendMessageInfoIntern(MailMessage::Message $message) {
-	    # open connection to server
-	    if (!$.isConnected())
-		$.connectIntern();
+        final private hash sendMessageInfoIntern(MailMessage::Message message) {
+            # open connection to server
+            if (!isConnected())
+                connectIntern();
 
             # issue login if credentials supplied and we have not already logged in
-            if (!$.logged_in && $.user)
-                $.loginIntern();
+            if (!logged_in && user)
+                loginIntern();
 
-            my hash $rh;
-            my hash $reply = $.hello_reply;
+            hash rh;
+            hash reply = hello_reply;
 
-	    $rh = $.sendCommand("MAIL FROM: <%s>", $message.getFrom());
-	    if ($rh.code >= 500)
-		throw "SMTP-DATA-EXCEPTION", sprintf("error sending FROM command: %y", $rh);
+            rh = sendCommand("MAIL FROM: <%s>", message.getFrom());
+            if (rh.code >= 500)
+                throw "SMTP-DATA-EXCEPTION", sprintf("error sending FROM command: %y", rh);
 
-	    # send recipient
-	    foreach my string $rcpt in ($message.getRecipients()) {
-		$rh = $.sendCommand("RCPT TO: <%s>", $rcpt);
-		$reply.RCPT.$rcpt = $rh;
-		if ($rh.code >= 500)
-		    throw "SMTP-DATA-EXCEPTION", sprintf("error sending RCPT command: %y", $rh);
-	    }
+            # send recipient
+            foreach string rcpt in (message.getRecipients()) {
+                rh = sendCommand("RCPT TO: <%s>", rcpt);
+                reply.RCPT{rcpt} = rh;
+                if (rh.code >= 500)
+                    throw "SMTP-DATA-EXCEPTION", sprintf("error sending RCPT command: %y", rh);
+            }
 
-	    # send data
-	    $rh = $.sendCommand("DATA");
-	    if ($rh.code != 354)
-		throw "SMTP-DATA-EXCEPTION", sprintf("error sending DATA command (expected code 354): %y", $rh);
+            # send data
+            rh = sendCommand("DATA");
+            if (rh.code != 354)
+                throw "SMTP-DATA-EXCEPTION", sprintf("error sending DATA command (expected code 354): %y", rh);
 
-	    return $reply;
-	}
+            return reply;
+        }
 
-	private forceDisconnectIntern() {
-	    if ($.isConnected()) {
-		try {
-		    $.disconnectIntern();
-		}
-		catch($ex) {
-		    # ignore
-		}
-	    }
-	}
+        private forceDisconnectIntern() {
+            if (isConnected()) {
+                try {
+                    disconnectIntern();
+                }
+                catch(ex) {
+                    # ignore
+                }
+            }
+        }
         #! @endcond
     }
 }
-

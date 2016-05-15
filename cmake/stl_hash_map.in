@@ -1,0 +1,12 @@
+#include @HASH_MAP_INCLUDE@
+#ifndef HASH_NAMESPACE
+#define HASH_NAMESPACE @HASH_NAMESPACE@
+#endif
+#ifdef HAVE_UNORDERED_MAP
+#define HASH_MAP HASH_NAMESPACE::unordered_map
+//using HASH_NAMESPACE::unordered_map;
+#else
+#define HASH_MAP HASH_NAMESPACE::hash_map
+//using HASH_NAMESPACE::hash_map;
+#endif
+//using HASH_NAMESPACE::hash;

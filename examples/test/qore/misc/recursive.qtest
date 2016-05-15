@@ -1,0 +1,36 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+int sub factorial(int num) {
+    if (num <= 0) return 0;
+    if (num == 1 || num == 2) return num;
+    return num * factorial(num - 1);
+}
+
+# 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597
+int sub fibonacci(int num) {
+    if (num < 0) return 0;
+    if (num == 0 || num == 1) return 1;
+    return fibonacci(num - 1) + fibonacci(num - 2);
+}
+
+%exec-class RecursiveTest
+
+class RecursiveTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Recursive functions test", "1.0") {
+        addTestCase("Test", \testRecursion());
+        set_return_value(main());
+    }
+
+    testRecursion() {
+        assertEq(3628800, factorial(10));
+        assertEq(1597, fibonacci(16));
+    }
+}

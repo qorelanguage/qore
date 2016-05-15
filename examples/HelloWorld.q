@@ -6,12 +6,10 @@
 # an object-oriented, threaded hello world :-)
 class HelloWorld
 {
-    constructor()
-    {
-	background $.output("Hello, world!");
+    constructor() {
+        background $.output("Hello, world!");
     }
-    private output($arg)
-    {
-	printf("%s\n", $arg);
+    private output($arg) {
+        printf("%s\n", $arg);
     }
 }

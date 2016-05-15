@@ -1,0 +1,154 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class ParseDirectiveTest
+
+public class ParseDirectiveTest inherits QUnit::Test {
+
+    constructor() : Test("ParseDirectiveTest", "1.0") {
+        addTestCase("missing arg to %append-include-path", \missingArgAppendIncludePath());
+        addTestCase("missing arg to %append-module-path", \missingArgAppendModulePath());
+        addTestCase("missing arg to %set-time-zone", \missingArgSetTimeZone());
+        addTestCase("missing arg to %enable-warning", \missingArgEnableWarning());
+        addTestCase("missing arg to %try-module", \missingArgTryModule());
+        addTestCase("missing arg to %requires", \missingArgRequires());
+        addTestCase("missing arg to %requires (with space)", \missingArgRequiresWithSpace());
+        addTestCase("tab in arg", \tabInArg());
+        addTestCase("space after %exec-class", \spaceAfterExecClass());
+        addTestCase("invalid id in %try-module", \invalidIdInTryModule());
+        addTestCase("ignored text before '(' in %try-module", \ignoredTextTryModule());
+        addTestCase("correct %try-module", \correctTryModule());
+        addTestCase("correct %requires", \correctRequires());
+        addTestCase("%exec-class tests", \execClass());
+        addTestCase("%exec-class crlf", \execClassCrlf());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    missingArgAppendIncludePath() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        assertThrows("PARSE-EXCEPTION", "missing argument to %append-include-path",
+            \p.parse(), ("%append-include-path\nprint();", ""));
+    }
+
+    missingArgAppendModulePath() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        assertThrows("PARSE-EXCEPTION", "missing argument to %append-module-path",
+            \p.parse(), ("%append-module-path   \nprint();", ""));
+    }
+
+    missingArgSetTimeZone() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        assertThrows("PARSE-EXCEPTION", "missing argument to %set-time-zone",
+            \p.parse(), ("%set-time-zone\t   \nprint();", ""));
+    }
+
+    missingArgEnableWarning() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        assertThrows("PARSE-EXCEPTION", "missing argument to %enable-warning",
+            \p.parse(), ("%enable-warning\nprint();", ""));
+    }
+
+    missingArgTryModule() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        assertThrows("PARSE-EXCEPTION", "missing argument to %try-module",
+            \p.parse(), ("%try-module\n($x) xml;\nprint();\n%endtry\n", ""));
+    }
+
+    missingArgRequires() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        assertThrows("PARSE-EXCEPTION", "missing argument to %requires",
+            \p.parse(), ("%requires\nprint();\n", ""));
+    }
+
+    missingArgRequiresWithSpace() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        assertThrows("PARSE-EXCEPTION", "missing argument to %requires",
+            \p.parse(), ("%requires \nprint();\n", ""));
+    }
+
+    tabInArg() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        p.parse("
+our $x = 0;
+our $y = 0;
+%append-include-path xxx\t++$x;
+++$y;
+%append-module-path xxx\t++$x;
+++$y;
+%enable-warning deprecated\t++$x;
+++$y;
+%disable-warning deprecated\t++$x;
+++$y;
+%ifdef xxx\t++$x;
+$y = 9;
+%endif
+%ifndef yyy\t++$x;
+++$y;
+%endif
+", "");
+        p.run();
+        assertEq(5, p.getGlobalVariable("y"));
+        assertEq(0, p.getGlobalVariable("x"));
+    }
+
+    spaceAfterExecClass() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        assertThrows("PARSE-EXCEPTION", \p.parse(), ("%exec-classMyClass\nclass MyClass {}", ""));
+    }
+
+    invalidIdInTryModule() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        assertThrows("PARSE-EXCEPTION", "%try-module not in format '%try-module ($varname) <module>'; invalid exception variable name; text given: '%try-module  Util'",
+            \p.parse(), ("%try-module (\"2%) Util\nprint();\n%endtry\nprint();\n", ""));
+    }
+
+    ignoredTextTryModule() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        assertThrows("PARSE-EXCEPTION", "%try-module not in format '%try-module ($varname) <module>'; extra text before '('; text given: '%try-module whatever \"$@ except a parenthesis ($x) Util'",
+            \p.parse(), ("%try-module whatever \"$@ except a parenthesis ($x) Util\nprint();\n%endtry\nprint();\n", ""));
+    }
+
+    correctTryModule() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        p.parse("%try-module\t         (\t     $x\t     \t) Util\nprint();\n%endtry\nprint();\n", "");
+    }
+
+    correctRequires() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        p.parse("%requires \t Util  \t   \nprint();\n", "");
+    }
+
+    execClass() {
+        Program p(PO_NEW_STYLE);
+        p.parse("%exec-class T\nclass T {abstract t();}", "exec-class");
+        assertThrows("ABSTRACT-CLASS-ERROR", \p.run());
+    }
+
+    execClassCrlf() {
+        Program p(PO_NEW_STYLE);
+        p.parse("%exec-class T\r\nclass T {}\r\n", "exec-class-clrf");
+    }
+}

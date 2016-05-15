@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,19 +32,19 @@
 #include <qore/Qore.h>
 
 //! Methods in this pseudo-class can be executed on @ref boolean "booling-point values"
-/** 
+/**
  */
-qclass <bool> [arg=const QoreBoolNode* b;vparent=<value>];
+qclass <bool> [arg=bool b = v.getAsBool();vparent=<value>];
 
 //! Returns Qore::NT_BOOLEAN
-/** 
+/**
     @return Qore::NT_BOOLEAN
 
     @par Example:
-    @code
-switch ($b.typeCode()) {
+    @code{.py}
+switch (b.typeCode()) {
     case NT_BOOLEAN:
-        printf("%y: is a bool\n", $b);
+        printf("%y: is a bool\n", b);
         break;
 }
     @endcode
@@ -54,12 +54,12 @@ int <bool>::typeCode() [flags=CONSTANT] {
 }
 
 //! Returns itself
-/** 
+/**
     @return itself
 
     @par Example:
-    @code
-my bool $bool = $b.val();
+    @code{.py}
+bool bool = b.val();
     @endcode
 
     @see
@@ -67,7 +67,7 @@ my bool $bool = $b.val();
     - @ref strict-bool-eval "%strict-bool-eval"
 */
 bool <bool>::val() [flags=CONSTANT] {
-   return (bool)b->getValue();
+   return (bool)b;
 }
 
 //! Returns @ref True because boolean values can be converted to integers (False = 0, True = 1)
@@ -75,9 +75,9 @@ bool <bool>::val() [flags=CONSTANT] {
     @return @ref True because boolean values can be converted to integers (False = 0, True = 1)
 
     @par Example:
-    @code
-if ($n.intp())
-    printf("%y: can be converted to an integer: %d\n", $n, int($n));
+    @code{.py}
+if (n.intp())
+    printf("%y: can be converted to an integer: %d\n", n, int(n));
     @endcode
 */
 bool <bool>::intp() [flags=CONSTANT] {
@@ -89,9 +89,9 @@ bool <bool>::intp() [flags=CONSTANT] {
     @return @ref True because boolean values can be converted to strings (False = \c "0", True = \c "1")
 
     @par Example:
-    @code
-if ($n.strp())
-    printf("%y: can be converted to a string: '%s'\n", $n, string($n));
+    @code{.py}
+if (n.strp())
+    printf("%y: can be converted to a string: '%s'\n", n, string(n));
     @endcode
 */
 bool <bool>::strp() [flags=CONSTANT] {

@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 
 # AC_PREREQ(2.59)
-AC_INIT([qore], [0.8.11.1],
+AC_INIT([qore], [0.8.12],
         [David Nichols <david@qore.org>],
         [qore])
 AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-ustar])
@@ -80,10 +80,7 @@ SHLIB_SUFFIX=so
 #echo host_os=${host_os}
 case "${host_os}" in
      *linux*)   AC_DEFINE(NEED_ICONV_TRANSLIT, 1, Define to 1 if //TRANSLIT should be added to the destination character set code)
-		# set compile flags for Linux
-		CPPFLAGS="${CPPFLAGS} -D_POSIX_C_SOURCE=200112L -D_XOPEN_SOURCE=600"
 		SHLIB_SUFFIX=so
-		AC_DEFINE(LINUX, 1, if compiling on Linux)
 		;;
      *solaris*) # set compile flags for Solaris
      		CPPFLAGS="${CPPFLAGS} -D_XPG6 -D_XOPEN_SOURCE=600"
@@ -103,7 +100,7 @@ case "${host_os}" in
 		solaris=yes
 	        ;;
      *darwin*)  # set compile flags for Darwin/OSX
-		CPPFLAGS="${CPPFLAGS} -D_APPLE_C_SOURCE"
+		CPPFLAGS="${CPPFLAGS} -D_APPLE_C_SOURCE -D_DARWIN_C_SOURCE"
 		SHLIB_SUFFIX=dylib
 		# libtool 1.5.* is creating modules on Darwin 8.* (OS/X 10.4.*) with a .so suffix for some reason
 		MODULE_SUFFIX=so
@@ -139,7 +136,7 @@ case "${host_os}" in
 		mingw=yes
 		need_user_dl=yes # set to make sure there's a user-provided dlfcn.h and libdl.(a|dll) available
 		# DEBUG
-		#make_dll=no
+		#make_dll=yes
 		# libraries to find
 		need_libs="$need_libs wsock32 ws2_32 gdi32 iconv pthread"
 		# DEBUG: cannot create dll without these libraries for some reason
@@ -266,29 +263,41 @@ AC_ARG_ENABLE([64bit],
   [enable_64bit=auto])
 
 if test "$enable_64bit" = "auto"; then
-   # turn on 64-bit by default if compiling on itanium or x86_64
-   if test "$host_cpu" = "ia64" -o "$host_cpu" = "x86_64" -o "$host_cpu" = "amd64" -o "$host_cpu" = "powerpc64" -o "$host_cpu" = "x390x" -o "$host_cpu" = "aarch64"; then
-      enable_64bit=yes
-   else
-      case "${host_os}" in
-          darwin*)   mv=`uname -r|cut -f1 -d.`
-     	   	     if test $mv -ge 10 -a "${host_cpu}" = "i386"; then
-		         enable_64bit=yes
-		     fi
+   # turn on 64-bit by default if compiling on a 64-bit platform
+   case "${host_cpu}" in
+       *64*)
+                 enable_64bit=yes
+                 ;;
+       s390x)
+                 enable_64bit=yes
+                 ;;
+       *)        case "${host_os}" in
+                     darwin*)   mv=`uname -r|cut -f1 -d.`
+ 		                if test $mv -ge 10 -a "${host_cpu}" = "i386"; then
+		         	    enable_64bit=yes
+		      		fi
 		     ;;
-	  solaris*)  if test "${host_cpu}" = "i386"; then
-			 # if we are running on a 64-bit machine, then enable a 64-bit build
-			 if test -n "`isainfo -v 2>/dev/null| grep 64-bit`"; then
-			     enable_64bit=yes
-			 fi
-		     fi
+		     solaris*)  if test "${host_cpu}" = "i386"; then
+		     	            # if we are running on a 64-bit machine, then enable a 64-bit build
+				    if test -n "`isainfo -v 2>/dev/null| grep 64-bit`"; then
+		         	        enable_64bit=yes
+		     		    fi
+		     	        fi
 		     ;;
-      esac
-      if test "$enable_64bit" = "auto"; then
-	  enable_64bit=no
-      fi
-   fi
+       		 esac
+		 if test "$enable_64bit" = "auto"; then
+		     enable_64bit=no
+		 fi
+                 ;;
+    esac
 fi
+
+# allow users to explicitly set libsuffix
+AC_ARG_WITH([libsuffix],
+  [AS_HELP_STRING([--with-libsuffix@<:@=LIBSUFFIX@:>@],
+                  [explitily set libsuffix])],
+  [LIBSUFFIX=$with_libsuffix; LIBSUFFIX_SET=yes;AC_SUBST(LIBSUFFIX)],
+  [])
 
 # see if we know how to set flags properly for different hosts and architectures
 # FIXME: add test on HP-UX if the compiler can generate the appropriate binaries
@@ -298,14 +307,16 @@ if test "$enable_64bit" = "yes"; then
 		   CXXFLAGS="$CXXFLAGS -m64"
 		fi
 		# only set LIBSUFFIX=64 if /usr/lib64 exists
-		if test -d /usr/lib64; then
-		   LIBSUFFIX=64
-                fi
-		target="${host_cpu}-${host_os}"
-		if test -d /usr/lib/$target; then
-		   LIBSUFFIX=/$target
-                fi
-		AC_SUBST(LIBSUFFIX)
+		if test "$LIBSUFFIX_SET" != "yes"; then
+		  if test -d /usr/lib64; then
+		     LIBSUFFIX=64
+                  fi
+		  target="${host_cpu}-${host_os}"
+		  if test -d /usr/lib/$target; then
+		     LIBSUFFIX=/$target
+                  fi
+		  AC_SUBST(LIBSUFFIX)
+		fi
 		;;
       *hpux*)	if test "$host_cpu" = "ia64"; then
                     if test -n "`echo $CXX|grep aCC`"; then
@@ -342,7 +353,7 @@ if test "$enable_64bit" = "yes"; then
 		   xCXXFLAGS="$CXXFLAGS -m64" # TODO/FIXME: temp fix for universal builds. Needs to be solved correctly
 		fi
 		# set ARCH to x86_64 to be consistent with other intel 64-bit builds
-		if test "$host_cpu" = "i386"; then
+		if test "$host_cpu" = i386 -o "$host_cpu" = x86_64; then
 		   ARCH=x86_64
 		fi
 		;;
@@ -357,10 +368,12 @@ else
  		   esac
 		fi
 		# multiarch
-		if test -a "$host_cpu" = "x86_64" -a -d /usr/lib32; then
-		   LIBSUFFIX=32
-                fi
-		AC_SUBST(LIBSUFFIX)
+		if test "$LIBSUFFIX_SET" != "yes"; then
+		   if test -a "$host_cpu" = "x86_64" -a -d /usr/lib32; then
+		      LIBSUFFIX=32
+                   fi
+		   AC_SUBST(LIBSUFFIX)
+		fi
 		;;
      *darwin*)	if test "$GXX" = "yes"; then
 		   CXXFLAGS="$CXXFLAGS -m32"
@@ -610,7 +623,7 @@ find_mpfr() {
     mpfr_sprintf=`grep mpfr_sprintf "$with_mpfr_includes/mpfr.h" 2>/dev/null`
     mpfr_buildopt_tls_p=`grep mpfr_buildopt_tls_p "$with_mpfr_includes/mpfr.h" 2>/dev/null`
 
-    QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $MPFR_LDFLAGS"
+    QORE_LIB_LDFLAGS="$MPFR_LDFLAGS $QORE_LIB_LDFLAGS"
     QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $MPFR_CPPFLAGS"
 }
 
@@ -834,7 +847,7 @@ find_bz2lib() {
     if test -n "$bz2lib_static"; then
     	if test -f "$lib/libbz2.a"; then
 	    BZ2_LDFLAGS="$lib/libbz2.a"
-       	    AC_MSG_RESULT([$lib (forced static)])
+	    bzlib_type="forced static"
     	fi
     else
         if test -f "$lib/libbz2.${SHLIB_SUFFIX}"; then
@@ -842,27 +855,30 @@ find_bz2lib() {
        	        BZ2_LDFLAGS="-L$lib"
     	    fi
 	    BZ2_LDFLAGS="$BZ2_LDFLAGS -lbz2"
-       	    AC_MSG_RESULT([$lib (shared)])
+	    bzlib_type="shared"
     	elif test -f "$lib/libbz2.a"; then
             if test "$mingw" = yes -a "$make_dll" = yes; then
 	    	BZ2_LDFLAGS="-Wl,$lib/libbz2.a"
 	    else
 	        BZ2_LDFLAGS="$lib/libbz2.a"
             fi
-       	    AC_MSG_RESULT([$lib (static)])
+	    bzlib_type="static"
     	fi
     fi
     if test -z "$BZ2_LDFLAGS"; then
         return
     fi
-    AC_MSG_CHECKING([for bz2lib include files])
+
     # try to find include files
     if test -f "$inc/bzlib.h"; then
-        AC_MSG_RESULT([found: $inc/bzlib.h])
         set_bz2lib_cppflags $inc
     else
-	AC_MSG_ERROR([not found])
+        unset bzlib_type
+        unset BZ2_LDFLAGS
+	return
     fi
+
+    AC_MSG_RESULT([$lib ($bzlib_type) $inc])
 
     QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $BZ2_LDFLAGS"
     QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $BZ2_CPPFLAGS"
@@ -912,10 +928,13 @@ find_openssl() {
     if test -n "$openssl_static"; then
     	if test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
 	    OPENSSL_LDFLAGS="$lib/libssl.a $lib/libcrypto.a"
-       	    AC_MSG_RESULT([$lib (forced static)])
+	    openssl_type="forced static"
+	    #AC_MSG_RESULT([$lib (forced static)])
     	elif test "$bits" = 64 -a -f "$lib/64/libssl.a" -a -f "$lib/64/libcrypto.a"; then
 	    OPENSSL_LDFLAGS="$lib/64/libssl.a $lib/64/libcrypto.a"
-       	    AC_MSG_RESULT([$lib/64 (forced static)])
+	    lib=$lib/64
+	    openssl_type="forced static"
+       	    #AC_MSG_RESULT([$lib/64 (forced static)])
     	fi
     else
         if test -f "$lib/libssl.${SHLIB_SUFFIX}" -a -f "$lib/libcrypto.${SHLIB_SUFFIX}"; then
@@ -923,7 +942,8 @@ find_openssl() {
        	        OPENSSL_LDFLAGS="-L$lib"
     	    fi
 	    OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
-       	    AC_MSG_RESULT([$lib (shared)])
+	    openssl_type="shared"
+	    #AC_MSG_RESULT([$lib (shared)])
     	elif test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
 	    if test "$mingw" = yes -a "$make_dll" = yes; then
 	    	OPENSSL_LDFLAGS="-Wl,$lib/libssl.a -Wl,$lib/libcrypto.a"
@@ -934,30 +954,43 @@ find_openssl() {
     	        fi
 	        OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
             fi
-       	    AC_MSG_RESULT([$lib (static)])
+	    openssl_type="static"
+       	    #AC_MSG_RESULT([$lib (static)])
         elif test "$bits" = 64 -a -f "$lib/64/libssl.${SHLIB_SUFFIX}" -a -f "$lib/64/libcrypto.${SHLIB_SUFFIX}"; then
 	    OPENSSL_LDFLAGS="-L$lib/64 -lssl -lcrypto"
-       	    AC_MSG_RESULT([$lib/64 (shared)])
+	    lib=$lib/64
+	    openssl_type="shared"
+       	    #AC_MSG_RESULT([$lib/64 (shared)])
     	elif test "$bits" = 64 -a -f "$lib/64/libssl.a" -a -f "$lib/64/libcrypto.a"; then
 	    OPENSSL_LDFLAGS="-L$lib -lssl -lcrypto"
-       	    AC_MSG_RESULT([$lib (static)])
+	    openssl_type="static"
+       	    #AC_MSG_RESULT([$lib (static)])
     	fi
     fi
     if test -z "$OPENSSL_LDFLAGS"; then
         return
     fi
-    AC_MSG_CHECKING([for openssl include files])
+    #AC_MSG_CHECKING([for openssl include files])
     # try to find include files
     if test -f "$inc/openssl/ssl.h"; then
-        AC_MSG_RESULT([found: $inc/openssl])
+        #AC_MSG_RESULT([found: $inc/openssl])
         set_openssl_cppflags $inc
     else
-	AC_MSG_ERROR([not found])
+        unset OPENSSL_LDFLAGS
+	unset openssl_type
+	return;
+	#AC_MSG_ERROR([not found])
     fi
+
+    AC_MSG_RESULT([$lib ($openssl_type) $inc])
 
     QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $OPENSSL_LDFLAGS"
     QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $OPENSSL_CPPFLAGS"
 }
+
+if test "$mingw" = yes; then
+    LIBS="$LIBS -lgdi32 -lz -lpsapi"
+fi
 
 # see if we can figure out where the openssl library is
 AC_ARG_WITH([openssl-dir],
@@ -979,7 +1012,16 @@ else
     SAVE_CPPFLAGS="$CPPFLAGS"
     SAVE_LIBS="$LIBS"
     CPPFLAGS="$CPPFLAGS $QORE_LIB_CPPFLAGS $OPENSSL_CPPFLAGS"
-    LIBS="$LIBS $QORE_LIB_LDFLAGS $OPENSSL_LDFLAGS"
+    LIBS="$OPENSSL_LDFLAGS $QORE_LIB_LDFLAGS $LIBS"
+
+    # check for SHA-0 algorithm
+    AC_MSG_CHECKING([for SHA in openssl])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/evp.h>]],
+    [[const EVP_MD *evp = EVP_sha();]])],
+       [AC_MSG_RESULT([found])
+        AC_DEFINE([HAVE_OPENSSL_SHA], 1, [define if the sha0 algorithm is available in openssl])],
+       [AC_MSG_RESULT([not found])])
 
     # check for SHA512 algorithm
     AC_MSG_CHECKING([for SHA224, SHA256, SHA384, SHA512 in openssl])
@@ -1021,10 +1063,6 @@ else
     LIBS="$SAVE_LIBS"
 fi
 
-if test "$mingw" = yes; then
-    LIBS="$LIBS -lgdi32 -lz"
-fi
-
 set_dl_cppflags() {
     if test "$1" != "/usr/include"; then
         DL_CPPFLAGS=-I$1
@@ -1048,7 +1086,7 @@ find_dl() {
         inc="$dir/include"
     fi
 
-    if test -f "$lib/libdl.${SHLIB_SUFFIX}"; then
+    if test -f "$lib/libdl.${SHLIB_SUFFIX}" -o -f "$lib/libdl.${SHLIB_SUFFIX}.a"; then
         if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
      	    DL_LDFLAGS="-L$lib"
         fi
@@ -1172,7 +1210,7 @@ AC_ARG_ENABLE([profile],
 
 AC_ARG_ENABLE([debug],
      [AS_HELP_STRING([--enable-debug],
-		     [turn on debugging (default=no)])],
+		     [turn on debugging (default=yes)])],
      [case "${enable_debug}" in
        yes|no) ;;
        *)      AC_MSG_ERROR(bad value ${enable_debug} for --enable-debug) ;;
@@ -1225,8 +1263,8 @@ fi
 # check for gcc visibility support
 AC_MSG_CHECKING([for gcc visibility support])
 if test "$GXX" = "yes"; then
-   gcc_version=`$CXX -dumpversion`
-   if test "$gcc_version" \> "4"; then
+   gcc_version=`$CXX -dumpversion|cut -f1 -d.`
+   if test "$gcc_version" -ge "4"; then
       AC_DEFINE(HAVE_GCC_VISIBILITY, 1, if compiling with g++ and visibility support is available)
       AC_MSG_RESULT([yes, $CXX $gcc_version])
       # turn off strict aliasing for g++
@@ -1270,6 +1308,39 @@ if test -n "${with_doxygen}"; then
    AC_SUBST(DOXYGEN_CMD, $with_doxygen)
 fi
 
+# check for LLVM bug 22050: http://llvm.org/bugs/show_bug.cgi?id=22050 (clang++ 3.5.0 generates invalid code for the conditional/ternary operator with -O1 or above in some cases)
+if test "$cross_compiling" != "yes" -a -n "`echo $CXX|grep clang`"; then
+   CXXFLAGS_SAVE="$CXXFLAGS"
+   CXXFLAGS="$CXXFLAGS -O2"
+   AC_MSG_CHECKING([for llvm bug 22050 with the conditional/ternary operator code generation])
+   AC_RUN_IFELSE([AC_LANG_PROGRAM(
+   [[#include <sys/types.h>
+#include <stdlib.h>]],
+   [[
+   union u {
+      size_t _refptr;
+      void setPtr(int* refptr, bool readonly = false) {
+         _refptr = (size_t)refptr;
+         if (readonly)
+            _refptr |= 1;
+      }
+      int* getPtr() const {
+         // the line below is compiled incorrectly with clang++ 3.5.0 -O1 or above
+         return (int*)((_refptr & 1L) ? (_refptr ^ 1L) : _refptr);
+      }
+   };
+   u u;
+   int i = 100;
+   u.setPtr(&i);
+   exit(&i == u.getPtr());
+   ]])],
+      [AC_MSG_RESULT([found; enabling workaround])
+       AC_DEFINE([HAVE_LLVM_BUG_22050], 1, [define if compiling with clang with llvm bug 22050])],
+      [AC_MSG_RESULT([not found])])
+
+   CXXFLAGS="$CXXFLAGS_SAVE"
+fi
+
 # check if socklen_t is needed
 if test "$mingw" != yes; then
    TYPE_SOCKLEN_T
@@ -1287,13 +1358,16 @@ fi
 # see if the socket library is required
 AC_SEARCH_LIBS(setsockopt, socket)
 
+# see if the nsl library is required
+AC_SEARCH_LIBS(gethostbyname, nsl)
+
 # look for librt (needed by clock_gettime() on some platforms)
 AC_SEARCH_LIBS(clock_gettime, rt)
 
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h execinfo.h cxxabi.h arpa/inet.h sys/socket.h sys/statvfs.h winsock2.h ws2tcpip.h glob.h sys/un.h termios.h netinet/tcp.h pwd.h sys/wait.h getopt.h stdint.h poll.h])
+AC_CHECK_HEADERS([fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h execinfo.h cxxabi.h arpa/inet.h sys/socket.h sys/statvfs.h winsock2.h ws2tcpip.h glob.h sys/un.h termios.h netinet/tcp.h pwd.h sys/wait.h getopt.h stdint.h poll.h grp.h])
 
 # check for umem.h
 AC_CHECK_HEADER([umem.h], have_umem_h=yes, have_umem_h=no)
@@ -1371,7 +1445,7 @@ AC_FUNC_STAT
 AC_FUNC_STRERROR_R
 AC_FUNC_STRTOD
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([bzero floor gethostbyaddr gethostbyname gethostname gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups poll])
+AC_CHECK_FUNCS([bzero floor gethostbyaddr gethostbyname gethostname gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups poll realpath memmem])
 
 # some systems have internal gethostby*_r in libc but don't hide the
 # symbols, so we look if they are declared before checking in the libraries
@@ -1531,6 +1605,33 @@ else
     fi
 fi
 
+# hack to add C++ libs with oracle sun studio on solaris
+if test "$CXX" = "CC" -a "`echo $host_os|cut -b-7`" = "solaris"; then
+   LIBS="$LIBS -lCrun -lCstd"
+fi
+
+# try to find libtbbmalloc on Darwin and link with it if present
+if test "$darwin" = "yes"; then
+    SAVE_LIBS="$LIBS"
+    LIBS="$LIBS $QORE_LIB_LDFLAGS $OPENSSL_LDFLAGS -ltbbmalloc"
+
+    # check for libtbbmalloc
+    AC_MSG_CHECKING([for libtbbmalloc])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM(
+    [[#include <stdlib.h>]],
+    [[void* p = malloc(2);]])],
+       [LIBTBB_FOUND=1
+        AC_MSG_RESULT([found])
+        AC_DEFINE([HAVE_TBBMALLOC], 1, [define if libtbbmalloc])],
+       [AC_MSG_RESULT([not found])])
+
+    if test "$LIBTBB_FOUND" = "1"; then
+      QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -ltbbmalloc"
+    fi
+
+    LIBS="$SAVE_LIBS"
+fi
+
 # turn on some build flags for non-debugging, non-profiling builds
 #if test "$enable_debug" = "no" -a "$enable_profile" = "no" -a "$enable_optimization" = "yes" ; then
     # we can no longer strip binaries and libraries with non-debugging, non-profiling builds on Darwin with -Wl,-x because it breaks linking :(
@@ -1552,6 +1653,7 @@ else
 	    solaris_cc_x86_64=yes
          fi
       else
+
 	 if test "$build_cpu" = sparc; then
 	    solaris_cc_sparc32=yes
 	 else
@@ -1659,7 +1761,7 @@ if test "$windows" = yes; then
   winlibdir=`echo ${mypkglibdir}|sed 's/\/$//'|sed 's/\//\\\\\\\\\\\\\\\\/g'`
   # we don't know the real final install location, but at least we can set a valid windows path
   MODULE_DIR="${winprefix}\\\\\\\\\lib${LIBSUFFIX}\\\\\\\\${winlibdir}"
-  USER_MODULE_DIR="${MODULE_DIR}"
+  USER_MODULE_DIR="${winprefix}\\\\\\\\\share\\\\\\\\${winlibdir}"
 else
   MODULE_DIR="${myprefix}/lib${LIBSUFFIX}/${mypkglibdir}"
   if test -z "${datarootdir}"; then
@@ -1682,7 +1784,7 @@ AC_SUBST([mymodverdir])
 if test "$windows" = yes; then
   # we don't know the real final install location, but at least we can set a valid windows path
   MODULE_VER_DIR="${MODULE_DIR}\\\\\\\\${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}"
-  USER_MODULE_VER_DIR="${MODULE_DIR}"
+  USER_MODULE_VER_DIR="${USER_MODULE_DIR}\\\\\\\\${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}"
 else
   MODULE_VER_DIR="${myprefix}/lib${LIBSUFFIX}/${mymodverdir}"
   if test -n "echo ${datarootdir}|grep \$"; then
@@ -1693,6 +1795,14 @@ else
 fi
 AC_SUBST([MODULE_VER_DIR])
 AC_SUBST([USER_MODULE_VER_DIR])
+
+# cmake variables used in the cmake build, needed to make the cmake build configure QoreConfig.cmake correctly
+CMAKE_INSTALL_FULL_BINDIR="${myprefix}/bin"
+CMAKE_INSTALL_FULL_INCLUDEDIR="${myprefix}/include"
+CMAKE_INSTALL_FULL_LIBDIR="${myprefix}/lib${LIBSUFFIX}"
+AC_SUBST([CMAKE_INSTALL_FULL_BINDIR])
+AC_SUBST([CMAKE_INSTALL_FULL_INCLUDEDIR])
+AC_SUBST([CMAKE_INSTALL_FULL_LIBDIR])
 
 if test "$enable_profile" = yes; then
    QORE_LIB_CXXFLAGS="$QORE_LIB_CXXFLAGS -g -pg"

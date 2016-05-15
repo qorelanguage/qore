@@ -3,7 +3,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
   
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -36,39 +36,39 @@
 #include <openssl/err.h>
 
 struct qore_sslpk_private {
-   EVP_PKEY *pk;
+   EVP_PKEY* pk;
 
-   DLLLOCAL qore_sslpk_private(EVP_PKEY *p) : pk(p) {
+   DLLLOCAL qore_sslpk_private(EVP_PKEY* p) : pk(p) {
    }
 
    DLLLOCAL ~qore_sslpk_private() {
       if (pk)
-	 EVP_PKEY_free(pk);
+         EVP_PKEY_free(pk);
    }
 };
 
-QoreSSLPrivateKey::QoreSSLPrivateKey(EVP_PKEY *p) : priv(new qore_sslpk_private(p)) {
+QoreSSLPrivateKey::QoreSSLPrivateKey(EVP_PKEY* p) : priv(new qore_sslpk_private(p)) {
 }
 
 QoreSSLPrivateKey::~QoreSSLPrivateKey() {
    delete priv;
 }
 
-QoreSSLPrivateKey::QoreSSLPrivateKey(const char *fn, const char *pp, ExceptionSink *xsink) : priv(new qore_sslpk_private(0)) {
+QoreSSLPrivateKey::QoreSSLPrivateKey(const char* fn, const char* pp, ExceptionSink* xsink) : priv(new qore_sslpk_private(0)) {
    priv->pk = 0;
-   FILE *fp = fopen(fn, "r");
+   FILE* fp = fopen(fn, "r");
    if (!fp) {
       xsink->raiseErrnoException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", errno, "'%s'", fn);
       return;
    }
-   PEM_read_PrivateKey(fp, &priv->pk, 0, pp ? (void *)pp : (void *)"_none_");
+   PEM_read_PrivateKey(fp, &priv->pk, 0, pp ? (void* )pp : (void* )"_none_");
    fclose(fp);
    if (!priv->pk)
       xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", "error parsing private key file '%s'", fn);
 }
 
-QoreSSLPrivateKey::QoreSSLPrivateKey(const BinaryNode *bin, ExceptionSink *xsink) : priv(new qore_sslpk_private(0)) {
-   OPENSSL_CONST unsigned char *p = (OPENSSL_CONST unsigned char *)bin->getPtr();
+QoreSSLPrivateKey::QoreSSLPrivateKey(const BinaryNode* bin, ExceptionSink* xsink) : priv(new qore_sslpk_private(0)) {
+   OPENSSL_CONST unsigned char* p = (OPENSSL_CONST unsigned char* )bin->getPtr();
    priv->pk = d2i_AutoPrivateKey(0, &p, (int)bin->size());
    if (!priv->pk) {
       long e = ERR_get_error();
@@ -78,59 +78,59 @@ QoreSSLPrivateKey::QoreSSLPrivateKey(const BinaryNode *bin, ExceptionSink *xsink
    }
 }
 
-QoreSSLPrivateKey::QoreSSLPrivateKey(const QoreString *str, const char *pp, ExceptionSink *xsink) : priv(new qore_sslpk_private(0)) {
+QoreSSLPrivateKey::QoreSSLPrivateKey(const QoreString* str, const char* pp, ExceptionSink* xsink) : priv(new qore_sslpk_private(0)) {
    QoreMemBIO mbio(str);
 
-   PEM_read_bio_PrivateKey(mbio.getBIO(), &priv->pk, 0, pp ? (void *)pp : (void *)"_none_");
+   PEM_read_bio_PrivateKey(mbio.getBIO(), &priv->pk, 0, pp ? (void* )pp : (void* )"_none_");
    if (!priv->pk)
       xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", "error parsing PEM string");
 }
 
-EVP_PKEY *QoreSSLPrivateKey::getData() const { 
+EVP_PKEY* QoreSSLPrivateKey::getData() const { 
    return priv->pk; 
 }
 
-QoreStringNode *QoreSSLPrivateKey::getPEM(ExceptionSink *xsink) const {
-   BIO *bp = BIO_new(BIO_s_mem());
+QoreStringNode* QoreSSLPrivateKey::getPEM(ExceptionSink* xsink) const {
+   BIO* bp = BIO_new(BIO_s_mem());
    if (!PEM_write_bio_PrivateKey(bp, priv->pk, 0, 0, 0, 0, 0)) {
       BIO_free(bp);
       xsink->raiseException("SSLPRIVATEKEY-ERROR", "could not create PEM string from private key data");
       return 0;
    }
-   char *buf;
+   char* buf;
    long len = BIO_get_mem_data(bp, &buf);
    
-   QoreStringNode *str = new QoreStringNode(buf, (int)len);
+   QoreStringNode* str = new QoreStringNode(buf, (int)len);
    BIO_free(bp);
    return str;
 }
 
-const char *QoreSSLPrivateKey::getType() const {
+const char* QoreSSLPrivateKey::getType() const {
    switch (EVP_PKEY_type(priv->pk->type)) {
 #ifndef OPENSSL_NO_RSA
       case EVP_PKEY_RSA:
-	 return "RSA";
+         return "RSA";
       case EVP_PKEY_RSA2:
-	 return "RSA2";
+         return "RSA2";
 #endif
 #ifndef OPENSSL_NO_DSA
       case EVP_PKEY_DSA:
-	 return "DSA";
+         return "DSA";
       case EVP_PKEY_DSA1:
-	 return "DSA1";
+         return "DSA1";
       case EVP_PKEY_DSA2:
-	 return "DSA2";
+         return "DSA2";
       case EVP_PKEY_DSA3:
-	 return "DSA3";
+         return "DSA3";
       case EVP_PKEY_DSA4:
-	 return "DSA4";
+         return "DSA4";
 #endif
 #ifndef OPENSSL_NO_DH
       case EVP_PKEY_DH:
-	 return "DH";
+         return "DH";
 #endif
       default:
-	 return "unknown";
+         return "unknown";
    }
 }
 
@@ -143,10 +143,15 @@ int64 QoreSSLPrivateKey::getBitLength() const {
    return (int64)EVP_PKEY_bits(priv->pk);
 }
 
-QoreHashNode *QoreSSLPrivateKey::getInfo() const {
-   QoreHashNode *h = new QoreHashNode();
+QoreHashNode* QoreSSLPrivateKey::getInfo() const {
+   QoreHashNode* h = new QoreHashNode;
    h->setKeyValue("type", new QoreStringNode(getType()), 0);
    h->setKeyValue("version", new QoreBigIntNode(getVersion()), 0);
    h->setKeyValue("bitLength", new QoreBigIntNode(getBitLength()), 0);
    return h;
+}
+
+QoreSSLPrivateKey* QoreSSLPrivateKey::pkRefSelf() const {
+   const_cast<QoreSSLPrivateKey*>(this)->ref();
+   return const_cast<QoreSSLPrivateKey*>(this);
 }
