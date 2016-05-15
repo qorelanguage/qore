@@ -376,7 +376,7 @@ else
 		;;
      *solaris*) if test "$GXX" = "yes"; then
 		    if test "$host_cpu" = "sparc"; then
-		        CXXFLAGS="$CXXFLAGS -mcpu=v9 -m32"
+		        CXXFLAGS="$CXXFLAGS -mv8plus -m32"
 		    else
 		        CXXFLAGS="$CXXFLAGS -m32"
 		    fi
@@ -1182,7 +1182,7 @@ AC_ARG_ENABLE([debug],
 if test "${enable_debug}" = yes; then
    AC_DEFINE(DEBUG, 1, Define if debugging support should be included)
    # remove -O2 from CXXFLAGS so valgrind can report properly
-   CXXFLAGS=`echo $CXXFLAGS | sed 's/\-O2//'`
+   CXXFLAGS="`echo $CXXFLAGS | sed 's/\-O2//'`"
 else
    QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS -DNDEBUG=1"
 fi
@@ -1403,7 +1403,7 @@ AC_LANG_PUSH([C++])
 # about not profiled code, which confuses configure
 if test "$GXX" = "yes" -a "$with_other_libc" = "no"
 then
-  CXXFLAGS=`echo "$CXXFLAGS -Werror" | sed 's/-fbranch-probabilities//'`
+  CXXFLAGS="`echo $CXXFLAGS -Werror | sed 's/-fbranch-probabilities//'`"
 fi
 
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
@@ -1435,7 +1435,7 @@ AC_CACHE_CHECK([style of gethostname_r routines], qore_cv_gethostname_style,
 AC_LANG_PUSH([C++])
 if test "$GXX" = "yes" -a "$with_other_libc" = "no"
 then
-  CXXFLAGS=`echo "$CXXFLAGS -Werror" | sed 's/-fbranch-probabilities//'`
+  CXXFLAGS="`echo $CXXFLAGS -Werror | sed 's/-fbranch-probabilities//'`"
 fi
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 [[#undef inline
@@ -1467,7 +1467,7 @@ AC_CACHE_CHECK([3 argument to gethostname_r routines], qore_cv_gethostname_arg,
 AC_LANG_PUSH([C++])
 if test "$GXX" = "yes" -a "$with_other_libc" = "no"
 then
-  CXXFLAGS=`echo "$CXXFLAGS -Werror" | sed 's/-fbranch-probabilities//'`
+  CXXFLAGS="`echo $CXXFLAGS -Werror | sed 's/-fbranch-probabilities//'`"
 fi
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 [[#undef inline
@@ -1507,9 +1507,9 @@ if test "$enable_optimization" = "yes"; then
 	if test -z "`echo $CXXFLAGS|grep -e -O`"; then
 	   if test "$host_os" = "mingw32"; then
 	      # for some reason mingw32 segfaults with -O3, -O2 is OK
-              CXXFLAGS="$CXXFLAGS -O2"  # gcc
+              CXXFLAGS="$CXXFLAGS -O2"
    	   else
-              CXXFLAGS="$CXXFLAGS -O3"  # gcc
+              CXXFLAGS="$CXXFLAGS -O3"
 	   fi
         fi
     elif test "$CXX" = "CC" -a "`echo $host_os|cut -b-7`" = "solaris"; then
