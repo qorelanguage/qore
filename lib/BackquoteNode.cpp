@@ -3,7 +3,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -45,7 +45,7 @@ BackquoteNode::~BackquoteNode() {
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int BackquoteNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const {
-   qstr.sprintf("backquote '%s' (0x%08p)", str ? str : "<null>", this);
+   qstr.sprintf("backquote '%s' (%p)", str ? str : "<null>", this);
    return 0;
 }
 
@@ -63,40 +63,9 @@ const char *BackquoteNode::getTypeName() const {
 }
 
 // eval(): return value requires a deref(xsink)
-AbstractQoreNode *BackquoteNode::evalImpl(ExceptionSink *xsink) const {
+QoreValue BackquoteNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    int rc;
    return backquoteEval(str, rc, xsink);
-}
-
-// eval(): return value requires a deref(xsink)
-AbstractQoreNode *BackquoteNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = true;
-   int rc;
-   return backquoteEval(str, rc, xsink);
-}
-
-int64 BackquoteNode::bigIntEvalImpl(ExceptionSink *xsink) const {
-   int rc;
-   ReferenceHolder<AbstractQoreNode> rv(backquoteEval(str, rc, xsink), xsink);
-   return rv ? rv->getAsBigInt() : 0;
-}
-
-int BackquoteNode::integerEvalImpl(ExceptionSink *xsink) const {
-   int rc;
-   ReferenceHolder<AbstractQoreNode> rv(backquoteEval(str, rc, xsink), xsink);
-   return rv ? rv->getAsInt() : 0;
-}
-
-bool BackquoteNode::boolEvalImpl(ExceptionSink *xsink) const {
-   int rc;
-   ReferenceHolder<AbstractQoreNode> rv(backquoteEval(str, rc, xsink), xsink);
-   return rv ? rv->getAsBool() : 0;
-}
-
-double BackquoteNode::floatEvalImpl(ExceptionSink* xsink) const {
-   int rc;
-   ReferenceHolder<AbstractQoreNode> rv(backquoteEval(str, rc, xsink), xsink);
-   return rv ? rv->getAsFloat() : 0;
 }
 
 #ifndef READ_BLOCK

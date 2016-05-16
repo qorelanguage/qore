@@ -3,7 +3,7 @@
 
   Qore programming language exception handling support
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -58,7 +58,7 @@ bool ExceptionSink::isException() const {
 // ExceptionSink xsink;
 // if (xsink) { .. }
 ExceptionSink::operator bool () const {
-   return this && (priv->head || priv->thread_exit);
+   return qore_check_this(this) && (priv->head || priv->thread_exit);
 }
 
 void ExceptionSink::overrideLocation(const QoreProgramLocation& loc) {

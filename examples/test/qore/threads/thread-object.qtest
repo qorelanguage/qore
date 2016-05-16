@@ -1,0 +1,229 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires UnitTest
+
+%exec-class thread_object_test
+
+const opts =
+    ( "help"       : "h,help",
+      "verbose"    : "v,verbose" );
+
+class thread_object_test {
+    private {
+        int threads;
+        int iters;
+    }
+    constructor() {
+        UnitTest t();
+        process_command_line();
+        new CounterTest(threads, iters, t);
+        new QueueTest(threads, iters, t);
+        new ThreadTest(threads, iters, t);
+    }
+
+    usage() {
+        printf("usage: %s -[options] [iterations [threads]]
+  -h,--help           this help text
+  -v,--verbose        more information
+", basename(ENV."_"));
+        exit();
+    }
+
+    process_command_line() {
+        GetOpt g(opts);
+        any o = g.parse(\ARGV);
+
+        if (exists o."_ERRORS_") {
+            printf("%s\n", o."_ERRORS_"[0]);
+            exit(1);
+        }
+
+        if (o.help)
+            usage();
+
+        iters = int(shift ARGV);
+        if (!iters)
+            iters = 2000;
+        threads = int(shift ARGV);
+        if (!threads)
+            threads = 5;
+    }
+}
+
+class CounterTest {
+    private {
+        int threads;
+        int iters;
+        any obj;
+        Counter c();
+    }
+    constructor(int nthreads, int niters, UnitTest t) {
+        threads = nthreads;
+        iters = niters;
+        obj.key.500.hello = 0;
+
+        do_threads();
+        c.waitForZero();
+        t.ok(!obj.key.500.hello, "counter");
+    }
+
+    private do_threads() {
+        while (threads--) {
+            c.inc();
+            background add();
+            c.inc();
+            background subtract();
+        }
+    }
+
+    private add() {
+        for (int i = 0; i < iters; i++)
+            obj.key.500.hello++;
+        c.dec();
+    }
+
+    private subtract() {
+        for (int i = 0; i < iters; i++)
+            obj.key.500.hello--;
+        c.dec();
+    }
+}
+
+class QueueTest {
+    private {
+        Queue q();
+        Counter x();
+    }
+    constructor(int threads, int iters, UnitTest t) {
+        for (int i; i < threads; i++) {
+            x.inc();
+            background qt(threads, iters);
+        }
+        int c = threads * iters;
+        while (c--)
+            if (rand() % 2)
+                q.pop();
+            else
+                q.get();
+
+        x.waitForZero();
+        t.ok(!q.size(), "queue");
+    }
+
+    private qt(int threads, int iters) {
+        for (int i; i < iters; i++)
+            q.push(sprintf("tid-%d-%d", gettid(), i));
+        x.dec();
+    }
+}
+
+class ThreadTest inherits Mutex {
+    private {
+        hash data;
+        int threads;
+        int iters;
+
+        RWLock drw();
+        Gate g();
+        Counter c();
+
+        hash gdata;
+        hash rwdata;
+    }
+    constructor(int nthreads, int niters, UnitTest t) {
+        threads = nthreads;
+        iters = niters;
+        while (threads) {
+            c.inc();
+            background worker();
+            threads--;
+        }
+        c.waitForZero();
+        t.ok(True, "thread object tests");
+    }
+    *hash getData(list l) {
+        lock();
+        on_exit unlock();
+        return data{l};
+    }
+    setData(hash h) {
+        lock();
+        on_exit unlock();
+        data += h;
+    }
+    *hash getRWData(list l) {
+        drw.readLock();
+        on_exit
+            drw.readUnlock();
+        return rwdata{l};
+    }
+    setRWData(hash h) {
+        drw.writeLock();
+        on_exit
+            drw.writeUnlock();
+        rwdata += h;
+    }
+    *hash getGateData(list l) {
+        g.enter();
+        on_exit g.exit();
+        return gdata{l};
+    }
+    setGateData(hash h) {
+        g.enter();
+        on_exit g.exit();
+        gdata+= h;
+    }
+    worker() {
+        for (int i = 0; i < iters; i++) {
+            #if (!(i % 1000))
+            #    printf("TID %3d: %d/%d\n", gettid(), i, iters);
+            int c = rand() % 6;
+            string key1 = sprintf("key%d", rand() % 10);
+            string key2 = sprintf("key%d", (rand() % 10) + 10);
+            string key3 = sprintf("key%d", rand() % 20);
+            if (!c) {
+                hash h = (
+                    key1: rand() % 10,
+                    key2: rand() % 10,
+                    );
+                setData(h);
+                continue;
+            }
+            if (c == 1) {
+                getData((key1, key2, key3));
+                continue;
+            }
+            if (c == 2) {
+                hash h = (
+                    key1: rand() % 10,
+                    key2: rand() % 10,
+                    );
+                setRWData(h);
+                continue;
+            }
+            if (c == 3) {
+                getRWData((key1, key2, key3));
+                continue;
+            }
+            if (c == 4) {
+                hash h = (
+                    key1: rand() % 10,
+                    key2: rand() % 10,
+                    );
+                setGateData(h);
+                continue;
+            }
+            if (c == 5) {
+                getGateData((key1, key2, key3));
+                continue;
+            }
+        }
+        c.dec();
+    }
+}

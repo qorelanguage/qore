@@ -3,7 +3,7 @@
   
   Qore Programming Language
   
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
   
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -65,34 +65,12 @@ QoreString *QoreTreeNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
 }
 
 // returns the type name as a c string
-const char *QoreTreeNode::getTypeName() const {
+const char* QoreTreeNode::getTypeName() const {
    return "expression tree";
 }
 
-// eval(): return value requires a deref(xsink)
-AbstractQoreNode *QoreTreeNode::evalImpl(ExceptionSink *xsink) const {
+QoreValue QoreTreeNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
    return op->eval(left, right, need_rv(), xsink);
-}
-
-AbstractQoreNode *QoreTreeNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = true;
-   return op->eval(left, right, need_rv(), xsink);
-}
-
-int64 QoreTreeNode::bigIntEvalImpl(ExceptionSink *xsink) const {
-   return op->bigint_eval(left, right, xsink);
-}
-
-int QoreTreeNode::integerEvalImpl(ExceptionSink *xsink) const {
-   return (int)op->bigint_eval(left, right, xsink);
-}
-
-bool QoreTreeNode::boolEvalImpl(ExceptionSink *xsink) const {
-   return op->bool_eval(left, right, xsink);
-}
-
-double QoreTreeNode::floatEvalImpl(ExceptionSink *xsink) const {
-   return op->float_eval(left, right, xsink);
 }
 
 AbstractQoreNode *QoreTreeNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {

@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -72,7 +72,7 @@ static int64 checkOpenResult(int rc, const char *method_name, ExceptionSink *xsi
     - HTTPClient::verifyPeerCertificate()
     - Socket::verifyPeerCertificate()
 */
-//@{ 
+//@{
 //! Verification OK
 const X509_V_OK = "X509_V_OK";
 
@@ -228,7 +228,7 @@ const AF_UNIX = AF_UNIX;
 #endif
 
 //! POSIX synonym for AF_UNIX
-const AF_LOCAL = AF_LOCAL; 
+const AF_LOCAL = AF_LOCAL;
 
 //! unspecified address family
 const AF_UNSPEC = AF_UNSPEC;
@@ -293,7 +293,7 @@ const AI_NUMERICHOST = AI_NUMERICHOST;
 const AI_NUMERICSERV = AI_NUMERICSERV;
 
 //! If this bit is set, then the returned information should be usable for a call to Socket::bind()
-/** In this case, if the hostname is not given, then the return value will be usable for binding on all addresses for the given family.  
+/** In this case, if the hostname is not given, then the return value will be usable for binding on all addresses for the given family.
 
     If the AI_PASSIVE bit is not set, the returned socket address structure will be ready for use in a call to Socket::connect().
 
@@ -337,8 +337,8 @@ const SOCK_RAW = SOCK_RAW;
 
     Non-blocking socket I/O can be performed by appending a timeout value in milliseconds all Socket methods performing I/O operations, or by using the Socket::isDataAvailable() method with a timeout value in milliseconds (1000 ms = 1 second). Note that as with all %Qore functions and methods accepting a timeout value, relative date/time values can be given instead of integers to make the source more readable, for example:
 
-    @code
-    my bool $rc = $socket.isDataAvailable(1250ms); # times out in 1.25 seconds
+    @code{.py}
+    bool rc = socket.isDataAvailable(1250ms); # times out in 1.25 seconds
     @endcode
 
     Socket objects can automatically convert character encodings if desired when sending string data with Socket::send(). Use the Socket::setEncoding() method to set the character encoding for the socket. If a character encoding is set, and string data is read with the Socket::recv() method, then it will be tagged with the encoding of the socket as well.
@@ -384,7 +384,7 @@ qclass Socket [public_members=*string source,*string source_host; flags=unsetPub
 
 //! Creates the socket object
 /** @par Example:
-    @code my Socket $sock(); @endcode
+    @code{.py} Socket sock(); @endcode
  */
 Socket::constructor() {
    self->setPrivate(CID_SOCKET, new QoreSocketObject);
@@ -392,7 +392,7 @@ Socket::constructor() {
 
 //! Creates a new Socket object, not based on the source being copied
 /** @par Example:
-    @code my Socket $newsock = $sock.copy(); @endcode
+    @code{.py} Socket newsock = sock.copy(); @endcode
  */
 Socket::copy() {
    self->setPrivate(CID_SOCKET, new QoreSocketObject);
@@ -402,14 +402,14 @@ Socket::copy() {
 /** Connects the socket to a remote (or local) port or UNIX domain socket file, for network (ipv4 and ipv6) connections, accepts an optional timeout value in milliseconds (@ref relative_dates "relative date/time values" can be given instead of an integer in milliseconds to make the source more readable; ex: \c 20s). If any errors occur, an exception is thrown.
 
     @par Examples:
-    @code# connect to ipv4 adress 192.168.1.45 port 8080 with a 30 second timeout
-$sock.connect("192.168.1.45:8080", 30s);@endcode
-    @code# connect to ipv6 adress 2001:0db8:85a3:0000:0000:8a2e:0370:7334 port 80 with a 10 second timeout
-$sock.connect("[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:80", 10s);@endcode
-    @code# connect to localhost using ipv6 (::1) port 80 with a 10 second timeout
-$sock.connect("[localhost]:80", 15s);@endcode
-    @code# connect to UNIX domain socket file "/tmp/socket"
-$sock.connect("/tmp/socket");@endcode
+    @code{.py}# connect to ipv4 adress 192.168.1.45 port 8080 with a 30 second timeout
+sock.connect("192.168.1.45:8080", 30s);@endcode
+    @code{.py}# connect to ipv6 adress 2001:0db8:85a3:0000:0000:8a2e:0370:7334 port 80 with a 10 second timeout
+sock.connect("[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:80", 10s);@endcode
+    @code{.py}# connect to localhost using ipv6 (::1) port 80 with a 10 second timeout
+sock.connect("[localhost]:80", 15s);@endcode
+    @code{.py}# connect to UNIX domain socket file "/tmp/socket"
+sock.connect("/tmp/socket");@endcode
 
     @par Events:
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED
@@ -434,10 +434,10 @@ nothing Socket::connect(string target, timeout timeout_ms = -1) {
     Do not use square brackets to designate ipv6 addresses with this method; just give the address in its normal form (ex: \c "2001:0db8:85a3:0000:0000:8a2e:0370:7334").
 
     @par Examples:
-    @code# connect to ipv4 address 192.168.1.45 port 8080 with a 30 second timeout
-$sock.connectINET("192.168.1.45", 8080, 30s);@endcode
-    @code# connect to ipv6 address 2001:0db8:85a3:0000:0000:8a2e:0370:7334 port 80 with a 20 second timeout
-$sock.connectINET("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 80, 20s);@endcode
+    @code{.py}# connect to ipv4 address 192.168.1.45 port 8080 with a 30 second timeout
+sock.connectINET("192.168.1.45", 8080, 30s);@endcode
+    @code{.py}# connect to ipv6 address 2001:0db8:85a3:0000:0000:8a2e:0370:7334 port 80 with a 20 second timeout
+sock.connectINET("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 80, 20s);@endcode
 
     @par Events:
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED
@@ -461,8 +461,8 @@ nothing Socket::connectINET(string host, softstring service, timeout timeout_ms 
 /** Connects the socket to the given UNIX domain socket file; if any errors occur, an exception is thrown
 
     @par Example:
-    @code # connect to UNIX domain socket file "/tmp/socket"
-$sock.connectUNIX("/tmp/socket"); @endcode
+    @code{.py} # connect to UNIX domain socket file "/tmp/socket"
+sock.connectUNIX("/tmp/socket"); @endcode
 
     @par Events:
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED
@@ -487,14 +487,14 @@ nothing Socket::connectUNIX(string path, softint socktype = SOCK_STREAM, softint
     Enclose ipv6 addresses in square brackets (ex: \c "[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:80", will connect to port 80 on the given ipv6 address); also if a hostname is enclosed in square brackets, it will be resolved as an ipv6 adress (ex: \c "[localhost]:80" will connect to port \c 80 on \c ::1, assuming \c "localhost" can be resolved to the ipv6 loopback address on the system).
 
     @par Examples:
-    @code # connect to ipv4 adress 192.168.1.45 port 8080 with a 30 second timeout
-$sock.connectSSL("192.168.1.45:8080", 30s); @endcode
-    @code # connect to ipv6 adress 2001:0db8:85a3:0000:0000:8a2e:0370:7334 port 80 with a 10 second timeout
-$sock.connectSSL("[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:80", 10s); @endcode
-    @code # connect to localhost using ipv6 (::1) port 80 with a 10 second timeout
-$sock.connectSSL("[localhost]:80", 15s); @endcode
-    @code # connect to UNIX domain socket file "/tmp/socket"
-$sock.connectSSL("/tmp/socket"); @endcode
+    @code{.py} # connect to ipv4 adress 192.168.1.45 port 8080 with a 30 second timeout
+sock.connectSSL("192.168.1.45:8080", 30s); @endcode
+    @code{.py} # connect to ipv6 adress 2001:0db8:85a3:0000:0000:8a2e:0370:7334 port 80 with a 10 second timeout
+sock.connectSSL("[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:80", 10s); @endcode
+    @code{.py} # connect to localhost using ipv6 (::1) port 80 with a 10 second timeout
+sock.connectSSL("[localhost]:80", 15s); @endcode
+    @code{.py} # connect to UNIX domain socket file "/tmp/socket"
+sock.connectSSL("/tmp/socket"); @endcode
 
     @par Events:
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED
@@ -516,14 +516,14 @@ nothing Socket::connectSSL(string target, timeout timeout_ms = -1) {
 
 //! Connects to the given host and port and attempts to establish a TLS/SSL connection; accepts an optional timeout value with a millisecond resolution
 /** Connects the socket to a remote (or local) port and attempts to establish a TLS/SSL connection; accepts an optional timeout value in milliseconds (@ref relative_dates "relative date/time values" can be given instead of an integer in milliseconds to make the source more readable; ex: \c 20s). If any errors occur, an exception is thrown.
-    
+
     Do not use square brackets to designate ipv6 addresses with this method; just give the address in its normal form (ex: \c "2001:0db8:85a3:0000:0000:8a2e:0370:7334").
 
     @par Examples:
-    @code # connect to 192.168.1.45 port 8080 with a 30 second timeout
-$sock.connectINETSSL("192.168.1.45", 8080, 30s); @endcode
-    @code # connect to ipv6 address 2001:0db8:85a3:0000:0000:8a2e:0370:7334 port 80 with a 20 second timeout
-$sock.connectINETSSL("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 80, 20s); @endcode
+    @code{.py} # connect to 192.168.1.45 port 8080 with a 30 second timeout
+sock.connectINETSSL("192.168.1.45", 8080, 30s); @endcode
+    @code{.py} # connect to ipv6 address 2001:0db8:85a3:0000:0000:8a2e:0370:7334 port 80 with a 20 second timeout
+sock.connectINETSSL("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 80, 20s); @endcode
 
     @par Events:
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED
@@ -548,8 +548,8 @@ nothing Socket::connectINETSSL(string host, softstring service, timeout timeout_
 /** Connects the socket to a UNIX domain socket file and attempts to establish a TLS/SSL connection. If any errors occur, an exception is thrown.
 
     @par Example:
-    @code # connect to UNIX domain socket file "/tmp/socket"
-$sock.connectUNIXSSL("/tmp/socket"); @endcode
+    @code{.py} # connect to UNIX domain socket file "/tmp/socket"
+sock.connectUNIXSSL("/tmp/socket"); @endcode
 
     @par Events:
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED
@@ -569,8 +569,8 @@ nothing Socket::connectUNIXSSL(string path, softint socktype = SOCK_STREAM, soft
    s->connectUNIXSSL(path->getBuffer(), socktype, protocol, xsink);
 }
 
-//! Opens and binds the socket to a port, interface and port (if the $bind_to string has a format "host:port"), or UNIX domain socket file. 
-/** If the second parameter is @ref True, then the socket will set the \c SO_REUSEADDR option, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state). 
+//! Opens and binds the socket to a port, interface and port (if the bind_to string has a format "host:port"), or UNIX domain socket file.
+/** If the second parameter is @ref True, then the socket will set the \c SO_REUSEADDR option, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state).
 
     If any errors occur a non-zero error code is returned.
 
@@ -579,13 +579,13 @@ nothing Socket::connectUNIXSSL(string path, softint socktype = SOCK_STREAM, soft
     Internally, the getaddrinfo() function is used to look up bind addresses; internal \c bind() operations are tried in sequence for each address returned; as soon as a bind operation is successful, the method returns. If none of the addresses can be bound, then an error code is returned.
 
     @par Example:
-    @code # bind to a UNIX socket on the local system and reuse the address, check return code
-if ($sock.bind("/tmp/my-socket", True))
+    @code{.py} # bind to a UNIX socket on the local system and reuse the address, check return code
+if (sock.bind("/tmp/my-socket", True))
     throw "BIND-ERROR", strerror(); @endcode
 
     @param str If a colon appears in the string, the string will be assumed to be a \c "bind_address:port" specification, and the port on the named IP address will be bound, otherwise, if the string contains no colon, the socket will be bound to a UNIX domain socket file on the local filesystem with the given name.  Note that a hostname or address in square brackets (ex: \c "[localhost]") will be looked up and bound as an IPv6 address; additionally, the method recognizes ipv6 addresses by embedded colons (:) in the address string (if surrounded by square brackets) and binds them as such.
     @param reuseaddr If this optional argument evaluates to @ref True, the \c SO_REUSEADDR option will be set on the socket, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state); note that this only applies to IPv4 (@ref AF_INET) and IPv6 (@ref AF_INET6) sockets; this option is ignored for UNIX (@ref AF_UNIX) sockets.
-    
+
     @see Socket::bindINET() and Socket::bindUNIX()
 
     @note UNIX domain sockets are not available on native Windows ports
@@ -594,19 +594,19 @@ int Socket::bind(string str, softbool reuseaddr = False) {
    return s->bind(str->getBuffer(), reuseaddr);
 }
 
-//! Opens and binds the socket to an INET port on all interfaces 
-/** If the second parameter is @ref True, then the socket will set the \c SO_REUSEADDR option, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state). 
+//! Opens and binds the socket to an INET port on all interfaces
+/** If the second parameter is @ref True, then the socket will set the \c SO_REUSEADDR option, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state).
 
     If any errors occur a non-zero error code is returned.
 
     @par Example:
-    @code # bind to port 80 on all interfaces on the local system and reuse the address, check return code
-if ($sock.bind(80, True))
+    @code{.py} # bind to port 80 on all interfaces on the local system and reuse the address, check return code
+if (sock.bind(80, True))
     throw "BIND-ERROR", strerror(); @endcode
-    
+
     @param port A port number to bind to on all interfaces
     @param reuseaddr If this optional argument evaluates to @ref True, the \c SO_REUSEADDR option will be set on the socket, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state)
-    
+
     @see Socket::bindINET() and Socket::bindUNIX()
 */
 int Socket::bind(int port, softbool reuseaddr = False) {
@@ -617,8 +617,8 @@ int Socket::bind(int port, softbool reuseaddr = False) {
 /** Opens and binds the socket to the given UNIX domain socket file as given by the filename argument. Note that the socket file is automatically deleted in the destructor when a UNIX socket is closed. If any errors occur, an exception is thrown.
 
     @par Example:
-    @code # bind to UNIX domain socket file "/tmp/socket"
-$sock.bindUNIX("/tmp/socket"); @endcode
+    @code{.py} # bind to UNIX domain socket file "/tmp/socket"
+sock.bindUNIX("/tmp/socket"); @endcode
 
     @param path The path of the UNIX domain socket to create and bind to
     @param socktype the type of socket; see Socket Type Constants; typically @ref SOCK_STREAM for TCP sockets
@@ -642,14 +642,14 @@ nothing Socket::bindUNIX(string path, softint socktype = SOCK_STREAM, softint pr
     If any errors occur, an exception is thrown.
 
     @par Examples:
-    @code # bind to port 80 on all interfaces on the local system and reuse the address
-$sock.bindINET(NOTHING, 80, True); @endcode
-    @code # bind to interface 192.168.2.23 port 8080 and do not reuse the address
-$sock.bindINET("192.168.2.23", 8080); @endcode
-    @code # bind to localhost port 8080 with ipv6 and do not reuse the address
-$sock.bindINET("localhost", 8080, False, AF_INET6); @endcode
-    @code # bind to ipv6 host address fe80::21c:42ff:fe00:8, port 1001, reuse the address
-$sock.bindINET("fe80::21c:42ff:fe00:8", 1001, True); @endcode
+    @code{.py} # bind to port 80 on all interfaces on the local system and reuse the address
+sock.bindINET(NOTHING, 80, True); @endcode
+    @code{.py} # bind to interface 192.168.2.23 port 8080 and do not reuse the address
+sock.bindINET("192.168.2.23", 8080); @endcode
+    @code{.py} # bind to localhost port 8080 with ipv6 and do not reuse the address
+sock.bindINET("localhost", 8080, False, AF_INET6); @endcode
+    @code{.py} # bind to ipv6 host address fe80::21c:42ff:fe00:8, port 1001, reuse the address
+sock.bindINET("fe80::21c:42ff:fe00:8", 1001, True); @endcode
 
     @param iface the host name or IP address to bind to
     @param service the service name (ex: "http" or port number (given as or converted to a string) to bind to
@@ -665,13 +665,10 @@ $sock.bindINET("fe80::21c:42ff:fe00:8", 1001, True); @endcode
  */
 nothing Socket::bindINET(*string iface, *softstring service, softbool reuseaddr = False, softint family = AF_UNSPEC, softint socktype = SOCK_STREAM, softint protocol = 0) {
    if ((!iface || iface->empty())
-       && (!service || service->empty())) {
-      xsink->raiseException("SOCKET-BIND-ERROR", "both interace (first parameter) and service (second parameter) were either not present or empty strings; at least one of the first 2 parameters must be present for a successful call to Socket::bindINET()");
-      return 0;
-   }
+       && (!service || service->empty()))
+      return xsink->raiseException("SOCKET-BIND-ERROR", "both interace (first parameter) and service (second parameter) were either not present or empty strings; at least one of the first 2 parameters must be present for a successful call to Socket::bindINET()");
 
    s->bindINET(iface ? iface->getBuffer() : 0, service ? service->getBuffer() : 0, reuseaddr, family, socktype, protocol, xsink);
-   return 0;
 }
 
 //! Accepts connections on a listening socket
@@ -680,7 +677,7 @@ nothing Socket::bindINET(*string iface, *softstring service, softbool reuseaddr 
     The new Socket object returned will have the same character encoding as the current object. Once a new connection has been accepted, call Socket::getPeerInfo() to get information about the remote socket.
 
     @par Example:
-    @code my Socket $new_socket = $sock.accept(); @endcode
+    @code{.py} Socket new_socket = sock.accept(); @endcode
 
     @return a new Socket object is returned for the new connection
 
@@ -693,7 +690,7 @@ Socket Socket::accept() {
    QoreSocketObject *n = s->accept(-1, xsink);
    if (!n) {
       assert(*xsink);
-      return 0;
+      return QoreValue();
    }
 
    assert(n);
@@ -713,21 +710,21 @@ Socket Socket::accept() {
     The new Socket object returned will have the same character encoding as the current object. Once a new connection has been accepted, call Socket::getPeerInfo() to get information about the remote socket.
 
     @par Example:
-    @code my *Socket $new_socket = $sock.accept(30s); @endcode
+    @code{.py} *Socket new_socket = sock.accept(30s); @endcode
 
     @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, then @ref nothing is returned.Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return If no connection is accepted within the timeout period, then @ref nothing is returned, otherwise a Socket object for the new connection is returned.
 
     @throw SOCKET-NOT-OPEN The socket is not bound
-    @throw SOCKET-ACCEPT-ERROR Error in accepting connection 
+    @throw SOCKET-ACCEPT-ERROR Error in accepting connection
 
     @see Socket::acceptSSL(), Socket::listen(), Socket::getPeerInfo()
  */
 *Socket Socket::accept(timeout timeout_ms) {
    QoreSocketObject *n = s->accept(timeout_ms, xsink);
    if (!n)
-      return 0;
+      return QoreValue();
 
    // ensure that a socket object is returned (and not a subclass)
    QoreObject *ns = new QoreObject(QC_SOCKET, getProgram(), n);
@@ -744,7 +741,7 @@ Socket Socket::accept() {
     The new Socket object returned will have the same character encoding as the current object. Once a new connection has been accepted, call Socket::getPeerInfo() to get information about the remote socket.
 
     @par Example:
-    @code my Socket $new_socket = $sock.acceptSSL(); @endcode
+    @code{.py} Socket new_socket = sock.acceptSSL(); @endcode
 
     @return When a new connection is accepted and a TLS/SSL session has been successfully negotiated, a new Socket object is returned for the new connectio
 
@@ -757,7 +754,7 @@ Socket Socket::acceptSSL() {
    QoreSocketObject *n = s->acceptSSL(-1, xsink);
    if (!n) {
       assert(*xsink);
-      return 0;
+      return QoreValue();
    }
 
    // ensure that a socket object is returned (and not a subclass)
@@ -765,7 +762,7 @@ Socket Socket::acceptSSL() {
 
    // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be used in the future)
    my_socket_priv::setAccept(*n, ns);
-   
+
    return ns;
 }
 
@@ -775,28 +772,28 @@ Socket Socket::acceptSSL() {
     The new Socket object returned will have the same character encoding as the current object. Once a new connection has been accepted, call Socket::getPeerInfo() to get information about the remote socket.
 
     @par Example:
-    @code my *Socket $new_socket = $sock.acceptSSL(30s); @endcode
+    @code{.py} *Socket new_socket = sock.acceptSSL(30s); @endcode
 
     @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, then @ref nothing is returned. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @return If no connection is accepted within the timeout period, then @ref nothing is returned, otherwise a Socket object for the new connection is returned.
 
     @throw SOCKET-NOT-OPEN The socket is not bound
-    @throw SOCKET-ACCEPT-ERROR Error in accepting connection 
+    @throw SOCKET-ACCEPT-ERROR Error in accepting connection
 
     @see Socket::acceptSSL(), Socket::listen(), Socket::getPeerInfo()
  */
 *Socket Socket::acceptSSL(timeout timeout_ms) {
    QoreSocketObject* n = s->acceptSSL(timeout_ms, xsink);
    if (!n)
-      return 0;
+      return QoreValue();
 
    // ensure that a socket object is returned (and not a subclass)
    QoreObject* ns = new QoreObject(QC_SOCKET, getProgram(), n);
 
    // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be used in the future)
    my_socket_priv::setAccept(*n, ns);
-   
+
    return ns;
 }
 
@@ -804,7 +801,7 @@ Socket Socket::acceptSSL() {
 /** Listens for new connections on a bound socket.
 
     @par Example:
-    @code $sock.listen(); @endcode
+    @code{.py} sock.listen(); @endcode
 
     @param backlog the size of the queue for pending connections
 
@@ -821,8 +818,8 @@ int Socket::listen(int backlog = 20) {
 //! Sends binary data over the socket; if any errors occur, an exception is thrown
 /**
     @par Example:
-    @code
-$sock.send($data, 20s);
+    @code{.py}
+sock.send(data, 20s);
     @endcode
 
     @par Events:
@@ -846,7 +843,7 @@ $sock.send($data, 20s);
     @since %Qore 0.8.6 this method takes a timeout value and throws exceptions on error like Socket::send2(); this change was
     made because it was not possible to catch SSL errors with this method with the previous implementation
  */
-int Socket::send(binary bin, int timeout_ms = -1) {
+int Socket::send(binary bin, timeout timeout_ms = -1) {
    return s->send(bin, timeout_ms, xsink);
 }
 
@@ -854,8 +851,8 @@ int Socket::send(binary bin, int timeout_ms = -1) {
 /** String data will be converted to the encoding set for the socket if necessary.
 
     @par Example:
-    @code
-$sock.send($str, 20s);
+    @code{.py}
+sock.send(str, 20s);
     @endcode
 
     @par Events:
@@ -886,8 +883,8 @@ int Socket::send(string str, timeout timeout_ms = -1) {
 //! Sends string data over the socket without converting the string to the socket's encoding, but instead is sent exactly as-is; if any errors occur, an exception is thrown
 /**
     @par Example:
-    @code
-$sock.sendBinary($str);
+    @code{.py}
+sock.sendBinary(str);
     @endcode
 
     @par Events:
@@ -917,8 +914,8 @@ int Socket::sendBinary(string str, timeout timeout_ms = -1) {
 //! Sends binary data over the socket; if any errors occur, an exception is thrown
 /**
     @par Example:
-    @code
-$sock.sendBinary2($data);
+    @code{.py}
+sock.sendBinary2(data);
     @endcode
 
     @par Events:
@@ -946,10 +943,10 @@ int Socket::sendBinary(binary bin, timeout timeout_ms = -1) {
 }
 
 //! Sends binary data over the socket; if any errors occur, an exception is thrown
-/** 
+/**
     @par Example:
-    @code
-$sock.send2($data);
+    @code{.py}
+sock.send2(data);
     @endcode
 
     @par Events:
@@ -978,8 +975,8 @@ nothing Socket::send2(binary bin, timeout timeout_ms = -1) {
 /** String data will be converted to the encoding set for the socket if necessary.
 
     @par Example:
-    @code
-$sock.send2($str);
+    @code{.py}
+sock.send2(str);
     @endcode
 
     @par Events:
@@ -1005,10 +1002,10 @@ nothing Socket::send2(string str, timeout timeout_ms = -1) {
 }
 
 //! Sends string data over the socket without converting the string to the socket's encoding, but instead is sent exactly as-is; if any errors occur, an exception is thrown
-/** 
+/**
     @par Example:
-    @code
-$sock.sendBinary2($str);
+    @code{.py}
+sock.sendBinary2(str);
     @endcode
 
     @par Events:
@@ -1033,10 +1030,10 @@ nothing Socket::sendBinary2(string str, timeout timeout_ms = -1) {
 }
 
 //! Sends binary data over the socket; if any errors occur, an exception is thrown
-/** 
+/**
     @par Example:
-    @code
-$sock.sendBinary2($data);
+    @code{.py}
+sock.sendBinary2(data);
     @endcode
 
     @par Events:
@@ -1064,8 +1061,8 @@ nothing Socket::sendBinary2(binary bin, timeout timeout_ms = -1) {
 /** If any errors occur, an exception is thrown
 
     @par Example:
-    @code
-$sock.sendi1($val, 20s);
+    @code{.py}
+sock.sendi1(val, 20s);
     @endcode
 
     @par Events:
@@ -1092,8 +1089,8 @@ int Socket::sendi1(softint i = 0, timeout timeout_ms = -1) {
 /** If any errors occur, an exception is thrown
 
     @par Example:
-    @code
-$sock.sendi2($val, 20s);
+    @code{.py}
+sock.sendi2(val, 20s);
     @endcode
 
     @par Events:
@@ -1104,7 +1101,7 @@ $sock.sendi2($val, 20s);
 
     @return always returns 0 for backwards compatibility; if an error occurs, an exception is thrown
 
-    @throw SOCKET-NOT-OPEN The socket is not connected    
+    @throw SOCKET-NOT-OPEN The socket is not connected
     @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
     @throw SOCKET-SEND-ERROR an error occurred sending the socket data
     @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
@@ -1120,8 +1117,8 @@ int Socket::sendi2(softint i = 0, timeout timeout_ms = -1) {
 /** If any errors occur, an exception is thrown
 
     @par Example:
-    @code
-$sock.sendi4($val, 20s);
+    @code{.py}
+sock.sendi4(val, 20s);
     @endcode
 
     @par Events:
@@ -1132,7 +1129,7 @@ $sock.sendi4($val, 20s);
 
     @return always returns 0 for backwards compatibility; if an error occurs, an exception is thrown
 
-    @throw SOCKET-NOT-OPEN The socket is not connected    
+    @throw SOCKET-NOT-OPEN The socket is not connected
     @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
     @throw SOCKET-SEND-ERROR an error occurred sending the socket data
     @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
@@ -1148,8 +1145,8 @@ int Socket::sendi4(softint i = 0, timeout timeout_ms = -1) {
 /** If any errors occur, an exception is thrown
 
     @par Example:
-    @code
-$sock.sendi8($val, 20s);
+    @code{.py}
+sock.sendi8(val, 20s);
     @endcode
 
     @par Events:
@@ -1160,7 +1157,7 @@ $sock.sendi8($val, 20s);
 
     @return always returns 0 for backwards compatibility; if an error occurs, an exception is thrown
 
-    @throw SOCKET-NOT-OPEN The socket is not connected    
+    @throw SOCKET-NOT-OPEN The socket is not connected
     @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
     @throw SOCKET-SEND-ERROR an error occurred sending the socket data
     @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
@@ -1176,8 +1173,8 @@ int Socket::sendi8(softint i = 0, timeout timeout_ms = -1) {
 /** If any errors occur, an exception is thrown
 
     @par Example:
-    @code
-$sock.sendi2LSB($val, 20s);
+    @code{.py}
+sock.sendi2LSB(val, 20s);
     @endcode
 
     @par Events:
@@ -1188,7 +1185,7 @@ $sock.sendi2LSB($val, 20s);
 
     @return always returns 0 for backwards compatibility; if an error occurs, an exception is thrown
 
-    @throw SOCKET-NOT-OPEN The socket is not connected    
+    @throw SOCKET-NOT-OPEN The socket is not connected
     @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
     @throw SOCKET-SEND-ERROR an error occurred sending the socket data
     @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
@@ -1204,8 +1201,8 @@ int Socket::sendi2LSB(softint i = 0, timeout timeout_ms = -1) {
 /** If any errors occur, an exception is thrown
 
     @par Example:
-    @code
-$sock.sendi4LSB($val, 20s);
+    @code{.py}
+sock.sendi4LSB(val, 20s);
     @endcode
 
     @par Events:
@@ -1216,7 +1213,7 @@ $sock.sendi4LSB($val, 20s);
 
     @return always returns 0 for backwards compatibility; if an error occurs, an exception is thrown
 
-    @throw SOCKET-NOT-OPEN The socket is not connected    
+    @throw SOCKET-NOT-OPEN The socket is not connected
     @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
     @throw SOCKET-SEND-ERROR an error occurred sending the socket data
     @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
@@ -1232,8 +1229,8 @@ int Socket::sendi4LSB(softint i = 0, timeout timeout_ms = -1) {
 /** If any errors occur, an exception is thrown
 
     @par Example:
-    @code
-$sock.sendi8LSB($val, 20s);
+    @code{.py}
+sock.sendi8LSB(val, 20s);
     @endcode
 
     @par Events:
@@ -1244,7 +1241,7 @@ $sock.sendi8LSB($val, 20s);
 
     @return always returns 0 for backwards compatibility; if an error occurs, an exception is thrown
 
-    @throw SOCKET-NOT-OPEN The socket is not connected    
+    @throw SOCKET-NOT-OPEN The socket is not connected
     @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
     @throw SOCKET-SEND-ERROR an error occurred sending the socket data
     @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
@@ -1260,13 +1257,13 @@ int Socket::sendi8LSB(softint i = 0, timeout timeout_ms = -1) {
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code
-my string $data = $sock.recv(-1); # read all data available
+    @code{.py}
+string data = sock.recv(-1); # read all data available
     @endcode
 
     @par Events:
     @ref EVENT_PACKET_READ
-    
+
     @param size the amount of data to read in bytes; to read until the remote closes the connection, use -1; a value of 0 means to read all data currently available or available up until the timeout period (if non-negative)
     @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
@@ -1290,13 +1287,13 @@ string Socket::recv(softint size = 0, timeout timeout_ms = -1) {
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code
-my binary $data = $sock.recvBinary(-1); # read all data available
+    @code{.py}
+binary data = sock.recvBinary(-1); # read all data available
     @endcode
 
     @par Events:
     @ref EVENT_PACKET_READ
-    
+
     @param size the amount of data to read in bytes; to read until the remote closes the connection, use -1; a value of 0 means to read all data currently available or available up until the timeout period (if non-negative)
     @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
@@ -1318,8 +1315,8 @@ binary Socket::recvBinary(softint size = 0, timeout timeout_ms = -1) {
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code
-my int $val = $sock.recvi1();
+    @code{.py}
+int val = sock.recvi1();
     @endcode
 
     @par Events:
@@ -1347,8 +1344,8 @@ int Socket::recvi1(timeout timeout_ms = -1) {
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code
-my int $val = $sock.recvi2();
+    @code{.py}
+int val = sock.recvi2();
     @endcode
 
     @par Events:
@@ -1376,8 +1373,8 @@ int Socket::recvi2(timeout timeout_ms = -1) {
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code
-my int $val = $sock.recvi4();
+    @code{.py}
+int val = sock.recvi4();
     @endcode
 
     @par Events:
@@ -1405,8 +1402,8 @@ int Socket::recvi4(timeout timeout_ms = -1) {
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code
-my int $val = $sock.recvi8();
+    @code{.py}
+int val = sock.recvi8();
     @endcode
 
     @par Events:
@@ -1434,8 +1431,8 @@ int Socket::recvi8(timeout timeout_ms = -1) {
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code
-my int $val = $sock.recvi2LSB();
+    @code{.py}
+int val = sock.recvi2LSB();
     @endcode
 
     @par Events:
@@ -1463,8 +1460,8 @@ int Socket::recvi2LSB(timeout timeout_ms = -1) {
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code
-my int $val = $sock.recvi4LSB();
+    @code{.py}
+int val = sock.recvi4LSB();
     @endcode
 
     @par Events:
@@ -1492,8 +1489,8 @@ int Socket::recvi4LSB(timeout timeout_ms = -1) {
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code
-my int $val = $sock.recvi8LSB();
+    @code{.py}
+int val = sock.recvi8LSB();
     @endcode
 
     @par Events:
@@ -1521,8 +1518,8 @@ int Socket::recvi8LSB(timeout timeout_ms = -1) {
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code
-my int $val = $sock.recvu1();
+    @code{.py}
+int val = sock.recvu1();
     @endcode
 
     @par Events:
@@ -1550,8 +1547,8 @@ int Socket::recvu1(timeout timeout_ms = -1) {
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code
-my int $val = $sock.recvu2();
+    @code{.py}
+int val = sock.recvu2();
     @endcode
 
     @par Events:
@@ -1579,8 +1576,8 @@ int Socket::recvu2(timeout timeout_ms = -1) {
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code
-my int $val = $sock.recvu4();
+    @code{.py}
+int val = sock.recvu4();
     @endcode
 
     @par Events:
@@ -1608,8 +1605,8 @@ int Socket::recvu4(timeout timeout_ms = -1) {
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code
-my int $val = $sock.recvi2LSB();
+    @code{.py}
+int val = sock.recvi2LSB();
     @endcode
 
     @par Events:
@@ -1637,8 +1634,8 @@ int Socket::recvu2LSB(timeout timeout_ms = -1) {
 /** If any errors occur reading from the socket, an exception is raised
 
     @par Example:
-    @code
-my int $val = $sock.recvu4LSB();
+    @code{.py}
+int val = sock.recvu4LSB();
     @endcode
 
     @par Events:
@@ -1667,8 +1664,8 @@ int Socket::recvu4LSB(timeout timeout_ms = -1) {
     To send a string without converting the encoding to the Socket's encoding, convert the string to a binary object using the binary() function and use the variant of this method that takes a binary object for the data argument.
 
     @par Example:
-    @code
-$sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), $xml);
+    @code{.py}
+sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), xml);
     @endcode
 
     @par Events:
@@ -1694,7 +1691,7 @@ $sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), $xm
 nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, *string body, *reference info, timeout timeout_ms = -1) {
    TempEncodingHelper tmp_data;
    if (body && !tmp_data.set(body, s->getEncoding(), xsink))
-      return 0;
+      return QoreValue();
 
    OptHashRefHelper ohrh(info, xsink);
    s->sendHTTPMessage(xsink, *ohrh, method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, body ? tmp_data->getBuffer() : 0, body ? tmp_data->strlen() : 0, QORE_SOURCE_SOCKET, timeout_ms);
@@ -1704,8 +1701,8 @@ nothing Socket::sendHTTPMessage(string method, string path, string http_version,
 /** Creates a properly-formatted HTTP message and sends it over the Socket
 
     @par Example:
-    @code
-$sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), $xml);
+    @code{.py}
+sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), xml);
     @endcode
 
     @par Events:
@@ -1736,8 +1733,8 @@ nothing Socket::sendHTTPMessage(string method, string path, string http_version,
 /** Creates a properly-formatted HTTP message and sends it over the Socket
 
     @par Example:
-    @code
-$sock.sendHTTPMessageWithCallback($send_callback, "POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"));
+    @code{.py}
+sock.sendHTTPMessageWithCallback(send_callback, "POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"));
     @endcode
 
     @par Events:
@@ -1771,8 +1768,8 @@ nothing Socket::sendHTTPMessageWithCallback(code scb, string method, string path
     To send a string without converting the encoding to the Socket's encoding, convert the string to a binary object using the binary() function and use the variant of this method that takes a binary object for the data argument.
 
     @par Example:
-    @code
-$sock.sendHTTPResponse(200, "OK", "1.1", ("Connection":"Keep-Alive"));
+    @code{.py}
+sock.sendHTTPResponse(200, "OK", "1.1", ("Connection":"Keep-Alive"));
     @endcode
 
     @par Events:
@@ -1792,14 +1789,12 @@ $sock.sendHTTPResponse(200, "OK", "1.1", ("Connection":"Keep-Alive"));
     @throw SOCKET-SEND-ERROR send failed
  */
 nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string http_version, hash headers, *string body, timeout timeout_ms = -1) {
-   if (status_code < 100 || status_code >= 600) {
-      xsink->raiseException("SOCKET-SENDHTTPRESPONSE-STATUS-ERROR", "expecting valid HTTP status code between 100 and 599 as first parameter of Socket::sendHTTPResponse() call, got value %d instead", status_code);
-      return 0;
-   }
+   if (status_code < 100 || status_code >= 600)
+      return xsink->raiseException("SOCKET-SENDHTTPRESPONSE-STATUS-ERROR", "expecting valid HTTP status code between 100 and 599 as first parameter of Socket::sendHTTPResponse() call, got value %d instead", status_code);
 
    TempEncodingHelper tmp_data;
    if (body && !tmp_data.set(body, s->getEncoding(), xsink))
-      return 0;
+      return QoreValue();
 
    s->sendHTTPResponse(xsink, status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, body ? tmp_data->getBuffer() : 0, body ? tmp_data->strlen() : 0, QORE_SOURCE_SOCKET, timeout_ms);
 }
@@ -1808,8 +1803,8 @@ nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string
 /** Creates a properly-formatted HTTP response message and sends it over the Socket (must already be connected).  If any errors occur, an exception is raised.
 
     @par Example:
-    @code
-$sock.sendHTTPResponse(200, "OK", "1.1", ("Connection":"Keep-Alive"), $bin);
+    @code{.py}
+sock.sendHTTPResponse(200, "OK", "1.1", ("Connection":"Keep-Alive"), bin);
     @endcode
 
     @par Events:
@@ -1828,10 +1823,8 @@ $sock.sendHTTPResponse(200, "OK", "1.1", ("Connection":"Keep-Alive"), $bin);
     @throw SOCKET-SEND-ERROR send failed
  */
 nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string http_version, hash headers, binary body, timeout timeout_ms = -1) {
-   if (status_code < 100 || status_code >= 600) {
-      xsink->raiseException("SOCKET-SENDHTTPRESPONSE-STATUS-ERROR", "expecting valid HTTP status code between 100 and 599 as first parameter of Socket::sendHTTPResponse() call, got value %d instead", status_code);
-      return 0;
-   }
+   if (status_code < 100 || status_code >= 600)
+      return xsink->raiseException("SOCKET-SENDHTTPRESPONSE-STATUS-ERROR", "expecting valid HTTP status code between 100 and 599 as first parameter of Socket::sendHTTPResponse() call, got value %d instead", status_code);
 
    s->sendHTTPResponse(xsink, status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, body ? body->getPtr() : 0, body ? body->size() : 0, QORE_SOURCE_SOCKET, timeout_ms);
 }
@@ -1840,8 +1833,8 @@ nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string
 /** Creates a properly-formatted HTTP response message and sends it over the Socket (must already be connected).  If any errors occur, an exception is raised.
 
     @par Example:
-    @code
-$sock.sendHTTPResponseWithCallback($send_callback, 200, "OK", "1.1", ("Connection":"Keep-Alive"));
+    @code{.py}
+sock.sendHTTPResponseWithCallback(send_callback, 200, "OK", "1.1", ("Connection":"Keep-Alive"));
     @endcode
 
     @par Events:
@@ -1862,10 +1855,8 @@ $sock.sendHTTPResponseWithCallback($send_callback, 200, "OK", "1.1", ("Connectio
     @since %Qore 0.8.10
  */
 nothing Socket::sendHTTPResponseWithCallback(code scb, softint status_code, string status_desc, string http_version, hash headers, timeout timeout_ms = -1) {
-   if (status_code < 100 || status_code >= 600) {
-      xsink->raiseException("SOCKET-SENDHTTPRESPONSE-STATUS-ERROR", "expecting valid HTTP status code between 100 and 599 as second parameter of Socket::sendHTTPResponseWithCallback() call, got value %d instead", status_code);
-      return 0;
-   }
+   if (status_code < 100 || status_code >= 600)
+      return xsink->raiseException("SOCKET-SENDHTTPRESPONSE-STATUS-ERROR", "expecting valid HTTP status code between 100 and 599 as second parameter of Socket::sendHTTPResponseWithCallback() call, got value %d instead", status_code);
 
    s->sendHTTPResponseWithCallback(xsink, status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, *scb, QORE_SOURCE_SOCKET, timeout_ms);
 }
@@ -1874,8 +1865,8 @@ nothing Socket::sendHTTPResponseWithCallback(code scb, softint status_code, stri
 /** If any errors occur reading from the socket or if invalid HTTP data is received, an exception is raised. Accepts an optional timeout value in milliseconds.
 
     @par Example:
-    @code
-my hash $ans = $sock.readHTTPHeader(10s);
+    @code{.py}
+hash ans = sock.readHTTPHeader(10s);
     @endcode
 
     @par Events:
@@ -1884,7 +1875,7 @@ my hash $ans = $sock.readHTTPHeader(10s);
     @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
     @param info An optional reference to an lvalue that can accept a hash that will be used as an output variable with one of the following two keys:
     - \c request-uri: (only set when parsing a request header) gives the request URI in an HTTP request
-    - \c response-uri: (only set when parsing a response header) gives the response URI in an HTTP response    
+    - \c response-uri: (only set when parsing a response header) gives the response URI in an HTTP response
     - \c body-content-type: this is the  \c "Content-Type" header without any charset declaration
     - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in this key
     - \c close: (only set when parsing a request header) set to @ref Qore::True "True" if the connection should be closed after responding, @ref Qore::False "False" if not; see notes below about how this value is calculated
@@ -1912,7 +1903,7 @@ my hash $ans = $sock.readHTTPHeader(10s);
     - <a href="http://tools.ietf.org/html/rfc1945#section-1.3">RFC 1945 1.3</a>: Except for experimental applications, current practice requires that the connection be established by the client prior to each request and closed by the server after sending the response.
     - the conclusion is that server applications MUST close the connection when a request is received by an HTTP 1.0 client without an explicit request to keep the connection open
 
-    @since 
+    @since
     - %Qore 0.8.4 this method always returns a hash and raises a \c SOCKET-HTTP-ERROR if invalid HTTP data is received
     - %Qore 0.8.8 added the \c close, \c charset, \c body-content-type, and \c accept-charset info keys as well as the encoding handling based on the detected charset
  */
@@ -1925,8 +1916,8 @@ hash Socket::readHTTPHeader(timeout timeout_ms = -1, *reference info) {
 /** If any errors occur reading from the socket, an exception is raised. Accepts an optional timeout value in milliseconds.
 
     @par Example:
-    @code
-my string $str = $sock.readHTTPHeaderString(10s);
+    @code{.py}
+string str = sock.readHTTPHeaderString(10s);
     @endcode
 
     @par Events:
@@ -1953,8 +1944,8 @@ string Socket::readHTTPHeaderString(timeout timeout_ms = -1) {
 /** If any errors are encountered, an exception is raised
 
     @par Example:
-    @code
-my hash $ans = $sock.readHTTPChunkedBody(20s);
+    @code{.py}
+hash ans = sock.readHTTPChunkedBody(20s);
     @endcode
 
     @par Events:
@@ -1980,8 +1971,8 @@ hash Socket::readHTTPChunkedBody(timeout timeout_ms = -1) {
 /** If any errors are encountered, an exception is raised
 
     @par Example:
-    @code
-my hash $ans = $sock.readHTTPChunkedBodyBinary(20s);
+    @code{.py}
+hash ans = sock.readHTTPChunkedBodyBinary(20s);
     @endcode
 
     @par Events:
@@ -2007,8 +1998,8 @@ hash Socket::readHTTPChunkedBodyBinary(timeout timeout_ms = -1) {
 /** If any errors are encountered, an exception is raised
 
     @par Example:
-    @code
-my hash $ans = $sock.readHTTPChunkedBodyWithCallback($recv_callback, 20s);
+    @code{.py}
+hash ans = sock.readHTTPChunkedBodyWithCallback(recv_callback, 20s);
     @endcode
 
     @par Events:
@@ -2040,8 +2031,8 @@ Socket::readHTTPChunkedBodyWithCallback(code rcb, timeout timeout_ms = -1) {
 /** If any errors are encountered, an exception is raised
 
     @par Example:
-    @code
-my hash $ans = $sock.readHTTPChunkedBodyBinaryWithCallback($recv_callback, 20s);
+    @code{.py}
+hash ans = sock.readHTTPChunkedBodyBinaryWithCallback(recv_callback, 20s);
     @endcode
 
     @par Events:
@@ -2073,8 +2064,8 @@ Socket::readHTTPChunkedBodyBinaryWithCallback(code rcb, timeout timeout_ms = -1)
 /** Also deletes the UNIX domain socket file if it was created by a call to Socket::bind(). Returns 0 for success, -1 for error; in this case check errno() for the error number
 
     @par Example:
-    @code
-if ($sock.close())
+    @code{.py}
+if (sock.close())
     stderr.printf("Error closing socket: %s\n", strerror(errno()));
     @endcode
 
@@ -2091,8 +2082,8 @@ int Socket::close() {
 /** Does not throw any exceptions; returns an error code in case of an error
 
     @par Example:
-    @code
-if ($sock.shutdown())
+    @code{.py}
+if (sock.shutdown())
     stderr.printf("Error calling Socket::shutdown(): %s\n", strerror(errno()));
     @endcode
 
@@ -2106,8 +2097,8 @@ int Socket::shutdown() {
 /** If any errors occur, an exception is raised
 
     @par Example:
-    @code
-$sock.shutdownSSL();
+    @code{.py}
+sock.shutdownSSL();
     @endcode
 
     @throw SOCKET-SSL-ERROR an error occurred shutting down the TLS/SSL connection
@@ -2118,8 +2109,8 @@ nothing Socket::shutdownSSL() {
 
 //! Returns the port number of the socket for INET sockets
 /** @par Example:
-    @code
-my int $port = $sock.getPort();
+    @code{.py}
+int port = sock.getPort();
     @endcode
 
     @return the port number for an INET connection, -1 if no INET connection has been established
@@ -2130,8 +2121,8 @@ int Socket::getPort() [flags=CONSTANT] {
 
 //! Returns the socket file descriptor number
 /** @par Example:
-    @code
-my int $sock = $sock.getSocket();
+    @code{.py}
+int sock = sock.getSocket();
     @endcode
 
     @return the socket file descriptor number or -1 if the socket is not open
@@ -2144,8 +2135,8 @@ int Socket::getSocket() [flags=CONSTANT] {
 /** Returns 0 for success, -1 for error (check errno() for the actual error in this case)
 
     @par Example:
-    @code
-if ($sock.setSendTimeout(20s))
+    @code{.py}
+if (sock.setSendTimeout(20s))
     printf("error setting timeout on socket: %s\n", strerror(errno()));
     @endcode
 
@@ -2161,8 +2152,8 @@ int Socket::setSendTimeout(timeout timeout_ms) {
 /** Returns 0 for success, -1 for error (check errno() for the actual error in this case)
 
     @par Example:
-    @code
-if ($sock.setRecvTimeout(20s))
+    @code{.py}
+if (sock.setRecvTimeout(20s))
     printf("error setting timeout on socket: %s\n", strerror(errno()));
     @endcode
 
@@ -2176,8 +2167,8 @@ int Socket::setRecvTimeout(timeout timeout_ms) {
 
 //! Returns the send timeout socket option value as an integer in milliseconds
 /** @par Example:
-    @code
-my int $to = $sock.getSendTimeout();
+    @code{.py}
+int to = sock.getSendTimeout();
     @endcode
 
     @return the send timeout socket option value as an integer in milliseconds
@@ -2188,8 +2179,8 @@ int Socket::getSendTimeout() [flags=CONSTANT] {
 
 //! Returns the receive timeout socket option value as an integer in milliseconds
 /** @par Example:
-    @code
-my int $to = $sock.getRecvTimeout();
+    @code{.py}
+int to = sock.getRecvTimeout();
     @endcode
 
     @return the receive timeout socket option value as an integer in milliseconds
@@ -2206,7 +2197,7 @@ string Socket::getEncoding() [flags=CONSTANT] {
 }
 
 //! Sets the @ref character_encoding "character encoding" for the socket
-/** @param encoding the @ref character_encoding "character encoding" for the socket  
+/** @param encoding the @ref character_encoding "character encoding" for the socket
  */
 nothing Socket::setEncoding(string encoding) {
    s->setEncoding(QEM.findCreate(encoding));
@@ -2231,8 +2222,8 @@ nothing Socket::setCharset(string encoding) {
 /** With a timeout of zero this method returns immediately and can be used for non-blocking polling the socket for data (can also be used to poll for new connections before Socket::accept()).
 
     @par Example:
-    @code
-my bool $b = $sock.isDataAvailable();
+    @code{.py}
+bool b = sock.isDataAvailable();
     @endcode
 
     @param timeout_ms an optional timeout in milliseconds (1/1000 second); if no timeout is given, the method returns immediately; Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
@@ -2250,8 +2241,8 @@ bool Socket::isDataAvailable(timeout timeout_ms = 0) {
 /** With a timeout of zero this method returns immediately.
 
     @par Example:
-    @code
-my bool $b = $sock.isWriteFinished();
+    @code{.py}
+bool b = sock.isWriteFinished();
     @endcode
 
     @param timeout_ms an optional timeout in milliseconds (1/1000 second); if no timeout is given, the method returns immediately; Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
@@ -2267,8 +2258,8 @@ bool Socket::isWriteFinished(timeout timeout_ms = 0) {
 
 //! Returns @ref True if the socket is open
 /** @par Example:
-    @code
-my bool $b = $sock.isOpen();
+    @code{.py}
+bool b = sock.isOpen();
     @endcode
 
     @return @ref True if the socket is open, @ref False if not
@@ -2279,8 +2270,8 @@ bool Socket::isOpen() [flags=CONSTANT] {
 
 //! Returns the name of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
 /** @par Example:
-    @code
-my *string $str = $sock.getSSLCipherName();
+    @code{.py}
+*string str = sock.getSSLCipherName();
     @endcode
 
     @return the name of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
@@ -2292,8 +2283,8 @@ my *string $str = $sock.getSSLCipherName();
 
 //! Returns the version string of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
 /** @par Example:
-    @code
-my *string $str = $sock.getSSLCipherVersion();
+    @code{.py}
+*string str = sock.getSSLCipherVersion();
     @endcode
 
     @return the version string of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
@@ -2305,8 +2296,8 @@ my *string $str = $sock.getSSLCipherVersion();
 
 //! Returns @ref True if the connection is a secure TLS/SSL connection
 /** @par Example:
-    @code
-my bool $b = $sock.isSecure();
+    @code{.py}
+bool b = sock.isSecure();
     @endcode
 
     @return @ref True if the connection is encrypted, @ref False if not
@@ -2317,8 +2308,8 @@ bool Socket::isSecure() [flags=CONSTANT] {
 
 //! Returns a string code giving the result of verifying the remote certificate or @ref nothing if an encrypted connection is not currently established
 /** @par Example:
-    @code
-my *string $str = $sock.verifyPeerCertificate();
+    @code{.py}
+*string str = sock.verifyPeerCertificate();
     @endcode
 
     @return A string code giving the result of verifying the peer's certificate. No value is returned if a secure connection has not been established.  The set of possible return values is made up of the keys of the @ref X509_VerificationReasons hash. This hash can also be used to generate a textual description of the verification result.
@@ -2330,8 +2321,8 @@ my *string $str = $sock.verifyPeerCertificate();
 
 //! Sets the X.509 certificate to use for negotiating encrypted connections
 /** @par Example:
-    @code
-$sock.setCertificate($cert);
+    @code{.py}
+sock.setCertificate(cert);
     @endcode
 
     @param cert This must be an SSLCertificate object
@@ -2343,8 +2334,8 @@ nothing Socket::setCertificate(SSLCertificate[QoreSSLCertificate] cert) {
 
 //! Sets the X.509 certificate to use for negotiating encrypted connections from the PEM-encoded string representing the X.509 certificate
 /** @par Example:
-    @code
-$sock.setCertificate($cert_string);
+    @code{.py}
+sock.setCertificate(cert_string);
     @endcode
 
     @param cert_pem the PEM-encoded string representing the X.509 certificate
@@ -2352,7 +2343,7 @@ $sock.setCertificate($cert_string);
 nothing Socket::setCertificate(string cert_pem) {
    SimpleRefHolder<QoreSSLCertificate> cert(new QoreSSLCertificate(cert_pem, xsink));
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    // QoreSocketObject::setCertificate() takes over ownership of certificate reference
    s->setCertificate(cert.release());
@@ -2360,8 +2351,8 @@ nothing Socket::setCertificate(string cert_pem) {
 
 //! Sets the X.509 certificate to use for negotiating encrypted connections from the DER-encoded binary object representing the X.509 certificate
 /** @par Example:
-    @code
-$sock.setCertificate($cert_der);
+    @code{.py}
+sock.setCertificate(cert_der);
     @endcode
 
     @param cert_der the DER-encoded binary object representing the X.509 certificate
@@ -2369,7 +2360,7 @@ $sock.setCertificate($cert_der);
 nothing Socket::setCertificate(binary cert_der) {
    SimpleRefHolder<QoreSSLCertificate> cert(new QoreSSLCertificate(cert_der, xsink));
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    // QoreSocketObject::setCertificate() takes over ownership of certificate reference
    s->setCertificate(cert.release());
@@ -2377,8 +2368,8 @@ nothing Socket::setCertificate(binary cert_der) {
 
 //! Sets the private key to use for negotiating encrypted connections along with the X.509 certificate
 /** @par Example:
-    @code
-$sock.setPrivateKey($key);
+    @code{.py}
+sock.setPrivateKey(key);
     @endcode
 
     @param key the private key for the X.509 certificate to use when establishing TLS/SSL encrypted connections
@@ -2390,8 +2381,8 @@ nothing Socket::setPrivateKey(SSLPrivateKey[QoreSSLPrivateKey] key) {
 
 //! Sets the private key to use for negotiating encrypted connections along with the X.509 certificate from a PEM-encoded string representing the private key and an optional password
 /** @par Example:
-    @code
-$sock.setPrivateKey($key_pem, $password);
+    @code{.py}
+sock.setPrivateKey(key_pem, password);
     @endcode
 
     @param key_pem the PEM-encoded string representing the private key for the X.509 certificate to use when establishing TLS/SSL encrypted connections
@@ -2400,15 +2391,15 @@ $sock.setPrivateKey($key_pem, $password);
 nothing Socket::setPrivateKey(string key_pem, *string pass) {
    SimpleRefHolder<QoreSSLPrivateKey> key(new QoreSSLPrivateKey(key_pem, pass ? pass->getBuffer() : 0, xsink));
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    s->setPrivateKey(key.release());
 }
 
 //! Sets the private key to use for negotiating encrypted connections along with the X.509 certificate from a DER-encoded binary object representing the private key
 /** @par Example:
-    @code
-$sock.setPrivateKey($key_der);
+    @code{.py}
+sock.setPrivateKey(key_der);
     @endcode
 
     @param key_der the DER-encoded binary object representing the private key for the X.509 certificate to use when establishing TLS/SSL encrypted connections
@@ -2416,15 +2407,15 @@ $sock.setPrivateKey($key_der);
 nothing Socket::setPrivateKey(binary key_der) {
    SimpleRefHolder<QoreSSLPrivateKey> key(new QoreSSLPrivateKey(key_der, xsink));
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    s->setPrivateKey(key.release());
 }
 
 //! Removes any @ref Qore::Thread::Queue "Queue" object from the Socket object so that @ref socket_events "socket events" are no longer added to the @ref Qore::Thread::Queue "Queue"
 /** @par Example:
-    @code
-$sock.setEventQueue();
+    @code{.py}
+sock.setEventQueue();
     @endcode
 
     @see @ref event_handling for more information
@@ -2435,8 +2426,8 @@ nothing Socket::setEventQueue() {
 
 //! Sets a @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"
 /** @par Example:
-    @code
-$sock.setEventQueue($queue);
+    @code{.py}
+sock.setEventQueue(queue);
     @endcode
 
     @param queue the @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"; note that the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
@@ -2447,10 +2438,9 @@ $sock.setEventQueue($queue);
  */
 nothing Socket::setEventQueue(Queue[Queue] queue) {
    ReferenceHolder<Queue> q(queue, xsink);
-   if (queue->getMax() != -1) {
-      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Socket object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
-      return 0;
-   }
+   if (queue->getMax() != -1)
+      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Socket object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
+
    // pass reference from QoreObject::getReferencedPrivateData() to function
    s->setEventQueue(q.release(), xsink);
 }
@@ -2463,8 +2453,8 @@ nothing Socket::setEventQueue(Queue[Queue] queue) {
     Note that if no value is given to the method, the argument will be assumed to be @ref True, and output buffering will be turned off for the socket.
 
     @par Example:
-    @code
-if ($sock.setNoDelay(True))
+    @code{.py}
+if (sock.setNoDelay(True))
     printf("error setting TCP_NODELAY: %s\n", strerror(errno()));
     @endcode
 
@@ -2480,8 +2470,8 @@ int Socket::setNoDelay(bool nd = True) {
 
 //! Returns the \c TCP_NODELAY setting for the socket
 /** @par Example:
-    @code
-my bool $b = $sock.getNoDelay();
+    @code{.py}
+bool b = sock.getNoDelay();
     @endcode
 
     @return the \c TCP_NODELAY setting for the socket
@@ -2496,8 +2486,8 @@ bool Socket::getNoDelay() [flags=CONSTANT] {
 /** If the socket is not connected, an exception is thrown
 
     @par Example:
-    @code
-my hash $h = $sock.getPeerInfo();
+    @code{.py}
+hash h = sock.getPeerInfo();
     @endcode
 
     @param host_lookup do a lookup of the hostname; if this is @ref Qore::False "False" then \c "hostname" and \c "hostname_desc" are not present in the response hash
@@ -2516,8 +2506,8 @@ hash Socket::getPeerInfo(bool host_lookup = True) {
 /** If the socket is not open, an exception is thrown
 
     @par Example:
-    @code
-my hash $h = $sock.getSocketInfo();
+    @code{.py}
+hash h = sock.getSocketInfo();
     @endcode
 
     @param host_lookup do a lookup of the hostname; if this is @ref Qore::False "False" then \c "hostname" and \c "hostname_desc" are not present in the response hash
@@ -2534,28 +2524,40 @@ hash Socket::getSocketInfo(bool host_lookup = True) {
 
 //! Upgrades a client socket connection to a TLS/SSL connection
 /** @par Example:
-    @code
-$sock.upgradeClientToSSL();
+    @code{.py}
+sock.upgradeClientToSSL();
     @endcode
+
+    @param timeout_ms If a positive timeout value is passed and the SSL upgrade takes longer to establish than the timeout, an \c "SSL-TIMEOUT-ERROR" exception is thrown. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+
+    @throw SSL-TIMEOUT-ERROR timeout error negotiating SSL connection
+
+    @since %Qore 0.8.12 the timeout_ms parameter was added
  */
-nothing Socket::upgradeClientToSSL() {
-   s->upgradeClientToSSL(xsink);
+nothing Socket::upgradeClientToSSL(timeout timeout_ms = -1) {
+   s->upgradeClientToSSL(timeout_ms, xsink);
 }
 
 //! Upgrades a server socket connection to a TLS/SSL connection
 /** @par Example:
-    @code
-$sock.upgradeServerToSSL();
+    @code{.py}
+sock.upgradeServerToSSL();
     @endcode
+
+    @param timeout_ms If a positive timeout value is passed and the SSL upgrade takes longer to establish than the timeout, an \c "SSL-TIMEOUT-ERROR" exception is thrown. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+
+    @throw SSL-TIMEOUT-ERROR timeout error negotiating SSL connection
+
+    @since %Qore 0.8.12 the timeout_ms parameter was added
  */
-nothing Socket::upgradeServerToSSL() {
-   s->upgradeServerToSSL(xsink);
+nothing Socket::upgradeServerToSSL(timeout timeout_ms = -1) {
+   s->upgradeServerToSSL(timeout_ms, xsink);
 }
 
 //! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
 /** @par Example:
-    @code
-$sock.clearWarningQueue();
+    @code{.py}
+sock.clearWarningQueue();
     @endcode
 
     @see Socket::setWarningQueue()
@@ -2568,16 +2570,16 @@ nothing Socket::clearWarningQueue() {
 
 //! Sets a @ref Qore::Thread::Queue "Queue" object to receive socket warnings
 /** @par Example:
-    @code
-$sock.setWarningQueue(5000, 5000, $queue, "socket-1");
+    @code{.py}
+sock.setWarningQueue(5000, 5000, queue, "socket-1");
     @endcode
 
     @param warning_ms the threshold in milliseconds for individual socket actions (send, receive, connect), if exceeded, a socket warning is placed on the warning queue with the following keys:
     - \c "type": a string with the constant value \c "SOCKET-OPERATION-WARNING"
     - \c "operation": a string giving the operation that caused the warning (ex: \c "connect")
     - \c "us": an integer giving the number of microseconds for the operation
-    - \c "timeout": an integer giving the warning threshold in microseconds 
-    - \c "arg": if any \c "arg" argument is passed to the @ref Qore::Socket::setWarningQueue() "Socket::setWarningQueue()" method, it will be included in the warning hash here 
+    - \c "timeout": an integer giving the warning threshold in microseconds
+    - \c "arg": if any \c "arg" argument is passed to the @ref Qore::Socket::setWarningQueue() "Socket::setWarningQueue()" method, it will be included in the warning hash here
     @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket warning is placed on the warning queue with the following keys:
     - \c "type": a string with the constant value \c "SOCKET-THROUGHPUT-WARNING"
     - \c "dir": either \c "send" or \c "recv" depending on the direction of the data flow
@@ -2585,7 +2587,7 @@ $sock.setWarningQueue(5000, 5000, $queue, "socket-1");
     - \c "us": an integer giving the number of microseconds for the operation
     - \c "bytes_sec": a float giving the transfer speed in bytes per second
     - \c "threshold": an integer giving the warning threshold in bytes per second
-    - \c "arg": if any \c "arg" argument is passed to the @ref Qore::Socket::setWarningQueue() "Socket::setWarningQueue()" method, it will be included in the warning hash here 
+    - \c "arg": if any \c "arg" argument is passed to the @ref Qore::Socket::setWarningQueue() "Socket::setWarningQueue()" method, it will be included in the warning hash here
     @param queue the @ref Qore::Thread::Queue "Queue" object to receive warning events
     @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to identify the socket for example)
     @param min_ms the minimum transfer time with a resolution of milliseconds for a transfer to be eligible for triggering a warning; transfers that take less than this period of time are not eligible for raising a warning
@@ -2595,22 +2597,23 @@ $sock.setWarningQueue(5000, 5000, $queue, "socket-1");
 
     @see Socket::clearWarningQueue()
 
-    @since %Qore 0.8.9
+    @since
+    - %Qore 0.8.9
+    - %Qore 0.8.12 the minimum threshold for a warning is a transfer of at least 1024 bytes, smaller transfers will not result in a warning
  */
 nothing Socket::setWarningQueue(int warning_ms, int warning_bs, Queue[Queue] queue, any arg, timeout min_ms = 1s) {
    ReferenceHolder<Queue> q(queue, xsink);
-   if (queue->getMax() != -1) {
-      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Socket object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
-      return 0;
-   }
+   if (queue->getMax() != -1)
+      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Socket object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
+
    // pass reference from QoreObject::getReferencedPrivateData() to function
-   s->setWarningQueue(xsink, warning_ms, warning_bs, q.release(), arg ? arg->refSelf() : 0, min_ms);
+   s->setWarningQueue(xsink, warning_ms, warning_bs, q.release(), arg.getReferencedValue(), min_ms);
 }
 
 //! Returns performance statistics for the socket
 /** @par Example:
-    @code
-my hash $h = $sock.getUsageInfo();
+    @code{.py}
+hash h = sock.getUsageInfo();
     @endcode
 
     @return a hash with the following keys:
@@ -2632,8 +2635,8 @@ hash Socket::getUsageInfo() [flags=CONSTANT] {
 
 //! Clears performance statistics
 /** @par Example:
-    @code
-$sock.clearStats();
+    @code{.py}
+sock.clearStats();
     @endcode
 
     @since %Qore 0.8.9
@@ -2646,8 +2649,8 @@ Socket::clearStats() {
 
 //! returns True if the socket is still connected, and a HTTP header was read indicating chunked transfer encoding, but no chunked body has been read yet
 /** @par Example:
-    @code
-my bool $b = $sock.pendingHttpChunkedBody();
+    @code{.py}
+bool b = sock.pendingHttpChunkedBody();
     @endcode
 
     @since %Qore 0.8.10

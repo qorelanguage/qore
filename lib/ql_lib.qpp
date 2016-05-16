@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -43,8 +43,9 @@
 #include <sys/types.h>
 #include <sys/param.h>
 #include <unistd.h>
-
+#ifdef HAVE_GRP_H
 #include <grp.h>
+#endif
 
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
@@ -71,41 +72,37 @@ extern bool threads_initialized;
 #  include "tests/ReferenceHolder_tests.cpp"
 #endif
 
-AbstractQoreNode *missing_function_error(const char *func, ExceptionSink *xsink) {
+AbstractQoreNode* missing_function_error(const char* func, ExceptionSink* xsink) {
    QoreString have(func);
    have.toupr();
-   xsink->raiseException("MISSING-FEATURE-ERROR", "this system does not implement %s(); for maximum portability use the constant Option::HAVE_%s to check if this function is implemented before calling", func, have.getBuffer());
-   return 0;
+   return xsink->raiseException("MISSING-FEATURE-ERROR", "this system does not implement %s(); for maximum portability use the constant Option::HAVE_%s to check if this function is implemented before calling", func, have.getBuffer());
 }
 
-AbstractQoreNode *missing_function_error(const char *func, const char *opt, ExceptionSink *xsink) {
-   xsink->raiseException("MISSING-FEATURE-ERROR", "this system does not implement %s(); for maximum portability use the constant Option::HAVE_%s to check if this function is implemented before calling", func, opt);
-   return 0;
+AbstractQoreNode* missing_function_error(const char* func, const char* opt, ExceptionSink* xsink) {
+   return xsink->raiseException("MISSING-FEATURE-ERROR", "this system does not implement %s(); for maximum portability use the constant Option::HAVE_%s to check if this function is implemented before calling", func, opt);
 }
 
 #ifdef DEBUG_X
-static AbstractQoreNode *runQoreTests(const QoreListNode *args, ExceptionSink *xsink) {
+static AbstractQoreNode* runQoreTests(const QoreListNode* args, ExceptionSink* xsink) {
    minitest::result res = minitest::execute_all_tests();
    if (res.all_tests_succeeded) {
       printf("Qore runtime: %d tests succeeded\n", res.sucessful_tests_count);
       return 0;
    }
 
-   xsink->raiseException("A Qore test failed", "Qore test in file %s, line %d threw an exception.",
-			 res.failed_test_file, res.failed_test_line);
-   return 0;
+   return xsink->raiseException("A Qore test failed", "Qore test in file %s, line %d threw an exception.",
+                                res.failed_test_file, res.failed_test_line);
 }
 
-static AbstractQoreNode *runRecentQoreTests(const QoreListNode *args, ExceptionSink *xsink) {
+static AbstractQoreNode* runRecentQoreTests(const QoreListNode* args, ExceptionSink* xsink) {
    minitest::result res = minitest::test_last_changed_files(3); // 3 last modified files
    if (res.all_tests_succeeded) {
       printf("Qore runtime: %d recent tests succeeded\n", res.sucessful_tests_count);
       return 0;
    }
 
-   xsink->raiseException("A Qore test failed", "Qore test in file %s, line %d threw an exception.",
-			 res.failed_test_file, res.failed_test_line);
-   return 0;
+   return xsink->raiseException("A Qore test failed", "Qore test in file %s, line %d threw an exception.",
+                                res.failed_test_file, res.failed_test_line);
 }
 namespace {
 TEST() {
@@ -113,32 +110,6 @@ TEST() {
 }
 }
 #endif
-
-/*
-// need an easier to use function here
-// usage: mknod(path, mode)
-static AbstractQoreNode *f_mknod(const QoreListNode *args, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = test_string_param(args, 0);
-   if (!p0) {
-      xsink->raiseException("MKNOD-PARAMETER-ERROR", "expecting string as first parameter of mknod");
-      return 0;
-   }
-
-   const AbstractQoreNode *p1 = get_param(args, 1);
-   if (is_nothing(p1)) {
-      xsink->raiseException("MKNOD-PARAMETER-ERROR", "expecting mode as second parameter of mknod");
-      return 0;
-   }
-
-   const AbstractQoreNode *p2 = get_param(args, 2);
-   if (is_nothing(p2)) {
-      xsink->raiseException("MKNOD-PARAMETER-ERROR", "expecting device as second parameter of mknod");
-      return 0;
-   }
-
-   return new QoreBigIntNode(mknod(p0->getBuffer(), p1->getAsInt(), p2->getAsInt()));
-}
-*/
 
 /** @defgroup library_functions Library Functions
     Library functions
@@ -166,7 +137,7 @@ static AbstractQoreNode *f_mknod(const QoreListNode *args, ExceptionSink *xsink)
 /** @param rc the return code for the process (0 = no error; success)
 
     @par Example:
-    @code
+    @code{.py}
 exit(0);
     @endcode
 
@@ -180,7 +151,7 @@ nothing exit(softint rc = 0) [dom=PROCESS] {
 /** This function causes the current process to terminate abnormally; a core dump or crash report may be generated if enabled
 
     @par Example:
-    @code
+    @code{.py}
 abort();
     @endcode
 
@@ -195,7 +166,7 @@ nothing abort() [dom=PROCESS] {
 /** @param command the executable to execute and any command-line arguments; the command is executed internally by a call to execvp() (3)
 
     @par Example:
-    @code
+    @code{.py}
 exec("/usr/bin/xterm -bg black -fg white -sb -sl 2000");
     @endcode
  */
@@ -210,12 +181,12 @@ nothing exec(string command) [dom=EXTERNAL_PROCESS,PROCESS] {
 /** @par Platform Availability:
     @ref Qore::Option::HAVE_SYSTEM
 
-    @param command the command to execute; if shell meta-characters are found (currently defined as any of <tt>$=*?\\><";</tt>) or if the current platform does not support fork(), then the command is executed with %system() (3), otherwise fork() and execvp() (3) are used instead
+    @param command the command to execute with %system() (3)
 
     @return the exit code of the process executed
 
     @par Example:
-    @code
+    @code{.py}
 int rc = system("ls -l");
     @endcode
 
@@ -234,7 +205,7 @@ int system(string command) [dom=EXTERNAL_PROCESS] {
       sigprocmask(SIG_SETMASK, &mask, 0);
 
       // exec pgm like system(): sh -c "command"
-      execl("/bin/sh", "sh", "-c", command->getBuffer(), 0);
+      execl("/bin/sh", "sh", "-c", command->getBuffer(), NULL);
       fprintf(stderr, "execvp() failed in child process for target '/bin/sh' with error code %d: %s\n", errno, strerror(errno));
       exit(-1);
       //qore_exit_process(-1);
@@ -266,16 +237,15 @@ nothing system() [flags=RUNTIME_NOOP;dom=EXTERNAL_PROCESS] {
     @return the real user ID of the current process
 
     @par Example:
-    @code
-my int $uid = getuid();
+    @code{.py}
+int uid = getuid();
     @endcode
  */
 int getuid() [dom=EXTERNAL_INFO] {
 #ifdef HAVE_GETUID
    return getuid();
 #else
-   missing_function_error("getuid", "UNIX_USERMGT", xsink);
-   return 0;
+   return missing_function_error("getuid", "UNIX_USERMGT", xsink);
 #endif
 }
 
@@ -286,16 +256,15 @@ int getuid() [dom=EXTERNAL_INFO] {
     @return the effective user ID of the current process
 
     @par Example:
-    @code
-my int $euid = geteuid();
+    @code{.py}
+int euid = geteuid();
     @endcode
  */
 int geteuid() [dom=EXTERNAL_INFO] {
 #ifdef HAVE_GETEUID
    return getuid();
 #else
-   missing_function_error("geteuid", "UNIX_USERMGT", xsink);
-   return 0;
+   return missing_function_error("geteuid", "UNIX_USERMGT", xsink);
 #endif
 }
 
@@ -306,16 +275,15 @@ int geteuid() [dom=EXTERNAL_INFO] {
     @return the real group ID of the current process
 
     @par Example:
-    @code
-my int $gid = getgid();
+    @code{.py}
+int gid = getgid();
     @endcode
  */
 int getgid() [dom=EXTERNAL_INFO] {
 #ifdef HAVE_GETGID
    return getgid();
 #else
-   missing_function_error("getgid", "UNIX_USERMGT", xsink);
-   return 0;
+   return missing_function_error("getgid", "UNIX_USERMGT", xsink);
 #endif
 }
 
@@ -326,16 +294,15 @@ int getgid() [dom=EXTERNAL_INFO] {
     @return the effective group ID of the current process
 
     @par Example:
-    @code
-my int $egid = getegid();
+    @code{.py}
+int egid = getegid();
     @endcode
  */
 int getegid() [dom=EXTERNAL_INFO] {
 #ifdef HAVE_GETEGID
    return getgid();
 #else
-   missing_function_error("getegid", "UNIX_USERMGT", xsink);
-   return 0;
+   return missing_function_error("getegid", "UNIX_USERMGT", xsink);
 #endif
 }
 
@@ -344,8 +311,8 @@ int getegid() [dom=EXTERNAL_INFO] {
     @ref Qore::Option::HAVE_UNIX_USERMGT
 
     @par Example:
-    @code
-my list $l = getgroups();
+    @code{.py}
+list l = getgroups();
     @endcode
 
     @return a list of group IDs that the user is a member of
@@ -357,10 +324,8 @@ list getgroups() [dom=EXTERNAL_INFO] {
    gid_t l[MAX_GIDS];
 
    int n = getgroups(MAX_GIDS, l);
-   if (n == -1) {
-      xsink->raiseErrnoException("GETGROUPS-ERROR", errno, "error calling getgroups()");
-      return 0;
-   }
+   if (n == -1)
+      return xsink->raiseErrnoException("GETGROUPS-ERROR", errno, "error calling getgroups()");
 
    QoreListNode* rv = new QoreListNode;
    for (int i = 0; i < n; ++i)
@@ -376,18 +341,18 @@ list getgroups() [dom=EXTERNAL_INFO] {
     @ref Qore::Option::HAVE_UNIX_USERMGT
 
     @par Example:
-    @code
-setgroups($l);
+    @code{.py}
+setgroups(l);
     @endcode
 
     @param gids a list of supplementary group IDs for the current process
 
     @since %Qore 0.8.11.1
 */
-setgroups(softlist gids) [dom=PROCESS] {
+nothing setgroups(softlist gids) [dom=PROCESS] {
 #ifdef HAVE_SETGROUPS
    if (gids->empty())
-      return 0;
+      return QoreValue();
 
 #ifdef HAVE_LOCAL_VARIADIC_ARRAYS_X
    gid_t l[gids->size()];
@@ -395,7 +360,7 @@ setgroups(softlist gids) [dom=PROCESS] {
    gid_t* l = (gid_t*)malloc(sizeof(gid_t) * gids->size());
    if (!l) {
       xsink->outOfMemory();
-      return 0;
+      return QoreValue();
    }
    ON_BLOCK_EXIT(free, l);
 #endif
@@ -416,7 +381,7 @@ setgroups(softlist gids) [dom=PROCESS] {
     @return should always return 0 for success
 
     @par Example:
-    @code
+    @code{.py}
 sleep(10s);
     @endcode
 
@@ -441,7 +406,7 @@ nothing sleep() [flags=RUNTIME_NOOP;dom=PROCESS] {
     @return should always return 0 for success
 
     @par Example:
-    @code
+    @code{.py}
 usleep(5000);
     @endcode
 
@@ -462,7 +427,7 @@ int usleep(softint usecs) [dom=PROCESS] {
     @return should always return 0 for success
 
     @par Example:
-    @code
+    @code{.py}
 usleep(250ms);
     @endcode
 
@@ -484,8 +449,8 @@ nothing usleep() [flags=RUNTIME_NOOP;dom=PROCESS] {
 /** @return the PID (process ID) of the current process
 
     @par Example:
-    @code
-my int $pid = getpid();
+    @code{.py}
+int pid = getpid();
     @endcode
  */
 int getpid() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
@@ -499,16 +464,15 @@ int getpid() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
     @return the PID (process ID) of the parent process of the current process
 
     @par Example:
-    @code
-my int $ppid = HAVE_GETPPID ? getppid() : -1;
+    @code{.py}
+int ppid = HAVE_GETPPID ? getppid() : -1;
     @endcode
  */
 int getppid() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
 #ifdef HAVE_GETPPID
    return getppid();
 #else
-   missing_function_error("getppid", xsink);
-   return 0;
+   return missing_function_error("getppid", xsink);
 #endif
 }
 
@@ -521,10 +485,10 @@ int getppid() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
     @return 0 in the child process; returns the child's PID in the parent process; if an error occurs, then -1 is returned, in this case no child process was started and the error number can be retrieved with the errno() function
 
     @par Example:
-    @code
-my int $pid;
-if ($pid = fork())
-    printf("child has PID %d\n", $pid);
+    @code{.py}
+int pid;
+if (pid = fork())
+    printf("child has PID %d\n", pid);
     @endcode
 
     @throw ILLEGAL-FORK Cannot fork if more than one thread is running
@@ -544,20 +508,16 @@ int fork() [dom=PROCESS] {
 #else
 #define QORE_THREAD_LIMIT 1
 #endif
-   if (thread_list.getNumThreads() > (unsigned)(QORE_THREAD_LIMIT)) {
-      xsink->raiseException("ILLEGAL-FORK", "cannot fork() when other threads are running");
-      return 0;
-   }
+   if (thread_list.getNumThreads() > (unsigned)(QORE_THREAD_LIMIT))
+      return xsink->raiseException("ILLEGAL-FORK", "cannot fork() when other threads are running");
 
 #ifdef HAVE_SIGNAL_HANDLING
    // we may not fork from within a signal handler
-   if (QSM.thread_running && gettid() == QSM.gettid()) {
-      xsink->raiseException("ILLEGAL-FORK", "cannot fork() within a signal handler");
-      return 0;
-   }
+   if (QSM.thread_running && gettid() == QSM.gettid())
+      return xsink->raiseException("ILLEGAL-FORK", "cannot fork() within a signal handler");
 
    // stop signal handling thread and make sure it can't be restarted until fork is done
-   QSM.pre_fork_block_and_stop();
+   QSM.preFork();
 #endif
 
    //printd(5, "stopped signal thread, about to fork pid %d\n", getpid()); fflush(stdout);
@@ -565,13 +525,12 @@ int fork() [dom=PROCESS] {
 
 #ifdef HAVE_SIGNAL_HANDLING
    // release signal handler lock
-   QSM.post_fork_unblock_and_start(!pid, xsink);
+   QSM.postFork(!pid, xsink);
 #endif
 
    return pid;
 #else
-   missing_function_error("fork", xsink);
-   return 0;
+   return missing_function_error("fork", xsink);
 #endif
 }
 
@@ -588,17 +547,16 @@ int fork() [dom=PROCESS] {
     @return 0 means success (no error), or -1 meaning an error occurred; in this case check errno() for the error
 
     @par Example:
-    @code
-if (kill($pid, SIGTERM))
-    printf("error sending signal to pid %d: %s\n", $pid, strerror());
+    @code{.py}
+if (kill(pid, SIGTERM))
+    printf("error sending signal to pid %d: %s\n", pid, strerror());
     @endcode
  */
 int kill(softint pid, softint sig = SIGHUP) [dom=EXTERNAL_PROCESS] {
 #ifdef HAVE_KILL
    return kill(pid, sig);
 #else
-   missing_function_error("kill", xsink);
-   return 0;
+   return missing_function_error("kill", xsink);
 #endif
 }
 
@@ -614,8 +572,8 @@ nothing kill() [flags=RUNTIME_NOOP;dom=EXTERNAL_PROCESS] {
     @return a random 64-bit integer number
 
     @par Example:
-    @code
-my int $num = rand();
+    @code{.py}
+int num = rand();
     @endcode
 
     @see srand() for a function to seed the random number generator
@@ -635,7 +593,7 @@ int rand() [flags=CONSTANT] {
     @param seed the seed for the random number generator (only the least-significant 32-bits are used)
 
     @par Example:
-    @code
+    @code{.py}
 srand(now());
     @endcode
  */
@@ -645,7 +603,7 @@ nothing srand(softint seed) [dom=PROCESS] {
 #else
    srand((int)seed);
 #endif
-   return 0;
+   return QoreValue();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -658,17 +616,15 @@ nothing srand() [flags=RUNTIME_NOOP;dom=PROCESS] {
 /** @return the hostname of the system
 
     @par Example:
-    @code
-my string $host = gethostname();
+    @code{.py}
+string host = gethostname();
     @endcode
  */
 string gethostname() [flags=CONSTANT;dom=EXTERNAL_INFO] {
    char buf[HOSTNAMEBUFSIZE + 1];
 
-   if (gethostname(buf, HOSTNAMEBUFSIZE)) {
-      xsink->raiseErrnoException("GETHOSTNAME-ERROR", errno, "gethostname() failed");
-      return 0;
-   }
+   if (gethostname(buf, HOSTNAMEBUFSIZE))
+      return xsink->raiseErrnoException("GETHOSTNAME-ERROR", errno, "gethostname() failed");
    return new QoreStringNode(buf);
 }
 
@@ -676,9 +632,9 @@ string gethostname() [flags=CONSTANT;dom=EXTERNAL_INFO] {
 /** @return the error code of the last error that occurred in the current thread (see @ref error_constants for possible error code values)
 
     @par Example:
-    @code
-if (unlink($path))
-    printf("%s: %s\n", $path, strerror(errno()));
+    @code{.py}
+if (unlink(path))
+    printf("%s: %s\n", path, strerror(errno()));
     @endcode
 
     @see strerror() for a function that gives the string description for the error number returned by this function
@@ -693,9 +649,9 @@ int errno() {
     @return the string corresponding to the error code passed; if the error code is unknown, then a string like \c "Unknown error: -1" is returned
 
     @par Example:
-    @code
-if (unlink($path))
-    printf("%s: %s\n", $path, strerror(errno()));
+    @code{.py}
+if (unlink(path))
+    printf("%s: %s\n", path, strerror(errno()));
     @endcode
  */
 string strerror(softint err) [flags=CONSTANT] {
@@ -706,9 +662,9 @@ string strerror(softint err) [flags=CONSTANT] {
 /** @return the string corresponding to the last error that occurred in the current thread
 
     @par Example:
-    @code
-if (unlink($path))
-    printf("%s: %s\n", $path, strerror());
+    @code{.py}
+if (unlink(path))
+    printf("%s: %s\n", path, strerror());
     @endcode
 
     @since %Qore 0.8.4 this variant of the function automatically uses the last error value for the current thread
@@ -723,14 +679,14 @@ string strerror() [flags=CONSTANT] {
     @return a string giving the last element of the given file path (meant to be the filename)
 
     @par Example:
-    @code
-my string $fn = basename("/usr/local/bin/file_name");
+    @code{.py}
+string fn = basename("/usr/local/bin/file_name");
     @endcode
 
     @see dirname()
  */
 string basename(string path) [flags=CONSTANT] {
-   char *p = q_basename(path->getBuffer());
+   char* p = q_basename(path->getBuffer());
    int len = strlen(p);
    return new QoreStringNode(p, len, len + 1, path->getEncoding());
 }
@@ -747,14 +703,14 @@ nothing basename() [flags=RUNTIME_NOOP] {
     @return a string giving the path up to a file but not the filename itself; if no directory separator characters can be found in the path, \c "." is returned (meaning the current directory)
 
     @par Example:
-    @code
-my string $dir = dirname("/usr/local/bin/file_name");
+    @code{.py}
+string dir = dirname("/usr/local/bin/file_name");
     @endcode
 
     @see basename()
  */
 string dirname(string path) [flags=CONSTANT] {
-   char *p = q_dirname(path->getBuffer());
+   char* p = q_dirname(path->getBuffer());
    int len = strlen(p);
    return new QoreStringNode(p, len, len + 1, path->getEncoding());
 }
@@ -774,17 +730,16 @@ nothing dirname() [flags=RUNTIME_NOOP] {
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
-    @code
-if (setuid($uid))
-    printf("setuid %d: %s\n", $uid, strerror());
+    @code{.py}
+if (setuid(uid))
+    printf("setuid %d: %s\n", uid, strerror());
     @endcode
  */
 int setuid(softint uid) [dom=PROCESS] {
 #ifdef HAVE_SETUID
    return setuid((int)uid);
 #else
-   missing_function_error("setuid", "UNIX_USERMGT", xsink);
-   return 0;
+   return missing_function_error("setuid", "UNIX_USERMGT", xsink);
 #endif
 }
 
@@ -797,17 +752,16 @@ int setuid(softint uid) [dom=PROCESS] {
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
-    @code
-if (seteuid($uid))
-    printf("seteuid %d: %s\n", $uid, strerror());
+    @code{.py}
+if (seteuid(uid))
+    printf("seteuid %d: %s\n", uid, strerror());
     @endcode
  */
 int seteuid(softint uid) [dom=PROCESS] {
 #ifdef HAVE_SETEUID
    return seteuid((int)uid);
 #else
-   missing_function_error("seteuid", xsink);
-   return 0;
+   return missing_function_error("seteuid", xsink);
 #endif
 }
 
@@ -820,17 +774,16 @@ int seteuid(softint uid) [dom=PROCESS] {
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
-    @code
-if (setgid($gid))
-    printf("setgid %d: %s\n", $gid, strerror());
+    @code{.py}
+if (setgid(gid))
+    printf("setgid %d: %s\n", gid, strerror());
     @endcode
  */
 int setgid(softint gid) [dom=PROCESS] {
 #ifdef HAVE_SETGID
    return setgid((int)gid);
 #else
-   missing_function_error("setgid", "UNIX_USERMGT", xsink);
-   return 0;
+   return missing_function_error("setgid", "UNIX_USERMGT", xsink);
 #endif
 }
 
@@ -843,17 +796,16 @@ int setgid(softint gid) [dom=PROCESS] {
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
-    @code
-if (setegid($gid))
-    printf("setegid %d: %s\n", $gid, strerror());
+    @code{.py}
+if (setegid(gid))
+    printf("setegid %d: %s\n", gid, strerror());
     @endcode
  */
 int setegid(softint gid) [dom=PROCESS] {
 #ifdef HAVE_SETEGID
    return setegid((int)gid);
 #else
-   missing_function_error("setegid", xsink);
-   return 0;
+   return missing_function_error("setegid", xsink);
 #endif
 }
 
@@ -863,7 +815,7 @@ int setegid(softint gid) [dom=PROCESS] {
     @return Upon successful completion, the setsid() function returns the value of the process group ID of the new process group, which is the same as the process ID of the calling process; if an error occurs, setsid() returns -1 and errno() and/or strerror() can be used to check the error.
 
     @par Example:
-    @code
+    @code{.py}
 if (setsid() == -1)
     printf("setsid(): %s\n", strerror());
     @endcode
@@ -872,8 +824,7 @@ int setsid() [dom=PROCESS] {
 #ifdef HAVE_SETSID
    return setsid();
 #else
-   missing_function_error("setsid", xsink);
-   return 0;
+   return missing_function_error("setsid", xsink);
 #endif
 }
 
@@ -883,10 +834,10 @@ int setsid() [dom=PROCESS] {
     @return the first address corresponding to the hostname passed as an argument or @ref nothing if the lookup fails
 
     @par Example:
-    @code
-my *string $addr = gethostbyname($host);
-if (!exists $host)
-    printf("address lookup on %y failed; hostname unknown\n", $host);
+    @code{.py}
+*string addr = gethostbyname(host);
+if (!exists host)
+    printf("address lookup on %y failed; hostname unknown\n", host);
     @endcode
 
     @see gethostbyname_long() for a version of this function that returns all host information, including all hostname aliases and all addresses
@@ -910,10 +861,10 @@ nothing gethostbyname() [flags=RUNTIME_NOOP] {
     @return the official hostname corresponding to the network addressed passed as an argument
 
     @par Example:
-    @code
-my *string $hostname = gethostbyaddr("192.168.0.33");
-if (!exists $hostname)
-    printf("address lookup on 192.168.0.33 failed\n", $host);
+    @code{.py}
+*string hostname = gethostbyaddr("192.168.0.33");
+if (!exists hostname)
+    printf("address lookup on 192.168.0.33 failed\n", host);
     @endcode
 
     @throw GETHOSTBYADDR-ERROR invalid address for the given family or invalid address family
@@ -937,10 +888,10 @@ nothing gethostbyaddr() [flags=RUNTIME_NOOP] {
     @return @ref host_information_hash "a hash" representing all host and address information corresponding to the hostname passed as an argument
 
     @par Example:
-    @code
-my *hash $ah = gethostbyname_long($host);
-if (!exists $host)
-    printf("address lookup on %y failed; hostname unknown\n", $host);
+    @code{.py}
+*hash ah = gethostbyname_long(host);
+if (!exists host)
+    printf("address lookup on %y failed; hostname unknown\n", host);
     @endcode
 
     @see gethostbyname() for a version of this function that returns just the first network address corresponding to the hostname
@@ -964,10 +915,10 @@ nothing gethostbyname_long() [flags=RUNTIME_NOOP] {
     @return @ref host_information_hash "a hash" representing all host and address information corresponding to the address and address type passed as arguments
 
     @par Example:
-    @code
-my *hash $ah = gethostbyaddr_long("192.168.0.33");
-if (!exists $ah)
-    printf("address lookup on 192.168.0.33 failed\n", $host);
+    @code{.py}
+*hash ah = gethostbyaddr_long("192.168.0.33");
+if (!exists ah)
+    printf("address lookup on 192.168.0.33 failed\n", host);
     @endcode
 
     @throw GETHOSTBYADDR-ERROR invalid address for the given family or invalid address family
@@ -995,8 +946,8 @@ nothing gethostbyaddr_long() [flags=RUNTIME_NOOP] {
     @return a list of @ref address_information_hash for the given node name or string address; if no lookup can be performed then an exception is thrown
 
     @par Example:
-    @code
-my list $l = getaddrinfo("localhost");
+    @code{.py}
+list l = getaddrinfo("localhost");
     @endcode
 
     @throw QOREADDRINFO-GETINFO-ERROR nodename nor servname provided, or not known
@@ -1012,7 +963,7 @@ list getaddrinfo(*string node, *softstring service, softint family = AF_UNSPEC, 
     @param strd if @ref Qore::True "True" then also stdin, stdout, and stderr are closed, otherwise fds > 2 are closed
 
     @par Example:
-    @code
+    @code{.py}
 close_all_fd();
     @endcode
 
@@ -1023,13 +974,12 @@ nothing close_all_fd(*softbool strd) [dom=PROCESS] {
    int start = strd ? 0 : 2;
    // get max file descriptor
    int max = (int)sysconf(_SC_OPEN_MAX);
-   printd(0, "close_all_fd() start: %d max: %d\n", start, max);
+   printd(5, "close_all_fd() start: %d max: %d\n", start, max);
 
    for (;start < max; ++start)
       close(start);
 #else
    missing_function_error("close_all_fd", xsink);
 #endif // HAVE_UNISTD
-   return 0;
 }
 //@}

@@ -1,10 +1,10 @@
 /* -*- indent-tabs-mode: nil -*- */
 /*
   QoreNumberNode.cpp
-  
+
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -95,8 +95,6 @@ void qore_number_private::getAsString(QoreString& str, bool round) const {
 }
 
 void qore_number_private::applyRoundingHeuristic(QoreString& str, qore_size_t dp, qore_size_t last) {
-   // if there are some significant digits after the decimal point (signal)
-   bool signal = false;
    // the position of the last significant digit
    qore_offset_t pos = (qore_offset_t)dp;
    qore_size_t i = dp;
@@ -118,19 +116,16 @@ void qore_number_private::applyRoundingHeuristic(QoreString& str, qore_size_t dp
          }
 
 	 // check for 2nd threshold
-         if ((i == last) && cnt > QORE_MPFR_ROUND_THRESHOLD_2) {
+         if (cnt > QORE_MPFR_ROUND_THRESHOLD_2) {
             break;
          }
 
          // set last digit to digit found
          lc = c;
-         // if first digit, then do not set signal flag
-         if (i == (dp + 1))
-            continue;
       }
       else {
          // check for 2nd threshold
-         if ((i == last) && cnt > QORE_MPFR_ROUND_THRESHOLD_2) {
+         if (cnt > QORE_MPFR_ROUND_THRESHOLD_2) {
             break;
          }
          // no 0 or 9 digit found
@@ -141,15 +136,12 @@ void qore_number_private::applyRoundingHeuristic(QoreString& str, qore_size_t dp
       pos = i - 2;
       //printd(5, "qore_number_private::applyRoundingHeuristic('%s') set pos: %lld ('%c') dp: %lld\n", str.getBuffer(), pos, str[pos], dp);
 
-      // found a non-noise digit
-      if (!signal)
-         signal = true;
       // reset count
       cnt = 0;
    }
 
    // round the number for display
-   if (signal && cnt > QORE_MPFR_ROUND_THRESHOLD) {
+   if (cnt > QORE_MPFR_ROUND_THRESHOLD) {
       //printd(5, "ROUND BEFORE: (pos: %d dp: %d cnt: %d has_e: %d e: %c) %s\n", pos, dp, cnt, has_e, has_e ? str[pos + cnt + 4] : 'x', str.getBuffer());
       // if rounding right after the decimal point, then remove the decimal point
       if (pos == (qore_offset_t)dp)
@@ -269,6 +261,34 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
 }
 
 QoreNumberNode::QoreNumberNode(struct qore_number_private* p) : SimpleValueQoreNode(NT_NUMBER), priv(p) {
+}
+
+QoreNumberNode::QoreNumberNode(const QoreValue& n) : SimpleValueQoreNode(NT_NUMBER), priv(0) {
+   qore_type_t t = n.getType();
+   if (t == NT_NUMBER) {
+      priv = new qore_number_private(*(n.get<const QoreNumberNode>()->priv));
+      return;
+   }
+
+   if (t == NT_STRING) {
+      priv = new qore_number_private(n.get<const QoreStringNode>()->getBuffer());
+      return;
+   }
+
+   if (t == NT_INT) {
+      priv = new qore_number_private(n.getAsBigInt());
+      return;
+   }
+
+   if (t != NT_BOOLEAN
+       && t != NT_DATE
+       && t != NT_NULL
+       && t != NT_FLOAT) {
+      priv = new qore_number_private(0ll);
+      return;
+   }
+
+   priv = new qore_number_private(n.getAsFloat());
 }
 
 QoreNumberNode::QoreNumberNode(const AbstractQoreNode* n) : SimpleValueQoreNode(NT_NUMBER), priv(0) {
@@ -418,23 +438,38 @@ int QoreNumberNode::sign() const {
    return priv->sign();
 }
 
+// add the argument to this value and return the result
 QoreNumberNode* QoreNumberNode::doPlus(const QoreNumberNode& right) const {
    return new QoreNumberNode(priv->doPlus(*right.priv));
 }
 
-//! add the argument to this value and return the result
+// subtract the argument from this value and return the result
 QoreNumberNode* QoreNumberNode::doMinus(const QoreNumberNode& n) const {
    return new QoreNumberNode(priv->doMinus(*n.priv));
 }
 
-//! add the argument to this value and return the result
+// multiply the argument to this value and return the result
 QoreNumberNode* QoreNumberNode::doMultiply(const QoreNumberNode& n) const {
    return new QoreNumberNode(priv->doMultiply(*n.priv));
 }
 
-//! add the argument to this value and return the result
+// add the argument to this value and return the result (can throw a division-by-zero exception)
 QoreNumberNode* QoreNumberNode::doDivideBy(const QoreNumberNode& n, ExceptionSink* xsink) const {
    qore_number_private* p = priv->doDivideBy(*n.priv, xsink);
+   return p ? new QoreNumberNode(p) : 0;
+}
+
+// divide this value by the argument and return the result (can throw a division-by-zero exception)
+QoreNumberNode* QoreNumberNode::doDivideBy(double d, ExceptionSink* xsink) const {
+   qore_number_private n(d);
+   qore_number_private* p = priv->doDivideBy(n, xsink);
+   return p ? new QoreNumberNode(p) : 0;
+}
+
+// divide this value by the argument and return the result (can throw a division-by-zero exception)
+QoreNumberNode* QoreNumberNode::doDivideBy(int64 i, ExceptionSink* xsink) const {
+   qore_number_private n(i);
+   qore_number_private* p = priv->doDivideBy(n, xsink);
    return p ? new QoreNumberNode(p) : 0;
 }
 
@@ -467,20 +502,37 @@ unsigned QoreNumberNode::getPrec() const {
    return priv->getPrec();
 }
 
-QoreNumberNode* QoreNumberNode::toNumber(const AbstractQoreNode* n) {
-   qore_type_t t = get_node_type(n);
-   
+QoreNumberNode* QoreNumberNode::toNumber(const QoreValue n) {
+   qore_type_t t = n.getType();
+
    if (t == NT_NUMBER)
-      return reinterpret_cast<const QoreNumberNode*>(n)->numberRefSelf();
-   
+      return n.get<const QoreNumberNode>()->numberRefSelf();
+
    if (t == NT_FLOAT)
-      return new QoreNumberNode(reinterpret_cast<const QoreFloatNode*>(n)->f);
+      return new QoreNumberNode(n.getAsFloat());
 
    if (t == NT_STRING)
-      return new QoreNumberNode(reinterpret_cast<const QoreStringNode*>(n)->getBuffer());
+      return new QoreNumberNode(n.get<const QoreStringNode>()->getBuffer());
 
-   if (t == NT_INT || (t > QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode*>(n)))
-      return new QoreNumberNode(reinterpret_cast<const QoreBigIntNode*>(n)->val);
+   if (t == NT_INT)
+      return new QoreNumberNode(n.getAsBigInt());
 
-   return new QoreNumberNode(n ? n->getAsFloat() : 0.0);
+   return new QoreNumberNode(n.getAsFloat());
+}
+
+QoreNumberNode* QoreNumberNode::toNumber(const AbstractQoreNode* n) {
+   QoreValue v(n);
+   return toNumber(v);
+}
+
+bool QoreNumberNode::nan() const {
+   return priv->nan();
+}
+
+bool QoreNumberNode::inf() const {
+   return priv->inf();
+}
+
+bool QoreNumberNode::ordinary() const {
+   return priv->number();
 }
