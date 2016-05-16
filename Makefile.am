@@ -31,7 +31,7 @@ DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/OracleSqlUtil.qm \
 	qlib/PgsqlSqlUtil.qm \
 	qlib/FreetdsSqlUtil.qm \
-        qlib/Qorize.qm \
+	qlib/Qorize.qm \
 	qlib/MysqlSqlUtil.qm \
 	qlib/RestHandler.qm \
 	qlib/RestClient.qm \
@@ -129,6 +129,8 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_ThreadPool.qpp \
 	lib/QC_TreeMap.qpp \
 	lib/QC_AbstractThreadResource.qpp \
+	lib/QC_AbstractInputStream.qpp \
+	lib/QC_BinaryInputStream.qpp \
 	lib/Pseudo_QC_All.qpp \
 	lib/Pseudo_QC_Nothing.qpp \
 	lib/Pseudo_QC_Date.qpp \

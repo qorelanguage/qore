@@ -126,10 +126,12 @@ set(LIBQORE_QPP_SRC
 	lib/QC_Socket.qpp
 	lib/QC_TermIOS.qpp
 	lib/QC_TimeZone.qpp
-        lib/QC_TreeMap.qpp
+	lib/QC_TreeMap.qpp
 	lib/QC_SSLCertificate.qpp
 	lib/QC_SSLPrivateKey.qpp
 	lib/QC_ThreadPool.qpp
+	lib/QC_AbstractInputStream.qpp
+	lib/QC_BinaryInputStream.qpp
 	lib/Pseudo_QC_All.qpp
 	lib/Pseudo_QC_Nothing.qpp
 	lib/Pseudo_QC_Date.qpp
