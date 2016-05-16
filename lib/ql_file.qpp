@@ -78,7 +78,7 @@ static bool is_writable_intern(const QoreStringNode* path) {
 
    if (S_ISDIR(sbuf.st_mode)) { // If path is a directory.
       QoreStringMaker tfn("%s/xxx_qore_tmp_test_xxx", path->getBuffer());
-      rc = open(tfn.getBuffer(), O_WRONLY | O_CREAT);
+      rc = open(tfn.getBuffer(), O_WRONLY | O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
       if (rc != -1) {
          close(rc);
          unlink(tfn.getBuffer());
