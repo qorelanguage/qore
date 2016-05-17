@@ -780,7 +780,7 @@ unlink(testfile);
         # TODO: add support for other platforms
         *string dir = ENV.TMPDIR ?* ENV.TMP ?* ENV.TEMP ?* ENV.TEMPDIR;
         if (!dir)
-            dir = PlatformOS == "Windows" ? "c::\\temp" : "/tmp";
+            dir = PlatformOS == "Windows" ? "c:\\temp" : "/tmp";
 
         if (!is_writable(dir))
             throw "TMP-ERROR", sprintf("unable to find the location of the temporary directory; %y is not writable", dir);
