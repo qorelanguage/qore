@@ -38,10 +38,10 @@
 class BinaryInputStream : public AbstractInputStream {
 
 public:
-   DLLLOCAL BinaryInputStream(BinaryNode *src) : src(src), offset(0) {
+   DLLLOCAL BinaryInputStream(QoreObject *self, BinaryNode *src) : AbstractInputStream(self), src(src), offset(0) {
    }
 
-   DLLLOCAL int read(ExceptionSink* xsink) {
+   DLLLOCAL int64 read(ExceptionSink* xsink) {
       return offset >= src->size() ? -1 : static_cast<const uint8_t *>(src->getPtr())[offset++];
    }
 

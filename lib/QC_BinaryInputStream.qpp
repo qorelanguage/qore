@@ -49,12 +49,14 @@
  */
 qclass BinaryInputStream [arg=BinaryInputStream* is; ns=Qore; vparent=AbstractInputStream];
 
+//! @qppinit: qore_class_private::setFinal(*QC_BINARYINPUTSTREAM);
+
 //! Creates the BinaryInputStream based on the \ref binary given
 /**
     @param src the \ref binary to read bytes from
  */
 BinaryInputStream::constructor(binary src) {
-   SimpleRefHolder<BinaryInputStream> bis(new BinaryInputStream(static_cast<BinaryNode *>(src->refSelf())));
+   SimpleRefHolder<BinaryInputStream> bis(new BinaryInputStream(self, static_cast<BinaryNode *>(src->refSelf())));
    self->setPrivate(CID_BINARYINPUTSTREAM, bis.release());
 }
 

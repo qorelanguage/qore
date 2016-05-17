@@ -146,6 +146,7 @@ StaticSystemNamespace* staticSystemNamespace;
 
 DLLLOCAL void init_context_functions(QoreNamespace& ns);
 DLLLOCAL void init_RangeIterator_functions(QoreNamespace& ns);
+DLLLOCAL void init_AbstractInputStream_functions(QoreNamespace& ns);
 
 GVEntryBase::GVEntryBase(char* n, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo) :
    name(new NamedScope(n)),
@@ -883,6 +884,8 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    init_compression_functions(qns);
    init_context_functions(qns);
    init_RangeIterator_functions(qns);
+   init_AbstractInputStream_functions(qns);
+
 #ifdef DEBUG
    init_debug_functions(qns);
 #endif

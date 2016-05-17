@@ -42,7 +42,28 @@ DLLEXPORT extern QoreClass* QC_ABSTRACTINPUTSTREAM;
 class AbstractInputStream : public AbstractPrivateData {
 
 public:
-   virtual int read(ExceptionSink* xsink) = 0;
+   /**
+    * \brief Constructor.
+    * \param self the QoreObject associated to this private data
+    */
+   AbstractInputStream(QoreObject *self) : self(self) {
+   }
+
+   /**
+    * \brief Reads a single byte from the input stream.
+    *
+    * Default implementation invokes the Qore version of this method on the actual QoreObject. This is intended to
+    * happen only for classes implementing the AbstractInputStream in the Qore language. C++ implementations should
+    * override this method and read the byte directly from the source.
+    * \param xsink the exception sink
+    * \return the byte (0-255) read or -1 if the end of the stream has been reached
+    */
+   virtual int64 read(ExceptionSink* xsink) {
+      return self->evalMethodValue("read", 0, xsink).getAsBigInt();
+   }
+
+protected:
+   QoreObject *self;                    //!< The QoreObject associated to this private data
 };
 
 #endif // _QORE_ABSTRACTINPUTSTREAM_H

@@ -29,6 +29,7 @@
 */
 
 #include <qore/Qore.h>
+#include "qore/intern/AbstractInputStream.h"
 
 //! This class defines an abstract interface for input streams
 /** Classes inheriting this class can be used to read bytes from various sources.
@@ -36,6 +37,14 @@
     @since %Qore 0.8.12
  */
 qclass AbstractInputStream [arg=AbstractInputStream* is; ns=Qore];
+
+//! Constructor
+/** Used by subclasses defined in the Qore programming language.
+ */
+AbstractInputStream::constructor() {
+   SimpleRefHolder<AbstractInputStream> ais(new AbstractInputStream(self));
+   self->setPrivate(CID_ABSTRACTINPUTSTREAM, ais.release());
+}
 
 //! Reads a single byte from the input stream; returns -1 if the end of the stream has been reached
 /**
@@ -51,3 +60,23 @@ qclass AbstractInputStream [arg=AbstractInputStream* is; ns=Qore];
     @throw IO-ERROR if an I/O error occurs
  */
 abstract int AbstractInputStream::read();
+
+/** @defgroup input_stream_function Input Stream Functions
+ */
+//@{
+namespace Qore;
+
+//! Dumps an input stream to stdout by reading individual bytes from the stream until the end is reached
+/** Temporary function for debugging purposes
+    @param the input stream
+ */
+nothing dump(Qore::AbstractInputStream[AbstractInputStream] is) {
+   int i;
+
+   printf("Read from input stream:");
+   while ((i = is->read(xsink)) != -1) {
+      printf(" %d", i);
+   }
+   printf("\n");
+}
+//@}
