@@ -30,7 +30,11 @@ public class ParseToQoreValueTest inherits QUnit::Test {
 
         # test support of parentheses
         assertEq((1, 2, 3, ("a": "num", "b": "txt", "c": (1, 2, "three")), 5), parse_to_qore_value("1,2,3,(a=num, b=txt, c=(1, 2, \"three\")),5"));
-        assertEq((("a": (1, 2, 3, "num"), "b": "txt", "c": (1, 2, "three")), 5), parse_to_qore_value("(a=(1,2,3,num), b=txt, c=(1, 2, \"three\")),5"));
+        assertEq((("a": (1, 2, 3, "num"), "b": "txt", "c": (1, 2, "three")), 5), parse_to_qore_value("(a=(1,2,3,num), b= txt , c=(1, 2, \"three\")),5"));
         assertEq(("o": ("v": 10, "s": 11)), parse_to_qore_value("o=(v=10,s=11)"));
+        assertEq((("a": ("b": (("c": "x"), 2016-05-18, 3))), "x"), parse_to_qore_value("a=(b=(c=x, 2016-05-18, 3)),x"));
+        assertEq((("a": ("b": (("c": "x"), 2016-05-18T20:47, 3))), False), parse_to_qore_value(" a = ( b = ( c = x , 2016-05-18T20:47, 3) ) , False "));
+        assertEq((("a": ("b ": (("c": "x"), 2016-05-18T20:47:16.356788, 3))), True), parse_to_qore_value(" a = ( \"b \" = ( c = x , 2016-05-18T20:47:16.356788 , 3) ) , true "));
+        assertEq((("a": 500), ("a": 1.234)), parse_to_qore_value("(a = 500),a=1.234"));
     }
 }
