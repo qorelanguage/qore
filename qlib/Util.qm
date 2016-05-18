@@ -344,78 +344,122 @@ bool abs = absolute_path_windows(path);
         return Qore::absolute_path_windows(path);
     }
 
-    # private, non-exported constant hashes for parse_exp() below
+    # private, non-exported constant hashes for scan_exp() below
     const ParenMap = (")": "(", "}": "{", "]": "[",);
     const FwdParenMap = map {$1.value: $1.key}, ParenMap.pairIterator();
 
-    # private, non-exported function: tries to split a string into a list or hash, respects parentheses and quotes
-    any sub parse_exp(string arg) {
+    # private, non-exported constants for parsing
+    const ET_RawString = 0;
+    const ET_QuotedString = 1;
+    const ET_BracketString = 2;
+    const ET_Eq = 3;
+    const ET_Comma = 4;
+    const EtMap = (
+        ET_RawString: "raw string",
+        ET_QuotedString: "quoted string",
+        ET_BracketString: "bracket expression",
+        ET_Eq: "=",
+        ET_Comma: ",",
+        );
+
+    # private scanner for parse_to_qore_value()
+    list sub scan_exp(string arg) {
+        #printf("DBG se: %y\n", arg);
+
         list l = ();
 
+        # bracket counter hash
         hash bc;
+
+        # active quote character
         *string quote;
+
         int len = arg.length();
         string str;
-
-        bool last_hash = False;
-        bool only_hash = True;
-
-        code do_val = sub (string val) {
-            trim val;
-            any v = (val =~ /^\(.*\)$/)
-                     ? parse_to_qore_value_intern(val.substr(1, -1))
-                     : parse_to_qore_value_intern(val);
-            if (v.typeCode() == NT_HASH) {
-                if (last_hash)
-                    l[l.size() - 1] += v;
-                else {
-                    l += v;
-                    last_hash = True;
-                }
-            }
-            else {
-                last_hash = False;
-                only_hash = False;
-                l += v;
-            }
-        };
 
         for (int i = 0; i < len; ++i) {
             string c = arg[i];
             if (c == ",") {
                 if (!quote && !bc) {
-                    do_val(str);
-                    str = "";
+                    #printf("DBG: got comma i:%d\n", i);
+                    trim str;
+                    if (str.val()) {
+                        l += ("type": ET_RawString, "val": str);
+                        str = "";
+                    }
+                    l += ("type": ET_Comma);
+                    continue;
+                }
+            }
+            else if (c == "=") {
+                if (!quote && !bc) {
+                    trim str;
+                    if (str.val()) {
+                        l += ("type": ET_RawString, "val": str);
+                        str = "";
+                    }
+                    l += ("type": ET_Eq);
                     continue;
                 }
             }
             else if (c == '"' || c == "'") {
                 if (quote) {
-                    if (c == quote)
+                    if (c == quote) {
                         delete quote;
+                        if (!bc) {
+                            l += ("type": ET_QuotedString, "val": str);
+                            str = "";
+                            continue;
+                        }
+                    }
                 }
-                else
+                else {
                     quote = c;
+                    if (!bc) {
+                        trim str;
+                        if (str.val()) {
+                            l += ("type": ET_RawString, "val": str);
+                            str = "";
+                        }
+                        continue;
+                    }
+                }
             }
             else if (!quote) {
                 *string p = FwdParenMap{c};
-                if (p)
+                if (p) {
+                    bool first;
+                    if (!bc) {
+                        first = True;
+                        trim str;
+                        if (str.val()) {
+                            l += ("type": ET_RawString, "val": str);
+                            str = "";
+                        }
+                    }
                     ++bc{p};
+                    if (first)
+                        continue;
+                }
                 else if (ParenMap{c}) {
-                    if (bc{c} && !--bc{c})
+                    if (bc{c} && !--bc{c}) {
                         delete bc{c};
+                        #printf("DBG: got bracket string: %y\n", str);
+                        l += ("type": ET_BracketString, "val": str);
+                        delete bc{c};
+                        str = "";
+                        continue;
+                    }
                 }
             }
             str += c;
         }
 
-        if (str)
-            do_val(str);
+        trim str;
+        if (str.val())
+            l += ("type": ET_RawString, "val": str);
 
-        if (!l)
-            return arg;
-
-        return only_hash && last_hash ? l[0] : l;
+        return l;
     }
 
     # private, non-exported function: tries to evaluate the argument as a Qore expression/value
@@ -427,7 +471,6 @@ bool abs = absolute_path_windows(path);
         try {
             prog.parse(str, "main");
             any rv = prog.callFunction("get");
-            #printf("DEBUG: no exception, rv=%y\nstr=%s\n", rv, rv, str);
             # if it's a float, then return a string to preseve formatting
             if (rv.typeCode() != NT_FLOAT && rv.val())
                 return ("valid": True, "value": rv);
@@ -441,124 +484,217 @@ bool abs = absolute_path_windows(path);
     }
 
     # private, non-exported function: tries to evaluate the argument as a Qore expression/value
-    /* returns NOTHING or a hash with the following keys:
-       - valid: True if parsed
-       - value: the value
+    /* returns the value parsed
     */
-    *hash sub parse_to_basic_value(string arg) {
+    any sub parse_to_basic_value(*string arg) {
         if (arg.empty())
-            return ("valid": True);
+            return;
 
         # see if there is aprocessing cmd
         if (*list pc = (arg =~ x/^\%(STR|EVAL)=(.*)$/s)) {
             if (pc[0] == "STR")
-                return ("valid": True, "value": pc[1]);
+                return pc[1];
             else # must be EVAL
-                return eval_text(pc[1], True);
+                return eval_text(pc[1], True).value;
         }
 
         # see if it's an int
-        if (int(arg) == arg) {
-            return ("valid": True, "value": int(arg));
-            /*
-            if (int(arg) >= 2147483648)
-                return ("valid": True, "value": arg);
-            return ("valid": True, "value": int(arg));
-            */
+        {
+            int i = int(arg);
+            if (i == arg)
+                return i;
         }
 
-        if (arg == "True")
-            return ("valid": True, "value": True);
-        if (arg == "False")
-            return ("valid": True, "value": False);
+        {
+            float f = float(arg);
+            if (f == arg)
+                return f;
+        }
+
+        {
+            number n = number(arg);
+            if (n == arg)
+                return n;
+        }
+
+        if (arg == "True" || arg == "true")
+            return True;
+        if (arg == "False" || arg == "false")
+            return False;
 
         # see if it's a date/time value
         if (arg =~ /^[0-9]{4}-[0-9]{2}-[0-9]{2}([-T ][0-5][0-9]:[0-5][0-9](:[0-5][0-9](\.[0-9]+)))?/)
-            return ("valid": True, "value": date(arg));
-
-        # see if it's a potential string value
-        if (arg =~ /^[-_\.[:alnum:]]+$/)
-            return ("valid": True, "value": arg);
-
-        # see if it's a Qore expression
-        return eval_text(arg);
-    }
-
-    # private, non-exported function: tries to convert the string argument to a data value
-    any sub parse_to_qore_value_intern(string arg) {
-        hash h = parse_to_basic_value(arg);
-        if (h.valid)
-            return h.value;
-
-        if (arg.empty())
-            return;
-
-        # see if it's a string like "key=val,key=val[,...]", if so, return a hash
-        if (arg =~ /^([^\s]+)\s*=([^,]*)(,([^\s]+)\s*=([^,]*))?/s)
-            return parse_to_hash(arg);
-
-        # see if it's a list
-        if (arg =~ /,/)
-            return parse_exp(arg);
+            return date(arg);
 
         return arg;
-    }
-
-    # private, non-exported function: tries to convert the string argument to a hash value
-    hash sub parse_to_hash(string arg) {
-        list l = split(",", arg);
-
-        # coalesce each element without a "=" into the previous element
-        for (int i = 1; i < l.size(); ++i) {
-            if (l[i] !~ /.+=.+/) {
-                # copy element
-                string x = "," + l[i];
-                # remove from list
-                splice l, i, 1;
-                # append to previous string
-                l[i - 1] += x;
-                --i;
-            }
-        }
-
-        # coalesce the first element into the second if there is no "="
-        if (l[0] !~ /=/) {
-            # copy element
-            string x = l[0] + ",";
-            # remove from list
-            splice l, 0, 1;
-            # append to new initial element
-            l[0] = x + l[0];
-        }
-
-        hash rh;
-        foreach string a in (l) {
-            trim a;
-            (string key, any val) = (a =~ x/^([^\s=]+)\s*=(.*)/gm);
-            rh{key} = parse_to_qore_value_intern(val);
-        }
-
-        return rh;
     }
 
     #! tries to convert a string (such as an argument given from the command-line) to a Qore value
-    /** This method recognizes two special prefixes in the string:
+    /** This function recognizes two special prefixes in the string:
         - \c %STR= this prefix indicates that the rest of the string should be passed literally and not parsed
         - \c %EVAL= this prefix indicates that the rest of the string should be taken as a Qore expression and executed and the value returned
 
-        @param arg a string to convert to a Qore value
+        Strings are interpreted as in the following table.
+
+        <b>String Parsing</b>
+        |!Format|!Description
+        |<tt><i>key_string</i> = <i>value</i>[, ...]</tt>|a @ref hash "hash"
+        |<tt><i>value</i>, [...]|a @ref list "list"
+        |integers|an @ref integer "integer"
+        |floats|a @ref float "float"
+        |arbitrary-numeric value|a @ref number "number"
+        |\c True, \c true, \c False, \c false|a @ref boolean "bool"
+        |<tt>YYYY-MM-DD[[-T ]HH:mm[:SS[.uu]]]</tt>|a @ref date "date"
+        |a %Qore expression|the value evaluated
+        |a quoted string|a @ref string "string"
+
+        @par Examples:
+prompt% qore -l ./Util.qm -X 'parse_to_qore_value("(a=(b=(c=x, 2, 3)))")'
+hash: (1 member)
+  a : hash: (1 member)
+    b : list: (3 elements)
+      [0]=hash: (1 member)
+        c : "x"
+      [1]=2
+      [2]=3
+        @code
+
+        @endcode
+
+        @param arg a string to convert to a Qore value according to the rules documented above
+
         @return the Qore value corresponding to the input string
+
+        @throw PARSE-ERROR cannot parse the string given
     */
     public any sub parse_to_qore_value(string arg) {
-        hash h = parse_to_basic_value(arg);
-        if (h.valid)
-            return h.value;
+        # see if there is aprocessing cmd
+        if (*list pc = (arg =~ x/^\%(STR|EVAL)=(.*)$/s)) {
+            if (pc[0] == "STR")
+                return pc[1];
+            else # must be EVAL
+                return eval_text(pc[1], True).value;
+        }
 
-        # see if it could be a more complex expression
-        if (arg =~ /[=,\(]/)
-            return parse_exp(arg);
+        any v;
 
-        return arg;
+        list l = scan_exp(arg);
+
+        #map printf("%d: %y: %y, ", $#, EtMap{$1.type}, $1.val), l; printf("\n");
+
+        bool do_break;
+
+        # process values after an "=" sign
+        code do_eq = sub (reference i, string key) {
+            # get the value
+            any val;
+            switch (l[i+2].type) {
+                case ET_BracketString: val = parse_to_qore_value(l[i+2].val); break;
+                case ET_RawString: val = parse_to_basic_value(l[i+2].val); break;
+                case ET_QuotedString: val = l[i+2].val; break;
+                case ET_Comma: --i; break;
+                case ET_Eq: throw "PARSE-ERROR", sprintf("cannot parse %y after %y", EtMap{ET_Eq}, EtMap{ET_Eq});
+            }
+            if (!exists v)
+                v{key} = val;
+            else switch (v.typeCode()) {
+                case NT_HASH: {
+                    if (do_break)
+                        v = (v, (key: val));
+                    else
+                        v{key} = val;
+                    break;
+                }
+                case NT_LIST: {
+                    if (v.last().typeCode() == NT_HASH && !do_break)
+                        v[v.size() - 1]{key} = val;
+                    else
+                        v += (key: val);
+                    break;
+                }
+                default: throw "PARSE-ERROR", sprintf("impossible hash v: %y key: %y val: %y", v, key, val);
+            }
+            do_break = False;
+
+            i += 2;
+            continue;
+        };
+
+        # process other values
+        code do_val = sub (any val) {
+            switch (v.typeCode()) {
+                case NT_LIST: {
+                    v += val;
+                    break;
+                }
+                case NT_NOTHING: {
+                    v = val;
+                    break;
+                }
+                default: {
+                    v = (v,val);
+                    break;
+                }
+            }
+        };
+
+        code check_val = sub (int i) {
+            if (i) {
+                int lt = l[i-1].type;
+                if (lt != ET_Comma && lt != ET_Eq)
+                    throw "PARSE-ERROR", sprintf("cannot parse %y (%y) after %y (%y)", EtMap{l[i].type}, l[i].val, EtMap{lt}, l[i-1].val);
+            }
+        };
+
+        for (int i = 0; i < l.size(); ++i) {
+            hash h = l[i];
+            # get preceding type
+            *int pt;
+            if (i)
+                pt = l[i-1].type;
+            switch (h.type) {
+                case ET_RawString: {
+                    check_val(i);
+                    # check next symbol, if it's an "=" sign, then use as a hash key
+                    if (l[i+1].type == ET_Eq) {
+                        do_eq(\i, trim(h.val));
+                        continue;
+                    }
+                    do_val(parse_to_basic_value(h.val));
+                    do_break = False;
+                    break;
+                }
+                case ET_BracketString: {
+                    check_val(i);
+                    do_val(parse_to_qore_value(h.val));
+                    do_break = True;
+                    break;
+                }
+                case ET_QuotedString: {
+                    check_val(i);
+                    # check next symbol, if it's an "=" sign, then use as a hash key
+                    if (l[i+1].type == ET_Eq) {
+                        do_eq(\i, h.val);
+                        continue;
+                    }
+
+                    do_val(h.val);
+                    do_break = False;
+                    break;
+                }
+                case ET_Comma: {
+                    break;
+                }
+                case ET_Eq: {
+                    if (i)
+                        throw "PARSE-ERROR", sprintf("cannot parse %y after %y (%y)", EtMap{h.type}, EtMap{l[i-1].type}, h.val);
+                    else
+                        throw "PARSE-ERROR", sprintf("cannot parse %y at the beginning of the expression", EtMap{h.type});
+                }
+            }
+        }
+
+        return v;
     }
 
     #! function that returns a random string
