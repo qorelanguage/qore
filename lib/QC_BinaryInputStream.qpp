@@ -31,7 +31,7 @@
 #include <qore/Qore.h>
 #include "qore/intern/BinaryInputStream.h"
 
-//! This class implements the @ref AbstractInputStream interface for reading bytes from a @ref binary variable
+//! This class implements the @ref InputStream interface for reading bytes from a @ref binary variable
 /** @since %Qore 0.8.12
 
     @par Example: BinaryInputStream basic usage
@@ -47,10 +47,7 @@
     read 4
     @endcode
  */
-qclass BinaryInputStream [arg=BinaryInputStream* is; ns=Qore; vparent=AbstractInputStream];
-
-//todo implement final flag for qclass declaration instead of this:
-//! @qppinit: qore_class_private::setFinal(*QC_BINARYINPUTSTREAM);
+qclass BinaryInputStream [arg=BinaryInputStream* is; ns=Qore; vparent=InputStream; flags=final];
 
 //! Creates the BinaryInputStream based on the \ref binary given
 /**
@@ -61,8 +58,18 @@ BinaryInputStream::constructor(binary src) {
    self->setPrivate(CID_BINARYINPUTSTREAM, bis.release());
 }
 
+//! Closes the input stream and releases any resources.
+/** Any methods called on a closed input stream will thrown an IO-ERROR exception.
+
+    @throw IO-ERROR if an I/O error occurs
+ */
+nothing BinaryInputStream::close() {
+   is->closeHelper(xsink);
+}
+
 //! Reads a single byte from the input stream; returns -1 if the end of the stream has been reached
 /**
+    @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates "relative date/time value"; integer arguments will be assumed to be milliseconds); if not given or negative the call will never time out
     @return the next byte (0 - 255) in the input stream or -1 if the end of the stream has been reached
 
     @par Example:
@@ -78,26 +85,30 @@ BinaryInputStream::constructor(binary src) {
     read 4
     @endcode
  */
-int BinaryInputStream::read() {
-   return is->read(xsink);
+int BinaryInputStream::read(timeout timeout_ms = -1) {
+   return is->readHelper(timeout_ms, xsink);
 }
 
 //! Reads bytes (up to a specified limit) from the input stream; returns \ref NOTHING if there are no more bytes in the stream
 /**
 
     @param limit the maximum number of bytes to read
+    @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates "relative date/time value"; integer arguments will be assumed to be milliseconds); if not given or negative the call will never time out
     @return the read bytes (the length is between 1 and `limit` inclusive) or \ref NOTHING if no more bytes are available
 
     @par Example:
     @code{.py}
+    binary src = <2AFF04>;
+    BinaryInputStream is(src);
     *binary b;
-    while (b = is.bulkRead(10)) {
-        printf("Read: %y\n", i);
+    while (b = is.bulkRead(2)) {
+        printf("read %s\n", make_hex_string(b));
     }
-    @endcode
 
-    @throw IO-ERROR if an I/O error occurs
+    read 2aff
+    read 04
+    @endcode
  */
-*binary BinaryInputStream::bulkRead(int limit) {
-   return is->bulkReadToBinary(limit, xsink);
+*binary BinaryInputStream::bulkRead(int limit, timeout timeout_ms = -1) {
+   return is->bulkReadHelper(limit, timeout_ms, xsink);
 }

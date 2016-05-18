@@ -123,7 +123,7 @@ DLLLOCAL QoreClass* initFileLineIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initDataLineIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initSingleValueIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initRangeIteratorClass(QoreNamespace& ns);
-DLLLOCAL QoreClass* initAbstractInputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initInputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initBinaryInputStreamClass(QoreNamespace& ns);
 
 DLLLOCAL void init_type_constants(QoreNamespace& ns);
@@ -146,7 +146,7 @@ StaticSystemNamespace* staticSystemNamespace;
 
 DLLLOCAL void init_context_functions(QoreNamespace& ns);
 DLLLOCAL void init_RangeIterator_functions(QoreNamespace& ns);
-DLLLOCAL void init_AbstractInputStream_functions(QoreNamespace& ns);
+DLLLOCAL void init_InputStream_functions(QoreNamespace& ns);
 
 GVEntryBase::GVEntryBase(char* n, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo) :
    name(new NamedScope(n)),
@@ -805,7 +805,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    qns.addSystemClass(initSingleValueIteratorClass(qns));
    qns.addSystemClass(initRangeIteratorClass(qns));
    qns.addSystemClass(initTreeMapClass(qns));
-   qns.addSystemClass(initAbstractInputStreamClass(qns));
+   qns.addSystemClass(initInputStreamClass(qns));
    qns.addSystemClass(initBinaryInputStreamClass(qns));
 
 #ifdef DEBUG_TESTS
@@ -884,7 +884,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    init_compression_functions(qns);
    init_context_functions(qns);
    init_RangeIterator_functions(qns);
-   init_AbstractInputStream_functions(qns);
+   init_InputStream_functions(qns);
 
 #ifdef DEBUG
    init_debug_functions(qns);

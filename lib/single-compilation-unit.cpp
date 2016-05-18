@@ -275,7 +275,7 @@
 #include "QC_TimeZone.cpp"
 #include "QC_TreeMap.cpp"
 #include "QC_AbstractThreadResource.cpp"
-#include "QC_AbstractInputStream.cpp"
+#include "QC_InputStream.cpp"
 #include "QC_BinaryInputStream.cpp"
 
 #include "QorePseudoMethods.cpp"

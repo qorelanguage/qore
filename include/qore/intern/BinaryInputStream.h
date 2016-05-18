@@ -33,22 +33,33 @@
 #define _QORE_BINARYINPUTSTREAM_H
 
 #include <stdint.h>
-#include "qore/intern/AbstractInputStream.h"
+#include "qore/intern/InputStreamBase.h"
 
 /**
  * @brief Private data for the Qore::BinaryInputStream class.
  */
-class BinaryInputStream : public AbstractInputStream {
+class BinaryInputStream : public InputStreamBase {
 
 public:
-   DLLLOCAL BinaryInputStream(QoreObject *self, BinaryNode *src) : AbstractInputStream(self), src(src), offset(0) {
+   DLLLOCAL BinaryInputStream(QoreObject *self, BinaryNode *src) : InputStreamBase(self), src(src), offset(0) {
    }
 
-   DLLLOCAL int64 read(ExceptionSink* xsink) override {
+   DLLLOCAL bool isClosed() /*override*/ {
+      return !src;
+   }
+
+   DLLLOCAL void close(ExceptionSink* xsink) /*override*/ {
+      assert(!isClosed());
+      src = 0;
+   }
+
+   DLLLOCAL int64 read(int64 timeout, ExceptionSink* xsink) /*override*/ {
+      assert(!isClosed());
       return offset >= src->size() ? -1 : static_cast<const uint8_t *>(src->getPtr())[offset++];
    }
 
-   DLLLOCAL int64 bulkRead(void *ptr, int64 limit, ExceptionSink *xsink) override {
+   DLLLOCAL int64 bulkRead(void *ptr, int64 limit, int64 timeout, ExceptionSink *xsink) /*override*/ {
+      assert(!isClosed());
       assert(limit > 0);
       qore_size_t count = src->size() - offset;
       if (count == 0) {
@@ -57,7 +68,7 @@ public:
       if (count > static_cast<qore_size_t>(limit)) {
          count = limit;
       }
-      memcpy(ptr, src->getPtr() + offset, count);
+      memcpy(ptr, static_cast<const uint8_t *>(src->getPtr()) + offset, count);
       offset += count;
       return count;
    }
