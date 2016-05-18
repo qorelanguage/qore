@@ -32,7 +32,7 @@
 #ifndef _QORE_INPUTSTREAMWRAPPER_H
 #define _QORE_INPUTSTREAMWRAPPER_H
 
-#include "qore/intern/InputStream.h"
+#include "qore/InputStream.h"
 
 /**
  * @brief Implements the private data for all subclasses of Qore::InputStream implemented in the Qore language.

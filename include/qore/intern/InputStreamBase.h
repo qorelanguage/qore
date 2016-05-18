@@ -32,9 +32,7 @@
 #ifndef _QORE_INPUTSTREAMBASE_H
 #define _QORE_INPUTSTREAMBASE_H
 
-#include "qore/intern/InputStream.h"
-
-DLLEXPORT extern QoreClass* QC_INPUTSTREAM;
+#include "qore/InputStream.h"
 
 /**
  * @brief Base class for private data of input stream implementations in C++.

@@ -34,6 +34,8 @@
 
 #include "qore/AbstractPrivateData.h"
 
+DLLEXPORT extern QoreClass* QC_INPUTSTREAM;
+
 /**
  * @brief Interface for private data of input streams.
  *
