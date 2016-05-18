@@ -42,8 +42,7 @@ qclass AbstractInputStream [arg=AbstractInputStream* is; ns=Qore];
 /** Used by subclasses defined in the Qore programming language.
  */
 AbstractInputStream::constructor() {
-   SimpleRefHolder<AbstractInputStream> ais(new AbstractInputStream(self));
-   self->setPrivate(CID_ABSTRACTINPUTSTREAM, ais.release());
+   self->setPrivate(CID_ABSTRACTINPUTSTREAM, new AbstractInputStream(self));
 }
 
 //! Reads a single byte from the input stream; returns -1 if the end of the stream has been reached
@@ -61,6 +60,24 @@ AbstractInputStream::constructor() {
  */
 abstract int AbstractInputStream::read();
 
+//! Reads bytes (up to a specified limit) from the input stream; returns \ref NOTHING if there are no more bytes in the stream
+/**
+
+    @param limit the maximum number of bytes to read
+    @return the read bytes (the length is between 1 and `limit` inclusive) or \ref NOTHING if no more bytes are available
+
+    @par Example:
+    @code{.py}
+    *binary b;
+    while (b = is.bulkRead(10)) {
+        printf("Read: %y\n", i);
+    }
+    @endcode
+
+    @throw IO-ERROR if an I/O error occurs
+ */
+abstract *binary AbstractInputStream::bulkRead(int limit);
+
 /** @defgroup input_stream_function Input Stream Functions
  */
 //@{
@@ -71,11 +88,33 @@ namespace Qore;
     @param the input stream
  */
 nothing dump(Qore::AbstractInputStream[AbstractInputStream] is) {
+   ReferenceHolder<AbstractInputStream> holder(is, xsink);
+
    int i;
 
-   printf("Read from input stream:");
+   printf("read() from C++:");
    while ((i = is->read(xsink)) != -1) {
       printf(" %d", i);
+   }
+   printf("\n");
+}
+
+//! Dumps an input stream to stdout by bulk reading bytes (two at a time) from the stream until the end is reached
+/** Temporary function for debugging purposes
+    @param the input stream
+ */
+nothing dump_bulk(Qore::AbstractInputStream[AbstractInputStream] is) {
+   ReferenceHolder<AbstractInputStream> holder(is, xsink);
+   int64 i;
+   uint8_t buf[10];
+
+   printf("bulkRead() from C++:");
+   while ((i = is->bulkRead(buf, 2, xsink)) > 0) {
+      printf(" (%d", buf[0]);
+      for (int64 ii = 1; ii < i; ++ii) {
+         printf(" %d", buf[ii]);
+      }
+      printf(")");
    }
    printf("\n");
 }

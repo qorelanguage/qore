@@ -35,19 +35,36 @@
 #include <stdint.h>
 #include "qore/intern/AbstractInputStream.h"
 
+/**
+ * @brief Private data for the Qore::BinaryInputStream class.
+ */
 class BinaryInputStream : public AbstractInputStream {
 
 public:
    DLLLOCAL BinaryInputStream(QoreObject *self, BinaryNode *src) : AbstractInputStream(self), src(src), offset(0) {
    }
 
-   DLLLOCAL int64 read(ExceptionSink* xsink) {
+   DLLLOCAL int64 read(ExceptionSink* xsink) override {
       return offset >= src->size() ? -1 : static_cast<const uint8_t *>(src->getPtr())[offset++];
+   }
+
+   DLLLOCAL int64 bulkRead(void *ptr, int64 limit, ExceptionSink *xsink) override {
+      assert(limit > 0);
+      qore_size_t count = src->size() - offset;
+      if (count == 0) {
+         return 0;
+      }
+      if (count > static_cast<qore_size_t>(limit)) {
+         count = limit;
+      }
+      memcpy(ptr, src->getPtr() + offset, count);
+      offset += count;
+      return count;
    }
 
 private:
    SimpleRefHolder<BinaryNode> src;
-   qore_size_t offset;
+   qore_size_t offset;                          //!< @invariant offset >= 0 && offset <= src->size()
 };
 
 #endif // _QORE_BINARYINPUTSTREAM_H

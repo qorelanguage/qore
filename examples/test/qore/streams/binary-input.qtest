@@ -14,6 +14,7 @@ public class BinaryInputStreamTest inherits QUnit::Test {
 
     constructor() : Test("BinaryInputStreamTest", "1.0") {
         addTestCase("read byte", \readByte());
+        addTestCase("bulkRead()", \bulkRead());
         addTestCase("ctor empty", \ctorEmpty());
 
         # Return for compatibility with test harness that checks return value.
@@ -35,5 +36,15 @@ public class BinaryInputStreamTest inherits QUnit::Test {
         assertEq(128, bis.read());
         assertEq(-1, bis.read());
         assertEq(-1, bis.read());
+    }
+
+    bulkRead() {
+        BinaryInputStream bis(<010203>);
+        assertThrows("INPUT-STREAM-ERROR", sub() { bis.bulkRead(0); });
+        assertThrows("INPUT-STREAM-ERROR", sub() { bis.bulkRead(-2); });
+        assertEq(<0102>, bis.bulkRead(2));
+        assertEq(<03>, bis.bulkRead(2));
+        assertEq(NOTHING, bis.bulkRead(2));
+        assertEq(NOTHING, bis.bulkRead(10));
     }
 }
