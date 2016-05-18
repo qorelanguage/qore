@@ -2749,7 +2749,8 @@ protected:
 
    bool valid,
       upm,               // unset public member flag
-      is_pseudo;
+      is_pseudo,
+      is_final;
 
    void addElement(strlist_t& l, const std::string& str, size_t start, size_t end = std::string::npos) {
       std::string se(str, start, end);
@@ -2758,7 +2759,7 @@ protected:
    }
 
 public:
-   ClassElement(const char* fn, const std::string& n_name, const strmap_t& props, const std::string& n_doc) : fileName(fn), name(n_name), doc(n_doc), valid(true), upm(false), is_pseudo(false) {
+   ClassElement(const char* fn, const std::string& n_name, const strmap_t& props, const std::string& n_doc) : fileName(fn), name(n_name), doc(n_doc), valid(true), upm(false), is_pseudo(false), is_final(false) {
       log(LL_DETAIL, "parsing Qore class '%s'\n", name.c_str());
 
       if (name.size() && name[0] == '<' && name[name.size() - 1] == '>')
@@ -2788,6 +2789,10 @@ public:
             for (unsigned i = 0; i < l.size(); ++i) {
                if (l[i] == "unsetPublicMemberFlag") {
                   upm = true;
+                  continue;
+               }
+               if (l[i] == "final") {
+                  is_final = true;
                   continue;
                }
                error("class '%s' has unknown flag: '%s'\n", name.c_str(), l[i].c_str());
@@ -2991,6 +2996,9 @@ public:
 
       if (upm)
          fprintf(fp, "\n   QC_%s->unsetPublicMemberFlag();\n", UC.c_str());
+
+      if (is_final)
+         fprintf(fp, "\n   qore_class_private::setFinal(*QC_%s);\n", UC.c_str());
 
       for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i) {
          if (i->second->serializeNormalCppBinding(fp, lname.c_str(), UC.c_str())) {
