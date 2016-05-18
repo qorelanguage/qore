@@ -549,6 +549,7 @@ bool abs = absolute_path_windows(path);
         |a quoted string|a @ref string "string"
 
         @par Examples:
+        @verbatim
 prompt% qore -l ./Util.qm -X 'parse_to_qore_value("(a=(b=(c=x, 2, 3)))")'
 hash: (1 member)
   a : hash: (1 member)
@@ -557,9 +558,7 @@ hash: (1 member)
         c : "x"
       [1]=2
       [2]=3
-        @code
-
-        @endcode
+        @endverbatim
 
         @param arg a string to convert to a Qore value according to the rules documented above
 
