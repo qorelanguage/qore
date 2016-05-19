@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_BinaryInputStream.qpp BinaryInputStream class definition */
+/** @file QC_EncodingConversionInputStream.qpp EncodingConversionInputStream class definition */
 /*
   Qore Programming Language
 
@@ -29,41 +29,41 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/BinaryInputStream.h"
+#include "qore/intern/EncodingConversionInputStream.h"
 
-//! This class implements the @ref InputStream interface for reading bytes from a @ref binary variable
+//! An @ref InputStream implementation that performs on-the-fly conversion between two character encodings.
 /** @since %Qore 0.8.12
 
-    @par Example: BinaryInputStream basic usage
+    @par Example: EncodingConversionInputStream basic usage
     @code{.py}
-    binary src = <2AFF04>;
-    BinaryInputStream bis(src);
-    while ((int i = bis.read()) != -1) {
-        printf("read %d\n", i);
+    EncodingConversionInputStream latin2Stream(sourceUtf8Stream, "UTF-8", "ISO-8859-2");
+    while ((int i = latin2Stream.read()) != -1) {
+        #i is a latin-2 character
     }
-
-    read 42
-    read 255
-    read 4
     @endcode
  */
-qclass BinaryInputStream [arg=BinaryInputStream* is; ns=Qore; vparent=InputStream; flags=final];
+qclass EncodingConversionInputStream [arg=EncodingConversionInputStream* is; ns=Qore; vparent=InputStream; flags=final];
 
-//! Creates the BinaryInputStream based on the \ref binary given
+//! Creates the EncodingConversionInputStream based on the \ref InputStream given
 /**
-    @param src the \ref binary to read bytes from
+    @param is the source \ref InputStream to read bytes from
+    @param sourceEncoding the encoding of the characters in the source input stream
+    @param destEncoding the destination character encoding
+    @throw ENCODING-CONVERSION-ERROR if either of the encodings is unsupported
  */
-BinaryInputStream::constructor(binary src) {
-   SimpleRefHolder<BinaryInputStream> bis(new BinaryInputStream(static_cast<BinaryNode *>(src->refSelf())));
-   self->setPrivate(CID_BINARYINPUTSTREAM, bis.release());
+EncodingConversionInputStream::constructor(Qore::InputStream[InputStream] is, string sourceEncoding, string destEncoding) {
+   obj_is->ref();
+   SimpleRefHolder<EncodingConversionInputStream> ecis(new EncodingConversionInputStream(
+         const_cast<QoreObject *>(obj_is), is, QEM.findCreate(sourceEncoding), QEM.findCreate(destEncoding), xsink));
+   self->setPrivate(CID_ENCODINGCONVERSIONINPUTSTREAM, ecis.release());
 }
 
-//! Closes the input stream and releases any resources.
+//! Closes the underlying input stream.
 /** Any methods called on a closed input stream will thrown an IO-ERROR exception.
 
     @throw IO-ERROR if an I/O error occurs
  */
-nothing BinaryInputStream::close() {
+nothing EncodingConversionInputStream::close() {
    is->closeHelper(xsink);
 }
 
@@ -74,18 +74,15 @@ nothing BinaryInputStream::close() {
 
     @par Example:
     @code{.py}
-    binary src = <2AFF04>;
-    BinaryInputStream bis(src);
-    while ((int i = bis.read()) != -1) {
-        printf("read %d\n", i);
+    EncodingConversionInputStream latin2Stream(sourceUtf8Stream, "UTF-8", "ISO-8859-2");
+    while ((int i = latin2Stream.read()) != -1) {
+        #i is a latin-2 character
     }
-
-    read 42
-    read 255
-    read 4
     @endcode
+
+    @throw ENCODING-CONVERSION-ERROR if an invalid multibyte sequence is encountered in the input
  */
-int BinaryInputStream::read(timeout timeout_ms = -1) {
+int EncodingConversionInputStream::read(timeout timeout_ms = -1) {
    return is->readHelper(timeout_ms, xsink);
 }
 
@@ -98,17 +95,15 @@ int BinaryInputStream::read(timeout timeout_ms = -1) {
 
     @par Example:
     @code{.py}
-    binary src = <2AFF04>;
-    BinaryInputStream is(src);
+    EncodingConversionInputStream latin2Stream(sourceUtf8Stream, "UTF-8", "ISO-8859-2");
     *binary b;
-    while (b = is.bulkRead(2)) {
-        printf("read %s\n", make_hex_string(b));
+    while (b = latin2Stream.bulkRead(20)) {
+        #b contains latin-2 characters
     }
-
-    read 2aff
-    read 04
     @endcode
+
+    @throw ENCODING-CONVERSION-ERROR if an invalid multibyte sequence is encountered in the input
  */
-*binary BinaryInputStream::bulkRead(int limit, timeout timeout_ms = -1) {
+*binary EncodingConversionInputStream::bulkRead(int limit, timeout timeout_ms = -1) {
    return is->bulkReadHelper(limit, timeout_ms, xsink);
 }

@@ -66,7 +66,7 @@ QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC
 	QC_Datasource.cpp QC_DatasourcePool.cpp QC_SQLStatement.cpp QC_Dir.cpp QC_Program.cpp \
 	QC_GetOpt.cpp QC_TermIOS.cpp QC_TimeZone.cpp QC_SSLCertificate.cpp QC_SSLPrivateKey.cpp \
 	QC_AbstractThreadResource.cpp \
-	QC_InputStream.cpp QC_BinaryInputStream.cpp \
+	QC_InputStream.cpp QC_BinaryInputStream.cpp QC_EncodingConversionInputStream.cpp \
 	ql_misc.cpp ql_compression.cpp ql_thread.cpp ql_crypto.cpp ql_lib.cpp ql_file.cpp \
 	ql_string.cpp ql_time.cpp ql_math.cpp ql_list.cpp ql_pwd.cpp ql_object.cpp \
 	ql_dbi.cpp ql_context.cpp ql_env.cpp ql_type.cpp \

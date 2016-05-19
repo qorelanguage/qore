@@ -41,7 +41,11 @@
 class BinaryInputStream : public InputStreamBase {
 
 public:
-   DLLLOCAL BinaryInputStream(QoreObject *self, BinaryNode *src) : InputStreamBase(self), src(src), offset(0) {
+   DLLLOCAL BinaryInputStream(BinaryNode *src) : src(src), offset(0) {
+   }
+
+   DLLLOCAL const char *getName() /*override*/ {
+      return "BinaryInputStream";
    }
 
    DLLLOCAL bool isClosed() /*override*/ {

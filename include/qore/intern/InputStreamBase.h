@@ -80,7 +80,7 @@ public:
       }
       if (limit <= 0) {
          xsink->raiseException("INPUT-STREAM-ERROR", "%s::bulkRead() called with non-positive limit %lld",
-               self->getClassName(), limit);
+               getName(), limit);
          return 0;
       }
       SimpleRefHolder<BinaryNode> result(new BinaryNode());
@@ -101,12 +101,12 @@ public:
    bool check(ExceptionSink *xsink) {
       if (tid != gettid()) {
          xsink->raiseException("INPUT-STREAM-THREAD-ERROR", "this %s object was created in TID %d; it is an error "
-               "to access it from any other thread (accessed from TID %d)", self->getClassName(), tid, gettid());
+               "to access it from any other thread (accessed from TID %d)", getName(), tid, gettid());
          return false;
       }
       if (isClosed()) {
          xsink->raiseException("INPUT-STREAM-CLOSED-ERROR", "this %s object has been already closed",
-               self->getClassName(), tid, gettid());
+               getName(), tid, gettid());
          return false;
       }
       return true;
@@ -115,9 +115,8 @@ public:
 protected:
    /**
     * @brief Constructor.
-    * @param self the QoreObject this private data is associated with
     */
-   InputStreamBase(QoreObject *self) : tid(gettid()), self(self) {
+   InputStreamBase() : tid(gettid()) {
    }
 
    /**
@@ -126,9 +125,14 @@ protected:
     */
    DLLLOCAL virtual bool isClosed() = 0;
 
+   /**
+    * @brief Returns the name of the class.
+    * @return the name of the class
+    */
+   DLLLOCAL virtual const char *getName() = 0;
+
 protected:
    int tid;                             //!< The id of the thread that created the instance
-   QoreObject *self;                    //!< The QoreObject this private data is associated with
 };
 
 #endif // _QORE_INPUTSTREAMBASE_H
