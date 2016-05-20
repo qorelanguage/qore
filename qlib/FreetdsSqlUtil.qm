@@ -922,6 +922,22 @@ my any $v = $c.name;
                 "xlock": True,
                 );
 
+            #! where operator specializations for FreeTDS
+            const FreetdsOpMap = DefaultOpMap + (
+                OP_SUBSTR: (
+                    "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+                        args += arg[0]; # start
+                        if (!exists arg[1]) {
+                            args += arg[2]; # text
+                            return sprintf("substring(%s,%v,32767) = %v", cn); # NOTE: length arg is required
+                        }
+                        args += arg[1]; # count
+                        args += arg[2]; # text
+                        return sprintf("substring(%s,%v,%v) = %v", cn);
+                    },
+                ),
+            );
+
             #! column operator specializations for FreeTDS
             const FreetdsCopMap = DefaultCopMap + (
                 COP_CAST: (
@@ -1190,6 +1206,11 @@ my any $v = $c.name;
 
         private hash getAlignTableOptions() {
             return FreetdsAlignTableOptions;
+        }
+
+        #! returns the "where" operator map for this object
+        private hash getWhereOperatorMap() {
+            return FreetdsOpMap;
         }
 
         #! returns the column operator map for this object

@@ -531,7 +531,7 @@ public class SqlTestBase inherits QUnit::Test {
                     ),
                 "op_substr_1": (
                     "in": (
-                        "where": ("char_f": op_substr (2, insert_data[0].char_f.substr(1))),
+                        "where": ("char_f": op_substr (2, expect_data.char_f.substr(1))),
                         ),
                     "out": (
                         "count": 2,
@@ -540,7 +540,7 @@ public class SqlTestBase inherits QUnit::Test {
                     ),
                 "op_substr_2": (
                     "in": (
-                        "where": ("char_f": op_substr (1, 4, insert_data[0].char_f.substr(0,4))),
+                        "where": ("char_f": op_substr (1, 4, expect_data.char_f.substr(0,4))),
                         ),
                     "out": (
                         "count": 2,

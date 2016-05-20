@@ -122,6 +122,7 @@ module SqlUtil {
     - implemented the \c "omit_update" @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" for asymmetrical upserts (updates only update a subset of the columns inserted) (<a href="https://github.com/qorelanguage/qore/issues/791">issue 791</a>)
     - implemented the @ref SqlUtil::AbstractTable::UpsertUpdateOnly upsert option (<a href="https://github.com/qorelanguage/qore/issues/793">issue 793</a>)
     - implemented @ref SqlUtil::cop_substr() and @ref SqlUtil::uop_substr() operators (<a href="https://github.com/qorelanguage/qore/issues/801">issue 801</a>)
+    - implemented @ref SqlUtil::op_substr() where operator (<a href="https://github.com/qorelanguage/qore/issues/883">issue 883</a>)
     - fixed a bug with queries using a \a desc argument with the @ref select_option_orderby "orderby" query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
     - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
     - fixed a bug where driver-specific objects were not included when dropping a schema
