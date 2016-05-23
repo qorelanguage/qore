@@ -1453,7 +1453,8 @@ void qore_ns_private::parseAddGlobalVarDecl(char* name, const QoreTypeInfo* type
    checkGlobalVarDecl(e.var, *e.name);
 }
 
-void qore_root_ns_private::parseResolveGlobalVarsIntern() {
+bool qore_root_ns_private::parseResolveGlobalVarsIntern() {
+   bool retVal = true;
    for (gvlist_t::iterator i = pend_gvlist.begin(), e = pend_gvlist.end(); i != e; ++i) {
       // resolve namespace
       const NamedScope& n = *((*i).name);
@@ -1468,6 +1469,7 @@ void qore_root_ns_private::parseResolveGlobalVarsIntern() {
       Var* v = tns->var_list.parseFindVar(n.getIdentifier());
       if (v) {
          parse_error(loc, "global variable '%s::%s' has already been %s this Program object", tns->name.c_str(), n.getIdentifier(), v->isRef() ? "imported into" : "declared in");
+         retVal = false;
          continue;
       }
 
@@ -1477,6 +1479,7 @@ void qore_root_ns_private::parseResolveGlobalVarsIntern() {
       pend_varmap.update(v->getName(), tns, v);
    }
    pend_gvlist.clear();
+   return retVal;
 }
 
 Var* qore_root_ns_private::parseAddResolvedGlobalVarDefIntern(const NamedScope& vname, const QoreTypeInfo* typeInfo) {

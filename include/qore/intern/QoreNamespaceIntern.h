@@ -1314,7 +1314,7 @@ protected:
       return v;
    }
 
-   DLLLOCAL void parseResolveGlobalVarsIntern();
+   DLLLOCAL bool parseResolveGlobalVarsIntern();
 
    // returns 0 for success, non-zero for error
    DLLLOCAL int parseAddMethodToClassIntern(const NamedScope& name, MethodVariantBase* qcmethod, bool static_flag);
@@ -1613,8 +1613,8 @@ public:
       return getRootNS()->rpriv->parseResolveCallReferenceIntern(fr);
    }
 
-   DLLLOCAL static void parseResolveGlobalVars() {
-      getRootNS()->rpriv->parseResolveGlobalVarsIntern();
+   DLLLOCAL static bool parseResolveGlobalVars() {
+      return getRootNS()->rpriv->parseResolveGlobalVarsIntern();
    }
 
    DLLLOCAL static void parseInit() {
