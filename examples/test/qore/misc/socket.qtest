@@ -6,9 +6,9 @@
 %require-types
 %strict-args
 
-%requires UnitTest
+%requires ../../../../qlib/QUnit.qm
 
-%exec-class socket_test
+%exec-class SocketTest
 
 const opts = (
     "help"       : "h,help",
@@ -38,12 +38,12 @@ const http_headers =  (
     "Connection"   : "Keep-Alive",
     );
 
-class socket_test {
+class SocketTest inherits QUnit::Test {
     private {
         any o;
         any fam;
-        binary binary;
-        string string;
+        binary xbinary;
+        string xstring;
 
         Queue queue;
         Counter counter;
@@ -55,16 +55,21 @@ class socket_test {
         string client_host;
     }
 
-    constructor() {
-        UnitTest t();
-
+    constructor() : QUnit::Test("Socket test", "1.0") {
         process_command_line();
 
-        string = "This is a binary string";
-        binary = Qore::binary(string);
+        addTestCase("Test socket", \testSocket());
+        set_return_value(main());
+    }
+
+    globalSetUp() {
+        xstring = "This is a binary string";
+        xbinary = Qore::binary(xstring);
 
         counter = new Counter(1);
+    }
 
+    testSocket() {
         # create event queue and start listening thread if necessary
         if (o.events) {
             queue = new Queue();
@@ -74,11 +79,11 @@ class socket_test {
         stopc = new Counter();
         if (!exists o.server) {
             stopc.inc();
-            background server_thread(t);
+            background server_thread();
         }
         if (!o.servonly) {
             stopc.inc();
-            background client_thread(t);
+            background client_thread();
         }
 
         stopc.waitForZero();
@@ -86,9 +91,9 @@ class socket_test {
             queue.push();
     }
 
-    private server_thread(UnitTest t) {
+    private server_thread() {
         on_exit stopc.dec();
-        #socket_test::printf("listening for incoming connections on %s\n", server_port);
+        #SocketTest::printf("listening for incoming connections on %s\n", server_port);
         Socket s();
         # setting the callback will output far too much data
         if (o.events) {
@@ -108,19 +113,19 @@ class socket_test {
             foreach hash a in (addr) {
                 try {
                     s.bindINET(a.address, server_port, True, a.family);
-                    #socket_test::printf("server: bound to %s socket on %s:%d\n", a.familystr, a.address_desc, server_port);
+                    #SocketTest::printf("server: bound to %s socket on %s:%d\n", a.familystr, a.address_desc, server_port);
                     break;
                 }
                 catch (ex) {
                     if ($# == (elements addr - 1)) {
-                        #socket_test::printf("server: error binding socket to %s:%d %s: %s (arg: %y)\n", a.address_desc, server_port, ex.err, ex.desc, ex.arg);
+                        #SocketTest::printf("server: error binding socket to %s:%d %s: %s (arg: %y)\n", a.address_desc, server_port, ex.err, ex.desc, ex.arg);
                         thread_exit;
                     }
                 }
             }
 
             if (s.listen()) {
-                socket_test::printf("listen error (%s)\n", strerror(errno()));
+                SocketTest::printf("listen error (%s)\n", strerror(errno()));
                 thread_exit;
             }
         }
@@ -138,33 +143,33 @@ class socket_test {
                     }
                 }
                 s = s.acceptSSL();
-                #socket_test::printf("returned from Socket::acceptSSL() s=%N\n", s);
-                socket_test::printf("server: secure connection (%s %s) from %s\n", s.getSSLCipherName(), s.getSSLCipherVersion(), s.getPeerInfo().address_desc);
+                #SocketTest::printf("returned from Socket::acceptSSL() s=%N\n", s);
+                SocketTest::printf("server: secure connection (%s %s) from %s\n", s.getSSLCipherName(), s.getSSLCipherVersion(), s.getPeerInfo().address_desc);
                 *string str = s.verifyPeerCertificate();
                 if (!str)
-                    socket_test::printf("server: no client certificate\n");
+                    SocketTest::printf("server: no client certificate\n");
                 else
-                    socket_test::printf("server: client certificate: %n %s: %s\n", str, X509_VerificationReasons{str});
+                    SocketTest::printf("server: client certificate: %n %s: %s\n", str, X509_VerificationReasons{str});
             }
             else {
                 s = s.accept();
-                #socket_test::printf("server: cleartext connection from %s\n", s.getPeerInfo().address_desc);
+                #SocketTest::printf("server: cleartext connection from %s\n", s.getPeerInfo().address_desc);
             }
             if (o.events)
                 s.setEventQueue(queue);
         }
         catch (ex) {
-            socket_test::printf("server error: %s: %s\n", ex.err, ex.desc);
+            SocketTest::printf("server error: %s: %s\n", ex.err, ex.desc);
             thread_exit;
         }
 
-        receive_messages(s, "server", t);
+        receive_messages(s, "server");
         send_messages(s);
 
         s.close();
     }
 
-    private client_thread(UnitTest t) {
+    private client_thread() {
         on_exit stopc.dec();
         if (!exists o.server)
             counter.waitForZero();
@@ -185,88 +190,88 @@ class socket_test {
                 s.connectINETSSL(client_host, client_port, 15s, fam);
 
                 string str = s.verifyPeerCertificate();
-                socket_test::printf("client: server certificate: %s: %s\n", str, X509_VerificationReasons{str});
+                SocketTest::printf("client: server certificate: %s: %s\n", str, X509_VerificationReasons{str});
             }
             else
                 s.connectINET(client_host, client_port, 15s, fam);
         }
         catch (ex) {
-            socket_test::printf("client error (line %d): %s: %s\n", ex.line, ex.err, ex.desc);
+            SocketTest::printf("client error (line %d): %s: %s\n", ex.line, ex.err, ex.desc);
             thread_exit;
         }
 
         send_messages(s);
-        receive_messages(s, "client", t);
+        receive_messages(s, "client");
     }
 
-    private receive_messages(Socket s, string who, UnitTest t) {
+    private receive_messages(Socket s, string who) {
         any m = s.recv();
-        t.cmp(string, m, who + " string");
+        assertEq(xstring, m, who + " string");
         s.send("OK");
 
         m = s.recvBinary();
-        t.cmp(binary, m, who + " binary");
+        assertEq(xbinary, m, who + " binary");
         s.send("OK");
 
         m = s.recvi1();
-        t.cmp(i1, m, who + " sendi1");
+        assertEq(i1, m, who + " sendi1");
         s.send("OK");
 
         m = s.recvi2();
-        t.cmp(i2, m, who + " sendi2");
+        assertEq(i2, m, who + " sendi2");
         s.send("OK");
 
         m = s.recvi4();
-        t.cmp(i4, m, who + " sendi4");
+        assertEq(i4, m, who + " sendi4");
         s.send("OK");
 
         m = s.recvi8();
-        t.cmp(i8, m, who + " sendi8");
+        assertEq(i8, m, who + " sendi8");
         s.send("OK");
 
         m = s.recvi2LSB();
-        t.cmp(i2, m, who + " sendi2LSB");
+        assertEq(i2, m, who + " sendi2LSB");
         s.send("OK");
 
         m = s.recvi4LSB();
-        t.cmp(i4, m, who + " sendi4LSB");
+        assertEq(i4, m, who + " sendi4LSB");
         s.send("OK");
 
         m = s.recvi8LSB();
-        t.cmp(i8, m, who + " sendi8LSB");
+        assertEq(i8, m, who + " sendi8LSB");
         s.send("OK");
 
         m = s.readHTTPHeader();
-        t.cmp(m.method, "POST", who + " HTTP header method");
+        assertEq("POST", m.method, who + " HTTP header method");
         m = s.recv(m."content-length");
-        t.cmp(m, string, who + " HTTP message body");
+        assertEq(xstring, m, who + " HTTP message body");
 
         s.sendHTTPResponse(200, "OK", "1.1", http_headers, "OK");
     }
 
     private send_messages(Socket s) {
-        socket_test::check_send(s.send(string), "string");
+        SocketTest::check_send(s.send(xstring), "string");
         get_response(s);
 
-        socket_test::check_send(s.send(binary), "binary");
+        SocketTest::check_send(s.send(xbinary), "binary");
         get_response(s);
 
-        socket_test::check_send(s.sendi1(i1), "i1");
+        SocketTest::check_send(s.sendi1(i1), "i1");
         get_response(s);
-        socket_test::check_send(s.sendi2(i2), "i2");
+        SocketTest::check_send(s.sendi2(i2), "i2");
         get_response(s);
-        socket_test::check_send(s.sendi4(i4), "i4");
+        SocketTest::check_send(s.sendi4(i4), "i4");
         get_response(s);
-        socket_test::check_send(s.sendi8(i8), "i8");
+        SocketTest::check_send(s.sendi8(i8), "i8");
         get_response(s);
 
-        socket_test::check_send(s.sendi2LSB(i2), "i2LSB");
+        SocketTest::check_send(s.sendi2LSB(i2), "i2LSB");
         get_response(s);
-        socket_test::check_send(s.sendi4LSB(i4), "i4LSB");
+        SocketTest::check_send(s.sendi4LSB(i4), "i4LSB");
         get_response(s);
-        socket_test::check_send(s.sendi8LSB(i8), "i8LSB");
+        SocketTest::check_send(s.sendi8LSB(i8), "i8LSB");
         get_response(s);
-        s.sendHTTPMessage("POST", "none", "1.1", http_headers, string);
+        s.sendHTTPMessage("POST", "none", "1.1", http_headers, xstring);
         get_http_response(s);
     }
 
@@ -289,7 +294,7 @@ class socket_test {
     }
 
     private static usage() {
-        socket_test::printf("usage: %s -[options] [port]
+        SocketTest::printf("usage: %s -[options] [port]
   -h,--help                    this help text
   -S,--server=ip:port          no server thread; connect to remote server
   -O,--server-only             no client thread; wait for remote clients
@@ -310,15 +315,15 @@ class socket_test {
         o = g.parse(\ARGV);
 
         if (exists o."_ERRORS_") {
-            socket_test::printf("%s\n", o{"_ERRORS_"}[0]);
+            SocketTest::printf("%s\n", o{"_ERRORS_"}[0]);
             exit(1);
         }
 
         if (o.help)
-            socket_test::usage();
+            SocketTest::usage();
 
         if (exists o.server && o.servonly) {
-            socket_test::printf("server only flag set and remote server option=%n set - aborting\n", o.server);
+            SocketTest::printf("server only flag set and remote server option=%n set - aborting\n", o.server);
             exit(1);
         }
 
@@ -333,7 +338,7 @@ class socket_test {
             else {
                 hash h = parse_url(o.server);
                 if (!exists h.port) {
-                    socket_test::printf("missing port in server specification %n - aborting\n", o.server);
+                    SocketTest::printf("missing port in server specification %n - aborting\n", o.server);
                     exit(1);
                 }
 
@@ -371,7 +376,7 @@ class socket_test {
             if (!exists e)
                 return;
 
-            socket_test::printf("%s %s: %s\n", EVENT_SOURCE_MAP.(e.source), EVENT_MAP.(e.event), socket_test::getstr(e - ("event", "source")));
+            SocketTest::printf("%s %s: %s\n", EVENT_SOURCE_MAP.(e.source), EVENT_MAP.(e.event), SocketTest::getstr(e - ("event", "source")));
             flush(); # flush output
         }
     }
