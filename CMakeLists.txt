@@ -133,6 +133,7 @@ set(LIBQORE_QPP_SRC
 	lib/QC_InputStream.qpp
 	lib/QC_BinaryInputStream.qpp
 	lib/QC_EncodingConversionInputStream.qpp
+	lib/QC_OutputStream.qpp
 	lib/Pseudo_QC_All.qpp
 	lib/Pseudo_QC_Nothing.qpp
 	lib/Pseudo_QC_Date.qpp
