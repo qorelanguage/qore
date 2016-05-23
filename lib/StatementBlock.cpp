@@ -485,14 +485,17 @@ void TopLevelStatementBlock::parseInit(int64 po) {
 
    //printd(5, "TopLevelStatementBlock::parseInit(rns=%p) first=%d\n", &rns, first);
 
+   // resolve global variables before initializing the top-level statements
+   if (!qore_root_ns_private::parseResolveGlobalVars()) {
+      return;
+   }
+
    if (!first && lvars) {
       // push already-registered local variables on the stack
       for (unsigned i = 0; i < lvars->size(); ++i)
          push_top_level_local_var(lvars->lv[i], loc);
    }
 
-   // resolve global variables before initializing the top-level statements
-   qore_root_ns_private::parseResolveGlobalVars();
    int lvids = parseInitIntern(0, PF_TOP_LEVEL, hwm);
 
    //printd(5, "TopLevelStatementBlock::parseInit(rns=%p) first=%d, lvids=%d\n", &rns, first, lvids);
