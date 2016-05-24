@@ -890,7 +890,7 @@ testAssertionValue("date > operator", now() > (now() - 1D), True);
 
         @note make sure and use testAssertion() for any calls that could throw an exception
      */
-    public any testAssertionValue(string name, any actual, any expected) {
+    public any testAssertionValue(*string name, any actual, any expected) {
         assertEq(expected, actual, name);
         return actual;
     }
@@ -1011,7 +1011,7 @@ assertTrue(functionThatShouldReturnTrue());
         @param name the name or description of the assertion
      */
     public assertTrue(any actual, *string name = NOTHING) {
-        testAssertionValue(name ?? "", actual, True);
+        testAssertionValue(name, actual, True);
     }
 
     #! Tests a boolean value
@@ -1024,7 +1024,7 @@ assertFalse(functionThatShouldReturnFalse());
         @param name the name or description of the assertion
      */
     public assertFalse(any actual, *string name = NOTHING) {
-        testAssertionValue(name ?? "", actual, False);
+        testAssertionValue(name, actual, False);
     }
 
     #! Tests that a piece of code throws an exception with given description
