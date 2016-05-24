@@ -1047,7 +1047,7 @@ assertThrows("DIVISION-BY-ZERO", "division by zero found in integer expression",
         try {
             call_function_args(theCode, args);
         } catch (e) {
-            if (e.err == expectedErr && (expectedDesc == NOTHING || e.desc == expectedDesc)) {
+            if (e.err == expectedErr && (expectedDesc == NOTHING || e.desc.regex(expectedDesc))) {
                 tc.incAssertionsOk();
                 ++num_asserts_ok;
                 return;

@@ -118,14 +118,14 @@ $y = 9;
     invalidIdInTryModule() {
         Program p();
         p.replaceParseOptions(PO_DEFAULT);
-        assertThrows("PARSE-EXCEPTION", "%try-module not in format '%try-module ($varname) <module>'; invalid exception variable name; text given: '%try-module  Util'",
+        assertThrows("PARSE-EXCEPTION", "try-module not in format.*invalid exception variable name.*",
             \p.parse(), ("%try-module (\"2%) Util\nprint();\n%endtry\nprint();\n", ""));
     }
 
     ignoredTextTryModule() {
         Program p();
         p.replaceParseOptions(PO_DEFAULT);
-        assertThrows("PARSE-EXCEPTION", "%try-module not in format '%try-module ($varname) <module>'; extra text before '('; text given: '%try-module whatever \"$@ except a parenthesis ($x) Util'",
+        assertThrows("PARSE-EXCEPTION", "try-module not in format.*extra text before.*",
             \p.parse(), ("%try-module whatever \"$@ except a parenthesis ($x) Util\nprint();\n%endtry\nprint();\n", ""));
     }
 
