@@ -70,7 +70,7 @@ public:
     * @throws IO-ERROR if an I/O error occurs
     * @throws TIMEOUT-ERROR if the bytes could not be written in the specified timeout
     */
-   DLLLOCAL virtual void bulkWrite(void *ptr, int64 count, int64 timeout, ExceptionSink *xsink) = 0;
+   DLLLOCAL virtual void bulkWrite(const void *ptr, int64 count, int64 timeout, ExceptionSink *xsink) = 0;
 
 protected:
    /**

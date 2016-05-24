@@ -279,6 +279,7 @@
 #include "QC_BinaryInputStream.cpp"
 #include "QC_EncodingConversionInputStream.cpp"
 #include "QC_OutputStream.cpp"
+#include "QC_BinaryOutputStream.cpp"
 
 #include "QorePseudoMethods.cpp"
 

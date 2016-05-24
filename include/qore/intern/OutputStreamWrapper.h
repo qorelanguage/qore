@@ -58,7 +58,7 @@ public:
       self->evalMethodValue("write", *args, xsink).getAsBigInt();
    }
 
-   DLLLOCAL virtual void bulkWrite(void *ptr, int64 count, int64 timeout, ExceptionSink *xsink) /*override*/ {
+   DLLLOCAL virtual void bulkWrite(const void *ptr, int64 count, int64 timeout, ExceptionSink *xsink) /*override*/ {
       assert(count >= 0);
 
       SimpleRefHolder<BinaryNode> buf(new BinaryNode());

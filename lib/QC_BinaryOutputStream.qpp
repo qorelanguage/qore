@@ -1,0 +1,103 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_BinaryOutputStream.qpp BinaryOutputStream class definition */
+/*
+  Qore Programming Language
+
+  Copyright (C) 2003 - 2016 David Nichols
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+  Note that the Qore library is released under a choice of three open-source
+  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+  information.
+*/
+
+#include <qore/Qore.h>
+#include "qore/intern/BinaryOutputStream.h"
+
+//! This class implements the @ref OutputStream interface for writing bytes to a @ref binary buffer
+/** @since %Qore 0.8.12
+
+    @par Example: BinaryOutputStream basic usage
+    @code{.py}
+    BinaryOutputStream bos();
+    bos.write(1);
+    bos.write(255);
+    bos.getData();      # returns <01FF>
+    @endcode
+ */
+qclass BinaryOutputStream [arg=BinaryOutputStream* os; ns=Qore; vparent=OutputStream; flags=final];
+
+//! Creates the BinaryOutputStream
+/**
+ */
+BinaryOutputStream::constructor() {
+   SimpleRefHolder<BinaryOutputStream> bos(new BinaryOutputStream());
+   self->setPrivate(CID_BINARYOUTPUTSTREAM, bos.release());
+}
+
+//! Closes the input stream and releases any resources.
+/** Any methods called on a closed input stream will thrown an IO-ERROR exception.
+
+    @throw IO-ERROR if an I/O error occurs
+ */
+nothing BinaryOutputStream::close() {
+   os->closeHelper(xsink);
+}
+
+//! Writes a single byte to the output stream
+/**
+    @param value the byte (0 - 255) to write to the output stream, only the least significant 8 bits are used,
+           the rest is ignored
+    @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates
+           "relative date/time value"; integer arguments will be assumed to be milliseconds);
+           if not given or negative the call will never time out
+
+    @par Example:
+    @code{.py}
+    os.write(5);
+    @endcode
+ */
+nothing BinaryOutputStream::write(int value, timeout timeout_ms = -1) {
+   os->writeHelper(value, timeout_ms, xsink);
+}
+
+//! Writes bytes to the input stream
+/**
+    @param data the data to write
+    @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates
+           "relative date/time value"; integer arguments will be assumed to be milliseconds);
+           if not given or negative the call will never time out
+
+    @par Example:
+    @code{.py}
+    os.write(<0405>);
+    @endcode
+ */
+nothing BinaryOutputStream::bulkWrite(binary data, timeout timeout_ms = -1) {
+   os->bulkWriteHelper(data, timeout_ms, xsink);
+}
+
+//! Returns the data written to the stream, clearing the internal buffer
+/**
+    @return the data written to the @ref BinaryOutputStream
+ */
+binary BinaryOutputStream::getData() {
+   return os->getData(xsink);
+}
