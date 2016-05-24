@@ -1,0 +1,40 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class GlobalsTest
+
+public class GlobalsTest inherits QUnit::Test {
+    constructor() : Test("Globals test", "1.0") {
+        addTestCase("Segfault 891", \segfault891(), NOTHING);
+        addTestCase("Cleanup of the stack of top level locals", \localsCleanup(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    segfault891() {
+        Program p();
+        p.replaceParseOptions(PO_NEW_STYLE);
+        assertThrows("PARSE-EXCEPTION", "global variable '::h' has already been declared in this Program object", sub() {
+            p.parse("our hash h = ('1': 1, '2': 2, '3': 3, '4': 4); our float h = 3;", "xxx");
+        });
+    }
+
+    localsCleanup() {
+        Program p();
+        p.replaceParseOptions(PO_NEW_STYLE);
+        p.parse("int i1 = 1;", "xxx");
+        assertThrows("PARSE-EXCEPTION", sub() {
+            p.parse("our hash h = {}; our float h = 1;", "xxx");
+        });
+        #the following checks that the previous parse() did not leave anything on the local variable stack
+        p.parse("i1 = 1;", "xxx");
+    }
+}

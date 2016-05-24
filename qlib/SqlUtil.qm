@@ -122,6 +122,7 @@ module SqlUtil {
     - implemented the \c "omit_update" @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" for asymmetrical upserts (updates only update a subset of the columns inserted) (<a href="https://github.com/qorelanguage/qore/issues/791">issue 791</a>)
     - implemented the @ref SqlUtil::AbstractTable::UpsertUpdateOnly upsert option (<a href="https://github.com/qorelanguage/qore/issues/793">issue 793</a>)
     - implemented @ref SqlUtil::cop_substr() and @ref SqlUtil::uop_substr() operators (<a href="https://github.com/qorelanguage/qore/issues/801">issue 801</a>)
+    - implemented @ref SqlUtil::op_substr() where operator (<a href="https://github.com/qorelanguage/qore/issues/883">issue 883</a>)
     - fixed a bug with queries using a \a desc argument with the @ref select_option_orderby "orderby" query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
     - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
     - fixed a bug where driver-specific objects were not included when dropping a schema
@@ -3460,6 +3461,11 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     */
     public const OP_NOT = "not";
 
+    #! the SQL \c "substr" operator for use in @ref where_clauses
+    /** @see op_substr()
+    */
+    public const OP_SUBSTR = "substr";
+
     #! to combine SQL expressions with \c "or" for use in @ref where_clauses
     public const OP_OR = "or";
 
@@ -3566,6 +3572,18 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 return sprintf("%s = %s", cn, arg);
             },
         ),
+        OP_SUBSTR: (
+            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+                args += arg[0]; # start
+                if (!exists arg[1]) {
+                    args += arg[2]; # text
+                    return sprintf("substring(%s from %v) = %v", cn);
+                }
+                args += arg[1]; # count
+                args += arg[2]; # text
+                return sprintf("substring(%s from %v for %v) = %v", cn);
+            },
+        ),
         OP_OR: (
             "code": string sub (object t, string cn, list arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return t.getOrClause(arg, \args, jch, join, ch, psch);
@@ -3579,6 +3597,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         - op_between(): for the \c "between" operator
         - op_in(): for the \c "in" operator
         - op_like(): for the \c "like" operator
+        - op_substr(): for the \c "substr" operator
         - op_ge(): for the \c ">=" operator when comparing column values to immediate values
         - op_gt(): for the \c ">" operator when comparing column values to immediate values
         - op_le(): for the \c "<=" operator when comparing column values to immediate values
@@ -3867,6 +3886,37 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     */
     public hash sub op_ceq(string arg) {
         return make_op(OP_CEQ, arg);
+    }
+
+    #! returns a hash for the \c "substr" operator with the given arguments; for use in @ref where_clauses "where clauses"
+    /** @par Example:
+        @code{.py}
+*list rows = table.selectRows(("where": ("name": op_substr(1, 6, "Martin"))));
+        @endcode
+
+        @param start position where the substring starts
+        @param count length of the substring in characters
+        @param text what substring should match
+
+        @return a where operation description hash for use in @ref where_clauses "where clauses"
+     */
+    public hash sub op_substr(int start, *int count, string text) {
+        return make_op(OP_SUBSTR, (start, count, text));
+    }
+
+    #! returns a hash for the \c "substr" operator with the given arguments; for use in @ref where_clauses "where clauses"
+    /** @par Example:
+        @code{.py}
+*list rows = table.selectRows(("where": ("hex": op_substr(5, "BEEF"))));
+        @endcode
+
+        @param start position where the substring starts
+        @param text what substring should match
+
+        @return a where operation description hash for use in @ref where_clauses "where clauses"
+     */
+    public hash sub op_substr(int start, string text) {
+        return make_op(OP_SUBSTR, (start, NOTHING, text));
     }
 
     #! returns a hash with a fake \c "_OR_" column name; the list of arguments to the function is combined such that each hash in the list generates SQL expressions combined with \a "and" logic, and each of those clauses is combined with \a "or" logic; this is for use in @ref where_clauses "where clauses"

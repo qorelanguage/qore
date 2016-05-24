@@ -266,6 +266,7 @@ my hash $schema = (
     - implemented @ref OracleSqlUtil::OracleTable::bindEmptyStringsAsNull()
     - implemented high-performance "upsert" (merge) support also supporting bulk DML
     - implemented @ref SqlUtil::cop_substr() and @ref SqlUtil::uop_substr() operators (<a href="https://github.com/qorelanguage/qore/issues/801">issue 801</a>)
+    - implemented @ref SqlUtil::op_substr() where operator (<a href="https://github.com/qorelanguage/qore/issues/883">issue 883</a>)
 
     @subsection v11 OracleSqlUtil v1.1
     - fixed selects with "limit" but no "offset"
@@ -1834,6 +1835,18 @@ my any $v = $c.name;
 %ifdef NO_ORACLE
                         throw "MISSING-ORACLE-DRIVER", "op_in requires oracle driver";
 %endif
+                    },
+                ),
+                OP_SUBSTR: (
+                    "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+                        args += arg[0]; # start
+                        if (!exists arg[1]) {
+                            args += arg[2]; # text
+                            return sprintf("substr(%s,%v) = %v", cn);
+                        }
+                        args += arg[1]; # count
+                        args += arg[2]; # text
+                        return sprintf("substr(%s,%v,%v) = %v", cn);
                     },
                 ),
             );
