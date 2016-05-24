@@ -1038,7 +1038,7 @@ assertThrows("DIVISION-BY-ZERO", "division by zero found in integer expression",
         @param theCode the code to execute
         @param args optional arguments to the code
      */
-    public assertThrows(string expectedErr, *string expectedDesc, code theCode, *softlist args) {
+    public assertThrows(string expectedErr, *string expectedDesc, code theCode, *softlist args, *string name = NOTHING) {
         TestCase tc = getTestCase("assertEqThrows");
         tc.incAssertions();
         ++num_asserts;
@@ -1050,6 +1050,8 @@ assertThrows("DIVISION-BY-ZERO", "division by zero found in integer expression",
             if (e.err == expectedErr && (expectedDesc == NOTHING || e.desc.regex(expectedDesc))) {
                 tc.incAssertionsOk();
                 ++num_asserts_ok;
+                if (m_options.verbose > 1)
+                    printf("+ OK: %y assertion %s\n", m_name, Test::getAssertionName(name));
                 return;
             }
             throw "TEST-EXCEPTION", printUnexpectedData(exp, get_exception_string(e));
@@ -1067,8 +1069,8 @@ assertThrows("DIVISION-BY-ZERO", sub(int a) {print(5/a);}, 0);
         @param theCode the code to execute
         @param args optional arguments to the code
      */
-    public assertThrows(string expectedErr, code theCode, *softlist args) {
-        assertThrows(expectedErr, NOTHING, theCode, args);
+    public assertThrows(string expectedErr, code theCode, *softlist args, *string name = NOTHING) {
+        assertThrows(expectedErr, NOTHING, theCode, args, name);
     }
 
     #! Skips assertion on purpose
