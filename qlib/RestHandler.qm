@@ -869,7 +869,12 @@ public namespace RestHandler {
                 splice ah.method, 0, 1;
 
             # get class chain
-            *list cl = ah.method ? ah.method.split("/") : NOTHING;
+            *list cl;
+            if (ah.method) {
+                # combine continuous "/" chars into a single one
+                ah.method =~ s/\/\/+/\//g;
+                cl = ah.method.split("/");
+            }
 
             # get initial class
             *string cls = shift cl;

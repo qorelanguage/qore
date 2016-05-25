@@ -607,12 +607,13 @@ hash ans = rest.post("/orders/1");
         private nothing preparePath(reference path) {
             # prepare path
             *string p = getConnectionPath();
+
             # strip trailing "/" off the connection path
             p =~ s/\/+$//;
             # strip leading "/" off the given path
             path =~ s/^\/+//;
             if (p.val())
-                path = p + (exists path ? ("/" + path) : "");
+                path = p + (path.val() ? ("/" + path) : "");
             # ensure path is absolute
             if (path !~ /^\//)
                 splice path, 0, 0, "/";
