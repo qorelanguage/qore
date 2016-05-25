@@ -941,7 +941,7 @@ string s = lpad ("ABC", 9, "-"); # returns "------ABC"
 
         @since Util 1.2
     */
-    public string sub lpad (softstring text, int length, string padding = ' ') {
+    public string sub lpad(softstring text, int length, string padding = ' ') {
         int d = length - text.length();
         if (d > 0) {
             string p = strmul (padding, d / padding.length() + 1);
@@ -969,7 +969,7 @@ string s = rpad ("ABC", 9, "-"); # returns "ABC------"
 
         @since Util 1.2
     */
-    public string sub rpad (softstring text, int length, string padding = ' ') {
+    public string sub rpad(softstring text, int length, string padding = ' ') {
         int d = length - text.length();
         if (d > 0) {
             string p = strmul (padding, d / padding.length() + 1);
@@ -993,7 +993,7 @@ printf ("%s grade", ordinal(1));
 
         @since Util 1.2
     */
-    public string sub ordinal (int i) {
+    public string sub ordinal(int i) {
         list suffixes = ("th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th");
 
         switch (i % 100) {
@@ -1026,7 +1026,7 @@ printf (plural(32, "", "tooth", "teeth"));
 
         @since Util 1.2
     */
-    public string sub plural (int count, string base, string singular = "", string plural = "s") {
+    public string sub plural(int count, string base, string singular = "", string plural = "s") {
         return sprintf("%d %s", count, count == 1 ? base + singular : base + plural);
     }
 
@@ -1043,7 +1043,7 @@ string s = regex_escape ("Gain: $100"); # returns "Gain\\:\\ \\$100"
 
         @since Util 1.2
     */
-    public string sub regex_escape (string text) {
+    public string sub regex_escape(string text) {
         text =~ s/([^[:alnum:]])/\\$1/g;
         return text;
     }
@@ -1061,7 +1061,7 @@ string s = glob_to_regex ("*.*"); # returns ".*\\..*"
 
         @since Util 1.2
     */
-    public string sub glob_to_regex (string pat) {
+    public string sub glob_to_regex(string pat) {
         string r = '';
         int n = pat.length();
         int i = 0;
@@ -1110,7 +1110,7 @@ list s = zip ((1, 2, 3), (4, 5)); # returns ((1,4), (2,5), (3,NOTHING))
 
         @since Util 1.2
     */
-    public list sub zip () {
+    public list sub zip() {
         if (argv.size() == 0)
             return ();
         int m = max (map $1.size(), argv);
