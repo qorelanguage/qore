@@ -1095,4 +1095,17 @@ string s = glob_to_regex ("*.*"); # returns ".*\\..*"
         }
         return '\A' + r + '\Z';
     }
+
+    #! Returns a duplicate-free version of the list.  (Note: naive implementation)
+    public list sub uniq (softlist arg) {
+        list r;
+        hash h;
+        foreach any i in (arg) {
+            string k = sprintf("%y", i);
+            if (!h{k})
+                r += i;
+            h{k} += 1;
+        }
+        return r ?? ();
+    }
 }
