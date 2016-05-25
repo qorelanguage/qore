@@ -1111,6 +1111,8 @@ list s = zip ((1, 2, 3), (4, 5)); # returns ((1,4), (2,5), (3,NOTHING))
         @since Util 1.2
     */
     public list sub zip () {
+        if (argv.size() == 0)
+            return ();
         int m = max (map $1.size(), argv);
         list r;
         for (int i=0; i < m; i++) {
