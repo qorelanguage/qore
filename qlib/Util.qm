@@ -68,13 +68,14 @@ module Util {
       - @ref Util::normalize_dir_unix()
       - @ref Util::normalize_dir_windows()
     - @ref Util::ordinal()
+    - @ref Util::parse_to_qore_value()
     - @ref Util::plural()
     - @ref Util::regex_escape()
     - @ref Util::rpad()
-    - @ref Util::parse_to_qore_value()
-    - @ref Util::slice()
     - @ref Util::same()
+    - @ref Util::slice()
     - @ref Util::tmp_location()
+    - @ref Util::zip()
 
     @section utilrelnotes Release Notes
 
@@ -92,6 +93,7 @@ module Util {
     - added Util::same()
     - added Util::slice()
     - added Util::tmp_location()
+    - added Util::zip()
     - fixed Util::get_random_string() on Windows
     - fixed Util::absolute_path_windows()
     - fixed Util::parse_to_qore_value() with hashes with a comma in the first key name; now respects parentheses when parsing lists and hashes (<a href="https://github.com/qorelanguage/qore/issues/846">issue 846</a>)
@@ -962,6 +964,17 @@ string s = glob_to_regex ("*.*"); # returns ".*\\..*"
     }
 
     #! Returns a list of lists, where the i-th list contains the i-th element from each of the argument lists.
+    /**
+        @param  ... lists to 'zip'
+        @return a list of lists
+
+        @par Example:
+        @code{.py}
+list s = zip ((1, 2, 3), (4, 5)); # returns ((1,4), (2,5), (3,NOTHING))
+        @endcode
+
+        @since Util 1.2
+    */
     public list sub zip () {
         int m = max (map $1.size(), argv);
         list r;
