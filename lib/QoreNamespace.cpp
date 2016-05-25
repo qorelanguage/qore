@@ -125,9 +125,11 @@ DLLLOCAL QoreClass* initSingleValueIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initRangeIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initInputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initBinaryInputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initFileInputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initEncodingConversionInputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initOutputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initBinaryOutputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initFileOutputStreamClass(QoreNamespace& ns);
 
 DLLLOCAL void init_type_constants(QoreNamespace& ns);
 DLLLOCAL void init_compression_constants(QoreNamespace& ns);
@@ -810,9 +812,11 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    qns.addSystemClass(initTreeMapClass(qns));
    qns.addSystemClass(initInputStreamClass(qns));
    qns.addSystemClass(initBinaryInputStreamClass(qns));
+   qns.addSystemClass(initFileInputStreamClass(qns));
    qns.addSystemClass(initEncodingConversionInputStreamClass(qns));
    qns.addSystemClass(initOutputStreamClass(qns));
    qns.addSystemClass(initBinaryOutputStreamClass(qns));
+   qns.addSystemClass(initFileOutputStreamClass(qns));
 
 #ifdef DEBUG_TESTS
    { // tests

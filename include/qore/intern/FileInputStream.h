@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  BinaryOutputStream.h
+  FileInputStream.h
 
   Qore Programming Language
 
@@ -29,58 +29,52 @@
   information.
 */
 
-#ifndef _QORE_BINARYOUTPUTSTREAM_H
-#define _QORE_BINARYOUTPUTSTREAM_H
+#ifndef _QORE_FILEINPUTSTREAM_H
+#define _QORE_FILEINPUTSTREAM_H
 
 #include <stdint.h>
-#include "qore/intern/OutputStreamBase.h"
+#include "qore/intern/InputStreamBase.h"
 
 /**
- * @brief Private data for the Qore::BinaryOutputStream class.
+ * @brief Private data for the Qore::FileInputStream class.
  */
-class BinaryOutputStream : public OutputStreamBase {
+class FileInputStream : public InputStreamBase {
 
 public:
-   DLLLOCAL BinaryOutputStream() : buf(new BinaryNode()){
+   DLLLOCAL FileInputStream(const QoreStringNode *fileName, ExceptionSink *xsink) {
+      f.open2(xsink, fileName->getBuffer(), O_RDONLY);
    }
 
    DLLLOCAL const char *getName() /*override*/ {
-      return "BinaryOutputStream";
+      return "FileInputStream";
    }
 
    DLLLOCAL bool isClosed() /*override*/ {
-      return !buf;
+      return !f.isOpen();
    }
 
    DLLLOCAL void close(ExceptionSink* xsink) /*override*/ {
       assert(!isClosed());
-      buf = 0;
-   }
-
-   DLLLOCAL void write(int64 value, int64 timeout, ExceptionSink* xsink) /*override*/ {
-      assert(!isClosed());
-      uint8_t v = value;
-      buf->append(&v, 1);
-   }
-
-   DLLLOCAL void bulkWrite(const void *ptr, int64 count, int64 timeout, ExceptionSink *xsink) /*override*/ {
-      assert(!isClosed());
-      assert(count >= 0);
-      buf->append(ptr, count);
-   }
-
-   DLLLOCAL BinaryNode *getData(ExceptionSink *xsink) {
-      if (!check(xsink)) {
-         return 0;
+      int rc = f.close();
+      if (rc) {
+         xsink->raiseException("IO-ERROR", "Error %d closing file", rc);
       }
+   }
+
+   DLLLOCAL int64 read(int64 timeout, ExceptionSink* xsink) /*override*/ {
       assert(!isClosed());
-      BinaryNode *ret = buf.release();
-      buf = new BinaryNode();
-      return ret;
+      uint8_t buf;
+      return f.read(&buf, 1, timeout, xsink) == 1 ? buf : -1;
+   }
+
+   DLLLOCAL int64 bulkRead(void *ptr, int64 limit, int64 timeout, ExceptionSink *xsink) /*override*/ {
+      assert(!isClosed());
+      assert(limit > 0);
+      return f.read(ptr, limit, timeout, xsink);
    }
 
 private:
-   SimpleRefHolder<BinaryNode> buf;
+   QoreFile f;
 };
 
-#endif // _QORE_BINARYOUTPUTSTREAM_H
+#endif // _QORE_FILEINPUTSTREAM_H

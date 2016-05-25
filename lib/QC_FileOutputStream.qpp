@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_BinaryOutputStream.qpp BinaryOutputStream class definition */
+/** @file QC_FileOutputStream.qpp FileOutputStream class definition */
 /*
   Qore Programming Language
 
@@ -29,27 +29,29 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/BinaryOutputStream.h"
+#include "qore/intern/FileOutputStream.h"
 
-//! This class implements the @ref OutputStream interface for writing bytes to a @ref binary buffer
+//! This class implements the @ref OutputStream interface for writing bytes to a file
 /** @since %Qore 0.8.12
 
-    @par Example: BinaryOutputStream basic usage
+    @par Example: FileOutputStream basic usage
     @code{.py}
-    BinaryOutputStream bos();
+    FileOutputStream fos();
     bos.write(1);
     bos.write(255);
     bos.getData();      # returns <01FF>
     @endcode
  */
-qclass BinaryOutputStream [arg=BinaryOutputStream* os; ns=Qore; vparent=OutputStream; flags=final];
+qclass FileOutputStream [arg=FileOutputStream* os; ns=Qore; vparent=OutputStream; flags=final; dom=FILESYSTEM];
 
-//! Creates the BinaryOutputStream
+//! Creates the FileOutputStream by opening or creating a file
 /**
+    @param fileName the name of the file to open
+    @param append if true, then bytes will be written to the end of the file
  */
-BinaryOutputStream::constructor() {
-   SimpleRefHolder<BinaryOutputStream> bos(new BinaryOutputStream());
-   self->setPrivate(CID_BINARYOUTPUTSTREAM, bos.release());
+FileOutputStream::constructor(string fileName, bool append = False) {
+   SimpleRefHolder<FileOutputStream> fos(new FileOutputStream(fileName, append, xsink));
+   self->setPrivate(CID_FILEOUTPUTSTREAM, fos.release());
 }
 
 //! Closes the output stream and releases any resources.
@@ -57,7 +59,7 @@ BinaryOutputStream::constructor() {
 
     @throw IO-ERROR if an I/O error occurs
  */
-nothing BinaryOutputStream::close() {
+nothing FileOutputStream::close() {
    os->closeHelper(xsink);
 }
 
@@ -73,8 +75,10 @@ nothing BinaryOutputStream::close() {
     @code{.py}
     os.write(5);
     @endcode
+
+    @throw FILE-WRITE-ERROR if an I/O error occurs
  */
-nothing BinaryOutputStream::write(int value, timeout timeout_ms = -1) {
+nothing FileOutputStream::write(int value, timeout timeout_ms = -1) {
    os->writeHelper(value, timeout_ms, xsink);
 }
 
@@ -89,15 +93,9 @@ nothing BinaryOutputStream::write(int value, timeout timeout_ms = -1) {
     @code{.py}
     os.write(<0405>);
     @endcode
- */
-nothing BinaryOutputStream::bulkWrite(binary data, timeout timeout_ms = -1) {
-   os->bulkWriteHelper(data, timeout_ms, xsink);
-}
 
-//! Returns the data written to the stream, clearing the internal buffer
-/**
-    @return the data written to the @ref BinaryOutputStream
+    @throw FILE-WRITE-ERROR if an I/O error occurs
  */
-binary BinaryOutputStream::getData() {
-   return os->getData(xsink);
+nothing FileOutputStream::bulkWrite(binary data, timeout timeout_ms = -1) {
+   os->bulkWriteHelper(data, timeout_ms, xsink);
 }

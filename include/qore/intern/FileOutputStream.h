@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  BinaryOutputStream.h
+  FileOutputStream.h
 
   Qore Programming Language
 
@@ -29,58 +29,56 @@
   information.
 */
 
-#ifndef _QORE_BINARYOUTPUTSTREAM_H
-#define _QORE_BINARYOUTPUTSTREAM_H
+#ifndef _QORE_FILEOUTPUTSTREAM_H
+#define _QORE_FILEOUTPUTSTREAM_H
 
 #include <stdint.h>
 #include "qore/intern/OutputStreamBase.h"
 
 /**
- * @brief Private data for the Qore::BinaryOutputStream class.
+ * @brief Private data for the Qore::FileOutputStream class.
  */
-class BinaryOutputStream : public OutputStreamBase {
+class FileOutputStream : public OutputStreamBase {
 
 public:
-   DLLLOCAL BinaryOutputStream() : buf(new BinaryNode()){
+   DLLLOCAL FileOutputStream(const QoreStringNode *fileName, bool append, ExceptionSink *xsink) {
+      f.open2(xsink, fileName->getBuffer(), O_WRONLY | (append ? O_APPEND : O_TRUNC) | O_CREAT);
    }
 
    DLLLOCAL const char *getName() /*override*/ {
-      return "BinaryOutputStream";
+      return "FileOutputStream";
    }
 
    DLLLOCAL bool isClosed() /*override*/ {
-      return !buf;
+      return !f.isOpen();
    }
 
    DLLLOCAL void close(ExceptionSink* xsink) /*override*/ {
       assert(!isClosed());
-      buf = 0;
+      int rc = f.close();
+      if (rc) {
+         xsink->raiseException("IO-ERROR", "Error %d closing file", rc);
+      }
    }
 
    DLLLOCAL void write(int64 value, int64 timeout, ExceptionSink* xsink) /*override*/ {
       assert(!isClosed());
       uint8_t v = value;
-      buf->append(&v, 1);
+      if (f.write(&v, 1, xsink) != 1) {
+         xsink->raiseException("FILE-WRITE-ERROR", "Error writing to file");
+      }
    }
 
    DLLLOCAL void bulkWrite(const void *ptr, int64 count, int64 timeout, ExceptionSink *xsink) /*override*/ {
       assert(!isClosed());
       assert(count >= 0);
-      buf->append(ptr, count);
-   }
-
-   DLLLOCAL BinaryNode *getData(ExceptionSink *xsink) {
-      if (!check(xsink)) {
-         return 0;
+      if (f.write(ptr, count, xsink) != count) {
+         xsink->raiseException("FILE-WRITE-ERROR", "Error writing to file");
       }
-      assert(!isClosed());
-      BinaryNode *ret = buf.release();
-      buf = new BinaryNode();
-      return ret;
    }
 
 private:
-   SimpleRefHolder<BinaryNode> buf;
+   QoreFile f;
 };
 
-#endif // _QORE_BINARYOUTPUTSTREAM_H
+#endif // _QORE_FILEOUTPUTSTREAM_H
