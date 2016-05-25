@@ -37,9 +37,9 @@
     @par Example: BinaryOutputStream basic usage
     @code{.py}
     BinaryOutputStream bos();
-    bos.write(1);
-    bos.write(255);
-    bos.getData();      # returns <01FF>
+    bos.bulkWrite(<0405>);
+    bos.write(6);
+    bos.getData();      # returns <040506>
     @endcode
  */
 qclass BinaryOutputStream [arg=BinaryOutputStream* os; ns=Qore; vparent=OutputStream; flags=final];
@@ -65,13 +65,15 @@ nothing BinaryOutputStream::close() {
 /**
     @param value the byte (0 - 255) to write to the output stream, only the least significant 8 bits are used,
            the rest is ignored
-    @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates
-           "relative date/time value"; integer arguments will be assumed to be milliseconds);
-           if not given or negative the call will never time out
+    @param timeout_ms ignored
 
     @par Example:
     @code{.py}
-    os.write(5);
+    BinaryOutputStream bos();
+    bos.write(4);
+    bos.write(5);
+    bos.write(6);
+    bos.getData();      # returns <040506>
     @endcode
  */
 nothing BinaryOutputStream::write(int value, timeout timeout_ms = -1) {
@@ -81,13 +83,14 @@ nothing BinaryOutputStream::write(int value, timeout timeout_ms = -1) {
 //! Writes bytes to the input stream
 /**
     @param data the data to write
-    @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates
-           "relative date/time value"; integer arguments will be assumed to be milliseconds);
-           if not given or negative the call will never time out
+    @param timeout_ms ignored
 
     @par Example:
     @code{.py}
-    os.write(<0405>);
+    BinaryOutputStream bos();
+    bos.bulkWrite(<0405>);
+    bos.bulkWrite(<06>);
+    bos.getData();      # returns <040506>
     @endcode
  */
 nothing BinaryOutputStream::bulkWrite(binary data, timeout timeout_ms = -1) {
@@ -97,6 +100,14 @@ nothing BinaryOutputStream::bulkWrite(binary data, timeout timeout_ms = -1) {
 //! Returns the data written to the stream, clearing the internal buffer
 /**
     @return the data written to the @ref BinaryOutputStream
+
+    @par Example:
+    @code{.py}
+    BinaryOutputStream bos();
+    bos.bulkWrite(<0405>);
+    bos.write(6);
+    bos.getData();      # returns <040506>
+    @endcode
  */
 binary BinaryOutputStream::getData() {
    return os->getData(xsink);

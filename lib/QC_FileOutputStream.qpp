@@ -36,10 +36,11 @@
 
     @par Example: FileOutputStream basic usage
     @code{.py}
-    FileOutputStream fos();
-    bos.write(1);
-    bos.write(255);
-    bos.getData();      # returns <01FF>
+    FileOutputStream fos("file.ext");
+    fos.write(1);
+    fos.bulkWrite(<0203>);
+    fos.close();
+    # file.ext now contains three bytes: 01 02 03
     @endcode
  */
 qclass FileOutputStream [arg=FileOutputStream* os; ns=Qore; vparent=OutputStream; flags=final; dom=FILESYSTEM];
@@ -67,13 +68,16 @@ nothing FileOutputStream::close() {
 /**
     @param value the byte (0 - 255) to write to the output stream, only the least significant 8 bits are used,
            the rest is ignored
-    @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates
-           "relative date/time value"; integer arguments will be assumed to be milliseconds);
-           if not given or negative the call will never time out
+    @param timeout_ms ignored
 
     @par Example:
     @code{.py}
-    os.write(5);
+    FileOutputStream fos("file.ext");
+    fos.write(1);
+    fos.write(2);
+    fos.write(3);
+    fos.close();
+    # file.ext now contains three bytes: 01 02 03
     @endcode
 
     @throw FILE-WRITE-ERROR if an I/O error occurs
@@ -85,13 +89,15 @@ nothing FileOutputStream::write(int value, timeout timeout_ms = -1) {
 //! Writes bytes to the input stream
 /**
     @param data the data to write
-    @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates
-           "relative date/time value"; integer arguments will be assumed to be milliseconds);
-           if not given or negative the call will never time out
+    @param timeout_ms ignored
 
     @par Example:
     @code{.py}
-    os.write(<0405>);
+    FileOutputStream fos("file.ext");
+    fos.bulkWrite(<01>);
+    fos.bulkWrite(<0203>);
+    fos.close();
+    # file.ext now contains three bytes: 01 02 03
     @endcode
 
     @throw FILE-WRITE-ERROR if an I/O error occurs

@@ -69,7 +69,7 @@ nothing BinaryInputStream::close() {
 
 //! Reads a single byte from the input stream; returns -1 if the end of the stream has been reached
 /**
-    @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates "relative date/time value"; integer arguments will be assumed to be milliseconds); if not given or negative the call will never time out
+    @param timeout_ms ignored
     @return the next byte (0 - 255) in the input stream or -1 if the end of the stream has been reached
 
     @par Example:
@@ -93,7 +93,7 @@ int BinaryInputStream::read(timeout timeout_ms = -1) {
 /**
 
     @param limit the maximum number of bytes to read
-    @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates "relative date/time value"; integer arguments will be assumed to be milliseconds); if not given or negative the call will never time out
+    @param timeout_ms ignored
     @return the read bytes (the length is between 1 and `limit` inclusive) or \ref NOTHING if no more bytes are available
 
     @par Example:
