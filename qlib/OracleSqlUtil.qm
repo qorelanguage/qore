@@ -266,6 +266,7 @@ my hash $schema = (
     - implemented @ref OracleSqlUtil::OracleTable::bindEmptyStringsAsNull()
     - implemented high-performance "upsert" (merge) support also supporting bulk DML
     - implemented @ref SqlUtil::cop_substr() and @ref SqlUtil::uop_substr() operators (<a href="https://github.com/qorelanguage/qore/issues/801">issue 801</a>)
+    - implemented @ref SqlUtil::op_substr() where operator (<a href="https://github.com/qorelanguage/qore/issues/883">issue 883</a>)
 
     @subsection v11 OracleSqlUtil v1.1
     - fixed selects with "limit" but no "offset"
@@ -1836,6 +1837,18 @@ my any $v = $c.name;
 %endif
                     },
                 ),
+                OP_SUBSTR: (
+                    "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+                        args += arg[0]; # start
+                        if (!exists arg[1]) {
+                            args += arg[2]; # text
+                            return sprintf("substr(%s,%v) = %v", cn);
+                        }
+                        args += arg[1]; # count
+                        args += arg[2]; # text
+                        return sprintf("substr(%s,%v,%v) = %v", cn);
+                    },
+                ),
             );
 
             #! column operator specializations for Oracle
@@ -2690,21 +2703,21 @@ my any $v = $c.name;
             if (!updc)
                 return getUpsertInsertOnly(cols, row, opt);
 
-            string sql = sprintf("merge into %s t using dual on (", getSqlName());
-            sql += foldl $1 + " and " + $2, (map sprintf("%s=%v", $1), getColumnSqlNames(cols.keys()));
+            string sql = sprintf("merge into %s t using (select ", getSqlName());
+            sql += foldl $1 + "," + $2, (map sprintf("%v as %s", $1), row.keys());
+            sql += " from dual) source on (";
+            sql += foldl $1 + " and " + $2, (map sprintf("t.%s = source.%s", $1, $1), getColumnSqlNames(cols.keys()));
             sql += sprintf(") when not matched then insert (");
-            sql += (foldl $1 + "," + $2, getColumnSqlNames(row.keys()));
+            sql += foldl $1 + "," + $2, getColumnSqlNames(row.keys());
             sql += ") values (";
-            sql += (foldl $1 + "," + $2, (map "%v", row.keyIterator()));
+            sql += foldl $1 + "," + $2, (map sprintf("source.%s", $1), getColumnSqlNames(row.keys()));
             sql += sprintf(") when matched then update set ");
-
-            # get update columns
-            sql += (foldl $1 + "," + $2, (map sprintf("%s=%v", $1), getColumnSqlNames(updc)));
+            sql += (foldl $1 + "," + $2, (map sprintf("%s = source.%s", $1, $1), getColumnSqlNames(updc)));
 
             #printf("sql: %s\n", sql);
 
             return int sub (hash crow) {
-                list args = crow.(cols.keys()).values() + crow.values() + crow{updc}.values();
+                list args = crow.values();
                 #on_error printf("SQL: %s args: %y\n", sql, args);
                 ds.vexec(sql, args);
                 return UR_Verified;
@@ -2713,16 +2726,20 @@ my any $v = $c.name;
 
         #! high-performance "insert only" upsert supporting bulk DML
         private code getUpsertInsertOnly(Columns cols, hash row, *hash opt) {
-            string sql = sprintf("merge into %s t using dual on (", getSqlName());
-            sql += foldl $1 + " and " + $2, (map sprintf("%s=%v", $1), getColumnSqlNames(cols.keys()));
+            string sql = sprintf("merge into %s t using (select ", getSqlName());
+            sql += foldl $1 + "," + $2, (map sprintf("%v as %s", $1), row.keys());
+            sql += " from dual) source on (";
+            sql += foldl $1 + " and " + $2, (map sprintf("t.%s = source.%s", $1, $1), getColumnSqlNames(cols.keys()));
             sql += sprintf(") when not matched then insert (");
-            sql += (foldl $1 + "," + $2, getColumnSqlNames(row.keys()));
+            sql += foldl $1 + "," + $2, getColumnSqlNames(row.keys());
             sql += ") values (";
-            sql += (foldl $1 + "," + $2, (map "%v", row.keyIterator()));
+            sql += foldl $1 + "," + $2, (map sprintf("source.%s", $1), getColumnSqlNames(row.keys()));
             sql += ")";
 
+            #printf("sql: %s\n", sql);
+
             return int sub (hash crow) {
-                list args = crow.(cols.keys()).values() + crow.values();
+                list args = crow.values();
                 #on_error printf("SQL: %s args: %y\n", sql, args);
                 int rc = ds.vexec(sql, args);
                 return crow.firstValue().lsize() > 1 ? UR_Verified : (rc ? UR_Inserted : UR_Unchanged);

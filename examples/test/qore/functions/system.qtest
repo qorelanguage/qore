@@ -25,9 +25,9 @@ class SystemCallTest inherits QUnit::Test {
 %endif
         string file = tmp_location() + "/output";
 
-        testAssertion("system() call", \system(), "/bin/echo -n OUTPUT > " + file, 0);
+        testAssertion("system() call", \system(), "/bin/echo OUTPUT > " + file, 0);
         on_exit unlink(file);
 
-        testAssertionValue("echo cmd verify", ReadOnlyFile::readTextFile(file), "OUTPUT");
+        assertEq("OUTPUT", chomp(ReadOnlyFile::readTextFile(file)));
     }
 }

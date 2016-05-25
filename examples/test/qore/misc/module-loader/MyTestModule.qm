@@ -18,15 +18,15 @@ public class MyTest::IndirectFileLineIterator inherits Qore::FileLineIterator {
 
 public class MyTest::TagClass {
     private {
-	string tag;
+        string tag;
     }
 
     constructor(string t) {
-	tag = t;
+        tag = t;
     }
 
     string getTag() {
-	return tag;
+        return tag;
     }
 }
 
