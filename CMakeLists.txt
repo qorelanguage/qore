@@ -189,7 +189,6 @@ set(QMOD
     qlib/SqlUtil.qm
     qlib/TableMapper.qm
     qlib/TelnetClient.qm
-    qlib/UnitTest.qm
     qlib/Util.qm
     qlib/WebSocketClient.qm
     qlib/WebSocketHandler.qm
