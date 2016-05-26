@@ -24,10 +24,23 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
             ("cc": "UK", "serno": 1234567892, "desc": "Sony, Xperia S", "received": 2012-05-31),
             ("cc": "UK", "serno": 1234567893, "desc": "Sony, Xperia S", "received": 2012-05-31),
         );
-    }
+        const CsvMultiInput = "1,2016-01,20160401
+2,123,\"Sony, Xperia S\",1,100
+2,124,\"Nokia, Lumia\",2,150
+3,250
+";
+
+        const CsvMultiRecords = (
+            ("type": 1, "invoice_no": "2016-01", "date": 2016-04-01),
+            ("type": 2, "item_no": 123, "item": "Sony, Xperia S", "pcs": 1, "price": 100),
+            ("type": 2, "item_no": 124, "item": "Nokia, Lumia", "pcs": 2, "price": 150),
+            ("type": 3, "total": 250),
+        );
+}
 
     constructor() : Test("CsvUtilTest", "1.0") {
         addTestCase("Basic CSV tests", \csvTest(), NOTHING);
+        addTestCase("Multi-type CSV tests", \csvMultiTest(), NOTHING);
         addTestCase("Escaping", \escapeTest());
 
         # Return for compatibility with test harness that checks return value.
@@ -39,12 +52,62 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
 
         # Iterate through source
         CsvDataIterator i(CsvInput, opts);
-        list l = map $1, i;
-        testAssertion("CsvDataIterator 1", \equalsIterated(), (i, new ListIterator(l)));
+        #list l = map $1, i;
+        testAssertion("CsvDataIterator 1", \equalsIterated(), (new ListIterator(CsvRecords), i));
+
+        CsvStringWriter w( ("write-headers": False, "optimal-quotes" : True, "quote_escape" : '"')+opts );
+        string outstr = w.write(CsvRecords);
+        testAssertion("CsvDataWriter writer", \equals(), (CsvInput+"\n", outstr));  # ending CR is assymetrical when empty lines are not ignored
 
         # test with empty data and header lines
         i = new CsvDataIterator("", ("header-lines": 1));
         testAssertion("CsvDataIterator 2", \i.next(), (), RESULT_FAILURE);
+    }
+
+    csvMultiTest() {
+        *hash opts = (
+            "fields": (
+                "type": "int",
+
+                "invoice_no": "string",
+                "date": ("type": "date", "format": "YYYYMMDD"),
+
+                "item_no": "string",
+                "item": "string",
+                "pcs": "int",
+                "price": "number",
+
+                "total": "number",
+            ),
+            "headers": (
+                "header": ("type", "invoice_no", "date"),
+                "item":   ("type", "item_no", "item", "pcs", "price"),
+                "footer": ("type", "total"),
+            ),
+            "resolve_type": string sub(hash values) {
+                softint type = values{'type'}??values{'0'};
+                switch (type) {
+                    case 1:
+                        return "header";
+                    case 2:
+                        return "item";
+                    case 3:
+                        return "footer";
+                }
+                return '';
+            },
+        );
+
+        # Iterate through source
+        CsvDataIterator i(CsvMultiInput, opts);
+
+        #list l = map $1, i;
+        testAssertion("multi iterator ", \equalsIterated(), (new ListIterator(CsvMultiRecords), i));
+
+        CsvStringWriter w( ("write-headers": False, "optimal-quotes" : True, "quote_escape" : '"')+opts );
+        string outstr = w.write(CsvMultiRecords);
+        testAssertion("multi writer", \equals(), (CsvMultiInput, outstr));
+
     }
 
     escapeTest() {
@@ -69,4 +132,26 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
         outstr = w.write(CsvRecords.iterator());
         assertEq("XX,serno,desc,received\n" + CsvInput + "\n", outstr);
     }
+/*
+    csvData() {
+        my hash opts = ("fields": ("id": "int", "name": "string", "descr": "string"));
+        const CsvInput2 = "1,UK,United Kingdom
+2,AT,Austria
+3,CZ,Czech rep.
+4,IE,Ireland
+";
+        const Output = (
+            {"id": 1, "name": "UK", "descr": "United Kingdom"},
+            {"id": 2, "name": "AT", "descr": "Austria"},
+            {"id": 3, "name": "UK", "descr": "Czech rep."},
+            {"id": 4, "name": "IE", "descr": "Ireland"},
+        };
+
+        # Iterate through source
+        CsvDataIterator i(CsvInput, opts);
+
+        testAssertion("CsvDataIterator 2", \equalsIterated(), (i, new ListIterator(Output)));
+
+    }
+*/
 }
