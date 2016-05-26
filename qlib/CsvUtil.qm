@@ -351,20 +351,16 @@ class CsvHelper {
         typeDefs{id} = d;
     }
 
-    private assignHeaders(any h) {
-        switch (h.typeCode()) {
-            case NT_HASH:
-                # multi type lines
-                if (h.hasKeyValue(''))
-                    throw "CSVHELPER-ERROR", sprintf("empty multi-type id is not allowed in headers: %y", h);
-                map addHeaders($1.key, $1.value), h.pairIterator();
-                break;
-            case NT_LIST:
-                addHeaders(NOTHING, h);
-                break;
-            default:
-                throw "CSVHELPER-ERROR", sprintf("expecting a list or hash value for header option, got %y (type %s)", h, h.type());
-        }
+    private assignHeaders(hash h) {
+        # multi type lines
+        if (h.hasKeyValue(''))
+            throw "CSVHELPER-ERROR", sprintf("empty multi-type id is not allowed in headers: %y", h);
+        map addHeaders($1.key, $1.value), h.pairIterator();
+        setTypeDef(NOTHING);
+    }
+
+    private assignHeaders(list h) {
+        addHeaders(NOTHING, h);
         setTypeDef(NOTHING);
     }
 
@@ -387,21 +383,26 @@ class CsvHelper {
     }
 
     #! resolve line type when multi-type is needed. Type of values parameter is list (index based values) or hash for name based values.
-    public string doResolveType(any values) {
-        softint type = -1;
-        my hash hval;
-        if (values.typeCode() == NT_LIST) {
-            hval = hash();
-            # convert list to hash
-            map hval.$# = $1, values;
-        } else {
-            hval = values;
-        }
+    public string doResolveType(hash values) {
         if (resolveType.callp()) {
+            my hash hval;
+            if (values.typeCode() == NT_LIST) {
+                hval = hash();
+                # convert list to hash
+                map hval.$# = $1, values;
+            } else {
+                hval = values;
+            }
             return resolveType(hval);  # evaluation defined via options
         } else {
             return typeDefs.firstKey();
         }
+    }
+
+    public string doResolveType(list values) {
+        # convert list to hash
+        hash hval = map {$#: $1}, values;
+        return doResolveType(hval);
     }
 
 } # class CsvHelper
