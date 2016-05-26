@@ -289,6 +289,7 @@
       - added public function \c ordinal()
       - added public function \c plural()
       - added public function \c regex_escape()
+      - added public function \c zip()
      - \c parse_to_qore_value() now respects parenthes when parsing lists and hashes (<a href="https://github.com/qorelanguage/qore/issues/846">issue 846</a>)
     - added initial support for UTF-16 character encoding; note that UTF-16 is not backwards-compatible with ASCII and therefore not supported universally in %Qore; it's recommended to convert these strings to UTF-8 in %Qore; do not use UTF-16 as the default character encoding in %Qore; currently UTF-16 data can be parsed using the following classes that convert the data to UTF-8:
       - @ref Qore::DataLineIterator
@@ -314,6 +315,7 @@
       - fixed bugs where URI strings were improperly encoded and decoded (also fixed in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module)
       - fixed a bug where URI paths were sent as relative paths instead of absolute paths
       - fixed issues where multiple leading \c "/" chars were sometimes present in the request URI path
+      - fixed an issue where a trailing \c "/" char was sometimes added to the request URI path (<a href="https://github.com/qorelanguage/qore/issues/899">issue 899</a>)
     - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module fixes:
       - fixed a bug where the \c "format" field option was not usable with fields assigned type \c "*date"
       - fixed the default field type as "*string" (from "string") to avoid parsing and outputting empty strings for missing input data
@@ -370,6 +372,7 @@
       - fixed a bug where an error calling an internal nonexistent method would be reported with an incorrect error message
       - send errors are now reported in the \c AbstractRestStreamRequestHandler object so they can be properly logged (<a href="https://github.com/qorelanguage/qore/issues/734">issue 734</a>)
       - unknown REST class errors with the base class are now reported consistently like all other such errors (<a href="https://github.com/qorelanguage/qore/issues/859">issue 859</a>)
+      - fixed an issue where request URI paths with multiple consecutive \c "/" chars were handled incorrectly (<a href="https://github.com/qorelanguage/qore/issues/900">issue 900</a>)
     - <a href="../../modules/Util/html/index.html">Util</a> module fixes:
       - fixed \c normalize_dir_windows() handling of UNC paths (<a href="https://github.com/qorelanguage/qore/issues/813">issue 813</a>)
     - fixed a memory error in error-handling with type errors when parsing user module headers that could cause a crash

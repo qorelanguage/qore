@@ -800,6 +800,12 @@ addTestCase(obj);
             # For some very simple values that fit on one line, just put it on one line. For values that would overflow the standard line size, do two lines.
             bool twoline = length(expected) + length(actual) > 40;
             result += sprintf("Expected%s: %s%sActual: %s", neg ? " Not Equal" : "", expected, twoline ? "\n" : ", ", actual);
+            # For numeric values, when really verbose or difference not visible, compute and show the difference.
+            if ((m_options.verbose > 1 || sprintf("%y", exp) == sprintf("%y", act)) &&
+                    inlist (exp.typeCode(), (NT_INT, NT_FLOAT, NT_NUMBER)) &&
+                    inlist (act.typeCode(), (NT_INT, NT_FLOAT, NT_NUMBER))) {
+                result += sprintf("%sDifference: %y", twoline ? "\n" : ", ", abs(exp-act));
+            }
         } else {
             string hr = "\t--------------------\n";
             result += sprintf("Expected%s:\n", neg ? " Not Equal" : "") + hr;
