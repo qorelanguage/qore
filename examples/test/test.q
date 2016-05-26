@@ -31,51 +31,9 @@
 %no-child-restrictions
 
 %append-module-path ../../qlib
-%requires ../../qlib/UnitTest.qm
 %requires ../../qlib/Util.qm
 
 %exec-class Test
-
-class MyUnitTest inherits UnitTest {
-    private {
-        *softlist rlist;
-        *softlist slist;
-
-        const MyOpts = Opts + (
-            "skip": "S,skip=s@",
-            );
-    }
-
-    constructor(*reference p_argv, hash opts = MyOpts) : UnitTest(\p_argv, opts) {
-    }
-
-    processOptions(reference p_argv) {
-        rlist = remove p_argv;
-        if (m_options.slist && rlist) {
-            printf("%s: error: cannot use both \"skip\" and inclusive test options in the same command\n", get_script_name());
-            exit(1);
-        }
-        UnitTest::processOptions(\p_argv);
-    }
-
-    bool doFile(string fname) {
-        # check for tests to be skipped
-        foreach string sstr in (m_options.slist) {
-            if (regex(fname, sstr))
-                return False;
-        }
-
-        # check for tests to be expicitly run
-        if (!rlist)
-            return True;
-
-        foreach string rstr in (rlist) {
-            if (regex(fname, rstr))
-                return True;
-        }
-        return False;
-    }
-}
 
 class Test {
     public {
@@ -87,8 +45,6 @@ class Test {
     }
 
     constructor() {
-        our MyUnitTest unit(\ARGV);
-
         doDir(get_script_dir());
         if (rc)
             exit(rc);
@@ -109,10 +65,7 @@ class Test {
     }
 
     doFile(string fname) {
-        if (!unit.doFile(fname))
-            return;
-
-        unit.printLog(sprintf("running %s", fname));
+        printf("running %s\n", fname);
 
         Program pgm = getTestProgram(fname);
         # save current directory and restore afterwards
@@ -123,29 +76,15 @@ class Test {
     }
 
     private Program getTestProgram(string fname) {
-        # UnitTest variable name detected from the embedded file
-        string vn;
         # bare-refs flag
         bool br = False;
-        # uses UnitTest?
-        bool ut = False;
         # parse options
         int po = PO_ALLOW_INJECTION|PO_NO_CHILD_PO_RESTRICTIONS;
         # read in file
-        string fd = getFile(fname, \vn, \br, \ut, \po);
+        string fd = getFile(fname, \br, \po);
 
         Program pgm(po);
         pgm.setScriptPath(fname);
-        if (ut) {
-            pgm.loadModule("UnitTest");
-            pgm.importGlobalVariable("unit");
-            # add an alias for the $unit variable if the script uses another variable
-            if (vn && vn != "unit") {
-                *string d = br ? "" : "\$";
-                string nd = sprintf("our UnitTest %s%s = %sunit;", d, vn, d);
-                fd = replace(fd, "#XXX_MARKER_XXX", nd);
-            }
-        }
 
         # parse the code
         try {
@@ -159,7 +98,7 @@ class Test {
         return pgm;
     }
 
-    private string getFile(string fname, reference vn, reference br, reference ut, reference po) {
+    private string getFile(string fname, reference br, reference po) {
         FileLineIterator i(fname);
 
         string str;
@@ -177,15 +116,7 @@ class Test {
                 }
             }
 
-            if (!ut && line =~ /^%requires.*UnitTest/)
-                ut = True;
-
-            # replace the UnitTest declaration with a marker
-            if (*string v = (line =~ x/(((my|our)\s+)?UnitTest\s+(\$)?([a-zA-Z0-9_]+)\(\))\s*;/)[4]) {
-                line =~ s/(((my|our)\s+)?UnitTest\s+(\$)?[a-zA-Z0-9_]+\(\))\s*;/#XXX_MARKER_XXX/;
-                vn = v;
-            }
-            else if (!br && (line =~ /^%allow-bare-refs/ || line =~ /^%new-style/))
+            if (!br && (line =~ /^%allow-bare-refs/ || line =~ /^%new-style/))
                 br = True;
 
             str += line + "\n";
