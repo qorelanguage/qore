@@ -388,7 +388,7 @@ rest.setContentEncoding("gzip");
             - @ref RestClient::RestClient::getSendEncoding() "RestClient::getSendEncoding()"
             - @ref RestClient::RestClient::setSendEncoding() "RestClient::setSendEncoding()"
 
-            @since %restClient 1.3
+            @since %RestClient 1.3
         */
         setContentEncoding(string enc = "auto") {
             if (enc == "auto")
