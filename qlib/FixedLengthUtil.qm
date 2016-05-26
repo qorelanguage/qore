@@ -79,7 +79,7 @@ module FixedLengthUtil {
 # the following spec is suitable for input and output
 const Specs = (
     "header": (
-        "flow_type": ("length": 3, "type": "string"),
+        "flow_type": ("length": 3, "type": "string", "value": "001"),
         "record_type": ("length": 3, "type": "int", "padding_char": "0"),
         "number_of_records": ("length": 8, "type": "int", "padding_char": "0"),
     ),
@@ -91,7 +91,7 @@ const Specs = (
         "po_number": ("length": 10, "type": "int", "padding_char": "0"),
     ),
     "trailer": (
-        "flow_type": ("length": 3, "type": "string"),
+        "flow_type": ("length": 3, "type": "string", "value": "003"),
         "record_type": ("length": 3, "type": "int", "padding_char": "0"),
         "number_of_records": ("length": 8, "type": "int", "padding_char": "0"),
     ),
@@ -104,10 +104,14 @@ const Specs = (
 
     Each record will have a number of fields described in the record description hash.  The record description hash keys
     represent the names of the fields, and the values are @ref fixedlengthspecrow "field specification hashes".
+    If the line length is not unique then a rule must exist to resolve type. Typically a field value in the first
+    column determines type of line. But any field might be decision field or event more field together may form rule
+    (AND condition). Field value equality or test by regular expression may be used.
 
     In the \c "header" record in the example above, the fields are \c "flow_type", \c "record_type",
     and \c "number_of_records", and the values of each of those keys are @ref fixedlengthspecrow "field specification hashes"
-    for the given fields.
+    for the given fields. As the \c "header" and \c "trailer" have equal line length extra rule is needed to resolve type by
+    field value of column \c "flow_type".
 
     @subsection fixedlengthspecrow Field Specification Hash
 
@@ -120,6 +124,21 @@ const Specs = (
     | \c timezone|string|override global timezone for current "date" field
     | \c padding|string|set padding of the field "left" (default) or "right"; used only in writers; if not given then the default padding depends on the field's \a type: \c "int" fields get left padding (right justification) and all others get right padding (left justification)
     | \c padding_char|string|a string with size 1 to use for \c padding. Default \c " " (space). Used only in writers
+    | \c value|string|field value determining line type
+    | \c regex|string|regular expression determining line type
+    | \c default|string|In writer the value is default output value when value is not specified in record data.
+
+    @subsection typeResolving Record Type Resolving
+
+    Type record resolving is processed in FixedLengthUtil::FixedLengthAbstractIterator::identifyType(). Default implementation evaluates rules
+    defined by \c "value" or \c "regex" options to match records. Evaluation is processed in order of type declaration in hash.
+    It enables potentially support also simplified longest prefix match criteria. As decision fields may be defined any fields regardless their position.
+    \c "Value" matches against full value (double check type conversion when comparing non-string value against substring), \c "regex"
+    matches against substring starting at field position and string is left untruncated, i.e. to the end record line. It enables regular expression matching
+    against multiple columns if needed. \c "Regex" and \c "value" are mutually exclusive in one field rule.
+    When no rule is specified for a record type then the type is assigned when none of concurrent rules has matched (or if no-rule type is the only one type).
+    When more no-rule record type of the same length are specified then developer must implement own algorithm
+    by overriding FixedLengthUtil::FixedLengthAbstractIterator::identifyType() function. Typically own decision logic is implemented followed by call of ancestor function.
 
     @subsection fixedlengthspectypes Field Data Types
 
@@ -242,10 +261,10 @@ public namespace FixedLengthUtil {
 public class FixedLengthUtil::FixedLengthAbstractIterator {
     private {
         hash m_specs;
-        hash m_line_lengths;
+        hash m_resolve_by_rule;
         string m_state;
-        #! hash of conflicting records; key = record length, value = list of conflicting record names
-        hash m_conflicts;
+        #! hash of type without rule, i.e.potentially conflicting records; key = record length, value = list of no-rule type names
+        hash m_resolve_by_length;
         *hash m_opts; # encoding, eol, ignore_empty, timezone, etc
     }
 
@@ -261,22 +280,44 @@ public class FixedLengthUtil::FixedLengthAbstractIterator {
         m_opts            += checkOptions(opts);
 
         # Determine line lengths of each spec, for use by the default identifyType() method. We do this by building a reverse length -> type table.
-        m_line_lengths = hash();
+        m_resolve_by_rule = hash();
         foreach string k in (m_specs.keyIterator()) {
             if (m_specs{k}.typeCode() != NT_HASH)
                 throw "FIXED-LENGTH-UTIL-INVALID-SPEC", sprintf("expecting a record description hash assigned to record key %y; got type %y instead (value: %y)", k, m_specs{k}.type(), m_specs{k});
             int len = 0;
+            list rec_rule = ();
             foreach string c in (m_specs{k}.keyIterator()) {
                 if (!m_specs{k}{c}.length)
                     throw "FIXED-LENGTH-UTIL-INVALID-SPEC", sprintf("Length missing for field %y", c);
+                hash fld_rule;
+                if (exists m_specs{k}{c}.regex) {
+                    if (exists m_specs{k}{c}.value) {
+                        throw "FIXED-LENGTH-UTIL-INVALID-SPEC", sprintf("Both value and regex used in field rule for field %y, type: %y", c, k);
+                    }
+                    # regex has higher priority, value can be used as default value in writer so specifying both makes sense
+                    fld_rule.regex = m_specs{k}{c}.regex;
+                } else if (exists m_specs{k}{c}.value) {
+                    fld_rule.value = m_specs{k}{c}.value;
+                }
+                if (fld_rule) {
+                    fld_rule.pos = len;
+                    fld_rule.len = m_specs{k}{c}.length;
+                    rec_rule += fld_rule;
+                }
                 len += m_specs{k}{c}.length;
             }
-            # If any two type line lengths are not unique, save the conflicting length so that only conflicting records must be identified
-            if (m_line_lengths{len})
-                m_conflicts{len} += (k,);
-            else
-                m_line_lengths{len} = k;
+            if (rec_rule) {
+                # filter specified
+                m_resolve_by_rule{len}{k} = rec_rule;
+            } else {
+                # no spec filter, check potential conflict later
+                if (!m_resolve_by_length{len}) {
+                    m_resolve_by_length{len} = ();
+                }
+                m_resolve_by_length{len} += (k);
+            }
         }
+
     }
 
     abstract *string getLine();
@@ -434,7 +475,7 @@ my hash $h = $i.getValue();
         return type;
     }
 
-    #! Identify a fixed-length line type, given the raw line string. This method performs a lookup to a precalculated table based on line lengths (see constructor()). In case a different criteria is needed, eg. when two line types in a spec have the same length, this method needs to be overridden, and will throw an exception, because the precalculated mapping will be empty.
+    #! Identify a fixed-length line type, given the raw line string. This method performs a lookup to a precalculated table based on line lengths (see constructor()). In case a different criteria is needed, eg. when two line types in a spec have the same length and no unique resolving rula are specified, this method needs to be overridden, and will throw an exception, because the precalculated mapping will be empty.
     /**
         @param input_line Input line to be identified
 
@@ -443,13 +484,52 @@ my hash $h = $i.getValue();
         @throw FIXED-LENGTH-UTIL-NON-MATCHING-TYPE input line cannot be matched to a known record or the input line's length does not match the expected length
     */
     *string identifyTypeImpl(string input_line) {
-        if (m_conflicts{input_line.size()})
-            throw "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", sprintf("Line with byte length %d was not automatically matched since the following records have this length: %y; you need to provide your own identifyTypeImpl() method (record: %s)", input_line.size(), m_conflicts{input_line.size()}, input_line);
+        *string rv;
+        int len = input_line.size();
+        if (!m_resolve_by_rule{len} && !m_resolve_by_length{len})
+            throw "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", sprintf("Line of unexpected length %d found; known lengths: %y (record: %s)", len, (map $1.toInt(), m_resolve_by_rule.keyIterator()+m_resolve_by_length.keyIterator()).sort(), input_line);
 
-        *string rv = m_line_lengths{input_line.size()};
-        if (!rv)
-            throw "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", sprintf("Line of unexpected length %d found; known lengths: %y (record: %s)", input_line.size(), (map $1.toInt(), m_line_lengths.keyIterator()), input_line);
-
+        if (m_resolve_by_rule{len}) {
+            # try match type by filter spec
+            foreach string k in (m_resolve_by_rule{len}.keyIterator()) {
+                list rec_rule = m_resolve_by_rule{len}{k};
+                bool found = True;  # flt has always at least one item
+                foreach hash fld_rule in (rec_rule) {
+                    if (exists fld_rule.regex) {
+                        # we do not limit regex to field length to support multi field regex
+                        if (!input_line.substr(fld_rule.pos).regex(fld_rule.regex)) {
+                            found = False;
+                            break;
+                        }
+                    } else {
+                        string val = input_line.substr(fld_rule.pos, fld_rule.len);
+                        if (fld_rule.value.typeCode() == NT_INT) {
+                            # special care about int type,  0 == "000" should evaluate as True
+                            if (!val.intp() || val.toInt() != fld_rule.value) {
+                                found = False;
+                                break;
+                            }
+                        } else {
+                            if (val != fld_rule.value) {
+                                found = False;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (found) {
+                    rv = k;
+                    break;
+                }
+            }
+        }
+        if (!rv && m_resolve_by_length{len}) {
+            if (m_resolve_by_length{len}.size() == 1) {
+                rv = m_resolve_by_length{len}[0];
+            }
+            if (m_resolve_by_length{len}.size() > 1)
+                throw "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", sprintf("Line with byte length %d was not automatically matched since the following records have this length: %y; you need to provide your own identifyTypeImpl() method or specify rules (record: %s)", len, m_resolve_by_length{len}, input_line);
+        }
         return rv;
     }
 
@@ -542,6 +622,8 @@ public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::
 /**
     @par Example:
     @code{.py}
+string data = "00001AV\n00002BN\00003CZ\n";
+
 hash specs = (
     "type1" : (
         "col1": ("length": 5, "type": "int"),
@@ -563,7 +645,7 @@ hash global_options = (
     "timezone"     : "Europe/Prague", # used if not overridden in a date field specification
 );
 
-FixedLengthDataIterator i(string, specs, global_options);
+FixedLengthDataIterator i(data, specs, global_options);
 while (i.next()) {
     operation_with_hash(i.getValue())
 }
@@ -717,7 +799,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
             # field description
             hash fh = m_specs{type}{field};
 
-            any value = line.record{field};
+            any value = line.record{field} ?? fh.default;  # default value from specification
             # format output
             switch (fh.type) {
                 case "float":
@@ -934,7 +1016,7 @@ w.write(i);
     @code{.py}
 const Spec = (
     "header": (
-        "flow_type": ("length": 3, "type": "string"),
+        "flow_type": ("length": 3, "type": "string", "value": "001"),
         "record_type": ("length": 3, "type": "int", "padding_char": "0"),
         "number_of_records": ("length": 8, "type": "int", "padding_char": "0"),
     ),
@@ -946,7 +1028,7 @@ const Spec = (
         "po_number": ("length": 10, "type": "int", "padding_char": "0"),
     ),
     "trailer": (
-        "flow_type": ("length": 3, "type": "string"),
+        "flow_type": ("length": 3, "type": "string", "value": "003"),
         "record_type": ("length": 3, "type": "int", "padding_char": "0"),
         "number_of_records": ("length": 8, "type": "int", "padding_char": "0"),
     ),
