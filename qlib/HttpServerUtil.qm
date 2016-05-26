@@ -795,7 +795,7 @@ public class HttpServer::AbstractHttpRequestHandler {
     hash handleRequest(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data body) {
         # classic, non-streaming interface
         if (!stream) {
-            any rv = handleRequest(cx, hdr, getMessageBody(s, hdr, body));
+            any rv = handleRequest(cx, hdr, body ?? getMessageBody(s, hdr, body));
             switch (rv.typeCode()) {
                 case NT_HASH: return rv;
                 case NT_STRING:
