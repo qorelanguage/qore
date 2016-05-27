@@ -509,7 +509,7 @@
     - fixed an I/O-handling bug in the @ref Qore::ReadOnlyFile and @ref Qore::File classes where I/O errors in read operations were silently ignored (<a href="https://github.com/qorelanguage/qore/issues/627">issue 627</a>)
     - fixed bugs in @ref Qore::ReadOnlyFile::readTextFile() and @ref Qore::ReadOnlyFile::readBinaryFile() would return @ref nothing instead of an empty object when reading empty files; now empty objects are returned in these cases (<a href="https://github.com/qorelanguage/qore/issues/508">issue 508</a>)
     - fixed a bug in *printf() outputs on Windows with scientific notation with floating-point values (<a href="https://github.com/qorelanguage/qore/issues/631">issue 621</a>)
-    - fixed a bug where the precision of numbers during arithmetic operations was not adjusted correctly (<a href="https://github.com/qorelanguage/qore/issues/630">issue 630</a>)
+    - fixed a bug where the precision of numbers during arithmetic operations was not adjusted correctly (<a href="https://github.com/qorelanguage/qore/issues/630">issue 630</a>, <a href="https://github.com/qorelanguage/qore/issues/908">issue 908</a>)
     - fixed a bug where the type of subtraction of two numbers was inferred as NOTHING during parsing (<a href="https://github.com/qorelanguage/qore/issues/636">issue 636</a>)
     - fixed a bug on Windows with @ref Qore::Dir::create() (<a href="https://github.com/qorelanguage/qore/issues/643">issue 643</a>)
     - fixed a bug where CRLF line endings were not handled correctly by the %exec-class parse directive (<a href="https://github.com/qorelanguage/qore/issues/653">issue 653</a>)

@@ -273,7 +273,9 @@ struct qore_number_private : public qore_number_private_intern {
 
    DLLLOCAL qore_number_private* doBinary(q_mpfr_binary_func_t func, const qore_number_private& r, ExceptionSink* xsink = 0) const {
       mpfr_prec_t prec;
-      if (func == mpfr_mul || func == mpfr_div) {
+      if (func == mpfr_pow) {
+         prec = mpfr_get_prec(num) * QORE_MIN(QORE_MAX_PREC, r.getAsBigInt());
+      } else if (func == mpfr_mul || func == mpfr_div) {
          prec = mpfr_get_prec(num) + mpfr_get_prec(r.num);
       } else {
          prec = QORE_MAX(mpfr_get_prec(num), mpfr_get_prec(r.num)) + 1;
