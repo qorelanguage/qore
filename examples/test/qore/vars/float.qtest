@@ -17,10 +17,27 @@ class FloatTest inherits QUnit::Test {
 
     constructor() : QUnit::Test("FloatTest", "1.0") {
         addTestCase("FloatTests", \floatTests());
+        addTestCase("infp test", \infpTests());
+        addTestCase("nanp test", \nanpTests());
         set_return_value(main());
     }
 
     floatTests() {
         assertEq("-2e-34", (-2e-34).toString());
+    }
+
+    infpTests() {
+        assertTrue(@inf@.infp());
+        assertTrue((-@inf@).infp());
+        assertTrue(nlog(@inf@).infp());
+        assertFalse((1.0).infp());
+        assertFalse(@nan@.infp());
+    }
+
+    nanpTests() {
+        assertTrue(@nan@.nanp());
+        assertTrue(nlog(-1.0).nanp());
+        assertFalse((1.0).nanp());
+        assertFalse(@inf@.nanp());
     }
 }
