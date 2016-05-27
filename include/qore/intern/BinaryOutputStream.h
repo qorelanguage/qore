@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  qore_list_private.h
+  BinaryOutputStream.h
 
   Qore Programming Language
 
@@ -29,52 +29,58 @@
   information.
 */
 
-#ifndef _QORE_QORELISTPRIVATE_H
-#define _QORE_QORELISTPRIVATE_H
+#ifndef _QORE_BINARYOUTPUTSTREAM_H
+#define _QORE_BINARYOUTPUTSTREAM_H
 
-typedef ReferenceHolder<QoreListNode> safe_qorelist_t;
+#include <stdint.h>
+#include "qore/intern/OutputStreamBase.h"
 
-inline QoreListNode* do_args(AbstractQoreNode* e1, AbstractQoreNode* e2) {
-   QoreListNode* l = new QoreListNode;
-   e1->ref();
-   l->push(e1);
-   e2->ref();
-   l->push(e2);
-   return l;
-}
+/**
+ * @brief Private data for the Qore::BinaryOutputStream class.
+ */
+class BinaryOutputStream : public OutputStreamBase {
 
-struct qore_list_private {
-   AbstractQoreNode** entry;
-   qore_size_t length;
-   qore_size_t allocated;
-   unsigned obj_count;
-   bool finalized : 1;
-   bool vlist : 1;
-
-   DLLLOCAL qore_list_private() : entry(0), length(0), allocated(0), obj_count(0), finalized(false), vlist(false) {
+public:
+   DLLLOCAL BinaryOutputStream() : buf(new BinaryNode()){
    }
 
-   DLLLOCAL ~qore_list_private() {
-      assert(!length);
-
-      if (entry)
-	 free(entry);
+   DLLLOCAL const char *getName() /*override*/ {
+      return "BinaryOutputStream";
    }
 
-   DLLLOCAL void incScanCount(int dt) {
-      assert(dt);
-      assert(obj_count || (dt > 0));
-      //printd(5, "qore_list_private::incScanCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
-      obj_count += dt;
+   DLLLOCAL bool isClosed() /*override*/ {
+      return !buf;
    }
 
-   DLLLOCAL static unsigned getScanCount(const QoreListNode& l) {
-      return l.priv->obj_count;
+   DLLLOCAL void close(ExceptionSink* xsink) /*override*/ {
+      assert(!isClosed());
+      buf = 0;
    }
 
-   DLLLOCAL static void incScanCount(const QoreListNode& l, int dt) {
-      l.priv->incScanCount(dt);
+   DLLLOCAL void write(int64 value, int64 timeout, ExceptionSink* xsink) /*override*/ {
+      assert(!isClosed());
+      uint8_t v = value;
+      buf->append(&v, 1);
    }
+
+   DLLLOCAL void bulkWrite(const void *ptr, int64 count, int64 timeout, ExceptionSink *xsink) /*override*/ {
+      assert(!isClosed());
+      assert(count >= 0);
+      buf->append(ptr, count);
+   }
+
+   DLLLOCAL BinaryNode *getData(ExceptionSink *xsink) {
+      if (!check(xsink)) {
+         return 0;
+      }
+      assert(!isClosed());
+      BinaryNode *ret = buf.release();
+      buf = new BinaryNode();
+      return ret;
+   }
+
+private:
+   SimpleRefHolder<BinaryNode> buf;
 };
 
-#endif
+#endif // _QORE_BINARYOUTPUTSTREAM_H

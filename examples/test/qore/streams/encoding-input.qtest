@@ -1,0 +1,107 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class EncodingConversionInputStreamTest
+
+class SrcStream inherits InputStream {
+    public {
+        binary data;
+        int offset = 0;
+        bool closed = False;
+    }
+
+    constructor(binary d) {
+        data = d;
+    }
+
+    close() {
+        closed = True;
+    }
+
+    int read(timeout timeout_ms = -1) {
+        throw "UNEXPECTED-CALL";
+    }
+
+    *binary bulkRead(int limit, timeout timeout_ms = -1) {
+        if (offset == length(data)) {
+            return NOTHING;
+        }
+        binary b = data.substr(offset, 1);
+        offset += 1;
+        return b;
+    }
+}
+
+public class EncodingConversionInputStreamTest inherits QUnit::Test {
+
+    constructor() : Test("EncodingConversionInputStreamTest", "1.0") {
+        addTestCase("empty", \empty());
+        addTestCase("read byte", \read());
+        addTestCase("bulk read", \bulkRead());
+        addTestCase("close", \close());
+        addTestCase("invalid", \invalid());
+        addTestCase("invalidAtEnd", \invalidAtEnd());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    empty() {
+        EncodingConversionInputStream is(new BinaryInputStream(binary()), "UTF-8", "ISO8859-2");
+        assertEq(-1, is.read());
+        assertEq(NOTHING, is.bulkRead(100));
+    }
+
+    close() {
+        SrcStream src(<C5A0C48D>);
+        EncodingConversionInputStream is(src, "UTF-8", "ISO8859-2");
+        is.close();
+        assertTrue(src.closed);
+        assertThrows("INPUT-STREAM-CLOSED-ERROR", sub() { is.close(); });
+        assertThrows("INPUT-STREAM-CLOSED-ERROR", sub() { is.read(); });
+        assertThrows("INPUT-STREAM-CLOSED-ERROR", sub() { is.bulkRead(2); });
+    }
+
+    read() {
+        SrcStream src(<C5A0C48D>);
+        EncodingConversionInputStream is(src, "UTF-8", "ISO8859-2");
+        assertEq(0xA9, is.read());
+        assertEq(0xE8, is.read());
+        assertEq(-1, is.read());
+        assertEq(-1, is.read());
+    }
+
+    bulkRead() {
+        SrcStream src(<C5A0C48D>);
+        EncodingConversionInputStream is(src, "UTF-8", "UTF-16BE");
+        assertThrows("INPUT-STREAM-ERROR", sub() { is.bulkRead(0); });
+        assertThrows("INPUT-STREAM-ERROR", sub() { is.bulkRead(-2); });
+        assertEq(<0160>, is.bulkRead(2));
+        assertEq(<01>, is.bulkRead(1));
+        assertEq(<0D>, is.bulkRead(1));
+        assertEq(NOTHING, is.bulkRead(2));
+        assertEq(NOTHING, is.bulkRead(10));
+    }
+
+    invalid() {
+        SrcStream src(<C5C48D>);
+        EncodingConversionInputStream is(src, "UTF-8", "ISO8859-2");
+        assertThrows("ENCODING-CONVERSION-ERROR", sub() { is.read(); });
+        assertThrows("ENCODING-CONVERSION-ERROR", sub() { is.read(); });
+    }
+
+    invalidAtEnd() {
+        SrcStream src(<C5A0C4>);
+        EncodingConversionInputStream is(src, "UTF-8", "ISO8859-2");
+        assertEq(0xA9, is.read());
+        assertThrows("ENCODING-CONVERSION-ERROR", sub() { is.read(); });
+        assertThrows("ENCODING-CONVERSION-ERROR", sub() { is.read(); });
+    }
+}

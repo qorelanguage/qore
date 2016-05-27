@@ -543,6 +543,19 @@ BinaryNode *QoreFile::readBinary(qore_offset_t size, int timeout_ms, ExceptionSi
    return new BinaryNode(buf, size);
 }
 
+qore_size_t QoreFile::read(void *ptr, qore_size_t limit, int timeout_ms, ExceptionSink *xsink) {
+   if (timeout_ms >= 0 && !priv->isDataAvailable(timeout_ms, xsink)) {
+      xsink->raiseException("FILE-READ-TIMEOUT-ERROR", "timeout limit exceeded (%d ms) reading file", timeout_ms);
+      return 0;
+   }
+   qore_size_t rc = priv->read(ptr, limit);
+   if (rc < 0) {
+      xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file");
+      return 0;
+   }
+   return rc;
+}
+
 int QoreFile::writei1(char i, ExceptionSink *xsink) {
    AutoLocker al(priv->m);
 

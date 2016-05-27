@@ -275,6 +275,13 @@
 #include "QC_TimeZone.cpp"
 #include "QC_TreeMap.cpp"
 #include "QC_AbstractThreadResource.cpp"
+#include "QC_InputStream.cpp"
+#include "QC_BinaryInputStream.cpp"
+#include "QC_FileInputStream.cpp"
+#include "QC_EncodingConversionInputStream.cpp"
+#include "QC_OutputStream.cpp"
+#include "QC_BinaryOutputStream.cpp"
+#include "QC_FileOutputStream.cpp"
 
 #include "QorePseudoMethods.cpp"
 

@@ -1,0 +1,51 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class BinaryOutputStreamTest
+
+public class BinaryOutputStreamTest inherits QUnit::Test {
+
+    constructor() : Test("BinaryOutputStreamTest", "1.0") {
+        addTestCase("write byte", \write());
+        addTestCase("bulk write", \bulkWrite());
+        addTestCase("close", \close());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    close() {
+        BinaryOutputStream bos();
+        bos.close();
+        assertThrows("OUTPUT-STREAM-CLOSED-ERROR", sub() { bos.close(); });
+        assertThrows("OUTPUT-STREAM-CLOSED-ERROR", sub() { bos.write(1); });
+        assertThrows("OUTPUT-STREAM-CLOSED-ERROR", sub() { bos.bulkWrite(<0203>); });
+    }
+
+    write() {
+        BinaryOutputStream bos();
+        assertEq(binary(), bos.getData());
+        bos.write(1);
+        bos.write(255);
+        bos.write(-2);
+        bos.write(260);
+        assertEq(<01FFFE04>, bos.getData());
+        bos.write(42);
+        assertEq(<2A>, bos.getData());
+    }
+
+    bulkWrite() {
+        BinaryOutputStream bos();
+        bos.bulkWrite(<AABB>);
+        bos.bulkWrite(binary());
+        bos.bulkWrite(<01>);
+        assertEq(<AABB01>, bos.getData());
+    }
+}

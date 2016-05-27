@@ -1,0 +1,45 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class FileStreamTest
+
+public class FileStreamTest inherits QUnit::Test {
+
+    constructor() : Test("FileStreamTest", "1.0") {
+        addTestCase("basic test", \basic());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    basic() {
+        string file = tmp_location() + "/test";
+
+        on_exit
+            unlink(file);
+
+        FileOutputStream fos(file);
+        fos.bulkWrite(<416263>);
+        fos.write(10);
+        fos.close();
+
+        FileOutputStream fos2(file, True);
+        fos2.bulkWrite(<3132330A>);
+        fos2.close();
+
+        FileInputStream fis(file);
+        assertEq(<4162630A>, fis.bulkRead(4));
+        assertEq(0x31, fis.read());
+        assertEq(<32330A>, fis.bulkRead(4));
+        assertEq(-1, fis.read());
+        assertEq(NOTHING, fis.bulkRead(10));
+    }
+}

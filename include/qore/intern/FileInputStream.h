@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  qore_list_private.h
+  FileInputStream.h
 
   Qore Programming Language
 
@@ -29,52 +29,52 @@
   information.
 */
 
-#ifndef _QORE_QORELISTPRIVATE_H
-#define _QORE_QORELISTPRIVATE_H
+#ifndef _QORE_FILEINPUTSTREAM_H
+#define _QORE_FILEINPUTSTREAM_H
 
-typedef ReferenceHolder<QoreListNode> safe_qorelist_t;
+#include <stdint.h>
+#include "qore/intern/InputStreamBase.h"
 
-inline QoreListNode* do_args(AbstractQoreNode* e1, AbstractQoreNode* e2) {
-   QoreListNode* l = new QoreListNode;
-   e1->ref();
-   l->push(e1);
-   e2->ref();
-   l->push(e2);
-   return l;
-}
+/**
+ * @brief Private data for the Qore::FileInputStream class.
+ */
+class FileInputStream : public InputStreamBase {
 
-struct qore_list_private {
-   AbstractQoreNode** entry;
-   qore_size_t length;
-   qore_size_t allocated;
-   unsigned obj_count;
-   bool finalized : 1;
-   bool vlist : 1;
-
-   DLLLOCAL qore_list_private() : entry(0), length(0), allocated(0), obj_count(0), finalized(false), vlist(false) {
+public:
+   DLLLOCAL FileInputStream(const QoreStringNode *fileName, ExceptionSink *xsink) {
+      f.open2(xsink, fileName->getBuffer(), O_RDONLY);
    }
 
-   DLLLOCAL ~qore_list_private() {
-      assert(!length);
-
-      if (entry)
-	 free(entry);
+   DLLLOCAL const char *getName() /*override*/ {
+      return "FileInputStream";
    }
 
-   DLLLOCAL void incScanCount(int dt) {
-      assert(dt);
-      assert(obj_count || (dt > 0));
-      //printd(5, "qore_list_private::incScanCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
-      obj_count += dt;
+   DLLLOCAL bool isClosed() /*override*/ {
+      return !f.isOpen();
    }
 
-   DLLLOCAL static unsigned getScanCount(const QoreListNode& l) {
-      return l.priv->obj_count;
+   DLLLOCAL void close(ExceptionSink* xsink) /*override*/ {
+      assert(!isClosed());
+      int rc = f.close();
+      if (rc) {
+         xsink->raiseException("IO-ERROR", "Error %d closing file", rc);
+      }
    }
 
-   DLLLOCAL static void incScanCount(const QoreListNode& l, int dt) {
-      l.priv->incScanCount(dt);
+   DLLLOCAL int64 read(int64 timeout, ExceptionSink* xsink) /*override*/ {
+      assert(!isClosed());
+      uint8_t buf;
+      return f.read(&buf, 1, timeout, xsink) == 1 ? buf : -1;
    }
+
+   DLLLOCAL int64 bulkRead(void *ptr, int64 limit, int64 timeout, ExceptionSink *xsink) /*override*/ {
+      assert(!isClosed());
+      assert(limit > 0);
+      return f.read(ptr, limit, timeout, xsink);
+   }
+
+private:
+   QoreFile f;
 };
 
-#endif
+#endif // _QORE_FILEINPUTSTREAM_H
