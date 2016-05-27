@@ -40,7 +40,6 @@ DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/WebUtil.qm \
 	qlib/TableMapper.qm \
 	qlib/Schema.qm \
-	qlib/UnitTest.qm \
 	qlib/QUnit.qm \
 	qlib/Diff.qm \
 	qlib/BulkSqlUtil.qm

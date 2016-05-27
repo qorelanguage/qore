@@ -288,6 +288,7 @@
       - added public function \c ordinal()
       - added public function \c plural()
       - added public function \c regex_escape()
+      - added public function \c zip()
      - \c parse_to_qore_value() now respects parenthes when parsing lists and hashes (<a href="https://github.com/qorelanguage/qore/issues/846">issue 846</a>)
     - added initial support for UTF-16 character encoding; note that UTF-16 is not backwards-compatible with ASCII and therefore not supported universally in %Qore; it's recommended to convert these strings to UTF-8 in %Qore; do not use UTF-16 as the default character encoding in %Qore; currently UTF-16 data can be parsed using the following classes that convert the data to UTF-8:
       - @ref Qore::DataLineIterator
@@ -313,6 +314,7 @@
       - fixed bugs where URI strings were improperly encoded and decoded (also fixed in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module)
       - fixed a bug where URI paths were sent as relative paths instead of absolute paths
       - fixed issues where multiple leading \c "/" chars were sometimes present in the request URI path
+      - fixed an issue where a trailing \c "/" char was sometimes added to the request URI path (<a href="https://github.com/qorelanguage/qore/issues/899">issue 899</a>)
     - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module fixes:
       - fixed a bug where the \c "format" field option was not usable with fields assigned type \c "*date"
       - fixed the default field type as "*string" (from "string") to avoid parsing and outputting empty strings for missing input data
@@ -369,6 +371,7 @@
       - fixed a bug where an error calling an internal nonexistent method would be reported with an incorrect error message
       - send errors are now reported in the \c AbstractRestStreamRequestHandler object so they can be properly logged (<a href="https://github.com/qorelanguage/qore/issues/734">issue 734</a>)
       - unknown REST class errors with the base class are now reported consistently like all other such errors (<a href="https://github.com/qorelanguage/qore/issues/859">issue 859</a>)
+      - fixed an issue where request URI paths with multiple consecutive \c "/" chars were handled incorrectly (<a href="https://github.com/qorelanguage/qore/issues/900">issue 900</a>)
     - <a href="../../modules/Util/html/index.html">Util</a> module fixes:
       - fixed \c normalize_dir_windows() handling of UNC paths (<a href="https://github.com/qorelanguage/qore/issues/813">issue 813</a>)
     - fixed a memory error in error-handling with type errors when parsing user module headers that could cause a crash
@@ -505,7 +508,7 @@
     - fixed an I/O-handling bug in the @ref Qore::ReadOnlyFile and @ref Qore::File classes where I/O errors in read operations were silently ignored (<a href="https://github.com/qorelanguage/qore/issues/627">issue 627</a>)
     - fixed bugs in @ref Qore::ReadOnlyFile::readTextFile() and @ref Qore::ReadOnlyFile::readBinaryFile() would return @ref nothing instead of an empty object when reading empty files; now empty objects are returned in these cases (<a href="https://github.com/qorelanguage/qore/issues/508">issue 508</a>)
     - fixed a bug in *printf() outputs on Windows with scientific notation with floating-point values (<a href="https://github.com/qorelanguage/qore/issues/631">issue 621</a>)
-    - fixed a bug where the precision of numbers during arithmetic operations was not adjusted correctly (<a href="https://github.com/qorelanguage/qore/issues/630">issue 630</a>)
+    - fixed a bug where the precision of numbers during arithmetic operations was not adjusted correctly (<a href="https://github.com/qorelanguage/qore/issues/630">issue 630</a>, <a href="https://github.com/qorelanguage/qore/issues/908">issue 908</a>)
     - fixed a bug where the type of subtraction of two numbers was inferred as NOTHING during parsing (<a href="https://github.com/qorelanguage/qore/issues/636">issue 636</a>)
     - fixed a bug on Windows with @ref Qore::Dir::create() (<a href="https://github.com/qorelanguage/qore/issues/643">issue 643</a>)
     - fixed a bug where CRLF line endings were not handled correctly by the %exec-class parse directive (<a href="https://github.com/qorelanguage/qore/issues/653">issue 653</a>)

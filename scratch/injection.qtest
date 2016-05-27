@@ -4,19 +4,16 @@
 %require-types
 %enable-all-warnings
 %new-style
-%strict-args
 
 %allow-injection
 %no-child-restrictions
 
-# for negative testing of loadApplyUserModule
-%requires ../../../../../qlib/Util.qm
 %requires ../../../../../qlib/QUnit.qm
 
-%requires ./MyTestModule.qm
-#/;
+# for negative testing of loadApplyUserModule
+%requires Util
 
-%exec-class InjectionTest
+%requires ./MyTestModule.qm
 
 public namespace Test {
     class FileLineIteratorFake inherits AbstractIterator {
@@ -72,39 +69,52 @@ string sub get_tag() {
 }
 ";
 
-class InjectionTest inherits QUnit::Test {
-    constructor() : Test("InjectionTest", "1.0") {
-        addTestCase("injection test", \injectionTest());
+
+%exec-class InjectionTest
+
+class InjectionTest inherits QUnit::DependencyInjectedTest {
+    constructor() : QUnit::DependencyInjectedTest("Injection test", "1.0") {
+        addTestCase("Test injection", \testInjection());
+        addTestCase("Test errors", \testErrors());
+        addTestCase("Test reinjection", \testReinjection());
+
+        # Mandatory for injected tests
+        setScriptPath(get_script_path());
+
         set_return_value(main());
     }
 
-    injectionTest() {
-        {
-            # set up the Program container
-            Program p(PO_NO_API|PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION|PO_NEW_STYLE);
-            p.importClass("Test::FileLineIteratorFake", "Qore::FileLineIterator", True);
-            p.importSystemApi();
-            p.lockOptions();
+    nothing performModuleInjections() {
+    }
 
-            p.parse(Code1, "test-1");
-            p.run();
+    nothing performInjections(Program p) {
+    }
 
-            assertTrue(p.callFunction("next"), "injection-1");
-            assertEq("test", p.callFunction("get_value"), "injection-2");
-            assertFalse(p.callFunction("next"), "injection-3");
-            assertThrows("ITERATOR-ERROR", \p.callFunction(), "get_value");
-        }
+    testInjection() {
+        Program p(PO_NO_API|PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION|PO_NEW_STYLE);
+        p.importClass("Test::FileLineIteratorFake", "Qore::FileLineIterator", True);
+        p.importSystemApi();
+        p.lockOptions();
 
-        {
-            # set up the Program container
-            Program p(PO_NO_API|PO_NO_CHILD_PO_RESTRICTIONS|PO_NEW_STYLE);
+        p.parse(Code1, "test-1");
+        p.run();
+        assertTrue(p.callFunction("next"), "injection-1");
+        assertEq("test", p.callFunction("get_value"), "injection-2");
+        assertFalse(p.callFunction("next"), "injection-3");
 
-            assertThrows("CLASS-IMPORT-ERROR", \p.importClass(), ("Test::FileLineIteratorFake", "Qore::FileLineIterator", True));
-            assertThrows("FUNCTION-IMPORT-ERROR", \p.importFunction(), ("Test::exit", "Qore::exit", True));
-            assertThrows("LOAD-MODULE-ERROR", \p.loadApplyToUserModule(), "Util");
-        }
+        assertThrows('ITERATOR-ERROR', sub() {p.callFunction("get_value");});
+    }
 
-        # test re-injection of a module
+    testErrors() {
+        Program p(PO_NO_API|PO_NO_CHILD_PO_RESTRICTIONS|PO_NEW_STYLE);
+
+        assertThrows('CLASS-IMPORT-ERROR', "cannot import class", sub() {p.importClass("Test::FileLineIteratorFake", "Qore::FileLineIterator", True);});
+        assertThrows('FUNCTION-IMPORT-ERROR', "cannot import function", sub() {p.importFunction("Test::exit", "Qore::exit", True);});
+        assertThrows('LOAD-MODULE-ERROR', "cannot load module.*for injection", sub() {p.loadApplyToUserModule("Util");});
+    }
+
+    # test re-injection of a module
+    testReinjection() {
         {
             # set up the Program container for reinjecting MyTestModule
             Program p(PO_NO_USER_API|PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION|PO_NEW_STYLE);
@@ -118,7 +128,8 @@ class InjectionTest inherits QUnit::Test {
             Program p(PO_NO_USER_API|PO_NEW_STYLE);
             p.parse(Code2, "test-2");
             p.run();
-            assertEq("tag-injected", p.callFunction("get_tag"));
+            assertEq("tag-injected", p.callFunction("get_tag"), "injection-5");
         }
     }
 }
+

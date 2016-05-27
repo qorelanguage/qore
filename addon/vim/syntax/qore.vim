@@ -1,7 +1,7 @@
 " Vim syntax file for Qore * mato [25-oct-2015]
 " Language:	Qore
 " Maintainer:	Martin Otto <martin@qore.org>
-" Last Change:	2016 Feb 11
+" Last Change:	2016 May 26
 
 if version < 600
   syntax clear
@@ -245,7 +245,7 @@ syn match qoreStringEscape '\\\(\\\|[bfnrt"]\|\o\{1,3}\)' contained display
 syn region qoreString start='"' skip='\\"' end='"' contains=qoreStringEscape,@Spell fold
 syn region qoreString start="'" end="'" fold
 
-syn match qoreRegexp "[mx]\?/.\{-}\\\@<!/[imsx]*"
+syn match qoreRegexp "[=!]\~\s*\zs[mx]\?/.\{-}\\\@<!/[imsx]*"
 syn match qoreRegexp "s/.\{-}\\\@<!/.\{-}\\\@<!/[gimsx]*"
 syn match qoreRegexp "tr/.\{-}\\\@<!/.\{-}\\\@<!/"
 
