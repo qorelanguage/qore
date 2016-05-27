@@ -14,6 +14,7 @@
 class Test inherits QUnit::Test {
     public {
         const StrData = "11111bb  \ncddd31122014\n22222gggg\n";
+        const StrData2 = "00001aaaa\n00002bbbb\n00001cccc\n99999dddd\n";
 
         const Specs = (
             "type1" : (
@@ -68,10 +69,43 @@ class Test inherits QUnit::Test {
             ),
             );
 
+        # test default value
+        const SpecsWithDefault = (
+            "type1" : (
+                "col1" : (
+                    "length" : 5,
+                    "type"   : "int",
+                    "default"  : "00001",
+                ),
+                "col2" : (
+                    "length" : 4,
+                    "type"   : "string",
+                ),
+            ),
+            "type2" : (
+                "col1" : (
+                    "length" : 5,
+                    "type"   : "int",
+                    "default"  : "00002",
+                ),
+                "col2" : (
+                    "length" : 4,
+                    "type"   : "string",
+                ),
+            ),
+        );
+
         const HashData = (
             ("type": "type1", "record": ("col1": 11111, "col2": "bb")),
             ("type": "type2", "record": ("col3": "c", "col4": "ddd", "col5": 2014-12-31Z)),
             ("type": "type1", "record": ("col1": 22222, "col2": "gggg")),
+            );
+
+        const HashData2 = (
+            ("type": "type1", "record": ("col2": "aaaa")),
+            ("type": "type2", "record": ("col2": "bbbb")),
+            ("type": "type1", "record": ("col2": "cccc")),
+            ("type": "type1", "record": ("col1": "99999", "col2": "dddd")),
             );
 
         const GlobalOptions = (
@@ -147,6 +181,10 @@ class Test inherits QUnit::Test {
 
         FixedLengthDataWriter w(Specs, GlobalWriterOptions);
         testAssertionValue("file content check", w.write(HashData), StrData);
+
+        FixedLengthDataWriter w2(SpecsWithDefault, GlobalWriterOptions);
+        testAssertionValue("file content check", w2.write(HashData2), StrData2);
+
     }
 
     test_padding_1() {
