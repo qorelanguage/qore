@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file FixedLengthUtil.qm Qore user module for working with files with fixed lines length
 
-/*  FixedLengthUtil.qm Copyright 2012 - 2016 Qore Technologies, sro
+/*  FixedLengthUtil.qm Copyright 2015 - 2016 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -63,7 +63,7 @@ module FixedLengthUtil {
     @section fixedlengthglobals Global Options
 
     Valid options are:
-    - \c "date_format": the default date format for \c "date" fields (see @ref date_formatting for the value in this case)
+    - \c "date_format": the default date format for \c "date" fields (see @ref date_formatting "date formatting" for the value in this case)
     - \c "encoding": the output encoding for strings parsed or returned
     - \c "eol": the end of line characters for parsing or generation
     - \c "file_flags": additional writer @ref file_open_constants; @ref Qore::O_WRONLY | @ref Qore::O_CREAT are used by default. Use eg. @ref Qore::O_EXCL to ensure not to overwrite the target or @ref Qore::O_TRUNC to replace any existing file
@@ -98,20 +98,20 @@ const Specs = (
 );
     @endcode
 
-    In the example above, \c "header", \c "line", and \c "trailer" are record names, and the values of each key are @ref fixedlengthspecrecordhash "record description hashes".
+    In the example above, \c "header", \c "line", and \c "trailer" are record names, and the values of each key
+    are @ref fixedlengthspecrecordhash "record description hashes".
 
     @subsection fixedlengthspecrecordhash Record Description Hash
 
     Each record will have a number of fields described in the record description hash.  The record description hash keys
     represent the names of the fields, and the values are @ref fixedlengthspecrow "field specification hashes".
-    If the line length is not unique then a rule must exist to resolve type. Typically a field value in the first
-    column determines type of line. But any field might be decision field or event more field together may form rule
-    (AND condition). Field value equality or test by regular expression may be used.
 
     In the \c "header" record in the example above, the fields are \c "flow_type", \c "record_type",
-    and \c "number_of_records", and the values of each of those keys are @ref fixedlengthspecrow "field specification hashes"
-    for the given fields. As the \c "header" and \c "trailer" have equal line length extra rule is needed to resolve type by
-    field value of column \c "flow_type".
+    and \c "number_of_records", and the values of each of those keys are
+    @ref fixedlengthspecrow "field specification hashes" for the given fields. As the \c "header" and \c "trailer" have
+    equal line length, extra configuration is required to @ref fixedlengthrecordtyperesolution "resolve the record type";
+    in the example above this is configured using the \c "value" key of the
+    @ref fixedlengthspecrow "field specification hashes" for the \c "flow_type" records.
 
     @subsection fixedlengthspecrow Field Specification Hash
 
@@ -120,33 +120,55 @@ const Specs = (
     |!Key|!Type|!Description
     | \c length|integer|the size of the field in bytes
     | \c type|string|the type of data bound to the field @ref fixedlengthspectypes
-    | \c format|string|a date mask if the \a type of the field is \c "date"; see @ref date_formatting for more information
+    | \c format|string|a date mask if the \a type of the field is \c "date"; see @ref date_formatting "date formatting" for more information
     | \c timezone|string|override global timezone for current "date" field
     | \c padding|string|set padding of the field "left" (default) or "right"; used only in writers; if not given then the default padding depends on the field's \a type: \c "int" fields get left padding (right justification) and all others get right padding (left justification)
     | \c padding_char|string|a string with size 1 to use for \c padding. Default \c " " (space). Used only in writers
-    | \c value|string|field value determining line type
-    | \c regex|string|regular expression determining line type
+    | \c value|string|the value to use to compare to input data when determining the record type; if \v "value" is defined for a field, then \c "regex" cannot be defined
+    | \c regex|string|the regular expressionto use to apply to input data lines when determining the record type
     | \c default|string|In writer the value is default output value when value is not specified in record data.
-
-    @subsection typeResolving Record Type Resolving
-
-    Type record resolving is processed in FixedLengthUtil::FixedLengthAbstractIterator::identifyType(). Default implementation evaluates rules
-    defined by \c "value" or \c "regex" options to match records. Evaluation is processed in order of type declaration in hash.
-    It enables potentially support also simplified longest prefix match criteria. As decision fields may be defined any fields regardless their position.
-    \c "Value" matches against full value (double check type conversion when comparing non-string value against substring), \c "regex"
-    matches against substring starting at field position and string is left untruncated, i.e. to the end record line. It enables regular expression matching
-    against multiple columns if needed. \c "Regex" and \c "value" are mutually exclusive in one field rule.
-    When no rule is specified for a record type then the type is assigned when none of concurrent rules has matched (or if no-rule type is the only one type).
-    When more no-rule record type of the same length are specified then developer must implement own algorithm
-    by overriding FixedLengthUtil::FixedLengthAbstractIterator::identifyType() function. Typically own decision logic is implemented followed by call of ancestor function.
 
     @subsection fixedlengthspectypes Field Data Types
 
+    The following values can be used as a @ref fixedlengthspecrow "field" type:
     - \c "date"
     - \c "float"
     - \c "int"
     - \c "number"
     - \c "string"
+
+    @section fixedlengthrecordtyperesolution Record Type Resolution
+
+    If no record type resolution rules or logic is defined, then record types are resolved automatically based on their
+    unique line lengths.  If the record line lengths are not unique (i.e. two or more records have the same number of
+    characters), then a rule must exist to resolve the record type.
+
+    Typically the value of the first field determines the record type, however any field in the record can be used to
+    determine the record type or even multiple fields could be used.  Record type detection configuration is supplied
+    by the \c "value" (field value equality test) or \c "regex" (regular expression test) keys in the
+    @ref fixedlengthspecrow "field specification hash" for the record in question.  If multiple fields in a record
+    definintion have \c "value" or \c "regex" keys, then all fields must match the input data in order for the input
+    line to match the record.
+
+    The above record type resolution logic is executed in
+    @ref FixedLengthUtil::FixedLengthAbstractIterator::identifyTypeImpl() "FixedLengthAbstractIterator::identifyTypeImpl()",
+    which executes any \c "regex" or \c "value" tests on the input line in the order of the field definitions in the
+    @ref fixedlengthspecrecordhash "record description hash".
+
+    Record type resolution is performed as follow:
+    - \c "value": Matches the full value of the field; if an integer \c "value" value is used, then integer comparisons are done, otherwise string comparisons are performed.
+    - \c "regex": Matches the input line string starting at the first character in the field to the rest of the line (i.e. not truncated for the current record);
+    this enables regular expression matching against multiple columns if needed.
+
+    When there are no record-matching keys in the field hashes for any record and the input record character lengths are
+    not unique, then
+    @ref FixedLengthUtil::FixedLengthAbstractIterator::identifyTypeImpl() "FixedLengthAbstractIterator::identifyTypeImpl()"
+    must be overridden in a subclass to provide custom record matching logic.
+
+    @note
+    - It is an error to have both \c "regex" and \c "value" keys in a @ref fixedlengthspecrow "field specification hash"
+    - If multiple fields have configuration for input line matching (i.e. \c "regex" and \c "value" keys), then all
+      fields with this configuration must match for the record to be matched
 
     @section fixedlengthformat Fixed Length Data Format
 
@@ -256,7 +278,6 @@ public namespace FixedLengthUtil {
         );
 }
 
-
 #! Structured line iterator for abstract data allowing efficient "pipelined" processing
 public class FixedLengthUtil::FixedLengthAbstractIterator {
     private {
@@ -279,7 +300,7 @@ public class FixedLengthUtil::FixedLengthAbstractIterator {
         m_specs           = spec;
         m_opts            += checkOptions(opts);
 
-        # Determine line lengths of each spec, for use by the default identifyType() method. We do this by building a reverse length -> type table.
+        # Determine line lengths of each record, for use by the default identifyType() method. We do this by building a reverse length -> type table.
         m_resolve_by_rule = hash();
         foreach string k in (m_specs.keyIterator()) {
             if (m_specs{k}.typeCode() != NT_HASH)
@@ -292,7 +313,7 @@ public class FixedLengthUtil::FixedLengthAbstractIterator {
                 hash fld_rule;
                 if (exists m_specs{k}{c}.regex) {
                     if (exists m_specs{k}{c}.value) {
-                        throw "FIXED-LENGTH-UTIL-INVALID-SPEC", sprintf("Both value and regex used in field rule for field %y, type: %y", c, k);
+                        throw "FIXED-LENGTH-UTIL-INVALID-SPEC", sprintf("Both value and regex used in field rule for field %y, record: %y", c, k);
                     }
                     # regex has higher priority, value can be used as default value in writer so specifying both makes sense
                     fld_rule.regex = m_specs{k}{c}.regex;
@@ -358,6 +379,7 @@ my hash $h = $i.getValue();
         return result;
     }
 
+    #! parses the input value based on global configuration and the current field definition
     any transform(any value, hash type) {
         switch (type.type) {
             case "int": {
@@ -410,7 +432,7 @@ my hash $h = $i.getValue();
                 return tz ? tz.date(value) : date(value);
             }
             default: {
-              throw "FIELD-TYPE-ERROR", sprintf("output type %y not supported", type.type);
+                throw "FIELD-TYPE-ERROR", sprintf("output type %y not supported", type.type);
             }
         }
     }
@@ -460,7 +482,7 @@ my hash $h = $i.getValue();
         return opts;
     }
 
-    #! Identify a fixed-length line type using a second method %identifyTypeImpl, that may be overridden if necessary.
+    #! Identify a fixed-length line type using identifyTypeImpl(), that may be overridden if necessary.
     /**
         @param input_line Input line to be identified
 
@@ -470,12 +492,14 @@ my hash $h = $i.getValue();
     */
     string identifyType(string input_line) {
         *string type = identifyTypeImpl(input_line);
-        if (!type || !m_specs.hasKey(type))
-            throw "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", sprintf("Line identified to be of type that is not present in the spec '%s'", input_line);
+        if (!type)
+            throw "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", sprintf("The input line could not be identified: %y", input_line);
+        if (!m_specs.hasKey(type))
+            throw "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", sprintf("Line identified to be of type %y that is not present in the spec: %y", type, input_line);
         return type;
     }
 
-    #! Identify a fixed-length line type, given the raw line string. This method performs a lookup to a precalculated table based on line lengths (see constructor()). In case a different criteria is needed, eg. when two line types in a spec have the same length and no unique resolving rula are specified, this method needs to be overridden, and will throw an exception, because the precalculated mapping will be empty.
+    #! Identify a fixed-length line type, given the raw line string. This method performs a lookup to a precalculated table based on line lengths (see constructor()). In case different criteria are needed, eg. when two line types in a spec have the same length and no unique resolving rule are specified, this method needs to be overridden, and will throw an exception, because the precalculated mapping will be empty.
     /**
         @param input_line Input line to be identified
 
@@ -542,7 +566,6 @@ my hash $h = $i.getValue();
         return True;
     }
 }
-
 
 #! Structured line iterator for fixed-length line files allowing efficient "pipelined" processing.
 /**
