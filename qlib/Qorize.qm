@@ -89,7 +89,7 @@ public namespace Qorize {
     @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
     @retval string a generated code
 
-@code
+@code{.py}
     string s = qorize(True);
     # "bool var = True;"
     string s = qorize(True, "foo", True);
@@ -110,7 +110,7 @@ public string sub qorize(bool val, string name = "var", bool newstyle=False) {
     @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
     @retval string a generated code
 
-@code
+@code{.py}
     string s = qorize("lorem ipsum");
     # "string var = \"lorem ipsum\";"
     string s = qorize("lorem ipsum", "foo", True);
@@ -131,7 +131,7 @@ public string sub qorize(string val, string name = "var", bool newstyle=False) {
     @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
     @retval string a generated code
 
-@code
+@code{.py}
     string s = qorize(1);
     # "int var = 1;"
     string s = qorize(1, "foo", True);
@@ -152,7 +152,7 @@ public string sub qorize(int val, string name = "var", bool newstyle=False) {
     @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
     @retval string a generated code
 
-@code
+@code{.py}
     string s = qorize(1.2);
     # "float var = 1;"
     string s = qorize(1.2, "foo", True);
@@ -173,7 +173,7 @@ public string sub qorize(float val, string name = "var", bool newstyle=False) {
     @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
     @retval string a generated code
 
-@code
+@code{.py}
     string s = qorize(123n);
     # "number var = 123n;"
     string s = qorize(123n, "foo", True);
@@ -194,7 +194,7 @@ public string sub qorize(number val, string name = "var", bool newstyle=False) {
     @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
     @retval string a generated code
 
-@code
+@code{.py}
     string s = qorize(now());
     # "date var = 2013-08-16T14:37:05.000;"
     string s = qorize(now(), "foo", True);
@@ -203,7 +203,7 @@ public string sub qorize(number val, string name = "var", bool newstyle=False) {
 
     Relative date values (1D, etc.) are converted to @ref short_reldates
 
-@code
+@code{.py}
     string s = qorize(3h);
     # date d = PT3H;
 @endcode
@@ -224,7 +224,7 @@ public string sub qorize(date val, string name = "var", bool newstyle=False) {
 
     Binary values are encoded in hexadecimal strings.
 
-@code
+@code{.py}
     binary bin = ....; # binary value from file for example
     string s = qorize(bin);
     # "binary var = parseHexString(\"666f6f\");"
@@ -246,7 +246,7 @@ public string sub qorize(binary val, string name = "var", bool newstyle=False) {
     @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
     @retval string a generated code
 
-@code
+@code{.py}
     list l =  (True, False, now(), 12, 12.1, ( 'a', 'b'), );
     string s = qorize(l);
     # "list var =
@@ -273,7 +273,7 @@ public string sub qorize(list val, string name = "var", bool newstyle=False) {
     @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
     @retval string a generated code
 
-@code
+@code{.py}
     hash h = (
             "foo" : "bar",
             "key1" : now(),
@@ -326,7 +326,7 @@ public string sub qorize(hash val, string name = "var", bool newstyle=False) {
     @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
     @retval string a generated code
 
-@code
+@code{.py}
     hash h = (
             "foo" : "bar",
             "key1" : now(),
@@ -367,7 +367,7 @@ public string sub qorizeNamed(hash val, string name = "var", bool newstyle=False
     @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
     @retval string a generated code
 
-@code
+@code{.py}
     any s = qorize(NULL);
     # "any var = NULL;"
     string s = qorize(NULL, "foo", True);

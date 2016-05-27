@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file PgsqlSqlUtil.qm Qore user module for working with PostgreSQL SQL data
 
-/*  PgsqlSqlUtil.qm Copyright (C) 2013 - 2015 Qore Technologies, sro
+/*  PgsqlSqlUtil.qm Copyright (C) 2013 - 2016 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -99,7 +99,7 @@ module PgsqlSqlUtil {
 
     The \c "types" key can go in the top level of the @ref schema_desc_hash for PostgreSQL-only schemas, or, for schemas targeting multiple database types, under the \c "driver" and \c "pgsql" keys as in the following example:
 
-    @code
+    @code{.py}
 my hash $schema = (
     "driver": (
         "pgsql": (
@@ -135,7 +135,7 @@ my hash $schema = (
     If your function is reported as needing updating even though it's already in the database correctly, then the logic in this module
     needs to be update to provide more flexibility (please report to david@qore.org).  Until the module can be enhanced, try the format as
     in the following example:
-    @code
+    @code{.py}
 update_queue_data(qkey varchar, qdata text) returns integer language plpgsql as $function$
 declare
   rowcount integer;
@@ -153,11 +153,16 @@ $function$
     @section pgsql_relnotes Release Notes
 
     @subsection pgsqlsqlutilv11 PgsqlSqlUtil v1.1
+    - added support for \c cop_cast operator (<a href="https://github.com/qorelanguage/qore/issues/535">feature 535</a>)
+    - added support for the following datatypes and aliases: bool, float, int, timetz, timestamptz, varbit
+    - fixed support for the following datatypes and aliases: bit, bit varying, char, character, character varying, char varying, oid, varchar
     - fixed bugs handling "bigint" and "double precision" column types with schema alignments
     - fixed a bug with PgsqlTable::tryInsertImpl(); added an explicit "begin" call to make the savepoint work with PostgreSQL 9.3+ servers
     - fixed a bug retrieving foreign constraints; columns were not guaranteed to be returned in declaration order
     - implemented support for the \c "returning" clause as an insert option
     - fixed a bug handling tablespaces in unique constraints
+    - fixed bugs in @ref SqlUtil::cop_seq() and @ref SqlUtil::cop_seq_currval() (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
+    - added support for listing PostgreSQL types and materialized views (<a href="https://github.com/qorelanguage/qore/issues/699">issue 699</a>)
 
     @subsection pgsqlsqlutilv10 PgsqlSqlUtil v1.0
     - initial release
@@ -172,7 +177,7 @@ public namespace PgsqlSqlUtil {
 
     #! returns a PgsqlDatabase object corresponding to the arguments
     public PgsqlDatabase sub get_database(AbstractDatasource nds, *hash opts) {
-	return new PgsqlDatabase(nds, opts);
+        return new PgsqlDatabase(nds, opts);
     }
 
     sub parse_schema_name(string nname, reference schema, reference name) {
@@ -190,13 +195,13 @@ public namespace PgsqlSqlUtil {
 
     #! represents a PostgreSQL type
     public class PgsqlType {
-	public {
-	    #! the name of the type
-	    string name;
+        public {
+            #! the name of the type
+            string name;
 
-	    #! the source of the type
-	    string src;
-	}
+            #! the source of the type
+            string src;
+        }
 
         #! creates the type from the supplied arguments
         constructor(string n_name, string n_src) {
@@ -204,11 +209,11 @@ public namespace PgsqlSqlUtil {
             src = n_src;
         }
 
-	list getTypeList() {
-	    list sl = src.split(",");
+        list getTypeList() {
+            list sl = src.split(",");
             trim sl;
 
-	    list l = ();
+            list l = ();
             foreach string str in (sl) {
                 (*string tname, *string type) = (str =~ x/(\w+) (.*)/);
                 if (!tname || !type)
@@ -219,12 +224,12 @@ public namespace PgsqlSqlUtil {
                 );
             }
             return l;
-	}
+        }
 
-	list getModifySql(PgsqlType old, *hash opt) {
-	    list sqll = ();
+        list getModifySql(PgsqlType old, *hash opt) {
+            list sqll = ();
 
-	    list tl = getTypeList();
+            list tl = getTypeList();
             list oldtl = old.getTypeList();
 
             #printf("tl: %N\noldtl: %N\n", tl, oldtl);
@@ -245,30 +250,38 @@ public namespace PgsqlSqlUtil {
             for (int i = oldtl.size(); i < tl.size(); ++i)
                 sqll += sprintf("alter type %s add attribute %s %s", name, tl[i].name, tl[i].type);
 
-	    return sqll;
-	}
+            return sqll;
+        }
 
         #! returns a string that can be used to create the type in the database
-	string getCreateSql(*hash opt) {
-	    return sprintf("create type %s as (%s)", name, src);
-	}
+        string getCreateSql(*hash opt) {
+            return sprintf("create type %s as (%s)", name, src);
+        }
 
-	string getDropSql(*hash opt) {
-	    return sprintf("drop type %s%s", name, opt.cascade ? " cascade" : "");
-	}
+        #! returns a string that can be used to drop a type
+        string getDropSql(*hash opt) {
+            return sprintf("drop type %s%s", name, opt.cascade ? " cascade" : "");
+        }
 
-	string getRenameSql(string new_name) {
-	    return sprintf("alter type %s rename to %s", name, new_name);
-	}
+        #! returns a string that can be used to drop a type and all dependencies
+        string getDropSqlForce() {
+            return sprintf("drop type %s cascade", name);
+        }
 
- 	bool equal(PgsqlType type) {
-	    return name == type.name && src == type.src;
-	}
+        #! returns a string that can be used to rename a type
+        string getRenameSql(string new_name) {
+            return sprintf("alter type %s rename to %s", name, new_name);
+        }
+
+        #! returns @ref True if the types are equal
+        bool equal(PgsqlType type) {
+            return name == type.name && src == type.src;
+        }
     }
 
     #! represents a PostgreSQL-specific index
     public class PgsqlIndex inherits SqlUtil::AbstractIndex {
-	public {
+        public {
             #! the tablespace name of the index
             *string tablespace;
         }
@@ -366,8 +379,10 @@ public namespace PgsqlSqlUtil {
         string getNativeTypeString() {
             string sql = native_type;
             switch (native_type) {
+                case =~ /^timestamptz/: return splice sql, 11, 0, "(" + string(size) + ")";
                 case =~ /^timestamp/: return splice sql, 9, 0, "(" + string(size) + ")";
-                case =~ /^time/: return splice sql, 4, 0, string(size);
+                case =~ /^timetz/: return splice sql, 6, 0, "(" + string(size) + ")";
+                case =~ /^time/: return splice sql, 4, 0, "(" + string(size) + ")";
             }
             if (size)
                 sql += sprintf("(%d)", size);
@@ -376,22 +391,22 @@ public namespace PgsqlSqlUtil {
 
         #! returns a list of sql strings that can be used to add the column to an existing table
         /** @par Example:
-            @code
+            @code{.py}
 my list $l = $col.getAddColumnSql($t);
             @endcode
 
             @param t the SqlUtil::AbstractTable object to modify
          */
         list getAddColumnSql(AbstractTable t) {
-	    list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
-	    if (comment)
-		l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(comment));
+            list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
+            if (comment)
+                l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(comment));
             return l;
         }
 
         #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
         /** @par Example:
-            @code
+            @code{.py}
 my list $l = $col.getModifySql($t, $newcol);
             @endcode
 
@@ -431,13 +446,13 @@ my list $l = $col.getModifySql($t, $newcol);
             }
 
             if (c.comment != comment)
-		l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(c.comment));
+                l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(c.comment));
             return l;
         }
 
         #! returns a string that can be used to rename the column
         /** @par Example:
-            @code
+            @code{.py}
 my string $str = $col.getRenameSql($t, "new_name");
             @endcode
 
@@ -547,7 +562,7 @@ my string $str = $col.getRenameSql($t, "new_name");
 
         #! returns the PgsqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 my any $v = $c.name;
             @endcode
 
@@ -609,7 +624,7 @@ my any $v = $c.name;
 
         #! returns the PgsqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
-            @code
+            @code{.py}
 my any $v = $c.name;
             @endcode
 
@@ -638,7 +653,7 @@ my any $v = $c.name;
 
         #! returns a string that can be used to rename the constraint
         softlist getRenameSql(string table_name, string new_name) {
-            # the following is only valid with postgresql 9.2+
+            # the following is only valid with PostgreSQL 9.2+
             #return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
             return sprintf("alter index %s rename to %s", name, new_name);
         }
@@ -719,9 +734,9 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the trigger in the database
-	softlist getRenameSql(string table_name, string new_name) {
-	    return sprintf("alter trigger %s on %s rename to %s", name, table_name, new_name);
-	}
+        softlist getRenameSql(string table_name, string new_name) {
+            return sprintf("alter trigger %s on %s rename to %s", name, table_name, new_name);
+        }
     }
 
     #! represents a PostgreSQL-specific function
@@ -750,9 +765,9 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the function in the database
-	softlist getRenameSql(string new_name) {
-	    return sprintf("alter function %s rename to %s(%s)", name, new_name, args);
-	}
+        softlist getRenameSql(string new_name) {
+            return sprintf("alter function %s rename to %s(%s)", name, new_name, args);
+        }
 
         #! sets the new name of the function
         setName(string new_name) {
@@ -794,8 +809,8 @@ my any $v = $c.name;
         }
 
         private list featuresImpl() {
-            return list(DB_FUNCTIONS, DB_PROCEDURES,
-                        DB_SEQUENCES, DB_TABLES, DB_TYPES, DB_VIEWS);
+            return (DB_FUNCTIONS, DB_PROCEDURES, DB_SEQUENCES,
+                    DB_TABLES, DB_TYPES, DB_VIEWS, DB_MVIEWS);
         }
 
         PgsqlType makeType(string name, string src, *hash opts) {
@@ -809,7 +824,7 @@ my any $v = $c.name;
 
             string src = foldl $1 + ", " + $2, (map sprintf("%s %s", $1.attname, $1.typedef), qh.contextIterator());
 
-            # replace common type names with verbose type names as stored in postgresql
+            # replace common type names with verbose type names as stored in PostgreSQL
             foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
                 src = replace(src, h.key, h.value);
             }
@@ -907,7 +922,7 @@ my any $v = $c.name;
                 string nc = name;
                 *string args = PgsqlDatabase::getFunctionArgs("FUNCTION-ERROR", \nc);
                 nc = name.substr(0, name.find('('));
-                # replace common type names with verbose type names as stored in postgresql
+                # replace common type names with verbose type names as stored in PostgreSQL
                 if (args) {
                     foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
                         args = regex_subst(args, " " + h.value + "(,|$)", " " + h.key + "$1", RE_Caseless|RE_Global);
@@ -1053,8 +1068,11 @@ my any $v = $c.name;
 
         #! returns a list of string table names in the database
         private list listTablesImpl() {
-            return ds.select("select n.nspname \"schema\", c.relname \"name\", case c.relkind when 'r' then 'table' when 'v' then 'view' when 'i' then 'index' when 'S' then 'sequence' when 's' then 'special' when 'f' then 'foreign table' end \"Type\", pg_catalog.pg_get_userbyid(c.relowner) \"owner\" from pg_catalog.pg_class c left join pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'information_schema' and n.nspname !~ '^pg_toast' and pg_catalog.pg_table_is_visible(c.oid) order by 1,2").name;
+            string sql = "select n.nspname as schema, c.relname as name, pg_catalog.pg_get_userbyid(c.relowner) as owner,"
+                               " case c.relkind when 'r' then 'table' when 'v' then 'view' when 'i' then 'index' when 'S' then 'sequence' when 's' then 'special' when 'f' then 'foreign table' end as type"
+                          " from pg_catalog.pg_class c left join pg_catalog.pg_namespace n ON n.oid = c.relnamespace"
+                         " where c.relkind in ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'information_schema' and n.nspname !~ '^pg_toast' and pg_catalog.pg_table_is_visible(c.oid) order by 1,2";
+            return ds.select(sql).name;
         }
 
         #! returns a list of string function names in the database
@@ -1063,7 +1081,11 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             @return a list of string function names in the database
         */
         private list listFunctionsImpl() {
-            *hash qh = ds.select("select n.nspname schema, p.proname name, pg_catalog.pg_get_function_result(p.oid) result_type, pg_catalog.pg_get_function_arguments(p.oid) args, case when p.proisagg then 'agg' when p.proiswindow then 'window' when p.prorettype = 'pg_catalog.trigger'::pg_catalog.regtype then 'trigger' else 'normal' end type from pg_catalog.pg_proc p left join pg_catalog.pg_namespace n ON n.oid = p.pronamespace where n.nspname ~ '^(public)$' order by 1, 2, 4");
+            string sql = "select n.nspname as schema, p.proname as name, pg_catalog.pg_get_function_result(p.oid) as result_type, pg_catalog.pg_get_function_arguments(p.oid) as args,"
+                               " case when p.proisagg then 'agg' when p.proiswindow then 'window' when p.prorettype = 'pg_catalog.trigger'::pg_catalog.regtype then 'trigger' else 'normal' end as type"
+                          " from pg_catalog.pg_proc p left join pg_catalog.pg_namespace n on n.oid = p.pronamespace"
+                         " where n.nspname ~ '^(public)$' order by 1, 2, 4";
+            *hash qh = ds.select(sql);
 
             return map sprintf("%s(%s)", $1.name, $1.args), qh.contextIterator();
         }
@@ -1076,11 +1098,36 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
 
         private list listSequencesImpl() {
-            return ds.select("select relname from pg_class where relkind = 'S'").relname;
+            return ds.select("select relname from pg_class where relkind = 'S' order by 1").relname;
         }
 
         private list listViewsImpl() {
-            return ds.select("select table_name from information_schema.views where table_schema = any (current_schemas(false))").table_name;
+            return ds.select("select table_name from information_schema.views where table_schema = any (current_schemas(false)) order by 1").table_name;
+        }
+
+        #! returns a list of string materialized view names in the database
+        list listMaterializedViews() {
+            string sql = "select relname from pg_class"
+                         " where relkind = 'r' and relnamespace in"
+                               " (select oid from pg_namespace"
+                                 " where nspname != 'information_schema' and nspname not like 'pg\_%')"
+                         " order by 1";
+            return ds.select(sql).relname;
+        }
+
+        #! returns an iterator listing the string materialized view names in the database
+        ListIterator materializedViewIterator() {
+            return listMaterializedViews().iterator();
+        }
+
+        #! returns a list of string type names in the database
+        list listTypes() {
+            return ds.select("select user_defined_type_name as name from information_schema.user_defined_types order by 1").name;
+        }
+
+        #! returns an iterator listing the string type names in the database
+        ListIterator typeIterator() {
+            return listTypes().iterator();
         }
 
         #! returns a string that can be used to create the schema in the database
@@ -1207,54 +1254,64 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
     #! provides the PostgreSQL-specific implementation of the SqlUtil::AbstractTable interface
     public class PgsqlTable inherits SqlUtil::AbstractTable {
         public {
-            #! maps postgresql type names to type configurations
+            #! maps PostgreSQL type names to type configurations
             const PgsqlTypeMap = (
-                "numeric": ("qore": Type::Number, "size": SZ_NUM,),
-                "decimal": ("qore": Type::Number, "size": SZ_NUM,),
-                "money": ("qore": Type::Number,),
-                "smallint": ("qore": Type::Int,),
-                "integer": ("qore": Type::Int,),
-                "bigint": ("qore": Type::Int,),
-                "smallserial": ("qore": Type::Int,),
-                "serial": ("qore": Type::Int,),
-                "bigserial": ("qore": Type::Int,),
-                "real": ("qore": Type::Float,),
-                "double precision": ("qore": Type::Float,),
-                "oid": ("qore": Type::Number,),
-                "character": ("qore": Type::String, "size": SZ_MAND,),
-                "char": ("qore": Type::String, "size": SZ_MAND,),
-                "character varying": ("qore": Type::String, "size": SZ_MAND,),
-                "varchar": ("qore": Type::String, "size": SZ_MAND,),
-                "date": ("qore": Type::Date,),
-                "timestamp without time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
-                "timestamp": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
-                "timestamp with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
-                "time without time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
-                "time": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
-                "time with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
-                "interval": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
                 "abstime": ("qore": Type::Date,),
-                "reltime": ("qore": Type::Date,),
-                "text": ("qore": Type::String,),
-                "bytea": ("qore": Type::Binary,),
-                "bit": ("qore": Type::Binary,),
-                "bit varying": ("qore": Type::Binary,),
+                "bigint": ("qore": Type::Int,),
+                "bigserial": ("qore": Type::Int,),
+                "bit": ("qore": Type::Binary, "size": SZ_OPT,),
+                "bit varying": ("qore": Type::Binary, "size": SZ_OPT,),
+                "bool": ("qore": Type::Boolean,),
                 "boolean": ("qore": Type::Boolean,),
-                "macaddr": ("qore": Type::String,),
-                "inet": ("qore": Type::String,),
+                "bytea": ("qore": Type::Binary,),
+                "char": ("qore": Type::String, "size": SZ_OPT,),
+                "character": ("qore": Type::String, "size": SZ_OPT,),
+                "character varying": ("qore": Type::String, "size": SZ_OPT,),
                 "cidr": ("qore": Type::String,),
+                "date": ("qore": Type::Date,),
+                "decimal": ("qore": Type::Number, "size": SZ_NUM,),
+                "double precision": ("qore": Type::Float,),
+                "float": ("qore": Type::Float,),
+                "inet": ("qore": Type::String,),
+                "int": ("qore": Type::Int,),
+                "integer": ("qore": Type::Int,),
+                "interval": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "macaddr": ("qore": Type::String,),
+                "money": ("qore": Type::Number,),
+                "numeric": ("qore": Type::Number, "size": SZ_NUM,),
+                "oid": ("qore": Type::Int,),
+                "real": ("qore": Type::Float,),
+                "reltime": ("qore": Type::Date,),
+                "serial": ("qore": Type::Int,),
+                "smallint": ("qore": Type::Int,),
+                "smallserial": ("qore": Type::Int,),
+                "text": ("qore": Type::String,),
+                "time": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "time with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "time without time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "timetz": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "timestamp": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "timestamp with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "timestamp without time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "timestamptz": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "varbit": ("qore": Type::Binary, "size": SZ_OPT,),
+                "varchar": ("qore": Type::String, "size": SZ_OPT,),
                 );
 
             #! maps from verbose type names to simple type names
             const PgsqlNameMap = (
-                "character varying": "varchar",
+                "bit varying": "varbit",
                 "character": "char",
-                "timestamp without time zone": "timestamp",
-                "time without time zone": "time",
+                "character varying": "varchar",
+                "char varying": "varchar",
                 "double precision": "float",
+                "time with time zone": "timetz",
+                "time without time zone": "time",
+                "timestamp with time zone": "timestamptz",
+                "timestamp without time zone": "timestamp",
                 );
 
-            #! maps qore type names to postgresql type names
+            #! maps qore type names to PostgreSQL type names
             const QoreTypeMap = (
                 "integer": "bigint",
                 "float": "double precision",
@@ -1289,6 +1346,30 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
             #! column operator specializations for PostgreSQL
             const PgsqlCopMap = DefaultCopMap + (
+                COP_CAST: (
+                    "code": string sub (string cve, list args) {
+                        string name = QoreTypeMap{args[0]} ?? args[0];
+                        hash desc = PgsqlTypeMap{name};
+                        string sql = sprintf ("cast (%s as %s", cve, name);
+                        switch (name) {
+                            default:
+                                if (desc.size == SZ_MAND) {
+                                    if (!exists args[1] && !exists desc.size_range)
+                                        throw "OPERATOR-ERROR", sprintf ("op_cast operator missing size for type %s", name);
+                                    sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
+                                }
+                                else if (desc.size == SZ_NUM && exists args[1]) {
+                                    sql += sprintf("(%d", args[1]);
+                                    sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
+                                }
+                                else if (desc.size == SZ_OPT && exists args[1]) {
+                                    sql += sprintf("(%d)", args[1]);
+                                }
+                        }
+                        sql += ")";
+                        return sql;
+                    },
+                ),
                 COP_OVER: (
                     "argcolumn": True,
                     "argoptional": True,
@@ -1321,13 +1402,27 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                     }
                 ),
                 COP_SEQ: (
-                    "code": string sub (string arg1, string arg) {
-                        return sprintf("nextval('%s')", arg);
+                    "nocolumn": True,
+                    "withalias": True,
+                    "code": string sub (*string cve, hash arg, reference psch) {
+                        string sql = sprintf("nextval('%s')", arg.seq);
+                        if (arg.as) {
+                            psch{arg.as} = sql;
+                            sql += " " + arg.as;
+                        }
+                        return sql;
                     }
                 ),
                 COP_SEQ_CURRVAL: (
-                    "code": string sub (string arg1, string arg) {
-                        return sprintf("currval('%s')", arg);
+                    "nocolumn": True,
+                    "withalias": True,
+                    "code": string sub (*string cve, hash arg, reference psch) {
+                        string sql = sprintf("currval('%s')", arg.seq);
+                        if (arg.as) {
+                            psch{arg.as} = sql;
+                            sql += " " + arg.as;
+                        }
+                        return sql;
                     }
                 ),
                 );
@@ -1851,8 +1946,8 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch) {
-            doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch);
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+            doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
             if (qh.limit) {
                 sql += " limit %v";
                 args += qh.limit;
@@ -1882,17 +1977,54 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
         private *hash doReturningImpl(hash opt, reference sql, list args) {
             list l = ();
-            foreach softstring k in (opt.returning) {
-                *PgsqlColumn c = columns{k};
+            foreach any v in (opt.returning) {
+                hash rh;
+                switch (v.typeCode()) {
+                    case NT_STRING: rh.key = v; break;
+                    case NT_HASH: rh = v; break;
+                    default: throw "RETURNING-ERROR", sprintf("got type %y in \"returning\" option; expected \"string\" or \"hash\"", v.type());
+                }
+                if (!rh.key.val() || rh.key.typeCode() != NT_STRING)
+                    throw "RETURNING-ERROR", sprintf("got %y for \"returning\" option key value instead of name of output column", rh.key.type());
+                *PgsqlColumn c = columns{rh.key};
                 if (!c)
-                    throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column for the \"returning\" clause (valid columns: %y)", name, k, columns.keys());
-                l += k;
-                args += c.qore_type ?* Type::String;
+                    throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column for the \"returning\" clause (valid columns: %y)", name, rh.key, columns.keys());
+                l += rh.key;
+                args += rh.type ?* c.qore_type ?* Type::String;
             }
             sql += sprintf(" returning %s", (foldl $1 + "," + $2, l));
 
             *hash h = execData(opt, sql, args);
             return h ? map {$1.key: $1.value[0]}, h.pairIterator() : h;
+        }
+
+        private list getGroupOrderByListUnlocked(string key, hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+            list ce = ();
+            foreach any cv in (qh{key}) {
+                switch (cv.typeCode()) {
+                    case NT_STRING: {
+                        if (cv.toInt() == cv)
+                            ce += cv;
+                        else
+                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch);
+                        break;
+                    }
+
+                    case NT_HASH: {
+                        ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch, psch);
+                        break;
+                    }
+
+                    case NT_INT: {
+                        ce += cv.toString();
+                        break;
+                    }
+
+                    default:
+                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in group by list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv);
+                }
+            }
+            return ce;
         }
     }
 }

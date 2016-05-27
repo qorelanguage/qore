@@ -62,14 +62,19 @@ void GlobalVariableList::mergePublic(const GlobalVariableList& old) {
 
 // adds directly to committed list
 Var* GlobalVariableList::import(Var* v, ExceptionSink* xsink, bool readonly) {
-   map_var_t::iterator i = vmap.find(v->getName());
+   map_var_t::iterator i = pending_vmap.find(v->getName());
+   if (i != pending_vmap.end()) {
+      xsink->raiseException("PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION", "'%s' is already pending in the target namespace", v->getName());
+      return 0;
+   }
+   i = vmap.find(v->getName());
    if (i != vmap.end()) {
       xsink->raiseException("PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION", "'%s' already exists in the target namespace", v->getName());
       return 0;
    }
 
    Var* var = new Var(v, readonly);
-   pending_vmap[var->getName()] = var;
+   vmap[var->getName()] = var;
 
    printd(5, "GlobalVariableList::import(): reference to %s (%p) added\n", v->getName(), var);
    return var;

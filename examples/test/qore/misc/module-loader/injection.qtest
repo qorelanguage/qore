@@ -1,24 +1,22 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
 %require-types
 %enable-all-warnings
 %new-style
+%strict-args
 
 %allow-injection
 %no-child-restrictions
 
-%requires UnitTest
-
 # for negative testing of loadApplyUserModule
-%requires Util
+%requires ../../../../../qlib/Util.qm
+%requires ../../../../../qlib/QUnit.qm
 
 %requires ./MyTestModule.qm
 #/;
 
-UnitTest unit();
-
-test();
+%exec-class InjectionTest
 
 public namespace Test {
     class FileLineIteratorFake inherits AbstractIterator {
@@ -74,45 +72,53 @@ string sub get_tag() {
 }
 ";
 
-sub test() {
-    {
-        # set up the Program container
-        Program p(PO_NO_API|PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION|PO_NEW_STYLE);
-        p.importClass("Test::FileLineIteratorFake", "Qore::FileLineIterator", True);
-        p.importSystemApi();
-        p.lockOptions();
-
-        p.parse(Code1, "test-1");
-        p.run();
-        unit.cmp(p.callFunction("next"), True, "injection-1");
-        unit.cmp(p.callFunction("get_value"), "test", "injection-2");
-        unit.cmp(p.callFunction("next"), False, "injection-3");
-
-        unit.exception(sub() {p.callFunction("get_value");}, "iterator not valid", "neg-injection-1", 'ITERATOR-ERROR');
+class InjectionTest inherits QUnit::Test {
+    constructor() : Test("InjectionTest", "1.0") {
+        addTestCase("injection test", \injectionTest());
+        set_return_value(main());
     }
 
-    {
-        # set up the Program container
-        Program p(PO_NO_API|PO_NO_CHILD_PO_RESTRICTIONS|PO_NEW_STYLE);
-        unit.exception(sub() {p.importClass("Test::FileLineIteratorFake", "Qore::FileLineIterator", True);}, NOTHING, "neg-injection-2", 'CLASS-IMPORT-ERROR', "cannot import class");
-        unit.exception(sub() {p.importFunction("Test::exit", "Qore::exit", True);}, NOTHING, "neg-injection-3", 'FUNCTION-IMPORT-ERROR', "cannot import function");
-        unit.exception(sub() {p.loadApplyToUserModule("Util");}, NOTHING, "neg-injection-4", 'LOAD-MODULE-ERROR', "cannot load module.*for injection");
-    }
+    injectionTest() {
+        {
+            # set up the Program container
+            Program p(PO_NO_API|PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION|PO_NEW_STYLE);
+            p.importClass("Test::FileLineIteratorFake", "Qore::FileLineIterator", True);
+            p.importSystemApi();
+            p.lockOptions();
 
-    # test re-injection of a module
-    {
-        # set up the Program container for reinjecting MyTestModule
-        Program p(PO_NO_USER_API|PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION|PO_NEW_STYLE);
-        p.setScriptPath(get_script_path());
-        p.importClass("Test::ReinjectedTagClass", "MyTest::TagClass", True);
-        p.lockOptions();
-        p.loadApplyToUserModule("./MyTestModule.qm", True);
-    }
+            p.parse(Code1, "test-1");
+            p.run();
 
-    {
-        Program p(PO_NO_USER_API|PO_NEW_STYLE);
-        p.parse(Code2, "test-2");
-        p.run();
-        unit.cmp(p.callFunction("get_tag"), "tag-injected", "injection-5");
+            assertTrue(p.callFunction("next"), "injection-1");
+            assertEq("test", p.callFunction("get_value"), "injection-2");
+            assertFalse(p.callFunction("next"), "injection-3");
+            assertThrows("ITERATOR-ERROR", \p.callFunction(), "get_value");
+        }
+
+        {
+            # set up the Program container
+            Program p(PO_NO_API|PO_NO_CHILD_PO_RESTRICTIONS|PO_NEW_STYLE);
+
+            assertThrows("CLASS-IMPORT-ERROR", \p.importClass(), ("Test::FileLineIteratorFake", "Qore::FileLineIterator", True));
+            assertThrows("FUNCTION-IMPORT-ERROR", \p.importFunction(), ("Test::exit", "Qore::exit", True));
+            assertThrows("LOAD-MODULE-ERROR", \p.loadApplyToUserModule(), "Util");
+        }
+
+        # test re-injection of a module
+        {
+            # set up the Program container for reinjecting MyTestModule
+            Program p(PO_NO_USER_API|PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION|PO_NEW_STYLE);
+            p.setScriptPath(get_script_path());
+            p.importClass("Test::ReinjectedTagClass", "MyTest::TagClass", True);
+            p.lockOptions();
+            p.loadApplyToUserModule("./MyTestModule.qm", True);
+        }
+
+        {
+            Program p(PO_NO_USER_API|PO_NEW_STYLE);
+            p.parse(Code2, "test-2");
+            p.run();
+            assertEq("tag-injected", p.callFunction("get_tag"));
+        }
     }
 }

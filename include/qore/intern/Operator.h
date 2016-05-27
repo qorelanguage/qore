@@ -4,7 +4,7 @@
 
   Qore flexible operator support
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -44,7 +44,7 @@ DLLLOCAL extern Operator *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT,
    *OP_BIN_XOR, *OP_MINUS, *OP_PLUS,
    *OP_MULT, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT,
    *OP_LOG_CMP,
-   *OP_LIST_REF, *OP_OBJECT_REF, *OP_ELEMENTS, *OP_KEYS, *OP_QUESTION_MARK,
+   *OP_OBJECT_REF, *OP_ELEMENTS, *OP_KEYS, *OP_QUESTION_MARK,
    *OP_SHIFT, *OP_POP, *OP_PUSH,
    *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT,
    *OP_REGEX_TRANS, *OP_REGEX_EXTRACT,
@@ -527,8 +527,10 @@ typedef AbstractQoreNode* (*op_check_args_t)(QoreTreeNode* tree, LocalVar* oflag
 
 class Operator {
 private:
+   typedef std::vector<std::vector<int> > opmatrix_t;
+
    opfunc_list_t functions;
-   int (*opMatrix)[NUM_VALUE_TYPES];
+   opmatrix_t op_matrix;
    bool effect, lvalue;
    const char* name, *description;
    int args;
@@ -550,11 +552,12 @@ public:
        @param n_lvalue if the operator requires an lvalue on the left side (for modification, ex: $a =~ s/x/p/ )
    */
    DLLLOCAL Operator(int arg, const char* n, const char* desc, int n_evalArgs, bool n_effect, bool n_lvalue = false, op_check_args_t n_check_args = 0)
-      : opMatrix(0), effect(n_effect), lvalue(n_lvalue),
+      : effect(n_effect), lvalue(n_lvalue),
         name(n), description(desc), args(arg),
         evalArgs(n_evalArgs), check_args(n_check_args) {
    }
    DLLLOCAL ~Operator();
+
    // returns 0 = OK, -1 = parse exception raised
    DLLLOCAL AbstractQoreNode* parseInit(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& resultTypeInfo);
    DLLLOCAL void init();
@@ -673,7 +676,7 @@ public:
          rr = r.getReferencedValue();
       return eval(lr ? *lr : l.getInternalNode(), rr ? *rr : r.getInternalNode(), ref_rv, xsink);
    }
-   
+
    DLLLOCAL QoreValue eval(const AbstractQoreNode* l, const AbstractQoreNode* r, bool ref_rv, ExceptionSink* xsink) const;
 
    DLLLOCAL const char* getName() const {

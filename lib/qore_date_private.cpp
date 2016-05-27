@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -197,7 +197,7 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
 
    // we need at least YYYYMMDD
    if (len < 8) {
-      set(zone, 0, 0);
+      set(n_zone, 0, 0);
       return;
    }
 
@@ -205,7 +205,7 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
 
    int year = get_uint(p, 4);
    if (year < 0) {
-      set(zone, 0, 0);
+      set(n_zone, 0, 0);
       return;
    }
 
@@ -217,7 +217,7 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
 
    int month = get_uint(p, 2);
    if (month < 0) {
-      set(zone, year, 1, 1, 0, 0, 0, 0);
+      set(n_zone, year, 1, 1, 0, 0, 0, 0);
       return;
    }
 
@@ -225,14 +225,14 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
       if (*p == '-')
          ++p;
       else {
-         set(zone, year, month, 1, 0, 0, 0, 0);
+         set(n_zone, year, month, 1, 0, 0, 0, 0);
          return;
       }
    }
 
    int day = get_uint(p, 2);
    if (day < 0) {
-      set(zone, year, month, 1, 0, 0, 0, 0);
+      set(n_zone, year, month, 1, 0, 0, 0, 0);
       return;
    }
 
@@ -248,7 +248,7 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
 
    int hour = get_uint(p, 2);
    if (hour < 0) {
-      set(zone, year, month, day, 0, 0, 0, 0);
+      set(n_zone, year, month, day, 0, 0, 0, 0);
       return;
    }
 
@@ -260,7 +260,7 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
 
    int minute = get_uint(p, 2);
    if (minute < 0) {
-      set(zone, year, month, day, hour, 0, 0, 0);
+      set(n_zone, year, month, day, hour, 0, 0, 0);
       return;
    }
 
@@ -268,19 +268,19 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
       if (*p == ':')
          ++p;
       else {
-         set(zone, year, month, day, hour, minute, 0, 0);
+         set(n_zone, year, month, day, hour, minute, 0, 0);
          return;
       }
    }
 
    int second = get_uint(p, 2);
    if (second < 0) {
-      set(zone, year, month, day, hour, minute, 0, 0);
+      set(n_zone, year, month, day, hour, minute, 0, 0);
       return;
    }
 
    if (!*p) {
-      set(zone, year, month, day, hour, minute, second, 0);
+      set(n_zone, year, month, day, hour, minute, second, 0);
       return;
    }
 
@@ -288,7 +288,7 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
    if (*p == '.') {
       ++p;
       if (!isdigit(*p)) {
-         set(zone, year, month, day, hour, minute, second, 0);
+         set(n_zone, year, month, day, hour, minute, second, 0);
          return;
       }
 
@@ -311,7 +311,7 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
       }
 
       if (!*p) {
-         set(zone, year, month, day, hour, minute, second, us);
+         set(n_zone, year, month, day, hour, minute, second, us);
          return;
       }
    }
@@ -323,7 +323,7 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
       ++p;
 
    if (*p == 'Z') {
-      zone = 0;
+      n_zone = 0;
       ++p;
    }
    else if (*p == '+' || *p == '-') {
@@ -331,7 +331,7 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
 
       ++p;
       if (!isdigit(*p)) {
-         set(zone, year, month, day, hour, minute, second, us);
+         set(n_zone, year, month, day, hour, minute, second, us);
          return;
       }
 
@@ -350,8 +350,8 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
 
 	 if (!isdigit(*p)) {
             // ignore any time zone passed
-            zone = findCreateOffsetZone(offset * mult);
-            set(zone, year, month, day, hour, minute, second, us);
+            n_zone = findCreateOffsetZone(offset * mult);
+            set(n_zone, year, month, day, hour, minute, second, us);
             return;
          }
 
@@ -370,8 +370,8 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
 
 	    if (!isdigit(*p)) {
                // ignore any time zone passed
-               zone = findCreateOffsetZone(offset * mult);
-               set(zone, year, month, day, hour, minute, second, us);
+               n_zone = findCreateOffsetZone(offset * mult);
+               set(n_zone, year, month, day, hour, minute, second, us);
                return;
             }
 
@@ -387,10 +387,10 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
       }
 
       // ignore any time zone passed
-      zone = findCreateOffsetZone(offset * mult);
+      n_zone = findCreateOffsetZone(offset * mult);
    }
 
-   set(zone, year, month, day, hour, minute, second, us);
+   set(n_zone, year, month, day, hour, minute, second, us);
 }
 
 int64 qore_absolute_time::getRelativeMicroseconds() const {
@@ -494,6 +494,15 @@ qore_relative_time &qore_relative_time::operator-=(const qore_relative_time &dt)
    hour -= dt.hour;
    minute -= dt.minute;
    second -= dt.second;
+   us -= dt.us;
+
+   normalize();
+
+   return *this;
+}
+
+qore_relative_time &qore_relative_time::operator-=(const qore_absolute_time &dt) {
+   second -= dt.epoch;
    us -= dt.us;
 
    normalize();

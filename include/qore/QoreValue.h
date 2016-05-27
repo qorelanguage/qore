@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -126,6 +126,8 @@ public:
    DLLEXPORT QoreValue(long i);
 
    DLLEXPORT QoreValue(unsigned long i);
+
+   DLLEXPORT QoreValue(unsigned long long i);
 
    DLLEXPORT QoreValue(int64 i);
 
@@ -291,14 +293,15 @@ public:
 };
 
 class ValueOptionalRefHolder : public ValueHolderBase {
+private:
+   // not implemented
+   DLLLOCAL QoreValue& operator=(QoreValue& nv);
+
 protected:
    bool needs_deref;
 
    DLLLOCAL ValueOptionalRefHolder(ExceptionSink* xs) : ValueHolderBase(xs), needs_deref(false) {
    }
-
-   // not implemented
-   DLLLOCAL QoreValue& operator=(QoreValue& nv);
 
 public:
    DLLLOCAL ValueOptionalRefHolder(QoreValue n_v, bool nd, ExceptionSink* xs) : ValueHolderBase(n_v, xs), needs_deref(nd) {
@@ -318,6 +321,13 @@ public:
    //! returns true if holding an AbstractQoreNode reference
    DLLLOCAL operator bool() const {
       return v.type == QV_Node && v.v.n;
+   }
+
+   //! assigns a new temporary value
+   DLLLOCAL void setTemp(QoreValue nv) {
+      if (needs_deref)
+         v.discard(xsink);
+      v = nv;
    }
 };
 

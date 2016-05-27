@@ -4,7 +4,7 @@
 
   QORE programming language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -77,6 +77,8 @@
 #define PO_NO_INHERIT_USER_CONSTANTS        (1LL << 37)  //!< do not inherit user constants from the parent into the new program's space
 #define PO_NO_INHERIT_SYSTEM_CONSTANTS      (1LL << 38)  //!< do not inherit system constants from the parent into the new program's space
 #define PO_BROKEN_LIST_PARSING              (1LL << 39)  //!< allow for old pre-%Qore 0.8.12 broken list rewriting in the parser
+#define PO_BROKEN_LOGIC_PRECEDENCE          (1LL << 40)  //!< allow for old pre-%Qore 0.8.12 precedence of logical and bitwise operators
+#define PO_BROKEN_INT_ASSIGNMENTS           (1LL << 41)  //!< allow for old pre-%Qore 0.8.12 "int" restrictions to be ignored at runtime
 
 // aliases for old defines
 #define PO_NO_SYSTEM_FUNC_VARIANTS          PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
@@ -111,7 +113,7 @@
 #define PO_POSITIVE_OPTIONS           (PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION)
 
 //! mask of options that have no effect on code access or code safety
-#define PO_FREE_OPTIONS               (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL|PO_STRICT_BOOLEAN_EVAL|PO_BROKEN_LIST_PARSING)
+#define PO_FREE_OPTIONS               (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL|PO_STRICT_BOOLEAN_EVAL|PO_BROKEN_LIST_PARSING|PO_BROKEN_LOGIC_PRECEDENCE|PO_BROKEN_INT_ASSIGNMENTS)
 
 //! mask of options that affect the way a child Program inherits user code from the parent
 #define PO_USER_INHERITANCE_OPTIONS   (PO_NO_INHERIT_USER_CLASSES|PO_NO_INHERIT_USER_FUNC_VARIANTS|PO_NO_INHERIT_GLOBAL_VARS|PO_NO_INHERIT_USER_CONSTANTS)

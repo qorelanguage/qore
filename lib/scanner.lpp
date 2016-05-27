@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -643,6 +643,23 @@ static bool parse_is_defined(const char* pstr, bool def = true) {
    return qore_program_private::parseIsDefined(getProgram(), str.getBuffer());
 }
 
+static bool is_identifier(const char *str) {
+    if (!(getProgram()->getParseOptions64() & PO_REQUIRE_BARE_REFS)) {
+        if (*str++ != '$') {
+            return false;
+        }
+    }
+    if (!isalpha(*str) && *str != '_') {
+        return false;
+    }
+    while (*++str) {
+        if (!isalpha(*str) && !isdigit(*str) && *str != '_') {
+            return false;
+        }
+    }
+    return true;
+}
+
 #define DO_DOT_KW_IDENTIFIER(kw) { yylval->String = new QoreStringNode(kw); qore_size_t pos = yylval->String->size() + 1; if (yytext[pos]) unput(yytext[pos]); return DOT_KW_IDENTIFIER; }
 
 #define QORE_FLEX_DO_EOF { /* delete current buffer */ yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner); \
@@ -666,7 +683,7 @@ HEX_DIGIT       [0-9A-Fa-f]
 HEX_CONST       0x{HEX_DIGIT}+
 OCTAL_CONST     \\[0-7]{1,3}
 DIGIT           [0-9]
-WORD            [a-zA-Z][a-zA-Z0-9_]*
+WORD            [a-zA-Z_][a-zA-Z0-9_]*
 WS              [ \t\r]
 WSNL            [ \t\r\n]
 YEAR            [0-9]{4}
@@ -724,19 +741,24 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%perl-bool-eval{WS}*$                  getProgram()->parseDisableParseOptions(PO_STRICT_BOOLEAN_EVAL);
 ^%strict-bool-eval{WS}*$                getProgram()->parseSetParseOptions(PO_STRICT_BOOLEAN_EVAL);
 ^%broken-list-parsing{WS}*$             getProgram()->parseSetParseOptions(PO_BROKEN_LIST_PARSING);
+^%broken-logic-precedence{WS}*$         getProgram()->parseSetParseOptions(PO_BROKEN_LOGIC_PRECEDENCE);
+^%broken-int-assignments{WS}*$          getProgram()->parseSetParseOptions(PO_BROKEN_INT_ASSIGNMENTS);
 ^%push-parse-options{WS}*$              push_parse_options();
+^%append-include-path{WS}*$             { parse_error("missing argument to %%append-include-path"); }
 ^%append-include-path{WS}+              BEGIN(append_path_state);
-<append_path_state>[^\t\n\r]+           {
+<append_path_state>[^\n\r]+             {
                                            set_include_path(yytext);
                                            BEGIN(INITIAL);
                                         }
+^%append-module-path{WS}*$              { parse_error("missing argument to %%append-module-path"); }
 ^%append-module-path{WS}+               BEGIN(append_module_state);
-<append_module_state>[^\t\n\r]+         {
+<append_module_state>[^\n\r]+           {
                                            append_module_path(yytext);
                                            BEGIN(INITIAL);
                                         }
+^%set-time-zone{WS}*$                   { parse_error("missing argument to %%set-time-zone"); }
 ^%set-time-zone{WS}+                    BEGIN(set_zone);
-<set_zone>[^\t\n\r]+                    {
+<set_zone>[^\n\r]+                      {
                                            parse_set_time_zone(yytext);
                                            BEGIN(INITIAL);
                                         }
@@ -750,7 +772,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                         }
 ^%disable-warning{WS}*$                 { parse_error("missing argument to %%disable-warning"); }
 ^%disable-warning{WS}+                  BEGIN(disable_warning);
-<disable_warning>[^\t\n\r]+             {
+<disable_warning>[^\n\r]+               {
                                            char* cn = trim(yytext);
                                            //printd(5, "scanner: disable warning '%s'\n", cn);
                                            int code = get_warning_code(cn);
@@ -762,9 +784,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            free(cn);
                                            BEGIN(INITIAL);
                                         }
-^%ensable-warning{WS}*$                 { parse_error("missing argument to %%enable-warning"); }
+^%enable-warning{WS}*$                  { parse_error("missing argument to %%enable-warning"); }
 ^%enable-warning{WS}+                   BEGIN(enable_warning);
-<enable_warning>[^\t\n\r]+              {
+<enable_warning>[^\n\r]+                {
                                            char* cn = trim(yytext);
                                            //printd(5, "scanner: enable warning '%s'\n", cn);
                                            int code = get_warning_code(cn);
@@ -776,9 +798,10 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            BEGIN(INITIAL);
                                         }
 ^%exec-class{WS}*$                      { parse_error("missing argument to %%exec-class"); }
-^%exec-class{WS}*                       BEGIN(exec_class_state);
-^%try-module                            BEGIN(try_module);
-<try_module>[^\t\n\r]+                  {
+^%exec-class{WS}+                       BEGIN(exec_class_state);
+^%try-module{WS}*$                      { parse_error("missing argument to %%try-module"); }
+^%try-module{WS}+                       BEGIN(try_module);
+<try_module>[^\n\r]+                    {
                                            parse_try_module_inc();
                                            QoreString str(yytext);
                                            str.trim();
@@ -788,24 +811,32 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            QoreString var;
                                            bool ok = true;
                                            if (op) {
-                                              p = op + 1;
+                                              if (op != p) {
+                                                 parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; extra text before '('; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
+                                                 ok = false;
+                                              }
+                                              ++p;
                                               const char* cp = strchr(p, ')');
                                               if (!cp) {
-                                                 parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; missing close parenthesis ')' after variable name; text given: '%%try-module %s'", require_dollar ? "%" : "", str.getBuffer());
+                                                 parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; missing close parenthesis ')' after variable name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
                                                  ok = false;
                                               }
                                               else {
                                                  // get variable name
                                                  var.concat(p, cp - p);
-                                                 var.trim();
+                                                 var.trim("\t ");
 
                                                  if (var.empty()) {
-                                                    parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; missing exception variable name; text given: '%%try-module %s'", require_dollar ? "%" : "", str.getBuffer());
+                                                    parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; missing exception variable name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
                                                     ok = false;
                                                  }
                                                  else {
                                                     // remove preface from string leaving only the rest
                                                     str.replace(0, cp - str.getBuffer() + 1, (const char*)0);
+                                                    if (!is_identifier(var.getBuffer())) {
+                                                       parse_error("%%try-module not in format '%%try-module (%svarname) <module>'; invalid exception variable name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
+                                                       ok = false;
+                                                    }
                                                  }
                                               }
                                            }
@@ -819,7 +850,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                                  if (var.empty())
                                                     parse_error("%%try-module not in format %%try-module <module>; missing module name; text given: '%%try-module %s'", str.getBuffer());
                                                  else
-                                                    parse_error("%%try-module not in format %%try-module (%svarname) <module>; missing module name; text given: '%%try-module %s'", require_dollar ? "%" : "", str.getBuffer());
+                                                    parse_error("%%try-module not in format %%try-module (%svarname) <module>; missing module name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
                                                  BEGIN(INITIAL);
                                               }
                                               else {
@@ -868,8 +899,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
    \n                                   // ignore
 }
 ^%endtry{WS}*$                          parse_try_module_dec();
+^%requires{WS}*$                        { parse_error("missing argument to %%requires"); }
 ^%requires                              BEGIN(requires);
-<requires>[^\t\n\r]+                    {
+<requires>[^\n\r]+                      {
                                            char* cn = trim_inplace(yytext);
                                            if (!cn)
                                               parse_error("missing argument to %%requires");
@@ -918,14 +950,14 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%define{WS}*$                          { parse_error("missing argument to %%define"); }
 ^%define{WS}+                           BEGIN(p_def);
 <p_def>{WS}*                            // ignore white space
-<p_def>[^\t\n\r]+                       {
+<p_def>[^\n\r]+                         {
                                            qore_parse_define(yytext);
                                            BEGIN(INITIAL);
                                         }
 ^%ifdef{WS}*$                           { parse_error("missing argument to %%ifdef"); }
 ^%ifdef{WS}+                            BEGIN(p_ifdef);
 <p_ifdef>{
-   [^\t\n\r]+$                          {
+   [^\n\r]+$                            {
                                            parse_cond_push(true);
                                            if (parse_is_defined(yytext)) {
                                               //printd(5, "ifdef: '%s' is defined\n", yytext);
@@ -941,7 +973,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%ifndef{WS}*$                           { parse_error("missing argument to %%ifndef"); }
 ^%ifndef{WS}+                            BEGIN(p_ifndef);
 <p_ifndef>{
-   [^\t\n\r]+$                          {
+   [^\n\r]+$                            {
                                            parse_cond_push(true);
                                            if (!parse_is_defined(yytext)) {
                                               //printd(5, "ifndef: '%s' is not defined\n", yytext);
@@ -1018,7 +1050,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%include{WS}*$                         { parse_error("missing argument to %%include"); }
 ^%include{WS}+                          BEGIN(incl);
 <exec_class_state>{
-   [^\t\n\r]+$                          {
+   [^\n\r]+                             {
                                            char* cn = trim(yytext);
                                            //printf("setting class name to: '%s'\n", cn);
                                            getProgram()->setExecClass(cn);
@@ -1028,7 +1060,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                         }
 }
 <incl>{WS}*                             // ignore white space
-<incl>[^\t\n\r]+                        {
+<incl>[^\n\r]+                          {
                                            TempString fname(get_include_file_name(yytext));
                                            const char* fn = fname->getBuffer();
                                            // remove enclosing quotes if any
@@ -1142,7 +1174,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            yylval->RegexSubst->concatTarget('\n');
                                         }
       \\\/                              yylval->RegexSubst->concatTarget('/');
-      \\\\                              yylval->RegexSubst->concatTarget('\\');
+      \\\.                              yylval->RegexSubst->concatTarget('.');
       \\.                               { yylval->RegexSubst->concatTarget('\\'); yylval->RegexSubst->concatTarget(yytext[1]); }
       [^\n\\/]+                         {
                                            char* yptr = yytext;
@@ -1480,7 +1512,9 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
 ==                                      return LOGICAL_EQ;
 \<=\>                                   return LOGICAL_CMP;
 &&                                      return LOGICAL_AND;
-\|\|                                    return LOGICAL_OR;
+\|\|                                    return (getProgram()->getParseOptions64() & PO_BROKEN_LOGIC_PRECEDENCE) ? BROKEN_LOGICAL_OR : LOGICAL_OR;
+\|                                      return (getProgram()->getParseOptions64() & PO_BROKEN_LOGIC_PRECEDENCE) ? BROKEN_BINARY_OR : '|';
+\^                                      return (getProgram()->getParseOptions64() & PO_BROKEN_LOGIC_PRECEDENCE) ? BROKEN_BINARY_XOR : '^';
 \>\>                                    return SHIFT_RIGHT;
 \<\<                                    return SHIFT_LEFT;
 \+\+                                    return P_INCREMENT;

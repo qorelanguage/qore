@@ -40,7 +40,7 @@ License: LGPLv2+ or GPLv2+ or MIT
 %endif
 Group: Development/Languages
 URL: http://qore.org
-Source0: http://downloads.sourceforge.net/%{name}/%{name}-%{version}.tar.bz2
+Source0: https://github.com/qorelanguage/qore/releases/download/release-%{version}/%{name}-%{version}.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: /usr/bin/env
 BuildRequires: flex >= 2.5.31
@@ -128,7 +128,7 @@ functionality.
 %{_libdir}/libqore.so.5.13.0
 %{_libdir}/libqore.so.5
 %{module_dir}
-%doc COPYING.LGPL COPYING.GPL COPYING.MIT README README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS WHATISQORE
+%doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS ABOUT
 
 %post -n %{libname}
 ldconfig %{_libdir}
@@ -242,7 +242,6 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 /usr/bin/qore
-/usr/bin/qr
 %if 0%{?rh_dist}
 %if %{?rh_dist} <= 5
 /usr/man/man1/qore.1.*

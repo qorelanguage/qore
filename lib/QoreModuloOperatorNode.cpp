@@ -1,10 +1,10 @@
 /*
-  QoreModulaEqualsOperatorNode.cpp
- 
+  QoreModuloOperatorNode.cpp
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -30,28 +30,41 @@
 
 #include <qore/Qore.h>
 
-QoreString QoreModulaEqualsOperatorNode::op_str("%= operator expression");
+QoreString QoreModuloOperatorNode::op_str("% (modula) operator expression");
 
-AbstractQoreNode *QoreModulaEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   parseInitIntLValue(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
-   return this;
-}
-
-QoreValue QoreModulaEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   int64 val = right->bigIntEval(xsink);
+QoreValue QoreModuloOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+   int64 l = left->bigIntEval(xsink);
    if (*xsink)
       return QoreValue();
-
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper v(left, xsink);
-   if (!v)
+   int64 r = right->bigIntEval(xsink);
+   if (*xsink)
       return QoreValue();
-
-   // do not try to execute %= 0 or a runtime exception will occur
-   if (!val) {
-      v.assign(0ll, "<%= operator>");
-      return 0ll;
+   if (!r) {
+      xsink->raiseException("DIVISION-BY-ZERO", "modula operand cannot be zero ("QLLD" %% "QLLD" attempted)", l, r);
+      return QoreValue();
    }
-   
-   return v.modulaEqualsBigInt(val, "<%= operator>");
+   return l % r;
+}
+
+AbstractQoreNode* QoreModuloOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   // turn off "return value ignored" flags
+   pflag &= ~(PF_RETURN_VALUE_IGNORED);
+
+   typeInfo = bigIntTypeInfo;
+
+   const QoreTypeInfo *lti = 0, *rti = 0;
+
+   left = left->parseInit(oflag, pflag, lvids, lti);
+   right = right->parseInit(oflag, pflag, lvids, rti);
+
+   // see if both arguments are constant values and the right side is > 0, then eval immediately and substitute this node with the result
+   if (left && left->is_value() && right && right->is_value() && right->getAsBigInt()) {
+      SimpleRefHolder<QoreModuloOperatorNode> del(this);
+      ParseExceptionSink xsink;
+      ValueEvalRefHolder v(this, *xsink);
+      assert(!**xsink);
+      return v.getReferencedValue();
+   }
+
+   return this;
 }

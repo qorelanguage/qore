@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -264,7 +264,10 @@ protected:
 
 public:
    // saves current program location in case there's an exception
-   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args = 0, const char* n_class_name = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false);
+   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args = 0, const char* n_class_name = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false);
+
+   // saves current program location in case there's an exception
+   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, const char* n_class_name = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false);
 
    DLLLOCAL ~CodeEvaluationHelper();
 
@@ -1082,7 +1085,7 @@ public:
 
 class UserClosureFunction : public QoreFunction {
 protected:
-   lvar_set_t varlist;  // closure local variable environment
+   LVarSet varlist;  // closure local variable environment
    const QoreTypeInfo* classTypeInfo;
 
 public:
@@ -1104,8 +1107,13 @@ public:
       return classTypeInfo;
    }
 
-   DLLLOCAL lvar_set_t* getVList() {
+   DLLLOCAL LVarSet* getVList() {
       return &varlist;
+   }
+
+   // returns true if at least one variable in the set of closure-bound local variables could contain an object or a closure (also through a container)
+   DLLLOCAL bool needsScan() const {
+      return varlist.needsScan();
    }
 };
 

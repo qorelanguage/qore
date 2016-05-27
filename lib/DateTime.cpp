@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -297,15 +297,8 @@ DateTime* DateTime::subtractBy(const DateTime* dt) const {
 }
 
 DateTime* DateTime::subtractBy(const DateTime& dt) const {
-   DateTime* rv;
-   if (isRelative()) {
-      rv = new DateTime(dt);
-      rv->priv->subtractBy(*priv);
-   }
-   else {
-      rv = new DateTime(*this);
-      rv->priv->subtractBy(*dt.priv);
-   }
+   DateTime* rv = new DateTime(*this);
+   rv->priv->subtractBy(*dt.priv);
    return rv;
 }
 

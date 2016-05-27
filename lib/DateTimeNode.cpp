@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -188,15 +188,8 @@ DateTimeNode* DateTimeNode::subtractBy(const DateTime& dt) const {
    if (!dt.hasValue())
       return refSelf();
 
-   DateTimeNode* rv;
-   if (isRelative()) {
-      rv = new DateTimeNode(dt);
-      rv->priv->subtractBy(*priv);
-   }
-   else {
-      rv = new DateTimeNode(*this);
-      rv->priv->subtractBy(*dt.priv);
-   }
+   DateTimeNode* rv = new DateTimeNode(*this);
+   rv->priv->subtractBy(*dt.priv);
    return rv;
 }
 

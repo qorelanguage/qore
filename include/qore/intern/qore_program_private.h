@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,8 @@
 #ifndef _QORE_QORE_PROGRAM_PRIVATE_H
 #define _QORE_QORE_PROGRAM_PRIVATE_H
 
+#define QPP_DBG_LVL 5
+
 extern QoreListNode* ARGV, * QORE_ARGV;
 extern QoreHashNode* ENV;
 
@@ -56,16 +58,16 @@ public:
    }
 };
 
-class CharPtrList : public safe_dslist<const char*> {
+class CharPtrList : public safe_dslist<std::string> {
 public:
    // returns true for found, false for not found
    // FIXME: use STL find algorithm
    DLLLOCAL bool find(const char* str) const {
       const_iterator i = begin();
       while (i != end()) {
-	 if (!strcmp(*i, str))
+	 if (*i == str)
 	    return true;
-	 i++;
+	 ++i;
       }
 
       return false;
@@ -436,7 +438,7 @@ public:
         requires_exception(false), tclear(0),
         exceptions_raised(0), ptid(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(0), twaiting(0),
         thr_init(0), exec_class_rv(0), pgm(n_pgm) {
-      //printd(5, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: "QLLD"\n", this, pgm, n_parse_options);
+      printd(QPP_DBG_LVL, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: "QLLD"\n", this, pgm, n_parse_options);
 
       if (p_pgm)
 	 setParent(p_pgm, n_parse_options);
@@ -462,7 +464,7 @@ public:
 
 #ifdef DEBUG
    DLLLOCAL ~qore_program_private_base() {
-      //printd(5, "qore_program_private_base::~qore_program_private_base() this: %p pgm: %p\n", this, pgm);
+      printd(QPP_DBG_LVL, "qore_program_private_base::~qore_program_private_base() this: %p pgm: %p\n", this, pgm);
    }
 #endif
 
@@ -530,8 +532,13 @@ public:
       assert(!exec_class_rv);
    }
 
+   DLLLOCAL void depRef() {
+      printd(QPP_DBG_LVL, "qore_program_private::depRef() this: %p pgm: %p %d->%d\n", this, pgm, dc.reference_count(), dc.reference_count() + 1);
+      dc.ROreference();
+   }
+
    DLLLOCAL void depDeref(ExceptionSink* xsink) {
-      //printd(5, "qore_program_private::depDeref() this: %p pgm: %p %d->%d\n", this, pgm, dc.reference_count(), dc.reference_count() - 1);
+      printd(QPP_DBG_LVL, "qore_program_private::depDeref() this: %p pgm: %p %d->%d\n", this, pgm, dc.reference_count(), dc.reference_count() - 1);
       if (dc.ROdereference()) {
          del(xsink);
          delete pgm;
@@ -752,7 +759,7 @@ public:
    }
 
    DLLLOCAL QoreListNode* getFeatureList() const {
-      QoreListNode* l = new QoreListNode();
+      QoreListNode* l = new QoreListNode;
 
       for (CharPtrList::const_iterator i = featureList.begin(), e = featureList.end(); i != e; ++i)
 	 l->push(new QoreStringNode(*i));
@@ -1527,6 +1534,12 @@ public:
    DLLLOCAL void runtimeImportSystemApi(ExceptionSink* xsink);
 
    DLLLOCAL void doThreadInit(ExceptionSink* xsink);
+
+   DLLLOCAL QoreClass* runtimeFindClass(const char* class_name, ExceptionSink* xsink) const;
+
+   DLLLOCAL static QoreClass* runtimeFindClass(const QoreProgram& pgm, const char* class_name, ExceptionSink* xsink) {
+      return pgm.priv->runtimeFindClass(class_name, xsink);
+   }
 
    DLLLOCAL static void doThreadInit(QoreProgram& pgm, ExceptionSink* xsink) {
       pgm.priv->doThreadInit(xsink);

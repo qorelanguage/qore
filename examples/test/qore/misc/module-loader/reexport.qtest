@@ -1,9 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires ../../../../../qlib/QUnit.qm
 
@@ -12,7 +13,7 @@
 
 %exec-class ReExportTest
 
-class ReExportTest inherits Test {
+class ReExportTest inherits QUnit::Test {
     constructor() : Test("ReExportTest", "1.0") {
         addTestCase("ReExport Test", \test());
 

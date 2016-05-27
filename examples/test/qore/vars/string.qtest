@@ -1,280 +1,329 @@
 #!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
-%requires UnitTest
+%requires ../../../../qlib/QUnit.qm
 
-# little script to test hash accesses on a large hash
-# by David Nichols
+%exec-class StringTest
 
-my UnitTest unit();
+class StringTest inherits QUnit::Test {
+    constructor() : QUnit::Test("String test", "1.0") {
+        addTestCase("Basic functions test", \testBasics());
+        addTestCase("Encoding test", \testEncoding());
+        addTestCase("Base64 and hex test", \testBase64Hex());
+        addTestCase("Splice and extract test", \testSpliceAndExtract());
+        addTestCase("Join test", \testJoin());
+        addTestCase("Transliteration test", \testTransliteration());
+        addTestCase("Regex test", \testRegex());
+        addTestCase("Chomp and trim test", \testChompAndTrim());
+        addTestCase("Float strings test", \testFloat());
+        addTestCase("String conversion test", \testConversions());
+        set_return_value(main());
+    }
 
-    my string str = "Hi there, you there, pal";
-    my string big = "GEE WHIZ";
-    unit.cmp(strlen(str), 24, "strlen()");
-    unit.cmp(str.strlen(), 24, "<string>::strlen()");
-    unit.cmp(str.size(), 24, "<string::size()");
-    unit.cmp(toupper(str), "HI THERE, YOU THERE, PAL", "toupper()");
-    unit.cmp(str.upr(), "HI THERE, YOU THERE, PAL", "<string>::upr()");
-    unit.cmp(big.lwr(), "gee whiz", "<string>::lwr()");
-    unit.cmp(reverse(big), "ZIHW EEG", "reverse()");
-    # strmul
-    unit.cmp(strmul(big, 2), "GEE WHIZGEE WHIZ", "strmul() basic");
-    unit.cmp(strmul("%v, ", 3, 2), "%v, %v, %v", "strmul() extended");
-    unit.cmp(strmul(123, 2), "123123", "strmul() type conversion");
-    
-    # set up a string with UTF-8 multi-byte characters
-    str = "Über die Wolken läßt sich die Höhe begrüßen";
-    unit.cmp(strlen(str), 49, "UTF-8 strlen()");
-    unit.cmp(str.strlen(), 49, "UTF-8 <string>::strlen()");
-    unit.cmp(length(str), 43, "UTF-8 length()");
-    unit.cmp(str.length(), 43, "UTF-8 <string>::length()");
-    unit.cmp(substr(str, 30), "Höhe begrüßen", "first UTF-8 substr()");
-    unit.cmp(substr(str, -8), "begrüßen", "second UTF-8 substr()");
-    unit.cmp(substr(str, 0, -39), "Über", "third UTF-8 substr()");
-    unit.cmp(index(str, "läßt"), 16, "first UTF-8 index()");
-    unit.cmp(index(str, "läßt", 1), 16, "second UTF-8 index()");
-    unit.cmp(rindex(str, "ß"), 40, "first UTF-8 rindex()");
-    unit.cmp(rindex(str, "ß", 25), 18, "second UTF-8 rindex()"); 
-    unit.cmp(bindex(str, "läßt"), 17, "first UTF-8 bindex()");
-    unit.cmp(bindex(str, "läßt", 1), 17, "second UTF-8 bindex()");
-    unit.cmp(brindex(str, "ß"), 45, "first UTF-8 brindex()");
-    unit.cmp(brindex(str, "ß", 25), 20, "second UTF-8 brindex()"); 
-    unit.cmp(reverse(str), "neßürgeb ehöH eid hcis tßäl nekloW eid rebÜ", "UTF-8 reverse()");
-    unit.cmp(index(str, "==="), -1, "negative index()");
-    unit.cmp(rindex(str, "==="), -1, "negative rindex()");
-    unit.cmp(bindex(str, "==="), -1, "negative bindex()");
+    testBasics() {
+        string str = "Hi there, you there, pal";
+        string big = "GEE WHIZ";
+        assertEq(strlen(str), 24, "strlen()");
+        assertEq(str.strlen(), 24, "<string>::strlen()");
+        assertEq(str.size(), 24, "<string::size()");
+        assertEq(toupper(str), "HI THERE, YOU THERE, PAL", "toupper()");
+        assertEq(str.upr(), "HI THERE, YOU THERE, PAL", "<string>::upr()");
+        assertEq(big.lwr(), "gee whiz", "<string>::lwr()");
+        assertEq(reverse(big), "ZIHW EEG", "reverse()");
 
-    unit.cmp(str[31], "ö", "first UTF-8 string index dereference");
-    unit.cmp(str[39], "ü", "second UTF-8 string index dereference");
+        assertEq(strmul(big, 2), "GEE WHIZGEE WHIZ", "strmul() basic");
+        assertEq(strmul("%v, ", 3, 2), "%v, %v, %v", "strmul() extended");
+        assertEq(strmul(123, 2), "123123", "strmul() type conversion");
 
-    # save string
-    my string ostr = str;
-    # convert the string to single-byte ISO-8859-1 characters and retest
-    str = convert_encoding(str, "ISO-8859-1");
-    unit.cmp(str != ostr, False, "string != operator with same text with different encodings");
-    unit.cmp(strlen(str), 43, "ISO-8859-1 strlen()");
-    unit.cmp(str.strlen(), 43, "ISO-8859-1 <string>::strlen()");
-    unit.cmp(length(str), 43, "ISO-8859-1 length()");
-    unit.cmp(str.length(), 43, "ISO-8859-1 <string>::length()");
-    unit.cmp(substr(str, 30), convert_encoding("Höhe begrüßen", "ISO-8859-1"), "first ISO-8859-1 substr()");
-    unit.cmp(substr(str, -8), convert_encoding("begrüßen", "ISO-8859-1"), "second ISO-8859-1 substr()");
-    unit.cmp(substr(str, 0, -39), convert_encoding("Über", "ISO-8859-1"), "third ISO-8859-1 substr()");
-    unit.cmp(index(str, convert_encoding("läßt", "ISO-8859-1")), 16, "first ISO-8859-1 index()");
-    unit.cmp(index(str, convert_encoding("läßt", "ISO-8859-1"), 1), 16, "second ISO-8859-1 index()");
-    unit.cmp(rindex(str, convert_encoding("ß", "ISO-8859-1")), 40, "first ISO-8859-1 rindex()");
-    unit.cmp(rindex(str, convert_encoding("ß", "ISO-8859-1"), 25), 18, "second ISO-8859-1 rindex()"); 
-    unit.cmp(ord(str, 1), 98, "ord()");
+        assertEq(chr(104), "h", "chr()");
 
-    unit.cmp(chr(104), "h", "chr()");
+        str = "gee this is a long string";
+        list a = split(" ", str);
+        assertEq(a[2], "is", "first string split()");
+        assertEq(a[5], "string", "second string split()");
 
-    str = "gee this is a long string";
-    my list a = split(" ", str);
-    unit.cmp(a[2], "is", "first string split()");
-    unit.cmp(a[5], "string", "second string split()");
+        a = split(binary(" "), binary(str));
+        assertEq(a[2], binary("is"), "first binary split()");
+        assertEq(a[5], binary("string"), "second binary split()");
+    }
 
-    a = split(binary(" "), binary(str));
-    unit.cmp(a[2], binary("is"), "first binary split()");
-    unit.cmp(a[5], binary("string"), "second binary split()");
+    testEncoding() {
+        # set up a string with UTF-8 multi-byte characters
+        string str = "Über die Wolken läßt sich die Höhe begrüßen";
+        assertEq(strlen(str), 49, "UTF-8 strlen()");
+        assertEq(str.strlen(), 49, "UTF-8 <string>::strlen()");
+        assertEq(length(str), 43, "UTF-8 length()");
+        assertEq(str.length(), 43, "UTF-8 <string>::length()");
+        assertEq(substr(str, 30), "Höhe begrüßen", "first UTF-8 substr()");
+        assertEq(substr(str, -8), "begrüßen", "second UTF-8 substr()");
+        assertEq(substr(str, 0, -39), "Über", "third UTF-8 substr()");
+        assertEq(index(str, "läßt"), 16, "first UTF-8 index()");
+        assertEq(index(str, "läßt", 1), 16, "second UTF-8 index()");
+        assertEq(rindex(str, "ß"), 40, "first UTF-8 rindex()");
+        assertEq(rindex(str, "ß", 25), 18, "second UTF-8 rindex()");
+        assertEq(bindex(str, "läßt"), 17, "first UTF-8 bindex()");
+        assertEq(bindex(str, "läßt", 1), 17, "second UTF-8 bindex()");
+        assertEq(brindex(str, "ß"), 45, "first UTF-8 brindex()");
+        assertEq(brindex(str, "ß", 25), 20, "second UTF-8 brindex()");
+        assertEq(reverse(str), "neßürgeb ehöH eid hcis tßäl nekloW eid rebÜ", "UTF-8 reverse()");
+        assertEq(index(str, "==="), -1, "negative index()");
+        assertEq(rindex(str, "==="), -1, "negative rindex()");
+        assertEq(bindex(str, "==="), -1, "negative bindex()");
 
-    str = "äüößÄÖÜ";
-    # test length() with UTF-8 multi-byte characters
-    unit.cmp(length(str), 7, "length() with UTF-8 multi-byte characters");
-    unit.cmp(strlen(str), 14, "strlen() with UTF-8 multi-byte characters");
-    # test charset encoding conversions
-    my string nstr = convert_encoding(str, "ISO-8859-1");
-    unit.cmp(length(nstr), 7, "length() with ISO-8859-1 special characters");
-    unit.cmp(strlen(nstr), 7, "strlen() with ISO-8859-1 special characters");
-    unit.cmp(str, convert_encoding(nstr, "UTF-8"), "convert_encoding()");
-    # assign binary object
-    my binary x = <0abf83e8ca72d32c>;
-    my string b64 = make_base64_string(x);
-    unit.cmp(x, parse_base64_string(b64), "first base64");
-    unit.cmp("aGVsbG8=", make_base64_string("hello"), "makeBase64String()");
-    my string hex = make_hex_string(x);
-    unit.cmp(x, parse_hex_string(hex), "first hex");
+        assertEq(str[31], "ö", "first UTF-8 string index dereference");
+        assertEq(str[39], "ü", "second UTF-8 string index dereference");
 
-    # UTF-8 string splice tests
-    str = "äbcdéf";
-    splice str, 5;
-    unit.cmp(str, "äbcdé", "first UTF-8 string splice");
-    splice str, 3, 1;
-    unit.cmp(str, "äbcé", "second UTF-8 string splice");
-    splice str, 1, 2, "GHI";
-    unit.cmp(str, "äGHIé", "third UTF-8 string splice");
-    splice str, 0, 4, "jkl";
-    unit.cmp(str, "jklé", "fourth UTF-8 string splice");
-    splice str, 0, 1;
-    unit.cmp(str, "klé", "fifth UTF-8 string splice");
-    splice str, 5, 2, "MNO";
-    unit.cmp(str, "kléMNO", "sixth UTF-8 string splice");
-    splice str, -4, 2, "p";
-    unit.cmp(str, "klpNO", "seventh UTF-8 string splice");
-    splice str, -4, -2, "QRS";
-    unit.cmp(str, "kQRSNO", "eighth UTF-8 string splice");
+        # save string
+        string ostr = str;
+        # convert the string to single-byte ISO-8859-1 characters and retest
+        str = convert_encoding(str, "ISO-8859-1");
+        assertEq(str != ostr, False, "string != operator with same text with different encodings");
+        assertEq(strlen(str), 43, "ISO-8859-1 strlen()");
+        assertEq(str.strlen(), 43, "ISO-8859-1 <string>::strlen()");
+        assertEq(length(str), 43, "ISO-8859-1 length()");
+        assertEq(str.length(), 43, "ISO-8859-1 <string>::length()");
+        assertEq(substr(str, 30), convert_encoding("Höhe begrüßen", "ISO-8859-1"), "first ISO-8859-1 substr()");
+        assertEq(substr(str, -8), convert_encoding("begrüßen", "ISO-8859-1"), "second ISO-8859-1 substr()");
+        assertEq(substr(str, 0, -39), convert_encoding("Über", "ISO-8859-1"), "third ISO-8859-1 substr()");
+        assertEq(index(str, convert_encoding("läßt", "ISO-8859-1")), 16, "first ISO-8859-1 index()");
+        assertEq(index(str, convert_encoding("läßt", "ISO-8859-1"), 1), 16, "second ISO-8859-1 index()");
+        assertEq(rindex(str, convert_encoding("ß", "ISO-8859-1")), 40, "first ISO-8859-1 rindex()");
+        assertEq(rindex(str, convert_encoding("ß", "ISO-8859-1"), 25), 18, "second ISO-8859-1 rindex()");
+        assertEq(ord(str, 1), 98, "ord()");
 
-    # UTF-8 string extract tests
-    str = "äbcdéf";
-    unit.cmp((extract str, 4), "éf", "first UTF-8 string extract");
-    unit.cmp((extract str, 1, 2), "bc", "second UTF-8 string extract");
-    unit.cmp((extract str, 1, 1, "bcdef"), "d", "third UTF-8 string extract");
-    unit.cmp(str, "äbcdef", "final UTF-8 string extract");
+        str = "äüößÄÖÜ";
+        # test length() with UTF-8 multi-byte characters
+        assertEq(length(str), 7, "length() with UTF-8 multi-byte characters");
+        assertEq(strlen(str), 14, "strlen() with UTF-8 multi-byte characters");
+        # test charset encoding conversions
+        string nstr = convert_encoding(str, "ISO-8859-1");
+        assertEq(length(nstr), 7, "length() with ISO-8859-1 special characters");
+        assertEq(strlen(nstr), 7, "strlen() with ISO-8859-1 special characters");
+        assertEq(str, convert_encoding(nstr, "UTF-8"), "convert_encoding()");
 
-    # single-byte string splice tests
-    str = convert_encoding("äbcdéf", "ISO-8859-1");
-    splice str, 5;
-    unit.cmp(str == "äbcdé", True, "first ISO-8859-1 string splice");
-    splice str, 3, 1;
-    unit.cmp(str == "äbcé", True, "second ISO-8859-1 string splice");
-    splice str, 1, 2, "GHI";
-    unit.cmp(str == "äGHIé", True, "third ISO-8859-1 string splice");
-    splice str, 0, 4, "jkl";
-    unit.cmp(str == "jklé", True, "fouth ISO-8859-1 string splice");
-    splice str, 0, 1;
-    unit.cmp(str == "klé", True, "fifth ISO-8859-1 string splice");
-    splice str, 5, 2, "MNO";
-    unit.cmp(str == "kléMNO", True, "sixth ISO-8859-1 string splice");
-    splice str, -4, 2, "p";
-    unit.cmp(str == "klpNO", True, "seventh ISO-8859-1 string splice");
-    splice str, -4, -2, "QRS";
-    unit.cmp(str == "kQRSNO", True, "eighth ISO-8859-1 string splice");
+        str = "příliš žluťoučký kůň úpěl ďábelské ódy";
+        assertEq(str.unaccent(), "prilis zlutoucky kun upel dabelske ody", "<string>::unaccent()");
+        string ustr = str.upr();
+        assertEq(ustr, "PŘÍLIŠ ŽLUŤOUČKÝ KŮŇ ÚPĚL ĎÁBELSKÉ ÓDY", "<string>::upr()");
+        assertEq(ustr.lwr(), "příliš žluťoučký kůň úpěl ďábelské ódy", "<string>::lwr()");
+    }
 
-    # UTF-8 string extract tests
-    str = convert_encoding("äbcdéf", "ISO-8859-1");
-    my string val = extract str, 4;
-    unit.cmp(val == "éf", True, "first UTF-8 string extract");
-    val = extract str, 1, 2;
-    unit.cmp(val == "bc", True, "second UTF-8 string extract");
-    val = extract str, 1, 1, "bcdef";
-    unit.cmp(val == "d", True, "third UTF-8 string extract");
-    unit.cmp(str == "äbcdef", True, "final UTF-8 string extract");
+    testBase64Hex() {
+        # assign binary object
+        binary x = <0abf83e8ca72d32c>;
+        string b64 = make_base64_string(x);
+        assertEq(x, parse_base64_string(b64), "first base64");
+        assertEq("aGVsbG8=", make_base64_string("hello"), "makeBase64String()");
+        string hex = make_hex_string(x);
+        assertEq(x, parse_hex_string(hex), "first hex");
+    }
 
-    # join tests
-    str = join(":", "login","passwd",1,"gid","gcos","home","shell");
-    unit.cmp(str, "login:passwd:1:gid:gcos:home:shell", "first join");
-    my list l = ("login","passwd","uid","gid","gcos","home","shell");
-    str = join(":", l);
-    unit.cmp(str, "login:passwd:uid:gid:gcos:home:shell", "second join");
+    testSpliceAndExtract() {
+        # UTF-8 string splice tests
+        string str = "äbcdéf";
+        splice str, 5;
+        assertEq(str, "äbcdé", "first UTF-8 string splice");
+        splice str, 3, 1;
+        assertEq(str, "äbcé", "second UTF-8 string splice");
+        splice str, 1, 2, "GHI";
+        assertEq(str, "äGHIé", "third UTF-8 string splice");
+        splice str, 0, 4, "jkl";
+        assertEq(str, "jklé", "fourth UTF-8 string splice");
+        splice str, 0, 1;
+        assertEq(str, "klé", "fifth UTF-8 string splice");
+        splice str, 5, 2, "MNO";
+        assertEq(str, "kléMNO", "sixth UTF-8 string splice");
+        splice str, -4, 2, "p";
+        assertEq(str, "klpNO", "seventh UTF-8 string splice");
+        splice str, -4, -2, "QRS";
+        assertEq(str, "kQRSNO", "eighth UTF-8 string splice");
 
-    # transliteration tests
-    str = "Hello There";
-    unit.cmp(str =~ tr/def/123/, "H2llo Th2r2", "first transliteration");
-    unit.cmp(str =~ tr/a-z/0-9/, "H2999 T7292", "first range transliteration");
-    str = "Hello There";
-    unit.cmp(str =~ tr/a-z/A-Z/, "HELLO THERE", "second range transliteration");
-    unit.cmp(str =~ tr/A-Z/a-z/, "hello there", "third range transliteration");
+        # UTF-8 string extract tests
+        str = "äbcdéf";
+        assertEq((extract str, 4), "éf", "first UTF-8 string extract");
+        assertEq((extract str, 1, 2), "bc", "second UTF-8 string extract");
+        assertEq((extract str, 1, 1, "bcdef"), "d", "third UTF-8 string extract");
+        assertEq(str, "äbcdef", "final UTF-8 string extract");
 
-    # regex subpattern extraction operator tests
-    unit.cmp("xmlns:wsdl" =~ x/(\w+):(\w+)/, ("xmlns", "wsdl"), "regex subpattern extraction");
-    unit.cmp("xmlns-wsdl" =~ x/(\w+):(\w+)/, NOTHING, "negative regex subpattern extraction");
-    unit.cmp(regex_extract("xmlns:wsdl", "(\\w+):(\\w+)"), ("xmlns", "wsdl"), "regex_extract()");
+        # single-byte string splice tests
+        str = convert_encoding("äbcdéf", "ISO-8859-1");
+        splice str, 5;
+        assertTrue(str == "äbcdé", "first ISO-8859-1 string splice");
+        splice str, 3, 1;
+        assertTrue(str == "äbcé", "second ISO-8859-1 string splice");
+        splice str, 1, 2, "GHI";
+        assertTrue(str == "äGHIé", "third ISO-8859-1 string splice");
+        splice str, 0, 4, "jkl";
+        assertTrue(str == "jklé", "fouth ISO-8859-1 string splice");
+        splice str, 0, 1;
+        assertTrue(str == "klé", "fifth ISO-8859-1 string splice");
+        splice str, 5, 2, "MNO";
+        assertTrue(str == "kléMNO", "sixth ISO-8859-1 string splice");
+        splice str, -4, 2, "p";
+        assertTrue(str == "klpNO", "seventh ISO-8859-1 string splice");
+        splice str, -4, -2, "QRS";
+        assertTrue(str == "kQRSNO", "eighth ISO-8859-1 string splice");
 
-    # regex operator tests
-    unit.cmp("hello" =~ /^hel*/, True, "regular expression positive match");
-    unit.cmp("hello" =~ m/123*/, False, "regular expression negative match");
-    unit.cmp("hello" =~ m/^HEL*/i, True, "regular expression case-insensitive positive match");
-    unit.cmp("hello" =~ /^HEL*/, False, "regular expression case-insensitive negative match");
-    unit.cmp("test\nx" =~ /test.x/s, True, "regular expression newline positive match");
-    unit.cmp("test\nx" =~ /test.x/, False, "regular expression newline negative match");
-    unit.cmp("hello" =~ /^  hel* #comment/x, True, "extended regular expression positive match");
-    unit.cmp("hello" =~ /^  hel* #comment/, False, "extended regular expression negative match");
-    unit.cmp("test\nx123" =~ /^x123/m, True, "multiline regular expression positive match");
-    unit.cmp("test\nx123" =~ /^x123/, False, "multiline regular expression negative match");
-    # NOTE that escaping UTF-8 characters (\ä) doesn't work on PPC for some reason
-    unit.cmp("testäöüß" =~ /äöüß/, True, "regular expression UTF-8 match");
-    unit.cmp("testäöüß" =~ /aouB/, False, "regular expression UTF-8 negative match");
-    unit.cmp("hello" !~ /hel*/, False, "negative regular expression negative match");
-    unit.cmp("hello" !~ /123*/, True, "negative regular expression positive match");
+        # UTF-8 string extract tests
+        str = convert_encoding("äbcdéf", "ISO-8859-1");
+        string val = extract str, 4;
+        assertTrue(val == "éf", "first UTF-8 string extract");
+        val = extract str, 1, 2;
+        assertTrue(val == "bc", "second UTF-8 string extract");
+        val = extract str, 1, 1, "bcdef";
+        assertTrue(val == "d", "third UTF-8 string extract");
+        assertTrue(str == "äbcdef", "final UTF-8 string extract");
+    }
 
-    # regex substitution operator tests
-    l = ( "hello bar hi bar", "bar hello bar hi bar", "hello bar hi" );
-    unit.cmp(l[0] =~ s/bar/foo/, "hello foo hi bar", "first non-global regular expression substitution");
-    unit.cmp(l[1] =~ s/bar/foo/, "foo hello bar hi bar", "second non-global regular expression substitution");
-    unit.cmp(l[2] =~ s/BAR/foo/i, "hello foo hi", "case-insensitive non-global regular expression substitution");
-    l = ( "hello bar hi bar", "bar hello bar hi bar", "hello bar hi" );
-    unit.cmp(l[0] =~ s/bar/foo/g, "hello foo hi foo", "first global regular expression substitution");
-    unit.cmp(l[1] =~ s/bar/foo/g, "foo hello foo hi foo", "second global regular expression substitution");
-    unit.cmp(l[2] =~ s/BAR/foo/ig, "hello foo hi", "case-insensitive global regular expression substitution");
+    testJoin() {
+        string str = join(":", "login","passwd",1,"gid","gcos","home","shell");
+        assertEq(str, "login:passwd:1:gid:gcos:home:shell", "first join");
+        list l = ("login","passwd","uid","gid","gcos","home","shell");
+        str = join(":", l);
+        assertEq(str, "login:passwd:uid:gid:gcos:home:shell", "second join");
+    }
 
-    my string astr= "abc def";
-    astr =~ s/(\w+) +(\w+)/$2, $1/; 
-    unit.cmp(astr, "def, abc", "regular expression subpattern substitution");
+    testTransliteration() {
+        string str = "Hello There";
+        assertEq(str =~ tr/def/123/, "H2llo Th2r2", "first transliteration");
+        assertEq(str =~ tr/a-z/0-9/, "H2999 T7292", "first range transliteration");
+        str = "Hello There";
+        assertEq(str =~ tr/a-z/A-Z/, "HELLO THERE", "second range transliteration");
+        assertEq(str =~ tr/A-Z/a-z/, "hello there", "third range transliteration");
+    }
 
-    # regex() tests
-    unit.cmp(regex("hello", "^hel*"), True, "regex() positive match");
-    unit.cmp(regex("hello", "123*"), False, "regex() negative match");
-    unit.cmp(regex("hello", "^HEL*", RE_Caseless), True, "regex() case-insensitive positive match");
-    unit.cmp(regex("hello", "^HEL*"), False, "regex() case-insensitive negative match");
-    unit.cmp(regex("test\nx", "test.x", RE_DotAll), True, "regex() newline positive match");
-    unit.cmp(regex("test\nx", "test.x/"), False, "regex() newline negative match");
-    unit.cmp(regex("hello", "^  hel* #comment", RE_Extended), True, "regex() extended positive match");
-    unit.cmp(regex("hello", "^  hel* #comment"), False, "regex() extended negative match");
-    unit.cmp(regex("test\nx123", "^x123", RE_MultiLine), True, "regex() multiline positive match");
-    unit.cmp(regex("test\nx123", "^x123/"), False, "regex() multiline negative match");
-    unit.cmp(regex("testäöüß", "\äöüß"), True, "regex() UTF-8 match");
-    unit.cmp(regex("testäöüß", "aouB"), False, "regex() UTF-8 negative match");
+    testRegex() {
+        # regex subpattern extraction operator tests
+        assertEq("xmlns:wsdl" =~ x/(\w+):(\w+)/, ("xmlns", "wsdl"), "regex subpattern extraction");
+        assertEq("xmlns-wsdl" =~ x/(\w+):(\w+)/, NOTHING, "negative regex subpattern extraction");
+        assertEq(regex_extract("xmlns:wsdl", "(\\w+):(\\w+)"), ("xmlns", "wsdl"), "regex_extract()");
 
-    # regex_subst() tests
-    l = ( "hello bar hi bar", "bar hello bar hi bar", "hello bar hi" );
-    unit.cmp(regex_subst(l[0], "bar", "foo"), "hello foo hi bar", "first non-global regex_subst()");
-    unit.cmp(regex_subst(l[1], "bar", "foo"), "foo hello bar hi bar", "second non-global regex_subst()");
-    unit.cmp(regex_subst(l[2], "BAR", "foo", RE_Caseless), "hello foo hi", "case-insensitive non-global regex_subst()");
-    l = ( "hello bar hi bar", "bar hello bar hi bar", "hello bar hi" );
-    unit.cmp(regex_subst(l[0], "bar", "foo", RE_Global), "hello foo hi foo", "first global regex_subst()");
-    unit.cmp(regex_subst(l[1], "bar", "foo", RE_Global), "foo hello foo hi foo", "second global regex_subst()");
-    unit.cmp(regex_subst(l[2], "BAR", "foo", RE_Global|RE_Caseless), "hello foo hi", "case-insensitive global regex_subst()");
+        # regex operator tests
+        assertTrue("hello" =~ /^hel*/, "regular expression positive match");
+        assertFalse("hello" =~ m/123*/, "regular expression negative match");
+        assertTrue("hello" =~ m/^HEL*/i, "regular expression case-insensitive positive match");
+        assertFalse("hello" =~ /^HEL*/, "regular expression case-insensitive negative match");
+        assertTrue("test\nx" =~ /test.x/s, "regular expression newline positive match");
+        assertFalse("test\nx" =~ /test.x/, "regular expression newline negative match");
+        assertTrue("hello" =~ /^  hel* #comment/x, "extended regular expression positive match");
+        assertFalse("hello" =~ /^  hel* #comment/, "extended regular expression negative match");
+        assertTrue("test\nx123" =~ /^x123/m, "multiline regular expression positive match");
+        assertFalse("test\nx123" =~ /^x123/, "multiline regular expression negative match");
+        # NOTE that escaping UTF-8 characters (\ä) doesn't work on PPC for some reason
+        assertTrue("testäöüß" =~ /äöüß/, "regular expression UTF-8 match");
+        assertFalse("testäöüß" =~ /aouB/, "regular expression UTF-8 negative match");
+        assertFalse("hello" !~ /hel*/, "negative regular expression negative match");
+        assertTrue("hello" !~ /123*/, "negative regular expression positive match");
 
-    astr = "abc def";
-    # note that the escape characters have to be escaped in the following pattern string
-    unit.cmp(regex_subst(astr, "(\\w+) +(\\w+)", "$2, $1"), "def, abc", "first subpattern regex_subst()");
-    # here we use single-quotes, so the escape characters do not have to be escaped
-    unit.cmp(regex_subst(astr, '(\w+) +(\w+)', "$2, $1"), "def, abc", "second subpattern regex_subst()");
+        # regex substitution operator tests
+        list l = ( "hello bar hi bar", "bar hello bar hi bar", "hello bar hi" );
+        assertEq(l[0] =~ s/bar/foo/, "hello foo hi bar", "first non-global regular expression substitution");
+        assertEq(l[1] =~ s/bar/foo/, "foo hello bar hi bar", "second non-global regular expression substitution");
+        assertEq(l[2] =~ s/BAR/foo/i, "hello foo hi", "case-insensitive non-global regular expression substitution");
+        l = ( "hello bar hi bar", "bar hello bar hi bar", "hello bar hi" );
+        assertEq(l[0] =~ s/bar/foo/g, "hello foo hi foo", "first global regular expression substitution");
+        assertEq(l[1] =~ s/bar/foo/g, "foo hello foo hi foo", "second global regular expression substitution");
+        assertEq(l[2] =~ s/BAR/foo/ig, "hello foo hi", "case-insensitive global regular expression substitution");
 
-    # chomp tests
-    str = "hello\n";
-    chomp str;
-    unit.cmp(str, "hello", "first string chomp");
-    str += "\r\n";
-    chomp str;
-    unit.cmp(str, "hello", "second string chomp");
-    l = ( 1, "hello\n", 3.0, True, "test\r\n" );
-    chomp l;
-    unit.cmp(l, ( 1, "hello", 3.0, True, "test" ), "list chomp");
-    my hash h = ( "key1" : "hello\n", "key2" : 2045, "key3": "test\r\n", "key4" : 302.223 );
-    chomp h;
-    unit.cmp(h, ( "key1" : "hello", "key2" : 2045, "key3": "test", "key4" : 302.223 ), "hash chomp");
-    str = "hello\n";
-    chomp(\str);
-    unit.cmp(str, "hello", "string reference chomp()");
-    str = "  \t\n  hello  \n   \r \t \0 ";
-    trim str;
-    unit.cmp(str, "hello", "trim string operator test");
-    str = "  \t\n  hello  \n   \r \t \0 ";
-    trim(\str);
-    unit.cmp(str, "hello", "trim string reference test");
+        string astr= "abc def";
+        astr =~ s/(\w+) +(\w+)/$2, $1/;
+        assertEq(astr, "def, abc", "regular expression subpattern substitution");
 
-    l = ( 1, "   \r \t hello  \n  \r \v \t", 3.0, True, "    test\r\n  " );
-    trim l;
-    unit.cmp(l, ( 1, "hello", 3.0, True, "test" ), "list trim");
+        # regex() tests
+        assertTrue(regex("hello", "^hel*"), "regex() positive match");
+        assertFalse(regex("hello", "123*"), "regex() negative match");
+        assertTrue(regex("hello", "^HEL*", RE_Caseless), "regex() case-insensitive positive match");
+        assertFalse(regex("hello", "^HEL*"), "regex() case-insensitive negative match");
+        assertTrue(regex("test\nx", "test.x", RE_DotAll), "regex() newline positive match");
+        assertFalse(regex("test\nx", "test.x/"), "regex() newline negative match");
+        assertTrue(regex("hello", "^  hel* #comment", RE_Extended), "regex() extended positive match");
+        assertFalse(regex("hello", "^  hel* #comment"), "regex() extended negative match");
+        assertTrue(regex("test\nx123", "^x123", RE_MultiLine), "regex() multiline positive match");
+        assertFalse(regex("test\nx123", "^x123/"), "regex() multiline negative match");
+        assertTrue(regex("testäöüß", "\äöüß"), "regex() UTF-8 match");
+        assertFalse(regex("testäöüß", "aouB"), "regex() UTF-8 negative match");
 
-    h = ( "key1" : "    hello\n \r  ", "key2" : 2045, "key3": "     test\r   \n \t\v   ", "key4" : 302.223 );
-    trim h;
-    unit.cmp(h, ( "key1" : "hello", "key2" : 2045, "key3": "test", "key4" : 302.223 ), "hash trim");    
+        # regex_subst() tests
+        l = ( "hello bar hi bar", "bar hello bar hi bar", "hello bar hi" );
+        assertEq(regex_subst(l[0], "bar", "foo"), "hello foo hi bar", "first non-global regex_subst()");
+        assertEq(regex_subst(l[1], "bar", "foo"), "foo hello bar hi bar", "second non-global regex_subst()");
+        assertEq(regex_subst(l[2], "BAR", "foo", RE_Caseless), "hello foo hi", "case-insensitive non-global regex_subst()");
+        l = ( "hello bar hi bar", "bar hello bar hi bar", "hello bar hi" );
+        assertEq(regex_subst(l[0], "bar", "foo", RE_Global), "hello foo hi foo", "first global regex_subst()");
+        assertEq(regex_subst(l[1], "bar", "foo", RE_Global), "foo hello foo hi foo", "second global regex_subst()");
+        assertEq(regex_subst(l[2], "BAR", "foo", RE_Global|RE_Caseless), "hello foo hi", "case-insensitive global regex_subst()");
 
-    # make sure strings containing floating-point numbers between -1.0 and 1.0 exclusive return True when evaluated in a boolean context
-    unit.cmp(True, boolean("0.1"), "first string fp boolean");
-    unit.cmp(True, boolean("-0.1"), "second string fp boolean");
+        astr = "abc def";
+        # note that the escape characters have to be escaped in the following pattern string
+        assertEq(regex_subst(astr, "(\\w+) +(\\w+)", "$2, $1"), "def, abc", "first subpattern regex_subst()");
+        # here we use single-quotes, so the escape characters do not have to be escaped
+        assertEq(regex_subst(astr, '(\w+) +(\w+)', "$2, $1"), "def, abc", "second subpattern regex_subst()");
+    }
 
-    str = "příliš žluťoučký kůň úpěl ďábelské ódy";
-    unit.cmp(str.unaccent(), "prilis zlutoucky kun upel dabelske ody", "<string>::unaccent()");
-    my string ustr = str.upr();
-    unit.cmp(ustr, "PŘÍLIŠ ŽLUŤOUČKÝ KŮŇ ÚPĚL ĎÁBELSKÉ ÓDY", "<string>::upr()");
-    unit.cmp(ustr.lwr(), "příliš žluťoučký kůň úpěl ďábelské ódy", "<string>::lwr()");
+    testChompAndTrim() {
+        # chomp tests
+        string str = "hello\n";
+        chomp str;
+        assertEq(str, "hello", "first string chomp");
+        str += "\r\n";
+        chomp str;
+        assertEq(str, "hello", "second string chomp");
+        list l = ( 1, "hello\n", 3.0, True, "test\r\n" );
+        chomp l;
+        assertEq(l, ( 1, "hello", 3.0, True, "test" ), "list chomp");
 
-    # regression tests for floating-point formatting bugs
-    unit.cmp(sprintf("%f", 1.5), "1.500000", "%f float");    
-    unit.cmp(sprintf("%f", 1.5n), "1.500000", "%f number");
-    unit.cmp(sprintf("%g", 1.5), "1.5", "%f float");    
-    unit.cmp(sprintf("%g", 1.5n), "1.5", "%f number");
+        hash h = ( "key1" : "hello\n", "key2" : 2045, "key3": "test\r\n", "key4" : 302.223 );
+        chomp h;
+        assertEq(h, ( "key1" : "hello", "key2" : 2045, "key3": "test", "key4" : 302.223 ), "hash chomp");
+        str = "hello\n";
+        chomp(\str);
+        assertEq(str, "hello", "string reference chomp()");
+        str = "  \t\n  hello  \n   \r \t \0 ";
+        trim str;
+        assertEq(str, "hello", "trim string operator test");
+        str = "  \t\n  hello  \n   \r \t \0 ";
+        trim(\str);
+        assertEq(str, "hello", "trim string reference test");
+
+        str = "  \t\n  hello  \n   \r \t \0 ";
+        assertEq(trim(str), "hello", "trim string function test");
+        assertEq(rtrim(str), "  \t\n  hello", "rtrim string function test");
+        assertEq(ltrim(str), "hello  \n   \r \t \0 ", "ltrim string function test");
+
+        str = "  \t\n  hello  \n   \r \t \0 ";
+        rtrim(\str);
+        assertEq(str, "  \t\n  hello", "rtrim string reference test");
+        str = "  \t\n  hello  \n   \r \t \0 ";
+        ltrim(\str);
+        assertEq(str, "hello  \n   \r \t \0 ", "ltrim string reference test");
+
+        l = ( 1, "   \r \t hello  \n  \r \v \t", 3.0, True, "    test\r\n  " );
+        trim l;
+        assertEq(l, ( 1, "hello", 3.0, True, "test" ), "list trim");
+
+        h = ( "key1" : "    hello\n \r  ", "key2" : 2045, "key3": "     test\r   \n \t\v   ", "key4" : 302.223 );
+        trim h;
+        assertEq(h, ( "key1" : "hello", "key2" : 2045, "key3": "test", "key4" : 302.223 ), "hash trim");
+    }
+
+    testFloat() {
+        # make sure strings containing floating-point numbers between -1.0 and 1.0 exclusive return True when evaluated in a boolean context
+        assertTrue(boolean("0.1"), "first string fp boolean");
+        assertTrue(boolean("-0.1"), "second string fp boolean");
+
+        # regression tests for floating-point formatting bugs
+        assertEq(sprintf("%f", 1.5), "1.500000", "%f float");
+        assertEq(sprintf("%f", 1.5n), "1.500000", "%f number");
+        assertEq(sprintf("%g", 1.5), "1.5", "%f float");
+        assertEq(sprintf("%g", 1.5n), "1.5", "%f number");
+    }
+
+    testConversions() {
+        assertEq("", string(NULL));
+    }
+}

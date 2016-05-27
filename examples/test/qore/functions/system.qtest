@@ -1,12 +1,12 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
-%requires Util
-
+%requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 
 %exec-class SystemCallTest
@@ -25,9 +25,9 @@ class SystemCallTest inherits QUnit::Test {
 %endif
         string file = tmp_location() + "/output";
 
-        testAssertion("system() call", \system(), "/bin/echo -n OUTPUT > " + file, 0);
+        testAssertion("system() call", \system(), "/bin/echo OUTPUT > " + file, 0);
         on_exit unlink(file);
 
-        testAssertionValue("echo cmd verify", ReadOnlyFile::readTextFile(file), "OUTPUT");
+        assertEq("OUTPUT", chomp(ReadOnlyFile::readTextFile(file)));
     }
 }

@@ -1,7 +1,7 @@
 " Vim syntax file for Qore * mato [25-oct-2015]
 " Language:	Qore
 " Maintainer:	Martin Otto <martin@qore.org>
-" Last Change:	2015 Nov 30
+" Last Change:	2016 May 26
 
 if version < 600
   syntax clear
@@ -100,6 +100,7 @@ syn match qoreParseConditional	"^%ifdef\>"
 syn match qoreParseConditional	"^%ifndef\>"
 
 syn match qoreParseInclude "^%include\>"
+syn match qoreParseInclude "^%module-cmd\>"
 syn match qoreParseInclude "^%requires\>"
 syn match qoreParseInclude "^%try-module\>"
 
@@ -220,7 +221,7 @@ endif
 
 syn region qoreBlock start="{" end="}" fold transparent
 
-syn match qoreIdentifier display "\$[A-Za-z][A-Za-z0-9_]*"
+syn match qoreIdentifier display "\$[A-Za-z_][A-Za-z0-9_]*"
 syn match qoreIdentifier display "\$\$\|\$[0-9]\+"
 syn match qoreIdentifier display "\$\."he=e-1
 syn match qoreIdentifier display "\$\#"
@@ -234,22 +235,30 @@ syn match qoreFloat display "[-+]\?\.\d\+\(e[-+]\=\d\+\)\=n\?\>"
 syn match qoreFloat display "\(\<\|[-+]\)\d\+e[-+]\=\d\+n\?\>"
 
 "absolute date/time
-syn match qoreDateTime "\<\d\{4}-\d\{2}-\d\{2}\([T-]\d\{2}:\d\{2}:\d\{2}\(\.\d\{1,6}\)\?\)\?\(Z\|[+-]\?\d\{2}\(:\d\{2}\(:\d\{2}\)\?\)\?\)\?\>"
+syn match qoreDateTime "\<\d\{4}-\d\{2}-\d\{2}\([T-]\d\{2}:\d\{2}\(:\d\{2}\(\.\d\{1,6}\)\?\)\?\)\?\(Z\|[+-]\?\d\{2}\(:\d\{2}\(:\d\{2}\)\?\)\?\)\?\>"
 "relative date/time
 syn match qoreDateTime "\<\d\+\([YMDhms]\|ms\|us\)\>"
 syn match qoreDateTime "\<P\(T\?[0-9]\)\@=\(\d\+Y\)\?\(\d\+M\)\?\(\d\+D\)\?\(T\(\d\+H\)\?\(\d\+M\)\?\(\d\+S\)\?\(\d\+u\)\?\)\?\>"
 syn match qoreDateTime "\<P\d\{4}-\d\{2}-\d\{2}T\d\{2}:\d\{2}:\d\{2}\>"
 
 syn match qoreStringEscape '\\\(\\\|[bfnrt"]\|\o\{1,3}\)' contained display
-syn region qoreString start='"' skip='\\"' end='"' contains=qoreStringEscape,@Spell
-syn region qoreString start="'" end="'"
+syn region qoreString start='"' skip='\\"' end='"' contains=qoreStringEscape,@Spell fold
+syn region qoreString start="'" end="'" fold
+
+syn match qoreRegexp "[=!]\~\s*\zs[mx]\?/.\{-}\\\@<!/[imsx]*"
+syn match qoreRegexp "s/.\{-}\\\@<!/.\{-}\\\@<!/[gimsx]*"
+syn match qoreRegexp "tr/.\{-}\\\@<!/.\{-}\\\@<!/"
 
 syn keyword qoreTodo TODO NOTE XXX FIXME DEBUG contained
 
 syn match qoreComment "#.*" contains=qoreTodo,qoreSpaceError,@Spell
-syn region qoreComment start="/\*" end="\*/" contains=qoreTodo,qoreSpaceError,@Spell
+syn region qoreComment start="/\*" end="\*/" contains=qoreTodo,qoreSpaceError,@Spell fold
 
-syn sync ccomment qoreComment
+if !exists("qore_minlines")
+  let qore_minlines = 100
+endif
+"exec "syn sync minlines=" . qore_minlines
+exec "syn sync ccomment qoreComment minlines=" . qore_minlines
 
 " Define the default highlighting.
 " For version 5.x and earlier, only when not done already.
@@ -269,6 +278,7 @@ if version >= 508 || !exists("did_qore_syn_inits")
   HiLink qoreConstant		Constant
   HiLink qoreBoolean		Boolean
   HiLink qoreDateTime		Constant
+  HiLink qoreRegexp		Constant
   HiLink qoreString		String
   HiLink qoreStringEscape	SpecialChar
 

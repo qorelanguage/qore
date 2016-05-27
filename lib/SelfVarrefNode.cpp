@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -67,6 +67,9 @@ char *SelfVarrefNode::takeString() {
 
 AbstractQoreNode *SelfVarrefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    printd(5, "SelfVarrefNode::parseInit() SELF_REF '%s' oflag=%p\n", str, oflag);
+   if (pflag & PF_CONST_EXPRESSION)
+      parseException(loc, "ILLEGAL-MEMBER-REFERENCE", "member '%s' referenced illegally in an expression executed at parse time to initialize a constant value", str);
+
    if (!oflag)
       parse_error(loc, "cannot reference member \"%s\" when not in an object context", str);
    else {

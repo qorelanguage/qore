@@ -34,6 +34,7 @@
 
 DLLEXPORT extern qore_classid_t CID_HTTPCLIENT;
 DLLEXPORT extern QoreClass *QC_HTTPCLIENT;
+DLLLOCAL extern QoreClass *QC_SOCKET;
 DLLLOCAL QoreClass *initHTTPClientClass(QoreNamespace& ns);
 
 class HTTPInfoRefHelper {
@@ -50,7 +51,7 @@ public:
       // we have to create a temporary ExceptionSink if there is
       // an active exception, otherwise writing back the reference will fail
       ExceptionSink *txsink = *xsink ? new ExceptionSink : xsink;
-      
+
       // write info hash to reference
       AutoVLock vl(txsink);
       QoreTypeSafeReferenceHelper rh(ref, vl, txsink);
@@ -58,7 +59,7 @@ public:
          return;
 
       if (rh.assign(info.release(), txsink))
-         return;   
+         return;
 
       if (txsink != xsink)
          xsink->assimilate(txsink);
@@ -71,5 +72,3 @@ public:
 #endif
 
 // EOF
-
-

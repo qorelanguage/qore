@@ -1,82 +1,96 @@
 #!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
-
-%requires UnitTest
-
-# little script to test hash accesses on a large hash
-# by David Nichols
-
-my UnitTest t();
-
-# test configuration
-my int size       =  1000; # hash keys count
-my int min_length =    20; # minimum hash key length
-my int num_loops  =     2; # times to search the hash
-my int limit_time =   200; # tests failes if it takes more secs
-
-# init
-srand(now());
-my hash h;
-my list l = ();
-
-# test create
-my date list_start = now_us();
-foreach my int i in (range(size - 1)) {
-    l += getKey(i);
-}
-t.cmp(elements(l), size, "created list of " + size + " elements");
-my date start = now_us();
-my date interval_create = start - list_start;
-t.ok(interval_create < limit_time, "Create interval: " + interval_create + "s");
-
-# test insert
-foreach my int i in (range(size - 1)) {
-    h{l[i]} = True;
-}
-my date search = now_us();
-my date interval_insert = search - start;
-t.ok(interval_insert < limit_time, "Inserts interval: " + interval_insert + "s");
+%enable-all-warnings
+%require-types
+%strict-args
 
 %disable-warning unreferenced-variable
 
-# test search
-search = now_us();
-for (my int loop = 0; loop < num_loops; loop++) {
-    foreach my int i in (range(size - 1)) {
-        my bool v = h.(l[i]);
-    }
-}
-my date et = now_us();
-my date interval_search = et - search;
-t.ok(interval_search < limit_time, size * num_loops + " searches interval: " + interval_search + " s");
+%requires ../../../../qlib/QUnit.qm
 
-string sub rstr(int len) {
-    my string str = "";
+%exec-class HashTimeTest
 
-    for (my int i = 0; i < len; i++) {
-        str += doChar(rand() % 52);
+class HashTimeTest inherits QUnit::Test {
+    private {
+        hash h;
+        list l;
+
+        int hash_keycount = 1000; # hash keys count
+        int min_length    =   20; # minimum hash key length
+        int num_loops     =    2; # times to search the hash
+        int limit_time    =  200; # tests fails if it takes more secs
     }
 
-    return str;
-}
+    constructor() : QUnit::Test("Hash timing test", "1.0") {
+        addTestCase("Test", \test());
 
-string sub doChar(int v) {
-    return v < 26 ? chr(v + ord("A")) : chr(v - 26 + ord("a"));
-}
-
-string sub getKey(int n) {
-    my string str = "";
-
-    my int v = n % 52;
-    str += doChar(v) + rstr(2);
-    n -= v;
-    while (n > 51) {
-        n /= 52;
-        str += doChar((n - 1) % 52) + rstr(2);
+        set_return_value(main());
     }
-    str += rstr(min_length - str.size());
-    return str;
+    
+    globalSetUp() {
+        l = ();
+        srand(now());
+    }
+
+    test() {
+        # test create
+        date list_start = now_us();
+        foreach int i in (range(hash_keycount - 1)) {
+            l += getKey(i);
+        }
+        assertEq(elements(l), hash_keycount, "created list of " + hash_keycount + " elements");
+        date start = now_us();
+        date interval_create = start - list_start;
+        assertTrue(interval_create < limit_time, "Create interval: " + interval_create + "s");
+
+        # test insert
+        foreach int i in (range(hash_keycount - 1)) {
+            h{l[i]} = True;
+        }
+        date search = now_us();
+        date interval_insert = search - start;
+        assertTrue(interval_insert < limit_time, "Inserts interval: " + interval_insert + "s");
+
+        # test search
+        search = now_us();
+        for (int loop = 0; loop < num_loops; loop++) {
+            foreach int i in (range(hash_keycount - 1)) {
+                bool v = h.(l[i]);
+            }
+        }
+        date et = now_us();
+        date interval_search = et - search;
+        assertTrue(interval_search < limit_time, hash_keycount * num_loops + " searches interval: " + interval_search + " s");
+    }
+
+    string rstr(int len) {
+        string str = "";
+
+        for (int i = 0; i < len; i++) {
+            str += doChar(rand() % 52);
+        }
+
+        return str;
+    }
+
+    string doChar(int v) {
+        return v < 26 ? chr(v + ord("A")) : chr(v - 26 + ord("a"));
+    }
+
+    string getKey(int n) {
+        string str = "";
+
+        int v = n % 52;
+        str += doChar(v) + rstr(2);
+        n -= v;
+        while (n > 51) {
+            n /= 52;
+            str += doChar((n - 1) % 52) + rstr(2);
+        }
+        str += rstr(min_length - str.size());
+        return str;
+    }
 }
+

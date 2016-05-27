@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -489,7 +489,7 @@ const SignalToName = (
     @param f The code to execute when the signal is caught; this should accept an integer argument giving the signal number
 
     @par Example:
-    @code
+    @code{.py}
 set_signal_handler(SIGINT, \signal_handler());
     @endcode
 
@@ -516,7 +516,7 @@ nothing set_signal_handler(softint signal, code f) [dom=PROCESS] {
     @param signal The signal number to process, see @ref signal_constants for possible values
 
     @par Example:
-    @code
+    @code{.py}
 remove_signal_handler(SIGINT);
     @endcode
 
@@ -545,8 +545,8 @@ nothing remove_signal_handler(softint signal) [dom=PROCESS] {
     @return The value returned by the called function
 
     @par Example:
-    @code
-my any $result = call_function("func_name", $arg1, $arg2);
+    @code{.py}
+any result = call_function("func_name", arg1, arg2);
     @endcode
 
     @throw INVALID-FUNCTION-ACCESS Parse options do not allow access to the function
@@ -569,8 +569,8 @@ any call_function(string name, ...) {
     @param ... Any optional arguments to the @ref call_reference "call reference" or @ref closure "closure"
 
     @par Example:
-    @code
-my any $result = call_function($call_ref, $arg1, $arg2);
+    @code{.py}
+any result = call_function(call_ref, arg1, arg2);
     @endcode
 
     @note The @ref call_reference "call reference" or @ref closure "closure" called could also throw other exceptions
@@ -592,8 +592,8 @@ any call_function(code f, ...) {
     @return The value returned by the called function
 
     @par Example:
-    @code
-my any $result = call_function_args("func_name", ($arg1, $arg2));
+    @code{.py}
+any result = call_function_args("func_name", (arg1, arg2));
     @endcode
 
     @throw INVALID-FUNCTION-ACCESS Parse options do not allow access to the function
@@ -611,8 +611,8 @@ any call_function_args(string name, *softlist vargs) {
     @param vargs Optionally a single argument to the @ref call_reference "call reference" or @ref closure "closure" or a list of arguments to the @ref call_reference "call reference" or @ref closure "closure"
 
     @par Example:
-    @code
-my any $result = call_function_args($call_ref, ($arg1, $arg2));
+    @code{.py}
+any result = call_function_args(call_ref, (arg1, arg2));
     @endcode
 
     @note The @ref call_reference "call reference" or @ref closure "closure" called could also throw other exceptions
@@ -629,8 +629,8 @@ any call_function_args(code f, *softlist vargs) {
     @return The value returned by the called function
 
     @par Example:
-    @code
-my any $result = call_builtin_function("func_name", $arg1, $arg2);
+    @code{.py}
+any result = call_builtin_function("func_name", arg1, arg2);
     @endcode
 
     @throw INVALID-FUNCTION-ACCESS Parse options do not allow access to the function
@@ -661,8 +661,8 @@ any call_builtin_function(string name, ...) {
     @return The value returned by the called function
 
     @par Example:
-    @code
-my any $result = call_builtin_function_args("func_name", ($arg1, $arg2));
+    @code{.py}
+any result = call_builtin_function_args("func_name", (arg1, arg2));
     @endcode
 
     @throw INVALID-FUNCTION-ACCESS Parse options do not allow access to the function
@@ -686,8 +686,8 @@ any call_builtin_function_args(string name, *softlist vargs) {
     @return if only a single argument is passed, then this function returns @ref True if the single argument exists, @ref False if not; otherwise is multiple arguments are passed to the function, it always returns @ref True; this is to emulate the behavior of the @ref exists "exists operator"
 
     @par Example:
-    @code
-my bool $b = exists($val);
+    @code{.py}
+bool b = exists(val);
     @endcode
 */
 bool exists(...) [flags=CONSTANT] {
@@ -732,8 +732,8 @@ nothing existsFunction() [flags=RUNTIME_NOOP,DEPRECATED] {
     @return @ref True if the function exists in the current program's function name space, @ref False if not
 
     @par Example:
-    @code
-my bool $b = exists_function("func_name");
+    @code{.py}
+bool b = exists_function("func_name");
     @endcode
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case existsFunction()
@@ -783,8 +783,8 @@ nothing functionType() [flags=RUNTIME_NOOP,DEPRECATED] {
     @return \c "builtin" (for a builtin function), \c "user" (for a user function), or @ref nothing (if the function cannot be found) according to the function name passed
 
     @par Example:
-    @code
-my *string $type = function_type("print");
+    @code{.py}
+*string type = function_type("print");
     @endcode
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case functionType()
@@ -804,13 +804,13 @@ my *string $type = function_type("print");
     @return the string passed as an argument with characters needing HTML escaping translated to HTML escape codes
 
     @par Example:
-    @code
-my string $str = html_encode("<hello>"); # returns "&lt;hello&gt;"
+    @code{.py}
+string str = html_encode("<hello>"); # returns "&lt;hello&gt;"
     @endcode
 
-    @note equivalent to <string>::getEncode() with @ref Qore::CE_HTML
+    @note equivalent to <string>::getEncoded() with @ref Qore::CE_HTML
 
-    @see <string>::getEncode()
+    @see <string>::getEncoded()
 */
 string html_encode(string str) [flags=CONSTANT] {
    QoreStringNodeHolder rv(new QoreStringNode(str->getEncoding()));
@@ -829,13 +829,13 @@ nothing html_encode() [flags=RUNTIME_NOOP] {
     @return the string passed as an argument with any HTML escape codes translated to the original characters
 
     @par Example:
-    @code
-my string $str = html_decode("&lt;hello&gt;"); # returns "<hello>"
+    @code{.py}
+string str = html_decode("&lt;hello&gt;"); # returns "<hello>"
     @endcode
 
-    @note equivalent to <string>::getDecode() with @ref Qore::CD_HTML
+    @note equivalent to <string>::getDecoded() with @ref Qore::CD_HTML
 
-    @see <string>::getDecode()
+    @see <string>::getDecoded()
 */
 string html_decode(string str) [flags=CONSTANT] {
    QoreStringNodeHolder rv(new QoreStringNode(str->getEncoding()));
@@ -852,8 +852,8 @@ nothing html_decode() [flags=RUNTIME_NOOP] {
 /** @return the name of the @ref default_encoding "default character encoding"
 
     @par Example:
-    @code
-my string $encoding = get_default_encoding();
+    @code{.py}
+string encoding = get_default_encoding();
     @endcode
 */
 string get_default_encoding() {
@@ -870,8 +870,8 @@ string get_default_encoding() {
     @param format_label If this argument is @ref Qore::True "True", then the label is formatted as \c "<run-time-loaded: label>"; if @ref Qore::False "False", then it is passed as-is
 
     @par Example:
-    @code
-parse($code, $filename);
+    @code{.py}
+parse(code, filename);
     @endcode
 
     @note This function could throw many parse exceptions which are not enumerated here; any parse errors will result in an appropriate exception.
@@ -929,8 +929,8 @@ nothing getClassName() [flags=RUNTIME_NOOP,DEPRECATED] {
     @return the class name of the object passed
 
     @par Example:
-    @code
-my string $name = get_class_name($obj);
+    @code{.py}
+string name = get_class_name(obj);
     @endcode
 
     @note equivalent to <object>::className()
@@ -954,8 +954,8 @@ string get_class_name(object obj) [flags=CONSTANT] {
     - \c port: any port number given in the URL
 
     @par Example:
-    @code
-my hash $hash = parse_url($url_string);
+    @code{.py}
+hash hash = parse_url(url_string);
     @endcode
 
     @throw PARSE-URL-ERROR The URL string given could not be parsed
@@ -985,8 +985,8 @@ hash parse_url(string url, bool keep_brackets = False) {
     - \c port: any port number given in the URL
 
     @par Example:
-    @code
-my *hash $hash = parseURL($url_string);
+    @code{.py}
+*hash hash = parseURL(url_string);
     @endcode
 
     @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=<url_encoded_path>/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
@@ -1012,9 +1012,9 @@ nothing parseURL() [flags=RUNTIME_NOOP] {
     @return The stdout of the shell command that was executed
 
     @par Example:
-    @code
-my int $rc;
-my string $files = $files = backquote("ls", \$rc);
+    @code{.py}
+int rc;
+string files = files = backquote("ls", \rc);
     @endcode
 
     @throw BACKQUOTE-ERROR An error occurred with the fork() or opening the stdout pipe
@@ -1101,8 +1101,8 @@ nothing makeBase64String() [flags=RUNTIME_NOOP,DEPRECATED] {
     @return the base64-encoded string of the data passed
 
     @par Example:
-    @code
-my string $base64 = make_base64_string($data, 64);
+    @code{.py}
+string base64 = make_base64_string(data, 64);
     @endcode
 
     @see
@@ -1126,8 +1126,8 @@ string make_base64_string(string str, softint maxlinelen = -1) [flags=CONSTANT] 
     @return the base64-encoded string of the data passed
 
     @par Example:
-    @code
-my string $base64 = make_base64_string($data, 64);
+    @code{.py}
+string base64 = make_base64_string(data, 64);
     @endcode
 
     @see
@@ -1173,8 +1173,8 @@ nothing parseBase64String() [flags=RUNTIME_NOOP,DEPRECATED] {
     @return a binary object of the decoded data
 
     @par Example:
-    @code
-my binary $bin = parse_base64_string($base64_string);
+    @code{.py}
+binary bin = parse_base64_string(base64_string);
     @endcode
 
     @throw BASE64-PARSE-ERROR A syntax error occurred parsing the base64 string (invalid character, etc)
@@ -1227,8 +1227,8 @@ nothing parseBase64StringToString() [flags=RUNTIME_NOOP,DEPRECATED] {
     @return a string of the decoded data tagged with the given encoding
 
     @par Example:
-    @code
-my string $str = parse_base64_string_to_string($base64_string);
+    @code{.py}
+string str = parse_base64_string_to_string(base64_string);
     @endcode
 
     @throw BASE64-PARSE-ERROR A syntax error occurred parsing the base64 string (invalid character, etc)
@@ -1281,8 +1281,8 @@ list getModuleList() [flags=DEPRECATED] {
     - \c license: the module's license
 
     @par Example:
-    @code
-my list $list = get_module_list();
+    @code{.py}
+list list = get_module_list();
     @endcode
 
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
@@ -1330,8 +1330,8 @@ hash getModuleHash() [flags=DEPRECATED] {
     - \c license: the module's license
 
     @par Example:
-    @code
-my hash $mh = get_module_hash();
+    @code{.py}
+hash mh = get_module_hash();
     @endcode
 
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
@@ -1357,8 +1357,8 @@ list getFeatureList() [flags=DEPRECATED] {
 /** @return a list of strings of the builtin and module-supplied features of Qore
 
     @par Example:
-    @code
-my list $list = get_feature_list();
+    @code{.py}
+list list = get_feature_list();
     @endcode
 
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
@@ -1375,8 +1375,8 @@ list get_feature_list() {
     @return a list of all the values in the hash argument passed
 
     @par Example:
-    @code
-my list $vl = hash_values($vl);
+    @code{.py}
+list vl = hash_values(vl);
     @endcode
 
     @note equivalent to <hash>::values()
@@ -1407,8 +1407,8 @@ nothing hash_values() [flags=RUNTIME_NOOP] {
     @return @ref True if the given key exists in the hash (does not necessarily have to have a value assigned), @ref False if the key is not present at all
 
     @par Example:
-    @code
-my bool $b = has_key($hash, "key");
+    @code{.py}
+bool b = has_key(hash, "key");
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this error is thrown if the given key cannot be converted to the @ref default_encoding "default character encoding"
@@ -1422,8 +1422,8 @@ bool has_key(hash h, string key) {
 //! Returns @ref True if the given key exists in the object (does not necessarily have to have a value assigned); exceptions are only raised if string encoding errors are encountered or in case of object access errors.
 /**
     @par Example:
-    @code
-my bool $b = has_key($obj, "key");
+    @code{.py}
+bool b = has_key(obj, "key");
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this error is thrown if the given key cannot be converted to the @ref default_encoding "default character encoding"
@@ -1444,8 +1444,8 @@ bool has_key(object obj, string key) {
     @return the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $byte = get_byte($str, 2); # returns the third byte of the string
+    @code{.py}
+*int byte = get_byte(str, 2); # returns the third byte of the string
     @endcode
 
     @note that for strings this function is not equivalent to the @ref list_element_operator "[] operator" for multi-byte character encodings, as this function works purely on bytes and the @ref list_element_operator "[] operator" operates on characters\n\n
@@ -1469,8 +1469,8 @@ my *int $byte = get_byte($str, 2); # returns the third byte of the string
     @return the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $byte = get_byte($bin, 2); # returns the third byte of the binary object
+    @code{.py}
+*int byte = get_byte(bin, 2); # returns the third byte of the binary object
     @endcode
 
     @note this function is equivalent to the more efficient @ref list_element_operator "[] operator" when used with a binary argument\n\n
@@ -1545,8 +1545,8 @@ nothing getByte() [flags=RUNTIME_NOOP,DEPRECATED] {
     @return the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_16($str, 2); # returns the third 2-byte (16-bit) value in the string
+    @code{.py}
+*int val = get_word_16(str, 2); # returns the third 2-byte (16-bit) value in the string
     @endcode
 
     @see get_word_16_lsb()
@@ -1570,8 +1570,8 @@ my *int $val = get_word_16($str, 2); # returns the third 2-byte (16-bit) value i
     @return the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_16($bin, 2); # returns the third 2-byte (16-bit) value in the binary object
+    @code{.py}
+*int val = get_word_16(bin, 2); # returns the third 2-byte (16-bit) value in the binary object
     @endcode
 
     @see get_word_16_lsb()
@@ -1595,8 +1595,8 @@ my *int $val = get_word_16($bin, 2); # returns the third 2-byte (16-bit) value i
     @return the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_32($str, 4); # returns the third 4-byte (32-bit) value in the string
+    @code{.py}
+*int val = get_word_32(str, 4); # returns the third 4-byte (32-bit) value in the string
     @endcode
 
     @note This function is identical to getWord32(), except this function has no @ref RUNTIME_NOOP variant
@@ -1622,8 +1622,8 @@ my *int $val = get_word_32($str, 4); # returns the third 4-byte (32-bit) value i
     @return the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_32($bin, 2); # returns the third 4-byte (32-bit) value in the binary object
+    @code{.py}
+*int val = get_word_32(bin, 2); # returns the third 4-byte (32-bit) value in the binary object
     @endcode
 
     @note This function is identical to getWord32(), except this function has no @ref RUNTIME_NOOP variant
@@ -1699,8 +1699,8 @@ nothing getWord32() [flags=RUNTIME_NOOP,DEPRECATED] {
     @return the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_64($str, 4); # returns the third 8-byte (64-bit) value in the string
+    @code{.py}
+*int val = get_word_64(str, 4); # returns the third 8-byte (64-bit) value in the string
     @endcode
 
     @see get_word_64_lsb()
@@ -1724,8 +1724,8 @@ my *int $val = get_word_64($str, 4); # returns the third 8-byte (64-bit) value i
     @return the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_64($bin, 2); # returns the third 8-byte (64-bit) value in the binary object
+    @code{.py}
+*int val = get_word_64(bin, 2); # returns the third 8-byte (64-bit) value in the binary object
     @endcode
 
     @see get_word_64_lsb()
@@ -1749,8 +1749,8 @@ my *int $val = get_word_64($bin, 2); # returns the third 8-byte (64-bit) value i
     @return the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_16_lsb($str, 2); # returns the third 2-byte (16-bit) value in the string
+    @code{.py}
+*int val = get_word_16_lsb(str, 2); # returns the third 2-byte (16-bit) value in the string
     @endcode
 
     @see get_word_16()
@@ -1774,8 +1774,8 @@ my *int $val = get_word_16_lsb($str, 2); # returns the third 2-byte (16-bit) val
     @return the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_16_lsb($bin, 2); # returns the third 2-byte (16-bit) value in the binary object
+    @code{.py}
+*int val = get_word_16_lsb(bin, 2); # returns the third 2-byte (16-bit) value in the binary object
     @endcode
 
     @see get_word_16()
@@ -1799,8 +1799,8 @@ my *int $val = get_word_16_lsb($bin, 2); # returns the third 2-byte (16-bit) val
     @return the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_32_lsb($str, 4); # returns the third 4-byte (32-bit) value in the string
+    @code{.py}
+*int val = get_word_32_lsb(str, 4); # returns the third 4-byte (32-bit) value in the string
     @endcode
 
     @note This function is identical to getWord32(), except this function has no @ref RUNTIME_NOOP variant
@@ -1826,8 +1826,8 @@ my *int $val = get_word_32_lsb($str, 4); # returns the third 4-byte (32-bit) val
     @return the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_32_lsb($bin, 2); # returns the third 4-byte (32-bit) value in the binary object
+    @code{.py}
+*int val = get_word_32_lsb(bin, 2); # returns the third 4-byte (32-bit) value in the binary object
     @endcode
 
     @see get_word_32()
@@ -1851,8 +1851,8 @@ my *int $val = get_word_32_lsb($bin, 2); # returns the third 4-byte (32-bit) val
     @return the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_64_lsb($str, 4); # returns the third 8-byte (64-bit) value in the string
+    @code{.py}
+*int val = get_word_64_lsb(str, 4); # returns the third 8-byte (64-bit) value in the string
     @endcode
 
     @see get_word_64()
@@ -1876,8 +1876,8 @@ my *int $val = get_word_64_lsb($str, 4); # returns the third 8-byte (64-bit) val
     @return the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_64_lsb($bin, 2); # returns the third 8-byte (64-bit) value in the binary object
+    @code{.py}
+*int val = get_word_64_lsb(bin, 2); # returns the third 8-byte (64-bit) value in the binary object
     @endcode
 
     @see get_word_64()
@@ -1912,8 +1912,8 @@ string splice(string[doc] str) [flags=NOOP] {
     @return the processed string
 
     @par Example:
-    @code
-my string $str = splice($str2, 5);
+    @code{.py}
+string str = splice(str2, 5);
     @endcode
 
     @see the @ref splice "splice operator"
@@ -1935,8 +1935,8 @@ string splice(string str, softint start) {
     @return the processed string with characters removed and/or added according to the arguments
 
     @par Example:
-    @code
-my string $str = splice($str2, 5, 7, "hello");
+    @code{.py}
+string str = splice(str2, 5, 7, "hello");
     @endcode
 
     @see the @ref splice "splice operator"
@@ -1954,8 +1954,8 @@ string splice(string str, softint start, softint len, *string nstr) {
     @param start the starting element (where the first element is 0) to start removing elements; if this value is negative, it gives the offset from the end of the list
 
     @par Example:
-    @code
-my list $l = splice($l2, 5);
+    @code{.py}
+list l = splice(l2, 5);
     @endcode
 
     @see the @ref splice "splice operator"
@@ -1977,8 +1977,8 @@ list splice(list l, softint start) {
     @return the processed list with elements removed and/or added according to the arguments
 
     @par Example:
-    @code
-my list $l = splice($l2, 5, 7, "hello");
+    @code{.py}
+list l = splice(l2, 5, 7, "hello");
     @endcode
 
     @see the @ref splice "splice operator"
@@ -2043,8 +2043,8 @@ nothing makeHexString() [flags=RUNTIME_NOOP,DEPRECATED] {
     @return a string of hex digits repsenting the bytes of the argument passed
 
     @par Example:
-    @code
-my string $str = make_hex_string($str2);
+    @code{.py}
+string str = make_hex_string(str2);
     @endcode
 
     @see
@@ -2066,8 +2066,8 @@ string make_hex_string(string str) [flags=CONSTANT] {
     @return a string of hex digits repsenting the bytes of the argument passed
 
     @par Example:
-    @code
-my string $str = make_hex_string($bin);
+    @code{.py}
+string str = make_hex_string(bin);
     @endcode
 
     @see
@@ -2112,8 +2112,8 @@ nothing parseHexString() [flags=RUNTIME_NOOP,DEPRECATED] {
     @return a binary object of the decoded data
 
     @par Example:
-    @code
-my binary $bin = parseHexString($hex_string);
+    @code{.py}
+binary bin = parseHexString(hex_string);
     @endcode
 
     @throw PARSE-HEX-ERROR A syntax error occurred parsing the hex string (odd number of digits, invalid hex character, etc)
@@ -2134,8 +2134,8 @@ binary parse_hex_string(string hexstr) [flags=RET_VALUE_ONLY] {
     @return the base-10 integer corresponding to the argument
 
     @par Example:
-    @code
-my int $i = hextoint("ab3d4e0f12");
+    @code{.py}
+int i = hextoint("ab3d4e0f12");
     @endcode
 
     @throw PARSE-HEX-ERROR invalid hex digit found
@@ -2185,8 +2185,8 @@ nothing hextoint() [flags=RUNTIME_NOOP] {
     @return the integer represented by the string and the base
 
     @par Example:
-    @code
-my int $i = strtoint("41", 8);
+    @code{.py}
+int i = strtoint("41", 8);
     @endcode
 
     @throw STRTOINT-ERROR cannot parse string; unsupported base, etc
@@ -2213,7 +2213,7 @@ nothing strtoint() [flags=RUNTIME_NOOP] {
     @param name either a feature name (a module will be searched with this feature name) or a path to a module to load
 
     @par Example:
-    @code
+    @code{.py}
 load_module("mysql");
     @endcode
 
@@ -2239,8 +2239,8 @@ nothing load_module() [flags=RUNTIME_NOOP;dom=MODULES] {
 /** This function allows a user module to be loaded with a custom API already present in the user module's @ref Qore::Program "Program" container
 
     @par Example:
-    @code
-load_user_module_with_program("MyModule", $p);
+    @code{.py}
+load_user_module_with_program("MyModule", p);
     @endcode
 
     @param name the name or path of the user module to load
@@ -2259,7 +2259,7 @@ nothing load_user_module_with_program(string name, !Qore::Program[QoreProgram] p
     @param name a feature name for an already-loaded module
 
     @par Example:
-    @code
+    @code{.py}
 reload_module("FixedLengthUtil");
     @endcode
 
@@ -2284,8 +2284,8 @@ nothing reload_module(string name) [dom=MODULES,INJECTION] {
     @return the URL string in UTF-8 encoding with all percent-encodings decoded
 
     @par Example:
-    @code
-my string $decoded_url = decode_url($encoded_url);
+    @code{.py}
+string decoded_url = decode_url(encoded_url);
     @endcode
 
     @note percent decoding is made according to <a href="http://tools.ietf.org/html/rfc3986#section-2.1">RFC 3986 2.1</a>
@@ -2314,8 +2314,8 @@ nothing decode_url() [flags=RUNTIME_NOOP] {
     @return the URL string with encoded according to the arguments
 
     @par Example:
-    @code
-my string $encoded_url = encode_url($url);
+    @code{.py}
+string encoded_url = encode_url(url);
     @endcode
 
     @see
@@ -2333,8 +2333,8 @@ string encode_url(string url, softbool encode_all = False) [flags=CONSTANT] {
 
 //! Decodes percent-encoded codes in a URI path and converts \c "+" signs in the query component to spaces and returns the decoded string in UTF-8 encoding
 /** @par Example:
-    @code
-my string $decoded_uri = decode_uri_request("path/to/something%20else?query=1%2b1+%2b2");
+    @code{.py}
+string decoded_uri = decode_uri_request("path/to/something%20else?query=1%2b1+%2b2");
 # results in: "path/to/something else?query=1+1 +2"
     @endcode
 
@@ -2358,16 +2358,16 @@ my string $decoded_uri = decode_uri_request("path/to/something%20else?query=1%2b
 
     @since %Qore 0.8.12
 */
-string decode_uri_request(string url) [flags=CONSTANT] {
+string decode_uri_request(string uri) [flags=CONSTANT] {
    QoreStringNodeHolder str(new QoreStringNode(QCS_UTF8));
-   str->concatDecodeUriRequest(*url, xsink);
+   str->concatDecodeUriRequest(*uri, xsink);
    return *xsink ? 0 : str.release();
 }
 
 //! Encodes URI requests by substituting special characters in the path with percent-encoded ewquivalents and substituting spaces with \c "+" and \c "+" with the percent-encoded equivalent in the URI query component
 /** @par Example:
-    @code
-my string $encoded_uri = encode_uri_request("path/to/something else?query=1+1 +2")'
+    @code{.py}
+string encoded_uri = encode_uri_request("path/to/something else?query=1+1 +2")'
 # results in: "path/to/something%20else?query=1%2b1+%2b2"
     @endcode
 
@@ -2403,8 +2403,8 @@ string encode_uri_request(string url) [flags=CONSTANT] {
 /** @return the path (directory and filename) of the current script or @ref nothing if unknown (i.e. no parent script, script read from stdin, etc)
 
     @par Example:
-    @code
-my *string $str = get_script_path();
+    @code{.py}
+*string str = get_script_path();
     @endcode
 */
 *string get_script_path() {
@@ -2415,8 +2415,8 @@ my *string $str = get_script_path();
 /** @return the name of the directory from which the current script was executed or @ref nothing if unknown (i.e. no parent script, script read from stdin, etc)
 
     @par Example:
-    @code
-my *string $str = get_script_dir();
+    @code{.py}
+*string str = get_script_dir();
     @endcode
 */
 *string get_script_dir() {
@@ -2427,8 +2427,8 @@ my *string $str = get_script_dir();
 /** @return the filename of the current script if known or @ref nothing if unknown (i.e. no parent script, script read from stdin, etc)
 
     @par Example:
-    @code
-my *string $str = get_script_name();
+    @code{.py}
+*string str = get_script_name();
     @endcode
 */
 *string get_script_name() {
@@ -2443,8 +2443,8 @@ my *string $str = get_script_name();
     - \c value: The boolean value of the option
 
     @par Example:
-    @code
-my list $l = get_qore_option_list();
+    @code{.py}
+list l = get_qore_option_list();
     @endcode
 
     @see get_qore_option_hash()
@@ -2471,8 +2471,8 @@ list get_qore_option_list() [flags=CONSTANT] {
     - \c value: The boolean value of the option
 
     @par Example:
-    @code
-my hash $h = get_qore_option_hash();
+    @code{.py}
+hash h = get_qore_option_hash();
     @endcode
 
     @see get_qore_option_list()
@@ -2510,8 +2510,8 @@ hash get_qore_option_hash() [flags=CONSTANT] {
     - \c LDFLAGS: The linker flags used to link the %Qore library
 
     @par Example:
-    @code
-my hash $h = get_qore_library_info();
+    @code{.py}
+hash h = get_qore_library_info();
     @endcode
 */
 hash get_qore_library_info() [flags=CONSTANT] {
@@ -2541,8 +2541,8 @@ hash get_qore_library_info() [flags=CONSTANT] {
 
 //! returns the current @ref parse_options "parse options" for the current @ref Qore::Program "Program" object
 /** @par Example:
-    @code
-my int $i = get_parse_options();
+    @code{.py}
+int i = get_parse_options();
     @endcode
 
     @return the current @ref parse_options "parse options" for the current @ref Qore::Program "Program" object
@@ -2555,7 +2555,7 @@ int get_parse_options() [flags=CONSTANT] {
 
 //! sets the return value for a Program object when running with @ref exec-class "%exec-class"
 /** @par Example:
-    @code
+    @code{.py}
 set_return_value(1);
     @endcode
 
@@ -2571,12 +2571,12 @@ set_return_value(any val) [dom=PROCESS] {
 
 //! returns a descriptive string for an exception location; the \c source and \c offset information will also be included in the string returned if present in the @ref exception_hash "exception hash" argument
 /** @par Example:
-    @code
+    @code{.py}
 try {
-    throw "oops", sprintf("arg %y is invalid", $arg);
+    throw "oops", sprintf("arg %y is invalid", arg);
 }
-catch (hash $ex) {
-    log("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc);
+catch (hash ex) {
+    log("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
 }
     @endcode
 

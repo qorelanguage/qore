@@ -4,8 +4,8 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2015 Qore Technologies, sro
-  
+  Copyright (C) 2006 - 2016 Qore Technologies, sro
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -49,6 +49,8 @@ class QoreSQLStatement : public AbstractPrivateData, public SQLStatement {
 protected:
    DLLLOCAL static const char* stmt_statuses[];
 
+   // Datasource used to prepare the statement
+   Datasource* stmtds;
    // helper object for acquiring a Datasource pointer
    DatasourceStatementHelper* dsh;
    // copy of SQL string
@@ -69,9 +71,9 @@ protected:
    DLLLOCAL int defineIntern(ExceptionSink* xsink);
    DLLLOCAL int prepareIntern(ExceptionSink* xsink);
    DLLLOCAL int prepareArgs(bool n_raw, const QoreString& n_str, const QoreListNode* args, ExceptionSink* xsink);
-      
+
 public:
-   DLLLOCAL QoreSQLStatement() : dsh(0), prepare_args(0), status(STMT_IDLE), raw(false), validp(false) {
+   DLLLOCAL QoreSQLStatement() : stmtds(0), dsh(0), prepare_args(0), status(STMT_IDLE), raw(false), validp(false) {
    }
 
    DLLLOCAL ~QoreSQLStatement();
@@ -115,6 +117,7 @@ public:
    DLLLOCAL int beginTransaction(ExceptionSink* xsink);
 
    DLLLOCAL bool active() const;
+   DLLLOCAL bool currentThreadInTransaction(ExceptionSink* xsink);
 
    DLLLOCAL QoreStringNode* getSQL(ExceptionSink* xsink);
 };

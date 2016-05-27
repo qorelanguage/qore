@@ -1,9 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -11,7 +12,7 @@
 
 class TR1 inherits AbstractThreadResource {
     cleanup() {
-	throw "TR1";
+        throw "TR1";
     }
 }
 
@@ -34,7 +35,7 @@ class TRS inherits AbstractThreadResource {
 
     synchronized start() {
         cnt.inc();
-	set_thread_resource(self);
+        set_thread_resource(self);
         on_error {
             cnt.dec();
             remove_thread_resource(self);
@@ -76,28 +77,28 @@ class ThreadResourcesTest inherits QUnit::Test {
     }
 
     threadResourcesTests() {
-	TR1 tr1();
+        TR1 tr1();
 
-	set_thread_resource(tr1);
-	testAssertion("cleanup-1", \throw_thread_resource_exceptions(), NOTHING, new TestResultExceptionType("TR1"));
-	testAssertionValue("remove-1", remove_thread_resource(tr1), False);
+        set_thread_resource(tr1);
+        testAssertion("cleanup-1", \throw_thread_resource_exceptions(), NOTHING, new TestResultExceptionType("TR1"));
+        testAssertionValue("remove-1", remove_thread_resource(tr1), False);
 
-	set_thread_resource(tr1);
-	mark_thread_resources();
-	testAssertionValue("cleanup-to-mark-neg-1", throw_thread_resource_exceptions_to_mark(), True);
-	testAssertionValue("remove-2", remove_thread_resource(tr1), True);
+        set_thread_resource(tr1);
+        mark_thread_resources();
+        testAssertionValue("cleanup-to-mark-neg-1", throw_thread_resource_exceptions_to_mark(), True);
+        testAssertionValue("remove-2", remove_thread_resource(tr1), True);
 
-	mark_thread_resources();
-	testAssertion("auto-cleanup-1", \doCleanup(), NOTHING, new TestResultExceptionType("TR1"));
+        mark_thread_resources();
+        testAssertion("auto-cleanup-1", \doCleanup(), NOTHING, new TestResultExceptionType("TR1"));
 
-	testAssertionValue("cleanup-to-mark-neg-2", throw_thread_resource_exceptions_to_mark(), True);
+        testAssertionValue("cleanup-to-mark-neg-2", throw_thread_resource_exceptions_to_mark(), True);
 
-	testAssertion("auto-cleanup-2", \doCleanup(), NOTHING, new TestResultExceptionType("TR1"));
+        testAssertion("auto-cleanup-2", \doCleanup(), NOTHING, new TestResultExceptionType("TR1"));
 
         # throw_thread_resource_exceptions() here just stops the background thread,
         # but since TRS::cleanup() does not throw an exception, neither does throw_thread_resource_exceptions()
         # despite the name
-	TRS trs();
+        TRS trs();
         testNullAssertion("no-exception-1", \throw_thread_resource_exceptions());
 
     	our TRS otrs();
@@ -132,17 +133,17 @@ class ThreadResourcesTest inherits QUnit::Test {
     }
 
     threadResourceSandboxingTests() {
-	Program p(PO_NEW_STYLE | PO_NO_THREAD_CONTROL);
-	p.importClass("TR1");
+        Program p(PO_NEW_STYLE | PO_NO_THREAD_CONTROL);
+        p.importClass("TR1");
 
-	# test sandbox violation
-	testAssertion("sandboxing-1", \p.parse(), ("sub t() {TR1 tr1(); set_thread_resource(tr1);}", "test-1"), new TestResultExceptionRegexp("PARSE-EXCEPTION", "set_thread_resource"));
-	testAssertion("sandboxing-2", \p.parse(), ("sub t() {TR1 tr1(); remove_thread_resource(tr1);}", "test-2"), new TestResultExceptionRegexp("PARSE-EXCEPTION", "remove_thread_resource"));
+        # test sandbox violation
+        testAssertion("sandboxing-1", \p.parse(), ("sub t() {TR1 tr1(); set_thread_resource(tr1);}", "test-1"), new TestResultExceptionRegexp("PARSE-EXCEPTION", "set_thread_resource"));
+        testAssertion("sandboxing-2", \p.parse(), ("sub t() {TR1 tr1(); remove_thread_resource(tr1);}", "test-2"), new TestResultExceptionRegexp("PARSE-EXCEPTION", "remove_thread_resource"));
     }
 
     doCleanup() {
-	TR1 tr1();
+        TR1 tr1();
 
-	set_thread_resource(tr1);
+        set_thread_resource(tr1);
     }
 }

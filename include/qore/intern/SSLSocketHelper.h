@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   will unlink (delete) UNIX domain socket files when closed
 
@@ -49,28 +49,44 @@ private:
    SSL_METHOD_CONST SSL_METHOD* meth;
    SSL_CTX* ctx;
    SSL* ssl;
+   unsigned refs;
 
    DLLLOCAL int setIntern(const char* meth, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink);
 
-   // do blocking or non-blocking SSL I/O and handle SSL_ERROR_WANT_READ and SSL_ERROR_WANT_WRITE properly
-   DLLLOCAL int doSSLRW(const char* mname, void* buf, int num, int timeout_ms, bool read, ExceptionSink* xsink);
-
    // non-blocking I/O helper
-   DLLLOCAL int doSSLUpgradeNonBlockingIO(int rc, const char* mname, int timeout_ms, const char* ssl_func, bool& closed, ExceptionSink* xsink);
-   
-public:
-   DLLLOCAL SSLSocketHelper(qore_socket_private& n_qs) : qs(n_qs), meth(0), ctx(0), ssl(0) {
-   }
+   DLLLOCAL int doSSLUpgradeNonBlockingIO(int rc, const char* mname, int timeout_ms, const char* ssl_func, ExceptionSink* xsink);
 
-   ~SSLSocketHelper() {
+   DLLLOCAL ~SSLSocketHelper() {
       if (ssl)
          SSL_free(ssl);
       if (ctx)
          SSL_CTX_free(ctx);
    }
 
-   // if closed is returned as true, then the SSLSocketHelper object has been deleted
-   DLLLOCAL bool sslError(ExceptionSink* xsink, bool& closed, const char* meth, const char* msg, bool always_error = true);
+   // must be called with refs > 1
+   DLLLOCAL bool sslError(ExceptionSink* xsink, const char* meth, const char* msg, bool always_error = true);
+
+public:
+   DLLLOCAL SSLSocketHelper(qore_socket_private& n_qs) : qs(n_qs), meth(0), ctx(0), ssl(0), refs(1) {
+   }
+
+   // we do not need atomic dereferences here, all operations must be already locked
+   DLLLOCAL bool deref() {
+      if (!--refs) {
+         delete this;
+         return true;
+      }
+      return false;
+   }
+
+   // we do not need atomic dereferences here, all operations must be already locked
+   DLLLOCAL void ref() {
+      ++refs;
+   }
+
+   // do blocking or non-blocking SSL I/O and handle SSL_ERROR_WANT_READ and SSL_ERROR_WANT_WRITE properly
+   DLLLOCAL int doSSLRW(ExceptionSink* xsink, const char* mname, void* buf, int num, int timeout_ms, bool read, bool do_timeout = true);
+
    DLLLOCAL int setClient(const char* mname, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink);
    DLLLOCAL int setServer(const char* mname, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink);
    // returns 0 for success
@@ -89,6 +105,20 @@ public:
    DLLLOCAL const char* getCipherVersion() const;
    DLLLOCAL X509* getPeerCertificate() const;
    DLLLOCAL long verifyPeerCertificate() const;
+};
+
+class SSLSocketReferenceHelper {
+protected:
+   SSLSocketHelper* s;
+
+public:
+   DLLLOCAL SSLSocketReferenceHelper(SSLSocketHelper* n_s) : s(n_s) {
+      s->ref();
+   }
+
+   DLLLOCAL ~SSLSocketReferenceHelper() {
+      s->deref();
+   }
 };
 
 #endif

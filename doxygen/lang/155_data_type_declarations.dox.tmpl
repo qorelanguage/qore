@@ -66,9 +66,9 @@
     |\c int|@ref integer|@ref integer|Restricts values to %Qore's @ref integer type
 
     @par Example
-    @code
-int sub foo(int $i) {
-    return $i;
+    @code{.py}
+int sub foo(int i) {
+    return i;
 }
     @endcode
 
@@ -80,9 +80,9 @@ int sub foo(int $i) {
     |\c float|@ref float or @ref integer|@ref float|Restricts values to %Qore's @ref float type
 
     @par Example
-    @code
-float sub foo(float $f = M_PI) {
-    return $f;
+    @code{.py}
+float sub foo(float f = M_PI) {
+    return f;
 }
     @endcode
 
@@ -94,9 +94,9 @@ float sub foo(float $f = M_PI) {
     |\c number|@ref number, @ref float, or @ref integer|@ref number|Restricts values to %Qore's @ref number type
 
     @par Example
-    @code
-number sub foo(number $n = 2.35e40) {
-    return $n;
+    @code{.py}
+number sub foo(number n = 2.35e40) {
+    return n;
 }
     @endcode
 
@@ -110,9 +110,9 @@ number sub foo(number $n = 2.35e40) {
     |\c bool|@ref boolean|@ref boolean|Restricts values to %Qore's @ref boolean type
 
     @par Example
-    @code
-bool sub foo(bool $b) {
-    return $b;
+    @code{.py}
+bool sub foo(bool b) {
+    return b;
 }
     @endcode
 
@@ -124,9 +124,9 @@ bool sub foo(bool $b) {
     |\c string|@ref string|@ref string|Restricts values to %Qore's @ref string type
 
     @par Example
-    @code
-string sub foo(string $str = "bar") {
-    return $str;
+    @code{.py}
+string sub foo(string str = "bar") {
+    return str;
 }
     @endcode
 
@@ -138,9 +138,9 @@ string sub foo(string $str = "bar") {
     |\c date|@ref date|@ref date|Restricts values to %Qore's @ref date type; date/time values can be either @ref absolute_dates "absolute" or @ref relative_dates "relative"
 
     @par Example
-    @code
-date sub foo(date $d = now_us()) {
-    return $d;
+    @code{.py}
+date sub foo(date d = now_us()) {
+    return d;
 }
     @endcode
 
@@ -152,9 +152,9 @@ date sub foo(date $d = now_us()) {
     |\c binary|@ref binary|@ref binary|Restricts values to %Qore's @ref binary type
 
     @par Example
-    @code
-binary sub foo(binary $b) {
-    return $b;
+    @code{.py}
+binary sub foo(binary b) {
+    return b;
 }
     @endcode
 
@@ -166,9 +166,9 @@ binary sub foo(binary $b) {
     |\c hash|@ref hash|@ref hash|Restricts values to %Qore's @ref hash type
 
     @par Example
-    @code
-hash sub foo(hash $h = ("foo": "bar", "x": 2)) {
-    return $h;
+    @code{.py}
+hash sub foo(hash h = ("foo": "bar", "x": 2)) {
+    return h;
 }
     @endcode
 
@@ -180,9 +180,9 @@ hash sub foo(hash $h = ("foo": "bar", "x": 2)) {
     |\c list|@ref list|@ref list|Restricts values to %Qore's @ref list type
 
     @par Example
-    @code
-list sub foo(list $l = ("foo", "bar")) {
-    return $l;
+    @code{.py}
+list sub foo(list l = ("foo", "bar")) {
+    return l;
 }
     @endcode
 
@@ -194,9 +194,9 @@ list sub foo(list $l = ("foo", "bar")) {
     |\c object|@ref object|@ref object|Restricts values to %Qore's @ref object type; note that any class name can also be used as a type restriction directly
 
     @par Example
-    @code
-object sub foo(object $o = new Mutex()) {
-    return $o;
+    @code{.py}
+object sub foo(object o = new Mutex()) {
+    return o;
 }
     @endcode
 
@@ -208,9 +208,9 @@ object sub foo(object $o = new Mutex()) {
     |<em>any class name</em>|@ref object of the particular class given|@ref object of the particular class given|Restricts values to objects of the particular class given; subclasses are also accepted
 
     @par Example
-    @code
-Mutex sub foo(Qore::Thread::Mutex $m = new Mutex()) {
-    return $m;
+    @code{.py}
+Mutex sub foo(Qore::Thread::Mutex m = new Mutex()) {
+    return m;
 }
     @endcode
 
@@ -222,9 +222,9 @@ Mutex sub foo(Qore::Thread::Mutex $m = new Mutex()) {
     |\c null|@ref null|@ref null|Restricts values to %Qore's @ref null type; this type has few (if any) practical applications and has been included for completeness' sake
 
     @par Example
-    @code
+    @code{.py}
 # I don't know if this type has any useful/practical applications...
-my null $n = NULL;
+null n = NULL;
     @endcode
 
     <hr>
@@ -235,7 +235,7 @@ my null $n = NULL;
     |\c nothing|@ref nothing|@ref nothing|Restricts values to %Qore's @ref nothing type; this type is mostly useful for declaring that a function or method returns no value
 
     @par Example
-    @code
+    @code{.py}
 nothing sub bar() {
     printf("foo\n");
 }
@@ -249,9 +249,9 @@ nothing sub bar() {
     |\c timeout|@ref integer, @ref date|@ref integer|Accepts @ref integer, @ref date values and converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds
 
     @par Example
-    @code
-timeout sub foo(timeout $to = 1250ms) {
-    return $to;
+    @code{.py}
+timeout sub foo(timeout to = 1250ms) {
+    return to;
 }
     @endcode
 
@@ -263,10 +263,10 @@ timeout sub foo(timeout $to = 1250ms) {
     |\c softint|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref integer|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-integer values to an integer and returns the integer
 
     @par Example
-    @code
-softint sub foo(softint $i = "1000") {
+    @code{.py}
+softint sub foo(softint i = "1000") {
     # note that "200" will be converted to an integer on return
-    return $i > 500 ? "200" : $i;
+    return i > 500 ? "200" : i;
 }
     @endcode
 
@@ -278,10 +278,10 @@ softint sub foo(softint $i = "1000") {
     |\c softfloat|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref float|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-float values to a float and returns the float
 
     @par Example
-    @code
-softfloat sub foo(softfloat $f = "1000") {
+    @code{.py}
+softfloat sub foo(softfloat f = "1000") {
     # note that "200" will be converted to a float on return
-    return $f > 500.0 ? "200" : $f;
+    return f > 500.0 ? "200" : f;
 }
     @endcode
 
@@ -293,10 +293,10 @@ softfloat sub foo(softfloat $f = "1000") {
     |\c softnumber|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref float|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-number values to a number and returns the number
 
     @par Example
-    @code
-softnumber sub foo(softnumber $n = "1000") {
+    @code{.py}
+softnumber sub foo(softnumber n = "1000") {
     # note that "200" will be converted to a number on return
-    return $n > 500.0n ? "200" : $n;
+    return n > 500.0n ? "200" : n;
 }
     @endcode
 
@@ -310,8 +310,8 @@ softnumber sub foo(softnumber $n = "1000") {
     |\c softbool|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref boolean|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-boolean values to a boolean and returns the boolean
 
     @par Example
-    @code
-my softbool $b = "0.5";
+    @code{.py}
+softbool b = "0.5";
     @endcode
 
     <hr>
@@ -322,8 +322,8 @@ my softbool $b = "0.5";
     |\c softstring|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref string|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-string values to a string and returns the string
 
     @par Example
-    @code
-my softstring $str = 200;
+    @code{.py}
+softstring str = 200;
     @endcode
 
     <hr>
@@ -334,8 +334,8 @@ my softstring $str = 200;
     |\c softdate|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, @ref null|@ref date|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, and @ref null values and converts non-date values to a date and returns the date
 
     @par Example
-    @code
-my softdate $d = "2001-10-10T20:00:05 +04:00";
+    @code{.py}
+softdate d = "2001-10-10T20:00:05 +04:00";
     @endcode
 
     <hr>
@@ -346,11 +346,11 @@ my softdate $d = "2001-10-10T20:00:05 +04:00";
     |\c softlist|all data types|@ref list|Accepts all data types; @ref nothing is returned as an empty list; a list is returned unchanged, and any other type is returned as the first element of a new list
 
     @par Example
-    @code
-softlist sub foo(softlist $l) {
-    foreach my any $element in (\$l) {
+    @code{.py}
+softlist sub foo(softlist l) {
+    foreach any element in (\l) {
     }
-    return $l;
+    return l;
 }
     @endcode
 
@@ -364,9 +364,9 @@ softlist sub foo(softlist $l) {
     |\c data|@ref string or @ref binary|same as received|Restricts values to @ref string and @ref binary
 
     @par Example
-    @code
-data sub foo(data $d) {
-    return $d;
+    @code{.py}
+data sub foo(data d) {
+    return d;
 }
     @endcode
 
@@ -378,9 +378,9 @@ data sub foo(data $d) {
     |\c code|@ref closure, @ref call_reference|same as received|Restricts values to @ref closure and @ref call_reference
 
     @par Example
-    @code
-sub foo(code $c) {
-    $c();
+    @code{.py}
+sub foo(code c) {
+    c();
 }
     @endcode
 
@@ -394,13 +394,13 @@ sub foo(code $c) {
     |\c reference|@ref lvalue_references|the type the reference points to|Requires a reference to an lvalue to be assigned
 
     @par Example
-    @code
-sub foo(reference $f) {
-    $f = 10;
+    @code{.py}
+sub foo(reference f) {
+    f = 10;
 }
 
-my int $i;
-foo(\$i);
+int i;
+foo(\i);
     @endcode
 
     <hr>
@@ -411,9 +411,9 @@ foo(\$i);
     |\c *int|@ref integer, @ref null, or @ref nothing|@ref integer or @ref nothing|Restricts values to @ref integer and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
-    @code
-*int sub foo(*int $i) {
-    return $i;
+    @code{.py}
+*int sub foo(*int i) {
+    return i;
 }
     @endcode
 
@@ -425,9 +425,9 @@ foo(\$i);
     |\c *float|@ref float, @ref null, or @ref nothing|@ref float or @ref nothing|Restricts values to @ref float and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
-    @code
-*float sub foo(*float $f) {
-    return $f;
+    @code{.py}
+*float sub foo(*float f) {
+    return f;
 }
     @endcode
 
@@ -439,9 +439,9 @@ foo(\$i);
     |\c *number|@ref number, @ref null, or @ref nothing|@ref number or @ref nothing|Restricts values to @ref number and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
-    @code
-*number sub foo(*number $n) {
-    return $n;
+    @code{.py}
+*number sub foo(*number n) {
+    return n;
 }
     @endcode
 
@@ -455,9 +455,9 @@ foo(\$i);
     |\c *bool|@ref boolean, @ref null, or @ref nothing|@ref boolean or @ref nothing|Restricts values to @ref boolean and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
-    @code
-*bool sub foo(*bool $b) {
-    return $b;
+    @code{.py}
+*bool sub foo(*bool b) {
+    return b;
 }
     @endcode
 
@@ -469,9 +469,9 @@ foo(\$i);
     |\c *string|@ref string, @ref null, or @ref nothing|@ref string or @ref nothing|Restricts values to @ref string and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
-    @code
-*string sub foo(*string $str) {
-    return $str;
+    @code{.py}
+*string sub foo(*string str) {
+    return str;
 }
     @endcode
 
@@ -483,9 +483,9 @@ foo(\$i);
     |\c *date|@ref date, @ref null, or @ref nothing|@ref date or @ref nothing|Restricts values to @ref date and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
-    @code
-*date sub foo(*date $str) {
-    return $str;
+    @code{.py}
+*date sub foo(*date str) {
+    return str;
 }
     @endcode
 
@@ -497,9 +497,9 @@ foo(\$i);
     |\c *binary|@ref binary, @ref null, or @ref nothing|@ref binary or @ref nothing|Restricts values to @ref binary and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
-    @code
-*binary sub foo(*binary $b) {
-    return $b;
+    @code{.py}
+*binary sub foo(*binary b) {
+    return b;
 }
     @endcode
 
@@ -511,9 +511,9 @@ foo(\$i);
     |\c *hash|@ref hash, @ref null, or @ref nothing|@ref hash or @ref nothing|Restricts values to @ref hash and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
-    @code
-*hash sub foo(*hash $h) {
-    return $h;
+    @code{.py}
+*hash sub foo(*hash h) {
+    return h;
 }
     @endcode
 
@@ -525,9 +525,9 @@ foo(\$i);
     |\c *list|@ref list or @ref nothing|@ref list or @ref nothing|Restricts values to @ref list and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
-    @code
-*list sub foo(*list $l) {
-    return $l;
+    @code{.py}
+*list sub foo(*list l) {
+    return l;
 }
     @endcode
 
@@ -539,9 +539,9 @@ foo(\$i);
     |\c *list|@ref object, @ref null, or @ref nothing|@ref object or @ref nothing|Restricts values to @ref object and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
-    @code
-*object sub foo(*object $obj) {
-    return $obj;
+    @code{.py}
+*object sub foo(*object obj) {
+    return obj;
 }
     @endcode
 
@@ -553,8 +553,8 @@ foo(\$i);
     |<tt>*</tt><em>any class name</em>|@ref object of the particular class given, @ref null, or @ref nothing|@ref object of the particular class given or @ref nothing|Restricts values to objects of the particular class given or @ref nothing; subclasses are also accepted; if @ref null is passed then @ref nothing is returned
 
     @par Example
-    @code
-sub foo(*Mutex $m) {
+    @code{.py}
+sub foo(*Mutex m) {
 }
     @endcode
 
@@ -566,8 +566,8 @@ sub foo(*Mutex $m) {
     |\c *data|@ref string, @ref binary, @ref null, or @ref nothing|@ref string, @ref binary, or @ref nothing|Restricts values to @ref string, @ref binary, and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
-    @code
-sub foo(*data $d) {
+    @code{.py}
+sub foo(*data d) {
 }
     @endcode
 
@@ -579,8 +579,8 @@ sub foo(*data $d) {
     |\c *code|@ref closure, @ref call_reference, @ref null, or @ref nothing|@ref closure, @ref call_reference, or @ref nothing|Restricts values to @ref closure, @ref call_reference, and @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
-    @code
-sub foo(*code $c) {
+    @code{.py}
+sub foo(*code c) {
 }
     @endcode
 
@@ -592,8 +592,8 @@ sub foo(*code $c) {
     |\c *timeout|@ref integer, @ref date, @ref null, or @ref nothing|@ref integer or @ref nothing|converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds; also accepts @ref nothing and returns @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
-    @code
-sub foo(*timeout $c) {
+    @code{.py}
+sub foo(*timeout c) {
 }
     @endcode
 
@@ -605,13 +605,13 @@ sub foo(*timeout $c) {
     |\c reference|@ref lvalue_references, @ref null, or @ref nothing|the type the reference points to|Requires a reference to an lvalue to be assigned or @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
-    @code
-sub foo(*reference $f) {
-    $f = 10;
+    @code{.py}
+sub foo(*reference f) {
+    f = 10;
 }
 
-my int $i;
-foo(\$i);
+int i;
+foo(\i);
     @endcode
 
     <hr>
@@ -622,8 +622,8 @@ foo(\$i);
     |\c *softint|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null, @ref nothing|@ref integer or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-integer values to an integer and returns the integer; also accepts @ref nothing and @ref null and returns @ref nothing
 
     @par Example
-    @code
-sub foo(*softint $i) {
+    @code{.py}
+sub foo(*softint i) {
 }
     @endcode
 
@@ -635,8 +635,8 @@ sub foo(*softint $i) {
     |\c *softfloat|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null, @ref nothing|@ref float or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-float values to a float and returns the float; also accepts @ref nothing and @ref null and returns @ref nothing
 
     @par Example
-    @code
-sub foo(*softfloat $f) {
+    @code{.py}
+sub foo(*softfloat f) {
 }
     @endcode
 
@@ -648,8 +648,8 @@ sub foo(*softfloat $f) {
     |\c *softnumber|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null, @ref nothing|@ref number or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-number values to a number and returns the number; also accepts @ref nothing and @ref null and returns @ref nothing
 
     @par Example
-    @code
-sub foo(*softnumber $n) {
+    @code{.py}
+sub foo(*softnumber n) {
 }
     @endcode
 
@@ -663,8 +663,8 @@ sub foo(*softnumber $n) {
     |\c *softbool|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null, @ref nothing|@ref boolean or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-boolean values to a boolean and returns the boolean; also accepts @ref nothing and @ref null and returns @ref nothing
 
     @par Example
-    @code
-sub foo(*softbool $b) {
+    @code{.py}
+sub foo(*softbool b) {
 }
     @endcode
 
@@ -676,8 +676,8 @@ sub foo(*softbool $b) {
     |\c *softstring|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null, @ref nothing|@ref string or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-string values to a string and returns the string; also accepts @ref nothing and returns @ref nothing
 
     @par Example
-    @code
-sub foo(*softstring $str) {
+    @code{.py}
+sub foo(*softstring str) {
 }
     @endcode
 
@@ -689,8 +689,8 @@ sub foo(*softstring $str) {
     |\c *softdate|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, @ref null, @ref nothing|@ref string or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, and @ref null values and converts non-date values to a date and returns the date; also accepts @ref nothing and @ref null and returns @ref nothing
 
     @par Example
-    @code
-sub foo(*softdate $d) {
+    @code{.py}
+sub foo(*softdate d) {
 }
     @endcode
 
@@ -702,8 +702,8 @@ sub foo(*softdate $d) {
     |\c *softlist|all data types|@ref list or @ref nothing|Accepts all data types; @ref nothing and @ref null are returned as @ref nothing; a list is returned unchanged, and any other type is returned as the first element of a new list
 
     @par Example
-    @code
-my *softlist $d = $v;
+    @code{.py}
+*softlist d = v;
     @endcode
 
     @since %Qore 0.8.3 introduced the *softlist type
@@ -716,8 +716,8 @@ my *softlist $d = $v;
     |\c any|all data types|all data types|Accepts all data types and returns the same data type
 
     @par Example
-    @code
-my any $v = $bar;
+    @code{.py}
+any v = bar;
     @endcode
 
     @note Complex types (hash of lists, reference to string, etc) are currently not possible to declare but support may be added in future versions of %Qore for this.

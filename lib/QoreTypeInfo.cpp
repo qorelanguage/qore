@@ -33,6 +33,7 @@
 #include <qore/intern/qore_program_private.h>
 #include <qore/intern/QoreNamespaceIntern.h>
 #include <qore/intern/qore_number_private.h>
+#include <qore/intern/qore_program_private.h>
 
 // provides for 2-way compatibility with classes derived from QoreBigIntNode and softint
 static BigIntTypeInfo staticBigIntTypeInfo;

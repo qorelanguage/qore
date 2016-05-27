@@ -6,7 +6,7 @@
 *.trs
 .nfs*
 *~
-*.swp
+*.sw?
 
 # Automake & friends
 .deps
@@ -30,6 +30,8 @@ depcomp
 install-sh
 /qore
 qr
+qore.exe
+qr.exe
 qore.pc
 qore.spec
 test-driver
@@ -55,6 +57,8 @@ include/qore/intern/git-revision.h
 
 # lib/
 lib/qpp
+lib/qpp.exe
+lib/qpp_native
 lib/*.dox.h
 lib/Pseudo_QC_*.cpp
 lib/QC_*.cpp
@@ -87,8 +91,9 @@ lib/scanner.cpp
 # Doxygen generated files
 docs
 *.dox.*
-Doxyfile*
 doxygen/lang/*.dox
+Doxyfile
+Doxyfile.???*
 *.tag
 
 # release pkgs
@@ -109,6 +114,9 @@ doxygen/lang/*.dox
 
 # ignore cmake build directories
 build*/
+
+# ignore fontconfig generated files
+fontconfig/
 
 # do not ignore the following directories (matched by patterns above)
 !examples/test/qore/

@@ -1,8 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -17,7 +19,8 @@ public class FormatNumberTest inherits QUnit::Test {
     }
 
     formatNumberTestMethod() {
-        testAssertion("format_number()", \format_number(), (".,3", -48392093894.2349), new TestResultValue("-48.392.093.894,235"));
+        assertEq("-48.392.093.894,235", format_number(".,3", -48392093894.2349));
+        assertEq("32.000", format_number(".,0", 32000.1239));
+        assertEq("32.000", format_number(".", 32000.998));
     }
 }
-

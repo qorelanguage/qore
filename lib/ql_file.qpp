@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -70,26 +70,30 @@ static bool check_lstat(unsigned code, const QoreString& path) {
 
 static bool is_writable_intern(const QoreStringNode* path) {
 #if defined HAVE_PWD_H
-   // does not cover situations like:
-   // $ id
-   // uid=5920(user1) gid=6183(group1) groups=6003(group2),6183(group3)
-   // $ ls -la /foo/bar/
-   // drwxrwsr-x 2  5921 group2 4096 Aug  7 14:37 .
-   // where 6183(group1) is an effective group etc so geteuid() != dir group
-
    struct stat sbuf;
    int rc;
 
    if ((rc = stat(path->getBuffer(), &sbuf)))
       return false;
 
-   uid_t euid = geteuid();
-   if (!euid || sbuf.st_mode & S_IWOTH
-       || (euid      == sbuf.st_uid && (sbuf.st_mode & S_IWUSR))
-       || (getegid() == sbuf.st_gid && (sbuf.st_mode & S_IWGRP)))
-      return true;
+   if (S_ISDIR(sbuf.st_mode)) { // If path is a directory.
+      QoreStringMaker tfn("%s/xxx_qore_tmp_test_xxx", path->getBuffer());
+      rc = open(tfn.getBuffer(), O_WRONLY | O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+      if (rc != -1) {
+         close(rc);
+         unlink(tfn.getBuffer());
+         return true;
+      }
+      return false;
+   }
 
+   rc = open(path->getBuffer(), O_WRONLY);
+   if (rc != -1) {
+      close(rc);
+      return true;
+   }
    return false;
+
 #elif defined(HAVE_ACCESS) && defined(_Q_WINDOWS)
    // only use access(2) on Windows
    return access(path->getBuffer(), W_OK) == 0;
@@ -178,8 +182,8 @@ static bool is_writable_intern(const QoreStringNode* path) {
     @return @ref True if the string passed identifies a regular file on the filesystem, @ref False if not
 
     @par Example:
-    @code
-my bool $b = is_file("/etc/hosts");
+    @code{.py}
+bool b = is_file("/etc/hosts");
     @endcode
  */
 bool is_file(string path) [flags=CONSTANT;dom=FILESYSTEM] {
@@ -193,8 +197,8 @@ bool is_file(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @return @ref True if the string passed identifies a directory on the filesystem, @ref False if not
 
     @par Example:
-    @code
-my bool $b = is_dir("/tmp/mydir");
+    @code{.py}
+bool b = is_dir("/tmp/mydir");
     @endcode
  */
 bool is_dir(string path) [flags=CONSTANT;dom=FILESYSTEM] {
@@ -210,8 +214,8 @@ bool is_dir(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @return @ref True if the string passed identifies a socket on the filesystem, @ref False if not
 
     @par Example:
-    @code
-my bool $b = is_socket("/tmp/X0");
+    @code{.py}
+bool b = is_socket("/tmp/X0");
     @endcode
  */
 bool is_socket(string path) [flags=CONSTANT;dom=FILESYSTEM] {
@@ -230,8 +234,8 @@ bool is_socket(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @return @ref True if the string passed identifies a pipe (FIFO) on the filesystem, @ref False if not
 
     @par Example:
-    @code
-my bool $b = is_pipe("/tmp/mypipe");
+    @code{.py}
+bool b = is_pipe("/tmp/mypipe");
     @endcode
  */
 bool is_pipe(string path) [flags=CONSTANT;dom=FILESYSTEM] {
@@ -245,8 +249,8 @@ bool is_pipe(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @return @ref True if the string passed identifies a character device on the filesystem, @ref False if not
 
     @par Example:
-    @code
-my bool $b = is_cdev("/tmp/tty");
+    @code{.py}
+bool b = is_cdev("/tmp/tty");
     @endcode
  */
 bool is_cdev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
@@ -260,8 +264,8 @@ bool is_cdev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @return @ref True if the string passed identifies a block device on the filesystem, @ref False if not
 
     @par Example:
-    @code
-my bool $b = is_bdev("/tmp/sda1");
+    @code{.py}
+bool b = is_bdev("/tmp/sda1");
     @endcode
  */
 bool is_bdev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
@@ -275,8 +279,8 @@ bool is_bdev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @return @ref True if the string passed identifies a device (either block or character) on the filesystem, @ref False if not
 
     @par Example:
-    @code
-my bool $b = is_dev("/tmp/scanner");
+    @code{.py}
+bool b = is_dev("/tmp/scanner");
     @endcode
  */
 bool is_dev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
@@ -302,8 +306,8 @@ bool is_dev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @return @ref True if the string passed identifies a symbolic link on the filesystem, @ref False if not
 
     @par Example:
-    @code
-my bool $b = is_link("/etc/hosts");
+    @code{.py}
+bool b = is_link("/etc/hosts");
     @endcode
  */
 bool is_link(string path) [flags=CONSTANT;dom=FILESYSTEM] {
@@ -315,32 +319,30 @@ bool is_link(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 #endif
 }
 
-//! Returns @ref True if the string passed identifies a file readable by the current user, @ref False if not
+//! Returns @ref True if the string passed identifies a file or a directory readable by the current user, @ref False if not
 /**
     @param path the path to check
 
-    @return @ref True if the string passed identifies a file readable by the current user, @ref False if not
+    @return @ref True if the string passed identifies a file or a directory readable by the current user, @ref False if not
 
     @par Example:
-    @code
-my bool $b = is_readable("/etc/hosts");
+    @code{.py}
+bool b = is_readable("/etc/hosts");
     @endcode
-
-    @bug on Windows this function always returns @ref Qore::True "True" for directories; this will be fixed in a later version of Qore
  */
 bool is_readable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    return q_path_is_readable(path->getBuffer());
 }
 
-//! Returns @ref True if the string passed identifies a file writable by the current user, @ref False if not
+//! Returns @ref True if the string passed identifies a file or a directory writable by the current user, @ref False if not
 /**
     @param path the path to check
 
-    @return @ref True if the string passed identifies a file writable by the current user, @ref False if not
+    @return @ref True if the string passed identifies a file or a directory writable by the current user, @ref False if not
 
     @par Example:
-    @code
-my bool $b = is_writable("/etc/hosts");
+    @code{.py}
+bool b = is_writable("/etc/hosts");
     @endcode
 
     @since %Qore 0.8.12 this function works properly on Windows
@@ -349,15 +351,15 @@ bool is_writable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    return is_writable_intern(path);
 }
 
-//! Returns @ref True if the string passed identifies a file writable by the current user (backwards-compatible misspelling of is_writable())
+//! Returns @ref True if the string passed identifies a file or a directory writable by the current user (backwards-compatible misspelling of is_writable())
 /**
     @param path the path to check
 
-    @return @ref True if the string passed identifies a file writable by the current user, @ref False if not
+    @return @ref True if the string passed identifies a file or a directory writable by the current user, @ref False if not
 
     @par Example:
-    @code
-my bool $b = is_writeable("/etc/hosts");
+    @code{.py}
+bool b = is_writeable("/etc/hosts");
     @endcode
 
     @since %Qore 0.8.12 this function works properly on Windows
@@ -375,8 +377,8 @@ bool is_writeable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @return @ref True if the string passed identifies an executable on the filesystem, @ref False if not
 
     @par Example:
-    @code
-my bool $b = is_executable("/bin/login");
+    @code{.py}
+bool b = is_executable("/bin/login");
     @endcode
  */
 bool is_executable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
@@ -385,7 +387,7 @@ bool is_executable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    int rc;
 
    if ((rc = stat(path->getBuffer(), &sbuf)))
-      return QoreValue();
+      return false;
 
    if (sbuf.st_mode & S_IXOTH
        || (geteuid() == sbuf.st_uid && (sbuf.st_mode & S_IXUSR))
@@ -405,7 +407,7 @@ bool is_executable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
     @param new_path The target path for the file
 
     @par Example:
-    @code
+    @code{.py}
 rename("/tmp/myfile", "/tmp/myfile.txt");
     @endcode
 
@@ -437,14 +439,14 @@ nothing rename(string old_path, string new_path) [dom=FILESYSTEM] {
     @return a @ref filesystem_status_hash; or, if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
 
     @par Example:
-    @code
-my *hash $h = statvfs("/tmp")
+    @code{.py}
+*hash h = statvfs("/tmp")
     @endcode
 
     @see File::statvfs() for a static method in the @ref Qore::File "File class" that throws an exception instead of returning @ref nothing when errors occur
  */
 *hash statvfs(string path) [dom=FILESYSTEM] {
-#ifdef HAVE_SYS_STATVFS_H
+#ifdef Q_HAVE_STATVFS
    struct statvfs vfs;
    if (statvfs(path->getBuffer(), &vfs))
       return QoreValue();
@@ -461,9 +463,9 @@ my *hash $h = statvfs("/tmp")
     @return a @ref stat_list "list of file status values" for the path argument, following any symbolic links; if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
 
     @par Example:
-    @code
-my *list $l = stat("/tmp/file.txt");
-if (!exists $l)
+    @code{.py}
+*list l = stat("/tmp/file.txt");
+if (!exists l)
     printf("could not stat /tmp/file.txt: %s\n", strerror());
     @endcode
 
@@ -490,9 +492,9 @@ nothing stat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 
     @return a @ref stat_list "list of file status values" for the path argument and does not follow symbolic links; if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
     @par Example:
-    @code
-my *list $l = lstat("/tmp/file.txt");
-if (!exists $l)
+    @code{.py}
+*list l = lstat("/tmp/file.txt");
+if (!exists l)
     printf("could not lstat /tmp/file.txt: %s\n", strerror());
     @endcode
 
@@ -526,9 +528,9 @@ nothing lstat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
     @return a @ref stat_hash "hash of file status values" for the path argument, following any symbolic links; if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
 
     @par Example:
-    @code
-my *hash $h = hstat("/tmp/file.txt");
-if (!exists $h)
+    @code{.py}
+*hash h = hstat("/tmp/file.txt");
+if (!exists h)
     printf("could not hstat /tmp/file.txt: %s\n", strerror());
     @endcode
 
@@ -556,9 +558,9 @@ nothing hstat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
     @return a @ref stat_hash "hash of file status values" for the path argument and does not follow symbolic links; if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
 
     @par Example:
-    @code
-my *hash $h = hlstat("/tmp/file.txt");
-if (!exists $h)
+    @code{.py}
+*hash h = hlstat("/tmp/file.txt");
+if (!exists h)
     printf("could not hlstat /tmp/file.txt: %s\n", strerror());
     @endcode
 
@@ -591,9 +593,9 @@ nothing hlstat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
     @return a list of files matching the string argument or @ref nothing if the call to glob() fails, in which case errno() can be used to get the error
 
     @par Example:
-    @code
-my *list $gl = glob("*.txt");
-if (!exists $gl)
+    @code{.py}
+*list gl = glob("*.txt");
+if (!exists gl)
     printf("failed to glob *.txt: %s\n", strerror());
     @endcode
  */
@@ -626,9 +628,9 @@ nothing glob() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
     @return 0 for success, -1 for error (in which case errno() can be used to get the error)
 
     @par Example:
-    @code
-if (unlink($path))
-    printf("%s: %s\n", $path, strerror());
+    @code{.py}
+if (unlink(path))
+    printf("%s: %s\n", path, strerror());
     @endcode
  */
 int unlink(string path) [dom=FILESYSTEM] {
@@ -647,9 +649,9 @@ nothing unlink() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
     @return the old file creation mode mask for the process
 
     @par Example:
-    @code
-if (unlink($path))
-    printf("%s: %s\n", $path, strerror());
+    @code{.py}
+if (unlink(path))
+    printf("%s: %s\n", path, strerror());
     @endcode
  */
 int umask(softint mask) [dom=PROCESS] {
@@ -669,7 +671,7 @@ nothing umask() [flags=RUNTIME_NOOP;dom=PROCESS] {
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
-    @code
+    @code{.py}
 if (mkdir("/tmp/newdir", 0755))
     printf("mkdir /tmp/newdir: %s\n", strerror());
     @endcode
@@ -690,10 +692,12 @@ int mkdir(string path, softint mode = 0777) [dom=FILESYSTEM] {
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
-    @code
+    @code{.py}
 if (rmdir("/tmp/newdir"))
     printf("rmdir /tmp/newdir: %s\n", strerror());
     @endcode
+
+    @see @ref Qore::Dir::rmdir()
  */
 int rmdir(string path) [dom=FILESYSTEM] {
    return rmdir(path->getBuffer());
@@ -706,7 +710,7 @@ int rmdir(string path) [dom=FILESYSTEM] {
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
-    @code
+    @code{.py}
 if (chmod("/bin/login", 0755))
     printf("rmdir /tmp/newdir: %s\n", strerror());
     @endcode
@@ -722,9 +726,9 @@ int chmod(string path, softint mode) [dom=FILESYSTEM] {
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
-    @code
-if (chdir($dir))
-    printf("chdir %s: %s\n", $dir, strerror());
+    @code{.py}
+if (chdir(dir))
+    printf("chdir %s: %s\n", dir, strerror());
     @endcode
 
     @since %Qore 0.8.4 this function is tagged with @ref Qore::PO_NO_PROCESS_CONTROL
@@ -737,8 +741,8 @@ int chdir(string path) [dom=PROCESS,FILESYSTEM] {
 /** @return a string giving the current working directory or @ref nothing if the current working directory could not be read
 
     @par Example:
-    @code
-my *string $cwd = getcwd();
+    @code{.py}
+*string cwd = getcwd();
     @endcode
 
     @see getcwd2() for a similar function that throws an exception if an error occurs instead
@@ -751,8 +755,8 @@ my *string $cwd = getcwd();
 //! Returns a string giving the current working directory; throws an exception if the current directory cannot be read
 /**
     @par Example:
-    @code
-my string $cwd = getcwd2();
+    @code{.py}
+string cwd = getcwd2();
     @endcode
 
     @see getcwd() for a similar function that returns @ref nothing instead of throwing an exception if an error occurs
@@ -775,7 +779,7 @@ string getcwd2() [flags=RET_VALUE_ONLY;dom=FILESYSTEM,EXTERNAL_INFO] {
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
-    @code
+    @code{.py}
 if (mkfifo("/tmp/pipe"))
     printf("mkfifo /tmp/pipe: %s\n", strerror());
     @endcode
@@ -799,7 +803,7 @@ int mkfifo(string path, softint mode = 0600) [dom=FILESYSTEM] {
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
-    @code
+    @code{.py}
 if (chown("/bin/login", 0, 0))
     printf("chown /bin/login: %s\n", strerror());
     @endcode
@@ -825,7 +829,7 @@ int chown(string path, softint owner = -1, softint group = -1) [dom=FILESYSTEM] 
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
-    @code
+    @code{.py}
 if (lchown("/tmp/socket", 0, 0))
     printf("lchown /tmp/socket: %s\n", strerror());
     @endcode
@@ -849,8 +853,8 @@ int lchown(string path, softint uid = -1, softint gid = -1) [dom=FILESYSTEM] {
     @return the target of the link; throws an exception if the given path is not a symbolic link (or if another error occurs)
 
     @par Example:
-    @code
-my string $str = readlink("/tmp/symbolic_link");
+    @code{.py}
+string str = readlink("/tmp/symbolic_link");
     @endcode
 
     @throw READLINK-ERROR Invalid arguments or a system error occured (ex: file does not exist or is not a symbolic link)
@@ -880,7 +884,7 @@ string readlink(string path) [dom=FILESYSTEM] {
     @param new_path The path to the location of the new symbolic link to be created with this function call
 
     @par Example:
-    @code
+    @code{.py}
 symlink("/tmp/temporary-dir", "/users/oracle/install");
     @endcode
 
@@ -909,8 +913,8 @@ nothing symlink(string old_path, string new_path) [dom=FILESYSTEM] {
 
 //! returns @ref Qore::True "True" if the argument is an absolute path on the current platform, @ref Qore::False "False" if not
 /** @par Example:
-    @code
-my bool $abs = absolute_path($path);
+    @code{.py}
+bool abs = absolute_path(path);
     @endcode
 
     @param path the path to check
@@ -929,8 +933,8 @@ bool absolute_path(string path) [flags=CONSTANT] {
 
 //! returns @ref Qore::True "True" if the argument is a UNIX absolute path, @ref Qore::False "False" if not
 /** @par Example:
-    @code
-my bool $abs = absolute_path_unix($path);
+    @code{.py}
+bool abs = absolute_path_unix(path);
     @endcode
 
     @param path the path to check
@@ -949,8 +953,8 @@ bool absolute_path_unix(string path) [flags=CONSTANT] {
 
 //! returns @ref Qore::True "True" if the argument is a Windows absolute path, @ref Qore::False "False" if not
 /** @par Example:
-    @code
-my bool $abs = absolute_path_windows($path);
+    @code{.py}
+bool abs = absolute_path_windows(path);
     @endcode
 
     @param path the path to check
@@ -969,8 +973,8 @@ bool absolute_path_windows(string path) [flags=CONSTANT] {
 
 //! Returns the canonicalized absolute pathname from the given path
 /** @par Example:
-    @code
-my string $realpath = realpath($path);
+    @code{.py}
+string realpath = realpath(path);
     @endcode
 
     @param path the path to process

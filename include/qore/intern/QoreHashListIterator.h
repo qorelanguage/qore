@@ -33,11 +33,14 @@
 
 #define _QORE_QOREHASHLISTITERATOR_H
 
+extern QoreClass* QC_HASHLISTITERATOR;
+
 // the c++ object
 class QoreHashListIterator : public QoreIteratorBase {
 protected:
    QoreHashNode* h;
    qore_offset_t i, limit;
+   bool is_list;
 
    DLLLOCAL virtual ~QoreHashListIterator() {
    }
@@ -55,6 +58,9 @@ protected:
       if (t == NT_NOTHING)
          return 0;
 
+      if (!is_list)
+         return n->refSelf();
+
       if (t != NT_LIST) {
          xsink->raiseException("HASHLISTITERATOR-ERROR", "hash key '%s' is assigned to type '%s'; expecting 'list'", key, get_type_name(n));
          return 0;
@@ -67,7 +73,7 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreHashListIterator(const QoreHashNode* n_h) : h(n_h->hashRefSelf()), i(-1), limit(0) {
+   DLLLOCAL QoreHashListIterator(const QoreHashNode* n_h) : h(n_h->hashRefSelf()), i(-1), limit(0), is_list(false) {
       if (h->empty())
          return;
       // use an iterator for quick access to the first key in the hash
@@ -75,15 +81,18 @@ public:
       // must succeed because the hash is not empty
       hi.next();
       const AbstractQoreNode* n = hi.getValue();
-      if (get_node_type(n) != NT_LIST)
-         return;
-      limit = (qore_offset_t)reinterpret_cast<const QoreListNode*>(n)->size();
+      if (get_node_type(n) == NT_LIST) {
+         is_list = true;
+         limit = (qore_offset_t)reinterpret_cast<const QoreListNode*>(n)->size();
+      }
+      else
+         limit = 1;
    }
 
-   DLLLOCAL QoreHashListIterator() : h(0), i(-1), limit(0) {
+   DLLLOCAL QoreHashListIterator() : h(0), i(-1), limit(0), is_list(false) {
    }
 
-   DLLLOCAL QoreHashListIterator(const QoreHashListIterator& old) : h(old.h ? old.h->hashRefSelf() : 0), i(old.i), limit(old.limit) {
+   DLLLOCAL QoreHashListIterator(const QoreHashListIterator& old) : h(old.h ? old.h->hashRefSelf() : 0), i(old.i), limit(old.limit), is_list(old.is_list) {
    }
 
    DLLLOCAL void reset() {
@@ -167,6 +176,9 @@ public:
    DLLLOCAL QoreHashNode* getRow(ExceptionSink* xsink) const {
       if (checkPtr(xsink))
          return 0;
+
+      if (!is_list)
+         return h->hashRefSelf();
 
       ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
 

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file CsvUtil.qm Qore user module for working with CSV files
 
-/*  CsvUtil.qm Copyright 2012 - 2015 Qore Technologies, sro
+/*  CsvUtil.qm Copyright 2012 - 2016 Qore Technologies, sro
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -62,7 +62,7 @@ module CsvUtil {
     Note that the @ref CsvUtil::CsvFileIterator "CsvFileIterator" class can be used to parse arbitrary text files; the field separator character can be specified in the @ref CsvUtil::CsvFileIterator::constructor() "constructor", as well as the quote character and end of line sequence.  See the @ref CsvUtil::CsvFileIterator::constructor() "constructor documentation" for more information.
 
     <b>Examples:</b>
-    @code
+    @code{.py}
 #!/usr/bin/env qore
 
 %new-style
@@ -96,7 +96,7 @@ UK,1234567893,"Sony, Xperia S",31052012
 
     @anchor complex_example
     If header names are provided and field types are specified, the output looks different:
-    @code
+    @code{.py}
 #!/usr/bin/env qore
 
 %new-style
@@ -115,13 +115,29 @@ while (i.next())
 4: {cc: "UK", serno: 1234567893, desc: "Sony, Xperia S", received: 2012-05-31 00:00:00 Thu +02:00 (CEST)}
     @endverbatim
 
-    Use the \c "header-lines" and \c "header-names" @ref abstractcsviterator_options "options" to automatically read the header names from the file if present.  Use the \c "fields" @ref abstractcsviterator_options "option" to describe the fields and perform transformations on the data read.  For more information, see the @ref CsvUtil::CsvFileIterator "CsvFileIterator" class.
+    Use the \c "header_lines" and \c "header_names" @ref abstractcsviterator_options "options" to automatically read the header names from the file if present.  Use the \c "fields" @ref abstractcsviterator_options "option" to describe the fields and perform transformations on the data read.  For more information, see the @ref CsvUtil::CsvFileIterator "CsvFileIterator" class.
 
     @section csvutil_relnotes Release Notes
 
     @subsection csvutil_v1_5 Version 1.5
-    - bugfixed handling eol global option
+    - fixed a bug handling the global option \c "eol"
     - converted to new-style
+    - if "headers" are not given in the @ref CsvUtil::AbstractCsvWriter::constructor() but "fields" are, then set the headers from the field descriptions automatically
+    - added write() methods returning the generated strings to the @ref CsvUtil::CsvStringWriter class for API compatibility with the corresponding FixedLengthDataWriter methods
+    - implemented support for @ref Qore::SQL::SQLStatement "SQLStatement" as an iterator source for @ref CsvUtil::AbstractCsvWriter::write()
+    - implemented the \c "datamap" and \c "info_log" options for CSV generation
+    - implemented options with underscores to replace options with dashes:
+      - @ref CsvUtil::AbstractCsvWriter
+        - \c "date-format" is now \c "date_format"
+        - \c "optimal-quotes" is now \c "optimal_quotes"
+        - \c "verify-columns" is now \c "verify_columns"
+        - \c "write-headers" is now \c "write_headers"
+      - @ref CsvUtil::AbstractCsvIterator
+        - \c "ignore-empty" is now \c "ignore_empty"
+        - \c "ignore-whitespace" is now \c "ignore_whitespace"
+        - \c "header-names" is now \c "header_names"
+        - \c "header-lines" is now \c "header_lines"
+        - \c "verify-columns" is now \c "verify_columns"
 
     @subsection csvutil_v1_4 Version 1.4
     - fixed the \c "format" field option when used with \c "*date" field types
@@ -249,15 +265,22 @@ public namespace CsvUtil {
         |\c "separator"|@ref string|the string separating the fields in the file (default: \c ",")
         |\c "quote"|@ref string|the field quote character (default: \c '\"')
         |\c "eol"|@ref string|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
-        |\c "ignore-empty"|@ref boolean|if @ref Qore::True "True" (the default) then empty lines will be ignored; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
-        |\c "ignore-whitespace"|@ref boolean|if @ref Qore::True "True" (the default) then leading and trailing whitespace will be stripped from non-quoted fields; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
-        |\c "header-names"|@ref boolean|if @ref Qore::True "True" then the object will parse the header names from the first header row, in this case \c "header-lines" must be &gt; 0
-        |\c "header-lines"|@ref integer|the number of headers lines in the file (must be &gt; 0 if \c "header-names" is @ref Qore::True "True")
-        |\c "headers"|@ref list of strings|list of header / column names for the data iterated; if this is present, then \c "header-names" must be @ref Qore::False "False"
-        |\c "verify-columns"|@ref boolean|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEITERATOR-DATA-ERROR exception is thrown
-        |\c "fields"|@ref hash|the keys are column names (or numbers in case column names are not used) and the values are either strings (one of @ref abstractcsviterator_option_field_types giving the data type for the field) or a @ref abstractcsviterator_option_field_hash describing the field; also sets \a headers if not set automatically with \c "header-names"; if no field type is given, the default is \c "*string"
+        |\c "ignore_empty"|@ref boolean|if @ref Qore::True "True" (the default) then empty lines will be ignored; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
+        |\c "ignore_whitespace"|@ref boolean|if @ref Qore::True "True" (the default) then leading and trailing whitespace will be stripped from non-quoted fields; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
+        |\c "header_names"|@ref boolean|if @ref Qore::True "True" then the object will parse the header names from the first header row, in this case \c "header_lines" must be &gt; 0
+        |\c "header_lines"|@ref integer|the number of headers lines in the file (must be &gt; 0 if \c "header_names" is @ref Qore::True "True")
+        |\c "headers"|@ref list of strings|list of header / column names for the data iterated; if this is present, then \c "header_names" must be @ref Qore::False "False"
+        |\c "verify_columns"|@ref boolean|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEITERATOR-DATA-ERROR exception is thrown
+        |\c "fields"|@ref hash|the keys are column names (or numbers in case column names are not used) and the values are either strings (one of @ref abstractcsviterator_option_field_types giving the data type for the field) or a @ref abstractcsviterator_option_field_hash describing the field; also sets \a headers if not set automatically with \c "header_names"; if no field type is given, the default is \c "*string"
         |\c "timezone"|@ref string|the timezone to use when parsing dates (will be passed to @ref Qore::TimeZone::constructor())
         |\c "tolwr"|@ref boolean|if @ref Qore::True "True" then all header names will be converted to lower case letters
+
+        @note the following options separated by dashes are still supported for backwards-compatibility:
+        - \c "ignore-empty"
+        - \c "ignore-whitespace"
+        - \c "header-names"
+        - \c "header-lines"
+        - \c "verify-columns"
 
         @subsection abstractcsviterator_option_field_types Option Field Types
 
@@ -289,18 +312,23 @@ public namespace CsvUtil {
             #! valid options for the object (a hash for quick lookups of valid keys)
             const Options = (
                 "encoding": True,
-                "separator": True,
-                "quote": True,
                 "eol": True,
-                "ignore-empty": True,
-                "ignore-whitespace": True,
-                "header-lines": True,
-                "header-names": True,
-                "headers": True,
-                "verify-columns": True,
                 "fields": True,
+                "header-lines": True,
+                "header_lines": True,
+                "header-names": True,
+                "header_names": True,
+                "headers": True,
+                "ignore-empty": True,
+                "ignore_empty": True,
+                "ignore-whitespace": True,
+                "ignore_whitespace": True,
+                "quote": True,
+                "separator": True,
                 "timezone": True,
                 "tolwr": True,
+                "verify-columns": True,
+                "verify_columns": True,
                 );
 
             # field separator
@@ -337,7 +365,7 @@ public namespace CsvUtil {
         #! creates the AbstractCsvIterator with an option hash
         /** @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
 
-            @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header-names" is @ref Qore::True "True" and \c "header-lines" is 0 or \c "headers" is also present; unknown field type
+            @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header-names" is @ref Qore::True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
          */
         constructor(*hash opts) {
             foreach hash i in (opts.pairIterator()) {
@@ -356,23 +384,28 @@ public namespace CsvUtil {
                         quote = i.value;
                         break;
                     }
-                    case "ignore-empty": {
+                    case "ignore-empty":
+                    case "ignore_empty": {
                         ignoreEmptyLines = parse_boolean(i.value);
                         break;
                     }
-                    case "ignore-whitespace": {
+                    case "ignore-whitespace":
+                    case "ignore_whitespace": {
                         ignoreWhitespace = parse_boolean(i.value);
                         break;
                     }
-                    case "header-names": {
+                    case "header-names":
+                    case "header_names": {
                         headerNames = parse_boolean(i.value);
                         break;
                     }
-                    case "verify-columns": {
+                    case "verify-columns":
+                    case "verify_columns": {
                         checkElementCounts = parse_boolean(i.value);
                         break;
                     }
-                    case "header-lines": {
+                    case "header-lines":
+                    case "header_lines": {
                         try {
                             headerLines = i.value;
                         }
@@ -469,9 +502,9 @@ public namespace CsvUtil {
                 }
             }
             if (headerNames && !headerLines)
-                throw "ABSTRACTCSVITERATOR-ERROR", sprintf("\"header-names\" is True but \"header-lines\" is 0; there must be at least 1 header line to get header names");
+                throw "ABSTRACTCSVITERATOR-ERROR", sprintf("\"header_names\" is True but \"header_lines\" is 0; there must be at least 1 header line to get header names");
             if (headerNames && headers)
-                throw "ABSTRACTCSVITERATOR-ERROR", sprintf("\"header-names\" is True but \"headers\" has a value (%y)", headers);
+                throw "ABSTRACTCSVITERATOR-ERROR", sprintf("\"header_names\" is True but \"headers\" has a value (%y)", headers);
 
             # set headers automatically from field names if not set
             if (fields && !headers && !headerNames)
@@ -570,7 +603,7 @@ public namespace CsvUtil {
 
         #! returns the current record as a hash
         /** @par Example:
-            @code
+            @code{.py}
 hash h = i.getValue();
             @endcode
 
@@ -584,7 +617,7 @@ hash h = i.getValue();
 
         #! returns the current record as a hash
         /** @par Example:
-            @code
+            @code{.py}
 hash h = i.getRecord();
             @endcode
 
@@ -605,7 +638,7 @@ hash h = i.getRecord();
 
         #! returns the current record as a list
         /** @par Example:
-            @code
+            @code{.py}
 list l = i.getRecordList();
             @endcode
 
@@ -619,7 +652,7 @@ list l = i.getRecordList();
 
         #! returns the current separator string
         /** @par Example:
-            @code
+            @code{.py}
 string sep = i.getSeparator();
             @endcode
 
@@ -631,7 +664,7 @@ string sep = i.getSeparator();
 
         #! returns the current quote string
         /** @par Example:
-            @code
+            @code{.py}
 string quote = i.getQuote();
             @endcode
 
@@ -643,7 +676,7 @@ string quote = i.getQuote();
 
         #! returns the current column headers or @ref nothing if no headers have been detected or saved yet
         /** @par Example:
-            @code
+            @code{.py}
             @endcode
 
             @note if headers are not saved against the object in the @ref constructor(), then they are written to the object after the first call to @ref next()
@@ -654,7 +687,7 @@ string quote = i.getQuote();
 
         #! returns the row index being iterated, which does not necessarily correspond to the line number when there are header rows and blank lines are skipped
         /** @par Example:
-            @code
+            @code{.py}
 int index = i.index();
             @endcode
 
@@ -670,7 +703,7 @@ int index = i.index();
 
         #! returns the current iterator line number in the file (the first line is line 1) or 0 if not pointing at a valid element
         /** @par Example:
-            @code
+            @code{.py}
 while (i.next()) {
     printf("+ line %d: %y\n", i.lineNumber(), i.getValue());
 }
@@ -738,7 +771,7 @@ while (i.next()) {
                 if (!exists cc)
                     cc = l.size();
                 else if (l.size() != cc)
-                    throw "ABSTRACTCSVITERATOR-DATA-ERROR", sprintf("%s:%d line contained %d field%s, however the template record has %d (and option \"verify-columns\" is set)", getDataName(), lineNumberImpl(), l.size(), l.size() == 1 ? "" : "s", cc);
+                    throw "ABSTRACTCSVITERATOR-DATA-ERROR", sprintf("%s:%d line contained %d field%s, however the template record has %d (and option \"verify_columns\" is set)", getDataName(), lineNumberImpl(), l.size(), l.size() == 1 ? "" : "s", cc);
             }
 
             # appy transformations to data read if there are any transformations to apply
@@ -769,7 +802,7 @@ while (i.next()) {
         /** @param path the path to the CSV file to read
             @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
 
-            @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header-names" is @ref Qore::True "True" and \c "header-lines" is 0 or \c "headers" is also present; unknown field type
+            @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names" is @ref Qore::True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
          */
         constructor(string path, *hash opts) : AbstractCsvIterator(opts), FileLineIterator(path, opts.encoding.typeCode() == NT_STRING ? opts.encoding : NOTHING, opts.eol.typeCode() == NT_STRING ? opts.eol : NOTHING) {
         }
@@ -807,7 +840,7 @@ while (i.next()) {
         /** @param data the input data to iterate
             @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
 
-            @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header-names" is @ref Qore::True "True" and \c "header-lines" is 0 or \c "headers" is also present; unknown field type
+            @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names" is @ref Qore::True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
          */
         constructor(string data, *hash opts)
             : AbstractCsvIterator(opts),
@@ -833,69 +866,92 @@ while (i.next()) {
 
     #! the AbstractCsvWriter class provides a parent for all CSV writers
     /**
+        Any inherited class must provide concrete implementations for the following abstract method, where the real physical write action must be implemented.
 
-    Any inherited class has to implement pure virtual (abstract) method, where should
-    be the real physical write action placed.
+        @code{.py} private writeRawLine(list values) @endcode
 
-    @code private writeRawLine(list values) @endcode
+        @section csvwriter_options AbstractCsvWriter Constructor Option Hash Overview
+        The AbstractCsvWriter class constructor takes an optional hash with possible keys given in the following table.
+        Note that key names are case-sensitive, and data types are soft (conversions are made when possible).
 
-    @section csvwiter_options AbstractCsvWriter Constructor Option Hash Overview
-    The AbstractCsvWriter class constructor takes an optional hash with possible keys given in the following table.
-    Note that key names are case-sensitive, and data types are soft (conversions are made when possible).
+        <b>AbstractCsvWriter Options</b>
+        |!Option|!Data Type|!Description
+        |\c "block"|@ref int|the block size when generating output based on a @ref Qore::SQL::SQLStatement "SQLStatement" source (default: \c 1000)
+        |\c "datamap"|@ref hash|a hash mapping actual data key names to the output field names, for use in case the data field names differ; does not have to include every data or output key; keys not present will be assumed to be mapped 1:1
+        |\c "date_format"|@ref string|the default mask for date values formatting
+        |\c "encoding"|@ref string|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
+        |\c "eol"|@ref string|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
+        |\c "fields"|@ref hash|describes the data to be output; see @ref abstractcsviterator_option_field_hash "option field hash" and @ref abstractcsviterator_option_field_types "option field types" for more information on the possible values of this option; if no field type is given, the default is \c "*string"
+        |\c "headers"|@ref list of strings|list of header / column names for the data iterated
+        |\c "info_log"|@ref code|a call reference / closure for informational logging when performing bulk generation with write(Qore::SQL::SQLStatement); must take a single string argument
+        |\c "optimal_quotes"|@ref bool|set to @ref Qore::False "False" to disable optimal quoting; when optimal quoting is disabled, all fields are quoted regardless of type or content, when it is enabled, then fields are quoted only if they require quoting (i.e. they contain a quote or separator character); the default is @ref Qore::True "True"
+        |\c "quote"|@ref string|the field quote character (default: \c '\"')
+        |\c "quote_escape"|@ref string|the escape character(s) used for \c "quote" (default: \c '\\')
+        |\c "separator"|@ref string|the string separating the fields in the file (default: \c ",")
+        |\c "verify_columns"|@ref boolean|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEWRITER-DATA-ERROR exception is thrown
+        |\c "write_headers"|@ref bool|set to @ref Qore::False "False" to suppress the output of headers; the default is @ref Qore::True "True", meaning to output headers if they are present
 
-    <b>AbstractCsvWriter Options</b>
-    |!Option|!Data Type|!Description
-    |\c "encoding"|@ref string|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
-    |\c "separator"|@ref string|the string separating the fields in the file (default: \c ",")
-    |\c "quote"|@ref string|the field quote character (default: \c '\"')
-    |\c "eol"|@ref string|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
-    |\c "fields"|@ref hash|describes the data to be output; see @ref abstractcsviterator_option_field_hash "option field hash" and @ref abstractcsviterator_option_field_types "option field types" for more information on the possible values of this option; if no field type is given, the default is \c "*string"
-    |\c "headers"|@ref list of strings|list of header / column names for the data iterated
-    |\c "verify-columns"|@ref boolean|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEWRITER-DATA-ERROR exception is thrown
-    |\c "date-format"|@ref string|the default mask for date values formatting
-    |\c "write-headers"|@ref bool|set to @ref Qore::False "False" to suppress the output of headers; the default is @ref Qore::True "True", meaning to output headers if they are present
-    |\c "optimal-quotes"|@ref bool|set to @ref Qore::False "False" to disable optimal quoting; when optimal quoting is disabled, all fields are quoted regardless of type or content, when it is enabled, then fields are quoted only if they require quoting (i.e. they contain a quote or separator character); the default is @ref Qore::True "True"
+        @note the following options with dashes in their names are supported for backwards-compatibility:
+        - \c "date-format"
+        - \c "optimal-quotes"
+        - \c "verify-columns"
+        - \c "write-headers"
      */
     public class AbstractCsvWriter inherits private CsvHelper {
         private {
             #! valid options for the object (a hash for quick lookups of valid keys)
             const Options = (
+                "block": True,
+                "datamap": True,
+                "date_format": True,
+                "date-format": True,
                 "encoding": True,
-                "separator": True,
-                "quote": True,
                 "eol": True,
-                "verify-columns": True,
                 "fields": True,
                 "headers": True,
-                "date-format": True,
-                "write-headers": True,
+                "info_log": True,
+                "optimal_quotes": True,
                 "optimal-quotes": True,
+                "quote": True,
+                "quote_escape": True,
+                "separator": True,
+                "verify_columns": True,
+                "verify-columns": True,
+                "write_headers": True,
+                "write-headers": True,
                 );
 
-            # TODO/FIXME
-            string encoding = get_default_encoding();
+            #! output file character encoding
+            string encoding;
 
-            # field separator
+            #! field separator
             string separator = ",";
 
-            # field content delimiter
+            #! field content delimiter
             string quote = "\"";
 
-            # end of line sequence
+            #! quote escape character
+            string m_quoteEscapeChar = "\\";
+
+            #! end of line sequence
             string eol = EOL_UNIX;
 
-            # default date->string format
+            #! default date->string format
             string date_format = 'DD/MM/YYYY hh:mm:SS';
 
-            # verify the column count for every row; if a row does not match, then throw a \c CSVFILEITERATOR-DATA-ERROR exception
+            #! verify the column count for every row; if a row does not match, then throw a \c CSVFILEITERATOR-DATA-ERROR exception
             bool checkElementCounts = False;
 
-            # the latest line number
+            #! the latest line number
             int lineNo = 0;
 
-            # base template for value format
+            #! block size for bulk DML
+            int block = 1000;
+
+            #! base template for value format
             string baseTemplate;
 
+            #! the exeption \c "err" string
             string errname;
 
             # this flag determines if any stored headers are output
@@ -903,25 +959,48 @@ while (i.next()) {
 
             # stores the optimal quotes option
             bool optimal_quotes = True;
+
+            # a hash mapping from output keys to data keys
+            *hash datamap;
+
+            # a closure/call reference for informational logging when using write(SQLStatement)
+            *code info_log;
         }
 
         #! creates the AbstractCsvWriter
         /**
-            @param errname a string to construct child class error message. For example: value 'FOO' will result in exception names 'CSVFOOWRITER-ERROR'
-            @param opts @ref csvwiter_options
+            @param n_errname a string to construct child class error message. For example: value 'FOO' will result in exception names 'CSVFOOWRITER-ERROR'
+            @param n_opts @ref csvwriter_options
 
             @throw CSV<errname>ITER-ERROR in the case of incorrect options
          */
-        constructor(string errname, *hash opts) {
-            errname = sprintf("CSV%sWRITER-ERROR", errname);
+        constructor(string n_errname, *hash n_opts) {
+            errname = sprintf("CSV%sWRITER-ERROR", n_errname);
+
+            encoding = n_opts.encoding.typeCode() == NT_STRING ? n_opts.encoding : get_default_encoding();
+
+            # set headers automatically from field names if not set
+            if (n_opts.fields && !n_opts.headers)
+                n_opts.headers = n_opts.fields.keys();
 
             # TODO/FIXME: shared with CsvFileIterator?
-            foreach hash i in (opts.pairIterator()) {
-
+            foreach hash i in (n_opts.pairIterator()) {
                 if (!exists Options.(i.key))
-                    throw errname, sprintf("unknown option %y passed to CsvFileIterator::constructor() (valid options: %y)", i.key, Options.keys());
+                    throw errname, sprintf("unknown option %y passed to %s::constructor() (valid options: %y)", i.key, self.className(), Options.keys());
+
+                # if the option is not set, then ignore it
+                if (!exists i.value || i.value === NULL)
+                    continue;
 
                 switch (i.key) {
+                    case "block": {
+                        if (!i.value.intp())
+                            throw errname, sprintf("expecting an integer value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                        block = i.value.toInt();
+                        if (block < 1)
+                            throw errname, sprintf("expecting a positive integer value to option %y; got %y instead", i.key, i.value);
+                        break;
+                    }
                     case "separator": {
                         if (i.value.typeCode() != NT_STRING)
                             throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
@@ -934,6 +1013,13 @@ while (i.next()) {
                         quote = i.value;
                         break;
                     }
+                    case "quote_escape": {
+                        if (i.value.typeCode() != NT_STRING) {
+                            throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                        }
+                        m_quoteEscapeChar = i.value;
+                        break;
+                    }
                     case "eol": {
                         if (i.value.typeCode() != NT_STRING)
                             throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
@@ -942,12 +1028,14 @@ while (i.next()) {
                         eol = i.value;
                         break;
                     }
+                    case "date_format":
                     case "date-format": {
                         if (i.value.typeCode() != NT_STRING)
                             throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
                         date_format = i.value;
                         break;
                     }
+                    case "verify_columns":
                     case "verify-columns": {
                         checkElementCounts = parse_boolean(i.value);
                         break;
@@ -965,12 +1053,33 @@ while (i.next()) {
                         }
                         break;
                     }
+                    case "write_headers":
                     case "write-headers": {
                         write_headers = parse_boolean(i.value);
                         break;
                     }
+                    case "optimal_quotes":
                     case "optimal-quotes": {
                         optimal_quotes = parse_boolean(i.value);
+                        break;
+                    }
+                    case "info_log": {
+                        if (!i.value.callp())
+                            throw errname, sprintf("expecting a callable value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                        info_log = i.value;
+                        break;
+                    }
+                    case "datamap": {
+                        if (i.value.typeCode() != NT_HASH)
+                            throw errname, sprintf("expecting a hash value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                        # ensure that all the values are strings
+                        foreach hash h in (i.value.pairIterator()) {
+                            if (h.value.typeCode() != NT_STRING)
+                                throw errname, sprintf("\"datamap\" key %y has a non-string value; got type %y", h.key, h.value.type());
+                        }
+
+                        # reverse the mapping since we need output keys to input keys for later processing
+                        datamap = map {$1.value: $1.key}, i.value.pairIterator();
                         break;
                     }
                     case "fields": {
@@ -1046,17 +1155,17 @@ while (i.next()) {
             baseTemplate = sprintf("%s%%s%s%s", quote, quote, separator);
         }
 
-        #! write a line with list of values. Data are checked against column rules.
+        #! write a line with a list of values. Data are checked against column rules.
         /**
-        @param values a list with values
+            @param values a list with values
 
-        @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints
+            @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints
          */
         writeLine(list values) {
             lineNo++;
 
             if (checkElementCounts && values.size() != headers.size())
-                throw errname, sprintf("Line (%d), Header size (%d) and line size (%d) is different. Enforced by 'verify-columns' option", lineNo, headers.size(), values.size());
+                throw errname, sprintf("Line (%d), Header size (%d) and line size (%d) are different (enforced by the \"verify_columns\" option)", lineNo, headers.size(), values.size());
 
             for(int i = 0; i < values.size(); i++) {
 
@@ -1116,9 +1225,9 @@ while (i.next()) {
 
         #! write a line with headers-values hash
         /**
-        @param values a hash with keys as column headers.
+            @param values a hash with keys as column headers.
 
-        @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints
+            @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints
          */
         writeLine(hash values) {
             list line;
@@ -1126,8 +1235,11 @@ while (i.next()) {
                 throw errname, "No header set in AbstractCsvWriter instance to bind the hash key";
 
             foreach string i in (headers) {
+                # if we have mappings, then use the actual input field name if present
+                if (datamap)
+                    i = datamap{i} ?? i;
                 if (!values.hasKey(i))
-                    throw errname, sprintf("Line data does not contain key '%s'", i);
+                    throw errname, sprintf("Line data does not contain key %y", i);
                 else
                     push line, values{i};
             }
@@ -1137,13 +1249,13 @@ while (i.next()) {
 
         #! stream iterator into the file.
         /**
-        @param iterator an iterator to stream data into file
+            @param iterator an iterator to stream data into file
 
-        The iterator has to contain @ref list or @ref hash as a return value of \c getValue() method.
+            The iterator has to return @ref list or @ref hash from the @ref Qore::AbstractIterator::getValue() "getValue()" method.
 
-        @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints or when \c getValue does not return list or hash
+            @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints or when @ref Qore::AbstractIterator::getValue() "getValue()" does not return list or hash
          */
-        write(AbstractIterator iterator) {
+        write(Qore::AbstractIterator iterator) {
             while (iterator.next()) {
                 any row = iterator.getValue();
                 switch (row.typeCode()) {
@@ -1159,6 +1271,37 @@ while (i.next()) {
             }
         }
 
+        #! stream iterator into the file.
+        /**
+            @param iterator an @ref Qore::SQL::SQLStatement "SQLStatement" iterator to stream data into file; @ref Qore::SQL::SQLStatement::fetchColumns() "SQLStatement::fetchColumns()" is used to leverage bulk DML for more efficient SQL I/O
+
+            @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints
+
+            @note if any \c "info_log" option is set in the constructor; it is used here to log each block of SQL data used to generate the corresponding number of lines; log messages look like: \c "query input generated bulk output lines: 1000"
+         */
+        write(Qore::SQL::SQLStatement iterator) {
+            while (*hash h = iterator.fetchColumns(block)) {
+                int n = h.firstValue().lsize();
+                if (!n)
+                    break;
+                map writeLine($1), h.contextIterator();
+                if (info_log)
+                    info_log(sprintf("query input generated bulk output lines: %d", n));
+            }
+        }
+
+        #! stream the contents of the list into the output
+        /**
+            @param l a list of input data to format as CSV output
+
+            The list has to contain @ref list or @ref hash elements that can be formatted according to the CSV definition
+
+            @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints or when the list elements have the wrong type or values
+         */
+        write(list l) {
+            write(l.iterator());
+        }
+
         #! real write implementation. Without any checking.
         abstract private writeRawLine(list values);
 
@@ -1172,7 +1315,7 @@ while (i.next()) {
                 # make full line template
                 string template = strmul(baseTemplate, elements values, 1) + eol;
                 # escape separators in strings
-                list row = map replace(string($1), quote, "\\" + quote), values;
+                list row = map replace(string($1), quote, m_quoteEscapeChar + quote), values;
 
                 return vsprintf(template, row);
             }
@@ -1181,7 +1324,7 @@ while (i.next()) {
             foreach any v in (values) {
                 if (v.typeCode() == NT_STRING) {
                     if (v.find(quote) >= 0) {
-                        v = replace(v, quote, "\\" + quote);
+                        v = replace(v, quote, m_quoteEscapeChar + quote);
                         v = sprintf("\"%s\"", v);
                     }
                     else if (v.find(separator) >= 0)
@@ -1215,7 +1358,7 @@ while (i.next()) {
         #! creates the CsvFileWriter with the path of the file to read with an options
         /**
         @param path a file name (with path optionally) to write
-        @param opts @ref csvwiter_options
+        @param opts @ref csvwriter_options
 
         The file is created with O_CREAT, O_TRUNC, O_WRONLY and 0644 access.
 
@@ -1245,7 +1388,7 @@ while (i.next()) {
 
         #! creates the CsvStringWriter with content in the memory
         /**
-        @param opts @ref csvwiter_options
+        @param opts @ref csvwriter_options
 
         @throw CSVSTRINGITER-ERROR in the case of incorrect options
         */
@@ -1256,6 +1399,36 @@ while (i.next()) {
 
         private writeRawLine(list values) {
             content += prepareRawLine(values);
+        }
+
+        #! stream iterator and return CSV-formatted output string
+        /**
+            @param iterator an iterator to stream data
+
+            @return the CSV-formatted output string corresponding to the input data
+
+            The iterator has to contain @ref list or @ref hash as a return value of \c getValue() method.
+
+            @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints or when \c getValue does not return list or hash
+         */
+        string write(Qore::AbstractIterator iterator) {
+            AbstractCsvWriter::write(iterator);
+            return content;
+        }
+
+        #! stream the contents of the list and return CSV-formatted output as a string
+        /**
+            @param l a list of input data to format as CSV output
+
+            @return the CSV-formatted output string corresponding to the input data
+
+            The list has to contain @ref list or @ref hash elements that can be formatted according to the CSV definition
+
+            @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints or when the list elements have the wrong type or values
+         */
+        string write(list l) {
+            AbstractCsvWriter::write(l);
+            return content;
         }
 
         #! Get the current in-memory content as a string

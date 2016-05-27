@@ -1,8 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -23,7 +25,6 @@ public class StrmulTest inherits QUnit::Test {
         testAssertion("remove all chars", \strmul(), ("xxx", 1, 3), new TestResultValue(""));
 
         testAssertion("remove more chars than exists", \strmul(), ("xxx", 1, 4), new TestResultExceptionDetail("STRMUL-ERROR", "Offset (4) is greater than string length (3)"));
-        testAssertion("repeat 0 times", \strmul(), ("xxx", 0), new TestResultExceptionRegexp("STRMUL-ERROR", "has to be > 0; value: 0")); # TODO: better is to return empty string
+        testAssertion("repeat 0 times", \strmul(), ("xxx", 0), new TestResultValue(""));
     }
 }
-

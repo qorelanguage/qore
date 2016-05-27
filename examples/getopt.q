@@ -1,8 +1,9 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
+
 # @file getopt.q GetOpt example program
 
-/*  getopt.q Copyright 2010 - 2012 David Nichols
+/*  getopt.q Copyright 2010 - 2015 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,9 +24,10 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# require global variables to be declared
-%require-our
+%new-style
 %enable-all-warnings
+%require-types
+%strict-args
 
 sub usage() {
     printf(
@@ -37,7 +39,7 @@ sub usage() {
   -d,--date=ARG    returns a date value in 'date'
   -t               returns a boolean value in 'test'
   -o,--opt[=ARG]   returns an integer sum of arguments in 'opt'\n",
-	get_script_name());
+        get_script_name());
     exit(1);
 }
 
@@ -61,7 +63,7 @@ const Opts =
 
 sub process_command_line() {
     if (!elements ARGV)
-	usage();
+        usage();
 
     GetOpt g(Opts);
 
@@ -70,7 +72,7 @@ sub process_command_line() {
     #       with an informative message
     hash o = g.parse3(\ARGV);
     if (o.help)
-	usage();
+        usage();
     print("qore GetOpt class test script\n");
     printf("o: %N\n", o);
     printf("ARGV: %N\n", ARGV);

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -134,6 +134,30 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
    setReturnTypeInfo(variant->getReturnTypeInfo());
 }
 
+CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args, const char* n_class_name, qore_call_t n_ct, bool is_copy)
+   : ct(n_ct), name(n_name), xsink(n_xsink), class_name(n_class_name), loc(RunTimeLocation), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo* )-1), pgm(getProgram()), rtflags(0) {
+   tmp.assignEval(args);
+
+   if (*xsink)
+      return;
+
+   bool check_args = variant;
+   if (!variant) {
+      variant = func->findVariant(getArgs(), false, xsink);
+      if (!variant) {
+	 assert(*xsink);
+	 return;
+      }
+   }
+
+   class_name = variant->className();
+   if (processDefaultArgs(func, variant, check_args, is_copy))
+      return;
+
+   setCallType(variant->getCallType());
+   setReturnTypeInfo(variant->getReturnTypeInfo());
+}
+
 CodeEvaluationHelper::~CodeEvaluationHelper() {
    if (returnTypeInfo != (const QoreTypeInfo*)-1)
       saveReturnTypeInfo(returnTypeInfo);
@@ -193,24 +217,34 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
 
    //printd(5, "processDefaultArgs() %s nargs: %d nparams: %d flags: %lld po: %d\n", func->getName(), nargs, nparams, variant->getFlags(), (bool)(getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS)));
    //if (nargs > nparams && (getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS))) {
-if (nargs > nparams && (runtime_get_parse_options() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS))) {
-      int64 flags = variant->getFlags();
+   if (nargs > nparams) {
+      // use the target program (if different than the current pgm) to check for argument errors
+      const UserVariantBase* uvb = variant->getUserVariantBase();
+      int64 po;
+      if (uvb)
+	 po = uvb->pgm->getParseOptions64();
+      else
+	 po = runtime_get_parse_options();
 
-      if (!(flags & QC_USES_EXTRA_ARGS)) {
-	 for (unsigned i = nparams; i < nargs; ++i) {
-	    //printd(5, "processDefaultArgs() %s arg %d nothing: %d\n", func->getName(), i, is_nothing(tmp->retrieve_entry(i)));
-	    if (!tmp->retrieveEntry(i).isNothing()) {
-	       QoreStringNode* desc = new QoreStringNode("call to ");
-	       do_call_name(*desc, func);
-	       if (nparams)
-		  desc->concat(sig->getSignatureText());
-	       desc->concat(") made as ");
-	       do_call_name(*desc, func);
-	       add_args(*desc, *tmp);
-	       unsigned diff = nargs - nparams;
-	       desc->sprintf(") with %d excess argument%s, which is an error when PO_REQUIRE_TYPES or PO_STRICT_ARGS is set", diff, diff == 1 ? "" : "s");
-	       xsink->raiseException("CALL-WITH-TYPE-ERRORS", desc);
-	       return -1;
+      if (po & (PO_REQUIRE_TYPES | PO_STRICT_ARGS)) {
+	 int64 flags = variant->getFlags();
+
+	 if (!(flags & QC_USES_EXTRA_ARGS)) {
+	    for (unsigned i = nparams; i < nargs; ++i) {
+	       //printd(5, "processDefaultArgs() %s arg %d nothing: %d\n", func->getName(), i, is_nothing(tmp->retrieve_entry(i)));
+	       if (!tmp->retrieveEntry(i).isNothing()) {
+		  QoreStringNode* desc = new QoreStringNode("call to ");
+		  do_call_name(*desc, func);
+		  if (nparams)
+		     desc->concat(sig->getSignatureText());
+		  desc->concat(") made as ");
+		  do_call_name(*desc, func);
+		  add_args(*desc, *tmp);
+		  unsigned diff = nargs - nparams;
+		  desc->sprintf(") with %d excess argument%s, which is an error when PO_REQUIRE_TYPES or PO_STRICT_ARGS is set", diff, diff == 1 ? "" : "s");
+		  xsink->raiseException("CALL-WITH-TYPE-ERRORS", desc);
+		  return -1;
+	       }
 	    }
 	 }
       }
@@ -1707,7 +1741,7 @@ void UserClosureVariant::parseInit(QoreFunction* f) {
    // resolve and push current return type on stack
    ParseCodeInfoHelper rtih(f->getName(), signature.getReturnTypeInfo());
 
-   statements->parseInitClosure(this, cf->getClassType(), cf->getVList());
+   statements->parseInitClosure(this, cf);
 
    // only one variant is possible, no need to recheck types
 }

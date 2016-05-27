@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -62,8 +62,7 @@ AbstractQoreNode *QoreLogicalGreaterThanOperatorNode::parseInitIntern(const char
    if (left && left->is_value() && right && right->is_value()) {
       SimpleRefHolder<QoreLogicalGreaterThanOperatorNode> del(this);
       ParseExceptionSink xsink;
-      AbstractQoreNode *rv = get_bool_node(QoreLogicalGreaterThanOperatorNode::boolEvalImpl(*xsink));
-      return rv;
+      return get_bool_node(doGreaterThan(left, right, *xsink));
    }
 
    // check for optimizations based on type; but only if types are known on both sides, although the highest priority (float)
@@ -76,7 +75,7 @@ AbstractQoreNode *QoreLogicalGreaterThanOperatorNode::parseInitIntern(const char
 	    if (rti->isType(NT_INT))
 	       pfunc = &QoreLogicalGreaterThanOperatorNode::bigIntGreaterThan;
 	 }
-	 // FIXME: check for invalid operation here      
+	 // FIXME: check for invalid operation here
       }
    }
 
@@ -149,7 +148,7 @@ bool QoreLogicalGreaterThanOperatorNode::doGreaterThan(QoreValue lh, QoreValue r
 	 return false;
       return ls->compare(*rs) > 0;
    }
- 
+
    if (lt == NT_DATE || rt == NT_DATE) {
       DateTimeValueHelper ld(lh);
       DateTimeValueHelper rd(rh);

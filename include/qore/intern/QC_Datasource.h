@@ -29,12 +29,12 @@
   information.
 */
 
-/* 
+/*
    FIXME: commit()s when autocommit=true should be made here, also after
           select()s (in case of a select for update, for example)
 
    FIXME: when raising an timeout exception there is a race condition
-          getting the TID of the thread holding the lock, because the lock 
+          getting the TID of the thread holding the lock, because the lock
 	  could have been released after the ::enter() call fails... but it's
 	  only cosmetic (for the exception text)
  */
@@ -48,6 +48,7 @@
 
 DLLEXPORT extern qore_classid_t CID_DATASOURCE;
 DLLLOCAL extern QoreClass* QC_DATASOURCE;
+DLLLOCAL extern QoreClass* QC_ABSTRACTDATASOURCE;
 
 DLLLOCAL QoreClass* initDatasourceClass(QoreNamespace& ns);
 

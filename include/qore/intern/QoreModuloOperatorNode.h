@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreIntAssignmentOperatorNode.h
-
+  QoreModuloOperatorNode.h
+ 
   Qore Programming Language
-
+ 
   Copyright (C) 2003 - 2015 David Nichols
-
+ 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -29,17 +29,20 @@
   information.
 */
 
-#ifndef _QORE_QOREINTASSIGNMENTOPERATORNODE_H
-#define _QORE_QOREINTASSIGNMENTOPERATORNODE_H
+#ifndef _QORE_QOREMODULAOPERATORNODE_H
 
-class QoreIntAssignmentOperatorNode : public QoreAssignmentOperatorNode {
+#define _QORE_QOREMODULAOPERATORNODE_H
+
+class QoreModuloOperatorNode : public QoreIntBinaryOperatorNode {
+OP_COMMON
 protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+
 public:
-   DLLLOCAL QoreIntAssignmentOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreAssignmentOperatorNode(n_left, n_right) {
+   DLLLOCAL QoreModuloOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreIntBinaryOperatorNode(n_left, n_right) {
    }
 };
 
 #endif
-

@@ -136,6 +136,14 @@ public:
    DLLLOCAL AbstractQoreNode* getRight() {
       return right;
    }
+
+   DLLLOCAL const AbstractQoreNode* getLeft() const {
+      return left;
+   }
+
+   DLLLOCAL const AbstractQoreNode* getRight() const {
+      return right;
+   }
 };
 
 class QoreBoolBinaryOperatorNode : public QoreBinaryOperatorNode<> {
@@ -226,17 +234,16 @@ public:
 #include <qore/intern/QoreDotEvalOperatorNode.h>
 #include <qore/intern/QoreLogicalEqualsOperatorNode.h>
 #include <qore/intern/QoreLogicalNotEqualsOperatorNode.h>
-#include <qore/intern/QoreModulaOperatorNode.h>
+#include <qore/intern/QoreModuloOperatorNode.h>
 #include <qore/intern/QoreBinaryLValueOperatorNode.h>
 #include <qore/intern/QoreAssignmentOperatorNode.h>
-#include <qore/intern/QoreIntAssignmentOperatorNode.h>
 #include <qore/intern/QorePlusEqualsOperatorNode.h>
 #include <qore/intern/QoreIntPlusEqualsOperatorNode.h>
 #include <qore/intern/QoreMinusEqualsOperatorNode.h>
 #include <qore/intern/QoreIntMinusEqualsOperatorNode.h>
 #include <qore/intern/QoreOrEqualsOperatorNode.h>
 #include <qore/intern/QoreAndEqualsOperatorNode.h>
-#include <qore/intern/QoreModulaEqualsOperatorNode.h>
+#include <qore/intern/QoreModuloEqualsOperatorNode.h>
 #include <qore/intern/QoreMultiplyEqualsOperatorNode.h>
 #include <qore/intern/QoreDivideEqualsOperatorNode.h>
 #include <qore/intern/QoreXorEqualsOperatorNode.h>
@@ -264,5 +271,6 @@ public:
 #include <qore/intern/QoreValueCoalescingOperatorNode.h>
 #include <qore/intern/QoreChompOperatorNode.h>
 #include <qore/intern/QoreTrimOperatorNode.h>
+#include <qore/intern/QoreSquareBracketsOperatorNode.h>
 
 #endif

@@ -1,9 +1,10 @@
-#!/usr/bin/env qr
+#!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
@@ -18,6 +19,7 @@ class DateTest inherits QUnit::Test {
     constructor() : QUnit::Test("DateTest", "1.0") {
         addTestCase("DateTests", \dateTests());
         addTestCase("TimeZoneTests", \timeZoneTests());
+        addTestCase("WindowsTimeZoneTests", \windowsTimeZoneTests());
 
         set_return_value(main());
     }
@@ -170,12 +172,37 @@ class DateTest inherits QUnit::Test {
         testAssertionValue("SingleValueIterator::getValue() (copy)", ni.getValue(), 2012-01-01);
         testAssertionValue("SingleValueIterator::next() (copy)", ni.next(), False);
         testAssertionValue("SingleValueIterator::valid() (copy)", ni.valid(), False);
-    }
+
+        # time components for dates before the epoch must be returned correctly
+        date1 = 1969-12-31T20:15:25;
+        assertEq(20, date1.hours());
+        assertEq(15, date1.minutes());
+        assertEq(25, date1.seconds());
+        assertEq(0, date1.microseconds());
+
+        date1 = 1969-12-31T20:15:25.123456;
+        assertEq(20, date1.hours());
+        assertEq(15, date1.minutes());
+        assertEq(25, date1.seconds());
+        assertEq(123456, date1.microseconds());
+
+        date1 = 1947-05-10T21:59:12.002341;
+        assertEq(21, date1.hours());
+        assertEq(59, date1.minutes());
+        assertEq(12, date1.seconds());
+        assertEq(2341, date1.microseconds());
+
+        date1 = 1947-05-10T23:59:12.002341;
+        assertEq(23, date1.hours());
+        assertEq(59, date1.minutes());
+        assertEq(12, date1.seconds());
+        assertEq(2341, date1.microseconds());
+}
 
     timeZoneTests() {
         testAssertionValue("UTC offset", (new TimeZone("Europe/Prague")).UTCOffset(), 3600);
 
-        string fn = normalize_dir(get_script_dir() + "/" + TZ_File);
+        string fn = normalize_dir(get_script_dir() + DirSep + TZ_File);
         TimeZone z(fn);
         testAssertionValue("zone path", basename(z.region()), TZ_File);
         testAssertionValue("invalid band", z.date("1946-01-01").toString(), "19460101000000");
@@ -183,6 +210,22 @@ class DateTest inherits QUnit::Test {
         Program p(PO_NEW_STYLE | PO_NO_FILESYSTEM);
         p.parse("TimeZone sub test() {return new TimeZone(\"" + fn + "\");}", "test");
         testAssertion("zone path neg", \p.callFunction(), "test", new TestResultExceptionType("ILLEGAL-FILESYSTEM-ACCESS"));
+
+        # test for issue #259
+        assertEq(7200, new TimeZone("Europe/Vienna").date("1980-07-01").info().utc_secs_east);
+
+        # test for issue #584
+        assertEq(-14400, new TimeZone("America/New_York").date("1980-07-01").info().utc_secs_east);
+    }
+
+    windowsTimeZoneTests() {
+        if (PlatformOS != "Windows")
+            testSkip("skipping because the test is not run on Windows");
+
+        assertEq("Europe/Vienna", new TimeZone("Europe/Vienna").region());
+        assertEq("Europe/Belgrade", new TimeZone("Central Europe Standard Time").region());
+        assertEq("Europe/Sarajevo", new TimeZone("Central European Standard Time").region());
+        assertThrows("TZINFO-ERROR", sub () { any x = new TimeZone("ABCDEF"); });
     }
 
     testDate(date d, int y, int w, int day, int n, reference ri) {

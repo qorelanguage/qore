@@ -1,10 +1,12 @@
 /*
-  QoreIntAssignmentOperatorNode.cpp
- 
+  QoreProgramHelper.cpp
+
+  QoreProgramHelper QoreObject Definition
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -30,13 +32,30 @@
 
 #include <qore/Qore.h>
 
-QoreValue QoreIntAssignmentOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   int64 rv = right->bigIntEval(xsink);
-   if (*xsink)
-      return QoreValue();
-   LValueHelper v(left, xsink);
-   if (*xsink)
-      return QoreValue();
-   v.assign(rv, "<+= operator>");
-   return rv;
+//! creates the QoreProgram object: DEPRECATED: use QoreProgramHelper(int64, ExceptionSink&) instead
+QoreProgramHelper::QoreProgramHelper(ExceptionSink& xs) : pgm(new QoreProgram), xsink(xs) {
+}
+
+//! creates the QoreProgram object and sets the parse options
+QoreProgramHelper::QoreProgramHelper(int64 parse_options, ExceptionSink& xs) : pgm(new QoreProgram(parse_options)), xsink(xs) {
+}
+
+//! waits until all background threads in the Qore library have terminated and until the QoreProgram object is done executing and then dereferences the object
+/** QoreProgram objects are deleted when there reference count reaches 0.
+ */
+QoreProgramHelper::~QoreProgramHelper() {
+   // waits for all background threads to execute
+   thread_counter.waitForZero(&xsink);
+   // waits for the current Program to terminate
+   pgm->waitForTerminationAndDeref(&xsink);
+}
+
+//! returns the QoreProgram object being managed
+QoreProgram* QoreProgramHelper::operator->() {
+   return pgm;
+}
+
+//! returns the QoreProgram object being managed
+QoreProgram* QoreProgramHelper::operator*() {
+   return pgm;
 }

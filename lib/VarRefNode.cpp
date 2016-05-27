@@ -3,7 +3,7 @@
 
   Qore programming language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -120,8 +120,10 @@ QoreValue VarRefNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) con
 }
 
 AbstractQoreNode* VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo, bool is_new) {
-   if (pflag & PF_CONST_EXPRESSION)
+   if (pflag & PF_CONST_EXPRESSION) {
       parseException("ILLEGAL-VARIABLE-REFERENCE", "variable reference '%s' used illegally in an expression executed at parse time to initialize a constant value", name.ostr);
+      return 0;
+   }
 
    //printd(5, "VarRefNode::parseInitIntern() this: %p '%s' type: %d %p '%s'\n", this, name.ostr, type, typeInfo, typeInfo->getName());
    // if it is a new variable being declared

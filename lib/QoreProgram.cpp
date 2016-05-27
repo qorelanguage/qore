@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -127,6 +127,7 @@ ParseOptionMaps::ParseOptionMaps() {
       doMap(PO_NO_INHERIT_SYSTEM_CONSTANTS, "PO_NO_INHERIT_SYSTEM_CONSTANTS");
       doMap(PO_NO_INHERIT_USER_CONSTANTS, "PO_NO_INHERIT_USER_CONSTANTS");
       doMap(PO_BROKEN_LIST_PARSING, "PO_BROKEN_LIST_PARSING");
+      doMap(PO_BROKEN_LOGIC_PRECEDENCE, "PO_BROKEN_LOGIC_PRECEDENCE");
 }
 
 QoreHashNode* ParseOptionMaps::getCodeToStringMap() const {
@@ -338,7 +339,10 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
    }
 
    if (clr) {
-      //printd(5, "qore_program_private::waitForTerminationAndClear() this: %p clr: %d\n", this, clr);
+      // purge thread resources before clearing pgm
+      purge_pgm_thread_resources(pgm, xsink);
+
+      printd(5, "qore_program_private::waitForTerminationAndClear() this: %p clr: %d\n", this, clr);
       // delete all global variables, etc
       qore_root_ns_private::clearData(*RootNS, xsink);
 
@@ -665,6 +669,15 @@ void qore_program_private::del(ExceptionSink* xsink) {
    //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
 }
 
+QoreClass* qore_program_private::runtimeFindClass(const char* class_name, ExceptionSink* xsink) const {
+   // acquire safe access to parse structures in the source program
+   ProgramRuntimeParseAccessHelper rah(xsink, pgm);
+   if (*xsink)
+      return 0;
+
+   return qore_root_ns_private::runtimeFindClass(*RootNS, class_name);
+}
+
 QoreProgram::~QoreProgram() {
    printd(5, "QoreProgram::~QoreProgram() this: %p\n", this);
    delete priv;
@@ -689,7 +702,7 @@ QoreThreadLock* QoreProgram::getParseLock() {
 }
 
 void QoreProgram::deref(ExceptionSink* xsink) {
-   //printd(5, "QoreProgram::deref() this: %p %d->%d\n", this, reference_count(), reference_count() - 1);
+   printd(QPP_DBG_LVL, "QoreProgram::deref() this: %p priv: %p %d->%d\n", this, priv, reference_count(), reference_count() - 1);
    if (ROdereference())
       priv->clear(xsink);
 }
@@ -782,8 +795,7 @@ QoreNamespace* QoreProgram::getQoreNS() const {
 }
 
 void QoreProgram::depRef() {
-   //printd(5, "QoreProgram::depRef() this: %p %d->%d\n", this, priv->dc.reference_count(), priv->dc.reference_count() + 1);
-   priv->dc.ROreference();
+   priv->depRef();
 }
 
 void QoreProgram::depDeref(ExceptionSink* xsink) {
@@ -985,11 +997,15 @@ void QoreProgram::runClass(const char* classname, ExceptionSink* xsink) {
       xsink->raiseException("CLASS-NOT-FOUND", "cannot find any class '%s' in any namespace", classname);
       return;
    }
+
+   if (qore_class_private::runtimeCheckInstantiateClass(*qc, xsink))
+      return;
+
    //printd(5, "QoreProgram::runClass(%s)\n", classname);
 
    ProgramThreadCountContextHelper tch(xsink, this, true);
    if (!*xsink)
-      discard(qc->execConstructor(0, xsink), xsink);
+      discard(qc->execConstructor((QoreValueList*)0, xsink), xsink);
 }
 
 void QoreProgram::parseFileAndRunClass(const char* filename, const char* classname) {
@@ -1211,15 +1227,28 @@ void QoreProgram::parseDefine(const char* str, AbstractQoreNode* val) {
    priv->parseDefine(qoreCommandLineLocation, str, val);
 }
 
-void QoreProgram::parseDefine(const char* str, const char* val) {
-   QoreString arg(val);
-   arg.trim();
-
-   bool ok;
-   AbstractQoreNode* v = qore_parse_get_define_value(str, arg, ok);
-   if (!ok)
+void QoreProgram::parseCmdLineDefines(const std::map<std::string, std::string> defmap, ExceptionSink& xs, ExceptionSink& ws, int wm) {
+   ProgramRuntimeParseCommitContextHelper pch(&xs, this);
+   if (xs)
       return;
-   priv->parseDefine(qoreCommandLineLocation, str, v);
+
+   priv->startParsing(&xs, &ws, wm);
+
+   for (std::map<std::string, std::string>::const_iterator it = defmap.begin(); it != defmap.end(); ++it) {
+      const char *str = it->first.c_str();
+      const char *val = it->second.c_str();
+      QoreString arg(val);
+      arg.trim();
+
+      bool ok;
+      AbstractQoreNode* v = qore_parse_get_define_value(str, arg, ok);
+      if (!ok)
+         break;
+      priv->parseDefine(qoreCommandLineLocation, str, v);
+   }
+
+   priv->parseSink = 0;
+   priv->warnSink = 0;
 }
 
 QoreProgram* QoreProgram::programRefSelf() const {

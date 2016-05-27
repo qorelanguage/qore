@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -171,11 +171,13 @@ void QoreHashNode::setKeyValue(const QoreString& key, AbstractQoreNode* val, Exc
 }
 
 void QoreHashNode::setKeyValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink) {
+   assert(reference_count() == 1);
    hash_assignment_priv ha(*priv, key);
    ha.assign(val, xsink);
 }
 
 AbstractQoreNode* QoreHashNode::swapKeyValue(const QoreString* key, AbstractQoreNode* val, ExceptionSink* xsink) {
+   assert(reference_count() == 1);
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
    if (*xsink) {
       if (val)
@@ -406,9 +408,9 @@ bool QoreHashNode::derefImpl(ExceptionSink* xsink) {
    return priv->derefImpl(xsink);
 }
 
-void QoreHashNode::clear(ExceptionSink* xsink) {
+void QoreHashNode::clear(ExceptionSink* xsink, bool reverse) {
    assert(is_unique());
-   priv->clear(xsink);
+   priv->clear(xsink, reverse);
 }
 
 void QoreHashNode::deleteKey(const char* key, ExceptionSink* xsink) {
@@ -422,7 +424,7 @@ void QoreHashNode::removeKey(const char* key, ExceptionSink* xsink) {
 }
 
 AbstractQoreNode* QoreHashNode::takeKeyValue(const char* key) {
-   // cannot assert reference_count == 1 here because the HttpClient class modifies a hash with refcount > 1
+   assert(reference_count() == 1);
    return priv->takeKeyValue(key);
 }
 
@@ -863,6 +865,10 @@ hash_assignment_priv::hash_assignment_priv(ExceptionSink* xsink, QoreHashNode& n
    om = must_already_exist ? h.findMember(k->getBuffer()) : h.findCreateMember(k->getBuffer());
 }
 
+void hash_assignment_priv::reassign(const char* key, bool must_already_exist) {
+   om = must_already_exist ? h.findMember(key) : h.findCreateMember(key);
+}
+
 AbstractQoreNode* hash_assignment_priv::swapImpl(AbstractQoreNode* v) {
    assert(om);
    // before we can entirely get rid of QoreNothingNode, try to convert pointers to NOTHING to 0
@@ -871,14 +877,14 @@ AbstractQoreNode* hash_assignment_priv::swapImpl(AbstractQoreNode* v) {
    AbstractQoreNode* old = om->node;
    om->node = v;
 
-   bool before = get_container_obj(old);
-   bool after = get_container_obj(v);
+   bool before = needs_scan(old);
+   bool after = needs_scan(v);
    if (before) {
       if (!after)
-	 h.incObjectCount(-1);
+	 h.incScanCount(-1);
    }
    else if (after)
-      h.incObjectCount(1);
+      h.incScanCount(1);
 
    return old;
 }
@@ -923,6 +929,14 @@ HashAssignmentHelper::HashAssignmentHelper(HashIterator &hi) : priv(new hash_ass
 
 HashAssignmentHelper::~HashAssignmentHelper() {
    delete priv;
+}
+
+void HashAssignmentHelper::reassign(const char* key, bool must_already_exist) {
+   priv->reassign(key);
+}
+
+void HashAssignmentHelper::reassign(const std::string& key, bool must_already_exist) {
+   priv->reassign(key.c_str());
 }
 
 HashAssignmentHelper::operator bool() const {

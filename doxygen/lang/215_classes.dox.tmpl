@@ -28,24 +28,24 @@
     When defining a @ref user_modules "user module", class declarations can be preceded by @ref mod_public "public", which means that the class will be available (imported) in the @ref Qore::Program "Program" object importing the module.  When a class is declared @ref mod_public "public" outside of a @ref user_modules "user module", it means that the class can be inherited in any child @ref Qore::Program "Program" objects created in the same scope. See @ref mod_public "public" for more information. Note that classes can also be imported singly by using the @ref Qore::Program::importClass() "Program::importClass()" method.
 
     @par In-Line Class Declaration Example
-    @code
+    @code{.py}
 class MyClass inherits MyBaseClass {
     public {
-         string $.pub_attr = "hello";
+         string pub_attr = "hello";
 	 const pub_const = "foo";
 	 static pub_static_var = "bar";
     }
 
-    constructor(string $arg) : MyBaseClass($arg + 1) {
+    constructor(string arg) : MyBaseClass(arg + 1) {
     }
 
-    softstring myMethod(softint $i) {
-        return $i + 2;
+    softstring myMethod(softint i) {
+        return i + 2;
     }
 }
     @endcode
 
-    @note No semicolon (\c ";") is required to terminate a class declaration (in fact using a semicolon would raise a parse exception).    
+    @note No semicolon (\c ";") is required to terminate a class declaration (in fact using a semicolon would raise a parse exception).
 
     @par Out-Of-Line Class Declaration Syntax
     Alternatively class declarations and method declarations can be defined out of line as follows:\n
@@ -59,19 +59,19 @@ class MyClass inherits MyBaseClass {
     As with inline class definitions, when defining a @ref user_modules "user module", class declarations can be preceded by @ref mod_public "public", which means that the class will be available (imported) in the @ref Qore::Program "Program" object importing the module. When a class is declared @ref mod_public "public" outside of a @ref user_modules "user module", it means that the class can be inherited in any child @ref Qore::Program "Program" objects created in the same scope. See @ref mod_public "public" for more information. Note that classes can also be imported singly by using the @ref Qore::Program::importClass() "Program::importClass()" method.
 
     @par Out-Of-Line Class Declaration Example
-    @code
+    @code{.py}
 class MyNamespace::MyClass inherits MyBaseClass;
 
-MyNamespace::MyClass::constructor(string $arg = "temp") : MyBaseClass($arg + ".txt") {
+MyNamespace::MyClass::constructor(string arg = "temp") : MyBaseClass(arg + ".txt") {
 }
 
-softstring MyNamespace::MyClass::myMethod(softint $i) {
-    return $i + 2;
+softstring MyNamespace::MyClass::myMethod(softint i) {
+    return i + 2;
 }
     @endcode
 
     @note Because method definitions are allowed out-of-line, this means that builtin classes may be extended with new user methods, however user constructor, destructor, and copy methods cannot be added to builtin classes; to customize the behavior of these methods for builtin classes, subclass the class instead.\n\n
-    When parse option @ref allow-bare-refs "%allow-bare-refs" is enabled, no \c "$" or \c "$." prefixes can be used with variable or method or member names as in the specifications above.
+    When parse option @ref allow-bare-refs "%allow-bare-refs" or @ref new-style "%new-style" is enabled, no \c "$" or \c "$." prefixes can be used with variable or method or member names as in the specifications above.
     Class members, class constants, and static class variables can only be declared in an in-line class definition (the first example above). If a class has at least one public member declared (or inherits a class with at least one public member declared), then only those members declared as public can be accessed from outside the class, and from within the class only members explicitly declared can be accessed as well (unless the class also defines a memberGate() method). In this way typographical errors in member names can be caught (at parse time if types are declared).\n\n
     In a class hierarchy, base class constructor methods can be explicitly specified using a special syntax unique to subclass constructor methods. Please see @ref inheritance for more information.\n\n
     It's possible to write purely object-oriented scripts/programs in %Qore by defining an application class and using the \c "-x" or \c "--exec-class" command-line arguments to tell %Qore to instantiate the class instead of doing normal top-level execution (in fact, the \c "--exec-class" argument disallows the use of top-level statements entirely). For more information, please see @ref command_line_processing and @ref parse_directives.
@@ -98,7 +98,7 @@ softstring MyNamespace::MyClass::myMethod(softint $i) {
 
     @anchor static_methods
     @par Static Methods
-    Methods declared with the <tt><b>static</b></tt> keyword are like regular functions that are attached to the class. These methods are not associated with a particular object's state and therefore are not allowed to refer to object members or call non-static methods. Also, no reference to the special <tt>$self</tt> variable is allowed within static methods.\n\n
+    Methods declared with the <tt><b>static</b></tt> keyword are like regular functions that are attached to the class. These methods are not associated with a particular object's state and therefore are not allowed to refer to object members or call non-static methods. Also, no reference to the special <tt>self</tt> variable is allowed within static methods.\n\n
     Static methods may be declared <tt><b>private</b></tt> or <tt><b>public</b></tt> or <tt><b>synchronized</b></tt> like non-static methods; static methods can also access private members of a class (through an object of the class for non-static members).\n\n
     Static method calls take a special syntax as documented in @ref static_method_calls.\n
 
@@ -138,7 +138,7 @@ softstring MyNamespace::MyClass::myMethod(softint $i) {
     Class constants, like non-class constants, allow programmers to refer to values with %Qore identifiers rather than using the value or the expression that generates the value.\n\n
     See @ref class_overview for a description of the syntax required to declare a class constant.\n\n
     Like other attributes of classes, class constants may be declared <tt><b>private</b></tt> or <tt><b>public</b></tt>. The following is an example of a class constant definition:\n
-    @code
+    @code{.py}
 class Test {
     public {
         const Version = "1.0";
@@ -157,7 +157,7 @@ class Test {
     Static class variables are like global variables that belong to a class. They are not associated with any particular object.\n\n
     See @ref class_overview for a description of the syntax required to declare a static class variable.\n\n
     Like other attributes of classes, static class variables may be declared <tt><b>private</b></tt> or <tt><b>public</b></tt>. The following is an example of a static class variable definition:\n
-    @code
+    @code{.py}
 class Test {
     public {
         static string lastFile = "none";
@@ -184,8 +184,8 @@ class Test {
     @par Class Member References
     When defining a class, members of instantiated objects are referred to with a special syntax as follows:\n
     <tt>$.</tt><em>member_name</em>\n\n
-    Furthermore, the automatic variable <tt>$self</tt> is instantiated in every non-static method, representing the current object (similar to <tt>this</tt> in C++ or Java). Therefore if you need to access hash members which are not valid %Qore identifiers, then enclose the member name in double quotes after the dot operator as follows:\n
-    @code $self."&member-name"@endcode
+    Furthermore, the automatic variable <tt>self</tt> is instantiated in every non-static method, representing the current object (similar to <tt>this</tt> in C++ or Java). Therefore if you need to access hash members which are not valid %Qore identifiers, then enclose the member name in double quotes after the dot operator as follows:\n
+    @code{.py} self."&member-name"@endcode
 
     @anchor memberGate_methods
     @par memberGate() Method
@@ -198,7 +198,7 @@ class Test {
     @par Member Initialization
     Members that have intialization expressions in the class definition are initialized before the constructor is executed (but after any base class constructors have run).  An exception raised in a member initialization expression will cause the constructor to fail and for the object to be deleted immediately.
 
-    @note The automatic <tt>$argv</tt> local variable is instantiated as usual in all class methods where there are more arguments than variables declared in the method declaration.\n\n
+    @note The automatic <tt>argv</tt> local variable is instantiated as usual in all class methods where there are more arguments than variables declared in the method declaration.\n\n
 
     @section object_method_calls Object Method Calls
 
@@ -207,16 +207,16 @@ class Test {
     <tt>[[</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>parent_class_name</em><tt>::]$.</tt><em>method_name</em><tt>([</tt><em>args</em><tt>, ...])</tt>
 
     @par In-Class Method Call Example
-    @code
+    @code{.py}
 # to call a specific method in a base class
-Thread::Mutex::$.lock();
+Thread::Mutex::lock();
 # to call lock() in the current (or lower base) class
-$.lock();
+lock();
     @endcode
 
     @par In-Class Method Calls with %allow-bare-refs
-    When the @ref allow-bare-refs "%allow-bare-refs" parse directive is set, then object methods are called without the \c "$." prefix as in the following example:\n
-    @code
+    When the @ref allow-bare-refs "%allow-bare-refs" or @ref new-style "%new-style" parse directive is set, then object methods are called without the \c "$." prefix as in the following example:\n
+    @code{.py}
 # to call a specific method in a base class
 Thread::Mutex::lock();
 # to call lock() in the current (or lower base) class
@@ -235,7 +235,7 @@ lock();
     Classes inherit the methods of a parent class by using the <tt><b>inherits</b></tt> keyword as specified above. Multiple inheritance is supported; a single %Qore class can inherit one or more classes. When a class is inherited by another class, it is called a base class or parent class. @ref private_inheritance "Private inheritance" is specified by including the keyword <tt><b>private</b></tt> before the inherited class's name. When a class is privately inherited, it means that the inherited class's public declarations (members, constants, methods, etc) are treated as private in the context of accesses outside the class.
 
     Inheritance is <tt><b>public</b></tt> @ref public_inheritance "by default", to inherit a class privately, use the <tt><b>private</b></tt> keyword before the class name or class path to inherit as follows:
-    @code
+    @code{.py}
 class ChildClass inherits private ParentClass {
 }
     @endcode
@@ -251,10 +251,10 @@ class ChildClass inherits private ParentClass {
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>
 
     Here is a concrete example of giving arguments to an inherited base class:
-    @code
+    @code{.py}
 class XmlRpcClient inherits Qore::HTTPClient {
     # calls the base class HTTPClient constructor, overrides the "protocols" key to "xmlrpc"
-    constructor(hash $opts = hash()) : Qore::HTTPClient($opts + ( "protocols" : "xmlrpc" )) {
+    constructor(hash opts = hash()) : Qore::HTTPClient(opts + ( "protocols" : "xmlrpc" )) {
     }
 }
     @endcode

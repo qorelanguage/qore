@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -622,6 +622,14 @@ public:
 
    DLLLOCAL bool hasType() const {
       return qore_check_this(this) && (accepts_mult || returns_mult || qt != NT_ALL);
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL bool needsScan() const {
+      return parseReturnsType(NT_OBJECT) != QTI_NOT_EQUAL
+         || parseReturnsType(NT_RUNTIME_CLOSURE) != QTI_NOT_EQUAL
+         || parseReturnsType(NT_LIST) != QTI_NOT_EQUAL
+         || parseReturnsType(NT_HASH) != QTI_NOT_EQUAL;
    }
 
    DLLLOCAL bool hasInputFilter() const {
@@ -1878,9 +1886,13 @@ protected:
          return true;
 
       if (t == NT_INT
-          || t == NT_BOOLEAN
-          || t == NT_NULL) {
+          || t == NT_BOOLEAN) {
          discard(n.assign(new QoreStringNodeMaker(QLLD, n.getAsBigInt())), xsink);
+         return true;
+      }
+
+      if (t == NT_NULL) {
+         n.assign(NullString->stringRefSelf());
          return true;
       }
 

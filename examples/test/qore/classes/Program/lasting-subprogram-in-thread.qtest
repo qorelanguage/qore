@@ -1,9 +1,12 @@
-#!/usr/bin/env qr
-# this used to cause qore to crash...
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
-%require-types
-%enable-all-warnings
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+# this used to cause qore to crash...
 
 %requires ../../../../../qlib/QUnit.qm
 

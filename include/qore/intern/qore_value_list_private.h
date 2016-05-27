@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -45,13 +45,6 @@ static QoreValueList* do_value_args(const QoreValue& e1, const QoreValue& e2) {
    return l;
 }
 */
-
-static QoreListNode* do_args(const QoreValue& e1, const QoreValue& e2) {
-   QoreListNode* l = new QoreListNode;
-   l->push(e1.getReferencedValue());
-   l->push(e2.getReferencedValue());
-   return l;
-}
 
 struct qore_value_list_private {
    QoreValue* entry;
@@ -96,8 +89,8 @@ struct qore_value_list_private {
 
    DLLLOCAL void removeEntry(QoreValue& v, QoreValueList*& rv) {
       if (v.hasNode()) {
-         if (get_container_obj(v.v.n))
-            incObjectCount(-1);
+         if (needs_scan(v.v.n))
+            incScanCount(-1);
       }
       if (!rv)
          rv = new QoreValueList;
@@ -192,15 +185,15 @@ struct qore_value_list_private {
       // add in new entries
       if (l.getType() != NT_VALUE_LIST) {
          entry[offset] = l.refSelf();
-         if (l.hasNode() && get_container_obj(l.getInternalNode()))
-            incObjectCount(1);
+         if (l.hasNode() && needs_scan(l.getInternalNode()))
+            incScanCount(1);
       }
       else {
          const QoreValueList* lst = l.get<const QoreValueList>();
          for (size_t i = 0; i < n; ++i) {
             const QoreValue v = lst->retrieveEntry(i);
-            if (v.hasNode() && get_container_obj(v.v.n))
-               incObjectCount(1);
+            if (v.hasNode() && needs_scan(v.v.n))
+               incScanCount(1);
             entry[offset + i] = v.refSelf();
          }
       }
@@ -216,8 +209,8 @@ struct qore_value_list_private {
 
    DLLLOCAL void push(QoreValue val) {
       getEntryReference(length) = val;
-      if (val.hasNode() && get_container_obj(val.v.n))
-         incObjectCount(1);
+      if (val.hasNode() && needs_scan(val.v.n))
+         incScanCount(1);
    }
 
    DLLLOCAL QoreValue getAndClear(size_t i) {
@@ -226,8 +219,8 @@ struct qore_value_list_private {
       QoreValue rv = entry[i];
       entry[i] = QoreValue();
 
-      if (rv.hasNode() && get_container_obj(rv.v.n))
-         incObjectCount(-1);
+      if (rv.hasNode() && needs_scan(rv.v.n))
+         incScanCount(-1);
 
       return rv;
    }
@@ -251,19 +244,19 @@ struct qore_value_list_private {
    // and now I don't know how it works anymore
    DLLLOCAL int qsort(const ResolvedCallReferenceNode* fr, size_t left, size_t right, bool ascending, ExceptionSink* xsink);
 
-   DLLLOCAL void incObjectCount(int dt) {
+   DLLLOCAL void incScanCount(int dt) {
       assert(dt);
       assert(obj_count || (dt > 0));
-      //printd(5, "qore_value_list_private::incObjectCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
+      //printd(5, "qore_value_list_private::incScanCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
       obj_count += dt;
    }
 
-   DLLLOCAL static unsigned getObjectCount(const QoreValueList& l) {
+   DLLLOCAL static unsigned getScanCount(const QoreValueList& l) {
       return l.priv->obj_count;
    }
 
-   DLLLOCAL static void incObjectCount(const QoreValueList& l, int dt) {
-      l.priv->incObjectCount(dt);
+   DLLLOCAL static void incScanCount(const QoreValueList& l, int dt) {
+      l.priv->incScanCount(dt);
    }
 };
 

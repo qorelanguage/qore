@@ -1,11 +1,11 @@
 /*
   RegexSubstNode.cpp
- 
+
   regular expression substitution node definition
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
+
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -59,7 +59,7 @@ RegexSubstNode::RegexSubstNode(const QoreString *pstr, int opts, ExceptionSink *
       xsink->raiseException("REGEX-OPTION-ERROR", "%d contains invalid option bits", opts);
    else
       options |= opts;
-   
+
    newstr = 0;
    str = 0;
    parseRT(pstr, xsink);
@@ -114,7 +114,7 @@ void RegexSubstNode::parseRT(const QoreString *pstr, ExceptionSink *xsink) {
    TempEncodingHelper t(pstr, QCS_UTF8, xsink);
    if (*xsink)
       return;
-   
+
    const char *err;
    int eo;
    p = pcre_compile(t->getBuffer(), options, &err, &eo, 0);
@@ -128,9 +128,9 @@ void RegexSubstNode::parse() {
    parseRT(str, &xsink);
    if (xsink.isEvent())
       qore_program_private::addParseException(getProgram(), xsink);
-   
-   //printd(5, "RegexSubstNode::parse() this=%p: pstr=%s, newstr=%s, global=%s\n", this, pstr->getBuffer(), newstr->getBuffer(), global ? "true" : "false"); 
-   
+
+   //printd(5, "RegexSubstNode::parse() this=%p: pstr=%s, newstr=%s, global=%s\n", this, pstr->getBuffer(), newstr->getBuffer(), global ? "true" : "false");
+
    delete str;
    str = 0;
 }
@@ -138,7 +138,11 @@ void RegexSubstNode::parse() {
 // static function
 void RegexSubstNode::concat(QoreString *cstr, int *ovector, int olen, const char *ptr, const char *target, int rc) {
    while (*ptr) {
-      if (*ptr == '\\' && *(ptr+1) == '$') {
+      if (*ptr == '\\' && *(ptr+1) == '\\') {
+	 ++ptr;
+	 cstr->concat(*(ptr++));
+      }
+      else if (*ptr == '\\' && *(ptr+1) == '$') {
 	 ++ptr;
 	 cstr->concat(*(ptr++));
       }
@@ -157,6 +161,7 @@ void RegexSubstNode::concat(QoreString *cstr, int *ovector, int olen, const char
       else
 	 cstr->concat(*(ptr++));
    }
+   //printd(5, "RegexSubstNode::concat() target: '%s' cstr: '%s'\n", target, cstr->c_str());
 }
 
 #define SUBST_OVECSIZE 30
@@ -167,10 +172,13 @@ QoreStringNode *RegexSubstNode::exec(const QoreString *target, const QoreString 
    if (*xsink)
       return 0;
 
-   QoreStringNode *tstr = new QoreStringNode;
-   
+   SimpleRefHolder<QoreStringNode> tstr(new QoreStringNode);
+
    const char *ptr = t->getBuffer();
-   //printd(5, "RegexSubstNode::exec(%s) this=%p: global=%s\n", ptr, this, global ? "true" : "false"); 
+   // detect infinite recursion (empty pattern matches)
+   int last_match = -1;
+
+   //printd(5, "RegexSubstNode::exec(%s) this=%p: global=%s\n", ptr, this, global ? "true" : "false");
    while (true) {
       int ovector[SUBST_OVECSIZE];
       int offset = ptr - t->getBuffer();
@@ -178,30 +186,38 @@ QoreStringNode *RegexSubstNode::exec(const QoreString *target, const QoreString 
          break;
       int rc = pcre_exec(p, 0, t->getBuffer(), t->strlen(), offset, 0, ovector, SUBST_OVECSIZE);
 
-      //printd(5, "RegexSubstNode::exec() prec_exec() rc: %d\n", rc);
+      //printd(5, "RegexSubstNode::exec() prec_exec() rc: %d ovector[0]: %d\n", rc, ovector[0]);
       // FIXME: rc = 0 means that not enough space was available in ovector!
       if (rc < 1)
 	 break;
-      
+
+      // detect infinite recursion
+      if (ovector[0] == last_match) {
+	 xsink->raiseException("REGEX-SUBST-ERROR", "infinite recursion detected in regex substitution string; this normally happens with an empty pattern with use with the global option (RE_GLOBAL)");
+	 return 0;
+      }
+      else
+	 last_match = ovector[0];
+
       if (ovector[0] > offset)
 	 tstr->concat(ptr, ovector[0] - offset);
-      
-      concat(tstr, ovector, SUBST_LASTELEM, nstr->getBuffer(), t->getBuffer(), rc);
-      
+
+      concat(*tstr, ovector, SUBST_LASTELEM, nstr->getBuffer(), t->getBuffer(), rc);
+
       //printd(5, "RegexSubstNode::exec() '%s' =~ s/?/%s/%s offset=%d, 0=%d, 1=%d ('%s')\n", t->getBuffer(), nstr->getBuffer(), global ? "g" : "", offset, ovector[0], ovector[1], tstr->getBuffer());
-      
+
       ptr = t->getBuffer() + ovector[1];
-      
+
       if (!global)
 	 break;
-   } 
-   
+   }
+
    //printd(5, "RegexSubstNode::exec() *ptr=%d ('%s') tstr='%s'\n", *ptr, ptr, tstr->getBuffer());
    if (*ptr)
       tstr->concat(ptr);
-   
+
    //printd(5, "RegexSubstNode::exec() this=%p: returning '%s'\n", this, tstr->getBuffer());
-   return tstr;
+   return tstr.release();
 }
 
 // called for run-time evaluation of parse-time-created objects

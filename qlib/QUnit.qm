@@ -4,7 +4,7 @@
 %requires qore >= 0.8.12
 %new-style
 
-%try-module xml
+%try-module xml >= 1.3
 %define NO_XML
 %endtry
 
@@ -319,6 +319,9 @@ public class QUnit::TestCase {
 
         #! number of successful assertions in current test case
         int num_asserts_ok = 0;
+
+        #! number of skipped assertions in current test case
+        int num_asserts_skip = 0;
     }
 
     #! creates the TestCase object from the given arguments
@@ -348,30 +351,36 @@ public class QUnit::TestCase {
         }
     }
 
+    static *string getStackPos(list stack) {
+        foreach hash callSite in (stack) {
+            if (callSite.file !~ /QUnit\.qm/) {
+                string fn = regex_subst (callSite.file, "<run-time-loaded: (.*)>", "$1");
+                return sprintf("%s:%d", fn, callSite.line + callSite.offset);
+            }
+        }
+    }
+
+    static string getPos(hash ex) {
+        string pos = get_ex_pos(ex);
+        if (pos =~ /QUnit\.qm/ && ex.callstack) {
+            *string np = TestCase::getStackPos(ex.callstack);
+            if (np)
+                pos = np;
+        }
+        return pos;
+    }
+
     #! handles exceptions raised while running the TestCase
     checkException(QUnit::Test test, hash e) {
-        hash loc = e.callstack[0];
         if (e.err =~ /TEST-.*EXCEPTION/) {
             *string assertion_name = e.arg.name;
             *string pos = e.arg.pos;
+            if (!pos)
+                pos = TestCase::getPos(e);
             if (e.err == "TEST-SKIPPED-EXCEPTION") {
-                if (!pos)
-                    pos = get_ex_pos(e);
                 string txt = sprintf("Skip %srequested", assertion_name ? sprintf("of %y ", assertion_name) : NOTHING);
-                test.addTestResult(self, TestReporter::TEST_SKIPPED, "Skip requested", pos, e.desc);
+                test.addTestResult(self, TestReporter::TEST_SKIPPED, txt, pos, e.desc);
             } else if (e.err == "TEST-EXCEPTION") {
-                if (!pos) {
-                    pos = get_ex_pos(e);
-                    if (pos =~ /QUnit\.qm/) {
-                        foreach hash callSite in (e.callstack) {
-                            if (callSite.file !~ /QUnit\.qm/) {
-                                string fn = regex_subst (callSite.file, "<run-time-loaded: (.*)>", "$1");
-                                pos = sprintf("%s:%d", fn, callSite.line + callSite.offset);
-                                break;
-                            }
-                        }
-                    }
-                }
                 string txt = sprintf("Assertion %sfailure", assertion_name ? sprintf("%y ", assertion_name) : NOTHING);
                 test.addTestResult(self, TestReporter::TEST_FAILURE, txt, pos, e.desc);
             }
@@ -380,7 +389,7 @@ public class QUnit::TestCase {
             string pos = get_ex_pos(e);
             string errtxt = sprintf("Unexpected exception: %s", e.err);
             test.addTestResult(self, TestReporter::TEST_ERROR, errtxt, pos, get_exception_string(e));
-            }
+        }
     }
 
     #! returns the test case name
@@ -396,12 +405,20 @@ public class QUnit::TestCase {
         ++num_asserts_ok;
     }
 
+    incAssertionsSkip() {
+        ++num_asserts_skip;
+    }
+
     int getAssertionCount() {
         return num_asserts;
     }
 
     int getAssertionOkCount() {
         return num_asserts_ok;
+    }
+
+    int getAssertionSkipCount() {
+        return num_asserts_skip;
     }
 
     setupThread() {
@@ -438,6 +455,9 @@ public class QUnit::TestReporter {
             TEST_SKIPPED : ("desc": "Skipped", "junittag" : "skipped"),
         );
 
+        #! the default column offset for printing options used in printOption() and usageIntern()
+        const OffsetColumn = 20;
+
         #! A map of print methods, categorised into three types: header, summary, testreport
         hash m_printMethods;
 
@@ -462,6 +482,9 @@ public class QUnit::TestReporter {
 
         #! total number of successful assertions in script
         int num_asserts_ok = 0;
+
+        #! total number of skipped assertions in script
+        int num_asserts_skip = 0;
     }
 
     public {
@@ -479,7 +502,7 @@ public class QUnit::TestReporter {
         const TEST_SKIPPED = 3;
     }
 
-    private printOption(string left, string right, int offset) {
+    private printOption(string left, string right, int offset = OffsetColumn) {
         printf(" %s", left);
         int blanks = offset - left.size();
         if (blanks > 0)
@@ -487,7 +510,7 @@ public class QUnit::TestReporter {
         printf("%s\n", right);
     }
 
-    private usageIntern(int offset = 19) {
+    private usageIntern(int offset = OffsetColumn) {
         printf("usage: %s [options]\n", get_script_name());
         printOption("-h,--help", "this help text", offset);
         printOption("   --format=type", "output format [default: plainquiet]", offset);
@@ -587,6 +610,8 @@ public class QUnit::TestReporter {
         string assert_str = sprintf(" (%d assertion%s", num_asserts, num_asserts == 1 ? "" : "s");
         if (num_asserts != num_asserts_ok)
             assert_str += sprintf(", %d succeeded", num_asserts_ok);
+        if (num_asserts_skip > 0)
+            assert_str += sprintf(", %d skipped", num_asserts_skip);
         assert_str += ")";
         int cnt = testCount();
         printf("Ran %d test case%s%s%s%s%s\n", cnt, cnt == 1 ? "" : "s", succeeded > 0 ? ssucceeded : "", errors() > 0 ? serrors : "", skipped() > 0 ? sskipped : "", assert_str);
@@ -601,6 +626,8 @@ public class QUnit::TestReporter {
         printf("%s: %s: %d assertion%s", resultType, testcase.testcase.getName(), testcase.testcase.getAssertionCount(), testcase.testcase.getAssertionCount() == 1 ? "" : "s");
         if (testcase.testcase.getAssertionCount() != testcase.testcase.getAssertionOkCount())
             printf(", %d succeeded", testcase.testcase.getAssertionOkCount());
+        if (testcase.testcase.getAssertionSkipCount() > 0)
+            printf(", %d skipped", testcase.testcase.getAssertionSkipCount());
         print("\n");
         if (testcase.result != TEST_SUCCESS) {
             string out = "";
@@ -620,6 +647,7 @@ public class QUnit::TestReporter {
 %else
         hash junit;
         junit.testsuites."^attributes^" = (
+            "name" : m_name,
             "tests"  : testCount(),
             "errors" : errors(),
             "skipped" : skipped(),
@@ -630,7 +658,7 @@ public class QUnit::TestReporter {
         while (it.next()) {
             hash testcase;
 
-            testcase."^attributes^".name = it.getValue().msg;
+            testcase."^attributes^".name = it.getValue().testcase.getName();
             string errmsg = sprintf("%s at %s:\n%s", it.getValue().error, it.getValue().pos, it.getValue().detail);
 
             int status = it.getValue().result;
@@ -724,7 +752,7 @@ public class QUnit::Test inherits QUnit::TestReporter {
 
     #! adds a test case to run
     /** @par Example:
-        @code
+        @code{.py}
 addTestCase("MyTest", \myTest());
         @endcode
 
@@ -738,7 +766,7 @@ addTestCase("MyTest", \myTest());
 
     #! adds a test case to run
     /** @par Example:
-        @code
+        @code{.py}
 addTestCase(obj);
         @endcode
 
@@ -749,9 +777,18 @@ addTestCase(obj);
     }
 
     #! Helper function for printing out human-readable comparison of two values.
-    private string printUnexpectedData(any exp, any act, *bool neg) {
-        string expected = sprintf("%N", exp);
-        string actual = neg ? "<identical>" : sprintf("%N", act);
+    private string printUnexpectedData(any exp, any act, *bool neg, *bool soft_comparisons) {
+        string expected;
+        string actual;
+        # if values are "soft equal", then they must have different types, so we make the type differences explicit here
+        if (exp == act) {
+            expected = sprintf("(%s) %N", exp.type(), exp);
+            actual = neg ? "<identical>" : sprintf("(%s) %N", act.type(), act);
+        }
+        else {
+            expected = sprintf("%N", exp);
+            actual = neg ? "<identical>" : sprintf("%N", act);
+        }
         list expectedLines = expected.split("\n");
         list actualLines = actual.split("\n");
 
@@ -762,31 +799,35 @@ addTestCase(obj);
         if (!multiline) {
             # For some very simple values that fit on one line, just put it on one line. For values that would overflow the standard line size, do two lines.
             bool twoline = length(expected) + length(actual) > 40;
-            result += sprintf("Expected%s %s%sActual %s", neg ? " Not Equal" : "", expected, twoline ? "\n" : ", ", actual);
+            result += sprintf("Expected%s: %s%sActual: %s", neg ? " Not Equal" : "", expected, twoline ? "\n" : ", ", actual);
+            # For numeric values, when really verbose or difference not visible, compute and show the difference.
+            if ((m_options.verbose > 1 || sprintf("%y", exp) == sprintf("%y", act)) &&
+                    inlist (exp.typeCode(), (NT_INT, NT_FLOAT, NT_NUMBER)) &&
+                    inlist (act.typeCode(), (NT_INT, NT_FLOAT, NT_NUMBER))) {
+                result += sprintf("%sDifference: %y", twoline ? "\n" : ", ", abs(exp-act));
+            }
         } else {
-            result += sprintf("* Expected%s:", neg ? " Not Equal" : "");
-            result += "\n\t--------------------\n";
+            string hr = "\t--------------------\n";
+            result += sprintf("Expected%s:\n", neg ? " Not Equal" : "") + hr;
             map result += sprintf("\t%s\n", $1), expectedLines;
-            result += "\t--------------------\n";
-            result += "* Actual:";
-            result += "\n\t--------------------\n";
+            result += hr + "Actual:\n" + hr;
             if (neg)
                 result += "\t<same as above>\n";
             else
                 map result += sprintf("\t%s\n", $1), actualLines;
-            result += "\t--------------------\n";
+            result += hr;
+
             list details = ();
             if (exp.typeCode() == NT_HASH && act.typeCode() == NT_HASH) {
-                compareHashes(exp, act, \details);
+                compareHashes(exp, act, \details, NOTHING, soft_comparisons);
             }
             if (exp.typeCode() == NT_LIST && act.typeCode() == NT_LIST) {
-                compareLists(exp, act, \details);
+                compareLists(exp, act, \details, NOTHING, soft_comparisons);
             }
             if (details) {
-                result += "* Details:";
-                result += "\n\t--------------------\n";
+                result += "Details:\n" + hr;
                 map result += sprintf("\t%s\n", $1), details;
-                result += "\t--------------------\n";
+                result += hr;
             }
         }
         return result;
@@ -797,8 +838,8 @@ addTestCase(obj);
         return sprintf("%s (%s)", v.split("\n")[0], value.type());
     }
 
-    private compare(any v1, any v2, reference out, string path) {
-        if (v1 !== v2) {
+    private compare(any v1, any v2, reference out, string path, *bool soft_comparisons) {
+        if ((!soft_comparisons && v1 !== v2) || (soft_comparisons && v1 != v2)) {
             if (v1.typeCode() == NT_HASH && v2.typeCode() == NT_HASH) {
                 compareHashes(v1, v2, \out, path);
             } else if (v1.typeCode() == NT_LIST && v2.typeCode() == NT_LIST) {
@@ -811,10 +852,10 @@ addTestCase(obj);
         }
     }
 
-    private compareHashes(hash h1, hash h2, reference out, string path = "") {
+    private compareHashes(hash h1, hash h2, reference out, string path = "", *bool soft_comparisons) {
         foreach string key in (h1.keyIterator()) {
             if (h2.hasKey(key)) {
-                compare(h1{key}, h2{key}, \out, path + "." + key);
+                compare(h1{key}, h2{key}, \out, path + "." + key, soft_comparisons);
             } else {
                 out += sprintf("Missing expected key %s.%s (with value %N)", path, key, h1{key});
             }
@@ -826,7 +867,7 @@ addTestCase(obj);
         }
     }
 
-    private compareLists(list l1, list l2, reference out, string path = "") {
+    private compareLists(list l1, list l2, reference out, string path = "", *bool soft_comparisons) {
         int len1 = elements l1;
         int len2 = elements l2;
 
@@ -835,7 +876,7 @@ addTestCase(obj);
         }
 
         for (int i = 0; i < min(len1, len2); ++i) {
-            compare(l1[i], l2[i], \out, path + "[" + i + "]");
+            compare(l1[i], l2[i], \out, path + "[" + i + "]", soft_comparisons);
         }
     }
 
@@ -843,38 +884,52 @@ addTestCase(obj);
 
     #! Tests a value for equality to an expected value
     /** @par Example:
-        @code
+        @code{.py}
 testAssertionValue("date > operator", now() > (now() - 1D), True);
         @endcode
 
         @param name the name or description of the assertion
-        @param value the value generated by the test
-        @param expectedValue the expected value
+        @param actual the value generated by the test
+        @param expected the expected value
 
         @return the \a value argument
 
         @note make sure and use testAssertion() for any calls that could throw an exception
      */
-    public any testAssertionValue(string name, any value, any expectedValue) {
-        *TestCase tc = get_thread_data("tc");
+    public any testAssertionValue(*string name, any actual, any expected) {
+        assertEq(expected, actual, name);
+        return actual;
+    }
+
+    #! Tests a value for equality to an expected value with soft comparisons (types may differ)
+    /** @par Example:
+        @code{.py}
+assertEqSoft("5", functionThatShouldReturnFive());
+        @endcode
+
+        @param expected the expected value
+        @param actual the value generated by the test
+        @param name the name or description of the assertion
+     */
+    public assertEqSoft(any expected, any actual, *string name) {
+        TestCase tc = getTestCase("assertEqSoft");
         # increment assertion count
         tc.incAssertions();
         ++num_asserts;
 
-        if (value !== expectedValue) {
-            throw "TEST-EXCEPTION", printUnexpectedData(expectedValue, value), ("name": name, "pos": NOTHING);
+        if (expected != actual) {
+            throw "TEST-EXCEPTION", printUnexpectedData(expected, actual, NOTHING, True), ("name": name, "pos": NOTHING);
         } else {
             tc.incAssertionsOk();
             ++num_asserts_ok;
             if (m_options.verbose > 1)
-                printf("+ OK: %y assertion %y\n", m_name, name);
+                printf("+ OK: %y assertion %s\n", m_name, Test::getAssertionName(name));
         }
-        return value;
     }
 
-    #! Tests a value for equality to an expected value
+    #! Tests a value for equality to an expected value with hard comparisons (types and values must be identical)
     /** @par Example:
-        @code
+        @code{.py}
 assertEq(5, functionThatShouldReturnFive());
         @endcode
 
@@ -882,8 +937,187 @@ assertEq(5, functionThatShouldReturnFive());
         @param actual the value generated by the test
         @param name the name or description of the assertion
      */
-    public assertEq(any expected, any actual, any name = NOTHING) {
-        testAssertionValue(name ?? "", actual, expected);
+    public assertEq(any expected, any actual, *string name) {
+        TestCase tc = getTestCase("assertEq");
+        # increment assertion count
+        tc.incAssertions();
+        ++num_asserts;
+
+        if (expected !== actual) {
+            throw "TEST-EXCEPTION", printUnexpectedData(expected, actual), ("name": name, "pos": NOTHING);
+        } else {
+            tc.incAssertionsOk();
+            ++num_asserts_ok;
+            if (m_options.verbose > 1)
+                printf("+ OK: %y assertion %s\n", m_name, Test::getAssertionName(name));
+        }
+    }
+
+    #! Tests a float value for equality to an expected value with an allowed error
+    /** @par Example:
+        @code{.py}
+assertFloatEq(2.5, 2.50001, 0.001);
+        @endcode
+
+        @param expected the expected value
+        @param actual the value generated by the test
+        @param epsilon the allowed error
+        @param name the name or description of the assertion
+     */
+    public assertFloatEq(float expected, float actual, float epsilon = 0.0000000001, *string name) {
+        TestCase tc = getTestCase("assertFloatEq");
+        # increment assertion count
+        tc.incAssertions();
+        ++num_asserts;
+
+        if (abs(expected-actual) >= epsilon) {
+            throw "TEST-EXCEPTION", printUnexpectedData(expected, actual), ("name": name, "pos": NOTHING);
+        } else {
+            tc.incAssertionsOk();
+            ++num_asserts_ok;
+            if (m_options.verbose > 1)
+                printf("+ OK: %y assertion %s\n", m_name, Test::getAssertionName(name));
+        }
+    }
+
+    #! Tests a number value for equality to an expected value with an allowed error
+    /** @par Example:
+        @code{.py}
+assertNumberEq(2.5n, 2.50001n, 0.001n);
+        @endcode
+
+        @param expected the expected value
+        @param actual the value generated by the test
+        @param epsilon the allowed error
+        @param name the name or description of the assertion
+     */
+    public assertNumberEq(number expected, number actual, number epsilon = 0.0000000001, *string name) {
+        TestCase tc = getTestCase("assertNumberEq");
+        # increment assertion count
+        tc.incAssertions();
+        ++num_asserts;
+
+        if (abs(expected-actual) >= epsilon) {
+            throw "TEST-EXCEPTION", printUnexpectedData(expected, actual), ("name": name, "pos": NOTHING);
+        } else {
+            tc.incAssertionsOk();
+            ++num_asserts_ok;
+            if (m_options.verbose > 1)
+                printf("+ OK: %y assertion %s\n", m_name, Test::getAssertionName(name));
+        }
+    }
+
+    #! Tests a boolean value
+    /** @par Example:
+        @code{.py}
+assertTrue(functionThatShouldReturnTrue());
+        @endcode
+
+        @param actual the value generated by the test
+        @param name the name or description of the assertion
+     */
+    public assertTrue(any actual, *string name) {
+        testAssertionValue(name, actual, True);
+    }
+
+    #! Tests a boolean value
+    /** @par Example:
+        @code{.py}
+assertFalse(functionThatShouldReturnFalse());
+        @endcode
+
+        @param actual the value generated by the test
+        @param name the name or description of the assertion
+     */
+    public assertFalse(any actual, *string name) {
+        testAssertionValue(name, actual, False);
+    }
+
+    #! Tests that a piece of code throws an exception with given description
+    /** @par Example:
+        @code{.py}
+assertThrows("DIVISION-BY-ZERO", "division by zero found in integer expression", sub(int a) {print(5/a);}, 0);
+        @endcode
+
+        @param expectedErr the expected exception type
+        @param expectedDesc the expected exception detail (desc field), ignored if NOTHING
+        @param theCode the code to execute
+        @param args optional arguments to the code
+     */
+    public assertThrows(string expectedErr, *string expectedDesc, code theCode, *softlist args, *string name) {
+        TestCase tc = getTestCase("assertEqThrows");
+        tc.incAssertions();
+        ++num_asserts;
+
+        string exp = sprintf("Exception: %s", expectedErr) + (expectedDesc ? sprintf(": Detail '%s'", expectedDesc) : "");
+        try {
+            call_function_args(theCode, args);
+        } catch (e) {
+            if (e.err == expectedErr && (expectedDesc == NOTHING || e.desc.regex(expectedDesc))) {
+                tc.incAssertionsOk();
+                ++num_asserts_ok;
+                if (m_options.verbose > 1)
+                    printf("+ OK: %y assertion %s\n", m_name, Test::getAssertionName(name));
+                return;
+            }
+            throw "TEST-EXCEPTION", printUnexpectedData(exp, get_exception_string(e));
+        }
+        throw "TEST-EXCEPTION", sprintf("Expected %s was not thrown", exp);
+    }
+
+    #! Tests that a piece of code throws an exception
+    /** @par Example:
+        @code{.py}
+assertThrows("DIVISION-BY-ZERO", sub(int a) {print(5/a);}, 0);
+        @endcode
+
+        @param expectedErr the expected exception type
+        @param theCode the code to execute
+        @param args optional arguments to the code
+     */
+    public assertThrows(string expectedErr, code theCode, *softlist args, *string name) {
+        assertThrows(expectedErr, NOTHING, theCode, args, name);
+    }
+
+    #! Skips assertion on purpose
+    /**
+        @param name the name or description of the assertion
+
+        @par Example:
+        @code{.py}
+assertSkip("assertion name or reason to skip");
+        @endcode
+     */
+    public assertSkip (*string name) {
+        TestCase tc = getTestCase("assertSkip");
+        # increment assertion counters
+        tc.incAssertions();
+        ++num_asserts;
+        tc.incAssertionsSkip();
+        ++num_asserts_skip;
+        # display optional message
+        if (m_options.verbose > 1)
+            printf("+ SKIP: %y assertion %s\n", m_name, Test::getAssertionName(name));
+    }
+
+    #! returns the current test case
+    TestCase getTestCase(string meth) {
+        *TestCase tc = get_thread_data("tc");
+        if (!tc)
+            throw "TEST-ERROR", sprintf("cannot test assertion while not executing a test case; %s() can only be called in code executed in a test case (added with %s::addTestCase())", meth, self.className());
+        return tc;
+    }
+
+    #! Fails the test unconditionally
+    /** @par Example:
+        @code{.py}
+fail("Unexpected code executed");
+        @endcode
+
+        @param msg the failure message
+     */
+    public fail(string msg) {
+        throw "TEST-EXCEPTION", msg;
     }
 
     #! Tests for a single assertion for a call returning no value (for example, to ensure that the call does not throw an exception)
@@ -1025,9 +1259,7 @@ assertEq(5, functionThatShouldReturnFive());
      * @return the result of the \a condition call, if the immediate value has any further use
      */
     public any testAssertion(string name, code condition, *softlist args, QUnit::AbstractTestResult expectedResult = new QUnit::TestResultSuccess()) {
-        *TestCase tc = get_thread_data("tc");
-        if (!tc)
-            throw "TEST-ERROR", sprintf("cannot test assertion %y while not executing a test case; testAssertion() can only be called in code executed in a test case (added with %s::addTestCase())", name, self.className());
+        TestCase tc = getTestCase("testAssertion");
         tc.incAssertions();
         ++num_asserts;
 
@@ -1070,7 +1302,7 @@ assertEq(5, functionThatShouldReturnFive());
             tc.incAssertionsOk();
             ++num_asserts_ok;
             if (m_options.verbose > 1)
-                printf("+ OK: %y assertion %y\n", m_name, name);
+                printf("+ OK: %y assertion %s\n", m_name, Test::getAssertionName(name));
         }
         return ret;
     }
@@ -1191,6 +1423,14 @@ assertEq(5, functionThatShouldReturnFive());
 
         printSummary();
         return errors();
+    }
+
+    #! returns the assertion name for display purposes
+    static string getAssertionName(*string name) {
+        if (exists name)
+            return sprintf("%y", name);
+        *string np = TestCase::getStackPos(get_all_thread_call_stacks(){gettid()});
+        return np ? sprintf("at %s", np) : "<no name>";
     }
 }
 

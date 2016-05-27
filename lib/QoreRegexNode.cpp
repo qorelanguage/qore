@@ -1,7 +1,7 @@
 /*
   QoreRegexNode.cpp
- 
-  Copyright (C) 2003 - 2015 David Nichols
+
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -95,14 +95,14 @@ void QoreRegexNode::concat(char c) {
 void QoreRegexNode::parseRT(const QoreString* pattern, ExceptionSink* xsink) {
    const char* err;
    int eo;
-   
+
    // convert to UTF-8 if necessary
    TempEncodingHelper t(pattern, QCS_UTF8, xsink);
    if (*xsink)
       return;
 
    //printd(5, "QoreRegexNode::parseRT(%s) this=%p\n", t->getBuffer(), this);
-   
+
    p = pcre_compile(t->getBuffer(), options, &err, &eo, 0);
    if (err) {
       //printd(5, "QoreRegexNode::parse() error parsing '%s': %s", t->getBuffer(), (char* )err);
@@ -131,15 +131,15 @@ bool QoreRegexNode::exec(const QoreString* target, ExceptionSink* xsink) const {
 #define OVECCOUNT 30
 // maximum subpattern buffer size; we must limit this to control the amount of stack space used; must be OVECCOUNT * a power of 2
 #define OVECMAX 480
-bool QoreRegexNode::exec(const char* str, size_t len) const {   
+bool QoreRegexNode::exec(const char* str, size_t len) const {
    // the PCRE docs say that if we don't send an ovector here the library may have to malloc
-   // memory, so, even though we don't need the results, we include the vector to avoid 
+   // memory, so, even though we don't need the results, we include the vector to avoid
    // extraneous malloc()s
 
    int rc;
-   
+
    int vsize = OVECCOUNT;
-   while (true) {   
+   while (true) {
 #ifdef HAVE_LOCAL_VARIADIC_ARRAYS
       int ovector[vsize];
 #else
@@ -160,7 +160,7 @@ bool QoreRegexNode::exec(const char* str, size_t len) const {
       break;
    }
 
-   //printd(5, "QoreRegexNode::exec(%s) this=%p pre_exec() rc=%d\n", str, this, rc);   
+   //printd(5, "QoreRegexNode::exec(%s) this=%p pre_exec() rc=%d\n", str, this, rc);
    return rc >= 0;
 }
 
@@ -168,13 +168,13 @@ QoreListNode* QoreRegexNode::extractSubstrings(const QoreString* target, Excepti
    TempEncodingHelper t(target, QCS_UTF8, xsink);
    if (!t)
       return 0;
-   
+
    ReferenceHolder<QoreListNode> l(xsink);
 
    int offset = 0;
 
    int vsize = OVECCOUNT;
-   
+
    while (true) {
       if (offset >= (int)t->strlen())
          break;
@@ -197,7 +197,7 @@ QoreListNode* QoreRegexNode::extractSubstrings(const QoreString* target, Excepti
 	 }
 	 continue;
       }
-      
+
       if (rc < 1)
          break;
 
@@ -226,7 +226,7 @@ QoreListNode* QoreRegexNode::extractSubstrings(const QoreString* target, Excepti
       if (!global)
          break;
    }
-   
+
    return l.release();
 }
 

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 print_usage ()
 {
@@ -33,10 +33,13 @@ else
 fi
 
 QORE=""
+QR=""
+QORE_LIB_PATH="./lib/.libs:./qlib:$LD_LIBRARY_PATH"
 
 # Test that qore is built.
-if [ -s "./qr" ] && [ -r "./lib/.libs/libqore.so" ]; then
-    QORE="./qr"
+if [ -s "./.libs/qore" ] && [ -f "./qore" ] && [ -r "./lib/.libs/libqore.so" -o "./lib/.libs/libqore.dylib" ]; then
+    QORE="./qore"
+    QR="./qr"
 else
     echo "Qore is not built. Exiting."
     exit 1
@@ -58,7 +61,7 @@ for test in $TESTS; do
         echo "Running test ($i/$TEST_COUNT): $test"
         echo "-------------------------------------"
     fi
-    
+
     if [ "$test" = "./examples/test/qore/classes/FtpClient/FtpClient.qtest" ]; then
         echo "Skipping $test because it doesn't really test what it should. Need to fix it."
         echo "-------------------------------------"; echo
@@ -66,10 +69,10 @@ for test in $TESTS; do
         i=$((i+1))
         continue
     fi
-    
+
     # Run single test.
-    $QORE $test $TEST_OUTPUT_FORMAT
-    
+    QORE_MODULE_DIR=./qlib:$QORE_MODULE_DIR LD_LIBRARY_PATH=$QORE_LIB_PATH $QORE $test $TEST_OUTPUT_FORMAT
+
     if [ $? -eq 0 ]; then
         PASSED_TEST_COUNT=$((PASSED_TEST_COUNT+1))
     else
@@ -100,9 +103,8 @@ if [ $PRINT_TEXT -eq 1 ]; then
             echo $test
         done
     fi
-    
+
     echo "*************************************"
 fi
 
 exit $FAILED_TEST_COUNT
-

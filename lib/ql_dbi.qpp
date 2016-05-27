@@ -135,8 +135,8 @@ namespace Qore::SQL;
     @return a @ref datasource_hash "datasource hash" of the components of a datasource string
 
     @par Example:
-    @code
-my hash $h = parse_datasource("pgsql:user/pass@dbname(utf8)%dbhost.internal:1521{min=4,max=10}");
+    @code{.py}
+hash h = parse_datasource("pgsql:user/pass@dbname(utf8)%dbhost.internal:1521{min=4,max=10}");
     @endcode
 
     @throw DATASOURCE-PARSE-ERROR a syntax error occurred parsing the datasource string (missing field, unexpected character, etc)
@@ -154,8 +154,8 @@ hash parse_datasource(string ds) [flags=RET_VALUE_ONLY] {
     @return a list of strings of DBI drivers currently loaded or @ref nothing if no drivers are loaded
 
     @par Example:
-    @code
-my *list $l = dbi_get_driver_list();
+    @code{.py}
+*list l = dbi_get_driver_list();
     @endcode
 
     @note similar to getDBIDriverList() except uses the standard function naming scheme (ie \c "names_like_this()" instead of \c "camelCase()")
@@ -173,8 +173,8 @@ my *list $l = dbi_get_driver_list();
     @return a list of each capability supported by the given DBI driver (see @ref dbi_capabilities) or @ref nothing if the driver cannot be found
 
     @par Example:
-    @code
-my *list $l = dbi_get_driver_capability_list("pgsql");
+    @code{.py}
+*list l = dbi_get_driver_capability_list("pgsql");
     @endcode
 
     @note similar to getDBIDriverCapabilityList() except uses the standard function naming scheme (ie \c "names_like_this()" instead of \c "camelCase()") and does not have a @ref NOOP variant
@@ -192,8 +192,8 @@ my *list $l = dbi_get_driver_capability_list("pgsql");
     @return an integer representing the capabilities of a DBI driver binary-OR'ed together (see @ref dbi_capabilities) or 0 if the driver is not already loaded
 
     @par Example:
-    @code
-my int $caps = dbi_get_driver_capabilities("pgsql");
+    @code{.py}
+int caps = dbi_get_driver_capabilities("pgsql");
     @endcode
 
     @note similar to getDBIDriverCapabilities() except uses the standard function naming scheme (ie \c "names_like_this()" instead of \c "camelCase()"), always returns an @ref int_type, and does not have a @ref NOOP variant
@@ -214,8 +214,8 @@ int dbi_get_driver_capabilities(string driver) [flags=CONSTANT] {
     - \c "type": a string giving the data type restriction for the option
 
     @par Example:
-    @code
-my *hash $h = dbi_get_driver_options("pgsql");
+    @code{.py}
+*hash h = dbi_get_driver_options("pgsql");
     @endcode
 
     @since %Qore 0.8.6

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,7 @@
 #include <sys/types.h>
 
 #ifdef HAVE_SYS_STATVFS_H
+#define Q_HAVE_STATVFS
 #include <sys/statvfs.h>
 #endif
 #include <sys/stat.h>
@@ -138,9 +139,8 @@ DLLLOCAL inline bool qore_check_this(const void* p) {
    return p;
 }
 
-DLLLOCAL bool is_container(const AbstractQoreNode* n);
-// returns true if the container has objects or false if not
-DLLLOCAL bool get_container_obj(const AbstractQoreNode* n);
+// returns true if the node needs to be scanned for recursive references or not
+DLLLOCAL bool needs_scan(const AbstractQoreNode* n);
 // increments or decrements the object count depending on the sign of the argument (cannot be 0)
 DLLLOCAL void inc_container_obj(const AbstractQoreNode* n, int dt);
 
@@ -281,6 +281,25 @@ static inline long long atoll(const char* str) {
 typedef std::set<const AbstractQoreNode*> const_node_set_t;
 typedef std::set<LocalVar*> lvar_set_t;
 
+class LVarSet : public lvar_set_t {
+protected:
+   // true if at least one variable in the set could contain an object or a closure (also through a container)
+   bool needs_scan;
+
+public:
+   // creates the object
+   DLLLOCAL LVarSet() : needs_scan(false) {
+   }
+
+   // adds a local variable to the set
+   DLLLOCAL void add(LocalVar* var);
+
+   // returns true if at least one variable in the set could contain an object or a closure (also through a container)
+   DLLLOCAL bool needsScan() const {
+      return needs_scan;
+   }
+};
+
 enum obe_type_e { OBE_Unconditional, OBE_Success, OBE_Error };
 
 class StatementBlock;
@@ -320,6 +339,41 @@ DLLLOCAL extern QoreClass* QC_PSEUDOVALUE;
 DLLLOCAL extern QoreClass* QC_PSEUDONOTHING;
 
 DLLLOCAL bool node_has_effect(const AbstractQoreNode* n);
+
+#ifdef _Q_WINDOWS
+// simulated block size for statvfs() on Windows
+#define Q_SVF_BSIZE 4096
+#define Q_HAVE_STATVFS
+struct statvfs {
+   unsigned long   f_bsize;        /* File system block size */
+   unsigned long   f_frsize;       /* Fundamental file system block size */
+   unsigned int    f_blocks;       /* Blocks on FS in units of f_frsize */
+   unsigned int    f_bfree;        /* Free blocks */
+   unsigned int    f_bavail;       /* Blocks available to non-root */
+   unsigned int    f_files;        /* Total inodes */
+   unsigned int    f_ffree;        /* Free inodes */
+   unsigned int    f_favail;       /* Free inodes for non-root */
+   unsigned long   f_fsid;         /* Filesystem ID */
+   unsigned long   f_flag;         /* Bit mask of values */
+   unsigned long   f_namemax;      /* Max file name length */
+
+   DLLLOCAL void set(int64 avail, int64 total, int64 free) {
+      f_frsize = f_bsize = Q_SVF_BSIZE;
+      f_blocks = total / Q_SVF_BSIZE;
+      f_bfree = free / Q_SVF_BSIZE;
+      f_bavail = avail / Q_SVF_BSIZE;
+      // simulate inodes
+      f_files = f_blocks / 8;
+      f_ffree = f_bfree / 8;
+      f_favail = f_bavail / 8;
+      f_fsid = 0;
+      f_flag = 0;
+      f_namemax = 256;
+   }
+};
+DLLLOCAL int statvfs(const char* path, struct statvfs* buf);
+DLLLOCAL int q_fstatvfs(const char* filepath, struct statvfs* buf);
+#endif
 
 #include <qore/intern/NamedScope.h>
 #include <qore/intern/QoreTypeInfo.h>
@@ -581,6 +635,8 @@ public:
 
    DLLLOCAL hash_assignment_priv(ExceptionSink* xsink, QoreHashNode& n_h, const QoreString* key, bool must_already_exist = false);
 
+   DLLLOCAL void reassign(const char* key, bool must_already_exist = false);
+
    DLLLOCAL AbstractQoreNode* swapImpl(AbstractQoreNode* v);
 
    DLLLOCAL AbstractQoreNode* getValueImpl() const;
@@ -799,6 +855,7 @@ DLLLOCAL DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const
 DLLLOCAL QoreHashNode* date_info(const DateTime& d);
 DLLLOCAL void init_charmaps();
 DLLLOCAL int do_unaccent(QoreString& str, const QoreString& src, ExceptionSink* xsink);
+DLLLOCAL int do_unaccent(QoreString& str, const QoreString& src, ExceptionSink* xsink);
 DLLLOCAL int do_tolower(QoreString& str, const QoreString& src, ExceptionSink* xsink);
 DLLLOCAL int do_toupper(QoreString& str, const QoreString& src, ExceptionSink* xsink);
 
@@ -816,7 +873,6 @@ DLLLOCAL const char* q_find_last_path_sep(const char* path);
 
 // reutrns the given file's mode or 0 if the stat() call fails
 DLLLOCAL int q_get_mode(const QoreString& path);
-
 //! returns the byte length of the next UTF-8 character or 0 for an encoding error or a negative number if the string is too short to represent the character
 /** FIXME: change return type to qore_offset_t
  */

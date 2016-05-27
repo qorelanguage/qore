@@ -9,16 +9,17 @@
     <tt>[@ref mod_public "public"] <b>const</b></tt> <em>@ref namespace_paths "[namespace_path::]"constant_identifier</em> <tt>=</tt> <em>@ref expressions "initialization_expression"</em>;
 
     @par Example
-    @code
+    @code{.py}
 const PI_SQUARED = pow(Qore::M_PI, 2);
     @endcode
 
     When defining a @ref user_modules "user module", constant definitions can be preceded by @ref mod_public "public", which means that the constant will be available (imported) in the @ref Qore::Program "Program" object importing the module.  Note that however the @ref mod_public "public" keyword cannot be used when defining class constants in a public or private declaration block.  See @ref mod_public "public" for more information.
 
-    @since 0.8.1 The expression used to initialize a constant can be any valid @ref expressions "Qore expression" as long as no variables are referenced. 
+    @since 0.8.1 The expression used to initialize a constant can be any valid @ref expressions "Qore expression" as long as no variables are referenced.
 
-    @note It is bad programming practice to assign a constant with an expression that has side effects. Furthermore if an expression used to initialize a constant throws an exception, that exception cannot be caught in the program being defined.\n\n
-    The order that constants are initialized and assigned does not necessarily correspond to declaration order, however constants may be defined using the values of other constants; if a circular reference is detected a parse exception is raised.\n\n
-    Constants are resolved in the second stage of parsing (during the parse commit stage, see also @ref Qore::Program::parseCommit() "Program::parseCommit()"\n\n
-    Classes can also declare constants; see @ref class_constants for more information.
+    @note
+    - It is bad programming practice to assign a constant with an expression that has side effects. Furthermore if an expression used to initialize a constant throws an exception, that exception cannot be caught in the program being defined.
+    - The order that constants are initialized and assigned does not necessarily correspond to declaration order, however constants may be defined using the values of other constants; if a circular reference is detected a parse exception is raised.
+    - Constants are resolved in the second stage of parsing (during the parse commit stage, see also @ref Qore::Program::parseCommit() "Program::parseCommit()"
+    - Classes can also declare constants; see @ref class_constants "Class Constants" for more information.
 */
