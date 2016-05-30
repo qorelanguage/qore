@@ -26,6 +26,7 @@ class InfNanTest inherits QUnit::Test {
         addTestCase("int - number tests", \intNumberTests());
         addTestCase("float - int tests", \floatIntTests());
         addTestCase("int - float tests", \intFloatTests());
+        addTestCase("nan switch tests", \nanSwitchTests());
         set_return_value(main());
     }
 
@@ -363,5 +364,127 @@ class InfNanTest inherits QUnit::Test {
         assertFalse(1 > @nan@);
         assertFalse(1 >= @nan@);
         assertThrows(NAN_CMP_ERR, sub() { int x = 1 <=> @nan@; });
+    }
+
+    nanSwitchTests() {
+        switch (@nan@) { # all float
+            case 1.0:
+                fail();
+            case <= 1.0:
+                fail();
+            case > 1.0:
+                fail();
+            case >= 1.0:
+                fail();
+            case < 1.0:
+                fail();
+            default:
+                break;
+        }
+
+        switch (@nan@n) { # all number
+            case 1.0n:
+                fail();
+            case <= 1.0n:
+                fail();
+            case > 1.0n:
+                fail();
+            case >= 1.0n:
+                fail();
+            case < 1.0n:
+                fail();
+            default:
+                break;
+        }
+
+        switch (@nan@) { # float nan, number other
+            case 1.0n:
+                fail();
+            case <= 1.0n:
+                fail();
+            case > 1.0n:
+                fail();
+            case >= 1.0n:
+                fail();
+            case < 1.0n:
+                fail();
+            default:
+                break;
+        }
+
+        switch (@nan@n) { # number nan, float other
+            case 1.0:
+                fail();
+            case <= 1.0:
+                fail();
+            case > 1.0:
+                fail();
+            case >= 1.0:
+                fail();
+            case < 1.0:
+                fail();
+            default:
+                break;
+        }
+
+        switch (1.0) { # all float
+            case @nan@:
+                fail();
+            case <= @nan@:
+                fail();
+            case > @nan@:
+                fail();
+            case >= @nan@:
+                fail();
+            case < @nan@:
+                fail();
+            default:
+                break;
+        }
+
+        switch (1.0n) { # all number
+            case @nan@n:
+                fail();
+            case <= @nan@n:
+                fail();
+            case > @nan@n:
+                fail();
+            case >= @nan@n:
+                fail();
+            case < @nan@n:
+                fail();
+            default:
+                break;
+        }
+
+        switch (1.0) { # float 1, number nan
+            case @nan@n:
+                fail();
+            case <= @nan@n:
+                fail();
+            case > @nan@n:
+                fail();
+            case >= @nan@n:
+                fail();
+            case < @nan@n:
+                fail();
+            default:
+                break;
+        }
+
+        switch (1.0n) { # number 1, float nan
+            case @nan@:
+                fail();
+            case <= @nan@:
+                fail();
+            case > @nan@:
+                fail();
+            case >= @nan@:
+                fail();
+            case < @nan@:
+                fail();
+            default:
+                break;
+        }
     }
 }
