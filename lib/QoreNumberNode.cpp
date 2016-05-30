@@ -481,16 +481,48 @@ bool QoreNumberNode::lessThan(const QoreNumberNode& n) const {
    return priv->lessThan(*n.priv);
 }
 
+bool QoreNumberNode::lessThan(double n) const {
+   return priv->lessThan(n);
+}
+
+bool QoreNumberNode::lessThan(int64 n) const {
+   return priv->lessThan(n);
+}
+
 bool QoreNumberNode::lessThanOrEqual(const QoreNumberNode& n) const {
    return priv->lessThanOrEqual(*n.priv);
+}
+
+bool QoreNumberNode::lessThanOrEqual(double n) const {
+   return priv->lessThanOrEqual(n);
+}
+
+bool QoreNumberNode::lessThanOrEqual(int64 n) const {
+   return priv->lessThanOrEqual(n);
 }
 
 bool QoreNumberNode::greaterThan(const QoreNumberNode& n) const {
    return priv->greaterThan(*n.priv);
 }
 
+bool QoreNumberNode::greaterThan(double n) const {
+   return priv->greaterThan(n);
+}
+
+bool QoreNumberNode::greaterThan(int64 n) const {
+   return priv->greaterThan(n);
+}
+
 bool QoreNumberNode::greaterThanOrEqual(const QoreNumberNode& n) const {
    return priv->greaterThanOrEqual(*n.priv);
+}
+
+bool QoreNumberNode::greaterThanOrEqual(double n) const {
+   return priv->greaterThanOrEqual(n);
+}
+
+bool QoreNumberNode::greaterThanOrEqual(int64 n) const {
+   return priv->greaterThanOrEqual(n);
 }
 
 bool QoreNumberNode::equals(const QoreNumberNode& n) const {
