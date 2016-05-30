@@ -408,27 +408,27 @@ static double op_multiply_float(double left, double right) {
 }
 
 static bool op_log_lt_number(const QoreNumberNode* left, const QoreNumberNode* right) {
-   return left->compare(*right) < 0;
+   return left->lessThan(*right);
 }
 
 static bool op_log_le_number(const QoreNumberNode* left, const QoreNumberNode* right) {
-   return left->compare(*right) <= 0;
+   return left->lessThanOrEqual(*right);
 }
 
 static bool op_log_gt_number(const QoreNumberNode* left, const QoreNumberNode* right) {
-   return left->compare(*right) > 0;
+   return left->greaterThan(*right);
 }
 
 static bool op_log_ge_number(const QoreNumberNode* left, const QoreNumberNode* right) {
-   return left->compare(*right) >= 0;
+   return left->greaterThanOrEqual(*right);
 }
 
 static bool op_log_eq_number(const QoreNumberNode* left, const QoreNumberNode* right) {
-   return !left->compare(*right);
+   return left->equals(*right);
 }
 
 static bool op_log_ne_number(const QoreNumberNode* left, const QoreNumberNode* right) {
-   return (bool)left->compare(*right);
+   return !left->equals(*right);
 }
 
 static int64 op_cmp_number(const QoreNumberNode* left, const QoreNumberNode* right) {

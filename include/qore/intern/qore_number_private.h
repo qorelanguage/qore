@@ -257,6 +257,40 @@ struct qore_number_private : public qore_number_private_intern {
       return formatNumberString(str, fmt, xsink);
    }
 
+   DLLLOCAL bool lessThan(const qore_number_private& right) const {
+      return mpfr_less_p(num, right.num);
+   }
+
+   DLLLOCAL bool lessThanOrEqual(const qore_number_private& right) const {
+      return mpfr_lessequal_p(num, right.num);
+   }
+
+   DLLLOCAL bool greaterThan(const qore_number_private& right) const {
+      return mpfr_greater_p(num, right.num);
+   }
+
+   DLLLOCAL bool greaterThanOrEqual(const qore_number_private& right) const {
+      return mpfr_greaterequal_p(num, right.num);
+   }
+
+   DLLLOCAL bool equals(const qore_number_private& right) const {
+      return mpfr_equal_p(num, right.num);
+   }
+
+   DLLLOCAL bool equals(double right) const {
+      if (mpfr_nan_p(num) || isnan(right)) // If any of the "numbers" is NaN.
+         return false;
+      return 0 == mpfr_cmp_d(num, right);
+   }
+
+   DLLLOCAL bool equals(int64 right) const {
+      MPFR_DECL_INIT(r, QORE_DEFAULT_PREC);
+      if (mpfr_nan_p(num)) // If the number is NaN.
+         return false;
+      mpfr_set_sj(r, right, QORE_MPFR_RND);
+      return mpfr_equal_p(num, r);
+   }
+
    DLLLOCAL int compare(const qore_number_private& right) const {
       return mpfr_cmp(num, right.num);
    }
