@@ -221,14 +221,38 @@ public:
    //! returns true if the current object is less than the argument
    DLLEXPORT bool lessThan(const QoreNumberNode& n) const;
 
+   //! returns true if the current object is less than the argument
+   DLLEXPORT bool lessThan(double n) const;
+
+   //! returns true if the current object is less than the argument
+   DLLEXPORT bool lessThan(int64 n) const;
+
    //! returns true if the current object is less than or equal to the argument
    DLLEXPORT bool lessThanOrEqual(const QoreNumberNode& n) const;
+
+   //! returns true if the current object is less than or equal to the argument
+   DLLEXPORT bool lessThanOrEqual(double n) const;
+
+   //! returns true if the current object is less than or equal to the argument
+   DLLEXPORT bool lessThanOrEqual(int64 n) const;
 
    //! returns true if the current object is greater than the argument
    DLLEXPORT bool greaterThan(const QoreNumberNode& n) const;
 
+   //! returns true if the current object is greater than the argument
+   DLLEXPORT bool greaterThan(double n) const;
+
+   //! returns true if the current object is greater than the argument
+   DLLEXPORT bool greaterThan(int64 n) const;
+
    //! returns true if the current object is greater than or equal to the argument
    DLLEXPORT bool greaterThanOrEqual(const QoreNumberNode& n) const;
+
+   //! returns true if the current object is greater than or equal to the argument
+   DLLEXPORT bool greaterThanOrEqual(double n) const;
+
+   //! returns true if the current object is greater than or equal to the argument
+   DLLEXPORT bool greaterThanOrEqual(int64 n) const;
 
    //! returns true if the current object is equal to the argument
    DLLEXPORT bool equals(const QoreNumberNode& n) const;
