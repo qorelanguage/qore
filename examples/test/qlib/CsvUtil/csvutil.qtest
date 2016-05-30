@@ -31,10 +31,10 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
 ";
 
         const CsvMultiRecords = (
-            ("type": 1, "invoice_no": "2016-01", "date": 2016-04-01),
-            ("type": 2, "item_no": 123, "item": "Sony, Xperia S", "pcs": 1, "price": 100),
-            ("type": 2, "item_no": 124, "item": "Nokia, Lumia", "pcs": 2, "price": 150),
-            ("type": 3, "total": 250),
+            ("type": "header", "record": ("type": 1, "invoice_no": "2016-01", "date": 2016-04-01)),
+            ("type": "item", "record": ("type": 2, "item_no": 123, "item": "Sony, Xperia S", "pcs": 1, "price": 100)),
+            ("type": "item", "record": ("type": 2, "item_no": 124, "item": "Nokia, Lumia", "pcs": 2, "price": 150)),
+            ("type": "footer", "record": ("type": 3, "total": 250)),
         );
 }
 
@@ -62,49 +62,61 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
         # test with empty data and header lines
         i = new CsvDataIterator("", ("header-lines": 1));
         testAssertion("CsvDataIterator 2", \i.next(), (), RESULT_FAILURE);
+
+        i = new CsvDataIterator("CaMeL,lilliput,SHREK\nRoW1,row1,ROW1\n", ("header-lines": 1, "header_names": True, "tolwr": True));
+        testAssertionValue("CsvDataIterator lwr 1", i.index(), 0);
+        testAssertionValue("CsvDataIterator lwr 1", i.lineNumber(), 0);
+        testAssertionValue("CsvDataIterator lwr 1", i.next(), True);
+        testAssertionValue("CsvDataIterator lwr 1", i.index(), 1);
+        testAssertionValue("CsvDataIterator lwr 1", i.lineNumber(), 2);
+        testAssertion("CsvDataIterator lwr 2", \equals(), (("camel": "RoW1", "lilliput": "row1", "shrek": "ROW1"), i.getValue()));
+        testAssertionValue("CsvDataIterator lwr 3", i.getHeaders(), ("camel", "lilliput", "shrek"));
+        testAssertionValue("CsvDataIterator lwr 4", i.next(), False);
+
+        i = new CsvDataIterator("CaMeL,lilliput,SHREK\nRoW1,row1,ROW1\n", ("header-lines": 1, "header_names": True, ));
+        testAssertionValue("CsvDataIterator !lwr 1", i.next(), True);
+        testAssertion("CsvDataIterator !lwr 2", \equals(), (("CaMeL": "RoW1", "lilliput": "row1", "SHREK": "ROW1"), i.getValue()));
+        testAssertionValue("CsvDataIterator !lwr 3", i.getHeaders(), ("CaMeL", "lilliput", "SHREK"));
+
+        i = new CsvDataIterator("CaMeL,lilliput,SHREK\nRoW1,row1,ROW1\n", ("header-lines": 0, "header_names": False, "tolwr": True, "headers": ("CaMeL","lilliput","SHREK")));
+        testAssertionValue("CsvDataIterator lwr h 1", i.getHeaders(), ("camel", "lilliput", "shrek"));
+
+        i = new CsvDataIterator("row1-1,row1-2,row1-3\n", ("header-lines": 0, "header_names": False, ));
+        testAssertionValue("CsvDataIterator header by idx 1", i.next(), True);
+        testAssertion("CsvDataIterator header by idx 2", \equals(), (("0": "row1-1", "1": "row1-2", "2": "row1-3"), i.getValue()));
+        testAssertion("CsvDataIterator header by idx 3", \equals(), (("row1-1", "row1-2", "row1-3"), i.getRecordList()));
+        testAssertionValue("CsvDataIterator header by idx 4", i.getHeaders(), ("0", "1", "2"));
     }
 
-    csvMultiTest() {
-        *hash opts = (
-            "fields": (
-                "type": "int",
-
+    csvMultiTest() { return;
+        hash spec = (
+            "header": (
+                "type": ("type": "int", "value": 1),
                 "invoice_no": "string",
                 "date": ("type": "date", "format": "YYYYMMDD"),
-
+            ),
+            "item": (
+                "type": "int",
                 "item_no": "string",
                 "item": "string",
                 "pcs": "int",
                 "price": "number",
-
+            ),
+            "footer": (
+                "type": "int",
                 "total": "number",
             ),
-            "headers": (
-                "header": ("type", "invoice_no", "date"),
-                "item":   ("type", "item_no", "item", "pcs", "price"),
-                "footer": ("type", "total"),
-            ),
-            "resolve_type": string sub(hash values) {
-                softint type = values{'type'}??values{'0'};
-                switch (type) {
-                    case 1:
-                        return "header";
-                    case 2:
-                        return "item";
-                    case 3:
-                        return "footer";
-                }
-                return '';
-            },
+        );
+        hash opts = hash(
         );
 
         # Iterate through source
-        CsvDataIterator i(CsvMultiInput, opts);
+        CsvDataIterator i(CsvMultiInput, spec, ("multi_type": True) + opts);
 
         #list l = map $1, i;
         testAssertion("multi iterator ", \equalsIterated(), (new ListIterator(CsvMultiRecords), i));
 
-        CsvStringWriter w( ("write-headers": False, "optimal-quotes" : True, "quote_escape" : '"')+opts );
+        CsvStringWriter w( spec, ("write-headers": False, "optimal-quotes" : True, "quote_escape" : '"')+opts );
         string outstr = w.write(CsvMultiRecords);
         testAssertion("multi writer", \equals(), (CsvMultiInput, outstr));
 
@@ -132,20 +144,20 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
         outstr = w.write(CsvRecords.iterator());
         assertEq("XX,serno,desc,received\n" + CsvInput + "\n", outstr);
     }
-/*
+
     csvData() {
-        my hash opts = ("fields": ("id": "int", "name": "string", "descr": "string"));
-        const CsvInput2 = "1,UK,United Kingdom
+        hash opts = ("fields": ("id": "int", "name": "string", "descr": "string"));
+        string CsvInput2 = "1,UK,United Kingdom
 2,AT,Austria
 3,CZ,Czech rep.
 4,IE,Ireland
 ";
-        const Output = (
+        list Output = (
             {"id": 1, "name": "UK", "descr": "United Kingdom"},
             {"id": 2, "name": "AT", "descr": "Austria"},
             {"id": 3, "name": "UK", "descr": "Czech rep."},
             {"id": 4, "name": "IE", "descr": "Ireland"},
-        };
+        );
 
         # Iterate through source
         CsvDataIterator i(CsvInput, opts);
@@ -153,5 +165,5 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
         testAssertion("CsvDataIterator 2", \equalsIterated(), (i, new ListIterator(Output)));
 
     }
-*/
+
 }
