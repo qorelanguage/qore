@@ -218,6 +218,27 @@ public:
    //! returns -1 if the number is negative, 0 if zero, or 1 if the number is positive
    DLLEXPORT int sign() const;
 
+   //! returns true if the current object is less than the argument
+   DLLEXPORT bool lessThan(const QoreNumberNode& n) const;
+
+   //! returns true if the current object is less than or equal to the argument
+   DLLEXPORT bool lessThanOrEqual(const QoreNumberNode& n) const;
+
+   //! returns true if the current object is greater than the argument
+   DLLEXPORT bool greaterThan(const QoreNumberNode& n) const;
+
+   //! returns true if the current object is greater than or equal to the argument
+   DLLEXPORT bool greaterThanOrEqual(const QoreNumberNode& n) const;
+
+   //! returns true if the current object is equal to the argument
+   DLLEXPORT bool equals(const QoreNumberNode& n) const;
+
+   //! returns true if the current object is equal to the argument
+   DLLEXPORT bool equals(double n) const;
+
+   //! returns true if the current object is equal to the argument
+   DLLEXPORT bool equals(int64 n) const;
+
    //! compares the argument to the current object, returns -1 if the current object is less than the argument, 0 if equals, and 1 if greater than the argument
    DLLEXPORT int compare(const QoreNumberNode& n) const;
 

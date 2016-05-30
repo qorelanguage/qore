@@ -406,18 +406,18 @@ AbstractQoreNode* QoreNumberNode::realCopy() const {
 // the type passed must always be equal to the current type
 bool QoreNumberNode::is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const {
    if (v->getType() == NT_NUMBER)
-      return !priv->compare(*reinterpret_cast<const QoreNumberNode*>(v)->priv);
+      return equals(*reinterpret_cast<const QoreNumberNode*>(v));
    if (v->getType() == NT_INT || dynamic_cast<const QoreBigIntNode*>(v))
-      return !priv->compare(reinterpret_cast<const QoreBigIntNode*>(v)->val);
+      return equals(reinterpret_cast<const QoreBigIntNode*>(v)->val);
 
-   return !priv->compare(v->getAsFloat());
+   return equals(v->getAsFloat());
 }
 
 bool QoreNumberNode::is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const {
    if (v->getType() != NT_NUMBER)
       return false;
    const QoreNumberNode* n = reinterpret_cast<const QoreNumberNode*>(v);
-   return !priv->compare(*n->priv);
+   return equals(*n);
 }
 
 // returns the type name as a c string
@@ -475,6 +475,34 @@ QoreNumberNode* QoreNumberNode::doDivideBy(int64 i, ExceptionSink* xsink) const 
 
 QoreNumberNode* QoreNumberNode::negate() const {
    return new QoreNumberNode(priv->negate());
+}
+
+bool QoreNumberNode::lessThan(const QoreNumberNode& n) const {
+   return priv->lessThan(*n.priv);
+}
+
+bool QoreNumberNode::lessThanOrEqual(const QoreNumberNode& n) const {
+   return priv->lessThanOrEqual(*n.priv);
+}
+
+bool QoreNumberNode::greaterThan(const QoreNumberNode& n) const {
+   return priv->greaterThan(*n.priv);
+}
+
+bool QoreNumberNode::greaterThanOrEqual(const QoreNumberNode& n) const {
+   return priv->greaterThanOrEqual(*n.priv);
+}
+
+bool QoreNumberNode::equals(const QoreNumberNode& n) const {
+   return priv->equals(*n.priv);
+}
+
+bool QoreNumberNode::equals(double n) const {
+   return priv->equals(n);
+}
+
+bool QoreNumberNode::equals(int64 n) const {
+   return priv->equals(n);
 }
 
 int QoreNumberNode::compare(const QoreNumberNode& n) const {
