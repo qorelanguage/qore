@@ -41,8 +41,8 @@
 class EncodingConversionInputStream : public ConversionInputStreamBase<> {
 
 public:
-   DLLLOCAL EncodingConversionInputStream(QoreObject *isObj, InputStream *is, const QoreEncoding *srcEncoding,
-         const QoreEncoding *dstEncoding, ExceptionSink *xsink) : ConversionInputStreamBase(isObj, is, xsink),
+   DLLLOCAL EncodingConversionInputStream(InputStream *is, const QoreEncoding *srcEncoding,
+         const QoreEncoding *dstEncoding, ExceptionSink *xsink) : ConversionInputStreamBase(is, xsink),
          conv(dstEncoding, srcEncoding, xsink) {
    }
 

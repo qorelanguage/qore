@@ -39,6 +39,29 @@ class SrcStream inherits InputStream {
     }
 }
 
+our bool destroyed;
+
+class DestructMockStream inherits InputStream {
+    public {
+        EncodingConversionInputStream c;
+    }
+
+    destructor() {
+        destroyed = True;
+    }
+
+    close() {
+    }
+
+    int read(timeout timeout_ms = -1) {
+        throw "UNEXPECTED-CALL";
+    }
+
+    *binary bulkRead(int limit, timeout timeout_ms = -1) {
+        throw "UNEXPECTED-CALL";
+    }
+}
+
 public class EncodingConversionInputStreamTest inherits QUnit::Test {
 
     constructor() : Test("EncodingConversionInputStreamTest", "1.0") {
@@ -48,6 +71,7 @@ public class EncodingConversionInputStreamTest inherits QUnit::Test {
         addTestCase("close", \close());
         addTestCase("invalid", \invalid());
         addTestCase("invalidAtEnd", \invalidAtEnd());
+        addTestCase("circular reference", \circRef());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -103,5 +127,15 @@ public class EncodingConversionInputStreamTest inherits QUnit::Test {
         assertEq(0xA9, is.read());
         assertThrows("ENCODING-CONVERSION-ERROR", sub() { is.read(); });
         assertThrows("ENCODING-CONVERSION-ERROR", sub() { is.read(); });
+    }
+
+    circRef() {
+        destroyed = False;
+        {
+            DestructMockStream src(\destroyed);
+            EncodingConversionInputStream is(src, "UTF-8", "ISO8859-2");
+            src.c = is;
+        }
+        assertTrue(destroyed);
     }
 }

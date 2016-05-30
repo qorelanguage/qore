@@ -42,7 +42,7 @@
     }
     @endcode
  */
-qclass EncodingConversionInputStream [arg=EncodingConversionInputStream* is; ns=Qore; vparent=InputStream; flags=final];
+qclass EncodingConversionInputStream [arg=EncodingConversionInputStream* is; ns=Qore; vparent=InputStream; flags=final; private_members=InputStream is;];
 
 //! Creates the EncodingConversionInputStream based on the \ref InputStream given
 /**
@@ -52,10 +52,10 @@ qclass EncodingConversionInputStream [arg=EncodingConversionInputStream* is; ns=
     @throw ENCODING-CONVERSION-ERROR if either of the encodings is unsupported
  */
 EncodingConversionInputStream::constructor(Qore::InputStream[InputStream] is, string sourceEncoding, string destEncoding) {
-   obj_is->ref();
    SimpleRefHolder<EncodingConversionInputStream> ecis(new EncodingConversionInputStream(
-         const_cast<QoreObject *>(obj_is), is, QEM.findCreate(sourceEncoding), QEM.findCreate(destEncoding), xsink));
+         is, QEM.findCreate(sourceEncoding), QEM.findCreate(destEncoding), xsink));
    self->setPrivate(CID_ENCODINGCONVERSIONINPUTSTREAM, ecis.release());
+   self->setValue("is", static_cast<QoreObject *>(obj_is->refSelf()), xsink);
 }
 
 //! Closes the underlying input stream.

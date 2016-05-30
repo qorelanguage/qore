@@ -89,12 +89,10 @@ public:
 protected:
    /**
     * @brief Constructor.
-    * @param isObj the underlying input stream for reading the data to be converted, takes over its reference count
     * @param is the private data of `is`, takes over its reference count
     * @param xsink the exception sink (used in the destructor when dereferencing `isObj`)
     */
-   ConversionInputStreamBase(QoreObject *isObj, InputStream *is, ExceptionSink *xsink) : isObj(isObj, xsink),
-         is(is, xsink), eofReached(false) {
+   ConversionInputStreamBase(InputStream *is, ExceptionSink *xsink) : is(is, xsink), eofReached(false) {
    }
 
    /**
@@ -178,7 +176,6 @@ protected:
    };
 
 protected:
-   ReferenceHolder<QoreObject> isObj;
    ReferenceHolder<InputStream> is;
    Buffer inBuf;
    Buffer outBuf;
