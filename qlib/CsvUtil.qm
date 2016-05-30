@@ -360,13 +360,14 @@ printf("opts: %N\n", fields);
                                 switch (fh.key) {
                                     case "value":
                                     case "default":
-                                    case "header":
                                         h{fh.key} = fh.value;
                                         break;
                                     case "idx":
                                         if (int(fh.value) != fh.value)
                                             throw errname, sprintf("%s: field %y \"%s\" does not contain an integer value; %n vs. %n", fld_errs, hi.key, fh.key, int(fh.value), fh.value);
                                         h{fh.key} = int(fh.value);
+                                        break;
+                                    case "header":
                                     case "regex":
                                         if (fh.value.typeCode() != NT_STRING) {
                                             throw errname, sprintf("%s: field %y \"%s\" attributes expects a string value; got %y instead", fld_errs, hi.key, fh.key, fh.value.type());
@@ -439,7 +440,7 @@ public namespace CsvUtil {
         @section abstractcsviterator_options AbstractCsvIterator Constructor Option Hash Overview
         The AbstractCsvIterator class constructor takes an optional hash with possible keys given in the following table.  Note that
         key names are case-sensitive, and data types are soft (conversions are made when possible).
-TODO
+
         <b>AbstractCsvIterator Options</b>
         |!Option|!Data Type|!Description
         |\c "encoding"|@ref string|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
@@ -449,15 +450,19 @@ TODO
         |\c "ignore_empty"|@ref boolean|if @ref Qore::True "True" (the default) then empty lines will be ignored; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
         |\c "ignore_whitespace"|@ref boolean|if @ref Qore::True "True" (the default) then leading and trailing whitespace will be stripped from non-quoted fields; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
         |\c "header_names"|@ref boolean|if @ref Qore::True "True" then the object will parse the header names from the first header row, in this case \c "header_lines" must be &gt; 0. In case of multi-type lines \c "header_names" is mandatory @ref Qore::False "False".
-        |\c "header_lines"|@ref integer|the number of headers lines in the file (must be &gt; 0 if \c "header_names" is @ref Qore::True "True")
-        |\c "headers"|@ref list of strings|list of header / column names for the data iterated; if this is present, then \c "header_names" must be @ref Qore::False "False".
-TODO        |\c "headers"|@ref hash of lists of strings|Defines multi-type lines where key is name of type whose name is resolved by \c "resolve_type" custom function. Hash value is equal to \c "headers" as documented above.
-TODO        |\c "resolve_type"|@ref string sub(@ref hash values)|implement a custom function as @ref closure or @ref call_reference to inspect record value and return type name.\c "Values" keys are field indexes/positions. If \c ignore_empty is @ref Qore::False "False" and the function returns id not defined in \c headers then line is resolved as an empty record
+        |\c "header_lines"|@ref integer|the number of headers lines in the file (must be &gt; 0 if \c "header_names" is @ref Qore::True "True") be @ref Qore::False "False".
         |\c "verify_columns"|@ref boolean|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different
         column count than other lines, a \c CSVFILEITERATOR-DATA-ERROR exception is thrown
-TODO        |\c "fields"|@ref hash|the keys are column names (or numbers in case column names are not used) and the values are either strings (one of @ref abstractcsviterator_option_field_types giving the data type for the field) or a @ref abstractcsviterator_option_field_hash describing the field; also sets \a headers if not set automatically with \c "header_names"; if no field type is given, the default is \c "*string"
         |\c "timezone"|@ref string|the timezone to use when parsing dates (will be passed to @ref Qore::TimeZone::constructor())
         |\c "tolwr"|@ref boolean|if @ref Qore::True "True" then all header names will be converted to lower case letters
+
+        <b>AbstractCsvIterator Single-type-only Options </b>
+        |!Option|!Data Type|!Description
+        |\c "headers"|@ref list of strings|list of header / column names for the data iterated; if this is present, then \c "header_names" must         |\c "fields"|@ref hash|the keys are column names (or numbers in case column names are not used) and the values are either strings (one of @ref abstractcsviterator_option_field_types giving the data type for the field) or a @ref abstractcsviterator_option_field_hash describing the field; also sets \a headers if not set automatically with \c "header_names"; if no field type is given, the default is \c "*string"
+
+        <b>AbstractCsvIterator Multi-type-only Options </b>
+        |!Option|!Data Type|!Description
+        |\c "multi_type"|@ref boolean|if @ref Qore::True "True" then get functions will use extended hash with \"type\" and \"record\" members to provide type to calling party, Default: False
 
         @note the following options separated by dashes are still supported for backwards-compatibility:
         - \c "ignore-empty"
@@ -467,6 +472,9 @@ TODO        |\c "fields"|@ref hash|the keys are column names (or numbers in case
         - \c "verify-columns"
 
         @subsection abstractcsviterator_option_field_types Option Field Types
+        Fields are defined in order how the data are expected by user program. In this order are
+        data returned by get functions. There is exception because \c "headers" options sorts definition
+        that data correspond to \c "headers" field order.
 
         <b>AbstractCsvIterator Option Field Types</b>
         |!Name|!Description
@@ -483,13 +491,24 @@ TODO        |\c "fields"|@ref hash|the keys are column names (or numbers in case
 
         @subsection abstractcsviterator_option_field_hash Option Field Hash
         See @ref complex_example "here" for an example of using the hash field description in the @ref CsvUtil::CsvFileIterator::constructor() "constructor()".
-TODO
-        <b>AbstractCsvIterator Option Field Hash</b>
+
+        <b>AbstractCsvIterator Option Field Hash and Spec Hash</b>
+        Field specification is provided via options \"fields\" for old-style constructor or as separate parameter in new-style constructor supporting multi-type.
+
         |!Key|!Value Description
         |\c "type"|one of the @ref abstractcsviterator_option_field_types "option type values" giving the field type
         |\c "format"|used only with the \c "date" type; this is a @ref date_mask "date/time format mask" for parsing dates
         |\c "timezone"|used only with the \c "date" type; this value is passed to @ref Qore::TimeZone::constructor() and the resulting timezone is used to parse the date (this value overrides any default time zone for the object; use only in the rare case that date/time values from different time zones are present in different columns of the same file)
         |\c "code"|this is a @ref closure or @ref call_reference that takes a single argument of the value (after formatting with any optional \c "type" formats) and returns the value that will be output for the field
+
+        <b>Extra AbstractCsvIterator Spec Hash Options</b>
+        |!Key|!Value Description
+        |\c value|string|the value to use to compare to input data when determining the record type; if \v "value" is defined for a field, then \c "regex" cannot be defined (for iterator only)
+        |\c regex|string|the regular expression to use to apply to input data lines when determining the record type (for iterator only)
+        |\c header|string|field name as defined in Csv header line. It enables remapping from Csv to own name
+        |\c idx|int|index of field in Csv file. It enables mapping when Csv has not header
+        |\c default|any|Default output value (for writers only)
+
      */
     public class AbstractCsvIterator inherits Qore::AbstractIterator, private CsvHelper {
         private {
@@ -500,8 +519,8 @@ TODO
                 "fields": C_OPT1,
                 "header-lines": C_OPT1|C_OPT2,
                 "header_lines": C_OPT1|C_OPT2,
-                "header-names": C_OPT1,
-                "header_names": C_OPT1,
+                "header-names": C_OPT1|C_OPT2,
+                "header_names": C_OPT1|C_OPT2,
                 "headers": C_OPT1,
                 "ignore-empty": C_OPT1|C_OPT2,
                 "ignore_empty": C_OPT1|C_OPT2,
@@ -609,6 +628,8 @@ printf("ABSTRACTCSVITERATOR2: spec:%N\nopts:%N\n", spec, opts);
                     }
                 }
             }
+            if (headerNames && isMultiType())
+                throw errname, sprintf("\"header_names\" is True but multi-type is specified (%y)", m_specs);
             processSpec(getSpec2(spec));
         }
 
@@ -1235,14 +1256,9 @@ printf("m_resolve_by_idx: %N\n", m_resolve_by_idx);
         <b>AbstractCsvWriter Options</b>
         |!Option|!Data Type|!Description
         |\c "block"|@ref int|the block size when generating output based on a @ref Qore::SQL::SQLStatement "SQLStatement" source (default: \c 1000)
-        |\c "datamap"|@ref hash|a hash mapping actual data key names to the output field names, for use in case the data field names differ; does not have to include every data or output key; keys not present will be assumed to be mapped 1:1
         |\c "date_format"|@ref string|the default mask for date values formatting
         |\c "encoding"|@ref string|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
         |\c "eol"|@ref string|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
-        |\c "fields"|@ref hash|describes the data to be output; see @ref abstractcsviterator_option_field_hash "option field hash" and @ref abstractcsviterator_option_field_types "option field types" for more information on the possible values of this option; if no field type is given, the default is \c "*string"
-        |\c "headers"|@ref list of strings|list of header / column names for the data iterated.
-TODO        |\c "headers"|@ref hash of lists of strings|Defines multi-type lines where key is name of type whose name is resolved by \c "resolve-type" custom function. Hash value is equal to \c "headers" as documented above.
-TODO    |\c "resolve_type"|@ref string sub(@ref hash values)|implement a custom function as @ref closure or @ref call_reference to inspect record value and return type name. "Values" keys are field names or field index. If function returns id not existing in \c "headers" then record is skipped
         |\c "info_log"|@ref code|a call reference / closure for informational logging when performing bulk generation with write(Qore::SQL::SQLStatement); must take a single string argument
         |\c "optimal_quotes"|@ref boolean|set to @ref Qore::False "False" to disable optimal quoting; when optimal quoting is disabled, all fields are quoted regardless of type or content, when it is enabled, then fields are quoted only if they require quoting (i.e. they contain a quote or separator character); the default is @ref Qore::True "True"
         |\c "quote"|@ref string|the field quote character (default: \c '\"')
@@ -1250,6 +1266,12 @@ TODO    |\c "resolve_type"|@ref string sub(@ref hash values)|implement a custom 
         |\c "separator"|@ref string|the string separating the fields in the file (default: \c ",")
         |\c "verify_columns"|@ref boolean|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEWRITER-DATA-ERROR exception is thrown
         |\c "write_headers"|@ref boolean|set to @ref Qore::False "False" to suppress the output of headers; the default is @ref Qore::True "True", meaning to output headers if they are present. The value is @ref Qore::False "False" for multi-type lines.
+
+        <b>AbstractCsvIterator Single-type-only Options </b>
+        |!Option|!Data Type|!Description
+        |\c "datamap"|@ref hash|a hash mapping actual data key names to the output field names, for use in case the data field names differ; does not have to include every data or output key; keys not present will be assumed to be mapped 1:1
+        |\c "fields"|@ref hash|describes the data to be output; see @ref abstractcsviterator_option_field_hash "option field hash" and @ref abstractcsviterator_option_field_types "option field types" for more information on the possible values of this option; if no field type is given, the default is \c "*string"
+        |\c "headers"|@ref list of strings|list of header / column names for the data iterated.
 
         @note the following options with dashes in their names are supported for backwards-compatibility:
         - \c "date-format"
@@ -1261,7 +1283,7 @@ TODO    |\c "resolve_type"|@ref string sub(@ref hash values)|implement a custom 
         private {
             #! valid options for the object (a hash for quick lookups of valid keys)
             const Options = (
-                "block": True,
+                "block": C_OPT1|C_OPT2,
                 "datamap": C_OPT1,
                 "date_format": C_OPT1|C_OPT2,
                 "date-format": C_OPT1|C_OPT2,
@@ -1460,7 +1482,7 @@ printf("MSPEC: %y\n", m_specs);
                     }
                     case "verify_columns":
                     case "verify-columns": {
-                        checkElementCounts = parse_boolean(i.value);  # TODO: how used ?
+                        checkElementCounts = parse_boolean(i.value);
                         break;
                     }
                     case "write_headers":
