@@ -94,8 +94,7 @@ public class EncodingConversionInputStreamTest inherits QUnit::Test {
     }
 
     read() {
-        SrcStream src(<C5A0C48D>);
-        EncodingConversionInputStream is(src, "UTF-8", "ISO8859-2");
+        EncodingConversionInputStream is(new SrcStream(<C5A0C48D>), "UTF-8", "ISO8859-2");
         assertEq(0xA9, is.read());
         assertEq(0xE8, is.read());
         assertEq(-1, is.read());
@@ -103,8 +102,7 @@ public class EncodingConversionInputStreamTest inherits QUnit::Test {
     }
 
     bulkRead() {
-        SrcStream src(<C5A0C48D>);
-        EncodingConversionInputStream is(src, "UTF-8", "UTF-16BE");
+        EncodingConversionInputStream is(new SrcStream(<C5A0C48D>), "UTF-8", "UTF-16BE");
         assertThrows("INPUT-STREAM-ERROR", sub() { is.bulkRead(0); });
         assertThrows("INPUT-STREAM-ERROR", sub() { is.bulkRead(-2); });
         assertEq(<0160>, is.bulkRead(2));
@@ -115,15 +113,13 @@ public class EncodingConversionInputStreamTest inherits QUnit::Test {
     }
 
     invalid() {
-        SrcStream src(<C5C48D>);
-        EncodingConversionInputStream is(src, "UTF-8", "ISO8859-2");
+        EncodingConversionInputStream is(new SrcStream(<C5C48D>), "UTF-8", "ISO8859-2");
         assertThrows("ENCODING-CONVERSION-ERROR", sub() { is.read(); });
         assertThrows("ENCODING-CONVERSION-ERROR", sub() { is.read(); });
     }
 
     invalidAtEnd() {
-        SrcStream src(<C5A0C4>);
-        EncodingConversionInputStream is(src, "UTF-8", "ISO8859-2");
+        EncodingConversionInputStream is(new SrcStream(<C5A0C4>), "UTF-8", "ISO8859-2");
         assertEq(0xA9, is.read());
         assertThrows("ENCODING-CONVERSION-ERROR", sub() { is.read(); });
         assertThrows("ENCODING-CONVERSION-ERROR", sub() { is.read(); });

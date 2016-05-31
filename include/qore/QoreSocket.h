@@ -38,6 +38,7 @@
 #define _QORE_QORESOCKET_H
 
 #include <qore/Qore.h>
+#include <qore/OutputStream.h>
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -1200,6 +1201,17 @@ public:
        @note the timeout value applies to each read from the socket
    */
    DLLEXPORT int recv(int fd, qore_offset_t size, int timeout_ms);
+
+   //! receive data on the socket and write it to an output stream
+   /** The socket must be connected before this call is made.
+       @param os the output stream to write to
+       @param size the number of bytes to read from the socket, -1 to read until the socket is closed
+       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+       @param xsink the exception sink for OutputStream::bulkWrite()
+       @return 0 for OK, not 0 for error
+       @note the timeout value applies to each read from the socket and each write to the output stream
+   */
+   DLLEXPORT int recv(OutputStream *os, qore_offset_t size, int timeout_ms, ExceptionSink *xsink);
 
    //! send an HTTP request message on the socket
    /** The socket must be connected before this call is made.

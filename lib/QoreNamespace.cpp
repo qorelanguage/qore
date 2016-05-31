@@ -766,6 +766,15 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
 
    qore_ns_private::addNamespace(qns, get_thread_ns(qns));
 
+   // add stream classes
+   qns.addSystemClass(initInputStreamClass(qns));
+   qns.addSystemClass(initBinaryInputStreamClass(qns));
+   qns.addSystemClass(initFileInputStreamClass(qns));
+   qns.addSystemClass(initEncodingConversionInputStreamClass(qns));
+   qns.addSystemClass(initOutputStreamClass(qns));
+   qns.addSystemClass(initBinaryOutputStreamClass(qns));
+   qns.addSystemClass(initFileOutputStreamClass(qns));
+
    // add system object types
    qns.addSystemClass(initTimeZoneClass(qns));
    qns.addSystemClass(initSSLCertificateClass(qns));
@@ -810,13 +819,6 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    qns.addSystemClass(initSingleValueIteratorClass(qns));
    qns.addSystemClass(initRangeIteratorClass(qns));
    qns.addSystemClass(initTreeMapClass(qns));
-   qns.addSystemClass(initInputStreamClass(qns));
-   qns.addSystemClass(initBinaryInputStreamClass(qns));
-   qns.addSystemClass(initFileInputStreamClass(qns));
-   qns.addSystemClass(initEncodingConversionInputStreamClass(qns));
-   qns.addSystemClass(initOutputStreamClass(qns));
-   qns.addSystemClass(initBinaryOutputStreamClass(qns));
-   qns.addSystemClass(initFileOutputStreamClass(qns));
 
 #ifdef DEBUG_TESTS
    { // tests

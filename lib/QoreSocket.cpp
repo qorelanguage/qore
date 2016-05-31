@@ -1368,6 +1368,41 @@ int QoreSocket::recv(int fd, qore_offset_t size, int timeout) {
    return (int)rc;
 }
 
+// receive data and write to an output stream
+int QoreSocket::recv(OutputStream *os, qore_offset_t size, int timeout, ExceptionSink *xsink) {
+   if (priv->sock == QORE_INVALID_SOCKET || !size)
+      return -1;
+
+   char* buf;
+   qore_offset_t br = 0;
+   qore_offset_t rc;
+   while (true) {
+      // calculate bytes needed
+      int bn;
+      if (size == -1)
+         bn = DEFAULT_SOCKET_BUFSIZE;
+      else {
+         bn = size - br;
+         if (bn > DEFAULT_SOCKET_BUFSIZE)
+            bn = DEFAULT_SOCKET_BUFSIZE;
+      }
+
+      rc = priv->brecv(0, "recv", buf, bn, 0, timeout);
+      if (rc <= 0)
+         break;
+      br += rc;
+
+      // write buffer to the stream
+      os->bulkWrite(buf, rc, timeout, xsink);
+
+      if (size > 0 && br >= size) {
+         rc = 0;
+         break;
+      }
+   }
+   return (int)rc;
+}
+
 // returns 0 for success
 int QoreSocket::sendHTTPMessage(const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source) {
    return priv->sendHttpMessage(0, 0, "Socket", "sendHTTPMessage", method, path, http_version, headers, data, size, 0, source);
