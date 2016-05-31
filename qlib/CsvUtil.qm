@@ -283,7 +283,6 @@ class CsvHelper {
 
         #! multi-line detection based on record. List record is hashed (i.e. index is transformed to key), softstring sub (hash values) {}
         code resolveType;
-
     }
 
     # multi type data lines
@@ -426,22 +425,21 @@ public namespace CsvUtil {
 
         <b>AbstractCsvIterator Options</b>
         |!Option|!Data Type|!Description
-        |\c "encoding"|@ref string|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
-        |\c "separator"|@ref string|the string separating the fields in the file (default: \c ",")
-        |\c "quote"|@ref string|the field quote character (default: \c '\"')
-        |\c "eol"|@ref string|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
-        |\c "ignore_empty"|@ref boolean|if @ref Qore::True "True" (the default) then empty lines will be ignored; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
-        |\c "ignore_whitespace"|@ref boolean|if @ref Qore::True "True" (the default) then leading and trailing whitespace will be stripped from non-quoted fields; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
-        |\c "header_names"|@ref boolean|if @ref Qore::True "True" then the object will parse the header names from the first header row, in this case \c "header_lines" must be &gt; 0. In case of multi-type lines \c "header_names" is mandatory @ref Qore::False "False".
-        |\c "header_lines"|@ref integer|the number of headers lines in the file (must be &gt; 0 if \c "header_names" is @ref Qore::True "True")
-        |\c "headers"|@ref list of strings|list of header / column names for the data iterated; if this is present, then \c "header_names" must be @ref Qore::False "False".
-        |\c "headers"|@ref hash of lists of strings|Defines multi-type lines where key is name of type whose name is resolved by \c "resolve_type" custom function. Hash value is equal to \c "headers" as documented above.
-        |\c "resolve_type"|@ref string sub(@ref hash values)|implement a custom function as @ref closure or @ref call_reference to inspect record value and return type name.\c "Values" keys are field indexes/positions. If \c ignore_empty is @ref Qore::False "False" and the function returns id not defined in \c headers then line is resolved as an empty record
-        |\c "verify_columns"|@ref boolean|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different
-        column count than other lines, a \c CSVFILEITERATOR-DATA-ERROR exception is thrown
-        |\c "fields"|@ref hash|the keys are column names (or numbers in case column names are not used) and the values are either strings (one of @ref abstractcsviterator_option_field_types giving the data type for the field) or a @ref abstractcsviterator_option_field_hash describing the field; also sets \a headers if not set automatically with \c "header_names"; if no field type is given, the default is \c "*string"
-        |\c "timezone"|@ref string|the timezone to use when parsing dates (will be passed to @ref Qore::TimeZone::constructor())
-        |\c "tolwr"|@ref boolean|if @ref Qore::True "True" then all header names will be converted to lower case letters
+        |\c "encoding"|@ref string_type "string"|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
+        |\c "separator"|@ref string_type "string"|the string separating the fields in the file (default: \c ",")
+        |\c "quote"|@ref string_type "string"|the field quote character (default: \c '\"')
+        |\c "eol"|@ref string_type "string"|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
+        |\c "ignore_empty"|@ref bool_type "bool"|if @ref Qore::True "True" (the default) then empty lines will be ignored; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
+        |\c "ignore_whitespace"|@ref bool_type "bool"|if @ref Qore::True "True" (the default) then leading and trailing whitespace will be stripped from non-quoted fields; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
+        |\c "header_names"|@ref bool_type "bool"|if @ref Qore::True "True" then the object will parse the header names from the first header row, in this case \c "header_lines" must be &gt; 0. In case of multi-type lines \c "header_names" is mandatory @ref Qore::False "False".
+        |\c "header_lines"|@ref int_type "int"|the number of headers lines in the file (must be &gt; 0 if \c "header_names" is @ref Qore::True "True")
+        |\c "headers"|@ref list_type "list" of @ref string_type "strings"|list of header / column names for the data iterated; if this is present, then \c "header_names" must be @ref Qore::False "False".
+        |\c "headers"|@ref hash_type "hash" of @ref list_type "lists" of @ref string_type "strings"|Defines multi-type lines where the hash keys are the names of the types whose name is resolved by the \c "resolve-type" code option.  The hash value is equal to \c "headers" as documented above.
+       |\c "resolve_type"|@ref code_type "code" (<tt>@ref string_type "string" sub(@ref hash_type "hash" values) {}</tt>)|the value must be a @ref closure "closure" or @ref call_reference "call reference" which will examine record values and return the record type name. The argument \c values has keys which are field names or field indexes. If the code returns an identifier that does not exist in \c "headers", then the record is skipped
+        |\c "verify_columns"|@ref bool_type "bool"|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEITERATOR-DATA-ERROR exception is thrown
+        |\c "fields"|@ref hash_type "hash"|the keys are column names (or numbers in case column names are not used) and the values are either strings (one of @ref abstractcsviterator_option_field_types giving the data type for the field) or a @ref abstractcsviterator_option_field_hash describing the field; also sets \a headers if not set automatically with \c "header_names"; if no field type is given, the default is \c "*string"
+        |\c "timezone"|@ref string_type "string"|the timezone to use when parsing dates (will be passed to @ref Qore::TimeZone::constructor())
+        |\c "tolwr"|@ref bool_type "bool"|if @ref Qore::True "True" then all header names will be converted to lower case letters
 
         @note the following options separated by dashes are still supported for backwards-compatibility:
         - \c "ignore-empty"
@@ -473,7 +471,7 @@ public namespace CsvUtil {
         |\c "type"|one of the @ref abstractcsviterator_option_field_types "option type values" giving the field type
         |\c "format"|used only with the \c "date" type; this is a @ref date_mask "date/time format mask" for parsing dates
         |\c "timezone"|used only with the \c "date" type; this value is passed to @ref Qore::TimeZone::constructor() and the resulting timezone is used to parse the date (this value overrides any default time zone for the object; use only in the rare case that date/time values from different time zones are present in different columns of the same file)
-        |\c "code"|this is a @ref closure or @ref call_reference that takes a single argument of the value (after formatting with any optional \c "type" formats) and returns the value that will be output for the field
+        |\c "code"|this is a @ref closure "closure" or @ref call_reference "call reference" that takes a single argument of the value (after formatting with any optional \c "type" formats) and returns the value that will be output for the field
      */
     public class AbstractCsvIterator inherits Qore::AbstractIterator, private CsvHelper {
         private {
@@ -1053,9 +1051,9 @@ while (i.next()) {
         |\c "encoding"|@ref string_type "string"|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
         |\c "eol"|@ref string_type "string"|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
         |\c "fields"|@ref hash_type "hash"|describes the data to be output; see @ref abstractcsviterator_option_field_hash "option field hash" and @ref abstractcsviterator_option_field_types "option field types" for more information on the possible values of this option; if no field type is given, the default is \c "*string"
-        |\c "headers"|@ref list_type "list" of strings|list of header / column names for the data iterated.
-        |\c "headers"|@ref hash_type "hash" of lists of strings|Defines multi-type lines where key is name of type whose name is resolved by \c "resolve-type" custom function. Hash value is equal to \c "headers" as documented above.
-        |\c "resolve_type"|@ref string_type "string" sub(@ref hash_type "hash" values)|the value must be a @ref closure or @ref call_reference which will examine record values and return the record type name. The argument \c values has keys which are field names or field indexes. If the code returns an identifier that does not exist in \c "headers", then the record is skipped
+        |\c "headers"|@ref list_type "list" of @ref string_type "strings"|list of header / column names for the data iterated.
+        |\c "headers"|@ref hash_type "hash" of @ref list_type "lists" of @ref string_type "strings"|Defines multi-type lines where the hash keys are the names of the types whose name is resolved by the \c "resolve-type" code option.  The hash value is equal to \c "headers" as documented above.
+        |\c "resolve_type"|@ref code_type "code" (<tt>@ref string_type "string" sub(@ref hash_type "hash" values) {}</tt>)|the value must be a @ref closure "closure" or @ref call_reference "call reference" which will examine record values and return the record type name. The argument \c values has keys which are field names or field indexes. If the code returns an identifier that does not exist in \c "headers", then the record is skipped
         |\c "info_log"|@ref code_type "code"|a call reference / closure for informational logging when performing bulk generation with write(Qore::SQL::SQLStatement); must take a single string argument
         |\c "optimal_quotes"|@ref bool_type "bool"|set to @ref Qore::False "False" to disable optimal quoting; when optimal quoting is disabled, all fields are quoted regardless of type or content, when it is enabled, then fields are quoted only if they require quoting (i.e. they contain a quote or separator character); the default is @ref Qore::True "True"
         |\c "quote"|@ref string_type "string"|the field quote character (default: \c '\"')
