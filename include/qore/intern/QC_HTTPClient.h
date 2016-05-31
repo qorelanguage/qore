@@ -34,7 +34,7 @@
 
 DLLEXPORT extern qore_classid_t CID_HTTPCLIENT;
 DLLEXPORT extern QoreClass *QC_HTTPCLIENT;
-DLLLOCAL extern QoreClass *QC_SOCKET;
+DLLEXPORT extern QoreClass *QC_SOCKET;
 DLLLOCAL QoreClass *initHTTPClientClass(QoreNamespace& ns);
 
 class HTTPInfoRefHelper {
