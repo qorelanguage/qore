@@ -1,0 +1,142 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class AccessTest
+
+public class AccessTest inherits QUnit::Test {
+    private {
+        const Code = "
+class B {
+    private string t(int i) {return \"int\";}
+    string t(string str) {return \"string\";}
+    code get_t() {return \\t();}
+
+    private string u(int i) {return \"int\";}
+    private string u(string str) {return \"string\";}
+    code get_u() {return \\u();}
+
+    string v(int i) {return \"int\";}
+    string v(string str) {return \"string\";}
+    code get_v() {return \\v();}
+
+    string w() {return \"none\";}
+    code get_w() {return \\w();}
+
+    private string x() {return \"none\";}
+    code get_x() {return \\x();}
+}
+class C inherits B {}
+class D inherits private B {}
+
+string sub t1() { C t(); return t.t(False ? NOTHING : 1); }
+
+string sub t2() { C t(); return t.t(False ? NOTHING : \"str\"); }
+
+string sub t3() { object t = new D(); return t.t(False ? NOTHING : 1); }
+
+string sub t4() { object t = new D(); return t.t(False ? NOTHING : \"str\"); }
+
+string sub t5() { C t(); return t.get_t()(False ? NOTHING : 1); }
+string sub t6() { C t(); return t.get_t()(False ? NOTHING : \"str\"); }
+
+string sub t7() { C t(); return t.get_u()(False ? NOTHING : 1); }
+string sub t8() { C t(); return t.get_u()(False ? NOTHING : \"str\"); }
+
+string sub t9() { C t(); return t.get_v()(False ? NOTHING : 1); }
+string sub t10() { C t(); return t.get_v()(False ? NOTHING : \"str\"); }
+
+string sub t11() { C t(); return t.get_w()(); }
+string sub t12() { C t(); return t.w(); }
+
+string sub t13() { C t(); return t.get_x()(); }
+
+string sub t14() { object t = new C(); return t.x(); }
+
+code sub t15() { C t(); return t.get_x(); }
+
+code sub t16_17() { C t(); return \\t.t(); }
+
+code sub t18() { object t = new D(); return \\t.t(); }
+";
+
+const Class1 = "
+class TestInheritA {
+    public { string m_bar = 'A'; }
+    string foo() { return 'A'; }
+}
+
+class TestInheritB {
+    public { string m_bar = 'B'; }
+    string foo() { return 'B'; }
+}
+";
+
+        const Class2 = "class TestInheritAB inherits TestInheritA, TestInheritB {}";
+        const Class3 = "class TestInheritBA inherits TestInheritB, TestInheritA {}";
+    }
+
+    constructor() : Test("AccessTest", "1.0") {
+        addTestCase("Test class access", \accessTestMethod(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    accessTestMethod() {
+        Program p(PO_NEW_STYLE);
+        p.parse(Code, "access");
+
+        # this must fail: B::t(int) is private
+        testAssertion("negative-private-method-access-1", \p.callFunction(), ("t1",), new TestResultExceptionRegexp('ILLEGAL-CALL', "cannot call private variant"));
+
+        testAssertion("private-method-access-1", \p.callFunction(), ("t2",), new TestResultValue("string"));
+
+        # this must fail: B::t(int) is private and also B is privately-inherited
+        testAssertion("negative-private-method-access-2", \p.callFunction(), ("t3",), new TestResultExceptionRegexp('BASE-CLASS-IS-PRIVATE', "method of a privately-inherited class"));
+
+        # this must fail: B::t(string) is a method of a privately-inherited class
+        testAssertion("negative-private-method-access-3", \p.callFunction(), ("t4",), new TestResultExceptionRegexp('BASE-CLASS-IS-PRIVATE', "method of a privately-inherited class"));
+
+        testAssertion("private-method-access-2", \p.callFunction(), ("t5",), new TestResultValue("int"));
+        testAssertion("private-method-access-3", \p.callFunction(), ("t6",), new TestResultValue("string"));
+
+        testAssertion("private-method-access-4", \p.callFunction(), ("t7",), new TestResultValue("int"));
+        testAssertion("private-method-access-5", \p.callFunction(), ("t8",), new TestResultValue("string"));
+
+        testAssertion("private-method-access-6", \p.callFunction(), ("t9",), new TestResultValue("int"));
+        testAssertion("private-method-access-7", \p.callFunction(), ("t10",), new TestResultValue("string"));
+
+        testAssertion("private-method-access-8", \p.callFunction(), ("t11",), new TestResultValue("none"));
+        testAssertion("private-method-access-9", \p.callFunction(), ("t12",), new TestResultValue("none"));
+
+        testAssertion("private-method-access-10", \p.callFunction(), ("t13",), new TestResultValue("none"));
+
+        # this must fail: C::x() is private
+        testAssertion("negative-private-method-access-8", \p.callFunction(), ("t14",), new TestResultExceptionRegexp('METHOD-IS-PRIVATE', "is private and cannot be accessed externally"));
+
+        testAssertion("private-method-access-11", string sub () { return p.callFunction("t15")(); }, NOTHING, new TestResultValue("none"));
+
+        # this must fail when calling the call reference with an integer and succeed when calling with a string arg
+        testAssertion("negative-private-method-access-9", string sub () { return p.callFunction("t16_17")(1); }, NOTHING, new TestResultExceptionRegexp('ILLEGAL-CALL', "cannot call private variant"));
+
+        testAssertion("private-method-access-12", string sub () { return p.callFunction("t16_17")("str"); }, NOTHING, new TestResultValue("string"));
+
+        # this must fail because B is privately inherited in D
+        testAssertion("negative-private-method-access-10", \p.callFunction(), ("t18",), new TestResultExceptionRegexp('ILLEGAL-CALL-REFERENCE', "cannot create a call reference"));
+
+        # this must fail at parse time because B::t() is privately inherited in D, therefore it should not be possible to take a reference to the method of the privately-inherited class
+        testAssertion("negative-private-method-access-11", \p.parse(), ("code sub test() { D t(); return \\t.t(); }", "test"), new TestResultExceptionRegexp('PARSE-ERROR', "is private in this context"));
+
+        # check inheritance
+        p.parse(Class1, "class-1");
+        testAssertion("negative-inheritance-1", \p.parse(), (Class2, "test"), new TestResultExceptionRegexp('PARSE-ERROR', "cannot be combined with class"));
+        testAssertion("negative-inheritance-2", \p.parse(), (Class3, "test"), new TestResultExceptionRegexp('PARSE-ERROR', "cannot be combined with class"));
+    }
+}

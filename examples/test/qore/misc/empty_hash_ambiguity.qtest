@@ -1,0 +1,63 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class EmptyHashAmbiguityTest
+
+public class EmptyHashAmbiguityTest inherits QUnit::Test {
+
+    constructor() : Test("EmptyHashAmbiguityTest", "1.0") {
+        addTestCase("stmtVsExpr", \stmtVsExpr(), NOTHING);
+        addTestCase("binaryPlusMinus", \binaryPlusMinus(), NOTHING);
+        addTestCase("emptyBlockPreferred", \emptyBlockPreferred(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    stmtVsExpr() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        p.parse("sub x($a) { if ($a) {} else return {}; }", "");
+        # {} is never a hash when a statement is expected
+    }
+
+    binaryPlusMinus() {
+        any a = {} + ('x': 5); # hash + hash
+        assertEq("hash", type(a));
+        assertEq(1, elements a);
+        assertEq(a{"x"}, 5);
+        assertEq(1, a.size());
+
+        any b = {} - ('x': 5); # hash - hash -> this operation is not defined in documentation!
+        #assertEq("hash", type(b)); is broken currently -> type of b is nothing, it's not an empty hash
+        assertEq(0, elements b);
+        assertEq(0, b.size());
+
+        any c = {} - ("x"); # hash - list
+        assertEq("hash", type(c));
+        assertEq(0, elements c);
+        assertEq(0, c.size());
+    }
+
+    emptyBlockPreferred() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        p.parse("class C {}", "");
+        p.parse("on_exit {} ++ $a;", "");
+        p.parse("on_exit {} -- $b;", "");
+        p.parse("on_exit {} * C $c;", "");
+        p.parse("on_exit {} ($d) = 1;", "");
+        p.parse("on_exit {} {$e = 1;}", "");
+        assertThrows("PARSE-EXCEPTION",
+                "expecting lvalue for assignment operator expression, got 'unary minus operator expression' instead",
+                \p.parse(), ("on_exit {} - $f = 1;", ""));
+    }
+}

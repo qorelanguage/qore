@@ -1,0 +1,341 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class Test
+
+class DataTest {
+    public {
+        hash b;
+    }
+}
+
+class Test inherits QUnit::Test {
+    constructor() : QUnit::Test("operators", "1.0", \ARGV) {
+        addTestCase("basic operator tests", \basicTests());
+        addTestCase("date tests", \dateTests());
+        addTestCase("lvalue tests", \lvalueTests());
+        addTestCase("const modulo", \constModulo());
+        addTestCase("post/pre inc/dec", \postPreIncDec());
+        addTestCase("identity assignment", \idAssignment());
+        addTestCase("assignment type restriction test", \assignmentTypeRestrictionTest());
+        addTestCase("delete/remove test", \deleteRemoveTest());
+        set_return_value(main());
+    }
+
+    basicTests() {
+        int a = 1;
+        testAssertionValue("variable assignment", a, 1);
+        a += 3;
+        testAssertionValue("integer += operator", a, 4);
+        a -= 2;
+        testAssertionValue("integer -= operator", a, 2);
+        a |= 1;
+        testAssertionValue("|= operator", a, 3);
+        a &= 1;
+        testAssertionValue("&= operator", a, 1);
+        a *= 10;
+        testAssertionValue("integer *= operator", a, 10);
+        float f = a;
+        f *= 2.2;
+        testAssertionValue("first float *= operator", f, 22.0);
+        f *= 2;
+        testAssertionValue("second float *= operator", f, 44.0);
+        f /= 4.4;
+        testAssertionValue("float /= operator", f, 10.0);
+        a = 10;
+        a /= 2;
+        testAssertionValue("integer /= operator", a, 5);
+        testAssertionValue("first / operator", 4 / 2, 2);
+        a = 0xfdb4902a;
+        a ^= 0xbf40e848;
+        testAssertionValue("^= xor equals operator", a, 0x42f47862);
+        a <<= 2;
+        testAssertionValue("<<= shift-left-equals operator", a, 0x10bd1e188);
+        a >>= 3;
+        testAssertionValue(">>= shift-right-equals operator", a, 0x217a3c31);
+
+        string astr = "hello" + " there";
+        testAssertionValue("string concatenation", astr, "hello there");
+        astr += " gee";
+        testAssertionValue("string plus equals", astr, "hello there gee");
+
+        f = 1.0;
+        f += 1.2;
+        testAssertionValue("float += operator", f, 2.2);
+        f -= 1.1;
+        testAssertionValue("float -= operator", f, 1.1);
+        f = 5.5 * 2.0;
+        testAssertionValue("float * operator", f, 11.0);
+
+        any ni += 3.2;
+        testAssertionValue("float +=, lhs NOTHING", ni, 3.2);
+        delete ni;
+        ni += "hello";
+        testAssertionValue("string +=, lhs NOTHING", ni, "hello");
+        delete ni;
+        ni -= 4.5;
+        testAssertionValue("float -=, lhs NOTHING", ni, -4.5);
+        delete ni;
+        ni -= 4;
+        testAssertionValue("integer -=, lhs NOTHING", ni, -4);
+        # some array and hash tests in separate functions
+
+        # get function closure with bound local variable (multiply by 2)
+        code c = mapClosure(2);
+
+        # map function to list
+        testAssertionValue("map operator using closure", (map c($1), (1, 2, 3)), (2, 4, 6));
+
+        # map immediate expression to list
+        testAssertionValue("map operator using expression", (map $1 * 2, (1, 2, 3)), (2, 4, 6));
+
+        # map function to list with optional select code as expression
+        testAssertionValue("map operator using closure with optional select expression", (map c($1), (1, 2, 3), $1 > 1), (4, 6));
+
+        # select all elements from list greater than 1 with expression
+        testAssertionValue("select operator with expression", (select (1, 2, 3), $1 > 1), (2, 3));
+
+        # create a sinple closure to subtract the second argument from the first
+        c = any sub(any x, any y) { return x - y; };
+
+        # left fold function on list using closure
+        testAssertionValue("foldl operator with closure", (foldl c($1, $2), (2, 3, 4)), -5);
+
+        # left fold function on list using expression
+        testAssertionValue("foldl operator with expression", (foldl $1 - $2, (2, 3, 4)), -5);
+
+        # right fold function on list using immediate closure
+        testAssertionValue("foldr operator with closure", (foldr c($1, $2), (2, 3, 4)), -1);
+
+        # right fold function on list using expression and implicit arguments
+        testAssertionValue("foldr operator with expression", (foldr $1 - $2, (2, 3, 4)), -1);
+
+        hash h = ("test" : 1, "two" : 2.0, "three" : "three", "four" : False );
+        testAssertionValue("first remove operator", remove h.two, 2.0);
+
+        testAssertion("int div by zero", any sub () {int i = 0; return 1 / i;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
+        testAssertion("float div by zero", any sub () {float n = 0; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
+        testAssertion("numeric div by zero", any sub () {number n = 0n; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
+        testAssertion("div by zero", any sub () {any n; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
+
+        Program p(PO_NEW_STYLE);
+        testAssertion("trim operator parse-time return value", \p.parse(), ("string sub test() {string str = \"a string \\n\"; string astr = trim str; return astr;}", "trim operator test"), new TestResultValue(NOTHING));
+        testAssertionValue("trim operator", p.callFunction("test"), "a string");
+    }
+
+    dateTests() {
+        assertTrue(now() > (now() - 1D));
+        assertTrue(now() >= (now() - 1h));
+        assertTrue((now() - 1m) < now());
+        assertTrue((now() - 1M) <= now());
+
+        date bt = date at = now();
+        assertTrue(at == bt);
+        at = 2004-02-28-12:00:00;
+        at += 1D;
+        assertEq(2004-02-29-12:00:00, at);
+        at -= (3h + 5m);
+        assertEq(2004-02-29-08:55:00, at);
+
+        # relative date arithmetic tests
+        assertEq(3s, 5s - 2s);
+        assertEq(-1s, 2s - 3s);
+        # check for normalization between hours & minutes
+        assertEq(30m, 1h - 30m);
+        # rel date - abs date is performed by using the seconds + us offset from the epoch in the absolute date
+        assertEq(15s, 30s - 1970-01-01T00:00:15Z);
+
+        # relative date comparison tests
+        assertEq(True, 72h > 2D);
+        assertEq(True, 72h == 3D);
+        assertEq(True, 72h < 4D);
+        assertEq(True, 7201s > 2h);
+        assertEq(True, 7200s == 2h);
+        assertEq(True, 7199s < 2h);
+        assertEq(True, 86401s > 1D);
+        assertEq(True, 86400s == 1D);
+        assertEq(True, 86399s < 1D);
+        assertEq(True, 32D > 1M);
+        assertEq(True, 31D == 1M);
+        assertEq(True, 30D < 1M);
+        assertEq(True, 2678399s < 1M);
+        assertEq(True, 2678400s == 1M);
+        assertEq(True, 2678401s > 1M);
+        assertEq(True, P1M32D > 2M);
+        assertEq(True, P1M31D == 2M);
+        assertEq(True, P1M30D < 2M);
+        assertEq(True, 13M > 1Y);
+        assertEq(True, 12M == 1Y);
+        assertEq(True, 11M < 1Y);
+        assertEq(True, 366D > 1Y);
+        assertEq(True, 365D == 1Y);
+        assertEq(True, 364D < 1Y);
+        assertEq(True, 86400s + 1us > 1D);
+        assertEq(True, 86400s + 1000ms == 1D + 1s);
+        assertEq(True, 86400s + 20ms < 1D + 1s);
+    }
+
+    lvalueTests() {
+        # bug 88: lvalue reference-handling bug
+        hash h.a = 1;
+        h.b = h;
+        testAssertionValue("hash assignment", sprintf("%y", h), "{a: 1, b: {a: 1}}");
+        string str = "a";
+        h = (str: 1); h.b += h;
+        testAssertionValue("hash +=", sprintf("%y", h), "{a: 1, b: {a: 1}}");
+    }
+
+    constModulo() {
+        assertEq(2, 12 % 10);
+    }
+
+    static code mapClosure(any v) {
+        return any sub(any v1) { return v * v1; };
+    }
+
+    postPreIncDec() {
+        int i = 1;
+        assertEq(1, i++);
+        assertEq(2, i);
+        assertEq(2, i--);
+        assertEq(1, i);
+        assertEq(2, ++i);
+        assertEq(2, i);
+        assertEq(1, --i);
+        assertEq(1, i);
+
+        float f = 1.8;
+        assertFloatEq(1.8, f++);
+        assertFloatEq(2.8, f);
+        assertFloatEq(2.8, f--);
+        assertFloatEq(1.8, f);
+        assertFloatEq(2.8, ++f);
+        assertFloatEq(2.8, f);
+        assertFloatEq(1.8, --f);
+        assertFloatEq(1.8, f);
+
+        number n = 123.456n;
+        assertNumberEq(123.456, n++);
+        assertNumberEq(124.456, n);
+        assertNumberEq(124.456, n--);
+        assertNumberEq(123.456, n);
+        assertNumberEq(124.456, ++n);
+        assertNumberEq(124.456, n);
+        assertNumberEq(123.456, --n);
+        assertNumberEq(123.456, n);
+
+        any x = 1;
+        assertEq(1, x++);
+        assertEq(2, x);
+        assertEq(2, x--);
+        assertEq(1, x);
+        assertEq(2, ++x);
+        assertEq(2, x);
+        assertEq(1, --x);
+        assertEq(1, x);
+    }
+
+    idAssignment() {
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", "illegal assignment of variable \"a\" to itself", \p.parse(), ("any a = a;", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", "illegal assignment of variable \"a\" to itself", \p.parse(), ("any a; a = a;", ""));
+        }
+    }
+
+    assignmentTypeRestrictionTest() {
+        bool b;
+        binary bn;
+        code c;
+        date d;
+        float f;
+        hash h;
+        int i;
+        list lst;
+        number n;
+        string s;
+        timeout t;
+        softbool sb;
+        softdate sd;
+        softfloat sf;
+        softint si;
+        softnumber sn;
+        softstring ss;
+
+        any x = {};
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {b = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {bn = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {c = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {d = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {f = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {i = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {lst = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {n = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {s = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {t = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {sb = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {sd = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {sf = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {si = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {sn = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {ss = x;});
+
+        x = list();
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {b = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {bn = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {c = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {d = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {f = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {h = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {i = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {n = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {s = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {t = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {sb = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {sd = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {sf = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {si = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {sn = x;});
+        assertThrows("RUNTIME-TYPE-ERROR", sub () {ss = x;});
+    }
+
+    deleteRemoveTest() {
+        {
+            hash a.b.c = 1;
+            # should have no effect
+            delete a.a.c;
+            assertEq(("b": ("c": 1)), a);
+        }
+        {
+            hash a.b.c = 1;
+            # should have no effect
+            remove a.a.c;
+            assertEq(("b": ("c": 1)), a);
+        }
+        {
+            DataTest a();
+            a.b.c.d = 1;
+            # should have no effect
+            delete a.b.c.c;
+            assertEq(("c": ("d": 1)), a.b);
+        }
+        {
+            DataTest a();
+            a.b.c.d = 1;
+            # should have no effect
+            remove a.b.c.c;
+            assertEq(("c": ("d": 1)), a.b);
+        }
+    }
+}

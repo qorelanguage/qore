@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   The Datasource class provides the low-level interface to Qore DBI drivers.
 
@@ -39,11 +39,13 @@
 
 struct qore_ds_private {
    Datasource* ds;
+
    bool in_transaction;
    bool active_transaction;
    bool isopen;
    bool autocommit;
    bool connection_aborted;
+
    mutable DBIDriver* dsl;
    const QoreEncoding* qorecharset;
    void* private_data;               // driver private data per connection
@@ -118,8 +120,7 @@ struct qore_ds_private {
       port        = p_port;
    }
 
-   // returns true if a new transaction was started
-   DLLLOCAL bool statementExecuted(int rc, ExceptionSink *xsink);
+   DLLLOCAL void statementExecuted(int rc, ExceptionSink *xsink);
 
    DLLLOCAL void copyOptions(const Datasource* ods);
 

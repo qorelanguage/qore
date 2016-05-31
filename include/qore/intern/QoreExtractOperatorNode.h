@@ -4,7 +4,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -40,8 +40,7 @@ protected:
 
    DLLLOCAL static QoreString extract_str;
 
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
    DLLLOCAL ~QoreExtractOperatorNode() {
       discard(lvalue_exp, 0);
@@ -71,7 +70,7 @@ public:
       return extract_str.getBuffer();
    }
 
-   DLLLOCAL AbstractQoreNode *extract(ExceptionSink *xsink) const;
+   //DLLLOCAL QoreValue extract(ExceptionSink* xsink) const;
 };
 
 #endif

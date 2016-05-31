@@ -1,10 +1,10 @@
 /*
   QorePostIncrementOperatorNode.cpp
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2015 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -32,32 +32,27 @@
 
 QoreString QorePostIncrementOperatorNode::op_str("++ (post-increment) operator expression");
 
-AbstractQoreNode *QorePostIncrementOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode* QorePostIncrementOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
 
    // version for local var
    return (typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo) ? makeSpecialization<QoreIntPostIncrementOperatorNode>() : this;
 }
 
-AbstractQoreNode *QorePostIncrementOperatorNode::evalImpl(ExceptionSink *xsink) const {
+QoreValue QorePostIncrementOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper n(exp, xsink);
    if (!n)
-      return 0;
+      return QoreValue();
+
    if (n.getType() == NT_NUMBER)
       return n.postIncrementNumber(ref_rv, "<-- (post) operator>");
 
    if (n.getType() == NT_FLOAT) {
       double f = n.postIncrementFloat("<++ (post) operator>");
       assert(!*xsink);
-      return ref_rv ? new QoreFloatNode(f) : 0;
+      return f;
    }
 
-   int64 rc = n.postIncrementBigInt("<++ (post) operator>");
-   return *xsink || !ref_rv ? 0 : new QoreBigIntNode(rc);
-}
-
-AbstractQoreNode *QorePostIncrementOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = ref_rv;
-   return QorePostIncrementOperatorNode::evalImpl(xsink);
+   return n.postIncrementBigInt("<++ (post) operator>");
 }

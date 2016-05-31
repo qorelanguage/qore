@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,19 +33,19 @@
 #include <qore/intern/QC_TimeZone.h>
 
 //! Methods in this pseudo-class can be executed on @ref date "date/time value types"
-/** 
+/**
  */
-qclass <date> [arg=const DateTimeNode *dt;vparent=<value>];
+qclass <date> [arg=const DateTimeNode *dt = v.get<DateTimeNode>();vparent=<value>];
 
 //! Returns Qore::NT_DATE
-/** 
+/**
     @return Qore::NT_DATE
 
     @par Example:
-    @code
-switch ($d.typeCode()) {
+    @code{.py}
+switch (d.typeCode()) {
     case NT_DATE:
-        printf("%y: is a date\n", $d);
+        printf("%y: is a date\n", d);
 	break;
 }
     @endcode
@@ -55,12 +55,12 @@ int <date>::typeCode() {
 }
 
 //! Returns @ref True if the date is an @ref absolute_dates "absolute date/time value"
-/** 
+/**
     @return @ref True if the date is an @ref absolute_dates "absolute date/time value"
 
     @par Example:
-    @code
-my bool $b = $d.absolute();
+    @code{.py}
+bool b = d.absolute();
     @endcode
 */
 bool <date>::absolute() {
@@ -68,12 +68,12 @@ bool <date>::absolute() {
 }
 
 //! Returns @ref True if the date is a @ref relative_dates "relative date/time value"
-/** 
+/**
     @return @ref True if the date is a @ref relative_dates "relative date/time value"
 
     @par Example:
-    @code
-my bool $b = $d.relative();
+    @code{.py}
+bool b = d.relative();
     @endcode
 */
 bool <date>::relative() {
@@ -81,12 +81,12 @@ bool <date>::relative() {
 }
 
 //! Returns an integer corresponding to the literal year value in the date (does not calculate a duration)
-/** 
+/**
     @return an integer corresponding to the literal year value in the date (does not calculate a duration)
 
     @par Example:
-    @code
-my int $n = $d.years();
+    @code{.py}
+int n = d.years();
     @endcode
 
     @note equivalent to get_years(date)
@@ -96,14 +96,14 @@ int <date>::years() [flags=CONSTANT] {
 }
 
 //! Returns an integer corresponding to the literal month value in the date (does not calculate a duration)
-/** 
+/**
     The date value can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date.
 
     @return an integer corresponding to the literal month value in the date (does not calculate a duration)
 
     @par Example:
-    @code
-my int $n = $d.months();
+    @code{.py}
+int n = d.months();
     @endcode
 
     @note equivalent to get_months(date)
@@ -113,14 +113,14 @@ int <date>::months() [flags=CONSTANT] {
 }
 
 //! Returns an integer corresponding to the literal day value in the date (does not calculate a duration)
-/** 
+/**
     The date value can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date.
 
     @return an integer corresponding to the literal day value in the date (does not calculate a duration)
 
     @par Example:
-    @code
-my int $n = $d.days();
+    @code{.py}
+int n = d.days();
     @endcode
 
     @note equivalent to get_days(date)
@@ -130,14 +130,14 @@ int <date>::days() [flags=CONSTANT] {
 }
 
 //! Returns an integer corresponding to the literal hour value in the date (does not calculate a duration)
-/** 
+/**
     The date value can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date.
 
     @return an integer corresponding to the literal hour value in the date (does not calculate a duration)
 
     @par Example:
-    @code
-my int $n = $d.hours();
+    @code{.py}
+int n = d.hours();
     @endcode
 
     @note equivalent to get_hours(date)
@@ -147,14 +147,14 @@ int <date>::hours() [flags=CONSTANT] {
 }
 
 //! Returns an integer corresponding to the literal minute value in the date (does not calculate a duration)
-/** 
+/**
     The date value can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date.
 
     @return an integer corresponding to the literal minute value in the date (does not calculate a duration)
 
     @par Example:
-    @code
-my int $n = $d.minutes();
+    @code{.py}
+int n = d.minutes();
     @endcode
 
     @note equivalent to get_minutes(date)
@@ -164,14 +164,14 @@ int <date>::minutes() [flags=CONSTANT] {
 }
 
 //! Returns an integer corresponding to the literal second value in the date (does not calculate a duration)
-/** 
+/**
     The date value can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date.
 
     @return an integer corresponding to the literal second value in the date (does not calculate a duration)
 
     @par Example:
-    @code
-my int $n = $d.seconds();
+    @code{.py}
+int n = d.seconds();
     @endcode
 
     @note
@@ -183,14 +183,14 @@ int <date>::seconds() [flags=CONSTANT] {
 }
 
 //! Returns an integer corresponding to the literal millisecond value in the date (does not calculate a duration)
-/** 
+/**
     The date value can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date.
 
     @return an integer corresponding to the literal millisecond value in the date (does not calculate a duration)
 
     @par Example:
-    @code
-my int $n = $d.milliseconds();
+    @code{.py}
+int n = d.milliseconds();
     @endcode
 
     @note
@@ -202,14 +202,14 @@ int <date>::milliseconds() [flags=CONSTANT] {
 }
 
 //! Returns an integer corresponding to the literal microsecond value in the date (does not calculate a duration)
-/** 
+/**
     The date value can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date.
 
     @return an integer corresponding to the literal microsecond value in the date (does not calculate a duration)
 
     @par Example:
-    @code
-my int $n = $d.microseconds();
+    @code{.py}
+int n = d.microseconds();
     @endcode
 
     @note
@@ -229,11 +229,11 @@ int <date>::microseconds() [flags=CONSTANT] {
     so if the present time is sent as an argument, 0 is returned, if a future date is used, the number of seconds
     from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is used,
     also 0 is returned (the pseudo-method does not calculate second differences for @ref absolute_dates "absolute dates" in the past (for
-    this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
+    this use @ref date_time_arithmetic instead); this method can only return a negative value if passed a relative date/time value
 
     @par Example:
-    @code
-my int $us = PT2M15S3u.durationSeconds(); # returns 135
+    @code{.py}
+int us = PT2M15S3u.durationSeconds(); # returns 135
     @endcode
 
     @note
@@ -241,6 +241,7 @@ my int $us = PT2M15S3u.durationSeconds(); # returns 135
     - to get the literal seconds integer value from a date/time value without calculating a duration, use @ref <date>::seconds()
 
     @see
+    - <date>::durationSecondsFloat()
     - <date>::durationMilliseconds()
     - <date>::durationMicroseconds()
 
@@ -259,11 +260,11 @@ int <date>::durationSeconds() [flags=CONSTANT] {
     so if the present time is sent as an argument, 0 is returned, if a future date is used, the number of milliseconds
     from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is used,
     also 0 is returned (the pseudo-method does not calculate millisecond differences for @ref absolute_dates "absolute dates" in the past (for
-    this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
+    this use @ref date_time_arithmetic instead); this method can only return a negative value if passed a relative date/time value
 
     @par Example:
-    @code
-my int $us = PT2M15S3u.durationMilliseconds(); # returns 135000
+    @code{.py}
+int us = PT2M15S3u.durationMilliseconds(); # returns 135000
     @endcode
 
     @note
@@ -271,6 +272,7 @@ my int $us = PT2M15S3u.durationMilliseconds(); # returns 135000
     - to get the literal milliseconds integer value from a date/time value without calculating a duration, use @ref <date>::milliseconds()
 
     @see
+    - <date>::durationSecondsFloat()
     - <date>::durationSeconds()
     - <date>::durationMicroseconds()
 
@@ -287,11 +289,11 @@ int <date>::durationMilliseconds() [flags=CONSTANT] {
     so if the present time is sent as an argument, 0 is returned, if a future date is used, the number of microseconds
     from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is used,
     also 0 is returned (the pseudo-method does not calculate microsecond differences for @ref absolute_dates "absolute dates" in the past (for
-    this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
+    this use @ref date_time_arithmetic instead); this method can only return a negative value if passed a relative date/time value
 
     @par Example:
-    @code
-my int $us = PT2M15S3u.durationMicroseconds(); # returns 135000003
+    @code{.py}
+int us = PT2M15S3u.durationMicroseconds(); # returns 135000003
     @endcode
 
     @note
@@ -299,6 +301,7 @@ my int $us = PT2M15S3u.durationMicroseconds(); # returns 135000003
     - to get the literal microseconds integer value from a date/time value without calculating a duration, use @ref <date>::microseconds()
 
     @see
+    - <date>::durationSecondsFloat()
     - <date>::durationSeconds()
     - <date>::durationMilliseconds()
 
@@ -308,15 +311,40 @@ int <date>::durationMicroseconds() [flags=CONSTANT] {
    return dt->getRelativeMicroseconds();
 }
 
+//! Returns a floating-point value representing the the number of seconds of duration in the value of the date passed (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
+/** The duration in seconds is calculated and any fractional seconds are returned as digits to the right of the decimal point.
+
+    @return a floating-point vlaue representing the the number of seconds of duration in the value of the date passed; if the argument is a @ref relative_dates "relative date", the value is normalized to seconds and the floating-point seconds value is returned with microseconds providing the digits to the right of the decimal place, if the argument is an @ref absolute_dates "absolute date", the duration in seconds is calculated from the present time; so if the present time is sent as an argument, 0 is returned, if a future date is used, the number of seconds from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is passed as an argument, also 0 is returned (the function does not calculate second differences for @ref absolute_dates "absolute dates" in the past (for this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
+
+    @par Example:
+    @code{.py}
+float dt = PT2M15S3u.durationSecondsFloat(); # returns 135.000003
+    @endcode
+
+    @note
+    - equivalent to get_duration_seconds_f()
+    - to get the literal seconds integer value from a date/time value without calculating a duration, use @ref <date>::seconds()
+
+    @see
+    - <date>::durationSeconds()
+    - <date>::durationMilliseconds()
+    - <date>::durationMicroseconds()
+
+    @since %Qore 0.8.12
+*/
+float <date>::durationSecondsFloat() [flags=CONSTANT] {
+   return dt->getRelativeSecondsDouble();
+}
+
 //! Returns a formatted string for the date value
-/** 
+/**
     @param format a string giving the format for the date; see @ref date_formatting for more information about this string
 
     @return a formatted string for a date argument passed
 
     @par Example:
-    @code
-my string $str = $d.format("Day, Mon D, YYYY-MM-DD HH:mm:SS");
+    @code{.py}
+string str = d.format("Day, Mon D, YYYY-MM-DD HH:mm:SS");
     @endcode
 
     @bug there is no locale support; day and month names and abbreviations are only returned in English
@@ -330,12 +358,12 @@ string <date>::format(string format) [flags=CONSTANT] {
 }
 
 //! Returns @ref True if the current date/time value is currently in daylight savings time
-/** 
+/**
     @return @ref True if the current date/time value is currently in daylight savings time; always returns @ref False for @ref relative_dates "relative date/time values"
 
     @par Example:
-    @code
-my bool $b = $d.isDst();
+    @code{.py}
+bool b = d.isDst();
     @endcode
  */
 bool <date>::isDst() [flags=CONSTANT] {
@@ -346,12 +374,12 @@ bool <date>::isDst() [flags=CONSTANT] {
 }
 
 //! Returns a Qore::TimeZone object for the time zone of the date/time value; returns @ref nothing for @ref relative_dates "relative date/time values"
-/** 
+/**
     @return a Qore::TimeZone object for the time zone of the date/time value; returns @ref nothing for @ref relative_dates "relative date/time values"
 
     @par Example:
-    @code
-my *TimeZone $zone = $d.zone();
+    @code{.py}
+*TimeZone zone = d.zone();
     @endcode
  */
 *TimeZone <date>::zone() [flags=CONSTANT] {
@@ -359,17 +387,17 @@ my *TimeZone $zone = $d.zone();
 }
 
 //! Returns the name of the current time zone for the current @ref absolute_dates "absolute date/time value" (ex: \c "CEST" for Central European Summer Time for a time during summer time or \c "CET" for Central European Time for the same time zone while daylight savings time is not active) or a UTC offset (like \c "+01") or \c "UTC" or @ref nothing for @ref relative_dates "relative date/time values"
-/** 
+/**
     @return the name of the current time zone for the current @ref absolute_dates "absolute date/time value" (ex: \c "CEST" for Central European Summer Time for a time during summer time or \c "CET" for Central European Time for the same time zone while daylight savings time is not active) or a UTC offset (like \c "+01") or \c "UTC" or @ref nothing for @ref relative_dates "relative date/time values"
 
     @par Example:
-    @code
-my *string $zn = $d.currentZoneName();
+    @code{.py}
+*string zn = d.currentZoneName();
     @endcode
  */
 *string <date>::currentZoneName() [flags=CONSTANT] {
    if (dt->isRelative())
-      return 0;
+      return QoreValue();
 
    bool is_dst;
    const char *zone_name;
@@ -379,12 +407,12 @@ my *string $zn = $d.currentZoneName();
 }
 
 //! Returns the time zone offset for the current time in seconds east of UTC or -1 for @ref relative_dates "relative date/time values"
-/** 
+/**
     @return the time zone offset for the current time in seconds east of UTC or -1 for @ref relative_dates "relative date/time values"
 
     @par Example:
-    @code
-my int $utcoffset = $d.getUtcOffset();
+    @code{.py}
+int utcoffset = d.getUtcOffset();
     @endcode
  */
 int <date>::getUtcOffset() [flags=CONSTANT] {
@@ -395,8 +423,8 @@ int <date>::getUtcOffset() [flags=CONSTANT] {
 /** @return @ref False if the date value is all zeros, @ref True if not
 
     @par Example:
-    @code
-my bool $b = $d.val();
+    @code{.py}
+bool b = d.val();
     @endcode
 
     @see
@@ -412,9 +440,9 @@ bool <date>::val() [flags=CONSTANT] {
     @return @ref True because date values can be converted to integers
 
     @par Example:
-    @code
-if ($n.intp())
-    printf("%y: can be converted to an integer: %d\n", $n, int($n));
+    @code{.py}
+if (n.intp())
+    printf("%y: can be converted to an integer: %d\n", n, int(n));
     @endcode
 */
 bool <date>::intp() [flags=CONSTANT] {
@@ -426,9 +454,9 @@ bool <date>::intp() [flags=CONSTANT] {
     @return @ref True because boolean values can be converted to strings
 
     @par Example:
-    @code
-if ($n.strp())
-    printf("%y: can be converted to a string: '%s'\n", $n, string($n));
+    @code{.py}
+if (n.strp())
+    printf("%y: can be converted to a string: '%s'\n", n, string(n));
     @endcode
 */
 bool <date>::strp() [flags=CONSTANT] {
@@ -440,8 +468,8 @@ bool <date>::strp() [flags=CONSTANT] {
     @return midnight on the given date (strips the time component on the new value)
 
     @par Example:
-    @code
-my date $midnight = $dt.midnight();
+    @code{.py}
+date midnight = dt.midnight();
     @endcode
 
     @note equivalent to get_midnight()
@@ -454,13 +482,13 @@ date <date>::midnight() [flags=CONSTANT] {
    return rv;
 }
 
-//! Returns the number of seconds since the start of the epoch (1970-01-01Z) for the current date for ref absolute_dates "absolute date/time values"; returns 0 for @ref relative_dates "relative date/time values" 
+//! Returns the number of seconds since the start of the epoch (1970-01-01Z) for the current date for @ref absolute_dates "absolute date/time values"; returns 0 for @ref relative_dates "relative date/time values"
 /** @par Example:
-    @code
-my int $secs = $d.getEpochSeconds();
+    @code{.py}
+int secs = d.getEpochSeconds();
     @endcode
 
-    @return the number of seconds since the start of the epoch (1970-01-01Z) for the current date for ref absolute_dates "absolute date/time values"; returns 0 for @ref relative_dates "relative date/time values" 
+    @return the number of seconds since the start of the epoch (1970-01-01Z) for the current date for @ref absolute_dates "absolute date/time values"; returns 0 for @ref relative_dates "relative date/time values"
 
     @since %Qore 0.8.8
  */
@@ -468,13 +496,13 @@ int <date>::getEpochSeconds() [flags=CONSTANT] {
    return dt->isAbsolute() ? dt->getEpochSecondsUTC() : 0;
 }
 
-//! Returns the number of seconds since the start of the epoch (1970-01-01) for the current date in the local time zone for ref absolute_dates "absolute date/time values"; returns 0 for @ref relative_dates "relative date/time values" 
+//! Returns the number of seconds since the start of the epoch (1970-01-01) for the current date in the local time zone for @ref absolute_dates "absolute date/time values"; returns 0 for @ref relative_dates "relative date/time values"
 /** @par Example:
-    @code
-my int $secs = $d.getEpochSecondsLocalTime();
+    @code{.py}
+int secs = d.getEpochSecondsLocalTime();
     @endcode
 
-    @return the number of seconds since the start of the epoch (1970-01-01) for the current date in the local time zone for ref absolute_dates "absolute date/time values"; returns 0 for @ref relative_dates "relative date/time values"
+    @return the number of seconds since the start of the epoch (1970-01-01) for the current date in the local time zone for @ref absolute_dates "absolute date/time values"; returns 0 for @ref relative_dates "relative date/time values"
 
     @since %Qore 0.8.8
  */
@@ -484,8 +512,8 @@ int <date>::getEpochSecondsLocalTime() [flags=CONSTANT] {
 
 //! Returns a hash of @ref date_info_hash "broken-down date/time information" for the date (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
 /** @par Example:
-    @code
-my hash $h = date_info($date);
+    @code{.py}
+hash h = date_info(date);
     @endcode
 
     @return a hash of @ref date_info_hash "broken-down date/time information" for the given date argument
@@ -496,4 +524,110 @@ my hash $h = date_info($date);
 */
 hash <date>::info() [flags=CONSTANT] {
    return date_info(*dt);
+}
+
+//! Returns an integer representing the ordinal day number in the year (corresponding to the <a href="http://en.wikipedia.org/wiki/ISO_8601#Ordinal_dates">ISO-8601 day number</a>) for the @ref absolute_dates "absolute date" value
+/**
+    @return an integer representing the ordinal day number in the year (corresponding to the <a href="http://en.wikipedia.org/wiki/ISO_8601#Ordinal_dates">ISO-8601 day number</a>) for the @ref absolute_dates "absolute date" value; if a @ref relative_dates "relative date" value is used, then this method will return 0
+
+    @par Example:
+    @code{.py}
+int dn = dt.dayNumber();
+    @endcode
+
+    @note equivalent to @ref Qore::get_day_number()
+
+    @since %Qore 0.8.12
+*/
+int <date>::dayNumber() [flags=CONSTANT] {
+  return dt->getDayNumber();
+}
+
+//! Returns an integer representing the day of the week for the @ref absolute_dates "absolute date" value (0=Sunday, 6=Saturday)
+/**
+    @return an integer representing the day of the week for the @ref absolute_dates "absolute date" value (0=Sunday, 6=Saturday); if a @ref relative_dates "relative date" value is used, then this method will return 0
+
+    @par Example:
+    @code{.py}
+int dn = dt.dayOfWeek();
+    @endcode
+
+    @note equivalent to @ref Qore::get_day_of_week()
+
+    @see <date>::isoDayOfWeek()
+
+    @since %Qore 0.8.12
+*/
+int <date>::dayOfWeek() [flags=CONSTANT] {
+   return dt->getDayOfWeek();
+}
+
+//! Returns an integer representing the ISO-8601 day of the week for the @ref absolute_dates "absolute date" value (1=Monday, 7=Sunday)
+/**
+    @return an integer representing the day of the week for the @ref absolute_dates "absolute date" passed (1=Monday, 7=Sunday); if a @ref relative_dates "relative date" value is used, then this method will return 7
+
+    @par Example:
+    @code{.py}
+int dn = dt.isoDayOfWeek();
+    @endcode
+
+    @note equivalent to @ref Qore::get_iso_day_of_week()
+
+    @see <date>::dayOfWeek()
+
+    @since %Qore 0.8.12
+*/
+int <date>::isoDayOfWeek() [flags=CONSTANT] {
+   int d = dt->getDayOfWeek();
+   return (!d ? 7 : d);
+}
+
+//! Returns a hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" (hash keys: \c "year", \c "week", \c "day")
+/** @note that the ISO-8601 year does not always correspond with the calendar year at the end and the beginning of every year (for example 2006-01-01 in ISO-8601 calendar week format is: year=2005, week=52, day=7)
+
+    @return a hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" (hash keys: \c "year", \c "week", \c "day"); if a @ref relative_dates "relative date" value is used, then this method will return year=1970, week=1, day=1
+
+    @par Example:
+    @code{.py}
+hash h = 2007-05-15.isoWeekHash(); # returns year=2007, week=20, day=2
+    @endcode
+
+    @note equivalent to @ref Qore::get_iso_week_hash()
+
+    @see <date>::isoWeekString()
+
+    @since %Qore 0.8.12
+*/
+hash <date>::isoWeekHash() [flags=CONSTANT] {
+   int year, week, day;
+   dt->getISOWeek(year, week, day);
+   QoreHashNode *h = new QoreHashNode;
+   h->setKeyValue("year", new QoreBigIntNode(year), 0);
+   h->setKeyValue("week", new QoreBigIntNode(week), 0);
+   h->setKeyValue("day", new QoreBigIntNode(day), 0);
+
+   return h;
+}
+
+//! Returns a string representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" (ex: 2006-01-01 = "2005-W52-7")
+/**
+    @return a string representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" (ex: 2006-01-01 = "2005-W52-7"); if a @ref relative_dates "relative date" value is used, then this method will return \c "1970-W01-1"
+
+    @par Example:
+    @code{.py}
+string str = 2007-05-15.isoWeekString(); # returns "2007-W20-2"
+    @endcode
+
+    @note equivalent to @ref Qore::get_iso_week_string()
+
+    @see <date>::isoWeekHash()
+
+    @since %Qore 0.8.12
+*/
+string <date>::isoWeekString() [flags=CONSTANT] {
+   int year, week, day;
+   dt->getISOWeek(year, week, day);
+   QoreStringNode *str = new QoreStringNode();
+   str->sprintf("%04d-W%02d-%d", year, week, day);
+   return str;
 }

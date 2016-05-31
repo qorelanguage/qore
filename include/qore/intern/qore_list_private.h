@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,29 +32,48 @@
 #ifndef _QORE_QORELISTPRIVATE_H
 #define _QORE_QORELISTPRIVATE_H
 
+typedef ReferenceHolder<QoreListNode> safe_qorelist_t;
+
+inline QoreListNode* do_args(AbstractQoreNode* e1, AbstractQoreNode* e2) {
+   QoreListNode* l = new QoreListNode;
+   e1->ref();
+   l->push(e1);
+   e2->ref();
+   l->push(e2);
+   return l;
+}
+
 struct qore_list_private {
-   AbstractQoreNode **entry;
+   AbstractQoreNode** entry;
    qore_size_t length;
    qore_size_t allocated;
+   unsigned obj_count;
    bool finalized : 1;
    bool vlist : 1;
 
-   DLLLOCAL qore_list_private() {
-      entry = 0;
-      length = 0;
-      allocated = 0;
-      finalized = false;
-      vlist = false;
+   DLLLOCAL qore_list_private() : entry(0), length(0), allocated(0), obj_count(0), finalized(false), vlist(false) {
    }
+
    DLLLOCAL ~qore_list_private() {
       assert(!length);
 
       if (entry)
 	 free(entry);
    }
-   DLLLOCAL void clear() {
-      entry = 0;
-      length = 0;
+
+   DLLLOCAL void incScanCount(int dt) {
+      assert(dt);
+      assert(obj_count || (dt > 0));
+      //printd(5, "qore_list_private::incScanCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
+      obj_count += dt;
+   }
+
+   DLLLOCAL static unsigned getScanCount(const QoreListNode& l) {
+      return l.priv->obj_count;
+   }
+
+   DLLLOCAL static void incScanCount(const QoreListNode& l, int dt) {
+      l.priv->incScanCount(dt);
    }
 };
 

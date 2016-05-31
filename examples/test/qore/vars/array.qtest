@@ -1,0 +1,251 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class ArrayTest
+
+class Sort {
+    int compare(hash l, hash r) {
+        return l.key1 <=> r.key1;
+    }
+}
+
+class SC {
+    static int hash_sort_callback(hash y, hash r) {
+        return y.key1 <=> r.key1;
+    }
+}
+
+int sub hash_sort_callback(hash y, hash r) {
+    return y.key1 <=> r.key1;
+}
+
+list sub list_return(any var) {
+    return (1, test2(), var);
+}
+
+int sub test1() {
+    return 1;
+}
+
+int sub test2() {
+    return 2;
+}
+
+public class ArrayTest inherits QUnit::Test {
+    constructor() : Test("Array test", "1.0") {
+        addTestCase("Basics test", \testBasics(), NOTHING);
+        addTestCase("Basics test 2", \testBasics2(), NOTHING);
+        addTestCase("String and binary element dereference test", \testElementDereference(), NOTHING);
+        addTestCase("Range test", \testRange(), NOTHING);
+        addTestCase("Pseudomethods test", \testPseudomethods(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    testBasics() {
+        my (list a, list b, list c, list d);
+
+        a = (1, 2, 3, 4, 5);
+        assertEq(5, elements a);
+        assertEq(2, a[1], "single-dimensional list dereference");
+
+        b = (1, 2, (3, 4, 5), 6, 7);
+        assertEq(4, b[2][1], "multi-dimensional list dereference");
+        delete b;
+        assertEq(NOTHING, b[2][1], "multi-dimensional list dereference after delete operator");
+        b = a;
+        a[1] = "hello";
+        assertEq("hello", a[1], "list dereference after list assignment and element reassignment");
+        assertEq(2, b[1], "list dereference of source list");
+
+        a[0][1] = "hello";
+        c[10]{"testing"} = "well then";
+        assertEq("hello", a[0][1], "second multi-dimensional list dereference");
+        assertEq(NOTHING, a[1][500], "non-existent element deference");
+        assertEq(0, int(c[10].testing), "hash list element dereference");
+        assertEq("well then", c[10]{"testing"}, "hash element in list dereference");
+
+        d = (test1(), test2());
+        assertEq(2, d[1], "list element dereference with evaluation");
+
+        b = a = (1, 2, 3);
+        delete a[2];
+        assertEq(True, a[2] != b[2], "shared list element comparison after delete");
+        a[1][1] = 3;
+        assertEq(3, a[1][1], "array variable assignment before copy");
+        a[1][1] = 2;
+        assertEq(2, a[1][1], "passed local array variable assignment");
+
+        assertEq(1, list_return()[0], "simple list return and deref(e)");
+        assertEq(2, list_return()[1], "list return with function element result and deref(e)");
+        assertEq("gee", list_return("gee")[2], "list return with local variable result and deref(e)");
+
+        a = (1, 2, 3);
+        a += (4, 5, 6);
+        assertEq(4, a[3], "first list list plus-equals concatenation");
+        a += 7;
+        assertEq(7, a[6], "list element plus-equals concatenation");
+        a += list(8);
+        assertEq(8, a[7], "second list list plus-equals concatenation");
+        a = (1, 2, 3) + (4, 5, 6);
+        assertEq(4, a[3], "first list list plus operator concatenation");
+        a = (1, 2, 3);
+        b = (4, 5, 6);
+        c = a + b;
+        assertEq(5, c[4], "second list list plus operator concatenation");
+    }
+
+    testBasics2() {
+        list lst1 = (3, 2, 4, 1, 6, 5);
+        list lst2 = ("one", "two", "three", "four", "five", "six");
+        list hl =
+            ( ( "key1" : 8, "key2" : "two" ),
+              ( "key1" : 2, "key2" : "seven" ),
+              ( "key1" : 7, "key2" : "six" ),
+              ( "key1" : 1, "key2" : "eight" ),
+              ( "key1" : 6, "key2" : "four" ),
+              ( "key1" : 9, "key2" : "three" ),
+              ( "key1" : 3, "key2" : "five" ),
+              ( "key1" : 5, "key2" : "nine" ),
+              ( "key1" : 4, "key2" : "one" ) );
+        list sorted_hl =
+            ( ( "key1" : 1, "key2" : "eight" ),
+              ( "key1" : 2, "key2" : "seven" ),
+              ( "key1" : 3, "key2" : "five" ),
+              ( "key1" : 4, "key2" : "one" ),
+              ( "key1" : 5, "key2" : "nine" ),
+              ( "key1" : 6, "key2" : "four" ),
+              ( "key1" : 7, "key2" : "six" ),
+              ( "key1" : 8, "key2" : "two" ),
+              ( "key1" : 9, "key2" : "three" ) );
+        list stable_sorted_hl =
+            ( ( "key1" : 1, "key2" : "eight" ),
+              ( "key1" : 2, "key2" : "seven" ),
+              ( "key1" : 3, "key2" : "five" ),
+              ( "key1" : 3, "key2" : "five-o" ),
+              ( "key1" : 4, "key2" : "one" ),
+              ( "key1" : 5, "key2" : "nine" ),
+              ( "key1" : 6, "key2" : "four" ),
+              ( "key1" : 7, "key2" : "six" ),
+              ( "key1" : 8, "key2" : "two" ),
+              ( "key1" : 9, "key2" : "three" ) );
+        Sort s();
+
+        code hash_compare = int sub (hash l, hash r) { return l.key1 <=> r.key1; };
+
+        assertEq((1,2,3,4,5,6), sort(lst1), "first sort()");
+        assertEq(("five", "four", "one", "six", "three", "two"), sort(lst2), "second sort()");
+        assertEq(sorted_hl, sort(hl, \hash_sort_callback()), "sort() with function call reference callback");
+        assertEq(sorted_hl, sort(hl, \s.compare()), "sort() with object method callback");
+        assertEq(sorted_hl, sort(hl, "hash_sort_callback"), "sort() with string function name callback");
+        assertEq(sorted_hl, sort(hl, hash_compare), "sort() with closure callback");
+
+        list r_sorted_hl = reverse(sorted_hl);
+        assertEq((6,5,4,3,2,1), sort_descending(lst1), "first sort_descending()");
+        assertEq(("two", "three", "six", "one", "four", "five"), sort_descending(lst2), "second sort_descending()");
+        assertEq(r_sorted_hl, sort_descending(hl, \SC::hash_sort_callback()), "first sort_descending() with callback");
+        assertEq(r_sorted_hl, sort_descending(hl, \s.compare()), "second sort_descending() with callback");
+        assertEq(r_sorted_hl, sort_descending(hl, "hash_sort_callback"), "third sort_descending() with callback");
+        assertEq(r_sorted_hl, sort_descending(hl, hash_compare), "sort_descending() with closure callback");
+
+        hl += ( "key1" : 3, "key2" : "five-o" );
+        assertEq(stable_sorted_hl, sort_stable(hl, \hash_sort_callback()), "first sort_stable() with callback");
+        assertEq(stable_sorted_hl, sort_stable(hl, \s.compare()), "second sort_stable() with callback");
+        assertEq(stable_sorted_hl, sort_stable(hl, "hash_sort_callback"), "third sort_stable() with callback");
+        assertEq(stable_sorted_hl, sort_stable(hl, hash_compare), "sort_stable() with closure callback");
+
+        list r_stable_sorted_hl = reverse(stable_sorted_hl);
+        assertEq(r_stable_sorted_hl, sort_descending_stable(hl, \SC::hash_sort_callback()), "first sort_descending_stable() with callback");
+        assertEq(r_stable_sorted_hl, sort_descending_stable(hl, \s.compare()), "second sort_descending_stable() with callback");
+        assertEq(r_stable_sorted_hl, sort_descending_stable(hl, "hash_sort_callback"), "third sort_descending_stable() with callback");
+        assertEq(r_stable_sorted_hl, sort_descending_stable(hl, hash_compare), "sort_descending_stable() with closure callback");
+
+        assertEq(1, min(lst1), "simple min()");
+        assertEq(6, max(lst1), "simple max()");
+        assertEq(( "key1" : 1, "key2" : "eight" ), min(hl, \hash_sort_callback()), "first min() with callback");
+        assertEq(( "key1" : 1, "key2" : "eight" ), min(hl, \s.compare()), "second min() with callback");
+        assertEq(( "key1" : 1, "key2" : "eight" ), min(hl, "hash_sort_callback"), "third min() with callback");
+        assertEq(( "key1" : 9, "key2" : "three" ), max(hl, \SC::hash_sort_callback()), "first max() with callback");
+        assertEq(( "key1" : 9, "key2" : "three" ), max(hl, \s.compare()), "second max() with callback");
+        assertEq(( "key1" : 9, "key2" : "three" ), max(hl, "hash_sort_callback"), "third max() with callback");
+        string v = shift lst2;
+        assertEq(("two","three","four","five","six"), lst2, "array shift");
+        unshift lst2, v;
+        assertEq(("one","two","three","four","five","six"), lst2, "array unshift");
+
+        # list assignment tests
+        list l[1] = "boo";
+        (l[0], l[1]) = "hi1";
+        assertEq(("hi1", NOTHING), l, "first list assigment");
+        (l[0], l[1]) = ("hi2", "shoo1");
+        assertEq(("hi2", "shoo1"), l, "second list assigment");
+        (l[0], l[1]) = ("hi3", "shoo2", "bean1");
+        assertEq(("hi3", "shoo2"), l, "third list assigment");
+        int v2 = pop lst1;
+        assertEq(5, v2, "first pop");
+        assertEq((3,2,4,1,6), lst1, "second pop");
+        push lst1, "hi";
+
+        # splice tests
+        assertEq((3,2,4,1,6,"hi"), lst1, "push");
+        splice lst1, 5;
+        assertEq((3,2,4,1,6), lst1, "first list splice");
+        splice lst1, 3, 1;
+        assertEq((3,2,4,6), lst1, "second list splice");
+        splice lst1, 1, 2, (4, 5, 5.5);
+        assertEq((3,4,5,5.5,6), lst1, "third list splice");
+        splice lst1, 0, 4, (10, 11, 12);
+        assertEq((10, 11, 12, 6), lst1, "third list splice");
+        splice lst1, 0, 1;
+        assertEq((11, 12, 6), lst1, "fourth list splice");
+        splice lst1, 5, 2, (1, 2, 3);
+        assertEq((11, 12, 6, 1, 2, 3), lst1, "fifth list splice");
+        splice lst1, -4, 2, 9;
+        assertEq((11, 12, 9, 2, 3), lst1, "sixth list splice");
+        splice lst1, -4, -2, (21, 22, 23);
+        assertEq((11, 21, 22, 23, 2, 3), lst1, "seventh list splice");
+
+        # extract tests
+        assertEq(list(3), (extract lst1, 5), "first list extract");
+        assertEq((22, 23), (extract lst1, 2, 2), "second list extract");
+        assertEq((21, 2), (extract lst1, 1, 2, 4), "second list extract");
+        assertEq((11, 4), lst1, "final list extract");
+    }
+
+    testElementDereference() {
+        string astr = "hello";
+        binary bin = binary(astr);
+        assertEq("l", astr[2], "string element dereference");
+        assertEq(ord("o"), bin[4], "binary byte dereference");
+    }
+
+    testRange() {
+        assertEq((0, 1,), range(1), "range - basic test");
+        assertEq((2, 3, 4, 5), range(2, 5), "range - boundaries test");
+        assertEq((2, 1, 0, -1, -2), range(2, -2), "range - descending test");
+        assertEq((1, 6), range(1, 10, 5), "range - step test");
+        assertEq((0, 5, 10), range(0, 10, 5), "range - step from 0");
+        assertEq((-10, -5, 0, 5, 10), range(-10, 10, 5), "range - asc test");
+        assertEq((10, 5, 0, -5, -10), range(10, -10, 5), "range - descending step test");
+    }
+
+    testPseudomethods() {
+        list pseudoList = (1, 2, 3, 4, 'a');
+        assertEq(NT_LIST, pseudoList.typeCode(), "<list>::typeCode");
+        assertEq(5, pseudoList.size(), "<list>::size");
+        assertEq(False, pseudoList.empty(), "<list>::empty");
+        assertEq(True, pseudoList.val(), "<list>::val");
+        assertEq(1, pseudoList.first(), "<list>::first");
+        assertEq('a', pseudoList.last(), "<list>::last");
+        assertEq('1-2-3-4-a', pseudoList.join('-'), "<list>::join");
+        assertEq(5, pseudoList.lsize(), "<list>::lsize");
+        assertEq(True, pseudoList.contains(2), "<list>::contains");
+    }
+}

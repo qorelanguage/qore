@@ -3,8 +3,8 @@
   QC_GetOpt.qpp
 
   Qore Programming Language
-  
-  Copyright (C) 2003 - 2014 David Nichols
+
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,9 +34,9 @@
 
 #include <string.h>
 
-static inline int process_type(const char *key, int &attributes, char *opt, qore_type_t &at, ExceptionSink *xsink) {
+static inline int process_type(const char* key, int& attributes, char* opt, qore_type_t& at, ExceptionSink* xsink) {
    assert(at == -1);
-   const char *type_name = 0;
+   const char* type_name = 0;
    // get type
    switch (*opt) {
       case 's':
@@ -120,28 +120,27 @@ static inline int process_type(const char *key, int &attributes, char *opt, qore
    return -1;
 }
 
-static AbstractQoreNode *GETOPT_parse2_intern(ReferenceHolder<QoreHashNode> &rv, ExceptionSink *xsink) {
+static AbstractQoreNode* GETOPT_parse2_intern(ReferenceHolder<QoreHashNode>& rv, ExceptionSink* xsink) {
    assert(rv);
 
    // check for _ERRORS_ key
-   const QoreListNode *l = reinterpret_cast<const QoreListNode *>(rv->getKeyValue("_ERRORS_"));
+   const QoreListNode* l = reinterpret_cast<const QoreListNode*>(rv->getKeyValue("_ERRORS_"));
    if (!l)
       return rv.release();
 
-   const QoreStringNode *err = reinterpret_cast<const QoreStringNode *>(l->retrieve_entry(0));
-   xsink->raiseException("GETOPT-ERROR", err->stringRefSelf());
-   return 0;
+   const QoreStringNode* err = reinterpret_cast<const QoreStringNode*>(l->retrieve_entry(0));
+   return xsink->raiseException("GETOPT-ERROR", err->stringRefSelf());
 }
 
-static AbstractQoreNode *GETOPT_parse3_intern(ReferenceHolder<QoreHashNode> &rv, ExceptionSink *xsink) {
+static AbstractQoreNode* GETOPT_parse3_intern(ReferenceHolder<QoreHashNode>& rv, ExceptionSink* xsink) {
    assert(rv);
 
    // check for _ERRORS_ key
-   const QoreListNode *l = reinterpret_cast<const QoreListNode *>(rv->getKeyValue("_ERRORS_"));
+   const QoreListNode* l = reinterpret_cast<const QoreListNode*>(rv->getKeyValue("_ERRORS_"));
    if (!l)
       return rv.release();
 
-   const QoreStringNode *err = reinterpret_cast<const QoreStringNode *>(l->retrieve_entry(0));
+   const QoreStringNode* err = reinterpret_cast<const QoreStringNode*>(l->retrieve_entry(0));
    const QoreStringNode* sn = getProgram()->getScriptName();
    if (sn)
       fprintf(stderr, "%s: ", sn->getBuffer());
@@ -152,7 +151,7 @@ static AbstractQoreNode *GETOPT_parse3_intern(ReferenceHolder<QoreHashNode> &rv,
 }
 
 //! The %GetOpt class provides an easy way to process POSIX-style command-line options in %Qore scripts/programs
-/** 
+/**
  */
 qclass GetOpt [arg=GetOpt* g];
 
@@ -170,19 +169,20 @@ qclass GetOpt [arg=GetOpt* g];
     - <em>modifier</em>: \c "@" specifies a list, \c "+" an additive value (sum; must be integer or float type)
 
     @par Example:
-    @code
-const program_options =
-    ( "url"  : "url,u=s",
-      "xml"  : "xml,x",
-      "lxml" : "literal-xml,X",
-      "verb" : "verbose,v",
-      "help" : "help,h" );
+    @code{.py}
+const ProgramPptions = (
+     "url"  : "u,url=s",
+     "xml"  : "x,xml",
+     "lxml" : "X,literal-xml",
+     "verb" : "v,verbose",
+     "help" : "h,help",
+ );
 
-my GetOpt $getopt(program_options);
+GetOpt getopt(ProgramOptions);
     @endcode
 
     @throw GETOPT-PARAMETER-ERROR option key value is not a string; \c "_ERRORS_" used as option key
-    @throw GETOPT-OPTION-ERROR list option specified as optional; empty option key value string; multiple long options given for key; duplicate options given; invalid attributes for option; unknown modifier given for option 
+    @throw GETOPT-OPTION-ERROR list option specified as optional; empty option key value string; multiple long options given for key; duplicate options given; invalid attributes for option; unknown modifier given for option
  */
 GetOpt::constructor(hash options) {
    SimpleRefHolder<GetOpt> g(new GetOpt);
@@ -196,14 +196,14 @@ GetOpt::constructor(hash options) {
 	 break;
       }
 
-      const AbstractQoreNode *v = hi.getValue();
+      const AbstractQoreNode* v = hi.getValue();
       if (get_node_type(v) != NT_STRING) {
 	 xsink->raiseException("GETOPT-PARAMETER-ERROR", "value of option key '%s' is not a string (%s)", k, get_type_name(v));
 	 break;
       }
 
-      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(v);
-      
+      const QoreStringNode* str = reinterpret_cast<const QoreStringNode*>(v);
+
       qore_type_t at = -1;
       const char *long_opt = 0;
       char short_opt = '\0';
@@ -225,12 +225,12 @@ GetOpt::constructor(hash options) {
 	    xsink->raiseException("GETOPT-OPTION-ERROR", "option '%s' takes a list and therefore must have mandatory arguments", k);
 	    break;
 	 }
-	 
+
 	 (*tok) = '\0';
       }
       // get option names
       if (!val[0]) {
-	 //printd(5, "making exception key='%s' tok=%08p val=%08p val='%s'\n", k, tok, val, val);
+	 //printd(5, "making exception key='%s' tok=%p val=%p val='%s'\n", k, tok, val, val);
 	 xsink->raiseException("GETOPT-PARAMETER-ERROR", "value of option key '%s' has no option specifiers", k);
 	 break;
       }
@@ -275,7 +275,7 @@ GetOpt::constructor(hash options) {
 }
 
 //! Throws an exception; objects of this class cannot be copied
-/** 
+/**
     @throw GETOPT-COPY-ERROR copying GetOpt objects is not supported
  */
 GetOpt::copy() {
@@ -287,16 +287,16 @@ GetOpt::copy() {
 
     If any errors are encountered, the return value hash will have a key \c "_ERRORS_" giving a list of error messages pertaining to the options parsed.
 
-    @param pgm_args The reference should point to a list of arguments to process (normally <tt>$ARGV</tt>); any argument accepted by the object will be removed from the list
+    @param pgm_args The reference should point to a list of arguments to process (normally <tt>ARGV</tt>); any argument accepted by the object will be removed from the list
 
     @return A hash keyed by option names (as given in the hash to the GetOpt constructor), where each key's value is the value of the argument passed in the list argument. The hash key \c "_ERRORS_" will contain any errors.
 
     @par Example:
-    @code
-my hash $o = $getopt.parse(\$ARGV);
-if (exists $o."_ERRORS_") {
-    foreach my string $err in ($o."_ERRORS_") 
-        stderr.printf("%s\n", $err);
+    @code{.py}
+hash o = getopt.parse(\ARGV);
+if (exists o."_ERRORS_") {
+    foreach string err in (o."_ERRORS_")
+        stderr.printf("%s\n", err);
     exit(1);
 }
     @endcode
@@ -306,14 +306,14 @@ if (exists $o."_ERRORS_") {
 hash GetOpt::parse(reference pgm_args) {
    QoreTypeSafeReferenceHelper ref(pgm_args, xsink);
    if (!ref)
-      return 0;
+      return QoreValue();
 
    if (ref.getType() != NT_LIST)
       return new QoreHashNode;
 
-   QoreListNode *l = reinterpret_cast<QoreListNode *>(ref.getUnique(xsink));
+   QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    return g->parse(l, true, xsink);
 }
@@ -326,11 +326,11 @@ hash GetOpt::parse(reference pgm_args) {
     @return A hash keyed by option names (as given in the hash to the GetOpt constructor), where each key's value is the value of the argument passed in the list argument. The hash key \c "_ERRORS_" will contain any errors.
 
     @par Example:
-    @code
-my hash $o = $getopt.parse($ARGV);
-if (exists $o."_ERRORS_") {
-    foreach my string $err in ($o."_ERRORS_") 
-        stderr.printf("%s\n", $err);
+    @code{.py}
+hash o = getopt.parse(ARGV);
+if (exists o."_ERRORS_") {
+    foreach string err in (o."_ERRORS_")
+        stderr.printf("%s\n", err);
     exit(1);
 }
     @endcode
@@ -338,23 +338,23 @@ if (exists $o."_ERRORS_") {
     @see GetOpt::parse2() for a similar method that throws an exception instead of putting error information in the \c "_ERRORS_" key of the hash value returned
  */
 hash GetOpt::parse(softlist pgm_args) {
-   return g->parse(const_cast<QoreListNode *>(pgm_args), false, xsink);
+   return g->parse(const_cast<QoreListNode*>(pgm_args), false, xsink);
 }
 
 //! Parses the parameter list according to the option hash passed to the constructor
 /** If any errors are encountered, an appropriate exception will be thrown.
 
-    @param pgm_args The reference should point to a list of arguments to process (normally <tt>$ARGV</tt>); any argument accepted by the object will be removed from the list
+    @param pgm_args The reference should point to a list of arguments to process (normally <tt>ARGV</tt>); any argument accepted by the object will be removed from the list
 
     @return A hash keyed by option names (as given in the hash to the GetOpt constructor), where each key's value is the value of the argument passed in the list argument
 
     @par Example:
-    @code
+    @code{.py}
 try {
-   my hash $o = $getopt.parse2(\$ARGV);
+   hash o = getopt.parse2(\ARGV);
 }
-catch ($ex) {
-   stderr.printf("%s\n", $ex.desc);
+catch (ex) {
+   stderr.printf("%s\n", ex.desc);
    exit(1);
 }
     @endcode
@@ -366,17 +366,17 @@ catch ($ex) {
 hash GetOpt::parse2(reference pgm_args) {
    QoreTypeSafeReferenceHelper ref(pgm_args, xsink);
    if (!ref)
-      return 0;
+      return QoreValue();
 
    if (ref.getType() != NT_LIST)
       return new QoreHashNode;
 
-   QoreListNode *l = reinterpret_cast<QoreListNode *>(ref.getUnique(xsink));
+   QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    ReferenceHolder<QoreHashNode> rv(g->parse(l, true, xsink), xsink);
-   return *xsink ? 0 : GETOPT_parse2_intern(rv, xsink);
+   return *xsink ? QoreValue() : GETOPT_parse2_intern(rv, xsink);
 }
 
 //! Parses the parameter list according to the option hash passed to the constructor
@@ -387,12 +387,12 @@ hash GetOpt::parse2(reference pgm_args) {
     @return A hash keyed by option names (as given in the hash to the GetOpt constructor), where each key's value is the value of the argument passed in the list argument
 
     @par Example:
-    @code
+    @code{.py}
 try {
-   my hash $o = $getopt.parse2($ARGV);
+   hash o = getopt.parse2(ARGV);
 }
-catch ($ex) {
-   stderr.printf("%s\n", $ex.desc);
+catch (ex) {
+   stderr.printf("%s\n", ex.desc);
    exit(1);
 }
     @endcode
@@ -402,18 +402,18 @@ catch ($ex) {
     @see GetOpt::parse() for a similar method that puts error information in the \c "_ERRORS_" key of the hash value returned instead of throwing an exception
  */
 hash GetOpt::parse2(softlist pgm_args) {
-   ReferenceHolder<QoreHashNode> rv(g->parse(const_cast<QoreListNode *>(pgm_args), false, xsink), xsink);
+   ReferenceHolder<QoreHashNode> rv(g->parse(const_cast<QoreListNode*>(pgm_args), false, xsink), xsink);
    return *xsink ? 0 : GETOPT_parse2_intern(rv, xsink);
 }
 
 //! Parses the parameter list according to the option hash passed to the constructor and displays an explanatory error message on stderr and exits the program if an error occurs
-/** @param pgm_args The reference should point to a list of arguments to process (normally <tt>$ARGV</tt>); any argument accepted by the object will be removed from the list
+/** @param pgm_args The reference should point to a list of arguments to process (normally <tt>ARGV</tt>); any argument accepted by the object will be removed from the list
 
     @return A hash keyed by option names (as given in the hash to the GetOpt constructor), where each key's value is the value of the argument passed in the list argument
 
     @par Example:
-    @code
-my hash $o = $getopt.parse3(\$ARGV);
+    @code{.py}
+hash o = getopt.parse3(\ARGV);
     @endcode
 
     @see
@@ -423,14 +423,14 @@ my hash $o = $getopt.parse3(\$ARGV);
 hash GetOpt::parse3(reference pgm_args) [dom=PROCESS] {
    QoreTypeSafeReferenceHelper ref(pgm_args, xsink);
    if (!ref)
-      return 0;
+      return QoreValue();
 
    if (ref.getType() != NT_LIST)
       return new QoreHashNode;
 
-   QoreListNode *l = reinterpret_cast<QoreListNode *>(ref.getUnique(xsink));
+   QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    ReferenceHolder<QoreHashNode> rv(g->parse(l, true, xsink), xsink);
    return *xsink ? 0 : GETOPT_parse3_intern(rv, xsink);
@@ -442,8 +442,8 @@ hash GetOpt::parse3(reference pgm_args) [dom=PROCESS] {
     @return A hash keyed by option names (as given in the hash to the GetOpt constructor), where each key's value is the value of the argument passed in the list argument
 
     @par Example:
-    @code
-my hash $o = $getopt.parse3($ARGV);
+    @code{.py}
+hash o = getopt.parse3(ARGV);
     @endcode
 
     @throw GETOPT-ERROR error parsing arguments
@@ -453,6 +453,6 @@ my hash $o = $getopt.parse3($ARGV);
     - GetOpt::parse2() for a similar method that throws exceptions instead of exiting the program
  */
 hash GetOpt::parse3(softlist pgm_args) [dom=PROCESS] {
-   ReferenceHolder<QoreHashNode> rv(g->parse(const_cast<QoreListNode *>(pgm_args), false, xsink), xsink);
+   ReferenceHolder<QoreHashNode> rv(g->parse(const_cast<QoreListNode*>(pgm_args), false, xsink), xsink);
    return *xsink ? 0 : GETOPT_parse3_intern(rv, xsink);
 }

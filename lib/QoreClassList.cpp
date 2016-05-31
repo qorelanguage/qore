@@ -1,9 +1,9 @@
 /*
-  Qoreclasslist.cpp
+  QoreClassList.cpp
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -52,6 +52,14 @@ QoreClassList::~QoreClassList() {
    deleteAll();
 }
 
+void QoreClassList::addInternal(QoreClass *oc) {
+   printd(5, "QCL::addInternal() this: %p '%s' (%p)\n", this, oc->getName(), oc);
+
+   assert(!find(oc->getName()));
+   hm[oc->getName()] = oc;
+}
+
+
 int QoreClassList::add(QoreClass *oc) {
    printd(5, "QCL::add() this: %p '%s' (%p)\n", this, oc->getName(), oc);
 
@@ -75,16 +83,16 @@ const QoreClass* QoreClassList::find(const char *name) const {
 QoreClassList::QoreClassList(const QoreClassList& old, int64 po, qore_ns_private* ns) {
    for (hm_qc_t::const_iterator i = old.hm.begin(), e = old.hm.end(); i != e; ++i) {
       if (!i->second->isSystem()) {
-         //printd(5, "QoreClassList::QoreClassList() this: %p c: %p '%s' po & PO_NO_USER_CLASSES: %s pub: %s\n", this, i->second, i->second->getName(), po & PO_NO_USER_CLASSES ? "true": "false", qore_class_private::isPublic(*i->second) ? "true": "false");
-         if (po & PO_NO_USER_CLASSES || !qore_class_private::isPublic(*i->second))
+         //printd(5, "QoreClassList::QoreClassList() this: %p c: %p '%s' po & PO_NO_INHERIT_USER_CLASSES: %s pub: %s\n", this, i->second, i->second->getName(), po & PO_NO_INHERIT_USER_CLASSES ? "true": "false", qore_class_private::isPublic(*i->second) ? "true": "false");
+         if (po & PO_NO_INHERIT_USER_CLASSES || !qore_class_private::isPublic(*i->second))
             continue;
       }
       else
-         if (po & PO_NO_SYSTEM_CLASSES)
+         if (po & PO_NO_INHERIT_SYSTEM_CLASSES)
             continue;
       QoreClass* qc = new QoreClass(*i->second);
       qore_class_private::setNamespace(qc, ns);
-      add(qc);
+      addInternal(qc);
    }
 }
 
@@ -93,10 +101,38 @@ void QoreClassList::mergeUserPublic(const QoreClassList& old, qore_ns_private* n
       if (!qore_class_private::isUserPublic(*i->second))
 	 continue;
 
-      QoreClass* qc = new QoreClass(*i->second);
+      QoreClass* qc = find(i->first);
+      if (qc) {
+	 assert(qore_class_private::injected(*qc));
+	 continue;
+      }
+      
+      qc = new QoreClass(*i->second);
       qore_class_private::setNamespace(qc, ns);
-      add(qc);
+      addInternal(qc);
    }
+}
+
+int QoreClassList::importSystemClasses(const QoreClassList& source, qore_ns_private* ns, ExceptionSink* xsink) {
+   int cnt = 0;
+   for (hm_qc_t::const_iterator i = source.hm.begin(), e = source.hm.end(); i != e; ++i) {
+      if (i->second->isSystem()) {
+	 hm_qc_t::const_iterator ci = hm.find(i->second->getName());
+	 if (ci != hm.end()) {
+	    if (!qore_class_private::injected(*ci->second)) {
+	       xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system class %s::%s due to an existing class without the injection flag set", ns->name.c_str(), ci->second->getName());
+	       break;
+	    }
+	    continue;
+	 }
+         //printd(5, "QoreClassList::importSystemClasses() this: %p importing %p %s::'%s'\n", this, i->second, ns->name.c_str(), i->second->getName());
+	 QoreClass* qc = new QoreClass(*i->second);
+	 qore_class_private::setNamespace(qc, ns);
+	 addInternal(qc);
+	 ++cnt;
+      }
+   }
+   return cnt;
 }
 
 void QoreClassList::resolveCopy() {
@@ -118,8 +154,15 @@ void QoreClassList::parseRollback() {
 
 void QoreClassList::parseCommit(QoreClassList& l) {
    assimilate(l);
-   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
+   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+      //printd(5, "QoreClassList::parseCommit() this: %p qc: %p '%s' pub: %d\n", this, i->second, i->second->getName(), qore_class_private::isPublic(*i->second));
       qore_class_private::parseCommit(*(i->second));
+   }
+}
+
+void QoreClassList::parseCommitRuntimeInit(ExceptionSink* xsink) {
+   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
+      qore_class_private::parseCommitRuntimeInit(*(i->second), xsink);
 }
 
 void QoreClassList::reset() {
@@ -134,7 +177,7 @@ void QoreClassList::assimilate(QoreClassList& n) {
       i = n.hm.begin();
 
       assert(!find(nc->getName()));
-      add(nc);
+      addInternal(nc);
    }
 }
 
