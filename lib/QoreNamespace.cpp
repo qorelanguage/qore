@@ -130,6 +130,9 @@ DLLLOCAL QoreClass* initEncodingConversionInputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initOutputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initBinaryOutputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initFileOutputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initStreamPipeClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initPipeInputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initPipeOutputStreamClass(QoreNamespace& ns);
 
 DLLLOCAL void init_type_constants(QoreNamespace& ns);
 DLLLOCAL void init_compression_constants(QoreNamespace& ns);
@@ -774,6 +777,9 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    qns.addSystemClass(initOutputStreamClass(qns));
    qns.addSystemClass(initBinaryOutputStreamClass(qns));
    qns.addSystemClass(initFileOutputStreamClass(qns));
+   qns.addSystemClass(initStreamPipeClass(qns));
+   qns.addSystemClass(initPipeInputStreamClass(qns));
+   qns.addSystemClass(initPipeOutputStreamClass(qns));
 
    // add system object types
    qns.addSystemClass(initTimeZoneClass(qns));
