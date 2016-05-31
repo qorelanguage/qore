@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file CsvUtil.qm Qore user module for working with CSV files
 
-/*  CsvUtil.qm Copyright 2012 - 2016 Qore Technologies, sro
+/*  CsvUtil.qm Copyright 2012 - 2016 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1047,22 +1047,22 @@ while (i.next()) {
 
         <b>AbstractCsvWriter Options</b>
         |!Option|!Data Type|!Description
-        |\c "block"|@ref int|the block size when generating output based on a @ref Qore::SQL::SQLStatement "SQLStatement" source (default: \c 1000)
-        |\c "datamap"|@ref hash|a hash mapping actual data key names to the output field names, for use in case the data field names differ; does not have to include every data or output key; keys not present will be assumed to be mapped 1:1
-        |\c "date_format"|@ref string|the default mask for date values formatting
-        |\c "encoding"|@ref string|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
-        |\c "eol"|@ref string|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
-        |\c "fields"|@ref hash|describes the data to be output; see @ref abstractcsviterator_option_field_hash "option field hash" and @ref abstractcsviterator_option_field_types "option field types" for more information on the possible values of this option; if no field type is given, the default is \c "*string"
-        |\c "headers"|@ref list of strings|list of header / column names for the data iterated.
-        |\c "headers"|@ref hash of lists of strings|Defines multi-type lines where key is name of type whose name is resolved by \c "resolve-type" custom function. Hash value is equal to \c "headers" as documented above.
-        |\c "resolve_type"|@ref string sub(@ref hash values)|implement a custom function as @ref closure or @ref call_reference to inspect record value and return type name. "Values" keys are field names or field index. If function returns id not existing in \c "headers" then record is skipped
-        |\c "info_log"|@ref code|a call reference / closure for informational logging when performing bulk generation with write(Qore::SQL::SQLStatement); must take a single string argument
-        |\c "optimal_quotes"|@ref boolean|set to @ref Qore::False "False" to disable optimal quoting; when optimal quoting is disabled, all fields are quoted regardless of type or content, when it is enabled, then fields are quoted only if they require quoting (i.e. they contain a quote or separator character); the default is @ref Qore::True "True"
-        |\c "quote"|@ref string|the field quote character (default: \c '\"')
-        |\c "quote_escape"|@ref string|the escape character(s) used for \c "quote" (default: \c '\\')
-        |\c "separator"|@ref string|the string separating the fields in the file (default: \c ",")
-        |\c "verify_columns"|@ref boolean|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEWRITER-DATA-ERROR exception is thrown
-        |\c "write_headers"|@ref boolean|set to @ref Qore::False "False" to suppress the output of headers; the default is @ref Qore::True "True", meaning to output headers if they are present. The value is @ref Qore::False "False" for multi-type lines.
+        |\c "block"|@ref int_type "int"|the block size when generating output based on a @ref Qore::SQL::SQLStatement "SQLStatement" source (default: \c 1000)
+        |\c "datamap"|@ref hash_type "hash"|a hash mapping actual data key names to the output field names, for use in case the data field names differ; does not have to include every data or output key; keys not present will be assumed to be mapped 1:1
+        |\c "date_format"|@ref string_type "string"|the default mask for date values formatting
+        |\c "encoding"|@ref string_type "string"|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
+        |\c "eol"|@ref string_type "string"|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
+        |\c "fields"|@ref hash_type "hash"|describes the data to be output; see @ref abstractcsviterator_option_field_hash "option field hash" and @ref abstractcsviterator_option_field_types "option field types" for more information on the possible values of this option; if no field type is given, the default is \c "*string"
+        |\c "headers"|@ref list_type "list" of strings|list of header / column names for the data iterated.
+        |\c "headers"|@ref hash_type "hash" of lists of strings|Defines multi-type lines where key is name of type whose name is resolved by \c "resolve-type" custom function. Hash value is equal to \c "headers" as documented above.
+        |\c "resolve_type"|@ref string_type "string" sub(@ref hash_type "hash" values)|the value must be a @ref closure or @ref call_reference which will examine record values and return the record type name. The argument \c values has keys which are field names or field indexes. If the code returns an identifier that does not exist in \c "headers", then the record is skipped
+        |\c "info_log"|@ref code_type "code"|a call reference / closure for informational logging when performing bulk generation with write(Qore::SQL::SQLStatement); must take a single string argument
+        |\c "optimal_quotes"|@ref bool_type "bool"|set to @ref Qore::False "False" to disable optimal quoting; when optimal quoting is disabled, all fields are quoted regardless of type or content, when it is enabled, then fields are quoted only if they require quoting (i.e. they contain a quote or separator character); the default is @ref Qore::True "True"
+        |\c "quote"|@ref string_type "string"|the field quote character (default: \c '\"')
+        |\c "quote_escape"|@ref string_type "string"|the escape character(s) used for \c "quote" (default: \c '\\')
+        |\c "separator"|@ref string_type "string"|the string separating the fields in the file (default: \c ",")
+        |\c "verify_columns"|@ref bool_type "bool"|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEWRITER-DATA-ERROR exception is thrown
+        |\c "write_headers"|@ref bool_type "bool"|set to @ref Qore::False "False" to suppress the output of headers; the default is @ref Qore::True "True", meaning to output headers if they are present. The value is @ref Qore::False "False" for multi-type lines.
 
         @note the following options with dashes in their names are supported for backwards-compatibility:
         - \c "date-format"
