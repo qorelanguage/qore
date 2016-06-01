@@ -549,7 +549,7 @@ int QoreListNode::mergesort(const ResolvedCallReferenceNode* fr, bool ascending,
 	 return -1;
       int rc = (int)rv->getAsBigInt();
       if ((ascending && rc <= 0)
-	  || (!ascending && rc > 0))
+	  || (!ascending && rc >= 0))
 	 push(left.getAndClear(li++));
       else
 	 push(right.getAndClear(ri++));
