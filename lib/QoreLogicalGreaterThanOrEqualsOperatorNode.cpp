@@ -1,5 +1,5 @@
 /*
-  QoreLogicalGreaterThanOperatorNode.cpp
+  QoreLogicalGreaterThanOrEqualsOperatorNode.cpp
 
   Qore Programming Language
 
@@ -30,9 +30,9 @@
 
 #include <qore/Qore.h>
 
-QoreString QoreLogicalGreaterThanOperatorNode::op_str("> operator expression");
+QoreString QoreLogicalGreaterThanOrEqualsOperatorNode::op_str(">= operator expression");
 
-QoreValue QoreLogicalGreaterThanOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
+QoreValue QoreLogicalGreaterThanOrEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
    if (pfunc)
       return (this->*pfunc)(xsink);
 
@@ -43,10 +43,10 @@ QoreValue QoreLogicalGreaterThanOperatorNode::evalValueImpl(bool& needs_deref, E
    if (*xsink)
       return QoreValue();
 
-   return doGreaterThan(*lh, *rh, xsink);
+   return doGreaterThanOrEquals(*lh, *rh, xsink);
 }
 
-AbstractQoreNode *QoreLogicalGreaterThanOperatorNode::parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode *QoreLogicalGreaterThanOrEqualsOperatorNode::parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    // turn off "reference ok" and "return value ignored" flags
    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -59,20 +59,20 @@ AbstractQoreNode *QoreLogicalGreaterThanOperatorNode::parseInitIntern(const char
 
    // see if both arguments are constants, then eval immediately and substitute this node with the result
    if (left && left->is_value() && right && right->is_value()) {
-      SimpleRefHolder<QoreLogicalGreaterThanOperatorNode> del(this);
+      SimpleRefHolder<QoreLogicalGreaterThanOrEqualsOperatorNode> del(this);
       ParseExceptionSink xsink;
-      return get_bool_node(doGreaterThan(left, right, *xsink));
+      return get_bool_node(doGreaterThanOrEquals(left, right, *xsink));
    }
 
    // check for optimizations based on type; but only if types are known on both sides, although the highest priority (float)
    // can be assigned if either side is a float
    if (!lti->isType(NT_NUMBER) && !rti->isType(NT_NUMBER)) {
       if (lti->isType(NT_FLOAT) || rti->isType(NT_FLOAT))
-         pfunc = &QoreLogicalGreaterThanOperatorNode::floatGreaterThan;
+         pfunc = &QoreLogicalGreaterThanOrEqualsOperatorNode::floatGreaterThanOrEquals;
       else if (lti->hasType() && rti->hasType()) {
          if (lti->isType(NT_INT)) {
             if (rti->isType(NT_INT))
-               pfunc = &QoreLogicalGreaterThanOperatorNode::bigIntGreaterThan;
+               pfunc = &QoreLogicalGreaterThanOrEqualsOperatorNode::bigIntGreaterThanOrEquals;
          }
          // FIXME: check for invalid operation here
       }
@@ -81,40 +81,40 @@ AbstractQoreNode *QoreLogicalGreaterThanOperatorNode::parseInitIntern(const char
    return this;
 }
 
-bool QoreLogicalGreaterThanOperatorNode::floatGreaterThan(ExceptionSink *xsink) const {
+bool QoreLogicalGreaterThanOrEqualsOperatorNode::floatGreaterThanOrEquals(ExceptionSink *xsink) const {
    double l = left->floatEval(xsink);
    if (*xsink) return false;
    double r = right->floatEval(xsink);
    if (*xsink) return false;
 
-   return l > r;
+   return l >= r;
 }
 
-bool QoreLogicalGreaterThanOperatorNode::bigIntGreaterThan(ExceptionSink *xsink) const {
+bool QoreLogicalGreaterThanOrEqualsOperatorNode::bigIntGreaterThanOrEquals(ExceptionSink *xsink) const {
    int64 l = left->bigIntEval(xsink);
    if (*xsink) return false;
    int64 r = right->bigIntEval(xsink);
    if (*xsink) return false;
 
-   return l > r;
+   return l >= r;
 }
 
-bool QoreLogicalGreaterThanOperatorNode::doGreaterThan(QoreValue lh, QoreValue rh, ExceptionSink* xsink) {
+bool QoreLogicalGreaterThanOrEqualsOperatorNode::doGreaterThanOrEquals(QoreValue lh, QoreValue rh, ExceptionSink* xsink) {
    qore_type_t lt = lh.getType();
    qore_type_t rt = rh.getType();
 
    if (lt == NT_NUMBER) {
       switch (rt) {
          case NT_NUMBER:
-            return lh.get<const QoreNumberNode>()->greaterThan(*rh.get<const QoreNumberNode>());
+            return lh.get<const QoreNumberNode>()->greaterThanOrEqual(*rh.get<const QoreNumberNode>());
          case NT_FLOAT:
-            return lh.get<const QoreNumberNode>()->greaterThan(rh.getAsFloat());
+            return lh.get<const QoreNumberNode>()->greaterThanOrEqual(rh.getAsFloat());
          case NT_BOOLEAN:
          case NT_INT:
-            return lh.get<const QoreNumberNode>()->greaterThan(rh.getAsBigInt());
+            return lh.get<const QoreNumberNode>()->greaterThanOrEqual(rh.getAsBigInt());
          default: {
             ReferenceHolder<QoreNumberNode> rn(new QoreNumberNode(rh.getInternalNode()), xsink);
-            return lh.get<const QoreNumberNode>()->greaterThan(**rn);
+            return lh.get<const QoreNumberNode>()->greaterThanOrEqual(**rn);
          }
       }
    }
@@ -123,36 +123,36 @@ bool QoreLogicalGreaterThanOperatorNode::doGreaterThan(QoreValue lh, QoreValue r
       assert(lt != NT_NUMBER);
       switch (lt) {
          case NT_FLOAT:
-            return rh.get<const QoreNumberNode>()->lessThan(lh.getAsFloat());
+            return rh.get<const QoreNumberNode>()->lessThanOrEqual(lh.getAsFloat());
          case NT_BOOLEAN:
          case NT_INT:
-            return rh.get<const QoreNumberNode>()->lessThan(lh.getAsBigInt());
+            return rh.get<const QoreNumberNode>()->lessThanOrEqual(lh.getAsBigInt());
          default: {
             ReferenceHolder<QoreNumberNode> ln(new QoreNumberNode(lh.getInternalNode()), xsink);
-            return rh.get<const QoreNumberNode>()->lessThan(**ln);
+            return rh.get<const QoreNumberNode>()->lessThanOrEqual(**ln);
          }
       }
    }
 
    if (lt == NT_FLOAT || rt == NT_FLOAT)
-      return lh.getAsFloat() > rh.getAsFloat();
+      return lh.getAsFloat() >= rh.getAsFloat();
 
    if (lt == NT_INT || rt == NT_INT)
-      return lh.getAsBigInt() > rh.getAsBigInt();
+      return lh.getAsBigInt() >= rh.getAsBigInt();
 
    if (lt == NT_STRING || rt == NT_STRING) {
       QoreStringValueHelper ls(lh);
       QoreStringValueHelper rs(rh, ls->getEncoding(), xsink);
       if (*xsink)
          return false;
-      return ls->compare(*rs) > 0;
+      return ls->compare(*rs) >= 0;
    }
 
    if (lt == NT_DATE || rt == NT_DATE) {
       DateTimeValueHelper ld(lh);
       DateTimeValueHelper rd(rh);
-      return DateTime::compareDates(*ld, *rd) > 0;
+      return DateTime::compareDates(*ld, *rd) >= 0;
    }
 
-   return lh.getAsFloat() > rh.getAsFloat();
+   return lh.getAsFloat() >= rh.getAsFloat();
 }

@@ -452,6 +452,8 @@ set(LIBQORE_CPP_SRC
         lib/QoreIntPreDecrementOperatorNode.cpp
         lib/QoreLogicalLessThanOperatorNode.cpp
         lib/QoreLogicalGreaterThanOperatorNode.cpp
+        lib/QoreLogicalLessThanOrEqualsOperatorNode.cpp
+        lib/QoreLogicalGreaterThanOrEqualsOperatorNode.cpp
         lib/QoreDivisionOperatorNode.cpp
         lib/QoreMapOperatorNode.cpp
         lib/QoreMapSelectOperatorNode.cpp
