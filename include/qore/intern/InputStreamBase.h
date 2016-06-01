@@ -105,8 +105,7 @@ public:
          return false;
       }
       if (isClosed()) {
-         xsink->raiseException("INPUT-STREAM-CLOSED-ERROR", "this %s object has been already closed",
-               getName(), tid, gettid());
+         xsink->raiseException("INPUT-STREAM-CLOSED-ERROR", "this %s object has been already closed", getName());
          return false;
       }
       return true;

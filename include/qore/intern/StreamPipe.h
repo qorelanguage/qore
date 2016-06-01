@@ -45,25 +45,34 @@ class StreamPipe : public AbstractPrivateData {
 
 public:
    DLLLOCAL StreamPipe(int64 bufferSize);
+
+private:
+   QoreThreadLock mutex;
+   QoreCondition condVar;
+   std::vector<unsigned char> buffer;
+   bool broken;
+   bool inputClosed;
+   bool outputClosed;
+
+   friend class PipeInputStream;
+   friend class PipeOutputStream;
 };
 
 /**
  * @brief Private data for the Qore::PipeInputStream class.
  */
-class PipeInputStream : public InputStreamBase {
+class PipeInputStream : public InputStream {
 
 public:
    DLLLOCAL PipeInputStream(StreamPipe *pipe) : pipe(pipe) {
    }
 
-   DLLLOCAL const char *getName() /*override*/ {
-      return "PipeInputStream";
-   }
-
-   DLLLOCAL bool isClosed() /*override*/;
    DLLLOCAL void close(ExceptionSink* xsink) /*override*/;
    DLLLOCAL int64 read(int64 timeout, ExceptionSink* xsink) /*override*/;
    DLLLOCAL int64 bulkRead(void *ptr, int64 limit, int64 timeout, ExceptionSink *xsink) /*override*/;
+
+protected:
+   ~PipeInputStream();
 
 private:
    SimpleRefHolder<StreamPipe> pipe;
@@ -72,20 +81,18 @@ private:
 /**
  * @brief Private data for the Qore::PipeOutputStream class.
  */
-class PipeOutputStream : public OutputStreamBase {
+class PipeOutputStream : public OutputStream {
 
 public:
    DLLLOCAL PipeOutputStream(StreamPipe *pipe) : pipe(pipe) {
    }
 
-   DLLLOCAL const char *getName() /*override*/ {
-      return "PipeOutputStream";
-   }
-
-   DLLLOCAL bool isClosed() /*override*/;
    DLLLOCAL void close(ExceptionSink* xsink) /*override*/;
    DLLLOCAL void write(int64 value, int64 timeout, ExceptionSink* xsink) /*override*/;
    DLLLOCAL void bulkWrite(const void *ptr, int64 count, int64 timeout, ExceptionSink *xsink) /*override*/;
+
+protected:
+   ~PipeOutputStream();
 
 private:
    SimpleRefHolder<StreamPipe> pipe;

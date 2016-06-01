@@ -49,19 +49,27 @@ private PipeInputStream::constructor() {
 /**
  */
 nothing PipeInputStream::close() {
-   is->closeHelper(xsink);
+   is->close(xsink);
 }
 
 //! Reads a single byte from the input stream; returns -1 if the end of the stream has been reached
 /**
  */
 int PipeInputStream::read(timeout timeout_ms = -1) {
-   return is->readHelper(timeout_ms, xsink);
+   return is->read(timeout_ms, xsink);
 }
 
 //! Reads bytes (up to a specified limit) from the input stream; returns \ref NOTHING if there are no more bytes in the stream
 /**
  */
 *binary PipeInputStream::bulkRead(int limit, timeout timeout_ms = -1) {
-   return is->bulkReadHelper(limit, timeout_ms, xsink);
+   if (limit <= 0) {
+      xsink->raiseException("INPUT-STREAM-ERROR", "PipeInputStream::bulkRead() called with non-positive limit %lld", limit);
+      return 0;
+   }
+   SimpleRefHolder<BinaryNode> result(new BinaryNode());
+   result->preallocate(limit);
+   int64 count = is->bulkRead(const_cast<void *>(result->getPtr()), limit, timeout_ms, xsink);
+   result->setSize(count);
+   return count ? result.release() : 0;
 }

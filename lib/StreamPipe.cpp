@@ -31,37 +31,88 @@
 #include <qore/Qore.h>
 #include <qore/intern/StreamPipe.h>
 
-StreamPipe::StreamPipe(int64 bufferSize) {
+StreamPipe::StreamPipe(int64 bufferSize) : buffer(bufferSize > 0 ? bufferSize : 4096), broken(false),
+      inputClosed(false), outputClosed(false) {
 }
 
-bool PipeInputStream::isClosed() /*override*/ {
-   return true;
+PipeInputStream::~PipeInputStream() {
+   printd(0, "PipeInputStream::~PipeInputStream()\n");
+   AutoLocker lock(pipe->mutex);
+   if (!pipe->inputClosed) {
+      pipe->broken = true;
+//      pipe->wakeUpWriter();
+   }
 }
 
 void PipeInputStream::close(ExceptionSink* xsink) /*override*/ {
-
+   printd(0, "PipeInputStream::close()\n");
+   AutoLocker lock(pipe->mutex);
+   if (pipe->inputClosed) {
+      xsink->raiseException("INPUT-STREAM-CLOSED-ERROR", "this PipeInputStream object has been already closed");
+      return;
+   }
+   pipe->inputClosed = true;
+//   pipe->wakeUpWriter();
 }
 
 int64 PipeInputStream::read(int64 timeout, ExceptionSink* xsink) /*override*/ {
+   printd(0, "PipeInputStream::read()\n");
+   AutoLocker lock(pipe->mutex);
+   if (pipe->inputClosed) {
+      xsink->raiseException("INPUT-STREAM-CLOSED-ERROR", "this PipeInputStream object has been already closed");
+      return -1;
+   }
+
    return -1;
 }
 
 int64 PipeInputStream::bulkRead(void *ptr, int64 limit, int64 timeout, ExceptionSink *xsink) /*override*/ {
+   printd(0, "PipeInputStream::bulkRead()\n");
+   AutoLocker lock(pipe->mutex);
+   if (pipe->inputClosed) {
+      xsink->raiseException("INPUT-STREAM-CLOSED-ERROR", "this PipeInputStream object has been already closed");
+      return 0;
+   }
+   assert(limit > 0);
+
    return 0;
 }
 
-bool PipeOutputStream::isClosed() /*override*/ {
-   return true;
+PipeOutputStream::~PipeOutputStream() {
+   printd(0, "PipeOutputStream::~PipeOutputStream()\n");
+   AutoLocker lock(pipe->mutex);
+   if (!pipe->outputClosed) {
+      pipe->broken = true;
+//      pipe->wakeUpReader();
+   }
 }
 
 void PipeOutputStream::close(ExceptionSink* xsink) /*override*/ {
-
+   printd(0, "PipeOutputStream::close()\n");
+   AutoLocker lock(pipe->mutex);
+   if (pipe->outputClosed) {
+      xsink->raiseException("OUTPUT-STREAM-CLOSED-ERROR", "this PipeOutputStream object has been already closed");
+      return;
+   }
+   pipe->outputClosed = true;
+//   pipe->wakeUpReader();
 }
 
 void PipeOutputStream::write(int64 value, int64 timeout, ExceptionSink* xsink) /*override*/ {
-
+   printd(0, "PipeOutputStream::write()\n");
+   AutoLocker lock(pipe->mutex);
+   if (pipe->outputClosed) {
+      xsink->raiseException("OUTPUT-STREAM-CLOSED-ERROR", "this PipeOutputStream object has been already closed");
+      return;
+   }
 }
 
 void PipeOutputStream::bulkWrite(const void *ptr, int64 count, int64 timeout, ExceptionSink *xsink) /*override*/ {
-
+   printd(0, "PipeOutputStream::bulkWrite()\n");
+   AutoLocker lock(pipe->mutex);
+   if (pipe->outputClosed) {
+      xsink->raiseException("OUTPUT-STREAM-CLOSED-ERROR", "this PipeOutputStream object has been already closed");
+      return;
+   }
+   assert(count >= 0);
 }

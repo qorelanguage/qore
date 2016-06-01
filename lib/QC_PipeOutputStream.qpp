@@ -49,19 +49,19 @@ PipeOutputStream::constructor() {
 /**
  */
 nothing PipeOutputStream::close() {
-   os->closeHelper(xsink);
+   os->close(xsink);
 }
 
 //! Writes a single byte to the output stream
 /**
  */
 nothing PipeOutputStream::write(int value, timeout timeout_ms = -1) {
-   os->writeHelper(value, timeout_ms, xsink);
+   os->write(value, timeout_ms, xsink);
 }
 
 //! Writes bytes to the input stream
 /**
  */
 nothing PipeOutputStream::bulkWrite(binary data, timeout timeout_ms = -1) {
-   os->bulkWriteHelper(data, timeout_ms, xsink);
+   os->bulkWrite(data->getPtr(), data->size(), timeout_ms, xsink);
 }
