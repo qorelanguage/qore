@@ -31,6 +31,8 @@
 #include <qore/Qore.h>
 #include <qore/intern/DatasourcePool.h>
 
+#include <memory>
+
 DatasourcePool::DatasourcePool(ExceptionSink* xsink, DBIDriver* ndsl, const char* user, const char* pass,
 			       const char* db, const char* charset, const char* hostname, unsigned mn, unsigned mx, int port, const QoreHashNode* opts,
 			       Queue* q, AbstractQoreNode* a) :
@@ -94,24 +96,26 @@ DatasourcePool::~DatasourcePool() {
 
 // common constructor code
 void DatasourcePool::init(ExceptionSink* xsink) {
-   pool[0] = config.get();
-
-   // open connection to server
-   pool[0]->open(xsink);
+   // ths intiial Datasource creation could throw an exception if there is an error in a driver option, for example
+   std::auto_ptr<Datasource> ds(config.get(xsink));
    if (*xsink)
       return;
-   //printd(5, "DP::init() open %s: %p (%d)\n", ndsl->getName(), pool[0], xsink->isEvent());
 
+   ds->open(xsink);
+   if (*xsink)
+      return;
+
+   pool[0] = ds.release();
+   //printd(5, "DP::init() open %s: %p (%d)\n", ndsl->getName(), pool[0], xsink->isEvent());
    // add to free list
    free_list.push_back(0);
 
    while (++cmax < min) {
-      pool[cmax] = config.get();
-      // open connection to server
-      pool[cmax]->open(xsink);
+      ds.reset(config.get());
+      ds->open(xsink);
       if (*xsink)
          return;
-
+      pool[cmax] = ds.release();
       //printd(5, "DP::init() open %s: %p (%d)\n", ndsl->getName(), pool[cmax], xsink->isEvent());
       // add to free list
       free_list.push_back(cmax);
