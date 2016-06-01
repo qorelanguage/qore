@@ -1248,7 +1248,7 @@ switch (x <=> y) {
     |@ref int_type "int"|If \a expression1 is numerically greater than \a expression2, returns \c 1, otherwise if they are equal returns \c 0, otherwise returns \c -1
     |@ref date_type "date"|If \a expression1 is after \a expression2, returns \c 1, otherwise if they are equal returns \c 0, otherwise returns \c -1
 
-    This operator does not throw any exceptions.
+    This operator throws NAN-COMPARE-ERROR if any of the operands is NaN.
 
     <hr>
     @section logical_absolute_equality_operator Absolute Equals Operator (===)
