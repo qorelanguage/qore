@@ -5,6 +5,7 @@
 %enable-all-warnings
 %require-types
 %strict-args
+%no-child-restrictions
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -30,6 +31,7 @@ public class OverloadTest inherits QUnit::Test {
     constructor() : Test("Overload test", "1.0") {
         addTestCase("Values test", \testValues(), NOTHING);
         addTestCase("Variables test", \testVariables(), NOTHING);
+        addTestCase("Default arg for OrNothing types", \orNothingDuplicity(), NOTHING);
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -53,5 +55,15 @@ public class OverloadTest inherits QUnit::Test {
         assertEq("float", f1_test(i));
         assertEq("float", f_test(fi));
         assertEq("float", f1_test(fi));
+    }
+
+    orNothingDuplicity() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        p.parse("sub f(int a) {}", "");
+        assertThrows("DUPLICATE-SIGNATURE", \p.parse(), ("sub f(int a, *list l) {}", ""));
+        assertThrows("DUPLICATE-SIGNATURE", \p.parse(), ("class C {} sub f(int a, *C c) {}", ""));
+        p.parse("class D {} sub f(int a, D d) {}", "");
+        p.parse("sub f(int a, softlist l) {}", "");
     }
 }

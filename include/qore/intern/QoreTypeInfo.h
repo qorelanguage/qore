@@ -963,6 +963,10 @@ public:
       delete cscope;
    }
 
+   DLLLOCAL bool acceptsNothing() const {
+      return or_nothing;
+   }
+
    // prototype (expecting type) should be "this"
    // returns true if the prototype does not expect any type or the types are compatible,
    // false if otherwise

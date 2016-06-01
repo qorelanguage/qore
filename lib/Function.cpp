@@ -404,6 +404,10 @@ void UserSignature::pushParam(VarRefNode* v, AbstractQoreNode* defArg, bool need
 
       assert(!(pti && ti));
 
+      if (!defArg && ((pti && pti->acceptsNothing()) || (!pti && ti->parseAcceptsReturns(NT_NOTHING)))) {
+         defArg = nothingTypeInfo->getDefaultValue();
+      }
+
       if (pti || ti->hasType()) {
 	 ++num_param_types;
 	 // only increment min_param_types if there is no default argument
