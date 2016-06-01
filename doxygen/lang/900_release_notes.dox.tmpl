@@ -537,6 +537,7 @@
     - fixed a bug where the @ref delete "delete" and @ref "remove" operators would incorrectly create hash keys when attempting to delete inside complex hash structures with non-existent keys (<a href="https://github.com/qorelanguage/qore/issues/855">issue 855</a>)
     - fixed a bug where duplicate global variable declarations caused a crash (<a href="https://github.com/qorelanguage/qore/issues/891">issue 891</a>)
     - fixed handling of NaN values in logical operators (<a href="https://github.com/qorelanguage/qore/issues/915">issue 915</a>)
+    - fixed sort_descending_stable so that it keeps (instead of reversing) the original order of items that compare equal (<a href="https://github.com/qorelanguage/qore/issues/940">issue 940</a>)
     - fixed a memory leak in @ref Qore::SQL::DatasourcePool "DatasourcePool" initialization when the minimum connections cannot be established (<a href="https://github.com/qorelanguage/qore/issues/994">issue 994</a>)
 
     @section qore_0811 Qore 0.8.11
