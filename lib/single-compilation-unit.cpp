@@ -188,6 +188,8 @@
 #include "QoreIntPreDecrementOperatorNode.cpp"
 #include "QoreLogicalLessThanOperatorNode.cpp"
 #include "QoreLogicalGreaterThanOperatorNode.cpp"
+#include "QoreLogicalLessThanOrEqualsOperatorNode.cpp"
+#include "QoreLogicalGreaterThanOrEqualsOperatorNode.cpp"
 #include "QoreDivisionOperatorNode.cpp"
 #include "QoreMapOperatorNode.cpp"
 #include "QoreMapSelectOperatorNode.cpp"

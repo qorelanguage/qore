@@ -255,6 +255,8 @@ libqore_la_SOURCES = \
 	QoreIntPreDecrementOperatorNode.cpp \
 	QoreLogicalLessThanOperatorNode.cpp \
 	QoreLogicalGreaterThanOperatorNode.cpp \
+	QoreLogicalLessThanOrEqualsOperatorNode.cpp \
+	QoreLogicalGreaterThanOrEqualsOperatorNode.cpp \
 	QoreMapOperatorNode.cpp \
 	QoreMapSelectOperatorNode.cpp \
 	QoreHashMapOperatorNode.cpp \
