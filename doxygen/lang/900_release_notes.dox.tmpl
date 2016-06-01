@@ -537,6 +537,7 @@
     - fixed a bug where duplicate global variable declarations caused a crash (<a href="https://github.com/qorelanguage/qore/issues/891">issue 891</a>)
     - fixed a memory leak in @ref Qore::SQL::DatasourcePool "DatasourcePool" initialization when the minimum connections cannot be established (<a href="https://github.com/qorelanguage/qore/issues/994">issue 994</a>)
     - fixed handling of NaN values in logical operators (<a href="https://github.com/qorelanguage/qore/issues/915">issue 915</a>)
+    - fixed sort_descending_stable so that it keeps (instead of reversing) the original order of items that compare equal (<a href="https://github.com/qorelanguage/qore/issues/940">issue 940</a>)
 
     @section qore_0811 Qore 0.8.11
 
