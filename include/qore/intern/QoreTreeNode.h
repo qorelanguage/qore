@@ -124,17 +124,7 @@ public:
       return left && left->is_value() && (op->numArgs() == 1 || (right && right->is_value()));
    }
 
-   DLLLOCAL AbstractQoreNode* evalSubst(const QoreTypeInfo*& rtTypeInfo) {
-      SimpleRefHolder<QoreTreeNode> rh(this);
-      ExceptionSink xsink;
-
-      ValueEvalRefHolder v(this, &xsink);
-      assert(!xsink);
-      AbstractQoreNode* rv = v.getReferencedValue();
-      rtTypeInfo = rv ? getTypeInfoForType(rv->getType()) : nothingTypeInfo;
-      xsink.clear();
-      return rv ? rv : nothing();
-   }
+   DLLLOCAL AbstractQoreNode* evalSubst(const QoreTypeInfo*& rtTypeInfo);
 };
 
 #endif

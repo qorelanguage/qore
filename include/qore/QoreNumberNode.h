@@ -263,15 +263,6 @@ public:
    //! returns true if the current object is equal to the argument
    DLLEXPORT bool equals(int64 n) const;
 
-   //! compares the argument to the current object, returns -1 if the current object is less than the argument, 0 if equals, and 1 if greater than the argument
-   DLLEXPORT int compare(const QoreNumberNode& n) const;
-
-   //! compares the argument to the current object, returns -1 if the current object is less than the argument, 0 if equals, and 1 if greater than the argument
-   DLLEXPORT int compare(int64 n) const;
-
-   //! compares the argument to the current object, returns -1 if the current object is less than the argument, 0 if equals, and 1 if greater than the argument
-   DLLEXPORT int compare(double n) const;
-
    //! returns a pointer to this with the reference count incremented
    DLLEXPORT QoreNumberNode* numberRefSelf() const;
 

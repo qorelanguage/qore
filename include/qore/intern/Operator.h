@@ -88,7 +88,7 @@ typedef bool (*op_logic_func_t)(bool l, bool r);
 typedef bool (*op_bool_float_func_t)(double l, double r);
 typedef double (*op_float_float_func_t)(double l, double r);
 typedef double (*op_divide_float_func_t)(double l, double r, ExceptionSink* xsink);
-typedef int64 (*op_compare_float_func_t)(double l, double r);
+typedef int64 (*op_compare_float_func_t)(double l, double r, ExceptionSink* xsink);
 
 typedef bool (*op_bool_date_func_t)(const DateTimeNode* l, const DateTimeNode* r);
 typedef DateTimeNode* (*op_date_func_t)(const DateTimeNode* l, const DateTimeNode* r);
@@ -104,7 +104,7 @@ typedef double (*op_float_func_t)(const AbstractQoreNode* l, const AbstractQoreN
 
 typedef QoreNumberNode* (*op_number_func_t)(const QoreNumberNode* l, const QoreNumberNode* r, ExceptionSink* xsink);
 typedef bool (*op_bool_number_func_t)(const QoreNumberNode* l, const QoreNumberNode* r);
-typedef int64 (*op_int_number_func_t)(const QoreNumberNode* l, const QoreNumberNode* r);
+typedef int64 (*op_int_number_func_t)(const QoreNumberNode* l, const QoreNumberNode* r, ExceptionSink* xsink);
 
 class AbstractOperatorFunction {
 public:
