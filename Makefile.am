@@ -31,7 +31,7 @@ DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/OracleSqlUtil.qm \
 	qlib/PgsqlSqlUtil.qm \
 	qlib/FreetdsSqlUtil.qm \
-        qlib/Qorize.qm \
+	qlib/Qorize.qm \
 	qlib/MysqlSqlUtil.qm \
 	qlib/RestHandler.qm \
 	qlib/RestClient.qm \

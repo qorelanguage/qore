@@ -31,7 +31,6 @@
 #include <qore/Qore.h>
 
 QoreString QoreLogicalLessThanOperatorNode::op_str("< operator expression");
-QoreString QoreLogicalGreaterThanOrEqualsOperatorNode::op_str(">= operator expression");
 
 QoreValue QoreLogicalLessThanOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    if (pfunc)
@@ -45,10 +44,6 @@ QoreValue QoreLogicalLessThanOperatorNode::evalValueImpl(bool& needs_deref, Exce
       return QoreValue();
 
    return doLessThan(*lh, *rh, xsink);
-}
-
-AbstractQoreNode *QoreLogicalLessThanOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   return parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
 }
 
 AbstractQoreNode *QoreLogicalLessThanOperatorNode::parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
@@ -73,13 +68,13 @@ AbstractQoreNode *QoreLogicalLessThanOperatorNode::parseInitIntern(const char *n
    // can be assigned if either side is a float
    if (!lti->isType(NT_NUMBER) && !rti->isType(NT_NUMBER)) {
       if (lti->isType(NT_FLOAT) || rti->isType(NT_FLOAT))
-	 pfunc = &QoreLogicalLessThanOperatorNode::floatLessThan;
+         pfunc = &QoreLogicalLessThanOperatorNode::floatLessThan;
       else if (lti->hasType() && rti->hasType()) {
-	 if (lti->isType(NT_INT)) {
-	    if (rti->isType(NT_INT))
-	       pfunc = &QoreLogicalLessThanOperatorNode::bigIntLessThan;
-	 }
-	 // FIXME: check for invalid operation here
+         if (lti->isType(NT_INT)) {
+            if (rti->isType(NT_INT))
+               pfunc = &QoreLogicalLessThanOperatorNode::bigIntLessThan;
+         }
+         // FIXME: check for invalid operation here
       }
    }
 
@@ -110,32 +105,32 @@ bool QoreLogicalLessThanOperatorNode::doLessThan(QoreValue lh, QoreValue rh, Exc
 
    if (lt == NT_NUMBER) {
       switch (rt) {
-	 case NT_NUMBER:
-	    return lh.get<const QoreNumberNode>()->compare(*rh.get<const QoreNumberNode>()) < 0;
-	 case NT_FLOAT:
-	    return lh.get<const QoreNumberNode>()->compare(rh.getAsFloat()) < 0;
-	 case NT_BOOLEAN:
-	 case NT_INT:
-	    return lh.get<const QoreNumberNode>()->compare(rh.getAsBigInt()) < 0;
-	 default: {
-	    ReferenceHolder<QoreNumberNode> rn(new QoreNumberNode(rh.getInternalNode()), xsink);
-	    return lh.get<const QoreNumberNode>()->compare(**rn) < 0;
-	 }
+         case NT_NUMBER:
+            return lh.get<const QoreNumberNode>()->lessThan(*rh.get<const QoreNumberNode>());
+         case NT_FLOAT:
+            return lh.get<const QoreNumberNode>()->lessThan(rh.getAsFloat());
+         case NT_BOOLEAN:
+         case NT_INT:
+            return lh.get<const QoreNumberNode>()->lessThan(rh.getAsBigInt());
+         default: {
+            ReferenceHolder<QoreNumberNode> rn(new QoreNumberNode(rh.getInternalNode()), xsink);
+            return lh.get<const QoreNumberNode>()->lessThan(**rn);
+         }
       }
    }
 
    if (rt == NT_NUMBER) {
       assert(lt != NT_NUMBER);
       switch (lt) {
-	 case NT_FLOAT:
-	    return rh.get<const QoreNumberNode>()->compare(lh.getAsFloat()) > 0;
-	 case NT_BOOLEAN:
-	 case NT_INT:
-	    return rh.get<const QoreNumberNode>()->compare(lh.getAsBigInt()) > 0;
-	 default: {
-	    ReferenceHolder<QoreNumberNode> ln(new QoreNumberNode(lh.getInternalNode()), xsink);
-	    return rh.get<const QoreNumberNode>()->compare(**ln) > 0;
-	 }
+         case NT_FLOAT:
+            return rh.get<const QoreNumberNode>()->greaterThan(lh.getAsFloat());
+         case NT_BOOLEAN:
+         case NT_INT:
+            return rh.get<const QoreNumberNode>()->greaterThan(lh.getAsBigInt());
+         default: {
+            ReferenceHolder<QoreNumberNode> ln(new QoreNumberNode(lh.getInternalNode()), xsink);
+            return rh.get<const QoreNumberNode>()->greaterThan(**ln);
+         }
       }
    }
 
@@ -149,7 +144,7 @@ bool QoreLogicalLessThanOperatorNode::doLessThan(QoreValue lh, QoreValue rh, Exc
       QoreStringValueHelper ls(lh);
       QoreStringValueHelper rs(rh, ls->getEncoding(), xsink);
       if (*xsink)
-	 return false;
+         return false;
       return ls->compare(*rs) < 0;
    }
 

@@ -126,7 +126,7 @@ set(LIBQORE_QPP_SRC
 	lib/QC_Socket.qpp
 	lib/QC_TermIOS.qpp
 	lib/QC_TimeZone.qpp
-        lib/QC_TreeMap.qpp
+	lib/QC_TreeMap.qpp
 	lib/QC_SSLCertificate.qpp
 	lib/QC_SSLPrivateKey.qpp
 	lib/QC_ThreadPool.qpp
@@ -442,6 +442,8 @@ set(LIBQORE_CPP_SRC
         lib/QoreIntPreDecrementOperatorNode.cpp
         lib/QoreLogicalLessThanOperatorNode.cpp
         lib/QoreLogicalGreaterThanOperatorNode.cpp
+        lib/QoreLogicalLessThanOrEqualsOperatorNode.cpp
+        lib/QoreLogicalGreaterThanOrEqualsOperatorNode.cpp
         lib/QoreDivisionOperatorNode.cpp
         lib/QoreMapOperatorNode.cpp
         lib/QoreMapSelectOperatorNode.cpp
