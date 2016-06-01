@@ -537,18 +537,6 @@ bool QoreNumberNode::equals(int64 n) const {
    return priv->equals(n);
 }
 
-int QoreNumberNode::compare(const QoreNumberNode& n) const {
-   return priv->compare(*n.priv);
-}
-
-int QoreNumberNode::compare(int64 n) const {
-   return priv->compare(n);
-}
-
-int QoreNumberNode::compare(double n) const {
-   return priv->compare(n);
-}
-
 QoreNumberNode* QoreNumberNode::numberRefSelf() const {
    ref();
    return const_cast<QoreNumberNode*>(this);

@@ -27,10 +27,13 @@ class InfNanTest inherits QUnit::Test {
         addTestCase("float - int tests", \floatIntTests());
         addTestCase("int - float tests", \intFloatTests());
         addTestCase("nan switch tests", \nanSwitchTests());
+        addTestCase("nan compare exception at parse time", \nanCompareParseTime());
         set_return_value(main());
     }
 
     floatTests() {
+        code cmpToNan = sub(float f) { int x = @nan@ <=> f; };
+
         assertFalse(@inf@ == 1.0);
         assertTrue(@inf@ != 1.0);
         assertFalse(@inf@ === 1.0);
@@ -59,7 +62,7 @@ class InfNanTest inherits QUnit::Test {
         assertFalse(@nan@ <= @inf@);
         assertFalse(@nan@ > @inf@);
         assertFalse(@nan@ >= @inf@);
-        assertThrows(NAN_CMP_ERR, sub() { int x = @nan@ <=> @inf@; });
+        assertThrows(NAN_CMP_ERR, cmpToNan, @inf@);
 
         assertFalse(@nan@ == 1.0);
         assertTrue(@nan@ != 1.0);
@@ -69,7 +72,7 @@ class InfNanTest inherits QUnit::Test {
         assertFalse(@nan@ <= 1.0);
         assertFalse(@nan@ > 1.0);
         assertFalse(@nan@ >= 1.0);
-        assertThrows(NAN_CMP_ERR, sub() { int x = @nan@ <=> 1.0; });
+        assertThrows(NAN_CMP_ERR, cmpToNan, 1.0);
 
         assertFalse(@nan@ == @nan@);
         assertTrue(@nan@ != @nan@);
@@ -79,10 +82,19 @@ class InfNanTest inherits QUnit::Test {
         assertFalse(@nan@ <= @nan@);
         assertFalse(@nan@ > @nan@);
         assertFalse(@nan@ >= @nan@);
-        assertThrows(NAN_CMP_ERR, sub() { int x = @nan@ <=> @nan@; });
+        assertThrows(NAN_CMP_ERR, cmpToNan, @nan@);
+
+        assertEq(-1, 1.0 <=> 2.0);
+        assertEq(0, 1.0 <=> 1.0);
+        assertEq(1, 2.0 <=> 1.0);
+        assertEq(0, @inf@ <=> @inf@);
+        assertEq(0, -@inf@ <=> -@inf@);
+        assertEq(-1, -@inf@ <=> @inf@);
     }
-    
+
     numberTests() {
+        code cmpToNan = sub(number n) { int x = @nan@n <=> n; };
+
         assertFalse(@inf@n == 1.0n);
         assertTrue(@inf@n != 1.0n);
         assertFalse(@inf@n === 1.0n);
@@ -111,7 +123,7 @@ class InfNanTest inherits QUnit::Test {
         assertFalse(@nan@n <= @inf@n);
         assertFalse(@nan@n > @inf@n);
         assertFalse(@nan@n >= @inf@n);
-        assertThrows(NAN_CMP_ERR, sub() { int x = @nan@n <=> @inf@n; });
+        assertThrows(NAN_CMP_ERR, cmpToNan, @inf@n);
 
         assertFalse(@nan@n == 1.0n);
         assertTrue(@nan@n != 1.0n);
@@ -121,7 +133,7 @@ class InfNanTest inherits QUnit::Test {
         assertFalse(@nan@n <= 1.0n);
         assertFalse(@nan@n > 1.0n);
         assertFalse(@nan@n >= 1.0n);
-        assertThrows(NAN_CMP_ERR, sub() { int x = @nan@n <=> 1.0n; });
+        assertThrows(NAN_CMP_ERR, cmpToNan, 1.0n);
 
         assertFalse(@nan@n == @nan@n);
         assertTrue(@nan@n != @nan@n);
@@ -131,10 +143,19 @@ class InfNanTest inherits QUnit::Test {
         assertFalse(@nan@n <= @nan@n);
         assertFalse(@nan@n > @nan@n);
         assertFalse(@nan@n >= @nan@n);
-        assertThrows(NAN_CMP_ERR, sub() { int x = @nan@n <=> @nan@n; });
+        assertThrows(NAN_CMP_ERR, cmpToNan, @nan@n);
+
+        assertEq(-1, 1n <=> 2n);
+        assertEq(0, 1n <=> 1n);
+        assertEq(1, 2n <=> 1n);
+        assertEq(0, @inf@n <=> @inf@n);
+        assertEq(0, -@inf@n <=> -@inf@n);
+        assertEq(-1, -@inf@n <=> @inf@n);
     }
-    
+
     numberFloatTests() {
+        code cmpToNan = sub(float f) { int x = @nan@n <=> f; };
+
         assertFalse(@inf@n == 1.0);
         assertTrue(@inf@n != 1.0);
         assertFalse(@inf@n === 1.0);
@@ -163,7 +184,7 @@ class InfNanTest inherits QUnit::Test {
         assertFalse(@nan@n <= @inf@);
         assertFalse(@nan@n > @inf@);
         assertFalse(@nan@n >= @inf@);
-        assertThrows(NAN_CMP_ERR, sub() { int x = @nan@n <=> @inf@; });
+        assertThrows(NAN_CMP_ERR, cmpToNan, @inf@);
 
         assertFalse(@nan@n == 1.0);
         assertTrue(@nan@n != 1.0);
@@ -173,7 +194,7 @@ class InfNanTest inherits QUnit::Test {
         assertFalse(@nan@n <= 1.0);
         assertFalse(@nan@n > 1.0);
         assertFalse(@nan@n >= 1.0);
-        assertThrows(NAN_CMP_ERR, sub() { int x = @nan@n <=> 1.0; });
+        assertThrows(NAN_CMP_ERR, cmpToNan, 1.0);
 
         assertFalse(@nan@n == @nan@);
         assertTrue(@nan@n != @nan@);
@@ -183,10 +204,12 @@ class InfNanTest inherits QUnit::Test {
         assertFalse(@nan@n <= @nan@);
         assertFalse(@nan@n > @nan@);
         assertFalse(@nan@n >= @nan@);
-        assertThrows(NAN_CMP_ERR, sub() { int x = @nan@n <=> @nan@n; });
+        assertThrows(NAN_CMP_ERR, cmpToNan, @nan@);
     }
 
     floatNumberTests() {
+        code cmpToNan = sub(number n) { int x = @nan@ <=> n; };
+
         assertFalse(@inf@ == 1.0n);
         assertTrue(@inf@ != 1.0n);
         assertFalse(@inf@ === 1.0n);
@@ -215,7 +238,7 @@ class InfNanTest inherits QUnit::Test {
         assertFalse(@nan@ <= @inf@n);
         assertFalse(@nan@ > @inf@n);
         assertFalse(@nan@ >= @inf@n);
-        assertThrows(NAN_CMP_ERR, sub() { int x = @nan@ <=> @inf@n; });
+        assertThrows(NAN_CMP_ERR, cmpToNan, @inf@n);
 
         assertFalse(@nan@ == 1.0n);
         assertTrue(@nan@ != 1.0n);
@@ -225,7 +248,7 @@ class InfNanTest inherits QUnit::Test {
         assertFalse(@nan@ <= 1.0n);
         assertFalse(@nan@ > 1.0n);
         assertFalse(@nan@ >= 1.0n);
-        assertThrows(NAN_CMP_ERR, sub() { int x = @nan@ <=> 1.0n; });
+        assertThrows(NAN_CMP_ERR, cmpToNan, 1.0n);
 
         assertFalse(@nan@ == @nan@n);
         assertTrue(@nan@ != @nan@n);
@@ -235,7 +258,7 @@ class InfNanTest inherits QUnit::Test {
         assertFalse(@nan@ <= @nan@n);
         assertFalse(@nan@ > @nan@n);
         assertFalse(@nan@ >= @nan@n);
-        assertThrows(NAN_CMP_ERR, sub() { int x = @nan@ <=> @nan@n; });
+        assertThrows(NAN_CMP_ERR, cmpToNan, @nan@n);
     }
 
     numberIntTests() {
@@ -267,7 +290,7 @@ class InfNanTest inherits QUnit::Test {
         assertFalse(@nan@n <= 1);
         assertFalse(@nan@n > 1);
         assertFalse(@nan@n >= 1);
-        assertThrows(NAN_CMP_ERR, sub() { int x = @nan@n <=> 1; });
+        assertThrows(NAN_CMP_ERR, sub(int i) { int x = @nan@n <=> i; }, 1);
     }
 
     intNumberTests() {
@@ -299,7 +322,7 @@ class InfNanTest inherits QUnit::Test {
         assertFalse(1 <= @nan@n);
         assertFalse(1 > @nan@n);
         assertFalse(1 >= @nan@n);
-        assertThrows(NAN_CMP_ERR, sub() { int x = 1 <=> @nan@n; });
+        assertThrows(NAN_CMP_ERR, sub(int i) { int x = i <=> @nan@n; }, 1);
     }
 
     floatIntTests() {
@@ -331,7 +354,7 @@ class InfNanTest inherits QUnit::Test {
         assertFalse(@nan@ <= 1);
         assertFalse(@nan@ > 1);
         assertFalse(@nan@ >= 1);
-        assertThrows(NAN_CMP_ERR, sub() { int x = @nan@ <=> 1; });
+        assertThrows(NAN_CMP_ERR, sub(int i) { int x = @nan@ <=> i; }, 1);
     }
 
     intFloatTests() {
@@ -363,7 +386,7 @@ class InfNanTest inherits QUnit::Test {
         assertFalse(1 <= @nan@);
         assertFalse(1 > @nan@);
         assertFalse(1 >= @nan@);
-        assertThrows(NAN_CMP_ERR, sub() { int x = 1 <=> @nan@; });
+        assertThrows(NAN_CMP_ERR, sub(int i) { int x = i <=> @nan@; }, 1);
     }
 
     nanSwitchTests() {
@@ -486,5 +509,10 @@ class InfNanTest inherits QUnit::Test {
             default:
                 break;
         }
+    }
+
+    nanCompareParseTime() {
+        Program p();
+        assertThrows(NAN_CMP_ERR, \p.parse(), ("int sub f() { return @nan@ <=> 1.0; }", ""));
     }
 }

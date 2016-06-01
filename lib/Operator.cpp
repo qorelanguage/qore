@@ -34,6 +34,7 @@
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/AbstractIteratorHelper.h>
 
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -431,8 +432,19 @@ static bool op_log_ne_number(const QoreNumberNode* left, const QoreNumberNode* r
    return !left->equals(*right);
 }
 
-static int64 op_cmp_number(const QoreNumberNode* left, const QoreNumberNode* right) {
-   return (int64)left->compare(*right);
+static int64 op_cmp_number(const QoreNumberNode* left, const QoreNumberNode* right, ExceptionSink* xsink) {
+   if (left->nan() || right->nan()) {
+      xsink->raiseException("NAN-COMPARE-ERROR", "NaN in logical comparison operator");
+      return 1;
+   }
+
+   if (left->lessThan(*right))
+       return -1;
+
+   if (left->equals(*right))
+      return 0;
+
+   return 1;
 }
 
 static QoreNumberNode* op_plus_number(const QoreNumberNode* left, const QoreNumberNode* right, ExceptionSink* xsink) {
@@ -747,7 +759,12 @@ static AbstractQoreNode* op_plus_binary_binary(const AbstractQoreNode* left, con
    return rv;
 }
 
-static int64 op_cmp_double(double left, double right) {
+static int64 op_cmp_double(double left, double right, ExceptionSink* xsink) {
+   if (isnan(left) || isnan(right)) {
+      xsink->raiseException("NAN-COMPARE-ERROR", "NaN in logical comparison operator");
+      return 1;
+   }
+
    if (left < right)
        return -1;
 
@@ -1400,7 +1417,7 @@ QoreValue CompareFloatOperatorFunction::eval(const AbstractQoreNode* left, const
    if (!ref_rv)
       return QoreValue();
 
-   return op_func(left->getAsFloat(), right->getAsFloat());
+   return op_func(left->getAsFloat(), right->getAsFloat(), xsink);
 }
 
 QoreValue IntegerNotOperatorFunction::eval(const AbstractQoreNode* left, const AbstractQoreNode* right, bool ref_rv, int args, ExceptionSink* xsink) const {
@@ -1558,7 +1575,7 @@ QoreValue IntNumberOperatorFunction::eval(const AbstractQoreNode* left, const Ab
       right = *r;
    }
 
-   return op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right));
+   return op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right), xsink);
 }
 
 Operator::~Operator() {

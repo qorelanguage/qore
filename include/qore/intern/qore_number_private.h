@@ -356,20 +356,6 @@ struct qore_number_private : public qore_number_private_intern {
       return mpfr_equal_p(num, r);
    }
 
-   DLLLOCAL int compare(const qore_number_private& right) const {
-      return mpfr_cmp(num, right.num);
-   }
-
-   DLLLOCAL int compare(double right) const {
-      return mpfr_cmp_d(num, right);
-   }
-
-   DLLLOCAL int compare(int64 right) const {
-      MPFR_DECL_INIT(r, QORE_DEFAULT_PREC);
-      mpfr_set_sj(r, right, QORE_MPFR_RND);
-      return mpfr_cmp(num, r);
-   }
-
    DLLLOCAL qore_number_private* doBinary(q_mpfr_binary_func_t func, const qore_number_private& r, ExceptionSink* xsink = 0) const {
       mpfr_prec_t prec;
       if (func == mpfr_pow) {
