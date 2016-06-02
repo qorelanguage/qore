@@ -1959,6 +1959,22 @@ my any $v = $c.name;
                 ),
                 );
 
+            #! a hash of default update operator definitions for Oracle
+            const OracleUopMap = DefaultUopMap + (
+                COP_SEQ: (
+                    "nocolumn": True,
+                    "code": string sub (*string cve, string arg) {
+                        return sprintf("%s.nextval", arg);
+                    }
+                ),
+                COP_SEQ_CURRVAL: (
+                    "nocolumn": True,
+                    "code": string sub (*string cve, string arg) {
+                        return sprintf("%s.currval", arg);
+                    }
+                ),
+                );
+
             #! a hash of valid pseudocolumns
             const OraclePseudoColumnHash = (
                 "rowid": True,
@@ -2627,6 +2643,11 @@ my any $v = $c.name;
         #! returns the insert operator map for this object
         private hash getInsertOperatorMap() {
             return OracleIopMap;
+        }
+
+        #! returns the raw (default) update operator map for this object
+        private hash getRawUpdateOperatorMap() {
+            return OracleUopMap;
         }
 
         #! returns a hash of valid pseudocolumns

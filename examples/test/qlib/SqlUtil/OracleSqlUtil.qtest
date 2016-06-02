@@ -162,6 +162,12 @@ class OracleTest inherits SqlTestBase {
             );
 
         assertEq(("id": 2, "seq": 1, "seq_currval": 1), table.selectRow(sh));
+        assertEq(("id": 2, "seq": 2, "seq_currval": 2), table.selectRow(sh));
+        assertEq(("id": 2, "seq": 3, "seq_currval": 3), table.selectRow(sh));
+
+        assertEq(1, table.update(("id": uop_seq("oracle_test_seq")), ("id": 2)));
+        sh."where".id = 4;
+        assertEq(("id": 4, "seq": 5, "seq_currval": 5), table.selectRow(sh));
     }
 
     testPseudoColumns() {

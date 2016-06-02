@@ -141,6 +141,7 @@ module SqlUtil {
     - fixed @ref SqlUtil::uop_lower() and @ref SqlUtil::uop_upper() operators to allow nesting (<a href="https://github.com/qorelanguage/qore/issues/657">issue 657</a>)
     - fixed a bug where SqlUtil was generating invalid SQL for some DBs where a wilcard was used with explicit column names (<a href="https://github.com/qorelanguage/qore/issues/708">issue 708</a>)
     - fixed a bug where updating an index without any source constraints caused an invalid exception to be raised (<a href="https://github.com/qorelanguage/qore/issues/768">issue 768</a>)
+    - fixed a bug in @ref SqlUtil::AbstractTable::update() "AbstractTable::update()" with sequence operators (<a href="https://github.com/qorelanguage/qore/issues/942">issue 942</a>)
 
     @subsection sqlutilv1_2 SqlUtil v1.2
     - added insert operator support; for example, for inserting with values from sequences
@@ -2637,8 +2638,6 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
         COP_APPEND: True,
         COP_UPPER: True,
         COP_LOWER: True,
-        COP_SEQ: True,
-        COP_SEQ_CURRVAL: True,
         COP_MINUS: (
             "sqlvalue": True,
             "code": string sub (string cve, any arg) {
@@ -2664,6 +2663,24 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
             },
         ),
         COP_SUBSTR: True,
+        COP_SEQ: (
+            "nocolumn": True,
+            "code": string sub (*string cve, string arg) {
+                throw "SEQUENCE-ERROR", sprintf("cannot select sequence %y because this database does not support sequences", arg);
+            }
+        ),
+        COP_SEQ_CURRVAL: (
+            "nocolumn": True,
+            "code": string sub (*string cve, string arg) {
+                throw "SEQUENCE-ERROR", sprintf("cannot select the current value of sequence %y because this database does not support sequences", arg);
+            }
+        ),
+        COP_COALESCE: (
+            "columnargs": True,
+            "code": string sub (*string cve, softlist args) {
+                return sprintf("coalesce(%s)", (foldl $1 + "," + $2, args));
+            }
+        ),
         );
     #@}
 
@@ -12390,6 +12407,24 @@ int ucnt = table.update(("id": id), ("name": name));
 
             if (cmd.sqlvalue)
                 uh.arg = getSqlValue(uh.arg);
+            else if (cmd.argcolumn) {
+                if (!cmd.argoptional || uh.arg) {
+                    if (uh.arg.typeCode() != NT_STRING)
+                        throw "UPDATE-ERROR", sprintf("%s: expecting a string column designation for update operator %y; got type %y instead", getDesc(), uh.uop, uh.arg.type());
+                    uh.arg = getColumnNameIntern(uh.arg, NOTHING, False);
+                }
+            }
+            else if (cmd.columnargs) {
+                if (uh.arg.typeCode() != NT_LIST)
+                    throw "UPDATE-ERROR", sprintf("%s: expecting a list of column designators for update operator %y; got type %y instead", getDesc(), uh.uop, uh.arg.type());
+                foreach any narg in (\uh.arg) {
+                    switch (narg.typeCode()) {
+                        case NT_STRING: narg = getColumnNameIntern(narg, NOTHING, False); break;
+                        case NT_HASH: narg = doColumnOperatorIntern(narg, NOTHING, False); break;
+                        default: throw "COLUMN-ERROR", sprintf("%s: expecting a string column designator or a update operator hash; got %y in position %d/%d instead", getDesc(), narg, $#, uh.arg.lsize());
+                    }
+                }
+            }
 
             string arg = (uh.nest ? getUpdateExpression(col, uh.nest) : col);
 
@@ -13840,8 +13875,16 @@ string sql = table.getAlignSqlString(table2);
         /** override in subclasses to return driver-specific options
         */
         private hash getUpdateOperatorMap() {
-            return getColumnOperatorMap().(DefaultUopMap.keys())
-                + DefaultUopMap.(select DefaultUopMap.keys(), DefaultUopMap{$1}.typeCode() == NT_HASH);
+            hash uom = getRawUpdateOperatorMap();
+            return getColumnOperatorMap().(uom.keys())
+                + (map {$1.key: $1.value}, uom.pairIterator(), $1.value.typeCode() == NT_HASH);
+        }
+
+        #! returns the raw (default) update operator map for this object
+        /** override in subclasses to return driver-specific options
+        */
+        private hash getRawUpdateOperatorMap() {
+            return DefaultUopMap;
         }
 
         #! returns a hash of valid pseudocolumns
