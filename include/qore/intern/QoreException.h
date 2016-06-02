@@ -4,7 +4,7 @@
 
   Qore programming language exception handling support
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -46,7 +46,7 @@ struct QoreExceptionBase {
    QoreListNode *callStack;
    AbstractQoreNode *err, *desc, *arg;
 
-   DLLLOCAL QoreExceptionBase(AbstractQoreNode *n_err, AbstractQoreNode *n_desc, AbstractQoreNode *n_arg = 0, int n_type = ET_SYSTEM) 
+   DLLLOCAL QoreExceptionBase(AbstractQoreNode *n_err, AbstractQoreNode *n_desc, AbstractQoreNode *n_arg = 0, int n_type = ET_SYSTEM)
       : type(n_type), callStack(new QoreListNode), err(n_err), desc(n_desc), arg(n_arg) {
    }
 
@@ -124,7 +124,7 @@ public:
 
    DLLLOCAL QoreException(const QoreProgramLocation &n_loc, const char *n_err, AbstractQoreNode *n_desc, AbstractQoreNode *n_arg = 0, int n_type = ET_SYSTEM) : QoreExceptionBase(new QoreStringNode(n_err), n_desc, n_arg, n_type), QoreExceptionLocation(n_loc), next(0) {
    }
-   
+
    DLLLOCAL void del(ExceptionSink *xsink);
 
    DLLLOCAL QoreException *rethrow() {
@@ -141,7 +141,7 @@ public:
       }
       if (!fn)
          fn = "<unknown>";
-   
+
       QoreHashNode *h = getStackHash(CT_RETHROW, 0, fn, get_runtime_location());
       l->insert(h);
 
@@ -168,7 +168,7 @@ struct qore_es_private {
       thread_exit = false;
       head = tail = 0;
    }
-   
+
    DLLLOCAL ~qore_es_private() {
    }
 

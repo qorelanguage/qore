@@ -958,8 +958,8 @@ AbstractQoreNode* HashAssignmentHelper::operator*() const {
    return **priv;
 }
 
-void QoreParseHashNode::doDuplicateWarning(QoreProgramLocation& loc, const char* key) {
-   qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DUPLICATE_HASH_KEY, "DUPLICATE-HASH-KEY", "hash key '%s' has already been given in this hash; the value given in the last occurrence will be assigned to the hash; to avoid seeing this warning, remove the extraneous key definitions or turn off the warning by using '%%disable-warning duplicate-hash-key' in your code", key);
+void QoreParseHashNode::doDuplicateWarning(const QoreProgramLocation& newloc, const char* key) {
+   qore_program_private::makeParseWarning(getProgram(), newloc, QP_WARN_DUPLICATE_HASH_KEY, "DUPLICATE-HASH-KEY", "hash key '%s' has already been given in this hash; the value given in the last occurrence will be assigned to the hash; to avoid seeing this warning, remove the extraneous key definitions or turn off the warning by using '%%disable-warning duplicate-hash-key' in your code", key);
 }
 
 int QoreParseHashNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
