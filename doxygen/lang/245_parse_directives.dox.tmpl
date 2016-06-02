@@ -23,6 +23,7 @@
     |@ref broken-int-assignments "%broken-int-assignments"|Use old pre-0.8.12 broken @ref int_type "int" and @ref softint_type "softint" runtime handling where type errors were ignored at runtime
     |@ref broken-list-parsing "%broken-list-parsing"|Use old pre-0.8.12 broken list parsing where certain lists without parentheses would be rewritten to make top-level statements like <tt>list l = 1, 2, 3;</tt> valid
     |@ref broken-logic-precedence "%broken-logic-precedence"|Use old pre-0.8.12 precedence of logical and bitwise operators
+    |@ref broken-operators "%broken-operators"|Accept spaces in multi-character operators as with pre-0.8.12
     |@ref define "%define"|Creates and optionally sets a value for a @ref conditional_parsing "parse define" <br><br>Since %Qore 0.8.3
     |@ref disable-all-warnings "%disable-all-warnings"|Turns off all @ref warnings "warnings"
     |@ref disable-warning "%disable-warning" <em>@ref warnings "warning-code"</em>|Disables the named @ref warnings "warning" until @ref enable-warning "%enable-warning" is encountered with the same code or @ref enable-all-warnings "%enable-all-warnings" is encountered
@@ -251,6 +252,50 @@
     @par Description:
     Use old pre-0.8.12 precedence where the \ref logical_and_operator "&&" had the same precedence as \ref logical_or_operator "||" and all three bitwise operators (
     \ref bitwise_and_operator "&", \ref bitwise_or_operator "|", \ref bitwise_xor_operator "^") shared the same precedence.
+
+    @since %Qore 0.8.12
+
+    <hr>
+    @section broken-operators %broken-operators
+
+    @par Parse Directive:
+    <tt>%%broken-operators</tt>
+
+    @par Command Line:
+    <tt>-</tt><tt>-broken-operators</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_BROKEN_OPERATORS
+
+    @par Description:
+    Accept spaces in the following multi-character operators for backwards compatibility with %Qore before 0.8.12:
+    - @ref logical_less_than_or_equals_operator "<="
+    - @ref logical_greater_than_or_equals_operator ">="
+    - @ref logical_comparison_operator "<=>"
+    - @ref logical_absolute_equality_operator "==="
+    - @ref logical_absolute_inequality_operator "!=="
+    - @ref logical_and_operator "&&"
+    - @ref logical_or_operator "||"
+    - @ref plus_equals_operator "+="
+    - @ref minus_equals_operator "-="
+    - @ref and_equals_operator "&="
+    - @ref or_equals_operator "|="
+    - @ref modulo_equals_operator "%="
+    - @ref multiply_equals_operator "*="
+    - @ref divide_equals_operator "/="
+    - @ref xor_equals_operator "^="
+    - @ref shift_left_equals_operator "<<="
+    - @ref shift_right_equals_operator ">>="
+    - @ref logical_inequality_operator "!="
+    - @ref shift_right_operator ">>"
+    - @ref shift_left_operator "<<"
+    .
+    For example, when this parse directive is not set, the following is a bug:
+    @code{.py}
+int i = 1;
+i+ =4;
+    @endcode
+    When this parse directive is set; the above code is accepted.
 
     @since %Qore 0.8.12
 
