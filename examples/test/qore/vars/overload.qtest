@@ -31,7 +31,7 @@ public class OverloadTest inherits QUnit::Test {
     constructor() : Test("Overload test", "1.0") {
         addTestCase("Values test", \testValues(), NOTHING);
         addTestCase("Variables test", \testVariables(), NOTHING);
-        addTestCase("Default arg for OrNothing types", \orNothingDuplicity(), NOTHING);
+        addTestCase("Default arg for OrNothing types", \orNothingDuplication(), NOTHING);
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -57,7 +57,7 @@ public class OverloadTest inherits QUnit::Test {
         assertEq("float", f1_test(fi));
     }
 
-    orNothingDuplicity() {
+    orNothingDuplication() {
         Program p();
         p.replaceParseOptions(PO_DEFAULT);
         p.parse("sub f(int a) {}", "");

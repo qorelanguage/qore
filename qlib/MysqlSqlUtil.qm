@@ -383,7 +383,7 @@ my any $v = $c.name;
         constructor() {
         }
 
-        constructor(*hash c) : AbstractPrimaryKey("PRIMARY", c) {
+        constructor(hash c) : AbstractPrimaryKey("PRIMARY", c) {
         }
 
         #! returns the MysqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
@@ -1172,18 +1172,14 @@ end";
         }
 
         private MysqlPrimaryKey getPrimaryKeyImpl() {
-            hash rv;
-
             # get primary key description
             *hash qh = ds.select("select column_name from information_schema.key_column_usage k where constraint_name = 'PRIMARY' and table_name = %v and table_schema = %v order by ordinal_position", name, schema);
             if (!qh.column_name)
                 return new MysqlPrimaryKey();
 
             #printf("MysqlTable::getPrimaryKeyImpl(): %s: %N\n", getName(), qh);
-            foreach string col in (qh.column_name)
-                rv{col} = columns{col};
 
-            return new MysqlPrimaryKey(rv);
+            return new MysqlPrimaryKey((map {$1: columns{$1}}, qh.column_name));
         }
 
         private Indexes getIndexesImpl() {
