@@ -34,6 +34,7 @@
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/AbstractIteratorHelper.h>
 
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -408,31 +409,42 @@ static double op_multiply_float(double left, double right) {
 }
 
 static bool op_log_lt_number(const QoreNumberNode* left, const QoreNumberNode* right) {
-   return left->compare(*right) < 0;
+   return left->lessThan(*right);
 }
 
 static bool op_log_le_number(const QoreNumberNode* left, const QoreNumberNode* right) {
-   return left->compare(*right) <= 0;
+   return left->lessThanOrEqual(*right);
 }
 
 static bool op_log_gt_number(const QoreNumberNode* left, const QoreNumberNode* right) {
-   return left->compare(*right) > 0;
+   return left->greaterThan(*right);
 }
 
 static bool op_log_ge_number(const QoreNumberNode* left, const QoreNumberNode* right) {
-   return left->compare(*right) >= 0;
+   return left->greaterThanOrEqual(*right);
 }
 
 static bool op_log_eq_number(const QoreNumberNode* left, const QoreNumberNode* right) {
-   return !left->compare(*right);
+   return left->equals(*right);
 }
 
 static bool op_log_ne_number(const QoreNumberNode* left, const QoreNumberNode* right) {
-   return (bool)left->compare(*right);
+   return !left->equals(*right);
 }
 
-static int64 op_cmp_number(const QoreNumberNode* left, const QoreNumberNode* right) {
-   return (int64)left->compare(*right);
+static int64 op_cmp_number(const QoreNumberNode* left, const QoreNumberNode* right, ExceptionSink* xsink) {
+   if (left->nan() || right->nan()) {
+      xsink->raiseException("NAN-COMPARE-ERROR", "NaN in logical comparison operator");
+      return 1;
+   }
+
+   if (left->lessThan(*right))
+       return -1;
+
+   if (left->equals(*right))
+      return 0;
+
+   return 1;
 }
 
 static QoreNumberNode* op_plus_number(const QoreNumberNode* left, const QoreNumberNode* right, ExceptionSink* xsink) {
@@ -747,7 +759,12 @@ static AbstractQoreNode* op_plus_binary_binary(const AbstractQoreNode* left, con
    return rv;
 }
 
-static int64 op_cmp_double(double left, double right) {
+static int64 op_cmp_double(double left, double right, ExceptionSink* xsink) {
+   if (isnan(left) || isnan(right)) {
+      xsink->raiseException("NAN-COMPARE-ERROR", "NaN in logical comparison operator");
+      return 1;
+   }
+
    if (left < right)
        return -1;
 
@@ -800,7 +817,8 @@ static AbstractQoreNode* op_unshift(const AbstractQoreNode* left, const Abstract
 
    // value is not a list, so throw exception
    if (val.getType() != NT_LIST) {
-      xsink->raiseException("UNSHIFT-ERROR", "first argument to unshift is not a list");
+      // no need to check for PO_STRICT_ARGS; this exception was always thrown
+      xsink->raiseException("UNSHIFT-ERROR", "the lvalue argument to unshift is type \"%s\"; expecting \"list\"", val.getTypeName());
       return 0;
    }
 
@@ -831,7 +849,9 @@ static AbstractQoreNode* op_shift(const AbstractQoreNode* left, const AbstractQo
 
    // value is not a list, so throw exception
    if (val.getType() != NT_LIST) {
-      xsink->raiseException("SHIFT-ERROR", "the argument to shift is not a list");
+      // only throw a runtime exception if %strict-args is in effect
+      if (runtime_check_parse_option(PO_STRICT_ARGS))
+         xsink->raiseException("SHIFT-ERROR", "the lvalue argument to shift is type \"%s\"; expecting \"list\"", val.getTypeName());
       return 0;
    }
 
@@ -860,7 +880,9 @@ static AbstractQoreNode* op_pop(const AbstractQoreNode* left, const AbstractQore
 
    // value is not a list, so throw exception
    if (val.getType() != NT_LIST) {
-      xsink->raiseException("POP-ERROR", "the argument to pop is not a list");
+      // only throw a runtime exception if %strict-args is in effect
+      if (runtime_check_parse_option(PO_STRICT_ARGS))
+         xsink->raiseException("POP-ERROR", "the lvalue argument to pop is type \"%s\"; expecting \"list\"", val.getTypeName());
       return 0;
    }
 
@@ -899,7 +921,9 @@ static AbstractQoreNode* op_push(const AbstractQoreNode* left, const AbstractQor
 
    // value is not a list, so throw exception
    if (val.getType() != NT_LIST) {
-      xsink->raiseException("PUSH-ERROR", "first argument to push is not a list");
+      // only throw a runtime exception if %strict-args is in effect
+      if (runtime_check_parse_option(PO_STRICT_ARGS))
+         xsink->raiseException("PUSH-ERROR", "the lvalue argument to push is type \"%s\"; expecting \"list\"", val.getTypeName());
       return 0;
    }
 
@@ -1400,7 +1424,7 @@ QoreValue CompareFloatOperatorFunction::eval(const AbstractQoreNode* left, const
    if (!ref_rv)
       return QoreValue();
 
-   return op_func(left->getAsFloat(), right->getAsFloat());
+   return op_func(left->getAsFloat(), right->getAsFloat(), xsink);
 }
 
 QoreValue IntegerNotOperatorFunction::eval(const AbstractQoreNode* left, const AbstractQoreNode* right, bool ref_rv, int args, ExceptionSink* xsink) const {
@@ -1558,7 +1582,7 @@ QoreValue IntNumberOperatorFunction::eval(const AbstractQoreNode* left, const Ab
       right = *r;
    }
 
-   return op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right));
+   return op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right), xsink);
 }
 
 Operator::~Operator() {

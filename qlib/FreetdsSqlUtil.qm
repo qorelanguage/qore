@@ -1043,6 +1043,23 @@ my any $v = $c.name;
                     "placeholder": "next value for %v",
                 ),
                 );
+
+            #! a hash of default update operator definitions for FreeTDS
+            const FreetdsUopMap = DefaultUopMap + (
+                COP_SEQ: (
+                    "nocolumn": True,
+                    "withalias": True,
+                    "code": string sub (*string cve, string arg) {
+                        return sprintf("next value for %s", arg);
+                    }
+                ),
+                COP_SEQ_CURRVAL: (
+                    "nocolumn": True,
+                    "code": string sub (*string cve, string arg) {
+                        throw "SEQUENCE-ERROR", sprintf("cannot select the current value of sequence %y because this database does not support this operation", arg);
+                    }
+                ),
+                );
         }
 
         private {
@@ -1221,6 +1238,11 @@ my any $v = $c.name;
         #! returns the insert operator map for this object
         private hash getInsertOperatorMap() {
             return FreetdsIopMap;
+        }
+
+        #! returns the raw (default) update operator map for this object
+        private hash getRawUpdateOperatorMap() {
+            return FreetdsUopMap;
         }
 
         #! returns the select options for this driver

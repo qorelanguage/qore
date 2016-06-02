@@ -33,6 +33,7 @@
 
 #define _QORE_QORE_NUMBER_PRIVATE_H
 
+#include <math.h>
 #include <memory>
 
 // the number of consecutive trailing 0 or 9 digits that will be rounded in string output
@@ -257,18 +258,102 @@ struct qore_number_private : public qore_number_private_intern {
       return formatNumberString(str, fmt, xsink);
    }
 
-   DLLLOCAL int compare(const qore_number_private& right) const {
-      return mpfr_cmp(num, right.num);
+   DLLLOCAL bool lessThan(const qore_number_private& right) const {
+      return mpfr_less_p(num, right.num);
    }
 
-   DLLLOCAL int compare(double right) const {
-      return mpfr_cmp_d(num, right);
-   }
-
-   DLLLOCAL int compare(int64 right) const {
+   DLLLOCAL bool lessThan(double right) const {
       MPFR_DECL_INIT(r, QORE_DEFAULT_PREC);
+      if (mpfr_nan_p(num) || isnan(right)) // If any of the "numbers" is NaN.
+         return false;
+      mpfr_set_d(r, right, QORE_MPFR_RND);
+      return mpfr_less_p(num, r);
+   }
+
+   DLLLOCAL bool lessThan(int64 right) const {
+      MPFR_DECL_INIT(r, QORE_DEFAULT_PREC);
+      if (mpfr_nan_p(num)) // If the number is NaN.
+         return false;
       mpfr_set_sj(r, right, QORE_MPFR_RND);
-      return mpfr_cmp(num, r);
+      return mpfr_less_p(num, r);
+   }
+
+   DLLLOCAL bool lessThanOrEqual(const qore_number_private& right) const {
+      return mpfr_lessequal_p(num, right.num);
+   }
+
+   DLLLOCAL bool lessThanOrEqual(double right) const {
+      MPFR_DECL_INIT(r, QORE_DEFAULT_PREC);
+      if (mpfr_nan_p(num) || isnan(right)) // If any of the "numbers" is NaN.
+         return false;
+      mpfr_set_d(r, right, QORE_MPFR_RND);
+      return mpfr_lessequal_p(num, r);
+   }
+
+   DLLLOCAL bool lessThanOrEqual(int64 right) const {
+      MPFR_DECL_INIT(r, QORE_DEFAULT_PREC);
+      if (mpfr_nan_p(num)) // If the number is NaN.
+         return false;
+      mpfr_set_sj(r, right, QORE_MPFR_RND);
+      return mpfr_lessequal_p(num, r);
+   }
+
+   DLLLOCAL bool greaterThan(const qore_number_private& right) const {
+      return mpfr_greater_p(num, right.num);
+   }
+
+   DLLLOCAL bool greaterThan(double right) const {
+      MPFR_DECL_INIT(r, QORE_DEFAULT_PREC);
+      if (mpfr_nan_p(num) || isnan(right)) // If any of the "numbers" is NaN.
+         return false;
+      mpfr_set_d(r, right, QORE_MPFR_RND);
+      return mpfr_greater_p(num, r);
+   }
+
+   DLLLOCAL bool greaterThan(int64 right) const {
+      MPFR_DECL_INIT(r, QORE_DEFAULT_PREC);
+      if (mpfr_nan_p(num)) // If the number is NaN.
+         return false;
+      mpfr_set_sj(r, right, QORE_MPFR_RND);
+      return mpfr_greater_p(num, r);
+   }
+
+   DLLLOCAL bool greaterThanOrEqual(const qore_number_private& right) const {
+      return mpfr_greaterequal_p(num, right.num);
+   }
+
+   DLLLOCAL bool greaterThanOrEqual(double right) const {
+      MPFR_DECL_INIT(r, QORE_DEFAULT_PREC);
+      if (mpfr_nan_p(num) || isnan(right)) // If any of the "numbers" is NaN.
+         return false;
+      mpfr_set_d(r, right, QORE_MPFR_RND);
+      return mpfr_greaterequal_p(num, r);
+   }
+
+   DLLLOCAL bool greaterThanOrEqual(int64 right) const {
+      MPFR_DECL_INIT(r, QORE_DEFAULT_PREC);
+      if (mpfr_nan_p(num)) // If the number is NaN.
+         return false;
+      mpfr_set_sj(r, right, QORE_MPFR_RND);
+      return mpfr_greaterequal_p(num, r);
+   }
+
+   DLLLOCAL bool equals(const qore_number_private& right) const {
+      return mpfr_equal_p(num, right.num);
+   }
+
+   DLLLOCAL bool equals(double right) const {
+      if (mpfr_nan_p(num) || isnan(right)) // If any of the "numbers" is NaN.
+         return false;
+      return 0 == mpfr_cmp_d(num, right);
+   }
+
+   DLLLOCAL bool equals(int64 right) const {
+      MPFR_DECL_INIT(r, QORE_DEFAULT_PREC);
+      if (mpfr_nan_p(num)) // If the number is NaN.
+         return false;
+      mpfr_set_sj(r, right, QORE_MPFR_RND);
+      return mpfr_equal_p(num, r);
    }
 
    DLLLOCAL qore_number_private* doBinary(q_mpfr_binary_func_t func, const qore_number_private& r, ExceptionSink* xsink = 0) const {

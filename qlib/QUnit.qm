@@ -1116,7 +1116,7 @@ fail("Unexpected code executed");
 
         @param msg the failure message
      */
-    public fail(string msg) {
+    public fail(*string msg) {
         throw "TEST-EXCEPTION", msg;
     }
 

@@ -79,6 +79,7 @@
 #define PO_BROKEN_LIST_PARSING              (1LL << 39)  //!< allow for old pre-%Qore 0.8.12 broken list rewriting in the parser
 #define PO_BROKEN_LOGIC_PRECEDENCE          (1LL << 40)  //!< allow for old pre-%Qore 0.8.12 precedence of logical and bitwise operators
 #define PO_BROKEN_INT_ASSIGNMENTS           (1LL << 41)  //!< allow for old pre-%Qore 0.8.12 "int" restrictions to be ignored at runtime
+#define PO_BROKEN_OPERATORS                 (1LL << 42)  //!< allow for old pre-%Qore 0.8.12 parsing of multi-character operators with spaces
 
 // aliases for old defines
 #define PO_NO_SYSTEM_FUNC_VARIANTS          PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
