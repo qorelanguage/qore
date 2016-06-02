@@ -346,6 +346,7 @@
       - fixed \c "uop_lower()" and \c "uop_upper()" operators to allow nesting (<a href="https://github.com/qorelanguage/qore/issues/657">issue 657</a>)
       - fixed a bug where SqlUtil was generating invalid SQL for some DBs where a wilcard was used with explicit column names (<a href="https://github.com/qorelanguage/qore/issues/708">issue 708</a>)
       - fixed a bug where updating an index without any source constraints caused an invalid exception to be raised (<a href="https://github.com/qorelanguage/qore/issues/768">issue 768</a>)
+      - fixed a bug in \c AbstractTable::update() with sequence operators (<a href="https://github.com/qorelanguage/qore/issues/942">issue 942</a>)
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module fixes:
       - fixed a bug where column names that are reserved words were not quoted in generated SQL
       - fixed bugs in \c cop_seq() and \c cop_seq_currval() (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
