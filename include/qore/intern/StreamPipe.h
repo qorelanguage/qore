@@ -48,11 +48,16 @@ public:
 
 private:
    QoreThreadLock mutex;
-   QoreCondition condVar;
+   QoreCondition readCondVar;
+   QoreCondition writeCondVar;
    std::vector<unsigned char> buffer;
    bool broken;
    bool inputClosed;
    bool outputClosed;
+   int64 size;
+   int64 count;
+   int64 readPtr;
+
 
    friend class PipeInputStream;
    friend class PipeOutputStream;

@@ -32,87 +32,159 @@
 #include <qore/intern/StreamPipe.h>
 
 StreamPipe::StreamPipe(int64 bufferSize) : buffer(bufferSize > 0 ? bufferSize : 4096), broken(false),
-      inputClosed(false), outputClosed(false) {
+      inputClosed(false), outputClosed(false), size(bufferSize), count(0), readPtr(0) {
 }
 
 PipeInputStream::~PipeInputStream() {
-   printd(0, "PipeInputStream::~PipeInputStream()\n");
+   printd(1, "PipeInputStream::~PipeInputStream()\n");
    AutoLocker lock(pipe->mutex);
    if (!pipe->inputClosed) {
       pipe->broken = true;
-//      pipe->wakeUpWriter();
+      pipe->writeCondVar.broadcast();
    }
 }
 
 void PipeInputStream::close(ExceptionSink* xsink) /*override*/ {
-   printd(0, "PipeInputStream::close()\n");
+   printd(1, "PipeInputStream::close()\n");
    AutoLocker lock(pipe->mutex);
    if (pipe->inputClosed) {
       xsink->raiseException("INPUT-STREAM-CLOSED-ERROR", "this PipeInputStream object has been already closed");
       return;
    }
    pipe->inputClosed = true;
-//   pipe->wakeUpWriter();
+   pipe->readCondVar.broadcast();
+   pipe->writeCondVar.broadcast();
 }
 
 int64 PipeInputStream::read(int64 timeout, ExceptionSink* xsink) /*override*/ {
-   printd(0, "PipeInputStream::read()\n");
-   AutoLocker lock(pipe->mutex);
-   if (pipe->inputClosed) {
-      xsink->raiseException("INPUT-STREAM-CLOSED-ERROR", "this PipeInputStream object has been already closed");
-      return -1;
+   printd(1, "PipeInputStream::read()\n");
+   uint8_t b;
+   if (bulkRead(&b, 1, timeout, xsink) == 1) {
+      return b & 0xFF;
    }
-
    return -1;
 }
 
 int64 PipeInputStream::bulkRead(void *ptr, int64 limit, int64 timeout, ExceptionSink *xsink) /*override*/ {
-   printd(0, "PipeInputStream::bulkRead()\n");
-   AutoLocker lock(pipe->mutex);
-   if (pipe->inputClosed) {
-      xsink->raiseException("INPUT-STREAM-CLOSED-ERROR", "this PipeInputStream object has been already closed");
-      return 0;
-   }
    assert(limit > 0);
+   printd(1, "PipeInputStream::bulkRead()\n");
+   AutoLocker lock(pipe->mutex);
 
-   return 0;
+   printd(1, "read - lock acquired, limit: " QLLD "\n", limit);
+   while (true) {
+      if (pipe->inputClosed) {
+         xsink->raiseException("INPUT-STREAM-CLOSED-ERROR", "this PipeInputStream object has been already closed");
+         return 0;
+      }
+      if (pipe->broken) {
+         xsink->raiseException("BROKEN-PIPE-ERROR", "one of the streams of the pipe has been destroyed");
+         return 0;
+      }
+
+      printd(1, "read - count: " QLLD "\n", pipe->count);
+      if (pipe->count > 0) {
+         break;
+      }
+
+      if (pipe->outputClosed) {
+         //no more data,return EOF
+         return 0;
+      }
+
+      printd(1, "read - buffer empty, before wait\n");
+      int rc = timeout < 0 ? pipe->readCondVar.wait(pipe->mutex) : pipe->readCondVar.wait2(pipe->mutex, timeout);
+      printd(1, "read - buffer empty, after wait, rc: %d\n", rc);
+      if (rc != 0) {
+         xsink->raiseException("TIMEOUT-ERROR", "operation timed out");
+         return 0;
+      }
+   }
+
+   uint8_t *dst = static_cast<uint8_t *>(ptr);
+   while (pipe->count > 0 && limit > 0) {
+      printd(1, "read - size: " QLLD ", count: " QLLD ", readPtr: " QLLD ", limit: " QLLD "\n", pipe->size, pipe->count, pipe->readPtr, limit);
+      int64 willRead = QORE_MIN(limit, QORE_MIN(pipe->count, pipe->size - pipe->readPtr));
+      printd(1, "read - copying %d bytes\n", willRead);
+      memcpy(dst, pipe->buffer.data() + pipe->readPtr, willRead);
+      dst += willRead;
+      pipe->count -= willRead;
+      pipe->readPtr = (pipe->readPtr + willRead) % pipe->size;
+      limit -= willRead;
+   }
+   printd(1, "read - wake up writer - size: " QLLD ", count: " QLLD ", readPtr: " QLLD ", limit: " QLLD "\n", pipe->size, pipe->count, pipe->readPtr, limit);
+   pipe->writeCondVar.broadcast();
+   printd(1, "read - done, releasing lock, returning " QLLD "\n", dst - static_cast<uint8_t *>(ptr));
+   return dst - static_cast<uint8_t *>(ptr);
 }
 
 PipeOutputStream::~PipeOutputStream() {
-   printd(0, "PipeOutputStream::~PipeOutputStream()\n");
+   printd(1, "PipeOutputStream::~PipeOutputStream()\n");
    AutoLocker lock(pipe->mutex);
    if (!pipe->outputClosed) {
       pipe->broken = true;
-//      pipe->wakeUpReader();
+      pipe->readCondVar.broadcast();
    }
 }
 
 void PipeOutputStream::close(ExceptionSink* xsink) /*override*/ {
-   printd(0, "PipeOutputStream::close()\n");
+   printd(1, "PipeOutputStream::close()\n");
    AutoLocker lock(pipe->mutex);
    if (pipe->outputClosed) {
       xsink->raiseException("OUTPUT-STREAM-CLOSED-ERROR", "this PipeOutputStream object has been already closed");
       return;
    }
    pipe->outputClosed = true;
-//   pipe->wakeUpReader();
+   pipe->readCondVar.broadcast();
+   pipe->writeCondVar.broadcast();
 }
 
 void PipeOutputStream::write(int64 value, int64 timeout, ExceptionSink* xsink) /*override*/ {
-   printd(0, "PipeOutputStream::write()\n");
-   AutoLocker lock(pipe->mutex);
-   if (pipe->outputClosed) {
-      xsink->raiseException("OUTPUT-STREAM-CLOSED-ERROR", "this PipeOutputStream object has been already closed");
-      return;
-   }
+   printd(1, "PipeOutputStream::write()\n");
+   uint8_t b = value;
+   bulkWrite(&b, 1, timeout, xsink);
 }
 
-void PipeOutputStream::bulkWrite(const void *ptr, int64 count, int64 timeout, ExceptionSink *xsink) /*override*/ {
-   printd(0, "PipeOutputStream::bulkWrite()\n");
+void PipeOutputStream::bulkWrite(const void *ptr, int64 toWrite, int64 timeout, ExceptionSink *xsink) /*override*/ {
+   assert(toWrite >= 0);
+   printd(1, "PipeOutputStream::bulkWrite()\n");
    AutoLocker lock(pipe->mutex);
-   if (pipe->outputClosed) {
-      xsink->raiseException("OUTPUT-STREAM-CLOSED-ERROR", "this PipeOutputStream object has been already closed");
-      return;
+
+   printd(1, "write - lock acquired, toWrite: " QLLD "\n", toWrite);
+   const uint8_t *src = static_cast<const uint8_t *>(ptr);
+   while (toWrite > 0) {
+      if (pipe->outputClosed) {
+         xsink->raiseException("OUTPUT-STREAM-CLOSED-ERROR", "this PipeInputStream object has been already closed");
+         return;
+      }
+      if (pipe->broken) {
+         xsink->raiseException("BROKEN-PIPE-ERROR", "one of the streams of the pipe has been destroyed");
+         return;
+      }
+      if (pipe->inputClosed) {
+         xsink->raiseException("BROKEN-PIPE-ERROR", "the InputStream of the pipe has been closed");
+         return;
+      }
+      printd(1, "write - size: " QLLD ", count: " QLLD ", readPtr: " QLLD ", toWrite: " QLLD "\n", pipe->size, pipe->count, pipe->readPtr, toWrite);
+      int64 canWrite = pipe->size - pipe->count;
+      if (canWrite > 0) {
+         int64 writePtr = (pipe->readPtr + pipe->count) % pipe->size;
+         int64 willWrite = QORE_MIN(toWrite, QORE_MIN(canWrite, pipe->size - writePtr));
+         printd(1, "write - copying %d bytes\n", willWrite);
+         memcpy(pipe->buffer.data() + writePtr, src, willWrite);
+         src += willWrite;
+         pipe->count += willWrite;
+         toWrite -= willWrite;
+         printd(1, "write - wake up reader - size: " QLLD ", count: " QLLD ", readPtr: " QLLD ", toWrite: " QLLD "\n", pipe->size, pipe->count, pipe->readPtr, toWrite);
+         pipe->readCondVar.broadcast();
+      } else {
+         printd(1, "write - buffer full, before wait\n");
+         int rc = timeout < 0 ? pipe->writeCondVar.wait(pipe->mutex) : pipe->writeCondVar.wait2(pipe->mutex, timeout);
+         printd(1, "write - buffer full, after wait, rc: %d\n", rc);
+         if (rc != 0) {
+            xsink->raiseException("TIMEOUT-ERROR", "operation timed out");
+            return;
+         }
+      }
    }
-   assert(count >= 0);
+   printd(1, "write - done, releasing lock\n");
 }
