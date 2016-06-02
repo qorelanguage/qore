@@ -57,7 +57,7 @@ module CsvUtil {
     - @ref CsvUtil::CsvFileIterator "CsvFileIterator": iterator class allowing for CSV files to be processed line by line on a record basis
     - @ref CsvUtil::AbstractCsvWriter "AbstractCsvWriter": a base class for new CSV writer implementations
     - @ref CsvUtil::CsvFileWriter "CsvFileWriter": CSV file writer
-    - @ref CsvUtil::CsvStringWriter "CsvStringWriter": CSV in memory writer
+    - @ref CsvUtil::CsvStringWriter "CsvStringWriter": CSV in-memory writer
 
     Note that the @ref CsvUtil::CsvFileIterator "CsvFileIterator" class can be used to parse arbitrary text files; the field separator character can be specified in the @ref CsvUtil::CsvFileIterator::constructor() "constructor", as well as the quote character and end of line sequence.  See the @ref CsvUtil::CsvFileIterator::constructor() "constructor documentation" for more information.
 
@@ -119,15 +119,20 @@ while (i.next())
 
     @section csvutil_multitype Multi-type support
 
-    The CsvUtil supports multi-type records which means the line may have different structure and type
-    resolution is performed in run-time using a predefined rules.
-    CsvUtil classes have dual contructors, old-style constructor accept field definition in options, is backward compatabile and supports only single-types. New-style constructor accept splitted options and field specification passed as separate parameters.
+    The %CsvUtil module supports multi-type records, meaning that different input lines may have different structures, and input record type
+    resolution is performed at run-time using predefined rules.
+    %CsvUtil classes have two contructors, a backwards-compatible constructor variant, which accepts field definition in options and supports only a single record type, and a new constructor avariant, which ccepts field specifications and options passed as separate parameters.
 
-    Get AbstractCsvIterator functions return records in extended form as hash containing mamber \"type\" with resolved type and
-    \"record\" with values. As this is not backward compatible this mode is enabled using \"extended_record\" option.
+    When used with multi-type definitions, the @ref CsvUtil::AbstractCsvIterator::getValue() method returns
+    records in an extended form.  In this case, the return value of @ref CsvUtil::AbstractCsvIterator::getValue()
+    is a hash with the following keys:
+    - \c "type": the resolve record type name
+    - \c "record": a hash of record values
+
+    As this is not backwards compatible, this mode is enabled using the \c "extended_record" option.
 
     If no record type resolution rules or logic is defined, then record types are resolved automatically based on their
-    unique number of fields. If the number of fields is not unique (i.e. two or more records have the same number of
+    unique number of fields.  If the number of fields is not unique (i.e. two or more records have the same number of
     fields), then a rule must exist to resolve the record type.
 
     Typically the value of a particular field determines the record type, however even multiple fields could be used.  Record type detection configuration is supplied by the \c "value" (field value equality test) or \c "regex" (regular expression test) keys in the
@@ -234,7 +239,7 @@ while (i.next()) {
         - \c "verify-columns" is now \c "verify_columns"
     - implemented multi-type line support
     - two constructors for backward CsvUtil compatability and similarity with FixedLengthUtil API
-    - implemented new options \c "header_reorder"; @ref CsvUtil::AbstractCsvIterator: \c "date_format",\c "extended_record"
+    - implemented new options \c "header_reorder"; @ref CsvUtil::AbstractCsvIterator \c "date_format",\c "extended_record"
     - implemented options for field specification: \c "index", \c "default", \c "header", \c "value", \c "regex"
     - fixed a UTC bug for default date 1970-01-01Z
 
@@ -512,7 +517,7 @@ public namespace CsvUtil {
 
         <b>AbstractCsvIterator Options</b>
         |!Option|!Data Type|!Description
-        |\c "date_format"|@ref string|the default date format for \c "date" fields (see @ref date_formatting "date formatting" for the value in this case)
+        |\c "date_format"|@ref string_type "string"|the default date format for \c "date" fields (see @ref date_formatting "date formatting" for the value in this case)
         |\c "encoding"|@ref string_type "string"|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
         |\c "separator"|@ref string_type "string"|the string separating the fields in the file (default: \c ",")
         |\c "quote"|@ref string_type "string"|the field quote character (default: \c '\"')
@@ -522,8 +527,7 @@ public namespace CsvUtil {
         |\c "header_names"|@ref bool_type "bool"|if @ref Qore::True "True" then the object will parse the header names from the first header row, in this case \c "header_lines" must be &gt; 0. In case of multi-type lines \c "header_names" is mandatory @ref Qore::False "False".
         |\c "header_lines"|@ref int_type "int"|the number of headers lines in the file (must be &gt; 0 if \c "header_names" is @ref Qore::True "True")
         |\c "header_reorder"|@ref bool_type "bool"|if @ref Qore::True "True" (default value) then if \"headers\" are provided by options or read from file then data fields are reordered to follow headers. It has major effect on return value of @ref AbstractCsvIterator::getRecordList() function and also minor on hash result of AbstractCsvIterator::getRecord() when a program code depends on order of keys. If @ref Qore::False "False" then fields not yet specified are pushed at the end of field definition.
-        |\c "verify_columns"|@ref bool_type "bool"|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different
-        column count than other lines, a \c CSVFILEITERATOR-DATA-ERROR exception is thrown
+        |\c "verify_columns"|@ref bool_type "bool"|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEITERATOR-DATA-ERROR exception is thrown
         |\c "timezone"|@ref string_type "string"|the timezone to use when parsing dates (will be passed to @ref Qore::TimeZone::constructor())
         |\c "tolwr"|@ref bool_type "bool"|if @ref Qore::True "True" then all header names will be converted to lower case letters
 
@@ -534,9 +538,10 @@ public namespace CsvUtil {
 
         <b>AbstractCsvIterator Multi-type-only Options </b>
         |!Option|!Data Type|!Description
-        |\c "extended_record"|@ref boolean|if @ref Qore::True "True" then get functions will use extended hash with \"type\" and \"record\" members to provide type to calling party, Default: False
+        |\c "extended_record"|@ref boolean|if @ref Qore::True "True" then get functions will use extended hash with \"type\" and \"record\" members to provide type to calling party, Default: @ref Qore::False "False"
 
         @note the following options separated by dashes are still supported for backwards-compatibility:
+        - \c "date-format"
         - \c "ignore-empty"
         - \c "ignore-whitespace"
         - \c "header-names"
@@ -574,8 +579,8 @@ public namespace CsvUtil {
         |\c "code"|this is a @ref closure "closure" or @ref call_reference "call reference" that takes a single argument of the value (after formatting with any optional \c "type" formats) and returns the value that will be output for the field
 
         <b>Extra AbstractCsvIterator Spec Hash Options</b>
-        |!Key|!Value Description
-        |\c value|@ref string_type "string"|the value to use to compare to input data when determining the record type; if \v "value" is defined for a field, then \c "regex" cannot be defined (for iterator only)
+        |!Key|!Data Type|!Value Description
+        |\c value|@ref string_type "string"|the value to use to compare to input data when determining the record type; if \c "value" is defined for a field, then \c "regex" cannot be defined (for iterator only)
         |\c regex|@ref string_type "string"|the regular expression to use to apply to input data lines when determining the record type (for iterator only)
         |\c header|@ref string_type "string"|field name as defined in Csv header line. It enables remapping from Csv to own name
         |\c index|@ref int_type "int"|index of field in Csv file. It enables mapping when Csv has not header
@@ -897,7 +902,7 @@ public namespace CsvUtil {
             return b;
         }
 
-        #! returns the given column value for the current row
+        #! Returns the given column value for the current row
         /** @param name the name of the field (header name) in record
 
             @return the value of the given header for the current record
@@ -913,15 +918,15 @@ public namespace CsvUtil {
             return h.record{name};
         }
 
-        #! returns the current record as a hash
+        #! Returns the current record as a hash
         /** @par Example:
             @code{.py}
 hash h = i.getValue();
             @endcode
 
-            When \"extended_record\" option is set then result is extended hash including \"type\" and \"record\".
-
-            @return the current record as a hash
+            @return the current record as a hash; when the \c "extended_record" option is set, then the return value is a hash with the following keys:
+            - \c "type": the record type
+            - \c "record": a hash of the current record
 
             @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
          */
@@ -929,17 +934,19 @@ hash h = i.getValue();
             return getRecord();
         }
 
-        #! returns the current record as a hash
+        #! Returns the current record as a hash
         /** @par Example:
             @code{.py}
 hash h = i.getRecord();
             @endcode
 
-            @param extended specifies if result is an extended hash including \"type\" and \"record\".
+            @param extended specifies if result is an extended hash including \c "type" and \c "record".
 
-            @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
+            @return the current record as a hash; if \a extended is @ref True, then the return value is a hash with the following keys:
+            - \c "type": the record type
+            - \c "record": a hash of the current record
 
-            @return the current record as a hash
+            @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns @ref True before calling this method
          */
         hash getRecord(bool extended) {
             hash h = parseLine();
@@ -950,33 +957,34 @@ hash h = i.getRecord();
             }
         }
 
-        #! returns the current record as a hash
+        #! Returns the current record as a hash
         /** @par Example:
             @code{.py}
 hash h = i.getRecord();
             @endcode
 
-            When \"extended_record\" option is set then result is extended hash including \"type\" and \"record\".
+            @return the current record as a hash; when the \c "extended_record" option is set, then the return value is a hash with the following keys:
+            - \c "type": the record type
+            - \c "record": a hash of the current record
 
-            @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
-
-            @return the current record as a hash
+            @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns @ref True before calling this method
          */
         hash getRecord() {
             return getRecord(extendedRecord);
         }
 
-        #! returns the current record as a list
+        #! Returns the current record as a list
         /** @par Example:
             @code{.py}
 list l = i.getRecordList();
             @endcode
 
             When \"extended_record\" option is set then result is extended hash including \"type\" and \"record\".
+            @return the current record as a list of field values; when the \c "extended_record" option is set, then the return value is a hash with the following keys:
+            - \c "type": the record type
+            - \c "record": a list of field values for the current record
 
             @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
-
-            @return the current record as a list
          */
         any getRecordList() {
             hash h = parseLine();
@@ -987,7 +995,7 @@ list l = i.getRecordList();
             }
         }
 
-        #! returns the current separator string
+        #! Returns the current separator string
         /** @par Example:
             @code{.py}
 string sep = i.getSeparator();
@@ -999,7 +1007,7 @@ string sep = i.getSeparator();
             return separator;
         }
 
-        #! returns the current quote string
+        #! Returns the current quote string
         /** @par Example:
             @code{.py}
 string quote = i.getQuote();
@@ -1011,9 +1019,10 @@ string quote = i.getQuote();
             return quote;
         }
 
-        #! returns the current column headers or @ref nothing if no headers have been detected or saved yet
+        #! Returns the current record headers or @ref nothing if no headers have been detected or saved yet
         /** @par Example:
             @code{.py}
+*list l = i.getHeaders();
             @endcode
 
             @note if headers are not saved against the object in the @ref constructor(), then they are written to the object after the first call to @ref next()
@@ -1022,16 +1031,17 @@ string quote = i.getQuote();
             return getHeaders(m_specs.firstKey());  # single-type
         }
 
+        #! Returns a list of headers for the given record or @ref nothing if the record is not recognized
+        /** @par Example:
+            @code{.py}
+*list l = i.getHeaders(my_type);
+            @endcode
+         */
         *list getHeaders(string type) {
-/*            list l;
-            foreach hash fld in (m_specs{type}.pairIterator()) {
-                push l, fld.value.header;
-            }
-            return l; */
             return map ($1.value.header), m_specs{type}.pairIterator();
         }
 
-        #! returns the row index being iterated, which does not necessarily correspond to the line number when there are header rows and blank lines are skipped
+        #! Returns the row index being iterated, which does not necessarily correspond to the line number when there are header rows and blank lines are skipped
         /** @par Example:
             @code{.py}
 int index = i.index();
@@ -1047,7 +1057,7 @@ int index = i.index();
             return rc;
         }
 
-        #! returns the current iterator line number in the file (the first line is line 1) or 0 if not pointing at a valid element
+        #! Returns the current iterator line number in the file (the first line is line 1) or 0 if not pointing at a valid element
         /** @par Example:
             @code{.py}
 while (i.next()) {
@@ -1115,7 +1125,7 @@ while (i.next()) {
             return rv;
         }
 
-        #! read line split by separator/quote into list
+        #! Read line split by separator/quote into list
         private list getLineAndSplit() {
             string s = getLineValueImpl();
             if (s) {
@@ -1125,7 +1135,7 @@ while (i.next()) {
             }
         }
 
-        #! Identify a fixed-length line type using identifyTypeImpl(), that may be overridden if necessary.
+        #! Identify a fixed-length line type using identifyTypeImpl(); may be overridden if necessary.
         /**
             @param rec Input line record to be identified
 
@@ -1144,7 +1154,7 @@ while (i.next()) {
             return type;
         }
 
-        #! Identify a input record, given the raw line string. This method performs a lookup to a precalculated table based on number of records (see constructor()). In case different criteria are needed, eg. when two line types in a spec have the same record number and no unique resolving rule are specified, this method needs to be overridden, and will throw an exception, because the precalculated mapping will be empty.
+        #! Identify a input record, given the raw line string. This method performs a lookup to a precalculated table based on number of records (see constructor()). In case different criteria are needed, eg. when two line types in a spec have the same record number and no unique resolving rule are specified, this method needs to be overridden, otherwise it will throw an exception because the precalculated mapping will be empty.
         /**
             @param rec Input line record to be identified
 
@@ -1204,7 +1214,7 @@ while (i.next()) {
             return rv;
         }
 
-        #! parses a line in the file and returns a processed list of the fields
+        #! Parses a line in the file and returns a processed list of the fields
         private hash parseLine() {
             list values = getLineAndSplit();
             string type = identifyType(values);
@@ -1234,14 +1244,14 @@ while (i.next()) {
         }
     }
 
-    #! the CsvFileIterator class allows CSV files to be iterated on a record basis
+    #! The CsvFileIterator class allows CSV files to be iterated on a record basis
     /** @see
         - @ref abstractcsviterator_options
         - @ref abstractcsviterator_option_field_types
         - @ref abstractcsviterator_option_field_hash
      */
     public class CsvFileIterator inherits CsvUtil::AbstractCsvIterator, Qore::FileLineIterator {
-        #! creates the CsvFileIterator in single-type mode with the path of the file to read and an option hash
+        #! Creates the CsvFileIterator in single-type mode with the path of the file to read and an option hash
         /** @param path the path to the CSV file to read
             @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
 
@@ -1249,7 +1259,7 @@ while (i.next()) {
          */
         constructor(string path, *hash opts) : AbstractCsvIterator(opts), FileLineIterator(path, opts.encoding.typeCode() == NT_STRING ? opts.encoding : NOTHING, opts.eol.typeCode() == NT_STRING ? opts.eol : NOTHING) {
         }
-        #! creates the CsvFileIterator in multi-type mode with the path of the file to read and optionally an option hash
+        #! Creates the CsvFileIterator in multi-type mode with the path of the file to read and optionally an option hash
         /** @param path the path to the CSV file to read
             @param spec a hash of field and type definition; see @ref abstractcsviterator_option_field_hash for more information
             @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
@@ -1282,7 +1292,7 @@ while (i.next()) {
         }
     } # CsvFileIterator class
 
-    #! the CsvDataIterator class allows arbitrary CSV string data to be iterated on a record basis
+    #! The CsvDataIterator class allows arbitrary CSV string data to be iterated on a record basis
     /** @see
         - @ref abstractcsviterator_options
         - @ref abstractcsviterator_option_field_types
@@ -1290,25 +1300,21 @@ while (i.next()) {
      */
     public class CsvDataIterator inherits CsvUtil::AbstractCsvIterator, DataLineIterator {
 
-        #! creates the CsvDataIterator with the input data and optionally an option hash
+        #! Creates the CsvDataIterator with the input data and optionally an option hash
         /** @param data the input data to iterate
             @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
 
             @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names" is @ref Qore::True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
          */
-        constructor(string data, *hash opts)
-            : AbstractCsvIterator(opts),
-              DataLineIterator(data, opts.eol) {
+        constructor(string data, *hash opts) : AbstractCsvIterator(opts), DataLineIterator(data, opts.eol) {
         }
 
-        #! creates the CsvDataIterator in multi-type mode with the path of the file to read and an option hash
+        #! Creates the CsvDataIterator in multi-type mode with the path of the file to read and an option hash
         /** @param path the path to the CSV file to read
             @param spec a hash of field and type definition; see @ref abstractcsviterator_option_field_hash for more information
             @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
          */
-        constructor(string data, hash spec, hash opts)
-            : AbstractCsvIterator(spec, opts),
-              DataLineIterator(data, opts.eol) {
+        constructor(string data, hash spec, hash opts) : AbstractCsvIterator(spec, opts), DataLineIterator(data, opts.eol) {
         }
 
         any memberGate(string name) {
@@ -1331,7 +1337,7 @@ while (i.next()) {
         }
     }
 
-    #! the AbstractCsvWriter class provides a parent for all CSV writers
+    #! The AbstractCsvWriter class provides a parent for all CSV writers
     /**
         Any inherited class must provide concrete implementations for the following abstract method, where the real physical write action must be implemented.
 
@@ -1359,7 +1365,7 @@ while (i.next()) {
         |!Option|!Data Type|!Description
         |\c "datamap"|@ref hash_type "hash"|a hash mapping actual data key names to the output field names, for use in case the data field names differ; does not have to include every data or output key; keys not present will be assumed to be mapped 1:1
         |\c "fields"|@ref hash_type "hash"|describes the data to be output; see @ref abstractcsviterator_option_field_hash "option field hash" and @ref abstractcsviterator_option_field_types "option field types" for more information on the possible values of this option; if no field type is given, the default is \c "*string"
-        |\c "headers"|@ref list_type "list" of strings|list of header / column names for the data iterated.
+        |\c "headers"|@ref list_type "list" of @ref string_type "strings"|list of header / column names for the data iterated.
         |\c "header_reorder"|@ref bool_type "bool"|if @ref Qore::True "True" (default value) then if \"headers\" are provided by options then fields are reordered to follow headers. It has effect on expected field order as passed to write function via list. If @ref Qore::False "False" then fields not yet specified are pushed at the end of field definition.
 
         @note the following options with dashes in their names are supported for backwards-compatibility:
@@ -1420,24 +1426,23 @@ while (i.next()) {
             #! base template for value format
             string baseTemplate;
 
-            # this flag determines if any stored headers are output
+            #! this flag determines if any stored headers are output
             bool write_headers = True;
 
-            # stores the optimal quotes option
+            #! stores the optimal quotes option
             bool optimal_quotes = True;
 
-            # a closure/call reference for informational logging when using write(SQLStatement)
+            #! a closure/call reference for informational logging when using write(SQLStatement)
             *code info_log;
 
-            # mapping output field by name
+            #! mapping output field by name
             hash m_out_by_name;
 
-            # mapping output field by index
+            #! mapping output field by index
             hash m_out_by_idx;
-
         }
 
-        #! creates the AbstractCsvWriter in single-type mode
+        #! Creates the AbstractCsvWriter in single-type mode
         /**
             @param n_errname a string to construct child class error message. For example: value 'FOO' will result in exception names 'CSVFOOWRITER-ERROR'
             @param n_opts @ref csvwriter_options
@@ -1478,14 +1483,14 @@ while (i.next()) {
             processSpec();
         }
 
-        #! creates the AbstractCsvWriter in single-type mode
+        #! Creates the AbstractCsvWriter in single-type mode
         /**
 
             @param spec a hash of field and type definition; see @ref abstractcsviterator_option_field_hash for more information
             @param n_errname a string to construct child class error message. For example: value 'FOO' will result in exception names 'CSVFOOWRITER-ERROR'
             @param n_opts @ref csvwriter_options
 
-            @throw CSV<errname>ITER-ERROR in the case of incorrect options
+            @throw CSV<errname>WRITER-ERROR in the case of incorrect options
          */
         constructor(string n_errname, hash spec, hash n_opts): CsvHelper(sprintf("CSV%sWRITER-ERROR", n_errname)) {
             m_specs = getSpec2(spec);
@@ -1493,7 +1498,7 @@ while (i.next()) {
             processSpec();
         }
 
-        #! process options and set internal variables
+        #! Process options and set internal variables
         private processCommonOptions(*hash n_opts, int C_OPTx) {
 
             date_format = 'DD/MM/YYYY hh:mm:SS';  # different default value in writer
@@ -1582,7 +1587,7 @@ while (i.next()) {
             baseTemplate = sprintf("%s%%s%s%s", quote, quote, separator);
         }
 
-        #! process specification and set internal variable for mapping
+        #! Process specification and set internal variable for mapping
         private processSpec() {
 
             if (write_headers && isMultiType()) {
@@ -1604,7 +1609,7 @@ while (i.next()) {
             }
         }
 
-        #! write Cvs headers
+        #! Write csv headers
         private writeHeaders() {
             if (write_headers && m_specs.size() == 1 && m_specs.firstValue().size() > 0) {
                 string type = m_specs.firstKey();
@@ -1617,7 +1622,7 @@ while (i.next()) {
             }
         }
 
-        #! write a line with a list of values. Data are checked against column rules.
+        #! Write a line with a list of values; data are checked against column rules
         /**
             @param values a list with values.
 
@@ -1627,7 +1632,7 @@ while (i.next()) {
             writeLine(CSV_TYPE_SINGLE, values);
         }
 
-        #! write a line with headers-values hash
+        #! Write a line with headers-values hash
         /**
             @param values a hash with keys as column headers in single-type format or with hash with \"type\" and \"record\" members for multi-type. The format is automatically detected.
 
@@ -1641,7 +1646,7 @@ while (i.next()) {
             }
         }
 
-        #! write a line with headers-values list
+        #! Write a line with headers-values list
         /**
             @param type record type
             @param values as list of values
@@ -1719,10 +1724,10 @@ while (i.next()) {
 
         }
 
-        #! write a line with headers-values hash
+        #! Write a line for a specific record from a hash to the output
         /**
             @param type record type
-            @param values as hash of values.
+            @param values a hash of values.
 
             @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints
          */
@@ -1744,7 +1749,7 @@ while (i.next()) {
             writeLine(type, line);
         }
 
-        #! stream iterator into the file.
+        #! Stream an iterator into the output
         /**
             @param iterator an iterator to stream data into file
 
@@ -1768,7 +1773,7 @@ while (i.next()) {
             }
         }
 
-        #! stream iterator into the file.
+        #! Stream an iterator into the output
         /**
             @param iterator an @ref Qore::SQL::SQLStatement "SQLStatement" iterator to stream data into file; @ref Qore::SQL::SQLStatement::fetchColumns() "SQLStatement::fetchColumns()" is used to leverage bulk DML for more efficient SQL I/O
 
@@ -1787,7 +1792,7 @@ while (i.next()) {
             }
         }
 
-        #! stream the contents of the list into the output
+        #! Stream the contents of the list into the output
         /**
             @param l a list of input data to format as CSV output
 
@@ -1799,7 +1804,7 @@ while (i.next()) {
             write(l.iterator());
         }
 
-        #! real write implementation. Without any checking.
+        #! This method must be overridden in child classes to provide the output implementation
         abstract private writeRawLine(list values);
 
         #! Prepare a string (line with EOF) with formatting and escaping.
@@ -1836,7 +1841,7 @@ while (i.next()) {
 
     } # AbstractCsvWriter class
 
-    #! the CsvFileWriter class for easy and safe CSV file creation
+    #! The CsvFileWriter class for safe CSV file creation
     public class CsvFileWriter inherits AbstractCsvWriter {
 
         private {
@@ -1844,7 +1849,7 @@ while (i.next()) {
             File file;
         }
 
-        #! creates the CsvFileWriter in single-type mode with the path of the file to read with an options
+        #! creates the CsvFileWriter in single-type mode with the path of the file to read and an optional option hash
         /**
         @param path a file name (with path optionally) to write
         @param opts @ref csvwriter_options
@@ -1857,7 +1862,7 @@ while (i.next()) {
             openFile(path);
         }
 
-        #! creates the CsvFileWriter in multi-type mode with the path of the file to read with an options
+        #! creates the CsvFileWriter in multi-type mode with the path of the file to read with an option hash
         /**
         @param path a file name (with path optionally) to write
         @param spec a hash of field and type definition; see @ref abstractcsviterator_option_field_hash for more information
@@ -1883,7 +1888,7 @@ while (i.next()) {
 
     } # CsvFileWriter
 
-    #! the CsvStringWriter class for in-memory string CSV creation
+    #! The CsvStringWriter class for in-memory string CSV creation
     public class CsvStringWriter inherits AbstractCsvWriter {
 
         private {
@@ -1903,10 +1908,10 @@ while (i.next()) {
 
         #! creates the CsvStringWriter single-type mode with content in the memory
         /**
-        @param spec a hash of field and type definition; see @ref abstractcsviterator_option_field_hash for more information
-        @param opts @ref csvwriter_options
+            @param spec a hash of field and type definitions; see @ref abstractcsviterator_option_field_hash for more information
+            @param opts @ref csvwriter_options
 
-        @throw CSVSTRINGITER-ERROR in the case of incorrect options
+            @throw CSVSTRINGITER-ERROR in the case of incorrect options
         */
         constructor(hash spec, hash opts) : AbstractCsvWriter("STRING", spec, opts) {
             initContent();
@@ -1920,7 +1925,7 @@ while (i.next()) {
             content += prepareRawLine(values);
         }
 
-        #! stream iterator and return CSV-formatted output string
+        #! Stream iterator and return a CSV-formatted output string
         /**
             @param iterator an iterator to stream data
 
@@ -1935,7 +1940,7 @@ while (i.next()) {
             return content;
         }
 
-        #! stream the contents of the list and return CSV-formatted output as a string
+        #! Stream the contents of the list and return CSV-formatted output as a string
         /**
             @param l a list of input data to format as CSV output
 
