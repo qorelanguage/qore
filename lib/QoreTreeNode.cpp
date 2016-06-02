@@ -1,10 +1,10 @@
 /*
   QoreTreeNode.cpp
-  
+
   Qore Programming Language
-  
+
   Copyright (C) 2003 - 2015 David Nichols
-  
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -82,9 +82,19 @@ AbstractQoreNode *QoreTreeNode::parseInitImpl(LocalVar *oflag, int pflag, int &l
    // turn off "reference ok" and "return value ignored" flags
    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
-   // check argument types for operator   
+   // check argument types for operator
    AbstractQoreNode *n = op->parseInit(this, oflag, pflag, lvids, typeInfo);
    if (n == this)
       returnTypeInfo = typeInfo;
    return n;
+}
+
+AbstractQoreNode* QoreTreeNode::evalSubst(const QoreTypeInfo*& rtTypeInfo) {
+   SimpleRefHolder<QoreTreeNode> rh(this);
+   ParseExceptionSink xsink;
+
+   ValueEvalRefHolder v(this, *xsink);
+   AbstractQoreNode* rv = v.getReferencedValue();
+   rtTypeInfo = rv ? getTypeInfoForType(rv->getType()) : nothingTypeInfo;
+   return rv ? rv : nothing();
 }

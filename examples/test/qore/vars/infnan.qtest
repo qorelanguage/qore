@@ -1,0 +1,518 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%disable-warning unreferenced-variable
+
+%requires ../../../../qlib/QUnit.qm
+
+const NAN_CMP_ERR = 'NAN-COMPARE-ERROR';
+
+%exec-class InfNanTest
+
+class InfNanTest inherits QUnit::Test {
+    public {
+    }
+
+    constructor() : QUnit::Test("Infinity and NaN Test", "1.0") {
+        addTestCase("float tests", \floatTests());
+        addTestCase("number tests", \numberTests());
+        addTestCase("number - float tests", \numberFloatTests());
+        addTestCase("float - number tests", \floatNumberTests());
+        addTestCase("number - int tests", \numberIntTests());
+        addTestCase("int - number tests", \intNumberTests());
+        addTestCase("float - int tests", \floatIntTests());
+        addTestCase("int - float tests", \intFloatTests());
+        addTestCase("nan switch tests", \nanSwitchTests());
+        addTestCase("nan compare exception at parse time", \nanCompareParseTime());
+        set_return_value(main());
+    }
+
+    floatTests() {
+        code cmpToNan = sub(float f) { int x = @nan@ <=> f; };
+
+        assertFalse(@inf@ == 1.0);
+        assertTrue(@inf@ != 1.0);
+        assertFalse(@inf@ === 1.0);
+        assertTrue(@inf@ !== 1.0);
+        assertFalse(@inf@ < 1.0);
+        assertFalse(@inf@ <= 1.0);
+        assertTrue(@inf@ > 1.0);
+        assertTrue(@inf@ >= 1.0);
+        assertEq(1, @inf@ <=> 1.0);
+
+        assertFalse(-@inf@ == 1.0);
+        assertTrue(-@inf@ != 1.0);
+        assertFalse(-@inf@ === 1.0);
+        assertTrue(-@inf@ !== 1.0);
+        assertTrue(-@inf@ < 1.0);
+        assertTrue(-@inf@ <= 1.0);
+        assertFalse(-@inf@ > 1.0);
+        assertFalse(-@inf@ >= 1.0);
+        assertEq(-1, -@inf@ <=> 1.0);
+
+        assertFalse(@nan@ == @inf@);
+        assertTrue(@nan@ != @inf@);
+        assertFalse(@nan@ === @inf@);
+        assertTrue(@nan@ !== @inf@);
+        assertFalse(@nan@ < @inf@);
+        assertFalse(@nan@ <= @inf@);
+        assertFalse(@nan@ > @inf@);
+        assertFalse(@nan@ >= @inf@);
+        assertThrows(NAN_CMP_ERR, cmpToNan, @inf@);
+
+        assertFalse(@nan@ == 1.0);
+        assertTrue(@nan@ != 1.0);
+        assertFalse(@nan@ === 1.0);
+        assertTrue(@nan@ !== 1.0);
+        assertFalse(@nan@ < 1.0);
+        assertFalse(@nan@ <= 1.0);
+        assertFalse(@nan@ > 1.0);
+        assertFalse(@nan@ >= 1.0);
+        assertThrows(NAN_CMP_ERR, cmpToNan, 1.0);
+
+        assertFalse(@nan@ == @nan@);
+        assertTrue(@nan@ != @nan@);
+        assertFalse(@nan@ === @nan@);
+        assertTrue(@nan@ !== @nan@);
+        assertFalse(@nan@ < @nan@);
+        assertFalse(@nan@ <= @nan@);
+        assertFalse(@nan@ > @nan@);
+        assertFalse(@nan@ >= @nan@);
+        assertThrows(NAN_CMP_ERR, cmpToNan, @nan@);
+
+        assertEq(-1, 1.0 <=> 2.0);
+        assertEq(0, 1.0 <=> 1.0);
+        assertEq(1, 2.0 <=> 1.0);
+        assertEq(0, @inf@ <=> @inf@);
+        assertEq(0, -@inf@ <=> -@inf@);
+        assertEq(-1, -@inf@ <=> @inf@);
+    }
+
+    numberTests() {
+        code cmpToNan = sub(number n) { int x = @nan@n <=> n; };
+
+        assertFalse(@inf@n == 1.0n);
+        assertTrue(@inf@n != 1.0n);
+        assertFalse(@inf@n === 1.0n);
+        assertTrue(@inf@n !== 1.0n);
+        assertFalse(@inf@n < 1.0n);
+        assertFalse(@inf@n <= 1.0n);
+        assertTrue(@inf@n > 1.0n);
+        assertTrue(@inf@n >= 1.0n);
+        assertEq(1, @inf@n <=> 1.0n);
+
+        assertFalse(-@inf@n == 1.0n);
+        assertTrue(-@inf@n != 1.0n);
+        assertFalse(-@inf@n === 1.0n);
+        assertTrue(-@inf@n !== 1.0n);
+        assertTrue(-@inf@n < 1.0n);
+        assertTrue(-@inf@n <= 1.0n);
+        assertFalse(-@inf@n > 1.0n);
+        assertFalse(-@inf@n >= 1.0n);
+        assertEq(-1, -@inf@n <=> 1.0n);
+
+        assertFalse(@nan@n == @inf@n);
+        assertTrue(@nan@n != @inf@n);
+        assertFalse(@nan@n === @inf@n);
+        assertTrue(@nan@n !== @inf@n);
+        assertFalse(@nan@n < @inf@n);
+        assertFalse(@nan@n <= @inf@n);
+        assertFalse(@nan@n > @inf@n);
+        assertFalse(@nan@n >= @inf@n);
+        assertThrows(NAN_CMP_ERR, cmpToNan, @inf@n);
+
+        assertFalse(@nan@n == 1.0n);
+        assertTrue(@nan@n != 1.0n);
+        assertFalse(@nan@n === 1.0n);
+        assertTrue(@nan@n !== 1.0n);
+        assertFalse(@nan@n < 1.0n);
+        assertFalse(@nan@n <= 1.0n);
+        assertFalse(@nan@n > 1.0n);
+        assertFalse(@nan@n >= 1.0n);
+        assertThrows(NAN_CMP_ERR, cmpToNan, 1.0n);
+
+        assertFalse(@nan@n == @nan@n);
+        assertTrue(@nan@n != @nan@n);
+        assertFalse(@nan@n === @nan@n);
+        assertTrue(@nan@n !== @nan@n);
+        assertFalse(@nan@n < @nan@n);
+        assertFalse(@nan@n <= @nan@n);
+        assertFalse(@nan@n > @nan@n);
+        assertFalse(@nan@n >= @nan@n);
+        assertThrows(NAN_CMP_ERR, cmpToNan, @nan@n);
+
+        assertEq(-1, 1n <=> 2n);
+        assertEq(0, 1n <=> 1n);
+        assertEq(1, 2n <=> 1n);
+        assertEq(0, @inf@n <=> @inf@n);
+        assertEq(0, -@inf@n <=> -@inf@n);
+        assertEq(-1, -@inf@n <=> @inf@n);
+    }
+
+    numberFloatTests() {
+        code cmpToNan = sub(float f) { int x = @nan@n <=> f; };
+
+        assertFalse(@inf@n == 1.0);
+        assertTrue(@inf@n != 1.0);
+        assertFalse(@inf@n === 1.0);
+        assertTrue(@inf@n !== 1.0);
+        assertFalse(@inf@n < 1.0);
+        assertFalse(@inf@n <= 1.0);
+        assertTrue(@inf@n > 1.0);
+        assertTrue(@inf@n >= 1.0);
+        assertEq(1, @inf@n <=> 1.0);
+
+        assertFalse(-@inf@n == 1.0);
+        assertTrue(-@inf@n != 1.0);
+        assertFalse(-@inf@n === 1.0);
+        assertTrue(-@inf@n !== 1.0);
+        assertTrue(-@inf@n < 1.0);
+        assertTrue(-@inf@n <= 1.0);
+        assertFalse(-@inf@n > 1.0);
+        assertFalse(-@inf@n >= 1.0);
+        assertEq(-1, -@inf@n <=> 1.0);
+
+        assertFalse(@nan@n == @inf@);
+        assertTrue(@nan@n != @inf@);
+        assertFalse(@nan@n === @inf@);
+        assertTrue(@nan@n !== @inf@);
+        assertFalse(@nan@n < @inf@);
+        assertFalse(@nan@n <= @inf@);
+        assertFalse(@nan@n > @inf@);
+        assertFalse(@nan@n >= @inf@);
+        assertThrows(NAN_CMP_ERR, cmpToNan, @inf@);
+
+        assertFalse(@nan@n == 1.0);
+        assertTrue(@nan@n != 1.0);
+        assertFalse(@nan@n === 1.0);
+        assertTrue(@nan@n !== 1.0);
+        assertFalse(@nan@n < 1.0);
+        assertFalse(@nan@n <= 1.0);
+        assertFalse(@nan@n > 1.0);
+        assertFalse(@nan@n >= 1.0);
+        assertThrows(NAN_CMP_ERR, cmpToNan, 1.0);
+
+        assertFalse(@nan@n == @nan@);
+        assertTrue(@nan@n != @nan@);
+        assertFalse(@nan@n === @nan@);
+        assertTrue(@nan@n !== @nan@);
+        assertFalse(@nan@n < @nan@);
+        assertFalse(@nan@n <= @nan@);
+        assertFalse(@nan@n > @nan@);
+        assertFalse(@nan@n >= @nan@);
+        assertThrows(NAN_CMP_ERR, cmpToNan, @nan@);
+    }
+
+    floatNumberTests() {
+        code cmpToNan = sub(number n) { int x = @nan@ <=> n; };
+
+        assertFalse(@inf@ == 1.0n);
+        assertTrue(@inf@ != 1.0n);
+        assertFalse(@inf@ === 1.0n);
+        assertTrue(@inf@ !== 1.0n);
+        assertFalse(@inf@ < 1.0n);
+        assertFalse(@inf@ <= 1.0n);
+        assertTrue(@inf@ > 1.0n);
+        assertTrue(@inf@ >= 1.0n);
+        assertEq(1, @inf@ <=> 1.0n);
+
+        assertFalse(-@inf@ == 1.0n);
+        assertTrue(-@inf@ != 1.0n);
+        assertFalse(-@inf@ === 1.0n);
+        assertTrue(-@inf@ !== 1.0n);
+        assertTrue(-@inf@ < 1.0n);
+        assertTrue(-@inf@ <= 1.0n);
+        assertFalse(-@inf@ > 1.0n);
+        assertFalse(-@inf@ >= 1.0n);
+        assertEq(-1, -@inf@ <=> 1.0n);
+
+        assertFalse(@nan@ == @inf@n);
+        assertTrue(@nan@ != @inf@n);
+        assertFalse(@nan@ === @inf@n);
+        assertTrue(@nan@ !== @inf@n);
+        assertFalse(@nan@ < @inf@n);
+        assertFalse(@nan@ <= @inf@n);
+        assertFalse(@nan@ > @inf@n);
+        assertFalse(@nan@ >= @inf@n);
+        assertThrows(NAN_CMP_ERR, cmpToNan, @inf@n);
+
+        assertFalse(@nan@ == 1.0n);
+        assertTrue(@nan@ != 1.0n);
+        assertFalse(@nan@ === 1.0n);
+        assertTrue(@nan@ !== 1.0n);
+        assertFalse(@nan@ < 1.0n);
+        assertFalse(@nan@ <= 1.0n);
+        assertFalse(@nan@ > 1.0n);
+        assertFalse(@nan@ >= 1.0n);
+        assertThrows(NAN_CMP_ERR, cmpToNan, 1.0n);
+
+        assertFalse(@nan@ == @nan@n);
+        assertTrue(@nan@ != @nan@n);
+        assertFalse(@nan@ === @nan@n);
+        assertTrue(@nan@ !== @nan@n);
+        assertFalse(@nan@ < @nan@n);
+        assertFalse(@nan@ <= @nan@n);
+        assertFalse(@nan@ > @nan@n);
+        assertFalse(@nan@ >= @nan@n);
+        assertThrows(NAN_CMP_ERR, cmpToNan, @nan@n);
+    }
+
+    numberIntTests() {
+        assertFalse(@inf@n == 1);
+        assertTrue(@inf@n != 1);
+        assertFalse(@inf@n === 1);
+        assertTrue(@inf@n !== 1);
+        assertFalse(@inf@n < 1);
+        assertFalse(@inf@n <= 1);
+        assertTrue(@inf@n > 1);
+        assertTrue(@inf@n >= 1);
+        assertEq(1, @inf@n <=> 1);
+
+        assertFalse(-@inf@n == 1);
+        assertTrue(-@inf@n != 1);
+        assertFalse(-@inf@n === 1);
+        assertTrue(-@inf@n !== 1);
+        assertTrue(-@inf@n < 1);
+        assertTrue(-@inf@n <= 1);
+        assertFalse(-@inf@n > 1);
+        assertFalse(-@inf@n >= 1);
+        assertEq(-1, -@inf@n <=> 1);
+
+        assertFalse(@nan@n == 1);
+        assertTrue(@nan@n != 1);
+        assertFalse(@nan@n === 1);
+        assertTrue(@nan@n !== 1);
+        assertFalse(@nan@n < 1);
+        assertFalse(@nan@n <= 1);
+        assertFalse(@nan@n > 1);
+        assertFalse(@nan@n >= 1);
+        assertThrows(NAN_CMP_ERR, sub(int i) { int x = @nan@n <=> i; }, 1);
+    }
+
+    intNumberTests() {
+        assertFalse(1 == @inf@n);
+        assertTrue(1 != @inf@n);
+        assertFalse(1 === @inf@n);
+        assertTrue(1 !== @inf@n);
+        assertTrue(1 < @inf@n);
+        assertTrue(1 <= @inf@n);
+        assertFalse(1 > @inf@n);
+        assertFalse(1 >= @inf@n);
+        assertEq(-1, 1 <=> @inf@n);
+
+        assertFalse(1 == -@inf@n);
+        assertTrue(1 != -@inf@n);
+        assertFalse(1 === -@inf@n);
+        assertTrue(1 !== -@inf@n);
+        assertFalse(1 < -@inf@n);
+        assertFalse(1 <= -@inf@n);
+        assertTrue(1 > -@inf@n);
+        assertTrue(1 >= -@inf@n);
+        assertEq(1, 1 <=> -@inf@n);
+
+        assertFalse(1 == @nan@n);
+        assertTrue(1 != @nan@n);
+        assertFalse(1 === @nan@n);
+        assertTrue(1 !== @nan@n);
+        assertFalse(1 < @nan@n);
+        assertFalse(1 <= @nan@n);
+        assertFalse(1 > @nan@n);
+        assertFalse(1 >= @nan@n);
+        assertThrows(NAN_CMP_ERR, sub(int i) { int x = i <=> @nan@n; }, 1);
+    }
+
+    floatIntTests() {
+        assertFalse(@inf@ == 1);
+        assertTrue(@inf@ != 1);
+        assertFalse(@inf@ === 1);
+        assertTrue(@inf@ !== 1);
+        assertFalse(@inf@ < 1);
+        assertFalse(@inf@ <= 1);
+        assertTrue(@inf@ > 1);
+        assertTrue(@inf@ >= 1);
+        assertEq(1, @inf@ <=> 1);
+
+        assertFalse(-@inf@ == 1);
+        assertTrue(-@inf@ != 1);
+        assertFalse(-@inf@ === 1);
+        assertTrue(-@inf@ !== 1);
+        assertTrue(-@inf@ < 1);
+        assertTrue(-@inf@ <= 1);
+        assertFalse(-@inf@ > 1);
+        assertFalse(-@inf@ >= 1);
+        assertEq(-1, -@inf@ <=> 1);
+
+        assertFalse(@nan@ == 1);
+        assertTrue(@nan@ != 1);
+        assertFalse(@nan@ === 1);
+        assertTrue(@nan@ !== 1);
+        assertFalse(@nan@ < 1);
+        assertFalse(@nan@ <= 1);
+        assertFalse(@nan@ > 1);
+        assertFalse(@nan@ >= 1);
+        assertThrows(NAN_CMP_ERR, sub(int i) { int x = @nan@ <=> i; }, 1);
+    }
+
+    intFloatTests() {
+        assertFalse(1 == @inf@);
+        assertTrue(1 != @inf@);
+        assertFalse(1 === @inf@);
+        assertTrue(1 !== @inf@);
+        assertTrue(1 < @inf@);
+        assertTrue(1 <= @inf@);
+        assertFalse(1 > @inf@);
+        assertFalse(1 >= @inf@);
+        assertEq(-1, 1 <=> @inf@);
+
+        assertFalse(1 == -@inf@);
+        assertTrue(1 != -@inf@);
+        assertFalse(1 === -@inf@);
+        assertTrue(1 !== -@inf@);
+        assertFalse(1 < -@inf@);
+        assertFalse(1 <= -@inf@);
+        assertTrue(1 > -@inf@);
+        assertTrue(1 >= -@inf@);
+        assertEq(1, 1 <=> -@inf@);
+
+        assertFalse(1 == @nan@);
+        assertTrue(1 != @nan@);
+        assertFalse(1 === @nan@);
+        assertTrue(1 !== @nan@);
+        assertFalse(1 < @nan@);
+        assertFalse(1 <= @nan@);
+        assertFalse(1 > @nan@);
+        assertFalse(1 >= @nan@);
+        assertThrows(NAN_CMP_ERR, sub(int i) { int x = i <=> @nan@; }, 1);
+    }
+
+    nanSwitchTests() {
+        switch (@nan@) { # all float
+            case 1.0:
+                fail();
+            case <= 1.0:
+                fail();
+            case > 1.0:
+                fail();
+            case >= 1.0:
+                fail();
+            case < 1.0:
+                fail();
+            default:
+                break;
+        }
+
+        switch (@nan@n) { # all number
+            case 1.0n:
+                fail();
+            case <= 1.0n:
+                fail();
+            case > 1.0n:
+                fail();
+            case >= 1.0n:
+                fail();
+            case < 1.0n:
+                fail();
+            default:
+                break;
+        }
+
+        switch (@nan@) { # float nan, number other
+            case 1.0n:
+                fail();
+            case <= 1.0n:
+                fail();
+            case > 1.0n:
+                fail();
+            case >= 1.0n:
+                fail();
+            case < 1.0n:
+                fail();
+            default:
+                break;
+        }
+
+        switch (@nan@n) { # number nan, float other
+            case 1.0:
+                fail();
+            case <= 1.0:
+                fail();
+            case > 1.0:
+                fail();
+            case >= 1.0:
+                fail();
+            case < 1.0:
+                fail();
+            default:
+                break;
+        }
+
+        switch (1.0) { # all float
+            case @nan@:
+                fail();
+            case <= @nan@:
+                fail();
+            case > @nan@:
+                fail();
+            case >= @nan@:
+                fail();
+            case < @nan@:
+                fail();
+            default:
+                break;
+        }
+
+        switch (1.0n) { # all number
+            case @nan@n:
+                fail();
+            case <= @nan@n:
+                fail();
+            case > @nan@n:
+                fail();
+            case >= @nan@n:
+                fail();
+            case < @nan@n:
+                fail();
+            default:
+                break;
+        }
+
+        switch (1.0) { # float 1, number nan
+            case @nan@n:
+                fail();
+            case <= @nan@n:
+                fail();
+            case > @nan@n:
+                fail();
+            case >= @nan@n:
+                fail();
+            case < @nan@n:
+                fail();
+            default:
+                break;
+        }
+
+        switch (1.0n) { # number 1, float nan
+            case @nan@:
+                fail();
+            case <= @nan@:
+                fail();
+            case > @nan@:
+                fail();
+            case >= @nan@:
+                fail();
+            case < @nan@:
+                fail();
+            default:
+                break;
+        }
+    }
+
+    nanCompareParseTime() {
+        Program p();
+        assertThrows(NAN_CMP_ERR, \p.parse(), ("int sub f() { return @nan@ <=> 1.0; }", ""));
+    }
+}
