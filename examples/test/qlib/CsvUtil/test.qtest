@@ -58,11 +58,11 @@ http://www.anthrax.com/,US,Anthrax,anthrax.jpg,2012-12-29T14:02:53,395
             "header-names" : True,
             "verify-columns" : True,
             "fields" : (
-            	"mod_data" : (
+                "mod_data" : (
                     "type" : "date",
                     "format" : "YYYY-MM-DDTHH:mm:SS",
                 ),
-            	"id" : "int",
+                "id" : "int",
             ),
         );
 

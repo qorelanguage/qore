@@ -124,7 +124,7 @@ while (i.next())
     CsvUtil classes have dual contructors, old-style constructor accept field definition in options, is backward compatabile and supports only single-types. New-style constructor accept splitted options and field specification passed as separate parameters.
 
     Get AbstractCsvIterator functions return records in extended form as hash containing mamber \"type\" with resolved type and
-    \"record\" with values. As this is not backward compatible this mode is enabled using \"multi_type\" option.
+    \"record\" with values. As this is not backward compatible this mode is enabled using \"extended_record\" option.
 
     If no record type resolution rules or logic is defined, then record types are resolved automatically based on their
     unique number of fields. If the number of fields is not unique (i.e. two or more records have the same number of
@@ -184,7 +184,7 @@ const spec = (
 const opts = hash(
 );
 
-CsvFileIterator i("example-multi-file.csv", spec, ("multi_type": True)+opts);
+CsvFileIterator i("example-multi-file.csv", spec, ("extended_record": True)+opts);
 CsvFileWriter writer("example-multi-file-copy.csv", spec, ("write-headers": False, "optimal-quotes" : True, "quote_escape" : '"')+opts);
 while (i.next()) {
     printf("%d: %y\n", i.index(), i.getValue());
@@ -233,6 +233,10 @@ while (i.next()) {
         - \c "header-lines" is now \c "header_lines"
         - \c "verify-columns" is now \c "verify_columns"
     - implemented multi-type line support
+    - two constructors for backward CsvUtil compatability and similarity with FixedLengthUtil API
+    - implemented new options \c "header_reorder"; @ref CsvUtil::AbstractCsvIterator: \c "date_format",\c "extended_record"
+    - implemented options for field specification: \c "index", \c "default", \c "header", \c "value", \c "regex"
+    - fixed a UTC bug for default date 1970-01-01Z
 
     @subsection csvutil_v1_4 Version 1.4
     - fixed the \c "format" field option when used with \c "*date" field types
@@ -247,7 +251,7 @@ while (i.next()) {
     - fixed @ref CsvUtil::CsvDataIterator::next() when header_lines > 0 and working with empty input data
     - implemented support for the \c "*int", \c "*float", \c "*number", and \c "*date" types
     - implemented support for allowing subclasses of @ref CsvUtil::CsvFileIterator to implement support for other custom types
-    - fixed \c "date" type handling with empty input; now returns 1970-01-01 (use "*date" to map empty input to NOTHING)
+    - fixed \c "date" type handling with empty input; now returns 1970-01-01Z (use "*date" to map empty input to NOTHING)
     - added the @ref CsvUtil::CsvStringWriter, @ref CsvUtil::AbstractCsvWriter, and @ref CsvUtil::CsvFileWriter classes
     - if "headers" are not given in the @ref CsvUtil::CsvFileIterator::constructor() but "fields" are, then set the headers from the field descriptions automatically
 
@@ -279,16 +283,23 @@ class CsvHelper {
         );
 
         #! supported field description attribute codes
-        const FieldAttrs = ("type", "format", "timezone", "code");
+        const FieldAttrs = ("type", "format", "timezone", "code", "header");
 
         #! flag to convert all header names to lower case
         bool tolwr = False;
+
+        #! default date->string format
+        string date_format;
 
         #! hash of field information (types, formats, and possible code), hash key = column name or number (starting with 0)
         hash m_specs;
 
         #! the exeption \c "err" string
         string errname;
+
+        # reorder data according headers set by options.headers or read from CsvHeader
+        bool headerReorder = True;
+
     }
 
     #! @param n_errname class name used in exception to identify class
@@ -309,24 +320,26 @@ class CsvHelper {
 
     # get spec from options.fields for old Csv. Check spec param for new Csv
     private hash getSpec(*hash fields, string fld_errs, int C_OPTx) {
-printf("opts: %N\n", fields);
         hash spec = hash();
         if (fields) {
             if (fields.typeCode() != NT_HASH)
                 throw errname, sprintf("%s: expecting a hash value; got %y (type %s) instead", fld_errs, fields, fields.type());
 
+            hash checkIdx = hash();
             # iterate hash to process field descriptions
             foreach hash hi in (fields.pairIterator()) {
+                hash h;
+                h.idx = $#;
+                h.header = hi.key;
                 switch (hi.value.typeCode()) {
                     case NT_STRING: {
                         checkType(fld_errs, hi.key, hi.value);
-                        spec.(hi.key) = ("type": hi.value);
+                        h.type = hi.value;
                         break;
                     }
                     case NT_HASH: {
                         if (hi.value.empty())
                             throw errname, sprintf("%s: empty hash passed as description for field %y", fld_errs, hi.key);
-                        hash h;
                         foreach hash fh in (hi.value.pairIterator()) {
                             bool found = True;
                             switch (fh.key) {
@@ -335,10 +348,11 @@ printf("opts: %N\n", fields);
                                     h.type = fh.value;
                                     break;
                                 }
+                                case "header":
                                 case "format": {
                                     if (fh.value.typeCode() != NT_STRING)
                                         throw errname, sprintf("%s: field %y \"%s\" attributes expects a string value; got %y instead", fld_errs, hi.key, fh.key, fh.value.type());
-                                    h.format = fh.value;
+                                    h{fh.key} = fh.value;
                                     break;
                                 }
                                 case "timezone": {
@@ -362,12 +376,14 @@ printf("opts: %N\n", fields);
                                     case "default":
                                         h{fh.key} = fh.value;
                                         break;
-                                    case "idx":
+                                    case "index":
                                         if (int(fh.value) != fh.value)
                                             throw errname, sprintf("%s: field %y \"%s\" does not contain an integer value; %n vs. %n", fld_errs, hi.key, fh.key, int(fh.value), fh.value);
-                                        h{fh.key} = int(fh.value);
+                                        h.idx = int(fh.value);
+                                        if (h.idx < 0 || h.idx >= fields.size()) {
+                                            throw errname, sprintf("%s: field %y \"%s\" has value %d out off range 0..%d", fld_errs, hi.key, fh.key, h.idx, fields.size()-1);
+                                        }
                                         break;
-                                    case "header":
                                     case "regex":
                                         if (fh.value.typeCode() != NT_STRING) {
                                             throw errname, sprintf("%s: field %y \"%s\" attributes expects a string value; got %y instead", fld_errs, hi.key, fh.key, fh.value.type());
@@ -391,16 +407,23 @@ printf("opts: %N\n", fields);
                                     throw errname, sprintf("%s: field %y is type %y, but the %y attribute was also given, which is only valid for \"date\" fields", fld_errs, hi.key, h.type, f);
                             }
                         }
-                        spec.(hi.key) = h;
                         break;
                     }
                     default: {
                         throw errname, sprintf("%s: invalid value passed as the field description for field %y; expecting \"string\" or \"hash\"; got %y instead", fld_errs, hi.key, hi.value.type());
                     }
                 }
+                if (exists checkIdx{h.idx}) {
+                    throw errname, sprintf("%s: field %y \"index\" causes index violation %d", fld_errs, hi.key, h.idx);
+                }
+                if (tolwr) {
+                    h.header = h.header.lwr();
+                }
+
+                checkIdx{h.idx} = True;
+                spec.(hi.key) = h;
             }
         }
-printf("opts: %N\n", spec);
         return spec;
     }
 
@@ -409,10 +432,56 @@ printf("opts: %N\n", spec);
     }
 
     private hash getSpec2(hash spec) {
+        spec = spec ?? (CSV_TYPE_SINGLE: hash());
         foreach string i in (spec.keyIterator()) {
             spec{i} = getSpec(spec{i}, sprintf("while processing the hash value for spec key \"%s\"", i), C_OPT2);
         }
         return spec;
+    }
+
+    /** Process headers and add missing field specification, consider resordering fields in specification
+
+        Return: list of field names in order of Csv record
+    */
+    private list adjustFieldsFromHeaders(string type, *list headers) {
+
+        hash spec = m_specs{type} ?? hash();
+        list csv_order = ();
+        if (headers && tolwr)
+            headers = (map $1.lwr(), headers);
+
+        # look for header name if specified
+        hash fld_by_hdr = hash();
+        hash hdr_idxs = map {$1: $#}, headers;
+
+        m_specs{type} = hash();
+
+        foreach string f in (spec.keyIterator()) {
+            fld_by_hdr{spec{f}.header} = f;
+            if (!headerReorder) {
+                # keep existing spec
+                if (exists hdr_idxs{spec{f}.header}) {
+                    spec{f}.idx = hdr_idxs{spec{f}.header};
+                    m_specs{type}{f} = spec{f};
+                    push csv_order, f;
+                    remove hdr_idxs{spec{f}.header};
+                }
+            }
+        }
+
+        # change field specificiation to follow header order
+        foreach string h in (headers) {
+            if (!exists hdr_idxs{h}) {
+                # header already in spec
+                continue;
+            }
+            string f = fld_by_hdr{h} ?? h;
+            m_specs{type}{f} = spec{f} ?? ("type": "*string", "header": h);
+            m_specs{type}{f}.idx = hdr_idxs{h};
+            push csv_order, f;
+            remove hdr_idxs{h};
+        }
+        return csv_order;
     }
 
 } # class CsvHelper
@@ -443,26 +512,29 @@ public namespace CsvUtil {
 
         <b>AbstractCsvIterator Options</b>
         |!Option|!Data Type|!Description
-        |\c "encoding"|@ref string|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
-        |\c "separator"|@ref string|the string separating the fields in the file (default: \c ",")
-        |\c "quote"|@ref string|the field quote character (default: \c '\"')
-        |\c "eol"|@ref string|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
-        |\c "ignore_empty"|@ref boolean|if @ref Qore::True "True" (the default) then empty lines will be ignored; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
-        |\c "ignore_whitespace"|@ref boolean|if @ref Qore::True "True" (the default) then leading and trailing whitespace will be stripped from non-quoted fields; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
-        |\c "header_names"|@ref boolean|if @ref Qore::True "True" then the object will parse the header names from the first header row, in this case \c "header_lines" must be &gt; 0. In case of multi-type lines \c "header_names" is mandatory @ref Qore::False "False".
-        |\c "header_lines"|@ref integer|the number of headers lines in the file (must be &gt; 0 if \c "header_names" is @ref Qore::True "True") be @ref Qore::False "False".
-        |\c "verify_columns"|@ref boolean|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different
+        |\c "date_format"|@ref string|the default date format for \c "date" fields (see @ref date_formatting "date formatting" for the value in this case)
+        |\c "encoding"|@ref string_type "string"|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
+        |\c "separator"|@ref string_type "string"|the string separating the fields in the file (default: \c ",")
+        |\c "quote"|@ref string_type "string"|the field quote character (default: \c '\"')
+        |\c "eol"|@ref string_type "string"|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
+        |\c "ignore_empty"|@ref bool_type "bool"|if @ref Qore::True "True" (the default) then empty lines will be ignored; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
+        |\c "ignore_whitespace"|@ref bool_type "bool"|if @ref Qore::True "True" (the default) then leading and trailing whitespace will be stripped from non-quoted fields; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
+        |\c "header_names"|@ref bool_type "bool"|if @ref Qore::True "True" then the object will parse the header names from the first header row, in this case \c "header_lines" must be &gt; 0. In case of multi-type lines \c "header_names" is mandatory @ref Qore::False "False".
+        |\c "header_lines"|@ref int_type "int"|the number of headers lines in the file (must be &gt; 0 if \c "header_names" is @ref Qore::True "True")
+        |\c "header_reorder"|@ref bool_type "bool"|if @ref Qore::True "True" (default value) then if \"headers\" are provided by options or read from file then data fields are reordered to follow headers. It has major effect on return value of @ref AbstractCsvIterator::getRecordList() function and also minor on hash result of AbstractCsvIterator::getRecord() when a program code depends on order of keys. If @ref Qore::False "False" then fields not yet specified are pushed at the end of field definition.
+        |\c "verify_columns"|@ref bool_type "bool"|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different
         column count than other lines, a \c CSVFILEITERATOR-DATA-ERROR exception is thrown
-        |\c "timezone"|@ref string|the timezone to use when parsing dates (will be passed to @ref Qore::TimeZone::constructor())
-        |\c "tolwr"|@ref boolean|if @ref Qore::True "True" then all header names will be converted to lower case letters
+        |\c "timezone"|@ref string_type "string"|the timezone to use when parsing dates (will be passed to @ref Qore::TimeZone::constructor())
+        |\c "tolwr"|@ref bool_type "bool"|if @ref Qore::True "True" then all header names will be converted to lower case letters
 
         <b>AbstractCsvIterator Single-type-only Options </b>
         |!Option|!Data Type|!Description
-        |\c "headers"|@ref list of strings|list of header / column names for the data iterated; if this is present, then \c "header_names" must         |\c "fields"|@ref hash|the keys are column names (or numbers in case column names are not used) and the values are either strings (one of @ref abstractcsviterator_option_field_types giving the data type for the field) or a @ref abstractcsviterator_option_field_hash describing the field; also sets \a headers if not set automatically with \c "header_names"; if no field type is given, the default is \c "*string"
+        |\c "headers"|@ref list_type "list" of @ref string_type "strings"|list of header / column names for the data iterated; if this is present, then \c "header_names" must be @ref Qore::False "False".
+        |\c "fields"|@ref hash|the keys are column names (or numbers in case column names are not used) and the values are either strings (one of @ref abstractcsviterator_option_field_types giving the data type for the field) or a @ref abstractcsviterator_option_field_hash describing the field; also sets \a headers if not set automatically with \c "header_names"; if no field type is given, the default is \c "*string"
 
         <b>AbstractCsvIterator Multi-type-only Options </b>
         |!Option|!Data Type|!Description
-        |\c "multi_type"|@ref boolean|if @ref Qore::True "True" then get functions will use extended hash with \"type\" and \"record\" members to provide type to calling party, Default: False
+        |\c "extended_record"|@ref boolean|if @ref Qore::True "True" then get functions will use extended hash with \"type\" and \"record\" members to provide type to calling party, Default: False
 
         @note the following options separated by dashes are still supported for backwards-compatibility:
         - \c "ignore-empty"
@@ -473,8 +545,8 @@ public namespace CsvUtil {
 
         @subsection abstractcsviterator_option_field_types Option Field Types
         Fields are defined in order how the data are expected by user program. In this order are
-        data returned by get functions. There is exception because \c "headers" options sorts definition
-        that data correspond to \c "headers" field order.
+        data returned by get functions. There are two exception, the former \c "headers" options sorts definition
+        that data correspond to \c "headers" field order and the later when header names are read from Csv file header.
 
         <b>AbstractCsvIterator Option Field Types</b>
         |!Name|!Description
@@ -499,34 +571,37 @@ public namespace CsvUtil {
         |\c "type"|one of the @ref abstractcsviterator_option_field_types "option type values" giving the field type
         |\c "format"|used only with the \c "date" type; this is a @ref date_mask "date/time format mask" for parsing dates
         |\c "timezone"|used only with the \c "date" type; this value is passed to @ref Qore::TimeZone::constructor() and the resulting timezone is used to parse the date (this value overrides any default time zone for the object; use only in the rare case that date/time values from different time zones are present in different columns of the same file)
-        |\c "code"|this is a @ref closure or @ref call_reference that takes a single argument of the value (after formatting with any optional \c "type" formats) and returns the value that will be output for the field
+        |\c "code"|this is a @ref closure "closure" or @ref call_reference "call reference" that takes a single argument of the value (after formatting with any optional \c "type" formats) and returns the value that will be output for the field
 
         <b>Extra AbstractCsvIterator Spec Hash Options</b>
         |!Key|!Value Description
-        |\c value|string|the value to use to compare to input data when determining the record type; if \v "value" is defined for a field, then \c "regex" cannot be defined (for iterator only)
-        |\c regex|string|the regular expression to use to apply to input data lines when determining the record type (for iterator only)
-        |\c header|string|field name as defined in Csv header line. It enables remapping from Csv to own name
-        |\c idx|int|index of field in Csv file. It enables mapping when Csv has not header
-        |\c default|any|Default output value (for writers only)
+        |\c value|@ref string_type "string"|the value to use to compare to input data when determining the record type; if \v "value" is defined for a field, then \c "regex" cannot be defined (for iterator only)
+        |\c regex|@ref string_type "string"|the regular expression to use to apply to input data lines when determining the record type (for iterator only)
+        |\c header|@ref string_type "string"|field name as defined in Csv header line. It enables remapping from Csv to own name
+        |\c index|@ref int_type "int"|index of field in Csv file. It enables mapping when Csv has not header
+        |\c default|@ref any_type "any"|Default output value (for writers only)
 
      */
     public class AbstractCsvIterator inherits Qore::AbstractIterator, private CsvHelper {
         private {
             #! valid options for the object (a hash for quick lookups of valid keys)
             const Options = (
+                "date_format": C_OPT1|C_OPT2,
+                "date-format": C_OPT1|C_OPT2,
                 "encoding": C_OPT1|C_OPT2,
                 "eol": C_OPT1|C_OPT2,
+                "extended_record": C_OPT2,
                 "fields": C_OPT1,
                 "header-lines": C_OPT1|C_OPT2,
                 "header_lines": C_OPT1|C_OPT2,
                 "header-names": C_OPT1|C_OPT2,
                 "header_names": C_OPT1|C_OPT2,
+                "header_reorder": C_OPT1|C_OPT2,
                 "headers": C_OPT1,
                 "ignore-empty": C_OPT1|C_OPT2,
                 "ignore_empty": C_OPT1|C_OPT2,
                 "ignore-whitespace": C_OPT1|C_OPT2,
                 "ignore_whitespace": C_OPT1|C_OPT2,
-                "multi_type": C_OPT2,
                 "quote": C_OPT1|C_OPT2,
                 "separator": C_OPT1|C_OPT2,
                 "timezone": C_OPT1|C_OPT2,
@@ -554,13 +629,13 @@ public namespace CsvUtil {
             bool ignoreWhitespace = True;
 
             # the @ref Qore::TimeZone to use when parsing dates (default: current time zone)
-            *TimeZone tz;
+            *TimeZone timezone;
 
             # verify the column count for every row; if a row does not match, then throw a \c CSVFILEITERATOR-DATA-ERROR exception
             bool checkElementCounts = False;
 
             # getRecord/getValue returns extended hash
-            bool multiType = False;
+            bool extendedRecord = False;
 
             # column count for verifying column counts
             int cc;
@@ -570,13 +645,13 @@ public namespace CsvUtil {
 
             # to resolve record type by rules
             hash m_resolve_by_rule;
+
             # to resolve record type by number of fields
             hash m_resolve_by_count;
+
             # list of idx to field transformarions, in order of spec
             hash m_resolve_by_idx;
 
-            # just for getHeaders function
-            *list m_headers;
         }
 
         #! creates the AbstractCsvIterator with an option hash in single-type mode
@@ -585,21 +660,8 @@ public namespace CsvUtil {
             @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header-names" is @ref Qore::True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
          */
         constructor(*hash opts): CsvHelper("ABSTRACTCSVITERATOR-ERROR") {
-printf("ABSTRACTCSVITERATOR 1\n");
             processCommonOptions(opts, C_OPT1);
 
-            # process options specific to this constructor, i.e. no multi-type
-            foreach hash i in (opts.pairIterator()) {
-                switch (i.key) {
-                    case "header-names":
-                    case "header_names": {
-                        headerNames = parse_boolean(i.value);
-                        break;
-                    }
-                }
-            }
-            if (headerNames && !headerLines)
-                throw errname, sprintf("\"header_names\" is True but \"header_lines\" is 0; there must be at least 1 header line to get header names");
             if (headerNames && opts.headers)
                 throw errname, sprintf("\"header_names\" is True but \"headers\" has a value (%y)", opts.headers);
 
@@ -616,14 +678,13 @@ printf("ABSTRACTCSVITERATOR 1\n");
             @param spec a hash of field and type definition; see @ref abstractcsviterator_option_field_hash for more information
             @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
          */
-        # TODO/BUG: when declared as *hash then always calls this constructor
+        # NOTE: when declared as *hash then always calls this constructor
         constructor(hash spec, hash opts): CsvHelper("ABSTRACTCSVITERATOR-ERROR") {
-printf("ABSTRACTCSVITERATOR2: spec:%N\nopts:%N\n", spec, opts);
             processCommonOptions(opts, C_OPT2);
             foreach hash i in (opts.pairIterator()) {
                 switch (i.key) {
-                    case "multi_type": {
-                        multiType = parse_boolean(i.value);
+                    case "extended_record": {
+                        extendedRecord = parse_boolean(i.value);
                         break;
                     }
                 }
@@ -631,6 +692,9 @@ printf("ABSTRACTCSVITERATOR2: spec:%N\nopts:%N\n", spec, opts);
             if (headerNames && isMultiType())
                 throw errname, sprintf("\"header_names\" is True but multi-type is specified (%y)", m_specs);
             processSpec(getSpec2(spec));
+            # potential prepareFieldsFromHeaders() call does not support rule adjusting
+            if (headerNames && m_resolve_by_rule)
+                throw errname, sprintf("\"header_names\" is True but a resolve rule is specified (%y)", m_specs);
         }
 
         #! process common options and and assing internal fields
@@ -639,6 +703,13 @@ printf("ABSTRACTCSVITERATOR2: spec:%N\nopts:%N\n", spec, opts);
                 if (!exists Options.(i.key) || ((Options.(i.key) & C_OPTx) == 0))
                     throw errname, sprintf("unknown option %y passed to AbstractCsvIterator::constructor() (valid options: %y)", i.key, (select Options.keys(), (Options.$1 & C_OPTx) != 0));
                 switch (i.key) {
+                    case "date_format":
+                    case "date-format": {
+                        if (i.value.typeCode() != NT_STRING)
+                            throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                        date_format = i.value;
+                        break;
+                    }
                     case "separator": {
                         if (i.value.typeCode() != NT_STRING)
                             throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
@@ -676,8 +747,16 @@ printf("ABSTRACTCSVITERATOR2: spec:%N\nopts:%N\n", spec, opts);
                         }
                         break;
                     }
+                    case "header-names":
+                    case "header_names": {
+                        headerNames = parse_boolean(i.value);
+                        break;
+                    }
+                    case "header_reorder":
+                        headerReorder = parse_boolean(i.value);
+                        break;
                     case "timezone": {
-                        tz = new TimeZone(i.value);
+                        timezone = new TimeZone(i.value);
                         break;
                     }
                     case "tolwr": {
@@ -686,6 +765,8 @@ printf("ABSTRACTCSVITERATOR2: spec:%N\nopts:%N\n", spec, opts);
                     }
                 }
             }
+            if (headerNames && !headerLines)
+                throw errname, sprintf("\"header_names\" is True but \"header_lines\" is 0; there must be at least 1 header line to get header names");
         }
 
         #! process specification and assing internal data for resolving
@@ -698,31 +779,27 @@ printf("ABSTRACTCSVITERATOR2: spec:%N\nopts:%N\n", spec, opts);
             m_resolve_by_idx = hash();
 
             # setup type resolving from spec
-printf("speec: %y\n", spec);
             foreach string k in (m_specs.keyIterator()) {
                 if (m_specs{k}.typeCode() != NT_HASH)
                     throw errname, sprintf("expecting a record description hash assigned to record key %y; got type %y instead (value: %y)", k, m_specs{k}.type(), m_specs{k});
 
                 list rec_rule = ();
                 m_resolve_by_idx{k} = ();
-                int idx = 0;
                 foreach string c in (m_specs{k}.keyIterator()) {
                     hash fld_rule;
                     if (exists m_specs{k}{c}.regex) {
                         if (exists m_specs{k}{c}.value) {
                             throw errname, sprintf("Both value and regex used in field rule for field %y, record: %y", c, k);
                         }
-                        # regex has higher priority, value can be used as default value in writer so specifying both makes sense
                         fld_rule.regex = m_specs{k}{c}.regex;
                     } else if (exists m_specs{k}{c}.value) {
                         fld_rule.value = m_specs{k}{c}.value;
                     }
                     if (fld_rule) {
-                        fld_rule.idx = idx;
+                        fld_rule.idx = m_specs{k}{c}.idx;
                         rec_rule += fld_rule;
                     }
-                    push m_resolve_by_idx{k}, ("idx": idx, "field": c);
-                    idx++;
+                    push m_resolve_by_idx{k}, c;
                 }
                 int cnt = m_specs{k}.size();
                 if (rec_rule) {
@@ -736,32 +813,21 @@ printf("speec: %y\n", spec);
                     m_resolve_by_count{cnt} += list(k);
                 }
             }
-printf("m_resolve_by_rule: %y, m_resolve_by_count: %y, m_resolve_by_idx: %y\n", m_resolve_by_rule, m_resolve_by_count, m_resolve_by_idx);
-
         }
 
-        #! match headers provided at Csv header or in options, never called for multi-type */
+        #! match headers provided at Csv header or in options, never called for multi-type because header_names is False */
         private prepareFieldsFromHeaders(*list headers) {
             # add missing m_specs from headers
-            string k = CSV_TYPE_SINGLE;
-            hash spec = m_specs{k} ?? hash();
-            if (spec) {
-                m_resolve_by_count{spec.size()} = select m_resolve_by_count{spec.size()}, $1 != k;
+            string k = m_specs.firstKey();
+            if (m_specs{k}) {
+                m_resolve_by_count{m_specs{k}.size()} = select m_resolve_by_count{m_specs{k}.size()}, $1 != k;
             }
-            m_specs{k} = hash();
-            m_resolve_by_idx{k} = list();   # TODO: forces reoreder unnamed record
-            int idx = 0;
+            m_resolve_by_idx{k} = adjustFieldsFromHeaders(k, headers);
 
-            if (headers && tolwr)
-                headers = (map $1.lwr(), headers);
-
-            foreach string h in (headers) {
-                m_specs{k}{h} = spec{h} ?? ("type": "*string");
-                push m_resolve_by_idx{k}, ("idx": idx, "field": h);
-                idx++;
+            if (!m_resolve_by_count{headers.size()}) {
+                m_resolve_by_count{headers.size()} = ();
             }
-            m_resolve_by_count{headers.size()} = list(CSV_TYPE_SINGLE);
-            m_headers = headers;
+            push m_resolve_by_count{headers.size()}, k;
         }
 
         #! Returns the name of the input data
@@ -786,7 +852,6 @@ printf("m_resolve_by_rule: %y, m_resolve_by_count: %y, m_resolve_by_idx: %y\n", 
          */
         bool next() {
             # try to parse any header and skip to data if we haven't started iterating yet
-printf("NEXT, valid: %d, headerLines: %d, headernames: %d\n", valid(), headerLines, headerNames);
             if (!valid()) {
                 if (headerLines) {
                     if (headerNames) {
@@ -795,7 +860,6 @@ printf("NEXT, valid: %d, headerLines: %d, headernames: %d\n", valid(), headerLin
                             return False;
 
                         list h = getLineAndSplit();
-printf("after split: %y\n", h);
                         if (!h)
                             return False;
                         prepareFieldsFromHeaders(h);
@@ -817,7 +881,7 @@ printf("after split: %y\n", h);
                 }
 
                 # generate fake header names with index positions if no header data is already available, note: multi-type has headers
-                if (b && !m_specs{CSV_TYPE_SINGLE}) {
+                if (b && (!m_specs || m_specs.size() == 1 && exists m_specs{CSV_TYPE_SINGLE} && m_specs{CSV_TYPE_SINGLE}.size() == 0)) {
                     list l = getLineAndSplit();
                     list h = ();
                     map h += string($#), l;
@@ -842,11 +906,11 @@ printf("after split: %y\n", h);
             @throw ABSTRACTCSVITERATOR-FIELD-ERROR invalid or unknown field name given
          */
         any memberGate(string name) {
-            hash h = getRecord();
-            if (!exists h.type && h.spec_fields.hasKey(name))
+            hash h = getRecord(True);
+            if (!h.record.hasKey(name))
                 throw "ABSTRACTCSVITERATOR-FIELD-ERROR", sprintf("the requested header %y does not exist (known headers: %y)", name, keys m_specs{h.type} );
 
-            return h.spec_fields{name};
+            return h.record{name};
         }
 
         #! returns the current record as a hash
@@ -855,7 +919,7 @@ printf("after split: %y\n", h);
 hash h = i.getValue();
             @endcode
 
-            When \"multi_type\" option is set then result is extended hash including \"type\" and \"record\".
+            When \"extended_record\" option is set then result is extended hash including \"type\" and \"record\".
 
             @return the current record as a hash
 
@@ -871,28 +935,35 @@ hash h = i.getValue();
 hash h = i.getRecord();
             @endcode
 
-            When \"multi_type\" option is set then result is extended hash including \"type\" and \"record\".
+            @param extended specifies if result is an extended hash including \"type\" and \"record\".
+
+            @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
+
+            @return the current record as a hash
+         */
+        hash getRecord(bool extended) {
+            hash h = parseLine();
+            if (extended) {
+                return ("type": h.type, "record": h.spec_fields);
+            } else {
+                return h.spec_fields;
+            }
+        }
+
+        #! returns the current record as a hash
+        /** @par Example:
+            @code{.py}
+hash h = i.getRecord();
+            @endcode
+
+            When \"extended_record\" option is set then result is extended hash including \"type\" and \"record\".
 
             @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
 
             @return the current record as a hash
          */
         hash getRecord() {
-            hash h = parseLine();
-printf("getrecord: %y\n", h);
-            if (multiType) {
-                return ("type": h.type, "record": h.spec_fields);
-            } else {
-                return h.spec_fields;
-            }
-
-/*            hash h = {};
-            foreach any v in (l) {
-                string col = curTypeDef.headers[$#] ?? string($#);
-                h{col} = v;
-            }
-
-            return h; */
+            return getRecord(extendedRecord);
         }
 
         #! returns the current record as a list
@@ -901,7 +972,7 @@ printf("getrecord: %y\n", h);
 list l = i.getRecordList();
             @endcode
 
-            When \"multi_type\" option is set then result is extended hash including \"type\" and \"record\".
+            When \"extended_record\" option is set then result is extended hash including \"type\" and \"record\".
 
             @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
 
@@ -909,7 +980,7 @@ list l = i.getRecordList();
          */
         any getRecordList() {
             hash h = parseLine();
-            if (multiType) {
+            if (extendedRecord) {
                 return ("type": h.type, "record": h.all_fields);
             } else {
                 return h.all_fields;
@@ -948,11 +1019,16 @@ string quote = i.getQuote();
             @note if headers are not saved against the object in the @ref constructor(), then they are written to the object after the first call to @ref next()
          */
         *list getHeaders() {
-            return m_headers;  # no multi-type
+            return getHeaders(m_specs.firstKey());  # single-type
         }
 
         *list getHeaders(string type) {
-            return keys m_specs{type};  # multi-type variant
+/*            list l;
+            foreach hash fld in (m_specs{type}.pairIterator()) {
+                push l, fld.value.header;
+            }
+            return l; */
+            return map ($1.value.header), m_specs{type}.pairIterator();
         }
 
         #! returns the row index being iterated, which does not necessarily correspond to the line number when there are header rows and blank lines are skipped
@@ -1016,11 +1092,16 @@ while (i.next()) {
                 }
                 case "date": {
                     if (val.empty())
-                        rv = 1970-01-01;
+                        rv = 1970-01-01Z;
                     else {
-                        *TimeZone tz = fh.timezone ? fh.timezone : tz;
-                        if (fh.format)
-                            rv = tz ? tz.date(val, fh.format) : date(val, fh.format);
+                        TimeZone tz;
+                        if (fh.timezone)
+                            tz = fh.timezone;
+                        else if (timezone)
+                            tz = timezone;
+                        *string fmt = fh.format ?? date_format;
+                        if (fmt)
+                            rv = tz ? tz.date(val, fmt) : date(val, fmt);
                         else
                             rv = tz ? tz.date(val) : date(val);
                     }
@@ -1053,12 +1134,13 @@ while (i.next()) {
             @throw ABSTRACTCSVITERATOR-ERROR input line cannot be matched to a known record
         */
         string identifyType(list rec) {
-printf("identifytype: %N, m_specs: %N\n", rec, m_specs);
             *string type = identifyTypeImpl(rec);
-            if (!type)
-                throw errname, sprintf("The input line could not be identified: %y", rec);
-            if (!m_specs.hasKey(type))
-                throw errname, sprintf("Line identified to be of type %y that is not present in the spec: %y", type, rec);
+            if (type != CSV_TYPE_UNKNOWN) {
+                if (!type)
+                    throw errname, sprintf("The input line could not be identified: %y", rec);
+                if (!m_specs.hasKey(type))
+                    throw errname, sprintf("Line identified to be of type %y that is not present in the spec: %y", type, rec);
+            }
             return type;
         }
 
@@ -1073,7 +1155,7 @@ printf("identifytype: %N, m_specs: %N\n", rec, m_specs);
         private *string identifyTypeImpl(list rec) {
             *string rv;
             int cnt = rec.size();
-            if (!m_resolve_by_rule{cnt} && !m_resolve_by_count{cnt})
+            if (!m_resolve_by_rule{cnt} && !m_resolve_by_count{cnt} && checkElementCounts)
                 throw errname, sprintf("Line of unexpected field count %d found; known counts: %y (record: %y)", cnt, sort(map ($1.toInt()), m_resolve_by_rule.keyIterator()+m_resolve_by_count.keyIterator()), rec);
 
             if (m_resolve_by_rule{cnt}) {
@@ -1089,9 +1171,17 @@ printf("identifytype: %N, m_specs: %N\n", rec, m_specs);
                                 break;
                             }
                         } else {
-                            if (rec[fld_rule.idx] != fld_rule.value) {
-                                found = False;
-                                break;
+                            if (fld_rule.value.typeCode() == NT_INT) {
+                                # special care about int type,  0 == "000" should evaluate as True
+                                if (!rec[fld_rule.idx].intp() || rec[fld_rule.idx].toInt() != fld_rule.value) {
+                                    found = False;
+                                    break;
+                                }
+                            } else {
+                                if (rec[fld_rule.idx] != fld_rule.value) {
+                                    found = False;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -1101,7 +1191,6 @@ printf("identifytype: %N, m_specs: %N\n", rec, m_specs);
                     }
                 }
             }
-printf("m_resolve_by_count: %y\n", m_resolve_by_count);
             if (!rv && m_resolve_by_count{cnt}) {
                 if (m_resolve_by_count{cnt}.size() == 1) {
                     rv = m_resolve_by_count{cnt}[0];
@@ -1117,37 +1206,28 @@ printf("m_resolve_by_count: %y\n", m_resolve_by_count);
 
         #! parses a line in the file and returns a processed list of the fields
         private hash parseLine() {
-            list l = getLineAndSplit();
-            string type = identifyType(l);
-printf("ident: type: %y\n", type);
-            any r;
+            list values = getLineAndSplit();
+            string type = identifyType(values);
+            hash r;
+            list l;
             if (type == CSV_TYPE_UNKNOWN) {
-                r = map ($#: $1), l;
+                r = map {$#: $1}, values;
+                l = values;
             } else {
-
-    /*            # verify column count if requested
-                if (checkElementCounts) {
-                    if (!exists cc)
-                        cc = l.size();
-                    else if (l.size() != cc)
-                        throw "ABSTRACTCSVITERATOR-DATA-ERROR", sprintf("%s:%d line contained %d field%s, however the template record has %d (and option \"verify_columns\" is set)", getDataName(), lineNumberImpl(), l.size(), l.size() == 1 ? "" : "s", cc);
-                }*/
-printf("m_resolve_by_idx: %N\n", m_resolve_by_idx);
-                foreach hash t in (m_resolve_by_idx{type}) {
+                foreach string f in (m_resolve_by_idx{type}) {
                     # cherry-pick well-known fields
-                    hash fh = m_specs{type}{t.field};
-                    if (fh.type != "nothing") {
-                        reference val = \l[t.idx];
+                    hash fh = m_specs{type}{f};
+                    reference val = \values[fh.idx];
 
-                        # first apply type transformations
-                        val = handleType(fh, val);
+                    # first apply type transformations
+                    val = handleType(fh, val);
 
-                        # execute any callable value on the processed value
-                        if (fh.code)
-                            val = fh.code(val);
-
-                        r{t.field} = val;
+                    # execute any callable value on the processed value
+                    if (fh.code) {
+                        val = fh.code(val);
                     }
+                    r{f} = val;
+                    push l, val;
                 }
             }
             return ("type": type, "spec_fields": r, "all_fields": l);
@@ -1175,6 +1255,10 @@ printf("m_resolve_by_idx: %N\n", m_resolve_by_idx);
             @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
          */
         constructor(string path, hash spec, hash opts) : AbstractCsvIterator(spec, opts), FileLineIterator(path, opts.encoding.typeCode() == NT_STRING ? opts.encoding : NOTHING, opts.eol.typeCode() == NT_STRING ? opts.eol : NOTHING) {
+        }
+
+        any memberGate(string name) {
+            return AbstractCsvIterator::memberGate(name);
         }
 
         #! Returns the name of the input data
@@ -1227,6 +1311,10 @@ printf("m_resolve_by_idx: %N\n", m_resolve_by_idx);
               DataLineIterator(data, opts.eol) {
         }
 
+        any memberGate(string name) {
+            return AbstractCsvIterator::memberGate(name);
+        }
+
         #! Returns the current line number; returns 0 if not pointing at any data
         private int lineNumberImpl() {
             return DataLineIterator::index();
@@ -1255,23 +1343,24 @@ printf("m_resolve_by_idx: %N\n", m_resolve_by_idx);
 
         <b>AbstractCsvWriter Options</b>
         |!Option|!Data Type|!Description
-        |\c "block"|@ref int|the block size when generating output based on a @ref Qore::SQL::SQLStatement "SQLStatement" source (default: \c 1000)
-        |\c "date_format"|@ref string|the default mask for date values formatting
-        |\c "encoding"|@ref string|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
-        |\c "eol"|@ref string|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
-        |\c "info_log"|@ref code|a call reference / closure for informational logging when performing bulk generation with write(Qore::SQL::SQLStatement); must take a single string argument
-        |\c "optimal_quotes"|@ref boolean|set to @ref Qore::False "False" to disable optimal quoting; when optimal quoting is disabled, all fields are quoted regardless of type or content, when it is enabled, then fields are quoted only if they require quoting (i.e. they contain a quote or separator character); the default is @ref Qore::True "True"
-        |\c "quote"|@ref string|the field quote character (default: \c '\"')
-        |\c "quote_escape"|@ref string|the escape character(s) used for \c "quote" (default: \c '\\')
-        |\c "separator"|@ref string|the string separating the fields in the file (default: \c ",")
-        |\c "verify_columns"|@ref boolean|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEWRITER-DATA-ERROR exception is thrown
-        |\c "write_headers"|@ref boolean|set to @ref Qore::False "False" to suppress the output of headers; the default is @ref Qore::True "True", meaning to output headers if they are present. The value is @ref Qore::False "False" for multi-type lines.
+        |\c "block"|@ref int_type "int"|the block size when generating output based on a @ref Qore::SQL::SQLStatement "SQLStatement" source (default: \c 1000)
+        |\c "date_format"|@ref string_type "string"|the default mask for date values formatting
+        |\c "encoding"|@ref string_type "string"|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
+        |\c "eol"|@ref string_type "string"|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
+        |\c "info_log"|@ref code_type "code"|a call reference / closure for informational logging when performing bulk generation with write(Qore::SQL::SQLStatement); must take a single string argument
+        |\c "optimal_quotes"|@ref bool_type "bool"|set to @ref Qore::False "False" to disable optimal quoting; when optimal quoting is disabled, all fields are quoted regardless of type or content, when it is enabled, then fields are quoted only if they require quoting (i.e. they contain a quote or separator character); the default is @ref Qore::True "True"
+        |\c "quote"|@ref string_type "string"|the field quote character (default: \c '\"')
+        |\c "quote_escape"|@ref string_type "string"|the escape character(s) used for \c "quote" (default: \c '\\')
+        |\c "separator"|@ref string_type "string"|the string separating the fields in the file (default: \c ",")
+        |\c "verify_columns"|@ref bool_type "bool"|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEWRITER-DATA-ERROR exception is thrown
+        |\c "write_headers"|@ref bool_type "bool"|set to @ref Qore::False "False" to suppress the output of headers; the default is @ref Qore::True "True", meaning to output headers if they are present. The value is @ref Qore::False "False" for multi-type lines.
 
         <b>AbstractCsvIterator Single-type-only Options </b>
         |!Option|!Data Type|!Description
-        |\c "datamap"|@ref hash|a hash mapping actual data key names to the output field names, for use in case the data field names differ; does not have to include every data or output key; keys not present will be assumed to be mapped 1:1
-        |\c "fields"|@ref hash|describes the data to be output; see @ref abstractcsviterator_option_field_hash "option field hash" and @ref abstractcsviterator_option_field_types "option field types" for more information on the possible values of this option; if no field type is given, the default is \c "*string"
-        |\c "headers"|@ref list of strings|list of header / column names for the data iterated.
+        |\c "datamap"|@ref hash_type "hash"|a hash mapping actual data key names to the output field names, for use in case the data field names differ; does not have to include every data or output key; keys not present will be assumed to be mapped 1:1
+        |\c "fields"|@ref hash_type "hash"|describes the data to be output; see @ref abstractcsviterator_option_field_hash "option field hash" and @ref abstractcsviterator_option_field_types "option field types" for more information on the possible values of this option; if no field type is given, the default is \c "*string"
+        |\c "headers"|@ref list_type "list" of strings|list of header / column names for the data iterated.
+        |\c "header_reorder"|@ref bool_type "bool"|if @ref Qore::True "True" (default value) then if \"headers\" are provided by options then fields are reordered to follow headers. It has effect on expected field order as passed to write function via list. If @ref Qore::False "False" then fields not yet specified are pushed at the end of field definition.
 
         @note the following options with dashes in their names are supported for backwards-compatibility:
         - \c "date-format"
@@ -1291,6 +1380,7 @@ printf("m_resolve_by_idx: %N\n", m_resolve_by_idx);
                 "eol": C_OPT1|C_OPT2,
                 "fields": C_OPT1,
                 "headers": C_OPT1,
+                "header_reorder": C_OPT1,
                 "info_log": C_OPT1|C_OPT2,
                 "optimal_quotes": C_OPT1|C_OPT2,
                 "optimal-quotes": C_OPT1|C_OPT2,
@@ -1318,9 +1408,6 @@ printf("m_resolve_by_idx: %N\n", m_resolve_by_idx);
             #! end of line sequence
             string eol = EOL_UNIX;
 
-            #! default date->string format
-            string date_format = 'DD/MM/YYYY hh:mm:SS';
-
             #! verify the column count for every row; if a row does not match, then throw a \c CSVFILEITERATOR-DATA-ERROR exception
             bool checkElementCounts = False;
 
@@ -1344,6 +1431,7 @@ printf("m_resolve_by_idx: %N\n", m_resolve_by_idx);
 
             # mapping output field by name
             hash m_out_by_name;
+
             # mapping output field by index
             hash m_out_by_idx;
 
@@ -1358,7 +1446,6 @@ printf("m_resolve_by_idx: %N\n", m_resolve_by_idx);
          */
         constructor(string n_errname, *hash n_opts): CsvHelper(sprintf("CSV%sWRITER-ERROR", n_errname)) {
 
-        printf("writer1: n_opts: %y\n", n_opts);
             processCommonOptions(n_opts, C_OPT1);
 
             # set headers automatically from field names if not set
@@ -1380,28 +1467,13 @@ printf("m_resolve_by_idx: %N\n", m_resolve_by_idx);
                 string k = m_specs.firstKey();
                 foreach hash h in (n_opts.datamap.pairIterator()) {
                     if (!exists m_specs{k}{h.key}) {
-                        m_specs{k}{h.key} = ("type": "*string");
+                        m_specs{k}{h.key} = ("type": "*string", "idx": m_specs{k}.size());
                     }
-                    m_specs{k}{h.key}.header = h.value;
+                    m_specs{k}{h.key}.header = tolwr ? h.value.lwr() : h.value;
                 }
-
-                # reverse the mapping since we need output keys to input keys for later processing
-                datamap = map {$1.value: $1.key}, n_opts.datamap.pairIterator();
             }
             if (n_opts.headers) {
-                string k = m_specs.firstKey();
-                # force reorder spec by headers
-                hash spec = m_specs{k};
-                m_specs{k} = hash();
-                foreach string h in (n_opts.headers) {
-                    string h2 = exists datamap{h} ? datamap{h} : h;
-
-                    m_specs{k}{h2} = spec{h2} ?? ("type": "*string");
-                    m_specs{k}{h2}.idx = $#;
-                    if (h2 != h) {
-                        m_specs{k}{h2}.header = h;
-                    }
-                }
+                adjustFieldsFromHeaders(m_specs.firstKey(), n_opts.headers);
             }
             processSpec();
         }
@@ -1416,10 +1488,7 @@ printf("m_resolve_by_idx: %N\n", m_resolve_by_idx);
             @throw CSV<errname>ITER-ERROR in the case of incorrect options
          */
         constructor(string n_errname, hash spec, hash n_opts): CsvHelper(sprintf("CSV%sWRITER-ERROR", n_errname)) {
-printf("writer2: spec: %y\n, n_opts: %y\n", spec, n_opts);
             m_specs = getSpec2(spec);
-printf("SPEC: %y\n", spec);
-printf("MSPEC: %y\n", m_specs);
             processCommonOptions(n_opts, C_OPT2);
             processSpec();
         }
@@ -1427,6 +1496,7 @@ printf("MSPEC: %y\n", m_specs);
         #! process options and set internal variables
         private processCommonOptions(*hash n_opts, int C_OPTx) {
 
+            date_format = 'DD/MM/YYYY hh:mm:SS';  # different default value in writer
             encoding = n_opts.encoding.typeCode() == NT_STRING ? n_opts.encoding : get_default_encoding();
 
             foreach hash i in (n_opts.pairIterator()) {
@@ -1501,6 +1571,10 @@ printf("MSPEC: %y\n", m_specs);
                         info_log = i.value;
                         break;
                     }
+                    case "header_reorder": {
+                        headerReorder = parse_boolean(i.value);
+                        break;
+                    }
                 }
 
             }
@@ -1522,7 +1596,6 @@ printf("MSPEC: %y\n", m_specs);
                         ll += ("out_idx": f.value.idx ?? 0, "field": f.key, "idx": i);
                         i++;
                     }
-printf("m_specs: %y, k:%y, LL:%y\n", m_specs, k, ll);
                     code sort_func = int sub (hash l, hash r) { return l.out_idx <=> r.out_idx; };
                     ll = sort(ll, sort_func);
                     m_out_by_name{k} = map ($1.field), ll;
@@ -1534,10 +1607,11 @@ printf("m_specs: %y, k:%y, LL:%y\n", m_specs, k, ll);
         #! write Cvs headers
         private writeHeaders() {
             if (write_headers && m_specs.size() == 1 && m_specs.firstValue().size() > 0) {
+                string type = m_specs.firstKey();
                 hash fh = m_specs.firstValue();
                 list values;
-                foreach hash i in (fh.pairIterator()) {
-                    values += (i.value.header ?? i.key);
+                foreach string j in (m_out_by_name{type}) {
+                    values += (m_specs{type}{j}.header ?? j);
                 }
                 writeRawLine(values);
             }
@@ -1570,25 +1644,24 @@ printf("m_specs: %y, k:%y, LL:%y\n", m_specs, k, ll);
         #! write a line with headers-values list
         /**
             @param type record type
-            @param values as list of values.
+            @param values as list of values
 
             @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints
          */
         writeLine(string type, list values) {
-printf("writeline: type:%y, values: %y, m_out_by_idx: %y, m_out_by_name: %y, m_specs: %y\n", type, values, m_out_by_idx, m_out_by_name, m_specs);
             lineNo++;
             if (checkElementCounts && m_specs{type} && values.size() != m_specs{type}.size())
                 throw errname, sprintf("Line (%d), Header size (%d) and line size (%d) are different (enforced by the \"verify_columns\" option)", lineNo, m_specs{type}.size(), values.size());
 
+            list rawValues = ();
             for(int j = 0; j < values.size(); j++) {
                 int i = j;
                 #! format date to string by options. Priority: 1) column definition 2) standard format
                 string dateFmt = date_format;
                 if (m_out_by_idx{type} && j < m_out_by_idx{type}.size()) {
                     # get correct input value
-                    int i = m_out_by_idx{type}[j];
+                    i = m_out_by_idx{type}[j];
                     hash spec = m_specs{type}{m_out_by_name{type}[j]};
-printf("SPEC: %y\n", spec);
                     switch (spec.type) {
                         case "int": {
                             if (int(values[i]) != values[i])
@@ -1637,12 +1710,12 @@ printf("SPEC: %y\n", spec);
 
                 # format date as requested
                 if (values[i].typeCode() == NT_DATE) {
-printf("format_date: %y, checkElementCounts: %y\n", dateFmt, checkElementCounts);
                     values[i] = format_date(dateFmt, values[i]);
                 }
+                push rawValues, values[i];
             }
 
-            writeRawLine(values);
+            writeRawLine(rawValues);
 
         }
 
@@ -1657,12 +1730,12 @@ printf("format_date: %y, checkElementCounts: %y\n", dateFmt, checkElementCounts)
             if (!m_specs{type})
                 throw errname, sprintf("Type '%s' not defined header in AbstractCsvWriter instance to bind the hash key", type);
             list line;
-            foreach string i in (m_out_by_name{type}) {
+            foreach string i in (m_specs{type}.keyIterator()) { # (m_out_by_name{type}) {
                 if (!values.hasKey(i))
-                    if (m_specs{type}{i}.default) {
-                        values{i} = m_specs{type}{i}.default;
+                    if (exists m_specs{type}{i}.default) {
+                        push line, m_specs{type}{i}.default;
                     } else {
-                        throw errname, sprintf("Line data does not contain key %y", i);
+                        push line, NOTHING;
                     }
                 else {
                     push line, values{i};
