@@ -817,7 +817,8 @@ static AbstractQoreNode* op_unshift(const AbstractQoreNode* left, const Abstract
 
    // value is not a list, so throw exception
    if (val.getType() != NT_LIST) {
-      xsink->raiseException("UNSHIFT-ERROR", "first argument to unshift is not a list");
+      // no need to check for PO_STRICT_ARGS; this exception was always thrown
+      xsink->raiseException("UNSHIFT-ERROR", "the lvalue argument to unshift is type \"%s\"; expecting \"list\"", val.getTypeName());
       return 0;
    }
 
@@ -848,7 +849,9 @@ static AbstractQoreNode* op_shift(const AbstractQoreNode* left, const AbstractQo
 
    // value is not a list, so throw exception
    if (val.getType() != NT_LIST) {
-      xsink->raiseException("SHIFT-ERROR", "the argument to shift is not a list");
+      // only throw a runtime exception if %strict-args is in effect
+      if (runtime_check_parse_option(PO_STRICT_ARGS))
+         xsink->raiseException("SHIFT-ERROR", "the lvalue argument to shift is type \"%s\"; expecting \"list\"", val.getTypeName());
       return 0;
    }
 
@@ -877,7 +880,9 @@ static AbstractQoreNode* op_pop(const AbstractQoreNode* left, const AbstractQore
 
    // value is not a list, so throw exception
    if (val.getType() != NT_LIST) {
-      xsink->raiseException("POP-ERROR", "the argument to pop is not a list");
+      // only throw a runtime exception if %strict-args is in effect
+      if (runtime_check_parse_option(PO_STRICT_ARGS))
+         xsink->raiseException("POP-ERROR", "the lvalue argument to pop is type \"%s\"; expecting \"list\"", val.getTypeName());
       return 0;
    }
 
@@ -916,7 +921,9 @@ static AbstractQoreNode* op_push(const AbstractQoreNode* left, const AbstractQor
 
    // value is not a list, so throw exception
    if (val.getType() != NT_LIST) {
-      xsink->raiseException("PUSH-ERROR", "first argument to push is not a list");
+      // only throw a runtime exception if %strict-args is in effect
+      if (runtime_check_parse_option(PO_STRICT_ARGS))
+         xsink->raiseException("PUSH-ERROR", "the lvalue argument to push is type \"%s\"; expecting \"list\"", val.getTypeName());
       return 0;
    }
 
