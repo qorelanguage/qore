@@ -4031,10 +4031,10 @@ void UserCopyVariant::parseInit(QoreFunction* f) {
    if (signature.numParams()) {
       const QoreTypeInfo* typeInfo = signature.getParamTypeInfo(0);
       if (typeInfo) {
-	 if (!typeInfo->isClass(&parent_class)) {
+	 if (typeInfo->parseReturnsClass(&parent_class) == QTI_NOT_EQUAL) {
 	    // raise parse exception if parse exceptions have not been suppressed
 	    if (getProgram()->getParseExceptionSink()) {
-	       QoreStringNode* desc = new QoreStringNode("copy constructor will be passed ");
+	       QoreStringNode* desc = new QoreStringNode("the copy constructor will be passed ");
 	       parent_class.getTypeInfo()->getThisType(*desc);
 	       desc->concat(", but the object's parameter was defined expecting ");
 	       typeInfo->getThisType(*desc);
