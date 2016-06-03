@@ -379,7 +379,7 @@ class qdx {
                 line =~ s/#.*$//;
 
                 # make into a declaration (also remove any parent class constructor calls)
-                line =~ s/[[:blank:]]*([^:]:[^:].*\(.*)?{[[:blank:]]*$/;/;
+                line =~ s/[[:blank:]]*(?:([^:]):[^:].*\(.*)?{[[:blank:]]*$/$1;/;
 
                 # read until closing curly bracket '}'
                 readUntilCloseBracket(inf);

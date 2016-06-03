@@ -88,7 +88,7 @@ protected:
    bool is_int : 1;
    // true if the single return type makes an exact match or ambiguous on input
    bool exact_return : 1;
-   // if true then any type with is_int sets matches NT_INT ambigously
+   // if true then any type with is_int sets matches NT_INT ambiguously
    bool ambiguous_int_match : 1;
    // if true then this type accepts all types
    bool accepts_all : 1;
@@ -101,16 +101,6 @@ protected:
 	 return parseReturnsTypeMult(t, n_is_int);
 
       return matchTypeIntern(t, n_is_int);
-   }
-
-   DLLLOCAL qore_type_result_e parseReturnsClass(const QoreClass* n_qc) const {
-      if (!hasType())
-         return QTI_AMBIGUOUS;
-
-      if (returns_mult)
-	 return parseReturnsClassMult(n_qc);
-
-      return matchClassIntern(n_qc);
    }
 
    DLLLOCAL qore_type_result_e parseAcceptsType(qore_type_t t, bool n_is_int) const {
@@ -606,6 +596,16 @@ public:
       }
 
       return parseAcceptsBasic(typeInfo, may_not_match);
+   }
+
+   DLLLOCAL qore_type_result_e parseReturnsClass(const QoreClass* n_qc) const {
+      if (!hasType())
+         return QTI_AMBIGUOUS;
+
+      if (returns_mult)
+	 return parseReturnsClassMult(n_qc);
+
+      return matchClassIntern(n_qc);
    }
 
    DLLLOCAL const QoreClass* getUniqueReturnClass() const {

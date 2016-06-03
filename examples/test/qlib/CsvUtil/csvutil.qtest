@@ -24,11 +24,31 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
             ("cc": "UK", "serno": 1234567892, "desc": "Sony, Xperia S", "received": 2012-05-31),
             ("cc": "UK", "serno": 1234567893, "desc": "Sony, Xperia S", "received": 2012-05-31),
         );
-    }
+        const CsvMultiInput = "1,2016-01,20160401
+2,123,\"Sony, Xperia S\",1,100
+2,124,\"Nokia, Lumia\",2,150
+3,250
+";
+
+        const CsvMultiRecords = (
+            ("type": "header", "record": ("type": 1, "invoice_no": "2016-01", "date": 2016-04-01)),
+            ("type": "item", "record": ("type": 2, "item_no": 123, "item": "Sony, Xperia S", "pcs": 1, "price": 100)),
+            ("type": "item", "record": ("type": 2, "item_no": 124, "item": "Nokia, Lumia", "pcs": 2, "price": 150)),
+            ("type": "footer", "record": ("type": 3, "total": 250)),
+        );
+}
 
     constructor() : Test("CsvUtilTest", "1.0") {
         addTestCase("Basic CSV tests", \csvTest(), NOTHING);
+        addTestCase("Multi-type CSV tests", \csvMultiTest(), NOTHING);
+        addTestCase("Single-type CSV tests", \csvSingleTest(), NOTHING);
+        addTestCase("Single-type CSV map tests", \csvSingleMapTest(), NOTHING);
+
         addTestCase("Escaping", \escapeTest());
+        addTestCase("Old style CSV tests", \csvOldStyleMultiTest(), NOTHING);
+        addTestCase("Multi-type resolve CSV tests", \csvMultiResolveTest(), NOTHING);
+
+        addTestCase("Config stress", \csvConfig(), NOTHING);
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -39,12 +59,125 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
 
         # Iterate through source
         CsvDataIterator i(CsvInput, opts);
-        list l = map $1, i;
-        testAssertion("CsvDataIterator 1", \equalsIterated(), (i, new ListIterator(l)));
+        #list l = map $1, i;
+        testAssertion("CsvDataIterator 1", \equalsIterated(), (new ListIterator(CsvRecords), i));
+
+        CsvStringWriter w( ("write-headers": False, "optimal-quotes" : True, "quote_escape" : '"')+opts );
+        string outstr = w.write(CsvRecords);
+        testAssertion("CsvDataWriter writer", \equals(), (CsvInput+"\n", outstr));  # ending CR is assymetrical when empty lines are not ignored
 
         # test with empty data and header lines
         i = new CsvDataIterator("", ("header-lines": 1));
         testAssertion("CsvDataIterator 2", \i.next(), (), RESULT_FAILURE);
+
+        i = new CsvDataIterator("CaMeL,lilliput,SHREK\nRoW1,row1,ROW1\n", ("header-lines": 1, "header_names": True, "tolwr": True));
+        testAssertionValue("CsvDataIterator lwr 1", i.index(), 0);
+        testAssertionValue("CsvDataIterator lwr 1", i.lineNumber(), 0);
+        testAssertionValue("CsvDataIterator lwr 1", i.next(), True);
+        testAssertionValue("CsvDataIterator lwr 1", i.index(), 1);
+        testAssertionValue("CsvDataIterator lwr 1", i.lineNumber(), 2);
+        testAssertionValue("CsvDataIterator lwr 1 member", (i.camel, i.lilliput, i.shrek), ("RoW1", "row1", "ROW1"));
+        assertThrows("ABSTRACTCSVITERATOR-FIELD-ERROR", CsvDataIterator sub() {return i.fiona;}, (), NOTHING);
+
+        testAssertion("CsvDataIterator lwr 2", \equals(), (("camel": "RoW1", "lilliput": "row1", "shrek": "ROW1"), i.getValue()));
+        testAssertionValue("CsvDataIterator lwr 3", i.getHeaders(), ("camel", "lilliput", "shrek"));
+        testAssertionValue("CsvDataIterator lwr 4", i.next(), False);
+
+        i = new CsvDataIterator("CaMeL,lilliput,SHREK\nRoW1,row1,ROW1\n", ("header-lines": 1, "header_names": True, ));
+        testAssertionValue("CsvDataIterator !lwr 1", i.next(), True);
+        testAssertion("CsvDataIterator !lwr 2", \equals(), (("CaMeL": "RoW1", "lilliput": "row1", "SHREK": "ROW1"), i.getValue()));
+        testAssertionValue("CsvDataIterator !lwr 3", i.getHeaders(), ("CaMeL", "lilliput", "SHREK"));
+
+        i = new CsvDataIterator("CaMeL,lilliput,SHREK\nRoW1,row1,ROW1\n", ("header-lines": 0, "header_names": False, "tolwr": True, "headers": ("CaMeL","lilliput","SHREK")));
+        testAssertionValue("CsvDataIterator lwr h 1", i.getHeaders(), ("camel", "lilliput", "shrek"));
+
+        i = new CsvDataIterator("row1-1,row1-2,row1-3\n", ("header-lines": 0, "header_names": False, ));
+        testAssertionValue("CsvDataIterator header by idx 1", i.next(), True);
+        testAssertion("CsvDataIterator header by idx 2", \equals(), (("0": "row1-1", "1": "row1-2", "2": "row1-3"), i.getValue()));
+        testAssertion("CsvDataIterator header by idx 3", \equals(), (("row1-1", "row1-2", "row1-3"), i.getRecordList()));
+        testAssertionValue("CsvDataIterator header by idx 4", i.getHeaders(), ("0", "1", "2"));
+    }
+
+    csvMultiTest() {
+        hash spec = (
+            "header": (
+                "type": ("type": "int", "value": 1, "default": 1),
+                "invoice_no": "string",
+                "date": ("type": "date", "format": "YYYYMMDD"),
+            ),
+            "item": (
+                "type": ("type": "int", "value": 2, "default": 2),
+                "item_no": "string",
+                "item": "string",
+                "pcs": "int",
+                "price": "number",
+            ),
+            "footer": (
+                "type": ("type": "int", "value": 3, "default": 3),
+                "total": "number",
+            ),
+        );
+        hash opts = hash(
+        );
+
+        # Iterate through source
+        CsvDataIterator i(CsvMultiInput, spec, ("extended_record": True) + opts);
+
+        #list l = map $1, i;
+        testAssertion("multi iterator ", \equalsIterated(), (new ListIterator(CsvMultiRecords), i));
+
+        CsvStringWriter w( spec, ("write-headers": False, "optimal-quotes" : True, "quote_escape" : '"')+opts );
+        string outstr = w.write(CsvMultiRecords);
+        testAssertion("multi writer", \equals(), (CsvMultiInput, outstr));
+
+        # remove type and test default value
+        list CsvMultiRecords2 = ();
+        foreach hash item in (CsvMultiRecords) {
+            hash r = item;
+            remove r.record.type;
+            push CsvMultiRecords2, r;
+        }
+        w = new CsvStringWriter( spec, ("write-headers": False, "optimal-quotes" : True, "quote_escape" : '"')+opts );
+        outstr = w.write(CsvMultiRecords2);
+        testAssertion("multi writer default value", \equals(), (CsvMultiInput, outstr));
+
+
+        # Iterate through source
+        i = new CsvDataIterator(CsvMultiInput, spec, ("extended_record": False) + opts);
+
+        CsvMultiRecords2 = map ($1.record), CsvMultiRecords;
+        testAssertion("multi iterator old record ", \equalsIterated(), (new ListIterator(CsvMultiRecords2), i));
+    }
+
+    csvOldStyleMultiTest() {
+        list CsvMultiRecords2 = (
+            ("1","2016-01","20160401"),
+            ("2","123","Sony, Xperia S","1","100"),
+            ("2","124","Nokia, Lumia","2","150"),
+            ("3","250"),
+        );
+        hash opts = hash(
+        );
+
+        # Iterate through source
+        CsvDataIterator i(CsvMultiInput, ("header_names": False, "header_lines": 0,)+opts);
+        list recs1 = ();
+        list recs2 = ();
+        while (i.next()) {
+            push recs1, i.getValue();
+            push recs2, i.getRecordList();
+        }
+        list CsvMultiRecords3 = ();
+        foreach list item in (CsvMultiRecords2) {
+            push CsvMultiRecords3, (map {$#: $1}, item);
+        }
+        testAssertionValue("Old style multi CsvDataIterator hash", recs1, CsvMultiRecords3);
+        testAssertionValue("Old style multi CsvDataIterator list", recs2, CsvMultiRecords2);
+
+        CsvStringWriter w( ("write-headers": False, "optimal-quotes" : True, "quote_escape" : '"')+opts );
+        string outstr = w.write(CsvMultiRecords2);
+        testAssertion("multi writer", \equals(), (CsvMultiInput, outstr));
+
     }
 
     escapeTest() {
@@ -68,5 +201,395 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
         w = new CsvStringWriter(("headers": ("XX", "serno", "desc", "received"), "fields": ("received": ("type": "date", "format": "DDMMYYYY")), "datamap": dmh));
         outstr = w.write(CsvRecords.iterator());
         assertEq("XX,serno,desc,received\n" + CsvInput + "\n", outstr);
+    }
+
+    csvData() {
+        hash opts = ("fields": ("id": "int", "name": "string", "descr": "string"));
+        string CsvInput = "1,UK,United Kingdom
+2,AT,Austria
+3,CZ,Czech rep.
+4,IE,Ireland
+";
+        list Output = (
+            {"id": 1, "name": "UK", "descr": "United Kingdom"},
+            {"id": 2, "name": "AT", "descr": "Austria"},
+            {"id": 3, "name": "UK", "descr": "Czech rep."},
+            {"id": 4, "name": "IE", "descr": "Ireland"},
+        );
+
+        # Iterate through source
+        CsvDataIterator i(CsvInput, opts);
+
+        testAssertion("CsvDataIterator 2", \equalsIterated(), (i, new ListIterator(Output)));
+
+    }
+
+    csvSingleTest() {
+        hash spec = (
+            "<single>": (
+                "id": ("type": "int"),
+                "name": "string",
+                "group": ("type": "int", "default": 1),
+                "image": ("type": "string", "header": "picture", "default": "empty.jpg"),
+                "date": ("type": "*date", "header": "created", "format": "YYYYMMDD"),
+                "ver": ("type": "int"),
+            ),
+        );
+        hash opts = hash();
+
+        list Records = (
+            ("id": 1, "name": "Gogo", "group": 5, "date": 2016-01-31, "ver": 1),
+            ("id": 2, "name": "Bobo", "image": "bobo.jpg", "ver": 3),
+            ("id": 3, "name": "Huhu", "ver": 5),
+        );
+        string output = "id,name,group,picture,created,ver
+1,Gogo,5,empty.jpg,20160131,1
+2,Bobo,1,bobo.jpg,,3
+3,Huhu,1,empty.jpg,,5
+";
+        CsvStringWriter w(spec, ("write_headers": True, "optimal-quotes" : True, "quote_escape" : '"')+opts);
+        string outstr = w.write(Records);
+        testAssertionValue("CsvDataWriter test default and header", outstr, output);
+
+        CsvDataIterator i(outstr, spec, ("header_names": True, "header_lines": 1,)+opts);
+        list rec2 = Records;
+        # add default values
+        rec2[0].image = spec{CSV_TYPE_SINGLE}.image.default;
+        rec2[1].group = spec{CSV_TYPE_SINGLE}.group.default;
+        rec2[1].date = NOTHING;
+        rec2[2].image = spec{CSV_TYPE_SINGLE}.image.default;
+        rec2[2].group = spec{CSV_TYPE_SINGLE}.group.default;
+        rec2[2].date = NOTHING;
+
+        testAssertion("single iterator header", \equalsIterated(), (new ListIterator(rec2), i));
+    }
+
+    csvSingleMapTest() {
+        hash spec = (
+            CSV_TYPE_SINGLE: (
+                "col1": ("type": "int", "index": 4),
+                "col2": ("type": "int", "index": 0),
+                "col3": ("type": "int", "index": 3, "header": "COL3"),
+                "col4": ("type": "int", "index": 2),
+                "col5": ("type": "int", "index": 1),
+            ),
+        );
+        hash opts = hash();
+
+        list Records = (
+            ("col1": 1, "col2": 2, "col3": 3, "col4": 4, "col5": 5),
+            (10, 20, 30, 40, 50),
+        );
+        string output = "col2,col5,col4,COL3,col1
+2,5,4,3,1
+20,50,40,30,10
+";
+        CsvStringWriter w(spec, ("write_headers": True, "optimal-quotes" : True, "quote_escape" : '"')+opts);
+        string outstr = w.write(Records);
+        testAssertionValue("CsvDataWriter test map", outstr, output);
+
+        # remove idx
+        foreach string k in (spec{CSV_TYPE_SINGLE}.keyIterator()) {
+            remove spec{CSV_TYPE_SINGLE}{k}.index;
+        }
+
+        CsvDataIterator i(outstr, spec, ("header_names": True, "header_lines": 1,)+opts);
+        hash r2 = hash();
+        # add keys
+        foreach int item in (Records[1]) {
+            r2{sprintf("col%d", $#+1)} = item;
+        }
+        list Recsh2 = ();
+        push Recsh2, Records[0];
+        push Recsh2, r2;
+        list Recsl2;
+        list lines = output.split("\n");
+
+        push Recsl2, map ($1.toInt()), lines[1].split(",");
+        push Recsl2, map ($1.toInt()), lines[2].split(",");
+
+        list rh;
+        list rl;
+        while (i.next()) {
+            push rh, i.getValue();
+            push rl, i.getRecordList();
+        }
+        testAssertionValue("single iterator remap header test hash", rh, Recsh2);
+        testAssertionValue("single iterator remap header test list", rl, Recsl2);
+
+
+        hash spec2 = spec;
+        remove spec2{CSV_TYPE_SINGLE}{"col1"};
+        remove spec2{CSV_TYPE_SINGLE}{"col4"};
+
+        w = new CsvStringWriter(("fields": spec2{CSV_TYPE_SINGLE}, "headers": ("col2","col5","col4","COL3","col1")));
+        outstr = w.write(Recsl2);
+        testAssertionValue("CsvDataWriter test map partial reorder", outstr, output);
+
+        w = new CsvStringWriter(("fields": spec2{CSV_TYPE_SINGLE}, "headers": ("col2","col5","col4","COL3","col1"), "header_reorder": False));
+        outstr = w.write(((2,3,5,4,1),(20,30,50,40,10)));
+        testAssertionValue("CsvDataWriter test map partial noreorder", outstr, output);
+
+        i = new CsvDataIterator(outstr, spec2, ("header_names": True, "header_lines": 1)+opts);
+        rh = ();
+        rl = ();
+        while (i.next()) {
+            push rh, i.getValue();
+            push rl, i.getRecordList();
+        }
+        list Recsh2str = Recsh2;
+        Recsh2str[0].col1 = string(Recsh2str[0].col1);
+        Recsh2str[0].col4 = string(Recsh2str[0].col4);
+        Recsh2str[1].col1 = string(Recsh2str[1].col1);
+        Recsh2str[1].col4 = string(Recsh2str[1].col4);
+        list Recsl2str = Recsl2;
+        Recsl2str[0][2] = string(Recsl2str[0][2]);
+        Recsl2str[0][4] = string(Recsl2str[0][4]);
+        Recsl2str[1][2] = string(Recsl2str[1][2]);
+        Recsl2str[1][4] = string(Recsl2str[1][4]);
+
+        testAssertionValue("single iterator remap header test hash partial spec reorder", rh, Recsh2str);
+        testAssertionValue("single iterator remap header test list partial spec reorder", rl, Recsl2str);
+
+
+        i = new CsvDataIterator(outstr, spec, ("header_names": True, "header_lines": 1, "header_reorder": False)+opts);
+        rh = ();
+        rl = ();
+        while (i.next()) {
+            push rh, i.getValue();
+            push rl, i.getRecordList();
+        }
+        testAssertionValue("single iterator remap header test hash noreorder", rh, Recsh2);
+        Recsl2 = ();
+        push Recsl2, map ($1.value), Records[0].pairIterator();
+        push Recsl2, Records[1];
+        testAssertionValue("single iterator remap header test list noreorder", rl, Recsl2);
+
+        i = new CsvDataIterator(outstr, spec2, ("header_names": True, "header_lines": 1, "header_reorder": False)+opts);
+        rh = ();
+        rl = ();
+        while (i.next()) {
+            push rh, i.getValue();
+            push rl, i.getRecordList();
+        }
+        testAssertionValue("single iterator remap header test hash partial spec noreorder", rh, Recsh2str);
+        Recsl2str = ();
+        push Recsl2str, (Records[0].col2, Records[0].col3, Records[0].col5, string(Records[0].col4), string(Records[0].col1));
+        push Recsl2str, (Records[1][1], Records[1][2], Records[1][4], string(Records[1][3]), string(Records[1][0]));
+        testAssertionValue("single iterator remap header test list partial spec noreorder", rl, Recsl2str);
+
+    }
+
+    csvConfig() {
+        assertThrows("ABSTRACTCSVITERATOR-ERROR",
+            CsvDataIterator sub() {return new CsvDataIterator(
+                "1,2,3,4,5",
+                (
+                    CSV_TYPE_SINGLE: (
+                        "col1": ("type": "int", "index": 0),
+                        "col2": ("type": "int", "index": 0),
+                        "col3": ("type": "int", "index": 2),
+                        "col4": ("type": "int", "index": 3),
+                        "col5": ("type": "int", "index": 4),
+                    ),
+                ),
+                {}
+            );}, (), NOTHING);
+
+        assertThrows("ABSTRACTCSVITERATOR-ERROR",
+            CsvDataIterator sub() {return new CsvDataIterator(
+                "",
+                (
+                    "foo": (
+                        "col1": ("type": "int"),
+                        "col2": ("type": "int"),
+                    ),
+                    "bar": (
+                        "col3": ("type": "int"),
+                        "col4": ("type": "int"),
+                        "col5": ("type": "int"),
+                    ),
+                ),
+                {"header_names": True}
+            );}, (), NOTHING);
+
+        assertThrows("ABSTRACTCSVITERATOR-ERROR",
+            CsvDataIterator sub() {return new CsvDataIterator(
+                "",
+                (
+                    CSV_TYPE_SINGLE: (
+                        "col1": ("type": "int"),
+                        "col2": ("type": "int"),
+                    ),
+                ),
+                {"header_names": True, "header_lines": 0, }
+            );}, (), NOTHING);
+
+    }
+
+    csvMultiResolveTest() {
+        string Data =
+            "00000,ABCDEABCDE\n"+
+            "00001,12345\n"+
+            "90000,A\n"+
+            "90000,QQQABCDEAB\n"+
+            "91230,12345\n"+
+            "12345\n"+
+            "12,KID,01122016\n"+
+            "45,CHYCHOTA_SE,1\n"+
+            "ABCD,A,AA,AAA\n"+
+            "1234,A,1,2\n";
+
+        hash Specs = (
+
+            "type2_value1_0" : (
+                "col1" : (
+                    "type"   : "int",
+                    "value"  : "00000",
+                ),
+                "col2" : (
+                    "type"   : "string",
+                ),
+            ),
+            "type2_value1_1" : (
+                "col1" : (
+                    "type"   : "int",
+                    "value"  : 1,
+                ),
+                "col2" : (
+                    "type"   : "int",
+                ),
+            ),
+            "type2_value1_90000_regex2" : (
+                "col1" : (
+                    "type"   : "int",
+                    "value"  : 90000,  # earlier than regex matching value too
+                ),
+                "col2" : (
+                    "type"   : "string",
+                    "regex"  : "^QQQ", # 2nd rule
+                ),
+            ),
+            "type2_value1_90000" : (
+                "col1" : (
+                    "type"   : "int",
+                    "value"  : 90000,  # earlier than regex matching value too
+                ),
+                "col2" : (
+                    "type"   : "string",
+                ),
+            ),
+            "type2_regex1_9xxx0" : (
+                "col1" : (
+                    "type"   : "int",
+                    "regex"  : "^9[0-9]{3,3}0",
+                ),
+                "col2" : (
+                    "type"   : "int",
+                ),
+            ),
+            "type1_norule" : (
+                "col1" : (
+                    "type"   : "int",
+                ),
+            ),
+            "type3_value2_KID" : (
+                "col1" : (
+                    "type"   : "int",
+                ),
+                "col2" : (
+                    "type"   : "string",
+                    "value"  : "KID",
+                ),
+                "col3" : (
+                    "type"     : "date",
+                    # "format"   : "DDMMYYYY",
+                    # "timezone" : "UTC", # use global if omitted
+                ),
+            ),
+            "type3_regex2_ch" : (
+                "col1" : (
+                    "type"   : "int",
+                ),
+                "col2" : (
+                    "type"   : "string",
+                    "regex"  : "^CH",
+                ),
+                "col3" : (
+                    "type"   : "int",
+                ),
+            ),
+            "type4_1" : (
+                "col1" : (
+                    "type"   : "string",
+                ),
+                "col2" : (
+                    "type"   : "string",
+                ),
+                "col3" : (
+                    "type"   : "string",
+                ),
+                "col4" : (
+                    "type"   : "string",
+                ),
+            ),
+            "type4_2" : (
+                "col1" : (
+                    "type"   : "int",
+                ),
+                "col2" : (
+                    "type"   : "string",
+                ),
+                "col3" : (
+                    "type"   : "int",
+                ),
+                "col4" : (
+                    "type"   : "int",
+                ),
+            ),
+        );
+
+        hash GlobalOptions = (
+            "encoding"     : "UTF-8",
+            "eol"          : "\n",
+            "ignore_empty" : True,
+            "timezone"     : "UTC", # used if not in some date column specification
+            "extended_record": True,
+            "date_format"  : "DDMMYYYY",
+            );
+
+        list Result = (
+            ("type": "type2_value1_0", "record": ("col1": 0, "col2": "ABCDEABCDE")),
+            ("type": "type2_value1_1", "record": ("col1": 1, "col2": 12345)),
+            ("type": "type2_value1_90000", "record": ("col1": 90000, "col2": "A")),
+            ("type": "type2_value1_90000_regex2", "record": ("col1": 90000, "col2": "QQQABCDEAB")),
+            ("type": "type2_regex1_9xxx0", "record": ("col1": 91230, "col2": 12345)),
+
+            ("type": "type1_norule", "record": ("col1": 12345)),
+
+            ("type": "type3_value2_KID", "record": ("col1": 12, "col2": "KID", "col3": 2016-12-01Z)),
+            ("type": "type3_regex2_ch", "record": ("col1": 45, "col2": "CHYCHOTA_SE", "col3": 1)),
+
+            ("type": "type4_1", "record": ("col1": "ABCD", "col2": "A", "col3": "AA", "col4": "AAA")),
+            ("type": "type4_2", "record": ("col1": 1234, "col2": "A", "col3": 1, "col4": 2)),
+        );
+        MyCsvDataIterator i(Data, Specs, GlobalOptions);
+        testAssertion("multi type resolving", \equalsIterated(), (new ListIterator(Result), i));
+    }
+}
+
+class MyCsvDataIterator inherits CsvDataIterator {
+    constructor(string data, hash spec, *hash opts) : CsvUtil::CsvDataIterator(data, spec, opts) {
+    }
+    string identifyType(list values) {
+        if (values.size() != 4) {
+            return CsvDataIterator::identifyType(values);
+        }
+        switch (values[0]) {
+        case /^[0-9]/:
+            return "type4_2";
+        default:
+            return "type4_1";
+        }
     }
 }

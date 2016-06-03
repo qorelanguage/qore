@@ -315,7 +315,6 @@ public class FixedLengthUtil::FixedLengthAbstractIterator {
                     if (exists m_specs{k}{c}.value) {
                         throw "FIXED-LENGTH-UTIL-INVALID-SPEC", sprintf("Both value and regex used in field rule for field %y, record: %y", c, k);
                     }
-                    # regex has higher priority, value can be used as default value in writer so specifying both makes sense
                     fld_rule.regex = m_specs{k}{c}.regex;
                 } else if (exists m_specs{k}{c}.value) {
                     fld_rule.value = m_specs{k}{c}.value;
@@ -411,7 +410,7 @@ my hash $h = $i.getValue();
             }
             case "date": {
                 if (value.empty()) {
-                    return 1970-01-01;
+                    return 1970-01-01Z;
                 }
                 TimeZone tz;
                 if (type.timezone)

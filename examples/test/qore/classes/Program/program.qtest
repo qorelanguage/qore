@@ -68,6 +68,8 @@ class ProgramTest inherits QUnit::Test {
         addTestCase("Int assignments test", \intAssignmentsTest());
         addTestCase("constant exp test", \constantExpressionTest());
         addTestCase("type error test", \typeErrorTest());
+        addTestCase("broken-operators test", \brokenOperatorsTest());
+        addTestCase("class test", \classTest());
 	set_return_value(main());
     }
 
@@ -186,6 +188,81 @@ class ProgramTest inherits QUnit::Test {
             Program p(PO_NEW_STYLE|PO_NO_CHILD_PO_RESTRICTIONS|PO_STRICT_ARGS);
             p.parse("Program p(PO_NEW_STYLE); p.parse('sub f() {}', ''); p.callFunction('f', 1);", "");
             assertEq(NOTHING, p.run());
+        }
+    }
+
+    brokenOperatorsTest() {
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i; i+ =1;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_BROKEN_OPERATORS);
+            assertEq(NOTHING, p.parse("int i; i+ =1;", ""));
+        }
+    }
+
+    classTest() {
+        # test constructor methods
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            # it is illegal to declare a static contructor() method
+            assertThrows("ILLEGAL-STATIC-METHOD", \p.parse(), ("class X { static constructor(int i) {}}", ""));
+        }
+
+        # test destructor methods
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class X { destructor(int i) {}}", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class X { int destructor() {}}", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class X { private destructor() {}}", ""));
+            # it is illegal to declare a static destructor() method
+            assertThrows("ILLEGAL-STATIC-METHOD", \p.parse(), ("class X { static destructor() {}}", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class X { abstract destructor();}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertEq(NOTHING, p.parse("class X { public destructor() {}}", ""));
+        }
+
+        # test copy methods
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("class X { copy(int i) {}}", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class X { abstract copy() {}}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertEq(NOTHING, p.parse("class X { private copy() {}}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertEq(NOTHING, p.parse("class X { private copy(object obj) {}}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertEq(NOTHING, p.parse("class X { private copy(*object obj) {}}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertEq(NOTHING, p.parse("class X { private copy(*X obj) {}}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertEq(NOTHING, p.parse("class X { private copy(X obj) {}}", ""));
+        }
+
+        # it is legal to declare a static copy() method
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertEq(NOTHING, p.parse("class X { static copy(X obj) {}}", ""));
         }
     }
 }

@@ -83,6 +83,7 @@ void ParseOptionMap::static_init() {
    DO_MAP("broken-list-parsing",      PO_BROKEN_LIST_PARSING);
    DO_MAP("broken-logic-precedence",  PO_BROKEN_LOGIC_PRECEDENCE);
    DO_MAP("broken-int-assignments",   PO_BROKEN_INT_ASSIGNMENTS);
+   DO_MAP("broken-operators",         PO_BROKEN_OPERATORS);
 }
 
 int ParseOptionMap::find_code(const char *name) {

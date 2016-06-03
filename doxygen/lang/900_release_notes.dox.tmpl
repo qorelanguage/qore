@@ -14,8 +14,8 @@
     @subsection qore_0812_compatibility Changes That Can Affect Backwards-Compatibility
     - fixed broken list parsing; in previous releases, %Qore's parser re-wrote lists without parentheses used as top-level statements with certain assignment operators (@ref assignment_operator "=", @ref plus_equals_operator "+=", @ref minus_equals_operator "-=", @ref multiply_equals_operator "*=", and @ref divide_equals_operator "/=", but not with others) so that statements like <tt>list l = 1, 2, 3;</tt> were valid assignments.   Due to operator precedence, such statements should normally be interpreted as <tt>(list l = 1), 2, 3;</tt>, which is not a valid expression.  Not only were the rules applied with only some assignment operators, but such lists were only rewritten if used as top-level statements, therefore the rules were applied inconsistenctly depending on where the expression was located in the parse tree.  As of %Qore 0.8.12, these inconsistencies have been eliminated by default from %Qore; all lists are processed according to the precedence rules defined in @ref operators.  This could break old code that relied on the old, broken behavior.  To get the old behavior, use the @ref broken-list-parsing "%broken-list-parsing" parse directive.
     - fixed broken @ref int_type "int" and @ref softint_type "softint" assignments; previously runtime type errors with these type restrictions were ignored and all values were silently converted to integers for the assignment, now runtime type errors are thrown according to the original design.  Parse errors are detected as before.  This could break old code that relied on the old, broken behavior.  To get the old behavior, use the @ref broken-int-assignments "%broken-int-assignments" parse directive.
-    - the %Qore parser has been updated to no longer accept multi-character operators with whitespace bewtween them; it is believed that this was never used and simply caused the parser to be needlessly complicated and caused %Qore to be less compatible with other languages
-    - the @ref push "push", @ref unshift "unshift", @ref pop "pop" and @ref shift "shift" operators now throw an exception when their first operand is not a list
+    - fixed broken multi-character operator parsing; the %Qore parser has been updated to no longer accept multi-character operators with whitespace between the chacters making up the operator; it is believed that this was never used and simply caused the parser to be needlessly complicated and caused %Qore to be less compatible with other languages.  To get the old behavior, use the @ref broken-operators "%broken-operators" parse directive.
+    - the @ref push "push", @ref unshift "unshift", @ref pop "pop" and @ref shift "shift" operators now throw an exception when their first operand is not a list and @ref strict-args "%strict-args" is in effect
 
     @subsection qore_0812_new_features New Features in Qore
     - Added the @ref value_coalescing_operator which checks first argument if it evaluates to @ref Qore::False "False" with @ref <value>::val() and if so assigns the second argument. The operator can be further chained; for example: @code{.py} expr1 ?* expr2 ?* expr3 @endcode
@@ -60,6 +60,7 @@
       - @ref Qore::ParseOptionStringMap
       - @ref Qore::PO_BROKEN_LIST_PARSING
       - @ref Qore::PO_BROKEN_LOGIC_PRECEDENCE
+      - @ref Qore::PO_BROKEN_OPERATORS
       - @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS
       - @ref Qore::PO_NO_INHERIT_USER_CONSTANTS
       - @ref Qore::PO_NO_API
@@ -170,6 +171,7 @@
       - implemented the \c "datamap" and \c "info_log" options for CSV generation
       - implemented alternative options with underscores instead of dashes for all constructors
       - extended multi-type support for \c FixedLengthUtil, record type rules and default value in field specification
+      - implemented multi-type record support in \c AbstractCsvWriter and \c AbstractCsvIterator using \c resolve_type and \c headers options
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module updates:
       - implemented the \c "constant" field tag, allowing a contant value for an output field to be specified directly in the mapper hash
       - implemented the \c "default" field tag, giving a default value if no input value is specified
@@ -346,6 +348,7 @@
       - fixed \c "uop_lower()" and \c "uop_upper()" operators to allow nesting (<a href="https://github.com/qorelanguage/qore/issues/657">issue 657</a>)
       - fixed a bug where SqlUtil was generating invalid SQL for some DBs where a wilcard was used with explicit column names (<a href="https://github.com/qorelanguage/qore/issues/708">issue 708</a>)
       - fixed a bug where updating an index without any source constraints caused an invalid exception to be raised (<a href="https://github.com/qorelanguage/qore/issues/768">issue 768</a>)
+      - fixed a bug in \c AbstractTable::update() with sequence operators (<a href="https://github.com/qorelanguage/qore/issues/942">issue 942</a>)
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module fixes:
       - fixed a bug where column names that are reserved words were not quoted in generated SQL
       - fixed bugs in \c cop_seq() and \c cop_seq_currval() (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
@@ -538,6 +541,7 @@
     - fixed a memory leak in @ref Qore::SQL::DatasourcePool "DatasourcePool" initialization when the minimum connections cannot be established (<a href="https://github.com/qorelanguage/qore/issues/994">issue 994</a>)
     - fixed handling of NaN values in logical operators (<a href="https://github.com/qorelanguage/qore/issues/915">issue 915</a>)
     - fixed sort_descending_stable so that it keeps (instead of reversing) the original order of items that compare equal (<a href="https://github.com/qorelanguage/qore/issues/940">issue 940</a>)
+    - fixed a bug in \c copy() method argument parsing; compatible type declarations were not accepted (<a href="https://github.com/qorelanguage/qore/issues/946">issue 946</a>)
 
     @section qore_0811 Qore 0.8.11
 

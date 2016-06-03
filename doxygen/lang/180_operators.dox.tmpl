@@ -221,7 +221,7 @@
     @section post_increment_operator Integer Post-Increment Operator (++)
 
     @par Synopsis
-    Increments an integer or floating-point lvalue and returns the value before the increment; if the lvalue is neither a floating-point value or an integer, it will be converted to an integer
+    Increments an integer or floating-point lvalue and returns the value before the increment; if the \a lvalue is neither a floating-point value or an integer, it will be converted to an integer
 
     @par Syntax
     <em>lvalue</em><tt>++</tt>
@@ -234,8 +234,8 @@
 
     <b>Arguments Processed by ++ (post-increment)</b>
     |!Argument|!Processing
-    |@ref float|saves the value of the lvalue as the result, then increments \a lvalue, then returns the saved original value of \a lvalue
-    |@ref integer (or any other type)|saves the value of the lvalue as the result, then converts the value of \a lvalue to an integer if necessary and increments it, then returns the saved original value of \a lvalue
+    |@ref float|saves the value of the \a lvalue as the result, then increments \a lvalue, then returns the saved original value of \a lvalue
+    |@ref integer (or any other type)|saves the value of the \a lvalue as the result, then converts the value of \a lvalue to an integer if necessary and increments it, then returns the saved original value of \a lvalue
 
     This operator does not throw any exceptions.
 
@@ -265,7 +265,7 @@
     @section post_decrement_operator Integer Post-Decrement Operator (--)
 
     @par Synopsis
-    Decrements an integer or floating-point lvalue and returns the value before the decrement; if the lvalue is neither a floating-point value or an integer, it will be converted to an integer
+    Decrements an integer or floating-point lvalue and returns the value before the decrement; if the \a lvalue is neither a floating-point value or an integer, it will be converted to an integer
 
     @par Syntax
     <em>lvalue</em><tt>--</tt>
@@ -278,8 +278,8 @@
 
     <b>Arguments Processed by -- (post-decrement)</b>
     |!Argument|!Processing
-    |@ref float|saves the value of the lvalue as the result, then decrements \a lvalue, then returns the saved original value of \a lvalue
-    |@ref integer (or any other type)|saves the value of the lvalue as the result, then converts the value of \a lvalue to an integer if necessary and decrements it, then returns the saved original value of \a lvalue
+    |@ref float|saves the value of the \a lvalue as the result, then decrements \a lvalue, then returns the saved original value of \a lvalue
+    |@ref integer (or any other type)|saves the value of the \a lvalue as the result, then converts the value of \a lvalue to an integer if necessary and decrements it, then returns the saved original value of \a lvalue
 
     This operator does not throw any exceptions.
 
@@ -364,10 +364,10 @@ delete h.("a", "b", "c");
     @section remove Remove Operator (remove)
 
     @par Synopsis
-    The remove operator removes a value from a data structure, or, in the case the operand of the remove operator is a simple value, the value itself is removed from the variable and returned. The remove operator returns the value removed from the lvalue.\n\n
+    The remove operator removes a value from a data structure, or, in the case the operand of the remove operator is a simple value, the value itself is removed from the variable and returned. The remove operator returns the value removed from the \a lvalue.\n\n
     When called on a hash key, the key is removed from the hash entirely, and the value returned is the value of the key removed from the hash; when called on a list element, the element is assigned @ref nothing (i.e. the list size does not change).\n\n
     The remove operator will remove and return a slice from a hash when called on a hash dereferenced by a list of strings, giving the keys to remove (see example below).\n\n
-    The remove operator does not call destructors when operating on objects, but if removing an object from an lvalue or from a data structure within the lvalue causes the object to go out of scope, it will be destroyed, and then its destructor could throw an exception.\n\n
+    The remove operator does not call destructors when operating on objects, but if removing an object from an lvalue or from a data structure within the \a lvalue causes the object to go out of scope, it will be destroyed, and then its destructor could throw an exception.\n\n
     For a similar operator that deletes the value that is removed from the data structure, see the @ref delete "delete operator".
 
     @par Syntax
@@ -507,7 +507,9 @@ if (!exists error_code)
     @section shift Shift Operator (shift)
 
     @par Synopsis
-    Removes the first element from a list and returns that element.
+    Removes the first element from a list and returns that element.  Throws a parse-time exception
+    if the \a lvalue is known not to be a list at parse time, otherwise throws a runtime exception if
+    the \a lvalue is not a list if @ref strict-args "%strict-args" is in effect.
 
     @par Syntax
     <tt><b>shift</b></tt> \a lvalue
@@ -528,7 +530,9 @@ if (!exists error_code)
     @section pop Pop Operator (pop)
 
     @par Synopsis
-    Removes the last element from a list and returns that element.
+    Removes the last element from a list and returns that element.  Throws a parse-time exception
+    if the \a lvalue is known not to be a list at parse time, otherwise throws a runtime exception if
+    the \a lvalue is not a list if @ref strict-args "%strict-args" is in effect.
 
     @par Syntax
     <tt><b>pop</b></tt> \a lvalue
@@ -1359,7 +1363,7 @@ if (str !~ /hello/)
     \a lvalue <tt>=~ s/</tt><em>regex_pattern</em><tt>/</tt><em>target_string</em><tt>/[isxmg]</tt>
 
     @par Return Type
-    @ref string_type "string" or @ref nothing (if the lvalue does not hold a string)
+    @ref string_type "string" or @ref nothing (if the \a lvalue does not hold a string)
 
     @par Example
     @code{.py}
@@ -1384,7 +1388,7 @@ str =~ s/(\w+) +(\w+)/$2, $1/;
     \a string <tt>=~ x/</tt><em>regex_with_patterns</em><tt>/[isxm]</tt>
 
     @par Return Type
-    @ref list_type "list" or @ref nothing (if the lvalue does not hold a string or if the pattern is not matched)
+    @ref list_type "list" or @ref nothing (if the \a lvalue does not hold a string or if the pattern is not matched)
 
     @par Example
     @code{.py}
@@ -1408,7 +1412,7 @@ list =~ x/(.*)\.(.*)/;
     \a lvalue <tt>=~ tr/</tt><em>source_chars</em><tt>/</tt><em>target_chars</em><tt>/</tt>
 
     @par Return Type
-    @ref string_type "string" or @ref nothing (if the lvalue does not hold a string)
+    @ref string_type "string" or @ref nothing (if the \a lvalue does not hold a string)
 
     @par Example
     @code{.py} str =~ tr/a-z/A-Z/;@endcode
@@ -1643,7 +1647,9 @@ if (x || y)
     @section push Push Operator (push)
 
     @par Synopsis
-    Adds one element to the end of a list and returns the list processed. Throws an exception if the \a lvalue is not a list.
+    Adds one element to the end of a list and returns the list processed. Throws a parse-time exception
+    if the \a lvalue is known not to be a list at parse time, otherwise throws a runtime exception if
+    the \a lvalue is not a list if @ref strict-args "%strict-args" is in effect.
 
     @par Syntax
     <tt><b>push</b></tt> \a lvalue, \a expression
@@ -1662,7 +1668,7 @@ if (x || y)
     @section splice Splice Operator (splice)
 
     @par Synopsis
-    Removes and optionally inserts elements in lists, strings, and binary objects and returns the lvalue after processing. For a similar operator that returns the values removed, see the @ref extract "extract operator".\n\n
+    Removes and optionally inserts elements in lists, strings, and binary objects and returns the \a lvalue after processing. For a similar operator that returns the values removed, see the @ref extract "extract operator".\n\n
     Works on strings, lists, and binary data in a similar way; removes elements from a list, characters from a string, or bytes from binary data and optionally inserts new ones. If no \a length_expression is given, splice removes all elements/characters/bytes from the list, string, or binary data lvalue starting at \a offset_expression (offsets begin at 0). Otherwise, a number of elements/characters/bytes equal to \a length_expression is removed (or up to the end of the list/string/data if applicable). If \a substitution_expression is present, then the removed elements/characters/bytes are substituted with the elements/string/bytes given by this expression.\n\n
     Note that string splice takes character offsets, which may not be the same as byte offsets for multi-byte character encodings, such as \c UTF-8
 
@@ -1679,7 +1685,7 @@ if (x || y)
 
     <b>Arguments Processed by splice</b>
     |!Argument|!Processing
-    |\a lvalue (@ref list_type "list", @ref string_type "string", or @ref binary_type "binary")|If the lvalue is a list, list elements are processed, if it is a string, characters in the string are processed, and for binary data, bytes are processed. For any other data type, no action is taken.
+    |\a lvalue (@ref list_type "list", @ref string_type "string", or @ref binary_type "binary")|If the \a lvalue is a list, list elements are processed, if it is a string, characters in the string are processed, and for binary data, bytes are processed. For any other data type, no action is taken.
     |\a offset_expression|The start element/character/byte position for removing elements/characters/bytes from the list, string, or binary data; if this value is negative, it gives the element offset from the end of the data
     |\a length_expression|The number of elements/characters/bytes to remove. If this expression is not present, then all elements/characters/bytes from the offset to the end of the list/string/binary data are removed. If this expression is present and evaluates to 0, no characters/elements/byte are removed; if this value is negative, then it gives an offset from the end of the data (ie -2 means remove all elements/characters/bytes up to but not including the last two)
     |\a substitution_expression|For list splice, an optional element or list to substitute for the removed elements (to insert a list in a single element's position, make sure that the list to be inserted is the first and only element of another list used as the argument in this position; in other words, pass a list within a single-element list). For string splice, an optional string to substitute for the removed characters.  For binary splice, string or binary data to substitute for any removed bytes.
@@ -1688,8 +1694,8 @@ if (x || y)
     @section extract Extract Operator (extract)
 
     @par Synopsis
-    Removes and optionally inserts elements in lists and strings. For a similar operator that removes values from an lvalue and returns the lvalue (instead of the value removed), see the @ref splice "splice operator".\n\n
-    Works on either strings, lists, and binary data in a similar way; removes elements from a list, characters from a string, and bytes from binary data and optionally inserts new ones. If no length_expression is given, extract removes all elements/characters/bytes from the lvalue starting at \a offset_expression (offsets begin at 0). Otherwise, a number of elements/characters/bytes equal to \a length_expression is removed (or up to the end of the data if applicable). If \a substitution_expression is present, then the removed elements/characters/bytes are substituted with the data given by this expression.\n\n
+    Removes and optionally inserts elements in lists and strings. For a similar operator that removes values from an lvalue and returns the \a lvalue (instead of the value removed), see the @ref splice "splice operator".\n\n
+    Works on either strings, lists, and binary data in a similar way; removes elements from a list, characters from a string, and bytes from binary data and optionally inserts new ones. If no length_expression is given, extract removes all elements/characters/bytes from the \a lvalue starting at \a offset_expression (offsets begin at 0). Otherwise, a number of elements/characters/bytes equal to \a length_expression is removed (or up to the end of the data if applicable). If \a substitution_expression is present, then the removed elements/characters/bytes are substituted with the data given by this expression.\n\n
     When operating on lists, a list is returned of any elements extracted (if no elements are extracted, then an empty list is returned); when operating on strings, a string is extracted of all characters extracted from the string (if no characters are extracted, then an empty string is returned).  When operating on binary data, a binary object is returned.\n\n
     Note that string extract takes character offsets, which may not be the same as byte offsets for multi-byte character encodings, such as \c UTF-8
 
@@ -1706,7 +1712,7 @@ if (x || y)
 
     <b>Arguments Processed by extract</b>
     |!Argument|!Processing
-    |\a lvalue (@ref list_type "list", @ref string_type "string", or @ref binary_type "binary")|If the lvalue is a list, list elements are processed, if it is a string, characters in the string are processed, and for binary data, bytes are processed. For any other data type, no action is taken.
+    |\a lvalue (@ref list_type "list", @ref string_type "string", or @ref binary_type "binary")|If the \a lvalue is a list, list elements are processed, if it is a string, characters in the string are processed, and for binary data, bytes are processed. For any other data type, no action is taken.
     |\a offset_expression|The start element/character/byte position for removing elements/characters/bytes from the list, string, or binary data; if this value is negative, it gives the element offset from the end of the data
     |\a length_expression|The number of elements/characters/bytes to remove. If this expression is not present, then all elements/characters/bytes from the offset to the end of the list/string/binary data are removed. If this expression is present and evaluates to 0, no characters/elements/byte are removed; if this value is negative, then it gives an offset from the end of the data (ie -2 means remove all elements/characters/bytes up to but not including the last two)
     |\a substitution_expression|For list extract, an optional element or list to substitute for the removed elements (to insert a list in a single element's position, make sure that the list to be inserted is the first and only element of another list used as the argument in this position; in other words, pass a list within a single-element list). For string splice, an optional string to substitute for the removed characters.  For binary splice, string or binary data to substitute for any removed bytes.
@@ -1734,7 +1740,7 @@ if (x || y)
     @section plus_equals_operator Plus Equals Operator (+=)
 
     @par Synopsis
-    Increments and concatentates an lvalue with the value of an expression depending on the data type of the lvalue, unless the lvalue is @ref nothing, in which case this operator acts like the assignment operator (simply assigns the value of the right hand side to the lvalue).
+    Increments and concatentates an lvalue with the value of an expression depending on the data type of the \a lvalue, unless the \a lvalue is @ref nothing, in which case this operator acts like the assignment operator (simply assigns the value of the right hand side to the \a lvalue).
 
     @par Syntax
     \a lvalue <tt>+=</tt> \a expression
@@ -1753,7 +1759,7 @@ if (x || y)
 
     <b>Arguments Processed by +=</b>
     |!Argument|!Processing
-    |\a lvalue (@ref list_type "list")|the expression will be evaluated and concatenated to the lvalue. If \a expression is a list, the lists will be concatenated, to ensure adding a single element to a list, use the @ref push "push operator"
+    |\a lvalue (@ref list_type "list")|the expression will be evaluated and concatenated to the \a lvalue. If \a expression is a list, the lists will be concatenated, to ensure adding a single element to a list, use the @ref push "push operator"
     |\a lvalue (@ref hash_type "hash" or (@ref object_type "object")|the \a expression will be evaluated, and, if it is a hash or object, then it's members will be added to the \a lvalue, any duplicate elements in the \a lvalue will be overridden by elements in the \a expression.
     |\a lvalue (@ref string_type "string")|the \a expression will be evaluated and converted to a string if necessary and concatenated to the \a lvalue.
     |\a lvalue (@ref number_type "number")|the \a expression will be evaluated and converted to a number if necessary and added to the \a lvalue.
@@ -1810,7 +1816,7 @@ if (x || y)
 
     <b>Arguments Processed by &=</b>
     |!Argument|!Processing
-    |All|the \a lvalue's type will be converted to an integer if necessary, and the \a expression will be evaluated and converted to an integer as well if necessary, and then the result will be binary and'ed to the lvalue
+    |All|the \a lvalue's type will be converted to an integer if necessary, and the \a expression will be evaluated and converted to an integer as well if necessary, and then the result will be binary and'ed to the \a lvalue
 
     <hr>
     @section or_equals_operator Or Equals Operator (|=)
