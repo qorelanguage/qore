@@ -335,7 +335,9 @@ struct qore_number_private : public qore_number_private_intern {
    DLLLOCAL void inc() {
       // some compilers (sun/oracle pro c++ notably) do not support arrays with a variable size
       // if not, we can't use the stack for the temporary variable and have to use a dynamically-allocated one
-#ifdef HAVE_LOCAL_VARIADIC_ARRAYS
+      // also this code is compiled incorrectly on g++ 5.2 on Solaris SPARC with all optimization levels
+      // for some unknown reason (https://github.com/qorelanguage/qore/issues/958)
+#if defined(HAVE_LOCAL_VARIADIC_ARRAYS) && !(defined(SPARC) && defined(SOLARIS) && defined(__GNUC__))
       MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
       mpfr_set(tmp, num, QORE_MPFR_RND);
       mpfr_add_si(num, tmp, 1, QORE_MPFR_RND);
