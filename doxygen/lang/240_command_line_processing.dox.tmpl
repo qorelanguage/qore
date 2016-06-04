@@ -4,7 +4,7 @@
 
     This section describes command-line processing for the \c qore binary; see Qore::GetOpt for the class allowing for command-line processing in %Qore code
 
-    %Qore will scan the command-line for the options in the following table. Arguments after the script name will be passed to the script in the global <tt>$ARGV</tt> variable as a list of options. <tt>$ARGV[0]</tt> will be the first option and will not be the script name. If no script name is given and the <tt>--exec</tt> option is not used, then %Qore code is read from standard input.  The <tt>$QORE_ARGV</tt> variable will have the original %Qore command-line in it, however
+    %Qore will scan the command-line for the options in the following table. Arguments after the script name will be passed to the script in the global <tt>ARGV</tt> variable as a list of options. <tt>ARGV[0]</tt> will be the first option and will not be the script name. If no script name is given and the <tt>--exec</tt> option is not used, then %Qore code is read from standard input.  The <tt>QORE_ARGV</tt> variable will have the original %Qore command-line in it, however
 
     Usage: <tt>qore [</tt><em>options</em><tt>] [</tt><em>script_file_name</em><tt>]</tt>
 

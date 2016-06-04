@@ -4,7 +4,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -50,8 +50,8 @@ AbstractSmartLock::constructor() {
 
 //! Returns the name of the threading class directly inheriting this class
 /** @par Example:
-    @code
-my string $name = $lock.getName();
+    @code{.py}
+string name = lock.getName();
     @endcode
 
     @return the name of the threading class directly inheriting this class
@@ -62,14 +62,14 @@ string AbstractSmartLock::getName() [flags=CONSTANT] {
 
 //! Returns @ref True if the calling thread owns the lock, @ref False if not
 /** @par Example:
-    @code
+    @code{.py}
 # only grab and release lock if we don't already own it
-my bool $lck = !$lock.lockOwner();
-if ($lck)
-    $lock.lock();
+bool lck = !lock.lockOwner();
+if (lck)
+    lock.lock();
 on_exit
-    if ($lck)
-	$lock.unlock();
+    if (lck)
+	lock.unlock();
     @endcode
 
     @return @ref True if the calling thread owns the lock, @ref False if not
@@ -82,8 +82,8 @@ bool AbstractSmartLock::lockOwner() [flags=CONSTANT] {
 /** This method normally not useful in practice for anything except checking that the current thread owns the lock, in which case AbstractSmartLock::lockOwner() is better, because if the lock is not owned by the current thread the lock ownership can change at any time.
 
     @par Example:
-    @code
-my int $tid = $lock.lockTID();
+    @code{.py}
+int tid = lock.lockTID();
     @endcode
 
     @return the TID of the thread owning the lock or -1 if the lock is currently not acquired

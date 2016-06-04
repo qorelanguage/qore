@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -54,6 +54,9 @@ typedef std::map<const char*, QoreClass*, ltstr> hm_qc_t;
 
 class QoreNamespaceList;
 
+class ClassListIterator;
+class ConstClassListIterator;
+
 class QoreClassList {
    friend class ClassListIterator;
    friend class ConstClassListIterator;
@@ -65,11 +68,13 @@ private:
    DLLLOCAL void assimilate(QoreClassList& n);
 
    DLLLOCAL void remove(hm_qc_t::iterator i) {
-      QoreClass *qc = i->second;
-      //printd(5, "QCL::remove() this=%08p '%s' (%08p)\n", this, qc->getName(), qc);
+      QoreClass* qc = i->second;
+      //printd(5, "QCL::remove() this=%p '%s' (%p)\n", this, qc->getName(), qc);
       hm.erase(i);
       delete qc;
    }
+
+   DLLLOCAL void addInternal(QoreClass* ot);
 
 public:
    DLLLOCAL QoreClassList() {}
@@ -78,20 +83,24 @@ public:
    
    DLLLOCAL void mergeUserPublic(const QoreClassList& old, qore_ns_private* ns);
 
-   DLLLOCAL int add(QoreClass *ot);
-   DLLLOCAL QoreClass *find(const char *name);
-   DLLLOCAL const QoreClass *find(const char *name) const;
+   // returns the number of classes imported
+   DLLLOCAL int importSystemClasses(const QoreClassList& source, qore_ns_private* ns, ExceptionSink* xsink);
+   
+   DLLLOCAL int add(QoreClass* ot);
+   DLLLOCAL QoreClass* find(const char* name);
+   DLLLOCAL const QoreClass* find(const char* name) const;
    DLLLOCAL void resolveCopy();
    DLLLOCAL void parseInit();
    DLLLOCAL void parseRollback();
    DLLLOCAL void parseCommit(QoreClassList& n);
+   DLLLOCAL void parseCommitRuntimeInit(ExceptionSink* xsink);
    DLLLOCAL void reset();
    DLLLOCAL void assimilate(QoreClassList& n, qore_ns_private& ns);
-   DLLLOCAL QoreHashNode *getInfo();
+   DLLLOCAL QoreHashNode* getInfo();
 
-   DLLLOCAL AbstractQoreNode *findConstant(const char *cname, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL AbstractQoreNode* findConstant(const char* cname, const QoreTypeInfo*& typeInfo);
 
-   DLLLOCAL AbstractQoreNode *parseResolveBareword(const char *name, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL AbstractQoreNode* parseResolveBareword(const char* name, const QoreTypeInfo*& typeInfo);
 
    DLLLOCAL bool empty() const {
       return hm.empty();

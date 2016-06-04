@@ -31,7 +31,7 @@
 
 Summary: Multithreaded Programming Language
 Name: qore
-Version: 0.8.11.1
+Version: 0.8.12
 Release: 1%{dist}
 %if 0%{?suse_version}
 License: LGPL-2.0+ or GPL-2.0+ or MIT
@@ -109,7 +109,7 @@ Provides: qore-module-api-0.6
 Provides: qore-module-api-0.5
 %if %{libname} == "libqore"
 Provides: libqore5 = %{version}
-Obsoletes: libqore5 < 0.8.11.1
+Obsoletes: libqore5 < 0.8.12
 %endif
 %if 0%{?sles_version}
 BuildArch: %{_target_cpu}
@@ -128,7 +128,7 @@ functionality.
 %{_libdir}/libqore.so.5.13.0
 %{_libdir}/libqore.so.5
 %{module_dir}
-%doc COPYING.LGPL COPYING.GPL COPYING.MIT README README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS WHATISQORE
+%doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS ABOUT
 
 %post -n %{libname}
 ldconfig %{_libdir}
@@ -152,7 +152,7 @@ This package provides the Qore language standard library user modules.
 %files stdlib
 %defattr(-,root,root,-)
 %{user_module_dir}
-%doc COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
+%doc COPYING.MIT README-LICENSE
 
 %package doc
 Summary: API documentation, programming language reference, and Qore example programs
@@ -255,6 +255,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Sun Oct 19 2014 David Nichols <david@qore.org> 0.8.12
+- updated to 0.8.12
+
 * Mon Jun 23 2014 David Nichols <david@qore.org> 0.8.11.1
 - updated to 0.8.11.1
 
@@ -376,4 +379,3 @@ rm -rf $RPM_BUILD_ROOT
 
 * Wed Dec 7 2005 David Nichols <david_nichols@users.sourceforge.net>
 - Initial rpm build
-

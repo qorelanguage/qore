@@ -1,0 +1,30 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+# Allow child Program objects to have more liberal permissions than the parent.
+%no-child-restrictions
+
+%exec-class MemberTest
+
+public class MemberTest inherits QUnit::Test {
+    constructor() : Test("MemberTest", "1.0") {
+        addTestCase("self test", \selfTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    selfTest() {
+        Program p(PO_NEW_STYLE);
+        p.parse("class A {public {code f = sub() { return self; };}} A a();", "member-test-1");
+
+        testAssertion("member-self", \p.run(), NOTHING, new TestResultValue(NOTHING));
+    }
+}

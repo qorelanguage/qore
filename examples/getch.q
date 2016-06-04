@@ -23,7 +23,7 @@ sub main() {
 
     # restore terminal attributes on exit
     on_exit
-	stdin.setTerminalAttributes(TCSADRAIN, $orig);
+        stdin.setTerminalAttributes(TCSADRAIN, $orig);
 
     # get local flags
     my int $lflag = $t.getLFlag();
@@ -55,9 +55,9 @@ sub main() {
     # print out dots every 20ms to show that we're waiting impatiently for data :-)
     while (!stdin.isDataAvailable(20ms)) {
         # print a dot to stdout 
-	stdout.printf(".");
-	# flush output buffers
-	stdout.sync();
+        stdout.printf(".");
+        # flush output buffers
+        stdout.sync();
     }
 
     # read the character input

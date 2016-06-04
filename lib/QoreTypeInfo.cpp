@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,7 @@
 
 #include <qore/Qore.h>
 #include <qore/QoreRWLock.h>
+#include <qore/intern/qore_program_private.h>
 #include <qore/intern/QoreNamespaceIntern.h>
 #include <qore/intern/qore_number_private.h>
 #include <qore/intern/qore_program_private.h>
@@ -167,7 +168,7 @@ const QoreTypeInfo* floatOrNumberTypeInfo = &staticFloatOrNumberTypeInfo;
 QoreListNode* emptyList;
 QoreHashNode* emptyHash;
 QoreStringNode* NullString;
-DateTimeNode* ZeroDate;
+DateTimeNode* ZeroDate, * OneDate;
 QoreBigIntNode* Zero;
 QoreFloatNode* ZeroFloat;
 QoreNumberNode* ZeroNumber, * NaNumber, * InfinityNumber, * piNumber;
@@ -196,6 +197,12 @@ static type_str_map_t type_str_map;
 // rwlock for global type map
 static QoreRWLock extern_type_info_map_lock;
 
+void concatClass(std::string &str, const char *cn) {
+   str.append("<class: ");
+   str.append(cn);
+   str.push_back('>');
+}
+
 static void do_maps(qore_type_t t, const char* name, const QoreTypeInfo* typeInfo, const QoreTypeInfo* orNothingTypeInfo = 0) {
    str_typeinfo_map[name]          = typeInfo;
    str_ornothingtypeinfo_map[name] = orNothingTypeInfo;
@@ -209,6 +216,7 @@ void init_qore_types() {
    // initialize global default values
    NullString     = new QoreStringNode;
    ZeroDate       = DateTimeNode::makeAbsolute(0, 0, 0);
+   OneDate        = DateTimeNode::makeAbsolute(0, 0, 0, 0, 0, 1);
    Zero           = new QoreBigIntNode;
    ZeroFloat      = new QoreFloatNode;
    ZeroNumber     = new QoreNumberNode;
@@ -289,6 +297,7 @@ void delete_qore_types() {
    ZeroNumber->deref();
    ZeroFloat->deref();
    Zero->deref();
+   OneDate->deref();
    ZeroDate->deref();
    emptyList->deref(0);
    emptyHash->deref(0);
@@ -365,17 +374,17 @@ const char* getBuiltinTypeName(qore_type_t type) {
    // return "string|binary";
    //}
 
+   //printd(0, "type: %d unknown (map size: %d)\n", type, type_str_map.size());
    /*
-   printd(0, "type: %d unknown (map size: %d)\n", type, type_str_map.size());
    for (type_str_map_t::iterator i = type_str_map.begin(), e = type_str_map.end(); i != e; ++i)
       printd(0, "map[%d] = %s\n", i->first, i->second);
-
-   assert(false);
    */
+   //assert(false);
 
    return "<unknown type>";
 }
 
+/*
 int QoreTypeInfo::runtimeAcceptInputIntern(bool &priv_error, AbstractQoreNode* n) const {
    qore_type_t nt = get_node_type(n);
 
@@ -402,6 +411,53 @@ int QoreTypeInfo::runtimeAcceptInputIntern(bool &priv_error, AbstractQoreNode* n
 }
 
 int QoreTypeInfo::acceptInputDefault(bool& priv_error, AbstractQoreNode* n) const {
+   //printd(5, "QoreTypeInfo::acceptInputDefault() this=%p hasType=%d (%s) n=%p (%s)\n", this, hasType(), getName(), n, get_type_name(n));
+   if (!hasType())
+      return 0;
+
+   if (!accepts_mult)
+      return runtimeAcceptInputIntern(priv_error, n);
+
+   const type_vec_t &at = getAcceptTypeList();
+
+   // check all types until one accepts the input
+   // priv_error can be set to false more than once; this is OK for error reporting
+   for (type_vec_t::const_iterator i = at.begin(), e = at.end(); i != e; ++i) {
+      assert((*i)->acceptsSingle());
+      if (!(*i)->runtimeAcceptInputIntern(priv_error, n))
+	 return 0;
+   }
+
+   return runtimeAcceptInputIntern(priv_error, n);
+}
+*/
+
+int QoreTypeInfo::runtimeAcceptInputIntern(bool &priv_error, QoreValue& n) const {
+   qore_type_t nt = n.getType();
+
+   if (qt != nt)
+      return -1;
+
+   if (qt != NT_OBJECT || !qc)
+      return 0;
+
+   bool priv;
+   if (reinterpret_cast<const QoreObject*>(n.getInternalNode())->getClass()->getClass(*qc, priv)) {
+      if (!priv)
+	 return 0;
+
+      // check private access if required class is privately
+      // inherited in the input argument's class
+      if (qore_class_private::runtimeCheckPrivateClassAccess(*qc))
+	 return 0;
+
+      priv_error = true;
+   }
+
+   return -1;
+}
+
+int QoreTypeInfo::acceptInputDefault(bool& priv_error, QoreValue& n) const {
    //printd(5, "QoreTypeInfo::acceptInputDefault() this=%p hasType=%d (%s) n=%p (%s)\n", this, hasType(), getName(), n, get_type_name(n));
    if (!hasType())
       return 0;
@@ -541,7 +597,7 @@ bool QoreTypeInfo::isOutputIdentical(const QoreTypeInfo* typeInfo) const {
    return true;
 }
 
-qore_type_result_e QoreTypeInfo::matchClassIntern(const QoreClass *n_qc) const {
+qore_type_result_e QoreTypeInfo::matchClassIntern(const QoreClass* n_qc) const {
    if (qt == NT_ALL)
       return QTI_AMBIGUOUS;
 
@@ -557,7 +613,7 @@ qore_type_result_e QoreTypeInfo::matchClassIntern(const QoreClass *n_qc) const {
    return rc;
 }
 
-qore_type_result_e QoreTypeInfo::runtimeMatchClassIntern(const QoreClass *n_qc) const {
+qore_type_result_e QoreTypeInfo::runtimeMatchClassIntern(const QoreClass* n_qc) const {
    if (qt == NT_ALL)
       return QTI_AMBIGUOUS;
 
@@ -587,19 +643,19 @@ void QoreTypeInfo::doNonBooleanWarning(const char* preface) const {
    qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
-void QoreTypeInfo::doNonStringWarning(const char* preface) const {
+void QoreTypeInfo::doNonStringWarning(const QoreProgramLocation& loc, const char* preface) const {
    QoreStringNode* desc = new QoreStringNode(preface);
    getThisType(*desc);
    desc->sprintf(", which cannot be converted to a string, therefore will always evaluate to an empty string at runtime");
-   qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+   qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
 const QoreTypeInfo* QoreParseTypeInfo::resolveAndDelete(const QoreProgramLocation& loc) {
-   if (!this)
+   if (!qore_check_this(this))
       return 0;
 
    // resolve class
-   const QoreClass *qc = qore_root_ns_private::parseFindScopedClass(loc, *cscope);
+   const QoreClass* qc = qore_root_ns_private::parseFindScopedClass(loc, *cscope);
 
    bool my_or_nothing = or_nothing;
    delete this;
@@ -632,20 +688,19 @@ AbstractVirtualMethod::AbstractVirtualMethod(const char* n_name, bool n_requires
 }
 */
 
-bool OrNothingTypeInfo::acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-   qore_type_t t = get_node_type(n);
-   if (n && t == NT_NULL) {
-      n = &Nothing;
-      return true;
-   }
+bool OrNothingTypeInfo::acceptInputImpl(QoreValue& n, ExceptionSink *xsink) const {
+   qore_type_t t = n.getType();
    if (t == NT_NOTHING)
       return true;
+   if (t == NT_NULL) {
+      discard(n.assign((AbstractQoreNode*)0), xsink);
+      return true;
+   }
 
    if (qc) {
       if (t != NT_OBJECT)
 	 return false;
-      const QoreClass* n_qc = reinterpret_cast<const QoreObject*>(n)->getClass();
-
+      const QoreClass* n_qc = reinterpret_cast<const QoreObject*>(n.getInternalNode())->getClass();
       return qore_class_private::runtimeCheckCompatibleClass(*qc, *n_qc);
    }
 
