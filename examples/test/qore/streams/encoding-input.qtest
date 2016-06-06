@@ -25,11 +25,11 @@ class SrcStream inherits InputStream {
         closed = True;
     }
 
-    int read(timeout timeout_ms = -1) {
+    int read() {
         throw "UNEXPECTED-CALL";
     }
 
-    *binary bulkRead(int limit, timeout timeout_ms = -1) {
+    *binary bulkRead(int limit) {
         if (offset == length(data)) {
             return NOTHING;
         }
@@ -53,11 +53,11 @@ class DestructMockStream inherits InputStream {
     close() {
     }
 
-    int read(timeout timeout_ms = -1) {
+    int read() {
         throw "UNEXPECTED-CALL";
     }
 
-    *binary bulkRead(int limit, timeout timeout_ms = -1) {
+    *binary bulkRead(int limit) {
         throw "UNEXPECTED-CALL";
     }
 }
