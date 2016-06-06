@@ -2355,7 +2355,7 @@ struct qore_socket_private {
       return 0;
    }
 
-   DLLLOCAL QoreHashNode* readHttpChunkedBodyBinary(int timeout, ExceptionSink* xsink, const char* cname, int source, const ResolvedCallReferenceNode* recv_callback = 0, QoreThreadLock* l = 0, QoreObject* obj = 0) {
+   DLLLOCAL QoreHashNode* readHttpChunkedBodyBinary(int timeout, ExceptionSink* xsink, const char* cname, int source, const ResolvedCallReferenceNode* recv_callback = 0, QoreThreadLock* l = 0, QoreObject* obj = 0, OutputStream *os = 0) {
       assert(xsink);
 
       if (sock == QORE_INVALID_SOCKET) {
@@ -2377,7 +2377,7 @@ struct qore_socket_private {
 
       qore_socket_op_helper oh(this);
 
-      SimpleRefHolder<BinaryNode> b(new BinaryNode);
+      SimpleRefHolder<BinaryNode> b(os ? 0 : new BinaryNode);
       QoreString str; // for reading the size of each chunk
 
       qore_offset_t rc;
@@ -2445,7 +2445,14 @@ struct qore_socket_private {
                return 0;
             }
 
-            b->append(buf, rc);
+            if (os) {
+               os->bulkWrite(buf, rc, timeout, xsink);
+               if (*xsink) {
+                  return 0;
+               }
+            } else {
+               b->append(buf, rc);
+            }
             br += rc;
 
             if (br >= size)
@@ -2491,7 +2498,7 @@ struct qore_socket_private {
          return 0;
 
       ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
-      if (!recv_callback)
+      if (!recv_callback && !os)
          h->setKeyValue("body", b.release(), xsink);
 
       if (hdr) {

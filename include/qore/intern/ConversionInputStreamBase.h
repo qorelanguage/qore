@@ -41,7 +41,7 @@
  * @tparam T the type of the element of the buffer
  * @todo this API is work in progress
  */
-template<size_t SIZE = 1024, typename T = char>
+template<size_t SIZE = 4096, typename T = char>
 class ConversionInputStreamBase : public InputStreamBase {
 
 public:

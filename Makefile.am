@@ -255,7 +255,8 @@ include_HEADERS = \
 	include/qore/Qore.h \
 	include/qore/QoreNodeEvalOptionalRefHolder.h \
 	include/qore/QoreEvents.h \
-	include/qore/InputStream.h
+	include/qore/InputStream.h \
+	include/qore/OutputStream.h
 
 noinst_HEADERS = \
 	include/qore/minitest.hpp \
