@@ -113,7 +113,7 @@ methods:
   + static File::hlstat() is an alias for File::hstat() on Windows
 
 * time zone handling
-On Windows, Qore's time zone information is read from binary time zone data in the Windows registry under HKEY_LOCAL_MACHINE SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones as mapper from zoneinfo names.
+On Windows, Qore's time zone information is read from binary time zone data in the Windows registry under HKEY_LOCAL_MACHINE SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones as mapped from zoneinfo names.
 
 * socket support
 There are no UNIX sockets available on Windows, otherwise the Socket class should work the same as on UNIX systems; error messages will be Windows error messages
