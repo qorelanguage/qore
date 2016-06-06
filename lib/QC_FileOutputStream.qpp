@@ -68,7 +68,6 @@ nothing FileOutputStream::close() {
 /**
     @param value the byte (0 - 255) to write to the output stream, only the least significant 8 bits are used,
            the rest is ignored
-    @param timeout_ms ignored
 
     @par Example:
     @code{.py}
@@ -82,14 +81,13 @@ nothing FileOutputStream::close() {
 
     @throw FILE-WRITE-ERROR if an I/O error occurs
  */
-nothing FileOutputStream::write(int value, timeout timeout_ms = -1) {
-   os->writeHelper(value, timeout_ms, xsink);
+nothing FileOutputStream::write(int value) {
+   os->writeHelper(value, xsink);
 }
 
 //! Writes bytes to the input stream
 /**
     @param data the data to write
-    @param timeout_ms ignored
 
     @par Example:
     @code{.py}
@@ -102,6 +100,6 @@ nothing FileOutputStream::write(int value, timeout timeout_ms = -1) {
 
     @throw FILE-WRITE-ERROR if an I/O error occurs
  */
-nothing FileOutputStream::bulkWrite(binary data, timeout timeout_ms = -1) {
-   os->bulkWriteHelper(data, timeout_ms, xsink);
+nothing FileOutputStream::bulkWrite(binary data) {
+   os->bulkWriteHelper(data, xsink);
 }

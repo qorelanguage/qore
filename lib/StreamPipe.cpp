@@ -31,8 +31,8 @@
 #include <qore/Qore.h>
 #include <qore/intern/StreamPipe.h>
 
-StreamPipe::StreamPipe(int64 bufferSize) : buffer(bufferSize > 0 ? bufferSize : 4096), broken(false),
-      inputClosed(false), outputClosed(false), size(bufferSize), count(0), readPtr(0) {
+StreamPipe::StreamPipe(int64 timeout, int64 bufferSize) : buffer(bufferSize > 0 ? bufferSize : 4096), broken(false),
+      inputClosed(false), outputClosed(false), size(bufferSize), count(0), readPtr(0), timeout(timeout) {
 }
 
 PipeInputStream::~PipeInputStream() {
@@ -56,16 +56,16 @@ void PipeInputStream::close(ExceptionSink* xsink) /*override*/ {
    pipe->writeCondVar.broadcast();
 }
 
-int64 PipeInputStream::read(int64 timeout, ExceptionSink* xsink) /*override*/ {
+int64 PipeInputStream::read(ExceptionSink* xsink) /*override*/ {
    printd(1, "PipeInputStream::read()\n");
    uint8_t b;
-   if (bulkRead(&b, 1, timeout, xsink) == 1) {
+   if (bulkRead(&b, 1, xsink) == 1) {
       return b & 0xFF;
    }
    return -1;
 }
 
-int64 PipeInputStream::bulkRead(void *ptr, int64 limit, int64 timeout, ExceptionSink *xsink) /*override*/ {
+int64 PipeInputStream::bulkRead(void *ptr, int64 limit, ExceptionSink *xsink) /*override*/ {
    assert(limit > 0);
    printd(1, "PipeInputStream::bulkRead()\n");
    AutoLocker lock(pipe->mutex);
@@ -92,7 +92,7 @@ int64 PipeInputStream::bulkRead(void *ptr, int64 limit, int64 timeout, Exception
       }
 
       printd(1, "read - buffer empty, before wait\n");
-      int rc = timeout < 0 ? pipe->readCondVar.wait(pipe->mutex) : pipe->readCondVar.wait2(pipe->mutex, timeout);
+      int rc = pipe->timeout < 0 ? pipe->readCondVar.wait(pipe->mutex) : pipe->readCondVar.wait2(pipe->mutex, pipe->timeout);
       printd(1, "read - buffer empty, after wait, rc: %d\n", rc);
       if (rc != 0) {
          xsink->raiseException("TIMEOUT-ERROR", "operation timed out");
@@ -138,13 +138,13 @@ void PipeOutputStream::close(ExceptionSink* xsink) /*override*/ {
    pipe->writeCondVar.broadcast();
 }
 
-void PipeOutputStream::write(int64 value, int64 timeout, ExceptionSink* xsink) /*override*/ {
+void PipeOutputStream::write(int64 value, ExceptionSink* xsink) /*override*/ {
    printd(1, "PipeOutputStream::write()\n");
    uint8_t b = value;
-   bulkWrite(&b, 1, timeout, xsink);
+   bulkWrite(&b, 1, xsink);
 }
 
-void PipeOutputStream::bulkWrite(const void *ptr, int64 toWrite, int64 timeout, ExceptionSink *xsink) /*override*/ {
+void PipeOutputStream::bulkWrite(const void *ptr, int64 toWrite, ExceptionSink *xsink) /*override*/ {
    assert(toWrite >= 0);
    printd(1, "PipeOutputStream::bulkWrite()\n");
    AutoLocker lock(pipe->mutex);
@@ -178,7 +178,7 @@ void PipeOutputStream::bulkWrite(const void *ptr, int64 toWrite, int64 timeout, 
          pipe->readCondVar.broadcast();
       } else {
          printd(1, "write - buffer full, before wait\n");
-         int rc = timeout < 0 ? pipe->writeCondVar.wait(pipe->mutex) : pipe->writeCondVar.wait2(pipe->mutex, timeout);
+         int rc = pipe->timeout < 0 ? pipe->writeCondVar.wait(pipe->mutex) : pipe->writeCondVar.wait2(pipe->mutex, pipe->timeout);
          printd(1, "write - buffer full, after wait, rc: %d\n", rc);
          if (rc != 0) {
             xsink->raiseException("TIMEOUT-ERROR", "operation timed out");

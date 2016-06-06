@@ -51,14 +51,13 @@ public:
       self->evalMethodValue("close", 0, xsink);
    }
 
-   DLLLOCAL virtual void write(int64 value, int64 timeout, ExceptionSink* xsink) /*override*/ {
+   DLLLOCAL virtual void write(int64 value, ExceptionSink* xsink) /*override*/ {
       ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
       args->push(new QoreBigIntNode(value));
-      args->push(new QoreBigIntNode(timeout));
       self->evalMethodValue("write", *args, xsink).getAsBigInt();
    }
 
-   DLLLOCAL virtual void bulkWrite(const void *ptr, int64 count, int64 timeout, ExceptionSink *xsink) /*override*/ {
+   DLLLOCAL virtual void bulkWrite(const void *ptr, int64 count, ExceptionSink *xsink) /*override*/ {
       assert(count >= 0);
 
       SimpleRefHolder<BinaryNode> buf(new BinaryNode());
@@ -67,7 +66,6 @@ public:
 
       ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
       args->push(buf.release());
-      args->push(new QoreBigIntNode(timeout));
       self->evalMethodValue("bulkWrite", *args, xsink);
    }
 

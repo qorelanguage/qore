@@ -57,12 +57,12 @@ public:
       src = 0;
    }
 
-   DLLLOCAL int64 read(int64 timeout, ExceptionSink* xsink) /*override*/ {
+   DLLLOCAL int64 read(ExceptionSink* xsink) /*override*/ {
       assert(!isClosed());
       return offset >= src->size() ? -1 : static_cast<const uint8_t *>(src->getPtr())[offset++];
    }
 
-   DLLLOCAL int64 bulkRead(void *ptr, int64 limit, int64 timeout, ExceptionSink *xsink) /*override*/ {
+   DLLLOCAL int64 bulkRead(void *ptr, int64 limit, ExceptionSink *xsink) /*override*/ {
       assert(!isClosed());
       assert(limit > 0);
       qore_size_t count = src->size() - offset;

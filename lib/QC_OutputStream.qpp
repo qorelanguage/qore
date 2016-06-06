@@ -56,33 +56,21 @@ abstract nothing OutputStream::close();
 /**
     @param value the byte (0 - 255) to write to the output stream, only the least significant 8 bits are used,
            the rest is ignored
-    @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates
-           "relative date/time value"; integer arguments will be assumed to be milliseconds);
-           if not given or negative the call will never time out
 
     @par Example:
     @code{.py}
     os.write(5);
     @endcode
-
-    @throw IO-ERROR if an I/O error occurs
-    @throw TIMEOUT-ERROR if the byte could no be written in the specified timeout
  */
-abstract nothing OutputStream::write(int value, timeout timeout_ms = -1);
+abstract nothing OutputStream::write(int value);
 
 //! Writes bytes to the input stream
 /**
     @param data the data to write
-    @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates
-           "relative date/time value"; integer arguments will be assumed to be milliseconds);
-           if not given or negative the call will never time out
 
     @par Example:
     @code{.py}
     os.write(<0405>);
     @endcode
-
-    @throw IO-ERROR if an I/O error occurs
-    @throw TIMEOUT-ERROR if the data could not be written in the specified timeout
  */
-abstract nothing OutputStream::bulkWrite(binary data, timeout timeout_ms = -1);
+abstract nothing OutputStream::bulkWrite(binary data);

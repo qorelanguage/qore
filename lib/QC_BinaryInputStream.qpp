@@ -69,7 +69,6 @@ nothing BinaryInputStream::close() {
 
 //! Reads a single byte from the input stream; returns -1 if the end of the stream has been reached
 /**
-    @param timeout_ms ignored
     @return the next byte (0 - 255) in the input stream or -1 if the end of the stream has been reached
 
     @par Example:
@@ -85,15 +84,14 @@ nothing BinaryInputStream::close() {
     read 4
     @endcode
  */
-int BinaryInputStream::read(timeout timeout_ms = -1) {
-   return is->readHelper(timeout_ms, xsink);
+int BinaryInputStream::read(1) {
+   return is->readHelper(xsink);
 }
 
 //! Reads bytes (up to a specified limit) from the input stream; returns \ref NOTHING if there are no more bytes in the stream
 /**
 
     @param limit the maximum number of bytes to read
-    @param timeout_ms ignored
     @return the read bytes (the length is between 1 and `limit` inclusive) or \ref NOTHING if no more bytes are available
 
     @par Example:
@@ -109,6 +107,6 @@ int BinaryInputStream::read(timeout timeout_ms = -1) {
     read 04
     @endcode
  */
-*binary BinaryInputStream::bulkRead(int limit, timeout timeout_ms = -1) {
-   return is->bulkReadHelper(limit, timeout_ms, xsink);
+*binary BinaryInputStream::bulkRead(int limit) {
+   return is->bulkReadHelper(limit, xsink);
 }

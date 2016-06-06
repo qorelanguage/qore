@@ -1393,7 +1393,7 @@ int QoreSocket::recv(OutputStream *os, qore_offset_t size, int timeout, Exceptio
       br += rc;
 
       // write buffer to the stream
-      os->bulkWrite(buf, rc, timeout, xsink);
+      os->bulkWrite(buf, rc, xsink);
 
       if (size > 0 && br >= size) {
          rc = 0;

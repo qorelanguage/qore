@@ -44,7 +44,7 @@
 class StreamPipe : public AbstractPrivateData {
 
 public:
-   DLLLOCAL StreamPipe(int64 bufferSize);
+   DLLLOCAL StreamPipe(int64 timeout, int64 bufferSize);
 
 private:
    QoreThreadLock mutex;
@@ -57,7 +57,7 @@ private:
    int64 size;
    int64 count;
    int64 readPtr;
-
+   int64 timeout;
 
    friend class PipeInputStream;
    friend class PipeOutputStream;
@@ -73,8 +73,8 @@ public:
    }
 
    DLLLOCAL void close(ExceptionSink* xsink) /*override*/;
-   DLLLOCAL int64 read(int64 timeout, ExceptionSink* xsink) /*override*/;
-   DLLLOCAL int64 bulkRead(void *ptr, int64 limit, int64 timeout, ExceptionSink *xsink) /*override*/;
+   DLLLOCAL int64 read(ExceptionSink* xsink) /*override*/;
+   DLLLOCAL int64 bulkRead(void *ptr, int64 limit, ExceptionSink *xsink) /*override*/;
 
 protected:
    ~PipeInputStream();
@@ -93,8 +93,8 @@ public:
    }
 
    DLLLOCAL void close(ExceptionSink* xsink) /*override*/;
-   DLLLOCAL void write(int64 value, int64 timeout, ExceptionSink* xsink) /*override*/;
-   DLLLOCAL void bulkWrite(const void *ptr, int64 count, int64 timeout, ExceptionSink *xsink) /*override*/;
+   DLLLOCAL void write(int64 value, ExceptionSink* xsink) /*override*/;
+   DLLLOCAL void bulkWrite(const void *ptr, int64 count, ExceptionSink *xsink) /*override*/;
 
 protected:
    ~PipeOutputStream();

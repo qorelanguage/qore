@@ -55,26 +55,24 @@ public:
    /**
     * @brief Helper method that checks that the current thread is the same as when the instance was created,
     * that the stream has not yet been closed and calls read().
-    * @param timeout the timeout
     * @param xsink the exception sink
     * @return the read byte or -1 if the end of the stream has been reached
     */
-   DLLLOCAL int64 readHelper(int64 timeout, ExceptionSink *xsink) {
+   DLLLOCAL int64 readHelper(ExceptionSink *xsink) {
       if (!check(xsink)) {
          return -1;
       }
-      return read(timeout, xsink);
+      return read(xsink);
    }
 
    /**
     * @brief Helper method that checks that the current thread is the same as when the instance was created,
     * that the stream has not yet been closed, calls bulkRead() and wraps the read data to Qore's `binary` value.
     * @param limit the maximum number of bytes to read
-    * @param timeout the timeout
     * @param xsink the exception sink
     * @return the `binary` wrapping the read data or `NOTHING` if the end of the stream has been reached
     */
-   DLLLOCAL BinaryNode *bulkReadHelper(int64 limit, int64 timeout, ExceptionSink *xsink) {
+   DLLLOCAL BinaryNode *bulkReadHelper(int64 limit, ExceptionSink *xsink) {
       if (!check(xsink)) {
          return 0;
       }
@@ -85,7 +83,7 @@ public:
       }
       SimpleRefHolder<BinaryNode> result(new BinaryNode());
       result->preallocate(limit);
-      int64 count = bulkRead(const_cast<void *>(result->getPtr()), limit, timeout, xsink);
+      int64 count = bulkRead(const_cast<void *>(result->getPtr()), limit, xsink);
       result->setSize(count);
       return count ? result.release() : 0;
    }

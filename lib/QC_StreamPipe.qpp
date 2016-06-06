@@ -47,10 +47,13 @@ qclass StreamPipe [arg=StreamPipe* pipe; ns=Qore; flags=final; private_members=O
 
 //! Creates the StreamPipe
 /**
+    @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates
+           "relative date/time value"; integer arguments will be assumed to be milliseconds);
+           if not given or negative the operations will never time out
     @param bufferSize the size of the internal buffer
  */
-StreamPipe::constructor(int bufferSize = 4096) {
-   SimpleRefHolder<StreamPipe> pipe(new StreamPipe(bufferSize));
+StreamPipe::constructor(timeout timeout_ms = -1, int bufferSize = 4096) {
+   SimpleRefHolder<StreamPipe> pipe(new StreamPipe(timeout_ms, bufferSize));
    pipe->ref();
    self->setValue("is", new QoreObject(QC_PIPEINPUTSTREAM, getProgram(), new PipeInputStream(*pipe)), xsink);
    pipe->ref();

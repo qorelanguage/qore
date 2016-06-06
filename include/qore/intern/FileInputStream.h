@@ -41,7 +41,7 @@
 class FileInputStream : public InputStreamBase {
 
 public:
-   DLLLOCAL FileInputStream(const QoreStringNode *fileName, ExceptionSink *xsink) {
+   DLLLOCAL FileInputStream(const QoreStringNode *fileName, int64 timeout, ExceptionSink *xsink) : timeout(timeout) {
       f.open2(xsink, fileName->getBuffer(), O_RDONLY);
    }
 
@@ -61,13 +61,13 @@ public:
       }
    }
 
-   DLLLOCAL int64 read(int64 timeout, ExceptionSink* xsink) /*override*/ {
+   DLLLOCAL int64 read(ExceptionSink* xsink) /*override*/ {
       assert(!isClosed());
       uint8_t buf;
       return f.read(&buf, 1, timeout, xsink) == 1 ? buf : -1;
    }
 
-   DLLLOCAL int64 bulkRead(void *ptr, int64 limit, int64 timeout, ExceptionSink *xsink) /*override*/ {
+   DLLLOCAL int64 bulkRead(void *ptr, int64 limit, ExceptionSink *xsink) /*override*/ {
       assert(!isClosed());
       assert(limit > 0);
       return f.read(ptr, limit, timeout, xsink);
@@ -75,6 +75,7 @@ public:
 
 private:
    QoreFile f;
+   int64 timeout;
 };
 
 #endif // _QORE_FILEINPUTSTREAM_H

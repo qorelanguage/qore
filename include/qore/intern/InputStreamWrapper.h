@@ -51,17 +51,14 @@ public:
       self->evalMethodValue("close", 0, xsink);
    }
 
-   DLLLOCAL virtual int64 read(int64 timeout, ExceptionSink* xsink) /*override*/ {
-      ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
-      args->push(new QoreBigIntNode(timeout));
-      return self->evalMethodValue("read", *args, xsink).getAsBigInt();
+   DLLLOCAL virtual int64 read(ExceptionSink* xsink) /*override*/ {
+      return self->evalMethodValue("read", 0, xsink).getAsBigInt();
    }
 
-   DLLLOCAL virtual int64 bulkRead(void *ptr, int64 limit, int64 timeout, ExceptionSink *xsink) /*override*/ {
+   DLLLOCAL virtual int64 bulkRead(void *ptr, int64 limit, ExceptionSink *xsink) /*override*/ {
       assert(limit > 0);
       ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
       args->push(new QoreBigIntNode(limit));
-      args->push(new QoreBigIntNode(timeout));
       ValueHolder bufHolder(self->evalMethodValue("bulkRead", *args, xsink), xsink);
       if (!bufHolder) {
          return 0;

@@ -69,7 +69,6 @@ nothing EncodingConversionInputStream::close() {
 
 //! Reads a single byte from the input stream; returns -1 if the end of the stream has been reached
 /**
-    @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates "relative date/time value"; integer arguments will be assumed to be milliseconds); if not given or negative the call will never time out
     @return the next byte (0 - 255) in the input stream or -1 if the end of the stream has been reached
 
     @par Example:
@@ -82,15 +81,14 @@ nothing EncodingConversionInputStream::close() {
 
     @throw ENCODING-CONVERSION-ERROR if an invalid multibyte sequence is encountered in the input
  */
-int EncodingConversionInputStream::read(timeout timeout_ms = -1) {
-   return is->readHelper(timeout_ms, xsink);
+int EncodingConversionInputStream::read() {
+   return is->readHelper(xsink);
 }
 
 //! Reads bytes (up to a specified limit) from the input stream; returns \ref NOTHING if there are no more bytes in the stream
 /**
 
     @param limit the maximum number of bytes to read
-    @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates "relative date/time value"; integer arguments will be assumed to be milliseconds); if not given or negative the call will never time out
     @return the read bytes (the length is between 1 and `limit` inclusive) or \ref NOTHING if no more bytes are available
 
     @par Example:
@@ -104,6 +102,6 @@ int EncodingConversionInputStream::read(timeout timeout_ms = -1) {
 
     @throw ENCODING-CONVERSION-ERROR if an invalid multibyte sequence is encountered in the input
  */
-*binary EncodingConversionInputStream::bulkRead(int limit, timeout timeout_ms = -1) {
-   return is->bulkReadHelper(limit, timeout_ms, xsink);
+*binary EncodingConversionInputStream::bulkRead(int limit) {
+   return is->bulkReadHelper(limit, xsink);
 }

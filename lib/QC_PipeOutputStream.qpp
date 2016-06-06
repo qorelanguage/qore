@@ -55,13 +55,13 @@ nothing PipeOutputStream::close() {
 //! Writes a single byte to the output stream
 /**
  */
-nothing PipeOutputStream::write(int value, timeout timeout_ms = -1) {
-   os->write(value, timeout_ms, xsink);
+nothing PipeOutputStream::write(int value) {
+   os->write(value, xsink);
 }
 
 //! Writes bytes to the input stream
 /**
  */
-nothing PipeOutputStream::bulkWrite(binary data, timeout timeout_ms = -1) {
-   os->bulkWrite(data->getPtr(), data->size(), timeout_ms, xsink);
+nothing PipeOutputStream::bulkWrite(binary data) {
+   os->bulkWrite(data->getPtr(), data->size(), xsink);
 }

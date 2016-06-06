@@ -61,7 +61,7 @@ public:
       }
    }
 
-   DLLLOCAL void write(int64 value, int64 timeout, ExceptionSink* xsink) /*override*/ {
+   DLLLOCAL void write(int64 value, ExceptionSink* xsink) /*override*/ {
       assert(!isClosed());
       uint8_t v = value;
       if (f.write(&v, 1, xsink) != 1) {
@@ -69,7 +69,7 @@ public:
       }
    }
 
-   DLLLOCAL void bulkWrite(const void *ptr, int64 count, int64 timeout, ExceptionSink *xsink) /*override*/ {
+   DLLLOCAL void bulkWrite(const void *ptr, int64 count, ExceptionSink *xsink) /*override*/ {
       assert(!isClosed());
       assert(count >= 0);
       if (f.write(ptr, count, xsink) != count) {

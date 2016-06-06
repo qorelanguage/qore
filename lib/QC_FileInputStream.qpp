@@ -47,9 +47,12 @@ qclass FileInputStream [arg=FileInputStream* is; ns=Qore; vparent=InputStream; f
 //! Creates the FileInputStream by opening a file
 /**
     @param fileName the name of the file to open
+    @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates
+           "relative date/time value"; integer arguments will be assumed to be milliseconds);
+           if not given or negative the operations will never time out
  */
-FileInputStream::constructor(string fileName) {
-   SimpleRefHolder<FileInputStream> fis(new FileInputStream(fileName, xsink));
+FileInputStream::constructor(string fileName, timeout timeout_ms = -1) {
+   SimpleRefHolder<FileInputStream> fis(new FileInputStream(fileName, timeout_ms, xsink));
    self->setPrivate(CID_FILEINPUTSTREAM, fis.release());
 }
 
@@ -64,7 +67,6 @@ nothing FileInputStream::close() {
 
 //! Reads a single byte from the input stream; returns -1 if the end of the stream has been reached
 /**
-    @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates "relative date/time value"; integer arguments will be assumed to be milliseconds); if not given or negative the call will never time out
     @return the next byte (0 - 255) in the input stream or -1 if the end of the stream has been reached
 
     @par Example:
@@ -76,17 +78,16 @@ nothing FileInputStream::close() {
     @endcode
 
     @throw FILE-READ-ERROR if an I/O error occurs
-    @throw FILE-READ-TIMEOUT-ERROR if no byte could be read in the specified timeout
+    @throw FILE-READ-TIMEOUT-ERROR if no byte could be read in the timeout specified in the constructor
  */
-int FileInputStream::read(timeout timeout_ms = -1) {
-   return is->readHelper(timeout_ms, xsink);
+int FileInputStream::read() {
+   return is->readHelper(xsink);
 }
 
 //! Reads bytes (up to a specified limit) from the input stream; returns \ref NOTHING if there are no more bytes in the stream
 /**
 
     @param limit the maximum number of bytes to read
-    @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates "relative date/time value"; integer arguments will be assumed to be milliseconds); if not given or negative the call will never time out
     @return the read bytes (the length is between 1 and `limit` inclusive) or \ref NOTHING if no more bytes are available
 
     @par Example:
@@ -99,8 +100,8 @@ int FileInputStream::read(timeout timeout_ms = -1) {
     @endcode
 
     @throw FILE-READ-ERROR if an I/O error occurs
-    @throw FILE-READ-TIMEOUT-ERROR if no byte could be read in the specified timeout
+    @throw FILE-READ-TIMEOUT-ERROR if no byte could be read in the timeout specified in the constructor
  */
-*binary FileInputStream::bulkRead(int limit, timeout timeout_ms = -1) {
-   return is->bulkReadHelper(limit, timeout_ms, xsink);
+*binary FileInputStream::bulkRead(int limit) {
+   return is->bulkReadHelper(limit, xsink);
 }

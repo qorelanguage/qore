@@ -54,23 +54,17 @@ public:
    /**
     * @brief Writes a single byte to the output stream.
     * @param value the byte to write
-    * @param timeout timeout in milliseconds, &lt; 0 blocks indefinitely, == 0 does not block
     * @param xsink the exception sink
-    * @throws IO-ERROR if an I/O error occurs
-    * @throws TIMEOUT-ERROR if the byte could not be written in the specified timeout
     */
-   DLLLOCAL virtual void write(int64 value, int64 timeout, ExceptionSink* xsink) = 0;
+   DLLLOCAL virtual void write(int64 value, ExceptionSink* xsink) = 0;
 
    /**
     * @brief Writes bytes to the output stream.
     * @param ptr the source buffer to write to the stream
     * @param count the number of bytes to write, must be &gt;= 0
-    * @param timeout timeout in milliseconds, &lt; 0 blocks indefinitely, == 0 does not block
     * @param xsink the exception sink
-    * @throws IO-ERROR if an I/O error occurs
-    * @throws TIMEOUT-ERROR if the bytes could not be written in the specified timeout
     */
-   DLLLOCAL virtual void bulkWrite(const void *ptr, int64 count, int64 timeout, ExceptionSink *xsink) = 0;
+   DLLLOCAL virtual void bulkWrite(const void *ptr, int64 count, ExceptionSink *xsink) = 0;
 
 protected:
    /**

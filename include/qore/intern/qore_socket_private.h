@@ -2446,7 +2446,7 @@ struct qore_socket_private {
             }
 
             if (os) {
-               os->bulkWrite(buf, rc, timeout, xsink);
+               os->bulkWrite(buf, rc, xsink);
                if (*xsink) {
                   return 0;
                }

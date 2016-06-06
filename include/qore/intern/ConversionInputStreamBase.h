@@ -55,9 +55,9 @@ public:
       is = 0;
    }
 
-   DLLLOCAL int64 read(int64 timeout, ExceptionSink* xsink) /*override*/ {
+   DLLLOCAL int64 read(ExceptionSink* xsink) /*override*/ {
       assert(!isClosed());
-      if (!fillOutput(1, timeout, xsink)) {
+      if (!fillOutput(1, xsink)) {
          //exception raised
          return -1;
       }
@@ -69,10 +69,10 @@ public:
       return *outBuf.ptr++ & 0xFF;
    }
 
-   DLLLOCAL int64 bulkRead(void *ptr, int64 limit, int64 timeout, ExceptionSink *xsink) /*override*/ {
+   DLLLOCAL int64 bulkRead(void *ptr, int64 limit, ExceptionSink *xsink) /*override*/ {
       assert(!isClosed());
       assert(limit > 0);
-      if (!fillOutput(limit, timeout, xsink)) {
+      if (!fillOutput(limit, xsink)) {
          //exception raised
          return -1;
       }
@@ -113,12 +113,12 @@ protected:
    DLLLOCAL virtual bool performConversion(size_t outAvail, ExceptionSink *xsink) = 0;
 
 private:
-   bool fillInput(int64 timeout, ExceptionSink *xsink) {
+   bool fillInput(ExceptionSink *xsink) {
       size_t inAvail;
       if (eofReached || (inAvail = inBuf.compact()) == 0) {
          return true;
       }
-      int64 readCount = is->bulkRead(inBuf.getWritePtr(), inAvail, timeout, xsink);
+      int64 readCount = is->bulkRead(inBuf.getWritePtr(), inAvail, xsink);
       if (*xsink) {
          return false;
       }
@@ -130,12 +130,12 @@ private:
       return true;
    }
 
-   DLLLOCAL bool fillOutput(size_t cnt, int64 timeout, ExceptionSink *xsink) {
+   DLLLOCAL bool fillOutput(size_t cnt, ExceptionSink *xsink) {
       if (outBuf.count >= cnt) {
          return true;
       }
       do {
-         if (!fillInput(timeout, xsink)) {
+         if (!fillInput(xsink)) {
             return false;
          }
          size_t outAvail = outBuf.compact();

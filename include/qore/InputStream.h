@@ -53,25 +53,19 @@ public:
 
    /**
     * @brief Reads a single byte from the input stream.
-    * @param timeout timeout in milliseconds, &lt; 0 blocks indefinitely, == 0 does not block
     * @param xsink the exception sink
     * @return the byte (0-255) read or -1 if the end of the stream has been reached
-    * @throws IO-ERROR if an I/O error occurs
-    * @throws TIMEOUT-ERROR if no bytes were read in the specified timeout
     */
-   DLLLOCAL virtual int64 read(int64 timeout, ExceptionSink* xsink) = 0;
+   DLLLOCAL virtual int64 read(ExceptionSink* xsink) = 0;
 
    /**
     * @brief Reads up to `limit` bytes from the input stream.
     * @param ptr the destination buffer to read data into
     * @param limit the maximum number of bytes to read, must be &gt; 0
-    * @param timeout timeout in milliseconds, &lt; 0 blocks indefinitely, == 0 does not block
     * @param xsink the exception sink
     * @return the number of bytes read, 0 indicates the end of the stream
-    * @throws IO-ERROR if an I/O error occurs
-    * @throws TIMEOUT-ERROR if no bytes were read in the specified timeout
     */
-   DLLLOCAL virtual int64 bulkRead(void *ptr, int64 limit, int64 timeout, ExceptionSink *xsink) = 0;
+   DLLLOCAL virtual int64 bulkRead(void *ptr, int64 limit, ExceptionSink *xsink) = 0;
 
 protected:
    /**

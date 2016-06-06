@@ -56,28 +56,26 @@ public:
     * @brief Helper method that checks that the current thread is the same as when the instance was created,
     * that the stream has not yet been closed and calls write().
     * @param value the byte to write
-    * @param timeout the timeout
     * @param xsink the exception sink
     */
-   DLLLOCAL void writeHelper(int64 value, int64 timeout, ExceptionSink *xsink) {
+   DLLLOCAL void writeHelper(int64 value, ExceptionSink *xsink) {
       if (!check(xsink)) {
          return;
       }
-      write(value, timeout, xsink);
+      write(value, xsink);
    }
 
    /**
     * @brief Helper method that checks that the current thread is the same as when the instance was created,
     * that the stream has not yet been closed and calls bulkWrite().
     * @param data the data to write
-    * @param timeout the timeout
     * @param xsink the exception sink
     */
-   DLLLOCAL void bulkWriteHelper(const BinaryNode *data, int64 timeout, ExceptionSink *xsink) {
+   DLLLOCAL void bulkWriteHelper(const BinaryNode *data, ExceptionSink *xsink) {
       if (!check(xsink)) {
          return;
       }
-      bulkWrite(data->getPtr(), data->size(), timeout, xsink);
+      bulkWrite(data->getPtr(), data->size(), xsink);
    }
 
    /**

@@ -65,7 +65,6 @@ nothing BinaryOutputStream::close() {
 /**
     @param value the byte (0 - 255) to write to the output stream, only the least significant 8 bits are used,
            the rest is ignored
-    @param timeout_ms ignored
 
     @par Example:
     @code{.py}
@@ -76,14 +75,13 @@ nothing BinaryOutputStream::close() {
     bos.getData();      # returns <040506>
     @endcode
  */
-nothing BinaryOutputStream::write(int value, timeout timeout_ms = -1) {
-   os->writeHelper(value, timeout_ms, xsink);
+nothing BinaryOutputStream::write(int value) {
+   os->writeHelper(value, xsink);
 }
 
 //! Writes bytes to the input stream
 /**
     @param data the data to write
-    @param timeout_ms ignored
 
     @par Example:
     @code{.py}
@@ -93,8 +91,8 @@ nothing BinaryOutputStream::write(int value, timeout timeout_ms = -1) {
     bos.getData();      # returns <040506>
     @endcode
  */
-nothing BinaryOutputStream::bulkWrite(binary data, timeout timeout_ms = -1) {
-   os->bulkWriteHelper(data, timeout_ms, xsink);
+nothing BinaryOutputStream::bulkWrite(binary data) {
+   os->bulkWriteHelper(data, xsink);
 }
 
 //! Returns the data written to the stream, clearing the internal buffer
