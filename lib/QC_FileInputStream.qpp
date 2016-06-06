@@ -32,7 +32,7 @@
 #include "qore/intern/FileInputStream.h"
 
 //! This class implements the @ref InputStream interface for reading bytes from a file
-/** @since %Qore 0.8.12
+/** @since %Qore 0.8.13
 
     @par Example: FileInputStream basic usage
     @code{.py}

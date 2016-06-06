@@ -387,6 +387,7 @@ ftp.get("file.txt", new FileOutputStream("/tmp/file-1.txt"));
     @note see FtpClient::connect() for additional exceptions that could be thrown when connections are implicitly established
 
     @see FtpClient::getAsString(), FtpClient::getAsData()
+    @since %Qore 0.8.13
  */
 nothing FtpClient::get(string remote_path, Qore::OutputStream[OutputStream] os) {
    SimpleRefHolder<OutputStream> osHolder(os);

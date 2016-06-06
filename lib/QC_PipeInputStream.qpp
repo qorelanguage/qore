@@ -32,7 +32,7 @@
 #include "qore/intern/StreamPipe.h"
 
 //! This class is not intended to be used directly, please see @ref StreamPipe
-/** @since %Qore 0.8.12
+/** @since %Qore 0.8.13
 
     @see StreamPipe
  */

@@ -502,7 +502,7 @@ httpclient.sendWithOutputStream(rcv_callback, outputStream, data, "POST", "/path
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
 
-    @since Qore 0.8.12
+    @since %Qore 0.8.13
  */
 nothing HTTPClient::sendWithOutputStream(code rcb, Qore::OutputStream[OutputStream] os, *binary body, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info) {
    OptHashRefHelper ohrh(info, xsink);

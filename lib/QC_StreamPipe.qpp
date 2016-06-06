@@ -41,7 +41,7 @@ DLLEXPORT extern QoreClass* QC_PIPEOUTPUTSTREAM;
     output stream are blocked if the buffer is full. The input stream reports the end of the stream once the output
     stream is closed using @ref OutputStream::close() and all remaining data are read from the buffer.
 
-    @since %Qore 0.8.12
+    @since %Qore 0.8.13
  */
 qclass StreamPipe [arg=StreamPipe* pipe; ns=Qore; flags=final; private_members=OutputStream os,InputStream is];
 

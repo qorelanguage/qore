@@ -34,7 +34,7 @@
 //! This class defines an abstract interface for output streams
 /** Classes inheriting this class can be used to write bytes to files, sockets, memory etc.
 
-    @since %Qore 0.8.12
+    @since %Qore 0.8.13
  */
 qclass OutputStream [arg=OutputStream* is; ns=Qore];
 

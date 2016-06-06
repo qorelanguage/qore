@@ -34,7 +34,7 @@
 //! This class defines an abstract interface for input streams
 /** Classes inheriting this class can be used to read bytes from various sources.
 
-    @since %Qore 0.8.12
+    @since %Qore 0.8.13
  */
 qclass InputStream [arg=InputStream* is; ns=Qore];
 

@@ -32,7 +32,7 @@
 #include "qore/intern/FileOutputStream.h"
 
 //! This class implements the @ref OutputStream interface for writing bytes to a file
-/** @since %Qore 0.8.12
+/** @since %Qore 0.8.13
 
     @par Example: FileOutputStream basic usage
     @code{.py}
