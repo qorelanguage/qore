@@ -1994,6 +1994,33 @@ hash Socket::readHTTPChunkedBodyBinary(timeout timeout_ms = -1) {
    return s->readHTTPChunkedBodyBinary(timeout_ms, xsink);
 }
 
+//! Reads in an HTTP message body sent in chunked transfer encoding, writes it in an @ref OutputStream and returns any footers received
+/** If any errors are encountered, an exception is raised
+
+    @par Example:
+    @code{.py}
+hash ans = sock.readHTTPChunkedBodyBinaryToOutputStream(outputStream, 20s);
+    @endcode
+
+    @par Events:
+    @ref EVENT_HTTP_CHUNK_SIZE, @ref EVENT_HTTP_FOOTERS_RECEIVED
+
+    @param os The output stream to write the response body to
+    @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+
+    @return a hash of any HTTP footers received (with footer keys converted to lower case)
+
+    @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-CLOSED The remote end has closed the connection
+    @throw SOCKET-RECV-ERROR There was an error receiving the data
+    @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
+    @throw READ-HTTP-CHUNK-ERROR negative value given for chunk size by server
+ */
+hash Socket::readHTTPChunkedBodyToOutputStream(Qore::OutputStream[OutputStream] os, timeout timeout_ms = -1) {
+   return s->readHTTPChunkedBodyToOutputStream(os, timeout_ms, xsink);
+}
+
 //! Reads in an HTTP message body sent in chunked transfer encoding and returns it with any footers received as a string in the \c "body" key of a hash (including footers received)
 /** If any errors are encountered, an exception is raised
 

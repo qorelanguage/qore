@@ -321,6 +321,12 @@ QoreHashNode* QoreSocketObject::readHTTPChunkedBodyBinary(int timeout_ms, Except
    return priv->socket->readHTTPChunkedBodyBinary(timeout_ms, xsink);
 }
 
+// receive a binary message in HTTP chunked format
+QoreHashNode* QoreSocketObject::readHTTPChunkedBodyToOutputStream(OutputStream *os, int timeout_ms, ExceptionSink* xsink) {
+   AutoLocker al(priv->m);
+   return priv->socket->readHTTPChunkedBodyBinaryToOutputStream(os, timeout_ms, xsink);
+}
+
 // receive a string message in HTTP chunked format
 QoreHashNode* QoreSocketObject::readHTTPChunkedBody(int timeout_ms, ExceptionSink* xsink) {
    AutoLocker al(priv->m);
