@@ -215,6 +215,11 @@ BinaryNode* QoreSocketObject::recvBinary(int bufsize, int timeout_ms, ExceptionS
    return priv->socket->recvBinary(bufsize, timeout_ms, xsink);
 }
 
+void QoreSocketObject::recvToOutputStream(OutputStream *os, int64 size, int64 timeout_ms, ExceptionSink *xsink) {
+   AutoLocker al(priv->m);
+   priv->socket->priv->recvToOutputStream(os, size, timeout_ms, xsink, &priv->m);
+}
+
 // receive and write data to a file descriptor
 int QoreSocketObject::recv(int fd, int size, int timeout_ms) {
    AutoLocker al(priv->m);

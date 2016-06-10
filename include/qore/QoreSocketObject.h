@@ -114,6 +114,9 @@ public:
    DLLEXPORT BinaryNode* recvBinary(int bufsize, int timeout, ExceptionSink* xsink);
    // receive a packet of bytes as a binary object
    DLLEXPORT BinaryNode* recvBinary(int timeout, ExceptionSink* xsink);
+   // receive a certain number of bytes and write them to an OutputStream
+   DLLEXPORT void recvToOutputStream(OutputStream *os, int64 size, int64 timeout_ms, ExceptionSink *xsink);
+
    // receive and write data to a file descriptor
    DLLEXPORT int recv(int fd, int size, int timeout);
    // receive integers and convert from network byte order

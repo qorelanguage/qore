@@ -1876,6 +1876,54 @@ struct qore_socket_private {
       return b.release();
    }
 
+   DLLLOCAL void recvToOutputStream(OutputStream *os, int64 size, int64 timeout, ExceptionSink *xsink, QoreThreadLock* l) {
+      if (sock == QORE_INVALID_SOCKET) {
+         se_not_open("Socket", "recvToOutputStream", xsink);
+         return;
+      }
+      if (in_op >= 0) {
+         if (in_op == gettid()) {
+            se_in_op("Socket", "recvToOutputStream", xsink);
+            return;
+         }
+         se_in_op_thread("Socket", "recvToOutputStream", xsink);
+         return;
+      }
+
+      qore_socket_op_helper oh(this);
+
+      char* buf;
+      qore_offset_t br = 0;
+      while (size < 0 || br < size) {
+         // calculate bytes needed
+         int bn = size == -1 ? DEFAULT_SOCKET_BUFSIZE : QORE_MIN(size - br, DEFAULT_SOCKET_BUFSIZE);
+
+         qore_offset_t rc = brecv(xsink, "recvToOutputStream", buf, bn, 0, timeout);
+         if (rc < 0) {
+            //error - already reported in xsink
+            return;
+         }
+         if (rc == 0) {
+            //eof
+            if (size < 0) {
+               return;
+            }
+            //not all size bytes were read
+            xsink->raiseException("SOCKET-RECV-ERROR", "Unexpected end of stream");
+            return;
+         }
+
+         // write buffer to the stream
+         AutoUnlocker al(l);
+         os->bulkWrite(buf, rc, xsink);
+         if (*xsink) {
+            return;
+         }
+
+         br += rc;
+      }
+   }
+
    DLLLOCAL QoreStringNode* readHTTPHeaderString(ExceptionSink* xsink, int timeout, int source) {
       qore_offset_t rc;
       QoreStringNodeHolder hdr(readHTTPData(xsink, "readHTTPHeaderString", timeout, rc));

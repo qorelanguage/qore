@@ -1240,7 +1240,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
       }
       else if (getbody || len) {
          if (os) {
-            msock->socket->recv(os, len, timeout_ms, xsink);
+            msock->socket->priv->recvToOutputStream(os, len, timeout_ms, xsink, &msock->m);
          } else if (content_encoding) {
 	    SimpleRefHolder<BinaryNode> bobj(msock->socket->recvBinary(len, timeout_ms, xsink));
 	    if (!(*xsink) && bobj)

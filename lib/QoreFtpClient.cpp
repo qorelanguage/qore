@@ -1074,11 +1074,10 @@ int QoreFtpClient::get(const char* remotepath, OutputStream *os, ExceptionSink* 
       return -1;
    }
 
-   int rc = priv->data.recv(os, -1, -1, xsink);
+   priv->data.priv->recvToOutputStream(os, -1, -1, xsink, &priv->m);
    priv->data.close();
 
-   if (rc < 0) {
-      xsink->raiseException("FTP-GET-ERROR", "Error receiving data from FTP server");
+   if (*xsink) {
       return -1;
    }
 

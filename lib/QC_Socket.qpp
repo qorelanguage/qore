@@ -1311,6 +1311,32 @@ binary Socket::recvBinary(softint size = 0, timeout timeout_ms = -1) {
    return size > 0 ? s->recvBinary(size, timeout_ms, xsink) : s->recvBinary(timeout_ms, xsink);
 }
 
+//! Receives data from the socket and writes the bytes to an @ref OutputStream
+/** If any errors occur reading from the socket, an exception is raised
+
+    @par Example:
+    @code{.py}
+sock.recvToOutputStream(os, -1); # read all data available
+    @endcode
+
+    @par Events:
+    @ref EVENT_PACKET_READ
+
+    @param size the amount of data to read in bytes; to read until the remote closes the connection, use -1
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-CLOSED the remote end has closed the connection.
+    @throw SOCKET-RECV-ERROR there was an error receiving the data.
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR there was an SSL error while reading data from the socket
+
+    @see Socket::recv()
+ */
+nothing Socket::recvToOutputStream(Qore::OutputStream[OutputStream] os, softint size = -1, timeout timeout_ms = -1) {
+   s->recvToOutputStream(os, size, timeout_ms, xsink);
+}
+
 //! Receives a 1-byte signed integer from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
