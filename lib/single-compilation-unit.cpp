@@ -250,6 +250,7 @@
 #include "QC_ObjectKeyReverseIterator.cpp"
 #include "QC_ObjectPairIterator.cpp"
 #include "QC_ObjectPairReverseIterator.cpp"
+#include "QC_AbstractLineIterator.cpp"
 #include "QC_FileLineIterator.cpp"
 #include "QC_DataLineIterator.cpp"
 #include "QC_SingleValueIterator.cpp"

@@ -61,6 +61,7 @@ DLLEXPORT extern qore_classid_t CID_SOCKET;
 DLLEXPORT extern qore_classid_t CID_TERMIOS;
 DLLEXPORT extern qore_classid_t CID_INPUTSTREAM;
 DLLEXPORT extern qore_classid_t CID_OUTPUTSTREAM;
+DLLEXPORT extern qore_classid_t CID_ABSTRACTLINEITERATOR;
 
 DLLEXPORT extern QoreClass* QC_QUEUE;
 DLLEXPORT extern QoreClass* QC_HTTPCLIENT;

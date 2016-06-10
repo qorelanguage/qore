@@ -163,7 +163,7 @@ public:
 
     @see @ref Qore::DataLineIterator
  */
-qclass FileLineIterator [arg=FileLineIterator* i; ns=Qore; vparent=AbstractIterator; dom=FILESYSTEM];
+qclass FileLineIterator [arg=FileLineIterator* i; ns=Qore; vparent=AbstractLineIterator; dom=FILESYSTEM];
 
 //! opens the given file for reading with the given options and creates the FileLineIterator object
 /** @param path the path to open for reading
