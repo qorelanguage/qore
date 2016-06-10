@@ -1416,17 +1416,6 @@ public:
    */
    DLLEXPORT QoreHashNode* readHTTPChunkedBodyBinary(int timeout_ms, ExceptionSink* xsink, int source = QORE_SOURCE_SOCKET);
 
-   //! receive a binary message in HTTP chunked transfer encoding, caller owns QoreHashNode reference count returned
-   /** The socket must be connected before this call is made.
-       The message body is written to the provided output stream, any footers read after the body are returned as a hash.
-       @param os th eoutput stream to write the response body to
-       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
-       @param xsink if an error occurs, the Qore-language exception information will be added here
-       @param source the event source code for socket events
-       @return the footers read after the body as other keys (0 if an error occurs)
-   */
-   DLLEXPORT QoreHashNode* readHTTPChunkedBodyBinaryToOutputStream(OutputStream *os, int timeout_ms, ExceptionSink* xsink, int source = QORE_SOURCE_SOCKET);
-
    //! receive a string message in HTTP chunked transfer encoding, caller owns QoreHashNode reference count returned
    /** The socket must be connected before this call is made.
        The message body is returned as a QoreStringNode in the "body" key, any footers read after the body

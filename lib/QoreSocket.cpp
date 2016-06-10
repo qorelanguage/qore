@@ -1481,11 +1481,6 @@ QoreHashNode* QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink* 
 }
 
 // receive a message in HTTP chunked format
-QoreHashNode* QoreSocket::readHTTPChunkedBodyBinaryToOutputStream(OutputStream *os, int timeout, ExceptionSink* xsink, int source) {
-   return priv->readHttpChunkedBodyBinary(timeout, xsink, "Socket", source, 0, 0, 0, os);
-}
-
-// receive a message in HTTP chunked format
 QoreHashNode* QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink* xsink, int source) {
    return priv->readHttpChunkedBody(timeout, xsink, "Socket", source);
 }

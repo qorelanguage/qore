@@ -2446,6 +2446,7 @@ struct qore_socket_private {
             }
 
             if (os) {
+               AutoUnlocker al(l);
                os->bulkWrite(buf, rc, xsink);
                if (*xsink) {
                   return 0;
