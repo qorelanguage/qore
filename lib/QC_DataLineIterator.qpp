@@ -312,7 +312,7 @@ line 3 = "aaa_base-11.3-7.2.x86_64"
 
     @see @ref Qore::FileLineIterator
  */
-qclass DataLineIterator [arg=DataLineIterator* i; ns=Qore; vparent=AbstractIterator];
+qclass DataLineIterator [arg=DataLineIterator* i; ns=Qore; vparent=AbstractLineIterator];
 
 //! creates the DataLineIterator based on the string given
 /** @param string the string to iterate over; note that if this string is in a non-ascii-compatible character encoding, it will be converted to UTF-8 for processing in the constructor and the UTF-8 version of the string will be used for iterating in this object

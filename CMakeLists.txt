@@ -103,11 +103,12 @@ set(LIBQORE_QPP_SRC
 	lib/QC_HashListReverseIterator.qpp
 	lib/QC_ListHashIterator.qpp
 	lib/QC_ListHashReverseIterator.qpp
+	lib/QC_AbstractLineIterator.qpp
 	lib/QC_FileLineIterator.qpp
+	lib/QC_DataLineIterator.qpp
 	lib/QC_SingleValueIterator.qpp
 	lib/QC_AbstractDatasource.qpp
 	lib/QC_RangeIterator.qpp
-	lib/QC_DataLineIterator.qpp
 	lib/QC_Datasource.qpp
 	lib/QC_DatasourcePool.qpp
 	lib/QC_Dir.qpp
@@ -514,6 +515,7 @@ set(LIBQORE_CPP_SRC
         ${CMAKE_CURRENT_BINARY_DIR}/QC_ObjectKeyReverseIterator.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_ObjectPairIterator.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_ObjectPairReverseIterator.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_AbstractLineIterator.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_FileLineIterator.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_DataLineIterator.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_SingleValueIterator.cpp
