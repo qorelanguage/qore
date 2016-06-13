@@ -1334,6 +1334,7 @@ sock.recvToOutputStream(os, -1); # read all data available
     @see Socket::recv()
  */
 nothing Socket::recvToOutputStream(Qore::OutputStream[OutputStream] os, softint size = -1, timeout timeout_ms = -1) {
+   SimpleRefHolder<OutputStream> osHolder(os);
    s->recvToOutputStream(os, size, timeout_ms, xsink);
 }
 
@@ -2044,6 +2045,7 @@ hash ans = sock.readHTTPChunkedBodyBinaryToOutputStream(outputStream, 20s);
     @throw READ-HTTP-CHUNK-ERROR negative value given for chunk size by server
  */
 hash Socket::readHTTPChunkedBodyToOutputStream(Qore::OutputStream[OutputStream] os, timeout timeout_ms = -1) {
+   SimpleRefHolder<OutputStream> osHolder(os);
    return s->readHTTPChunkedBodyToOutputStream(os, timeout_ms, xsink);
 }
 

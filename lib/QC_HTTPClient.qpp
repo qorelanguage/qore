@@ -505,6 +505,7 @@ httpclient.sendWithOutputStream(rcv_callback, outputStream, data, "POST", "/path
     @since %Qore 0.8.13
  */
 nothing HTTPClient::sendWithOutputStream(code rcb, Qore::OutputStream[OutputStream] os, *binary body, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info) {
+   SimpleRefHolder<OutputStream> osHolder(os);
    OptHashRefHelper ohrh(info, xsink);
    client->sendWithOutputStream(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, body ? body->getPtr() : 0, body ? body->size() : 0, getbody, *ohrh, timeout_ms, rcb, self, os, xsink);
 }
