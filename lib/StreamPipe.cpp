@@ -153,7 +153,7 @@ void PipeOutputStream::bulkWrite(const void *ptr, int64 toWrite, ExceptionSink *
    const uint8_t *src = static_cast<const uint8_t *>(ptr);
    while (toWrite > 0) {
       if (pipe->outputClosed) {
-         xsink->raiseException("OUTPUT-STREAM-CLOSED-ERROR", "this PipeInputStream object has been already closed");
+         xsink->raiseException("OUTPUT-STREAM-CLOSED-ERROR", "this PipeOutputStream object has been already closed");
          return;
       }
       if (pipe->broken) {

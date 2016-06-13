@@ -149,6 +149,11 @@ int QoreSocketObject::send(const BinaryNode* b) {
    return priv->socket->send(b);
 }
 
+void QoreSocketObject::sendFromInputStream(InputStream *is, int64 size, int64 timeout_ms, ExceptionSink *xsink) {
+   AutoLocker al(priv->m);
+   priv->socket->priv->sendFromInputStream(is, size, timeout_ms, xsink, &priv->m);
+}
+
 // send from a file descriptor
 int QoreSocketObject::send(int fd, int size) {
    AutoLocker al(priv->m);

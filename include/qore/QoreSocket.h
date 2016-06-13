@@ -38,6 +38,7 @@
 #define _QORE_QORESOCKET_H
 
 #include <qore/Qore.h>
+#include <qore/InputStream.h>
 #include <qore/OutputStream.h>
 
 #include <sys/types.h>

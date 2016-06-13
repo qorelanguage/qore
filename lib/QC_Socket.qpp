@@ -1057,6 +1057,32 @@ nothing Socket::sendBinary2(binary bin, timeout timeout_ms = -1) {
    s->send(bin, timeout_ms, xsink);
 }
 
+//! Reads data from an @ref InputStream and sends the bytes over the socket
+/** If any errors occur writing to the socket, an exception is raised
+
+    @par Example:
+    @code{.py}
+sock.sendFromInputStream(is, -1); # write all data available
+    @endcode
+
+    @par Events:
+    @ref EVENT_PACKET_SENT
+
+    @param size the amount of data to send in bytes; to send all data available in the InputStream, use -1
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+
+    @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
+    @throw SOCKET-SEND-ERROR an error occurred sending the socket data
+    @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
+
+    @since %Qore 0.8.13
+ */
+nothing Socket::sendFromInputStream(Qore::InputStream[InputStream] is, softint size = -1, timeout timeout_ms = -1) {
+   SimpleRefHolder<InputStream> isHolder(is);
+   s->sendFromInputStream(is, size, timeout_ms, xsink);
+}
+
 //! Sends a 1-byte integer over the socket
 /** If any errors occur, an exception is thrown
 
@@ -1332,6 +1358,7 @@ sock.recvToOutputStream(os, -1); # read all data available
     @throw SOCKET-SSL-ERROR there was an SSL error while reading data from the socket
 
     @see Socket::recv()
+    @since %Qore 0.8.13
  */
 nothing Socket::recvToOutputStream(Qore::OutputStream[OutputStream] os, softint size = -1, timeout timeout_ms = -1) {
    SimpleRefHolder<OutputStream> osHolder(os);

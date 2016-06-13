@@ -400,6 +400,8 @@ struct qore_socket_private {
 	    const char* key = hi.getKey();
 	    if (addsize && !strcasecmp(key, "transfer-encoding"))
 	       addsize = false;
+            if (addsize && !strcasecmp(key, "content-length"))
+               addsize = false;
 	    if (v && v->getType() == NT_LIST) {
 	       ConstListIterator li(reinterpret_cast<const QoreListNode* >(v));
 	       while (li.next())
@@ -1896,7 +1898,7 @@ struct qore_socket_private {
       qore_offset_t br = 0;
       while (size < 0 || br < size) {
          // calculate bytes needed
-         int bn = size == -1 ? DEFAULT_SOCKET_BUFSIZE : QORE_MIN(size - br, DEFAULT_SOCKET_BUFSIZE);
+         int bn = size < 0 ? DEFAULT_SOCKET_BUFSIZE : QORE_MIN(size - br, DEFAULT_SOCKET_BUFSIZE);
 
          qore_offset_t rc = brecv(xsink, "recvToOutputStream", buf, bn, 0, timeout);
          if (rc < 0) {
@@ -1905,19 +1907,20 @@ struct qore_socket_private {
          }
          if (rc == 0) {
             //eof
-            if (size < 0) {
-               return;
+            if (size >= 0) {
+               //not all size bytes were read
+               xsink->raiseException("SOCKET-RECV-ERROR", "Unexpected end of stream");
             }
-            //not all size bytes were read
-            xsink->raiseException("SOCKET-RECV-ERROR", "Unexpected end of stream");
             return;
          }
 
          // write buffer to the stream
-         AutoUnlocker al(l);
-         os->bulkWrite(buf, rc, xsink);
-         if (*xsink) {
-            return;
+         {
+            AutoUnlocker al(l);
+            os->bulkWrite(buf, rc, xsink);
+            if (*xsink) {
+               return;
+            }
          }
 
          br += rc;
@@ -2337,6 +2340,63 @@ struct qore_socket_private {
       th.finalize(total);
 
       return rc < 0 || sock == QORE_INVALID_SOCKET ? rc : 0;
+   }
+
+   DLLLOCAL void sendFromInputStream(InputStream *is, int64 size, int64 timeout, ExceptionSink *xsink, QoreThreadLock* l) {
+      if (sock == QORE_INVALID_SOCKET) {
+         se_not_open("Socket", "sendFromInputStream", xsink);
+         return;
+      }
+      if (in_op >= 0) {
+         if (in_op == gettid()) {
+            se_in_op("Socket", "sendFromInputStream", xsink);
+            return;
+         }
+         se_in_op_thread("Socket", "sendFromInputStream", xsink);
+         return;
+      }
+
+      qore_socket_op_helper oh(this);
+
+      PrivateQoreSocketThroughputHelper th(this, true);
+
+      // set the non-blocking flag (for use with non-ssl connections)
+      bool nb = (timeout >= 0);
+      // set non-blocking I/O (and restore on exit) if we have a timeout and a non-ssl connection
+      OptionalNonBlockingHelper onbh(*this, !ssl && nb, xsink);
+      if (*xsink)
+         return;
+
+      char buf[DEFAULT_SOCKET_BUFSIZE];
+      int64 sent = 0;
+      int64 total = 0;
+      while (size < 0 || sent < size) {
+         int64 toRead = size < 0 ? DEFAULT_SOCKET_BUFSIZE : QORE_MIN(size - sent, DEFAULT_SOCKET_BUFSIZE);
+         int64 r;
+         {
+            AutoUnlocker al(l);
+            r = is->bulkRead(buf, toRead, xsink);
+            if (*xsink) {
+               return;
+            }
+         }
+         if (r == 0) {
+            //eof
+            if (size >= 0) {
+               //not all size bytes were sent
+               xsink->raiseException("SOCKET-SEND-ERROR", "Unexpected end of stream");
+               return;
+            }
+            break;
+         }
+         printf("SENDING %lu %02X\n", size, buf[0]);
+         qore_offset_t rc = sendIntern(xsink, "Socket", "sendFromInputStream", buf, r, timeout, total);
+         if (rc < 0) {
+            return;
+         }
+         sent += r;
+      }
+      th.finalize(total);
    }
 
    DLLLOCAL int sendHttpMessage(ExceptionSink* xsink, QoreHashNode* info, const char* cname, const char* mname, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, const ResolvedCallReferenceNode* send_callback, int source, int timeout_ms = -1, QoreThreadLock* l = 0, bool* aborted = 0) {

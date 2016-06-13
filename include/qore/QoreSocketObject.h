@@ -96,6 +96,9 @@ public:
    // send a binary object
    DLLEXPORT int send(const BinaryNode* b);
    DLLEXPORT int send(const BinaryNode* b, int timeout_ms, ExceptionSink* xsink);
+   // send a certain number of bytes (read from an InputStream)
+   DLLEXPORT void sendFromInputStream(InputStream *is, int64 size, int64 timeout_ms, ExceptionSink *xsink);
+
    // send from a file descriptor
    DLLEXPORT int send(int fd, int size = -1);
    // send bytes and convert to network order
