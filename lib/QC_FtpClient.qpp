@@ -323,6 +323,32 @@ nothing FtpClient::put(string local_path, *string remote_path) [dom=FILESYSTEM] 
    f->put(local_path->getBuffer(), remote_path ? remote_path->getBuffer() : 0, xsink);
 }
 
+//! Transfers the content of an @ref InputStream to the FTP server; if any errors occur, an exception is thrown
+/** @param is The intput stream to send to the FTP server
+    @param remote_path The name of the file on the server
+
+    @par Events:
+    @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
+
+    @par Example:
+    @code{.py}
+ftp.put(new FileInputStream("/tmp/file-1.txt"), "file.txt");
+    @endcode
+
+    @throw FTP-RECEIVE-ERROR Incomplete message received on control port
+    @throw FTP-FILE-OPEN-ERROR Could not open local file for reading
+    @throw FTP-FILE-PUT-ERROR Could not determine file size of local file (stat() failed)
+    @throw FTP-PUT-ERROR An error occurred while sending the file
+
+    @note see FtpClient::connect() for additional exceptions that could be thrown when connections are implicitly established
+
+    @see FtpClient::putData()
+ */
+nothing FtpClient::put(Qore::InputStream[InputStream] is, string remote_path) {
+   SimpleRefHolder<InputStream> isHolder(is);
+   f->put(is, remote_path->getBuffer(), xsink);
+}
+
 //! Renames/moves a file or directory; if any errors occur, an exception is thrown
 /** @param from The original file path on the server to rename/move
     @param to The new path on the server
