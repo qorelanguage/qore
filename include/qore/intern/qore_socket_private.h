@@ -2389,7 +2389,7 @@ struct qore_socket_private {
             }
             break;
          }
-         printf("SENDING %lu %02X\n", size, buf[0]);
+
          qore_offset_t rc = sendIntern(xsink, "Socket", "sendFromInputStream", buf, r, timeout, total);
          if (rc < 0) {
             return;
@@ -2397,6 +2397,97 @@ struct qore_socket_private {
          sent += r;
       }
       th.finalize(total);
+   }
+
+   DLLLOCAL void sendHttpChunkedBodyFromInputStream(InputStream *is, int timeout, ExceptionSink* xsink, QoreThreadLock *l) {
+      if (sock == QORE_INVALID_SOCKET) {
+         se_not_open("Socket", "sendHttpChunkedBodyFromInputStream", xsink);
+         return;
+      }
+      if (in_op >= 0) {
+         if (in_op == gettid()) {
+            se_in_op("Socket", "sendHttpChunkedBodyFromInputStream", xsink);
+            return;
+         }
+         se_in_op_thread("Socket", "sendHttpChunkedBodyFromInputStream", xsink);
+         return;
+      }
+
+      qore_socket_op_helper oh(this);
+
+      PrivateQoreSocketThroughputHelper th(this, true);
+
+      // set the non-blocking flag (for use with non-ssl connections)
+      bool nb = (timeout >= 0);
+      // set non-blocking I/O (and restore on exit) if we have a timeout and a non-ssl connection
+      OptionalNonBlockingHelper onbh(*this, !ssl && nb, xsink);
+      if (*xsink)
+         return;
+
+      char buf[DEFAULT_SOCKET_BUFSIZE];
+      int64 total = 0;
+      while (true) {
+         int64 r;
+         {
+            AutoUnlocker al(l);
+            r = is->bulkRead(buf, sizeof(buf), xsink);
+            if (*xsink) {
+               return;
+            }
+         }
+
+         QoreString str;
+         str.sprintf("%x\r\n", (int) r);
+         if (r > 0) {
+            str.concat(buf, r);
+            str.concat("\r\n");
+         }
+
+         int rc = sendIntern(xsink, "Socket", "sendHttpChunkedBodyFromInputStream", str.getBuffer(), str.size(), timeout, total, true);
+         if (rc < 0) {
+            return;
+         }
+
+         if (r == 0) {
+            //eof
+            break;
+         }
+      }
+      th.finalize(total);
+   }
+
+   DLLLOCAL void sendHttpChunkedBodyTrailer(const QoreHashNode *headers, int timeout, ExceptionSink* xsink) {
+      if (sock == QORE_INVALID_SOCKET) {
+         se_not_open("Socket", "sendHttpChunkedBodyTrailer", xsink);
+         return;
+      }
+      if (in_op >= 0) {
+         if (in_op == gettid()) {
+            se_in_op("Socket", "sendHttpChunkedBodyTrailer", xsink);
+            return;
+         }
+         se_in_op_thread("Socket", "sendHttpChunkedBodyTrailer", xsink);
+         return;
+      }
+
+      ConstHashIterator hi(headers);
+      QoreString buf;
+
+      while (hi.next()) {
+         const AbstractQoreNode* v = hi.getValue();
+         const char* key = hi.getKey();
+
+         if (v && v->getType() == NT_LIST) {
+            ConstListIterator li(reinterpret_cast<const QoreListNode* >(v));
+            while (li.next())
+               do_header(key, buf, li.getValue());
+         }
+         else
+            do_header(key, buf, hi.getValue());
+      }
+      buf.concat("\r\n");
+      int64 total;
+      sendIntern(xsink, "Socket", "sendHttpChunkedBodyTrailer", buf.getBuffer(), buf.size(), timeout, total, true);
    }
 
    DLLLOCAL int sendHttpMessage(ExceptionSink* xsink, QoreHashNode* info, const char* cname, const char* mname, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, const ResolvedCallReferenceNode* send_callback, int source, int timeout_ms = -1, QoreThreadLock* l = 0, bool* aborted = 0) {

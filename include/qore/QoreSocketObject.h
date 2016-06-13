@@ -145,6 +145,10 @@ public:
    DLLEXPORT int sendHTTPResponseWithCallback(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms);
    DLLEXPORT int sendHTTPResponseWithCallback(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms, bool* aborted);
 
+   // send data in HTTP chunked format
+   DLLEXPORT void sendHTTPChunkedBodyFromInputStream(InputStream *is, int timeout_ms, ExceptionSink* xsink);
+   DLLEXPORT void sendHTTPChunkedBodyTrailer(const QoreHashNode *headers, int timeout_ms, ExceptionSink* xsink);
+
    // read and parse HTTP header
    DLLEXPORT AbstractQoreNode* readHTTPHeader(ExceptionSink* xsink, QoreHashNode* info, int timeout);
    // receive a binary message in HTTP chunked format

@@ -1915,6 +1915,55 @@ nothing Socket::sendHTTPResponseWithCallback(code scb, softint status_code, stri
    s->sendHTTPResponseWithCallback(xsink, status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, *scb, QORE_SOURCE_SOCKET, timeout_ms);
 }
 
+//! Sends an HTTP message body in chunked transfer encoding
+/** If any errors are encountered, an exception is raised. The @ref sendHTTPChunkedBodyTrailer() method must be called afterwards to finish the chunked transfer properly.
+
+    @par Example:
+    @code{.py}
+sock.sendHTTPChunkedBodyFromInputStream(inputStream);
+    @endcode
+
+    @par Events:
+    @ref EVENT_PACKET_SENT
+
+    @param is The input stream to read data from
+    @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
+    @throw SOCKET-SEND-ERROR send failed
+
+    @since %Qore 0.8.13
+ */
+nothing Socket::sendHTTPChunkedBodyFromInputStream(Qore::InputStream[InputStream] is, timeout timeout_ms = -1) {
+   SimpleRefHolder<InputStream> isHolder(is);
+   s->sendHTTPChunkedBodyFromInputStream(is, timeout_ms, xsink);
+}
+
+//! Sends the trialer of an HTTP message body in chunked transfer encoding
+/** If any errors are encountered, an exception is raised
+
+    @par Example:
+    @code{.py}
+sock.sendHTTPChunkedBodyTrailer({});
+    @endcode
+
+    @par Events:
+    @ref EVENT_PACKET_SENT
+
+    @param trailer the trailer data
+    @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
+    @throw SOCKET-SEND-ERROR send failed
+
+    @since %Qore 0.8.13
+ */
+nothing Socket::sendHTTPChunkedBodyTrailer(hash trailer, timeout timeout_ms = -1) {
+   s->sendHTTPChunkedBodyTrailer(trailer, timeout_ms, xsink);
+}
+
 //! Retuns a hash representing the data in the HTTP header read, or, if the data cannot be parsed as an HTTP header, then an exception is thrown, and the data read is returned as a string in the \c arg key of the exception hash
 /** If any errors occur reading from the socket or if invalid HTTP data is received, an exception is raised. Accepts an optional timeout value in milliseconds.
 
@@ -2053,7 +2102,7 @@ hash Socket::readHTTPChunkedBodyBinary(timeout timeout_ms = -1) {
 
     @par Example:
     @code{.py}
-hash ans = sock.readHTTPChunkedBodyBinaryToOutputStream(outputStream, 20s);
+hash ans = sock.readHTTPChunkedBodyToOutputStream(outputStream, 20s);
     @endcode
 
     @par Events:

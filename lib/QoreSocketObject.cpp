@@ -325,6 +325,17 @@ int QoreSocketObject::sendHTTPResponseWithCallback(ExceptionSink* xsink, int cod
    return priv->socket->priv->sendHttpResponse(xsink, "Socket", "sendHTTPResponseWithCallback", code, desc, http_version, headers, 0, 0, &send_callback, source, timeout_ms, &priv->m, aborted);
 }
 
+// send data in HTTP chunked format
+void QoreSocketObject::sendHTTPChunkedBodyFromInputStream(InputStream *is, int timeout_ms, ExceptionSink* xsink) {
+   AutoLocker al(priv->m);
+   return priv->socket->priv->sendHttpChunkedBodyFromInputStream(is, timeout_ms, xsink, &priv->m);
+}
+
+void QoreSocketObject::sendHTTPChunkedBodyTrailer(const QoreHashNode *headers, int timeout_ms, ExceptionSink* xsink) {
+   AutoLocker al(priv->m);
+   return priv->socket->priv->sendHttpChunkedBodyTrailer(headers, timeout_ms, xsink);
+}
+
 // receive a binary message in HTTP chunked format
 QoreHashNode* QoreSocketObject::readHTTPChunkedBodyBinary(int timeout_ms, ExceptionSink* xsink) {
    AutoLocker al(priv->m);
