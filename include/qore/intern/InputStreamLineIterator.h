@@ -38,24 +38,27 @@
 
 #include "qore/InputStream.h"
 
-const int __INPUTSTREAMLINEITERATOR_BUFFER_SIZE = 4096;
-
 /**
  * @brief Private data for the Qore::InputStreamLineIterator class.
  */
 class InputStreamLineIterator : public QoreIteratorBase {
 
+private:
+   static const int INPUTSTREAMLINEITERATOR_BUFFER_SIZE = 4096;
+
 public:
-   DLLLOCAL InputStreamLineIterator(ExceptionSink* xsink, InputStream* is, QoreStringNode* n_eol = 0, bool n_trim = true) :
+   DLLLOCAL InputStreamLineIterator(ExceptionSink* xsink, InputStream* is, const QoreStringNode* n_eol = 0, bool n_trim = true) :
       src(is, xsink),
       line(new QoreStringNode(QCS_UTF8)),
-      eol(n_eol),
+      eol(0),
       num(0),
       validp(false),
       trim(n_trim),
-      bufCapacity(__INPUTSTREAMLINEITERATOR_BUFFER_SIZE),
+      bufCapacity(INPUTSTREAMLINEITERATOR_BUFFER_SIZE),
       bufSize(0),
       buf(0) {
+      if (n_eol)
+         eol = static_cast<QoreStringNode*>(n_eol->refSelf());
       // +1 is added to the real capacity for terminating null-character.
       buf = new char[bufCapacity + 1];
    }
@@ -68,52 +71,6 @@ public:
 
       if (buf)
          delete [] buf;
-   }
-
-   DLLLOCAL bool getLine(ExceptionSink* xsink) {
-      while (true) {
-         int64 rc = src->bulkRead(buf + bufSize, bufCapacity - bufSize, xsink);
-         if (bufSize == 0 && rc == 0) {
-            if (line->empty())
-               return false;
-            else
-               return true;
-         }
-         bufSize += rc;
-
-         // Is done because of string searches in findEolInBuffer().
-         // Won't overflow because the buffer actually has real capacity of bufCapacity+1.
-         buf[bufSize] = '\0';
-
-         qore_size_t eolLen;
-         const char* p = findEolInBuffer(eolLen, rc==0);
-         assert(eolLen >= 0);
-
-         if (p) { // Found end of line.
-            qore_size_t dataSize = p - buf;
-            line->concat(buf, dataSize + (trim ? 0 : eolLen));
-            // Move remaining data from middle to the front of the buffer.
-            bufSize -= dataSize + eolLen;
-            memmove(buf, p + eolLen, bufSize);
-            return true;
-         }
-         else {
-            if (rc > 0) {
-               qore_size_t dataSize = bufSize - eolLen;
-               line->concat(buf, dataSize);
-               // Move remaining data from middle to the front of the buffer.
-               bufSize -= dataSize;
-               memmove(buf, buf + dataSize, bufSize);
-               continue;
-            }
-            else if (rc == 0) { // At the end of stream.
-               assert(bufCapacity != bufSize);
-               line->concat(buf, bufSize);
-               bufSize = 0;
-               return true;
-            }
-         }
-      }
    }
 
    DLLLOCAL bool next(ExceptionSink* xsink) {
@@ -162,6 +119,54 @@ public:
    DLLLOCAL virtual const char* getName() const { return "InputStreamLineIterator"; }
 
 private:
+   DLLLOCAL bool getLine(ExceptionSink* xsink) {
+      while (true) {
+         int64 rc = src->bulkRead(buf + bufSize, bufCapacity - bufSize, xsink);
+         if (*xsink)
+            return false;
+         if (bufSize == 0 && rc == 0) {
+            if (line->empty())
+               return false;
+            else
+               return true;
+         }
+         bufSize += rc;
+
+         // Is done because of string searches in findEolInBuffer().
+         // Won't overflow because the buffer actually has real capacity of bufCapacity+1.
+         buf[bufSize] = '\0';
+
+         qore_size_t eolLen;
+         const char* p = findEolInBuffer(eolLen, rc==0);
+         assert(eolLen >= 0);
+
+         if (p) { // Found end of line.
+            qore_size_t dataSize = p - buf;
+            line->concat(buf, dataSize + (trim ? 0 : eolLen));
+            // Move remaining data from middle to the front of the buffer.
+            bufSize -= dataSize + eolLen;
+            memmove(buf, p + eolLen, bufSize);
+            return true;
+         }
+         else {
+            if (rc > 0) {
+               qore_size_t dataSize = bufSize - eolLen;
+               line->concat(buf, dataSize);
+               // Move remaining data from middle to the front of the buffer.
+               bufSize -= dataSize;
+               memmove(buf, buf + dataSize, bufSize);
+               continue;
+            }
+            else if (rc == 0) { // At the end of stream.
+               assert(bufCapacity != bufSize);
+               line->concat(buf, bufSize);
+               bufSize = 0;
+               return true;
+            }
+         }
+      }
+   }
+
    //! Try to find EOL in buffer and write it's size to eolLen parameter.
    /** Try to find EOL in buffer and write it's size to eolLen parameter.
        @param eolLen size of eol in bytes
