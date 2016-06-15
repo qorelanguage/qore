@@ -253,6 +253,7 @@
 #include "QC_AbstractLineIterator.cpp"
 #include "QC_FileLineIterator.cpp"
 #include "QC_DataLineIterator.cpp"
+#include "QC_InputStreamLineIterator.cpp"
 #include "QC_SingleValueIterator.cpp"
 #include "QC_RangeIterator.cpp"
 #include "QC_ThreadPool.cpp"

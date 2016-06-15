@@ -105,6 +105,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_AbstractLineIterator.qpp \
 	lib/QC_DataLineIterator.qpp \
 	lib/QC_FileLineIterator.qpp \
+	lib/QC_InputStreamLineIterator.qpp \
 	lib/QC_SingleValueIterator.qpp \
 	lib/QC_AbstractDatasource.qpp \
 	lib/QC_RangeIterator.qpp \

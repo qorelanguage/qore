@@ -106,6 +106,7 @@ set(LIBQORE_QPP_SRC
 	lib/QC_AbstractLineIterator.qpp
 	lib/QC_FileLineIterator.qpp
 	lib/QC_DataLineIterator.qpp
+	lib/QC_InputStreamLineIterator.qpp
 	lib/QC_SingleValueIterator.qpp
 	lib/QC_AbstractDatasource.qpp
 	lib/QC_RangeIterator.qpp
@@ -518,6 +519,7 @@ set(LIBQORE_CPP_SRC
         ${CMAKE_CURRENT_BINARY_DIR}/QC_AbstractLineIterator.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_FileLineIterator.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_DataLineIterator.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_InputStreamLineIterator.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_SingleValueIterator.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_RangeIterator.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_ThreadPool.cpp
