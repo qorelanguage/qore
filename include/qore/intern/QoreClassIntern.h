@@ -2381,7 +2381,7 @@ public:
       shm[m->getName()] = m;
       // maintain method counts (safely inside parse lock)
       ++num_static_methods;
-
+      if (!sys) { sys = true; }
       // check for special methods (except constructor and destructor) and abort if found
       assert(!checkSpecialStaticIntern(m->getName()));
       // add ancestors
@@ -2394,7 +2394,7 @@ public:
       hm[m->getName()] = m;
       // maintain method counts (safely inside parse lock)
       ++num_methods;
-
+      if (!sys) { sys = true; }
       // check for special methods (except constructor and destructor)
       if (!special_method && !checkAssignSpecialIntern(m))
 	 // add ancestors
