@@ -22,6 +22,7 @@ class InputStreamLineIteratorTest inherits QUnit::Test {
     constructor() : QUnit::Test("InputStreamLineIterator test", "1.0") {
         addTestCase("Basic tests", \basicTests());
         addTestCase("Buffer edge test", \bufferEdgeTest());
+        addTestCase("Encoding test", \encodingTest());
         set_return_value(main());
     }
 
@@ -133,7 +134,7 @@ class InputStreamLineIteratorTest inherits QUnit::Test {
         assertThrows('ITERATOR-ERROR', \a.getValue());
 
         bis = new BinaryInputStream(binary(WithWeirdEOL));
-        a = new InputStreamLineIterator(bis, weirdEOL);
+        a = new InputStreamLineIterator(bis, NOTHING, weirdEOL);
         assertFalse(a.valid());
         assertEq(0, a.index());
         assertThrows('ITERATOR-ERROR', \a.getValue());
@@ -178,8 +179,6 @@ class InputStreamLineIteratorTest inherits QUnit::Test {
         assertEq(sWith123456, a.getLine());
         assertFalse(a.next());
         assertFalse(a.valid());
-        assertEq(0, a.index());
-        assertThrows('ITERATOR-ERROR', \a.getLine());
 
         bis = new BinaryInputStream(binary(sWithRN));
         a = new InputStreamLineIterator(bis);
@@ -188,18 +187,14 @@ class InputStreamLineIteratorTest inherits QUnit::Test {
         assertEq(s, a.getLine());
         assertFalse(a.next());
         assertFalse(a.valid());
-        assertEq(0, a.index());
-        assertThrows('ITERATOR-ERROR', \a.getLine());
 
         bis = new BinaryInputStream(binary(sWithRN));
-        a = new InputStreamLineIterator(bis, NOTHING, False);
+        a = new InputStreamLineIterator(bis, NOTHING, NOTHING, False);
         assertTrue(a.next());
         assertTrue(a.valid());
         assertEq(sWithRN, a.getLine());
         assertFalse(a.next());
         assertFalse(a.valid());
-        assertEq(0, a.index());
-        assertThrows('ITERATOR-ERROR', \a.getLine());
 
         bis = new BinaryInputStream(binary(sWithR));
         a = new InputStreamLineIterator(bis);
@@ -208,18 +203,14 @@ class InputStreamLineIteratorTest inherits QUnit::Test {
         assertEq(s, a.getLine());
         assertFalse(a.next());
         assertFalse(a.valid());
-        assertEq(0, a.index());
-        assertThrows('ITERATOR-ERROR', \a.getLine());
 
         bis = new BinaryInputStream(binary(sWithR));
-        a = new InputStreamLineIterator(bis, NOTHING, False);
+        a = new InputStreamLineIterator(bis, NOTHING, NOTHING, False);
         assertTrue(a.next());
         assertTrue(a.valid());
         assertEq(sWithR, a.getLine());
         assertFalse(a.next());
         assertFalse(a.valid());
-        assertEq(0, a.index());
-        assertThrows('ITERATOR-ERROR', \a.getLine());
 
         bis = new BinaryInputStream(binary(sWithRNabcdef));
         a = new InputStreamLineIterator(bis);
@@ -231,11 +222,9 @@ class InputStreamLineIteratorTest inherits QUnit::Test {
         assertEq("abcdef", a.getLine());
         assertFalse(a.next());
         assertFalse(a.valid());
-        assertEq(0, a.index());
-        assertThrows('ITERATOR-ERROR', \a.getLine());
 
         bis = new BinaryInputStream(binary(sWithRNabcdef));
-        a = new InputStreamLineIterator(bis, NOTHING, False);
+        a = new InputStreamLineIterator(bis, NOTHING, NOTHING, False);
         assertTrue(a.next());
         assertTrue(a.valid());
         assertEq(sWithRN, a.getLine());
@@ -248,27 +237,23 @@ class InputStreamLineIteratorTest inherits QUnit::Test {
         assertThrows('ITERATOR-ERROR', \a.getLine());
 
         bis = new BinaryInputStream(binary(sWithWeirdEOL));
-        a = new InputStreamLineIterator(bis, weirdEOL);
+        a = new InputStreamLineIterator(bis, NOTHING, weirdEOL);
         assertTrue(a.next());
         assertTrue(a.valid());
         assertEq(s, a.getLine());
         assertFalse(a.next());
         assertFalse(a.valid());
-        assertEq(0, a.index());
-        assertThrows('ITERATOR-ERROR', \a.getLine());
 
         bis = new BinaryInputStream(binary(sWithWeirdEOL));
-        a = new InputStreamLineIterator(bis, weirdEOL, False);
+        a = new InputStreamLineIterator(bis, NOTHING, weirdEOL, False);
         assertTrue(a.next());
         assertTrue(a.valid());
         assertEq(sWithWeirdEOL, a.getLine());
         assertFalse(a.next());
         assertFalse(a.valid());
-        assertEq(0, a.index());
-        assertThrows('ITERATOR-ERROR', \a.getLine());
 
         bis = new BinaryInputStream(binary(sWithWeirdEOLabc));
-        a = new InputStreamLineIterator(bis, weirdEOL);
+        a = new InputStreamLineIterator(bis, NOTHING, weirdEOL);
         assertTrue(a.next());
         assertTrue(a.valid());
         assertEq(s, a.getLine());
@@ -277,11 +262,9 @@ class InputStreamLineIteratorTest inherits QUnit::Test {
         assertEq("abc", a.getLine());
         assertFalse(a.next());
         assertFalse(a.valid());
-        assertEq(0, a.index());
-        assertThrows('ITERATOR-ERROR', \a.getLine());
 
         bis = new BinaryInputStream(binary(sWithWeirdEOLabc));
-        a = new InputStreamLineIterator(bis, weirdEOL, False);
+        a = new InputStreamLineIterator(bis, NOTHING, weirdEOL, False);
         assertTrue(a.next());
         assertTrue(a.valid());
         assertEq(sWithWeirdEOL, a.getLine());
@@ -290,7 +273,44 @@ class InputStreamLineIteratorTest inherits QUnit::Test {
         assertEq("abc", a.getLine());
         assertFalse(a.next());
         assertFalse(a.valid());
-        assertEq(0, a.index());
-        assertThrows('ITERATOR-ERROR', \a.getLine());
+    }
+
+    encodingTest() {
+        string s = "Příliš žluťoučký kůň úpěl ďábelské ódy.";
+        string sUTF16 = convert_encoding(s, "UTF16");
+        string sUTF16LE = convert_encoding(s, "UTF16LE");
+        string sISO88592 = convert_encoding(s, "ISO-8859-2");
+
+        BinaryInputStream bis = new BinaryInputStream(binary(s));
+        AbstractLineIterator a = new InputStreamLineIterator(bis);
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(s, a.getLine());
+        assertEq("".encoding(), a.getLine().encoding());
+        assertFalse(a.next());
+
+        bis = new BinaryInputStream(binary(sUTF16));
+        a = new InputStreamLineIterator(bis, "UTF16");
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(s, a.getLine());
+        assertEq("UTF-8", a.getLine().encoding());
+        assertFalse(a.next());
+
+        bis = new BinaryInputStream(binary(sUTF16LE));
+        a = new InputStreamLineIterator(bis, "UTF16LE");
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(s, a.getLine());
+        assertEq("UTF-8", a.getLine().encoding());
+        assertFalse(a.next());
+
+        bis = new BinaryInputStream(binary(sISO88592));
+        a = new InputStreamLineIterator(bis, "ISO-8859-2");
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(s, a.getLine());
+        assertEq("ISO-8859-2", a.getLine().encoding());
+        assertFalse(a.next());
     }
 }

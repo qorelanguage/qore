@@ -37,6 +37,7 @@
 #include <stdio.h>
 
 #include "qore/InputStream.h"
+#include "qore/intern/EncodingConversionInputStream.h"
 
 /**
  * @brief Private data for the Qore::InputStreamLineIterator class.
@@ -47,9 +48,10 @@ private:
    static const int INPUTSTREAMLINEITERATOR_BUFFER_SIZE = 4096;
 
 public:
-   DLLLOCAL InputStreamLineIterator(ExceptionSink* xsink, InputStream* is, const QoreStringNode* n_eol = 0, bool n_trim = true) :
+   DLLLOCAL InputStreamLineIterator(ExceptionSink* xsink, InputStream* is, const QoreEncoding* srcEnc = QCS_DEFAULT, const QoreStringNode* n_eol = 0, bool n_trim = true) :
       src(is, xsink),
-      line(new QoreStringNode(QCS_UTF8)),
+      encoding((srcEnc && srcEnc->isAsciiCompat()) ? srcEnc : QCS_UTF8),
+      line(new QoreStringNode(encoding)),
       eol(0),
       num(0),
       validp(false),
@@ -57,8 +59,22 @@ public:
       bufCapacity(INPUTSTREAMLINEITERATOR_BUFFER_SIZE),
       bufSize(0),
       buf(0) {
-      if (n_eol)
-         eol = static_cast<QoreStringNode*>(n_eol->refSelf());
+      if (n_eol) {
+         if (encoding != n_eol->getEncoding()) {
+            SimpleRefHolder<QoreStringNode> neol(n_eol->convertEncoding(encoding, xsink));
+            if (*xsink)
+               return;
+            eol = neol.release();
+         }
+         else {
+            eol = static_cast<QoreStringNode*>(n_eol->refSelf());
+         }
+      }
+
+      if (srcEnc != encoding) {
+         src = new EncodingConversionInputStream(src.release(), srcEnc, encoding, xsink);
+      }
+
       // +1 is added to the real capacity for terminating null-character.
       buf = new char[bufCapacity + 1];
    }
@@ -77,7 +93,7 @@ public:
       // Make sure to use a new string if the iterator was already valid.
       if (validp && !line->empty()) {
          line->deref();
-         line = new QoreStringNode(QCS_UTF8);
+         line = new QoreStringNode(encoding);
       }
       validp = getLine(xsink);
       if (validp) {
@@ -209,6 +225,7 @@ private:
 
 private:
    ReferenceHolder<InputStream> src;
+   const QoreEncoding* encoding;
    QoreStringNode* line;
    QoreStringNode* eol;
    int64 num;
