@@ -1,10 +1,10 @@
 /*
   QoreExtractOperatorNode.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -110,7 +110,7 @@ QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
    ReferenceHolder<> exp_holder(xsink);
    if (new_exp)
       exp_holder = exp.getReferencedValue();
-   
+
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper val(lvalue_exp, xsink);
    if (!val)
@@ -133,7 +133,7 @@ QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
       xsink->raiseException("EXTRACT-ERROR", "first (lvalue) argument to the extract operator is not a list, string, or binary object");
       return QoreValue();
    }
-   
+
    // no exception can occur here
    val.ensureUnique();
 
@@ -144,7 +144,7 @@ QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
       QoreListNode *vl = reinterpret_cast<QoreListNode*>(val.getValue());
       printd(5, "op_extract() val: %p (size: "QLLD") offset: "QSD"\n", vl, vl->size(), offset);
    }
-   else {
+   else if (vt == NT_STRING) {
       QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(val.getValue());
       printd(5, "op_extract() val: %p (strlen: "QLLD") offset: "QSD"\n", vs, vs->strlen(), offset);
    }
