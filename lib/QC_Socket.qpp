@@ -1951,7 +1951,7 @@ sock.sendHTTPChunkedBodyTrailer({});
     @par Events:
     @ref EVENT_PACKET_SENT
 
-    @param trailer the trailer data
+    @param trailer optional trailer data
     @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
     @throw SOCKET-NOT-OPEN the socket is not connected
@@ -1960,7 +1960,7 @@ sock.sendHTTPChunkedBodyTrailer({});
 
     @since %Qore 0.8.13
  */
-nothing Socket::sendHTTPChunkedBodyTrailer(hash trailer, timeout timeout_ms = -1) {
+nothing Socket::sendHTTPChunkedBodyTrailer(*hash trailer, timeout timeout_ms = -1) {
    s->sendHTTPChunkedBodyTrailer(trailer, timeout_ms, xsink);
 }
 

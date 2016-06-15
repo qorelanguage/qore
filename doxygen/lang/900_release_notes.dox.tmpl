@@ -2,6 +2,17 @@
 
     @tableofcontents
 
+    @section qore_0813 Qore 0.8.13
+
+    @par Release Summary
+
+    @subsection qore_0813_compatibility Changes That Can Affect Backwards-Compatibility
+
+    @subsection qore_0813_new_features New Features in Qore
+
+    @subsection qore_0813_bug_fixes Bug Fixes in Qore
+    - fixed a bug causing the AbstractQuantifiedBidirectionalIterator not being available (<a href="https://github.com/qorelanguage/qore/issues/968">issue 968</a>)
+
     @section qore_0812 Qore 0.8.12
 
     @par Release Summary
@@ -210,7 +221,7 @@
       - the AbstractRestStreamRequestHandler class is now the base abstract class for REST stream request handlers
     - <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module updates:
       - updated FileHandler::handleRequest() to allow for chunked sends
-    - <a href"=../../modules/BulkSqlUtil/html/index.html">BulkSqlUtil</a> module:
+    - <a href="../../modules/BulkSqlUtil/html/index.html">BulkSqlUtil</a> module:
       - added this new module providing APIs supporting bulk DML with <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> with supported drivers
     - <a href="../../modules/FilePoller/html/index.html">FilePoller</a> module:
       - added this new module to support polling files in directories on the filesystem
@@ -292,7 +303,7 @@
       - added public function \c plural()
       - added public function \c regex_escape()
       - added public function \c zip()
-     - \c parse_to_qore_value() now respects parenthes when parsing lists and hashes (<a href="https://github.com/qorelanguage/qore/issues/846">issue 846</a>)
+      - \c parse_to_qore_value() now respects parentheses when parsing lists and hashes (<a href="https://github.com/qorelanguage/qore/issues/846">issue 846</a>)
     - added initial support for UTF-16 character encoding; note that UTF-16 is not backwards-compatible with ASCII and therefore not supported universally in %Qore; it's recommended to convert these strings to UTF-8 in %Qore; do not use UTF-16 as the default character encoding in %Qore; currently UTF-16 data can be parsed using the following classes that convert the data to UTF-8:
       - @ref Qore::DataLineIterator
       - @ref Qore::FileLineIterator

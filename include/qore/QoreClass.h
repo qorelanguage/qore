@@ -768,6 +768,9 @@ public:
    //! returns true if the class is a builtin class
    DLLEXPORT bool isSystem() const;
 
+   //! marks the class as a builtin class
+   DLLEXPORT void setSystem();
+
    //! returns true if the class implements a "memberGate" method
    DLLEXPORT bool hasMemberGate() const;
 
