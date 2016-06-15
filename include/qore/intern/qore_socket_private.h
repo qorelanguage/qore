@@ -2470,20 +2470,22 @@ struct qore_socket_private {
          return;
       }
 
-      ConstHashIterator hi(headers);
       QoreString buf;
+      if (!headers) {
+         ConstHashIterator hi(headers);
 
-      while (hi.next()) {
-         const AbstractQoreNode* v = hi.getValue();
-         const char* key = hi.getKey();
+         while (hi.next()) {
+            const AbstractQoreNode* v = hi.getValue();
+            const char* key = hi.getKey();
 
-         if (v && v->getType() == NT_LIST) {
-            ConstListIterator li(reinterpret_cast<const QoreListNode* >(v));
-            while (li.next())
-               do_header(key, buf, li.getValue());
+            if (v && v->getType() == NT_LIST) {
+               ConstListIterator li(reinterpret_cast<const QoreListNode* >(v));
+               while (li.next())
+                  do_header(key, buf, li.getValue());
+            }
+            else
+               do_header(key, buf, hi.getValue());
          }
-         else
-            do_header(key, buf, hi.getValue());
       }
       buf.concat("\r\n");
       int64 total;
