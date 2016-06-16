@@ -37,11 +37,13 @@ public class B inherits A {
     }
 }
 
-public class FileLineIteratorFake {
-    constructor(string file_unused, *string h, *string g) {
+public class FixedLengthAbstractIteratorFake inherits Qore::AbstractIterator {
+    private {
+        hash m_opts;
+    }
+    constructor(AbstractLineIterator li, hash spec, *hash opts) {
         throw "TEST-EXCEPTION", "this signifies that it actually works";
     }
-
     bool next() {
         return False;
     }
@@ -50,6 +52,19 @@ public class FileLineIteratorFake {
         return "";
     }
 }
+/*
+public class FileLineIteratorFake {
+    constructor(string file_unused, *string h, *string g) {
+        throw "TEST-EXCEPTION", "this signifies that it actually works";
+    }
+    bool next() {
+        return False;
+    }
+
+    *string getValue() {
+        return "";
+    }
+}*/
 
 public class DIJClass inherits QUnit::DependencyInjectedTest {
     constructor() : DependencyInjectedTest("Inject", "1.0") {
@@ -67,7 +82,7 @@ public class DIJClass inherits QUnit::DependencyInjectedTest {
 
     performInjections(Program p) {
         p.importClass("Aalt", "A", True);
-        p.importClass("FileLineIteratorFake", "Qore::FileLineIterator", True);
+        p.importClass("FixedLengthAbstractIteratorFake", "FixedLengthUtil::FixedLengthAbstractIterator", True);
     }
 
     testDirectlyInjectedClass() {
@@ -81,12 +96,12 @@ public class DIJClass inherits QUnit::DependencyInjectedTest {
     }
 
     bool createIterator() {
-        FixedLengthFileIterator it("", hash(), hash());
+        FixedLengthUtil::FixedLengthDataIterator it("", ("wrong": False), ("unknown": "????"));
         return True;
     }
 
     testModuleInjectedClass() {
-        # Since FileLineIterator tries to open a file in the constructor, this will succeed as soon as our constructor of FileLineIteratorFake is called
+        # Since FixedLengthAbstract validated options in the constructor, this will succeed as soon as our constructor of FixedLengthAbstractIteratorFake is called
         testAssertion("instantiate iterator", \createIterator(), list(), new QUnit::TestResultExceptionRegexp("TEST-EXCEPTION", "this signifies that it actually works"));
     }
 }
