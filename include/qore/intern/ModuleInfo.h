@@ -446,7 +446,7 @@ protected:
    DLLLOCAL QoreAbstractModule* loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* pgm = 0, bool reexport = false);
    DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* tpgm = 0, bool reexport = false, QoreProgram* pgm = 0, QoreProgram* path_pgm = 0, unsigned load_opt = QMLO_NONE);
    DLLLOCAL QoreAbstractModule* loadUserModuleFromSource(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, const char* src, bool reexport, QoreProgram* pgm = 0);
-   DLLLOCAL QoreAbstractModule* setupUserModule(ExceptionSink& xsink, std::unique_ptr<QoreUserModule> mi, QoreUserModuleDefContextHelper& qmd, unsigned load_opt = QMLO_NONE);
+   DLLLOCAL QoreAbstractModule* setupUserModule(ExceptionSink& xsink, std::unique_ptr<QoreUserModule>& mi, QoreUserModuleDefContextHelper& qmd, unsigned load_opt = QMLO_NONE);
 
    DLLLOCAL void reinjectModule(QoreAbstractModule* mi);
    DLLLOCAL void delOrig(QoreAbstractModule* mi);

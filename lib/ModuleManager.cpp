@@ -838,7 +838,7 @@ void QoreModuleManager::registerUserModuleFromSource(const char* name, const cha
 }
 
 // const char* path, const char* feature, ReferenceHolder<QoreProgram>& pgm
-QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std::unique_ptr<QoreUserModule> mi, QoreUserModuleDefContextHelper& qmd, unsigned load_opt) {
+QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std::unique_ptr<QoreUserModule>& mi, QoreUserModuleDefContextHelper& qmd, unsigned load_opt) {
    // see if a module with this name is already registered
    QoreAbstractModule* omi = findModuleUnlocked(mi->getName());
    if (omi)
@@ -981,7 +981,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
    QoreUserModuleDefContextHelper qmd(feature, xsink);
    mi->getProgram()->parseFile(td, &xsink, &xsink, QP_WARN_MODULES);
 
-   return setupUserModule(xsink, std::move(mi), qmd, load_opt);
+   return setupUserModule(xsink, mi, qmd, load_opt);
 }
 
 QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, const char* src, bool reexport, QoreProgram* pgm) {
@@ -1008,7 +1008,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& x
    QoreUserModuleDefContextHelper qmd(feature, xsink);
    mi->getProgram()->parse(src, path, &xsink, &xsink, QP_WARN_MODULES);
 
-   return setupUserModule(xsink, std::move(mi), qmd);
+   return setupUserModule(xsink, mi, qmd);
 }
 
 struct DLHelper {
