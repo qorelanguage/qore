@@ -97,7 +97,7 @@ DatasourcePool::~DatasourcePool() {
 // common constructor code
 void DatasourcePool::init(ExceptionSink* xsink) {
    // ths intiial Datasource creation could throw an exception if there is an error in a driver option, for example
-   std::auto_ptr<Datasource> ds(config.get(xsink));
+   std::unique_ptr<Datasource> ds(config.get(xsink));
    if (*xsink)
       return;
 

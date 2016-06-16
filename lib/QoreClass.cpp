@@ -2820,7 +2820,7 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
    const char* tname = name.c_str();
    printd(5, "QoreClass::addUserMethod(%s, umv: %p, priv: %d, static: %d) this: %p %s\n", mname, f, f->isPrivate(), n_static, this, tname);
 
-   std::auto_ptr<MethodVariantBase> func(f);
+   std::unique_ptr<MethodVariantBase> func(f);
 
    if (f->isAbstract() && initialized) {
       parseException("ILLEGAL-ABSTRACT-METHOD", "abstract %s::%s(): abstract methods cannot be added to a class once the class has been committed", name.c_str(), mname);

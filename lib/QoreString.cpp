@@ -1581,7 +1581,7 @@ QoreString* QoreString::convertEncoding(const QoreEncoding* nccs, ExceptionSink*
    if (nccs == priv->getEncoding())
       return copy();
 
-   std::auto_ptr<QoreString> targ(new QoreString(nccs));
+   std::unique_ptr<QoreString> targ(new QoreString(nccs));
 
    if (priv->len) {
       if (qore_string_private::convert_encoding_intern(priv->buf, priv->len, priv->getEncoding(), *targ, nccs, xsink))

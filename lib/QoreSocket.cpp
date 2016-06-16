@@ -1671,7 +1671,7 @@ QoreSocket* QoreSocket::accept(int timeout_ms, ExceptionSink* xsink) {
 }
 
 QoreSocket* QoreSocket::acceptSSL(int timeout_ms, X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {
-   std::auto_ptr<QoreSocket> s(accept(timeout_ms, xsink));
+   std::unique_ptr<QoreSocket> s(accept(timeout_ms, xsink));
    if (!s.get())
       return 0;
 

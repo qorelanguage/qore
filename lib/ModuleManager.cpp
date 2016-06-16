@@ -838,7 +838,7 @@ void QoreModuleManager::registerUserModuleFromSource(const char* name, const cha
 }
 
 // const char* path, const char* feature, ReferenceHolder<QoreProgram>& pgm
-QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std::auto_ptr<QoreUserModule>& mi, QoreUserModuleDefContextHelper& qmd, unsigned load_opt) {
+QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std::unique_ptr<QoreUserModule> mi, QoreUserModuleDefContextHelper& qmd, unsigned load_opt) {
    // see if a module with this name is already registered
    QoreAbstractModule* omi = findModuleUnlocked(mi->getName());
    if (omi)
@@ -965,7 +965,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
    //printd(5, "QoreModuleManager::loadUserModuleFromPath(path: '%s') cwd: '%s' tpgm: %p po: "QLLD" allow-injection: %s tpgm allow-injection: %s pgm allow-injection: %s\n", path, td ? td : "n/a", tpgm, po, po & PO_ALLOW_INJECTION ? "true" : "false", (tpgm ? tpgm->getParseOptions64() & PO_ALLOW_INJECTION : 0) ? "true" : "false", pgm->getParseOptions64() & PO_ALLOW_INJECTION ? "true" : "false");
 
    // note: the module will contain a normalized path which will be used for parsing
-   std::auto_ptr<QoreUserModule> mi(new QoreUserModule(td, path, feature, pgm, load_opt));
+   std::unique_ptr<QoreUserModule> mi(new QoreUserModule(td, path, feature, pgm, load_opt));
 
    td = mi->getFileName();
    //printd(5, "QoreModuleManager::loadUserModuleFromPath() normalized path: '%s'\n", td);
@@ -981,7 +981,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
    QoreUserModuleDefContextHelper qmd(feature, xsink);
    mi->getProgram()->parseFile(td, &xsink, &xsink, QP_WARN_MODULES);
 
-   return setupUserModule(xsink, mi, qmd, load_opt);
+   return setupUserModule(xsink, std::move(mi), qmd, load_opt);
 }
 
 QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, const char* src, bool reexport, QoreProgram* pgm) {
@@ -1001,14 +1001,14 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& x
    else
       pgm = new QoreProgram(po);
 
-   std::auto_ptr<QoreUserModule> mi(new QoreUserModule(0, path, feature, pgm, QMLO_NONE));
+   std::unique_ptr<QoreUserModule> mi(new QoreUserModule(0, path, feature, pgm, QMLO_NONE));
 
    ModuleReExportHelper mrh(mi.get(), reexport);
 
    QoreUserModuleDefContextHelper qmd(feature, xsink);
    mi->getProgram()->parse(src, path, &xsink, &xsink, QP_WARN_MODULES);
 
-   return setupUserModule(xsink, mi, qmd);
+   return setupUserModule(xsink, std::move(mi), qmd);
 }
 
 struct DLHelper {
