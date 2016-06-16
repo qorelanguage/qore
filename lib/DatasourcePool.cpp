@@ -598,7 +598,7 @@ void DatasourcePool::clearWarningCallback(ExceptionSink* xsink) {
 
 void DatasourcePool::setWarningCallback(int64 warning_ms, ResolvedCallReferenceNode* cb, AbstractQoreNode* arg, ExceptionSink* xsink) {
    if (warning_ms <= 0) {
-      xsink->raiseException("DATASOURCEPOOL-SETWARNINGCALLBACK-ERROR", "DatasourcePool::setWarningCallback() warning ms argument: "QLLD" must be greater than zero; to clear, call DatasourcePool::clearWarningCallback() with no arguments", warning_ms);
+      xsink->raiseException("DATASOURCEPOOL-SETWARNINGCALLBACK-ERROR", "DatasourcePool::setWarningCallback() warning ms argument: " QLLD " must be greater than zero; to clear, call DatasourcePool::clearWarningCallback() with no arguments", warning_ms);
       return;
    }
    AutoLocker al((QoreThreadLock*)this);
