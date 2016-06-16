@@ -43,6 +43,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 include_directories( ${CMAKE_BINARY_DIR} )
 include_directories( ${CMAKE_BINARY_DIR}/include/ )
+include_directories( ${CMAKE_BINARY_DIR}/include/qore )
+include_directories( ${CMAKE_BINARY_DIR}/include/qore/intern )
 include_directories( ${CMAKE_SOURCE_DIR}/include )
 include_directories( ${CMAKE_SOURCE_DIR}/include/qore )
 
