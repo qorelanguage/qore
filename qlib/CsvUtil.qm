@@ -1283,20 +1283,19 @@ while (i.next()) {
 
             @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names" is @ref Qore::True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
          */
-        constructor(string path, *hash opts) : AbstractCsvIterator(new InputStreamLineIterator(new FileInputStream(path), opts.encoding.typeCode() == NT_STRING ? opts.encoding : NOTHING, opts.eol.typeCode() == NT_STRING ? opts.eol : NOTHING), opts) {
+        constructor(string path, *hash opts) : AbstractCsvIterator(new InputStreamLineIterator(new FileInputStream(path), opts.encoding, opts.eol), opts) {
         }
         #! Creates the CsvFileIterator in multi-type mode with the path of the file to read and optionally an option hash
         /** @param path the path to the CSV file to read
             @param spec a hash of field and type definition; see @ref abstractcsviterator_option_field_hash for more information
             @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
          */
-        constructor(string path, hash spec, hash opts) : AbstractCsvIterator(new InputStreamLineIterator(new FileInputStream(path), opts.encoding.typeCode() == NT_STRING ? opts.encoding : NOTHING, opts.eol.typeCode() == NT_STRING ? opts.eol : NOTHING), spec, opts) {
+        constructor(string path, hash spec, hash opts) : AbstractCsvIterator(new InputStreamLineIterator(new FileInputStream(path), opts.encoding, opts.eol), spec, opts) {
         }
 
         any memberGate(string name) {
             return AbstractCsvIterator::memberGate(name);
         }
-
 
     } # CsvFileIterator class
 
@@ -1307,7 +1306,7 @@ while (i.next()) {
         - @ref abstractcsviterator_option_field_types
         - @ref abstractcsviterator_option_field_hash
      */
-    public class CsvDataIterator inherits CsvUtil::AbstractCsvIterator, DataLineIterator {
+    public class CsvDataIterator inherits CsvUtil::AbstractCsvIterator {
 
         #! Creates the CsvDataIterator with the input data and optionally an option hash
         /** @param data the input data to iterate
@@ -1315,7 +1314,7 @@ while (i.next()) {
 
             @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names" is @ref Qore::True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
          */
-        constructor(string data, *hash opts) : AbstractCsvIterator(new InputStreamLineIterator(new BinaryInputStream(binary(data)), NOTHING, opts.eol.typeCode() == NT_STRING ? opts.eol : NOTHING), opts) {
+        constructor(string data, *hash opts) : AbstractCsvIterator(new InputStreamLineIterator(new BinaryInputStream(binary(data)), data.encoding(), opts.eol), opts) {
         }
 
         #! Creates the CsvDataIterator in multi-type mode with the path of the file to read and an option hash
@@ -1323,7 +1322,7 @@ while (i.next()) {
             @param spec a hash of field and type definition; see @ref abstractcsviterator_option_field_hash for more information
             @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
          */
-        constructor(string data, hash spec, hash opts) : AbstractCsvIterator(new InputStreamLineIterator(new BinaryInputStream(binary(data)), NOTHING, opts.eol.typeCode() == NT_STRING ? opts.eol : NOTHING), spec, opts) {
+        constructor(string data, hash spec, hash opts) : AbstractCsvIterator(new InputStreamLineIterator(new BinaryInputStream(binary(data)), data.encoding(), opts.eol), spec, opts) {
         }
 
         any memberGate(string name) {

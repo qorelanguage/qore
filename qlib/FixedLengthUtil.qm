@@ -378,7 +378,7 @@ my hash $h = $i.getValue();
         - \c "record": a hash giving the parsed record data
     */
     *hash getValue() {
-        *string line = getValue();
+        *string line = lineIterator.getValue();
 
         if (!line)
             return;
