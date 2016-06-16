@@ -1329,10 +1329,6 @@ while (i.next()) {
             return AbstractCsvIterator::memberGate(name);
         }
 
-        #! Moves the current line / record position to the next line / record; returns @ref False if there are no more lines to iterate
-        private bool nextLineImpl() {
-            return DataLineIterator::next();
-        }
     }
 
     #! The AbstractCsvWriter class provides a parent for all CSV writers

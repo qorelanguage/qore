@@ -653,7 +653,7 @@ public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::
         @param spec Fixed-length line specification; see @ref fixedlengthspec for more information
         @param opts Global options; see @ref fixedlengthglobals for more information
     */
-    constructor(string path, hash spec, *hash opts) : FixedLengthAbstractIterator(new InputStreamLineIterator(new FileInputStream(path), opts.encoding.typeCode() == NT_STRING ? opts.encoding : NOTHING, opts.eol.typeCode() == NT_STRING ? opts.eol : NOTHING), spec, opts) {
+    constructor(string path, hash spec, *hash opts) : FixedLengthAbstractIterator(new InputStreamLineIterator(new FileInputStream(path), opts.encoding, opts.eol), spec, opts) {
         # do not convert every string to the same encoding
         m_opts.input_encoding = remove m_opts.encoding;
     }
@@ -730,7 +730,7 @@ while (i.next()) {
         @param spec Fixed-length line specification; see @ref fixedlengthspec for more information
         @param opts Global options; see @ref fixedlengthglobals for valid values
     */
-    constructor(string data, hash spec, *hash opts) : FixedLengthAbstractIterator(new InputStreamLineIterator(new BinaryInputStream(binary(data)), NOTHING, opts.eol.typeCode() == NT_STRING ? opts.eol : NOTHING, opts.trim.typeCode() == NT_BOOLEAN ? opts.trim : NOTHING), spec, opts) {
+    constructor(string data, hash spec, *hash opts) : FixedLengthAbstractIterator(new InputStreamLineIterator(new BinaryInputStream(binary(data)), data.encoding(), opts.eol, opts.trim), spec, opts) {
     }
 
 }
