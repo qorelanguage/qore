@@ -12,12 +12,12 @@ option(QORE_RUNTIME_THREAD_STACK_TRACE
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 8)
-set(VERSION_SUB 12)
+set(VERSION_SUB 13)
 
 # If changing the module API numbers, make sure to change the appropriate
 # defines in include/qore/ModuleManager.h too.
 set(MODULE_API_MAJOR 0)
-set(MODULE_API_MINOR 19)
+set(MODULE_API_MINOR 20)
 
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "release")

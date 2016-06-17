@@ -3,8 +3,8 @@
 
 Summary: Multithreaded Programming Language
 Name: qore
-Version: 0.8.12
-Release: 7%{?dist}
+Version: 0.8.13
+Release: 1%{?dist}
 License: LGPLv2+ or GPLv2+ or MIT
 Group: Development/Languages
 URL: http://qore.org
@@ -29,10 +29,11 @@ development but is also useful as a general purpose language.
 %package -n libqore
 Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
+Provides: qore-module(abi)%{?_isa} = 0.20
 Provides: qore-module(abi)%{?_isa} = 0.19
 Provides: qore-module(abi)%{?_isa} = 0.18
 Provides: libqore5 = %{version}
-Obsoletes: libqore5 < 0.8.12
+Obsoletes: libqore5 < 0.8.13
 # provided for backwards-compatibility with unversioned capabilities and will be removed when the ABI drops backwards-compatibility
 Provides: qore-module-api-0.18
 Provides: qore-module-api-0.17
@@ -160,6 +161,9 @@ make check
 %{_mandir}/man1/qore.1.*
 
 %changelog
+* Thu Jun 16 2016 Ondrej Musil <ondrej.musil@qoretechnologies.com> 0.8.13-1
+- updated version to 0.8.13-1
+
 * Wed Aug 12 2015 David Nichols <david@qore.org> 0.8.12-1
 - updated version to 0.8.12-1
 
