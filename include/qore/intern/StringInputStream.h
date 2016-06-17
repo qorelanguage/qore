@@ -59,7 +59,7 @@ public:
 
    DLLLOCAL int64 read(ExceptionSink* xsink) /*override*/ {
       assert(!isClosed());
-      return offset >= src->size() ? -1 : reinterpret_cast<const uint8_t *>(src->getBuffer())[offset++];
+      return offset >= src->size() ? -1 : src->getBuffer()[offset++] & 0xFF;
    }
 
    DLLLOCAL int64 bulkRead(void *ptr, int64 limit, ExceptionSink *xsink) /*override*/ {
@@ -72,7 +72,7 @@ public:
       if (count > static_cast<qore_size_t>(limit)) {
          count = limit;
       }
-      memcpy(ptr, reinterpret_cast<const uint8_t *>(src->getBuffer()) + offset, count);
+      memcpy(ptr, src->getBuffer() + offset, count);
       offset += count;
       return count;
    }
