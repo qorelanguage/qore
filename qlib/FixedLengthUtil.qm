@@ -596,7 +596,7 @@ my hash $h = $i.getValue();
 }
 
 #! The FixedLengthIterator class allows CSV sources to be iterated on a record basis. Source of data is general @ref AbstractLineIterator typically pipelined from stream
-public class FixedLengthIterator inherits FixedLengthUtil::FixedLengthAbstractIterator {
+public class FixedLengthUtil::FixedLengthIterator inherits FixedLengthUtil::FixedLengthAbstractIterator {
     #! Creates the FixedLengthIterator in single-type mode with general line iterator to read and an option hash
     /** @param li line iterator of CSV file to read
         @param spec Fixed-length line specification; see @ref fixedlengthspec for more information

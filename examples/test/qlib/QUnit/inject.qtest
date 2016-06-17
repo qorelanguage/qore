@@ -37,34 +37,26 @@ public class B inherits A {
     }
 }
 
-public class FixedLengthAbstractIteratorFake inherits Qore::AbstractIterator {
-    private {
-        hash m_opts;
-    }
-    constructor(AbstractLineIterator li, hash spec, *hash opts) {
+public class InputStreamLineIteratorFake inherits Qore::AbstractLineIterator {
+    constructor(InputStream is, *string encoding, *string eol, bool trimEol = True) {
         throw "TEST-EXCEPTION", "this signifies that it actually works";
     }
     bool next() {
         return False;
     }
-
-    *string getValue() {
+    string getValue() {
         return "";
+    }
+    string getLine() {
+        return "";
+    }
+    int index() {
+        return 0;
+    }
+    bool valid() {
+        return False;
     }
 }
-/*
-public class FileLineIteratorFake {
-    constructor(string file_unused, *string h, *string g) {
-        throw "TEST-EXCEPTION", "this signifies that it actually works";
-    }
-    bool next() {
-        return False;
-    }
-
-    *string getValue() {
-        return "";
-    }
-}*/
 
 public class DIJClass inherits QUnit::DependencyInjectedTest {
     constructor() : DependencyInjectedTest("Inject", "1.0") {
@@ -82,7 +74,7 @@ public class DIJClass inherits QUnit::DependencyInjectedTest {
 
     performInjections(Program p) {
         p.importClass("Aalt", "A", True);
-        p.importClass("FixedLengthAbstractIteratorFake", "FixedLengthUtil::FixedLengthAbstractIterator", True);
+        p.importClass("InputStreamLineIteratorFake", "Qore::InputStreamLineIterator", True);
     }
 
     testDirectlyInjectedClass() {
