@@ -820,7 +820,7 @@ public namespace Schema {
             return getInsertOnlyReferenceDataImpl();
         }
 
-        #! returns the version of the schema
+        #! returns the name of the schema
         private abstract string getNameImpl();
 
         #! returns the version of the schema
