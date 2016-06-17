@@ -54,24 +54,27 @@ class FakeSQLStatement inherits Qore::AbstractIterator {
         return ret;
     }
 
-    list fetchRows(softint rows = -1) {
-        return OUTPUT;
-    }
+    private list getAdvancePtr(int rows) {
+        list l = INPUT;
 
-    hash fetchColumns(softint rows = -1) {
-        hash h = map {$1: ()}, OUTPUT[0].keyIterator();
-
-        list l = OUTPUT;
-        if (rows < 0)
-            rows = 1000;
         if (m_ix)
             splice l, 0, m_ix;
-        splice l, rows;
 
-        map (map h{$1.key} += $1.value, $1.pairIterator()), l;
+        if (rows >= 0)
+            splice l, rows;
 
         m_ix += l.size();
 
+        return l;
+    }
+
+    list fetchRows(softint rows = -1) {
+        return getAdvancePtr(rows);
+    }
+
+    hash fetchColumns(softint rows = -1) {
+        hash h = map {$1: ()}, INPUT[0].keyIterator();
+        map (map h{$1.key} += $1.value, $1.pairIterator()), getAdvancePtr(rows);
         return h;
     }
 
@@ -167,10 +170,9 @@ class Main inherits QUnit::DependencyInjectedTest {
 
     constructor() : DependencyInjectedTest("SqlStatementOutboundMapper", "1.0") {
 
-        #addTestCase("SqlStatementOutboundMapper iterator", \testIterator());
+        addTestCase("SqlStatementOutboundMapper iterator", \testIterator());
         addTestCase("SqlStatementOutboundMapper hash rows", \testHashRows());
-        #addTestCase("SqlStatementOutboundMapper context", \testContext());
-        #addTestCase("SqlStatementOutboundMapper mapBulk", \mapBulk());
+        addTestCase("SqlStatementOutboundMapper context", \testContext());
 
         setScriptPath(get_script_path());
         set_return_value(main());
@@ -200,32 +202,20 @@ class Main inherits QUnit::DependencyInjectedTest {
     private testHashRows() {
         FakeAbstractTable t();
         SqlStatementOutboundMapper m(t, SELECT_HASH, MAPV);
-        *list l;
-        while (l = m.getDataRows()) {
-            # noop
+        list l = ();
+        while (*list tl = m.getDataRows()) {
+            l += tl;
         }
-        testAssertion("getDataRows call", \equals(), (l, OUTPUT));
+        assertEq(OUTPUT, l, "getDataRows()");
     }
 
     private testContext() {
         FakeAbstractTable t();
         SqlStatementOutboundMapper m(t, SELECT_HASH, MAPV);
-        *hash h;
-        while (h = m.getData()) {
-            # noop
+        list l = ();
+        while (*hash th = m.getData()) {
+            map l += $1, th.contextIterator();
         }
-        testAssertion("getData call", \equals(), (h, OUTPUT));
-    }
-
-    private mapBulk() {
-        FakeAbstractTable t();
-        SqlStatementOutboundMapper m(t, SELECT_HASH, MAPV);
-        AbstractMapperIterator i = m.iterator();
-
-        list l;
-        while (list tl = i.mapBulk(2))
-            l += tl;
-
-        assertEq(OUTPUT, l, "mapBulk");
+        assertEq(OUTPUT, l, "getData()");
     }
 }
