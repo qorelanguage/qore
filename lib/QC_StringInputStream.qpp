@@ -54,7 +54,7 @@ qclass StringInputStream [arg=StringInputStream* is; ns=Qore; vparent=InputStrea
     @param src the \ref string to read bytes from
  */
 StringInputStream::constructor(string src) {
-   SimpleRefHolder<StringInputStream> sis(new StringInputStream(static_cast<QoreStringNode *>(src->refSelf())));
+   SimpleRefHolder<StringInputStream> sis(new StringInputStream(src));
    self->setPrivate(CID_STRINGINPUTSTREAM, sis.release());
 }
 

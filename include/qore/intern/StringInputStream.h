@@ -41,7 +41,7 @@
 class StringInputStream : public InputStreamBase {
 
 public:
-   DLLLOCAL StringInputStream(QoreStringNode *src) : src(src), offset(0) {
+   DLLLOCAL StringInputStream(const QoreStringNode *str) : src(str->stringRefSelf()), offset(0) {
    }
 
    DLLLOCAL const char *getName() /*override*/ {
