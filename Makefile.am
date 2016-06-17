@@ -134,6 +134,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_AbstractThreadResource.qpp \
 	lib/QC_InputStream.qpp \
 	lib/QC_BinaryInputStream.qpp \
+	lib/QC_StringInputStream.qpp \
 	lib/QC_FileInputStream.qpp \
 	lib/QC_EncodingConversionInputStream.qpp \
 	lib/QC_OutputStream.qpp \

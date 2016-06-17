@@ -282,6 +282,7 @@
 #include "QC_AbstractThreadResource.cpp"
 #include "QC_InputStream.cpp"
 #include "QC_BinaryInputStream.cpp"
+#include "QC_StringInputStream.cpp"
 #include "QC_FileInputStream.cpp"
 #include "QC_EncodingConversionInputStream.cpp"
 #include "QC_OutputStream.cpp"

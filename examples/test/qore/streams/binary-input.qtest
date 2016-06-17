@@ -14,9 +14,9 @@ public class BinaryInputStreamTest inherits QUnit::Test {
 
     constructor() : Test("BinaryInputStreamTest", "1.0") {
         addTestCase("ctor empty", \ctorEmpty());
+        addTestCase("close", \close());
         addTestCase("read byte", \read());
         addTestCase("bulk read", \bulkRead());
-        addTestCase("close", \close());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
