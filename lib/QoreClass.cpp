@@ -2041,6 +2041,10 @@ bool QoreClass::isSystem() const {
    return priv->sys;
 }
 
+void QoreClass::setSystem() {
+   priv->sys = true;
+}
+
 bool QoreClass::hasMemberGate() const {
    return priv->memberGate != 0;
 }
