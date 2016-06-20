@@ -19,59 +19,229 @@ class Test inherits QUnit::Test {
             "příliš žluťoučký kůň úpěl ďábelské ódy",
         );
 
-        const DataListUtf16 = map convert_encoding($1, "utf16"), DataList;
+        const BasicData = (
+            "abcdef",
+            "xyz42",
+            "123456"
+        );
     }
 
     constructor() : QUnit::Test("DataLineIterator", "1.0") {
+        addTestCase("Basic tests", \basicTests());
+        addTestCase("Reset test", \resetTest());
+
         addTestCase("LF Explicit tests", sub() {doTestsExplicit("\n");});
         addTestCase("LF Auto tests", sub() {doTestsAuto("\n");});
-        addTestCase("LF Explicit UTF-16 tests", sub() {doTestsExplicitUtf16("\n");});
-        addTestCase("LF Auto UTF-16 tests", sub() {doTestsAutoUtf16("\n");});
+        addTestCase("LF UTF-16 Explicit tests", sub() {doTestsExplicitEnc("UTF16", "\n");});
+        addTestCase("LF UTF-16 Auto UTF-16 tests", sub() {doTestsAutoEnc("UTF16", "\n");});
+        addTestCase("LF UTF-16LE Explicit tests", sub() {doTestsExplicitEnc("UTF16LE", "\n");});
+        addTestCase("LF UTF-16LE Auto tests", sub() {doTestsAutoEnc("UTF16LE", "\n");});
+        addTestCase("LF UTF-16BE Explicit tests", sub() {doTestsExplicitEnc("UTF16BE", "\n");});
+        addTestCase("LF UTF-16BE Auto tests", sub() {doTestsAutoEnc("UTF16BE", "\n");});
+
         addTestCase("CR Explicit tests", sub() {doTestsExplicit("\r");});
         addTestCase("CR Auto tests", sub() {doTestsAuto("\r");});
-        addTestCase("CR Explicit UTF-16 tests", sub() {doTestsExplicitUtf16("\r");});
-        addTestCase("CR Auto UTF-16 tests", sub() {doTestsAutoUtf16("\r");});
+        addTestCase("CR UTF-16 Explicit tests", sub() {doTestsExplicitEnc("UTF16", "\r");});
+        addTestCase("CR UTF-16 Auto tests", sub() {doTestsAutoEnc("UTF16", "\r");});
+        addTestCase("CR UTF-16LE Explicit tests", sub() {doTestsExplicitEnc("UTF16LE", "\r");});
+        addTestCase("CR UTF-16LE Auto tests", sub() {doTestsAutoEnc("UTF16LE", "\r");});
+        addTestCase("CR UTF-16BE Explicit tests", sub() {doTestsExplicitEnc("UTF16BE", "\r");});
+        addTestCase("CR UTF-16BE Auto tests", sub() {doTestsAutoEnc("UTF16BE", "\r");});
+
         addTestCase("CRLF Explicit tests", sub() {doTestsExplicit("\r\n");});
         addTestCase("CRLF Auto tests", sub() {doTestsAuto("\r\n");});
-        addTestCase("CRLF Explicit UTF-16 tests", sub() {doTestsExplicitUtf16("\r\n");});
-        addTestCase("CRLF Auto UTF-16 tests", sub() {doTestsAutoUtf16("\r\n");});
+        addTestCase("CRLF UTF-16 Explicit tests", sub() {doTestsExplicitEnc("UTF16", "\r\n");});
+        addTestCase("CRLF UTF-16 Auto tests", sub() {doTestsAutoEnc("UTF16", "\r\n");});
+        addTestCase("CRLF UTF-16LE Explicit tests", sub() {doTestsExplicitEnc("UTF16LE", "\r\n");});
+        addTestCase("CRLF UTF-16LE Auto tests", sub() {doTestsAutoEnc("UTF16LE", "\r\n");});
+        addTestCase("CRLF UTF-16BE Explicit tests", sub() {doTestsExplicitEnc("UTF16BE", "\r\n");});
+        addTestCase("CRLF UTF-16BE Auto tests", sub() {doTestsAutoEnc("UTF16BE", "\r\n");});
+
         set_return_value(main());
     }
 
-    doTestsIntern(string data, DataLineIterator di) {
-        for (int i = 0; i < DataList.size(); ++i) {
-            testAssertion(sprintf("next() #%d", i+1), bool sub() {return di.next();});
-            testAssertion(sprintf("getValue() #%d", i+1), string sub() {return di.getValue();}, NOTHING, new TestResultValue(DataList[i]));
-        }
+    basicTests() {
+        string WithNLines = foldl $1 + "\n" + $2, BasicData;
+        string WithRNLines = foldl $1 + "\r\n" + $2, BasicData;
+        string WithRLines = foldl $1 + "\r" + $2, BasicData;
+        string weirdEOL = "XYZ123";
+        string WithWeirdEOL = foldl $1 + weirdEOL + $2, BasicData;
 
-        testAssertion("final next()", bool sub() {return !di.next();});
+        AbstractLineIterator a = new DataLineIterator("");
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        assertFalse(a.next());
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+
+        a = new DataLineIterator(BasicData[0]);
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(1, a.index());
+        assertEq(BasicData[0], a.getLine());
+        assertEq(BasicData[0], a.getValue());
+        assertFalse(a.next());
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+
+        a = new DataLineIterator(WithNLines);
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(1, a.index());
+        assertEq(BasicData[0], a.getLine());
+        assertEq(BasicData[0], a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(2, a.index());
+        assertEq(BasicData[1], a.getLine());
+        assertEq(BasicData[1], a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(3, a.index());
+        assertEq(BasicData[2], a.getLine());
+        assertEq(BasicData[2], a.getValue());
+        assertFalse(a.next());
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+
+        a = new DataLineIterator(WithRNLines);
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(1, a.index());
+        assertEq(BasicData[0], a.getLine());
+        assertEq(BasicData[0], a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(2, a.index());
+        assertEq(BasicData[1], a.getLine());
+        assertEq(BasicData[1], a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(3, a.index());
+        assertEq(BasicData[2], a.getLine());
+        assertEq(BasicData[2], a.getValue());
+        assertFalse(a.next());
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+
+        a = new DataLineIterator(WithRLines);
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(1, a.index());
+        assertEq(BasicData[0], a.getLine());
+        assertEq(BasicData[0], a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(2, a.index());
+        assertEq(BasicData[1], a.getLine());
+        assertEq(BasicData[1], a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(3, a.index());
+        assertEq(BasicData[2], a.getLine());
+        assertEq(BasicData[2], a.getValue());
+        assertFalse(a.next());
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+
+        a = new DataLineIterator(WithWeirdEOL, weirdEOL);
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(1, a.index());
+        assertEq(BasicData[0], a.getLine());
+        assertEq(BasicData[0], a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(2, a.index());
+        assertEq(BasicData[1], a.getLine());
+        assertEq(BasicData[1], a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(3, a.index());
+        assertEq(BasicData[2], a.getLine());
+        assertEq(BasicData[2], a.getValue());
+        assertFalse(a.next());
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+    }
+
+    resetTest() {
+        DataLineIterator a = new DataLineIterator("abc");
+        assertTrue(a.next());
+        assertFalse(a.next());
+        assertTrue(a.next());
+        assertFalse(a.next());
+
+        a = new DataLineIterator("abc\ndef\nghi");
+        assertTrue(a.next());
+        assertEq("abc", a.getLine());
+        assertTrue(a.next());
+        assertEq("def", a.getLine());
+        a.reset();
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertTrue(a.next());
+        assertEq("abc", a.getLine());
+        assertTrue(a.next());
+        assertEq("def", a.getLine());
+        assertTrue(a.next());
+        assertEq("ghi", a.getLine());
+        assertFalse(a.next());
+    }
+
+    doTestsIntern(DataLineIterator di) {
+        for (int i = 0; i < DataList.size(); i++) {
+            assertTrue(di.next(), sprintf("next() #%d", i));
+            assertEq(DataList[i].strlen(), di.getValue().strlen(), sprintf("getValue() #%d", i));
+        }
+        assertFalse(di.next());
     }
 
     doTestsExplicit(string eol) {
         string data = foldl $1 + eol + $2, DataList;
         DataLineIterator di(data, eol);
-        doTestsIntern(data, di);
+        doTestsIntern(di);
     }
 
     doTestsAuto(string eol) {
         string data = foldl $1 + eol + $2, DataList;
         DataLineIterator di(data);
-        doTestsIntern(data, di);
+        doTestsIntern(di);
     }
 
-    doTestsExplicitUtf16(string eol) {
-        # do UTF-16 (non-ascii-compat) tests
-        string eolutf16 = convert_encoding(eol, "utf16");
-        string data = foldl $1 + eolutf16 + $2, DataListUtf16;
-        DataLineIterator di(data, eol);
-        doTestsIntern(data, di);
+    doTestsExplicitEnc(string enc, string eol) {
+        string data = foldl $1 + eol + $2, DataList;
+        string dataEncoded = convert_encoding(data, enc);
+        DataLineIterator di(dataEncoded, eol);
+        doTestsIntern(di);
     }
 
-    doTestsAutoUtf16(string eol) {
-        # do UTF-16 (non-ascii-compat) tests
-        string eolutf16 = convert_encoding(eol, "utf16");
-        string data = foldl $1 + eolutf16 + $2, DataListUtf16;
-        DataLineIterator di(data);
-        doTestsIntern(data, di);
+    doTestsAutoEnc(string enc, string eol) {
+        string data = foldl $1 + eol + $2, DataList;
+        string dataEncoded = convert_encoding(data, enc);
+        DataLineIterator di(dataEncoded);
+        doTestsIntern(di);
     }
 }
