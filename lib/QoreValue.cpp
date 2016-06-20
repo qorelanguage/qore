@@ -69,7 +69,7 @@ QoreValue::QoreValue(double f) : type(QV_Float) {
 }
 
 QoreValue::QoreValue(AbstractQoreNode* n) : type(QV_Node) {
-   v.n = n;
+   v.n = n && n->getType() == NT_NOTHING ? 0 : n;
 }
 
 QoreValue::QoreValue(const AbstractQoreNode* n) {
@@ -183,7 +183,7 @@ const AbstractQoreNode* QoreValue::getInternalNode() const {
 AbstractQoreNode* QoreValue::assign(AbstractQoreNode* n) {
    AbstractQoreNode* rv = takeIfNode();
    type = QV_Node;
-   v.n = n;
+   v.n = n && n->getType() == NT_NOTHING ? 0 : n;
    return rv;
 }
 
