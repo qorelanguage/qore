@@ -27,6 +27,8 @@ class Test inherits QUnit::Test {
         addTestCase("identity assignment", \idAssignment());
         addTestCase("assignment type restriction test", \assignmentTypeRestrictionTest());
         addTestCase("delete/remove test", \deleteRemoveTest());
+        addTestCase("binary splice test", \binarySpliceTest());
+        addTestCase("binary extract test", \binaryExtractTest());
         set_return_value(main());
     }
 
@@ -337,5 +339,17 @@ class Test inherits QUnit::Test {
             remove a.b.c.c;
             assertEq(("c": ("d": 1)), a.b);
         }
+    }
+
+    binarySpliceTest() {
+        binary b = binary();
+        splice b, 0, 0, <01>;
+        assertEq(<01>, b);
+    }
+
+    binaryExtractTest() {
+        binary b = binary();
+        assertEq(binary(), extract b, 0, 0, <01>);
+        assertEq(<01>, b);
     }
 }
