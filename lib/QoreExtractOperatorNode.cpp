@@ -142,11 +142,11 @@ QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
 #ifdef DEBUG
    if (vt == NT_LIST) {
       QoreListNode *vl = reinterpret_cast<QoreListNode*>(val.getValue());
-      printd(5, "op_extract() val: %p (size: "QLLD") offset: "QSD"\n", vl, vl->size(), offset);
+      printd(5, "op_extract() val: %p (size: " QLLD ") offset: " QSD "\n", vl, vl->size(), offset);
    }
    else if (vt == NT_STRING) {
       QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(val.getValue());
-      printd(5, "op_extract() val: %p (strlen: "QLLD") offset: "QSD"\n", vs, vs->strlen(), offset);
+      printd(5, "op_extract() val: %p (strlen: " QLLD ") offset: " QSD "\n", vs, vs->strlen(), offset);
    }
 #endif
 
