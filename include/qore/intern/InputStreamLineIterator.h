@@ -34,7 +34,6 @@
 
 #include <string.h>
 #include <errno.h>
-#include <stdio.h>
 
 #include "qore/InputStream.h"
 #include "qore/intern/EncodingConversionInputStream.h"
@@ -127,6 +126,10 @@ public:
       return 0;
    }
 
+   DLLLOCAL const QoreEncoding* getEncoding() const {
+      return encoding;
+   }
+
    DLLLOCAL virtual void deref() {
       if (ROdereference())
          delete this;
@@ -157,6 +160,7 @@ private:
          assert(eolLen >= 0);
 
          if (p) { // Found end of line.
+            assert(p >= buf);
             qore_size_t dataSize = p - buf;
             line->concat(buf, dataSize + (trim ? 0 : eolLen));
             // Move remaining data from middle to the front of the buffer.
@@ -166,9 +170,10 @@ private:
          }
          else {
             if (rc > 0) {
-               qore_size_t dataSize = bufSize - eolLen;
+               qore_size_t dataSize = (bufSize >= eolLen) ? bufSize - eolLen : 0;
                line->concat(buf, dataSize);
                // Move remaining data from middle to the front of the buffer.
+               assert(bufSize >= dataSize);
                bufSize -= dataSize;
                memmove(buf, buf + dataSize, bufSize);
                continue;
