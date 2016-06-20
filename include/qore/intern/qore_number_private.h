@@ -365,7 +365,7 @@ struct qore_number_private : public qore_number_private_intern {
       } else {
          prec = QORE_MAX(mpfr_get_prec(num), mpfr_get_prec(r.num)) + 1;
       }
-      std::auto_ptr<qore_number_private> p(new qore_number_private(prec));
+      std::unique_ptr<qore_number_private> p(new qore_number_private(prec));
       func(p->num, num, r.num, QORE_MPFR_RND);
       if (xsink)
          checkFlags(xsink);
