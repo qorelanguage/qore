@@ -91,6 +91,23 @@ public class TableMapperTest inherits QUnit::Test {
                          ("string" : ""),
                         );
 
+        const OutMap1 = (
+            "seq": "id",
+            "tstr": string sub (any ignored, hash rec) {
+                return sprintf("%s-%s", rec.id, rec.string);
+            },
+            );
+
+        const SelectHash = (
+            "orderby": "id",
+            );
+
+        const Output2 = (
+            ("seq": 7, "tstr": "7-string_1"),
+            ("seq": 8, "tstr": "8-string_2"),
+            ("seq": 9, "tstr": "9-"),
+            );
+
         const MyOpts = Opts + (
             "connstr": "c,conn=s",
             );
@@ -114,6 +131,7 @@ public class TableMapperTest inherits QUnit::Test {
         }
         # add test cases
         addTestCase("InboundTableMapper", \inboundTableMapperTest());
+        addTestCase("OutputTableMapper", \outputTableMapperTest());
 
         set_return_value(main());
     }
@@ -157,13 +175,27 @@ public class TableMapperTest inherits QUnit::Test {
         }
 
         # queueData(list) test
+        # NOTE: the outbound test depends on the data from this test, which is committed
         {
-            on_exit table.rollback();
+            on_error table.rollback();
+            on_success table.commit();
 
             InboundTableMapper mapper(table, Map1);
             mapper.queueData(Input1.iterator());
             checkMap((map $1, mapper.flush().contextIterator()), Input1, output1);
             checkMap(table.selectRows(("orderby": "id")), Input1, output1);
+        }
+    }
+
+    outputTableMapperTest() {
+        {
+            SqlStatementOutboundMapper m(table, SelectHash, OutMap1);
+            AbstractMapperIterator i = m.iterator();
+            list l;
+            while (list tl = i.mapBulk(2))
+                l += tl;
+
+            assertEq(Output2, l, "mapBulk");
         }
     }
 

@@ -57,7 +57,7 @@
 #include <vector>
 #include <set>
 
-static const qore_mod_api_compat_s qore_mod_api_list_l[] = { {0, 19}, {0, 18}, {0, 17}, {0, 16}, {0, 15}, {0, 14}, {0, 13}, {0, 12}, {0, 11}, {0, 10}, {0, 9}, {0, 8}, {0, 7}, {0, 6}, {0, 5} };
+static const qore_mod_api_compat_s qore_mod_api_list_l[] = { {0, 20}, {0, 19}, {0, 18}, {0, 17}, {0, 16}, {0, 15}, {0, 14}, {0, 13}, {0, 12}, {0, 11}, {0, 10}, {0, 9}, {0, 8}, {0, 7}, {0, 6}, {0, 5} };
 #define QORE_MOD_API_LEN (sizeof(qore_mod_api_list_l)/sizeof(struct qore_mod_api_compat_s))
 
 // public symbols
