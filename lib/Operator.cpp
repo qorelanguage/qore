@@ -34,6 +34,7 @@
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/AbstractIteratorHelper.h>
 
+#include <cmath>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
