@@ -188,6 +188,9 @@ public class TableMapperTest inherits QUnit::Test {
     }
 
     outputTableMapperTest() {
+        if (!table)
+            testSkip("no DB connection");
+
         {
             SqlStatementOutboundMapper m(table, SelectHash, OutMap1);
             AbstractMapperIterator i = m.iterator();
