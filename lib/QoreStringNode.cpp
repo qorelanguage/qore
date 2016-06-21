@@ -246,6 +246,9 @@ QoreStringNode *QoreStringNode::parseBase64ToString(const QoreEncoding* qe, Exce
    if (!b)
       return 0;
 
+   if (b->empty())
+      return new QoreStringNode;
+
    qore_string_private *p = new qore_string_private;
    p->len = b->size() - 1;
    p->buf = (char *)b->giveBuffer();

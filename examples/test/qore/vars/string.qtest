@@ -121,6 +121,7 @@ class StringTest inherits QUnit::Test {
         assertEq("aGVsbG8=", make_base64_string("hello"), "makeBase64String()");
         string hex = make_hex_string(x);
         assertEq(x, parse_hex_string(hex), "first hex");
+        assertEq("", parse_base64_string_to_string(""));
     }
 
     testSpliceAndExtract() {
