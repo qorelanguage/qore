@@ -33,7 +33,6 @@
 #include <qore/intern/ql_math.h>
 #include <qore/intern/qore_number_private.h>
 
-#include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
