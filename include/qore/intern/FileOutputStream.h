@@ -45,15 +45,15 @@ public:
       f.open2(xsink, fileName->getBuffer(), O_WRONLY | (append ? O_APPEND : O_TRUNC) | O_CREAT);
    }
 
-   DLLLOCAL const char *getName() /*override*/ {
+   DLLLOCAL const char *getName() override {
       return "FileOutputStream";
    }
 
-   DLLLOCAL bool isClosed() /*override*/ {
+   DLLLOCAL bool isClosed() override {
       return !f.isOpen();
    }
 
-   DLLLOCAL void close(ExceptionSink* xsink) /*override*/ {
+   DLLLOCAL void close(ExceptionSink* xsink) override {
       assert(!isClosed());
       int rc = f.close();
       if (rc) {
@@ -61,15 +61,7 @@ public:
       }
    }
 
-   DLLLOCAL void write(int64 value, ExceptionSink* xsink) /*override*/ {
-      assert(!isClosed());
-      uint8_t v = value;
-      if (f.write(&v, 1, xsink) != 1) {
-         xsink->raiseException("FILE-WRITE-ERROR", "Error writing to file");
-      }
-   }
-
-   DLLLOCAL void bulkWrite(const void *ptr, int64 count, ExceptionSink *xsink) /*override*/ {
+   DLLLOCAL void write(const void *ptr, int64 count, ExceptionSink *xsink) override {
       assert(!isClosed());
       assert(count >= 0);
       if (f.write(ptr, count, xsink) != count) {

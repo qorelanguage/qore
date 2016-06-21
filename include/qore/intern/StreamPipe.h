@@ -52,7 +52,6 @@ private:
    QoreCondition writeCondVar;
    std::vector<unsigned char> buffer;
    bool broken;
-   bool inputClosed;
    bool outputClosed;
    int64 size;
    int64 count;
@@ -72,9 +71,7 @@ public:
    DLLLOCAL PipeInputStream(StreamPipe *pipe) : pipe(pipe) {
    }
 
-   DLLLOCAL void close(ExceptionSink* xsink) /*override*/;
-   DLLLOCAL int64 read(ExceptionSink* xsink) /*override*/;
-   DLLLOCAL int64 bulkRead(void *ptr, int64 limit, ExceptionSink *xsink) /*override*/;
+   DLLLOCAL int64 read(void *ptr, int64 limit, ExceptionSink *xsink) override;
 
 protected:
    ~PipeInputStream();
@@ -92,9 +89,8 @@ public:
    DLLLOCAL PipeOutputStream(StreamPipe *pipe) : pipe(pipe) {
    }
 
-   DLLLOCAL void close(ExceptionSink* xsink) /*override*/;
-   DLLLOCAL void write(int64 value, ExceptionSink* xsink) /*override*/;
-   DLLLOCAL void bulkWrite(const void *ptr, int64 count, ExceptionSink *xsink) /*override*/;
+   DLLLOCAL void close(ExceptionSink* xsink) override;
+   DLLLOCAL void write(const void *ptr, int64 count, ExceptionSink *xsink) override;
 
 protected:
    ~PipeOutputStream();

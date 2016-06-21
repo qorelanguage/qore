@@ -14,9 +14,7 @@ public class BinaryInputStreamTest inherits QUnit::Test {
 
     constructor() : Test("BinaryInputStreamTest", "1.0") {
         addTestCase("ctor empty", \ctorEmpty());
-        addTestCase("close", \close());
-        addTestCase("read byte", \read());
-        addTestCase("bulk read", \bulkRead());
+        addTestCase("read", \read());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -24,36 +22,17 @@ public class BinaryInputStreamTest inherits QUnit::Test {
 
     ctorEmpty() {
         BinaryInputStream bis(binary());
-        assertEq(-1, bis.read());
-        assertEq(-1, bis.read());
-    }
-
-    close() {
-        BinaryInputStream bis(<2AFF047F80>);
-        bis.close();
-        assertThrows("INPUT-STREAM-CLOSED-ERROR", sub() { bis.close(); });
-        assertThrows("INPUT-STREAM-CLOSED-ERROR", sub() { bis.read(); });
-        assertThrows("INPUT-STREAM-CLOSED-ERROR", sub() { bis.bulkRead(2); });
+        assertEq(NOTHING, bis.read(100));
+        assertEq(NOTHING, bis.read(100));
     }
 
     read() {
-        BinaryInputStream bis(<2AFF047F80>);
-        assertEq(42, bis.read());
-        assertEq(255, bis.read());
-        assertEq(4, bis.read());
-        assertEq(127, bis.read());
-        assertEq(128, bis.read());
-        assertEq(-1, bis.read());
-        assertEq(-1, bis.read());
-    }
-
-    bulkRead() {
         BinaryInputStream bis(<010203>);
-        assertThrows("INPUT-STREAM-ERROR", sub() { bis.bulkRead(0); });
-        assertThrows("INPUT-STREAM-ERROR", sub() { bis.bulkRead(-2); });
-        assertEq(<0102>, bis.bulkRead(2));
-        assertEq(<03>, bis.bulkRead(2));
-        assertEq(NOTHING, bis.bulkRead(2));
-        assertEq(NOTHING, bis.bulkRead(10));
+        assertThrows("INPUT-STREAM-ERROR", sub() { bis.read(0); });
+        assertThrows("INPUT-STREAM-ERROR", sub() { bis.read(-2); });
+        assertEq(<0102>, bis.read(2));
+        assertEq(<03>, bis.read(2));
+        assertEq(NOTHING, bis.read(2));
+        assertEq(NOTHING, bis.read(10));
     }
 }

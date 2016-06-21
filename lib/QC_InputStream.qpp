@@ -45,26 +45,6 @@ InputStream::constructor() {
    self->setPrivate(CID_INPUTSTREAM, new InputStreamWrapper(self));
 }
 
-//! Closes the input stream and releases any resources.
-/** Any methods called on a closed input stream will thrown an IO-ERROR exception.
-
-    @throw IO-ERROR if an I/O error occurs
- */
-abstract nothing InputStream::close();
-
-//! Reads a single byte from the input stream; returns -1 if the end of the stream has been reached
-/**
-    @return the next byte (0 - 255) in the input stream or -1 if the end of the stream has been reached
-
-    @par Example:
-    @code{.py}
-    while ((int i = is.read()) != -1) {
-        printf("Read: %y\n", i);
-    }
-    @endcode
- */
-abstract int InputStream::read();
-
 //! Reads bytes (up to a specified limit) from the input stream; returns \ref NOTHING if there are no more bytes in the stream
 /**
 
@@ -74,45 +54,29 @@ abstract int InputStream::read();
     @par Example:
     @code{.py}
     *binary b;
-    while (b = is.bulkRead(10)) {
-        printf("Read: %y\n", i);
+    while (b = is.read(10)) {
+        printf("Read: %y\n", b);
     }
     @endcode
  */
-abstract *binary InputStream::bulkRead(int limit);
+abstract *binary InputStream::read(int limit);
 
 /** @defgroup input_stream_function Input Stream Functions
  */
 //@{
 namespace Qore;
 
-//! Dumps an input stream to stdout by reading individual bytes from the stream until the end is reached
+//! Dumps an input stream to stdout by reading bytes (two at a time) from the stream until the end is reached
 /** Temporary function for debugging purposes
     @param the input stream
  */
 nothing dump(Qore::InputStream[InputStream] is) {
    ReferenceHolder<InputStream> holder(is, xsink);
-
-   int i;
-
-   printf("read() from C++:");
-   while ((i = is->read(xsink)) != -1) {
-      printf(" %d", i);
-   }
-   printf("\n");
-}
-
-//! Dumps an input stream to stdout by bulk reading bytes (two at a time) from the stream until the end is reached
-/** Temporary function for debugging purposes
-    @param the input stream
- */
-nothing dump_bulk(Qore::InputStream[InputStream] is) {
-   ReferenceHolder<InputStream> holder(is, xsink);
    int64 i;
    uint8_t buf[10];
 
-   printf("bulkRead() from C++:");
-   while ((i = is->bulkRead(buf, 2, xsink)) > 0) {
+   printf("read() from C++:");
+   while ((i = is->read(buf, 2, xsink)) > 0) {
       printf(" (%d", buf[0]);
       for (int64 ii = 1; ii < i; ++ii) {
          printf(" %d", buf[ii]);

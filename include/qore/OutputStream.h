@@ -45,18 +45,11 @@ class OutputStream : public AbstractPrivateData {
 
 public:
    /**
-    * @brief Closes the output stream.
+    * @brief Flushes any buffered (unwritten) bytes, closes the output stream and releases resources.
     * @param xsink the exception sink
     * @throws IO-ERROR if an I/O error occurs
     */
    DLLLOCAL virtual void close(ExceptionSink* xsink) = 0;
-
-   /**
-    * @brief Writes a single byte to the output stream.
-    * @param value the byte to write
-    * @param xsink the exception sink
-    */
-   DLLLOCAL virtual void write(int64 value, ExceptionSink* xsink) = 0;
 
    /**
     * @brief Writes bytes to the output stream.
@@ -64,14 +57,13 @@ public:
     * @param count the number of bytes to write, must be &gt;= 0
     * @param xsink the exception sink
     */
-   DLLLOCAL virtual void bulkWrite(const void *ptr, int64 count, ExceptionSink *xsink) = 0;
+   DLLLOCAL virtual void write(const void *ptr, int64 count, ExceptionSink *xsink) = 0;
 
 protected:
    /**
     * @brief Constructor.
     */
-   OutputStream() {
-   }
+   OutputStream() = default;
 };
 
 #endif // _QORE_OUTPUTSTREAM_H

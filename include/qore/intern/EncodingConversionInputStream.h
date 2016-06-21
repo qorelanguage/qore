@@ -46,12 +46,12 @@ public:
          conv(dstEncoding, srcEncoding, xsink) {
    }
 
-   DLLLOCAL const char *getName() /*override*/ {
+   DLLLOCAL const char *getName() override {
       return "EncodingConversionInputStream";
    }
 
 protected:
-   DLLLOCAL bool performConversion(size_t outAvail, ExceptionSink *xsink) {
+   DLLLOCAL bool performConversion(size_t outAvail, ExceptionSink *xsink) override {
       char *outPtr = outBuf.getWritePtr();
       if (conv.iconv(&inBuf.ptr, &inBuf.count, &outPtr, &outAvail) == (size_t) -1) {
          switch (errno) {
@@ -78,6 +78,5 @@ protected:
 private:
    IconvHelper conv;
 };
-
 
 #endif // _QORE_ENCODINGCONVERSIONINPUTSTREAM_H

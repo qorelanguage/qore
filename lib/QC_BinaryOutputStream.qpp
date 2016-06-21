@@ -37,8 +37,8 @@
     @par Example: BinaryOutputStream basic usage
     @code{.py}
     BinaryOutputStream bos();
-    bos.bulkWrite(<0405>);
-    bos.write(6);
+    bos.write(<0405>);
+    bos.write(<06>);
     bos.getData();      # returns <040506>
     @endcode
  */
@@ -61,24 +61,6 @@ nothing BinaryOutputStream::close() {
    os->closeHelper(xsink);
 }
 
-//! Writes a single byte to the output stream
-/**
-    @param value the byte (0 - 255) to write to the output stream, only the least significant 8 bits are used,
-           the rest is ignored
-
-    @par Example:
-    @code{.py}
-    BinaryOutputStream bos();
-    bos.write(4);
-    bos.write(5);
-    bos.write(6);
-    bos.getData();      # returns <040506>
-    @endcode
- */
-nothing BinaryOutputStream::write(int value) {
-   os->writeHelper(value, xsink);
-}
-
 //! Writes bytes to the input stream
 /**
     @param data the data to write
@@ -86,13 +68,13 @@ nothing BinaryOutputStream::write(int value) {
     @par Example:
     @code{.py}
     BinaryOutputStream bos();
-    bos.bulkWrite(<0405>);
-    bos.bulkWrite(<06>);
+    bos.write(<0405>);
+    bos.write(<06>);
     bos.getData();      # returns <040506>
     @endcode
  */
-nothing BinaryOutputStream::bulkWrite(binary data) {
-   os->bulkWriteHelper(data, xsink);
+nothing BinaryOutputStream::write(binary data) {
+   os->writeHelper(data, xsink);
 }
 
 //! Returns the data written to the stream, clearing the internal buffer
@@ -102,8 +84,8 @@ nothing BinaryOutputStream::bulkWrite(binary data) {
     @par Example:
     @code{.py}
     BinaryOutputStream bos();
-    bos.bulkWrite(<0405>);
-    bos.write(6);
+    bos.write(<0405>);
+    bos.write(<06>);
     bos.getData();      # returns <040506>
     @endcode
  */

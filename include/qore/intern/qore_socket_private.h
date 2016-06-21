@@ -1917,7 +1917,7 @@ struct qore_socket_private {
          // write buffer to the stream
          {
             AutoUnlocker al(l);
-            os->bulkWrite(buf, rc, xsink);
+            os->write(buf, rc, xsink);
             if (*xsink) {
                return;
             }
@@ -2375,7 +2375,7 @@ struct qore_socket_private {
          int64 r;
          {
             AutoUnlocker al(l);
-            r = is->bulkRead(buf, toRead, xsink);
+            r = is->read(buf, toRead, xsink);
             if (*xsink) {
                return;
             }
@@ -2430,7 +2430,7 @@ struct qore_socket_private {
          int64 r;
          {
             AutoUnlocker al(l);
-            r = is->bulkRead(buf, sizeof(buf), xsink);
+            r = is->read(buf, sizeof(buf), xsink);
             if (*xsink) {
                return;
             }
@@ -2648,7 +2648,7 @@ struct qore_socket_private {
 
             if (os) {
                AutoUnlocker al(l);
-               os->bulkWrite(buf, rc, xsink);
+               os->write(buf, rc, xsink);
                if (*xsink) {
                   return 0;
                }

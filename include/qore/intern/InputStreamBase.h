@@ -42,48 +42,23 @@ class InputStreamBase : public InputStream {
 public:
    /**
     * @brief Helper method that checks that the current thread is the same as when the instance was created,
-    * that the stream has not yet been closed and calls close().
-    * @param xsink the exception sink
-    */
-   DLLLOCAL void closeHelper(ExceptionSink *xsink) {
-      if (!check(xsink)) {
-         return;
-      }
-      close(xsink);
-   }
-
-   /**
-    * @brief Helper method that checks that the current thread is the same as when the instance was created,
-    * that the stream has not yet been closed and calls read().
-    * @param xsink the exception sink
-    * @return the read byte or -1 if the end of the stream has been reached
-    */
-   DLLLOCAL int64 readHelper(ExceptionSink *xsink) {
-      if (!check(xsink)) {
-         return -1;
-      }
-      return read(xsink);
-   }
-
-   /**
-    * @brief Helper method that checks that the current thread is the same as when the instance was created,
-    * that the stream has not yet been closed, calls bulkRead() and wraps the read data to Qore's `binary` value.
+    * calls read() and wraps the read data to Qore's `binary` value.
     * @param limit the maximum number of bytes to read
     * @param xsink the exception sink
     * @return the `binary` wrapping the read data or `NOTHING` if the end of the stream has been reached
     */
-   DLLLOCAL BinaryNode *bulkReadHelper(int64 limit, ExceptionSink *xsink) {
+   DLLLOCAL BinaryNode *readHelper(int64 limit, ExceptionSink *xsink) {
       if (!check(xsink)) {
          return 0;
       }
       if (limit <= 0) {
-         xsink->raiseException("INPUT-STREAM-ERROR", "%s::bulkRead() called with non-positive limit %lld",
+         xsink->raiseException("INPUT-STREAM-ERROR", "%s::read() called with non-positive limit %lld",
                getName(), limit);
          return 0;
       }
       SimpleRefHolder<BinaryNode> result(new BinaryNode());
       result->preallocate(limit);
-      int64 count = bulkRead(const_cast<void *>(result->getPtr()), limit, xsink);
+      int64 count = read(const_cast<void *>(result->getPtr()), limit, xsink);
       result->setSize(count);
       return count ? result.release() : 0;
    }
@@ -102,10 +77,6 @@ public:
                "to access it from any other thread (accessed from TID %d)", getName(), tid, gettid());
          return false;
       }
-      if (isClosed()) {
-         xsink->raiseException("INPUT-STREAM-CLOSED-ERROR", "this %s object has been already closed", getName());
-         return false;
-      }
       return true;
    }
 
@@ -115,12 +86,6 @@ protected:
     */
    InputStreamBase() : tid(gettid()) {
    }
-
-   /**
-    * @brief Returns true is the stream has been closed.
-    * @return true is the stream has been closed
-    */
-   DLLLOCAL virtual bool isClosed() = 0;
 
    /**
     * @brief Returns the name of the class.

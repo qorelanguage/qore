@@ -44,26 +44,11 @@ public:
    DLLLOCAL StringInputStream(const QoreStringNode *str) : src(str->stringRefSelf()), offset(0) {
    }
 
-   DLLLOCAL const char *getName() /*override*/ {
+   DLLLOCAL const char *getName() override {
       return "StringInputStream";
    }
 
-   DLLLOCAL bool isClosed() /*override*/ {
-      return !src;
-   }
-
-   DLLLOCAL void close(ExceptionSink* xsink) /*override*/ {
-      assert(!isClosed());
-      src = 0;
-   }
-
-   DLLLOCAL int64 read(ExceptionSink* xsink) /*override*/ {
-      assert(!isClosed());
-      return offset >= src->size() ? -1 : src->getBuffer()[offset++] & 0xFF;
-   }
-
-   DLLLOCAL int64 bulkRead(void *ptr, int64 limit, ExceptionSink *xsink) /*override*/ {
-      assert(!isClosed());
+   DLLLOCAL int64 read(void *ptr, int64 limit, ExceptionSink *xsink) override {
       assert(limit > 0);
       qore_size_t count = src->size() - offset;
       if (count == 0) {

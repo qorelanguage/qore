@@ -47,17 +47,11 @@ public:
    OutputStreamWrapper(QoreObject *self) : self(self) {
    }
 
-   DLLLOCAL virtual void close(ExceptionSink* xsink) /*override*/ {
+   DLLLOCAL virtual void close(ExceptionSink* xsink) override {
       self->evalMethodValue("close", 0, xsink);
    }
 
-   DLLLOCAL virtual void write(int64 value, ExceptionSink* xsink) /*override*/ {
-      ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
-      args->push(new QoreBigIntNode(value));
-      self->evalMethodValue("write", *args, xsink).getAsBigInt();
-   }
-
-   DLLLOCAL virtual void bulkWrite(const void *ptr, int64 count, ExceptionSink *xsink) /*override*/ {
+   DLLLOCAL virtual void write(const void *ptr, int64 count, ExceptionSink *xsink) override {
       assert(count >= 0);
 
       SimpleRefHolder<BinaryNode> buf(new BinaryNode());
@@ -66,11 +60,11 @@ public:
 
       ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
       args->push(buf.release());
-      self->evalMethodValue("bulkWrite", *args, xsink);
+      self->evalMethodValue("write", *args, xsink);
    }
 
 private:
    QoreObject *self;                    //!< The QoreObject this private data is associated with
 };
 
-#endif // _QORE_INPUTSTREAMWRAPPER_H
+#endif // _QORE_OUTPUTSTREAMWRAPPER_H

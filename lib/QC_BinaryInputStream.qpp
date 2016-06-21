@@ -38,13 +38,13 @@
     @code{.py}
     binary src = <2AFF04>;
     BinaryInputStream bis(src);
-    while ((int i = bis.read()) != -1) {
-        printf("read %d\n", i);
+    binary *b;
+    while (b = bis.read(2)) {
+        printf("read %d\n", make_hex_string(b));
     }
 
-    read 42
-    read 255
-    read 4
+    read 2AFF
+    read 04
     @endcode
  */
 qclass BinaryInputStream [arg=BinaryInputStream* is; ns=Qore; vparent=InputStream; flags=final];
@@ -58,36 +58,6 @@ BinaryInputStream::constructor(binary src) {
    self->setPrivate(CID_BINARYINPUTSTREAM, bis.release());
 }
 
-//! Closes the input stream and releases any resources.
-/** Any methods called on a closed input stream will thrown an IO-ERROR exception.
-
-    @throw IO-ERROR if an I/O error occurs
- */
-nothing BinaryInputStream::close() {
-   is->closeHelper(xsink);
-}
-
-//! Reads a single byte from the input stream; returns -1 if the end of the stream has been reached
-/**
-    @return the next byte (0 - 255) in the input stream or -1 if the end of the stream has been reached
-
-    @par Example:
-    @code{.py}
-    binary src = <2AFF04>;
-    BinaryInputStream bis(src);
-    while ((int i = bis.read()) != -1) {
-        printf("read %d\n", i);
-    }
-
-    read 42
-    read 255
-    read 4
-    @endcode
- */
-int BinaryInputStream::read(1) {
-   return is->readHelper(xsink);
-}
-
 //! Reads bytes (up to a specified limit) from the input stream; returns \ref NOTHING if there are no more bytes in the stream
 /**
 
@@ -99,7 +69,7 @@ int BinaryInputStream::read(1) {
     binary src = <2AFF04>;
     BinaryInputStream is(src);
     *binary b;
-    while (b = is.bulkRead(2)) {
+    while (b = is.read(2)) {
         printf("read %s\n", make_hex_string(b));
     }
 
@@ -107,6 +77,6 @@ int BinaryInputStream::read(1) {
     read 04
     @endcode
  */
-*binary BinaryInputStream::bulkRead(int limit) {
-   return is->bulkReadHelper(limit, xsink);
+*binary BinaryInputStream::read(int limit) {
+   return is->readHelper(limit, xsink);
 }

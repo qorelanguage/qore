@@ -45,34 +45,19 @@ class InputStream : public AbstractPrivateData {
 
 public:
    /**
-    * @brief Closes the input stream.
-    * @param xsink the exception sink
-    * @throws IO-ERROR if an I/O error occurs
-    */
-   DLLLOCAL virtual void close(ExceptionSink* xsink) = 0;
-
-   /**
-    * @brief Reads a single byte from the input stream.
-    * @param xsink the exception sink
-    * @return the byte (0-255) read or -1 if the end of the stream has been reached
-    */
-   DLLLOCAL virtual int64 read(ExceptionSink* xsink) = 0;
-
-   /**
     * @brief Reads up to `limit` bytes from the input stream.
     * @param ptr the destination buffer to read data into
     * @param limit the maximum number of bytes to read, must be &gt; 0
     * @param xsink the exception sink
     * @return the number of bytes read, 0 indicates the end of the stream
     */
-   DLLLOCAL virtual int64 bulkRead(void *ptr, int64 limit, ExceptionSink *xsink) = 0;
+   DLLLOCAL virtual int64 read(void *ptr, int64 limit, ExceptionSink *xsink) = 0;
 
 protected:
    /**
     * @brief Constructor.
     */
-   InputStream() {
-   }
+   InputStream() = default;
 };
 
 #endif // _QORE_INPUTSTREAM_H

@@ -41,29 +41,23 @@
 class BinaryOutputStream : public OutputStreamBase {
 
 public:
-   DLLLOCAL BinaryOutputStream() : buf(new BinaryNode()){
+   DLLLOCAL BinaryOutputStream() : buf(new BinaryNode()) {
    }
 
-   DLLLOCAL const char *getName() /*override*/ {
+   DLLLOCAL const char *getName() override {
       return "BinaryOutputStream";
    }
 
-   DLLLOCAL bool isClosed() /*override*/ {
+   DLLLOCAL bool isClosed() override {
       return !buf;
    }
 
-   DLLLOCAL void close(ExceptionSink* xsink) /*override*/ {
+   DLLLOCAL void close(ExceptionSink* xsink) override {
       assert(!isClosed());
       buf = 0;
    }
 
-   DLLLOCAL void write(int64 value, ExceptionSink* xsink) /*override*/ {
-      assert(!isClosed());
-      uint8_t v = value;
-      buf->append(&v, 1);
-   }
-
-   DLLLOCAL void bulkWrite(const void *ptr, int64 count, ExceptionSink *xsink) /*override*/ {
+   DLLLOCAL void write(const void *ptr, int64 count, ExceptionSink *xsink) override {
       assert(!isClosed());
       assert(count >= 0);
       buf->append(ptr, count);

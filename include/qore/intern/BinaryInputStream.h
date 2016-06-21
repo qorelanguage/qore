@@ -44,26 +44,11 @@ public:
    DLLLOCAL BinaryInputStream(BinaryNode *src) : src(src), offset(0) {
    }
 
-   DLLLOCAL const char *getName() /*override*/ {
+   DLLLOCAL const char *getName() override {
       return "BinaryInputStream";
    }
 
-   DLLLOCAL bool isClosed() /*override*/ {
-      return !src;
-   }
-
-   DLLLOCAL void close(ExceptionSink* xsink) /*override*/ {
-      assert(!isClosed());
-      src = 0;
-   }
-
-   DLLLOCAL int64 read(ExceptionSink* xsink) /*override*/ {
-      assert(!isClosed());
-      return offset >= src->size() ? -1 : static_cast<const uint8_t *>(src->getPtr())[offset++];
-   }
-
-   DLLLOCAL int64 bulkRead(void *ptr, int64 limit, ExceptionSink *xsink) /*override*/ {
-      assert(!isClosed());
+   DLLLOCAL int64 read(void *ptr, int64 limit, ExceptionSink *xsink) override {
       assert(limit > 0);
       qore_size_t count = src->size() - offset;
       if (count == 0) {

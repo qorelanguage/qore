@@ -45,24 +45,12 @@ OutputStream::constructor() {
    self->setPrivate(CID_OUTPUTSTREAM, new OutputStreamWrapper(self));
 }
 
-//! Closes the output stream and releases any resources.
+//! Flushes any buffered (unwritten) bytes, closes the output stream and releases all resources.
 /** Any methods called on a closed output stream will thrown an IO-ERROR exception.
 
     @throw IO-ERROR if an I/O error occurs
  */
 abstract nothing OutputStream::close();
-
-//! Writes a single byte to the output stream
-/**
-    @param value the byte (0 - 255) to write to the output stream, only the least significant 8 bits are used,
-           the rest is ignored
-
-    @par Example:
-    @code{.py}
-    os.write(5);
-    @endcode
- */
-abstract nothing OutputStream::write(int value);
 
 //! Writes bytes to the input stream
 /**
@@ -73,4 +61,4 @@ abstract nothing OutputStream::write(int value);
     os.write(<0405>);
     @endcode
  */
-abstract nothing OutputStream::bulkWrite(binary data);
+abstract nothing OutputStream::write(binary data);

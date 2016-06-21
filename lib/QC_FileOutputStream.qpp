@@ -37,8 +37,8 @@
     @par Example: FileOutputStream basic usage
     @code{.py}
     FileOutputStream fos("file.ext");
-    fos.write(1);
-    fos.bulkWrite(<0203>);
+    fos.write(<01>);
+    fos.write(<0203>);
     fos.close();
     # file.ext now contains three bytes: 01 02 03
     @endcode
@@ -64,27 +64,6 @@ nothing FileOutputStream::close() {
    os->closeHelper(xsink);
 }
 
-//! Writes a single byte to the output stream
-/**
-    @param value the byte (0 - 255) to write to the output stream, only the least significant 8 bits are used,
-           the rest is ignored
-
-    @par Example:
-    @code{.py}
-    FileOutputStream fos("file.ext");
-    fos.write(1);
-    fos.write(2);
-    fos.write(3);
-    fos.close();
-    # file.ext now contains three bytes: 01 02 03
-    @endcode
-
-    @throw FILE-WRITE-ERROR if an I/O error occurs
- */
-nothing FileOutputStream::write(int value) {
-   os->writeHelper(value, xsink);
-}
-
 //! Writes bytes to the input stream
 /**
     @param data the data to write
@@ -92,14 +71,14 @@ nothing FileOutputStream::write(int value) {
     @par Example:
     @code{.py}
     FileOutputStream fos("file.ext");
-    fos.bulkWrite(<01>);
-    fos.bulkWrite(<0203>);
+    fos.write(<01>);
+    fos.write(<0203>);
     fos.close();
     # file.ext now contains three bytes: 01 02 03
     @endcode
 
     @throw FILE-WRITE-ERROR if an I/O error occurs
  */
-nothing FileOutputStream::bulkWrite(binary data) {
-   os->bulkWriteHelper(data, xsink);
+nothing FileOutputStream::write(binary data) {
+   os->writeHelper(data, xsink);
 }

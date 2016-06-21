@@ -45,32 +45,7 @@ template<size_t SIZE = 4096, typename T = char>
 class ConversionInputStreamBase : public InputStreamBase {
 
 public:
-   DLLLOCAL bool isClosed() /*override*/ {
-      return !is;
-   }
-
-   DLLLOCAL void close(ExceptionSink* xsink) /*override*/ {
-      assert(!isClosed());
-      is->close(xsink);
-      is = 0;
-   }
-
-   DLLLOCAL int64 read(ExceptionSink* xsink) /*override*/ {
-      assert(!isClosed());
-      if (!fillOutput(1, xsink)) {
-         //exception raised
-         return -1;
-      }
-      if (outBuf.count == 0) {
-         //end of stream
-         return -1;
-      }
-      --outBuf.count;
-      return *outBuf.ptr++ & 0xFF;
-   }
-
-   DLLLOCAL int64 bulkRead(void *ptr, int64 limit, ExceptionSink *xsink) /*override*/ {
-      assert(!isClosed());
+   DLLLOCAL int64 read(void *ptr, int64 limit, ExceptionSink *xsink) override {
       assert(limit > 0);
       if (!fillOutput(limit, xsink)) {
          //exception raised
@@ -118,7 +93,7 @@ private:
       if (eofReached || (inAvail = inBuf.compact()) == 0) {
          return true;
       }
-      int64 readCount = is->bulkRead(inBuf.getWritePtr(), inAvail, xsink);
+      int64 readCount = is->read(inBuf.getWritePtr(), inAvail, xsink);
       if (*xsink) {
          return false;
       }

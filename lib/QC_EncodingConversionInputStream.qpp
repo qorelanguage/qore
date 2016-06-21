@@ -37,8 +37,9 @@
     @par Example: EncodingConversionInputStream basic usage
     @code{.py}
     EncodingConversionInputStream latin2Stream(sourceUtf8Stream, "UTF-8", "ISO-8859-2");
-    while ((int i = latin2Stream.read()) != -1) {
-        #i is a latin-2 character
+    binary *b;
+    while (b = latin2Stream.read(20)) {
+        #b contains up to 20 bytes representing latin-2 characters
     }
     @endcode
  */
@@ -58,33 +59,6 @@ EncodingConversionInputStream::constructor(Qore::InputStream[InputStream] is, st
    self->setValue("is", static_cast<QoreObject *>(obj_is->refSelf()), xsink);
 }
 
-//! Closes the underlying input stream.
-/** Any methods called on a closed input stream will thrown an IO-ERROR exception.
-
-    @throw IO-ERROR if an I/O error occurs
- */
-nothing EncodingConversionInputStream::close() {
-   is->closeHelper(xsink);
-}
-
-//! Reads a single byte from the input stream; returns -1 if the end of the stream has been reached
-/**
-    @return the next byte (0 - 255) in the input stream or -1 if the end of the stream has been reached
-
-    @par Example:
-    @code{.py}
-    EncodingConversionInputStream latin2Stream(sourceUtf8Stream, "UTF-8", "ISO-8859-2");
-    while ((int i = latin2Stream.read()) != -1) {
-        #i is a latin-2 character
-    }
-    @endcode
-
-    @throw ENCODING-CONVERSION-ERROR if an invalid multibyte sequence is encountered in the input
- */
-int EncodingConversionInputStream::read() {
-   return is->readHelper(xsink);
-}
-
 //! Reads bytes (up to a specified limit) from the input stream; returns \ref NOTHING if there are no more bytes in the stream
 /**
 
@@ -95,13 +69,13 @@ int EncodingConversionInputStream::read() {
     @code{.py}
     EncodingConversionInputStream latin2Stream(sourceUtf8Stream, "UTF-8", "ISO-8859-2");
     *binary b;
-    while (b = latin2Stream.bulkRead(20)) {
-        #b contains latin-2 characters
+    while (b = latin2Stream.read(20)) {
+        #b contains up to 20 bytes representing latin-2 characters
     }
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR if an invalid multibyte sequence is encountered in the input
  */
-*binary EncodingConversionInputStream::bulkRead(int limit) {
-   return is->bulkReadHelper(limit, xsink);
+*binary EncodingConversionInputStream::read(int limit) {
+   return is->readHelper(limit, xsink);
 }

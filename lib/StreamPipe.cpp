@@ -32,50 +32,23 @@
 #include <qore/intern/StreamPipe.h>
 
 StreamPipe::StreamPipe(int64 timeout, int64 bufferSize) : buffer(bufferSize > 0 ? bufferSize : 4096), broken(false),
-      inputClosed(false), outputClosed(false), size(bufferSize), count(0), readPtr(0), timeout(timeout) {
+      outputClosed(false), size(bufferSize), count(0), readPtr(0), timeout(timeout) {
 }
 
 PipeInputStream::~PipeInputStream() {
    printd(1, "PipeInputStream::~PipeInputStream()\n");
    AutoLocker lock(pipe->mutex);
-   if (!pipe->inputClosed) {
-      pipe->broken = true;
-      pipe->writeCondVar.broadcast();
-   }
-}
-
-void PipeInputStream::close(ExceptionSink* xsink) /*override*/ {
-   printd(1, "PipeInputStream::close()\n");
-   AutoLocker lock(pipe->mutex);
-   if (pipe->inputClosed) {
-      xsink->raiseException("INPUT-STREAM-CLOSED-ERROR", "this PipeInputStream object has been already closed");
-      return;
-   }
-   pipe->inputClosed = true;
-   pipe->readCondVar.broadcast();
+   pipe->broken = true;
    pipe->writeCondVar.broadcast();
 }
 
-int64 PipeInputStream::read(ExceptionSink* xsink) /*override*/ {
-   printd(1, "PipeInputStream::read()\n");
-   uint8_t b;
-   if (bulkRead(&b, 1, xsink) == 1) {
-      return b & 0xFF;
-   }
-   return -1;
-}
-
-int64 PipeInputStream::bulkRead(void *ptr, int64 limit, ExceptionSink *xsink) /*override*/ {
+int64 PipeInputStream::read(void *ptr, int64 limit, ExceptionSink *xsink) {
    assert(limit > 0);
-   printd(1, "PipeInputStream::bulkRead()\n");
+   printd(1, "PipeInputStream::read()\n");
    AutoLocker lock(pipe->mutex);
 
    printd(1, "read - lock acquired, limit: " QLLD "\n", limit);
    while (true) {
-      if (pipe->inputClosed) {
-         xsink->raiseException("INPUT-STREAM-CLOSED-ERROR", "this PipeInputStream object has been already closed");
-         return 0;
-      }
       if (pipe->broken) {
          xsink->raiseException("BROKEN-PIPE-ERROR", "one of the streams of the pipe has been destroyed");
          return 0;
@@ -126,7 +99,7 @@ PipeOutputStream::~PipeOutputStream() {
    }
 }
 
-void PipeOutputStream::close(ExceptionSink* xsink) /*override*/ {
+void PipeOutputStream::close(ExceptionSink* xsink) {
    printd(1, "PipeOutputStream::close()\n");
    AutoLocker lock(pipe->mutex);
    if (pipe->outputClosed) {
@@ -138,15 +111,9 @@ void PipeOutputStream::close(ExceptionSink* xsink) /*override*/ {
    pipe->writeCondVar.broadcast();
 }
 
-void PipeOutputStream::write(int64 value, ExceptionSink* xsink) /*override*/ {
-   printd(1, "PipeOutputStream::write()\n");
-   uint8_t b = value;
-   bulkWrite(&b, 1, xsink);
-}
-
-void PipeOutputStream::bulkWrite(const void *ptr, int64 toWrite, ExceptionSink *xsink) /*override*/ {
+void PipeOutputStream::write(const void *ptr, int64 toWrite, ExceptionSink *xsink) {
    assert(toWrite >= 0);
-   printd(1, "PipeOutputStream::bulkWrite()\n");
+   printd(1, "PipeOutputStream::write()\n");
    AutoLocker lock(pipe->mutex);
 
    printd(1, "write - lock acquired, toWrite: " QLLD "\n", toWrite);
@@ -158,10 +125,6 @@ void PipeOutputStream::bulkWrite(const void *ptr, int64 toWrite, ExceptionSink *
       }
       if (pipe->broken) {
          xsink->raiseException("BROKEN-PIPE-ERROR", "one of the streams of the pipe has been destroyed");
-         return;
-      }
-      if (pipe->inputClosed) {
-         xsink->raiseException("BROKEN-PIPE-ERROR", "the InputStream of the pipe has been closed");
          return;
       }
       printd(1, "write - size: " QLLD ", count: " QLLD ", readPtr: " QLLD ", toWrite: " QLLD "\n", pipe->size, pipe->count, pipe->readPtr, toWrite);

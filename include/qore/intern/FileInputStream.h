@@ -45,30 +45,11 @@ public:
       f.open2(xsink, fileName->getBuffer(), O_RDONLY);
    }
 
-   DLLLOCAL const char *getName() /*override*/ {
+   DLLLOCAL const char *getName() override {
       return "FileInputStream";
    }
 
-   DLLLOCAL bool isClosed() /*override*/ {
-      return !f.isOpen();
-   }
-
-   DLLLOCAL void close(ExceptionSink* xsink) /*override*/ {
-      assert(!isClosed());
-      int rc = f.close();
-      if (rc) {
-         xsink->raiseException("IO-ERROR", "Error %d closing file", rc);
-      }
-   }
-
-   DLLLOCAL int64 read(ExceptionSink* xsink) /*override*/ {
-      assert(!isClosed());
-      uint8_t buf;
-      return f.read(&buf, 1, timeout, xsink) == 1 ? buf : -1;
-   }
-
-   DLLLOCAL int64 bulkRead(void *ptr, int64 limit, ExceptionSink *xsink) /*override*/ {
-      assert(!isClosed());
+   DLLLOCAL int64 read(void *ptr, int64 limit, ExceptionSink *xsink) override {
       assert(limit > 0);
       return f.read(ptr, limit, timeout, xsink);
    }

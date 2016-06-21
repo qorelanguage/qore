@@ -140,7 +140,7 @@ public:
 private:
    DLLLOCAL bool getLine(ExceptionSink* xsink) {
       while (true) {
-         int64 rc = src->bulkRead(buf + bufSize, bufCapacity - bufSize, xsink);
+         int64 rc = src->read(buf + bufSize, bufCapacity - bufSize, xsink);
          if (*xsink)
             return false;
          if (bufSize == 0 && rc == 0) {

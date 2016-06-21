@@ -47,19 +47,11 @@ public:
    InputStreamWrapper(QoreObject *self) : self(self) {
    }
 
-   DLLLOCAL virtual void close(ExceptionSink* xsink) /*override*/ {
-      self->evalMethodValue("close", 0, xsink);
-   }
-
-   DLLLOCAL virtual int64 read(ExceptionSink* xsink) /*override*/ {
-      return self->evalMethodValue("read", 0, xsink).getAsBigInt();
-   }
-
-   DLLLOCAL virtual int64 bulkRead(void *ptr, int64 limit, ExceptionSink *xsink) /*override*/ {
+   DLLLOCAL virtual int64 read(void *ptr, int64 limit, ExceptionSink *xsink) override {
       assert(limit > 0);
       ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
       args->push(new QoreBigIntNode(limit));
-      ValueHolder bufHolder(self->evalMethodValue("bulkRead", *args, xsink), xsink);
+      ValueHolder bufHolder(self->evalMethodValue("read", *args, xsink), xsink);
       if (!bufHolder) {
          return 0;
       }
@@ -67,13 +59,13 @@ public:
       qore_size_t count = buf->size();
       if (count == 0) {
          xsink->raiseException("INPUT-STREAM-ERROR",
-               "%s::bulkRead() returned an empty binary; NOTHING should be used to indicate the end of the stream",
+               "%s::read() returned an empty binary; NOTHING should be used to indicate the end of the stream",
                self->getClassName());
          return 0;
       }
       if (count > static_cast<qore_size_t>(limit)) {
          xsink->raiseException("INPUT-STREAM-ERROR",
-               "%s::bulkRead() returned %lu bytes which is more than the specified limit of %lu",
+               "%s::rRead() returned %lu bytes which is more than the specified limit of %lu",
                self->getClassName(), count, static_cast<qore_size_t>(limit));
          return 0;
       }

@@ -38,13 +38,13 @@
     @code{.py}
     string src = "abc";
     StringInputStream sis(src);
-    while ((int i = sis.read()) != -1) {
-        printf("read %s\n", chr(i));
+    *binary b;
+    while (b = sis.read(2)) {
+        printf("read %s\n", make_hex_string(b));
     }
 
-    read a
-    read b
-    read c
+    read 6162
+    read 63
     @endcode
  */
 qclass StringInputStream [arg=StringInputStream* is; ns=Qore; vparent=InputStream; flags=final];
@@ -58,36 +58,6 @@ StringInputStream::constructor(string src) {
    self->setPrivate(CID_STRINGINPUTSTREAM, sis.release());
 }
 
-//! Closes the input stream and releases any resources.
-/** Any methods called on a closed input stream will throw an IO-ERROR exception.
-
-    @throw IO-ERROR if an I/O error occurs
- */
-nothing StringInputStream::close() {
-   is->closeHelper(xsink);
-}
-
-//! Reads a single byte from the input stream; returns -1 if the end of the stream has been reached
-/**
-    @return the next byte (0 - 255) in the input stream or -1 if the end of the stream has been reached
-
-    @par Example:
-    @code{.py}
-    string src = "abc";
-    StringInputStream sis(src);
-    while ((int i = sis.read()) != -1) {
-        printf("read %s\n", chr(i));
-    }
-
-    read a
-    read b
-    read c
-    @endcode
- */
-int StringInputStream::read(1) {
-   return is->readHelper(xsink);
-}
-
 //! Reads bytes (up to a specified limit) from the input stream; returns \ref NOTHING if there are no more bytes in the stream
 /**
 
@@ -99,7 +69,7 @@ int StringInputStream::read(1) {
     string src = "xyz";
     StringInputStream is(src);
     *binary b;
-    while (b = is.bulkRead(2)) {
+    while (b = is.read(2)) {
         printf("read %s\n", make_hex_string(b));
     }
 
@@ -107,6 +77,6 @@ int StringInputStream::read(1) {
     read 7a
     @endcode
  */
-*binary StringInputStream::bulkRead(int limit) {
-   return is->bulkReadHelper(limit, xsink);
+*binary StringInputStream::read(int limit) {
+   return is->readHelper(limit, xsink);
 }

@@ -14,9 +14,7 @@ public class StringInputStreamTest inherits QUnit::Test {
 
     constructor() : Test("StringInputStreamTest", "1.0") {
         addTestCase("ctor empty", \ctorEmpty());
-        addTestCase("close", \close());
-        addTestCase("read byte", \read());
-        addTestCase("bulk read", \bulkRead());
+        addTestCase("read", \read());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -24,36 +22,17 @@ public class StringInputStreamTest inherits QUnit::Test {
 
     ctorEmpty() {
         StringInputStream sis("");
-        assertEq(-1, sis.read());
-        assertEq(-1, sis.read());
-    }
-
-    close() {
-        StringInputStream sis("abcdef14528");
-        sis.close();
-        assertThrows("INPUT-STREAM-CLOSED-ERROR", sub() { sis.close(); });
-        assertThrows("INPUT-STREAM-CLOSED-ERROR", sub() { sis.read(); });
-        assertThrows("INPUT-STREAM-CLOSED-ERROR", sub() { sis.bulkRead(2); });
+        assertEq(NOTHING, sis.read(100));
+        assertEq(NOTHING, sis.read(100));
     }
 
     read() {
-        StringInputStream sis(binary_to_string(<2AFF047F80>));
-        assertEq(42, sis.read());
-        assertEq(255, sis.read());
-        assertEq(4, sis.read());
-        assertEq(127, sis.read());
-        assertEq(128, sis.read());
-        assertEq(-1, sis.read());
-        assertEq(-1, sis.read());
-    }
-
-    bulkRead() {
         StringInputStream sis(binary_to_string(<010203>));
-        assertThrows("INPUT-STREAM-ERROR", sub() { sis.bulkRead(0); });
-        assertThrows("INPUT-STREAM-ERROR", sub() { sis.bulkRead(-2); });
-        assertEq(<0102>, sis.bulkRead(2));
-        assertEq(<03>, sis.bulkRead(2));
-        assertEq(NOTHING, sis.bulkRead(2));
-        assertEq(NOTHING, sis.bulkRead(10));
+        assertThrows("INPUT-STREAM-ERROR", sub() { sis.read(0); });
+        assertThrows("INPUT-STREAM-ERROR", sub() { sis.read(-2); });
+        assertEq(<0102>, sis.read(2));
+        assertEq(<03>, sis.read(2));
+        assertEq(NOTHING, sis.read(2));
+        assertEq(NOTHING, sis.read(10));
     }
 }

@@ -52,16 +52,9 @@ nothing PipeOutputStream::close() {
    os->close(xsink);
 }
 
-//! Writes a single byte to the output stream
-/**
- */
-nothing PipeOutputStream::write(int value) {
-   os->write(value, xsink);
-}
-
 //! Writes bytes to the input stream
 /**
  */
-nothing PipeOutputStream::bulkWrite(binary data) {
-   os->bulkWrite(data->getPtr(), data->size(), xsink);
+nothing PipeOutputStream::write(binary data) {
+   os->write(data->getPtr(), data->size(), xsink);
 }
