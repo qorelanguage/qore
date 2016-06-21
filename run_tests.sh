@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 print_usage ()
 {
@@ -34,16 +34,40 @@ fi
 
 QORE=""
 QR=""
+LIBQORE=""
 QORE_LIB_PATH="./lib/.libs:./qlib:$LD_LIBRARY_PATH"
 
 # Test that qore is built.
-if [ -s "./.libs/qore" ] && [ -f "./qore" ] && [ -r "./lib/.libs/libqore.so" -o "./lib/.libs/libqore.dylib" ]; then
-    QORE="./qore"
-    QR="./qr"
+if [ -s "./.libs/qore" ] && [ -f "./qore" ] && [ -f "./lib/.libs/libqore.so" -o "./lib/.libs/libqore.dylib" ]; then
+    if [ -f "./lib/.libs/libqore.so" ]; then
+        LIBQORE="./lib/.libs/libqore.so"
+    elif [ -f "./lib/.libs/libqore.dylib" ]; then
+        LIBQORE="./lib/.libs/libqore.dylib"
+    fi
+    QORE="./.libs/qore"
+    QR="./.libs/qr"
 else
+    for D in $( ls -d */ ); do
+        d=$( echo ${D%%/} )
+        if [ -f "$d/CMakeCache.txt" ] && [ -f "$d/qore" ] && [ -f "$d/libqore.so" -o "$d/libqore.dylib" ]; then
+            if [ -f "$d/libqore.so" ]; then
+                LIBQORE="$d/libqore.so"
+            elif [ -f "$d/libqore.dylib" ]; then
+                LIBQORE="$d/libqore.dylib"
+            fi
+            QORE="$d/qore"
+            QR="$d/qr"
+            break
+        fi
+    done
+fi
+
+if [ -z "$QORE" ] || [ -z "$LIBQORE" ]; then
     echo "Qore is not built. Exiting."
     exit 1
 fi
+
+echo "Using qore: $QORE, libqore: $LIBQORE"; echo
 
 # Search for tests in the test directory.
 TESTS=$( find ./examples/test/ -name "*.qtest" )
@@ -71,7 +95,7 @@ for test in $TESTS; do
     fi
 
     # Run single test.
-    QORE_MODULE_DIR=./qlib:$QORE_MODULE_DIR LD_LIBRARY_PATH=$QORE_LIB_PATH $QORE $test $TEST_OUTPUT_FORMAT
+    QORE_MODULE_DIR=./qlib:$QORE_MODULE_DIR LD_PRELOAD=$LIBQORE LD_LIBRARY_PATH=$QORE_LIB_PATH $QORE $test $TEST_OUTPUT_FORMAT
 
     if [ $? -eq 0 ]; then
         PASSED_TEST_COUNT=$((PASSED_TEST_COUNT+1))

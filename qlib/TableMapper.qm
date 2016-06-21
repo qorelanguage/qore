@@ -23,7 +23,7 @@
 */
 
 # this module requires Qore 0.8.12 or better
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 
 # require type definitions everywhere
 %require-types
@@ -40,7 +40,7 @@
 %requires SqlUtil
 
 module TableMapper {
-    version = "1.1";
+    version = "1.2";
     desc = "user module providing data mapping infrastructure to an SQL Table target";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -198,6 +198,10 @@ on_error table1.rollback();
     Additionally, the value is provided to any row code set with @ref TableMapper::InboundTableMapper::setRowCode(); see @ref tablemapper_bulk_insert_api for more information.
 
     @section tablemapperrelnotes Release Notes
+
+    @subsection tablemapperv1_2 TableMapper v1.2
+    - fixed a bug with the @ref TableMapper::SqlStatementOutboundMapper::iterator() method; corrected the iterator object return value which was causing \c AbstractMapperIterator::mapBulk() to fail (<a href="https://github.com/qorelanguage/qore/issues/979">issue 979</a>)
+    - fixed a bug with @ref TableMapper::SqlStatementOutboundMapper; it would throw an error if the required \c "table" or \c "sh" options were used and only worked with subclasses that declared these options (<a href="https://github.com/qorelanguage/qore/issues/981">issue 981</a>)
 
     @subsection tablemapperv1_1 TableMapper v1.1
     - added table name and datasource description to error messages
@@ -1234,6 +1238,8 @@ InboundTableMapperIterator i(input, mapper);
         public {
             #! option keys for this object
             const OptionKeys = Mapper::OptionKeys + (
+                "table": "(required) the AbstractTable object for the source of the data",
+                "sh": "(optional) an SqlUtil select hash",
                 "select_block" : sprintf("the row block size used when bulk DML / batch inserts are used; default: %y", OptionDefaults.select_block),
                 );
 
@@ -1254,10 +1260,12 @@ InboundTableMapperIterator i(input, mapper);
         /** The source statement is also scanned using @ref Qore::SQL::SQLStatement and column definitions are used to update the source record specification.
 
             @param mapv a optional hash providing overrides for the default 1:1 input to output field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
-            @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
+            @param opts a hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
             - \c "select_block": for size of the batch returned from TableMapper::SqlStatementOutboundMapper::getData() or SqlStatementOutboundMapper::getDataRows()
+            - \c "sh": an SqlUtil select hash
+            - \c "table": (required) the AbstractTable object for the source of the data
 
-            @throw MAP-ERROR
+            @throw MAP-ERROR invalid select_block size; must be >= 1 if present
         */
         constructor(hash mapv, *hash opts) {
             initOptions(\opts);
@@ -1280,14 +1288,14 @@ InboundTableMapperIterator i(input, mapper);
             return OptionKeys;
         }
 
-        #! commits the transaction and frees the AbstractDatasource resource
+        #! commits the transaction and frees the Qore::SQL::AbstractDatasource transaction thread resource
         commit() {
             if (!m_stmt)
                 initStatement();
             m_stmt.commit();
         }
 
-        #! rolls the transaction back and frees the AbstractDatasource resource
+        #! rolls the transaction back and frees the Qore::SQL::AbstractDatasource transaction thread resource
         rollback() {
             if (!m_stmt)
                 initStatement();
@@ -1303,24 +1311,24 @@ InboundTableMapperIterator i(input, mapper);
         #! re-implement to initialize Qore::SQL::SQLStatement on demand
         abstract private initStatement();
 
-        #! Get MapperIterator for easy line-by-line processing
-        /** @return Mapper::MapperIterator object
+        #! Returns an SqlStatementMapperIterator based on the current object
+        /** @return an SqlStatementMapperIterator based on the current object
 
             Data are retrieved with standard Qore::AbstractIterator::getValue() or similar.
             Value is a hash with column names as keys.
          */
-        Mapper::MapperIterator iterator() {
+        SqlStatementMapperIterator iterator() {
             if (!m_stmt)
                 initStatement();
-            return new MapperIterator(m_stmt, self);
+            return new SqlStatementMapperIterator(m_stmt, mapc);
         }
 
         #! Retrieve mapped data as a hash of lists.
         /** @return *hash with data or Qore::NOTHING in case there are no more data available.
 
-            Size of the batch is driven by \c select_block option passed in constructor.
+            The size of the batch is driven by the \c select_block option passed in the constructor.
 
-            Hash is in Qore::AbstractDatasource::select() form - meaning it is a hash
+            The hash is in Qore::SQL::AbstractDatasource::select() form - meaning it is a hash
             with column names as keys. Values are lists of column values.
             This data structure is used for Qore::context statement or BulksSqlUtil
             operations.
@@ -1355,7 +1363,7 @@ InboundTableMapperIterator i(input, mapper);
 
             Size of the batch is driven by \c select_block option passed in constructor.
 
-            List is in Qore::AbstractDatasource::selectRows() form - meaning it is a list
+            List is in Qore::SQL::AbstractDatasource::selectRows() form - meaning it is a list
             with hashes, where every hashs has column names as keys with single values as
             hash values.
          */
@@ -1467,7 +1475,7 @@ InboundTableMapperIterator i(input, mapper);
         #! builds the obejct based on real SQL statement
         /** The source statement is also scanned using @ref Qore::SQL::SQLStatement and column definitions are used to update the source record specification.
 
-            @param ds Qore::AbstractDatasource instance. Note that this object uses transaction lock for current thread.
+            @param ds Qore::SQL::AbstractDatasource instance. Note that this object uses a transaction lock for the current thread.
             @param sql a string with SQL statement. Variables binding is provided by \c sqlargs
             @param sqlargs optional list with sql argumets/variables
             @param mapv a optional hash providing overrides for the default 1:1 input to output field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
@@ -1495,7 +1503,7 @@ printf("%N\n", m.getDataRows());
 #    name : "BUG-476-TEST"
         @endcode
          */
-        constructor(AbstractDatasource ds, string sql, *softlist sqlargs, hash mapv, *hash opts)
+        constructor(Qore::SQL::AbstractDatasource ds, string sql, *softlist sqlargs, hash mapv, *hash opts)
             : AbstractSqlStatementOutboundMapper(mapv, opts + ("datasource": ds, "select": sql, "bind": sqlargs))  {
         }
 
@@ -1505,7 +1513,7 @@ printf("%N\n", m.getDataRows());
         }
 
         #! returns a description of the input record based on @ref Qore::SQL::SQLStatement::describe()
-        static *hash getStaticInputRecord(AbstractDatasource ds, string sql, *softlist args) {
+        static *hash getStaticInputRecord(Qore::SQL::AbstractDatasource ds, string sql, *softlist args) {
             # SQLStatement::describe() implicitly starts a transaction,
             # and we have to ensure that no transaction is started here if one is not already in progress
             bool trans = ds.currentThreadInTransaction();

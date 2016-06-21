@@ -33,7 +33,7 @@
 
 #define _QORE_QORE_NUMBER_PRIVATE_H
 
-#include <math.h>
+#include <cmath>
 #include <memory>
 
 // the number of consecutive trailing 0 or 9 digits that will be rounded in string output
@@ -264,7 +264,7 @@ struct qore_number_private : public qore_number_private_intern {
 
    DLLLOCAL bool lessThan(double right) const {
       MPFR_DECL_INIT(r, QORE_DEFAULT_PREC);
-      if (mpfr_nan_p(num) || isnan(right)) // If any of the "numbers" is NaN.
+      if (mpfr_nan_p(num) || std::isnan(right)) // If any of the "numbers" is NaN.
          return false;
       mpfr_set_d(r, right, QORE_MPFR_RND);
       return mpfr_less_p(num, r);
@@ -284,7 +284,7 @@ struct qore_number_private : public qore_number_private_intern {
 
    DLLLOCAL bool lessThanOrEqual(double right) const {
       MPFR_DECL_INIT(r, QORE_DEFAULT_PREC);
-      if (mpfr_nan_p(num) || isnan(right)) // If any of the "numbers" is NaN.
+      if (mpfr_nan_p(num) || std::isnan(right)) // If any of the "numbers" is NaN.
          return false;
       mpfr_set_d(r, right, QORE_MPFR_RND);
       return mpfr_lessequal_p(num, r);
@@ -304,7 +304,7 @@ struct qore_number_private : public qore_number_private_intern {
 
    DLLLOCAL bool greaterThan(double right) const {
       MPFR_DECL_INIT(r, QORE_DEFAULT_PREC);
-      if (mpfr_nan_p(num) || isnan(right)) // If any of the "numbers" is NaN.
+      if (mpfr_nan_p(num) || std::isnan(right)) // If any of the "numbers" is NaN.
          return false;
       mpfr_set_d(r, right, QORE_MPFR_RND);
       return mpfr_greater_p(num, r);
@@ -324,7 +324,7 @@ struct qore_number_private : public qore_number_private_intern {
 
    DLLLOCAL bool greaterThanOrEqual(double right) const {
       MPFR_DECL_INIT(r, QORE_DEFAULT_PREC);
-      if (mpfr_nan_p(num) || isnan(right)) // If any of the "numbers" is NaN.
+      if (mpfr_nan_p(num) || std::isnan(right)) // If any of the "numbers" is NaN.
          return false;
       mpfr_set_d(r, right, QORE_MPFR_RND);
       return mpfr_greaterequal_p(num, r);
@@ -343,7 +343,7 @@ struct qore_number_private : public qore_number_private_intern {
    }
 
    DLLLOCAL bool equals(double right) const {
-      if (mpfr_nan_p(num) || isnan(right)) // If any of the "numbers" is NaN.
+      if (mpfr_nan_p(num) || std::isnan(right)) // If any of the "numbers" is NaN.
          return false;
       return 0 == mpfr_cmp_d(num, right);
    }
@@ -365,7 +365,7 @@ struct qore_number_private : public qore_number_private_intern {
       } else {
          prec = QORE_MAX(mpfr_get_prec(num), mpfr_get_prec(r.num)) + 1;
       }
-      std::auto_ptr<qore_number_private> p(new qore_number_private(prec));
+      std::unique_ptr<qore_number_private> p(new qore_number_private(prec));
       func(p->num, num, r.num, QORE_MPFR_RND);
       if (xsink)
          checkFlags(xsink);

@@ -34,7 +34,7 @@
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/AbstractIteratorHelper.h>
 
-#include <math.h>
+#include <cmath>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -760,7 +760,7 @@ static AbstractQoreNode* op_plus_binary_binary(const AbstractQoreNode* left, con
 }
 
 static int64 op_cmp_double(double left, double right, ExceptionSink* xsink) {
-   if (isnan(left) || isnan(right)) {
+   if (std::isnan(left) || std::isnan(right)) {
       xsink->raiseException("NAN-COMPARE-ERROR", "NaN in logical comparison operator");
       return 1;
    }

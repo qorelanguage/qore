@@ -11,7 +11,7 @@
 %requires ../../../../qlib/Mapper.qm
 %requires ../../../../qlib/TableMapper.qm
 
-#%exec-class Main
+%exec-class Main
 
 # unused, but required for "select hash" argument
 const SELECT_HASH = (
@@ -54,9 +54,34 @@ class FakeSQLStatement inherits Qore::AbstractIterator {
         return ret;
     }
 
-    any fetchRows() {
-        return OUTPUT;
+    private list getAdvancePtr(int rows) {
+        list l = INPUT;
+
+        if (m_ix)
+            splice l, 0, m_ix;
+
+        if (rows >= 0)
+            splice l, rows;
+
+        m_ix += l.size();
+
+        return l;
     }
+
+    list fetchRows(softint rows = -1) {
+        return getAdvancePtr(rows);
+    }
+
+    hash fetchColumns(softint rows = -1) {
+        hash h = map {$1: ()}, INPUT[0].keyIterator();
+        map (map h{$1.key} += $1.value, $1.pairIterator()), getAdvancePtr(rows);
+        return h;
+    }
+
+    bindArgs(softlist vargs) {}
+
+    commit() {}
+    rollback() {}
 
     prepare(string s) {}
     execArgs(list l) {}
@@ -68,8 +93,7 @@ class FakeSQLStatement inherits Qore::AbstractIterator {
 }
 
 # dummy datasource-like class for FakeAbstractTable
-class FakeDatasource inherits Qore::SQL::AbstractDatasource
-{
+class FakeDatasource inherits Qore::SQL::AbstractDatasource {
     *string getPassword() {}
     *string getOSEncoding() {}
     *string getDBName() {}
@@ -95,11 +119,15 @@ class FakeDatasource inherits Qore::SQL::AbstractDatasource
     any vselectRow(string sql, softlist vargs) {}
     any vexec(string sql, softlist vargs) {}
     *string getUserName() {}
+    bool currentThreadInTransaction() { return False; }
 }
 
 # Actually we don't need real table. Just a FakeSQLStatement returned from getRowIterator()
 class FakeAbstractTable inherits SqlUtil::AbstractTable {
-    constructor() : SqlUtil::AbstractTable(new FakeDatasource(), "foo_table") {}
+    public {
+        FakeDatasource fds();
+    }
+    constructor() : SqlUtil::AbstractTable(fds, "foo_table") {}
     AbstractIterator getRowIterator(hash h, *reference sql) { return new FakeSQLStatement(); }
 
     string getRenameSqlImpl(string new_name)  {}
@@ -151,15 +179,16 @@ class Main inherits QUnit::DependencyInjectedTest {
     }
 
     performModuleInjections() {
-#        injectIntoModule("../../../../qlib/TableMapper.qm");
+        injectIntoModule("../../../../qlib/TableMapper.qm");
     }
 
     performInjections(Program p) {
-        p.importClass("FakeSQLStatement", "Qore::SQLStatement", True);
+        p.importClass("FakeSQLStatement", "Qore::SQL::SQLStatement", True);
     }
 
     private testIterator() {
-        SqlStatementOutboundMapper m(new FakeAbstractTable(), SELECT_HASH, MAPV);
+        FakeAbstractTable t();
+        SqlStatementOutboundMapper m(t, SELECT_HASH, MAPV);
         AbstractIterator it = m.iterator();
 
         int i = 0;
@@ -171,20 +200,22 @@ class Main inherits QUnit::DependencyInjectedTest {
     }
 
     private testHashRows() {
-        SqlStatementOutboundMapper m(new FakeAbstractTable(), SELECT_HASH, MAPV);
-        *list l;
-        while (l = m.getDataRows()) {
-            # noop
+        FakeAbstractTable t();
+        SqlStatementOutboundMapper m(t, SELECT_HASH, MAPV);
+        list l = ();
+        while (*list tl = m.getDataRows()) {
+            l += tl;
         }
-        testAssertion("getDataRows call", \equals(), (l, OUTPUT));
+        assertEq(OUTPUT, l, "getDataRows()");
     }
 
     private testContext() {
-        SqlStatementOutboundMapper m(new FakeAbstractTable(), SELECT_HASH, MAPV);
-        *hash h;
-        while (h = m.getData()) {
-            # noop
+        FakeAbstractTable t();
+        SqlStatementOutboundMapper m(t, SELECT_HASH, MAPV);
+        list l = ();
+        while (*hash th = m.getData()) {
+            map l += $1, th.contextIterator();
         }
-        testAssertion("getData call", \equals(), (h, OUTPUT));
+        assertEq(OUTPUT, l, "getData()");
     }
 }

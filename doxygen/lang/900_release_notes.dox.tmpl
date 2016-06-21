@@ -7,11 +7,17 @@
     @par Release Summary
 
     @subsection qore_0813_compatibility Changes That Can Affect Backwards-Compatibility
+    - updated build scripts to the c++11 standard (<a href="https://github.com/qorelanguage/qore/issues/994">issue 994</a>)
 
     @subsection qore_0813_new_features New Features in Qore
 
     @subsection qore_0813_bug_fixes Bug Fixes in Qore
     - fixed a bug causing the AbstractQuantifiedBidirectionalIterator not being available (<a href="https://github.com/qorelanguage/qore/issues/968">issue 968</a>)
+    - <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module fixes:
+      - fixed a bug with the \c SqlStatementOutboundMapper::iterator() method; corrected the iterator object return value which was causing \c AbstractMapperIterator::mapBulk() to fail (<a href="https://github.com/qorelanguage/qore/issues/979">issue 979</a>)
+      - fixed a bug with \c SqlStatementOutboundMapper; it would throw an error if the required \c "table" or \c "sh" options were used and only worked with subclasses that declared these options (<a href="https://github.com/qorelanguage/qore/issues/981">issue 981</a>)
+    - fixed a bug where optional arguments were not handled correctly in some rare cases (<a href="https://github.com/qorelanguage/qore/issues/974">issue 974</a>)
+    - fixed a bug causing a crash when parse_base64_string_to_string was called with an empty string (<a href="https://github.com/qorelanguage/qore/issues/996">issue 996</a>)
 
     @section qore_0812 Qore 0.8.12
 

@@ -297,7 +297,7 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
 
    int64 ind = rh->getAsBigInt();
    if (ind < 0) {
-      vl.xsink->raiseException("NEGATIVE-LIST-INDEX", "list index "QLLD" is invalid (index must evaluate to a non-negative integer)", ind);
+      vl.xsink->raiseException("NEGATIVE-LIST-INDEX", "list index " QLLD " is invalid (index must evaluate to a non-negative integer)", ind);
       return -1;
    }
 
