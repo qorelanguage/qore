@@ -41,7 +41,7 @@ qclass PipeOutputStream [arg=PipeOutputStream* os; ns=Qore; vparent=OutputStream
 //! Creates the PipeOutputStream
 /**
  */
-PipeOutputStream::constructor() {
+private PipeOutputStream::constructor() {
    assert(false);
 }
 
