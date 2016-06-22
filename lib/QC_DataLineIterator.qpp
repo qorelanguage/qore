@@ -59,30 +59,21 @@ line 3 = "aaa_base-11.3-7.2.x86_64"
 qclass DataLineIterator [arg=DataLineIterator* i; ns=Qore; vparent=AbstractLineIterator];
 
 //! creates the DataLineIterator based on the string given
-/** @param string the string to iterate over; note that if this string is in a non-ascii-compatible character encoding, it will be converted to UTF-8 for processing in the constructor and the UTF-8 version of the string will be used for iterating in this object
+/** @param str the string to iterate over; note that if this string is in a non-ascii-compatible character encoding, it will be converted to UTF-8 for processing in the constructor and the UTF-8 version of the string will be used for iterating in this object
     @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"; if this string is passed and has a different @ref character_encoding "character encoding" from this object's (as determined by the \c encoding parameter), then it will be converted to the DataLineIterator's @ref character_encoding "character encoding"
     @param trim if @ref Qore::True "True" the string return values for the lines iterated will be trimmed of the eol bytes
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
  */
-DataLineIterator::constructor(string string, *string eol, bool trim = True) {
+DataLineIterator::constructor(string str, *string eol, bool trim = True) {
    if (eol && eol->empty())
       eol = 0;
 
-   // make sure that we use the same encoding for the EOL marker as with the input data
-   SimpleRefHolder<QoreStringNode> neol;
-   if (eol) {
-      const QoreEncoding* eol_enc = string->getEncoding()->isAsciiCompat() ? string->getEncoding() : QCS_UTF8;
-      neol = eol->convertEncoding(eol_enc, xsink);
-      if (*xsink)
-         return;
-   }
-
-   SimpleRefHolder<DataLineIterator> fli(new DataLineIterator(xsink, string->stringRefSelf(), neol.release(), trim));
+   SimpleRefHolder<DataLineIterator> dli(new DataLineIterator(xsink, str, eol, trim));
    if (*xsink)
       return;
 
-   self->setPrivate(CID_DATALINEITERATOR, fli.release());
+   self->setPrivate(CID_DATALINEITERATOR, dli.release());
 }
 
 //! Creates a new DataLineIterator object, based on the same object being iterated in the original object
@@ -92,10 +83,10 @@ DataLineIterator ni = i.copy();
     @endcode
  */
 DataLineIterator::copy() {
-   SimpleRefHolder<DataLineIterator> fli(new DataLineIterator(xsink, *i));
+   SimpleRefHolder<DataLineIterator> dli(new DataLineIterator(xsink, *i));
 
    if (!*xsink)
-      self->setPrivate(CID_DATALINEITERATOR, fli.release());
+      self->setPrivate(CID_DATALINEITERATOR, dli.release());
 }
 
 //! Moves the current position to the next line in the data; returns @ref False if there are no more lines to read; if the iterator is not pointing at a valid element before this call, the iterator will be positioned to the beginning of the data
