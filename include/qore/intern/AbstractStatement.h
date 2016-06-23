@@ -45,6 +45,8 @@
 #define PF_FOR_ASSIGNMENT        (1 << 3)
 #define PF_CONST_EXPRESSION      (1 << 4)
 #define PF_TOP_LEVEL             (1 << 5) //!< parsing at the top-level of the program
+#define PF_BREAK_OK              (1 << 6)
+#define PF_CONTINUE_OK           (1 << 7)
 
 // all definitions in this file are private to the library and subject to change
 

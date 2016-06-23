@@ -41,6 +41,8 @@ private:
       return RC_BREAK;
    }
    DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0) {
+      if (!(pflag & PF_BREAK_OK))
+         parseException("BREAK-NOT-ALLOWED", "break statements are only allowed in switch and loop statements");
       return 0;
    }
 
