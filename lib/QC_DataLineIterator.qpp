@@ -28,11 +28,10 @@
   information.
 */
 
-#include <qore/Qore.h>
-
 #include <string.h>
 #include <errno.h>
 
+#include "qore/Qore.h"
 #include "qore/intern/DataLineIterator.h"
 
 //! This class defines a line iterator for string data
@@ -54,6 +53,7 @@ line 2 = "a2ps-devel-4.13-1332.1.x86_64"
 line 3 = "aaa_base-11.3-7.2.x86_64"
     @endcode
 
+    @see @ref Qore::InputStreamLineIterator
     @see @ref Qore::FileLineIterator
  */
 qclass DataLineIterator [arg=DataLineIterator* i; ns=Qore; vparent=AbstractLineIterator];
@@ -110,8 +110,8 @@ bool DataLineIterator::next() {
    return i->next(xsink);
 }
 
-//! returns the current line in the data or throws an \c INVALID-ITERATOR exception if the iterator is invalid
-/** @return the current line in the data or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+//! returns the current line in the data or throws an \c ITERATOR-ERROR exception if the iterator is invalid
+/** @return the current line in the data or throws an \c ITERATOR-ERROR exception if the iterator is invalid
 
     @par Example:
     @code{.py}
@@ -120,7 +120,7 @@ while (i.next()) {
 }
     @endcode
 
-    @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+    @throw ITERATOR-ERROR the iterator is not pointing at a valid element
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
 
     @see DataLineIterator::getLine()
@@ -129,8 +129,8 @@ string DataLineIterator::getValue() [flags=RET_VALUE_ONLY] {
    return i->checkValid(xsink) ? 0 : i->getValue();
 }
 
-//! returns the current line in the data or throws an \c INVALID-ITERATOR exception if the iterator is invalid
-/** @return the current line in the data or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+//! returns the current line in the data or throws an \c ITERATOR-ERROR exception if the iterator is invalid
+/** @return the current line in the data or throws an \c ITERATOR-ERROR exception if the iterator is invalid
 
     @par Example:
     @code{.py}
@@ -139,7 +139,7 @@ while (i.next()) {
 }
     @endcode
 
-    @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+    @throw ITERATOR-ERROR the iterator is not pointing at a valid element
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
 
     @see DataLineIterator::getValue()
