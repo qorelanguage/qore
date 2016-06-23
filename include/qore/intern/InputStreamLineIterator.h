@@ -58,7 +58,6 @@ public:
       bufCapacity(INPUTSTREAMLINEITERATOR_BUFFER_SIZE),
       bufSize(0),
       buf(0) {
-      is->ref();
       if (n_eol) {
          if (encoding != n_eol->getEncoding()) {
             SimpleRefHolder<QoreStringNode> neol(n_eol->convertEncoding(encoding, xsink));

@@ -133,6 +133,7 @@ private:
       fis = new FileInputStream(filename, -1, xsink);
       if (*xsink)
          return;
+      fis->ref();
       src = new InputStreamLineIterator(xsink, *fis, encoding, eol, trim);
    }
 
