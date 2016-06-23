@@ -29,8 +29,8 @@
   information.
 */
 
-#ifndef _QORE_DATALINEITERATOR_H
-#define _QORE_DATALINEITERATOR_H
+#ifndef _QORE_FILELINEITERATOR_H
+#define _QORE_FILELINEITERATOR_H
 
 #include <string.h>
 #include <errno.h>
@@ -145,4 +145,4 @@ private:
    bool trim;
 };
 
-#endif // _QORE_DATALINEITERATOR_H
+#endif // _QORE_FILELINEITERATOR_H
