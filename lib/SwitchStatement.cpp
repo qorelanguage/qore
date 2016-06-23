@@ -121,7 +121,7 @@ int SwitchStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
 
 	 w = w->next;
       }
-      if (rc == RC_BREAK || rc == RC_CONTINUE)
+      if (rc == RC_BREAK)
 	 rc = 0;
    }
 
@@ -191,7 +191,7 @@ int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
       }
 
       if (w->code)
-	 w->code->parseInitImpl(oflag, pflag);
+	 w->code->parseInitImpl(oflag, pflag | PF_BREAK_OK);
       w = w->next;
    }
 
