@@ -47,7 +47,6 @@ public:
    /**
     * @brief Flushes any buffered (unwritten) bytes, closes the output stream and releases resources.
     * @param xsink the exception sink
-    * @throws IO-ERROR if an I/O error occurs
     */
    DLLLOCAL virtual void close(ExceptionSink* xsink) = 0;
 

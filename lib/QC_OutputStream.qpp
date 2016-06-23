@@ -46,9 +46,7 @@ OutputStream::constructor() {
 }
 
 //! Flushes any buffered (unwritten) bytes, closes the output stream and releases all resources.
-/** Any methods called on a closed output stream will thrown an IO-ERROR exception.
-
-    @throw IO-ERROR if an I/O error occurs
+/** Any methods called on a closed output stream will thrown an exception.
  */
 abstract nothing OutputStream::close();
 

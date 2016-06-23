@@ -53,9 +53,7 @@ BinaryOutputStream::constructor() {
 }
 
 //! Closes the output stream and releases any resources.
-/** Any methods called on a closed output stream will thrown an IO-ERROR exception.
-
-    @throw IO-ERROR if an I/O error occurs
+/** Any methods called on a closed output stream will thrown an exception.
  */
 nothing BinaryOutputStream::close() {
    os->closeHelper(xsink);

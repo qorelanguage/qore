@@ -57,7 +57,7 @@ public:
       assert(!isClosed());
       int rc = f.close();
       if (rc) {
-         xsink->raiseException("IO-ERROR", "Error %d closing file", rc);
+         xsink->raiseException("FLIE-CLOSE-ERROR", "Error %d closing file", rc);
       }
    }
 
