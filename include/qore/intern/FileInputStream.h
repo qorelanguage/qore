@@ -54,6 +54,8 @@ public:
       return f.read(ptr, limit, timeout, xsink);
    }
 
+   DLLLOCAL QoreFile& getFile() { return f; }
+
 private:
    QoreFile f;
    int64 timeout;

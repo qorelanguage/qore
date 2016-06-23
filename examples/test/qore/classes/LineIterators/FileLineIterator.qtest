@@ -6,11 +6,12 @@
 %require-types
 %strict-args
 
+%requires ../../../../../qlib/Util.qm
 %requires ../../../../../qlib/QUnit.qm
 
-%exec-class DataLineIteratorTest
+%exec-class FileLineIteratorTest
 
-class DataLineIteratorTest inherits QUnit::Test {
+class FileLineIteratorTest inherits QUnit::Test {
     private {
         const DataList = (
             "a2ps-4.13-1332.1.x86_64",
@@ -24,9 +25,11 @@ class DataLineIteratorTest inherits QUnit::Test {
             "xyz42",
             "123456"
         );
+
+        string TestFileName;
     }
 
-    constructor() : QUnit::Test("DataLineIterator test", "1.0") {
+    constructor() : QUnit::Test("FileLineIterator test", "1.0") {
         addTestCase("Basic tests", \basicTests());
         addTestCase("Reset test", \resetTest());
 
@@ -60,6 +63,20 @@ class DataLineIteratorTest inherits QUnit::Test {
         set_return_value(main());
     }
 
+    globalSetUp() {
+        TestFileName = tmp_location() + DirSep + "qore_filelineiterator_test_1f7h8u25f6v2n1sda8w7.txt";
+    }
+
+    globalTearDown() {
+        unlink(TestFileName);
+    }
+
+    prepareFile(string data) {
+        File f(data.encoding());
+        f.open2(TestFileName, O_WRONLY | O_CREAT | O_TRUNC, 0644, data.encoding());
+        f.print(data);
+    }
+
     basicTests() {
         string WithNLines = foldl $1 + "\n" + $2, BasicData;
         string WithRNLines = foldl $1 + "\r\n" + $2, BasicData;
@@ -67,7 +84,8 @@ class DataLineIteratorTest inherits QUnit::Test {
         string weirdEOL = "XYZ123";
         string WithWeirdEOL = foldl $1 + weirdEOL + $2, BasicData;
 
-        AbstractLineIterator a = new DataLineIterator("");
+        prepareFile("");
+        AbstractLineIterator a = new FileLineIterator(TestFileName);
         assertFalse(a.valid());
         assertEq(0, a.index());
         assertThrows('ITERATOR-ERROR', \a.getValue());
@@ -75,8 +93,10 @@ class DataLineIteratorTest inherits QUnit::Test {
         assertFalse(a.valid());
         assertEq(0, a.index());
         assertThrows('ITERATOR-ERROR', \a.getValue());
+        delete a;
 
-        a = new DataLineIterator(BasicData[0]);
+        prepareFile(BasicData[0]);
+        a = new FileLineIterator(TestFileName);
         assertFalse(a.valid());
         assertEq(0, a.index());
         assertThrows('ITERATOR-ERROR', \a.getValue());
@@ -89,32 +109,10 @@ class DataLineIteratorTest inherits QUnit::Test {
         assertFalse(a.valid());
         assertEq(0, a.index());
         assertThrows('ITERATOR-ERROR', \a.getValue());
+        delete a;
 
-        a = new DataLineIterator(WithNLines);
-        assertFalse(a.valid());
-        assertEq(0, a.index());
-        assertThrows('ITERATOR-ERROR', \a.getValue());
-        assertTrue(a.next());
-        assertTrue(a.valid());
-        assertEq(1, a.index());
-        assertEq(BasicData[0], a.getLine());
-        assertEq(BasicData[0], a.getValue());
-        assertTrue(a.next());
-        assertTrue(a.valid());
-        assertEq(2, a.index());
-        assertEq(BasicData[1], a.getLine());
-        assertEq(BasicData[1], a.getValue());
-        assertTrue(a.next());
-        assertTrue(a.valid());
-        assertEq(3, a.index());
-        assertEq(BasicData[2], a.getLine());
-        assertEq(BasicData[2], a.getValue());
-        assertFalse(a.next());
-        assertFalse(a.valid());
-        assertEq(0, a.index());
-        assertThrows('ITERATOR-ERROR', \a.getValue());
-
-        a = new DataLineIterator(WithRNLines);
+        prepareFile(WithNLines);
+        a = new FileLineIterator(TestFileName);
         assertFalse(a.valid());
         assertEq(0, a.index());
         assertThrows('ITERATOR-ERROR', \a.getValue());
@@ -137,8 +135,10 @@ class DataLineIteratorTest inherits QUnit::Test {
         assertFalse(a.valid());
         assertEq(0, a.index());
         assertThrows('ITERATOR-ERROR', \a.getValue());
+        delete a;
 
-        a = new DataLineIterator(WithRLines);
+        prepareFile(WithRNLines);
+        a = new FileLineIterator(TestFileName);
         assertFalse(a.valid());
         assertEq(0, a.index());
         assertThrows('ITERATOR-ERROR', \a.getValue());
@@ -161,8 +161,10 @@ class DataLineIteratorTest inherits QUnit::Test {
         assertFalse(a.valid());
         assertEq(0, a.index());
         assertThrows('ITERATOR-ERROR', \a.getValue());
+        delete a;
 
-        a = new DataLineIterator(WithWeirdEOL, weirdEOL);
+        prepareFile(WithRLines);
+        a = new FileLineIterator(TestFileName);
         assertFalse(a.valid());
         assertEq(0, a.index());
         assertThrows('ITERATOR-ERROR', \a.getValue());
@@ -185,16 +187,46 @@ class DataLineIteratorTest inherits QUnit::Test {
         assertFalse(a.valid());
         assertEq(0, a.index());
         assertThrows('ITERATOR-ERROR', \a.getValue());
+        delete a;
+
+        prepareFile(WithWeirdEOL);
+        a = new FileLineIterator(TestFileName, NOTHING, weirdEOL);
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(1, a.index());
+        assertEq(BasicData[0], a.getLine());
+        assertEq(BasicData[0], a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(2, a.index());
+        assertEq(BasicData[1], a.getLine());
+        assertEq(BasicData[1], a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(3, a.index());
+        assertEq(BasicData[2], a.getLine());
+        assertEq(BasicData[2], a.getValue());
+        assertFalse(a.next());
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        delete a;
     }
 
     resetTest() {
-        DataLineIterator a = new DataLineIterator("abc");
+        prepareFile("abc");
+        FileLineIterator a = new FileLineIterator(TestFileName);
         assertTrue(a.next());
         assertFalse(a.next());
         assertTrue(a.next());
         assertFalse(a.next());
+        delete a;
 
-        a = new DataLineIterator("abc\ndef\nghi");
+        prepareFile("abc\ndef\nghi");
+        a = new FileLineIterator(TestFileName);
         assertTrue(a.next());
         assertEq("abc", a.getLine());
         assertTrue(a.next());
@@ -209,39 +241,44 @@ class DataLineIteratorTest inherits QUnit::Test {
         assertTrue(a.next());
         assertEq("ghi", a.getLine());
         assertFalse(a.next());
+        delete a;
     }
 
-    doTestsIntern(DataLineIterator di) {
+    doTestsIntern(FileLineIterator fli) {
         for (int i = 0; i < DataList.size(); i++) {
-            assertTrue(di.next(), sprintf("next() #%d", i));
-            assertEq(DataList[i].strlen(), di.getValue().strlen(), sprintf("getValue() #%d", i));
+            assertTrue(fli.next(), sprintf("next() #%d", i));
+            assertEq(DataList[i].strlen(), fli.getValue().strlen(), sprintf("getValue() #%d", i));
         }
-        assertFalse(di.next());
+        assertFalse(fli.next());
     }
 
     doTestsExplicit(string eol) {
         string data = foldl $1 + eol + $2, DataList;
-        DataLineIterator di(data, eol);
-        doTestsIntern(di);
+        prepareFile(data);
+        FileLineIterator fli(TestFileName, NOTHING, eol);
+        doTestsIntern(fli);
     }
 
     doTestsAuto(string eol) {
         string data = foldl $1 + eol + $2, DataList;
-        DataLineIterator di(data);
-        doTestsIntern(di);
+        prepareFile(data);
+        FileLineIterator fli(TestFileName);
+        doTestsIntern(fli);
     }
 
     doTestsExplicitEnc(string enc, string eol) {
         string data = foldl $1 + eol + $2, DataList;
         string dataEncoded = convert_encoding(data, enc);
-        DataLineIterator di(dataEncoded, eol);
-        doTestsIntern(di);
+        prepareFile(dataEncoded);
+        FileLineIterator fli(TestFileName, enc, eol);
+        doTestsIntern(fli);
     }
 
     doTestsAutoEnc(string enc, string eol) {
         string data = foldl $1 + eol + $2, DataList;
         string dataEncoded = convert_encoding(data, enc);
-        DataLineIterator di(dataEncoded);
-        doTestsIntern(di);
+        prepareFile(dataEncoded);
+        FileLineIterator fli(TestFileName, enc);
+        doTestsIntern(fli);
     }
 }

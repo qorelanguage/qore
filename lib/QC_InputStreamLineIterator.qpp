@@ -28,7 +28,7 @@
   information.
 */
 
-#include <qore/Qore.h>
+#include "qore/Qore.h"
 #include "qore/InputStream.h"
 #include "qore/intern/InputStreamLineIterator.h"
 
@@ -44,6 +44,7 @@ while (it.next()) {
 }
     @endcode
 
+    @see @ref Qore::DataLineIterator
     @see @ref Qore::FileLineIterator
  */
 qclass InputStreamLineIterator [arg=InputStreamLineIterator* isli; ns=Qore; vparent=AbstractLineIterator; private_members=InputStream is];
