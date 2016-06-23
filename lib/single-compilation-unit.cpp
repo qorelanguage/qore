@@ -291,6 +291,9 @@
 #include "QC_StreamPipe.cpp"
 #include "QC_PipeInputStream.cpp"
 #include "QC_PipeOutputStream.cpp"
+#include "QC_Transform.cpp"
+#include "QC_TransformInputStream.cpp"
+#include "QC_TransformOutputStream.cpp"
 
 #include "QorePseudoMethods.cpp"
 

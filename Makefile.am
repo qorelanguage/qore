@@ -143,6 +143,9 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_StreamPipe.qpp \
 	lib/QC_PipeInputStream.qpp \
 	lib/QC_PipeOutputStream.qpp \
+	lib/QC_Transform \
+	lib/QC_TransformInputStream.qpp \
+	lib/QC_TransformOutputStream.qpp \
 	lib/Pseudo_QC_All.qpp \
 	lib/Pseudo_QC_Nothing.qpp \
 	lib/Pseudo_QC_Date.qpp \
