@@ -83,7 +83,7 @@ make_version() {
 }
 
 # see if git is available
-if build="$($(dirname '$0')/getrev.sh 2>/dev/null)"; then
+if build=`$dir/getrev.sh 2>/dev/null`; then
     make_file
     ok=1
 else
