@@ -18,6 +18,9 @@ class  BreakAndContinueTest inherits QUnit::Test {
         addTestCase("break not allowed", \breakNotAllowed());
         addTestCase("continue allowed", \continueAllowed());
         addTestCase("continue not allowed", \continueNotAllowed());
+        addTestCase("legacy continue in switch", \legacyContinueInSwitch());
+        addTestCase("legacy break outside of a loop", \legacyBreakAllowed());
+        addTestCase("legacy continue outside of a loop", \legacyContinueAllowed());
         set_return_value(main());
     }
 
@@ -66,5 +69,48 @@ class  BreakAndContinueTest inherits QUnit::Test {
         assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("sub f() { switch(0) {case 0: continue; }}", ""));
         assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("sub f() { do { sub() {continue;}(); } while (False); }", ""));
         assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("sub f() { do { on_exit continue; } while (False); }", ""));
+    }
+
+    legacyContinueInSwitch() {
+        Program p();
+        p.parse('%new-style
+%broken-loop-statement
+string s = "";
+for (int i = 0; i < 2; ++i) {
+    s += i;
+    switch (i) {
+        case 0:
+            continue;
+    }
+    s += "x";
+}
+return s;', "");
+        assertEq("0x1x", p.run());
+    }
+
+    legacyBreakAllowed() {
+        Program p();
+        p.parse('%new-style
+%broken-loop-statement
+sub f(int i) {
+    if (i) break;
+    throw "NOT EXECUTED";
+}
+f(1);
+', "");
+        p.run();
+    }
+
+    legacyContinueAllowed() {
+        Program p();
+        p.parse('%new-style
+%broken-loop-statement
+sub f(int i) {
+    if (i) continue;
+    throw "NOT EXECUTED";
+}
+f(1);
+', "");
+        p.run();
     }
 }
