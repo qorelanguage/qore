@@ -47,8 +47,8 @@ if [ -s "./.libs/qore" ] && [ -f "./qore" ] && [ -f "./lib/.libs/libqore.so" -o 
     QORE="./.libs/qore"
     QR="./.libs/qr"
 else
-    for D in $( ls -d */ ); do
-        d=$( echo ${D%%/} )
+    for D in `ls -d */`; do
+        d=`echo ${D%%/}` 
         if [ -f "$d/CMakeCache.txt" ] && [ -f "$d/qore" ] && [ -f "$d/libqore.so" -o "$d/libqore.dylib" ]; then
             if [ -f "$d/libqore.so" ]; then
                 LIBQORE="$d/libqore.so"
@@ -70,10 +70,10 @@ fi
 echo "Using qore: $QORE, libqore: $LIBQORE"; echo
 
 # Search for tests in the test directory.
-TESTS=$( find ./examples/test/ -name "*.qtest" )
+TESTS=`find ./examples/test/ -name "*.qtest"`
 FAILED_TESTS=""
 
-TEST_COUNT=$( echo $TESTS | wc -w )
+TEST_COUNT=`echo $TESTS | wc -w`
 PASSED_TEST_COUNT=0
 FAILED_TEST_COUNT=0
 
@@ -89,8 +89,8 @@ for test in $TESTS; do
     if [ "$test" = "./examples/test/qore/classes/FtpClient/FtpClient.qtest" ]; then
         echo "Skipping $test because it doesn't really test what it should. Need to fix it."
         echo "-------------------------------------"; echo
-        PASSED_TEST_COUNT=$((PASSED_TEST_COUNT+1))
-        i=$((i+1))
+        PASSED_TEST_COUNT=`expr $PASSED_TEST_COUNT + 1`
+        i=`expr $i + 1`
         continue
     fi
 
@@ -98,13 +98,13 @@ for test in $TESTS; do
     QORE_MODULE_DIR=./qlib:$QORE_MODULE_DIR LD_PRELOAD=$LIBQORE LD_LIBRARY_PATH=$QORE_LIB_PATH $QORE $test $TEST_OUTPUT_FORMAT
 
     if [ $? -eq 0 ]; then
-        PASSED_TEST_COUNT=$((PASSED_TEST_COUNT+1))
+        PASSED_TEST_COUNT=`expr $PASSED_TEST_COUNT + 1`
     else
-        FAILED_TEST_COUNT=$((FAILED_TEST_COUNT+1))
+        FAILED_TEST_COUNT=`expr $FAILED_TEST_COUNT + 1`
         FAILED_TESTS="$FAILED_TESTS $test"
     fi
 
-    i=$((i+1))
+    i=`expr $i + 1`
     if [ $PRINT_TEXT -eq 1 ]; then echo "-------------------------------------"; echo; fi
 done
 
