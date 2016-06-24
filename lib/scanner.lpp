@@ -747,6 +747,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%strict-bool-eval{WS}*$                getProgram()->parseSetParseOptions(PO_STRICT_BOOLEAN_EVAL);
 ^%broken-list-parsing{WS}*$             getProgram()->parseSetParseOptions(PO_BROKEN_LIST_PARSING);
 ^%broken-logic-precedence{WS}*$         getProgram()->parseSetParseOptions(PO_BROKEN_LOGIC_PRECEDENCE);
+^%broken-loop-statement{WS}*$           getProgram()->parseSetParseOptions(PO_BROKEN_LOOP_STATEMENT);
 ^%broken-int-assignments{WS}*$          getProgram()->parseSetParseOptions(PO_BROKEN_INT_ASSIGNMENTS);
 ^%broken-operators{WS}*$                getProgram()->parseSetParseOptions(PO_BROKEN_OPERATORS);
 ^%push-parse-options{WS}*$              push_parse_options();

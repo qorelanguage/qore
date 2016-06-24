@@ -121,7 +121,8 @@ int SwitchStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
 
 	 w = w->next;
       }
-      if (rc == RC_BREAK)
+
+      if (rc == RC_BREAK || ((getProgram()->getParseOptions64() & PO_BROKEN_LOOP_STATEMENT) != 0 && rc == RC_CONTINUE))
 	 rc = 0;
    }
 
