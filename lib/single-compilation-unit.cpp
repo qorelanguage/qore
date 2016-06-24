@@ -202,6 +202,7 @@
 #include "QoreSquareBracketsOperatorNode.cpp"
 #include "QoreValue.cpp"
 #include "StreamPipe.cpp"
+#include "CompressionTransforms.cpp"
 #include "ql_thread.cpp"
 #include "ql_time.cpp"
 #include "ql_lib.cpp"

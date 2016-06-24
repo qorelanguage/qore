@@ -484,6 +484,7 @@ set(LIBQORE_CPP_SRC
         lib/QoreSquareBracketsOperatorNode.cpp
         lib/QoreValue.cpp
         lib/StreamPipe.cpp
+        lib/CompressionTransforms.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/ql_thread.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/ql_time.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/ql_lib.cpp

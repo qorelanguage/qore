@@ -275,6 +275,7 @@ libqore_la_SOURCES = \
 	QoreHttpClientObject.cpp \
 	QoreValue.cpp \
 	StreamPipe.cpp \
+	CompressionTransforms.cpp \
 	xxhash.cpp \
 	minitest.cpp \
 	QoreValueList.cpp
