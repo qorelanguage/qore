@@ -1,0 +1,30 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%allow-injection
+%no-child-restrictions
+
+%requires ../../../../../qlib/QUnit.qm
+
+%exec-class PrivateModuleTest
+
+class PrivateModuleTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Private module test", "1.0") {
+        addTestCase("Test", \testPrivateModule());
+        set_return_value(main());
+    }
+
+    testPrivateModule() {
+        # set up the Program container
+        Program p(PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION|PO_NEW_STYLE);
+        p.setScriptPath(get_script_path());
+        p.loadApplyToPrivateUserModule("./MyTestModule2.qm");
+        assertEq(NOTHING, get_module_hash().MyTestModule2, "private-load-1");
+    }
+}
+

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -47,7 +47,8 @@
 #include "Pseudo_QC_Callref.cpp"
 #include "Pseudo_QC_Closure.cpp"
 
-#include "intern/QoreClassIntern.h"
+#include <qore/intern/QoreClassIntern.h>
+#include <qore/intern/QoreLibIntern.h>
 
 // list of pseudo-classes for basic types + 2 entries for closures and call references
 static QoreClass* po_list[NODE_ARRAY_LEN + 2];
@@ -111,29 +112,8 @@ static QoreClass* pseudo_get_class(qore_type_t t) {
    return QC_PSEUDOVALUE;
 }
 
-// return the pseudo class for the given node
-static QoreClass* pseudo_get_class(const AbstractQoreNode *n) {
-   return pseudo_get_class(get_node_type(n));
-}
-
-AbstractQoreNode *pseudo_classes_eval(const AbstractQoreNode *n, const char *name, const QoreListNode *args, ExceptionSink *xsink) {
-   return qore_class_private::evalPseudoMethod(pseudo_get_class(n), n, name, args, xsink);
-}
-
-int64 pseudo_classes_int64_eval(const AbstractQoreNode *n, const char *name, const QoreListNode *args, ExceptionSink *xsink) {
-   return qore_class_private::bigIntEvalPseudoMethod(pseudo_get_class(n), n, name, args, xsink);
-}
-
-int pseudo_classes_int_eval(const AbstractQoreNode *n, const char *name, const QoreListNode *args, ExceptionSink *xsink) {
-   return qore_class_private::intEvalPseudoMethod(pseudo_get_class(n), n, name, args, xsink);
-}
-
-bool pseudo_classes_bool_eval(const AbstractQoreNode *n, const char *name, const QoreListNode *args, ExceptionSink *xsink) {
-   return qore_class_private::boolEvalPseudoMethod(pseudo_get_class(n), n, name, args, xsink);
-}
-
-double pseudo_classes_double_eval(const AbstractQoreNode *n, const char *name, const QoreListNode *args, ExceptionSink *xsink) {
-   return qore_class_private::floatEvalPseudoMethod(pseudo_get_class(n), n, name, args, xsink);
+QoreValue pseudo_classes_eval(const QoreValue n, const char *name, const QoreListNode *args, ExceptionSink *xsink) {
+   return qore_class_private::evalPseudoMethod(pseudo_get_class(n.getType()), n, name, args, xsink);
 }
 
 const QoreMethod* pseudo_classes_find_method(qore_type_t t, const char *mname, QoreClass* &qc) {

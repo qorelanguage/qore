@@ -3,9 +3,9 @@
   QC_Gate.qpp
 
   Qore Programming Language
-  
-  Copyright (C) 2003 - 2014 David Nichols
-  
+
+  Copyright (C) 2003 - 2015 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -33,30 +33,39 @@
 #include <qore/intern/QC_Gate.h>
 
 //! The Gate class implements a reentrant thread lock
-/** Once a thread grabs the lock, it can call the Gate::enter() method again without blocking. Other threads that try to enter the lock will block until the thread holding the lock calls Gate::exit() an equal number of times to Gate::enter() calls.
-
-    See the @ref Qore::Thread::AutoGate "AutoGate" class for a class that assists in exception-safe Gate locking.
-
+/** @par Overview
+    Once a thread grabs the lock, it can call the Gate::enter() method again without blocking. Other threads that try to enter the lock will block until the thread holding the lock calls Gate::exit() an equal number of times to Gate::enter() calls.\n\n
+    See the @ref Qore::Thread::AutoGate "AutoGate" class for a class that assists in exception-safe Gate locking.\n\n
     Additionally, the @ref on_exit "on_exit statement" can provide exception-safe Gate handling at the lexical block level as in the following example:
-    @code
+    @code{.py}
 {
-    $g.enter();
+    g.enter();
     on_exit
-        $g.exit();
+        g.exit();
     # ... when this block exits the gate lock counter will be decremented,
     #     even in the case of return statements or exceptions
 }
     @endcode
+
+    @par Thread Resource Handling
+    The Gate class manages the lock as a @ref thread_resources "thread resource"; if the lock is not released when the
+    thread exits (or when @ref Qore::throw_thread_resource_exceptions() or
+    @ref Qore::throw_thread_resource_exceptions_to_mark() is called), the lock is released automatically and a
+    \c LOCK-ERROR exception is thrown describing the situation.\n\n
+    Being an builtin class, the Gate class does not
+    inherit @ref Qore::Thread::AbstractThreadResource "AbstractThreadResource" explicitly as a part of the exported API,
+    and the internal @ref Qore::Thread::AbstractThreadResource::cleanup() "AbstractThreadResource::cleanup()" method
+    cannot be overridden or suppressed.
 
     @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option.
  */
 qclass Gate [dom=THREAD_CLASS; arg=QoreGate* g; ns=Qore::Thread];
 
 //! Creates a new Gate object
-/** 
+/**
     @par Example:
-    @code
-my Gate $gate();
+    @code{.py}
+Gate gate();
     @endcode
  */
 Gate::constructor() {
@@ -67,8 +76,8 @@ Gate::constructor() {
 /** Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and in each thread blocked on this object when it is deleted.
 
     @par Example:
-    @code
-delete $gate;
+    @code{.py}
+delete gate;
     @endcode
 
     @throw LOCK-ERROR Object deleted while other threads blocked on it
@@ -79,10 +88,10 @@ Gate::destructor() {
 }
 
 //! Creates a new Gate object, not based on the original
-/** 
+/**
     @par Example:
-    @code
-my Gate $new_gate = $gate.copy();
+    @code{.py}
+Gate new_gate = gate.copy();
     @endcode
  */
 Gate::copy() {
@@ -90,14 +99,14 @@ Gate::copy() {
 }
 
 //! Acquires the lock if it is unlocked or locked by the same thread, otherwise blocks until the lock counter reaches zero
-/** 
+/**
     @param timeout_ms a @ref timeout_type "timeout" value to wait to acquire the lock (enter the Gate); integers are interpreted as milliseconds; @ref relative_dates "relative date/time values" are interpreted literally (with a resolution of milliseconds)
 
     @return 0 if no timeout occurred, non-zero if a timeout occurred.
 
     @par Example:
-    @code
-if ($gate.enter(1500ms))
+    @code{.py}
+if (gate.enter(1500ms))
     throw "TIMEOUT-ERROR", "gate acquisition timed out after 1.5s";
     @endcode
 
@@ -109,10 +118,10 @@ int Gate::enter(timeout timeout_ms) {
 }
 
 //! Increments the lock count if the lock is unlocked or already owned by the same thread, otherwise blocks until the lock counter reaches zero
-/** 
+/**
     @par Example:
-    @code
-$gate.enter();
+    @code{.py}
+gate.enter();
     @endcode
 
     @throw LOCK-ERROR object deleted in another thread, etc
@@ -123,12 +132,12 @@ nothing Gate::enter() {
 }
 
 //! Decrements the lock counter; if it reaches zero then the lock is unlocked and any blocked threads are awoken; in this case 0 is returned; in all other cases, non-zero is returned
-/** 
+/**
     @return returns 0 if the Gate was unlocked; otherwise returns non-zero
 
     @par Example:
-    @code
-$gate.exit();
+    @code{.py}
+gate.exit();
     @endcode
 
     @throw LOCK-ERROR lock not owned by the current thread, object deleted in another thread, etc
@@ -138,13 +147,13 @@ int Gate::exit() {
 }
 
 //! Acquires the lock if it is unlocked or locked by the same thread, in which case this method returns 0, otherwise returns immediately with -1
-/** 
+/**
     @return 0 for success (acquired the lock) or -1 for failure (would block)
 
     @par Example:
-    @code
-if ($gate.tryEnter()) {
-    on_exit $gate.exit();
+    @code{.py}
+if (gate.tryEnter()) {
+    on_exit gate.exit();
     printf("YIPEE!  We finally got the gate!\n");
 }
     @endcode
@@ -159,8 +168,8 @@ int Gate::tryEnter() {
 /** @return the current lock count
 
     @par Example:
-    @code
-my int $c = $gate.numInside();
+    @code{.py}
+int c = gate.numInside();
     @endcode
  */
 int Gate::numInside() [flags=CONSTANT] {
@@ -168,10 +177,10 @@ int Gate::numInside() [flags=CONSTANT] {
 }
 
 //! Returns the number of threads blocked on the Gate
-/** 
+/**
     @par Example:
-    @code
-my int $c = $gate.numWaiting();
+    @code{.py}
+int c = gate.numWaiting();
     @endcode
  */
 int Gate::numWaiting() [flags=CONSTANT] {

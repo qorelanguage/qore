@@ -1,6 +1,6 @@
-/** @page intro Introduction
+/** @page qore_intro Introduction
 
-    @section introduction Introduction to Qore
+    @section qore_introduction Introduction to Qore
 
     The %Qore programming language is a powerful, thread-capable, embeddable weakly-typed language with optional strong typing and procedural and object-oriented features designed for anything from quick scripting to complex multithreaded, network-aware application development to embedded application scripting. %Qore was initially designed to facilitate the rapid implementation of sophisticated interfaces in embedded code in an enterprise environment, and has since grown into a general-purpose language as well.
 
@@ -29,5 +29,12 @@
 
     %Qore's @ref operators "operators" are designed to produce the expected results for the programmer even when data types are mixed, a feature meant to further flatten the learning curve for new programmers.
 
+    <b>Simple Resource Management</b>\n
+    %Qore's @ref garbage_collection "garbage collection" approach is unique and allows %Qore to support the
+<a href="http://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization">RAII idiom</a> for resource management with deterministic collection and
+destruction of objects even when objects participate in recursive directed graphs; see @ref garbage_collection for more information.
+
     Additionally, every effort is made to find and fix bugs in %Qore before every release; for example <a href="http://www.valgrind.org">valgrind</a> is used on Linux and OSX and dbx on Solaris to check for memory leaks and memory errors.  Particular attention is paid to thread-safety of all %Qore components as well; %Qore aims to be a stable platform for enterprise development supporting both quick script-based solutions and as an encapsulating language for embedding (and protecting) code in a server application.
+
+    @note %Qore is moving toward establishing @ref new-style "%new-style" as the default syntax; all examples given in the %Qore documentation are given assuming @ref new-style "%new-style".
 */
