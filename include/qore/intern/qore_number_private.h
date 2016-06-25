@@ -59,6 +59,16 @@ typedef mp_exp_t mpfr_exp_t;
 #define QORE_MPFR_SPRINTF_ARG 'L'
 #endif
 
+// some compilers (sun/oracle pro c notably) do not support arrays with a variable size
+// if not, we can't use the stack for the temporary variable and have to use a dynamically-allocated one
+// also MPFR_DECL_INIT is compiled incorrectly on g 5.2 on Solaris SPARC with all optimization levels
+// for some unknown reason (https://github.com/qorelanguage/qore/issues/958)
+#if defined(HAVE_LOCAL_VARIADIC_ARRAYS) && !(defined(SPARC) && defined(SOLARIS) && defined(__GNUC__))
+#define MPFR_TMP_VAR(x, p) MPFR_DECL_INIT(x, (p))
+#else
+#define MPFR_TMP_VAR(x, p) qore_number_private tmp_x((mpfr_prec_t)p); mpfr_t& x = tmp_x.num
+#endif
+
 // for binary operations on MPFR data
 typedef int (*q_mpfr_binary_func_t)(mpfr_t, const mpfr_t, const mpfr_t, mpfr_rnd_t);
 // for unary operations on MPFR data
@@ -261,7 +271,7 @@ struct qore_number_private : public qore_number_private_intern {
    }
 
    DLLLOCAL int compare(int64 right) const {
-      MPFR_DECL_INIT(r, QORE_DEFAULT_PREC);
+      MPFR_TMP_VAR(r, QORE_DEFAULT_PREC);
       mpfr_set_sj(r, right, QORE_MPFR_RND);
       return mpfr_cmp(num, r);
    }
@@ -333,48 +343,24 @@ struct qore_number_private : public qore_number_private_intern {
    }
 
    DLLLOCAL void inc() {
-      // some compilers (sun/oracle pro c++ notably) do not support arrays with a variable size
-      // if not, we can't use the stack for the temporary variable and have to use a dynamically-allocated one
-      // also this code is compiled incorrectly on g++ 5.2 on Solaris SPARC with all optimization levels
-      // for some unknown reason (https://github.com/qorelanguage/qore/issues/958)
-#if defined(HAVE_LOCAL_VARIADIC_ARRAYS) && !(defined(SPARC) && defined(SOLARIS) && defined(__GNUC__))
-      MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
+      MPFR_TMP_VAR(tmp, mpfr_get_prec(num));
       mpfr_set(tmp, num, QORE_MPFR_RND);
       mpfr_add_si(num, tmp, 1, QORE_MPFR_RND);
-#else
-      qore_number_private tmp(mpfr_get_prec(num));
-      mpfr_set(tmp.num, num, QORE_MPFR_RND);
-      mpfr_add_si(num, tmp.num, 1, QORE_MPFR_RND);
-#endif
    }
 
    DLLLOCAL void dec() {
-      // some compilers (sun/oracle pro c++ notably) do not support arrays with a variable size
-      // if not, we can't use the stack for the temporary variable and have to use a dynamically-allocated one
-#ifdef HAVE_LOCAL_VARIADIC_ARRAYS
-      MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
+      MPFR_TMP_VAR(tmp, mpfr_get_prec(num));
       mpfr_set(tmp, num, QORE_MPFR_RND);
       mpfr_sub_si(num, tmp, 1, QORE_MPFR_RND);
-#else
-      qore_number_private tmp(mpfr_get_prec(num));
-      mpfr_set(tmp.num, num, QORE_MPFR_RND);
-      mpfr_sub_si(num, tmp.num, 1, QORE_MPFR_RND);
-#endif
    }
 
    DLLLOCAL void doBinaryInplace(q_mpfr_binary_func_t func, const qore_number_private& r, ExceptionSink* xsink = 0) {
       checkPrec(r.num);
       // some compilers (sun/oracle pro c++ notably) do not support arrays with a variable size
       // if not, we can't use the stack for the temporary variable and have to use a dynamically-allocated one
-#ifdef HAVE_LOCAL_VARIADIC_ARRAYS
-      MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
+      MPFR_TMP_VAR(tmp, mpfr_get_prec(num));
       mpfr_set(tmp, num, QORE_MPFR_RND);
       func(num, tmp, r.num, QORE_MPFR_RND);
-#else
-      qore_number_private tmp(mpfr_get_prec(num));
-      mpfr_set(tmp.num, num, QORE_MPFR_RND);
-      func(num, tmp.num, r.num, QORE_MPFR_RND);
-#endif
       if (xsink)
          checkFlags(xsink);
    }
