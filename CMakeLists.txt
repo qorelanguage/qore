@@ -12,12 +12,12 @@ option(QORE_RUNTIME_THREAD_STACK_TRACE
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 8)
-set(VERSION_SUB 12)
+set(VERSION_SUB 13)
 
 # If changing the module API numbers, make sure to change the appropriate
 # defines in include/qore/ModuleManager.h too.
 set(MODULE_API_MAJOR 0)
-set(MODULE_API_MINOR 19)
+set(MODULE_API_MINOR 20)
 
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "release")
@@ -43,6 +43,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 include_directories( ${CMAKE_BINARY_DIR} )
 include_directories( ${CMAKE_BINARY_DIR}/include/ )
+include_directories( ${CMAKE_BINARY_DIR}/include/qore )
+include_directories( ${CMAKE_BINARY_DIR}/include/qore/intern )
 include_directories( ${CMAKE_SOURCE_DIR}/include )
 include_directories( ${CMAKE_SOURCE_DIR}/include/qore )
 
@@ -224,6 +226,16 @@ endif (WIN32 AND MINGW AND MSYS)
 
 create_git_revision()
 
+# Check for C++11.
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+if(COMPILER_SUPPORTS_CXX11)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+else()
+    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+endif()
+
+# Other checks
 qore_os_checks()
 qore_iconv_translit_check()
 qore_openssl_checks()

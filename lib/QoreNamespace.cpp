@@ -893,7 +893,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
 
 // returns 0 for success, non-zero return value means error
 int qore_root_ns_private::parseAddMethodToClassIntern(const NamedScope& scname, MethodVariantBase* qcmethod, bool static_flag) {
-   std::auto_ptr<MethodVariantBase> v(qcmethod);
+   std::unique_ptr<MethodVariantBase> v(qcmethod);
 
    // find class
    QoreClass* oc = parseFindScopedClassWithMethodInternError(scname, true);
@@ -1366,7 +1366,7 @@ const QoreFunction* qore_root_ns_private::parseResolveFunctionIntern(const Named
 }
 
 AbstractCallReferenceNode* qore_root_ns_private::parseResolveCallReferenceIntern(UnresolvedProgramCallReferenceNode* fr) {
-   std::auto_ptr<UnresolvedProgramCallReferenceNode> fr_holder(fr);
+   std::unique_ptr<UnresolvedProgramCallReferenceNode> fr_holder(fr);
    char* fname = fr->str;
 
    FunctionEntry* fe = parseFindFunctionEntryIntern(fname);
@@ -1612,7 +1612,7 @@ void qore_ns_private::parseRollback() {
 }
 
 qore_ns_private* qore_ns_private::parseAddNamespace(QoreNamespace* nns) {
-   std::auto_ptr<QoreNamespace> nnsh(nns);
+   std::unique_ptr<QoreNamespace> nnsh(nns);
 
    //printd(5, "qore_ns_private::parseAddNamespace() this: %p '%s::' adding '%s' pub: %d nns->pub: %d\n", this, name.c_str(), nns->getName(), pub, nns->priv->pub);
 
@@ -1675,7 +1675,7 @@ void qore_ns_private::parseAddConstant(const NamedScope& nscope, AbstractQoreNod
 // public, only called either in single-threaded initialization or
 // while the program-level parse lock is held
 int qore_ns_private::parseAddPendingClass(QoreClass* oc) {
-   std::auto_ptr<QoreClass> och(oc);
+   std::unique_ptr<QoreClass> och(oc);
 
    if (!pub && qore_class_private::isPublic(*oc) && parse_check_parse_option(PO_IN_MODULE))
       qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "class '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), oc->getName(), name.c_str());
@@ -1715,7 +1715,7 @@ int qore_ns_private::parseAddPendingClass(QoreClass* oc) {
 
 // public, only called when parsing unattached namespaces
 int qore_ns_private::parseAddPendingClass(const NamedScope& n, QoreClass* oc) {
-   std::auto_ptr<QoreClass> och(oc);
+   std::unique_ptr<QoreClass> och(oc);
 
    //printd(5, "qore_ns_private::parseAddPendingClass() adding ns: %s (%s, %p)\n", n.ostr, oc->getName(), oc);
    QoreNamespace* sns = resolveNameScope(n);
@@ -1726,7 +1726,7 @@ int qore_ns_private::parseAddPendingClass(const NamedScope& n, QoreClass* oc) {
 }
 
 int qore_ns_private::parseAddMethodToClass(const NamedScope& mname, MethodVariantBase* qcmethod, bool static_flag) {
-   std::auto_ptr<MethodVariantBase> v(qcmethod);
+   std::unique_ptr<MethodVariantBase> v(qcmethod);
 
    unsigned m = 0;
    QoreClass* oc = mname.size() > 2 ? parseMatchScopedClassWithMethod(mname, m) : parseFindLocalClass(mname[0]);
