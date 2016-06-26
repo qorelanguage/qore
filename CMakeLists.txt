@@ -461,6 +461,7 @@ set(LIBQORE_CPP_SRC
         lib/QoreMapSelectOperatorNode.cpp
         lib/QoreHashMapOperatorNode.cpp
         lib/QoreHashMapSelectOperatorNode.cpp
+        lib/QoreFoldlOperatorNode.cpp
         lib/QoreNullCoalescingOperatorNode.cpp
         lib/QoreValueCoalescingOperatorNode.cpp
         lib/QoreChompOperatorNode.cpp
