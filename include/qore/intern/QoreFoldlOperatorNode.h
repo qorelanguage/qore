@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreMapOperatorNode.h
+  QoreFoldlOperatorNode.h
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,21 +29,21 @@
   information.
 */
 
-#ifndef _QORE_QOREMAPOPERATORNODE_H
+#ifndef _QORE_QOREFOLDLOPERATORNODE_H
 
-#define _QORE_QOREMAPOPERATORNODE_H
+#define _QORE_QOREFOLDLOPERATORNODE_H
 
 #include <qore/intern/AbstractIteratorHelper.h>
 
-class QoreMapOperatorNode : public QoreBinaryOperatorNode<> {
+class QoreFoldlOperatorNode : public QoreBinaryOperatorNode<> {
 protected:
-   const QoreTypeInfo* returnTypeInfo;
+   const QoreTypeInfo *returnTypeInfo;
 
-   DLLLOCAL static QoreString map_str;
+   DLLLOCAL static QoreString foldl_str;
 
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual ~QoreMapOperatorNode() {
+   DLLLOCAL virtual ~QoreFoldlOperatorNode() {
    }
 
    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
@@ -57,10 +57,10 @@ protected:
       return true;
    }
 
-   DLLLOCAL QoreValue mapIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
+   DLLLOCAL QoreValue foldIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreMapOperatorNode(AbstractQoreNode* l, AbstractQoreNode* r) : QoreBinaryOperatorNode<>(l, r), returnTypeInfo(0) {
+   DLLLOCAL QoreFoldlOperatorNode(AbstractQoreNode* l, AbstractQoreNode* r) : QoreBinaryOperatorNode<>(l, r), returnTypeInfo(0) {
    }
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
@@ -68,10 +68,27 @@ public:
 
    // returns the type name as a c string
    DLLLOCAL virtual const char* getTypeName() const {
-      return map_str.getBuffer();
+      return foldl_str.getBuffer();
+   }
+};
+
+class QoreFoldrOperatorNode : public QoreFoldlOperatorNode {
+protected:
+   DLLLOCAL static QoreString foldr_str;
+
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+public:
+   DLLLOCAL QoreFoldrOperatorNode(AbstractQoreNode* l, AbstractQoreNode* r) : QoreFoldlOperatorNode(l, r) {
    }
 
-   //DLLLOCAL AbstractQoreNode* map(ExceptionSink* xsink) const;
+   DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
+   DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
+
+   // returns the type name as a c string
+   DLLLOCAL virtual const char* getTypeName() const {
+      return foldr_str.getBuffer();
+   }
 };
 
 #endif
