@@ -120,6 +120,9 @@ class Test inherits QUnit::Test {
         # right fold function on list using expression and implicit arguments
         testAssertionValue("foldr operator with expression", (foldr $1 - $2, (2, 3, 4)), -1);
 
+        # right fold function on list using an iterator and implicit arguments
+        testAssertionValue("foldr operator with iterator", (foldr $1 - $2, (2, 3, 4).iterator()), -1);
+
         hash h = ("test" : 1, "two" : 2.0, "three" : "three", "four" : False );
         testAssertionValue("first remove operator", remove h.two, 2.0);
 

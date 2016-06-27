@@ -2995,7 +2995,7 @@ exp_c:  scalar
 	   else {
 	      AbstractQoreNode* code_exp = l->shift();
 	      AbstractQoreNode* arg = l->shift();
-	      $$ = new QoreTreeNode(code_exp, OP_FOLDR, arg);
+	      $$ = new QoreFoldrOperatorNode(code_exp, arg);
 	      $2->deref(0);
 	   }
 	}
@@ -3009,7 +3009,7 @@ exp_c:  scalar
 	   else {
 	      AbstractQoreNode* code_exp = l->shift();
 	      AbstractQoreNode* arg = l->shift();
-	      $$ = new QoreTreeNode(code_exp, OP_FOLDL, arg);
+	      $$ = new QoreFoldlOperatorNode(code_exp, arg);
 	      $2->deref(0);
 	   }
 	}
