@@ -264,6 +264,7 @@ libqore_la_SOURCES = \
 	QoreMapSelectOperatorNode.cpp \
 	QoreHashMapOperatorNode.cpp \
 	QoreHashMapSelectOperatorNode.cpp \
+	QoreFoldlOperatorNode.cpp \
 	QoreNullCoalescingOperatorNode.cpp \
 	QoreValueCoalescingOperatorNode.cpp \
 	QoreChompOperatorNode.cpp \

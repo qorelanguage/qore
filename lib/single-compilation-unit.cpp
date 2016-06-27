@@ -195,6 +195,7 @@
 #include "QoreMapSelectOperatorNode.cpp"
 #include "QoreHashMapOperatorNode.cpp"
 #include "QoreHashMapSelectOperatorNode.cpp"
+#include "QoreFoldlOperatorNode.cpp"
 #include "QoreNullCoalescingOperatorNode.cpp"
 #include "QoreValueCoalescingOperatorNode.cpp"
 #include "QoreChompOperatorNode.cpp"

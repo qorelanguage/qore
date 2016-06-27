@@ -618,7 +618,6 @@ hash: (1 member)
             do_break = False;
 
             i += 2;
-            continue;
         };
 
         # process other values

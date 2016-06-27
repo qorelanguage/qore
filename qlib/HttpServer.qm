@@ -1514,7 +1514,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                     phi.clear();
 
                 if (rv.reply_sent)
-                    continue;
+                    return;
             }
 
             sendReply(listener, s, handler, rv, \cx, hdr, head);

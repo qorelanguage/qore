@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -72,11 +72,11 @@ QoreValue QoreMapOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* x
    qore_type_t t = marg->getType();
    if (t != NT_LIST) {
       if (t == NT_OBJECT) {
-         AbstractIteratorHelper h(xsink, "map operator", const_cast<QoreObject*>(marg->get<const QoreObject>()));
-         if (*xsink)
-            return QoreValue();
-         if (h)
-            return mapIterator(h, xsink);
+	 AbstractIteratorHelper h(xsink, "map operator", const_cast<QoreObject*>(marg->get<const QoreObject>()));
+	 if (*xsink)
+	    return QoreValue();
+	 if (h)
+	    return mapIterator(h, xsink);
       }
       if (t == NT_NOTHING)
 	 return QoreValue();
