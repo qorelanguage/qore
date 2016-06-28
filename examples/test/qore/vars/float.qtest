@@ -36,8 +36,8 @@ class FloatTest inherits QUnit::Test {
 
     nanpTests() {
         assertTrue(@nan@.nanp());
-        assertTrue(nlog(-1.0).nanp());
         assertFalse((1.0).nanp());
         assertFalse(@inf@.nanp());
     }
 }
+
