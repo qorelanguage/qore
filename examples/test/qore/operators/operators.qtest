@@ -27,6 +27,8 @@ class Test inherits QUnit::Test {
         addTestCase("identity assignment", \idAssignment());
         addTestCase("assignment type restriction test", \assignmentTypeRestrictionTest());
         addTestCase("delete/remove test", \deleteRemoveTest());
+        addTestCase("binary splice test", \binarySpliceTest());
+        addTestCase("binary extract test", \binaryExtractTest());
         set_return_value(main());
     }
 
@@ -117,6 +119,9 @@ class Test inherits QUnit::Test {
 
         # right fold function on list using expression and implicit arguments
         testAssertionValue("foldr operator with expression", (foldr $1 - $2, (2, 3, 4)), -1);
+
+        # right fold function on list using an iterator and implicit arguments
+        testAssertionValue("foldr operator with iterator", (foldr $1 - $2, (2, 3, 4).iterator()), -1);
 
         hash h = ("test" : 1, "two" : 2.0, "three" : "three", "four" : False );
         testAssertionValue("first remove operator", remove h.two, 2.0);
@@ -337,5 +342,17 @@ class Test inherits QUnit::Test {
             remove a.b.c.c;
             assertEq(("c": ("d": 1)), a.b);
         }
+    }
+
+    binarySpliceTest() {
+        binary b = binary();
+        splice b, 0, 0, <01>;
+        assertEq(<01>, b);
+    }
+
+    binaryExtractTest() {
+        binary b = binary();
+        assertEq(binary(), extract b, 0, 0, <01>);
+        assertEq(<01>, b);
     }
 }

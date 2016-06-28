@@ -121,7 +121,8 @@ int SwitchStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
 
 	 w = w->next;
       }
-      if (rc == RC_BREAK || rc == RC_CONTINUE)
+
+      if (rc == RC_BREAK || ((getProgram()->getParseOptions64() & PO_BROKEN_LOOP_STATEMENT) != 0 && rc == RC_CONTINUE))
 	 rc = 0;
    }
 
@@ -191,7 +192,7 @@ int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
       }
 
       if (w->code)
-	 w->code->parseInitImpl(oflag, pflag);
+	 w->code->parseInitImpl(oflag, pflag | PF_BREAK_OK);
       w = w->next;
    }
 

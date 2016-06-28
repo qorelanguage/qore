@@ -804,8 +804,6 @@ public:
       if (!member)
 	 return -1;
 
-      //std::auto_ptr<MemberInfo> mem(member);
-
       if (member->type == MI_Member) {
          if (mmap.inList(member->name)) {
             parse_error("duplicate member declaration '%s'", member->name);
@@ -2997,7 +2995,7 @@ exp_c:  scalar
 	   else {
 	      AbstractQoreNode* code_exp = l->shift();
 	      AbstractQoreNode* arg = l->shift();
-	      $$ = new QoreTreeNode(code_exp, OP_FOLDR, arg);
+	      $$ = new QoreFoldrOperatorNode(code_exp, arg);
 	      $2->deref(0);
 	   }
 	}
@@ -3011,7 +3009,7 @@ exp_c:  scalar
 	   else {
 	      AbstractQoreNode* code_exp = l->shift();
 	      AbstractQoreNode* arg = l->shift();
-	      $$ = new QoreTreeNode(code_exp, OP_FOLDL, arg);
+	      $$ = new QoreFoldlOperatorNode(code_exp, arg);
 	      $2->deref(0);
 	   }
 	}
