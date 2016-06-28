@@ -290,7 +290,7 @@ delete db;
  */
 DatasourcePool::destructor() {
    ds->destructor(xsink);
-   ds->deref(xsink);
+   ds->deref();
 }
 
 //! Creates a new Datasource object with the same driver as the original and copies of all the connection parameters
