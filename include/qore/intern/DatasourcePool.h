@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   DatasourcePool.h
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -68,7 +68,7 @@ protected:
    Queue* q;
    // Queue argument
    AbstractQoreNode* arg;
-   
+
 public:
    DLLLOCAL DatasourceConfig(DBIDriver* n_driver, const char* n_user, const char* n_pass, const char* n_db,
                              const char* n_encoding, const char* n_host, int n_port,
@@ -83,7 +83,7 @@ public:
       port(old.port), opts(old.opts ? old.opts->hashRefSelf() : 0),
       q(old.q ? old.q->queueRefSelf() : 0), arg(old.arg ? old.arg->refSelf() : 0) {
    }
-   
+
    DLLLOCAL ~DatasourceConfig() {
       assert(!q);
       assert(!arg);
@@ -164,13 +164,14 @@ public:
 
 class DatasourcePool : public AbstractThreadResource, public QoreCondition, public QoreThreadLock, public DatasourceStatementHelper {
    friend class DatasourcePoolActionHelper;
+
 protected:
    Datasource** pool;
    int* tid_list;            // list of thread IDs per pool index
    thread_use_t tmap;        // map from tids to pool index
    free_list_t free_list;
 
-   unsigned min, 
+   unsigned min,
       max,
       cmax,			 // current max
       wait_count,
@@ -203,7 +204,7 @@ protected:
    DLLLOCAL AbstractQoreNode* exec_internal(bool doBind, const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink);
    DLLLOCAL int checkWait(int64 warn_total, ExceptionSink* xsink);
    DLLLOCAL void init(ExceptionSink* xsink);
-   
+
 public:
 #ifdef DEBUG
    QoreString* getAndResetSQL();
@@ -303,6 +304,22 @@ public:
    }
 
    DLLLOCAL void setEventQueue(Queue* q, AbstractQoreNode* arg, ExceptionSink* xsink);
+
+   using AbstractPrivateData::deref;
+   DLLLOCAL virtual void deref() {
+      if (ROdereference()) {
+         ExceptionSink xsink;
+         config.del(&xsink);
+         delete this;
+      }
+   }
+
+   DLLLOCAL virtual void deref(ExceptionSink* xsink) {
+      if (ROdereference()) {
+         config.del(xsink);
+         delete this;
+      }
+   }
 };
 
 class DatasourcePoolActionHelper {
@@ -321,7 +338,7 @@ public:
       if (!ds)
 	 return;
 
-      if (cmd == DAH_RELEASE 
+      if (cmd == DAH_RELEASE
           || ds->wasConnectionAborted()
           || (new_ds && ((cmd == DAH_NOCHANGE) || *xsink)))
 	 dsp.freeDS();
