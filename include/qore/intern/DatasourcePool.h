@@ -164,7 +164,6 @@ public:
 
 class DatasourcePool : public AbstractThreadResource, public QoreCondition, public QoreThreadLock, public DatasourceStatementHelper {
    friend class DatasourcePoolActionHelper;
-
 protected:
    Datasource** pool;
    int* tid_list;            // list of thread IDs per pool index
