@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -43,6 +43,8 @@
 // default initialization vector
 static unsigned char def_iv[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
+/*
+*/
 class CryptoHelper : public BaseHelper {
 private:
    unsigned char *iv, *output;
@@ -54,46 +56,46 @@ private:
       return n == 1 ? "first" : (n == 2 ? "second" : "third");
    }
 
-   DLLLOCAL void setKey(const QoreListNode *args, int n) {
+   DLLLOCAL void setKey(const QoreValueList *args, int n) {
       assert(n > 0 && n <= 3);
-      const AbstractQoreNode *pt = get_param(args, n);
-      if (pt->getType() == NT_STRING) {
-	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(pt);
-	 key[n - 1] = (unsigned char *)str->getBuffer();
+      const QoreValue pt = get_param_value(args, n);
+      if (pt.getType() == NT_STRING) {
+	 const QoreStringNode* str = pt.get<const QoreStringNode>();
+	 key[n - 1] = (unsigned char*)str->getBuffer();
 	 keylen[n - 1] = str->strlen();
 	 return;
       }
 
-      const BinaryNode *b = reinterpret_cast<const BinaryNode *>(pt);
-      key[n - 1] = (unsigned char *)b->getPtr();
+      const BinaryNode* b = pt.get<const BinaryNode>();
+      key[n - 1] = (unsigned char*)b->getPtr();
       keylen[n - 1] = b->size();
    }
 
-   DLLLOCAL void setEncoding(const QoreListNode* args, int n) {
-      const QoreStringNode* encoding = test_string_param(args, n);
-      qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+   DLLLOCAL void setEncoding(const QoreValueList* args, int n) {
+      QoreValue qv = get_param_value(args, n);
+      qe = qv.getType() == NT_STRING ? QEM.findCreate(qv.get<const QoreStringNode>()) : QCS_DEFAULT;
    }
 
    // set the initialization vector (used with hard typing)
-   DLLLOCAL int setIV(const char *err, const AbstractQoreNode *pt, ExceptionSink *xsink) {
-      assert(pt);
-      if (pt->getType() == NT_STRING) {
-	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(pt);
+   DLLLOCAL int setIV(const char *err, const QoreValue pt, ExceptionSink *xsink) {
+      assert(!pt.isNothing());
+      if (pt.getType() == NT_STRING) {
+	 const QoreStringNode* str = pt.get<const QoreStringNode>();
 	 if (str->strlen() < 8) {
 	    xsink->raiseException(err, "the input vector must be at least 8 bytes long (%d bytes passed)", str->strlen());
 	    return -1;
 	 }
-	 iv = (unsigned char *)str->getBuffer();
+	 iv = (unsigned char*)str->getBuffer();
 	 return 0;
       }
 
-      assert(pt->getType() == NT_BINARY);
-      const BinaryNode *b = reinterpret_cast<const BinaryNode *>(pt);
+      assert(pt.getType() == NT_BINARY);
+      const BinaryNode* b = pt.get<const BinaryNode>();
       if (b->size() < 8) {
 	 xsink->raiseException(err, "the input vector must be at least 8 bytes long (%d bytes passed)", b->size());
 	 return -1;
       }
-      iv = (unsigned char *)b->getPtr();
+      iv = (unsigned char*)b->getPtr();
       return 0;
    }
 
@@ -125,11 +127,11 @@ public:
       return str;
    }
 
-   DLLLOCAL int setSingleKey(const char *err, const QoreListNode *params, ExceptionSink *xsink, bool has_encoding = false) {
-      if (setIV(err, get_param(params, 2), xsink))
+   DLLLOCAL int setSingleKey(const char *err, const QoreValueList *params, ExceptionSink *xsink, bool has_encoding = false) {
+      if (setIV(err, get_param_value(params, 2), xsink))
 	 return -1;
 
-      setInput(get_param(params, 0));
+      setInput(get_param_value(params, 0));
       setKey(params, 1);
       if (has_encoding)
 	 setEncoding(params, 2);
@@ -172,7 +174,7 @@ public:
 
       EVP_CIPHER_CTX_cleanup(&ctx);
       output_len += tmplen;
-      //printd(5, "cipher_intern() %s: in=%08p (%d) out=%08p (%d)\n", cipher, buf, len, cbuf, *size);
+      //printd(5, "cipher_intern() %s: in=%p (%d) out=%p (%d)\n", cipher, buf, len, cbuf, *size);
       return 0;
    }
 
@@ -197,8 +199,8 @@ public:
 */
 };
 
-static void missing_openssl_feature(const char *f, ExceptionSink *xsink) {
-   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the %s algorithm; for maximum portability, check Option::HAVE_%s before calling this function", f, f);
+AbstractQoreNode* missing_openssl_feature(const char *f, ExceptionSink *xsink) {
+   return xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the %s algorithm; for maximum portability, check Option::HAVE_%s before calling this function", f, f);
 }
 
 //! @qppinit: SimpleRefHolder<BinaryNode> DefaultIV(new BinaryNode); DefaultIV->append(def_iv, 8);
@@ -224,16 +226,16 @@ const DefaultIV = <0000000000000000>;
 
     The following is an example of a function that uses \c /dev/random on UNIX to read in a random key for use with encryption functions:
 
-    @code
+    @code{.py}
 # read a key from /dev/random and return the key
-binary sub get_key(int $size) {
+binary sub get_key(int size) {
     # throw an exception if an invalid key size was passed
-    if (!$size || $size < 0)
-        throw "GET-KEY-ERROR", sprintf("invalid size = %n", $size);
-    my File $f();
+    if (!size || size < 0)
+        throw "GET-KEY-ERROR", sprintf("invalid size = %n", size);
+    File f();
     # File::open2() will throw an exception if /dev/random cannot be opened for reading
-    $f.open2("/dev/random");
-    return $f.readBinary($size);
+    f.open2("/dev/random");
+    return f.readBinary(size);
 }
     @endcode
  */
@@ -243,8 +245,8 @@ binary sub get_key(int $size) {
 /** @return a binary object of a random key for the <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a>
 
     @par Example:
-    @code
-my binary $bin = des_random_key();
+    @code{.py}
+binary bin = des_random_key();
     @endcode
  */
 binary des_random_key() [flags=CONSTANT] [flags=CONSTANT] {
@@ -261,8 +263,8 @@ binary des_random_key() [flags=CONSTANT] [flags=CONSTANT] {
     @return a binary object of the encrypted data
 
     @par Example:
-    @code
-my binary $bin = blowfish_encrypt_cbc($data, $key);
+    @code{.py}
+binary bin = blowfish_encrypt_cbc(data, key);
     @endcode
 
     @throw BLOWFISH-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -273,7 +275,7 @@ binary blowfish_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::
 
    if (ch.setSingleKey("BLOWFISH-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.doCipher(EVP_bf_cbc(), "blowfish", QCRYPTO_ENCRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -286,8 +288,8 @@ binary blowfish_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::
     @return a binary object of the decrypted data
 
     @par Example:
-    @code
-my binary $bin = blowfish_decrypt_cbc($data, $key);
+    @code{.py}
+binary bin = blowfish_decrypt_cbc(data, key);
     @endcode
 
     @throw BLOWFISH-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -298,7 +300,7 @@ binary blowfish_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore
 
    if (ch.setSingleKey("BLOWFISH-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.doCipher(EVP_bf_cbc(), "blowfish", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -312,8 +314,8 @@ binary blowfish_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore
     @return a string of the decrypted data
 
     @par Example:
-    @code
-my string $str = blowfish_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
+    @code{.py}
+string str = blowfish_decrypt_cbc_to_string(data, key, NOTHING, "iso-8859-1");
     @endcode
 
     @throw BLOWFISH-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -326,7 +328,7 @@ string blowfish_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc]
 
    if (ch.setSingleKey("BLOWFISH-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.doCipher(EVP_bf_cbc(), "blowfish", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getString();
 }
@@ -339,8 +341,8 @@ string blowfish_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc]
     @return a binary object of the encrypted data
 
     @par Example:
-    @code
-my binary $bin = des_encrypt_cbc($data, $key);
+    @code{.py}
+binary bin = des_encrypt_cbc(data, key);
     @endcode
 
     @throw DES-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -353,7 +355,7 @@ binary des_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defau
    if (ch.setSingleKey("DES-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 8, xsink)
        || ch.doCipher(EVP_des_cbc(), "DES", QCRYPTO_ENCRYPT, xsink))
-	    return 0;
+	    return QoreValue();
 
    return ch.getBinary();
 }
@@ -366,8 +368,8 @@ binary des_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defau
     @return a binary object of the decrypted data
 
     @par Example:
-    @code
-my binary $bin = des_decrypt_cbc($data, $key);
+    @code{.py}
+binary bin = des_decrypt_cbc(data, key);
     @endcode
 
     @throw DES-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -380,7 +382,7 @@ binary des_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::Def
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 8, xsink)
        || ch.doCipher(EVP_des_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
-	    return 0;
+	    return QoreValue();
 
    return ch.getBinary();
 }
@@ -394,8 +396,8 @@ binary des_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::Def
     @return a string of the decrypted data
 
     @par Example:
-    @code
-my string $bin = des_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
+    @code{.py}
+string bin = des_decrypt_cbc_to_string(data, key, NOTHING, "iso-8859-1");
     @endcode
 
     @throw DES-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -410,7 +412,7 @@ string des_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 8, xsink)
        || ch.doCipher(EVP_des_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
-	    return 0;
+	    return QoreValue();
 
    return ch.getString();
 }
@@ -423,8 +425,8 @@ string des_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
     @return a binary object of the encrypted data
 
     @par Example:
-    @code
-my binary $bin = des_ede_encrypt_cbc($data, $key);
+    @code{.py}
+binary bin = des_ede_encrypt_cbc(data, key);
     @endcode
 
     @throw DES-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -437,7 +439,7 @@ binary des_ede_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::D
    if (ch.setSingleKey("DES-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 16, xsink)
        || ch.doCipher(EVP_des_ede_cbc(), "DES", QCRYPTO_ENCRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -450,8 +452,8 @@ binary des_ede_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::D
     @return a binary object of the decrypted data
 
     @par Example:
-    @code
-my binary $bin = des_ede_decrypt_cbc($data, $key);
+    @code{.py}
+binary bin = des_ede_decrypt_cbc(data, key);
     @endcode
 
     @throw DES-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -464,7 +466,7 @@ binary des_ede_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore:
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 16, xsink)
        || ch.doCipher(EVP_des_ede_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -478,8 +480,8 @@ binary des_ede_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore:
     @return a string of the decrypted data
 
     @par Example:
-    @code
-my string $bin = des_ede_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
+    @code{.py}
+string bin = des_ede_decrypt_cbc_to_string(data, key, NOTHING, "iso-8859-1");
     @endcode
 
     @throw DES-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -494,7 +496,7 @@ string des_ede_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] 
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 16, xsink)
        || ch.doCipher(EVP_des_ede_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getString();
 }
@@ -507,8 +509,8 @@ string des_ede_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] 
     @return a binary object of the encrypted data
 
     @par Example:
-    @code
-my binary $bin = des_ede3_encrypt_cbc($data, $key);
+    @code{.py}
+binary bin = des_ede3_encrypt_cbc(data, key);
     @endcode
 
     @throw DES-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -521,7 +523,7 @@ binary des_ede3_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::
    if (ch.setSingleKey("DES-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 24, xsink)
        || ch.doCipher(EVP_des_ede3_cbc(), "DES", QCRYPTO_ENCRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -534,8 +536,8 @@ binary des_ede3_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::
     @return a binary object of the decrypted data
 
     @par Example:
-    @code
-my binary $bin = des_ede3_decrypt_cbc($data, $key);
+    @code{.py}
+binary bin = des_ede3_decrypt_cbc(data, key);
     @endcode
 
     @throw DES-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -548,7 +550,7 @@ binary des_ede3_decrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 24, xsink)
        || ch.doCipher(EVP_des_ede3_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -562,8 +564,8 @@ binary des_ede3_decrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::
     @return a string of the decrypted data
 
     @par Example:
-    @code
-my string $bin = des_ede3_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
+    @code{.py}
+string bin = des_ede3_decrypt_cbc_to_string(data, key, NOTHING, "iso-8859-1");
     @endcode
 
     @throw DES-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -578,7 +580,7 @@ string des_ede3_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc]
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 24, xsink)
        || ch.doCipher(EVP_des_ede3_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getString();
 }
@@ -591,8 +593,8 @@ string des_ede3_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc]
     @return a binary object of the encrypted data
 
     @par Example:
-    @code
-my binary $bin = desx_encrypt_cbc($data, $key);
+    @code{.py}
+binary bin = desx_encrypt_cbc(data, key);
     @endcode
 
     @throw DESX-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -605,7 +607,7 @@ binary desx_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defa
    if (ch.setSingleKey("DESX-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DESX-KEY-ERROR", 0, 24, xsink)
        || ch.doCipher(EVP_desx_cbc(), "DESX", QCRYPTO_ENCRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -618,8 +620,8 @@ binary desx_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defa
     @return a binary object of the decrypted data
 
     @par Example:
-    @code
-my binary $bin = desx_decrypt_cbc($data, $key);
+    @code{.py}
+binary bin = desx_decrypt_cbc(data, key);
     @endcode
 
     @throw DESX-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -632,7 +634,7 @@ binary desx_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::De
    if (ch.setSingleKey("DESX-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DESX-KEY-ERROR", 0, 24, xsink)
        || ch.doCipher(EVP_desx_cbc(), "DESX", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -646,8 +648,8 @@ binary desx_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::De
     @return a binary object of the decrypted data
 
     @par Example:
-    @code
-my string $str = desx_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
+    @code{.py}
+string str = desx_decrypt_cbc_to_string(data, key, NOTHING, "iso-8859-1");
     @endcode
 
     @throw DESX-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -662,7 +664,7 @@ string desx_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv 
    if (ch.setSingleKey("DESX-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.checkKeyLen("DESX-KEY-ERROR", 0, 24, xsink)
        || ch.doCipher(EVP_desx_cbc(), "DESX", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getString();
 }
@@ -675,8 +677,8 @@ string desx_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv 
     @return a binary object of the encrypted data
 
     @par Example:
-    @code
-my binary $bin = rc4_encrypt($data, $key);
+    @code{.py}
+binary bin = rc4_encrypt(data, key);
     @endcode
 
     @throw RC4-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -687,7 +689,7 @@ binary rc4_encrypt(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV
 
    if (ch.setSingleKey("RC4-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.doCipher(EVP_rc4(), "rc4", QCRYPTO_ENCRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -700,8 +702,8 @@ binary rc4_encrypt(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV
     @return a binary object of the decrypted data
 
     @par Example:
-    @code
-my binary $bin = rc4_decrypt($data, $key);
+    @code{.py}
+binary bin = rc4_decrypt(data, key);
     @endcode
 
     @throw RC4-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -712,7 +714,7 @@ binary rc4_decrypt(binary[doc] data, data[doc] key, data[doc] iv = Qore::Default
 
    if (ch.setSingleKey("RC4-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.doCipher(EVP_rc4(), "rc4", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -726,8 +728,8 @@ binary rc4_decrypt(binary[doc] data, data[doc] key, data[doc] iv = Qore::Default
     @return a string of the decrypted data
 
     @par Example:
-    @code
-my string $str = rc4_decrypt_to_string($encrypted_data, $key, NOTHING, "iso-8859-1");
+    @code{.py}
+string str = rc4_decrypt_to_string(encrypted_data, key, NOTHING, "iso-8859-1");
     @endcode
 
     @throw RC4-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -740,7 +742,7 @@ string rc4_decrypt_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qor
 
    if (ch.setSingleKey("RC4-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.doCipher(EVP_rc4(), "rc4", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getString();
 }
@@ -753,8 +755,8 @@ string rc4_decrypt_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qor
     @return a binary object of the encrypted data
 
     @par Example:
-    @code
-my binary $bin = rc2_encrypt_cbc($data, $key);
+    @code{.py}
+binary bin = rc2_encrypt_cbc(data, key);
     @endcode
 
     @throw RC2-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -765,7 +767,7 @@ binary rc2_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defau
 
    if (ch.setSingleKey("RC2-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.doCipher(EVP_rc2_cbc(), "rc2", QCRYPTO_ENCRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -778,8 +780,8 @@ binary rc2_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defau
     @return a binary object of the decrypted data
 
     @par Example:
-    @code
-my binary $bin = rc2_decrypt_cbc($data, $key);
+    @code{.py}
+binary bin = rc2_decrypt_cbc(data, key);
     @endcode
 
     @throw RC2-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -790,7 +792,7 @@ binary rc2_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::Def
 
    if (ch.setSingleKey("RC2-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.doCipher(EVP_rc2_cbc(), "rc2", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -804,8 +806,8 @@ binary rc2_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::Def
     @return a string of the decrypted data
 
     @par Example:
-    @code
-my string $str = rc2_decrypt_cbc_to_string($data, $key);
+    @code{.py}
+string str = rc2_decrypt_cbc_to_string(data, key);
     @endcode
 
     @throw RC2-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -818,7 +820,7 @@ string rc2_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
 
    if (ch.setSingleKey("RC2-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.doCipher(EVP_rc2_cbc(), "rc2", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getString();
 }
@@ -831,8 +833,8 @@ string rc2_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
     @return a binary object of the encrypted data
 
     @par Example:
-    @code
-my binary $bin = cast5_encrypt_cbc($data, $key);
+    @code{.py}
+binary bin = cast5_encrypt_cbc(data, key);
     @endcode
 
     @throw CAST5-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -843,7 +845,7 @@ binary cast5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Def
 
    if (ch.setSingleKey("CAST5-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.doCipher(EVP_cast5_cbc(), "CAST5", QCRYPTO_ENCRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -856,8 +858,8 @@ binary cast5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Def
     @return a binary object of the decrypted data
 
     @par Example:
-    @code
-my binary $bin = cast5_decrypt_cbc($data, $key);
+    @code{.py}
+binary bin = cast5_decrypt_cbc(data, key);
     @endcode
 
     @throw CAST5-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -868,7 +870,7 @@ binary cast5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::D
 
    if (ch.setSingleKey("CAST5-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.doCipher(EVP_cast5_cbc(), "CAST5", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 }
@@ -882,8 +884,8 @@ binary cast5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::D
     @return a string of the decrypted data
 
     @par Example:
-    @code
-my string $bin = cast5_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
+    @code{.py}
+string bin = cast5_decrypt_cbc_to_string(data, key, NOTHING, "iso-8859-1");
     @endcode
 
     @throw CAST5-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -896,7 +898,7 @@ string cast5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv
 
    if (ch.setSingleKey("CAST5-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.doCipher(EVP_cast5_cbc(), "CAST5", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getString();
 }
@@ -912,8 +914,8 @@ string cast5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv
     @return a binary object of the encrypted data
 
     @par Example:
-    @code
-my binary $bin = rc2_encrypt_cbc($data, $key);
+    @code{.py}
+binary bin = rc2_encrypt_cbc(data, key);
     @endcode
 
     @throw RC5-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -925,12 +927,11 @@ binary rc5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defau
 
    if (ch.setSingleKey("RC5-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.doCipher(EVP_rc5_32_12_16_cbc(), "rc5", QCRYPTO_ENCRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 #else
-   missing_openssl_feature("RC5", xsink);
-   return 0;
+   return missing_openssl_feature("RC5", xsink);
 #endif
 }
 
@@ -945,8 +946,8 @@ binary rc5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defau
     @return a binary object of the decrypted data
 
     @par Example:
-    @code
-my binary $bin = rc2_decrypt_cbc($data, $key);
+    @code{.py}
+binary bin = rc2_decrypt_cbc(data, key);
     @endcode
 
     @throw RC5-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -958,12 +959,11 @@ binary rc5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::Def
 
    if (ch.setSingleKey("RC5-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.doCipher(EVP_rc5_32_12_16_cbc(), "rc5", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getBinary();
 #else
-   missing_openssl_feature("RC5", xsink);
-   return 0;
+   return missing_openssl_feature("RC5", xsink);
 #endif
 }
 
@@ -979,8 +979,8 @@ binary rc5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::Def
     @return a string of the decrypted data
 
     @par Example:
-    @code
-my string $str = rc2_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
+    @code{.py}
+string str = rc2_decrypt_cbc_to_string(data, key, NOTHING, "iso-8859-1");
     @endcode
 
     @throw RC5-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -994,12 +994,11 @@ string rc5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
 
    if (ch.setSingleKey("RC5-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.doCipher(EVP_rc5_32_12_16_cbc(), "rc5", QCRYPTO_DECRYPT, xsink))
-      return 0;
+      return QoreValue();
 
    return ch.getString();
 #else
-   missing_openssl_feature("RC5", xsink);
-   return 0;
+   return missing_openssl_feature("RC5", xsink);
 #endif
 }
 
@@ -1036,8 +1035,8 @@ string rc5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
     @return a hex string of the digest (ex: \c "a9046c73e00331af68917d3804f70655")
 
     @par Example:
-    @code
-my string $str = MD2("hello"); # returns "a9046c73e00331af68917d3804f70655"
+    @code{.py}
+string str = MD2("hello"); # returns "a9046c73e00331af68917d3804f70655"
     @endcode
 
     @throw MD2-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1048,12 +1047,11 @@ string MD2(data[doc] data) {
 #if !defined(OPENSSL_NO_MD2) && !defined(NO_MD2)
    DigestHelper dh(args);
    if (dh.doDigest(MD2_ERR, EVP_md2(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
-   missing_openssl_feature("MD2", xsink);
-   return 0;
+   return missing_openssl_feature("MD2", xsink);
 #endif
 }
 
@@ -1064,8 +1062,8 @@ string MD2(data[doc] data) {
     @return a hex string of the digest (ex: \c "866437cb7a794bce2b727acc0362ee27")
 
     @par Example:
-    @code
-my string $str = MD4("hello"); # returns "866437cb7a794bce2b727acc0362ee27"
+    @code{.py}
+string str = MD4("hello"); # returns "866437cb7a794bce2b727acc0362ee27"
     @endcode
 
     @throw MD4-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1075,7 +1073,7 @@ my string $str = MD4("hello"); # returns "866437cb7a794bce2b727acc0362ee27"
 string MD4(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(MD4_ERR, EVP_md4(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
@@ -1087,8 +1085,8 @@ string MD4(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "5d41402abc4b2a76b9719d911017c592")
 
     @par Example:
-    @code
-my string $str = MD5("hello"); # returns "5d41402abc4b2a76b9719d911017c592"
+    @code{.py}
+string str = MD5("hello"); # returns "5d41402abc4b2a76b9719d911017c592"
     @endcode
 
     @throw MD5-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1102,7 +1100,7 @@ my string $str = MD5("hello"); # returns "5d41402abc4b2a76b9719d911017c592"
 string MD5(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(MD5_ERR, EVP_md5(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
@@ -1115,8 +1113,8 @@ string MD5(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "ac62a630ca850b4ea07eda664eaecf9480843152")
 
     @par Example:
-    @code
-my string $str = SHA("hello"); returns "ac62a630ca850b4ea07eda664eaecf9480843152"
+    @code{.py}
+string str = SHA("hello"); returns "ac62a630ca850b4ea07eda664eaecf9480843152"
     @endcode
 
     @throw SHA-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1124,11 +1122,16 @@ my string $str = SHA("hello"); returns "ac62a630ca850b4ea07eda664eaecf9480843152
     @see SHA_bin()
  */
 string SHA(data[doc] data) [flags=RET_VALUE_ONLY] {
+#ifdef HAVE_OPENSSL_SHA
    DigestHelper dh(args);
    if (dh.doDigest(SHA_ERR, EVP_sha(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
+#else
+   missing_openssl_feature("SHA", xsink);
+   return 0;
+#endif
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1</a> message digest of the supplied argument as a hex string
@@ -1138,8 +1141,8 @@ string SHA(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
 
     @par Example:
-    @code
-my string $str = SHA1("hello"); # "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+    @code{.py}
+string str = SHA1("hello"); # "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
     @endcode
 
     @throw SHA1-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1151,7 +1154,7 @@ my string $str = SHA1("hello"); # "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
 string SHA1(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(SHA1_ERR, EVP_sha1(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
@@ -1166,8 +1169,8 @@ string SHA1(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193")
 
     @par Example:
-    @code
-my string $str = SHA224("hello"); # returns "ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193"
+    @code{.py}
+string str = SHA224("hello"); # returns "ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193"
     @endcode
 
     @throw SHA224-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1180,12 +1183,11 @@ string SHA224(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA224_ERR, EVP_sha224(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
-   missing_openssl_feature("SHA224", xsink);
-   return 0;
+   return missing_openssl_feature("SHA224", xsink);
 #endif
 }
 
@@ -1199,8 +1201,8 @@ string SHA224(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824")
 
     @par Example:
-    @code
-my string $str = SHA256("hello"); # returns "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+    @code{.py}
+string str = SHA256("hello"); # returns "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
     @endcode
 
     @throw SHA256-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1213,12 +1215,11 @@ string SHA256(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA256_ERR, EVP_sha256(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
-   missing_openssl_feature("SHA256", xsink);
-   return 0;
+   return missing_openssl_feature("SHA256", xsink);
 #endif
 }
 
@@ -1232,8 +1233,8 @@ string SHA256(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f")
 
     @par Example:
-    @code
-my string $str = SHA384("hello"); # returns "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f"
+    @code{.py}
+string str = SHA384("hello"); # returns "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f"
     @endcode
 
     @throw SHA384-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1246,12 +1247,11 @@ string SHA384(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA384_ERR, EVP_sha384(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
-   missing_openssl_feature("SHA384", xsink);
-   return 0;
+   return missing_openssl_feature("SHA384", xsink);
 #endif
 }
 
@@ -1265,8 +1265,8 @@ string SHA384(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043")
 
     @par Example:
-    @code
-my string $str = SHA512("hello"); # returns "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043"
+    @code{.py}
+string str = SHA512("hello"); # returns "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043"
     @endcode
 
     @throw SHA512-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1279,12 +1279,11 @@ string SHA512(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA512_ERR, EVP_sha512(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
-   missing_openssl_feature("SHA512", xsink);
-   return 0;
+   return missing_openssl_feature("SHA512", xsink);
 #endif
 }
 
@@ -1295,8 +1294,8 @@ string SHA512(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
 
     @par Example:
-    @code
-my string $str = DSS("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+    @code{.py}
+string str = DSS("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
     @endcode
 
     @throw DSS-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1308,7 +1307,7 @@ my string $str = DSS("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea943
 string DSS(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(DSS_ERR, EVP_dss(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
@@ -1320,8 +1319,8 @@ string DSS(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
 
     @par Example:
-    @code
-my string $str = DSS1("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+    @code{.py}
+string str = DSS1("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
     @endcode
 
     @throw DSS1-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1333,7 +1332,7 @@ my string $str = DSS1("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea94
 string DSS1(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(DSS1_ERR, EVP_dss1(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
@@ -1348,8 +1347,8 @@ string DSS1(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "4517036cf97b2407d6fe22aa5ab878a3")
 
     @par Example:
-    @code
-my string $str = MDC2("hello"); # returns "4517036cf97b2407d6fe22aa5ab878a3"
+    @code{.py}
+string str = MDC2("hello"); # returns "4517036cf97b2407d6fe22aa5ab878a3"
     @endcode
 
     @throw MDC2-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1360,12 +1359,11 @@ string MDC2(data[doc] data) [flags=RET_VALUE_ONLY] {
 #ifndef OPENSSL_NO_MDC2
    DigestHelper dh(args);
    if (dh.doDigest(MDC2_ERR, EVP_mdc2(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
-   missing_openssl_feature("MDC2", xsink);
-   return 0;
+   return missing_openssl_feature("MDC2", xsink);
 #endif
 }
 
@@ -1376,8 +1374,8 @@ string MDC2(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "108f07b8382412612c048d07d13f814118445acd")
 
     @par Example:
-    @code
-my string $str = RIPEMD160("hello"); # returns "108f07b8382412612c048d07d13f814118445acd"
+    @code{.py}
+string str = RIPEMD160("hello"); # returns "108f07b8382412612c048d07d13f814118445acd"
     @endcode
 
     @throw RIPEMD160-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1387,7 +1385,7 @@ my string $str = RIPEMD160("hello"); # returns "108f07b8382412612c048d07d13f8141
 string RIPEMD160(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(RIPEMD160_ERR, EVP_ripemd160(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
@@ -1402,8 +1400,8 @@ string RIPEMD160(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a binary object of the digest
 
     @par Example:
-    @code
-my binary $bin = MD2_bin("hello");
+    @code{.py}
+binary bin = MD2_bin("hello");
     @endcode
 
     @throw MD2-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1414,12 +1412,11 @@ binary MD2_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_MD2) && !defined(NO_MD2)
    DigestHelper dh(args);
    if (dh.doDigest(MD2_ERR, EVP_md2(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getBinary();
 #else
-   missing_openssl_feature("MD2", xsink);
-   return 0;
+   return missing_openssl_feature("MD2", xsink);
 #endif
 }
 
@@ -1430,8 +1427,8 @@ binary MD2_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a binary object of the digest
 
     @par Example:
-    @code
-my binary $bin = MD4_bin("hello");
+    @code{.py}
+binary bin = MD4_bin("hello");
     @endcode
 
     @throw MD4-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1441,7 +1438,7 @@ my binary $bin = MD4_bin("hello");
 binary MD4_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(MD4_ERR, EVP_md4(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getBinary();
 }
@@ -1453,8 +1450,8 @@ binary MD4_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a binary object of the digest
 
     @par Example:
-    @code
-my binary $bin = MD5_bin("hello");
+    @code{.py}
+binary bin = MD5_bin("hello");
     @endcode
 
     @throw MD5-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1464,7 +1461,7 @@ my binary $bin = MD5_bin("hello");
 binary MD5_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(MD5_ERR, EVP_md5(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getBinary();
 }
@@ -1477,8 +1474,8 @@ binary MD5_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a binary object of the digest
 
     @par Example:
-    @code
-my binary $bin = SHA_bin("hello");
+    @code{.py}
+binary bin = SHA_bin("hello");
     @endcode
 
     @throw SHA-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1486,11 +1483,16 @@ my binary $bin = SHA_bin("hello");
     @see SHA()
  */
 binary SHA_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
+#ifdef HAVE_OPENSSL_SHA
    DigestHelper dh(args);
    if (dh.doDigest(SHA_ERR, EVP_sha(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getBinary();
+#else
+   missing_openssl_feature("SHA", xsink);
+   return 0;
+#endif
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1</a> message digest of the supplied argument as a binary object
@@ -1500,8 +1502,8 @@ binary SHA_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a binary object of the digest
 
     @par Example:
-    @code
-my binary $bin = SHA1_bin("hello");
+    @code{.py}
+binary bin = SHA1_bin("hello");
     @endcode
 
     @throw SHA1-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1511,7 +1513,7 @@ my binary $bin = SHA1_bin("hello");
 binary SHA1_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(SHA1_ERR, EVP_sha1(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getBinary();
 }
@@ -1526,8 +1528,8 @@ binary SHA1_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a binary object of the digest
 
     @par Example:
-    @code
-my binary $bin = SHA224_bin("hello");
+    @code{.py}
+binary bin = SHA224_bin("hello");
     @endcode
 
     @throw SHA224-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1538,12 +1540,11 @@ binary SHA224_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA224_ERR, EVP_sha224(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getBinary();
 #else
-   missing_openssl_feature("SHA224", xsink);
-   return 0;
+   return missing_openssl_feature("SHA224", xsink);
 #endif
 }
 
@@ -1557,8 +1558,8 @@ binary SHA224_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a binary object of the digest
 
     @par Example:
-    @code
-my binary $bin = SHA256_bin("hello");
+    @code{.py}
+binary bin = SHA256_bin("hello");
     @endcode
 
     @throw SHA256-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1569,12 +1570,11 @@ binary SHA256_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA256_ERR, EVP_sha256(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getBinary();
 #else
-   missing_openssl_feature("SHA256", xsink);
-   return 0;
+   return missing_openssl_feature("SHA256", xsink);
 #endif
 }
 
@@ -1588,8 +1588,8 @@ binary SHA256_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a binary object of the digest
 
     @par Example:
-    @code
-my binary $bin = SHA384_bin("hello");
+    @code{.py}
+binary bin = SHA384_bin("hello");
     @endcode
 
     @throw SHA384-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1600,12 +1600,11 @@ binary SHA384_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA384_ERR, EVP_sha384(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getBinary();
 #else
-   missing_openssl_feature("SHA384", xsink);
-   return 0;
+   return missing_openssl_feature("SHA384", xsink);
 #endif
 }
 
@@ -1619,8 +1618,8 @@ binary SHA384_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a binary object of the digest
 
     @par Example:
-    @code
-my binary $bin = SHA512_bin("hello");
+    @code{.py}
+binary bin = SHA512_bin("hello");
     @endcode
 
     @throw SHA512-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1631,12 +1630,11 @@ binary SHA512_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA512_ERR, EVP_sha512(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getBinary();
 #else
-   missing_openssl_feature("SHA512", xsink);
-   return 0;
+   return missing_openssl_feature("SHA512", xsink);
 #endif
 }
 
@@ -1647,8 +1645,8 @@ binary SHA512_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a binary object of the digest
 
     @par Example:
-    @code
-my binary $bin = DSS_bin("hello");
+    @code{.py}
+binary bin = DSS_bin("hello");
     @endcode
 
     @throw DSS-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1660,7 +1658,7 @@ my binary $bin = DSS_bin("hello");
 binary DSS_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(DSS_ERR, EVP_dss(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getBinary();
 }
@@ -1672,8 +1670,8 @@ binary DSS_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a binary object of the digest
 
     @par Example:
-    @code
-my binary $bin = DSS1_bin("hello");
+    @code{.py}
+binary bin = DSS1_bin("hello");
     @endcode
 
     @throw DSS1-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1685,7 +1683,7 @@ my binary $bin = DSS1_bin("hello");
 binary DSS1_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(DSS1_ERR, EVP_dss1(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getBinary();
 }
@@ -1700,8 +1698,8 @@ binary DSS1_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a binary object of the digest
 
     @par Example:
-    @code
-my binary $bin = MDC2_bin("hello");
+    @code{.py}
+binary bin = MDC2_bin("hello");
     @endcode
 
     @throw MDC2-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1712,12 +1710,11 @@ binary MDC2_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #ifndef OPENSSL_NO_MDC2
    DigestHelper dh(args);
    if (dh.doDigest(MDC2_ERR, EVP_mdc2(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getBinary();
 #else
-   missing_openssl_feature("MDC2", xsink);
-   return 0;
+   return missing_openssl_feature("MDC2", xsink);
 #endif
 }
 
@@ -1728,8 +1725,8 @@ binary MDC2_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a binary object of the digest
 
     @par Example:
-    @code
-my binary $bin = RIPEMD160_bin("hello");
+    @code{.py}
+binary bin = RIPEMD160_bin("hello");
     @endcode
 
     @throw RIPEMD160-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -1739,7 +1736,7 @@ my binary $bin = RIPEMD160_bin("hello");
 binary RIPEMD160_binary(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(RIPEMD160_ERR, EVP_ripemd160(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getBinary();
 }
@@ -1779,8 +1776,8 @@ binary RIPEMD160_binary(data[doc] data) [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "27f5f17500b408e97643403ea8ef1413")
 
     @par Example:
-    @code
-my string $str = MD2_hmac("Hello There This is a Test - 1234567890", "a key");
+    @code{.py}
+string str = MD2_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "27f5f17500b408e97643403ea8ef1413"
     @endcode
 
@@ -1792,13 +1789,12 @@ string MD2_hmac(data[doc] data, string key) {
 #if !defined(OPENSSL_NO_MD2) && !defined(NO_MD2)
    HMACHelper dh(args);
    if (dh.doHMAC("MD2-HMAC-ERROR", EVP_md2(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    (void)key;
-   missing_openssl_feature("MD2", xsink);
-   return 0;
+   return missing_openssl_feature("MD2", xsink);
 #endif
 }
 
@@ -1810,8 +1806,8 @@ string MD2_hmac(data[doc] data, string key) {
     @return a hex string of the digest (ex: \c "053d084f321a3886e60166ebd9609ce1")
 
     @par Example:
-    @code
-my string $str = MD4_hmac("Hello There This is a Test - 1234567890", "a key");
+    @code{.py}
+string str = MD4_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "053d084f321a3886e60166ebd9609ce1"
     @endcode
 
@@ -1820,7 +1816,7 @@ my string $str = MD4_hmac("Hello There This is a Test - 1234567890", "a key");
 string MD4_hmac(data[doc] data, string key) {
    HMACHelper dh(args);
    if (dh.doHMAC("MD4-HMAC-ERROR", EVP_md4(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
@@ -1833,8 +1829,8 @@ string MD4_hmac(data[doc] data, string key) {
     @return a hex string of the digest (ex: \c "87505c6164aaf6ca6315233902a01ef4")
 
     @par Example:
-    @code
-my string $str = MD5_hmac("Hello There This is a Test - 1234567890", "a key");
+    @code{.py}
+string str = MD5_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "87505c6164aaf6ca6315233902a01ef4"
     @endcode
 
@@ -1845,7 +1841,7 @@ my string $str = MD5_hmac("Hello There This is a Test - 1234567890", "a key");
 string MD5_hmac(data[doc] data, string key) {
    HMACHelper dh(args);
    if (dh.doHMAC("MD5-HMAC-ERROR", EVP_md5(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
@@ -1858,8 +1854,8 @@ string MD5_hmac(data[doc] data, string key) {
     @return a hex string of the digest (ex: \c "0ad47c8d36dc4606d52f7e4cbd144ef2fda492a0")
 
     @par Example:
-    @code
-my string $str = SHA_hmac("Hello There This is a Test - 1234567890", "a key");
+    @code{.py}
+string str = SHA_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "0ad47c8d36dc4606d52f7e4cbd144ef2fda492a0"
     @endcode
 
@@ -1868,11 +1864,17 @@ my string $str = SHA_hmac("Hello There This is a Test - 1234567890", "a key");
     @throw SHA-HMAC-ERROR error calculating digest (should not normally happen)
  */
 string SHA_hmac(data[doc] data, string key) {
+#ifdef HAVE_OPENSSL_SHA
    HMACHelper dh(args);
    if (dh.doHMAC("SHA-HMAC-ERROR", EVP_sha(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
+#else
+   (void)key;
+   missing_openssl_feature("SHA", xsink);
+   return 0;
+#endif
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA1</a> based HMAC of the supplied argument as a hex string
@@ -1883,8 +1885,8 @@ string SHA_hmac(data[doc] data, string key) {
     @return a hex string of the digest (ex: \c "37a3cc73159aa129b0eb22bbdf4b9309d389f629")
 
     @par Example:
-    @code
-my string $str = SHA1_hmac("Hello There This is a Test - 1234567890", "a key");
+    @code{.py}
+string str = SHA1_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "37a3cc73159aa129b0eb22bbdf4b9309d389f629"
     @endcode
 
@@ -1895,7 +1897,7 @@ my string $str = SHA1_hmac("Hello There This is a Test - 1234567890", "a key");
 string SHA1_hmac(data[doc] data, string key) {
    HMACHelper dh(args);
    if (dh.doHMAC("SHA1-HMAC-ERROR", EVP_sha1(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
@@ -1911,8 +1913,8 @@ string SHA1_hmac(data[doc] data, string key) {
     @return a hex string of the digest (ex: \c "fad5667fa5aa412044555b7e077fced62372fe9c6ce20815609da12c")
 
     @par Example:
-    @code
-my string $str = SHA224_hmac("Hello There This is a Test - 1234567890", "a key");
+    @code{.py}
+string str = SHA224_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "fad5667fa5aa412044555b7e077fced62372fe9c6ce20815609da12c"
     @endcode
 
@@ -1923,13 +1925,12 @@ string SHA224_hmac(data[doc] data, string key) {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    HMACHelper dh(args);
    if (dh.doHMAC("SHA224-HMAC-ERROR", EVP_sha224(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    (void)key;
-   missing_openssl_feature("SHA224", xsink);
-   return 0;
+   return missing_openssl_feature("SHA224", xsink);
 #endif
 }
 
@@ -1944,8 +1945,8 @@ string SHA224_hmac(data[doc] data, string key) {
     @return a hex string of the digest (ex: \c "1c90c21e227712b62019ff831f34cba22c2e70f1a902651ef69a70705ee0f754")
 
     @par Example:
-    @code
-my string $str = SHA256_hmac("Hello There This is a Test - 1234567890", "a key");
+    @code{.py}
+string str = SHA256_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "1c90c21e227712b62019ff831f34cba22c2e70f1a902651ef69a70705ee0f754"
     @endcode
 
@@ -1955,13 +1956,12 @@ string SHA256_hmac(data[doc] data, string key) {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    HMACHelper dh(args);
    if (dh.doHMAC("SHA256-HMAC-ERROR", EVP_sha256(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    (void)key;
-   missing_openssl_feature("SHA256", xsink);
-   return 0;
+   return missing_openssl_feature("SHA256", xsink);
 #endif
 }
 
@@ -1976,8 +1976,8 @@ string SHA256_hmac(data[doc] data, string key) {
     @return a hex string of the digest (ex: \c "e2c253c6dcb050990b4da3cee95cd7b227f43388fa8116f476f59395af295d0d3bb7156ab2fcd0663b0500249a7a0865")
 
     @par Example:
-    @code
-my string $str = SHA384_hmac("Hello There This is a Test - 1234567890", "a key");
+    @code{.py}
+string str = SHA384_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "e2c253c6dcb050990b4da3cee95cd7b227f43388fa8116f476f59395af295d0d3bb7156ab2fcd0663b0500249a7a0865"
     @endcode
 
@@ -1987,13 +1987,12 @@ string SHA384_hmac(data[doc] data, string key) {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    HMACHelper dh(args);
    if (dh.doHMAC("SHA384-HMAC-ERROR", EVP_sha384(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    (void)key;
-   missing_openssl_feature("SHA384", xsink);
-   return 0;
+   return missing_openssl_feature("SHA384", xsink);
 #endif
 }
 
@@ -2008,8 +2007,8 @@ string SHA384_hmac(data[doc] data, string key) {
     @return a hex string of the digest (ex: \c "8dcefd7ea3f90ff1c822b5e9547fc36edf78c3e4ce13d47510a212a406bdda1a4094e7ea5ade90e1c736e204d331a814520eba49f3d074e2c261208de07264f6")
 
     @par Example:
-    @code
-my string $str = SHA512_hmac("Hello There This is a Test - 1234567890", "a key");
+    @code{.py}
+string str = SHA512_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "8dcefd7ea3f90ff1c822b5e9547fc36edf78c3e4ce13d47510a212a406bdda1a4094e7ea5ade90e1c736e204d331a814520eba49f3d074e2c261208de07264f6"
     @endcode
 
@@ -2019,13 +2018,12 @@ string SHA512_hmac(data[doc] data, string key) {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    HMACHelper dh(args);
    if (dh.doHMAC("SHA512-HMAC-ERROR", EVP_sha512(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    (void)key;
-   missing_openssl_feature("SHA512", xsink);
-   return 0;
+   return missing_openssl_feature("SHA512", xsink);
 #endif
 }
 
@@ -2037,8 +2035,8 @@ string SHA512_hmac(data[doc] data, string key) {
     @return a hex string of the digest (ex: \c "37a3cc73159aa129b0eb22bbdf4b9309d389f629")
 
     @par Example:
-    @code
-my string $str = DSS_hmac("Hello There This is a Test - 1234567890", "a key");
+    @code{.py}
+string str = DSS_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "37a3cc73159aa129b0eb22bbdf4b9309d389f629"
     @endcode
 
@@ -2049,7 +2047,7 @@ my string $str = DSS_hmac("Hello There This is a Test - 1234567890", "a key");
 string DSS_hmac(data[doc] data, string key) {
    HMACHelper dh(args);
    if (dh.doHMAC("DSS-HMAC-ERROR", EVP_dss(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
@@ -2062,8 +2060,8 @@ string DSS_hmac(data[doc] data, string key) {
     @return a hex string of the digest (ex: \c "37a3cc73159aa129b0eb22bbdf4b9309d389f629")
 
     @par Example:
-    @code
-my string $str = DSS1_hmac("Hello There This is a Test - 1234567890", "a key");
+    @code{.py}
+string str = DSS1_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "37a3cc73159aa129b0eb22bbdf4b9309d389f629"
     @endcode
 
@@ -2074,7 +2072,7 @@ my string $str = DSS1_hmac("Hello There This is a Test - 1234567890", "a key");
 string DSS1_hmac(data[doc] data, string key) {
    HMACHelper dh(args);
    if (dh.doHMAC("DSS1-HMAC-ERROR", EVP_dss1(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
@@ -2087,8 +2085,8 @@ string DSS1_hmac(data[doc] data, string key) {
     @return a hex string of the digest (ex: \c "e0ef6a6803e58807c5db395e180a999c")
 
     @par Example:
-    @code
-my string $str = MDC2_hmac("Hello There This is a Test - 1234567890", "a key");
+    @code{.py}
+string str = MDC2_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "e0ef6a6803e58807c5db395e180a999c"
     @endcode
 
@@ -2098,13 +2096,12 @@ string MDC2_hmac(data[doc] data, string key) {
 #ifndef OPENSSL_NO_MDC2
    HMACHelper dh(args);
    if (dh.doHMAC("MDC2-HMAC-ERROR", EVP_mdc2(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    (void)key;
-   missing_openssl_feature("MDC2", xsink);
-   return 0;
+   return missing_openssl_feature("MDC2", xsink);
 #endif
 }
 
@@ -2116,8 +2113,8 @@ string MDC2_hmac(data[doc] data, string key) {
     @return a hex string of the digest (ex: \c "4bca70bca1601aba57624eeb2606535cb12f2079")
 
     @par Example:
-    @code
-my string $str = RIPEMD160_hmac("Hello There This is a Test - 1234567890", "a key");
+    @code{.py}
+string str = RIPEMD160_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "4bca70bca1601aba57624eeb2606535cb12f2079"
     @endcode
 
@@ -2126,7 +2123,7 @@ my string $str = RIPEMD160_hmac("Hello There This is a Test - 1234567890", "a ke
 string RIPEMD160_hmac(data[doc] data, string key) {
    HMACHelper dh(args);
    if (dh.doHMAC("RIPEMD160-HMAC-ERROR", EVP_ripemd160(), key, xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }

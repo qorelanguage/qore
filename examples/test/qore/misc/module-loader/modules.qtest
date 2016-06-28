@@ -1,0 +1,33 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../../qlib/QUnit.qm
+
+%exec-class ModulesTest
+
+class ModulesTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Modules test", "1.0") {
+        addTestCase("Test modules", \testModules());
+        set_return_value(main());
+    }
+
+    testModules() {
+        our ModulesTest mt = self;
+
+        Program p(PO_NEW_STYLE);
+        p.disableParseOptions(PO_NO_TOP_LEVEL_STATEMENTS);
+        p.setScriptPath(get_script_path());
+        p.importGlobalVariable("mt");
+        p.parse("
+%requires ./C.qm
+mt.assertEq(1, AC, \"AC\");
+mt.assertEq(1, BC, \"BC\");
+", "p");
+        p.run();
+    }
+}

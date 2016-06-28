@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,19 +32,19 @@
 #include <qore/Qore.h>
 
 //! Methods in this pseudo-class can be executed on @ref nothing
-/** 
+/**
  */
-qclass <nothing> [arg=const AbstractQoreNode* n;vparent=<value>];
+qclass <nothing> [arg=;vparent=<value>];
 
 //! Returns Qore::NT_NOTHING
-/** 
+/**
     @return Qore::NT_NOTHING
 
     @par Example:
-    @code
-switch ($n.typeCode()) {
+    @code{.py}
+switch (n.typeCode()) {
     case NT_NOTHING:
-        printf("%y: no value\n", $n);
+        printf("%y: no value\n", n);
         break;
 }
     @endcode
@@ -58,10 +58,10 @@ int <nothing>::typeCode() [flags=CONSTANT] {
     @return 0
 
     @par Example:
-    @code
-printf("iterating %d element%s\n", $val.lsize(), $val.lsize() == 1 ? "" : "s");
-foreach my any $element in ($val) {
-    do_something($element);
+    @code{.py}
+printf("iterating %d element%s\n", val.lsize(), val.lsize() == 1 ? "" : "s");
+foreach any element in (val) {
+    do_something(element);
 }
     @endcode
 */
@@ -73,21 +73,21 @@ int <nothing>::lsize() [flags=CONSTANT] {
 /** @return an empty @ref Qore::SingleValueIterator "SingleValueIterator" object
 
     @par Example:
-    @code
+    @code{.py}
 map printf("+ %y\n", $1), get_hash_or_nothing().pairIterator();
     @endcode
 
     @since %Qore 0.8.6.2
  */
 SingleValueIterator <nothing>::pairIterator() [flags=CONSTANT] {
-   return new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator(0));
+   return new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator(QoreValue()));
 }
 
 //! Returns an empty @ref Qore::SingleValueIterator "SingleValueIterator" object
 /** @return an empty @ref Qore::SingleValueIterator "SingleValueIterator" object
 
     @par Example:
-    @code
+    @code{.py}
 map printf("+ %y\n", $1), get_hash_or_nothing().keyIterator();
     @endcode
 
@@ -96,14 +96,14 @@ map printf("+ %y\n", $1), get_hash_or_nothing().keyIterator();
     @since %Qore 0.8.6.2
  */
 SingleValueIterator <nothing>::keyIterator() [flags=CONSTANT] {
-   return new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator(0));
+   return new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator(QoreValue()));
 }
 
 //! Returns an empty @ref Qore::SingleValueIterator "SingleValueIterator" object
 /** @return an empty @ref Qore::SingleValueIterator "SingleValueIterator" object
 
     @par Example:
-    @code
+    @code{.py}
 map printf("+ %y\n", $1), get_hash_or_nothing().contextIterator();
     @endcode
 
@@ -112,7 +112,7 @@ map printf("+ %y\n", $1), get_hash_or_nothing().contextIterator();
     @since %Qore 0.8.6.2
  */
 SingleValueIterator <nothing>::contextIterator() [flags=CONSTANT] {
-   return new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator(0));
+   return new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator(QoreValue()));
 }
 
 //! Returns an empty list
@@ -120,9 +120,9 @@ SingleValueIterator <nothing>::contextIterator() [flags=CONSTANT] {
     @return an empty list
 
     @par Example:
-    @code
-my *hash $h = hash_or_nothing();
-my list $l = $h.keys();
+    @code{.py}
+*hash h = hash_or_nothing();
+list l = h.keys();
     @endcode
 
     @see <hash>::keys()
@@ -138,9 +138,9 @@ list <nothing>::keys() [flags=CONSTANT] {
     @return an empty list
 
     @par Example:
-    @code
-my *hash $h = hash_or_nothing();
-my list $l = $h.values();
+    @code{.py}
+*hash h = hash_or_nothing();
+list l = h.values();
     @endcode
 
     @see <hash>::values()
@@ -156,9 +156,9 @@ list <nothing>::values() [flags=CONSTANT] {
     @return @ref nothing
 
     @par Example:
-    @code
-my *hash $h = hash_or_nothing();
-my *string $n = $h.firstKey();
+    @code{.py}
+*hash h = hash_or_nothing();
+*string n = h.firstKey();
     @endcode
 
     @see <hash>::firstKey()
@@ -173,9 +173,9 @@ nothing <nothing>::firstKey() [flags=CONSTANT] {
     @return @ref nothing
 
     @par Example:
-    @code
-my *hash $h = hash_or_nothing();
-my any $n = $h.firstValue();
+    @code{.py}
+*hash h = hash_or_nothing();
+any n = h.firstValue();
     @endcode
 
     @see <hash>::firstValue()
@@ -190,9 +190,9 @@ nothing <nothing>::firstValue() [flags=CONSTANT] {
     @return @ref nothing
 
     @par Example:
-    @code
-my *hash $h = hash_or_nothing();
-my *string $n = $h.firstKey();
+    @code{.py}
+*hash h = hash_or_nothing();
+*string n = h.firstKey();
     @endcode
 
     @see <hash>::firstKey()
@@ -207,9 +207,9 @@ nothing <nothing>::lastKey() [flags=CONSTANT] {
     @return @ref nothing
 
     @par Example:
-    @code
-my *hash $h = hash_or_nothing();
-my any $n = $h.firstValue();
+    @code{.py}
+*hash h = hash_or_nothing();
+any n = h.firstValue();
     @endcode
 
     @see <hash>::lastValue()
@@ -226,9 +226,9 @@ nothing <nothing>::lastValue() [flags=CONSTANT] {
     @return @ref True if the key exists in the hash (may or may not be assigned a value), @ref False if not
 
     @par Example:
-    @code
-my *hash $h = hash_or_nothing();
-my bool $b = $h.hasKey($key);
+    @code{.py}
+*hash h = hash_or_nothing();
+bool b = h.hasKey(key);
     @endcode
 
     @see <hash>::hasKey(softstring)
@@ -246,9 +246,9 @@ bool <nothing>::hasKey(softstring[doc] key) [flags=CONSTANT] {
     @return @ref True if the key exists and is assigned to a value, @ref False if not
 
     @par Example:
-    @code
-my *hash $h = hash_or_nothing();
-my bool $b = $h.hasKeyValue($key);
+    @code{.py}
+*hash h = hash_or_nothing();
+bool b = h.hasKeyValue(key);
     @endcode
 
     @see <hash>::hasKeyValue(softstring)
@@ -263,7 +263,7 @@ bool <nothing>::hasKeyValue(softstring[doc] key) [flags=CONSTANT] {
 /** @return an empty @ref Qore::SingleValueIterator "SingleValueIterator" object
 
     @par Example:
-    @code
+    @code{.py}
 map printf("+ %y\n", $1), get_list_or_nothing().rangeIterator();
     @endcode
 
@@ -272,5 +272,5 @@ map printf("+ %y\n", $1), get_list_or_nothing().rangeIterator();
     @since %Qore 0.8.8
  */
 SingleValueIterator <nothing>::rangeIterator() [flags=CONSTANT] {
-   return new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator(0));
+   return new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator(QoreValue()));
 }

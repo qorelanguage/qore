@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreLogicalLessThanOrEqualsOperatorNode.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2015 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -33,44 +33,30 @@
 
 #define _QORE_QORELOGICALLESSTHANOREQUALSOPERATORNODE_H
 
-class QoreLogicalLessThanOrEqualsOperatorNode : public QoreLogicalGreaterThanOperatorNode {
+class QoreLogicalLessThanOrEqualsOperatorNode : public QoreBoolBinaryOperatorNode {
 OP_COMMON
 protected:
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const {
-      bool rc = QoreLogicalLessThanOrEqualsOperatorNode::boolEvalImpl(xsink);
-      return *xsink ? 0 : get_bool_node(rc);
-   }
+   // type of pointer to optimized versions depending on arguments found at parse-time
+   typedef bool(QoreLogicalLessThanOrEqualsOperatorNode::*eval_t)(ExceptionSink* xsink) const;
+   // pointer to optimized versions depending on arguments found at parse-time
+   eval_t pfunc;
 
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-      needs_deref = false;
-      return QoreLogicalLessThanOrEqualsOperatorNode::evalImpl(xsink);
-   }
-
-   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const {
-      return QoreLogicalLessThanOrEqualsOperatorNode::boolEvalImpl(xsink);
-   }
-   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const {
-      return QoreLogicalLessThanOrEqualsOperatorNode::boolEvalImpl(xsink);
-   }
-   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const {
-      return QoreLogicalLessThanOrEqualsOperatorNode::boolEvalImpl(xsink);
-   }
-
-   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const {
-      return !QoreLogicalGreaterThanOperatorNode::boolEvalImpl(xsink);
-   }
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-      AbstractQoreNode *rv = QoreLogicalGreaterThanOperatorNode::parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
-      // make sure to reverse sense of comparison if this expression was resolved to a constant boolean value
-      if (rv != this)
-         return rv->getAsBool() ? (AbstractQoreNode*)&False : (AbstractQoreNode*)&True;
-      return rv;
+      return parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
    }
 
+   DLLLOCAL AbstractQoreNode *parseInitIntern(const char* name, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+
+   DLLLOCAL bool floatLessThanOrEquals(ExceptionSink* xsink) const;
+   DLLLOCAL bool bigIntLessThanOrEquals(ExceptionSink* xsink) const;
+
 public:
-   DLLLOCAL QoreLogicalLessThanOrEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreLogicalGreaterThanOperatorNode(n_left, n_right) {
+   DLLLOCAL QoreLogicalLessThanOrEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBoolBinaryOperatorNode(n_left, n_right), pfunc(0) {
    }
+
+   DLLLOCAL static bool doLessThanOrEquals(QoreValue l, QoreValue r, ExceptionSink* xsink);
 };
 
 #endif

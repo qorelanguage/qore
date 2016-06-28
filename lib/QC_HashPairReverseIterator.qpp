@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,21 +31,23 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreHashIterator.h>
 
+extern QoreClass* QC_HASHREVERSEITERATOR;
+
 //! This class an iterator class for hashes
 /** Call HashPairReverseIterator::next() to iterate through the hash in reverse order; do not use the iterator if HashPairReverseIterator::next() returns @ref False.
     A hash can be iterated in reverse order by calling HashPairReverseIterator::prev() instead of HashPairReverseIterator::next()
 
     @par Example: HashPairReverseIterator basic usage
-    @code
-    my hash $data = (
+    @code{.py}
+    hash data = (
             "key1" : 1,
             "key2" : 2,
             "key3" : 3,
         );
 
-    my HashPairReverseIterator $it($data);
-    while ($it.next()) {
-        printf("iter: %n\n", $it.getValue());
+    HashPairReverseIterator it(data);
+    while (it.next()) {
+        printf("iter: %n\n", it.getValue());
     }
 
     iter: hash: (key : "key3", value : 3)
@@ -71,8 +73,8 @@ qclass HashPairReverseIterator [arg=QoreHashReverseIterator* i; ns=Qore; vparent
 /** @param h the hash to iterate
 
     @par Example:
-    @code
-my HashPairReverseIterator $hi($h);
+    @code{.py}
+HashPairReverseIterator hi(h);
     @endcode
  */
 HashPairReverseIterator::constructor(hash h) {
@@ -81,9 +83,9 @@ HashPairReverseIterator::constructor(hash h) {
 
 //! Creates an empty iterator object
 /** @par Example:
-    @code
-my *hash $h = get_hash_or_nothing();
-my HashPairReverseIterator $hi($h);
+    @code{.py}
+*hash h = get_hash_or_nothing();
+HashPairReverseIterator hi(h);
     @endcode
  */
 HashPairReverseIterator::constructor() {
@@ -92,8 +94,8 @@ HashPairReverseIterator::constructor() {
 
 //! Creates a copy of the HashPairReverseIterator object, iterating the same object as the original and in the same position
 /** @par Example:
-    @code
-my HashPairReverseIterator $ni = $i.copy();
+    @code{.py}
+HashPairReverseIterator ni = i.copy();
     @endcode
  */
 HashPairReverseIterator::copy() {
@@ -104,8 +106,8 @@ HashPairReverseIterator::copy() {
 /** @return a hash with the current key and value (a hash with 2 keys: \c "key" and \c "value") or throws an \c INVALID-ITERATOR exception if the iterator is invalid
 
     @par Example:
-    @code
-map printf("%s: %y\n", $1.key, $1.value), $hash.pairIterator();
+    @code{.py}
+map printf("%s: %y\n", $1.key, $1.value), hash.pairIterator();
     @endcode
 
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element
@@ -115,6 +117,6 @@ map printf("%s: %y\n", $1.key, $1.value), $hash.pairIterator();
  */
 string HashPairReverseIterator::getValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
    return i->getReferencedValuePair(xsink);
 }

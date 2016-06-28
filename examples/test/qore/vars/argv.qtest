@@ -1,0 +1,42 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class ArgvTest
+
+public class ArgvTest inherits QUnit::Test {
+    constructor() : Test("ARGVTest", "1.0") {
+        addTestCase("Nonexistant parameter test", \noParameterTest(), NOTHING);
+        addTestCase("Shift test one", \parameterShiftTestOne(), (1,));
+        addTestCase("Shift test two", \parameterShiftTestTwo(), (1, 2));
+        addTestCase("Shift a couple parameters", \shiftTest(), (1, 2, 3, 4, "hello"));
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    noParameterTest(any p) {
+        testAssertion("nonexistent parameter", \equals(), (p, NOTHING));
+    }
+
+    parameterShiftTestOne() {
+        testAssertion("shift to additional parameter", \equals(), (shift argv, 1));
+    }
+
+    parameterShiftTestTwo(any p) {
+        testAssertion("parameter before shift", \equals(), (p, 1));
+        testAssertion("shift to additional parameter", \equals(), (shift argv, 2));
+    }
+
+    shiftTest() {
+        foreach any v in (1, 2, 3, 4, "hello") {
+            testAssertion("shift " + string(v) + " parameter", \equals(), (v, shift argv));
+        }
+    }
+}

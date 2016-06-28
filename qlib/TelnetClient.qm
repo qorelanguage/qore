@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file TelnetClient.qm Telnet module definition
 
-/*  TelnetClient.qm Copyright 2012 - 2014 Qore Technologies sro
+/*  TelnetClient.qm Copyright 2012 - 2015 Qore Technologies sro
 
     Original Author: Pavol Potancok
 
@@ -25,10 +25,13 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.11
+%requires qore >= 0.8.12
+
+# assume local var scope, do not use "$" for vars, members, and method calls
+%new-style
 
 module TelnetClient {
-    version = "1.1";
+    version = "1.2";
     desc = "allows connections to a Telnet server, to remotely execute commands and read their output";
     author = "Pavol Potancok <ppotancok@gmail.com>";
     url = "http://qore.org";
@@ -36,6 +39,7 @@ module TelnetClient {
 }
 
 /*  Version History
+    * 1.2: David Nichols <david@qore.org>: converted to new-style
     * 1.1: David Nichols <david@qore.org>: added socket instrumention support from Qore 0.8.9
     * 1.0: David Nichols <david@qore.org>: updated to a user module
     * 0.9: Pavol Potancok <ppotancok@gmail.com>: original author
@@ -48,7 +52,7 @@ module TelnetClient {
     The %TelnetClient module provides a telnet client class for communicating with a server using the telnet protocol
 
     To use this module, use \c "%requires TelnetClient" in your code.  See examples/telnet.q for an example program using this module.
-    
+
     All the public symbols in the module are defined in the TelnetClient namespace
 
     The main class and definitions are:
@@ -101,7 +105,7 @@ public namespace TelnetClient {
 
     #! command name map
     public const CmdMap = (
-	IAC : "IAC", 
+        IAC : "IAC",
         DONT : "DONT",
         DO : "DO",
         WONT : "WONT",
@@ -117,11 +121,11 @@ public namespace TelnetClient {
         EL : "EraseLine",
         GA : "GoAhead",
         SB : "SubnegotiationBegin",
-	);
+        );
     #@}|
 
     public const SUPDUP_OPT = 21; # SUPDUP_OPT display protocol
-    
+
     /** @defgroup TelnetOptionCodes Telnet Command Option Codes
      */
     #@{
@@ -177,8 +181,8 @@ public namespace TelnetClient {
 
     #! option map, maps codes to text descriptions
     public const OptMap = (
-	TOPT_BIN : "BinaryTransmission",
-	TOPT_ECHO : "Echo|Is|Send",
+        TOPT_BIN : "BinaryTransmission",
+        TOPT_ECHO : "Echo|Is|Send",
         TOPT_RECN : "Reconnection",
         TOPT_SUPP : "SuppressGoAhead",
         TOPT_APRX : "ApproxMessageSizeNegotiation",
@@ -201,8 +205,8 @@ public namespace TelnetClient {
         TOPT_SUP : "SUPDUP",
         TOPT_SUPO : "SUPDUPOutput",
         TOPT_SNDL : "SendLocation",
-	TOPT_TERM : "TerminalType",
-	TOPT_EOR : "EndofRecord",
+        TOPT_TERM : "TerminalType",
+        TOPT_EOR : "EndofRecord",
         TOPT_TACACS : "TACACSUserIdent",
         TOPT_OM : "OutputMarking",
         TOPT_TLN : "TerminalLocationNumber",
@@ -226,136 +230,138 @@ public namespace TelnetClient {
         TOPT_KERMIT : "TelnetKERMIT",
         TOPT_SEND_URL : "Send-URL",
         TOPT_EXTOP : "Extended-Options-List",
-	);
+        );
     #@}
 
     #! The TelnetClient class allows communication with a telnet server; it can be used directly or subclassed with overridden methods to customize its behavior
-    /** This class uses a Mutex lock in each TelnetClient object to ensure thread serialization to the underlying socket and its internal configuration, 
+    /** This class uses a Mutex lock in each TelnetClient object to ensure thread serialization to the underlying socket and its internal configuration,
         so it is safe to access in a multithreaded context.
      */
     public class TelnetClient {
         #! @cond nodoc
-  	private {
-	    # the connection string
-	    string $.connect;
+          private {
+            # the connection string
+            string connect;
 
-	    # the socket for all communication with the server
-	    Socket $.conn();
+            # the socket for all communication with the server
+            Socket conn();
 
-	    # to manage contention on the Socket
-	    Mutex $.m();
-	    
-	    # login user
-	    *string $.user;
+            # to manage contention on the Socket
+            Mutex m();
 
-	    # logging closures
-	    *code $.log_info;
-	    *code $.log_debug;
+            # login user
+            *string user;
 
-	    # hash of features the telnet server has asked for
-	    hash $.fh;
-	}
+            # logging closures
+            *code log_info;
+            *code log_debug;
+
+            # hash of features the telnet server has asked for
+            hash fh;
+        }
         #! @endcond
-        
-	# no public members
-	public {}
 
-	#! creates the TelnetClient object
-	/** @param host the hostname of the telnet server (use [hostname] to explicitly specify an ipv6 connection)
-	    @param port the port number of the telnet server
-	    @param log a closure or call reference for log messages; a single string argument will be passed to this code for logging 
-	    @param dbgLog a closure for debugging/technical log messages; a single string argument will be passed to this code for logging 
-	 */
-  	constructor(string $host, softint $port, *code $log, *code $dbgLog) {
-	    if ($host.empty())
-		throw "TELNET-CONSTRUCTOR-ERROR", "the host parameter may not be empty";
+        # no public members
+        public {}
 
-	    $.log_info = $log;
-	    $.log_debug = $dbgLog;
+        #! creates the TelnetClient object
+        /** @param host the hostname of the telnet server (use [hostname] to explicitly specify an ipv6 connection)
+            @param port the port number of the telnet server
+            @param log a closure or call reference for log messages; a single string argument will be passed to this code for logging
+            @param dbgLog a closure for debugging/technical log messages; a single string argument will be passed to this code for logging
+         */
+          constructor(string host, softint port, *code log, *code dbgLog) {
+            if (host.empty())
+                throw "TELNET-CONSTRUCTOR-ERROR", "the host parameter may not be empty";
 
-	    $.connect = sprintf("%s:%d", $host, $port);
-	    $.logDbg("server: %y", $.connect);
-	}
+            log_info = log;
+            log_debug = dbgLog;
 
-	#! creates the TelnetClient object
-	/** @param connect the hostname of the Telnet server or a hostname:port specification (use [hostname] or [address] for ipv6 connections)
-	    @param log a closure or call reference for log messages; a single string argument will be passed to this code for logging 
-	    @param dbglog a closure for debugging/technical log messages; a single string argument will be passed to this code for logging 
-	 */
-	constructor(string $connect, *code $log, *code $dbglog) {
-	    $.log_info = $log;
-	    $.log_debug = $dbglog;
+            connect = sprintf("%s:%d", host, port);
+            logDbg("server: %y", connect);
+        }
 
-	    # add default port if the connect string has no port number and:
-	    # 1) is not a path (for a UNIX domain socket)
-	    # 2) is not an ipv6 address enclosed in '[]' (ex '[2001:0db8:85a3:0000:0000:8a2e:0370:7334]')
-	    if ($connect !~ /^\//) {
-		my *softint $p = ($connect =~ x/:([0-9]+)$/)[0];
-		if (!$p)
-		    $connect += ":" + DefaultTelnetPort;
-	    }
+        #! creates the TelnetClient object
+        /** @param n_connect the hostname of the Telnet server or a hostname:port specification (use [hostname] or [address] for ipv6 connections)
+            @param n_log a closure or call reference for log messages; a single string argument will be passed to this code for logging
+            @param n_dbglog a closure for debugging/technical log messages; a single string argument will be passed to this code for logging
+         */
+        constructor(string n_connect, *code n_log, *code n_dbglog) {
+            log_info = n_log;
+            log_debug = n_dbglog;
 
-	    $.connect = $connect;
-	    $.logDbg("server: %y", $.connect);
-	}
-  	
+            # add default port if the connect string has no port number and:
+            # 1) is not a path (for a UNIX domain socket)
+            # 2) is not an ipv6 address enclosed in '[]' (ex '[2001:0db8:85a3:0000:0000:8a2e:0370:7334]')
+            if (n_connect !~ /^\//) {
+                *softint p = (n_connect =~ x/:([0-9]+)$/)[0];
+                if (!p)
+                    n_connect += ":" + DefaultTelnetPort;
+            }
+
+            connect = n_connect;
+            logDbg("server: %y", connect);
+        }
+
         #! disconnects from the server if connected and deletes the object
-  	destructor() {
-	    $.disconnect();
-  	}
+        destructor() {
+            disconnect();
+        }
 
-  	#! logs the message to the log closure set with the constructor (if any)
-	private log(string $msg) {
-	    if ($.log_info.val())
-		call_function($.log_info, "Telnet INFO: " + trim(vsprintf($msg, $argv)));
-	}
+        #! logs the message to the log closure set with the constructor (if any)
+        private log(string msg) {
+            if (log_info.val())
+                call_function(log_info, "Telnet INFO: " + trim(vsprintf(msg, argv)));
+        }
 
-  	#! logs the message to the debug log closure set with the constructor (if any)
-	private logDbg(string $msg) {
-	    if ($.log_debug.val())
-		call_function($.log_debug, "Telnet DEBUG: " + trim(vsprintf($msg, $argv)));
-	}
+        #! logs the message to the debug log closure set with the constructor (if any)
+        private logDbg(string msg) {
+            if (log_debug.val())
+                call_function(log_debug, "Telnet DEBUG: " + trim(vsprintf(msg, argv)));
+        }
 
-	#! connects to the Telnet server
+        #! connects to the Telnet server
         /** If the object is already connected, it is disconnected and a new connection attempt is made.
             @note This method is subject to thread serialization.
          */
-  	connect(timeout $timeout = DefaultConnTimeout) {
-	    my AutoLock $al($.m);
-	    if ($.isConnected())
-		$.disconnectIntern();
-	    $.logDbg("connecting to %s (timeout %y)", $.connect, milliseconds($timeout));
-	    $.conn.connect($.connect, $timeout);
-	    my hash $h = $.conn.getSocketInfo();
-	    $.log("connected to %s (%s)%s", $h.hostname, $h.address_desc, $h.port ? sprintf(" port %d", $h.port) : "");
-  	}
-  	
+        connect(timeout timeout = DefaultConnTimeout) {
+            AutoLock al(m);
+            if (isConnected())
+                disconnectIntern();
+            logDbg("connecting to %s (timeout %y)", connect, milliseconds(timeout));
+            conn.connect(connect, timeout);
+            hash h = conn.getSocketInfo();
+            log("connected to %s (%s)%s", h.hostname, h.address_desc, h.port ? sprintf(" port %d", h.port) : "");
+        }
+
         #! returns @ref Qore::True "True" if the client is connected to the server
-	bool isConnected() {
-	    return $.conn.isOpen();
-  	}
+        bool isConnected() {
+            return conn.isOpen();
+        }
 
         #! sets or clears (in case passed with no value) the username parameter for logging in to the telnet server
-        /** @note This method is subject to thread serialization.
+        /** @param n_user the username to use for logins
+
+            @note This method is subject to thread serialization.
          */
-	setUser(*string $user) {
-	    my AutoLock $al($.m);
-	    $.user = $user;
-	}
+        setUser(*string n_user) {
+            AutoLock al(m);
+            user = n_user;
+        }
 
         #! returns the current value of the username parameter
-	*string getUser() {
-	    return $.user;
-	}
+        *string getUser() {
+            return user;
+        }
 
-  	#! disconnects from the Telnet server
+        #! disconnects from the Telnet server
         /** @note This method is subject to thread serialization.
          */
-  	disconnect() {
-	    my AutoLock $al($.m);
-	    if ($.isConnected())
-		$.disconnectIntern();
-	}
+        disconnect() {
+            AutoLock al(m);
+            if (isConnected())
+                disconnectIntern();
+        }
 
         #! sends data to the server
         /** @param arr a single element or a list of elements to send to the server; elements can be as follows:
@@ -370,11 +376,11 @@ public namespace TelnetClient {
             - This method could also throw any exception that Socket::sendBinary2() or Socket::sendi1() could throw
             - This method is subject to thread serialization
          */
-  	sendData(softlist $arr) {
-	    my AutoLock $al($.m);
-	    $.checkConnIntern();
-	    $.sendDataIntern($arr);
-	}
+        sendData(softlist arr) {
+            AutoLock al(m);
+            checkConnIntern();
+            sendDataIntern(arr);
+        }
 
         #! sends literal string data to the server; the text dat is converted to the socket's encoding if necessary
         /** @param str currently sent verbatim to the server; no encoding conversions are performed on this string (possibly these should be scanned for @ref IAC characters which should be duplicated)
@@ -385,23 +391,23 @@ public namespace TelnetClient {
             - This method could also throw any exception that Socket::sendBinary2() could throw
             - This method is subject to thread serialization
          */
-  	sendTextData(string $str) {
-	    my AutoLock $al($.m);
-	    $.checkConnIntern();
-	    $.sendTextDataIntern($str);
-  	}
+        sendTextData(string str) {
+            AutoLock al(m);
+            checkConnIntern();
+            sendTextDataIntern(str);
+        }
 
-	#! returns all data available as a string (which could be an empty string if no data is available in the timeout period) or NOTHING if the connection was closed by the remote end
+        #! returns all data available as a string (which could be an empty string if no data is available in the timeout period) or NOTHING if the connection was closed by the remote end
         /** NOTHING is only returned if the remote end closed the connection
 
             @note
             - This method could throw any exception that Socket::recvu1() could throw except SOCKET-CLOSED (in which case the exception is caught and NOTHING is returned)
             - This method is subject to thread serialization
          */
-  	*string getAvailableData(timeout $t = DefaultTimeout) {
-	    my AutoLock $al($.m);
-	    return $.getAvailableDataIntern($t);
-	}
+        *string getAvailableData(timeout t = DefaultTimeout) {
+            AutoLock al(m);
+            return getAvailableDataIntern(t);
+        }
 
         #! returns @ref Qore::True "True" if the server has confirmed with a DO command that it supports the given feature
         /** @param fc The feature code to check; see @ref TelnetOptionCodes for possible values; supported features are:
@@ -412,66 +418,66 @@ public namespace TelnetClient {
             - @ref TOPT_SUPP "TOPT_SUPP": SuppressGoAhead
             - @ref TOPT_NAWS "TOPT_NAWS": NegotiateAboutWindowSize
          */
-	bool hasFeature(int $fc) {
-	    return boolean($.fh.$fc);
-	}
+        bool hasFeature(int fc) {
+            return boolean(fh{fc});
+        }
 
         #! this method should be called externally when the window size has changed
         /** @see @ref getWindowSize()
          */
-	windowSizeUpdated() {
-	    my hash $wh = $.getWindowSize();
-	    my AutoLock $al($.m);
-	    $.updateWindowSizeIntern($wh);
-	}
+        windowSizeUpdated() {
+            hash wh = getWindowSize();
+            AutoLock al(m);
+            updateWindowSizeIntern(wh);
+        }
 
-	#! this method provides the value that will be given as the DISPLAY value in protocol negotiation
-	/** override this method in a subclass to provide a different value
-	  */
-	private *string getDisplay() {
-	    my *string $rv = $ENV.DISPLAY;
-	    # do not use UNIX socket path
-	    return exists $rv && $rv !~ /^\// ? $rv : gethostname() + ":0";
-	}
+        #! this method provides the value that will be given as the DISPLAY value in protocol negotiation
+        /** override this method in a subclass to provide a different value
+          */
+        private *string getDisplay() {
+            *string rv = ENV.DISPLAY;
+            # do not use UNIX socket path
+            return exists rv && rv !~ /^\// ? rv : gethostname() + ":0";
+        }
 
-	#! this method provides the value that will be given as the terminal type in protocol negotiation
-	/** override this method in a subclass to provide a different value
-	  */
-	private *string getTerminalType() {
-	    return $ENV.TERM.val() ? $ENV.TERM : DefaultTerminalType;
-	}
+        #! this method provides the value that will be given as the terminal type in protocol negotiation
+        /** override this method in a subclass to provide a different value
+          */
+        private *string getTerminalType() {
+            return ENV.TERM.val() ? ENV.TERM : DefaultTerminalType;
+        }
 
-	#! this method provides the value that will be given as the user's environment in protocol negotiation
-	/** override this method in a subclass to provide a different value
-	  */
-	private hash getEnvironment() {
-	    # by default we only return the DISPLAY and PRINTER env variables to the other side
-	    return $ENV.(list("PRINTER")) + ("DISPLAY": $.getDisplay());
-	}
+        #! this method provides the value that will be given as the user's environment in protocol negotiation
+        /** override this method in a subclass to provide a different value
+          */
+        private hash getEnvironment() {
+            # by default we only return the DISPLAY and PRINTER env variables to the other side
+            return ENV.(list("PRINTER")) + ("DISPLAY": getDisplay());
+        }
 
-	#! this method provides the value that will be given as the terminal speed in protocol negotiation
-	/** override this method in a subclass to provide a different value
-	  */
-	private int getTerminalSpeed() {
-	    return DefaultTerminalSpeed;
-	}
+        #! this method provides the value that will be given as the terminal speed in protocol negotiation
+        /** override this method in a subclass to provide a different value
+          */
+        private int getTerminalSpeed() {
+            return DefaultTerminalSpeed;
+        }
 
-	#! this method provides the value that will be given as the terminal window size in protocol negotiation
-	/** The default implementation of this method is to return the actual terminal size by calling TermIOS::getWindowSize().
+        #! this method provides the value that will be given as the terminal window size in protocol negotiation
+        /** The default implementation of this method is to return the actual terminal size by calling TermIOS::getWindowSize().
             Override this method in a subclass to provide a different value.
 
-	    @return a hash with the following keys: 
-	    - \c rows: the number of rows in the display
-	    - \c columns: the number of columns in the display
-	  */
-	private hash getWindowSize() {
-	    return TermIOS::getWindowSize();
-	}
+            @return a hash with the following keys:
+            - \c rows: the number of rows in the display
+            - \c columns: the number of columns in the display
+          */
+        private hash getWindowSize() {
+            return TermIOS::getWindowSize();
+        }
 
         #! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
         /** @par Example:
-            @code
-$telnet.clearWarningQueue();
+            @code{.py}
+telnet.clearWarningQueue();
             @endcode
 
             @see TelnetClient::setWarningQueue()
@@ -479,21 +485,21 @@ $telnet.clearWarningQueue();
             @since %TelnetClient 1.1
         */
         nothing clearWarningQueue() {
-            $.conn.clearWarningQueue();
+            conn.clearWarningQueue();
         }
 
         #! Sets a @ref Qore::Thread::Queue "Queue" object to receive socket warnings
         /** @par Example:
-            @code
-$telnet.setWarningQueue(5000, 5000, $queue, "socket-1");
+            @code{.py}
+telnet.setWarningQueue(5000, 5000, queue, "socket-1");
             @endcode
 
             @param warning_ms the threshold in milliseconds for individual socket actions (send, receive, connect), if exceeded, a socket warning is placed on the warning queue with the following keys:
             - \c "type": a string with the constant value \c "SOCKET-OPERATION-WARNING"
             - \c "operation": a string giving the operation that caused the warning (ex: \c "connect")
             - \c "us": an integer giving the number of microseconds for the operation
-            - \c "timeout": an integer giving the warning threshold in microseconds 
-            - \c "arg": if any \c "arg" argument is passed to the @ref Qore::TelnetClient::setWarningQueue() "TelnetClient::setWarningQueue()" method, it will be included in the warning hash here 
+            - \c "timeout": an integer giving the warning threshold in microseconds
+            - \c "arg": if any \c "arg" argument is passed to the @ref Qore::TelnetClient::setWarningQueue() "TelnetClient::setWarningQueue()" method, it will be included in the warning hash here
             @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket warning is placed on the warning queue with the following keys:
             - \c "type": a string with the constant value \c "SOCKET-THROUGHPUT-WARNING"
             - \c "dir": either \c "send" or \c "recv" depending on the direction of the data flow
@@ -501,11 +507,11 @@ $telnet.setWarningQueue(5000, 5000, $queue, "socket-1");
             - \c "us": an integer giving the number of microseconds for the operation
             - \c "bytes_sec": a float giving the transfer speed in bytes per second
             - \c "threshold": an integer giving the warning threshold in bytes per second
-            - \c "arg": if any \c "arg" argument is passed to the @ref Qore::TelnetClient::setWarningQueue() "TelnetClient::setWarningQueue()" method, it will be included in the warning hash here 
+            - \c "arg": if any \c "arg" argument is passed to the @ref Qore::TelnetClient::setWarningQueue() "TelnetClient::setWarningQueue()" method, it will be included in the warning hash here
             @param queue the @ref Qore::Thread::Queue "Queue" object to receive warning events
             @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to identify the socket for example)
             @param min_ms the minimum transfer time with a resolution of milliseconds for a transfer to be eligible for triggering a warning; transfers that take less than this period of time are not eligible for raising a warning
-            
+
             @throw QUEUE-ERROR the Queue passed has a maximum size set
             @throw SOCKET-SETWARNINGQUEUE-ERROR at least one of \a warning_ms and \a warning_bs must be > 0
 
@@ -513,14 +519,14 @@ $telnet.setWarningQueue(5000, 5000, $queue, "socket-1");
 
             @since %TelnetClient 1.1
         */
-        nothing setWarningQueue(int $warning_ms, int $warning_bs, Queue $queue, any $arg, timeout $min_ms = 1s) {
-            $.conn.setWarningQueue($warning_ms, $warning_bs, $queue, $arg, $min_ms);
+        nothing setWarningQueue(int warning_ms, int warning_bs, Queue queue, any arg, timeout min_ms = 1s) {
+            conn.setWarningQueue(warning_ms, warning_bs, queue, arg, min_ms);
         }
 
         #! Returns performance statistics for the socket
         /** @par Example:
-            @code
-my hash $h = $telnet.getUsageInfo();
+            @code{.py}
+hash h = telnet.getUsageInfo();
             @endcode
 
             @return a hash with the following keys:
@@ -537,13 +543,13 @@ my hash $h = $telnet.getUsageInfo();
             @see TelnetClient::clearStats()
         */
         hash getUsageInfo() {
-            return $.conn.getUsageInfo();
+            return conn.getUsageInfo();
         }
 
         #! Clears performance statistics
         /** @par Example:
-            @code
-$telnet.clearStats();
+            @code{.py}
+telnet.clearStats();
             @endcode
 
             @since %TelnetClient 1.1
@@ -551,303 +557,305 @@ $telnet.clearStats();
             @see TelnetClient::getUsageInfo()
         */
         clearStats() {
-            $.conn.clearStats();
+            conn.clearStats();
         }
 
         #! @cond nodoc
         # don't override this method, fix/enhance it with a patch to the module
-  	private final disconnectIntern() {
-	    my hash $h = $.conn.getSocketInfo();
-	    $.conn.close();
-	    $.conn.shutdown();
-	    $.log("disconnected from %s (%s)%s", $h.hostname, $h.address_desc, $h.port ? sprintf(" port %d", $h.port) : "");
-  	}
-  	
-  	private checkConnIntern() {
-	    if (!$.isConnected())
-		throw "NOT-CONNECTED-EXCEPTION", "Cannot perform the operation without being connected to server!";
-  	}
-  	
+        private final disconnectIntern() {
+            if (conn.isOpen()) {
+                hash h = conn.getSocketInfo();
+                conn.close();
+                conn.shutdown();
+                log("disconnected from %s (%s)%s", h.hostname, h.address_desc, h.port ? sprintf(" port %d", h.port) : "");
+            }
+        }
+
+        private checkConnIntern() {
+            if (!isConnected())
+                throw "NOT-CONNECTED-EXCEPTION", "Cannot perform the operation without being connected to server!";
+        }
+
         # don't override this method, fix/enhance it with a patch to the module
-  	private final sendDataIntern(softlist $arr, bool $double_aic = False) {
-	    foreach my any $val in ($arr) {
-		switch ($val.typeCode()) {
+        private final sendDataIntern(softlist arr, bool double_aic = False) {
+            foreach any val in (arr) {
+                switch (val.typeCode()) {
                     case NT_BINARY: {
-		        $.conn.sendBinary2($val);
-		        break;
-		    }
+                        conn.sendBinary2(val);
+                        break;
+                    }
 
-		    case NT_STRING: { 
-		        $.conn.sendBinary2($val);
-		        break;
-		    }
-		    
-		    case NT_INT: {
-			$.conn.sendi1($val);
-			if ($double_aic && $val == IAC)
-			    $.conn.sendi1(IAC);
-			break;
-		    }
+                    case NT_STRING: {
+                        conn.sendBinary2(val);
+                        break;
+                    }
 
-		    default: {
-			throw "SEND-ERROR", sprintf("don't know how to send type %y value: %y", $val.type(), $val);
-		    }
-		}
-	    }
-  	}
+                    case NT_INT: {
+                        conn.sendi1(val);
+                        if (double_aic && val == IAC)
+                            conn.sendi1(IAC);
+                        break;
+                    }
 
-  	private sendTextDataIntern(string $str) {	
-	    $.conn.sendBinary2($str);
-	}
+                    default: {
+                        throw "SEND-ERROR", sprintf("don't know how to send type %y value: %y", val.type(), val);
+                    }
+                }
+            }
+        }
 
-        # don't override this method, fix/enhance it with a patch to the module
-  	private final *string getAvailableDataIntern(timeout $t = DefaultTimeout) {
-	    my string $rv = "";
-
-	    while ($.conn.isDataAvailable($t)) {
-		# only use the timeout on the first read, otherwise return immediately when data is not available
-		if ($t)
-		    $t = 0;
-
-		my int $char;
-		try {
-		    $char = $.conn.recvu1(0);
-		}
-		catch (hash $ex) {
-		    if ($ex.err == "SOCKET-CLOSED") {
-			$.disconnectIntern();
-			return;
-		    }
-		    rethrow;
-		}
-		
-		if ($char == IAC)
-		    $.processCmd(\$rv);
-		else if (!$char || $char == SUPDUP_OPT) {
-		    #$.logDbg("ignoring char: %d", $char);
-		    # ignore?
-		}
-		else
-		    $rv += chr($char);
-	    }
-	
-	    #$.logDbg("rv: %y", $rv);
-	    return $rv;
-	}
+        private sendTextDataIntern(string str) {
+            conn.sendBinary2(str);
+        }
 
         # don't override this method, fix/enhance it with a patch to the module
-	private final updateWindowSizeIntern(hash $wh) {
-	    $.logDbg("SND: %s %s [%d,%d,%d,%d]", CmdMap{SB}, OptMap{TOPT_NAWS},($wh.columns & 0xff00),($wh.columns & 0xff),($wh.rows & 0xff00),($wh.rows & 0xff));
-	    $.sendDataIntern((IAC,SB,TOPT_NAWS));
-	    $.sendDataIntern((($wh.columns & 0xff00),($wh.columns & 0xff),($wh.rows & 0xff00),($wh.rows & 0xff)), True);
-	    $.sendDataIntern((IAC, SE));
-	}
+        private final *string getAvailableDataIntern(timeout t = DefaultTimeout) {
+            string rv = "";
+
+            while (conn.isDataAvailable(t)) {
+                # only use the timeout on the first read, otherwise return immediately when data is not available
+                if (t)
+                    t = 0;
+
+                int char;
+                try {
+                    char = conn.recvu1(0);
+                }
+                catch (hash ex) {
+                    if (ex.err == "SOCKET-CLOSED") {
+                        disconnectIntern();
+                        return;
+                    }
+                    rethrow;
+                }
+
+                if (char == IAC)
+                    processCmd(\rv);
+                else if (!char || char == SUPDUP_OPT) {
+                    #logDbg("ignoring char: %d", char);
+                    # ignore?
+                }
+                else
+                    rv += chr(char);
+            }
+
+            #logDbg("rv: %y", rv);
+            return rv;
+        }
 
         # don't override this method, fix/enhance it with a patch to the module
-	private final processCmd(reference $rv) {
-	    # read all data with no timeout; we assume that commands are pushed in their entirety
-	    my int $cmd = $.conn.recvu1(0);
-	    if ($cmd == IAC) {
-		$rv += chr(IAC);
-		return;
-	    }
-
-	    switch ($cmd) {
-		case SB: {
-		    $.logDbg("RCV: %s (%d) starting subnegotiation", CmdMap.$cmd, $cmd);
-		    $.doSubNegotiation();
-		    break;
-		}
-
-		case DO: {
-		    my int $opt = $.conn.recvu1(0);
-		    $.logDbg("RCV: %s %s (%s %d)", CmdMap.$cmd, OptMap.$opt, $cmd, $opt);
-
-		    switch ($opt) {
-			case TOPT_TS:
-			case TOPT_XDL:
-			case TOPT_TERM:
-			case TOPT_ENVIR_NEW: 
-			case TOPT_SUPP: {
-			    # set feature to True
-			    $.fh.$opt = True;
-			    $.logDbg("SND: WILL %s (%d %d)", OptMap.$opt, WILL, $opt);
-			    $.sendDataIntern((IAC,WILL,$opt));
-			    break;
-			}
-
-			# RFC 1073: http://www.ietf.org/rfc/rfc1073.txt
-			case TOPT_NAWS: {
-			    $.logDbg("SND: WILL %s (%d %d)", OptMap.$opt, WILL, $opt);
-			    # set feature to True
-			    $.fh.$opt = True;
-			    $.sendDataIntern((IAC,WILL,$opt));			    
-			    $.updateWindowSizeIntern($.getWindowSize());
-			    break;
-			}
-
-		        default: {
-			    $.logDbg("SND: WONT %s (%d %d)", OptMap.$opt, WONT, $opt);
-			    $.sendDataIntern((IAC,WONT,$opt));
-			    $.logDbg("SND: DONT %s (%d %d)", OptMap.$opt, DONT, $opt);
-			    $.sendDataIntern((IAC,DONT,$opt));
-			    break;
-			}
-		    }
-		    break;
-		}
-
-		case DONT: {
-		    my int $opt = $.conn.recvu1(0);
-		    $.logDbg("RCV: %s %s (%s %d)", CmdMap.$cmd, OptMap.$opt, $cmd, $opt);
-
-		    if ($opt == TOPT_LINE) {
-			$.logDbg("SND: WILL %s (%d %d)", OptMap.$opt, WILL, $opt);
-			$.sendDataIntern((IAC,WILL,$opt));
-		    }
-		    else {
-			$.logDbg("SND: WONT %s (%d %d)", OptMap.$opt, WONT, $opt);
-			$.sendDataIntern((IAC,WONT,$opt));
-		    }
-		    break;
-		}
-
-		case WILL: {
-		    my int $opt = $.conn.recvu1(0);
-		    $.logDbg("RCV: %s %s (%s %d)", CmdMap.$cmd, OptMap.$opt, $cmd, $opt);
-
-		    $.logDbg("SND: DO %s (%d %d)", OptMap.$opt, DO, $opt);
-		    $.sendDataIntern((IAC,DO,$opt));
-		    break;
-		}
-
-		case WONT: {
-		    my int $opt = $.conn.recvu1(0);
-		    $.logDbg("RCV: %s %s (%s %d)", CmdMap.$cmd, OptMap.$opt, $cmd, $opt);
-
-		    $.logDbg("SND: DONT %s (%d %d)", OptMap.$opt, DONT, $opt);
-		    $.sendDataIntern((IAC,DONT,$opt));
-		    break;
-		}
-
-	        default: {
-		    $.log("PROTOCOL ERROR: unknown AIC code received from server: %d (ignoring)", $cmd);
-		    break;
-		}
-	    }
-	}
+        private final updateWindowSizeIntern(hash wh) {
+            logDbg("SND: %s %s [%d,%d,%d,%d]", CmdMap{SB}, OptMap{TOPT_NAWS},(wh.columns & 0xff00),(wh.columns & 0xff),(wh.rows & 0xff00),(wh.rows & 0xff));
+            sendDataIntern((IAC,SB,TOPT_NAWS));
+            sendDataIntern(((wh.columns & 0xff00),(wh.columns & 0xff),(wh.rows & 0xff00),(wh.rows & 0xff)), True);
+            sendDataIntern((IAC, SE));
+        }
 
         # don't override this method, fix/enhance it with a patch to the module
-	private final doSubNegotiation() {
-	    my bool $gotiac = False;
+        private final processCmd(reference rv) {
+            # read all data with no timeout; we assume that commands are pushed in their entirety
+            int cmd = conn.recvu1(0);
+            if (cmd == IAC) {
+                rv += chr(IAC);
+                return;
+            }
 
-	    while (True) {
-		# read in option code
-		my int $sbOpt;
-		if ($gotiac) {
-		    $sbOpt = IAC;
-		    $gotiac = False;
-		}
-		else
-		    $sbOpt = $.conn.recvu1(1);
+            switch (cmd) {
+                case SB: {
+                    logDbg("RCV: %s (%d) starting subnegotiation", CmdMap{cmd}, cmd);
+                    doSubNegotiation();
+                    break;
+                }
 
-		# read in code
-		my int $sbCode = $.conn.recvu1(1);
+                case DO: {
+                    int opt = conn.recvu1(0);
+                    logDbg("RCV: %s %s (%s %d)", CmdMap{cmd}, OptMap{opt}, cmd, opt);
 
-		# exit if subnegotiation is over
-		if ($sbOpt == IAC && $sbCode == SE) {
-		    $.logDbg("RCV %s (%d) ended subnegotiation", CmdMap.$sbCode, $sbCode);
-		    return;
-		}
+                    switch (opt) {
+                        case TOPT_TS:
+                        case TOPT_XDL:
+                        case TOPT_TERM:
+                        case TOPT_ENVIR_NEW:
+                        case TOPT_SUPP: {
+                            # set feature to True
+                            fh{opt} = True;
+                            logDbg("SND: WILL %s (%d %d)", OptMap{opt}, WILL, opt);
+                            sendDataIntern((IAC,WILL,opt));
+                            break;
+                        }
 
-		if ($sbCode != 1) {
-		    $.log("PROTOCOL ERROR: unknown subnegotiation code: %d, ignoring", $sbCode);
-		    continue;
-		}
+                        # RFC 1073: http://www.ietf.org/rfc/rfc1073.txt
+                        case TOPT_NAWS: {
+                            logDbg("SND: WILL %s (%d %d)", OptMap{opt}, WILL, opt);
+                            # set feature to True
+                            fh{opt} = True;
+                            sendDataIntern((IAC,WILL,opt));
+                            updateWindowSizeIntern(getWindowSize());
+                            break;
+                        }
 
-		$.logDbg("RCV: OPT %s (%s)", OptMap.$sbOpt, $sbOpt);
+                        default: {
+                            logDbg("SND: WONT %s (%d %d)", OptMap{opt}, WONT, opt);
+                            sendDataIntern((IAC,WONT,opt));
+                            logDbg("SND: DONT %s (%d %d)", OptMap{opt}, DONT, opt);
+                            sendDataIntern((IAC,DONT,opt));
+                            break;
+                        }
+                    }
+                    break;
+                }
 
-		# server requests us to SEND (code 1) the subnegotiation answer
-		switch ($sbOpt) {
-		    case TOPT_TS: {
-			# send terminal speed string
-			my int $spd = $.getTerminalSpeed();
-			my string $val = sprintf("%d,%d", $spd, $spd);
-			$.logDbg("SND: %s %y", OptMap{TOPT_TS}, $val);
-			$.sendDataIntern((IAC,SB,TOPT_TS, 0, $val, IAC,SE));
-			break;
-		    }
-		    
-		    case TOPT_XDL: {
-			# display location
-			my *string $display = $.getDisplay();
-			$.logDbg("SND: %s %y", OptMap{TOPT_XDL}, $display);
-			$.sendDataIntern((IAC,SB,TOPT_XDL, 0, $display, IAC, SE));
-			break;
-		    }
-		    
-		    # RFC 1572: http://www.ietf.org/rfc/rfc1572.txt
-		    case TOPT_ENVIR_NEW: { 
-			# get requested list of options to send
-			my list $req = ();
-			while (True) {
-			    $sbOpt = $.conn.recvu1(0);
-			    if ($sbOpt == IAC) {
-				$gotiac = True;
-				break;
-			    }
-			    $req += $sbOpt;
-			}
+                case DONT: {
+                    int opt = conn.recvu1(0);
+                    logDbg("RCV: %s %s (%s %d)", CmdMap{cmd}, OptMap{opt}, cmd, opt);
 
-			# FIXME: we send everything anyway...
-			$.logDbg("RCV: new environment options: %y", $req);
+                    if (opt == TOPT_LINE) {
+                        logDbg("SND: WILL %s (%d %d)", OptMap{opt}, WILL, opt);
+                        sendDataIntern((IAC,WILL,opt));
+                    }
+                    else {
+                        logDbg("SND: WONT %s (%d %d)", OptMap{opt}, WONT, opt);
+                        sendDataIntern((IAC,WONT,opt));
+                    }
+                    break;
+                }
 
-			# set telnet environment vars
-			$.sendDataIntern((IAC,SB,TOPT_ENVIR_NEW, 0));  # first 0=IS, second 0=VAR, see RFC 1572
+                case WILL: {
+                    int opt = conn.recvu1(0);
+                    logDbg("RCV: %s %s (%s %d)", CmdMap{cmd}, OptMap{opt}, cmd, opt);
 
-			my *string $display = $.getDisplay();
-			$.logDbg("SND: %s VAR DISPLAY %y", OptMap{TOPT_ENVIR_NEW}, $display);
-			# send 0=VAR "DISPLAY" 1=VALUE ...value...
-			$.sendDataIntern((0, "DISPLAY", 1, $display));
+                    logDbg("SND: DO %s (%d %d)", OptMap{opt}, DO, opt);
+                    sendDataIntern((IAC,DO,opt));
+                    break;
+                }
 
-			# send USER if present
-			if (!$.user.empty()) {
-			    $.logDbg("SND: %s VAR USER %y", OptMap{TOPT_ENVIR_NEW}, $.user);
-			    # send 0=VAR "USER" 1=VALUE ...value...
-			    $.sendDataIntern((0, "USER", 1, $.user));
-			    $.logDbg("SND: %s VAR ACCT %y", OptMap{TOPT_ENVIR_NEW}, $.user);
-			    # send 0=VAR "ACCT" 1=VALUE ...value...
-			    $.sendDataIntern((0, "ACCT", 1, $.user));
-			}
+                case WONT: {
+                    int opt = conn.recvu1(0);
+                    logDbg("RCV: %s %s (%s %d)", CmdMap{cmd}, OptMap{opt}, cmd, opt);
 
-			# send user environment to server
-			my hash $env = $.getEnvironment();
-			foreach my string $k in (select keys $env, $env.$1.val()) {
-			    $.logDbg("SND: %s USERVAR %y = %y", OptMap{TOPT_ENVIR_NEW}, $k, $env.$k);
-			    # send 3=USERVAR ...key... 1=VALUE ...value...
-			    $.sendDataIntern((3, $k, 1, $env.$k));
-			}
+                    logDbg("SND: DONT %s (%d %d)", OptMap{opt}, DONT, opt);
+                    sendDataIntern((IAC,DONT,opt));
+                    break;
+                }
 
-			$.sendDataIntern((IAC,SE)); 
-			break;
-		    }
+                default: {
+                    log("PROTOCOL ERROR: unknown AIC code received from server: %d (ignoring)", cmd);
+                    break;
+                }
+            }
+        }
 
-		    # see telnet RFC 1091
-		    case TOPT_TERM: {
-			# terminal type
-			my *string $term = $.getTerminalType();
-			$.logDbg("SND: %s %y", OptMap{TOPT_TERM}, $term);
-			$.sendDataIntern((IAC,SB,TOPT_TERM, 0, $term, IAC, SE)); 
-			break;
-		    }
+        # don't override this method, fix/enhance it with a patch to the module
+        private final doSubNegotiation() {
+            bool gotiac = False;
 
-		    default: {
-		      $.logDbg("unsupported subnegotiation option: %d %s, ignoring\n", $sbOpt, OptMap.$sbOpt);
-		      break;
-		    }
-		}
-	    }
-	}
+            while (True) {
+                # read in option code
+                int sbOpt;
+                if (gotiac) {
+                    sbOpt = IAC;
+                    gotiac = False;
+                }
+                else
+                    sbOpt = conn.recvu1(1);
+
+                # read in code
+                int sbCode = conn.recvu1(1);
+
+                # exit if subnegotiation is over
+                if (sbOpt == IAC && sbCode == SE) {
+                    logDbg("RCV %s (%d) ended subnegotiation", CmdMap{sbCode}, sbCode);
+                    return;
+                }
+
+                if (sbCode != 1) {
+                    log("PROTOCOL ERROR: unknown subnegotiation code: %d, ignoring", sbCode);
+                    continue;
+                }
+
+                logDbg("RCV: OPT %s (%s)", OptMap{sbOpt}, sbOpt);
+
+                # server requests us to SEND (code 1) the subnegotiation answer
+                switch (sbOpt) {
+                    case TOPT_TS: {
+                        # send terminal speed string
+                        int spd = getTerminalSpeed();
+                        string val = sprintf("%d,%d", spd, spd);
+                        logDbg("SND: %s %y", OptMap{TOPT_TS}, val);
+                        sendDataIntern((IAC,SB,TOPT_TS, 0, val, IAC,SE));
+                        break;
+                    }
+
+                    case TOPT_XDL: {
+                        # display location
+                        *string display = getDisplay();
+                        logDbg("SND: %s %y", OptMap{TOPT_XDL}, display);
+                        sendDataIntern((IAC,SB,TOPT_XDL, 0, display, IAC, SE));
+                        break;
+                    }
+
+                    # RFC 1572: http://www.ietf.org/rfc/rfc1572.txt
+                    case TOPT_ENVIR_NEW: {
+                        # get requested list of options to send
+                        list req = ();
+                        while (True) {
+                            sbOpt = conn.recvu1(0);
+                            if (sbOpt == IAC) {
+                                gotiac = True;
+                                break;
+                            }
+                            req += sbOpt;
+                        }
+
+                        # FIXME: we send everything anyway...
+                        logDbg("RCV: new environment options: %y", req);
+
+                        # set telnet environment vars
+                        sendDataIntern((IAC,SB,TOPT_ENVIR_NEW, 0));  # first 0=IS, second 0=VAR, see RFC 1572
+
+                        *string display = getDisplay();
+                        logDbg("SND: %s VAR DISPLAY %y", OptMap{TOPT_ENVIR_NEW}, display);
+                        # send 0=VAR "DISPLAY" 1=VALUE ...value...
+                        sendDataIntern((0, "DISPLAY", 1, display));
+
+                        # send USER if present
+                        if (!user.empty()) {
+                            logDbg("SND: %s VAR USER %y", OptMap{TOPT_ENVIR_NEW}, user);
+                            # send 0=VAR "USER" 1=VALUE ...value...
+                            sendDataIntern((0, "USER", 1, user));
+                            logDbg("SND: %s VAR ACCT %y", OptMap{TOPT_ENVIR_NEW}, user);
+                            # send 0=VAR "ACCT" 1=VALUE ...value...
+                            sendDataIntern((0, "ACCT", 1, user));
+                        }
+
+                        # send user environment to server
+                        hash env = getEnvironment();
+                        foreach string k in (select keys env, env.$1.val()) {
+                            logDbg("SND: %s USERVAR %y = %y", OptMap{TOPT_ENVIR_NEW}, k, env{k});
+                            # send 3=USERVAR ...key... 1=VALUE ...value...
+                            sendDataIntern((3, k, 1, env{k}));
+                        }
+
+                        sendDataIntern((IAC,SE));
+                        break;
+                    }
+
+                    # see telnet RFC 1091
+                    case TOPT_TERM: {
+                        # terminal type
+                        *string term = getTerminalType();
+                        logDbg("SND: %s %y", OptMap{TOPT_TERM}, term);
+                        sendDataIntern((IAC,SB,TOPT_TERM, 0, term, IAC, SE));
+                        break;
+                    }
+
+                    default: {
+                        logDbg("unsupported subnegotiation option: %d %s, ignoring\n", sbOpt, OptMap{sbOpt});
+                        break;
+                    }
+                }
+            }
+        }
         #! @endcond
     }
-} 
+}

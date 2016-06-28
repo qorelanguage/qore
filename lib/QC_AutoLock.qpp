@@ -4,7 +4,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -41,15 +41,15 @@
     For this reason, it is only appropriate to assign an AutoLock object to a local variable, so when the local variable goes out of scope, the AutoLock object will be deleted and the @ref Qore::Thread::Mutex "Mutex" will be automatically released.
 
     For example:
-    @code
-our Mutex $mutex();
+    @code{.py}
+our Mutex mutex();
 
-sub check_error($error) {
+sub check_error(error) {
     # note that the Mutex is acquired in the AutoLock constructor, and
     # the Mutex will be released as soon as the block is exited below.
     # (with either the throw statement or the return statement)
-    my AutoLock $al($mutex);
-    if ($error)
+    AutoLock al(mutex);
+    if (error)
         throw "ERROR", "sorry, an error happened";
 
     return "OK";
@@ -66,10 +66,10 @@ qclass AutoLock [dom=THREAD_CLASS; arg=QoreAutoLock* al; ns=Qore::Thread];
 /** The AutoLock object immediately calls Mutex::lock() on the @ref Qore::Thread::Mutex "Mutex" object passed, and saves it; Mutex::unlock() is called in the destructor if the lock is still held by the current thread.
  
     @par Example:
-    @code
+    @code{.py}
 {
     # when the block exits, the lock is automatically released
-    my AutoLock $al($mutex);
+    AutoLock al(mutex);
 }
     @endcode
 
@@ -90,8 +90,8 @@ AutoLock::constructor(Mutex[SmartMutex] mutex) {
 /** @ref Qore::Thread::Mutex::unlock() "Mutex::unlock()" is only called if the current thread owns the lock
 
     @par Example:
-    @code
-delete $al;
+    @code{.py}
+delete al;
     @endcode
  */
 AutoLock::destructor() {
@@ -111,8 +111,8 @@ AutoLock::copy() {
 /** Do not call this method unless the @ref Qore::Thread::Mutex "Mutex" object being managed has been unlocked since the constructor
 
     @par Example:
-    @code
-$al.lock();
+    @code{.py}
+al.lock();
     @endcode
 
     @throw LOCK-ERROR lock called twice in the same thread, @ref Qore::Thread::Mutex "Mutex" object has already been deleted in another thread, etc
@@ -127,8 +127,8 @@ nothing AutoLock::lock() {
     @return 0 for success (lock acquired) or -1 if the call would block (lock not acquired because it's held by another thread)
 
     @par Example:
-    @code
-my int $i = $al.trylock();
+    @code{.py}
+int i = al.trylock();
     @endcode
 
     @throw LOCK-ERROR object deleted in another thread, etc
@@ -141,8 +141,8 @@ int AutoLock::trylock() {
 //! Unlocks the @ref Qore::Thread::Mutex "Mutex" object being managed; wakes up one thread if any threads are blocked on this lock
 /** 
     @par Example:
-    @code
-$al.unlock();
+    @code{.py}
+al.unlock();
     @endcode
 
     @throw LOCK-ERROR unlock called by a thread that does not own the lock or the lock is not locked, object deleted in another thread, etc

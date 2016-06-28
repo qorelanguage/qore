@@ -1,0 +1,28 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class IntTest
+
+class IntTest inherits QUnit::Test {
+    public {
+    }
+
+    constructor() : QUnit::Test("IntTest", "1.0") {
+        addTestCase("IntTests", \intTests());
+        set_return_value(main());
+    }
+
+    intTests() {
+        assertEq(9223372036854775807, MAXINT);
+        int i = -MAXINT - 1;
+        assertEq(-i, MININT);
+    }
+}
