@@ -32,51 +32,23 @@
 #ifndef _QORE_ENCODINGCONVERSIONINPUTSTREAM_H
 #define _QORE_ENCODINGCONVERSIONINPUTSTREAM_H
 
-#include "qore/intern/ConversionInputStreamBase.h"
-#include "qore/intern/IconvHelper.h"
+#include "qore/intern/TransformInputStream.h"
+#include "qore/intern/EncodingConvertor.h"
 
 /**
  * @brief Private data for the Qore::EncodingConversionInputStream class.
  */
-class EncodingConversionInputStream : public ConversionInputStreamBase<> {
+class EncodingConversionInputStream : public TransformInputStream {
 
 public:
    DLLLOCAL EncodingConversionInputStream(InputStream *is, const QoreEncoding *srcEncoding,
-         const QoreEncoding *dstEncoding, ExceptionSink *xsink) : ConversionInputStreamBase(is, xsink),
-         conv(dstEncoding, srcEncoding, xsink) {
+         const QoreEncoding *dstEncoding, ExceptionSink *xsink)
+         : TransformInputStream(is, new EncodingConvertor(srcEncoding, dstEncoding, xsink)) {
    }
 
    DLLLOCAL const char *getName() override {
       return "EncodingConversionInputStream";
    }
-
-protected:
-   DLLLOCAL bool performConversion(size_t outAvail, ExceptionSink *xsink) override {
-      char *outPtr = outBuf.getWritePtr();
-      if (conv.iconv(&inBuf.ptr, &inBuf.count, &outPtr, &outAvail) == (size_t) -1) {
-         switch (errno) {
-            case EINVAL:
-               if (eofReached) {
-                  conv.reportIllegalSequence(xsink);
-                  return false;
-               }
-               break;
-            case E2BIG:
-               break;
-            case EILSEQ:
-               conv.reportIllegalSequence(xsink);
-               return false;
-            default:
-               conv.reportUnknownError(xsink);
-               return false;
-         }
-      }
-      outBuf.count += outPtr - outBuf.getWritePtr();
-      return true;
-   }
-
-private:
-   IconvHelper conv;
 };
 
 #endif // _QORE_ENCODINGCONVERSIONINPUTSTREAM_H

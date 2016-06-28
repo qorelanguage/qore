@@ -75,8 +75,8 @@ public:
          }
          if (!r.first) {
             //did not produce anything and did not read anything
-            //TODO this may actually happen with iconv
             assert(eof);
+            assert(!count);
             return 0;
          }
       }
