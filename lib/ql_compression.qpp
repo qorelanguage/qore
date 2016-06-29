@@ -956,7 +956,7 @@ nothing bunzip2_to_string() [flags=RUNTIME_NOOP] {
     @param level compression level as defined by the algorithm or @ref COMPRESSION_LEVEL_DEFAULT to use the default compression level
     @return a @ref Transform object for compressing data using the given algorithm
  */
-Transform getCompressor(string alg, int level = COMPRESSION_LEVEL_DEFAULT) {
+Transform get_compressor(string alg, int level = COMPRESSION_LEVEL_DEFAULT) {
    SimpleRefHolder<Transform> t(CompressionTransforms::getCompressor(alg, level, xsink));
    if (*xsink) {
       return 0;
@@ -968,7 +968,7 @@ Transform getCompressor(string alg, int level = COMPRESSION_LEVEL_DEFAULT) {
 /** @param alg the algorithm
     @return a @ref Transform object for decompressing data using the given algorithm
  */
-Transform getDecompressor(string alg) {
+Transform get_decompressor(string alg) {
    SimpleRefHolder<Transform> t(CompressionTransforms::getDecompressor(alg, xsink));
    if (*xsink) {
       return 0;
