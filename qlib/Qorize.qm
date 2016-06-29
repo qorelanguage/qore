@@ -29,7 +29,7 @@
 %new-style
 
 module Qorize {
-    version = "0.0.10";
+    version = "0.1.1";
     desc = "Create Qore source code from data structures";
     author = "Petr Vanek";
     url = "http://qore.org";
@@ -37,6 +37,14 @@ module Qorize {
 }
 
 /*  Version History
+    * 2016-06029 v 0.1.1: Petr Vanek <petr@yarpen.cz>
+      + qorize_val() implemented
+      + new style is used as default for arguments
+      + qorizeNamed() is deprecated now. Use qorize_named() instead
+
+    * 2015-11-11 v 0.1.0: Petr Vanek <petr@yarpen.cz>
+      + improvements and bugfixes
+
     * 2015-11-11 v 0.0.10: David Nichols <david@qore.org>
       + converted to new-style
 
@@ -98,7 +106,7 @@ public namespace Qorize {
 
     @throw QORIZE-ERROR in case of error in code generator
 */
-public string sub qorize(bool val, string name = "var", bool newstyle=False) {
+public string sub qorize(bool val, string name = "var", bool newstyle = True) {
     return sprintf("%s = %s;", QorizeHelper::checkVariableName(name, val, newstyle),
                                QorizeHelper::escape(val));
 }
@@ -119,7 +127,7 @@ public string sub qorize(bool val, string name = "var", bool newstyle=False) {
 
     @throw QORIZE-ERROR in case of error in code generator
 */
-public string sub qorize(string val, string name = "var", bool newstyle=False) {
+public string sub qorize(string val, string name = "var", bool newstyle = True) {
     return sprintf("%s = %s;", QorizeHelper::checkVariableName(name, val, newstyle),
                                 QorizeHelper::escape(val));
 }
@@ -140,7 +148,7 @@ public string sub qorize(string val, string name = "var", bool newstyle=False) {
 
     @throw QORIZE-ERROR in case of error in code generator
 */
-public string sub qorize(int val, string name = "var", bool newstyle=False) {
+public string sub qorize(int val, string name = "var", bool newstyle = True) {
     return sprintf("%s = %s;", QorizeHelper::checkVariableName(name, val, newstyle),
                                 QorizeHelper::escape(val));
 }
@@ -161,7 +169,7 @@ public string sub qorize(int val, string name = "var", bool newstyle=False) {
 
     @throw QORIZE-ERROR in case of error in code generator
 */
-public string sub qorize(float val, string name = "var", bool newstyle=False) {
+public string sub qorize(float val, string name = "var", bool newstyle = True) {
     return sprintf("%s = %s;", QorizeHelper::checkVariableName(name, val, newstyle),
                                 QorizeHelper::escape(val));
 }
@@ -182,7 +190,7 @@ public string sub qorize(float val, string name = "var", bool newstyle=False) {
 
     @throw QORIZE-ERROR in case of error in code generator
 */
-public string sub qorize(number val, string name = "var", bool newstyle=False) {
+public string sub qorize(number val, string name = "var", bool newstyle = True) {
     return sprintf("%s = %s;", QorizeHelper::checkVariableName(name, val, newstyle),
                                QorizeHelper::escape(val));
 }
@@ -210,7 +218,7 @@ public string sub qorize(number val, string name = "var", bool newstyle=False) {
 
     @throw QORIZE-ERROR in case of error in code generator
 */
-public string sub qorize(date val, string name = "var", bool newstyle=False) {
+public string sub qorize(date val, string name = "var", bool newstyle = True) {
     return sprintf("%s = %s;", QorizeHelper::checkVariableName(name, val, newstyle),
                                QorizeHelper::escape(val));
 }
@@ -234,7 +242,7 @@ public string sub qorize(date val, string name = "var", bool newstyle=False) {
 
     @throw QORIZE-ERROR in case of error in code generator
 */
-public string sub qorize(binary val, string name = "var", bool newstyle=False) {
+public string sub qorize(binary val, string name = "var", bool newstyle = True) {
     return sprintf("%s = %s;", QorizeHelper::checkVariableName(name, val, newstyle),
                                QorizeHelper::escape(val));
 }
@@ -260,7 +268,7 @@ public string sub qorize(binary val, string name = "var", bool newstyle=False) {
 
     @throw QORIZE-ERROR in case of error in code generator
 */
-public string sub qorize(list val, string name = "var", bool newstyle=False) {
+public string sub qorize(list val, string name = "var", bool newstyle = True) {
     QorizeHelper qh(val, newstyle);
     return sprintf("%s = %s;", QorizeHelper::checkVariableName(name, val, newstyle),
                                qh.list());
@@ -313,7 +321,7 @@ public string sub qorize(list val, string name = "var", bool newstyle=False) {
 
     @throw QORIZE-ERROR in case of error in code generator
 */
-public string sub qorize(hash val, string name = "var", bool newstyle=False) {
+public string sub qorize(hash val, string name = "var", bool newstyle = True) {
     QorizeHelper qh(val, newstyle);
     return sprintf("%s = %s;", QorizeHelper::checkVariableName(name, val, newstyle),
                                qh.hash());
@@ -334,7 +342,7 @@ public string sub qorize(hash val, string name = "var", bool newstyle=False) {
             "key3" : ( 1, 2, 3),
             "key4" : ( "subkey1" : 1, "subkey2" : 2, ),
         );
-    string s = qorizeNamed(h);
+    string s = qorize_named(h);
     # "hash name;
     # var."foo" = "bar";
     # var."key1" = 2013-08-16T15:14:40.000;
@@ -342,7 +350,7 @@ public string sub qorize(hash val, string name = "var", bool newstyle=False) {
     # var."key3" = (1,2,3,);
     # var."key4"."subkey1" = 1;
     # var."key4"."subkey2" = 2;
-    string s = qorizeNamed(h, "foo", True);
+    string s = qorize_named(h, "foo", True);
     # "hash foo;
     # foo."foo" = "bar";
     # foo."key1" = 2013-08-16T15:14:40.000;
@@ -354,10 +362,15 @@ public string sub qorize(hash val, string name = "var", bool newstyle=False) {
 
     @throw QORIZE-ERROR in case of error in code generator
 */
-public string sub qorizeNamed(hash val, string name = "var", bool newstyle=False) {
+public string sub qorize_named(hash val, string name = "var", bool newstyle = True) {
     QorizeHelper qh(val, newstyle);
     return sprintf("%s;\n%s", QorizeHelper::checkVariableName(name, val, newstyle),
                               qh.hashNamed(name));
+}
+
+#! Deprecated, use qorize_named() instead
+public deprecated string sub qorizeNamed(hash val, string name = "var", bool newstyle = True) {
+    return qorize_named(val, name, newstyle);
 }
 
 #! create code from the any value - fallback for NULL and NOTHINGS
@@ -376,10 +389,46 @@ public string sub qorizeNamed(hash val, string name = "var", bool newstyle=False
 
     @throw QORIZE-ERROR in case of error in code generator
 */
-public string sub qorize(any val, string name = "var", bool newstyle=False) {
+public string sub qorize(any val, string name = "var", bool newstyle = True) {
     return sprintf("%s = %s;", QorizeHelper::checkVariableName(name, val, newstyle),
                                 QorizeHelper::escape(val));
 }
+
+#! create code without any variable assignment (lvalue)
+/**
+    @param val an input value
+    @retval string a generated code
+
+    @throw QORIZE-ERROR in case of error in code generator
+*/
+public string sub qorize_val(list val) {
+    QorizeHelper qh(val);
+    return sprintf("%s", qh.list());
+}
+
+#! create code without any variable assignment (lvalue)
+/**
+    @param val an input value
+    @retval string a generated code
+
+    @throw QORIZE-ERROR in case of error in code generator
+*/
+public string sub qorize_val(hash val) {
+    QorizeHelper qh(val);
+    return sprintf("%s", qh.hash());
+}
+
+#! create code without any variable assignment (lvalue)
+/**
+    @param val an input value
+    @retval string a generated code
+
+    @throw QORIZE-ERROR in case of error in code generator
+*/
+public string sub qorize_val(any val) {
+    return sprintf("%s", QorizeHelper::escape(val));
+}
+
 #@}
 
 
@@ -483,7 +532,7 @@ class QorizeHelper {
         }
     }
 
-    constructor(any n_container, bool n_newstyle) {
+    constructor(any n_container, bool n_newstyle = True) {
         container = n_container;
         type = n_container.typeCode();
         newstyle = n_newstyle;
@@ -575,6 +624,11 @@ class QorizeHelper {
     }
 
     private process(list val) {
+        if (!val.size()) {
+            code += "list(),";
+            return;
+        }
+
         level++;
 
         code += sprintf("\n%s(", strmul(" ", level*4));
@@ -591,6 +645,11 @@ class QorizeHelper {
     }
 
     private process(hash val) {
+        if (!val.size()) {
+            code += "hash(),";
+            return;
+        }
+
         level++;
 
         code += sprintf("\n%s(", strmul(" ", level*4));
