@@ -77,6 +77,11 @@ int yyparse(yyscan_t yyscanner);
 
 #define isoctaldigit(x) (x >= '0' && x <= '7')
 
+static void check_broken_op(const char* got, const char* expected) {
+   if (!parse_check_parse_option(PO_BROKEN_OPERATORS))
+      parse_error("broken operator expression found; got \"%s\"; expected: \"%s\"; multi-character operators separated by whitespace are only allowed if %broken-operators (PO_BROKEN_OPERATORS) is set", got, expected);
+}
+
 static int ascii_to_octal(char c) {
    assert(isoctaldigit(c));
    return c - '0';
@@ -406,7 +411,7 @@ static int64 parse_get_integer(const char* str) {
    errno = 0;
    int64 rv = strtoll(str, 0, 10);
    if (errno == ERANGE)
-      parse_error("numeric overflow in integer '%s': cannot represent in a 64-bit signed number; please use a floating-point or arbitrary-precision number instead (ex: '%sn'); integers must be in the range "QLLD" (MININT) to "QLLD" (MAXINT)", str, str, -LLONG_MAX, LLONG_MAX);
+      parse_error("numeric overflow in integer '%s': cannot represent in a 64-bit signed number; please use a floating-point or arbitrary-precision number instead (ex: '%sn'); integers must be in the range " QLLD " (MININT) to " QLLD " (MAXINT)", str, str, -LLONG_MAX, LLONG_MAX);
    return rv;
 }
 
@@ -742,7 +747,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%strict-bool-eval{WS}*$                getProgram()->parseSetParseOptions(PO_STRICT_BOOLEAN_EVAL);
 ^%broken-list-parsing{WS}*$             getProgram()->parseSetParseOptions(PO_BROKEN_LIST_PARSING);
 ^%broken-logic-precedence{WS}*$         getProgram()->parseSetParseOptions(PO_BROKEN_LOGIC_PRECEDENCE);
+^%broken-loop-statement{WS}*$           getProgram()->parseSetParseOptions(PO_BROKEN_LOOP_STATEMENT);
 ^%broken-int-assignments{WS}*$          getProgram()->parseSetParseOptions(PO_BROKEN_INT_ASSIGNMENTS);
+^%broken-operators{WS}*$                getProgram()->parseSetParseOptions(PO_BROKEN_OPERATORS);
 ^%push-parse-options{WS}*$              push_parse_options();
 ^%append-include-path{WS}*$             { parse_error("missing argument to %%append-include-path"); }
 ^%append-include-path{WS}+              BEGIN(append_path_state);
@@ -1529,6 +1536,37 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
 \^=                                     return XOR_EQUALS;
 \>\>=                                   return SHIFT_RIGHT_EQUALS;
 \<\<=                                   return SHIFT_LEFT_EQUALS;
+
+\<{WS}+=                                check_broken_op(yytext, "<="); return LOGICAL_LE;
+\>{WS}+=                                check_broken_op(yytext, ">="); return LOGICAL_GE;
+\!{WS}+=                                check_broken_op(yytext, "!="); return LOGICAL_NE;
+\<{WS}+\>                               check_broken_op(yytext, "<>"); return LOGICAL_NE;
+={WS}+=                                 check_broken_op(yytext, "=="); return LOGICAL_EQ;
+
+={WS}+={WS}*=                           check_broken_op(yytext, "==="); return ABSOLUTE_EQ;
+={WS}*={WS}+=                           check_broken_op(yytext, "==="); return ABSOLUTE_EQ;
+\!{WS}+={WS}*=                          check_broken_op(yytext, "!=="); return ABSOLUTE_NE;
+\!{WS}*={WS}+=                          check_broken_op(yytext, "!=="); return ABSOLUTE_NE;
+\<{WS}+={WS}*\>                         check_broken_op(yytext, "<=>"); return LOGICAL_CMP;
+\<{WS}*={WS}+\>                         check_broken_op(yytext, "<=>"); return LOGICAL_CMP;
+
+&{WS}+&                                 check_broken_op(yytext, "&&"); return LOGICAL_AND;
+\|{WS}+\|                               check_broken_op(yytext, "||"); return (getProgram()->getParseOptions64() & PO_BROKEN_LOGIC_PRECEDENCE) ? BROKEN_LOGICAL_OR : LOGICAL_OR;
+\>{WS}+\>                               check_broken_op(yytext, ">>"); return SHIFT_RIGHT;
+\<{WS}+\<                               check_broken_op(yytext, "<<"); return SHIFT_LEFT;
+\+{WS}+=                                check_broken_op(yytext, "+="); return PLUS_EQUALS;
+-{WS}+=                                 check_broken_op(yytext, "-="); return MINUS_EQUALS;
+&{WS}+=                                 check_broken_op(yytext, "&="); return AND_EQUALS;
+\|{WS}+=                                check_broken_op(yytext, "|="); return OR_EQUALS;
+\%{WS}+=                                check_broken_op(yytext, "%="); return MODULA_EQUALS;
+\*{WS}+=                                check_broken_op(yytext, "*="); return MULTIPLY_EQUALS;
+\/{WS}+=                                check_broken_op(yytext, "/="); return DIVIDE_EQUALS;
+\^{WS}+=                                check_broken_op(yytext, "^="); return XOR_EQUALS;
+\>{WS}+\>{WS}*=                         check_broken_op(yytext, ">>="); return SHIFT_RIGHT_EQUALS;
+\>{WS}*\>{WS}+=                         check_broken_op(yytext, ">>="); return SHIFT_RIGHT_EQUALS;
+\<{WS}+\<{WS}*=                         check_broken_op(yytext, "<<="); return SHIFT_LEFT_EQUALS;
+\<{WS}*\<{WS}+=                         check_broken_op(yytext, "<<="); return SHIFT_LEFT_EQUALS;
+
 \/\*                                    {
                                            int c;
                                            while ((c = yyinput(yyscanner))) {

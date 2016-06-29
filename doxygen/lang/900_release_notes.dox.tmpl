@@ -2,6 +2,29 @@
 
     @tableofcontents
 
+    @section qore_0813 Qore 0.8.13
+
+    @par Release Summary
+
+    @subsection qore_0813_compatibility Changes That Can Affect Backwards-Compatibility
+    - updated build scripts to the c++11 standard (<a href="https://github.com/qorelanguage/qore/issues/994">issue 994</a>)
+
+    @subsection qore_0813_new_features New Features in Qore
+    - new constants:
+      - @ref Qore::PO_BROKEN_LOOP_STATEMENT
+
+    @subsection qore_0813_bug_fixes Bug Fixes in Qore
+    - fixed a bug causing the AbstractQuantifiedBidirectionalIterator not being available (<a href="https://github.com/qorelanguage/qore/issues/968">issue 968</a>)
+    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module fixes:
+      - fixed a bug in update and upsert statement generation when the given data does not have enough columns to use the unique index found, an error message is generated that contains all the columns names instead of just the column names required by the index (<a href="https://github.com/qorelanguage/qore/issues/1013">issue 1013</a>)
+    - <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module fixes:
+      - fixed a bug with the \c SqlStatementOutboundMapper::iterator() method; corrected the iterator object return value which was causing \c AbstractMapperIterator::mapBulk() to fail (<a href="https://github.com/qorelanguage/qore/issues/979">issue 979</a>)
+      - fixed a bug with \c SqlStatementOutboundMapper; it would throw an error if the required \c "table" or \c "sh" options were used and only worked with subclasses that declared these options (<a href="https://github.com/qorelanguage/qore/issues/981">issue 981</a>)
+    - fixed a bug where optional arguments were not handled correctly in some rare cases (<a href="https://github.com/qorelanguage/qore/issues/974">issue 974</a>)
+    - fixed a bug causing a crash when parse_base64_string_to_string was called with an empty string (<a href="https://github.com/qorelanguage/qore/issues/996">issue 996</a>)
+    - fixed a bug where break and continue statements were accepted outside of loops (<a href="https://github.com/qorelanguage/qore/issues/976">issue 976</a>)
+    - fixed a bug compiling on Solaris SPARC with g++ where \c MPFR_DECL_INIT() is compiled incorrectly with -O1 or greater (<a href="https://github.com/qorelanguage/qore/issues/958">issue 958</a>)
+
     @section qore_0812 Qore 0.8.12
 
     @par Release Summary
@@ -14,8 +37,8 @@
     @subsection qore_0812_compatibility Changes That Can Affect Backwards-Compatibility
     - fixed broken list parsing; in previous releases, %Qore's parser re-wrote lists without parentheses used as top-level statements with certain assignment operators (@ref assignment_operator "=", @ref plus_equals_operator "+=", @ref minus_equals_operator "-=", @ref multiply_equals_operator "*=", and @ref divide_equals_operator "/=", but not with others) so that statements like <tt>list l = 1, 2, 3;</tt> were valid assignments.   Due to operator precedence, such statements should normally be interpreted as <tt>(list l = 1), 2, 3;</tt>, which is not a valid expression.  Not only were the rules applied with only some assignment operators, but such lists were only rewritten if used as top-level statements, therefore the rules were applied inconsistenctly depending on where the expression was located in the parse tree.  As of %Qore 0.8.12, these inconsistencies have been eliminated by default from %Qore; all lists are processed according to the precedence rules defined in @ref operators.  This could break old code that relied on the old, broken behavior.  To get the old behavior, use the @ref broken-list-parsing "%broken-list-parsing" parse directive.
     - fixed broken @ref int_type "int" and @ref softint_type "softint" assignments; previously runtime type errors with these type restrictions were ignored and all values were silently converted to integers for the assignment, now runtime type errors are thrown according to the original design.  Parse errors are detected as before.  This could break old code that relied on the old, broken behavior.  To get the old behavior, use the @ref broken-int-assignments "%broken-int-assignments" parse directive.
-    - the %Qore parser has been updated to no longer accept multi-character operators with whitespace bewtween them; it is believed that this was never used and simply caused the parser to be needlessly complicated and caused %Qore to be less compatible with other languages
-    - the @ref push "push", @ref unshift "unshift", @ref pop "pop" and @ref shift "shift" operators now throw an exception when their first operand is not a list
+    - fixed broken multi-character operator parsing; the %Qore parser has been updated to no longer accept multi-character operators with whitespace between the chacters making up the operator; it is believed that this was never used and simply caused the parser to be needlessly complicated and caused %Qore to be less compatible with other languages.  To get the old behavior, use the @ref broken-operators "%broken-operators" parse directive.
+    - the @ref push "push", @ref unshift "unshift", @ref pop "pop" and @ref shift "shift" operators now throw an exception when their first operand is not a list and @ref strict-args "%strict-args" is in effect
 
     @subsection qore_0812_new_features New Features in Qore
     - Added the @ref value_coalescing_operator which checks first argument if it evaluates to @ref Qore::False "False" with @ref <value>::val() and if so assigns the second argument. The operator can be further chained; for example: @code{.py} expr1 ?* expr2 ?* expr3 @endcode
@@ -60,6 +83,7 @@
       - @ref Qore::ParseOptionStringMap
       - @ref Qore::PO_BROKEN_LIST_PARSING
       - @ref Qore::PO_BROKEN_LOGIC_PRECEDENCE
+      - @ref Qore::PO_BROKEN_OPERATORS
       - @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS
       - @ref Qore::PO_NO_INHERIT_USER_CONSTANTS
       - @ref Qore::PO_NO_API
@@ -169,6 +193,8 @@
       - \c quote_escape option implemented in \c AbstractCsvWriter
       - implemented the \c "datamap" and \c "info_log" options for CSV generation
       - implemented alternative options with underscores instead of dashes for all constructors
+      - extended multi-type support for \c FixedLengthUtil, record type rules and default value in field specification
+      - implemented multi-type record support in \c AbstractCsvWriter and \c AbstractCsvIterator using \c resolve_type and \c headers options
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module updates:
       - implemented the \c "constant" field tag, allowing a contant value for an output field to be specified directly in the mapper hash
       - implemented the \c "default" field tag, giving a default value if no input value is specified
@@ -207,7 +233,7 @@
       - the AbstractRestStreamRequestHandler class is now the base abstract class for REST stream request handlers
     - <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module updates:
       - updated FileHandler::handleRequest() to allow for chunked sends
-    - <a href"=../../modules/BulkSqlUtil/html/index.html">BulkSqlUtil</a> module:
+    - <a href="../../modules/BulkSqlUtil/html/index.html">BulkSqlUtil</a> module:
       - added this new module providing APIs supporting bulk DML with <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> with supported drivers
     - <a href="../../modules/FilePoller/html/index.html">FilePoller</a> module:
       - added this new module to support polling files in directories on the filesystem
@@ -289,7 +315,7 @@
       - added public function \c plural()
       - added public function \c regex_escape()
       - added public function \c zip()
-     - \c parse_to_qore_value() now respects parenthes when parsing lists and hashes (<a href="https://github.com/qorelanguage/qore/issues/846">issue 846</a>)
+      - \c parse_to_qore_value() now respects parentheses when parsing lists and hashes (<a href="https://github.com/qorelanguage/qore/issues/846">issue 846</a>)
     - added initial support for UTF-16 character encoding; note that UTF-16 is not backwards-compatible with ASCII and therefore not supported universally in %Qore; it's recommended to convert these strings to UTF-8 in %Qore; do not use UTF-16 as the default character encoding in %Qore; currently UTF-16 data can be parsed using the following classes that convert the data to UTF-8:
       - @ref Qore::DataLineIterator
       - @ref Qore::FileLineIterator
@@ -298,7 +324,9 @@
     - added support for empty private blocks in classes
     - added support for @ref Qore::statvfs() on Windows (simulated from \c GetDiskFreeSpaceEx() <a href="https://github.com/qorelanguage/qore/issues/618">issue 618</a>)
     - assignment of a variable to itself is now illegal (<a href="https://github.com/qorelanguage/qore/issues/526">issue 526</a>)
-    - extended qpp to support the 'final' class flag
+    - extended qpp to support the 'final' class flag (<a href="https://github.com/qorelanguage/qore/issues/876">issue 876</a>)
+    - extended qpp to support private members (<a href="https://github.com/qorelanguage/qore/issues/924">issue 924</a>)
+    - added @ref <float>::infp() and @ref <float>::nanp() predicates to @ref float_type (<a href="https://github.com/qorelanguage/qore/issues/909">issue 909</a>)
 
     @subsection qore_0812_bug_fixes Bug Fixes in Qore
     - fixed format of octal constant - there was an error if a string contained octal constant that is shorter than 3 digit
@@ -343,6 +371,7 @@
       - fixed \c "uop_lower()" and \c "uop_upper()" operators to allow nesting (<a href="https://github.com/qorelanguage/qore/issues/657">issue 657</a>)
       - fixed a bug where SqlUtil was generating invalid SQL for some DBs where a wilcard was used with explicit column names (<a href="https://github.com/qorelanguage/qore/issues/708">issue 708</a>)
       - fixed a bug where updating an index without any source constraints caused an invalid exception to be raised (<a href="https://github.com/qorelanguage/qore/issues/768">issue 768</a>)
+      - fixed a bug in \c AbstractTable::update() with sequence operators (<a href="https://github.com/qorelanguage/qore/issues/942">issue 942</a>)
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module fixes:
       - fixed a bug where column names that are reserved words were not quoted in generated SQL
       - fixed bugs in \c cop_seq() and \c cop_seq_currval() (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
@@ -508,7 +537,7 @@
     - fixed an I/O-handling bug in the @ref Qore::ReadOnlyFile and @ref Qore::File classes where I/O errors in read operations were silently ignored (<a href="https://github.com/qorelanguage/qore/issues/627">issue 627</a>)
     - fixed bugs in @ref Qore::ReadOnlyFile::readTextFile() and @ref Qore::ReadOnlyFile::readBinaryFile() would return @ref nothing instead of an empty object when reading empty files; now empty objects are returned in these cases (<a href="https://github.com/qorelanguage/qore/issues/508">issue 508</a>)
     - fixed a bug in *printf() outputs on Windows with scientific notation with floating-point values (<a href="https://github.com/qorelanguage/qore/issues/631">issue 621</a>)
-    - fixed a bug where the precision of numbers during arithmetic operations was not adjusted correctly (<a href="https://github.com/qorelanguage/qore/issues/630">issue 630</a>)
+    - fixed a bug where the precision of numbers during arithmetic operations was not adjusted correctly (<a href="https://github.com/qorelanguage/qore/issues/630">issue 630</a>, <a href="https://github.com/qorelanguage/qore/issues/908">issue 908</a>)
     - fixed a bug where the type of subtraction of two numbers was inferred as NOTHING during parsing (<a href="https://github.com/qorelanguage/qore/issues/636">issue 636</a>)
     - fixed a bug on Windows with @ref Qore::Dir::create() (<a href="https://github.com/qorelanguage/qore/issues/643">issue 643</a>)
     - fixed a bug where CRLF line endings were not handled correctly by the %exec-class parse directive (<a href="https://github.com/qorelanguage/qore/issues/653">issue 653</a>)
@@ -532,6 +561,10 @@
     - fixed a bug where @ref Qore::format_number() would return an invalid string when the number of decimals to be returned was 0 (<a href="https://github.com/qorelanguage/qore/issues/851">issue 851</a>)
     - fixed a bug where the @ref delete "delete" and @ref "remove" operators would incorrectly create hash keys when attempting to delete inside complex hash structures with non-existent keys (<a href="https://github.com/qorelanguage/qore/issues/855">issue 855</a>)
     - fixed a bug where duplicate global variable declarations caused a crash (<a href="https://github.com/qorelanguage/qore/issues/891">issue 891</a>)
+    - fixed a memory leak in @ref Qore::SQL::DatasourcePool "DatasourcePool" initialization when the minimum connections cannot be established (<a href="https://github.com/qorelanguage/qore/issues/994">issue 994</a>)
+    - fixed handling of NaN values in logical operators (<a href="https://github.com/qorelanguage/qore/issues/915">issue 915</a>)
+    - fixed sort_descending_stable so that it keeps (instead of reversing) the original order of items that compare equal (<a href="https://github.com/qorelanguage/qore/issues/940">issue 940</a>)
+    - fixed a bug in \c copy() method argument parsing; compatible type declarations were not accepted (<a href="https://github.com/qorelanguage/qore/issues/946">issue 946</a>)
 
     @section qore_0811 Qore 0.8.11
 

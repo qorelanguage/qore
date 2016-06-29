@@ -2741,6 +2741,7 @@ protected:
    strlist_t vparents;   // builtin virtual base/parent classes
 
    paramlist_t public_members;  // public members
+   paramlist_t private_members; // private members
 
    strlist_t dom;        // functional domains
 
@@ -2756,6 +2757,28 @@ protected:
       std::string se(str, start, end);
       trim(se);
       l.push_back(se);
+   }
+
+   void parseMembers(bool isPublic, const std::string &x) {
+      strlist_t pml;
+      get_string_list(pml, x);
+
+      for (unsigned i = 0; i < pml.size(); ++i) {
+         size_t p = pml[i].find(' ');
+         if (p == std::string::npos) {
+            error("class '%s' has member without type: '%s'\n", name.c_str(), pml[i].c_str());
+            valid = false;
+            continue;
+         }
+         std::string type(pml[i], 0, p);
+         std::string name(pml[i], p + 1);
+
+         if (isPublic) {
+            public_members.push_back(Param(type, name, "", ""));
+         } else {
+            private_members.push_back(Param(type, name, "", ""));
+         }
+      }
    }
 
 public:
@@ -2802,21 +2825,12 @@ public:
          }
 
          if (i->first == "public_members") {
-            strlist_t pml;
-            get_string_list(pml, i->second);
+            parseMembers(true, i->second);
+            continue;
+         }
 
-            for (unsigned i = 0; i < pml.size(); ++i) {
-               size_t p = pml[i].find(' ');
-               if (p == std::string::npos) {
-                  error("class '%s' has member without type: '%s'\n", name.c_str(), pml[i].c_str());
-                  valid = false;
-                  continue;
-               }
-               std::string type(pml[i], 0, p);
-               std::string name(pml[i], p + 1);
-
-               public_members.push_back(Param(type, name, "", ""));
-            }
+         if (i->first == "private_members") {
+            parseMembers(false, i->second);
             continue;
          }
 
@@ -2962,6 +2976,7 @@ public:
          fprintf(fp, "DLLLOCAL QoreClass* init%sClass(QoreNamespace& ns) {\n   QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
       dom_output_cpp(fp, dom);
       fprintf(fp, ");\n   CID_%s = QC_%s->getID();\n", UC.c_str(), UC.c_str());
+      fprintf(fp, "   QC_%s->setSystem();\n", UC.c_str());
 
       if (!defbase.empty())
          fprintf(fp, "\n   // set default builtin base class\n   assert(%s);\n  QC_%s->addDefaultBuiltinBaseClass(%s);\n", defbase.c_str(), UC.c_str(), defbase.c_str());
@@ -2991,6 +3006,16 @@ public:
             std::string mt;
             get_qore_type((*i).type, mt);
             fprintf(fp, "   QC_%s->addPublicMember(\"%s\", %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
+         }
+      }
+
+      // output private members if any
+      if (!private_members.empty()) {
+         fputs("\n   // private members\n", fp);
+         for (paramlist_t::iterator i = private_members.begin(), e = private_members.end(); i != e; ++i) {
+            std::string mt;
+            get_qore_type((*i).type, mt);
+            fprintf(fp, "   QC_%s->addPrivateMember(\"%s\", %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
          }
       }
 

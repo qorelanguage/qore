@@ -30,8 +30,7 @@
 */
 
 #include <qore/Qore.h>
-
-#include <math.h>
+#include <cmath>
 
 //! Methods in this pseudo-class can be executed on @ref float "floating-point values"
 /**
@@ -121,6 +120,38 @@ string nstr = f.format(".,3"); # returns "-48.392.093.894,235"
  */
 string <float>::format(string fmt) [flags=CONSTANT] {
    return format_float_intern(*fmt, f);
+}
+
+//! Returns @ref True if the number is NaN (not a number)
+/**
+    @return @ref True if the number is NaN (not a number)
+
+    @par Example:
+    @code{.py}
+if (f.nanp())
+    print("the operation resulted in NaN\n");
+    @endcode
+
+    @since %Qore 0.8.12
+*/
+bool <float>::nanp() [flags=CONSTANT] {
+   return std::isnan(f) != 0;
+}
+
+//! Returns @ref True if the number is infinity (+ or -)
+/**
+    @return @ref True if the number is infinity (+ or -)
+
+    @par Example:
+    @code{.py}
+if (f.infp())
+    print("the operation resulted in infinity\n");
+    @endcode
+
+    @since %Qore 0.8.12
+*/
+bool <float>::infp() [flags=CONSTANT] {
+   return std::isinf(f) != 0;
 }
 
 //! Returns -1 if the number is negative, 0 if it is zero, or 1 if it is positive

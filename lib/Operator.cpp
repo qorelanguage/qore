@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,7 @@
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/AbstractIteratorHelper.h>
 
+#include <cmath>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -57,8 +58,7 @@ Operator *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT, *OP_BIN_XOR, *OP_MINUS, *OP_PLUS,
    *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT,
    *OP_LOG_GT, *OP_LOG_EQ, *OP_LOG_NE, *OP_LOG_LE, *OP_LOG_GE,
    *OP_ABSOLUTE_EQ, *OP_ABSOLUTE_NE, *OP_REGEX_MATCH, *OP_REGEX_NMATCH,
-   *OP_EXISTS, *OP_INSTANCEOF, *OP_FOLDR, *OP_FOLDL,
-   *OP_SELECT;
+   *OP_EXISTS, *OP_INSTANCEOF, *OP_SELECT;
 
 // call to get a node with reference count 1 (copy on write)
 void ensure_unique(AbstractQoreNode* *v, ExceptionSink* xsink) {
@@ -408,31 +408,42 @@ static double op_multiply_float(double left, double right) {
 }
 
 static bool op_log_lt_number(const QoreNumberNode* left, const QoreNumberNode* right) {
-   return left->compare(*right) < 0;
+   return left->lessThan(*right);
 }
 
 static bool op_log_le_number(const QoreNumberNode* left, const QoreNumberNode* right) {
-   return left->compare(*right) <= 0;
+   return left->lessThanOrEqual(*right);
 }
 
 static bool op_log_gt_number(const QoreNumberNode* left, const QoreNumberNode* right) {
-   return left->compare(*right) > 0;
+   return left->greaterThan(*right);
 }
 
 static bool op_log_ge_number(const QoreNumberNode* left, const QoreNumberNode* right) {
-   return left->compare(*right) >= 0;
+   return left->greaterThanOrEqual(*right);
 }
 
 static bool op_log_eq_number(const QoreNumberNode* left, const QoreNumberNode* right) {
-   return !left->compare(*right);
+   return left->equals(*right);
 }
 
 static bool op_log_ne_number(const QoreNumberNode* left, const QoreNumberNode* right) {
-   return (bool)left->compare(*right);
+   return !left->equals(*right);
 }
 
-static int64 op_cmp_number(const QoreNumberNode* left, const QoreNumberNode* right) {
-   return (int64)left->compare(*right);
+static int64 op_cmp_number(const QoreNumberNode* left, const QoreNumberNode* right, ExceptionSink* xsink) {
+   if (left->nan() || right->nan()) {
+      xsink->raiseException("NAN-COMPARE-ERROR", "NaN in logical comparison operator");
+      return 1;
+   }
+
+   if (left->lessThan(*right))
+       return -1;
+
+   if (left->equals(*right))
+      return 0;
+
+   return 1;
 }
 
 static QoreNumberNode* op_plus_number(const QoreNumberNode* left, const QoreNumberNode* right, ExceptionSink* xsink) {
@@ -747,7 +758,12 @@ static AbstractQoreNode* op_plus_binary_binary(const AbstractQoreNode* left, con
    return rv;
 }
 
-static int64 op_cmp_double(double left, double right) {
+static int64 op_cmp_double(double left, double right, ExceptionSink* xsink) {
+   if (std::isnan(left) || std::isnan(right)) {
+      xsink->raiseException("NAN-COMPARE-ERROR", "NaN in logical comparison operator");
+      return 1;
+   }
+
    if (left < right)
        return -1;
 
@@ -800,7 +816,8 @@ static AbstractQoreNode* op_unshift(const AbstractQoreNode* left, const Abstract
 
    // value is not a list, so throw exception
    if (val.getType() != NT_LIST) {
-      xsink->raiseException("UNSHIFT-ERROR", "first argument to unshift is not a list");
+      // no need to check for PO_STRICT_ARGS; this exception was always thrown
+      xsink->raiseException("UNSHIFT-ERROR", "the lvalue argument to unshift is type \"%s\"; expecting \"list\"", val.getTypeName());
       return 0;
    }
 
@@ -831,7 +848,9 @@ static AbstractQoreNode* op_shift(const AbstractQoreNode* left, const AbstractQo
 
    // value is not a list, so throw exception
    if (val.getType() != NT_LIST) {
-      xsink->raiseException("SHIFT-ERROR", "the argument to shift is not a list");
+      // only throw a runtime exception if %strict-args is in effect
+      if (runtime_check_parse_option(PO_STRICT_ARGS))
+         xsink->raiseException("SHIFT-ERROR", "the lvalue argument to shift is type \"%s\"; expecting \"list\"", val.getTypeName());
       return 0;
    }
 
@@ -860,7 +879,9 @@ static AbstractQoreNode* op_pop(const AbstractQoreNode* left, const AbstractQore
 
    // value is not a list, so throw exception
    if (val.getType() != NT_LIST) {
-      xsink->raiseException("POP-ERROR", "the argument to pop is not a list");
+      // only throw a runtime exception if %strict-args is in effect
+      if (runtime_check_parse_option(PO_STRICT_ARGS))
+         xsink->raiseException("POP-ERROR", "the lvalue argument to pop is type \"%s\"; expecting \"list\"", val.getTypeName());
       return 0;
    }
 
@@ -899,7 +920,9 @@ static AbstractQoreNode* op_push(const AbstractQoreNode* left, const AbstractQor
 
    // value is not a list, so throw exception
    if (val.getType() != NT_LIST) {
-      xsink->raiseException("PUSH-ERROR", "first argument to push is not a list");
+      // only throw a runtime exception if %strict-args is in effect
+      if (runtime_check_parse_option(PO_STRICT_ARGS))
+         xsink->raiseException("PUSH-ERROR", "the lvalue argument to push is type \"%s\"; expecting \"list\"", val.getTypeName());
       return 0;
    }
 
@@ -913,149 +936,6 @@ static AbstractQoreNode* op_push(const AbstractQoreNode* left, const AbstractQor
    l->push(value.getReferencedValue());
    // reference for return value
    return ref_rv ? l->refSelf() : 0;
-}
-
-static AbstractQoreNode* op_fold_iterator(const AbstractQoreNode* left, AbstractIteratorHelper& h, bool ref_rv, ExceptionSink* xsink) {
-   // set offset in thread-local data for "$#"
-   ImplicitElementHelper eh(-1);
-
-   // first try to get first argument
-   bool b = h.next(xsink);
-   // if there is no first argument or an exception occurred, then return 0
-   if (!b || *xsink)
-      return 0;
-
-   // get first argument value
-   ValueHolder result(h.getValue(xsink), xsink);
-   //ReferenceHolder<AbstractQoreNode> result(h.getValue(xsink), xsink);
-   if (*xsink)
-      return 0;
-
-   while (true) {
-      bool b = h.next(xsink);
-      if (*xsink)
-         return 0;
-      if (!b)
-         break;
-
-      // get next argument value
-      ValueHolder arg(h.getValue(xsink), xsink);
-      //ReferenceHolder<AbstractQoreNode> arg(h.getValue(xsink), xsink);
-      if (*xsink)
-         return 0;
-
-      // create argument list for fold expression
-      QoreListNode* args = new QoreListNode;
-      args->push(result.getReferencedValue());
-      args->push(arg.getReferencedValue());
-      ArgvContextHelper argv_helper(args, xsink);
-      result = left->eval(xsink);
-      if (*xsink)
-         return 0;
-   }
-
-   return result.getReferencedValue();
-}
-
-static AbstractQoreNode* op_foldl(const AbstractQoreNode* left, const AbstractQoreNode* arg_exp, bool ref_rv, ExceptionSink* xsink) {
-   // conditionally evaluate argument
-   QoreNodeEvalOptionalRefHolder arg(arg_exp, xsink);
-   if (!arg || *xsink)
-      return 0;
-
-   // return the argument if there is no list
-   qore_type_t t = arg->getType();
-   if (t != NT_LIST) {
-      if (t == NT_OBJECT) {
-         AbstractIteratorHelper h(xsink, "foldl operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)));
-         if (*xsink)
-            return 0;
-         if (h)
-            return op_fold_iterator(left, h, ref_rv, xsink);
-      }
-      return arg.getReferencedValue();
-   }
-
-   const QoreListNode* l = reinterpret_cast<const QoreListNode*>(*arg);
-
-   // returns NOTHING if the list is empty
-   if (!l->size())
-      return 0;
-
-   ReferenceHolder<AbstractQoreNode> result(l->get_referenced_entry(0), xsink);
-
-   // return the first element if the list only has one element
-   if (l->size() == 1)
-      return result.release();
-
-   // skip the first element
-   ConstListIterator li(l, 0);
-   while (li.next()) {
-      // set offset in thread-local data for "$#"
-      ImplicitElementHelper eh(li.index());
-      // create argument list
-      QoreListNode* args = new QoreListNode();
-      args->push(result.release());
-      args->push(li.getReferencedValue());
-
-      ArgvContextHelper argv_helper(args, xsink);
-
-      result = left->eval(xsink);
-      if (*xsink)
-	 return 0;
-   }
-   return result.release();
-}
-
-static AbstractQoreNode* op_foldr(const AbstractQoreNode* left, const AbstractQoreNode* arg_exp, bool ref_rv, ExceptionSink* xsink) {
-   // conditionally evaluate argument
-   QoreNodeEvalOptionalRefHolder arg(arg_exp, xsink);
-   if (!arg || *xsink)
-      return 0;
-
-   // return the argument if there is no list
-   qore_type_t t = arg->getType();
-   if (t != NT_LIST) {
-      if (t == NT_OBJECT) {
-         AbstractIteratorHelper h(xsink, "foldr operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)), false);
-         if (*xsink)
-            return 0;
-         if (h)
-            return op_fold_iterator(left, h, ref_rv, xsink);
-      }
-      return arg.getReferencedValue();
-   }
-
-   const QoreListNode* l = reinterpret_cast<const QoreListNode*>(*arg);
-
-   // returns NOTHING if the list is empty
-   if (!l->size())
-      return 0;
-
-   ReferenceHolder<AbstractQoreNode> result(l->get_referenced_entry(l->size() - 1), xsink);
-
-   // return the first element if the list only has one element
-   if (l->size() == 1)
-      return result.release();
-
-   ConstListIterator li(l);
-   // skip the first element
-   li.prev();
-   while (li.prev()) {
-      // set offset in thread-local data for "$#"
-      ImplicitElementHelper eh(li.index());
-      // create argument list
-      QoreListNode* args = new QoreListNode();
-      args->push(result.release());
-      args->push(li.getReferencedValue());
-
-      ArgvContextHelper argv_helper(args, xsink);
-
-      result = left->eval(xsink);
-      if (*xsink)
-	 return 0;
-   }
-   return result.release();
 }
 
 static AbstractQoreNode* op_select_iterator(const AbstractQoreNode* select, AbstractIteratorHelper& h, bool ref_rv, ExceptionSink* xsink) {
@@ -1400,7 +1280,7 @@ QoreValue CompareFloatOperatorFunction::eval(const AbstractQoreNode* left, const
    if (!ref_rv)
       return QoreValue();
 
-   return op_func(left->getAsFloat(), right->getAsFloat());
+   return op_func(left->getAsFloat(), right->getAsFloat(), xsink);
 }
 
 QoreValue IntegerNotOperatorFunction::eval(const AbstractQoreNode* left, const AbstractQoreNode* right, bool ref_rv, int args, ExceptionSink* xsink) const {
@@ -1558,7 +1438,7 @@ QoreValue IntNumberOperatorFunction::eval(const AbstractQoreNode* left, const Ab
       right = *r;
    }
 
-   return op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right));
+   return op_func(reinterpret_cast<const QoreNumberNode*>(left), reinterpret_cast<const QoreNumberNode*>(right), xsink);
 }
 
 Operator::~Operator() {
@@ -2373,12 +2253,6 @@ void OperatorList::init() {
    // can return a list or NOTHING
    OP_REGEX_EXTRACT = add(new Operator(2, "regular expression subpattern extraction", "regular expression subpattern extraction", 0, false));
    OP_REGEX_EXTRACT->addFunction(op_regex_extract);
-
-   OP_FOLDL = add(new Operator(2, "foldl", "left fold expression", 0, true, false));
-   OP_FOLDL->addFunction(NT_ALL, NT_ALL, op_foldl);
-
-   OP_FOLDR = add(new Operator(2, "foldr", "right fold expression", 0, true, false));
-   OP_FOLDR->addFunction(NT_ALL, NT_ALL, op_foldr);
 
    // can return a list or NOTHING
    OP_SELECT = add(new Operator(2, "select", "select elements from a list", 0, true, false));

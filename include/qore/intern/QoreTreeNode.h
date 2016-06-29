@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -124,17 +124,7 @@ public:
       return left && left->is_value() && (op->numArgs() == 1 || (right && right->is_value()));
    }
 
-   DLLLOCAL AbstractQoreNode* evalSubst(const QoreTypeInfo*& rtTypeInfo) {
-      SimpleRefHolder<QoreTreeNode> rh(this);
-      ExceptionSink xsink;
-
-      ValueEvalRefHolder v(this, &xsink);
-      assert(!xsink);
-      AbstractQoreNode* rv = v.getReferencedValue();
-      rtTypeInfo = rv ? getTypeInfoForType(rv->getType()) : nothingTypeInfo;
-      xsink.clear();
-      return rv ? rv : nothing();
-   }
+   DLLLOCAL AbstractQoreNode* evalSubst(const QoreTypeInfo*& rtTypeInfo);
 };
 
 #endif

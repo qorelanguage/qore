@@ -44,6 +44,7 @@ public class ArrayTest inherits QUnit::Test {
         addTestCase("String and binary element dereference test", \testElementDereference(), NOTHING);
         addTestCase("Range test", \testRange(), NOTHING);
         addTestCase("Pseudomethods test", \testPseudomethods(), NOTHING);
+        addTestCase("Stable descending sort", \sortDescStable(), NOTHING);
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -136,6 +137,17 @@ public class ArrayTest inherits QUnit::Test {
               ( "key1" : 7, "key2" : "six" ),
               ( "key1" : 8, "key2" : "two" ),
               ( "key1" : 9, "key2" : "three" ) );
+        list r_stable_sorted_hl =
+            ( ( "key1" : 9, "key2" : "three" ),
+              ( "key1" : 8, "key2" : "two" ),
+              ( "key1" : 7, "key2" : "six" ),
+              ( "key1" : 6, "key2" : "four" ),
+              ( "key1" : 5, "key2" : "nine" ),
+              ( "key1" : 4, "key2" : "one" ),
+              ( "key1" : 3, "key2" : "five" ),
+              ( "key1" : 3, "key2" : "five-o" ),
+              ( "key1" : 2, "key2" : "seven" ),
+              ( "key1" : 1, "key2" : "eight" ) );
         Sort s();
 
         code hash_compare = int sub (hash l, hash r) { return l.key1 <=> r.key1; };
@@ -161,7 +173,6 @@ public class ArrayTest inherits QUnit::Test {
         assertEq(stable_sorted_hl, sort_stable(hl, "hash_sort_callback"), "third sort_stable() with callback");
         assertEq(stable_sorted_hl, sort_stable(hl, hash_compare), "sort_stable() with closure callback");
 
-        list r_stable_sorted_hl = reverse(stable_sorted_hl);
         assertEq(r_stable_sorted_hl, sort_descending_stable(hl, \SC::hash_sort_callback()), "first sort_descending_stable() with callback");
         assertEq(r_stable_sorted_hl, sort_descending_stable(hl, \s.compare()), "second sort_descending_stable() with callback");
         assertEq(r_stable_sorted_hl, sort_descending_stable(hl, "hash_sort_callback"), "third sort_descending_stable() with callback");
@@ -247,5 +258,12 @@ public class ArrayTest inherits QUnit::Test {
         assertEq('1-2-3-4-a', pseudoList.join('-'), "<list>::join");
         assertEq(5, pseudoList.lsize(), "<list>::lsize");
         assertEq(True, pseudoList.contains(2), "<list>::contains");
+    }
+
+    sortDescStable() {
+        list x = map ($1, 1), range(1,9);
+        code f = int sub(list l, list r) { return l[1] <=> r[1]; };
+        list s = sort_descending_stable(x, f);
+        assertEq(x, s);
     }
 }

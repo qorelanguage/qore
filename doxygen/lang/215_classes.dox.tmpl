@@ -9,17 +9,21 @@
 
     @par In-Line Class Declaration Syntax
     <tt><b>[@ref mod_public "public"] [@ref final_classes "final"] class</b> [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt>] [<b>inherits</b> [<b>@ref private_inheritance "private"</b>|<b>@ref public_inheritance "public"</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>parent_class_identifier</em><tt>[, ...]] {</tt>\n
-    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref private_members "private"</b>] $.</tt><em>member_name</em><tt>[, ...];]</tt>\n\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref private_members "private"</b>] </tt><em>member_name</em><tt>[, ...];]</tt>\n\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>@ref private_members "private"</b>|<b>@ref public_members "public"</b> {</tt>\n
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[[</tt><em>@ref data_type_declarations "member_type"</em><tt>] $.</tt><em>member_name</em> <tt>[= </tt><em>@ref expressions "initialization_expression"</em><tt>];]</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[[</tt><em>@ref data_type_declarations "member_type"</em><tt>] </tt><em>member_name</em> <tt>[= </tt><em>@ref expressions "initialization_expression"</em><tt>];]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>static</b> [</tt><em>@ref data_type_declarations "static_member_type"</em><tt>] </tt><em>static_member_name</em> <tt>[= </tt><em>@ref expressions "initialization_expression"</em><tt>];]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>const</b> </tt><em>constant_name</em> <tt>=</tt> <em>@ref expressions "initialization_expression"</em><tt>;]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>\n\n
-    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref final_methods "final"</b>] [<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>] [<b>@ref deprecated "deprecated"</b>] <b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref final_methods "final"</b>] [<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>] [<b>@ref deprecated "deprecated"</b>] <b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>\n
-    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref static_methods "static"</b>|<b>@ref final_methods "final"</b>] [<b>@ref synchronized "synchronized"</b>] [<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>] [<b>@ref deprecated "deprecated"</b>]</tt> <em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) {</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>copy</b>(<tt>@ref object_type "object" </tt><em>arg_name</em>) {</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>\n
-    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref abstract "abstract"</b>] [<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>]</tt> <em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]);</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>destructor</b>() {</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref static_methods "static"</b>|<b>@ref final_methods "final"</b>] [<b>@ref synchronized "synchronized"</b>] [<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>] [<b>@ref deprecated "deprecated"</b>] [</tt><em>@ref data_type_declarations "return_type"</em><tt>]</tt> <em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) {</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref abstract "abstract"</b>] [<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>] [</tt><em>@ref data_type_declarations "return_type"</em><tt>]</tt> <em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]);]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>...</tt>\n
     <tt>}</tt>
 
@@ -50,11 +54,11 @@ class MyClass inherits MyBaseClass {
     @par Out-Of-Line Class Declaration Syntax
     Alternatively class declarations and method declarations can be defined out of line as follows:\n
     <tt>[@ref mod_public "public"] \b class [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt> [<b>inherits</b> [<b>@ref private_inheritance "private"</b>|<b>@ref public_inheritance "public"</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>parent_class_identifier</em><tt>[, ...]];</tt>\n\n
-    <tt>[[<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>] [<b>@ref deprecated "deprecated"</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt>::<b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
+    <tt>[[<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>] [<b>@ref deprecated "deprecated"</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt>::<b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
     <tt>}]</tt>\n\n
-    <tt>[[<b>@ref static_methods "static"</b>|<b>@ref final_methods "final"</b>] [<b>@ref synchronized "synchronized"</b>] [<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>] [<b>@ref deprecated "deprecated"</b>] [</tt><em>@ref namespace_paths "namespace_path"<tt>::...]</tt>class_identifier</em><tt>::</tt><em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) {</tt>\n
+    <tt>[[<b>@ref static_methods "static"</b>|<b>@ref final_methods "final"</b>] [<b>@ref synchronized "synchronized"</b>] [<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>] [<b>@ref deprecated "deprecated"</b>] [</tt><em>@ref data_type_declarations "return_type"</em><tt>] [</tt><em>@ref namespace_paths "namespace_path"<tt>::...]</tt>class_identifier</em><tt>::</tt><em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) {</tt>\n
     <tt>}]</tt>
-    <tt>[<b>@ref abstract "abstract"</b> [<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>] [</tt><em>@ref namespace_paths "namespace_path"<tt>::...]</tt>class_identifier</em><tt>::</tt><em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]);</tt>\n
+    <tt>[<b>@ref abstract "abstract"</b> [<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>] [</tt><em>@ref data_type_declarations "return_type"</em><tt>] [</tt><em>@ref namespace_paths "namespace_path"<tt>::...]</tt>class_identifier</em><tt>::</tt><em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]);</tt>\n
 
     As with inline class definitions, when defining a @ref user_modules "user module", class declarations can be preceded by @ref mod_public "public", which means that the class will be available (imported) in the @ref Qore::Program "Program" object importing the module. When a class is declared @ref mod_public "public" outside of a @ref user_modules "user module", it means that the class can be inherited in any child @ref Qore::Program "Program" objects created in the same scope. See @ref mod_public "public" for more information. Note that classes can also be imported singly by using the @ref Qore::Program::importClass() "Program::importClass()" method.
 
@@ -71,7 +75,7 @@ softstring MyNamespace::MyClass::myMethod(softint i) {
     @endcode
 
     @note Because method definitions are allowed out-of-line, this means that builtin classes may be extended with new user methods, however user constructor, destructor, and copy methods cannot be added to builtin classes; to customize the behavior of these methods for builtin classes, subclass the class instead.\n\n
-    When parse option @ref allow-bare-refs "%allow-bare-refs" or @ref new-style "%new-style" is enabled, no \c "$" or \c "$." prefixes can be used with variable or method or member names as in the specifications above.
+    When parse option @ref allow-bare-refs "%allow-bare-refs" or @ref new-style "%new-style" is enabled, no \c "$" or \c "$." prefixes can be used with variable or method or member names.
     Class members, class constants, and static class variables can only be declared in an in-line class definition (the first example above). If a class has at least one public member declared (or inherits a class with at least one public member declared), then only those members declared as public can be accessed from outside the class, and from within the class only members explicitly declared can be accessed as well (unless the class also defines a memberGate() method). In this way typographical errors in member names can be caught (at parse time if types are declared).\n\n
     In a class hierarchy, base class constructor methods can be explicitly specified using a special syntax unique to subclass constructor methods. Please see @ref inheritance for more information.\n\n
     It's possible to write purely object-oriented scripts/programs in %Qore by defining an application class and using the \c "-x" or \c "--exec-class" command-line arguments to tell %Qore to instantiate the class instead of doing normal top-level execution (in fact, the \c "--exec-class" argument disallows the use of top-level statements entirely). For more information, please see @ref command_line_processing and @ref parse_directives.
@@ -191,9 +195,13 @@ class Test {
     @par memberGate() Method
     If the class implements a \c memberGate() method, then whenever a non-existent member of the class is accessed (read), this method will be called with the name of the member as the sole argument, so that the class can create the member (or react in some other way) on demand. This method is also called when methods of the same class try to access (read) non-existent methods, but is not called from within the \c memberGate() method itself.
 
+    @note \c memberGate() methods are not inherited; they must be explicitly implemented in each class
+
     @anchor memberNotification_methods
     @par memberNotification() Methods
     To monitor writes to the object, the class can implement a \c memberNotification() method, which is called whenever an object member is modified from outside class member code. In this case, the \c memberNotification() method is called with the name of the member that was updated so that an object can automatically react to changes to its members (writes to members) from outside the class. This method is not called when members are updated from within class member code.
+
+    @note \c memberNotification() methods are not inherited; they must be explicitly implemented in each class
 
     @par Member Initialization
     Members that have intialization expressions in the class definition are initialized before the constructor is executed (but after any base class constructors have run).  An exception raised in a member initialization expression will cause the constructor to fail and for the object to be deleted immediately.
@@ -227,6 +235,8 @@ lock();
     @anchor methodGate_methods
     @par methodGate() methods
     If the class implements a \c methodGate() method, then whenever a non-existent method of the class is called, the methodGate() method will be called with the name of the member as the first argument (prepended to the other arguments to the non-existant method), so that the class simulate or redirect the method call.  This method is also called when methods of the same class try to call non-existent methods, but is not called from within the \c methodGate() method itself.
+
+    @note \c methodGate() methods are not inherited; they must be explicitly implemented in each class
 
     @section inheritance Class Inheritance
 

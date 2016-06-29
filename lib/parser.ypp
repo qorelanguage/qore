@@ -4,7 +4,7 @@
 
    Qore Programming Language
 
-   Copyright (C) 2003 - 2015 David Nichols
+   Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -88,8 +88,9 @@ class HashElement {
 public:
    AbstractQoreNode* key;
    AbstractQoreNode* value;
+   QoreProgramLocation loc;
 
-   DLLLOCAL HashElement(AbstractQoreNode* k, AbstractQoreNode* v) : key(k), value(v) {
+   DLLLOCAL HashElement(AbstractQoreNode* k, AbstractQoreNode* v, int sl, int el) : key(k), value(v), loc(sl, el) {
       //traceout("HashElement::HashElement()");
    }
 
@@ -99,7 +100,7 @@ public:
    }
 
    DLLLOCAL void addDelete(QoreParseHashNode* h) {
-      h->add(key, value);
+      h->add(key, value, loc);
       key = value = 0;
       delete this;
    }
@@ -802,8 +803,6 @@ public:
    DLLLOCAL int add(MemberInfo* member) {
       if (!member)
 	 return -1;
-
-      //std::auto_ptr<MemberInfo> mem(member);
 
       if (member->type == MI_Member) {
          if (mmap.inList(member->name)) {
@@ -2742,7 +2741,7 @@ hash:
 
 hash_element:
         exp ':' exp
-	{ $$ = new HashElement($1, $3); }
+	{ $$ = new HashElement($1, $3, @1.first_line, @3.last_line); }
 	;
 
 alt_hash:
@@ -2996,7 +2995,7 @@ exp_c:  scalar
 	   else {
 	      AbstractQoreNode* code_exp = l->shift();
 	      AbstractQoreNode* arg = l->shift();
-	      $$ = new QoreTreeNode(code_exp, OP_FOLDR, arg);
+	      $$ = new QoreFoldrOperatorNode(code_exp, arg);
 	      $2->deref(0);
 	   }
 	}
@@ -3010,7 +3009,7 @@ exp_c:  scalar
 	   else {
 	      AbstractQoreNode* code_exp = l->shift();
 	      AbstractQoreNode* arg = l->shift();
-	      $$ = new QoreTreeNode(code_exp, OP_FOLDL, arg);
+	      $$ = new QoreFoldlOperatorNode(code_exp, arg);
 	      $2->deref(0);
 	   }
 	}

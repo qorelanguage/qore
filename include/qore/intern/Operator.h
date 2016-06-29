@@ -51,10 +51,9 @@ DLLLOCAL extern Operator *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT,
    *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT,
    *OP_LOG_GT, *OP_LOG_EQ, *OP_LOG_NE, *OP_LOG_LE, *OP_LOG_GE,
    *OP_ABSOLUTE_EQ, *OP_ABSOLUTE_NE, *OP_REGEX_MATCH, *OP_REGEX_NMATCH,
-   *OP_EXISTS, *OP_INSTANCEOF, *OP_FOLDR, *OP_FOLDL,
-   *OP_SELECT;
+   *OP_EXISTS, *OP_INSTANCEOF, *OP_SELECT;
 
-typedef safe_dslist<Operator *> oplist_t;
+typedef safe_dslist<Operator*> oplist_t;
 
 class OperatorList : public oplist_t {
 public:
@@ -88,7 +87,7 @@ typedef bool (*op_logic_func_t)(bool l, bool r);
 typedef bool (*op_bool_float_func_t)(double l, double r);
 typedef double (*op_float_float_func_t)(double l, double r);
 typedef double (*op_divide_float_func_t)(double l, double r, ExceptionSink* xsink);
-typedef int64 (*op_compare_float_func_t)(double l, double r);
+typedef int64 (*op_compare_float_func_t)(double l, double r, ExceptionSink* xsink);
 
 typedef bool (*op_bool_date_func_t)(const DateTimeNode* l, const DateTimeNode* r);
 typedef DateTimeNode* (*op_date_func_t)(const DateTimeNode* l, const DateTimeNode* r);
@@ -104,7 +103,7 @@ typedef double (*op_float_func_t)(const AbstractQoreNode* l, const AbstractQoreN
 
 typedef QoreNumberNode* (*op_number_func_t)(const QoreNumberNode* l, const QoreNumberNode* r, ExceptionSink* xsink);
 typedef bool (*op_bool_number_func_t)(const QoreNumberNode* l, const QoreNumberNode* r);
-typedef int64 (*op_int_number_func_t)(const QoreNumberNode* l, const QoreNumberNode* r);
+typedef int64 (*op_int_number_func_t)(const QoreNumberNode* l, const QoreNumberNode* r, ExceptionSink* xsink);
 
 class AbstractOperatorFunction {
 public:

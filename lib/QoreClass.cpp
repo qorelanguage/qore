@@ -2041,6 +2041,10 @@ bool QoreClass::isSystem() const {
    return priv->sys;
 }
 
+void QoreClass::setSystem() {
+   priv->sys = true;
+}
+
 bool QoreClass::hasMemberGate() const {
    return priv->memberGate != 0;
 }
@@ -2816,7 +2820,7 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
    const char* tname = name.c_str();
    printd(5, "QoreClass::addUserMethod(%s, umv: %p, priv: %d, static: %d) this: %p %s\n", mname, f, f->isPrivate(), n_static, this, tname);
 
-   std::auto_ptr<MethodVariantBase> func(f);
+   std::unique_ptr<MethodVariantBase> func(f);
 
    if (f->isAbstract() && initialized) {
       parseException("ILLEGAL-ABSTRACT-METHOD", "abstract %s::%s(): abstract methods cannot be added to a class once the class has been committed", name.c_str(), mname);
@@ -4031,10 +4035,10 @@ void UserCopyVariant::parseInit(QoreFunction* f) {
    if (signature.numParams()) {
       const QoreTypeInfo* typeInfo = signature.getParamTypeInfo(0);
       if (typeInfo) {
-	 if (!typeInfo->isClass(&parent_class)) {
+	 if (typeInfo->parseReturnsClass(&parent_class) == QTI_NOT_EQUAL) {
 	    // raise parse exception if parse exceptions have not been suppressed
 	    if (getProgram()->getParseExceptionSink()) {
-	       QoreStringNode* desc = new QoreStringNode("copy constructor will be passed ");
+	       QoreStringNode* desc = new QoreStringNode("the copy constructor will be passed ");
 	       parent_class.getTypeInfo()->getThisType(*desc);
 	       desc->concat(", but the object's parameter was defined expecting ");
 	       typeInfo->getThisType(*desc);

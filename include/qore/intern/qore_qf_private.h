@@ -240,7 +240,7 @@ struct qore_qf_private {
       if (rc > 0)
 	 do_write_event_unlocked(rc, rc, len);
       else if (xsink && rc < 0)
-         xsink->raiseErrnoException("FILE-WRITE-ERROR", errno, "failed writing "QLLD" byte%s to File", len, len == 1 ? "" : "s");
+         xsink->raiseErrnoException("FILE-WRITE-ERROR", errno, "failed writing " QLLD " byte%s to File", len, len == 1 ? "" : "s");
 
       return rc;
    }
@@ -300,7 +300,7 @@ struct qore_qf_private {
 	    if (rc >= 0)
 	       break;
             if (errno != EINTR) {
-               xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after "QLLD" bytes read", br);
+               xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QLLD " bytes read", br);
                break;
             }
 	 }

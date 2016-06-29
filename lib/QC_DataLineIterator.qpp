@@ -70,7 +70,7 @@ protected:
                int i = (int)enc->getCharLen(ptr, data->size() - offset);
                if (i < 0) {
                   // character encoding error
-                  xsink->raiseException("ENCODING-ERROR", "invalid bytes for character encoding '%s' found at offset "QLLD" in input data string", enc->getCode(), offset);
+                  xsink->raiseException("ENCODING-ERROR", "invalid bytes for character encoding '%s' found at offset " QLLD " in input data string", enc->getCode(), offset);
                   return false;
                }
                int c = (int)enc->getUnicode(ptr);
@@ -142,7 +142,7 @@ protected:
                int i = (int)enc->getCharLen(p, data->size() - offset);
                if (i < 0) {
                   // character encoding error
-                  xsink->raiseException("ENCODING-ERROR", "invalid bytes for character encoding '%s' found at offset "QLLD" in input data string", enc->getCode(), offset);
+                  xsink->raiseException("ENCODING-ERROR", "invalid bytes for character encoding '%s' found at offset " QLLD " in input data string", enc->getCode(), offset);
                   return false;
                }
                c = (int)enc->getUnicode(p);
@@ -163,7 +163,7 @@ protected:
                      int i = (int)enc->getCharLen(p, data->size() - offset);
                      if (i < 0) {
                         // character encoding error
-                        xsink->raiseException("ENCODING-ERROR", "invalid bytes for character encoding '%s' found at offset "QLLD" in input data string", enc->getCode(), offset);
+                        xsink->raiseException("ENCODING-ERROR", "invalid bytes for character encoding '%s' found at offset " QLLD " in input data string", enc->getCode(), offset);
                         return false;
                      }
                      c = (int)enc->getUnicode(p);

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -43,7 +43,9 @@ class QoreParseHashNode : public ParseNode {
 protected:
    typedef std::map<std::string, bool> kmap_t;
    typedef std::vector<AbstractQoreNode*> nvec_t;
+   typedef std::vector<QoreProgramLocation> lvec_t;
    nvec_t keys, values;
+   lvec_t lvec;
    // to detect duplicate values, only stored during parsing
    kmap_t kmap;
    // flag for a hash expression in curly brackets for the hash version of the map operator
@@ -53,9 +55,9 @@ protected:
       return hashTypeInfo;
    }
 
-   DLLLOCAL static void doDuplicateWarning(QoreProgramLocation& loc, const char* key);
+   DLLLOCAL static void doDuplicateWarning(const QoreProgramLocation& newoc1, const char* key);
 
-   DLLLOCAL void checkDup(QoreProgramLocation& loc, const char* key) {
+   DLLLOCAL void checkDup(const QoreProgramLocation& loc, const char* key) {
       std::string kstr(key);
       kmap_t::iterator i = kmap.lower_bound(kstr);
       if (i == kmap.end() || i->first != kstr)
@@ -69,7 +71,6 @@ protected:
    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
       typeInfo = hashTypeInfo;
       assert(keys.size() == values.size());
-      QoreProgramLocation loc = get_parse_location();
       bool needs_eval = false;
 
       // turn off "return value ignored" flag before performing parse init
@@ -82,14 +83,14 @@ protected:
 
          if (p != keys[i] && (!keys[i] || keys[i]->is_value())) {
             QoreStringValueHelper key(keys[i]);
-            checkDup(loc, key->getBuffer());
+            checkDup(lvec[i], key->getBuffer());
          }
          else if (!needs_eval && keys[i] && keys[i]->needs_eval())
             needs_eval = true;
 
          if (argTypeInfo->nonStringValue()) {
             QoreStringMaker str("key number %ld (starting from 0) in the hash is ", i);
-            argTypeInfo->doNonStringWarning(loc, str.getBuffer());
+            argTypeInfo->doNonStringWarning(lvec[i], str.getBuffer());
          }
 
          argTypeInfo = 0;
@@ -143,13 +144,13 @@ public:
       values.clear();
    }
 
-   DLLLOCAL void add(AbstractQoreNode* n, AbstractQoreNode* v) {
+   DLLLOCAL void add(AbstractQoreNode* n, AbstractQoreNode* v, const QoreProgramLocation& loc) {
       keys.push_back(n);
       values.push_back(v);
+      lvec.push_back(loc);
 
       if (!n || n->is_value()) {
          QoreStringValueHelper key(n);
-         QoreProgramLocation loc = get_parse_location();
          checkDup(loc, key->getBuffer());
       }
    }
