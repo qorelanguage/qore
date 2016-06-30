@@ -292,6 +292,7 @@
 #include "QC_StreamPipe.cpp"
 #include "QC_PipeInputStream.cpp"
 #include "QC_PipeOutputStream.cpp"
+#include "QC_StreamWriter.cpp"
 
 #include "QorePseudoMethods.cpp"
 
