@@ -140,6 +140,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_OutputStream.qpp \
 	lib/QC_BinaryOutputStream.qpp \
 	lib/QC_FileOutputStream.qpp \
+	lib/QC_EncodingConversionOutputStream.qpp \
 	lib/QC_StreamPipe.qpp \
 	lib/QC_PipeInputStream.qpp \
 	lib/QC_PipeOutputStream.qpp \

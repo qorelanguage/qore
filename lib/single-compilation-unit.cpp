@@ -287,6 +287,7 @@
 #include "QC_StringInputStream.cpp"
 #include "QC_FileInputStream.cpp"
 #include "QC_EncodingConversionInputStream.cpp"
+#include "QC_EncodingConversionOutputStream.cpp"
 #include "QC_OutputStream.cpp"
 #include "QC_BinaryOutputStream.cpp"
 #include "QC_FileOutputStream.cpp"

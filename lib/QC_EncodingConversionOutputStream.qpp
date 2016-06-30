@@ -1,0 +1,79 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_EncodingConversionOutputStream.qpp EncodingConversionOutputStream class definition */
+/*
+  Qore Programming Language
+
+  Copyright (C) 2016 Qore Technologies, sro
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+  Note that the Qore library is released under a choice of three open-source
+  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+  information.
+*/
+
+#include <qore/Qore.h>
+#include "qore/intern/EncodingConversionOutputStream.h"
+
+//! An @ref OutputStream implementation that performs on-the-fly conversion between two character encodings.
+/** @since %Qore 0.8.13
+
+    @par Example: EncodingConversionOutputStream basic usage
+    @code{.py}
+    EncodingConversionOutputStream latin2Stream(destUtf8Stream, "ISO-8859-2", "UTF-8");
+    latin2Stream.write(latin2Data);     #writes UTF-8 equivalents to destUtf8Stream
+    @endcode
+ */
+qclass EncodingConversionOutputStream [arg=EncodingConversionOutputStream* os; ns=Qore; vparent=OutputStream; flags=final; private_members=OutputStream os;];
+
+//! Creates the EncodingConversionOutputStream based on the \ref OutputStream given
+/**
+    @param os the destination \ref OutputStream to write bytes to
+    @param sourceEncoding the encoding of the characters that will be written to this stream
+    @param destEncoding the destination character encoding that will be written to the underlying OutputStream os
+    @throw ENCODING-CONVERSION-ERROR if either of the encodings is unsupported
+ */
+EncodingConversionOutputStream::constructor(Qore::OutputStream[OutputStream] os, string sourceEncoding, string destEncoding) {
+   SimpleRefHolder<EncodingConversionOutputStream> ecos(new EncodingConversionOutputStream(
+         os, QEM.findCreate(sourceEncoding), QEM.findCreate(destEncoding), xsink));
+   self->setPrivate(CID_ENCODINGCONVERSIONOUTPUTSTREAM, ecos.release());
+   self->setValue("os", static_cast<QoreObject *>(obj_os->refSelf()), xsink);
+}
+
+//! Flushes any buffered (unwritten) bytes, closes the output stream and releases all resources.
+/** Any methods called on a closed output stream will thrown an exception.
+ */
+nothing EncodingConversionOutputStream::close() {
+   os->closeHelper(xsink);
+}
+
+//! Writes bytes to the input stream
+/**
+    @param data the data to write
+
+    @par Example:
+    @code{.py}
+    EncodingConversionOutputStream ecos();
+    bos.write(<6162>);
+    bos.write(<63>);
+    @endcode
+ */
+nothing EncodingConversionOutputStream::write(binary data) {
+   os->writeHelper(data, xsink);
+}
