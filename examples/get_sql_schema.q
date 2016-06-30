@@ -1,239 +1,147 @@
 #!/usr/bin/env qore
-%requires Qorize
-%requires SqlUtil
 %new-style
+%exec-class Main
+%requires SchemaReverse
+%requires SqlUtil
 
-const TYPE_ATTRIBUTES = (
-    # native_type : allowed list
-    "number"    : ("qore_type", "native_type", "size", "scale", "default_value", "comment"),
-    "numeric"   : ("qore_type", "native_type", "size", "scale", "default_value", "comment"),
-    "date"      : ("qore_type", "native_type", "scale", "default_value", "comment"), 
-    "varchar"   : ("qore_type", "native_type", "size", "scale", "default_value", "comment"), 
-    "varchar2"  : ("qore_type", "native_type", "size", "scale", "default_value", "comment"), 
-    "char"      : ("qore_type", "native_type", "size", "scale", "default_value", "comment"), 
-    "timestamp" : ("qore_type", "native_type", "scale", "default_value", "comment"),
-    "text"      : ("qore_type", "native_type", "scale", "default_value", "comment"), 
-    "bytea"     : ("qore_type", "native_type", "scale", "default_value", "comment"), 
-);
+%try-module QorusClientCore
+%define NO_QORUS
+%endtry
 
-const opts = (
-    "table"    : "t,table=s@",
-    "sequence" : "s,sequence=s@",
-    "help"     : "h,help",
-    "tds"      : "d,target-datasource=s",
-);
+const VERSION = "0.1";
 
-GetOpt g(opts);
-hash opt = g.parse3(\ARGV);
-if (opt.help || !ARGV[0]) {
-    printf("Usage: get_schema.q -t TABLES -d TARGET-DATASOURCE -s SEQUENCES DATASOURCE
+const OPTIONS = (
+        "help" : "help,h",
+        "version" : "version,V",
+        "verbose" : "verbose,v",
+        "schema" : "schema,s=s",
+        "sequences" : "sequences,q=s",
+        "tables" : "tables,t=s",
+        "types" : "types,y=s",
+    );
+
+sub help(int exitCode) {
+    printf("Usage:
+%s <options> <connection_string>
+
 Options:
-    -t,--table             list of tables to export
-    -d,--target-datasource list of tables to export
-    -s,--sequence          list of sequences to export
-    -h,--help              prints this
-");
-    exit(1);
-}
+ -h --help              Display help and exits
+ -V --version           Show version of this script
+ -v --verbose           Show additional verbose info
+ -s --schema=<name>     Export full (supported objects) DB schema.
+                        The class of the qsm output will be named <name>
+ -t --tables=<tables>   Export specified table(s). <tables> can be exact
+                        name of the table, table list (separated by ','),
+                        or a regular expression to match table name
+ -s --sequences=<seqs>  Export specified table(s). <seqs> can be exact
+                        name of the table, table list (separated by ','),
+                        or a regular expression to match table name
+ -y --types=<types>     Export specified type(s). <types> can be exact
+                        name of the table, table list (separated by ','),
+                        or a regular expression to match table name
 
-if (!exists opt.tds) {
-    opt.tds = 'omquser';
-}
+Note:
+    --schema and (--tables or --sequences or --types) cannot be
+    used together
 
-if (!ARGV[0]) {
-    throw 'NO-DATASOURCE-GIVEN', 'Please provide datasource where the definition should be taken';
-}
+Example:
+    %s -s=OmqXbox oracle:omq/omq@xbox
+        export full OMQ schema
 
-Datasource ds(ARGV[0]);
-SqlUtil::Database db(ds);
+    %s -t=\"workflows,.*step.*\" oracle:omq/omq@xbox
+        export only tables whch matches exact table name 'workflows',
+        and any of tables with 'step' in name
 
-list tables_to_export = opt.table ?* db.listTables();
-list sequences_to_export = opt.sequence ?* db.listSequences();
-
-
-hash data;
-
-foreach string table in (tables_to_export) {
-    Table t(ds, table);
-
-    hash h = t.describe().getHash();
-    foreach string key in (h.keys()) {
-        h{key} = hash(h{key});
-    }
-
-    data{table} = h;
-}
-
-string str_header  = create_header_string();
-
-string str_sequences       = create_sequences_string(sequences_to_export);
-string str_coloptions      = create_column_options_string();
-string str_generic_options = create_generic_options_string();
-string str_index_options   = create_index_options_string();
-string str_tables          = create_table_string(data);
-string str_private         = create_private_namespace_string(str_tables, str_sequences, str_coloptions, str_generic_options, str_index_options);
-
-string str_public = create_str_public(opt.tds);
-
-string str = create_qsm(str_header, str_private, str_public);
-
-printf("%s", str);
-
-
-sub create_qsm(string header, string priv, string pub) {
-    return header + priv + pub;
-}
-
-sub create_sequences_string(list sequences = ()) {
-    string result = "    const SequenceList = (\n";
-    foreach string sequence in (sequences) {
-        result += '        "' + sequence + "\": {},\n";
-    }
-    result += '    );
-
-    const Sequences = (
-        "driver": (
-            "oracle": SequenceList,
-            "pgsql": SequenceList,
-        ),
+",
+    get_script_name(), get_script_name(), get_script_name()
     );
-';
-
-    return result;
+    exit(exitCode);
 }
 
-sub create_index_options_string() {
-    return '    const IndexOptions = (
-        "driver": (
-            "oracle": (
-                "compute_statistics": True,
-            ),
-        ),
-    );
-';
-}
-
-sub create_generic_options_string() {
-    return '    const GenericOptions = (
-        "replace": True,
-    );
-';
-}
-
-sub create_column_options_string() {
-    return "const ColumnOptions = hash();\n";
-}
-
-sub create_private_namespace_string(string tables = '', string sequences = '', string coloptions = '', string generic_options = '', string index_options = '') {
-    return '# private namespace for private schema declarations
-namespace Private {
-' + tables + sequences + coloptions + generic_options + index_options + '}
-';
-}
-
-sub create_header_string(string desc = 'generated schema') {
-    return '# -*- mode: qore; indent-tabs-mode: nil -*-
-
-%requires qore >= 0.8.10
-
-module MySchema {
-    version = "1.0";
-    desc    = "' + desc + '";
-    author  = "sqlutil, Qore Technologies, sro";
-    url     = "http://www.qoretechnologies.com";
-}
-
-%requires Schema
-%requires SqlUtil
-
-%new-style
-%require-types
-%enable-all-warnings
-
-';
-}
-
-sub create_str_public(string tds) {
-    return 'public namespace SchemaClass {
-    public string sub get_datasource_name() {
-        return "' + tds + '";
+class Main {
+    private {
+        hash m_opts;
+        Datasource m_ds;
     }
-
-    public SchemaClass sub get_user_schema(AbstractDatasource ds, *string dts, *string its) {
-        return new SchemaClass(ds, dts, its);
-    }
-
-    public class SchemaClass inherits AbstractSchema {
-        public {
-            const SchemaName = "SchemaClass";
-            const SchemaVersion = "1.0";
+    
+    constructor() {
+        GetOpt go(OPTIONS);
+        m_opts = go.parse2(\ARGV);
+        
+        if (m_opts.help) {
+            help(0);
         }
 
-        constructor(AbstractDatasource ds, *string dts, *string its) :  AbstractSchema(ds, dts, its) {
+        if (m_opts.version) {
+            printf(VERSION + "\n");
+            exit(0);
         }
 
-        private string getNameImpl() {
-            return SchemaName;
+        if (!m_opts.schema && !m_opts.sequences && !m_opts.tables && !m_opts.types) {
+            throw "NOT-ALLOWED-OPTS", "At least one option must be set: schema, sequences, tables";
         }
 
-        private string getVersionImpl() {
-            return SchemaVersion;
+        if (m_opts.schema && (m_opts.sequences || m_opts.tables || m_opts.types)) {
+            throw "NOT-ALLOWED-OPTS", "Cannot combine schema and sequences or tables together";
         }
 
-        private *hash getTablesImpl() {
-            return Tables;
+        *string connstr = shift ARGV;
+        if (!connstr) {
+            throw "NO-CONNECTION-STRING";
         }
 
-        private *hash getSequencesImpl() {
-            return Sequences;
+%ifndef NO_QORUS
+        QorusClient::init2();
+        try {
+            m_ds = omqclient.getDatasource(connstr);
+        }
+        catch (ex) {
+#            printf("Qorus client found, but dbparams does not contain: %n\n", connstr);
+#            printf("    Continuing with regular connection\n");
+        }
+%endif
+
+        if (!m_ds) {
+            m_ds = new Datasource(connstr);
         }
 
-        private *hash getIndexOptionsImpl() {
-            return IndexOptions;
+        if (m_opts.schema) {
+            cout("Exporting full schema: %s", m_opts.schema);
+            SchemaReverse sr(m_ds, m_opts.schema, connstr);
+            printf("%s\n", sr.toString());
         }
-
-        private *hash getGenericOptionsImpl() {
-            return GenericOptions;
-        }
-
-        private *hash getColumnOptionsImpl() {
-            return ColumnOptions;
-        }
-    }
-}
-';
-}
-
-sub create_table_string(hash specs) {
-    string result = '';
-
-    foreach string table_name in (specs.keys()) {
-        hash columns_desc = specs{table_name};
-        string ident_name = "T_" + table_name.upr();
-
-        result += "    const " + ident_name + " = (\n        \"columns\": (\n";
-        foreach string column_name in (columns_desc.keys()) {
-            hash column_specs_all = columns_desc{column_name};
-            string native_type = column_specs_all.native_type;
-            if (!exists TYPE_ATTRIBUTES{native_type}) {
-                throw 'COLUMN-TYPE-NOT-SUPPORTED', 'Please specify the list of allowed attributes for type ' + native_type;
+        else {
+            if (m_opts.sequences) {
+                exportObjects(m_opts.sequences, "SequencesReverse");
             }
-            list allowed_attrs = TYPE_ATTRIBUTES{native_type};
-            hash column_specs = column_specs_all{allowed_attrs};
-
-            string type = qorize(column_specs, 'VAR', True);
-            type = regex_subst(type, "hash VAR = \\n", '');
-            type = regex_subst(type, "\\);", '');
-            result += '            "' + column_name + '": ' + type + "),\n";
+            if (m_opts.tables) {
+                exportObjects(m_opts.tables, "TablesReverse");
+            }
+            if (m_opts.types) {
+                exportObjects(m_opts.types, "TypesReverse");
+            }
         }
-        result += "        ),\n    );\n\n";
+    } # constructor
+
+    private string makeRxString(string val) {
+        list ret = val.split(",");
+        ret = map trim($1), ret;
+        return ret.join("|");
     }
 
-    result += "    const Tables = (\n";
-    foreach string table_name in (specs.keys()) {
-        result += '        "' + table_name + '": T_' + table_name.upr() + ",\n";
+    private exportObjects(string input, string className) {
+        cout("Exporting objects: %s, for: %s", className, input);
+        string rx = makeRxString(input);
+        object o = create_object(className, m_ds, rx);
+        printf("%s\n", call_object_method(o, "toString"));
     }
-    result += "    );\n";
 
-    return result;
-}
+    private cout(string msg) {
+        if (!m_opts.verbose) {
+            return;
+        }
+
+        printf("# %s\n", vsprintf(msg, argv));
+    }
+
+} # class Main
