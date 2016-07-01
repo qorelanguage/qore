@@ -1,0 +1,257 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_StreamWriter.qpp StreamWriter class definition */
+/*
+  Qore Programming Language
+
+  Copyright (C) 2016 Qore Technologies, sro
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+  Note that the Qore library is released under a choice of three open-source
+  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+  information.
+*/
+
+#include "qore/Qore.h"
+#include "qore/OutputStream.h"
+#include "qore/StreamWriter.h"
+
+//! This class defines a stream writer for output streams.
+/** @since %Qore 0.8.13
+
+    @par Example: StreamWriter basic usage
+    @code{.py}
+FileOutputStream os("log.txt");
+StreamWriter sw(os, "UTF-8");
+sw.print("Lorem ipsum.\n");
+sw.printf("%s: %d\n", "The answer", 42);
+sw.print("32-bit int values:\n");
+sw.writei4(1337);
+sw.writei4(0xf4f4);
+    @endcode
+
+    @see @ref Qore::OutputStream
+ */
+qclass StreamWriter [arg=StreamWriter* sw; ns=Qore; private_members=OutputStream os];
+
+//! Creates the StreamWriter for writing data to the given \c OutputStream.
+/** @param os the \c OutputStream for writing data
+    @param encoding character encoding of the StreamWriter; all passed string data will be converted to this encoding before being written to the output stream; if not present, the @ref default_encoding "default character encoding" is assumed
+ */
+StreamWriter::constructor(Qore::OutputStream[OutputStream] os, *string encoding) {
+
+   SimpleRefHolder<StreamWriter> writer(new StreamWriter(xsink, os, encoding ? QEM.findCreate(encoding) : QCS_DEFAULT));
+   if (*xsink)
+      return;
+   self->setPrivate(CID_STREAMWRITER, writer.release());
+   self->setValue("os", static_cast<QoreObject *>(obj_os->refSelf()), xsink);
+}
+
+//! Returns the @ref character_encoding "character encoding" for the StreamWriter.
+/** Returns the @ref character_encoding "character encoding" for the StreamWriter.
+
+    @return the @ref character_encoding "character encoding" for the StreamWriter
+ */
+string StreamWriter::getEncoding() [flags=CONSTANT] {
+   return new QoreStringNode(sw->getEncoding()->getCode());
+}
+
+//! Writes string data to an output stream; string data is converted to the StreamWriter's @ref character_encoding "character encoding" if necessary before writing.
+/** @par Example:
+    @code{.py}
+sw.print(str);
+    @endcode
+
+    @param str the string to be written to the output stream; string data is converted to the StreamWriter's @ref character_encoding "character encoding" if necessary before writing
+
+    @throw ENCODING-CONVERSION-ERROR error converting from the string's @ref character_encoding "character encoding" to the StreamWriter's @ref character_encoding "character encoding"
+ */
+nothing StreamWriter::print(string str) {
+   sw->print(str, xsink);
+}
+
+//! Writes a formatted string with soft field widths to an output stream; string data is converted to the StreamWriter's @ref character_encoding "character encoding" if necessary before writing.
+/** This method will allow arguments to overrun field width specifiers in the format string.
+
+    @par Example:
+    @code{.py}
+sw.printf("%5s\n", "hello there"); # outputs "hello there\n", exceeding field width
+    @endcode
+
+    @param fmt the format string; see @ref string_formatting for more information about the format string
+
+    @throw ENCODING-CONVERSION-ERROR error converting from the string's @ref character_encoding "character encoding" to the StreamWriter's @ref character_encoding "character encoding"
+
+    @see StreamWriter::f_printf() for a similar method that enforces field widths
+ */
+nothing StreamWriter::printf(string[doc] fmt, ...) {
+   sw->printf(args, xsink);
+}
+
+//! Writes a formatted string with soft field widths to an output stream, where the second argument is the formatting argument list; string data is converted to the StreamWriter's @ref character_encoding "character encoding" if necessary before writing.
+/** This method will allow arguments to overrun field width specifiers in the format string.
+
+    @par Example:
+    @code{.py}
+sw.vprintf("%5s: %d\n", ("hello there", 2)); # outputs "hello there: 2\n", exceeding field width
+    @endcode
+
+    @param fmt the format string; see @ref string_formatting for more information about the format string
+    @param fmt_args the single argument or list of arguments that will be used as the argument list for the format string. If a single argument is passed instead of a list, it will be used as the first argument as if a list were passed
+
+    @throw ENCODING-CONVERSION-ERROR error converting from the string's @ref character_encoding "character encoding" to the StreamWriter's @ref character_encoding "character encoding"
+
+    @see StreamWriter::f_vprintf() for a similar method that enforces field widths
+ */
+nothing StreamWriter::vprintf(string[doc] fmt, any[doc] fmt_args) {
+   sw->vprintf(args, xsink);
+}
+
+//! Writes a formatted string with hard field widths to an output stream; string data is converted to the StreamWriter's @ref character_encoding "character encoding" if necessary before writing.
+/** This method does not allow arguments to overrun field width specifiers in the format string.
+
+    @par Example:
+    @code{.py}
+sw.f_printf("%5s\n", "hello there"); # outputs "hello\n", enforcing field width
+    @endcode
+
+    @param fmt the format string; see @ref string_formatting for more information about the format string
+
+    @throw ENCODING-CONVERSION-ERROR error converting from the string's @ref character_encoding "character encoding" to the StreamWriter's @ref character_encoding "character encoding"
+
+    @see StreamWriter::printf() for a similar method that does not enforce field widths
+ */
+nothing StreamWriter::f_printf(string[doc] fmt, ...) {
+   sw->f_printf(args, xsink);
+}
+
+//! Writes a formatted string with hard field widths to an output stream, where the second argument is the formatting argument list; string data is converted to the StreamWriter's @ref character_encoding "character encoding" if necessary before writing.
+/** This method does not allow arguments to overrun field width specifiers in the format string.
+
+    @par Example:
+    @code{.py}
+sw.f_vprintf("%5s: %d\n", ("hello there", 2)); # outputs "hello: 2\n", enforcing field width
+    @endcode
+
+    @param fmt the format string; see @ref string_formatting for more information about the format string
+    @param fmt_args the single argument or list of arguments that will be used as the argument list for the format string. If a single argument is passed instead of a list, it will be used as the first argument as if a list were passed
+
+    @throw ENCODING-CONVERSION-ERROR error converting from the string's @ref character_encoding "character encoding" to the StreamWriter's @ref character_encoding "character encoding"
+
+    @see StreamWriter::printf() for a similar method that does not enforce field widths
+ */
+nothing StreamWriter::f_vprintf(string[doc] fmt, any[doc] fmt_args) {
+   sw->f_vprintf(args, xsink);
+}
+
+//! Writes a @ref binary to the output stream.
+/** @par Example:
+    @code{.py}
+sw.write(<010203>);
+    @endcode
+
+    @param b the binary to write
+ */
+nothing StreamWriter::write(binary b) {
+   sw->write(b, xsink);
+}
+
+//! Writes a 1-byte integer to the output stream.
+/** @par Example:
+    @code{.py}
+sw.writei1(val);
+    @endcode
+
+    @param c the integer to write; only the least-significant 8 bits will be written to the file
+ */
+nothing StreamWriter::writei1(int c) {
+   sw->writei1(c, xsink);
+}
+
+//! Writes a 2-byte (16 bit) integer to the output stream in binary big-endian format.
+/** @par Example:
+    @code{.py}
+sw.writei2(val);
+    @endcode
+
+    @param s the integer to write in binary big-endian format; only the least-significant 16 bits of the integer will be written to the file
+ */
+nothing StreamWriter::writei2(int s) {
+   sw->writei2(s, xsink);
+}
+
+//! Writes a 4-byte (32 bit) integer to the output stream in binary big-endian format.
+/** @par Example:
+    @code{.py}
+sw.writei4(val);
+    @endcode
+
+    @param i the integer to write in binary big-endian format; only the least-significant 32 bits of the integer will be written to the file
+ */
+nothing StreamWriter::writei4(int i) {
+   sw->writei4(i, xsink);
+}
+
+//! Writes an 8-byte (64 bit) integer to the output stream in binary big-endian format.
+/** @par Example:
+    @code{.py}
+sw.writei8(val);
+    @endcode
+
+    @param i the integer to write in binary big-endian format; only the least-significant 64 bits of the integer will be written to the file
+ */
+nothing StreamWriter::writei8(int i) {
+   sw->writei8(i, xsink);
+}
+
+//! Writes a 2-byte (16 bit) integer to the output stream in binary little-endian format.
+/** @par Example:
+    @code{.py}
+sw.writei2LSB(val);
+    @endcode
+
+    @param s the integer to write in binary little-endian format; only the least-significant 16 bits of the integer will be written to the file
+ */
+nothing StreamWriter::writei2LSB(int s) {
+   sw->writei2LSB(s, xsink);
+}
+
+//! Writes a 4-byte (32 bit) integer to the output stream in binary little-endian format.
+/** @par Example:
+    @code{.py}
+sw.writei4LSB(val);
+    @endcode
+
+    @param i the integer to write in binary little-endian format; only the least-significant 32 bits of the integer will be written to the file
+ */
+nothing StreamWriter::writei4LSB(int i) {
+   sw->writei4LSB(i, xsink);
+}
+
+//! Writes an 8-byte (64 bit) integer to the output stream in binary little-endian format.
+/** @par Example:
+    @code{.py}
+sw.writei8LSB(val);
+    @endcode
+
+    @param i the integer to write in binary little-endian format; only the least-significant 64 bits of the integer will be written to the file
+ */
+nothing StreamWriter::writei8LSB(int i) {
+   sw->writei8LSB(i, xsink);
+}
