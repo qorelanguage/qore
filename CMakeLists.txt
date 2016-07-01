@@ -145,6 +145,7 @@ set(LIBQORE_QPP_SRC
 	lib/QC_StreamPipe.qpp
 	lib/QC_PipeInputStream.qpp
 	lib/QC_PipeOutputStream.qpp
+	lib/QC_StreamWriter.qpp
 	lib/Pseudo_QC_All.qpp
 	lib/Pseudo_QC_Nothing.qpp
 	lib/Pseudo_QC_Date.qpp
@@ -571,6 +572,7 @@ set(LIBQORE_CPP_SRC
         ${CMAKE_CURRENT_BINARY_DIR}/QC_StreamPipe.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_PipeInputStream.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_PipeOutputStream.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_StreamWriter.cpp
         lib/QorePseudoMethods.cpp
         lib/xxhash.cpp
         lib/minitest.cpp
