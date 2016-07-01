@@ -15,6 +15,8 @@
 
     @subsection qore_0813_bug_fixes Bug Fixes in Qore
     - fixed a bug causing the AbstractQuantifiedBidirectionalIterator not being available (<a href="https://github.com/qorelanguage/qore/issues/968">issue 968</a>)
+    - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> module fixes:
+      - fixed a bug where the \a msg arg to \c AbstractAuthenticator::do401() was ignored (<a href="https://github.com/qorelanguage/qore/issues/1047">issue 1047</a>)
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module fixes:
       - fixed a bug in update and upsert statement generation when the given data does not have enough columns to use the unique index found, an error message is generated that contains all the columns names instead of just the column names required by the index (<a href="https://github.com/qorelanguage/qore/issues/1013">issue 1013</a>)
     - <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module fixes:
