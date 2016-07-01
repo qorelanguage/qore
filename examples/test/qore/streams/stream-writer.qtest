@@ -73,36 +73,36 @@ class StreamWriterTest inherits QUnit::Test {
         StreamWriter sw = new StreamWriter(os);
 
         sw.writei1(0);
-        assertEq(0.encodeMsb(1), os.getData());
+        assertEq(<00>, os.getData());
         sw.writei2(0);
-        assertEq(0.encodeMsb(2), os.getData());
+        assertEq(<0000>, os.getData());
         sw.writei4(0);
-        assertEq(0.encodeMsb(4), os.getData());
+        assertEq(<00000000>, os.getData());
         sw.writei8(0);
-        assertEq(0.encodeMsb(8), os.getData());
+        assertEq(<0000000000000000>, os.getData());
 
         sw.writei2LSB(0);
-        assertEq(0.encodeLsb(2), os.getData());
+        assertEq(<0000>, os.getData());
         sw.writei4LSB(0);
-        assertEq(0.encodeLsb(4), os.getData());
+        assertEq(<00000000>, os.getData());
         sw.writei8LSB(0);
-        assertEq(0.encodeLsb(8), os.getData());
+        assertEq(<0000000000000000>, os.getData());
 
-        sw.writei1(124);
-        assertEq(124.encodeMsb(1), os.getData());
-        sw.writei2(224);
-        assertEq(224.encodeMsb(2), os.getData());
-        sw.writei4(40000);
-        assertEq(40000.encodeMsb(4), os.getData());
-        sw.writei8(3111000222);
-        assertEq(3111000222.encodeMsb(8), os.getData());
+        sw.writei1(0xabcd);
+        assertEq(<cd>, os.getData());
+        sw.writei2(0xab12cd34);
+        assertEq(<cd34>, os.getData());
+        sw.writei4(0x1234abcd5678efab);
+        assertEq(<5678efab>, os.getData());
+        sw.writei8(0x1234abcd5678efab);
+        assertEq(<1234abcd5678efab>, os.getData());
 
-        sw.writei2LSB(224);
-        assertEq(224.encodeLsb(2), os.getData());
-        sw.writei4LSB(40000);
-        assertEq(40000.encodeLsb(4), os.getData());
-        sw.writei8LSB(3111000222);
-        assertEq(3111000222.encodeLsb(8), os.getData());
+        sw.writei2LSB(0xab12cd34);
+        assertEq(<34cd>, os.getData());
+        sw.writei4LSB(0x1234abcd5678efab);
+        assertEq(<abef7856>, os.getData());
+        sw.writei8LSB(0x1234abcd5678efab);
+        assertEq(<abef7856cdab3412>, os.getData());
     }
 
     encodingTests() {
