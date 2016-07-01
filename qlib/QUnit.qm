@@ -861,8 +861,15 @@ addTestCase(obj);
             actual = neg ? "<identical>" : sprintf("(%s) %N", act.type(), act);
         }
         else {
-            expected = sprintf("%N", exp);
-            actual = neg ? "<identical>" : sprintf("%N", act);
+            if (exp.typeCode() == NT_BINARY)
+                expected = sprintf("(binary) <%s>", make_hex_string(exp));
+            else
+                expected = sprintf("%N", exp);
+
+            if (act.typeCode() == NT_BINARY)
+                actual = neg ? "<identical>" : sprintf("(binary) <%s>", make_hex_string(act));
+            else
+                actual = neg ? "<identical>" : sprintf("%N", act);
         }
         list expectedLines = expected.split("\n");
         list actualLines = actual.split("\n");
