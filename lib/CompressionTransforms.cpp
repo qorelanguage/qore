@@ -29,6 +29,7 @@
   information.
 */
 #include <zlib.h>
+#include <bzlib.h>
 #include "qore/Qore.h"
 #include "qore/intern/CompressionTransforms.h"
 
@@ -61,6 +62,38 @@ public:
             break;
       }
       xsink->raiseException("ZLIB-ERROR", desc);
+   }
+};
+
+class Bzip2Helper {
+
+public:
+   static void mapError(int rc, ExceptionSink *xsink) {
+      QoreStringNode* desc = new QoreStringNode();
+      switch (rc) {
+         case BZ_DATA_ERROR:
+            desc->set("unable to process input data; data corrupted");
+            break;
+         case BZ_DATA_ERROR_MAGIC:
+            desc->set("unable to process input data; data header corrupted");
+            break;
+         case BZ_MEM_ERROR:
+            desc->set("insufficient memory to complete operation");
+            break;
+         case BZ_SEQUENCE_ERROR:
+             desc->set("sequence error (report as bug to qore developers)");
+             break;
+         case BZ_PARAM_ERROR:
+            desc->set("parameter error (report as bug to qore developers)");
+            break;
+         case BZ_CONFIG_ERROR:
+            desc->set("version mismatch on zlib shared library, check library requirements");
+            break;
+         default:
+            desc->sprintf("error code %d encountered", rc);
+            break;
+      }
+      xsink->raiseException("BZIP2-ERROR", desc);
    }
 };
 
@@ -131,10 +164,10 @@ public:
 
       int rc = inflateInit2(&strm, 15 + (gzipFormat ? 16 : 0));
       if (rc != Z_OK) {
-          ZlibHelper::mapError(rc, xsink);
-          return;
-       }
-       state = OK;
+         ZlibHelper::mapError(rc, xsink);
+         return;
+      }
+      state = OK;
    }
 
    ~ZlibInflateTransform() {
@@ -152,8 +185,8 @@ public:
          return std::make_pair(0, 0);
       }
       if (state != OK) {
-          xsink->raiseException("ZLIB-ERROR", "invalid zlib stream state");
-          return std::make_pair(0, 0);
+         xsink->raiseException("ZLIB-ERROR", "invalid zlib stream state");
+         return std::make_pair(0, 0);
       }
       strm.next_in = static_cast<Bytef *>(const_cast<void *>(src));
       strm.avail_in = srcLen;
@@ -168,13 +201,13 @@ public:
          }
          state = END;
       } else if ((rc == Z_OK || rc == Z_BUF_ERROR) && (!src && dstLen - strm.avail_out == 0)) {
-        xsink->raiseException("ZLIB-ERROR", "Unexpected end of compressed data stream");
-        state = ERROR;
-        return std::make_pair(0, 0);
+         xsink->raiseException("ZLIB-ERROR", "Unexpected end of compressed data stream");
+         state = ERROR;
+         return std::make_pair(0, 0);
       } else if (rc != Z_OK) {
-          ZlibHelper::mapError(rc, xsink);
-          state = ERROR;
-          return std::make_pair(0, 0);
+         ZlibHelper::mapError(rc, xsink);
+         state = ERROR;
+         return std::make_pair(0, 0);
       }
       return std::make_pair(srcLen - strm.avail_in, dstLen - strm.avail_out);
    }
@@ -189,11 +222,144 @@ private:
    State state;
 };
 
+class Bzip2CompressTransform : public Transform {
+
+public:
+    Bzip2CompressTransform(int64 level, ExceptionSink *xsink) : state(NOT_INIT) {
+      strm.bzalloc = Z_NULL;
+      strm.bzfree = Z_NULL;
+      strm.opaque = Z_NULL;
+
+      if (level == CompressionTransforms::LEVEL_DEFAULT) {
+         level = 3;
+      } else if (!(level >= 0 && level <= 9)) {
+         xsink->raiseException("BZIP2-LEVEL-ERROR", "level must be between 0 - 9 or -1 (value passed: %d)", level);
+         return;
+      }
+
+      int rc = BZ2_bzCompressInit(&strm, level, 0, 30);
+      if (rc != BZ_OK) {
+         Bzip2Helper::mapError(rc, xsink);
+         return;
+      }
+      state = OK;
+   }
+
+   ~Bzip2CompressTransform() {
+      if (state != NOT_INIT) {
+         BZ2_bzCompressEnd(&strm);
+      }
+   }
+
+   std::pair<int64, int64> apply(const void *src, int64 srcLen, void *dst, int64 dstLen, ExceptionSink *xsink) {
+      if (state == END) {
+         return std::make_pair(0, 0);
+      }
+      if (state != OK) {
+         xsink->raiseException("BZIP2-ERROR", "invalid zlib stream state");
+         return std::make_pair(0, 0);
+      }
+      strm.next_in = static_cast<char *>(const_cast<void *>(src));
+      strm.avail_in = srcLen;
+      strm.next_out = static_cast<char *>(dst);
+      strm.avail_out = dstLen;
+      int rc = BZ2_bzCompress(&strm, src ? BZ_RUN : BZ_FINISH);
+      if (rc != BZ_RUN_OK && rc != BZ_FINISH_OK && rc != BZ_STREAM_END) {
+         Bzip2Helper::mapError(rc, xsink);
+         state = ERROR;
+         return std::make_pair(0, 0);
+      }
+      if (rc == BZ_STREAM_END) {
+         state = END;
+      }
+      return std::make_pair(srcLen - strm.avail_in, dstLen - strm.avail_out);
+   }
+
+private:
+   enum State {
+      OK, ERROR, END, NOT_INIT
+   };
+
+private:
+   bz_stream strm;
+   State state;
+};
+
+class Bzip2DecompressTransform : public Transform {
+
+public:
+    Bzip2DecompressTransform(ExceptionSink *xsink) : state(NOT_INIT) {
+      strm.bzalloc = Z_NULL;
+      strm.bzfree = Z_NULL;
+      strm.opaque = Z_NULL;
+
+      int rc = BZ2_bzDecompressInit(&strm, 0, 0);
+      if (rc != Z_OK) {
+         Bzip2Helper::mapError(rc, xsink);
+         return;
+      }
+      state = OK;
+   }
+
+   ~Bzip2DecompressTransform() {
+      if (state != NOT_INIT) {
+         BZ2_bzDecompressEnd(&strm);
+      }
+   }
+
+   std::pair<int64, int64> apply(const void *src, int64 srcLen, void *dst, int64 dstLen, ExceptionSink *xsink) {
+      if (state == END) {
+         if (src) {
+            xsink->raiseException("BZIP2-ERROR", "Unexpected extra bytes at the end of the compressed data stream");
+            state = ERROR;
+         }
+         return std::make_pair(0, 0);
+      }
+      if (state != OK) {
+         xsink->raiseException("BZIP2-ERROR", "invalid bzip2 stream state");
+         return std::make_pair(0, 0);
+      }
+      strm.next_in = static_cast<char *>(const_cast<void *>(src));
+      strm.avail_in = srcLen;
+      strm.next_out = static_cast<char *>(dst);
+      strm.avail_out = dstLen;
+      int rc = BZ2_bzDecompress(&strm);
+      if (rc == BZ_STREAM_END) {
+         if (strm.avail_in != 0) {
+            xsink->raiseException("BZIP2-ERROR", "Unexpected extra bytes at the end of the compressed data stream");
+            state = ERROR;
+            return std::make_pair(0, 0);
+         }
+         state = END;
+      } else if (rc == BZ_OK && (!src && dstLen - strm.avail_out == 0)) {
+         xsink->raiseException("BZIP2-ERROR", "Unexpected end of compressed data stream");
+         state = ERROR;
+         return std::make_pair(0, 0);
+      } else if (rc != BZ_OK) {
+         Bzip2Helper::mapError(rc, xsink);
+         state = ERROR;
+         return std::make_pair(0, 0);
+      }
+      return std::make_pair(srcLen - strm.avail_in, dstLen - strm.avail_out);
+   }
+
+private:
+   enum State {
+      OK, ERROR, END, NOT_INIT
+   };
+
+private:
+   bz_stream strm;
+   State state;
+};
+
 Transform *CompressionTransforms::getCompressor(const QoreStringNode *alg, int64 level, ExceptionSink *xsink) {
    if (*alg == ALG_ZLIB) {
       return new ZlibDeflateTransform(level, xsink, false);
    } else if (*alg == ALG_GZIP) {
-         return new ZlibDeflateTransform(level, xsink, true);
+      return new ZlibDeflateTransform(level, xsink, true);
+   } else if (*alg == ALG_BZIP2) {
+      return new Bzip2CompressTransform(level, xsink);
    }
    xsink->raiseException("COMPRESS-ERROR", "Unknown compression algorithm: %s", alg->getBuffer());
    return 0;
@@ -203,7 +369,9 @@ Transform *CompressionTransforms::getDecompressor(const QoreStringNode *alg, Exc
    if (*alg == ALG_ZLIB) {
       return new ZlibInflateTransform(xsink, false);
    } else if (*alg == ALG_GZIP) {
-       return new ZlibInflateTransform(xsink, true);
+      return new ZlibInflateTransform(xsink, true);
+   } else if (*alg == ALG_BZIP2) {
+      return new Bzip2DecompressTransform(xsink);
    }
    xsink->raiseException("COMPRESS-ERROR", "Unknown compression algorithm: %s", alg->getBuffer());
    return 0;

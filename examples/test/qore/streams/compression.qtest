@@ -44,6 +44,7 @@ public class CompressionStreamTest inherits QUnit::Test {
         binary plain = File::readBinaryFile(get_script_dir() + "/../../data/lorem");
         binary zlib = File::readBinaryFile(get_script_dir() + "/../../data/lorem.zlib");
         binary gzip = File::readBinaryFile(get_script_dir() + "/../../data/lorem.gz");
+        binary bzip2 = File::readBinaryFile(get_script_dir() + "/../../data/lorem.bz2");
     }
 
     constructor() : Test("CompressionStreamTest", "1.0") {
@@ -51,10 +52,14 @@ public class CompressionStreamTest inherits QUnit::Test {
         addTestCase("zlib compression output stream", \zlibCompressOutput());
         addTestCase("gzip compression input stream", \gzipCompressInput());
         addTestCase("gzip compression output stream", \gzipCompressOutput());
+        addTestCase("bzip2 compression input stream", \bzip2CompressInput());
+        addTestCase("bzip2 compression output stream", \bzip2CompressOutput());
         addTestCase("zlib decompression input stream", \zlibDecompressInput());
         addTestCase("zlib decompression output stream", \zlibDecompressOutput());
         addTestCase("gzip decompression input stream", \gzipDecompressInput());
         addTestCase("gzip decompression output stream", \gzipDecompressOutput());
+        addTestCase("bzip2 decompression input stream", \bzip2DecompressInput());
+        addTestCase("bzip2 decompression output stream", \bzip2DecompressOutput());
         addTestCase("decompression algorithm check", \decompressAlgCheck());
 
         # Return for compatibility with test harness that checks return value.
@@ -81,6 +86,17 @@ public class CompressionStreamTest inherits QUnit::Test {
     gzipCompressOutput() {
         assertEq(gzip, compressOutput(plain, COMPRESSION_ALG_GZIP, 1));
         assertEq(gzip, compressOutput(plain, COMPRESSION_ALG_GZIP, 100000));
+    }
+
+    bzip2CompressInput() {
+        assertEq(bzip2, compressInput(plain, COMPRESSION_ALG_BZIP2, 1, 100000));
+        assertEq(bzip2, compressInput(plain, COMPRESSION_ALG_BZIP2, 100000, 1));
+        assertEq(bzip2, compressInput(plain, COMPRESSION_ALG_BZIP2, 100000, 100000));
+    }
+
+    bzip2CompressOutput() {
+        assertEq(bzip2, compressOutput(plain, COMPRESSION_ALG_BZIP2, 1));
+        assertEq(bzip2, compressOutput(plain, COMPRESSION_ALG_BZIP2, 100000));
     }
 
     zlibDecompressInput() {
@@ -113,7 +129,7 @@ public class CompressionStreamTest inherits QUnit::Test {
         assertThrows("ZLIB-ERROR", "extra bytes",
                 sub() { decompressInput(gzip + <00>, COMPRESSION_ALG_GZIP, 100000, 100000); });
         assertThrows("ZLIB-ERROR", "Unexpected end",
-                sub() { decompressInput(gzip.substr(0, zlib.size() - 1), COMPRESSION_ALG_GZIP, 100000, 100000); });
+                sub() { decompressInput(gzip.substr(0, gzip.size() - 1), COMPRESSION_ALG_GZIP, 100000, 100000); });
         assertThrows("ZLIB-ERROR", "data corrupted",
                 sub() { decompressInput(modify(gzip), COMPRESSION_ALG_GZIP, 100000, 100000); });
     }
@@ -124,20 +140,59 @@ public class CompressionStreamTest inherits QUnit::Test {
         assertThrows("ZLIB-ERROR", "extra bytes",
                 sub() { decompressOutput(gzip + <00>, COMPRESSION_ALG_GZIP, 100000); });
         assertThrows("ZLIB-ERROR", "Unexpected end",
-                sub() { decompressOutput(gzip.substr(0, zlib.size() - 1), COMPRESSION_ALG_GZIP, 100000); });
+                sub() { decompressOutput(gzip.substr(0, gzip.size() - 1), COMPRESSION_ALG_GZIP, 100000); });
         assertThrows("ZLIB-ERROR", "data corrupted",
                 sub() { decompressOutput(modify(gzip), COMPRESSION_ALG_GZIP, 100000); });
+    }
+
+    bzip2DecompressInput() {
+        assertEq(plain, decompressInput(bzip2, COMPRESSION_ALG_BZIP2, 1, 100000));
+        assertEq(plain, decompressInput(bzip2, COMPRESSION_ALG_BZIP2, 100000, 1));
+        assertEq(plain, decompressInput(bzip2, COMPRESSION_ALG_BZIP2, 100000, 100000));
+        assertThrows("BZIP2-ERROR", "extra bytes",
+                sub() { decompressInput(bzip2 + <00>, COMPRESSION_ALG_BZIP2, 100000, 100000); });
+        assertThrows("BZIP2-ERROR", "Unexpected end",
+                sub() { decompressInput(bzip2.substr(0, bzip2.size() - 1), COMPRESSION_ALG_BZIP2, 100000, 100000); });
+        assertThrows("BZIP2-ERROR", "corrupted",
+                sub() { decompressInput(modify(bzip2), COMPRESSION_ALG_BZIP2, 100000, 100000); });
+    }
+
+    bzip2DecompressOutput() {
+        assertEq(plain, decompressOutput(bzip2, COMPRESSION_ALG_BZIP2, 1));
+        assertEq(plain, decompressOutput(bzip2, COMPRESSION_ALG_BZIP2, 100000));
+        assertThrows("BZIP2-ERROR", "extra bytes",
+                sub() { decompressOutput(bzip2 + <00>, COMPRESSION_ALG_BZIP2, 100000); });
+        assertThrows("BZIP2-ERROR", "Unexpected end",
+                sub() { decompressOutput(bzip2.substr(0, bzip2.size() - 1), COMPRESSION_ALG_BZIP2, 100000); });
+        assertThrows("BZIP2-ERROR", "corrupted",
+                sub() { decompressOutput(modify(bzip2), COMPRESSION_ALG_BZIP2, 100000); });
     }
 
     decompressAlgCheck() {
         assertThrows("ZLIB-ERROR", "data corrupted",
                 sub() { decompressInput(gzip, COMPRESSION_ALG_ZLIB, 100000, 100000); });
         assertThrows("ZLIB-ERROR", "data corrupted",
+                sub() { decompressInput(bzip2, COMPRESSION_ALG_ZLIB, 100000, 100000); });
+        assertThrows("ZLIB-ERROR", "data corrupted",
                 sub() { decompressOutput(gzip, COMPRESSION_ALG_ZLIB, 100000); });
+        assertThrows("ZLIB-ERROR", "data corrupted",
+                sub() { decompressOutput(bzip2, COMPRESSION_ALG_ZLIB, 100000); });
         assertThrows("ZLIB-ERROR", "data corrupted",
                 sub() { decompressInput(zlib, COMPRESSION_ALG_GZIP, 100000, 100000); });
         assertThrows("ZLIB-ERROR", "data corrupted",
+                sub() { decompressInput(bzip2, COMPRESSION_ALG_GZIP, 100000, 100000); });
+        assertThrows("ZLIB-ERROR", "data corrupted",
                 sub() { decompressOutput(zlib, COMPRESSION_ALG_GZIP, 100000); });
+        assertThrows("ZLIB-ERROR", "data corrupted",
+                sub() { decompressOutput(bzip2, COMPRESSION_ALG_GZIP, 100000); });
+        assertThrows("BZIP2-ERROR", "corrupted",
+                sub() { decompressInput(zlib, COMPRESSION_ALG_BZIP2, 100000, 100000); });
+        assertThrows("BZIP2-ERROR", "corrupted",
+                sub() { decompressInput(gzip, COMPRESSION_ALG_BZIP2, 100000, 100000); });
+        assertThrows("BZIP2-ERROR", "corrupted",
+                sub() { decompressOutput(zlib, COMPRESSION_ALG_BZIP2, 100000); });
+        assertThrows("BZIP2-ERROR", "corrupted",
+                sub() { decompressOutput(gzip, COMPRESSION_ALG_BZIP2, 100000); });
     }
 
     private binary compressInput(binary src, string alg, int chunk, int readSize) {
