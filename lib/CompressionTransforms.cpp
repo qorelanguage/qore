@@ -33,10 +33,10 @@
 #include "qore/Qore.h"
 #include "qore/intern/CompressionTransforms.h"
 
-class ZlibHelper {
+class CompressionErrorHelper {
 
 public:
-   static void mapError(int rc, ExceptionSink *xsink) {
+   static void mapZlibError(int rc, ExceptionSink *xsink) {
       QoreStringNode* desc = new QoreStringNode();
       switch (rc) {
          case Z_ERRNO:
@@ -63,12 +63,8 @@ public:
       }
       xsink->raiseException("ZLIB-ERROR", desc);
    }
-};
 
-class Bzip2Helper {
-
-public:
-   static void mapError(int rc, ExceptionSink *xsink) {
+   static void mapBzip2Error(int rc, ExceptionSink *xsink) {
       QoreStringNode* desc = new QoreStringNode();
       switch (rc) {
          case BZ_DATA_ERROR:
@@ -114,7 +110,7 @@ public:
 
       int rc = deflateInit2(&strm, level, Z_DEFLATED, 15 + (gzipFormat ? 16 : 0), 8, Z_DEFAULT_STRATEGY);
       if (rc != Z_OK) {
-         ZlibHelper::mapError(rc, xsink);
+         CompressionErrorHelper::mapZlibError(rc, xsink);
          return;
       }
       state = OK;
@@ -137,9 +133,9 @@ public:
       strm.avail_out = dstLen;
       int rc = deflate(&strm, src ? Z_NO_FLUSH : Z_FINISH);
       if (rc != Z_OK && rc != Z_STREAM_END) {
-          ZlibHelper::mapError(rc, xsink);
-          state = ERROR;
-          return std::make_pair(0, 0);
+         CompressionErrorHelper::mapZlibError(rc, xsink);
+         state = ERROR;
+         return std::make_pair(0, 0);
       }
       return std::make_pair(srcLen - strm.avail_in, dstLen - strm.avail_out);
    }
@@ -164,7 +160,7 @@ public:
 
       int rc = inflateInit2(&strm, 15 + (gzipFormat ? 16 : 0));
       if (rc != Z_OK) {
-         ZlibHelper::mapError(rc, xsink);
+         CompressionErrorHelper::mapZlibError(rc, xsink);
          return;
       }
       state = OK;
@@ -205,7 +201,7 @@ public:
          state = ERROR;
          return std::make_pair(0, 0);
       } else if (rc != Z_OK) {
-         ZlibHelper::mapError(rc, xsink);
+         CompressionErrorHelper::mapZlibError(rc, xsink);
          state = ERROR;
          return std::make_pair(0, 0);
       }
@@ -239,7 +235,7 @@ public:
 
       int rc = BZ2_bzCompressInit(&strm, level, 0, 30);
       if (rc != BZ_OK) {
-         Bzip2Helper::mapError(rc, xsink);
+         CompressionErrorHelper::mapBzip2Error(rc, xsink);
          return;
       }
       state = OK;
@@ -265,7 +261,7 @@ public:
       strm.avail_out = dstLen;
       int rc = BZ2_bzCompress(&strm, src ? BZ_RUN : BZ_FINISH);
       if (rc != BZ_RUN_OK && rc != BZ_FINISH_OK && rc != BZ_STREAM_END) {
-         Bzip2Helper::mapError(rc, xsink);
+         CompressionErrorHelper::mapBzip2Error(rc, xsink);
          state = ERROR;
          return std::make_pair(0, 0);
       }
@@ -295,7 +291,7 @@ public:
 
       int rc = BZ2_bzDecompressInit(&strm, 0, 0);
       if (rc != Z_OK) {
-         Bzip2Helper::mapError(rc, xsink);
+         CompressionErrorHelper::mapBzip2Error(rc, xsink);
          return;
       }
       state = OK;
@@ -336,7 +332,7 @@ public:
          state = ERROR;
          return std::make_pair(0, 0);
       } else if (rc != BZ_OK) {
-         Bzip2Helper::mapError(rc, xsink);
+         CompressionErrorHelper::mapBzip2Error(rc, xsink);
          state = ERROR;
          return std::make_pair(0, 0);
       }
