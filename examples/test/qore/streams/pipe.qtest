@@ -1,0 +1,154 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class StreamPipeTest
+
+public class StreamPipeTest inherits QUnit::Test {
+
+    constructor() : Test("StreamPipeTest", "1.0") {
+        addTestCase("synchronized close", \finishClose());
+        addTestCase("background writer", \bgWriter());
+        addTestCase("background reader", \bgReader());
+        addTestCase("error in background writer", \bgWriterErr());
+        addTestCase("error in background reader - reported in write", \bgReaderErrWrite());
+        addTestCase("error in background reader - reported in close", \bgReaderErrClose());
+        addTestCase("broken pipe in read", \brokenPipeRead());
+        addTestCase("broken pipe in write", \brokenPipeWrite());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    finishClose() {
+        StreamPipe pipe();
+        string s = "";
+
+        background sub() {
+            usleep(100ms);
+            s += "X";
+            pipe.getInputStream().finishClose();
+        }();
+
+        s += "A";
+        pipe.getOutputStream().close();
+        s += "B";
+        assertEq("AXB", s);
+    }
+
+    bgWriter() {
+        StreamPipe pipe(False);
+
+        background sub() {
+            OutputStream os = pipe.getOutputStream();
+            os.write(<01>);
+            usleep(100ms);
+            os.write(<02>);
+            usleep(100ms);
+            os.write(<03>);
+            usleep(10ms);
+            os.write(<04>);
+            os.close();
+        }();
+
+        InputStream is = pipe.getInputStream();
+        assertEq(<01>, is.read(100));
+        assertEq(<02>, is.read(100));
+        usleep(150ms);
+        assertEq(<0304>, is.read(100));
+        assertEq(NOTHING, is.read(100));
+    }
+
+    bgReader() {
+        StreamPipe pipe();
+        binary b = binary();
+
+        background sub() {
+            PipeInputStream is = pipe.getInputStream();
+            usleep(100ms);
+            b += is.read(100);
+            b += <AA>;
+            b += is.read(100);
+
+            if (is.read(100) == NOTHING) {
+                b += <FF>;
+            }
+            is.finishClose();
+        }();
+
+        OutputStream os = pipe.getOutputStream();
+        os.write(<01>);
+        usleep(10ms);
+        os.write(<02>);
+        usleep(100ms);
+        os.write(<03>);
+        os.close();
+        assertEq(<0102AA03FF>, b);
+    }
+
+    bgWriterErr() {
+        StreamPipe pipe(False);
+
+        background sub() {
+            PipeOutputStream os = pipe.getOutputStream();
+            os.write(<01>);
+            usleep(100ms);
+            os.reportError({"err": "A", "desc": "B"});
+        }();
+
+        InputStream is = pipe.getInputStream();
+        assertEq(<01>, is.read(100));
+        assertThrows("A", "B", sub() {is.read(100);});
+    }
+
+    bgReaderErrWrite() {
+        StreamPipe pipe();
+        binary b = binary();
+
+        background sub() {
+            PipeInputStream is = pipe.getInputStream();
+            b += is.read(100);
+            is.reportError({"err": "A", "desc": "B"});
+        }();
+
+        OutputStream os = pipe.getOutputStream();
+        os.write(<01>);
+        usleep(100ms);
+        assertThrows("A", "B", sub() {os.write(<02>);});
+        assertEq(<01>, b);
+    }
+
+    bgReaderErrClose() {
+        StreamPipe pipe();
+        binary b = binary();
+
+        background sub() {
+            PipeInputStream is = pipe.getInputStream();
+            b += is.read(100);
+            is.reportError({"err": "A", "desc": "B"});
+        }();
+
+        OutputStream os = pipe.getOutputStream();
+        os.write(<01>);
+        assertThrows("A", "B", sub() {os.close();});
+        assertEq(<01>, b);
+    }
+
+
+    brokenPipeRead() {
+        InputStream is = new StreamPipe().getInputStream();
+        assertThrows("BROKEN-PIPE-ERROR", sub() {is.read(100);});
+    }
+
+    brokenPipeWrite() {
+        OutputStream os = new StreamPipe().getOutputStream();
+        assertThrows("BROKEN-PIPE-ERROR", sub() {os.write(<01>);});
+    }
+
+}

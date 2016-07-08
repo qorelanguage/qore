@@ -31,7 +31,7 @@
 #include <qore/Qore.h>
 #include "qore/intern/StreamPipe.h"
 
-//! This class is not intended to be used directly, please see @ref StreamPipe
+//! This class is not intended to be instantiated directly, please see @ref StreamPipe
 /** @since %Qore 0.8.13
 
     @see StreamPipe
@@ -58,4 +58,19 @@ private PipeInputStream::constructor() {
    int64 count = is->read(const_cast<void *>(result->getPtr()), limit, xsink);
    result->setSize(count);
    return count ? result.release() : 0;
+}
+
+//! Call when the background operation is finished to wakeup PipeOutputStream::close().
+/**
+ */
+nothing PipeInputStream::finishClose() {
+   is->finishClose();
+}
+
+//! Causes all operations on both pipe streams to wake up and throw an exception.
+/** Normally used from the background thread to report an error to the main thread.
+    @param ex the exception, must contain strings 'err' and 'desc'
+ */
+nothing PipeInputStream::reportError(hash ex) {
+   is->reportError(ex);
 }
