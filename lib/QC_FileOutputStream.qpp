@@ -56,7 +56,7 @@ FileOutputStream::constructor(string fileName, bool append = False) {
 }
 
 //! Closes the output stream and releases any resources.
-/** Any methods called on a closed output stream will thrown an IO-ERROR exception.
+/** Any methods called on a closed output stream will throw an IO-ERROR exception.
 
     @throw IO-ERROR if an I/O error occurs
  */

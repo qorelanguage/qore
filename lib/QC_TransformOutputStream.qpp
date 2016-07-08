@@ -52,7 +52,7 @@ TransformOutputStream::constructor(Qore::OutputStream[OutputStream] os, Qore::Tr
 }
 
 //! Flushes any buffered (unwritten) bytes, closes the output stream and releases all resources.
-/** Any methods called on a closed output stream will thrown an exception.
+/** Any methods called on a closed output stream will throw an exception.
  */
 nothing TransformOutputStream::close() {
    os->closeHelper(xsink);

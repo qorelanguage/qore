@@ -57,7 +57,7 @@ EncodingConversionOutputStream::constructor(Qore::OutputStream[OutputStream] os,
 }
 
 //! Flushes any buffered (unwritten) bytes, closes the output stream and releases all resources.
-/** Any methods called on a closed output stream will thrown an exception.
+/** Any methods called on a closed output stream will throw an exception.
  */
 nothing EncodingConversionOutputStream::close() {
    os->closeHelper(xsink);
