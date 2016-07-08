@@ -142,10 +142,14 @@ set(LIBQORE_QPP_SRC
 	lib/QC_OutputStream.qpp
 	lib/QC_BinaryOutputStream.qpp
 	lib/QC_FileOutputStream.qpp
+	lib/QC_EncodingConversionOutputStream.qpp
 	lib/QC_StreamPipe.qpp
 	lib/QC_PipeInputStream.qpp
 	lib/QC_PipeOutputStream.qpp
 	lib/QC_StreamWriter.qpp
+	lib/QC_Transform.qpp
+	lib/QC_TransformInputStream.qpp
+	lib/QC_TransformOutputStream.qpp
 	lib/Pseudo_QC_All.qpp
 	lib/Pseudo_QC_Nothing.qpp
 	lib/Pseudo_QC_Date.qpp
@@ -483,6 +487,7 @@ set(LIBQORE_CPP_SRC
         lib/QoreSquareBracketsOperatorNode.cpp
         lib/QoreValue.cpp
         lib/StreamPipe.cpp
+        lib/CompressionTransforms.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/ql_thread.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/ql_time.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/ql_lib.cpp
@@ -569,10 +574,14 @@ set(LIBQORE_CPP_SRC
         ${CMAKE_CURRENT_BINARY_DIR}/QC_OutputStream.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_BinaryOutputStream.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_FileOutputStream.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_EncodingConversionOutputStream.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_StreamPipe.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_PipeInputStream.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_PipeOutputStream.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_StreamWriter.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_Transform.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_TransformInputStream.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_TransformOutputStream.cpp
         lib/QorePseudoMethods.cpp
         lib/xxhash.cpp
         lib/minitest.cpp

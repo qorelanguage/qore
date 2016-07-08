@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  EncodingConversionInputStream.h
+  Transform.h
 
   Qore Programming Language
 
@@ -29,26 +29,40 @@
   information.
 */
 
-#ifndef _QORE_ENCODINGCONVERSIONINPUTSTREAM_H
-#define _QORE_ENCODINGCONVERSIONINPUTSTREAM_H
+#ifndef _QORE_TRANSFORM_H
+#define _QORE_TRANSFORM_H
 
-#include "qore/intern/TransformInputStream.h"
-#include "qore/intern/EncodingConvertor.h"
+#include "qore/AbstractPrivateData.h"
 
 /**
- * @brief Private data for the Qore::EncodingConversionInputStream class.
+ * @brief Interface for private data of transformations.
  */
-class EncodingConversionInputStream : public TransformInputStream {
+class Transform : public AbstractPrivateData {
 
 public:
-   DLLLOCAL EncodingConversionInputStream(InputStream *is, const QoreEncoding *srcEncoding,
-         const QoreEncoding *dstEncoding, ExceptionSink *xsink)
-         : TransformInputStream(is, new EncodingConvertor(srcEncoding, dstEncoding, xsink)) {
-   }
+   /**
+    * @brief Applies the transformation.
+    * @param src pointer to source data or nullptr for flushing when no more input data is available
+    * @param srcLen the number of bytes in the src buffer
+    * @param dst pointer to destination buffer
+    * @param dstLen the number of bytes that can be written to dst
+    * @param xsink the exception sink
+    * @return a pair (rc, wc) where rc is the number of bytes read from src and wc is the number of bytes written to dst
+    */
+   DLLLOCAL virtual std::pair<int64, int64> apply(const void *src, int64 srcLen, void *dst, int64 dstLen,
+         ExceptionSink *xsink) = 0;
 
-   DLLLOCAL const char *getName() override {
-      return "EncodingConversionInputStream";
-   }
+protected:
+   /**
+    * @brief Constructor.
+    */
+   Transform() = default;
+
+private:
+   Transform(const Transform &) = delete;
+   Transform(Transform &&) = delete;
+   Transform &operator=(const Transform &) = delete;
+   Transform &operator=(Transform &&) = delete;
 };
 
-#endif // _QORE_ENCODINGCONVERSIONINPUTSTREAM_H
+#endif // _QORE_TRANSFORM_H

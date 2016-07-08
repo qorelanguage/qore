@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  EncodingConversionInputStream.h
+  EncodingConversionOutputStream.h
 
   Qore Programming Language
 
@@ -29,26 +29,26 @@
   information.
 */
 
-#ifndef _QORE_ENCODINGCONVERSIONINPUTSTREAM_H
-#define _QORE_ENCODINGCONVERSIONINPUTSTREAM_H
+#ifndef _QORE_ENCODINGCONVERSIONOUTPUTSTREAM_H
+#define _QORE_ENCODINGCONVERSIONOUTPUTSTREAM_H
 
-#include "qore/intern/TransformInputStream.h"
+#include "qore/intern/TransformOutputStream.h"
 #include "qore/intern/EncodingConvertor.h"
 
 /**
- * @brief Private data for the Qore::EncodingConversionInputStream class.
+ * @brief Private data for the Qore::EncodingConversionOutputStream class.
  */
-class EncodingConversionInputStream : public TransformInputStream {
+class EncodingConversionOutputStream : public TransformOutputStream {
 
 public:
-   DLLLOCAL EncodingConversionInputStream(InputStream *is, const QoreEncoding *srcEncoding,
+   DLLLOCAL EncodingConversionOutputStream(OutputStream *os, const QoreEncoding *srcEncoding,
          const QoreEncoding *dstEncoding, ExceptionSink *xsink)
-         : TransformInputStream(is, new EncodingConvertor(srcEncoding, dstEncoding, xsink)) {
+         : TransformOutputStream(os, new EncodingConvertor(srcEncoding, dstEncoding, xsink)) {
    }
 
    DLLLOCAL const char *getName() override {
-      return "EncodingConversionInputStream";
+      return "EncodingConversionOutputStream";
    }
 };
 
-#endif // _QORE_ENCODINGCONVERSIONINPUTSTREAM_H
+#endif // _QORE_ENCODINGCONVERSIONOUTPUTSTREAM_H

@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  EncodingConversionInputStream.h
+  CompressionTransforms.h
 
   Qore Programming Language
 
@@ -29,26 +29,21 @@
   information.
 */
 
-#ifndef _QORE_ENCODINGCONVERSIONINPUTSTREAM_H
-#define _QORE_ENCODINGCONVERSIONINPUTSTREAM_H
+#ifndef _QORE_COMPRESSIONTRANSFORMS_H
+#define _QORE_COMPRESSIONTRANSFORMS_H
 
-#include "qore/intern/TransformInputStream.h"
-#include "qore/intern/EncodingConvertor.h"
+#include "qore/Transform.h"
 
-/**
- * @brief Private data for the Qore::EncodingConversionInputStream class.
- */
-class EncodingConversionInputStream : public TransformInputStream {
-
+class CompressionTransforms {
 public:
-   DLLLOCAL EncodingConversionInputStream(InputStream *is, const QoreEncoding *srcEncoding,
-         const QoreEncoding *dstEncoding, ExceptionSink *xsink)
-         : TransformInputStream(is, new EncodingConvertor(srcEncoding, dstEncoding, xsink)) {
-   }
+   static constexpr const char *ALG_ZLIB = "zlib";
+   static constexpr const char *ALG_GZIP = "gzip";
+   static constexpr const char *ALG_BZIP2 = "bzip2";
 
-   DLLLOCAL const char *getName() override {
-      return "EncodingConversionInputStream";
-   }
+   static constexpr int64 LEVEL_DEFAULT = -1;
+
+   static Transform *getCompressor(const QoreStringNode *alg, int64 level, ExceptionSink *xsink);
+   static Transform *getDecompressor(const QoreStringNode *alg, ExceptionSink *xsink);
 };
 
-#endif // _QORE_ENCODINGCONVERSIONINPUTSTREAM_H
+#endif // _QORE_COMPRESSIONTRANSFORMS_H

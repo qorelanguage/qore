@@ -130,6 +130,7 @@ DLLLOCAL QoreClass* initBinaryInputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initStringInputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initFileInputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initEncodingConversionInputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initEncodingConversionOutputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initOutputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initBinaryOutputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initFileOutputStreamClass(QoreNamespace& ns);
@@ -137,6 +138,9 @@ DLLLOCAL QoreClass* initStreamPipeClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initPipeInputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initPipeOutputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initStreamWriterClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initTransformClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initTransformInputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initTransformOutputStreamClass(QoreNamespace& ns);
 
 DLLLOCAL void init_type_constants(QoreNamespace& ns);
 DLLLOCAL void init_compression_constants(QoreNamespace& ns);
@@ -775,11 +779,15 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
 
    // add stream classes
    qns.addSystemClass(initInputStreamClass(qns));
+   qns.addSystemClass(initOutputStreamClass(qns));
+   qns.addSystemClass(initTransformClass(qns));
+   qns.addSystemClass(initTransformInputStreamClass(qns));
+   qns.addSystemClass(initTransformOutputStreamClass(qns));
    qns.addSystemClass(initBinaryInputStreamClass(qns));
    qns.addSystemClass(initStringInputStreamClass(qns));
    qns.addSystemClass(initFileInputStreamClass(qns));
    qns.addSystemClass(initEncodingConversionInputStreamClass(qns));
-   qns.addSystemClass(initOutputStreamClass(qns));
+   qns.addSystemClass(initEncodingConversionOutputStreamClass(qns));
    qns.addSystemClass(initBinaryOutputStreamClass(qns));
    qns.addSystemClass(initFileOutputStreamClass(qns));
    qns.addSystemClass(initStreamPipeClass(qns));

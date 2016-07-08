@@ -203,6 +203,7 @@
 #include "QoreSquareBracketsOperatorNode.cpp"
 #include "QoreValue.cpp"
 #include "StreamPipe.cpp"
+#include "CompressionTransforms.cpp"
 #include "ql_thread.cpp"
 #include "ql_time.cpp"
 #include "ql_lib.cpp"
@@ -286,6 +287,7 @@
 #include "QC_StringInputStream.cpp"
 #include "QC_FileInputStream.cpp"
 #include "QC_EncodingConversionInputStream.cpp"
+#include "QC_EncodingConversionOutputStream.cpp"
 #include "QC_OutputStream.cpp"
 #include "QC_BinaryOutputStream.cpp"
 #include "QC_FileOutputStream.cpp"
@@ -293,6 +295,9 @@
 #include "QC_PipeInputStream.cpp"
 #include "QC_PipeOutputStream.cpp"
 #include "QC_StreamWriter.cpp"
+#include "QC_Transform.cpp"
+#include "QC_TransformInputStream.cpp"
+#include "QC_TransformOutputStream.cpp"
 
 #include "QorePseudoMethods.cpp"
 

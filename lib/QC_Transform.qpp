@@ -1,7 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_Transform.qpp Transform class definition */
 /*
-  EncodingConversionInputStream.h
-
   Qore Programming Language
 
   Copyright (C) 2016 Qore Technologies, sro
@@ -29,26 +28,17 @@
   information.
 */
 
-#ifndef _QORE_ENCODINGCONVERSIONINPUTSTREAM_H
-#define _QORE_ENCODINGCONVERSIONINPUTSTREAM_H
+#include <qore/Qore.h>
+#include "qore/Transform.h"
 
-#include "qore/intern/TransformInputStream.h"
-#include "qore/intern/EncodingConvertor.h"
-
-/**
- * @brief Private data for the Qore::EncodingConversionInputStream class.
+//! Marker interface for transformations usable in @ref TransformOutputStream and @ref TransformInputStream
+/** @since %Qore 0.8.13
  */
-class EncodingConversionInputStream : public TransformInputStream {
+qclass Transform [arg=Transform* t; ns=Qore; flags=final];
 
-public:
-   DLLLOCAL EncodingConversionInputStream(InputStream *is, const QoreEncoding *srcEncoding,
-         const QoreEncoding *dstEncoding, ExceptionSink *xsink)
-         : TransformInputStream(is, new EncodingConvertor(srcEncoding, dstEncoding, xsink)) {
-   }
-
-   DLLLOCAL const char *getName() override {
-      return "EncodingConversionInputStream";
-   }
-};
-
-#endif // _QORE_ENCODINGCONVERSIONINPUTSTREAM_H
+//! Constructor
+/**
+ */
+private Transform::constructor() {
+   assert(false);
+}

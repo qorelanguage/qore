@@ -140,10 +140,14 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_OutputStream.qpp \
 	lib/QC_BinaryOutputStream.qpp \
 	lib/QC_FileOutputStream.qpp \
+	lib/QC_EncodingConversionOutputStream.qpp \
 	lib/QC_StreamPipe.qpp \
 	lib/QC_PipeInputStream.qpp \
 	lib/QC_PipeOutputStream.qpp \
 	lib/QC_StreamWriter.qpp \
+	lib/QC_Transform.qpp \
+	lib/QC_TransformInputStream.qpp \
+	lib/QC_TransformOutputStream.qpp \
 	lib/Pseudo_QC_All.qpp \
 	lib/Pseudo_QC_Nothing.qpp \
 	lib/Pseudo_QC_Date.qpp \
@@ -260,7 +264,8 @@ include_HEADERS = \
 	include/qore/QoreNodeEvalOptionalRefHolder.h \
 	include/qore/QoreEvents.h \
 	include/qore/InputStream.h \
-	include/qore/OutputStream.h
+	include/qore/OutputStream.h \
+	include/qore/Transform.h
 
 noinst_HEADERS = \
 	include/qore/minitest.hpp \
