@@ -1056,7 +1056,7 @@ void LValueRemoveHelper::deleteLValue() {
       return;
    }
    if (static_assignment)
-      v.setTemp();
+      v.clearTemp();
 
    qore_type_t t = v->getType();
    if (t != NT_OBJECT)

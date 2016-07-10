@@ -202,6 +202,8 @@
 #include "QoreTrimOperatorNode.cpp"
 #include "QoreSquareBracketsOperatorNode.cpp"
 #include "QoreValue.cpp"
+#include "FunctionalOperatorInterface.cpp"
+#include "FunctionalOperator.cpp"
 #include "ql_thread.cpp"
 #include "ql_time.cpp"
 #include "ql_lib.cpp"

@@ -104,7 +104,7 @@ namespace detail {
 
 struct QoreValue {
    friend class ValueHolder;
-   friend class ValueEvalRefHolder;
+   friend class ValueOptionalRefHolder;
    template<typename> friend struct detail::QoreValueCastHelper;
 
 protected:
@@ -300,11 +300,11 @@ private:
 protected:
    bool needs_deref;
 
-   DLLLOCAL ValueOptionalRefHolder(ExceptionSink* xs) : ValueHolderBase(xs), needs_deref(false) {
-   }
-
 public:
    DLLLOCAL ValueOptionalRefHolder(QoreValue n_v, bool nd, ExceptionSink* xs) : ValueHolderBase(n_v, xs), needs_deref(nd) {
+   }
+
+   DLLLOCAL ValueOptionalRefHolder(ExceptionSink* xs) : ValueHolderBase(xs), needs_deref(false) {
    }
 
    DLLEXPORT ~ValueOptionalRefHolder();
@@ -313,9 +313,9 @@ public:
    DLLLOCAL bool isTemp() const { return needs_deref; }
 
    //! sets needs_deref = false
-   DLLLOCAL void setTemp() {
-      assert(needs_deref);
-      needs_deref = false;
+   DLLLOCAL void clearTemp() {
+      if (needs_deref)
+         needs_deref = false;
    }
 
    //! returns true if holding an AbstractQoreNode reference
@@ -323,19 +323,23 @@ public:
       return v.type == QV_Node && v.v.n;
    }
 
-   //! assigns a new temporary value
-   DLLLOCAL void setTemp(QoreValue nv) {
-      if (needs_deref)
+   //! assigns a new non-temporary value
+   DLLLOCAL void setValue(QoreValue nv) {
+      if (needs_deref) {
          v.discard(xsink);
+         needs_deref = false;
+      }
       v = nv;
    }
-};
 
-class ValueEvalRefHolder : public ValueOptionalRefHolder {
-protected:
-
-public:
-   DLLEXPORT ValueEvalRefHolder(const AbstractQoreNode* exp, ExceptionSink* xs);
+   //! assigns a new value
+   DLLLOCAL void setValue(QoreValue nv, bool temp) {
+      if (needs_deref)
+         v.discard(xsink);
+      if (needs_deref != temp)
+         needs_deref = temp;
+      v = nv;
+   }
 
    // ensures that the held value is referenced
    /** if needs_deref is false and an AbstractQoreNode* is contained, then the value is referenced and needs_deref is set to true
@@ -374,7 +378,20 @@ public:
       return v;
    }
 
+   DLLLOCAL void takeValueFrom(ValueOptionalRefHolder& val) {
+      if (needs_deref)
+         v.discard(xsink);
+      v = val.takeValue(needs_deref);
+   }
+
    DLLEXPORT QoreValue takeReferencedValue();
+};
+
+class ValueEvalRefHolder : public ValueOptionalRefHolder {
+protected:
+
+public:
+   DLLEXPORT ValueEvalRefHolder(const AbstractQoreNode* exp, ExceptionSink* xs);
 };
 
 #endif

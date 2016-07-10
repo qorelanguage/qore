@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -62,11 +62,42 @@ AbstractQoreNode* QoreMapSelectOperatorNode::parseInitImpl(LocalVar *oflag, int 
    const QoreTypeInfo* selectTypeInfo = 0;
    e[2] = e[2]->parseInit(oflag, pflag, lvids, selectTypeInfo);
 
+   // use lazy evaluation if the iterator expression supports it
+   iterator_func = dynamic_cast<FunctionalOperator*>(e[1]);
+
    // FIXME: if iterator is a list or an iterator, then the return type is a list, otherwise it's the return type of the iterated expression or NOTHING in case the select experssion evalutes to False
 
    return this;
 }
 
+QoreValue QoreMapSelectOperatorNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
+   FunctionalValueType value_type;
+   std::unique_ptr<FunctionalOperatorInterface> f(getFunctionalIterator(value_type, xsink));
+   if (*xsink || value_type == nothing)
+      return QoreValue();
+
+   ReferenceHolder<QoreListNode> rv(ref_rv && (value_type != single) ? new QoreListNode : 0, xsink);
+
+   bool done = false;
+   while (!done) {
+      ValueOptionalRefHolder iv(xsink);
+      if (f->getNext(iv, xsink))
+	 break;
+
+      if (*xsink)
+	 return QoreValue();
+
+      if (value_type == single)
+	 return ref_rv ? iv.takeReferencedValue() : QoreValue();
+
+      if (ref_rv)
+	 rv->push(iv.getReferencedValue());
+   }
+
+   return rv.release();
+}
+
+/*
 QoreValue QoreMapSelectOperatorNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
    // conditionally evaluate argument expression
    ValueEvalRefHolder marg(e[1], xsink);
@@ -136,7 +167,6 @@ QoreValue QoreMapSelectOperatorNode::mapSelectIterator(AbstractIteratorHelper& h
 
       // check if value can be mapped
       ValueHolder iv(h.getValue(xsink), xsink);
-      //ReferenceHolder<> iv(h.getValue(xsink), xsink);
       if (*xsink)
          return QoreValue();
       SingleArgvContextHelper argv_helper(iv.release(), xsink);
@@ -155,4 +185,160 @@ QoreValue QoreMapSelectOperatorNode::mapSelectIterator(AbstractIteratorHelper& h
    }
 
    return rv.release();
+}
+*/
+
+FunctionalOperatorInterface* QoreMapSelectOperatorNode::getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const {
+   if (iterator_func) {
+      std::unique_ptr<FunctionalOperatorInterface> f(iterator_func->getFunctionalIterator(value_type, xsink));
+      if (*xsink)
+	 return 0;
+      return new QoreFunctionalMapSelectOperator(this, f.release());
+   }
+
+   ValueEvalRefHolder marg(e[1], xsink);
+   if (*xsink)
+      return 0;
+
+   qore_type_t t = marg->getType();
+   if (t != NT_LIST) {
+      if (t == NT_OBJECT) {
+	 AbstractIteratorHelper h(xsink, "map operator", const_cast<QoreObject*>(marg->get<const QoreObject>()));
+	 if (*xsink)
+	    return 0;
+	 if (h) {
+	    bool temp = marg.isTemp();
+	    marg.clearTemp();
+	    value_type = list;
+	    return new QoreFunctionalMapSelectIteratorOperator(this, temp, h, xsink);
+	 }
+      }
+      if (t == NT_NOTHING) {
+	 value_type = nothing;
+	 return new QoreFunctionalNothingOperator;
+      }
+
+      value_type = single;
+      return new QoreFunctionalMapSelectSingleValueOperator(this, marg.getReferencedValue(), xsink);
+   }
+
+   value_type = list;
+   bool temp = marg.isTemp();
+   marg.clearTemp();
+   return new QoreFunctionalMapSelectListOperator(this, temp, marg->get<QoreListNode>(), xsink);
+}
+
+bool QoreFunctionalMapSelectListOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
+   while (true) {
+      if (!next())
+	 return true;
+
+      // set offset in thread-local data for "$#"
+      ImplicitElementHelper eh(index());
+      SingleArgvContextHelper argv_helper(getReferencedValue(), xsink);
+
+      // check if value can be mapped
+      ValueEvalRefHolder result(map->e[2], xsink);
+      if (*xsink)
+	 return false;
+      if (!result->getAsBool())
+	 continue;
+
+      ValueEvalRefHolder tval(map->e[0], xsink);
+
+      if (!*xsink) {
+	 tval.ensureReferencedValue();
+	 val.takeValueFrom(tval);
+      }
+      break;
+   }
+   return false;
+}
+
+bool QoreFunctionalMapSelectSingleValueOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
+   if (done)
+      return true;
+
+   done = true;
+
+   SingleArgvContextHelper argv_helper(v, xsink);
+   v.clear();
+
+   // check if value can be mapped
+   ValueEvalRefHolder result(map->e[2], xsink);
+   if (*xsink)
+      return false;
+   if (!result->getAsBool())
+      return true;
+
+   ValueEvalRefHolder tval(map->e[0], xsink);
+   if (!*xsink) {
+      tval.ensureReferencedValue();
+      val.takeValueFrom(tval);
+   }
+   return false;
+}
+
+bool QoreFunctionalMapSelectIteratorOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
+   while (true) {
+      bool b = h.next(xsink);
+      if (!b)
+	 return true;
+      if (*xsink)
+	 return false;
+
+      // set offset in thread-local data for "$#"
+      ImplicitElementHelper eh(index++);
+
+      // get current value
+      ValueHolder iv(h.getValue(xsink), xsink);
+      if (*xsink)
+	 return false;
+      SingleArgvContextHelper argv_helper(iv.release(), xsink);
+
+      // check if value can be mapped
+      ValueEvalRefHolder result(map->e[2], xsink);
+      if (*xsink)
+	 return false;
+      if (!result->getAsBool())
+	 continue;
+
+      ValueEvalRefHolder tval(map->e[0], xsink);
+      if (!*xsink) {
+	 tval.ensureReferencedValue();
+	 val.takeValueFrom(tval);
+      }
+      break;
+   }
+
+   return false;
+}
+
+bool QoreFunctionalMapSelectOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
+   while (true) {
+      // get current value
+      ValueOptionalRefHolder iv(xsink);
+      if (f->getNext(iv, xsink))
+	 return true;
+      if (*xsink)
+	 return false;
+
+      ImplicitElementHelper eh(index++);
+      SingleArgvContextHelper argv_helper(iv.takeReferencedValue(), xsink);
+
+      // check if value can be mapped
+      ValueEvalRefHolder result(map->e[2], xsink);
+      if (*xsink)
+	 return false;
+      if (!result->getAsBool())
+	 continue;
+
+      ValueEvalRefHolder tval(map->e[0], xsink);
+      if (!*xsink) {
+	 tval.ensureReferencedValue();
+	 val.takeValueFrom(tval);
+      }
+      break;
+   }
+   return false;
 }
