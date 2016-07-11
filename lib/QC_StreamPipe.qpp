@@ -39,12 +39,12 @@ DLLEXPORT extern QoreClass* QC_PIPEOUTPUTSTREAM;
     the streams by different threads. The pipe contains a buffer (the size can be specified in the constructor) - the
     reading operations on the input stream are blocked if the buffer is empty and the writing operations on the
     output stream are blocked if the buffer is full. The input stream reports the end of the stream once the output
-    stream is closed using @ref OutputStream::close() and all remaining data are read from the buffer. On the orher
+    stream is closed using @ref OutputStream::close() and all remaining data are read from the buffer. On the other
     hand, the @ref OutputStream::close() method waits until @ref finishClose() is called on the StreamPipe object
     which can be used to delay the main thread until all data are read from the pipe in the background thread.
 
     @par Broken pipe
-    A broken pipe is a situation when one of the streams ceases to exists (goes out of scope). In that case, a
+    A broken pipe is a situation when one of the streams ceases to exist (goes out of scope). In that case, a
     BROKEN-PIPE-ERROR is thrown by any operation on the other stream. This is particularly useful for unblocking the
     background producer (or consumer) when the other end stops consuming data before the end of the stream is reached
     (or stops producing data without closing the stream). For this to work as intended, it is important not to hold

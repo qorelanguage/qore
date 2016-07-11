@@ -44,36 +44,45 @@ public class StreamPipeTest inherits QUnit::Test {
 
     bgWriter() {
         StreamPipe pipe(False);
+        Queue rq();
+        Queue wq();
 
         background sub() {
             OutputStream os = pipe.getOutputStream();
             os.write(<01>);
-            usleep(100ms);
+            wq.pop();
             os.write(<02>);
-            usleep(100ms);
+            wq.pop();
             os.write(<03>);
-            usleep(10ms);
             os.write(<04>);
+            rq.push(1);
             os.close();
+            rq.push(1);
         }();
 
         InputStream is = pipe.getInputStream();
         assertEq(<01>, is.read(100));
+        wq.push(1);
         assertEq(<02>, is.read(100));
-        usleep(150ms);
+        wq.push(1);
+        rq.pop();
         assertEq(<0304>, is.read(100));
+        rq.pop();
         assertEq(NOTHING, is.read(100));
     }
 
     bgReader() {
         StreamPipe pipe();
         binary b = binary();
+        Queue rq();
+        Queue wq();
 
         background sub() {
             PipeInputStream is = pipe.getInputStream();
-            usleep(100ms);
+            rq.pop();
             b += is.read(100);
             b += <AA>;
+            wq.push(1);
             b += is.read(100);
 
             if (is.read(100) == NOTHING) {
@@ -84,9 +93,9 @@ public class StreamPipeTest inherits QUnit::Test {
 
         OutputStream os = pipe.getOutputStream();
         os.write(<01>);
-        usleep(10ms);
         os.write(<02>);
-        usleep(100ms);
+        rq.push(1);
+        wq.pop();
         os.write(<03>);
         os.close();
         assertEq(<0102AA03FF>, b);
@@ -94,32 +103,36 @@ public class StreamPipeTest inherits QUnit::Test {
 
     bgWriterErr() {
         StreamPipe pipe(False);
+        Counter c(1);
 
         background sub() {
             PipeOutputStream os = pipe.getOutputStream();
             os.write(<01>);
-            usleep(100ms);
+            c.waitForZero();
             os.reportError({"err": "A", "desc": "B"});
         }();
 
         InputStream is = pipe.getInputStream();
         assertEq(<01>, is.read(100));
+        c.dec();
         assertThrows("A", "B", sub() {is.read(100);});
     }
 
     bgReaderErrWrite() {
         StreamPipe pipe();
         binary b = binary();
+        Counter c(1);
 
         background sub() {
             PipeInputStream is = pipe.getInputStream();
             b += is.read(100);
             is.reportError({"err": "A", "desc": "B"});
+            c.dec();
         }();
 
         OutputStream os = pipe.getOutputStream();
         os.write(<01>);
-        usleep(100ms);
+        c.waitForZero();
         assertThrows("A", "B", sub() {os.write(<02>);});
         assertEq(<01>, b);
     }
