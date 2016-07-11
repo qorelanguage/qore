@@ -33,6 +33,9 @@
 
 #define _QORE_INTERN_FUNCTIONALOPERATORINTERFACE_H
 
+#include "qore/intern/AbstractIteratorHelper.h"
+#include "qore/intern/FunctionalOperator.h"
+
 class FunctionalOperatorInterface {
 public:
    DLLLOCAL virtual ~FunctionalOperatorInterface() {
@@ -44,6 +47,8 @@ public:
    DLLLOCAL bool getNext(ValueOptionalRefHolder& val, ExceptionSink* xsink);
 
    virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) = 0;
+
+   DLLLOCAL static FunctionalOperatorInterface* getFunctionalIterator(FunctionalOperator::FunctionalValueType& value_type, AbstractQoreNode* exp, bool fwd, const char* who, ExceptionSink* xsink);
 };
 
 class QoreFunctionalNothingOperator : public FunctionalOperatorInterface {
@@ -51,6 +56,60 @@ public:
    DLLLOCAL bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
       return true;
    }
+};
+
+class QoreFunctionalListOperator : public FunctionalOperatorInterface, public ConstListIterator {
+protected:
+   bool temp;
+   bool fwd;
+   ExceptionSink* xsink;
+
+public:
+   DLLLOCAL QoreFunctionalListOperator(bool t, bool f, QoreListNode* l, ExceptionSink* xs) : ConstListIterator(l), temp(t), fwd(f), xsink(xs) {
+   }
+
+   DLLLOCAL virtual ~QoreFunctionalListOperator() {
+      if (temp)
+         const_cast<QoreListNode*>(getList())->deref(xsink);
+   }
+
+   DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
+};
+
+class QoreFunctionalSingleValueOperator : public FunctionalOperatorInterface {
+protected:
+   QoreValue v;
+   bool done;
+   ExceptionSink* xsink;
+
+public:
+   DLLLOCAL QoreFunctionalSingleValueOperator(QoreValue n, ExceptionSink* xs) : v(n), done(false), xsink(xs) {
+   }
+
+   DLLLOCAL virtual ~QoreFunctionalSingleValueOperator() {
+      v.discard(xsink);
+   }
+
+   DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
+};
+
+class QoreFunctionalIteratorOperator : public FunctionalOperatorInterface {
+protected:
+   bool temp;
+   AbstractIteratorHelper h;
+   size_t index;
+   ExceptionSink* xsink;
+
+public:
+   DLLLOCAL QoreFunctionalIteratorOperator(bool t, AbstractIteratorHelper n_h, ExceptionSink* xs) : temp(t), h(n_h), index(0), xsink(xs) {
+   }
+
+   DLLLOCAL ~QoreFunctionalIteratorOperator() {
+      if (temp)
+         h.obj->deref(xsink);
+   }
+
+   DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
 };
 
 #endif

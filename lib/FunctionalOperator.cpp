@@ -31,6 +31,8 @@
 
 #include "qore/Qore.h"
 
+#include "qore/intern/FunctionalOperator.h"
+
 FunctionalOperatorInterface* FunctionalOperator::getFunctionalIterator(FunctionalValueType& value_type, ExceptionSink* xsink) const {
    return getFunctionalIteratorImpl(value_type, xsink);
 }

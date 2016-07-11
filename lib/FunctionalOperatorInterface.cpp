@@ -31,6 +31,71 @@
 
 #include "qore/Qore.h"
 
+#include "qore/intern/FunctionalOperatorInterface.h"
+
 bool FunctionalOperatorInterface::getNext(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
    return getNextImpl(val, xsink);
+}
+
+FunctionalOperatorInterface* FunctionalOperatorInterface::getFunctionalIterator(FunctionalOperator::FunctionalValueType& value_type, AbstractQoreNode* exp, bool fwd, const char* who, ExceptionSink* xsink) {
+   ValueEvalRefHolder marg(exp, xsink);
+   if (*xsink)
+      return 0;
+
+   qore_type_t t = marg->getType();
+   if (t != NT_LIST) {
+      if (t == NT_OBJECT) {
+	 AbstractIteratorHelper h(xsink, who, const_cast<QoreObject*>(marg->get<const QoreObject>()), fwd);
+	 if (*xsink)
+	    return 0;
+	 if (h) {
+	    bool temp = marg.isTemp();
+	    marg.clearTemp();
+	    value_type = FunctionalOperator::list;
+	    return new QoreFunctionalIteratorOperator(temp, h, xsink);
+	 }
+      }
+      if (t == NT_NOTHING) {
+	 value_type = FunctionalOperator::nothing;
+	 return new QoreFunctionalNothingOperator;
+      }
+
+      value_type = FunctionalOperator::single;
+      return new QoreFunctionalSingleValueOperator(marg.getReferencedValue(), xsink);
+   }
+
+   value_type = FunctionalOperator::list;
+   bool temp = marg.isTemp();
+   marg.clearTemp();
+   return new QoreFunctionalListOperator(temp, fwd, marg->get<QoreListNode>(), xsink);
+}
+
+
+bool QoreFunctionalListOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
+   if (!(fwd ? next() : prev()))
+      return true;
+
+   val.setValue(getValue());
+   return false;
+}
+
+bool QoreFunctionalSingleValueOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
+   if (done)
+      return true;
+
+   done = true;
+   val.setValue(v, true);
+   v.clear();
+   return false;
+}
+
+bool QoreFunctionalIteratorOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
+   bool b = h.next(xsink);
+   if (!b)
+      return true;
+   if (*xsink)
+      return false;
+
+   val.setValue(h.getValue(xsink), true);
+   return false;
 }

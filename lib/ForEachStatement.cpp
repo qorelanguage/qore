@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,9 @@
 #include <qore/intern/StatementBlock.h>
 #include <qore/intern/AbstractIteratorHelper.h>
 
-ForEachStatement::ForEachStatement(int start_line, int end_line, AbstractQoreNode* v, AbstractQoreNode* l, StatementBlock *cd) : AbstractStatement(start_line, end_line), var(v), list(l), code(cd), lvars(0), is_ref(false), is_keys(false) {
+#include <memory>
+
+ForEachStatement::ForEachStatement(int start_line, int end_line, AbstractQoreNode* v, AbstractQoreNode* l, StatementBlock *cd) : AbstractStatement(start_line, end_line), var(v), list(l), code(cd), lvars(0), iterator_func(0), is_ref(false), is_keys(false) {
 }
 
 ForEachStatement::~ForEachStatement() {
@@ -55,25 +57,11 @@ int ForEachStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
    // instantiate local variables
    LVListInstantiator lvi(lvars, xsink);
 
-   // get list evaluation (although may be a single node)
-   ReferenceHolder<AbstractQoreNode> tlist(list->eval(xsink), xsink);
-   if (!code || *xsink || is_nothing(*tlist))
+   // get iterator object
+   FunctionalOperator::FunctionalValueType value_type;
+   std::unique_ptr<FunctionalOperatorInterface> f(iterator_func ? iterator_func->getFunctionalIterator(value_type, xsink) : FunctionalOperatorInterface::getFunctionalIterator(value_type, list, true, "foreach statement", xsink));
+   if (*xsink || value_type == FunctionalOperator::nothing || !code)
       return 0;
-
-   qore_type_t t = tlist->getType();
-   QoreListNode* l_tlist = t == NT_LIST ? reinterpret_cast<QoreListNode*>(*tlist) : 0;
-   if (l_tlist) {
-      if (l_tlist->empty())
-         return 0;
-   }
-   else if (t == NT_OBJECT) {
-      // check for an object derived from AbstractIterator
-      AbstractIteratorHelper aih(xsink, "map operator", reinterpret_cast<QoreObject*>(*tlist));
-      if (*xsink)
-         return 0;
-      if (aih)
-         return execIterator(aih, return_value, xsink);
-   }
 
    // execute "foreach" body
    unsigned i = 0;
@@ -82,17 +70,24 @@ int ForEachStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
 
    while (true) {
       {
+	 // get first value
+	 ValueOptionalRefHolder iv(xsink);
+	 if (f->getNext(iv, xsink))
+	    break;
+	 if (*xsink)
+	    break;
+
 	 LValueHelper n(var, xsink);
 	 if (!n)
 	    break;
 
 	 // assign variable to current value in list
-	 if (n.assign(l_tlist ? l_tlist->get_referenced_entry(i) : tlist.release()))
+	 if (n.assign(iv.takeReferencedValue(), "<foreach lvalue assignment>"))
 	    break;
       }
 
       // set offset in thread-local data for "$#"
-      ImplicitElementHelper eh(l_tlist ? (int)i : 0);
+      ImplicitElementHelper eh(i++);
 
       // execute "foreach" body
       if (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || *xsink) {
@@ -105,9 +100,6 @@ int ForEachStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
       else if (rc == RC_CONTINUE)
 	 rc = 0;
       i++;
-      // if the argument is not a list or list iteration is done, then break
-      if (!l_tlist || i == l_tlist->size())
-	 break;
    }
 
    return rc;
@@ -353,6 +345,9 @@ int ForEachStatement::parseInitImpl(LocalVar *oflag, int pflag) {
       if (t->getOp() == OP_KEYS)
          is_keys = true;
    }
+
+   // use lazy evaluation if the iterator expression supports it
+   iterator_func = dynamic_cast<FunctionalOperator*>(list);
 
    return 0;
 }

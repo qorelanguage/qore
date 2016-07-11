@@ -409,6 +409,31 @@ class Test inherits QUnit::Test {
         assertEq(1, (select (map $1, 1), True));
         assertEq((1,), (select (map $1, 1.iterator()), True));
         assertEq((1,), (select (map $1, (1,)), True));
+
+        {
+            list l = ();
+            foreach int i in (NOTHING)
+                l += i;
+            foreach int i in (map $1, (select NOTHING, True))
+                l += i;
+            foreach int i in (select (map $1, NOTHING), True)
+                l += i;
+            assertEq((), l);
+        }
+
+        {
+            list l = ();
+            foreach int i in (select (map $1, (1, 2)), True)
+                l += i;
+            assertEq((1, 2), l);
+        }
+
+        {
+            list l = ();
+            foreach int i in (1, 2)
+                l += i;
+            assertEq((1, 2), l);
+        }
     }
 
     foldTest() {

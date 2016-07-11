@@ -33,7 +33,7 @@
 
 #define _QORE_INTERN_FUNCTIONALOPERATOR_H
 
-#include "qore/intern/FunctionalOperatorInterface.h"
+class FunctionalOperatorInterface;
 
 class FunctionalOperator {
 public:

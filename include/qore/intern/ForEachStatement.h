@@ -36,12 +36,16 @@
 #include <qore/intern/AbstractStatement.h>
 #include <qore/intern/AbstractIteratorHelper.h>
 
+#include <qore/intern/FunctionalOperator.h>
+#include <qore/intern/FunctionalOperatorInterface.h>
+
 class ForEachStatement : public AbstractStatement {
 private:
    AbstractQoreNode* var,
       * list;
    StatementBlock* code;
    LVList* lvars;
+   FunctionalOperator* iterator_func;
    bool is_ref,
       is_keys;
 
