@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -59,99 +59,117 @@ AbstractQoreNode* QoreFoldlOperatorNode::parseInitImpl(LocalVar *oflag, int pfla
    const QoreTypeInfo* iteratorTypeInfo = 0;
    right = right->parseInit(oflag, pflag, lvids, iteratorTypeInfo);
 
+   // use lazy evaluation if the iterator expression supports it
+   iterator_func = dynamic_cast<FunctionalOperator*>(right);
+
    // FIXME: if "right" (iterator exp) is a list or an iterator, then the return type is expTypeInfo, otherwise it's the return type of the iterated expression
 
    return this;
 }
 
 QoreValue QoreFoldlOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   // conditionally evaluate argument
-   QoreNodeEvalOptionalRefHolder arg(right, xsink);
-   if (!arg || *xsink)
-      return QoreValue();
-
-   // return the argument if there is no list
-   qore_type_t t = arg->getType();
-   if (t != NT_LIST) {
-      if (t == NT_OBJECT) {
-         AbstractIteratorHelper h(xsink, "foldl operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)));
-         if (*xsink)
-            return QoreValue();
-         if (h)
-            return foldIterator(h, xsink);
-      }
-      return arg.getReferencedValue();
-   }
-
-   const QoreListNode* l = reinterpret_cast<const QoreListNode*>(*arg);
-
-   // returns NOTHING if the list is empty
-   if (!l->size())
-      return QoreValue();
-
-   ReferenceHolder<AbstractQoreNode> result(l->get_referenced_entry(0), xsink);
-
-   // return the first element if the list only has one element
-   if (l->size() == 1)
-      return result.release();
-
-   // skip the first element
-   ConstListIterator li(l, 0);
-   while (li.next()) {
-      // set offset in thread-local data for "$#"
-      ImplicitElementHelper eh(li.index());
-      // create argument list
-      QoreListNode* args = new QoreListNode;
-      args->push(result.release());
-      args->push(li.getReferencedValue());
-
-      ArgvContextHelper argv_helper(args, xsink);
-
-      result = left->eval(xsink);
-      if (*xsink)
-	 return QoreValue();
-   }
-   return result.release();
+   return doFold(true, needs_deref, xsink);
 }
 
-QoreValue QoreFoldlOperatorNode::foldIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const {
-   // set offset in thread-local data for "$#"
-   ImplicitElementHelper eh(-1);
-
-   // first try to get first argument
-   bool b = h.next(xsink);
-   // if there is no first argument or an exception occurred, then return 0
-   if (!b || *xsink)
+QoreValue QoreFoldlOperatorNode::doFold(bool fwd, bool& needs_deref, ExceptionSink* xsink) const {
+   FunctionalOperator::FunctionalValueType value_type;
+   std::unique_ptr<FunctionalOperatorInterface> f(getFunctionalIterator(value_type, fwd, xsink));
+   if (*xsink || value_type == FunctionalOperator::nothing)
       return QoreValue();
 
-   // get first argument value
-   ValueHolder result(h.getValue(xsink), xsink);
+   // get first value
+   ValueOptionalRefHolder iv(xsink);
+   if (f->getNext(iv, xsink))
+      return QoreValue();
    if (*xsink)
       return QoreValue();
 
-   while (true) {
-      bool b = h.next(xsink);
-      if (*xsink)
-         return QoreValue();
-      if (!b)
-         break;
+   ValueHolder result(iv.takeReferencedValue(), xsink);
 
+   while (true) {
       // get next argument value
-      ValueHolder arg(h.getValue(xsink), xsink);
+      if (f->getNext(iv, xsink))
+	 break;
       if (*xsink)
-         return QoreValue();
+	 return QoreValue();
 
       // create argument list for fold expression
       QoreListNode* args = new QoreListNode;
       args->push(result.getReferencedValue());
-      args->push(arg.getReferencedValue());
+      args->push(iv.getReferencedValue());
       ArgvContextHelper argv_helper(args, xsink);
       result = left->eval(xsink);
       if (*xsink)
          return QoreValue();
    }
 
-   return result.getReferencedValue();
+   return result.release();
+}
+
+FunctionalOperatorInterface* QoreFoldlOperatorNode::getFunctionalIterator(FunctionalOperator::FunctionalValueType& value_type, bool fwd, ExceptionSink* xsink) const {
+   // we can only use the iterator_func with foldl
+   if (iterator_func && fwd)
+      return iterator_func->getFunctionalIterator(value_type, xsink);
+
+   ValueEvalRefHolder marg(right, xsink);
+   if (*xsink)
+      return 0;
+
+   qore_type_t t = marg->getType();
+   if (t != NT_LIST) {
+      if (t == NT_OBJECT) {
+	 AbstractIteratorHelper h(xsink, fwd ? "foldl operator" : "foldr operator", const_cast<QoreObject*>(marg->get<const QoreObject>()), fwd);
+	 if (*xsink)
+	    return 0;
+	 if (h) {
+	    bool temp = marg.isTemp();
+	    marg.clearTemp();
+	    value_type = FunctionalOperator::list;
+	    return new QoreFunctionalIteratorOperator(temp, h, xsink);
+	 }
+      }
+      if (t == NT_NOTHING) {
+	 value_type = FunctionalOperator::nothing;
+	 return new QoreFunctionalNothingOperator;
+      }
+
+      value_type = FunctionalOperator::single;
+      return new QoreFunctionalSingleValueOperator(marg.getReferencedValue(), xsink);
+   }
+
+   value_type = FunctionalOperator::list;
+   bool temp = marg.isTemp();
+   marg.clearTemp();
+   return new QoreFunctionalListOperator(temp, fwd, marg->get<QoreListNode>(), xsink);
+}
+
+bool QoreFunctionalListOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
+   if (!(fwd ? next() : prev()))
+      return true;
+
+   val.setValue(getValue());
+   return false;
+}
+
+bool QoreFunctionalSingleValueOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
+   if (done)
+      return true;
+
+   done = true;
+   val.setValue(v, true);
+   v.clear();
+   return false;
+}
+
+bool QoreFunctionalIteratorOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
+   bool b = h.next(xsink);
+   if (!b)
+      return true;
+   if (*xsink)
+      return false;
+
+   val.setValue(h.getValue(xsink), true);
+   return false;
 }
 
 // if del is true, then the returned QoreString * should be derefed, if false, then it must not be
@@ -166,51 +184,5 @@ int QoreFoldrOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink*
 }
 
 QoreValue QoreFoldrOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   // conditionally evaluate argument
-   QoreNodeEvalOptionalRefHolder arg(right, xsink);
-   if (!arg || *xsink)
-      return QoreValue();
-
-   // return the argument if there is no list
-   qore_type_t t = arg->getType();
-   if (t != NT_LIST) {
-      if (t == NT_OBJECT) {
-         AbstractIteratorHelper h(xsink, "foldr operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)), false);
-         if (*xsink)
-            return QoreValue();
-         if (h)
-            return foldIterator(h, xsink);
-      }
-      return arg.getReferencedValue();
-   }
-
-   const QoreListNode* l = reinterpret_cast<const QoreListNode*>(*arg);
-
-   // returns NOTHING if the list is empty
-   if (!l->size())
-      return QoreValue();
-
-   ReferenceHolder<AbstractQoreNode> result(l->get_referenced_entry(l->size() - 1), xsink);
-
-   // return the first element if the list only has one element
-   if (l->size() == 1)
-      return result.release();
-
-   // skip the first element
-   ConstListIterator li(l, l->size() - 1);
-   while (li.prev()) {
-      // set offset in thread-local data for "$#"
-      ImplicitElementHelper eh(li.index());
-      // create argument list
-      QoreListNode* args = new QoreListNode;
-      args->push(result.release());
-      args->push(li.getReferencedValue());
-
-      ArgvContextHelper argv_helper(args, xsink);
-
-      result = left->eval(xsink);
-      if (*xsink)
-	 return QoreValue();
-   }
-   return result.release();
+   return doFold(false, needs_deref, xsink);
 }

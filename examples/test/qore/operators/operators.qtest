@@ -31,6 +31,7 @@ class Test inherits QUnit::Test {
         addTestCase("binary extract test", \binaryExtractTest());
         addTestCase("map test", \mapTest());
         addTestCase("select test", \selectTest());
+        addTestCase("fold test", \foldTest());
         set_return_value(main());
     }
 
@@ -408,5 +409,31 @@ class Test inherits QUnit::Test {
         assertEq(1, (select (map $1, 1), True));
         assertEq((1,), (select (map $1, 1.iterator()), True));
         assertEq((1,), (select (map $1, (1,)), True));
+    }
+
+    foldTest() {
+        assertEq(NOTHING, (foldl $1 + "," + $2, NOTHING));
+        assertEq(1, (foldl $1 + "," + $2, 1));
+        assertEq(1, (foldl $1 + "," + $2, 1.iterator()));
+        assertEq(1, (foldl $1 + "," + $2, (1,)));
+        assertEq("1,2", (foldl $1 + "," + $2, (1,2)));
+
+        assertEq(NOTHING, (foldl $1 + "," + $2, (map $1, NOTHING)));
+        assertEq(1, (foldl $1 + "," + $2, (map $1, 1)));
+        assertEq(1, (foldl $1 + "," + $2, (map $1, 1.iterator())));
+        assertEq(1, (foldl $1 + "," + $2, (map $1, (1,))));
+        assertEq("1,2", (foldl $1 + "," + $2, (map $1, (1,2))));
+
+        assertEq(NOTHING, (foldr $1 + "," + $2, NOTHING));
+        assertEq(1, (foldr $1 + "," + $2, 1));
+        assertEq(1, (foldr $1 + "," + $2, (1,).iterator()));
+        assertEq(1, (foldr $1 + "," + $2, (1,)));
+        assertEq("2,1", (foldr $1 + "," + $2, (1,2)));
+
+        assertEq(NOTHING, (foldr $1 + "," + $2, (map $1, NOTHING)));
+        assertEq(1, (foldr $1 + "," + $2, (map $1, 1)));
+        assertEq(1, (foldr $1 + "," + $2, (map $1, (1,).iterator())));
+        assertEq(1, (foldr $1 + "," + $2, (map $1, (1,))));
+        assertEq("2,1", (foldr $1 + "," + $2, (map $1, (1,2))));
     }
 }
