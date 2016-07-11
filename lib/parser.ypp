@@ -3023,7 +3023,8 @@ exp_c:  scalar
 	   else {
 	      AbstractQoreNode* arg = l->shift();
 	      AbstractQoreNode* select_exp = l->shift();
-	      $$ = new QoreTreeNode(arg, OP_SELECT, select_exp);
+              $$ = new QoreSelectOperatorNode(arg, select_exp);
+              //$$ = new QoreTreeNode(arg, OP_SELECT, select_exp);
 	      $2->deref(0);
 	   }
 	}

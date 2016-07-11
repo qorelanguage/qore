@@ -1,7 +1,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -195,6 +195,7 @@
 #include "QoreMapSelectOperatorNode.cpp"
 #include "QoreHashMapOperatorNode.cpp"
 #include "QoreHashMapSelectOperatorNode.cpp"
+#include "QoreSelectOperatorNode.cpp"
 #include "QoreFoldlOperatorNode.cpp"
 #include "QoreNullCoalescingOperatorNode.cpp"
 #include "QoreValueCoalescingOperatorNode.cpp"

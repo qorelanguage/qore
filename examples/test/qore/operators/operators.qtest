@@ -30,6 +30,7 @@ class Test inherits QUnit::Test {
         addTestCase("binary splice test", \binarySpliceTest());
         addTestCase("binary extract test", \binaryExtractTest());
         addTestCase("map test", \mapTest());
+        addTestCase("select test", \selectTest());
         set_return_value(main());
     }
 
@@ -390,5 +391,22 @@ class Test inherits QUnit::Test {
 
         assertEq((1, 3, 5), (map $1, (map $1, (0, 1, 2, 3, 4, 5), ($1 % 2))));
         assertEq((1, 3, 5), (map $1, (map $#, (0, 1, 2, 3, 4, 5), ($1 % 2))));
+    }
+
+    selectTest() {
+        assertEq(NOTHING, (select NOTHING, True));
+        assertEq(1, (select 1, True));
+        assertEq((1,), (select 1.iterator(), True));
+        assertEq((1,), (select (1,), True));
+
+        assertEq(NOTHING, (select (select NOTHING, True), True));
+        assertEq(1, (select (select 1, True), True));
+        assertEq((1,), (select (select 1.iterator(), True), True));
+        assertEq((1,), (select (select (1,), True), True));
+
+        assertEq(NOTHING, (select (map $1, NOTHING), True));
+        assertEq(1, (select (map $1, 1), True));
+        assertEq((1,), (select (map $1, 1.iterator()), True));
+        assertEq((1,), (select (map $1, (1,)), True));
     }
 }

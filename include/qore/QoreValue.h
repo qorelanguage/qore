@@ -385,6 +385,10 @@ public:
    }
 
    DLLEXPORT QoreValue takeReferencedValue();
+
+   // FIXME: remove with new API/ABI
+   // converts pointers to efficient representations and manages the reference count
+   DLLEXPORT void sanitize();
 };
 
 class ValueEvalRefHolder : public ValueOptionalRefHolder {

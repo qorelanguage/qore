@@ -474,3 +474,47 @@ QoreValue ValueOptionalRefHolder::takeReferencedValue() {
    }
    return v;
 }
+
+void ValueOptionalRefHolder::sanitize() {
+   if (v.type != QV_Node || !v.v.n) {
+      if (needs_deref)
+	 needs_deref = false;
+      return;
+   }
+   switch (v.v.n->getType()) {
+      case NT_NOTHING: {
+	 v.v.n = 0;
+	 if (needs_deref)
+	    needs_deref = false;
+	 break;
+      }
+      case NT_INT: {
+	 int64 i = reinterpret_cast<QoreBigIntNode*>(v.v.n)->val;
+	 v.type = QV_Int;
+	 if (needs_deref) {
+	    v.v.n->deref(0);
+	    needs_deref = false;
+	 }
+	 v.v.i = i;
+	 break;
+      }
+      case NT_FLOAT: {
+	 double f = reinterpret_cast<QoreFloatNode*>(v.v.n)->f;
+	 v.type = QV_Float;
+	 if (needs_deref) {
+	    v.v.n->deref(0);
+	    needs_deref = false;
+	 }
+	 v.v.f = f;
+	 break;
+      }
+      case NT_BOOLEAN: {
+	 bool b = reinterpret_cast<QoreBoolNode*>(v.v.n)->getValue();
+	 v.type = QV_Bool;
+	 v.v.b = b;
+	 if (needs_deref)
+	    needs_deref = false;
+	 break;
+      }
+   }
+}

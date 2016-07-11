@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -146,6 +146,7 @@ bool QoreFunctionalMapListOperator::getNextImpl(ValueOptionalRefHolder& val, Exc
    SingleArgvContextHelper argv_helper(getReferencedValue(), xsink);
    ValueEvalRefHolder tval(map->left, xsink);
    if (!*xsink) {
+      tval.sanitize();
       tval.ensureReferencedValue();
       val.takeValueFrom(tval);
    }
@@ -162,6 +163,7 @@ bool QoreFunctionalMapSingleValueOperator::getNextImpl(ValueOptionalRefHolder& v
    v.clear();
    ValueEvalRefHolder tval(map->left, xsink);
    if (!*xsink) {
+      tval.sanitize();
       tval.ensureReferencedValue();
       val.takeValueFrom(tval);
    }
@@ -185,6 +187,7 @@ bool QoreFunctionalMapIteratorOperator::getNextImpl(ValueOptionalRefHolder& val,
    SingleArgvContextHelper argv_helper(iv.release(), xsink);
    ValueEvalRefHolder tval(map->left, xsink);
    if (!*xsink) {
+      tval.sanitize();
       tval.ensureReferencedValue();
       val.takeValueFrom(tval);
    }
@@ -202,6 +205,7 @@ bool QoreFunctionalMapOperator::getNextImpl(ValueOptionalRefHolder& val, Excepti
    SingleArgvContextHelper argv_helper(iv.takeReferencedValue(), xsink);
    ValueEvalRefHolder tval(map->left, xsink);
    if (!*xsink) {
+      tval.sanitize();
       tval.ensureReferencedValue();
       val.takeValueFrom(tval);
    }
