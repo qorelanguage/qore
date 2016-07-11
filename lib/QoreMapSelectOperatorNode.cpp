@@ -32,6 +32,8 @@
 
 #include <qore/intern/qore_program_private.h>
 
+#include <memory>
+
 QoreString QoreMapSelectOperatorNode::map_str("map select operator expression");
 
 // if del is true, then the returned QoreString * should be mapd, if false, then it must not be

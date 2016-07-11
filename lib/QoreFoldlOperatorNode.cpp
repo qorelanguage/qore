@@ -32,6 +32,8 @@
 
 #include <qore/intern/qore_program_private.h>
 
+#include <memory>
+
 QoreString QoreFoldlOperatorNode::foldl_str("foldl operator expression");
 QoreString QoreFoldrOperatorNode::foldr_str("foldr operator expression");
 
