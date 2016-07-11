@@ -38,7 +38,7 @@
     @code{.py}
     binary src = <2AFF04>;
     BinaryInputStream bis(src);
-    binary *b;
+    *binary b;
     while (b = bis.read(2)) {
         printf("read %d\n", make_hex_string(b));
     }

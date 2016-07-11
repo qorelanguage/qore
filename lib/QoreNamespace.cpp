@@ -790,9 +790,9 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    qns.addSystemClass(initEncodingConversionOutputStreamClass(qns));
    qns.addSystemClass(initBinaryOutputStreamClass(qns));
    qns.addSystemClass(initFileOutputStreamClass(qns));
-   qns.addSystemClass(initStreamPipeClass(qns));
    qns.addSystemClass(initPipeInputStreamClass(qns));
    qns.addSystemClass(initPipeOutputStreamClass(qns));
+   qns.addSystemClass(initStreamPipeClass(qns));
    qns.addSystemClass(initStreamWriterClass(qns));
 
    // add system object types

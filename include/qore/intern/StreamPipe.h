@@ -44,7 +44,9 @@
 class StreamPipe : public AbstractPrivateData {
 
 public:
-   DLLLOCAL StreamPipe(int64 timeout, int64 bufferSize);
+   DLLLOCAL StreamPipe(bool syncClose, int64 timeout, int64 bufferSize, ExceptionSink *xsink);
+   DLLLOCAL void reportError(const QoreHashNode* ex);
+   DLLLOCAL void rethrow(ExceptionSink *xsink);
 
 private:
    QoreThreadLock mutex;
@@ -53,10 +55,12 @@ private:
    std::vector<unsigned char> buffer;
    bool broken;
    bool outputClosed;
+   bool closeFinished;
    int64 size;
    int64 count;
    int64 readPtr;
    int64 timeout;
+   ReferenceHolder<QoreHashNode> exception;
 
    friend class PipeInputStream;
    friend class PipeOutputStream;
@@ -72,6 +76,8 @@ public:
    }
 
    DLLLOCAL int64 read(void *ptr, int64 limit, ExceptionSink *xsink) override;
+   DLLLOCAL void finishClose();
+   DLLLOCAL void reportError(const QoreHashNode* ex) { pipe->reportError(ex); }
 
 protected:
    ~PipeInputStream();
@@ -91,6 +97,7 @@ public:
 
    DLLLOCAL void close(ExceptionSink* xsink) override;
    DLLLOCAL void write(const void *ptr, int64 count, ExceptionSink *xsink) override;
+   DLLLOCAL void reportError(const QoreHashNode* ex) { pipe->reportError(ex); }
 
 protected:
    ~PipeOutputStream();
