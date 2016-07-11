@@ -1,0 +1,60 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class ForEachTest
+
+class ForEachTest inherits QUnit::Test {
+    constructor() : QUnit::Test("ForEachTest", "1.0", \ARGV) {
+        addTestCase("basic operator tests", \basicTests());
+        set_return_value(main());
+    }
+
+    basicTests() {
+        {
+            list l = ();
+            foreach int i in (NOTHING)
+                l += i;
+            foreach int i in (map $1, (select NOTHING, True))
+                l += i;
+            foreach int i in (select (map $1, NOTHING), True)
+                l += i;
+            assertEq((), l);
+        }
+
+        {
+            list l = ();
+            foreach int i in (select (map $1, (1, 2)), True)
+                l += i;
+            assertEq((1, 2), l);
+        }
+
+        {
+            list l = ();
+            foreach int i in (1, 2)
+                l += i;
+            assertEq((1, 2), l);
+        }
+
+        {
+            list l = ();
+            foreach int i in ((1, 2).iterator())
+                l += i;
+            assertEq((1, 2), l);
+        }
+
+        {
+            list l = ();
+            foreach int i in ((1, 2).iterator())
+                l += $#;
+            assertEq((0, 1), l);
+        }
+    }
+}

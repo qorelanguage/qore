@@ -81,7 +81,7 @@ int ForEachStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
 	 if (!n)
 	    break;
 
-	 // assign variable to current value in list
+	 // assign variable to current value
 	 if (n.assign(iv.takeReferencedValue(), "<foreach lvalue assignment>"))
 	    break;
       }
@@ -99,7 +99,6 @@ int ForEachStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
 	 break;
       else if (rc == RC_CONTINUE)
 	 rc = 0;
-      i++;
    }
 
    return rc;
@@ -258,54 +257,6 @@ int ForEachStatement::execRef(QoreValue& return_value, ExceptionSink* xsink) {
 
    if (val.assign(ln.release()))
       return 0;
-
-   return rc;
-}
-
-int ForEachStatement::execIterator(AbstractIteratorHelper& aih, QoreValue& return_value, ExceptionSink* xsink) {
-   // execute "foreach" body
-   unsigned i = 0;
-
-   int rc = 0;
-
-   while (true) {
-      bool b = aih.next(xsink);
-      if (*xsink)
-         return 0;
-      if (!b)
-         break;
-
-      // get next argument value
-      ValueHolder arg(aih.getValue(xsink), xsink);
-      //ReferenceHolder<AbstractQoreNode> arg(aih.getValue(xsink), xsink);
-      if (*xsink)
-         return 0;
-
-      {
-         LValueHelper n(var, xsink);
-         if (!n)
-            break;
-
-         // assign variable to current value in list
-         if (n.assign(arg.release()))
-            break;
-      }
-
-      // set offset in thread-local data for "$#"
-      ImplicitElementHelper eh((int)i);
-
-      // execute "foreach" body
-      if (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || *xsink) {
-         rc = 0;
-         break;
-      }
-
-      if (rc == RC_RETURN)
-         break;
-      else if (rc == RC_CONTINUE)
-         rc = 0;
-      i++;
-   }
 
    return rc;
 }
