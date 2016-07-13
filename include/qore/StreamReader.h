@@ -63,6 +63,11 @@ public:
       buf = new char[bufCapacity + 1];
    }
 
+   DLLLOCAL ~StreamReader() {
+      if (buf)
+         delete [] buf;
+   }
+
    DLLLOCAL const QoreEncoding* getEncoding() const {
       return enc;
    }
@@ -281,6 +286,8 @@ private:
    DLLLOCAL int64 fillBuffer(qore_size_t bytes, ExceptionSink* xsink) {
       assert(bufSize + bytes <= bufCapacity);
       int64 rc = in->read(buf + bufSize, bytes, xsink);
+      if (*xsink)
+         return 0;
       bufSize += rc;
       return rc;
    }
@@ -290,6 +297,9 @@ private:
       if (bufSize < bytes) {
          while (true) {
             int64 rc = fillBuffer(bytes - bufSize, xsink);
+            if (*xsink) {
+               return false;
+            }
             if (rc == 0) {
                xsink->raiseException("END-OF-STREAM-ERROR", "there is not enough data available in the stream");
                return false;
