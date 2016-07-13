@@ -851,6 +851,17 @@ addTestCase(obj);
         testCases += tc;
     }
 
+    private string escapeSpecialChars(string str) {
+        str = replace(str, "\b", "<\\b>");
+        str = replace(str, "\f", "<\\f>");
+        str = replace(str, "\n", "<\\n>");
+        str = replace(str, "\r", "<\\r>");
+        str = replace(str, "\t", "<\\t>");
+        str = replace(str, "\v", "<\\v>");
+        str = replace(str, " ", "<space>");
+        return str;
+    }
+
     #! Helper function for printing out human-readable comparison of two values.
     private string printUnexpectedData(any exp, any act, *bool neg, *bool soft_comparisons) {
         string expected;
@@ -871,6 +882,8 @@ addTestCase(obj);
             else
                 actual = neg ? "<identical>" : sprintf("%N", act);
         }
+        expected = escapeSpecialChars(expected);
+        actual = escapeSpecialChars(actual);
         list expectedLines = expected.split("\n");
         list actualLines = actual.split("\n");
 

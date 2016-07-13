@@ -400,6 +400,8 @@ struct qore_socket_private {
 	    const char* key = hi.getKey();
 	    if (addsize && !strcasecmp(key, "transfer-encoding"))
 	       addsize = false;
+            if (addsize && !strcasecmp(key, "content-length"))
+               addsize = false;
 	    if (v && v->getType() == NT_LIST) {
 	       ConstListIterator li(reinterpret_cast<const QoreListNode* >(v));
 	       while (li.next())
@@ -1876,6 +1878,55 @@ struct qore_socket_private {
       return b.release();
    }
 
+   DLLLOCAL void recvToOutputStream(OutputStream *os, int64 size, int64 timeout, ExceptionSink *xsink, QoreThreadLock* l) {
+      if (sock == QORE_INVALID_SOCKET) {
+         se_not_open("Socket", "recvToOutputStream", xsink);
+         return;
+      }
+      if (in_op >= 0) {
+         if (in_op == gettid()) {
+            se_in_op("Socket", "recvToOutputStream", xsink);
+            return;
+         }
+         se_in_op_thread("Socket", "recvToOutputStream", xsink);
+         return;
+      }
+
+      qore_socket_op_helper oh(this);
+
+      char* buf;
+      qore_offset_t br = 0;
+      while (size < 0 || br < size) {
+         // calculate bytes needed
+         int bn = size < 0 ? DEFAULT_SOCKET_BUFSIZE : QORE_MIN(size - br, DEFAULT_SOCKET_BUFSIZE);
+
+         qore_offset_t rc = brecv(xsink, "recvToOutputStream", buf, bn, 0, timeout);
+         if (rc < 0) {
+            //error - already reported in xsink
+            return;
+         }
+         if (rc == 0) {
+            //eof
+            if (size >= 0) {
+               //not all size bytes were read
+               xsink->raiseException("SOCKET-RECV-ERROR", "Unexpected end of stream");
+            }
+            return;
+         }
+
+         // write buffer to the stream
+         {
+            AutoUnlocker al(l);
+            os->write(buf, rc, xsink);
+            if (*xsink) {
+               return;
+            }
+         }
+
+         br += rc;
+      }
+   }
+
    DLLLOCAL QoreStringNode* readHTTPHeaderString(ExceptionSink* xsink, int timeout, int source) {
       qore_offset_t rc;
       QoreStringNodeHolder hdr(readHTTPData(xsink, "readHTTPHeaderString", timeout, rc));
@@ -2291,6 +2342,156 @@ struct qore_socket_private {
       return rc < 0 || sock == QORE_INVALID_SOCKET ? rc : 0;
    }
 
+   DLLLOCAL void sendFromInputStream(InputStream *is, int64 size, int64 timeout, ExceptionSink *xsink, QoreThreadLock* l) {
+      if (sock == QORE_INVALID_SOCKET) {
+         se_not_open("Socket", "sendFromInputStream", xsink);
+         return;
+      }
+      if (in_op >= 0) {
+         if (in_op == gettid()) {
+            se_in_op("Socket", "sendFromInputStream", xsink);
+            return;
+         }
+         se_in_op_thread("Socket", "sendFromInputStream", xsink);
+         return;
+      }
+
+      qore_socket_op_helper oh(this);
+
+      PrivateQoreSocketThroughputHelper th(this, true);
+
+      // set the non-blocking flag (for use with non-ssl connections)
+      bool nb = (timeout >= 0);
+      // set non-blocking I/O (and restore on exit) if we have a timeout and a non-ssl connection
+      OptionalNonBlockingHelper onbh(*this, !ssl && nb, xsink);
+      if (*xsink)
+         return;
+
+      char buf[DEFAULT_SOCKET_BUFSIZE];
+      int64 sent = 0;
+      int64 total = 0;
+      while (size < 0 || sent < size) {
+         int64 toRead = size < 0 ? DEFAULT_SOCKET_BUFSIZE : QORE_MIN(size - sent, DEFAULT_SOCKET_BUFSIZE);
+         int64 r;
+         {
+            AutoUnlocker al(l);
+            r = is->read(buf, toRead, xsink);
+            if (*xsink) {
+               return;
+            }
+         }
+         if (r == 0) {
+            //eof
+            if (size >= 0) {
+               //not all size bytes were sent
+               xsink->raiseException("SOCKET-SEND-ERROR", "Unexpected end of stream");
+               return;
+            }
+            break;
+         }
+
+         qore_offset_t rc = sendIntern(xsink, "Socket", "sendFromInputStream", buf, r, timeout, total);
+         if (rc < 0) {
+            return;
+         }
+         sent += r;
+      }
+      th.finalize(total);
+   }
+
+   DLLLOCAL void sendHttpChunkedBodyFromInputStream(InputStream *is, int timeout, ExceptionSink* xsink, QoreThreadLock *l) {
+      if (sock == QORE_INVALID_SOCKET) {
+         se_not_open("Socket", "sendHttpChunkedBodyFromInputStream", xsink);
+         return;
+      }
+      if (in_op >= 0) {
+         if (in_op == gettid()) {
+            se_in_op("Socket", "sendHttpChunkedBodyFromInputStream", xsink);
+            return;
+         }
+         se_in_op_thread("Socket", "sendHttpChunkedBodyFromInputStream", xsink);
+         return;
+      }
+
+      qore_socket_op_helper oh(this);
+
+      PrivateQoreSocketThroughputHelper th(this, true);
+
+      // set the non-blocking flag (for use with non-ssl connections)
+      bool nb = (timeout >= 0);
+      // set non-blocking I/O (and restore on exit) if we have a timeout and a non-ssl connection
+      OptionalNonBlockingHelper onbh(*this, !ssl && nb, xsink);
+      if (*xsink)
+         return;
+
+      char buf[DEFAULT_SOCKET_BUFSIZE];
+      int64 total = 0;
+      while (true) {
+         int64 r;
+         {
+            AutoUnlocker al(l);
+            r = is->read(buf, sizeof(buf), xsink);
+            if (*xsink) {
+               return;
+            }
+         }
+
+         QoreString str;
+         str.sprintf("%x\r\n", (int) r);
+         if (r > 0) {
+            str.concat(buf, r);
+            str.concat("\r\n");
+         }
+
+         int rc = sendIntern(xsink, "Socket", "sendHttpChunkedBodyFromInputStream", str.getBuffer(), str.size(), timeout, total, true);
+         if (rc < 0) {
+            return;
+         }
+
+         if (r == 0) {
+            //eof
+            break;
+         }
+      }
+      th.finalize(total);
+   }
+
+   DLLLOCAL void sendHttpChunkedBodyTrailer(const QoreHashNode *headers, int timeout, ExceptionSink* xsink) {
+      if (sock == QORE_INVALID_SOCKET) {
+         se_not_open("Socket", "sendHttpChunkedBodyTrailer", xsink);
+         return;
+      }
+      if (in_op >= 0) {
+         if (in_op == gettid()) {
+            se_in_op("Socket", "sendHttpChunkedBodyTrailer", xsink);
+            return;
+         }
+         se_in_op_thread("Socket", "sendHttpChunkedBodyTrailer", xsink);
+         return;
+      }
+
+      QoreString buf;
+      if (!headers) {
+         ConstHashIterator hi(headers);
+
+         while (hi.next()) {
+            const AbstractQoreNode* v = hi.getValue();
+            const char* key = hi.getKey();
+
+            if (v && v->getType() == NT_LIST) {
+               ConstListIterator li(reinterpret_cast<const QoreListNode* >(v));
+               while (li.next())
+                  do_header(key, buf, li.getValue());
+            }
+            else
+               do_header(key, buf, hi.getValue());
+         }
+      }
+      buf.concat("\r\n");
+      int64 total;
+      sendIntern(xsink, "Socket", "sendHttpChunkedBodyTrailer", buf.getBuffer(), buf.size(), timeout, total, true);
+   }
+
    DLLLOCAL int sendHttpMessage(ExceptionSink* xsink, QoreHashNode* info, const char* cname, const char* mname, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, const ResolvedCallReferenceNode* send_callback, int source, int timeout_ms = -1, QoreThreadLock* l = 0, bool* aborted = 0) {
       assert(!(data && send_callback));
       // prepare header string
@@ -2355,7 +2556,7 @@ struct qore_socket_private {
       return 0;
    }
 
-   DLLLOCAL QoreHashNode* readHttpChunkedBodyBinary(int timeout, ExceptionSink* xsink, const char* cname, int source, const ResolvedCallReferenceNode* recv_callback = 0, QoreThreadLock* l = 0, QoreObject* obj = 0) {
+   DLLLOCAL QoreHashNode* readHttpChunkedBodyBinary(int timeout, ExceptionSink* xsink, const char* cname, int source, const ResolvedCallReferenceNode* recv_callback = 0, QoreThreadLock* l = 0, QoreObject* obj = 0, OutputStream *os = 0) {
       assert(xsink);
 
       if (sock == QORE_INVALID_SOCKET) {
@@ -2377,7 +2578,7 @@ struct qore_socket_private {
 
       qore_socket_op_helper oh(this);
 
-      SimpleRefHolder<BinaryNode> b(new BinaryNode);
+      SimpleRefHolder<BinaryNode> b(os ? 0 : new BinaryNode);
       QoreString str; // for reading the size of each chunk
 
       qore_offset_t rc;
@@ -2445,7 +2646,15 @@ struct qore_socket_private {
                return 0;
             }
 
-            b->append(buf, rc);
+            if (os) {
+               AutoUnlocker al(l);
+               os->write(buf, rc, xsink);
+               if (*xsink) {
+                  return 0;
+               }
+            } else {
+               b->append(buf, rc);
+            }
             br += rc;
 
             if (br >= size)
@@ -2491,7 +2700,7 @@ struct qore_socket_private {
          return 0;
 
       ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
-      if (!recv_callback)
+      if (!recv_callback && !os)
          h->setKeyValue("body", b.release(), xsink);
 
       if (hdr) {
