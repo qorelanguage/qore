@@ -46,12 +46,12 @@ sw.writei4(1337);
 sw.writei4(0xf4f4);
     @endcode
 
-    @see @ref Qore::OutputStream
+    @see @ref OutputStream
  */
 qclass StreamWriter [arg=StreamWriter* sw; ns=Qore; private_members=OutputStream os];
 
-//! Creates the StreamWriter for writing data to the given \c OutputStream.
-/** @param os the \c OutputStream for writing data
+//! Creates the StreamWriter for writing data to the given @ref OutputStream.
+/** @param os the @ref OutputStream for writing data
     @param encoding character encoding of the StreamWriter; all passed string data will be converted to this encoding before being written to the output stream; if not present, the @ref default_encoding "default character encoding" is assumed
  */
 StreamWriter::constructor(Qore::OutputStream[OutputStream] os, *string encoding) {
