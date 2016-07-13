@@ -314,6 +314,24 @@ class StreamReaderTest inherits QUnit::Test {
         assertEq(0xbbaa, sr.readu2LSB());
         assertEq(0x1100ddcc, sr.readu4LSB());
         assertEq(0x55443322, sr.readu4LSB());
+
+        is = new BinaryInputStream(<FEFFFD008080000000FCFFFFFFFFFFFFFFFFFFFFFBFAFFFFFFFFFFFFFF>);
+        sr = new StreamReader(is);
+        assertEq(-2, sr.readi1());
+        assertEq(-3, sr.readi2());
+        assertEq(-0x8000, sr.readi2LSB());
+        assertEq(-0x80000000, sr.readi4());
+        assertEq(-4, sr.readi4LSB());
+        assertEq(-5, sr.readi8());
+        assertEq(-6, sr.readi8LSB());
+
+        is = new BinaryInputStream(<FEFFFD008080000000FCFFFFFF>);
+        sr = new StreamReader(is);
+        assertEq(0xFE, sr.readu1());
+        assertEq(0xFFFD, sr.readu2());
+        assertEq(0x8000, sr.readu2LSB());
+        assertEq(0x80000000, sr.readu4());
+        assertEq(0xFFFFFFFC, sr.readu4LSB());
     }
 
     exceptionTests() {
