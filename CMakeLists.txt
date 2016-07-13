@@ -147,6 +147,7 @@ set(LIBQORE_QPP_SRC
 	lib/QC_PipeInputStream.qpp
 	lib/QC_PipeOutputStream.qpp
 	lib/QC_StreamWriter.qpp
+	lib/QC_StreamReader.qpp
 	lib/QC_Transform.qpp
 	lib/QC_TransformInputStream.qpp
 	lib/QC_TransformOutputStream.qpp
@@ -579,6 +580,7 @@ set(LIBQORE_CPP_SRC
         ${CMAKE_CURRENT_BINARY_DIR}/QC_PipeInputStream.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_PipeOutputStream.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_StreamWriter.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_StreamReader.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_Transform.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_TransformInputStream.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_TransformOutputStream.cpp

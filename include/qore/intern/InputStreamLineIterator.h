@@ -36,6 +36,7 @@
 #include <errno.h>
 
 #include "qore/InputStream.h"
+#include "qore/StreamReader.h"
 #include "qore/intern/EncodingConversionInputStream.h"
 
 /**
@@ -43,39 +44,34 @@
  */
 class InputStreamLineIterator : public QoreIteratorBase {
 
-private:
-   static const int INPUTSTREAMLINEITERATOR_BUFFER_SIZE = 4096;
-
 public:
-   DLLLOCAL InputStreamLineIterator(ExceptionSink* xsink, InputStream* is, const QoreEncoding* srcEnc = QCS_DEFAULT, const QoreStringNode* n_eol = 0, bool n_trim = true) :
+   DLLLOCAL InputStreamLineIterator(ExceptionSink* xsink, InputStream* is, const QoreEncoding* encoding = QCS_DEFAULT, const QoreStringNode* n_eol = 0, bool n_trim = true) :
       src(is, xsink),
-      encoding((srcEnc && srcEnc->isAsciiCompat()) ? srcEnc : QCS_UTF8),
-      line(new QoreStringNode(encoding)),
+      reader(xsink),
+      srcEnc(encoding),
+      enc((encoding && encoding->isAsciiCompat()) ? encoding : QCS_UTF8),
+      line(0),
       eol(0),
       num(0),
       validp(false),
-      trim(n_trim),
-      bufCapacity(INPUTSTREAMLINEITERATOR_BUFFER_SIZE),
-      bufSize(0),
-      buf(0) {
+      trim(n_trim) {
       if (n_eol) {
-         if (encoding != n_eol->getEncoding()) {
-            SimpleRefHolder<QoreStringNode> neol(n_eol->convertEncoding(encoding, xsink));
+         if (enc != n_eol->getEncoding()) {
+            SimpleRefHolder<QoreStringNode> neol(n_eol->convertEncoding(enc, xsink));
             if (*xsink)
                return;
             eol = neol.release();
          }
          else {
-            eol = static_cast<QoreStringNode*>(n_eol->refSelf());
+            eol = n_eol->stringRefSelf();
          }
       }
 
-      if (srcEnc != encoding) {
-         src = new EncodingConversionInputStream(src.release(), srcEnc, encoding, xsink);
+      if (srcEnc != enc) {
+         src = new EncodingConversionInputStream(src.release(), srcEnc, enc, xsink);
       }
 
-      // +1 is added to the real capacity for terminating null-character.
-      buf = new char[bufCapacity + 1];
+      reader = new StreamReader(xsink, *src, enc);
    }
 
    DLLLOCAL ~InputStreamLineIterator() {
@@ -83,16 +79,13 @@ public:
          eol->deref();
       if (line)
          line->deref();
-
-      if (buf)
-         delete [] buf;
    }
 
    DLLLOCAL bool next(ExceptionSink* xsink) {
       // Make sure to use a new string if the iterator was already valid.
-      if (validp && !line->empty()) {
+      if (validp && line && !line->empty()) {
          line->deref();
-         line = new QoreStringNode(encoding);
+         line = 0;
       }
       validp = getLine(xsink);
       if (validp) {
@@ -111,7 +104,7 @@ public:
 
    DLLLOCAL QoreStringNode* getValue() {
       assert(validp);
-      return line->stringRefSelf();
+      return line ? line->stringRefSelf() : 0;
    }
 
    DLLLOCAL bool valid() const {
@@ -127,7 +120,7 @@ public:
    }
 
    DLLLOCAL const QoreEncoding* getEncoding() const {
-      return encoding;
+      return enc;
    }
 
    DLLLOCAL virtual void deref() {
@@ -139,106 +132,22 @@ public:
 
 private:
    DLLLOCAL bool getLine(ExceptionSink* xsink) {
-      while (true) {
-         int64 rc = src->read(buf + bufSize, bufCapacity - bufSize, xsink);
-         if (*xsink)
-            return false;
-         if (bufSize == 0 && rc == 0) {
-            if (line->empty())
-               return false;
-            else
-               return true;
-         }
-         bufSize += rc;
-
-         // Is done because of string searches in findEolInBuffer().
-         // Won't overflow because the buffer actually has real capacity of bufCapacity+1.
-         buf[bufSize] = '\0';
-
-         qore_size_t eolLen;
-         const char* p = findEolInBuffer(eolLen, rc==0);
-         assert(eolLen >= 0);
-
-         if (p) { // Found end of line.
-            assert(p >= buf);
-            qore_size_t dataSize = p - buf;
-            line->concat(buf, dataSize + (trim ? 0 : eolLen));
-            // Move remaining data from middle to the front of the buffer.
-            bufSize -= dataSize + eolLen;
-            memmove(buf, p + eolLen, bufSize);
-            return true;
-         }
-         else {
-            if (rc > 0) {
-               qore_size_t dataSize = (bufSize >= eolLen) ? bufSize - eolLen : 0;
-               line->concat(buf, dataSize);
-               // Move remaining data from middle to the front of the buffer.
-               assert(bufSize >= dataSize);
-               bufSize -= dataSize;
-               memmove(buf, buf + dataSize, bufSize);
-               continue;
-            }
-            else if (rc == 0) { // At the end of stream.
-               assert(bufCapacity != bufSize);
-               line->concat(buf, bufSize);
-               bufSize = 0;
-               return true;
-            }
-         }
-      }
-   }
-
-   //! Try to find EOL in buffer and write it's size to eolLen parameter.
-   /** Try to find EOL in buffer and write it's size to eolLen parameter.
-       @param eolLen size of eol in bytes
-       @param endOfStream whether this is end of the stream
-    */
-   DLLLOCAL const char* findEolInBuffer(qore_size_t& eolLen, bool endOfStream) const {
-      if (eol) {
-         const char* p = strstr(buf, eol->getBuffer());
-         eolLen = eol->strlen();
-         return p;
-      }
-      else {
-         const char* p = strpbrk(buf, "\n\r"); // Find first occurence of '\n' or '\r'.
-         if (p) { // Found end of line.
-            if (*p == '\n') {
-               eolLen = 1;
-            }
-            else { // *p == '\r'
-               if (*(p+1) == '\n') {
-                  eolLen = 2;
-               }
-               // '\r' is the last character in the buffer, '\n' could be next in the stream.
-               // Unless this is the end of the stream.
-               else if (static_cast<qore_size_t>(p - buf + 1) == bufSize) {
-                  eolLen = 1;
-                  if (!endOfStream)
-                     p = 0;
-               }
-               else {
-                  eolLen = 1;
-               }
-            }
-         }
-         else {
-            eolLen = 0;
-         }
-         return p;
-      }
+      if (line)
+         line->deref();
+      line = reader->readLine(eol, trim, xsink);
+      return (line != 0);
    }
 
 private:
    ReferenceHolder<InputStream> src;
-   const QoreEncoding* encoding;
+   ReferenceHolder<StreamReader> reader;
+   const QoreEncoding* srcEnc;
+   const QoreEncoding* enc;
    QoreStringNode* line;
    QoreStringNode* eol;
    int64 num;
    bool validp;
    bool trim;
-   qore_size_t bufCapacity; //! Total capacity of buf.
-   qore_size_t bufSize; //! Current size of data in buf.
-   char* buf;
 };
 
 #endif // _QORE_INPUTSTREAMLINEITERATOR_H
