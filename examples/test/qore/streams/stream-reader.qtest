@@ -1,0 +1,360 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+const Data = (
+    "abcdef",
+    "xyz42",
+    "123456"
+);
+
+const STREAMREADER_BUFFER_SIZE = 4096;
+
+%exec-class StreamReaderTest
+
+class StreamReaderTest inherits QUnit::Test {
+    constructor() : QUnit::Test("StreamReader test", "1.0") {
+        addTestCase("Read line tests", \readLineTests());
+        addTestCase("Buffer edge tests", \bufferEdgeTests());
+        addTestCase("Encoding tests", \encodingTests());
+        addTestCase("Read binary tests", \readBinaryTests());
+        addTestCase("Read int tests", \readIntTests());
+        addTestCase("Exception tests", \exceptionTests());
+
+        set_return_value(main());
+    }
+
+    readLineTests() {
+        string WithNLines = foldl $1 + "\n" + $2, Data;
+        string WithRNLines = foldl $1 + "\r\n" + $2, Data;
+        string WithRLines = foldl $1 + "\r" + $2, Data;
+        string weirdEOL = "XYZ123";
+        string WithWeirdEOL = foldl $1 + weirdEOL + $2, Data;
+
+        InputStream is = new BinaryInputStream(binary());
+        StreamReader sr = new StreamReader(is);
+        assertEq(NOTHING, sr.readLine());
+        assertEq(NOTHING, sr.readLine("\n"));
+        assertEq(NOTHING, sr.readLine(NOTHING, False));
+        assertEq(NOTHING, sr.readLine("\n", False));
+
+        is = new StringInputStream(Data[0]);
+        sr = new StreamReader(is);
+        assertEq(Data[0], sr.readLine());
+        assertEq(NOTHING, sr.readLine());
+
+        is = new StringInputStream(WithNLines);
+        sr = new StreamReader(is);
+        assertEq(Data[0] + "\n", sr.readLine(NOTHING, False));
+        assertEq(Data[1] + "\n", sr.readLine(NOTHING, False));
+        assertEq(Data[2], sr.readLine(NOTHING, False));
+        assertEq(NOTHING, sr.readLine(NOTHING, False));
+
+        is = new StringInputStream(WithNLines);
+        sr = new StreamReader(is);
+        assertEq(Data[0], sr.readLine());
+        assertEq(Data[1], sr.readLine());
+        assertEq(Data[2], sr.readLine());
+        assertEq(NOTHING, sr.readLine());
+
+        is = new StringInputStream(WithNLines);
+        sr = new StreamReader(is);
+        assertEq(Data[0], sr.readLine("\n"));
+        assertEq(Data[1], sr.readLine("\n"));
+        assertEq(Data[2], sr.readLine("\n"));
+        assertEq(NOTHING, sr.readLine("\n"));
+
+        is = new StringInputStream(WithNLines);
+        sr = new StreamReader(is);
+        assertEq(WithNLines, sr.readLine("\r"));
+        assertEq(NOTHING, sr.readLine("\r"));
+
+        is = new StringInputStream(WithRNLines);
+        sr = new StreamReader(is);
+        assertEq(Data[0], sr.readLine());
+        assertEq(Data[1], sr.readLine());
+        assertEq(Data[2], sr.readLine());
+        assertEq(NOTHING, sr.readLine());
+
+        is = new StringInputStream(WithRNLines);
+        sr = new StreamReader(is);
+        assertEq(Data[0], sr.readLine("\r\n"));
+        assertEq(Data[1], sr.readLine("\r\n"));
+        assertEq(Data[2], sr.readLine("\r\n"));
+        assertEq(NOTHING, sr.readLine("\r\n"));
+
+        is = new StringInputStream(WithRNLines);
+        sr = new StreamReader(is);
+        assertEq(Data[0] + "\r", sr.readLine("\n"));
+        assertEq(Data[1] + "\r", sr.readLine("\n"));
+        assertEq(Data[2], sr.readLine("\n"));
+        assertEq(NOTHING, sr.readLine("\n"));
+
+        is = new StringInputStream(WithRNLines);
+        sr = new StreamReader(is);
+        assertEq(Data[0], sr.readLine("\r"));
+        assertEq("\n" + Data[1], sr.readLine("\r"));
+        assertEq("\n" + Data[2], sr.readLine("\r"));
+        assertEq(NOTHING, sr.readLine("\r"));
+
+        is = new StringInputStream(WithRLines);
+        sr = new StreamReader(is);
+        assertEq(Data[0], sr.readLine());
+        assertEq(Data[1], sr.readLine());
+        assertEq(Data[2], sr.readLine());
+        assertEq(NOTHING, sr.readLine());
+
+        is = new StringInputStream(WithRLines);
+        sr = new StreamReader(is);
+        assertEq(Data[0], sr.readLine("\r"));
+        assertEq(Data[1], sr.readLine("\r"));
+        assertEq(Data[2], sr.readLine("\r"));
+        assertEq(NOTHING, sr.readLine("\r"));
+
+        is = new StringInputStream(WithRLines);
+        sr = new StreamReader(is);
+        assertEq(WithRLines, sr.readLine("\n"));
+        assertEq(NOTHING, sr.readLine("\n"));
+
+        is = new StringInputStream(WithWeirdEOL);
+        sr = new StreamReader(is);
+        assertEq(Data[0], sr.readLine(weirdEOL));
+        assertEq(Data[1], sr.readLine(weirdEOL));
+        assertEq(Data[2], sr.readLine(weirdEOL));
+        assertEq(NOTHING, sr.readLine(weirdEOL));
+
+        is = new StringInputStream(WithWeirdEOL);
+        sr = new StreamReader(is);
+        assertEq(WithWeirdEOL, sr.readLine("\n"));
+        assertEq(NOTHING, sr.readLine("\n"));
+    }
+
+    bufferEdgeTests() {
+        string s = "";
+        for (int i = 0; i < (STREAMREADER_BUFFER_SIZE-1); i++)
+            s += "a";
+
+        string sWith123456 = s + "a" + "123456"; # "a" is there to fill the buffer
+        string sWithRN = s + "\r\n";
+        string sWithR = s + "\r";
+        string sWithRNabcdef = sWithRN + "abcdef";
+        string weirdEOL = "XYZ123";
+        string sWithWeirdEOL = s + weirdEOL;
+        string sWithWeirdEOLabc = sWithWeirdEOL + "abc";
+
+        InputStream is = new StringInputStream(sWith123456);
+        StreamReader sr = new StreamReader(is);
+        assertEq(sWith123456, sr.readLine());
+        assertEq(NOTHING, sr.readLine());
+
+        is = new StringInputStream(sWithRN);
+        sr = new StreamReader(is);
+        assertEq(s, sr.readLine());
+        assertEq(NOTHING, sr.readLine());
+
+        is = new StringInputStream(sWithRN);
+        sr = new StreamReader(is);
+        assertEq(sWithRN, sr.readLine(NOTHING, False));
+        assertEq(NOTHING, sr.readLine(NOTHING, False));
+
+        is = new StringInputStream(sWithR);
+        sr = new StreamReader(is);
+        assertEq(s, sr.readLine());
+        assertEq(NOTHING, sr.readLine());
+
+        is = new StringInputStream(sWithR);
+        sr = new StreamReader(is);
+        assertEq(sWithR, sr.readLine(NOTHING, False));
+        assertEq(NOTHING, sr.readLine(NOTHING, False));
+
+        is = new StringInputStream(sWithRNabcdef);
+        sr = new StreamReader(is);
+        assertEq(s, sr.readLine());
+        assertEq("abcdef", sr.readLine());
+        assertEq(NOTHING, sr.readLine());
+
+        is = new StringInputStream(sWithRNabcdef);
+        sr = new StreamReader(is);
+        assertEq(sWithRN, sr.readLine(NOTHING, False));
+        assertEq("abcdef", sr.readLine(NOTHING, False));
+        assertEq(NOTHING, sr.readLine(NOTHING, False));
+
+        is = new StringInputStream(sWithWeirdEOL);
+        sr = new StreamReader(is);
+        assertEq(s, sr.readLine(weirdEOL));
+        assertEq(NOTHING, sr.readLine(weirdEOL));
+
+        is = new StringInputStream(sWithWeirdEOL);
+        sr = new StreamReader(is);
+        assertEq(sWithWeirdEOL, sr.readLine(weirdEOL, False));
+        assertEq(NOTHING, sr.readLine(weirdEOL, False));
+
+        is = new StringInputStream(sWithWeirdEOLabc);
+        sr = new StreamReader(is);
+        assertEq(s, sr.readLine(weirdEOL));
+        assertEq("abc", sr.readLine(weirdEOL));
+        assertEq(NOTHING, sr.readLine(weirdEOL));
+
+        is = new StringInputStream(sWithWeirdEOLabc);
+        sr = new StreamReader(is);
+        assertEq(sWithWeirdEOL, sr.readLine(weirdEOL, False));
+        assertEq("abc", sr.readLine(weirdEOL, False));
+        assertEq(NOTHING, sr.readLine(weirdEOL, False));
+    }
+
+    encodingTests() {
+        string s1 = "Příliš žluťoučký kůň úpěl ďábelské ódy.";
+        string s2 = "abcdef";
+        string s = s1 + "\n" + s2;
+        string sUTF8 = convert_encoding(s, "UTF-8");
+        string sISO88592 = convert_encoding(s, "ISO-8859-2");
+        string i88592eol = convert_encoding("\n", "ISO-8859-2");
+
+        InputStream is = new StringInputStream(s);
+        StreamReader sr = new StreamReader(is);
+        assertEq("".encoding(), sr.getEncoding());
+        assertEq("".encoding(), sr.readLine().encoding());
+
+        is = new StringInputStream(sUTF8);
+        sr = new StreamReader(is, "UTF-8");
+        assertEq("UTF-8", sr.getEncoding());
+        assertEq("UTF-8", sr.readLine().encoding());
+
+        is = new StringInputStream(sISO88592);
+        sr = new StreamReader(is, "ISO-8859-2");
+        assertEq("ISO-8859-2", sr.getEncoding());
+        assertEq("ISO-8859-2", sr.readLine().encoding());
+
+        is = new StringInputStream(sUTF8);
+        sr = new StreamReader(is, "UTF-8");
+        assertEq(s1, sr.readLine(i88592eol));
+        assertEq(s2, sr.readLine(i88592eol));
+        assertEq(NOTHING, sr.readLine(i88592eol));
+    }
+
+    readBinaryTests() {
+        binary b1 = <0123456789abcdef>;
+        binary b2 = <00102030405060708090a0b0c0d0e0f0>;
+        binary b = b1 + b2;
+
+        BinaryInputStream is = new BinaryInputStream(binary());
+        StreamReader sr = new StreamReader(is);
+        assertEq(NOTHING, sr.readBinary());
+        assertEq(NOTHING, sr.readBinary(-1));
+        assertEq(NOTHING, sr.readBinary(0));
+        assertEq(NOTHING, sr.readBinary(100));
+
+        is = new BinaryInputStream(b);
+        sr = new StreamReader(is);
+        assertEq(b, sr.readBinary());
+        assertEq(NOTHING, sr.readBinary());
+
+        is = new BinaryInputStream(b);
+        sr = new StreamReader(is);
+        assertEq(b, sr.readBinary(-1));
+        assertEq(NOTHING, sr.readBinary(-1));
+
+        is = new BinaryInputStream(b);
+        sr = new StreamReader(is);
+        assertEq(NOTHING, sr.readBinary(0));
+        assertEq(b, sr.readBinary());
+
+        is = new BinaryInputStream(b);
+        sr = new StreamReader(is);
+        assertEq(b, sr.readBinary(100));
+        assertEq(NOTHING, sr.readBinary(100));
+
+        is = new BinaryInputStream(b);
+        sr = new StreamReader(is);
+        assertEq(b1, sr.readBinary(8));
+        assertEq(b2, sr.readBinary(100));
+    }
+
+    readIntTests() {
+        binary b = <0a1b2c3d001122334455667700102030405060708090>;
+        BinaryInputStream is = new BinaryInputStream(b);
+        StreamReader sr = new StreamReader(is);
+        assertEq(0x0a, sr.readi1());
+        assertEq(0x1b, sr.readi1());
+        assertEq(0x2c3d, sr.readi2());
+        assertEq(0x0011, sr.readi2());
+        assertEq(0x22334455, sr.readi4());
+        assertEq(0x66770010, sr.readi4());
+        assertEq(0x2030405060708090, sr.readi8());
+
+        is = new BinaryInputStream(b);
+        sr = new StreamReader(is);
+        assertEq(0x1b0a, sr.readi2LSB());
+        assertEq(0x3d2c, sr.readi2LSB());
+        assertEq(0x33221100, sr.readi4LSB());
+        assertEq(0x77665544, sr.readi4LSB());
+        assertEq(0x7060504030201000, sr.readi8LSB());
+
+        is = new BinaryInputStream(<abcd0123aabbccdd0011223344556677>);
+        sr = new StreamReader(is);
+        assertEq(0xab, sr.readu1());
+        assertEq(0xcd, sr.readu1());
+        assertEq(0x0123, sr.readu2());
+        assertEq(0xaabb, sr.readu2());
+        assertEq(0xccdd0011, sr.readu4());
+        assertEq(0x22334455, sr.readu4());
+        assertEq(0x66, sr.readu1());
+        assertEq(0x77, sr.readu1());
+
+        is = new BinaryInputStream(<abcd0123aabbccdd001122334455>);
+        sr = new StreamReader(is);
+        assertEq(0xcdab, sr.readu2LSB());
+        assertEq(0x2301, sr.readu2LSB());
+        assertEq(0xbbaa, sr.readu2LSB());
+        assertEq(0x1100ddcc, sr.readu4LSB());
+        assertEq(0x55443322, sr.readu4LSB());
+
+        is = new BinaryInputStream(<FEFFFD008080000000FCFFFFFFFFFFFFFFFFFFFFFBFAFFFFFFFFFFFFFF>);
+        sr = new StreamReader(is);
+        assertEq(-2, sr.readi1());
+        assertEq(-3, sr.readi2());
+        assertEq(-0x8000, sr.readi2LSB());
+        assertEq(-0x80000000, sr.readi4());
+        assertEq(-4, sr.readi4LSB());
+        assertEq(-5, sr.readi8());
+        assertEq(-6, sr.readi8LSB());
+
+        is = new BinaryInputStream(<FEFFFD008080000000FCFFFFFF>);
+        sr = new StreamReader(is);
+        assertEq(0xFE, sr.readu1());
+        assertEq(0xFFFD, sr.readu2());
+        assertEq(0x8000, sr.readu2LSB());
+        assertEq(0x80000000, sr.readu4());
+        assertEq(0xFFFFFFFC, sr.readu4LSB());
+    }
+
+    exceptionTests() {
+        InputStream is = new BinaryInputStream(binary());
+        StreamReader sr = new StreamReader(is);
+        assertThrows("END-OF-STREAM-ERROR", sub () { sr.readi1(); });
+        assertThrows("END-OF-STREAM-ERROR", sub () { sr.readi2(); });
+        assertThrows("END-OF-STREAM-ERROR", sub () { sr.readi4(); });
+        assertThrows("END-OF-STREAM-ERROR", sub () { sr.readi8(); });
+        assertThrows("END-OF-STREAM-ERROR", sub () { sr.readi2LSB(); });
+        assertThrows("END-OF-STREAM-ERROR", sub () { sr.readi4LSB(); });
+        assertThrows("END-OF-STREAM-ERROR", sub () { sr.readi8LSB(); });
+
+        assertThrows("END-OF-STREAM-ERROR", sub () { sr.readu1(); });
+        assertThrows("END-OF-STREAM-ERROR", sub () { sr.readu2(); });
+        assertThrows("END-OF-STREAM-ERROR", sub () { sr.readu4(); });
+        assertThrows("END-OF-STREAM-ERROR", sub () { sr.readu2LSB(); });
+        assertThrows("END-OF-STREAM-ERROR", sub () { sr.readu4LSB(); });
+
+        assertThrows("ENCODING-CONVERSION-ERROR", sub () { sr = new StreamReader(is, "abcd"); sr.readLine("\n"); });
+
+        assertThrows("WRONG-ENCODING-ERROR", sub () { sr = new StreamReader(is, "UTF16"); });
+        assertThrows("WRONG-ENCODING-ERROR", sub () { sr = new StreamReader(is, "UTF16LE"); });
+        assertThrows("WRONG-ENCODING-ERROR", sub () { sr = new StreamReader(is, "UTF16BE"); });
+    }
+}

@@ -196,6 +196,8 @@ LValueHelper::LValueHelper(QoreObject& self, ExceptionSink* xsink) : vl(xsink), 
 }
 
 LValueHelper::~LValueHelper() {
+   // FIXME: technically if we have only removed robjects from the lvalue and the lvalue did not have any recursive references before,
+   // then we don't need to scan this time either
    bool obj_chg = before;
    bool obj_ref = false;
    if (!(*vl.xsink)) {

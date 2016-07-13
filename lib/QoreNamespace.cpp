@@ -119,10 +119,29 @@ DLLLOCAL QoreClass* initHashListIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initHashListReverseIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initListHashIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initListHashReverseIteratorClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initAbstractLineIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initFileLineIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initDataLineIteratorClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initInputStreamLineIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initSingleValueIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initRangeIteratorClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initInputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initBinaryInputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initStringInputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initFileInputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initEncodingConversionInputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initEncodingConversionOutputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initOutputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initBinaryOutputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initFileOutputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initStreamPipeClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initPipeInputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initPipeOutputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initStreamWriterClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initStreamReaderClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initTransformClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initTransformInputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initTransformOutputStreamClass(QoreNamespace& ns);
 
 DLLLOCAL void init_type_constants(QoreNamespace& ns);
 DLLLOCAL void init_compression_constants(QoreNamespace& ns);
@@ -144,6 +163,7 @@ StaticSystemNamespace* staticSystemNamespace;
 
 DLLLOCAL void init_context_functions(QoreNamespace& ns);
 DLLLOCAL void init_RangeIterator_functions(QoreNamespace& ns);
+DLLLOCAL void init_InputStream_functions(QoreNamespace& ns);
 
 GVEntryBase::GVEntryBase(char* n, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo) :
    name(new NamedScope(n)),
@@ -758,6 +778,25 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
 
    qore_ns_private::addNamespace(qns, get_thread_ns(qns));
 
+   // add stream classes
+   qns.addSystemClass(initInputStreamClass(qns));
+   qns.addSystemClass(initOutputStreamClass(qns));
+   qns.addSystemClass(initTransformClass(qns));
+   qns.addSystemClass(initTransformInputStreamClass(qns));
+   qns.addSystemClass(initTransformOutputStreamClass(qns));
+   qns.addSystemClass(initBinaryInputStreamClass(qns));
+   qns.addSystemClass(initStringInputStreamClass(qns));
+   qns.addSystemClass(initFileInputStreamClass(qns));
+   qns.addSystemClass(initEncodingConversionInputStreamClass(qns));
+   qns.addSystemClass(initEncodingConversionOutputStreamClass(qns));
+   qns.addSystemClass(initBinaryOutputStreamClass(qns));
+   qns.addSystemClass(initFileOutputStreamClass(qns));
+   qns.addSystemClass(initPipeInputStreamClass(qns));
+   qns.addSystemClass(initPipeOutputStreamClass(qns));
+   qns.addSystemClass(initStreamPipeClass(qns));
+   qns.addSystemClass(initStreamWriterClass(qns));
+   qns.addSystemClass(initStreamReaderClass(qns));
+
    // add system object types
    qns.addSystemClass(initTimeZoneClass(qns));
    qns.addSystemClass(initSSLCertificateClass(qns));
@@ -797,8 +836,10 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    qns.addSystemClass(initHashListReverseIteratorClass(qns));
    qns.addSystemClass(initListHashIteratorClass(qns));
    qns.addSystemClass(initListHashReverseIteratorClass(qns));
+   qns.addSystemClass(initAbstractLineIteratorClass(qns));
    qns.addSystemClass(initFileLineIteratorClass(qns));
    qns.addSystemClass(initDataLineIteratorClass(qns));
+   qns.addSystemClass(initInputStreamLineIteratorClass(qns));
    qns.addSystemClass(initSingleValueIteratorClass(qns));
    qns.addSystemClass(initRangeIteratorClass(qns));
    qns.addSystemClass(initTreeMapClass(qns));
@@ -879,6 +920,8 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    init_compression_functions(qns);
    init_context_functions(qns);
    init_RangeIterator_functions(qns);
+   init_InputStream_functions(qns);
+
 #ifdef DEBUG
    init_debug_functions(qns);
 #endif
