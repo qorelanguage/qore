@@ -29,7 +29,7 @@
 %new-style
 
 module CsvUtil {
-    version = "1.5";
+    version = "1.6";
     desc = "user module for working with CSV files";
     author = "Petr Vanek <petr@yarpen.cz>, David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -217,6 +217,9 @@ while (i.next()) {
     Also the \c "example-multi-file-copy.csv" will contain data from the original file formatted as CSV.
 
     @section csvutil_relnotes Release Notes
+
+    @subsection csvutil_v1_6 Version 1.6
+    - fixed a bug in an error message validating input data (<a href="https://github.com/qorelanguage/qore/issues/1062">issue 1062</a>)
 
     @subsection csvutil_v1_5 Version 1.5
     - fixed a bug handling the global option \c "eol"
@@ -1162,7 +1165,7 @@ while (i.next()) {
             *string rv;
             int cnt = rec.size();
             if (!m_resolve_by_rule{cnt} && !m_resolve_by_count{cnt} && checkElementCounts)
-                throw errname, sprintf("Line of unexpected field count %d found; known counts: %y (record: %y)", cnt, sort(map ($1.toInt()), m_resolve_by_rule.keyIterator()+m_resolve_by_count.keyIterator()), rec);
+                throw errname, sprintf("Line of unexpected field count %d found; known counts: %y (record: %y)", cnt, sort(map ($1.toInt()), (m_resolve_by_rule + m_resolve_by_count).keyIterator()), rec);
 
             if (m_resolve_by_rule{cnt}) {
                 # try match type by filter spec
