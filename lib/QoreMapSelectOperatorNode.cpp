@@ -67,7 +67,23 @@ AbstractQoreNode* QoreMapSelectOperatorNode::parseInitImpl(LocalVar *oflag, int 
    // use lazy evaluation if the iterator expression supports it
    iterator_func = dynamic_cast<FunctionalOperator*>(e[1]);
 
-   // FIXME: if iterator is a list or an iterator, then the return type is a list, otherwise it's the return type of the iterated expression or NOTHING in case the select experssion evalutes to False
+   // if iterator is a list or an iterator, then the return type is a list, otherwise it's the return type of the iterated expression
+   if (iteratorTypeInfo->hasType()) {
+      if (iteratorTypeInfo->isType(NT_NOTHING)) {
+	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "the iterator expression with the map operator (the second expression) has no value (NOTHING) and therefore this expression will also return no value; update the expression to return a value or disable the 'invalid-operation' warning to avoid seeing this warning in the future");
+	 typeInfo = nothingTypeInfo;
+      }
+      else if (iteratorTypeInfo->isType(NT_LIST)) {
+	 typeInfo = listTypeInfo;
+      }
+      else {
+	 const QoreClass* qc = iteratorTypeInfo->getUniqueReturnClass();
+	 if (qc && qore_class_private::parseCheckCompatibleClass(*qc, *QC_ABSTRACTITERATOR))
+	    typeInfo = listTypeInfo;
+	 else
+	    typeInfo = iteratorTypeInfo;
+      }
+   }
 
    return this;
 }

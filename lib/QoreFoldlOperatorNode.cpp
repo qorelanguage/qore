@@ -64,7 +64,23 @@ AbstractQoreNode* QoreFoldlOperatorNode::parseInitImpl(LocalVar *oflag, int pfla
    // use lazy evaluation if the iterator expression supports it
    iterator_func = dynamic_cast<FunctionalOperator*>(right);
 
-   // FIXME: if "right" (iterator exp) is a list or an iterator, then the return type is expTypeInfo, otherwise it's the return type of the iterated expression
+   // if "right" (iterator exp) is a list or an iterator, then the return type is expTypeInfo, otherwise it's the return type of the iterated expression
+   if (iteratorTypeInfo->hasType()) {
+      if (iteratorTypeInfo->isType(NT_NOTHING)) {
+	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "the iterator expression with the foldl/r operator (the second expression) has no value (NOTHING) and therefore this expression will also return no value; update the expression to return a value or disable the 'invalid-operation' warning to avoid seeing this warning in the future");
+	 typeInfo = nothingTypeInfo;
+      }
+      else if (iteratorTypeInfo->isType(NT_LIST)) {
+	 typeInfo = expTypeInfo;
+      }
+      else {
+	 const QoreClass* qc = iteratorTypeInfo->getUniqueReturnClass();
+	 if (qc && qore_class_private::parseCheckCompatibleClass(*qc, *QC_ABSTRACTITERATOR))
+	    typeInfo = expTypeInfo;
+	 else
+	    typeInfo = iteratorTypeInfo;
+      }
+   }
 
    return this;
 }
