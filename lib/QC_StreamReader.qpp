@@ -53,7 +53,7 @@ qclass StreamReader [arg=StreamReader* sr; ns=Qore; private_members=InputStream 
 /** @param is the @ref InputStream for reading data
     @param encoding character encoding of the data from the @ref InputStream; the encoding has to be ASCII-compatible, otherwise an exception will be thrown; if not present, the @ref default_encoding "default character encoding" is assumed
 
-    @throw WRONG-ENCODING-ERROR ASCII-incompatible encoding has been passed
+    @throw UNSUPPORTED-ENCODING-ERROR ASCII-incompatible encoding has been passed
  */
 StreamReader::constructor(Qore::InputStream[InputStream] is, *string encoding) {
    SimpleRefHolder<StreamReader> reader(new StreamReader(xsink, is, encoding ? QEM.findCreate(encoding) : QCS_DEFAULT));
