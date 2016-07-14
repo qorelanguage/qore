@@ -70,7 +70,7 @@ AbstractQoreNode* QoreMapSelectOperatorNode::parseInitImpl(LocalVar *oflag, int 
    // if iterator is a list or an iterator, then the return type is a list, otherwise it's the return type of the iterated expression
    if (iteratorTypeInfo->hasType()) {
       if (iteratorTypeInfo->isType(NT_NOTHING)) {
-	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "the iterator expression with the map operator (the second expression) has no value (NOTHING) and therefore this expression will also return no value; update the expression to return a value or use '%disable-warning unreferenced-variable' in your code to avoid seeing this warning in the future");
+	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "the iterator expression with the map operator (the second expression) has no value (NOTHING) and therefore this expression will also return no value; update the expression to return a value or use '%%disable-warning invalid-operation' in your code to avoid seeing this warning in the future");
 	 typeInfo = nothingTypeInfo;
       }
       else if (iteratorTypeInfo->isType(NT_LIST)) {

@@ -11,6 +11,8 @@
 
 %exec-class Test
 
+%disable-warning invalid-operation
+
 class DataTest {
     public {
         hash b;
