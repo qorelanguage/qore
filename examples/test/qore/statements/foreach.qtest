@@ -9,6 +9,9 @@
 
 %requires ../../../../qlib/QUnit.qm
 
+%disable-warning invalid-operation
+%disable-warning unreferenced-variable
+
 %exec-class ForEachTest
 
 class ForEachTest inherits QUnit::Test {
