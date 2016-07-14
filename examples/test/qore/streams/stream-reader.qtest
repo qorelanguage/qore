@@ -353,8 +353,8 @@ class StreamReaderTest inherits QUnit::Test {
 
         assertThrows("ENCODING-CONVERSION-ERROR", sub () { sr = new StreamReader(is, "abcd"); sr.readLine("\n"); });
 
-        assertThrows("WRONG-ENCODING-ERROR", sub () { sr = new StreamReader(is, "UTF16"); });
-        assertThrows("WRONG-ENCODING-ERROR", sub () { sr = new StreamReader(is, "UTF16LE"); });
-        assertThrows("WRONG-ENCODING-ERROR", sub () { sr = new StreamReader(is, "UTF16BE"); });
+        assertThrows("UNSUPPORTED-ENCODING-ERROR", sub () { sr = new StreamReader(is, "UTF16"); });
+        assertThrows("UNSUPPORTED-ENCODING-ERROR", sub () { sr = new StreamReader(is, "UTF16LE"); });
+        assertThrows("UNSUPPORTED-ENCODING-ERROR", sub () { sr = new StreamReader(is, "UTF16BE"); });
     }
 }

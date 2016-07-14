@@ -55,7 +55,7 @@ public:
       buf(0) {
       is->ref();
       if (!enc->isAsciiCompat()) {
-         xsink->raiseException("WRONG-ENCODING-ERROR", "StreamReader does not support ASCII-incompatible encodings");
+         xsink->raiseException("UNSUPPORTED-ENCODING-ERROR", "StreamReader does not support ASCII-incompatible encodings");
          return;
       }
 
