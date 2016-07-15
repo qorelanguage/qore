@@ -360,11 +360,6 @@ private:
 private:
    ReferenceHolder<InputStream> in;
    const QoreEncoding* enc;
-   QoreStringNode* line;
-   QoreStringNode* eol;
-   int64 num;
-   bool validp;
-   bool trim;
    qore_size_t bufCapacity; //! Total capacity of buf.
    qore_size_t bufSize; //! Current size of data in buf.
    char* buf;

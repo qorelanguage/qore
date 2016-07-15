@@ -36,7 +36,7 @@
 #include <errno.h>
 
 #include "qore/InputStream.h"
-#include "qore/StreamReader.h"
+#include "qore/intern/StreamReader.h"
 #include "qore/intern/EncodingConversionInputStream.h"
 
 /**
