@@ -51,7 +51,7 @@ public:
     * @param xsink the exception sink
     * @return the number of bytes read, 0 indicates the end of the stream
     */
-   DLLLOCAL virtual int64 read(void *ptr, int64 limit, ExceptionSink *xsink) = 0;
+   virtual int64 read(void *ptr, int64 limit, ExceptionSink *xsink) = 0;
 
 protected:
    /**
