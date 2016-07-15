@@ -49,7 +49,7 @@ public:
     * @param xsink the exception sink
     * @return a pair (rc, wc) where rc is the number of bytes read from src and wc is the number of bytes written to dst
     */
-   DLLLOCAL virtual std::pair<int64, int64> apply(const void *src, int64 srcLen, void *dst, int64 dstLen,
+   virtual std::pair<int64, int64> apply(const void *src, int64 srcLen, void *dst, int64 dstLen,
          ExceptionSink *xsink) = 0;
 
 protected:
