@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ForEachStatement.h
+  FunctionalOperator.h
 
   Qore Programming Language
 
@@ -29,36 +29,22 @@
   information.
 */
 
-#ifndef _QORE_FOREACHSTATEMENT_H
+#ifndef _QORE_INTERN_FUNCTIONALOPERATOR_H
 
-#define _QORE_FOREACHSTATEMENT_H
+#define _QORE_INTERN_FUNCTIONALOPERATOR_H
 
-#include <qore/intern/AbstractStatement.h>
-#include <qore/intern/AbstractIteratorHelper.h>
+class FunctionalOperatorInterface;
 
-#include <qore/intern/FunctionalOperator.h>
-#include <qore/intern/FunctionalOperatorInterface.h>
-
-class ForEachStatement : public AbstractStatement {
-private:
-   AbstractQoreNode* var,
-      * list;
-   StatementBlock* code;
-   LVList* lvars;
-   FunctionalOperator* iterator_func;
-   bool is_ref;
-
-   DLLLOCAL int execRef(QoreValue& return_value, ExceptionSink* xsink);
-   DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
-   DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0);
-
+class FunctionalOperator {
 public:
-   DLLLOCAL ForEachStatement(int start_line, int end_line, AbstractQoreNode* v, AbstractQoreNode* l, StatementBlock* cd);
-   DLLLOCAL virtual ~ForEachStatement();
-   // faked here, checked at runtime
-   DLLLOCAL virtual bool hasFinalReturn() const {
-      return true;
+   enum FunctionalValueType { list, single, nothing };
+
+   DLLLOCAL virtual ~FunctionalOperator() {
    }
+
+   DLLLOCAL FunctionalOperatorInterface* getFunctionalIterator(FunctionalValueType& value_type, ExceptionSink* xsink) const;
+
+   DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const = 0;
 };
 
 #endif

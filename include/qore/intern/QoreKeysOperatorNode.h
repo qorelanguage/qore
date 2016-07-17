@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreFoldlOperatorNode.h
+  QoreKeysOperatorNode.h
 
   Qore Programming Language
 
@@ -29,73 +29,68 @@
   information.
 */
 
-#ifndef _QORE_QOREFOLDLOPERATORNODE_H
+#ifndef _QORE_QOREKEYSOPERATORNODE_H
 
-#define _QORE_QOREFOLDLOPERATORNODE_H
+#define _QORE_QOREKEYSOPERATORNODE_H
 
-#include <qore/intern/AbstractIteratorHelper.h>
 #include <qore/intern/FunctionalOperator.h>
 #include <qore/intern/FunctionalOperatorInterface.h>
 
-class QoreFoldlOperatorNode : public QoreBinaryOperatorNode<> {
+class QoreKeysOperatorNode : public QoreSingleExpressionOperatorNode<QoreOperatorNode>, public FunctionalOperator {
 protected:
    const QoreTypeInfo* returnTypeInfo;
-   FunctionalOperator* iterator_func;
 
-   DLLLOCAL static QoreString foldl_str;
-
-   DLLLOCAL QoreValue doFold(bool fwd, bool& needs_deref, ExceptionSink* xsink) const;
+   DLLLOCAL static QoreString keys_str;
 
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual ~QoreFoldlOperatorNode() {
-   }
-
-   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return returnTypeInfo;
    }
 
-   DLLLOCAL virtual bool hasEffect() const {
-      // FIXME: check iterated expression to see if it really has an effect
-      return true;
-   }
-
-   DLLLOCAL QoreValue foldIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
-
-   DLLLOCAL FunctionalOperatorInterface* getFunctionalIterator(FunctionalOperator::FunctionalValueType& value_type, bool fwd, ExceptionSink* xsink) const;
+   DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreFoldlOperatorNode(AbstractQoreNode* l, AbstractQoreNode* r) : QoreBinaryOperatorNode<>(l, r), returnTypeInfo(0), iterator_func(0) {
+   DLLLOCAL QoreKeysOperatorNode(AbstractQoreNode* n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(n_exp), returnTypeInfo(0) {
+   }
+
+   DLLLOCAL virtual ~QoreKeysOperatorNode() {
    }
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
+
    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
 
    // returns the type name as a c string
    DLLLOCAL virtual const char* getTypeName() const {
-      return foldl_str.getBuffer();
+      return keys_str.getBuffer();
+   }
+
+   DLLLOCAL virtual bool hasEffect() const {
+      return true;
    }
 };
 
-class QoreFoldrOperatorNode : public QoreFoldlOperatorNode {
+class QoreFunctionalKeysOperator : public FunctionalOperatorInterface, public ConstHashIterator {
 protected:
-   DLLLOCAL static QoreString foldr_str;
-
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+   bool temp;
+   ExceptionSink* xsink;
 
 public:
-   DLLLOCAL QoreFoldrOperatorNode(AbstractQoreNode* l, AbstractQoreNode* r) : QoreFoldlOperatorNode(l, r) {
+   DLLLOCAL QoreFunctionalKeysOperator(bool t, QoreHashNode* h, ExceptionSink* xs) : ConstHashIterator(h), temp(t), xsink(xs) {
    }
 
-   DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
-   DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
-
-   // returns the type name as a c string
-   DLLLOCAL virtual const char* getTypeName() const {
-      return foldr_str.getBuffer();
+   DLLLOCAL virtual ~QoreFunctionalKeysOperator() {
+      if (temp) {
+         QoreHashNode* h = const_cast<QoreHashNode*>(getHash());
+         if (h)
+            h->deref(xsink);
+      }
    }
+
+   DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
 };
 
 #endif

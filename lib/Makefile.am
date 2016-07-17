@@ -231,6 +231,7 @@ libqore_la_SOURCES = \
 	QoreSpliceOperatorNode.cpp \
 	QoreExtractOperatorNode.cpp \
 	QoreCastOperatorNode.cpp \
+	QoreKeysOperatorNode.cpp \
 	QoreUnaryMinusOperatorNode.cpp \
 	QoreLogicalNotOperatorNode.cpp \
 	QoreDotEvalOperatorNode.cpp \
@@ -267,6 +268,7 @@ libqore_la_SOURCES = \
 	QoreHashMapOperatorNode.cpp \
 	QoreHashMapSelectOperatorNode.cpp \
 	QoreFoldlOperatorNode.cpp \
+	QoreSelectOperatorNode.cpp \
 	QoreNullCoalescingOperatorNode.cpp \
 	QoreValueCoalescingOperatorNode.cpp \
 	QoreChompOperatorNode.cpp \
@@ -280,7 +282,9 @@ libqore_la_SOURCES = \
 	CompressionTransforms.cpp \
 	xxhash.cpp \
 	minitest.cpp \
-	QoreValueList.cpp
+	QoreValueList.cpp \
+	FunctionalOperatorInterface.cpp \
+	FunctionalOperator.cpp
 
 if COND_SIGNAL_HANDLING
 libqore_la_SOURCES += QoreSignal.cpp

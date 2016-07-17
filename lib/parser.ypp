@@ -2884,8 +2884,9 @@ exp_c:  scalar
         { $$ = new QoreTreeNode($2, OP_EXISTS, 0); }
         | TOK_ELEMENTS exp
         { $$ = new QoreTreeNode($2, OP_ELEMENTS, 0); }
-        | TOK_KEYS exp
-        { $$ = new QoreTreeNode($2, OP_KEYS, 0); }
+        | TOK_KEYS exp {
+           $$ = new QoreKeysOperatorNode($2);
+        }
         | TOK_UNSHIFT exp {  // unshift list, element
 	   QoreListNode* l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>($2) : 0;
 	   if (!l || l->size() != 2) {
@@ -3023,7 +3024,7 @@ exp_c:  scalar
 	   else {
 	      AbstractQoreNode* arg = l->shift();
 	      AbstractQoreNode* select_exp = l->shift();
-	      $$ = new QoreTreeNode(arg, OP_SELECT, select_exp);
+              $$ = new QoreSelectOperatorNode(arg, select_exp);
 	      $2->deref(0);
 	   }
 	}

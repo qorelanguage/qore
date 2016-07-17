@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreMapSelectOperatorNode.h
+  QoreSelectOperatorNode.h
 
   Qore Programming Language
 
@@ -29,29 +29,31 @@
   information.
 */
 
-#ifndef _QORE_QOREMAPSELECTOPERATORNODE_H
+#ifndef _QORE_QORESELECTOPERATORNODE_H
 
-#define _QORE_QOREMAPSELECTOPERATORNODE_H
+#define _QORE_QORESELECTOPERATORNODE_H
 
 #include <qore/intern/AbstractIteratorHelper.h>
 #include <qore/intern/FunctionalOperator.h>
 #include <qore/intern/FunctionalOperatorInterface.h>
 
-class QoreMapSelectOperatorNode : public QoreNOperatorNodeBase<3>, public FunctionalOperator {
-   friend class QoreFunctionalMapSelectListOperator;
-   friend class QoreFunctionalMapSelectSingleValueOperator;
-   friend class QoreFunctionalMapSelectIteratorOperator;
-   friend class QoreFunctionalMapSelectOperator;
+class QoreSelectOperatorNode : public QoreBinaryOperatorNode<>, public FunctionalOperator {
+   friend class QoreFunctionalSelectListOperator;
+   friend class QoreFunctionalSelectSingleValueOperator;
+   friend class QoreFunctionalSelectIteratorOperator;
+   friend class QoreFunctionalSelectOperator;
 
 protected:
    const QoreTypeInfo* returnTypeInfo;
    FunctionalOperator* iterator_func;
 
-   DLLLOCAL static QoreString map_str;
+   DLLLOCAL static QoreString select_str;
 
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual ~QoreMapSelectOperatorNode() {
+   DLLLOCAL QoreValue evalValueFunc(bool& needs_deref, ExceptionSink* xsink) const;
+
+   DLLLOCAL virtual ~QoreSelectOperatorNode() {
    }
 
    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
@@ -65,10 +67,10 @@ protected:
       return true;
    }
 
-   DLLLOCAL QoreValue mapSelectIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
+   DLLLOCAL QoreValue selectIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreMapSelectOperatorNode(AbstractQoreNode* e0, AbstractQoreNode* e1, AbstractQoreNode* e2) : QoreNOperatorNodeBase<3>(e0, e1, e2), returnTypeInfo(0), iterator_func(0) {
+   DLLLOCAL QoreSelectOperatorNode(AbstractQoreNode* l, AbstractQoreNode* r) : QoreBinaryOperatorNode<>(l, r), returnTypeInfo(0) {
    }
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
@@ -76,25 +78,23 @@ public:
 
    // returns the type name as a c string
    DLLLOCAL virtual const char* getTypeName() const {
-      return map_str.getBuffer();
+      return select_str.getBuffer();
    }
 
    DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
-
-   //DLLLOCAL AbstractQoreNode* map(ExceptionSink* xsink) const;
 };
 
-class QoreFunctionalMapSelectListOperator : public FunctionalOperatorInterface, public ConstListIterator {
+class QoreFunctionalSelectListOperator : public FunctionalOperatorInterface, public ConstListIterator {
 protected:
-   const QoreMapSelectOperatorNode* map;
+   const QoreSelectOperatorNode* select;
    bool temp;
    ExceptionSink* xsink;
 
 public:
-   DLLLOCAL QoreFunctionalMapSelectListOperator(const QoreMapSelectOperatorNode* m, bool t, QoreListNode* l, ExceptionSink* xs) : ConstListIterator(l), map(m), temp(t), xsink(xs) {
+   DLLLOCAL QoreFunctionalSelectListOperator(const QoreSelectOperatorNode* s, bool t, QoreListNode* l, ExceptionSink* xs) : ConstListIterator(l), select(s), temp(t), xsink(xs) {
    }
 
-   DLLLOCAL virtual ~QoreFunctionalMapSelectListOperator() {
+   DLLLOCAL virtual ~QoreFunctionalSelectListOperator() {
       if (temp)
          const_cast<QoreListNode*>(getList())->deref(xsink);
    }
@@ -102,37 +102,37 @@ public:
    DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
 };
 
-class QoreFunctionalMapSelectSingleValueOperator : public FunctionalOperatorInterface {
+class QoreFunctionalSelectSingleValueOperator : public FunctionalOperatorInterface {
 protected:
-   const QoreMapSelectOperatorNode* map;
+   const QoreSelectOperatorNode* select;
    QoreValue v;
    bool done;
    ExceptionSink* xsink;
 
 public:
-   DLLLOCAL QoreFunctionalMapSelectSingleValueOperator(const QoreMapSelectOperatorNode* m, QoreValue n, ExceptionSink* xs) : map(m), v(n), done(false), xsink(xs) {
+   DLLLOCAL QoreFunctionalSelectSingleValueOperator(const QoreSelectOperatorNode* s, QoreValue n, ExceptionSink* xs) : select(s), v(n), done(false), xsink(xs) {
    }
 
-   DLLLOCAL virtual ~QoreFunctionalMapSelectSingleValueOperator() {
+   DLLLOCAL virtual ~QoreFunctionalSelectSingleValueOperator() {
       v.discard(xsink);
    }
 
    DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
 };
 
-class QoreFunctionalMapSelectIteratorOperator : public FunctionalOperatorInterface {
+class QoreFunctionalSelectIteratorOperator : public FunctionalOperatorInterface {
 protected:
-   const QoreMapSelectOperatorNode* map;
+   const QoreSelectOperatorNode* select;
    bool temp;
    AbstractIteratorHelper h;
    size_t index;
    ExceptionSink* xsink;
 
 public:
-   DLLLOCAL QoreFunctionalMapSelectIteratorOperator(const QoreMapSelectOperatorNode* m, bool t, AbstractIteratorHelper n_h, ExceptionSink* xs) : map(m), temp(t), h(n_h), index(0), xsink(xs) {
+   DLLLOCAL QoreFunctionalSelectIteratorOperator(const QoreSelectOperatorNode* s, bool t, AbstractIteratorHelper n_h, ExceptionSink* xs) : select(s), temp(t), h(n_h), index(0), xsink(xs) {
    }
 
-   DLLLOCAL ~QoreFunctionalMapSelectIteratorOperator() {
+   DLLLOCAL ~QoreFunctionalSelectIteratorOperator() {
       if (temp)
          h.obj->deref(xsink);
    }
@@ -140,17 +140,17 @@ public:
    DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
 };
 
-class QoreFunctionalMapSelectOperator : public FunctionalOperatorInterface {
+class QoreFunctionalSelectOperator : public FunctionalOperatorInterface {
 protected:
-   const QoreMapSelectOperatorNode* map;
+   const QoreSelectOperatorNode* select;
    FunctionalOperatorInterface* f;
    size_t index;
 
 public:
-   DLLLOCAL QoreFunctionalMapSelectOperator(const QoreMapSelectOperatorNode* m, FunctionalOperatorInterface* n_f) : map(m), f(n_f), index(0) {
+   DLLLOCAL QoreFunctionalSelectOperator(const QoreSelectOperatorNode* s, FunctionalOperatorInterface* n_f) : select(s), f(n_f), index(0) {
    }
 
-   DLLLOCAL ~QoreFunctionalMapSelectOperator() {
+   DLLLOCAL ~QoreFunctionalSelectOperator() {
       delete f;
    }
 
