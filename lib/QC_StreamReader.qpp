@@ -30,7 +30,7 @@
 
 #include "qore/Qore.h"
 #include "qore/InputStream.h"
-#include "qore/StreamReader.h"
+#include "qore/intern/StreamReader.h"
 
 //! This class defines a stream reader for input streams.
 /** @since %Qore 0.8.13

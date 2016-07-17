@@ -30,7 +30,7 @@
 
 #include "qore/Qore.h"
 #include "qore/OutputStream.h"
-#include "qore/StreamWriter.h"
+#include "qore/intern/StreamWriter.h"
 
 //! This class defines a stream writer for output streams.
 /** @since %Qore 0.8.13
