@@ -7,12 +7,47 @@
     @par Release Summary
 
     @subsection qore_0813_compatibility Changes That Can Affect Backwards-Compatibility
-    - updated build scripts to the c++11 standard (<a href="https://github.com/qorelanguage/qore/issues/994">issue 994</a>)
+    - fixed broken @ref continue "continue" and @ref break "break" statements that were accepted anywhere in the source and behaved like a @ref return "return" statement; now such statements outside a loop context will result in a parse exception; to get the old behavior, use @ref broken-loop-statement "%broken-loop-statement" in your source code
 
     @subsection qore_0813_new_features New Features in Qore
-    - support for @ref op_functional "lazy functional evaluation" of functional operators for much more efficient processing of iterated expressions
+    - support for input and output streams for the efficient piecewise processing of small or large amounts of data with a low memory overhead; includes the following classes:
+      - @ref Qore::BinaryInputStream "BinaryInputStream"
+      - @ref Qore::BinaryOutputStream "BinaryOutputStream"
+      - @ref Qore::EncodingConversionInputStream "EncodingConversionInputStream"
+      - @ref Qore::EncodingConversionOutputStream "EncodingConversionOutputStream"
+      - @ref Qore::FileInputStream "FileInputStream"
+      - @ref Qore::FileOutputStream "FileOutputStream"
+      - @ref Qore::InputStream "InputStream"
+      - @ref Qore::InputStreamLineIterator "InputStreamLineIterator"
+      - @ref Qore::OutputStream "OutputStream"
+      - @ref Qore::PipeInputStream "PipeInputStream"
+      - @ref Qore::PipeOutputStream "PipeOutputStream"
+      - @ref Qore::StreamPipe "StreamPipe"
+      - @ref Qore::StreamReader "StreamReader"
+      - @ref Qore::StreamWriter "StreamWriter"
+      - @ref Qore::StringInputStream "StringInputStream"
+      - @ref Qore::TransformInputStream "TransformInputStream"
+      - @ref Qore::TransformOutputStream "TransformOutputStream"
+      .
+      Additionally, stream support has been added to the following functions and methods:
+      - @ref Qore::FtpClient::put()
+      - @ref Qore::FtpClient::get()
+      - @ref Qore::HTTPClient::sendWithOutputStream()
+      - @ref Qore::Socket::sendHTTPChunkedBodyFromInputStream()
+      - @ref Qore::Socket::readHTTPChunkedBodyToOutputStream()
+      .
+    - support for @ref op_functional "lazy functional evaluation" of functional operators (including nested lazy evaluation) for much more efficient processing of iterated expressions; affects:
+      - @ref map "map": supports lazy evaluation of itself also of the iterator expression
+      - @ref select "select": supports lazy evaluation of itself and also of the iterator expression
+      - @ref keys "keys": supports lazy evaluation
+      - @ref foldl "foldl": supports lazy evaluation of the iterator expression
+      - @ref foldr "foldlr": supports lazy evaluation of the iterator expression
+      - @ref foreach "foreach": supports lazy evaluation of the iterator expression
+    - new parse options:
+      - @ref broken-loop-statement "%broken-loop-statement"
     - new constants:
       - @ref Qore::PO_BROKEN_LOOP_STATEMENT
+    - updated the build to require a <a href="https://en.wikipedia.org/wiki/C%2B%2B11">C++11</a> compiler or better to build %Qore (<a href="https://github.com/qorelanguage/qore/issues/994">issue 994</a>)
 
     @subsection qore_0813_bug_fixes Bug Fixes in Qore
     - fixed a bug causing @ref Qore::AbstractQuantifiedBidirectionalIterator "AbstractQuantifiedBidirectionalIterator" not being available (<a href="https://github.com/qorelanguage/qore/issues/968">issue 968</a>)
