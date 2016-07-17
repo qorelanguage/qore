@@ -858,7 +858,7 @@ addTestCase(obj);
         str = replace(str, "\r", "<\\r>");
         str = replace(str, "\t", "<\\t>");
         str = replace(str, "\v", "<\\v>");
-        str = replace(str, " ", "<space>");
+        #str = replace(str, " ", "<space>");
         return str;
     }
 
