@@ -83,7 +83,7 @@ functionality.
 %defattr(-,root,root,-)
 %{_libdir}/libqore.so.5.14
 %{_libdir}/libqore.so.5
-%doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS ABOUT
+%doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
 %post -n libqore5
 ldconfig %{_libdir}
