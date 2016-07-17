@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,14 +34,24 @@
 #define _QORE_QOREMAPOPERATORNODE_H
 
 #include <qore/intern/AbstractIteratorHelper.h>
+#include <qore/intern/FunctionalOperator.h>
+#include <qore/intern/FunctionalOperatorInterface.h>
 
-class QoreMapOperatorNode : public QoreBinaryOperatorNode<> {
+class QoreMapOperatorNode : public QoreBinaryOperatorNode<>, public FunctionalOperator {
+   friend class QoreFunctionalMapListOperator;
+   friend class QoreFunctionalMapSingleValueOperator;
+   friend class QoreFunctionalMapIteratorOperator;
+   friend class QoreFunctionalMapOperator;
+
 protected:
    const QoreTypeInfo* returnTypeInfo;
+   FunctionalOperator* iterator_func;
 
    DLLLOCAL static QoreString map_str;
 
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+   DLLLOCAL QoreValue evalValueFunc(bool& needs_deref, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual ~QoreMapOperatorNode() {
    }
@@ -59,6 +69,8 @@ protected:
 
    DLLLOCAL QoreValue mapIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
 
+   DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
+
 public:
    DLLLOCAL QoreMapOperatorNode(AbstractQoreNode* l, AbstractQoreNode* r) : QoreBinaryOperatorNode<>(l, r), returnTypeInfo(0) {
    }
@@ -72,6 +84,79 @@ public:
    }
 
    //DLLLOCAL AbstractQoreNode* map(ExceptionSink* xsink) const;
+};
+
+class QoreFunctionalMapListOperator : public FunctionalOperatorInterface, public ConstListIterator {
+protected:
+   const QoreMapOperatorNode* map;
+   bool temp;
+   ExceptionSink* xsink;
+
+public:
+   DLLLOCAL QoreFunctionalMapListOperator(const QoreMapOperatorNode* m, bool t, QoreListNode* l, ExceptionSink* xs) : ConstListIterator(l), map(m), temp(t), xsink(xs) {
+   }
+
+   DLLLOCAL virtual ~QoreFunctionalMapListOperator() {
+      if (temp)
+         const_cast<QoreListNode*>(getList())->deref(xsink);
+   }
+
+   DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
+};
+
+class QoreFunctionalMapSingleValueOperator : public FunctionalOperatorInterface {
+protected:
+   const QoreMapOperatorNode* map;
+   QoreValue v;
+   bool done;
+   ExceptionSink* xsink;
+
+public:
+   DLLLOCAL QoreFunctionalMapSingleValueOperator(const QoreMapOperatorNode* m, QoreValue n, ExceptionSink* xs) : map(m), v(n), done(false), xsink(xs) {
+   }
+
+   DLLLOCAL virtual ~QoreFunctionalMapSingleValueOperator() {
+      v.discard(xsink);
+   }
+
+   DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
+};
+
+class QoreFunctionalMapIteratorOperator : public FunctionalOperatorInterface {
+protected:
+   const QoreMapOperatorNode* map;
+   bool temp;
+   AbstractIteratorHelper h;
+   size_t index;
+   ExceptionSink* xsink;
+
+public:
+   DLLLOCAL QoreFunctionalMapIteratorOperator(const QoreMapOperatorNode* m, bool t, AbstractIteratorHelper n_h, ExceptionSink* xs) : map(m), temp(t), h(n_h), index(0), xsink(xs) {
+   }
+
+   DLLLOCAL ~QoreFunctionalMapIteratorOperator() {
+      if (temp)
+         h.obj->deref(xsink);
+   }
+
+   DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
+};
+
+class QoreFunctionalMapOperator : public FunctionalOperatorInterface {
+protected:
+   const QoreMapOperatorNode* map;
+   FunctionalOperatorInterface* f;
+   size_t index;
+
+public:
+   DLLLOCAL QoreFunctionalMapOperator(const QoreMapOperatorNode* m, FunctionalOperatorInterface* n_f) : map(m), f(n_f), index(0) {
+   }
+
+   DLLLOCAL ~QoreFunctionalMapOperator() {
+      delete f;
+   }
+
+   DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
 };
 
 #endif
