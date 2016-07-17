@@ -108,10 +108,20 @@
     - @ref foldr "foldr": supports lazy evaluation in the @ref expressions "iterator expression"
     - @ref foreach "foreach": supports lazy evaluation in the @ref expressions "iterator expression"
 
+    @par Example
+    With lazy functional evaluation, the following code does not create a potentially long itermediate list with the @ref map "map" expression, but rather the @ref foldl "foldl" expression will operate directly on the expressions generated when iterating the value returned by <tt>get_iterator()</tt>:
+    @code{.py}
+# build a comma-separated string from an iterated expression
+string str = foldl $1 + ", " + $2, (map $1.desc, get_iterator(), $1.type == External);
+    @endcode
+
     @section op_details Operator Details
 
     <hr>
     @subsection backquote_operator Backquote Operator (``)
+
+    @par Sandbox Restrictions
+    @ref Qore::PO_NO_EXTERNAL_PROCESS
 
     @par Synopsis
     Executes the shell command in a separate process and returns the stdout as a string. To perform the same action using a %Qore expression, see the backquote() function.
@@ -311,6 +321,9 @@
     <hr>
     @subsection new New Object Operator (new)
 
+    @par Sandbox Restrictions
+    @ref Qore::PO_NO_NEW
+
     @par Synopsis
     Creates an instance of a class by running the class' constructor on the new class (if any exists) and returns the new object.\n\n
     Note that if possible it is normally better to declare an object with its type and use the abbreviated form to construct the object as follows:\n
@@ -334,6 +347,9 @@
 
     <hr>
     @subsection background Background Operator (background)
+
+    @par Sandbox Restrictions
+    @ref Qore::PO_NO_THREAD_CONTROL
 
     @par Synopsis
     Start a background thread and return the TID (thread ID).
