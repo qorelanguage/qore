@@ -51,7 +51,7 @@ DLLLOCAL extern const QoreTypeInfo* bigIntFloatOrNumberTypeInfo, * floatOrNumber
 Operator *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT, *OP_BIN_XOR, *OP_MINUS, *OP_PLUS,
    *OP_MULT, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT,
    *OP_LOG_CMP,
-   *OP_OBJECT_REF, *OP_ELEMENTS, *OP_KEYS,
+   *OP_OBJECT_REF, *OP_ELEMENTS,
    *OP_SHIFT, *OP_POP, *OP_PUSH,
    *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT,
    *OP_REGEX_TRANS, *OP_REGEX_EXTRACT,
@@ -497,28 +497,6 @@ static int64 op_elements(const AbstractQoreNode* left, const AbstractQoreNode* n
       return reinterpret_cast<const BinaryNode*>(*np)->size();
 
    return 0;
-}
-
-static QoreListNode* get_keys(const AbstractQoreNode* p, ExceptionSink* xsink) {
-   if (!p)
-      return 0;
-
-   if (p->getType() == NT_HASH)
-      return reinterpret_cast<const QoreHashNode*>(p)->getKeys();
-
-   if (p->getType() == NT_OBJECT)
-      return reinterpret_cast<const QoreObject *>(p)->getMemberList(xsink);
-
-   return 0;
-}
-
-// FIXME: do not need ref_rv here - also do not need second argument
-static AbstractQoreNode* op_keys(const AbstractQoreNode* left, const AbstractQoreNode* null, bool ref_rv, ExceptionSink* xsink) {
-   QoreNodeEvalOptionalRefHolder np(left, xsink);
-   if (*xsink)
-      return 0;
-
-   return get_keys(*np, xsink);
 }
 
 static AbstractQoreNode* op_regex_subst(const AbstractQoreNode* left, const AbstractQoreNode* right, bool ref_rv, ExceptionSink* xsink) {
@@ -1922,33 +1900,6 @@ static AbstractQoreNode* check_op_elements(QoreTreeNode* tree, LocalVar* oflag, 
    return tree;
 }
 
-static AbstractQoreNode* check_op_keys(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& returnTypeInfo, const char* name, const char* desc) {
-   const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
-
-   assert(!tree->right);
-
-   if (leftTypeInfo->hasType()) {
-      if (leftTypeInfo->isType(NT_HASH) || leftTypeInfo->isType(NT_OBJECT))
-	 returnTypeInfo = listTypeInfo;
-      else if (!hashTypeInfo->parseAccepts(leftTypeInfo)
-	       && !objectTypeInfo->parseAccepts(leftTypeInfo)) {
-	 QoreStringNode* edesc = new QoreStringNode("the expression with the 'keys' operator is ");
-	 leftTypeInfo->getThisType(*edesc);
-	 edesc->concat(" and so this expression will always return NOTHING; the 'keys' operator can only return a value with hashes and objects");
-	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
-	 returnTypeInfo = nothingTypeInfo;
-      }
-      else
-	 returnTypeInfo = listOrNothingTypeInfo;
-   }
-
-   if (tree->constArgs())
-      return tree->evalSubst(returnTypeInfo);
-
-   return tree;
-}
-
 // issues a warning
 static AbstractQoreNode* check_op_list_op(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& returnTypeInfo, const char* name, const char* desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
@@ -2151,10 +2102,6 @@ void OperatorList::init() {
    // cannot validate return type here yet
    OP_OBJECT_REF = add(new Operator(2, ".", "hash/object-reference", 0, false, false, check_op_object_ref));
    OP_OBJECT_REF->addFunction(NT_ALL, NT_ALL, op_object_ref);
-
-   // can return a list or NOTHING
-   OP_KEYS = add(new Operator(1, "keys", "list of keys", 0, false, false, check_op_keys));
-   OP_KEYS->addFunction(NT_ALL, NT_NONE, op_keys);
 
    OP_SHIFT = add(new Operator(1, "shift", "shift from list", 0, true, true, check_op_list_op));
    OP_SHIFT->addFunction(op_shift);

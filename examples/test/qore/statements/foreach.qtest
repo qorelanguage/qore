@@ -59,5 +59,53 @@ class ForEachTest inherits QUnit::Test {
                 l += $#;
             assertEq((0, 1), l);
         }
+
+        {
+            list l = ();
+            foreach string str in (keys NOTHING)
+                l += str;
+            foreach string str in (keys 1)
+                l += str;
+            assertEq((), l);
+        }
+
+        {
+            list l = ();
+            foreach string str in (keys ("a": 1))
+                l += str;
+            assertEq(("a",), l);
+        }
+
+        {
+            hash h = ("a": 1);
+            list l = ();
+            foreach string str in (keys h)
+                l += str;
+            assertEq(("a",), l);
+        }
+
+        {
+            list l = ();
+            foreach string str in (map $1, (keys NOTHING))
+                l += str;
+            foreach string str in (map $1, (keys 1))
+                l += str;
+            assertEq((), l);
+        }
+
+        {
+            list l = ();
+            foreach string str in (map $1, (keys ("a": 1)))
+                l += str;
+            assertEq(("a",), l);
+        }
+
+        {
+            hash h = ("a": 1);
+            list l = ();
+            foreach string str in (map $1, (keys h))
+                l += str;
+            assertEq(("a",), l);
+        }
     }
 }

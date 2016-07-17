@@ -69,6 +69,8 @@ protected:
 
    DLLLOCAL QoreValue mapIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
 
+   DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
+
 public:
    DLLLOCAL QoreMapOperatorNode(AbstractQoreNode* l, AbstractQoreNode* r) : QoreBinaryOperatorNode<>(l, r), returnTypeInfo(0) {
    }
@@ -80,8 +82,6 @@ public:
    DLLLOCAL virtual const char* getTypeName() const {
       return map_str.getBuffer();
    }
-
-   DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
 
    //DLLLOCAL AbstractQoreNode* map(ExceptionSink* xsink) const;
 };

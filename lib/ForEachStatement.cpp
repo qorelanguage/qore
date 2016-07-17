@@ -35,7 +35,7 @@
 
 #include <memory>
 
-ForEachStatement::ForEachStatement(int start_line, int end_line, AbstractQoreNode* v, AbstractQoreNode* l, StatementBlock *cd) : AbstractStatement(start_line, end_line), var(v), list(l), code(cd), lvars(0), iterator_func(0), is_ref(false), is_keys(false) {
+ForEachStatement::ForEachStatement(int start_line, int end_line, AbstractQoreNode* v, AbstractQoreNode* l, StatementBlock *cd) : AbstractStatement(start_line, end_line), var(v), list(l), code(cd), lvars(0), iterator_func(0), is_ref(false) {
 }
 
 ForEachStatement::~ForEachStatement() {
@@ -50,9 +50,6 @@ ForEachStatement::~ForEachStatement() {
 int ForEachStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
    if (is_ref)
       return execRef(return_value, xsink);
-
-   if (is_keys)
-      return execKeys(return_value, xsink);
 
    // instantiate local variables
    LVListInstantiator lvi(lvars, xsink);
@@ -83,72 +80,6 @@ int ForEachStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
 
 	 // assign variable to current value
 	 if (n.assign(iv.takeReferencedValue(), "<foreach lvalue assignment>"))
-	    break;
-      }
-
-      // set offset in thread-local data for "$#"
-      ImplicitElementHelper eh(i++);
-
-      // execute "foreach" body
-      if (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || *xsink) {
-	 rc = 0;
-	 break;
-      }
-
-      if (rc == RC_RETURN)
-	 break;
-      else if (rc == RC_CONTINUE)
-	 rc = 0;
-   }
-
-   return rc;
-}
-
-// specialization for foreach ... in (keys <hash>) {}
-int ForEachStatement::execKeys(QoreValue& return_value, ExceptionSink* xsink) {
-   // instantiate local variables
-   LVListInstantiator lvi(lvars, xsink);
-
-   assert(get_node_type(list) == NT_TREE);
-   QoreTreeNode* t = reinterpret_cast<QoreTreeNode*>(list);
-
-   QoreHashNodeHolder hash(reinterpret_cast<QoreHashNode*>(t->left->eval(xsink)), xsink);
-   if (*xsink || !code)
-      return 0;
-
-   qore_type_t hnt = get_node_type(*hash);
-
-   // create an empty reference holder for a temporary hash in case the operand is an object
-   ReferenceHolder<QoreHashNode> hh(xsink);
-   const QoreHashNode* h;
-
-   // if the result is not a hash, then return
-   if (hnt == NT_OBJECT) {
-      hh = reinterpret_cast<const QoreObject *>(*hash)->getRuntimeMemberHash(xsink);
-      if (*xsink)
-	 return 0;
-      h = *hh;
-   }
-   else if (hnt != NT_HASH) {
-      return 0;
-   }
-   else
-      h = reinterpret_cast<const QoreHashNode*>(*hash);
-
-   ConstHashIterator hi(h);
-
-   int rc = 0;
-
-   int i = 0;
-
-   while (hi.next()) {
-      {
-	 LValueHelper n(var, xsink);
-	 if (!n)
-	    break;
-
-	 // assign variable to current key value in list
-	 if (n.assign(new QoreStringNode(hi.getKey())))
 	    break;
       }
 
@@ -289,13 +220,6 @@ int ForEachStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    qore_type_t typ = list->getType();
 
    is_ref = (typ == NT_PARSEREFERENCE);
-
-   // check for "keys <hash>" specialization
-   if (!is_ref && typ == NT_TREE) {
-      QoreTreeNode* t = reinterpret_cast<QoreTreeNode*>(list);
-      if (t->getOp() == OP_KEYS)
-         is_keys = true;
-   }
 
    // use lazy evaluation if the iterator expression supports it
    iterator_func = dynamic_cast<FunctionalOperator*>(list);

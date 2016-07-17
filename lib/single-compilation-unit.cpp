@@ -160,6 +160,7 @@
 #include "QoreSpliceOperatorNode.cpp"
 #include "QoreExtractOperatorNode.cpp"
 #include "QoreCastOperatorNode.cpp"
+#include "QoreKeysOperatorNode.cpp"
 #include "QoreUnaryMinusOperatorNode.cpp"
 #include "QoreLogicalNotOperatorNode.cpp"
 #include "QoreDotEvalOperatorNode.cpp"

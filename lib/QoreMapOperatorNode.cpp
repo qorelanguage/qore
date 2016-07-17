@@ -95,8 +95,7 @@ QoreValue QoreMapOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* x
 
    ReferenceHolder<QoreListNode> rv(ref_rv && (value_type != single) ? new QoreListNode : 0, xsink);
 
-   bool done = false;
-   while (!done) {
+   while (true) {
       ValueOptionalRefHolder iv(xsink);
       if (f->getNext(iv, xsink))
 	 break;
@@ -117,7 +116,7 @@ QoreValue QoreMapOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* x
 FunctionalOperatorInterface* QoreMapOperatorNode::getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const {
    if (iterator_func) {
       std::unique_ptr<FunctionalOperatorInterface> f(iterator_func->getFunctionalIterator(value_type, xsink));
-      if (*xsink)
+      if (*xsink || value_type == nothing)
 	 return 0;
       return new QoreFunctionalMapOperator(this, f.release());
    }
@@ -141,7 +140,7 @@ FunctionalOperatorInterface* QoreMapOperatorNode::getFunctionalIteratorImpl(Func
       }
       if (t == NT_NOTHING) {
 	 value_type = nothing;
-	 return new QoreFunctionalNothingOperator;
+	 return 0;
       }
 
       value_type = single;

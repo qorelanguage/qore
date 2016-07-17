@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -46,12 +46,9 @@ private:
    StatementBlock* code;
    LVList* lvars;
    FunctionalOperator* iterator_func;
-   bool is_ref,
-      is_keys;
+   bool is_ref;
 
    DLLLOCAL int execRef(QoreValue& return_value, ExceptionSink* xsink);
-   DLLLOCAL int execKeys(QoreValue& return_value, ExceptionSink* xsink);
-   DLLLOCAL int execIterator(AbstractIteratorHelper& aih, QoreValue& return_value, ExceptionSink* xsink);
    DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
    DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0);
 

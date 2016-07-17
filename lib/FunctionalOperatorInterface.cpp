@@ -57,7 +57,7 @@ FunctionalOperatorInterface* FunctionalOperatorInterface::getFunctionalIterator(
       }
       if (t == NT_NOTHING) {
 	 value_type = FunctionalOperator::nothing;
-	 return new QoreFunctionalNothingOperator;
+	 return 0;
       }
 
       value_type = FunctionalOperator::single;

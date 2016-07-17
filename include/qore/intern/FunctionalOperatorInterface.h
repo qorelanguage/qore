@@ -51,13 +51,6 @@ public:
    DLLLOCAL static FunctionalOperatorInterface* getFunctionalIterator(FunctionalOperator::FunctionalValueType& value_type, AbstractQoreNode* exp, bool fwd, const char* who, ExceptionSink* xsink);
 };
 
-class QoreFunctionalNothingOperator : public FunctionalOperatorInterface {
-public:
-   DLLLOCAL bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
-      return true;
-   }
-};
-
 class QoreFunctionalListOperator : public FunctionalOperatorInterface, public ConstListIterator {
 protected:
    bool temp;
