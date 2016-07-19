@@ -53,13 +53,14 @@ module CsvUtil {
 
     Currently the module provides the following classes:
     - @ref CsvUtil::AbstractCsvIterator "AbstractCsvIterator": base abstract iterator class for iterating line-based CSV data
+    - @ref CsvUtil::AbstractCsvWriter "AbstractCsvWriter": a base class for new CSV writer implementations
     - @ref CsvUtil::CsvDataIterator "CsvDataIterator": iterator class allowing for CSV string data to be processed line by line on a record basis
     - @ref CsvUtil::CsvFileIterator "CsvFileIterator": iterator class allowing for CSV files to be processed line by line on a record basis
-    - @ref CsvUtil::AbstractCsvWriter "AbstractCsvWriter": a base class for new CSV writer implementations
     - @ref CsvUtil::CsvFileWriter "CsvFileWriter": CSV file writer
+    - @ref CsvUtil::CsvIterator "CsvIterator": iterator class allowing for generic CSV input data to be processed line by line on a record basis
     - @ref CsvUtil::CsvStringWriter "CsvStringWriter": CSV in-memory writer
 
-    Note that the @ref CsvUtil::CsvFileIterator "CsvFileIterator" class can be used to parse arbitrary text files; the field separator character can be specified in the @ref CsvUtil::CsvFileIterator::constructor() "constructor", as well as the quote character and end of line sequence.  See the @ref CsvUtil::CsvFileIterator::constructor() "constructor documentation" for more information.
+    Note that the @ref CsvUtil::CsvIterator "CsvIterator" class can be used to parse arbitrary text data; the field separator character can be specified in the @ref CsvUtil::CsvIterator::constructor() "constructor", as well as the quote character and end of line sequence.  See the @ref CsvUtil::CsvIterator::constructor() "constructor documentation" for more information.
 
     <b>Examples:</b>
     @code{.py}
@@ -219,6 +220,7 @@ while (i.next()) {
     @section csvutil_relnotes Release Notes
 
     @subsection csvutil_v1_6 Version 1.6
+    - added support for streams
     - fixed a bug in an error message validating input data (<a href="https://github.com/qorelanguage/qore/issues/1062">issue 1062</a>)
 
     @subsection csvutil_v1_5 Version 1.5
@@ -1243,7 +1245,7 @@ while (i.next()) {
         }
     }
 
-    #! The CsvIterator class allows CSV sources to be iterated on a record basis. Source of data is general @ref AbstractLineIterator typically pipelined from stream
+    #! The CsvIterator class allows CSV sources to be iterated on a record basis.  The source of the input data is either a @ref Qore::AbstractLineIterator "AbstractLineIterator" object or an @ref Qore::InputStream "InputStream" object.
     /** @see
         - @ref abstractcsviterator_options
         - @ref abstractcsviterator_option_field_types
@@ -1256,15 +1258,38 @@ while (i.next()) {
 
             @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names" is @ref Qore::True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
          */
-        constructor(AbstractLineIterator li, *hash opts) : AbstractCsvIterator(li, opts) {
+        constructor(Qore::AbstractLineIterator li, *hash opts) : AbstractCsvIterator(li, opts) {
         }
 
         #! Creates the CsvIterator in multi-type mode with general line iterator to read and optionally an option hash
         /** @param li line iterator of CSV file to read
             @param spec a hash of field and type definition; see @ref abstractcsviterator_option_field_hash for more information
             @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
+
+            @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names" is @ref Qore::True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
          */
-        constructor(AbstractLineIterator li, hash spec, hash opts) : AbstractCsvIterator(li, spec, opts) {
+        constructor(Qore::AbstractLineIterator li, hash spec, hash opts) : AbstractCsvIterator(li, spec, opts) {
+        }
+
+        #! Creates the CsvIterator from an @ref Qore::InputStream "InputStream", the input encoding, and optionally an option hash
+        /** @param input the @ref Qore::InputStream "InputStream" providing data to iterate
+            @param encoding the encoding of the input stream
+            @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
+
+            @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names" is @ref Qore::True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
+         */
+        constructor(Qore::InputStream input, string encoding = "UTF-8", *hash opts) : AbstractCsvIterator(new InputStreamLineIterator(input, encoding, opts.eol), opts) {
+        }
+
+        #! Creates the CsvDataIterator in multi-type mode from an @ref Qore::InputStream "InputStream", the record specification, the input encoding, and optionally an option hash
+        /** @param input the @ref Qore::InputStream "InputStream" providing data to iterate
+            @param encoding the encoding of the input stream
+            @param spec a hash of field and type definition; see @ref abstractcsviterator_option_field_hash for more information
+            @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
+
+            @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names" is @ref Qore::True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
+         */
+        constructor(Qore::InputStream input, string encoding = "UTF-8", hash spec, hash opts) : AbstractCsvIterator(new InputStreamLineIterator(input, encoding, opts.eol), spec, opts) {
         }
 
         any memberGate(string name) {
@@ -1317,7 +1342,7 @@ while (i.next()) {
 
             @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names" is @ref Qore::True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
          */
-        constructor(string data, *hash opts) : AbstractCsvIterator(new InputStreamLineIterator(new BinaryInputStream(binary(data)), data.encoding(), opts.eol), opts) {
+        constructor(string data, *hash opts) : AbstractCsvIterator(new DataLineIterator(data, opts.eol), opts) {
         }
 
         #! Creates the CsvDataIterator in multi-type mode with the path of the file to read and an option hash
@@ -1325,7 +1350,7 @@ while (i.next()) {
             @param spec a hash of field and type definition; see @ref abstractcsviterator_option_field_hash for more information
             @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
          */
-        constructor(string data, hash spec, hash opts) : AbstractCsvIterator(new InputStreamLineIterator(new BinaryInputStream(binary(data)), data.encoding(), opts.eol), spec, opts) {
+        constructor(string data, hash spec, hash opts) : AbstractCsvIterator(new DataLineIterator(data, opts.eol), spec, opts) {
         }
 
         any memberGate(string name) {
