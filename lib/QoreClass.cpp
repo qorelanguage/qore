@@ -1500,6 +1500,20 @@ const QoreClass* BCNode::parseGetClass(const qore_class_private& qc, bool& n_pri
    return rv;
 }
 
+bool BCList::isBaseClass(QoreClass* qc) const {
+   for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
+      QoreClass* sc = (*i)->sclass;
+      assert(sc);
+      //printd(5, "BCList::isBaseClass() %p %s (%d) == %s (%d)\n", this, qc->getName(), qc->getID(), sc->getName(), sc->getID());
+      if (qc->getID() == sc->getID() || (sc->priv->scl && sc->priv->scl->isBaseClass(qc))) {
+	 //printd(5, "BCList::isBaseClass() %p %s (%d) TRUE\n", this, qc->getName(), qc->getID());
+	 return true;
+      }
+   }
+   //printd(5, "BCList::isBaseClass() %p %s (%d) FALSE\n", this, qc->getName(), qc->getID());
+   return false;
+}
+
 int BCList::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_set) {
    printd(5, "BCList::parseInit(%s) this: %p empty: %d\n", cls->getName(), this, empty());
    for (bclist_t::iterator i = begin(), e = end(); i != e;) {
@@ -2307,21 +2321,6 @@ void QoreClass::addPrivateMember(const char* mname, const QoreTypeInfo* n_typeIn
    priv->addPrivateMember(mname, n_typeInfo, initial_value);
 }
 
-bool BCSMList::isBaseClass(QoreClass* qc) const {
-   class_list_t::const_iterator i = begin();
-   while (i != end()) {
-      QoreClass* sc = (*i).first;
-      printd(5, "BCSMList::isBaseClass() %p %s (%d) == %s (%d)\n", this, qc->getName(), qc->getID(), sc->getName(), sc->getID());
-      if (qc->getID() == sc->getID() || (sc->priv->scl && sc->priv->scl->sml.isBaseClass(qc))) {
-	 //printd(5, "BCSMList::isBaseClass() %p %s (%d) TRUE\n", this, qc->getName(), qc->getID());
-	 return true;
-      }
-      ++i;
-   }
-   //printd(5, "BCSMList::isBaseClass() %p %s (%d) FALSE\n", this, qc->getName(), qc->getID());
-   return false;
-}
-
 int BCSMList::addBaseClassesToSubclass(QoreClass* thisclass, QoreClass* sc, bool is_virtual) {
    //printd(5, "BCSMList::addBaseClassesToSubclass(this: %s, sc: %s) size: %d\n", thisclass->getName(), sc->getName());
    for (class_list_t::const_iterator i = begin(), e = end(); i != e; ++i) {
@@ -2807,7 +2806,7 @@ const QoreMethod* qore_class_private::parseResolveSelfMethod(NamedScope* nme) {
       return 0;
 
    // see if class is base class of this class
-   if (qc != cls && (!scl || !scl->sml.isBaseClass(qc))) {
+   if (qc != cls && (!scl || !scl->isBaseClass(qc))) {
       parse_error("'%s' is not a base class of '%s'", qc->getName(), name.c_str());
       return 0;
    }
