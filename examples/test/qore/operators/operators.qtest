@@ -466,5 +466,11 @@ class Test inherits QUnit::Test {
 
         assertEq(("b",), keys d);
         assertEq(("b",), map $1, (keys d));
+
+        # check for copy-on-write violations
+        hash q = map {$1: ($1 % 2) ? NULL : True}, xrange(20);
+        map delete q.$1, keys q, q.$1 === NULL;
+        assertEq((0: True, 2: True, 4: True, 6: True, 8: True, 10: True, 12: True, 14: True, 16: True, 18: True, 20: True), q);
+
     }
 }
