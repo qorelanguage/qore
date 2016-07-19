@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,7 @@
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/AbstractIteratorHelper.h>
 
-#include <math.h>
+#include <cmath>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -51,15 +51,14 @@ DLLLOCAL extern const QoreTypeInfo* bigIntFloatOrNumberTypeInfo, * floatOrNumber
 Operator *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT, *OP_BIN_XOR, *OP_MINUS, *OP_PLUS,
    *OP_MULT, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT,
    *OP_LOG_CMP,
-   *OP_OBJECT_REF, *OP_ELEMENTS, *OP_KEYS,
+   *OP_OBJECT_REF, *OP_ELEMENTS,
    *OP_SHIFT, *OP_POP, *OP_PUSH,
    *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT,
    *OP_REGEX_TRANS, *OP_REGEX_EXTRACT,
    *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT,
    *OP_LOG_GT, *OP_LOG_EQ, *OP_LOG_NE, *OP_LOG_LE, *OP_LOG_GE,
    *OP_ABSOLUTE_EQ, *OP_ABSOLUTE_NE, *OP_REGEX_MATCH, *OP_REGEX_NMATCH,
-   *OP_EXISTS, *OP_INSTANCEOF, *OP_FOLDR, *OP_FOLDL,
-   *OP_SELECT;
+   *OP_EXISTS, *OP_INSTANCEOF;
 
 // call to get a node with reference count 1 (copy on write)
 void ensure_unique(AbstractQoreNode* *v, ExceptionSink* xsink) {
@@ -500,28 +499,6 @@ static int64 op_elements(const AbstractQoreNode* left, const AbstractQoreNode* n
    return 0;
 }
 
-static QoreListNode* get_keys(const AbstractQoreNode* p, ExceptionSink* xsink) {
-   if (!p)
-      return 0;
-
-   if (p->getType() == NT_HASH)
-      return reinterpret_cast<const QoreHashNode*>(p)->getKeys();
-
-   if (p->getType() == NT_OBJECT)
-      return reinterpret_cast<const QoreObject *>(p)->getMemberList(xsink);
-
-   return 0;
-}
-
-// FIXME: do not need ref_rv here - also do not need second argument
-static AbstractQoreNode* op_keys(const AbstractQoreNode* left, const AbstractQoreNode* null, bool ref_rv, ExceptionSink* xsink) {
-   QoreNodeEvalOptionalRefHolder np(left, xsink);
-   if (*xsink)
-      return 0;
-
-   return get_keys(*np, xsink);
-}
-
 static AbstractQoreNode* op_regex_subst(const AbstractQoreNode* left, const AbstractQoreNode* right, bool ref_rv, ExceptionSink* xsink) {
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
@@ -760,7 +737,7 @@ static AbstractQoreNode* op_plus_binary_binary(const AbstractQoreNode* left, con
 }
 
 static int64 op_cmp_double(double left, double right, ExceptionSink* xsink) {
-   if (isnan(left) || isnan(right)) {
+   if (std::isnan(left) || std::isnan(right)) {
       xsink->raiseException("NAN-COMPARE-ERROR", "NaN in logical comparison operator");
       return 1;
    }
@@ -927,7 +904,7 @@ static AbstractQoreNode* op_push(const AbstractQoreNode* left, const AbstractQor
       return 0;
    }
 
-   // no exception can occurr here
+   // no exception can occur here
    val.ensureUnique();
 
    QoreListNode* l = reinterpret_cast<QoreListNode*>(val.getValue());
@@ -937,223 +914,6 @@ static AbstractQoreNode* op_push(const AbstractQoreNode* left, const AbstractQor
    l->push(value.getReferencedValue());
    // reference for return value
    return ref_rv ? l->refSelf() : 0;
-}
-
-static AbstractQoreNode* op_fold_iterator(const AbstractQoreNode* left, AbstractIteratorHelper& h, bool ref_rv, ExceptionSink* xsink) {
-   // set offset in thread-local data for "$#"
-   ImplicitElementHelper eh(-1);
-
-   // first try to get first argument
-   bool b = h.next(xsink);
-   // if there is no first argument or an exception occurred, then return 0
-   if (!b || *xsink)
-      return 0;
-
-   // get first argument value
-   ValueHolder result(h.getValue(xsink), xsink);
-   //ReferenceHolder<AbstractQoreNode> result(h.getValue(xsink), xsink);
-   if (*xsink)
-      return 0;
-
-   while (true) {
-      bool b = h.next(xsink);
-      if (*xsink)
-         return 0;
-      if (!b)
-         break;
-
-      // get next argument value
-      ValueHolder arg(h.getValue(xsink), xsink);
-      //ReferenceHolder<AbstractQoreNode> arg(h.getValue(xsink), xsink);
-      if (*xsink)
-         return 0;
-
-      // create argument list for fold expression
-      QoreListNode* args = new QoreListNode;
-      args->push(result.getReferencedValue());
-      args->push(arg.getReferencedValue());
-      ArgvContextHelper argv_helper(args, xsink);
-      result = left->eval(xsink);
-      if (*xsink)
-         return 0;
-   }
-
-   return result.getReferencedValue();
-}
-
-static AbstractQoreNode* op_foldl(const AbstractQoreNode* left, const AbstractQoreNode* arg_exp, bool ref_rv, ExceptionSink* xsink) {
-   // conditionally evaluate argument
-   QoreNodeEvalOptionalRefHolder arg(arg_exp, xsink);
-   if (!arg || *xsink)
-      return 0;
-
-   // return the argument if there is no list
-   qore_type_t t = arg->getType();
-   if (t != NT_LIST) {
-      if (t == NT_OBJECT) {
-         AbstractIteratorHelper h(xsink, "foldl operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)));
-         if (*xsink)
-            return 0;
-         if (h)
-            return op_fold_iterator(left, h, ref_rv, xsink);
-      }
-      return arg.getReferencedValue();
-   }
-
-   const QoreListNode* l = reinterpret_cast<const QoreListNode*>(*arg);
-
-   // returns NOTHING if the list is empty
-   if (!l->size())
-      return 0;
-
-   ReferenceHolder<AbstractQoreNode> result(l->get_referenced_entry(0), xsink);
-
-   // return the first element if the list only has one element
-   if (l->size() == 1)
-      return result.release();
-
-   // skip the first element
-   ConstListIterator li(l, 0);
-   while (li.next()) {
-      // set offset in thread-local data for "$#"
-      ImplicitElementHelper eh(li.index());
-      // create argument list
-      QoreListNode* args = new QoreListNode();
-      args->push(result.release());
-      args->push(li.getReferencedValue());
-
-      ArgvContextHelper argv_helper(args, xsink);
-
-      result = left->eval(xsink);
-      if (*xsink)
-	 return 0;
-   }
-   return result.release();
-}
-
-static AbstractQoreNode* op_foldr(const AbstractQoreNode* left, const AbstractQoreNode* arg_exp, bool ref_rv, ExceptionSink* xsink) {
-   // conditionally evaluate argument
-   QoreNodeEvalOptionalRefHolder arg(arg_exp, xsink);
-   if (!arg || *xsink)
-      return 0;
-
-   // return the argument if there is no list
-   qore_type_t t = arg->getType();
-   if (t != NT_LIST) {
-      if (t == NT_OBJECT) {
-         AbstractIteratorHelper h(xsink, "foldr operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)), false);
-         if (*xsink)
-            return 0;
-         if (h)
-            return op_fold_iterator(left, h, ref_rv, xsink);
-      }
-      return arg.getReferencedValue();
-   }
-
-   const QoreListNode* l = reinterpret_cast<const QoreListNode*>(*arg);
-
-   // returns NOTHING if the list is empty
-   if (!l->size())
-      return 0;
-
-   ReferenceHolder<AbstractQoreNode> result(l->get_referenced_entry(l->size() - 1), xsink);
-
-   // return the first element if the list only has one element
-   if (l->size() == 1)
-      return result.release();
-
-   ConstListIterator li(l);
-   // skip the first element
-   li.prev();
-   while (li.prev()) {
-      // set offset in thread-local data for "$#"
-      ImplicitElementHelper eh(li.index());
-      // create argument list
-      QoreListNode* args = new QoreListNode();
-      args->push(result.release());
-      args->push(li.getReferencedValue());
-
-      ArgvContextHelper argv_helper(args, xsink);
-
-      result = left->eval(xsink);
-      if (*xsink)
-	 return 0;
-   }
-   return result.release();
-}
-
-static AbstractQoreNode* op_select_iterator(const AbstractQoreNode* select, AbstractIteratorHelper& h, bool ref_rv, ExceptionSink* xsink) {
-   qore_size_t i = 0;
-   ReferenceHolder<QoreListNode> rv(new QoreListNode, xsink);
-   while (true) {
-      bool b = h.next(xsink);
-      if (*xsink)
-         return 0;
-      if (!b)
-         break;
-
-      // set offset in thread-local data for "$#"
-      ImplicitElementHelper eh(i++);
-
-      ValueHolder iv(h.getValue(xsink), xsink);
-      //ReferenceHolder<> iv(h.getValue(xsink), xsink);
-      if (*xsink)
-         return 0;
-      SingleArgvContextHelper argv_helper(iv.release(), xsink);
-      if (*xsink)
-         return 0;
-      b = select->boolEval(xsink);
-      if (*xsink)
-         return 0;
-      if (b) {
-         // get next argument value
-	 ValueHolder arg(h.getValue(xsink), xsink);
-         //ReferenceHolder<AbstractQoreNode> arg(h.getValue(xsink), xsink);
-         if (*xsink)
-            return 0;
-         rv->push(arg.getReferencedValue());
-      }
-   }
-   return rv.release();
-}
-
-static AbstractQoreNode* op_select(const AbstractQoreNode* arg_exp, const AbstractQoreNode* select, bool ref_rv, ExceptionSink* xsink) {
-   // conditionally evaluate argument
-   QoreNodeEvalOptionalRefHolder arg(arg_exp, xsink);
-   if (!arg || *xsink)
-      return 0;
-
-   // return the argument if there is no list
-   qore_type_t t = arg->getType();
-   if (t != NT_LIST) {
-      if (t == NT_OBJECT) {
-         AbstractIteratorHelper h(xsink, "select operator", const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(*arg)));
-         if (*xsink)
-            return 0;
-         if (h)
-            return op_select_iterator(select, h, ref_rv, xsink);
-      }
-      SingleArgvContextHelper argv_helper(arg.getReferencedValue(), xsink);
-      bool b = select->boolEval(xsink);
-      if (*xsink)
-         return 0;
-
-      return b ? arg.getReferencedValue() : 0;
-   }
-
-   ReferenceHolder<QoreListNode> rv(new QoreListNode, xsink);
-   ConstListIterator li(reinterpret_cast<const QoreListNode*>(*arg));
-   while (li.next()) {
-      // set offset in thread-local data for "$#"
-      ImplicitElementHelper eh(li.index());
-      SingleArgvContextHelper argv_helper(li.getReferencedValue(), xsink);
-      bool b = select->boolEval(xsink);
-      if (*xsink)
-	 return 0;
-      if (b)
-	 rv->push(li.getReferencedValue());
-   }
-   return rv.release();
 }
 
 static QoreHashNode* op_minus_hash_string(const QoreHashNode* h, const QoreString* s, ExceptionSink* xsink) {
@@ -2140,33 +1900,6 @@ static AbstractQoreNode* check_op_elements(QoreTreeNode* tree, LocalVar* oflag, 
    return tree;
 }
 
-static AbstractQoreNode* check_op_keys(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& returnTypeInfo, const char* name, const char* desc) {
-   const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
-
-   assert(!tree->right);
-
-   if (leftTypeInfo->hasType()) {
-      if (leftTypeInfo->isType(NT_HASH) || leftTypeInfo->isType(NT_OBJECT))
-	 returnTypeInfo = listTypeInfo;
-      else if (!hashTypeInfo->parseAccepts(leftTypeInfo)
-	       && !objectTypeInfo->parseAccepts(leftTypeInfo)) {
-	 QoreStringNode* edesc = new QoreStringNode("the expression with the 'keys' operator is ");
-	 leftTypeInfo->getThisType(*edesc);
-	 edesc->concat(" and so this expression will always return NOTHING; the 'keys' operator can only return a value with hashes and objects");
-	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
-	 returnTypeInfo = nothingTypeInfo;
-      }
-      else
-	 returnTypeInfo = listOrNothingTypeInfo;
-   }
-
-   if (tree->constArgs())
-      return tree->evalSubst(returnTypeInfo);
-
-   return tree;
-}
-
 // issues a warning
 static AbstractQoreNode* check_op_list_op(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& returnTypeInfo, const char* name, const char* desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
@@ -2370,10 +2103,6 @@ void OperatorList::init() {
    OP_OBJECT_REF = add(new Operator(2, ".", "hash/object-reference", 0, false, false, check_op_object_ref));
    OP_OBJECT_REF->addFunction(NT_ALL, NT_ALL, op_object_ref);
 
-   // can return a list or NOTHING
-   OP_KEYS = add(new Operator(1, "keys", "list of keys", 0, false, false, check_op_keys));
-   OP_KEYS->addFunction(NT_ALL, NT_NONE, op_keys);
-
    OP_SHIFT = add(new Operator(1, "shift", "shift from list", 0, true, true, check_op_list_op));
    OP_SHIFT->addFunction(op_shift);
 
@@ -2397,16 +2126,6 @@ void OperatorList::init() {
    // can return a list or NOTHING
    OP_REGEX_EXTRACT = add(new Operator(2, "regular expression subpattern extraction", "regular expression subpattern extraction", 0, false));
    OP_REGEX_EXTRACT->addFunction(op_regex_extract);
-
-   OP_FOLDL = add(new Operator(2, "foldl", "left fold expression", 0, true, false));
-   OP_FOLDL->addFunction(NT_ALL, NT_ALL, op_foldl);
-
-   OP_FOLDR = add(new Operator(2, "foldr", "right fold expression", 0, true, false));
-   OP_FOLDR->addFunction(NT_ALL, NT_ALL, op_foldr);
-
-   // can return a list or NOTHING
-   OP_SELECT = add(new Operator(2, "select", "select elements from a list", 0, true, false));
-   OP_SELECT->addFunction(NT_ALL, NT_ALL, op_select);
 
    // initialize all operators
    for (oplist_t::iterator i = begin(), e = end(); i != e; ++i)

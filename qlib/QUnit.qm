@@ -35,8 +35,83 @@ module QUnit {
     It also provides a number of pre-defined testing functions for use in assertions.
 
     <b>Examples:</b>
-    \include test/TestTemplate.qtest
-    \include test/TestTemplateInjected.qtest
+    @code{.py}
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../qlib/QUnit.qm
+
+#%include ./_some_module_to_test
+
+%exec-class QUnitTest
+
+public class QUnitTest inherits QUnit::Test {
+    constructor() : Test("QUnitTest", "1.0") {
+        addTestCase("What this method is testing", \testMethod(), NOTHING);
+        addTestCase("Skipped test", \testSkipped(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    testMethod() {
+        # Test against success
+        testAssertion("success", \equals(), (True, True));
+        # Test against something else
+        testAssertion("failure", \equals(), (True, False), RESULT_FAILURE);
+    }
+
+    testSkipped() {
+        # Skip this test
+        testSkip("Because of the reason it skipped");
+    }
+}
+    @endcode
+
+    @code{.py}
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../qlib/QUnit.qm
+
+#%include ./_MODULE_TO_TEST_
+
+%exec-class MyTestClass
+
+public class MyTestClass inherits QUnit::DependencyInjectedTest {
+    constructor() : DependencyInjectedTest("MyTestClass", "1.0") {
+        addTestCase("Test something", \testMethod(), NOTHING);
+
+        # Mandatory for injected tests
+        setScriptPath(get_script_path());
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    nothing performModuleInjections() {
+        #injectIntoModule("_MODULE_TO_INJECT_INTO_(same as _MODULE_TO_TEST_?)");
+    }
+
+    nothing performInjections(Program p) {
+        #p.importClass("_class_to_inject_", "_class_to_inject_into_", True);
+    }
+
+    testMethod() {
+        # Same test style as in TestExample.qtest
+        testAssertion("success", \equals(), (True, True));
+    }
+}
+    @endcode
 
     @subsection qunit_run Running tests
 
@@ -776,6 +851,17 @@ addTestCase(obj);
         testCases += tc;
     }
 
+    private string escapeSpecialChars(string str) {
+        str = replace(str, "\b", "<\\b>");
+        str = replace(str, "\f", "<\\f>");
+        str = replace(str, "\n", "<\\n>");
+        str = replace(str, "\r", "<\\r>");
+        str = replace(str, "\t", "<\\t>");
+        str = replace(str, "\v", "<\\v>");
+        #str = replace(str, " ", "<space>");
+        return str;
+    }
+
     #! Helper function for printing out human-readable comparison of two values.
     private string printUnexpectedData(any exp, any act, *bool neg, *bool soft_comparisons) {
         string expected;
@@ -786,9 +872,18 @@ addTestCase(obj);
             actual = neg ? "<identical>" : sprintf("(%s) %N", act.type(), act);
         }
         else {
-            expected = sprintf("%N", exp);
-            actual = neg ? "<identical>" : sprintf("%N", act);
+            if (exp.typeCode() == NT_BINARY)
+                expected = sprintf("(binary) <%s>", make_hex_string(exp));
+            else
+                expected = sprintf("%N", exp);
+
+            if (act.typeCode() == NT_BINARY)
+                actual = neg ? "<identical>" : sprintf("(binary) <%s>", make_hex_string(act));
+            else
+                actual = neg ? "<identical>" : sprintf("%N", act);
         }
+        expected = escapeSpecialChars(expected);
+        actual = escapeSpecialChars(actual);
         list expectedLines = expected.split("\n");
         list actualLines = actual.split("\n");
 

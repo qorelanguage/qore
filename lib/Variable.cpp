@@ -196,6 +196,8 @@ LValueHelper::LValueHelper(QoreObject& self, ExceptionSink* xsink) : vl(xsink), 
 }
 
 LValueHelper::~LValueHelper() {
+   // FIXME: technically if we have only removed robjects from the lvalue and the lvalue did not have any recursive references before,
+   // then we don't need to scan this time either
    bool obj_chg = before;
    bool obj_ref = false;
    if (!(*vl.xsink)) {
@@ -295,7 +297,7 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
 
    int64 ind = rh->getAsBigInt();
    if (ind < 0) {
-      vl.xsink->raiseException("NEGATIVE-LIST-INDEX", "list index "QLLD" is invalid (index must evaluate to a non-negative integer)", ind);
+      vl.xsink->raiseException("NEGATIVE-LIST-INDEX", "list index " QLLD " is invalid (index must evaluate to a non-negative integer)", ind);
       return -1;
    }
 
@@ -1056,7 +1058,7 @@ void LValueRemoveHelper::deleteLValue() {
       return;
    }
    if (static_assignment)
-      v.setTemp();
+      v.clearTemp();
 
    qore_type_t t = v->getType();
    if (t != NT_OBJECT)

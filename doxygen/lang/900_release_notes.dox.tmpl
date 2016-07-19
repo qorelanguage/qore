@@ -2,6 +2,69 @@
 
     @tableofcontents
 
+    @section qore_0813 Qore 0.8.13
+
+    @par Release Summary
+
+    @subsection qore_0813_compatibility Changes That Can Affect Backwards-Compatibility
+    - fixed broken @ref continue "continue" and @ref break "break" statements that were accepted anywhere in the source and behaved like a @ref return "return" statement; now such statements outside a loop context will result in a parse exception; to get the old behavior, use @ref broken-loop-statement "%broken-loop-statement" in your source code
+
+    @subsection qore_0813_new_features New Features in Qore
+    - support for input and output streams for the efficient piecewise processing of small or large amounts of data with a low memory overhead; includes the following classes:
+      - @ref Qore::BinaryInputStream "BinaryInputStream"
+      - @ref Qore::BinaryOutputStream "BinaryOutputStream"
+      - @ref Qore::EncodingConversionInputStream "EncodingConversionInputStream"
+      - @ref Qore::EncodingConversionOutputStream "EncodingConversionOutputStream"
+      - @ref Qore::FileInputStream "FileInputStream"
+      - @ref Qore::FileOutputStream "FileOutputStream"
+      - @ref Qore::InputStream "InputStream"
+      - @ref Qore::InputStreamLineIterator "InputStreamLineIterator"
+      - @ref Qore::OutputStream "OutputStream"
+      - @ref Qore::PipeInputStream "PipeInputStream"
+      - @ref Qore::PipeOutputStream "PipeOutputStream"
+      - @ref Qore::StreamPipe "StreamPipe"
+      - @ref Qore::StreamReader "StreamReader"
+      - @ref Qore::StreamWriter "StreamWriter"
+      - @ref Qore::StringInputStream "StringInputStream"
+      - @ref Qore::TransformInputStream "TransformInputStream"
+      - @ref Qore::TransformOutputStream "TransformOutputStream"
+      .
+      Additionally, stream support has been added to the following functions and methods:
+      - @ref Qore::FtpClient::put()
+      - @ref Qore::FtpClient::get()
+      - @ref Qore::HTTPClient::sendWithOutputStream()
+      - @ref Qore::Socket::sendHTTPChunkedBodyFromInputStream()
+      - @ref Qore::Socket::readHTTPChunkedBodyToOutputStream()
+      .
+    - support for @ref op_functional "lazy functional evaluation" of functional operators (including nested lazy evaluation) for much more efficient processing of iterated expressions; affects:
+      - @ref map "map": supports lazy evaluation of itself also of the iterator expression
+      - @ref select "select": supports lazy evaluation of itself and also of the iterator expression
+      - @ref keys "keys": supports lazy evaluation
+      - @ref foldl "foldl": supports lazy evaluation of the iterator expression
+      - @ref foldr "foldlr": supports lazy evaluation of the iterator expression
+      - @ref foreach "foreach": supports lazy evaluation of the iterator expression
+    - new parse options:
+      - @ref broken-loop-statement "%broken-loop-statement"
+    - new constants:
+      - @ref Qore::PO_BROKEN_LOOP_STATEMENT
+    - updated the build to require a <a href="https://en.wikipedia.org/wiki/C%2B%2B11">C++11</a> compiler or better to build %Qore (<a href="https://github.com/qorelanguage/qore/issues/994">issue 994</a>)
+
+    @subsection qore_0813_bug_fixes Bug Fixes in Qore
+    - fixed a bug causing @ref Qore::AbstractQuantifiedBidirectionalIterator "AbstractQuantifiedBidirectionalIterator" not being available (<a href="https://github.com/qorelanguage/qore/issues/968">issue 968</a>)
+    - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module fixes:
+      - fixed a bug in an error message validating input data (<a href="https://github.com/qorelanguage/qore/issues/1062">issue 1062</a>)
+    - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> module fixes:
+      - fixed a bug where the \a msg arg to \c AbstractAuthenticator::do401() was ignored (<a href="https://github.com/qorelanguage/qore/issues/1047">issue 1047</a>)
+    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module fixes:
+      - fixed a bug in update and upsert statement generation when the given data does not have enough columns to use the unique index found, an error message is generated that contains all the columns names instead of just the column names required by the index (<a href="https://github.com/qorelanguage/qore/issues/1013">issue 1013</a>)
+    - <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module fixes:
+      - fixed a bug with the \c SqlStatementOutboundMapper::iterator() method; corrected the iterator object return value which was causing \c AbstractMapperIterator::mapBulk() to fail (<a href="https://github.com/qorelanguage/qore/issues/979">issue 979</a>)
+      - fixed a bug with \c SqlStatementOutboundMapper; it would throw an error if the required \c "table" or \c "sh" options were used and only worked with subclasses that declared these options (<a href="https://github.com/qorelanguage/qore/issues/981">issue 981</a>)
+    - fixed a bug where optional arguments were not handled correctly in some rare cases (<a href="https://github.com/qorelanguage/qore/issues/974">issue 974</a>)
+    - fixed a bug causing a crash when parse_base64_string_to_string was called with an empty string (<a href="https://github.com/qorelanguage/qore/issues/996">issue 996</a>)
+    - fixed a bug where break and continue statements were accepted outside of loops (<a href="https://github.com/qorelanguage/qore/issues/976">issue 976</a>)
+    - fixed a bug compiling on Solaris SPARC with g++ where \c MPFR_DECL_INIT() is compiled incorrectly with -O1 or greater (<a href="https://github.com/qorelanguage/qore/issues/958">issue 958</a>)
+
     @section qore_0812 Qore 0.8.12
 
     @par Release Summary
