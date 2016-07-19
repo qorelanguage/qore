@@ -87,16 +87,14 @@ public:
 class QoreFunctionalSelectListOperator : public FunctionalOperatorInterface, public ConstListIterator {
 protected:
    const QoreSelectOperatorNode* select;
-   bool temp;
    ExceptionSink* xsink;
 
 public:
-   DLLLOCAL QoreFunctionalSelectListOperator(const QoreSelectOperatorNode* s, bool t, QoreListNode* l, ExceptionSink* xs) : ConstListIterator(l), select(s), temp(t), xsink(xs) {
+   DLLLOCAL QoreFunctionalSelectListOperator(const QoreSelectOperatorNode* s, QoreListNode* l, ExceptionSink* xs) : ConstListIterator(l), select(s), xsink(xs) {
    }
 
    DLLLOCAL virtual ~QoreFunctionalSelectListOperator() {
-      if (temp)
-         const_cast<QoreListNode*>(getList())->deref(xsink);
+      const_cast<QoreListNode*>(getList())->deref(xsink);
    }
 
    DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);

@@ -53,17 +53,15 @@ public:
 
 class QoreFunctionalListOperator : public FunctionalOperatorInterface, public ConstListIterator {
 protected:
-   bool temp;
    bool fwd;
    ExceptionSink* xsink;
 
 public:
-   DLLLOCAL QoreFunctionalListOperator(bool t, bool f, QoreListNode* l, ExceptionSink* xs) : ConstListIterator(l), temp(t), fwd(f), xsink(xs) {
+   DLLLOCAL QoreFunctionalListOperator(bool f, QoreListNode* l, ExceptionSink* xs) : ConstListIterator(l), fwd(f), xsink(xs) {
    }
 
    DLLLOCAL virtual ~QoreFunctionalListOperator() {
-      if (temp)
-         const_cast<QoreListNode*>(getList())->deref(xsink);
+      const_cast<QoreListNode*>(getList())->deref(xsink);
    }
 
    DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
