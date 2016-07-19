@@ -75,19 +75,16 @@ public:
 
 class QoreFunctionalKeysOperator : public FunctionalOperatorInterface, public ConstHashIterator {
 protected:
-   bool temp;
    ExceptionSink* xsink;
 
 public:
-   DLLLOCAL QoreFunctionalKeysOperator(bool t, QoreHashNode* h, ExceptionSink* xs) : ConstHashIterator(h), temp(t), xsink(xs) {
+   DLLLOCAL QoreFunctionalKeysOperator(QoreHashNode* h, ExceptionSink* xs) : ConstHashIterator(h), xsink(xs) {
    }
 
    DLLLOCAL virtual ~QoreFunctionalKeysOperator() {
-      if (temp) {
-         QoreHashNode* h = const_cast<QoreHashNode*>(getHash());
-         if (h)
-            h->deref(xsink);
-      }
+      QoreHashNode* h = const_cast<QoreHashNode*>(getHash());
+      if (h)
+         h->deref(xsink);
    }
 
    DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);

@@ -148,9 +148,7 @@ FunctionalOperatorInterface* QoreMapOperatorNode::getFunctionalIteratorImpl(Func
    }
 
    value_type = list;
-   bool temp = marg.isTemp();
-   marg.clearTemp();
-   return new QoreFunctionalMapListOperator(this, temp, marg->get<QoreListNode>(), xsink);
+   return new QoreFunctionalMapListOperator(this, marg.takeReferencedNode<QoreListNode>(), xsink);
 }
 
 bool QoreFunctionalMapListOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {

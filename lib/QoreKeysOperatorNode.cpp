@@ -119,14 +119,11 @@ FunctionalOperatorInterface* QoreKeysOperatorNode::getFunctionalIteratorImpl(Fun
    qore_type_t t = marg->getType();
    if (t == NT_HASH) {
       value_type = list;
-      bool temp = marg.isTemp();
-      marg.clearTemp();
-
-      return new QoreFunctionalKeysOperator(temp, marg->get<QoreHashNode>(), xsink);
+      return new QoreFunctionalKeysOperator(marg.takeReferencedNode<QoreHashNode>(), xsink);
    }
    if (t == NT_OBJECT) {
       value_type = list;
-      return new QoreFunctionalKeysOperator(true, marg->get<QoreObject>()->getRuntimeMemberHash(xsink), xsink);
+      return new QoreFunctionalKeysOperator(marg->get<QoreObject>()->getRuntimeMemberHash(xsink), xsink);
    }
    value_type = nothing;
    return 0;

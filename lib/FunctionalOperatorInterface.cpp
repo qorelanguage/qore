@@ -65,9 +65,7 @@ FunctionalOperatorInterface* FunctionalOperatorInterface::getFunctionalIterator(
    }
 
    value_type = FunctionalOperator::list;
-   bool temp = marg.isTemp();
-   marg.clearTemp();
-   return new QoreFunctionalListOperator(temp, fwd, marg->get<QoreListNode>(), xsink);
+   return new QoreFunctionalListOperator(fwd, marg.takeReferencedNode<QoreListNode>(), xsink);
 }
 
 
