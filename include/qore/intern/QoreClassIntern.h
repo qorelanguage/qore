@@ -1505,7 +1505,6 @@ public:
    }
    DLLLOCAL int add(QoreClass* thisclass, QoreClass* qc, bool is_virtual);
    DLLLOCAL int addBaseClassesToSubclass(QoreClass* thisclass, QoreClass* sc, bool is_virtual);
-   //DLLLOCAL bool isBaseClass(QoreClass* qc) const;
    DLLLOCAL QoreClass* getClass(qore_classid_t cid) const;
    //DLLLOCAL void execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsink) const;
    DLLLOCAL void execDestructors(QoreObject* o, ExceptionSink* xsink) const;
