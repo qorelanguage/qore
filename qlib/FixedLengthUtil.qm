@@ -30,7 +30,7 @@
 %new-style
 
 module FixedLengthUtil {
-    version = "1.0";
+    version = "1.1";
     desc    = "user module for working with files with fixed length lines";
     author  = "Jiri Vaclavik <jiri.vaclavik@qoretechnologies.com>";
     url     = "http://qore.org";
@@ -53,12 +53,13 @@ module FixedLengthUtil {
     All the public symbols in the module are defined in the FixedLengthUtil namespace.
 
     Currently the module provides the following classes:
-    - @ref FixedLengthUtil::FixedLengthAbstractIterator "FixedLengthAbstractIterator": Iterator class allowing for fixed-length-line data to be processed line by line on a record basis
-    - @ref FixedLengthUtil::FixedLengthFileIterator "FixedLengthFileIterator": Iterator class allowing for fixed-length-line file to be processed line by line on a record basis
-    - @ref FixedLengthUtil::FixedLengthDataIterator "FixedLengthDataIterator": Iterator class allowing for fixed-length-line strings to be processed line by line on a record basis
+    - @ref FixedLengthUtil::FixedLengthAbstractIterator "FixedLengthAbstractIterator": Iterator class allowing for fixed-length line data to be processed line by line on a record basis
     - @ref FixedLengthUtil::FixedLengthAbstractWriter "FixedLengthAbstractWriter": Fixed length line writer
-    - @ref FixedLengthUtil::FixedLengthFileWriter "FixedLengthFileWriter": Fixed length line writer into a file
+    - @ref FixedLengthUtil::FixedLengthDataIterator "FixedLengthDataIterator": Iterator class allowing for fixed-length line strings to be processed line by line on a record basis
     - @ref FixedLengthUtil::FixedLengthDataWriter "FixedLengthDataWriter": Fixed length line writer into a variable
+    - @ref FixedLengthUtil::FixedLengthFileIterator "FixedLengthFileIterator": Iterator class allowing for fixed-length line file to be processed line by line on a record basis
+    - @ref FixedLengthUtil::FixedLengthFileWriter "FixedLengthFileWriter": Fixed length line writer into a file
+    - @ref FixedLengthUtil::FixedLengthIterator "FixedLengthIterator": Iterator class allowing for generic fixed-length line input data to be processed line by line on a record basis
 
     @section fixedlengthglobals Global Options
 
@@ -256,6 +257,9 @@ w.write(data);
     @endcode
 
     @section fixedlengthutil_relnotes Release Notes
+
+    @subsection fixedlengthutil_v1_1 Version 1.1
+    - added support for streams
 
     @subsection fixedlengthutil_v1_0 Version 1.0
     - initial version of module
@@ -595,15 +599,54 @@ my hash $h = $i.getValue();
     }
 }
 
-#! The FixedLengthIterator class allows CSV sources to be iterated on a record basis. Source of data is general @ref AbstractLineIterator typically pipelined from stream
+#! The FixedLengthIterator class allows CSV sources to be iterated on a record basis.  The source of the input data is an @ref Qore::AbstractLineIterator "AbstractLineIterator" object or an @ref Qore::InputStream "InputStream"
 public class FixedLengthUtil::FixedLengthIterator inherits FixedLengthUtil::FixedLengthAbstractIterator {
     #! Creates the FixedLengthIterator in single-type mode with general line iterator to read and an option hash
     /** @param li line iterator of CSV file to read
         @param spec Fixed-length line specification; see @ref fixedlengthspec for more information
         @param opts Global options; see @ref fixedlengthglobals for more information
+     */
+    constructor(Qore::AbstractLineIterator li, hash spec, *hash opts) : FixedLengthAbstractIterator(li, spec, opts) {
+    }
 
-        */
-    constructor(AbstractLineIterator li, hash spec, *hash opts) : FixedLengthAbstractIterator(li, spec, opts) {
+    #! Instantiates the FixedLengthIterator object from an @ref Qore::InputStream "InputStream"
+    /** @par Example:
+        @code{.py}
+hash specs = (
+    "type1" : (
+        "col1": ("length": 5, "type": "int"),
+        "col2": ("length": 2, "type": "string"),
+    ),
+    "type2": (
+        "col3": ("length": 1, "type": "string"),
+        "col4": ("length": 3, "type": "string"),
+        "col5": ("length": 8, "type": "date", "format": "DDMMYYYY",
+        # "timezone" : "Europe/Prague", # use global if omitted
+        ),
+    ),
+);
+
+hash global_options = (
+    "encoding"     : "UTF-8",
+    "eol"          : "\n",
+    "ignore_empty" : True,
+    "timezone"     : "Europe/Prague", # used if not overridden in a date field specification
+);
+
+StringInputStream input("00001AV\n00002BN\00003CZ\n");
+
+FixedLengthIterator i(input, "UTF-8", specs, global_options);
+while (i.next()) {
+    operation_with_hash(i.getValue())
+}
+        @endcode
+
+        @param input The @ref Qore::InputStream "InputStream" providing input data to process
+        @param encoding the encoding of the input stream
+        @param spec Fixed-length line specification; see @ref fixedlengthspec for more information
+        @param opts Global options; see @ref fixedlengthglobals for valid values
+    */
+    constructor(Qore::InputStream input, string encoding = "UTF-8", hash spec, *hash opts) : FixedLengthAbstractIterator(new InputStreamLineIterator(input, encoding, opts.eol, opts.trim), spec, opts) {
     }
 }
 
@@ -660,7 +703,6 @@ public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::
 
 }
 
-
 #! Structured line iterator for fixed-length line strings allowing efficient "pipelined" processing.
 /**
     @par Example:
@@ -696,7 +738,7 @@ while (i.next()) {
 */
 public class FixedLengthUtil::FixedLengthDataIterator inherits FixedLengthUtil::FixedLengthAbstractIterator {
 
-    #! Instantiates the FixedLengthFileIterator object
+    #! Instantiates the FixedLengthDataIterator object
     /** @par Example:
         @code{.py}
 hash specs = (
@@ -730,7 +772,7 @@ while (i.next()) {
         @param spec Fixed-length line specification; see @ref fixedlengthspec for more information
         @param opts Global options; see @ref fixedlengthglobals for valid values
     */
-    constructor(string data, hash spec, *hash opts) : FixedLengthAbstractIterator(new InputStreamLineIterator(new BinaryInputStream(binary(data)), data.encoding(), opts.eol, opts.trim), spec, opts) {
+    constructor(string data, hash spec, *hash opts) : FixedLengthAbstractIterator(new InputStreamLineIterator(new StringInputStream(data), data.encoding(), opts.eol, opts.trim), spec, opts) {
     }
 
 }
