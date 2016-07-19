@@ -105,8 +105,8 @@ const char *ParseOptionMap::find_name(int code) {
 }
 
 void ParseOptionMap::list_options() {
-   for (opt_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i)
-      printf("%s\n", i->first);
+   for (auto i : map)
+      printf("%s\n", i.first);
 }
 
 #undef DO_MAP
