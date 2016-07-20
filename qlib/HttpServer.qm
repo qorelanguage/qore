@@ -114,6 +114,7 @@ log("started listener on %s", lh.desc);
 
     @subsection http0311 HttpServer 0.3.12
     - added a minimal substring of string bodies received to the log message when logging HTTP requests
+    - added logic to attempt to mask passwords in log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
 
     @subsection http0311 HttpServer 0.3.11
     - fixed a bug setting the response encoding in @ref HttpServer::HttpServer::setReplyHeaders() where the Socket encoding was not set properly and therefore the encoding in the \c Content-Type in the response header did not necessarily match the encoding of the response
@@ -2188,10 +2189,14 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                     log("cid %d: RECV BODY: %y", cx.id, body);
 
                 {
+                    # attempt to mask any password in the URI path
+                    orig_path =~ s/(pass(?:word)?)=.*/$1=<masked>/g; #/;
                     string lstr = sprintf("cid %d src %y: %s %s HTTP/%s (agent: %y", cx.id, cx."peer-info".address_desc, hdr.method, orig_path, hdr.http_version, hdr."user-agent");
                     if (body) {
                         if (body.typeCode() == NT_STRING) {
                             string bstr = body.size() > BodyLogLimit ? body.substr(0, BodyLogLimit) + "..." : body;
+                            # attempt to mask any password
+                            bstr =~ s/(pass\w*[=:\s]*).*/$1<masked>.../; #/;
                             bstr = replace(bstr, "\n", "\\n");
                             bstr = replace(bstr, "\r", "\\r");
                             bstr = replace(bstr, "\t", "\\t");
