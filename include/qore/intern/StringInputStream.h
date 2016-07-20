@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -60,6 +60,10 @@ public:
       memcpy(ptr, src->getBuffer() + offset, count);
       offset += count;
       return count;
+   }
+
+   DLLLOCAL const QoreEncoding* getEncoding() const {
+      return src->getEncoding();
    }
 
 private:
