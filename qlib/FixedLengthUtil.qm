@@ -507,7 +507,7 @@ my hash $h = $i.getValue();
                     # ensure that the default value for the encoding is used (to handle case + encoding aliases); also validates that
                     # the encoding is known and supported
                     string str = convert_encoding(opts.encoding, opts.encoding);
-                    opts.encoding = str;
+                    opts.encoding = str.encoding();
 
                     break;
                 }

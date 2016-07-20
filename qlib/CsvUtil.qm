@@ -1554,7 +1554,7 @@ while (i.next()) {
                 # ensure that the default value for the encoding is used (to handle case + encoding aliases); also validates that
                 # the encoding is known and supported
                 string str = convert_encoding(encoding, encoding);
-                encoding = str;
+                encoding = str.encoding();
             }
             else
                 encoding = get_default_encoding();
