@@ -63,7 +63,7 @@ nothing EncodingConversionOutputStream::close() {
    os->closeHelper(xsink);
 }
 
-//! Writes bytes to the input stream
+//! Writes bytes to the output stream
 /**
     @param data the data to write
 

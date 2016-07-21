@@ -1,13 +1,13 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  StringInputStream.h
+  StringOutputStream.h
 
   Qore Programming Language
 
   Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
+  copy of this software and associated documentation strings (the "Software"),
   to deal in the Software without restriction, including without limitation
   the rights to use, copy, modify, merge, publish, distribute, sublicense,
   and/or sell copies of the Software, and to permit persons to whom the
@@ -29,46 +29,60 @@
   information.
 */
 
-#ifndef _QORE_STRINGINPUTSTREAM_H
-#define _QORE_STRINGINPUTSTREAM_H
+#ifndef _QORE_STRINGOUTPUTSTREAM_H
+#define _QORE_STRINGOUTPUTSTREAM_H
 
 #include <stdint.h>
-#include "qore/intern/InputStreamBase.h"
+#include "qore/intern/OutputStreamBase.h"
 
 /**
- * @brief Private data for the Qore::StringInputStream class.
+ * @brief Private data for the Qore::StringOutputStream class.
  */
-class StringInputStream : public InputStreamBase {
+class StringOutputStream : public OutputStreamBase {
 
 public:
-   DLLLOCAL StringInputStream(const QoreStringNode *str) : src(str->stringRefSelf()), offset(0) {
+   DLLLOCAL StringOutputStream() : StringOutputStream(QCS_DEFAULT) {
+   }
+
+   DLLLOCAL StringOutputStream(const QoreEncoding* e) : enc(e), buf(new QoreStringNode) {
    }
 
    DLLLOCAL const char *getName() override {
-      return "StringInputStream";
+      return "StringOutputStream";
    }
 
-   DLLLOCAL int64 read(void *ptr, int64 limit, ExceptionSink *xsink) override {
-      assert(limit > 0);
-      qore_size_t count = src->size() - offset;
-      if (count == 0) {
-         return 0;
-      }
-      if (count > static_cast<qore_size_t>(limit)) {
-         count = limit;
-      }
-      memcpy(ptr, src->getBuffer() + offset, count);
-      offset += count;
-      return count;
+   DLLLOCAL bool isClosed() override {
+      return !buf;
+   }
+
+   DLLLOCAL void close(ExceptionSink* xsink) override {
+      assert(!isClosed());
+      buf = 0;
+   }
+
+   DLLLOCAL void write(const void *ptr, int64 count, ExceptionSink *xsink) override {
+      assert(!isClosed());
+      assert(count >= 0);
+      buf->concat((const char*)ptr, count);
    }
 
    DLLLOCAL const QoreEncoding* getEncoding() const {
-      return src->getEncoding();
+      return enc;
+   }
+
+   DLLLOCAL QoreStringNode *getData(ExceptionSink *xsink) {
+      if (!check(xsink)) {
+         return 0;
+      }
+      assert(!isClosed());
+      QoreStringNode *ret = buf.release();
+      buf = new QoreStringNode(enc);
+      return ret;
    }
 
 private:
-   SimpleRefHolder<QoreStringNode> src;
-   qore_size_t offset;                          //!< @invariant offset >= 0 && offset <= src->size()
+   const QoreEncoding* enc;
+   SimpleRefHolder<QoreStringNode> buf;
 };
 
-#endif // _QORE_STRINGINPUTSTREAM_H
+#endif // _QORE_STRINGOUTPUTSTREAM_H

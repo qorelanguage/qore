@@ -80,3 +80,17 @@ StringInputStream::constructor(string src) {
 *binary StringInputStream::read(int limit) {
    return is->readHelper(limit, xsink);
 }
+
+//! Returns the @ref character_encoding "character encoding" for the @ref StringInputStream
+/** @par Example:
+    @code{.py}
+    string src = "xyz";
+    StringInputStream is(src);
+    string encoding = is.getEncoding();
+    @endcode
+
+    @return the @ref character_encoding "character encoding" for the @ref StringInputStream
+ */
+string StringInputStream::getEncoding() [flags=CONSTANT] {
+   return new QoreStringNode(is->getEncoding());
+}
