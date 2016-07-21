@@ -15,25 +15,26 @@
 
 # unused, but required for "select hash" argument
 const SELECT_HASH = (
-        "columns" : ("a", "b"),
-        "where" : ( "a" : 1 ),
+    "columns": ("a", "b"),
+    "where": ("a": 1),
     );
 
 const MAPV = (
-        "mapped_a": "a",
-        "mapped_b": "b",
-        "created_c" : ( "code": *string sub (*any v, hash rec) { return sprintf("%n - %n", rec.a, rec.b); } ),
-        "constant_d" : ( "constant" : 1 ),
+    "mapped_a": "a",
+    "mapped_b": "b",
+    "created_c": ("code": *string sub (*any v, hash rec) { return sprintf("%n - %n", rec.a, rec.b); }),
+    "constant_d": ("constant" : 1),
+    "runtime": ("runtime": "rt"),
     );
 
 const INPUT = (
-        ("a":1, "b" : 1),
-        ("a":1, "b" : 2),
+    ("a": 1, "b": 1),
+    ("a": 1, "b": 2),
     );
 
 const OUTPUT = (
-        ("mapped_a":1, "mapped_b" : 1, "created_c" : "1 - 1", "constant_d" : 1),
-        ("mapped_a":1, "mapped_b" : 2, "created_c" : "1 - 2", "constant_d" : 1),
+    ("mapped_a": 1, "mapped_b": 1, "created_c": "1 - 1", "constant_d": 1, "runtime": "rtv"),
+    ("mapped_a": 1, "mapped_b": 2, "created_c": "1 - 2", "constant_d": 1, "runtime": "rtv"),
     );
 
 # just return INPUTs as it would be returned by SQLStatement
@@ -169,7 +170,6 @@ class FakeAbstractTable inherits SqlUtil::AbstractTable {
 class Main inherits QUnit::DependencyInjectedTest {
 
     constructor() : DependencyInjectedTest("SqlStatementOutboundMapper", "1.0") {
-
         addTestCase("SqlStatementOutboundMapper iterator", \testIterator());
         addTestCase("SqlStatementOutboundMapper hash rows", \testHashRows());
         addTestCase("SqlStatementOutboundMapper context", \testContext());
@@ -188,7 +188,7 @@ class Main inherits QUnit::DependencyInjectedTest {
 
     private testIterator() {
         FakeAbstractTable t();
-        SqlStatementOutboundMapper m(t, SELECT_HASH, MAPV);
+        SqlStatementOutboundMapper m(t, SELECT_HASH, MAPV, ("runtime": ("rt": "rtv")));
         AbstractIterator it = m.iterator();
 
         int i = 0;
@@ -201,7 +201,7 @@ class Main inherits QUnit::DependencyInjectedTest {
 
     private testHashRows() {
         FakeAbstractTable t();
-        SqlStatementOutboundMapper m(t, SELECT_HASH, MAPV);
+        SqlStatementOutboundMapper m(t, SELECT_HASH, MAPV, ("runtime": ("rt": "rtv")));
         list l = ();
         while (*list tl = m.getDataRows()) {
             l += tl;
@@ -211,7 +211,7 @@ class Main inherits QUnit::DependencyInjectedTest {
 
     private testContext() {
         FakeAbstractTable t();
-        SqlStatementOutboundMapper m(t, SELECT_HASH, MAPV);
+        SqlStatementOutboundMapper m(t, SELECT_HASH, MAPV, ("runtime": ("rt": "rtv")));
         list l = ();
         while (*hash th = m.getData()) {
             map l += $1, th.contextIterator();

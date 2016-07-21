@@ -1250,6 +1250,8 @@ InboundTableMapperIterator i(input, mapper);
             SQLStatement m_stmt;
             # a select_block size. Taken from options
             int select_block;
+            # original option hash
+            *hash m_orig_opts;
         }
 
         #! builds the object based on an optional hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -1264,6 +1266,7 @@ InboundTableMapperIterator i(input, mapper);
             @throw MAP-ERROR invalid select_block size; must be >= 1 if present
         */
         constructor(hash mapv, *hash opts) {
+            m_orig_opts = opts;
             initOptions(\opts);
 
             setup(mapv, opts);
@@ -1316,7 +1319,7 @@ InboundTableMapperIterator i(input, mapper);
         SqlStatementMapperIterator iterator() {
             if (!m_stmt)
                 initStatement();
-            return new SqlStatementMapperIterator(m_stmt, mapc);
+            return new SqlStatementMapperIterator(m_stmt, mapc, m_orig_opts);
         }
 
         #! Retrieve mapped data as a hash of lists.
