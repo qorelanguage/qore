@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 
 # use new-style
 %new-style
@@ -51,7 +51,7 @@
 %endtry
 
 module RestHandler {
-    version = "1.1";
+    version = "1.2";
     desc = "user module for implementing REST services with the Qore HTTP server";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -300,6 +300,9 @@ Content-Length: 36
     %Qore exceptions are returned with a 409 \c "Conflict" HTTP return code with the message body as an @ref exception_hash "exception hash".
 
     @section resthandler_relnotes RestHandler Release Notes
+
+    @subsection rh_1_2 RestHandler v1.2
+    - added logic to attempt to mask passwords in debug log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
 
     @subsection rh_1_1 RestHandler v1.1
     - added support for the HTTP \c OPTIONS method
@@ -604,7 +607,10 @@ public namespace RestHandler {
                 return cls.handleRequest(listener, rh, s, cl, mn, cx, args);
             }
 
-            rh.logDebug("REST DBG: class %y: dispatching method %y args: %y", name(), mn, args);
+            # try to mask passwords in args
+            string astr = sprintf("%y", args);
+            astr =~ s/(pass\w*[=:\s]*).*/$1<masked>.../; #/;
+            rh.logDebug("REST DBG: class %y: dispatching method %y args: %s", name(), mn, astr);
             return dispatchStream(listener, rh, s, mn, args, cx);
         }
 
@@ -810,8 +816,12 @@ public namespace RestHandler {
         hash handleRequest(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data b) {
             #logDebug("REST DBG: cx: %N", cx);
             #logDebug("REST DBG: hdr: %N", hdr);
-            if (b)
-                logDebug("REST DBG: body: %s", b.typeCode() == NT_STRING ? trim(b) : sprintf("%y", b));
+            if (b) {
+                string bstr = b.typeCode() == NT_STRING ? trim(b) : sprintf("%y", b);
+                # try to mask passwords in the message body
+                bstr =~ s/(pass\w*[=:\s]*).*/$1<masked>.../; #/;
+                logDebug("REST DBG: body: %s", bstr);
+            }
 
             any body = b;
 
