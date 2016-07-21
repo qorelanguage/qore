@@ -804,8 +804,6 @@ public:
       if (!member)
 	 return -1;
 
-      //std::auto_ptr<MemberInfo> mem(member);
-
       if (member->type == MI_Member) {
          if (mmap.inList(member->name)) {
             parse_error("duplicate member declaration '%s'", member->name);
@@ -2886,8 +2884,9 @@ exp_c:  scalar
         { $$ = new QoreTreeNode($2, OP_EXISTS, 0); }
         | TOK_ELEMENTS exp
         { $$ = new QoreTreeNode($2, OP_ELEMENTS, 0); }
-        | TOK_KEYS exp
-        { $$ = new QoreTreeNode($2, OP_KEYS, 0); }
+        | TOK_KEYS exp {
+           $$ = new QoreKeysOperatorNode($2);
+        }
         | TOK_UNSHIFT exp {  // unshift list, element
 	   QoreListNode* l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>($2) : 0;
 	   if (!l || l->size() != 2) {
@@ -2997,7 +2996,7 @@ exp_c:  scalar
 	   else {
 	      AbstractQoreNode* code_exp = l->shift();
 	      AbstractQoreNode* arg = l->shift();
-	      $$ = new QoreTreeNode(code_exp, OP_FOLDR, arg);
+	      $$ = new QoreFoldrOperatorNode(code_exp, arg);
 	      $2->deref(0);
 	   }
 	}
@@ -3011,7 +3010,7 @@ exp_c:  scalar
 	   else {
 	      AbstractQoreNode* code_exp = l->shift();
 	      AbstractQoreNode* arg = l->shift();
-	      $$ = new QoreTreeNode(code_exp, OP_FOLDL, arg);
+	      $$ = new QoreFoldlOperatorNode(code_exp, arg);
 	      $2->deref(0);
 	   }
 	}
@@ -3025,7 +3024,7 @@ exp_c:  scalar
 	   else {
 	      AbstractQoreNode* arg = l->shift();
 	      AbstractQoreNode* select_exp = l->shift();
-	      $$ = new QoreTreeNode(arg, OP_SELECT, select_exp);
+              $$ = new QoreSelectOperatorNode(arg, select_exp);
 	      $2->deref(0);
 	   }
 	}

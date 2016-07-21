@@ -1,0 +1,84 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_FileOutputStream.qpp FileOutputStream class definition */
+/*
+  Qore Programming Language
+
+  Copyright (C) 2016 Qore Technologies, sro
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+  Note that the Qore library is released under a choice of three open-source
+  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+  information.
+*/
+
+#include <qore/Qore.h>
+#include "qore/intern/FileOutputStream.h"
+
+//! This class implements the @ref OutputStream interface for writing bytes to a file
+/** @since %Qore 0.8.13
+
+    @par Example: FileOutputStream basic usage
+    @code{.py}
+    FileOutputStream fos("file.ext");
+    fos.write(<01>);
+    fos.write(<0203>);
+    fos.close();
+    # file.ext now contains three bytes: 01 02 03
+    @endcode
+ */
+qclass FileOutputStream [arg=FileOutputStream* os; ns=Qore; vparent=OutputStream; flags=final; dom=FILESYSTEM];
+
+//! Creates the FileOutputStream by opening or creating a file
+/**
+    @param fileName the name of the file to open
+    @param append if true, then bytes will be written to the end of the file
+ */
+FileOutputStream::constructor(string fileName, bool append = False) {
+   SimpleRefHolder<FileOutputStream> fos(new FileOutputStream(fileName, append, xsink));
+   self->setPrivate(CID_FILEOUTPUTSTREAM, fos.release());
+}
+
+//! Closes the output stream and releases any resources.
+/** Any methods called on a closed output stream will throw an IO-ERROR exception.
+
+    @throw IO-ERROR if an I/O error occurs
+ */
+nothing FileOutputStream::close() {
+   os->closeHelper(xsink);
+}
+
+//! Writes bytes to the input stream
+/**
+    @param data the data to write
+
+    @par Example:
+    @code{.py}
+    FileOutputStream fos("file.ext");
+    fos.write(<01>);
+    fos.write(<0203>);
+    fos.close();
+    # file.ext now contains three bytes: 01 02 03
+    @endcode
+
+    @throw FILE-WRITE-ERROR if an I/O error occurs
+ */
+nothing FileOutputStream::write(binary data) {
+   os->writeHelper(data, xsink);
+}
