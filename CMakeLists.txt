@@ -141,6 +141,7 @@ set(LIBQORE_QPP_SRC
 	lib/QC_EncodingConversionInputStream.qpp
 	lib/QC_OutputStream.qpp
 	lib/QC_BinaryOutputStream.qpp
+	lib/QC_StringOutputStream.qpp
 	lib/QC_FileOutputStream.qpp
 	lib/QC_EncodingConversionOutputStream.qpp
 	lib/QC_StreamPipe.qpp
@@ -574,6 +575,7 @@ set(LIBQORE_CPP_SRC
         ${CMAKE_CURRENT_BINARY_DIR}/QC_EncodingConversionInputStream.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_OutputStream.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_BinaryOutputStream.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_StringOutputStream.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_FileOutputStream.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_EncodingConversionOutputStream.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_StreamPipe.cpp

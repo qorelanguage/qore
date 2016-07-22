@@ -52,7 +52,7 @@ nothing PipeOutputStream::close() {
    os->close(xsink);
 }
 
-//! Writes bytes to the input stream
+//! Writes bytes to the output stream
 /**
  */
 nothing PipeOutputStream::write(binary data) {

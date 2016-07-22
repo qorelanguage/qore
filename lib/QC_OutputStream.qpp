@@ -50,7 +50,7 @@ OutputStream::constructor() {
  */
 abstract nothing OutputStream::close();
 
-//! Writes bytes to the input stream
+//! Writes bytes to the output stream
 /**
     @param data the data to write
 
