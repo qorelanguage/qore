@@ -68,7 +68,7 @@ namespace Qore;
 
 //! Dumps an input stream to stdout by reading bytes (two at a time) from the stream until the end is reached
 /** Temporary function for debugging purposes
-    @param the input stream
+    @param is the input stream
  */
 nothing dump(Qore::InputStream[InputStream] is) {
    ReferenceHolder<InputStream> holder(is, xsink);

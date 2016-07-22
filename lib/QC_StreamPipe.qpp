@@ -40,7 +40,7 @@ DLLEXPORT extern QoreClass* QC_PIPEOUTPUTSTREAM;
     reading operations on the input stream are blocked if the buffer is empty and the writing operations on the
     output stream are blocked if the buffer is full. The input stream reports the end of the stream once the output
     stream is closed using @ref OutputStream::close() and all remaining data are read from the buffer. On the other
-    hand, the @ref OutputStream::close() method waits until @ref finishClose() is called on the StreamPipe object
+    hand, the @ref OutputStream::close() method waits until @ref PipeInputStream::finishClose() is called on the StreamPipe object
     which can be used to delay the main thread until all data are read from the pipe in the background thread.
 
     @par Broken pipe
@@ -104,7 +104,7 @@ DLLEXPORT extern QoreClass* QC_PIPEOUTPUTSTREAM;
 qclass StreamPipe [arg=StreamPipe* pipe; ns=Qore; flags=final; private_members=OutputStream os,InputStream is];
 
 //! Creates the StreamPipe
-/** @param syncClose if True, then the output stream's close() method blocks until the input stream's finishClose() method is called
+/** @param syncClose if True, then the output stream's close() method blocks until the input stream's @ref PipeInputStream::finishClose() "finishClose()" method is called
     @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates
            "relative date/time value"; integer arguments will be assumed to be milliseconds);
            if not given or negative the operations will never time out
