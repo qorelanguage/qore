@@ -464,6 +464,21 @@ const Z_DEFAULT_COMPRESSION = Z_DEFAULT_COMPRESSION;
 //! gives the default compression level for the bzip2() function, providing a trade-off between compression speed and compression size (value: \c 3)
 const BZ2_DEFAULT_COMPRESSION = BZ2_DEFAULT_COMPRESSION;
 
+//! Identifies the default compression level appropriate for given algorithm
+const COMPRESSION_LEVEL_DEFAULT = COMPRESSION_LEVEL_DEFAULT;
+//@}
+
+/** @defgroup compression_transformations Compression Stream Transformations
+
+    The following @ref Transform constants can be used with @ref TransformInputStream and @ref TransformOutputStream to transform stream data
+
+    @par Example:
+    @code
+FileOutputStream of("my-file.txt");
+TransformOutputStream tos(of, )
+    @endcode
+ */
+//@{
 //! Identifies the ZLIB Compressed Data Format (<a href="http://www.ietf.org/rfc/rfc1950.txt">RFC 1950</a>)
 const COMPRESSION_ALG_ZLIB = str(CompressionTransforms::ALG_ZLIB);
 
@@ -472,9 +487,6 @@ const COMPRESSION_ALG_GZIP = str(CompressionTransforms::ALG_GZIP);
 
 //! Identifies the <a href="http://en.wikipedia.org/wiki/Bzip2">bzip2 algorithm</a>
 const COMPRESSION_ALG_BZIP2 = str(CompressionTransforms::ALG_BZIP2);
-
-//! Identifies the default compression level appropriate for given algorithm
-const COMPRESSION_LEVEL_DEFAULT = COMPRESSION_LEVEL_DEFAULT;
 //@}
 
 /** @defgroup compresssion_functions Compression Functions
@@ -785,10 +797,17 @@ string bunzip2_to_string(binary bin, *string encoding) {
 nothing bunzip2_to_string() [flags=RUNTIME_NOOP] {
 }
 
-//! Returns a @ref Transform object for compressing data using the given algorithm
-/** @param alg the algorithm
+//! Returns a @ref Transform object for compressing data using the given @ref compression_transformations "algorithm" for use with @ref TransformInputStream and @ref TransformOutputStream
+/** @par Example:
+    @code
+Qore::FileOutputStream of("my-file.txt.bz2");
+Qore::TransformOutputStream ts(of, get_compressor(Qore::COMPRESSION_ALG_BZIP2));
+    @endcode
+
+    @param alg the transformation algorithm; see @ref compression_transformations for possible values
     @param level compression level as defined by the algorithm or @ref COMPRESSION_LEVEL_DEFAULT to use the default compression level
-    @return a @ref Transform object for compressing data using the given algorithm
+
+    @return a @ref Transform object for compressing data using the given @ref compression_transformations "algorithm" for use with @ref TransformInputStream and @ref TransformOutputStream
  */
 Transform get_compressor(string alg, int level = COMPRESSION_LEVEL_DEFAULT) {
    SimpleRefHolder<Transform> t(CompressionTransforms::getCompressor(alg, level, xsink));
@@ -798,9 +817,16 @@ Transform get_compressor(string alg, int level = COMPRESSION_LEVEL_DEFAULT) {
    return new QoreObject(QC_TRANSFORM, getProgram(), t.release());
 }
 
-//! Returns a @ref Transform object for decompressing data using the given algorithm
-/** @param alg the algorithm
-    @return a @ref Transform object for decompressing data using the given algorithm
+//! Returns a @ref Transform object for decompressing data using the given @ref compression_transformations "algorithm" for use with @ref TransformInputStream and @ref TransformOutputStream
+/** @par Example:
+    @code
+Qore::FileOutputStream of("my-file.txt.bz2");
+Qore::TransformOutputStream ts(of, get_decompressor(Qore::COMPRESSION_ALG_BZIP2));
+    @endcode
+
+    @param alg the transformation algorithm; see @ref compression_transformations for possible values
+
+    @return a @ref Transform object for decompressing data using the given @ref compression_transformations "algorithm" for use with @ref TransformInputStream and @ref TransformOutputStream
  */
 Transform get_decompressor(string alg) {
    SimpleRefHolder<Transform> t(CompressionTransforms::getDecompressor(alg, xsink));

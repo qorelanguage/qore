@@ -98,7 +98,7 @@ extern QoreClass* QC_SOCKET;
 
     @note
     - This class is not available with the @ref PO_NO_NETWORK parse option.
-    - URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=<url_encoded_path>/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
+    - URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
  */
 qclass HTTPClient [dom=NETWORK; arg=QoreHttpClientObject* client; vparent=Socket];
 
@@ -130,7 +130,7 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
     @throw HTTP-CLIENT-URL-ERROR invalid URL string
     @throw HTTP-CLIENT-UNKNOWN-PROTOCOL unknown protocol passed in URL
 
-    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=<url_encoded_path>/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
+    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
  */
 HTTPClient::constructor(hash opts) {
    ReferenceHolder<QoreHttpClientObject> client(new QoreHttpClientObject, xsink);
@@ -780,7 +780,7 @@ httpclient.setURL("https://user:password@hostname:8080/path");
 
     @see HTTPClient::getURL()
 
-    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=<url_encoded_path>/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
+    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
  */
 HTTPClient::setURL(string url) {
    client->setURL(url->getBuffer(), xsink);
@@ -821,7 +821,7 @@ httpclient.setProxyURL("http://user:password@proxy_host:8080/path");
     @throw HTTP-CLIENT-URL-ERROR invalid proxy URL string; invalid authorization credentials in proxy URL (username without password or vice-versa)
     @throw HTTP-CLIENT-PROXY-PROTOCOL-ERROR unknown protocol passed in URL
 
-    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=<url_encoded_path>/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
+    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
  */
 nothing HTTPClient::setProxyURL(string url) {
    client->setProxyURL(url->getBuffer(), xsink);

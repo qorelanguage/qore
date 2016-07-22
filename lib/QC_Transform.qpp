@@ -33,6 +33,10 @@
 
 //! Marker interface for transformations usable in @ref TransformOutputStream and @ref TransformInputStream
 /** @since %Qore 0.8.13
+
+    The following functions return Transform objects:
+    - get_compressor()
+    - get_decompressor()
  */
 qclass Transform [arg=Transform* t; ns=Qore; flags=final];
 

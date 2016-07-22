@@ -1068,6 +1068,7 @@ sock.sendFromInputStream(is, -1); # write all data available
     @par Events:
     @ref EVENT_PACKET_SENT
 
+    @param is the @ref InputStream providing the data to send
     @param size the amount of data to send in bytes; to send all data available in the InputStream, use -1
     @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
@@ -1348,6 +1349,7 @@ sock.recvToOutputStream(os, -1); # read all data available
     @par Events:
     @ref EVENT_PACKET_READ
 
+    @param os The output stream to write the response body to
     @param size the amount of data to read in bytes; to read until the remote closes the connection, use -1
     @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
