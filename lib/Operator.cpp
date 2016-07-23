@@ -48,7 +48,7 @@ DLLLOCAL OperatorList oplist;
 DLLLOCAL extern const QoreTypeInfo* bigIntFloatOrNumberTypeInfo, * floatOrNumberTypeInfo;
 
 // the standard, system-default operator pointers
-Operator *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT, *OP_BIN_XOR, *OP_MINUS, *OP_PLUS,
+Operator *OP_BIN_NOT, *OP_MINUS, *OP_PLUS,
    *OP_MULT, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT,
    *OP_LOG_CMP,
    *OP_OBJECT_REF, *OP_ELEMENTS,
@@ -749,18 +749,6 @@ static int64 op_cmp_double(double left, double right, ExceptionSink* xsink) {
       return 0;
 
    return 1;
-}
-
-static int64 op_bin_and_int(int64 left, int64 right) {
-   return left & right;
-}
-
-static int64 op_bin_or_int(int64 left, int64 right) {
-   return left | right;
-}
-
-static int64 op_bin_xor_int(int64 left, int64 right) {
-   return left ^ right;
 }
 
 static int64 op_shift_left_int(int64 left, int64 right) {
@@ -2054,17 +2042,8 @@ void OperatorList::init() {
    OP_LIST_ASSIGNMENT = add(new Operator(2, "(list) =", "list assignment", 0, true, true, check_op_list_assignment));
    OP_LIST_ASSIGNMENT->addFunction(NT_ALL, NT_ALL, op_list_assignment);
 
-   OP_BIN_AND = add(new Operator(2, "&", "binary-and", 1, false, false, check_op_returns_integer));
-   OP_BIN_AND->addFunction(op_bin_and_int);
-
-   OP_BIN_OR = add(new Operator(2, "|", "binary-or", 1, false, false, check_op_returns_integer));
-   OP_BIN_OR->addFunction(op_bin_or_int);
-
    OP_BIN_NOT = add(new Operator(1, "~", "binary-not", 1, false, false, check_op_returns_integer));
    OP_BIN_NOT->addIntegerNotFunction();
-
-   OP_BIN_XOR = add(new Operator(2, "^", "binary-xor", 1, false, false, check_op_returns_integer));
-   OP_BIN_XOR->addFunction(op_bin_xor_int);
 
    OP_MINUS = add(new Operator(2, "-", "minus", 1, false, false, check_op_minus));
    OP_MINUS->addFunction(op_minus_date);

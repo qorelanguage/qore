@@ -40,7 +40,7 @@
 class Operator;
 
 // system default operators
-DLLLOCAL extern Operator *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT,
+DLLLOCAL extern Operator *OP_BIN_NOT,
    *OP_BIN_XOR, *OP_MINUS, *OP_PLUS,
    *OP_MULT, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT,
    *OP_LOG_CMP,

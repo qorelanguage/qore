@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreModuloOperatorNode.h
+  QoreBinaryAndOperatorNode.h
 
   Qore Programming Language
 
@@ -29,11 +29,11 @@
   information.
 */
 
-#ifndef _QORE_QOREMODULOOPERATORNODE_H
+#ifndef _QORE_QOREBINARYANDOPERATORNODE_H
 
-#define _QORE_QOREMODULOOPERATORNODE_H
+#define _QORE_QOREBINARYANDOPERATORNODE_H
 
-class QoreModuloOperatorNode : public QoreIntBinaryOperatorNode {
+class QoreBinaryAndOperatorNode : public QoreIntBinaryOperatorNode {
 OP_COMMON
 protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
@@ -41,7 +41,7 @@ protected:
    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
 public:
-   DLLLOCAL QoreModuloOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreIntBinaryOperatorNode(n_left, n_right) {
+   DLLLOCAL QoreBinaryAndOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreIntBinaryOperatorNode(n_left, n_right) {
    }
 };
 
