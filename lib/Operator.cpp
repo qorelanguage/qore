@@ -48,7 +48,7 @@ DLLLOCAL OperatorList oplist;
 DLLLOCAL extern const QoreTypeInfo* bigIntFloatOrNumberTypeInfo, * floatOrNumberTypeInfo;
 
 // the standard, system-default operator pointers
-Operator *OP_BIN_NOT, *OP_MINUS, *OP_PLUS,
+Operator *OP_MINUS, *OP_PLUS,
    *OP_MULT, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT,
    *OP_LOG_CMP,
    *OP_OBJECT_REF, *OP_ELEMENTS,
@@ -1175,11 +1175,6 @@ QoreValue CompareFloatOperatorFunction::eval(const AbstractQoreNode* left, const
    return op_func(left->getAsFloat(), right->getAsFloat(), xsink);
 }
 
-QoreValue IntegerNotOperatorFunction::eval(const AbstractQoreNode* left, const AbstractQoreNode* right, bool ref_rv, int args, ExceptionSink* xsink) const {
-   // these functions can have no side effects
-   return ~left->getAsBigInt();
-}
-
 QoreValue CompareDateOperatorFunction::eval(const AbstractQoreNode* left, const AbstractQoreNode* right, bool ref_rv, int args, ExceptionSink* xsink) const {
    // this operator can have no side effects
    if (!ref_rv)
@@ -2041,9 +2036,6 @@ void OperatorList::init() {
    // non-boolean operators
    OP_LIST_ASSIGNMENT = add(new Operator(2, "(list) =", "list assignment", 0, true, true, check_op_list_assignment));
    OP_LIST_ASSIGNMENT->addFunction(NT_ALL, NT_ALL, op_list_assignment);
-
-   OP_BIN_NOT = add(new Operator(1, "~", "binary-not", 1, false, false, check_op_returns_integer));
-   OP_BIN_NOT->addIntegerNotFunction();
 
    OP_MINUS = add(new Operator(2, "-", "minus", 1, false, false, check_op_minus));
    OP_MINUS->addFunction(op_minus_date);

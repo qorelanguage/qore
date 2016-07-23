@@ -240,6 +240,7 @@ libqore_la_SOURCES = \
 	QoreBinaryAndOperatorNode.cpp \
 	QoreBinaryOrOperatorNode.cpp \
 	QoreBinaryXorOperatorNode.cpp \
+	QoreBinaryNotOperatorNode.cpp \
 	QoreAssignmentOperatorNode.cpp \
 	QorePlusEqualsOperatorNode.cpp \
 	QoreIntPlusEqualsOperatorNode.cpp \

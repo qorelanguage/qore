@@ -452,6 +452,7 @@ set(LIBQORE_CPP_SRC
         lib/QoreLogicalEqualsOperatorNode.cpp
         lib/QoreModuloOperatorNode.cpp
         lib/QoreBinaryAndOperatorNode.cpp
+        lib/QoreBinaryNotOperatorNode.cpp
         lib/QoreBinaryOrOperatorNode.cpp
         lib/QoreBinaryXorOperatorNode.cpp
         lib/QoreAssignmentOperatorNode.cpp

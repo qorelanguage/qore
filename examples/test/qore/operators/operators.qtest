@@ -43,6 +43,7 @@ class Test inherits QUnit::Test {
         addTestCase("select test", \selectTest());
         addTestCase("fold test", \foldTest());
         addTestCase("keys test", \keysTest());
+        addTestCase("binary not", \binNot());
         set_return_value(main());
     }
 
@@ -471,6 +472,11 @@ class Test inherits QUnit::Test {
         hash q = map {$1: ($1 % 2) ? NULL : True}, xrange(20);
         map delete q.$1, keys q, q.$1 === NULL;
         assertEq((0: True, 2: True, 4: True, 6: True, 8: True, 10: True, 12: True, 14: True, 16: True, 18: True, 20: True), q);
+    }
 
+    binNot() {
+        assertEq(0, ~(~1 | 1));
+        assertEq(-1, ~1 | 1);
+        assertEq(-4294967297, ~(1 << 32));
     }
 }

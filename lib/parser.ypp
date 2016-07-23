@@ -3061,8 +3061,12 @@ exp_c:  scalar
         {
             $$ = QoreUnaryMinusOperatorNode::makeNode(QoreUnaryMinusOperatorNode::makeNode($2));
         }
-        | '~' exp		     { $$ = new QoreTreeNode($2, OP_BIN_NOT, 0); }
-        | '!' exp                    { $$ = new QoreLogicalNotOperatorNode($2); }
+        | '~' exp {
+           $$ = QoreBinaryNotOperatorNode::makeNode($2);
+        }
+        | '!' exp {
+           $$ = new QoreLogicalNotOperatorNode($2);
+        }
         | '\\' exp {
 	   qore_type_t t = $2 ? $2->getType() : 0;
 	   //printd(5, "backslash exp line %d, type %s\n", @2.first_line, $2->getTypeName());

@@ -169,6 +169,7 @@
 #include "QoreBinaryAndOperatorNode.cpp"
 #include "QoreBinaryOrOperatorNode.cpp"
 #include "QoreBinaryXorOperatorNode.cpp"
+#include "QoreBinaryNotOperatorNode.cpp"
 #include "QoreAssignmentOperatorNode.cpp"
 #include "QorePlusEqualsOperatorNode.cpp"
 #include "QoreIntPlusEqualsOperatorNode.cpp"

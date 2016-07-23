@@ -239,6 +239,7 @@ public:
 #include <qore/intern/QoreBinaryAndOperatorNode.h>
 #include <qore/intern/QoreBinaryOrOperatorNode.h>
 #include <qore/intern/QoreBinaryXorOperatorNode.h>
+#include <qore/intern/QoreBinaryNotOperatorNode.h>
 #include <qore/intern/QoreBinaryLValueOperatorNode.h>
 #include <qore/intern/QoreAssignmentOperatorNode.h>
 #include <qore/intern/QorePlusEqualsOperatorNode.h>
