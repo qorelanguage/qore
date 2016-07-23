@@ -2883,7 +2883,7 @@ exp_c:  scalar
         | TOK_EXISTS exp
         { $$ = new QoreExistsOperatorNode($2); }
         | TOK_ELEMENTS exp
-        { $$ = new QoreTreeNode($2, OP_ELEMENTS, 0); }
+        { $$ = new QoreElementsOperatorNode($2); }
         | TOK_KEYS exp {
            $$ = new QoreKeysOperatorNode($2);
         }

@@ -243,6 +243,7 @@ public:
 #include <qore/intern/QoreShiftLeftOperatorNode.h>
 #include <qore/intern/QoreShiftRightOperatorNode.h>
 #include <qore/intern/QoreExistsOperatorNode.h>
+#include <qore/intern/QoreElementsOperatorNode.h>
 #include <qore/intern/QoreBinaryLValueOperatorNode.h>
 #include <qore/intern/QoreAssignmentOperatorNode.h>
 #include <qore/intern/QorePlusEqualsOperatorNode.h>

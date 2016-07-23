@@ -173,6 +173,7 @@
 #include "QoreShiftLeftOperatorNode.cpp"
 #include "QoreShiftRightOperatorNode.cpp"
 #include "QoreExistsOperatorNode.cpp"
+#include "QoreElementsOperatorNode.cpp"
 #include "QoreAssignmentOperatorNode.cpp"
 #include "QorePlusEqualsOperatorNode.cpp"
 #include "QoreIntPlusEqualsOperatorNode.cpp"

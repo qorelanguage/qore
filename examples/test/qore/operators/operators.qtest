@@ -169,6 +169,27 @@ class Test inherits QUnit::Test {
             assertEq(False, exists i);
         }
 
+        assertEq(3, elements "str");
+        assertEq(6, elements "straße");
+        assertEq(2, elements <bead>);
+        assertEq(2, elements (1, 2));
+        assertEq(2, elements ("a": 1, "b": 2));
+        assertEq(0, elements NOTHING);
+        {
+            string str1 = "str";
+            string str2 = "straße";
+            binary bin = <bead>;
+            list l = (1, 2);
+            hash th = ("a": 1, "b": 2);
+            assertEq(3, elements str1);
+            assertEq(6, elements str2);
+            assertEq(2, elements bin);
+            assertEq(2, elements l);
+            assertEq(2, elements th);
+            delete str1;
+            assertEq(0, elements str1);
+        }
+
         Program p(PO_NEW_STYLE);
         testAssertion("trim operator parse-time return value", \p.parse(), ("string sub test() {string str = \"a string \\n\"; string astr = trim str; return astr;}", "trim operator test"), new TestResultValue(NOTHING));
         testAssertionValue("trim operator", p.callFunction("test"), "a string");

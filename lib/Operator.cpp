@@ -51,7 +51,7 @@ DLLLOCAL extern const QoreTypeInfo* bigIntFloatOrNumberTypeInfo, * floatOrNumber
 Operator *OP_MINUS, *OP_PLUS,
    *OP_MULT,
    *OP_LOG_CMP,
-   *OP_OBJECT_REF, *OP_ELEMENTS,
+   *OP_OBJECT_REF,
    *OP_SHIFT, *OP_POP, *OP_PUSH,
    *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT,
    *OP_REGEX_TRANS, *OP_REGEX_EXTRACT,
@@ -467,31 +467,6 @@ static QoreStringNode* op_plus_string(const QoreString* left, const QoreString* 
 
 static int64 op_cmp_string(const QoreString* left, const QoreString* right, ExceptionSink* xsink) {
    return (int64)left->compare(right);
-}
-
-static int64 op_elements(const AbstractQoreNode* left, const AbstractQoreNode* null, ExceptionSink* xsink) {
-   QoreNodeEvalOptionalRefHolder np(left, xsink);
-   if (*xsink || !np)
-      return 0;
-
-   qore_type_t ltype = np->getType();
-
-   if (ltype == NT_LIST)
-      return reinterpret_cast<const QoreListNode*>(*np)->size();
-
-   if (ltype == NT_STRING)
-      return reinterpret_cast<const QoreStringNode*>(*np)->length();
-
-   if (ltype == NT_HASH)
-      return reinterpret_cast<const QoreHashNode*>(*np)->size();
-
-   if (ltype == NT_OBJECT)
-      return reinterpret_cast<const QoreObject *>(*np)->size(xsink);
-
-   if (ltype == NT_BINARY)
-      return reinterpret_cast<const BinaryNode*>(*np)->size();
-
-   return 0;
 }
 
 static AbstractQoreNode* op_regex_subst(const AbstractQoreNode* left, const AbstractQoreNode* right, bool ref_rv, ExceptionSink* xsink) {
@@ -1843,33 +1818,6 @@ static AbstractQoreNode* check_op_object_ref(QoreTreeNode* tree, LocalVar* oflag
    return tree;
 }
 
-// for operators that always return an integer
-static AbstractQoreNode* check_op_elements(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& returnTypeInfo, const char* name, const char* desc) {
-   returnTypeInfo = bigIntTypeInfo;
-
-   const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
-
-   assert(!tree->right);
-
-   if (leftTypeInfo->hasType()
-         && !listTypeInfo->parseAccepts(leftTypeInfo)
-         && !hashTypeInfo->parseAccepts(leftTypeInfo)
-         && !stringTypeInfo->parseAccepts(leftTypeInfo)
-         && !binaryTypeInfo->parseAccepts(leftTypeInfo)
-         && !objectTypeInfo->parseAccepts(leftTypeInfo)) {
-         QoreStringNode* edesc = new QoreStringNode("the argument given to the 'elements' operator is ");
-         leftTypeInfo->getThisType(*edesc);
-         edesc->concat(", so this expression will always return 0; the 'elements' operator can only return a value with lists, hashes, strings, binary objects, and objects");
-         qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
-   }
-
-   if (tree->constArgs())
-      return tree->evalSubst(returnTypeInfo);
-
-   return tree;
-}
-
 // issues a warning
 static AbstractQoreNode* check_op_list_op(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& returnTypeInfo, const char* name, const char* desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
@@ -2013,9 +1961,6 @@ void OperatorList::init() {
    OP_LOG_CMP->addFunction(op_cmp_double);
    OP_LOG_CMP->addFunction(op_cmp_bigint);
    OP_LOG_CMP->addCompareDateFunction();
-
-   OP_ELEMENTS = add(new Operator(1, "elements", "number of elements", 0, false, false, check_op_elements));
-   OP_ELEMENTS->addFunction(NT_ALL, NT_NONE, op_elements);
 
    // non-boolean operators
    OP_LIST_ASSIGNMENT = add(new Operator(2, "(list) =", "list assignment", 0, true, true, check_op_list_assignment));

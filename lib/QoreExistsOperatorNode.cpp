@@ -63,7 +63,7 @@ AbstractQoreNode* QoreExistsOperatorNode::parseInitImpl(LocalVar* oflag, int pfl
    const QoreTypeInfo* lti = 0;
    exp = exp->parseInit(oflag, pflag, lvids, lti);
 
-   // see the argument is a constant values, then eval immediately and substitute this node with the result
+   // see the argument is a constant value, then eval immediately and substitute this node with the result
    if (exp && exp->is_value()) {
       SimpleRefHolder<QoreExistsOperatorNode> del(this);
       ParseExceptionSink xsink;
