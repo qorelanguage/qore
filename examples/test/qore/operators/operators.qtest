@@ -148,6 +148,26 @@ class Test inherits QUnit::Test {
 
         assertEq(32, 1 << 5);
         assertEq(2, 32 >> 4);
+        {
+            int i = 32;
+            int l = 1;
+            int r = 5;
+            assertEq(i, l << r);
+            i = 2;
+            l = 32;
+            r = 4;
+            assertEq(i, l >> r);
+        }
+
+        assertEq(True, exists 1);
+        assertEq(True, exists NULL);
+        assertEq(False, exists NOTHING);
+        {
+            int i = 1;
+            assertEq(True, exists i);
+            delete i;
+            assertEq(False, exists i);
+        }
 
         Program p(PO_NEW_STYLE);
         testAssertion("trim operator parse-time return value", \p.parse(), ("string sub test() {string str = \"a string \\n\"; string astr = trim str; return astr;}", "trim operator test"), new TestResultValue(NOTHING));

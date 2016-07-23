@@ -2881,7 +2881,7 @@ exp_c:  scalar
         | TOK_FIND exp TOK_IN exp TOK_WHERE '(' exp ')'
         { $$ = new FindNode($2, $4, $7); }
         | TOK_EXISTS exp
-        { $$ = new QoreTreeNode($2, OP_EXISTS, 0); }
+        { $$ = new QoreExistsOperatorNode($2); }
         | TOK_ELEMENTS exp
         { $$ = new QoreTreeNode($2, OP_ELEMENTS, 0); }
         | TOK_KEYS exp {
