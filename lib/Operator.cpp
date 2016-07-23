@@ -57,8 +57,8 @@ Operator *OP_MINUS, *OP_PLUS,
    *OP_REGEX_TRANS, *OP_REGEX_EXTRACT,
    *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT,
    *OP_LOG_GT, *OP_LOG_EQ, *OP_LOG_NE, *OP_LOG_LE, *OP_LOG_GE,
-   *OP_ABSOLUTE_EQ, *OP_ABSOLUTE_NE, *OP_REGEX_MATCH, *OP_REGEX_NMATCH,
-   *OP_INSTANCEOF;
+   *OP_ABSOLUTE_EQ, *OP_ABSOLUTE_NE, *OP_REGEX_MATCH, *OP_REGEX_NMATCH
+   ;
 
 // call to get a node with reference count 1 (copy on write)
 void ensure_unique(AbstractQoreNode* *v, ExceptionSink* xsink) {
@@ -345,17 +345,6 @@ static bool op_log_ne_binary(const AbstractQoreNode* left, const AbstractQoreNod
    return l->compare(r);
 }
 */
-
-static bool op_instanceof(const AbstractQoreNode* l, const AbstractQoreNode* r, ExceptionSink* xsink) {
-   assert(r && r->getType() == NT_CLASSREF);
-
-   QoreNodeEvalOptionalRefHolder nl(l, xsink);
-   if (*xsink || !nl || nl->getType() != NT_OBJECT)
-      return false;
-
-   const QoreObject *o = reinterpret_cast<const QoreObject*>(*nl);
-   return o->validInstanceOf(*reinterpret_cast<const ClassRefNode*>(r)->getClass());
-}
 
 // takes all arguments unevaluated so logic short-circuiting can happen
 static bool op_log_and(const AbstractQoreNode* left, const AbstractQoreNode* right, ExceptionSink* xsink) {
@@ -1950,9 +1939,6 @@ void OperatorList::init() {
 
    OP_REGEX_NMATCH = add(new Operator(2, "!~", "regular expression negative match", 0, false, false, check_op_logical));
    OP_REGEX_NMATCH->addFunction(op_regex_nmatch);
-
-   OP_INSTANCEOF = add(new Operator(2, "instanceof", "instanceof", 0, false, false, check_op_logical));
-   OP_INSTANCEOF->addFunction(NT_ALL, NT_CLASSREF, op_instanceof);
 
    // bigint operators
    OP_LOG_CMP = add(new Operator(2, "<=>", "logical-comparison", 1, false, false, check_op_returns_integer));

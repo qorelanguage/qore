@@ -190,6 +190,17 @@ class Test inherits QUnit::Test {
             assertEq(0, elements str1);
         }
 
+        assertEq(True, stdout instanceof File);
+        assertEq(False, stdout instanceof Mutex);
+        assertEq(False, 1 instanceof File);
+        {
+            any x = stdout;
+            assertEq(True, x instanceof File);
+            assertEq(False, x instanceof Mutex);
+            x = 1;
+            assertEq(False, x instanceof File);
+        }
+
         Program p(PO_NEW_STYLE);
         testAssertion("trim operator parse-time return value", \p.parse(), ("string sub test() {string str = \"a string \\n\"; string astr = trim str; return astr;}", "trim operator test"), new TestResultValue(NOTHING));
         testAssertionValue("trim operator", p.callFunction("test"), "a string");

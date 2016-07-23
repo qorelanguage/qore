@@ -3202,8 +3202,8 @@ exp
     | exp SHIFT_LEFT_EQUALS exp         { $$ = new QoreShiftLeftEqualsOperatorNode($1, $3); }
     | exp SHIFT_RIGHT_EQUALS exp        { $$ = new QoreShiftRightEqualsOperatorNode($1, $3); }
     | exp '=' exp                       { $$ = processAssignment($1, $3); }
-    | exp TOK_INSTANCEOF IDENTIFIER     { $$ = new QoreTreeNode($1, OP_INSTANCEOF, new ClassRefNode($3)); }
-    | exp TOK_INSTANCEOF SCOPED_REF     { $$ = new QoreTreeNode($1, OP_INSTANCEOF, new ClassRefNode($3)); }
+    | exp TOK_INSTANCEOF IDENTIFIER     { $$ = new QoreInstanceOfOperatorNode($1, new ClassRefNode($3)); }
+    | exp TOK_INSTANCEOF SCOPED_REF     { $$ = new QoreInstanceOfOperatorNode($1, new ClassRefNode($3)); }
     | exp NULL_COALESCING exp           { $$ = new QoreNullCoalescingOperatorNode($1, $3); }
     | exp VALUE_COALESCING exp          { $$ = new QoreValueCoalescingOperatorNode($1, $3); }
     | exp '?' exp ':' exp               { $$ = new QoreQuestionMarkOperatorNode($1, $3, $5); }
@@ -3259,8 +3259,8 @@ exp_n
     | exp_n SHIFT_LEFT_EQUALS exp       { $$ = new QoreShiftLeftEqualsOperatorNode($1, $3); }
     | exp_n SHIFT_RIGHT_EQUALS exp      { $$ = new QoreShiftRightEqualsOperatorNode($1, $3); }
     | exp_n '=' exp                     { $$ = processAssignment($1, $3); }
-    | exp_n TOK_INSTANCEOF IDENTIFIER   { $$ = new QoreTreeNode($1, OP_INSTANCEOF, new ClassRefNode($3)); }
-    | exp_n TOK_INSTANCEOF SCOPED_REF   { $$ = new QoreTreeNode($1, OP_INSTANCEOF, new ClassRefNode($3)); }
+    | exp_n TOK_INSTANCEOF IDENTIFIER   { $$ = new QoreInstanceOfOperatorNode($1, new ClassRefNode($3)); }
+    | exp_n TOK_INSTANCEOF SCOPED_REF   { $$ = new QoreInstanceOfOperatorNode($1, new ClassRefNode($3)); }
     | exp_n NULL_COALESCING exp         { $$ = new QoreNullCoalescingOperatorNode($1, $3); }
     | exp_n VALUE_COALESCING exp        { $$ = new QoreValueCoalescingOperatorNode($1, $3); }
     | exp_n '?' exp ':' exp             { $$ = new QoreQuestionMarkOperatorNode($1, $3, $5); }
