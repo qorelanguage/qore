@@ -3232,8 +3232,8 @@ exp
     | exp LOGICAL_NE exp                { $$ = new QoreLogicalNotEqualsOperatorNode($1, $3); }
     | exp LOGICAL_LE exp                { $$ = new QoreLogicalLessThanOrEqualsOperatorNode($1, $3); }
     | exp LOGICAL_GE exp                { $$ = new QoreLogicalGreaterThanOrEqualsOperatorNode($1, $3); }
-    | exp SHIFT_LEFT exp                { $$ = new QoreTreeNode($1, OP_SHIFT_LEFT, $3); }
-    | exp SHIFT_RIGHT exp               { $$ = new QoreTreeNode($1, OP_SHIFT_RIGHT, $3); }
+    | exp SHIFT_LEFT exp                { $$ = new QoreShiftLeftOperatorNode($1, $3); }
+    | exp SHIFT_RIGHT exp               { $$ = new QoreShiftRightOperatorNode($1, $3); }
     | exp '+' exp                       { $$ = new QoreTreeNode($1, OP_PLUS, $3); }
     | exp '-' exp                       { $$ = new QoreTreeNode($1, OP_MINUS, $3); }
     | exp '%' exp                       { $$ = new QoreModuloOperatorNode($1, $3); }
@@ -3289,8 +3289,8 @@ exp_n
     | exp_n LOGICAL_NE exp              { $$ = new QoreLogicalNotEqualsOperatorNode($1, $3); }
     | exp_n LOGICAL_LE exp              { $$ = new QoreLogicalLessThanOrEqualsOperatorNode($1, $3); }
     | exp_n LOGICAL_GE exp              { $$ = new QoreLogicalGreaterThanOrEqualsOperatorNode($1, $3); }
-    | exp_n SHIFT_LEFT exp              { $$ = new QoreTreeNode($1, OP_SHIFT_LEFT, $3); }
-    | exp_n SHIFT_RIGHT exp             { $$ = new QoreTreeNode($1, OP_SHIFT_RIGHT, $3); }
+    | exp_n SHIFT_LEFT exp              { $$ = new QoreShiftLeftOperatorNode($1, $3); }
+    | exp_n SHIFT_RIGHT exp             { $$ = new QoreShiftRightOperatorNode($1, $3); }
     | exp_n '+' exp                     { $$ = new QoreTreeNode($1, OP_PLUS, $3); }
     | exp_n '-' exp                     { $$ = new QoreTreeNode($1, OP_MINUS, $3); }
     | exp_n '%' exp                     { $$ = new QoreModuloOperatorNode($1, $3); }

@@ -60,25 +60,25 @@ AbstractQoreNode* QoreBinaryXorOperatorNode::parseInitImpl(LocalVar* oflag, int 
 	 lti->getThisType(*desc);
 	 desc->concat("; right hand side is ");
 	 rti->getThisType(*desc);
-	 desc->concat("), therefxore the entire expression will always return a constant 0");
+	 desc->concat("), therefore the entire expression will always return a constant 0");
 	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
       }
       else {
 	 QoreStringNode* desc = new QoreStringNode("the left hand side of the binary xor (^) expression is ");
 	 lti->getThisType(*desc);
-	 desc->concat(", which cannot be converted to an integer, therefxore the entire expression will always return the integer value of the right hand side");
+	 desc->concat(", which cannot be converted to an integer, therefore the entire expression will always return the integer value of the right hand side");
 	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
       }
    }
    else if (rti->nonNumericValue()) {
       QoreStringNode* desc = new QoreStringNode("the right hand side of the binary xor (^) expression is ");
       rti->getThisType(*desc);
-      desc->concat(", which cannot be converted to an integer, therefxore the entire expression will always return the integer value of the left hand side");
+      desc->concat(", which cannot be converted to an integer, therefore the entire expression will always return the integer value of the left hand side");
       qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
    }
 
-   // see if both arguments are constant values xor the right side is > 0, then eval immediately xor substitute this node with the result
-   if (left && left->is_value() && right && right->is_value() && right->getAsBigInt()) {
+   // see if both arguments are constant values, then eval immediately and substitute this node with the result
+   if (left && left->is_value() && right && right->is_value()) {
       SimpleRefHolder<QoreBinaryXorOperatorNode> del(this);
       ParseExceptionSink xsink;
       ValueEvalRefHolder v(this, *xsink);

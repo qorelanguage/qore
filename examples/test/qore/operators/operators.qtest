@@ -146,6 +146,9 @@ class Test inherits QUnit::Test {
         testAssertion("numeric div by zero", any sub () {number n = 0n; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
         testAssertion("div by zero", any sub () {any n; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
 
+        assertEq(32, 1 << 5);
+        assertEq(2, 32 >> 4);
+
         Program p(PO_NEW_STYLE);
         testAssertion("trim operator parse-time return value", \p.parse(), ("string sub test() {string str = \"a string \\n\"; string astr = trim str; return astr;}", "trim operator test"), new TestResultValue(NOTHING));
         testAssertionValue("trim operator", p.callFunction("test"), "a string");

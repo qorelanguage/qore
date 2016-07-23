@@ -41,7 +41,7 @@ class Operator;
 
 // system default operators
 DLLLOCAL extern Operator *OP_MINUS, *OP_PLUS,
-   *OP_MULT, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT,
+   *OP_MULT,
    *OP_LOG_CMP,
    *OP_OBJECT_REF, *OP_ELEMENTS, *OP_QUESTION_MARK,
    *OP_SHIFT, *OP_POP, *OP_PUSH,

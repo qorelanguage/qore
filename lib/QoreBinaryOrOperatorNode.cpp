@@ -77,8 +77,8 @@ AbstractQoreNode* QoreBinaryOrOperatorNode::parseInitImpl(LocalVar* oflag, int p
       qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
    }
 
-   // see if both arguments are constant values or the right side is > 0, then eval immediately or substitute this node with the result
-   if (left && left->is_value() && right && right->is_value() && right->getAsBigInt()) {
+   // see if both arguments are constant values, then eval immediately or substitute this node with the result
+   if (left && left->is_value() && right && right->is_value()) {
       SimpleRefHolder<QoreBinaryOrOperatorNode> del(this);
       ParseExceptionSink xsink;
       ValueEvalRefHolder v(this, *xsink);

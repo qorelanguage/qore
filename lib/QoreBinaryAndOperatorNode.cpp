@@ -59,8 +59,8 @@ AbstractQoreNode* QoreBinaryAndOperatorNode::parseInitImpl(LocalVar* oflag, int 
    if (rti->nonNumericValue())
       rti->doNonNumericWarning("the right hand expression of the 'binary and' operator (&) expression is ");
 
-   // see if both arguments are constant values and the right side is > 0, then eval immediately and substitute this node with the result
-   if (left && left->is_value() && right && right->is_value() && right->getAsBigInt()) {
+   // see if both arguments are constant values, then eval immediately and substitute this node with the result
+   if (left && left->is_value() && right && right->is_value()) {
       SimpleRefHolder<QoreBinaryAndOperatorNode> del(this);
       ParseExceptionSink xsink;
       ValueEvalRefHolder v(this, *xsink);

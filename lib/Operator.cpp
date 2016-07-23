@@ -49,7 +49,7 @@ DLLLOCAL extern const QoreTypeInfo* bigIntFloatOrNumberTypeInfo, * floatOrNumber
 
 // the standard, system-default operator pointers
 Operator *OP_MINUS, *OP_PLUS,
-   *OP_MULT, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT,
+   *OP_MULT,
    *OP_LOG_CMP,
    *OP_OBJECT_REF, *OP_ELEMENTS,
    *OP_SHIFT, *OP_POP, *OP_PUSH,
@@ -749,14 +749,6 @@ static int64 op_cmp_double(double left, double right, ExceptionSink* xsink) {
       return 0;
 
    return 1;
-}
-
-static int64 op_shift_left_int(int64 left, int64 right) {
-   return left << right;
-}
-
-static int64 op_shift_right_int(int64 left, int64 right) {
-   return left >> right;
 }
 
 // unshift lvalue, element
@@ -2063,12 +2055,6 @@ void OperatorList::init() {
    OP_MULT->addFunction(op_multiply_number);
    OP_MULT->addFunction(op_multiply_float);
    OP_MULT->addFunction(op_multiply_bigint);
-
-   OP_SHIFT_LEFT = add(new Operator(2, "<<", "shift-left", 1, false, false, check_op_returns_integer));
-   OP_SHIFT_LEFT->addFunction(op_shift_left_int);
-
-   OP_SHIFT_RIGHT = add(new Operator(2, ">>", "shift-right", 1, false, false, check_op_returns_integer));
-   OP_SHIFT_RIGHT->addFunction(op_shift_right_int);
 
    // cannot validate return type here yet
    OP_OBJECT_REF = add(new Operator(2, ".", "hash/object-reference", 0, false, false, check_op_object_ref));

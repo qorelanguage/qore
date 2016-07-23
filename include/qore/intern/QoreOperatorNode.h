@@ -240,6 +240,8 @@ public:
 #include <qore/intern/QoreBinaryOrOperatorNode.h>
 #include <qore/intern/QoreBinaryXorOperatorNode.h>
 #include <qore/intern/QoreBinaryNotOperatorNode.h>
+#include <qore/intern/QoreShiftLeftOperatorNode.h>
+#include <qore/intern/QoreShiftRightOperatorNode.h>
 #include <qore/intern/QoreBinaryLValueOperatorNode.h>
 #include <qore/intern/QoreAssignmentOperatorNode.h>
 #include <qore/intern/QorePlusEqualsOperatorNode.h>
