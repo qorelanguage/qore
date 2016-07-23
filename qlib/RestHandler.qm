@@ -609,7 +609,7 @@ public namespace RestHandler {
 
             # try to mask passwords in args
             string astr = sprintf("%y", args);
-            astr =~ s/(pass\w*[=:\s]*).*/$1<masked>.../; #/;
+            astr =~ s/(pass(?:word)?:\s*)"([^"]*)"/$1"<masked>"/;
             rh.logDebug("REST DBG: class %y: dispatching method %y args: %s", name(), mn, astr);
             return dispatchStream(listener, rh, s, mn, args, cx);
         }
@@ -671,7 +671,10 @@ public namespace RestHandler {
             }
             catch (hash ex) {
                 if (ex.err == "METHOD-DOES-NOT-EXIST") {
-                    rh.logError("DISPATCH-ERROR: cannot dispatch to unimplemented method %y: class %y, args: %y", mn, name(), ah);
+                    # try to mask passwords in args
+                    string astr = sprintf("%y", ah);
+                    astr =~ s/(pass(?:word)?:\s*)"([^"]*)"/$1"<masked>"/;
+                    rh.logError("DISPATCH-ERROR: cannot dispatch to unimplemented method %y: class %y, args: %s", mn, name(), astr);
                     # see if alternate methods would work
                     list hl = ();
                     # break flag
@@ -819,7 +822,7 @@ public namespace RestHandler {
             if (b) {
                 string bstr = b.typeCode() == NT_STRING ? trim(b) : sprintf("%y", b);
                 # try to mask passwords in the message body
-                bstr =~ s/(pass\w*[=:\s]*).*/$1<masked>.../; #/;
+                bstr =~ s/(pass(?:word)?"?[=:>\s]*).*/$1<masked>.../; #/;
                 logDebug("REST DBG: body: %s", bstr);
             }
 

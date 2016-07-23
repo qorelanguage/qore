@@ -2195,8 +2195,8 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                     if (body) {
                         if (body.typeCode() == NT_STRING) {
                             string bstr = body.size() > BodyLogLimit ? body.substr(0, BodyLogLimit) + "..." : body;
-                            # attempt to mask any password
-                            bstr =~ s/(pass\w*[=:\s]*).*/$1<masked>.../; #/;
+                            # attempt to mask any password in the message body
+                            bstr =~ s/(pass(?:word)?"?[=:>\s]*).*/$1<masked>.../; #/;
                             bstr = replace(bstr, "\n", "\\n");
                             bstr = replace(bstr, "\r", "\\r");
                             bstr = replace(bstr, "\t", "\\t");
