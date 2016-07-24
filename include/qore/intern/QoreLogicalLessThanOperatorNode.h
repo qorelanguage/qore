@@ -56,6 +56,10 @@ public:
    DLLLOCAL QoreLogicalLessThanOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBoolBinaryOperatorNode(n_left, n_right), pfunc(0) {
    }
 
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      return copyBackgroundExplicit<QoreLogicalLessThanOperatorNode>(xsink);
+   }
+
    DLLLOCAL static bool doLessThan(QoreValue l, QoreValue r, ExceptionSink* xsink);
 };
 

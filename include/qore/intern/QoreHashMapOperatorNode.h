@@ -48,7 +48,7 @@ protected:
    DLLLOCAL virtual ~QoreHashMapOperatorNode() {
    }
 
-   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, 
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids,
                                                     const QoreTypeInfo*& typeInfo);
 
    inline DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -78,7 +78,18 @@ public:
       return map_str.getBuffer();
    }
 
-   //DLLLOCAL AbstractQoreNode* map(ExceptionSink* xsink) const;
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      ReferenceHolder<> n_e0(copy_and_resolve_lvar_refs(e[0], xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_e1(copy_and_resolve_lvar_refs(e[1], xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_e2(copy_and_resolve_lvar_refs(e[2], xsink), xsink);
+      if (*xsink)
+         return 0;
+      return new QoreHashMapOperatorNode(n_e0.release(), n_e1.release(), n_e2.release());
+   }
 };
 
 #endif // QOREHASHMAPOPERATORNODE_H

@@ -79,9 +79,22 @@ public:
       return map_str.getBuffer();
    }
 
-   DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      ReferenceHolder<> n_e0(copy_and_resolve_lvar_refs(e[0], xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_e1(copy_and_resolve_lvar_refs(e[1], xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_e2(copy_and_resolve_lvar_refs(e[2], xsink), xsink);
+      if (*xsink)
+         return 0;
+      QoreMapSelectOperatorNode* rv = new QoreMapSelectOperatorNode(n_e0.release(), n_e1.release(), n_e2.release());
+      rv->iterator_func = dynamic_cast<FunctionalOperator*>(rv->e[1]);
+      return rv;
+   }
 
-   //DLLLOCAL AbstractQoreNode* map(ExceptionSink* xsink) const;
+   DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
 };
 
 class QoreFunctionalMapSelectListOperator : public FunctionalOperatorInterface, public ConstListIterator {

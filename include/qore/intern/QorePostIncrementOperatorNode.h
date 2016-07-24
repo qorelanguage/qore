@@ -44,7 +44,7 @@ protected:
    DLLLOCAL void parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
       // turn off "reference ok" and "return value ignored" flags
       pflag &= ~(PF_RETURN_VALUE_IGNORED);
-      
+
       exp = exp->parseInit(oflag, pflag, lvids, ti);
       checkLValue(exp, pflag);
       // returns the left side
@@ -61,7 +61,10 @@ protected:
 public:
    DLLLOCAL QorePostIncrementOperatorNode(AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(n_exp), ti(0) {
    }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      return copyBackgroundExplicit<QorePostIncrementOperatorNode>(xsink);
+   }
 };
 
 #endif
-

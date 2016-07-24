@@ -56,7 +56,10 @@ public:
    DLLLOCAL virtual const char *getTypeName() const {
       return trim_str.getBuffer();
    }
-   DLLLOCAL virtual QoreTrimOperatorNode* copyBackground(ExceptionSink* xsink) const;
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      return copyBackgroundExplicit<QoreTrimOperatorNode>(xsink);
+   }
 };
 
 #endif
