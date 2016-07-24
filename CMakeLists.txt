@@ -12,12 +12,12 @@ option(QORE_RUNTIME_THREAD_STACK_TRACE
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 8)
-set(VERSION_SUB 12)
+set(VERSION_SUB 13)
 
 # If changing the module API numbers, make sure to change the appropriate
 # defines in include/qore/ModuleManager.h too.
 set(MODULE_API_MAJOR 0)
-set(MODULE_API_MINOR 19)
+set(MODULE_API_MINOR 20)
 
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "release")
@@ -43,6 +43,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 include_directories( ${CMAKE_BINARY_DIR} )
 include_directories( ${CMAKE_BINARY_DIR}/include/ )
+include_directories( ${CMAKE_BINARY_DIR}/include/qore )
+include_directories( ${CMAKE_BINARY_DIR}/include/qore/intern )
 include_directories( ${CMAKE_SOURCE_DIR}/include )
 include_directories( ${CMAKE_SOURCE_DIR}/include/qore )
 
@@ -103,11 +105,13 @@ set(LIBQORE_QPP_SRC
 	lib/QC_HashListReverseIterator.qpp
 	lib/QC_ListHashIterator.qpp
 	lib/QC_ListHashReverseIterator.qpp
+	lib/QC_AbstractLineIterator.qpp
 	lib/QC_FileLineIterator.qpp
+	lib/QC_DataLineIterator.qpp
+	lib/QC_InputStreamLineIterator.qpp
 	lib/QC_SingleValueIterator.qpp
 	lib/QC_AbstractDatasource.qpp
 	lib/QC_RangeIterator.qpp
-	lib/QC_DataLineIterator.qpp
 	lib/QC_Datasource.qpp
 	lib/QC_DatasourcePool.qpp
 	lib/QC_Dir.qpp
@@ -130,6 +134,24 @@ set(LIBQORE_QPP_SRC
 	lib/QC_SSLCertificate.qpp
 	lib/QC_SSLPrivateKey.qpp
 	lib/QC_ThreadPool.qpp
+	lib/QC_InputStream.qpp
+	lib/QC_BinaryInputStream.qpp
+	lib/QC_StringInputStream.qpp
+	lib/QC_FileInputStream.qpp
+	lib/QC_EncodingConversionInputStream.qpp
+	lib/QC_OutputStream.qpp
+	lib/QC_BinaryOutputStream.qpp
+	lib/QC_StringOutputStream.qpp
+	lib/QC_FileOutputStream.qpp
+	lib/QC_EncodingConversionOutputStream.qpp
+	lib/QC_StreamPipe.qpp
+	lib/QC_PipeInputStream.qpp
+	lib/QC_PipeOutputStream.qpp
+	lib/QC_StreamWriter.qpp
+	lib/QC_StreamReader.qpp
+	lib/QC_Transform.qpp
+	lib/QC_TransformInputStream.qpp
+	lib/QC_TransformOutputStream.qpp
 	lib/Pseudo_QC_All.qpp
 	lib/Pseudo_QC_Nothing.qpp
 	lib/Pseudo_QC_Date.qpp
@@ -224,6 +246,16 @@ endif (WIN32 AND MINGW AND MSYS)
 
 create_git_revision()
 
+# Check for C++11.
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+if(COMPILER_SUPPORTS_CXX11)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+else()
+    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+endif()
+
+# Other checks
 qore_os_checks()
 qore_iconv_translit_check()
 qore_openssl_checks()
@@ -449,12 +481,15 @@ set(LIBQORE_CPP_SRC
         lib/QoreMapSelectOperatorNode.cpp
         lib/QoreHashMapOperatorNode.cpp
         lib/QoreHashMapSelectOperatorNode.cpp
+        lib/QoreFoldlOperatorNode.cpp
         lib/QoreNullCoalescingOperatorNode.cpp
         lib/QoreValueCoalescingOperatorNode.cpp
         lib/QoreChompOperatorNode.cpp
         lib/QoreTrimOperatorNode.cpp
         lib/QoreSquareBracketsOperatorNode.cpp
         lib/QoreValue.cpp
+        lib/StreamPipe.cpp
+        lib/CompressionTransforms.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/ql_thread.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/ql_time.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/ql_lib.cpp
@@ -503,8 +538,10 @@ set(LIBQORE_CPP_SRC
         ${CMAKE_CURRENT_BINARY_DIR}/QC_ObjectKeyReverseIterator.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_ObjectPairIterator.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_ObjectPairReverseIterator.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_AbstractLineIterator.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_FileLineIterator.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_DataLineIterator.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_InputStreamLineIterator.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_SingleValueIterator.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_RangeIterator.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_ThreadPool.cpp
@@ -531,6 +568,24 @@ set(LIBQORE_CPP_SRC
         ${CMAKE_CURRENT_BINARY_DIR}/QC_TimeZone.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_TreeMap.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/QC_AbstractThreadResource.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_InputStream.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_BinaryInputStream.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_StringInputStream.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_FileInputStream.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_EncodingConversionInputStream.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_OutputStream.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_BinaryOutputStream.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_StringOutputStream.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_FileOutputStream.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_EncodingConversionOutputStream.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_StreamPipe.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_PipeInputStream.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_PipeOutputStream.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_StreamWriter.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_StreamReader.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_Transform.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_TransformInputStream.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/QC_TransformOutputStream.cpp
         lib/QorePseudoMethods.cpp
         lib/xxhash.cpp
         lib/minitest.cpp

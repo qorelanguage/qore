@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -248,6 +248,7 @@ public:
 #include <qore/intern/QoreSpliceOperatorNode.h>
 #include <qore/intern/QoreExtractOperatorNode.h>
 #include <qore/intern/QoreCastOperatorNode.h>
+#include <qore/intern/QoreKeysOperatorNode.h>
 #include <qore/intern/QoreUnaryMinusOperatorNode.h>
 #include <qore/intern/QoreLogicalNotOperatorNode.h>
 #include <qore/intern/QoreDotEvalOperatorNode.h>
@@ -286,6 +287,8 @@ public:
 #include <qore/intern/QoreMapSelectOperatorNode.h>
 #include <qore/intern/QoreHashMapOperatorNode.h>
 #include <qore/intern/QoreHashMapSelectOperatorNode.h>
+#include <qore/intern/QoreFoldlOperatorNode.h>
+#include <qore/intern/QoreSelectOperatorNode.h>
 #include <qore/intern/QoreNullCoalescingOperatorNode.h>
 #include <qore/intern/QoreValueCoalescingOperatorNode.h>
 #include <qore/intern/QoreChompOperatorNode.h>

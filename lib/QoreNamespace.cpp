@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -119,10 +119,30 @@ DLLLOCAL QoreClass* initHashListIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initHashListReverseIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initListHashIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initListHashReverseIteratorClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initAbstractLineIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initFileLineIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initDataLineIteratorClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initInputStreamLineIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initSingleValueIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initRangeIteratorClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initInputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initBinaryInputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initStringInputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initFileInputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initEncodingConversionInputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initEncodingConversionOutputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initOutputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initBinaryOutputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initStringOutputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initFileOutputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initStreamPipeClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initPipeInputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initPipeOutputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initStreamWriterClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initStreamReaderClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initTransformClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initTransformInputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initTransformOutputStreamClass(QoreNamespace& ns);
 
 DLLLOCAL void init_type_constants(QoreNamespace& ns);
 DLLLOCAL void init_compression_constants(QoreNamespace& ns);
@@ -144,6 +164,7 @@ StaticSystemNamespace* staticSystemNamespace;
 
 DLLLOCAL void init_context_functions(QoreNamespace& ns);
 DLLLOCAL void init_RangeIterator_functions(QoreNamespace& ns);
+DLLLOCAL void init_InputStream_functions(QoreNamespace& ns);
 
 GVEntryBase::GVEntryBase(char* n, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo) :
    name(new NamedScope(n)),
@@ -758,6 +779,26 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
 
    qore_ns_private::addNamespace(qns, get_thread_ns(qns));
 
+   // add stream classes
+   qns.addSystemClass(initInputStreamClass(qns));
+   qns.addSystemClass(initOutputStreamClass(qns));
+   qns.addSystemClass(initTransformClass(qns));
+   qns.addSystemClass(initTransformInputStreamClass(qns));
+   qns.addSystemClass(initTransformOutputStreamClass(qns));
+   qns.addSystemClass(initBinaryInputStreamClass(qns));
+   qns.addSystemClass(initStringInputStreamClass(qns));
+   qns.addSystemClass(initFileInputStreamClass(qns));
+   qns.addSystemClass(initEncodingConversionInputStreamClass(qns));
+   qns.addSystemClass(initEncodingConversionOutputStreamClass(qns));
+   qns.addSystemClass(initBinaryOutputStreamClass(qns));
+   qns.addSystemClass(initStringOutputStreamClass(qns));
+   qns.addSystemClass(initFileOutputStreamClass(qns));
+   qns.addSystemClass(initPipeInputStreamClass(qns));
+   qns.addSystemClass(initPipeOutputStreamClass(qns));
+   qns.addSystemClass(initStreamPipeClass(qns));
+   qns.addSystemClass(initStreamWriterClass(qns));
+   qns.addSystemClass(initStreamReaderClass(qns));
+
    // add system object types
    qns.addSystemClass(initTimeZoneClass(qns));
    qns.addSystemClass(initSSLCertificateClass(qns));
@@ -797,8 +838,10 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    qns.addSystemClass(initHashListReverseIteratorClass(qns));
    qns.addSystemClass(initListHashIteratorClass(qns));
    qns.addSystemClass(initListHashReverseIteratorClass(qns));
+   qns.addSystemClass(initAbstractLineIteratorClass(qns));
    qns.addSystemClass(initFileLineIteratorClass(qns));
    qns.addSystemClass(initDataLineIteratorClass(qns));
+   qns.addSystemClass(initInputStreamLineIteratorClass(qns));
    qns.addSystemClass(initSingleValueIteratorClass(qns));
    qns.addSystemClass(initRangeIteratorClass(qns));
    qns.addSystemClass(initTreeMapClass(qns));
@@ -879,6 +922,8 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    init_compression_functions(qns);
    init_context_functions(qns);
    init_RangeIterator_functions(qns);
+   init_InputStream_functions(qns);
+
 #ifdef DEBUG
    init_debug_functions(qns);
 #endif
@@ -893,7 +938,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
 
 // returns 0 for success, non-zero return value means error
 int qore_root_ns_private::parseAddMethodToClassIntern(const NamedScope& scname, MethodVariantBase* qcmethod, bool static_flag) {
-   std::auto_ptr<MethodVariantBase> v(qcmethod);
+   std::unique_ptr<MethodVariantBase> v(qcmethod);
 
    // find class
    QoreClass* oc = parseFindScopedClassWithMethodInternError(scname, true);
@@ -1366,7 +1411,7 @@ const QoreFunction* qore_root_ns_private::parseResolveFunctionIntern(const Named
 }
 
 AbstractCallReferenceNode* qore_root_ns_private::parseResolveCallReferenceIntern(UnresolvedProgramCallReferenceNode* fr) {
-   std::auto_ptr<UnresolvedProgramCallReferenceNode> fr_holder(fr);
+   std::unique_ptr<UnresolvedProgramCallReferenceNode> fr_holder(fr);
    char* fname = fr->str;
 
    FunctionEntry* fe = parseFindFunctionEntryIntern(fname);
@@ -1612,7 +1657,7 @@ void qore_ns_private::parseRollback() {
 }
 
 qore_ns_private* qore_ns_private::parseAddNamespace(QoreNamespace* nns) {
-   std::auto_ptr<QoreNamespace> nnsh(nns);
+   std::unique_ptr<QoreNamespace> nnsh(nns);
 
    //printd(5, "qore_ns_private::parseAddNamespace() this: %p '%s::' adding '%s' pub: %d nns->pub: %d\n", this, name.c_str(), nns->getName(), pub, nns->priv->pub);
 
@@ -1675,7 +1720,7 @@ void qore_ns_private::parseAddConstant(const NamedScope& nscope, AbstractQoreNod
 // public, only called either in single-threaded initialization or
 // while the program-level parse lock is held
 int qore_ns_private::parseAddPendingClass(QoreClass* oc) {
-   std::auto_ptr<QoreClass> och(oc);
+   std::unique_ptr<QoreClass> och(oc);
 
    if (!pub && qore_class_private::isPublic(*oc) && parse_check_parse_option(PO_IN_MODULE))
       qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "class '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), oc->getName(), name.c_str());
@@ -1715,7 +1760,7 @@ int qore_ns_private::parseAddPendingClass(QoreClass* oc) {
 
 // public, only called when parsing unattached namespaces
 int qore_ns_private::parseAddPendingClass(const NamedScope& n, QoreClass* oc) {
-   std::auto_ptr<QoreClass> och(oc);
+   std::unique_ptr<QoreClass> och(oc);
 
    //printd(5, "qore_ns_private::parseAddPendingClass() adding ns: %s (%s, %p)\n", n.ostr, oc->getName(), oc);
    QoreNamespace* sns = resolveNameScope(n);
@@ -1726,7 +1771,7 @@ int qore_ns_private::parseAddPendingClass(const NamedScope& n, QoreClass* oc) {
 }
 
 int qore_ns_private::parseAddMethodToClass(const NamedScope& mname, MethodVariantBase* qcmethod, bool static_flag) {
-   std::auto_ptr<MethodVariantBase> v(qcmethod);
+   std::unique_ptr<MethodVariantBase> v(qcmethod);
 
    unsigned m = 0;
    QoreClass* oc = mname.size() > 2 ? parseMatchScopedClassWithMethod(mname, m) : parseFindLocalClass(mname[0]);
