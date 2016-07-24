@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreModuloEqualsOperatorNode.h
+  QoreHashObjectDereferenceOperatorNode.h
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,18 +29,28 @@
   information.
 */
 
-#ifndef _QORE_QOREMODULOEQUALSOPERATORNODE_H
-#define _QORE_QOREMODULOEQUALSOPERATORNODE_H
+#ifndef _QORE_QOREHASHOBJECTDEREFERENCEOPERATORNODE_H
 
-class QoreModuloEqualsOperatorNode : public QoreBinaryIntLValueOperatorNode {
+#define _QORE_QOREHASHOBJECTDEREFERENCEOPERATORNODE_H
+
+class QoreHashObjectDereferenceOperatorNode : public QoreBinaryOperatorNode<> {
 OP_COMMON
 protected:
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   const QoreTypeInfo* typeInfo;
 
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+   DLLLOCAL QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+
+   DLLLOCAL AbstractQoreNode* parseInitIntern(const char *name, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
 public:
-   DLLLOCAL QoreModuloEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryIntLValueOperatorNode(n_left, n_right) {
+   DLLLOCAL QoreHashObjectDereferenceOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(n_left, n_right), typeInfo(0) {
+   }
+
+
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+      return typeInfo;
    }
 };
 

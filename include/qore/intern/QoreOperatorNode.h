@@ -60,7 +60,7 @@ public:
    DLLLOCAL virtual bool hasEffect() const = 0;
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
-      return const_cast<QoreOperatorNode* >(this);
+      return const_cast<QoreOperatorNode*>(this);
    }
 };
 
@@ -94,6 +94,10 @@ public:
          rv->ignoreReturnValue();
       return rv;
    }
+
+   DLLLOCAL virtual bool hasEffect() const {
+      return ::node_has_effect(exp);
+   }
 };
 
 template <class T = QoreOperatorNode>
@@ -123,6 +127,12 @@ public:
       return rv;
    }
 
+   DLLLOCAL AbstractQoreNode* swapLeft(AbstractQoreNode* n_left) {
+      AbstractQoreNode* old_l = left;
+      left = n_left;
+      return old_l;
+   }
+
    DLLLOCAL AbstractQoreNode* swapRight(AbstractQoreNode* n_right) {
       AbstractQoreNode* old_r = right;
       right = n_right;
@@ -144,6 +154,10 @@ public:
    DLLLOCAL const AbstractQoreNode* getRight() const {
       return right;
    }
+
+   DLLLOCAL virtual bool hasEffect() const {
+      return ::node_has_effect(left) || ::node_has_effect(right);
+   }
 };
 
 class QoreBoolBinaryOperatorNode : public QoreBinaryOperatorNode<> {
@@ -154,10 +168,6 @@ public:
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return boolTypeInfo;
    }
-
-   DLLLOCAL virtual bool hasEffect() const {
-      return false;
-   }
 };
 
 class QoreIntBinaryOperatorNode : public QoreBinaryOperatorNode<> {
@@ -167,10 +177,6 @@ public:
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return bigIntTypeInfo;
-   }
-
-   DLLLOCAL virtual bool hasEffect() const {
-      return false;
    }
 };
 
@@ -221,6 +227,13 @@ public:
        assert(i < N);
        return e[i];
     }
+
+   DLLLOCAL virtual bool hasEffect() const {
+      for (unsigned int i = 0; i < N; ++i)
+         if (::node_has_effect(e[i]))
+            return true;
+      return false;
+   }
 };
 
 // include operator headers
@@ -245,6 +258,7 @@ public:
 #include <qore/intern/QoreExistsOperatorNode.h>
 #include <qore/intern/QoreElementsOperatorNode.h>
 #include <qore/intern/QoreInstanceOfOperatorNode.h>
+#include <qore/intern/QoreHashObjectDereferenceOperatorNode.h>
 #include <qore/intern/QoreBinaryLValueOperatorNode.h>
 #include <qore/intern/QoreAssignmentOperatorNode.h>
 #include <qore/intern/QorePlusEqualsOperatorNode.h>

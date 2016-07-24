@@ -326,7 +326,6 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
         testAssertionValue("single iterator remap header test hash", rh, Recsh2);
         testAssertionValue("single iterator remap header test list", rl, Recsl2);
 
-
         hash spec2 = spec;
         remove spec2{CSV_TYPE_SINGLE}{"col1"};
         remove spec2{CSV_TYPE_SINGLE}{"col4"};

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -60,6 +60,7 @@ enum qore_var_t {
 class Var;
 class ScopedObjectCallNode;
 class QoreSquareBracketsOperatorNode;
+class QoreHashObjectDereferenceOperatorNode;
 
 union qore_gvar_ref_u {
    bool b;
@@ -318,8 +319,6 @@ DLLLOCAL void delete_global_variables();
 
 DLLLOCAL extern QoreHashNode *ENV;
 
-class QoreTreeNode;
-
 typedef std::set<const void*> lvid_set_t;
 
 // track obj count changes
@@ -386,7 +385,7 @@ protected:
    }
 
    DLLLOCAL int doListLValue(const QoreSquareBracketsOperatorNode* op, bool for_remove);
-   DLLLOCAL int doHashObjLValue(const QoreTreeNode* tree, bool for_remove);
+   DLLLOCAL int doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* op, bool for_remove);
 
    DLLLOCAL int makeInt(const char* desc);
    DLLLOCAL int makeFloat(const char* desc);

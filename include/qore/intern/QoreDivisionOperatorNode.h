@@ -62,10 +62,6 @@ public:
       return typeInfo;
    }
 
-   DLLLOCAL virtual bool hasEffect() const {
-      return false;
-   }
-
    DLLLOCAL static QoreValue doDivision(QoreValue l, QoreValue r, ExceptionSink* xsink);
 };
 

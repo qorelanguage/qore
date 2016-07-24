@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreUnaryMinusOperatorNode.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
- 
+
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -45,7 +45,7 @@ protected:
 
    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
       return returnTypeInfo;
-   }   
+   }
 
 public:
    DLLLOCAL QoreUnaryMinusOperatorNode(AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(n_exp), returnTypeInfo(0) {
@@ -55,10 +55,6 @@ public:
    // returns the type name as a c string
    DLLLOCAL virtual const char *getTypeName() const {
       return unaryminus_str.getBuffer();
-   }
-
-   DLLLOCAL virtual bool hasEffect() const {
-      return false;
    }
 
    DLLLOCAL static AbstractQoreNode *makeNode(AbstractQoreNode *exp);

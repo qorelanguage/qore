@@ -175,6 +175,8 @@
 #include "QoreExistsOperatorNode.cpp"
 #include "QoreElementsOperatorNode.cpp"
 #include "QoreInstanceOfOperatorNode.cpp"
+#include "QoreQuestionMarkOperatorNode.cpp"
+#include "QoreHashObjectDereferenceOperatorNode.cpp"
 #include "QoreAssignmentOperatorNode.cpp"
 #include "QorePlusEqualsOperatorNode.cpp"
 #include "QoreIntPlusEqualsOperatorNode.cpp"

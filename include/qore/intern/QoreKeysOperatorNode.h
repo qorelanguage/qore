@@ -67,10 +67,6 @@ public:
    DLLLOCAL virtual const char* getTypeName() const {
       return keys_str.getBuffer();
    }
-
-   DLLLOCAL virtual bool hasEffect() const {
-      return true;
-   }
 };
 
 class QoreFunctionalKeysOperator : public FunctionalOperatorInterface, public ConstHashIterator {

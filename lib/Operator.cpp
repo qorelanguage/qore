@@ -41,8 +41,6 @@
 #include <sys/types.h>
 #include <pcre.h>
 
-QoreString QoreQuestionMarkOperatorNode::question_mark_str("question mark operator expression");
-
 DLLLOCAL OperatorList oplist;
 
 DLLLOCAL extern const QoreTypeInfo* bigIntFloatOrNumberTypeInfo, * floatOrNumberTypeInfo;
@@ -51,7 +49,6 @@ DLLLOCAL extern const QoreTypeInfo* bigIntFloatOrNumberTypeInfo, * floatOrNumber
 Operator *OP_MINUS, *OP_PLUS,
    *OP_MULT,
    *OP_LOG_CMP,
-   *OP_OBJECT_REF,
    *OP_SHIFT, *OP_POP, *OP_PUSH,
    *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT,
    *OP_REGEX_TRANS, *OP_REGEX_EXTRACT,
@@ -514,47 +511,6 @@ static AbstractQoreNode* op_transliterate(const AbstractQoreNode* left, const Ab
 
    // reference for return value
    return ref_rv ? nv->refSelf() : 0;
-}
-
-// for the member name, a string is required.  non-string arguments will
-// be converted.  The null string can also be used
-static AbstractQoreNode* op_object_ref(const AbstractQoreNode* left, const AbstractQoreNode* member, bool ref_rv, ExceptionSink* xsink) {
-   QoreNodeEvalOptionalRefHolder op(left, xsink);
-   if (*xsink || !op)
-      return 0;
-
-   if (op->getType() == NT_HASH) {
-      const QoreHashNode* h = reinterpret_cast<const QoreHashNode*>(*op);
-
-      // evaluate member expression
-      QoreNodeEvalOptionalRefHolder mem(member, xsink);
-      if (*xsink)
-	 return 0;
-
-      if (mem && mem->getType() == NT_LIST) {
-	 return h->getSlice(reinterpret_cast<const QoreListNode*>(*mem), xsink);
-      }
-
-      QoreStringNodeValueHelper key(*mem);
-      return h->evalKeyValue(*key, xsink);
-   }
-   if (op->getType() != NT_OBJECT)
-      return 0;
-
-   QoreObject *o = const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(*op));
-
-   // evaluate member expression
-   QoreNodeEvalOptionalRefHolder mem(member, xsink);
-   if (*xsink)
-      return 0;
-
-   if (mem && mem->getType() == NT_LIST) {
-      return o->getSlice(reinterpret_cast<const QoreListNode*>(*mem), xsink);
-   }
-
-   QoreStringNodeValueHelper key(*mem);
-   ValueHolder rv(o->evalMember(*key, xsink), xsink);
-   return *xsink ? 0 : rv.getReferencedValue();
 }
 
 static AbstractQoreNode* op_list_assignment(const AbstractQoreNode* n_left, const AbstractQoreNode* right, bool ref_rv, ExceptionSink* xsink) {
@@ -1735,78 +1691,6 @@ static AbstractQoreNode* check_op_multiply(QoreTreeNode* tree, LocalVar* oflag, 
    return tree;
 }
 
-static AbstractQoreNode* check_op_object_ref(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& returnTypeInfo, const char* name, const char* desc) {
-   QoreProgramLocation loc = get_parse_location();
-
-   const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
-
-   const QoreTypeInfo *rightTypeInfo = 0;
-   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
-
-   printd(5, "check_op_object_object_ref() l=%p %s (%s) r=%p %s\n", leftTypeInfo, leftTypeInfo->getName(), leftTypeInfo->getUniqueReturnClass() ? leftTypeInfo->getUniqueReturnClass()->getName() : "n/a", rightTypeInfo, rightTypeInfo->getName());
-
-   if (leftTypeInfo->hasType()) {
-      bool can_be_obj = objectTypeInfo->parseAccepts(leftTypeInfo);
-      bool can_be_hash = hashTypeInfo->parseAccepts(leftTypeInfo);
-
-      bool is_obj = can_be_obj ? leftTypeInfo->isType(NT_OBJECT) : false;
-      bool is_hash = can_be_hash ? leftTypeInfo->isType(NT_HASH) : false;
-
-      const QoreClass *qc = leftTypeInfo->getUniqueReturnClass();
-      // see if we can check for legal access
-      if (qc && tree->right) {
-	 qore_type_t rt = tree->right->getType();
-	 if (rt == NT_STRING) {
-	    const char* member = reinterpret_cast<const QoreStringNode*>(tree->right)->getBuffer();
-	    qore_class_private::parseCheckMemberAccess(*qc, loc, member, returnTypeInfo, pflag);
-	 }
-	 else if (rt == NT_LIST) { // check object slices as well if strings are available
-	    ConstListIterator li(reinterpret_cast<const QoreListNode*>(tree->right));
-	    while (li.next()) {
-	       if (li.getValue() && li.getValue()->getType() == NT_STRING) {
-		  const char* member = reinterpret_cast<const QoreStringNode*>(li.getValue())->getBuffer();
-		  qore_class_private::parseCheckMemberAccess(*qc, loc, member, returnTypeInfo, pflag);
-	       }
-	    }
-	 }
-      }
-
-      // if we are taking a slice of an object or a hash, then the return type is a hash
-      if (rightTypeInfo->hasType() && rightTypeInfo->isType(NT_LIST) && (is_obj || is_hash))
-	 returnTypeInfo = hashTypeInfo;
-
-      // if we are trying to convert to a hash
-      if (pflag & PF_FOR_ASSIGNMENT) {
-	 // only throw a parse exception if parse exceptions are enabled
-	 if (!can_be_hash
-	     && !can_be_obj
-	     && getProgram()->getParseExceptionSink()) {
-	    QoreStringNode* edesc = new QoreStringNode("cannot convert lvalue defined as ");
-	    leftTypeInfo->getThisType(*edesc);
-	    edesc->sprintf(" to a hash using the '.' or '{}' operator in an assignment expression");
-	    qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
-	 }
-      }
-      else if (!can_be_hash && !can_be_obj) {
-	 QoreStringNode* edesc = new QoreStringNode("left-hand side of the expression with the '.' or '{}' operator is ");
-	 leftTypeInfo->getThisType(*edesc);
-	 edesc->concat(" and so this expression will always return NOTHING; the '.' or '{}' operator only returns a value with hashes and objects");
-	 qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
-	 returnTypeInfo = nothingTypeInfo;
-      }
-   }
-
-   //printd(5, "check_op_object_ref() rightTypeInfo=%s rightTypeInfo->nonStringValue(): %d !listTypeInfo->parseAccepts(rightTypeInfo): %d\n", rightTypeInfo->getName(), rightTypeInfo->nonStringValue(), !listTypeInfo->parseAccepts(rightTypeInfo));
-
-   // issue a warning if the right side of the expression cannot be converted to a string
-   // and can not be a list (for a slice)
-   if (rightTypeInfo->nonStringValue() && !listTypeInfo->parseAccepts(rightTypeInfo))
-      rightTypeInfo->doNonStringWarning(loc, "the right side of the expression with the '.' or '{}' operator is ");
-
-   return tree;
-}
-
 // issues a warning
 static AbstractQoreNode* check_op_list_op(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& returnTypeInfo, const char* name, const char* desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
@@ -1978,10 +1862,6 @@ void OperatorList::init() {
    OP_MULT->addFunction(op_multiply_number);
    OP_MULT->addFunction(op_multiply_float);
    OP_MULT->addFunction(op_multiply_bigint);
-
-   // cannot validate return type here yet
-   OP_OBJECT_REF = add(new Operator(2, ".", "hash/object-reference", 0, false, false, check_op_object_ref));
-   OP_OBJECT_REF->addFunction(NT_ALL, NT_ALL, op_object_ref);
 
    OP_SHIFT = add(new Operator(1, "shift", "shift from list", 0, true, true, check_op_list_op));
    OP_SHIFT->addFunction(op_shift);

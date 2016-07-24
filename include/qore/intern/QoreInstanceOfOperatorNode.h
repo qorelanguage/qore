@@ -63,10 +63,6 @@ public:
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return boolTypeInfo;
    }
-
-   DLLLOCAL virtual bool hasEffect() const {
-      return false;
-   }
 };
 
 #endif

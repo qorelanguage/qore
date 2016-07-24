@@ -3,7 +3,7 @@
 
   Qore programming language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -332,17 +332,17 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
    return 0;
 }
 
-int LValueHelper::doHashObjLValue(const QoreTreeNode* tree, bool for_remove) {
-   QoreNodeEvalOptionalRefHolder member(tree->right, vl.xsink);
+int LValueHelper::doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* op, bool for_remove) {
+   ValueEvalRefHolder rh(op->getRight(), vl.xsink);
    if (*vl.xsink)
       return -1;
 
    // convert to default character encoding
-   QoreStringValueHelper mem(*member, QCS_DEFAULT, vl.xsink);
+   QoreStringValueHelper mem(*rh, QCS_DEFAULT, vl.xsink);
    if (*vl.xsink)
       return -1;
 
-   if (doLValue(tree->left, for_remove))
+   if (doLValue(op->getLeft(), for_remove))
       return -1;
 
    /*
@@ -455,19 +455,19 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
       if (doLValue(reinterpret_cast<const ReferenceNode*>(n), for_remove))
 	 return -1;
    }
-   else if (ntype == NT_OPERATOR) {
-      const QoreSquareBracketsOperatorNode* op = dynamic_cast<const QoreSquareBracketsOperatorNode*>(n);
-      assert(op);
-      if (doListLValue(op, for_remove))
-	 return -1;
-   }
    else {
-      assert(n->getType() == NT_TREE);
-      // it must be a tree
-      const QoreTreeNode* tree = reinterpret_cast<const QoreTreeNode*>(n);
-      assert(tree->getOp() == OP_OBJECT_REF);
-      if (doHashObjLValue(tree, for_remove))
-	 return -1;
+      assert(ntype == NT_OPERATOR);
+      const QoreSquareBracketsOperatorNode* op = dynamic_cast<const QoreSquareBracketsOperatorNode*>(n);
+      if (op) {
+	 if (doListLValue(op, for_remove))
+	    return -1;
+      }
+      else {
+	 assert(dynamic_cast<const QoreHashObjectDereferenceOperatorNode*>(n));
+	 const QoreHashObjectDereferenceOperatorNode* hop = reinterpret_cast<const QoreHashObjectDereferenceOperatorNode*>(n);
+	 if (doHashObjLValue(hop, for_remove))
+	    return -1;
+      }
    }
 
 #if 0
@@ -1091,42 +1091,40 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
       return;
    }
 
-   if (t == NT_OPERATOR) {
-      const QoreSquareBracketsOperatorNode* op = dynamic_cast<const QoreSquareBracketsOperatorNode*>(lvalue);
-      if (op) {
-         LValueHelper lvhb(op, xsink, true);
-         if (!lvhb)
-            return;
-
-         bool static_assignment = false;
-         QoreValue tmp = lvhb.remove(static_assignment);
-         if (static_assignment)
-            tmp.ref();
-         rv.assignAssumeInitial(tmp);
-         return;
-      }
-   }
-
    // could be any type if in a background expression
-   if (t != NT_TREE) {
+   if (t != NT_OPERATOR) {
       rv.assignInitial(lvalue ? lvalue->refSelf() : 0);
       return;
    }
 
-   // can be only a list reference
-   // must be a tree
-   assert(t == NT_TREE);
-   QoreTreeNode* tree = reinterpret_cast<QoreTreeNode*>(lvalue);
+   assert(t == NT_OPERATOR);
 
-   assert(tree->getOp() == OP_OBJECT_REF);
+   {
+      const QoreSquareBracketsOperatorNode* op = dynamic_cast<const QoreSquareBracketsOperatorNode*>(lvalue);
+      if (op) {
+	 LValueHelper lvhb(op, xsink, true);
+	 if (!lvhb)
+	    return;
+
+	 bool static_assignment = false;
+	 QoreValue tmp = lvhb.remove(static_assignment);
+	 if (static_assignment)
+	    tmp.ref();
+	 rv.assignAssumeInitial(tmp);
+	 return;
+      }
+   }
+
+   assert(dynamic_cast<const QoreHashObjectDereferenceOperatorNode*>(lvalue));
+   const QoreHashObjectDereferenceOperatorNode* op = reinterpret_cast<const QoreHashObjectDereferenceOperatorNode*>(lvalue);
 
    // get the member name or names
-   QoreNodeEvalOptionalRefHolder member(tree->right, xsink);
+   ValueEvalRefHolder member(op->getRight(), xsink);
    if (*xsink)
       return;
 
    // find variable ptr, exit if doesn't exist anyway
-   LValueHelper lvh(tree->left, xsink, true);
+   LValueHelper lvh(op->getLeft(), xsink, true);
    if (!lvh)
       return;
 
@@ -1140,8 +1138,8 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
       return;
 
    // remove a slice of the hash or object
-   if (get_node_type(*member) == NT_LIST) {
-      const QoreListNode* l = reinterpret_cast<const QoreListNode*>(*member);
+   if (member->getType() == NT_LIST) {
+      const QoreListNode* l = member->get<const QoreListNode>();
 
       if (o)
 	 qore_object_private::takeMembers(*o, rv, lvh, l);

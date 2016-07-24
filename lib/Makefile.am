@@ -246,6 +246,8 @@ libqore_la_SOURCES = \
 	QoreExistsOperatorNode.cpp \
 	QoreElementsOperatorNode.cpp \
 	QoreInstanceOfOperatorNode.cpp \
+	QoreQuestionMarkOperatorNode.cpp \
+	QoreHashObjectDereferenceOperatorNode.cpp \
 	QoreAssignmentOperatorNode.cpp \
 	QorePlusEqualsOperatorNode.cpp \
 	QoreIntPlusEqualsOperatorNode.cpp \

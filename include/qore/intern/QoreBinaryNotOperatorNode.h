@@ -57,10 +57,6 @@ public:
       return bigIntTypeInfo;
    }
 
-   DLLLOCAL virtual bool hasEffect() const {
-      return false;
-   }
-
    DLLLOCAL static AbstractQoreNode* makeNode(AbstractQoreNode* exp);
 };
 

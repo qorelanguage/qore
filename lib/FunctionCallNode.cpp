@@ -110,7 +110,7 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar*
 	 (*n) = (*n)->parseInit(oflag, n_pflag, lvids, argTypeInfo[i]);
 	 if (!have_arg_type_info && argTypeInfo[i])
 	    have_arg_type_info = true;
-	 if (!needs_eval && (*n)->needs_eval()) {
+	 if (!needs_eval && (*n) && (*n)->needs_eval()) {
 	    args->setNeedsEval();
 	    needs_eval = true;
 	 }
