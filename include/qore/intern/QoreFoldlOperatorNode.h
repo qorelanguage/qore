@@ -77,6 +77,10 @@ public:
    DLLLOCAL virtual const char* getTypeName() const {
       return foldl_str.getBuffer();
    }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      return copyBackgroundExplicit<QoreFoldlOperatorNode>(xsink);
+   }
 };
 
 class QoreFoldrOperatorNode : public QoreFoldlOperatorNode {
@@ -95,6 +99,10 @@ public:
    // returns the type name as a c string
    DLLLOCAL virtual const char* getTypeName() const {
       return foldr_str.getBuffer();
+   }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      return copyBackgroundExplicit<QoreFoldrOperatorNode>(xsink);
    }
 };
 
