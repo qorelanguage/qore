@@ -60,10 +60,12 @@ public:
       return trim_str.getBuffer();
    }
 
-   DLLLOCAL virtual QoreTrimOperatorNode* copyBackground(ExceptionSink* xsink) const;
-
    DLLLOCAL virtual bool hasEffect() const {
       return true;
+   }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      return copyBackgroundExplicit<QoreTrimOperatorNode>(xsink);
    }
 };
 

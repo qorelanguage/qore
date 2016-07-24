@@ -43,6 +43,10 @@ public:
    DLLLOCAL QoreMultiplyEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryLValueOperatorNode(n_left, n_right) {
    }
 
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      return copyBackgroundExplicit<QoreMultiplyEqualsOperatorNode>(xsink);
+   }
+
    DLLLOCAL void parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
       left = left->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, ti);
       checkLValue(left, pflag);

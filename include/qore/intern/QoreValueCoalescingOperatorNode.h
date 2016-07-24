@@ -32,7 +32,7 @@
 #ifndef _QORE_QOREVALUECOALESCINGOPERATORNODE_H
 #define _QORE_QOREVALUECOALESCINGOPERATORNODE_H
 
-class QoreValueCoalescingOperatorNode : public QoreNOperatorNodeBase<2> {
+class QoreValueCoalescingOperatorNode : public QoreBinaryOperatorNode<QoreOperatorNode> {
 protected:
    static QoreString value_coalescing_str;
 
@@ -43,7 +43,7 @@ protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreValueCoalescingOperatorNode(AbstractQoreNode* e0, AbstractQoreNode* e1) : QoreNOperatorNodeBase<2>(e0, e1), typeInfo(0) {
+   DLLLOCAL QoreValueCoalescingOperatorNode(AbstractQoreNode* e0, AbstractQoreNode* e1) : QoreBinaryOperatorNode<QoreOperatorNode>(e0, e1), typeInfo(0) {
    }
 
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
@@ -57,6 +57,10 @@ public:
    // returns the type name as a c string
    DLLLOCAL virtual const char* getTypeName() const {
       return value_coalescing_str.getBuffer();
+   }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      return copyBackgroundExplicit<QoreValueCoalescingOperatorNode>(xsink);
    }
 };
 

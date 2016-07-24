@@ -74,6 +74,10 @@ public:
       return logical_equals_str.getBuffer();
    }
 
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      return copyBackgroundExplicit<QoreLogicalEqualsOperatorNode>(xsink);
+   }
+
    DLLLOCAL static bool softEqual(const QoreValue left, const QoreValue right, ExceptionSink *xsink);
 };
 

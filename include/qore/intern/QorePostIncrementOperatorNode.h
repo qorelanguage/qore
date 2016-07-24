@@ -65,6 +65,10 @@ public:
    DLLLOCAL virtual bool hasEffect() const {
       return true;
    }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      return copyBackgroundExplicit<QorePostIncrementOperatorNode>(xsink);
+   }
 };
 
 #endif

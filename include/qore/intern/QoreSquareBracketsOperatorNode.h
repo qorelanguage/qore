@@ -53,6 +53,10 @@ public:
       return typeInfo;
    }
 
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      return copyBackgroundExplicit<QoreSquareBracketsOperatorNode>(xsink);
+   }
+
    DLLLOCAL static QoreValue doSquareBrackets(QoreValue l, QoreValue r, ExceptionSink* xsink);
 };
 

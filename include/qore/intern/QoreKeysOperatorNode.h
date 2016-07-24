@@ -67,6 +67,10 @@ public:
    DLLLOCAL virtual const char* getTypeName() const {
       return keys_str.getBuffer();
    }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      return copyBackgroundExplicit<QoreKeysOperatorNode>(xsink);
+   }
 };
 
 class QoreFunctionalKeysOperator : public FunctionalOperatorInterface, public ConstHashIterator {

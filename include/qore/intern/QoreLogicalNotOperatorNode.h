@@ -57,6 +57,10 @@ public:
    DLLLOCAL virtual const char* getTypeName() const {
       return LogicalNot_str.getBuffer();
    }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      return copyBackgroundExplicit<QoreLogicalNotOperatorNode>(xsink);
+   }
 };
 
 #endif

@@ -64,6 +64,19 @@ public:
    DLLLOCAL virtual const char* getTypeName() const {
       return question_mark_str.getBuffer();
    }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      ReferenceHolder<> n_e0(copy_and_resolve_lvar_refs(e[0], xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_e1(copy_and_resolve_lvar_refs(e[1], xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_e2(copy_and_resolve_lvar_refs(e[2], xsink), xsink);
+      if (*xsink)
+         return 0;
+      return new QoreQuestionMarkOperatorNode(n_e0.release(), n_e1.release(), n_e2.release());
+   }
 };
 
 #endif

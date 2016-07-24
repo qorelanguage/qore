@@ -56,6 +56,10 @@ public:
    DLLLOCAL QoreLogicalGreaterThanOrEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBoolBinaryOperatorNode(n_left, n_right), pfunc(0) {
    }
 
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      return copyBackgroundExplicit<QoreLogicalGreaterThanOrEqualsOperatorNode>(xsink);
+   }
+
    DLLLOCAL static bool doGreaterThanOrEquals(QoreValue l, QoreValue r, ExceptionSink* xsink);
 };
 

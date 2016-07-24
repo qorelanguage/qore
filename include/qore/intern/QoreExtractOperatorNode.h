@@ -74,6 +74,22 @@ public:
    DLLLOCAL virtual bool hasEffect() const {
       return true;
    }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      ReferenceHolder<> n_lv(copy_and_resolve_lvar_refs(lvalue_exp, xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_of(copy_and_resolve_lvar_refs(offset_exp, xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_ln(copy_and_resolve_lvar_refs(length_exp, xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_nw(copy_and_resolve_lvar_refs(new_exp, xsink), xsink);
+      if (*xsink)
+         return 0;
+      return new QoreExtractOperatorNode(n_lv.release(), n_of.release(), n_ln.release(), n_nw.release());
+   }
 };
 
 #endif

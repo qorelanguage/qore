@@ -34,6 +34,8 @@
 
 #include <stdarg.h>
 
+DLLLOCAL AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, ExceptionSink* xsink);
+
 class QoreOperatorNode : public ParseNode {
 protected:
    bool ref_rv;
@@ -59,9 +61,7 @@ public:
 
    DLLLOCAL virtual bool hasEffect() const = 0;
 
-   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
-      return const_cast<QoreOperatorNode*>(this);
-   }
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const = 0;
 };
 
 template <class T>
@@ -97,6 +97,14 @@ public:
 
    DLLLOCAL virtual bool hasEffect() const {
       return ::node_has_effect(exp);
+   }
+
+   template <class O>
+   DLLLOCAL O* copyBackgroundExplicit(ExceptionSink* xsink) const {
+      ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
+      if (*xsink)
+         return 0;
+      return new O(n_exp.release());
    }
 };
 
@@ -157,6 +165,17 @@ public:
 
    DLLLOCAL virtual bool hasEffect() const {
       return ::node_has_effect(left) || ::node_has_effect(right);
+   }
+
+   template <class O>
+   DLLLOCAL O* copyBackgroundExplicit(ExceptionSink* xsink) const {
+      ReferenceHolder<> n_left(copy_and_resolve_lvar_refs(left, xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_right(copy_and_resolve_lvar_refs(right, xsink), xsink);
+      if (*xsink)
+         return 0;
+      return new O(n_left.release(), n_right.release());
    }
 };
 

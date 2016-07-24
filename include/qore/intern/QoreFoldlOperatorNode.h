@@ -72,6 +72,13 @@ public:
    DLLLOCAL virtual const char* getTypeName() const {
       return foldl_str.getBuffer();
    }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      QoreFoldlOperatorNode* rv = copyBackgroundExplicit<QoreFoldlOperatorNode>(xsink);
+      // use lazy evaluation if the iterator expression supports it
+      rv->iterator_func = dynamic_cast<FunctionalOperator*>(rv->right);
+      return rv;
+   }
 };
 
 class QoreFoldrOperatorNode : public QoreFoldlOperatorNode {
@@ -90,6 +97,13 @@ public:
    // returns the type name as a c string
    DLLLOCAL virtual const char* getTypeName() const {
       return foldr_str.getBuffer();
+   }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      QoreFoldrOperatorNode* rv = copyBackgroundExplicit<QoreFoldrOperatorNode>(xsink);
+      // use lazy evaluation if the iterator expression supports it
+      rv->iterator_func = dynamic_cast<FunctionalOperator*>(rv->right);
+      return rv;
    }
 };
 
