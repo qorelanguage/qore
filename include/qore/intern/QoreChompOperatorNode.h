@@ -56,7 +56,10 @@ public:
    DLLLOCAL virtual const char* getTypeName() const {
       return chomp_str.getBuffer();
    }
-   DLLLOCAL virtual QoreChompOperatorNode* copyBackground(ExceptionSink* xsink) const;
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      return copyBackgroundExplicit<QoreChompOperatorNode>(xsink);
+   }
 };
 
 #endif

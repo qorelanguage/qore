@@ -2,9 +2,9 @@
   QoreValueCoalescingOperatorNode.cpp
 
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 Qore Technologies, sro
-  
+
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -48,27 +48,27 @@ int QoreValueCoalescingOperatorNode::getAsString(QoreString &str, int foff, Exce
 
 AbstractQoreNode* QoreValueCoalescingOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    assert(!typeInfo);
-   
+
    const QoreTypeInfo *leftTypeInfo = 0;
-   e[0] = e[0]->parseInit(oflag, pflag, lvids, leftTypeInfo);
+   left = left->parseInit(oflag, pflag, lvids, leftTypeInfo);
 
    leftTypeInfo = 0;
-   e[1] = e[1]->parseInit(oflag, pflag, lvids, leftTypeInfo);
+   right = right->parseInit(oflag, pflag, lvids, leftTypeInfo);
 
    return this;
 }
 
 QoreValue QoreValueCoalescingOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    {
-      ValueEvalRefHolder arg(e[0], xsink);
+      ValueEvalRefHolder arg(left, xsink);
       if (*xsink)
 	 return QoreValue();
-      
+
       if (arg->getAsBool())
 	 return arg.takeValue(needs_deref);
    }
-   
-   ValueEvalRefHolder arg(e[1], xsink);
+
+   ValueEvalRefHolder arg(right, xsink);
    if (*xsink)
       return QoreValue();
 
