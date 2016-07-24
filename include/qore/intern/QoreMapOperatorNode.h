@@ -72,7 +72,7 @@ protected:
    DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreMapOperatorNode(AbstractQoreNode* l, AbstractQoreNode* r) : QoreBinaryOperatorNode<>(l, r), returnTypeInfo(0) {
+   DLLLOCAL QoreMapOperatorNode(AbstractQoreNode* l, AbstractQoreNode* r) : QoreBinaryOperatorNode<>(l, r), returnTypeInfo(0), iterator_func(0) {
    }
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
@@ -84,7 +84,9 @@ public:
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
-      return copyBackgroundExplicit<QoreMapOperatorNode>(xsink);
+      QoreMapOperatorNode* rv = copyBackgroundExplicit<QoreMapOperatorNode>(xsink);
+      rv->iterator_func = dynamic_cast<FunctionalOperator*>(rv->right);
+      return rv;
    }
 };
 

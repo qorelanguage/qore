@@ -89,7 +89,9 @@ public:
       ReferenceHolder<> n_e2(copy_and_resolve_lvar_refs(e[2], xsink), xsink);
       if (*xsink)
          return 0;
-      return new QoreMapSelectOperatorNode(n_e0.release(), n_e1.release(), n_e2.release());
+      QoreMapSelectOperatorNode* rv = new QoreMapSelectOperatorNode(n_e0.release(), n_e1.release(), n_e2.release());
+      rv->iterator_func = dynamic_cast<FunctionalOperator*>(rv->e[1]);
+      return rv;
    }
 
    DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;

@@ -70,7 +70,7 @@ protected:
    DLLLOCAL QoreValue selectIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreSelectOperatorNode(AbstractQoreNode* l, AbstractQoreNode* r) : QoreBinaryOperatorNode<>(l, r), returnTypeInfo(0) {
+   DLLLOCAL QoreSelectOperatorNode(AbstractQoreNode* l, AbstractQoreNode* r) : QoreBinaryOperatorNode<>(l, r), returnTypeInfo(0), iterator_func(0) {
    }
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
@@ -82,7 +82,9 @@ public:
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
-      return copyBackgroundExplicit<QoreSelectOperatorNode>(xsink);
+      QoreSelectOperatorNode* rv = copyBackgroundExplicit<QoreSelectOperatorNode>(xsink);
+      rv->iterator_func = dynamic_cast<FunctionalOperator*>(rv->left);
+      return rv;
    }
 
    DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;

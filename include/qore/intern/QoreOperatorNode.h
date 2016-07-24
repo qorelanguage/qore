@@ -96,7 +96,7 @@ public:
    }
 
    template <class O>
-   DLLLOCAL QoreOperatorNode* copyBackgroundExplicit(ExceptionSink* xsink) const {
+   DLLLOCAL O* copyBackgroundExplicit(ExceptionSink* xsink) const {
       ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
       if (*xsink)
          return 0;
@@ -154,7 +154,7 @@ public:
    }
 
    template <class O>
-   DLLLOCAL QoreOperatorNode* copyBackgroundExplicit(ExceptionSink* xsink) const {
+   DLLLOCAL O* copyBackgroundExplicit(ExceptionSink* xsink) const {
       ReferenceHolder<> n_left(copy_and_resolve_lvar_refs(left, xsink), xsink);
       if (*xsink)
          return 0;

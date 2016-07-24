@@ -79,7 +79,10 @@ public:
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
-      return copyBackgroundExplicit<QoreFoldlOperatorNode>(xsink);
+      QoreFoldlOperatorNode* rv = copyBackgroundExplicit<QoreFoldlOperatorNode>(xsink);
+      // use lazy evaluation if the iterator expression supports it
+      rv->iterator_func = dynamic_cast<FunctionalOperator*>(rv->right);
+      return rv;
    }
 };
 
@@ -102,7 +105,10 @@ public:
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
-      return copyBackgroundExplicit<QoreFoldrOperatorNode>(xsink);
+      QoreFoldrOperatorNode* rv = copyBackgroundExplicit<QoreFoldrOperatorNode>(xsink);
+      // use lazy evaluation if the iterator expression supports it
+      rv->iterator_func = dynamic_cast<FunctionalOperator*>(rv->right);
+      return rv;
    }
 };
 
