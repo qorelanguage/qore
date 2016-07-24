@@ -105,7 +105,7 @@ class Test inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i = 4; background i =/ 2;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i = 4; background i /= 2;", ""));
         }
 
         res.reset();
@@ -127,6 +127,28 @@ class Test inherits QUnit::Test {
             Program p(PO_NEW_STYLE);
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("any str = 'str\n'; background extract str, 0, 1;", ""));
         }
+
+        res.reset();
+        {
+            list l = ("a", "b");
+            background res.test(foldl $1 + "," + $2, (map $1, l));
+            assertEq(("a,b"), res.get());
+        }
+
+        res.reset();
+        {
+            list l = ("a", "b");
+            background res.test(foldr $1 + "," + $2, (map $1, l));
+            assertEq(("b,a"), res.get());
+        }
+
+        res.reset();
+        {
+            list l = ("a", "b");
+            background res.test(map $1, (map $1, l, $# % 2));
+            assertEq(("b",), res.get());
+        }
+
 
         res.reset();
         {
@@ -235,6 +257,20 @@ class Test inherits QUnit::Test {
             assertEq(("b",), res.get());
         }
 
+        res.reset();
+        {
+            list l = ("a", "b");
+            background res.test(map $1, (map $1, l));
+            assertEq(("a", "b"), res.get());
+        }
+
+        res.reset();
+        {
+            list l = ("a", "b");
+            background res.test(map $1, (map $1, l, $# % 2));
+            assertEq(("b",), res.get());
+        }
+
         {
             Program p(PO_NEW_STYLE);
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i = 4; background i -= 2;", ""));
@@ -299,6 +335,27 @@ class Test inherits QUnit::Test {
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("any str = 'str\n'; background remove str;", ""));
         }
 
+        res.reset();
+        {
+            list l = ("a", "b");
+            background res.test(select (map $1, (map $1, l)), $1);
+            assertEq(("a", "b"), res.get());
+        }
+
+        res.reset();
+        {
+            list l = ("a", "b");
+            background res.test(select (map $1, l), $1);
+            assertEq(("a", "b"), res.get());
+        }
+
+        res.reset();
+        {
+            list l = ("a", "b");
+            background res.test(select (map $1, l, $# % 2), $1);
+            assertEq(("b",), res.get());
+        }
+
         {
             Program p(PO_NEW_STYLE);
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 4; background i <<= 2;", ""));
@@ -344,5 +401,8 @@ class Test inherits QUnit::Test {
             Program p(PO_NEW_STYLE);
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 4; background i %= 2;", ""));
         }
+
+
+
     }
 }
