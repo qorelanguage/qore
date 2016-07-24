@@ -82,6 +82,7 @@
     - fixed a bug resolving base class method calls during parse initialization (<a href="https://github.com/qorelanguage/qore/issues/1075">issue 1075</a>)
     - fixed a bug causing an infinite loop in decompression functions (<a href="https://github.com/qorelanguage/qore/issues/966">issue 966</a>)
     - fixed thread memory handling bug with some operator expressions and the @ref background "background operator" (<a href="https://github.com/qorelanguage/qore/issues/1096">issue 1096</a>)
+    - fixed an issue where an internal C++ API (QoreProgram::parseCmdLineDefines()) performed a needless copy of a data structure (<a href="https://github.com/qorelanguage/qore/issues/1099">issue 1099</a>)
 
     @section qore_0812 Qore 0.8.12
 
