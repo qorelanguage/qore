@@ -66,6 +66,10 @@ public:
       return false;
    }
 
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      return copyBackgroundExplicit<QoreDivisionOperatorNode>(xsink);
+   }
+
    DLLLOCAL static QoreValue doDivision(QoreValue l, QoreValue r, ExceptionSink* xsink);
 };
 

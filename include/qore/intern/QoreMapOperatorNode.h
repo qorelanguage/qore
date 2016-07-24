@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreMapOperatorNode.h
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -56,9 +56,9 @@ protected:
       // FIXME: check iterated expression to see if it really has an effect
       return true;
    }
-   
+
    DLLLOCAL QoreValue mapIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
-   
+
 public:
    DLLLOCAL QoreMapOperatorNode(AbstractQoreNode* l, AbstractQoreNode* r) : QoreBinaryOperatorNode<>(l, r), returnTypeInfo(0) {
    }
@@ -71,7 +71,9 @@ public:
       return map_str.getBuffer();
    }
 
-   //DLLLOCAL AbstractQoreNode* map(ExceptionSink* xsink) const;
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      return copyBackgroundExplicit<QoreMapOperatorNode>(xsink);
+   }
 };
 
 #endif

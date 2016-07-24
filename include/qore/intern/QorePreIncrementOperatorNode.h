@@ -47,7 +47,7 @@ protected:
       assert(!outTypeInfo);
       // turn off "reference ok" and "return value ignored" flags
       pflag &= ~(PF_RETURN_VALUE_IGNORED);
-      
+
       exp = exp->parseInit(oflag, pflag, lvids, outTypeInfo);
       checkLValue(exp, pflag);
 
@@ -66,7 +66,10 @@ protected:
 public:
    DLLLOCAL QorePreIncrementOperatorNode(AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(n_exp) {
    }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      return copyBackgroundExplicit<QorePreIncrementOperatorNode>(xsink);
+   }
 };
 
 #endif
-

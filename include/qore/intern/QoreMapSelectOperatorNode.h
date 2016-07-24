@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreMapSelectOperatorNode.h
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -56,9 +56,9 @@ protected:
       // FIXME: check iterated expression to see if it really has an effect
       return true;
    }
-   
+
    DLLLOCAL QoreValue mapSelectIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
-   
+
 public:
    DLLLOCAL QoreMapSelectOperatorNode(AbstractQoreNode* e0, AbstractQoreNode* e1, AbstractQoreNode* e2) : QoreNOperatorNodeBase<3>(e0, e1, e2), returnTypeInfo(0) {
    }
@@ -71,7 +71,18 @@ public:
       return map_str.getBuffer();
    }
 
-   //DLLLOCAL AbstractQoreNode* map(ExceptionSink* xsink) const;
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      ReferenceHolder<> n_e0(copy_and_resolve_lvar_refs(e[0], xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_e1(copy_and_resolve_lvar_refs(e[1], xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_e2(copy_and_resolve_lvar_refs(e[2], xsink), xsink);
+      if (*xsink)
+         return 0;
+      return new QoreMapSelectOperatorNode(n_e0.release(), n_e1.release(), n_e2.release());
+   }
 };
 
 #endif

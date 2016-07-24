@@ -41,7 +41,10 @@ protected:
 public:
    DLLLOCAL QoreXorEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryIntLValueOperatorNode(n_left, n_right) {
    }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      return copyBackgroundExplicit<QoreXorEqualsOperatorNode>(xsink);
+   }
 };
 
 #endif
-

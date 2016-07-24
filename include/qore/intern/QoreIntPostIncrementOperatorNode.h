@@ -36,7 +36,7 @@ class QoreIntPostIncrementOperatorNode : public QoreSingleExpressionOperatorNode
 OP_COMMON
 protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
-   
+
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return bigIntTypeInfo;
    }
@@ -50,7 +50,10 @@ protected:
 public:
    DLLLOCAL QoreIntPostIncrementOperatorNode(AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(n_exp) {
    }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      return copyBackgroundExplicit<QoreIntPostIncrementOperatorNode>(xsink);
+   }
 };
 
 #endif
-
