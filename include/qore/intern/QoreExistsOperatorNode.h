@@ -56,6 +56,10 @@ public:
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return boolTypeInfo;
    }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      return copyBackgroundExplicit<QoreExistsOperatorNode>(xsink);
+   }
 };
 
 #endif

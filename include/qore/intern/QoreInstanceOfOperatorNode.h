@@ -63,6 +63,15 @@ public:
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return boolTypeInfo;
    }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
+      if (*xsink)
+         return 0;
+      assert(r);
+      r->ref();
+      return new QoreInstanceOfOperatorNode(n_exp.release(), r);
+   }
 };
 
 #endif

@@ -48,9 +48,12 @@ public:
    DLLLOCAL QoreHashObjectDereferenceOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(n_left, n_right), typeInfo(0) {
    }
 
-
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return typeInfo;
+   }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      return copyBackgroundExplicit<QoreHashObjectDereferenceOperatorNode>(xsink);
    }
 };
 
