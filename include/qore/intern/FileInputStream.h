@@ -45,6 +45,10 @@ public:
       f.open2(xsink, fileName->getBuffer(), O_RDONLY);
    }
 
+   DLLLOCAL FileInputStream(int fd) : timeout(-1) {
+      f.makeSpecial(fd);
+   }
+
    DLLLOCAL const char *getName() override {
       return "FileInputStream";
    }

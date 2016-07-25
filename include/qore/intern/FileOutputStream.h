@@ -45,6 +45,10 @@ public:
       f.open2(xsink, fileName->getBuffer(), O_WRONLY | (append ? O_APPEND : O_TRUNC) | O_CREAT, mode);
    }
 
+   DLLLOCAL FileOutputStream(int fd) {
+      f.makeSpecial(fd);
+   }
+
    DLLLOCAL const char *getName() override {
       return "FileOutputStream";
    }
@@ -57,7 +61,7 @@ public:
       assert(!isClosed());
       int rc = f.close();
       if (rc) {
-         xsink->raiseException("FLIE-CLOSE-ERROR", "Error %d closing file", rc);
+         xsink->raiseException("FILE-CLOSE-ERROR", "Error %d closing file", rc);
       }
    }
 
