@@ -456,6 +456,13 @@ class Test inherits QUnit::Test {
 
         res.reset();
         {
+            any i = 2;
+            background res.test(+i);
+            assertEq(2, res.get());
+        }
+
+        res.reset();
+        {
             any i = 4;
             background res.test(0 ?* i ?* 5);
             assertEq(4, res.get());
@@ -465,8 +472,5 @@ class Test inherits QUnit::Test {
             Program p(PO_NEW_STYLE);
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 4; background i %= 2;", ""));
         }
-
-
-
     }
 }

@@ -162,6 +162,7 @@
 #include "QoreCastOperatorNode.cpp"
 #include "QoreKeysOperatorNode.cpp"
 #include "QoreUnaryMinusOperatorNode.cpp"
+#include "QoreUnaryPlusOperatorNode.cpp"
 #include "QoreLogicalNotOperatorNode.cpp"
 #include "QoreDotEvalOperatorNode.cpp"
 #include "QoreLogicalEqualsOperatorNode.cpp"

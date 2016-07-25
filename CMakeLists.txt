@@ -447,6 +447,7 @@ set(LIBQORE_CPP_SRC
         lib/QoreExtractOperatorNode.cpp
         lib/QoreCastOperatorNode.cpp
         lib/QoreUnaryMinusOperatorNode.cpp
+        lib/QoreUnaryPlusOperatorNode.cpp
         lib/QoreLogicalNotOperatorNode.cpp
         lib/QoreDotEvalOperatorNode.cpp
         lib/QoreLogicalEqualsOperatorNode.cpp

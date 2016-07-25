@@ -263,6 +263,7 @@ public:
 #include <qore/intern/QoreCastOperatorNode.h>
 #include <qore/intern/QoreKeysOperatorNode.h>
 #include <qore/intern/QoreUnaryMinusOperatorNode.h>
+#include <qore/intern/QoreUnaryPlusOperatorNode.h>
 #include <qore/intern/QoreLogicalNotOperatorNode.h>
 #include <qore/intern/QoreDotEvalOperatorNode.h>
 #include <qore/intern/QoreLogicalEqualsOperatorNode.h>

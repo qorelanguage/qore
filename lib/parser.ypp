@@ -3066,11 +3066,11 @@ exp_c:  scalar
 	   // FIXME: need to expand constant expression checking to determine
 	   //        if the expression can throw an exception at run-time
 	   // first check for constant expressions
-	   $$ = QoreUnaryMinusOperatorNode::makeNode($2);
+	   $$ = new QoreUnaryMinusOperatorNode($2);
 	}
         | '+' exp %prec UPLUS
         {
-            $$ = QoreUnaryMinusOperatorNode::makeNode(QoreUnaryMinusOperatorNode::makeNode($2));
+           $$ = new QoreUnaryPlusOperatorNode($2);
         }
         | '~' exp {
            $$ = new QoreBinaryNotOperatorNode($2);

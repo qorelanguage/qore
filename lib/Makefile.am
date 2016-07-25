@@ -233,6 +233,7 @@ libqore_la_SOURCES = \
 	QoreCastOperatorNode.cpp \
 	QoreKeysOperatorNode.cpp \
 	QoreUnaryMinusOperatorNode.cpp \
+	QoreUnaryPlusOperatorNode.cpp \
 	QoreLogicalNotOperatorNode.cpp \
 	QoreDotEvalOperatorNode.cpp \
 	QoreLogicalEqualsOperatorNode.cpp \
