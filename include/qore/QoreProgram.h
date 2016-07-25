@@ -595,10 +595,8 @@ public:
    */
    DLLEXPORT void parseCmdLineDefines(ExceptionSink& xs, ExceptionSink& ws, int w, const std::map<std::string, std::string>& defmap);
 
-#ifdef _QORE_LIB_INTERN
-   // deprecated function still part of the ABI 
+   // deprecated function still part of the ABI
    DLLEXPORT void parseCmdLineDefines(const std::map<std::string, std::string> defmap, ExceptionSink& xs, ExceptionSink& ws, int w);
-#endif
 
    DLLLOCAL QoreProgram(QoreProgram* pgm, int64 po, bool ec = false, const char* ecn = 0);
 
