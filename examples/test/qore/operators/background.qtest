@@ -57,14 +57,56 @@ class Test inherits QUnit::Test {
 
         res.reset();
         {
-            int i = 1;
+            any i = 2;
+            background res.test(i & 3);
+            assertEq(2, res.get());
+        }
+
+        res.reset();
+        {
+            any i = 2;
+            background res.test(i | 4);
+            assertEq(6, res.get());
+        }
+
+        res.reset();
+        {
+            any i = 1;
             background res.test(i % 4);
             assertEq(1, res.get());
         }
 
         res.reset();
         {
-            int i = 1;
+            any i = 1;
+            background res.test(~i);
+            assertEq(-2, res.get());
+        }
+
+        res.reset();
+        {
+            any i = 2;
+            background res.test(i ^ 6);
+            assertEq(4, res.get());
+        }
+
+        res.reset();
+        {
+            any l = (1, 2);
+            background res.test(elements l);
+            assertEq(2, res.get());
+        }
+
+        res.reset();
+        {
+            any i = 2;
+            background res.test(exists i);
+            assertEq(True, res.get());
+        }
+
+        res.reset();
+        {
+            any i = 1;
             background res.test(i > 4);
             assertEq(False, res.get());
         }
@@ -110,7 +152,7 @@ class Test inherits QUnit::Test {
 
         res.reset();
         {
-            int i = 4;
+            any i = 4;
             background res.test(i / 2);
             assertEq(2, res.get());
         }
@@ -144,6 +186,14 @@ class Test inherits QUnit::Test {
 
         res.reset();
         {
+            any m = new Mutex();
+            background res.test(m instanceof Mutex);
+            assertEq(True, res.get());
+        }
+
+
+        res.reset();
+        {
             list l = ("a", "b");
             background res.test(map $1, (map $1, l, $# % 2));
             assertEq(("b",), res.get());
@@ -166,79 +216,79 @@ class Test inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i = 4; background i -= 2;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 4; background i -= 2;", ""));
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i = 4; background i += 2;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 4; background i += 2;", ""));
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i = 4; background i--;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 4; background i--;", ""));
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i = 4; background i++;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 4; background i++;", ""));
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i = 4; background --i;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 4; background --i;", ""));
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i = 4; background ++i;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 4; background ++i;", ""));
         }
 
         res.reset();
         {
-            int i = 4;
+            any i = 4;
             background res.test(i == 4);
             assertEq(True, res.get());
         }
 
         res.reset();
         {
-            int i = 4;
+            any i = 4;
             background res.test(i > 4);
             assertEq(False, res.get());
         }
 
         res.reset();
         {
-            int i = 4;
+            any i = 4;
             background res.test(i >= 4);
             assertEq(True, res.get());
         }
 
         res.reset();
         {
-            int i = 4;
+            any i = 4;
             background res.test(i < 4);
             assertEq(False, res.get());
         }
 
         res.reset();
         {
-            int i = 4;
+            any i = 4;
             background res.test(i <= 4);
             assertEq(True, res.get());
         }
 
         res.reset();
         {
-            int i = 4;
+            any i = 4;
             background res.test(i != 4);
             assertEq(False, res.get());
         }
 
         res.reset();
         {
-            int i = 4;
+            any i = 4;
             background res.test(!i);
             assertEq(False, res.get());
         }
@@ -252,21 +302,21 @@ class Test inherits QUnit::Test {
 
         res.reset();
         {
-            list l = ("a", "b");
+            any l = ("a", "b");
             background res.test(map $1, l, $# % 2);
             assertEq(("b",), res.get());
         }
 
         res.reset();
         {
-            list l = ("a", "b");
+            any l = ("a", "b");
             background res.test(map $1, (map $1, l));
             assertEq(("a", "b"), res.get());
         }
 
         res.reset();
         {
-            list l = ("a", "b");
+            any l = ("a", "b");
             background res.test(map $1, (map $1, l, $# % 2));
             assertEq(("b",), res.get());
         }
@@ -288,7 +338,7 @@ class Test inherits QUnit::Test {
 
         res.reset();
         {
-            int i = 4;
+            any i = 4;
             background res.test(NOTHING ?? i ?? 5);
             assertEq(4, res.get());
         }
@@ -325,7 +375,7 @@ class Test inherits QUnit::Test {
 
         res.reset();
         {
-            int i = 4;
+            any i = 4;
             background res.test(i ? True : False);
             assertEq(True, res.get());
         }
@@ -337,23 +387,37 @@ class Test inherits QUnit::Test {
 
         res.reset();
         {
-            list l = ("a", "b");
+            any l = ("a", "b");
             background res.test(select (map $1, (map $1, l)), $1);
             assertEq(("a", "b"), res.get());
         }
 
         res.reset();
         {
-            list l = ("a", "b");
+            any l = ("a", "b");
             background res.test(select (map $1, l), $1);
             assertEq(("a", "b"), res.get());
         }
 
         res.reset();
         {
-            list l = ("a", "b");
+            any l = ("a", "b");
             background res.test(select (map $1, l, $# % 2), $1);
             assertEq(("b",), res.get());
+        }
+
+        res.reset();
+        {
+            any i = 2;
+            background res.test(i << 1);
+            assertEq(4, res.get());
+        }
+
+        res.reset();
+        {
+            any i = 2;
+            background res.test(i >> 1);
+            assertEq(1, res.get());
         }
 
         {
@@ -373,7 +437,7 @@ class Test inherits QUnit::Test {
 
         res.reset();
         {
-            list l = (1, 2);
+            any l = (1, 2);
             background res.test(l[1]);
             assertEq(2, res.get());
         }
@@ -392,7 +456,7 @@ class Test inherits QUnit::Test {
 
         res.reset();
         {
-            int i = 4;
+            any i = 4;
             background res.test(0 ?* i ?* 5);
             assertEq(4, res.get());
         }

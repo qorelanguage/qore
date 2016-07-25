@@ -60,8 +60,6 @@ public:
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
       return copyBackgroundExplicit<QoreBinaryNotOperatorNode>(xsink);
    }
-
-   DLLLOCAL static AbstractQoreNode* makeNode(AbstractQoreNode* exp);
 };
 
 #endif

@@ -66,15 +66,14 @@ AbstractQoreNode* QoreBinaryNotOperatorNode::parseInitImpl(LocalVar* oflag, int 
    if (lti->nonNumericValue())
       lti->doNonNumericWarning("the operand of the 'binary not' operator (^) expression is ");
 
-   return this;
-}
-
-// static function
-AbstractQoreNode* QoreBinaryNotOperatorNode::makeNode(AbstractQoreNode *v) {
-   if (get_node_type(v) == NT_INT) {
-      QoreBigIntNode* i = reinterpret_cast<QoreBigIntNode*>(v);
-      i->val = -i->val;
-      return v;
+   // see if the argument is a constant value, then eval immediately and substitute this node with the result
+   if (exp && exp->is_value()) {
+      SimpleRefHolder<QoreBinaryNotOperatorNode> del(this);
+      ParseExceptionSink xsink;
+      ValueEvalRefHolder v(this, *xsink);
+      assert(!**xsink);
+      return v.getReferencedValue();
    }
-   return new QoreBinaryNotOperatorNode(v);
+
+   return this;
 }

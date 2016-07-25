@@ -3073,7 +3073,7 @@ exp_c:  scalar
             $$ = QoreUnaryMinusOperatorNode::makeNode(QoreUnaryMinusOperatorNode::makeNode($2));
         }
         | '~' exp {
-           $$ = QoreBinaryNotOperatorNode::makeNode($2);
+           $$ = new QoreBinaryNotOperatorNode($2);
         }
         | '!' exp {
            $$ = new QoreLogicalNotOperatorNode($2);
