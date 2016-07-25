@@ -29,6 +29,7 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/qore_program_private.h>
 
 QoreString QoreBinaryXorOperatorNode::op_str("^ (binary xor) operator expression");
 

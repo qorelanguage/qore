@@ -30,8 +30,9 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/qore_number_private.h>
+#include <qore/intern/qore_program_private.h>
 
-QoreString QoreInstanceOfOperatorNode::InstanceOf_str("binary not (~) operator expression");
+QoreString QoreInstanceOfOperatorNode::InstanceOf_str("instanceof operator expression");
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 QoreString *QoreInstanceOfOperatorNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {

@@ -29,6 +29,7 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/qore_program_private.h>
 
 QoreString QoreShiftRightOperatorNode::op_str(">> (shift right) operator expression");
 
