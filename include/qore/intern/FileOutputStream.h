@@ -41,8 +41,8 @@
 class FileOutputStream : public OutputStreamBase {
 
 public:
-   DLLLOCAL FileOutputStream(const QoreStringNode *fileName, bool append, ExceptionSink *xsink) {
-      f.open2(xsink, fileName->getBuffer(), O_WRONLY | (append ? O_APPEND : O_TRUNC) | O_CREAT);
+   DLLLOCAL FileOutputStream(const QoreStringNode *fileName, bool append, int mode, ExceptionSink *xsink) {
+      f.open2(xsink, fileName->getBuffer(), O_WRONLY | (append ? O_APPEND : O_TRUNC) | O_CREAT, mode);
    }
 
    DLLLOCAL const char *getName() override {

@@ -49,9 +49,10 @@ qclass FileOutputStream [arg=FileOutputStream* os; ns=Qore; vparent=OutputStream
 /**
     @param fileName the name of the file to open
     @param append if true, then bytes will be written to the end of the file
+    @param mode permission bits for when the file is to be created (default: 0666)
  */
-FileOutputStream::constructor(string fileName, bool append = False) {
-   SimpleRefHolder<FileOutputStream> fos(new FileOutputStream(fileName, append, xsink));
+FileOutputStream::constructor(string fileName, bool append = False, softint mode = 0666) {
+   SimpleRefHolder<FileOutputStream> fos(new FileOutputStream(fileName, append, mode, xsink));
    self->setPrivate(CID_FILEOUTPUTSTREAM, fos.release());
 }
 
