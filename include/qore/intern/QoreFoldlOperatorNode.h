@@ -57,11 +57,6 @@ protected:
       return returnTypeInfo;
    }
 
-   DLLLOCAL virtual bool hasEffect() const {
-      // FIXME: check iterated expression to see if it really has an effect
-      return true;
-   }
-
    DLLLOCAL QoreValue foldIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
 
    DLLLOCAL FunctionalOperatorInterface* getFunctionalIterator(FunctionalOperator::FunctionalValueType& value_type, bool fwd, ExceptionSink* xsink) const;

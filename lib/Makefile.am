@@ -233,10 +233,22 @@ libqore_la_SOURCES = \
 	QoreCastOperatorNode.cpp \
 	QoreKeysOperatorNode.cpp \
 	QoreUnaryMinusOperatorNode.cpp \
+	QoreUnaryPlusOperatorNode.cpp \
 	QoreLogicalNotOperatorNode.cpp \
 	QoreDotEvalOperatorNode.cpp \
 	QoreLogicalEqualsOperatorNode.cpp \
 	QoreModuloOperatorNode.cpp \
+	QoreBinaryAndOperatorNode.cpp \
+	QoreBinaryOrOperatorNode.cpp \
+	QoreBinaryXorOperatorNode.cpp \
+	QoreBinaryNotOperatorNode.cpp \
+	QoreShiftLeftOperatorNode.cpp \
+	QoreShiftRightOperatorNode.cpp \
+	QoreExistsOperatorNode.cpp \
+	QoreElementsOperatorNode.cpp \
+	QoreInstanceOfOperatorNode.cpp \
+	QoreQuestionMarkOperatorNode.cpp \
+	QoreHashObjectDereferenceOperatorNode.cpp \
 	QoreAssignmentOperatorNode.cpp \
 	QorePlusEqualsOperatorNode.cpp \
 	QoreIntPlusEqualsOperatorNode.cpp \

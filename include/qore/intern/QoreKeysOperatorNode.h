@@ -68,10 +68,6 @@ public:
       return keys_str.getBuffer();
    }
 
-   DLLLOCAL virtual bool hasEffect() const {
-      return true;
-   }
-
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
       return copyBackgroundExplicit<QoreKeysOperatorNode>(xsink);
    }

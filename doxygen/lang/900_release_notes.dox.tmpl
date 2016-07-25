@@ -47,6 +47,7 @@
       - @ref foldl "foldl": supports lazy evaluation of the iterator expression
       - @ref foldr "foldlr": supports lazy evaluation of the iterator expression
       - @ref foreach "foreach": supports lazy evaluation of the iterator expression
+    - implemented additional parse-time checks for many @ref operators "operators" to provide feedback for invalid operations detected at parse time
     - new parse options:
       - @ref broken-loop-statement "%broken-loop-statement"
     - new constants:
@@ -76,8 +77,8 @@
       - fixed a bug with \c SqlStatementOutboundMapper; it would throw an error if the required \c "table" or \c "sh" options were used and only worked with subclasses that declared these options (<a href="https://github.com/qorelanguage/qore/issues/981">issue 981</a>)
       - fixed a bug where \c AbstractSqlStatementOutboundMapper::iterator() failed to use options when creating the new \c Mapper object (<a href="https://github.com/qorelanguage/qore/issues/1088">issue 1088</a>)
     - fixed a bug where optional arguments were not handled correctly in some rare cases (<a href="https://github.com/qorelanguage/qore/issues/974">issue 974</a>)
-    - fixed a bug causing a crash when parse_base64_string_to_string was called with an empty string (<a href="https://github.com/qorelanguage/qore/issues/996">issue 996</a>)
-    - fixed a bug where break and continue statements were accepted outside of loops (<a href="https://github.com/qorelanguage/qore/issues/976">issue 976</a>)
+    - fixed a bug causing a crash when @ref Qore::parse_base64_string_to_string() "parse_base64_string_to_string()" was called with an empty string (<a href="https://github.com/qorelanguage/qore/issues/996">issue 996</a>)
+    - fixed a bug where @ref break "break" and @ref continue "continue" statements were accepted outside of loops (<a href="https://github.com/qorelanguage/qore/issues/976">issue 976</a>)
     - fixed a bug compiling on Solaris SPARC with g++ where \c MPFR_DECL_INIT() is compiled incorrectly with -O1 or greater (<a href="https://github.com/qorelanguage/qore/issues/958">issue 958</a>)
     - fixed a bug resolving base class method calls during parse initialization (<a href="https://github.com/qorelanguage/qore/issues/1075">issue 1075</a>)
     - fixed a bug causing an infinite loop in decompression functions (<a href="https://github.com/qorelanguage/qore/issues/966">issue 966</a>)

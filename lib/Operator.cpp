@@ -41,24 +41,21 @@
 #include <sys/types.h>
 #include <pcre.h>
 
-QoreString QoreQuestionMarkOperatorNode::question_mark_str("question mark operator expression");
-
 DLLLOCAL OperatorList oplist;
 
 DLLLOCAL extern const QoreTypeInfo* bigIntFloatOrNumberTypeInfo, * floatOrNumberTypeInfo;
 
 // the standard, system-default operator pointers
-Operator *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT, *OP_BIN_XOR, *OP_MINUS, *OP_PLUS,
-   *OP_MULT, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT,
+Operator *OP_MINUS, *OP_PLUS,
+   *OP_MULT,
    *OP_LOG_CMP,
-   *OP_OBJECT_REF, *OP_ELEMENTS,
    *OP_SHIFT, *OP_POP, *OP_PUSH,
    *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT,
    *OP_REGEX_TRANS, *OP_REGEX_EXTRACT,
    *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT,
    *OP_LOG_GT, *OP_LOG_EQ, *OP_LOG_NE, *OP_LOG_LE, *OP_LOG_GE,
-   *OP_ABSOLUTE_EQ, *OP_ABSOLUTE_NE, *OP_REGEX_MATCH, *OP_REGEX_NMATCH,
-   *OP_EXISTS, *OP_INSTANCEOF;
+   *OP_ABSOLUTE_EQ, *OP_ABSOLUTE_NE, *OP_REGEX_MATCH, *OP_REGEX_NMATCH
+   ;
 
 // call to get a node with reference count 1 (copy on write)
 void ensure_unique(AbstractQoreNode* *v, ExceptionSink* xsink) {
@@ -346,22 +343,6 @@ static bool op_log_ne_binary(const AbstractQoreNode* left, const AbstractQoreNod
 }
 */
 
-static bool op_exists(const AbstractQoreNode* left, const AbstractQoreNode* x, ExceptionSink* xsink) {
-   assert(!left->needs_eval());
-   return is_nothing(left) ? false : true;
-}
-
-static bool op_instanceof(const AbstractQoreNode* l, const AbstractQoreNode* r, ExceptionSink* xsink) {
-   assert(r && r->getType() == NT_CLASSREF);
-
-   QoreNodeEvalOptionalRefHolder nl(l, xsink);
-   if (*xsink || !nl || nl->getType() != NT_OBJECT)
-      return false;
-
-   const QoreObject *o = reinterpret_cast<const QoreObject*>(*nl);
-   return o->validInstanceOf(*reinterpret_cast<const ClassRefNode*>(r)->getClass());
-}
-
 // takes all arguments unevaluated so logic short-circuiting can happen
 static bool op_log_and(const AbstractQoreNode* left, const AbstractQoreNode* right, ExceptionSink* xsink) {
    // if left side is 0, then do not evaluate right side
@@ -474,31 +455,6 @@ static int64 op_cmp_string(const QoreString* left, const QoreString* right, Exce
    return (int64)left->compare(right);
 }
 
-static int64 op_elements(const AbstractQoreNode* left, const AbstractQoreNode* null, ExceptionSink* xsink) {
-   QoreNodeEvalOptionalRefHolder np(left, xsink);
-   if (*xsink || !np)
-      return 0;
-
-   qore_type_t ltype = np->getType();
-
-   if (ltype == NT_LIST)
-      return reinterpret_cast<const QoreListNode*>(*np)->size();
-
-   if (ltype == NT_STRING)
-      return reinterpret_cast<const QoreStringNode*>(*np)->length();
-
-   if (ltype == NT_HASH)
-      return reinterpret_cast<const QoreHashNode*>(*np)->size();
-
-   if (ltype == NT_OBJECT)
-      return reinterpret_cast<const QoreObject *>(*np)->size(xsink);
-
-   if (ltype == NT_BINARY)
-      return reinterpret_cast<const BinaryNode*>(*np)->size();
-
-   return 0;
-}
-
 static AbstractQoreNode* op_regex_subst(const AbstractQoreNode* left, const AbstractQoreNode* right, bool ref_rv, ExceptionSink* xsink) {
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
@@ -555,47 +511,6 @@ static AbstractQoreNode* op_transliterate(const AbstractQoreNode* left, const Ab
 
    // reference for return value
    return ref_rv ? nv->refSelf() : 0;
-}
-
-// for the member name, a string is required.  non-string arguments will
-// be converted.  The null string can also be used
-static AbstractQoreNode* op_object_ref(const AbstractQoreNode* left, const AbstractQoreNode* member, bool ref_rv, ExceptionSink* xsink) {
-   QoreNodeEvalOptionalRefHolder op(left, xsink);
-   if (*xsink || !op)
-      return 0;
-
-   if (op->getType() == NT_HASH) {
-      const QoreHashNode* h = reinterpret_cast<const QoreHashNode*>(*op);
-
-      // evaluate member expression
-      QoreNodeEvalOptionalRefHolder mem(member, xsink);
-      if (*xsink)
-	 return 0;
-
-      if (mem && mem->getType() == NT_LIST) {
-	 return h->getSlice(reinterpret_cast<const QoreListNode*>(*mem), xsink);
-      }
-
-      QoreStringNodeValueHelper key(*mem);
-      return h->evalKeyValue(*key, xsink);
-   }
-   if (op->getType() != NT_OBJECT)
-      return 0;
-
-   QoreObject *o = const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(*op));
-
-   // evaluate member expression
-   QoreNodeEvalOptionalRefHolder mem(member, xsink);
-   if (*xsink)
-      return 0;
-
-   if (mem && mem->getType() == NT_LIST) {
-      return o->getSlice(reinterpret_cast<const QoreListNode*>(*mem), xsink);
-   }
-
-   QoreStringNodeValueHelper key(*mem);
-   ValueHolder rv(o->evalMember(*key, xsink), xsink);
-   return *xsink ? 0 : rv.getReferencedValue();
 }
 
 static AbstractQoreNode* op_list_assignment(const AbstractQoreNode* n_left, const AbstractQoreNode* right, bool ref_rv, ExceptionSink* xsink) {
@@ -749,26 +664,6 @@ static int64 op_cmp_double(double left, double right, ExceptionSink* xsink) {
       return 0;
 
    return 1;
-}
-
-static int64 op_bin_and_int(int64 left, int64 right) {
-   return left & right;
-}
-
-static int64 op_bin_or_int(int64 left, int64 right) {
-   return left | right;
-}
-
-static int64 op_bin_xor_int(int64 left, int64 right) {
-   return left ^ right;
-}
-
-static int64 op_shift_left_int(int64 left, int64 right) {
-   return left << right;
-}
-
-static int64 op_shift_right_int(int64 left, int64 right) {
-   return left >> right;
 }
 
 // unshift lvalue, element
@@ -1185,11 +1080,6 @@ QoreValue CompareFloatOperatorFunction::eval(const AbstractQoreNode* left, const
       return QoreValue();
 
    return op_func(left->getAsFloat(), right->getAsFloat(), xsink);
-}
-
-QoreValue IntegerNotOperatorFunction::eval(const AbstractQoreNode* left, const AbstractQoreNode* right, bool ref_rv, int args, ExceptionSink* xsink) const {
-   // these functions can have no side effects
-   return ~left->getAsBigInt();
 }
 
 QoreValue CompareDateOperatorFunction::eval(const AbstractQoreNode* left, const AbstractQoreNode* right, bool ref_rv, int args, ExceptionSink* xsink) const {
@@ -1801,105 +1691,6 @@ static AbstractQoreNode* check_op_multiply(QoreTreeNode* tree, LocalVar* oflag, 
    return tree;
 }
 
-static AbstractQoreNode* check_op_object_ref(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& returnTypeInfo, const char* name, const char* desc) {
-   QoreProgramLocation loc = get_parse_location();
-
-   const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
-
-   const QoreTypeInfo *rightTypeInfo = 0;
-   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
-
-   printd(5, "check_op_object_object_ref() l=%p %s (%s) r=%p %s\n", leftTypeInfo, leftTypeInfo->getName(), leftTypeInfo->getUniqueReturnClass() ? leftTypeInfo->getUniqueReturnClass()->getName() : "n/a", rightTypeInfo, rightTypeInfo->getName());
-
-   if (leftTypeInfo->hasType()) {
-      bool can_be_obj = objectTypeInfo->parseAccepts(leftTypeInfo);
-      bool can_be_hash = hashTypeInfo->parseAccepts(leftTypeInfo);
-
-      bool is_obj = can_be_obj ? leftTypeInfo->isType(NT_OBJECT) : false;
-      bool is_hash = can_be_hash ? leftTypeInfo->isType(NT_HASH) : false;
-
-      const QoreClass *qc = leftTypeInfo->getUniqueReturnClass();
-      // see if we can check for legal access
-      if (qc && tree->right) {
-	 qore_type_t rt = tree->right->getType();
-	 if (rt == NT_STRING) {
-	    const char* member = reinterpret_cast<const QoreStringNode*>(tree->right)->getBuffer();
-	    qore_class_private::parseCheckMemberAccess(*qc, loc, member, returnTypeInfo, pflag);
-	 }
-	 else if (rt == NT_LIST) { // check object slices as well if strings are available
-	    ConstListIterator li(reinterpret_cast<const QoreListNode*>(tree->right));
-	    while (li.next()) {
-	       if (li.getValue() && li.getValue()->getType() == NT_STRING) {
-		  const char* member = reinterpret_cast<const QoreStringNode*>(li.getValue())->getBuffer();
-		  qore_class_private::parseCheckMemberAccess(*qc, loc, member, returnTypeInfo, pflag);
-	       }
-	    }
-	 }
-      }
-
-      // if we are taking a slice of an object or a hash, then the return type is a hash
-      if (rightTypeInfo->hasType() && rightTypeInfo->isType(NT_LIST) && (is_obj || is_hash))
-	 returnTypeInfo = hashTypeInfo;
-
-      // if we are trying to convert to a hash
-      if (pflag & PF_FOR_ASSIGNMENT) {
-	 // only throw a parse exception if parse exceptions are enabled
-	 if (!can_be_hash
-	     && !can_be_obj
-	     && getProgram()->getParseExceptionSink()) {
-	    QoreStringNode* edesc = new QoreStringNode("cannot convert lvalue defined as ");
-	    leftTypeInfo->getThisType(*edesc);
-	    edesc->sprintf(" to a hash using the '.' or '{}' operator in an assignment expression");
-	    qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
-	 }
-      }
-      else if (!can_be_hash && !can_be_obj) {
-	 QoreStringNode* edesc = new QoreStringNode("left-hand side of the expression with the '.' or '{}' operator is ");
-	 leftTypeInfo->getThisType(*edesc);
-	 edesc->concat(" and so this expression will always return NOTHING; the '.' or '{}' operator only returns a value with hashes and objects");
-	 qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
-	 returnTypeInfo = nothingTypeInfo;
-      }
-   }
-
-   //printd(5, "check_op_object_ref() rightTypeInfo=%s rightTypeInfo->nonStringValue(): %d !listTypeInfo->parseAccepts(rightTypeInfo): %d\n", rightTypeInfo->getName(), rightTypeInfo->nonStringValue(), !listTypeInfo->parseAccepts(rightTypeInfo));
-
-   // issue a warning if the right side of the expression cannot be converted to a string
-   // and can not be a list (for a slice)
-   if (rightTypeInfo->nonStringValue() && !listTypeInfo->parseAccepts(rightTypeInfo))
-      rightTypeInfo->doNonStringWarning(loc, "the right side of the expression with the '.' or '{}' operator is ");
-
-   return tree;
-}
-
-// for operators that always return an integer
-static AbstractQoreNode* check_op_elements(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& returnTypeInfo, const char* name, const char* desc) {
-   returnTypeInfo = bigIntTypeInfo;
-
-   const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
-
-   assert(!tree->right);
-
-   if (leftTypeInfo->hasType()
-         && !listTypeInfo->parseAccepts(leftTypeInfo)
-         && !hashTypeInfo->parseAccepts(leftTypeInfo)
-         && !stringTypeInfo->parseAccepts(leftTypeInfo)
-         && !binaryTypeInfo->parseAccepts(leftTypeInfo)
-         && !objectTypeInfo->parseAccepts(leftTypeInfo)) {
-         QoreStringNode* edesc = new QoreStringNode("the argument given to the 'elements' operator is ");
-         leftTypeInfo->getThisType(*edesc);
-         edesc->concat(", so this expression will always return 0; the 'elements' operator can only return a value with lists, hashes, strings, binary objects, and objects");
-         qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
-   }
-
-   if (tree->constArgs())
-      return tree->evalSubst(returnTypeInfo);
-
-   return tree;
-}
-
 // issues a warning
 static AbstractQoreNode* check_op_list_op(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& returnTypeInfo, const char* name, const char* desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
@@ -2033,12 +1824,6 @@ void OperatorList::init() {
    OP_REGEX_NMATCH = add(new Operator(2, "!~", "regular expression negative match", 0, false, false, check_op_logical));
    OP_REGEX_NMATCH->addFunction(op_regex_nmatch);
 
-   OP_EXISTS = add(new Operator(1, "exists", "exists", 1, false, false, check_op_logical));
-   OP_EXISTS->addFunction(NT_ALL, NT_NONE, op_exists);
-
-   OP_INSTANCEOF = add(new Operator(2, "instanceof", "instanceof", 0, false, false, check_op_logical));
-   OP_INSTANCEOF->addFunction(NT_ALL, NT_CLASSREF, op_instanceof);
-
    // bigint operators
    OP_LOG_CMP = add(new Operator(2, "<=>", "logical-comparison", 1, false, false, check_op_returns_integer));
    OP_LOG_CMP->addFunction(op_cmp_string);
@@ -2047,24 +1832,9 @@ void OperatorList::init() {
    OP_LOG_CMP->addFunction(op_cmp_bigint);
    OP_LOG_CMP->addCompareDateFunction();
 
-   OP_ELEMENTS = add(new Operator(1, "elements", "number of elements", 0, false, false, check_op_elements));
-   OP_ELEMENTS->addFunction(NT_ALL, NT_NONE, op_elements);
-
    // non-boolean operators
    OP_LIST_ASSIGNMENT = add(new Operator(2, "(list) =", "list assignment", 0, true, true, check_op_list_assignment));
    OP_LIST_ASSIGNMENT->addFunction(NT_ALL, NT_ALL, op_list_assignment);
-
-   OP_BIN_AND = add(new Operator(2, "&", "binary-and", 1, false, false, check_op_returns_integer));
-   OP_BIN_AND->addFunction(op_bin_and_int);
-
-   OP_BIN_OR = add(new Operator(2, "|", "binary-or", 1, false, false, check_op_returns_integer));
-   OP_BIN_OR->addFunction(op_bin_or_int);
-
-   OP_BIN_NOT = add(new Operator(1, "~", "binary-not", 1, false, false, check_op_returns_integer));
-   OP_BIN_NOT->addIntegerNotFunction();
-
-   OP_BIN_XOR = add(new Operator(2, "^", "binary-xor", 1, false, false, check_op_returns_integer));
-   OP_BIN_XOR->addFunction(op_bin_xor_int);
 
    OP_MINUS = add(new Operator(2, "-", "minus", 1, false, false, check_op_minus));
    OP_MINUS->addFunction(op_minus_date);
@@ -2092,16 +1862,6 @@ void OperatorList::init() {
    OP_MULT->addFunction(op_multiply_number);
    OP_MULT->addFunction(op_multiply_float);
    OP_MULT->addFunction(op_multiply_bigint);
-
-   OP_SHIFT_LEFT = add(new Operator(2, "<<", "shift-left", 1, false, false, check_op_returns_integer));
-   OP_SHIFT_LEFT->addFunction(op_shift_left_int);
-
-   OP_SHIFT_RIGHT = add(new Operator(2, ">>", "shift-right", 1, false, false, check_op_returns_integer));
-   OP_SHIFT_RIGHT->addFunction(op_shift_right_int);
-
-   // cannot validate return type here yet
-   OP_OBJECT_REF = add(new Operator(2, ".", "hash/object-reference", 0, false, false, check_op_object_ref));
-   OP_OBJECT_REF->addFunction(NT_ALL, NT_ALL, op_object_ref);
 
    OP_SHIFT = add(new Operator(1, "shift", "shift from list", 0, true, true, check_op_list_op));
    OP_SHIFT->addFunction(op_shift);

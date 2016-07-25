@@ -447,10 +447,21 @@ set(LIBQORE_CPP_SRC
         lib/QoreExtractOperatorNode.cpp
         lib/QoreCastOperatorNode.cpp
         lib/QoreUnaryMinusOperatorNode.cpp
+        lib/QoreUnaryPlusOperatorNode.cpp
         lib/QoreLogicalNotOperatorNode.cpp
         lib/QoreDotEvalOperatorNode.cpp
         lib/QoreLogicalEqualsOperatorNode.cpp
         lib/QoreModuloOperatorNode.cpp
+        lib/QoreBinaryAndOperatorNode.cpp
+        lib/QoreBinaryNotOperatorNode.cpp
+        lib/QoreBinaryOrOperatorNode.cpp
+        lib/QoreBinaryXorOperatorNode.cpp
+        lib/QoreShiftLeftOperatorNode.cpp
+        lib/QoreShiftRightOperatorNode.cpp
+        lib/QoreExistsOperatorNode.cpp
+        lib/QoreElementsOperatorNode.cpp
+        lib/QoreInstanceOfOperatorNode.cpp
+	lib/QoreHashObjectDereferenceOperatorNode.cpp
         lib/QoreAssignmentOperatorNode.cpp
         lib/QorePlusEqualsOperatorNode.cpp
         lib/QoreIntPlusEqualsOperatorNode.cpp

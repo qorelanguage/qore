@@ -398,11 +398,22 @@ noinst_HEADERS = \
 	include/qore/intern/QoreCastOperatorNode.h \
 	include/qore/intern/QoreKeysOperatorNode.h \
 	include/qore/intern/QoreUnaryMinusOperatorNode.h \
+	include/qore/intern/QoreUnaryPlusOperatorNode.h \
 	include/qore/intern/QoreLogicalNotOperatorNode.h \
 	include/qore/intern/QoreDotEvalOperatorNode.h \
 	include/qore/intern/QoreLogicalEqualsOperatorNode.h \
 	include/qore/intern/QoreLogicalNotEqualsOperatorNode.h \
 	include/qore/intern/QoreModuloOperatorNode.h \
+	include/qore/intern/QoreBinaryAndOperatorNode.h \
+	include/qore/intern/QoreBinaryOrOperatorNode.h \
+	include/qore/intern/QoreBinaryXorOperatorNode.h \
+	include/qore/intern/QoreBinaryNotOperatorNode.h \
+	include/qore/intern/QoreShiftLeftOperatorNode.h \
+	include/qore/intern/QoreShiftRightOperatorNode.h \
+	include/qore/intern/QoreExistsOperatorNode.h \
+	include/qore/intern/QoreElementsOperatorNode.h \
+	include/qore/intern/QoreInstanceOfOperatorNode.h \
+	include/qore/intern/QoreHashObjectDereferenceOperatorNode.h \
 	include/qore/intern/QoreAssignmentOperatorNode.h \
 	include/qore/intern/QorePlusEqualsOperatorNode.h \
 	include/qore/intern/QoreIntPlusEqualsOperatorNode.h \

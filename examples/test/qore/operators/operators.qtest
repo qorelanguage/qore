@@ -43,6 +43,7 @@ class Test inherits QUnit::Test {
         addTestCase("select test", \selectTest());
         addTestCase("fold test", \foldTest());
         addTestCase("keys test", \keysTest());
+        addTestCase("binary not", \binNot());
         set_return_value(main());
     }
 
@@ -144,6 +145,61 @@ class Test inherits QUnit::Test {
         testAssertion("float div by zero", any sub () {float n = 0; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
         testAssertion("numeric div by zero", any sub () {number n = 0n; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
         testAssertion("div by zero", any sub () {any n; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
+
+        assertEq(32, 1 << 5);
+        assertEq(2, 32 >> 4);
+        {
+            int i = 32;
+            int l = 1;
+            int r = 5;
+            assertEq(i, l << r);
+            i = 2;
+            l = 32;
+            r = 4;
+            assertEq(i, l >> r);
+        }
+
+        assertEq(True, exists 1);
+        assertEq(True, exists NULL);
+        assertEq(False, exists NOTHING);
+        {
+            int i = 1;
+            assertEq(True, exists i);
+            delete i;
+            assertEq(False, exists i);
+        }
+
+        assertEq(3, elements "str");
+        assertEq(6, elements "straße");
+        assertEq(2, elements <bead>);
+        assertEq(2, elements (1, 2));
+        assertEq(2, elements ("a": 1, "b": 2));
+        assertEq(0, elements NOTHING);
+        {
+            string str1 = "str";
+            string str2 = "straße";
+            binary bin = <bead>;
+            list l = (1, 2);
+            hash th = ("a": 1, "b": 2);
+            assertEq(3, elements str1);
+            assertEq(6, elements str2);
+            assertEq(2, elements bin);
+            assertEq(2, elements l);
+            assertEq(2, elements th);
+            delete str1;
+            assertEq(0, elements str1);
+        }
+
+        assertEq(True, stdout instanceof File);
+        assertEq(False, stdout instanceof Mutex);
+        assertEq(False, 1 instanceof File);
+        {
+            any x = stdout;
+            assertEq(True, x instanceof File);
+            assertEq(False, x instanceof Mutex);
+            x = 1;
+            assertEq(False, x instanceof File);
+        }
 
         Program p(PO_NEW_STYLE);
         testAssertion("trim operator parse-time return value", \p.parse(), ("string sub test() {string str = \"a string \\n\"; string astr = trim str; return astr;}", "trim operator test"), new TestResultValue(NOTHING));
@@ -471,6 +527,11 @@ class Test inherits QUnit::Test {
         hash q = map {$1: ($1 % 2) ? NULL : True}, xrange(20);
         map delete q.$1, keys q, q.$1 === NULL;
         assertEq((0: True, 2: True, 4: True, 6: True, 8: True, 10: True, 12: True, 14: True, 16: True, 18: True, 20: True), q);
+    }
 
+    binNot() {
+        assertEq(0, ~(~1 | 1));
+        assertEq(-1, ~1 | 1);
+        assertEq(-4294967297, ~(1 << 32));
     }
 }

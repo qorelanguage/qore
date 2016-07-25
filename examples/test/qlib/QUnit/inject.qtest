@@ -6,6 +6,8 @@
 %require-types
 %strict-args
 
+%disable-warning module-only
+
 %requires ../../../../qlib/FixedLengthUtil.qm
 
 %include ../../../../qlib/QUnit.qm

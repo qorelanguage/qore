@@ -868,8 +868,25 @@ addTestCase(obj);
         string actual;
         # if values are "soft equal", then they must have different types, so we make the type differences explicit here
         if (exp == act) {
-            expected = sprintf("(%s) %N", exp.type(), exp);
-            actual = neg ? "<identical>" : sprintf("(%s) %N", act.type(), act);
+            bool done = False;
+            # if the values are strings that differ only in encodings, then show the encodings
+            if (exp.typeCode() == NT_STRING && act.typeCode() == NT_STRING && exp.encoding() != act.encoding() && exp.length() == act.length()) {
+                # in case of encoding errors, use exception handling
+                try {
+                    string nact = convert_encoding(exp.encoding(), act);
+                    if (exp === nact) {
+                        done = True;
+                        expected = sprintf("(string %y) %N", exp.encoding(), exp);
+                        actual = neg ? "<identical>" : sprintf("(string %y) %N", act.encoding(), act);
+                    }
+                }
+                catch (hash ex) {
+                }
+            }
+            if (!done) {
+                expected = sprintf("(%s) %N", exp.type(), exp);
+                actual = neg ? "<identical>" : sprintf("(%s) %N", act.type(), act);
+            }
         }
         else {
             if (exp.typeCode() == NT_BINARY)

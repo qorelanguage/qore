@@ -62,11 +62,6 @@ protected:
       return returnTypeInfo;
    }
 
-   DLLLOCAL virtual bool hasEffect() const {
-      // FIXME: check iterated expression to see if it really has an effect
-      return true;
-   }
-
    DLLLOCAL QoreValue selectIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
 
 public:
