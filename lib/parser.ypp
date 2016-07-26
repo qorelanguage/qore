@@ -1,10 +1,10 @@
 %{ /* -*- mode: c++; indent-tabs-mode: nil -*-
 
-   parser.ypp
+  parser.ypp
 
-   Qore Programming Language
+  Qore Programming Language
 
-   Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1326,8 +1326,8 @@ static AbstractQoreNode* processCall(AbstractQoreNode* $1, AbstractQoreNode* $3)
    struct NSNode* nsn;
    class ObjClassDef *classdef;
    DateTimeNode* datetime;
-   RegexSubstNode* RegexSubst;
-   RegexTransNode* RegexTrans;
+   QoreRegexSubst* RegexSubst;
+   QoreTransliteration* Trans;
    SwitchStatement* switchstmt;
    CaseNode* casenode;
    BCList* sclist;
@@ -1335,7 +1335,7 @@ static AbstractQoreNode* processCall(AbstractQoreNode* $1, AbstractQoreNode* $3)
    BCAList* bcalist;
    BCANode* bcanode;
    NamedScope *nscope;
-   QoreRegexNode* Regex;
+   QoreRegex* Regex;
    QoreImplicitArgumentNode* implicit_arg;
    RetTypeInfo* returnTypeInfo;
    struct ParserTypeStruct* parsertype;
@@ -1484,7 +1484,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %token <String> QUOTED_WORD "quoted string"
 %token <binary> BINARY "binary constant value"
 %token <RegexSubst> REGEX_SUBST "regular expression substitution expression"
-%token <RegexTrans> REGEX_TRANS "transliteration expression"
+%token <Trans> REGEX_TRANS "transliteration expression"
 %token <nscope> CLASS_SCOPED_REF "scoped class declaration"
 %token <nscope> BASE_CLASS_CALL "call to base class method"
 %token <Regex> REGEX "regular expression"
@@ -3229,11 +3229,11 @@ exp
     | exp '|' exp                       { $$ = new QoreBinaryOrOperatorNode($1, $3); }
     | exp '&' exp                       { $$ = new QoreBinaryAndOperatorNode($1, $3); }
     | exp '^' exp                       { $$ = new QoreBinaryXorOperatorNode($1, $3); }
-    | exp REGEX_MATCH REGEX             { $$ = new QoreTreeNode($1, OP_REGEX_MATCH, $3); }
-    | exp REGEX_NMATCH REGEX            { $$ = new QoreTreeNode($1, OP_REGEX_NMATCH, $3); }
-    | exp REGEX_MATCH REGEX_SUBST       { $$ = new QoreTreeNode($1, OP_REGEX_SUBST, $3); }
-    | exp REGEX_MATCH REGEX_TRANS       { $$ = new QoreTreeNode($1, OP_REGEX_TRANS, $3); }
-    | exp REGEX_MATCH REGEX_EXTRACT     { $$ = new QoreTreeNode($1, OP_REGEX_EXTRACT, $3); }
+    | exp REGEX_MATCH REGEX             { $$ = new QoreRegexMatchOperatorNode($1, $3); }
+    | exp REGEX_NMATCH REGEX            { $$ = new QoreRegexNMatchOperatorNode($1, $3); }
+    | exp REGEX_MATCH REGEX_SUBST       { $$ = new QoreRegexSubstOperatorNode($1, $3); }
+    | exp REGEX_MATCH REGEX_TRANS       { $$ = new QoreTransliterationOperatorNode($1, $3); }
+    | exp REGEX_MATCH REGEX_EXTRACT     { $$ = new QoreRegexExtractOperatorNode($1, $3); }
     | exp '>' exp                       { $$ = new QoreLogicalGreaterThanOperatorNode($1, $3); }
     | exp '<' exp                       { $$ = new QoreLogicalLessThanOperatorNode($1, $3); }
     | exp LOGICAL_CMP exp               { $$ = new QoreTreeNode($1, OP_LOG_CMP, $3); }
@@ -3286,11 +3286,11 @@ exp_n
     | exp_n '|' exp                     { $$ = new QoreBinaryOrOperatorNode($1, $3); }
     | exp_n '&' exp                     { $$ = new QoreBinaryAndOperatorNode($1, $3); }
     | exp_n '^' exp                     { $$ = new QoreBinaryXorOperatorNode($1, $3); }
-    | exp_n REGEX_MATCH REGEX           { $$ = new QoreTreeNode($1, OP_REGEX_MATCH, $3); }
-    | exp_n REGEX_NMATCH REGEX          { $$ = new QoreTreeNode($1, OP_REGEX_NMATCH, $3); }
-    | exp_n REGEX_MATCH REGEX_SUBST     { $$ = new QoreTreeNode($1, OP_REGEX_SUBST, $3); }
-    | exp_n REGEX_MATCH REGEX_TRANS     { $$ = new QoreTreeNode($1, OP_REGEX_TRANS, $3); }
-    | exp_n REGEX_MATCH REGEX_EXTRACT   { $$ = new QoreTreeNode($1, OP_REGEX_EXTRACT, $3); }
+    | exp_n REGEX_MATCH REGEX           { $$ = new QoreRegexMatchOperatorNode($1, $3); }
+    | exp_n REGEX_NMATCH REGEX          { $$ = new QoreRegexNMatchOperatorNode($1, $3); }
+    | exp_n REGEX_MATCH REGEX_SUBST     { $$ = new QoreRegexSubstOperatorNode($1, $3); }
+    | exp_n REGEX_MATCH REGEX_TRANS     { $$ = new QoreTransliterationOperatorNode($1, $3); }
+    | exp_n REGEX_MATCH REGEX_EXTRACT   { $$ = new QoreRegexExtractOperatorNode($1, $3); }
     | exp_n '>' exp                     { $$ = new QoreLogicalGreaterThanOperatorNode($1, $3); }
     | exp_n '<' exp                     { $$ = new QoreLogicalLessThanOperatorNode($1, $3); }
     | exp_n LOGICAL_CMP exp             { $$ = new QoreTreeNode($1, OP_LOG_CMP, $3); }

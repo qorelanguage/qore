@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1100,7 +1100,7 @@ bool b = regex("hello", "^hel"); # returns True
     @see @ref qore_regex for more information about regular expression support in Qore
  */
 bool regex(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
-   QoreRegexNode qr(*regex, options, xsink);
+   QoreRegex qr(*regex, options, xsink);
    if (*xsink)
       return QoreValue();
 
@@ -1159,7 +1159,7 @@ string regex_subst(string str, string regex, string subst, int options = 0) [fla
    else
       global = false;
 
-   RegexSubstNode qrs(regex, (int)options, xsink);
+   QoreRegexSubst qrs(regex, (int)options, xsink);
    if (*xsink)
       return QoreValue();
 
@@ -1199,7 +1199,7 @@ nothing regex_subst() [flags=RUNTIME_NOOP] {
     @since %Qore 0.8.8 this function accepts the @ref Qore::RE_Global option to extract all occurrences of the pattern(s) in a string
  */
 *list regex_extract(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
-   QoreRegexNode qr(*regex, options, xsink);
+   QoreRegex qr(*regex, options, xsink);
    if (*xsink)
       return QoreValue();
 

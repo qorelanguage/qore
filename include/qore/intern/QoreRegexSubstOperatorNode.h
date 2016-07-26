@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  CaseNodeRegex.h
+  QoreRegexSubstOperatorNode.h
 
   Qore Programming Language
 
@@ -29,40 +29,38 @@
   information.
 */
 
-#ifndef QORE_CASENODEREGEX_H
-#define QORE_CASENODEREGEX_H
+#ifndef _QORE_QOREREGEXSUBSTOPERATORNODE_H
 
-#include <qore/intern/SwitchStatement.h>
-#include <qore/intern/QoreRegex.h>
+#define _QORE_QOREREGEXSUBSTOPERATORNODE_H
 
-// Class supporting:
-// switch ($a) {
-// case ~= /regex_exp/: ..
-//
-class CaseNodeRegex : public CaseNode {
+class QoreRegexSubstOperatorNode : public QoreSingleExpressionOperatorNode<LValueOperatorNode> {
+OP_COMMON
 protected:
-   QoreRegex *re;
+   const QoreTypeInfo* typeInfo;
+   SimpleRefHolder<QoreRegexSubst> regex;
 
-   DLLLOCAL virtual bool isCaseNodeImpl() const {
-      return false;
-   }
-   DLLLOCAL virtual bool isDefault() const {
-      return false;
-   }
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
 public:
-   DLLLOCAL CaseNodeRegex(QoreRegex *m_re, StatementBlock *blk);
-   DLLLOCAL virtual ~CaseNodeRegex() {
-      delete re;
+   DLLLOCAL QoreRegexSubstOperatorNode(AbstractQoreNode* n_exp, QoreRegexSubst* r) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(n_exp), typeInfo(0), regex(r) {
    }
-   DLLLOCAL virtual bool matches(AbstractQoreNode *lhs_value, class ExceptionSink *xsink);
-};
 
-class CaseNodeNegRegex : public CaseNodeRegex {
-public:
-   DLLLOCAL CaseNodeNegRegex(QoreRegex *m_re, StatementBlock *blk) : CaseNodeRegex(m_re, blk) {
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+      return typeInfo;
    }
-   DLLLOCAL virtual bool matches(AbstractQoreNode *lhs_value, class ExceptionSink *xsink);
+
+   DLLLOCAL virtual bool hasEffect() const {
+      return true;
+   }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
+      if (*xsink)
+         return 0;
+      return new QoreRegexSubstOperatorNode(n_exp.release(), regex->refSelf());
+   }
 };
 
 #endif

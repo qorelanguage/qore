@@ -44,6 +44,7 @@ class Test inherits QUnit::Test {
         addTestCase("fold test", \foldTest());
         addTestCase("keys test", \keysTest());
         addTestCase("binary not", \binNot());
+        addTestCase("transliteration", \transliteration());
         set_return_value(main());
     }
 
@@ -533,5 +534,31 @@ class Test inherits QUnit::Test {
         assertEq(0, ~(~1 | 1));
         assertEq(-1, ~1 | 1);
         assertEq(-4294967297, ~(1 << 32));
+    }
+
+    transliteration() {
+        string str = "this is a test";
+        assertEq("ThiS iS a TeST", str =~ tr/j-z/J-Z/);
+        assertEq("T78S 8S 0 T4ST", str =~ tr/a-z/0-9/);
+        assertEq("T78S 8S 0 T4ST", str =~ tr/A-A/a-a/);
+        assertEq("t78s 8s 0 t4st", str =~ tr/A-Z/a-z/);
+
+        str = "01234567890";
+        assertEq("ABCDEFGHIJA", str =~ tr/0-9/A-J/);
+
+        # target range shorter than the source range
+        assertEq("01234444440", str =~ tr/A-J/0-4/);
+
+        {
+            int i = 1;
+            assertEq(NOTHING, i =~ tr/a-z/A-Z/);
+            assertEq(1, i);
+        }
+
+        {
+            any i = 1;
+            assertEq(NOTHING, i =~ tr/0-9/A-J/);
+            assertEq(1, i);
+        }
     }
 }

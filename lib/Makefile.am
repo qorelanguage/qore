@@ -210,10 +210,10 @@ libqore_la_SOURCES = \
 	QoreCondition.cpp \
 	QoreQueue.cpp \
 	QoreQueueHelper.cpp \
-	QoreRegexNode.cpp \
+	QoreRegex.cpp \
 	QoreRegexBase.cpp \
-	RegexSubstNode.cpp \
-	RegexTransNode.cpp \
+	QoreRegexSubst.cpp \
+	QoreTransliteration.cpp \
 	Sequence.cpp \
 	QoreReferenceCounter.cpp \
 	SystemEnvironment.cpp \
@@ -249,6 +249,11 @@ libqore_la_SOURCES = \
 	QoreInstanceOfOperatorNode.cpp \
 	QoreQuestionMarkOperatorNode.cpp \
 	QoreHashObjectDereferenceOperatorNode.cpp \
+	QoreRegexMatchOperatorNode.cpp \
+	QoreRegexNMatchOperatorNode.cpp \
+	QoreRegexExtractOperatorNode.cpp \
+	QoreRegexSubstOperatorNode.cpp \
+	QoreTransliterationOperatorNode.cpp \
 	QoreAssignmentOperatorNode.cpp \
 	QorePlusEqualsOperatorNode.cpp \
 	QoreIntPlusEqualsOperatorNode.cpp \

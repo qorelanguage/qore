@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  CaseNodeRegex.h
+  QoreRegexExtractOperatorNode.h
 
   Qore Programming Language
 
@@ -29,40 +29,32 @@
   information.
 */
 
-#ifndef QORE_CASENODEREGEX_H
-#define QORE_CASENODEREGEX_H
+#ifndef _QORE_QOREREGEXEXTRACTOPERATORNODE_H
 
-#include <qore/intern/SwitchStatement.h>
-#include <qore/intern/QoreRegex.h>
+#define _QORE_QOREREGEXEXTRACTOPERATORNODE_H
 
-// Class supporting:
-// switch ($a) {
-// case ~= /regex_exp/: ..
-//
-class CaseNodeRegex : public CaseNode {
+class QoreRegexExtractOperatorNode : public QoreRegexMatchOperatorNode {
 protected:
-   QoreRegex *re;
+   DLLLOCAL static QoreString op_str;
 
-   DLLLOCAL virtual bool isCaseNodeImpl() const {
-      return false;
-   }
-   DLLLOCAL virtual bool isDefault() const {
-      return false;
-   }
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
 public:
-   DLLLOCAL CaseNodeRegex(QoreRegex *m_re, StatementBlock *blk);
-   DLLLOCAL virtual ~CaseNodeRegex() {
-      delete re;
+   DLLLOCAL QoreRegexExtractOperatorNode(AbstractQoreNode* n_exp, QoreRegex* r) : QoreRegexMatchOperatorNode(n_exp, r) {
    }
-   DLLLOCAL virtual bool matches(AbstractQoreNode *lhs_value, class ExceptionSink *xsink);
-};
 
-class CaseNodeNegRegex : public CaseNodeRegex {
-public:
-   DLLLOCAL CaseNodeNegRegex(QoreRegex *m_re, StatementBlock *blk) : CaseNodeRegex(m_re, blk) {
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+      return listOrNothingTypeInfo;
    }
-   DLLLOCAL virtual bool matches(AbstractQoreNode *lhs_value, class ExceptionSink *xsink);
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
+      if (*xsink)
+         return 0;
+      return new QoreRegexExtractOperatorNode(n_exp.release(), regex->refSelf());
+   }
 };
 
 #endif

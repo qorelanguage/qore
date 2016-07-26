@@ -407,9 +407,9 @@ DLLLOCAL int q_fstatvfs(const char* filepath, struct statvfs* buf);
 #include <qore/intern/StatementBlock.h>
 #include <qore/intern/VarRefNode.h>
 #include <qore/intern/FunctionCallNode.h>
-#include <qore/intern/RegexSubstNode.h>
-#include <qore/intern/QoreRegexNode.h>
-#include <qore/intern/RegexTransNode.h>
+#include <qore/intern/QoreRegexSubst.h>
+#include <qore/intern/QoreRegex.h>
+#include <qore/intern/QoreTransliteration.h>
 #include <qore/intern/ObjectMethodReferenceNode.h>
 #include <qore/intern/QoreClosureParseNode.h>
 #include <qore/intern/QoreClosureNode.h>

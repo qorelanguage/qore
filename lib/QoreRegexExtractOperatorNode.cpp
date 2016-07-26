@@ -1,6 +1,5 @@
-/* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  CaseNodeRegex.h
+  QoreRegexExtractOperatorNode.cpp
 
   Qore Programming Language
 
@@ -29,40 +28,41 @@
   information.
 */
 
-#ifndef QORE_CASENODEREGEX_H
-#define QORE_CASENODEREGEX_H
+#include <qore/Qore.h>
 
-#include <qore/intern/SwitchStatement.h>
-#include <qore/intern/QoreRegex.h>
+QoreString QoreRegexExtractOperatorNode::op_str("regex extract (=~ x//) operator expression");
 
-// Class supporting:
-// switch ($a) {
-// case ~= /regex_exp/: ..
-//
-class CaseNodeRegex : public CaseNode {
-protected:
-   QoreRegex *re;
+QoreValue QoreRegexExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+   ValueEvalRefHolder lh(exp, xsink);
+   if (*xsink)
+      return QoreValue();
 
-   DLLLOCAL virtual bool isCaseNodeImpl() const {
-      return false;
+   QoreStringNodeValueHelper str(*lh);
+   return regex->extractSubstrings(*str, xsink);
+}
+
+AbstractQoreNode* QoreRegexExtractOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+   // turn off "reference ok" and "return value ignored" flags
+   pflag &= ~(PF_RETURN_VALUE_IGNORED);
+
+   typeInfo = listOrNothingTypeInfo;
+
+   const QoreTypeInfo *lti = 0;
+   exp = exp->parseInit(oflag, pflag, lvids, lti);
+
+   if (lti->nonStringValue()) {
+      QoreStringMaker desc("the left side of the %s is ", op_str.c_str());
+      lti->doNonStringWarning(loc, desc.c_str());
    }
-   DLLLOCAL virtual bool isDefault() const {
-      return false;
+
+   // see if the left-hand arguments is a constant, then eval immediately and substitute this node with the result
+   if (exp && exp->is_value()) {
+      SimpleRefHolder<QoreRegexMatchOperatorNode> del(this);
+      ParseExceptionSink xsink;
+      ValueEvalRefHolder v(this, *xsink);
+      assert(!**xsink);
+      return v.getReferencedValue();
    }
 
-public:
-   DLLLOCAL CaseNodeRegex(QoreRegex *m_re, StatementBlock *blk);
-   DLLLOCAL virtual ~CaseNodeRegex() {
-      delete re;
-   }
-   DLLLOCAL virtual bool matches(AbstractQoreNode *lhs_value, class ExceptionSink *xsink);
-};
-
-class CaseNodeNegRegex : public CaseNodeRegex {
-public:
-   DLLLOCAL CaseNodeNegRegex(QoreRegex *m_re, StatementBlock *blk) : CaseNodeRegex(m_re, blk) {
-   }
-   DLLLOCAL virtual bool matches(AbstractQoreNode *lhs_value, class ExceptionSink *xsink);
-};
-
-#endif
+   return this;
+}

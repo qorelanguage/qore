@@ -64,7 +64,7 @@ public:
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const = 0;
 };
 
-template <class T>
+template <class T = QoreOperatorNode>
 class QoreSingleExpressionOperatorNode : public T {
 protected:
    AbstractQoreNode* exp;
@@ -279,6 +279,11 @@ public:
 #include <qore/intern/QoreElementsOperatorNode.h>
 #include <qore/intern/QoreInstanceOfOperatorNode.h>
 #include <qore/intern/QoreHashObjectDereferenceOperatorNode.h>
+#include <qore/intern/QoreRegexMatchOperatorNode.h>
+#include <qore/intern/QoreRegexNMatchOperatorNode.h>
+#include <qore/intern/QoreRegexExtractOperatorNode.h>
+#include <qore/intern/QoreRegexSubstOperatorNode.h>
+#include <qore/intern/QoreTransliterationOperatorNode.h>
 #include <qore/intern/QoreBinaryLValueOperatorNode.h>
 #include <qore/intern/QoreAssignmentOperatorNode.h>
 #include <qore/intern/QorePlusEqualsOperatorNode.h>

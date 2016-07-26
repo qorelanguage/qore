@@ -1,6 +1,5 @@
-/* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  CaseNodeRegex.h
+  QoreRegexNMatchOperatorNode.cpp
 
   Qore Programming Language
 
@@ -29,40 +28,15 @@
   information.
 */
 
-#ifndef QORE_CASENODEREGEX_H
-#define QORE_CASENODEREGEX_H
+#include <qore/Qore.h>
 
-#include <qore/intern/SwitchStatement.h>
-#include <qore/intern/QoreRegex.h>
+QoreString QoreRegexNMatchOperatorNode::op_str("regex negative match (!~) operator expression");
 
-// Class supporting:
-// switch ($a) {
-// case ~= /regex_exp/: ..
-//
-class CaseNodeRegex : public CaseNode {
-protected:
-   QoreRegex *re;
+QoreValue QoreRegexNMatchOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
+   ValueEvalRefHolder lh(exp, xsink);
+   if (*xsink)
+      return QoreValue();
 
-   DLLLOCAL virtual bool isCaseNodeImpl() const {
-      return false;
-   }
-   DLLLOCAL virtual bool isDefault() const {
-      return false;
-   }
-
-public:
-   DLLLOCAL CaseNodeRegex(QoreRegex *m_re, StatementBlock *blk);
-   DLLLOCAL virtual ~CaseNodeRegex() {
-      delete re;
-   }
-   DLLLOCAL virtual bool matches(AbstractQoreNode *lhs_value, class ExceptionSink *xsink);
-};
-
-class CaseNodeNegRegex : public CaseNodeRegex {
-public:
-   DLLLOCAL CaseNodeNegRegex(QoreRegex *m_re, StatementBlock *blk) : CaseNodeRegex(m_re, blk) {
-   }
-   DLLLOCAL virtual bool matches(AbstractQoreNode *lhs_value, class ExceptionSink *xsink);
-};
-
-#endif
+   QoreStringNodeValueHelper str(*lh);
+   return !regex->exec(*str, xsink);
+}

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 Qore Technologies
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -215,7 +215,7 @@ bool CaseNodeWithOperator::matches(AbstractQoreNode* lhs_value, ExceptionSink *x
    return rv->getAsBool();
 }
 
-CaseNodeRegex::CaseNodeRegex(QoreRegexNode *m_re, StatementBlock *blk) : CaseNode(NULL, blk), re(m_re) {
+CaseNodeRegex::CaseNodeRegex(QoreRegex *m_re, StatementBlock *blk) : CaseNode(NULL, blk), re(m_re) {
 }
 
 bool CaseNodeRegex::matches(AbstractQoreNode *lhs_value, ExceptionSink *xsink) {

@@ -316,9 +316,9 @@ noinst_HEADERS = \
 	include/qore/intern/RWLock.h \
 	include/qore/intern/SSLSocketHelper.h \
 	include/qore/intern/QoreSignal.h \
-	include/qore/intern/RegexSubstNode.h \
-	include/qore/intern/RegexTransNode.h \
-	include/qore/intern/QoreRegexNode.h \
+	include/qore/intern/QoreRegexSubst.h \
+	include/qore/intern/QoreTransliteration.h \
+	include/qore/intern/QoreRegex.h \
 	include/qore/intern/QoreRegexBase.h \
 	include/qore/intern/QoreLibIntern.h \
 	include/qore/intern/QoreGetOpt.h \
@@ -414,6 +414,11 @@ noinst_HEADERS = \
 	include/qore/intern/QoreElementsOperatorNode.h \
 	include/qore/intern/QoreInstanceOfOperatorNode.h \
 	include/qore/intern/QoreHashObjectDereferenceOperatorNode.h \
+	include/qore/intern/QoreRegexMatchOperatorNode.h \
+	include/qore/intern/QoreRegexNMatchOperatorNode.h \
+	include/qore/intern/QoreRegexExtractOperatorNode.h \
+	include/qore/intern/QoreRegexSubstOperatorNode.h \
+	include/qore/intern/QoreTransliterationOperatorNode.h \
 	include/qore/intern/QoreAssignmentOperatorNode.h \
 	include/qore/intern/QorePlusEqualsOperatorNode.h \
 	include/qore/intern/QoreIntPlusEqualsOperatorNode.h \

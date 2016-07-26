@@ -1,8 +1,8 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreRegexNode.h
+  QoreRegex.h
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -35,45 +35,26 @@
   encodings are converted if necessary
  */
 
-#ifndef _QORE_QOREREGEXNODE_H
+#ifndef _QORE_QOREREGEX_H
 
-#define _QORE_QOREREGEXNODE_H
+#define _QORE_QOREREGEX_H
 
 #include <qore/intern/QoreRegexBase.h>
 
-class QoreRegexNode : public ParseNoEvalNode, public QoreRegexBase {
+class QoreRegex : public QoreRegexBase, public QoreReferenceCounter {
 private:
    bool global;
 
    DLLLOCAL void init(int64 opt = PCRE_UTF8);
 
-   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-      // FIXME: implement a type for this
-      typeInfo = 0;
-      return this;
-   }
-
-   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-      // FIXME: implement a type for this
-      return 0;
-   }
-   
 public:
-   DLLLOCAL QoreRegexNode();
+   DLLLOCAL QoreRegex();
    // this version is used while parsing, takes ownership of str
-   DLLLOCAL QoreRegexNode(QoreString* str);
+   DLLLOCAL QoreRegex(QoreString* str);
    // used at run-time, does not change str
-   DLLLOCAL QoreRegexNode(const QoreString& str, int64 options, ExceptionSink* xsink);
-   DLLLOCAL virtual ~QoreRegexNode();
+   DLLLOCAL QoreRegex(const QoreString& str, int64 options, ExceptionSink* xsink);
 
-   DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
-   // if del is true, then the returned QoreString*  should be deleted, if false, then it must not be
-   DLLLOCAL virtual QoreString* getAsString(bool &del, int foff, ExceptionSink* xsink) const;
-
-   // returns the data type
-   DLLLOCAL virtual qore_type_t getType() const;
-   // returns the type name as a c string
-   DLLLOCAL virtual const char* getTypeName() const;      
+   DLLLOCAL ~QoreRegex();
 
    DLLLOCAL void concat(char c);
    DLLLOCAL void parse();
@@ -87,6 +68,20 @@ public:
    DLLLOCAL void setGlobal() {
       global = true;
    }
+
+   DLLLOCAL void ref() const {
+      ROreference();
+   }
+
+   DLLLOCAL void deref() {
+      if (ROdereference())
+         delete this;
+   }
+
+   DLLLOCAL QoreRegex* refSelf() const {
+      ref();
+      return const_cast<QoreRegex*>(this);
+   }
 };
 
-#endif // _QORE_QOREREGEXNODE_H
+#endif // _QORE_QOREREGEX_H

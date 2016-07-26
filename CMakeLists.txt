@@ -427,10 +427,10 @@ set(LIBQORE_CPP_SRC
         lib/QoreCondition.cpp
         lib/QoreQueue.cpp
         lib/QoreQueueHelper.cpp
-        lib/QoreRegexNode.cpp
+        lib/QoreRegex.cpp
         lib/QoreRegexBase.cpp
-        lib/RegexSubstNode.cpp
-        lib/RegexTransNode.cpp
+        lib/QoreRegexSubst.cpp
+        lib/QoreTransliteration.cpp
         lib/Sequence.cpp
         lib/QoreReferenceCounter.cpp
         lib/QoreHTTPClient.cpp
@@ -462,6 +462,11 @@ set(LIBQORE_CPP_SRC
         lib/QoreElementsOperatorNode.cpp
         lib/QoreInstanceOfOperatorNode.cpp
 	lib/QoreHashObjectDereferenceOperatorNode.cpp
+	lib/QoreRegexMatchOperatorNode.cpp
+	lib/QoreRegexNMatchOperatorNode.cpp
+	lib/QoreRegexExtractOperatorNode.cpp
+	lib/QoreRegexSubstOperatorNode.cpp
+	lib/QoreTransliterationOperatorNode.cpp
         lib/QoreAssignmentOperatorNode.cpp
         lib/QorePlusEqualsOperatorNode.cpp
         lib/QoreIntPlusEqualsOperatorNode.cpp

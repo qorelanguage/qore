@@ -40,16 +40,25 @@
 class Operator;
 
 // system default operators
-DLLLOCAL extern Operator *OP_MINUS, *OP_PLUS,
+DLLLOCAL extern Operator *OP_MINUS,
+   *OP_PLUS,
    *OP_MULT,
    *OP_LOG_CMP,
-   *OP_SHIFT, *OP_POP, *OP_PUSH,
-   *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT,
-   *OP_REGEX_TRANS, *OP_REGEX_EXTRACT,
-   *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT,
-   *OP_LOG_GT, *OP_LOG_EQ, *OP_LOG_NE, *OP_LOG_LE, *OP_LOG_GE,
-   *OP_ABSOLUTE_EQ, *OP_ABSOLUTE_NE,
-   *OP_REGEX_MATCH, *OP_REGEX_NMATCH
+   *OP_SHIFT,
+   *OP_POP,
+   *OP_PUSH,
+   *OP_UNSHIFT,
+   *OP_LIST_ASSIGNMENT,
+   *OP_LOG_AND,
+   *OP_LOG_OR,
+   *OP_LOG_LT,
+   *OP_LOG_GT,
+   *OP_LOG_EQ,
+   *OP_LOG_NE,
+   *OP_LOG_LE,
+   *OP_LOG_GE,
+   *OP_ABSOLUTE_EQ,
+   *OP_ABSOLUTE_NE
    ;
 
 typedef safe_dslist<Operator*> oplist_t;
@@ -64,15 +73,11 @@ public:
 
 DLLLOCAL extern OperatorList oplist;
 
-class QoreRegexNode;
-
 typedef bool (*op_bool_str_str_func_t)(const QoreString *l, const QoreString *r, ExceptionSink* xsink);
-typedef bool (*op_bool_str_regex_func_t)(const QoreString *l, const QoreRegexNode* r, ExceptionSink* xsink);
 typedef int64 (*op_bigint_str_str_func_t)(const QoreString *l, const QoreString *r, ExceptionSink* xsink);
 typedef QoreHashNode* (*op_hash_string_func_t)(const QoreHashNode* l, const QoreString *r, ExceptionSink* xsink);
 typedef QoreStringNode* (*op_str_str_str_func_t)(const QoreString *l, const QoreString *r, ExceptionSink* xsink);
 // should be QoreListNode (return value)
-typedef AbstractQoreNode* (*op_list_str_regex_func_t)(const QoreString *l, const QoreRegexNode* r, ExceptionSink* xsink);
 typedef AbstractQoreNode* (*op_varref_func_t)(const AbstractQoreNode* vref, bool ref_rv, ExceptionSink* xsink);
 typedef QoreHashNode* (*op_hash_list_func_t)(const QoreHashNode* l, const QoreListNode* r, ExceptionSink* xsink);
 typedef AbstractQoreNode* (*op_noconvert_func_t)(const AbstractQoreNode* l, const AbstractQoreNode* r);
@@ -207,17 +212,6 @@ public:
    DLLLOCAL virtual QoreValue eval(const AbstractQoreNode* l, const AbstractQoreNode* r, bool ref_rv, int args, ExceptionSink* xsink) const;
 };
 
-class ListStringRegexOperatorFunction : public AbstractOperatorFunction {
-private:
-   op_list_str_regex_func_t op_func;
-
-public:
-   DLLLOCAL ListStringRegexOperatorFunction(op_list_str_regex_func_t f) : AbstractOperatorFunction(NT_STRING, NT_REGEX), op_func(f) {
-   }
-   DLLLOCAL virtual ~ListStringRegexOperatorFunction() {}
-   DLLLOCAL virtual QoreValue eval(const AbstractQoreNode* l, const AbstractQoreNode* r, bool ref_rv, int args, ExceptionSink* xsink) const;
-};
-
 class StringStringStringOperatorFunction : public AbstractOperatorFunction {
 private:
    op_str_str_str_func_t op_func;
@@ -292,17 +286,6 @@ public:
    DLLLOCAL EffectBoolOperatorFunction(op_bool_func_t f) : AbstractOperatorFunction(NT_ALL, NT_ALL), op_func(f) {
    }
    DLLLOCAL virtual ~EffectBoolOperatorFunction() {}
-   DLLLOCAL virtual QoreValue eval(const AbstractQoreNode* l, const AbstractQoreNode* r, bool ref_rv, int args, ExceptionSink* xsink) const;
-};
-
-class BoolStrRegexOperatorFunction : public AbstractOperatorFunction {
-private:
-   op_bool_str_regex_func_t op_func;
-
-public:
-   DLLLOCAL BoolStrRegexOperatorFunction(op_bool_str_regex_func_t f) : AbstractOperatorFunction(NT_STRING, NT_REGEX), op_func(f) {
-   }
-   DLLLOCAL virtual ~BoolStrRegexOperatorFunction() {}
    DLLLOCAL virtual QoreValue eval(const AbstractQoreNode* l, const AbstractQoreNode* r, bool ref_rv, int args, ExceptionSink* xsink) const;
 };
 
@@ -534,9 +517,6 @@ public:
    DLLLOCAL void addFunction(op_bool_str_str_func_t f) {
       functions.push_back(new BoolStrStrOperatorFunction(f));
    }
-   DLLLOCAL void addFunction(op_bool_str_regex_func_t f) {
-      functions.push_back(new BoolStrRegexOperatorFunction(f));
-   }
    DLLLOCAL void addFunction(op_bigint_str_str_func_t f) {
       functions.push_back(new BigIntStrStrOperatorFunction(f));
    }
@@ -548,9 +528,6 @@ public:
    }
    DLLLOCAL void addFunction(op_str_str_str_func_t f) {
       functions.push_back(new StringStringStringOperatorFunction(f));
-   }
-   DLLLOCAL void addFunction(op_list_str_regex_func_t f) {
-      functions.push_back(new ListStringRegexOperatorFunction(f));
    }
    DLLLOCAL void addFunction(op_varref_func_t f) {
       functions.push_back(new VarRefOperatorFunction(f));

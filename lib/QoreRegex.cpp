@@ -1,7 +1,8 @@
+/* -*-indent-tabs-mode: nil -*- */
 /*
-  QoreRegexNode.cpp
+  QoreRegex.cpp
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,18 +32,18 @@
 
 #include <memory>
 
-QoreRegexNode::QoreRegexNode() : ParseNoEvalNode(NT_REGEX) {
+QoreRegex::QoreRegex() {
    init();
    str = new QoreString();
 }
 
-QoreRegexNode::QoreRegexNode(QoreString* s) : ParseNoEvalNode(NT_REGEX) {
+QoreRegex::QoreRegex(QoreString* s) {
    init();
    str = s;
    parse();
 }
 
-QoreRegexNode::QoreRegexNode(const QoreString& s, int64 opts, ExceptionSink* xsink) : ParseNoEvalNode(NT_REGEX) {
+QoreRegex::QoreRegex(const QoreString& s, int64 opts, ExceptionSink* xsink) {
    init(opts);
    str = 0;
 
@@ -54,45 +55,18 @@ QoreRegexNode::QoreRegexNode(const QoreString& s, int64 opts, ExceptionSink* xsi
    parseRT(&s, xsink);
 }
 
-QoreRegexNode::~QoreRegexNode() {
+QoreRegex::~QoreRegex() {
    if (p)
       pcre_free(p);
    if (str)
       delete str;
 }
 
-// get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-// the ExceptionSink is only needed for QoreObject where a method may be executed
-// use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-// returns -1 for exception raised, 0 = OK
-int QoreRegexNode::getAsString(QoreString& mstr, int foff, ExceptionSink* xsink) const {
-   mstr.sprintf("regular expression (%p)", this);
-   return 0;
-}
-
-// if del is true, then the returned QoreString*  should be deleted, if false, then it must not be
-QoreString* QoreRegexNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
-   del = true;
-   QoreString* rv = new QoreString();
-   getAsString(*rv, foff, xsink);
-   return rv;
-}
-
-// returns the data type
-qore_type_t QoreRegexNode::getType() const {
-   return NT_REGEX;
-}
-
-// returns the type name as a c string
-const char* QoreRegexNode::getTypeName() const {
-   return "regular expression";
-}
-
-void QoreRegexNode::concat(char c) {
+void QoreRegex::concat(char c) {
    str->concat(c);
 }
 
-void QoreRegexNode::parseRT(const QoreString* pattern, ExceptionSink* xsink) {
+void QoreRegex::parseRT(const QoreString* pattern, ExceptionSink* xsink) {
    const char* err;
    int eo;
 
@@ -101,16 +75,16 @@ void QoreRegexNode::parseRT(const QoreString* pattern, ExceptionSink* xsink) {
    if (*xsink)
       return;
 
-   //printd(5, "QoreRegexNode::parseRT(%s) this=%p\n", t->getBuffer(), this);
+   //printd(5, "QoreRegex::parseRT(%s) this=%p\n", t->getBuffer(), this);
 
    p = pcre_compile(t->getBuffer(), options, &err, &eo, 0);
    if (err) {
-      //printd(5, "QoreRegexNode::parse() error parsing '%s': %s", t->getBuffer(), (char* )err);
+      //printd(5, "QoreRegex::parse() error parsing '%s': %s", t->getBuffer(), (char* )err);
       xsink->raiseException("REGEX-COMPILATION-ERROR", (char* )err);
    }
 }
 
-void QoreRegexNode::parse() {
+void QoreRegex::parse() {
    ExceptionSink xsink;
    parseRT(str, &xsink);
    delete str;
@@ -119,7 +93,7 @@ void QoreRegexNode::parse() {
       qore_program_private::addParseException(getProgram(), xsink);
 }
 
-bool QoreRegexNode::exec(const QoreString* target, ExceptionSink* xsink) const {
+bool QoreRegex::exec(const QoreString* target, ExceptionSink* xsink) const {
    TempEncodingHelper t(target, QCS_UTF8, xsink);
    if (!t)
       return false;
@@ -131,7 +105,7 @@ bool QoreRegexNode::exec(const QoreString* target, ExceptionSink* xsink) const {
 #define OVECCOUNT 30
 // maximum subpattern buffer size; we must limit this to control the amount of stack space used; must be OVECCOUNT * a power of 2
 #define OVECMAX 480
-bool QoreRegexNode::exec(const char* str, size_t len) const {
+bool QoreRegex::exec(const char* str, size_t len) const {
    // the PCRE docs say that if we don't send an ovector here the library may have to malloc
    // memory, so, even though we don't need the results, we include the vector to avoid
    // extraneous malloc()s
@@ -149,7 +123,7 @@ bool QoreRegexNode::exec(const char* str, size_t len) const {
       rc = pcre_exec(p, 0, str, len, 0, 0, ovector, vsize);
       if (!rc) {
 	 // rc == 0 means not enough space was available in ovector
-	 printd(0, "QoreRegexNode::exec() ovector too small: vsize: %d -> %d (max: %d)\n", vsize, vsize << 1, OVECMAX);
+	 printd(0, "QoreRegex::exec() ovector too small: vsize: %d -> %d (max: %d)\n", vsize, vsize << 1, OVECMAX);
 	 vsize <<= 1;
 	 if (vsize >= OVECMAX) {
 	    rc = -1;
@@ -160,11 +134,11 @@ bool QoreRegexNode::exec(const char* str, size_t len) const {
       break;
    }
 
-   //printd(5, "QoreRegexNode::exec(%s) this=%p pre_exec() rc=%d\n", str, this, rc);
+   //printd(5, "QoreRegex::exec(%s) this=%p pre_exec() rc=%d\n", str, this, rc);
    return rc >= 0;
 }
 
-QoreListNode* QoreRegexNode::extractSubstrings(const QoreString* target, ExceptionSink* xsink) const {
+QoreListNode* QoreRegex::extractSubstrings(const QoreString* target, ExceptionSink* xsink) const {
    TempEncodingHelper t(target, QCS_UTF8, xsink);
    if (!t)
       return 0;
@@ -185,11 +159,11 @@ QoreListNode* QoreRegexNode::extractSubstrings(const QoreString* target, Excepti
       int* ovector = &ovc[0];
 #endif
       int rc = pcre_exec(p, 0, t->getBuffer(), t->strlen(), offset, 0, ovector, vsize);
-      //printd(5, "QoreRegexNode::exec(%s) =~ /xxx/ = %d (global: %d)\n", t->getBuffer() + offset, rc, global);
+      //printd(5, "QoreRegex::exec(%s) =~ /xxx/ = %d (global: %d)\n", t->getBuffer() + offset, rc, global);
 
       if (!rc) {
 	 // rc == 0 means not enough space was available in ovector
-	 //printd(5, "QoreRegexNode::extractSubstrings() ovector too small: vsize: %d -> %d (max: %d)\n", vsize, vsize << 1, OVECMAX);
+	 //printd(5, "QoreRegex::extractSubstrings() ovector too small: vsize: %d -> %d (max: %d)\n", vsize, vsize << 1, OVECMAX);
 	 vsize <<= 1;
 	 if (vsize >= OVECMAX) {
 	    xsink->raiseException("REGEX-ERROR", "too many results required in regular expression (vsize: %d limit: %d)", vsize, OVECMAX);
@@ -218,7 +192,7 @@ QoreListNode* QoreRegexNode::extractSubstrings(const QoreString* target, Excepti
          }
 
          offset = ovector[(x - 1) * 2 + 1];
-         //printd(5, "QoreRegexNode::exec() offset: %d size: %d ovector[%d]: %d\n", offset, t->strlen(), (x - 1) * 2 + 1, ovector[(x - 1) * 2 + 1]);
+         //printd(5, "QoreRegex::exec() offset: %d size: %d ovector[%d]: %d\n", offset, t->strlen(), (x - 1) * 2 + 1, ovector[(x - 1) * 2 + 1]);
       }
       else
          break;
@@ -230,13 +204,13 @@ QoreListNode* QoreRegexNode::extractSubstrings(const QoreString* target, Excepti
    return l.release();
 }
 
-void QoreRegexNode::init(int64 opt) {
+void QoreRegex::init(int64 opt) {
    p = 0;
    options = (int)opt;
    global = opt & QRE_GLOBAL ? true : false;
 }
 
-QoreString* QoreRegexNode::getString() {
+QoreString* QoreRegex::getString() {
    QoreString* rs = str;
    str = 0;
    return rs;
