@@ -31,6 +31,13 @@
 #include <qore/Qore.h>
 #include "qore/intern/FileInputStream.h"
 
+extern qore_classid_t CID_FILEINPUTSTREAM;
+
+static void FILEINPUTSTREAM_system_constructor(QoreObject* self, int fd, va_list args) {
+   self->setPrivate(CID_FILEINPUTSTREAM, new FileInputStream(fd));
+}
+
+
 //! This class implements the @ref InputStream interface for reading bytes from a file
 /** @since %Qore 0.8.13
 
@@ -43,7 +50,7 @@
     }
     @endcode
  */
-qclass FileInputStream [arg=FileInputStream* is; ns=Qore; vparent=InputStream; flags=final; dom=FILESYSTEM];
+qclass FileInputStream [system_constructor=FILEINPUTSTREAM_system_constructor; arg=FileInputStream* is; ns=Qore; vparent=InputStream; flags=final; dom=FILESYSTEM];
 
 //! Creates the FileInputStream by opening a file
 /**

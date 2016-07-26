@@ -31,6 +31,12 @@
 #include <qore/Qore.h>
 #include "qore/intern/FileOutputStream.h"
 
+extern qore_classid_t CID_FILEOUTPUTSTREAM;
+
+static void FILEOUTPUTSTREAM_system_constructor(QoreObject* self, int fd, va_list args) {
+   self->setPrivate(CID_FILEOUTPUTSTREAM, new FileOutputStream(fd));
+}
+
 //! This class implements the @ref OutputStream interface for writing bytes to a file
 /** @since %Qore 0.8.13
 
@@ -43,15 +49,16 @@
     # file.ext now contains three bytes: 01 02 03
     @endcode
  */
-qclass FileOutputStream [arg=FileOutputStream* os; ns=Qore; vparent=OutputStream; flags=final; dom=FILESYSTEM];
+qclass FileOutputStream [system_constructor=FILEOUTPUTSTREAM_system_constructor; arg=FileOutputStream* os; ns=Qore; vparent=OutputStream; flags=final; dom=FILESYSTEM];
 
 //! Creates the FileOutputStream by opening or creating a file
 /**
     @param fileName the name of the file to open
     @param append if true, then bytes will be written to the end of the file
+    @param mode permission bits for when the file is to be created (default: 0666)
  */
-FileOutputStream::constructor(string fileName, bool append = False) {
-   SimpleRefHolder<FileOutputStream> fos(new FileOutputStream(fileName, append, xsink));
+FileOutputStream::constructor(string fileName, bool append = False, softint mode = 0666) {
+   SimpleRefHolder<FileOutputStream> fos(new FileOutputStream(fileName, append, mode, xsink));
    self->setPrivate(CID_FILEOUTPUTSTREAM, fos.release());
 }
 

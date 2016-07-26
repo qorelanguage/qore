@@ -60,29 +60,3 @@ InputStream::constructor() {
     @endcode
  */
 abstract *binary InputStream::read(int limit);
-
-/** @defgroup input_stream_function Input Stream Functions
- */
-//@{
-namespace Qore;
-
-//! Dumps an input stream to stdout by reading bytes (two at a time) from the stream until the end is reached
-/** Temporary function for debugging purposes
-    @param is the input stream
- */
-nothing dump(Qore::InputStream[InputStream] is) {
-   ReferenceHolder<InputStream> holder(is, xsink);
-   int64 i;
-   uint8_t buf[10];
-
-   printf("read() from C++:");
-   while ((i = is->read(buf, 2, xsink)) > 0) {
-      printf(" (%d", buf[0]);
-      for (int64 ii = 1; ii < i; ++ii) {
-         printf(" %d", buf[ii]);
-      }
-      printf(")");
-   }
-   printf("\n");
-}
-//@}
