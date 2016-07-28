@@ -34,7 +34,7 @@
 #include "qore/intern/core/StringBuilder.h"
 #include "qore/intern/CompressionTransforms.h"
 
-class ZlibError : public virtual qore::Exception {
+class ZlibError : public qore::Exception {
 
 public:
    ZlibError(int rc) : Exception("ZLIB-ERROR") {
@@ -63,15 +63,15 @@ public:
    ZlibError(std::string desc) : Exception("ZLIB-ERROR", std::move(desc)) {
    }
 
-   ZlibError(ZlibError &&) noexcept = default;
-   ZlibError &operator=(ZlibError &&) noexcept = default;
+   ZlibError(ZlibError &&) = default;
+   ZlibError &operator=(ZlibError &&) = default;
 
 private:
    ZlibError(const ZlibError &) = delete;
    ZlibError &operator=(const ZlibError &) = delete;
 };
 
-class Bzip2Error : public virtual qore::Exception {
+class Bzip2Error : public qore::Exception {
 
 public:
    Bzip2Error(int rc) : Exception("BZIP2-ERROR") {
@@ -103,8 +103,8 @@ public:
    Bzip2Error(std::string desc) : Exception("BZIP2-ERROR", std::move(desc)) {
    }
 
-   Bzip2Error(Bzip2Error &&) noexcept = default;
-   Bzip2Error &operator=(Bzip2Error &&) noexcept = default;
+   Bzip2Error(Bzip2Error &&) = default;
+   Bzip2Error &operator=(Bzip2Error &&) = default;
 
 private:
    Bzip2Error(const Bzip2Error &) = delete;

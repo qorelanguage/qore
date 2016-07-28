@@ -62,7 +62,7 @@ namespace qore {
 /**
  * \brief Basis C++ exception class used by Qore.
  */
-class Exception : public virtual std::exception {
+class Exception : public std::exception {
 
 public:
    /**
@@ -73,8 +73,8 @@ public:
    DLLLOCAL Exception(std::string err, std::string desc = "") : err(std::move(err)), description(std::move(desc)) {
    }
 
-   DLLLOCAL Exception(Exception &&) noexcept = default;
-   DLLLOCAL Exception &operator=(Exception &&) noexcept = default;
+   DLLLOCAL Exception(Exception &&) = default;
+   DLLLOCAL Exception &operator=(Exception &&) = default;
 
    DLLLOCAL const char* what() const noexcept override {
       return description.c_str();
@@ -101,7 +101,7 @@ private:
    std::string description;
 };
 
-class ExceptionWrapper : public virtual std::exception {
+class ExceptionWrapper : public std::exception {
 
 public:
    ExceptionWrapper(QoreException *e) : e(e) {
