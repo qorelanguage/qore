@@ -169,7 +169,10 @@ sw.write(<010203>);
     @param b the binary to write
  */
 nothing StreamWriter::write(binary b) {
-   sw->write(b, xsink);
+   try {
+      sw->write(b);
+      return 0;
+   } CATCH(xsink, return 0)
 }
 
 //! Writes a 1-byte integer to the output stream.
@@ -181,7 +184,10 @@ sw.writei1(val);
     @param c the integer to write; only the least-significant 8 bits will be written to the file
  */
 nothing StreamWriter::writei1(int c) {
-   sw->writei1(c, xsink);
+   try {
+      sw->writei1(c);
+      return 0;
+   } CATCH(xsink, return 0)
 }
 
 //! Writes a 2-byte (16 bit) integer to the output stream in binary big-endian format.
@@ -193,7 +199,10 @@ sw.writei2(val);
     @param s the integer to write in binary big-endian format; only the least-significant 16 bits of the integer will be written to the file
  */
 nothing StreamWriter::writei2(int s) {
-   sw->writei2(s, xsink);
+   try {
+      sw->writei2(s);
+      return 0;
+   } CATCH(xsink, return 0)
 }
 
 //! Writes a 4-byte (32 bit) integer to the output stream in binary big-endian format.
@@ -205,7 +214,10 @@ sw.writei4(val);
     @param i the integer to write in binary big-endian format; only the least-significant 32 bits of the integer will be written to the file
  */
 nothing StreamWriter::writei4(int i) {
-   sw->writei4(i, xsink);
+   try {
+      sw->writei4(i);
+      return 0;
+   } CATCH(xsink, return 0)
 }
 
 //! Writes an 8-byte (64 bit) integer to the output stream in binary big-endian format.
@@ -217,7 +229,10 @@ sw.writei8(val);
     @param i the integer to write in binary big-endian format; only the least-significant 64 bits of the integer will be written to the file
  */
 nothing StreamWriter::writei8(int i) {
-   sw->writei8(i, xsink);
+   try {
+      sw->writei8(i);
+      return 0;
+   } CATCH(xsink, return 0)
 }
 
 //! Writes a 2-byte (16 bit) integer to the output stream in binary little-endian format.
@@ -229,7 +244,10 @@ sw.writei2LSB(val);
     @param s the integer to write in binary little-endian format; only the least-significant 16 bits of the integer will be written to the file
  */
 nothing StreamWriter::writei2LSB(int s) {
-   sw->writei2LSB(s, xsink);
+   try {
+      sw->writei2LSB(s);
+      return 0;
+   } CATCH(xsink, return 0)
 }
 
 //! Writes a 4-byte (32 bit) integer to the output stream in binary little-endian format.
@@ -241,7 +259,10 @@ sw.writei4LSB(val);
     @param i the integer to write in binary little-endian format; only the least-significant 32 bits of the integer will be written to the file
  */
 nothing StreamWriter::writei4LSB(int i) {
-   sw->writei4LSB(i, xsink);
+   try {
+      sw->writei4LSB(i);
+      return 0;
+   } CATCH(xsink, return 0)
 }
 
 //! Writes an 8-byte (64 bit) integer to the output stream in binary little-endian format.
@@ -253,5 +274,8 @@ sw.writei8LSB(val);
     @param i the integer to write in binary little-endian format; only the least-significant 64 bits of the integer will be written to the file
  */
 nothing StreamWriter::writei8LSB(int i) {
-   sw->writei8LSB(i, xsink);
+   try {
+      sw->writei8LSB(i);
+      return 0;
+   } CATCH(xsink, return 0)
 }

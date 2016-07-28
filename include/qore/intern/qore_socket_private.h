@@ -1919,10 +1919,9 @@ struct qore_socket_private {
          // write buffer to the stream
          {
             AutoUnlocker al(l);
-            os->write(buf, rc, xsink);
-            if (*xsink) {
-               return;
-            }
+            try {
+               os->write(buf, rc);
+            } CATCH(xsink, return)
          }
 
          br += rc;
@@ -2648,10 +2647,9 @@ struct qore_socket_private {
 
             if (os) {
                AutoUnlocker al(l);
-               os->write(buf, rc, xsink);
-               if (*xsink) {
-                  return 0;
-               }
+               try {
+                  os->write(buf, rc);
+               } CATCH(xsink, return 0)
             } else {
                b->append(buf, rc);
             }

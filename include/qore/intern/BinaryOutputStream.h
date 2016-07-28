@@ -52,21 +52,19 @@ public:
       return !buf;
    }
 
-   DLLLOCAL void close(ExceptionSink* xsink) override {
+   DLLLOCAL void close() override {
       assert(!isClosed());
       buf = 0;
    }
 
-   DLLLOCAL void write(const void *ptr, int64 count, ExceptionSink *xsink) override {
+   DLLLOCAL void write(const void *ptr, int64 count) override {
       assert(!isClosed());
       assert(count >= 0);
       buf->append(ptr, count);
    }
 
-   DLLLOCAL BinaryNode *getData(ExceptionSink *xsink) {
-      if (!check(xsink)) {
-         return 0;
-      }
+   DLLLOCAL BinaryNode *getData() {
+      checkThreadAndState();
       assert(!isClosed());
       BinaryNode *ret = buf.release();
       buf = new BinaryNode();

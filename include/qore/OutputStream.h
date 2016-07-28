@@ -46,17 +46,15 @@ class OutputStream : public AbstractPrivateData {
 public:
    /**
     * @brief Flushes any buffered (unwritten) bytes, closes the output stream and releases resources.
-    * @param xsink the exception sink
     */
-   virtual void close(ExceptionSink* xsink) = 0;
+   virtual void close() = 0;
 
    /**
     * @brief Writes bytes to the output stream.
     * @param ptr the source buffer to write to the stream
     * @param count the number of bytes to write, must be &gt;= 0
-    * @param xsink the exception sink
     */
-   virtual void write(const void *ptr, int64 count, ExceptionSink *xsink) = 0;
+   virtual void write(const void *ptr, int64 count) = 0;
 
 protected:
    /**

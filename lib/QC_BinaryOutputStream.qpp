@@ -88,5 +88,7 @@ nothing BinaryOutputStream::write(binary data) {
     @endcode
  */
 binary BinaryOutputStream::getData() {
-   return os->getData(xsink);
+   try {
+      return os->getData();
+   } CATCH(xsink, return 0)
 }

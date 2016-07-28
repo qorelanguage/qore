@@ -43,18 +43,6 @@ void StreamPipe::reportError(const QoreHashNode* ex) {
    writeCondVar.broadcast();
 }
 
-void StreamPipe::rethrow(ExceptionSink *xsink) {
-   assert(exception);
-   AbstractQoreNode *errNode = exception->getKeyValue("err");
-   AbstractQoreNode *descNode = exception->getKeyValue("desc");
-   if (errNode && errNode->getType() == NT_STRING && descNode && descNode->getType() == NT_STRING) {
-      xsink->raiseException(static_cast<QoreStringNode *>(errNode)->getBuffer(),
-            static_cast<QoreStringNode *>(descNode->refSelf()));
-   } else {
-      xsink->raiseException("PIPE-ERROR", "an unexpected error occurred during the background operation");
-   }
-}
-
 qore::Exception StreamPipe::makeRethrowException() {
    assert(exception);
    AbstractQoreNode *errNode = exception->getKeyValue("err");
@@ -138,12 +126,11 @@ PipeOutputStream::~PipeOutputStream() {
    }
 }
 
-void PipeOutputStream::close(ExceptionSink* xsink) {
+void PipeOutputStream::close() {
    printd(1, "PipeOutputStream::close()\n");
    AutoLocker lock(pipe->mutex);
    if (pipe->outputClosed) {
-      xsink->raiseException("OUTPUT-STREAM-CLOSED-ERROR", "this PipeOutputStream object has been already closed");
-      return;
+      throw qore::Exception("OUTPUT-STREAM-CLOSED-ERROR", "this PipeOutputStream object has been already closed");
    }
    pipe->outputClosed = true;
    pipe->readCondVar.broadcast();
@@ -151,18 +138,16 @@ void PipeOutputStream::close(ExceptionSink* xsink) {
 
    while (!pipe->closeFinished) {
       if (pipe->exception) {
-         pipe->rethrow(xsink);
-         return;
+         throw pipe->makeRethrowException();
       }
       int rc = pipe->timeout < 0 ? pipe->writeCondVar.wait(pipe->mutex) : pipe->writeCondVar.wait2(pipe->mutex, pipe->timeout);
       if (rc != 0) {
-         xsink->raiseException("TIMEOUT-ERROR", "operation timed out");
-         return;
+         throw qore::Exception("TIMEOUT-ERROR", "operation timed out");
       }
    }
 }
 
-void PipeOutputStream::write(const void *ptr, int64 toWrite, ExceptionSink *xsink) {
+void PipeOutputStream::write(const void *ptr, int64 toWrite) {
    assert(toWrite >= 0);
    printd(1, "PipeOutputStream::write()\n");
    AutoLocker lock(pipe->mutex);
@@ -171,16 +156,13 @@ void PipeOutputStream::write(const void *ptr, int64 toWrite, ExceptionSink *xsin
    const uint8_t *src = static_cast<const uint8_t *>(ptr);
    while (toWrite > 0) {
       if (pipe->exception) {
-         pipe->rethrow(xsink);
-         return;
+         throw pipe->makeRethrowException();
       }
       if (pipe->outputClosed) {
-         xsink->raiseException("OUTPUT-STREAM-CLOSED-ERROR", "this PipeOutputStream object has been already closed");
-         return;
+         throw qore::Exception("OUTPUT-STREAM-CLOSED-ERROR", "this PipeOutputStream object has been already closed");
       }
       if (pipe->broken) {
-         xsink->raiseException("BROKEN-PIPE-ERROR", "one of the streams of the pipe has been destroyed");
-         return;
+         throw qore::Exception("BROKEN-PIPE-ERROR", "one of the streams of the pipe has been destroyed");
       }
       printd(1, "write - size: " QLLD ", count: " QLLD ", readPtr: " QLLD ", toWrite: " QLLD "\n", pipe->size, pipe->count, pipe->readPtr, toWrite);
       int64 canWrite = pipe->size - pipe->count;
@@ -199,8 +181,7 @@ void PipeOutputStream::write(const void *ptr, int64 toWrite, ExceptionSink *xsin
          int rc = pipe->timeout < 0 ? pipe->writeCondVar.wait(pipe->mutex) : pipe->writeCondVar.wait2(pipe->mutex, pipe->timeout);
          printd(1, "write - buffer full, after wait, rc: %d\n", rc);
          if (rc != 0) {
-            xsink->raiseException("TIMEOUT-ERROR", "operation timed out");
-            return;
+            throw qore::Exception("TIMEOUT-ERROR", "operation timed out");
          }
       }
    }

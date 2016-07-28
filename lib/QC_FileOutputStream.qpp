@@ -58,8 +58,9 @@ qclass FileOutputStream [system_constructor=FILEOUTPUTSTREAM_system_constructor;
     @param mode permission bits for when the file is to be created (default: 0666)
  */
 FileOutputStream::constructor(string fileName, bool append = False, softint mode = 0666) {
-   SimpleRefHolder<FileOutputStream> fos(new FileOutputStream(fileName, append, mode, xsink));
-   self->setPrivate(CID_FILEOUTPUTSTREAM, fos.release());
+   try {
+      self->setPrivate(CID_FILEOUTPUTSTREAM, new FileOutputStream(fileName, append, mode));
+   } CATCH(xsink, return)
 }
 
 //! Closes the output stream and releases any resources.

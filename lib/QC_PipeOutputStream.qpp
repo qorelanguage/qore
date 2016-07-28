@@ -49,14 +49,20 @@ private PipeOutputStream::constructor() {
 /**
  */
 nothing PipeOutputStream::close() {
-   os->close(xsink);
+   try {
+      os->close();
+      return 0;
+   } CATCH(xsink, return 0)
 }
 
 //! Writes bytes to the output stream
 /**
  */
 nothing PipeOutputStream::write(binary data) {
-   os->write(data->getPtr(), data->size(), xsink);
+   try {
+      os->write(data->getPtr(), data->size());
+      return 0;
+   } CATCH(xsink, return 0)
 }
 
 //! Causes all operations on both pipe streams to wake up and throw an exception.

@@ -55,12 +55,12 @@ public:
       return !buf;
    }
 
-   DLLLOCAL void close(ExceptionSink* xsink) override {
+   DLLLOCAL void close() override {
       assert(!isClosed());
       buf = 0;
    }
 
-   DLLLOCAL void write(const void *ptr, int64 count, ExceptionSink *xsink) override {
+   DLLLOCAL void write(const void *ptr, int64 count) override {
       assert(!isClosed());
       assert(count >= 0);
       buf->concat((const char*)ptr, count);
@@ -70,10 +70,8 @@ public:
       return enc;
    }
 
-   DLLLOCAL QoreStringNode *getData(ExceptionSink *xsink) {
-      if (!check(xsink)) {
-         return 0;
-      }
+   DLLLOCAL QoreStringNode *getData() {
+      checkThreadAndState();
       assert(!isClosed());
       QoreStringNode *ret = buf.release();
       buf = new QoreStringNode(enc);

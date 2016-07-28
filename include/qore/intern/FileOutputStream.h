@@ -41,8 +41,12 @@
 class FileOutputStream : public OutputStreamBase {
 
 public:
-   DLLLOCAL FileOutputStream(const QoreStringNode *fileName, bool append, int mode, ExceptionSink *xsink) {
-      f.open2(xsink, fileName->getBuffer(), O_WRONLY | (append ? O_APPEND : O_TRUNC) | O_CREAT, mode);
+   DLLLOCAL FileOutputStream(const QoreStringNode *fileName, bool append, int mode) {
+      ExceptionSink xsink;
+      f.open2(&xsink, fileName->getBuffer(), O_WRONLY | (append ? O_APPEND : O_TRUNC) | O_CREAT, mode);
+      if (xsink) {
+         throw qore::ExceptionWrapper(xsink.catchException());
+      }
    }
 
    DLLLOCAL FileOutputStream(int fd) {
@@ -57,19 +61,23 @@ public:
       return !f.isOpen();
    }
 
-   DLLLOCAL void close(ExceptionSink* xsink) override {
+   DLLLOCAL void close() override {
       assert(!isClosed());
       int rc = f.close();
       if (rc) {
-         xsink->raiseException("FILE-CLOSE-ERROR", "Error %d closing file", rc);
+         throw qore::Exception("FILE-CLOSE-ERROR", qore::StringBuilder() << "Error " << rc  << " closing file");
       }
    }
 
-   DLLLOCAL void write(const void *ptr, int64 count, ExceptionSink *xsink) override {
+   DLLLOCAL void write(const void *ptr, int64 count) override {
       assert(!isClosed());
       assert(count >= 0);
-      if (f.write(ptr, count, xsink) != count) {
-         xsink->raiseException("FILE-WRITE-ERROR", "Error writing to file");
+      ExceptionSink xsink;
+      if (f.write(ptr, count, &xsink) != count) {
+         throw qore::Exception("FILE-WRITE-ERROR", "Error writing to file");
+      }
+      if (xsink) {
+         throw qore::ExceptionWrapper(xsink.catchException());
       }
    }
 

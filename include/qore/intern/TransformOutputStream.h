@@ -50,39 +50,29 @@ public:
       return closed;
    }
 
-   void close(ExceptionSink *xsink) override {
+   void close() override {
       char buf[BUFSIZE];
       closed = true;
       while (true) {
-         try {
-            std::pair<int64, int64> r = t->apply(NULL, 0, buf, sizeof(buf));
-            if (!r.second) {
-               break;
-            }
-            os->write(buf, r.second, xsink);
-            if (*xsink) {
-               break;
-            }
-         } CATCH(xsink, return)
+         std::pair<int64, int64> r = t->apply(NULL, 0, buf, sizeof(buf));
+         if (!r.second) {
+            break;
+         }
+         os->write(buf, r.second);
       }
    }
 
-   void write(const void *ptr, int64 len, ExceptionSink *xsink) override {
+   void write(const void *ptr, int64 len) override {
       assert(len >= 0);
       const char *src = static_cast<const char *>(ptr);
       char buf[BUFSIZE];
       while (len > 0) {
-         try {
-            std::pair<int64, int64> r = t->apply(src, len, buf, sizeof(buf));
-            if (r.second) {
-               os->write(buf, r.second, xsink);
-               if (*xsink) {
-                  return;
-               }
-            }
-            src += r.first;
-            len -= r.first;
-         } CATCH(xsink, return)
+         std::pair<int64, int64> r = t->apply(src, len, buf, sizeof(buf));
+         if (r.second) {
+            os->write(buf, r.second);
+         }
+         src += r.first;
+         len -= r.first;
       }
    }
 

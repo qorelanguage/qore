@@ -67,9 +67,7 @@ public:
    /**
     * @brief Checks that the current thread is the same as when the instance was created and that the stream has
     * not yet been closed.
-    * @return true if the checks passed, false if an exception has been raised
     * @throws INPUT-STREAM-THREAD-ERROR if the current thread is not the same as when the instance was created
-    * @throws INPUT-STREAM-CLOSED-ERROR if the stream has been closed
     */
    void checkThread() {
       if (tid != gettid()) {

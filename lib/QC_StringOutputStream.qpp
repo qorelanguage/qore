@@ -103,7 +103,9 @@ nothing StringOutputStream::write(binary data) {
     @endcode
  */
 string StringOutputStream::getData() {
-   return os->getData(xsink);
+   try {
+      return os->getData();
+   } CATCH(xsink, return 0)
 }
 
 //! Returns the @ref character_encoding "character encoding" for the @ref StringOutputStream

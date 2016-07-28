@@ -33,6 +33,8 @@
 #define _QORE_OUTPUTSTREAMBASE_H
 
 #include "qore/OutputStream.h"
+#include "qore/intern/core/Exception.h"
+#include "qore/intern/core/StringBuilder.h"
 
 /**
  * @brief Base class for private data of output stream implementations in C++.
@@ -46,10 +48,10 @@ public:
     * @param xsink the exception sink
     */
    DLLLOCAL void closeHelper(ExceptionSink *xsink) {
-      if (!check(xsink)) {
-         return;
-      }
-      close(xsink);
+      try {
+         checkThreadAndState();
+         close();
+      } CATCH(xsink, return)
    }
 
    /**
@@ -59,31 +61,28 @@ public:
     * @param xsink the exception sink
     */
    DLLLOCAL void writeHelper(const BinaryNode *data, ExceptionSink *xsink) {
-      if (!check(xsink)) {
-         return;
-      }
-      write(data->getPtr(), data->size(), xsink);
+      try {
+         checkThreadAndState();
+         write(data->getPtr(), data->size());
+      } CATCH(xsink, return)
    }
 
    /**
     * @brief Checks that the current thread is the same as when the instance was created and that the stream has
     * not yet been closed.
-    * @param xsink the exception sink
-    * @return true if the checks passed, false if an exception has been raised
     * @throws OUTPUT-STREAM-THREAD-ERROR if the current thread is not the same as when the instance was created
     * @throws OUTPUT-STREAM-CLOSED-ERROR if the stream has been closed
     */
-   bool check(ExceptionSink *xsink) {
+   void checkThreadAndState() {
       if (tid != gettid()) {
-         xsink->raiseException("OUTPUT-STREAM-THREAD-ERROR", "this %s object was created in TID %d; it is an error "
-               "to access it from any other thread (accessed from TID %d)", getName(), tid, gettid());
-         return false;
+         throw qore::Exception("OUTPUT-STREAM-THREAD-ERROR", qore::StringBuilder() << "this " << getName()
+               << " object was created in TID " << tid << "; it is an error to access it from any other thread "
+               "(accessed from TID " << gettid() << ")");
       }
       if (isClosed()) {
-         xsink->raiseException("OUTPUT-STREAM-CLOSED-ERROR", "this %s object has been already closed", getName());
-         return false;
+         throw qore::Exception("OUTPUT-STREAM-CLOSED-ERROR", qore::StringBuilder() << "this " << getName()
+               << " object has been already closed");
       }
-      return true;
    }
 
 protected:

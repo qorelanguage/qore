@@ -46,7 +46,6 @@ class StreamPipe : public AbstractPrivateData {
 public:
    DLLLOCAL StreamPipe(bool syncClose, int64 timeout, int64 bufferSize, ExceptionSink *xsink);
    DLLLOCAL void reportError(const QoreHashNode* ex);
-   DLLLOCAL void rethrow(ExceptionSink *xsink);
    DLLLOCAL qore::Exception makeRethrowException();
 
 private:
@@ -96,8 +95,8 @@ public:
    DLLLOCAL PipeOutputStream(StreamPipe *pipe) : pipe(pipe) {
    }
 
-   DLLLOCAL void close(ExceptionSink* xsink) override;
-   DLLLOCAL void write(const void *ptr, int64 count, ExceptionSink *xsink) override;
+   DLLLOCAL void close() override;
+   DLLLOCAL void write(const void *ptr, int64 count) override;
    DLLLOCAL void reportError(const QoreHashNode* ex) { pipe->reportError(ex); }
 
 protected:

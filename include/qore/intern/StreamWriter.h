@@ -54,7 +54,9 @@ public:
 
    DLLLOCAL void print(const QoreStringNode* str, ExceptionSink* xsink) {
       TempEncodingHelper stmp(str, encoding, xsink);
-      out->write(stmp->getBuffer(), stmp->size(), xsink);
+      try {
+         out->write(stmp->getBuffer(), stmp->size());
+      } CATCH(xsink, return)
    }
 
    DLLLOCAL void printf(const QoreValueList* args, ExceptionSink* xsink) {
@@ -81,42 +83,42 @@ public:
          print(*str, xsink);
    }
 
-   DLLLOCAL void write(const BinaryNode* b, ExceptionSink* xsink) {
-      out->write(b->getPtr(), b->size(), xsink);
+   DLLLOCAL void write(const BinaryNode* b) {
+      out->write(b->getPtr(), b->size());
    }
 
-   DLLLOCAL void writei1(char i, ExceptionSink* xsink) {
-      out->write(&i, 1, xsink);
+   DLLLOCAL void writei1(char i) {
+      out->write(&i, 1);
    }
 
-   DLLLOCAL void writei2(int16_t i, ExceptionSink* xsink) {
+   DLLLOCAL void writei2(int16_t i) {
       i = htons(i);
-      out->write(&i, 2, xsink);
+      out->write(&i, 2);
    }
 
-   DLLLOCAL void writei4(int32_t i, ExceptionSink* xsink) {
+   DLLLOCAL void writei4(int32_t i) {
       i = htonl(i);
-      out->write(&i, 4, xsink);
+      out->write(&i, 4);
    }
 
-   DLLLOCAL void writei8(int64 i, ExceptionSink* xsink) {
+   DLLLOCAL void writei8(int64 i) {
       i = i8MSB(i);
-      out->write(&i, 8, xsink);
+      out->write(&i, 8);
    }
 
-   DLLLOCAL void writei2LSB(int16_t i, ExceptionSink* xsink) {
+   DLLLOCAL void writei2LSB(int16_t i) {
       i = i2LSB(i);
-      out->write(&i, 2, xsink);
+      out->write(&i, 2);
    }
 
-   DLLLOCAL void writei4LSB(int32_t i, ExceptionSink* xsink) {
+   DLLLOCAL void writei4LSB(int32_t i) {
       i = i4LSB(i);
-      out->write(&i, 4, xsink);
+      out->write(&i, 4);
    }
 
-   DLLLOCAL void writei8LSB(int64 i, ExceptionSink* xsink) {
+   DLLLOCAL void writei8LSB(int64 i) {
       i = i8LSB(i);
-      out->write(&i, 8, xsink);
+      out->write(&i, 8);
    }
 
    DLLLOCAL virtual const char* getName() const { return "StreamWriter"; }

@@ -47,11 +47,24 @@ public:
    OutputStreamWrapper(QoreObject *self) : self(self) {
    }
 
-   DLLLOCAL virtual void close(ExceptionSink* xsink) override {
-      self->evalMethodValue("close", 0, xsink);
+   DLLLOCAL virtual void close() override {
+      ExceptionSink xsink;
+      self->evalMethodValue("close", 0, &xsink);
+      if (xsink) {
+         throw qore::ExceptionWrapper(xsink.catchException());
+      }
    }
 
-   DLLLOCAL virtual void write(const void *ptr, int64 count, ExceptionSink *xsink) override {
+   DLLLOCAL virtual void write(const void *ptr, int64 count) override {
+      ExceptionSink xsink;
+      write(ptr, count, &xsink);
+      if (xsink) {
+         throw qore::ExceptionWrapper(xsink.catchException());
+      }
+   }
+
+private:
+   DLLLOCAL void write(const void *ptr, int64 count, ExceptionSink *xsink) {
       assert(count >= 0);
 
       SimpleRefHolder<BinaryNode> buf(new BinaryNode());
