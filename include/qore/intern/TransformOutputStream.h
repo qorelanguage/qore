@@ -34,8 +34,8 @@
 
 #include "qore/intern/OutputStreamBase.h"
 #include "qore/Transform.h"
+#include "qore/intern/core/Exception.h"
 
-//FIXME this is still work in progress
 class TransformOutputStream : public OutputStreamBase {
 
 public:
@@ -52,20 +52,19 @@ public:
 
    void close(ExceptionSink *xsink) override {
       char buf[BUFSIZE];
-      while (true) {
-         std::pair<int64, int64> r = t->apply(NULL, 0, buf, sizeof(buf), xsink);
-         if (*xsink) {
-            break;
-         }
-         if (!r.second) {
-            break;
-         }
-         os->write(buf, r.second, xsink);
-         if (*xsink) {
-            break;
-         }
-      }
       closed = true;
+      while (true) {
+         try {
+            std::pair<int64, int64> r = t->apply(NULL, 0, buf, sizeof(buf));
+            if (!r.second) {
+               break;
+            }
+            os->write(buf, r.second, xsink);
+            if (*xsink) {
+               break;
+            }
+         } CATCH(xsink, return)
+      }
    }
 
    void write(const void *ptr, int64 len, ExceptionSink *xsink) override {
@@ -73,18 +72,17 @@ public:
       const char *src = static_cast<const char *>(ptr);
       char buf[BUFSIZE];
       while (len > 0) {
-         std::pair<int64, int64> r = t->apply(src, len, buf, sizeof(buf), xsink);
-         if (*xsink) {
-            return;
-         }
-         if (r.second) {
-            os->write(buf, r.second, xsink);
-            if (*xsink) {
-               return;
+         try {
+            std::pair<int64, int64> r = t->apply(src, len, buf, sizeof(buf));
+            if (r.second) {
+               os->write(buf, r.second, xsink);
+               if (*xsink) {
+                  return;
+               }
             }
-         }
-         src += r.first;
-         len -= r.first;
+            src += r.first;
+            len -= r.first;
+         } CATCH(xsink, return)
       }
    }
 

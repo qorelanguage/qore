@@ -527,6 +527,8 @@ noinst_HEADERS = \
 	include/qore/intern/QC_TimeZone.h \
 	include/qore/intern/QC_TreeMap.h \
 	include/qore/intern/QC_AbstractThreadResource.h \
+	include/qore/intern/core/Exception.h \
+	include/qore/intern/core/StringBuilder.h \
 	lib/getopt_long.h \
 	command-line.h
 

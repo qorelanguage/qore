@@ -50,10 +50,11 @@ qclass EncodingConversionOutputStream [arg=EncodingConversionOutputStream* os; n
     @throw ENCODING-CONVERSION-ERROR if either of the encodings is unsupported
  */
 EncodingConversionOutputStream::constructor(Qore::OutputStream[OutputStream] os, string sourceEncoding, string destEncoding) {
-   SimpleRefHolder<EncodingConversionOutputStream> ecos(new EncodingConversionOutputStream(
-         os, QEM.findCreate(sourceEncoding), QEM.findCreate(destEncoding), xsink));
-   self->setPrivate(CID_ENCODINGCONVERSIONOUTPUTSTREAM, ecos.release());
-   self->setValue("os", static_cast<QoreObject *>(obj_os->refSelf()), xsink);
+   try {
+      self->setPrivate(CID_ENCODINGCONVERSIONOUTPUTSTREAM, new EncodingConversionOutputStream(
+            os, QEM.findCreate(sourceEncoding), QEM.findCreate(destEncoding)));
+      self->setValue("os", static_cast<QoreObject *>(obj_os->refSelf()), xsink);
+   } CATCH(xsink, return)
 }
 
 //! Flushes any buffered (unwritten) bytes, closes the output stream and releases all resources.

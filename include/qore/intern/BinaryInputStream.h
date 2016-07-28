@@ -48,7 +48,7 @@ public:
       return "BinaryInputStream";
    }
 
-   DLLLOCAL int64 read(void *ptr, int64 limit, ExceptionSink *xsink) override {
+   DLLLOCAL int64 read(void *ptr, int64 limit) override {
       assert(limit > 0);
       qore_size_t count = src->size() - offset;
       if (count == 0) {

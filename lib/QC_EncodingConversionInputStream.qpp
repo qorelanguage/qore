@@ -53,10 +53,11 @@ qclass EncodingConversionInputStream [arg=EncodingConversionInputStream* is; ns=
     @throw ENCODING-CONVERSION-ERROR if either of the encodings is unsupported
  */
 EncodingConversionInputStream::constructor(Qore::InputStream[InputStream] is, string sourceEncoding, string destEncoding) {
-   SimpleRefHolder<EncodingConversionInputStream> ecis(new EncodingConversionInputStream(
-         is, QEM.findCreate(sourceEncoding), QEM.findCreate(destEncoding), xsink));
-   self->setPrivate(CID_ENCODINGCONVERSIONINPUTSTREAM, ecis.release());
-   self->setValue("is", static_cast<QoreObject *>(obj_is->refSelf()), xsink);
+   try {
+      self->setPrivate(CID_ENCODINGCONVERSIONINPUTSTREAM, new EncodingConversionInputStream(
+         is, QEM.findCreate(sourceEncoding), QEM.findCreate(destEncoding)));
+      self->setValue("is", static_cast<QoreObject *>(obj_is->refSelf()), xsink);
+   } CATCH(xsink, return)
 }
 
 //! Reads bytes (up to a specified limit) from the input stream; returns \ref NOTHING if there are no more bytes in the stream

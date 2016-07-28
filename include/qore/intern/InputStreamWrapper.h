@@ -33,6 +33,8 @@
 #define _QORE_INPUTSTREAMWRAPPER_H
 
 #include "qore/InputStream.h"
+#include "qore/intern/core/Exception.h"
+#include "qore/intern/core/StringBuilder.h"
 
 /**
  * @brief Implements the private data for all subclasses of Qore::InputStream implemented in the Qore language.
@@ -47,7 +49,17 @@ public:
    InputStreamWrapper(QoreObject *self) : self(self) {
    }
 
-   DLLLOCAL virtual int64 read(void *ptr, int64 limit, ExceptionSink *xsink) override {
+   DLLLOCAL virtual int64 read(void *ptr, int64 limit) override {
+      ExceptionSink xsink;
+      int64 r = read(ptr, limit, &xsink);
+      if (xsink) {
+         throw qore::ExceptionWrapper(xsink.catchException());
+      }
+      return r;
+   }
+
+private:
+   DLLLOCAL int64 read(void *ptr, int64 limit, ExceptionSink *xsink) {
       assert(limit > 0);
       ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
       args->push(new QoreBigIntNode(limit));
@@ -58,16 +70,12 @@ public:
       BinaryNode *buf = bufHolder->get<BinaryNode>();
       qore_size_t count = buf->size();
       if (count == 0) {
-         xsink->raiseException("INPUT-STREAM-ERROR",
-               "%s::read() returned an empty binary; NOTHING should be used to indicate the end of the stream",
-               self->getClassName());
-         return 0;
+         throw qore::Exception("INPUT-STREAM-ERROR", qore::StringBuilder() << self->getClassName()
+               << "::read() returned an empty binary; NOTHING should be used to indicate the end of the stream");
       }
       if (count > static_cast<qore_size_t>(limit)) {
-         xsink->raiseException("INPUT-STREAM-ERROR",
-               "%s::rRead() returned %lu bytes which is more than the specified limit of %lu",
-               self->getClassName(), count, static_cast<qore_size_t>(limit));
-         return 0;
+         throw qore::Exception("INPUT-STREAM-ERROR", qore::StringBuilder() << self->getClassName()
+               << "::read() returned " << count << " bytes which is more than the specified limit of " << limit);
       }
       memcpy(ptr, buf->getPtr(), count);
       return count;

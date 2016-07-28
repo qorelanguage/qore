@@ -41,9 +41,9 @@
 class EncodingConversionInputStream : public TransformInputStream {
 
 public:
+   //FIXME is needs to be dereferenced if EncodingConvertor throws
    DLLLOCAL EncodingConversionInputStream(InputStream *is, const QoreEncoding *srcEncoding,
-         const QoreEncoding *dstEncoding, ExceptionSink *xsink)
-         : TransformInputStream(is, new EncodingConvertor(srcEncoding, dstEncoding, xsink)) {
+         const QoreEncoding *dstEncoding) : TransformInputStream(is, new EncodingConvertor(srcEncoding, dstEncoding)) {
    }
 
    DLLLOCAL const char *getName() override {

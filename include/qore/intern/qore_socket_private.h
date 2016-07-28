@@ -46,6 +46,8 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
+#include "qore/intern/core/Exception.h"
+
 #if defined HAVE_POLL
 #include <poll.h>
 #elif defined HAVE_SELECT
@@ -2375,10 +2377,9 @@ struct qore_socket_private {
          int64 r;
          {
             AutoUnlocker al(l);
-            r = is->read(buf, toRead, xsink);
-            if (*xsink) {
-               return;
-            }
+            try {
+               r = is->read(buf, toRead);
+            } CATCH(xsink, return)
          }
          if (r == 0) {
             //eof
@@ -2430,10 +2431,9 @@ struct qore_socket_private {
          int64 r;
          {
             AutoUnlocker al(l);
-            r = is->read(buf, sizeof(buf), xsink);
-            if (*xsink) {
-               return;
-            }
+            try {
+               r = is->read(buf, sizeof(buf));
+            } CATCH(xsink, return)
          }
 
          QoreString str;

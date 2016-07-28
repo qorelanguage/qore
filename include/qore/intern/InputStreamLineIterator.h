@@ -68,7 +68,9 @@ public:
       }
 
       if (srcEnc != enc) {
-         src = new EncodingConversionInputStream(src.release(), srcEnc, enc, xsink);
+         try {
+            src = new EncodingConversionInputStream(src.release(), srcEnc, enc);
+         } CATCH(xsink, return)
       }
 
       reader = new StreamReader(xsink, *src, enc);

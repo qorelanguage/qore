@@ -588,43 +588,29 @@ int qore_string_private::convert_encoding_intern(const char* src, qore_size_t sr
 
    //printd(5, "qore_string_private::convert_encoding_intern() %s -> %s len: " QSD " src='%s'\n", from->getCode(), nccs->getCode(), src_len, src);
 
-   IconvHelper c(nccs, from, xsink);
-   if (*xsink)
-      return -1;
+   try {
+      IconvHelper c(nccs, from);
 
-   // now convert value
-   qore_size_t al = src_len + STR_CLASS_BLOCK;
-   targ.allocate(al + 1);
-   while (true) {
-      size_t ilen = src_len;
-      size_t olen = al;
-      char* ib = (char*)src;
-      char* ob = targ.priv->buf;
-      size_t rc = c.iconv(&ib, &ilen, &ob, &olen);
-      if (rc == (size_t)-1) {
-         switch (errno) {
-            case EINVAL:
-            case EILSEQ:
-               c.reportIllegalSequence(xsink);
-               targ.clear();
-               return -1;
-            case E2BIG:
-               al += STR_CLASS_BLOCK;
-               targ.allocate(al + 1);
-               break;
-            default: {
-               c.reportUnknownError(xsink);
-               targ.clear();
-               return -1;
-            }
+      // now convert value
+      qore_size_t al = src_len + STR_CLASS_BLOCK;
+      targ.allocate(al + 1);
+      while (true) {
+         size_t ilen = src_len;
+         size_t olen = al;
+         char* ib = (char*)src;
+         char* ob = targ.priv->buf;
+         if (c.iconv(&ib, &ilen, &ob, &olen, true) == IconvHelper::Result::Ok) {
+            // terminate string
+            targ.priv->buf[al - olen] = '\0';
+            targ.priv->len = al - olen;
+            break;
          }
-      } else {
-         // terminate string
-         targ.priv->buf[al - olen] = '\0';
-         targ.priv->len = al - olen;
-         break;
+         // increase destination buffer and try again
+         al += STR_CLASS_BLOCK;
+         targ.allocate(al + 1);
       }
-   }
+   } CATCH(xsink, targ.clear(); return -1)
+
    /*
    // remove byte order markers at the beginning of UTF16 strings
    if (nccs == QCS_UTF16 && targ.priv->len >= 2 && (signed char)targ.priv->buf[0] == -2 && (signed char)targ.priv->buf[1] == -1)

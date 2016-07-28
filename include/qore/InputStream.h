@@ -48,10 +48,9 @@ public:
     * @brief Reads up to `limit` bytes from the input stream.
     * @param ptr the destination buffer to read data into
     * @param limit the maximum number of bytes to read, must be &gt; 0
-    * @param xsink the exception sink
     * @return the number of bytes read, 0 indicates the end of the stream
     */
-   virtual int64 read(void *ptr, int64 limit, ExceptionSink *xsink) = 0;
+   virtual int64 read(void *ptr, int64 limit) = 0;
 
 protected:
    /**

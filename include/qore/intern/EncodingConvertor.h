@@ -29,8 +29,8 @@
   information.
 */
 
-#ifndef _QORE_ENCODINGCONVERTOR_H
-#define _QORE_ENCODINGCONVERTOR_H
+#ifndef INCLUDE_QORE_INTERN_ENCODINGCONVERTOR_H
+#define INCLUDE_QORE_INTERN_ENCODINGCONVERTOR_H
 
 #include "qore/Transform.h"
 #include "qore/intern/IconvHelper.h"
@@ -38,12 +38,11 @@
 class EncodingConvertor : public Transform {
 
 public:
-   EncodingConvertor(const QoreEncoding *srcEncoding, const QoreEncoding *dstEncoding, ExceptionSink *xsink)
-         : conv(dstEncoding, srcEncoding, xsink), inCount(0), outCount(0) {
+   EncodingConvertor(const QoreEncoding *srcEncoding, const QoreEncoding *dstEncoding)
+         : conv(dstEncoding, srcEncoding), inCount(0), outCount(0) {
    }
 
-   DLLLOCAL std::pair<int64, int64> apply(const void *src, int64 srcLen, void *dst, int64 dstLen, ExceptionSink *xsink) override {
-
+   DLLLOCAL std::pair<int64, int64> apply(const void *src, int64 srcLen, void *dst, int64 dstLen) override {
       const char *srcPtr = static_cast<const char *>(src);
       char *dstPtr = static_cast<char *>(dst);
       while (true) {
@@ -59,24 +58,7 @@ public:
          size_t inavail = inCount;
          char *outbuf = outBuf + outCount;
          size_t outavail = BUFSIZE - outCount;
-         if (conv.iconv(&inbuf, &inavail, &outbuf, &outavail) == (size_t) -1) {
-            switch (errno) {
-               case EINVAL:
-                  if (src == nullptr) {         //flushing - there will be no more input
-                     conv.reportIllegalSequence(xsink);
-                     return std::make_pair(0, 0);
-                  }
-                  break;
-               case E2BIG:
-                  break;
-               case EILSEQ:
-                  conv.reportIllegalSequence(xsink);
-                  return std::make_pair(0, 0);
-               default:
-                  conv.reportUnknownError(xsink);
-                  return std::make_pair(0, 0);
-            }
-         }
+         conv.iconv(&inbuf, &inavail, &outbuf, &outavail, src == nullptr);
          size_t rc = inCount - inavail;
          if (rc) {
             inCount -= rc;
@@ -110,4 +92,4 @@ private:
    size_t outCount;
 };
 
-#endif // _QORE_ENCODINGCONVERTOR_H
+#endif // INCLUDE_QORE_INTERN_ENCODINGCONVERTOR_H

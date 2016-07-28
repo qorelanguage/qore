@@ -29,8 +29,8 @@
   information.
 */
 
-#ifndef _QORE_TRANSFORM_H
-#define _QORE_TRANSFORM_H
+#ifndef INCLUDE_QORE_TRANSFORM_H
+#define INCLUDE_QORE_TRANSFORM_H
 
 #include "qore/AbstractPrivateData.h"
 
@@ -46,11 +46,9 @@ public:
     * @param srcLen the number of bytes in the src buffer
     * @param dst pointer to destination buffer
     * @param dstLen the number of bytes that can be written to dst
-    * @param xsink the exception sink
     * @return a pair (rc, wc) where rc is the number of bytes read from src and wc is the number of bytes written to dst
     */
-   virtual std::pair<int64, int64> apply(const void *src, int64 srcLen, void *dst, int64 dstLen,
-         ExceptionSink *xsink) = 0;
+   virtual std::pair<int64, int64> apply(const void *src, int64 srcLen, void *dst, int64 dstLen) = 0;
 
 protected:
    /**
@@ -65,4 +63,4 @@ private:
    Transform &operator=(Transform &&) = delete;
 };
 
-#endif // _QORE_TRANSFORM_H
+#endif // INCLUDE_QORE_TRANSFORM_H

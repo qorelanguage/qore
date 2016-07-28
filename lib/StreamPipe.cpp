@@ -55,6 +55,18 @@ void StreamPipe::rethrow(ExceptionSink *xsink) {
    }
 }
 
+qore::Exception StreamPipe::makeRethrowException() {
+   assert(exception);
+   AbstractQoreNode *errNode = exception->getKeyValue("err");
+   AbstractQoreNode *descNode = exception->getKeyValue("desc");
+   if (errNode && errNode->getType() == NT_STRING && descNode && descNode->getType() == NT_STRING) {
+      return qore::Exception(static_cast<QoreStringNode *>(errNode)->getBuffer(),
+            static_cast<QoreStringNode *>(descNode->refSelf())->getBuffer());
+   } else {
+      return qore::Exception("PIPE-ERROR", "an unexpected error occurred during the background operation");
+   }
+}
+
 PipeInputStream::~PipeInputStream() {
    printd(1, "PipeInputStream::~PipeInputStream()\n");
    AutoLocker lock(pipe->mutex);
@@ -68,7 +80,7 @@ void PipeInputStream::finishClose() {
    pipe->writeCondVar.broadcast();
 }
 
-int64 PipeInputStream::read(void *ptr, int64 limit, ExceptionSink *xsink) {
+int64 PipeInputStream::read(void *ptr, int64 limit) {
    assert(limit > 0);
    printd(1, "PipeInputStream::read()\n");
    AutoLocker lock(pipe->mutex);
@@ -76,12 +88,10 @@ int64 PipeInputStream::read(void *ptr, int64 limit, ExceptionSink *xsink) {
    printd(1, "read - lock acquired, limit: " QLLD "\n", limit);
    while (true) {
       if (pipe->exception) {
-         pipe->rethrow(xsink);
-         return 0;
+         throw pipe->makeRethrowException();
       }
       if (pipe->broken) {
-         xsink->raiseException("BROKEN-PIPE-ERROR", "one of the streams of the pipe has been destroyed");
-         return 0;
+         throw qore::Exception("BROKEN-PIPE-ERROR", "one of the streams of the pipe has been destroyed");
       }
 
       printd(1, "read - count: " QLLD "\n", pipe->count);
@@ -98,8 +108,7 @@ int64 PipeInputStream::read(void *ptr, int64 limit, ExceptionSink *xsink) {
       int rc = pipe->timeout < 0 ? pipe->readCondVar.wait(pipe->mutex) : pipe->readCondVar.wait2(pipe->mutex, pipe->timeout);
       printd(1, "read - buffer empty, after wait, rc: %d\n", rc);
       if (rc != 0) {
-         xsink->raiseException("TIMEOUT-ERROR", "operation timed out");
-         return 0;
+         throw qore::Exception("TIMEOUT-ERROR", "operation timed out");
       }
    }
 

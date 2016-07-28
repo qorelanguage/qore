@@ -41,8 +41,13 @@
 class FileInputStream : public InputStreamBase {
 
 public:
-   DLLLOCAL FileInputStream(const QoreStringNode *fileName, int64 timeout, ExceptionSink *xsink) : timeout(timeout) {
-      f.open2(xsink, fileName->getBuffer(), O_RDONLY);
+   DLLLOCAL FileInputStream(const QoreStringNode *fileName, int64 timeout) : timeout(timeout) {
+      //FIXME exception support in QoreFile?
+      ExceptionSink xsink;
+      f.open2(&xsink, fileName->getBuffer(), O_RDONLY);
+      if (xsink) {
+         throw qore::ExceptionWrapper(xsink.catchException());
+      }
    }
 
    DLLLOCAL FileInputStream(int fd) : timeout(-1) {
@@ -53,9 +58,14 @@ public:
       return "FileInputStream";
    }
 
-   DLLLOCAL int64 read(void *ptr, int64 limit, ExceptionSink *xsink) override {
+   DLLLOCAL int64 read(void *ptr, int64 limit) override {
       assert(limit > 0);
-      return f.read(ptr, limit, timeout, xsink);
+      ExceptionSink xsink;
+      int64 r = f.read(ptr, limit, timeout, &xsink);
+      if (xsink) {
+         throw qore::ExceptionWrapper(xsink.catchException());
+      }
+      return r;
    }
 
    DLLLOCAL QoreFile& getFile() { return f; }

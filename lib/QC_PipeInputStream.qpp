@@ -55,9 +55,11 @@ private PipeInputStream::constructor() {
    }
    SimpleRefHolder<BinaryNode> result(new BinaryNode());
    result->preallocate(limit);
-   int64 count = is->read(const_cast<void *>(result->getPtr()), limit, xsink);
-   result->setSize(count);
-   return count ? result.release() : 0;
+   try {
+      int64 count = is->read(const_cast<void *>(result->getPtr()), limit);
+      result->setSize(count);
+      return count ? result.release() : 0;
+   } CATCH(xsink, return 0)
 }
 
 //! Call when the background operation is finished to wakeup PipeOutputStream::close().

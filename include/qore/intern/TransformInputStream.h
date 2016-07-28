@@ -35,8 +35,8 @@
 #include <cassert>
 #include "qore/intern/InputStreamBase.h"
 #include "qore/Transform.h"
+#include "qore/intern/core/Exception.h"
 
-//FIXME this is still work in progress
 class TransformInputStream : public InputStreamBase {
 
 public:
@@ -47,13 +47,10 @@ public:
       return "TransformInputStream";
    }
 
-   int64 read(void *ptr, int64 limit, ExceptionSink *xsink) override {
+   int64 read(void *ptr, int64 limit) override {
       while (true) {
          if (!eof && BUFSIZE - count > 0) {
-            int64 r = is->read(buf + count, BUFSIZE - count, xsink);
-            if (*xsink) {
-               return 0;
-            }
+            int64 r = is->read(buf + count, BUFSIZE - count);
             if (!r) {
                eof = true;
             } else {
@@ -62,10 +59,7 @@ public:
          }
 
          assert(eof || count > 0);
-         std::pair<int64, int64> r = t->apply(count ? buf : nullptr, count, ptr, limit, xsink);
-         if (*xsink) {
-            return 0;
-         }
+         std::pair<int64, int64> r = t->apply(count ? buf : nullptr, count, ptr, limit);
          if (r.first) {
             count -= r.first;
             memmove(buf, buf + r.first, count);

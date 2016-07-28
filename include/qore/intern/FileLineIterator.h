@@ -130,9 +130,9 @@ public:
 
 private:
    DLLLOCAL void doReset(ExceptionSink* xsink) {
-      fis = new FileInputStream(filename, -1, xsink);
-      if (*xsink)
-         return;
+      try {
+         fis = new FileInputStream(filename, -1);
+      } CATCH(xsink, return);
       fis->ref();
       src = new InputStreamLineIterator(xsink, *fis, encoding, eol, trim);
    }

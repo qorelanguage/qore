@@ -36,6 +36,7 @@
 
 #include "qore/qore_bitopts.h"
 #include "qore/InputStream.h"
+#include "qore/intern/core/Exception.h"
 
 /**
  * @brief Private data for the Qore::StreamReader class.
@@ -285,11 +286,11 @@ public:
 private:
    DLLLOCAL int64 fillBuffer(qore_size_t bytes, ExceptionSink* xsink) {
       assert(bufSize + bytes <= bufCapacity);
-      int64 rc = in->read(buf + bufSize, bytes, xsink);
-      if (*xsink)
-         return 0;
-      bufSize += rc;
-      return rc;
+      try {
+         int64 rc = in->read(buf + bufSize, bytes);
+         bufSize += rc;
+         return rc;
+      } CATCH(xsink, return 0)
    }
 
    DLLLOCAL bool prepareEnoughData(qore_size_t bytes, ExceptionSink* xsink) {

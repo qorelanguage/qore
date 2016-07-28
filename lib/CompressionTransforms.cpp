@@ -30,73 +30,91 @@
 */
 #include <zlib.h>
 #include <bzlib.h>
-#include "qore/Qore.h"
+#include "qore/intern/core/Exception.h"
+#include "qore/intern/core/StringBuilder.h"
 #include "qore/intern/CompressionTransforms.h"
 
-class CompressionErrorHelper {
+class ZlibError : public virtual qore::Exception {
 
 public:
-   static void mapZlibError(int rc, ExceptionSink *xsink) {
-      QoreStringNode* desc = new QoreStringNode();
+   ZlibError(int rc) : Exception("ZLIB-ERROR") {
       switch (rc) {
-         case Z_ERRNO:
-            q_strerror(*desc, errno);
-            break;
          case Z_STREAM_ERROR:
-            desc->concat("inconsistent stream state");
+            setDescription("inconsistent stream state");
             break;
          case Z_DATA_ERROR:
-            desc->set("unable to process input data; data corrupted");
+            setDescription("unable to process input data; data corrupted");
             break;
          case Z_MEM_ERROR:
-            desc->set("insufficient memory to complete operation");
+            setDescription("insufficient memory to complete operation");
             break;
          case Z_BUF_ERROR:
-            desc->set("qore buffer-handling error (report as bug to qore developers)");
+            setDescription("qore buffer-handling error (report as bug to qore developers)");
             break;
          case Z_VERSION_ERROR:
-            desc->set("version mismatch on zlib shared library, check library requirements");
+            setDescription("version mismatch on zlib shared library, check library requirements");
             break;
          default:
-            desc->sprintf("error code %d encountered", rc);
+            setDescription(qore::StringBuilder() << "error code " << rc << " encountered");
             break;
       }
-      xsink->raiseException("ZLIB-ERROR", desc);
    }
 
-   static void mapBzip2Error(int rc, ExceptionSink *xsink) {
-      QoreStringNode* desc = new QoreStringNode();
+   ZlibError(std::string desc) : Exception("ZLIB-ERROR", std::move(desc)) {
+   }
+
+   ZlibError(ZlibError &&) noexcept = default;
+   ZlibError &operator=(ZlibError &&) noexcept = default;
+
+private:
+   ZlibError(const ZlibError &) = delete;
+   ZlibError &operator=(const ZlibError &) = delete;
+};
+
+class Bzip2Error : public virtual qore::Exception {
+
+public:
+   Bzip2Error(int rc) : Exception("BZIP2-ERROR") {
       switch (rc) {
          case BZ_DATA_ERROR:
-            desc->set("unable to process input data; data corrupted");
+            setDescription("unable to process input data; data corrupted");
             break;
          case BZ_DATA_ERROR_MAGIC:
-            desc->set("unable to process input data; data header corrupted");
+            setDescription("unable to process input data; data header corrupted");
             break;
          case BZ_MEM_ERROR:
-            desc->set("insufficient memory to complete operation");
+            setDescription("insufficient memory to complete operation");
             break;
          case BZ_SEQUENCE_ERROR:
-             desc->set("sequence error (report as bug to qore developers)");
-             break;
+            setDescription("sequence error (report as bug to qore developers)");
+            break;
          case BZ_PARAM_ERROR:
-            desc->set("parameter error (report as bug to qore developers)");
+            setDescription("parameter error (report as bug to qore developers)");
             break;
          case BZ_CONFIG_ERROR:
-            desc->set("version mismatch on zlib shared library, check library requirements");
+            setDescription("version mismatch on zlib shared library, check library requirements");
             break;
          default:
-            desc->sprintf("error code %d encountered", rc);
+            setDescription(qore::StringBuilder() << "error code " << rc << " encountered");
             break;
       }
-      xsink->raiseException("BZIP2-ERROR", desc);
    }
+
+   Bzip2Error(std::string desc) : Exception("BZIP2-ERROR", std::move(desc)) {
+   }
+
+   Bzip2Error(Bzip2Error &&) noexcept = default;
+   Bzip2Error &operator=(Bzip2Error &&) noexcept = default;
+
+private:
+   Bzip2Error(const Bzip2Error &) = delete;
+   Bzip2Error &operator=(const Bzip2Error &) = delete;
 };
 
 class ZlibDeflateTransform : public Transform {
 
 public:
-   ZlibDeflateTransform(int64 level, ExceptionSink *xsink, bool gzipFormat) : state(NOT_INIT) {
+   ZlibDeflateTransform(int64 level, bool gzipFormat) {
       strm.zalloc = Z_NULL;
       strm.zfree = Z_NULL;
       strm.opaque = Z_NULL;
@@ -104,85 +122,63 @@ public:
       if (level == CompressionTransforms::LEVEL_DEFAULT) {
          level = Z_DEFAULT_COMPRESSION;
       } else if (!(level >= 0 && level <= 9)) {
-         xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 0 - 9 or -1 (value passed: %d)", level);
-         return;
+         throw qore::Exception("ZLIB-LEVEL-ERROR", qore::StringBuilder()
+               << "level must be between 0 - 9 or -1 (value passed: " << level << ")");
       }
 
       int rc = deflateInit2(&strm, level, Z_DEFLATED, 15 + (gzipFormat ? 16 : 0), 8, Z_DEFAULT_STRATEGY);
       if (rc != Z_OK) {
-         CompressionErrorHelper::mapZlibError(rc, xsink);
-         return;
+         throw ZlibError(rc);
       }
-      state = OK;
    }
 
    ~ZlibDeflateTransform() {
-      if (state != NOT_INIT) {
-         deflateEnd(&strm);
-      }
+      deflateEnd(&strm);
    }
 
-   std::pair<int64, int64> apply(const void *src, int64 srcLen, void *dst, int64 dstLen, ExceptionSink *xsink) {
-      if (state != OK) {
-          xsink->raiseException("ZLIB-ERROR", "invalid zlib stream state");
-          return std::make_pair(0, 0);
-      }
+   std::pair<int64, int64> apply(const void *src, int64 srcLen, void *dst, int64 dstLen) override {
       strm.next_in = static_cast<Bytef *>(const_cast<void *>(src));
       strm.avail_in = srcLen;
       strm.next_out = static_cast<Bytef *>(dst);
       strm.avail_out = dstLen;
       int rc = deflate(&strm, src ? Z_NO_FLUSH : Z_FINISH);
       if (rc != Z_OK && rc != Z_STREAM_END) {
-         CompressionErrorHelper::mapZlibError(rc, xsink);
-         state = ERROR;
-         return std::make_pair(0, 0);
+         throw ZlibError(rc);
       }
       return std::make_pair(srcLen - strm.avail_in, dstLen - strm.avail_out);
    }
 
 private:
-   enum State {
-      OK, ERROR, NOT_INIT
-   };
-
-private:
    z_stream strm;
-   State state;
 };
 
 class ZlibInflateTransform : public Transform {
 
 public:
-   ZlibInflateTransform(ExceptionSink *xsink, bool gzipFormat) : state(NOT_INIT) {
+   ZlibInflateTransform(bool gzipFormat) : state(OK) {
       strm.zalloc = Z_NULL;
       strm.zfree = Z_NULL;
       strm.opaque = Z_NULL;
 
       int rc = inflateInit2(&strm, 15 + (gzipFormat ? 16 : 0));
       if (rc != Z_OK) {
-         CompressionErrorHelper::mapZlibError(rc, xsink);
-         return;
+         throw ZlibError(rc);
       }
-      state = OK;
    }
 
    ~ZlibInflateTransform() {
-      if (state != NOT_INIT) {
-         inflateEnd(&strm);
-      }
+      inflateEnd(&strm);
    }
 
-   std::pair<int64, int64> apply(const void *src, int64 srcLen, void *dst, int64 dstLen, ExceptionSink *xsink) {
+   std::pair<int64, int64> apply(const void *src, int64 srcLen, void *dst, int64 dstLen) override {
       if (state == END) {
          if (src) {
-            xsink->raiseException("ZLIB-ERROR", "Unexpected extra bytes at the end of the compressed data stream");
-            state = ERROR;
+            throw ZlibError("Unexpected extra bytes at the end of the compressed data stream");
          }
          return std::make_pair(0, 0);
       }
       if (state != OK) {
-         xsink->raiseException("ZLIB-ERROR", "invalid zlib stream state");
-         return std::make_pair(0, 0);
+         throw ZlibError("invalid zlib stream state");
       }
       strm.next_in = static_cast<Bytef *>(const_cast<void *>(src));
       strm.avail_in = srcLen;
@@ -191,26 +187,20 @@ public:
       int rc = inflate(&strm, Z_NO_FLUSH);
       if (rc == Z_STREAM_END) {
          if (strm.avail_in != 0) {
-            xsink->raiseException("ZLIB-ERROR", "Unexpected extra bytes at the end of the compressed data stream");
-            state = ERROR;
-            return std::make_pair(0, 0);
+            throw ZlibError("Unexpected extra bytes at the end of the compressed data stream");
          }
          state = END;
       } else if ((rc == Z_OK || rc == Z_BUF_ERROR) && (!src && dstLen - strm.avail_out == 0)) {
-         xsink->raiseException("ZLIB-ERROR", "Unexpected end of compressed data stream");
-         state = ERROR;
-         return std::make_pair(0, 0);
+         throw ZlibError("Unexpected end of compressed data stream");
       } else if (rc != Z_OK) {
-         CompressionErrorHelper::mapZlibError(rc, xsink);
-         state = ERROR;
-         return std::make_pair(0, 0);
+         throw ZlibError(rc);
       }
       return std::make_pair(srcLen - strm.avail_in, dstLen - strm.avail_out);
    }
 
 private:
    enum State {
-      OK, ERROR, END, NOT_INIT
+      OK, END
    };
 
 private:
@@ -221,7 +211,7 @@ private:
 class Bzip2CompressTransform : public Transform {
 
 public:
-    Bzip2CompressTransform(int64 level, ExceptionSink *xsink) : state(NOT_INIT) {
+    Bzip2CompressTransform(int64 level) : state(OK) {
       strm.bzalloc = Z_NULL;
       strm.bzfree = Z_NULL;
       strm.opaque = Z_NULL;
@@ -229,30 +219,22 @@ public:
       if (level == CompressionTransforms::LEVEL_DEFAULT) {
          level = 3;
       } else if (!(level >= 0 && level <= 9)) {
-         xsink->raiseException("BZIP2-LEVEL-ERROR", "level must be between 0 - 9 or -1 (value passed: %d)", level);
-         return;
+         throw qore::Exception("BZIP2-LEVEL-ERROR", qore::StringBuilder()
+               << "level must be between 0 - 9 or -1 (value passed: " << level << ")");
       }
 
       int rc = BZ2_bzCompressInit(&strm, level, 0, 30);
       if (rc != BZ_OK) {
-         CompressionErrorHelper::mapBzip2Error(rc, xsink);
-         return;
+         throw Bzip2Error(rc);
       }
-      state = OK;
    }
 
    ~Bzip2CompressTransform() {
-      if (state != NOT_INIT) {
-         BZ2_bzCompressEnd(&strm);
-      }
+      BZ2_bzCompressEnd(&strm);
    }
 
-   std::pair<int64, int64> apply(const void *src, int64 srcLen, void *dst, int64 dstLen, ExceptionSink *xsink) {
+   std::pair<int64, int64> apply(const void *src, int64 srcLen, void *dst, int64 dstLen) override {
       if (state == END) {
-         return std::make_pair(0, 0);
-      }
-      if (state != OK) {
-         xsink->raiseException("BZIP2-ERROR", "invalid zlib stream state");
          return std::make_pair(0, 0);
       }
       strm.next_in = static_cast<char *>(const_cast<void *>(src));
@@ -261,9 +243,7 @@ public:
       strm.avail_out = dstLen;
       int rc = BZ2_bzCompress(&strm, src ? BZ_RUN : BZ_FINISH);
       if (rc != BZ_RUN_OK && rc != BZ_FINISH_OK && rc != BZ_STREAM_END) {
-         CompressionErrorHelper::mapBzip2Error(rc, xsink);
-         state = ERROR;
-         return std::make_pair(0, 0);
+         throw Bzip2Error(rc);
       }
       if (rc == BZ_STREAM_END) {
          state = END;
@@ -273,7 +253,7 @@ public:
 
 private:
    enum State {
-      OK, ERROR, END, NOT_INIT
+      OK, END
    };
 
 private:
@@ -284,35 +264,26 @@ private:
 class Bzip2DecompressTransform : public Transform {
 
 public:
-    Bzip2DecompressTransform(ExceptionSink *xsink) : state(NOT_INIT) {
+    Bzip2DecompressTransform() : state(OK) {
       strm.bzalloc = Z_NULL;
       strm.bzfree = Z_NULL;
       strm.opaque = Z_NULL;
 
       int rc = BZ2_bzDecompressInit(&strm, 0, 0);
       if (rc != Z_OK) {
-         CompressionErrorHelper::mapBzip2Error(rc, xsink);
-         return;
+         throw Bzip2Error(rc);
       }
-      state = OK;
    }
 
    ~Bzip2DecompressTransform() {
-      if (state != NOT_INIT) {
-         BZ2_bzDecompressEnd(&strm);
-      }
+      BZ2_bzDecompressEnd(&strm);
    }
 
-   std::pair<int64, int64> apply(const void *src, int64 srcLen, void *dst, int64 dstLen, ExceptionSink *xsink) {
+   std::pair<int64, int64> apply(const void *src, int64 srcLen, void *dst, int64 dstLen) override {
       if (state == END) {
          if (src) {
-            xsink->raiseException("BZIP2-ERROR", "Unexpected extra bytes at the end of the compressed data stream");
-            state = ERROR;
+            throw Bzip2Error("Unexpected extra bytes at the end of the compressed data stream");
          }
-         return std::make_pair(0, 0);
-      }
-      if (state != OK) {
-         xsink->raiseException("BZIP2-ERROR", "invalid bzip2 stream state");
          return std::make_pair(0, 0);
       }
       strm.next_in = static_cast<char *>(const_cast<void *>(src));
@@ -322,26 +293,20 @@ public:
       int rc = BZ2_bzDecompress(&strm);
       if (rc == BZ_STREAM_END) {
          if (strm.avail_in != 0) {
-            xsink->raiseException("BZIP2-ERROR", "Unexpected extra bytes at the end of the compressed data stream");
-            state = ERROR;
-            return std::make_pair(0, 0);
+            throw Bzip2Error("Unexpected extra bytes at the end of the compressed data stream");
          }
          state = END;
       } else if (rc == BZ_OK && (!src && dstLen - strm.avail_out == 0)) {
-         xsink->raiseException("BZIP2-ERROR", "Unexpected end of compressed data stream");
-         state = ERROR;
-         return std::make_pair(0, 0);
+         throw Bzip2Error("Unexpected end of compressed data stream");
       } else if (rc != BZ_OK) {
-         CompressionErrorHelper::mapBzip2Error(rc, xsink);
-         state = ERROR;
-         return std::make_pair(0, 0);
+         throw Bzip2Error(rc);
       }
       return std::make_pair(srcLen - strm.avail_in, dstLen - strm.avail_out);
    }
 
 private:
    enum State {
-      OK, ERROR, END, NOT_INIT
+      OK, END
    };
 
 private:
@@ -349,26 +314,24 @@ private:
    State state;
 };
 
-Transform *CompressionTransforms::getCompressor(const QoreStringNode *alg, int64 level, ExceptionSink *xsink) {
-   if (*alg == ALG_ZLIB) {
-      return new ZlibDeflateTransform(level, xsink, false);
-   } else if (*alg == ALG_GZIP) {
-      return new ZlibDeflateTransform(level, xsink, true);
-   } else if (*alg == ALG_BZIP2) {
-      return new Bzip2CompressTransform(level, xsink);
+Transform *CompressionTransforms::getCompressor(const std::string &alg, int64 level) {
+   if (alg == ALG_ZLIB) {
+      return new ZlibDeflateTransform(level, false);
+   } else if (alg == ALG_GZIP) {
+      return new ZlibDeflateTransform(level, true);
+   } else if (alg == ALG_BZIP2) {
+      return new Bzip2CompressTransform(level);
    }
-   xsink->raiseException("COMPRESS-ERROR", "Unknown compression algorithm: %s", alg->getBuffer());
-   return 0;
+   throw qore::Exception("COMPRESS-ERROR", qore::StringBuilder() << "Unknown compression algorithm: " << alg);
 }
 
-Transform *CompressionTransforms::getDecompressor(const QoreStringNode *alg, ExceptionSink *xsink) {
-   if (*alg == ALG_ZLIB) {
-      return new ZlibInflateTransform(xsink, false);
-   } else if (*alg == ALG_GZIP) {
-      return new ZlibInflateTransform(xsink, true);
-   } else if (*alg == ALG_BZIP2) {
-      return new Bzip2DecompressTransform(xsink);
+Transform *CompressionTransforms::getDecompressor(const std::string &alg) {
+   if (alg == ALG_ZLIB) {
+      return new ZlibInflateTransform(false);
+   } else if (alg == ALG_GZIP) {
+      return new ZlibInflateTransform(true);
+   } else if (alg == ALG_BZIP2) {
+      return new Bzip2DecompressTransform();
    }
-   xsink->raiseException("COMPRESS-ERROR", "Unknown compression algorithm: %s", alg->getBuffer());
-   return 0;
+   throw qore::Exception("COMPRESS-ERROR", qore::StringBuilder() << "Unknown compression algorithm: " << alg);
 }

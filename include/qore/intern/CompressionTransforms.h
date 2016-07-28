@@ -29,9 +29,10 @@
   information.
 */
 
-#ifndef _QORE_COMPRESSIONTRANSFORMS_H
-#define _QORE_COMPRESSIONTRANSFORMS_H
+#ifndef INCLUDE_QORE_INTERN_COMPRESSIONTRANSFORMS_H
+#define INCLUDE_QORE_INTERN_COMPRESSIONTRANSFORMS_H
 
+#include <string>
 #include "qore/Transform.h"
 
 class CompressionTransforms {
@@ -42,8 +43,8 @@ public:
 
    static constexpr int64 LEVEL_DEFAULT = -1;
 
-   static Transform *getCompressor(const QoreStringNode *alg, int64 level, ExceptionSink *xsink);
-   static Transform *getDecompressor(const QoreStringNode *alg, ExceptionSink *xsink);
+   static Transform *getCompressor(const std::string &alg, int64 level);
+   static Transform *getDecompressor(const std::string &alg);
 };
 
-#endif // _QORE_COMPRESSIONTRANSFORMS_H
+#endif // INCLUDE_QORE_INTERN_COMPRESSIONTRANSFORMS_H

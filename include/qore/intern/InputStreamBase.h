@@ -33,6 +33,8 @@
 #define _QORE_INPUTSTREAMBASE_H
 
 #include "qore/InputStream.h"
+#include "qore/intern/core/Exception.h"
+#include "qore/intern/core/StringBuilder.h"
 
 /**
  * @brief Base class for private data of input stream implementations in C++.
@@ -48,36 +50,33 @@ public:
     * @return the `binary` wrapping the read data or `NOTHING` if the end of the stream has been reached
     */
    DLLLOCAL BinaryNode *readHelper(int64 limit, ExceptionSink *xsink) {
-      if (!check(xsink)) {
-         return 0;
-      }
-      if (limit <= 0) {
-         xsink->raiseException("INPUT-STREAM-ERROR", "%s::read() called with non-positive limit %lld",
-               getName(), limit);
-         return 0;
-      }
-      SimpleRefHolder<BinaryNode> result(new BinaryNode());
-      result->preallocate(limit);
-      int64 count = read(const_cast<void *>(result->getPtr()), limit, xsink);
-      result->setSize(count);
-      return count ? result.release() : 0;
+      try {
+         checkThread();
+         if (limit <= 0) {
+            throw qore::Exception("INPUT-STREAM-ERROR", qore::StringBuilder() << getName()
+                  << "::read() called with non-positive limit " << limit);
+         }
+         SimpleRefHolder<BinaryNode> result(new BinaryNode());
+         result->preallocate(limit);
+         int64 count = read(const_cast<void *>(result->getPtr()), limit);
+         result->setSize(count);
+         return count ? result.release() : 0;
+      } CATCH(xsink, return 0)
    }
 
    /**
     * @brief Checks that the current thread is the same as when the instance was created and that the stream has
     * not yet been closed.
-    * @param xsink the exception sink
     * @return true if the checks passed, false if an exception has been raised
     * @throws INPUT-STREAM-THREAD-ERROR if the current thread is not the same as when the instance was created
     * @throws INPUT-STREAM-CLOSED-ERROR if the stream has been closed
     */
-   bool check(ExceptionSink *xsink) {
+   void checkThread() {
       if (tid != gettid()) {
-         xsink->raiseException("INPUT-STREAM-THREAD-ERROR", "this %s object was created in TID %d; it is an error "
-               "to access it from any other thread (accessed from TID %d)", getName(), tid, gettid());
-         return false;
+         throw qore::Exception("INPUT-STREAM-THREAD-ERROR", qore::StringBuilder() << "this " << getName()
+               << " object was created in TID " << tid << "; it is an error to access it from any other thread "
+               "(accessed from TID " << gettid() << ")");
       }
-      return true;
    }
 
 protected:

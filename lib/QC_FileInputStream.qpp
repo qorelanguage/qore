@@ -60,8 +60,9 @@ qclass FileInputStream [system_constructor=FILEINPUTSTREAM_system_constructor; a
            if not given or negative the operations will never time out
  */
 FileInputStream::constructor(string fileName, timeout timeout_ms = -1) {
-   SimpleRefHolder<FileInputStream> fis(new FileInputStream(fileName, timeout_ms, xsink));
-   self->setPrivate(CID_FILEINPUTSTREAM, fis.release());
+   try {
+      self->setPrivate(CID_FILEINPUTSTREAM, new FileInputStream(fileName, timeout_ms));
+   } CATCH(xsink, return)
 }
 
 //! Reads bytes (up to a specified limit) from the input stream; returns \ref NOTHING if there are no more bytes in the stream

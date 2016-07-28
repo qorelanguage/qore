@@ -47,6 +47,7 @@ public:
    DLLLOCAL StreamPipe(bool syncClose, int64 timeout, int64 bufferSize, ExceptionSink *xsink);
    DLLLOCAL void reportError(const QoreHashNode* ex);
    DLLLOCAL void rethrow(ExceptionSink *xsink);
+   DLLLOCAL qore::Exception makeRethrowException();
 
 private:
    QoreThreadLock mutex;
@@ -75,7 +76,7 @@ public:
    DLLLOCAL PipeInputStream(StreamPipe *pipe) : pipe(pipe) {
    }
 
-   DLLLOCAL int64 read(void *ptr, int64 limit, ExceptionSink *xsink) override;
+   DLLLOCAL int64 read(void *ptr, int64 limit) override;
    DLLLOCAL void finishClose();
    DLLLOCAL void reportError(const QoreHashNode* ex) { pipe->reportError(ex); }
 

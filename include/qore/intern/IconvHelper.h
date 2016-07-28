@@ -31,14 +31,21 @@
 #ifndef INCLUDE_QORE_INTERN_ICONVHELPER_H_
 #define INCLUDE_QORE_INTERN_ICONVHELPER_H_
 
-#include <qore/Qore.h>
 #include <errno.h>
 #include <iconv.h>
+#include "qore/Qore.h"
+#include "qore/intern/core/Exception.h"
+#include "qore/intern/core/StringBuilder.h"
 
 class IconvHelper {
 
 public:
-   DLLLOCAL IconvHelper(const QoreEncoding *to, const QoreEncoding *from, ExceptionSink *xsink) : to(to), from(from) {
+   enum class Result {
+      Ok, Invalid, TooBig
+   };
+
+public:
+   DLLLOCAL IconvHelper(const QoreEncoding *to, const QoreEncoding *from) : to(to), from(from) {
 #ifdef NEED_ICONV_TRANSLIT
       QoreString to_code(const_cast<char *>(to->getCode()));
       to_code.concat("//TRANSLIT");
@@ -46,35 +53,37 @@ public:
 #else
       c = iconv_open(to->getCode(), from->getCode());
 #endif
-      if (c == (iconv_t) -1) {
+      if (c == reinterpret_cast<iconv_t>(-1)) {
          if (errno == EINVAL) {
-            xsink->raiseException("ENCODING-CONVERSION-ERROR", "cannot convert from \"%s\" to \"%s\"",
-                  from->getCode(), to->getCode());
+            throw qore::Exception("ENCODING-CONVERSION-ERROR", qore::StringBuilder() << "cannot convert from \""
+                  << from->getCode() << "\" to \"" << to->getCode() << "\"");
          } else {
-            reportUnknownError(xsink);
+            throw reportUnknownError(errno);
          }
       }
    }
 
    DLLLOCAL ~IconvHelper() {
-      if (c != (iconv_t) -1) {
-         iconv_close(c);
+      iconv_close(c);
+   }
+
+   DLLLOCAL Result iconv(char **inbuf, size_t *inavail, char **outbuf, size_t *outavail, bool flushing) {
+      if (iconv_adapter(::iconv, c, inbuf, inavail, outbuf, outavail) != static_cast<size_t>(-1)) {
+         return Result::Ok;
       }
-   }
-
-   DLLLOCAL size_t iconv(char **inbuf, size_t *inavail, char **outbuf, size_t *outavail) {
-      return iconv_adapter(::iconv, c, inbuf, inavail, outbuf, outavail);
-   }
-
-   void reportIllegalSequence(ExceptionSink *xsink) {
-      xsink->raiseException("ENCODING-CONVERSION-ERROR",
-            "illegal character sequence found in input type \"%s\" (while converting to \"%s\")",
-            from->getCode(), to->getCode());
-   }
-
-   void reportUnknownError(ExceptionSink *xsink) {
-      xsink->raiseErrnoException("ENCODING-CONVERSION-ERROR", errno, "unknown error converting from \"%s\" to \"%s\"",
-            from->getCode(), to->getCode());
+      switch (errno) {
+         case EINVAL:
+            if (flushing) {         //flushing - there will be no more input
+               throw reportIllegalSequence();
+            }
+            return Result::Invalid;
+         case E2BIG:
+            return Result::TooBig;
+         case EILSEQ:
+            throw reportIllegalSequence();
+         default:
+            throw reportUnknownError(errno);
+      }
    }
 
 private:
@@ -83,6 +92,17 @@ private:
    static size_t iconv_adapter(size_t (*iconv_f)(iconv_t, T, size_t *, char **, size_t *), iconv_t handle,
          char **inbuf, size_t *inavail, char **outbuf, size_t *outavail) {
       return (*iconv_f) (handle, const_cast<T>(inbuf), inavail, outbuf, outavail);
+   }
+
+   qore::Exception reportIllegalSequence() {
+      return qore::Exception("ENCODING-CONVERSION-ERROR", qore::StringBuilder()
+            << "illegal character sequence found in input type \"" << from->getCode() << "\" (while converting to \""
+            << to->getCode() << "\")");
+   }
+
+   qore::Exception reportUnknownError(int errCode) {
+      return qore::Exception("ENCODING-CONVERSION-ERROR", qore::StringBuilder() << "unknown error (errno "
+            << errCode << ") converting from \"" << from->getCode() << "\" to \"" << to->getCode() << "\"");
    }
 
 private:

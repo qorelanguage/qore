@@ -36,6 +36,7 @@
 #include "qore/Qore.h"
 #include "qore/intern/ql_compression.h"
 #include "qore/intern/CompressionTransforms.h"
+#include "qore/intern/core/Exception.h"
 
 #ifndef QORE_BZ2_WORK_FACTOR
 #define QORE_BZ2_WORK_FACTOR 30
@@ -810,11 +811,10 @@ Qore::TransformOutputStream ts(of, get_compressor(Qore::COMPRESSION_ALG_BZIP2));
     @return a @ref Transform object for compressing data using the given @ref compression_transformations "algorithm" for use with @ref TransformInputStream and @ref TransformOutputStream
  */
 Transform get_compressor(string alg, int level = COMPRESSION_LEVEL_DEFAULT) {
-   SimpleRefHolder<Transform> t(CompressionTransforms::getCompressor(alg, level, xsink));
-   if (*xsink) {
-      return 0;
-   }
-   return new QoreObject(QC_TRANSFORM, getProgram(), t.release());
+   try {
+      Transform *t = CompressionTransforms::getCompressor(alg->getBuffer(), level);
+      return new QoreObject(QC_TRANSFORM, getProgram(), t);
+   } CATCH(xsink, return 0)
 }
 
 //! Returns a @ref Transform object for decompressing data using the given @ref compression_transformations "algorithm" for use with @ref TransformInputStream and @ref TransformOutputStream
@@ -829,10 +829,9 @@ Qore::TransformOutputStream ts(of, get_decompressor(Qore::COMPRESSION_ALG_BZIP2)
     @return a @ref Transform object for decompressing data using the given @ref compression_transformations "algorithm" for use with @ref TransformInputStream and @ref TransformOutputStream
  */
 Transform get_decompressor(string alg) {
-   SimpleRefHolder<Transform> t(CompressionTransforms::getDecompressor(alg, xsink));
-   if (*xsink) {
-      return 0;
-   }
-   return new QoreObject(QC_TRANSFORM, getProgram(), t.release());
+   try {
+      Transform *t = CompressionTransforms::getDecompressor(alg->getBuffer());
+      return new QoreObject(QC_TRANSFORM, getProgram(), t);
+   } CATCH(xsink, return 0)
 }
 //@}
