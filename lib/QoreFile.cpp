@@ -424,7 +424,7 @@ int QoreFile::read(QoreString &str, qore_offset_t size, ExceptionSink *xsink) {
       if (priv->check_read_open(xsink))
 	 return -1;
 
-      buf = priv->readBlock(size, -1, xsink);
+      buf = priv->readBlock(size, -1, "read", xsink);
    }
    if (!buf)
       return -1;
@@ -444,7 +444,7 @@ QoreStringNode *QoreFile::read(qore_offset_t size, ExceptionSink *xsink) {
       if (priv->check_read_open(xsink))
 	 return 0;
 
-      buf = priv->readBlock(size, -1, xsink);
+      buf = priv->readBlock(size, -1, "read", xsink);
    }
    if (!buf)
       return 0;
@@ -472,7 +472,7 @@ int QoreFile::readBinary(BinaryNode &b, qore_offset_t size, ExceptionSink *xsink
       if (priv->check_read_open(xsink))
 	 return -1;
 
-      buf = priv->readBlock(size, -1, xsink);
+      buf = priv->readBlock(size, -1, "readBinary", xsink);
    }
    if (!buf)
       return -1;
@@ -494,7 +494,7 @@ BinaryNode *QoreFile::readBinary(qore_offset_t size, ExceptionSink *xsink) {
       if (priv->check_read_open(xsink))
 	 return 0;
 
-      buf = priv->readBlock(size, -1, xsink);
+      buf = priv->readBlock(size, -1, "readBinary", xsink);
    }
    if (!buf)
       return 0;
@@ -513,7 +513,7 @@ QoreStringNode *QoreFile::read(qore_offset_t size, int timeout_ms, ExceptionSink
       if (priv->check_read_open(xsink))
 	 return 0;
 
-      buf = priv->readBlock(size, timeout_ms, xsink);
+      buf = priv->readBlock(size, timeout_ms, "read", xsink);
    }
    if (!buf)
       return 0;
@@ -535,7 +535,7 @@ BinaryNode *QoreFile::readBinary(qore_offset_t size, int timeout_ms, ExceptionSi
       if (priv->check_read_open(xsink))
 	 return 0;
 
-      buf = priv->readBlock(size, timeout_ms, xsink);
+      buf = priv->readBlock(size, timeout_ms, "readBinary", xsink);
    }
    if (!buf)
       return 0;
