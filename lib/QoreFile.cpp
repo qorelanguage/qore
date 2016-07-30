@@ -327,7 +327,8 @@ struct qore_qf_private {
       while (true) {
 	 // wait for data
 	 if (timeout_ms >= 0 && !isDataAvailableIntern(timeout_ms, mname, xsink)) {
-	    assert(*xsink);
+	    if (!*xsink)
+	       xsink->raiseException("FILE-READ-TIMEOUT", "timeout limit exceeded (%d ms) reading file block in File::%s()", timeout_ms, mname);
 	    br = 0;
 	    break;
 	 }
