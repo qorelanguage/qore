@@ -587,11 +587,15 @@ public:
    DLLEXPORT void parseDefine(const char* str, AbstractQoreNode* val);
 
    //! defines a parse-time variables
-   /** @param defmap a map of variable names to values
+   /**
        @param xs exception sink for errors
        @param ws exception sink for warnings
        @param w warnings mask
+       @param defmap a map of variable names to values
    */
+   DLLEXPORT void parseCmdLineDefines(ExceptionSink& xs, ExceptionSink& ws, int w, const std::map<std::string, std::string>& defmap);
+
+   // deprecated function still part of the ABI
    DLLEXPORT void parseCmdLineDefines(const std::map<std::string, std::string> defmap, ExceptionSink& xs, ExceptionSink& ws, int w);
 
    DLLLOCAL QoreProgram(QoreProgram* pgm, int64 po, bool ec = false, const char* ecn = 0);

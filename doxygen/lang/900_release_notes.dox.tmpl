@@ -2,6 +2,94 @@
 
     @tableofcontents
 
+    @section qore_0813 Qore 0.8.13
+
+    @par Release Summary
+
+    @subsection qore_0813_compatibility Changes That Can Affect Backwards-Compatibility
+    - fixed broken @ref continue "continue" and @ref break "break" statements that were accepted anywhere in the source and behaved like a @ref return "return" statement; now such statements outside a loop context will result in a parse exception; to get the old behavior, use @ref broken-loop-statement "%broken-loop-statement" in your source code
+
+    @subsection qore_0813_new_features New Features in Qore
+    - support for input and output streams for the efficient piecewise processing of small or large amounts of data with a low memory overhead; includes the following classes:
+      - @ref Qore::BinaryInputStream "BinaryInputStream"
+      - @ref Qore::BinaryOutputStream "BinaryOutputStream"
+      - @ref Qore::EncodingConversionInputStream "EncodingConversionInputStream"
+      - @ref Qore::EncodingConversionOutputStream "EncodingConversionOutputStream"
+      - @ref Qore::FileInputStream "FileInputStream"
+      - @ref Qore::FileOutputStream "FileOutputStream"
+      - @ref Qore::InputStream "InputStream"
+      - @ref Qore::InputStreamLineIterator "InputStreamLineIterator"
+      - @ref Qore::OutputStream "OutputStream"
+      - @ref Qore::PipeInputStream "PipeInputStream"
+      - @ref Qore::PipeOutputStream "PipeOutputStream"
+      - @ref Qore::StreamPipe "StreamPipe"
+      - @ref Qore::StreamReader "StreamReader"
+      - @ref Qore::StreamWriter "StreamWriter"
+      - @ref Qore::StringInputStream "StringInputStream"
+      - @ref Qore::StringOutputStream "StringOutputStream"
+      - @ref Qore::TransformInputStream "TransformInputStream"
+      - @ref Qore::TransformOutputStream "TransformOutputStream"
+      .
+      Three constants were introduced for accessing standard input/output using streams API:
+      - @ref Qore::stdin_stream "stdin_stream"
+      - @ref Qore::stdout_stream "stdout_stream"
+      - @ref Qore::stderr_stream "stderr_stream"
+      .
+      Additionally, stream support has been added to the following functions and methods:
+      - @ref Qore::FtpClient::put()
+      - @ref Qore::FtpClient::get()
+      - @ref Qore::HTTPClient::sendWithOutputStream()
+      - @ref Qore::Socket::sendHTTPChunkedBodyFromInputStream()
+      - @ref Qore::Socket::readHTTPChunkedBodyToOutputStream()
+      .
+      Stream support was also added to the following user modules:
+      - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a>
+      - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a>
+    - support for @ref op_functional "lazy functional evaluation" of functional operators (including nested lazy evaluation) for much more efficient processing of iterated expressions; affects:
+      - @ref map "map": supports lazy evaluation of itself also of the iterator expression
+      - @ref select "select": supports lazy evaluation of itself and also of the iterator expression
+      - @ref keys "keys": supports lazy evaluation
+      - @ref foldl "foldl": supports lazy evaluation of the iterator expression
+      - @ref foldr "foldlr": supports lazy evaluation of the iterator expression
+      - @ref foreach "foreach": supports lazy evaluation of the iterator expression
+    - implemented additional parse-time checks for many @ref operators "operators" to provide feedback for invalid operations detected at parse time
+    - new parse options:
+      - @ref broken-loop-statement "%broken-loop-statement"
+    - new constants:
+      - @ref Qore::PO_BROKEN_LOOP_STATEMENT
+    - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module updates:
+      - added a minimal substring of string bodies received to the log message when logging HTTP requests
+    - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
+      - added support for streams
+    - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module updates:
+      - added support for streams
+    - updated the build to require a <a href="https://en.wikipedia.org/wiki/C%2B%2B11">C++11</a> compiler or better to build %Qore (<a href="https://github.com/qorelanguage/qore/issues/994">issue 994</a>)
+
+    @subsection qore_0813_bug_fixes Bug Fixes in Qore
+    - fixed a bug causing @ref Qore::AbstractQuantifiedBidirectionalIterator "AbstractQuantifiedBidirectionalIterator" not being available (<a href="https://github.com/qorelanguage/qore/issues/968">issue 968</a>)
+    - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module fixes:
+      - fixed a bug in an error message validating input data (<a href="https://github.com/qorelanguage/qore/issues/1062">issue 1062</a>)
+    - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module fixes:
+      - added logic to attempt to mask passwords in log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
+    - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> module fixes:
+      - fixed a bug where the \a msg arg to \c AbstractAuthenticator::do401() was ignored (<a href="https://github.com/qorelanguage/qore/issues/1047">issue 1047</a>)
+    - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module fixes:
+      - added logic to attempt to mask passwords in debug log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
+    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module fixes:
+      - fixed a bug in update and upsert statement generation when the given data does not have enough columns to use the unique index found, an error message is generated that contains all the columns names instead of just the column names required by the index (<a href="https://github.com/qorelanguage/qore/issues/1013">issue 1013</a>)
+    - <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module fixes:
+      - fixed a bug with the \c SqlStatementOutboundMapper::iterator() method; corrected the iterator object return value which was causing \c AbstractMapperIterator::mapBulk() to fail (<a href="https://github.com/qorelanguage/qore/issues/979">issue 979</a>)
+      - fixed a bug with \c SqlStatementOutboundMapper; it would throw an error if the required \c "table" or \c "sh" options were used and only worked with subclasses that declared these options (<a href="https://github.com/qorelanguage/qore/issues/981">issue 981</a>)
+      - fixed a bug where \c AbstractSqlStatementOutboundMapper::iterator() failed to use options when creating the new \c Mapper object (<a href="https://github.com/qorelanguage/qore/issues/1088">issue 1088</a>)
+    - fixed a bug where optional arguments were not handled correctly in some rare cases (<a href="https://github.com/qorelanguage/qore/issues/974">issue 974</a>)
+    - fixed a bug causing a crash when @ref Qore::parse_base64_string_to_string() "parse_base64_string_to_string()" was called with an empty string (<a href="https://github.com/qorelanguage/qore/issues/996">issue 996</a>)
+    - fixed a bug where @ref break "break" and @ref continue "continue" statements were accepted outside of loops (<a href="https://github.com/qorelanguage/qore/issues/976">issue 976</a>)
+    - fixed a bug compiling on Solaris SPARC with g++ where \c MPFR_DECL_INIT() is compiled incorrectly with -O1 or greater (<a href="https://github.com/qorelanguage/qore/issues/958">issue 958</a>)
+    - fixed a bug resolving base class method calls during parse initialization (<a href="https://github.com/qorelanguage/qore/issues/1075">issue 1075</a>)
+    - fixed a bug causing an infinite loop in decompression functions (<a href="https://github.com/qorelanguage/qore/issues/966">issue 966</a>)
+    - fixed thread memory handling bug with some operator expressions and the @ref background "background operator" (<a href="https://github.com/qorelanguage/qore/issues/1096">issue 1096</a>)
+    - fixed an issue where an internal C++ API (QoreProgram::parseCmdLineDefines()) performed a needless copy of a data structure (<a href="https://github.com/qorelanguage/qore/issues/1099">issue 1099</a>)
+
     @section qore_0812 Qore 0.8.12
 
     @par Release Summary
@@ -271,8 +359,8 @@
       - column aliases (defined with cop_as()) can now be used in the where hash argument and in join criteria
       - column operator functions can be used in the where clause and in join conditions (<a href="https://github.com/qorelanguage/qore/issues/529">issue 529</a>)
       - implemented the \c "cop_coalesce()" column operation function to support the \c "COALESCE" operator in queries (<a href="https://github.com/qorelanguage/qore/issues/671">issue 671</a>)
-      - implemented @ref SqlUtil::cop_substr() and @ref SqlUtil::uop_substr() operators (<a href="https://github.com/qorelanguage/qore/issues/801">issue 801</a>)
-      - implemented @ref SqlUtil::op_substr() where operator (<a href="https://github.com/qorelanguage/qore/issues/883">issue 883</a>)
+      - implemented \c cop_substr() and \c uop_substr() operators (<a href="https://github.com/qorelanguage/qore/issues/801">issue 801</a>)
+      - implemented \c op_substr() where operator (<a href="https://github.com/qorelanguage/qore/issues/883">issue 883</a>)
       - implemented the \c "omit_update" upsert option for asymmetrical upserts (updates only update a subset of the columns inserted) (<a href="https://github.com/qorelanguage/qore/issues/791">issue 791</a>)
       - implemented the \c "UpsertUpdateOnly" upsert option (<a href="https://github.com/qorelanguage/qore/issues/793">issue 793</a>)
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module updates:
@@ -365,7 +453,7 @@
       - \c schema member incorrectly set by @ref Qore::SQL::AbstractDatasource::getUserName() "AbstractDatasource::getUserName()" instead of @ref Qore::SQL::AbstractDatasource::getDBName() "AbstractDatasource::getDBName()" (<a href="https://github.com/qorelanguage/qore/pull/519">issue 519</a>)
     -  <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module fixes:
       - fixed a bug where template programs with @ref Qore::PO_ALLOW_BARE_REFS set did not work
-      - fixed a bug serviing index files in @ref WebUtil::FileHandler::tryServeRequest() "FileHandler::tryServeRequest()" where index files could be incorrectly served with a \c "204 No Content" response (<a href="https://github.com/qorelanguage/qore/issues/616">issue 616</a>)
+      - fixed a bug serviing index files in \c FileHandler::tryServeRequest() where index files could be incorrectly served with a \c "204 No Content" response (<a href="https://github.com/qorelanguage/qore/issues/616">issue 616</a>)
     - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a> module fixes:
       - fixed a bug where the connection object was deleted when the connection closes which could cause excess exceptions in multithreaded server code
       - added the WebSocketConnection::connectionClosed() method to be called when the connection is closed
@@ -536,7 +624,7 @@
     - fixed a bug where \c CALL-WITH-TYPE-ERROR exceptions were thrown based on the parse options in the caller instead of in the target when calling across a @ref Qore::Program "Program" barrier (<a href="https://github.com/qorelanguage/qore/issues/841">issue 841</a>)
     - fixed a bug where @ref Qore::is_writable() and @ref Qore::is_readable() could return an incorrect value in some cases (<a href="https://github.com/qorelanguage/qore/issues/852">issue 852</a>)
     - fixed a bug where @ref Qore::format_number() would return an invalid string when the number of decimals to be returned was 0 (<a href="https://github.com/qorelanguage/qore/issues/851">issue 851</a>)
-    - fixed a bug where the @ref delete "delete" and @ref "remove" operators would incorrectly create hash keys when attempting to delete inside complex hash structures with non-existent keys (<a href="https://github.com/qorelanguage/qore/issues/855">issue 855</a>)
+    - fixed a bug where the @ref delete "delete" and @ref remove "remove" operators would incorrectly create hash keys when attempting to delete inside complex hash structures with non-existent keys (<a href="https://github.com/qorelanguage/qore/issues/855">issue 855</a>)
     - fixed a bug where duplicate global variable declarations caused a crash (<a href="https://github.com/qorelanguage/qore/issues/891">issue 891</a>)
     - fixed a memory leak in @ref Qore::SQL::DatasourcePool "DatasourcePool" initialization when the minimum connections cannot be established (<a href="https://github.com/qorelanguage/qore/issues/994">issue 994</a>)
     - fixed handling of NaN values in logical operators (<a href="https://github.com/qorelanguage/qore/issues/915">issue 915</a>)
@@ -613,8 +701,8 @@
       - fixed selects with "limit" but no "offset"
       - convert date/time values to timestamps with microseconds resolution instead of dates with second resolution when dynamically inserting values as strings in SQL (binding by value not affected)
     - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
-      - added the \c "write-headers" option to @ref CsvUtil::AbstractCsvWriter and subclasses to enable headers to be suppressed
-      - added the \c "optimal-quotes" option to @ref CsvUtil::AbstractCsvWriter and subclasses to enable more efficient csv output (now the default)
+      - added the \c "write-headers" option to \c AbstractCsvWriter and subclasses to enable headers to be suppressed
+      - added the \c "optimal-quotes" option to \c AbstractCsvWriter and subclasses to enable more efficient csv output (now the default)
     - added @ref Qore::SQL::AbstractDatasource::currentThreadInTransaction() "AbstractDatasource::currentThreadInTransaction()" which is reimplemented as @ref Qore::SQL::Datasource::currentThreadInTransaction() "Datasource::currentThreadInTransaction()" and @ref Qore::SQL::DatasourcePool::currentThreadInTransaction() "DatasourcePool::currentThreadInTransaction()"; the base class method throws an exception when called; it was not added as an abstract method in order to not break existing subclasses of AbstractDatasource
     - enhanced module license support
       - module license strings may now be specified in binary and user modules
