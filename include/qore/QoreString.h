@@ -1,4 +1,4 @@
-/* -*- mode: c++; indent-tabs-mode: nil -*- */  
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreString.h
 
@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -42,6 +42,38 @@
 class DateTime;
 class BinaryNode;
 
+//! @defgroup StringConcatEncoding String Concatenation Encoding Codes
+/**
+ */
+//@{
+//! code for encoding HTML entities
+#define CE_HTML (1 << 0)
+//! code for encoding XML entities
+#define CE_XML  (1 << 1)
+//! code for encoding all non-ASCII symbols as unicode character entities
+#define CE_NONASCII (1 << 2)
+//! code for encoding XHTML entities
+#define CE_XHTML (CE_HTML | CE_XML)
+//! code for encoding everything
+#define CE_ALL (CE_XHTML | CE_NONASCII)
+//@}
+
+//! @defgroup StringConcatDecoding String Concatenation Decoding Codes
+/**
+ */
+//@{
+//! code for decoding HTML entities
+#define CD_HTML (1 << 0)
+//! code for decoding XML entities
+#define CD_XML  (1 << 1)
+//! code for decoding numeric character references to symbols
+#define CD_NUM_REF (1 << 2)
+//! code for decoding XHTML entities
+#define CD_XHTML (CD_HTML | CD_XML)
+//! code for decoding everything
+#define CD_ALL (CD_XHTML | CD_NUM_REF)
+//@}
+
 //! Qore's string type supported by the QoreEncoding class
 /** A QoreString is implemented by a char pointer, a byte length, and a QoreEncoding pointer.
     For the equivalent Qore parse tree/value type, see QoreStringNode
@@ -69,7 +101,6 @@ protected:
 
    DLLLOCAL int snprintf(size_t size, const char* fmt, ...);
    DLLLOCAL int vsnprintf(size_t size, const char* fmt, va_list args);
-   DLLLOCAL static int convert_encoding_intern(const char* src, qore_size_t src_len, const QoreEncoding* from, QoreString& targ, const QoreEncoding* to, ExceptionSink* xsink);
 
 public:
    //! creates an empty string and assigns the default encoding QCS_DEFAULT
@@ -127,7 +158,7 @@ public:
    DLLEXPORT ~QoreString();
 
    //! returns the number of characters (not bytes) in the string
-   /** an invalid character length may be returned if invalid character encodings are found in a multi-byte character encoding 
+   /** an invalid character length may be returned if invalid character encodings are found in a multi-byte character encoding
     */
    DLLEXPORT qore_size_t length() const;
 
@@ -143,23 +174,66 @@ public:
    //! sets the value to the copy of the QoreString passed
    DLLEXPORT void set(const QoreString& str);
 
+   //! takes ownership of the char* passed; discards current state
+   DLLEXPORT void set(char* nbuf, size_t nlen, size_t nallocated, const QoreEncoding* enc);
+
    //! changes the tagged encoding to the given encoding; does not affect the actual string buffer, only changes the tagged encoding value
    DLLEXPORT void setEncoding(const QoreEncoding* new_encoding);
 
+   //! concatenates a string and encodes it according to the encoding argument passed
+   /** @param xsink Qore-language exceptions (in this case character encoding conversion errors) are raised here
+       @param str the source string for the concatenation; it is converted to the target character encoding (of 'this') unless CE_NONASCII is given in the \a code argument
+       @param code an encoding bitfield argument; see @ref StringConcatEncoding for more information
+
+       @return -1 if a Qore-language exception was thrown, 0 if not
+
+       @see concatDecode()
+
+       @since %Qore 0.8.12
+    */
+   DLLEXPORT int concatEncode(ExceptionSink* xsink, const QoreString& str, unsigned code = CE_XHTML);
+
+   //! concatenates a string and decodes HTML, XML, and numeric character references as per the supplied arguments
+   /** @param xsink Qore-language exceptions (in this case character encoding conversion errors) are raised here
+       @param str the string to concentenate; it is converted to the target character encoding (of 'this') unless CD_NUM_REF is given in the \a code argument
+       @param code a decoding bitfield arguments; see @ref StringConcatDecoding for more information
+
+       @return -1 if a Qore-language exception was thrown, 0 if not
+
+       @note if the target character encoding of 'this' cannot support the decoded symbol, the character reference is not decoded but rather concatenated as-is
+
+       @see concatEncode()
+
+       @since %Qore 0.8.12
+    */
+   DLLEXPORT int concatDecode(ExceptionSink* xsink, const QoreString& str, unsigned code = CD_ALL);
+
    //! concatenates HTML-encoded version of the c-string passed
+   /**
+       @deprecated does not do any character encoding conversions; use concatEncode() instead
+    */
    DLLEXPORT void concatAndHTMLEncode(const char* str);
 
    //! concatenates HTML-decoded version of the c-string passed
+   /**
+       @deprecated does not do any character encoding conversions; use concatDecode() instead
+    */
    DLLEXPORT void concatAndHTMLDecode(const QoreString* str);
 
    //! concatenates HTML-decoded version of the c-string passed with the given length
+   /**
+       @deprecated does not do any character encoding conversions; use concatDecode() instead
+    */
    DLLEXPORT void concatAndHTMLDecode(const char* str, size_t slen);
 
    //! concatenates HTML-decoded version of the c-string passed
+   /**
+       @deprecated does not do any character encoding conversions; use concatDecode() instead
+    */
    DLLEXPORT void concatAndHTMLDecode(const char* str);
 
    //! concatenates a URL-decoded version of the c-string passed
-   /** @deprecated does not support RFC 3986, use concatEncodeUrl(ExceptionSink*, const QoreString&, bool) instead
+   /** @deprecated does not support RFC 3986, use concatDecodeUrl(const QoreString&, ExceptionSink*) instead
     */
    DLLEXPORT void concatDecodeUrl(const char* url);
 
@@ -193,8 +267,14 @@ public:
    //! concatenates a string and escapes character c with esc_char
    DLLEXPORT void concatEscape(const char* str, char c, char esc_char = '\\');
 
-   //! concatenation with character set conversion
-   DLLEXPORT void concatAndHTMLEncode(const QoreString* , ExceptionSink* xsink);
+   //! concatenation with HTML special character encoding
+   /** equivalent to concatEncode() with code = CE_HTML
+
+       @see concatEncode()
+
+       @deprecated use concatEncode() instead
+    */
+   DLLEXPORT void concatAndHTMLEncode(const QoreString* str, ExceptionSink* xsink);
 
    //! concatenates a string and converts encodings if necessary
    DLLEXPORT void concat(const QoreString* str, ExceptionSink* xsink);
@@ -259,7 +339,7 @@ public:
    DLLEXPORT QoreString* parseBase64ToString(ExceptionSink* xsink) const;
 
    //! parses the current string data as base64-encoded data and returns it as a QoreString pointer owned by the caller
-   /** 
+   /**
        @param enc the encoding to tag the decoded string with
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return a QoreString of the decoded data (0 if an exception occurs), the QoreString pointer is owned by the caller
@@ -303,7 +383,7 @@ public:
    //! compares the string with another string, performing character set encoding conversion if necessary
    /**
       @param str the string to compare
-      @param xsink if an error occurs, the Qore-language exception information will be added here	 
+      @param xsink if an error occurs, the Qore-language exception information will be added here
       @return -1, 0, or 1 if "this" is less than, equal to, or greater than "str" respectively
    */
    DLLEXPORT int compareSoft(const QoreString* str, ExceptionSink* xsink) const;
@@ -334,7 +414,7 @@ public:
 
    //! returns true if the strings are equal, false if not, if the character encodings are different, then the encoding of the argument string is temporarily converted to the encoding of the current string to do the comparison
    /** @param str the string to compare
-       @param xsink if an error occurs, the Qore-language exception information will be added here	 
+       @param xsink if an error occurs, the Qore-language exception information will be added here
        @return true if the strings are equal, false if not
 
        @since Qore 0.8.8
@@ -353,7 +433,7 @@ public:
 
    //! returns true if the beginning of the current string matches the argument string, false if not, if the character encodings are different, then the encoding of the argument string is temporarily converted to the encoding of the current string to do the comparison
    /** @param str the string to compare
-       @param xsink if an error occurs, the Qore-language exception information will be added here	 
+       @param xsink if an error occurs, the Qore-language exception information will be added here
        @return true if the beginning of the current string matches the argument string, false if not
 
        @since Qore 0.8.8
@@ -362,7 +442,7 @@ public:
 
    //! returns true if the begining of the current string matches the argument string where either both strings are the same size or the current string has a '/' or '?' character after the point where the argument string stops, false if not, if the character encodings are different, then the encoding of the argument string is temporarily converted to the encoding of the current string to do the comparison
    /** @param str the string to compare
-       @param xsink if an error occurs, the Qore-language exception information will be added here	 
+       @param xsink if an error occurs, the Qore-language exception information will be added here
        @return true if the beginning of the current string matches the argument string where either both strings are the same size or the current string has a '/' or '?' character after the point where the argument string stops, false if not
 
        @since Qore 0.8.8
@@ -565,6 +645,9 @@ public:
    //! returns the string's buffer; this data should not be changed
    DLLEXPORT const char* getBuffer() const;
 
+   //! returns the string's buffer; this data should not be changed
+   DLLEXPORT const char* c_str() const;
+
    //! Ensure the internal buffer has at least expected size in bytes
    /** Useful to eliminate repeated buffer reallocations when data are appended in a loop
     */
@@ -664,6 +747,8 @@ public:
    /** if the string is not in UTF-8 encoding, only a single character is converted to make the unicode code point calculation
        @param offset the offset in bytes in the string
        @param len the length of the character in bytes in the source string in the original encoding
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+
        @return the unicode code for the character at the given byte offset
 
        @since Qore 0.8.8
@@ -746,6 +831,12 @@ public:
 
    //! returns the last byte position of a character (byte) within the string or -1 if not found
    DLLEXPORT qore_offset_t rfind(char c, qore_offset_t pos = -1) const;
+
+   //! returns the byte position of any of the given characters (bytes) within the string or -1 if not found
+   DLLEXPORT qore_offset_t findAny(const char *str, qore_offset_t pos = 0) const;
+
+   //! returns the last byte position of any of the given characters (bytes) within the string or -1 if not found
+   DLLEXPORT qore_offset_t rfindAny(const char *str, qore_offset_t pos = -1) const;
 
    //! returns true if the string is empty or only contains printable non-control ASCII characters (ie all characters > 31 && < 127)
    /** @note the string's encoding is ignored and the data itself is scanned for the return value
@@ -933,7 +1024,7 @@ public:
    }
 
    //! discards any current state and sets and converts (if necessary) a new string to the desired encoding
-   /** note that the return value is the opposite of most qore functions because 
+   /** note that the return value is the opposite of most qore functions because
        it was implemented incorrectly; the documentation has been changed to reflect
        the incorrect implementation; the implementation was not fixed in order to preserve
        source compatibility
@@ -988,4 +1079,3 @@ public:
 };
 
 #endif
-

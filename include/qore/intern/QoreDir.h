@@ -6,8 +6,8 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
-  
+  Copyright (C) 2003 - 2016 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -55,13 +55,13 @@ class QoreDir {
 private:
    //! private implementation
    class qore_qd_private *priv;
-      
+
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreDir(const QoreDir&);
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreDir& operator=(const QoreDir&);
-      
+
 public:
    //! creates the object and sets the default encoding
    /**
@@ -95,7 +95,7 @@ public:
        @return 0 = OK, -1 = an exception was raised
    */
    DLLEXPORT int mkdir(ExceptionSink *xsink, const char *subdir, int mode = 0777) const;
-      
+
    //! removes a subdirectory of the current directory
    /** @param subdir the subdirectory name to remove
        @param xsink if errors occur, qore-language exception information is added here
@@ -116,7 +116,7 @@ public:
        @param gid the GID to change to (-1 = leave the same)
        @param xsink if errors occur, qore-language exception information is added here
        @return 0 = OK, -1 = an exception was raised
-   */	  
+   */
    DLLEXPORT int chown(uid_t uid, gid_t gid, ExceptionSink *xsink) const;
 #endif
 
@@ -147,7 +147,7 @@ public:
    /** @return the encoding used for the filesystem
     */
    DLLEXPORT const QoreEncoding *getEncoding() const;
-      
+
    //! returns a new file in this directory
    /**
       @param xsink if errors occur, qore-language exception information is added here

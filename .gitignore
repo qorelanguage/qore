@@ -6,6 +6,7 @@
 *.trs
 .nfs*
 *~
+*.sw?
 
 # Automake & friends
 .deps
@@ -27,8 +28,10 @@ config.sub
 configure
 depcomp
 install-sh
-qore
+/qore
 qr
+qore.exe
+qr.exe
 qore.pc
 qore.spec
 test-driver
@@ -50,9 +53,12 @@ include/qore/intern/stamp-h1
 include/qore/intern/svn-revision.h
 include/qore/intern/unix-config.h
 include/qore/intern/unix-config.h.in
+include/qore/intern/git-revision.h
 
 # lib/
 lib/qpp
+lib/qpp.exe
+lib/qpp_native
 lib/*.dox.h
 lib/Pseudo_QC_*.cpp
 lib/QC_*.cpp
@@ -79,17 +85,38 @@ lib/ql_type.cpp
 # Bison
 lib/parser.cpp
 lib/parser.hpp
+lib/parser.h
 lib/scanner.cpp
 
 # Doxygen generated files
 docs
 *.dox.*
-Doxyfile*
 doxygen/lang/*.dox
+Doxyfile
+Doxyfile.???*
 *.tag
 
 # release pkgs
 *.bz2
 
-# ignore compiled emacs files
+# compiled emacs lisp
 *.elc
+
+# Darwin files
+*.dSYM/
+.DS_Store
+
+# Eclipse
+.autotools
+.cproject
+.project
+.settings/
+
+# ignore cmake build directories
+build*/
+
+# ignore fontconfig generated files
+fontconfig/
+
+# do not ignore the following directories (matched by patterns above)
+!examples/test/qore/

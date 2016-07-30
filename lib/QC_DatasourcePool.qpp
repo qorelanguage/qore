@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,15 +34,14 @@
 
 #include <qore/intern/QC_DatasourcePool.h>
 
+extern QoreClass* QC_ABSTRACTDATASOURCE;
+
 #define DP_MIN 3
 #define DP_MAX 10
 
 static const char *DSPC_ERR = "DATASOURCEPOOL-CONSTRUCTOR-ERROR";
 
-static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queue* queue, const AbstractQoreNode* arg, ExceptionSink* xsink) {
-   if (arg && !queue)
-      arg = 0;
-
+static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queue* queue, const QoreValue& arg, ExceptionSink* xsink) {
    ReferenceHolder<Queue> q(queue, xsink);
 
    const char *str = check_hash_key(opts, "type", DSPC_ERR, xsink);
@@ -119,34 +118,43 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Que
    if (!max)
       max = DP_MAX;
 
-   ReferenceHolder<DatasourcePool> ds(new DatasourcePool(xsink, db_driver, user, pass, db, charset, host, min, max, port, oh, q.release(), arg ? arg->refSelf() : 0), xsink);
+   SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(xsink, db_driver, user, pass, db, charset, host, min, max, port, oh, q.release(), arg.getReferencedValue()));
    if (!*xsink)
       self->setPrivate(CID_DATASOURCEPOOL, ds.release());
+   else
+      ds->destructor(xsink);
 }
 
 //! Provides transparent per-thread, per-transaction datasource connection pooling
-/** In most cases, the %DatasourcePool class can be used as a drop-in replacement for the Datasource class with autocommit disabled; when a transaction begins, a datasource will be automatically assigned to the calling thread, and it will only be released when a commit or rollback is called on the object. If no datasource is available, the calling thread will block until a datasource comes available.
-
-    Note that the same principles apply to %SQL and database driver usage as with the Datasource class, see the Datasource class documentation for more information.
-
+/** @par Overview
+    In most cases, the %DatasourcePool class can be used as a drop-in replacement for the Datasource class with autocommit disabled; when a transaction begins, a datasource will be automatically assigned to the calling thread, and it will only be released when a commit or rollback is called on the object. If no datasource is available, the calling thread will block until a datasource comes available.\n\n
+    Note that the same principles apply to %SQL and database driver usage as with the Datasource class, see the @ref Qore::SQL::Datasource "Datasource" class documentation for more information.\n\n
     The %DatasourcePool class uses %Qore's thread resource tracking infrastructure to raise an exception if a thread terminates while a connection is allocated to it. If %Qore user code enters a transaction with a %DatasourcePool object and the thread terminates without closing the transaction (via DatasourcePool::commit() or DatasourcePool::rollback()), an exception will automatically be raised, the transaction will be rolled back, and the Datasource connection will be freed to the pool.
 
     @anchor datasourcepool_connection_allocations
-    <b>%DatasourcePool Connection Allocations</b>
-
+    @par DatasourcePool Connection Allocations
     The following methods allocate a persistent connection to the calling thread:
     - DatasourcePool::exec()
     - DatasourcePool::vexec()
     - DatasourcePool::execRaw()
     - DatasourcePool::beginTransaction()
+    .
+    The connection is released to the pool when DatasourcePool::commit() or DatasourcePool::rollback() are called (or in the case the thread terminates, in which case an exception is raised as well).\n\n
+    To begin a transaction with one of the select methods (for example, with \c "select for update"), call DatasourcePool::beginTransaction() first to manually dedicate a Datasource to the thread before calling the select method. Otherwise statements that should be in the same transaction may be executed in different connections.\n\n
+    Executing a %DatasourcePool method while not in a transaction is realized by allocating a temporary connection to the calling thread which is re-released when the method returns. No explicit commits are executed by the class, therefore it is an error to execute transaction-relevant commands without first calling DatasourcePool::exec(), DatasourcePool::vexec(), DatasourcePool::execRaw(), or DatasourcePool::beginTransaction().\n\n
+    Note that the @ref Qore::SQL::SQLStatement "SQLStatement" class also grabs allocates a persistent connection to the calling thread when executing if it is created using a %DatasourcePool object in the constructor; for more information see the @ref Qore::SQL::SQLStatement "SQLStatement" class documentation.
 
-    The connection is released to the pool when DatasourcePool::commit() or DatasourcePool::rollback() are called (or in the case the thread terminates, in which case an exception is raised as well).
-
-    To begin a transaction with one of the select methods (for example, with \c "select for update"), call DatasourcePool::beginTransaction() first to manually dedicate a Datasource to the thread before calling the select method. Otherwise statements that should be in the same transaction may be executed in different connections.
-
-    Executing a %DatasourcePool method while not in a transaction is realized by allocating a temporary connection to the calling thread which is re-released when the method returns. No explicit commits are executed by the class, therefore it is an error to execute transaction-relevant commands without first calling DatasourcePool::exec(), DatasourcePool::vexec(), DatasourcePool::execRaw(), or DatasourcePool::beginTransaction().
-
-    Note that the SQLStatement class also grabs allocates a persistent connection to the calling thread when executing if it is created using a %DatasourcePool object in the constructor; for more information see the SQLStatement class.
+    @par Thread Resource Handling
+    The DatasourcePool class manages connection allocations as a @ref thread_resources "thread resource"; if the
+    connection is not released with a call to @ref Qore::SQL::DatasourcePool::commit() "DatasourcePool::commit()"
+    or @ref Qore::SQL::DatasourcePool::rollback() "DatasourcePool::rollback()" when the
+    thread exits (or when @ref Qore::throw_thread_resource_exceptions() or
+    @ref Qore::throw_thread_resource_exceptions_to_mark() is called), the transaction is rolled back automatically
+    and a \c DATASOURCE-TRANSACTION-EXCEPTION exception is raised describing the situation.\n\n
+    Being an builtin class, the DatasourcePool class does not
+    inherit @ref Qore::Thread::AbstractThreadResource "AbstractThreadResource" explicitly as a part of the exported API,
+    and the internal @ref Qore::Thread::AbstractThreadResource::cleanup() "AbstractThreadResource::cleanup()" method
+    cannot be overridden or suppressed.
 
     @note This class is not available with the @ref PO_NO_DATABASE parse option
 
@@ -168,8 +176,8 @@ qclass DatasourcePool [dom=DATABASE; arg=DatasourcePool* ds; ns=Qore::SQL; vpare
     @param arg an optional argument to be included in the \c arg key of datasource events
 
     @par Example:
-    @code
-my DatasourcePool $db(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 3, 10, 5432);
+    @code{.py}
+DatasourcePool db(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 3, 10, 5432);
     @endcode
 
     @throw DATASOURCEPOOL-UNSUPPORTED-DATABASE DBI driver cannot be found
@@ -210,11 +218,13 @@ DatasourcePool::constructor(string driver, *string user, *string pass, *string d
       return;
    }
 
-   ReferenceHolder<DatasourcePool> ds(new DatasourcePool(xsink, db_driver, user ? user->getBuffer() : 0, pass ? pass->getBuffer() : 0,
+   SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(xsink, db_driver, user ? user->getBuffer() : 0, pass ? pass->getBuffer() : 0,
 							 db ? db->getBuffer() : 0, encoding ? encoding->getBuffer() : 0, host ? host->getBuffer() : 0,
-							 min, max, port, 0, q.release(), arg ? arg->refSelf() : 0), xsink);
+							 min, max, port, 0, q.release(), arg.getReferencedValue()));
    if (!*xsink)
       self->setPrivate(CID_DATASOURCEPOOL, ds.release());
+   else
+      ds->destructor(xsink);
 }
 
 //! Creates a DatasourcePool object from a single string giving all parameters that can be parsed by parse_datasource()
@@ -223,8 +233,8 @@ DatasourcePool::constructor(string driver, *string user, *string pass, *string d
     @param arg an optional argument to be included in the \c arg key of datasource events
 
     @par Example:
-    @code
-my DatasourcePool ds("pgsql:user/pass@db01(utf8)%localhost:5432");
+    @code{.py}
+DatasourcePool ds("pgsql:user/pass@db01(utf8)%localhost:5432");
     @endcode
 
     @throw DATASOURCE-UNSUPPORTED-DATABASE DBI driver cannot be loaded
@@ -243,7 +253,7 @@ DatasourcePool::constructor(string desc, *Qore::Thread::Queue[Queue] queue, any 
    dsp_constructor_hash(*h, self, q.release(), arg, xsink);
 }
 
-//! Creates a Datasource object from a hash argument giving parameters for the constructor
+//! Creates a DatasourcePool object from a hash argument giving parameters for the constructor
 /** @param opts a hash giving parameters for the new datasource with the following possible keys (the \c "type" key is mandatory, also usable with the output of the parse_datasource() function):
     - \c type: (@ref string_or_nothing_type "*string") The name of the database driver to use; this key is mandatory; if not present, an exception will be raised. See @ref sql_constants for builtin constants for DBI drivers shipped with Qore, or see the DBI driver documentation to use an add-on driver (this string should be the name of the driver to be loaded)
     - \c user: (@ref string_or_nothing_type "*string") The user name for the new connection
@@ -257,8 +267,8 @@ DatasourcePool::constructor(string desc, *Qore::Thread::Queue[Queue] queue, any 
     @param arg an optional argument to be included in the \c arg key of datasource events
 
     @par Example:
-    @code
-my Datasource $db(("type": DSPGSQL, "user": "username", "pass": "password", "db": "database", "charset": "utf8", "host": "localhost", "port": 5432, "options": ("min": 3, "max": 10)));
+    @code{.py}
+Datasource db(("type": DSPGSQL, "user": "username", "pass": "password", "db": "database", "charset": "utf8", "host": "localhost", "port": 5432, "options": ("min": 3, "max": 10)));
     @endcode
 
     @throw DATASOURCEPOOL-UNSUPPORTED-DATABASE DBI driver cannot be loaded
@@ -272,22 +282,22 @@ DatasourcePool::constructor(hash opts, *Qore::Thread::Queue[Queue] queue, any ar
 //! Throws an exception if any transactions are in progress and returns immediately; the object is destroyed after any in-progress requests are completed
 /**
     @par Example:
-    @code
-delete $db;
+    @code{.py}
+delete db;
     @endcode
 
     @throw DATASOURCEPOOL-ERROR The destructor was called while a transaction was still in progress
  */
 DatasourcePool::destructor() {
    ds->destructor(xsink);
-   ds->deref(xsink);
+   ds->deref();
 }
 
 //! Creates a new Datasource object with the same driver as the original and copies of all the connection parameters
 /**
     @par Example:
-    @code
-my DatasourcePool $new_dsp = $dsp.copy();
+    @code{.py}
+DatasourcePool new_dsp = dsp.copy();
     @endcode
  */
 DatasourcePool::copy() {
@@ -297,8 +307,8 @@ DatasourcePool::copy() {
 //! Commits the current transaction and releases the connection to the pool
 /**
     @par Example:
-    @code
-$db.commit();
+    @code{.py}
+db.commit();
     @endcode
 
  */
@@ -309,8 +319,8 @@ nothing DatasourcePool::commit() {
 //! Rolls back the current transaction and releases the connection to the pool
 /**
     @par Example:
-    @code
-$db.rollback();
+    @code{.py}
+db.rollback();
     @endcode
 
  */
@@ -327,14 +337,14 @@ nothing DatasourcePool::rollback() {
     @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the %SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
 
     @par Example:
-    @code
-my int $rows = $db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", $string, now(), $binary, 100);
+    @code{.py}
+int rows = db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", string, now(), binary, 100);
     @endcode
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 any DatasourcePool::exec(string sql, ...) {
-   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
+   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->getOldList(1) : 0, xsink);
    return ds->exec(sql, *vargs, xsink);
 }
 
@@ -349,8 +359,8 @@ any DatasourcePool::exec(string sql, ...) {
     @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the %SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
 
     @par Example:
-    @code
-my int $rows = $db.vexec("insert into example_table value (%v, %v, %v)", $arg_list);
+    @code{.py}
+int rows = db.vexec("insert into example_table value (%v, %v, %v)", arg_list);
     @endcode
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
@@ -370,8 +380,8 @@ any DatasourcePool::vexec(string sql, *softlist vargs) {
     @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the %SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
 
     @par Example:
-    @code
-$db.execRaw("create table my_tab (id number, some_text varchar2(30))");
+    @code{.py}
+db.execRaw("create table my_tab (id number, some_text varchar2(30))");
     @endcode
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
@@ -396,9 +406,9 @@ any DatasourcePool::execRaw(string sql) {
     @return This method returns a hash (the keys are the column names) of lists (the column data per row) when executed with an %SQL select statement, however some DBI drivers allow any %SQL to be executed through this method, in which case other data types can be returned (such as an integer for a row count or a hash for output parameters when executing a stored procedure)
 
     @par Example:
-    @code
+    @code{.py}
 # bind a string and a date/time value by value in a query
-$query = $db.select("select * from table where varchar_column = %v and timestamp_column > %v", $string, 2007-10-11T15:31:26.289);
+query = db.select("select * from table where varchar_column = %v and timestamp_column > %v", string, 2007-10-11T15:31:26.289);
     @endcode
 
     @note
@@ -411,7 +421,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
     - @ref context
  */
 any DatasourcePool::select(string sql, ...) {
-   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
+   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->getOldList(1) : 0, xsink);
    return ds->select(sql, *vargs, xsink);
 }
 
@@ -428,8 +438,8 @@ any DatasourcePool::select(string sql, ...) {
     @return This method normally returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an %SQL select statement, however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
     @par Example:
-    @code
-my *hash $h = $db.selectRow("select * from example_table where id = 1");
+    @code{.py}
+*hash h = db.selectRow("select * from example_table where id = 1");
     @endcode
 
     @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
@@ -437,7 +447,7 @@ my *hash $h = $db.selectRow("select * from example_table where id = 1");
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 any DatasourcePool::selectRow(string sql, ...) {
-   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
+   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->getOldList(1) : 0, xsink);
    return ds->selectRow(sql, *vargs, xsink);
 }
 
@@ -456,8 +466,8 @@ any DatasourcePool::selectRow(string sql, ...) {
     @return Normally returns a list (rows) of hash (where the keys are the column names of each row) or @ref nothing if no rows are found for the query, however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
     @par Example:
-    @code
-my *list $list = $db.selectRows("select * from example_table");
+    @code{.py}
+*list list = db.selectRows("select * from example_table");
     @endcode
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
@@ -465,7 +475,7 @@ my *list $list = $db.selectRows("select * from example_table");
     @see DatasourcePool::select()
  */
 any DatasourcePool::selectRows(string sql, ...) {
-   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
+   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->getOldList(1) : 0, xsink);
    return ds->selectRows(sql, *vargs, xsink);
 }
 
@@ -483,8 +493,8 @@ any DatasourcePool::selectRows(string sql, ...) {
     @return Normally returns a hash (the keys are the column names) of list (each hash key's value is a list giving the row data), however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
     @par Example:
-    @code
-my *hash $query = $db.vselect("select * from example_table where id = %v and name = %v", $arg_list);
+    @code{.py}
+*hash query = db.vselect("select * from example_table where id = %v and name = %v", arg_list);
     @endcode
 
     @note
@@ -513,8 +523,8 @@ any DatasourcePool::vselect(string sql, *softlist vargs) {
     @return This method normally returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an %SQL select statement, however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
     @par Example:
-    @code
-my *hash $h = $db.vselectRow("select * from example_table where id = %v and type = %v", $arg_list);
+    @code{.py}
+*hash h = db.vselectRow("select * from example_table where id = %v and type = %v", arg_list);
     @endcode
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
@@ -542,8 +552,8 @@ any DatasourcePool::vselectRow(string sql, *softlist vargs) {
     @return Normally returns a list (rows) of hash (where the keys are the column names of each row) or @ref nothing if no rows are found for the query, however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
     @par Example:
-    @code
-my *list $list = $db.vselectRows("select * from example_table where id = %v and type = %v", $arg_list);
+    @code{.py}
+*list list = db.vselectRows("select * from example_table where id = %v and type = %v", arg_list);
     @endcode
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
@@ -562,8 +572,8 @@ any DatasourcePool::vselectRows(string sql, *softlist vargs) {
     To release the connection, call DatasourcePool::commit() or DatasourcePool::rollback()
 
     @par Example:
-    @code
-$db.beginTransaction();
+    @code{.py}
+db.beginTransaction();
     @endcode
  */
 nothing DatasourcePool::beginTransaction() {
@@ -574,8 +584,8 @@ nothing DatasourcePool::beginTransaction() {
 /** @return the username parameter as a string or @ref nothing if none is set
 
     @par Example:
-    @code
-my *string $user = $db.getUserName();
+    @code{.py}
+*string user = db.getUserName();
     @endcode
  */
 *string DatasourcePool::getUserName() [flags=CONSTANT] {
@@ -586,8 +596,8 @@ my *string $user = $db.getUserName();
 /** @return the password parameter as a string or @ref nothing if none is set
 
     @par Example:
-    @code
-my *string $pass = $db.getPassword();
+    @code{.py}
+*string pass = db.getPassword();
     @endcode
  */
 *string DatasourcePool::getPassword() [flags=CONSTANT] {
@@ -598,8 +608,8 @@ my *string $pass = $db.getPassword();
 /** @return the database name parameter as a string or @ref nothing if none is set
 
     @par Example:
-    @code
-my *string $db = $db.getDBName();
+    @code{.py}
+*string db = db.getDBName();
     @endcode
  */
 *string DatasourcePool::getDBName() [flags=CONSTANT] {
@@ -612,8 +622,8 @@ my *string $db = $db.getDBName();
     @return the database-specific charset set encoding for the object
 
     @par Example:
-    @code
-my string $enc = $db.getDBCharset();
+    @code{.py}
+string enc = db.getDBCharset();
     @endcode
  */
 *string DatasourcePool::getDBCharset() [flags=CONSTANT] {
@@ -624,8 +634,8 @@ my string $enc = $db.getDBCharset();
 /** @return the database-specific charset set encoding for the object
 
     @par Example:
-    @code
-my string $enc = $db.getDBEncoding();
+    @code{.py}
+string enc = db.getDBEncoding();
     @endcode
 
     @see DatasourcePool::getOSEncoding()
@@ -638,8 +648,8 @@ string DatasourcePool::getDBEncoding() [flags=CONSTANT] {
 /** @return the %Qore character encoding name for the object as a string or \c "(unknown)" if none is set
 
     @par Example:
-    @code
-my string $enc = $db.getOSCharset();
+    @code{.py}
+string enc = db.getOSCharset();
     @endcode
 
     @see DatasourcePool::getOSEncoding()
@@ -653,8 +663,8 @@ string DatasourcePool::getOSCharset() [flags=CONSTANT] {
 /** @return the %Qore character encoding name for the object as a string or @ref nothing if none is set
 
     @par Example:
-    @code
-my *string $enc = $db.getOSEncoding();
+    @code{.py}
+*string enc = db.getOSEncoding();
     @endcode
  */
 *string DatasourcePool::getOSEncoding() [flags=CONSTANT] {
@@ -666,8 +676,8 @@ my *string $enc = $db.getOSEncoding();
 /** @return the hostname parameter as a string or @ref nothing if none is set
 
     @par Example:
-    @code
-my *string $host = $db.getHostName();
+    @code{.py}
+*string host = db.getHostName();
     @endcode
  */
 *string DatasourcePool::getHostName() [flags=CONSTANT] {
@@ -678,8 +688,8 @@ my *string $host = $db.getHostName();
 /** Invalid port numbers will cause an exception to be thrown when the connection is opened
 
     @par Example:
-    @code
-my *int $port = $db.getPort();
+    @code{.py}
+*int port = db.getPort();
     @endcode
  */
 *int DatasourcePool::getPort() [flags=CONSTANT] {
@@ -691,8 +701,8 @@ my *int $port = $db.getPort();
 /** @return the name of the driver used for the object
 
     @par Example:
-    @code
-my string $driver = $db.getDriverName();
+    @code{.py}
+string driver = db.getDriverName();
     @endcode
  */
 string DatasourcePool::getDriverName() [flags=CONSTANT] {
@@ -703,8 +713,8 @@ string DatasourcePool::getDriverName() [flags=CONSTANT] {
 /** @return the minimum number of connections in this object
 
     @par Example:
-my int $min = $db.getMinimum();
-    @code
+int min = db.getMinimum();
+    @code{.py}
 
     @endcode
 
@@ -717,8 +727,8 @@ int DatasourcePool::getMinimum() [flags=CONSTANT] {
 /** @return the maximum number of connections in this object
 
     @par Example:
-    @code
-my int $max = $db.getMaximum();
+    @code{.py}
+int max = db.getMaximum();
     @endcode
 
  */
@@ -730,8 +740,8 @@ int DatasourcePool::getMaximum() [flags=CONSTANT] {
 /** @return a string with technical information about the object
 
     @par Example:
-    @code
-my string $str = $db.toString();
+    @code{.py}
+string str = db.toString();
     @endcode
 
  */
@@ -743,8 +753,8 @@ string DatasourcePool::toString() [flags=CONSTANT] {
 /** @return the driver-specific server version data for the current connection; see the DBI driver documentation for the return data type and format
 
     @par Example:
-    @code
-my any $ver = $db.getServerVersion();
+    @code{.py}
+any ver = db.getServerVersion();
     @endcode
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
@@ -757,8 +767,8 @@ any DatasourcePool::getServerVersion() {
 /** @return the driver-specific client library version information; this method may not be implemented for all drivers; see the DBI driver documentation for the return data type and format
 
     @par Example:
-    @code
-my any $ver = $db.getClientVersion();
+    @code{.py}
+any ver = db.getClientVersion();
     @endcode
 
     @note see the documentation for the DBI driver being used for possible exceptions
@@ -771,8 +781,8 @@ any DatasourcePool::getClientVersion() {
 /** @return @ref True if a transaction is currently in progress (meaning in this case that a datasource form the pool is dedicated to the calling thread), @ref False if not
 
     @par Example:
-    @code
-my bool $b = $db.inTransaction();
+    @code{.py}
+bool b = db.inTransaction();
     @endcode
  */
 bool DatasourcePool::inTransaction() [flags=CONSTANT] {
@@ -783,8 +793,8 @@ bool DatasourcePool::inTransaction() [flags=CONSTANT] {
 /** @return @ref True if the current thread is in a transaction (i.e. has a dedicated datasource allocation), @ref False if not
 
     @par Example:
-    @code
-my bool $b = $db.currentThreadInTransaction();
+    @code{.py}
+bool b = db.currentThreadInTransaction();
     @endcode
 
     @since %Qore 0.8.7
@@ -818,8 +828,8 @@ any DatasourcePool::getOption(string opt) [flags=RET_VALUE_ONLY] {
 
 //! Returns a @ref datasource_hash "datasource hash" describing the configuration of the current object
 /** @par Example:
-    @code
-my hash $h = $ds.getConfigHash();
+    @code{.py}
+hash h = ds.getConfigHash();
     @endcode
 
     @return a @ref datasource_hash "datasource hash" describing the configuration of the current object
@@ -832,8 +842,8 @@ hash DatasourcePool::getConfigHash() [flags=CONSTANT] {
 
 //! Returns a string giving the configuration of the current object in a format that can be parsed by parse_datasource()
 /** @par Example:
-    @code
-my string $str = $ds.getConfigString();
+    @code{.py}
+string str = ds.getConfigString();
     @endcode
 
     @return a string giving the configuration of the current object in a format that can be parsed by parse_datasource()
@@ -846,8 +856,8 @@ string DatasourcePool::getConfigString() [flags=CONSTANT] {
 
 //! clears any connection delay warning callback from the object
 /** @par Example:
-    @code
-$ds.clearWarningCallback();
+    @code{.py}
+ds.clearWarningCallback();
     @endcode
 
     @since %Qore 0.8.9
@@ -858,11 +868,11 @@ DatasourcePool::clearWarningCallback() {
 
 //! sets a connection delay warning callback to be called any time the delay assigning a connection from the pool exceeds the given timeout in milliseconds
 /** @par Example:
-    @code
-my code $cb = sub (string $dsstr, int $us, int $to) {
-    printf("WARNING: datasource pool %y took %f ms (threshold %d ms) to assign a new connection\n", $dsstr, $us.toNumber() / 1000n, $to);
+    @code{.py}
+code cb = sub (string dsstr, int us, int to) {
+    printf("WARNING: datasource pool %y took %f ms (threshold %d ms) to assign a new connection\n", dsstr, us.toNumber() / 1000n, to);
 };
-$ds.setWarningCallback(5s, $cb);
+ds.setWarningCallback(5s, cb);
     @endcode
 
     @param ms the period of time with a resolution of milliseconds after which the callback will be called if a connection cannot be allocated in the given time period
@@ -874,13 +884,13 @@ $ds.setWarningCallback(5s, $cb);
     @since %Qore 0.8.9
 */
 DatasourcePool::setWarningCallback(timeout ms, code callback, any arg) {
-   ds->setWarningCallback(ms, callback->refRefSelf(), arg ? arg->refSelf() : 0, xsink);
+   ds->setWarningCallback(ms, callback->refRefSelf(), arg.getReferencedValue(), xsink);
 }
 
 //! Returns a hash with usage information about the DatasourcePool object
 /** @par Example:
-    @code
-my hash $h = $ds.getUsageInfo();
+    @code{.py}
+hash h = ds.getUsageInfo();
     @endcode
 
     @return a hash with the following keys (note that the \c callback, \c timeout, and optionally \c arg keys are only set if a warning callback is set):
@@ -901,8 +911,8 @@ my hash $h = $ds.getUsageInfo();
 
 //! Sets the timeout period for waiting for a connection to come free; note that timeout values less than or equal to zero mean that requests for a connection will wait indefinitely
 /** @par Example:
-    @code
-$ds.setErrorTimeout(30s);
+    @code{.py}
+ds.setErrorTimeout(30s);
     @endcode
 
     @since %Qore 0.8.9
@@ -915,8 +925,8 @@ DatasourcePool::setErrorTimeout(timeout ts) {
 
 //! Returns the error timeout period for waiting for a connection to come free as an integer giving milliseconds; note that timeout values less than or equal to zero mean that requests for a connection will wait indefinitely
 /** @par Example:
-    @code
-my int $ms = $ds.getErrorTimeout();
+    @code{.py}
+int ms = ds.getErrorTimeout();
     @endcode
 
     @return the error timeout period for waiting for a connection to come free as an integer giving milliseconds; note that timeout values less than or equal to zero mean that requests for a connection will wait indefinitely
@@ -939,12 +949,10 @@ int DatasourcePool::getErrorTimeout() [flags=CONSTANT] {
 nothing DatasourcePool::setEventQueue(Qore::Thread::Queue[Queue] queue, any arg) {
    ReferenceHolder<Queue> q(queue, xsink);
 
-   if (queue->getMax() != -1) {
-      xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Datasource object if used; use a Queue object with no maximum size for datasource event monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
-      return 0;
-   }
+   if (queue->getMax() != -1)
+      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Datasource object if used; use a Queue object with no maximum size for datasource event monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
 
-   ds->setEventQueue(q.release(), arg ? arg->refSelf() : 0, xsink);
+   ds->setEventQueue(q.release(), arg.getReferencedValue(), xsink);
 }
 
 //! Clears the queue object for DBI events on the pool
@@ -953,4 +961,36 @@ nothing DatasourcePool::setEventQueue(Qore::Thread::Queue[Queue] queue, any arg)
  */
 nothing DatasourcePool::clearEventQueue() {
    ds->setEventQueue(0, 0, xsink);
+}
+
+//! Returns an integer bitfield of DBI driver capabilities
+/** @return an integer bitfield of DBI driver capabilities; see @ref dbi_capabilities for the meaning of each bit
+
+    @par Example:
+    @code{.py}
+int caps = pool.getCapabilities();
+if (!(caps & DBI_CAP_TRANSACTION_MANAGEMENT))
+    throw "DATASOURCE-ERROR", sprintf("DBI driver %y does not support transaction management", db.getDriverName());
+    @endcode
+
+    @since %Qore 0.8.12
+*/
+int DatasourcePool::getCapabilities() [flags=CONSTANT] {
+   return ds->getCapabilities();
+}
+
+//! Returns a list of strings giving the capabilities of the current DBI driver
+/** @return a list of strings giving the capabilities of the current DBI driver
+
+    @par Example:
+    @code{.py}
+printf("driver %y has the following capabilities:\n", db.getDriverName());
+foreach string cap in (db.getCapabilityList())
+    printf("- %s\n", cap);
+    @endcode
+
+    @since %Qore 0.8.12
+*/
+list DatasourcePool::getCapabilityList() [flags=CONSTANT] {
+   return ds->getCapabilityList();
 }
