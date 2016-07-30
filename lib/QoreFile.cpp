@@ -45,8 +45,14 @@
 #include <errno.h>
 #include <sys/file.h>
 
-#ifdef HAVE_SYS_SELECT_H
+#if defined HAVE_POLL_H && defined HAVE_POLL
+#include <poll.h>
+#elif defined HAVE_SYS_SELECT_H && defined HAVE_SELECT
 #include <sys/select.h>
+#elif (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#define HAVE_SELECT 1
+#else
+#error no async I/O APIs available
 #endif
 
 #include <string>
@@ -66,7 +72,7 @@ struct qore_qf_private {
 
    DLLLOCAL qore_qf_private(const QoreEncoding *cs) : is_open(false),
 						      special_file(false),
-						      charset(cs), 
+						      charset(cs),
 						      cb_queue(0) {
    }
 
@@ -84,7 +90,7 @@ struct qore_qf_private {
       if (is_open) {
 	 if (special_file)
 	    rc = -1;
-	 else {	    
+	 else {
 	    rc = ::close(fd);
 	    is_open = false;
 	    do_close_event_unlocked();
@@ -134,7 +140,7 @@ struct qore_qf_private {
    DLLLOCAL int check_read_open(ExceptionSink *xsink) const {
       if (is_open)
 	 return 0;
-   
+
       xsink->raiseException("FILE-READ-ERROR", "file has not been opened");
       return -1;
    }
@@ -143,7 +149,7 @@ struct qore_qf_private {
    DLLLOCAL int check_write_open(ExceptionSink *xsink) const {
       if (is_open)
 	 return 0;
-      
+
       xsink->raiseException("FILE-WRITE-ERROR", "file has not been opened");
       return -1;
    }
@@ -152,7 +158,7 @@ struct qore_qf_private {
    DLLLOCAL int check_open(ExceptionSink *xsink) const {
       if (is_open)
 	 return 0;
-      
+
       xsink->raiseException("FILE-OPERATION-ERROR", "file has not been opened");
       return -1;
    }
@@ -166,35 +172,94 @@ struct qore_qf_private {
 
       if (check_read_open(xsink))
 	 return false;
-      
-      return isDataAvailableIntern(timeout_ms);
+
+      return isDataAvailableIntern(timeout_ms, "isDataAvailable", xsink);
    }
 
-   // assumes lock is held and file is open
-   DLLLOCAL bool isDataAvailableIntern(int timeout_ms) const {
-      fd_set sfs;
-      
-      FD_ZERO(&sfs);
-      FD_SET(fd, &sfs);
+   // fd must be open or -1 is returned and a Qore-language exception is raised
+   /* return values:
+      -1: error
+      0: timeout
+      > 0: I/O can continue
+    */
+   DLLLOCAL int select(int timeout_ms, bool read, const char* mname, ExceptionSink* xsink) const {
+      //printd(5, "select() to: %d read: %d mname: '%s'\n", timeout_ms, read, mname);
+      if (check_open(xsink))
+	 return -1;
 
+#if defined HAVE_POLL
+      return poll_intern(timeout_ms, read, mname, xsink);
+#elif defined HAVE_SELECT
+      return select_intern(timeout_ms, read, mname, xsink);
+#else
+#error no async I/O operations supported
+#endif
+   }
+
+#if defined HAVE_POLL
+   DLLLOCAL int poll_intern(int timeout_ms, bool read, const char* mname, ExceptionSink* xsink) const {
+      int rc;
+      pollfd fds = {fd, (short)(read ? POLLIN : POLLOUT), 0};
+      while (true) {
+         rc = poll(&fds, 1, timeout_ms);
+         if (rc == -1 && errno == EINTR)
+            continue;
+         break;
+      }
+      if (rc < 0)
+         xsink->raiseException("FILE-SELECT-ERROR", "poll(2) returned an error in call to File::%s()", mname);
+      else if (!rc && ((fds.revents & POLLHUP) || (fds.revents & (POLLERR|POLLNVAL))))
+         rc = -1;
+
+      return rc;
+   }
+#elif defined HAVE_SELECT
+   DLLLOCAL int select_intern(int timeout_ms, bool read, const char* mname, ExceptionSink* xsink) const {
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+      // async I/O ignored on files on windows
+      return 1;
+#else
+      // select is inherently broken since it can only handle descriptors < FD_SETSIZE, which is 1024 on Linux for example
+      if (fd >= FD_SETSIZE) {
+         if (xsink)
+            xsink->raiseException("FILE-SELECT-ERROR", "fd is %d in call to File::%s() which is >= %d; contact the Qore developers to implement an alternative to select() on this platform", fd, mname, FD_SETSIZE);
+         return -1;
+      }
       struct timeval tv;
       int rc;
       while (true) {
+         // to be safe, we set the file descriptor arg after each EINTR (required on Linux for example)
+         fd_set sfs;
+
+         FD_ZERO(&sfs);
+         FD_SET(fd, &sfs);
+
 	 tv.tv_sec  = timeout_ms / 1000;
 	 tv.tv_usec = (timeout_ms % 1000) * 1000;
-      
-	 rc = select(fd + 1, &sfs, 0, 0, &tv);   
-	 // retry if we were interrupted by a signal
+
+	 rc = read ? ::select(fd + 1, &sfs, 0, 0, &tv) : ::select(fd + 1, 0, &sfs, 0, &tv);
 	 if (rc >= 0 || errno != EINTR)
 	    break;
       }
+      if (rc == -1) {
+         rc = 0;
+	 xsink->raiseException("FILE-SELECT-ERROR", "select(2) returned an error in call to File::%s()", mname);
+      }
+
       return rc;
+#endif
+   }
+#endif
+
+   // assumes lock is held and file is open
+   DLLLOCAL bool isDataAvailableIntern(int timeout_ms, const char* mname, ExceptionSink *xsink) const {
+      return select(timeout_ms, true, mname, xsink);
    }
 
 #ifdef HAVE_TERMIOS_H
    DLLLOCAL int setTerminalAttributes(int action, QoreTermIOS *ios, ExceptionSink *xsink) const {
       AutoLocker al(m);
-      
+
       if (check_open(xsink))
 	 return -1;
 
@@ -203,7 +268,7 @@ struct qore_qf_private {
 
    DLLLOCAL int getTerminalAttributes(QoreTermIOS *ios, ExceptionSink *xsink) const {
       AutoLocker al(m);
-      
+
       if (check_open(xsink))
 	 return -1;
 
@@ -253,7 +318,7 @@ struct qore_qf_private {
       return (int)ch;
    }
 
-   DLLLOCAL char *readBlock(qore_offset_t &size, int timeout_ms, ExceptionSink *xsink) {
+   DLLLOCAL char *readBlock(qore_offset_t &size, int timeout_ms, const char* mname, ExceptionSink *xsink) {
       qore_size_t bs = size > 0 && size < DEFAULT_FILE_BUFSIZE ? size : DEFAULT_FILE_BUFSIZE;
       qore_size_t br = 0;
       char *buf = (char *)malloc(sizeof(char) * bs);
@@ -261,8 +326,9 @@ struct qore_qf_private {
 
       while (true) {
 	 // wait for data
-	 if (timeout_ms >= 0 && !isDataAvailableIntern(timeout_ms)) {
-	    xsink->raiseException("FILE-READ-TIMEOUT", "timeout limit exceeded (%d ms) reading file block", timeout_ms);
+	 if (timeout_ms >= 0 && !isDataAvailableIntern(timeout_ms, mname, xsink)) {
+	    if (!*xsink)
+	       xsink->raiseException("FILE-READ-TIMEOUT", "timeout limit exceeded (%d ms) reading file block in File::%s()", timeout_ms, mname);
 	    br = 0;
 	    break;
 	 }
@@ -285,7 +351,7 @@ struct qore_qf_private {
 	 br += rc;
 
 	 do_read_event_unlocked(rc, br, size);
-      
+
 	 if (size > 0) {
 	    if (size - br < bs)
 	       bs = size - br;
@@ -489,13 +555,13 @@ struct qore_qf_private {
 	 // close the file before the delete message is put on the queue
 	 // the file would be closed anyway in the destructor
 	 close_intern();
-	 
+
 	 QoreHashNode *h = new QoreHashNode;
 	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_DELETED), 0);
 	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FILE), 0);
 	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
 	 cb_queue->pushAndTakeRef(h);
-	 
+
 	 // deref and remove event queue
 	 cb_queue->deref(xsink);
 	 cb_queue = 0;
@@ -573,7 +639,7 @@ struct qore_qf_private {
 
       if (check_read_open(xsink))
 	 return 0;
-   
+
       struct stat sbuf;
       if (fstat(fd, &sbuf)) {
 	 xsink->raiseErrnoException("FILE-STAT-ERROR", errno, "fstat() call failed");
@@ -588,7 +654,7 @@ struct qore_qf_private {
 
       if (check_read_open(xsink))
 	 return 0;
-   
+
       struct stat sbuf;
       if (fstat(fd, &sbuf)) {
 	 xsink->raiseErrnoException("FILE-HSTAT-ERROR", errno, "fstat() call failed");
@@ -604,7 +670,7 @@ struct qore_qf_private {
 
       if (check_read_open(xsink))
 	 return 0;
-   
+
       struct statvfs vfs;
       if (fstatvfs(fd, &vfs)) {
 	 xsink->raiseErrnoException("FILE-STATVFS-ERROR", errno, "fstatvfs() call failed");
@@ -726,10 +792,10 @@ int QoreFile::preallocate(fstore_t &fs, ExceptionSink *xsink) {
 }
 #endif
 
-QoreStringNode *QoreFile::getFileName() const { 
+QoreStringNode *QoreFile::getFileName() const {
    AutoLocker al(priv->m);
 
-   return priv->filename.empty() ? 0 : new QoreStringNode(priv->filename.c_str()); 
+   return priv->filename.empty() ? 0 : new QoreStringNode(priv->filename.c_str());
 }
 
 std::string QoreFile::getFileNameStr() const {
@@ -754,41 +820,41 @@ const QoreEncoding *QoreFile::getEncoding() const {
 }
 
 #ifndef HAVE_FSYNC
-/* Emulate fsync on platforms which lack it, primarily Windows and 
-   cross-compilers like MinGW. 
- 
-   This is derived from sqlite3 sources and is in the public domain. 
- 
-   Written by Richard W.M. Jones <rjones.at.redhat.com> 
-*/ 
+/* Emulate fsync on platforms which lack it, primarily Windows and
+   cross-compilers like MinGW.
+
+   This is derived from sqlite3 sources and is in the public domain.
+
+   Written by Richard W.M. Jones <rjones.at.redhat.com>
+*/
 #if (defined _WIN32 || defined __WIN32__)
-int fsync (int fd) { 
-   HANDLE h = (HANDLE) _get_osfhandle (fd); 
-   DWORD err; 
- 
-   if (h == INVALID_HANDLE_VALUE) { 
-      errno = EBADF; 
-      return -1; 
+int fsync (int fd) {
+   HANDLE h = (HANDLE) _get_osfhandle (fd);
+   DWORD err;
+
+   if (h == INVALID_HANDLE_VALUE) {
+      errno = EBADF;
+      return -1;
    }
- 
-   if (!FlushFileBuffers (h)) { 
-      /* Translate some Windows errors into rough approximations of Unix 
-       * errors.  MSDN is useless as usual - in this case it doesn't 
-       * document the full range of errors. 
-       */ 
-      err = GetLastError (); 
-      switch (err) { 
-	 /* eg. Trying to fsync a tty. */ 
-	 case ERROR_INVALID_HANDLE: 
-	    errno = EINVAL; 
-	    break; 
- 
-	 default: 
-	    errno = EIO; 
-      } 
-      return -1; 
-   } 
-   return 0; 
+
+   if (!FlushFileBuffers (h)) {
+      /* Translate some Windows errors into rough approximations of Unix
+       * errors.  MSDN is useless as usual - in this case it doesn't
+       * document the full range of errors.
+       */
+      err = GetLastError ();
+      switch (err) {
+	 /* eg. Trying to fsync a tty. */
+	 case ERROR_INVALID_HANDLE:
+	    errno = EINVAL;
+	    break;
+
+	 default:
+	    errno = EIO;
+      }
+      return -1;
+   }
+   return 0;
 }
 #else // windows
 #error no fsync() on this platform
@@ -829,7 +895,7 @@ int QoreFile::open2(ExceptionSink *xsink, const char *fn, int flags, int mode, c
    int rc;
    {
       AutoLocker al(priv->m);
-      
+
       rc = priv->open_intern(fn, flags, mode, cs);
    }
 
@@ -874,7 +940,7 @@ qore_size_t QoreFile::setPos(qore_size_t pos) {
 
    if (!priv->is_open)
       return -1;
-   
+
    return lseek(priv->fd, pos, SEEK_SET);
 }
 
@@ -958,10 +1024,10 @@ int QoreFile::write(const void *data, qore_size_t len, ExceptionSink *xsink) {
 
    if (priv->check_write_open(xsink))
       return -1;
-   
+
    if (!len)
       return 0;
-   
+
    return priv->write(data, len, xsink);
 }
 
@@ -970,7 +1036,7 @@ int QoreFile::write(const QoreString *str, ExceptionSink *xsink) {
 
    if (priv->check_write_open(xsink))
       return -1;
-   
+
    if (!str)
       return 0;
 
@@ -979,7 +1045,7 @@ int QoreFile::write(const QoreString *str, ExceptionSink *xsink) {
       return -1;
 
    //printd(0, "QoreFile::write() str priv->charset=%s, priv->charset=%s\n", str->getEncoding()->code, priv->charset->code);
-   
+
    return priv->write(wstr->getBuffer(), wstr->strlen(), xsink);
 }
 
@@ -988,10 +1054,10 @@ int QoreFile::write(const BinaryNode *b, ExceptionSink *xsink) {
 
    if (priv->check_write_open(xsink))
       return -1;
-   
+
    if (!b)
       return 0;
-   
+
    return priv->write(b->getPtr(), b->size(), xsink);
 }
 
@@ -1008,7 +1074,7 @@ int QoreFile::read(QoreString &str, qore_offset_t size, ExceptionSink *xsink) {
       if (priv->check_read_open(xsink))
 	 return -1;
 
-      buf = priv->readBlock(size, -1, xsink);
+      buf = priv->readBlock(size, -1, "read", xsink);
    }
    if (!buf)
       return -1;
@@ -1024,11 +1090,11 @@ QoreStringNode *QoreFile::read(qore_offset_t size, ExceptionSink *xsink) {
    char *buf;
    {
       AutoLocker al(priv->m);
-   
+
       if (priv->check_read_open(xsink))
 	 return 0;
-   
-      buf = priv->readBlock(size, -1, xsink);
+
+      buf = priv->readBlock(size, -1, "read", xsink);
    }
    if (!buf)
       return 0;
@@ -1052,7 +1118,7 @@ int QoreFile::readBinary(BinaryNode &b, qore_offset_t size, ExceptionSink *xsink
       if (priv->check_read_open(xsink))
 	 return -1;
 
-      buf = priv->readBlock(size, -1, xsink);
+      buf = priv->readBlock(size, -1, "readBinary", xsink);
    }
    if (!buf)
       return -1;
@@ -1072,12 +1138,12 @@ BinaryNode *QoreFile::readBinary(qore_offset_t size, ExceptionSink *xsink) {
 
       if (priv->check_read_open(xsink))
 	 return 0;
-   
-      buf = priv->readBlock(size, -1, xsink);
+
+      buf = priv->readBlock(size, -1, "readBinary", xsink);
    }
    if (!buf)
       return 0;
-   
+
    return new BinaryNode(buf, size);
 }
 
@@ -1088,11 +1154,11 @@ QoreStringNode *QoreFile::read(qore_offset_t size, int timeout_ms, ExceptionSink
    char *buf;
    {
       AutoLocker al(priv->m);
-   
+
       if (priv->check_read_open(xsink))
 	 return 0;
-   
-      buf = priv->readBlock(size, timeout_ms, xsink);
+
+      buf = priv->readBlock(size, timeout_ms, "read", xsink);
    }
    if (!buf)
       return 0;
@@ -1113,12 +1179,12 @@ BinaryNode *QoreFile::readBinary(qore_offset_t size, int timeout_ms, ExceptionSi
 
       if (priv->check_read_open(xsink))
 	 return 0;
-   
-      buf = priv->readBlock(size, timeout_ms, xsink);
+
+      buf = priv->readBlock(size, timeout_ms, "readBinary", xsink);
    }
    if (!buf)
       return 0;
-   
+
    return new BinaryNode(buf, size);
 }
 
@@ -1146,7 +1212,7 @@ int QoreFile::writei4(int i, ExceptionSink *xsink) {
 
    if (priv->check_write_open(xsink))
       return -1;
-   
+
    i = htonl(i);
    return priv->write((char *)&i, 4, xsink);
 }
@@ -1156,7 +1222,7 @@ int QoreFile::writei8(int64 i, ExceptionSink *xsink) {
 
    if (priv->check_write_open(xsink))
       return -1;
-   
+
    i = i8MSB(i);
    return priv->write((char *)&i, 4, xsink);
 }
@@ -1166,7 +1232,7 @@ int QoreFile::writei2LSB(short i, ExceptionSink *xsink) {
 
    if (priv->check_write_open(xsink))
       return -1;
-   
+
    i = i2LSB(i);
    return priv->write((char *)&i, 2, xsink);
 }
@@ -1176,7 +1242,7 @@ int QoreFile::writei4LSB(int i, ExceptionSink *xsink) {
 
    if (priv->check_write_open(xsink))
       return -1;
-   
+
    i = i4LSB(i);
    return priv->write((char *)&i, 4, xsink);
 }
@@ -1186,7 +1252,7 @@ int QoreFile::writei8LSB(int64 i, ExceptionSink *xsink) {
 
    if (priv->check_write_open(xsink))
       return -1;
-   
+
    i = i8LSB(i);
    return priv->write((char *)&i, 4, xsink);
 }
@@ -1196,7 +1262,7 @@ int QoreFile::readu1(unsigned char *val, ExceptionSink *xsink) {
 
    if (priv->check_read_open(xsink))
       return -1;
-   
+
    int rc = priv->read(val, 1);
    if (rc <= 0)
       return -1;
@@ -1208,11 +1274,11 @@ int QoreFile::readu2(unsigned short *val, ExceptionSink *xsink) {
 
    if (priv->check_read_open(xsink))
       return -1;
-   
+
    int rc = priv->read(val, 2);
    if (rc <= 0)
       return -1;
-   
+
    *val = ntohs(*val);
    return 0;
 }
@@ -1222,11 +1288,11 @@ int QoreFile::readu4(unsigned int *val, ExceptionSink *xsink) {
 
    if (priv->check_read_open(xsink))
       return -1;
-   
+
    int rc = priv->read(val, 4);
    if (rc <= 0)
       return -1;
-   
+
    *val = ntohl(*val);
    return 0;
 }
@@ -1236,11 +1302,11 @@ int QoreFile::readu2LSB(unsigned short *val, ExceptionSink *xsink) {
 
    if (priv->check_read_open(xsink))
       return -1;
-   
+
    int rc = priv->read(val, 2);
    if (rc <= 0)
       return -1;
-   
+
    *val = LSBi2(*val);
    return 0;
 }
@@ -1250,11 +1316,11 @@ int QoreFile::readu4LSB(unsigned int *val, ExceptionSink *xsink) {
 
    if (priv->check_read_open(xsink))
       return -1;
-   
+
    int rc = priv->read(val, 4);
    if (rc <= 0)
       return -1;
-   
+
    *val = LSBi4(*val);
    return 0;
 }
@@ -1264,7 +1330,7 @@ int QoreFile::readi1(char *val, ExceptionSink *xsink) {
 
    if (priv->check_read_open(xsink))
       return -1;
-      
+
    int rc = priv->read(val, 1);
    if (rc <= 0)
       return -1;
@@ -1276,11 +1342,11 @@ int QoreFile::readi2(short *val, ExceptionSink *xsink) {
 
    if (priv->check_read_open(xsink))
       return -1;
-      
+
    int rc = priv->read(val, 2);
    if (rc <= 0)
       return -1;
-   
+
    *val = ntohs(*val);
    return 0;
 }
@@ -1291,11 +1357,11 @@ int QoreFile::readi4(int *val, ExceptionSink *xsink)
 
    if (priv->check_read_open(xsink))
       return -1;
-   
+
    int rc = priv->read(val, 4);
    if (rc <= 0)
       return -1;
-   
+
    *val = ntohl(*val);
    return 0;
 }
@@ -1306,11 +1372,11 @@ int QoreFile::readi8(int64 *val, ExceptionSink *xsink)
 
    if (priv->check_read_open(xsink))
       return -1;
-   
+
    int rc = priv->read(val, 8);
    if (rc <= 0)
       return -1;
-   
+
    *val = MSBi8(*val);
    return 0;
 }
@@ -1321,11 +1387,11 @@ int QoreFile::readi2LSB(short *val, ExceptionSink *xsink)
 
    if (priv->check_read_open(xsink))
       return -1;
-   
+
    int rc = priv->read(val, 2);
    if (rc <= 0)
       return -1;
-   
+
    *val = LSBi2(*val);
    return 0;
 }
@@ -1336,11 +1402,11 @@ int QoreFile::readi4LSB(int *val, ExceptionSink *xsink)
 
    if (priv->check_read_open(xsink))
       return -1;
-   
+
    int rc = priv->read(val, 4);
    if (rc <= 0)
       return -1;
-   
+
    *val = LSBi4(*val);
    return 0;
 }
@@ -1350,11 +1416,11 @@ int QoreFile::readi8LSB(int64 *val, ExceptionSink *xsink) {
 
    if (priv->check_read_open(xsink))
       return -1;
-   
+
    int rc = priv->read(val, 8);
    if (rc <= 0)
       return -1;
-   
+
    *val = LSBi8(*val);
    return 0;
 }
