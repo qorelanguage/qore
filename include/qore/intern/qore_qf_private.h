@@ -45,8 +45,14 @@
 #include <errno.h>
 #include <sys/file.h>
 
-#ifdef HAVE_SYS_SELECT_H
+#if defined HAVE_POLL
+#include <poll.h>
+#elif defined HAVE_SELECT
 #include <sys/select.h>
+#elif (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#define HAVE_SELECT 1
+#else
+#error no async I/O APIs available
 #endif
 
 #include <string>
@@ -161,34 +167,93 @@ struct qore_qf_private {
       return is_open;
    }
 
-   DLLLOCAL bool isDataAvailable(int timeout_ms, ExceptionSink* xsink) const {
+   DLLLOCAL bool isDataAvailable(int timeout_ms, ExceptionSink *xsink) const {
       AutoLocker al(m);
 
       if (check_read_open(xsink))
 	 return false;
 
-      return isDataAvailableIntern(timeout_ms);
+      return isDataAvailableIntern(timeout_ms, "isDataAvailable", xsink);
    }
 
-   // assumes lock is held and file is open
-   DLLLOCAL bool isDataAvailableIntern(int timeout_ms) const {
-      fd_set sfs;
+   // fd must be open or -1 is returned and a Qore-language exception is raised
+   /* return values:
+      -1: error
+      0: timeout
+      > 0: I/O can continue
+    */
+   DLLLOCAL int select(int timeout_ms, bool read, const char* mname, ExceptionSink* xsink) const {
+      //printd(5, "select() to: %d read: %d mname: '%s'\n", timeout_ms, read, mname);
+      if (check_open(xsink))
+	 return -1;
 
-      FD_ZERO(&sfs);
-      FD_SET(fd, &sfs);
+#if defined HAVE_POLL
+      return poll_intern(timeout_ms, read, mname, xsink);
+#elif defined HAVE_SELECT
+      return select_intern(timeout_ms, read, mname, xsink);
+#else
+#error no async I/O operations supported
+#endif
+   }
 
+#if defined HAVE_POLL
+   DLLLOCAL int poll_intern(int timeout_ms, bool read, const char* mname, ExceptionSink* xsink) const {
+      int rc;
+      pollfd fds = {fd, (short)(read ? POLLIN : POLLOUT), 0};
+      while (true) {
+         rc = poll(&fds, 1, timeout_ms);
+         if (rc == -1 && errno == EINTR)
+            continue;
+         break;
+      }
+      if (rc < 0)
+         xsink->raiseException("FILE-SELECT-ERROR", "poll(2) returned an error in call to File::%s()", mname);
+      else if (!rc && ((fds.revents & POLLHUP) || (fds.revents & (POLLERR|POLLNVAL))))
+         rc = -1;
+
+      return rc;
+   }
+#elif defined HAVE_SELECT
+   DLLLOCAL int select_intern(int timeout_ms, bool read, const char* mname, ExceptionSink* xsink) const {
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+      // async I/O ignored on files on windows
+      return 1;
+#else
+      // select is inherently broken since it can only handle descriptors < FD_SETSIZE, which is 1024 on Linux for example
+      if (fd >= FD_SETSIZE) {
+         if (xsink)
+            xsink->raiseException("FILE-SELECT-ERROR", "fd is %d in call to File::%s() which is >= %d; contact the Qore developers to implement an alternative to select() on this platform", fd, mname, FD_SETSIZE);
+         return -1;
+      }
       struct timeval tv;
       int rc;
       while (true) {
+         // to be safe, we set the file descriptor arg after each EINTR (required on Linux for example)
+         fd_set sfs;
+
+         FD_ZERO(&sfs);
+         FD_SET(fd, &sfs);
+
 	 tv.tv_sec  = timeout_ms / 1000;
 	 tv.tv_usec = (timeout_ms % 1000) * 1000;
 
-	 rc = select(fd + 1, &sfs, 0, 0, &tv);
-	 // retry if we were interrupted by a signal
+	 rc = read ? ::select(fd + 1, &sfs, 0, 0, &tv) : ::select(fd + 1, 0, &sfs, 0, &tv);
 	 if (rc >= 0 || errno != EINTR)
 	    break;
       }
+      if (rc == -1) {
+         rc = 0;
+	 xsink->raiseException("FILE-SELECT-ERROR", "select(2) returned an error in call to File::%s()", mname);
+      }
+
       return rc;
+#endif
+   }
+#endif
+
+   // assumes lock is held and file is open
+   DLLLOCAL bool isDataAvailableIntern(int timeout_ms, const char* mname, ExceptionSink *xsink) const {
+      return select(timeout_ms, true, mname, xsink);
    }
 
 #ifdef HAVE_TERMIOS_H
@@ -279,7 +344,7 @@ struct qore_qf_private {
       return charset->getUnicode(buf);
    }
 
-   DLLLOCAL char* readBlock(qore_offset_t &size, int timeout_ms, ExceptionSink* xsink) {
+   DLLLOCAL char* readBlock(qore_offset_t &size, int timeout_ms, const char* mname, ExceptionSink* xsink) {
       qore_size_t bs = size > 0 && size < DEFAULT_FILE_BUFSIZE ? size : DEFAULT_FILE_BUFSIZE;
       qore_size_t br = 0;
       char* buf = (char* )malloc(sizeof(char) * bs);
@@ -287,8 +352,9 @@ struct qore_qf_private {
 
       while (true) {
 	 // wait for data
-	 if (timeout_ms >= 0 && !isDataAvailableIntern(timeout_ms)) {
-	    xsink->raiseException("FILE-READ-TIMEOUT", "timeout limit exceeded (%d ms) reading file block", timeout_ms);
+	 if (timeout_ms >= 0 && !isDataAvailableIntern(timeout_ms, mname, xsink)) {
+            if (!*xsink)
+               xsink->raiseException("FILE-READ-TIMEOUT", "timeout limit exceeded (%d ms) reading file block in File::%s()", timeout_ms, mname);
 	    br = 0;
 	    break;
 	 }
@@ -300,7 +366,7 @@ struct qore_qf_private {
 	    if (rc >= 0)
 	       break;
             if (errno != EINTR) {
-               xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after "QLLD" bytes read", br);
+               xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after "QLLD" bytes read in File::%s()", br, mname);
                break;
             }
 	 }
