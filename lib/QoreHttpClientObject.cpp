@@ -1228,8 +1228,11 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             // merge all keys except the "body" key into ans
             ConstHashIterator hi(*nah);
             while (hi.next()) {
-               if (!strcmp(hi.getKey(), "body"))
+               if (!strcmp(hi.getKey(), "body")) {
+		  assert(!body);
+		  body = hi.getReferencedValue();
                   continue;
+	       }
                ans->setKeyValue(hi.getKey(), hi.getReferencedValue(), xsink);
                if (*xsink)
                   return 0;
