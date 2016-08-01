@@ -63,11 +63,11 @@ class Main {
         hash m_opts;
         Datasource m_ds;
     }
-    
+
     constructor() {
         GetOpt go(OPTIONS);
         m_opts = go.parse2(\ARGV);
-        
+
         if (m_opts.help) {
             help(0);
         }

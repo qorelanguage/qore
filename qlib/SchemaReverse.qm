@@ -158,17 +158,17 @@ public namespace <SCHEMA_NAME> {
             Database m_db;
             string m_name;
         }
-        
+
         constructor(AbstractDatasource ds, string name) {
             m_ds = ds;
             m_name = name;
             m_db = new Database(m_ds);
         }
-        
+
         AbstractDatasource datasource() {
             return m_ds;
         }
-        
+
         string name() {
             return m_name;
         }
@@ -193,7 +193,6 @@ public namespace <SCHEMA_NAME> {
         hash toHash() {
             return ( name() : hash() );
         }
-        
     } # class SequenceReverse
 
     public class SequencesReverse inherits AbstractReverseObject {
@@ -213,9 +212,8 @@ public namespace <SCHEMA_NAME> {
             }
             return ret;
         }
-        
     } # class SequencesReverse
-                
+
     public class TypeReverse inherits AbstractReverseObject {
         constructor(AbstractDatasource ds, string name)
             : AbstractReverseObject(ds, name)
@@ -228,7 +226,6 @@ public namespace <SCHEMA_NAME> {
             }
             return hash();
         }
-        
     } # class TypeReverse
 
     public class TypesReverse inherits AbstractReverseObject {
@@ -252,7 +249,6 @@ public namespace <SCHEMA_NAME> {
             }
             return ret;
         }
-        
     } # class TypesReverse
 
     public class TableReverse inherits AbstractReverseObject {
@@ -272,7 +268,7 @@ public namespace <SCHEMA_NAME> {
                 AbstractColumn c = cit.getValue();
                 ret.columns{c.name} = columnToQore(c);
             }
-            
+
             # indexes
             if (!t.getIndexes().empty()) {
                 my HashIterator it = t.getIndexes().iterator();
@@ -280,10 +276,9 @@ public namespace <SCHEMA_NAME> {
                     ret.indexes{it.getValue().name} = ( "columns" : it.getValue().columns.keys(),
                                                         "unique" : it.getValue().unique,
                                                     );
-                    
                 }
             }
-            
+
             # PK
             AbstractPrimaryKey pk = t.getPrimaryKey();
             #printf("PK: %N\n", pk);
@@ -292,7 +287,7 @@ public namespace <SCHEMA_NAME> {
                                     "columns" : pk.keys(),
                                 );
             }
-            
+
             # Triggers
             if (!t.getTriggers().empty()) {
                 HashIterator it = t.getTriggers().iterator();
@@ -300,10 +295,10 @@ public namespace <SCHEMA_NAME> {
                     ret.triggers = ( it.getValue().name : it.getValue().src);
                 }
             }
-        
+
             return ret;
         }
-        
+
         static any columnToQore(AbstractColumn c) {
             hash ret = hash();
             #printf("%N\n", c);
@@ -377,7 +372,6 @@ public namespace <SCHEMA_NAME> {
             }
             return ret;
         }
-        
     } # class TablesReverse
 
     public class SchemaReverse {
@@ -409,4 +403,5 @@ public namespace <SCHEMA_NAME> {
         }
 
     } # class SchemaReverse
+
 } # namespace SchemaReverse
