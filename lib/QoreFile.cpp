@@ -424,7 +424,7 @@ int QoreFile::read(QoreString &str, qore_offset_t size, ExceptionSink *xsink) {
       if (priv->check_read_open(xsink))
 	 return -1;
 
-      buf = priv->readBlock(size, -1, xsink);
+      buf = priv->readBlock(size, -1, "read", xsink);
    }
    if (!buf)
       return -1;
@@ -444,7 +444,7 @@ QoreStringNode *QoreFile::read(qore_offset_t size, ExceptionSink *xsink) {
       if (priv->check_read_open(xsink))
 	 return 0;
 
-      buf = priv->readBlock(size, -1, xsink);
+      buf = priv->readBlock(size, -1, "read", xsink);
    }
    if (!buf)
       return 0;
@@ -472,7 +472,7 @@ int QoreFile::readBinary(BinaryNode &b, qore_offset_t size, ExceptionSink *xsink
       if (priv->check_read_open(xsink))
 	 return -1;
 
-      buf = priv->readBlock(size, -1, xsink);
+      buf = priv->readBlock(size, -1, "readBinary", xsink);
    }
    if (!buf)
       return -1;
@@ -494,7 +494,7 @@ BinaryNode *QoreFile::readBinary(qore_offset_t size, ExceptionSink *xsink) {
       if (priv->check_read_open(xsink))
 	 return 0;
 
-      buf = priv->readBlock(size, -1, xsink);
+      buf = priv->readBlock(size, -1, "readBinary", xsink);
    }
    if (!buf)
       return 0;
@@ -513,13 +513,12 @@ QoreStringNode *QoreFile::read(qore_offset_t size, int timeout_ms, ExceptionSink
       if (priv->check_read_open(xsink))
 	 return 0;
 
-      buf = priv->readBlock(size, timeout_ms, xsink);
+      buf = priv->readBlock(size, timeout_ms, "read", xsink);
    }
    if (!buf)
       return 0;
 
    QoreStringNode *str = new QoreStringNode(buf, size, size, priv->charset);
-   //str->terminate(buf[size - 1] ? size : size - 1);
    str->terminate(size);
    return str;
 }
@@ -535,12 +534,25 @@ BinaryNode *QoreFile::readBinary(qore_offset_t size, int timeout_ms, ExceptionSi
       if (priv->check_read_open(xsink))
 	 return 0;
 
-      buf = priv->readBlock(size, timeout_ms, xsink);
+      buf = priv->readBlock(size, timeout_ms, "readBinary", xsink);
    }
    if (!buf)
       return 0;
 
    return new BinaryNode(buf, size);
+}
+
+qore_size_t QoreFile::read(void *ptr, qore_size_t limit, int timeout_ms, ExceptionSink *xsink) {
+   if (timeout_ms >= 0 && !priv->isDataAvailable(timeout_ms, xsink)) {
+      xsink->raiseException("FILE-READ-TIMEOUT-ERROR", "timeout limit exceeded (%d ms) reading file", timeout_ms);
+      return 0;
+   }
+   qore_offset_t rc = priv->read(ptr, limit);
+   if (rc < 0) {
+      xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file");
+      return 0;
+   }
+   return (qore_size_t)rc;
 }
 
 int QoreFile::writei1(char i, ExceptionSink *xsink) {

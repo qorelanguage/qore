@@ -851,19 +851,56 @@ addTestCase(obj);
         testCases += tc;
     }
 
+    private string escapeSpecialChars(string str) {
+        str = replace(str, "\b", "<\\b>");
+        str = replace(str, "\f", "<\\f>");
+        str = replace(str, "\n", "<\\n>");
+        str = replace(str, "\r", "<\\r>");
+        str = replace(str, "\t", "<\\t>");
+        str = replace(str, "\v", "<\\v>");
+        #str = replace(str, " ", "<space>");
+        return str;
+    }
+
     #! Helper function for printing out human-readable comparison of two values.
     private string printUnexpectedData(any exp, any act, *bool neg, *bool soft_comparisons) {
         string expected;
         string actual;
         # if values are "soft equal", then they must have different types, so we make the type differences explicit here
         if (exp == act) {
-            expected = sprintf("(%s) %N", exp.type(), exp);
-            actual = neg ? "<identical>" : sprintf("(%s) %N", act.type(), act);
+            bool done = False;
+            # if the values are strings that differ only in encodings, then show the encodings
+            if (exp.typeCode() == NT_STRING && act.typeCode() == NT_STRING && exp.encoding() != act.encoding() && exp.length() == act.length()) {
+                # in case of encoding errors, use exception handling
+                try {
+                    string nact = convert_encoding(exp.encoding(), act);
+                    if (exp === nact) {
+                        done = True;
+                        expected = sprintf("(string %y) %N", exp.encoding(), exp);
+                        actual = neg ? "<identical>" : sprintf("(string %y) %N", act.encoding(), act);
+                    }
+                }
+                catch (hash ex) {
+                }
+            }
+            if (!done) {
+                expected = sprintf("(%s) %N", exp.type(), exp);
+                actual = neg ? "<identical>" : sprintf("(%s) %N", act.type(), act);
+            }
         }
         else {
-            expected = sprintf("%N", exp);
-            actual = neg ? "<identical>" : sprintf("%N", act);
+            if (exp.typeCode() == NT_BINARY)
+                expected = sprintf("(binary) <%s>", make_hex_string(exp));
+            else
+                expected = sprintf("%N", exp);
+
+            if (act.typeCode() == NT_BINARY)
+                actual = neg ? "<identical>" : sprintf("(binary) <%s>", make_hex_string(act));
+            else
+                actual = neg ? "<identical>" : sprintf("%N", act);
         }
+        expected = escapeSpecialChars(expected);
+        actual = escapeSpecialChars(actual);
         list expectedLines = expected.split("\n");
         list actualLines = actual.split("\n");
 

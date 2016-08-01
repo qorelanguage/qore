@@ -32,6 +32,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/qore_string_private.h>
+#include <qore/intern/IconvHelper.h>
 #include <qore/minitest.hpp>
 
 #include <errno.h>
@@ -349,35 +350,6 @@ static const struct code_table html_codes[] = {
 
 #define NUM_HTML_CODES (sizeof(html_codes) / sizeof (struct code_table))
 
-class IconvHelper {
-private:
-   iconv_t c;
-
-public:
-   DLLLOCAL IconvHelper(const QoreEncoding* to, const QoreEncoding* from, ExceptionSink* xsink) {
-#ifdef NEED_ICONV_TRANSLIT
-      QoreString to_code((char*)to->getCode());
-      to_code.concat("//TRANSLIT");
-      c = iconv_open(to_code.getBuffer(), from->getCode());
-#else
-      c = iconv_open(to->getCode(), from->getCode());
-#endif
-      if (c == (iconv_t)-1) {
-	 if (errno == EINVAL)
-	    xsink->raiseException("ENCODING-CONVERSION-ERROR", "cannot convert from \"%s\" to \"%s\"", from->getCode(), to->getCode());
-	 else
-	    xsink->raiseErrnoException("ENCODING-CONVERSION-ERROR", errno, "unknown error converting from \"%s\" to \"%s\"", from->getCode(), to->getCode());
-      }
-   }
-   DLLLOCAL ~IconvHelper() {
-      if (c != (iconv_t)-1)
-	 iconv_close(c);
-   }
-   DLLLOCAL iconv_t operator*() {
-      return c;
-   }
-};
-
 void qore_string_init() {
    static int url_reserved_list[] = { '!', '*', '\'', '(', ')', ';', ':', '@', '&', '=', '+', '$', ',', '/', '?', '#', '[', ']' };
 #define URLIST_SIZE (sizeof(url_reserved_list) / sizeof(int))
@@ -608,11 +580,6 @@ int qore_string_private::concatEncodeUriRequest(ExceptionSink* xsink, const qore
    return 0;
 }
 
-// needed for platforms where the input buffer is defined as "const char"
-template<typename T>
-static inline size_t iconv_adapter (size_t (*iconv_f) (iconv_t, T, size_t *, char* *, size_t *), iconv_t handle, char* *inbuf, size_t *inavail, char* *outbuf, size_t *outavail) {
-   return (*iconv_f) (handle, (T) inbuf, inavail, outbuf, outavail);
-}
 
 // static function
 int qore_string_private::convert_encoding_intern(const char* src, qore_size_t src_len, const QoreEncoding* from, QoreString& targ, const QoreEncoding* nccs, ExceptionSink* xsink) {
@@ -633,33 +600,29 @@ int qore_string_private::convert_encoding_intern(const char* src, qore_size_t sr
       size_t olen = al;
       char* ib = (char*)src;
       char* ob = targ.priv->buf;
-      size_t rc = iconv_adapter(iconv, *c, &ib, &ilen, &ob, &olen);
+      size_t rc = c.iconv(&ib, &ilen, &ob, &olen);
       if (rc == (size_t)-1) {
-	 switch (errno) {
-	    case EINVAL:
-	    case EILSEQ: {
-	       xsink->raiseException("ENCODING-CONVERSION-ERROR", "illegal character sequence found in input type \"%s\" (while converting to \"%s\")",
-				     from->getCode(), nccs->getCode());
-	       targ.clear();
-	       return -1;
-	    }
-	    case E2BIG:
-	       al += STR_CLASS_BLOCK;
-	       targ.allocate(al + 1);
-	       break;
-	    default: {
-	       xsink->raiseErrnoException("ENCODING-CONVERSION-ERROR", errno, "error converting from \"%s\" to \"%s\"",
-				     from->getCode(), nccs->getCode());
-	       targ.clear();
-	       return -1;
-	    }
-	 }
-      }
-      else {
-	 // terminate string
-	 targ.priv->buf[al - olen] = '\0';
-	 targ.priv->len = al - olen;
-	 break;
+         switch (errno) {
+            case EINVAL:
+            case EILSEQ:
+               c.reportIllegalSequence(xsink);
+               targ.clear();
+               return -1;
+            case E2BIG:
+               al += STR_CLASS_BLOCK;
+               targ.allocate(al + 1);
+               break;
+            default: {
+               c.reportUnknownError(xsink);
+               targ.clear();
+               return -1;
+            }
+         }
+      } else {
+         // terminate string
+         targ.priv->buf[al - olen] = '\0';
+         targ.priv->len = al - olen;
+         break;
       }
    }
    /*

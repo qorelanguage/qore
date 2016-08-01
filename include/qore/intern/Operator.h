@@ -40,18 +40,17 @@
 class Operator;
 
 // system default operators
-DLLLOCAL extern Operator *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT,
-   *OP_BIN_XOR, *OP_MINUS, *OP_PLUS,
-   *OP_MULT, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT,
+DLLLOCAL extern Operator *OP_MINUS, *OP_PLUS,
+   *OP_MULT,
    *OP_LOG_CMP,
-   *OP_OBJECT_REF, *OP_ELEMENTS, *OP_KEYS, *OP_QUESTION_MARK,
    *OP_SHIFT, *OP_POP, *OP_PUSH,
    *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT,
    *OP_REGEX_TRANS, *OP_REGEX_EXTRACT,
    *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT,
    *OP_LOG_GT, *OP_LOG_EQ, *OP_LOG_NE, *OP_LOG_LE, *OP_LOG_GE,
-   *OP_ABSOLUTE_EQ, *OP_ABSOLUTE_NE, *OP_REGEX_MATCH, *OP_REGEX_NMATCH,
-   *OP_EXISTS, *OP_INSTANCEOF, *OP_SELECT;
+   *OP_ABSOLUTE_EQ, *OP_ABSOLUTE_NE,
+   *OP_REGEX_MATCH, *OP_REGEX_NMATCH
+   ;
 
 typedef safe_dslist<Operator*> oplist_t;
 
@@ -329,29 +328,6 @@ public:
    DLLLOCAL virtual QoreValue eval(const AbstractQoreNode* l, const AbstractQoreNode* r, bool ref_rv, int args, ExceptionSink* xsink) const;
 };
 
-/*
-// this whole class just for one operator (integer division)...
-class DivideIntOperatorFunction : public AbstractOperatorFunction {
-private:
-   op_divide_int_func_t op_func;
-
-public:
-   DLLLOCAL DivideIntOperatorFunction(op_divide_int_func_t f) : AbstractOperatorFunction(NT_INT, NT_INT), op_func(f) {
-   }
-   DLLLOCAL virtual ~DivideIntOperatorFunction() {}
-   DLLLOCAL virtual QoreValue eval(const AbstractQoreNode* l, const AbstractQoreNode* r, bool ref_rv, int args, ExceptionSink* xsink) const;
-};
-*/
-
-// this whole class just for one operator (binary integer not)...
-class IntegerNotOperatorFunction : public AbstractOperatorFunction {
-public:
-   DLLLOCAL IntegerNotOperatorFunction() : AbstractOperatorFunction(NT_INT, NT_NONE) {
-   }
-   DLLLOCAL virtual ~IntegerNotOperatorFunction() {}
-   DLLLOCAL virtual QoreValue eval(const AbstractQoreNode* l, const AbstractQoreNode* r, bool ref_rv, int args, ExceptionSink* xsink) const;
-};
-
 class BoolFloatOperatorFunction : public AbstractOperatorFunction {
 private:
    op_bool_float_func_t op_func;
@@ -373,20 +349,6 @@ public:
    DLLLOCAL virtual ~FloatFloatOperatorFunction() {}
    DLLLOCAL virtual QoreValue eval(const AbstractQoreNode* l, const AbstractQoreNode* r, bool ref_rv, int args, ExceptionSink* xsink) const;
 };
-
-/*
-// this whole class just for one operator (floating-point division)...
-class DivideFloatOperatorFunction : public AbstractOperatorFunction {
-private:
-   op_divide_float_func_t op_func;
-
-public:
-   DLLLOCAL DivideFloatOperatorFunction(op_divide_float_func_t f) : AbstractOperatorFunction(NT_FLOAT, NT_FLOAT), op_func(f) {
-   }
-   DLLLOCAL virtual ~DivideFloatOperatorFunction() {}
-   DLLLOCAL virtual QoreValue eval(const AbstractQoreNode* l, const AbstractQoreNode* r, bool ref_rv, int args, ExceptionSink* xsink) const;
-};
-*/
 
 // this whole class just for one operator (floating-point comparison <=>)...
 class CompareFloatOperatorFunction : public AbstractOperatorFunction {
@@ -653,10 +615,6 @@ public:
    DLLLOCAL void addCompareDateFunction() {
       functions.push_back(new CompareDateOperatorFunction());
    }
-   DLLLOCAL void addIntegerNotFunction() {
-      functions.push_back(new IntegerNotOperatorFunction());
-   }
-
    DLLLOCAL void addDefaultNothing() {
       functions.push_back(new DefaultNothingOperatorFunction());
    }

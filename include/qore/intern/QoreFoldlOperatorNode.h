@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,12 +34,17 @@
 #define _QORE_QOREFOLDLOPERATORNODE_H
 
 #include <qore/intern/AbstractIteratorHelper.h>
+#include <qore/intern/FunctionalOperator.h>
+#include <qore/intern/FunctionalOperatorInterface.h>
 
 class QoreFoldlOperatorNode : public QoreBinaryOperatorNode<> {
 protected:
-   const QoreTypeInfo *returnTypeInfo;
+   const QoreTypeInfo* returnTypeInfo;
+   FunctionalOperator* iterator_func;
 
    DLLLOCAL static QoreString foldl_str;
+
+   DLLLOCAL QoreValue doFold(bool fwd, bool& needs_deref, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
@@ -52,15 +57,12 @@ protected:
       return returnTypeInfo;
    }
 
-   DLLLOCAL virtual bool hasEffect() const {
-      // FIXME: check iterated expression to see if it really has an effect
-      return true;
-   }
-
    DLLLOCAL QoreValue foldIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
 
+   DLLLOCAL FunctionalOperatorInterface* getFunctionalIterator(FunctionalOperator::FunctionalValueType& value_type, bool fwd, ExceptionSink* xsink) const;
+
 public:
-   DLLLOCAL QoreFoldlOperatorNode(AbstractQoreNode* l, AbstractQoreNode* r) : QoreBinaryOperatorNode<>(l, r), returnTypeInfo(0) {
+   DLLLOCAL QoreFoldlOperatorNode(AbstractQoreNode* l, AbstractQoreNode* r) : QoreBinaryOperatorNode<>(l, r), returnTypeInfo(0), iterator_func(0) {
    }
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
@@ -69,6 +71,13 @@ public:
    // returns the type name as a c string
    DLLLOCAL virtual const char* getTypeName() const {
       return foldl_str.getBuffer();
+   }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      QoreFoldlOperatorNode* rv = copyBackgroundExplicit<QoreFoldlOperatorNode>(xsink);
+      // use lazy evaluation if the iterator expression supports it
+      rv->iterator_func = dynamic_cast<FunctionalOperator*>(rv->right);
+      return rv;
    }
 };
 
@@ -88,6 +97,13 @@ public:
    // returns the type name as a c string
    DLLLOCAL virtual const char* getTypeName() const {
       return foldr_str.getBuffer();
+   }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      QoreFoldrOperatorNode* rv = copyBackgroundExplicit<QoreFoldrOperatorNode>(xsink);
+      // use lazy evaluation if the iterator expression supports it
+      rv->iterator_func = dynamic_cast<FunctionalOperator*>(rv->right);
+      return rv;
    }
 };
 

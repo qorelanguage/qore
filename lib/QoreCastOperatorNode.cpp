@@ -1,10 +1,10 @@
 /*
   QoreCastOperatorNode.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -91,7 +91,7 @@ AbstractQoreNode* QoreCastOperatorNode::parseInitImpl(LocalVar* oflag, int pflag
 
    if (typeInfo->hasType()) {
       if (!objectTypeInfo->parseAccepts(typeInfo)) {
-	 parse_error(loc, "cast<>(%s) is invalid; cannot cast from %s to object", qc ? qc->getName() : "object", typeInfo->getName(), typeInfo->getName());
+	 parse_error(loc, "cast<%s>(%s) is invalid; cannot cast from %s to %s", qc ? qc->getName() : "object", typeInfo->getName(), typeInfo->getName(), qc ? qc->getName() : "object");
       }
 #ifdef _QORE_STRICT_CAST
       else if (qc && (qc->getTypeInfo()->parseAccepts(typeInfo) == QTI_NOT_EQUAL) && typeInfo->parseAccepts(qc->getTypeInfo()) == QTI_NOT_EQUAL) {
