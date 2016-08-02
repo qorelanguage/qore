@@ -29,7 +29,7 @@
 %new-style
 
 module CsvUtil {
-    version = "1.5";
+    version = "1.6";
     desc = "user module for working with CSV files";
     author = "Petr Vanek <petr@yarpen.cz>, David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -218,6 +218,9 @@ while (i.next()) {
 
     @section csvutil_relnotes Release Notes
 
+    @subsection csvutil_v1_6 Version 1.6
+    - implemented \c "number_format" and \c "format" for number formatting
+
     @subsection csvutil_v1_5 Version 1.5
     - fixed a bug handling the global option \c "eol"
     - converted to new-style
@@ -295,6 +298,9 @@ class CsvHelper {
 
         #! default date->string format
         string date_format;
+
+        #! default number/float->string  format
+        string number_format;
 
         #! hash of field information (types, formats, and possible code), hash key = column name or number (starting with 0)
         hash m_specs;
@@ -407,10 +413,26 @@ class CsvHelper {
                         if (!h.type)
                             h.type = "*string";
                         if (h.type != "date" && h.type != "*date") {
-                            foreach string f in ("timezone", "format") {
+                            foreach string f in ("timezone") {
                                 if (h{f})
                                     throw errname, sprintf("%s: field %y is type %y, but the %y attribute was also given, which is only valid for \"date\" fields", fld_errs, hi.key, h.type, f);
                             }
+                        }
+                        switch (h.type) {
+                            case 'date':
+                            case '*date':
+                            case 'int':
+                            case '*int':
+                            case 'number':
+                            case '*number':
+                            case 'float':
+                            case '*float':
+                                break;
+                            default:
+                                foreach string f in ("format") {
+                                    if (h{f})
+                                        throw errname, sprintf("%s: field %y is type %y, but the %y attribute was also given, which is only valid for \"date\", \"number\" and \"float\" fields", fld_errs, hi.key, h.type, f);
+                                }
                         }
                         break;
                     }
@@ -518,6 +540,7 @@ public namespace CsvUtil {
         <b>AbstractCsvIterator Options</b>
         |!Option|!Data Type|!Description
         |\c "date_format"|@ref string_type "string"|the default date format for \c "date" fields (see @ref date_formatting "date formatting" for the value in this case)
+        |\c "number_format"|@ref string_type "string"|the default number format for \c "int/number/float" fields (see @ref Qore::parse_number "number formatting" for the value in this case)
         |\c "encoding"|@ref string_type "string"|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
         |\c "separator"|@ref string_type "string"|the string separating the fields in the file (default: \c ",")
         |\c "quote"|@ref string_type "string"|the field quote character (default: \c '\"')
@@ -574,7 +597,7 @@ public namespace CsvUtil {
 
         |!Key|!Value Description
         |\c "type"|one of the @ref abstractcsviterator_option_field_types "option type values" giving the field type
-        |\c "format"|used only with the \c "date" type; this is a @ref date_mask "date/time format mask" for parsing dates
+        |\c "format"|used only with the \c "date" type; this is a @ref date_mask "date/time format mask" for parsing dates and with \c "number/float" types
         |\c "timezone"|used only with the \c "date" type; this value is passed to @ref Qore::TimeZone::constructor() and the resulting timezone is used to parse the date (this value overrides any default time zone for the object; use only in the rare case that date/time values from different time zones are present in different columns of the same file)
         |\c "code"|this is a @ref closure "closure" or @ref call_reference "call reference" that takes a single argument of the value (after formatting with any optional \c "type" formats) and returns the value that will be output for the field
 
@@ -593,6 +616,7 @@ public namespace CsvUtil {
             const Options = (
                 "date_format": C_OPT1|C_OPT2,
                 "date-format": C_OPT1|C_OPT2,
+                "number_format": C_OPT1|C_OPT2,
                 "encoding": C_OPT1|C_OPT2,
                 "eol": C_OPT1|C_OPT2,
                 "extended_record": C_OPT2,
@@ -713,6 +737,12 @@ public namespace CsvUtil {
                         if (i.value.typeCode() != NT_STRING)
                             throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
                         date_format = i.value;
+                        break;
+                    }
+                    case "number_format": {
+                        if (i.value.typeCode() != NT_STRING)
+                            throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                        number_format = i.value;
                         break;
                     }
                     case "separator": {
@@ -1089,15 +1119,31 @@ while (i.next()) {
 
             switch (type) {
                 case "int": {
-                    rv = int(val);
+                    *string fmt = fh.format ?? number_format;
+                    if (fmt) {
+                        # rv = parse_int(val, fmt);  # TODO
+                        rv = int(replace(val, fmt[0], ''));
+                    } else {
+                        rv = int(val);
+                    }
                     break;
                 }
                 case "float": {
-                    rv = float(val);
+                    *string fmt = fh.format ?? number_format;
+                    if (fmt) {
+                        rv = parse_float(val, fmt);
+                    } else {
+                        rv = float(val);
+                    }
                     break;
                 }
                 case "number": {
-                    rv = number(val);
+                    *string fmt = fh.format ?? number_format;
+                    if (fmt) {
+                        rv = parse_number(val, fmt);
+                    } else {
+                        rv = number(val);
+                    }
                     break;
                 }
                 case "date": {
@@ -1351,6 +1397,7 @@ while (i.next()) {
         |!Option|!Data Type|!Description
         |\c "block"|@ref int_type "int"|the block size when generating output based on a @ref Qore::SQL::SQLStatement "SQLStatement" source (default: \c 1000)
         |\c "date_format"|@ref string_type "string"|the default mask for date values formatting
+        |\c "number_format"|@ref string_type "string"|the default format for \c "int/number/float" values @ref <number>::format "formatting"
         |\c "encoding"|@ref string_type "string"|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
         |\c "eol"|@ref string_type "string"|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
         |\c "info_log"|@ref code_type "code"|a call reference / closure for informational logging when performing bulk generation with write(Qore::SQL::SQLStatement); must take a single string argument
@@ -1382,6 +1429,7 @@ while (i.next()) {
                 "datamap": C_OPT1,
                 "date_format": C_OPT1|C_OPT2,
                 "date-format": C_OPT1|C_OPT2,
+                "number_format": C_OPT1|C_OPT2,
                 "encoding": C_OPT1|C_OPT2,
                 "eol": C_OPT1|C_OPT2,
                 "fields": C_OPT1,
@@ -1503,6 +1551,7 @@ while (i.next()) {
 
             date_format = 'DD/MM/YYYY hh:mm:SS';  # different default value in writer
             encoding = n_opts.encoding.typeCode() == NT_STRING ? n_opts.encoding : get_default_encoding();
+            number_format = '';
 
             foreach hash i in (n_opts.pairIterator()) {
                 if (!exists Options.(i.key) && (Options.(i.key) & C_OPTx) == 0)
@@ -1553,6 +1602,12 @@ while (i.next()) {
                         if (i.value.typeCode() != NT_STRING)
                             throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
                         date_format = i.value;
+                        break;
+                    }
+                    case "number_format": {
+                        if (i.value.typeCode() != NT_STRING)
+                            throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                        number_format = i.value;
                         break;
                     }
                     case "verify_columns":
@@ -1663,6 +1718,7 @@ while (i.next()) {
                 int i = j;
                 #! format date to string by options. Priority: 1) column definition 2) standard format
                 string dateFmt = date_format;
+                string numberFmt = number_format;
                 if (m_out_by_idx{type} && j < m_out_by_idx{type}.size()) {
                     # get correct input value
                     i = m_out_by_idx{type}[j];
@@ -1671,31 +1727,37 @@ while (i.next()) {
                         case "int": {
                             if (int(values[i]) != values[i])
                                 throw errname, sprintf("Line (%d), Column (%d) does not contain an integer value %n vs %n", lineNo, j, int(values[i]), values[i]);
+                            numberFmt = spec.format ?? number_format;
                             break;
                         }
                         case "*int": {
                             if (!values[i].empty() && int(values[i]) != values[i])
                                 throw errname, sprintf("Line (%d), Column (%d) does not contain an integer value %n vs %n", lineNo, j, int(values[i]), values[i]);
+                            numberFmt = spec.format ?? number_format;
                             break;
                         }
                         case "float": {
                             if (float(values[i]) != values[i])
                                 throw errname, sprintf("Line (%d), Column (%d) does not contain a float value %n vs %n", lineNo, j, float(values[i]), values[i]);
+                            numberFmt = spec.format ?? number_format;
                             break;
                         }
                         case "*float": {
                             if (!values[i].empty() && float(values[i]) != values[i])
                                 throw errname, sprintf("Line (%d), Column (%d) does not contain a float value %n vs %n", lineNo, j, float(values[i]), values[i]);
+                            numberFmt = spec.format ?? number_format;
                             break;
                         }
                         case "number": {
                             if (number(values[i]) != values[i])
                                 throw errname, sprintf("Line (%d), Column (%d) does not contain a number value %n vs %n", lineNo, j, number(values[i]), values[i]);
+                            numberFmt = spec.format ?? number_format;
                             break;
                         }
                         case "*number": {
                             if (!values[i].empty() && number(values[i]) != values[i])
                                 throw errname, sprintf("Line (%d), Column (%d) does not contain a number value %n vs %n", lineNo, j, number(values[i]), values[i]);
+                            numberFmt = spec.format ?? number_format;
                             break;
                         }
                         case "date": {
@@ -1712,10 +1774,18 @@ while (i.next()) {
                         }
                     }
                 }
-
-                # format date as requested
-                if (values[i].typeCode() == NT_DATE) {
-                    values[i] = format_date(dateFmt, values[i]);
+                # format date or number as requested
+                switch (values[i].typeCode()) {
+                    case NT_DATE:
+                        values[i] = format_date(dateFmt, values[i]);
+                        break;
+                    case NT_NUMBER:
+                    case NT_FLOAT:
+                    case NT_INT:
+                        if (numberFmt) {
+                            values[i] = values[i].format(numberFmt);
+                        }
+                        break;
                 }
                 push rawValues, values[i];
             }

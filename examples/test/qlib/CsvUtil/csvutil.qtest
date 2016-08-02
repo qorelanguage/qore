@@ -40,6 +40,7 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
 
     constructor() : Test("CsvUtilTest", "1.0") {
         addTestCase("Basic CSV tests", \csvTest(), NOTHING);
+        addTestCase("Number format CSV tests", \csvNumberFormatFieldTest(), NOTHING);
         addTestCase("Multi-type CSV tests", \csvMultiTest(), NOTHING);
         addTestCase("Single-type CSV tests", \csvSingleTest(), NOTHING);
         addTestCase("Single-type CSV map tests", \csvSingleMapTest(), NOTHING);
@@ -96,6 +97,26 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
         testAssertion("CsvDataIterator header by idx 2", \equals(), (("0": "row1-1", "1": "row1-2", "2": "row1-3"), i.getValue()));
         testAssertion("CsvDataIterator header by idx 3", \equals(), (("row1-1", "row1-2", "row1-3"), i.getRecordList()));
         testAssertionValue("CsvDataIterator header by idx 4", i.getHeaders(), ("0", "1", "2"));
+    }
+
+    csvNumberFormatFieldTest() {
+        hash opts = ("number_format": " ,2", "separator": "|", "fields": ("f1": "string", "f2": ("type": "int", "format": " ,0"), "f3": "number", "f4": ("type": "number", "format": "_:2"), "f5": "*float", "f6": ("type": "*float", "format": "")));
+        string input = "UK|1|1,33|1:44|1,55|1.66
+UK|2 222|2 222,33|2_222:44|2 222,55|2222.66";
+
+        list records = (
+            ("f1": "UK", "f2": 1, "f3": 1.33n, "f4": 1.44n, "f5": 1.55, "f6": 1.66),
+            ("f1": "UK", "f2": 2222, "f3": 2222.33n, "f4": 2222.44n, "f5": 2222.55, "f6": 2222.66),
+        );
+
+        # Iterate through source
+        CsvDataIterator i(input, opts);
+        #list l = map $1, i;
+        testAssertion("CsvDataIterator format number", \equalsIterated(), (new ListIterator(records), i));
+
+        CsvStringWriter w(("write-headers": False, "optimal-quotes" : True, "quote_escape" : '"')+opts );
+        string outstr = w.write(records);
+        testAssertion("CswWriter format number", \equals(), (input+"\n", outstr));
     }
 
     csvMultiTest() {
