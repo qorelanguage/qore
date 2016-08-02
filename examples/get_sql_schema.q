@@ -10,15 +10,19 @@
 
 const VERSION = "0.1";
 
+const OBJECT_OPTIONS = (
+        "sequences" : "sequences,q:s",
+        "tables" : "tables,t:s",
+        "types" : "types,y:s",
+        "views" : "views,v:s",
+    );
+
 const OPTIONS = (
         "help" : "help,h",
         "version" : "version,V",
-        "verbose" : "verbose,v",
+        "verbose" : "verbose",
         "schema" : "schema,s=s",
-        "sequences" : "sequences,q=s",
-        "tables" : "tables,t=s",
-        "types" : "types,y=s",
-    );
+    ) + OBJECT_OPTIONS;
 
 sub help(int exitCode) {
     printf("Usage:
@@ -27,18 +31,18 @@ sub help(int exitCode) {
 Options:
  -h --help              Display help and exits
  -V --version           Show version of this script
- -v --verbose           Show additional verbose info
+    --verbose           Show additional verbose info
  -s --schema=<name>     Export full (supported objects) DB schema.
                         The class of the qsm output will be named <name>
- -t --tables=<tables>   Export specified table(s). <tables> can be exact
-                        name of the table, table list (separated by ','),
-                        or a regular expression to match table name
- -s --sequences=<seqs>  Export specified table(s). <seqs> can be exact
-                        name of the table, table list (separated by ','),
-                        or a regular expression to match table name
- -y --types=<types>     Export specified type(s). <types> can be exact
-                        name of the table, table list (separated by ','),
-                        or a regular expression to match table name
+ -t --tables=<val>      Export specified table(s). See <val> section below.
+ -s --sequences=<val>   Export specified sequence(s). See <val> section below.
+ -y --types=<val>       Export specified type(s). See <val> section below.
+ -v --views=<val>       Export specified view(s). See <val> section below.
+
+
+Object <val> filtering:
+    Any <val> can be exact name of the object, a list (separated by ','),
+    or a regular expression to match object name.
 
 Note:
     --schema and (--tables or --sequences or --types) cannot be
@@ -77,17 +81,27 @@ class Main {
             exit(0);
         }
 
-        if (!m_opts.schema && !m_opts.sequences && !m_opts.tables && !m_opts.types) {
-            throw "NOT-ALLOWED-OPTS", "At least one option must be set: schema, sequences, tables";
+        bool userObjects = False;
+        foreach string i in (OBJECT_OPTIONS.keyIterator()) {
+            if (m_opts{i}.typeCode() == NT_BOOLEAN && m_opts{i}) {
+                m_opts{i} = ".*";
+            }
+            if (m_opts{i}.size()) {
+                userObjects = True;
+            }
         }
 
-        if (m_opts.schema && (m_opts.sequences || m_opts.tables || m_opts.types)) {
-            throw "NOT-ALLOWED-OPTS", "Cannot combine schema and sequences or tables together";
+        if (!m_opts.schema && !userObjects) {
+            error("NOT-ALLOWED-OPTS", sprintf("At least one option must be set: \"schema\" or %y", OBJECT_OPTIONS.keys()));
+        }
+
+        if (m_opts.schema && userObjects) {
+            error("NOT-ALLOWED-OPTS", sprintf("Cannot combine \"schema\" and %y together", OBJECT_OPTIONS.keys()));
         }
 
         *string connstr = shift ARGV;
         if (!connstr) {
-            throw "NO-CONNECTION-STRING";
+            error("NO-CONNECTION-STRING", "Please specify qore DB connection string");
         }
 
 %ifndef NO_QORUS
@@ -111,14 +125,13 @@ class Main {
             printf("%s\n", sr.toString());
         }
         else {
-            if (m_opts.sequences) {
-                exportObjects(m_opts.sequences, "SequencesReverse");
-            }
-            if (m_opts.tables) {
-                exportObjects(m_opts.tables, "TablesReverse");
-            }
-            if (m_opts.types) {
-                exportObjects(m_opts.types, "TypesReverse");
+            HashIterator it(OBJECT_OPTIONS);
+            while (it.next()) {
+                string key = it.getKey();
+                string classKey = substr(key, 0, 1).upr() + substr(key,1); # TODO/FIXME: <string>.capitalize() one day...
+                if (exists m_opts{key}) {
+                    exportObjects(m_opts{key}, sprintf("%sReverse", classKey));
+                }
             }
         }
     } # constructor
@@ -142,6 +155,11 @@ class Main {
         }
 
         printf("# %s\n", vsprintf(msg, argv));
+    }
+    
+    static error(string errcode, string msg) {
+        stderr.printf("%s: %s\n", errcode, msg);
+        exit(1);
     }
 
 } # class Main

@@ -57,6 +57,7 @@ public namespace SchemaReverse {
             "<SCHEMA_SEQUENCES>" : "SequencesReverse",
             "<SCHEMA_TABLES>" : "TablesReverse",
             "<SCHEMA_TYPES>" : "TypesReverse",
+            "<SCHEMA_VIEWS>" : "ViewsReverse",
         );
 
     const TEMPLATE = '# -*- mode: qore; indent-tabs-mode: nil -*-
@@ -96,8 +97,12 @@ namespace Private {
         );
 
     const SEQUENCES = <SCHEMA_SEQUENCES>;
+
     const TABLES = <SCHEMA_TABLES>;
+
     const TYPES = <SCHEMA_TYPES>;
+
+    const VIEWS = <SCHEMA_VIEWS>;
 }
 
 public namespace <SCHEMA_NAME> {
@@ -135,6 +140,10 @@ public namespace <SCHEMA_NAME> {
 
         private *hash getTypesImpl() {
             return TYPES;
+        }
+
+        private *hash getViewsImpl() {
+            return VIEWS;
         }
 
         private *hash getIndexOptionsImpl() {
@@ -373,6 +382,47 @@ public namespace <SCHEMA_NAME> {
             return ret;
         }
     } # class TablesReverse
+
+    public class ViewReverse inherits AbstractReverseObject {
+        constructor(AbstractDatasource ds, string name)
+            : AbstractReverseObject(ds, name)
+        {
+        }
+
+        hash toHash() {
+            AbstractView v = database().getView(name());
+            ObjectIterator it = v.iterator();
+            hash ret = hash();
+            while (it.next()) {
+                if (inlist(it.getKey(), ("schema", "name",))) {
+                    continue;
+                }
+                if (exists it.getValue()) {
+                    ret{it.getKey()} = it.getValue();
+                }
+            }
+            return ret;
+        }
+    } # class ViewReverse
+
+    public class ViewsReverse inherits AbstractReverseObject {
+        constructor(AbstractDatasource ds, string mask = ".*")
+            : AbstractReverseObject(ds, mask)
+        {
+        }
+
+        hash toHash() {
+            ListIterator it = database().viewIterator();
+            hash ret = hash();
+            while (it.next()) {
+                string s = it.getValue();
+                if (s.regex(name())) {
+                    ret{s} = new ViewReverse(datasource(), s).toHash();
+                }
+            }
+            return ret;
+        }
+    } # class ViewsReverse
 
     public class SchemaReverse {
         private {
