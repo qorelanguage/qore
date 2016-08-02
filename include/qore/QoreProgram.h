@@ -586,13 +586,33 @@ public:
    */
    DLLEXPORT void parseDefine(const char* str, AbstractQoreNode* val);
 
-   //! defines a parse-time variables
+   //! defines a parse-time variable; call only at parse time (or before parsing)
+   /** @param str the name of the variable
+       @param val a string value that will be parsed and converted to a qore value
+
+       @note if this function is called at runtime it could cause a crash
+
+       @see runtimeDefine()
+   */
+   DLLEXPORT void parseDefine(const char* str, const char* val);
+
+   //! defines parse-time variables
    /** @param defmap a map of variable names to values
        @param xs exception sink for errors
        @param ws exception sink for warnings
-       @param w warnings mask
+       @param w warning mask
+
+       @deprecated use parseCmdLineDefines(ExceptionSink& xs, ExceptionSink& ws, int w, const std::map<std::string, std::string>& defmap) instead
    */
    DLLEXPORT void parseCmdLineDefines(const std::map<std::string, std::string> defmap, ExceptionSink& xs, ExceptionSink& ws, int w);
+
+   //! defines parse-time variables
+   /** @param xs exception sink for errors
+       @param ws exception sink for warnings
+       @param w warning mask
+       @param defmap a map of variable names to values
+   */
+   DLLEXPORT void parseCmdLineDefines(ExceptionSink& xs, ExceptionSink& ws, int w, const std::map<std::string, std::string>& defmap);
 
    DLLLOCAL QoreProgram(QoreProgram* pgm, int64 po, bool ec = false, const char* ecn = 0);
 
