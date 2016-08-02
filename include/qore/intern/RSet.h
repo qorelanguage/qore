@@ -91,8 +91,6 @@ public:
 
    DLLLOCAL void setRSet(RSet* rs, int rcnt);
 
-   DLLLOCAL void invalidateRSet();
-
    DLLLOCAL void removeInvalidateRSet();
 
    DLLLOCAL bool scanCheck(RSetHelper& rsh, AbstractQoreNode* n);
@@ -142,9 +140,10 @@ class RSet {
 protected:
    // we assume set::size() is O(1); this should be a safe assumption
    rset_t set;
-   int acnt;
+   unsigned acnt;
    bool valid;
 
+   // called with the write lock held
    DLLLOCAL void invalidateIntern() {
       assert(valid);
       valid = false;
@@ -218,6 +217,7 @@ public:
    }
 
    DLLLOCAL void insert(RObject* o) {
+      assert(set.find(o) == set.end());
       set.insert(o);
    }
 
@@ -241,11 +241,19 @@ public:
       return set.size();
    }
 
+   // called when rolling back an rset transaction
    DLLLOCAL bool pop() {
       assert(!set.empty());
       set.erase(set.begin());
       return set.empty();
    }
+
+#ifdef DEBUG
+   DLLLOCAL unsigned getCount() const {
+      return acnt;
+   }
+#endif
+
 };
 
 typedef std::vector<RObject*> rvec_t;
