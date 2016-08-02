@@ -47,7 +47,7 @@ int OnBlockExitStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink
 
 int OnBlockExitStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    if (code)
-      code->parseInitImpl(oflag, pflag & ~PF_TOP_LEVEL);
+      code->parseInitImpl(oflag, pflag & ~(PF_TOP_LEVEL | PF_BREAK_OK | PF_CONTINUE_OK));
 
    return 0;
 }

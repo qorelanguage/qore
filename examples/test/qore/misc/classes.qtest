@@ -58,6 +58,7 @@ class Test2 { private { any a; } }
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         addTestCase("Class library test", \classLibraryTest(), NOTHING);
+        addTestCase("Built-in class w/o methods", \builtinNoMethods());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -105,5 +106,11 @@ public class ClassesTest inherits QUnit::Test {
         assertEq(NOTHING, call_object_method_args(t1, "argTest"), "first call_object_method_args()");
         assertEq(list(1), call_object_method_args(t1, "argTest", 1), "second call_object_method_args()");
         assertEq((1, 2),  call_object_method_args(t1, "argTest", (1, 2)), "third call_object_method_args()");
+    }
+
+    builtinNoMethods() {
+        AbstractQuantifiedBidirectionalIterator a = new HashIterator({'a': 1});
+        assertTrue(a.next());
+        assertEq(1, a.getValue());
     }
 }

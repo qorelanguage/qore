@@ -128,6 +128,7 @@ ParseOptionMaps::ParseOptionMaps() {
       doMap(PO_NO_INHERIT_USER_CONSTANTS, "PO_NO_INHERIT_USER_CONSTANTS");
       doMap(PO_BROKEN_LIST_PARSING, "PO_BROKEN_LIST_PARSING");
       doMap(PO_BROKEN_LOGIC_PRECEDENCE, "PO_BROKEN_LOGIC_PRECEDENCE");
+      doMap(PO_BROKEN_LOOP_STATEMENT, "PO_BROKEN_LOOP_STATEMENT");
 }
 
 QoreHashNode* ParseOptionMaps::getCodeToStringMap() const {
@@ -172,7 +173,7 @@ void qore_program_private_base::startThread(ExceptionSink& xsink) {
 
 void qore_program_private::doThreadInit(ExceptionSink* xsink) {
    // create/destroy temporary ExceptionSink object if necessary
-   std::auto_ptr<ExceptionSink> xs;
+   std::unique_ptr<ExceptionSink> xs;
    if (!xsink) {
       xs.reset(new ExceptionSink);
       xsink = xs.get();
@@ -1228,6 +1229,11 @@ void QoreProgram::parseDefine(const char* str, AbstractQoreNode* val) {
 }
 
 void QoreProgram::parseCmdLineDefines(const std::map<std::string, std::string> defmap, ExceptionSink& xs, ExceptionSink& ws, int wm) {
+   const std::map<std::string, std::string>& dm = defmap;
+   parseCmdLineDefines(xs, ws, wm, dm);
+}
+
+void QoreProgram::parseCmdLineDefines(ExceptionSink& xs, ExceptionSink& ws, int wm, const std::map<std::string, std::string>& defmap) {
    ProgramRuntimeParseCommitContextHelper pch(&xs, this);
    if (xs)
       return;
