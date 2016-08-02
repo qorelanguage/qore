@@ -54,6 +54,8 @@ public class Main inherits QUnit::Test {
                                     gmtime().format("Dy, DD Mon YYYY HH:mm:SS"));
         const ErrorReply2 = sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Type: text/html\r\nDate: %s GMT\r\n\r\n",
                                     gmtime().format("Dy, DD Mon YYYY HH:mm:SS"));
+        const ChunkedReply1 = sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Type: text/plain\r\nTransfer-Encoding: chunked\r\nDate: %s GMT\r\n\r\n4\r\nTest\r\n5\r\n Mess\r\n4\r\nage.\r\n0\r\n\r\n",
+                                    gmtime().format("Dy, DD Mon YYYY HH:mm:SS"));
     }
 
     constructor() : Test("HttpClientTest", "1.0") {
@@ -68,16 +70,22 @@ public class Main inherits QUnit::Test {
         {
             HttpTestServer serv(ErrorReply1);
             *string str = hc.get("/something");
-            assertEq(str, NOTHING);
+            assertEq(NOTHING, str);
             serv.done();
             hc.disconnect();
         }
         {
             HttpTestServer serv(ErrorReply2);
             *string str = hc.get("/something");
-            assertEq(str, NOTHING);
+            assertEq(NOTHING, str);
+            serv.done();
+            hc.disconnect();
+        }
+        {
+            HttpTestServer serv(ChunkedReply1);
+            *string str = hc.get("/something");
+            assertEq("Test Message.", str);
             serv.done();
         }
     }
-
 }
