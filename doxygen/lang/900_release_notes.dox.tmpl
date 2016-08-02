@@ -90,6 +90,7 @@
     - fixed thread memory handling bug with some operator expressions and the @ref background "background operator" (<a href="https://github.com/qorelanguage/qore/issues/1096">issue 1096</a>)
     - fixed an issue where an internal C++ API (QoreProgram::parseCmdLineDefines()) performed a needless copy of a data structure (<a href="https://github.com/qorelanguage/qore/issues/1099">issue 1099</a>)
     - fixed a stack corruption bug with asynchronous I/O on UNIX systems with @ref Qore::ReadOnlyFile "ReadOnlyFile" methods (<a href="https://github.com/qorelanguage/qore/issues/1106">issue 1106</a>)
+    - fixed a bug where @ref Qore::HTTPClient "HTTPClient" class method variants such as @ref Qore::HTTPClient::get() "HTTPClient::get()" without a callback would fail to return the message body when the server sent a reply with chunked transfer encoding (<a href="https://github.com/qorelanguage/qore/issues/1117">issue 1117</a>)
 
     @section qore_0812 Qore 0.8.12
 
