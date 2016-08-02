@@ -107,6 +107,7 @@ class DgcTest inherits QUnit::Test {
         addTestCase("GcTests", \gcTests());
         addTestCase("ClosureTests", \closureTests());
         addTestCase("Destructor order", \dtorOrder());
+        addTestCase("MiscGcTests", \miscGcTests());
 
         # Return for compatibility with test harness that checks the return value
         set_return_value(main());
@@ -289,5 +290,19 @@ class DgcTest inherits QUnit::Test {
             b.other = a;
         }
         assertEq("+X-+-", DtorOrder::Result);
+    }
+
+    miscGcTests() {
+        int cnt = 0;
+        code inc = sub () { ++cnt; };
+
+        # make circular references
+        {
+            GcTest obj1(inc);
+            GcTest obj2(inc, obj1);
+            obj1.a = obj2;
+            delete obj2;
+        }
+        assertEq(2, cnt);
     }
 }

@@ -1305,20 +1305,24 @@ void ClosureVarValue::deref(ExceptionSink* xsink) {
    bool do_del = false;
 
    while (true) {
-      if (!rset) {
-         if (ref_copy == rcount)
+      {
+         QoreAutoVarRWReadLocker al(rml);
+
+         if (!rset) {
+            if (ref_copy == rcount)
+               do_del = true;
+            break;
+         }
+         int rc = rset->canDelete(ref_copy, rcount);
+         if (rc == 1) {
+            printd(QORE_DEBUG_OBJ_REFS, "ClosureVarValue::deref() this: %p found recursive reference; deleting value\n", this);
             do_del = true;
-         break;
+            break;
+         }
+         if (!rc)
+            break;
+         assert(rc == -1);
       }
-      int rc = rset->canDelete(ref_copy, rcount);
-      if (rc == 1) {
-	 printd(QORE_DEBUG_OBJ_REFS, "ClosureVarValue::deref() this: %p found recursive reference; deleting value\n", this);
-	 do_del = true;
-	 break;
-      }
-      if (!rc)
-	 break;
-      assert(rc == -1);
       // need to recalculate references
       RSetHelper rsh(*this);
    }
