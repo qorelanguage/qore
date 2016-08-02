@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 
 # AC_PREREQ(2.59)
-AC_INIT([qore], [0.8.12],
+AC_INIT([qore], [0.8.13],
         [David Nichols <david@qore.org>],
         [qore])
 AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-ustar])
@@ -206,6 +206,12 @@ QPP_CPPFLAGS="$QPP_CPPFLAGS -DHAVE_UNIX_CONFIG_H"
 AC_SUBST(QPP_CPPFLAGS)
 
 AC_PROG_LEX
+
+# test for C++11
+AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
+if test "$HAVE_CXX11" = "1"; then
+    AM_CXXFLAGS=-std=gnu++11
+fi
 
 # test for flex & flex version
 AC_MSG_CHECKING([for flex 2.5.31 or greater])
