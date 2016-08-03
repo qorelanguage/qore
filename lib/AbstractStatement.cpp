@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -40,9 +40,9 @@ AbstractStatement::AbstractStatement(int sline, int eline) : loc(sline, eline) {
       pwo = qore_program_private::getParseWarnOptions(pgm);
 }
 
-int AbstractStatement::exec(AbstractQoreNode **return_value, ExceptionSink *xsink) {
-   printd(1, "AbstractStatement::exec() this: %p type: %s file: %s line: %d\n", this, typeid(this).name(), loc.file, loc.start_line);
-   update_runtime_location(loc);
+int AbstractStatement::exec(QoreValue& return_value, ExceptionSink *xsink) {
+   printd(1, "AbstractStatement::exec() this: %p file: %s line: %d\n", this, loc.file, loc.start_line);
+   QoreProgramLocationHelper l(loc);
 
 #ifdef QORE_MANAGE_STACK
    if (check_stack(xsink))
@@ -63,4 +63,3 @@ int AbstractStatement::parseInit(LocalVar *oflag, int pflag) {
    update_parse_location(loc);
    return parseInitImpl(oflag, pflag);
 }
-

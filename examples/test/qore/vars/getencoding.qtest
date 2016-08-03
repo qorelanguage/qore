@@ -1,0 +1,25 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class GetencodingTest
+
+class GetencodingTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Getencoding test", "1.0") {
+        addTestCase("Test", \testGetencoding());
+        set_return_value(main());
+    }
+
+    testGetencoding() {
+        File f("iso-8859-1");
+        f.open(get_script_path());
+        assertEq("ISO-8859-1", f.getEncoding());
+    }
+}
+

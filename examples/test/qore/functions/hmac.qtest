@@ -1,0 +1,107 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class HmacTest
+
+public class HmacTest inherits QUnit::Test {
+    private {
+        string str = "Hello There This is a Test - 1234567890";
+        string key = "a key";
+    }
+
+    constructor() : Test("HmacTest", "1.0") {
+        addTestCase("Basic MD2 test", \md2Test(), NOTHING);
+        addTestCase("Basic MD4 test", \md4Test(), NOTHING);
+        addTestCase("Basic MD5 test", \md5Test(), NOTHING);
+        addTestCase("Basic DSS test", \dssTest(), NOTHING);
+        addTestCase("Basic DSS1 test", \dss1Test(), NOTHING);
+        addTestCase("Basic SHA test", \shaTest(), NOTHING);
+        addTestCase("Basic SHA1 test", \sha1Test(), NOTHING);
+        addTestCase("Basic RIPEMD160 test", \ripemd160Test(), NOTHING);
+        addTestCase("Basic MDC2 test", \mdc2Test(), NOTHING);
+        addTestCase("Basic SHA224 test", \sha224Test(), NOTHING);
+        addTestCase("Basic SHA256 test", \sha256Test(), NOTHING);
+        addTestCase("Basic SHA384 test", \sha384Test(), NOTHING);
+        addTestCase("Basic SHA512 test", \sha512Test(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    md2Test() {
+        if (!HAVE_MD2) {
+            testSkip("Missing MD2 support");
+        }
+        testAssertion("MD2 hmac", \MD2_hmac(), (str, key), new TestResultValue("27f5f17500b408e97643403ea8ef1413"));
+    }
+
+    md4Test() {
+        testAssertion("MD4 hmac", \MD4_hmac(), (str, key), new TestResultValue("053d084f321a3886e60166ebd9609ce1"));
+    }
+
+    md5Test() {
+        testAssertion("MD5 hmac", \MD5_hmac(), (str, key), new TestResultValue("87505c6164aaf6ca6315233902a01ef4"));
+    }
+
+    dssTest() {
+        testAssertion("DSS hmac", \DSS_hmac(), (str, key), new TestResultValue("37a3cc73159aa129b0eb22bbdf4b9309d389f629"));
+    }
+
+    dss1Test() {
+        testAssertion("DSS1 hmac", \DSS1_hmac(), (str, key), new TestResultValue("37a3cc73159aa129b0eb22bbdf4b9309d389f629"));
+    }
+
+    shaTest() {
+        testAssertion("SHA hmac", \SHA_hmac(), (str, key), new TestResultValue("0ad47c8d36dc4606d52f7e4cbd144ef2fda492a0"));
+    }
+
+    sha1Test() {
+        testAssertion("SHA1 hmac", \SHA1_hmac(), (str, key), new TestResultValue("37a3cc73159aa129b0eb22bbdf4b9309d389f629"));
+    }
+
+    ripemd160Test() {
+        testAssertion("RIPEMD-160 hmac", \RIPEMD160_hmac(), (str, key), new TestResultValue("4bca70bca1601aba57624eeb2606535cb12f2079"));
+    }
+
+    mdc2Test() {
+        if (!HAVE_MDC2) {
+            testSkip("Missing MDC2 support");
+        }
+        testAssertion("MDC2 hmac", \MDC2_hmac(), (str, key), new TestResultValue("e0ef6a6803e58807c5db395e180a999c"));
+    }
+
+    sha224Test() {
+        if (!HAVE_SHA224) {
+            testSkip("Missing SHA224 support");
+        }
+        testAssertion("SHA224 hmac", \SHA224_hmac(), (str, key), new TestResultValue("fad5667fa5aa412044555b7e077fced62372fe9c6ce20815609da12c"));
+    }
+
+    sha256Test() {
+        if (!HAVE_SHA256) {
+            testSkip("Missing SHA256 support");
+        }
+        testAssertion("SHA256 hmac", \SHA256_hmac(), (str, key), new TestResultValue("1c90c21e227712b62019ff831f34cba22c2e70f1a902651ef69a70705ee0f754"));
+    }
+
+    sha384Test() {
+        if (!HAVE_SHA384) {
+            testSkip("Missing SHA384 support");
+        }
+        testAssertion("SHA384 hmac", \SHA384_hmac(), (str, key), new TestResultValue("e2c253c6dcb050990b4da3cee95cd7b227f43388fa8116f476f59395af295d0d3bb7156ab2fcd0663b0500249a7a0865"));
+    }
+
+    sha512Test() {
+        if (!HAVE_SHA512) {
+            testSkip("Missing SHA512 support");
+        }
+        testAssertion("SHA512 hmac", \SHA512_hmac(), (str, key), new TestResultValue("8dcefd7ea3f90ff1c822b5e9547fc36edf78c3e4ce13d47510a212a406bdda1a4094e7ea5ade90e1c736e204d331a814520eba49f3d074e2c261208de07264f6"));
+    }
+}

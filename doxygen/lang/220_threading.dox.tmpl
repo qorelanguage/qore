@@ -22,12 +22,15 @@
 
     The following code gives an example of declaring a global thread-local variable by using <tt><b>my</b></tt> at the top-level:
 
-    @code
-%require-our
+    @code{.py}
+%new-style
+%require-types
+%strict-args
+
 sub t() {
-    printf("x=%y\n", $x);
+    printf("x=%y\n", x);
 }
-my int $x = 2;
+int x = 2;
 t();
 background t();
     @endcode
@@ -45,7 +48,7 @@ x=null@endverbatim
 
     An alternative to global thread-local variables is offered by the save_thread_data() and get_thread_data() functions (documented in @ref threading_functions).
 
-    @section thread_synchronization Thread Synchronization and Inter-Thread Communication
+    @section thread_synchronization Thread Management and Inter-Thread Communication
 
     @anchor synchronized
     @par synchronized
@@ -54,33 +57,61 @@ x=null@endverbatim
     @par Classes Useful With Threading
     The following classes are useful when developing multi-threaded %Qore programs:\n
     |!Class|!Description
-    |@ref Qore::Thread::Mutex "Mutex"|A mutual-exclusion thread lock
-    |@ref Qore::Thread::Gate "Gate"|A recursive thread lock
-    |@ref Qore::Thread::RWLock "RWLock"|A read-write thread lock
-    |@ref Qore::Thread::Condition "Condition"|Allows %Qore programs to block until a certain condition becomes true
-    |@ref Qore::Thread::Counter "Counter"|A blocking counter class
-    |@ref Qore::Thread::Queue "Queue"|A thread-safe, blocking queue class (useful for message passing)
-    |@ref Qore::Thread::Sequence "Sequence"|A simple, thread-atomic sequence object (increment-only)
-    |@ref Qore::Thread::ThreadPool "ThreadPool"|A flexible, dynamically scalable thread pool
-    |@ref Qore::Thread::AutoLock "AutoLock"|A helper class to automatically release @ref Qore::Thread::Mutex "Mutex" locks when the @ref Qore::Thread::AutoLock "AutoLock" object is deleted
+    |@ref Qore::Thread::AbstractThreadResource "AbstractThreadResource"|Allows %Qore user code to implement thread resources
     |@ref Qore::Thread::AutoGate "AutoGate"|A helper class to automatically exit @ref Qore::Thread::Gate "Gate" locks when the @ref Qore::Thread::AutoGate "AutoGate" object is deleted
+    |@ref Qore::Thread::AutoLock "AutoLock"|A helper class to automatically release @ref Qore::Thread::Mutex "Mutex" locks when the @ref Qore::Thread::AutoLock "AutoLock" object is deleted
     |@ref Qore::Thread::AutoReadLock "AutoReadLock"|A helper class to automatically release read locks when the @ref Qore::Thread::AutoReadLock "AutoReadLock" object is deleted
     |@ref Qore::Thread::AutoWriteLock "AutoWriteLock"|A helper class to automatically release read locks when the @ref Qore::Thread::AutoReadLock "AutoWriteLock" object is deleted
+    |@ref Qore::Thread::Condition "Condition"|Allows %Qore programs to block until a certain condition becomes true
+    |@ref Qore::Thread::Counter "Counter"|A blocking counter class
+    |@ref Qore::Thread::Gate "Gate"|A recursive thread lock
+    |@ref Qore::Thread::Mutex "Mutex"|A mutual-exclusion thread lock
+    |@ref Qore::Thread::Queue "Queue"|A thread-safe, blocking queue class (useful for message passing)
+    |@ref Qore::Thread::RWLock "RWLock"|A read-write thread lock
+    |@ref Qore::Thread::Sequence "Sequence"|A simple, thread-atomic sequence object (increment-only)
+    |@ref Qore::Thread::ThreadPool "ThreadPool"|A flexible, dynamically scalable thread pool
 
     @par Functions Useful With Threading
     The following functions assist writing safe and efficient multi-threaded %Qore programs:\n
     |!Function|!Description
-    |save_thread_data()|Saves a thread-local value against a key.
-    |get_all_thread_data()|Retrieves the entire thread-local hash.
-    |get_thread_data()|Retrieves a thread-local value based on a key.
     |delete_all_thread_data()|Deletes the entire thread-local data hash.
     |delete_thread_data()|Delete the value of a key in the thread-local data hash.
+    |get_all_thread_data()|Retrieves the entire thread-local hash.
+    |get_thread_data()|Retrieves a thread-local value based on a key.
     |gettid()|Gets the thread's TID (thread identifier)
-    |thread_list()|Returns a list of TIDs of running threads
-    |num_threads()|Returns the number of running threads
-    |throwThreadResourceExceptions()|runs thread-resource cleanup routines and throws the associated exceptions
     |mark_thread_resources()|sets a checkpoint for throwing thread resource exceptions
+    |num_threads()|Returns the number of running threads
+    |remove_thread_resource()|removes a thread resource from the current thread
+    |save_thread_data()|Saves a thread-local value against a key.
+    |set_thread_resource()|sets a thread resource against the current thread
+    |thread_list()|Returns a list of TIDs of running threads
+    |throw_thread_resource_exceptions()|runs thread-resource cleanup routines and throws the associated exceptions
     |throw_thread_resource_exceptions_to_mark()|runs thread-resource cleanup routines and throws the associated exceptions to the last mark and clears the mark
+
+    @section thread_resources Thread Resources
+
+    %Qore supports a concept called thread resources; thread resources are resources that belong to a particular thread and
+    that require some sort of cleanup of the resource in case the thread is exited without releasing the resource.  Examples
+    of thread resources in %Qore are as follows:
+    - @ref Qore::Thread::Mutex "Mutex": when a lock is acquired, the lock is tracked as a thread resource.  If the thread is exited without releasing the lock, the @ref Qore::Thread::Mutex "Mutex" thread resource cleanup routine is executed which releases the lock and throws a user-friendly exception explaining what happened.  When the lock is released, the thread resource is removed.
+    - @ref Qore::Thread::RWLock "RWLock": read-write locks are treated as thread resources in the same way described for @ref Qore::Thread::Mutex "Mutex" locks
+    - @ref Qore::Thread::Gate "Gate": gate locks are treated as thread resources in the same way described for @ref Qore::Thread::Mutex "Mutex" locks
+    - @ref Qore::SQL::Datasource "Datasource": the transaction lock is handled as a thread resource; if a thread exits holding the transaction lock, the @ref Qore::SQL::Datasource "Datasource" cleanup routine is executed; this will rollback the transaction (freeing the transaction lock) and throw an appropriate exception.
+    - @ref Qore::SQL::DatasourcePool "DatasourcePool": datasource allocations are handled as a thread resources; if a thread exits without releasing the connection, the @ref Qore::SQL::DatasourcePool "DatasourcePool" cleanup routine is executed; this will rollback the transaction (releasing the dtasource connection back to the pool) and throw an appropriate exception.
+
+    User classes can implement their own thread resource handling by subclassing
+    @ref Qore::Thread::AbstractThreadResource "AbstractThreadResource"  (implementing custom cleanup code in the
+    @ref Qore::Thread::AbstractThreadResource::cleanup() "AbstractThreadResource::cleanup()" method) and then calling:
+    - set_thread_resource(): to set the resource against the thread
+    - remove_thread_resource(): to remove the resource from the thread
+
+    If the thread is exited or one of the thread resource cleanup functions is called while the thread resource is set, then the @ref Qore::Thread::AbstractThreadResource::cleanup() "AbstractThreadResource::cleanup()" method is called, which should cleanup the thread resource and normally throw a user-friendly exception describing the error, the cleanup actions takenm and how to prevent it in the future.
+
+    The thread-resource cleanup functions are:
+    - throw_thread_resource_exceptions(): runs thread-resource cleanup routines explicitly
+    - throw_thread_resource_exceptions_to_mark(): runs thread-resource cleanup routines for all thread resources set since the last call to mark_thread_resources() explicitly
+
+    @see @ref Qore::Thread::AbstractThreadResource "AbstractThreadResource" for an example of custom thread resource handling
 
     @section deadlocks Deadlocks
 

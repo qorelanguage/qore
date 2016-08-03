@@ -1,0 +1,5 @@
+#include @SLIST_INCLUDE@
+#ifndef LIST_NAMESPACE
+#define LIST_NAMESPACE @LIST_NAMESPACE@
+#endif
+using LIST_NAMESPACE::slist;

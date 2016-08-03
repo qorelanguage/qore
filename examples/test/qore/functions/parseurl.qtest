@@ -1,0 +1,37 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class ParseUrlTest
+
+public class ParseUrlTest inherits QUnit::Test {
+    private {
+        string url = "https://username:passw@rd@hostname:1044/path/is/here";
+
+        hash uh = (
+            "protocol" : "https",
+            "username" : "username",
+            "password" : "passw@rd",
+            "host" : "hostname",
+            "port" : 1044,
+            "path" : "/path/is/here"
+        );
+    }
+
+    constructor() : Test("ParseUrlTest", "1.0") {
+        addTestCase("test parseURL()", \parseUrlTest(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    parseUrlTest() {
+        testAssertion("parseURL() call", \parseURL(), (url,), new TestResultValue(uh));
+    }
+}

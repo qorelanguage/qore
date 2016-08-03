@@ -16,15 +16,25 @@
 
     %Qore automatically converts data types when necessary when evaluating operators. The goal is to provide the expected result for the programmer without requiring the programmer to explicitly convert data types. Please see @ref operators for more information.
 
-    %Qore supports @ref signal_handling "signal handling" by executing %Qore-language signal handlers in special @ref signal_handling "single-handling thread".
+    %Qore supports @ref signal_handling "signal handling" by executing %Qore-language signal handlers in special @ref signal_handling "signal-handling thread".
 
-    UNIX operating systems allow an executable script to specify their interpreter. This is done by setting the first line in the program to a special string indicating the location of the %Qore binary. For the purposes of this document, the location for the %Qore binary is assumed to be \c /usr/bin/qore. The first line of %Qore scripts in this case should look as follows:
+    UNIX operating systems allow an executable script to specify their interpreter.  This is done by setting the first line of the script to a special string indicating the location of the interpreter (%Qore binary).  For the purposes of this document, the location for the \c qore binary is assumed to be \c /usr/bin/qore.  The first line of %Qore scripts in this case should look as follows:
 
-    @code
+    @code{.py}
 #!/usr/bin/qore
     @endcode
 
-    If another installation directory is used (such as \c /usr/local/bin), then the correct path must be reflected in the first line of the %Qore script.
+    %Qore is moving toward establishing @ref new-style "%new-style" as the default syntax; all examples given in the %Qore documentation are given assuming @ref new-style "%new-style".  To use %Qore with the recommended @ref parse_directives "parse directives", the following can be used as an example:
+
+    @code{.py}
+#!/usr/bin/qore
+%new-style
+%strict-args
+%require-types
+%enable-all-warnings
+    @endcode
+
+    @note If another installation directory is used (such as \c /usr/local/bin), then the correct path must be reflected in the first line of the %Qore script (ex: <tt>#!/usr/local/bin/qore</tt>).  However, there is a better, more flexible way how to do it -- do not specify direct path to the interpreter, but use this construct instead: <tt>#!/usr/bin/env qore</tt> -- thus there is no need to worry about exact path and it just works.
 
     %Qore convention dictates that %Qore script file names end with \c ".q".
 */

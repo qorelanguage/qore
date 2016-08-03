@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -45,8 +45,8 @@ qclass SSLPrivateKey [arg=QoreSSLPrivateKey* pk];
     @param pass The optional password or passphrase for the private key
 
     @par Example:
-    @code
-my SSLPrivateKey $key($pem);
+    @code{.py}
+SSLPrivateKey key(pem);
     @endcode
 
     @throw SSLPRIVATEKEY-CONSTRUCTOR-ERROR error in private key data
@@ -64,8 +64,8 @@ SSLPrivateKey::constructor(string pem, *string pass) {
 /** @param der The DER-encoded binary representation of the private key
 
     @par Example:
-    @code
-my SSLPrivateKey $key($der);
+    @code{.py}
+SSLPrivateKey key(der);
     @endcode
 
     @throw SSLPRIVATEKEY-CONSTRUCTOR-ERROR error in private key data
@@ -91,8 +91,8 @@ SSLPrivateKey::copy() {
     - \c "bitLength": The bit length of the private key (see SSLPrivateKey::getBitLength())
 
     @par Example:
-    @code
-my hash $h = $key.getInfo();
+    @code{.py}
+hash h = key.getInfo();
     @endcode
  */
 hash SSLPrivateKey::getInfo() [flags=CONSTANT] {
@@ -103,8 +103,8 @@ hash SSLPrivateKey::getInfo() [flags=CONSTANT] {
 /** @return a string giving the algorithm used for the private key (ex: \c "RSA", \c "RSA2", \c "DSA", \c "DSA1", \c "DSA2", \c "DAS3", \c "DAS4", \c "DH", \c "unknown")
 
     @par Example:
-    @code
-my string $str = $pkey.getType();
+    @code{.py}
+string str = pkey.getType();
     @endcode
  */
 string SSLPrivateKey::getType() [flags=CONSTANT] {
@@ -124,8 +124,8 @@ int SSLPrivateKey::getVersion() [flags=CONSTANT] {
 /** @return the bit length of the private key
 
     @par Example:
-    @code
-my int $len = $key.getBitLength();
+    @code{.py}
+int len = key.getBitLength();
     @endcode
  */
 int SSLPrivateKey::getBitLength() [flags=CONSTANT] {
@@ -136,8 +136,8 @@ int SSLPrivateKey::getBitLength() [flags=CONSTANT] {
 /** @return a string in PEM format representing the private key
 
     @par Example:
-    @code
-my string $pem = $key.getPEM();
+    @code{.py}
+string pem = key.getPEM();
     @endcode
 
     @throw SSLPRIVATEKEY-ERROR could not create PEM string from private key data
