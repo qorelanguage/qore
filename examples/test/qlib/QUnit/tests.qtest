@@ -6,8 +6,6 @@
 %enable-all-warnings
 %require-types
 
-%disable-warning module-only
-
 %include ../../../../qlib/QUnit.qm
 
 %exec-class QUnitTest

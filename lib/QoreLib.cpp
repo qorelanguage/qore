@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1469,15 +1469,13 @@ int check_lvalue(AbstractQoreNode* node, bool assignment) {
       if (op) {
 	 return check_lvalue(op->getLeft(), assignment);
       }
-      else {
-         QoreHashObjectDereferenceOperatorNode* hop = dynamic_cast<QoreHashObjectDereferenceOperatorNode*>(node);
-         if (hop) {
-            return check_lvalue(hop->getLeft(), assignment);
-         }
-      }
       return -1;
    }
 
+   if (ntype == NT_TREE) {
+      QoreTreeNode* t = reinterpret_cast<QoreTreeNode*>(node);
+      return t->getOp() == OP_OBJECT_REF ? check_lvalue(t->left, assignment) : -1;
+   }
    return -1;
 }
 
@@ -1626,7 +1624,7 @@ bool q_path_is_readable(const char* path) {
 
    if ((rc = stat(path, &sbuf)))
       return false;
-
+   
    if (S_ISDIR(sbuf.st_mode)) { // If path is a directory.
       DIR* dp = opendir(path);
       if (dp != NULL) {

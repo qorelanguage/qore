@@ -104,7 +104,7 @@ int ForStatement::parseInitImpl(LocalVar *oflag, int pflag) {
       ignore_return_value(iterator);
    }
    if (code)
-      code->parseInitImpl(oflag, pflag | PF_BREAK_OK | PF_CONTINUE_OK);
+      code->parseInitImpl(oflag, pflag);
 
    // save local variables
    if (lvids)

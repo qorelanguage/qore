@@ -74,16 +74,15 @@ x=null@endverbatim
     @par Functions Useful With Threading
     The following functions assist writing safe and efficient multi-threaded %Qore programs:\n
     |!Function|!Description
-    |delete_all_thread_data()|Deletes the entire thread-local data hash
-    |delete_thread_data()|Delete the value of a key in the thread-local data hash
-    |get_all_thread_data()|Retrieves the entire thread-local hash
-    |get_thread_data()|Retrieves a thread-local value based on a key
+    |delete_all_thread_data()|Deletes the entire thread-local data hash.
+    |delete_thread_data()|Delete the value of a key in the thread-local data hash.
+    |get_all_thread_data()|Retrieves the entire thread-local hash.
+    |get_thread_data()|Retrieves a thread-local value based on a key.
     |gettid()|Gets the thread's TID (thread identifier)
     |mark_thread_resources()|sets a checkpoint for throwing thread resource exceptions
     |num_threads()|Returns the number of running threads
     |remove_thread_resource()|removes a thread resource from the current thread
-    |save_thread_data()|Saves a thread-local value against a key
-    |set_thread_init()|Sets a @ref closure "closure" or @ref call_reference "call reference" to run every time a new thread is started in a @ref Qore::Program "Program" object
+    |save_thread_data()|Saves a thread-local value against a key.
     |set_thread_resource()|sets a thread resource against the current thread
     |thread_list()|Returns a list of TIDs of running threads
     |throw_thread_resource_exceptions()|runs thread-resource cleanup routines and throws the associated exceptions

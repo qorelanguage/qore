@@ -45,7 +45,7 @@ class ThreadTask {
 protected:
    ResolvedCallReferenceNode* code;
    ResolvedCallReferenceNode* cancelCode;
-
+   
 public:
    DLLLOCAL ThreadTask(ResolvedCallReferenceNode* c, ResolvedCallReferenceNode* cc) : code(c), cancelCode(cc) {
    }
@@ -222,7 +222,7 @@ protected:
    }
 
    DLLLOCAL int addIdleWorker(ExceptionSink* xsink) {
-      std::unique_ptr<ThreadPoolThread> tpth(new ThreadPoolThread(*this, xsink));
+      std::auto_ptr<ThreadPoolThread> tpth(new ThreadPoolThread(*this, xsink));
       if (!tpth->valid()) {
 	 assert(*xsink);
 	 return -1;
@@ -254,14 +254,14 @@ protected:
 	 fh.pop_front();
       }
       else {
-	 std::unique_ptr<ThreadPoolThread> tpt_pt(new ThreadPoolThread(*this, xsink));
+	 std::auto_ptr<ThreadPoolThread> tpt_pt(new ThreadPoolThread(*this, xsink));
 	 if (!tpt_pt->valid()) {
 	    assert(*xsink);
 	    return 0;
 	 }
 	 tpt = tpt_pt.release();
       }
-
+      
       ah.push_back(tpt);
       tplist_t::iterator i = ah.end();
       --i;
@@ -281,7 +281,7 @@ public:
 
    DLLLOCAL void toString(QoreString& str) {
       AutoLocker al(m);
-
+      
       str.sprintf("ThreadPool %p total: %d max: %d minidle: %d maxidle: %d release_ms: %d running: [", this, ah.size() + fh.size(), max, minidle, maxidle, release_ms);
       for (tplist_t::iterator i = ah.begin(), e = ah.end(); i != e; ++i) {
 	 if (i != ah.begin())
@@ -362,7 +362,7 @@ public:
 	 if (!confirm) {
 	    tplist_t::iterator i = tpt->getPos();
 	    ah.erase(i);
-
+	    
             // requeue thread if possible
             if ((!maxidle && release_ms) || ((int)fh.size() < maxidle) || q.size() > fh.size()) {
                fh.push_back(tpt);

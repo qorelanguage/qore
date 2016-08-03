@@ -525,7 +525,7 @@ public:
 #ifdef HPUX
       // vsnprintf failed but didn't tell us how big the buffer should be
       if (i < 0) {
-         //printf("DEBUG: vsnprintf() failed: i=%d allocated=" QSD " len=" QSD " buf=%p fmtlen=" QSD " (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
+         //printf("DEBUG: vsnprintf() failed: i=%d allocated="QSD" len="QSD" buf=%p fmtlen="QSD" (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
          // resize buffer
          allocated += STR_CLASS_EXTRA;
          buf = (char *)realloc(buf, sizeof(char) * allocated);
@@ -534,7 +534,7 @@ public:
       }
 #else
       if (i >= free) {
-         //printf("DEBUG: vsnprintf() failed: i=%d allocated=" QSD " len=" QSD " buf=%p fmtlen=" QSD " (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
+         //printf("DEBUG: vsnprintf() failed: i=%d allocated="QSD" len="QSD" buf=%p fmtlen="QSD" (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
          // resize buffer
          allocated = len + i + STR_CLASS_EXTRA;
          buf = (char *)realloc(buf, sizeof(char) * allocated);

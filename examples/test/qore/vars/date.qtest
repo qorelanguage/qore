@@ -225,7 +225,7 @@ class DateTest inherits QUnit::Test {
         assertEq("Europe/Vienna", new TimeZone("Europe/Vienna").region());
         assertEq("Europe/Belgrade", new TimeZone("Central Europe Standard Time").region());
         assertEq("Europe/Sarajevo", new TimeZone("Central European Standard Time").region());
-        assertThrows("TZINFO-ERROR", sub () { new TimeZone("ABCDEF"); });
+        assertThrows("TZINFO-ERROR", sub () { any x = new TimeZone("ABCDEF"); });
     }
 
     testDate(date d, int y, int w, int day, int n, reference ri) {

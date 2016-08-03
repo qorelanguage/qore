@@ -34,7 +34,7 @@
 #ifndef QORE_QORE_DATE_PRIVATE_H
 #define QORE_QORE_DATE_PRIVATE_H
 
-#include <cmath>
+#include <math.h>
 
 // note: this implementation does not yet take into account leap seconds,
 //       even if this information is available in the zoneinfo data

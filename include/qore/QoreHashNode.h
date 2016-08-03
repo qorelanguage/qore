@@ -570,9 +570,6 @@ public:
    //! returns the value of the current key with an incremented reference count
    DLLEXPORT AbstractQoreNode* getReferencedValue() const;
 
-   //! returns the hash
-   DLLEXPORT QoreHashNode* getHash() const;
-
    //! returns true if on the first key of the hash
    DLLEXPORT bool first() const;
 
@@ -680,9 +677,6 @@ public:
 
    //! returns the value of the current key with an incremented reference count
    DLLEXPORT AbstractQoreNode* getReferencedValue() const;
-
-   //! returns the hash
-   DLLEXPORT const QoreHashNode* getHash() const;
 
    //! returns true if on the first key of the hash
    DLLEXPORT bool first() const;

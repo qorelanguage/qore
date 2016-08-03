@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -45,8 +45,6 @@
 #define PF_FOR_ASSIGNMENT        (1 << 3)
 #define PF_CONST_EXPRESSION      (1 << 4)
 #define PF_TOP_LEVEL             (1 << 5) //!< parsing at the top-level of the program
-#define PF_BREAK_OK              (1 << 6)
-#define PF_CONTINUE_OK           (1 << 7)
 
 // all definitions in this file are private to the library and subject to change
 

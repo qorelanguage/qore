@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.8.13
+%requires qore >= 0.8.12
 
 # use new-style
 %new-style
@@ -51,7 +51,7 @@
 %endtry
 
 module RestHandler {
-    version = "1.2";
+    version = "1.1";
     desc = "user module for implementing REST services with the Qore HTTP server";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -301,9 +301,6 @@ Content-Length: 36
 
     @section resthandler_relnotes RestHandler Release Notes
 
-    @subsection rh_1_2 RestHandler v1.2
-    - added logic to attempt to mask passwords in debug log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
-
     @subsection rh_1_1 RestHandler v1.1
     - added support for the HTTP \c OPTIONS method
     - return an error if an unsupported HTTP method is used in a REST call
@@ -353,9 +350,9 @@ public namespace RestHandler {
             - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
             - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
             - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
-            - \c url: a hash of broken-down URL information (as returned from parse_url())
+            - \c url: a hash of broken-down URL information (as returned from parseURL())
             - \c id: the unique HTTP connection ID
-            - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
+            - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
             - \c user: the current RBAC username (if any)
             - \c hdr: a hash of header information as returned by @ref Qore::Socket::readHTTPHeader()
             - \c body: the deserialized message body
@@ -577,9 +574,9 @@ public namespace RestHandler {
             - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
             - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
             - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
-            - \c url: a hash of broken-down URL information (as returned from parse_url())
+            - \c url: a hash of broken-down URL information (as returned from parseURL())
             - \c id: the unique HTTP connection ID
-            - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
+            - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
             - \c user: the current RBAC username (if any)
             - \c hdr: a hash of header information as returned by @ref Qore::Socket::readHTTPHeader()
             - \c body: the deserialized message body
@@ -607,10 +604,7 @@ public namespace RestHandler {
                 return cls.handleRequest(listener, rh, s, cl, mn, cx, args);
             }
 
-            # try to mask passwords in args
-            string astr = sprintf("%y", args);
-            astr =~ s/(pass(?:word)?:\s*)"([^"]*)"/$1"<masked>"/;
-            rh.logDebug("REST DBG: class %y: dispatching method %y args: %s", name(), mn, astr);
+            rh.logDebug("REST DBG: class %y: dispatching method %y args: %y", name(), mn, args);
             return dispatchStream(listener, rh, s, mn, args, cx);
         }
 
@@ -651,30 +645,13 @@ public namespace RestHandler {
         }
 
         #! this method is called to dispatch requests on the given object
-        /** @param rh the RestHandler object
-            @param mn the method name
-            @param ah the holds URI and / or message body arguments for the REST call
-            @param cx call context hash; this hash will have the following keys:
-            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
-            - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
-            - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
-            - \c url: a hash of broken-down URL information (as returned from parse_url())
-            - \c id: the unique HTTP connection ID
-            - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
-            - \c user: the current RBAC username (if any)
-
-            @return the return value is the same as the return value for @ref HttpServer::AbstractHttpRequestHandler::handleRequest()
-         */
         private hash dispatch(RestHandler rh, string mn, *hash ah, hash cx) {
             try {
                 return call_object_method_args(self, mn, (cx, ah));
             }
             catch (hash ex) {
                 if (ex.err == "METHOD-DOES-NOT-EXIST") {
-                    # try to mask passwords in args
-                    string astr = sprintf("%y", ah);
-                    astr =~ s/(pass(?:word)?:\s*)"([^"]*)"/$1"<masked>"/;
-                    rh.logError("DISPATCH-ERROR: cannot dispatch to unimplemented method %y: class %y, args: %s", mn, name(), astr);
+                    rh.logError("DISPATCH-ERROR: cannot dispatch to unimplemented method %y: class %y, args: %y", mn, name(), ah);
                     # see if alternate methods would work
                     list hl = ();
                     # break flag
@@ -800,9 +777,9 @@ public namespace RestHandler {
             - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
             - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
             - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
-            - \c url: a hash of broken-down URL information (as returned from parse_url())
+            - \c url: a hash of broken-down URL information (as returned from parseURL())
             - \c id: the unique HTTP connection ID
-            - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
+            - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
             - \c user: the current RBAC username (if any)
             @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
             - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
@@ -819,12 +796,8 @@ public namespace RestHandler {
         hash handleRequest(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data b) {
             #logDebug("REST DBG: cx: %N", cx);
             #logDebug("REST DBG: hdr: %N", hdr);
-            if (b) {
-                string bstr = b.typeCode() == NT_STRING ? trim(b) : sprintf("%y", b);
-                # try to mask passwords in the message body
-                bstr =~ s/(pass(?:word)?"?[=:>\s]*).*/$1<masked>.../; #/;
-                logDebug("REST DBG: body: %s", bstr);
-            }
+            if (b)
+                logDebug("REST DBG: body: %s", b.typeCode() == NT_STRING ? trim(b) : sprintf("%y", b));
 
             any body = b;
 

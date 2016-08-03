@@ -41,11 +41,6 @@ private:
       return RC_CONTINUE;
    }
    DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0) {
-      if (!(pflag & PF_CONTINUE_OK)) {
-         if (!(getProgram()->getParseOptions64() & PO_BROKEN_LOOP_STATEMENT)) {
-            parseException("CONTINUE-NOT-ALLOWED", "continue statements are only allowed in loop statements");
-         }
-      }
       return 0;
    }
 

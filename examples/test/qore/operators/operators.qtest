@@ -11,19 +11,9 @@
 
 %exec-class Test
 
-%disable-warning invalid-operation
-
 class DataTest {
     public {
         hash b;
-    }
-
-    private {
-        int x;
-    }
-
-    constructor() {
-        x = 1;
     }
 }
 
@@ -37,13 +27,6 @@ class Test inherits QUnit::Test {
         addTestCase("identity assignment", \idAssignment());
         addTestCase("assignment type restriction test", \assignmentTypeRestrictionTest());
         addTestCase("delete/remove test", \deleteRemoveTest());
-        addTestCase("binary splice test", \binarySpliceTest());
-        addTestCase("binary extract test", \binaryExtractTest());
-        addTestCase("map test", \mapTest());
-        addTestCase("select test", \selectTest());
-        addTestCase("fold test", \foldTest());
-        addTestCase("keys test", \keysTest());
-        addTestCase("binary not", \binNot());
         set_return_value(main());
     }
 
@@ -135,9 +118,6 @@ class Test inherits QUnit::Test {
         # right fold function on list using expression and implicit arguments
         testAssertionValue("foldr operator with expression", (foldr $1 - $2, (2, 3, 4)), -1);
 
-        # right fold function on list using an iterator and implicit arguments
-        testAssertionValue("foldr operator with iterator", (foldr $1 - $2, (2, 3, 4).iterator()), -1);
-
         hash h = ("test" : 1, "two" : 2.0, "three" : "three", "four" : False );
         testAssertionValue("first remove operator", remove h.two, 2.0);
 
@@ -145,61 +125,6 @@ class Test inherits QUnit::Test {
         testAssertion("float div by zero", any sub () {float n = 0; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
         testAssertion("numeric div by zero", any sub () {number n = 0n; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
         testAssertion("div by zero", any sub () {any n; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
-
-        assertEq(32, 1 << 5);
-        assertEq(2, 32 >> 4);
-        {
-            int i = 32;
-            int l = 1;
-            int r = 5;
-            assertEq(i, l << r);
-            i = 2;
-            l = 32;
-            r = 4;
-            assertEq(i, l >> r);
-        }
-
-        assertEq(True, exists 1);
-        assertEq(True, exists NULL);
-        assertEq(False, exists NOTHING);
-        {
-            int i = 1;
-            assertEq(True, exists i);
-            delete i;
-            assertEq(False, exists i);
-        }
-
-        assertEq(3, elements "str");
-        assertEq(6, elements "straße");
-        assertEq(2, elements <bead>);
-        assertEq(2, elements (1, 2));
-        assertEq(2, elements ("a": 1, "b": 2));
-        assertEq(0, elements NOTHING);
-        {
-            string str1 = "str";
-            string str2 = "straße";
-            binary bin = <bead>;
-            list l = (1, 2);
-            hash th = ("a": 1, "b": 2);
-            assertEq(3, elements str1);
-            assertEq(6, elements str2);
-            assertEq(2, elements bin);
-            assertEq(2, elements l);
-            assertEq(2, elements th);
-            delete str1;
-            assertEq(0, elements str1);
-        }
-
-        assertEq(True, stdout instanceof File);
-        assertEq(False, stdout instanceof Mutex);
-        assertEq(False, 1 instanceof File);
-        {
-            any x = stdout;
-            assertEq(True, x instanceof File);
-            assertEq(False, x instanceof Mutex);
-            x = 1;
-            assertEq(False, x instanceof File);
-        }
 
         Program p(PO_NEW_STYLE);
         testAssertion("trim operator parse-time return value", \p.parse(), ("string sub test() {string str = \"a string \\n\"; string astr = trim str; return astr;}", "trim operator test"), new TestResultValue(NOTHING));
@@ -412,126 +337,5 @@ class Test inherits QUnit::Test {
             remove a.b.c.c;
             assertEq(("c": ("d": 1)), a.b);
         }
-    }
-
-    binarySpliceTest() {
-        binary b = binary();
-        splice b, 0, 0, <01>;
-        assertEq(<01>, b);
-    }
-
-    binaryExtractTest() {
-        binary b = binary();
-        assertEq(binary(), extract b, 0, 0, <01>);
-        assertEq(<01>, b);
-    }
-
-    mapTest() {
-        assertEq(NOTHING, (map $1, NOTHING));
-        assertEq(1, (map $1, 1));
-        assertEq((1,), (map $1, 1.iterator()));
-        assertEq((1,), (map $1, (1,)));
-
-        assertEq(NOTHING, (map $1, (map $1, NOTHING)));
-        assertEq(1, (map $1, (map $1, 1)));
-        assertEq((1,), (map $1, (map $1, 1.iterator())));
-        assertEq((1,), (map $1, (map $1, (1,))));
-
-        assertEq(NOTHING, (map $1, (map $1, (map $1, NOTHING))));
-        assertEq(1, (map $1, (map $1, (map $1, 1))));
-        assertEq((1,), (map $1, (map $1, (map $1, 1.iterator()))));
-        assertEq((1,), (map $1, (map $1, (map $1, (1,)))));
-
-        assertEq(NOTHING, (map $1, NOTHING, True));
-        assertEq(1, (map $1, 1, True));
-        assertEq((1,), (map $1, 1.iterator(), True));
-        assertEq((1,), (map $1, (1,), True));
-
-        assertEq(NOTHING, (map $1, (map $1, NOTHING, True), True));
-        assertEq(1, (map $1, (map $1, 1, True), True));
-        assertEq((1,), (map $1, (map $1, 1.iterator(), True), True));
-        assertEq((1,), (map $1, (map $1, (1,), True), True));
-
-        assertEq(NOTHING, (map $1, (map $1, (map $1, NOTHING, True))));
-        assertEq(1, (map $1, (map $1, (map $1, 1, True))));
-        assertEq((1,), (map $1, (map $1, (map $1, 1.iterator(), True))));
-        assertEq((1,), (map $1, (map $1, (map $1, (1,), True))));
-
-        assertEq((1, 3, 5), (map $1, (map $1, (0, 1, 2, 3, 4, 5), ($1 % 2))));
-        assertEq((1, 3, 5), (map $1, (map $#, (0, 1, 2, 3, 4, 5), ($1 % 2))));
-    }
-
-    selectTest() {
-        assertEq(NOTHING, (select NOTHING, True));
-        assertEq(1, (select 1, True));
-        assertEq((1,), (select 1.iterator(), True));
-        assertEq((1,), (select (1,), True));
-
-        assertEq(NOTHING, (select (select NOTHING, True), True));
-        assertEq(1, (select (select 1, True), True));
-        assertEq((1,), (select (select 1.iterator(), True), True));
-        assertEq((1,), (select (select (1,), True), True));
-
-        assertEq(NOTHING, (select (map $1, NOTHING), True));
-        assertEq(1, (select (map $1, 1), True));
-        assertEq((1,), (select (map $1, 1.iterator()), True));
-        assertEq((1,), (select (map $1, (1,)), True));
-    }
-
-    foldTest() {
-        assertEq(NOTHING, (foldl $1 + "," + $2, NOTHING));
-        assertEq(1, (foldl $1 + "," + $2, 1));
-        assertEq(1, (foldl $1 + "," + $2, 1.iterator()));
-        assertEq(1, (foldl $1 + "," + $2, (1,)));
-        assertEq("1,2", (foldl $1 + "," + $2, (1,2)));
-
-        assertEq(NOTHING, (foldl $1 + "," + $2, (map $1, NOTHING)));
-        assertEq(1, (foldl $1 + "," + $2, (map $1, 1)));
-        assertEq(1, (foldl $1 + "," + $2, (map $1, 1.iterator())));
-        assertEq(1, (foldl $1 + "," + $2, (map $1, (1,))));
-        assertEq("1,2", (foldl $1 + "," + $2, (map $1, (1,2))));
-
-        assertEq(NOTHING, (foldr $1 + "," + $2, NOTHING));
-        assertEq(1, (foldr $1 + "," + $2, 1));
-        assertEq(1, (foldr $1 + "," + $2, (1,).iterator()));
-        assertEq(1, (foldr $1 + "," + $2, (1,)));
-        assertEq("2,1", (foldr $1 + "," + $2, (1,2)));
-
-        assertEq(NOTHING, (foldr $1 + "," + $2, (map $1, NOTHING)));
-        assertEq(1, (foldr $1 + "," + $2, (map $1, 1)));
-        assertEq(1, (foldr $1 + "," + $2, (map $1, (1,).iterator())));
-        assertEq(1, (foldr $1 + "," + $2, (map $1, (1,))));
-        assertEq("2,1", (foldr $1 + "," + $2, (map $1, (1,2))));
-    }
-
-    keysTest() {
-        hash h = ("a": 1);
-
-        assertEq(NOTHING, keys NOTHING);
-        assertEq(NOTHING, keys 1);
-        assertEq(("a",), keys ("a": 1));
-        assertEq(("a",), keys h);
-
-        assertEq(NOTHING, map $1, (keys NOTHING));
-        assertEq(NOTHING, map $1, (keys 1));
-        assertEq(("a",), map $1, (keys ("a": 1)));
-        assertEq(("a",), map $1, (keys h));
-
-        DataTest d();
-        d.b.a = 1;
-
-        assertEq(("b",), keys d);
-        assertEq(("b",), map $1, (keys d));
-
-        # check for copy-on-write violations
-        hash q = map {$1: ($1 % 2) ? NULL : True}, xrange(20);
-        map delete q.$1, keys q, q.$1 === NULL;
-        assertEq((0: True, 2: True, 4: True, 6: True, 8: True, 10: True, 12: True, 14: True, 16: True, 18: True, 20: True), q);
-    }
-
-    binNot() {
-        assertEq(0, ~(~1 | 1));
-        assertEq(-1, ~1 | 1);
-        assertEq(-4294967297, ~(1 << 32));
     }
 }

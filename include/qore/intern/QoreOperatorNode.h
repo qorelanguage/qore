@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -95,12 +95,8 @@ public:
       return rv;
    }
 
-   DLLLOCAL virtual bool hasEffect() const {
-      return ::node_has_effect(exp);
-   }
-
    template <class O>
-   DLLLOCAL O* copyBackgroundExplicit(ExceptionSink* xsink) const {
+   DLLLOCAL QoreOperatorNode* copyBackgroundExplicit(ExceptionSink* xsink) const {
       ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
       if (*xsink)
          return 0;
@@ -135,12 +131,6 @@ public:
       return rv;
    }
 
-   DLLLOCAL AbstractQoreNode* swapLeft(AbstractQoreNode* n_left) {
-      AbstractQoreNode* old_l = left;
-      left = n_left;
-      return old_l;
-   }
-
    DLLLOCAL AbstractQoreNode* swapRight(AbstractQoreNode* n_right) {
       AbstractQoreNode* old_r = right;
       right = n_right;
@@ -163,12 +153,8 @@ public:
       return right;
    }
 
-   DLLLOCAL virtual bool hasEffect() const {
-      return ::node_has_effect(left) || ::node_has_effect(right);
-   }
-
    template <class O>
-   DLLLOCAL O* copyBackgroundExplicit(ExceptionSink* xsink) const {
+   DLLLOCAL QoreOperatorNode* copyBackgroundExplicit(ExceptionSink* xsink) const {
       ReferenceHolder<> n_left(copy_and_resolve_lvar_refs(left, xsink), xsink);
       if (*xsink)
          return 0;
@@ -187,6 +173,10 @@ public:
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return boolTypeInfo;
    }
+
+   DLLLOCAL virtual bool hasEffect() const {
+      return false;
+   }
 };
 
 class QoreIntBinaryOperatorNode : public QoreBinaryOperatorNode<> {
@@ -196,6 +186,10 @@ public:
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return bigIntTypeInfo;
+   }
+
+   DLLLOCAL virtual bool hasEffect() const {
+      return false;
    }
 };
 
@@ -246,13 +240,6 @@ public:
        assert(i < N);
        return e[i];
     }
-
-   DLLLOCAL virtual bool hasEffect() const {
-      for (unsigned int i = 0; i < N; ++i)
-         if (::node_has_effect(e[i]))
-            return true;
-      return false;
-   }
 };
 
 // include operator headers
@@ -261,24 +248,12 @@ public:
 #include <qore/intern/QoreSpliceOperatorNode.h>
 #include <qore/intern/QoreExtractOperatorNode.h>
 #include <qore/intern/QoreCastOperatorNode.h>
-#include <qore/intern/QoreKeysOperatorNode.h>
 #include <qore/intern/QoreUnaryMinusOperatorNode.h>
-#include <qore/intern/QoreUnaryPlusOperatorNode.h>
 #include <qore/intern/QoreLogicalNotOperatorNode.h>
 #include <qore/intern/QoreDotEvalOperatorNode.h>
 #include <qore/intern/QoreLogicalEqualsOperatorNode.h>
 #include <qore/intern/QoreLogicalNotEqualsOperatorNode.h>
 #include <qore/intern/QoreModuloOperatorNode.h>
-#include <qore/intern/QoreBinaryAndOperatorNode.h>
-#include <qore/intern/QoreBinaryOrOperatorNode.h>
-#include <qore/intern/QoreBinaryXorOperatorNode.h>
-#include <qore/intern/QoreBinaryNotOperatorNode.h>
-#include <qore/intern/QoreShiftLeftOperatorNode.h>
-#include <qore/intern/QoreShiftRightOperatorNode.h>
-#include <qore/intern/QoreExistsOperatorNode.h>
-#include <qore/intern/QoreElementsOperatorNode.h>
-#include <qore/intern/QoreInstanceOfOperatorNode.h>
-#include <qore/intern/QoreHashObjectDereferenceOperatorNode.h>
 #include <qore/intern/QoreBinaryLValueOperatorNode.h>
 #include <qore/intern/QoreAssignmentOperatorNode.h>
 #include <qore/intern/QorePlusEqualsOperatorNode.h>
@@ -311,8 +286,6 @@ public:
 #include <qore/intern/QoreMapSelectOperatorNode.h>
 #include <qore/intern/QoreHashMapOperatorNode.h>
 #include <qore/intern/QoreHashMapSelectOperatorNode.h>
-#include <qore/intern/QoreFoldlOperatorNode.h>
-#include <qore/intern/QoreSelectOperatorNode.h>
 #include <qore/intern/QoreNullCoalescingOperatorNode.h>
 #include <qore/intern/QoreValueCoalescingOperatorNode.h>
 #include <qore/intern/QoreChompOperatorNode.h>
