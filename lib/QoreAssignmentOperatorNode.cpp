@@ -88,7 +88,7 @@ QoreValue QoreAssignmentOperatorNode::evalValueImpl(bool& needs_deref, Exception
 
    if (broken_int) {
       // convert the value to an int unconditionally
-      new_value.setTemp(new_value->getAsBigInt());
+      new_value.setValue(new_value->getAsBigInt());
       if (*xsink)
          return QoreValue();
    }

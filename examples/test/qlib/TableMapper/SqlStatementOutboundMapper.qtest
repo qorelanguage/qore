@@ -6,6 +6,7 @@
 %require-types
 %strict-args
 
+%requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/SqlUtil.qm
 %requires ../../../../qlib/Mapper.qm
