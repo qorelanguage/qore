@@ -8,6 +8,7 @@
 
 %exec-class TableMapperTest
 
+%requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/SqlUtil.qm
 # load all possible SqlUtil driver-specific modules to ensure that our version is used when testing
@@ -188,6 +189,9 @@ public class TableMapperTest inherits QUnit::Test {
     }
 
     outputTableMapperTest() {
+        if (!table)
+            testSkip("no DB connection");
+
         {
             SqlStatementOutboundMapper m(table, SelectHash, OutMap1);
             AbstractMapperIterator i = m.iterator();

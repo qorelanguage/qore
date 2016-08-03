@@ -1,0 +1,270 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_StreamReader.qpp StreamReader class definition */
+/*
+  Qore Programming Language
+
+  Copyright (C) 2016 Qore Technologies, sro
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+  Note that the Qore library is released under a choice of three open-source
+  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+  information.
+*/
+
+#include "qore/Qore.h"
+#include "qore/InputStream.h"
+#include "qore/intern/StreamReader.h"
+
+//! This class defines a stream reader for input streams.
+/** @since %Qore 0.8.13
+
+    @par Example: StreamReader basic usage
+    @code{.py}
+FileInputStream is("data.txt");
+StreamReader sr(is, "UTF-8");
+
+*string line = sr.readLine();
+*binary b = sr.readBinary(256);
+int i = sr.readi4();
+    @endcode
+
+    @see @ref Qore::InputStream
+ */
+qclass StreamReader [arg=StreamReader* sr; ns=Qore; private_members=InputStream is];
+
+//! Creates the StreamReader for reading data from the given @ref InputStream.
+/** @param is the @ref InputStream for reading data
+    @param encoding character encoding of the data from the @ref InputStream; the encoding has to be ASCII-compatible, otherwise an exception will be thrown; if not present, the @ref default_encoding "default character encoding" is assumed
+
+    @throw UNSUPPORTED-ENCODING-ERROR ASCII-incompatible encoding has been passed
+ */
+StreamReader::constructor(Qore::InputStream[InputStream] is, *string encoding) {
+   SimpleRefHolder<StreamReader> reader(new StreamReader(xsink, is, encoding ? QEM.findCreate(encoding) : QCS_DEFAULT));
+   if (*xsink)
+      return;
+   self->setPrivate(CID_STREAMREADER, reader.release());
+   self->setValue("is", static_cast<QoreObject *>(obj_is->refSelf()), xsink);
+}
+
+//! Returns the @ref character_encoding "character encoding" for the StreamReader.
+/** @return the @ref character_encoding "character encoding" for the StreamReader
+ */
+string StreamReader::getEncoding() [flags=CONSTANT] {
+   return new QoreStringNode(sr->getEncoding()->getCode());
+}
+
+//! Reads a text line from the input stream.
+/** @par Example:
+    @code{.py}
+string line = sr.readLine("\n");
+    @endcode
+
+    @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"
+    @param trim if @ref True the returned lines will be trimmed of the eol bytes
+
+    @return a text line read from the stream or @ref nothing if there is no more data available in the stream
+
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
+ */
+*string StreamReader::readLine(*string eol, bool trim = True) {
+   return sr->readLine(eol, trim, xsink);
+}
+
+//! Reads binary data from the input stream up to a given limit.
+/** @par Example:
+    @code{.py}
+*binary b = sr.readBinary(16);
+    @endcode
+
+    @param limit maximum amount of binary data to read; if not given or equal to -1, all the data from the @ref InputStream will be read; if equal to 0, @ref nothing will be read
+
+    @return a @ref binary value or @ref nothing if there is no more data available in the stream
+ */
+*binary StreamReader::readBinary(int limit = -1) {
+   return sr->readBinary(limit, xsink);
+}
+
+//! Reads a 1-byte signed integer from the input stream.
+/** @par Example:
+    @code{.py}
+int i = sr.readi1();
+    @endcode
+
+    @return a 1-byte signed integer
+
+    @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+ */
+int StreamReader::readi1() {
+   return sr->readi1(xsink);
+}
+
+//! Reads a 2-byte (16 bit) signed integer from the input stream in binary big-endian format.
+/** @par Example:
+    @code{.py}
+int i = sr.readi2();
+    @endcode
+
+    @return a 2-byte signed integer
+
+    @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+ */
+int StreamReader::readi2() {
+   return sr->readi2(xsink);
+}
+
+//! Reads a 4-byte (32 bit) signed integer from the input stream in binary big-endian format.
+/** @par Example:
+    @code{.py}
+int i = sr.readi4();
+    @endcode
+
+    @return a 4-byte signed integer
+
+    @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+ */
+int StreamReader::readi4() {
+   return sr->readi4(xsink);
+}
+
+//! Reads a 8-byte (64 bit) signed integer from the input stream in binary big-endian format.
+/** @par Example:
+    @code{.py}
+int i = sr.readi8();
+    @endcode
+
+    @return a 8-byte signed integer
+
+    @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+ */
+int StreamReader::readi8() {
+   return sr->readi8(xsink);
+}
+
+//! Reads a 2-byte (16 bit) signed integer from the input stream in binary little-endian format.
+/** @par Example:
+    @code{.py}
+int i = sr.readi2LSB();
+    @endcode
+
+    @return a 2-byte signed integer
+
+    @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+ */
+int StreamReader::readi2LSB() {
+   return sr->readi2LSB(xsink);
+}
+
+//! Reads a 4-byte (32 bit) signed integer from the input stream in binary little-endian format.
+/** @par Example:
+    @code{.py}
+int i = sr.readi4LSB();
+    @endcode
+
+    @return a 4-byte signed integer
+
+    @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+ */
+int StreamReader::readi4LSB() {
+   return sr->readi4LSB(xsink);
+}
+
+//! Reads a 8-byte (64 bit) signed integer from the input stream in binary little-endian format.
+/** @par Example:
+    @code{.py}
+int i = sr.readi8LSB();
+    @endcode
+
+    @return a 8-byte signed integer
+
+    @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+ */
+int StreamReader::readi8LSB() {
+   return sr->readi8LSB(xsink);
+}
+
+//! Reads a 1-byte unsigned integer from the input stream.
+/** @par Example:
+    @code{.py}
+int i = sr.readu1();
+    @endcode
+
+    @return a 1-byte unsigned integer
+
+    @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+ */
+int StreamReader::readu1() {
+   return sr->readu1(xsink);
+}
+
+//! Reads a 2-byte (16 bit) unsigned integer from the input stream in binary big-endian format.
+/** @par Example:
+    @code{.py}
+int i = sr.readu2();
+    @endcode
+
+    @return a 2-byte unsigned integer
+
+    @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+ */
+int StreamReader::readu2() {
+   return sr->readu2(xsink);
+}
+
+//! Reads a 4-byte (32 bit) unsigned integer from the input stream in binary big-endian format.
+/** @par Example:
+    @code{.py}
+int i = sr.readu4();
+    @endcode
+
+    @return a 4-byte unsigned integer
+
+    @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+ */
+int StreamReader::readu4() {
+   return sr->readu4(xsink);
+}
+
+//! Reads a 2-byte (16 bit) unsigned integer from the input stream in binary little-endian format.
+/** @par Example:
+    @code{.py}
+int i = sr.readu2LSB();
+    @endcode
+
+    @return a 2-byte unsigned integer
+
+    @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+ */
+int StreamReader::readu2LSB() {
+   return sr->readu2LSB(xsink);
+}
+
+//! Reads a 4-byte (32 bit) unsigned integer from the input stream in binary little-endian format.
+/** @par Example:
+    @code{.py}
+int i = sr.readu4LSB();
+    @endcode
+
+    @return a 4-byte unsigned integer
+
+    @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+ */
+int StreamReader::readu4LSB() {
+   return sr->readu4LSB(xsink);
+}
