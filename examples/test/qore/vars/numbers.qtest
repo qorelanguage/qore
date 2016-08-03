@@ -18,6 +18,7 @@ public class NumbersTest inherits QUnit::Test {
         addTestCase("Test number precision", \precTest());
         addTestCase("Test infp", \infpTests());
         addTestCase("Test nanp", \nanpTests());
+        addTestCase("format", \formatTests());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -132,4 +133,16 @@ public class NumbersTest inherits QUnit::Test {
         assertFalse((1.0n).nanp());
         assertFalse(@inf@n.nanp());
     }
+
+    formatTests() {
+        assertEq("1001.3299999", 1001.3299999n.format("").substr(0, 12));
+        assertEq("1,001", 1001.3299999n.format(","));
+        assertEq("1,001", 1001.3299999n.format(",."));
+        assertEq("1,001.33", 1001.3299999n.format(",.2"));
+        assertEq("1.001", 1001.3299999n.format("."));
+        assertEq("1.001", 1001.3299999n.format(".,"));
+        assertEq("1.001,33", 1001.3299999n.format(".,2"));
+
+        assertEq("-48.392.093.894,235", (-48392093894.2349n).format(".,3"));
+        assertEq("-48.392.093.894,235", format_number(".,3", -48392093894.2349n));    }
 }
