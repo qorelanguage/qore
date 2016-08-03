@@ -1,0 +1,284 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../../qlib/Util.qm
+%requires ../../../../../qlib/QUnit.qm
+
+%exec-class FileLineIteratorTest
+
+class FileLineIteratorTest inherits QUnit::Test {
+    private {
+        const DataList = (
+            "a2ps-4.13-1332.1.x86_64",
+            "a2ps-devel-4.13-1332.1.x86_64",
+            "aaa_base-11.3-7.2.x86_64",
+            "příliš žluťoučký kůň úpěl ďábelské ódy",
+        );
+
+        const BasicData = (
+            "abcdef",
+            "xyz42",
+            "123456"
+        );
+
+        string TestFileName;
+    }
+
+    constructor() : QUnit::Test("FileLineIterator test", "1.0") {
+        addTestCase("Basic tests", \basicTests());
+        addTestCase("Reset test", \resetTest());
+
+        addTestCase("LF Explicit tests", sub() {doTestsExplicit("\n");});
+        addTestCase("LF Auto tests", sub() {doTestsAuto("\n");});
+        addTestCase("LF UTF-16 Explicit tests", sub() {doTestsExplicitEnc("UTF16", "\n");});
+        addTestCase("LF UTF-16 Auto tests", sub() {doTestsAutoEnc("UTF16", "\n");});
+        addTestCase("LF UTF-16LE Explicit tests", sub() {doTestsExplicitEnc("UTF16LE", "\n");});
+        addTestCase("LF UTF-16LE Auto tests", sub() {doTestsAutoEnc("UTF16LE", "\n");});
+        addTestCase("LF UTF-16BE Explicit tests", sub() {doTestsExplicitEnc("UTF16BE", "\n");});
+        addTestCase("LF UTF-16BE Auto tests", sub() {doTestsAutoEnc("UTF16BE", "\n");});
+
+        addTestCase("CR Explicit tests", sub() {doTestsExplicit("\r");});
+        addTestCase("CR Auto tests", sub() {doTestsAuto("\r");});
+        addTestCase("CR UTF-16 Explicit tests", sub() {doTestsExplicitEnc("UTF16", "\r");});
+        addTestCase("CR UTF-16 Auto tests", sub() {doTestsAutoEnc("UTF16", "\r");});
+        addTestCase("CR UTF-16LE Explicit tests", sub() {doTestsExplicitEnc("UTF16LE", "\r");});
+        addTestCase("CR UTF-16LE Auto tests", sub() {doTestsAutoEnc("UTF16LE", "\r");});
+        addTestCase("CR UTF-16BE Explicit tests", sub() {doTestsExplicitEnc("UTF16BE", "\r");});
+        addTestCase("CR UTF-16BE Auto tests", sub() {doTestsAutoEnc("UTF16BE", "\r");});
+
+        addTestCase("CRLF Explicit tests", sub() {doTestsExplicit("\r\n");});
+        addTestCase("CRLF Auto tests", sub() {doTestsAuto("\r\n");});
+        addTestCase("CRLF UTF-16 Explicit tests", sub() {doTestsExplicitEnc("UTF16", "\r\n");});
+        addTestCase("CRLF UTF-16 Auto tests", sub() {doTestsAutoEnc("UTF16", "\r\n");});
+        addTestCase("CRLF UTF-16LE Explicit tests", sub() {doTestsExplicitEnc("UTF16LE", "\r\n");});
+        addTestCase("CRLF UTF-16LE Auto tests", sub() {doTestsAutoEnc("UTF16LE", "\r\n");});
+        addTestCase("CRLF UTF-16BE Explicit tests", sub() {doTestsExplicitEnc("UTF16BE", "\r\n");});
+        addTestCase("CRLF UTF-16BE Auto tests", sub() {doTestsAutoEnc("UTF16BE", "\r\n");});
+
+        set_return_value(main());
+    }
+
+    globalSetUp() {
+        TestFileName = tmp_location() + DirSep + "qore_filelineiterator_test_1f7h8u25f6v2n1sda8w7.txt";
+    }
+
+    globalTearDown() {
+        unlink(TestFileName);
+    }
+
+    prepareFile(string data) {
+        File f(data.encoding());
+        f.open2(TestFileName, O_WRONLY | O_CREAT | O_TRUNC, 0644, data.encoding());
+        f.print(data);
+    }
+
+    basicTests() {
+        string WithNLines = foldl $1 + "\n" + $2, BasicData;
+        string WithRNLines = foldl $1 + "\r\n" + $2, BasicData;
+        string WithRLines = foldl $1 + "\r" + $2, BasicData;
+        string weirdEOL = "XYZ123";
+        string WithWeirdEOL = foldl $1 + weirdEOL + $2, BasicData;
+
+        prepareFile("");
+        AbstractLineIterator a = new FileLineIterator(TestFileName);
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        assertFalse(a.next());
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        delete a;
+
+        prepareFile(BasicData[0]);
+        a = new FileLineIterator(TestFileName);
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(1, a.index());
+        assertEq(BasicData[0], a.getLine());
+        assertEq(BasicData[0], a.getValue());
+        assertFalse(a.next());
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        delete a;
+
+        prepareFile(WithNLines);
+        a = new FileLineIterator(TestFileName);
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(1, a.index());
+        assertEq(BasicData[0], a.getLine());
+        assertEq(BasicData[0], a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(2, a.index());
+        assertEq(BasicData[1], a.getLine());
+        assertEq(BasicData[1], a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(3, a.index());
+        assertEq(BasicData[2], a.getLine());
+        assertEq(BasicData[2], a.getValue());
+        assertFalse(a.next());
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        delete a;
+
+        prepareFile(WithRNLines);
+        a = new FileLineIterator(TestFileName);
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(1, a.index());
+        assertEq(BasicData[0], a.getLine());
+        assertEq(BasicData[0], a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(2, a.index());
+        assertEq(BasicData[1], a.getLine());
+        assertEq(BasicData[1], a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(3, a.index());
+        assertEq(BasicData[2], a.getLine());
+        assertEq(BasicData[2], a.getValue());
+        assertFalse(a.next());
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        delete a;
+
+        prepareFile(WithRLines);
+        a = new FileLineIterator(TestFileName);
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(1, a.index());
+        assertEq(BasicData[0], a.getLine());
+        assertEq(BasicData[0], a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(2, a.index());
+        assertEq(BasicData[1], a.getLine());
+        assertEq(BasicData[1], a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(3, a.index());
+        assertEq(BasicData[2], a.getLine());
+        assertEq(BasicData[2], a.getValue());
+        assertFalse(a.next());
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        delete a;
+
+        prepareFile(WithWeirdEOL);
+        a = new FileLineIterator(TestFileName, NOTHING, weirdEOL);
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(1, a.index());
+        assertEq(BasicData[0], a.getLine());
+        assertEq(BasicData[0], a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(2, a.index());
+        assertEq(BasicData[1], a.getLine());
+        assertEq(BasicData[1], a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(3, a.index());
+        assertEq(BasicData[2], a.getLine());
+        assertEq(BasicData[2], a.getValue());
+        assertFalse(a.next());
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        delete a;
+    }
+
+    resetTest() {
+        prepareFile("abc");
+        FileLineIterator a = new FileLineIterator(TestFileName);
+        assertTrue(a.next());
+        assertFalse(a.next());
+        assertTrue(a.next());
+        assertFalse(a.next());
+        delete a;
+
+        prepareFile("abc\ndef\nghi");
+        a = new FileLineIterator(TestFileName);
+        assertTrue(a.next());
+        assertEq("abc", a.getLine());
+        assertTrue(a.next());
+        assertEq("def", a.getLine());
+        a.reset();
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertTrue(a.next());
+        assertEq("abc", a.getLine());
+        assertTrue(a.next());
+        assertEq("def", a.getLine());
+        assertTrue(a.next());
+        assertEq("ghi", a.getLine());
+        assertFalse(a.next());
+        delete a;
+    }
+
+    doTestsIntern(FileLineIterator fli) {
+        for (int i = 0; i < DataList.size(); i++) {
+            assertTrue(fli.next(), sprintf("next() #%d", i));
+            assertEq(DataList[i].strlen(), fli.getValue().strlen(), sprintf("getValue() #%d", i));
+        }
+        assertFalse(fli.next());
+    }
+
+    doTestsExplicit(string eol) {
+        string data = foldl $1 + eol + $2, DataList;
+        prepareFile(data);
+        FileLineIterator fli(TestFileName, NOTHING, eol);
+        doTestsIntern(fli);
+    }
+
+    doTestsAuto(string eol) {
+        string data = foldl $1 + eol + $2, DataList;
+        prepareFile(data);
+        FileLineIterator fli(TestFileName);
+        doTestsIntern(fli);
+    }
+
+    doTestsExplicitEnc(string enc, string eol) {
+        string data = foldl $1 + eol + $2, DataList;
+        string dataEncoded = convert_encoding(data, enc);
+        prepareFile(dataEncoded);
+        FileLineIterator fli(TestFileName, enc, eol);
+        doTestsIntern(fli);
+    }
+
+    doTestsAutoEnc(string enc, string eol) {
+        string data = foldl $1 + eol + $2, DataList;
+        string dataEncoded = convert_encoding(data, enc);
+        prepareFile(dataEncoded);
+        FileLineIterator fli(TestFileName, enc);
+        doTestsIntern(fli);
+    }
+}
