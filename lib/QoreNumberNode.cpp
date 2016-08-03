@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -186,7 +186,7 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
    assert(num.getEncoding() == fmt.getEncoding());
    // get the length of the format string in characters (not bytes)
    qore_size_t fl = fmt.length();
-   if (fmt.empty() || fl == 2) {
+   if (fmt.empty()) {
       printd(5, "qore_number_private::formatNumberString() invalid format string: '%s' for number: '%s'\n", fmt.getBuffer(), num.getBuffer());
       return 0;
    }
@@ -200,7 +200,7 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
    QoreString dsep;
    // number of digits after the decimal separator
    unsigned prec = 0;
-   if (fl > 1) {
+   if (fl > 2) {
       if (dsep.concat(fmt, 1, 1, xsink))
          return -1;
       // get byte offset of start of decimal precision number

@@ -272,19 +272,34 @@ QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNode* l, int
    return str.release();
 }
 
-QoreStringNode* format_float_intern(const QoreString& fmt, double num) {
-   int decimals = 0, neg = 1, len;
+QoreStringNode* format_float_intern(const QoreString& fmt, double num, ExceptionSink* xsink) {
+   int decimals = 0, neg = 1;
    int64 tr, bi, mi, th, val;
-   char thousands_sep, decimal_sep = '.', chr[40], str[40], dec[20];
+   char chr[40], str[40], dec[20];
 
-   len = fmt.strlen();
-   if ((len != 1) && (len != 3))
-      return new QoreStringNode;
+   qore_size_t len = fmt.length();
+   if (!len) {
+      sprintf(str, "%.9g", num);
+      return new QoreStringNode(str);
+   }
 
-   thousands_sep = fmt.getBuffer()[0];
-   if (len == 3) {
-      decimal_sep = fmt.getBuffer()[1];
-      decimals = atoi(fmt.getBuffer() + 2);
+   QoreString tsep;
+   if (tsep.concat(fmt, 0, 1, xsink))
+      return 0 ;
+
+   QoreString dsep;
+   if (len > 2) {
+      if (dsep.concat(fmt, 1, 1, xsink))
+         return 0;
+
+      // get byte offset of start of decimal precision number
+      qore_offset_t i = fmt.getByteOffset(2, xsink);
+      if (*xsink)
+         return 0 ;
+      assert(i >= 2);
+      decimals = atoi(fmt.getBuffer() + i);
+      if (!decimals)
+         dsep.clear();
    }
 
    if (num < 0) {
@@ -315,59 +330,50 @@ QoreStringNode* format_float_intern(const QoreString& fmt, double num) {
 
    if (tr) {
       if (len == 3)
-         //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld%c%03lld%c%s",
-         sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c%s",
-               neg * tr, thousands_sep,
-               bi, thousands_sep,
-               mi, thousands_sep,
-               th, thousands_sep,
-               val, decimal_sep,
+         sprintf(str, QLLD "%s" QLLDx(03) "%s" QLLDx(03) "%s" QLLDx(03) "%s" QLLDx(03) "%s%s",
+               neg * tr, tsep.c_str(),
+               bi, tsep.c_str(),
+               mi, tsep.c_str(),
+               th, tsep.c_str(),
+               val, dsep.c_str(),
                dec + 2);
       else
-         //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld%c%03lld",
-         sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03),
-               neg * tr, thousands_sep,
-               bi, thousands_sep,
-               mi, thousands_sep,
-               th, thousands_sep,
+         sprintf(str, QLLD "%s" QLLDx(03) "%s" QLLDx(03) "%s" QLLDx(03) "%s" QLLDx(03),
+               neg * tr, tsep.c_str(),
+               bi, tsep.c_str(),
+               mi, tsep.c_str(),
+               th, tsep.c_str(),
                val);
    }
    else if (bi)
       if (len == 3)
-         //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld%c%s",
-         sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c%s",
-               neg * bi, thousands_sep,
-               mi, thousands_sep,
-               th, thousands_sep,
-               val, decimal_sep,
+         sprintf(str, QLLD "%s" QLLDx(03) "%s" QLLDx(03) "%s" QLLDx(03) "%s%s",
+               neg * bi, tsep.c_str(),
+               mi, tsep.c_str(),
+               th, tsep.c_str(),
+               val, dsep.c_str(),
                dec + 2);
       else
-         //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld",
-         sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03),
-               neg * bi, thousands_sep, mi, thousands_sep,
-               th, thousands_sep, val);
+         sprintf(str, QLLD "%s" QLLDx(03) "%s" QLLDx(03) "%s" QLLDx(03),
+               neg * bi, tsep.c_str(), mi, tsep.c_str(),
+               th, tsep.c_str(), val);
    else if (mi)
       if (len == 3)
-         //sprintf(str, "%lld%c%03lld%c%03lld%c%s", neg * mi, thousands_sep,
-         sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c%s", neg * mi, thousands_sep,
-               th, thousands_sep, val, decimal_sep, dec + 2);
+         sprintf(str, QLLD "%s" QLLDx(03) "%s" QLLDx(03) "%s%s", neg * mi, tsep.c_str(),
+               th, tsep.c_str(), val, dsep.c_str(), dec + 2);
       else
-         //sprintf(str, "%lld%c%03lld%c%03lld", neg * mi, thousands_sep,
-         sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03), neg * mi, thousands_sep,
-               th, thousands_sep, val);
+         sprintf(str, QLLD "%s" QLLDx(03) "%s" QLLDx(03), neg * mi, tsep.c_str(),
+               th, tsep.c_str(), val);
    else if (th)
       if (len == 3)
-         //sprintf(str, "%lld%c%03lld%c%s", neg * th, thousands_sep,
-         sprintf(str, QLLD "%c" QLLDx(03) "%c%s", neg * th, thousands_sep,
-               val, decimal_sep,
+         sprintf(str, QLLD "%s" QLLDx(03) "%s%s", neg * th, tsep.c_str(),
+               val, dsep.c_str(),
                dec + 2);
       else
-         //sprintf(str, "%lld%c%03lld", neg * th, thousands_sep, val);
-         sprintf(str, QLLD "%c" QLLDx(03), neg * th, thousands_sep, val);
+         sprintf(str, QLLD "%s" QLLDx(03), neg * th, tsep.c_str(), val);
    else
       if (len == 3)
-         //sprintf(str, "%lld%c%s", neg * val, decimal_sep, &dec[2]);
-         sprintf(str, QLLD "%c%s", neg * val, decimal_sep, &dec[2]);
+         sprintf(str, QLLD "%s%s", neg * val, dsep.c_str(), &dec[2]);
       else
          //sprintf(str, "%lld", neg * val);
          sprintf(str, QLLD, neg * val);
@@ -1645,13 +1651,13 @@ string strmul(softstring str, softint smul, *softint offset) [flags=RET_VALUE_ON
 
 //! Returns a string of a formatted number according to a number argument and a format string
 /** @param fmt the format string has the following format:\n
-    <em>\<thousands_separator\></em><tt>[</tt><em>\<decimal_separator\>\<decimals\></em><tt>]</tt>\n
+    <em>\<thousands_separator\></em><tt>[</tt><em>\<decimal_separator\>[\<decimals\>]</em><tt>]</tt>\n
     where:\n
-    - \a thousands_separator and \a decimal_separator are single ASCII characters defining the thousands and decimal separator characters respectively, and
-    - \a decimals is a single digit defining how may decimals should appear after the decimal point
+    - \a thousands_separator and \a decimal_separator are single characters defining the thousands and decimal separator characters respectively, and
+    - \a decimals is one or more digits defining how may decimals should appear after the decimal point
     @param num the number to format
 
-    @return a string of a formatted number according to a number argument and a format string; if the format string does not follow the given format, then an empty string is returned
+    @return a string of a formatted number according to a number argument and a format string; if the format string does not follow the given format, then the number without formatting is returned
 
     @par Example:
     @code{.py}
@@ -1661,7 +1667,7 @@ string nstr = format_number(".,3", -48392093894.2349); # returns "-48.392.093.89
     @see <float>::format()
  */
 string format_number(string fmt, softfloat num) [flags=CONSTANT] {
-   return format_float_intern(*fmt, num);
+   return format_float_intern(*fmt, num, xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
