@@ -19,6 +19,7 @@ class FloatTest inherits QUnit::Test {
         addTestCase("FloatTests", \floatTests());
         addTestCase("infp test", \infpTests());
         addTestCase("nanp test", \nanpTests());
+        addTestCase("format", \formatTests());
         set_return_value(main());
     }
 
@@ -39,5 +40,17 @@ class FloatTest inherits QUnit::Test {
         assertFalse((1.0).nanp());
         assertFalse(@inf@.nanp());
     }
-}
 
+    formatTests() {
+        assertEq("1001.33", 1001.3299999.format(""));
+        assertEq("1,001", 1001.3299999.format(","));
+        assertEq("1,001", 1001.3299999.format(",."));
+        assertEq("1,001.33", 1001.3299999.format(",.2"));
+        assertEq("1.001", 1001.3299999.format("."));
+        assertEq("1.001", 1001.3299999.format(".,"));
+        assertEq("1.001,33", 1001.3299999.format(".,2"));
+
+        assertEq("-48.392.093.894,235", (-48392093894.2349).format(".,3"));
+        assertEq("-48.392.093.894,235", format_number(".,3", -48392093894.2349));
+    }
+}
