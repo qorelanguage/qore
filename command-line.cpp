@@ -892,7 +892,7 @@ int qore_main_intern(int argc, char* argv[], int other_po) {
       bool mod_errs = false;
 
       // set parse defines
-      qpgm->parseCmdLineDefines(defmap, xsink, wsink, warnings);
+      qpgm->parseCmdLineDefines(xsink, wsink, warnings, defmap);
 
       if (xsink.isException()) {
          rc = 2;

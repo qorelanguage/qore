@@ -30,8 +30,7 @@
 */
 
 #include <qore/Qore.h>
-
-#include <math.h>
+#include <cmath>
 
 //! Methods in this pseudo-class can be executed on @ref float "floating-point values"
 /**
@@ -140,7 +139,7 @@ if (f.nanp())
     @since %Qore 0.8.12
 */
 bool <float>::nanp() [flags=CONSTANT] {
-   return isnan(f) != 0;
+   return std::isnan(f) != 0;
 }
 
 //! Returns @ref True if the number is infinity (+ or -)
@@ -156,7 +155,7 @@ if (f.infp())
     @since %Qore 0.8.12
 */
 bool <float>::infp() [flags=CONSTANT] {
-   return isinf(f) != 0;
+   return std::isinf(f) != 0;
 }
 
 //! Returns -1 if the number is negative, 0 if it is zero, or 1 if it is positive

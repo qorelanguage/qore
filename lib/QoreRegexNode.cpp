@@ -143,8 +143,8 @@ bool QoreRegexNode::exec(const char* str, size_t len) const {
 #ifdef HAVE_LOCAL_VARIADIC_ARRAYS
       int ovector[vsize];
 #else
-      std::auto_ptr<int> ovc((int*)malloc(sizeof(int)*vsize));
-      int* ovector = ovc.get();
+      std::vector<int> ovc(vsize, 0);
+      int* ovector = &ovc[0];
 #endif
       rc = pcre_exec(p, 0, str, len, 0, 0, ovector, vsize);
       if (!rc) {
@@ -181,8 +181,8 @@ QoreListNode* QoreRegexNode::extractSubstrings(const QoreString* target, Excepti
 #ifdef HAVE_LOCAL_VARIADIC_ARRAYS
       int ovector[vsize];
 #else
-      std::auto_ptr<int> ovc((int*)malloc(sizeof(int)*vsize));
-      int* ovector = ovc.get();
+      std::vector<int> ovc(vsize, 0);
+      int* ovector = &ovc[0];
 #endif
       int rc = pcre_exec(p, 0, t->getBuffer(), t->strlen(), offset, 0, ovector, vsize);
       //printd(5, "QoreRegexNode::exec(%s) =~ /xxx/ = %d (global: %d)\n", t->getBuffer() + offset, rc, global);
