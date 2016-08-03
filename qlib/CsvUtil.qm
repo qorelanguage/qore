@@ -656,7 +656,7 @@ public namespace CsvUtil {
 
             # list of idx to field transformarions, in order of spec
             hash m_resolve_by_idx;
-            
+
             # fake specs based on the first non-header row
             bool fakeHeaderNames;
 
