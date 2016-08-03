@@ -7,8 +7,6 @@
 %strict-args
 %no-child-restrictions
 
-%disable-warning invalid-operation
-
 %requires ../../../../qlib/QUnit.qm
 
 %exec-class UnaryPlusMinusTest

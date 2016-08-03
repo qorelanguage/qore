@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # very fast check without calling exec()
 if [ -n "$BASH_VERSION" -o "$KSH_VERSION" ]; then

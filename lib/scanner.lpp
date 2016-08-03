@@ -411,7 +411,7 @@ static int64 parse_get_integer(const char* str) {
    errno = 0;
    int64 rv = strtoll(str, 0, 10);
    if (errno == ERANGE)
-      parse_error("numeric overflow in integer '%s': cannot represent in a 64-bit signed number; please use a floating-point or arbitrary-precision number instead (ex: '%sn'); integers must be in the range " QLLD " (MININT) to " QLLD " (MAXINT)", str, str, -LLONG_MAX, LLONG_MAX);
+      parse_error("numeric overflow in integer '%s': cannot represent in a 64-bit signed number; please use a floating-point or arbitrary-precision number instead (ex: '%sn'); integers must be in the range "QLLD" (MININT) to "QLLD" (MAXINT)", str, str, -LLONG_MAX, LLONG_MAX);
    return rv;
 }
 
@@ -747,7 +747,6 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%strict-bool-eval{WS}*$                getProgram()->parseSetParseOptions(PO_STRICT_BOOLEAN_EVAL);
 ^%broken-list-parsing{WS}*$             getProgram()->parseSetParseOptions(PO_BROKEN_LIST_PARSING);
 ^%broken-logic-precedence{WS}*$         getProgram()->parseSetParseOptions(PO_BROKEN_LOGIC_PRECEDENCE);
-^%broken-loop-statement{WS}*$           getProgram()->parseSetParseOptions(PO_BROKEN_LOOP_STATEMENT);
 ^%broken-int-assignments{WS}*$          getProgram()->parseSetParseOptions(PO_BROKEN_INT_ASSIGNMENTS);
 ^%broken-operators{WS}*$                getProgram()->parseSetParseOptions(PO_BROKEN_OPERATORS);
 ^%push-parse-options{WS}*$              push_parse_options();

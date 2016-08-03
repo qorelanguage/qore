@@ -57,7 +57,7 @@ public class EmptyHashAmbiguityTest inherits QUnit::Test {
         p.parse("on_exit {} ($d) = 1;", "");
         p.parse("on_exit {} {$e = 1;}", "");
         assertThrows("PARSE-EXCEPTION",
-                "expecting lvalue for assignment.*unary minus",
+                "expecting lvalue for assignment operator expression, got 'unary minus operator expression' instead",
                 \p.parse(), ("on_exit {} - $f = 1;", ""));
     }
 }

@@ -75,7 +75,7 @@ int WhileStatement::parseInitImpl(LocalVar *oflag, int pflag) {
       cond = cond->parseInit(oflag, pflag, lvids, argTypeInfo);
    }
    if (code)
-      code->parseInitImpl(oflag, pflag | PF_BREAK_OK | PF_CONTINUE_OK);
+      code->parseInitImpl(oflag, pflag);
 
    // save local variables
    if (lvids)

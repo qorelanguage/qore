@@ -180,7 +180,7 @@ int ContextStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 
    // initialize statement block
    if (code)
-      code->parseInitImpl(oflag, pflag | PF_BREAK_OK | PF_CONTINUE_OK);
+      code->parseInitImpl(oflag, pflag);
 
    // save local variables
    if (lvids)

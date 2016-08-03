@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -36,19 +36,18 @@
 #include <qore/intern/AbstractStatement.h>
 #include <qore/intern/AbstractIteratorHelper.h>
 
-#include <qore/intern/FunctionalOperator.h>
-#include <qore/intern/FunctionalOperatorInterface.h>
-
 class ForEachStatement : public AbstractStatement {
 private:
    AbstractQoreNode* var,
       * list;
    StatementBlock* code;
    LVList* lvars;
-   FunctionalOperator* iterator_func;
-   bool is_ref;
+   bool is_ref,
+      is_keys;
 
    DLLLOCAL int execRef(QoreValue& return_value, ExceptionSink* xsink);
+   DLLLOCAL int execKeys(QoreValue& return_value, ExceptionSink* xsink);
+   DLLLOCAL int execIterator(AbstractIteratorHelper& aih, QoreValue& return_value, ExceptionSink* xsink);
    DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
    DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0);
 

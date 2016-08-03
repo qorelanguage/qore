@@ -54,7 +54,7 @@ void qore_number_private::getAsString(QoreString& str, bool round) const {
    if (number()) {
       int sgn = sign();
       qore_size_t len = str.size() + (sgn < 0 ? 1 : 0);
-      //printd(5, "qore_number_private::getAsString() this: %p '%s' exp " QLLD " len: " QLLD "\n", this, buf, exp, len);
+      //printd(5, "qore_number_private::getAsString() this: %p '%s' exp "QLLD" len: "QLLD"\n", this, buf, exp, len);
 
       qore_size_t dp = 0;
 
@@ -65,7 +65,7 @@ void qore_number_private::getAsString(QoreString& str, bool round) const {
 	 exp = -exp;
 	 str.insert("0.", len);
 	 dp = len + 1;
-	 //printd(5, "qore_number_private::getAsString() this: %p str: '%s' exp: " QLLD " dp: " QLLD " len: " QLLD "\n", this, str.getBuffer(), exp, dp, len);
+	 //printd(5, "qore_number_private::getAsString() this: %p str: '%s' exp: "QLLD" dp: "QLLD" len: "QLLD"\n", this, str.getBuffer(), exp, dp, len);
 	 if (exp)
 	    str.insertch('0', len + 2, exp);
       }
@@ -73,7 +73,7 @@ void qore_number_private::getAsString(QoreString& str, bool round) const {
 	 // get remaining length of string (how many characters were added)
 	 qore_size_t rlen = str.size() - len;
 
-	 //printd(5, "qore_number_private::getAsString() this: %p str: '%s' exp: " QLLD " rlen: " QLLD "\n", this, str.getBuffer(), exp, rlen);
+	 //printd(5, "qore_number_private::getAsString() this: %p str: '%s' exp: "QLLD" rlen: "QLLD"\n", this, str.getBuffer(), exp, rlen);
 
 	 // assert that we have added at least 1 character
 	 assert(rlen > 0);

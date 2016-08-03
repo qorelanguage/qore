@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -51,6 +51,10 @@ public:
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return typeInfo;
+   }
+
+   DLLLOCAL virtual bool hasEffect() const {
+      return false;
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {

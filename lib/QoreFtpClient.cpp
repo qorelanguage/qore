@@ -1,10 +1,10 @@
 /*
   QoreFtpClient.cpp
-
+  
   thread-safe QoreFtpClient object
-
+  
   Qore Programming Language
-
+  
   Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
@@ -60,7 +60,7 @@ enum qore_ftp_mode {
 class FtpResp {
 private:
    QoreStringNode* str;
-
+   
 public:
    DLLLOCAL inline FtpResp() : str(0) {}
 
@@ -111,7 +111,7 @@ public:
 
    DLLLOCAL qore_ftp_private(const QoreString *url, ExceptionSink* xsink) {
       init();
-
+      
       if (url)
 	 setURLIntern(url, xsink);
    }
@@ -119,7 +119,7 @@ public:
    DLLLOCAL qore_ftp_private() {
       init();
    }
-
+   
    DLLLOCAL ~qore_ftp_private() {
       if (host)
 	 free(host);
@@ -136,7 +136,7 @@ public:
 	 xsink->raiseException("FTP-URL-ERROR", "no hostname given in URL '%s'", url_str->getBuffer());
 	 return;
       }
-
+	 
       // verify protocol
       if (url.getProtocol()) {
 	 if (!url.getProtocol()->compare("ftps"))
@@ -146,9 +146,9 @@ public:
 	    return;
 	 }
       }
-
+	 
       // set username
-      user = url.take_username();
+      user = url.take_username();   
       // set password
       pass = url.take_password();
       // set host
@@ -255,7 +255,7 @@ public:
 		     // if we read more data, then store it in the buffer
 		     if (p[1] != '\0') {
 			buffer.set(&p[1]);
-			resp->terminate(p - resp->getBuffer() + 1);
+			resp->terminate(p - resp->getBuffer() + 1); 
 		     }
 		     break;
 		  }
@@ -282,7 +282,7 @@ public:
 	    p++;
 	 }
       }
-      printd(FTPDEBUG, "QoreFtpClient::getResponse() %s", resp ? resp->getBuffer() : "NULL");
+      printd(FTPDEBUG, "QoreFtpClient::getResponse() %s", resp ? resp->getBuffer() : "NULL");   
       if (resp) {
 	 resp->chomp();
 	 do_event_msg_received(code, resp->getBuffer() + 4);
@@ -317,7 +317,7 @@ public:
 	 xsink->raiseException("FTP-CONNECT-ERROR", "FTP server reported the following error: %s", resp->getBuffer());
 	 return -1;
       }
-
+      
       return 0;
    }
 
@@ -337,7 +337,7 @@ public:
 	 xsink->raiseException("FTP-SEND-ERROR", q_strerror(errno));
 	 return 0;
       }
-
+   
       QoreStringNode* rsp = getResponse(code, xsink);
       return rsp;
    }
@@ -394,7 +394,7 @@ public:
 	 }
 	 return -1;
       }
-
+   
       if (control.upgradeClientToSSL(0, 0, xsink))
 	 return -1;
 
@@ -488,10 +488,10 @@ public:
       if (secure_data)
 	 printd(FTPDEBUG, "QoreFtpClient::acceptDataConnection() negotiating client SSL connection\n");
 #endif
-
+      
       if (secure_data && data.upgradeClientToSSL(0, 0, xsink))
-	 return -1;
-
+	 return -1;      
+      
       printd(FTPDEBUG, "QoreFtpClient::acceptDataConnection() accepted PORT data connection\n");
       return 0;
    }
@@ -510,7 +510,7 @@ public:
 	       return -1;
 	    if (!connectDataPort(xsink))
 	       return 0;
-
+	 
 	    if (!*xsink)
 	       xsink->raiseException("FTP-CONNECT-ERROR", "Could not negotiate data channel connection with FTP server");
 	    return -1;
@@ -597,7 +597,7 @@ public:
       if ((code / 100) != 2)
 	 return -1;
 
-      // reply ex: 227 Entering passive mode (127,0,0,1,28,46)
+      // reply ex: 227 Entering passive mode (127,0,0,1,28,46)  
       // get port for data connection
       const char* s = strstr(resp.getBuffer(), "(");
       if (!s) {
@@ -627,7 +627,7 @@ public:
       }
 
       if (secure_data && data.upgradeClientToSSL(0, 0, xsink))
-	 return -1;
+	 return -1;      
 
       mode = FTP_MODE_PASV;
       return 0;
@@ -638,7 +638,7 @@ public:
       // get address for interface of control connection
       struct sockaddr_in add;
       socklen_t socksize = sizeof(struct sockaddr_in);
-
+   
       if (getsockname(control.getSocket(), (struct sockaddr *)&add, &socksize) < 0) {
 	 xsink->raiseErrnoException("FTP-CONNECT-ERROR", errno, "cannot determine local interface address for data port connection");
 	 return -1;
@@ -682,7 +682,7 @@ public:
 	 data.close();
 	 return -1;
       }
-
+   
       if (data.listen()) {
 	 int en = errno;
 	 data.close();
@@ -705,7 +705,7 @@ public:
 
       // setup the file transfer on the data channel
       int code;
-
+ 
       QoreStringNode* mr = sendMsg(code, "RETR", remotepath, xsink);
       if (!mr) {
 	 assert(*xsink);
@@ -728,7 +728,7 @@ public:
       }
       else if (secure_data && data.upgradeClientToSSL(0, 0, xsink)) {
 	 data.close();
-	 return -1;
+	 return -1;      
       }
 
       return 0;
@@ -854,7 +854,7 @@ QoreStringNode* QoreFtpClient::list(const char* path, bool long_list, ExceptionS
 
    printd(5, "read done: code=%d LIST: %s\n", code, resp.getBuffer());
    if ((code / 100 != 2)) {
-      xsink->raiseException("FTP-LIST-ERROR", "FTP server returned an error to the %s command: %s",
+      xsink->raiseException("FTP-LIST-ERROR", "FTP server returned an error to the %s command: %s", 
 			    (long_list ? "LIST" : "NLST"), resp.getBuffer());
       return 0;
    }
@@ -937,76 +937,12 @@ int QoreFtpClient::put(const char* localpath, const char* remotename, ExceptionS
    if ((code / 100 != 2)) {
       xsink->raiseException("FTP-PUT-ERROR", "FTP server returned an error to the STOR command: %s", resp.getBuffer());
       return -1;
-   }
+   }   
 
    if (rc) {
       xsink->raiseException("FTP-PUT-ERROR", "error sending file, may not be complete on target");
       return -1;
    }
-   return 0;
-}
-
-// public locked
-int QoreFtpClient::put(InputStream *is, const char* remotename, ExceptionSink* xsink) {
-   printd(5, "QoreFtpClient::put(InputStream, %s)\n", remotename ? remotename : "NULL");
-
-   SafeLocker sl(priv->m);
-   if (priv->checkConnectedUnlocked(xsink))
-      return -1;
-
-   // set binary mode and establish data connection
-   if (priv->setBinaryMode(true, xsink) || priv->connectData(xsink)) {
-      return -1;
-   }
-
-   // transfer file
-   int code;
-
-   QoreStringNode* mr = priv->sendMsg(code, "STOR", remotename, xsink);
-   if (!mr) {
-      assert(*xsink);
-      priv->data.close();
-      return -1;
-   }
-
-   FtpResp resp(mr);
-   if (*xsink) {
-      priv->data.close();
-      return -1;
-   }
-
-   if ((code / 100) != 1) {
-      priv->data.close();
-      xsink->raiseException("FTP-PUT-ERROR", "could not put file, FTP server replied: %s", resp.getBuffer());
-      return -1;
-   }
-
-   if ((priv->mode == FTP_MODE_PORT && priv->acceptDataConnection(xsink)) || *xsink) {
-      priv->data.close();
-      return -1;
-   }
-   else if (priv->secure_data && priv->data.upgradeClientToSSL(0, 0, xsink)) {
-      return -1;
-   }
-
-   priv->data.priv->sendFromInputStream(is, -1, 01, xsink, &priv->m);
-   priv->data.close();
-
-   if (*xsink) {
-      return -1;
-   }
-
-   resp.assign(priv->getResponse(code, xsink));
-   sl.unlock();
-   if (*xsink)
-      return -1;
-
-   //printf("PUT: %s", resp->getBuffer());
-   if ((code / 100 != 2)) {
-      xsink->raiseException("FTP-PUT-ERROR", "FTP server returned an error to the STOR command: %s", resp.getBuffer());
-      return -1;
-   }
-
    return 0;
 }
 
@@ -1063,7 +999,7 @@ int QoreFtpClient::putData(const void *data, qore_size_t len, const char* remote
    if ((code / 100 != 2)) {
       xsink->raiseException("FTP-PUT-ERROR", "FTP server returned an error to the STOR command: %s", resp.getBuffer());
       return -1;
-   }
+   }   
 
    if (rc) {
       xsink->raiseException("FTP-PUT-ERROR", "error sending file, may not be complete on target");
@@ -1118,43 +1054,8 @@ int QoreFtpClient::get(const char* remotepath, const char* localname, ExceptionS
 
    //printf("PUT: %s", resp->getBuffer());
    if ((code / 100 != 2)) {
-      xsink->raiseException("FTP-GET-ERROR", "FTP server returned an error to the RETR command: %s",
+      xsink->raiseException("FTP-GET-ERROR", "FTP server returned an error to the RETR command: %s", 
 			    resp.getBuffer());
-      return -1;
-   }
-   return 0;
-}
-
-// public locked
-int QoreFtpClient::get(const char* remotepath, OutputStream *os, ExceptionSink* xsink) {
-   printd(5, "QoreFtpClient::get(%s, OutputStream)\n", remotepath);
-
-   SafeLocker sl(priv->m);
-   if (priv->checkConnectedUnlocked(xsink))
-      return -1;
-
-   FtpResp resp;
-   if (priv->pre_get(resp, remotepath, xsink)) {
-      return -1;
-   }
-
-   priv->data.priv->recvToOutputStream(os, -1, -1, xsink, &priv->m);
-   priv->data.close();
-
-   if (*xsink) {
-      return -1;
-   }
-
-   int code;
-   resp.assign(priv->getResponse(code, xsink));
-   sl.unlock();
-   if (*xsink)
-      return -1;
-
-   //printf("PUT: %s", resp->getBuffer());
-   if ((code / 100 != 2)) {
-      xsink->raiseException("FTP-GET-ERROR", "FTP server returned an error to the RETR command: %s",
-                            resp.getBuffer());
       return -1;
    }
    return 0;
@@ -1203,7 +1104,7 @@ QoreStringNode* QoreFtpClient::getAsString(const char* remotepath, ExceptionSink
 
    //printf("PUT: %s", resp->getBuffer());
    if ((code / 100 != 2)) {
-      xsink->raiseException("FTP-GETASSTRING-ERROR", "FTP server returned an error to the RETR command: %s",
+      xsink->raiseException("FTP-GETASSTRING-ERROR", "FTP server returned an error to the RETR command: %s", 
 			    resp.getBuffer());
       return 0;
    }
@@ -1241,7 +1142,7 @@ BinaryNode* QoreFtpClient::getAsBinary(const char* remotepath, ExceptionSink* xs
 
    //printf("PUT: %s", resp->getBuffer());
    if ((code / 100 != 2)) {
-      xsink->raiseException("FTP-GETASBINARY-ERROR", "FTP server returned an error to the RETR command: %s",
+      xsink->raiseException("FTP-GETASBINARY-ERROR", "FTP server returned an error to the RETR command: %s", 
 			    resp.getBuffer());
       return 0;
    }
@@ -1423,28 +1324,28 @@ QoreStringNode* QoreFtpClient::getURL() const {
    return url;
 }
 
-void QoreFtpClient::setPort(int p) {
-   priv->port = p;
+void QoreFtpClient::setPort(int p) { 
+   priv->port = p; 
 }
 
-void QoreFtpClient::setUserName(const char* u) {
+void QoreFtpClient::setUserName(const char* u) { 
    AutoLocker al(priv->m);
-   if (priv->user)
-      free(priv->user);
+   if (priv->user) 
+      free(priv->user); 
    priv->user = u ? strdup(u) : 0;
 }
 
-void QoreFtpClient::setPassword(const char* p) {
+void QoreFtpClient::setPassword(const char* p) { 
    AutoLocker al(priv->m);
    if (priv->pass)
-      free(priv->pass);
+      free(priv->pass); 
    priv->pass = p ? strdup(p) : 0;
 }
 
-void QoreFtpClient::setHostName(const char* h) {
+void QoreFtpClient::setHostName(const char* h) { 
    AutoLocker al(priv->m);
-   if (priv->host)
-      free(priv->host);
+   if (priv->host) 
+      free(priv->host); 
    priv->host = h ? strdup(h) : 0;
 }
 
@@ -1492,7 +1393,7 @@ const char* QoreFtpClient::getSSLCipherVersion() const {
 
 long QoreFtpClient::verifyPeerCertificate() const {
    return priv->control.verifyPeerCertificate();
-}
+}	 
 
 void QoreFtpClient::setModeAuto() {
    AutoLocker al(priv->m);
@@ -1528,19 +1429,19 @@ const char* QoreFtpClient::getMode() const {
 }
 
 int QoreFtpClient::getPort() const {
-   return priv->port;
+   return priv->port; 
 }
 
-const char* QoreFtpClient::getUserName() const {
+const char* QoreFtpClient::getUserName() const { 
    return priv->user;
 }
 
-const char* QoreFtpClient::getPassword() const {
-   return priv->pass;
+const char* QoreFtpClient::getPassword() const { 
+   return priv->pass; 
 }
 
-const char* QoreFtpClient::getHostName() const {
-   return priv->host;
+const char* QoreFtpClient::getHostName() const { 
+   return priv->host; 
 }
 
 void QoreFtpClient::setEventQueue(Queue *cbq, ExceptionSink* xsink) {
@@ -1566,7 +1467,7 @@ void QoreFtpClient::clearWarningQueue(ExceptionSink* xsink) {
 void QoreFtpClient::setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, AbstractQoreNode* arg, int64 min_ms) {
    priv->setWarningQueue(xsink, warning_ms, warning_bs, wq, arg, min_ms);
 }
-
+   
 QoreHashNode* QoreFtpClient::getUsageInfo() const {
    return priv->getUsageInfo();
 }

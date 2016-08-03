@@ -53,7 +53,7 @@ private:
    DLLLOCAL ReferenceHolder(const ReferenceHolder&); // not implemented
    DLLLOCAL ReferenceHolder& operator=(const ReferenceHolder&); // not implemented
    DLLLOCAL void* operator new(size_t); // not implemented, make sure it is not new'ed
-
+      
    T* p;
    ExceptionSink* xsink;
 
@@ -73,12 +73,6 @@ public:
    //! returns the pointer being managed
    DLLLOCAL T* operator*() { return p; }
 
-   //! returns the pointer being managed
-   DLLLOCAL const T* operator->() const { return p; }
-
-   //! returns the pointer being managed
-   DLLLOCAL const T* operator*() const { return p; }
-
    //! assigns a new pointer to the holder, dereferences the current pointer if any
    DLLLOCAL void operator=(T *nv) {
       if (p)
@@ -95,7 +89,7 @@ public:
 
    //! returns true if a non-0 pointer is being managed
    DLLLOCAL operator bool() const { return p != 0; }
-
+      
    //! returns a pointer to the pointer being managed
    DLLLOCAL T** getPtrPtr() { return &p; }
 
@@ -119,18 +113,16 @@ private:
    DLLLOCAL SimpleRefHolder(const SimpleRefHolder&); // not implemented
    DLLLOCAL SimpleRefHolder& operator=(const SimpleRefHolder&); // not implemented
    DLLLOCAL void* operator new(size_t); // not implemented, make sure it is not new'ed
-
+      
    T* p;
 
 public:
    DLLLOCAL SimpleRefHolder() : p(0) {}
    DLLLOCAL SimpleRefHolder(T* p_) : p(p_) {}
    DLLLOCAL ~SimpleRefHolder() { if (p) p->deref(); }
-
+      
    DLLLOCAL T* operator->() { return p; }
    DLLLOCAL T* operator*() { return p; }
-   DLLLOCAL const T* operator->() const { return p; }
-   DLLLOCAL const T* operator*() const { return p; }
    DLLLOCAL void operator=(T *nv) {
       if (p)
          p->deref();

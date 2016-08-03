@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -71,14 +71,21 @@ public:
       assert(!typeInfo);
       if (left) {
          bool for_assignment = pflag & PF_FOR_ASSIGNMENT;
+         if (for_assignment && left->getType() == NT_TREE) {
+            QoreTreeNode *t = reinterpret_cast<QoreTreeNode *>(left);
+            if (t->getOp() != OP_OBJECT_REF) {
+               parse_error("expression used for assignment requires an lvalue but an expression with the %s operator is used instead", t->getOp()->getName());
+               return;
+            }
+
+         }
 
          left = left->parseInit(oflag, pflag, lvids, typeInfo);
 
          // throw an exception if we are at the bottom left element of a tree being used for assignment
          // and the value is not an lvalue
-         if (left && for_assignment && check_lvalue(left)) {
+         if (left && for_assignment && check_lvalue(left))
             parse_error("expression used for assignment requires an lvalue, got '%s' instead", left->getTypeName());
-         }
 
          //printd(5, "QoreTreeNode::leftParseInit() this=%p new left=%p (%s)\n", this, left, get_type_name(left));
       }

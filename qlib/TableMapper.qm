@@ -23,7 +23,7 @@
 */
 
 # this module requires Qore 0.8.12 or better
-%requires qore >= 0.8.13
+%requires qore >= 0.8.12
 
 # require type definitions everywhere
 %require-types
@@ -40,7 +40,7 @@
 %requires SqlUtil
 
 module TableMapper {
-    version = "1.2";
+    version = "1.1";
     desc = "user module providing data mapping infrastructure to an SQL Table target";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -198,10 +198,6 @@ on_error table1.rollback();
     Additionally, the value is provided to any row code set with @ref TableMapper::InboundTableMapper::setRowCode(); see @ref tablemapper_bulk_insert_api for more information.
 
     @section tablemapperrelnotes Release Notes
-
-    @subsection tablemapperv1_2 TableMapper v1.2
-    - fixed a bug with the @ref TableMapper::SqlStatementOutboundMapper::iterator() method; corrected the iterator object return value which was causing \c AbstractMapperIterator::mapBulk() to fail (<a href="https://github.com/qorelanguage/qore/issues/979">issue 979</a>)
-    - fixed a bug with @ref TableMapper::SqlStatementOutboundMapper; it would throw an error if the required \c "table" or \c "sh" options were used and only worked with subclasses that declared these options (<a href="https://github.com/qorelanguage/qore/issues/981">issue 981</a>)
 
     @subsection tablemapperv1_1 TableMapper v1.1
     - added table name and datasource description to error messages

@@ -123,7 +123,7 @@ int i = int("fabc9", 16);
 */
 int int(string str, softint base) [flags=RET_VALUE_ONLY] {
    if (base < 0 || base == 1 || base > 36)
-      return xsink->raiseException("INVALID-BASE", "base " QLLD " is invalid; base must be 0 or 2 - 36 inclusive", base);
+      return xsink->raiseException("INVALID-BASE", "base "QLLD" is invalid; base must be 0 or 2 - 36 inclusive", base);
    return strtoll(str->getBuffer(), 0, (int)base);
 }
 

@@ -596,7 +596,14 @@ public:
    */
    DLLEXPORT void parseDefine(const char* str, const char* val);
 
-   // @deprecated use parseCmdLineDefines(ExceptionSink& xs, ExceptionSink& ws, int w, const std::map<std::string, std::string>& defmap) instead
+   //! defines parse-time variables
+   /** @param defmap a map of variable names to values
+       @param xs exception sink for errors
+       @param ws exception sink for warnings
+       @param w warning mask
+
+       @deprecated use parseCmdLineDefines(ExceptionSink& xs, ExceptionSink& ws, int w, const std::map<std::string, std::string>& defmap) instead
+   */
    DLLEXPORT void parseCmdLineDefines(const std::map<std::string, std::string> defmap, ExceptionSink& xs, ExceptionSink& ws, int w);
 
    //! defines parse-time variables

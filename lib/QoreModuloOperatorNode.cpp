@@ -40,7 +40,7 @@ QoreValue QoreModuloOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
    if (*xsink)
       return QoreValue();
    if (!r) {
-      xsink->raiseException("DIVISION-BY-ZERO", "modula operand cannot be zero (" QLLD " %% " QLLD " attempted)", l, r);
+      xsink->raiseException("DIVISION-BY-ZERO", "modula operand cannot be zero ("QLLD" %% "QLLD" attempted)", l, r);
       return QoreValue();
    }
    return l % r;

@@ -23,7 +23,6 @@
     |@ref broken-int-assignments "%broken-int-assignments"|Use old pre-0.8.12 broken @ref int_type "int" and @ref softint_type "softint" runtime handling where type errors were ignored at runtime
     |@ref broken-list-parsing "%broken-list-parsing"|Use old pre-0.8.12 broken list parsing where certain lists without parentheses would be rewritten to make top-level statements like <tt>list l = 1, 2, 3;</tt> valid
     |@ref broken-logic-precedence "%broken-logic-precedence"|Use old pre-0.8.12 precedence of logical and bitwise operators
-    |@ref broken-loop-statement "%broken-loop-statement"|Accept break and continue outside of loops as with pre-0.8.13
     |@ref broken-operators "%broken-operators"|Accept spaces in multi-character operators as with pre-0.8.12
     |@ref define "%define"|Creates and optionally sets a value for a @ref conditional_parsing "parse define" <br><br>Since %Qore 0.8.3
     |@ref disable-all-warnings "%disable-all-warnings"|Turns off all @ref warnings "warnings"
@@ -255,24 +254,6 @@
     \ref bitwise_and_operator "&", \ref bitwise_or_operator "|", \ref bitwise_xor_operator "^") shared the same precedence.
 
     @since %Qore 0.8.12
-
-    <hr>
-    @section broken-loop-statement %broken-loop-statement
-
-    @par Parse Directive:
-    <tt>%%broken-loop-statement</tt>
-
-    @par Command Line:
-    <tt>-</tt><tt>-broken-loop-statement</tt>
-
-    @par Parse Option Constant:
-    @ref Qore::PO_BROKEN_LOOP_STATEMENT
-
-    @par Description:
-    Use old pre-0.8.13 handling of break/continue: continue statements in a switch behave like a break statement,
-    both break and continue behave like return when used outside of a loop.
-
-    @since %Qore 0.8.13
 
     <hr>
     @section broken-operators %broken-operators
@@ -1102,7 +1083,7 @@ i+ =4;
     @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS
 
     @par Description:
-    Disallows top level code from this point on, any top level statements before this directive are still allowed and become part of the @ref Qore::Program "Program" context.
+    Disallows top level code from this point on, any top level statements before this directive are still allowed and become part of the @ref Program context.
 
     <hr>
     @section perl-bool-eval %perl-bool-eval

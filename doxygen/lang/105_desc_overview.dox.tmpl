@@ -12,7 +12,7 @@
 
     %Qore can be used as a traditional function-based scripting language or as a pure object-oriented language, where the application is defined as a class. Aside from traditional local and global variables, constants, and functions, %Qore also supports nested @ref qore_namespaces "namespaces", @ref qore_classes "classes", @ref inheritance "multiple inheritance", overriding base class constructor arguments, public and private @ref class_members "members" and @ref class_methods "methods", @ref static_methods "static class methods", and @ref static_class_variables "static class variables".
 
-    All elements of %Qore are designed to work together: @ref Qore::SQL::Datasource "database access", @ref Qore::Socket "socket communication", @ref Qore::Program "embedding logic in subprograms", @ref qore_regex "regular expressions", @ref operators "operators", @ref qore_functions "functions", and all other elements are thread-safe and built on an execution engine that was designed for SMP scalability.
+    All elements of %Qore are designed to work together: @ref Qore::SQL::Datasource "database access", @ref Qore::Socket "socket communication", @ref Qore::Program "embedding logic in subprograms", @ref qore_regex "regular expressions", @ref operators "operators", @ref function_library "functions", and all other elements are thread-safe and built on an execution engine that was designed for SMP scalability.
 
     %Qore automatically converts data types when necessary when evaluating operators. The goal is to provide the expected result for the programmer without requiring the programmer to explicitly convert data types. Please see @ref operators for more information.
 
@@ -34,11 +34,7 @@
 %enable-all-warnings
     @endcode
 
-    @note If another installation directory is used (such as \c /usr/local/bin), then the correct path must be reflected in the first line of the %Qore script (ex: <tt>#!/usr/local/bin/qore</tt>), or more portably without using a direct path to the interpreter:
-    @code{.py}
-#!/usr/bin/env qore
-    @endcode
-    This form will work as long as the \c qore binary is in the current \c PATH.
+    @note If another installation directory is used (such as \c /usr/local/bin), then the correct path must be reflected in the first line of the %Qore script (ex: <tt>#!/usr/local/bin/qore</tt>).  However, there is a better, more flexible way how to do it -- do not specify direct path to the interpreter, but use this construct instead: <tt>#!/usr/bin/env qore</tt> -- thus there is no need to worry about exact path and it just works.
 
-    %Qore convention dictates that %Qore script file names end with \c ".q"; @ref user_modules "user modules" with \c ".qm", and <a href="../../modules/QUnit/html/index.html">test scripts</a> with \c ".qtest".
+    %Qore convention dictates that %Qore script file names end with \c ".q".
 */

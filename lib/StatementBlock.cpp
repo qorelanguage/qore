@@ -157,7 +157,7 @@ VariableBlockHelper::VariableBlockHelper() {
 }
 
 VariableBlockHelper::~VariableBlockHelper() {
-   std::unique_ptr<VNode> vnode(getVStack());
+   std::auto_ptr<VNode> vnode(getVStack());
    assert(vnode.get());
    updateVStack(vnode->next);
    //printd(5, "VariableBlockHelper::~VariableBlockHelper() this=%p got %p\n", this, vnode->lvar);
@@ -314,7 +314,7 @@ LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const
 }
 
 int pop_local_var_get_id() {
-   std::unique_ptr<VNode> vnode(getVStack());
+   std::auto_ptr<VNode> vnode(getVStack());
    assert(vnode.get());
    int refs = vnode->refCount();
    printd(5, "pop_local_var_get_id(): popping var %s (refs=%d)\n", vnode->lvar->getName(), refs);
@@ -323,7 +323,7 @@ int pop_local_var_get_id() {
 }
 
 LocalVar* pop_local_var(bool set_unassigned) {
-   std::unique_ptr<VNode> vnode(getVStack());
+   std::auto_ptr<VNode> vnode(getVStack());
    assert(vnode.get());
    LocalVar* rc = vnode->lvar;
    if (set_unassigned)
