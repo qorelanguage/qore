@@ -851,7 +851,7 @@ my any $v = $c.name;
 
     #! represents an Oracle package
     public class OraclePackage inherits OracleCodeBase {
-        private {
+        public {
             #! package body source
             *string body_src;
         }
