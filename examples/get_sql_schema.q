@@ -11,10 +11,14 @@
 const VERSION = "0.1";
 
 const OBJECT_OPTIONS = (
-        "sequences" : "sequences,q:s",
-        "tables" : "tables,t:s",
-        "types" : "types,y:s",
-        "views" : "views,v:s",
+        "sequences"     : "seq,q:s",
+        "tables"        : "table,t:s",
+        "types"         : "type,y:s",
+        "views"         : "view,v:s",
+        "mviews"        : "mview,m:s",
+        "procedures"    : "proc,p:s",
+        "functions"     : "func,f:s",
+        "packages"      : "pkg,g:s",
     );
 
 const OPTIONS = (
@@ -29,16 +33,19 @@ sub help(int exitCode) {
 %s <options> <connection_string>
 
 Options:
- -h --help              Display help and exits
- -V --version           Show version of this script
-    --verbose           Show additional verbose info
- -s --schema=<name>     Export full (supported objects) DB schema.
-                        The class of the qsm output will be named <name>
- -t --tables=<val>      Export specified table(s). See <val> section below.
- -s --sequences=<val>   Export specified sequence(s). See <val> section below.
- -y --types=<val>       Export specified type(s). See <val> section below.
- -v --views=<val>       Export specified view(s). See <val> section below.
-
+ -h --help          Display help and exits
+ -V --version       Show version of this script
+    --verbose       Show additional verbose info
+ -s --schema=<name> Export full (supported objects) DB schema.
+                    The class of the qsm output will be named <name>
+ -t --table=<val>   Export specified table(s). See <val> section below.
+ -s --seq=<val>     Export specified sequence(s). See <val> section below.
+ -y --type=<val>    Export specified type(s). See <val> section below.
+ -v --view=<val>    Export specified view(s). See <val> section below.
+ -m --mview=<val>   Export specified materialized view(s). See <val> section below.
+ -p --proc=<val>    Export specified procedure(s). See <val> section below.
+ -f --func=<val>    Export specified function(s). See <val> section below.
+ -g --pkg=<val>     Export specified package(s). See <val> section below.
 
 Object <val> filtering:
     Any <val> can be exact name of the object, a list (separated by ','),
@@ -128,9 +135,8 @@ class Main {
             HashIterator it(OBJECT_OPTIONS);
             while (it.next()) {
                 string key = it.getKey();
-                string classKey = substr(key, 0, 1).upr() + substr(key,1); # TODO/FIXME: <string>.capitalize() one day...
                 if (exists m_opts{key}) {
-                    exportObjects(m_opts{key}, sprintf("%sReverse", classKey));
+                    exportObjects(m_opts{key}, key);
                 }
             }
         }
@@ -142,11 +148,11 @@ class Main {
         return ret.join("|");
     }
 
-    private exportObjects(string input, string className) {
-        cout("Exporting objects: %s, for: %s", className, input);
+    private exportObjects(string input, string objectType) {
+        cout("Exporting objects: %s, for: %s", objectType, input);
         string rx = makeRxString(input);
-        object o = create_object(className, m_ds, rx);
-        printf("%s\n", call_object_method(o, "toString"));
+        AbstractReverseObject o = SchemaReverse::get_object(objectType, m_ds, input);
+        printf("%s\n", o.toString());
     }
 
     private cout(string msg) {

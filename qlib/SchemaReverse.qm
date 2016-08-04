@@ -52,18 +52,31 @@ module SchemaReverse {
 #! this namespace contains all public definitions in the %SchemaReverse module
 public namespace SchemaReverse {
 
-    # keep it in sync with the TEMPLATE string
-    const TEMPLATE_REPLACEMENTS = (
-            "<SCHEMA_SEQUENCES>" : "SequencesReverse",
-            "<SCHEMA_TABLES>" : "TablesReverse",
-            "<SCHEMA_TYPES>" : "TypesReverse",
-            "<SCHEMA_VIEWS>" : "ViewsReverse",
+    const TYPE_TO_CLASS = (
+            "sequence" : "SequenceReverse",
+            "table" : "TableReverse",
+            "type" : "TypeReverse",
+            "view" : "ViewReverse",
+            "mview" : "MViewReverse",
+            "function" : "FunctionReverse",
+            "procedure" : "ProcedureReverse",
+            "package" : "PackageReverse",
+        );
+    const MULTI_TO_CLASS = (
+            "sequences" : "SequencesReverse",
+            "tables" : "TablesReverse",
+            "types" : "TypesReverse",
+            "views" : "ViewsReverse",
+            "mviews" : "MViewsReverse",
+            "functions" : "FunctionsReverse",
+            "procedures" : "ProceduresReverse",
+            "packages" : "PackagesReverse",
         );
 
     const TEMPLATE = '# -*- mode: qore; indent-tabs-mode: nil -*-
 %%requires qore >= 0.8.12
 
-module <SCHEMA_NAME> {
+module <X_SCHEMA_NAME> {
     version = "1.0";
     desc = "some schema";
     author = "John Doe";
@@ -103,19 +116,27 @@ namespace Private {
     const TYPES = <SCHEMA_TYPES>;
 
     const VIEWS = <SCHEMA_VIEWS>;
+
+    const MATERIALIZED_VIEWS = <SCHEMA_MVIEWS>;
+
+    const FUNCTIONS = <SCHEMA_FUNCTIONS>;
+
+    const PROCEDURES = <SCHEMA_PROCEDURES>;
+
+    const PACKAGES = <SCHEMA_PACKAGES>;
 }
 
-public namespace <SCHEMA_NAME> {
+public namespace <X_SCHEMA_NAME> {
     public string sub get_datasource_name() {
-        return "<SCHEMA_DS_NAME>";
+        return "<X_SCHEMA_DS_NAME>";
     }
 
-        return new <SCHEMA_NAME>(ds, dts, its);
+        return new <X_SCHEMA_NAME>(ds, dts, its);
     }
 
-    public class <SCHEMA_NAME> inherits AbstractSchema {
+    public class <X_SCHEMA_NAME> inherits AbstractSchema {
         public {
-            const SchemaName = "<SCHEMA_NAME>";
+            const SchemaName = "<X_SCHEMA_NAME>";
             const SchemaVersion = "1.0";
         }
 
@@ -144,6 +165,22 @@ public namespace <SCHEMA_NAME> {
 
         private *hash getViewsImpl() {
             return VIEWS;
+        }
+
+        private *hash getMaterializedViewsImpl() {
+            return MATERIALIZED_VIEWS;
+        }
+
+        private *hash getFunctionsImpl() {
+            return FUNCTIONS;
+        }
+
+        private *hash getProceduresImpl() {
+            return PROCEDURES;
+        }
+
+        private *hash getPackagesImpl() {
+            return PACKAGES;
         }
 
         private *hash getIndexOptionsImpl() {
@@ -383,18 +420,36 @@ public namespace <SCHEMA_NAME> {
         }
     } # class TablesReverse
 
-    public class ViewReverse inherits AbstractReverseObject {
-        constructor(AbstractDatasource ds, string name)
+    public class CodeBaseReverse inherits AbstractReverseObject {
+        private {
+            string m_object_type;
+            string m_function_name;
+            list m_ignored_keys;
+        }
+
+        constructor(string object_type,
+                    AbstractDatasource ds,
+                    string name,
+                    string function_name,
+                    softlist ignored_keys
+                   )
             : AbstractReverseObject(ds, name)
         {
+            m_object_type = object_type;
+            m_function_name = function_name;
+            m_ignored_keys = ignored_keys;
         }
 
         hash toHash() {
-            AbstractView v = database().getView(name());
-            ObjectIterator it = v.iterator();
+            if (database().hasCallableMethod(m_function_name)) {
+                return hash();
+            }
+
+            object o = call_object_method(database(), m_function_name, name());
+            ObjectIterator it = o.iterator();
             hash ret = hash();
             while (it.next()) {
-                if (inlist(it.getKey(), ("schema", "name",))) {
+                if (inlist(it.getKey(), m_ignored_keys)) {
                     continue;
                 }
                 if (exists it.getValue()) {
@@ -403,26 +458,115 @@ public namespace <SCHEMA_NAME> {
             }
             return ret;
         }
-    } # class ViewReverse
+    } # class CodeBaseReverse
 
-    public class ViewsReverse inherits AbstractReverseObject {
-        constructor(AbstractDatasource ds, string mask = ".*")
+    public class CodesBaseReverse inherits AbstractReverseObject {
+        private {
+            string m_object_type;
+            string m_function_name;
+        }
+
+        constructor(string object_type,
+                    AbstractDatasource ds,
+                    string mask,
+                    string function_name,
+                   )
             : AbstractReverseObject(ds, mask)
         {
+            if (!exists TYPE_TO_CLASS{object_type}) {
+                throw "CODES-BASE-REVERSE-ERROR", sprintf("Unknown object type: %s; available: %y", object_type, TYPE_TO_CLASS.keys());
+            }
+            m_object_type = object_type;
+            m_function_name = function_name;
         }
 
         hash toHash() {
-            ListIterator it = database().viewIterator();
+            if (database().hasCallableMethod(m_function_name)) {
+                return hash();
+            }
+
+            ListIterator it = call_object_method(database(), m_function_name);
             hash ret = hash();
             while (it.next()) {
                 string s = it.getValue();
                 if (s.regex(name())) {
-                    ret{s} = new ViewReverse(datasource(), s).toHash();
+                    AbstractReverseObject o = create_object(TYPE_TO_CLASS{m_object_type}, datasource(), s);
+                    ret{s} = o.toHash();
                 }
             }
             return ret;
         }
+    } # class CodeBaseReverse
+
+    public class ViewReverse inherits CodeBaseReverse {
+        constructor(AbstractDatasource ds, string name)
+            : CodeBaseReverse("view", ds, name, "getView", ("schema", "name", ))
+        {
+        }
+    } # class ViewReverse
+
+    public class ViewsReverse inherits CodesBaseReverse {
+        constructor(AbstractDatasource ds, string mask = ".*")
+            : CodesBaseReverse("view", ds, mask, "materializedViewIterator")
+        {
+        }
     } # class ViewsReverse
+
+    public class MViewReverse inherits CodeBaseReverse {
+        constructor(AbstractDatasource ds, string name)
+            : CodeBaseReverse("mview", ds, name, "getMaterializedView", ("schema", "name", "type"))
+        {
+        }
+    } # class MViewReverse
+
+    public class MViewsReverse inherits CodesBaseReverse {
+        constructor(AbstractDatasource ds, string mask = ".*")
+            : CodesBaseReverse("mview", ds, mask, "materializedViewIterator")
+        {
+        }
+    } # class MViewsReverse
+
+    public class FunctionReverse inherits CodeBaseReverse {
+        constructor(AbstractDatasource ds, string name)
+            : CodeBaseReverse("function", ds, name, "getFunction", ("schema", "name", "type"))
+        {
+        }
+    } # class FunctionReverse
+
+    public class FunctionsReverse inherits CodesBaseReverse {
+        constructor(AbstractDatasource ds, string mask = ".*")
+            : CodesBaseReverse("function", ds, mask, "functionIterator")
+        {
+        }
+    } # class FunctionsReverse
+
+    public class ProcedureReverse inherits CodeBaseReverse {
+        constructor(AbstractDatasource ds, string name)
+            : CodeBaseReverse("procedure", ds, name, "getProcedure", ("schema", "name", "type"))
+        {
+        }
+    } # class ProcedureReverse
+
+    public class ProceduresReverse inherits CodesBaseReverse {
+        constructor(AbstractDatasource ds, string mask = ".*")
+            : CodesBaseReverse("procedure", ds, mask, "procedureIterator")
+        {
+        }
+    } # class ProceduresReverse
+
+    public class PackageReverse inherits CodeBaseReverse {
+        constructor(AbstractDatasource ds, string name)
+            : CodeBaseReverse("package", ds, name, "getPackage", ("schema", "name", "type"))
+        {
+        }
+    } # class ProcedureReverse
+
+    public class PackagesReverse inherits CodesBaseReverse {
+        constructor(AbstractDatasource ds, string mask = ".*")
+            : CodesBaseReverse("package", ds, mask, "packageIterator")
+        {
+        }
+    } # class ProceduresReverse
 
     public class SchemaReverse {
         private {
@@ -439,19 +583,29 @@ public namespace <SCHEMA_NAME> {
 
         string toString() {
             string ret = TEMPLATE;
-            ret = replace(ret, "<SCHEMA_NAME>", m_class_name);
-            ret = replace(ret, "<SCHEMA_DS_NAME>", m_conn_name);
+            ret = replace(ret, "<X_SCHEMA_NAME>", m_class_name);
+            ret = replace(ret, "<X_SCHEMA_DS_NAME>", m_conn_name);
 
-            HashIterator it(TEMPLATE_REPLACEMENTS);
+            softlist toReplace = regex_extract(TEMPLATE, "(<SCHEMA_.*>)", Qore::RE_MultiLine|Qore::RE_Global);
+            ListIterator it(toReplace);
             while (it.next()) {
-                object o = create_object(it.getValue(), m_ds);
-                string src = call_object_method(o, "toString");
-                ret = replace(ret, it.getKey(), src);
+                string key = regex_extract(it.getValue(), "<SCHEMA_(*.)>")[1];
+                AbstractReverseObject o = get_object(key.lwr());
+                replace(ret, it.getValue(), o.toString());
             }
 
             return ret;
         }
 
     } # class SchemaReverse
+
+    public AbstractReverseObject sub get_object(string object_type) {
+        *string className = TYPE_TO_CLASS{object_type} ?? MULTI_TO_CLASS{object_type};
+        if (!exists className) {
+            throw "SCHEMA-REVERSE-ERROR", sprintf("Unknown object type: %s; available: %y", object_type, TYPE_TO_CLASS.keys()+MULTI_TO_CLASS.keys());
+        }
+        object o = create_object_args(className, argv);
+        return o;
+    }
 
 } # namespace SchemaReverse
