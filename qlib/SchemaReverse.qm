@@ -224,10 +224,10 @@ public namespace <X_SCHEMA_NAME> {
             return m_db;
         }
 
-        abstract any toHash();
+        abstract any toQore();
 
         string toString() {
-            return qorize_val(toHash());
+            return qorize_val(toQore());
         }
     } # class AbstractReverseObject
 
@@ -237,7 +237,7 @@ public namespace <X_SCHEMA_NAME> {
         {
         }
 
-        hash toHash() {
+        hash toQore() {
             return ( name() : hash() );
         }
     } # class SequenceReverse
@@ -248,7 +248,7 @@ public namespace <X_SCHEMA_NAME> {
         {
         }
 
-        hash toHash() {
+        hash toQore() {
             ListIterator it = database().sequenceIterator();
             hash ret = hash();
             while (it.next()) {
@@ -267,7 +267,7 @@ public namespace <X_SCHEMA_NAME> {
         {
         }
 
-        hash toHash() {
+        hash toQore() {
             if (database().supportsTypes()) {
                 return ( name() : database().getType(name()).src );
             }
@@ -281,7 +281,7 @@ public namespace <X_SCHEMA_NAME> {
         {
         }
 
-        hash toHash() {
+        hash toQore() {
             if (!database().supportsTypes()) {
                 return hash();
             }
@@ -291,7 +291,7 @@ public namespace <X_SCHEMA_NAME> {
             while (it.next()) {
                 string s = it.getValue();
                 if (s.regex(name())) {
-                    ret += new TypeReverse(datasource(), s).toHash();
+                    ret += new TypeReverse(datasource(), s).toQore();
                 }
             }
             return ret;
@@ -304,7 +304,7 @@ public namespace <X_SCHEMA_NAME> {
         {
         }
 
-        hash toHash() {
+        hash toQore() {
             Table t(datasource(), name());
             hash ret;
 
@@ -352,31 +352,31 @@ public namespace <X_SCHEMA_NAME> {
             switch (c.native_type) {
                 case "varchar":
                 case "varchar2":
-                    ret = c_varchar(c.size, c.nullable, c.comment);
+                    ret = c_varchar(c.size, !c.nullable, c.comment);
                     break;
                 case "char":
-                    ret = c_char(c.size, c.nullable, c.comment);
+                    ret = c_char(c.size, !c.nullable, c.comment);
                     break;
                 case "date":
-                    ret = c_date(c.nullable, c.comment);
+                    ret = c_date(!c.nullable, c.comment);
                     break;
                 case "timestamp":
                 case /^timestamp.*/:
-                    ret = c_timestamp(c.nullable, c.comment);
+                    ret = c_timestamp(!c.nullable, c.comment);
                     break;
                 case "number":
-                    ret = c_number(c.size, /* c.scale */ 0, c.nullable, c.comment); # TODO/FIXME: scale
+                    ret = c_number(c.size, /* c.scale */ 0, !c.nullable, c.comment); # TODO/FIXME: scale
                     break;
                 case "clob":
-                    ret =  ("qore_type": SQL::CLOB, "comment": c.comment, "notnull" : c.nullable);
+                    ret =  ("qore_type": SQL::CLOB, "comment": c.comment, "notnull" : !c.nullable);
                     break;
                 case "blob":
-                    ret =  ("qore_type": SQL::BLOB, "comment": c.comment, "notnull" : c.nullable);
+                    ret =  ("qore_type": SQL::BLOB, "comment": c.comment, "notnull" : !c.nullable);
                     break;
                 #case "rowid":
                 #case "sdo_geometry":
                 #case "raw":
-                #    # TODO/FIXME ret =  ("qore_type": SQL::RAW, "comment": c.comment, "notnull" : c.nullable);
+                #    # TODO/FIXME ret =  ("qore_type": SQL::RAW, "comment": c.comment, "notnull" : !c.nullable);
                 #    break;
                 #default:
                 #    printf("%N\n", c);
@@ -408,13 +408,13 @@ public namespace <X_SCHEMA_NAME> {
         {
         }
 
-        hash toHash() {
+        hash toQore() {
             ListIterator it = database().tableIterator();
             hash ret = hash();
             while (it.next()) {
                 string s = it.getValue();
                 if (s.regex(name())) {
-                    ret{s} = new TableReverse(datasource(), s).toHash();
+                    ret{s} = new TableReverse(datasource(), s).toQore();
                 }
             }
             return ret;
@@ -441,7 +441,7 @@ public namespace <X_SCHEMA_NAME> {
             m_ignored_keys = ignored_keys;
         }
 
-        hash toHash() {
+        hash toQore() {
             if (database().hasCallableMethod(m_function_name)) {
                 return hash();
             }
@@ -481,7 +481,7 @@ public namespace <X_SCHEMA_NAME> {
             m_function_name = function_name;
         }
 
-        hash toHash() {
+        hash toQore() {
             if (database().hasCallableMethod(m_function_name)) {
                 return hash();
             }
@@ -492,7 +492,7 @@ public namespace <X_SCHEMA_NAME> {
                 string s = it.getValue();
                 if (s.regex(name())) {
                     AbstractReverseObject o = create_object(TYPE_TO_CLASS{m_object_type}, datasource(), s);
-                    ret{s} = o.toHash();
+                    ret{s} = o.toQore();
                 }
             }
             return ret;
@@ -533,7 +533,10 @@ public namespace <X_SCHEMA_NAME> {
         {
         }
 
-        string toHash() {
+        string toQore() {
+            if (database().hasCallableMethod("getFunction")) {
+                return "";
+            }
             object o = database().getFunction(name());
             return o.src;
         }
@@ -552,7 +555,10 @@ public namespace <X_SCHEMA_NAME> {
         {
         }
 
-        string toHash() {
+        string toQore() {
+            if (database().hasCallableMethod("getProcedure")) {
+                return "";
+            }
             object o = database().getProcedure(name());
             return o.src;
         }
@@ -565,10 +571,18 @@ public namespace <X_SCHEMA_NAME> {
         }
     } # class ProceduresReverse
 
-    public class PackageReverse inherits CodeBaseReverse {
+    public class PackageReverse inherits AbstractReverseObject {
         constructor(AbstractDatasource ds, string name)
-            : CodeBaseReverse("package", ds, name, "getPackage", ("schema", "name", "type"))
+            : AbstractReverseObject(ds, name)
         {
+        }
+
+        hash toQore() {
+            if (database().hasCallableMethod("getPackage")) {
+                return hash();
+            }
+            object o = database().getPackage(name());
+            return ( "src" : o.src, "body" : o.body_src );
         }
     } # class ProcedureReverse
 
