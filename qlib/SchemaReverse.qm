@@ -227,7 +227,11 @@ public namespace <X_SCHEMA_NAME> {
         abstract any toQore();
 
         string toString() {
-            return qorize_val(toQore());
+            string ret = qorize_val(toQore());
+            if (ret.regex(".*\,$")) {
+                ret = ret.substr(0, -1);
+            }
+            return ret;
         }
     } # class AbstractReverseObject
 
