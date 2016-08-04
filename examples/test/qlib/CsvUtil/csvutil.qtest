@@ -40,6 +40,7 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
 
     constructor() : Test("CsvUtilTest", "1.0") {
         addTestCase("Basic CSV tests", \csvTest(), NOTHING);
+        addTestCase("Optional field CSV tests", \csvOptionalFieldTest(), NOTHING);
         addTestCase("Multi-type CSV tests", \csvMultiTest(), NOTHING);
         addTestCase("Single-type CSV tests", \csvSingleTest(), NOTHING);
         addTestCase("Single-type CSV map tests", \csvSingleMapTest(), NOTHING);
@@ -102,6 +103,26 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
         testAssertion("CsvDataIterator header by idx 2", \equals(), (("0": "row1-1", "1": "row1-2", "2": "row1-3"), i.getValue()));
         testAssertion("CsvDataIterator header by idx 3", \equals(), (("row1-1", "row1-2", "row1-3"), i.getRecordList()));
         testAssertionValue("CsvDataIterator header by idx 4", i.getHeaders(), ("0", "1", "2"));
+    }
+
+    csvOptionalFieldTest() {
+        hash opts = ("fields": ("f1": "string", "f2": "int", "f3": ("type": "date", "format": "DDMMYYYY"), "f4": "*string", "f5": "*string"));
+        string input = "UK,1234567890,31052012,O1-4
+UK,1234567891,30052012,,O2-5
+UK,1234567892,29052012,O3-4
+UK,1234567893,28052012";
+
+        list records = (
+            ("f1": "UK", "f2": 1234567890, "f3": 2012-05-31, "f4": "O1-4", "f5": NOTHING),
+            ("f1": "UK", "f2": 1234567891, "f3": 2012-05-30, "f4": NOTHING, "f5": "O2-5"),
+            ("f1": "UK", "f2": 1234567892, "f3": 2012-05-29, "f4": "O3-4", "f5": NOTHING),
+            ("f1": "UK", "f2": 1234567893, "f3": 2012-05-28, "f4": NOTHING, "f5": NOTHING),
+        );
+
+        # Iterate through source
+        CsvDataIterator i(input, opts);
+        #list l = map $1, i;
+        testAssertion("CsvDataIterator optional fields", \equalsIterated(), (new ListIterator(records), i));
     }
 
     csvMultiTest() {
