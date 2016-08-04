@@ -74,7 +74,7 @@ public namespace SchemaReverse {
         );
 
     const TEMPLATE = '# -*- mode: qore; indent-tabs-mode: nil -*-
-%%requires qore >= 0.8.12
+%requires qore >= 0.8.12
 
 module <X_SCHEMA_NAME> {
     version = "1.0";
@@ -83,12 +83,12 @@ module <X_SCHEMA_NAME> {
     url = "http://www.qoretechnologies.com";
 }
 
-%%requires Schema
-%%requires SqlUtil
+%requires Schema
+%requires SqlUtil
 
-%%new-style
-%%require-types
-%%enable-all-warnings
+%new-style
+%require-types
+%enable-all-warnings
 
 # private namespace for private schema declarations
 namespace Private {
@@ -131,6 +131,7 @@ public namespace <X_SCHEMA_NAME> {
         return "<X_SCHEMA_DS_NAME>";
     }
 
+    public AbstractSchema sub get_user_schema(AbstractDatasource ds, *string dts, *string its) {
         return new <X_SCHEMA_NAME>(ds, dts, its);
     }
 
@@ -223,7 +224,7 @@ public namespace <X_SCHEMA_NAME> {
             return m_db;
         }
 
-        abstract hash toHash();
+        abstract any toHash();
 
         string toString() {
             return qorize_val(toHash());
@@ -507,7 +508,7 @@ public namespace <X_SCHEMA_NAME> {
 
     public class ViewsReverse inherits CodesBaseReverse {
         constructor(AbstractDatasource ds, string mask = ".*")
-            : CodesBaseReverse("view", ds, mask, "materializedViewIterator")
+            : CodesBaseReverse("view", ds, mask, "viewIterator")
         {
         }
     } # class ViewsReverse
@@ -526,10 +527,15 @@ public namespace <X_SCHEMA_NAME> {
         }
     } # class MViewsReverse
 
-    public class FunctionReverse inherits CodeBaseReverse {
+    public class FunctionReverse inherits AbstractReverseObject {
         constructor(AbstractDatasource ds, string name)
-            : CodeBaseReverse("function", ds, name, "getFunction", ("schema", "name", "type"))
+            : AbstractReverseObject(ds, name)
         {
+        }
+
+        string toHash() {
+            object o = database().getFunction(name());
+            return o.src;
         }
     } # class FunctionReverse
 
@@ -540,10 +546,15 @@ public namespace <X_SCHEMA_NAME> {
         }
     } # class FunctionsReverse
 
-    public class ProcedureReverse inherits CodeBaseReverse {
+    public class ProcedureReverse inherits AbstractReverseObject {
         constructor(AbstractDatasource ds, string name)
-            : CodeBaseReverse("procedure", ds, name, "getProcedure", ("schema", "name", "type"))
+            : AbstractReverseObject(ds, name)
         {
+        }
+
+        string toHash() {
+            object o = database().getProcedure(name());
+            return o.src;
         }
     } # class ProcedureReverse
 
@@ -589,9 +600,9 @@ public namespace <X_SCHEMA_NAME> {
             softlist toReplace = regex_extract(TEMPLATE, "(<SCHEMA_.*>)", Qore::RE_MultiLine|Qore::RE_Global);
             ListIterator it(toReplace);
             while (it.next()) {
-                string key = regex_extract(it.getValue(), "<SCHEMA_(*.)>")[1];
-                AbstractReverseObject o = get_object(key.lwr());
-                replace(ret, it.getValue(), o.toString());
+                string key = regex_extract(it.getValue(), "<SCHEMA_(.*)>")[0];
+                AbstractReverseObject o = get_object(key.lwr(), m_ds);
+                ret = replace(ret, it.getValue(), o.toString());
             }
 
             return ret;
