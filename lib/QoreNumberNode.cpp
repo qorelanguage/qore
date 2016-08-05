@@ -213,7 +213,13 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
          dsep.clear();
    }
 
+   // non-zero flag: if any digits are non-zero
+   bool nonzero = false;
+
    //printd(5, "qore_number_private::formatNumberString() tsep: '%s' dsep: '%s' prec: %d '%s'\n", tsep.getBuffer(), dsep.getBuffer(), prec, num.getBuffer());
+
+   // start of digits before the decimal point
+   qore_offset_t ds = num[0] == '-' ? 1 : 0;
 
    // find decimal point
    qore_offset_t dp = num.find('.');
@@ -228,11 +234,32 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
             ++dp;
          num.terminate(dp + prec + 1);
       }
+
+      // scan for non-zero digits if negative
+      if (ds) {
+         for (const char* c = num.c_str(); *c; ++c) {
+            if (*c > '0' && *c <= '9') {
+               nonzero = true;
+               break;
+            }
+         }
+      }
+
       // now substitute decimal point if necessary
       if (dsep.strlen() != 1 || dsep[0] != '.')
          num.replace(dp, 1, dsep.getBuffer());
    }
    else {
+      // scan for non-zero digits if negative
+      if (ds) {
+         for (const char* c = num.c_str(); *c; ++c) {
+            if (*c > '0' && *c <= '9') {
+               nonzero = true;
+               break;
+            }
+         }
+      }
+
       dp = num.size();
       if (prec) {
          // add decimal point
@@ -244,9 +271,6 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
    }
 
    // now insert thousands separator
-   // start of digits before the decimal point
-   qore_offset_t ds = num[0] == '-' ? 1 : 0;
-
    // work backwards from the decimal point
    qore_offset_t i = dp - 3;
    while (i > ds) {
@@ -255,6 +279,10 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
    }
 
    //printd(0, "qore_number_private::formatNumberString() ok '%s'\n", num.getBuffer());
+
+   // remove minus sign if negative -0(.0*)
+   if (ds && !nonzero)
+      num.trim_leading('-');
 
    //assert(false); xxx
    return 0;
