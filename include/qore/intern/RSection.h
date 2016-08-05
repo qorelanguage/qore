@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -103,6 +103,7 @@ protected:
       assert(write_tid != -1 || rs_tid != -1);
       list.push_back(rn);
       rn->set();
+      printd(0, "qrp::sNI t: %p r: %p\n", this, rn);
    }
 
 public:

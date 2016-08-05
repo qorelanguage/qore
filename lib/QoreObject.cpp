@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -49,7 +49,7 @@ qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass* oc,
    printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::qore_object_private() this: %p obj: %p, pgm: %p, class: %s, references 0->1\n", this, obj, p, oc->getName());
 #endif
    /* instead of referencing the class, we reference the program, because the
-      program contains the namespace that contains the class, and the class'
+      program contains the namespace that contains the class, and the class's
       methods may call functions in the program as well that could otherwise
       disappear when the program is deleted
    */
