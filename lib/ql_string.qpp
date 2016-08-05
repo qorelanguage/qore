@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/ql_string.h>
+#include <qore/intern/qore_number_private.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -39,6 +40,19 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <float.h>
+
+// for use in floating-point number formatting
+// from: http://stackoverflow.com/questions/16839658/printf-width-specifier-to-maintain-precision-of-floating-point-value
+#ifdef DBL_DECIMAL_DIG
+  #define OP_DBL_Digs (DBL_DECIMAL_DIG)
+#else
+  #ifdef DECIMAL_DIG
+    #define OP_DBL_Digs (DECIMAL_DIG)
+  #else
+    #define OP_DBL_Digs (DBL_DIG + 3)
+  #endif
+#endif
 
 static int fix_num(QoreString& tmp, const QoreString& fmt, ExceptionSink* xsink) {
    qore_offset_t off = fmt.getByteOffset(1, xsink);
@@ -273,112 +287,12 @@ QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNode* l, int
 }
 
 QoreStringNode* format_float_intern(const QoreString& fmt, double num, ExceptionSink* xsink) {
-   int decimals = 0, neg = 1;
-   int64 tr, bi, mi, th, val;
-   char chr[40], str[40], dec[20];
-
-   qore_size_t len = fmt.length();
-   if (!len) {
-      sprintf(str, "%.9g", num);
-      return new QoreStringNode(str);
-   }
-
-   QoreString tsep;
-   if (tsep.concat(fmt, 0, 1, xsink))
-      return 0 ;
-
-   QoreString dsep;
-   if (len > 2) {
-      if (dsep.concat(fmt, 1, 1, xsink))
-         return 0;
-
-      // get byte offset of start of decimal precision number
-      qore_offset_t i = fmt.getByteOffset(2, xsink);
-      if (*xsink)
-         return 0 ;
-      assert(i >= 2);
-      decimals = atoi(fmt.getBuffer() + i);
-      if (!decimals)
-         dsep.clear();
-   }
-
-   if (num < 0) {
-      neg = -1;
-      num *= -1;
-   }
-   val = (int64)num;
-   // do not output the decimal character if there should be none
-   if (!decimals)
-      len = 1;
-   if (len == 3) {
-      num -= (double)val;
-      if (decimals)
-         sprintf(chr, "%%.%df", decimals);
-      else
-         strcpy(chr, "%%f");
-      sprintf(dec, chr, num);
-   }
-   tr = val / 1000000000000ll;
-   val -= tr * 1000000000000ll;
-   bi = val / 1000000000ll;
-   val -= bi * 1000000000ll;
-   mi = val / 1000000ll;
-   val -= mi * 1000000ll;
-   th = val / 1000ll;
-   val -= th * 1000ll;
-   //printd(5, "tr: %lld bi: %lld mi: %lld th: %lld val: %lld, decimals: %d\n", tr, bi, mi, th, val, decimals);
-
-   if (tr) {
-      if (len == 3)
-         sprintf(str, QLLD "%s" QLLDx(03) "%s" QLLDx(03) "%s" QLLDx(03) "%s" QLLDx(03) "%s%s",
-               neg * tr, tsep.c_str(),
-               bi, tsep.c_str(),
-               mi, tsep.c_str(),
-               th, tsep.c_str(),
-               val, dsep.c_str(),
-               dec + 2);
-      else
-         sprintf(str, QLLD "%s" QLLDx(03) "%s" QLLDx(03) "%s" QLLDx(03) "%s" QLLDx(03),
-               neg * tr, tsep.c_str(),
-               bi, tsep.c_str(),
-               mi, tsep.c_str(),
-               th, tsep.c_str(),
-               val);
-   }
-   else if (bi)
-      if (len == 3)
-         sprintf(str, QLLD "%s" QLLDx(03) "%s" QLLDx(03) "%s" QLLDx(03) "%s%s",
-               neg * bi, tsep.c_str(),
-               mi, tsep.c_str(),
-               th, tsep.c_str(),
-               val, dsep.c_str(),
-               dec + 2);
-      else
-         sprintf(str, QLLD "%s" QLLDx(03) "%s" QLLDx(03) "%s" QLLDx(03),
-               neg * bi, tsep.c_str(), mi, tsep.c_str(),
-               th, tsep.c_str(), val);
-   else if (mi)
-      if (len == 3)
-         sprintf(str, QLLD "%s" QLLDx(03) "%s" QLLDx(03) "%s%s", neg * mi, tsep.c_str(),
-               th, tsep.c_str(), val, dsep.c_str(), dec + 2);
-      else
-         sprintf(str, QLLD "%s" QLLDx(03) "%s" QLLDx(03), neg * mi, tsep.c_str(),
-               th, tsep.c_str(), val);
-   else if (th)
-      if (len == 3)
-         sprintf(str, QLLD "%s" QLLDx(03) "%s%s", neg * th, tsep.c_str(),
-               val, dsep.c_str(),
-               dec + 2);
-      else
-         sprintf(str, QLLD "%s" QLLDx(03), neg * th, tsep.c_str(), val);
-   else
-      if (len == 3)
-         sprintf(str, QLLD "%s%s", neg * val, dsep.c_str(), &dec[2]);
-      else
-         //sprintf(str, "%lld", neg * val);
-         sprintf(str, QLLD, neg * val);
-
-   return new QoreStringNode(str);
+   if (fmt.empty())
+      return new QoreStringNodeMaker("%.9g", num);
+   SimpleRefHolder<QoreStringNode> str(new QoreStringNodeMaker("%.*f", OP_DBL_Digs + 6, num));
+   if (qore_number_private::formatNumberString(**str, fmt, xsink))
+      return 0;
+   return str.release();
 }
 
 /** @defgroup regex_constants Regular Expression Constants
