@@ -687,6 +687,9 @@ public namespace CsvUtil {
             # list of idx to field transformarions, in order of spec
             hash m_resolve_by_idx;
 
+            # fake specs based on the first non-header row
+            bool fakeHeaderNames;
+
             # data source iterator
             AbstractLineIterator lineIterator;
 
@@ -820,6 +823,7 @@ public namespace CsvUtil {
             m_resolve_by_rule = hash();
             m_resolve_by_count = hash();
             m_resolve_by_idx = hash();
+            fakeHeaderNames = False;
 
             # setup type resolving from spec
             foreach string k in (m_specs.keyIterator()) {
@@ -919,6 +923,7 @@ public namespace CsvUtil {
                     list h = ();
                     map h += string($#), l;
                     prepareFieldsFromHeaders(h);
+                    fakeHeaderNames = True;
                 }
             }
 
@@ -1233,6 +1238,10 @@ while (i.next()) {
                 }
                 if (m_resolve_by_count{cnt}.size() > 1)
                     throw errname, sprintf("Line with recourd count %d was not automatically matched since the following records have this length: %y; you need to provide your own identifyTypeImpl() method or specify rules (record: %y)", cnt, m_resolve_by_count{cnt}, rec);
+            }
+            if (!rv && !fakeHeaderNames && m_specs.size() == 1 && exists m_specs{CSV_TYPE_SINGLE}) {
+                # where there is only one type then process it, e.g. when optional fields are not mentioned at the end of line
+                rv = CSV_TYPE_SINGLE;
             }
             if (!rv && !checkElementCounts) {
                 rv = CSV_TYPE_UNKNOWN;
