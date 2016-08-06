@@ -207,6 +207,7 @@ set(QMOD
     qlib/RestClient.qm
     qlib/RestHandler.qm
     qlib/Schema.qm
+    qlib/SchemaReverse.qm
     qlib/SmtpClient.qm
     qlib/SqlUtil.qm
     qlib/TableMapper.qm
