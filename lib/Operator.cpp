@@ -50,7 +50,6 @@ Operator *OP_MINUS,
    *OP_PLUS,
    *OP_MULT,
    *OP_LOG_CMP,
-   *OP_SHIFT,
    *OP_POP,
    *OP_PUSH,
    *OP_UNSHIFT,
@@ -648,38 +647,6 @@ static AbstractQoreNode* op_unshift(const AbstractQoreNode* left, const Abstract
 
    // reference for return value
    return ref_rv ? l->refSelf() : 0;
-}
-
-static AbstractQoreNode* op_shift(const AbstractQoreNode* left, const AbstractQoreNode* x, bool ref_rv, ExceptionSink* xsink) {
-   //QORE_TRACE("op_shift()");
-   printd(5, "op_shift(%p, %p, isEvent=%d)\n", left, x, xsink->isEvent());
-
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper val(left, xsink);
-   if (!val)
-      return 0;
-
-   // return NOTHING if the lvalue has no value for backwards compatibility
-   if (val.getType() == NT_NOTHING)
-      return 0;
-
-   // value is not a list, so throw exception
-   if (val.getType() != NT_LIST) {
-      // only throw a runtime exception if %strict-args is in effect
-      if (runtime_check_parse_option(PO_STRICT_ARGS))
-         xsink->raiseException("SHIFT-ERROR", "the lvalue argument to shift is type \"%s\"; expecting \"list\"", val.getTypeName());
-      return 0;
-   }
-
-   // no exception can occurr here
-   val.ensureUnique();
-
-   QoreListNode* l = reinterpret_cast<QoreListNode*>(val.getValue());
-
-   printd(5, "op_shift() about to call QoreListNode::shift() on list node %p (%d)\n", l, l->size());
-   // the list reference will now be the reference for return value
-   // therefore no need to reference again
-   return l->shift();
 }
 
 static AbstractQoreNode* op_pop(const AbstractQoreNode* left, const AbstractQoreNode* x, bool ref_rv, ExceptionSink* xsink) {
@@ -1779,9 +1746,6 @@ void OperatorList::init() {
    OP_MULT->addFunction(op_multiply_number);
    OP_MULT->addFunction(op_multiply_float);
    OP_MULT->addFunction(op_multiply_bigint);
-
-   OP_SHIFT = add(new Operator(1, "shift", "shift from list", 0, true, true, check_op_list_op));
-   OP_SHIFT->addFunction(op_shift);
 
    OP_POP = add(new Operator(1, "pop", "pop from list", 0, true, true, check_op_list_op));
    OP_POP->addFunction(op_pop);

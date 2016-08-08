@@ -220,6 +220,8 @@
 #include "QoreChompOperatorNode.cpp"
 #include "QoreTrimOperatorNode.cpp"
 #include "QoreSquareBracketsOperatorNode.cpp"
+#include "QoreShiftOperatorNode.cpp"
+#include "QoreLValueOperatorNode.cpp"
 #include "QoreValue.cpp"
 #include "FunctionalOperatorInterface.cpp"
 #include "FunctionalOperator.cpp"

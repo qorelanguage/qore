@@ -2911,7 +2911,7 @@ exp_c:  scalar
 	   }
 	}
 	| TOK_SHIFT exp {
-	   $$ = new QoreTreeNode($2, OP_SHIFT, 0);
+	   $$ = new QoreShiftOperatorNode($2);
 	}
         | TOK_PUSH exp {  // push lvalue-list, element
 	   QoreListNode* l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>($2) : 0;
