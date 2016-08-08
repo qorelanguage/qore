@@ -32,7 +32,7 @@
 #include <qore/Qore.h>
 
 RObject::~RObject() {
-   delete rset;
+   assert(!rset);
 }
 
 bool RObject::scanCheck(RSetHelper& rsh, AbstractQoreNode* n) {
@@ -56,13 +56,6 @@ void RObject::setRSet(RSet* rs, int rcnt) {
    }
    // increment transaction count
    ++rcycle;
-}
-
-void RObject::invalidateRSet() {
-   assert(rml.checkRSectionExclusive());
-   // invalidating the rset removes the weak references to all contained objects
-   if (rset)
-      rset->invalidate();
 }
 
 void RObject::removeInvalidateRSet() {
@@ -97,8 +90,6 @@ int RSet::canDelete(int ref_copy, int rcount) {
    if (!valid)
       return -1;
 
-   bool make_invalid = false;
-
    {
       QoreAutoRWReadLocker al(rwl);
       if (!valid)
@@ -118,17 +109,14 @@ int RSet::canDelete(int ref_copy, int rcount) {
          }
          printd(QRO_LVL, "RSet::canDelete() this: %p can delete graph obj %p '%s' rcount: %d refs: %d\n", this, *i, (*i)->getName(), (*i)->rcount, (*i)->refs());
       }
-      // invalidate the rset
-      make_invalid = true;
    }
 
-   if (make_invalid) {
-      QoreAutoRWWriteLocker al(rwl);
-      if (!valid)
-         return -1;
+   // invalidate the rset
+   QoreAutoRWWriteLocker al(rwl);
+   if (!valid)
+      return -1;
 
-      invalidateIntern();
-   }
+   invalidateIntern();
 
    printd(QRO_LVL, "RSet::canDelete() this: %p can delete all objects in graph\n", this);
    return 1;
@@ -655,6 +643,8 @@ void RSetHelper::commit(RObject& obj) {
 
    for (omap_t::iterator i = fomap.begin(), e = fomap.end(); i != e; ++i) {
       RSet* rs = i->second.rset;
+      assert(!rs || (rs->size() == rs->getCount()));
+
       if (!rs)
          continue;
       for (rset_t::iterator ri = rs->begin(), re = rs->end(); ri != re; ++ri) {

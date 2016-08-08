@@ -201,12 +201,12 @@ string <number>::toString(int fmt) [flags=CONSTANT] {
 
 //! Returns a string of a formatted number according to a format string
 /** @param fmt the format string has the following format:\n
-    <em>\<thousands_separator\></em><tt>[</tt><em>\<decimal_separator\>\<decimals\></em><tt>]</tt>\n
+    <em>\<thousands_separator\></em><tt>[</tt><em>\<decimal_separator\>[\<decimals\>]</em><tt>]</tt>\n
     where:\n
-    - \a thousands_separator and \a decimal_separator are single ASCII characters defining the thousands and decimal separator characters respectively, and
-    - \a decimals is a single digit defining how may decimals should appear after the decimal point
+    - \a thousands_separator and \a decimal_separator are single characters defining the thousands and decimal separator characters respectively, and
+    - \a decimals is one or more digits defining how may decimals should appear after the decimal point
 
-    @return a string of a formatted number according to a format string; if the format string does not follow the given format, then an empty string is returned
+    @return a string of a formatted number according to a format string; if the format string does not follow the given format, then the number without formatting is returned
 
     @par Example:
     @code{.py}
