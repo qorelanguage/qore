@@ -858,8 +858,16 @@ addTestCase(obj);
         str = replace(str, "\r", "<\\r>");
         str = replace(str, "\t", "<\\t>");
         str = replace(str, "\v", "<\\v>");
-        #str = replace(str, " ", "<space>");
+        str = replace(str, " ", "<space>");
         return str;
+    }
+
+    private bool diffInSpecialCharsOnly(string a, string b) {
+        a =~ s/[[:space:]]//;
+        a =~ s/[[:cntrl:]]//;
+        b =~ s/[[:space:]]//;
+        b =~ s/[[:cntrl:]]//;
+        return (a == b);
     }
 
     #! Helper function for printing out human-readable comparison of two values.
@@ -899,8 +907,10 @@ addTestCase(obj);
             else
                 actual = neg ? "<identical>" : sprintf("%N", act);
         }
-        expected = escapeSpecialChars(expected);
-        actual = escapeSpecialChars(actual);
+        if (diffInSpecialCharsOnly(expected, actual)) {
+            expected = escapeSpecialChars(expected);
+            actual = escapeSpecialChars(actual);
+        }
         list expectedLines = expected.split("\n");
         list actualLines = actual.split("\n");
 

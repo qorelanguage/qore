@@ -1228,9 +1228,12 @@ void QoreProgram::parseDefine(const char* str, AbstractQoreNode* val) {
    priv->parseDefine(qoreCommandLineLocation, str, val);
 }
 
+void QoreProgram::parseDefine(const char* str, const char* val) {
+   priv->parseDefine(qoreCommandLineLocation, str, new QoreStringNode(val));
+}
+
 void QoreProgram::parseCmdLineDefines(const std::map<std::string, std::string> defmap, ExceptionSink& xs, ExceptionSink& ws, int wm) {
-   const std::map<std::string, std::string>& dm = defmap;
-   parseCmdLineDefines(xs, ws, wm, dm);
+   parseCmdLineDefines(xs, ws, wm, defmap);
 }
 
 void QoreProgram::parseCmdLineDefines(ExceptionSink& xs, ExceptionSink& ws, int wm, const std::map<std::string, std::string>& defmap) {

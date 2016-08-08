@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -186,7 +186,7 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
    assert(num.getEncoding() == fmt.getEncoding());
    // get the length of the format string in characters (not bytes)
    qore_size_t fl = fmt.length();
-   if (fmt.empty() || fl == 2) {
+   if (fmt.empty()) {
       printd(5, "qore_number_private::formatNumberString() invalid format string: '%s' for number: '%s'\n", fmt.getBuffer(), num.getBuffer());
       return 0;
    }
@@ -200,7 +200,7 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
    QoreString dsep;
    // number of digits after the decimal separator
    unsigned prec = 0;
-   if (fl > 1) {
+   if (fl > 2) {
       if (dsep.concat(fmt, 1, 1, xsink))
          return -1;
       // get byte offset of start of decimal precision number
@@ -213,7 +213,13 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
          dsep.clear();
    }
 
+   // non-zero flag: if any digits are non-zero
+   bool nonzero = false;
+
    //printd(5, "qore_number_private::formatNumberString() tsep: '%s' dsep: '%s' prec: %d '%s'\n", tsep.getBuffer(), dsep.getBuffer(), prec, num.getBuffer());
+
+   // start of digits before the decimal point
+   qore_offset_t ds = num[0] == '-' ? 1 : 0;
 
    // find decimal point
    qore_offset_t dp = num.find('.');
@@ -228,11 +234,32 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
             ++dp;
          num.terminate(dp + prec + 1);
       }
+
+      // scan for non-zero digits if negative
+      if (ds) {
+         for (const char* c = num.c_str(); *c; ++c) {
+            if (*c > '0' && *c <= '9') {
+               nonzero = true;
+               break;
+            }
+         }
+      }
+
       // now substitute decimal point if necessary
       if (dsep.strlen() != 1 || dsep[0] != '.')
          num.replace(dp, 1, dsep.getBuffer());
    }
    else {
+      // scan for non-zero digits if negative
+      if (ds) {
+         for (const char* c = num.c_str(); *c; ++c) {
+            if (*c > '0' && *c <= '9') {
+               nonzero = true;
+               break;
+            }
+         }
+      }
+
       dp = num.size();
       if (prec) {
          // add decimal point
@@ -244,9 +271,6 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
    }
 
    // now insert thousands separator
-   // start of digits before the decimal point
-   qore_offset_t ds = num[0] == '-' ? 1 : 0;
-
    // work backwards from the decimal point
    qore_offset_t i = dp - 3;
    while (i > ds) {
@@ -255,6 +279,10 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
    }
 
    //printd(0, "qore_number_private::formatNumberString() ok '%s'\n", num.getBuffer());
+
+   // remove minus sign if negative -0(.0*)
+   if (ds && !nonzero)
+      num.trim_leading('-');
 
    //assert(false); xxx
    return 0;
