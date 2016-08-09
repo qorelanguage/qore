@@ -298,6 +298,7 @@ libqore_la_SOURCES = \
 	QorePushOperatorNode.cpp \
 	QoreLogicalAndOperatorNode.cpp \
 	QoreLogicalOrOperatorNode.cpp \
+	QoreLogicalComparisonOperatorNode.cpp \
 	QorePseudoMethods.cpp \
 	QoreHTTPClient.cpp \
 	QoreHttpClientObject.cpp \

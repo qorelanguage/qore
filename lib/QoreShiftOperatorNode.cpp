@@ -65,8 +65,7 @@ AbstractQoreNode* QoreShiftOperatorNode::parseInitImpl(LocalVar* oflag, int pfla
 }
 
 QoreValue QoreShiftOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   //QORE_TRACE("op_shift()");
-   printd(5, "QoreShiftOperatorNode::evalValueImpl(%p, %p, isEvent=%d)\n", left, x, xsink->isEvent());
+   //printd(5, "QoreShiftOperatorNode::evalValueImpl(%p, isEvent=%d)\n", exp, xsink->isEvent());
 
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper val(exp, xsink);

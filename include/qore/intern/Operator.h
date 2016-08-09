@@ -43,7 +43,6 @@ class Operator;
 DLLLOCAL extern Operator *OP_MINUS,
    *OP_PLUS,
    *OP_MULT,
-   *OP_LOG_CMP,
    *OP_LOG_LT,
    *OP_LOG_GT,
    *OP_LOG_EQ,
@@ -338,15 +337,6 @@ public:
    DLLLOCAL virtual QoreValue eval(const AbstractQoreNode* l, const AbstractQoreNode* r, bool ref_rv, int args, ExceptionSink* xsink) const;
 };
 
-// this whole class just for one operator (date comparison <=>)...
-class CompareDateOperatorFunction : public AbstractOperatorFunction {
-public:
-   DLLLOCAL CompareDateOperatorFunction() : AbstractOperatorFunction(NT_DATE, NT_DATE) {
-   }
-   DLLLOCAL virtual ~CompareDateOperatorFunction() {}
-   DLLLOCAL virtual QoreValue eval(const AbstractQoreNode* l, const AbstractQoreNode* r, bool ref_rv, int args, ExceptionSink* xsink) const;
-};
-
 class LogicOperatorFunction : public AbstractOperatorFunction {
 private:
    op_logic_func_t op_func;
@@ -581,9 +571,6 @@ public:
    }
    DLLLOCAL void addFunction(op_int_number_func_t f) {
       functions.push_back(new IntNumberOperatorFunction(f));
-   }
-   DLLLOCAL void addCompareDateFunction() {
-      functions.push_back(new CompareDateOperatorFunction());
    }
    DLLLOCAL void addDefaultNothing() {
       functions.push_back(new DefaultNothingOperatorFunction());

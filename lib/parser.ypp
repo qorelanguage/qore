@@ -3232,7 +3232,7 @@ exp
     | exp REGEX_MATCH REGEX_EXTRACT     { $$ = new QoreRegexExtractOperatorNode($1, $3); }
     | exp '>' exp                       { $$ = new QoreLogicalGreaterThanOperatorNode($1, $3); }
     | exp '<' exp                       { $$ = new QoreLogicalLessThanOperatorNode($1, $3); }
-    | exp LOGICAL_CMP exp               { $$ = new QoreTreeNode($1, OP_LOG_CMP, $3); }
+    | exp LOGICAL_CMP exp               { $$ = new QoreLogicalComparisonOperatorNode($1, $3); }
     | exp LOGICAL_EQ exp                { $$ = new QoreLogicalEqualsOperatorNode($1, $3); }
     | exp ABSOLUTE_EQ exp               { $$ = new QoreTreeNode($1, OP_ABSOLUTE_EQ, $3); }
     | exp ABSOLUTE_NE exp               { $$ = new QoreTreeNode($1, OP_ABSOLUTE_NE, $3); }
@@ -3289,7 +3289,7 @@ exp_n
     | exp_n REGEX_MATCH REGEX_EXTRACT   { $$ = new QoreRegexExtractOperatorNode($1, $3); }
     | exp_n '>' exp                     { $$ = new QoreLogicalGreaterThanOperatorNode($1, $3); }
     | exp_n '<' exp                     { $$ = new QoreLogicalLessThanOperatorNode($1, $3); }
-    | exp_n LOGICAL_CMP exp             { $$ = new QoreTreeNode($1, OP_LOG_CMP, $3); }
+    | exp_n LOGICAL_CMP exp             { $$ = new QoreLogicalComparisonOperatorNode($1, $3); }
     | exp_n LOGICAL_EQ exp              { $$ = new QoreLogicalEqualsOperatorNode($1, $3); }
     | exp_n ABSOLUTE_EQ exp             { $$ = new QoreTreeNode($1, OP_ABSOLUTE_EQ, $3); }
     | exp_n ABSOLUTE_NE exp             { $$ = new QoreTreeNode($1, OP_ABSOLUTE_NE, $3); }

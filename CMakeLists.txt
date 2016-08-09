@@ -510,6 +510,7 @@ set(LIBQORE_CPP_SRC
         lib/QorePushOperatorNode.cpp
         lib/QoreLogicalAndOperatorNode.cpp
         lib/QoreLogicalOrOperatorNode.cpp
+	lib/QoreLogicalComparisonOperatorNode.cpp
         lib/QoreValue.cpp
         lib/StreamPipe.cpp
         lib/CompressionTransforms.cpp

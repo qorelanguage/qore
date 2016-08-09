@@ -45,6 +45,8 @@ class Test inherits QUnit::Test {
         addTestCase("keys test", \keysTest());
         addTestCase("binary not", \binNot());
         addTestCase("transliteration", \transliteration());
+        addTestCase("comparison", \comparison());
+
         set_return_value(main());
     }
 
@@ -559,6 +561,79 @@ class Test inherits QUnit::Test {
             any i = 1;
             assertEq(NOTHING, i =~ tr/0-9/A-J/);
             assertEq(1, i);
+        }
+    }
+
+    comparison() {
+        assertEq(-1, "str1" <=> "str2");
+        assertEq(-1, "str1" <=> convert_encoding("str2", "latin1"));
+        assertEq(-1, "1" <=> 2);
+        assertEq(0, "str1" <=> "str1");
+        assertEq(0, "str1" <=> convert_encoding("str1", "latin1"));
+        assertEq(0, "1" <=> 1);
+        assertEq(1, "str2" <=> "str1");
+        assertEq(1, "str2" <=> convert_encoding("str1", "latin1"));
+        assertEq(1, "2" <=> 1);
+
+        assertEq(-1, 1n <=> 2n);
+        assertEq(-1, 1n <=> 2.0);
+        assertEq(-1, 1n <=> 2);
+        assertEq(0, 1n <=> 1n);
+        assertEq(0, 1n <=> 1.0);
+        assertEq(0, 1n <=> 1);
+        assertEq(1, 2n <=> 1n);
+        assertEq(1, 2n <=> 1.0);
+        assertEq(1, 2n <=> 1);
+
+        assertEq(-1, 1.0 <=> 2);
+        assertEq(-1, () <=> 1.0);
+        assertEq(0, 1.0 <=> 1);
+        assertEq(0, () <=> 0.0);
+        assertEq(1, 2 <=> 1.0);
+        assertEq(1, 1.0 <=> ());
+
+        assertEq(-1, 1 <=> 2016-08-09);
+        assertEq(-1, 1970-01-01 <=> 1.0);
+        assertEq(0, 0.0 <=> 1970-01-01);
+        assertEq(0, 1970-01-01 <=> 0.0);
+        assertEq(1, 2016-08-09 <=> 1);
+        assertEq(1, 1 <=> 1970-01-01);
+
+        {
+            Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
+            assertThrows("NAN-COMPARE-ERROR", \p.parse(), ("int i = @nan@ <=> 1.0;", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
+            assertThrows("NAN-COMPARE-ERROR", \p.parse(), ("int i = 1.0 <=> @nan@;", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
+            assertThrows("NAN-COMPARE-ERROR", \p.parse(), ("int i = @nan@n <=> 1n;", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
+            assertThrows("NAN-COMPARE-ERROR", \p.parse(), ("int i = 1n <=> @nan@n;", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
+            p.parse("any x = @nan@; int i = x <=> 1.0;", "");
+            assertThrows("NAN-COMPARE-ERROR", \p.run());
+        }
+        {
+            Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
+            p.parse("any x = @nan@; int i = 1.0 <=> x;", "");
+            assertThrows("NAN-COMPARE-ERROR", \p.run());
+        }
+        {
+            Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
+            p.parse("any x = @nan@n; int i = x <=> 1n;", "");
+            assertThrows("NAN-COMPARE-ERROR", \p.run());
+        }
+        {
+            Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
+            p.parse("any x = @nan@n; int i = 1n <=> x;", "");
+            assertThrows("NAN-COMPARE-ERROR", \p.run());
         }
     }
 }

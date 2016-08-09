@@ -62,7 +62,6 @@ QoreValue QorePushOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
 
    QoreListNode* l = reinterpret_cast<QoreListNode*>(val.getValue());
 
-   printd(5, "QorePushOperatorNode::evalValueImpl() about to call push() on list node %p (%d) with element %p\n", l, l->size(), elem);
    l->push(res.getReferencedValue());
 
    // reference for return value

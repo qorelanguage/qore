@@ -34,8 +34,7 @@
 QoreString QorePopOperatorNode::pop_str("pop operator expression");
 
 QoreValue QorePopOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   //QORE_TRACE("op_pop()");
-   printd(5, "QorePopOperatorNode::evalValueImpl(%p, %p, isEvent=%d)\n", left, x, xsink->isEvent());
+   //printd(5, "QorePopOperatorNode::evalValueImpl(%p, isEvent=%d)\n", exp, xsink->isEvent());
 
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper val(exp, xsink);

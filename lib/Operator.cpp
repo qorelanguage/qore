@@ -49,7 +49,6 @@ DLLLOCAL extern const QoreTypeInfo* bigIntFloatOrNumberTypeInfo, * floatOrNumber
 Operator *OP_MINUS,
    *OP_PLUS,
    *OP_MULT,
-   *OP_LOG_CMP,
    *OP_LOG_LT,
    *OP_LOG_GT,
    *OP_LOG_EQ,
@@ -214,10 +213,6 @@ static bool op_log_ne_all(const AbstractQoreNode* left, const AbstractQoreNode* 
    return (lt != -1 && rt != -1) ? !left->is_equal_soft(right, xsink) : true;
 }
 
-static int64 op_cmp_bigint(int64 left, int64 right) {
-   return left - right;
-}
-
 static int64 op_minus_bigint(int64 left, int64 right) {
    return left - right;
 }
@@ -274,21 +269,6 @@ static bool op_log_ne_number(const QoreNumberNode* left, const QoreNumberNode* r
    return !left->equals(*right);
 }
 
-static int64 op_cmp_number(const QoreNumberNode* left, const QoreNumberNode* right, ExceptionSink* xsink) {
-   if (left->nan() || right->nan()) {
-      xsink->raiseException("NAN-COMPARE-ERROR", "NaN in logical comparison operator");
-      return 1;
-   }
-
-   if (left->lessThan(*right))
-       return -1;
-
-   if (left->equals(*right))
-      return 0;
-
-   return 1;
-}
-
 static QoreNumberNode* op_plus_number(const QoreNumberNode* left, const QoreNumberNode* right, ExceptionSink* xsink) {
    return left->doPlus(*right);
 }
@@ -311,10 +291,6 @@ static QoreStringNode* op_plus_string(const QoreString* left, const QoreString* 
 
    printd(5, "op_plus_string() result=\"%s\"\n", str->getBuffer());
    return str.release();
-}
-
-static int64 op_cmp_string(const QoreString* left, const QoreString* right, ExceptionSink* xsink) {
-   return (int64)left->compare(right);
 }
 
 // this is the default (highest-priority) function for the + operator, so any type could be sent here on either side
@@ -412,21 +388,6 @@ static AbstractQoreNode* op_plus_binary_binary(const AbstractQoreNode* left, con
    BinaryNode* rv = l->copy();
    rv->append(r);
    return rv;
-}
-
-static int64 op_cmp_double(double left, double right, ExceptionSink* xsink) {
-   if (std::isnan(left) || std::isnan(right)) {
-      xsink->raiseException("NAN-COMPARE-ERROR", "NaN in logical comparison operator");
-      return 1;
-   }
-
-   if (left < right)
-       return -1;
-
-   if (left == right)
-      return 0;
-
-   return 1;
 }
 
 static QoreHashNode* op_minus_hash_string(const QoreHashNode* h, const QoreString* s, ExceptionSink* xsink) {
@@ -696,17 +657,6 @@ QoreValue CompareFloatOperatorFunction::eval(const AbstractQoreNode* left, const
       return QoreValue();
 
    return op_func(left->getAsFloat(), right->getAsFloat(), xsink);
-}
-
-QoreValue CompareDateOperatorFunction::eval(const AbstractQoreNode* left, const AbstractQoreNode* right, bool ref_rv, int args, ExceptionSink* xsink) const {
-   // this operator can have no side effects
-   if (!ref_rv)
-      return QoreValue();
-
-   DateTimeValueHelper l(left);
-   DateTimeValueHelper r(right);
-
-   return (int64)DateTime::compareDates(*l, *r);
 }
 
 QoreValue LogicOperatorFunction::eval(const AbstractQoreNode* left, const AbstractQoreNode* right, bool ref_rv, int args, ExceptionSink* xsink) const {
@@ -1052,12 +1002,6 @@ static AbstractQoreNode* check_op_logical(QoreTreeNode* tree, LocalVar* oflag, i
    return tree->defaultParseInit(oflag, pflag, lvids, returnTypeInfo);
 }
 
-// for operators that always return an integer
-static AbstractQoreNode* check_op_returns_integer(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& returnTypeInfo, const char* name, const char* desc) {
-   returnTypeInfo = bigIntTypeInfo;
-   return tree->defaultParseInit(oflag, pflag, lvids, returnTypeInfo);
-}
-
 int check_lvalue_int(const QoreTypeInfo*& typeInfo, const char* name) {
    // make sure the lvalue can be assigned an integer value
    // raise a parse exception only if parse exceptions are not suppressed
@@ -1320,14 +1264,6 @@ void OperatorList::init() {
 
    OP_ABSOLUTE_NE = add(new Operator(2, "!==", "absolute logical-not-equals", 0, false, false, check_op_logical));
    OP_ABSOLUTE_NE->addFunction(NT_ALL, NT_ALL, op_absolute_log_neq);
-
-   // bigint operators
-   OP_LOG_CMP = add(new Operator(2, "<=>", "logical-comparison", 1, false, false, check_op_returns_integer));
-   OP_LOG_CMP->addFunction(op_cmp_string);
-   OP_LOG_CMP->addFunction(op_cmp_number);
-   OP_LOG_CMP->addFunction(op_cmp_double);
-   OP_LOG_CMP->addFunction(op_cmp_bigint);
-   OP_LOG_CMP->addCompareDateFunction();
 
    // non-boolean operators
    OP_MINUS = add(new Operator(2, "-", "minus", 1, false, false, check_op_minus));

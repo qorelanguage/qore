@@ -89,7 +89,6 @@ QoreValue QoreUnshiftOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
 
    QoreListNode* l = reinterpret_cast<QoreListNode*>(val.getValue());
 
-   printd(5, "QoreUnshiftOperatorNode::evalValueImpl() about to call unshift() on list node %p (%d) with element %p\n", l, l->size(), elem);
    l->insert(res.getReferencedValue());
 
    // reference for return value

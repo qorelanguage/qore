@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -94,10 +94,9 @@ int qore_value_list_private::mergesort(const ResolvedCallReferenceNode* fr, bool
 	 rc = (int)result->getAsBigInt();
       }
       else {
-	 ValueHolder result(OP_LOG_CMP->eval(lv, rv, true, xsink), xsink);
+	 rc = QoreLogicalComparisonOperatorNode::doComparison(lv, rv, xsink);
 	 if (*xsink)
 	    return -1;
-	 rc = (int)result->getAsBigInt();
       }
       if ((ascending && rc <= 0)
 	  || (!ascending && rc > 0))
@@ -133,10 +132,9 @@ int qore_value_list_private::qsort(const ResolvedCallReferenceNode* fr, size_t l
 	    rc = (int)rv->getAsBigInt();
 	 }
 	 else {
-	    ValueHolder rv(OP_LOG_CMP->eval(entry[right], pivot, true, xsink), xsink);
+	    rc = QoreLogicalComparisonOperatorNode::doComparison(entry[right], pivot, xsink);
 	    if (*xsink)
 	       return -1;
-	    rc = (int)rv->getAsBigInt();
 	 }
 	 if ((left < right)
 	     && ((rc >= 0 && ascending)
@@ -161,10 +159,9 @@ int qore_value_list_private::qsort(const ResolvedCallReferenceNode* fr, size_t l
 	    rc = (int)rv->getAsBigInt();
 	 }
 	 else {
-	    ValueHolder rv(OP_LOG_CMP->eval(entry[left], pivot, true, xsink), xsink);
+	    rc = QoreLogicalComparisonOperatorNode::doComparison(entry[left], pivot, xsink);
 	    if (*xsink)
 	       return -1;
-	    rc = (int)rv->getAsBigInt();
 	 }
 	 if ((left < right)
 	     && ((rc <= 0 && ascending)
