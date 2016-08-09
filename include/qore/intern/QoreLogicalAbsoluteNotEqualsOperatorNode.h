@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreLogicalNotEqualsOperatorNode.h
+  QoreLogicalAbsoluteNotEqualsOperatorNode.h
 
   Qore Programming Language
 
@@ -29,51 +29,51 @@
   information.
 */
 
-#ifndef _QORE_QORELOGICALNOTEQUALSOPERATORNODE_H
+#ifndef _QORE_QORELOGICALABSOLUTENOTEQUALSOPERATORNODE_H
 
-#define _QORE_QORELOGICALNOTEQUALSOPERATORNODE_H
+#define _QORE_QORELOGICALABSOLUTENOTEQUALSOPERATORNODE_H
 
-class QoreLogicalNotEqualsOperatorNode : public QoreLogicalEqualsOperatorNode {
+class QoreLogicalAbsoluteNotEqualsOperatorNode : public QoreLogicalAbsoluteEqualsOperatorNode {
 protected:
-   DLLLOCAL static QoreString logical_not_equals_str;
+   DLLLOCAL static QoreString logical_absolute_not_equals_str;
 
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
-      QoreValue rv = QoreLogicalEqualsOperatorNode::evalValueImpl(needs_deref, xsink);
+      QoreValue rv = QoreLogicalAbsoluteEqualsOperatorNode::evalValueImpl(needs_deref, xsink);
       if (*xsink)
          return QoreValue();
       return !rv.v.b;
    }
 
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-      AbstractQoreNode *rv = QoreLogicalEqualsOperatorNode::parseInitImpl(oflag, pflag, lvids, typeInfo);
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+      AbstractQoreNode *rv = QoreLogicalAbsoluteEqualsOperatorNode::parseInitImpl(oflag, pflag, lvids, typeInfo);
       // make sure to reverse sense of comparison if this expression was resolved to a constant boolean value
       if (rv != this)
-         return rv->getAsBool() ? (AbstractQoreNode *)&False : (AbstractQoreNode *)&True;
+         return rv->getAsBool() ? (AbstractQoreNode*)&False : (AbstractQoreNode*)&True;
       return rv;
    }
 
 public:
-   DLLLOCAL QoreLogicalNotEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreLogicalEqualsOperatorNode(n_left, n_right) {
+   DLLLOCAL QoreLogicalAbsoluteNotEqualsOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreLogicalAbsoluteEqualsOperatorNode(n_left, n_right) {
    }
 
    // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const {
       del = false;
-      return &logical_not_equals_str;
+      return &logical_absolute_not_equals_str;
    }
 
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-      str.concat(&logical_not_equals_str);
+      str.concat(&logical_absolute_not_equals_str);
       return 0;
    }
 
    // returns the type name as a c string
    DLLLOCAL virtual const char *getTypeName() const {
-      return logical_not_equals_str.getBuffer();
+      return logical_absolute_not_equals_str.getBuffer();
    }
 
-   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
-      return copyBackgroundExplicit<QoreLogicalNotEqualsOperatorNode>(xsink);
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      return copyBackgroundExplicit<QoreLogicalAbsoluteNotEqualsOperatorNode>(xsink);
    }
 };
 

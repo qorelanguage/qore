@@ -54,9 +54,7 @@ Operator *OP_MINUS,
    *OP_LOG_EQ,
    *OP_LOG_NE,
    *OP_LOG_LE,
-   *OP_LOG_GE,
-   *OP_ABSOLUTE_EQ,
-   *OP_ABSOLUTE_NE
+   *OP_LOG_GE
    ;
 
 // call to get a node with reference count 1 (copy on write)
@@ -173,32 +171,6 @@ static bool op_log_le_string(const QoreString* left, const QoreString* right, Ex
 
 static bool op_log_ne_string(const QoreString* left, const QoreString* right, ExceptionSink* xsink) {
    return left->compareSoft(right, xsink);
-}
-
-static bool op_absolute_log_eq(const AbstractQoreNode* left, const AbstractQoreNode* right, ExceptionSink* xsink) {
-   QoreNodeEvalOptionalRefHolder lnp(left, xsink);
-   if (*xsink)
-      return false;
-
-   QoreNodeEvalOptionalRefHolder rnp(right, xsink);
-   if (*xsink)
-      return false;
-
-   if (is_nothing(*lnp)) {
-      if (is_nothing(*rnp))
-	 return true;
-      else
-	 return false;
-   }
-
-   if (is_nothing(*rnp))
-      return false;
-
-   return lnp->is_equal_hard(*rnp, xsink);
-}
-
-static bool op_absolute_log_neq(const AbstractQoreNode* left, const AbstractQoreNode* right, ExceptionSink* xsink) {
-   return !op_absolute_log_eq(left, right, xsink);
 }
 
 static bool op_log_eq_all(const AbstractQoreNode* left, const AbstractQoreNode* right, ExceptionSink* xsink) {
@@ -1258,12 +1230,6 @@ void OperatorList::init() {
    OP_LOG_GE->addFunction(op_log_ge_bigint);
    OP_LOG_GE->addFunction(op_log_ge_string);
    OP_LOG_GE->addFunction(op_log_ge_date);
-
-   OP_ABSOLUTE_EQ = add(new Operator(2, "===", "absolute logical-equals", 0, false, false, check_op_logical));
-   OP_ABSOLUTE_EQ->addFunction(NT_ALL, NT_ALL, op_absolute_log_eq);
-
-   OP_ABSOLUTE_NE = add(new Operator(2, "!==", "absolute logical-not-equals", 0, false, false, check_op_logical));
-   OP_ABSOLUTE_NE->addFunction(NT_ALL, NT_ALL, op_absolute_log_neq);
 
    // non-boolean operators
    OP_MINUS = add(new Operator(2, "-", "minus", 1, false, false, check_op_minus));

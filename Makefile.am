@@ -403,6 +403,8 @@ noinst_HEADERS = \
 	include/qore/intern/QoreDotEvalOperatorNode.h \
 	include/qore/intern/QoreLogicalEqualsOperatorNode.h \
 	include/qore/intern/QoreLogicalNotEqualsOperatorNode.h \
+	include/qore/intern/QoreLogicalAbsoluteEqualsOperatorNode.h \
+	include/qore/intern/QoreLogicalAbsoluteNotEqualsOperatorNode.h \
 	include/qore/intern/QoreModuloOperatorNode.h \
 	include/qore/intern/QoreBinaryAndOperatorNode.h \
 	include/qore/intern/QoreBinaryOrOperatorNode.h \

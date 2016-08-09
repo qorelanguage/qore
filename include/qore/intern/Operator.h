@@ -48,9 +48,7 @@ DLLLOCAL extern Operator *OP_MINUS,
    *OP_LOG_EQ,
    *OP_LOG_NE,
    *OP_LOG_LE,
-   *OP_LOG_GE,
-   *OP_ABSOLUTE_EQ,
-   *OP_ABSOLUTE_NE
+   *OP_LOG_GE
    ;
 
 typedef safe_dslist<Operator*> oplist_t;

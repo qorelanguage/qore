@@ -991,67 +991,6 @@ static AbstractQoreNode* process_dot(AbstractQoreNode* l, AbstractQoreNode* r) {
    return new QoreHashObjectDereferenceOperatorNode(l, r);
 }
 
-/*
-// returns true if the node needs run-time evaluation, false if not
-static bool needsEval(AbstractQoreNode* n) {
-   if (!n)
-      return false;
-
-   if (n->is_value())
-      return false;
-
-   qore_type_t ntype = n->getType();
-
-   // if it's a constant or a function reference
-   if (ntype == NT_BAREWORD || ntype == NT_CONSTANT || ntype == NT_FUNCREF)
-      return false;
-
-   if (ntype == NT_LIST) {
-      QoreListNode* l = reinterpret_cast<QoreListNode*>(n);
-      if (l->needs_eval()) {
-	 for (unsigned i = 0; i <l->size(); i++) {
-	    if (needsEval(l->retrieve_entry(i)))
-	       return true;
-	 }
-	 // here we set needs_eval to false so the list won't be evaluated again
-	 l->clearNeedsEval();
-      }
-      return false;
-   }
-
-   if (ntype == NT_HASH) {
-      QoreHashNode* h = reinterpret_cast<QoreHashNode*>(n);
-      if (h->needs_eval()) {
-	 HashIterator hi(h);
-	 while (hi.next())
-	    if (needsEval(hi.getValue()))
-	       return true;
-	 // here we set needs_eval to false so the hash won't be evaluated again
-	 h->clearNeedsEval();
-      }
-      return false;
-   }
-
-   if (ntype == NT_TREE) {
-      QoreTreeNode* tree = reinterpret_cast<QoreTreeNode*>(n);
-
-      if (needsEval(tree->left) || (tree->right && needsEval(tree->right)))
-	 return true;
-      return tree->getOp()->hasEffect();
-   }
-
-   if (ntype == NT_OPERATOR) {
-      QoreOperatorNode* op = reinterpret_cast<QoreOperatorNode*>(n);
-      return op->hasEffect();
-   }
-
-   printd(0, "needsEval() type %s = true\n", n->getTypeName());
-   assert(false);
-   // we don't return needs_eval() here because some node types are not meant to be evaluated directly but are also not values
-   return true;
-}
-*/
-
 static int check_case(const char* op, AbstractQoreNode* exp) {
    // ignore if NULL (= NOTHING)
    if (node_has_effect(exp)) {
@@ -3234,8 +3173,8 @@ exp
     | exp '<' exp                       { $$ = new QoreLogicalLessThanOperatorNode($1, $3); }
     | exp LOGICAL_CMP exp               { $$ = new QoreLogicalComparisonOperatorNode($1, $3); }
     | exp LOGICAL_EQ exp                { $$ = new QoreLogicalEqualsOperatorNode($1, $3); }
-    | exp ABSOLUTE_EQ exp               { $$ = new QoreTreeNode($1, OP_ABSOLUTE_EQ, $3); }
-    | exp ABSOLUTE_NE exp               { $$ = new QoreTreeNode($1, OP_ABSOLUTE_NE, $3); }
+    | exp ABSOLUTE_EQ exp               { $$ = new QoreLogicalAbsoluteEqualsOperatorNode($1, $3); }
+    | exp ABSOLUTE_NE exp               { $$ = new QoreLogicalAbsoluteNotEqualsOperatorNode($1, $3); }
     | exp LOGICAL_NE exp                { $$ = new QoreLogicalNotEqualsOperatorNode($1, $3); }
     | exp LOGICAL_LE exp                { $$ = new QoreLogicalLessThanOrEqualsOperatorNode($1, $3); }
     | exp LOGICAL_GE exp                { $$ = new QoreLogicalGreaterThanOrEqualsOperatorNode($1, $3); }
@@ -3291,8 +3230,8 @@ exp_n
     | exp_n '<' exp                     { $$ = new QoreLogicalLessThanOperatorNode($1, $3); }
     | exp_n LOGICAL_CMP exp             { $$ = new QoreLogicalComparisonOperatorNode($1, $3); }
     | exp_n LOGICAL_EQ exp              { $$ = new QoreLogicalEqualsOperatorNode($1, $3); }
-    | exp_n ABSOLUTE_EQ exp             { $$ = new QoreTreeNode($1, OP_ABSOLUTE_EQ, $3); }
-    | exp_n ABSOLUTE_NE exp             { $$ = new QoreTreeNode($1, OP_ABSOLUTE_NE, $3); }
+    | exp_n ABSOLUTE_EQ exp             { $$ = new QoreLogicalAbsoluteEqualsOperatorNode($1, $3); }
+    | exp_n ABSOLUTE_NE exp             { $$ = new QoreLogicalAbsoluteNotEqualsOperatorNode($1, $3); }
     | exp_n LOGICAL_NE exp              { $$ = new QoreLogicalNotEqualsOperatorNode($1, $3); }
     | exp_n LOGICAL_LE exp              { $$ = new QoreLogicalLessThanOrEqualsOperatorNode($1, $3); }
     | exp_n LOGICAL_GE exp              { $$ = new QoreLogicalGreaterThanOrEqualsOperatorNode($1, $3); }

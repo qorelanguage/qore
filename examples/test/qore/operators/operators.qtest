@@ -46,6 +46,7 @@ class Test inherits QUnit::Test {
         addTestCase("binary not", \binNot());
         addTestCase("transliteration", \transliteration());
         addTestCase("comparison", \comparison());
+        addTestCase("absolute", \absolute());
 
         set_return_value(main());
     }
@@ -641,5 +642,47 @@ class Test inherits QUnit::Test {
             p.parse("any x = @nan@n; int i = 1n <=> x;", "");
             assertThrows("NAN-COMPARE-ERROR", \p.run());
         }
+    }
+
+    absolute() {
+        assertEq(True, 1 === 1);
+        assertEq(False, 1 === "1");
+        assertEq(True, NOTHING === NOTHING);
+        assertEq(False, NOTHING === NULL);
+        assertEq(True, "1" === "1");
+        assertEq(False, "1" === 1);
+        assertEq(True, "1" === convert_encoding("1", "latin1"));
+        assertEq(False, "1" === convert_encoding("2", "latin1"));
+
+        assertEq(False, 1 !== 1);
+        assertEq(True, 1 !== "1");
+        assertEq(False, NOTHING !== NOTHING);
+        assertEq(True, NOTHING !== NULL);
+        assertEq(False, "1" !== "1");
+        assertEq(True, "1" !== 1);
+        assertEq(False, "1" !== convert_encoding("1", "latin1"));
+        assertEq(True, "1" !== convert_encoding("2", "latin1"));
+
+        int i = 1;
+        string str = "1";
+        any nt;
+        any nl = NULL;
+        assertEq(True, i === 1);
+        assertEq(False, i === str);
+        assertEq(True, nt === NOTHING);
+        assertEq(False, NOTHING === nl);
+        assertEq(True, "1" === str);
+        assertEq(False, str === i);
+        assertEq(True, str === convert_encoding("1", "latin1"));
+        assertEq(False, str === convert_encoding("2", "latin1"));
+
+        assertEq(False, i !== 1);
+        assertEq(True, i !== str);
+        assertEq(False, nt !== NOTHING);
+        assertEq(True, nt !== nl);
+        assertEq(False, str !== str);
+        assertEq(True, str !== i);
+        assertEq(False, str !== convert_encoding(str, "latin1"));
+        assertEq(True, str !== convert_encoding("2", "latin1"));
     }
 }
