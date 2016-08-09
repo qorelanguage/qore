@@ -34,6 +34,7 @@ class Test inherits QUnit::Test {
         addTestCase("shift from nothing", \shiftFromNothing());
         addTestCase("shift after delete", \shiftAfterDelete());
         addTestCase("strict-args", \strictArgsTest());
+        addTestCase("list assignment", \listAssignment());
         set_return_value(main());
     }
 
@@ -323,6 +324,20 @@ class Test inherits QUnit::Test {
             Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES|PO_STRICT_ARGS);
             p.parse("any l = 'str'; unshift l, 1;", "");
             assertThrows("UNSHIFT-ERROR", \p.run());
+        }
+    }
+
+    listAssignment() {
+        {
+            (int i, string str) = (1, "hello");
+            assertEq(1, i);
+            assertEq("hello", str);
+        }
+        {
+            (int i, string str, *float f) = (1, "hello");
+            assertEq(1, i);
+            assertEq("hello", str);
+            assertEq(NOTHING, f);
         }
     }
 }

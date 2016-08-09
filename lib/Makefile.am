@@ -255,6 +255,7 @@ libqore_la_SOURCES = \
 	QoreRegexSubstOperatorNode.cpp \
 	QoreTransliterationOperatorNode.cpp \
 	QoreAssignmentOperatorNode.cpp \
+	QoreListAssignmentOperatorNode.cpp \
 	QorePlusEqualsOperatorNode.cpp \
 	QoreIntPlusEqualsOperatorNode.cpp \
 	QoreMinusEqualsOperatorNode.cpp \

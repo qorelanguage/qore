@@ -184,6 +184,7 @@
 #include "QoreRegexSubstOperatorNode.cpp"
 #include "QoreTransliterationOperatorNode.cpp"
 #include "QoreAssignmentOperatorNode.cpp"
+#include "QoreListAssignmentOperatorNode.cpp"
 #include "QorePlusEqualsOperatorNode.cpp"
 #include "QoreIntPlusEqualsOperatorNode.cpp"
 #include "QoreMinusEqualsOperatorNode.cpp"

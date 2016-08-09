@@ -50,7 +50,6 @@ Operator *OP_MINUS,
    *OP_PLUS,
    *OP_MULT,
    *OP_LOG_CMP,
-   *OP_LIST_ASSIGNMENT,
    *OP_LOG_AND,
    *OP_LOG_OR,
    *OP_LOG_LT,
@@ -451,47 +450,6 @@ static QoreStringNode* op_plus_string(const QoreString* left, const QoreString* 
 
 static int64 op_cmp_string(const QoreString* left, const QoreString* right, ExceptionSink* xsink) {
    return (int64)left->compare(right);
-}
-
-static AbstractQoreNode* op_list_assignment(const AbstractQoreNode* n_left, const AbstractQoreNode* right, bool ref_rv, ExceptionSink* xsink) {
-   assert(n_left && n_left->getType() == NT_LIST);
-   const QoreListNode* left = reinterpret_cast<const QoreListNode*>(n_left);
-
-   /* assign new value, this value gets referenced with the
-      eval(xsink) call, so there's no need to reference it again
-      for the variable assignment - however it does need to be
-      copied/referenced for the return value
-   */
-   QoreNodeEvalOptionalRefHolder new_value(right, xsink);
-   if (*xsink)
-      return 0;
-
-   // get values and save
-   for (unsigned i = 0; i < left->size(); i++) {
-      const AbstractQoreNode* lv = left->retrieve_entry(i);
-
-      // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-      LValueHelper v(lv, xsink);
-      if (!v)
-	 return 0;
-
-      // if there's only one value, then save it
-      if (new_value && new_value->getType() == NT_LIST) { // assign to list position
-	 const QoreListNode* nv = reinterpret_cast<const QoreListNode*>(*new_value);
-	 v.assign(nv->get_referenced_entry(i));
-      }
-      else {
-	 if (!i)
-	    v.assign(new_value.getReferencedValue());
-	 else
-	    v.assign(QoreValue());
-      }
-      if (*xsink)
-	 return 0;
-   }
-
-
-   return ref_rv ? new_value.getReferencedValue() : 0;
 }
 
 // this is the default (highest-priority) function for the + operator, so any type could be sent here on either side
@@ -1223,50 +1181,6 @@ void check_self_assignment(AbstractQoreNode* n, LocalVar* selfid) {
    }
 }
 
-static AbstractQoreNode* check_op_list_assignment(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& resultTypeInfo, const char* name, const char* desc) {
-   assert(tree->left && tree->left->getType() == NT_LIST);
-   QoreListNode* l = reinterpret_cast<QoreListNode*>(tree->left);
-
-   QoreListNodeParseInitHelper li(l, oflag, pflag | PF_FOR_ASSIGNMENT, lvids);
-   QorePossibleListNodeParseInitHelper ri(&tree->right, oflag, pflag, lvids);
-
-   const QoreTypeInfo *argInfo = 0;
-   while (li.next()) {
-      ri.next();
-
-      const QoreTypeInfo *prototypeInfo = 0;
-      AbstractQoreNode* v = li.parseInit(prototypeInfo);
-
-      if (v && check_lvalue(v))
-	 parse_error("expecting lvalue in position %d of left-hand-side list in list assignment, got '%s' instead", li.index() + 1, v->getTypeName());
-
-      // check for illegal assignment to $self
-      if (oflag)
-	 check_self_assignment(v, oflag);
-
-      ri.parseInit(argInfo);
-
-      if (prototypeInfo->hasType()) {
-	 if (!prototypeInfo->parseAccepts(argInfo)) {
-	    // raise an exception only if parse exceptions are not disabled
-	    if (getProgram()->getParseExceptionSink()) {
-	       QoreStringNode* edesc = new QoreStringNode("lvalue for assignment operator in position ");
-	       edesc->sprintf("%d of list assignment expects ", li.index() + 1);
-	       prototypeInfo->getThisType(*edesc);
-	       edesc->concat(", but right-hand side is ");
-	       argInfo->getThisType(*edesc);
-	       qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
-	    }
-	 }
-      }
-   }
-
-   while (ri.next())
-      ri.parseInit(argInfo);
-
-   return tree;
-}
-
 // for logical operators that always return a boolean
 static AbstractQoreNode* check_op_logical(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& returnTypeInfo, const char* name, const char* desc) {
    returnTypeInfo = boolTypeInfo;
@@ -1557,9 +1471,6 @@ void OperatorList::init() {
    OP_LOG_CMP->addCompareDateFunction();
 
    // non-boolean operators
-   OP_LIST_ASSIGNMENT = add(new Operator(2, "(list) =", "list assignment", 0, true, true, check_op_list_assignment));
-   OP_LIST_ASSIGNMENT->addFunction(NT_ALL, NT_ALL, op_list_assignment);
-
    OP_MINUS = add(new Operator(2, "-", "minus", 1, false, false, check_op_minus));
    OP_MINUS->addFunction(op_minus_date);
    OP_MINUS->addFunction(op_minus_number);

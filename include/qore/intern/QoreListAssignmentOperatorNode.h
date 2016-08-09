@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreAssignmentOperatorNode.h
+  QoreListAssignmentOperatorNode.h
 
   Qore Programming Language
 
@@ -29,24 +29,21 @@
   information.
 */
 
-#ifndef _QORE_QOREASSIGNMENTOPERATORNODE_H
-#define _QORE_QOREASSIGNMENTOPERATORNODE_H
+#ifndef _QORE_QORELISTASSIGNMENTOPERATORNODE_H
+#define _QORE_QORELISTASSIGNMENTOPERATORNODE_H
 
-class QoreAssignmentOperatorNode : public QoreBinaryLValueOperatorNode {
+class QoreListAssignmentOperatorNode : public QoreBinaryLValueOperatorNode {
 OP_COMMON
 protected:
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-   // to support "broken-int-assignments"
-   bool broken_int;
-
 public:
-   DLLLOCAL QoreAssignmentOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryLValueOperatorNode(n_left, n_right), broken_int(false) {
+   DLLLOCAL QoreListAssignmentOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryLValueOperatorNode(n_left, n_right) {
    }
 
-   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
-      return copyBackgroundExplicit<QoreAssignmentOperatorNode>(xsink);
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      return copyBackgroundExplicit<QoreListAssignmentOperatorNode>(xsink);
    }
 };
 

@@ -286,6 +286,7 @@ public:
 #include <qore/intern/QoreTransliterationOperatorNode.h>
 #include <qore/intern/QoreBinaryLValueOperatorNode.h>
 #include <qore/intern/QoreAssignmentOperatorNode.h>
+#include <qore/intern/QoreListAssignmentOperatorNode.h>
 #include <qore/intern/QorePlusEqualsOperatorNode.h>
 #include <qore/intern/QoreIntPlusEqualsOperatorNode.h>
 #include <qore/intern/QoreMinusEqualsOperatorNode.h>

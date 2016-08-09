@@ -468,6 +468,7 @@ set(LIBQORE_CPP_SRC
 	lib/QoreRegexSubstOperatorNode.cpp
 	lib/QoreTransliterationOperatorNode.cpp
         lib/QoreAssignmentOperatorNode.cpp
+        lib/QoreListAssignmentOperatorNode.cpp
         lib/QorePlusEqualsOperatorNode.cpp
         lib/QoreIntPlusEqualsOperatorNode.cpp
         lib/QoreMinusEqualsOperatorNode.cpp

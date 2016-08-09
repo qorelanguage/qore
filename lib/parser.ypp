@@ -1198,14 +1198,10 @@ static qore_var_t get_var_type() {
    return parse_check_parse_option(PO_ASSUME_LOCAL) ? VT_LOCAL : VT_UNRESOLVED;
 }
 
-static AbstractQoreNode* processAssignment(AbstractQoreNode* $1, AbstractQoreNode* $3) {
-   if ($1 && $1->getType() == NT_LIST) {
-      return new QoreTreeNode($1, OP_LIST_ASSIGNMENT, $3);
-   }
-   else {
-      return new QoreAssignmentOperatorNode($1, $3);
-   }
-   //print_tree($1, 0);
+static QoreOperatorNode* processAssignment(AbstractQoreNode* $1, AbstractQoreNode* $3) {
+   return ($1 && $1->getType() == NT_LIST)
+      ? static_cast<QoreOperatorNode*>(new QoreListAssignmentOperatorNode($1, $3))
+      : static_cast<QoreOperatorNode*>(new QoreAssignmentOperatorNode($1, $3));
 }
 
 static AbstractQoreNode* processCall(AbstractQoreNode* $1, AbstractQoreNode* $3) {
