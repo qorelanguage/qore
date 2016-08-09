@@ -50,8 +50,6 @@ Operator *OP_MINUS,
    *OP_PLUS,
    *OP_MULT,
    *OP_LOG_CMP,
-   *OP_LOG_AND,
-   *OP_LOG_OR,
    *OP_LOG_LT,
    *OP_LOG_GT,
    *OP_LOG_EQ,
@@ -204,149 +202,16 @@ static bool op_absolute_log_neq(const AbstractQoreNode* left, const AbstractQore
    return !op_absolute_log_eq(left, right, xsink);
 }
 
-// takes all arguments unevaluated so logic short-circuiting can happen
-static bool op_log_or(const AbstractQoreNode* left, const AbstractQoreNode* right, ExceptionSink* xsink) {
-   bool l = left->boolEval(xsink);
-   if (*xsink)
-      return false;
-
-   // if left side is true, then do not evaluate right side
-   return l ? true : right->boolEval(xsink);
-}
-
 static bool op_log_eq_all(const AbstractQoreNode* left, const AbstractQoreNode* right, ExceptionSink* xsink) {
    qore_type_t lt = left ? left->getType() : -1;
    qore_type_t rt = right ? right->getType() : -1;
    return (lt != -1 && rt != -1) ? left->is_equal_soft(right, xsink) : false;
 }
 
-/*
-static bool op_log_eq_list(const AbstractQoreNode* left, const AbstractQoreNode* right, ExceptionSink* xsink) {
-   if (left->getType() != NT_LIST)
-      return false;
-   if (right->getType() != NT_LIST)
-      return false;
-
-   const QoreListNode* l = reinterpret_cast<const QoreListNode*>(left);
-   const QoreListNode* r = reinterpret_cast<const QoreListNode*>(right);
-   return l->is_equal_soft(r, xsink);
-}
-
-static bool op_log_eq_hash(const AbstractQoreNode* left, const AbstractQoreNode* right, ExceptionSink* xsink) {
-   const QoreHashNode* lh = left->getType() == NT_HASH ? reinterpret_cast<const QoreHashNode*>(left) : 0;
-   if (!lh)
-      return false;
-
-   const QoreHashNode* rh = right->getType() == NT_HASH ? reinterpret_cast<const QoreHashNode*>(right) : 0;
-   if (!rh)
-      return false;
-
-   return !lh->compareSoft(rh, xsink);
-}
-
-static bool op_log_eq_object(const AbstractQoreNode* left, const AbstractQoreNode* right, ExceptionSink* xsink) {
-   if (left->getType() != NT_OBJECT)
-      return false;
-   if (right->getType() != NT_OBJECT)
-      return false;
-
-   const QoreObject *l = reinterpret_cast<const QoreObject *>(left);
-   const QoreObject *r = reinterpret_cast<const QoreObject *>(right);
-   return !l->compareSoft(r, xsink);
-}
-
-static bool op_log_eq_nothing(const AbstractQoreNode* left, const AbstractQoreNode* right, ExceptionSink* xsink) {
-   assert(left->getType() == NT_NOTHING && right->getType() == NT_NOTHING);
-   return true;
-}
-
-// this function is the catch-all for all types
-static bool op_log_eq_null(const AbstractQoreNode* left, const AbstractQoreNode* right, ExceptionSink* xsink) {
-   qore_type_t lt = left ? left->getType() : -1;
-   qore_type_t rt = right ? right->getType() : -1;
-   return (lt != -1 && rt != -1) ? left->is_equal_soft(right, xsink) : false;
-}
-
-static bool op_log_eq_binary(const AbstractQoreNode* left, const AbstractQoreNode* right) {
-   const BinaryNode* l = left->getType() == NT_BINARY ? reinterpret_cast<const BinaryNode*>(left) : 0;
-   const BinaryNode* r = right->getType() == NT_BINARY ? reinterpret_cast<const BinaryNode*>(right) : 0;
-   assert(l || r);
-
-   if (!l || !r)
-      return false;
-   return !l->compare(r);
-}
-*/
-
 static bool op_log_ne_all(const AbstractQoreNode* left, const AbstractQoreNode* right, ExceptionSink* xsink) {
    qore_type_t lt = left ? left->getType() : -1;
    qore_type_t rt = right ? right->getType() : -1;
    return (lt != -1 && rt != -1) ? !left->is_equal_soft(right, xsink) : true;
-}
-
-/*
-static bool op_log_ne_list(const AbstractQoreNode* left, const AbstractQoreNode* right, ExceptionSink* xsink) {
-   if (left->getType() != NT_LIST)
-      return true;
-   if (right->getType() != NT_LIST)
-      return true;
-
-   const QoreListNode* l = reinterpret_cast<const QoreListNode*>(left);
-   const QoreListNode* r = reinterpret_cast<const QoreListNode*>(right);
-   return !l->is_equal_soft(r, xsink);
-}
-
-static bool op_log_ne_hash(const AbstractQoreNode* left, const AbstractQoreNode* right, ExceptionSink* xsink) {
-   if (left->getType() != NT_HASH)
-      return true;
-   if (right->getType() != NT_HASH)
-      return true;
-
-   const QoreHashNode* lh = reinterpret_cast<const QoreHashNode*>(left);
-   const QoreHashNode* rh = reinterpret_cast<const QoreHashNode*>(right);
-   return lh->compareSoft(rh, xsink);
-}
-
-static bool op_log_ne_object(const AbstractQoreNode* left, const AbstractQoreNode* right, ExceptionSink* xsink) {
-   if (left->getType() != NT_OBJECT)
-      return true;
-   if (right->getType() != NT_OBJECT)
-      return true;
-
-   const QoreObject *l = reinterpret_cast<const QoreObject *>(left);
-   const QoreObject *r = reinterpret_cast<const QoreObject *>(right);
-   return l->compareSoft(r, xsink);
-}
-
-static bool op_log_ne_nothing(const AbstractQoreNode* left, const AbstractQoreNode* right, ExceptionSink* xsink) {
-   assert(left->getType() == NT_NOTHING && right->getType() == NT_NOTHING);
-   return false;
-}
-
-static bool op_log_ne_null(const AbstractQoreNode* left, const AbstractQoreNode* right, ExceptionSink* xsink) {
-   if (left && left->getType() == NT_NULL && right && right->getType() == NT_NULL)
-      return false;
-   return true;
-}
-
-static bool op_log_ne_binary(const AbstractQoreNode* left, const AbstractQoreNode* right) {
-   const BinaryNode* l = left->getType() == NT_BINARY ? reinterpret_cast<const BinaryNode*>(left) : 0;
-   const BinaryNode* r = right->getType() == NT_BINARY ? reinterpret_cast<const BinaryNode*>(right) : 0;
-   assert(l || r);
-
-   if (!l || !r)
-      return true;
-   return l->compare(r);
-}
-*/
-
-// takes all arguments unevaluated so logic short-circuiting can happen
-static bool op_log_and(const AbstractQoreNode* left, const AbstractQoreNode* right, ExceptionSink* xsink) {
-   // if left side is 0, then do not evaluate right side
-   bool l = left->boolEval(xsink);
-   if (!l || xsink->isEvent())
-      return false;
-   return right->boolEval(xsink);
 }
 
 static int64 op_cmp_bigint(int64 left, int64 right) {
@@ -1403,12 +1268,6 @@ static AbstractQoreNode* check_op_multiply(QoreTreeNode* tree, LocalVar* oflag, 
 // registers the system operators and system operator functions
 void OperatorList::init() {
    QORE_TRACE("OperatorList::init()");
-
-   OP_LOG_AND = add(new Operator(2, "&&", "logical-and", 0, false, false, check_op_logical));
-   OP_LOG_AND->addEffectFunction(op_log_and);
-
-   OP_LOG_OR = add(new Operator(2, "||", "logical-or", 0, false, false, check_op_logical));
-   OP_LOG_OR->addEffectFunction(op_log_or);
 
    OP_LOG_LT = add(new Operator(2, "<", "less-than", 1, false, false, check_op_logical));
    OP_LOG_LT->addFunction(op_log_lt_number);

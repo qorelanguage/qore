@@ -225,6 +225,8 @@
 #include "QoreUnshiftOperatorNode.cpp"
 #include "QorePopOperatorNode.cpp"
 #include "QorePushOperatorNode.cpp"
+#include "QoreLogicalAndOperatorNode.cpp"
+#include "QoreLogicalOrOperatorNode.cpp"
 #include "QoreValue.cpp"
 #include "FunctionalOperatorInterface.cpp"
 #include "FunctionalOperator.cpp"
