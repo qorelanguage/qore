@@ -50,7 +50,6 @@ Operator *OP_MINUS,
    *OP_PLUS,
    *OP_MULT,
    *OP_LOG_CMP,
-   *OP_PUSH,
    *OP_LIST_ASSIGNMENT,
    *OP_LOG_AND,
    *OP_LOG_OR,
@@ -605,47 +604,6 @@ static int64 op_cmp_double(double left, double right, ExceptionSink* xsink) {
       return 0;
 
    return 1;
-}
-
-static AbstractQoreNode* op_push(const AbstractQoreNode* left, const AbstractQoreNode* elem, bool ref_rv, ExceptionSink* xsink) {
-   //QORE_TRACE("op_push()");
-   printd(5, "op_push(%p, %p, isEvent=%d)\n", left, elem, xsink->isEvent());
-
-   QoreNodeEvalOptionalRefHolder value(elem, xsink);
-   if (*xsink)
-      return 0;
-
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper val(left, xsink);
-   if (!val)
-      return 0;
-
-   // assign to a blank list if the lvalue has no value yet but is typed as a list or softlist
-   if (val.getType() == NT_NOTHING) {
-      if (val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
-         return 0;
-      if (val.getTypeInfo() == softListTypeInfo && val.assign(softListTypeInfo->getDefaultValue()))
-         return 0;
-   }
-
-   // value is not a list, so throw exception
-   if (val.getType() != NT_LIST) {
-      // only throw a runtime exception if %strict-args is in effect
-      if (runtime_check_parse_option(PO_STRICT_ARGS))
-         xsink->raiseException("PUSH-ERROR", "the lvalue argument to push is type \"%s\"; expecting \"list\"", val.getTypeName());
-      return 0;
-   }
-
-   // no exception can occur here
-   val.ensureUnique();
-
-   QoreListNode* l = reinterpret_cast<QoreListNode*>(val.getValue());
-
-   printd(5, "op_push() about to call push() on list node %p (%d) with element %p\n", l, l->size(), elem);
-
-   l->push(value.getReferencedValue());
-   // reference for return value
-   return ref_rv ? l->refSelf() : 0;
 }
 
 static QoreHashNode* op_minus_hash_string(const QoreHashNode* h, const QoreString* s, ExceptionSink* xsink) {
@@ -1528,26 +1486,6 @@ static AbstractQoreNode* check_op_multiply(QoreTreeNode* tree, LocalVar* oflag, 
    return tree;
 }
 
-// issues a warning
-static AbstractQoreNode* check_op_list_op(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& returnTypeInfo, const char* name, const char* desc) {
-   const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
-
-   const QoreTypeInfo *rightTypeInfo = 0;
-   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
-
-   if (!leftTypeInfo->parseAcceptsReturns(NT_LIST)) {
-      QoreStringNode* edesc = new QoreStringNode("the lvalue expression with the ");
-      edesc->sprintf("'%s' operator is ", name);
-      leftTypeInfo->getThisType(*edesc);
-      edesc->sprintf(" therefore this operation will have no effect on the lvalue and will always return NOTHING; the '%s' operator can only operate on lists", name);
-      qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
-      returnTypeInfo = nothingTypeInfo;
-   }
-
-   return tree;
-}
-
 // registers the system operators and system operator functions
 void OperatorList::init() {
    QORE_TRACE("OperatorList::init()");
@@ -1648,9 +1586,6 @@ void OperatorList::init() {
    OP_MULT->addFunction(op_multiply_number);
    OP_MULT->addFunction(op_multiply_float);
    OP_MULT->addFunction(op_multiply_bigint);
-
-   OP_PUSH = add(new Operator(2, "push", "push on list", 0, true, true, check_op_list_op));
-   OP_PUSH->addFunction(op_push);
 
    // initialize all operators
    for (oplist_t::iterator i = begin(), e = end(); i != e; ++i)

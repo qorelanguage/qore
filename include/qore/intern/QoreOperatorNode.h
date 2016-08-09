@@ -326,5 +326,6 @@ public:
 #include <qore/intern/QoreShiftOperatorNode.h>
 #include <qore/intern/QoreUnshiftOperatorNode.h>
 #include <qore/intern/QorePopOperatorNode.h>
+#include <qore/intern/QorePushOperatorNode.h>
 
 #endif

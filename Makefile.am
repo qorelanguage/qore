@@ -461,6 +461,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreShiftOperatorNode.h \
 	include/qore/intern/QoreUnshiftOperatorNode.h \
 	include/qore/intern/QorePopOperatorNode.h \
+	include/qore/intern/QorePushOperatorNode.h \
 	include/qore/intern/QorePseudoMethods.h \
 	include/qore/intern/QoreHashIterator.h \
 	include/qore/intern/QoreListIterator.h \

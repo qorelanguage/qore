@@ -2921,7 +2921,7 @@ exp_c:  scalar
 	   }
 	   else {
 	      AbstractQoreNode* lv = l->shift();
-	      $$ = new QoreTreeNode(lv, OP_PUSH, l->shift());
+	      $$ = new QorePushOperatorNode(lv, l->shift());
 	      $2->deref(0);
 	   }
 	}

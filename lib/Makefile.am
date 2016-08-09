@@ -294,6 +294,7 @@ libqore_la_SOURCES = \
 	QoreShiftOperatorNode.cpp \
 	QoreUnshiftOperatorNode.cpp \
 	QorePopOperatorNode.cpp \
+	QorePushOperatorNode.cpp \
 	QorePseudoMethods.cpp \
 	QoreHTTPClient.cpp \
 	QoreHttpClientObject.cpp \
