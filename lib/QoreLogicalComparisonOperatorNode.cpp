@@ -47,6 +47,7 @@ QoreValue QoreLogicalComparisonOperatorNode::evalValueImpl(bool& needs_deref, Ex
 }
 
 AbstractQoreNode *QoreLogicalComparisonOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   pflag &= ~PF_RETURN_VALUE_IGNORED;
    typeInfo = bigIntTypeInfo;
 
    const QoreTypeInfo *lti = 0, *rti = 0;

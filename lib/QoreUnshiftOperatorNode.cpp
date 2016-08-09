@@ -33,6 +33,8 @@
 QoreString QoreUnshiftOperatorNode::unshift_str("unshift operator expression");
 
 AbstractQoreNode* QoreUnshiftOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+   pflag &= ~PF_RETURN_VALUE_IGNORED;
+
    const QoreTypeInfo* leftTypeInfo = 0;
    left = left->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
 
