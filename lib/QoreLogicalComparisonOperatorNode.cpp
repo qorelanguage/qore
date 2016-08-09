@@ -163,18 +163,18 @@ int QoreLogicalComparisonOperatorNode::doComparison(const QoreValue left, const 
 	    }
 
 	    if (r->greaterThan(l))
-	       return 1;
+	       return -1;
 
-	    return r->equals(l) ? 0 : -1;
+	    return r->equals(l) ? 0 : 1;
 	 }
          case NT_INT:
          case NT_BOOLEAN: {
 	    int64 l = left.getAsBigInt();
 
 	    if (r->greaterThan(l))
-	       return 1;
+	       return -1;
 
-	    return r->equals(l) ? 0 : -1;
+	    return r->equals(l) ? 0 : 1;
 	 }
          default: {
             ReferenceHolder<QoreNumberNode> ln(new QoreNumberNode(left.getInternalNode()), xsink);

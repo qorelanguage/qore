@@ -578,12 +578,18 @@ class Test inherits QUnit::Test {
         assertEq(-1, 1n <=> 2n);
         assertEq(-1, 1n <=> 2.0);
         assertEq(-1, 1n <=> 2);
+        assertEq(-1, -1 <=> 1n);
+        assertEq(-1, -1.0 <=> 1n);
         assertEq(0, 1n <=> 1n);
         assertEq(0, 1n <=> 1.0);
         assertEq(0, 1n <=> 1);
+        assertEq(0, -1 <=> -1n);
+        assertEq(0, -1.0 <=> -1n);
         assertEq(1, 2n <=> 1n);
         assertEq(1, 2n <=> 1.0);
         assertEq(1, 2n <=> 1);
+        assertEq(1, 1 <=> -1n);
+        assertEq(1, 1.0 <=> -1n);
 
         assertEq(-1, 1.0 <=> 2);
         assertEq(-1, () <=> 1.0);
