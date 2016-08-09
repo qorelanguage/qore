@@ -325,5 +325,6 @@ public:
 #include <qore/intern/QoreSquareBracketsOperatorNode.h>
 #include <qore/intern/QoreShiftOperatorNode.h>
 #include <qore/intern/QoreUnshiftOperatorNode.h>
+#include <qore/intern/QorePopOperatorNode.h>
 
 #endif

@@ -50,7 +50,6 @@ Operator *OP_MINUS,
    *OP_PLUS,
    *OP_MULT,
    *OP_LOG_CMP,
-   *OP_POP,
    *OP_PUSH,
    *OP_LIST_ASSIGNMENT,
    *OP_LOG_AND,
@@ -606,38 +605,6 @@ static int64 op_cmp_double(double left, double right, ExceptionSink* xsink) {
       return 0;
 
    return 1;
-}
-
-static AbstractQoreNode* op_pop(const AbstractQoreNode* left, const AbstractQoreNode* x, bool ref_rv, ExceptionSink* xsink) {
-   printd(5, "op_pop(%p, %p, isEvent=%d)\n", left, x, xsink->isEvent());
-
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper val(left, xsink);
-   if (!val)
-      return 0;
-
-   // return NOTHING if the lvalue has no value for backwards compatibility
-   if (val.getType() == NT_NOTHING)
-      return 0;
-
-   // value is not a list, so throw exception
-   if (val.getType() != NT_LIST) {
-      // only throw a runtime exception if %strict-args is in effect
-      if (runtime_check_parse_option(PO_STRICT_ARGS))
-         xsink->raiseException("POP-ERROR", "the lvalue argument to pop is type \"%s\"; expecting \"list\"", val.getTypeName());
-      return 0;
-   }
-
-   // no exception can occur here
-   val.ensureUnique();
-
-   QoreListNode* l = reinterpret_cast<QoreListNode*>(val.getValue());
-
-   printd(5, "op_pop() about to call QoreListNode::pop() on list node %p (%d)\n", l, l->size());
-
-   // the list reference will now be the reference for return value
-   // therefore no need to reference again
-   return l->pop();
 }
 
 static AbstractQoreNode* op_push(const AbstractQoreNode* left, const AbstractQoreNode* elem, bool ref_rv, ExceptionSink* xsink) {
@@ -1681,9 +1648,6 @@ void OperatorList::init() {
    OP_MULT->addFunction(op_multiply_number);
    OP_MULT->addFunction(op_multiply_float);
    OP_MULT->addFunction(op_multiply_bigint);
-
-   OP_POP = add(new Operator(1, "pop", "pop from list", 0, true, true, check_op_list_op));
-   OP_POP->addFunction(op_pop);
 
    OP_PUSH = add(new Operator(2, "push", "push on list", 0, true, true, check_op_list_op));
    OP_PUSH->addFunction(op_push);

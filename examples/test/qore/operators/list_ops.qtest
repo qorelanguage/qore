@@ -33,7 +33,6 @@ class Test inherits QUnit::Test {
         addTestCase("shift basics", \shiftBasics());
         addTestCase("shift from nothing", \shiftFromNothing());
         addTestCase("shift after delete", \shiftAfterDelete());
-        addTestCase("shift", \shiftNormal());
         addTestCase("strict-args", \strictArgsTest());
         set_return_value(main());
     }
@@ -163,6 +162,31 @@ class Test inherits QUnit::Test {
         assertEq((), l);
         assertEq(NOTHING, pop l);
         assertEq((), l);
+
+        list l1 = (1, 2);
+        *list l2 = (1, 2);
+        softlist l3 = (1, 2);
+        *softlist l4 = (1, 2);
+
+        assertEq(2, pop l1);
+        assertEq(1, pop l1);
+        assertEq(NOTHING, pop l1);
+        assertEq(NOTHING, pop l1);
+
+        assertEq(2, pop l2);
+        assertEq(1, pop l2);
+        assertEq(NOTHING, pop l2);
+        assertEq(NOTHING, pop l2);
+
+        assertEq(2, pop l3);
+        assertEq(1, pop l3);
+        assertEq(NOTHING, pop l3);
+        assertEq(NOTHING, pop l3);
+
+        assertEq(2, pop l4);
+        assertEq(1, pop l4);
+        assertEq(NOTHING, pop l4);
+        assertEq(NOTHING, pop l4);
     }
 
     popFromNothing() {
@@ -206,6 +230,31 @@ class Test inherits QUnit::Test {
         assertEq((), l);
         assertEq(NOTHING, shift l);
         assertEq((), l);
+
+        list l1 = (1, 2);
+        *list l2 = (1, 2);
+        softlist l3 = (1, 2);
+        *softlist l4 = (1, 2);
+
+        assertEq(1, shift l1);
+        assertEq(2, shift l1);
+        assertEq(NOTHING, shift l1);
+        assertEq(NOTHING, shift l1);
+
+        assertEq(1, shift l2);
+        assertEq(2, shift l2);
+        assertEq(NOTHING, shift l2);
+        assertEq(NOTHING, shift l2);
+
+        assertEq(1, shift l3);
+        assertEq(2, shift l3);
+        assertEq(NOTHING, shift l3);
+        assertEq(NOTHING, shift l3);
+
+        assertEq(1, shift l4);
+        assertEq(2, shift l4);
+        assertEq(NOTHING, shift l4);
+        assertEq(NOTHING, shift l4);
     }
 
     shiftFromNothing() {
@@ -238,33 +287,6 @@ class Test inherits QUnit::Test {
         assertEq(NOTHING, shift l3);
         assertEq(NOTHING, l3);
         assertEq(NOTHING, l4);
-    }
-
-    shiftNormal() {
-        list l1 = (1, 2);
-        *list l2 = (1, 2);
-        softlist l3 = (1, 2);
-        *softlist l4 = (1, 2);
-
-        assertEq(1, shift l1);
-        assertEq(2, shift l1);
-        assertEq(NOTHING, shift l1);
-        assertEq(NOTHING, shift l1);
-
-        assertEq(1, shift l2);
-        assertEq(2, shift l2);
-        assertEq(NOTHING, shift l2);
-        assertEq(NOTHING, shift l2);
-
-        assertEq(1, shift l3);
-        assertEq(2, shift l3);
-        assertEq(NOTHING, shift l3);
-        assertEq(NOTHING, shift l3);
-
-        assertEq(1, shift l4);
-        assertEq(2, shift l4);
-        assertEq(NOTHING, shift l4);
-        assertEq(NOTHING, shift l4);
     }
 
     strictArgsTest() {

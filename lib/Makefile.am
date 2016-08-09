@@ -293,6 +293,7 @@ libqore_la_SOURCES = \
 	QoreSquareBracketsOperatorNode.cpp \
 	QoreShiftOperatorNode.cpp \
 	QoreUnshiftOperatorNode.cpp \
+	QorePopOperatorNode.cpp \
 	QorePseudoMethods.cpp \
 	QoreHTTPClient.cpp \
 	QoreHttpClientObject.cpp \

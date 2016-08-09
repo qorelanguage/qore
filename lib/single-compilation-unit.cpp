@@ -222,7 +222,7 @@
 #include "QoreSquareBracketsOperatorNode.cpp"
 #include "QoreShiftOperatorNode.cpp"
 #include "QoreUnshiftOperatorNode.cpp"
-//#include "QorePopOperatorNode.cpp"
+#include "QorePopOperatorNode.cpp"
 //#include "QorePushOperatorNode.cpp"
 #include "QoreValue.cpp"
 #include "FunctionalOperatorInterface.cpp"

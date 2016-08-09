@@ -2926,7 +2926,7 @@ exp_c:  scalar
 	   }
 	}
         | TOK_POP exp {
-	   $$ = new QoreTreeNode($2, OP_POP, 0);
+	   $$ = new QorePopOperatorNode($2);
 	}
 	| TOK_CHOMP exp {
            $$ = new QoreChompOperatorNode($2);

@@ -505,6 +505,7 @@ set(LIBQORE_CPP_SRC
         lib/QoreSquareBracketsOperatorNode.cpp
         lib/QoreShiftOperatorNode.cpp
         lib/QoreUnshiftOperatorNode.cpp
+        lib/QorePopOperatorNode.cpp
         lib/QoreValue.cpp
         lib/StreamPipe.cpp
         lib/CompressionTransforms.cpp
