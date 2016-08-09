@@ -220,8 +220,6 @@ public:
             parse_error("illegal local variable modification with the background operator in %s", getTypeName());
       }
    }
-
-   DLLLOCAL void checkListLValue(const QoreTypeInfo* expTypeInfo, const char* op_str, const QoreTypeInfo*& returnTypeInfo);
 };
 
 template <unsigned int N, class T = QoreOperatorNode>
@@ -326,5 +324,6 @@ public:
 #include <qore/intern/QoreTrimOperatorNode.h>
 #include <qore/intern/QoreSquareBracketsOperatorNode.h>
 #include <qore/intern/QoreShiftOperatorNode.h>
+#include <qore/intern/QoreUnshiftOperatorNode.h>
 
 #endif

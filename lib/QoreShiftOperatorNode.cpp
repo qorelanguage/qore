@@ -34,23 +34,31 @@
 QoreString QoreShiftOperatorNode::shift_str("shift operator expression");
 
 // if del is true, then the returned QoreString * should be shiftd, if false, then it must not be
-QoreString *QoreShiftOperatorNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
+QoreString *QoreShiftOperatorNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
    del = false;
    return &shift_str;
 }
 
-int QoreShiftOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
+int QoreShiftOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
    str.concat(&shift_str);
    return 0;
 }
 
-AbstractQoreNode *QoreShiftOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   const QoreTypeInfo *expTypeInfo = 0;
+AbstractQoreNode* QoreShiftOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+   const QoreTypeInfo* expTypeInfo = 0;
    exp = exp->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, expTypeInfo);
 
    if (exp) {
       checkLValue(exp, pflag);
-      checkListLValue(expTypeInfo, shift_str.c_str(), returnTypeInfo);
+
+      if (!expTypeInfo->parseAcceptsReturns(NT_LIST)) {
+	 QoreStringNode* edesc = new QoreStringNode("the lvalue expression with the ");
+	 edesc->sprintf("'%s' operator is ", getTypeName());
+	 expTypeInfo->getThisType(*edesc);
+	 edesc->sprintf(" therefore this operation will have no effect on the lvalue and will always return NOTHING; the '%s' operator can only operate on lists", getTypeName());
+	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+	 returnTypeInfo = nothingTypeInfo;
+      }
    }
 
    return this;

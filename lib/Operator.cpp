@@ -52,7 +52,6 @@ Operator *OP_MINUS,
    *OP_LOG_CMP,
    *OP_POP,
    *OP_PUSH,
-   *OP_UNSHIFT,
    *OP_LIST_ASSIGNMENT,
    *OP_LOG_AND,
    *OP_LOG_OR,
@@ -607,46 +606,6 @@ static int64 op_cmp_double(double left, double right, ExceptionSink* xsink) {
       return 0;
 
    return 1;
-}
-
-// unshift lvalue, element
-static AbstractQoreNode* op_unshift(const AbstractQoreNode* left, const AbstractQoreNode* elem, bool ref_rv, ExceptionSink* xsink) {
-   printd(5, "op_unshift(%p, %p, isEvent=%d)\n", left, elem, xsink->isEvent());
-
-   QoreNodeEvalOptionalRefHolder value(elem, xsink);
-   if (*xsink)
-      return 0;
-
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper val(left, xsink);
-   if (!val)
-      return 0;
-
-   // assign to a blank list if the lvalue has no value yet but is typed as a list or a softlist
-   if (val.getType() == NT_NOTHING) {
-      if (val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
-         return 0;
-      if (val.getTypeInfo() == softListTypeInfo && val.assign(softListTypeInfo->getDefaultValue()))
-         return 0;
-   }
-
-   // value is not a list, so throw exception
-   if (val.getType() != NT_LIST) {
-      // no need to check for PO_STRICT_ARGS; this exception was always thrown
-      xsink->raiseException("UNSHIFT-ERROR", "the lvalue argument to unshift is type \"%s\"; expecting \"list\"", val.getTypeName());
-      return 0;
-   }
-
-   // no exception can occur here
-   val.ensureUnique();
-
-   QoreListNode* l = reinterpret_cast<QoreListNode*>(val.getValue());
-
-   printd(5, "op_unshift() about to call unshift() on list node %p (%d) with element %p\n", l, l->size(), elem);
-   l->insert(value.getReferencedValue());
-
-   // reference for return value
-   return ref_rv ? l->refSelf() : 0;
 }
 
 static AbstractQoreNode* op_pop(const AbstractQoreNode* left, const AbstractQoreNode* x, bool ref_rv, ExceptionSink* xsink) {
@@ -1622,30 +1581,6 @@ static AbstractQoreNode* check_op_list_op(QoreTreeNode* tree, LocalVar* oflag, i
    return tree;
 }
 
-// throws a parse exception
-static AbstractQoreNode* check_op_unshift(QoreTreeNode* tree, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& returnTypeInfo, const char* name, const char* desc) {
-   const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
-
-   const QoreTypeInfo *rightTypeInfo = 0;
-   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
-
-   if (!leftTypeInfo->parseAcceptsReturns(NT_LIST)) {
-      // only raise a parse exception if parse exceptions are enabled
-      if (getProgram()->getParseExceptionSink()) {
-	 QoreStringNode* edesc = new QoreStringNode("the lvalue expression with the ");
-	 edesc->sprintf("'%s' operator is ", name);
-	 leftTypeInfo->getThisType(*edesc);
-	 edesc->sprintf(" therefore this operation is invalid and would throw an exception at run-time; the '%s' operator can only operate on lists", name);
-	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
-      }
-   }
-   else
-      returnTypeInfo = listTypeInfo;
-
-   return tree;
-}
-
 // registers the system operators and system operator functions
 void OperatorList::init() {
    QORE_TRACE("OperatorList::init()");
@@ -1752,9 +1687,6 @@ void OperatorList::init() {
 
    OP_PUSH = add(new Operator(2, "push", "push on list", 0, true, true, check_op_list_op));
    OP_PUSH->addFunction(op_push);
-
-   OP_UNSHIFT = add(new Operator(2, "unshift", "unshift/insert to begnning of list", 0, true, true, check_op_unshift));
-   OP_UNSHIFT->addFunction(op_unshift);
 
    // initialize all operators
    for (oplist_t::iterator i = begin(), e = end(); i != e; ++i)
