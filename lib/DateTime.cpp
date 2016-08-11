@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -366,6 +366,10 @@ DateTime* DateTime::makeRelativeFromSeconds(int64 s, int u) {
 
 const AbstractQoreZoneInfo* DateTime::getZone() const {
    return priv->getZone();
+}
+
+void DateTime::setRelativeDateSeconds(int64 s, int us) {
+   priv->setRelativeDateSeconds(s, us);
 }
 
 int qore_tm::secsEast() const {

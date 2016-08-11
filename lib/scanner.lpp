@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -560,7 +560,7 @@ static DateTimeNode *makeRelativeTime(char* str) {
    return DateTimeNode::makeRelative(0, 0, 0, hour, minute, second, us);
 }
 
-static bool isRegexModifier(QoreRegexNode *qr, int c) {
+static bool isRegexModifier(QoreRegex *qr, int c) {
    if (c == 'i')
       qr->setCaseInsensitive();
    else if (c == 's')
@@ -574,7 +574,7 @@ static bool isRegexModifier(QoreRegexNode *qr, int c) {
    return true;
 }
 
-static bool isRegexExtractModifier(QoreRegexNode *qr, int c) {
+static bool isRegexExtractModifier(QoreRegex *qr, int c) {
    if (isRegexModifier(qr, c))
       return true;
    if (c == 'g')
@@ -584,7 +584,7 @@ static bool isRegexExtractModifier(QoreRegexNode *qr, int c) {
    return true;
 }
 
-static bool isRegexSubstModifier(RegexSubstNode *qr, int c) {
+static bool isRegexSubstModifier(QoreRegexSubst *qr, int c) {
    if (c == 'g')
       qr->setGlobal();
    else if (c == 'i')
@@ -1201,43 +1201,43 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                         }
 }
 <regex_trans2>{
-      -                                 yylval->RegexTrans->setTargetRange();
+      -                                 yylval->Trans->setTargetRange();
       \/                                {
                                            BEGIN(INITIAL);
-                                           yylval->RegexTrans->finishTarget();
+                                           yylval->Trans->finishTarget();
                                            return REGEX_TRANS;
                                         }
-      \n                                yylval->RegexTrans->concatTarget('\n');
-      \\n                               yylval->RegexTrans->concatTarget('\n');
-      \\t                               yylval->RegexTrans->concatTarget('\t');
-      \\r                               yylval->RegexTrans->concatTarget('\r');
-      \\b                               yylval->RegexTrans->concatTarget('\b');
-      \\f                               yylval->RegexTrans->concatTarget('\f');
-      \\\n                              yylval->RegexTrans->concatTarget('\n');
-      \\\/                              yylval->RegexTrans->concatTarget('/');
-      \\.                               yylval->RegexTrans->concatTarget(yytext[1]);
+      \n                                yylval->Trans->concatTarget('\n');
+      \\n                               yylval->Trans->concatTarget('\n');
+      \\t                               yylval->Trans->concatTarget('\t');
+      \\r                               yylval->Trans->concatTarget('\r');
+      \\b                               yylval->Trans->concatTarget('\b');
+      \\f                               yylval->Trans->concatTarget('\f');
+      \\\n                              yylval->Trans->concatTarget('\n');
+      \\\/                              yylval->Trans->concatTarget('/');
+      \\.                               yylval->Trans->concatTarget(yytext[1]);
       [^\n\\/\-]+                               {
                                            char* yptr = yytext;
                                            while (*yptr)
-                                              yylval->RegexTrans->concatTarget(*(yptr++));
+                                              yylval->Trans->concatTarget(*(yptr++));
                                         }
 }
 <regex_trans1>{
-      -                                 yylval->RegexTrans->setSourceRange();
-      \/                                BEGIN(regex_trans2); yylval->RegexTrans->finishSource();
-      \n                                yylval->RegexTrans->concatSource('\n');
-      \\n                               yylval->RegexTrans->concatSource('\n');
-      \\t                               yylval->RegexTrans->concatSource('\t');
-      \\r                               yylval->RegexTrans->concatSource('\r');
-      \\b                               yylval->RegexTrans->concatSource('\b');
-      \\f                               yylval->RegexTrans->concatSource('\f');
-      \\\n                              yylval->RegexTrans->concatSource('\n');
-      \\\/                              yylval->RegexTrans->concatSource('/');
-      \\.                               yylval->RegexTrans->concatSource(yytext[1]);
+      -                                 yylval->Trans->setSourceRange();
+      \/                                BEGIN(regex_trans2); yylval->Trans->finishSource();
+      \n                                yylval->Trans->concatSource('\n');
+      \\n                               yylval->Trans->concatSource('\n');
+      \\t                               yylval->Trans->concatSource('\t');
+      \\r                               yylval->Trans->concatSource('\r');
+      \\b                               yylval->Trans->concatSource('\b');
+      \\f                               yylval->Trans->concatSource('\f');
+      \\\n                              yylval->Trans->concatSource('\n');
+      \\\/                              yylval->Trans->concatSource('/');
+      \\.                               yylval->Trans->concatSource(yytext[1]);
       [^\n\\/\-]+                               {
                                            char* yptr = yytext;
                                            while (*yptr)
-                                              yylval->RegexTrans->concatSource(*(yptr++));
+                                              yylval->Trans->concatSource(*(yptr++));
                                         }
 }
 <regex_state>{
@@ -1340,7 +1340,7 @@ by                                      return TOK_BY;
 switch                                  return TOK_SWITCH;
 case                                    BEGIN(case_state); return TOK_CASE;
 <case_state>{
-   \/                                   yylval->Regex = new QoreRegexNode(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
+   \/                                   yylval->Regex = new QoreRegex(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
    {WS}+                                /* ignore */
    [^\/]                                yyless(0); BEGIN(INITIAL);
 }
@@ -1586,17 +1586,17 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
                                            }
                                         }
 <regex_googleplex>{
-   s\/                                  yylval->RegexSubst = new RegexSubstNode(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_subst1);
-   x\/                                  yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_extract_state);
-   tr\/                                 yylval->RegexTrans = new RegexTransNode(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_trans1);
-   m\/                                  yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
-   \/                                   yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
+   s\/                                  yylval->RegexSubst = new QoreRegexSubst; yylloc->setExplicitFirst(yylineno); BEGIN(regex_subst1);
+   x\/                                  yylval->Regex      = new QoreRegex;  yylloc->setExplicitFirst(yylineno); BEGIN(regex_extract_state);
+   tr\/                                 yylval->Trans = new QoreTransliteration; yylloc->setExplicitFirst(yylineno); BEGIN(regex_trans1);
+   m\/                                  yylval->Regex      = new QoreRegex;  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
+   \/                                   yylval->Regex      = new QoreRegex;  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
    {WSNL}+                              /* ignore whitespace */
    [^sxmt\/]                            parse_error("missing regular expression after =~"); BEGIN(INITIAL);
 }
 <regex_negative_universe>{
-   m\/                                  yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
-   \/                                   yylval->Regex      = new QoreRegexNode();  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
+   m\/                                  yylval->Regex      = new QoreRegex;  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
+   \/                                   yylval->Regex      = new QoreRegex;  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
    {WSNL}+                              /* ignore whitespace */
    [^m\/]                               parse_error("missing regular expression after !~"); BEGIN(INITIAL);
 }

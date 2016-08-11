@@ -1,11 +1,11 @@
 /*
-  RegexSubstNode.cpp
+  QoreRegexSubst.cpp
 
   regular expression substitution node definition
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,29 +31,29 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/RegexSubstNode.h>
+#include <qore/intern/QoreRegexSubst.h>
 #include <qore/intern/qore_program_private.h>
 
 #include <stdlib.h>
 #include <strings.h>
 #include <ctype.h>
 
-void RegexSubstNode::init() {
+void QoreRegexSubst::init() {
    p = 0;
    global = false;
    options = PCRE_UTF8;
 }
 
 // constructor used when parsing
-RegexSubstNode::RegexSubstNode() : ParseNoEvalNode(NT_REGEX_SUBST) {
-   //printd(5, "RegexSubstNode::RegexSubstNode() this=%p\n", this);
+QoreRegexSubst::QoreRegexSubst() {
+   //printd(5, "QoreRegexSubst::QoreRegexSubst() this=%p\n", this);
    init();
    str = new QoreString;
    newstr = new QoreString;
 }
 
 // constructor when used at run-time
-RegexSubstNode::RegexSubstNode(const QoreString *pstr, int opts, ExceptionSink *xsink) : ParseNoEvalNode(NT_REGEX_SUBST) {
+QoreRegexSubst::QoreRegexSubst(const QoreString *pstr, int opts, ExceptionSink *xsink) {
    init();
    if (check_re_options(opts))
       xsink->raiseException("REGEX-OPTION-ERROR", "%d contains invalid option bits", opts);
@@ -65,51 +65,24 @@ RegexSubstNode::RegexSubstNode(const QoreString *pstr, int opts, ExceptionSink *
    parseRT(pstr, xsink);
 }
 
-RegexSubstNode::~RegexSubstNode() {
-   //printd(5, "RegexSubstNode::~RegexSubstNode() this=%p\n", this);
+QoreRegexSubst::~QoreRegexSubst() {
+   //printd(5, "QoreRegexSubst::~QoreRegexSubst() this=%p\n", this);
    delete newstr;
    if (p)
       pcre_free(p);
    delete str;
 }
 
-// get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-// the ExceptionSink is only needed for QoreObject where a method may be executed
-// use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-// returns -1 for exception raised, 0 = OK
-int RegexSubstNode::getAsString(QoreString &mstr, int foff, ExceptionSink *xsink) const {
-   mstr.sprintf("regular expression substitution expression (%p)", this);
-   return 0;
-}
-
-// if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *RegexSubstNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
-   del = true;
-   QoreString *rv = new QoreString();
-   getAsString(*rv, foff, xsink);
-   return rv;
-}
-
-// returns the data type
-qore_type_t RegexSubstNode::getType() const {
-   return NT_REGEX_SUBST;
-}
-
-// returns the type name as a c string
-const char *RegexSubstNode::getTypeName() const {
-   return "regular expression substitution expression";
-}
-
-void RegexSubstNode::concatSource(char c) {
+void QoreRegexSubst::concatSource(char c) {
    str->concat(c);
 }
 
-void RegexSubstNode::concatTarget(char c) {
+void QoreRegexSubst::concatTarget(char c) {
    newstr->concat(c);
 }
 
 // returns 0 for OK, -1 if parse error raised
-void RegexSubstNode::parseRT(const QoreString *pstr, ExceptionSink *xsink) {
+void QoreRegexSubst::parseRT(const QoreString *pstr, ExceptionSink *xsink) {
    // convert to UTF-8 if necessary
    TempEncodingHelper t(pstr, QCS_UTF8, xsink);
    if (*xsink)
@@ -122,21 +95,21 @@ void RegexSubstNode::parseRT(const QoreString *pstr, ExceptionSink *xsink) {
       xsink->raiseException("REGEX-COMPILATION-ERROR", (char *)err);
 }
 
-void RegexSubstNode::parse() {
-   //printd(5, "RegexSubstNode() this=%p: str='%s', divider=%d\n", this, str->getBuffer(), divider);
+void QoreRegexSubst::parse() {
+   //printd(5, "QoreRegexSubst() this=%p: str='%s', divider=%d\n", this, str->getBuffer(), divider);
    ExceptionSink xsink;
    parseRT(str, &xsink);
    if (xsink.isEvent())
       qore_program_private::addParseException(getProgram(), xsink);
 
-   //printd(5, "RegexSubstNode::parse() this=%p: pstr=%s, newstr=%s, global=%s\n", this, pstr->getBuffer(), newstr->getBuffer(), global ? "true" : "false");
+   //printd(5, "QoreRegexSubst::parse() this=%p: pstr=%s, newstr=%s, global=%s\n", this, pstr->getBuffer(), newstr->getBuffer(), global ? "true" : "false");
 
    delete str;
    str = 0;
 }
 
 // static function
-void RegexSubstNode::concat(QoreString *cstr, int *ovector, int olen, const char *ptr, const char *target, int rc) {
+void QoreRegexSubst::concat(QoreString *cstr, int *ovector, int olen, const char *ptr, const char *target, int rc) {
    while (*ptr) {
       if (*ptr == '\\' && *(ptr+1) == '\\') {
 	 ++ptr;
@@ -154,20 +127,20 @@ void RegexSubstNode::concat(QoreString *cstr, int *ovector, int olen, const char
 	 while (isdigit(*ptr));
 	 int num = atoi(n.getBuffer());
 	 int pos = num * 2;
-	 //printd(5, "RegexSubstNode::concat() pos: %d olen: %d ovector[%d]: %d ovector[%d]: %d rc: %d\n", pos, olen, pos, ovector[pos], pos + 1, ovector[pos + 1], rc);
+	 //printd(5, "QoreRegexSubst::concat() pos: %d olen: %d ovector[%d]: %d ovector[%d]: %d rc: %d\n", pos, olen, pos, ovector[pos], pos + 1, ovector[pos + 1], rc);
 	 if (pos > 0 && pos < olen && num < rc && ovector[pos] != -1)
 	    cstr->concat(target + ovector[pos], ovector[pos + 1] - ovector[pos]);
       }
       else
 	 cstr->concat(*(ptr++));
    }
-   //printd(5, "RegexSubstNode::concat() target: '%s' cstr: '%s'\n", target, cstr->c_str());
+   //printd(5, "QoreRegexSubst::concat() target: '%s' cstr: '%s'\n", target, cstr->c_str());
 }
 
 #define SUBST_OVECSIZE 30
 #define SUBST_LASTELEM 20
 // called directly for run-time evaluation
-QoreStringNode *RegexSubstNode::exec(const QoreString *target, const QoreString *nstr, ExceptionSink *xsink) const {
+QoreStringNode *QoreRegexSubst::exec(const QoreString *target, const QoreString *nstr, ExceptionSink *xsink) const {
    TempEncodingHelper t(target, QCS_UTF8, xsink);
    if (*xsink)
       return 0;
@@ -178,7 +151,7 @@ QoreStringNode *RegexSubstNode::exec(const QoreString *target, const QoreString 
    // detect infinite recursion (empty pattern matches)
    int last_match = -1;
 
-   //printd(5, "RegexSubstNode::exec(%s) this=%p: global=%s\n", ptr, this, global ? "true" : "false");
+   //printd(5, "QoreRegexSubst::exec(%s) this=%p: global=%s\n", ptr, this, global ? "true" : "false");
    while (true) {
       int ovector[SUBST_OVECSIZE];
       int offset = ptr - t->getBuffer();
@@ -186,7 +159,7 @@ QoreStringNode *RegexSubstNode::exec(const QoreString *target, const QoreString 
          break;
       int rc = pcre_exec(p, 0, t->getBuffer(), t->strlen(), offset, 0, ovector, SUBST_OVECSIZE);
 
-      //printd(5, "RegexSubstNode::exec() prec_exec() rc: %d ovector[0]: %d\n", rc, ovector[0]);
+      //printd(5, "QoreRegexSubst::exec() prec_exec() rc: %d ovector[0]: %d\n", rc, ovector[0]);
       // FIXME: rc = 0 means that not enough space was available in ovector!
       if (rc < 1)
 	 break;
@@ -204,7 +177,7 @@ QoreStringNode *RegexSubstNode::exec(const QoreString *target, const QoreString 
 
       concat(*tstr, ovector, SUBST_LASTELEM, nstr->getBuffer(), t->getBuffer(), rc);
 
-      //printd(5, "RegexSubstNode::exec() '%s' =~ s/?/%s/%s offset=%d, 0=%d, 1=%d ('%s')\n", t->getBuffer(), nstr->getBuffer(), global ? "g" : "", offset, ovector[0], ovector[1], tstr->getBuffer());
+      //printd(5, "QoreRegexSubst::exec() '%s' =~ s/?/%s/%s offset=%d, 0=%d, 1=%d ('%s')\n", t->getBuffer(), nstr->getBuffer(), global ? "g" : "", offset, ovector[0], ovector[1], tstr->getBuffer());
 
       ptr = t->getBuffer() + ovector[1];
 
@@ -212,23 +185,23 @@ QoreStringNode *RegexSubstNode::exec(const QoreString *target, const QoreString 
 	 break;
    }
 
-   //printd(5, "RegexSubstNode::exec() *ptr=%d ('%s') tstr='%s'\n", *ptr, ptr, tstr->getBuffer());
+   //printd(5, "QoreRegexSubst::exec() *ptr=%d ('%s') tstr='%s'\n", *ptr, ptr, tstr->getBuffer());
    if (*ptr)
       tstr->concat(ptr);
 
-   //printd(5, "RegexSubstNode::exec() this=%p: returning '%s'\n", this, tstr->getBuffer());
+   //printd(5, "QoreRegexSubst::exec() this=%p: returning '%s'\n", this, tstr->getBuffer());
    return tstr.release();
 }
 
 // called for run-time evaluation of parse-time-created objects
-QoreStringNode *RegexSubstNode::exec(const QoreString *target, ExceptionSink *xsink) const {
+QoreStringNode *QoreRegexSubst::exec(const QoreString *target, ExceptionSink *xsink) const {
    return exec(target, newstr, xsink);
 }
 
-void RegexSubstNode::setGlobal() {
+void QoreRegexSubst::setGlobal() {
    global = true;
 }
 
-QoreString *RegexSubstNode::getPattern() const {
+QoreString *QoreRegexSubst::getPattern() const {
    return str;
 }

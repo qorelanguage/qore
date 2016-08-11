@@ -408,6 +408,26 @@ class Test inherits QUnit::Test {
 
         res.reset();
         {
+            string str = "hi";
+            background res.test(str =~ /i/);
+            assertEq(True, res.get());
+        }
+
+        res.reset();
+        {
+            string str = "hi";
+            background res.test(str =~ x/(i)/);
+            assertEq(("i",), res.get());
+        }
+
+        res.reset();
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any str = 'str\n'; background str =~ s/i/0/;", ""));
+        }
+
+        res.reset();
+        {
             any i = 2;
             background res.test(i << 1);
             assertEq(4, res.get());
@@ -440,6 +460,12 @@ class Test inherits QUnit::Test {
             any l = (1, 2);
             background res.test(l[1]);
             assertEq(2, res.get());
+        }
+        res.reset();
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any str = 'str\n'; background str =~ tr/a-z/A-Z/;", ""));
         }
 
         {

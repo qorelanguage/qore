@@ -93,6 +93,7 @@
     - fixed a bug where @ref Qore::HTTPClient "HTTPClient" class method variants such as @ref Qore::HTTPClient::get() "HTTPClient::get()" without a callback would fail to return the message body when the server sent a reply with chunked transfer encoding (<a href="https://github.com/qorelanguage/qore/issues/1117">issue 1117</a>)
     - fixed a race condition in the prompt collection of closure-bound local variables in the @ref garbage_collection "garbage collector" (<a href="https://github.com/qorelanguage/qore/issues/1103">issue 1103</a>)
     - fixed bugs where @ref Qore::format_number() and <float>::format() gave incorrect results when rounding to the significant decimals given in the format string (<a href="https://github.com/qorelanguage/qore/issues/1149">issue 1149</a>)
+    - fixed bugs with inconsistent conversions of @ref int_type "int", @ref float_type "float", and @ref bool_type "boolean" values to date/time values, now they are all converted uniformly to @ref relative_dates "relative date/time values" (<a href="https://github.com/qorelanguage/qore/issues/1156">issue 1156</a>)
 
     @section qore_0812 Qore 0.8.12
 

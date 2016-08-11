@@ -321,8 +321,6 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 set(LIBQORE_CPP_SRC
         ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp
-        lib/Operator.cpp
-        lib/QoreTreeNode.cpp
         lib/BarewordNode.cpp
         lib/SelfVarrefNode.cpp
         lib/StaticClassVarRefNode.cpp
@@ -427,10 +425,10 @@ set(LIBQORE_CPP_SRC
         lib/QoreCondition.cpp
         lib/QoreQueue.cpp
         lib/QoreQueueHelper.cpp
-        lib/QoreRegexNode.cpp
+        lib/QoreRegex.cpp
         lib/QoreRegexBase.cpp
-        lib/RegexSubstNode.cpp
-        lib/RegexTransNode.cpp
+        lib/QoreRegexSubst.cpp
+        lib/QoreTransliteration.cpp
         lib/Sequence.cpp
         lib/QoreReferenceCounter.cpp
         lib/QoreHTTPClient.cpp
@@ -451,6 +449,7 @@ set(LIBQORE_CPP_SRC
         lib/QoreLogicalNotOperatorNode.cpp
         lib/QoreDotEvalOperatorNode.cpp
         lib/QoreLogicalEqualsOperatorNode.cpp
+        lib/QoreLogicalAbsoluteEqualsOperatorNode.cpp
         lib/QoreModuloOperatorNode.cpp
         lib/QoreBinaryAndOperatorNode.cpp
         lib/QoreBinaryNotOperatorNode.cpp
@@ -462,7 +461,13 @@ set(LIBQORE_CPP_SRC
         lib/QoreElementsOperatorNode.cpp
         lib/QoreInstanceOfOperatorNode.cpp
 	lib/QoreHashObjectDereferenceOperatorNode.cpp
+	lib/QoreRegexMatchOperatorNode.cpp
+	lib/QoreRegexNMatchOperatorNode.cpp
+	lib/QoreRegexExtractOperatorNode.cpp
+	lib/QoreRegexSubstOperatorNode.cpp
+	lib/QoreTransliterationOperatorNode.cpp
         lib/QoreAssignmentOperatorNode.cpp
+        lib/QoreListAssignmentOperatorNode.cpp
         lib/QorePlusEqualsOperatorNode.cpp
         lib/QoreIntPlusEqualsOperatorNode.cpp
         lib/QoreMinusEqualsOperatorNode.cpp
@@ -498,6 +503,17 @@ set(LIBQORE_CPP_SRC
         lib/QoreChompOperatorNode.cpp
         lib/QoreTrimOperatorNode.cpp
         lib/QoreSquareBracketsOperatorNode.cpp
+        lib/QoreShiftOperatorNode.cpp
+        lib/QoreUnshiftOperatorNode.cpp
+        lib/QorePopOperatorNode.cpp
+        lib/QorePushOperatorNode.cpp
+        lib/QoreLogicalAndOperatorNode.cpp
+        lib/QoreLogicalOrOperatorNode.cpp
+	lib/QoreLogicalComparisonOperatorNode.cpp
+	lib/QorePlusOperatorNode.cpp
+	lib/QoreMinusOperatorNode.cpp
+	lib/QoreMultiplicationOperatorNode.cpp
+	lib/QoreBackgroundOperatorNode.cpp
         lib/QoreValue.cpp
         lib/StreamPipe.cpp
         lib/CompressionTransforms.cpp

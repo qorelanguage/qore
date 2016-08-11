@@ -1,11 +1,11 @@
 /*
-  RegexTransNode.cpp
- 
+  QoreTransliteration.cpp
+
   regex-like transliteration class definition
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
+
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,74 +31,47 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/RegexTransNode.h>
+#include <qore/intern/QoreTransliteration.h>
 
 #include <stdlib.h>
 #include <strings.h>
 #include <ctype.h>
 
 // constructor used when parsing
-RegexTransNode::RegexTransNode() : ParseNoEvalNode(NT_REGEX_TRANS) {
-   //printd(5, "RegexTransNode::RegexTransNode() this=%p\n", this);
+QoreTransliteration::QoreTransliteration() {
+   //printd(5, "QoreTransliteration::QoreTransliteration() this=%p\n", this);
    source = new QoreString;
    target = new QoreString;
    sr = tr = false;
 }
 
-RegexTransNode::~RegexTransNode() {
-   //printd(5, "RegexTransNode::~RegexTransNode() this=%p\n", this);
+QoreTransliteration::~QoreTransliteration() {
+   //printd(5, "QoreTransliteration::~QoreTransliteration() this=%p\n", this);
    if (source)
       delete source;
    if (target)
       delete target;
 }
 
-// get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-// the ExceptionSink is only needed for QoreObject where a method may be executed
-// use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-// returns -1 for exception raised, 0 = OK
-int RegexTransNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   str.sprintf("transliteration expression (%p)", this);
-   return 0;
+void QoreTransliteration::setTargetRange() {
+   tr = true;
 }
 
-// if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *RegexTransNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
-   del = true;
-   QoreString *rv = new QoreString;
-   getAsString(*rv, foff, xsink);
-   return rv;
+void QoreTransliteration::setSourceRange() {
+   sr = true;
 }
 
-// returns the data type
-qore_type_t RegexTransNode::getType() const {
-   return NT_REGEX_TRANS;
-}
-
-// returns the type name as a c string
-const char *RegexTransNode::getTypeName() const {
-   return "transliteration expression";
-}
-
-void RegexTransNode::setTargetRange() { 
-   tr = true; 
-}
-
-void RegexTransNode::setSourceRange() { 
-   sr = true; 
-}
-
-void RegexTransNode::finishSource() {
+void QoreTransliteration::finishSource() {
    if (sr)
       parse_error("no end character for character range at end of source pattern in transliteration");
 }
 
-void RegexTransNode::finishTarget() {
+void QoreTransliteration::finishTarget() {
    if (tr)
       parse_error("no end character for character range at end of target pattern in transliteration");
 }
 
-void RegexTransNode::doRange(class QoreString *str, char end) {
+void QoreTransliteration::doRange(class QoreString *str, char end) {
    if (!str->strlen()) {
       parse_error("no start character for character range in transliteration");
       return;
@@ -114,7 +87,7 @@ void RegexTransNode::doRange(class QoreString *str, char end) {
    while (start <= end);
 }
 
-void RegexTransNode::concatSource(char c) {
+void QoreTransliteration::concatSource(char c) {
    if (sr) {
       doRange(source, c);
       sr = false;
@@ -123,7 +96,7 @@ void RegexTransNode::concatSource(char c) {
       source->concat(c);
 }
 
-void RegexTransNode::concatTarget(char c) {
+void QoreTransliteration::concatTarget(char c) {
    if (tr) {
       doRange(target, c);
       tr = false;
@@ -132,7 +105,7 @@ void RegexTransNode::concatTarget(char c) {
       target->concat(c);
 }
 
-QoreStringNode *RegexTransNode::exec(const QoreString *str, ExceptionSink *xsink) const {
+QoreStringNode *QoreTransliteration::exec(const QoreString *str, ExceptionSink *xsink) const {
    //printd(5, "source='%s' target='%s' ('%s')\n", source->getBuffer(), target->getBuffer(), str->getBuffer());
    TempEncodingHelper tstr(str, QCS_DEFAULT, xsink);
    if (*xsink)
