@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreLogicalLessThanOperatorNode.h
+  QoreMultiplicationOperatorNode.h
 
   Qore Programming Language
 
@@ -29,38 +29,46 @@
   information.
 */
 
-#ifndef _QORE_QORELOGICALLESSTHANOPERATORNODE_H
+#ifndef _QORE_QOREMULTIPLICATIONOPERATORNODE_H
 
-#define _QORE_QORELOGICALLESSTHANOPERATORNODE_H
+#define _QORE_QOREMULTIPLICATIONOPERATORNODE_H
 
-class QoreLogicalLessThanOperatorNode : public QoreBoolBinaryOperatorNode {
-OP_COMMON
+class QoreMultiplicationOperatorNode : public QoreBinaryOperatorNode<> {
 protected:
-   // type of pointer to optimized versions depending on arguments found at parse-time
-   typedef bool(QoreLogicalLessThanOperatorNode::*eval_t)(ExceptionSink* xsink) const;
-   // pointer to optimized versions depending on arguments found at parse-time
-   eval_t pfunc;
+   const QoreTypeInfo* returnTypeInfo;
+
+   DLLLOCAL static QoreString multiplication_str;
 
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-      return parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
-   }
-
-   DLLLOCAL AbstractQoreNode *parseInitIntern(const char* name, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
-
-   DLLLOCAL bool floatLessThan(ExceptionSink* xsink) const;
-   DLLLOCAL bool bigIntLessThan(ExceptionSink* xsink) const;
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
 public:
-   DLLLOCAL QoreLogicalLessThanOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBoolBinaryOperatorNode(n_left, n_right), pfunc(0) {
+   DLLLOCAL QoreMultiplicationOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(n_left, n_right), returnTypeInfo(0) {
    }
 
-   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
-      return copyBackgroundExplicit<QoreLogicalLessThanOperatorNode>(xsink);
+   DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const {
+      del = false;
+      return &multiplication_str;
    }
 
-   DLLLOCAL static bool doLessThan(QoreValue l, QoreValue r, ExceptionSink* xsink);
+   DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
+      str.concat(&multiplication_str);
+      return 0;
+   }
+
+   // returns the type name as a c string
+   DLLLOCAL virtual const char* getTypeName() const {
+      return multiplication_str.getBuffer();
+   }
+
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+      return returnTypeInfo;
+   }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      return copyBackgroundExplicit<QoreMultiplicationOperatorNode>(xsink);
+   }
 };
 
 #endif

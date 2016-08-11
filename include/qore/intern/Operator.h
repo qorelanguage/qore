@@ -40,9 +40,7 @@
 class Operator;
 
 // system default operators
-DLLLOCAL extern Operator *OP_MINUS,
-   *OP_PLUS,
-   *OP_MULT,
+DLLLOCAL extern Operator
    *OP_LOG_LT,
    *OP_LOG_GT,
    *OP_LOG_EQ,

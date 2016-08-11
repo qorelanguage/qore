@@ -333,5 +333,8 @@ public:
 #include <qore/intern/QoreLogicalAndOperatorNode.h>
 #include <qore/intern/QoreLogicalOrOperatorNode.h>
 #include <qore/intern/QoreLogicalComparisonOperatorNode.h>
+#include <qore/intern/QorePlusOperatorNode.h>
+#include <qore/intern/QoreMinusOperatorNode.h>
+#include <qore/intern/QoreMultiplicationOperatorNode.h>
 
 #endif

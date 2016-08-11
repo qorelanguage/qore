@@ -1169,7 +1169,7 @@ static AbstractQoreNode* processCall(AbstractQoreNode* $1, AbstractQoreNode* $3)
       // take string from node and delete node
       char* str = v->takeString();
       v->deref();
-      printd(0, "parsing in-object method call %s()\n", str);
+      //printd(5, "parsing in-object method call %s()\n", str);
       $$ = new SelfFunctionCallNode(str, make_args($3));
    }
    else {
@@ -3180,11 +3180,11 @@ exp
     | exp LOGICAL_GE exp                { $$ = new QoreLogicalGreaterThanOrEqualsOperatorNode($1, $3); }
     | exp SHIFT_LEFT exp                { $$ = new QoreShiftLeftOperatorNode($1, $3); }
     | exp SHIFT_RIGHT exp               { $$ = new QoreShiftRightOperatorNode($1, $3); }
-    | exp '+' exp                       { $$ = new QoreTreeNode($1, OP_PLUS, $3); }
-    | exp '-' exp                       { $$ = new QoreTreeNode($1, OP_MINUS, $3); }
+    | exp '+' exp                       { $$ = new QorePlusOperatorNode($1, $3); }
+    | exp '-' exp                       { $$ = new QoreMinusOperatorNode($1, $3); }
     | exp '%' exp                       { $$ = new QoreModuloOperatorNode($1, $3); }
     | exp '/' exp                       { $$ = new QoreDivisionOperatorNode($1, $3); }
-    | exp '*' exp                       { $$ = new QoreTreeNode($1, OP_MULT, $3); }
+    | exp '*' exp                       { $$ = new QoreMultiplicationOperatorNode($1, $3); }
     | exp '[' exp ']'                   { $$ = new QoreSquareBracketsOperatorNode($1, $3); }
     | exp '{' exp '}'                   { $$ = new QoreHashObjectDereferenceOperatorNode($1, $3); }
     | exp '.' exp                       { $$ = process_dot($1, $3); }
@@ -3237,11 +3237,11 @@ exp_n
     | exp_n LOGICAL_GE exp              { $$ = new QoreLogicalGreaterThanOrEqualsOperatorNode($1, $3); }
     | exp_n SHIFT_LEFT exp              { $$ = new QoreShiftLeftOperatorNode($1, $3); }
     | exp_n SHIFT_RIGHT exp             { $$ = new QoreShiftRightOperatorNode($1, $3); }
-    | exp_n '+' exp                     { $$ = new QoreTreeNode($1, OP_PLUS, $3); }
-    | exp_n '-' exp                     { $$ = new QoreTreeNode($1, OP_MINUS, $3); }
+    | exp_n '+' exp                     { $$ = new QorePlusOperatorNode($1, $3); }
+    | exp_n '-' exp                     { $$ = new QoreMinusOperatorNode($1, $3); }
     | exp_n '%' exp                     { $$ = new QoreModuloOperatorNode($1, $3); }
     | exp_n '/' exp                     { $$ = new QoreDivisionOperatorNode($1, $3); }
-    | exp_n '*' exp                     { $$ = new QoreTreeNode($1, OP_MULT, $3); }
+    | exp_n '*' exp                     { $$ = new QoreMultiplicationOperatorNode($1, $3); }
     | exp_n '[' exp ']'                 { $$ = new QoreSquareBracketsOperatorNode($1, $3); }
     | exp_n '{' exp '}'                 { $$ = new QoreHashObjectDereferenceOperatorNode($1, $3); }
     | exp_n '.' exp                     { $$ = process_dot($1, $3); }
