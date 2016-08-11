@@ -36,6 +36,9 @@
 
 DLLLOCAL AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, ExceptionSink* xsink);
 
+// type of logical operator function
+typedef bool (*op_log_func_t)(QoreValue l, QoreValue r, ExceptionSink* xsink);
+
 class QoreOperatorNode : public ParseNode {
 protected:
    bool ref_rv;

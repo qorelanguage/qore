@@ -39,23 +39,12 @@
 
 class Operator;
 
-// system default operators
-DLLLOCAL extern Operator
-   *OP_LOG_LT,
-   *OP_LOG_GT,
-   *OP_LOG_EQ,
-   *OP_LOG_NE,
-   *OP_LOG_LE,
-   *OP_LOG_GE
-   ;
-
 typedef safe_dslist<Operator*> oplist_t;
 
 class OperatorList : public oplist_t {
 public:
    DLLLOCAL OperatorList();
    DLLLOCAL ~OperatorList();
-   DLLLOCAL void init();
    DLLLOCAL Operator *add(Operator *o);
 };
 

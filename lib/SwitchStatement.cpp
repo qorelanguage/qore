@@ -203,7 +203,7 @@ int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    return 0;
 }
 
-CaseNodeWithOperator::CaseNodeWithOperator(AbstractQoreNode* v, StatementBlock* c, Operator* op) : CaseNode(v, c), m_operator(op) {
+CaseNodeWithOperator::CaseNodeWithOperator(AbstractQoreNode* v, StatementBlock* c, op_log_func_t op) : CaseNode(v, c), op_func(op) {
 }
 
 bool CaseNodeWithOperator::isCaseNodeImpl() const {
@@ -211,8 +211,7 @@ bool CaseNodeWithOperator::isCaseNodeImpl() const {
 }
 
 bool CaseNodeWithOperator::matches(AbstractQoreNode* lhs_value, ExceptionSink *xsink) {
-   ValueHolder rv(m_operator->eval(lhs_value, val, true, xsink), xsink);
-   return rv->getAsBool();
+   return op_func(lhs_value, val, xsink);
 }
 
 CaseNodeRegex::CaseNodeRegex(QoreRegex *m_re, StatementBlock *blk) : CaseNode(NULL, blk), re(m_re) {

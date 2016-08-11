@@ -1924,56 +1924,56 @@ case_code:
         TOK_CASE LOGICAL_GE exp ':' statements
         {
 	   check_case(">=", $3);
-	   $$ = new CaseNodeWithOperator($3, $5, OP_LOG_GE);
+	   $$ = new CaseNodeWithOperator($3, $5, QoreLogicalGreaterThanOrEqualsOperatorNode::doGreaterThanOrEquals);
         }
         | TOK_CASE LOGICAL_GE exp ':' // nothing
         {
 	   check_case(">=", $3);
-	   $$ = new CaseNodeWithOperator($3, 0, OP_LOG_GE);
+	   $$ = new CaseNodeWithOperator($3, 0, QoreLogicalGreaterThanOrEqualsOperatorNode::doGreaterThanOrEquals);
         }
 
         | TOK_CASE LOGICAL_LE exp ':' statements
         {
 	   check_case("<=", $3);
-	   $$ = new CaseNodeWithOperator($3, $5, OP_LOG_LE);
+	   $$ = new CaseNodeWithOperator($3, $5, QoreLogicalLessThanOrEqualsOperatorNode::doLessThanOrEquals);
         }
         | TOK_CASE LOGICAL_LE exp ':' // nothing
         {
 	   check_case("<=", $3);
-	   $$ = new CaseNodeWithOperator($3, 0, OP_LOG_LE);
+	   $$ = new CaseNodeWithOperator($3, 0, QoreLogicalLessThanOrEqualsOperatorNode::doLessThanOrEquals);
         }
 
         | TOK_CASE LOGICAL_EQ exp ':' statements
         {
 	   check_case("==", $3);
-	   $$ = new CaseNodeWithOperator($3, $5, OP_LOG_EQ);
+	   $$ = new CaseNodeWithOperator($3, $5, QoreLogicalEqualsOperatorNode::softEqual);
         }
         | TOK_CASE LOGICAL_EQ exp ':' // nothing
         {
 	   check_case("==", $3);
-	   $$ = new CaseNodeWithOperator($3, 0, OP_LOG_EQ);
+	   $$ = new CaseNodeWithOperator($3, 0, QoreLogicalEqualsOperatorNode::softEqual);
         }
 
         | TOK_CASE '<' exp ':' statements
         {
 	   check_case("<", $3);
-	   $$ = new CaseNodeWithOperator($3, $5, OP_LOG_LT);
+	   $$ = new CaseNodeWithOperator($3, $5, QoreLogicalLessThanOperatorNode::doLessThan);
         }
         | TOK_CASE '<' exp ':' // nothing
         {
 	   check_case("<", $3);
-	   $$ = new CaseNodeWithOperator($3, 0, OP_LOG_LT);
+	   $$ = new CaseNodeWithOperator($3, 0, QoreLogicalLessThanOperatorNode::doLessThan);
         }
 
         | TOK_CASE '>' exp ':' statements
         {
 	   check_case(">", $3);
-	   $$ = new CaseNodeWithOperator($3, $5, OP_LOG_GT);
+           $$ = new CaseNodeWithOperator($3, $5, QoreLogicalGreaterThanOperatorNode::doGreaterThan);
         }
         | TOK_CASE '>' exp ':' // nothing
         {
 	   check_case(">", $3);
-	   $$ = new CaseNodeWithOperator($3, 0, OP_LOG_GT);
+	   $$ = new CaseNodeWithOperator($3, 0, QoreLogicalGreaterThanOperatorNode::doGreaterThan);
         }
 
 	| TOK_CASE REGEX_MATCH REGEX ':' statements
