@@ -29,8 +29,6 @@
 #include "parser.cpp"
 #include "scanner.cpp"
 #undef ECHO
-#include "Operator.cpp"
-#include "QoreTreeNode.cpp"
 #include "BarewordNode.cpp"
 #include "SelfVarrefNode.cpp"
 #include "StaticClassVarRefNode.cpp"
@@ -232,6 +230,7 @@
 #include "QorePlusOperatorNode.cpp"
 #include "QoreMinusOperatorNode.cpp"
 #include "QoreMultiplicationOperatorNode.cpp"
+#include "QoreBackgroundOperatorNode.cpp"
 #include "QoreValue.cpp"
 #include "FunctionalOperatorInterface.cpp"
 #include "FunctionalOperator.cpp"

@@ -1127,9 +1127,7 @@ static AbstractQoreNode* checkRewriteList(QoreListNode* l) {
 
 void ignore_return_value(AbstractQoreNode* n) {
    qore_type_t t = get_node_type(n);
-   if (t == NT_TREE)
-      reinterpret_cast<QoreTreeNode*>(n)->ignoreReturnValue();
-   else if (t == NT_OPERATOR)
+   if (t == NT_OPERATOR)
       reinterpret_cast<QoreOperatorNode*>(n)->ignoreReturnValue();
 }
 
@@ -3054,7 +3052,7 @@ exp_c:  scalar
 	      parse_error("illegal use of the 'new' operator (conflicts with parse option NO_NEW)");
         }
         | TOK_BACKGROUND exp {
-	   $$ = new QoreTreeNode($2, OP_BACKGROUND, 0);
+	   $$ = new QoreBackgroundOperatorNode($2);
 	   // check to see if the expression is legal
 	   if (parse_check_parse_option(PO_NO_THREAD_CONTROL))
 	      parse_error("illegal use of \"background\" operator (conflicts with parse option NO_THREAD_CONTROL)");

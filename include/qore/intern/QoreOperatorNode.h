@@ -339,5 +339,6 @@ public:
 #include <qore/intern/QorePlusOperatorNode.h>
 #include <qore/intern/QoreMinusOperatorNode.h>
 #include <qore/intern/QoreMultiplicationOperatorNode.h>
+#include <qore/intern/QoreBackgroundOperatorNode.h>
 
 #endif

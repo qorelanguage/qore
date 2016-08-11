@@ -109,8 +109,6 @@ nodist_libqore_la_SOURCES = $(QORE_GENERATED_SOURCES)
 libqore_la_SOURCES = \
 	parser.ypp \
 	scanner.lpp \
-	Operator.cpp \
-	QoreTreeNode.cpp \
 	BarewordNode.cpp \
 	SelfVarrefNode.cpp \
 	StaticClassVarRefNode.cpp \
@@ -303,6 +301,7 @@ libqore_la_SOURCES = \
 	QorePlusOperatorNode.cpp \
 	QoreMinusOperatorNode.cpp \
 	QoreMultiplicationOperatorNode.cpp \
+	QoreBackgroundOperatorNode.cpp \
 	QorePseudoMethods.cpp \
 	QoreHTTPClient.cpp \
 	QoreHttpClientObject.cpp \

@@ -299,7 +299,6 @@ noinst_HEADERS = \
 	include/qore/intern/QoreQueueIntern.h \
 	include/qore/intern/ModuleInfo.h \
 	include/qore/intern/QoreTimeZoneManager.h \
-	include/qore/intern/QoreTreeNode.h \
 	include/qore/intern/BarewordNode.h \
 	include/qore/intern/StaticClassVarRefNode.h \
 	include/qore/intern/SelfVarrefNode.h \
@@ -325,7 +324,6 @@ noinst_HEADERS = \
 	include/qore/intern/QoreClassList.h \
 	include/qore/intern/QException.h \
 	include/qore/intern/ParserSupport.h \
-	include/qore/intern/Operator.h \
 	include/qore/intern/ObjectMethodReferenceNode.h \
 	include/qore/intern/NamedScope.h \
 	include/qore/intern/QoreNamespaceIntern.h \
@@ -471,6 +469,7 @@ noinst_HEADERS = \
 	include/qore/intern/QorePlusOperatorNode.h \
 	include/qore/intern/QoreMinusOperatorNode.h \
 	include/qore/intern/QoreMultiplicationOperatorNode.h \
+	include/qore/intern/QoreBackgroundOperatorNode.h \
 	include/qore/intern/QorePseudoMethods.h \
 	include/qore/intern/QoreHashIterator.h \
 	include/qore/intern/QoreListIterator.h \

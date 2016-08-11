@@ -321,8 +321,6 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 set(LIBQORE_CPP_SRC
         ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp
-        lib/Operator.cpp
-        lib/QoreTreeNode.cpp
         lib/BarewordNode.cpp
         lib/SelfVarrefNode.cpp
         lib/StaticClassVarRefNode.cpp
@@ -515,6 +513,7 @@ set(LIBQORE_CPP_SRC
 	lib/QorePlusOperatorNode.cpp
 	lib/QoreMinusOperatorNode.cpp
 	lib/QoreMultiplicationOperatorNode.cpp
+	lib/QoreBackgroundOperatorNode.cpp
         lib/QoreValue.cpp
         lib/StreamPipe.cpp
         lib/CompressionTransforms.cpp
