@@ -199,7 +199,7 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
    // decimal separator
    QoreString dsep;
    // number of digits after the decimal separator
-   unsigned prec = 0;
+   int prec = 0;
    if (fl > 2) {
       if (dsep.concat(fmt, 1, 1, xsink))
          return -1;
@@ -209,10 +209,24 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
          return -1;
       assert(i >= 2);
       prec = atoi(fmt.getBuffer() + i);
-      if (!prec)
-         dsep.clear();
    }
 
+   return formatNumberStringIntern(num, prec, dsep, tsep, xsink);
+}
+
+int qore_number_private::formatNumberString(QoreString& num, int prec, const QoreString& dsep_str, const QoreString& tsep_str, ExceptionSink* xsink) {
+   assert(!num.empty());
+   TempEncodingHelper dsep(dsep_str, num.getEncoding(), xsink);
+   if (*xsink)
+      return -1;
+   TempEncodingHelper tsep(tsep_str, num.getEncoding(), xsink);
+   if (*xsink)
+      return -1;
+
+   return formatNumberStringIntern(num, prec, **dsep, **tsep, xsink);
+}
+
+int qore_number_private::formatNumberStringIntern(QoreString& num, int prec, const QoreString& dsep, const QoreString& tsep, ExceptionSink* xsink) {
    // non-zero flag: if any digits are non-zero
    bool nonzero = false;
 
@@ -227,12 +241,17 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
       // how many digits do we have now after the decimal point
       qore_size_t d = num.strlen() - dp - 1;
       assert(d);
-      if (d < prec)
-         num.addch('0', prec - d);
-      else if (d > prec) {
-         if ((num[dp + prec + 1] > '4') && (roundUp(num, dp + prec)))
-            ++dp;
-         num.terminate(dp + prec + 1);
+      if (prec >= 0) {
+         if (d < prec)
+            num.addch('0', prec - d);
+         else if (d > prec) {
+            if ((num[dp + prec + 1] > '4') && (roundUp(num, dp + prec)))
+               ++dp;
+            if (!prec)
+               num.terminate(dp);
+            else
+               num.terminate(dp + prec + 1);
+         }
       }
 
       // scan for non-zero digits if negative
@@ -245,8 +264,18 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
          }
       }
 
+      // trim trailing zeros if precision is negative
+      if (prec < 0) {
+         num.trim_trailing('0');
+         size_t len = num.size();
+         if (num[len - 1] == '.') {
+            num.terminate(len - 1);
+            prec = 0;
+         }
+      }
+
       // now substitute decimal point if necessary
-      if (dsep.strlen() != 1 || dsep[0] != '.')
+      if (prec && (dsep.strlen() != 1 || dsep[0] != '.'))
          num.replace(dp, 1, dsep.getBuffer());
    }
    else {
@@ -261,10 +290,9 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
       }
 
       dp = num.size();
-      if (prec) {
+      if (prec > 0) {
          // add decimal point
-         num.concat(&dsep, xsink);
-         assert(!*xsink);
+         num.concat(&dsep);
          // add zeros for significant digits
          num.addch('0', prec);
       }

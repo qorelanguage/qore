@@ -268,6 +268,11 @@ struct qore_number_private : public qore_number_private_intern {
       return formatNumberString(str, fmt, xsink);
    }
 
+   DLLLOCAL int format(QoreString& str, int prec, const QoreString& dsep_str, const QoreString& tsep_str, ExceptionSink* xsink) {
+      getAsString(str);
+      return formatNumberString(str, prec, dsep_str, tsep_str, xsink);
+   }
+
    DLLLOCAL bool lessThan(const qore_number_private& right) const {
       return mpfr_less_p(num, right.num);
    }
@@ -485,6 +490,13 @@ struct qore_number_private : public qore_number_private_intern {
 
    DLLLOCAL static int formatNumberString(QoreString& num, const QoreString& fmt, ExceptionSink* xsink);
 
+   DLLLOCAL static int formatNumberString(QoreString& num, int prec, const QoreString& dsep_str, const QoreString& tsep_str, ExceptionSink* xsink);
+
+protected:
+   // assumes dsep, tsep and num all have the same encoding
+   DLLLOCAL static int formatNumberStringIntern(QoreString& num, int prec, const QoreString& dsep, const QoreString& tsep, ExceptionSink* xsink);
+
+public:
    DLLLOCAL static void numError(QoreString& str) {
       str.concat("<number error>");
    }
