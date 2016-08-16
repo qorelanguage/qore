@@ -667,11 +667,11 @@ inserter.setRowCode(rowcode);
             else {
                 # execute the SQLStatement on the args
                 if (table.hasArrayBind()) {
-                    stmt.execArgs(hbuf.values());
+                    stmt.execArgs((hbuf + cval + static_ret_expr).values());
                     rh = stmt.getOutput();
                 }
                 else {
-                    softlist args = hbuf.values();
+                    softlist args = (hbuf + cval + static_ret_expr).values();
                     int size = 0;
                     foreach any arg in (args) {
                         if (arg.typeCode() == NT_LIST) {
