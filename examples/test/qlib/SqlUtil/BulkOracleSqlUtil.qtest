@@ -10,17 +10,20 @@
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/SqlUtil.qm
 %requires ../../../../qlib/BulkSqlUtil.qm
-%requires ../../../../qlib/FreetdsSqlUtil.qm
+%requires ../../../../qlib/OracleSqlUtil.qm
 %requires ../../../../qlib/Schema.qm
 
-%requires ./SqlUtilTestBase.qm
+%requires ./BulkSqlUtilTestBase.qm
 #/;
+%try-module oracle
+%define NoOracle
+%endtry
 
-%exec-class FreetdsTest
+%exec-class OracleTest
 
-class FreetdsTestSchema inherits SqlUtilTestSchema {
+class OracleTestSchema inherits SqlUtilTestSchema {
     public {
-        const SchemaName = "FreetdsTestSchema";
+        const SchemaName = "OracleTestSchema";
         const SchemaVersion = "1.0";
     }
 
@@ -33,17 +36,21 @@ class FreetdsTestSchema inherits SqlUtilTestSchema {
 
         const ColumnOptions = {};
 
-        const T_SqlUtilTest = (
+        const T_OracleTest = (
             "columns": (
                 "id": c_number(14, True),
                 "id_": c_number(14, True),
                 "null_f": c_varchar(69),
             ),
-            "primary_key": ("name": "pk_sqlutil_test", "columns": ("id")),
+            "primary_key": ("name": "pk_oracle_test", "columns": ("id")),
             );
 
         const Tables = (
-            "sqlutil_test": T_SqlUtilTest,
+            "oracle_test": T_OracleTest,
+            );
+
+        const Sequences = (
+            "oracle_test_seq": {},
             );
     }
 
@@ -59,7 +66,11 @@ class FreetdsTestSchema inherits SqlUtilTestSchema {
     }
 
     private *hash getTablesImpl() {
-        return doTables(Tables, FreetdsTest::CustomColumns);
+        return doTables(Tables, OracleTest::CustomColumns);
+    }
+
+    private *hash getSequencesImpl() {
+        return Sequences;
     }
 
     private *hash getIndexOptionsImpl() {
@@ -75,58 +86,44 @@ class FreetdsTestSchema inherits SqlUtilTestSchema {
     }
 }
 
-class FreetdsTest inherits SqlTestBase {
+class OracleTest inherits SqlTestBase {
     public {
         const CustomColumns = (
-            "varchar": (
+            "varchar2": (
                 "value": "hello",
                 "size": "20",
             ),
             "char": (
                 "value": "hello",
                 "size": "20",
+                "expect": rpad ("hello", 20),
             ),
-            "decimal": (
+            "number": (
                 "size": 15,
                 "scale": 2,
                 "value": 400.95n,
             ),
-            "decimal_def": (
-                "type": "decimal",
-                "value": 401,
+            "number_def": (
+                "type": "number",
+                "value": 400.95n,
             ),
-
-            "text": "test",
-
-            #"unitext": ,
-            #"bit": 100,
-
-            "tinyint": 8,
-            "smallint": 1024,
-            "int": 12345,
-            "float": 2.5,
-            "real": 5.5,
-
-            # freetds returns date values as CS_CHAR, so direct comparison would fail
-            "date": ("value": 2015-01-01, "expect": "2015-01-01"),
-
-            # freetds returns time values as CS_CHAR, so direct comparison would fail
-            "time": ("value": 12:45, "expect": "12:45:00.0000000"),
-
-            "datetime": 2015-01-01T12:45:00.450,
-            "smalldatetime": 2015-01-01T12:45,
-
-            #"money": ,
-            #"smallmoney": ,
-
-            #"binary": <bead>,
-            #"varbinary": <bead>,
-
-            "image": <bead>,
+            "date": 2016-01-11,
+            "timestamp": 2016-01-11T09:26:14.502134,
+            "timestamp with time zone": 2016-01-11T09:26:14.502134,
+            "timestamp with local time zone": 2016-01-11T09:26:14.502134,
+            #"interval year to month": 2Y + 6M,
+            #"interval day to second": 2D + 3h + 4m + 1s,
+            "clob": "test",
+            "blob": <bead>,
+            "binary_float": 1.5,
+            "binary_double": 1.5,
+            #raw
+            #bfile
+            #long
             );
     }
 
-    constructor() : SqlTestBase("FreetdsTest", "1.0", \ARGV, MyOpts) {
+    constructor() : SqlTestBase("OracleTest", "1.0", \ARGV, MyOpts) {
         Datasource ds;
         try {
             ds = getDatasource();
@@ -141,18 +138,18 @@ class FreetdsTest inherits SqlTestBase {
             initTestData(CustomColumns);
 
             { # Make sure the DB is clear before doing the tests.
-                FreetdsTable t = new FreetdsTable(ds, "sqlutil_test");
+                OracleTable t = new OracleTable(ds, "oracle_test");
                 if (t.checkExistence())
                     t.dropCommit();
             }
 
             # create the test schema
-            schema = new FreetdsTestSchema(ds);
+            schema = new OracleTestSchema(ds);
 
             schema.align(False, m_options.verbose);
 
             # get table object
-            table = (new Table(schema.getDatasource(), "sqlutil_test")).getTable();
+            table = (new Table(schema.getDatasource(), "oracle_test")).getTable();
         }
 
         set_return_value(main());
@@ -160,15 +157,15 @@ class FreetdsTest inherits SqlTestBase {
 
     private usageIntern() {
         TestReporter::usageIntern(OptionColumn);
-        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"freetds:user/pass@db\")", OptionColumn);
+        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"oracle:user/pass@db\")", OptionColumn);
     }
 
     Datasource getDatasource() {
         if (!m_options.connstr)
-            m_options.connstr = ENV.QORE_DB_CONNSTR_FREETDS;
+            m_options.connstr = ENV.QORE_DB_CONNSTR_ORACLE;
         Datasource ds(m_options.connstr);
-        if (ds.getDriverName() != "freetds")
-            throw "FREETDS-ERROR", sprintf("cannot execute the freetds tests on a connection using driver %y", ds.getDriverName());
+        if (ds.getDriverName() != "oracle")
+            throw "ORACLE-ERROR", sprintf("cannot execute the oracle tests on a connection using driver %y", ds.getDriverName());
         ds.open();
         return ds;
     }
