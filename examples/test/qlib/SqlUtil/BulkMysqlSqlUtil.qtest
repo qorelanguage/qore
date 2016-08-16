@@ -6,21 +6,23 @@
 %require-types
 %strict-args
 
-%requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/SqlUtil.qm
 %requires ../../../../qlib/BulkSqlUtil.qm
-%requires ../../../../qlib/FreetdsSqlUtil.qm
+%requires ../../../../qlib/MysqlSqlUtil.qm
 %requires ../../../../qlib/Schema.qm
 
-%requires ./SqlUtilTestBase.qm
+%requires ./BulkSqlUtilTestBase.qm
 #/;
+%try-module mysql
+%define NoMysql
+%endtry
 
-%exec-class FreetdsTest
+%exec-class MysqlTest
 
-class FreetdsTestSchema inherits SqlUtilTestSchema {
+class MysqlTestSchema inherits SqlUtilTestSchema {
     public {
-        const SchemaName = "FreetdsTestSchema";
+        const SchemaName = "MysqlTestSchema";
         const SchemaVersion = "1.0";
     }
 
@@ -33,17 +35,17 @@ class FreetdsTestSchema inherits SqlUtilTestSchema {
 
         const ColumnOptions = {};
 
-        const T_SqlUtilTest = (
+        const T_MysqlTest = (
             "columns": (
                 "id": c_number(14, True),
                 "id_": c_number(14, True),
                 "null_f": c_varchar(69),
             ),
-            "primary_key": ("name": "pk_sqlutil_test", "columns": ("id")),
+            "primary_key": ("name": "pk_mysql_test", "columns": ("id")),
             );
 
         const Tables = (
-            "sqlutil_test": T_SqlUtilTest,
+            "mysql_test": T_MysqlTest,
             );
     }
 
@@ -59,7 +61,7 @@ class FreetdsTestSchema inherits SqlUtilTestSchema {
     }
 
     private *hash getTablesImpl() {
-        return doTables(Tables, FreetdsTest::CustomColumns);
+        return doTables(Tables, MysqlTest::CustomColumns);
     }
 
     private *hash getIndexOptionsImpl() {
@@ -75,7 +77,7 @@ class FreetdsTestSchema inherits SqlUtilTestSchema {
     }
 }
 
-class FreetdsTest inherits SqlTestBase {
+class MysqlTest inherits SqlTestBase {
     public {
         const CustomColumns = (
             "varchar": (
@@ -96,37 +98,45 @@ class FreetdsTest inherits SqlTestBase {
                 "value": 401,
             ),
 
-            "text": "test",
+            "tinyint": 10,
+            "smallint": 512,
+            "mediumint": 192932,
+            "int": 49349839,
+            "bigint": 34839203948394,
+            "float": 1.5,
+            "double": 3.1415927,
 
-            #"unitext": ,
+            "date": 2016-01-11,
+            "datetime": 2016-01-11T09:26:14,
+            "timestamp": 2016-01-11T09:27:59,
+            "time": 09:26:52,
+            "year": 2016, # XXX: this is likely just an integer
+
+            "binary": (
+                "value": <bead>,
+                "size": 2, # must be 2 as default is 1
+            ),
+            "varbinary": (
+                "value": <bead>,
+                "size": 10,
+            ),
+
+            "tinyblob": <bead>,
+            "blob": <bead>,
+            "mediumblob": <bead>,
+            # temporarily disabled due to a bug on rhel7 handling logblob columns with mariadb
+            #"longblob": <bead>,
+
+            "tinytext": "test",
+            "mediumtext": "test",
+            # temporarily disabled due to a bug on rhel7 handling logtext columns with mariadb
+            #"longtext": "test",
+
             #"bit": 100,
-
-            "tinyint": 8,
-            "smallint": 1024,
-            "int": 12345,
-            "float": 2.5,
-            "real": 5.5,
-
-            # freetds returns date values as CS_CHAR, so direct comparison would fail
-            "date": ("value": 2015-01-01, "expect": "2015-01-01"),
-
-            # freetds returns time values as CS_CHAR, so direct comparison would fail
-            "time": ("value": 12:45, "expect": "12:45:00.0000000"),
-
-            "datetime": 2015-01-01T12:45:00.450,
-            "smalldatetime": 2015-01-01T12:45,
-
-            #"money": ,
-            #"smallmoney": ,
-
-            #"binary": <bead>,
-            #"varbinary": <bead>,
-
-            "image": <bead>,
             );
     }
 
-    constructor() : SqlTestBase("FreetdsTest", "1.0", \ARGV, MyOpts) {
+    constructor() : SqlTestBase("MysqlTest", "1.0", \ARGV, MyOpts) {
         Datasource ds;
         try {
             ds = getDatasource();
@@ -141,18 +151,18 @@ class FreetdsTest inherits SqlTestBase {
             initTestData(CustomColumns);
 
             { # Make sure the DB is clear before doing the tests.
-                FreetdsTable t = new FreetdsTable(ds, "sqlutil_test");
+                MysqlTable t = new MysqlTable(ds, "mysql_test");
                 if (t.checkExistence())
                     t.dropCommit();
             }
 
             # create the test schema
-            schema = new FreetdsTestSchema(ds);
+            schema = new MysqlTestSchema(ds);
 
             schema.align(False, m_options.verbose);
 
             # get table object
-            table = (new Table(schema.getDatasource(), "sqlutil_test")).getTable();
+            table = (new Table(schema.getDatasource(), "mysql_test")).getTable();
         }
 
         set_return_value(main());
@@ -160,15 +170,15 @@ class FreetdsTest inherits SqlTestBase {
 
     private usageIntern() {
         TestReporter::usageIntern(OptionColumn);
-        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"freetds:user/pass@db\")", OptionColumn);
+        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"mysql:user/pass@db\")", OptionColumn);
     }
 
     Datasource getDatasource() {
         if (!m_options.connstr)
-            m_options.connstr = ENV.QORE_DB_CONNSTR_FREETDS;
+            m_options.connstr = ENV.QORE_DB_CONNSTR_MYSQL;
         Datasource ds(m_options.connstr);
-        if (ds.getDriverName() != "freetds")
-            throw "FREETDS-ERROR", sprintf("cannot execute the freetds tests on a connection using driver %y", ds.getDriverName());
+        if (ds.getDriverName() != "mysql")
+            throw "MYSQL-ERROR", sprintf("cannot execute the mysql tests on a connection using driver %y", ds.getDriverName());
         ds.open();
         return ds;
     }

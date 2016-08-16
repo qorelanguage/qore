@@ -12,7 +12,7 @@
 %requires ../../../../qlib/PgsqlSqlUtil.qm
 %requires ../../../../qlib/Schema.qm
 
-%requires ./SqlUtilTestBase.qm
+%requires ./BulkSqlUtilTestBase.qm
 #/;
 %try-module pgsql
 %define NoPgsql
@@ -199,29 +199,9 @@ class PgsqlTest inherits SqlTestBase {
 
             # get table object
             table = (new Table(schema.getDatasource(), "pgsql_test")).getTable();
-
-            addTestCase("sequence operators", \testSequenceOperators());
         }
 
         set_return_value(main());
-    }
-
-    testSequenceOperators() {
-        if (!table)
-            testSkip("no DB connection");
-
-        hash sh = (
-            "columns": ("id", cop_seq("pgsql_test_seq", "seq"), cop_seq_currval("pgsql_test_seq", "seq_currval")),
-            "where": ("id": 2),
-            );
-
-        assertEq(("id": 2, "seq": 1, "seq_currval": 1), table.selectRow(sh));
-        assertEq(("id": 2, "seq": 2, "seq_currval": 2), table.selectRow(sh));
-        assertEq(("id": 2, "seq": 3, "seq_currval": 3), table.selectRow(sh));
-
-        assertEq(1, table.update(("id": uop_seq("pgsql_test_seq")), ("id": 2)));
-        sh."where".id = 4;
-        assertEq(("id": 4, "seq": 5, "seq_currval": 5), table.selectRow(sh));
     }
 
     private usageIntern() {
