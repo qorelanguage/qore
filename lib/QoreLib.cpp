@@ -36,6 +36,7 @@
 #include <qore/intern/QoreObjectIntern.h>
 #include <qore/intern/qore_qd_private.h>
 #include <qore/intern/ql_crypto.h>
+#include <qore/intern/qore_program_private.h>
 
 #include <string.h>
 #ifdef HAVE_PWD_H
