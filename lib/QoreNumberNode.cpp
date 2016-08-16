@@ -612,3 +612,28 @@ bool QoreNumberNode::inf() const {
 bool QoreNumberNode::ordinary() const {
    return priv->number();
 }
+
+QoreNumberNodeHelper::QoreNumberNodeHelper(const QoreValue n) {
+   if (n.type == QV_Node && get_node_type(n.v.n) == NT_NUMBER) {
+      del = false;
+      num = n.get<const QoreNumberNode>();
+   }
+   else {
+      del = true;
+      num = new QoreNumberNode(n);
+   }
+}
+
+QoreNumberNodeHelper::~QoreNumberNodeHelper() {
+   if (del)
+      const_cast<QoreNumberNode*>(num)->deref();
+}
+
+QoreNumberNode* QoreNumberNodeHelper::getReferencedValue() {
+   auto rv = const_cast<QoreNumberNode*>(num);
+   num = 0;
+   del = false;
+   if (!del)
+      rv->ref();
+   return rv;
+}

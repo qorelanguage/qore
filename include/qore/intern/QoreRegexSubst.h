@@ -1,12 +1,12 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  RegexSubstNode.h
+  QoreRegexSubst.h
 
   regular expression substitution node definition
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,26 +31,15 @@
   information.
 */
 
-#ifndef _QORE_REGEXSUBSTNODE_H
+#ifndef _QORE_QOREREGEXSUBST_H
 
-#define _QORE_REGEXSUBSTNODE_H
+#define _QORE_QOREREGEXSUBST_H
 
 #include <qore/intern/QoreRegexBase.h>
 #include <sys/types.h>
 
-class RegexSubstNode : public ParseNoEvalNode, public QoreRegexBase {
+class QoreRegexSubst : public QoreRegexBase, public QoreReferenceCounter {
 protected:
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-      // FIXME: implement a type for this
-      typeInfo = 0;
-      return this;
-   }
-
-   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
-      // FIXME: implement a type for this
-      return 0;
-   }
-
 private:
    bool global;
    class QoreString *newstr;
@@ -59,23 +48,12 @@ private:
    DLLLOCAL static void concat(QoreString *str, int *ovector, int olen, const char *ptr, const char *target, int rc);
 
 public:
-   DLLLOCAL RegexSubstNode();
+   DLLLOCAL QoreRegexSubst();
+
    // used at run-time
-   DLLLOCAL RegexSubstNode(const QoreString *pstr, int opts, ExceptionSink *xsink);
-   DLLLOCAL virtual ~RegexSubstNode();
+   DLLLOCAL QoreRegexSubst(const QoreString *pstr, int opts, ExceptionSink *xsink);
 
-   // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-   // the ExceptionSink is only needed for QoreObject where a method may be executed
-   // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-   // returns -1 for exception raised, 0 = OK
-   DLLLOCAL virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
-   // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
-
-   // returns the data type
-   DLLLOCAL virtual qore_type_t getType() const;
-   // returns the type name as a c string
-   DLLLOCAL virtual const char *getTypeName() const;
+   DLLLOCAL ~QoreRegexSubst();
 
    DLLLOCAL void parseRT(const QoreString *pstr, ExceptionSink *xsink);
    DLLLOCAL void parse();
@@ -85,6 +63,20 @@ public:
    DLLLOCAL void concatTarget(char c);
    DLLLOCAL void setGlobal();
    DLLLOCAL QoreString *getPattern() const;
+
+   DLLLOCAL void ref() const {
+      ROreference();
+   }
+
+   DLLLOCAL void deref() {
+      if (ROdereference())
+         delete this;
+   }
+
+   DLLLOCAL QoreRegexSubst* refSelf() const {
+      ref();
+      return const_cast<QoreRegexSubst*>(this);
+   }
 };
 
-#endif // _QORE_REGEXSUBSTNODE_H
+#endif // _QORE_QOREREGEXSUBST_H

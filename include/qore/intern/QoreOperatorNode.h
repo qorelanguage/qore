@@ -36,6 +36,9 @@
 
 DLLLOCAL AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, ExceptionSink* xsink);
 
+// type of logical operator function
+typedef bool (*op_log_func_t)(QoreValue l, QoreValue r, ExceptionSink* xsink);
+
 class QoreOperatorNode : public ParseNode {
 protected:
    bool ref_rv;
@@ -64,7 +67,7 @@ public:
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const = 0;
 };
 
-template <class T>
+template <class T = QoreOperatorNode>
 class QoreSingleExpressionOperatorNode : public T {
 protected:
    AbstractQoreNode* exp;
@@ -267,7 +270,9 @@ public:
 #include <qore/intern/QoreLogicalNotOperatorNode.h>
 #include <qore/intern/QoreDotEvalOperatorNode.h>
 #include <qore/intern/QoreLogicalEqualsOperatorNode.h>
+#include <qore/intern/QoreLogicalAbsoluteEqualsOperatorNode.h>
 #include <qore/intern/QoreLogicalNotEqualsOperatorNode.h>
+#include <qore/intern/QoreLogicalAbsoluteNotEqualsOperatorNode.h>
 #include <qore/intern/QoreModuloOperatorNode.h>
 #include <qore/intern/QoreBinaryAndOperatorNode.h>
 #include <qore/intern/QoreBinaryOrOperatorNode.h>
@@ -279,8 +284,14 @@ public:
 #include <qore/intern/QoreElementsOperatorNode.h>
 #include <qore/intern/QoreInstanceOfOperatorNode.h>
 #include <qore/intern/QoreHashObjectDereferenceOperatorNode.h>
+#include <qore/intern/QoreRegexMatchOperatorNode.h>
+#include <qore/intern/QoreRegexNMatchOperatorNode.h>
+#include <qore/intern/QoreRegexExtractOperatorNode.h>
+#include <qore/intern/QoreRegexSubstOperatorNode.h>
+#include <qore/intern/QoreTransliterationOperatorNode.h>
 #include <qore/intern/QoreBinaryLValueOperatorNode.h>
 #include <qore/intern/QoreAssignmentOperatorNode.h>
+#include <qore/intern/QoreListAssignmentOperatorNode.h>
 #include <qore/intern/QorePlusEqualsOperatorNode.h>
 #include <qore/intern/QoreIntPlusEqualsOperatorNode.h>
 #include <qore/intern/QoreMinusEqualsOperatorNode.h>
@@ -318,5 +329,16 @@ public:
 #include <qore/intern/QoreChompOperatorNode.h>
 #include <qore/intern/QoreTrimOperatorNode.h>
 #include <qore/intern/QoreSquareBracketsOperatorNode.h>
+#include <qore/intern/QoreShiftOperatorNode.h>
+#include <qore/intern/QoreUnshiftOperatorNode.h>
+#include <qore/intern/QorePopOperatorNode.h>
+#include <qore/intern/QorePushOperatorNode.h>
+#include <qore/intern/QoreLogicalAndOperatorNode.h>
+#include <qore/intern/QoreLogicalOrOperatorNode.h>
+#include <qore/intern/QoreLogicalComparisonOperatorNode.h>
+#include <qore/intern/QorePlusOperatorNode.h>
+#include <qore/intern/QoreMinusOperatorNode.h>
+#include <qore/intern/QoreMultiplicationOperatorNode.h>
+#include <qore/intern/QoreBackgroundOperatorNode.h>
 
 #endif

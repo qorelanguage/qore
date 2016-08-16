@@ -109,8 +109,6 @@ nodist_libqore_la_SOURCES = $(QORE_GENERATED_SOURCES)
 libqore_la_SOURCES = \
 	parser.ypp \
 	scanner.lpp \
-	Operator.cpp \
-	QoreTreeNode.cpp \
 	BarewordNode.cpp \
 	SelfVarrefNode.cpp \
 	StaticClassVarRefNode.cpp \
@@ -210,10 +208,10 @@ libqore_la_SOURCES = \
 	QoreCondition.cpp \
 	QoreQueue.cpp \
 	QoreQueueHelper.cpp \
-	QoreRegexNode.cpp \
+	QoreRegex.cpp \
 	QoreRegexBase.cpp \
-	RegexSubstNode.cpp \
-	RegexTransNode.cpp \
+	QoreRegexSubst.cpp \
+	QoreTransliteration.cpp \
 	Sequence.cpp \
 	QoreReferenceCounter.cpp \
 	SystemEnvironment.cpp \
@@ -237,6 +235,7 @@ libqore_la_SOURCES = \
 	QoreLogicalNotOperatorNode.cpp \
 	QoreDotEvalOperatorNode.cpp \
 	QoreLogicalEqualsOperatorNode.cpp \
+	QoreLogicalAbsoluteEqualsOperatorNode.cpp \
 	QoreModuloOperatorNode.cpp \
 	QoreBinaryAndOperatorNode.cpp \
 	QoreBinaryOrOperatorNode.cpp \
@@ -249,7 +248,13 @@ libqore_la_SOURCES = \
 	QoreInstanceOfOperatorNode.cpp \
 	QoreQuestionMarkOperatorNode.cpp \
 	QoreHashObjectDereferenceOperatorNode.cpp \
+	QoreRegexMatchOperatorNode.cpp \
+	QoreRegexNMatchOperatorNode.cpp \
+	QoreRegexExtractOperatorNode.cpp \
+	QoreRegexSubstOperatorNode.cpp \
+	QoreTransliterationOperatorNode.cpp \
 	QoreAssignmentOperatorNode.cpp \
+	QoreListAssignmentOperatorNode.cpp \
 	QorePlusEqualsOperatorNode.cpp \
 	QoreIntPlusEqualsOperatorNode.cpp \
 	QoreMinusEqualsOperatorNode.cpp \
@@ -286,6 +291,17 @@ libqore_la_SOURCES = \
 	QoreChompOperatorNode.cpp \
 	QoreTrimOperatorNode.cpp \
 	QoreSquareBracketsOperatorNode.cpp \
+	QoreShiftOperatorNode.cpp \
+	QoreUnshiftOperatorNode.cpp \
+	QorePopOperatorNode.cpp \
+	QorePushOperatorNode.cpp \
+	QoreLogicalAndOperatorNode.cpp \
+	QoreLogicalOrOperatorNode.cpp \
+	QoreLogicalComparisonOperatorNode.cpp \
+	QorePlusOperatorNode.cpp \
+	QoreMinusOperatorNode.cpp \
+	QoreMultiplicationOperatorNode.cpp \
+	QoreBackgroundOperatorNode.cpp \
 	QorePseudoMethods.cpp \
 	QoreHTTPClient.cpp \
 	QoreHttpClientObject.cpp \
