@@ -708,6 +708,10 @@ map printf("%y\n", $1), i;
     - @ref FixedLengthUtil::FixedLengthIterator "FixedLengthIterator" for a stream-based class providing the same functionality as this class in a more generic way
 */
 public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::FixedLengthAbstractIterator {
+    private {
+        string m_file_path;
+    }
+
     #! Instantiates the FixedLengthFileIterator object.
     /**
         @param path File path to read
@@ -715,10 +719,15 @@ public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::
         @param opts Global options; see @ref fixedlengthglobals for more information
     */
     constructor(string path, hash spec, *hash opts) : FixedLengthAbstractIterator(new InputStreamLineIterator(new FileInputStream(path), opts.encoding, opts.eol), spec, opts) {
+        m_file_path = path;
         # do not convert every string to the same encoding
         m_opts.input_encoding = remove m_opts.encoding;
     }
 
+    #! Return the file name (including path, if used)
+    string getFileName() {
+        return m_file_path;
+    }
 }
 
 #! Structured line iterator for fixed-length line strings allowing efficient "pipelined" processing.
@@ -1136,7 +1145,7 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
         m_file.open2(file_name, O_WRONLY | O_CREAT | m_opts.file_flags, NOTHING, opts.encoding);
     }
 
-    #! Return the file name
+    #! Return the file name (including path, if used)
     string getFileName() {
         return m_file.getFileName();
     }
