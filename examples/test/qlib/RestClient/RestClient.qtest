@@ -47,7 +47,12 @@ class SimpleStringHandler inherits AbstractHttpRequestHandler {
         m_data = str;
     }
     hash handleRequest(hash cx, hash hdr, *data body) {
-        return makeResponse( ("Content-Type" : m_mime), 200, m_data);
+        if (hdr.method == "GET") {
+            return makeResponse( ("Content-Type" : m_mime), 200, m_data);
+        }
+        else if (hdr.method == "PUT") {
+            return makeResponse( ("Content-Type" : m_mime), 200, m_data);
+        }
     }
 }
 
@@ -62,7 +67,7 @@ public class Main inherits QUnit::Test {
 
     constructor() : Test("RestClientTest", "1.0") {
         addTestCase("GET tests", \methodGetTest(), NOTHING);
-
+        addTestCase("PUT tests", \methodPutTest(), NOTHING);
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -92,10 +97,38 @@ public class Main inherits QUnit::Test {
         ret = rest.get("/api_xml");
         testAssertionValue("/api_xml", ret.body, VALUE_XML.output);
 
+        ret = rest.get("/api_rpc");
+        testAssertionValue("/api_rpc", ret.body, VALUE_XMLRPC.output);
+
         ret = rest.get("/api_json");
         testAssertionValue("/api_json", ret.body, VALUE_JSON.output);
 
         ret = rest.get("/api_yaml");
+        testAssertionValue("/api_yaml", ret.body, VALUE_YAML.output);
+    }
+
+    methodPutTest() {
+        RestClient rest(("url" : "http://localhost:"+TEST_PORT));
+        any ret;
+
+        rest.setSerialization("text");
+        ret = rest.put("/api_text", VALUE_TEXT.output);
+        testAssertionValue("/api_text", ret.body, VALUE_TEXT.output);
+
+        rest.setSerialization("xml");
+        ret = rest.put("/api_xml", VALUE_XML.output);
+        testAssertionValue("/api_xml", ret.body, VALUE_XML.output);
+
+        rest.setSerialization("xml_rpc");
+        ret = rest.put("/api_rpc", VALUE_XMLRPC.output);
+        testAssertionValue("/api_rpc", ret.body, VALUE_XMLRPC.output);
+
+        rest.setSerialization("json");
+        ret = rest.put("/api_json", VALUE_JSON.output);
+        testAssertionValue("/api_json", ret.body, VALUE_JSON.output);
+
+        rest.setSerialization("yaml");
+        ret = rest.put("/api_yaml", VALUE_YAML.output);
         testAssertionValue("/api_yaml", ret.body, VALUE_YAML.output);
     }
 

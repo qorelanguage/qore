@@ -168,7 +168,7 @@ public namespace RestClient {
 %endif
                 "text": (
                     "ct": MimeTypeText,
-                    "out": string sub (string s) { return s; },
+                    "out": string sub (any s) { return sprintf("%s", s); },
                 ),
                 };
 
