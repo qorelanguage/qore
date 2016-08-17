@@ -160,6 +160,10 @@ public namespace RestClient {
                     "out": \make_xmlrpc_value(),
                 ),
 %endif
+                "text": (
+                    "ct": MimeTypeText,
+                    "out": string sub (string s) { return s; },
+                ),
                 };
 
 
@@ -192,6 +196,11 @@ public namespace RestClient {
                 MimeTypeXml: DeserializeXmlRpc,
                 MimeTypeXmlApp: DeserializeXmlRpc,
 %endif
+                MimeTypeText: (
+                    "code": "text",
+                    "in": string sub (string s) { return s; },
+                ),
+
                 };
 
             #! Accept header list
@@ -205,6 +214,7 @@ public namespace RestClient {
 %ifndef NoJson
                 MimeTypeJsonRpc,
 %endif
+                MimeTypeText
                 );
 
             #! Accept header value
@@ -228,12 +238,20 @@ public namespace RestClient {
                 - \c "xml": use only XML-RPC serialization
                 - \c "json": use only JSON serialization
                 - \c "yaml": use only YAML serialization
+                - \c "text": use only plain text. No serialization is used.
              */
             const DataSerializationOptions = (
                 "auto": True,
+%ifndef NoXml
                 "xml": True,
+%endif
+%ifndef NoJson
                 "json": True,
+%endif
+%ifndef NoYaml
                 "yaml": True,
+%endif
+                "text": True,
                 );
 
             #! Send content encoding options
