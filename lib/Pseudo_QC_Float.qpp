@@ -30,6 +30,8 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/qore_number_private.h>
+
 #include <cmath>
 
 //! Methods in this pseudo-class can be executed on @ref float "floating-point values"
@@ -104,7 +106,7 @@ bool <float>::strp() [flags=CONSTANT] {
     <em>\<thousands_separator\></em><tt>[</tt><em>\<decimal_separator\>[\<decimals\>]</em><tt>]</tt>\n
     where:\n
     - \a thousands_separator and \a decimal_separator are single characters defining the thousands and decimal separator characters respectively, and
-    - \a decimals is one or more digits defining how may decimals should appear after the decimal point
+    - \a decimals is one or more digits defining how may decimals should appear after the decimal point; a negative number means to round that number of digits before the decimal place
 
     @return a string of a formatted number according to a format string; if the format string does not follow the given format, then the number without formatting is returned
 
@@ -119,11 +121,40 @@ string nstr = f.format(".,3"); # returns "-48.392.093.894,235"
     @see
     - @ref <int>::format(string)
     - @ref <number>::format(string)
+    - @ref <int>::format(int, string, string)
+    - @ref <float>::format(int, string, string)
+    - @ref <number>::format(int, string, string)
 
     @since %Qore 0.8.6
  */
 string <float>::format(string fmt) [flags=CONSTANT] {
    return format_float_intern(*fmt, f, xsink);
+}
+
+//! Returns a formatted string of the floating-point number according to format arguments
+/** @param prec the number of digits after the decimal point; a negative value means to round that number of digits before the decimal place, whereas the special constant @ref SNF_AllDigits means to include all possible digits after the decimal point
+    @param decimal_sep a single character that defines the decimal separator; an empty string means no decimal separator
+    @param thousands_sep a single character that defines the thousands and further separators every three digits before the decimal point; an empty string means no thousands separator
+
+    @return a string representing the floating-point number according to the format arguments as described above
+
+    @par Example:
+    @code{.py}
+number n = -48392093894.2349n;
+string nstr = n.format(3, ".", ","); # returns "-48.392.093.894,235"
+    @endcode
+
+    @see
+    - @ref <number>::format(int, string, string)
+    - @ref <int>::format(int, string, string)
+    - @ref <number>::format(string)
+    - @ref <float>::format(string)
+    - @ref <int>::format(string)
+
+    @since %Qore 0.8.13
+ */
+string <float>::format(int prec = 2, string decimal_sep = ".", string thousands_sep = "") [flags=RET_VALUE_ONLY] {
+   return format_float_intern(prec, decimal_sep, thousands_sep, f, xsink);
 }
 
 //! Returns @ref True if the number is NaN (not a number)
