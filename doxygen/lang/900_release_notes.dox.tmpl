@@ -53,6 +53,10 @@
       - @ref foldr "foldlr": supports lazy evaluation of the iterator expression
       - @ref foreach "foreach": supports lazy evaluation of the iterator expression
     - implemented additional parse-time checks for many @ref operators "operators" to provide feedback for invalid operations detected at parse time
+    - new pseudo-methods:
+      - <int>::format(int, string, string)
+      - <float>::format(int, string, string)
+      - <number>::format(int, string, string)
     - new parse options:
       - @ref broken-loop-statement "%broken-loop-statement"
     - new constants:
@@ -425,7 +429,7 @@
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module fixes:
       - moved field length checks after all transformations have been applied
       - fixed bugs in the \c "timezone" and \c "input_timezone" options, documented those options
-      - fixed a bug where \c "constant" field tags assigned to a value that evaluated to boolean @ref False were not recognized (<a href="https://github.com/qorelanguage/qore/issues/610">issue 610</a>)
+      - fixed a bug where \c "constant" field tags assigned to a value that evaluated to boolean @ref Qore::False "False" were not recognized (<a href="https://github.com/qorelanguage/qore/issues/610">issue 610</a>)
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module fixes:
       - fixed a bug with queries using a \a desc argument with the \a orderby query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
       - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
@@ -803,7 +807,7 @@
       - return a 400 \c "Bad Request" error if an unsupported HTTP method is used in a REST Call
     - added new \c UpsertInsertOnly upsert strategy to <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>
     - new pseudo-methods:
-      - @ref <value>::sizep(): returns @ref Qore::True "True" if the type can return a non-zero size (@ref Qore::True "True" for containers including @ref binary "binary objects" and @ref string "strings", @ref False for everything else)
+      - @ref <value>::sizep(): returns @ref Qore::True "True" if the type can return a non-zero size (@ref Qore::True "True" for containers including @ref binary "binary objects" and @ref string "strings", @ref Qore::False "False" for everything else)
       - @ref <string>::getLine(): finds lines in a string buffer
     - <a href="../../modules/Mime/html/index.html">Mime.qm</a> module updates:
       - added mime type for WSDL files (\c "application/wsdl+xml")

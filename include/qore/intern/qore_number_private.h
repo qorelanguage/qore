@@ -41,6 +41,9 @@
 // the number of consecutive trailing 0 or 9 digits that will be rounded in string output if there are 2 trailing non-0/9 digits
 #define QORE_MPFR_ROUND_THRESHOLD_2 15
 
+// the magic precesion number that indicates that all decimals should be included in the output string when formatting
+#define QORE_NUM_ALL_DIGITS -999999
+
 #define QORE_DEFAULT_PREC 128
 #define QORE_MAX_PREC 8192
 #ifndef HAVE_MPFR_RNDN
@@ -268,6 +271,11 @@ struct qore_number_private : public qore_number_private_intern {
       return formatNumberString(str, fmt, xsink);
    }
 
+   DLLLOCAL int format(QoreString& str, int prec, const QoreString& dsep_str, const QoreString& tsep_str, ExceptionSink* xsink) {
+      getAsString(str);
+      return formatNumberString(str, prec, dsep_str, tsep_str, xsink);
+   }
+
    DLLLOCAL bool lessThan(const qore_number_private& right) const {
       return mpfr_less_p(num, right.num);
    }
@@ -483,8 +491,17 @@ struct qore_number_private : public qore_number_private_intern {
       n.priv->negateInPlace();
    }
 
+   DLLLOCAL static int doRound(QoreString& num, qore_offset_t& dp, int prec);
+
    DLLLOCAL static int formatNumberString(QoreString& num, const QoreString& fmt, ExceptionSink* xsink);
 
+   DLLLOCAL static int formatNumberString(QoreString& num, int prec, const QoreString& dsep_str, const QoreString& tsep_str, ExceptionSink* xsink);
+
+protected:
+   // assumes dsep, tsep and num all have the same encoding
+   DLLLOCAL static int formatNumberStringIntern(QoreString& num, int prec, const QoreString& dsep, const QoreString& tsep, ExceptionSink* xsink);
+
+public:
    DLLLOCAL static void numError(QoreString& str) {
       str.concat("<number error>");
    }

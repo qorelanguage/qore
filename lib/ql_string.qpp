@@ -295,6 +295,13 @@ QoreStringNode* format_float_intern(const QoreString& fmt, double num, Exception
    return str.release();
 }
 
+QoreStringNode* format_float_intern(int prec, const QoreString& dsep, const QoreString& tsep, double num, ExceptionSink* xsink) {
+   SimpleRefHolder<QoreStringNode> str(new QoreStringNodeMaker("%.*f", OP_DBL_Digs + 6, num));
+   if (qore_number_private::formatNumberString(**str, prec, dsep, tsep, xsink))
+      return 0;
+   return str.release();
+}
+
 /** @defgroup regex_constants Regular Expression Constants
     The constants in this group can be combined with @ref bitwise_or_operator "binary or" to give regular expression options
     for the regex(), regex_subst(), and regex_extract() functions.
