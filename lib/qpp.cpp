@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1136,7 +1136,7 @@ static size_t find_start(std::string& str) {
    return i + 5;
 }
 
-static int serialize_dox_comment(FILE* fp, std::string& buf, const strlist_t& dom = strlist_t(), const strlist_t& flags = strlist_t()) {
+static void process_comment(std::string& buf) {
    size_t start = 0;
 
    // edit references to pseudo-methods
@@ -1208,8 +1208,12 @@ static int serialize_dox_comment(FILE* fp, std::string& buf, const strlist_t& do
 
       buf.replace(start, end - start, tstr);
    }
+}
 
-   start = 0;
+static int serialize_dox_comment(FILE* fp, std::string& buf, const strlist_t& dom = strlist_t(), const strlist_t& flags = strlist_t()) {
+   process_comment(buf);
+
+   size_t start = 0;
    if (!flags.empty()) {
       start = find_start(buf);
       if (start == std::string::npos) {
@@ -1291,6 +1295,7 @@ public:
    }
 
    int serializeDox(FILE* fp) {
+      process_comment(doc);
       output_file(fp, doc);
 
       std::string qv;

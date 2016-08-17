@@ -226,7 +226,26 @@ int qore_number_private::formatNumberString(QoreString& num, int prec, const Qor
    return formatNumberStringIntern(num, prec, **dsep, **tsep, xsink);
 }
 
+int qore_number_private::doRound(QoreString& num, qore_offset_t& dp, int prec) {
+   // must round before the decimal point - get the position of the number to round
+   int dt = dp + prec;
+   bool roundup = (num[dt] > '4');
+   //printd(5, "qore_number_private::doRound() num: '%s' dp: " QLLD " prec: %d roundup: %d\n", num.c_str(), dp, prec, roundup);
+   // if the position is not in the string, then return 0
+   if (dt < 0 || (!roundup && !dt)) {
+      num.set("0", num.getEncoding());
+      return -1;
+   }
+   num.terminate(dp);
+   for (int i = dt; i < dp; ++i)
+      const_cast<char*>(num.c_str())[i] = '0';
+   if (roundup && roundUp(num, dt - 1))
+      ++dp;
+   return 0;
+}
+
 int qore_number_private::formatNumberStringIntern(QoreString& num, int prec, const QoreString& dsep, const QoreString& tsep, ExceptionSink* xsink) {
+   //printd(5, "qore_number_private::formatNumberStringIntern() num: '%s' prec: %d dsep: '%s' tsep: '%s'\n", num.c_str(), prec, dsep.c_str(), tsep.c_str());
    // non-zero flag: if any digits are non-zero
    bool nonzero = false;
 
@@ -264,21 +283,33 @@ int qore_number_private::formatNumberStringIntern(QoreString& num, int prec, con
          }
       }
 
-      // trim trailing zeros if precision is negative
+      // trim trailing zeros if only significant digits should be included or the precision is negative
       if (prec < 0) {
+         bool removed_decimal = false;
+
          num.trim_trailing('0');
          size_t len = num.size();
          if (num[len - 1] == '.') {
             num.terminate(len - 1);
-            prec = 0;
+            removed_decimal = true;
          }
-      }
 
+         // perform pre-decimal rounding if necessary
+         if (prec != QORE_NUM_ALL_DIGITS && doRound(num, dp, prec))
+            return 0;
+
+         if (removed_decimal)
+            prec = 0;
+      }
       // now substitute decimal point if necessary
-      if (prec && (dsep.strlen() != 1 || dsep[0] != '.'))
+      else if (prec > 0 && (dsep.strlen() != 1 || dsep[0] != '.'))
          num.replace(dp, 1, dsep.getBuffer());
    }
    else {
+      dp = num.size();
+      if ((prec < 0) && (prec != QORE_NUM_ALL_DIGITS) && doRound(num, dp, prec))
+         return 0;
+
       // scan for non-zero digits if negative
       if (ds) {
          for (const char* c = num.c_str(); *c; ++c) {
@@ -289,7 +320,6 @@ int qore_number_private::formatNumberStringIntern(QoreString& num, int prec, con
          }
       }
 
-      dp = num.size();
       if (prec > 0) {
          // add decimal point
          num.concat(&dsep);

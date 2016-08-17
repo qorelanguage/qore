@@ -41,6 +41,9 @@
 // the number of consecutive trailing 0 or 9 digits that will be rounded in string output if there are 2 trailing non-0/9 digits
 #define QORE_MPFR_ROUND_THRESHOLD_2 15
 
+// the magic precesion number that indicates that all decimals should be included in the output string when formatting
+#define QORE_NUM_ALL_DIGITS -999999
+
 #define QORE_DEFAULT_PREC 128
 #define QORE_MAX_PREC 8192
 #ifndef HAVE_MPFR_RNDN
@@ -487,6 +490,8 @@ struct qore_number_private : public qore_number_private_intern {
    DLLLOCAL static void negateInPlace(QoreNumberNode& n) {
       n.priv->negateInPlace();
    }
+
+   DLLLOCAL static int doRound(QoreString& num, qore_offset_t& dp, int prec);
 
    DLLLOCAL static int formatNumberString(QoreString& num, const QoreString& fmt, ExceptionSink* xsink);
 

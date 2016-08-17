@@ -148,8 +148,8 @@ public class NumbersTest inherits QUnit::Test {
         assertEq("-0.5", (-0.5n).format(""));
         assertEq("-1", (-0.5n).format(",.0"));
         assertEq("-0.49", (-0.49n).format(""));
-        assertEq("-0.49", (-0.49n).format(",.-1"));
-        assertEq("-0.5", (-0.50n).format(",.-1"));
+        assertEq("-0.49", (-0.49n).format(",.2"));
+        assertEq("-0.5", (-0.50n).format(",.1"));
         assertEq("0", (-0.49n).format(",.0"));
         assertEq("-0.5", (-0.49n).format(",.1"));
         assertEq("-0.00000001", (-0.000000005n).format(",.8"));
@@ -158,7 +158,7 @@ public class NumbersTest inherits QUnit::Test {
         assertEq("-48.392.093.894,235", (-48392093894.2349n).format(".,3"));
         assertEq("-48.392.093.894,235", format_number(".,3", -48392093894.2349n));
 
-        assertEq("1001.3299999", 1001.3299999n.format(-1).substr(0, 12));
+        assertEq("1001.3299999", 1001.3299999n.format(SNF_AllDigits).substr(0, 12));
         assertEq("1,001", 1001.3299999n.format(0, "", ","));
         assertEq("1,001", 1001.3299999n.format(0, ".", ","));
         assertEq("1,001.33", 1001.3299999n.format(2, NOTHING, ","));
@@ -166,21 +166,33 @@ public class NumbersTest inherits QUnit::Test {
         assertEq("1.001", 1001.3299999n.format(0, ",", "."));
         assertEq("1.001,33", 1001.3299999n.format(2, ",", "."));
 
-        /*
-        assertEq("0.5", 0.5n.format(""));
-        assertEq("1", 0.5n.format(",.0"));
-        assertEq("-0.5", (-0.5n).format(""));
-        assertEq("-1", (-0.5n).format(",.0"));
-        assertEq("-0.49", (-0.49n).format(""));
-        assertEq("-0.49", (-0.49n).format(",.-1"));
-        assertEq("-0.5", (-0.50n).format(",.-1"));
-        assertEq("0", (-0.49n).format(",.0"));
-        assertEq("-0.5", (-0.49n).format(",.1"));
-        assertEq("-0.00000001", (-0.000000005n).format(",.8"));
-        assertEq("0.00000000", (-0.000000004n).format(",.8"));
+        assertEq("0.5", 0.5n.format(SNF_AllDigits));
+        assertEq("1", 0.5n.format(0));
+        assertEq("1", 0.5n.format(0, ".", ","));
+        assertEq("-0.5", (-0.5n).format(SNF_AllDigits));
+        assertEq("-1", (-0.5n).format(0, ".", ","));
+        assertEq("-0.49", (-0.49n).format(SNF_AllDigits));
+        assertEq("-0.49", (-0.49n).format(SNF_AllDigits, ".", ","));
+        assertEq("-0.5", (-0.50n).format(SNF_AllDigits, ".", ","));
+        assertEq("0", (-0.49n).format(0, ".", ","));
+        assertEq("-0.5", (-0.49n).format(1, "."));
+        assertEq("-0.00000001", (-0.000000005n).format(8, ".", ","));
+        assertEq("0.00000000", (-0.000000004n).format(8, ".", ","));
 
-        assertEq("-48.392.093.894,235", (-48392093894.2349n).format(".,3"));
-        assertEq("-48.392.093.894,235", format_number(".,3", -48392093894.2349n));
-        */
+        assertEq("10", 5n.format(-1));
+        assertEq("0", 5n.format(-2));
+        assertEq("0", 5n.format(-3));
+        assertEq("450", 449n.format(-1));
+        assertEq("400", 449n.format(-2));
+        assertEq("25,400", 25449n.format(-2, NOTHING, ","));
+        assertEq("-25,400", (-25449n).format(-2, NOTHING, ","));
+        assertEq("-25,500", (-25450n).format(-2, NOTHING, ","));
+        assertEq("-1,000", (-500n).format(-3, NOTHING, ","));
+
+        assertEq("-48.392.093.894,235", (-48392093894.2349n).format(3, ",", "."));
+
+        assertEq("1000", 1001n.format(-3));
+        assertEq("0", 1001n.format(-4));
+        assertEq("0", 1001n.format(-5));
     }
 }
