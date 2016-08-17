@@ -82,10 +82,12 @@ module RestClient {
     The main classes are:
     - @ref RestClient::RestClient "RestClient": this class provides the REST client API
 
-    The @ref RestClient::RestClient "RestClient" class can support three methods of data serialization:
+    The @ref RestClient::RestClient "RestClient" class can support these methods of data serialization:
     - \c "json": using the \c "json" module; messages bodies are encoded using JSON
     - \c "yaml": using the \c "yaml" module; message bodies are encoded using YAML
-    - \c "xml": using the \c "xml" module; message bodies are encoded using XML-RPC value encoding
+    - \c "xml_rpc": using the \c "xml" module; message bodies are encoded using XML-RPC value encoding
+    - \c "xml": using the \c "xml" module; message bodies are encoded using XML value encoding
+    - \c "text": message bodies are not serialized, plain text value is used
 
     If none of the above modules can be loaded by the RestClient module, then the RestClient module will fail to initialize.
 
@@ -155,9 +157,13 @@ public namespace RestClient {
                 ),
 %endif
 %ifndef NoXml
-                "xml": (
+                "xml_rpc": (
                     "ct": MimeTypeXml,
                     "out": \make_xmlrpc_value(),
+                ),
+                "xml": (
+                    "ct": MimeTypeXml,
+                    "out": \make_xml(),
                 ),
 %endif
                 "text": (
@@ -175,8 +181,13 @@ public namespace RestClient {
 %endif
 %ifndef NoXml
             const DeserializeXmlRpc = (
+                    "code": "xml_rpc",
+                    "in": \parse_xmlrpc_response(),
+                    "continue_on_error" : True,
+                );
+            const DeserializeXml = (
                     "code": "xml",
-                    "in": \parse_xmlrpc_value(),
+                    "in": \parse_xml(),
                 );
 %endif
 
@@ -193,8 +204,8 @@ public namespace RestClient {
                 MimeTypeYaml: DeserializeYaml,
 %endif
 %ifndef NoXml
-                MimeTypeXml: DeserializeXmlRpc,
-                MimeTypeXmlApp: DeserializeXmlRpc,
+                MimeTypeXml: (DeserializeXmlRpc, DeserializeXml, ),
+                MimeTypeXmlApp: (DeserializeXmlRpc, DeserializeXml, ),
 %endif
                 MimeTypeText: (
                     "code": "text",
@@ -244,6 +255,7 @@ public namespace RestClient {
                 "auto": True,
 %ifndef NoXml
                 "xml": True,
+                "xml_rpc": True,
 %endif
 %ifndef NoJson
                 "json": True,
@@ -731,16 +743,29 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
         decodeResponse(reference h, *reference info) {
             info."response-body" = h.body;
 
-            *hash dh = DataDeserializationSupport.(h."content-type");
+            *softlist dh = DataDeserializationSupport.(h."content-type");
             if (!dh)
                 throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y; types supported: %y; response body: %y", h."content-type", DataDeserializationSupport.keys(), h.body);
 
-            if (h.body.typeCode() != NT_STRING)
-                throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y but body type is %y", h."content-type", h.body.type());
+            ListIterator it(dh);
+            while (it.next()) {
+                if (h.body.typeCode() != NT_STRING)
+                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y but body type is %y", h."content-type", h.body.type());
 
-            h.body = dh.in(h.body);
+                try {
+                    any parsed = it.getValue().in(h.body);
+                    h.body = parsed;
+                    info."response-serialization" = it.getValue().code;
+                    break;
+                }
+                catch (hash ex) {
+                    if (!it.getValue().continue_on_error)
+                        rethrow;
+                    continue;
+                }
 
-            info."response-serialization" = dh.code;
+            } # while
         }
-    }
+
+    } # class RestClient
 }
