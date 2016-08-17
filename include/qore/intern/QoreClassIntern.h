@@ -385,10 +385,8 @@ public:
       assert(signature.selfid);
       signature.selfid->instantiateSelf(self);
 
-      if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
-	 return;
-
-      evalIntern(uveh.getArgv(), 0, xsink).discard(xsink);
+      if (!constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
+         evalIntern(uveh.getArgv(), 0, xsink).discard(xsink);
 
       // if self then uninstantiate
       signature.selfid->uninstantiateSelf();
