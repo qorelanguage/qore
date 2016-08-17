@@ -82,24 +82,34 @@
       - added logic to attempt to mask passwords in debug log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module fixes:
       - fixed a bug in update and upsert statement generation when the given data does not have enough columns to use the unique index found, an error message is generated that contains all the columns names instead of just the column names required by the index (<a href="https://github.com/qorelanguage/qore/issues/1013">issue 1013</a>)
+    - fixed a bug where @ref break "break" and @ref continue "continue" statements were accepted outside of loops (<a href="https://github.com/qorelanguage/qore/issues/976">issue 976</a>)
+    - fixed a bug compiling on Solaris SPARC with g++ where \c MPFR_DECL_INIT() is compiled incorrectly with -O1 or greater (<a href="https://github.com/qorelanguage/qore/issues/958">issue 958</a>)
+    - fixed a bug causing an infinite loop in decompression functions (<a href="https://github.com/qorelanguage/qore/issues/966">issue 966</a>)
+    - fixed an issue where an internal C++ API (QoreProgram::parseCmdLineDefines()) performed a needless copy of a data structure (<a href="https://github.com/qorelanguage/qore/issues/1099">issue 1099</a>)
+    - fixed a stack corruption bug with asynchronous I/O on UNIX systems with @ref Qore::ReadOnlyFile "ReadOnlyFile" methods (<a href="https://github.com/qorelanguage/qore/issues/1106">issue 1106</a>)
+    - fixed BulkSqlUtil module to work properly even with DB drivers that do not support parameter array binding (<a href="https://github.com/qorelanguage/qore/issues/1154">issue 1154</a>)
+    - fixed bugs with inconsistent conversions of @ref int_type "int", @ref float_type "float", and @ref bool_type "boolean" values to date/time values, now they are all converted uniformly to @ref relative_dates "relative date/time values" (<a href="https://github.com/qorelanguage/qore/issues/1156">issue 1156</a>)
+
+    @section qore_08121 Qore 0.8.12.1
+
+    @par Release Summary
+    Bugfix release; see details below
+
+    @subsection qore_0812_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module fixes:
       - fixed a bug with the \c SqlStatementOutboundMapper::iterator() method; corrected the iterator object return value which was causing \c AbstractMapperIterator::mapBulk() to fail (<a href="https://github.com/qorelanguage/qore/issues/979">issue 979</a>)
       - fixed a bug with \c SqlStatementOutboundMapper; it would throw an error if the required \c "table" or \c "sh" options were used and only worked with subclasses that declared these options (<a href="https://github.com/qorelanguage/qore/issues/981">issue 981</a>)
       - fixed a bug where \c AbstractSqlStatementOutboundMapper::iterator() failed to use options when creating the new \c Mapper object (<a href="https://github.com/qorelanguage/qore/issues/1088">issue 1088</a>)
     - fixed a bug where optional arguments were not handled correctly in some rare cases (<a href="https://github.com/qorelanguage/qore/issues/974">issue 974</a>)
     - fixed a bug causing a crash when @ref Qore::parse_base64_string_to_string() "parse_base64_string_to_string()" was called with an empty string (<a href="https://github.com/qorelanguage/qore/issues/996">issue 996</a>)
-    - fixed a bug where @ref break "break" and @ref continue "continue" statements were accepted outside of loops (<a href="https://github.com/qorelanguage/qore/issues/976">issue 976</a>)
-    - fixed a bug compiling on Solaris SPARC with g++ where \c MPFR_DECL_INIT() is compiled incorrectly with -O1 or greater (<a href="https://github.com/qorelanguage/qore/issues/958">issue 958</a>)
     - fixed a bug resolving base class method calls during parse initialization (<a href="https://github.com/qorelanguage/qore/issues/1075">issue 1075</a>)
-    - fixed a bug causing an infinite loop in decompression functions (<a href="https://github.com/qorelanguage/qore/issues/966">issue 966</a>)
     - fixed thread memory handling bug with some operator expressions and the @ref background "background operator" (<a href="https://github.com/qorelanguage/qore/issues/1096">issue 1096</a>)
-    - fixed an issue where an internal C++ API (QoreProgram::parseCmdLineDefines()) performed a needless copy of a data structure (<a href="https://github.com/qorelanguage/qore/issues/1099">issue 1099</a>)
-    - fixed a stack corruption bug with asynchronous I/O on UNIX systems with @ref Qore::ReadOnlyFile "ReadOnlyFile" methods (<a href="https://github.com/qorelanguage/qore/issues/1106">issue 1106</a>)
-    - fixed a bug where @ref Qore::HTTPClient "HTTPClient" class method variants such as @ref Qore::HTTPClient::get() "HTTPClient::get()" without a callback would fail to return the message body when the server sent a reply with chunked transfer encoding (<a href="https://github.com/qorelanguage/qore/issues/1117">issue 1117</a>)
     - fixed a race condition in the prompt collection of closure-bound local variables in the @ref garbage_collection "garbage collector" (<a href="https://github.com/qorelanguage/qore/issues/1103">issue 1103</a>)
+    - fixed a bug where @ref Qore::HTTPClient "HTTPClient" class method variants such as @ref Qore::HTTPClient::get() "HTTPClient::get()" without a callback would fail to return the message body when the server sent a reply with chunked transfer encoding (<a href="https://github.com/qorelanguage/qore/issues/1117">issue 1117</a>)
+    - fixed a bug in CsvUtil where backward compatibility was broken for single-row-type format (<a href="https://github.com/qorelanguage/qore/issues/1124">issue 1124</a>)
+    - fixed bugs where declared public functions were missing from the library ABI (<a href="https://github.com/qorelanguage/qore/issues/1126">issue 1126</a>)
     - fixed bugs where @ref Qore::format_number() and <float>::format() gave incorrect results when rounding to the significant decimals given in the format string (<a href="https://github.com/qorelanguage/qore/issues/1149">issue 1149</a>)
-    - fixed bugs with inconsistent conversions of @ref int_type "int", @ref float_type "float", and @ref bool_type "boolean" values to date/time values, now they are all converted uniformly to @ref relative_dates "relative date/time values" (<a href="https://github.com/qorelanguage/qore/issues/1156">issue 1156</a>)
-    - fixed BulkSqlUtil module to work properly even with DB drivers that do not support parameter array binding (<a href="https://github.com/qorelanguage/qore/issues/1154">issue 1154</a>)
+    - fixed a bug referencing \c self in base class constructor arguments (<a href="https://github.com/qorelanguage/qore/issues/1169">issue 1169</a>)
 
     @section qore_0812 Qore 0.8.12
 
