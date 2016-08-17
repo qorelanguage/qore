@@ -47,7 +47,7 @@ class Test inherits QUnit::Test {
             "encoding"     : "UTF-8",
             "eol"          : "\n",
             "ignore_empty" : True,
-            "timezone"     : "UTC", # used if not in some date column specification
+            "timezone"     : "UTC", # used if not overridden in date field specifications
             );
     }
 
@@ -67,6 +67,9 @@ class Test inherits QUnit::Test {
         on_exit unlink(file);
 
         FixedLengthFileIterator i(file, Specs, GlobalOptions);
+        assertEq(True, i.hasCallableMethod("hstat"));
+        assertEq(True, i.hasCallableMethod("stat"));
+        assertEq(True, i.hasCallableMethod("getFileName"));
         testAssertionValue("line 1 is there", i.next(), True);
         testAssertionValue("line 1 content check", i.getValue(), ("type": "type1", "record": ("col1" : 11111, "col2" : "bb")));
         testAssertionValue("line 2 is there", i.next(), True);
