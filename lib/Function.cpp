@@ -1296,6 +1296,7 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
 QoreValue UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreObject *self, ExceptionSink* xsink) const {
    QoreValue val;
    if (statements) {
+      // self might be 0 if instantiated by a constructor call
       if (self && signature.selfid)
          signature.selfid->instantiateSelf(self);
 
@@ -1320,6 +1321,7 @@ QoreValue UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreO
       signature.argvid->uninstantiate(xsink);
 
       // if self then uninstantiate
+      // self might be 0 if instantiated by a constructor call
       if (self && signature.selfid)
          signature.selfid->uninstantiateSelf();
    }
