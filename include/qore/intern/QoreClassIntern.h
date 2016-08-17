@@ -381,10 +381,17 @@ public:
       CallStackHelper csh("constructor", CT_USER, self, xsink);
 #endif
 
+      if (signature.selfid)
+         signature.selfid->instantiateSelf(self);
+
       if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
 	 return;
 
-      evalIntern(uveh.getArgv(), self, xsink).discard(xsink);
+      evalIntern(uveh.getArgv(), 0, xsink).discard(xsink);
+
+      // if self then uninstantiate
+      if (signature.selfid)
+         signature.selfid->uninstantiateSelf();
    }
 
    DLLLOCAL virtual void parseInit(QoreFunction* f);
