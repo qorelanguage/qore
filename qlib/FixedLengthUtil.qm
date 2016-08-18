@@ -711,7 +711,7 @@ map printf("%y\n", $1), i;
 public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::FixedLengthAbstractIterator {
     private {
         #! the path of the file being iterated
-        string filepath;
+        string m_file_path;
     }
 
     #! Instantiates the FixedLengthFileIterator object
@@ -721,7 +721,7 @@ public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::
         @param opts Global options; see @ref fixedlengthglobals for more information
     */
     constructor(string path, hash spec, *hash opts) : FixedLengthAbstractIterator(new InputStreamLineIterator(new FileInputStream(path), opts.encoding, opts.eol), spec, opts) {
-        filepath = path;
+        m_file_path = path;
         # do not convert every string to the same encoding
         m_opts.input_encoding = remove m_opts.encoding;
     }
@@ -733,17 +733,17 @@ public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::
 
     #! Returns the file path/name used to open the file
     string getFileName() {
-        return filepath;
+        return m_file_path;
     }
 
     #! Returns a @ref stat_hash "stat hash" of the underlying file
     hash hstat() {
-        return Qore::hstat(filepath);
+        return Qore::hstat(m_file_path);
     }
 
     #! Returns a @ref stat_list "stat list" of the underlying file
     list stat() {
-        return Qore::stat(filepath);
+        return Qore::stat(m_file_path);
     }
 }
 
