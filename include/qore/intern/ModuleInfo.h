@@ -342,10 +342,20 @@ typedef std::set<std::string> strset_t;
 typedef std::map<std::string, strset_t> md_map_t;
 
 class ModMap {
+private:
+   DLLLOCAL ModMap(const ModMap &);
+   DLLLOCAL ModMap& operator=(const ModMap&);
+
 protected:
    md_map_t map;
 
 public:
+   DLLLOCAL ModMap() {
+   }
+
+   DLLLOCAL ~ModMap() {
+   }
+
    DLLLOCAL bool addDep(const char* l, const char* r) {
       md_map_t::iterator i = map.lower_bound(l);
       if (i == map.end() || i->first != l)
