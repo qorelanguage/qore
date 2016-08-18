@@ -85,8 +85,8 @@ module RestClient {
     The @ref RestClient::RestClient "RestClient" class can support these methods of data serialization:
     - \c "json": using the \c "json" module; messages bodies are encoded using JSON
     - \c "yaml": using the \c "yaml" module; message bodies are encoded using YAML
-    - \c "xml_rpc": using the \c "xml" module; message bodies are encoded using XML-RPC value encoding
-    - \c "xml": using the \c "xml" module; message bodies are encoded using XML value encoding
+    - \c "xml": using the \c "xml" module; message bodies are encoded using XML-RPC value encoding
+    - \c "xml_war": using the \c "xml" module; message bodies are encoded using XML value encoding
     - \c "text": message bodies are not serialized, plain text value is used
 
     If none of the above modules can be loaded by the RestClient module, then the RestClient module will fail to initialize.
@@ -157,13 +157,13 @@ public namespace RestClient {
                 ),
 %endif
 %ifndef NoXml
-                "xml_rpc": (
+                "xml_raw": (
                     "ct": MimeTypeXml,
-                    "out": \make_xmlrpc_value(),
+                    "out": \make_xml(),
                 ),
                 "xml": (
                     "ct": MimeTypeXml,
-                    "out": \make_xml(),
+                    "out": \make_xmlrpc_value(),
                 ),
 %endif
                 "text": (
@@ -186,7 +186,7 @@ public namespace RestClient {
                     "continue_on_error" : True,
                 );
             const DeserializeXml = (
-                    "code": "xml",
+                    "code": "xml_raw",
                     "in": \parse_xml(),
                 );
 %endif
@@ -212,7 +212,7 @@ public namespace RestClient {
                     "in": string sub (string s) { return s; },
                 ),
 
-                };
+            };
 
             #! Accept header list
             const AcceptList = (
@@ -225,7 +225,7 @@ public namespace RestClient {
 %ifndef NoJson
                 MimeTypeJsonRpc,
 %endif
-                MimeTypeText
+                MimeTypeText,
                 );
 
             #! Accept header value
@@ -245,23 +245,24 @@ public namespace RestClient {
 
             #! Data serialization options; this is a hash to simulate a set of strings
             /** Data serialization options are as follows:
-                - \c "auto": prefers in this order: json, yaml, xml-rpc
-                - \c "xml": use only XML-RPC serialization
+                - \c "auto": prefers in this order: json, yaml, xml, xml-rpc, and text
                 - \c "json": use only JSON serialization
                 - \c "yaml": use only YAML serialization
+                - \c "xml_raw": use raw XML message
+                - \c "xml": use only XML-RPC serialization
                 - \c "text": use only plain text. No serialization is used.
              */
             const DataSerializationOptions = (
                 "auto": True,
-%ifndef NoXml
-                "xml": True,
-                "xml_rpc": True,
-%endif
 %ifndef NoJson
                 "json": True,
 %endif
 %ifndef NoYaml
                 "yaml": True,
+%endif
+%ifndef NoXml
+                "xml": True,
+                "xml_raw": True,
 %endif
                 "text": True,
                 );
