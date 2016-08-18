@@ -1,0 +1,101 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../../qlib/QUnit.qm
+
+const Data = (
+    "abcdef",
+    "xyz42",
+    "123456"
+);
+
+%exec-class AbstractLineIteratorTest
+
+class AbstractLineIteratorTest inherits QUnit::Test {
+    public {
+        string WithNLines;
+        string WithRNLines;
+        string WithRLines;
+    }
+
+    constructor() : QUnit::Test("AbstractLineIterator test", "1.0") {
+        addTestCase("Tests", \tests());
+        set_return_value(main());
+    }
+
+    globalSetUp() {
+        WithNLines = foldl $1 + "\n" + $2, Data;
+        WithRNLines = foldl $1 + "\r\n" + $2, Data;
+        WithRLines = foldl $1 + "\r" + $2, Data;
+    }
+
+    tests() {
+        AbstractLineIterator a = new DataLineIterator(WithNLines);
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(1, a.index());
+        assertEq(Data[0], a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(2, a.index());
+        assertEq(Data[1], a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(3, a.index());
+        assertEq(Data[2], a.getValue());
+        assertFalse(a.next());
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+
+        a = new DataLineIterator(WithRNLines);
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(1, a.index());
+        assertEq(Data[0], a.getLine());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(2, a.index());
+        assertEq(Data[1], a.getLine());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(3, a.index());
+        assertEq(Data[2], a.getLine());
+        assertFalse(a.next());
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+
+        a = new DataLineIterator(WithRLines);
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(1, a.index());
+        assertEq(Data[0], a.getLine());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(2, a.index());
+        assertEq(Data[1], a.getLine());
+        assertTrue(a.next());
+        assertTrue(a.valid());
+        assertEq(3, a.index());
+        assertEq(Data[2], a.getLine());
+        assertFalse(a.next());
+        assertFalse(a.valid());
+        assertEq(0, a.index());
+        assertThrows('ITERATOR-ERROR', \a.getValue());
+    }
+}
