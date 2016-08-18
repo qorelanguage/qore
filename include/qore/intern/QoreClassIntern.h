@@ -381,10 +381,15 @@ public:
       CallStackHelper csh("constructor", CT_USER, self, xsink);
 #endif
 
-      if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
-	 return;
+      // instantiate "self" before executing base class constructors in case base class constructor arguments reference "self"
+      assert(signature.selfid);
+      signature.selfid->instantiateSelf(self);
 
-      evalIntern(uveh.getArgv(), self, xsink).discard(xsink);
+      if (!constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
+         evalIntern(uveh.getArgv(), 0, xsink).discard(xsink);
+
+      // if self then uninstantiate
+      signature.selfid->uninstantiateSelf();
    }
 
    DLLLOCAL virtual void parseInit(QoreFunction* f);
