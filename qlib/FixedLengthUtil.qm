@@ -710,10 +710,11 @@ map printf("%y\n", $1), i;
 */
 public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::FixedLengthAbstractIterator {
     private {
+        #! the path of the file being iterated
         string m_file_path;
     }
 
-    #! Instantiates the FixedLengthFileIterator object.
+    #! Instantiates the FixedLengthFileIterator object
     /**
         @param path File path to read
         @param spec Fixed-length line specification; see @ref fixedlengthspec for more information
@@ -725,9 +726,24 @@ public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::
         m_opts.input_encoding = remove m_opts.encoding;
     }
 
-    #! Return the file name (including path, if used)
+    #! Returns the character encoding for the file
+    string getEncoding() {
+        return m_opts.input_encoding ?? get_default_encoding();
+    }
+
+    #! Returns the file path/name used to open the file
     string getFileName() {
         return m_file_path;
+    }
+
+    #! Returns a @ref stat_hash "stat hash" of the underlying file
+    hash hstat() {
+        return Qore::hstat(m_file_path);
+    }
+
+    #! Returns a @ref stat_list "stat list" of the underlying file
+    list stat() {
+        return Qore::stat(m_file_path);
     }
 }
 
@@ -1133,6 +1149,9 @@ w.write(data);
 */
 public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::FixedLengthAbstractWriter {
     private {
+        #! file name
+        string file;
+        #! file object
         File m_file();
     }
 
@@ -1143,12 +1162,13 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
         @param opts Global options; see @ref fixedlengthglobals for valid values
     */
     constructor(string file_name, hash specs, *hash opts) : FixedLengthUtil::FixedLengthAbstractWriter(specs, opts)  {
+        file = file_name;
         m_file.open2(file_name, O_WRONLY | O_CREAT | m_opts.file_flags, NOTHING, opts.encoding);
     }
 
     #! Return the file name (including path, if used)
     string getFileName() {
-        return m_file.getFileName();
+        return file;
     }
 
     #! Renders a single line for a single input record hash to the output file
