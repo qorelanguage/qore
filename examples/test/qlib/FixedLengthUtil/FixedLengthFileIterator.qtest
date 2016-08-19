@@ -70,6 +70,7 @@ class Test inherits QUnit::Test {
         assertEq(True, i.hasCallableMethod("hstat"));
         assertEq(True, i.hasCallableMethod("stat"));
         assertEq(True, i.hasCallableMethod("getFileName"));
+        assertEq(True, i.hasCallableMethod("getEncoding"));
         testAssertionValue("line 1 is there", i.next(), True);
         testAssertionValue("line 1 content check", i.getValue(), ("type": "type1", "record": ("col1" : 11111, "col2" : "bb")));
         testAssertionValue("line 2 is there", i.next(), True);
