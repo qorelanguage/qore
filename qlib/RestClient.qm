@@ -49,7 +49,7 @@
 %endtry
 
 module RestClient {
-    version = "1.3";
+    version = "1.4";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -86,7 +86,7 @@ module RestClient {
     - \c "json": using the \c "json" module; messages bodies are encoded using JSON
     - \c "yaml": using the \c "yaml" module; message bodies are encoded using YAML
     - \c "xml": using the \c "xml" module; message bodies are encoded using XML-RPC value encoding
-    - \c "xml_war": using the \c "xml" module; message bodies are encoded using XML value encoding
+    - \c "xml_raw": using the \c "xml" module; message bodies are encoded using XML value encoding
     - \c "text": message bodies are not serialized, plain text value is used
 
     If none of the above modules can be loaded by the RestClient module, then the RestClient module will fail to initialize.
@@ -108,6 +108,11 @@ printf("%N\n", ans.body);
     See example file \c "rest" in the examples directory for a more detailed example using this module
 
     @section restclientrelnotes Release Notes
+
+    @subsection restclientv1_4 RestClient v1.4
+    - added:
+      - support for \c text/plain Content-Type
+      - support for \c xml_raw serialization and deserialization
 
     @subsection restclientv1_3 RestClient v1.3
     - added:
