@@ -8057,6 +8057,8 @@ Table table("pgsql:user/pass@db%host", "table");
             bool inDb = False;
             #! manual edits
             bool manual = False;
+            #! use brute-force bulk DML
+            bool bruteBulkDML = False;
         }
 
         #! creates the object; private constructor
@@ -8138,6 +8140,18 @@ bool b = table.inDb();
         */
         bool inDb() {
             return inDb;
+        }
+
+        #! returns @ref Qore::True "True" if the table uses brute-force bulk DML, @ref Qore::False "False" if not
+        /** @par Example:
+            @code{.py}
+bool b = table.usesBruteBulkDML();
+            @endcode
+
+            @return @ref Qore::True "True" if the table uses brute-force bulk DML, @ref Qore::False "False" if not
+        */
+        bool usesBruteBulkDML() {
+            return bruteBulkDML;
         }
 
         #! returns an iterator for all unique constraints on the table (including the primary key if any)
@@ -10508,24 +10522,46 @@ table.insert(row);
                     }
                 }
                 if (size) {
-                     hash rv;
-                     for (int i = 0; i < size; ++i) {
-                         # get arg list for row
-                         list targs = map $1.typeCode() == NT_LIST ? $1[i] : $1, args;
-                         if (opt.returning) {
-                             if (!rv) {
-                                 hash h = doReturningImpl(opt, \sql, targs);
-                                 map rv{$1.key} += ($1.value,), h.pairIterator();
-                             }
-                             else {
-                                 hash h = execData(opt, sql, targs);
-                                 map rv{$1.key} += $1.value, h.pairIterator();
-                             }
-                         }
-                         else
-                             execData(opt, sql, targs);
-                     }
-                     return rv;
+                    hash rv;
+                    if (bruteBulkDML) {
+                        string sqlbase = sql;
+                        int batchSize = args.size() == 0 ? size : int(2000 / args.size());
+                        int target = batchSize;
+                        for (int x = 0; x < size; x += batchSize) { # Cycle through batches.
+                           list targs = ();
+                           sql = "";
+                           if (target > size)
+                               target = size;
+                           for (int i = x; i < target; i++) {
+                              # Get arg list for row.
+                              targs += map $1.typeCode() == NT_LIST ? $1[i] : $1, args;
+                              sql += sqlbase + ";";
+                           }
+                           execData(opt, sql, targs);
+                           target += batchSize;
+                        }
+                    }
+                    else {
+                        for (int i = 0; i < size; ++i) {
+                            # get arg list for row
+                            list targs = map $1.typeCode() == NT_LIST ? $1[i] : $1, args;
+                            if (opt.returning) {
+                                if (!rv) {
+                                    hash h = doReturningImpl(opt, \sql, targs);
+                                    map rv{$1.key} += ($1.value,), h.pairIterator();
+                                }
+                                else {
+                                    hash h = execData(opt, sql, targs);
+                                    map rv{$1.key} += $1.value, h.pairIterator();
+                                }
+                            }
+                            else {
+                                execData(opt, sql, targs);
+                            }
+                        }
+                    }
+
+                    return rv;
                 }
             }
 
