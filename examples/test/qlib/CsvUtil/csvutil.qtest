@@ -6,6 +6,7 @@
 %require-types
 %strict-args
 
+%requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/CsvUtil.qm
 
@@ -39,17 +40,19 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
 }
 
     constructor() : Test("CsvUtilTest", "1.0") {
-        addTestCase("Basic CSV tests", \csvTest(), NOTHING);
-        addTestCase("Optional field CSV tests", \csvOptionalFieldTest(), NOTHING);
-        addTestCase("Multi-type CSV tests", \csvMultiTest(), NOTHING);
-        addTestCase("Single-type CSV tests", \csvSingleTest(), NOTHING);
-        addTestCase("Single-type CSV map tests", \csvSingleMapTest(), NOTHING);
+        addTestCase("Basic CSV tests", \csvTest());
+        addTestCase("Optional field CSV tests", \csvOptionalFieldTest());
+        addTestCase("Multi-type CSV tests", \csvMultiTest());
+        addTestCase("Single-type CSV tests", \csvSingleTest());
+        addTestCase("Single-type CSV map tests", \csvSingleMapTest());
 
         addTestCase("Escaping", \escapeTest());
-        addTestCase("Old style CSV tests", \csvOldStyleMultiTest(), NOTHING);
-        addTestCase("Multi-type resolve CSV tests", \csvMultiResolveTest(), NOTHING);
+        addTestCase("Old style CSV tests", \csvOldStyleMultiTest());
+        addTestCase("Multi-type resolve CSV tests", \csvMultiResolveTest());
 
-        addTestCase("Config stress", \csvConfig(), NOTHING);
+        addTestCase("Config stress", \csvConfig());
+
+        addTestCase("CSV file iterator", \csvFileIterator());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -486,7 +489,6 @@ UK,1234567893,28052012";
             "1234,A,1,2\n";
 
         hash Specs = (
-
             "type2_value1_0" : (
                 "col1" : (
                     "type"   : "int",
@@ -620,6 +622,25 @@ UK,1234567893,28052012";
         );
         MyCsvDataIterator i(Data, Specs, GlobalOptions);
         testAssertion("multi type resolving", \equalsIterated(), (new ListIterator(Result), i));
+    }
+
+    csvFileIterator() {
+        string file = tmp_location() + "/test-file.csv";
+        unlink(file);
+        {
+            File f();
+            f.open2(file, O_WRONLY | O_CREAT);
+            f.write("a,b,c\n1,2,3\n");
+        }
+        on_exit unlink(file);
+
+        CsvFileIterator i(file);
+        assertEq(True, i.hasCallableMethod("hstat"));
+        assertEq(True, i.hasCallableMethod("stat"));
+        assertEq(True, i.hasCallableMethod("getFileName"));
+        assertEq(True, i.hasCallableMethod("getEncoding"));
+
+        assertEq((("0": "a", "1": "b", "2": "c"), ("0": "1", "1": "2", "2": "3")), (map $1, i));
     }
 }
 
