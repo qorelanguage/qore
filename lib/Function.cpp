@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1294,10 +1294,9 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
 QoreValue UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreObject *self, ExceptionSink* xsink) const {
    QoreValue val;
    if (statements) {
-      if (signature.selfid) {
-	 assert(self);
+      // self might be 0 if instantiated by a constructor call
+      if (self && signature.selfid)
          signature.selfid->instantiateSelf(self);
-      }
 
       // instantiate argv and push id on stack
       signature.argvid->instantiate(argv ? argv->refSelf() : 0);
@@ -1320,7 +1319,8 @@ QoreValue UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreO
       signature.argvid->uninstantiate(xsink);
 
       // if self then uninstantiate
-      if (signature.selfid)
+      // self might be 0 if instantiated by a constructor call
+      if (self && signature.selfid)
          signature.selfid->uninstantiateSelf();
    }
    else {

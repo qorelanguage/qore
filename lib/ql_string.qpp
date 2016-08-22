@@ -295,6 +295,13 @@ QoreStringNode* format_float_intern(const QoreString& fmt, double num, Exception
    return str.release();
 }
 
+QoreStringNode* format_float_intern(int prec, const QoreString& dsep, const QoreString& tsep, double num, ExceptionSink* xsink) {
+   SimpleRefHolder<QoreStringNode> str(new QoreStringNodeMaker("%.*f", OP_DBL_Digs + 6, num));
+   if (qore_number_private::formatNumberString(**str, prec, dsep, tsep, xsink))
+      return 0;
+   return str.release();
+}
+
 /** @defgroup regex_constants Regular Expression Constants
     The constants in this group can be combined with @ref bitwise_or_operator "binary or" to give regular expression options
     for the regex(), regex_subst(), and regex_extract() functions.
@@ -1909,6 +1916,10 @@ number n = parse_number("1.150.200,55", ".,");
 
     @return the number value represented by the string
 
+    @see
+    - @ref parse_int()
+    - @ref parse_float()
+
     @since %Qore 0.8.11.1
 */
 number parse_number(string str, string fmt) [flags=RET_VALUE_ONLY] {
@@ -1923,16 +1934,20 @@ number parse_number(string str, string fmt) [flags=RET_VALUE_ONLY] {
    return new QoreNumberNode(tmp.getBuffer());
 }
 
-//! returns a number corresponding to the string and the argument, giving the format
+//! returns a floating-point value corresponding to a string representing the number and an argument giving the format
 /** @par Example:
     @code{.py}
-number n = parse_number("1.150.200,55", ".,");
+float f = parse_float("1.150.200,55", ".,");
     @endcode
 
     @param str the string to parse
     @param fmt the format of the number in the string, consisting of two characters, the first for the thousands separator, the second for the decimal point (ex: \c ".," for many European locales)
 
-    @return the number value represented by the string
+    @return the floating-point value represented by the string
+
+    @see
+    - @ref parse_number()
+    - @ref parse_int()
 
     @since %Qore 0.8.11.1
 */
@@ -1946,5 +1961,34 @@ float parse_float(string str, string fmt) [flags=RET_VALUE_ONLY] {
       return QoreValue();
 
    return strtod(tmp.getBuffer(), 0);
+}
+
+//! returns an integer corresponding to a string representing the number and an argument giving the format
+/** @par Example:
+    @code{.py}
+int i = parse_int("1.150.200,55", ".,");
+    @endcode
+
+    @param str the string to parse
+    @param fmt the format of the number in the string, consisting of two characters, the first for the thousands separator, the second for the decimal point (ex: \c ".," for many European locales)
+
+    @return the number value represented by the string
+
+    @see
+    - @ref parse_number()
+    - @ref parse_float()
+
+    @since %Qore 0.8.13
+*/
+int parse_int(string str, string fmt) [flags=RET_VALUE_ONLY] {
+   TempEncodingHelper tfmt(fmt, str->getEncoding(), xsink);
+   if (*xsink)
+      return QoreValue();
+
+   QoreString tmp(*str);
+   if (fix_num(tmp, **tfmt, xsink))
+      return QoreValue();
+
+   return strtoll(tmp.getBuffer(), 0, 10);
 }
 //@}

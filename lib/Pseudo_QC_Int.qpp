@@ -99,14 +99,14 @@ bool <int>::strp() [flags=CONSTANT] {
    return true;
 }
 
-//! Returns a string of a formatted number according to a format string
+//! Returns a formatted string of the integer according to the format argument
 /** @param fmt the format string has the following format:\n
     <em>\<thousands_separator\></em><tt>[</tt><em>\<decimal_separator\>[\<decimals\>]</em><tt>]</tt>\n
     where:\n
     - \a thousands_separator and \a decimal_separator are single characters defining the thousands and decimal separator characters respectively, and
-    - \a decimals is one or more digits defining how may decimals should appear after the decimal point - if this is non-zero then the decimals will all be \c "0"
+    - \a decimals is one or more digits defining how may decimals should appear after the decimal point - if this is non-zero then the decimals will all be \c "0"; a negative number means to round that number of digits before the decimal place
 
-    @return a string of a formatted number according to a format string; if the format string does not follow the given format, then the number without formatting is returned
+    @return a string of the integer according to a format string; if the format string does not follow the given format, then the number without formatting is returned
 
     @par Example:
     @code{.py}
@@ -117,6 +117,9 @@ string nstr = i.format(".,3"); # returns "-48.392.093.894,000"
     @see
     - @ref <float>::format(string)
     - @ref <number>::format(string)
+    - @ref <int>::format(int, string, string)
+    - @ref <float>::format(int, string, string)
+    - @ref <number>::format(int, string, string)
 
     @since %Qore 0.8.6
  */
@@ -124,6 +127,36 @@ string <int>::format(string fmt) [flags=CONSTANT] {
    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(fmt->getEncoding()));
    rv->sprintf(QLLD, i);
    return qore_number_private::formatNumberString(**rv, *fmt, xsink) ? 0 : rv.release();
+}
+
+//! Returns a formatted string of the integer according to format arguments
+/** @param prec the number of digits after the decimal point; a negative value means to round that number of digits before the decimal place, note that a positive value here will result in the given number of zeros appearing after the decimal place
+    @param decimal_sep a single character that defines the decimal separator; an empty string means no decimal separator
+    @param thousands_sep a single character that defines the thousands and further separators every three digits before the decimal point; an empty string means no thousands separator
+
+    @return a string representing the integer according to the format arguments as described above
+
+    @par Example:
+    @code{.py}
+int i = -48392093894;
+string nstr = i.format(3, ",", "."); # returns "-48.392.093.894,000"
+    @endcode
+
+    @see
+    - @ref <number>::format(int, string, string)
+    - @ref <float>::format(int, string, string)
+    - @ref <number>::format(string)
+    - @ref <float>::format(string)
+    - @ref <int>::format(string)
+
+    @since %Qore 0.8.13
+ */
+string <int>::format(int prec = 2, string decimal_sep = ".", string thousands_sep = "") [flags=RET_VALUE_ONLY] {
+   SimpleRefHolder<QoreStringNode> rv(new QoreStringNode);
+   rv->sprintf(QLLD, i);
+   if (qore_number_private::formatNumberString(**rv, prec, decimal_sep, thousands_sep, xsink))
+      return 0;
+   return rv.release();
 }
 
 //! Returns -1 if the number is negative, 0 if it is zero, or 1 if it is positive
