@@ -1096,6 +1096,62 @@ my any $v = $c.name;
             return filegroup;
         }
 
+        private *hash insertIntern(hash row, *reference sql, *hash opt) {
+            # Check data callback options if any.
+            validateOptionsIntern("OPTION-ERROR", getInsertOptions(), \opt);
+
+            l.lock();
+            on_exit l.unlock();
+
+            getColumnsUnlocked();
+            sql = sprintf("insert into %s (", getSqlName());
+            foreach string k in (row.keyIterator()) {
+                if (!columns.hasKey(k))
+                    throw "COLUMN-ERROR", sprintf("%s column %y is not a valid column (valid columns: %y)", getDesc(), k, columns.keys());
+            }
+            hash vh = getPlaceholdersAndValues(row);
+
+            sql += (foldl $1 + "," + $2, (map getColumnSqlName($1), row.keyIterator()));
+            sql += ") values (";
+            sql += (foldl $1 + "," + $2, vh.placeholders);
+            sql += ")";
+
+            softlist args = vh.values;
+
+            int size = 0;
+            foreach any arg in (args) {
+                if (arg.typeCode() == NT_LIST) {
+                    size = arg.size();
+                    break;
+                }
+            }
+            if (size) { # Do bruteforce bulk DML.
+                string sqlbase = sql;
+                int batchSize = args.size() == 0 ? size : int(2000 / args.size());
+                int target = batchSize;
+                for (int x = 0; x < size; x += batchSize) { # Cycle through batches.
+                    list targs = ();
+                    sql = "";
+                    if (target > size)
+                        target = size;
+                    for (int i = x; i < target; i++) {
+                        # Get arg list for row.
+                        targs += map $1.typeCode() == NT_LIST ? $1[i] : $1, args;
+                        sql += sqlbase + ";";
+                    }
+                    execData(opt, sql, targs);
+                    target += batchSize;
+                }
+
+                return {};
+            }
+
+            if (opt.returning)
+                return doReturningImpl(opt, \sql, args);
+
+            execData(opt, sql, args);
+        }
+
         #! returns a closure for performing upserts; if the underlying dataserver supports an optimized \c MERGE statement (Microsoft SQL Server 2008+), the \a upsert_strategy argument is ignored and a closure using a merge statement is returned, otherwise the standard upsert closure is returned according to @ref SqlUtil::AbstractTable::getUpsertClosure()
         code getUpsertClosure(hash row, int upsert_strategy = UpsertAuto, *hash opt) {
             if (!ss_has_merge)
