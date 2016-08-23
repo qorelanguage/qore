@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module FreetdsSqlUtil {
-    version = "1.1";
+    version = "1.2";
     desc = "user module for working with FreeTDS SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -110,7 +110,12 @@ module FreetdsSqlUtil {
     To use other types, use the \c "native_type" @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the
     native FreeTDS type name instead (under the \c "driver" and \c "freetds" keys for schemas supporting multiple databases).
 
-    @subsection freetdssqlutilv10 FreetdsSqlUtil v1.0
+    @subsection freetdssqlutilv1_2 FreetdsSqlUtil v1.2
+    - added bruteforce bulk DML support to FreetdsTable
+
+    @subsection freetdssqlutilv1_1 FreetdsSqlUtil v1.1
+
+    @subsection freetdssqlutilv1_0 FreetdsSqlUtil v1.0
     - initial release
 */
 
