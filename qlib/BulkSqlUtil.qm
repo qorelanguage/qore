@@ -38,7 +38,7 @@
 %requires(reexport) SqlUtil
 
 module BulkSqlUtil {
-    version = "1.0";
+    version = "1.1";
     desc = "user module performing bulk DML operations with SqlUtil";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -70,6 +70,10 @@ module BulkSqlUtil {
     See the above classes for detailed information and examples.
 
     @section bulksqlutil_relnotes Release Notes
+
+    @subsection bulksqlutil_v1_1 BulkSqlUtil v1.1
+    - fixed bulk DML to work with DB drivers which cannot bind parameter arrays (<a href="https://github.com/qorelanguage/qore/issues/1154">issue 1154</a>)
+    - added support for bruteforce bulk DML which is used in the FreetdsSqlUtil module
 
     @subsection bulksqlutil_v1_0 BulkSqlUtil v1.0
     - initial release of the module
@@ -661,8 +665,10 @@ inserter.setRowCode(rowcode);
                 # insert the data
                 rh = table.insert(hbuf + cval + static_ret_expr, \sql, rowcode ? ("returning": ret_args) : NOTHING);
                 # create the statement for future inserts
-                stmt = new SQLStatement(table.getDatasource());
-                stmt.prepare(sql);
+                if (!table.usesBruteBulkDML()) {
+                    stmt = new SQLStatement(table.getDatasource());
+                    stmt.prepare(sql);
+                }
             }
             else {
                 # execute the SQLStatement on the args

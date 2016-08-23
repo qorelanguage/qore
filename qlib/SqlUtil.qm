@@ -102,6 +102,7 @@ module SqlUtil {
 
     @subsection sqlutilv1_4 SqlUtil v1.4
     - fixed a bug in update and upsert statement generation when the given data does not have enough columns to use the unique index found, an error message is generated that contains all the columns names instead of just the column names required by the index (<a href="https://github.com/qorelanguage/qore/issues/1013">issue 1013</a>)
+    - added support for bruteforce bulk DML which is used in the FreetdsSqlUtil module
 
     @subsection sqlutilv1_3 SqlUtil v1.3
     - implemented insert option support (see @ref AbstractTable::InsertOptions) with the \c "returning" clause in supported drivers
@@ -8057,6 +8058,8 @@ Table table("pgsql:user/pass@db%host", "table");
             bool inDb = False;
             #! manual edits
             bool manual = False;
+            #! use brute-force bulk DML
+            bool bruteBulkDML = False;
         }
 
         #! creates the object; private constructor
@@ -8138,6 +8141,18 @@ bool b = table.inDb();
         */
         bool inDb() {
             return inDb;
+        }
+
+        #! returns @ref Qore::True "True" if the table uses brute-force bulk DML, @ref Qore::False "False" if not
+        /** @par Example:
+            @code{.py}
+bool b = table.usesBruteBulkDML();
+            @endcode
+
+            @return @ref Qore::True "True" if the table uses brute-force bulk DML, @ref Qore::False "False" if not
+        */
+        bool usesBruteBulkDML() {
+            return bruteBulkDML;
         }
 
         #! returns an iterator for all unique constraints on the table (including the primary key if any)
@@ -10477,7 +10492,7 @@ table.insert(row);
         }
 
         private *hash insertIntern(hash row, *reference sql, *hash opt) {
-            # check data callback options if any
+            # Check data callback options if any.
             validateOptionsIntern("OPTION-ERROR", getInsertOptions(), \opt);
 
             l.lock();
@@ -10498,7 +10513,7 @@ table.insert(row);
 
             softlist args = vh.values;
 
-            # check for a bulk insert in case the driver does not support array binding
+            # Check for a bulk insert in case the driver does not support array binding.
             if (!hasArrayBind()) {
                 int size = 0;
                 foreach any arg in (args) {
@@ -10507,25 +10522,26 @@ table.insert(row);
                         break;
                     }
                 }
-                if (size) {
-                     hash rv;
-                     for (int i = 0; i < size; ++i) {
-                         # get arg list for row
-                         list targs = map $1.typeCode() == NT_LIST ? $1[i] : $1, args;
-                         if (opt.returning) {
-                             if (!rv) {
-                                 hash h = doReturningImpl(opt, \sql, targs);
-                                 map rv{$1.key} += ($1.value,), h.pairIterator();
-                             }
-                             else {
-                                 hash h = execData(opt, sql, targs);
-                                 map rv{$1.key} += $1.value, h.pairIterator();
-                             }
-                         }
-                         else
-                             execData(opt, sql, targs);
-                     }
-                     return rv;
+                if (size) { # Fake bulk DML using regular inserts.
+                    hash rv;
+                    for (int i = 0; i < size; i++) {
+                        # Get arg list for row.
+                        list targs = map $1.typeCode() == NT_LIST ? $1[i] : $1, args;
+                        if (opt.returning) {
+                            if (!rv) {
+                                hash h = doReturningImpl(opt, \sql, targs);
+                                map rv{$1.key} += ($1.value,), h.pairIterator();
+                            }
+                            else {
+                                hash h = execData(opt, sql, targs);
+                                map rv{$1.key} += $1.value, h.pairIterator();
+                            }
+                        }
+                        else {
+                            execData(opt, sql, targs);
+                        }
+                    }
+                    return rv;
                 }
             }
 
