@@ -261,9 +261,9 @@ int qore_number_private::formatNumberStringIntern(QoreString& num, int prec, con
       qore_size_t d = num.strlen() - dp - 1;
       assert(d);
       if (prec >= 0) {
-         if (d < prec)
+         if ((int)d < prec)
             num.addch('0', prec - d);
-         else if (d > prec) {
+         else if ((int)d > prec) {
             if ((num[dp + prec + 1] > '4') && (roundUp(num, dp + prec)))
                ++dp;
             if (!prec)

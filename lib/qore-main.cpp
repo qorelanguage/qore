@@ -42,6 +42,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <time.h>
+#include <stdlib.h>
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -110,6 +111,16 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
 
    qore_string_init();
    QoreHttpClientObject::static_init();
+
+   // initialize random number generator
+   if (!(qore_library_options & QLO_DO_NOT_SEED_RNG)) {
+      unsigned seed = (unsigned)q_clock_getmicros();
+#ifdef HAVE_RANDOM
+      srandom(seed);
+#else
+      srand(seed);
+#endif
+   }
 
    // init random salt
    qore_init_random_salt();
