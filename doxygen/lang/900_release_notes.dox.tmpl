@@ -8,6 +8,7 @@
 
     @subsection qore_0813_compatibility Changes That Can Affect Backwards-Compatibility
     - fixed broken @ref continue "continue" and @ref break "break" statements that were accepted anywhere in the source and behaved like a @ref return "return" statement; now such statements outside a loop context will result in a parse exception; to get the old behavior, use @ref broken-loop-statement "%broken-loop-statement" in your source code
+    - the random number generator is always seeded with a random number when the Qore library is initialized; to get a predictable sequence from @ref Qore::rand() "rand()", you must explicitly seed the random number generator by calling @ref Qore::srand() "srand()" with a predefined seed number
 
     @subsection qore_0813_new_features New Features in Qore
     - support for input and output streams for the efficient piecewise processing of small or large amounts of data with a low memory overhead; includes the following classes:
