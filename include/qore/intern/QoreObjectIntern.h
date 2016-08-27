@@ -344,13 +344,15 @@ public:
    }
 
    DLLLOCAL int checkMemberAccessGetTypeInfo(ExceptionSink* xsink, const char* mem, const QoreTypeInfo*& typeInfo, bool check_access = true) const {
-      bool priv;
-      if (theclass->runtimeGetMemberInfo(mem, typeInfo, priv)) {
-	 if (priv && check_access && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass)) {
+      ClassAccess access;
+      const QoreMemberInfo* mi = qore_class_private::runtimeGetMemberInfo(*theclass, mem, access);
+      if (mi) {
+	 if (access > Public && check_access && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass)) {
 	    doPrivateException(mem, xsink);
 	    return -1;
 	 }
 
+         typeInfo = mi->getTypeInfo();
 	 return 0;
       }
 

@@ -1352,7 +1352,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %token TOK_MODULE "module"
 %token TOK_FINAL "final"
 %token TOK_ABSTRACT "abstract"
-%token TOK_PRIVATELOCAL "private(local)"
+%token TOK_PRIVATEINTERNAL "private(internal)"
 %token TOK_PRIVATEHIERARCHY "private(hierarchy)"
 
 // currently unused tokens
