@@ -441,8 +441,7 @@ static inline MethodVariantBase* newMethodVariant(const char* name, int mod, int
    if (!strcmp(name, "copy")) {
       if (mod & OFM_FINAL)
          parse_error("%s() methods cannot be declared final; declare the class final instead", name);
-      if (!(mod & OFM_SYNCED))
-         return new UserCopyVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED);
+      return new UserCopyVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED);
    }
 
    if (!strcmp(name, "methodGate") || !strcmp(name, "memberGate") || !strcmp(name, "memberNotification")) {
