@@ -88,6 +88,10 @@ void qore_method_private::parseInit() {
    }
 }
 
+bool qore_method_private::parseGetAccess() const {
+   return func->parseGetAccess();
+}
+
 void SignatureHash::set(const QoreString& str) {
    DigestHelper dh(str.getBuffer(), str.size());
    dh.doDigest(0, EVP_sha1());
@@ -1478,27 +1482,35 @@ int BCNode::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_
    return rc;
 }
 
-const QoreClass* BCNode::getClass(const qore_class_private& qc, bool& n_priv) const {
+const QoreClass* BCNode::getClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
       return 0;
 
-   const QoreClass* rv = sclass->priv->getClassIntern(qc, n_priv);
+   if (access == Internal && !toplevel)
+      return 0;
 
-   if (rv && !n_priv && priv)
-      n_priv = true;
+   const QoreClass* rv = sclass->priv->getClassIntern(qc, n_access, toplevel);
+
+   if (rv && n_access > access)
+      n_access = access;
+
    return rv;
 }
 
-const QoreClass* BCNode::parseGetClass(const qore_class_private& qc, bool& n_priv) const {
+const QoreClass* BCNode::parseGetClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
       return 0;
 
-   const QoreClass* rv = sclass->priv->parseGetClassIntern(qc, n_priv);
+   if (access == Internal && !toplevel)
+      return 0;
 
-   if (rv && !n_priv && priv)
-      n_priv = true;
+   const QoreClass* rv = sclass->priv->parseGetClassIntern(qc, n_access, toplevel);
+
+   if (rv && n_access > access)
+      n_access = access;
+
    return rv;
 }
 
@@ -1604,7 +1616,7 @@ const QoreVarInfo* BCList::parseFindVar(const char* name, const qore_class_priva
 }
 
 // called at run time
-const QoreMethod* BCList::runtimeFindCommittedMethod(const char* name, bool& priv_flag) const {
+const QoreMethod* BCList::runtimeFindCommittedMethod(const char* name, ClassAccess& access, bool toplevel) const {
    for (auto& i : *this) {
       if ((*i).sclass) {
 	 // this can be called before the class has been initialized if called by
@@ -2024,21 +2036,40 @@ const QoreMethod* QoreClass::findLocalMethod(const char* nme) const {
 }
 
 const QoreMethod* QoreClass::findStaticMethod(const char* nme) const {
-   bool p = false;
-   return priv->runtimeFindCommittedStaticMethod(nme, p);
+   CurrentProgramRuntimeParseContextHelper pch;
+   ClassAccess& access = Public;
+   return priv->runtimeFindCommittedStaticMethodIntern(nme, access, true);
 }
 
 const QoreMethod* QoreClass::findStaticMethod(const char* nme, bool& priv_flag) const {
-   return priv->runtimeFindCommittedStaticMethod(nme, priv_flag);
+   CurrentProgramRuntimeParseContextHelper pch;
+   ClassAccess& access = Public;
+   const QoreMethod* rv = priv->runtimeFindCommittedStaticMethodIntern(nme, access, true);
+   priv_flag = access > Public;
+   return rv;
+}
+
+const QoreMethod* QoreClass::findStaticMethod(const char* nme, ClassAccess& access) const {
+   CurrentProgramRuntimeParseContextHelper pch;
+   access = Public;
+   return priv->runtimeFindCommittedStaticMethodIntern(nme, access, true);
 }
 
 const QoreMethod* QoreClass::findMethod(const char* nme) const {
-   bool p = false;
-   return priv->runtimeFindCommittedMethod(nme, p);
+   ClassAccess& access = Public;
+   return priv->runtimeFindCommittedMethodIntern(nme, access, true);
 }
 
 const QoreMethod* QoreClass::findMethod(const char* nme, bool& priv_flag) const {
-   return priv->runtimeFindCommittedMethod(nme, priv_flag);
+   ClassAccess& access = Public;
+   const QoreMethod* rv = priv->runtimeFindCommittedMethodIntern(nme, access, true);
+   priv_flag = access > Public;
+   return rv;
+}
+
+const QoreMethod* QoreClass::findMethod(const char* nme, ClassAccess& access) const {
+   access = Public;
+   return priv->runtimeFindCommittedMethodIntern(nme, access, true);
 }
 
 bool QoreClass::hasCopy() const {
@@ -2257,10 +2288,6 @@ bool QoreMethod::isPrivate() const {
    return priv->func->isUniquelyPrivate();
 }
 
-bool QoreMethod::parseIsPrivate() const {
-   return priv->func->parseIsUniquelyPrivate();
-}
-
 bool QoreMethod::isStatic() const {
    return priv->static_flag;
 }
@@ -2446,20 +2473,18 @@ QoreClass* QoreClass::getClass(qore_classid_t cid) const {
    return priv->scl ? priv->scl->sml.getClass(cid) : 0;
 }
 
-const QoreClass* QoreClass::getClassIntern(qore_classid_t cid, bool& cpriv) const {
-   if (cid == priv->classID)
-      return (QoreClass* )this;
-   return priv->scl ? priv->scl->getClass(cid, cpriv) : 0;
-}
-
 const QoreClass* QoreClass::getClass(qore_classid_t cid, bool& cpriv) const {
-   cpriv = false;
-   return getClassIntern(cid, cpriv);
+   ClassAccess access = Public;
+   const QoreClass* qc = getClassIntern(cid, access);
+   cpriv = (access > Public);
+   return qc;
 }
 
 const QoreClass* QoreClass::getClass(const QoreClass& qc, bool& cpriv) const {
-   cpriv = false;
-   return priv->getClassIntern(*(qc.priv), cpriv);
+   ClassAccess access = Public;
+   const QoreClass* rv = getClassIntern(qc, access);
+   cpriv = (access > Public);
+   return rv;
 }
 
 bool QoreMethod::existsVariant(const type_vec_t &paramTypeInfo) const {
@@ -2477,12 +2502,12 @@ void QoreClass::insertStaticMethod(QoreMethod* m) {
    priv->insertBuiltinStaticMethod(m);
 }
 
-const QoreClass* qore_class_private::parseGetClass(const qore_class_private& qc, bool& cpriv) const {
-   cpriv = false;
+const QoreClass* qore_class_private::parseGetClass(const qore_class_private& qc, ClassAccess& n_access) const {
+   n_access = Public;
    const_cast<qore_class_private*>(this)->initialize();
    if (qc.classID == classID || (qc.name == name && qc.hash == hash))
       return (QoreClass*)cls;
-   return scl ? scl->parseGetClass(qc, cpriv) : 0;
+   return scl ? scl->parseGetClass(qc, n_access, true) : 0;
 }
 
 bool qore_class_private::runtimeHasCallableMethod(const char* m, int mask) const {
@@ -2933,7 +2958,62 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
    return 0;
 }
 
-// FIXME: rename to addAbstractMethodVariant
+void QoreClass::addMethod(const char* nme, q_method_n_t m, ClassAccess access, int64 flags, int64 domain, const QoreTypeInfo* returnTypeInfo, unsigned num_params, ...) {
+   type_vec_t typeList;
+   arg_vec_t defaultArgList;
+   name_vec_t nameList;
+   if (num_params) {
+      va_list args;
+      va_start(args, num_params);
+      qore_process_params(num_params, typeList, defaultArgList, nameList, args);
+      va_end(args);
+   }
+
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethodValueVariant(m, access, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
+}
+
+void QoreClass::addStaticMethod(const char* nme, q_func_n_t m, ClassAccess access, int64 flags, int64 domain, const QoreTypeInfo* returnTypeInfo, unsigned num_params, ...) {
+   type_vec_t typeList;
+   arg_vec_t defaultArgList;
+   name_vec_t nameList;
+   if (num_params) {
+      va_list args;
+      va_start(args, num_params);
+      qore_process_params(num_params, typeList, defaultArgList, nameList, args);
+      va_end(args);
+   }
+
+   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodValueVariant(m, access, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
+}
+
+void QoreClass::addConstructor(q_constructor_n_t m, ClassAccess access, int64 n_flags, int64 n_domain, unsigned num_params, ...) {
+   type_vec_t typeList;
+   arg_vec_t defaultArgList;
+   name_vec_t nameList;
+   if (num_params) {
+      va_list args;
+      va_start(args, num_params);
+      qore_process_params(num_params, typeList, defaultArgList, nameList, args);
+      va_end(args);
+   }
+   priv->addBuiltinConstructor(new BuiltinConstructorValueVariant(m, access, n_flags, n_domain, typeList, defaultArgList, nameList));
+}
+
+void QoreClass::addAbstractMethodVariant(const char *n_name, ClassAccess access, int64 n_flags, const QoreTypeInfo* returnTypeInfo, unsigned num_params, ...) {
+   type_vec_t typeList;
+   arg_vec_t defaultArgList;
+   name_vec_t nameList;
+   if (num_params) {
+      va_list args;
+      va_start(args, num_params);
+      qore_process_params(num_params, typeList, defaultArgList, nameList, args);
+      va_end(args);
+   }
+   //printd(5, "QoreClass::addAbstractMethodVariantExtended3() %s::%s() num_params: %d\n", getName(), n_name, num_params);
+
+   priv->addBuiltinMethod(n_name, new BuiltinAbstractMethodVariant(access, n_flags, returnTypeInfo, typeList, defaultArgList, nameList));
+}
+
 void QoreClass::addAbstractMethodVariantExtended3(const char *n_name, bool n_priv, int64 n_flags, const QoreTypeInfo* returnTypeInfo, unsigned num_params, ...) {
    type_vec_t typeList;
    arg_vec_t defaultArgList;
@@ -2946,7 +3026,7 @@ void QoreClass::addAbstractMethodVariantExtended3(const char *n_name, bool n_pri
    }
    //printd(5, "QoreClass::addAbstractMethodVariantExtended3() %s::%s() num_params: %d\n", getName(), n_name, num_params);
 
-   priv->addBuiltinMethod(n_name, new BuiltinAbstractMethodVariant(n_priv, n_flags, returnTypeInfo, typeList, defaultArgList, nameList));
+   priv->addBuiltinMethod(n_name, new BuiltinAbstractMethodVariant(n_priv ? Private : Public, n_flags, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
 void QoreClass::addMethod(const char* nme, q_method_n_t m, bool priv_flag, int64 flags, int64 domain, const QoreTypeInfo* returnTypeInfo, unsigned num_params, ...) {
@@ -2960,7 +3040,7 @@ void QoreClass::addMethod(const char* nme, q_method_n_t m, bool priv_flag, int64
       va_end(args);
    }
 
-   priv->addBuiltinMethod(nme, new BuiltinNormalMethodValueVariant(m, priv_flag, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethodValueVariant(m, priv_flag ? Private : Public, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
 void QoreClass::addStaticMethod(const char* nme, q_func_n_t m, bool priv_flag, int64 flags, int64 domain, const QoreTypeInfo* returnTypeInfo, unsigned num_params, ...) {
@@ -2974,7 +3054,7 @@ void QoreClass::addStaticMethod(const char* nme, q_func_n_t m, bool priv_flag, i
       va_end(args);
    }
 
-   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodValueVariant(m, priv_flag, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
+   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodValueVariant(m, priv_flag ? Private : Public, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
 // adds a builtin method to the class (duplicate checking is made in debug mode and causes an abort)
@@ -2994,7 +3074,7 @@ void QoreClass::addMethodExtended(const char* nme, q_method_t m, bool priv_flag,
       va_end(args);
    }
 
-   priv->addBuiltinMethod(nme, new BuiltinNormalMethodVariant(m, priv_flag, false, flags, domain, returnTypeInfo, typeList, defaultArgList));
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethodVariant(m, priv_flag ? Private : Public, false, flags, domain, returnTypeInfo, typeList, defaultArgList));
 }
 
 // deprecated
@@ -3009,7 +3089,7 @@ void QoreClass::addMethodExtended3(const char* nme, q_method_t m, bool priv_flag
       va_end(args);
    }
 
-   priv->addBuiltinMethod(nme, new BuiltinNormalMethodVariant(m, priv_flag, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethodVariant(m, priv_flag ? Private : Public, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
 // deprecated
@@ -3024,7 +3104,7 @@ void QoreClass::addMethodExtended3(const char* nme, q_method_int64_t m, bool pri
       va_end(args);
    }
 
-   priv->addBuiltinMethod(nme, new BuiltinNormalMethodBigIntVariant(m, priv_flag, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethodBigIntVariant(m, priv_flag ? Private : Public, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
 // deprecated
@@ -3039,7 +3119,7 @@ void QoreClass::addMethodExtended3(const char* nme, q_method_bool_t m, bool priv
       va_end(args);
    }
 
-   priv->addBuiltinMethod(nme, new BuiltinNormalMethodBoolVariant(m, priv_flag, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethodBoolVariant(m, priv_flag ? Private : Public, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
 // deprecated
@@ -3054,18 +3134,18 @@ void QoreClass::addMethodExtended3(const char* nme, q_method_double_t m, bool pr
       va_end(args);
    }
 
-   priv->addBuiltinMethod(nme, new BuiltinNormalMethodFloatVariant(m, priv_flag, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethodFloatVariant(m, priv_flag ? Private : Public, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
 // deprecated
 void QoreClass::addMethodExtendedList(const char* nme, q_method_t m, bool priv_flag, int64 flags, int64 domain, const QoreTypeInfo* returnTypeInfo, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
-   priv->addBuiltinMethod(nme, new BuiltinNormalMethodVariant(m, priv_flag, false, flags, domain, returnTypeInfo, n_typeList, n_defaultArgList));
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethodVariant(m, priv_flag ? Private : Public, false, flags, domain, returnTypeInfo, n_typeList, n_defaultArgList));
 }
 
 // adds a builtin method with the new generic calling convention to the class (duplicate checking is made in debug mode and causes an abort)
 // deprecated
 void QoreClass::addMethod2(const char* nme, q_method2_t m, bool priv_flag) {
-   priv->addBuiltinMethod(nme, new BuiltinNormalMethod2Variant(m, priv_flag));
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethod2Variant(m, priv_flag ? Private : Public));
 }
 
 // deprecated
@@ -3079,23 +3159,23 @@ void QoreClass::addMethodExtended2(const char* nme, q_method2_t m, bool priv_fla
       va_end(args);
    }
 
-   priv->addBuiltinMethod(nme, new BuiltinNormalMethod2Variant(m, priv_flag, false, flags, domain, returnTypeInfo, typeList, defaultArgList));
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethod2Variant(m, priv_flag ? Private : Public, false, flags, domain, returnTypeInfo, typeList, defaultArgList));
 }
 
 // deprecated
 void QoreClass::addMethodExtendedList2(const char* nme, q_method2_t m, bool priv_flag, int64 flags, int64 domain, const QoreTypeInfo* returnTypeInfo, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
-   priv->addBuiltinMethod(nme, new BuiltinNormalMethod2Variant(m, priv_flag, false, flags, domain, returnTypeInfo, n_typeList, n_defaultArgList));
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethod2Variant(m, priv_flag ? Private : Public, false, flags, domain, returnTypeInfo, n_typeList, n_defaultArgList));
 }
 
 // deprecated
 void QoreClass::addMethodExtendedList3(const void *ptr, const char* nme, q_method3_t m, bool priv_flag, int64 flags, int64 domain, const QoreTypeInfo* returnTypeInfo, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
-   priv->addBuiltinMethod(nme, new BuiltinNormalMethod3Variant(ptr, m, priv_flag, false, flags, domain, returnTypeInfo, n_typeList, n_defaultArgList));
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethod3Variant(ptr, m, priv_flag ? Private : Public, false, flags, domain, returnTypeInfo, n_typeList, n_defaultArgList));
 }
 
 // adds a builtin static method to the class
 // deprecated
 void QoreClass::addStaticMethod2(const char* nme, q_static_method2_t m, bool priv_flag) {
-   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethod2Variant(m, priv_flag));
+   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethod2Variant(m, priv_flag ? Private : Public));
 }
 
 // deprecated
@@ -3109,23 +3189,23 @@ void QoreClass::addStaticMethodExtended2(const char* nme, q_static_method2_t m, 
       va_end(args);
    }
 
-   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethod2Variant(m, priv_flag, false, flags, domain, returnTypeInfo, typeList, defaultArgList));
+   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethod2Variant(m, priv_flag ? Private : Public, false, flags, domain, returnTypeInfo, typeList, defaultArgList));
 }
 
 // deprecated
 void QoreClass::addStaticMethodExtendedList2(const char* nme, q_static_method2_t m, bool priv_flag, int64 flags, int64 domain, const QoreTypeInfo* returnTypeInfo, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
-   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethod2Variant(m, priv_flag, false, flags, domain, returnTypeInfo, n_typeList, n_defaultArgList));
+   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethod2Variant(m, priv_flag ? Private : Public, false, flags, domain, returnTypeInfo, n_typeList, n_defaultArgList));
 }
 
 // deprecated
 void QoreClass::addStaticMethodExtendedList3(const void *ptr, const char* nme, q_static_method3_t m, bool priv_flag, int64 flags, int64 domain, const QoreTypeInfo* returnTypeInfo, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
-   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethod3Variant(ptr, m, priv_flag, false, flags, domain, returnTypeInfo, n_typeList, n_defaultArgList));
+   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethod3Variant(ptr, m, priv_flag ? Private : Public, false, flags, domain, returnTypeInfo, n_typeList, n_defaultArgList));
 }
 
 // adds a builtin static method to the class
 // deprecated
 void QoreClass::addStaticMethod(const char* nme, q_func_t m, bool priv_flag) {
-   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodVariant(m, priv_flag));
+   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodVariant(m, priv_flag ? Private : Public));
 }
 
 // deprecated
@@ -3139,7 +3219,7 @@ void QoreClass::addStaticMethodExtended(const char* nme, q_func_t m, bool priv_f
       va_end(args);
    }
 
-   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodVariant(m, priv_flag, false, flags, domain, returnTypeInfo, typeList, defaultArgList));
+   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodVariant(m, priv_flag ? Private : Public, false, flags, domain, returnTypeInfo, typeList, defaultArgList));
 }
 
 // deprecated
@@ -3154,7 +3234,7 @@ void QoreClass::addStaticMethodExtended3(const char* nme, q_func_t m, bool priv_
       va_end(args);
    }
 
-   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodVariant(m, priv_flag, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
+   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodVariant(m, priv_flag ? Private : Public, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
 // deprecated
@@ -3169,7 +3249,7 @@ void QoreClass::addStaticMethodExtended3(const char* nme, q_func_int64_t m, bool
       va_end(args);
    }
 
-   priv->addBuiltinMethod(nme, new BuiltinStaticMethodBigIntVariant(m, priv_flag, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
+   priv->addBuiltinMethod(nme, new BuiltinStaticMethodBigIntVariant(m, priv_flag ? Private : Public, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
 // deprecated
@@ -3184,7 +3264,7 @@ void QoreClass::addStaticMethodExtended3(const char* nme, q_func_bool_t m, bool 
       va_end(args);
    }
 
-   priv->addBuiltinMethod(nme, new BuiltinStaticMethodBoolVariant(m, priv_flag, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
+   priv->addBuiltinMethod(nme, new BuiltinStaticMethodBoolVariant(m, priv_flag ? Private : Public, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
 // deprecated
@@ -3199,12 +3279,12 @@ void QoreClass::addStaticMethodExtended3(const char* nme, q_func_double_t m, boo
       va_end(args);
    }
 
-   priv->addBuiltinMethod(nme, new BuiltinStaticMethodFloatVariant(m, priv_flag, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
+   priv->addBuiltinMethod(nme, new BuiltinStaticMethodFloatVariant(m, priv_flag ? Private : Public, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
 // deprecated
 void QoreClass::addStaticMethodExtendedList(const char* nme, q_func_t m, bool priv_flag, int64 n_flags, int64 n_domain, const QoreTypeInfo* n_returnTypeInfo, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
-   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodVariant(m, priv_flag, false, n_flags, n_domain, n_returnTypeInfo, n_typeList, n_defaultArgList));
+   priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodVariant(m, priv_flag ? Private : Public, false, n_flags, n_domain, n_returnTypeInfo, n_typeList, n_defaultArgList));
 }
 
 void QoreClass::addConstructor(q_constructor_n_t m, bool priv_flag, int64 n_flags, int64 n_domain, unsigned num_params, ...) {
@@ -3217,7 +3297,7 @@ void QoreClass::addConstructor(q_constructor_n_t m, bool priv_flag, int64 n_flag
       qore_process_params(num_params, typeList, defaultArgList, nameList, args);
       va_end(args);
    }
-   priv->addBuiltinConstructor(new BuiltinConstructorValueVariant(m, priv_flag, n_flags, n_domain, typeList, defaultArgList, nameList));
+   priv->addBuiltinConstructor(new BuiltinConstructorValueVariant(m, priv_flag ? Private : Public, n_flags, n_domain, typeList, defaultArgList, nameList));
 }
 
 // sets a builtin function as constructor - no duplicate checking is made
@@ -3236,7 +3316,7 @@ void QoreClass::setConstructorExtended(q_constructor_t m, bool priv_flag, int64 
       qore_process_params(num_params, typeList, defaultArgList, args);
       va_end(args);
    }
-   priv->addBuiltinConstructor(new BuiltinConstructorVariant(m, priv_flag, n_flags, n_domain, typeList, defaultArgList));
+   priv->addBuiltinConstructor(new BuiltinConstructorVariant(m, priv_flag ? Private : Public, n_flags, n_domain, typeList, defaultArgList));
 }
 
 // deprecated
@@ -3250,12 +3330,12 @@ void QoreClass::setConstructorExtended3(q_constructor_t m, bool priv_flag, int64
       qore_process_params(num_params, typeList, defaultArgList, nameList, args);
       va_end(args);
    }
-   priv->addBuiltinConstructor(new BuiltinConstructorVariant(m, priv_flag, n_flags, n_domain, typeList, defaultArgList, nameList));
+   priv->addBuiltinConstructor(new BuiltinConstructorVariant(m, priv_flag ? Private : Public, n_flags, n_domain, typeList, defaultArgList, nameList));
 }
 
 // deprecated
 void QoreClass::setConstructorExtendedList(q_constructor_t m, bool priv_flag, int64 n_flags, int64 n_domain, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
-   priv->addBuiltinConstructor(new BuiltinConstructorVariant(m, priv_flag, n_flags, n_domain, n_typeList, n_defaultArgList));
+   priv->addBuiltinConstructor(new BuiltinConstructorVariant(m, priv_flag ? Private : Public, n_flags, n_domain, n_typeList, n_defaultArgList));
 }
 
 // sets a builtin function as constructor - no duplicate checking is made
@@ -3274,17 +3354,17 @@ void QoreClass::setConstructorExtended2(q_constructor2_t m, bool priv_flag, int6
       qore_process_params(num_params, typeList, defaultArgList, args);
       va_end(args);
    }
-   priv->addBuiltinConstructor(new BuiltinConstructor2Variant(m, priv_flag, n_flags, n_domain, typeList, defaultArgList));
+   priv->addBuiltinConstructor(new BuiltinConstructor2Variant(m, priv_flag ? Private : Public, n_flags, n_domain, typeList, defaultArgList));
 }
 
 // deprecated
 void QoreClass::setConstructorExtendedList2(q_constructor2_t m, bool priv_flag, int64 n_flags, int64 n_domain, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
-   priv->addBuiltinConstructor(new BuiltinConstructor2Variant(m, priv_flag, n_flags, n_domain, n_typeList, n_defaultArgList));
+   priv->addBuiltinConstructor(new BuiltinConstructor2Variant(m, priv_flag ? Private : Public, n_flags, n_domain, n_typeList, n_defaultArgList));
 }
 
 // deprecated
 void QoreClass::setConstructorExtendedList3(const void *ptr, q_constructor3_t m, bool priv_flag, int64 n_flags, int64 n_domain, const type_vec_t &n_typeList, const arg_vec_t &n_defaultArgList) {
-   priv->addBuiltinConstructor(new BuiltinConstructor3Variant(ptr, m, priv_flag, n_flags, n_domain, n_typeList, n_defaultArgList));
+   priv->addBuiltinConstructor(new BuiltinConstructor3Variant(ptr, m, priv_flag ? Private : Public, n_flags, n_domain, n_typeList, n_defaultArgList));
 }
 
 // sets a builtin function as class destructor - no duplicate checking is made
@@ -3592,8 +3672,8 @@ bool qore_class_private::parseCheckPrivateClassAccess() const {
    if (pc->priv->classID == classID || (pc->priv->name == name && parseCheckEqualHash(*pc->priv)))
       return true;
 
-   bool pv;
-   return pc->priv->parseGetClass(*this, pv) || (scl && scl->parseGetClass(*(pc->priv), pv));
+   ClassAccess access;
+   return pc->priv->parseGetClass(*this, access) || (scl && scl->parseGetClass(*(pc->priv), access));
 }
 
 bool qore_class_private::runtimeCheckPrivateClassAccess() const {
@@ -3603,8 +3683,8 @@ bool qore_class_private::runtimeCheckPrivateClassAccess() const {
       return QTI_NOT_EQUAL;
    }
    //bool np = false; printd(5, "runtimeCheckPrivateClassAccess() qc: %p '%s' test: %p '%s' okl: %d okr: %d\n", qc, qc->name.c_str(), this, name.c_str(), qc->getClassIntern(*this, np), (scl && scl->getClass(*qc, np)));
-   bool priv = false;
-   return qc->getClassIntern(*this, priv) || (scl && scl->getClass(*qc, priv)) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   ClassAccess access = Public;
+   return qc->getClassIntern(*this, access, true) || (scl && scl->getClass(*qc, access, true)) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
 }
 
 qore_type_result_e qore_class_private::parseCheckCompatibleClass(const qore_class_private& oc) const {
@@ -3622,11 +3702,11 @@ qore_type_result_e qore_class_private::parseCheckCompatibleClass(const qore_clas
    if (classID == oc.classID || (oc.name == name && parseCheckEqualHash(oc)))
       return QTI_IDENT;
 
-   bool priv = false;
-   if (!parseGetClass(oc, priv) && !oc.parseGetClass(*this, priv))
+   ClassAccess access;
+   if (!parseGetClass(oc, access) && !oc.parseGetClass(*this, access))
       return QTI_NOT_EQUAL;
 
-   if (!priv)
+   if (access == Public)
       return QTI_AMBIGUOUS;
 
    return parseCheckPrivateClassAccess() ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
@@ -3636,11 +3716,11 @@ qore_type_result_e qore_class_private::runtimeCheckCompatibleClass(const qore_cl
    if (classID == oc.classID || (oc.name == name && oc.hash == hash))
       return QTI_IDENT;
 
-   bool priv = false;
-   if (!oc.scl || !oc.scl->getClass(*this, priv))
+   ClassAccess access;
+   if (!oc.scl || !oc.scl->getClass(*this, access))
       return QTI_NOT_EQUAL;
 
-   if (!priv)
+   if (access == Public)
       return QTI_AMBIGUOUS;
 
    return runtimeCheckPrivateClassAccess() ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
@@ -3712,11 +3792,11 @@ bool QoreClass::isPublicOrPrivateMember(const char* str, bool& priv_member) cons
 }
 
 bool QoreClass::hasPrivateCopyMethod() const {
-   return priv->copyMethod && priv->copyMethod->isPrivate() ? true : false;
+   return priv->copyMethod && priv->copyMethod->isPrivate();
 }
 
 bool QoreClass::parseHasPrivateCopyMethod() const {
-   return priv->copyMethod && priv->copyMethod->parseIsPrivate() ? true : false;
+   return priv->copyMethod && (qore_method_private::parseGetAccess(*priv->copyMethod) > Public);
 }
 
 bool QoreClass::parseHasMethodGate() const {

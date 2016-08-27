@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -948,36 +948,36 @@ class MethodFunctionBase;
 class MethodFunctionBase : public QoreFunction {
 friend struct AbstractMethod;
 protected:
-   bool all_private,
-      pending_all_private,
-      is_static,
-      has_final,
-      pending_has_final;
    const QoreClass* qc;
 
    // for concrete variants for local abstract variants inherited from base classes
    VList pending_save;
 
    // pointer to copy, only valid during copy
-   mutable MethodFunctionBase* new_copy;
+   mutable MethodFunctionBase* new_copy = 0;
+
+   bool is_static,
+      has_final,
+      pending_has_final = false;
+
+   ClassAccess access,
+      pending_access = Internal;
 
    DLLLOCAL int checkFinalVariant(const MethodFunctionBase* m, const MethodVariantBase* v) const;
 
    DLLLOCAL void replaceAbstractVariantIntern(MethodVariantBase* variant);
 
 public:
-   DLLLOCAL MethodFunctionBase(const char* nme, const QoreClass* n_qc, bool n_is_static) : QoreFunction(nme), all_private(true), pending_all_private(true), is_static(n_is_static), has_final(false), pending_has_final(false), qc(n_qc), new_copy(0) {
+   DLLLOCAL MethodFunctionBase(const char* nme, const QoreClass* n_qc, bool n_is_static) : QoreFunction(nme), qc(n_qc), is_static(n_is_static), has_final(false), access(Internal) {
    }
 
    // copy constructor, only copies committed variants
    DLLLOCAL MethodFunctionBase(const MethodFunctionBase& old, const QoreClass* n_qc)
       : QoreFunction(old, 0, 0, true),
-        all_private(old.all_private),
-        pending_all_private(true),
+        qc(n_qc),
         is_static(old.is_static),
         has_final(old.has_final),
-        pending_has_final(false),
-        qc(n_qc) {
+        access(old.access) {
       //printd(5, "MethodFunctionBase() copying old=%p -> new=%p %p %s::%s() %p %s::%s()\n",& old, this, old.qc, old.qc->getName(), old.getName(), qc, qc->getName(), old.getName());
 
       // set a pointer to the new function
@@ -1028,11 +1028,13 @@ public:
    DLLLOCAL void replaceAbstractVariant(MethodVariantBase* variant);
 
    DLLLOCAL void parseRollbackMethod();
+
    DLLLOCAL bool isUniquelyPrivate() const {
       return all_private;
    }
-   DLLLOCAL bool parseIsUniquelyPrivate() const {
-      return all_private && pending_all_private;
+
+   DLLLOCAL ClassAccess parseGetAccess() const {
+      return pending_access;
    }
 
    DLLLOCAL virtual const QoreClass* getClass() const {

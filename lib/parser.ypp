@@ -387,19 +387,34 @@ static int checkMethod(const char* name, BCAList* bcal, RetTypeInfo* returnTypeI
    return 0;
 }
 
-#define OFM_PRIVATE    (1 << 0)
-#define OFM_SYNCED     (1 << 1)
-#define OFM_STATIC     (1 << 2)
-#define OFM_DEPRECATED (1 << 3)
-#define OFM_PUBLIC     (1 << 4)
-#define OFM_FINAL      (1 << 5)
-#define OFM_ABSTRACT   (1 << 6)
+#define OFM_PUBLIC     (1 << 0)
+#define OFM_PRIVATE    (1 << 1)
+#define OFM_INTERNAL   (1 << 2)
+#define OFM_SYNCED     (1 << 3)
+#define OFM_STATIC     (1 << 4)
+#define OFM_DEPRECATED (1 << 5)
+#define OFM_FINAL      (1 << 6)
+#define OFM_ABSTRACT   (1 << 7)
 
 static inline MethodVariantBase* newMethodVariant(const char* name, int mod, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, BCAList* bcal, RetTypeInfo* returnTypeInfo, StatementBlock *b, int64 flags = QC_NO_FLAGS) {
    //printd(5, "newMethodVariant() '%s' b: %p\n", name, b);
 
    if (get_pop_argv_ref())
       flags |= QC_USES_EXTRA_ARGS;
+
+   ClassAccess access = Public;
+   if (mod & OFM_PRIVATE) {
+      if (mod & OFM_INTERNAL)
+         parse_error("%s() methods cannot be both private(hierarchy) and private(internal)", name);
+      if (mod & OFM_PUBLIC)
+         parse_error("%s() methods cannot be both public and private", name);
+      access = Private;
+   }
+   else if (mod & OFM_INTERNAL) {
+      if (mod & OFM_PUBLIC)
+         parse_error("%s() methods cannot be both public and private", name);
+      access = Internal;
+   }
 
    if (!strcmp(name, "constructor")) {
       if (mod & OFM_SYNCED)
@@ -412,7 +427,7 @@ static inline MethodVariantBase* newMethodVariant(const char* name, int mod, int
          parse_error("return type information cannot be defined for %s() methods", name);
          delete returnTypeInfo;
       }
-      return new UserConstructorVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, bcal, flags);
+      return new UserConstructorVariant(access, b, n_sig_first_line, n_sig_last_line, params, bcal, flags);
    }
    if (bcal) {
       parse_error("only constructors may have base class constructor arguments");
@@ -434,15 +449,14 @@ static inline MethodVariantBase* newMethodVariant(const char* name, int mod, int
          parse_error("return type information cannot be defined for %s() methods", name);
          delete returnTypeInfo;
       }
-      if (mod & OFM_PRIVATE)
+      if (access > Public)
 	 parse_error("destructors cannot be private");
       return new UserDestructorVariant(b, n_sig_first_line, n_sig_last_line);
    }
    if (!strcmp(name, "copy")) {
       if (mod & OFM_FINAL)
          parse_error("%s() methods cannot be declared final; declare the class final instead", name);
-      if (!(mod & OFM_SYNCED))
-         return new UserCopyVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED);
+      return new UserCopyVariant(access, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED);
    }
 
    if (!strcmp(name, "methodGate") || !strcmp(name, "memberGate") || !strcmp(name, "memberNotification")) {
@@ -455,7 +469,7 @@ static inline MethodVariantBase* newMethodVariant(const char* name, int mod, int
    if (mod & OFM_FINAL && mod & OFM_ABSTRACT)
       parse_error("method '%s()' is declared both final and abstract", name);
 
-   return new UserMethodVariant(mod & OFM_PRIVATE, mod & OFM_FINAL, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED, flags, mod & OFM_ABSTRACT);
+   return new UserMethodVariant(access, mod & OFM_FINAL, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED, flags, mod & OFM_ABSTRACT);
 }
 
 struct MethodDef {
@@ -1338,6 +1352,8 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %token TOK_MODULE "module"
 %token TOK_FINAL "final"
 %token TOK_ABSTRACT "abstract"
+%token TOK_PRIVATELOCAL "private(local)"
+%token TOK_PRIVATEHIERARCHY "private(hierarchy)"
 
 // currently unused tokens
 //%token TOK_FINALLY "finally"

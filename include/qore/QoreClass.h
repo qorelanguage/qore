@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -65,6 +65,13 @@ DLLEXPORT extern qore_classid_t CID_OUTPUTSTREAM;
 DLLEXPORT extern QoreClass* QC_QUEUE;
 DLLEXPORT extern QoreClass* QC_HTTPCLIENT;
 
+// class access values
+enum ClassAccess : unsigned char {
+   Public = 0,   // publicly accessible
+   Private = 1,  // accessible only in the class hierarchy
+   Internal = 2  // accessible only in the class itself
+};
+
 class BCList;
 class BCSMList;
 class BCAList;
@@ -110,13 +117,17 @@ private:
 public:
    //! DEPRECATED: always returns false, do not use
    /** this method no longer returns useful information due to method overloading
-       @return DEPRECATED: always returns false, do not use
+       @return always returns false, do not use
+
+       @deprecated always returns false, do not use
    */
    DLLEXPORT bool isSynchronized() const;
 
    //! DEPRECATED: always returns false, do not use
    /** this method no longer returns useful information due to method overloading
        @return always returns false
+
+       @deprecated always returns false, do not use
    */
    DLLEXPORT bool newCallingConvention() const;
 
@@ -130,10 +141,13 @@ public:
     */
    DLLEXPORT bool isBuiltin() const;
 
-   //! returns true if all overloaded variants of a methods are private, false if at least one variant is public
-   /** @return true if all overloaded variants of a methods are private, false if at least one variant is public
+   //! returns true if all overloaded variants of a methods are private or class internal, false if at least one variant is public
+   /** @return true if all overloaded variants of a methods are private or class internal, false if at least one variant is public
     */
    DLLEXPORT bool isPrivate() const;
+
+   //! returns the lowest access code of all variants in the method
+   DLLEXPORT ClassAccess getAccess() const;
 
    //! returns true if the method is static
    /**
@@ -182,11 +196,6 @@ public:
    DLLLOCAL QoreMethod* copy(const QoreClass* p_class) const;
    DLLLOCAL void assign_class(const QoreClass* p_class);
    DLLLOCAL MethodFunctionBase* getFunction() const;
-
-   //! returns true if all overloaded variants of a methods are private, false if at least one variant is public (including pending uncommitted variants)
-   /** @return true if all overloaded variants of a methods are private, false if at least one variant is public (including pending uncommitted variants)
-    */
-   DLLLOCAL bool parseIsPrivate() const;
 };
 
 //! defines a Qore-language class
@@ -242,8 +251,6 @@ private:
    DLLLOCAL bool execDeleteBlocker(QoreObject* self, ExceptionSink* xsink) const;
    // This function must only be called from QoreObject
    DLLLOCAL void execDestructor(QoreObject* self, ExceptionSink* xsink) const;
-   // This function is only called from BCList
-   DLLEXPORT const QoreClass* getClassIntern(qore_classid_t cid, bool& priv) const;
 
 public:
    //! creates the QoreClass object and assigns the name and the functional domain
@@ -276,7 +283,7 @@ public:
    /** @par Example:
        @code
        // the actual function can be declared with the class to be expected as the private data as follows:
-       static QoreValue AL_lock(QoreObject* self, QoreAutoLock* m, const QoreListNode* args, q_rt_flags_t rtflag, ExceptionSink* xsink);
+       static QoreValue AL_lock(QoreObject* self, QoreAutoLock* m, const QoreValueList* args, q_rt_flags_t rtflag, ExceptionSink* xsink);
        ...
        // and then casted to (q_method_t) in the addMethod call:
        QC_AutoLock->addMethod("lock", (q_method_n_t)AL_lock, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
@@ -298,9 +305,44 @@ public:
        @see QoreClass::setDestructor()
        @see QoreClass::setCopy()
    */
+   DLLEXPORT void addMethod(const char* n_name, q_method_n_t meth, ClassAccess access = Public, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
+
+   //! adds a builtin static method with extended information; additional functional domain info, return and parameter type info
+   DLLEXPORT void addStaticMethod(const char* n_name, q_func_n_t meth, ClassAccess access = Public, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
+
+   //! adds a builtin method to a class
+   /** @par Example:
+       @code
+       // the actual function can be declared with the class to be expected as the private data as follows:
+       static QoreValue AL_lock(QoreObject* self, QoreAutoLock* m, const QoreValueList* args, q_rt_flags_t rtflag, ExceptionSink* xsink);
+       ...
+       // and then casted to (q_method_t) in the addMethod call:
+       QC_AutoLock->addMethod("lock", (q_method_n_t)AL_lock, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+       @endcode
+
+       in debuggging mode, the call will abort if the name of the method is
+       "constructor", "destructor", or "copy", or if the method already exists
+       in the class.
+       To set the constructor method, call QoreClass::setConstructor().
+       To set the destructor method, call QoreClass::setDestructor().
+       To set the copy method, call QoreClass::setCopy().
+
+       @param n_name the name of the method, must be unique in the class
+       @param meth the method to be added
+       @param priv if true then the variant will be added as a private variant
+
+       @see Qoreclass::addStaticMethod()
+       @see QoreClass::setConstructor()
+       @see QoreClass::setDestructor()
+       @see QoreClass::setCopy()
+
+       @deprecated for addMethod(const char*, q_method_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...)
+   */
    DLLEXPORT void addMethod(const char* n_name, q_method_n_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
    //! adds a builtin static method with extended information; additional functional domain info, return and parameter type info
+   /** @deprecated for addStaticMethod(const char*, q_func_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
+   */
    DLLEXPORT void addStaticMethod(const char* n_name, q_func_n_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
    //! adds a builtin method to a class
@@ -325,37 +367,37 @@ public:
        @see QoreClass::setDestructor()
        @see QoreClass::setCopy()
 
-       @deprecated for addMethod(const char*, q_method_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+       @deprecated for addMethod(const char*, q_method_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
    */
    DLLEXPORT void addMethod(const char* n_name, q_method_t meth, bool priv = false);
 
    //! adds a builtin method with extended information; additional functional domain info, return and parameter type info
-   /** @deprecated for addMethod(const char*, q_method_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+   /** @deprecated for addMethod(const char*, q_method_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
     */
    DLLEXPORT void addMethodExtended(const char* n_name, q_method_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
    //! adds a builtin method with extended information; additional functional domain info, return and parameter type info
-   /** @deprecated for addMethod(const char*, q_method_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+   /** @deprecated for addMethod(const char*, q_method_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
     */
    DLLEXPORT void addMethodExtended(const char* n_name, q_method_int64_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
    //! adds a builtin method with extended information; additional functional domain info, return and parameter type info from lists
-   /** @deprecated for addMethod(const char*, q_method_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+   /** @deprecated for addMethod(const char*, q_method_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
     */
    DLLEXPORT void addMethodExtendedList(const char* n_name, q_method_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t());
 
    //! adds a builtin method with the new generic calling convention
-   /** @deprecated for addMethod(const char*, q_method_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+   /** @deprecated for addMethod(const char*, q_method_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
     */
    DLLEXPORT void addMethod2(const char* n_name, q_method2_t meth, bool priv = false);
 
    //! adds a builtin method with the new calling convention and extended information; additional functional domain info, return and parameter type info
-   /** @deprecated for addMethod(const char*, q_method_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+   /** @deprecated for addMethod(const char*, q_method_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
     */
    DLLEXPORT void addMethodExtended2(const char* n_name, q_method2_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
    //! adds a builtin method with the new calling convention and extended information; additional functional domain info, return and parameter type info from lists
-   /** @deprecated for addMethod(const char*, q_method_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+   /** @deprecated for addMethod(const char*, q_method_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
     */
    DLLEXPORT void addMethodExtendedList2(const char* n_name, q_method2_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t());
 
@@ -370,31 +412,36 @@ public:
        @param n_typeList a list of type information for parameters to the variant
        @param defaultArgList a list of default arguments to each parameter
 
-       @deprecated for addMethod(const char*, q_method_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+       @deprecated for addMethod(const char*, q_method_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
     */
    DLLEXPORT void addMethodExtendedList3(const void* ptr, const char* n_name, q_method3_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t());
 
    //! adds a builtin method with extended information; additional functional domain info, return and parameter type info
-   /** @deprecated for addMethod(const char*, q_method_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+   /** @deprecated for addMethod(const char*, q_method_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
     */
    DLLEXPORT void addMethodExtended3(const char* n_name, q_method_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
    //! adds a builtin method with extended information; additional functional domain info, return and parameter type info
-   /** @deprecated for addMethod(const char*, q_method_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+   /** @deprecated for addMethod(const char*, q_method_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
     */
    DLLEXPORT void addMethodExtended3(const char* n_name, q_method_int64_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
    //! adds a builtin method with extended information; additional functional domain info, return and parameter type info
-   /** @deprecated for addMethod(const char*, q_method_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+   /** @deprecated for addMethod(const char*, q_method_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
     */
    DLLEXPORT void addMethodExtended3(const char* n_name, q_method_bool_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
    //! adds a builtin method with extended information; additional functional domain info, return and parameter type info
-   /** @deprecated for addMethod(const char*, q_method_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+   /** @deprecated for addMethod(const char*, q_method_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
     */
    DLLEXPORT void addMethodExtended3(const char* n_name, q_method_double_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
    //! adds an unimplemented abstract method variant to the class with extended information; with return and parameter type info
+   DLLEXPORT void addAbstractMethodVariant(const char* n_name, ClassAccess access = Public, int64 n_flags = QC_NO_FLAGS, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
+
+   //! adds an unimplemented abstract method variant to the class with extended information; with return and parameter type info
+   /** @deprecated for addAbstractMethodVariant()
+    */
    DLLEXPORT void addAbstractMethodVariantExtended3(const char* n_name, bool priv = false, int64 n_flags = QC_NO_FLAGS, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
    //! adds a builtin static method to a class
@@ -403,32 +450,32 @@ public:
       @param meth the method to be added
       @param priv if true then the method will be added as a private method
 
-      @deprecated for addStaticMethod(const char*, q_func_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+      @deprecated for addStaticMethod(const char*, q_func_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
     */
    DLLEXPORT void addStaticMethod(const char* n_name, q_func_t meth, bool priv = false);
 
    //! adds a builtin static method with extended information; additional functional domain info, return and parameter type info
-   /** @deprecated for addStaticMethod(const char*, q_func_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+   /** @deprecated for addStaticMethod(const char*, q_func_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
     */
    DLLEXPORT void addStaticMethodExtended(const char* n_name, q_func_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
    //! adds a builtin static method with extended information; additional functional domain info, return and parameter type info from lists
-   /** @deprecated for addStaticMethod(const char*, q_func_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+   /** @deprecated for addStaticMethod(const char*, q_func_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
     */
    DLLEXPORT void addStaticMethodExtendedList(const char* n_name, q_func_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t());
 
    //! adds a builtin static method with the new generic calling convention
-   /** @deprecated for addStaticMethod(const char*, q_func_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+   /** @deprecated for addStaticMethod(const char*, q_func_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
     */
    DLLEXPORT void addStaticMethod2(const char* n_name, q_static_method2_t meth, bool priv = false);
 
    //! adds a builtin static method with the new generic calling convention with extended information; additional functional domain info, return and parameter type info
-   /** @deprecated for addStaticMethod(const char*, q_func_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+   /** @deprecated for addStaticMethod(const char*, q_func_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
     */
    DLLEXPORT void addStaticMethodExtended2(const char* n_name, q_static_method2_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
    //! adds a builtin static method with the new generic calling convention with extended information; additional functional domain info, return and parameter type info from lists
-   /** @deprecated for addStaticMethod(const char*, q_func_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+   /** @deprecated for addStaticMethod(const char*, q_func_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
     */
    DLLEXPORT void addStaticMethodExtendedList2(const char* n_name, q_static_method2_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t());
 
@@ -443,27 +490,27 @@ public:
        @param n_typeList a list of type information for parameters to the variant
        @param defaultArgList a list of default arguments to each parameter
 
-       @deprecated for addStaticMethod(const char*, q_func_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+       @deprecated for addStaticMethod(const char*, q_func_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
     */
    DLLEXPORT void addStaticMethodExtendedList3(const void* ptr, const char* n_name, q_static_method3_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t());
 
    //! adds a builtin static method with extended information; additional functional domain info, return and parameter type info
-   /** @deprecated for addStaticMethod(const char*, q_func_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+   /** @deprecated for addStaticMethod(const char*, q_func_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
     */
    DLLEXPORT void addStaticMethodExtended3(const char* n_name, q_func_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
    //! adds a builtin static method with extended information; additional functional domain info, return and parameter type info
-   /** @deprecated for addStaticMethod(const char*, q_func_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+   /** @deprecated for addStaticMethod(const char*, q_func_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
     */
    DLLEXPORT void addStaticMethodExtended3(const char* n_name, q_func_int64_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
    //! adds a builtin static method with extended information; additional functional domain info, return and parameter type info
-   /** @deprecated for addStaticMethod(const char*, q_func_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+   /** @deprecated for addStaticMethod(const char*, q_func_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
     */
    DLLEXPORT void addStaticMethodExtended3(const char* n_name, q_func_bool_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
    //! adds a builtin static method with extended information; additional functional domain info, return and parameter type info
-   /** @deprecated for addStaticMethod(const char*, q_func_n_t, bool, int64, int64, const QoreTypeInfo*, unsigned, ...);
+   /** @deprecated for addStaticMethod(const char*, q_func_n_t, ClassAccess, int64, int64, const QoreTypeInfo*, unsigned, ...);
     */
    DLLEXPORT void addStaticMethodExtended3(const char* n_name, q_func_double_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
@@ -511,25 +558,30 @@ public:
    DLLEXPORT void setDestructor3(const void* ptr, q_destructor3_t m);
 
    //! sets the constructor method with extended information; can set a private constructor, set additional functional domain info, and parameter type info (or adds an overloaded variant)
+   DLLEXPORT void addConstructor(q_constructor_n_t meth, ClassAccess access = Public, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, unsigned num_params = 0, ...);
+
+   //! sets the constructor method with extended information; can set a private constructor, set additional functional domain info, and parameter type info (or adds an overloaded variant)
+   /** @deprecated use addConstructor(q_constructor_n_t, ClassAccess, int64, int64, unsigned, ...) instead
+    */
    DLLEXPORT void addConstructor(q_constructor_n_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, unsigned num_params = 0, ...);
 
    //! sets the builtin constructor method for the class (or adds an overloaded variant)
    /**
       @param m the constructor method
 
-      @deprecated use addConstructor(q_constructor_n_t, bool priv, int64, int64, unsigned, ...) instead
+      @deprecated use addConstructor(q_constructor_n_t, ClassAccess, int64, int64, unsigned, ...) instead
    */
    DLLEXPORT void setConstructor(q_constructor_t m);
 
    //! sets the constructor method with extended information; can set a private constructor, set additional functional domain info, and parameter type info (or adds an overloaded variant)
    /*
-      @deprecated use addConstructor(q_constructor_n_t, bool priv, int64, int64, unsigned, ...) instead
+      @deprecated use addConstructor(q_constructor_n_t, ClassAccess, int64, int64, unsigned, ...) instead
    */
    DLLEXPORT void setConstructorExtended(q_constructor_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, unsigned num_params = 0, ...);
 
    //! sets the constructor method with extended information; can set a private constructor, set additional functional domain info, and parameter type info from lists (or adds an overloaded variant)
    /*
-      @deprecated use addConstructor(q_constructor_n_t, bool priv, int64, int64, unsigned, ...) instead
+      @deprecated use addConstructor(q_constructor_n_t, ClassAccess, int64, int64, unsigned, ...) instead
    */
    DLLEXPORT void setConstructorExtendedList(q_constructor_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t());
 
@@ -537,19 +589,19 @@ public:
    /**
       @param m the constructor method
 
-      @deprecated use addConstructor(q_constructor_n_t, bool priv, int64, int64, unsigned, ...) instead
+      @deprecated use addConstructor(q_constructor_n_t, ClassAccess, int64, int64, unsigned, ...) instead
    */
    DLLEXPORT void setConstructor2(q_constructor2_t m);
 
    //! sets the constructor method using the new calling convention with extended information; can set a private constructor, set additional functional domain info, and parameter type info (or adds an overloaded variant)
    /*
-      @deprecated use addConstructor(q_constructor_n_t, bool priv, int64, int64, unsigned, ...) instead
+      @deprecated use addConstructor(q_constructor_n_t, ClassAccess, int64, int64, unsigned, ...) instead
    */
    DLLEXPORT void setConstructorExtended2(q_constructor2_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, unsigned num_params = 0, ...);
 
    //! sets the constructor method using the new calling convention with extended information; can set a private constructor, set additional functional domain info, and parameter type info from lists (or adds an overloaded variant)
    /*
-      @deprecated use addConstructor(q_constructor_n_t, bool priv, int64, int64, unsigned, ...) instead
+      @deprecated use addConstructor(q_constructor_n_t, ClassAccess, int64, int64, unsigned, ...) instead
    */
    DLLEXPORT void setConstructorExtendedList2(q_constructor2_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t());
 
@@ -562,13 +614,13 @@ public:
        @param n_typeList a list of type information for parameters to the variant
        @param defaultArgList a list of default arguments to each parameter
 
-      @deprecated use addConstructor(q_constructor_n_t, bool priv, int64, int64, unsigned, ...) instead
+      @deprecated use addConstructor(q_constructor_n_t, ClassAccess, int64, int64, unsigned, ...) instead
     */
    DLLEXPORT void setConstructorExtendedList3(const void* ptr, q_constructor3_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t());
 
    //! sets the constructor method with extended information; can set a private constructor, set additional functional domain info, and parameter type info (or adds an overloaded variant)
    /*
-      @deprecated use addConstructor(q_constructor_n_t, bool priv, int64, int64, unsigned, ...) instead
+      @deprecated use addConstructor(q_constructor_n_t, ClassAccess, int64, int64, unsigned, ...) instead
    */
    DLLEXPORT void setConstructorExtended3(q_constructor_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, unsigned num_params = 0, ...);
 
@@ -590,7 +642,7 @@ public:
        @param m the copy method to set
        @code
        // the actual function can be declared with the class to be expected as the private data as follows:
-       static void AL_copy(QoreObject* self, QoreObject* old, class QoreAutoLock *m, ExceptionSink* xsink)
+       static void AL_copy(QoreObject* self, QoreObject* old, QoreAutoLock *m, ExceptionSink* xsink)
        ...
        // and then casted to (q_copy_t) in the addMethod call:
        QC_AutoLock->setCopy((q_copy_t)AL_copy);
@@ -800,11 +852,21 @@ public:
    // used at run-time
    DLLEXPORT const QoreMethod* findStaticMethod(const char* nme) const;
 
-   //! finds a non-static method in the class hierarchy and sets the priv flag if it's a private method or not
+   //! finds a non-static method in the class hierarchy at runtime and sets the priv flag if it's a private method or not
+   /** @deprecated use findMethod(const char*, ClassAccess&) instead
+    */
    DLLEXPORT const QoreMethod* findMethod(const char* nme, bool& priv) const;
 
+   //! finds a non-static method in the class hierarchy at runtime and sets the access code
+   DLLEXPORT const QoreMethod* findMethod(const char* nme, ClassAccess& access) const;
+
    //! finds a static method in the class hierarchy and sets the priv flag if it's a private method or not
+   /** @deprecated use findStaticMethod(const char*, ClassAccess&) instead
+    */
    DLLEXPORT const QoreMethod* findStaticMethod(const char* nme, bool& priv) const;
+
+   //! finds a static method in the class hierarchy and sets the priv flag if it's a private method or not
+   DLLEXPORT const QoreMethod* findStaticMethod(const char* nme, ClassAccess& access) const;
 
    //! make a builtin class a child of another builtin class
    /** the xargs argument must not be used; before qore supported function overloading, base class arguments could be given here
