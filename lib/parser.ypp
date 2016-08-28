@@ -871,7 +871,7 @@ public:
       vmap.moveAllToPrivate(qc);
 
       // merge private constants
-      qc->parseAssimilatePrivateConstants(cmap);
+      qore_class_private::get(*qc)->parseAssimilateConstants(cmap, Private);
    }
 
    DLLLOCAL void mergePublic(QoreClass* qc) {
@@ -879,7 +879,7 @@ public:
       vmap.moveAllToPublic(qc);
 
       // merge public constants
-      qc->parseAssimilatePublicConstants(cmap);
+      qore_class_private::get(*qc)->parseAssimilateConstants(cmap, Public);
    }
 };
 
@@ -2132,22 +2132,22 @@ superclass_list:
 
 superclass:
         IDENTIFIER {
-	   $$ = new BCNode($1, false);
+	   $$ = new BCNode($1, Public);
 	}
         | SCOPED_REF {
-	   $$ = new BCNode(new NamedScope($1), false);
+	   $$ = new BCNode(new NamedScope($1), Public);
 	}
         | TOK_PUBLIC IDENTIFIER {
-	   $$ = new BCNode($2, false);
+	   $$ = new BCNode($2, Public);
 	}
         | TOK_PUBLIC SCOPED_REF {
-	   $$ = new BCNode(new NamedScope($2), false);
+	   $$ = new BCNode(new NamedScope($2), Public);
 	}
         | TOK_PRIVATE IDENTIFIER {
-	   $$ = new BCNode($2, true);
+	   $$ = new BCNode($2, Private);
 	}
         | TOK_PRIVATE SCOPED_REF {
-	   $$ = new BCNode(new NamedScope($2), true);
+	   $$ = new BCNode(new NamedScope($2), Private);
 	}
 	;
 
@@ -2168,7 +2168,7 @@ class_attributes:
 	}
         | unscoped_const_decl {
 	   $$ = new QoreClass;
-	   $$->parseAddPublicConstant($1->getName(), $1->takeValue());
+           qore_class_private::parseAddConstant(*($$), $1->getName(), $1->takeValue(), Public);
 	   delete $1;
 	}
 	| class_attributes inline_methoddef {
@@ -2186,23 +2186,10 @@ class_attributes:
 	   delete $2;
 	}
         | class_attributes unscoped_const_decl {
-	   $$->parseAddPublicConstant($2->getName(), $2->takeValue());
+           qore_class_private::parseAddConstant(*($$), $2->getName(), $2->takeValue(), Public);
 	   $$ = $1;
 	   delete $2;
 	}
-/*
-        // causes a shift-reduce conflict with static method declarations
-        | classvardecl {
-	   $$ = new QoreClass;
-	   qore_class_private::parseAddPublicStaticVar($$, $1->takeName(), $1->takeVarInfo());
-	   delete $1;
-	}
-        | class_attributes classvardecl {
-	   qore_class_private::parseAddPublicStaticVar($1, $2->takeName(), $2->takeVarInfo());
-	   $$ = $1;
-	   delete $2;
-	}
-*/
         ;
 
 uncqtypedef:

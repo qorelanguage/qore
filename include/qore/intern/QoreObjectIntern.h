@@ -316,12 +316,12 @@ public:
    DLLLOCAL int checkMemberAccess(const char* mem) const {
       // check public access
       if (theclass->runtimeHasPublicMembersInHierarchy()) {
-	 bool priv_member;
-         const qore_class_private* qc = qore_class_private::isPublicOrPrivateMember(*theclass, mem, priv_member);
+         ClassAccess access;
+         const qore_class_private* qc = qore_class_private::getMemberClass(*theclass, mem, access);
 	 if (!qc)
 	    return QOA_PUB_ERROR;
 
-	 if (priv_member && !qc->runtimeCheckPrivateClassAccess())
+	 if ((access > Public) && !qc->runtimeCheckPrivateClassAccess())
 	    return QOA_PRIV_ERROR;
 
 	 return QOA_OK;

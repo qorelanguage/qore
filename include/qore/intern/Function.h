@@ -961,14 +961,14 @@ protected:
       pending_has_final = false;
 
    ClassAccess access,
-      pending_access = Internal;
+      pending_access;
 
    DLLLOCAL int checkFinalVariant(const MethodFunctionBase* m, const MethodVariantBase* v) const;
 
    DLLLOCAL void replaceAbstractVariantIntern(MethodVariantBase* variant);
 
 public:
-   DLLLOCAL MethodFunctionBase(const char* nme, const QoreClass* n_qc, bool n_is_static) : QoreFunction(nme), qc(n_qc), is_static(n_is_static), has_final(false), access(Internal) {
+   DLLLOCAL MethodFunctionBase(const char* nme, const QoreClass* n_qc, bool n_is_static) : QoreFunction(nme), qc(n_qc), is_static(n_is_static), has_final(false), access(Internal), pending_access(Internal) {
    }
 
    // copy constructor, only copies committed variants
@@ -977,7 +977,8 @@ public:
         qc(n_qc),
         is_static(old.is_static),
         has_final(old.has_final),
-        access(old.access) {
+        access(old.access),
+        pending_access(old.pending_access) {
       //printd(5, "MethodFunctionBase() copying old=%p -> new=%p %p %s::%s() %p %s::%s()\n",& old, this, old.qc, old.qc->getName(), old.getName(), qc, qc->getName(), old.getName());
 
       // set a pointer to the new function
@@ -1012,10 +1013,13 @@ public:
 
    // returns -1 for error, 0 = OK
    DLLLOCAL int parseAddUserMethodVariant(MethodVariantBase* variant);
-   // maintains all_private flag and commits the builtin variant
+
+   // maintains access flag and commits the builtin variant
    DLLLOCAL void addBuiltinMethodVariant(MethodVariantBase* variant);
-   // maintains all_private flag and commits user variants
+
+   // maintains access flag and commits user variants
    DLLLOCAL void parseCommitMethod(QoreString& csig, const char* mod);
+
    DLLLOCAL void parseCommitMethod();
    // processes method signatures while parsing classes for pending variants
    DLLLOCAL void parsePendingSignatures(QoreString& csig, const char* mod) const;
@@ -1030,10 +1034,15 @@ public:
    DLLLOCAL void parseRollbackMethod();
 
    DLLLOCAL bool isUniquelyPrivate() const {
-      return all_private;
+      return access > Public;
+   }
+
+   DLLLOCAL ClassAccess getAccess() const {
+      return access;
    }
 
    DLLLOCAL ClassAccess parseGetAccess() const {
+      assert(pending_access <= access);
       return pending_access;
    }
 

@@ -88,7 +88,7 @@ void qore_method_private::parseInit() {
    }
 }
 
-bool qore_method_private::parseGetAccess() const {
+ClassAccess qore_method_private::parseGetAccess() const {
    return func->parseGetAccess();
 }
 
@@ -487,8 +487,10 @@ qore_class_private::qore_class_private(QoreClass* n_cls, const char* nme, int64 
      scl(0),
      pend_pub_const(this),   // pending public constants
      pend_priv_const(this),  // pending private constants
+     pend_int_const(this),   // pending internal constants
      pub_const(this),        // committed public constants
      priv_const(this),       // committed private constants
+     int_const(this),        // committed internal constants
      system_constructor(0),
      constructor(0),
      destructor(0),
@@ -542,10 +544,12 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
      ns(0),
      scl(0), // parent class list must be copied after new_copy set in old
      ahm(old.ahm),
-     pend_pub_const(this),              // pending public constants
-     pend_priv_const(this),             // pending private constants
+     pend_pub_const(this),                 // pending public constants
+     pend_priv_const(this),                // pending private constants
+     pend_int_const(this),                 // pending internal constants
      pub_const(old.pub_const, 0, this),    // committed public constants
      priv_const(old.priv_const, 0, this),  // committed private constants
+     int_const(old.int_const, 0, this),    // committed internal constants
      system_constructor(old.system_constructor ? old.system_constructor->copy(cls) : 0),
      constructor(0), // method pointers set below when methods are copied
      destructor(0),
@@ -676,7 +680,7 @@ void qore_class_private::initialize() {
 // process signature entries for base classes
 static void do_sig(QoreString& csig, BCNode& n) {
    qore_class_private* qc = qore_class_private::get(*n.sclass);
-   csig.sprintf("inherits %s %s ", n.isPrivate() ? "priv" : "pub", qc->name.c_str());
+   csig.sprintf("inherits %s %s ", privpub(n.getAccess()), qc->name.c_str());
    SignatureHash& h = qc->pend_hash ? qc->pend_hash : qc->hash;
    if (h) {
       csig.concat('[');
@@ -690,17 +694,17 @@ static void do_sig(QoreString& csig, BCNode& n) {
 // process signature entries for class members
 static void do_sig(QoreString& csig, QoreMemberMap::SigOrderIterator i) {
    if (i->second)
-      csig.sprintf("%s mem %s %s %s\n", privpub(i->second->priv), i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
+      csig.sprintf("%s mem %s %s %s\n", privpub(i->second->access), i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
    else
-      csig.sprintf("%s mem %s\n", privpub(i->second->priv), i->first);
+      csig.sprintf("%s mem %s\n", privpub(i->second->access), i->first);
 }
 
 // process signature entries for class static vars
 static void do_sig(QoreString& csig, QoreVarMap::SigOrderIterator i) {
    if (i->second)
-      csig.sprintf("%s var %s %s %s\n", privpub(i->second->priv), i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
+      csig.sprintf("%s var %s %s %s\n", privpub(i->second->access), i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
    else
-      csig.sprintf("%s var %s\n", privpub(i->second->priv), i->first);
+      csig.sprintf("%s var %s\n", privpub(i->second->access), i->first);
 }
 
 // process signature entries for class constants
@@ -849,6 +853,8 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
       do_sig(csig, pend_priv_const, "priv");
       do_sig(csig, pub_const, "pub");
       do_sig(csig, pend_pub_const, "pub");
+      do_sig(csig, int_const, "priv(int)");
+      do_sig(csig, pend_int_const, "priv(int)");
    }
 
    if (has_sig_changes) {
@@ -1170,11 +1176,13 @@ void qore_class_private::parseCommit() {
       // commit pending constants
       priv_const.assimilate(pend_priv_const);
       pub_const.assimilate(pend_pub_const);
+      int_const.assimilate(pend_int_const);
 
       // process constants for signature
       if (has_sig_changes) {
-	 do_sig(csig, priv_const, "priv");
 	 do_sig(csig, pub_const, "pub");
+	 do_sig(csig, priv_const, "priv");
+	 do_sig(csig, int_const, "priv(int)");
       }
 
       // if there are any signature changes, then change the class' signature
@@ -1221,7 +1229,7 @@ void qore_class_private::parseCommitRuntimeInit(ExceptionSink* xsink) {
    // add all pending static vars to real list and initialize them
    if (!pending_vars.empty()) {
       for (QoreVarMap::DeclOrderIterator i = pending_vars.beginDeclOrder(), e = pending_vars.endDeclOrder(); i != e; ++i) {
-         //printd(5, "QoreClass::parseCommitRuntimeInit() %s committing %s var %p %s\n", name.c_str(), privpub(i->second->priv), l->first, l->first);
+         //printd(5, "QoreClass::parseCommitRuntimeInit() %s committing %s var %p %s\n", name.c_str(), privpub(i->second->access), l->first, l->first);
          vars.addNoCheck(i->first, i->second);
          // initialize variable
          initVar(i->first, *(i->second), xsink);
@@ -1484,7 +1492,7 @@ bool BCNode::isBaseClass(QoreClass* qc, bool toplevel) const {
    assert(sclass);
 
    if (!toplevel && access == Internal)
-      continue;
+      return false;
 
    //printd(5, "BCNode::isBaseClass() %p %s (%d) == %s (%d)\n", this, qc->getName(), qc->getID(), sclass->getName(), sclass->getID());
    if (qc->getID() == sclass->getID() || (sclass->priv->scl && sclass->priv->scl->isBaseClass(qc, false))) {
@@ -1494,7 +1502,7 @@ bool BCNode::isBaseClass(QoreClass* qc, bool toplevel) const {
    return false;
 }
 
-DLLLOCAL const QoreMethod* getParentMethodAccess(const QoreMethod* m, ClassAccess& n_access, ClassAccess ma) const {
+DLLLOCAL const QoreMethod* BCNode::getParentMethodAccess(const QoreMethod* m, ClassAccess& n_access, ClassAccess ma) const {
    if (ma == Internal)
       return 0;
 
@@ -1507,14 +1515,14 @@ DLLLOCAL const QoreMethod* getParentMethodAccess(const QoreMethod* m, ClassAcces
    return m;
 }
 
-const QoreMethod* BCNode::getRuntimeParentMethodAccess(const QoreMethod* m, ClassAccess& n_access) const {
+const QoreMethod* BCNode::getParentMethodAccessRuntime(const QoreMethod* m, ClassAccess& n_access) const {
    if (!m)
       return 0;
 
    return getParentMethodAccess(m, n_access, m->getAccess());
 }
 
-const QoreMethod* BCNode::getRuntimeParseMethodAccess(const QoreMethod* m, ClassAccess& n_access) const {
+const QoreMethod* BCNode::getParentMethodAccessParse(const QoreMethod* m, ClassAccess& n_access) const {
    if (!m)
       return 0;
 
@@ -1524,29 +1532,28 @@ const QoreMethod* BCNode::getRuntimeParseMethodAccess(const QoreMethod* m, Class
 const QoreMethod* BCNode::runtimeFindCommittedMethod(const char* name, ClassAccess& n_access, bool toplevel) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
-      return false;
+      return 0;
 
    if (access == Internal && !toplevel)
-      return false;
+      return 0;
 
-   const QoreMethod* m = sclass->priv->runtimeFindCommittedMethod(name, n_access, false)
-   return getParentMethodAccess(m, n_access);
+   const QoreMethod* m = sclass->priv->runtimeFindCommittedMethodIntern(name, n_access, false);
+   return getParentMethodAccessRuntime(m, n_access);
 }
 
 const QoreMethod* BCNode::runtimeFindCommittedStaticMethod(const char* name, ClassAccess& n_access, bool toplevel) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
-      return false;
+      return 0;
 
    if (access == Internal && !toplevel)
-      return false;
+      return 0;
 
-   const QoreMethod* m = sclass->priv->runtimeFindCommittedStaticMethod(name, n_access, false);
-   return getParentMethodAccess(m, n_access);
+   const QoreMethod* m = sclass->priv->runtimeFindCommittedStaticMethodIntern(name, n_access, false);
+   return getParentMethodAccessRuntime(m, n_access);
 }
 
-/*
-const QoreMethod* BCNode::parseFindCommittedMethod(const char* name, bool toplevel) const {
+const QoreMethod* BCNode::parseFindMethod(const char* name, ClassAccess& n_access, bool toplevel) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
       return 0;
@@ -1554,14 +1561,11 @@ const QoreMethod* BCNode::parseFindCommittedMethod(const char* name, bool toplev
    if (access == Internal && !toplevel)
       return 0;
 
-   sclass->priv->initialize();
-   const QoreMethod* m = sclass->priv->parseFindCommittedMethod(name, false);
-
-   return m;
+   const QoreMethod* m = sclass->priv->parseFindMethodIntern(name, n_access, false);
+   return getParentMethodAccessParse(m, n_access);
 }
-*/
 
-const QoreMethod* BCNode::parseFindMethodTree(const char* name, ClassAccess& n_access, bool toplevel) const {
+const QoreMethod* BCNode::parseFindStaticMethod(const char* name, ClassAccess& n_access, bool toplevel) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
       return 0;
@@ -1569,11 +1573,11 @@ const QoreMethod* BCNode::parseFindMethodTree(const char* name, ClassAccess& n_a
    if (access == Internal && !toplevel)
       return 0;
 
-   const QoreMethod* m = sclass->priv->parseFindMethodIntern(name, n_access, toplevel);
-   return getParseMethodAccess(m, n_access);
+   const QoreMethod* m = sclass->priv->parseFindStaticMethodIntern(name, n_access, false);
+   return getParentMethodAccessParse(m, n_access);
 }
 
-const QoreMethod* BCNode::parseFindStaticMethodTree(const char* name, ClassAccess& n_access, bool toplevel) const {
+const QoreMethod* BCNode::parseFindAnyMethod(const char* name, ClassAccess& n_access, bool toplevel) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
       return 0;
@@ -1581,20 +1585,8 @@ const QoreMethod* BCNode::parseFindStaticMethodTree(const char* name, ClassAcces
    if (access == Internal && !toplevel)
       return 0;
 
-   const QoreMethod* m = sclass->priv->parseFindStaticMethodTree(name, n_access, toplevel);
-   return getParseMethodAccess(m, n_access);
-}
-
-const QoreMethod* BCNode::parseFindAnyMethodTree(const char* name, ClassAccess& n_access, bool toplevel) const {
-   // sclass can be 0 if the class could not be found during parse initialization
-   if (!sclass)
-      return 0;
-
-   if (access == Internal && !toplevel)
-      return 0;
-
-   const QoreMethod* m = sclass->priv->parseFindAnyMethodIntern(name, n_access, toplevel);
-   return getParseMethodAccess(m, n_access);
+   const QoreMethod* m = sclass->priv->parseFindAnyMethodIntern(name, n_access, false);
+   return getParentMethodAccessParse(m, n_access);
 }
 
 const QoreMethod* BCNode::parseResolveSelfMethod(const char* name, ClassAccess& n_access, bool toplevel) const {
@@ -1607,7 +1599,7 @@ const QoreMethod* BCNode::parseResolveSelfMethod(const char* name, ClassAccess& 
 
    sclass->priv->initialize();
    const QoreMethod* m = sclass->priv->parseResolveSelfMethodIntern(name, n_access, toplevel);
-   return getParseMethodAccess(m, n_access);
+   return getParentMethodAccessParse(m, n_access);
 }
 
 const QoreMemberInfo* BCNode::parseFindMember(const char* mem, const qore_class_private*& qc, bool toplevel) const {
@@ -1621,7 +1613,7 @@ const QoreMemberInfo* BCNode::parseFindMember(const char* mem, const qore_class_
    return sclass->priv->parseFindMemberNoInit(mem, qc, false);
 }
 
-template <typename T = QoreMemberInfo>
+template <typename T>
 const T* BCNode::getParentMemberAccess(const T* m, ClassAccess& n_access) const {
    ClassAccess ma = m->getAccess();
 
@@ -1640,16 +1632,16 @@ const T* BCNode::getParentMemberAccess(const T* m, ClassAccess& n_access) const 
 const QoreMemberInfo* BCNode::runtimeGetMemberInfo(const char* mem, ClassAccess& n_access, bool toplevel) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
-      return false;
+      return 0;
 
    if (access == Internal && !toplevel)
-      return false;
+      return 0;
 
    const QoreMemberInfo* rv = sclass->priv->runtimeGetMemberInfoIntern(mem, n_access, false);
-   return getParentMemberAccess<>(rv, n_access);
+   return getParentMemberAccess<QoreMemberInfo>(rv, n_access);
 }
 
-const QoreClass* BCNode::getMemberClass(const char* mem, ClassAccess& n_access, bool toplevel) const {
+const qore_class_private* BCNode::getMemberClass(const char* mem, ClassAccess& n_access, bool toplevel) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
       return 0;
@@ -1657,14 +1649,14 @@ const QoreClass* BCNode::getMemberClass(const char* mem, ClassAccess& n_access, 
    if (access == Internal && !toplevel)
       return 0;
 
-   qore_class_private* rv = sclass->priv->getMemberClass(mem, n_access, false);
+   const qore_class_private* rv = sclass->priv->getMemberClass(mem, n_access, false);
    if (rv && n_access < access)
       n_access = access;
 
    return rv;
 }
 
-QoreVarInfo* BCNode::parseFindVar(const char* name, const qore_class_private*& qc, ClassAccess& n_access, bool toplevel) const {
+const QoreVarInfo* BCNode::parseFindVar(const char* name, const qore_class_private*& qc, ClassAccess& n_access, bool toplevel) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
       return 0;
@@ -1673,7 +1665,7 @@ QoreVarInfo* BCNode::parseFindVar(const char* name, const qore_class_private*& q
       return 0;
 
    const QoreVarInfo* vi = sclass->priv->parseFindVar(name, qc, n_access, false);
-   return getParentMemberAccess<QoreVarInfo*>(vi, n_access);
+   return getParentMemberAccess<QoreVarInfo>(vi, n_access);
 }
 
 const QoreClass* BCNode::getClass(qore_classid_t cid, ClassAccess& n_access, bool toplevel) const {
@@ -1691,6 +1683,22 @@ const QoreClass* BCNode::getClass(qore_classid_t cid, ClassAccess& n_access, boo
    return qc;
 }
 
+const QoreClass* BCNode::getClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
+   // sclass can be 0 if the class could not be found during parse initialization
+   if (!sclass)
+      return 0;
+
+   if (access == Internal && !toplevel)
+      return 0;
+
+   const QoreClass* rv = sclass->priv->getClassIntern(qc, n_access, false);
+
+   if (rv && n_access < access)
+      n_access = access;
+
+   return rv;
+}
+
 const QoreClass* BCNode::parseGetClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
@@ -1701,13 +1709,13 @@ const QoreClass* BCNode::parseGetClass(const qore_class_private& qc, ClassAccess
 
    const QoreClass* rv = sclass->priv->parseGetClassIntern(qc, n_access, false);
 
-   if (rv && n_access > access)
+   if (rv && n_access < access)
       n_access = access;
 
    return rv;
 }
 
-bool BCNode::isPrivateMember(const char* str, bool toplevel) const {
+bool BCNode::runtimeIsPrivateMember(const char* str, bool toplevel) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
       return false;
@@ -1715,7 +1723,18 @@ bool BCNode::isPrivateMember(const char* str, bool toplevel) const {
    if (access == Internal && !toplevel)
       return false;
 
-   return sclass->priv->isPrivateMemberIntern(str, false);
+   return sclass->priv->runtimeIsPrivateMemberIntern(str, false);
+}
+
+AbstractQoreNode* BCNode::parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, bool check, bool toplevel) const {
+   // sclass can be 0 if the class could not be found during parse initialization
+   if (!sclass)
+      return 0;
+
+   if (access == Internal && !toplevel)
+      return 0;
+
+   return sclass->priv->parseFindConstantValueIntern(cname, typeInfo, check, false);
 }
 
 bool BCList::isBaseClass(QoreClass* qc, bool toplevel) const {
@@ -1757,7 +1776,7 @@ int BCList::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_
 
 const qore_class_private* BCList::getMemberClass(const char* mem, ClassAccess& access, bool toplevel) const {
    for (auto& i : *this) {
-      qore_class_private* rv = (*i).getMemberClass(mem, access, toplevel);
+      const qore_class_private* rv = (*i).getMemberClass(mem, access, toplevel);
       if (rv)
 	 return rv;
    }
@@ -1786,7 +1805,7 @@ const QoreMemberInfo* BCList::parseFindMember(const char* mem, const qore_class_
    if (!valid)
       return 0;
 
-   for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
+   for (auto& i : *this) {
       const QoreMemberInfo* mi = (*i).parseFindMember(mem, qc, toplevel);
       if (mi)
 	 return mi;
@@ -1799,7 +1818,7 @@ const QoreVarInfo* BCList::parseFindVar(const char* name, const qore_class_priva
       return 0;
 
    for (auto& i : *this) {
-      QoreVarInfo* rv = (*i).parseFindVar(name, qc, n_access, toplevel);
+      const QoreVarInfo* rv = (*i).parseFindVar(name, qc, n_access, toplevel);
       if (rv)
 	 return rv;
    }
@@ -1819,82 +1838,48 @@ const QoreMethod* BCList::runtimeFindCommittedMethod(const char* name, ClassAcce
 // called at run time
 const QoreMethod* BCList::runtimeFindCommittedStaticMethod(const char* name, ClassAccess& access, bool toplevel) const {
    for (auto& i : *this) {
-      QoreMethod* m = (*i).runtimeFindCommittedStaticMethod(name, access, toplevel);
+      const QoreMethod* m = (*i).runtimeFindCommittedStaticMethod(name, access, toplevel);
       if (m)
 	 return m;
    }
    return 0;
 }
 
-/*
-// called at parse time
-const QoreMethod* BCList::parseFindCommittedMethod(const char* name, bool toplevel) {
+const QoreMethod* BCList::parseFindMethod(const char* name, ClassAccess& access, bool toplevel) {
    if (!valid)
       return 0;
 
    for (auto& i : *this) {
-      const QoreMethod* m = (*i).parseFindCommittedMethod(name, toplevel);
-      if (m)
-	 return m;
-   }
-   return 0;
-}
-*/
-
-const QoreMethod* BCList::parseFindMethodTree(const char* name, ClassAccess& access, bool toplevel) {
-   if (!valid)
-      return 0;
-
-   for (auto& i : *this) {
-      const QoreMethod* m = (*i).parseFindMethodTree(name, access, toplevel);
+      const QoreMethod* m = (*i).parseFindMethod(name, access, toplevel);
       if (m)
 	 return m;
    }
    return 0;
 }
 
-const QoreMethod* BCList::parseFindAnyMethodTree(const char* name, ClassAccess& access, bool toplevel) {
+const QoreMethod* BCList::parseFindAnyMethod(const char* name, ClassAccess& access, bool toplevel) {
    if (!valid)
       return 0;
 
    for (auto& i : *this) {
-      const QoreMethod* m = (*i).parseFindAnyMethodTree(name, access, toplevel);
+      const QoreMethod* m = (*i).parseFindAnyMethod(name, access, toplevel);
       if (m)
 	 return m;
    }
    return 0;
 }
 
-const QoreMethod* BCList::parseFindStaticMethodTree(const char* name, bool& priv) {
+const QoreMethod* BCList::parseFindStaticMethod(const char* name, ClassAccess& access, bool toplevel) {
    if (!valid)
       return 0;
 
    for (auto& i : *this) {
-      const QoreMethod* m = (*i).parseFindStaticMethodTree(name, access, toplevel);
+      const QoreMethod* m = (*i).parseFindStaticMethod(name, access, toplevel);
       if (m)
 	 return m;
    }
    return 0;
 }
-
-/*
-// called at parse time
-const QoreMethod* BCList::parseFindCommittedStaticMethod(const char* name) {
-   if (!valid)
-      return 0;
-
-   for (auto& i : *this) {
-      if ((*i).sclass) {
-	 (*i).sclass->priv->initialize();
-	 const QoreMethod* m;
-	 if ((m = (*i).sclass->priv->parseFindCommittedStaticMethod(name)))
-	    return m;
-      }
-   }
-   return 0;
-}
-*/
-
 
 bool BCList::match(const QoreClass* cls) {
    for (auto& i : *this) {
@@ -1905,9 +1890,9 @@ bool BCList::match(const QoreClass* cls) {
    return false;
 }
 
-bool BCList::isPrivateMember(const char* str, bool toplevel) const {
+bool BCList::runtimeIsPrivateMember(const char* str, bool toplevel) const {
    for (auto& i : *this) {
-      if ((*i).isPrivateMember(str, toplevel))
+      if ((*i).runtimeIsPrivateMember(str, toplevel))
 	 return true;
    }
    return false;
@@ -2066,17 +2051,12 @@ void BCList::resolveCopy() {
    sml.resolveCopy();
 }
 
-AbstractQoreNode* BCList::parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, bool check) {
+AbstractQoreNode* BCList::parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, bool check, bool toplevel) const {
    if (!valid)
       return 0;
 
    for (auto& i : *this) {
-      QoreClass* qc = (*i).sclass;
-      // qc may be 0 if there were a parse error with an unknown class earlier
-      if (!qc)
-	 continue;
-
-      AbstractQoreNode* rv = qore_class_private::parseFindConstantValue(qc, cname, typeInfo, check);
+      AbstractQoreNode* rv = (*i).parseFindConstantValue(cname, typeInfo, check, toplevel);
       if (rv)
 	 return rv;
    }
@@ -2100,9 +2080,19 @@ QoreVarInfo* BCList::parseFindStaticVar(const char* vname, const QoreClass*& qc,
    return 0;
 }
 
-const QoreClass* BCList::getClass(const qore_class_private& qc, bool& priv) const {
+const QoreClass* BCList::getClass(qore_classid_t cid, ClassAccess& n_access, bool toplevel) const {
    for (auto& i : *this) {
-      const QoreClass* rv = (*i).getClass(qc, priv);
+      const QoreClass* qc = (*i).getClass(cid, n_access, toplevel);
+      if (qc)
+	 return qc;
+   }
+
+   return 0;
+}
+
+const QoreClass* BCList::getClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
+   for (auto& i : *this) {
+      const QoreClass* rv = (*i).getClass(qc, n_access, toplevel);
       if (rv)
 	 return rv;
    }
@@ -2110,9 +2100,9 @@ const QoreClass* BCList::getClass(const qore_class_private& qc, bool& priv) cons
    return 0;
 }
 
-const QoreClass* BCList::parseGetClass(const qore_class_private& qc, bool& priv) const {
+const QoreClass* BCList::parseGetClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
    for (auto& i : *this) {
-      const QoreClass* rv = (*i).parseGetClass(qc, priv);
+      const QoreClass* rv = (*i).parseGetClass(qc, n_access, toplevel);
       if (rv)
 	 return rv;
    }
@@ -2186,39 +2176,37 @@ const QoreMethod* QoreClass::findLocalMethod(const char* nme) const {
 
 const QoreMethod* QoreClass::findStaticMethod(const char* nme) const {
    CurrentProgramRuntimeParseContextHelper pch;
-   ClassAccess& access = Public;
-   return priv->runtimeFindCommittedStaticMethodIntern(nme, access, true);
+   ClassAccess access;
+   return priv->runtimeFindCommittedStaticMethod(nme, access);
 }
 
 const QoreMethod* QoreClass::findStaticMethod(const char* nme, bool& priv_flag) const {
    CurrentProgramRuntimeParseContextHelper pch;
-   ClassAccess& access = Public;
-   const QoreMethod* rv = priv->runtimeFindCommittedStaticMethodIntern(nme, access, true);
+   ClassAccess access;
+   const QoreMethod* rv = priv->runtimeFindCommittedStaticMethod(nme, access);
    priv_flag = access > Public;
    return rv;
 }
 
 const QoreMethod* QoreClass::findStaticMethod(const char* nme, ClassAccess& access) const {
    CurrentProgramRuntimeParseContextHelper pch;
-   access = Public;
-   return priv->runtimeFindCommittedStaticMethodIntern(nme, access, true);
+   return priv->runtimeFindCommittedStaticMethod(nme, access);
 }
 
 const QoreMethod* QoreClass::findMethod(const char* nme) const {
-   ClassAccess& access = Public;
-   return priv->runtimeFindCommittedMethodIntern(nme, access, true);
+   ClassAccess access = Public;
+   return priv->runtimeFindCommittedMethod(nme, access);
 }
 
 const QoreMethod* QoreClass::findMethod(const char* nme, bool& priv_flag) const {
-   ClassAccess& access = Public;
-   const QoreMethod* rv = priv->runtimeFindCommittedMethodIntern(nme, access, true);
+   ClassAccess access = Public;
+   const QoreMethod* rv = priv->runtimeFindCommittedMethod(nme, access);
    priv_flag = access > Public;
    return rv;
 }
 
 const QoreMethod* QoreClass::findMethod(const char* nme, ClassAccess& access) const {
-   access = Public;
-   return priv->runtimeFindCommittedMethodIntern(nme, access, true);
+   return priv->runtimeFindCommittedMethod(nme, access);
 }
 
 bool QoreClass::hasCopy() const {
@@ -2305,10 +2293,10 @@ void QoreClass::addBuiltinVirtualBaseClass(QoreClass* qc) {
 }
 
 int qore_class_private::parseCheckClassHierarchyMembers(const char* mname, const QoreMemberInfo& b_mi, const qore_class_private& b_qc, const QoreMemberInfo& l_mi) {
-      if (l_mi.priv != b_mi.priv) {
+      if (l_mi.access != b_mi.access) {
       // raise an exception only if parse exceptions are enabled
       if (getProgram()->getParseExceptionSink()) {
-	 qore_program_private::makeParseException(getProgram(), l_mi.loc, "PARSE-ERROR", new QoreStringNodeMaker("class '%s' cannot be combined with class '%s' in the same hierarchy because member '%s' is declared both %s and %s, respectively", l_mi.getClass(this)->name.c_str(), b_mi.getClass(&b_qc)->name.c_str(), mname, privpub(l_mi.priv), privpub(b_mi.priv)));
+	 qore_program_private::makeParseException(getProgram(), l_mi.loc, "PARSE-ERROR", new QoreStringNodeMaker("class '%s' cannot be combined with class '%s' in the same hierarchy because member '%s' is declared both %s and %s, respectively", l_mi.getClass(this)->name.c_str(), b_mi.getClass(&b_qc)->name.c_str(), mname, privpub(l_mi.access), privpub(b_mi.access)));
       }
       return -1;
    }
@@ -2335,7 +2323,7 @@ void qore_class_private::parseImportMembers(qore_class_private& qc, ClassAccess 
    }
    for (QoreMemberMap::DeclOrderIterator i = qc.pending_members.beginDeclOrder(), e = qc.pending_members.endDeclOrder(); i != e; ++i) {
       const QoreMemberInfo* mi = parseFindLocalPublicPrivateMemberNoInit(i->first);
-      if (mi && mi-access != Internal) {
+      if (mi && mi->access != Internal) {
          if (!mi->getClass(this)->equal(*i->second->getClass(&qc)))
             parseCheckClassHierarchyMembers(i->first, *(i->second), qc, *mi);
          continue;
@@ -2396,6 +2384,7 @@ void qore_class_private::parseRollback() {
    ahm.parseRollback();
 
    // rollback pending constants
+   pend_int_const.parseDeleteAll();
    pend_priv_const.parseDeleteAll();
    pend_pub_const.parseDeleteAll();
 
@@ -2435,6 +2424,10 @@ bool QoreMethod::isBuiltin() const {
 
 bool QoreMethod::isPrivate() const {
    return priv->func->isUniquelyPrivate();
+}
+
+ClassAccess QoreMethod::getAccess() const {
+   return priv->func->getAccess();
 }
 
 bool QoreMethod::isStatic() const {
@@ -2492,11 +2485,15 @@ static const QoreClass* getStackClass() {
 }
 
 void QoreClass::addPublicMember(const char* mname, const QoreTypeInfo* n_typeInfo, AbstractQoreNode* initial_value) {
-   priv->addPublicMember(mname, n_typeInfo, initial_value);
+   priv->addMember(mname, Public, n_typeInfo, initial_value);
 }
 
 void QoreClass::addPrivateMember(const char* mname, const QoreTypeInfo* n_typeInfo, AbstractQoreNode* initial_value) {
-   priv->addPrivateMember(mname, n_typeInfo, initial_value);
+   priv->addMember(mname, Private, n_typeInfo, initial_value);
+}
+
+void QoreClass::addMember(const char* mname, ClassAccess access, const QoreTypeInfo* n_typeInfo, AbstractQoreNode* initial_value) {
+   priv->addMember(mname, access, n_typeInfo, initial_value);
 }
 
 int BCSMList::addBaseClassesToSubclass(QoreClass* thisclass, QoreClass* sc, bool is_virtual) {
@@ -2631,7 +2628,7 @@ const QoreClass* QoreClass::getClass(qore_classid_t cid, bool& cpriv) const {
 
 const QoreClass* QoreClass::getClass(const QoreClass& qc, bool& cpriv) const {
    ClassAccess access = Public;
-   const QoreClass* rv = getClassIntern(qc, access, true);
+   const QoreClass* rv = priv->getClassIntern(*qc.priv, access, true);
    cpriv = (access > Public);
    return rv;
 }
@@ -2662,31 +2659,31 @@ const QoreClass* qore_class_private::parseGetClass(const qore_class_private& qc,
 bool qore_class_private::runtimeHasCallableMethod(const char* m, int mask) const {
    bool external = (cls != getStackClass());
    const QoreMethod* w = 0;
-   bool priv_flag = false;
+   ClassAccess access;
 
    CurrentProgramRuntimeParseContextHelper pch;
 
    if (mask & QCCM_NORMAL)
-      w = runtimeFindCommittedMethodIntern(m, priv_flag);
+      w = runtimeFindCommittedMethod(m, access);
 
    if (!w && (mask & QCCM_STATIC))
-      w = runtimeFindCommittedStaticMethodIntern(m, priv_flag);
+      w = runtimeFindCommittedStaticMethod(m, access);
 
-   return !w || (external && priv_flag) ? false : true;
+   return !w || (external && (access > Public)) ? false : true;
 }
 
 const QoreMethod* qore_class_private::getMethodForEval(const char* nme, QoreProgram* pgm, ExceptionSink* xsink) const {
    //printd(5, "qore_class_private::getMethodForEval() %s::%s() %s call attempted\n", name.c_str(), nme, runtimeCheckPrivateClassAccess() ? "external" : "internal" );
 
    const QoreMethod* w;
-   bool priv_flag = false;
+   ClassAccess access;
 
    {
       ProgramRuntimeParseContextHelper pch(xsink, pgm);
       if (*xsink)
 	 return 0;
 
-      if (!(w = runtimeFindCommittedMethodIntern(nme, priv_flag)) && !(w = runtimeFindCommittedStaticMethodIntern(nme, priv_flag)))
+      if (!(w = runtimeFindCommittedMethod(nme, access)) && !(w = runtimeFindCommittedStaticMethod(nme, access)))
 	 return 0;
    }
 
@@ -2702,7 +2699,7 @@ const QoreMethod* qore_class_private::getMethodForEval(const char* nme, QoreProg
       xsink->raiseException("METHOD-IS-PRIVATE", "%s::%s() is private and cannot be accessed externally", name.c_str(), nme);
       return 0;
    }
-   else if (priv_flag && !runtimeCheckPrivateClassAccess()) {
+   else if ((access > Public) && !runtimeCheckPrivateClassAccess()) {
       xsink->raiseException("BASE-CLASS-IS-PRIVATE", "%s() is a method of a privately-inherited class %s", nme, name.c_str());
       return 0;
    }
@@ -2710,7 +2707,7 @@ const QoreMethod* qore_class_private::getMethodForEval(const char* nme, QoreProg
    return w;
 }
 
-bool qore_class_private::isPrivateMemberIntern(const char* str, bool toplevel) const {
+bool qore_class_private::runtimeIsPrivateMemberIntern(const char* str, bool toplevel) const {
    QoreMemberInfo *info = members.findByName(str);
    if (info) {
       ClassAccess ma = info->getAccess();
@@ -2718,7 +2715,7 @@ bool qore_class_private::isPrivateMemberIntern(const char* str, bool toplevel) c
 	 return ma > Public;
    }
 
-   return !scl ? false : scl->isPrivateMember(str, toplevel);
+   return !scl ? false : scl->runtimeIsPrivateMember(str, toplevel);
 }
 
 QoreValue QoreClass::evalMethod(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
@@ -2775,7 +2772,7 @@ QoreValue QoreClass::evalMethodGate(QoreObject* self, const char* nme, const Qor
 }
 
 bool QoreClass::isPrivateMember(const char* str) const {
-   return priv->isPrivateMemberIntern(str, true);
+   return priv->runtimeIsPrivateMemberIntern(str, true);
 }
 
 QoreValue QoreClass::evalMemberGate(QoreObject* self, const QoreString *nme, ExceptionSink* xsink) const {
@@ -2802,16 +2799,6 @@ void QoreClass::execMemberNotification(QoreObject* self, const char* mem, Except
    args->push(new QoreStringNode(mem));
    discard(self->evalMethod(*priv->memberNotification, *args, xsink), xsink);
 }
-
-/*
-QoreObject* QoreClass::execConstructor(const AbstractQoreFunctionVariant* variant, const QoreValueList* args, ExceptionSink* xsink) const {
-#ifdef QORE_MANAGE_STACK
-   if (check_stack(xsink))
-      return 0;
-#endif
-   return priv->execConstructor(variant, args, xsink);
-}
-*/
 
 QoreObject* QoreClass::execConstructor(const QoreValueList* args, ExceptionSink* xsink) const {
    return priv->execConstructor(0, args, xsink);
@@ -3036,8 +3023,9 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
       hasMemberNotification = methGate || memGate ? false : !strcmp(mname, "memberNotification");
    }
 
-   bool m_priv = false;
-   QoreMethod* m = const_cast<QoreMethod*>(!n_static ? parseFindMethod(mname, m_priv) : parseFindStaticMethod(mname, m_priv));
+   ClassAccess n_access = Public;
+   // we cannot initialize the class here, so we have to use the "Intern" versions of the functions to find the method below
+   QoreMethod* m = const_cast<QoreMethod*>(!n_static ? parseFindMethodIntern(mname, n_access, true) : parseFindStaticMethodIntern(mname, n_access, true));
    if (!n_static && m && (dst || cpy || methGate || memGate || hasMemberNotification)) {
       parseException("ILLEGAL-METHOD-OVERLOAD", "a %s::%s() method has already been defined; cannot overload %s methods", tname, mname, mname);
       return -1;
@@ -3215,7 +3203,7 @@ void QoreClass::addStaticMethod(const char* nme, q_func_n_t m, bool priv_flag, i
 // adds a builtin method to the class (duplicate checking is made in debug mode and causes an abort)
 // deprecated
 void QoreClass::addMethod(const char* nme, q_method_t m, bool priv_flag) {
-   priv->addBuiltinMethod(nme, new BuiltinNormalMethodVariant(m, priv_flag));
+   priv->addBuiltinMethod(nme, new BuiltinNormalMethodVariant(m, priv_flag ? Private : Public));
 }
 
 // deprecated
@@ -3458,7 +3446,7 @@ void QoreClass::addConstructor(q_constructor_n_t m, bool priv_flag, int64 n_flag
 // sets a builtin function as constructor - no duplicate checking is made
 // deprecated
 void QoreClass::setConstructor(q_constructor_t m) {
-   priv->addBuiltinConstructor(new BuiltinConstructorVariant(m, false));
+   priv->addBuiltinConstructor(new BuiltinConstructorVariant(m, Public));
 }
 
 // deprecated
@@ -3496,7 +3484,7 @@ void QoreClass::setConstructorExtendedList(q_constructor_t m, bool priv_flag, in
 // sets a builtin function as constructor - no duplicate checking is made
 // deprecated
 void QoreClass::setConstructor2(q_constructor2_t m) {
-   priv->addBuiltinConstructor(new BuiltinConstructor2Variant(m, false));
+   priv->addBuiltinConstructor(new BuiltinConstructor2Variant(m, Public));
 }
 
 // deprecated
@@ -3679,8 +3667,9 @@ void qore_class_private::parseInit() {
 	 parseInitPartialIntern();
 
       // initialize constants
-      pend_priv_const.parseInit();
       pend_pub_const.parseInit();
+      pend_priv_const.parseInit();
+      pend_int_const.parseInit();
 
       // initialize methods
       for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
@@ -3728,27 +3717,27 @@ void qore_class_private::resolveCopy() {
       scl->resolveCopy();
 }
 
-int qore_class_private::checkExistingVarMember(const char* dname, const QoreMemberInfoBase* mi, const QoreMemberInfoBase* omi, const qore_class_private* qc, bool opriv, bool var) const {
+int qore_class_private::checkExistingVarMember(const char* dname, const QoreMemberInfoBase* mi, const QoreMemberInfoBase* omi, const qore_class_private* qc, ClassAccess oaccess, bool var) const {
    //printd(5, "qore_class_private::checkExistingVarMember() name: %s priv: %d is_priv: %d sclass: %s\n", name.c_str(), priv, is_priv, sclass->getName());
 
    // here we know that the member or var already exists, so either it will be a
-   // duplicate declaration, in which case it is ignored, or it is a
+   // duplicate declaration, in which case it is ignored if it has no type info, or it is a
    // contradictory declaration, in which case a parse exception is raised
 
    // if the var was previously declared public
-   if (mi->priv != opriv) {
+   if (mi->access != oaccess) {
       // raise an exception only if parse exceptions are enabled
       if (getProgram()->getParseExceptionSink()) {
 	 QoreStringNode* desc = new QoreStringNode;
 	 desc->sprintf("class '%s' ", name.c_str());
 	 desc->concat("cannot declare ");
-	 desc->sprintf("%s %s ", privpub(mi->priv), var ? "static variable" : "member");
+	 desc->sprintf("%s %s ", privpub(mi->access), var ? "static variable" : "member");
 	 desc->sprintf("'%s' when ", dname);
 	 if (qc == this)
 	    desc->concat("this class");
 	 else
 	    desc->sprintf("base class '%s'", qc->name.c_str());
-	 desc->sprintf(" already declared this %s as %s", var ? "variable" : "member", privpub(opriv));
+	 desc->sprintf(" already declared this %s as %s", var ? "variable" : "member", privpub(oaccess));
 	 qore_program_private::makeParseException(getProgram(), mi->loc, "PARSE-ERROR", desc);
       }
       return -1;
@@ -3756,7 +3745,7 @@ int qore_class_private::checkExistingVarMember(const char* dname, const QoreMemb
    else if (mi->parseHasTypeInfo() || omi->parseHasTypeInfo()) {
       if (getProgram()->getParseExceptionSink()) {
 	 QoreStringNode* desc = new QoreStringNode;
-	 desc->sprintf("%s %s ", privpub(mi->priv), var ? "static variable" : "member");
+	 desc->sprintf("%s %s ", privpub(mi->access), var ? "static variable" : "member");
 	 desc->sprintf("'%s' was already declared in ", dname);
 	 if (qc == this)
 	    desc->concat("this class");
@@ -3804,8 +3793,8 @@ bool qore_class_private::parseCheckPrivateClassAccess() const {
    if (pc->priv->classID == classID || (pc->priv->name == name && parseCheckEqualHash(*pc->priv)))
       return true;
 
-   ClassAccess access;
-   return pc->priv->parseGetClass(*this, access) || (scl && scl->parseGetClass(*(pc->priv), access));
+   ClassAccess access = Public;
+   return pc->priv->parseGetClass(*this, access) || (scl && scl->parseGetClass(*(pc->priv), access, true));
 }
 
 bool qore_class_private::runtimeCheckPrivateClassAccess() const {
@@ -3848,8 +3837,8 @@ qore_type_result_e qore_class_private::runtimeCheckCompatibleClass(const qore_cl
    if (classID == oc.classID || (oc.name == name && oc.hash == hash))
       return QTI_IDENT;
 
-   ClassAccess access;
-   if (!oc.scl || !oc.scl->getClass(*this, access))
+   ClassAccess access = Public;
+   if (!oc.scl || !oc.scl->getClass(*this, access, true))
       return QTI_NOT_EQUAL;
 
    if (access == Public)
@@ -3947,30 +3936,12 @@ void QoreClass::unsetPublicMemberFlag() {
    priv->has_public_memdecl = false;
 }
 
-void QoreClass::parseAssimilatePublicConstants(ConstantList &cmap) {
-   priv->parseAssimilatePublicConstants(cmap);
-}
-
-void QoreClass::parseAssimilatePrivateConstants(ConstantList &cmap) {
-   priv->parseAssimilatePrivateConstants(cmap);
-}
-
-/*
-AbstractQoreNode* QoreClass::getConstantValue(const char* cname, const QoreTypeInfo*& typeInfo) {
-   return priv->getConstantValue(cname, typeInfo);
-}
-*/
-
-void QoreClass::parseAddPublicConstant(const std::string &cname, AbstractQoreNode* val) {
-   priv->parseAddPublicConstant(cname, val);
-}
-
 void QoreClass::addBuiltinConstant(const char* name, AbstractQoreNode* value, bool is_priv, const QoreTypeInfo* typeInfo) {
-   priv->addBuiltinConstant(name, value, is_priv, typeInfo);
+   priv->addBuiltinConstant(name, value, is_priv ? Private : Public, typeInfo);
 }
 
 void QoreClass::addBuiltinStaticVar(const char* name, AbstractQoreNode* value, bool is_priv, const QoreTypeInfo* typeInfo) {
-   priv->addBuiltinStaticVar(name, value, is_priv, typeInfo);
+   priv->addBuiltinStaticVar(name, value, is_priv ? Private : Public, typeInfo);
 }
 
 void MethodFunctionBase::parseInit() {
@@ -4039,8 +4010,11 @@ void MethodFunctionBase::checkFinal() const {
 }
 
 void MethodFunctionBase::addBuiltinMethodVariant(MethodVariantBase* variant) {
-   if (all_private && !variant->isPrivate())
-      all_private = false;
+   ClassAccess ma = variant->getAccess();
+   if (access > ma)
+      access = ma;
+   if (pending_access > ma)
+      pending_access = ma;
    if (!has_final && variant->isFinal())
       has_final = true;
    addBuiltinVariant(variant);
@@ -4049,8 +4023,9 @@ void MethodFunctionBase::addBuiltinMethodVariant(MethodVariantBase* variant) {
 int MethodFunctionBase::parseAddUserMethodVariant(MethodVariantBase* variant) {
    int rc = addPendingVariant(variant);
    if (!rc) {
-      if (pending_all_private && !variant->isPrivate())
-         pending_all_private = false;
+      ClassAccess ma = variant->getAccess();
+      if (pending_access > ma)
+	 pending_access = ma;
       if (!pending_has_final && variant->isFinal())
          pending_has_final = true;
    }
@@ -4092,11 +4067,13 @@ void MethodFunctionBase::parseCommitMethod(QoreString& csig, const char* mod) {
 
 void MethodFunctionBase::parseCommitMethod() {
    parseCommit();
-   if (!pending_all_private) {
-      if (all_private)
-         all_private = false;
-      pending_all_private = true;
-   }
+
+   if (pending_access < access)
+      access = pending_access;
+
+   // pending_access must be the lowest of access and any pending access
+   assert(pending_access == access);
+
    if (pending_has_final) {
       if (!has_final)
          has_final = true;
@@ -4106,7 +4083,7 @@ void MethodFunctionBase::parseCommitMethod() {
 
 void MethodFunctionBase::parseRollbackMethod() {
    parseRollback();
-   pending_all_private = true;
+   pending_access = access;
 }
 
 void MethodFunctionBase::replaceAbstractVariantIntern(MethodVariantBase* variant) {
@@ -4137,8 +4114,11 @@ void MethodFunctionBase::replaceAbstractVariantIntern(MethodVariantBase* variant
 
 void MethodFunctionBase::replaceAbstractVariant(MethodVariantBase* variant) {
    replaceAbstractVariantIntern(variant);
-   if (pending_all_private && !variant->isPrivate())
-      pending_all_private = false;
+
+   ClassAccess ma = variant->getAccess();
+   if (pending_access > ma)
+      pending_access = ma;
+
    if (!pending_has_final && variant->isFinal())
       pending_has_final = true;
 }
@@ -4526,7 +4506,7 @@ QoreParseClassHelper::~QoreParseClassHelper() {
 
 void QoreMemberMap::moveAllToPrivate(QoreClass* qc) {
    for (DeclOrderIterator i = beginDeclOrder(); i != endDeclOrder(); ++i) {
-      qore_class_private::parseAddPrivateMember(*qc, i->first, i->second);
+      qore_class_private::parseAddMember(*qc, i->first, Private, i->second);
    }
    map.clear();
    list.clear();
@@ -4538,7 +4518,7 @@ void QoreMemberMap::moveAllToPublic(QoreClass* qc) {
       return;
    }
    for (DeclOrderIterator i = beginDeclOrder(); i != endDeclOrder(); ++i) {
-      qore_class_private::parseAddPublicMember(*qc, i->first, i->second);
+      qore_class_private::parseAddMember(*qc, i->first, Public, i->second);
    }
    map.clear();
    list.clear();
@@ -4546,7 +4526,7 @@ void QoreMemberMap::moveAllToPublic(QoreClass* qc) {
 
 void QoreVarMap::moveAllToPrivate(QoreClass* qc) {
    for (DeclOrderIterator i = beginDeclOrder(); i != endDeclOrder(); ++i) {
-      qore_class_private::parseAddPrivateStaticVar(qc, i->first, i->second);
+      qore_class_private::parseAddStaticVar(qc, i->first, Private, i->second);
    }
    map.clear();
    list.clear();
@@ -4558,7 +4538,7 @@ void QoreVarMap::moveAllToPublic(QoreClass* qc) {
       return;
    }
    for (DeclOrderIterator i = beginDeclOrder(); i != endDeclOrder(); ++i) {
-      qore_class_private::parseAddPublicStaticVar(qc, i->first, i->second);
+      qore_class_private::parseAddStaticVar(qc, i->first, Public, i->second);
    }
    map.clear();
    list.clear();

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -121,10 +121,10 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
    if (!m)
       return this;
 
-   bool m_priv = false;
-   meth = qore_class_private::parseFindMethodTree(*qc, mname, m_priv);
+   ClassAccess access;
+   meth = qore_class_private::parseFindMethod(*qc, mname, access);
 
-   //printd(5, "QoreDotEvalOperatorNode::parseInitImpl() %s::%s() method: %p (%s) (private: %s)\n", qc->getName(), mname, meth, meth ? meth->getClassName() : "n/a", m_priv ? "true" : "false");
+   //printd(5, "QoreDotEvalOperatorNode::parseInitImpl() %s::%s() method: %p (%s) (%s)\n", qc->getName(), mname, meth, meth ? meth->getClassName() : "n/a", privpub(access));
    // FIXME
 
    const QoreListNode* args = m->getArgs();
@@ -132,7 +132,7 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
       if (args && args->size())
 	 parse_error(loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
 
-      if (meth && meth->parseIsPrivate() && (!oflag || !qore_class_private::parseCheckCompatibleClass(*qc, *(getParseClass()))))
+      if (meth && (qore_method_private::parseGetAccess(*meth) > Public) && (!oflag || !qore_class_private::parseCheckCompatibleClass(*qc, *(getParseClass()))))
 	 parse_error(loc, "illegal call to private %s::copy() method", qc->getName());
 
       // do not save method pointer for copy methods
@@ -149,7 +149,7 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
 
    // if a normal method is not found, then look for a static method
    if (!meth)
-      meth = qore_class_private::parseFindStaticMethodTree(*qc, mname, m_priv);
+      meth = qore_class_private::parseFindStaticMethod(*qc, mname, access);
 
    if (!meth) {
       if (!qc->parseHasMethodGate()) {
@@ -173,7 +173,7 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
       }
    }
 
-   if (m_priv && !qore_class_private::parseCheckPrivateClassAccess(*qc))
+   if ((access > Public) && !qore_class_private::parseCheckPrivateClassAccess(*qc))
       parse_error(loc, "illegal call to private method %s::%s()", qc->getName(), mname);
    else // save method for optimizing calls later
       m->parseSetClassAndMethod(qc, meth);
@@ -182,7 +182,7 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
    lvids += m->parseArgs(oflag, pflag, meth->getFunction(), returnTypeInfo);
    expTypeInfo = returnTypeInfo;
 
-   printd(5, "QoreDotEvalOperatorNode::parseInitImpl() %s::%s() method=%p (%s::%s()) (private=%s, static=%s) rv=%s\n", qc->getName(), mname, meth, meth ? meth->getClassName() : "n/a", mname, meth && meth->parseIsPrivate() ? "true" : "false", meth->isStatic() ? "true" : "false", returnTypeInfo->getName());
+   printd(5, "QoreDotEvalOperatorNode::parseInitImpl() %s::%s() method=%p (%s::%s()) (private=%s, static=%s) rv=%s\n", qc->getName(), mname, meth, meth ? meth->getClassName() : "n/a", mname, meth && (qore_method_private::parseGetAccess(*meth) > Public) ? "true" : "false", meth->isStatic() ? "true" : "false", returnTypeInfo->getName());
 
    return this;
 }

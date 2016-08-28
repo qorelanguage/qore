@@ -43,7 +43,7 @@
     }
     @endcode
  */
-qclass EncodingConversionInputStream [arg=EncodingConversionInputStream* is; ns=Qore; vparent=InputStream; flags=final; private_members=InputStream is;];
+qclass EncodingConversionInputStream [arg=EncodingConversionInputStream* is; ns=Qore; vparent=InputStream; flags=final; internal_members=InputStream is;];
 
 //! Creates the EncodingConversionInputStream based on the \ref InputStream given
 /**

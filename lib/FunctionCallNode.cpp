@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -458,7 +458,7 @@ AbstractQoreNode* ScopedObjectCallNode::parseInitImpl(LocalVar* oflag, int pflag
 
    //printd(5, "ScopedObjectCallNode::parseInitImpl() this: %p constructor: %p variant: %p\n", this, constructor, variant);
 
-   if (((constructor && constructor->parseIsPrivate()) || (variant && CONMV_const(variant)->isPrivate())) && !qore_class_private::parseCheckPrivateClassAccess(*oc)) {
+   if (((constructor && (qore_method_private::parseGetAccess(*constructor) > Public)) || (variant && CONMV_const(variant)->isPrivate())) && !qore_class_private::parseCheckPrivateClassAccess(*oc)) {
       if (variant)
 	 parse_error("illegal external access to private constructor %s::constructor(%s)", oc->getName(), variant->getSignature()->getSignatureText());
       else
@@ -503,11 +503,11 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
    // see if this is a call to a base class method if bare refs are allowed
    // and we're parsing in a class context and the class found is in the
    // current class parse context
-   bool m_priv = false;
+   ClassAccess access;
    if (qc)
       method = (oflag && abr && oflag->getTypeInfo()->getUniqueReturnClass()->parseCheckHierarchy(qc))
-	 ? qore_class_private::parseFindAnyMethodIntern(qc, scope->getIdentifier(), m_priv)
-	 : qore_class_private::parseFindStaticMethodTree(*qc, scope->getIdentifier(), m_priv);
+	 ? qore_class_private::parseFindAnyMethod(qc, scope->getIdentifier(), access)
+	 : qore_class_private::parseFindStaticMethod(*qc, scope->getIdentifier(), access);
 
    //printd(5, "StaticMethodCallNode::parseInitImpl() %s qc: %p method: %p %s\n", scope->ostr, qc, method, scope->getIdentifier());
 
@@ -564,7 +564,7 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
    delete scope;
    scope = 0;
 
-   if (method->parseIsPrivate()) {
+   if (access > Public) {
       const QoreClass* cls = getParseClass();
       if (!cls || !cls->parseCheckHierarchy(qc)) {
 	 parseException("PRIVATE-METHOD", "method %s::%s() is private and cannot be accessed outside of the class", qc->getName(), method->getName());

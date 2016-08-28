@@ -2745,8 +2745,9 @@ protected:
 
    strlist_t vparents;   // builtin virtual base/parent classes
 
-   paramlist_t public_members;  // public members
-   paramlist_t private_members; // private members
+   paramlist_t public_members;   // public members
+   paramlist_t private_members;  // private members
+   paramlist_t internal_members; // internal members
 
    strlist_t dom;        // functional domains
 
@@ -2764,7 +2765,7 @@ protected:
       l.push_back(se);
    }
 
-   void parseMembers(bool isPublic, const std::string &x) {
+   void parseMembers(ClassAccess access, const std::string &x) {
       strlist_t pml;
       get_string_list(pml, x);
 
@@ -2778,10 +2779,12 @@ protected:
          std::string type(pml[i], 0, p);
          std::string name(pml[i], p + 1);
 
-         if (isPublic) {
+         if (access == Public) {
             public_members.push_back(Param(type, name, "", ""));
-         } else {
+         } else if (access == Private) {
             private_members.push_back(Param(type, name, "", ""));
+         } else {
+            internal_members.push_back(Param(type, name, "", ""));
          }
       }
    }
@@ -2830,12 +2833,17 @@ public:
          }
 
          if (i->first == "public_members") {
-            parseMembers(true, i->second);
+            parseMembers(Public, i->second);
             continue;
          }
 
          if (i->first == "private_members") {
-            parseMembers(false, i->second);
+            parseMembers(Private, i->second);
+            continue;
+         }
+
+         if (i->first == "internal_members") {
+            parseMembers(Internal, i->second);
             continue;
          }
 
@@ -3010,7 +3018,7 @@ public:
          for (paramlist_t::iterator i = public_members.begin(), e = public_members.end(); i != e; ++i) {
             std::string mt;
             get_qore_type((*i).type, mt);
-            fprintf(fp, "   QC_%s->addPublicMember(\"%s\", %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
+            fprintf(fp, "   QC_%s->addMember(\"%s\", Public, %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
          }
       }
 
@@ -3020,7 +3028,17 @@ public:
          for (paramlist_t::iterator i = private_members.begin(), e = private_members.end(); i != e; ++i) {
             std::string mt;
             get_qore_type((*i).type, mt);
-            fprintf(fp, "   QC_%s->addPrivateMember(\"%s\", %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
+            fprintf(fp, "   QC_%s->addMember(\"%s\", Private, %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
+         }
+      }
+
+      // output internal members if any
+      if (!internal_members.empty()) {
+         fputs("\n   // private(internal) members\n", fp);
+         for (paramlist_t::iterator i = internal_members.begin(), e = internal_members.end(); i != e; ++i) {
+            std::string mt;
+            get_qore_type((*i).type, mt);
+            fprintf(fp, "   QC_%s->addMember(\"%s\", Internal, %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
          }
       }
 

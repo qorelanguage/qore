@@ -65,13 +65,6 @@ DLLEXPORT extern qore_classid_t CID_OUTPUTSTREAM;
 DLLEXPORT extern QoreClass* QC_QUEUE;
 DLLEXPORT extern QoreClass* QC_HTTPCLIENT;
 
-// class access values
-enum ClassAccess : unsigned char {
-   Public = 0,   // publicly accessible
-   Private = 1,  // accessible only in the class hierarchy
-   Internal = 2  // accessible only in the class itself
-};
-
 class BCList;
 class BCSMList;
 class BCAList;
@@ -946,10 +939,17 @@ public:
    //! returns the "or nothing" type information structure for this class
    DLLEXPORT const QoreTypeInfo* getOrNothingTypeInfo() const;
 
+   //! adds a member
+   DLLEXPORT void addMember(const char* mem, ClassAccess access, const QoreTypeInfo* n_typeInfo, AbstractQoreNode* initial_value = 0);
+
    //! adds a public member
+   /** @derepcated use addMember() instead
+    */
    DLLEXPORT void addPublicMember(const char* mem, const QoreTypeInfo* n_typeInfo, AbstractQoreNode* initial_value = 0);
 
    //! adds a private member
+   /** @derepcated use addMember() instead
+    */
    DLLEXPORT void addPrivateMember(const char* mem, const QoreTypeInfo* n_typeInfo, AbstractQoreNode* initial_value = 0);
 
    //! sets a pointer to user-specific data in the class
@@ -992,13 +992,6 @@ public:
 
    // used when parsing, finds committed non-static methods within the entire class hierarchy (local class plus base classes)
    DLLLOCAL const QoreMethod* parseFindCommittedMethod(const char* nme);
-
-   // adds public constants to pending list
-   DLLLOCAL void parseAssimilatePublicConstants(ConstantList& cmap);
-   // adds private constants to pending list
-   DLLLOCAL void parseAssimilatePrivateConstants(ConstantList& cmap);
-   // adds a single public constant to pending list
-   DLLLOCAL void parseAddPublicConstant(const std::string& name, AbstractQoreNode* val);
 
    // returns 0 for success, -1 for error
    DLLLOCAL int parseAddBaseClassArgumentList(BCAList* bcal);

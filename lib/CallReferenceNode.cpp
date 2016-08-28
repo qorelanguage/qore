@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -286,11 +286,11 @@ AbstractQoreNode* ParseObjectMethodReferenceNode::parseInitImpl(LocalVar* oflag,
 	 else {
 	    const QoreClass* n_qc = argTypeInfo->getUniqueReturnClass();
 	    if (n_qc) {
-	       bool m_priv = false;
-	       m = qore_class_private::parseFindMethodTree(*const_cast<QoreClass*>(n_qc), method.c_str(), m_priv);
+	       ClassAccess access;
+	       m = qore_class_private::parseFindMethod(*const_cast<QoreClass*>(n_qc), method.c_str(), access);
 	       if (m) {
 		  qc = n_qc;
-		  if (m_priv && !qore_class_private::parseCheckPrivateClassAccess(*qc))
+		  if ((access > Public) && !qore_class_private::parseCheckPrivateClassAccess(*qc))
 		     parseException("PARSE-ERROR", "method %s::%s() is private in this context, therefore a call reference cannot be taken", qc->getName(), method.c_str());
 	       }
 	       else
@@ -537,13 +537,13 @@ AbstractQoreNode* UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar* o
    // try to find a pointer to a non-static method if parsing in the class' context
    // and bare references are enabled
    if (oflag && parse_check_parse_option(PO_ALLOW_BARE_REFS) && oflag->getTypeInfo()->getUniqueReturnClass()->parseCheckHierarchy(qc)) {
-      bool m_priv = false;
-      qm = qore_class_private::parseFindMethodTree(*qc, scope->getIdentifier(), m_priv);
+      ClassAccess access;
+      qm = qore_class_private::parseFindMethod(*qc, scope->getIdentifier(), access);
       assert(!qm || !qm->isStatic());
    }
    if (!qm) {
-      bool m_priv = false;
-      qm = qore_class_private::parseFindStaticMethodTree(*qc, scope->getIdentifier(), m_priv);
+      ClassAccess access;
+      qm = qore_class_private::parseFindStaticMethod(*qc, scope->getIdentifier(), access);
       if (!qm) {
 	 parseException("INVALID-METHOD", "class '%s' has no static method '%s'", qc->getName(), scope->getIdentifier());
 	 return this;
