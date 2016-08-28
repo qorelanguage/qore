@@ -1295,8 +1295,8 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                         }
 where                                   return TOK_WHERE;
 private                                 return TOK_PRIVATE;
-private\(internal\)                     return TOK_PRIVATEINTERNAL;
-private\(hierarchy\)                    return TOK_PRIVATEHIERARCHY;
+private:internal                        return TOK_PRIVATEINTERNAL;
+private:hierarchy                       return TOK_PRIVATEHIERARCHY;
 public                                  return TOK_PUBLIC;
 abstract                                return TOK_ABSTRACT;
 unreference                             return TOK_UNREFERENCE;

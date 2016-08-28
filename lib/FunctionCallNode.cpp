@@ -326,9 +326,11 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
       else {
 	 // check for class static var reference
 	 const QoreClass* oqc = 0;
-	 QoreVarInfo *vi = qore_class_private::parseFindStaticVar(qc, c_str, oqc, returnTypeInfo);
+	 ClassAccess access;
+	 QoreVarInfo *vi = qore_class_private::parseFindStaticVar(qc, c_str, oqc, access);
 	 if (vi) {
 	    assert(qc);
+	    returnTypeInfo = vi->getTypeInfo();
 	    n = new StaticClassVarRefNode(c_str, *oqc, *vi);
 	 }
       }

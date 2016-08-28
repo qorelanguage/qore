@@ -411,7 +411,7 @@ static inline MethodVariantBase* newMethodVariant(const char* name, int mod, int
    ClassAccess access = Public;
    if (mod & OFM_PRIVATE) {
       if (mod & OFM_INTERNAL)
-         parse_error("%s() methods cannot be both private(hierarchy) and private(internal)", name);
+         parse_error("%s() methods cannot be both private:hierarchy and private:internal", name);
       if (mod & OFM_PUBLIC)
          parse_error("%s() methods cannot be both public and private", name);
       access = Private;
@@ -881,15 +881,9 @@ public:
    }
 };
 
-class EmptyPublicMemberList : public MemberList {
+class EmptyMemberList : public MemberList {
 public:
-   DLLLOCAL EmptyPublicMemberList() {
-   }
-};
-
-class EmptyPrivateMemberList : public MemberList {
-public:
-   DLLLOCAL EmptyPrivateMemberList() {
+   DLLLOCAL EmptyMemberList() {
    }
 };
 
@@ -1328,6 +1322,8 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %token TOK_DELETE "delete"
 %token TOK_REMOVE "remove"
 %token TOK_PRIVATE "private"
+%token TOK_PRIVATEINTERNAL "private:internal"
+%token TOK_PRIVATEHIERARCHY "private:hierarchy"
 %token TOK_PUBLIC "public"
 %token TOK_SYNCHRONIZED "synchronized"
 %token TOK_DEPRECATED "deprecated"
@@ -1350,8 +1346,6 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %token TOK_MODULE "module"
 %token TOK_FINAL "final"
 %token TOK_ABSTRACT "abstract"
-%token TOK_PRIVATEINTERNAL "private(internal)"
-%token TOK_PRIVATEHIERARCHY "private(hierarchy)"
 
 // currently unused tokens
 //%token TOK_FINALLY "finally"
@@ -1491,6 +1485,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %type <cmods>          context_mods
 %type <cmod>           context_mod
 %type <methodnode>     inline_methoddef
+%type <memberlist>     internal_member_list
 %type <memberlist>     private_member_list
 %type <memberlist>     public_member_list
 %type <memberlist>     member_list
@@ -1529,7 +1524,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %type <methoddef>      outofline_methoddef
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } TRY_MODULE_ERROR REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod inline_methoddef class_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl outofline_methoddef hash alt_hash
+%destructor { delete $$; } TRY_MODULE_ERROR REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod inline_methoddef class_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor internal_member_list private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl outofline_methoddef hash alt_hash
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF SCOPED_VREF KW_IDENTIFIER_OPENPAREN QORE_CAST CLASS_STRING optname ident_openparen
 %destructor { if ($$) $$->deref(); } namespace_decl namespace_decls string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
 %destructor { if ($$) $$->deref(0); } exp exp_n exp_c myexp scalar list
@@ -2166,6 +2161,11 @@ class_attributes:
            $$ = new QoreClass;
 	   $1->addAndDelete($$);
 	}
+        | internal_member_list {
+	   $$ = new QoreClass;
+	   $1->merge($$, Internal);
+	   delete $1;
+	}
         | private_member_list {
 	   $$ = new QoreClass;
 	   $1->merge($$, Private);
@@ -2184,6 +2184,11 @@ class_attributes:
 	| class_attributes inline_methoddef {
 	   $2->addAndDelete($1);
 	   $$ = $1;
+	}
+	| class_attributes internal_member_list {
+	   $2->merge($1, Internal);
+	   $$ = $1;
+	   delete $2;
 	}
 	| class_attributes private_member_list {
 	   $2->merge($1, Private);
@@ -2225,16 +2230,25 @@ qtypedef:
         }
         ;
 
+internal_member_list
+    : TOK_PRIVATEINTERNAL member_list ';'                 { $$ = $2; }
+    | TOK_PRIVATEINTERNAL '{' member_list2 '}'            { $$ = $3; }
+    | TOK_PRIVATEINTERNAL '{' '}'                         { $$ = new EmptyMemberList; }
+    ;
+
 private_member_list
-    : TOK_PRIVATE member_list ';'           { $$ = $2; }
-    | TOK_PRIVATE '{' member_list2 '}'      { $$ = $3; }
-    | TOK_PRIVATE '{' '}'                   { $$ = new EmptyPrivateMemberList; }
+    : TOK_PRIVATE member_list ';'                 { $$ = $2; }
+    | TOK_PRIVATE '{' member_list2 '}'            { $$ = $3; }
+    | TOK_PRIVATE '{' '}'                         { $$ = new EmptyMemberList; }
+    | TOK_PRIVATEHIERARCHY member_list ';'        { $$ = $2; }
+    | TOK_PRIVATEHIERARCHY '{' member_list2 '}'   { $$ = $3; }
+    | TOK_PRIVATEHIERARCHY '{' '}'                { $$ = new EmptyMemberList; }
     ;
 
 public_member_list
     : TOK_PUBLIC member_list ';'            { $$ = $2; }
     | TOK_PUBLIC '{' member_list2 '}'       { $$ = $3; }
-    | TOK_PUBLIC '{' '}'                    { $$ = new EmptyPublicMemberList; }
+    | TOK_PUBLIC '{' '}'                    { $$ = new EmptyMemberList; }
     ;
 
 classvardecl:

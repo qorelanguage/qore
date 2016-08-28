@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -106,7 +106,7 @@ void QoreClassList::mergeUserPublic(const QoreClassList& old, qore_ns_private* n
 	 assert(qore_class_private::injected(*qc));
 	 continue;
       }
-      
+
       qc = new QoreClass(*i->second);
       qore_class_private::setNamespace(qc, ns);
       addInternal(qc);
@@ -173,7 +173,7 @@ void QoreClassList::assimilate(QoreClassList& n) {
    hm_qc_t::iterator i = n.hm.begin();
    while (i != n.hm.end()) {
       QoreClass *nc = i->second;
-      n.hm.erase(i);      
+      n.hm.erase(i);
       i = n.hm.begin();
 
       assert(!find(nc->getName()));
@@ -235,9 +235,11 @@ AbstractQoreNode *QoreClassList::parseResolveBareword(const char *name, const Qo
       if (rv)
 	 return rv->refSelf();
 
-      QoreVarInfo *vi = qore_class_private::parseFindLocalStaticVar(i->second, name, typeInfo);
-      if (vi)
+      QoreVarInfo *vi = qore_class_private::parseFindLocalStaticVar(i->second, name);
+      if (vi) {
+	 typeInfo = vi->getTypeInfo();
 	 return new StaticClassVarRefNode(name, *(i->second), *vi);
+      }
    }
 
    return 0;

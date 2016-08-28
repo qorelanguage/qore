@@ -184,8 +184,8 @@ class SignatureHash;
 
 static inline const char* privpub(ClassAccess access) {
    return access == Public
-      ? "Public"
-      : (access == Private ? "private" : "private(internal)");
+      ? "public"
+      : (access == Private ? "private" : "private:internal");
 }
 
 // forward reference for base class (constructor) argument list
@@ -1605,6 +1605,8 @@ public:
 
    DLLLOCAL bool parseCheckHierarchy(const QoreClass* cls, ClassAccess& n_access, bool toplevel) const;
 
+   DLLLOCAL QoreVarInfo* parseFindStaticVar(const char* vname, const QoreClass*& qc, ClassAccess& n_access, bool check, bool toplevel) const;
+
    DLLLOCAL AbstractQoreNode* parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, bool check, bool toplevel) const;
 };
 
@@ -1690,7 +1692,7 @@ public:
 
    DLLLOCAL AbstractQoreNode* parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, bool check, bool toplevel) const;
 
-   DLLLOCAL QoreVarInfo* parseFindStaticVar(const char* vname, const QoreClass*& qc, bool check) const;
+   DLLLOCAL QoreVarInfo* parseFindStaticVar(const char* vname, const QoreClass*& qc, ClassAccess& access, bool check, bool toplevel) const;
 
    DLLLOCAL void resolveCopy();
 
@@ -2377,7 +2379,6 @@ public:
             cTypeInfo = 0;
             return 0;
          }
-
          return rv;
       }
 
@@ -2395,21 +2396,33 @@ public:
       return vi;
    }
 
-   DLLLOCAL QoreVarInfo* parseFindStaticVar(const char* vname, const QoreClass*& qc, bool check = false) const {
+   DLLLOCAL QoreVarInfo* parseFindStaticVar(const char* vname, const QoreClass*& qc, ClassAccess& access, bool check = false) const {
+      access = Public;
+      return parseFindStaticVarIntern(vname, qc, access, check, true);
+   }
+
+   DLLLOCAL QoreVarInfo* parseFindStaticVarIntern(const char* vname, const QoreClass*& qc, ClassAccess& access, bool check, bool toplevel) const {
       QoreVarInfo* vi = vars.find(vname);
 
       if (!vi)
          vi = pending_vars.find(vname);
 
       if (vi) {
-         if ((vi->access > Public) && check && !parseCheckPrivateClassAccess())
-            return 0;
+         ClassAccess va = vi->getAccess();
+         if (toplevel || va != Internal) {
+            if (access < va)
+               access = va;
 
-         qc = cls;
-         return vi;
+            // return null and stop searching in this class if we should verify access, and the var is not accessible
+            if (check && (access > Public) && !parseCheckPrivateClassAccess())
+               return 0;
+
+            qc = cls;
+            return vi;
+         }
       }
 
-      return scl ? scl->parseFindStaticVar(vname, qc, check) : 0;
+      return scl ? scl->parseFindStaticVar(vname, qc, access, check, toplevel) : 0;
    }
 
    DLLLOCAL void addMember(const char* mem, ClassAccess access, const QoreTypeInfo* n_typeinfo, AbstractQoreNode* initial_value) {
@@ -3005,11 +3018,8 @@ public:
    }
 
    // searches only the current class, returns 0 if private found and not accessible in the current parse context
-   DLLLOCAL static QoreVarInfo* parseFindLocalStaticVar(const QoreClass* qc, const char* vname, const QoreTypeInfo*& typeInfo) {
-      QoreVarInfo* vi = qc->priv->parseFindLocalStaticVar(vname);
-      if (vi)
-         typeInfo = vi->getTypeInfo();
-      return vi;
+   DLLLOCAL static QoreVarInfo* parseFindLocalStaticVar(const QoreClass* qc, const char* vname) {
+      return qc->priv->parseFindLocalStaticVar(vname);
    }
 
    // searches this class and all superclasses, if check = false, then assumes parsing from within the class (getParseClass() == this class)
@@ -3018,11 +3028,8 @@ public:
    }
 
    // searches this class and all superclasses, if check = false, then assumes parsing from within the class (getParseClass() == this class)
-   DLLLOCAL static QoreVarInfo* parseFindStaticVar(const QoreClass* qc, const char* vname, const QoreClass*& nqc, const QoreTypeInfo*& typeInfo, bool check = false) {
-      QoreVarInfo* vi = qc->priv->parseFindStaticVar(vname, nqc, check);
-      if (vi)
-         typeInfo = vi->getTypeInfo();
-      return vi;
+   DLLLOCAL static QoreVarInfo* parseFindStaticVar(const QoreClass* qc, const char* vname, const QoreClass*& nqc, ClassAccess& access, bool check = false) {
+      return qc->priv->parseFindStaticVar(vname, nqc, access, check);
    }
 
    DLLLOCAL static const QoreMethod* parseResolveSelfMethod(const QoreClass& qc, const char* nme) {

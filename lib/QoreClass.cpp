@@ -1749,6 +1749,21 @@ bool BCNode::parseCheckHierarchy(const QoreClass* cls, ClassAccess& n_access, bo
    return false;
 }
 
+QoreVarInfo* BCNode::parseFindStaticVar(const char* vname, const QoreClass*& qc, ClassAccess& n_access, bool check, bool toplevel) const {
+   // sclass can be 0 if the class could not be found during parse initialization
+   if (!sclass)
+      return 0;
+
+   if (access == Internal && !toplevel)
+      return 0;
+
+   QoreVarInfo* vi = sclass->priv->parseFindStaticVarIntern(vname, qc, n_access, check, false);
+   if (vi && n_access < access)
+      n_access = access;
+
+   return vi;
+}
+
 bool BCList::isBaseClass(QoreClass* qc, bool toplevel) const {
    for (auto& i : *this) {
       if ((*i).isBaseClass(qc, toplevel))
@@ -2076,17 +2091,12 @@ AbstractQoreNode* BCList::parseFindConstantValue(const char* cname, const QoreTy
    return 0;
 }
 
-QoreVarInfo* BCList::parseFindStaticVar(const char* vname, const QoreClass*& qc, bool check) const {
+QoreVarInfo* BCList::parseFindStaticVar(const char* vname, const QoreClass*& qc, ClassAccess& access, bool check, bool toplevel) const {
    if (!valid)
       return 0;
 
    for (auto& i : *this) {
-      const QoreClass* nqc = (*i).sclass;
-      // qc may be 0 if there were a parse error with an unknown class earlier
-      if (!nqc)
-	 continue;
-
-      QoreVarInfo* vi = nqc->priv->parseFindStaticVar(vname, qc, check);
+      QoreVarInfo* vi = (*i).parseFindStaticVar(vname, qc, access, check, toplevel);
       if (vi)
 	 return vi;
    }

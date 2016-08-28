@@ -11,6 +11,21 @@
 %exec-class AccessTest
 
 class Base {
+    public {
+        static int statpub = 1;
+        const conpub = 1;
+    }
+
+    private {
+        static int statpriv = 1;
+        const conpriv = 1;
+    }
+
+    private:internal {
+        static int statint = 1;
+        const conint = 2;
+    }
+
     Base base() {
         return self;
     }
@@ -19,8 +34,16 @@ class Base {
         return 0;
     }
 
-    private(internal) int intern() {
+    private:internal int intern() {
         return 0;
+    }
+
+    public int getStatInt() {
+        return statint;
+    }
+
+    public int getConInt() {
+        return conint;
     }
 }
 
@@ -33,11 +56,27 @@ class PubChild inherits Base {
         return Base::base();
     }
 
+    int getStatPub() {
+        return statpub;
+    }
+
+    int getStatPriv() {
+        return statpriv;
+    }
+
+    int getConPub() {
+        return conpub;
+    }
+
+    int getConPriv() {
+        return conpriv;
+    }
+
     private int priv() {
         return 0;
     }
 
-    private(internal) int intern() {
+    private:internal int intern() {
         return 0;
     }
 }
@@ -55,12 +94,12 @@ class PrivChild inherits private Base {
         return 0;
     }
 
-    private(internal) int intern() {
+    private:internal int intern() {
         return 0;
     }
 }
 
-class IntChild inherits private(internal) Base {
+class IntChild inherits private:internal Base {
     Base test() {
         return cast<Base>(self);
     }
@@ -209,6 +248,8 @@ class TestInheritB {
         PubChild c1();
         assertEq(c1, cast<Base>(c1));
         assertEq(c1, c1.test());
+        assertEq(1, c1.getStatInt());
+        assertEq(2, c1.getConInt());
 
         PrivChild c2();
         assertThrows("RUNTIME-CAST-ERROR", Base sub () {return cast<Base>(c2);});
@@ -220,12 +261,37 @@ class TestInheritB {
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B { private(internal) b() {} } class C inherits B { b() { B::b(); } }", ""));
+            assertThrows("PARSE-EXCEPTION", "illegal call.*b", \p.parse(), ("class B { int b() {} } class C inherits private B {} sub test() { C c(); c.b();}", ""));
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B { private(internal) b() {} } class C inherits B { c() { b(); } }", ""));
+            assertThrows("PARSE-ERROR", "a call reference cannot be taken", \p.parse(), ("class B { int b() {} } class C inherits private B {} sub test() { C c(); code cd = \\c.b();}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-ERROR", "a call reference cannot be taken", \p.parse(), ("class B { int b() {} } class C inherits private:internal B {} sub test() { C c(); code cd = \\c.b();}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", "cannot resolve.*B::b", \p.parse(), ("class B { private:internal b() {} } class C inherits B { b() { B::b(); } }", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", "cannot be found", \p.parse(), ("class B { private:internal b() {} } class C inherits B { c() { b(); } }", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", "cannot resolve.*statint", \p.parse(), ("class B { private:internal { static int statint = 1; }} class C inherits B { int test() { return statint; } }", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", "cannot resolve.*conint", \p.parse(), ("class B { private:internal { const conint = 1; }} class C inherits B { int test() { return conint; } }", ""));
         }
     }
 }

@@ -3034,7 +3034,7 @@ public:
 
       // output internal members if any
       if (!internal_members.empty()) {
-         fputs("\n   // private(internal) members\n", fp);
+         fputs("\n   // private:internal members\n", fp);
          for (paramlist_t::iterator i = internal_members.begin(), e = internal_members.end(); i != e; ++i) {
             std::string mt;
             get_qore_type((*i).type, mt);
