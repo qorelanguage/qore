@@ -576,8 +576,12 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
    delete scope;
    scope = 0;
 
+   // need to get the current contextual class when parsing in case we're in a static method for example
+   if (!pc)
+      pc = getParseClass();
+
    if (access > Public) {
-      if (!oflag || !qore_class_private::get(*oflag->getTypeInfo()->getUniqueReturnClass())->parseCheckHierarchy(qc, access)) {
+      if (!pc || !qore_class_private::get(*pc)->parseCheckHierarchy(qc, access)) {
 	 parseException("PRIVATE-METHOD", "method %s::%s() is private and cannot be accessed outside of the class", qc->getName(), method->getName());
 	 return this;
       }
