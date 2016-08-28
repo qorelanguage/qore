@@ -10,6 +10,70 @@
 
 %exec-class AccessTest
 
+class Base {
+    Base base() {
+        return self;
+    }
+
+    private int priv() {
+        return 0;
+    }
+
+    private(internal) int intern() {
+        return 0;
+    }
+}
+
+class PubChild inherits Base {
+    Base test() {
+        return cast<Base>(self);
+    }
+
+    Base base() {
+        return Base::base();
+    }
+
+    private int priv() {
+        return 0;
+    }
+
+    private(internal) int intern() {
+        return 0;
+    }
+}
+
+class PrivChild inherits private Base {
+    Base test() {
+        return cast<Base>(self);
+    }
+
+    Base base() {
+        return Base::base();
+    }
+
+    private int priv() {
+        return 0;
+    }
+
+    private(internal) int intern() {
+        return 0;
+    }
+}
+
+class IntChild inherits private(internal) Base {
+    Base test() {
+        return cast<Base>(self);
+    }
+
+    Base base() {
+        return Base::base();
+    }
+
+    private int priv() {
+        return Base::priv();
+    }
+}
+
 public class AccessTest inherits QUnit::Test {
     private {
         const Code = "
@@ -83,7 +147,8 @@ class TestInheritB {
     }
 
     constructor() : Test("AccessTest", "1.0") {
-        addTestCase("Test class access", \accessTestMethod(), NOTHING);
+        addTestCase("Test class access", \accessTestMethod());
+        addTestCase("Test inheritance", \inheritanceTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -138,5 +203,29 @@ class TestInheritB {
         p.parse(Class1, "class-1");
         testAssertion("negative-inheritance-1", \p.parse(), (Class2, "test"), new TestResultExceptionRegexp('PARSE-ERROR', "cannot be combined with class"));
         testAssertion("negative-inheritance-2", \p.parse(), (Class3, "test"), new TestResultExceptionRegexp('PARSE-ERROR', "cannot be combined with class"));
+    }
+
+    inheritanceTest() {
+        PubChild c1();
+        assertEq(c1, cast<Base>(c1));
+        assertEq(c1, c1.test());
+
+        PrivChild c2();
+        assertThrows("RUNTIME-CAST-ERROR", Base sub () {return cast<Base>(c2);});
+        assertEq(c2, c2.test());
+
+        IntChild c3();
+        assertThrows("RUNTIME-CAST-ERROR", Base sub () {return cast<Base>(c3);});
+        assertEq(c3, c3.test());
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B { private(internal) b() {} } class C inherits B { b() { B::b(); } }", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B { private(internal) b() {} } class C inherits B { c() { b(); } }", ""));
+        }
     }
 }

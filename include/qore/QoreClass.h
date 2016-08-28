@@ -1003,9 +1003,10 @@ public:
    DLLLOCAL BCSMList* getBCSMList() const;
    // returns true if the class has a delete_blocker function (somewhere in the hierarchy)
    DLLLOCAL bool has_delete_blocker() const;
-   DLLLOCAL bool parseCheckHierarchy(const QoreClass* cls) const;
+
    DLLLOCAL bool parseHasPublicMembersInHierarchy() const;
    DLLLOCAL bool runtimeHasPublicMembersInHierarchy() const;
+
    // returns true if the class has one or more parent classes
    DLLLOCAL bool hasParentClass() const;
    DLLLOCAL bool hasPrivateCopyMethod() const;

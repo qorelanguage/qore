@@ -8,6 +8,8 @@
 
 %requires ../../../../qlib/QUnit.qm
 
+%exec-class ClassesTest
+
 class Test1 inherits Socket {
     private {
         int a;
@@ -51,9 +53,6 @@ class Test1 inherits Socket {
 }
 
 class Test2 { private { any a; } }
-
-
-%exec-class ClassesTest
 
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {

@@ -500,16 +500,28 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
 
    QoreClass* qc = qore_root_ns_private::parseFindScopedClassWithMethod(*scope, false);
 
+   const QoreClass* pc = oflag && abr ? oflag->getTypeInfo()->getUniqueReturnClass() : 0;
+
    // see if this is a call to a base class method if bare refs are allowed
    // and we're parsing in a class context and the class found is in the
    // current class parse context
-   ClassAccess access;
-   if (qc)
-      method = (oflag && abr && oflag->getTypeInfo()->getUniqueReturnClass()->parseCheckHierarchy(qc))
-	 ? qore_class_private::parseFindAnyMethod(qc, scope->getIdentifier(), access)
-	 : qore_class_private::parseFindStaticMethod(*qc, scope->getIdentifier(), access);
+   ClassAccess access = Public;
+   if (qc) {
+      if (pc && qore_class_private::get(*pc)->parseCheckHierarchy(qc, access)) {
+	 ClassAccess m_access;
+	 method = qore_class_private::parseFindAnyMethod(qc, scope->getIdentifier(), m_access);
+	 //printd(5, "StaticMethodCallNode::parseInitImpl() '%s' pc: %s qc: %s access: %s m_access: %s method: %p\n", scope->ostr, pc->getName(), qc->getName(),  privpub(access), privpub(m_access), method);
+	 if (m_access == Internal && pc != qc)
+	    method = 0;
+	 else if (access < m_access) {
+	    access = m_access;
+	 }
+      }
+      else
+	 method = qore_class_private::parseFindStaticMethod(*qc, scope->getIdentifier(), access);
+   }
 
-   //printd(5, "StaticMethodCallNode::parseInitImpl() %s qc: %p method: %p %s\n", scope->ostr, qc, method, scope->getIdentifier());
+   //printd(5, "StaticMethodCallNode::parseInitImpl() %s qc: %p '%s' method: %p '%s()' access: %s\n", scope->ostr, qc, qc ? qc->getName() : "n/a", method, scope->getIdentifier(), privpub(access));
 
    // see if a constant can be resolved
    if (!method) {
@@ -565,8 +577,7 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
    scope = 0;
 
    if (access > Public) {
-      const QoreClass* cls = getParseClass();
-      if (!cls || !cls->parseCheckHierarchy(qc)) {
+      if (!oflag || !qore_class_private::get(*oflag->getTypeInfo()->getUniqueReturnClass())->parseCheckHierarchy(qc, access)) {
 	 parseException("PRIVATE-METHOD", "method %s::%s() is private and cannot be accessed outside of the class", qc->getName(), method->getName());
 	 return this;
       }

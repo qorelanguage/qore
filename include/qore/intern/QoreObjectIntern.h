@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -317,7 +317,7 @@ public:
       // check public access
       if (theclass->runtimeHasPublicMembersInHierarchy()) {
          ClassAccess access;
-         const qore_class_private* qc = qore_class_private::getMemberClass(*theclass, mem, access);
+         const qore_class_private* qc = qore_class_private::runtimeGetMemberClass(*theclass, mem, access);
 	 if (!qc)
 	    return QOA_PUB_ERROR;
 

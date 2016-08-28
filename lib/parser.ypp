@@ -142,9 +142,15 @@ public:
    NamedScope *name;
    QoreClass* oc;
 
-   DLLLOCAL inline ObjClassDef(NamedScope *n, QoreClass* o) : name(n), oc(o) {}
-   DLLLOCAL inline ObjClassDef(char* n, QoreClass* o) : name(new NamedScope(n)), oc(o) {}
-   DLLLOCAL inline ~ObjClassDef() { delete name; }
+   DLLLOCAL ObjClassDef(NamedScope *n, QoreClass* o) : name(n), oc(o) {
+   }
+
+   DLLLOCAL ObjClassDef(char* n, QoreClass* o) : name(new NamedScope(n)), oc(o) {
+   }
+
+   DLLLOCAL ~ObjClassDef() {
+      delete name;
+   }
 };
 
 class ParseUserFunctionBase {
@@ -866,20 +872,12 @@ public:
       return 0;
    }
 
-   DLLLOCAL void mergePrivate(QoreClass* qc) {
-      mmap.moveAllToPrivate(qc);
-      vmap.moveAllToPrivate(qc);
+   DLLLOCAL void merge(QoreClass* qc, ClassAccess access) {
+      mmap.moveAllTo(qc, access);
+      vmap.moveAllTo(qc, access);
 
-      // merge private constants
-      qore_class_private::get(*qc)->parseAssimilateConstants(cmap, Private);
-   }
-
-   DLLLOCAL void mergePublic(QoreClass* qc) {
-      mmap.moveAllToPublic(qc);
-      vmap.moveAllToPublic(qc);
-
-      // merge public constants
-      qore_class_private::get(*qc)->parseAssimilateConstants(cmap, Public);
+      // merge constants
+      qore_class_private::get(*qc)->parseAssimilateConstants(cmap, access);
    }
 };
 
@@ -1018,7 +1016,7 @@ static int check_case(const char* op, AbstractQoreNode* exp) {
 }
 
 static void check_funcmod(int mod) {
-   if (mod & OFM_PRIVATE)
+   if (mod & (OFM_PRIVATE|OFM_INTERNAL))
       parse_error("illegal 'private' modifier in function declaration");
    if (mod & OFM_STATIC)
       parse_error("illegal 'static' modifier in function declaration");
@@ -1029,7 +1027,7 @@ static void check_funcmod(int mod) {
 }
 
 static void check_classmod(int mod, QoreClass& qc) {
-   if (mod & OFM_PRIVATE)
+   if (mod & (OFM_PRIVATE|OFM_INTERNAL))
       parse_error("illegal 'private' modifier in class declaration");
    if (mod & OFM_SYNCED)
       parse_error("illegal 'synchronized' modifier in class declaration");
@@ -1046,7 +1044,7 @@ static void check_classmod(int mod, QoreClass& qc) {
 }
 
 static void check_nsmod(int mod, qore_ns_private& ns) {
-   if (mod & OFM_PRIVATE)
+   if (mod & (OFM_PRIVATE|OFM_INTERNAL))
       parse_error("illegal 'private' modifier in namespace declaration");
    if (mod & OFM_SYNCED)
       parse_error("illegal 'synchronized' modifier in namespace declaration");
@@ -1271,7 +1269,7 @@ static AbstractQoreNode* processCall(AbstractQoreNode* $1, AbstractQoreNode* $3)
    QoreNamespace *ns;
    struct NSNodeList* nsnlist;
    struct NSNode* nsn;
-   class ObjClassDef *classdef;
+   class ObjClassDef* classdef;
    DateTimeNode* datetime;
    QoreRegexSubst* RegexSubst;
    QoreTransliteration* Trans;
@@ -1554,7 +1552,7 @@ top_level_command:
 
 	   // see if class definitions are allowed
 	   if (parse_check_parse_option(PO_NO_CLASS_DEFS))
-	      parse_error("illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)", $1->oc->getName());
+	      parse_error("illegal class definition '%s' (conflicts with parse option NO_CLASS_DEFS)", $1->oc->getName());
 	   delete $1;
 	}
 	| scoped_const_decl {
@@ -1587,7 +1585,7 @@ top_level_command:
            qore_root_ns_private::parseAddNamespace($1);
 	   // see if ns declaration is legal
 	   if (parse_check_parse_option(PO_NO_NAMESPACE_DEFS))
-	      parse_error("illegal namespace definition \"%s\" (conflicts with parse option NO_NAMESPACE_DEFINITION)", $1->getName());
+	      parse_error("illegal namespace definition '%s' (conflicts with parse option NO_NAMESPACE_DEFINITION)", $1->getName());
 	}
         | TOK_MODULE '{' module_decls '}' {
            QoreModuleDefContext* qmd = get_module_def_context();
@@ -1723,7 +1721,7 @@ namespace_decl:
 	   $$ = new NSNode($1);
 	   // see if class definitions are allowed
 	   if (parse_check_parse_option(PO_NO_CLASS_DEFS))
-	      parse_error("illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)", $1->oc->getName());
+	      parse_error("illegal class definition '%s' (conflicts with parse option NO_CLASS_DEFS)", $1->oc->getName());
 	}
         | sub_def {
            $$ = new NSNode($1);
@@ -1738,7 +1736,7 @@ namespace_decl:
 	   $$ = new NSNode($1);
 	   // see if ns declaration is legal
 	   if (parse_check_parse_option(PO_NO_NAMESPACE_DEFS))
-	      parse_error("illegal namespace definition \"%s\" (conflicts with parse option NO_NAMESPACE_DEFINITION)", $1->getName());
+	      parse_error("illegal namespace definition '%s' (conflicts with parse option NO_NAMESPACE_DEFINITION)", $1->getName());
 	}
         | outofline_methoddef {
            $$ = new NSNode($1);
@@ -1870,7 +1868,7 @@ statement:
         | TOK_THREAD_EXIT ';' {
 	   // see if thread exit is allowed
 	   if (parse_check_parse_option(PO_NO_THREAD_CONTROL))
-	      parse_error("illegal use of \"thread_exit\" (conflicts with parse option NO_THREAD_CONTROL)");
+	      parse_error("illegal use of 'thread_exit' (conflicts with parse option NO_THREAD_CONTROL)");
 
 	   $$ = new ThreadExitStatement(@1.first_line, @1.last_line);
 	}
@@ -2149,6 +2147,18 @@ superclass:
         | TOK_PRIVATE SCOPED_REF {
 	   $$ = new BCNode(new NamedScope($2), Private);
 	}
+        | TOK_PRIVATEHIERARCHY IDENTIFIER {
+	   $$ = new BCNode($2, Private);
+	}
+        | TOK_PRIVATEHIERARCHY SCOPED_REF {
+	   $$ = new BCNode(new NamedScope($2), Private);
+	}
+        | TOK_PRIVATEINTERNAL IDENTIFIER {
+	   $$ = new BCNode($2, Internal);
+	}
+        | TOK_PRIVATEINTERNAL SCOPED_REF {
+	   $$ = new BCNode(new NamedScope($2), Internal);
+	}
 	;
 
 class_attributes:
@@ -2158,12 +2168,12 @@ class_attributes:
 	}
         | private_member_list {
 	   $$ = new QoreClass;
-	   $1->mergePrivate($$);
+	   $1->merge($$, Private);
 	   delete $1;
 	}
         | public_member_list {
 	   $$ = new QoreClass;
-	   $1->mergePublic($$);
+	   $1->merge($$, Public);
 	   delete $1;
 	}
         | unscoped_const_decl {
@@ -2176,12 +2186,12 @@ class_attributes:
 	   $$ = $1;
 	}
 	| class_attributes private_member_list {
-	   $2->mergePrivate($1);
+	   $2->merge($1, Private);
 	   $$ = $1;
 	   delete $2;
 	}
 	| class_attributes public_member_list {
-	   $2->mergePublic($1);
+	   $2->merge($1, Public);
 	   $$ = $1;
 	   delete $2;
 	}
@@ -2526,6 +2536,8 @@ method_modifiers:
 
 method_modifier:
 	TOK_PRIVATE { $$ = OFM_PRIVATE; }
+        | TOK_PRIVATEHIERARCHY { $$ = OFM_PRIVATE; }
+        | TOK_PRIVATEINTERNAL { $$ = OFM_INTERNAL; }
         | TOK_STATIC { $$ = OFM_STATIC; }
         | TOK_SYNCHRONIZED { $$ = OFM_SYNCED; }
         | TOK_DEPRECATED { $$ = OFM_DEPRECATED; }
@@ -3058,7 +3070,7 @@ exp_c:  scalar
 	   $$ = new QoreBackgroundOperatorNode($2);
 	   // check to see if the expression is legal
 	   if (parse_check_parse_option(PO_NO_THREAD_CONTROL))
-	      parse_error("illegal use of \"background\" operator (conflicts with parse option NO_THREAD_CONTROL)");
+	      parse_error("illegal use of 'background' operator (conflicts with parse option NO_THREAD_CONTROL)");
 	   else if (!node_has_effect($2))
 	      parse_error("argument to background operator (%s) has no effect", get_type_name($2));
 	}

@@ -536,13 +536,13 @@ AbstractQoreNode* UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar* o
    const QoreMethod* qm = 0;
    // try to find a pointer to a non-static method if parsing in the class' context
    // and bare references are enabled
-   if (oflag && parse_check_parse_option(PO_ALLOW_BARE_REFS) && oflag->getTypeInfo()->getUniqueReturnClass()->parseCheckHierarchy(qc)) {
-      ClassAccess access;
+   ClassAccess access;
+   if (oflag && parse_check_parse_option(PO_ALLOW_BARE_REFS)
+       && qore_class_private::get(*oflag->getTypeInfo()->getUniqueReturnClass())->parseCheckHierarchy(qc, access)) {
       qm = qore_class_private::parseFindMethod(*qc, scope->getIdentifier(), access);
       assert(!qm || !qm->isStatic());
    }
    if (!qm) {
-      ClassAccess access;
       qm = qore_class_private::parseFindStaticMethod(*qc, scope->getIdentifier(), access);
       if (!qm) {
 	 parseException("INVALID-METHOD", "class '%s' has no static method '%s'", qc->getName(), scope->getIdentifier());
