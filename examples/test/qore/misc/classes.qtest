@@ -58,6 +58,10 @@ class Test2 {
     private int priv() {
         return 1;
     }
+
+    int pub() {
+        return call_object_method(self, "priv");
+    }
 }
 
 %exec-class ClassesTest
@@ -114,5 +118,6 @@ public class ClassesTest inherits QUnit::Test {
         assertEq((1, 2),  call_object_method_args(t1, "argTest", (1, 2)), "third call_object_method_args()");
 
         assertThrows("METHOD-IS-PRIVATE", \call_object_method(), (t2, "priv"));
+        assertThrows("METHOD-IS-PRIVATE", \t2.pub());
     }
 }
