@@ -1380,27 +1380,6 @@ CodeContextHelper::~CodeContextHelper() {
    td->current_classobj = old;
 }
 
-CodePreviousContextHelper::CodePreviousContextHelper(const char* code, ExceptionSink* xs) {
-   ThreadData* td  = thread_data.get();
-}
-
-CodePreviousContextHelper::~CodePreviousContextHelper() {
-   if (!subst)
-      return;
-
-   ThreadData* td  = thread_data.get();
-
-   if (do_ref) {
-      QoreObject* o = td->current_classobj.getObj();
-      assert(o);
-      o->deref(xsink);
-   }
-
-   //printd(5, "CodeContextHelper::~CodeContextHelper() this: %p td: %p current=(code: %s, {cls: %p, obj: %p}) restoring code: %s, {cls: %p, obj: %p}\n", this, td, td->current_code ? td->current_code : "null", td->current_classobj.getClass(), o, old_code ? old_code : "null", old.getClass(), old.getObj());
-   td->current_code = old_code;
-   td->current_classobj = old;
-}
-
 ArgvContextHelper::ArgvContextHelper(QoreListNode* argv, ExceptionSink* n_xsink) : xsink(n_xsink) {
    ThreadData* td  = thread_data.get();
    old_argv = td->current_implicit_arg;
