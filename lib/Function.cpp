@@ -1338,9 +1338,11 @@ QoreValue UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreO
 }
 
 // primary function for executing user code
-QoreValue UserVariantBase::eval(const char* name, CodeEvaluationHelper *ceh, QoreObject *self, ExceptionSink* xsink, const qore_class_private* qc) const {
+QoreValue UserVariantBase::eval(const char* name, CodeEvaluationHelper* ceh, QoreObject *self, ExceptionSink* xsink, const qore_class_private* qc) const {
    QORE_TRACE("UserVariantBase::eval()");
    //printd(5, "UserVariantBase::eval() this: %p '%s()' args: %p (size: %d) self: %p class: %p '%s'\n", this, name, ceh ? ceh->getArgs() : 0, ceh && ceh->getArgs() ? ceh->getArgs()->size() : 0, self, qc, qc ? qc->name.c_str() : "n/a");
+
+   assert(!self || (ceh ? ceh->getClass() : qc));
 
    // if pgm is 0 or == the current pgm, then ProgramThreadCountContextHelper does nothing
    ProgramThreadCountContextHelper tch(xsink, pgm, true);
@@ -1350,7 +1352,7 @@ QoreValue UserVariantBase::eval(const char* name, CodeEvaluationHelper *ceh, Qor
    if (!uveh)
       return QoreValue();
 
-   CodeContextHelper cch(xsink, CT_USER, name, self, qc);
+   CodeContextHelper cch(xsink, CT_USER, name, self, ceh ? ceh->getClass() : qc);
 
    return evalIntern(uveh.getArgv(), self, xsink);
 }
@@ -1688,14 +1690,14 @@ void QoreFunction::parseInit() {
    }
 }
 
-QoreValue UserClosureFunction::evalClosure(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject *self, ExceptionSink* xsink) const {
+QoreValue UserClosureFunction::evalClosure(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject *self, const qore_class_private* class_ctx, ExceptionSink* xsink) const {
    // closures cannot be overloaded
    assert(vlist.singular());
 
    const AbstractQoreFunctionVariant* variant = first();
 
    // setup call, save runtime position
-   CodeEvaluationHelper ceh(xsink, this, variant, "<anonymous closure>", args, 0, CT_USER);
+   CodeEvaluationHelper ceh(xsink, this, variant, "<anonymous closure>", args, class_ctx, CT_USER);
    if (*xsink)
       return QoreValue();
 

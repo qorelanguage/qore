@@ -2665,6 +2665,11 @@ public:
       return scl ? scl->getClass(cid, n_access, toplevel) : 0;
    }
 
+   DLLLOCAL const QoreClass* getClass(const qore_class_private& qc, ClassAccess& n_access) const {
+      n_access = Public;
+      return getClassIntern(qc, n_access, true);
+   }
+
    DLLLOCAL const QoreClass* getClassIntern(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
       // check hashes if names are the same
       // FIXME: check fully-qualified namespace name

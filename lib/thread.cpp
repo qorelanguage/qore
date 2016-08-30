@@ -581,6 +581,8 @@ private:
 
 public:
    QoreObject* obj;
+   const qore_class_private* class_ctx;
+
    AbstractQoreNode* fc;
    QoreProgram* pgm;
    int tid;
@@ -588,9 +590,15 @@ public:
    bool registered, started;
 
    DLLLOCAL BGThreadParams(AbstractQoreNode* f, int t, ExceptionSink* xsink)
-      : call_obj(thread_data.get()->current_obj), obj(0),
+      : obj(0),
         fc(f), pgm(getProgram()), tid(t), loc(RunTimeLocation), registered(false), started(false) {
-      //printd(5, "BGThreadParams::BGThreadParams(f: %p (%s %d), t: %d) this: %p call_obj: %p\n", f, f->getTypeName(), f->getType(), t, this, call_obj);
+      {
+         ThreadData* td = thread_data.get();
+         call_obj = td->current_obj;
+         class_ctx = td->current_class;
+      }
+
+//printd(5, "BGThreadParams::BGThreadParams(f: %p (%s %d), t: %d) this: %p call_obj: %p\n", f, f->getTypeName(), f->getType(), t, this, call_obj);
 
       // first try to preregister the new thread
       if (qore_program_private::preregisterNewThread(*pgm, xsink)) {
@@ -602,6 +610,8 @@ public:
 
       qore_type_t fctype = fc->getType();
       if (fctype == NT_SELF_CALL) {
+         class_ctx = qore_class_private::get(*reinterpret_cast<SelfFunctionCallNode*>(fc)->getClass());
+
 	 // must have a current object if an in-object method call is being executed
 	 // (i.e. $.method())
 	 // we reference the object so it won't go out of scope while the thread is running
@@ -610,6 +620,7 @@ public:
 	 obj->ref();
          call_obj = 0;
       }
+      /*
       else if (fctype == NT_OPERATOR) {
          QoreDotEvalOperatorNode* deon = dynamic_cast<QoreDotEvalOperatorNode*>(fc);
          if (deon) {
@@ -623,11 +634,12 @@ public:
                deon->replaceExpression(n.getReferencedValue());
 	    } else if (n->getType() == NT_OBJECT) {
 	       // we reference the object so it won't go out of scope while the thread is running
-	       obj = reinterpret_cast<QoreObject* >(n.getReferencedValue());
+	       obj = reinterpret_cast<QoreObject*>(n.getReferencedValue());
                call_obj = 0;
 	    }
 	 }
       }
+      */
 
       if (call_obj)
 	 call_obj->tRef();
@@ -1929,7 +1941,7 @@ namespace {
          {
             AbstractQoreNode* rv;
             {
-               CodeContextHelper cch(&xsink, CT_NEWTHREAD, "background operator", btp->getCallObject());
+               CodeContextHelper cch(&xsink, CT_NEWTHREAD, "background operator", btp->getCallObject(), btp->class_ctx);
 
                // dereference call object if present
                btp->derefCallObj();

@@ -184,7 +184,7 @@ public:
 
    DLLLOCAL void merge(const QoreHashNode* h, AutoVLock& vl, ExceptionSink* xsink);
 
-   DLLLOCAL void mergeIntern(const QoreHashNode* h, bool& check_recursive, ReferenceHolder<QoreListNode>& holder, bool inclass, AutoVLock& vl, ExceptionSink* xsink);
+   DLLLOCAL void mergeIntern(ExceptionSink* xsink, const QoreHashNode* h, bool& check_recursive, ReferenceHolder<QoreListNode>& holder, bool inclass, const qore_class_private* curr_class = 0, const QoreHashNode* new_internal_data = 0);
 
    DLLLOCAL QoreHashNode* copyData(ExceptionSink* xsink) const;
 
