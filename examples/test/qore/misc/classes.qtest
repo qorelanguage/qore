@@ -69,6 +69,7 @@ class Test2 {
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         addTestCase("Class library test", \classLibraryTest(), NOTHING);
+        addTestCase("Built-in class w/o methods", \builtinNoMethods());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -119,5 +120,11 @@ public class ClassesTest inherits QUnit::Test {
 
         assertThrows("METHOD-IS-PRIVATE", \call_object_method(), (t2, "priv"));
         assertThrows("METHOD-IS-PRIVATE", \t2.pub());
+    }
+
+    builtinNoMethods() {
+        AbstractQuantifiedBidirectionalIterator a = new HashIterator({'a': 1});
+        assertTrue(a.next());
+        assertEq(1, a.getValue());
     }
 }

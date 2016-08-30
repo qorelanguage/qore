@@ -225,7 +225,7 @@ class DateTest inherits QUnit::Test {
         assertEq("Europe/Vienna", new TimeZone("Europe/Vienna").region());
         assertEq("Europe/Belgrade", new TimeZone("Central Europe Standard Time").region());
         assertEq("Europe/Sarajevo", new TimeZone("Central European Standard Time").region());
-        assertThrows("TZINFO-ERROR", sub () { any x = new TimeZone("ABCDEF"); });
+        assertThrows("TZINFO-ERROR", sub () { new TimeZone("ABCDEF"); });
     }
 
     testDate(date d, int y, int w, int day, int n, reference ri) {
@@ -238,12 +238,11 @@ class DateTest inherits QUnit::Test {
         else
             d1 = d;
 
-        testAssertionValue("getISOWeekString() " + ri, d1,                                  date(int(d)));
-        testAssertionValue("getISOWeekHash() " + ri, get_iso_week_string(d),              str);
-        testAssertionValue("getDayOfWeek() " + ri, get_iso_week_hash(d),                h);
-        testAssertionValue("getDayNumber() " + ri, get_iso_day_of_week(d),              day);
-        testAssertionValue("getDateFromISOWeek() " + ri, get_day_number(d),                   n);
-        testAssertionValue("getDateFromISOWeek() " + ri, get_date_from_iso_week(y, w, day), get_midnight(d));
+        testAssertionValue("get_iso_week_string() " + ri, get_iso_week_string(d), str);
+        testAssertionValue("get_iso_week_hash() " + ri, get_iso_week_hash(d), h);
+        testAssertionValue("get_iso_day_of_week() " + ri, get_iso_day_of_week(d), day);
+        testAssertionValue("get_day_number() " + ri, get_day_number(d), n);
+        testAssertionValue("get_date_from_iso_week() " + ri, get_date_from_iso_week(y, w, day), get_midnight(d));
 
         # not all architectures support the timegm() system call
         #if (d >= 1970-01-01 && d < 2038-01-19)
