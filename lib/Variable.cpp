@@ -411,7 +411,6 @@ int LValueHelper::doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* o
 }
 
 int LValueHelper::doLValue(const ReferenceNode* ref, bool for_remove) {
-   //RuntimeReferenceHelper rh(*ref, vl.xsink);
    const lvalue_ref* r = lvalue_ref::get(ref);
    if (!lvid_set)
       lvid_set = new lvid_set_t;

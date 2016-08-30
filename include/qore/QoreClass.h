@@ -725,7 +725,7 @@ public:
    */
    DLLEXPORT QoreObject* execSystemConstructor(int code = 0, ...) const;
 
-   //! executes a class' "copy" method on an object and returns the new object (or 0 in the case of an exception)
+   //! executes a class's "copy" method on an object and returns the new object (or 0 in the case of an exception)
    /** @param old the original object to copy
        @param xsink Qore-language exception information is added here
        @return the object created
@@ -868,7 +868,7 @@ public:
    */
    DLLEXPORT void addBuiltinBaseClass(QoreClass* qc, QoreListNode* xargs = 0);
 
-   //! make a builtin class a child of another builtin class and ensures that the given class' private data will be used in all class methods
+   //! make a builtin class a child of another builtin class and ensures that the given class's private data will be used in all class methods
    /** In the case this function is used, this objects of class cannot have
        private data saved against the class ID.
        The xargs argument must not be used; before qore supported function overloading, base class arguments could be given here
@@ -878,10 +878,10 @@ public:
    DLLEXPORT void addDefaultBuiltinBaseClass(QoreClass* qc, QoreListNode* xargs = 0);
 
    //! sets "virtual" base class for a class, meaning that the base class data is appropriate for use in the subclass builtin methods
-   /** this method adds a base class placeholder for a subclass - where the subclass' private data
+   /** this method adds a base class placeholder for a subclass - where the subclass's private data
        object is actually a subclass of the parent class and all methods are virtual, so the
-       base class' constructor, destructor, and copy constructor will never be run and the base
-       class methods will be passed a pointer to the subclass' data
+       base class's constructor, destructor, and copy constructor will never be run and the base
+       class methods will be passed a pointer to the subclass's data
        @param qc the base class to add
    */
    DLLEXPORT void addBuiltinVirtualBaseClass(QoreClass* qc);
@@ -1021,7 +1021,7 @@ public:
    DLLLOCAL void unsetPublicMemberFlag();
 };
 
-//! To be used to iterate through a class' normal (non-static) methods
+//! To be used to iterate through a class's normal (non-static) methods
 class QoreMethodIterator {
 private:
    void* priv;
@@ -1033,7 +1033,7 @@ public:
    DLLEXPORT const QoreMethod* getMethod() const;
 };
 
-//! To be used to iterate through a class' static methods
+//! To be used to iterate through a class's static methods
 class QoreStaticMethodIterator {
 private:
    void* priv;

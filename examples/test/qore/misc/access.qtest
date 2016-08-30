@@ -14,16 +14,19 @@ class Base {
     public {
         static int statpub = 1;
         const conpub = 1;
+        int mempub = 1;
     }
 
     private {
         static int statpriv = 1;
         const conpriv = 1;
+        int mempriv = 1;
     }
 
     private:internal {
         static int statint = 1;
         const conint = 2;
+        int memint = 1;
     }
 
     Base base() {
@@ -38,6 +41,14 @@ class Base {
         return 0;
     }
 
+    int getStatPriv() {
+        return statpriv;
+    }
+
+    int getConPriv() {
+        return conpriv;
+    }
+
     public int getStatInt() {
         return statint;
     }
@@ -45,9 +56,29 @@ class Base {
     public int getConInt() {
         return conint;
     }
+
+    public int getMemInt() {
+        return memint;
+    }
 }
 
 class PubChild inherits Base {
+    public {
+        static int statpub = 2;
+        const conpub = 2;
+    }
+
+    private {
+        static int statpriv = 2;
+        const conpriv = 2;
+    }
+
+    private:internal {
+        static int statint = 2;
+        const conint = 3;
+        #int memint = 2;
+    }
+
     Base test() {
         return cast<Base>(self);
     }
@@ -79,9 +110,25 @@ class PubChild inherits Base {
     private:internal int intern() {
         return 0;
     }
+
+    public int getStatInt() {
+        return statint;
+    }
+
+    public int getConInt() {
+        return conint;
+    }
+
+    public int getMemInt() {
+        return memint;
+    }
 }
 
 class PrivChild inherits private Base {
+    public {
+        #int memint = 3;
+    }
+
     Base test() {
         return cast<Base>(self);
     }
@@ -245,11 +292,19 @@ class TestInheritB {
     }
 
     inheritanceTest() {
+        Base b();
+        assertEq(1, b.getStatInt());
+        assertEq(2, b.getConInt());
+        assertEq(1, b.getStatPriv());
+        assertEq(1, b.getConPriv());
+
         PubChild c1();
         assertEq(c1, cast<Base>(c1));
         assertEq(c1, c1.test());
-        assertEq(1, c1.getStatInt());
-        assertEq(2, c1.getConInt());
+        assertEq(2, c1.getStatPriv());
+        assertEq(2, c1.getConPriv());
+        assertEq(2, c1.getStatInt());
+        assertEq(3, c1.getConInt());
 
         PrivChild c2();
         assertThrows("RUNTIME-CAST-ERROR", Base sub () {return cast<Base>(c2);});

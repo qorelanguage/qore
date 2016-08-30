@@ -46,7 +46,7 @@ DLLLOCAL Sequence classIDSeq(1);
 DLLLOCAL QoreValue qore_method_private::evalNormalVariant(QoreObject* self, const QoreExternalMethodVariant* ev, const QoreListNode* args, ExceptionSink* xsink) const {
    const AbstractQoreFunctionVariant* variant = reinterpret_cast<const AbstractQoreFunctionVariant*>(ev);
 
-   CodeEvaluationHelper ceh(xsink, getFunction(), variant, getName(), args, variant->className());
+   CodeEvaluationHelper ceh(xsink, getFunction(), variant, getName(), args, parent_class->priv);
    if (*xsink) return QoreValue();
 
    return METHV_const(variant)->evalMethod(self, ceh, xsink);
@@ -900,7 +900,7 @@ int qore_class_private::initMembers(QoreObject& o, bool& need_scan, ExceptionSin
       return 0;
 
    // make sure the object context is set before evaluating members
-   CodeContextHelper cch("constructor", &o, xsink);
+   CodeContextHelperBase cch("constructor", &o, this, xsink);
    SelfInstantiatorHelper sih(&selfid, &o);
 
    for (QoreMemberMap::DeclOrderIterator i = members.beginDeclOrder(), e = members.endDeclOrder(); i != e; ++i) {
@@ -996,7 +996,7 @@ QoreObject* qore_class_private::execConstructor(const AbstractQoreFunctionVarian
       // and the matched variant is pending
       if (!constructor && !variant) {
 	 if (scl) { // execute superconstructors if any
-	    CODE_CONTEXT_HELPER(CT_BUILTIN, "constructor", self, xsink);
+	    CodeContextHelper cch(xsink, CT_BUILTIN, "constructor", self, this);
 
 	    scl->execConstructors(self, *bceal, xsink);
 	 }
@@ -1069,7 +1069,7 @@ QoreObject* qore_class_private::execConstructor(const AbstractQoreFunctionVarian
       // and the matched variant is pending
       if (!constructor && !variant) {
 	 if (scl) { // execute superconstructors if any
-	    CODE_CONTEXT_HELPER(CT_BUILTIN, "constructor", self, xsink);
+	    CodeContextHelper cch(xsink, CT_BUILTIN, "constructor", self, this);
 
 	    scl->execConstructors(self, *bceal, xsink);
 	 }
@@ -2518,7 +2518,7 @@ void QoreMethod::assign_class(const QoreClass* p_class) {
 
 QoreValue QoreMethod::execManaged(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
    // to ensure the object does not get referenced for the call
-   ObjectSubstitutionHelper osh(self);
+   ObjectSubstitutionHelper osh(self, qore_class_private::get(*priv->parent_class));
    return qore_method_private::eval(*this, self, args, xsink);
 }
 
@@ -4193,6 +4193,48 @@ MethodVariantBase* MethodFunctionBase::parseHasVariantWithSignature(MethodVarian
    return 0;
 }
 
+void BuiltinConstructorValueVariant::evalConstructor(const QoreClass& thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
+   CodeContextHelper cch(xsink, CT_BUILTIN, "constructor", self, qore_class_private::get(thisclass));
+
+   if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
+      return;
+
+   constructor(self, ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
+}
+
+void BuiltinConstructorVariant::evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
+   CodeContextHelper cch(xsink, CT_BUILTIN, "constructor", self, qore_class_private::get(thisclass));
+
+   if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
+      return;
+
+   const QoreValueList* args = ceh.getArgs();
+   ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
+   constructor(self, *l, xsink);
+}
+
+void BuiltinConstructor2Variant::evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
+   CodeContextHelper cch(xsink, CT_BUILTIN, "constructor", self, qore_class_private::get(thisclass));
+
+   if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
+      return;
+
+   const QoreValueList* args = ceh.getArgs();
+   ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
+   constructor(thisclass, self, *l, xsink);
+}
+
+void BuiltinConstructor3Variant::evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
+   CodeContextHelper cch(xsink, CT_BUILTIN, "constructor", self, qore_class_private::get(thisclass));
+
+   if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
+      return;
+
+   const QoreValueList* args = ceh.getArgs();
+   ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
+   constructor(thisclass, signature.getTypeList(), ptr, self, *l, xsink);
+}
+
 int ConstructorMethodVariant::constructorPrelude(const QoreClass& thisclass, CodeEvaluationHelper& ceh, QoreObject* self, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
    if (bcl) {
       const BCAList* bcal = getBaseClassArgumentList();
@@ -4212,6 +4254,29 @@ int ConstructorMethodVariant::constructorPrelude(const QoreClass& thisclass, Cod
 
 UserConstructorVariant::~UserConstructorVariant() {
    delete bcal;
+}
+
+void UserConstructorVariant::evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
+   // in case this method is called from a subclass, switch to the program where the class was created
+   ProgramThreadCountContextHelper pch(xsink, pgm, true);
+   if (*xsink)
+      return;
+
+   UserVariantExecHelper uveh(this, &ceh, xsink);
+   if (!uveh)
+      return;
+
+   CodeContextHelper cch(xsink, CT_USER, "constructor", self, qore_class_private::get(thisclass));
+
+   // instantiate "self" before executing base class constructors in case base class constructor arguments reference "self"
+   assert(signature.selfid);
+   signature.selfid->instantiateSelf(self);
+
+   if (!constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
+      evalIntern(uveh.getArgv(), 0, xsink).discard(xsink);
+
+   // if self then uninstantiate
+   signature.selfid->uninstantiateSelf();
 }
 
 void UserConstructorVariant::parseInit(QoreFunction* f) {
@@ -4239,6 +4304,33 @@ void UserConstructorVariant::parseInit(QoreFunction* f) {
       f->parseCheckDuplicateSignatureCommitted(&signature);
 }
 
+void BuiltinDestructorVariant::evalDestructor(const QoreClass &thisclass, QoreObject* self, ExceptionSink* xsink) const {
+   CodeContextHelper cch(xsink, CT_BUILTIN, "destructor", self, qore_class_private::get(thisclass));
+
+   AbstractPrivateData* private_data = self->getAndClearPrivateData(thisclass.getID(), xsink);
+   if (!private_data)
+      return;
+   destructor(self, private_data, xsink);
+}
+
+void BuiltinDestructor2Variant::evalDestructor(const QoreClass &thisclass, QoreObject* self, ExceptionSink* xsink) const {
+   CodeContextHelper cch(xsink, CT_BUILTIN, "destructor", self, qore_class_private::get(thisclass));
+
+   AbstractPrivateData* private_data = self->getAndClearPrivateData(thisclass.getID(), xsink);
+   if (!private_data)
+      return;
+   destructor(thisclass, self, private_data, xsink);
+}
+
+void BuiltinDestructor3Variant::evalDestructor(const QoreClass &thisclass, QoreObject* self, ExceptionSink* xsink) const {
+   CodeContextHelper cch(xsink, CT_BUILTIN, "destructor", self, qore_class_private::get(thisclass));
+
+   AbstractPrivateData* private_data = self->getAndClearPrivateData(thisclass.getID(), xsink);
+   if (!private_data)
+      return;
+   destructor(thisclass, ptr, self, private_data, xsink);
+}
+
 void UserCopyVariant::evalCopy(const QoreClass& thisclass, QoreObject* self, QoreObject* old, CodeEvaluationHelper& ceh, BCList* scl, ExceptionSink* xsink) const {
    // there can only be max 1 param
    assert(signature.numParams() <= 1);
@@ -4251,7 +4343,7 @@ void UserCopyVariant::evalCopy(const QoreClass& thisclass, QoreObject* self, Qor
    if (!uveh)
       return;
 
-   CODE_CONTEXT_HELPER(CT_USER, "copy", self, xsink);
+   CodeContextHelper cch(xsink, CT_USER, "copy", self, qore_class_private::get(thisclass));
 
    if (scl) {
       scl->sml.execCopyMethods(self, old, xsink);
@@ -4306,7 +4398,7 @@ void UserCopyVariant::parseInit(QoreFunction* f) {
 }
 
 void BuiltinCopyVariantBase::evalCopy(const QoreClass& thisclass, QoreObject* self, QoreObject* old, CodeEvaluationHelper& ceh, BCList* scl, ExceptionSink* xsink) const {
-   CODE_CONTEXT_HELPER(CT_BUILTIN, "copy", self, xsink);
+   CodeContextHelper cch(xsink, CT_BUILTIN, "copy", self, qore_class_private::get(thisclass));
 
    if (scl) {
       scl->sml.execCopyMethods(self, old, xsink);
@@ -4320,7 +4412,7 @@ void BuiltinCopyVariantBase::evalCopy(const QoreClass& thisclass, QoreObject* se
 
 void ConstructorMethodFunction::evalConstructor(const AbstractQoreFunctionVariant* variant, const QoreClass& thisclass, QoreObject* self, const QoreValueList* args, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
    // setup call, save runtime position, and evaluate arguments
-   CodeEvaluationHelper ceh(xsink, this, variant, "constructor", args, thisclass.getName());
+   CodeEvaluationHelper ceh(xsink, this, variant, "constructor", args, qore_class_private::get(thisclass));
    if (*xsink)
       return;
 
@@ -4334,7 +4426,7 @@ void ConstructorMethodFunction::evalConstructor(const AbstractQoreFunctionVarian
 
 void ConstructorMethodFunction::evalConstructor(const AbstractQoreFunctionVariant* variant, const QoreClass& thisclass, QoreObject* self, const QoreListNode* args, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
    // setup call, save runtime position, and evaluate arguments
-   CodeEvaluationHelper ceh(xsink, this, variant, "constructor", args, thisclass.getName());
+   CodeEvaluationHelper ceh(xsink, this, variant, "constructor", args, qore_class_private::get(thisclass));
    if (*xsink)
       return;
 
@@ -4353,7 +4445,7 @@ void CopyMethodFunction::evalCopy(const QoreClass& thisclass, QoreObject* self, 
    qore_call_t ct = variant->getCallType();
 
    // setup call, save runtime position
-   CodeEvaluationHelper ceh(xsink, this, variant, "copy", (QoreValueList*)0, thisclass.getName(), ct, true);
+   CodeEvaluationHelper ceh(xsink, this, variant, "copy", (QoreValueList*)0, qore_class_private::get(thisclass), ct, true);
    if (*xsink) return;
 
    COPYMV_const(variant)->evalCopy(thisclass, self, old, ceh, scl, xsink);
@@ -4366,7 +4458,7 @@ void DestructorMethodFunction::evalDestructor(const QoreClass& thisclass, QoreOb
    qore_call_t ct = variant->getCallType();
 
    // setup call, save runtime position
-   CodeEvaluationHelper ceh(xsink, this, variant, "destructor", (QoreValueList*)0, thisclass.getName(), ct);
+   CodeEvaluationHelper ceh(xsink, this, variant, "destructor", (QoreValueList*)0, qore_class_private::get(thisclass), ct);
    if (*xsink) return;
 
    DESMV_const(variant)->evalDestructor(thisclass, self, xsink);
@@ -4376,17 +4468,17 @@ void DestructorMethodFunction::evalDestructor(const QoreClass& thisclass, QoreOb
 QoreValue NormalMethodFunction::evalMethod(const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
    bool had_variant = (bool)variant;
    const char* mname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, getClassName());
+   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, qore_class_private::get(*qc));
    if (*xsink) return QoreValue();
 
    const MethodVariant* mv = METHV_const(variant);
    if (mv->isAbstract()) {
-      xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", getClassName(), mname, mv->getSignature()->getSignatureText());
+      xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", qc->getName(), mname, mv->getSignature()->getSignatureText());
       return QoreValue();
    }
    //printd(5, "NormalMethodFunction::evalMethod() %s::%s(%s) (self: %s) variant: %p, mv: %p priv: %d access: %d (%p %s)\n",getClassName(), mname, mv->getSignature()->getSignatureText(), self->getClass()->getName(), variant, mv, mv->isPrivate(), qore_class_private::runtimeCheckPrivateClassAccess(*mv->getClass()), runtime_get_class(), runtime_get_class() ? runtime_get_class()->name.c_str() : "n/a");
    if (!had_variant && mv->isPrivate() && !qore_class_private::runtimeCheckPrivateClassAccess(*mv->getClass())) {
-      xsink->raiseException("ILLEGAL-CALL", "cannot call private variant %s::%s(%s) from outside the class", getClassName(), mname, mv->getSignature()->getSignatureText());
+      xsink->raiseException("ILLEGAL-CALL", "cannot call private variant %s::%s(%s) from outside the class", qc->getName(), mname, mv->getSignature()->getSignatureText());
       return QoreValue();
    }
 
@@ -4396,7 +4488,7 @@ QoreValue NormalMethodFunction::evalMethod(const AbstractQoreFunctionVariant* va
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
 QoreValue NormalMethodFunction::evalPseudoMethod(const AbstractQoreFunctionVariant* variant, const QoreValue n, const QoreListNode* args, ExceptionSink* xsink) const {
    const char* mname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, getClassName());
+   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, qore_class_private::get(*qc));
    if (*xsink)
       return QoreValue();
 
@@ -4406,7 +4498,7 @@ QoreValue NormalMethodFunction::evalPseudoMethod(const AbstractQoreFunctionVaria
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
 QoreValue StaticMethodFunction::evalMethod(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const {
    const char* mname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, getClassName());
+   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, qore_class_private::get(*qc));
    if (*xsink) return QoreValue();
 
    return METHV_const(variant)->evalMethod(0, ceh, xsink);
@@ -4422,13 +4514,13 @@ const char* MethodVariantBase::getAbstractSignature() {
    return asig.c_str();
 }
 
-QoreValue BuiltinNormalMethodVariantBase::evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-   CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), self, xsink);
+QoreValue BuiltinNormalMethodVariantBase::evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
+   CodeContextHelper cch(xsink, CT_BUILTIN, qmethod->getName(), self, qore_class_private::get(*qmethod->getClass()));
    return qore_object_private::evalBuiltinMethodWithPrivateData(*self, *qmethod, this, ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
 }
 
 QoreValue BuiltinNormalMethodVariantBase::evalPseudoMethod(const QoreValue n, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
-   CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), 0, xsink);
+   CodeContextHelper cch(xsink, CT_BUILTIN, qmethod->getName());
    return evalImpl(NULL, (AbstractPrivateData*)&n, ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
 }
 

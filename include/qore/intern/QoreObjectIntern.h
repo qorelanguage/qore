@@ -63,6 +63,9 @@
 
 class LValueHelper;
 
+// per-class internal data
+typedef std::map<const qore_class_private*, QoreHashNode*> cdmap_t;
+
 /*
   Qore internal class data is stored against the object with this data structure
   against its qore_classid_t (class ID).  In a class hierarchy, for private data
@@ -155,6 +158,7 @@ public:
    // member data
    QoreHashNode* data;
    QoreProgram* pgm;
+   cdmap_t* cdmap = 0;
 
    bool system_object, delete_blocker_run, in_destructor;
    bool recursive_ref_found;
@@ -170,20 +174,23 @@ public:
          return;
 
       // do not need ensure_unique() for objects
-      if (v->getType() == NT_OBJECT) {
-         ReferenceHolder<QoreHashNode> h(const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(v))->copyData(xsink), xsink);
-         if (h)
-            merge(*h, vl, xsink);
-      }
+      if (v->getType() == NT_OBJECT)
+         merge(*const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(v))->priv, vl, xsink);
       else if (v->getType() == NT_HASH)
-         merge(reinterpret_cast<const QoreHashNode* >(v), vl, xsink);
+         merge(reinterpret_cast<const QoreHashNode*>(v), vl, xsink);
    }
+
+   DLLLOCAL void merge(qore_object_private& o, AutoVLock& vl, ExceptionSink* xsink);
 
    DLLLOCAL void merge(const QoreHashNode* h, AutoVLock& vl, ExceptionSink* xsink);
 
+   DLLLOCAL void mergeIntern(const QoreHashNode* h, bool& check_recursive, ReferenceHolder<QoreListNode>& holder, bool inclass, AutoVLock& vl, ExceptionSink* xsink);
+
+   DLLLOCAL QoreHashNode* copyData(ExceptionSink* xsink) const;
+
    DLLLOCAL int getLValue(const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink) const;
 
-   DLLLOCAL AbstractQoreNode* *getMemberValuePtr(const char* key, AutoVLock *vl, const QoreTypeInfo*& typeInfo, ExceptionSink* xsink) const;
+   DLLLOCAL AbstractQoreNode** getMemberValuePtr(const char* key, AutoVLock *vl, const QoreTypeInfo*& typeInfo, ExceptionSink* xsink) const;
 
    DLLLOCAL QoreStringNode* firstKey(ExceptionSink* xsink) {
       QoreAutoVarRWReadLocker al(rml);
@@ -199,7 +206,7 @@ public:
          return !str ? 0 : new QoreStringNode(str);
       }
 
-      // get first public member
+      // get first accessible non-internal member
       ConstHashIterator hi(data);
       while (hi.next()) {
          //printd(5, "qore_object_private::firstKey() checking '%s'\n", hi.getKey());
@@ -224,7 +231,7 @@ public:
          return !str ? 0 : new QoreStringNode(str);
       }
 
-      // get first public member
+      // get last accessible non-internal member
       ReverseConstHashIterator hi(data);
       while (hi.next()) {
          if (!checkMemberAccessIntern(hi.getKey(), false, false))
@@ -372,7 +379,7 @@ public:
 
    // lock not held on entry
    DLLLOCAL void doDeleteIntern(ExceptionSink* xsink) {
-      printd(5, "qore_object_private::doDeleteIntern() execing destructor() obj=%p\n", obj);
+      printd(5, "qore_object_private::doDeleteIntern() execing destructor() obj: %p\n", obj);
 
       // increment reference count temporarily for destructor
       {
@@ -382,24 +389,29 @@ public:
 
       theclass->execDestructor(obj, xsink);
 
+      cdmap_t* cdm;
       QoreHashNode* td;
       {
          QoreAutoVarRWWriteLocker al(rml);
 	 assert(status != OS_DELETED);
 	 assert(data);
 	 status = OS_DELETED;
+
+         cdm = cdmap;
+         cdmap = 0;
+
 	 td = data;
 	 data = 0;
 
          removeInvalidateRSet();
       }
 
-      cleanup(xsink, td);
+      cleanup(xsink, td, cdm);
 
       obj->deref(xsink);
    }
 
-   DLLLOCAL void cleanup(ExceptionSink* xsink, QoreHashNode* td) {
+   DLLLOCAL void cleanup(ExceptionSink* xsink, QoreHashNode* td, cdmap_t* cdm) {
       if (privateData) {
          printd(5, "qore_object_private::cleanup() this: %p privateData: %p\n", this, privateData);
 	 delete privateData;
@@ -412,7 +424,7 @@ public:
          QoreAutoVarRWWriteLocker al(rml);
 
          if (pgm) {
-            printd(5, "qore_object_private::cleanup() obj=%p (%s) calling QoreProgram::depDeref() (%p)\n", obj, theclass->getName(), pgm);
+            printd(5, "qore_object_private::cleanup() obj: %p (%s) calling QoreProgram::depDeref() (%p)\n", obj, theclass->getName(), pgm);
             // release weak reference
             pgm->depDeref(xsink);
             pgm = 0;
@@ -420,14 +432,22 @@ public:
       }
       td->clear(xsink, true);
       td->deref(xsink);
+
+      if (cdm) {
+         for (auto& i : *cdm) {
+            i.second->clear(xsink, true);
+            i.second->deref(xsink);
+         }
+         delete cdm;
+      }
    }
 
    // this method is called when there is an exception in a constructor and the object should be deleted
    DLLLOCAL void obliterate(ExceptionSink* xsink) {
-      printd(5, "qore_object_private::obliterate() obj=%p class=%s %d->%d\n", obj, theclass->getName(), obj->references, obj->references - 1);
+      printd(5, "qore_object_private::obliterate() obj: %p class: %s %d->%d\n", obj, theclass->getName(), obj->references, obj->references - 1);
 
 #ifdef QORE_DEBUG_OBJ_REFS
-      printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::obliterate() obj=%p class=%s: references %d->%d\n", obj, theclass->getName(), obj->references, obj->references - 1);
+      printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::obliterate() obj: %p class: %s: references %d->%d\n", obj, theclass->getName(), obj->references, obj->references - 1);
 #endif
 
       {
@@ -440,7 +460,7 @@ public:
          QoreSafeVarRWWriteLocker sl(rml);
 
 	 if (in_destructor || status != OS_OK) {
-	    printd(5, "qore_object_private::obliterate() obj=%p data=%p in_destructor=%d status=%d\n", obj, data, in_destructor, status);
+	    printd(5, "qore_object_private::obliterate() obj: %p data: %p in_destructor: %d status: %d\n", obj, data, in_destructor, status);
 	    //printd(5, "Object lock %p unlocked (safe)\n", &rml);
 	    sl.unlock();
 	    tDeref();
@@ -448,9 +468,11 @@ public:
 	 }
 
 	 //printd(5, "Object lock %p locked   (safe)\n", &rml);
-	 printd(5, "qore_object_private::obliterate() obj=%p class=%s\n", obj, theclass->getName());
+	 printd(5, "qore_object_private::obliterate() obj: %p class: %s\n", obj, theclass->getName());
 
 	 status = OS_DELETED;
+         cdmap_t* cdm = cdmap;
+         cdmap = 0;
 	 QoreHashNode* td = data;
 	 data = 0;
 
@@ -462,7 +484,7 @@ public:
 	 if (privateData)
 	    privateData->derefAll(xsink);
 
-	 cleanup(xsink, td);
+	 cleanup(xsink, td, cdm);
       }
       tDeref();
    }
@@ -571,7 +593,7 @@ public:
       return obj.priv->getLValue(key, lvh, internal, for_remove, xsink);
    }
 
-   DLLLOCAL static AbstractQoreNode* *getMemberValuePtr(const QoreObject* obj, const char* key, AutoVLock *vl, const QoreTypeInfo*& typeInfo, ExceptionSink* xsink) {
+   DLLLOCAL static AbstractQoreNode** getMemberValuePtr(const QoreObject* obj, const char* key, AutoVLock *vl, const QoreTypeInfo*& typeInfo, ExceptionSink* xsink) {
       return obj->priv->getMemberValuePtr(key, vl, typeInfo, xsink);
    }
 

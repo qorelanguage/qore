@@ -108,8 +108,8 @@ static void add_args(QoreStringNode &desc, const QoreValueList* args) {
    }
 }
 
-CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, const char* n_class_name, qore_call_t n_ct, bool is_copy)
-   : ct(n_ct), name(n_name), xsink(n_xsink), class_name(n_class_name), loc(RunTimeLocation), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo* )-1), pgm(getProgram()), rtflags(0) {
+CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy)
+   : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc), loc(RunTimeLocation), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo* )-1), pgm(getProgram()), rtflags(0) {
    tmp.assignEval(args);
 
    if (*xsink)
@@ -124,7 +124,6 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
       }
    }
 
-   class_name = variant->className();
    if (processDefaultArgs(func, variant, check_args, is_copy))
       return;
 
@@ -132,8 +131,8 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
    setReturnTypeInfo(variant->getReturnTypeInfo());
 }
 
-CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args, const char* n_class_name, qore_call_t n_ct, bool is_copy)
-   : ct(n_ct), name(n_name), xsink(n_xsink), class_name(n_class_name), loc(RunTimeLocation), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo* )-1), pgm(getProgram()), rtflags(0) {
+CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args, const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy)
+   : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc), loc(RunTimeLocation), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo* )-1), pgm(getProgram()), rtflags(0) {
    tmp.assignEval(args);
 
    if (*xsink)
@@ -148,7 +147,6 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
       }
    }
 
-   class_name = variant->className();
    if (processDefaultArgs(func, variant, check_args, is_copy))
       return;
 
@@ -160,7 +158,7 @@ CodeEvaluationHelper::~CodeEvaluationHelper() {
    if (returnTypeInfo != (const QoreTypeInfo*)-1)
       saveReturnTypeInfo(returnTypeInfo);
    if (ct != CT_UNUSED && xsink->isException())
-      qore_es_private::addStackInfo(*xsink, ct, class_name, name, loc);
+      qore_es_private::addStackInfo(*xsink, ct, qc ? qc->name.c_str() : 0, name, loc);
 }
 
 int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant, bool check_args, bool is_copy) {
@@ -1352,13 +1350,7 @@ QoreValue UserVariantBase::eval(const char* name, CodeEvaluationHelper *ceh, Qor
    if (!uveh)
       return QoreValue();
 
-   ClassObj cobj;
-   if (self)
-      cobj = self;
-   else if (qc)
-      cobj = qc;
-   assert((self && self == cobj.getObj()) || (qc && qc == cobj.getClass()) || (!self && !qc));
-   CODE_CONTEXT_HELPER(CT_USER, name, cobj, xsink);
+   CodeContextHelper cch(xsink, CT_USER, name, self, qc);
 
    return evalIntern(uveh.getArgv(), self, xsink);
 }

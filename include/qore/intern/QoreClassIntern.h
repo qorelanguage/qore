@@ -372,32 +372,7 @@ public:
       return bcal;
    }
 
-   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
-      // in case this method is called from a subclass, switch to the program where the class was created
-      ProgramThreadCountContextHelper pch(xsink, pgm, true);
-      if (*xsink)
-         return;
-
-      UserVariantExecHelper uveh(this, &ceh, xsink);
-      if (!uveh)
-	 return;
-
-      CodeContextHelper cch("constructor", self, xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-      // push call on call stack in debugging mode
-      CallStackHelper csh("constructor", CT_USER, self, xsink);
-#endif
-
-      // instantiate "self" before executing base class constructors in case base class constructor arguments reference "self"
-      assert(signature.selfid);
-      signature.selfid->instantiateSelf(self);
-
-      if (!constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
-         evalIntern(uveh.getArgv(), 0, xsink).discard(xsink);
-
-      // if self then uninstantiate
-      signature.selfid->uninstantiateSelf();
-   }
+   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual void parseInit(QoreFunction* f);
 };
@@ -557,7 +532,7 @@ public:
    }
 
    DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), ClassObj(getClassPriv()), xsink);
+      CodeContextHelper cch(xsink, CT_BUILTIN, qmethod->getName(), 0, getClassPriv());
       const QoreValueList* args = ceh.getArgs();
       ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
       return static_method(*l, xsink);
@@ -578,7 +553,7 @@ public:
    }
 
    DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), ClassObj(getClassPriv()), xsink);
+      CodeContextHelper cch(xsink, CT_BUILTIN, qmethod->getName(), 0, getClassPriv());
 
       return static_method(ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
    }
@@ -593,7 +568,7 @@ public:
    DLLLOCAL BuiltinStaticMethod2Variant(q_static_method2_t m, ClassAccess n_access, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_access, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m) {
    }
    DLLLOCAL QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), ClassObj(getClassPriv()), xsink);
+      CodeContextHelper cch(xsink, CT_BUILTIN, qmethod->getName(), 0, getClassPriv());
       const QoreValueList* args = ceh.getArgs();
       ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
       return static_method(*qmethod, *l, xsink);
@@ -610,7 +585,7 @@ public:
    DLLLOCAL BuiltinStaticMethod3Variant(const void* n_ptr, q_static_method3_t m, ClassAccess n_access, bool n_final, int64 n_flags, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_access, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m), ptr(n_ptr) {
    }
    DLLLOCAL QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), ClassObj(getClassPriv()), xsink);
+      CodeContextHelper cch(xsink, CT_BUILTIN, qmethod->getName(), 0, getClassPriv());
       const QoreValueList* args = ceh.getArgs();
       ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
       return static_method(*qmethod, signature.getTypeList(), ptr, *l, xsink);
@@ -639,18 +614,7 @@ public:
    DLLLOCAL BuiltinConstructorValueVariant(q_constructor_n_t m, ClassAccess n_access, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinConstructorVariantBase(n_access, n_flags, n_functionality, n_typeList, n_defaultArgList, n_names), constructor(m) {
    }
 
-   DLLLOCAL virtual void evalConstructor(const QoreClass& thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
-      CodeContextHelper cch("constructor", self, xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-      // push call on call stack
-      CallStackHelper csh("constructor", CT_BUILTIN, self, xsink);
-#endif
-
-      if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
-	 return;
-
-      constructor(self, ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
-   }
+   DLLLOCAL virtual void evalConstructor(const QoreClass& thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
 };
 
 class BuiltinConstructorVariant : public BuiltinConstructorVariantBase {
@@ -661,20 +625,7 @@ public:
    DLLLOCAL BuiltinConstructorVariant(q_constructor_t m, ClassAccess n_access, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinConstructorVariantBase(n_access, n_flags, n_functionality, n_typeList, n_defaultArgList, n_names), constructor(m) {
    }
 
-   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
-      CodeContextHelper cch("constructor", self, xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-      // push call on call stack
-      CallStackHelper csh("constructor", CT_BUILTIN, self, xsink);
-#endif
-
-      if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
-	 return;
-
-      const QoreValueList* args = ceh.getArgs();
-      ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
-      constructor(self, *l, xsink);
-   }
+   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
 };
 
 class BuiltinConstructor2Variant : public BuiltinConstructorVariantBase {
@@ -685,20 +636,7 @@ public:
    // return type info is set to 0 because the new operator actually returns the new object, not the constructor
    DLLLOCAL BuiltinConstructor2Variant(q_constructor2_t m, ClassAccess n_access, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinConstructorVariantBase(n_access, n_flags, n_functionality, n_typeList, n_defaultArgList, n_names), constructor(m) {
    }
-   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
-      CodeContextHelper cch("constructor", self, xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-      // push call on call stack
-      CallStackHelper csh("constructor", CT_BUILTIN, self, xsink);
-#endif
-
-      if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
-	 return;
-
-      const QoreValueList* args = ceh.getArgs();
-      ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
-      constructor(thisclass, self, *l, xsink);
-   }
+   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
 };
 
 class BuiltinConstructor3Variant : public BuiltinConstructorVariantBase {
@@ -710,20 +648,8 @@ public:
    // return type info is set to 0 because the new operator actually returns the new object, not the constructor
    DLLLOCAL BuiltinConstructor3Variant(const void* n_ptr, q_constructor3_t m, ClassAccess n_access, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinConstructorVariantBase(n_access, n_flags, n_functionality, n_typeList, n_defaultArgList, n_names), constructor(m), ptr(n_ptr) {
    }
-   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
-      CodeContextHelper cch("constructor", self, xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-      // push call on call stack
-      CallStackHelper csh("constructor", CT_BUILTIN, self, xsink);
-#endif
 
-      if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
-	 return;
-
-      const QoreValueList* args = ceh.getArgs();
-      ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
-      constructor(thisclass, signature.getTypeList(), ptr, self, *l, xsink);
-   }
+   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
 };
 
 class BuiltinDestructorVariantBase : public DestructorMethodVariant, public BuiltinFunctionVariantBase {
@@ -740,14 +666,7 @@ public:
    DLLLOCAL BuiltinDestructorVariant(q_destructor_t n_destructor) : destructor(n_destructor) {
    }
 
-   DLLLOCAL virtual void evalDestructor(const QoreClass &thisclass, QoreObject* self, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, "destructor", self, xsink);
-
-      AbstractPrivateData* private_data = self->getAndClearPrivateData(thisclass.getID(), xsink);
-      if (!private_data)
-	 return;
-      destructor(self, private_data, xsink);
-   }
+   DLLLOCAL virtual void evalDestructor(const QoreClass &thisclass, QoreObject* self, ExceptionSink* xsink) const;
 };
 
 class BuiltinDestructor2Variant : public BuiltinDestructorVariantBase {
@@ -757,14 +676,8 @@ protected:
 public:
    DLLLOCAL BuiltinDestructor2Variant(q_destructor2_t n_destructor) : destructor(n_destructor) {
    }
-   DLLLOCAL virtual void evalDestructor(const QoreClass &thisclass, QoreObject* self, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, "destructor", self, xsink);
 
-      AbstractPrivateData* private_data = self->getAndClearPrivateData(thisclass.getID(), xsink);
-      if (!private_data)
-	 return;
-      destructor(thisclass, self, private_data, xsink);
-   }
+   DLLLOCAL virtual void evalDestructor(const QoreClass &thisclass, QoreObject* self, ExceptionSink* xsink) const;
 };
 
 class BuiltinDestructor3Variant : public BuiltinDestructorVariantBase {
@@ -775,14 +688,8 @@ protected:
 public:
    DLLLOCAL BuiltinDestructor3Variant(const void* n_ptr, q_destructor3_t n_destructor) : destructor(n_destructor), ptr(n_ptr) {
    }
-   DLLLOCAL virtual void evalDestructor(const QoreClass &thisclass, QoreObject* self, ExceptionSink* xsink) const {
-      CODE_CONTEXT_HELPER(CT_BUILTIN, "destructor", self, xsink);
 
-      AbstractPrivateData* private_data = self->getAndClearPrivateData(thisclass.getID(), xsink);
-      if (!private_data)
-	 return;
-      destructor(thisclass, ptr, self, private_data, xsink);
-   }
+   DLLLOCAL virtual void evalDestructor(const QoreClass &thisclass, QoreObject* self, ExceptionSink* xsink) const;
 };
 
 class BuiltinCopyVariantBase : public CopyMethodVariant, public BuiltinFunctionVariantBase {
@@ -3138,6 +3045,7 @@ public:
    bool static_flag, all_user;
 
    DLLLOCAL qore_method_private(const QoreClass* n_parent_class, MethodFunctionBase* n_func, bool n_static) : parent_class(n_parent_class), func(n_func), static_flag(n_static), all_user(true) {
+      assert(parent_class == n_func->getClass());
    }
 
    DLLLOCAL ~qore_method_private() {

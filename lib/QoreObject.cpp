@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -66,6 +66,7 @@ qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass* oc,
 qore_object_private::~qore_object_private() {
    //printd(5, "qore_object_private::~qore_object_private() this: %p obj: %p '%s'\n", this, obj, theclass ? theclass->getName() : "<n/a>");
    assert(!pgm);
+   assert(!cdmap);
    assert(!data);
    assert(!privateData);
    assert(!rset);
@@ -86,6 +87,45 @@ bool qore_object_private::scanMembers(RSetHelper& rsh) {
    return false;
 }
 
+QoreHashNode* qore_object_private::copyData(ExceptionSink* xsink) const {
+   QoreSafeVarRWReadLocker sl(rml);
+
+   if (status == OS_DELETED) {
+      makeAccessDeletedObjectException(xsink, theclass->getName());
+      return 0;
+   }
+
+   return data->copy();
+}
+
+void qore_object_private::merge(qore_object_private& o, AutoVLock& vl, ExceptionSink* xsink) {
+   ReferenceHolder<QoreHashNode> new_data(o.copyData(xsink), xsink);
+   if (*xsink)
+      return;
+
+   bool check_recursive = false;
+
+   // list for saving all overwritten values to be dereferenced outside the object lock
+   ReferenceHolder<QoreListNode> holder(xsink);
+
+   bool inclass = qore_class_private::runtimeCheckPrivateClassAccess(*theclass);
+
+   {
+      QoreAutoVarRWWriteLocker al(rml);
+
+      if (status == OS_DELETED) {
+         makeAccessDeletedObjectException(xsink, theclass->getName());
+         return;
+      }
+
+      mergeIntern(*new_data, check_recursive, holder, inclass, vl, xsink);
+   }
+
+   if (check_recursive) {
+      RSetHelper orsh(*this);
+   }
+}
+
 void qore_object_private::merge(const QoreHashNode* h, AutoVLock& vl, ExceptionSink* xsink) {
    bool check_recursive = false;
 
@@ -102,38 +142,42 @@ void qore_object_private::merge(const QoreHashNode* h, AutoVLock& vl, ExceptionS
          return;
       }
 
-      //printd(5, "qore_object_private::merge() obj: %p\n", obj);
-
-      ConstHashIterator hi(h);
-      while (hi.next()) {
-         const QoreTypeInfo* ti;
-
-         // check member status
-         if (checkMemberAccessGetTypeInfo(xsink, hi.getKey(), ti, !inclass))
-            return;
-
-         // check type compatibility and perform type translations, if any
-         ReferenceHolder<AbstractQoreNode> val(ti->acceptInputMember(hi.getKey(), hi.getReferencedValue(), xsink), xsink);
-         if (*xsink)
-            return;
-
-         AbstractQoreNode* nv = *val;
-         AbstractQoreNode* n = data->swapKeyValue(hi.getKey(), val.release());
-         if (!check_recursive && (needs_scan(n) || needs_scan(nv)))
-            check_recursive = true;
-
-         //printd(5, "QoreObject::merge() n: %p (rc: %d, type: %s)\n", n, n ? n->isReferenceCounted() : 0, get_type_name(n));
-         // if we are overwriting a value, then save it in the list for dereferencing after the lock is released
-         if (n && n->isReferenceCounted()) {
-            if (!holder)
-               holder = new QoreListNode;
-            holder->push(n);
-         }
-      }
+      mergeIntern(h, check_recursive, holder, inclass, vl, xsink);
    }
 
    if (check_recursive) {
       RSetHelper orsh(*this);
+   }
+}
+
+void qore_object_private::mergeIntern(const QoreHashNode* h, bool& check_recursive, ReferenceHolder<QoreListNode>& holder, bool inclass, AutoVLock& vl, ExceptionSink* xsink) {
+   //printd(5, "qore_object_private::merge() obj: %p\n", obj);
+
+   ConstHashIterator hi(h);
+   while (hi.next()) {
+      const QoreTypeInfo* ti;
+
+      // check member status
+      if (checkMemberAccessGetTypeInfo(xsink, hi.getKey(), ti, !inclass))
+         return;
+
+      // check type compatibility and perform type translations, if any
+      ReferenceHolder<AbstractQoreNode> val(ti->acceptInputMember(hi.getKey(), hi.getReferencedValue(), xsink), xsink);
+      if (*xsink)
+         return;
+
+      AbstractQoreNode* nv = *val;
+      AbstractQoreNode* n = data->swapKeyValue(hi.getKey(), val.release());
+      if (!check_recursive && (needs_scan(n) || needs_scan(nv)))
+         check_recursive = true;
+
+      //printd(5, "QoreObject::merge() n: %p (rc: %d, type: %s)\n", n, n ? n->isReferenceCounted() : 0, get_type_name(n));
+      // if we are overwriting a value, then save it in the list for dereferencing after the lock is released
+      if (n && n->isReferenceCounted()) {
+         if (!holder)
+            holder = new QoreListNode;
+         holder->push(n);
+      }
    }
 }
 
@@ -895,14 +939,7 @@ AbstractQoreNode* QoreObject::getReferencedMemberNoMethod(const char* mem, Excep
 }
 
 QoreHashNode* QoreObject::copyData(ExceptionSink* xsink) const {
-   QoreSafeVarRWReadLocker sl(priv->rml);
-
-   if (priv->status == OS_DELETED) {
-      makeAccessDeletedObjectException(xsink, priv->theclass->getName());
-      return 0;
-   }
-
-   return priv->data->copy();
+   return priv->copyData(xsink);
 }
 
 QoreHashNode* QoreObject::getRuntimeMemberHash(ExceptionSink* xsink) const {
