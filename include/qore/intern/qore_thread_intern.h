@@ -597,19 +597,6 @@ public:
    DLLLOCAL ~CodeContextHelper();
 };
 
-class CodePreviousContextHelper {
-private:
-   const char* old_code;
-   ClassObj old;
-   ExceptionSink* xsink;
-   bool do_ref;
-   bool subst;
-
-public:
-   DLLLOCAL CodePreviousContextHelper(const char* code, ExceptionSink* xs);
-   DLLLOCAL ~CodePreviousContextHelper();
-}
-
 class ObjectSubstitutionHelper {
 private:
    ClassObj old;
