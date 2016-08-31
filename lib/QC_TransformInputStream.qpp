@@ -1,0 +1,61 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_TransformInputStream.qpp TransformInputStream class definition */
+/*
+  Qore Programming Language
+
+  Copyright (C) 2016 Qore Technologies, sro
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+  Note that the Qore library is released under a choice of three open-source
+  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+  information.
+*/
+
+#include <qore/Qore.h>
+#include "qore/intern/TransformInputStream.h"
+
+extern qore_classid_t CID_TRANSFORM;
+extern QoreClass* QC_TRANSFORM;
+
+//! This class implements the @ref InputStream interface for reading bytes from another InputStream while applying a transformation
+/** @since %Qore 0.8.13
+ */
+qclass TransformInputStream [arg=TransformInputStream* is; ns=Qore; vparent=InputStream; flags=final; private_members=InputStream is,Transform t];
+
+//! Creates the TransformInputStream
+/**
+    @param is the underlying @ref InputStream where the data to transform will be read from
+    @param t the transformation to apply
+ */
+TransformInputStream::constructor(Qore::InputStream[InputStream] is, Qore::Transform[Transform] t) {
+   SimpleRefHolder<TransformInputStream> tis(new TransformInputStream(is, t));
+   self->setPrivate(CID_TRANSFORMINPUTSTREAM, tis.release());
+   self->setValue("is", static_cast<QoreObject *>(obj_is->refSelf()), xsink);
+   self->setValue("t", static_cast<QoreObject *>(obj_t->refSelf()), xsink);
+}
+
+//! Reads bytes (up to a specified limit) from the input stream; returns \ref NOTHING if there are no more bytes in the stream
+/**
+    @param limit the maximum number of bytes to read
+    @return the read bytes (the length is between 1 and `limit` inclusive) or \ref NOTHING if no more bytes are available
+ */
+*binary TransformInputStream::read(int limit) {
+   return is->readHelper(limit, xsink);
+}

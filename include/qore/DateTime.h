@@ -4,7 +4,7 @@
 
   Qore programming language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -253,6 +253,9 @@ public:
       @param ms the milliseconds value
    */
    DLLEXPORT void setTime(int h, int m, int s, short ms = 0);
+
+   //! set the object to a relative date/time value as given in seconds and optionally microseconds
+   DLLEXPORT void setRelativeDateSeconds(int64 s, int us = 0);
 
    DLLEXPORT bool checkValidity() const;
    DLLEXPORT bool isEqual(const DateTime* dt) const;

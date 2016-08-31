@@ -61,7 +61,7 @@ int DoWhileStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    pflag &= (~PF_TOP_LEVEL);
 
    if (code)
-      code->parseInitImpl(oflag, pflag);
+      code->parseInitImpl(oflag, pflag | PF_BREAK_OK | PF_CONTINUE_OK);
    if (cond) {
       const QoreTypeInfo *argTypeInfo = 0;
       cond = cond->parseInit(oflag, pflag, lvids, argTypeInfo);

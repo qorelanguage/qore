@@ -84,6 +84,7 @@ void ParseOptionMap::static_init() {
    DO_MAP("broken-logic-precedence",  PO_BROKEN_LOGIC_PRECEDENCE);
    DO_MAP("broken-int-assignments",   PO_BROKEN_INT_ASSIGNMENTS);
    DO_MAP("broken-operators",         PO_BROKEN_OPERATORS);
+   DO_MAP("broken-loop-statement",    PO_BROKEN_LOOP_STATEMENT);
 }
 
 int ParseOptionMap::find_code(const char *name) {
@@ -104,8 +105,8 @@ const char *ParseOptionMap::find_name(int code) {
 }
 
 void ParseOptionMap::list_options() {
-   for (opt_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i)
-      printf("%s\n", i->first);
+   for (auto& i : map)
+      printf("%s\n", i.first);
 }
 
 #undef DO_MAP

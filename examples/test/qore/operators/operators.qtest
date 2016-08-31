@@ -11,9 +11,19 @@
 
 %exec-class Test
 
+%disable-warning invalid-operation
+
 class DataTest {
     public {
         hash b;
+    }
+
+    private {
+        int x;
+    }
+
+    constructor() {
+        x = 1;
     }
 }
 
@@ -27,6 +37,19 @@ class Test inherits QUnit::Test {
         addTestCase("identity assignment", \idAssignment());
         addTestCase("assignment type restriction test", \assignmentTypeRestrictionTest());
         addTestCase("delete/remove test", \deleteRemoveTest());
+        addTestCase("binary splice test", \binarySpliceTest());
+        addTestCase("binary extract test", \binaryExtractTest());
+        addTestCase("map test", \mapTest());
+        addTestCase("select test", \selectTest());
+        addTestCase("fold test", \foldTest());
+        addTestCase("keys test", \keysTest());
+        addTestCase("binary not", \binNot());
+        addTestCase("transliteration", \transliteration());
+        addTestCase("comparison", \comparison());
+        addTestCase("absolute", \absolute());
+        addTestCase("plus", \plus());
+        addTestCase("minus", \minus());
+
         set_return_value(main());
     }
 
@@ -118,6 +141,9 @@ class Test inherits QUnit::Test {
         # right fold function on list using expression and implicit arguments
         testAssertionValue("foldr operator with expression", (foldr $1 - $2, (2, 3, 4)), -1);
 
+        # right fold function on list using an iterator and implicit arguments
+        testAssertionValue("foldr operator with iterator", (foldr $1 - $2, (2, 3, 4).iterator()), -1);
+
         hash h = ("test" : 1, "two" : 2.0, "three" : "three", "four" : False );
         testAssertionValue("first remove operator", remove h.two, 2.0);
 
@@ -125,6 +151,61 @@ class Test inherits QUnit::Test {
         testAssertion("float div by zero", any sub () {float n = 0; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
         testAssertion("numeric div by zero", any sub () {number n = 0n; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
         testAssertion("div by zero", any sub () {any n; return 1 / n;}, NOTHING, new TestResultExceptionType("DIVISION-BY-ZERO"));
+
+        assertEq(32, 1 << 5);
+        assertEq(2, 32 >> 4);
+        {
+            int i = 32;
+            int l = 1;
+            int r = 5;
+            assertEq(i, l << r);
+            i = 2;
+            l = 32;
+            r = 4;
+            assertEq(i, l >> r);
+        }
+
+        assertEq(True, exists 1);
+        assertEq(True, exists NULL);
+        assertEq(False, exists NOTHING);
+        {
+            int i = 1;
+            assertEq(True, exists i);
+            delete i;
+            assertEq(False, exists i);
+        }
+
+        assertEq(3, elements "str");
+        assertEq(6, elements "straße");
+        assertEq(2, elements <bead>);
+        assertEq(2, elements (1, 2));
+        assertEq(2, elements ("a": 1, "b": 2));
+        assertEq(0, elements NOTHING);
+        {
+            string str1 = "str";
+            string str2 = "straße";
+            binary bin = <bead>;
+            list l = (1, 2);
+            hash th = ("a": 1, "b": 2);
+            assertEq(3, elements str1);
+            assertEq(6, elements str2);
+            assertEq(2, elements bin);
+            assertEq(2, elements l);
+            assertEq(2, elements th);
+            delete str1;
+            assertEq(0, elements str1);
+        }
+
+        assertEq(True, stdout instanceof File);
+        assertEq(False, stdout instanceof Mutex);
+        assertEq(False, 1 instanceof File);
+        {
+            any x = stdout;
+            assertEq(True, x instanceof File);
+            assertEq(False, x instanceof Mutex);
+            x = 1;
+            assertEq(False, x instanceof File);
+        }
 
         Program p(PO_NEW_STYLE);
         testAssertion("trim operator parse-time return value", \p.parse(), ("string sub test() {string str = \"a string \\n\"; string astr = trim str; return astr;}", "trim operator test"), new TestResultValue(NOTHING));
@@ -337,5 +418,424 @@ class Test inherits QUnit::Test {
             remove a.b.c.c;
             assertEq(("c": ("d": 1)), a.b);
         }
+    }
+
+    binarySpliceTest() {
+        binary b = binary();
+        splice b, 0, 0, <01>;
+        assertEq(<01>, b);
+    }
+
+    binaryExtractTest() {
+        binary b = binary();
+        assertEq(binary(), extract b, 0, 0, <01>);
+        assertEq(<01>, b);
+    }
+
+    mapTest() {
+        assertEq(NOTHING, (map $1, NOTHING));
+        assertEq(1, (map $1, 1));
+        assertEq((1,), (map $1, 1.iterator()));
+        assertEq((1,), (map $1, (1,)));
+
+        assertEq(NOTHING, (map $1, (map $1, NOTHING)));
+        assertEq(1, (map $1, (map $1, 1)));
+        assertEq((1,), (map $1, (map $1, 1.iterator())));
+        assertEq((1,), (map $1, (map $1, (1,))));
+
+        assertEq(NOTHING, (map $1, (map $1, (map $1, NOTHING))));
+        assertEq(1, (map $1, (map $1, (map $1, 1))));
+        assertEq((1,), (map $1, (map $1, (map $1, 1.iterator()))));
+        assertEq((1,), (map $1, (map $1, (map $1, (1,)))));
+
+        assertEq(NOTHING, (map $1, NOTHING, True));
+        assertEq(1, (map $1, 1, True));
+        assertEq((1,), (map $1, 1.iterator(), True));
+        assertEq((1,), (map $1, (1,), True));
+
+        assertEq(NOTHING, (map $1, (map $1, NOTHING, True), True));
+        assertEq(1, (map $1, (map $1, 1, True), True));
+        assertEq((1,), (map $1, (map $1, 1.iterator(), True), True));
+        assertEq((1,), (map $1, (map $1, (1,), True), True));
+
+        assertEq(NOTHING, (map $1, (map $1, (map $1, NOTHING, True))));
+        assertEq(1, (map $1, (map $1, (map $1, 1, True))));
+        assertEq((1,), (map $1, (map $1, (map $1, 1.iterator(), True))));
+        assertEq((1,), (map $1, (map $1, (map $1, (1,), True))));
+
+        assertEq((1, 3, 5), (map $1, (map $1, (0, 1, 2, 3, 4, 5), ($1 % 2))));
+        assertEq((1, 3, 5), (map $1, (map $#, (0, 1, 2, 3, 4, 5), ($1 % 2))));
+    }
+
+    selectTest() {
+        assertEq(NOTHING, (select NOTHING, True));
+        assertEq(1, (select 1, True));
+        assertEq((1,), (select 1.iterator(), True));
+        assertEq((1,), (select (1,), True));
+
+        assertEq(NOTHING, (select (select NOTHING, True), True));
+        assertEq(1, (select (select 1, True), True));
+        assertEq((1,), (select (select 1.iterator(), True), True));
+        assertEq((1,), (select (select (1,), True), True));
+
+        assertEq(NOTHING, (select (map $1, NOTHING), True));
+        assertEq(1, (select (map $1, 1), True));
+        assertEq((1,), (select (map $1, 1.iterator()), True));
+        assertEq((1,), (select (map $1, (1,)), True));
+    }
+
+    foldTest() {
+        assertEq(NOTHING, (foldl $1 + "," + $2, NOTHING));
+        assertEq(1, (foldl $1 + "," + $2, 1));
+        assertEq(1, (foldl $1 + "," + $2, 1.iterator()));
+        assertEq(1, (foldl $1 + "," + $2, (1,)));
+        assertEq("1,2", (foldl $1 + "," + $2, (1,2)));
+
+        assertEq(NOTHING, (foldl $1 + "," + $2, (map $1, NOTHING)));
+        assertEq(1, (foldl $1 + "," + $2, (map $1, 1)));
+        assertEq(1, (foldl $1 + "," + $2, (map $1, 1.iterator())));
+        assertEq(1, (foldl $1 + "," + $2, (map $1, (1,))));
+        assertEq("1,2", (foldl $1 + "," + $2, (map $1, (1,2))));
+
+        assertEq(NOTHING, (foldr $1 + "," + $2, NOTHING));
+        assertEq(1, (foldr $1 + "," + $2, 1));
+        assertEq(1, (foldr $1 + "," + $2, (1,).iterator()));
+        assertEq(1, (foldr $1 + "," + $2, (1,)));
+        assertEq("2,1", (foldr $1 + "," + $2, (1,2)));
+
+        assertEq(NOTHING, (foldr $1 + "," + $2, (map $1, NOTHING)));
+        assertEq(1, (foldr $1 + "," + $2, (map $1, 1)));
+        assertEq(1, (foldr $1 + "," + $2, (map $1, (1,).iterator())));
+        assertEq(1, (foldr $1 + "," + $2, (map $1, (1,))));
+        assertEq("2,1", (foldr $1 + "," + $2, (map $1, (1,2))));
+    }
+
+    keysTest() {
+        hash h = ("a": 1);
+
+        assertEq(NOTHING, keys NOTHING);
+        assertEq(NOTHING, keys 1);
+        assertEq(("a",), keys ("a": 1));
+        assertEq(("a",), keys h);
+
+        assertEq(NOTHING, map $1, (keys NOTHING));
+        assertEq(NOTHING, map $1, (keys 1));
+        assertEq(("a",), map $1, (keys ("a": 1)));
+        assertEq(("a",), map $1, (keys h));
+
+        DataTest d();
+        d.b.a = 1;
+
+        assertEq(("b",), keys d);
+        assertEq(("b",), map $1, (keys d));
+
+        # check for copy-on-write violations
+        hash q = map {$1: ($1 % 2) ? NULL : True}, xrange(20);
+        map delete q.$1, keys q, q.$1 === NULL;
+        assertEq((0: True, 2: True, 4: True, 6: True, 8: True, 10: True, 12: True, 14: True, 16: True, 18: True, 20: True), q);
+    }
+
+    binNot() {
+        assertEq(0, ~(~1 | 1));
+        assertEq(-1, ~1 | 1);
+        assertEq(-4294967297, ~(1 << 32));
+    }
+
+    transliteration() {
+        string str = "this is a test";
+        assertEq("ThiS iS a TeST", str =~ tr/j-z/J-Z/);
+        assertEq("T78S 8S 0 T4ST", str =~ tr/a-z/0-9/);
+        assertEq("T78S 8S 0 T4ST", str =~ tr/A-A/a-a/);
+        assertEq("t78s 8s 0 t4st", str =~ tr/A-Z/a-z/);
+
+        str = "01234567890";
+        assertEq("ABCDEFGHIJA", str =~ tr/0-9/A-J/);
+
+        # target range shorter than the source range
+        assertEq("01234444440", str =~ tr/A-J/0-4/);
+
+        {
+            int i = 1;
+            assertEq(NOTHING, i =~ tr/a-z/A-Z/);
+            assertEq(1, i);
+        }
+
+        {
+            any i = 1;
+            assertEq(NOTHING, i =~ tr/0-9/A-J/);
+            assertEq(1, i);
+        }
+    }
+
+    comparison() {
+        assertEq(-1, "str1" <=> "str2");
+        assertEq(-1, "str1" <=> convert_encoding("str2", "latin1"));
+        assertEq(-1, "1" <=> 2);
+        assertEq(0, "str1" <=> "str1");
+        assertEq(0, "str1" <=> convert_encoding("str1", "latin1"));
+        assertEq(0, "1" <=> 1);
+        assertEq(1, "str2" <=> "str1");
+        assertEq(1, "str2" <=> convert_encoding("str1", "latin1"));
+        assertEq(1, "2" <=> 1);
+
+        assertEq(-1, 1n <=> 2n);
+        assertEq(-1, 1n <=> 2.0);
+        assertEq(-1, 1n <=> 2);
+        assertEq(-1, -1 <=> 1n);
+        assertEq(-1, -1.0 <=> 1n);
+        assertEq(0, 1n <=> 1n);
+        assertEq(0, 1n <=> 1.0);
+        assertEq(0, 1n <=> 1);
+        assertEq(0, -1 <=> -1n);
+        assertEq(0, -1.0 <=> -1n);
+        assertEq(1, 2n <=> 1n);
+        assertEq(1, 2n <=> 1.0);
+        assertEq(1, 2n <=> 1);
+        assertEq(1, 1 <=> -1n);
+        assertEq(1, 1.0 <=> -1n);
+
+        assertEq(-1, 1.0 <=> 2);
+        assertEq(-1, () <=> 1.0);
+        assertEq(0, 1.0 <=> 1);
+        assertEq(0, () <=> 0.0);
+        assertEq(1, 2 <=> 1.0);
+        assertEq(1, 1.0 <=> ());
+
+        assertEq(-1, 1 <=> 2016-08-09);
+        assertEq(-1, 1970-01-01 <=> 1.0);
+        assertEq(0, 0.0 <=> 1970-01-01);
+        assertEq(0, 1970-01-01 <=> 0.0);
+        assertEq(1, 2016-08-09 <=> 1);
+        assertEq(1, 1 <=> 1970-01-01);
+
+        {
+            Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
+            assertThrows("NAN-COMPARE-ERROR", \p.parse(), ("int i = @nan@ <=> 1.0;", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
+            assertThrows("NAN-COMPARE-ERROR", \p.parse(), ("int i = 1.0 <=> @nan@;", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
+            assertThrows("NAN-COMPARE-ERROR", \p.parse(), ("int i = @nan@n <=> 1n;", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
+            assertThrows("NAN-COMPARE-ERROR", \p.parse(), ("int i = 1n <=> @nan@n;", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
+            p.parse("any x = @nan@; int i = x <=> 1.0;", "");
+            assertThrows("NAN-COMPARE-ERROR", \p.run());
+        }
+        {
+            Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
+            p.parse("any x = @nan@; int i = 1.0 <=> x;", "");
+            assertThrows("NAN-COMPARE-ERROR", \p.run());
+        }
+        {
+            Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
+            p.parse("any x = @nan@n; int i = x <=> 1n;", "");
+            assertThrows("NAN-COMPARE-ERROR", \p.run());
+        }
+        {
+            Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
+            p.parse("any x = @nan@n; int i = 1n <=> x;", "");
+            assertThrows("NAN-COMPARE-ERROR", \p.run());
+        }
+    }
+
+    absolute() {
+        assertEq(True, 1 === 1);
+        assertEq(False, 1 === "1");
+        assertEq(True, NOTHING === NOTHING);
+        assertEq(False, NOTHING === NULL);
+        assertEq(True, "1" === "1");
+        assertEq(False, "1" === 1);
+        assertEq(True, "1" === convert_encoding("1", "latin1"));
+        assertEq(False, "1" === convert_encoding("2", "latin1"));
+
+        assertEq(False, 1 !== 1);
+        assertEq(True, 1 !== "1");
+        assertEq(False, NOTHING !== NOTHING);
+        assertEq(True, NOTHING !== NULL);
+        assertEq(False, "1" !== "1");
+        assertEq(True, "1" !== 1);
+        assertEq(False, "1" !== convert_encoding("1", "latin1"));
+        assertEq(True, "1" !== convert_encoding("2", "latin1"));
+
+        int i = 1;
+        string str = "1";
+        any nt;
+        any nl = NULL;
+        assertEq(True, i === 1);
+        assertEq(False, i === str);
+        assertEq(True, nt === NOTHING);
+        assertEq(False, NOTHING === nl);
+        assertEq(True, "1" === str);
+        assertEq(False, str === i);
+        assertEq(True, str === convert_encoding("1", "latin1"));
+        assertEq(False, str === convert_encoding("2", "latin1"));
+
+        assertEq(False, i !== 1);
+        assertEq(True, i !== str);
+        assertEq(False, nt !== NOTHING);
+        assertEq(True, nt !== nl);
+        assertEq(False, str !== str);
+        assertEq(True, str !== i);
+        assertEq(False, str !== convert_encoding(str, "latin1"));
+        assertEq(True, str !== convert_encoding("2", "latin1"));
+    }
+
+    plus() {
+        assertEq((1, 2), (1,) + (2,));
+        assertEq((1, 2), (1,) + 2);
+        assertEq((1, 2), 1 + (2,));
+        assertEq("12", "1" + "2");
+        assertEq("12", "1" + 2);
+        assertEq("12", 1 + "2");
+        assertEq(PT1M1S, 1m + 1s);
+        assertEq(PT1M1S, 1m + 1);
+        assertEq(PT1M1S, 60 + 1s);
+        assertEq(3n, 1n + 2n);
+        assertEq(3n, 1n + 2);
+        assertEq(3n, 1 + 2n);
+        assertEq(3.0, 1.0 + 2.0);
+        assertEq(3.0, 1.0 + 2);
+        assertEq(3.0, 1 + 2.0);
+        assertEq(3, 1 + 2);
+        assertEq(1, 1 + {});
+        assertEq(2, {} + 2);
+        assertEq(("a": 1, "b": 2), ("a": 1) + ("b": 2));
+        DataTest b();
+        assertEq(("a": 1, "b": NOTHING, "x": 1), ("a": 1) + b);
+        assertEq(("b": NOTHING, "x": 1, "a": 1), b + ("a": 1));
+        assertEq(("a": 1), ("a": 1) + <abcd>);
+        assertEq(("a": 1), <abcd> + ("a": 1));
+        assertEq(b, b + <abcd>);
+        assertEq(b, <abcd> + b);
+        assertEq(<abcd>, <ab> + <cd>);
+        assertEq(<ab>, <ab> + NULL);
+        assertEq(<cd>, NULL + <cd>);
+        assertEq(NOTHING, NULL + NOTHING);
+        assertEq(NOTHING, NOTHING + NULL);
+
+        list ll = (1, 2);
+        list l1 = (1,);
+        list l2 = (2,);
+        int ii = 3;
+        int i1 = 1;
+        int i2 = 2;
+        string ss = "12";
+        string s1 = "1";
+        string s2 = "2";
+        date dd = PT1M1S;
+        date d1 = 1m;
+        date d2 = 1s;
+        number nn = 3n;
+        number n1 = 1n;
+        number n2 = 2n;
+        float ff = 3.0;
+        float f1 = 1.0;
+        float f2 = 2.0;
+        hash hh = ("a": 1, "b": 2);
+        hash h1 = ("a": 1);
+        hash h2 = ("b": 2);
+        binary bb = <abcd>;
+        binary b1 = <ab>;
+        binary b2 = <cd>;
+
+        assertEq(ll, l1 + l2);
+        assertEq(ll, l1 + i2);
+        assertEq(ll, i1 + l2);
+        assertEq(ss, s1 + s2);
+        assertEq(ss, s1 + i2);
+        assertEq(ss, i1 + s2);
+        assertEq(dd, d1 + d2);
+        assertEq(dd, d1 + i1);
+        assertEq(dd, 60 + d2);
+        assertEq(nn, n1 + n2);
+        assertEq(nn, n1 + i2);
+        assertEq(nn, i1 + n2);
+        assertEq(ff, f1 + f2);
+        assertEq(ff, f1 + i2);
+        assertEq(ff, i1 + f2);
+        assertEq(ii, i1 + i2);
+        assertEq(i1, i1 + {});
+        assertEq(i2, {} + i2);
+        assertEq(hh, h1 + h2);
+        assertEq(("a": 1, "b": NOTHING, "x": 1), h1 + b);
+        assertEq(("b": NOTHING, "x": 1, "a": 1), b + h1);
+        assertEq(h1, h1 + bb);
+        assertEq(h1, bb + h1);
+        assertEq(b, b + bb);
+        assertEq(b, bb + b);
+        assertEq(bb, b1 + b2);
+        assertEq(b1, b1 + NULL);
+        assertEq(b2, NULL + b2);
+        assertEq(NOTHING, NULL + NOTHING);
+        assertEq(NOTHING, NOTHING + NULL);
+    }
+
+    minus() {
+        assertEq(2016-08-09, 2016-08-10 - 1D);
+        assertEq(1970-01-01T00:00:01, 1970-01-01T00:00:02 - 1);
+        assertEq(1s, 2 - 1s);
+        assertEq(1969-12-31T23:59:59, ("0": 1) - 1s);
+        assertEq(0s, True - 1s);
+
+        assertEq(1n, 2n - 1n);
+        assertEq(1n, 2n - 1);
+        assertEq(1n, 2 - 1n);
+
+        assertEq(1.0, 2.0 - 1.0);
+        assertEq(1.0, 2.0 - 1);
+        assertEq(1.0, 2 - 1.0);
+
+        assertEq(1, 2 - 1);
+        assertEq(1, 2 - 1);
+        assertEq(1, 2 - 1);
+
+        assertEq(("a": 1), ("a": 1, "b": 2) - "b");
+        assertEq({}, ("a": 1, "b": 2) - ("a", "b"));
+        assertEq({}, ("0": 1, "1": 2) - (0, 1));
+
+        assertEq(NOTHING, ("0": 1, "1": 2) - True);
+        assertEq(NOTHING, True - False);
+        assertEq(NOTHING, NULL - {});
+        assertEq(NOTHING, <bead> - True);
+        assertEq(NOTHING, True - NOTHING);
+        assertEq(NOTHING, False - NULL);
+        assertEq(NOTHING, NULL - NOTHING);
+    }
+
+    multiplication() {
+        assertEq(4n, 2n * 2n);
+        assertEq(4n, 2n * 2);
+        assertEq(4n, 2 * 2n);
+        assertEq(2n, 2n * True);
+        assertEq(0n, 2n * NULL);
+        assertEq(0n, 2n * {});
+        assertEq(0n, 2n * (1,));
+
+        assertEq(4.0, 2.0 * 2.0);
+        assertEq(4.0, 2.0 * 2);
+        assertEq(4.0, 2 * 2.0);
+        assertEq(2.0, 2.0 * True);
+        assertEq(0.0, 2.0 * NULL);
+        assertEq(0.0, 2.0 * {});
+        assertEq(0.0, 2.0 * (1,));
+
+        assertEq(4, 2 * 2);
+        assertEq(4, 2 * "2");
+        assertEq(4, "2" * 2);
+        assertEq(2, 2 * True);
+        assertEq(0, 2 * NULL);
+        assertEq(0, 2 * {});
+        assertEq(0, 2 * (1,));
+
+        assertEq(NOTHING, True * <ab>);
+        assertEq(NOTHING, NULL * False);
     }
 }
