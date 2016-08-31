@@ -26,6 +26,7 @@
     - fixed a bug where declaring a \c copy() method as @ref synchronized would result in a crash when the method was called (<a href="https://github.com/qorelanguage/qore/issues/1188">issue 1188</a>)
     - fixed bugs in <string>::getEncoded() and <string>::getDecoded() regarding @ref Qore::CE_XML "CE_XML" and @ref Qore::CE_NONASCII "CE_NONASCII" (<a href="https://github.com/qorelanguage/qore/issues/1193">1193</a>)
     - fixed bugs where @ref Qore::call_object_method() and @ref Qore::call_object_method_args() allowed private methods to be called from outside the class (<a href="https://github.com/qorelanguage/qore/issues/1194">1194</a>)
+    - fixed a bug where @ref deprecated methods were being internally registered as @ref RUNTIME_NOOP (<a href="https://github.com/qorelanguage/qore/issues/1197">1197</a>)
 
     @section qore_0812 Qore 0.8.12
 
