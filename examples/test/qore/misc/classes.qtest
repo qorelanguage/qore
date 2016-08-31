@@ -68,7 +68,8 @@ class Test2 {
 
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
-        addTestCase("Class library test", \classLibraryTest(), NOTHING);
+        addTestCase("Class library test", \classLibraryTest());
+	addTestCase("Deprecated method test", \deprecatedMethodTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -119,5 +120,15 @@ public class ClassesTest inherits QUnit::Test {
 
         assertThrows("METHOD-IS-PRIVATE", \call_object_method(), (t2, "priv"));
         assertThrows("METHOD-IS-PRIVATE", \t2.pub());
+    }
+
+    deprecatedMethodTest() {
+	Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
+
+	*hash wh = p.parse("class X {deprecated meth() {} other() { meth(); }}", "", WARN_ALL);
+        assertEq("DEPRECATED", wh.err);
+	assertEq("System", wh.type);
+	assertEq(1, wh.line);
+	assertEq(1, wh.endline);
     }
 }
