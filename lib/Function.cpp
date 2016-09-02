@@ -693,7 +693,7 @@ const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreValueList
 
          if (po & (PO_REQUIRE_TYPES | PO_STRICT_ARGS) && variant->getFlags() & QC_RUNTIME_NOOP) {
             QoreStringNode* desc = getNoopError(this, aqf, variant);
-            desc->concat("; this variant is not accessible when PO_REQUIRE_TYPES or PO_STRICT_ARGS is set");
+            desc->sprintf("; this variant is not accessible when PO_REQUIRE_TYPES or PO_STRICT_ARGS is set (%llx)", variant->getFlags());
             xsink->raiseException("CALL-WITH-TYPE-ERRORS", desc);
          }
       }

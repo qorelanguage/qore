@@ -1444,10 +1444,6 @@ typedef std::set<qore_class_private*> qcp_set_t;
 // BCNode
 // base class pointer
 class BCNode {
-protected:
-   template <typename T>
-   DLLLOCAL const T* getParentMemberAccess(const T* m, ClassAccess& n_access) const;
-
 public:
    // populated automatically on creation
    QoreProgramLocation loc;
@@ -1489,7 +1485,8 @@ public:
 
    DLLLOCAL bool isBaseClass(QoreClass* qc, bool toplevel) const;
 
-   DLLLOCAL const QoreMemberInfo* runtimeGetMemberInfo(const char* mem, ClassAccess& n_access, bool toplevel) const;
+   DLLLOCAL const QoreMemberInfo* runtimeGetMemberInfo(const char* mem, const qore_class_private* class_ctx, ClassAccess& access) const;
+   DLLLOCAL const qore_class_private* runtimeGetMemberClass(const char* mem, const qore_class_private* class_ctx, ClassAccess& n_access) const;
 
    DLLLOCAL const QoreMethod* runtimeFindCommittedMethod(const char* name, ClassAccess& n_access, bool toplevel) const;
    DLLLOCAL const QoreMethod* runtimeFindCommittedStaticMethod(const char* name, ClassAccess& n_access, bool toplevel) const;
@@ -1499,7 +1496,6 @@ public:
    DLLLOCAL const QoreMemberInfo* parseFindMember(const char* mem, const qore_class_private*& qc, ClassAccess& n_access, bool toplevel) const;
    DLLLOCAL const QoreVarInfo* parseFindVar(const char* name, const qore_class_private*& qc, ClassAccess& n_access, bool toplevel) const;
 
-   DLLLOCAL const qore_class_private* runtimeGetMemberClass(const char* mem, ClassAccess& n_access, bool toplevel) const;
    DLLLOCAL const QoreClass* getClass(qore_classid_t cid, ClassAccess& n_access, bool toplevel) const;
    DLLLOCAL const QoreClass* getClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const;
    DLLLOCAL const QoreClass* parseGetClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const;
@@ -1579,11 +1575,11 @@ public:
 
    DLLLOCAL const QoreVarInfo* parseFindVar(const char* vname, const qore_class_private*& qc, ClassAccess& access, bool toplevel) const;
 
-   DLLLOCAL const QoreMemberInfo* runtimeGetMemberInfo(const char* mem, ClassAccess& access, bool toplevel) const;
+   DLLLOCAL const QoreMemberInfo* runtimeGetMemberInfo(const char* mem, const qore_class_private* class_ctx, ClassAccess& access) const;
 
    DLLLOCAL bool parseHasPublicMembersInHierarchy() const;
 
-   DLLLOCAL const qore_class_private* runtimeGetMemberClass(const char* mem, ClassAccess& access, bool toplevel) const;
+   DLLLOCAL const qore_class_private* runtimeGetMemberClass(const char* mem, const qore_class_private* class_ctx, ClassAccess& access) const;
 
    DLLLOCAL const QoreClass* getClass(qore_classid_t cid, ClassAccess& n_access, bool toplevel) const;
    DLLLOCAL const QoreClass* getClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const;
@@ -2026,18 +2022,18 @@ public:
    }
 
    // returns true = found, false = not found
-   DLLLOCAL const QoreMemberInfo* runtimeGetMemberInfoIntern(const char* mem, ClassAccess& access, bool toplevel) const {
+   DLLLOCAL const QoreMemberInfo* runtimeGetMemberInfoIntern(const char* mem, const qore_class_private* class_ctx, ClassAccess& access) const {
       QoreMemberInfo *info = members.findByName(mem);
       if (info) {
          ClassAccess ma = info->getAccess();
-         if (access != Internal || toplevel) {
+         if (ma != Internal) {
             if (access < ma)
                access = ma;
             return info;
          }
       }
 
-      return scl ? scl->runtimeGetMemberInfo(mem, access, toplevel) : 0;
+      return scl ? scl->runtimeGetMemberInfo(mem, class_ctx, access) : 0;
    }
 
    DLLLOCAL const QoreMemberInfo* parseFindMember(const char* mem, const qore_class_private*& qc, ClassAccess& access) const {
@@ -2414,17 +2410,34 @@ public:
       scl->parseAddAncestors(m);
    }
 
-   DLLLOCAL const qore_class_private* runtimeGetMemberClass(const char* mem, ClassAccess& access, bool toplevel) const {
+   DLLLOCAL const qore_class_private* runtimeGetMemberClass(const char* mem, const qore_class_private* class_ctx, ClassAccess& access, bool& internal_member) const {
+      // if we have a class context, first we have to check here for an internal member
+      if (runtimeCheckPrivateClassAccess(class_ctx)) {
+         QoreMemberInfo *info = class_ctx->members.findByName(mem);
+         if (info && info->getAccess() == Internal) {
+            access = Internal;
+            internal_member = true;
+            return this;
+         }
+      }
+
+      access = Public;
+      internal_member = false;
+
+      return runtimeGetMemberClassIntern(mem, class_ctx, access);
+   }
+
+   DLLLOCAL const qore_class_private* runtimeGetMemberClassIntern(const char* mem, const qore_class_private* class_ctx, ClassAccess& access) const {
       QoreMemberInfo *info = members.findByName(mem);
       if (info) {
          ClassAccess ma = info->getAccess();
-         if (ma != Internal || toplevel) {
+         if (ma != Internal) {
             access = ma;
             return this;
          }
       }
 
-      return scl ? scl->runtimeGetMemberClass(mem, access, toplevel) : 0;
+      return scl ? scl->runtimeGetMemberClass(mem, class_ctx, access) : 0;
    }
 
    DLLLOCAL int initMembers(QoreObject& o, bool& need_scan, ExceptionSink* xsink) const;
@@ -2652,7 +2665,7 @@ public:
    }
 
    DLLLOCAL bool parseCheckPrivateClassAccess() const;
-   DLLLOCAL bool runtimeCheckPrivateClassAccess() const;
+   DLLLOCAL bool runtimeCheckPrivateClassAccess(const qore_class_private* qc = runtime_get_class()) const;
 
    // this = class to find in "oc"
    DLLLOCAL qore_type_result_e parseCheckCompatibleClass(const qore_class_private& oc) const;
@@ -2670,10 +2683,14 @@ public:
       return getClassIntern(qc, n_access, true);
    }
 
-   DLLLOCAL const QoreClass* getClassIntern(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
+   DLLLOCAL bool is_equal(const qore_class_private& qc) const {
       // check hashes if names are the same
       // FIXME: check fully-qualified namespace name
-      if (qc.classID == classID || (qc.name == name && hash == qc.hash))
+      return (qc.classID == classID || (qc.name == name && hash == qc.hash));
+   }
+
+   DLLLOCAL const QoreClass* getClassIntern(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
+      if (is_equal(qc))
          return cls;
 
 #ifdef DEBUG_1
@@ -2788,9 +2805,21 @@ public:
       qc.priv->parseAddConstant(cname, val, access);
    }
 
-   DLLLOCAL static const QoreMemberInfo* runtimeGetMemberInfo(const QoreClass& qc, const char* mem, ClassAccess& access) {
+   DLLLOCAL static const QoreMemberInfo* runtimeGetMemberInfo(const QoreClass& qc, const char* mem, const qore_class_private* class_ctx, ClassAccess& access, bool& internal_member) {
+      // if we have a class context, first we have to check here for an internal member
+      if (qc.priv->runtimeCheckPrivateClassAccess(class_ctx)) {
+         QoreMemberInfo *info = class_ctx->members.findByName(mem);
+         if (info && info->getAccess() == Internal) {
+            access = Internal;
+            internal_member = true;
+            return info;
+         }
+      }
+
       access = Public;
-      return qc.priv->runtimeGetMemberInfoIntern(mem, access, true);
+      internal_member = false;
+
+      return qc.priv->runtimeGetMemberInfoIntern(mem, class_ctx, access);
    }
 
    DLLLOCAL static LocalVar* getSelfId(const QoreClass& qc) {
@@ -2855,9 +2884,9 @@ public:
       return qc.priv->runtimeHasCallableMethod(m, QCCM_STATIC);
    }
 
-   DLLLOCAL static const qore_class_private* runtimeGetMemberClass(const QoreClass& qc, const char* mem, ClassAccess& access) {
+   DLLLOCAL static const qore_class_private* runtimeGetMemberClass(const QoreClass& qc, const char* mem, const qore_class_private* class_ctx, ClassAccess& access, bool& internal_member) {
       access = Public;
-      return qc.priv->runtimeGetMemberClass(mem, access, true);
+      return qc.priv->runtimeGetMemberClass(mem, class_ctx, access, internal_member);
    }
 
    DLLLOCAL static int runtimeCheckInstantiateClass(const QoreClass& qc, ExceptionSink* xsink) {
@@ -2999,8 +3028,8 @@ public:
       return qc.priv->parseCheckPrivateClassAccess();
    }
 
-   DLLLOCAL static bool runtimeCheckPrivateClassAccess(const QoreClass& qc) {
-      return qc.priv->runtimeCheckPrivateClassAccess();
+   DLLLOCAL static bool runtimeCheckPrivateClassAccess(const QoreClass& qc, const qore_class_private* oqc = runtime_get_class()) {
+      return qc.priv->runtimeCheckPrivateClassAccess(oqc);
    }
 
    DLLLOCAL static qore_type_result_e parseCheckCompatibleClass(const QoreClass& qc, const QoreClass& oc) {

@@ -1607,46 +1607,31 @@ const QoreMemberInfo* BCNode::parseFindMember(const char* mem, const qore_class_
    return rv;
 }
 
-template <typename T>
-const T* BCNode::getParentMemberAccess(const T* m, ClassAccess& n_access) const {
-   ClassAccess ma = m->getAccess();
-
-   if (ma == Internal)
-      return 0;
-
-   if (n_access < access)
-      n_access = access;
-
-   if (n_access < ma)
-      n_access = ma;
-
-   return m;
-}
-
-const QoreMemberInfo* BCNode::runtimeGetMemberInfo(const char* mem, ClassAccess& n_access, bool toplevel) const {
+const QoreMemberInfo* BCNode::runtimeGetMemberInfo(const char* mem, const qore_class_private* class_ctx, ClassAccess& n_access) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
       return 0;
 
-   if (access == Internal && !toplevel)
+   if (access == Internal && (!class_ctx || !sclass->priv->is_equal(*class_ctx)))
       return 0;
 
-   const QoreMemberInfo* rv = sclass->priv->runtimeGetMemberInfoIntern(mem, n_access, false);
-   return getParentMemberAccess<QoreMemberInfo>(rv, n_access);
-}
-
-const qore_class_private* BCNode::runtimeGetMemberClass(const char* mem, ClassAccess& n_access, bool toplevel) const {
-   // sclass can be 0 if the class could not be found during parse initialization
-   if (!sclass)
-      return 0;
-
-   if (access == Internal && !toplevel)
-      return 0;
-
-   const qore_class_private* rv = sclass->priv->runtimeGetMemberClass(mem, n_access, false);
+   const QoreMemberInfo* rv = sclass->priv->runtimeGetMemberInfoIntern(mem, class_ctx, n_access);
    if (rv && n_access < access)
       n_access = access;
+   return rv;
+}
 
+const qore_class_private* BCNode::runtimeGetMemberClass(const char* mem, const qore_class_private* class_ctx, ClassAccess& n_access) const {
+   // sclass can be 0 if the class could not be found during parse initialization
+   if (!sclass)
+      return 0;
+
+   if (access == Internal && (!class_ctx || !sclass->priv->is_equal(*class_ctx)))
+      return 0;
+
+   const qore_class_private* rv = sclass->priv->runtimeGetMemberClassIntern(mem, class_ctx, n_access);
+   if (rv && n_access < access)
+      n_access = access;
    return rv;
 }
 
@@ -1659,7 +1644,9 @@ const QoreVarInfo* BCNode::parseFindVar(const char* name, const qore_class_priva
       return 0;
 
    const QoreVarInfo* vi = sclass->priv->parseFindVar(name, qc, n_access, false);
-   return getParentMemberAccess<QoreVarInfo>(vi, n_access);
+   if (vi && n_access < access)
+      n_access = access;
+   return vi;
 }
 
 const QoreClass* BCNode::getClass(qore_classid_t cid, ClassAccess& n_access, bool toplevel) const {
@@ -1801,9 +1788,9 @@ int BCList::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_
    return valid ? 0 : -1;
 }
 
-const qore_class_private* BCList::runtimeGetMemberClass(const char* mem, ClassAccess& access, bool toplevel) const {
+const qore_class_private* BCList::runtimeGetMemberClass(const char* mem, const qore_class_private* class_ctx, ClassAccess& access) const {
    for (auto& i : *this) {
-      const qore_class_private* rv = (*i).runtimeGetMemberClass(mem, access, toplevel);
+      const qore_class_private* rv = (*i).runtimeGetMemberClass(mem, class_ctx, access);
       if (rv)
 	 return rv;
    }
@@ -1818,9 +1805,9 @@ bool BCList::parseHasPublicMembersInHierarchy() const {
    return false;
 }
 
-const QoreMemberInfo* BCList::runtimeGetMemberInfo(const char* mem, ClassAccess& access, bool toplevel) const {
+const QoreMemberInfo* BCList::runtimeGetMemberInfo(const char* mem, const qore_class_private* class_ctx, ClassAccess& access) const {
    for (auto& i : *this) {
-      const QoreMemberInfo* rv = (*i).runtimeGetMemberInfo(mem, access, toplevel);
+      const QoreMemberInfo* rv = (*i).runtimeGetMemberInfo(mem, class_ctx, access);
       if (rv)
 	 return rv;
    }
@@ -2374,8 +2361,12 @@ int qore_class_private::parseCheckClassHierarchyMembers(const char* mname, const
 
 void qore_class_private::parseImportMembers(qore_class_private& qc, ClassAccess access) {
    for (QoreMemberMap::DeclOrderIterator i = qc.members.beginDeclOrder(), e = qc.members.endDeclOrder(); i != e; ++i) {
+      if (i->second->access == Internal)
+	 continue;
       const QoreMemberInfo* mi = parseFindLocalPublicPrivateMemberNoInit(i->first);
-      if (mi && mi->access != Internal) {
+      if (mi) {
+	 if (mi->access == Internal)
+	    continue;
          if (!mi->getClass(this)->equal(*i->second->getClass(&qc)))
             parseCheckClassHierarchyMembers(i->first, *(i->second), qc, *mi);
          continue;
@@ -2383,8 +2374,12 @@ void qore_class_private::parseImportMembers(qore_class_private& qc, ClassAccess 
       members.addInheritedNoCheck(strdup(i->first), i->second->copy(&qc, access));
    }
    for (QoreMemberMap::DeclOrderIterator i = qc.pending_members.beginDeclOrder(), e = qc.pending_members.endDeclOrder(); i != e; ++i) {
+      if (i->second->access == Internal)
+	 continue;
       const QoreMemberInfo* mi = parseFindLocalPublicPrivateMemberNoInit(i->first);
-      if (mi && mi->access != Internal) {
+      if (mi) {
+	 if (mi->access == Internal)
+	    continue;
          if (!mi->getClass(this)->equal(*i->second->getClass(&qc)))
             parseCheckClassHierarchyMembers(i->first, *(i->second), qc, *mi);
          continue;
@@ -3858,8 +3853,7 @@ bool qore_class_private::parseCheckPrivateClassAccess() const {
    return pc->priv->parseGetClass(*this, access) || (scl && scl->parseGetClass(*(pc->priv), access, true));
 }
 
-bool qore_class_private::runtimeCheckPrivateClassAccess() const {
-   const qore_class_private* qc = runtime_get_class();
+bool qore_class_private::runtimeCheckPrivateClassAccess(const qore_class_private* qc) const {
    if (!qc) {
       //printd(5, "runtimeCheckPrivateClassAccess() this: %p '%s' no runtime class context: failed\n", this, name.c_str());
       return QTI_NOT_EQUAL;
@@ -3963,8 +3957,9 @@ void QoreClass::parseSetEmptyPublicMemberDeclaration() {
 }
 
 bool QoreClass::isPublicOrPrivateMember(const char* str, bool& priv_member) const {
-   ClassAccess access = Public;
-   bool rv = (bool)priv->runtimeGetMemberClass(str, access, true);
+   ClassAccess access;
+   bool internal_member;
+   bool rv = (bool)priv->runtimeGetMemberClass(str, runtime_get_class(), access, internal_member);
    priv_member = access > Public;
    return rv;
 }

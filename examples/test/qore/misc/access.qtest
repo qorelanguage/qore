@@ -76,6 +76,7 @@ class PubChild inherits Base {
     private:internal {
         static int statint = 2;
         const conint = 3;
+        # FIXME: memleak when uncommented below
         #int memint = 2;
     }
 
@@ -126,7 +127,7 @@ class PubChild inherits Base {
 
 class PrivChild inherits private Base {
     public {
-        #int memint = 3;
+        int memint = 3;
     }
 
     Base test() {
