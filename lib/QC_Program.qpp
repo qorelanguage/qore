@@ -432,6 +432,13 @@ const PO_BROKEN_INT_ASSIGNMENTS = PO_BROKEN_INT_ASSIGNMENTS;
     @since %Qore 0.8.12
 */
 const PO_BROKEN_OPERATORS = PO_BROKEN_OPERATORS;
+
+//! allows for old pre-%Qore 0.8.13 handling of break and continue
+/** @see @ref broken-loop-statement "%broken-loop-statement"
+
+    @since %Qore 0.8.13
+*/
+const PO_BROKEN_LOOP_STATEMENT = PO_BROKEN_LOOP_STATEMENT;
 //@}
 
 /** @defgroup warning_constants Warning Constants

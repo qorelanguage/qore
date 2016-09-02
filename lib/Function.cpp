@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -36,9 +36,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <assert.h>
-
-// FIXME: needed for the log10() call as a hack in float_minus_infinity_noop() below
-#include <math.h>
+#include <cmath>
 
 // FIXME: xxx set parse location
 static void duplicateSignatureException(const char* cname, const char* name, const AbstractFunctionSignature* sig) {
@@ -685,7 +683,7 @@ const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreValueList
 	 int64 po = runtime_get_parse_options();
 	 int64 vflags = variant->getFunctionality();
 	 // check restrictive flags
-	 //printd(5, "QoreFunction::findVariant() this: %p %s() returning %p %s(%s) vflags: "QLLD" po: "QLLD" neg: "QLLD"\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", (vflags & po & ~PO_POSITIVE_OPTIONS));
+	 //printd(5, "QoreFunction::findVariant() this: %p %s() returning %p %s(%s) vflags: " QLLD " po: " QLLD " neg: " QLLD "\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", (vflags & po & ~PO_POSITIVE_OPTIONS));
          if ((vflags & po & ~PO_POSITIVE_OPTIONS) || ((vflags & PO_POSITIVE_OPTIONS) && (((vflags & PO_POSITIVE_OPTIONS) & po) != (vflags & PO_POSITIVE_OPTIONS)))) {
             //printd(5, "QoreFunction::findVariant() this: %p %s(%s) getProgram(): %p getProgram()->getParseOptions64(): %x variant->getFunctionality(): %x\n", this, getName(), variant->getSignature()->getSignatureText(), getProgram(), getProgram()->getParseOptions64(), variant->getFunctionality());
             if (!only_user) {

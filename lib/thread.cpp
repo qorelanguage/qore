@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -69,8 +69,6 @@
 
 // global background thread counter
 QoreCounter thread_counter;
-
-Operator* OP_BACKGROUND;
 
 ThreadCleanupList tclist;
 
@@ -1969,15 +1967,15 @@ namespace {
    }
 }
 
-static AbstractQoreNode* op_background(const AbstractQoreNode* left, const AbstractQoreNode* ignored, bool ref_rv, ExceptionSink* xsink) {
+QoreValue do_op_background(const AbstractQoreNode* left, ExceptionSink* xsink) {
    if (!left)
-      return 0;
+      return QoreValue();
 
    //printd(2, "op_background() before crlr left = %p\n", left);
    ReferenceHolder<AbstractQoreNode> nl(copy_and_resolve_lvar_refs(left, xsink), xsink);
    //printd(2, "op_background() after crlr nl = %p\n", nl);
    if (*xsink || !nl)
-      return 0;
+      return QoreValue();
 
    // now we are ready to create the new thread
 
@@ -1989,14 +1987,14 @@ static AbstractQoreNode* op_background(const AbstractQoreNode* left, const Abstr
    // if can't start thread, then throw exception
    if (tid == -1) {
       xsink->raiseException("THREAD-CREATION-FAILURE", "thread list is full with %d threads", MAX_QORE_THREADS);
-      return 0;
+      return QoreValue();
    }
 
    BGThreadParams* tp = new BGThreadParams(nl.release(), tid, xsink);
    //printd(5, "created BGThreadParams(%p, %d) = %p\n", *nl, tid, tp);
    if (*xsink) {
       deregister_thread(tid);
-      return 0;
+      return QoreValue();
    }
    //printd(5, "tp = %p\n", tp);
    // create thread
@@ -2013,10 +2011,10 @@ static AbstractQoreNode* op_background(const AbstractQoreNode* left, const Abstr
       thread_counter.dec();
       deregister_thread(tid);
       xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
-      return 0;
+      return QoreValue();
    }
    //printd(5, "pthread_create() new thread TID %d, pthread_create() returned %d\n", tid, rc);
-   return ref_rv ? new QoreBigIntNode(tid) : 0;
+   return tid;
 }
 
 int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg) {
@@ -2047,15 +2045,6 @@ int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg) {
    }
 
    return tid;
-}
-
-static AbstractQoreNode* check_op_background(QoreTreeNode* tree, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo, const char* name, const char* descr) {
-   returnTypeInfo = bigIntTypeInfo;
-
-   if (pflag & PF_CONST_EXPRESSION)
-      parseException("ILLEGAL-OPERATION", "the background operator may not be used in an expression initializing a constant value executed at parse time");
-
-   return tree->defaultParseInit(oflag, pflag, lvids, returnTypeInfo);
 }
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
@@ -2109,10 +2098,6 @@ void init_qore_threads() {
 
    // setup parent thread data
    thread_list.activate(initial_thread = get_thread_entry());
-
-   // register "background" Operator.handler
-   OP_BACKGROUND = oplist.add(new Operator(1, "background", "run in background thread", 0, true, false, check_op_background));
-   OP_BACKGROUND->addFunction(NT_ALL, NT_NONE, op_background);
 
    // initialize recursive mutex attribute
    pthread_mutexattr_init(&ma_recursive);
