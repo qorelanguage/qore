@@ -60,6 +60,7 @@ protected:
 
    QoreCondition cond;             // condition when transaction lock is freed
 
+   DLLLOCAL int acquireLock(ExceptionSink *xsink);
    DLLLOCAL int startDBAction(ExceptionSink* xsink, bool& new_transaction);
    // returns true if we have the transaction lock, false if not
    DLLLOCAL bool endDBActionIntern(char cmd = DAH_NOCHANGE, bool new_transaction = false);
@@ -142,6 +143,8 @@ public:
    }
 
    DLLLOCAL QoreHashNode* getOptionHash(ExceptionSink* xsink);
+   // sets an option in the constructor without locking
+   DLLLOCAL int setOptionInit(const char* opt, const QoreValue val, ExceptionSink* xsink);
    DLLLOCAL int setOption(const char* opt, const QoreValue val, ExceptionSink* xsink);
    DLLLOCAL AbstractQoreNode* getOption(const char* opt, ExceptionSink* xsink);
 
@@ -181,15 +184,22 @@ protected:
 
 public:
    DLLLOCAL DatasourceActionHelper(ManagedDatasource& n_ds, ExceptionSink* xsink, char n_cmd = DAH_NOCHANGE) :
-      ds(n_ds), ok(!ds.startDBAction(xsink, new_transaction)), cmd(n_cmd) {
+      ds(n_ds), ok(n_cmd == DAH_NOCONN ? !ds.acquireLock(xsink) : !ds.startDBAction(xsink, new_transaction)), cmd(n_cmd) {
+      if (cmd == DAH_NOCONN)
+         new_transaction = false;
    }
    DLLLOCAL ~DatasourceActionHelper() {
       if (ok) {
-         // FIXME: check connection aborted handling if exec could have been executed after connection reset
-         if (ds.wasConnectionAborted()
-             || (new_transaction && ((cmd == DAH_NOCHANGE) || !ds.isInTransaction())))
-            cmd = DAH_RELEASE;
-	 ds.endDBAction(cmd, new_transaction);
+         if (cmd == DAH_NOCONN) {
+            ds.releaseLock();
+         }
+         else {
+            // FIXME: check connection aborted handling if exec could have been executed after connection reset
+            if (ds.wasConnectionAborted()
+                || (new_transaction && ((cmd == DAH_NOCHANGE) || !ds.isInTransaction())))
+               cmd = DAH_RELEASE;
+            ds.endDBAction(cmd, new_transaction);
+         }
       }
    }
 

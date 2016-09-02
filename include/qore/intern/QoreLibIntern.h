@@ -326,6 +326,7 @@ enum qore_call_t {
 #define DAH_NOCHANGE  0 // acquire lock temporarily
 #define DAH_ACQUIRE   1 // acquire lock and hold
 #define DAH_RELEASE   2 // release lock at end of action
+#define DAH_NOCONN    3 // acquire lock temporarily and do not make a connection
 
 #define DAH_TEXT(d) (d == DAH_RELEASE ? "RELEASE" : (d == DAH_ACQUIRE ? "ACQUIRE" : "NOCHANGE"))
 
