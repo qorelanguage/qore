@@ -42,7 +42,7 @@ static int ds_set_options(ManagedDatasource* ds, const QoreHashNode* opts, Excep
       if (!strcmp(hi.getKey(), "min") || !strcmp(hi.getKey(), "max"))
          continue;
 
-      if (ds->setOption(hi.getKey(), hi.getValue(), xsink))
+      if (ds->setOptionInit(hi.getKey(), hi.getValue(), xsink))
          return -1;
    }
    return 0;
