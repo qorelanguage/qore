@@ -106,7 +106,7 @@ void QoreClassList::mergeUserPublic(const QoreClassList& old, qore_ns_private* n
 	 assert(qore_class_private::injected(*qc));
 	 continue;
       }
-      
+
       qc = new QoreClass(*i->second);
       qore_class_private::setNamespace(qc, ns);
       addInternal(qc);
@@ -173,7 +173,7 @@ void QoreClassList::assimilate(QoreClassList& n) {
    hm_qc_t::iterator i = n.hm.begin();
    while (i != n.hm.end()) {
       QoreClass *nc = i->second;
-      n.hm.erase(i);      
+      n.hm.erase(i);
       i = n.hm.begin();
 
       assert(!find(nc->getName()));

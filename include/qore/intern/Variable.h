@@ -168,7 +168,7 @@ public:
       assert(val.type == QV_Node);
       // try to set an optimized value type for the value holder if possible
       val.set(typeInfo);
-      val.assignInitial(v);
+      discard(val.assignInitial(v), 0);
    }
 
    DLLLOCAL bool isImported() const;
@@ -249,7 +249,7 @@ public:
 
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
       if (!val.hasValue())
-         val.assignInitial(typeInfo->getDefaultQoreValue());
+         discard(val.assignInitial(typeInfo->getDefaultQoreValue()), 0);
 #endif
    }
 

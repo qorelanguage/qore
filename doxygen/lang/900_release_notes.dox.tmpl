@@ -29,6 +29,7 @@
     - fixed a bug where @ref deprecated methods were being internally registered as @ref RUNTIME_NOOP (<a href="https://github.com/qorelanguage/qore/issues/1197">1197</a>)
     - fixed bugs where the @ref Qore::SQL::Datasource "Datasource" class would open a connection to the server in the constructor before options were set and where a server connection was required to call @ref Qore::SQL::Datasource::getOption() "Datasource::getOption()" or @ref Qore::SQL::Datasource::setOption() "Datasource::setOption()" (<a href="https://github.com/qorelanguage/qore/issues/1201">1201</a>)
     - fixed memory errors in the @ref Qore::Thread::Queue "Queue" class where spurious exceptions could be raised (<a href="https://github.com/qorelanguage/qore/issues/1202">1202</a>)
+    - fixed a memory leak with static class member initializers (<a href="https://github.com/qorelanguage/qore/issues/1206">1206</a>)
 
     @section qore_0812 Qore 0.8.12
 
