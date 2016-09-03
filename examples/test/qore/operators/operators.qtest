@@ -709,8 +709,8 @@ class Test inherits QUnit::Test {
         assertEq(2, {} + 2);
         assertEq(("a": 1, "b": 2), ("a": 1) + ("b": 2));
         DataTest b();
-        assertEq(("a": 1, "b": NOTHING, "x": 1), ("a": 1) + b);
-        assertEq(("b": NOTHING, "x": 1, "a": 1), b + ("a": 1));
+        assertEq(("a": 1, "b": NOTHING), ("a": 1) + b);
+        assertEq(("b": NOTHING, "a": 1), b + ("a": 1));
         assertEq(("a": 1), ("a": 1) + <abcd>);
         assertEq(("a": 1), <abcd> + ("a": 1));
         assertEq(b, b + <abcd>);
@@ -765,8 +765,8 @@ class Test inherits QUnit::Test {
         assertEq(i1, i1 + {});
         assertEq(i2, {} + i2);
         assertEq(hh, h1 + h2);
-        assertEq(("a": 1, "b": NOTHING, "x": 1), h1 + b);
-        assertEq(("b": NOTHING, "x": 1, "a": 1), b + h1);
+        assertEq(("a": 1, "b": NOTHING), h1 + b);
+        assertEq(("b": NOTHING, "a": 1), b + h1);
         assertEq(h1, h1 + bb);
         assertEq(h1, bb + h1);
         assertEq(b, b + bb);
