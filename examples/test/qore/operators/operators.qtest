@@ -25,6 +25,15 @@ class DataTest {
     constructor() {
         x = 1;
     }
+
+    hash doPlusFirst(hash h) {
+        return h + self;
+    }
+
+    hash doPlusEqualsFirst(hash h) {
+        h += self;
+        return h;
+    }
 }
 
 class Test inherits QUnit::Test {
@@ -710,6 +719,8 @@ class Test inherits QUnit::Test {
         assertEq(("a": 1, "b": 2), ("a": 1) + ("b": 2));
         DataTest b();
         assertEq(("a": 1, "b": NOTHING), ("a": 1) + b);
+        assertEq(("a": 1, "b": NOTHING, "x": 1), b.doPlusFirst(("a": 1)));
+        assertEq(("a": 1, "b": NOTHING, "x": 1), b.doPlusEqualsFirst(("a": 1)));
         assertEq(("b": NOTHING, "a": 1), b + ("a": 1));
         assertEq(("a": 1), ("a": 1) + <abcd>);
         assertEq(("a": 1), <abcd> + ("a": 1));
