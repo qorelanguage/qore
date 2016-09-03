@@ -695,8 +695,6 @@ protected:
    }
 
 public:
-   //enum mi_e { Member, Constant, Var };
-
    char* name;
    unsigned char type;
    union {
@@ -763,12 +761,6 @@ struct ClassVarInfo : public MemberInfo {
       char* n = name;
       name = 0;
       return n;
-   }
-   DLLLOCAL QoreVarInfo* takeVarInfo() {
-      assert(u.varInfo);
-      QoreVarInfo* rv = u.varInfo;
-      u.varInfo = 0;
-      return rv;
    }
 };
 
@@ -2177,19 +2169,6 @@ class_attributes:
 	   $$ = $1;
 	   delete $2;
 	}
-/*
-        // causes a shift-reduce conflict with static method declarations
-        | classvardecl {
-	   $$ = new QoreClass;
-	   qore_class_private::parseAddPublicStaticVar($$, $1->takeName(), $1->takeVarInfo());
-	   delete $1;
-	}
-        | class_attributes classvardecl {
-	   qore_class_private::parseAddPublicStaticVar($1, $2->takeName(), $2->takeVarInfo());
-	   $$ = $1;
-	   delete $2;
-	}
-*/
         ;
 
 uncqtypedef:

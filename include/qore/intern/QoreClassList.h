@@ -60,10 +60,10 @@ class ConstClassListIterator;
 class QoreClassList {
    friend class ClassListIterator;
    friend class ConstClassListIterator;
-      
+
 private:
    hm_qc_t hm;        // hash_map for name lookups
-      
+
    DLLLOCAL void deleteAll();
    DLLLOCAL void assimilate(QoreClassList& n);
 
@@ -80,12 +80,12 @@ public:
    DLLLOCAL QoreClassList() {}
    DLLLOCAL ~QoreClassList();
    DLLLOCAL QoreClassList(const QoreClassList& old, int64 po, qore_ns_private* ns);
-   
+
    DLLLOCAL void mergeUserPublic(const QoreClassList& old, qore_ns_private* ns);
 
    // returns the number of classes imported
    DLLLOCAL int importSystemClasses(const QoreClassList& source, qore_ns_private* ns, ExceptionSink* xsink);
-   
+
    DLLLOCAL int add(QoreClass* ot);
    DLLLOCAL QoreClass* find(const char* name);
    DLLLOCAL const QoreClass* find(const char* name) const;
