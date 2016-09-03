@@ -741,20 +741,21 @@ public:
       v.f = n;
    }
 
-   DLLLOCAL void assignInitial(AbstractQoreNode* n) {
+   DLLLOCAL AbstractQoreNode* assignInitial(AbstractQoreNode* n) {
       assert(!assigned);
       assigned = true;
       if (fixed_type) {
          switch (type) {
-            case QV_Bool: v.b = n ? n->getAsBool() : false; return;
-            case QV_Int: v.i = n ? n->getAsBigInt() : 0; return;
-            case QV_Float: v.f = n ? n->getAsFloat() : 0; return;
+            case QV_Bool: v.b = n ? n->getAsBool() : false; return n;
+            case QV_Int: v.i = n ? n->getAsBigInt() : 0; return n;
+            case QV_Float: v.f = n ? n->getAsFloat() : 0; return n;
             default: assert(false);
                // no break
          }
       }
       type = QV_Node;
       v.n = n;
+      return 0;
    }
 
    DLLLOCAL AbstractQoreNode* assign(AbstractQoreNode* n) {

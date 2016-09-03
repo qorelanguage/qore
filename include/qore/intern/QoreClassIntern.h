@@ -988,6 +988,7 @@ public:
    }
    DLLLOCAL QoreMemberInfoBase(int nfl, int nll, ClassAccess n_access = Public) : typeInfo(0), exp(0), loc(nfl, nll), parseTypeInfo(0), access(n_access) {
    }
+
    DLLLOCAL ~QoreMemberInfoBase() {
       del();
    }
@@ -1112,10 +1113,10 @@ public:
       return new QoreVarInfo(*this);
    }
 
-   DLLLOCAL void assignInit(AbstractQoreNode* v) {
+   DLLLOCAL AbstractQoreNode* assignInit(AbstractQoreNode* v) {
       // try to set an optimized value type for the value holder if possible
       val.set(getTypeInfo());
-      val.assignInitial(v);
+      return val.assignInitial(v);
    }
 
    DLLLOCAL void getLValue(LValueHelper& lvh) {
@@ -1130,7 +1131,7 @@ public:
       val.set(getTypeInfo());
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
       // try to set an optimized value type for the value holder if possible
-      val.assignInitial(typeInfo->getDefaultQoreValue());
+      discard(val.assignInitial(typeInfo->getDefaultQoreValue()), 0);
 #endif
    }
 
@@ -2453,7 +2454,7 @@ public:
          if (*xsink)
             return -1;
 
-         vi.assignInit(val.release());
+         discard(vi.assignInit(val.release()), xsink);
       }
       else
          vi.init();

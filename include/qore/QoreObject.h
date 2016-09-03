@@ -573,13 +573,6 @@ public:
    */
    DLLLOCAL QoreValue evalMember(const QoreString* member, ExceptionSink* xsink);
 
-   //! retuns member data of the object (or 0 if there's an exception), private members are excluded if called outside the class, caller owns the QoreHashNode reference returned
-   /**
-      @param xsink if an error occurs, the Qore-language exception information will be added here
-      @return member data of the object
-   */
-   DLLLOCAL QoreHashNode* getRuntimeMemberHash(ExceptionSink* xsink) const;
-
    DLLLOCAL class KeyNode* getReferencedPrivateDataNode(qore_classid_t key);
 
    //! retrieves the private data pointer and clears it from the object's private data store, used when executing destructors
@@ -656,9 +649,6 @@ public:
 
    //! executes the member notification on the object the given member
    DLLLOCAL void execMemberNotification(const char* member, ExceptionSink* xsink);
-
-   //! returns a pointer to an object member during initialization (no locking; interal use only)
-   DLLLOCAL AbstractQoreNode** getMemberValuePtrForInitialization(const char* member);
 };
 
 //! convenience class for holding AbstractPrivateData references

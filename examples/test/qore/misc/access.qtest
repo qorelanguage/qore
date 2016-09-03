@@ -60,6 +60,14 @@ class Base {
     public int getMemInt() {
         return memint;
     }
+
+    hash getHash() {
+        return map {$1: self.$1}, keys self;
+    }
+
+    hash getSlice(list l) {
+        return self{l};
+    }
 }
 
 class PubChild inherits Base {
@@ -122,6 +130,10 @@ class PubChild inherits Base {
     public int getMemInt() {
         return memint;
     }
+
+    hash getSlice(list l) {
+        return self{l};
+    }
 }
 
 class PrivChild inherits private Base {
@@ -143,6 +155,10 @@ class PrivChild inherits private Base {
 
     private:internal int intern() {
         return 0;
+    }
+
+    hash getSlice(list l) {
+        return self{l};
     }
 }
 
@@ -297,6 +313,9 @@ class TestInheritB {
         assertEq(2, b.getConInt());
         assertEq(1, b.getStatPriv());
         assertEq(1, b.getConPriv());
+        assertEq(("mempub": 1), hash(b));
+        assertEq(("mempub": 1, "mempriv": 1, "memint": 1), b.getHash());
+        assertEq(("mempub": 1, "memint": 1), b.getSlice(("mempub", "memint")));
 
         PubChild c1();
         assertEq(c1, cast<Base>(c1));

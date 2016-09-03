@@ -905,7 +905,7 @@ int qore_class_private::initMembers(QoreObject& o, bool& need_scan, ExceptionSin
 
    for (QoreMemberMap::DeclOrderIterator i = members.beginDeclOrder(), e = members.endDeclOrder(); i != e; ++i) {
       if (i->second) {
-	 AbstractQoreNode** v = o.getMemberValuePtrForInitialization(i->first);
+	 AbstractQoreNode** v = qore_object_private::get(o)->getMemberValuePtrForInitialization(i->first, i->second->access == Internal ? this : 0);
 	 assert(!*v);
 	 if (i->second->exp) {
 	    ReferenceHolder<AbstractQoreNode> val(i->second->exp->eval(xsink), xsink);

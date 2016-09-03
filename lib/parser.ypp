@@ -716,8 +716,6 @@ protected:
    }
 
 public:
-   //enum mi_e { Member, Constant, Var };
-
    char* name;
    unsigned char type;
    union {
@@ -784,12 +782,6 @@ struct ClassVarInfo : public MemberInfo {
       char* n = name;
       name = 0;
       return n;
-   }
-   DLLLOCAL QoreVarInfo* takeVarInfo() {
-      assert(u.varInfo);
-      QoreVarInfo* rv = u.varInfo;
-      u.varInfo = 0;
-      return rv;
    }
 };
 

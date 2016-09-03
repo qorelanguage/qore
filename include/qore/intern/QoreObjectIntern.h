@@ -347,21 +347,29 @@ public:
 
    // must be called in the object read lock
    DLLLOCAL const QoreHashNode* getInternalData(const qore_class_private* class_ctx) const {
+      if (!cdmap)
+         return 0;
       cdmap_t::const_iterator i = cdmap->find(class_ctx);
       return i != cdmap->end() ? i->second : 0;
    }
 
    // must be called in the object read lock
    DLLLOCAL QoreHashNode* getInternalData(const qore_class_private* class_ctx) {
+      if (!cdmap)
+         return 0;
       cdmap_t::iterator i = cdmap->find(class_ctx);
       return i != cdmap->end() ? i->second : 0;
    }
 
    // must be called in the object write lock
    DLLLOCAL QoreHashNode* getCreateInternalData(const qore_class_private* class_ctx) {
-      cdmap_t::iterator i = cdmap->find(class_ctx);
-      if (i != cdmap->end())
-         return i->second;
+      if (cdmap) {
+         cdmap_t::iterator i = cdmap->find(class_ctx);
+         if (i != cdmap->end())
+            return i->second;
+      }
+      else
+         cdmap = new cdmap_t;
 
       QoreHashNode* id = new QoreHashNode;
       cdmap->insert(cdmap_t::value_type(class_ctx, id));
@@ -556,6 +564,10 @@ public:
       return true;
    }
 
+   DLLLOCAL void mergeDataToHash(QoreHashNode* hash, ExceptionSink* xsink) const;
+
+   DLLLOCAL virtual bool scanMembersIntern(RSetHelper& rsh, QoreHashNode* odata);
+
    DLLLOCAL virtual bool scanMembers(RSetHelper& rsh);
 
    DLLLOCAL virtual bool needsScan() const {
@@ -601,6 +613,19 @@ public:
 
    DLLLOCAL QoreValue evalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
 
+   // no locking necessary; if class_ctx is non-null, an internal member is being initialized
+   AbstractQoreNode** getMemberValuePtrForInitialization(const char* member, const qore_class_private* class_ctx) {
+      QoreHashNode* odata = class_ctx ? getCreateInternalData(class_ctx) : data;
+      return odata->getKeyValuePtr(member);
+   }
+
+   //! retuns member data of the object (or 0 if there's an exception), private members are excluded if called outside the class, caller owns the QoreHashNode reference returned
+   /**
+      @param xsink if an error occurs, the Qore-language exception information will be added here
+      @return member data of the object
+   */
+   DLLLOCAL QoreHashNode* getRuntimeMemberHash(ExceptionSink* xsink) const;
+
    /*
    DLLLOCAL static bool hackId(const QoreObject& obj) {
       if (!obj.priv->data)
@@ -617,6 +642,10 @@ public:
    }
 
    DLLLOCAL static qore_object_private* get(QoreObject& obj) {
+      return obj.priv;
+   }
+
+   DLLLOCAL static const qore_object_private* get(const QoreObject& obj) {
       return obj.priv;
    }
 
