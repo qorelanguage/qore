@@ -31,7 +31,7 @@
 
 Summary: Multithreaded Programming Language
 Name: qore
-Version: 0.8.12.1
+Version: 0.8.13
 Release: 1%{dist}
 %if 0%{?suse_version}
 License: LGPL-2.0+ or GPL-2.0+ or MIT
@@ -90,6 +90,7 @@ development but is also useful as a general purpose language.
 %package -n %{libname}
 Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
+Provides: qore-module(abi)%{?_isa} = 0.20
 Provides: qore-module(abi)%{?_isa} = 0.19
 Provides: qore-module(abi)%{?_isa} = 0.18
 # provided for backwards-compatibility with unversioned capabilities and will be removed when the ABI drops backwards-compatibility
@@ -109,7 +110,7 @@ Provides: qore-module-api-0.6
 Provides: qore-module-api-0.5
 %if %{libname} == "libqore"
 Provides: libqore5 = %{version}
-Obsoletes: libqore5 < 0.8.12.1
+Obsoletes: libqore5 < 0.8.13
 %endif
 %if 0%{?sles_version}
 BuildArch: %{_target_cpu}
@@ -125,10 +126,10 @@ functionality.
 
 %files -n %{libname}
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.5.13.0
+%{_libdir}/libqore.so.5.14.0
 %{_libdir}/libqore.so.5
 %{module_dir}
-%doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS ABOUT
+%doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
 %post -n %{libname}
 ldconfig %{_libdir}
@@ -255,6 +256,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Wed Aug 17 2016 <ondrej.musil@qoretechnologies.com> 0.8.13
+- updated version to 0.8.13
+
 * Wed Aug 17 2016 David Nichols <david@qore.org> 0.8.12.1
 - updated to 0.8.12.1
 

@@ -1,0 +1,148 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+module BulkSqlUtilTestBase {
+    version = "0.1";
+    desc = "BulkSqlUtil test base module";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/SqlUtil.qm
+%requires ../../../../qlib/BulkSqlUtil.qm
+%requires ../../../../qlib/Schema.qm
+
+public class SqlUtilTestSchema inherits AbstractSchema {
+    constructor(AbstractDatasource ds, *string dts, *string its) : AbstractSchema(ds, dts, its) {
+    }
+
+    private *hash doTables(hash tables, hash columns) {
+        foreach string table in (tables.keyIterator()) {
+            foreach hash h in (columns.pairIterator()) {
+                string type = h.value.type ?? h.key;
+                hash ch = (
+                    "native_type": type,
+                    "notnull": True,
+                    );
+                if (h.value.typeCode() == NT_HASH)
+                    ch += (h.value - ("value", "bind", "expect", "type"));
+                tables{table}.columns{SqlTestBase::getColumnName(h.key)} = ch;
+            }
+        }
+        return tables;
+    }
+
+    log(string fmt) {
+        delete argv;
+    }
+
+    logpf(string fmt) {
+        delete argv;
+    }
+
+    logProgress(string fmt) {
+        delete argv;
+    }
+}
+
+public class SqlTestBase inherits QUnit::Test {
+    private {
+        AbstractSchema schema;
+        AbstractTable table;
+
+        const MyOpts = Opts + (
+            "connstr": "c,conn=s",
+            );
+
+        const OptionColumn = 22;
+
+        hash expect_data;
+
+        list insert_data;
+        list upsert_data;
+    }
+
+    constructor(string testName, string testVer, any args, *hash mopts) : Test(testName, testVer, \args, mopts) {
+        addTestCase("BulkInsert", \bulkInsertTest());
+        addTestCase("BulkUpsert", \bulkUpsertTest());
+    }
+
+    globalTearDown() {
+        # drop the test schema
+        if (schema)
+            schema.drop(True, m_options.verbose);
+    }
+
+    bulkInsertTest() {
+        if (!table) testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        table.del();
+
+        BulkInsertOperation insert(table, {"block_size": 3});
+        on_success insert.flush();
+        on_error insert.discard();
+
+        foreach hash data in (insert_data)
+            assertEq(NOTHING, insert.queueData(data));
+    }
+
+    bulkUpsertTest() {
+        if (!table) testSkip("no DB connection");
+
+        on_success table.commit();
+        on_error table.rollback();
+
+        table.del();
+
+        BulkUpsertOperation insert(table, {"block_size": 3});
+        on_success insert.flush();
+        on_error insert.discard();
+
+        foreach hash data in (upsert_data)
+            assertEq(NOTHING, insert.queueData(data));
+    }
+
+    static string getColumnName(string n) {
+        n =~ s/ //g;
+        return n + "_f";
+    }
+
+    initTestData(hash custom_columns) {
+        hash row;
+
+        foreach hash h in (custom_columns.pairIterator()) {
+            string cn = getColumnName(h.key);
+            row{cn} = h.value.bind ?? h.value.value ?? h.value;
+
+            if (h.value.typeCode() == NT_HASH && h.value.hasKey('expect'))
+                expect_data{cn} = h.value.expect;
+            else
+                expect_data{cn} = h.value.bind.'^value^' ?? h.value.value ?? h.value;
+        }
+        insert_data = (
+            {"id": 1, "id_": 2, "null_f": "abc"} + row,
+            {"id": 2, "id_": 2, "null_f": NULL} + row,
+            {"id": 3, "id_": 10, "null_f": "def"} + row,
+            {"id": 4, "id_": 11, "null_f": "lala"} + row,
+            {"id": 5, "id_": 12, "null_f": "trololo"} + row,
+        );
+        upsert_data = (
+            {"id": 2, "id_": 2, "null_f": "abc"} + row,
+            {"id": 3, "id_": 2, "null_f": "bla"} + row,
+            {"id": 4, "id_": 13, "null_f": "blabla"} + row,
+            {"id": 5, "id_": 14, "null_f": "trololo"} + row,
+            {"id": 6, "id_": 15, "null_f": "ghijkl"} + row,
+            {"id": 7, "id_": 16, "null_f": "bububu"} + row,
+        );
+    }
+}

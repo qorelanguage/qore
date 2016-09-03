@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -227,6 +227,8 @@ public:
 
    DLLLOCAL QoreClosureParseNode* takeDel();
 };
+
+DLLLOCAL QoreValue do_op_background(const AbstractQoreNode* left, ExceptionSink* xsink);
 
 // returns 0 if the last mark has been cleared, -1 if there are more marks to check
 DLLLOCAL int purge_thread_resources_to_mark(ExceptionSink* xsink);

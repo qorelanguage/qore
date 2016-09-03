@@ -59,6 +59,8 @@ DLLEXPORT extern qore_classid_t CID_SSLPRIVATEKEY;
 DLLEXPORT extern qore_classid_t CID_SEQUENCE;
 DLLEXPORT extern qore_classid_t CID_SOCKET;
 DLLEXPORT extern qore_classid_t CID_TERMIOS;
+DLLEXPORT extern qore_classid_t CID_INPUTSTREAM;
+DLLEXPORT extern qore_classid_t CID_OUTPUTSTREAM;
 
 DLLEXPORT extern QoreClass* QC_QUEUE;
 DLLEXPORT extern QoreClass* QC_HTTPCLIENT;
@@ -764,6 +766,9 @@ public:
 
    //! returns true if the class is a builtin class
    DLLEXPORT bool isSystem() const;
+
+   //! marks the class as a builtin class
+   DLLEXPORT void setSystem();
 
    //! returns true if the class implements a "memberGate" method
    DLLEXPORT bool hasMemberGate() const;
