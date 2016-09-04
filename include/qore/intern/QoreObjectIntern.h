@@ -184,16 +184,19 @@ public:
 
    DLLLOCAL void merge(const QoreHashNode* h, AutoVLock& vl, ExceptionSink* xsink);
 
-   DLLLOCAL void mergeIntern(ExceptionSink* xsink, const QoreHashNode* h, bool& check_recursive, ReferenceHolder<QoreListNode>& holder, bool inclass, const qore_class_private* curr_class = 0, const QoreHashNode* new_internal_data = 0);
+   DLLLOCAL void mergeIntern(ExceptionSink* xsink, const QoreHashNode* h, bool& check_recursive, ReferenceHolder<QoreListNode>& holder, const qore_class_private* class_ctx, const QoreHashNode* new_internal_data = 0);
 
    DLLLOCAL QoreHashNode* copyData(ExceptionSink* xsink) const;
 
-   DLLLOCAL int getLValue(const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink);
+   DLLLOCAL int getLValue(const char* key, LValueHelper& lvh, const qore_class_private* class_ctx, bool for_remove, ExceptionSink* xsink);
 
    DLLLOCAL AbstractQoreNode** getMemberValuePtr(const char* key, AutoVLock* vl, const QoreTypeInfo*& typeInfo, ExceptionSink* xsink) const;
 
    DLLLOCAL QoreStringNode* firstKey(ExceptionSink* xsink) {
+      // get the current class context
       const qore_class_private* class_ctx = runtime_get_class();
+      if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx))
+         class_ctx = 0;
 
       QoreAutoVarRWReadLocker al(rml);
 
@@ -202,7 +205,7 @@ public:
          return 0;
       }
 
-      if (qore_class_private::runtimeCheckPrivateClassAccess(*theclass)) {
+      if (class_ctx) {
          const char* str = data->getFirstKey();
          //printd(5, "qore_object_private::firstKey() got %p (%s)\n", str, str ? str : "<null>");
          return !str ? 0 : new QoreStringNode(str);
@@ -213,7 +216,7 @@ public:
       while (hi.next()) {
          //printd(5, "qore_object_private::firstKey() checking '%s'\n", hi.getKey());
          bool internal_member;
-         if (!checkMemberAccessIntern(hi.getKey(), false, false, class_ctx, internal_member))
+         if (!checkMemberAccessIntern(hi.getKey(), false, class_ctx, internal_member))
             return new QoreStringNode(hi.getKey());
          //printd(5, "qore_object_private::firstKey() skipping '%s' (private)\n", hi.getKey());
       }
@@ -222,7 +225,10 @@ public:
    }
 
    DLLLOCAL QoreStringNode* lastKey(ExceptionSink* xsink) {
+      // get the current class context
       const qore_class_private* class_ctx = runtime_get_class();
+      if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx))
+         class_ctx = 0;
 
       QoreAutoVarRWReadLocker al(rml);
 
@@ -231,7 +237,7 @@ public:
          return 0;
       }
 
-      if (qore_class_private::runtimeCheckPrivateClassAccess(*theclass)) {
+      if (class_ctx) {
          const char* str = data->getLastKey();
          return !str ? 0 : new QoreStringNode(str);
       }
@@ -240,7 +246,7 @@ public:
       ReverseConstHashIterator hi(data);
       while (hi.next()) {
          bool internal_member;
-         if (!checkMemberAccessIntern(hi.getKey(), false, false, class_ctx, internal_member))
+         if (!checkMemberAccessIntern(hi.getKey(), false, class_ctx, internal_member))
             return new QoreStringNode(hi.getKey());
       }
 
@@ -248,7 +254,11 @@ public:
    }
 
    DLLLOCAL QoreHashNode* getSlice(const QoreListNode* l, ExceptionSink* xsink) const {
+      // get the current class context
       const qore_class_private* class_ctx = runtime_get_class();
+      if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx))
+         class_ctx = 0;
+      bool has_public_members = theclass->runtimeHasPublicMembersInHierarchy();
 
       QoreSafeVarRWReadLocker sl(rml);
 
@@ -257,8 +267,6 @@ public:
 	 return 0;
       }
 
-      bool has_public_members = theclass->runtimeHasPublicMembersInHierarchy();
-      bool private_access_ok = qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx);
 
       ReferenceHolder<QoreListNode> nl(new QoreListNode, xsink);
       ReferenceHolder<QoreListNode> int_nl(xsink);
@@ -271,7 +279,7 @@ public:
             return 0;
 
          bool internal_member;
-         int rc = checkMemberAccessIntern(key->getBuffer(), has_public_members, private_access_ok, class_ctx, internal_member);
+         int rc = checkMemberAccessIntern(key->getBuffer(), has_public_members, class_ctx, internal_member);
          if (!rc) {
             if (internal_member) {
                if (!int_nl)
@@ -333,7 +341,7 @@ public:
       return rv.release();
    }
 
-   DLLLOCAL int checkMemberAccessIntern(const char* mem, bool has_public_members, bool private_access_ok, const qore_class_private* class_ctx, bool& internal_member) const {
+   DLLLOCAL int checkMemberAccessIntern(const char* mem, bool has_public_members, const qore_class_private* class_ctx, bool& internal_member) const {
       ClassAccess access;
       const qore_class_private* qc = qore_class_private::runtimeGetMemberClass(*theclass, mem, class_ctx, access, internal_member);
       if (!qc)
@@ -342,7 +350,7 @@ public:
       if (internal_member)
          return QOA_OK;
 
-      return ((access > Public) && !private_access_ok) ? QOA_PRIV_ERROR : QOA_OK;
+      return ((access > Public) && !class_ctx) ? QOA_PRIV_ERROR : QOA_OK;
    }
 
    // must be called in the object read lock
@@ -385,7 +393,7 @@ public:
       if (internal_member)
          return QOA_OK;
 
-      return ((access > Public) && !qc->runtimeCheckPrivateClassAccess(class_ctx)) ? QOA_PRIV_ERROR : QOA_OK;
+      return ((access > Public) && !class_ctx) ? QOA_PRIV_ERROR : QOA_OK;
    }
 
    DLLLOCAL int checkMemberAccess(const char* mem, const qore_class_private* class_ctx, bool& internal_member, ExceptionSink* xsink) const {
@@ -400,12 +408,12 @@ public:
       return -1;
    }
 
-   DLLLOCAL int checkMemberAccessGetTypeInfo(ExceptionSink* xsink, const char* mem, const qore_class_private* class_ctx, bool& internal_member, const QoreTypeInfo*& typeInfo, bool check_access) const {
+   DLLLOCAL int checkMemberAccessGetTypeInfo(ExceptionSink* xsink, const char* mem, const qore_class_private* class_ctx, bool& internal_member, const QoreTypeInfo*& typeInfo) const {
       ClassAccess access;
       const QoreMemberInfo* mi = qore_class_private::runtimeGetMemberInfo(*theclass, mem, class_ctx, access, internal_member);
       if (mi) {
          // check access if necessary; note that if the member was internally accessed, then the check has already been made
-	 if (access > Public && check_access && access != Internal && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx)) {
+	 if (access > Public && !class_ctx && access != Internal) {
 	    doPrivateException(mem, xsink);
 	    return -1;
 	 }
@@ -661,8 +669,8 @@ public:
       o.priv->takeMembers(rv, lvh, l);
    }
 
-   DLLLOCAL static int getLValue(const QoreObject& obj, const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink) {
-      return obj.priv->getLValue(key, lvh, internal, for_remove, xsink);
+   DLLLOCAL static int getLValue(const QoreObject& obj, const char* key, LValueHelper& lvh, const qore_class_private* class_ctx, bool for_remove, ExceptionSink* xsink) {
+      return obj.priv->getLValue(key, lvh, class_ctx, for_remove, xsink);
    }
 
    DLLLOCAL static AbstractQoreNode** getMemberValuePtr(const QoreObject* obj, const char* key, AutoVLock *vl, const QoreTypeInfo*& typeInfo, ExceptionSink* xsink) {

@@ -39,6 +39,7 @@
 
 #include <qore/QoreType.h>
 #include <qore/intern/ParserSupport.h>
+#include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/QoreObjectIntern.h>
 #include <qore/intern/QoreLValue.h>
 #include <qore/intern/qore_number_private.h>
@@ -397,9 +398,12 @@ int LValueHelper::doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* o
    ocvec.clear();
    clearPtr();
 
-   bool intern = qore_class_private::runtimeCheckPrivateClassAccess(*o->getClass());
-   if (!qore_object_private::getLValue(*o, mem->getBuffer(), *this, intern, for_remove, vl.xsink)) {
-      if (!intern)
+   // get the current class context for possible internal data
+   const qore_class_private* class_ctx = runtime_get_class();
+   if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*o->getClass(), class_ctx))
+      class_ctx = 0;
+   if (!qore_object_private::getLValue(*o, mem->getBuffer(), *this, class_ctx, for_remove, vl.xsink)) {
+      if (!class_ctx)
          vl.addMemberNotification(o, mem->getBuffer()); // add member notification for external updates
    }
    if (*vl.xsink)
@@ -443,7 +447,7 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
       QoreObject* obj = runtime_get_stack_object();
       assert(obj);
       // true is for "internal"
-      if (qore_object_private::getLValue(*obj, v->str, *this, true, for_remove, vl.xsink))
+      if (qore_object_private::getLValue(*obj, v->str, *this, runtime_get_class(), for_remove, vl.xsink))
          return -1;
 
       robj = qore_object_private::get(*obj);

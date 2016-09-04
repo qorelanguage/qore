@@ -3959,7 +3959,10 @@ void QoreClass::parseSetEmptyPublicMemberDeclaration() {
 bool QoreClass::isPublicOrPrivateMember(const char* str, bool& priv_member) const {
    ClassAccess access;
    bool internal_member;
-   bool rv = (bool)priv->runtimeGetMemberClass(str, runtime_get_class(), access, internal_member);
+   const qore_class_private* class_ctx = runtime_get_class();
+   if (class_ctx && !priv->runtimeCheckPrivateClassAccess(class_ctx))
+      class_ctx = 0;
+   bool rv = (bool)priv->runtimeGetMemberClass(str, class_ctx, access, internal_member);
    priv_member = access > Public;
    return rv;
 }
