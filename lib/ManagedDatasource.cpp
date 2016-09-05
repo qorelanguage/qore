@@ -400,7 +400,7 @@ AbstractQoreNode *ManagedDatasource::getClientVersion(ExceptionSink *xsink) cons
 }
 
 QoreHashNode* ManagedDatasource::getOptionHash(ExceptionSink* xsink) {
-   DatasourceActionHelper dbah(*this, xsink);
+   DatasourceActionHelper dbah(*this, xsink, DAH_NOCONN);
    if (!dbah)
       return 0;
    return Datasource::getOptionHash();
