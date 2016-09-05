@@ -137,6 +137,12 @@ class OracleTest inherits SqlTestBase {
         if (ds) {
             initTestData(CustomColumns);
 
+            { # Make sure the DB is clear before doing the tests.
+                OracleTable t = new OracleTable(ds, "oracle_test");
+                if (t.checkExistence())
+                    t.dropCommit();
+            }
+
             # create the test schema
             schema = new OracleTestSchema(ds);
 
