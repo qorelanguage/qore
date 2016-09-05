@@ -1080,7 +1080,13 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
    }
 
    if (t == NT_SELF_VARREF) {
+#ifdef DEBUG
+      // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+      assert(!rv.assignInitial(qore_object_private::takeMember(*(runtime_get_stack_object()), xsink, reinterpret_cast<SelfVarrefNode*>(lvalue)->str, false)));
+#else
       rv.assignInitial(qore_object_private::takeMember(*(runtime_get_stack_object()), xsink, reinterpret_cast<SelfVarrefNode*>(lvalue)->str, false));
+#endif
+
       return;
    }
 
@@ -1107,7 +1113,12 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
 
    // could be any type if in a background expression
    if (t != NT_TREE) {
+#ifdef DEBUG
+      // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+      assert(!rv.assignInitial(lvalue ? lvalue->refSelf() : 0));
+#else
       rv.assignInitial(lvalue ? lvalue->refSelf() : 0);
+#endif
       return;
    }
 
@@ -1147,7 +1158,12 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
 	 unsigned old_count = qore_hash_private::getScanCount(*h);
 
 	 QoreHashNode* rvh = new QoreHashNode;
+#ifdef DEBUG
+	 // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+	 assert(!rv.assignInitial(rvh));
+#else
 	 rv.assignInitial(rvh);
+#endif
 
 	 ConstListIterator li(l);
 	 while (li.next()) {
@@ -1186,7 +1202,12 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
       }
    }
 
+#ifdef DEBUG
+   // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+   assert(!rv.assignInitial(v));
+#else
    rv.assignInitial(v);
+#endif
 }
 
 int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {

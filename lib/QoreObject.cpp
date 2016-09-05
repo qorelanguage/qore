@@ -197,7 +197,8 @@ void qore_object_private::takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, 
    bool check_access = !qore_class_private::runtimeCheckPrivateClassAccess(*theclass);
 
    QoreHashNode* rvh = new QoreHashNode;
-   rv.assignInitial(rvh);
+   // in case the lvalue cannot hold a hash, then dereference after the lock is released
+   ReferenceHolder<> holder(rv.assignInitial(rvh), lvh.vl.xsink);
 
    QoreAutoVarRWWriteLocker al(rml);
 
