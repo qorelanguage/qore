@@ -2,6 +2,14 @@
 
     @tableofcontents
 
+    @section qore_08122 Qore 0.8.12.2
+
+    @par Release Summary
+    Bugfix release; see details below
+
+    @subsection qore_08122_bug_fixes Bug Fixes in Qore
+    - fixed bugs in handling websocket close status codes in the <a href="../../modules/WebSocketUtil/html/index.html">WebSocketUtil</a>, <a href="../../modules/WebSocketClient/html/index.html">WebSocketClient</a>, and <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a> modules (<a href="https://github.com/qorelanguage/qore/issues/1216">1216</a>)
+
     @section qore_08121 Qore 0.8.12.1
 
     @par Release Summary
@@ -30,7 +38,6 @@
     - fixed bugs where the @ref Qore::SQL::Datasource "Datasource" class would open a connection to the server in the constructor before options were set and where a server connection was required to call @ref Qore::SQL::Datasource::getOption() "Datasource::getOption()" or @ref Qore::SQL::Datasource::setOption() "Datasource::setOption()" (<a href="https://github.com/qorelanguage/qore/issues/1201">1201</a>)
     - fixed memory errors in the @ref Qore::Thread::Queue "Queue" class where spurious exceptions could be raised (<a href="https://github.com/qorelanguage/qore/issues/1202">1202</a>)
     - fixed a memory leak with static class member initializers (<a href="https://github.com/qorelanguage/qore/issues/1206">1206</a>)
-    - fixed bugs in handling websocket close status codes in the <a href="../../modules/WebSocketUtil/html/index.html">WebSocketUtil</a>, <a href="../../modules/WebSocketClient/html/index.html">WebSocketClient</a>, and <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a> modules (<a href="https://github.com/qorelanguage/qore/issues/1216">1216</a>)
 
     @section qore_0812 Qore 0.8.12
 
