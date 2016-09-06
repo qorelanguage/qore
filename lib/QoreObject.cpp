@@ -824,6 +824,10 @@ QoreHashNode* QoreObject::getSlice(const QoreListNode* value_list, ExceptionSink
 void QoreObject::setValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink) {
    AbstractQoreNode* old_value;
 
+   // initial count (true = possible recursive cycle, false = no cycle possible)
+   bool before;
+   bool after = needs_scan(val);
+
    {
       QoreSafeVarRWWriteLocker sl(priv->rml);
 
@@ -834,11 +838,27 @@ void QoreObject::setValue(const char* key, AbstractQoreNode* val, ExceptionSink*
 
       old_value = priv->data->takeKeyValue(key);
 
+      before = needs_scan(old_value);
+
       priv->data->setKeyValue(key, val, xsink);
+
+      // calculate and apply delta
+      int dt = before ? (after ? 0 : -1) : (after ? 1 : 0);
+      if (dt)
+         priv->incScanCount(dt);
+
+      // only set before if there was an object requiring a scan and the current object might have had a recursive reference
+      if (before && !priv->mightHaveRecursiveReferences())
+         before = false;
    }
 
-   if (old_value)
+   if (old_value) {
       old_value->deref(xsink);
+   }
+
+   // scan object if necessary
+   if (before || after)
+      RSetHelper rsh(*qore_object_private::get(*this));
 }
 
 int QoreObject::size(ExceptionSink* xsink) const {

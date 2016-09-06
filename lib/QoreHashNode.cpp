@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -623,6 +623,10 @@ HashIterator::~HashIterator() {
    delete priv;
 }
 
+QoreHashNode* HashIterator::getHash() const {
+   return h;
+}
+
 AbstractQoreNode* HashIterator::getReferencedValue() const {
    return !priv->valid() || !(*(priv->i))->node ? 0 : (*(priv->i))->node->refSelf();
 }
@@ -756,6 +760,10 @@ ConstHashIterator::ConstHashIterator(const ConstHashIterator& old) : h(old.h->ha
 
 ConstHashIterator::~ConstHashIterator() {
    delete priv;
+}
+
+const QoreHashNode* ConstHashIterator::getHash() const {
+   return h;
 }
 
 AbstractQoreNode* ConstHashIterator::getReferencedValue() const {
