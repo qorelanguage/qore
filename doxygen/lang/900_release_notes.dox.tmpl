@@ -5,6 +5,7 @@
     @section qore_0813 Qore 0.8.13
 
     @par Release Summary
+    Major new features and bug fixes: TBD
 
     @subsection qore_0813_compatibility Changes That Can Affect Backwards-Compatibility
     - fixed broken @ref continue "continue" and @ref break "break" statements that were accepted anywhere in the source and behaved like a @ref return "return" statement; now such statements outside a loop context will result in a parse exception; to get the old behavior, use @ref broken-loop-statement "%broken-loop-statement" in your source code
@@ -103,6 +104,14 @@
     - fixed BulkSqlUtil module to work properly even with DB drivers that do not support parameter array binding (<a href="https://github.com/qorelanguage/qore/issues/1154">issue 1154</a>)
     - fixed bugs with inconsistent conversions of @ref int_type "int", @ref float_type "float", and @ref bool_type "boolean" values to date/time values, now they are all converted uniformly to @ref relative_dates "relative date/time values" (<a href="https://github.com/qorelanguage/qore/issues/1156">issue 1156</a>)
 
+    @section qore_08122 Qore 0.8.12.2
+
+    @par Release Summary
+    Bugfix release; see details below
+
+    @subsection qore_08122_bug_fixes Bug Fixes in Qore
+    - fixed bugs in handling websocket close status codes in the <a href="../../modules/WebSocketUtil/html/index.html">WebSocketUtil</a>, <a href="../../modules/WebSocketClient/html/index.html">WebSocketClient</a>, and <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a> modules (<a href="https://github.com/qorelanguage/qore/issues/1216">issue 1216</a>)
+
     @section qore_08121 Qore 0.8.12.1
 
     @par Release Summary
@@ -125,12 +134,12 @@
     - fixed a bug referencing \c self in base class constructor arguments (<a href="https://github.com/qorelanguage/qore/issues/1169">issue 1169</a>)
     - fixed a bug where the incorrect class destructor was called in the openldap module (<a href="https://github.com/qorelanguage/qore/issues/1174">issue 1174</a>)
     - fixed a bug where declaring a \c copy() method as @ref synchronized would result in a crash when the method was called (<a href="https://github.com/qorelanguage/qore/issues/1188">issue 1188</a>)
-    - fixed bugs in <string>::getEncoded() and <string>::getDecoded() regarding @ref Qore::CE_XML "CE_XML" and @ref Qore::CE_NONASCII "CE_NONASCII" (<a href="https://github.com/qorelanguage/qore/issues/1193">1193</a>)
-    - fixed bugs where @ref Qore::call_object_method() and @ref Qore::call_object_method_args() allowed private methods to be called from outside the class (<a href="https://github.com/qorelanguage/qore/issues/1194">1194</a>)
-    - fixed a bug where @ref deprecated methods were being internally registered as @ref RUNTIME_NOOP (<a href="https://github.com/qorelanguage/qore/issues/1197">1197</a>)
-    - fixed bugs where the @ref Qore::SQL::Datasource "Datasource" class would open a connection to the server in the constructor before options were set and where a server connection was required to call @ref Qore::SQL::Datasource::getOption() "Datasource::getOption()" or @ref Qore::SQL::Datasource::setOption() "Datasource::setOption()" (<a href="https://github.com/qorelanguage/qore/issues/1201">1201</a>)
-    - fixed memory errors in the @ref Qore::Thread::Queue "Queue" class where spurious exceptions could be raised (<a href="https://github.com/qorelanguage/qore/issues/1202">1202</a>)
-    - fixed a memory leak with static class member initializers (<a href="https://github.com/qorelanguage/qore/issues/1206">1206</a>)
+    - fixed bugs in <string>::getEncoded() and <string>::getDecoded() regarding @ref Qore::CE_XML "CE_XML" and @ref Qore::CE_NONASCII "CE_NONASCII" (<a href="https://github.com/qorelanguage/qore/issues/1193">issue 1193</a>)
+    - fixed bugs where @ref Qore::call_object_method() and @ref Qore::call_object_method_args() allowed private methods to be called from outside the class (<a href="https://github.com/qorelanguage/qore/issues/1194">issue 1194</a>)
+    - fixed a bug where @ref deprecated methods were being internally registered as @ref RUNTIME_NOOP (<a href="https://github.com/qorelanguage/qore/issues/1197">issue 1197</a>)
+    - fixed bugs where the @ref Qore::SQL::Datasource "Datasource" class would open a connection to the server in the constructor before options were set and where a server connection was required to call @ref Qore::SQL::Datasource::getOption() "Datasource::getOption()" or @ref Qore::SQL::Datasource::setOption() "Datasource::setOption()" (<a href="https://github.com/qorelanguage/qore/issues/1201">issue 1201</a>)
+    - fixed memory errors in the @ref Qore::Thread::Queue "Queue" class where spurious exceptions could be raised (<a href="https://github.com/qorelanguage/qore/issues/1202">issue 1202</a>)
+    - fixed a memory leak with static class member initializers (<a href="https://github.com/qorelanguage/qore/issues/1206">issue 1206</a>)
 
     @section qore_0812 Qore 0.8.12
 
