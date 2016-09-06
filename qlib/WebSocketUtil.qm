@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file WebSocketUtil.qm WebSocket common client/server code
 
-/*  WebSocketUtil.qm Copyright 2013 - 2015 Qore Technologies, sro
+/*  WebSocketUtil.qm Copyright 2013 - 2016 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,22 +35,18 @@
 %new-style
 
 module WebSocketUtil {
-    version = "1.1";
+    version = "1.2";
     desc = "user module providing common client and server support for the WebSocket protocol";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
 }
 
-/*  Version History
-    * 2013-10-04 v1.1: David Nichols <david@qore.org>
-      + converted to new-style
-
-    * 2013-10-04 v1.0: David Nichols <david@qore.org>
-      + the initial version of the WebSocketUtil module
-*/
-
 /** @mainpage WebSocketUtil Module
+
+    @tableofcontents
+
+    @section websocketutilintro Introduction to the WebSocketUtil Module
 
     The %WebSocketUtil module provides common client and server support for <a href="http://tools.ietf.org/html/rfc6455">RFC-6455 based WebSocket protocol</a> implementations in %Qore.
 
@@ -66,6 +62,17 @@ module WebSocketUtil {
     - @ref WebSocketUtil::ws_read_message(): reads and decodes messages from a websocket connection
     - @ref closecodes
     - @ref opcodes
+
+    @section websocketutil_relnotes WebSocketUtil Module Release History
+
+    @subsection wsu_v12 v1.2
+    - fixed a bug parsing and generating the websocket close status code (<a href="https://github.com/qorelanguage/qore/issues/1216">issue 1216</a>)
+
+    @subsection wsu_v11 v1.1
+    - converted to @ref new-style "%new-style"
+
+    @subsection wsu_v10 v1.0
+    - the initial version of the WebSocketUtil module
 */
 
 #! the WebSocketUtil namespace contains all the definitions in the WebSocketUtil module
@@ -245,10 +252,8 @@ hash h = ws_read_message(sock);
             data_len = sock.recvi8();
 
         *binary mask;
-        if (masked) {
+        if (masked)
             mask = sock.recvBinary(4);
-            #logDebug("mask: %s", mask.toHex());
-        }
 
         *data data;
         if (data_len)
@@ -263,22 +268,31 @@ hash h = ws_read_message(sock);
             data = udata;
         }
 
+        #printf("DEBUG: op: %d (%s) data_len: %d mask: %y data: %y\n", op, WSOPMap{op}, data_len, mask ? mask.toHex() : NOTHING, data);
+
         hash h = (
             "op": op,
             "masked": masked,
             );
         if (h.op == WSOP_Close) {
             if (data) {
-                h.close = get_word_32(data, 0);
-                # remove the first 4 bytes extracted above
-                splice data, 0, 4;
+                # get an unsigned 2-byte integer in network byte order (MSB) for the close code
+                h.close = get_word_16(data, 0);
+                # remove the first 2 bytes extracted above
+                splice data, 0, 2;
                 *string txtmsg = data ? data.toString("utf8") : NOTHING;
                 data = txtmsg;
+            }
+            else {
+                # https://tools.ietf.org/html/rfc6455#section-7.1.5
+                # If this Close control frame contains no status code, _The WebSocket Connection Close Code_ is considered to be 1005
+                h.close = WSCC_NoStatusRcvd;
             }
         }
         else if (op == WSOP_Text)
             data = data.toString(sock.getEncoding());
 
+        #printf("DEBUG: h: %y data: %y\n", h, data);
         return h + (
             "msg": data,
             );

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file WebSocketHandler.qm Qore handler definition for the HttpServer module for providing WebSocket server services
 
-/*  WebSocketHandler.qm Copyright 2013 - 2015 Qore Technologies, sro
+/*  WebSocketHandler.qm Copyright 2013 - 2016 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,9 +35,9 @@
 %requires WebSocketUtil >= 1.0
 
 %new-style
-    
+
 module WebSocketHandler {
-    version = "1.1";
+    version = "1.2";
     desc = "user module for providing WebSocket server services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -54,7 +54,7 @@ module WebSocketHandler {
     provide server-side <a href="http://tools.ietf.org/html/rfc6455">RFC-6455 based WebSocket services</a> to clients.
 
     To use this module, use \c "%requires WebSocketHandler" and \c "%requires HttpServer" in your code.
-    
+
     All the public symbols in the module are defined in the WebSocketHandler namespace.
 
     The main classes provided in this module are:
@@ -62,6 +62,9 @@ module WebSocketHandler {
     - @ref WebSocketHandler::WebSocketHandler
 
     @section websockethandler_relnotes WebSocketHandler Release History
+
+    @subsection websockethandler_v1_2 Version 1.2
+    - fixed a bug parsing and generating the websocket close status code (<a href="https://github.com/qorelanguage/qore/issues/1216">issue 1216</a>)
 
     @subsection websockethandler_v1_1 Version 1.1
     - bug fix: do not delete the connection object when the connection closes, remove it so it can go out of scope naturally to avoid excess exceptions in the server code
@@ -80,7 +83,7 @@ public namespace WebSocketHandler {
         @par Sending WebSocket Message to Clients
         To send a message to a websocket client, call one of the following methods:
         - @ref WebSocketHandler::WebSocketConnection::send() "WebSocketConnection::send()": to send an unencoded message to the client
-        - @ref WebSocketHandler::WebSocketConnection::sendEncoded() "WebSocketConnection::sendEncoded()": to send an already-encoded message to the client 
+        - @ref WebSocketHandler::WebSocketConnection::sendEncoded() "WebSocketConnection::sendEncoded()": to send an already-encoded message to the client
     */
     public class WebSocketConnection {
         public {
@@ -90,7 +93,7 @@ public namespace WebSocketHandler {
         }
 
         private {
-            #! the @ref Qore::Thread::Queue "Queue" object stores messages to be sent to the server 
+            #! the @ref Qore::Thread::Queue "Queue" object stores messages to be sent to the server
             Qore::Thread::Queue queue();
         }
 
@@ -108,12 +111,12 @@ public namespace WebSocketHandler {
                 if (ex.err != "QUEUE-TIMEOUT")
                     rethrow;
             }
-        }        
+        }
 
         #! this method is called by the @ref @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" to poll for messages from the client to send from the server
         *binary pollDataImmediate() {
             return queue.empty() ? NOTHING : queue.get();
-        }        
+        }
 
         #! pushes an already-encoded message on the connection's message queue
         sendEncoded(binary msg) {
@@ -168,7 +171,7 @@ public namespace WebSocketHandler {
             RWLock rwl();
 
             #! connection hash
-            hash ch;            
+            hash ch;
         }
 
         #! create the object optionally with the given @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator"
@@ -279,7 +282,7 @@ public namespace WebSocketHandler {
                         sock.send(d);
                         d = wsc.pollDataImmediate();
                     }
-                    
+
                     if (!sock.isDataAvailable(0))
                         continue;
 
@@ -302,12 +305,12 @@ public namespace WebSocketHandler {
                         sendClose(sock, WSCC_ProtocolError);
                         break;
                     }
-                    
+
                     if (h.op == WSOP_Ping) {
                         sock.send(ws_encode_message(h.msg, WSOP_Pong));
                         continue;
                     }
-                    
+
                     if (h.op == WSOP_Text || h.op == WSOP_Binary) {
                         wsc.gotMessage(h.msg);
                         continue;
@@ -368,12 +371,12 @@ public namespace WebSocketHandler {
         }
 
         private sendClose(Qore::Socket sock, int code, *string txtmsg) {
-            binary msg = code.encodeMsb(4);
-
             if (!WSCCMap{code}) {
                 logError("WebSocketHandler::sendClose(): invalid close code %d received; expecting one of: %y", code, (map $1.toInt(), WSCCMap.keyIterator()));
                 code = WSCC_InternalServerError;
             }
+
+            binary msg = code.encodeMsb(2);
 
             if (txtmsg)
                 txtmsg = convert_encoding(txtmsg, "utf8");
