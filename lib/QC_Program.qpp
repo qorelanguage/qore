@@ -439,6 +439,13 @@ const PO_BROKEN_OPERATORS = PO_BROKEN_OPERATORS;
     @since %Qore 0.8.13
 */
 const PO_BROKEN_LOOP_STATEMENT = PO_BROKEN_LOOP_STATEMENT;
+
+//! disallows out-of-line class and namespace declarations
+/** @see @ref strong-encapsulation "%strong-encapsulation"
+
+    @since %Qore 0.8.13
+*/
+const PO_STRONG_ENCAPSULATION = PO_STRONG_ENCAPSULATION;
 //@}
 
 /** @defgroup warning_constants Warning Constants

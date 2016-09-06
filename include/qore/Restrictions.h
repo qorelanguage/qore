@@ -4,7 +4,7 @@
 
   QORE programming language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -81,6 +81,7 @@
 #define PO_BROKEN_INT_ASSIGNMENTS           (1LL << 41)  //!< allow for old pre-%Qore 0.8.12 "int" restrictions to be ignored at runtime
 #define PO_BROKEN_OPERATORS                 (1LL << 42)  //!< allow for old pre-%Qore 0.8.12 parsing of multi-character operators with spaces
 #define PO_BROKEN_LOOP_STATEMENT            (1LL << 43)  //!< allow for old pre-%Qore 0.8.13 handling of break and continue
+#define PO_STRONG_ENCAPSULATION             (1LL << 44)  //!< disallow out-of-line class and namespace declarations
 
 // aliases for old defines
 #define PO_NO_SYSTEM_FUNC_VARIANTS          PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
