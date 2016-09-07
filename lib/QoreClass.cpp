@@ -3322,6 +3322,11 @@ void QoreClass::setDeleteBlocker(q_delete_blocker_t m) {
    priv->setDeleteBlocker(m);
 }
 
+// sets the final flag
+void QoreClass::setFinal() {
+   qore_class_private::setFinal(*this);
+}
+
 void QoreClass::setSystemConstructor(q_system_constructor_t m) {
    priv->setBuiltinSystemConstructor(new BuiltinSystemConstructor(this, m));
 }
