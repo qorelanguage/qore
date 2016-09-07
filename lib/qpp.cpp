@@ -3046,7 +3046,7 @@ public:
          fprintf(fp, "\n   QC_%s->unsetPublicMemberFlag();\n", UC.c_str());
 
       if (is_final)
-         fprintf(fp, "\n   qore_class_private::setFinal(*QC_%s);\n", UC.c_str());
+         fprintf(fp, "\n   QC_%s->setFinal();\n", UC.c_str());
 
       for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i) {
          if (i->second->serializeNormalCppBinding(fp, lname.c_str(), UC.c_str())) {

@@ -1789,11 +1789,11 @@ int q_deregister_foreign_thread() {
    // save tid for freeing the thread entry later
    int tid = td->tid;
 
-   // delete internal thread data structure and release TID entry
-   thread_list.deleteDataRelease(tid);
-
    // run any thread cleanup functions
    tclist.exec();
+
+   // delete internal thread data structure and release TID entry
+   thread_list.deleteDataRelease(tid);
 
    qore_thread_cleanup();
 
@@ -1837,11 +1837,11 @@ int q_deregister_reserved_foreign_thread() {
 
    xsink.handleExceptions();
 
-   // delete internal thread data structure (do not release TID entry)
-   thread_list.deleteData(td->tid);
-
    // run any thread cleanup functions
    tclist.exec();
+
+   // delete internal thread data structure (do not release TID entry)
+   thread_list.deleteData(td->tid);
 
    qore_thread_cleanup();
 
@@ -1906,11 +1906,11 @@ namespace {
 
             printd(4, "q_run_thread(): thread terminating");
 
-            // delete internal thread data structure and release TID entry
-            thread_list.deleteDataRelease(ta->tid);
-
             // run any cleanup functions
             tclist.exec();
+
+            // delete internal thread data structure and release TID entry
+            thread_list.deleteDataRelease(ta->tid);
 
             //printd(5, "q_run_thread(): deleting thread params %p\n", ta);
             delete ta;
@@ -1971,11 +1971,11 @@ namespace {
 
             printd(4, "thread terminating");
 
-            // delete internal thread data structure and release TID entry
-            thread_list.deleteDataRelease(tid);
-
             // run any cleanup functions
             tclist.exec();
+
+            // delete internal thread data structure and release TID entry
+            thread_list.deleteDataRelease(tid);
          }
       }
 

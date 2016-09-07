@@ -683,6 +683,9 @@ public:
    */
    DLLEXPORT void setDeleteBlocker(q_delete_blocker_t m);
 
+   //! sets the final flag of the class
+   DLLEXPORT void setFinal();
+
    //! returns true if the member is private
    /**
        @param str the member name to check
