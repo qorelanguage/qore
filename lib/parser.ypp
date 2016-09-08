@@ -122,7 +122,7 @@ public:
    DLLLOCAL ConstNode(char* n, AbstractQoreNode* v, bool p = false) : name(n), value(v), pub(p) {
       // see if constant definitions are allowed
       if (parse_check_parse_option(PO_NO_CONSTANT_DEFS))
-         parse_error("illegal constant definition \"%s\" (conflicts with parse option NO_CONSTANT_DEFS)", n);
+         parse_error("illegal constant definition \"%s\" (conflicts with parse option PO_NO_CONSTANT_DEFS)", n);
    }
    DLLLOCAL AbstractQoreNode* takeValue() {
       AbstractQoreNode* rv = value;
@@ -188,7 +188,7 @@ public:
       // make sure definition was legal
       if (parse_check_parse_option(PO_NO_SUBROUTINE_DEFS)) {
          const char* nsn = ns.name.c_str();
-         parse_error("function '%s%s%s()' cannot be defined (conflicts with parse option NO_SUBROUTINE_DEFS)", nsn[0] ? nsn : "", nsn[0] ? "::" : "", name);
+         parse_error("function '%s%s%s()' cannot be defined (conflicts with parse option PO_NO_SUBROUTINE_DEFS)", nsn[0] ? nsn : "", nsn[0] ? "::" : "", name);
       }
 
       delete this;
@@ -207,7 +207,7 @@ public:
       variant = 0;
       // make sure definition was legal
       if (parse_check_parse_option(PO_NO_SUBROUTINE_DEFS))
-         parse_error("function '%s()' cannot be defined (conflicts with parse option NO_SUBROUTINE_DEFS)", name.ostr);
+         parse_error("function '%s()' cannot be defined (conflicts with parse option PO_NO_SUBROUTINE_DEFS)", name.ostr);
 
       delete this;
    }
@@ -993,6 +993,14 @@ static AbstractQoreNode* process_dot(AbstractQoreNode* l, AbstractQoreNode* r) {
    return new QoreHashObjectDereferenceOperatorNode(l, r);
 }
 
+static int check_strong_encapsulation(const char* type, const char* name) {
+   if (parse_check_parse_option(PO_STRONG_ENCAPSULATION)) {
+      parse_error("illegal out of line %s definition \"%s\" (conflicts with parse option PO_STRONG_ENCAPSULATION)", type, name);
+      return -1;
+   }
+   return 0;
+}
+
 static int check_case(const char* op, AbstractQoreNode* exp) {
    // ignore if NULL (= NOTHING)
    if (node_has_effect(exp)) {
@@ -1536,6 +1544,8 @@ top_level_command:
            $1->add(*(qore_ns_private::get(*(getRootNS()))));
         }
         | scoped_sub_def {
+           // see if strong encapsulation is enabled
+           check_strong_encapsulation("function", $1->name.ostr);
            $1->add(*(qore_ns_private::get(*(getRootNS()))));
         }
         | class_def {
@@ -1543,10 +1553,12 @@ top_level_command:
 
 	   // see if class definitions are allowed
 	   if (parse_check_parse_option(PO_NO_CLASS_DEFS))
-	      parse_error("illegal class definition '%s' (conflicts with parse option NO_CLASS_DEFS)", $1->oc->getName());
+	      parse_error("illegal class definition '%s' (conflicts with parse option PO_NO_CLASS_DEFS)", $1->oc->getName());
 	   delete $1;
 	}
 	| scoped_const_decl {
+           // see if strong encapsulation is enabled
+           check_strong_encapsulation("constant", $1->name.ostr);
            qore_root_ns_private::parseAddConstant(*getRootNS(), $1->name, $1->value, $1->pub);
 	   delete $1;
 	}
@@ -1555,6 +1567,8 @@ top_level_command:
 	   delete $1;
 	}
         | outofline_methoddef {
+           // see if strong encapsulation is enabled
+           check_strong_encapsulation("method", $1->name.ostr);
            $1->parseAddToClassAndDel();
         }
 	| statement {
@@ -1576,7 +1590,7 @@ top_level_command:
            qore_root_ns_private::parseAddNamespace($1);
 	   // see if ns declaration is legal
 	   if (parse_check_parse_option(PO_NO_NAMESPACE_DEFS))
-	      parse_error("illegal namespace definition '%s' (conflicts with parse option NO_NAMESPACE_DEFINITION)", $1->getName());
+	      parse_error("illegal namespace definition '%s' (conflicts with parse option PO_NO_NAMESPACE_DEFINITION)", $1->getName());
 	}
         | TOK_MODULE '{' module_decls '}' {
            QoreModuleDefContext* qmd = get_module_def_context();
@@ -1638,11 +1652,15 @@ ppub:   /* empty */
 
 gvardecl:
         ppub TOK_OUR uncqtypedef SCOPED_REF {
+           // see if strong encapsulation is enabled
+           check_strong_encapsulation("global variable", $4);
 	   const QoreTypeInfo* t = $3->getTypeInfo();
            $$ = new GVarSingleDecl($4, t, t ? 0 : $3->getParseTypeInfo(), $1, true);
            delete $3;
 	}
         | ppub TOK_OUR SCOPED_REF {
+           // see if strong encapsulation is enabled
+           check_strong_encapsulation("global variable", $3);
            $$ = new GVarSingleDecl($3, 0, 0, $1, true);
         }
         | ppub TOK_OUR uncqtypedef IDENTIFIER {
@@ -1654,6 +1672,8 @@ gvardecl:
            $$ = new GVarSingleDecl($3, 0, 0, $1, true);
 	}
         | ppub TOK_OUR qtypedef SCOPED_VREF {
+           // see if strong encapsulation is enabled
+           check_strong_encapsulation("global variable", $4);
 	   const QoreTypeInfo* t = $3->getTypeInfo();
            $$ = new GVarSingleDecl($4, t, t ? 0 : $3->getParseTypeInfo(), $1, false);
            delete $3;
@@ -1703,6 +1723,8 @@ namespace_decls:
 
 namespace_decl:
         scoped_const_decl {
+           // see if strong encapsulation is enabled
+           check_strong_encapsulation("constant", $1->name.ostr);
 	   $$ = new NSNode($1);
         }
         | unscoped_const_decl {
@@ -1712,12 +1734,14 @@ namespace_decl:
 	   $$ = new NSNode($1);
 	   // see if class definitions are allowed
 	   if (parse_check_parse_option(PO_NO_CLASS_DEFS))
-	      parse_error("illegal class definition '%s' (conflicts with parse option NO_CLASS_DEFS)", $1->oc->getName());
+	      parse_error("illegal class definition '%s' (conflicts with parse option PO_NO_CLASS_DEFS)", $1->oc->getName());
 	}
         | sub_def {
            $$ = new NSNode($1);
         }
         | scoped_sub_def {
+           // see if strong encapsulation is enabled
+           check_strong_encapsulation("function", $1->name.ostr);
            $$ = new NSNode($1);
         }
         | gvardecl ';' {
@@ -1727,7 +1751,7 @@ namespace_decl:
 	   $$ = new NSNode($1);
 	   // see if ns declaration is legal
 	   if (parse_check_parse_option(PO_NO_NAMESPACE_DEFS))
-	      parse_error("illegal namespace definition '%s' (conflicts with parse option NO_NAMESPACE_DEFINITION)", $1->getName());
+	      parse_error("illegal namespace definition '%s' (conflicts with parse option PO_NO_NAMESPACE_DEFINITION)", $1->getName());
 	}
         | outofline_methoddef {
            $$ = new NSNode($1);
@@ -1859,7 +1883,7 @@ statement:
         | TOK_THREAD_EXIT ';' {
 	   // see if thread exit is allowed
 	   if (parse_check_parse_option(PO_NO_THREAD_CONTROL))
-	      parse_error("illegal use of 'thread_exit' (conflicts with parse option NO_THREAD_CONTROL)");
+	      parse_error("illegal use of 'thread_exit' (conflicts with parse option PO_NO_THREAD_CONTROL)");
 
 	   $$ = new ThreadExitStatement(@1.first_line, @1.last_line);
 	}
@@ -2066,6 +2090,8 @@ class_def:
 	   $$ = new ObjClassDef($2, $5);
 	}
         | nsc_modifiers CLASS_SCOPED_REF inheritance_list '{' class_attributes '}' {
+           // see if strong encapsulation is enabled
+           check_strong_encapsulation("class", $2->ostr);
            check_classmod($1, *($5));
 	   $$ = new ObjClassDef($2, $5);
            qore_class_private::parseSetBaseClassList(*($5), $3);
@@ -2078,6 +2104,8 @@ class_def:
 	   $$ = new ObjClassDef($2, qc);
 	}
 	| nsc_modifiers CLASS_SCOPED_REF inheritance_list ';' {
+           // see if strong encapsulation is enabled
+           check_strong_encapsulation("class", $2->ostr);
            // class name is set automatically from name saved in scanner
 	   QoreClass* qc = new QoreClass;
            check_classmod($1, *qc);
@@ -2092,6 +2120,8 @@ class_def:
 	   $$ = new ObjClassDef($2, qc);
 	}
 	| nsc_modifiers CLASS_SCOPED_REF inheritance_list '{' '}' {
+           // see if strong encapsulation is enabled
+           check_strong_encapsulation("class", $2->ostr);
            // class name is set automatically from name saved in scanner
 	   QoreClass* qc = new QoreClass;
            check_classmod($1, *qc);
@@ -3069,25 +3099,25 @@ exp_c:  scalar
 	| TOK_NEW IDENTIFIER '(' myexp ')' {
 	   $$ = new ScopedObjectCallNode(new NamedScope($2), make_args($4));
 	   if (parse_check_parse_option(PO_NO_NEW))
-	      parse_error("illegal use of the 'new' operator (conflicts with parse option NO_NEW)");
+	      parse_error("illegal use of the 'new' operator (conflicts with parse option PO_NO_NEW)");
         }
 	| TOK_NEW SCOPED_REF '(' myexp ')' {
 	   $$ = new ScopedObjectCallNode(new NamedScope($2), make_args($4));
 	   if (parse_check_parse_option(PO_NO_NEW))
-	      parse_error("illegal use of the 'new' operator (conflicts with parse option NO_NEW)");
+	      parse_error("illegal use of the 'new' operator (conflicts with parse option PO_NO_NEW)");
         }
         | TOK_BACKGROUND exp {
 	   $$ = new QoreBackgroundOperatorNode($2);
 	   // check to see if the expression is legal
 	   if (parse_check_parse_option(PO_NO_THREAD_CONTROL))
-	      parse_error("illegal use of 'background' operator (conflicts with parse option NO_THREAD_CONTROL)");
+	      parse_error("illegal use of 'background' operator (conflicts with parse option PO_NO_THREAD_CONTROL)");
 	   else if (!node_has_effect($2))
 	      parse_error("argument to background operator (%s) has no effect", get_type_name($2));
 	}
         | BACKQUOTE {
 	   $$ = new BackquoteNode($1);
 	   if (parse_check_parse_option(PO_NO_EXTERNAL_PROCESS))
-	      parse_error("illegal use of backquote operator (conflicts with parse option NO_EXTERNAL_PROCESS)");
+	      parse_error("illegal use of backquote operator (conflicts with parse option PO_NO_EXTERNAL_PROCESS)");
 	}
 	| '(' exp ')' {
 	   $$ = $2;
