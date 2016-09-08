@@ -219,6 +219,8 @@ AbstractQoreNode* SelfFunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag
       return this;
    }
 
+   qore_class_private* class_ctx = qore_class_private::get(*const_cast<QoreClass*>(oflag->getTypeInfo()->getUniqueReturnClass()));
+
    printd(5, "SelfFunctionCallNode::parseInitImpl() this: %p resolving base class call '%s'\n", this, ns.ostr);
    assert(!method);
 
@@ -228,13 +230,13 @@ AbstractQoreNode* SelfFunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag
 	 printd(5, "SelfFunctionCallNode::parseInitImpl() this: %p resolved to copy constructor\n", this);
 	 is_copy = true;
 	 if (args)
-	    parse_error("no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", oflag->getTypeInfo()->getUniqueReturnClass()->getName());
+	    parse_error("no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", class_ctx->name.c_str());
       }
       else
-         method = qore_class_private::parseResolveSelfMethod(*(getParseClass()), ns.ostr);
+         method = qore_class_private::parseResolveSelfMethod(*class_ctx, ns.ostr);
    }
    else
-      method = qore_class_private::parseResolveSelfMethod(*(getParseClass()), &ns);
+      method = qore_class_private::parseResolveSelfMethod(*class_ctx, &ns);
 
    // by here, if there are no errors, the class has been initialized
    parseInitCall(oflag, pflag, lvids, returnTypeInfo);
@@ -509,9 +511,17 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
    // current class parse context
    ClassAccess access = Public;
    if (qc) {
+      qore_class_private* class_ctx;
+      if (oflag)
+	 class_ctx = qore_class_private::get(*const_cast<QoreClass*>(oflag->getTypeInfo()->getUniqueReturnClass()));
+      else {
+	 class_ctx = parse_get_class_priv();
+	 if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*qc, class_ctx))
+	    class_ctx = 0;
+      }
       if (pc && qore_class_private::get(*pc)->parseCheckHierarchy(qc, access)) {
 	 ClassAccess m_access;
-	 method = qore_class_private::parseFindAnyMethod(qc, scope->getIdentifier(), m_access);
+	 method = qore_class_private::parseFindAnyMethod(qc, scope->getIdentifier(), m_access, class_ctx);
 	 //printd(5, "StaticMethodCallNode::parseInitImpl() '%s' pc: %s qc: %s access: %s m_access: %s method: %p\n", scope->ostr, pc->getName(), qc->getName(),  privpub(access), privpub(m_access), method);
 	 if (m_access == Internal && pc != qc)
 	    method = 0;
@@ -520,7 +530,7 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
 	 }
       }
       else
-	 method = qore_class_private::parseFindStaticMethod(*qc, scope->getIdentifier(), access);
+	 method = qore_class_private::parseFindStaticMethod(*qc, scope->getIdentifier(), access, class_ctx);
    }
 
    //printd(5, "StaticMethodCallNode::parseInitImpl() %s qc: %p '%s' method: %p '%s()' access: %s\n", scope->ostr, qc, qc ? qc->getName() : "n/a", method, scope->getIdentifier(), privpub(access));
@@ -580,7 +590,7 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
 
    // need to get the current contextual class when parsing in case we're in a static method for example
    if (!pc)
-      pc = getParseClass();
+      pc = parse_get_class();
 
    if (access > Public) {
       if (!pc || !qore_class_private::get(*pc)->parseCheckHierarchy(qc, access)) {

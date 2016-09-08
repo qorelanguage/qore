@@ -121,8 +121,16 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
    if (!m)
       return this;
 
+   qore_class_private* class_ctx;
+   if (oflag)
+      class_ctx = qore_class_private::get(*const_cast<QoreClass*>(oflag->getTypeInfo()->getUniqueReturnClass()));
+   else {
+      class_ctx = parse_get_class_priv();
+      if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*qc, class_ctx))
+	 class_ctx = 0;
+   }
    ClassAccess access;
-   meth = qore_class_private::parseFindMethod(*qc, mname, access);
+   meth = qore_class_private::parseFindMethod(*qc, mname, access, class_ctx);
 
    //printd(5, "QoreDotEvalOperatorNode::parseInitImpl() %s::%s() method: %p (%s) (%s)\n", qc->getName(), mname, meth, meth ? meth->getClassName() : "n/a", privpub(access));
    // FIXME
@@ -132,7 +140,7 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
       if (args && args->size())
 	 parse_error(loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
 
-      if (meth && (qore_method_private::parseGetAccess(*meth) > Public) && (!oflag || !qore_class_private::parseCheckCompatibleClass(*qc, *(getParseClass()))))
+      if (meth && (qore_method_private::parseGetAccess(*meth) > Public) && (!oflag || !qore_class_private::parseCheckCompatibleClass(*qc, *class_ctx->cls)))
 	 parse_error(loc, "illegal call to private %s::copy() method", qc->getName());
 
       // do not save method pointer for copy methods
@@ -149,7 +157,7 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
 
    // if a normal method is not found, then look for a static method
    if (!meth)
-      meth = qore_class_private::parseFindStaticMethod(*qc, mname, access);
+      meth = qore_class_private::parseFindStaticMethod(*qc, mname, access, class_ctx);
 
    if (!meth) {
       if (!qc->parseHasMethodGate()) {
@@ -173,7 +181,7 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
       }
    }
 
-   if ((access > Public) && !qore_class_private::parseCheckPrivateClassAccess(*qc))
+   if (!class_ctx && (access > Public))
       parse_error(loc, "illegal call to private method %s::%s()", qc->getName(), mname);
    else // save method for optimizing calls later
       m->parseSetClassAndMethod(qc, meth);

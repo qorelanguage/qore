@@ -948,7 +948,7 @@ int qore_root_ns_private::parseAddMethodToClassIntern(const NamedScope& scname, 
 
 // returns 0 for success, non-zero for error
 AbstractQoreNode* qore_root_ns_private::parseResolveBarewordIntern(const QoreProgramLocation& loc, const char* bword, const QoreTypeInfo*& typeInfo) {
-   QoreClass* pc = getParseClass();
+   QoreClass* pc = parse_get_class();
 
    //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() bword: %s pc: %p (%s)\n", bword, pc, pc ? pc->getName() : "<none>");
 

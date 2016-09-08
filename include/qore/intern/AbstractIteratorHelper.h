@@ -71,17 +71,20 @@ public:
       if (!qc)
          return;
 
+      const qore_class_private* class_ctx = runtime_get_class();
+      if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*o->getClass(), class_ctx))
+         class_ctx = 0;
       ClassAccess access;
       obj = o;
       // get "next" method if accessible
-      nextMethod = qore_class_private::get(*o->getClass())->runtimeFindCommittedMethod(fwd ? "next" : "prev", access);
+      nextMethod = qore_class_private::get(*o->getClass())->runtimeFindCommittedMethod(fwd ? "next" : "prev", access, class_ctx);
       // method must be found because we have an instance of AbstractIterator/AbstractBidirectionalIterator
       assert(nextMethod);
       nextVariant = getCheckVariant(op, nextMethod, xsink);
       if (!nextVariant)
          return;
       if (get_value) {
-         getValueMethod = qore_class_private::get(*o->getClass())->runtimeFindCommittedMethod("getValue", access);
+         getValueMethod = qore_class_private::get(*o->getClass())->runtimeFindCommittedMethod("getValue", access, class_ctx);
          // method must be found because we have an instance of AbstractIterator
          assert(getValueMethod);
          getValueVariant = getCheckVariant(op, getValueMethod, xsink);

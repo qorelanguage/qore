@@ -1679,8 +1679,13 @@ void setParseClass(QoreClass* c) {
    td->parseClass = c;
 }
 
-QoreClass* getParseClass() {
+QoreClass* parse_get_class() {
    return (thread_data.get())->parseClass;
+}
+
+qore_class_private* parse_get_class_priv() {
+   QoreClass* qc = parse_get_class();
+   return qc ? qore_class_private::get(*qc) : 0;
 }
 
 // to save the exception for "rethrow"

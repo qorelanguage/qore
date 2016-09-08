@@ -33,6 +33,10 @@ class Base {
         return self;
     }
 
+    int pubint() {
+        return 1;
+    }
+
     private int priv() {
         return 0;
     }
@@ -113,6 +117,10 @@ class PubChild inherits Base {
 
     private int priv() {
         return 0;
+    }
+
+    private:internal int pubint() {
+        return 1;
     }
 
     private:internal int intern() {
@@ -324,6 +332,7 @@ class TestInheritB {
         assertEq(2, c1.getConPriv());
         assertEq(2, c1.getStatInt());
         assertEq(3, c1.getConInt());
+        assertEq(1, c1.pubint());
 
         PrivChild c2();
         assertThrows("RUNTIME-CAST-ERROR", Base sub () {return cast<Base>(c2);});
@@ -337,6 +346,13 @@ class TestInheritB {
             Program p(PO_NEW_STYLE);
             assertThrows("PARSE-EXCEPTION", "illegal call.*b", \p.parse(), ("class B { int b() {} } class C inherits private B {} sub test() { C c(); c.b();}", ""));
         }
+
+        /*
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", "illegal call.*b", \p.parse(), ("class B { int b() { return 0; } } class C inherits B { private:internal int b() { return 1; }} sub test() { C c(); c.b();}", ""));
+        }
+        */
 
         {
             Program p(PO_NEW_STYLE);

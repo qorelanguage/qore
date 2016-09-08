@@ -286,11 +286,19 @@ AbstractQoreNode* ParseObjectMethodReferenceNode::parseInitImpl(LocalVar* oflag,
 	 else {
 	    const QoreClass* n_qc = argTypeInfo->getUniqueReturnClass();
 	    if (n_qc) {
+	       qore_class_private* class_ctx;
+	       if (oflag)
+		  class_ctx = qore_class_private::get(*const_cast<QoreClass*>(oflag->getTypeInfo()->getUniqueReturnClass()));
+	       else {
+		  class_ctx = parse_get_class_priv();
+		  if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*n_qc, class_ctx))
+		     class_ctx = 0;
+	       }
 	       ClassAccess access;
-	       m = qore_class_private::parseFindMethod(*const_cast<QoreClass*>(n_qc), method.c_str(), access);
+	       m = qore_class_private::parseFindMethod(*const_cast<QoreClass*>(n_qc), method.c_str(), access, class_ctx);
 	       if (m) {
 		  qc = n_qc;
-		  if ((access > Public) && !qore_class_private::parseCheckPrivateClassAccess(*qc))
+		  if (!class_ctx && (access > Public))
 		     parseException("PARSE-ERROR", "method %s::%s() is private in this context, therefore a call reference cannot be taken", qc->getName(), method.c_str());
 	       }
 	       else
@@ -320,7 +328,8 @@ AbstractQoreNode* ParseSelfMethodReferenceNode::parseInitImpl(LocalVar* oflag, i
       parse_error("reference to object member '%s' when not in an object context", method.c_str());
    else {
       assert(!method.empty());
-      meth = qore_class_private::parseResolveSelfMethod(*(getParseClass()), method.c_str());
+      qore_class_private* class_ctx = qore_class_private::get(*const_cast<QoreClass*>(oflag->getTypeInfo()->getUniqueReturnClass()));
+      meth = qore_class_private::parseResolveSelfMethod(*class_ctx, method.c_str());
       method.clear();
    }
    return this;
@@ -343,7 +352,8 @@ AbstractQoreNode* ParseScopedSelfMethodReferenceNode::parseInitImpl(LocalVar* of
    if (!oflag)
       parse_error("reference to object member '%s' when not in an object context", method);
    else {
-      method = qore_class_private::parseResolveSelfMethod(*(getParseClass()), nscope);
+      qore_class_private* class_ctx = qore_class_private::get(*const_cast<QoreClass*>(oflag->getTypeInfo()->getUniqueReturnClass()));
+      method = qore_class_private::parseResolveSelfMethod(*class_ctx, nscope);
       delete nscope;
       nscope = 0;
    }
@@ -533,17 +543,24 @@ AbstractQoreNode* UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar* o
       return this;
    }
 
+   qore_class_private* class_ctx = oflag ? qore_class_private::get(*const_cast<QoreClass*>(oflag->getTypeInfo()->getUniqueReturnClass())) : 0;
+
    const QoreMethod* qm = 0;
    // try to find a pointer to a non-static method if parsing in the class' context
    // and bare references are enabled
    ClassAccess access;
    if (oflag && parse_check_parse_option(PO_ALLOW_BARE_REFS)
-       && qore_class_private::get(*oflag->getTypeInfo()->getUniqueReturnClass())->parseCheckHierarchy(qc, access)) {
-      qm = qore_class_private::parseFindMethod(*qc, scope->getIdentifier(), access);
+       && class_ctx->parseCheckHierarchy(qc, access)) {
+      qm = qore_class_private::parseFindMethod(*qc, scope->getIdentifier(), access, class_ctx);
       assert(!qm || !qm->isStatic());
    }
    if (!qm) {
-      qm = qore_class_private::parseFindStaticMethod(*qc, scope->getIdentifier(), access);
+      if (!oflag) {
+	 class_ctx = parse_get_class_priv();
+	 if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*qc, class_ctx))
+	    class_ctx = 0;
+      }
+      qm = qore_class_private::parseFindStaticMethod(*qc, scope->getIdentifier(), access, class_ctx);
       if (!qm) {
 	 parseException("INVALID-METHOD", "class '%s' has no static method '%s'", qc->getName(), scope->getIdentifier());
 	 return this;
