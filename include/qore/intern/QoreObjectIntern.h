@@ -343,7 +343,7 @@ public:
 
    DLLLOCAL int checkMemberAccessIntern(const char* mem, bool has_public_members, const qore_class_private* class_ctx, bool& internal_member) const {
       ClassAccess access;
-      const qore_class_private* qc = qore_class_private::runtimeGetMemberClass(*theclass, mem, class_ctx, access, internal_member);
+      const qore_class_private* qc = qore_class_private::runtimeGetMemberClass(*theclass, mem, access, class_ctx, internal_member);
       if (!qc)
          return has_public_members ? QOA_PUB_ERROR : QOA_OK;
       // if internal_member is true, then private access has already been verified
@@ -386,7 +386,7 @@ public:
 
    DLLLOCAL int checkMemberAccess(const char* mem, const qore_class_private* class_ctx, bool& internal_member) const {
       ClassAccess access;
-      const qore_class_private* qc = qore_class_private::runtimeGetMemberClass(*theclass, mem, class_ctx, access, internal_member);
+      const qore_class_private* qc = qore_class_private::runtimeGetMemberClass(*theclass, mem, access, class_ctx, internal_member);
       if (!qc)
          return theclass->runtimeHasPublicMembersInHierarchy() ? QOA_PUB_ERROR : QOA_OK;
       // if internal_member is true, then private access has already been verified
@@ -410,7 +410,7 @@ public:
 
    DLLLOCAL int checkMemberAccessGetTypeInfo(ExceptionSink* xsink, const char* mem, const qore_class_private* class_ctx, bool& internal_member, const QoreTypeInfo*& typeInfo) const {
       ClassAccess access;
-      const QoreMemberInfo* mi = qore_class_private::runtimeGetMemberInfo(*theclass, mem, class_ctx, access, internal_member);
+      const QoreMemberInfo* mi = qore_class_private::runtimeGetMemberInfo(*theclass, mem, access, class_ctx, internal_member);
       if (mi) {
          // check access if necessary; note that if the member was internally accessed, then the check has already been made
 	 if (access > Public && !class_ctx && access != Internal) {

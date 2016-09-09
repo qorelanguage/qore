@@ -194,6 +194,14 @@ class IntChild inherits private:internal Base {
     private int priv() {
         return Base::priv();
     }
+
+    int getInt() {
+        return pubint();
+    }
+
+    code getCode() {
+        return \pubint();
+    }
 }
 
 public class AccessTest inherits QUnit::Test {
@@ -358,6 +366,9 @@ class TestInheritB {
         IntChild c3();
         assertThrows("RUNTIME-CAST-ERROR", Base sub () {return cast<Base>(c3);});
         assertEq(c3, c3.test());
+        assertEq(1, c3.getInt());
+        assertEq(1, c3.getCode()());
+        assertThrows("METHOD-DOES-NOT-EXIST", \call_object_method(), (c3, "pubint"));
 
         {
             Program p(PO_NEW_STYLE);
