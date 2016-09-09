@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@
     latin2Stream.write(latin2Data);     #writes UTF-8 equivalents to destUtf8Stream
     @endcode
  */
-qclass EncodingConversionOutputStream [arg=EncodingConversionOutputStream* os; ns=Qore; vparent=OutputStream; flags=final; private_members=OutputStream os;];
+qclass EncodingConversionOutputStream [arg=EncodingConversionOutputStream* os; ns=Qore; vparent=OutputStream; flags=final; internal_members=OutputStream os;];
 
 //! Creates the EncodingConversionOutputStream based on the \ref OutputStream given
 /**

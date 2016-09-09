@@ -745,6 +745,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%old-style{WS}*$                       getProgram()->parseDisableParseOptions(PO_NEW_STYLE);
 ^%perl-bool-eval{WS}*$                  getProgram()->parseDisableParseOptions(PO_STRICT_BOOLEAN_EVAL);
 ^%strict-bool-eval{WS}*$                getProgram()->parseSetParseOptions(PO_STRICT_BOOLEAN_EVAL);
+^%strong-encapsulation{WS}*$            getProgram()->parseSetParseOptions(PO_STRONG_ENCAPSULATION);
 ^%broken-list-parsing{WS}*$             getProgram()->parseSetParseOptions(PO_BROKEN_LIST_PARSING);
 ^%broken-logic-precedence{WS}*$         getProgram()->parseSetParseOptions(PO_BROKEN_LOGIC_PRECEDENCE);
 ^%broken-loop-statement{WS}*$           getProgram()->parseSetParseOptions(PO_BROKEN_LOOP_STATEMENT);
@@ -1295,6 +1296,8 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                         }
 where                                   return TOK_WHERE;
 private                                 return TOK_PRIVATE;
+private:internal                        return TOK_PRIVATEINTERNAL;
+private:hierarchy                       return TOK_PRIVATEHIERARCHY;
 public                                  return TOK_PUBLIC;
 abstract                                return TOK_ABSTRACT;
 unreference                             return TOK_UNREFERENCE;

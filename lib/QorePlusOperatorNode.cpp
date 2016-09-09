@@ -29,6 +29,7 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/QoreObjectIntern.h>
 
 QoreString QorePlusOperatorNode::plus_str("+ operator expression");
 
@@ -126,7 +127,7 @@ QoreValue QorePlusOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
       if (rt == NT_OBJECT) {
 	 QoreObject* r = rh->get<QoreObject>();
 	 ReferenceHolder<QoreHashNode> rv(l->copy(), xsink);
-	 r->mergeDataToHash(*rv, xsink);
+	 qore_object_private::get(*r)->mergeDataToHash(*rv, xsink);
 	 if (*xsink)
 	    return 0;
 
@@ -141,7 +142,7 @@ QoreValue QorePlusOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
 	 return l->refSelf();
       const QoreHashNode* r = rh->get<const QoreHashNode>();
 
-      ReferenceHolder<QoreHashNode> h(l->copyData(xsink), xsink);
+      ReferenceHolder<QoreHashNode> h(qore_object_private::get(*l)->getRuntimeMemberHash(xsink), xsink);
       if (*xsink)
 	 return 0;
 
@@ -197,7 +198,7 @@ AbstractQoreNode* QorePlusOperatorNode::parseInitImpl(LocalVar* oflag, int pflag
    // otherwise only set return type if return types on both sides are known at parse time
    else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) {
       if (leftTypeInfo->isType(NT_STRING)
-	       || rightTypeInfo->isType(NT_STRING))
+	  || rightTypeInfo->isType(NT_STRING))
 	 returnTypeInfo = stringTypeInfo;
 
       else if (leftTypeInfo->isType(NT_DATE)

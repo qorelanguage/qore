@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -48,7 +48,7 @@ sw.writei4(0xf4f4);
 
     @see @ref OutputStream
  */
-qclass StreamWriter [arg=StreamWriter* sw; ns=Qore; private_members=OutputStream os];
+qclass StreamWriter [arg=StreamWriter* sw; ns=Qore; internal_members=OutputStream os];
 
 //! Creates the StreamWriter for writing data to the given @ref OutputStream.
 /** @param os the @ref OutputStream for writing data

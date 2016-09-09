@@ -262,7 +262,8 @@ DLLLOCAL CVNode* getCVarStack();
 DLLLOCAL void updateVStack(VNode* nvs);
 DLLLOCAL VNode* getVStack();
 DLLLOCAL void setParseClass(QoreClass* c);
-DLLLOCAL QoreClass* getParseClass();
+DLLLOCAL QoreClass* parse_get_class();
+DLLLOCAL qore_class_private* parse_get_class_priv();
 DLLLOCAL void substituteObjectIfEqual(QoreObject* o);
 DLLLOCAL QoreObject* substituteObject(QoreObject* o);
 DLLLOCAL QoreException* catchSwapException(QoreException* e);
@@ -399,6 +400,23 @@ public:
    }
 };
 
+class QoreProgramOptionalLocationHelper {
+protected:
+   QoreProgramLocation loc;
+   bool restore;
+
+public:
+   DLLLOCAL QoreProgramOptionalLocationHelper(QoreProgramLocation* n_loc) : restore((bool)n_loc) {
+      if (n_loc)
+         loc = update_get_runtime_location(*n_loc);
+   }
+
+   DLLLOCAL ~QoreProgramOptionalLocationHelper() {
+      if (restore)
+         update_runtime_location(loc);
+   }
+};
+
 // acquires a TID and thread entry, returns -1 if not successful
 DLLLOCAL int get_thread_entry();
 // acquires TID 0 and sets up the signal thread entry, always returns 0
@@ -483,69 +501,9 @@ DLLLOCAL LocalVarValue* thread_find_lvar(const char* id);
 DLLLOCAL QoreObject* runtime_get_stack_object();
 // to get the current runtime class
 DLLLOCAL const qore_class_private* runtime_get_class();
+DLLLOCAL void runtime_get_object_and_class(QoreObject*& obj, const qore_class_private*& qc);
 // for methods that behave differently when called within the method itself (methodGate(), memberGate(), etc)
 DLLLOCAL bool runtime_in_object_method(const char* name, const QoreObject* o);
-
-struct ClassObj {
-protected:
-   size_t ptr;
-
-public:
-   DLLLOCAL ClassObj() : ptr(0) {
-   }
-
-   DLLLOCAL explicit ClassObj(int p) : ptr(0) {
-      assert(!p);
-   }
-
-   DLLLOCAL ClassObj(const QoreObject* o) : ptr((size_t)o) {
-   }
-
-   DLLLOCAL explicit ClassObj(const qore_class_private* qc) : ptr(qc ? (((size_t)qc) | 1) : 0) {
-   }
-
-   DLLLOCAL ClassObj(const ClassObj& old) : ptr(old.ptr) {
-   }
-
-   DLLLOCAL operator bool() const {
-      return (bool)ptr;
-   }
-
-   DLLLOCAL ClassObj& operator=(const ClassObj& n) {
-      ptr = n.ptr;
-      return *this;
-   }
-
-   DLLLOCAL ClassObj& operator=(const QoreObject* o) {
-      ptr = (size_t)o;
-      return *this;
-   }
-
-   DLLLOCAL ClassObj& operator=(const qore_class_private* qc) {
-      ptr = qc ? (((size_t)qc) | 1) : 0;
-      return *this;
-   }
-
-   DLLLOCAL void clear() {
-      ptr = 0;
-   }
-
-   /*
-   DLLLOCAL bool isClass() const {
-      return ptr & 1;
-   }
-
-   DLLLOCAL bool isObject() const {
-      return !(ptr & 1);
-   }
-   */
-
-   DLLLOCAL QoreObject* getObj() const {
-      return (!(ptr & 1)) ? (QoreObject*)ptr : 0;
-   }
-
-   DLLLOCAL const qore_class_private* getClass() const;
-};
 
 class lvalue_ref {
 public:
@@ -553,14 +511,15 @@ public:
    QoreObject* self;
    QoreProgram* pgm;
    const void* lvalue_id;
+   const qore_class_private* cls;
 
-   DLLLOCAL lvalue_ref(AbstractQoreNode* n_lvexp, QoreObject* n_self, const void* lvid) : vexp(n_lvexp), self(n_self), pgm(getProgram()), lvalue_id(lvid) {
+   DLLLOCAL lvalue_ref(AbstractQoreNode* n_lvexp, QoreObject* n_self, const void* lvid, const qore_class_private* n_cls) : vexp(n_lvexp), self(n_self), pgm(getProgram()), lvalue_id(lvid), cls(n_cls) {
       //printd(5, "lvalue_ref::lvalue_ref() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
       if (self)
          self->tRef();
    }
 
-   DLLLOCAL lvalue_ref(const lvalue_ref& old) : vexp(old.vexp->refSelf()), self(old.self), pgm(old.pgm), lvalue_id(old.lvalue_id) {
+   DLLLOCAL lvalue_ref(const lvalue_ref& old) : vexp(old.vexp->refSelf()), self(old.self), pgm(old.pgm), lvalue_id(old.lvalue_id), cls(old.cls) {
       //printd(5, "lvalue_ref::lvalue_ref() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
       if (self)
          self->tRef();
@@ -587,34 +546,37 @@ public:
    }
 };
 
-class CodeContextHelper {
+class CodeContextHelperBase {
 private:
    const char* old_code;
-   ClassObj old;
+   QoreObject* old_obj;
+   const qore_class_private* old_class;
    ExceptionSink* xsink;
    bool do_ref;
 
 public:
-   DLLLOCAL CodeContextHelper(const char* code, ClassObj obj, ExceptionSink* xs);
-   DLLLOCAL ~CodeContextHelper();
+   DLLLOCAL CodeContextHelperBase(const char* code, QoreObject* o, const qore_class_private* qc, ExceptionSink* xs);
+   DLLLOCAL ~CodeContextHelperBase();
 };
 
 class ObjectSubstitutionHelper {
 private:
-   ClassObj old;
+   QoreObject* old_obj;
+   const qore_class_private* old_class;
 
 public:
-   DLLLOCAL ObjectSubstitutionHelper(QoreObject* obj);
+   DLLLOCAL ObjectSubstitutionHelper(QoreObject* obj, const qore_class_private* c);
    DLLLOCAL ~ObjectSubstitutionHelper();
 };
 
 class OptionalClassObjSubstitutionHelper {
 private:
-   ClassObj old;
+   QoreObject* old_obj;
+   const qore_class_private* old_class;
    bool subst;
 
 public:
-   DLLLOCAL OptionalClassObjSubstitutionHelper(QoreObject* obj);
+   //DLLLOCAL OptionalClassObjSubstitutionHelper(QoreObject* obj, const qore_class_private* c;
    DLLLOCAL OptionalClassObjSubstitutionHelper(const qore_class_private* qc);
    DLLLOCAL ~OptionalClassObjSubstitutionHelper();
 };
@@ -712,9 +674,6 @@ public:
    DLLLOCAL ~ProgramRuntimeParseAccessHelper();
 };
 
-//int thread_ref_set(const lvalue_ref* r);
-//void thread_ref_remove(const lvalue_ref* r);
-
 class RuntimeReferenceHelperBase {
 protected:
    const lvalue_ref* ref;
@@ -724,7 +683,7 @@ protected:
 
 public:
    DLLLOCAL RuntimeReferenceHelperBase(const lvalue_ref& r, ExceptionSink* n_xsink)
-      : ref(&r), pch(n_xsink, r.pgm, true), osh(r.self), xsink(n_xsink) {
+      : ref(&r), pch(n_xsink, r.pgm, true), osh(r.self, r.cls), xsink(n_xsink) {
       //printd(5, "RuntimeReferenceHelperBase::RuntimeReferenceHelperBase() this: %p vexp: %p %s %d\n", this, r.vexp, get_type_name(r.vexp), get_node_type(r.vexp));
       if (thread_ref_set(&r)) {
          ref = 0;
@@ -793,11 +752,11 @@ public:
    QoreProgramLocation loc;
    int type;
 
-   ClassObj obj;
+   QoreObject* obj;
+   const qore_class_private* cls;
    CallNode* next, *prev;
 
-   DLLLOCAL CallNode(const char* f, int t, ClassObj o);
-   //DLLLOCAL void objectDeref(ExceptionSink* xsink);
+   DLLLOCAL CallNode(const char* f, int t, QoreObject* o, const qore_class_private* c);
    DLLLOCAL QoreHashNode* getInfo() const;
 };
 
@@ -811,11 +770,13 @@ public:
    DLLLOCAL QoreListNode* getCallStack() const;
    DLLLOCAL void push(CallNode* cn);
    DLLLOCAL void pop(ExceptionSink* xsink);
+   /*
    DLLLOCAL void substituteObjectIfEqual(QoreObject* o);
    DLLLOCAL QoreObject* getStackObject() const;
    DLLLOCAL const qore_class_private* getStackClass() const;
    DLLLOCAL QoreObject* substituteObject(QoreObject* o);
-   //DLLLOCAL bool inMethod(const char* name, QoreObject* o) const;
+   DLLLOCAL bool inMethod(const char* name, QoreObject* o) const;
+   */
 };
 
 class CallStackHelper : public CallNode {
@@ -827,16 +788,29 @@ class CallStackHelper : public CallNode {
    DLLLOCAL void* operator new(size_t);
 
 public:
-   DLLLOCAL CallStackHelper(const char* f, int t, ClassObj o, ExceptionSink* n_xsink) : CallNode(f, t, o), xsink(n_xsink) {
+   DLLLOCAL CallStackHelper(const char* f, int t, QoreObject* o, const qore_class_private* c, ExceptionSink* n_xsink) : CallNode(f, t, o, c), xsink(n_xsink) {
       pushCall(this);
    }
    DLLLOCAL ~CallStackHelper() {
       popCall(xsink);
    }
 };
-#define CODE_CONTEXT_HELPER(type, name, self, xsink) CodeContextHelper cch_auto(name, self, xsink); CallStackHelper csh_auto(name, type, self, xsink)
+
+class CodeContextHelper : public CodeContextHelperBase, public CallStackHelper {
+public:
+   DLLLOCAL CodeContextHelper(ExceptionSink* xs, int t, const char* c, QoreObject* obj = 0, const qore_class_private* cls = 0) :
+      CodeContextHelperBase(c, obj, cls, xs),
+      CallStackHelper(c, t, obj, cls, xs) {
+   }
+};
+
 #else
-#define CODE_CONTEXT_HELPER(type, name, self, xsink) CodeContextHelper cch_auto(name, self, xsink)
+class CodeContextHelper : public CodeContextHelperBase {
+public:
+   DLLLOCAL CodeContextHelper(ExceptionSink* xs, int t, const char* c, QoreObject* obj = 0, const qore_class_private* cls = 0) :
+      CodeContextHelperBase(c, obj, cls, xs),
+   }
+};
 #endif
 
 DLLLOCAL void init_qore_threads();

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -440,35 +440,23 @@ void ConstantList::assimilate(ConstantList& n, ConstantList& otherlist, const ch
    n.parseDeleteAll();
 }
 
-int ConstantList::checkDup(const char* name, ConstantList& committed, ConstantList& other, ConstantList& otherPend, bool priv, const char* cname) {
-   if (inList(name)) {
-      parse_error("%s constant \"%s\" is already pending in class \"%s\"", privpub(priv), name, cname);
+int ConstantList::checkDup(const char* name, ConstantList& committed, ConstantList& other, ConstantList& otherPend, ConstantList& third, ConstantList& thirdPend, ClassAccess access, const char* cname) {
+   if (inList(name) || otherPend.inList(name) || thirdPend.inList(name)) {
+      parse_error("%s constant \"%s\" is already pending in class \"%s\"", privpub(access), name, cname);
       return -1;
    }
 
    // see if constant already exists in committed list
-   if (committed.inList(name)) {
-      parse_error("%s constant \"%s\" has already been added to class \"%s\"", privpub(priv), name, cname);
-      return -1;
-   }
-
-   // see if constant is in the other pending list
-   if (otherPend.inList(name)) {
-      parse_error("%s constant \"%s\" is already pending in class \"%s\" as a %s constant", privpub(priv), name, cname, privpub(!priv));
-      return -1;
-   }
-
-   // see if constant is in the other committed list
-   if (other.inList(name)) {
-      parse_error("%s constant \"%s\" has already been added to class \"%s\" as a %s constant", privpub(priv), name, cname, privpub(!priv));
+   if (committed.inList(name) || other.inList(name) || third.inList(name)) {
+      parse_error("%s constant \"%s\" has already been added to class \"%s\"", privpub(access), name, cname);
       return -1;
    }
 
    return 0;
 }
 
-void ConstantList::parseAdd(const std::string& name, AbstractQoreNode* val, ConstantList& committed, ConstantList& other, ConstantList& otherPend, bool priv, const char* cname) {
-   if (checkDup(name.c_str(), committed, other, otherPend, priv, cname)) {
+void ConstantList::parseAdd(const std::string& name, AbstractQoreNode* val, ConstantList& committed, ConstantList& other, ConstantList& otherPend, ConstantList& third, ConstantList& thirdPend, ClassAccess access, const char* cname) {
+   if (checkDup(name.c_str(), committed, other, otherPend, third, thirdPend, access, cname)) {
       if (val)
 	 val->deref(0);
    }
@@ -478,9 +466,9 @@ void ConstantList::parseAdd(const std::string& name, AbstractQoreNode* val, Cons
    }
 }
 
-void ConstantList::assimilate(ConstantList& n, ConstantList& committed, ConstantList& other, ConstantList& otherPend, bool priv, const char* cname) {
+void ConstantList::assimilate(ConstantList& n, ConstantList& committed, ConstantList& other, ConstantList& otherPend, ConstantList& third, ConstantList& thirdPend, ClassAccess access, const char* cname) {
    for (cnemap_t::iterator i = n.cnemap.begin(), e = n.cnemap.end(); i != e; ++i) {
-      if (!checkDup(i->first, committed, other, otherPend, priv, cname)) {
+      if (!checkDup(i->first, committed, other, otherPend, third, thirdPend, access, cname)) {
 	 cnemap[i->first] = i->second;
 	 i->second = 0;
       }

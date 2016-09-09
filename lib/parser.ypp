@@ -122,7 +122,7 @@ public:
    DLLLOCAL ConstNode(char* n, AbstractQoreNode* v, bool p = false) : name(n), value(v), pub(p) {
       // see if constant definitions are allowed
       if (parse_check_parse_option(PO_NO_CONSTANT_DEFS))
-         parse_error("illegal constant definition \"%s\" (conflicts with parse option NO_CONSTANT_DEFS)", n);
+         parse_error("illegal constant definition \"%s\" (conflicts with parse option PO_NO_CONSTANT_DEFS)", n);
    }
    DLLLOCAL AbstractQoreNode* takeValue() {
       AbstractQoreNode* rv = value;
@@ -142,9 +142,15 @@ public:
    NamedScope *name;
    QoreClass* oc;
 
-   DLLLOCAL inline ObjClassDef(NamedScope *n, QoreClass* o) : name(n), oc(o) {}
-   DLLLOCAL inline ObjClassDef(char* n, QoreClass* o) : name(new NamedScope(n)), oc(o) {}
-   DLLLOCAL inline ~ObjClassDef() { delete name; }
+   DLLLOCAL ObjClassDef(NamedScope *n, QoreClass* o) : name(n), oc(o) {
+   }
+
+   DLLLOCAL ObjClassDef(char* n, QoreClass* o) : name(new NamedScope(n)), oc(o) {
+   }
+
+   DLLLOCAL ~ObjClassDef() {
+      delete name;
+   }
 };
 
 class ParseUserFunctionBase {
@@ -182,7 +188,7 @@ public:
       // make sure definition was legal
       if (parse_check_parse_option(PO_NO_SUBROUTINE_DEFS)) {
          const char* nsn = ns.name.c_str();
-         parse_error("function '%s%s%s()' cannot be defined (conflicts with parse option NO_SUBROUTINE_DEFS)", nsn[0] ? nsn : "", nsn[0] ? "::" : "", name);
+         parse_error("function '%s%s%s()' cannot be defined (conflicts with parse option PO_NO_SUBROUTINE_DEFS)", nsn[0] ? nsn : "", nsn[0] ? "::" : "", name);
       }
 
       delete this;
@@ -201,7 +207,7 @@ public:
       variant = 0;
       // make sure definition was legal
       if (parse_check_parse_option(PO_NO_SUBROUTINE_DEFS))
-         parse_error("function '%s()' cannot be defined (conflicts with parse option NO_SUBROUTINE_DEFS)", name.ostr);
+         parse_error("function '%s()' cannot be defined (conflicts with parse option PO_NO_SUBROUTINE_DEFS)", name.ostr);
 
       delete this;
    }
@@ -387,13 +393,14 @@ static int checkMethod(const char* name, BCAList* bcal, RetTypeInfo* returnTypeI
    return 0;
 }
 
-#define OFM_PRIVATE    (1 << 0)
-#define OFM_SYNCED     (1 << 1)
-#define OFM_STATIC     (1 << 2)
-#define OFM_DEPRECATED (1 << 3)
-#define OFM_PUBLIC     (1 << 4)
-#define OFM_FINAL      (1 << 5)
-#define OFM_ABSTRACT   (1 << 6)
+#define OFM_PUBLIC     (1 << 0)
+#define OFM_PRIVATE    (1 << 1)
+#define OFM_INTERNAL   (1 << 2)
+#define OFM_SYNCED     (1 << 3)
+#define OFM_STATIC     (1 << 4)
+#define OFM_DEPRECATED (1 << 5)
+#define OFM_FINAL      (1 << 6)
+#define OFM_ABSTRACT   (1 << 7)
 
 static inline MethodVariantBase* newMethodVariant(const char* name, int mod, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, BCAList* bcal, RetTypeInfo* returnTypeInfo, StatementBlock *b) {
    //printd(5, "newMethodVariant() '%s' b: %p\n", name, b);
@@ -401,6 +408,20 @@ static inline MethodVariantBase* newMethodVariant(const char* name, int mod, int
 
    if (get_pop_argv_ref())
       flags |= QC_USES_EXTRA_ARGS;
+
+   ClassAccess access = Public;
+   if (mod & OFM_PRIVATE) {
+      if (mod & OFM_INTERNAL)
+         parse_error("%s() methods cannot be both private:hierarchy and private:internal", name);
+      if (mod & OFM_PUBLIC)
+         parse_error("%s() methods cannot be both public and private", name);
+      access = Private;
+   }
+   else if (mod & OFM_INTERNAL) {
+      if (mod & OFM_PUBLIC)
+         parse_error("%s() methods cannot be both public and private", name);
+      access = Internal;
+   }
 
    if (mod & OFM_DEPRECATED)
       flags |= QC_DEPRECATED;
@@ -416,7 +437,7 @@ static inline MethodVariantBase* newMethodVariant(const char* name, int mod, int
          parse_error("return type information cannot be defined for %s() methods", name);
          delete returnTypeInfo;
       }
-      return new UserConstructorVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, bcal, flags);
+      return new UserConstructorVariant(access, b, n_sig_first_line, n_sig_last_line, params, bcal, flags);
    }
    if (bcal) {
       parse_error("only constructors may have base class constructor arguments");
@@ -438,14 +459,14 @@ static inline MethodVariantBase* newMethodVariant(const char* name, int mod, int
          parse_error("return type information cannot be defined for %s() methods", name);
          delete returnTypeInfo;
       }
-      if (mod & OFM_PRIVATE)
+      if (access > Public)
 	 parse_error("destructors cannot be private");
       return new UserDestructorVariant(b, n_sig_first_line, n_sig_last_line);
    }
    if (!strcmp(name, "copy")) {
       if (mod & OFM_FINAL)
          parse_error("%s() methods cannot be declared final; declare the class final instead", name);
-      return new UserCopyVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED);
+      return new UserCopyVariant(access, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED);
    }
 
    if (!strcmp(name, "methodGate") || !strcmp(name, "memberGate") || !strcmp(name, "memberNotification")) {
@@ -458,7 +479,7 @@ static inline MethodVariantBase* newMethodVariant(const char* name, int mod, int
    if (mod & OFM_FINAL && mod & OFM_ABSTRACT)
       parse_error("method '%s()' is declared both final and abstract", name);
 
-   return new UserMethodVariant(mod & OFM_PRIVATE, mod & OFM_FINAL, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED, flags, mod & OFM_ABSTRACT);
+   return new UserMethodVariant(access, mod & OFM_FINAL, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED, flags, mod & OFM_ABSTRACT);
 }
 
 struct MethodDef {
@@ -847,32 +868,18 @@ public:
       return 0;
    }
 
-   DLLLOCAL void mergePrivate(QoreClass* qc) {
-      mmap.moveAllToPrivate(qc);
-      vmap.moveAllToPrivate(qc);
+   DLLLOCAL void merge(QoreClass* qc, ClassAccess access) {
+      mmap.moveAllTo(qc, access);
+      vmap.moveAllTo(qc, access);
 
-      // merge private constants
-      qc->parseAssimilatePrivateConstants(cmap);
-   }
-
-   DLLLOCAL void mergePublic(QoreClass* qc) {
-      mmap.moveAllToPublic(qc);
-      vmap.moveAllToPublic(qc);
-
-      // merge public constants
-      qc->parseAssimilatePublicConstants(cmap);
+      // merge constants
+      qore_class_private::get(*qc)->parseAssimilateConstants(cmap, access);
    }
 };
 
-class EmptyPublicMemberList : public MemberList {
+class EmptyMemberList : public MemberList {
 public:
-   DLLLOCAL EmptyPublicMemberList() {
-   }
-};
-
-class EmptyPrivateMemberList : public MemberList {
-public:
-   DLLLOCAL EmptyPrivateMemberList() {
+   DLLLOCAL EmptyMemberList() {
    }
 };
 
@@ -986,6 +993,14 @@ static AbstractQoreNode* process_dot(AbstractQoreNode* l, AbstractQoreNode* r) {
    return new QoreHashObjectDereferenceOperatorNode(l, r);
 }
 
+static int check_strong_encapsulation(const char* type, const char* name) {
+   if (parse_check_parse_option(PO_STRONG_ENCAPSULATION)) {
+      parse_error("illegal out of line %s definition \"%s\" (conflicts with parse option PO_STRONG_ENCAPSULATION)", type, name);
+      return -1;
+   }
+   return 0;
+}
+
 static int check_case(const char* op, AbstractQoreNode* exp) {
    // ignore if NULL (= NOTHING)
    if (node_has_effect(exp)) {
@@ -999,7 +1014,7 @@ static int check_case(const char* op, AbstractQoreNode* exp) {
 }
 
 static void check_funcmod(int mod) {
-   if (mod & OFM_PRIVATE)
+   if (mod & (OFM_PRIVATE|OFM_INTERNAL))
       parse_error("illegal 'private' modifier in function declaration");
    if (mod & OFM_STATIC)
       parse_error("illegal 'static' modifier in function declaration");
@@ -1010,7 +1025,7 @@ static void check_funcmod(int mod) {
 }
 
 static void check_classmod(int mod, QoreClass& qc) {
-   if (mod & OFM_PRIVATE)
+   if (mod & (OFM_PRIVATE|OFM_INTERNAL))
       parse_error("illegal 'private' modifier in class declaration");
    if (mod & OFM_SYNCED)
       parse_error("illegal 'synchronized' modifier in class declaration");
@@ -1027,7 +1042,7 @@ static void check_classmod(int mod, QoreClass& qc) {
 }
 
 static void check_nsmod(int mod, qore_ns_private& ns) {
-   if (mod & OFM_PRIVATE)
+   if (mod & (OFM_PRIVATE|OFM_INTERNAL))
       parse_error("illegal 'private' modifier in namespace declaration");
    if (mod & OFM_SYNCED)
       parse_error("illegal 'synchronized' modifier in namespace declaration");
@@ -1252,7 +1267,7 @@ static AbstractQoreNode* processCall(AbstractQoreNode* $1, AbstractQoreNode* $3)
    QoreNamespace *ns;
    struct NSNodeList* nsnlist;
    struct NSNode* nsn;
-   class ObjClassDef *classdef;
+   class ObjClassDef* classdef;
    DateTimeNode* datetime;
    QoreRegexSubst* RegexSubst;
    QoreTransliteration* Trans;
@@ -1311,6 +1326,8 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %token TOK_DELETE "delete"
 %token TOK_REMOVE "remove"
 %token TOK_PRIVATE "private"
+%token TOK_PRIVATEINTERNAL "private:internal"
+%token TOK_PRIVATEHIERARCHY "private:hierarchy"
 %token TOK_PUBLIC "public"
 %token TOK_SYNCHRONIZED "synchronized"
 %token TOK_DEPRECATED "deprecated"
@@ -1472,6 +1489,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %type <cmods>          context_mods
 %type <cmod>           context_mod
 %type <methodnode>     inline_methoddef
+%type <memberlist>     internal_member_list
 %type <memberlist>     private_member_list
 %type <memberlist>     public_member_list
 %type <memberlist>     member_list
@@ -1510,7 +1528,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %type <methoddef>      outofline_methoddef
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } TRY_MODULE_ERROR REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod inline_methoddef class_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl outofline_methoddef hash alt_hash
+%destructor { delete $$; } TRY_MODULE_ERROR REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod inline_methoddef class_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor internal_member_list private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl outofline_methoddef hash alt_hash
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF SCOPED_VREF KW_IDENTIFIER_OPENPAREN QORE_CAST CLASS_STRING optname ident_openparen
 %destructor { if ($$) $$->deref(); } namespace_decl namespace_decls string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
 %destructor { if ($$) $$->deref(0); } exp exp_n exp_c myexp scalar list
@@ -1526,6 +1544,8 @@ top_level_command:
            $1->add(*(qore_ns_private::get(*(getRootNS()))));
         }
         | scoped_sub_def {
+           // see if strong encapsulation is enabled
+           check_strong_encapsulation("function", $1->name.ostr);
            $1->add(*(qore_ns_private::get(*(getRootNS()))));
         }
         | class_def {
@@ -1533,10 +1553,12 @@ top_level_command:
 
 	   // see if class definitions are allowed
 	   if (parse_check_parse_option(PO_NO_CLASS_DEFS))
-	      parse_error("illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)", $1->oc->getName());
+	      parse_error("illegal class definition '%s' (conflicts with parse option PO_NO_CLASS_DEFS)", $1->oc->getName());
 	   delete $1;
 	}
 	| scoped_const_decl {
+           // see if strong encapsulation is enabled
+           check_strong_encapsulation("constant", $1->name.ostr);
            qore_root_ns_private::parseAddConstant(*getRootNS(), $1->name, $1->value, $1->pub);
 	   delete $1;
 	}
@@ -1545,6 +1567,8 @@ top_level_command:
 	   delete $1;
 	}
         | outofline_methoddef {
+           // see if strong encapsulation is enabled
+           check_strong_encapsulation("method", $1->name.ostr);
            $1->parseAddToClassAndDel();
         }
 	| statement {
@@ -1566,7 +1590,7 @@ top_level_command:
            qore_root_ns_private::parseAddNamespace($1);
 	   // see if ns declaration is legal
 	   if (parse_check_parse_option(PO_NO_NAMESPACE_DEFS))
-	      parse_error("illegal namespace definition \"%s\" (conflicts with parse option NO_NAMESPACE_DEFINITION)", $1->getName());
+	      parse_error("illegal namespace definition '%s' (conflicts with parse option PO_NO_NAMESPACE_DEFINITION)", $1->getName());
 	}
         | TOK_MODULE '{' module_decls '}' {
            QoreModuleDefContext* qmd = get_module_def_context();
@@ -1628,11 +1652,15 @@ ppub:   /* empty */
 
 gvardecl:
         ppub TOK_OUR uncqtypedef SCOPED_REF {
+           // see if strong encapsulation is enabled
+           check_strong_encapsulation("global variable", $4);
 	   const QoreTypeInfo* t = $3->getTypeInfo();
            $$ = new GVarSingleDecl($4, t, t ? 0 : $3->getParseTypeInfo(), $1, true);
            delete $3;
 	}
         | ppub TOK_OUR SCOPED_REF {
+           // see if strong encapsulation is enabled
+           check_strong_encapsulation("global variable", $3);
            $$ = new GVarSingleDecl($3, 0, 0, $1, true);
         }
         | ppub TOK_OUR uncqtypedef IDENTIFIER {
@@ -1644,6 +1672,8 @@ gvardecl:
            $$ = new GVarSingleDecl($3, 0, 0, $1, true);
 	}
         | ppub TOK_OUR qtypedef SCOPED_VREF {
+           // see if strong encapsulation is enabled
+           check_strong_encapsulation("global variable", $4);
 	   const QoreTypeInfo* t = $3->getTypeInfo();
            $$ = new GVarSingleDecl($4, t, t ? 0 : $3->getParseTypeInfo(), $1, false);
            delete $3;
@@ -1693,6 +1723,8 @@ namespace_decls:
 
 namespace_decl:
         scoped_const_decl {
+           // see if strong encapsulation is enabled
+           check_strong_encapsulation("constant", $1->name.ostr);
 	   $$ = new NSNode($1);
         }
         | unscoped_const_decl {
@@ -1702,12 +1734,14 @@ namespace_decl:
 	   $$ = new NSNode($1);
 	   // see if class definitions are allowed
 	   if (parse_check_parse_option(PO_NO_CLASS_DEFS))
-	      parse_error("illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)", $1->oc->getName());
+	      parse_error("illegal class definition '%s' (conflicts with parse option PO_NO_CLASS_DEFS)", $1->oc->getName());
 	}
         | sub_def {
            $$ = new NSNode($1);
         }
         | scoped_sub_def {
+           // see if strong encapsulation is enabled
+           check_strong_encapsulation("function", $1->name.ostr);
            $$ = new NSNode($1);
         }
         | gvardecl ';' {
@@ -1717,7 +1751,7 @@ namespace_decl:
 	   $$ = new NSNode($1);
 	   // see if ns declaration is legal
 	   if (parse_check_parse_option(PO_NO_NAMESPACE_DEFS))
-	      parse_error("illegal namespace definition \"%s\" (conflicts with parse option NO_NAMESPACE_DEFINITION)", $1->getName());
+	      parse_error("illegal namespace definition '%s' (conflicts with parse option PO_NO_NAMESPACE_DEFINITION)", $1->getName());
 	}
         | outofline_methoddef {
            $$ = new NSNode($1);
@@ -1849,7 +1883,7 @@ statement:
         | TOK_THREAD_EXIT ';' {
 	   // see if thread exit is allowed
 	   if (parse_check_parse_option(PO_NO_THREAD_CONTROL))
-	      parse_error("illegal use of \"thread_exit\" (conflicts with parse option NO_THREAD_CONTROL)");
+	      parse_error("illegal use of 'thread_exit' (conflicts with parse option PO_NO_THREAD_CONTROL)");
 
 	   $$ = new ThreadExitStatement(@1.first_line, @1.last_line);
 	}
@@ -2056,6 +2090,8 @@ class_def:
 	   $$ = new ObjClassDef($2, $5);
 	}
         | nsc_modifiers CLASS_SCOPED_REF inheritance_list '{' class_attributes '}' {
+           // see if strong encapsulation is enabled
+           check_strong_encapsulation("class", $2->ostr);
            check_classmod($1, *($5));
 	   $$ = new ObjClassDef($2, $5);
            qore_class_private::parseSetBaseClassList(*($5), $3);
@@ -2068,6 +2104,8 @@ class_def:
 	   $$ = new ObjClassDef($2, qc);
 	}
 	| nsc_modifiers CLASS_SCOPED_REF inheritance_list ';' {
+           // see if strong encapsulation is enabled
+           check_strong_encapsulation("class", $2->ostr);
            // class name is set automatically from name saved in scanner
 	   QoreClass* qc = new QoreClass;
            check_classmod($1, *qc);
@@ -2082,6 +2120,8 @@ class_def:
 	   $$ = new ObjClassDef($2, qc);
 	}
 	| nsc_modifiers CLASS_SCOPED_REF inheritance_list '{' '}' {
+           // see if strong encapsulation is enabled
+           check_strong_encapsulation("class", $2->ostr);
            // class name is set automatically from name saved in scanner
 	   QoreClass* qc = new QoreClass;
            check_classmod($1, *qc);
@@ -2111,22 +2151,34 @@ superclass_list:
 
 superclass:
         IDENTIFIER {
-	   $$ = new BCNode($1, false);
+	   $$ = new BCNode($1, Public);
 	}
         | SCOPED_REF {
-	   $$ = new BCNode(new NamedScope($1), false);
+	   $$ = new BCNode(new NamedScope($1), Public);
 	}
         | TOK_PUBLIC IDENTIFIER {
-	   $$ = new BCNode($2, false);
+	   $$ = new BCNode($2, Public);
 	}
         | TOK_PUBLIC SCOPED_REF {
-	   $$ = new BCNode(new NamedScope($2), false);
+	   $$ = new BCNode(new NamedScope($2), Public);
 	}
         | TOK_PRIVATE IDENTIFIER {
-	   $$ = new BCNode($2, true);
+	   $$ = new BCNode($2, Private);
 	}
         | TOK_PRIVATE SCOPED_REF {
-	   $$ = new BCNode(new NamedScope($2), true);
+	   $$ = new BCNode(new NamedScope($2), Private);
+	}
+        | TOK_PRIVATEHIERARCHY IDENTIFIER {
+	   $$ = new BCNode($2, Private);
+	}
+        | TOK_PRIVATEHIERARCHY SCOPED_REF {
+	   $$ = new BCNode(new NamedScope($2), Private);
+	}
+        | TOK_PRIVATEINTERNAL IDENTIFIER {
+	   $$ = new BCNode($2, Internal);
+	}
+        | TOK_PRIVATEINTERNAL SCOPED_REF {
+	   $$ = new BCNode(new NamedScope($2), Internal);
 	}
 	;
 
@@ -2135,37 +2187,47 @@ class_attributes:
            $$ = new QoreClass;
 	   $1->addAndDelete($$);
 	}
+        | internal_member_list {
+	   $$ = new QoreClass;
+	   $1->merge($$, Internal);
+	   delete $1;
+	}
         | private_member_list {
 	   $$ = new QoreClass;
-	   $1->mergePrivate($$);
+	   $1->merge($$, Private);
 	   delete $1;
 	}
         | public_member_list {
 	   $$ = new QoreClass;
-	   $1->mergePublic($$);
+	   $1->merge($$, Public);
 	   delete $1;
 	}
         | unscoped_const_decl {
 	   $$ = new QoreClass;
-	   $$->parseAddPublicConstant($1->getName(), $1->takeValue());
+           qore_class_private::parseAddConstant(*($$), $1->getName(), $1->takeValue(), Public);
 	   delete $1;
 	}
 	| class_attributes inline_methoddef {
 	   $2->addAndDelete($1);
 	   $$ = $1;
 	}
+	| class_attributes internal_member_list {
+	   $2->merge($1, Internal);
+	   $$ = $1;
+	   delete $2;
+	}
 	| class_attributes private_member_list {
-	   $2->mergePrivate($1);
+	   $2->merge($1, Private);
 	   $$ = $1;
 	   delete $2;
 	}
 	| class_attributes public_member_list {
-	   $2->mergePublic($1);
+	   $2->merge($1, Public);
 	   $$ = $1;
 	   delete $2;
 	}
         | class_attributes unscoped_const_decl {
-	   $$->parseAddPublicConstant($2->getName(), $2->takeValue());
+           qore_class_private::parseAddConstant(*($$), $2->getName(), $2->takeValue(), Public);
 	   $$ = $1;
 	   delete $2;
 	}
@@ -2194,16 +2256,25 @@ qtypedef:
         }
         ;
 
+internal_member_list
+    : TOK_PRIVATEINTERNAL member_list ';'                 { $$ = $2; }
+    | TOK_PRIVATEINTERNAL '{' member_list2 '}'            { $$ = $3; }
+    | TOK_PRIVATEINTERNAL '{' '}'                         { $$ = new EmptyMemberList; }
+    ;
+
 private_member_list
-    : TOK_PRIVATE member_list ';'           { $$ = $2; }
-    | TOK_PRIVATE '{' member_list2 '}'      { $$ = $3; }
-    | TOK_PRIVATE '{' '}'                   { $$ = new EmptyPrivateMemberList; }
+    : TOK_PRIVATE member_list ';'                 { $$ = $2; }
+    | TOK_PRIVATE '{' member_list2 '}'            { $$ = $3; }
+    | TOK_PRIVATE '{' '}'                         { $$ = new EmptyMemberList; }
+    | TOK_PRIVATEHIERARCHY member_list ';'        { $$ = $2; }
+    | TOK_PRIVATEHIERARCHY '{' member_list2 '}'   { $$ = $3; }
+    | TOK_PRIVATEHIERARCHY '{' '}'                { $$ = new EmptyMemberList; }
     ;
 
 public_member_list
     : TOK_PUBLIC member_list ';'            { $$ = $2; }
     | TOK_PUBLIC '{' member_list2 '}'       { $$ = $3; }
-    | TOK_PUBLIC '{' '}'                    { $$ = new EmptyPublicMemberList; }
+    | TOK_PUBLIC '{' '}'                    { $$ = new EmptyMemberList; }
     ;
 
 classvardecl:
@@ -2505,6 +2576,8 @@ method_modifiers:
 
 method_modifier:
 	TOK_PRIVATE { $$ = OFM_PRIVATE; }
+        | TOK_PRIVATEHIERARCHY { $$ = OFM_PRIVATE; }
+        | TOK_PRIVATEINTERNAL { $$ = OFM_INTERNAL; }
         | TOK_STATIC { $$ = OFM_STATIC; }
         | TOK_SYNCHRONIZED { $$ = OFM_SYNCED; }
         | TOK_DEPRECATED { $$ = OFM_DEPRECATED; }
@@ -3026,25 +3099,25 @@ exp_c:  scalar
 	| TOK_NEW IDENTIFIER '(' myexp ')' {
 	   $$ = new ScopedObjectCallNode(new NamedScope($2), make_args($4));
 	   if (parse_check_parse_option(PO_NO_NEW))
-	      parse_error("illegal use of the 'new' operator (conflicts with parse option NO_NEW)");
+	      parse_error("illegal use of the 'new' operator (conflicts with parse option PO_NO_NEW)");
         }
 	| TOK_NEW SCOPED_REF '(' myexp ')' {
 	   $$ = new ScopedObjectCallNode(new NamedScope($2), make_args($4));
 	   if (parse_check_parse_option(PO_NO_NEW))
-	      parse_error("illegal use of the 'new' operator (conflicts with parse option NO_NEW)");
+	      parse_error("illegal use of the 'new' operator (conflicts with parse option PO_NO_NEW)");
         }
         | TOK_BACKGROUND exp {
 	   $$ = new QoreBackgroundOperatorNode($2);
 	   // check to see if the expression is legal
 	   if (parse_check_parse_option(PO_NO_THREAD_CONTROL))
-	      parse_error("illegal use of \"background\" operator (conflicts with parse option NO_THREAD_CONTROL)");
+	      parse_error("illegal use of 'background' operator (conflicts with parse option PO_NO_THREAD_CONTROL)");
 	   else if (!node_has_effect($2))
 	      parse_error("argument to background operator (%s) has no effect", get_type_name($2));
 	}
         | BACKQUOTE {
 	   $$ = new BackquoteNode($1);
 	   if (parse_check_parse_option(PO_NO_EXTERNAL_PROCESS))
-	      parse_error("illegal use of backquote operator (conflicts with parse option NO_EXTERNAL_PROCESS)");
+	      parse_error("illegal use of backquote operator (conflicts with parse option PO_NO_EXTERNAL_PROCESS)");
 	}
 	| '(' exp ')' {
 	   $$ = $2;

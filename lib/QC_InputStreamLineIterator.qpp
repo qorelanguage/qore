@@ -47,7 +47,7 @@ while (it.next()) {
     @see @ref Qore::DataLineIterator
     @see @ref Qore::FileLineIterator
  */
-qclass InputStreamLineIterator [arg=InputStreamLineIterator* isli; ns=Qore; vparent=AbstractLineIterator; private_members=InputStream is];
+qclass InputStreamLineIterator [arg=InputStreamLineIterator* isli; ns=Qore; vparent=AbstractLineIterator; internal_members=InputStream is];
 
 //! Creates the InputStreamLineIterator for iterating over the given \c InputStream.
 /** @param is the \c InputStream to iterate over

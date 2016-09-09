@@ -30,6 +30,7 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/qore_program_private.h"
+#include <qore/intern/QoreObjectIntern.h>
 
 QoreString QoreKeysOperatorNode::keys_str("keys operator expression");
 
@@ -123,7 +124,7 @@ FunctionalOperatorInterface* QoreKeysOperatorNode::getFunctionalIteratorImpl(Fun
    }
    if (t == NT_OBJECT) {
       value_type = list;
-      return new QoreFunctionalKeysOperator(marg->get<QoreObject>()->getRuntimeMemberHash(xsink), xsink);
+      return new QoreFunctionalKeysOperator(qore_object_private::get(*marg->get<QoreObject>())->getRuntimeMemberHash(xsink), xsink);
    }
    value_type = nothing;
    return 0;

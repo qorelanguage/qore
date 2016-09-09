@@ -948,7 +948,7 @@ int qore_root_ns_private::parseAddMethodToClassIntern(const NamedScope& scname, 
 
 // returns 0 for success, non-zero for error
 AbstractQoreNode* qore_root_ns_private::parseResolveBarewordIntern(const QoreProgramLocation& loc, const char* bword, const QoreTypeInfo*& typeInfo) {
-   QoreClass* pc = getParseClass();
+   QoreClass* pc = parse_get_class();
 
    //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() bword: %s pc: %p (%s)\n", bword, pc, pc ? pc->getName() : "<none>");
 
@@ -978,9 +978,11 @@ AbstractQoreNode* qore_root_ns_private::parseResolveBarewordIntern(const QorePro
 
       // now check for class static var reference
       const QoreClass* qc = 0;
-      QoreVarInfo* vi = qore_class_private::parseFindStaticVar(pc, bword, qc, typeInfo);
+      ClassAccess access;
+      QoreVarInfo* vi = qore_class_private::parseFindStaticVar(pc, bword, qc, access);
       if (vi) {
          assert(qc);
+         typeInfo = vi->getTypeInfo();
          return new StaticClassVarRefNode(bword, *qc, *vi);
       }
    }
@@ -2211,7 +2213,8 @@ AbstractQoreNode* qore_ns_private::parseResolveReferencedClassConstant(QoreClass
    if (rv)
       return rv->refSelf();
    const QoreClass* aqc;
-   QoreVarInfo* vi = qore_class_private::parseFindStaticVar(qc, name, aqc, typeInfo, true);
+   ClassAccess access;
+   QoreVarInfo* vi = qore_class_private::parseFindStaticVar(qc, name, aqc, access, true);
    if (vi) {
       typeInfo = vi->getTypeInfo();
       return new StaticClassVarRefNode(name, *qc, *vi);

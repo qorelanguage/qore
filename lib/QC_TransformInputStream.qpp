@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@ extern QoreClass* QC_TRANSFORM;
 //! This class implements the @ref InputStream interface for reading bytes from another InputStream while applying a transformation
 /** @since %Qore 0.8.13
  */
-qclass TransformInputStream [arg=TransformInputStream* is; ns=Qore; vparent=InputStream; flags=final; private_members=InputStream is,Transform t];
+qclass TransformInputStream [arg=TransformInputStream* is; ns=Qore; vparent=InputStream; flags=final; internal_members=InputStream is,Transform t];
 
 //! Creates the TransformInputStream
 /**

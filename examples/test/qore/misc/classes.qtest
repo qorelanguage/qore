@@ -8,6 +8,8 @@
 
 %requires ../../../../qlib/QUnit.qm
 
+%exec-class ClassesTest
+
 class Test1 inherits Socket {
     private {
         int a;
@@ -64,13 +66,57 @@ class Test2 {
     }
 }
 
-%exec-class ClassesTest
+int sub throw_exception() {
+    throw "TEST", "test";
+}
+
+class Base {
+    constructor(int i) {
+    }
+}
+
+class BaseClassExceptionTest inherits Base {
+    constructor() : Base(throw_exception()) {
+    }
+}
+
+class Base1 {
+    public {
+        int i;
+    }
+
+    constructor(int i) {
+        self.i = i;
+    }
+}
+
+class Child1 inherits Base1 {
+    constructor(Base2 b) : Base1(b.doInt(1)) {
+    }
+}
+
+class Base2 {
+    int doInt(int i) {
+        return i;
+    }
+
+    int doInt(float f) {
+        return f.toInt();
+    }
+}
+
+class Child2 inherits Base2 {
+    int doInt(int i) {
+        return i + 1;
+    }
+}
 
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         addTestCase("Class library test", \classLibraryTest());
         addTestCase("Deprecated method test", \deprecatedMethodTest());
         addTestCase("Built-in class w/o methods", \builtinNoMethods());
+        addTestCase("Base class tests", \baseClassTests());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -137,5 +183,20 @@ public class ClassesTest inherits QUnit::Test {
         AbstractQuantifiedBidirectionalIterator a = new HashIterator({'a': 1});
         assertTrue(a.next());
         assertEq(1, a.getValue());
+    }
+
+    baseClassTests() {
+        hash ex;
+        try {
+            BaseClassExceptionTest b();
+        }
+        catch (hash nex) {
+            ex = nex;
+        }
+        assertEq(79, ex.callstack[0].line);
+
+        Child2 c2();
+        Child1 c1(c2);
+        assertEq(2, c1.i);
     }
 }
