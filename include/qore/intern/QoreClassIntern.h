@@ -1640,7 +1640,7 @@ protected:
 public:
    DLLLOCAL void deref(ExceptionSink* xsink);
    // evaluates arguments, returns -1 if an exception was thrown
-   DLLLOCAL int add(qore_classid_t classid, const QoreListNode* arg, const AbstractQoreFunctionVariant* variant, ExceptionSink* xsink);
+   DLLLOCAL int add(qore_classid_t classid, const QoreListNode* arg, const AbstractQoreFunctionVariant* variant, QoreProgramLocation& loc, ExceptionSink* xsink);
    DLLLOCAL QoreListNode* findArgs(qore_classid_t classid, bool* aexeced, const AbstractQoreFunctionVariant*& variant);
    /*
    DLLLOCAL bool initMembers(qore_classid_t classid) {
@@ -2568,10 +2568,10 @@ public:
    // returns a static method if it exists in the local class and has been committed to the class
    DLLLOCAL const QoreMethod* findLocalCommittedStaticMethod(const char* nme) const;
 
-   DLLLOCAL static const QoreMethod* doMethodAccess(const QoreMethod* m, ClassAccess& access, ClassAccess ma, bool toplevel = false) {
+   DLLLOCAL static const QoreMethod* doMethodAccess(const QoreMethod* m, ClassAccess& access, ClassAccess ma) {
       assert(m);
 
-      if (ma == Internal && !toplevel)
+      if (ma == Internal)
          m = 0;
       else if (access < ma)
          access = ma;
@@ -2593,18 +2593,28 @@ public:
    // returns a non-static method if it exists in class hierarchy and has been committed to the class
    DLLLOCAL const QoreMethod* runtimeFindCommittedStaticMethodIntern(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
       const QoreMethod* m = findLocalCommittedStaticMethod(nme);
-      if (!m && scl)
-	 m = scl->runtimeFindCommittedStaticMethod(nme, access, class_ctx);
-
+      if (m) {
+         m = doMethodAccess(m, access, m->getAccess());
+         if (m)
+            return m;
+      }
+      if (!scl)
+         return 0;
+      m = scl->runtimeFindCommittedStaticMethod(nme, access, class_ctx);
       return m ? doMethodAccess(m, access, m->getAccess()) : 0;
    }
 
    // returns a non-static method if it exists in class hierarchy and has been committed to the class
    DLLLOCAL const QoreMethod* runtimeFindCommittedMethodIntern(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
       const QoreMethod* m = findLocalCommittedMethod(nme);
-      if (!m && scl)
-	 m = scl->runtimeFindCommittedMethod(nme, access, class_ctx);
-
+      if (m) {
+         m = doMethodAccess(m, access, m->getAccess());
+         if (m)
+            return m;
+      }
+      if (!scl)
+         return 0;
+      m = scl->runtimeFindCommittedMethod(nme, access, class_ctx);
       return m ? doMethodAccess(m, access, m->getAccess()) : 0;
    }
 
@@ -2623,7 +2633,7 @@ public:
 
    DLLLOCAL const QoreMethod* runtimeFindCommittedMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
       if (class_ctx) {
-         const QoreMethod* m = findLocalCommittedMethod(nme);
+         const QoreMethod* m = class_ctx->findLocalCommittedMethod(nme);
          if (m && m->getAccess() == Internal) {
             access = Internal;
             return m;

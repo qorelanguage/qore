@@ -33,6 +33,14 @@ class Base {
         return self;
     }
 
+    int pubtest(int i) {
+        return i;
+    }
+
+    string pubtest(string s) {
+        return s;
+    }
+
     int pubint() {
         return 1;
     }
@@ -97,6 +105,10 @@ class PubChild inherits Base {
 
     Base base() {
         return Base::base();
+    }
+
+    float pubtest(float f) {
+        return f + 1.0;
     }
 
     int getStatPub() {
@@ -333,6 +345,11 @@ class TestInheritB {
         assertEq(2, c1.getStatInt());
         assertEq(3, c1.getConInt());
         assertEq(1, c1.pubint());
+        assertEq(1, call_object_method(c1, "pubint"));
+        assertEq(1, c1.pubtest(1));
+        assertEq(1, call_object_method(c1, "pubtest", 1));
+        assertEq(2.0, c1.pubtest(1.0));
+        assertEq(2.0, call_object_method(c1, "pubtest", 1.0));
 
         PrivChild c2();
         assertThrows("RUNTIME-CAST-ERROR", Base sub () {return cast<Base>(c2);});
@@ -350,7 +367,7 @@ class TestInheritB {
         /*
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", "illegal call.*b", \p.parse(), ("class B { int b() { return 0; } } class C inherits B { private:internal int b() { return 1; }} sub test() { C c(); c.b();}", ""));
+            assertThrows("PARSE-EXCEPTION", "illegal call.*b", \p.parse(), ("class B { int b(int i) { return i; } } class C inherits B { private:internal int b(int i) { return i + 1; } string b(string s) { return s; }} sub test() { C c(); c.b(1n);}", ""));
         }
         */
 
@@ -361,7 +378,7 @@ class TestInheritB {
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-ERROR", "a call reference cannot be taken", \p.parse(), ("class B { int b() {} } class C inherits private:internal B {} sub test() { C c(); code cd = \\c.b();}", ""));
+            assertThrows("PARSE-ERROR", "method.*cannot be found", \p.parse(), ("class B { int b() {} } class C inherits private:internal B {} sub test() { C c(); code cd = \\c.b();}", ""));
         }
 
         {

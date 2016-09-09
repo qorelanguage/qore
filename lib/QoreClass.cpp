@@ -1371,13 +1371,14 @@ QoreListNode* BCEAList::findArgs(qore_classid_t classid, bool* aexeced, const Ab
    return i->second->args;
 }
 
-int BCEAList::add(qore_classid_t classid, const QoreListNode* arg, const AbstractQoreFunctionVariant* variant, ExceptionSink* xsink) {
+int BCEAList::add(qore_classid_t classid, const QoreListNode* arg, const AbstractQoreFunctionVariant* variant, QoreProgramLocation& loc, ExceptionSink* xsink) {
    // see if class already exists in the list
    bceamap_t::iterator i = lower_bound(classid);
    bool n = ((i == end() || i->first != classid));
    if (!n && i->second->execed)
       return 0;
 
+   QoreProgramOptionalLocationHelper plh(arg ? &loc : 0);
    // evaluate arguments
    ReferenceHolder<QoreListNode> nargs(arg ? arg->evalList(xsink) : 0, xsink);
    if (*xsink)
@@ -2149,7 +2150,7 @@ MethodVariantBase* BCList::matchNonAbstractVariant(const std::string& name, Meth
 
 int BCAList::execBaseClassConstructorArgs(BCEAList* bceal, ExceptionSink* xsink) const {
    for (auto& i : *this) {
-      if (bceal->add((*i).classid, (*i).getArgs(), (*i).getVariant(), xsink))
+      if (bceal->add((*i).classid, (*i).getArgs(), (*i).getVariant(), (*i).loc, xsink))
 	 return -1;
    }
    return 0;
@@ -2422,39 +2423,63 @@ const QoreMethod* qore_class_private::parseResolveSelfMethod(NamedScope* nme) {
 
 const QoreMethod* qore_class_private::parseFindAnyMethodIntern(const char* mname, ClassAccess& access, const qore_class_private* class_ctx) {
    const QoreMethod* m = parseFindAnyLocalMethod(mname);
-   if (!m && scl)
-      m = scl->parseFindAnyMethod(mname, access, class_ctx);
-
+   if (m) {
+      m = doMethodAccess(m, access, qore_method_private::parseGetAccess(*m));
+      if (m)
+	 return m;
+   }
+   if (!scl)
+      return 0;
+   m = scl->parseFindAnyMethod(mname, access, class_ctx);
    return m ? doMethodAccess(m, access, qore_method_private::parseGetAccess(*m)) : 0;
 }
 
 // finds a non-static method in the class hierarchy at parse time, optionally initializes classes
 const QoreMethod* qore_class_private::parseFindMethodIntern(const char* mname, ClassAccess& access, const qore_class_private* class_ctx) {
    const QoreMethod* m = parseFindLocalMethod(mname);
-   if (!m && scl)
-      m = scl->parseFindMethod(mname, access, class_ctx);
-
+   if (m) {
+      m = doMethodAccess(m, access, qore_method_private::parseGetAccess(*m));
+      if (m)
+	 return m;
+   }
+   if (!scl)
+      return 0;
+   m = scl->parseFindMethod(mname, access, class_ctx);
    return m ? doMethodAccess(m, access, qore_method_private::parseGetAccess(*m)) : 0;
 }
 
 // finds a static method in the class hierarchy at parse time, optionally initializes classes
 const QoreMethod* qore_class_private::parseFindStaticMethodIntern(const char* mname, ClassAccess& access, const qore_class_private* class_ctx) {
    const QoreMethod* m = parseFindLocalStaticMethod(mname);
-   if (!m && scl)
-      m = scl->parseFindStaticMethod(mname, access, class_ctx);
-
+   if (m) {
+      m = doMethodAccess(m, access, qore_method_private::parseGetAccess(*m));
+      if (m)
+	 return m;
+   }
+   if (!scl)
+      return 0;
+   m = scl->parseFindStaticMethod(mname, access, class_ctx);
    return m ? doMethodAccess(m, access, qore_method_private::parseGetAccess(*m)) : 0;
 }
 
 const QoreMethod* qore_class_private::parseResolveSelfMethodIntern(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) {
    const QoreMethod* m = parseFindLocalMethod(nme);
-   if (!m)
-      m = parseFindLocalStaticMethod(nme);
+   if (m) {
+      m = doMethodAccess(m, access, qore_method_private::parseGetAccess(*m));
+      if (m)
+	 return m;
+   }
+   m = parseFindLocalStaticMethod(nme);
+   if (m) {
+      m = doMethodAccess(m, access, qore_method_private::parseGetAccess(*m));
+      if (m)
+	 return m;
+   }
+   if (!scl)
+      return 0;
 
    // if still not found now look in superclass methods
-   if (!m && scl)
-      m = scl->parseResolveSelfMethod(nme, access, class_ctx);
-
+   m = scl->parseResolveSelfMethod(nme, access, class_ctx);
    return m ? doMethodAccess(m, access, qore_method_private::parseGetAccess(*m)) : 0;
 }
 
