@@ -375,12 +375,10 @@ class TestInheritB {
             assertThrows("PARSE-EXCEPTION", "illegal call.*b", \p.parse(), ("class B { int b() {} } class C inherits private B {} sub test() { C c(); c.b();}", ""));
         }
 
-        /*
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", "illegal call.*b", \p.parse(), ("class B { int b(int i) { return i; } } class C inherits B { private:internal int b(int i) { return i + 1; } string b(string s) { return s; }} sub test() { C c(); c.b(1n);}", ""));
+            assertThrows("PARSE-TYPE-ERROR", "no variant", \p.parse(), ("class B { int b(int i) { return i; } } class C inherits B { private:internal int b(int i) { return i + 1; } string b(string s) { return s; }} sub test() { C c(); c.b(1n);}", ""));
         }
-        */
 
         {
             Program p(PO_NEW_STYLE);
