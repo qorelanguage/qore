@@ -48,7 +48,7 @@
 
 #if defined HAVE_POLL
 #include <poll.h>
-#elif defined HAVE_SELECT
+#elif defined HAVE_SYS_SELECT_H
 #include <sys/select.h>
 #elif (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
 #define HAVE_SELECT 1

@@ -738,6 +738,9 @@ set_pcre_cppflags() {
     if test "$1" != "/usr/include"; then
         PCRE_CPPFLAGS=-I$1
     fi
+    if test -n "$pcre_static"; then
+        PCRE_CPPFLAGS="${PCRE_CPPFLAGS} -DPCRE_STATIC=1"
+    fi
     with_pcre_includes="$1"
 }
 
