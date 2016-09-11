@@ -39,7 +39,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include <pcre.h>
 
 QoreString QoreQuestionMarkOperatorNode::question_mark_str("question mark operator expression");
 

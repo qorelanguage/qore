@@ -84,7 +84,6 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <pcre.h>
 #include <assert.h>
 
 #include <memory>
