@@ -80,6 +80,9 @@ public class SqlTestBase inherits QUnit::Test {
         addTestCase("Offset / Limit", \offsetLimitTest());
         addTestCase("Update", \updateTest());
         addTestCase("Upsert", \upsertTest());
+
+        # Cannot delete because additional tests in the module-specific .qtest files
+        # are too inter-connected (tightly coupled) to these tests' DB modifications.
         addTestCase("BulkInsert", \bulkInsertTest());
         addTestCase("BulkUpsert", \bulkUpsertTest());
     }
@@ -87,7 +90,7 @@ public class SqlTestBase inherits QUnit::Test {
     globalTearDown() {
         # drop the test schema
         if (schema)
-            schema.drop(False, m_options.verbose);
+            schema.drop(True, m_options.verbose);
     }
 
     insertTest() {

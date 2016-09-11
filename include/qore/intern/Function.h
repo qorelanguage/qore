@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -255,7 +255,7 @@ protected:
    qore_call_t ct;
    const char* name;
    ExceptionSink* xsink;
-   const char* class_name;
+   const qore_class_private* qc;
    QoreProgramLocation loc;
    QoreValueListEvalOptionalRefHolder tmp;
    const QoreTypeInfo* returnTypeInfo; // saved return type info
@@ -264,10 +264,10 @@ protected:
 
 public:
    // saves current program location in case there's an exception
-   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args = 0, const char* n_class_name = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false);
+   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args = 0, const qore_class_private* n_qc = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false);
 
    // saves current program location in case there's an exception
-   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, const char* n_class_name = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false);
+   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, const qore_class_private* n_qc = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false);
 
    DLLLOCAL ~CodeEvaluationHelper();
 
@@ -302,6 +302,10 @@ public:
 
    DLLLOCAL q_rt_flags_t getRuntimeFlags() const {
       return rtflags;
+   }
+
+   DLLLOCAL const qore_class_private* getClass() const {
+      return qc;
    }
 };
 
@@ -948,36 +952,37 @@ class MethodFunctionBase;
 class MethodFunctionBase : public QoreFunction {
 friend struct AbstractMethod;
 protected:
-   bool all_private,
-      pending_all_private,
-      is_static,
-      has_final,
-      pending_has_final;
    const QoreClass* qc;
 
    // for concrete variants for local abstract variants inherited from base classes
    VList pending_save;
 
    // pointer to copy, only valid during copy
-   mutable MethodFunctionBase* new_copy;
+   mutable MethodFunctionBase* new_copy = 0;
+
+   bool is_static,
+      has_final,
+      pending_has_final = false;
+
+   ClassAccess access,
+      pending_access;
 
    DLLLOCAL int checkFinalVariant(const MethodFunctionBase* m, const MethodVariantBase* v) const;
 
    DLLLOCAL void replaceAbstractVariantIntern(MethodVariantBase* variant);
 
 public:
-   DLLLOCAL MethodFunctionBase(const char* nme, const QoreClass* n_qc, bool n_is_static) : QoreFunction(nme), all_private(true), pending_all_private(true), is_static(n_is_static), has_final(false), pending_has_final(false), qc(n_qc), new_copy(0) {
+   DLLLOCAL MethodFunctionBase(const char* nme, const QoreClass* n_qc, bool n_is_static) : QoreFunction(nme), qc(n_qc), is_static(n_is_static), has_final(false), access(Internal), pending_access(Internal) {
    }
 
    // copy constructor, only copies committed variants
    DLLLOCAL MethodFunctionBase(const MethodFunctionBase& old, const QoreClass* n_qc)
       : QoreFunction(old, 0, 0, true),
-        all_private(old.all_private),
-        pending_all_private(true),
+        qc(n_qc),
         is_static(old.is_static),
         has_final(old.has_final),
-        pending_has_final(false),
-        qc(n_qc) {
+        access(old.access),
+        pending_access(old.pending_access) {
       //printd(5, "MethodFunctionBase() copying old=%p -> new=%p %p %s::%s() %p %s::%s()\n",& old, this, old.qc, old.qc->getName(), old.getName(), qc, qc->getName(), old.getName());
 
       // set a pointer to the new function
@@ -1012,10 +1017,13 @@ public:
 
    // returns -1 for error, 0 = OK
    DLLLOCAL int parseAddUserMethodVariant(MethodVariantBase* variant);
-   // maintains all_private flag and commits the builtin variant
+
+   // maintains access flag and commits the builtin variant
    DLLLOCAL void addBuiltinMethodVariant(MethodVariantBase* variant);
-   // maintains all_private flag and commits user variants
+
+   // maintains access flag and commits user variants
    DLLLOCAL void parseCommitMethod(QoreString& csig, const char* mod);
+
    DLLLOCAL void parseCommitMethod();
    // processes method signatures while parsing classes for pending variants
    DLLLOCAL void parsePendingSignatures(QoreString& csig, const char* mod) const;
@@ -1028,11 +1036,18 @@ public:
    DLLLOCAL void replaceAbstractVariant(MethodVariantBase* variant);
 
    DLLLOCAL void parseRollbackMethod();
+
    DLLLOCAL bool isUniquelyPrivate() const {
-      return all_private;
+      return access > Public;
    }
-   DLLLOCAL bool parseIsUniquelyPrivate() const {
-      return all_private && pending_all_private;
+
+   DLLLOCAL ClassAccess getAccess() const {
+      return access;
+   }
+
+   DLLLOCAL ClassAccess parseGetAccess() const {
+      assert(pending_access <= access);
+      return pending_access;
    }
 
    DLLLOCAL virtual const QoreClass* getClass() const {
@@ -1097,7 +1112,7 @@ public:
       return reinterpret_cast<const UserClosureVariant*>(pending_first())->getUserSignature()->hasReturnTypeInfo();
    }
 
-   DLLLOCAL QoreValue evalClosure(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, ExceptionSink* xsink) const;
+   DLLLOCAL QoreValue evalClosure(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, const qore_class_private* class_ctx, ExceptionSink* xsink) const;
 
    DLLLOCAL void setClassType(const QoreTypeInfo* cti) {
       classTypeInfo = cti;

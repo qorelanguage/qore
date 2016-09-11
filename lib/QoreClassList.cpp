@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -235,9 +235,11 @@ AbstractQoreNode *QoreClassList::parseResolveBareword(const char *name, const Qo
       if (rv)
 	 return rv->refSelf();
 
-      QoreVarInfo *vi = qore_class_private::parseFindLocalStaticVar(i->second, name, typeInfo);
-      if (vi)
+      QoreVarInfo *vi = qore_class_private::parseFindLocalStaticVar(i->second, name);
+      if (vi) {
+	 typeInfo = vi->getTypeInfo();
 	 return new StaticClassVarRefNode(name, *(i->second), *vi);
+      }
    }
 
    return 0;
