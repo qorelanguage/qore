@@ -673,9 +673,9 @@ list SQLStatement::fetchRows(softint rows = -1) {
 //! Retrieves a block of rows as a hash of lists with the maximum number of rows determined by the argument passed; automatically advances the row pointer; with this call it is not necessary to call SQLStatement::next().
 /** If the argument passed is omitted or less than or equal to zero, then all available rows from the current row position are retrieved, also if fewer rows are available than requested then only the rows available are retrieved.
 
-    If no more rows are available then a hash is returned where each key value is an empty list.
-
     @param rows The maximum number of rows to retrieve, if this argument is omitted, negative, or equal to zero, then all available rows from the current row position are retrieved
+
+    @return a hash (giving column names) of lists (giving row values for each column) of data returned; each list will have at most \a rows elements (unless \a rows is negative, in which case all available rows are returned).  If the total number of rows available is less than \a rows (if \a rows is positive), then the last data returned by this method may return short lists.  If no more rows are available, then an empty hash is returned
 
     @par Example:
     @code{.py}

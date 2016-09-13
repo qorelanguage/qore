@@ -85,6 +85,7 @@ public class SqlTestBase inherits QUnit::Test {
         # are too inter-connected (tightly coupled) to these tests' DB modifications.
         addTestCase("BulkInsert", \bulkInsertTest());
         addTestCase("BulkUpsert", \bulkUpsertTest());
+        addTestCase("fetchColumns", \fetchColumnsTest());
     }
 
     globalTearDown() {
@@ -725,7 +726,7 @@ public class SqlTestBase inherits QUnit::Test {
                 continue;
             }
             *list rows = table.selectRows (t.value.in, \sql);
-            assertEq (t.value.out.count, rows.size(), "checking offset / limit " + t.key);
+            assertEq(t.value.out.count, rows.size(), "checking offset / limit " + t.key);
 
             foreach hash row in (rows) {
                 int rn = $#;
@@ -733,6 +734,13 @@ public class SqlTestBase inherits QUnit::Test {
                     assertEq (d.value, row{d.key}, sprintf ("checking offset / limit %s row %s column %s", t.key, rn, d.key));
             }
         }
+    }
+
+    fetchColumnsTest() {
+        if (!table) testSkip("no DB connection");
+
+        SQLStatement stmt = table.getRowIterator(("where": ("id": op_cne("id"))));
+        assertEq({}, stmt.fetchColumns(10));
     }
 
     static string getColumnName(string n) {
