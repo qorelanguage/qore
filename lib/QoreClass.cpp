@@ -485,12 +485,8 @@ qore_class_private::qore_class_private(QoreClass* n_cls, const char* nme, int64 
    : cls(n_cls),
      ns(0),
      scl(0),
-     pend_pub_const(this),   // pending public constants
-     pend_priv_const(this),  // pending private constants
-     pend_int_const(this),   // pending internal constants
-     pub_const(this),        // committed public constants
-     priv_const(this),       // committed private constants
-     int_const(this),        // committed internal constants
+     pend_constlist(this),   // pending constants
+     constlist(this),        // committed constants
      system_constructor(0),
      constructor(0),
      destructor(0),
@@ -544,12 +540,8 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
      ns(0),
      scl(0), // parent class list must be copied after new_copy set in old
      ahm(old.ahm),
-     pend_pub_const(this),                 // pending public constants
-     pend_priv_const(this),                // pending private constants
-     pend_int_const(this),                 // pending internal constants
-     pub_const(old.pub_const, 0, this),    // committed public constants
-     priv_const(old.priv_const, 0, this),  // committed private constants
-     int_const(old.int_const, 0, this),    // committed internal constants
+     pend_constlist(this),                 // pending constants
+     constlist(old.constlist, 0, this),    // committed constants
      system_constructor(old.system_constructor ? old.system_constructor->copy(cls) : 0),
      constructor(0), // method pointers set below when methods are copied
      destructor(0),
@@ -708,10 +700,10 @@ static void do_sig(QoreString& csig, QoreVarMap::SigOrderIterator i) {
 }
 
 // process signature entries for class constants
-static void do_sig(QoreString& csig, ConstantList& clist, const char* prot) {
+static void do_sig(QoreString& csig, ConstantList& clist) {
    ConstantListIterator cli(clist);
    while (cli.next())
-      csig.sprintf("%s const %s %s\n", prot, cli.getName().c_str(), get_type_name(cli.getValue()));
+      csig.sprintf("%s const %s %s\n", privpub(cli.getAccess()), cli.getName().c_str(), get_type_name(cli.getValue()));
 }
 
 int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
@@ -849,12 +841,8 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
 
    if (has_sig_changes) {
       // process constants for class signature, private first, then public
-      do_sig(csig, priv_const, "priv");
-      do_sig(csig, pend_priv_const, "priv");
-      do_sig(csig, pub_const, "pub");
-      do_sig(csig, pend_pub_const, "pub");
-      do_sig(csig, int_const, "priv(int)");
-      do_sig(csig, pend_int_const, "priv(int)");
+      do_sig(csig, constlist);
+      do_sig(csig, pend_constlist);
    }
 
    if (has_sig_changes) {
@@ -1174,15 +1162,12 @@ void qore_class_private::parseCommit() {
       }
 
       // commit pending constants
-      priv_const.assimilate(pend_priv_const);
-      pub_const.assimilate(pend_pub_const);
-      int_const.assimilate(pend_int_const);
+      constlist.assimilate(pend_constlist);
 
       // process constants for signature
       if (has_sig_changes) {
-	 do_sig(csig, pub_const, "pub");
-	 do_sig(csig, priv_const, "priv");
-	 do_sig(csig, int_const, "priv(int)");
+	 do_sig(csig, constlist);
+	 do_sig(csig, pend_constlist);
       }
 
       // if there are any signature changes, then change the class' signature
@@ -1608,7 +1593,7 @@ const QoreMemberInfo* BCNode::runtimeGetMemberInfo(const char* mem, ClassAccess&
    return rv;
 }
 
-const qore_class_private* BCNode::runtimeGetMemberClass(const char* mem, ClassAccess& n_access, const qore_class_private* class_ctx, bool allow_internal) const {
+const qore_class_private* BCNode::runtimeGetMemberClass(const char* mem, ClassAccess& n_access, const qore_class_private* class_ctx, bool allow_internal, bool& internal_member) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
       return 0;
@@ -1616,7 +1601,7 @@ const qore_class_private* BCNode::runtimeGetMemberClass(const char* mem, ClassAc
    if (access == Internal && !allow_internal)
       return 0;
 
-   const qore_class_private* rv = sclass->priv->runtimeGetMemberClassIntern(mem, n_access, class_ctx);
+   const qore_class_private* rv = sclass->priv->runtimeGetMemberClassIntern(mem, n_access, class_ctx, internal_member);
    if (rv && n_access < access)
       n_access = access;
    return rv;
@@ -1708,15 +1693,15 @@ bool BCNode::runtimeIsPrivateMember(const char* str, bool toplevel) const {
    return sclass->priv->runtimeIsPrivateMemberIntern(str, false);
 }
 
-AbstractQoreNode* BCNode::parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, bool check, bool toplevel) const {
+AbstractQoreNode* BCNode::parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, const qore_class_private* class_ctx, bool allow_internal) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
       return 0;
 
-   if (access == Internal && !toplevel)
+   if (access == Internal && !allow_internal)
       return 0;
 
-   return sclass->priv->parseFindConstantValueIntern(cname, typeInfo, check, false);
+   return sclass->priv->parseFindConstantValueIntern(cname, typeInfo, class_ctx);
 }
 
 bool BCNode::parseCheckHierarchy(const QoreClass* cls, ClassAccess& n_access, bool toplevel) const {
@@ -1789,9 +1774,9 @@ int BCList::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_
    return valid ? 0 : -1;
 }
 
-const qore_class_private* BCList::runtimeGetMemberClass(const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const {
+const qore_class_private* BCList::runtimeGetMemberClass(const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal, bool& internal_member) const {
    for (auto& i : *this) {
-      const qore_class_private* rv = (*i).runtimeGetMemberClass(mem, access, class_ctx, allow_internal);
+      const qore_class_private* rv = (*i).runtimeGetMemberClass(mem, access, class_ctx, allow_internal, internal_member);
       if (rv)
 	 return rv;
    }
@@ -2067,12 +2052,12 @@ void BCList::resolveCopy() {
    sml.resolveCopy();
 }
 
-AbstractQoreNode* BCList::parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, bool check, bool toplevel) const {
+AbstractQoreNode* BCList::parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, const qore_class_private* class_ctx, bool allow_internal) const {
    if (!valid)
       return 0;
 
    for (auto& i : *this) {
-      AbstractQoreNode* rv = (*i).parseFindConstantValue(cname, typeInfo, check, toplevel);
+      AbstractQoreNode* rv = (*i).parseFindConstantValue(cname, typeInfo, class_ctx, allow_internal);
       if (rv)
 	 return rv;
    }
@@ -2591,9 +2576,7 @@ void qore_class_private::parseRollback() {
    ahm.parseRollback();
 
    // rollback pending constants
-   pend_int_const.parseDeleteAll();
-   pend_priv_const.parseDeleteAll();
-   pend_pub_const.parseDeleteAll();
+   pend_constlist.parseDeleteAll();
 
    assert(pending_vars.empty());
 
@@ -3848,9 +3831,7 @@ void qore_class_private::parseInit() {
 	 parseInitPartialIntern();
 
       // initialize constants
-      pend_pub_const.parseInit();
-      pend_priv_const.parseInit();
-      pend_int_const.parseInit();
+      pend_constlist.parseInit();
 
       // initialize methods
       for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {

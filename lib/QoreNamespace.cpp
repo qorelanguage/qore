@@ -971,7 +971,7 @@ AbstractQoreNode* qore_root_ns_private::parseResolveBarewordIntern(const QorePro
          return new SelfVarrefNode(strdup(bword), loc);
 
       // now try to find a class constant with this name
-      AbstractQoreNode* rv = qore_class_private::parseFindConstantValue(pc, bword, typeInfo);
+      AbstractQoreNode* rv = qore_class_private::parseFindConstantValue(pc, bword, typeInfo, qore_class_private::get(*pc));
       if (rv)
          return rv->refSelf();
 
@@ -1940,7 +1940,7 @@ void qore_ns_private::parseAssimilate(QoreNamespace* ans) {
 
    // assimilate pending constants
    // assimilate target list - if there were errors then the list will be deleted anyway
-   pendConstant.assimilate(pns->pendConstant, constant, name.c_str());
+   pendConstant.assimilate(pns->pendConstant, constant, "namespace", name.c_str());
 
    // assimilate classes
    pendClassList.assimilate(pns->pendClassList, *this);
@@ -2027,7 +2027,7 @@ AbstractQoreNode* qore_ns_private::getConstantValue(const char* cname, const Qor
    if (rv)
       return rv;
 
-   return pendConstant.find(cname, typeInfo);
+   return pendConstant.parseFind(cname, typeInfo);
 }
 
 QoreNamespace* qore_ns_private::resolveNameScope(const NamedScope& nscope) const {
@@ -2208,7 +2208,7 @@ QoreClass* qore_ns_private::parseMatchScopedClassWithMethod(const NamedScope& ns
 }
 
 AbstractQoreNode* qore_ns_private::parseResolveReferencedClassConstant(QoreClass* qc, const char* name, const QoreTypeInfo*& typeInfo) {
-   AbstractQoreNode* rv = qore_class_private::parseFindConstantValue(qc, name, typeInfo, true);
+   AbstractQoreNode* rv = qore_class_private::parseFindConstantValue(qc, name, typeInfo, parse_get_class_priv());
    if (rv)
       return rv->refSelf();
    const QoreClass* aqc;
@@ -2299,7 +2299,7 @@ AbstractQoreNode* qore_ns_private::parseCheckScopedReference(const NamedScope& n
 
 AbstractQoreNode* qore_ns_private::parseFindLocalConstantValue(const char* cname, const QoreTypeInfo*& typeInfo) {
    AbstractQoreNode* rv = constant.find(cname, typeInfo);
-   return rv ? rv : pendConstant.find(cname, typeInfo);
+   return rv ? rv : pendConstant.parseFind(cname, typeInfo);
 }
 
 QoreNamespace* qore_ns_private::parseFindLocalNamespace(const char* nname) {

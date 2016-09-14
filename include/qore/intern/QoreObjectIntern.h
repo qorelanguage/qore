@@ -412,8 +412,7 @@ public:
       ClassAccess access;
       const QoreMemberInfo* mi = qore_class_private::runtimeGetMemberInfo(*theclass, mem, access, class_ctx, internal_member);
       if (mi) {
-         // check access if necessary; note that if the member was internally accessed, then the check has already been made
-	 if (access > Public && !class_ctx && access != Internal) {
+	 if (access > Public && !class_ctx) {
 	    doPrivateException(mem, xsink);
 	    return -1;
 	 }
