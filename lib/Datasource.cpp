@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   NOTE that 2 copies of connection values are kept in case
   the values are changed while a connection is in use
@@ -263,20 +263,15 @@ int Datasource::open(ExceptionSink* xsink) {
 }
 
 int Datasource::close() {
-   if (priv->isopen) {
-      qore_dbi_private::get(*priv->dsl)->close(this);
-      priv->isopen = false;
-      priv->in_transaction = false;
-      priv->active_transaction = false;
-      return 0;
-   }
-   return -1;
+   return priv->close();
+}
+
+int Datasource::connectionLost(ExceptionSink* xsink) {
+   return priv->connectionLost(xsink);
 }
 
 void Datasource::connectionAborted() {
-   assert(priv->isopen);
-   priv->connection_aborted = true;
-   close();
+   priv->connectionAborted();
 }
 
 bool Datasource::wasConnectionAborted() const {

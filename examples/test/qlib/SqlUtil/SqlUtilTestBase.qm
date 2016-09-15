@@ -739,8 +739,12 @@ public class SqlTestBase inherits QUnit::Test {
     fetchColumnsTest() {
         if (!table) testSkip("no DB connection");
 
-        SQLStatement stmt = table.getRowIterator(("where": ("id": op_cne("id"))));
+        hash sh = ("columns": "id", "where": ("id": op_cne("id")));
+        SQLStatement stmt = table.getRowIterator(sh);
         assertEq({}, stmt.fetchColumns(10));
+        printf("in_trans: %y\n", table.getDatasource().currentThreadInTransaction());
+        # sanity select test
+        assertEq(("id": ()), table.select(sh));
     }
 
     static string getColumnName(string n) {

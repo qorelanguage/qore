@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2016 Qore Technologies, sro
+  Copyright (C) 2006 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -156,6 +156,15 @@ void QoreSQLStatement::deref(ExceptionSink* xsink) {
 
       delete this;
    }
+}
+
+void QoreSQLStatement::connectionLost(ExceptionSink* xsink) {
+   assert(priv->data);
+   assert(priv->ds);
+
+   qore_dbi_private::get(*priv->ds->getDriver())->stmt_close(this, xsink);
+   assert(!priv->data);
+   status = STMT_IDLE;
 }
 
 int QoreSQLStatement::closeIntern(ExceptionSink* xsink) {

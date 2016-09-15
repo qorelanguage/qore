@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   The Datasource class provides the low-level interface to Qore DBI drivers.
 
@@ -447,8 +447,19 @@ public:
    /** The DBIDriver should raise its own exception when this call is made, as making this call will
        suppress further Qore exceptions from being raised in the Datasource destructor (at least for
        derived classes)
+
+       @deprecated use connectionLost() instead
    */
    DLLEXPORT void connectionAborted();
+
+   //! should be called by the DBIDriver if the connection to the server is lost
+   /** if a transaction was in progress, an appropriate exception will be raised; does not close the connection
+
+       @return 0 for no transaction in progress and no exception raised, -1 for transaction in progress and exception raised
+
+       @since Qore 0.8.13
+   */
+   DLLEXPORT int connectionLost(ExceptionSink* xsink);
 
    //! returns the connection aborted status
    /** @return the connection aborted status

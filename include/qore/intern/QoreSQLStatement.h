@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2016 Qore Technologies, sro
+  Copyright (C) 2006 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -118,6 +118,9 @@ public:
 
    DLLLOCAL bool active() const;
    DLLLOCAL bool currentThreadInTransaction(ExceptionSink* xsink);
+
+   // called by the datasource object if the connection is lost
+   DLLLOCAL void connectionLost(ExceptionSink* xsink);
 
    DLLLOCAL QoreStringNode* getSQL(ExceptionSink* xsink);
 };

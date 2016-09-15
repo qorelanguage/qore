@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   The Datasource class provides the low-level interface to Qore DBI drivers.
 
@@ -36,9 +36,16 @@
 #define _QORE_DS_PRIVATE_H
 
 #include <qore/intern/qore_dbi_private.h>
+#include <qore/intern/QoreSQLStatement.h>
+
+#include <set>
+
+typedef std::set<QoreSQLStatement*> stmt_set_t;
 
 struct qore_ds_private {
    Datasource* ds;
+   // set of active SQLStatements on this datasource
+   stmt_set_t stmt_set;
 
    bool in_transaction;
    bool active_transaction;
@@ -177,6 +184,51 @@ struct qore_ds_private {
       if (event_arg)
          h->setKeyValue("arg", event_arg->refSelf(), 0);
       return h;
+   }
+
+   DLLLOCAL void addStatement(QoreSQLStatement* stmt) {
+      assert(stmt_set.find(stmt) == stmt_set.end());
+      stmt_set.insert(stmt);
+   }
+
+   DLLLOCAL void removeStatement(QoreSQLStatement* stmt) {
+      stmt_set_t::iterator i = stmt_set.find(stmt);
+      assert(i != stmt_set.end());
+      stmt_set.erase(i);
+   }
+
+   DLLLOCAL void connectionAborted() {
+      assert(isopen);
+      connection_aborted = true;
+      close();
+   }
+
+   DLLLOCAL int connectionLost(ExceptionSink* xsink) {
+      assert(isopen);
+
+      int rc;
+      if (active_transaction) {
+         xsink->raiseException("TRANSACTION-CONNECTION-ERROR", "%s:%s@%s: connection to server lost while in a transaction; transaction has been lost", dsl->getName(),  username.empty() ? "n/a" : username.c_str(), dbname.empty() ? "n/a" : dbname.c_str());
+         rc = -1;
+      }
+      else
+         rc = 0;
+
+      for (stmt_set_t::iterator i = stmt_set.begin(), e = stmt_set.end(); i != e; ++i)
+         (*i)->connectionLost(xsink);
+
+      return rc;
+   }
+
+   DLLLOCAL int close() {
+      if (isopen) {
+         qore_dbi_private::get(*dsl)->close(ds);
+         isopen = false;
+         in_transaction = false;
+         active_transaction = false;
+         return 0;
+      }
+      return -1;
    }
 };
 
