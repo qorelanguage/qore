@@ -152,20 +152,6 @@ set(LIBQORE_QPP_SRC
 	lib/QC_Transform.qpp
 	lib/QC_TransformInputStream.qpp
 	lib/QC_TransformOutputStream.qpp
-	lib/Pseudo_QC_All.qpp
-	lib/Pseudo_QC_Nothing.qpp
-	lib/Pseudo_QC_Date.qpp
-	lib/Pseudo_QC_Object.qpp
-	lib/Pseudo_QC_Hash.qpp
-	lib/Pseudo_QC_String.qpp
-	lib/Pseudo_QC_Binary.qpp
-	lib/Pseudo_QC_List.qpp
-	lib/Pseudo_QC_Bool.qpp
-	lib/Pseudo_QC_Int.qpp
-	lib/Pseudo_QC_Float.qpp
-	lib/Pseudo_QC_Number.qpp
-	lib/Pseudo_QC_Closure.qpp
-	lib/Pseudo_QC_Callref.qpp
 	lib/ql_misc.qpp
 	lib/ql_compression.qpp
 	lib/ql_thread.qpp
@@ -185,6 +171,23 @@ set(LIBQORE_QPP_SRC
 	lib/qc_option.qpp
 	lib/qc_errno.qpp
 	lib/qc_qore.qpp
+)
+
+set(PSEUDO_QPP_SRC
+        lib/Pseudo_QC_All.qpp
+	lib/Pseudo_QC_Nothing.qpp
+	lib/Pseudo_QC_Date.qpp
+	lib/Pseudo_QC_Object.qpp
+	lib/Pseudo_QC_Hash.qpp
+	lib/Pseudo_QC_String.qpp
+	lib/Pseudo_QC_Binary.qpp
+	lib/Pseudo_QC_List.qpp
+	lib/Pseudo_QC_Bool.qpp
+	lib/Pseudo_QC_Int.qpp
+	lib/Pseudo_QC_Float.qpp
+	lib/Pseudo_QC_Number.qpp
+	lib/Pseudo_QC_Closure.qpp
+	lib/Pseudo_QC_Callref.qpp
 )
 
 set(QMOD
@@ -310,8 +313,9 @@ target_link_libraries(qpp ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES})
 
 # libqore generators
 qore_wrap_qpp_value(LIBQORE_QPP_CPP_SRC ${LIBQORE_QPP_SRC})
+qore_wrap_qpp_value(PSEUDO_QPP_CPP_SRC ${PSEUDO_QPP_SRC})
 
-add_custom_target(QPP_GENERATED_FILES DEPENDS ${LIBQORE_QPP_CPP_SRC})
+add_custom_target(QPP_GENERATED_FILES DEPENDS ${LIBQORE_QPP_CPP_SRC} ${PSEUDO_QPP_CPP_SRC})
 add_custom_target(BISON_GENERATED_FILES DEPENDS ${BISON_qoreparser_OUTPUTS})
 add_custom_target(FLEX_GENERATED_FILES DEPENDS ${FLEX_qorescanner_OUTPUTS})
 
@@ -517,105 +521,14 @@ set(LIBQORE_CPP_SRC
         lib/QoreValue.cpp
         lib/StreamPipe.cpp
         lib/CompressionTransforms.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_thread.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_time.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_lib.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_math.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_type.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_env.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_string.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_pwd.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_misc.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_list.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_crypto.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_object.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_file.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_compression.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_dbi.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_context.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/qc_option.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/qc_errno.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/qc_qore.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_Socket.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_Program.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ReadOnlyFile.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_File.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_Dir.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_GetOpt.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_FtpClient.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AbstractIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AbstractQuantifiedIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AbstractBidirectionalIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AbstractQuantifiedBidirectionalIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ListIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ListReverseIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_HashIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_HashReverseIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_HashKeyIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_HashKeyReverseIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_HashPairIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_HashPairReverseIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_HashListIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_HashListReverseIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ListHashIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ListHashReverseIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ObjectIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ObjectReverseIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ObjectKeyIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ObjectKeyReverseIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ObjectPairIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ObjectPairReverseIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AbstractLineIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_FileLineIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_DataLineIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_InputStreamLineIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_SingleValueIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_RangeIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ThreadPool.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AbstractDatasource.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_Datasource.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_DatasourcePool.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_SQLStatement.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_Queue.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_Mutex.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_Condition.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_RWLock.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_Gate.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_Sequence.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_Counter.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_SSLCertificate.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_SSLPrivateKey.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_HTTPClient.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AutoLock.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AutoGate.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AutoReadLock.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AutoWriteLock.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_TermIOS.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AbstractSmartLock.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_TimeZone.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_TreeMap.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AbstractThreadResource.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_InputStream.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_BinaryInputStream.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_StringInputStream.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_FileInputStream.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_EncodingConversionInputStream.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_OutputStream.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_BinaryOutputStream.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_StringOutputStream.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_FileOutputStream.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_EncodingConversionOutputStream.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_StreamPipe.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_PipeInputStream.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_PipeOutputStream.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_StreamWriter.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_StreamReader.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_Transform.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_TransformInputStream.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_TransformOutputStream.cpp
         lib/QorePseudoMethods.cpp
         lib/xxhash.cpp
         lib/minitest.cpp
+	lib/FunctionalOperator.cpp
+	lib/FunctionalOperatorInterface.cpp
+	lib/QoreQuestionMarkOperatorNode.cpp
+	lib/QoreKeysOperatorNode.cpp
+	lib/QoreSelectOperatorNode.cpp
     )
 
 if (HAVE_SIGNAL_HANDLING)
@@ -634,7 +547,7 @@ if (${QORE_BUILD_TYPE_LWR} MATCHES "debug")
         set(LIBQORE_CPP_SRC ${LIBQORE_CPP_SRC} lib/ql_debug.cpp)
 endif ()
 
-add_library(libqore SHARED ${LIBQORE_CPP_SRC} ${LIBQORE_ASM_SRC})
+add_library(libqore SHARED ${LIBQORE_QPP_CPP_SRC} ${LIBQORE_CPP_SRC} ${LIBQORE_ASM_SRC})
 add_dependencies(QPP_GENERATED_FILES qpp)
 add_dependencies(libqore QPP_GENERATED_FILES BISON_GENERATED_FILES FLEX_GENERATED_FILES)
 
