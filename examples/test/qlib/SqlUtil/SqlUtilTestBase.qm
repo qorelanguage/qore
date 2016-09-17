@@ -740,7 +740,6 @@ public class SqlTestBase inherits QUnit::Test {
         SQLStatement stmt = table.getRowIterator(sh);
         assertEq({}, stmt.fetchColumns(10));
         # sanity select test
-        sleep(2);
         assertEq(("id": ()), table.select(sh));
     }
 
