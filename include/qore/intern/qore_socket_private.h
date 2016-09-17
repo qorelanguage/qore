@@ -1762,6 +1762,8 @@ struct qore_socket_private {
       return str.release();
    }
 
+   DLLLOCAL int recv(int fd, qore_offset_t size, int timeout_ms, ExceptionSink* xsink);
+
    DLLLOCAL BinaryNode* recvBinary(qore_offset_t bufsize, int timeout, qore_offset_t& rc, ExceptionSink* xsink) {
       if (sock == QORE_INVALID_SOCKET) {
 	 if (xsink)
@@ -2307,6 +2309,8 @@ struct qore_socket_private {
    DLLLOCAL int send(ExceptionSink* xsink, const char* mname, const char* buf, qore_size_t size, int timeout_ms = -1) {
       return send(xsink, "Socket", mname, buf, size, timeout_ms);
    }
+
+   DLLLOCAL int send(int fd, qore_offset_t size, int timeout_ms, ExceptionSink* xsink);
 
    DLLLOCAL int send(ExceptionSink* xsink, const char* cname, const char* mname, const char* buf, qore_size_t size, int timeout_ms = -1) {
       if (sock == QORE_INVALID_SOCKET) {

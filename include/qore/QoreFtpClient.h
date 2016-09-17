@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -334,6 +334,16 @@ public:
    DLLEXPORT void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, class Queue* wq, AbstractQoreNode* arg, int64 min_ms = 1000);
    DLLEXPORT QoreHashNode* getUsageInfo() const;
    DLLEXPORT void clearStats();
+
+   //! sets the socket I/O timeout value in milliseconds
+   /** @since Qore 0.8.12.3
+    */
+   DLLLOCAL void setTimeout(int timeout_ms);
+
+   //! returns the socket I/O timeout value as an integer in milliseconds
+   /** @since Qore 0.8.12.3
+    */
+   DLLLOCAL int getTimeout() const;
 
    //! sets the same event queue for data and control sockets
    DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);

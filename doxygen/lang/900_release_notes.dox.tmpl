@@ -119,6 +119,8 @@
     @subsection qore_08123_bug_fixes Bug Fixes in Qore
 
     - fixed the documentation (and DB modules) where the SQLStatement::fetchColumns() was inconsistent; now it will return a empty hash when no more rows are available to fetch (<a href="https://github.com/qorelanguage/qore/issues/1241">issue 1241</a>)
+    - added I/O timeout support to the @ref Qore::FtpClient "FtpClient" class (<a href="https://github.com/qorelanguage/qore/issues/1252">issue 1252</a>)
+    - fixed bugs in @ref Qore::Socket::recv() "Socket::recv()" and @ref Qore::Socket::recvBinary() "Socket::recvBinary()" with <tt>size = 0</tt> where @ref nothing could be returned which is invalid according to the methods' declared return types (<a href="https://github.com/qorelanguage/qore/issues/1260">issue 1260</a>)
 
     @section qore_08122 Qore 0.8.12.2
 

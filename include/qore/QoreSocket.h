@@ -655,6 +655,19 @@ public:
    */
    DLLEXPORT int send(int fd, qore_offset_t size = -1);
 
+   //! sends untranslated data from an open file descriptor
+   /**
+       @param fd a file descriptor, open for reading
+       @param size the number of bytes to send (-1 = send all until EOF)
+       @param timeout_ms a timeout in milliseconds for socket I/O operations
+       @param xsink if an I/O error occurs, the Qore-language exception information will be added here
+
+       @return 0 for OK, not 0 if an error occured
+
+       @since Qore 0.8.12.3
+   */
+   DLLEXPORT int send(int fd, qore_offset_t size, int timeout_ms, ExceptionSink* xsink);
+
    //! sends a 1-byte binary integer data to a connected socket
    /** The socket must be connected before this call is made.
        @param i the 1-byte integer to send through the socket
@@ -1196,13 +1209,31 @@ public:
 
    //! receive data on the socket and write it to a file descriptor
    /** The socket must be connected before this call is made.
+
        @param fd the file descriptor to write to, must be already opened for writing
        @param size the number of bytes to read from the socket, -1 to read until the socket is closed
-       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+       @param timeout_ms timeout for socket I/O in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+
        @return 0 for OK, not 0 for error
+
        @note the timeout value applies to each read from the socket
    */
    DLLEXPORT int recv(int fd, qore_offset_t size, int timeout_ms);
+
+   //! receive data on the socket and write it to a file descriptor
+   /** The socket must be connected before this call is made.
+
+       @param fd the file descriptor to write to, must be already opened for writing
+       @param size the number of bytes to read from the socket, -1 to read until the socket is closed
+       @param timeout_ms timeout for socket I/O in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+
+       @return 0 for OK, not 0 for error
+
+       @note the timeout value applies to each read from the socket
+
+       @since Qore 0.8.12.3
+   */
+   DLLEXPORT int recv(int fd, qore_offset_t size, int timeout_ms, ExceptionSink* xsink);
 
    //! send an HTTP request message on the socket
    /** The socket must be connected before this call is made.

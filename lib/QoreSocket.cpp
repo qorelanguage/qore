@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -479,6 +479,107 @@ const char* SocketSource::getHostName() const {
 
 void SocketSource::setAll(QoreObject *o, ExceptionSink* xsink) {
    return priv->setAll(o, xsink);
+}
+
+int qore_socket_private::send(int fd, qore_offset_t size, int timeout_ms, ExceptionSink* xsink) {
+   if (!size)
+      return 0;
+   if (sock == QORE_INVALID_SOCKET) {
+      printd(5, "QoreSocket::send() ERROR: sock: %d size: " QSD "\n", sock, size);
+      se_not_open("Socket", "send", xsink);
+      return -1;
+   }
+
+   char* buf = (char*)malloc(sizeof(char) * DEFAULT_SOCKET_BUFSIZE);
+   ON_BLOCK_EXIT(free, buf);
+
+   qore_offset_t rc = 0;
+   qore_size_t bs = 0;
+   while (true) {
+      // calculate bytes needed
+      qore_size_t bn;
+      if (size < 0)
+	 bn = DEFAULT_SOCKET_BUFSIZE;
+      else {
+	 bn = size - bs;
+	 if (bn > DEFAULT_SOCKET_BUFSIZE)
+	    bn = DEFAULT_SOCKET_BUFSIZE;
+      }
+      while (true) {
+         rc = ::read(fd, buf, bn);
+         if (rc >= 0)
+            break;
+         if (errno != EINTR) {
+            xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QLLD " bytes read in Socket::send()", bs);
+            break;
+         }
+      }
+      if (rc < 0) {
+         //printd(5, "QoreSocket::send() read error: %s\n", strerror(errno));
+         break;
+      }
+
+      // send buffer
+      int src = send(xsink, "Socket", "send", buf, rc, timeout_ms);
+      if (src < 0) {
+	 printd(5, "QoreSocket::send() send error: %s\n", strerror(errno));
+	 break;
+      }
+      bs += rc;
+      if (size > 0 && bs >= (qore_size_t)size) {
+	 rc = 0;
+	 break;
+      }
+   }
+   return rc;
+}
+
+int qore_socket_private::recv(int fd, qore_offset_t size, int timeout_ms, ExceptionSink* xsink) {
+   if (!size)
+      return 0;
+   if (sock == QORE_INVALID_SOCKET) {
+      printd(5, "QoreSocket::send() ERROR: sock: %d size: " QSD "\n", sock, size);
+      se_not_open("Socket", "send", xsink);
+      return -1;
+   }
+
+   char* buf;
+   qore_offset_t br = 0;
+   qore_offset_t rc;
+   while (true) {
+      // calculate bytes needed
+      int bn;
+      if (size == -1)
+	 bn = DEFAULT_SOCKET_BUFSIZE;
+      else {
+	 bn = size - br;
+	 if (bn > DEFAULT_SOCKET_BUFSIZE)
+	    bn = DEFAULT_SOCKET_BUFSIZE;
+      }
+
+      rc = brecv(xsink, "recv", buf, bn, 0, timeout_ms);
+      if (rc <= 0)
+	 break;
+      br += rc;
+
+      // write buffer to file descriptor
+      while (true) {
+         rc = ::write(fd, buf, rc);
+         if (rc > 0)
+            break;
+         // write(2) should not return 0, but in case it does, it's treated as an error
+         if (errno != EINTR) {
+            xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QLLD " bytes read in Socket::send()", br);
+            break;
+         }
+      }
+
+      if (size > 0 && br >= size) {
+	 rc = 0;
+	 break;
+      }
+   }
+   return (int)rc;
 }
 
 void QoreSocket::doException(int rc, const char* meth, int timeout_ms, ExceptionSink* xsink) {
@@ -1234,6 +1335,7 @@ int QoreSocket::send(int fd, qore_offset_t size) {
    }
 
    char* buf = (char*)malloc(sizeof(char) * DEFAULT_SOCKET_BUFSIZE);
+   ON_BLOCK_EXIT(free, buf);
 
    qore_offset_t rc = 0;
    qore_size_t bs = 0;
@@ -1267,8 +1369,11 @@ int QoreSocket::send(int fd, qore_offset_t size) {
 	 break;
       }
    }
-   free(buf);
    return rc;
+}
+
+int QoreSocket::send(int fd, qore_offset_t size, int timeout_ms, ExceptionSink* xsink) {
+   return priv->send(fd, size, timeout_ms, xsink);
 }
 
 BinaryNode* QoreSocket::recvBinary(qore_offset_t bufsize, int timeout, int *rc) {
@@ -1329,6 +1434,11 @@ QoreStringNode* QoreSocket::recv(int timeout, ExceptionSink* xsink) {
    qore_offset_t rc;
    QoreStringNodeHolder str(priv->recv(timeout, rc, xsink));
    return *xsink ? 0 : str.release();
+}
+
+// receive data and write to file descriptor
+int QoreSocket::recv(int fd, qore_offset_t size, int timeout_ms, ExceptionSink* xsink) {
+   return priv->recv(fd, size, timeout_ms, xsink);
 }
 
 // receive data and write to file descriptor
