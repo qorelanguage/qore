@@ -1153,7 +1153,7 @@ int QoreFtpClient::get(const char* remotepath, OutputStream *os, ExceptionSink* 
       return -1;
    }
 
-   priv->data.priv->recvToOutputStream(os, -1, timeout_ms, xsink, &priv->m);
+   priv->data.priv->recvToOutputStream(os, -1, priv->timeout_ms, xsink, &priv->m);
    priv->data.close();
 
    if (*xsink) {

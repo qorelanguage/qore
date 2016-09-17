@@ -485,7 +485,7 @@ int qore_socket_private::send(int fd, qore_offset_t size, int timeout_ms, Except
    if (!size)
       return 0;
    if (sock == QORE_INVALID_SOCKET) {
-      printd(5, "QoreSocket::send() ERROR: sock: %d size: "QSD"\n", sock, size);
+      printd(5, "QoreSocket::send() ERROR: sock: %d size: " QSD "\n", sock, size);
       se_not_open("Socket", "send", xsink);
       return -1;
    }
@@ -510,7 +510,7 @@ int qore_socket_private::send(int fd, qore_offset_t size, int timeout_ms, Except
          if (rc >= 0)
             break;
          if (errno != EINTR) {
-            xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after "QLLD" bytes read in Socket::send()", bs);
+            xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QLLD " bytes read in Socket::send()", bs);
             break;
          }
       }
@@ -538,7 +538,7 @@ int qore_socket_private::recv(int fd, qore_offset_t size, int timeout_ms, Except
    if (!size)
       return 0;
    if (sock == QORE_INVALID_SOCKET) {
-      printd(5, "QoreSocket::send() ERROR: sock: %d size: "QSD"\n", sock, size);
+      printd(5, "QoreSocket::send() ERROR: sock: %d size: " QSD "\n", sock, size);
       se_not_open("Socket", "send", xsink);
       return -1;
    }
@@ -569,7 +569,7 @@ int qore_socket_private::recv(int fd, qore_offset_t size, int timeout_ms, Except
             break;
          // write(2) should not return 0, but in case it does, it's treated as an error
          if (errno != EINTR) {
-            xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after "QLLD" bytes read in Socket::send()", br);
+            xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QLLD " bytes read in Socket::send()", br);
             break;
          }
       }
