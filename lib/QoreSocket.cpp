@@ -849,7 +849,7 @@ PrivateQoreSocketThroughputHelper::~PrivateQoreSocketThroughputHelper() {
 }
 
 void PrivateQoreSocketThroughputHelper::finalize(int64 bytes) {
-   //printd(5, "PrivateQoreSocketThroughputHelper::finalize() bytes: "QLLD" us: "QLLD" (min: "QLLD") bs: %.6f threshold: %.6f\n", bytes, (q_clock_getmicros() - start), sock->tp_us_min, ((double)bytes / ((double)(q_clock_getmicros() - start) / (double)1000000.0)), sock->tp_warning_bs);
+   //printd(5, "PrivateQoreSocketThroughputHelper::finalize() bytes: " QLLD " us: " QLLD " (min: " QLLD ") bs: %.6f threshold: %.6f\n", bytes, (q_clock_getmicros() - start), sock->tp_us_min, ((double)bytes / ((double)(q_clock_getmicros() - start) / (double)1000000.0)), sock->tp_warning_bs);
 
    if (bytes < DEFAULT_SOCKET_MIN_THRESHOLD_BYTES)
       return;
@@ -870,7 +870,7 @@ void PrivateQoreSocketThroughputHelper::finalize(int64 bytes) {
 
    double bs = (double)bytes / ((double)dt / (double)1000000.0);
 
-   //printd(5, "PrivateQoreSocketThroughputHelper::finalize() bytes: "QLLD" us: "QLLD" bs: %.6f threshold: %.6f\n", bytes, dt, bs, sock->tp_warning_bs);
+   //printd(5, "PrivateQoreSocketThroughputHelper::finalize() bytes: " QLLD " us: " QLLD " bs: %.6f threshold: %.6f\n", bytes, dt, bs, sock->tp_warning_bs);
 
    if (bs <= (double)sock->tp_warning_bs)
       sock->doThroughputWarning(send, bytes, dt, bs);
@@ -1330,7 +1330,7 @@ int64 QoreSocket::recvu4LSB(int timeout, unsigned int *val, ExceptionSink* xsink
 
 int QoreSocket::send(int fd, qore_offset_t size) {
    if (priv->sock == QORE_INVALID_SOCKET || !size) {
-      printd(5, "QoreSocket::send() ERROR: sock: %d size: "QSD"\n", priv->sock, size);
+      printd(5, "QoreSocket::send() ERROR: sock: %d size: " QSD "\n", priv->sock, size);
       return -1;
    }
 
@@ -1781,7 +1781,7 @@ QoreSocket* QoreSocket::accept(int timeout_ms, ExceptionSink* xsink) {
 }
 
 QoreSocket* QoreSocket::acceptSSL(int timeout_ms, X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {
-   std::auto_ptr<QoreSocket> s(accept(timeout_ms, xsink));
+   std::unique_ptr<QoreSocket> s(accept(timeout_ms, xsink));
    if (!s.get())
       return 0;
 

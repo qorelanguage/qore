@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -38,7 +38,7 @@
 #include <vector>
 #include <algorithm>
 
-#include <qore/intern/QoreRegexNode.h>
+#include <qore/intern/QoreRegex.h>
 
 typedef int (*glob_error_t)(const char *, int);
 
@@ -111,7 +111,7 @@ public:
       str.concat("$");
 
       ExceptionSink xsink;
-      SimpleRefHolder<QoreRegexNode> qrn(new QoreRegexNode(&str, PCRE_CASELESS, &xsink));
+      QoreRegex qrn(&str, PCRE_CASELESS, &xsink);
       if (xsink)
 	 return -1;
 

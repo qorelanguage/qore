@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -349,16 +349,16 @@ protected:
    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo);
 
 public:
-   DLLLOCAL SelfFunctionCallNode(char* n, QoreListNode* n_args) : AbstractMethodCallNode(NT_SELF_CALL, n_args, getParseClass()), ns(n), is_copy(false) {
+   DLLLOCAL SelfFunctionCallNode(char* n, QoreListNode* n_args) : AbstractMethodCallNode(NT_SELF_CALL, n_args, parse_get_class()), ns(n), is_copy(false) {
    }
 
-   DLLLOCAL SelfFunctionCallNode(char* n, QoreListNode* n_args, const QoreMethod* m) : AbstractMethodCallNode(NT_SELF_CALL, n_args, getParseClass(), m), ns(n), is_copy(false) {
+   DLLLOCAL SelfFunctionCallNode(char* n, QoreListNode* n_args, const QoreMethod* m) : AbstractMethodCallNode(NT_SELF_CALL, n_args, parse_get_class(), m), ns(n), is_copy(false) {
    }
 
    DLLLOCAL SelfFunctionCallNode(char* n, QoreListNode* n_args, const QoreClass* n_qc) : AbstractMethodCallNode(NT_SELF_CALL, n_args, n_qc), ns(n), is_copy(false) {
    }
 
-   DLLLOCAL SelfFunctionCallNode(NamedScope* n_ns, QoreListNode* n_args) : AbstractMethodCallNode(NT_SELF_CALL, n_args, getParseClass()), ns(n_ns), is_copy(false) {
+   DLLLOCAL SelfFunctionCallNode(NamedScope* n_ns, QoreListNode* n_args) : AbstractMethodCallNode(NT_SELF_CALL, n_args, parse_get_class()), ns(n_ns), is_copy(false) {
    }
 
    DLLLOCAL SelfFunctionCallNode(const SelfFunctionCallNode &old, QoreListNode* n_args) : AbstractMethodCallNode(old, n_args), ns(old.ns), is_copy(old.is_copy) {
