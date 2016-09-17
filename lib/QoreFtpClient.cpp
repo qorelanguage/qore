@@ -300,7 +300,7 @@ public:
       }
       else {
 	 disconnectIntern();
-	 xsink->raiseException("FTP-RECEIVE-ERROR", "FTP server sent an empty response on the control port: %d", control.isOpen());
+	 xsink->raiseException("FTP-RECEIVE-ERROR", "FTP server sent an empty response on the control port");
       }
       return resp.release();
    }
