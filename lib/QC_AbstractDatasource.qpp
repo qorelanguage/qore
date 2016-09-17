@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -112,12 +112,14 @@ abstract any AbstractDatasource::execRaw(string sql);
     @param sql The %SQL command to execute on the server
     @param ... Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
-    @return This method returns a hash (the keys are the column names) of lists (the column data per row) when executed with an %SQL select statement, however some DBI drivers allow any %SQL to be executed through this method, in which case other data types can be returned (such as an integer for a row count or a hash for output parameters when executing a stored procedure)
+    @return This method returns a hash (the keys are the column names) of lists (the column data per row) when executed with an %SQL select statement, however some DBI drivers allow any %SQL to be executed through this method, in which case other data types can be returned (such as an integer for a row count or a hash for output parameters when executing a stored procedure).  If no rows are found, a hash of column names assigned to empty lists is returned.
 
     @par Example:
     @code{.py}
 # bind a string and a date/time value by value in a query
-query = db.select("select * from table where varchar_column = %v and timestamp_column > %v", string, 2007-10-11T15:31:26.289);
+hash query = db.select("select * from table where varchar_column = %v and timestamp_column > %v", string, 2007-10-11T15:31:26.289);
+if (query.firstValue())
+    printf("got results\n");
     @endcode
 
     @note This method returns all the data available immediately; to process query data piecewise, use the SQLStatement class
@@ -127,7 +129,7 @@ abstract any AbstractDatasource::select(string sql, ...);
 //! Executes an %SQL select statement on the server and returns the first row as a hash (the column values)
 /** If more than one row is returned, then it is treated as an error and a \c DBI-SELECT-ROW-ERROR is returned (however the DBI driver should raise its own exception here to avoid retrieving more than one row from the server). For a similar method taking a list for all bind arguments, see AbstractDatasource::vselectRow().
 
-    This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+    This method also accepts all bind parameters (<tt>%%d</tt>, <tt>%%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
 
     To execute select statements that begin a transaction (such as \c "select for update"), execute AbstractDatasource::beginTransaction() first to signal that a transaction is starting;
     this is particularly important when the object is shared among more than one thread.
@@ -150,7 +152,7 @@ abstract any AbstractDatasource::selectRow(string sql, ...);
 /** The return format of this method is not as memory efficient as that returned by the AbstractDatasource::select() method, therefore for larger amounts of data, it is recommended to use AbstractDatasource::select().
     The usual return value of this method can be iterated with the ListHashIterator class.
 
-    This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+    This method also accepts all bind parameters (<tt>%%d</tt>, <tt>%%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
 
     To execute select statements that begin a transaction (such as \c "select for update"), execute AbstractDatasource::beginTransaction() first to signal that a transaction is starting;
     this is particularly important when the object is shared among more than one thread.
@@ -175,7 +177,7 @@ abstract any AbstractDatasource::selectRows(string sql, ...);
 /** The usual return format of this method is suitable for use with @ref context "context statements", for easy iteration and processing of query results.
     Alternatively, the HashListIterator class can be used to iterate the return value of this method.
 
-    This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+    This method also accepts all bind parameters (<tt>%%d</tt>, <tt>%%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
 
     To execute select statements that begin a transaction (such as \c "select for update"), execute AbstractDatasource::beginTransaction() first to signal that a transaction is starting;
     this is particularly important when the object is shared among more than one thread.
@@ -183,11 +185,13 @@ abstract any AbstractDatasource::selectRows(string sql, ...);
     @param sql The %SQL command to execute on the server
     @param vargs Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
-    @return Normally returns a hash (the keys are the column names) of list (each hash key's value is a list giving the row data), however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+    @return Normally returns a hash (the keys are the column names) of list (each hash key's value is a list giving the row data), however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned.  If no rows are found, a hash of column names assigned to empty lists is returned.
 
     @par Example:
     @code{.py}
-*hash query = db.vselect("select * from example_table where id = %v and name = %v", arg_list);
+hash query = db.vselect("select * from example_table where id = %v and name = %v", arg_list);
+if (query.firstValue())
+    printf("got results\n");
     @endcode
 
     @see AbstractDatasource::select()
@@ -199,7 +203,7 @@ abstract any AbstractDatasource::vselect(string sql, *softlist vargs);
 //! Executes a select statement on the server and returns the first row as a hash (column names and values), taking a list for all bind arguments
 /** This method is the same as the AbstractDatasource::selectRow() method, except this method takes a single argument after the %SQL command giving the list of bind value parameters
 
-    This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+    This method also accepts all bind parameters (<tt>%%d</tt>, <tt>%%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
 
     To execute select statements that begin a transaction (such as \c "select for update"), execute AbstractDatasource::beginTransaction() first to signal that a transaction is starting;
     this is particularly important when the object is shared among more than one thread.
@@ -225,7 +229,7 @@ abstract any AbstractDatasource::vselectRow(string sql, *softlist vargs);
 
     The return format of this method is not as memory efficient as that returned by the AbstractDatasource::select() method, therefore for larger amounts of data, it is recommended to use AbstractDatasource::select().
 
-    This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+    This method also accepts all bind parameters (<tt>%%d</tt>, <tt>%%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
 
     To execute select statements that begin a transaction (such as \c "select for update"), execute AbstractDatasource::beginTransaction() first to signal that a transaction is starting;
     this is particularly important when the object is shared among more than one thread.
@@ -399,7 +403,7 @@ string str = ds.getConfigString();
 abstract string AbstractDatasource::getConfigString();
 
 //! Should return @ref Qore::True "True" if the current thread is in a transaction with this object, must be re-implemented in subclasses to provide the desired functionality
-/** @note 
+/** @note
     - this is reimplemented as @ref Qore::SQL::Datasource::currentThreadInTransaction() "Datasource::currentThreadInTransaction()" and @ref Qore::SQL::DatasourcePool::currentThreadInTransaction() "DatasourcePool::currentThreadInTransaction()"
     - this method was added as a non-abstract method in Qore 0.8.10 to avoid breaking existing subclasses of AbstractDatasource
 
