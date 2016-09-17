@@ -1,12 +1,12 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreFtpClient.h
-  
+
   thread-safe Qore QoreFtpClient object
-  
+
   Qore Programming Language
-  
-  Copyright (C) 2003 - 2015 David Nichols
+
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -47,11 +47,11 @@ class Queue;
 //! provides thread-safe access to FTP servers through Qore data structures
 /**
    is "auto" mode, tries the following data modes in order:
-   - EPSV mode (RFC 2428) 
+   - EPSV mode (RFC 2428)
    - PASV mode (RFC 959)
-   - then PORT 
+   - then PORT
 
-   references: 
+   references:
    - RFC 959: FTP
    - RFC 2428: EPSV mode only (no IPv6 support yet)
    - RFC 4217 (supercedes RFC 2228):
@@ -78,7 +78,7 @@ protected:
 
 public:
    //! creates the object and sets connection parameters based on the url passed
-   /** a Qore-language exception will be raised if the URL is invalid (protocol is not "ftp" 
+   /** a Qore-language exception will be raised if the URL is invalid (protocol is not "ftp"
        or "ftps") or the hostname is missing.
        @param url the URL string to use to set connection parameters
        @param xsink if an error occurs, the Qore-language exception information will be added here
@@ -208,7 +208,7 @@ public:
        @return 0 for OK, non-zero for error (meaning that an exception has been raised)
    */
    DLLEXPORT int rmdir(const char *remotepath, ExceptionSink *xsink);
- 
+
    //! returns the port number connection parameter
    DLLEXPORT int getPort() const;
 
@@ -222,7 +222,7 @@ public:
    DLLEXPORT const char *getHostName() const;
 
    //! sets the connection parameters from a URL
-   /** a Qore-language exception will be raised if the URL is invalid (protocol is not "ftp" 
+   /** a Qore-language exception will be raised if the URL is invalid (protocol is not "ftp"
        or "ftps") or the hostname is missing.
        @param url the URL string to use to set connection parameters
        @param xsink if an error occurs, the Qore-language exception information will be added here
@@ -239,13 +239,13 @@ public:
    DLLEXPORT void setPort(int p);
 
    //! sets the user name connection parameter
-   DLLEXPORT void setUserName(const char *u); 
+   DLLEXPORT void setUserName(const char *u);
 
    //! sets the password connection parameter
    DLLEXPORT void setPassword(const char *p);
 
    //! sets the host name connection parameter
-   DLLEXPORT void setHostName(const char *h); 
+   DLLEXPORT void setHostName(const char *h);
 
    //! sets the secure connection parameter flag (to use the FTPS protocol)
    /** @return 0 for OK, -1 for error, not set (if a connection is currently established, then this flag cannot be changed)
@@ -310,6 +310,16 @@ public:
    DLLEXPORT void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, class Queue* wq, AbstractQoreNode* arg, int64 min_ms = 1000);
    DLLEXPORT QoreHashNode* getUsageInfo() const;
    DLLEXPORT void clearStats();
+
+   //! sets the socket I/O timeout value in milliseconds
+   /** @since Qore 0.8.12.3
+    */
+   DLLLOCAL void setTimeout(int timeout_ms);
+
+   //! returns the socket I/O timeout value as an integer in milliseconds
+   /** @since Qore 0.8.12.3
+    */
+   DLLLOCAL int getTimeout() const;
 
    //! sets the same event queue for data and control sockets
    DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);
