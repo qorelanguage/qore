@@ -3,27 +3,27 @@
     @tableofcontents
 
     @section class_overview Class Overview
-    Classes define types of %Qore @ref object "objects". Classes can define members and methods, which are attributes of the class and functions that operate only on the objects of that class, respectively.  Furthermore access to class members and methods can be restricted with the <tt><b>private</b></tt> keyword, and classes can be @ref inheritance "subclassed" to support polymorphism.
+    Classes define types of %Qore @ref object "objects". Classes can define members and methods, which are attributes of the class and functions that operate only on the objects of that class, respectively.  Furthermore access to class members and methods can be restricted with the <tt><b>private</b></tt> or <tt><b>private:internal</b></tt> access modifiers, and classes can be @ref inheritance "subclassed" to support polymorphism.
 
     @note Each %Qore type has a "pseudo-class" associated with it (the default is @ref Qore::zzz8valuezzz9); methods from the data type's "pseudo-class" can be run on any value of that type; see @ref Qore::zzz8valuezzz9 and <b>"Pseudo Class for Type"</b> headings in @ref basic_data_types for more information.
 
     @par In-Line Class Declaration Syntax
-    <tt><b>[@ref mod_public "public"] [@ref final_classes "final"] class</b> [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt>] [<b>inherits</b> [<b>@ref private_inheritance "private"</b>|<b>@ref public_inheritance "public"</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>parent_class_identifier</em><tt>[, ...]] {</tt>\n
-    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref private_members "private"</b>] </tt><em>member_name</em><tt>[, ...];]</tt>\n\n
-    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>@ref private_members "private"</b>|<b>@ref public_members "public"</b> {</tt>\n
+    <tt><b>[@ref mod_public "public"] [@ref final_classes "final"] class</b> [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt>] [<b>inherits</b> [<b>@ref private_inheritance "private[:internal|hierarchy]"</b>|<b>@ref public_inheritance "public"</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>parent_class_identifier</em><tt>[, ...]] {</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref private_members "private[:internal|hierarchy]"</b>] </tt><em>member_name</em><tt>[, ...];]</tt>\n\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>@ref private_members "private[:internal|hierarchy]"</b>|<b>@ref public_members "public"</b> {</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[[</tt><em>@ref data_type_declarations "member_type"</em><tt>] </tt><em>member_name</em> <tt>[= </tt><em>@ref expressions "initialization_expression"</em><tt>];]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>static</b> [</tt><em>@ref data_type_declarations "static_member_type"</em><tt>] </tt><em>static_member_name</em> <tt>[= </tt><em>@ref expressions "initialization_expression"</em><tt>];]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>const</b> </tt><em>constant_name</em> <tt>=</tt> <em>@ref expressions "initialization_expression"</em><tt>;]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>\n\n
-    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref final_methods "final"</b>] [<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>] [<b>@ref deprecated "deprecated"</b>] <b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref private_methods "private[:internal|hierarchy]"</b>|<b>@ref public_methods "public"</b>] [<b>@ref deprecated "deprecated"</b>] <b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>copy</b>(<tt>@ref object_type "object" </tt><em>arg_name</em>) {</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>destructor</b>() {</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>\n
-    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref static_methods "static"</b>|<b>@ref final_methods "final"</b>] [<b>@ref synchronized "synchronized"</b>] [<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>] [<b>@ref deprecated "deprecated"</b>] [</tt><em>@ref data_type_declarations "return_type"</em><tt>]</tt> <em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) {</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref static_methods "static"</b>|<b>@ref final_methods "final"</b>] [<b>@ref synchronized "synchronized"</b>] [<b>@ref private_methods "private[:internal|hierarchy]"</b>|<b>@ref public_methods "public"</b>] [<b>@ref deprecated "deprecated"</b>] [</tt><em>@ref data_type_declarations "return_type"</em><tt>]</tt> <em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) {</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>\n
-    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref abstract "abstract"</b>] [<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>] [</tt><em>@ref data_type_declarations "return_type"</em><tt>]</tt> <em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]);]</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref abstract "abstract"</b>] [<b>@ref private_methods "private[:internal|hierarchy]"</b>|<b>@ref public_methods "public"</b>] [</tt><em>@ref data_type_declarations "return_type"</em><tt>]</tt> <em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]);]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>...</tt>\n
     <tt>}</tt>
 
@@ -53,12 +53,12 @@ class MyClass inherits MyBaseClass {
 
     @par Out-Of-Line Class Declaration Syntax
     Alternatively class declarations and method declarations can be defined out of line as follows:\n
-    <tt>[@ref mod_public "public"] \b class [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt> [<b>inherits</b> [<b>@ref private_inheritance "private"</b>|<b>@ref public_inheritance "public"</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>parent_class_identifier</em><tt>[, ...]];</tt>\n\n
-    <tt>[[<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>] [<b>@ref deprecated "deprecated"</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt>::<b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
+    <tt>[@ref mod_public "public"] \b class [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt> [<b>inherits</b> [<b>@ref private_inheritance "private[:internal|hierarchy]"</b>|<b>@ref public_inheritance "public"</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>parent_class_identifier</em><tt>[, ...]];</tt>\n\n
+    <tt>[[<b>@ref private_methods "private[:internal|hierarchy]"</b>|<b>@ref public_methods "public"</b>] [<b>@ref deprecated "deprecated"</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt>::<b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
     <tt>}]</tt>\n\n
-    <tt>[[<b>@ref static_methods "static"</b>|<b>@ref final_methods "final"</b>] [<b>@ref synchronized "synchronized"</b>] [<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>] [<b>@ref deprecated "deprecated"</b>] [</tt><em>@ref data_type_declarations "return_type"</em><tt>] [</tt><em>@ref namespace_paths "namespace_path"<tt>::...]</tt>class_identifier</em><tt>::</tt><em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) {</tt>\n
+    <tt>[[<b>@ref static_methods "static"</b>|<b>@ref final_methods "final"</b>] [<b>@ref synchronized "synchronized"</b>] [<b>@ref private_methods "private[:internal|hierarchy]"</b>|<b>@ref public_methods "public"</b>] [<b>@ref deprecated "deprecated"</b>] [</tt><em>@ref data_type_declarations "return_type"</em><tt>] [</tt><em>@ref namespace_paths "namespace_path"<tt>::...]</tt>class_identifier</em><tt>::</tt><em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) {</tt>\n
     <tt>}]</tt>
-    <tt>[<b>@ref abstract "abstract"</b> [<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>] [</tt><em>@ref data_type_declarations "return_type"</em><tt>] [</tt><em>@ref namespace_paths "namespace_path"<tt>::...]</tt>class_identifier</em><tt>::</tt><em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]);</tt>\n
+    <tt>[<b>@ref abstract "abstract"</b> [<b>@ref private_methods "private[:internal|hierarchy]"</b>|<b>@ref public_methods "public"</b>] [</tt><em>@ref data_type_declarations "return_type"</em><tt>] [</tt><em>@ref namespace_paths "namespace_path"<tt>::...]</tt>class_identifier</em><tt>::</tt><em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]);</tt>\n
 
     As with inline class definitions, when defining a @ref user_modules "user module", class declarations can be preceded by @ref mod_public "public", which means that the class will be available (imported) in the @ref Qore::Program "Program" object importing the module. When a class is declared @ref mod_public "public" outside of a @ref user_modules "user module", it means that the class can be inherited in any child @ref Qore::Program "Program" objects created in the same scope. See @ref mod_public "public" for more information. Note that classes can also be imported singly by using the @ref Qore::Program::importClass() "Program::importClass()" method.
 
@@ -89,11 +89,13 @@ softstring MyNamespace::MyClass::myMethod(softint i) {
 
     @anchor public_methods
     @par Public Methods
-    All class methods are public by default, but methods can also be explicitly declared with the <tt><b>public</b></tt> keyword as well.  Public methods have no class protection and can be called from any code context.
+    All class methods are public by default, but methods can also be explicitly declared with the <tt><b>public</b></tt> access modifier as well.  Public methods have no class protection and can be called from any code context.
 
     @anchor private_methods
     @par Private Methods
-    Methods declared with the <tt><b>private</b></tt> keyword can only be called by other member functions of the same class or of derived classes. Any attempt to call these methods from outside the class hierarchy will result in a run-time exception.
+    Methods declared with the <tt><b>private</b></tt> access modifier can only be called by other member methods of the same class or in the same class hierarchy. Any attempt to call these methods from outside the class hierarchy will result in a run-time exception.  This access modifier, when used without any modifiers, is equivalent to <tt><b>private:hierarchy</b></tt> and is functionally identical to C++'s \a protected access modifier.\n\n
+    Methods declared as <tt><b>private:internal</b></tt> are not available outside the class, even in classes in the same class hierarchy, providing strong encapsulation of the declared method.  This can be used to ensure that the declared method can be changed in later versions of the class without affecting API compatibility.\n\n
+    Methods declared as <tt><b>private:hierarchy</b></tt> are equivalent to those declared <tt><b>private</b></tt> and are only private from outside the class hierarchy.
 
     @anchor synchronized_methods
     @par Synchronized Methods
@@ -103,7 +105,7 @@ softstring MyNamespace::MyClass::myMethod(softint i) {
     @anchor static_methods
     @par Static Methods
     Methods declared with the <tt><b>static</b></tt> keyword are like regular functions that are attached to the class. These methods are not associated with a particular object's state and therefore are not allowed to refer to object members or call non-static methods. Also, no reference to the special <tt>self</tt> variable is allowed within static methods.\n\n
-    Static methods may be declared <tt><b>private</b></tt> or <tt><b>public</b></tt> or <tt><b>synchronized</b></tt> like non-static methods; static methods can also access private members of a class (through an object of the class for non-static members).\n\n
+    Static methods may be declared <tt><b>private</b></tt>, <tt><b>private:internal</b></tt>, or <tt><b>public</b></tt> or <tt><b>synchronized</b></tt> like non-static methods; static methods can also access private members of a class (through an object of the class for non-static members).\n\n
     Static method calls take a special syntax as documented in @ref static_method_calls.\n
 
     @anchor abstract
@@ -117,7 +119,7 @@ softstring MyNamespace::MyClass::myMethod(softint i) {
     All class methods are optional, but some methods have a special meaning.\n\n
     <b>Special Methods</b>
     |!Name|!Description
-    |<tt>constructor(</tt><em>[params...]</em><tt>) {}</tt>|Called when objects are created when instantiated by a variable declaration with a class type and constructor arguments or explicitly with the new operator. User code may not explicitly call \c constructor() methods directly. In a class tree, \c constructor() methods are called for base classes first in left-to-right, depth-first declaration order.\n\n\c constructor() methods may be overloaded and also private constructors may be defined. Private constructors can only be called from within the class.
+    |<tt>constructor(</tt><em>[params...]</em><tt>) {}</tt>|Called when objects are created when instantiated by a variable declaration with a class type and constructor arguments or explicitly with the new operator. User code may not explicitly call \c constructor() methods directly. In a class tree, \c constructor() methods are called for base classes first in left-to-right, depth-first declaration order.\n\n\c constructor() methods may be overloaded and also private constructors may be defined.  Constructors declared <tt><b>private</b></tt> can only be called from within the class hierarchy, and those declared <tt><b>private:internal</b></tt> can only be called within the class itself.
     |<tt>copy() {}</tt>|When a user explicitly calls a copy method, %Qore will generate a new object with references to the same members as the source object. Then, if there are any base classes, base class \c copy() methods are called in the same order as the \c constructor() methods. If a \c copy() method is defined, it will be run in the new object with a reference to the old object passed as the first argument. Any other arguments passed to the \c copy() method are ignored.\n\n\c copy() methods cannot be overloaded and cannot be private.
     |<tt>destructor() {}</tt>|Called when objects are implicitly collected (see @ref garbage_collection) or are explicitly deleted. User code may not explicitly call \c destructor() methods. In a class tree, \c destructor() methods are called for base classes in the opposite order in which the constructors are called.\n\n\c destructor() methods cannot be overloaded and cannot be private.
     |@ref any_type "any" <tt>@ref memberGate_methods "memberGate"(</tt>@ref string_type "string" <tt>$</tt><em>member_param_name</em><tt>) {}</tt>|If this method is implemented in the class, it is called when read access is attempted to private member or members that do not exist in the current object; the return value of this method is returned as the value of the member.\n\n\c memberGate() methods cannot be overloaded and are not inherited by subclasses.
@@ -141,7 +143,7 @@ softstring MyNamespace::MyClass::myMethod(softint i) {
     @par Class Constants
     Class constants, like non-class constants, allow programmers to refer to values with %Qore identifiers rather than using the value or the expression that generates the value.\n\n
     See @ref class_overview for a description of the syntax required to declare a class constant.\n\n
-    Like other attributes of classes, class constants may be declared <tt><b>private</b></tt> or <tt><b>public</b></tt>. The following is an example of a class constant definition:\n
+    Like other attributes of classes, class constants may be declared <tt><b>private</b></tt>, <tt><b>private:internal</b></tt>, or <tt><b>public</b></tt>. The following are examples of class constant definitions:\n
     @code{.py}
 class Test {
     public {
@@ -150,6 +152,10 @@ class Test {
 
     private {
         const Limit = 100;
+    }
+
+    private:internal {
+        const Other = "string";
     }
 }
     @endcode
@@ -160,7 +166,7 @@ class Test {
     @par Static Class Variables
     Static class variables are like global variables that belong to a class. They are not associated with any particular object.\n\n
     See @ref class_overview for a description of the syntax required to declare a static class variable.\n\n
-    Like other attributes of classes, static class variables may be declared <tt><b>private</b></tt> or <tt><b>public</b></tt>. The following is an example of a static class variable definition:\n
+    Like other attributes of classes, static class variables may be declared <tt><b>private</b></tt>, <tt><b>private:internal</b></tt>, or <tt><b>public</b></tt>. The following are examples of static class variable definitions:\n
     @code{.py}
 class Test {
     public {
@@ -169,6 +175,10 @@ class Test {
 
     private {
         static int numProcessed = 0;
+    }
+
+    private:internal {
+        static string other = "string";
     }
 }
     @endcode
@@ -183,10 +193,12 @@ class Test {
 
     @anchor private_members
     @par Private Members
-    Members declared <b><tt>private</tt></b> can only be accessed within the class hierarchy; trying to access private members form outside the class hierarchy will result in either a parse or runtime exception, depending on when the illegal acceess is caught.
+    Members declared <b><tt>private</tt></b> can only be accessed within the class hierarchy; trying to access private members form outside the class hierarchy will result in either a parse or runtime exception, depending on when the illegal access is caught.  This access modifier, when used without any modifiers, is equivalent to <tt><b>private:hierarchy</b></tt> and is functionally identical to C++'s \a protected access modifier.\n\n
+    Members declared as <tt><b>private:internal</b></tt> are not available outside the class, even in classes in the same class hierarchy, providing strong encapsulation of the declared member.  This can be used to ensure that the declared member can be changed in later versions of the class without affecting API compatibility.\n\n
+    Members declared as <tt><b>private:hierarchy</b></tt> are equivalent to those declared <tt><b>private</b></tt> and are only private from outside the class hierarchy.
 
     @par Class Member References
-    When defining a class, members of instantiated objects are referred to with a special syntax as follows:\n
+    When defining a class when using the old style syntax, members of instantiated objects are referred to with a special syntax as follows:\n
     <tt>$.</tt><em>member_name</em>\n\n
     Furthermore, the automatic variable <tt>self</tt> is instantiated in every non-static method, representing the current object (similar to <tt>this</tt> in C++ or Java). Therefore if you need to access hash members which are not valid %Qore identifiers, then enclose the member name in double quotes after the dot operator as follows:\n
     @code{.py} self."&member-name"@endcode
@@ -242,11 +254,19 @@ lock();
 
     Class inheritance is a powerful concept for easily extending and reusing object-oriented code, but is also subject to some limitations. This section explains how class inheritance works in %Qore.
 
-    Classes inherit the methods of a parent class by using the <tt><b>inherits</b></tt> keyword as specified above. Multiple inheritance is supported; a single %Qore class can inherit one or more classes. When a class is inherited by another class, it is called a base class or parent class. @ref private_inheritance "Private inheritance" is specified by including the keyword <tt><b>private</b></tt> before the inherited class's name. When a class is privately inherited, it means that the inherited class's public declarations (members, constants, methods, etc) are treated as private in the context of accesses outside the class.
+    Classes inherit the methods of a parent class by using the <tt><b>inherits</b></tt> keyword as specified above.  Multiple inheritance is supported; a single %Qore class can inherit one or more classes.  When a class is inherited by another class, it is called a base class or parent class.  @ref private_inheritance "Private inheritance" is specified by including the <tt><b>private</b></tt> access modifier before the inherited class's name.  When a class is privately inherited, it means that the inherited class's public declarations (members, constants, methods, etc) are treated as private in the context of accesses outside the class hierarchy.
 
-    Inheritance is <tt><b>public</b></tt> @ref public_inheritance "by default", to inherit a class privately, use the <tt><b>private</b></tt> keyword before the class name or class path to inherit as follows:
+    To limit access of a base class to only the directly inheriting class, use the <tt><b>private:internal</b></tt> access modifier.  Classes inherited with <tt><b>private:internal</b></tt> are not accessible to the hierarchy in general but rather only to the directly inheriting class.
+
+    Inheritance is <tt><b>public</b></tt> @ref public_inheritance "by default", to inherit a class privately, such that the inherted class is accessible within all child classes in the hierarchy, use the <tt><b>private</b></tt> access modifier before the class name or class path to inherit as follows:
     @code{.py}
 class ChildClass inherits private ParentClass {
+}
+    @endcode
+
+    To inherit a class where the inherited class is only available to the inheriting class but not to child classes, use the <tt><b>private:internal</b></tt> access modifier before the class name or class path as follows:
+    @code{.py}
+class ChildClass inherits private:internal ParentClass {
 }
     @endcode
 
@@ -257,7 +277,7 @@ class ChildClass inherits private ParentClass {
     @note Class members only exist once for each object; therefore if classes in an inheritance tree have different uses for members with the same name, then a class hierarchy built of such classes will probably not function properly.
 
     Subclasses can give explicit arguments to their base class constructors using a special syntax (only available to subclass constructors) similar to the C++ syntax for the same purpose as follows:\n
-    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref private_methods "private"</b>|<b>@ref public_methods "public"</b>] [<b>@ref deprecated "deprecated"</b>] <b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref private_methods "private[:internal|hierarchy]"</b>|<b>@ref public_methods "public"</b>] [<b>@ref deprecated "deprecated"</b>] <b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>
 
     Here is a concrete example of giving arguments to an inherited base class:
@@ -275,7 +295,9 @@ class XmlRpcClient inherits Qore::HTTPClient {
 
     @subsection private_inheritance Private Inheritance
 
-    Classes inherited using the <b><tt>private</tt></b> keyword encapsulate the functionality (members, constants, methods, etc) of the parent class privately in the child class; that is, any access to the privately-inherited parent class's functionality from outside the class will result in either a parse-time or runtime exception, depending on when the error is caught.
+    Classes inherited using the <b><tt>private</tt></b> access modifier encapsulate the functionality (members, constants, methods, etc) of the parent class privately in the class hierarchy; that is, any access to the privately-inherited parent class's functionality from outside the class hierarchy will result in either a parse-time or runtime exception, depending on when the error is caught.  When inheritance is declared <tt><b>private</b></tt>, the inherted class is accessible in all child classes in the hierarchy.
+
+    Classes inherited using the <tt><b>private:internal</b></tt> access modifier limit access to the inherited class to the child class; the inherited class in this case is not available in the rest of the class hierarchy but is limited to the directly inheriting child class.
 
     @subsection public_inheritance Public Inheritance
 
