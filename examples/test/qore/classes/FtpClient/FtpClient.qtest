@@ -16,13 +16,15 @@ class FtpServer {
         Socket s();
         Counter cnt();
         bool quit;
+        int verbose;
         hash broken;
         bool get_empty;
 
         const PollInterval = 500ms;
     }
 
-    constructor(int port) {
+    constructor(int port, int verbose = 0) {
+        self.verbose = verbose;
         s.bindINET("localhost", port.toString(), True);
         if (s.listen())
             throw "FTPSERVER-ERROR", strerror();
@@ -49,7 +51,8 @@ class FtpServer {
 
     private ftpSend(Socket ns, int code, string msg) {
         string str = sprintf("%d %s\r\n", code, vsprintf(msg, argv));
-        #printf("MSG: %s", str);
+        if (verbose > 2)
+            printf("FTP > %s", str);
         ns.send(str);
     }
 
@@ -65,14 +68,15 @@ class FtpServer {
                     break;
             }
             catch (hash ex) {
-                if (ex.err == "SOCKET-NOT-OPEN")
+                if (ex.err == "SOCKET-NOT-OPEN" || ex.err == "SOCKET-CLOSED")
                     return "";
                 if (ex.err != "SOCKET-TIMEOUT")
                     rethrow;
             }
         }
         trim str;
-        #printf("CMD: %s\n", str);
+        if (verbose > 2)
+            printf("FTP < %s\n", str);
         return str;
     }
 
@@ -114,7 +118,7 @@ class FtpServer {
         while (True) {
             string cmd = ftpGetCommand(ns);
             if (quit || cmd == "")
-                return;
+                break;
 
             if (cmd =~ /^EPSV$/i) {
                 termWaitData(data, dcnt, \dataquit);
@@ -169,6 +173,7 @@ class FtpServer {
                 if (doBroken("retr", data))
                     break;
 
+                printf("get: empty %y\n", get_empty);
                 if (!get_empty) {
                     # write a bunch of data and then exit
                     for (int i = 0; i < 200; ++i)
@@ -229,12 +234,16 @@ class FtpServer {
         on_exit dcnt.dec();
 
         while (!dataquit) {
-            Socket ns = data.accept(PollInterval);
+            *Socket ns = data.accept(PollInterval);
             if (ns) {
                 data = ns;
                 return;
             }
         }
+    }
+
+    int getPort() {
+        return s.getSocketInfo().port;
     }
 
     setBroken(string cmd, timeout v) {
@@ -274,7 +283,7 @@ class FtpTest inherits QUnit::Test {
         # set valid flag; skip tests if no connection can be made
         url = ARGV[0] ?? ENV.QORE_FTPTEST_URL ?? Url;
 
-        addTestCase("FtpClient class test case", \testFtpClient());
+        #addTestCase("FtpClient class test case", \testFtpClient());
         addTestCase("FtpClient simulated server", \testFtpClientSim());
         set_return_value(main());
     }
@@ -344,14 +353,13 @@ class FtpTest inherits QUnit::Test {
             port = m_options.port;
         else if (ENV.FTPCLIENT_TEST_PORT)
             port = ENV.FTPCLIENT_TEST_PORT.toInt();
-        else {
-            srand(clock_getmicros());
-            port = 10000 + (rand() % 40000);
-        }
+        else
+            port = 0;
 
-        FtpServer serv(port);
+        FtpServer serv(port, m_options.verbose);
         on_exit serv.shutdown();
 
+        port = serv.getPort();
         FtpClient fc("ftp://user:pass@localhost:" + port);
         assertEq(NOTHING, fc.connect());
 
@@ -386,5 +394,6 @@ class FtpTest inherits QUnit::Test {
         serv.setGetEmpty();
         assertEq(NOTHING, fc.get(local_path, local_path));
         assertEq("", ReadOnlyFile::readTextFile(local_path));
+        assertEq("", fc.getAsString(local_path));
     }
 }

@@ -366,7 +366,9 @@ ftp.get("file.txt", "/tmp/file-1.txt");
     @throw FTP-FILE-OPEN-ERROR Could not create the local file
     @throw FTP-GET-ERROR There was an error retrieving the file
 
-    @note see FtpClient::connect() for additional exceptions that could be thrown when connections are implicitly established
+    @note
+    - see FtpClient::connect() for additional exceptions that could be thrown when connections are implicitly established
+    - any existing file with the same name is truncated before writing
 
     @see FtpClient::getAsString(), FtpClient::getAsData()
  */
