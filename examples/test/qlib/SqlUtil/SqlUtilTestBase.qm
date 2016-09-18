@@ -683,7 +683,7 @@ public class SqlTestBase inherits QUnit::Test {
     offsetLimitTest() {
         # TODO: remove once support for limit & offset is implemented in FreetdsSqlUtil
         if (self.className() == "FreetdsTest")
-            testSkip ("FreetdsSqlUtil does not support this feature yet");
+            testSkip("FreetdsSqlUtil does not support offset (yet)");
 
         if (!table) testSkip("no DB connection");
 
@@ -739,8 +739,11 @@ public class SqlTestBase inherits QUnit::Test {
     fetchColumnsTest() {
         if (!table) testSkip("no DB connection");
 
-        SQLStatement stmt = table.getRowIterator(("where": ("id": op_cne("id"))));
+        hash sh = ("columns": "id", "where": ("id": op_cne("id")));
+        SQLStatement stmt = table.getRowIterator(sh);
         assertEq({}, stmt.fetchColumns(10));
+        # sanity select test
+        assertEq(("id": ()), table.select(sh));
     }
 
     static string getColumnName(string n) {
