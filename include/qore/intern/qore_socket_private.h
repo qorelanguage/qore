@@ -1338,7 +1338,7 @@ struct qore_socket_private {
 
    DLLLOCAL QoreHashNode* getPeerInfo(ExceptionSink* xsink, bool host_lookup = true) const {
       if (sock == QORE_INVALID_SOCKET) {
-	 xsink->raiseException("SOCKET-GETPEERINFO-ERROR", "socket is not open()");
+         se_not_open("Socket", "getPeerInfo", xsink);
 	 return 0;
       }
 
@@ -1354,7 +1354,7 @@ struct qore_socket_private {
 
    DLLLOCAL QoreHashNode* getSocketInfo(ExceptionSink* xsink, bool host_lookup = true) const {
       if (sock == QORE_INVALID_SOCKET) {
-	 xsink->raiseException("SOCKET-GETSOCKETINFO-ERROR", "socket is not open()");
+         se_not_open("Socket", "getSocketInfo", xsink);
 	 return 0;
       }
 

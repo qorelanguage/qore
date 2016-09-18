@@ -110,6 +110,7 @@
     - fixed a bug where different method variant resolution rules were used at parse time (best match in hierarchy) and runtime (best match in first matching class) in a class hierarchy (<a href="https://github.com/qorelanguage/qore/issues/1229">issue 1229</a>)
     - fixed a bug where exceptions in base class constructor calls did not reflect the actual source location (<a href="https://github.com/qorelanguage/qore/issues/1230">issue 1230</a>)
     - fixed a bug where runtime function/method variant matching was incorrectly biased towards default matches for missing arguments (<a href="https://github.com/qorelanguage/qore/issues/1231">issue 1231</a>)
+    - fixed bugs where calls to @ref Qore::Socket::upgradeClientToSSL() "Socket::upgradeClientToSSL()" and @ref Qore::Socket::upgradeServerToSSL() "Socket::upgradeServerToSSL()" were ignored with no exception thrown if the socket was not connected (<a href="https://github.com/qorelanguage/qore/issues/1258">issue 1258</a>)
 
     @section qore_08123 Qore 0.8.12.3
 

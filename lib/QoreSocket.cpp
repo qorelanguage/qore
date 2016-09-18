@@ -539,7 +539,7 @@ int qore_socket_private::recv(int fd, qore_offset_t size, int timeout_ms, Except
       return 0;
    if (sock == QORE_INVALID_SOCKET) {
       printd(5, "QoreSocket::send() ERROR: sock: %d size: " QSD "\n", sock, size);
-      se_not_open("Socket", "send", xsink);
+      se_not_open("Socket", "recv", xsink);
       return -1;
    }
 
@@ -1581,32 +1581,40 @@ int QoreSocket::asyncIoWait(int timeout_ms, bool read, bool write) const {
 }
 
 int QoreSocket::upgradeClientToSSL(X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {
-   if (priv->sock == QORE_INVALID_SOCKET)
+   if (priv->sock == QORE_INVALID_SOCKET) {
+      se_not_open("Socket", "upgradeClientToSSL", xsink);
       return -1;
+   }
    if (priv->ssl)
       return 0;
    return priv->upgradeClientToSSLIntern("upgradeClientToSSL", cert, pkey, -1, xsink);
 }
 
 int QoreSocket::upgradeClientToSSL(X509* cert, EVP_PKEY* pkey, int timeout_ms, ExceptionSink* xsink) {
-   if (priv->sock == QORE_INVALID_SOCKET)
+   if (priv->sock == QORE_INVALID_SOCKET) {
+      se_not_open("Socket", "upgradeClientToSSL", xsink);
       return -1;
+   }
    if (priv->ssl)
       return 0;
    return priv->upgradeClientToSSLIntern("upgradeClientToSSL", cert, pkey, timeout_ms, xsink);
 }
 
 int QoreSocket::upgradeServerToSSL(X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {
-   if (priv->sock == QORE_INVALID_SOCKET)
+   if (priv->sock == QORE_INVALID_SOCKET) {
+      se_not_open("Socket", "upgradeServerToSSL", xsink);
       return -1;
+   }
    if (priv->ssl)
       return 0;
    return priv->upgradeServerToSSLIntern("upgradeServerToSSL", cert, pkey, -1, xsink);
 }
 
 int QoreSocket::upgradeServerToSSL(X509* cert, EVP_PKEY* pkey, int timeout_ms, ExceptionSink* xsink) {
-   if (priv->sock == QORE_INVALID_SOCKET)
+   if (priv->sock == QORE_INVALID_SOCKET) {
+      se_not_open("Socket", "upgradeServerToSSL", xsink);
       return -1;
+   }
    if (priv->ssl)
       return 0;
    return priv->upgradeServerToSSLIntern("upgradeServerToSSL", cert, pkey, timeout_ms, xsink);
