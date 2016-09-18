@@ -1035,7 +1035,7 @@ int QoreFtpClient::get(const char* remotepath, const char* localname, ExceptionS
 
    printd(FTPDEBUG, "QoreFtpClient::get(%s) %s\n", remotepath, ln);
    // open local file
-   int fd = open(ln, O_WRONLY|O_CREAT, 0644);
+   int fd = open(ln, O_WRONLY|O_CREAT|O_TRUNC, 0644);
    if (fd < 0) {
       xsink->raiseErrnoException("FTP-FILE-OPEN-ERROR", errno, "%s", ln);
       if (ln != localname)
