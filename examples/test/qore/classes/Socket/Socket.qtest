@@ -6,7 +6,7 @@
 %require-types
 %strict-args
 
-%requires ../../../../qlib/QUnit.qm
+%requires ../../../../../qlib/QUnit.qm
 
 %exec-class SocketTest
 
@@ -42,12 +42,14 @@ class SocketTest inherits QUnit::Test {
     private {
         any o;
         any fam;
-        binary xbinary;
-        string xstring;
 
-        Queue queue;
-        Counter counter;
-        Counter stopc;
+        const XString = "This is a binary string";
+        const XBinary = Qore::binary(XString);
+
+        Counter counter(1);
+
+        Queue queue();
+        Counter stopc();
 
         int server_port;
         int client_port;
@@ -58,25 +60,62 @@ class SocketTest inherits QUnit::Test {
     constructor() : QUnit::Test("Socket test", "1.0") {
         process_command_line();
 
-        addTestCase("Test socket", \testSocket());
+        addTestCase("Client/Server Socket tests", \clientServerSocketTest());
+        addTestCase("Unconnected Socket tests", \unconnectedSocketTest());
+        addTestCase("Random Port tests", \randomPortSocketTest());
         set_return_value(main());
     }
 
-    globalSetUp() {
-        xstring = "This is a binary string";
-        xbinary = Qore::binary(xstring);
+    randomPortSocketTest() {
+        Socket s();
+        # bind on a random port
+        s.bindINET("localhost", 0);
+        # get port bound
+        hash h = s.getSocketInfo();
+        if (m_options.verbose > 2)
+            printf("port: %d\n", h.port);
 
-        counter = new Counter(1);
+        assertEq(True, h.port > 0);
+        assertEq(h.port, s.getPort());
+        if (s.listen())
+            throw "LISTEN-ERROR", strerror();
+
+        Counter c(1);
+
+        string str = "hello";
+        code sendMsg = sub () {
+            Socket ns();
+            ns.connectINET("localhost", h.port, 10s);
+            ns.send(str);
+            assertEq(str, ns.recv(str.size()));
+            c.dec();
+        };
+        background sendMsg();
+
+        Socket ns = s.accept(10s);
+        assertEq(str, ns.recv(str.size()));
+        ns.send(str);
+        c.waitForZero();
     }
 
-    testSocket() {
-        # create event queue and start listening thread if necessary
-        if (o.events) {
-            queue = new Queue();
-            background listen();
-        }
+    unconnectedSocketTest() {
+        Socket s();
+        assertThrows("SOCKET-NOT-OPEN", \s.recv(), 1);
+        assertThrows("SOCKET-NOT-OPEN", \s.recvi1());
+        assertThrows("SOCKET-NOT-OPEN", \s.recvBinary(), 1);
+        assertThrows("SOCKET-NOT-OPEN", \s.send(), "1");
+        assertThrows("SOCKET-NOT-OPEN", \s.sendi1(), 1);
 
-        stopc = new Counter();
+        assertEq(NOTHING, s.verifyPeerCertificate());
+        assertEq(NOTHING, s.getSSLCipherName());
+        assertEq(NOTHING, s.getSSLCipherVersion());
+    }
+
+    clientServerSocketTest() {
+        # create event queue and start listening thread if necessary
+        if (o.events)
+            background listen();
+
         if (!exists o.server) {
             stopc.inc();
             background server_thread();
@@ -206,11 +245,11 @@ class SocketTest inherits QUnit::Test {
 
     private receive_messages(Socket s, string who) {
         any m = s.recv();
-        assertEq(xstring, m, who + " string");
+        assertEq(XString, m, who + " string");
         s.send("OK");
 
         m = s.recvBinary();
-        assertEq(xbinary, m, who + " binary");
+        assertEq(XBinary, m, who + " binary");
         s.send("OK");
 
         m = s.recvi1();
@@ -244,16 +283,16 @@ class SocketTest inherits QUnit::Test {
         m = s.readHTTPHeader();
         assertEq("POST", m.method, who + " HTTP header method");
         m = s.recv(m."content-length");
-        assertEq(xstring, m, who + " HTTP message body");
+        assertEq(XString, m, who + " HTTP message body");
 
         s.sendHTTPResponse(200, "OK", "1.1", http_headers, "OK");
     }
 
     private send_messages(Socket s) {
-        SocketTest::check_send(s.send(xstring), "string");
+        SocketTest::check_send(s.send(XString), "string");
         get_response(s);
 
-        SocketTest::check_send(s.send(xbinary), "binary");
+        SocketTest::check_send(s.send(XBinary), "binary");
         get_response(s);
 
         SocketTest::check_send(s.sendi1(i1), "i1");
@@ -271,7 +310,7 @@ class SocketTest inherits QUnit::Test {
         get_response(s);
         SocketTest::check_send(s.sendi8LSB(i8), "i8LSB");
         get_response(s);
-        s.sendHTTPMessage("POST", "none", "1.1", http_headers, xstring);
+        s.sendHTTPMessage("POST", "none", "1.1", http_headers, XString);
         get_http_response(s);
     }
 
