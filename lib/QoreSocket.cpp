@@ -539,7 +539,7 @@ int qore_socket_private::recv(int fd, qore_offset_t size, int timeout_ms, Except
       return 0;
    if (sock == QORE_INVALID_SOCKET) {
       printd(5, "QoreSocket::send() ERROR: sock: %d size: "QSD"\n", sock, size);
-      se_not_open("Socket", "send", xsink);
+      se_not_open("Socket", "recv", xsink);
       return -1;
    }
 
