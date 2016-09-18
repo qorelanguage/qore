@@ -17,6 +17,7 @@ class FtpServer {
         Counter cnt();
         bool quit;
         hash broken;
+        bool get_empty;
 
         const PollInterval = 500ms;
     }
@@ -168,9 +169,11 @@ class FtpServer {
                 if (doBroken("retr", data))
                     break;
 
-                # write a bunch of data and then exit
-                for (int i = 0; i < 200; ++i)
-                    data.send("testing abcdefghijklmnopqrstuvwxyz 0123456789\n");
+                if (!get_empty) {
+                    # write a bunch of data and then exit
+                    for (int i = 0; i < 200; ++i)
+                        data.send("testing abcdefghijklmnopqrstuvwxyz 0123456789\n");
+                }
 
                 data.close();
                 ftpSend(ns, 226, "Transfer completed.");
@@ -237,6 +240,10 @@ class FtpServer {
     setBroken(string cmd, timeout v) {
         broken{cmd} = v;
     }
+
+    setGetEmpty(bool v = True) {
+        get_empty = v;
+    }
 }
 
 class FtpTest inherits QUnit::Test {
@@ -267,7 +274,7 @@ class FtpTest inherits QUnit::Test {
         # set valid flag; skip tests if no connection can be made
         url = ARGV[0] ?? ENV.QORE_FTPTEST_URL ?? Url;
 
-        #addTestCase("FtpClient class test case", \testFtpClient());
+        addTestCase("FtpClient class test case", \testFtpClient());
         addTestCase("FtpClient simulated server", \testFtpClientSim());
         set_return_value(main());
     }
@@ -373,5 +380,11 @@ class FtpTest inherits QUnit::Test {
         serv.setBroken("retr", 2s);
         fc.setTimeout(1ms);
         assertThrows("SOCKET-TIMEOUT", \fc.get(), (local_path, local_path));
+
+        fc.setTimeout(60s);
+        serv.setBroken("retr", 0);
+        serv.setGetEmpty();
+        assertEq(NOTHING, fc.get(local_path, local_path));
+        assertEq("", ReadOnlyFile::readTextFile(local_path));
     }
 }
