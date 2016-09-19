@@ -128,8 +128,12 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar*
       else
          func->parseInit();
 
+      const qore_class_private* class_ctx = qc ? parse_get_class_priv() : 0;
+      if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*qc, class_ctx))
+	 class_ctx = 0;
+
       // find variant
-      variant = func->parseFindVariant(loc, argTypeInfo);
+      variant = func->parseFindVariant(loc, argTypeInfo, class_ctx);
 
       QoreProgram* pgm = getProgram();
 

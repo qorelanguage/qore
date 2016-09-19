@@ -31,6 +31,8 @@
 #include "qore/Qore.h"
 #include "qore/InputStream.h"
 #include "qore/intern/StreamReader.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreClassIntern.h"
 
 //! This class defines a stream reader for input streams.
 /** @since %Qore 0.8.13
@@ -60,7 +62,9 @@ StreamReader::constructor(Qore::InputStream[InputStream] is, *string encoding) {
    if (*xsink)
       return;
    self->setPrivate(CID_STREAMREADER, reader.release());
-   self->setValue("is", static_cast<QoreObject *>(obj_is->refSelf()), xsink);
+   qore_object_private* o = qore_object_private::get(*self);
+   const qore_class_private* cls = qore_class_private::get(*QC_STREAMREADER);
+   o->setValueIntern(cls, "is", static_cast<QoreObject *>(obj_is->refSelf()), xsink);
 }
 
 //! Returns the @ref character_encoding "character encoding" for the StreamReader.

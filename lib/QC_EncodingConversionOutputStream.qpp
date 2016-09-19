@@ -30,6 +30,8 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/EncodingConversionOutputStream.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreClassIntern.h"
 
 //! An @ref OutputStream implementation that performs on-the-fly conversion between two character encodings.
 /** @since %Qore 0.8.13
@@ -53,7 +55,9 @@ EncodingConversionOutputStream::constructor(Qore::OutputStream[OutputStream] os,
    SimpleRefHolder<EncodingConversionOutputStream> ecos(new EncodingConversionOutputStream(
          os, QEM.findCreate(sourceEncoding), QEM.findCreate(destEncoding), xsink));
    self->setPrivate(CID_ENCODINGCONVERSIONOUTPUTSTREAM, ecos.release());
-   self->setValue("os", static_cast<QoreObject *>(obj_os->refSelf()), xsink);
+   qore_object_private* o = qore_object_private::get(*self);
+   const qore_class_private* cls = qore_class_private::get(*QC_ENCODINGCONVERSIONOUTPUTSTREAM);
+   o->setValueIntern(cls, "os", static_cast<QoreObject *>(obj_os->refSelf()), xsink);
 }
 
 //! Flushes any buffered (unwritten) bytes, closes the output stream and releases all resources.

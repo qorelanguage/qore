@@ -42,6 +42,8 @@
 
 #include <qore/intern/qore_value_list_private.h>
 
+class qore_class_private;
+
 // these data structures are all private to the library
 
 class LocalVar;
@@ -264,10 +266,10 @@ protected:
 
 public:
    // saves current program location in case there's an exception
-   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args = 0, const qore_class_private* n_qc = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false);
+   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args = 0, QoreObject* self = 0, const qore_class_private* n_qc = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false);
 
    // saves current program location in case there's an exception
-   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, const qore_class_private* n_qc = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false);
+   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, QoreObject* self = 0, const qore_class_private* n_qc = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false);
 
    DLLLOCAL ~CodeEvaluationHelper();
 
@@ -541,13 +543,26 @@ public:
    }
 };
 
+// inheritance noce
+struct INode {
+   QoreFunction* func;
+   ClassAccess access;
+
+   DLLLOCAL INode(QoreFunction* f, ClassAccess a) : func(f), access(a) {
+   }
+};
+
+// inheritance list type
+typedef std::vector<INode> ilist_t;
+
+struct IList : public ilist_t {
+   DLLLOCAL QoreFunction* getFunction(const qore_class_private* class_ctx, const qore_class_private*& last_class, const_iterator aqfi, bool& internal_access, bool& stop) const;
+};
+
 class QoreFunction : protected QoreReferenceCounter {
 protected:
    std::string name;
    qore_ns_private* ns;
-
-   // inheritance list type
-   typedef std::vector<QoreFunction*> ilist_t;
 
    // list of function variants
    VList vlist;
@@ -556,7 +571,7 @@ protected:
    VList pending_vlist;
 
    // list of inherited methods for variant matching; the first pointer is always a pointer to "this"
-   ilist_t ilist;
+   IList ilist;
 
    // if true means all variants have the same return value
    bool same_return_type, parse_same_return_type;
@@ -682,7 +697,7 @@ public:
         nn_unique_flags(QC_NO_FLAGS), nn_count(0), parse_rt_done(true),
         parse_init_done(true), has_user(false), has_builtin(false), has_mod_pub(false), inject(false),
         nn_uniqueReturnType(0) {
-      ilist.push_back(this);
+      ilist.push_back(INode(this, Public));
       //printd(5, "QoreFunction::QoreFunction() this: %p %s\n", this, name.c_str());
    }
 
@@ -726,10 +741,10 @@ public:
       assert(old.vlist.empty() || !vlist.empty());
 
       assert(!old.ilist.empty());
-      assert(old.ilist.front() == &old);
+      assert(old.ilist.front().func == &old);
 
       // resolve initial ilist entry to this function
-      ilist.push_back(this);
+      ilist.push_back(INode(this, Public));
 
       // the rest of ilist is copied in method base class
       // do not copy pending variants
@@ -764,10 +779,10 @@ public:
       assert(old.vlist.empty() || !vlist.empty());
 
       assert(!old.ilist.empty());
-      assert(old.ilist.front() == &old);
+      assert(old.ilist.front().func == &old);
 
       // resolve initial ilist entry to this function
-      ilist.push_back(this);
+      ilist.push_back(INode(this, Public));
 
       // the rest of ilist is copied in method base class
       // do not copy pending variants
@@ -809,15 +824,15 @@ public:
       return qc ? qc->getName() : 0;
    }
 
-   DLLLOCAL void addAncestor(QoreFunction* ancestor) {
-      ilist.push_back(ancestor);
+   DLLLOCAL void addAncestor(QoreFunction* ancestor, ClassAccess access) {
+      ilist.push_back(INode(ancestor, access));
    }
 
-   DLLLOCAL void addNewAncestor(QoreFunction* ancestor) {
+   DLLLOCAL void addNewAncestor(QoreFunction* ancestor, ClassAccess access) {
       for (ilist_t::iterator i = ilist.begin(), e = ilist.end(); i != e; ++i)
-         if (*i == ancestor)
+         if ((*i).func == ancestor)
             return;
-      ilist.push_back(ancestor);
+      ilist.push_back(INode(ancestor, access));
    }
 
    // resolves all types in signatures and return types in pending variants; called during the "parseInit" phase
@@ -884,7 +899,8 @@ public:
    DLLLOCAL QoreValue evalDynamic(const QoreListNode* args, ExceptionSink* xsink) const;
 
    // find variant at parse time, throw parse exception if no variant can be matched
-   DLLLOCAL const AbstractQoreFunctionVariant* parseFindVariant(const QoreProgramLocation& loc, const type_vec_t& argTypeInfo);
+   // class_ctx is only for use in a class hierarchy and is only set if there is a current class context and it's reachable
+   DLLLOCAL const AbstractQoreFunctionVariant* parseFindVariant(const QoreProgramLocation& loc, const type_vec_t& argTypeInfo, const qore_class_private* class_ctx);
 
    // returns true if there are no committed variants in the function
    DLLLOCAL bool committedEmpty() const {
@@ -899,9 +915,8 @@ public:
    DLLLOCAL bool existsVariant(const type_vec_t& paramTypeInfo) const;
 
    // find variant at runtime
-   DLLLOCAL const AbstractQoreFunctionVariant* findVariant(const QoreValueList* args, bool only_user, ExceptionSink* xsink) const;
-
-   DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindVariant(const type_vec_t& argTypeList, bool only_user = false) const;
+   // class_ctx is only for use in a class hierarchy and is only set if there is a current class context and it's reachable from the object being executed
+   DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindVariant(const QoreValueList* args, bool only_user, const qore_class_private* class_ctx, ExceptionSink* xsink) const;
 
    DLLLOCAL void parseAssimilate(QoreFunction& other) {
       // ensure there are no committed variants
@@ -1000,14 +1015,14 @@ public:
       ilist_t::iterator i = ilist.begin(), e = ilist.end();
       ++i;
       for (; i != e; ++i) {
-         MethodFunctionBase* mfb = METHFB(*i);
+         MethodFunctionBase* mfb = METHFB((*i).func);
 #ifdef DEBUG
          if (!mfb->new_copy)
             printd(0, "error resolving %p %s::%s() base method %p %s::%s() nas no new method pointer\n", qc, qc->getName(), getName(), mfb->qc, mfb->qc->getName(), getName());
          assert(mfb->new_copy);
          //printd(5, "resolving %p %s::%s() base method %p %s::%s() from %p -> %p\n", qc, qc->getName(), getName(), mfb->qc, mfb->qc->getName(), getName(), mfb, mfb->new_copy);
 #endif
-        *i = mfb->new_copy;
+         (*i).func = mfb->new_copy;
       }
    }
 

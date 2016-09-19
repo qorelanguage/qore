@@ -31,6 +31,8 @@
 #include "qore/Qore.h"
 #include "qore/OutputStream.h"
 #include "qore/intern/StreamWriter.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreClassIntern.h"
 
 //! This class defines a stream writer for output streams.
 /** @since %Qore 0.8.13
@@ -60,7 +62,9 @@ StreamWriter::constructor(Qore::OutputStream[OutputStream] os, *string encoding)
    if (*xsink)
       return;
    self->setPrivate(CID_STREAMWRITER, writer.release());
-   self->setValue("os", static_cast<QoreObject *>(obj_os->refSelf()), xsink);
+   qore_object_private* o = qore_object_private::get(*self);
+   const qore_class_private* cls = qore_class_private::get(*QC_STREAMWRITER);
+   o->setValueIntern(cls, "os", static_cast<QoreObject *>(obj_os->refSelf()), xsink);
 }
 
 //! Returns the @ref character_encoding "character encoding" for the StreamWriter.
