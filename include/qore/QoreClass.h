@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -243,6 +243,9 @@ private:
    // This function is only called from BCList
    DLLEXPORT const QoreClass* getClassIntern(qore_classid_t cid, bool& priv) const;
 
+   //! deletes the object and frees all memory
+   DLLEXPORT ~QoreClass();
+
 public:
    //! creates the QoreClass object and assigns the name and the functional domain
    /** @note class names and subnamespaces names must be unique in a namespace; i.e. no class may have the same name as a subnamespace within a namespace and vice-versa
@@ -266,9 +269,6 @@ public:
    /** should be only called under the appropriate lock (ex: program parse lock while parsing)
     */
    DLLEXPORT QoreClass(const QoreClass &old);
-
-   //! deletes the object and frees all memory
-   DLLEXPORT ~QoreClass();
 
    //! adds a builtin method to a class
    /** @par Example:

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -640,13 +640,13 @@ qore_class_private::~qore_class_private() {
 
    // delete normal methods
    for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-      //printd(5, "QoreClass::~QoreClass() deleting method %p %s::%s()\n", m, name, m->getName());
+      //printd(5, "qore_class_private::~qore_class_private() deleting method %p %s::%s()\n", m, name, m->getName());
       delete i->second;
    }
 
    // delete static methods
    for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
-      //printd(5, "QoreClass::~QoreClass() deleting static method %p %s::%s()\n", m, name, m->getName());
+      //printd(5, "qore_class_private::~qore_class_private() deleting static method %p %s::%s()\n", m, name, m->getName());
       delete i->second;
    }
 
@@ -4005,8 +4005,6 @@ void UserCopyVariant::evalCopy(const QoreClass& thisclass, QoreObject* self, Qor
       ceh.restorePosition();
    }
 
-   ProgramThreadCountContextHelper tch(xsink, pgm, true);
-   if (*xsink) return;
    evalIntern(uveh.getArgv(), self, xsink).discard(xsink);
 }
 
@@ -4119,19 +4117,26 @@ void DestructorMethodFunction::evalDestructor(const QoreClass& thisclass, QoreOb
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
 QoreValue NormalMethodFunction::evalMethod(const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
-   bool had_variant = (bool)variant;
+   const char* cname = getClassName();
    const char* mname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, getClassName());
+   //printd(5, "NormalMethodFunction::evalMethod() %s::%s() v: %d\n", cname, mname, self->isValid());
+   if (!self->isValid()) {
+      xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has already been deleted", cname, mname);
+      return QoreValue();
+   }
+
+   bool had_variant = (bool)variant;
+   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, cname);
    if (*xsink) return QoreValue();
 
    const MethodVariant* mv = METHV_const(variant);
    if (mv->isAbstract()) {
-      xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", getClassName(), mname, mv->getSignature()->getSignatureText());
+      xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", cname, mname, mv->getSignature()->getSignatureText());
       return QoreValue();
    }
    //printd(5, "NormalMethodFunction::evalMethod() %s::%s(%s) (self: %s) variant: %p, mv: %p priv: %d access: %d (%p %s)\n",getClassName(), mname, mv->getSignature()->getSignatureText(), self->getClass()->getName(), variant, mv, mv->isPrivate(), qore_class_private::runtimeCheckPrivateClassAccess(*mv->getClass()), runtime_get_class(), runtime_get_class() ? runtime_get_class()->name.c_str() : "n/a");
    if (!had_variant && mv->isPrivate() && !qore_class_private::runtimeCheckPrivateClassAccess(*mv->getClass())) {
-      xsink->raiseException("ILLEGAL-CALL", "cannot call private variant %s::%s(%s) from outside the class", getClassName(), mname, mv->getSignature()->getSignatureText());
+      xsink->raiseException("ILLEGAL-CALL", "cannot call private variant %s::%s(%s) from outside the class", cname, mname, mv->getSignature()->getSignatureText());
       return QoreValue();
    }
 

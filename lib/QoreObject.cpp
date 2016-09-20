@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -61,14 +61,18 @@ qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass* oc,
 #ifdef DEBUG
    n_data->priv->is_obj = true;
 #endif
+   qore_class_private::get(*oc)->ref();
 }
 
 qore_object_private::~qore_object_private() {
-   //printd(5, "qore_object_private::~qore_object_private() this: %p obj: %p '%s'\n", this, obj, theclass ? theclass->getName() : "<n/a>");
-   assert(!pgm);
+   //printd(5, "qore_object_private::~qore_object_private() this: %p obj: %p '%s' pgm: %p\n", this, obj, theclass ? theclass->getName() : "<n/a>", pgm);
    assert(!data);
    assert(!privateData);
    assert(!rset);
+   qore_class_private::get(*const_cast<QoreClass*>(theclass))->deref();
+   // release weak reference
+   if (pgm)
+      pgm->depDeref();
 }
 
 // returns true if a lock error has occurred and the transaction should be aborted or restarted; the rsection lock is held when this function is called
@@ -335,7 +339,6 @@ QoreObject::QoreObject(const QoreClass* oc, QoreProgram* p, QoreHashNode* h) : A
 QoreObject::~QoreObject() {
    //QORE_TRACE("QoreObject::~QoreObject()");
    //printd(5, "QoreObject::~QoreObject() this: %p, pgm: %p, class: %s\n", this, priv->pgm, priv->theclass->getName());
-
    delete priv;
 }
 
@@ -352,7 +355,7 @@ int QoreObject::getStatus() const {
 }
 
 bool QoreObject::isValid() const {
-   return priv->status == OS_OK;
+   return priv->status != OS_DELETED;
 }
 
 QoreProgram* QoreObject::getProgram() const {
@@ -423,6 +426,12 @@ QoreValue QoreObject::evalMethodValue(const QoreString* name, const QoreListNode
 }
 
 QoreValue QoreObject::evalMethodValue(const char* name, const QoreListNode* args, ExceptionSink* xsink) {
+   /*
+   // ensure object is valid during setup
+   QoreObjectCallSetupHelper qocsh(*priv, xsink);
+   if (*xsink)
+      return 0;
+   */
    return priv->theclass->evalMethod(this, name, args, xsink);
 }
 

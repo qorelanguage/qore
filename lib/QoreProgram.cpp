@@ -221,6 +221,8 @@ void qore_program_private_base::newProgram() {
    for (FeatureList::iterator i = qoreFeatureList.begin(), e = qoreFeatureList.end(); i != e; ++i)
       featureList.push_back((*i).c_str());
 
+   QoreProgramContextHelper pch(pgm);
+
    // setup namespaces
    RootNS = qore_root_ns_private::copy(*staticSystemNamespace, pwo.parse_options);
    QoreNS = RootNS->rootGetQoreNamespace();
@@ -342,7 +344,7 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
       // purge thread resources before clearing pgm
       purge_pgm_thread_resources(pgm, xsink);
 
-      printd(5, "qore_program_private::waitForTerminationAndClear() this: %p clr: %d\n", this, clr);
+      //printd(5, "qore_program_private::waitForTerminationAndClear() this: %p pgm: %p clr: %d\n", this, pgm, clr);
       // delete all global variables, etc
       qore_root_ns_private::clearData(*RootNS, xsink);
 
@@ -403,6 +405,8 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
       sb.del();
       //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
 
+      del(xsink);
+
       // clear program location
       update_runtime_location(QoreProgramLocation());
    }
@@ -411,7 +415,7 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
 // called when the program's ref count = 0 (but the dc count may not go to 0 yet)
 void qore_program_private::clear(ExceptionSink* xsink) {
    waitForTerminationAndClear(xsink);
-   depDeref(xsink);
+   depDeref();
 }
 
 struct SaveParseLocationHelper : QoreProgramLocation {
@@ -798,8 +802,8 @@ void QoreProgram::depRef() {
    priv->depRef();
 }
 
-void QoreProgram::depDeref(ExceptionSink* xsink) {
-   priv->depDeref(xsink);
+void QoreProgram::depDeref() {
+   priv->depDeref();
 }
 
 bool QoreProgram::checkWarning(int code) const {
@@ -815,7 +819,7 @@ bool QoreProgram::existsFunction(const char* name) {
    ProgramRuntimeParseAccessHelper pah(&xsink, this);
    if (xsink) {
       xsink.clear();
-      return 0;
+      return false;
    }
    return qore_root_ns_private::runtimeExistsFunction(*priv->RootNS, name) ? true : false;
 }
@@ -964,8 +968,6 @@ AbstractQoreNode* QoreProgram::callFunction(const char* name, const QoreListNode
 
    // we assign the args to 0 below so that they will not be deleted
    fc = new FunctionCallNode(qf, const_cast<QoreListNode*>(args), this);
-
-   ProgramThreadCountContextHelper tch(xsink, this, true);
    AbstractQoreNode* rv = !*xsink ? fc->eval(xsink) : 0;
 
    // let caller delete function arguments if necessary
