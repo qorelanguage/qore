@@ -409,6 +409,23 @@ public:
    DLLLOCAL ~QoreProgramContextHelper();
 };
 
+class QoreProgramOptionalLocationHelper {
+protected:
+   QoreProgramLocation loc;
+   bool restore;
+
+public:
+   DLLLOCAL QoreProgramOptionalLocationHelper(QoreProgramLocation* n_loc) : restore((bool)n_loc) {
+      if (n_loc)
+         loc = update_get_runtime_location(*n_loc);
+   }
+
+   DLLLOCAL ~QoreProgramOptionalLocationHelper() {
+      if (restore)
+         update_runtime_location(loc);
+   }
+};
+
 // acquires a TID and thread entry, returns -1 if not successful
 DLLLOCAL int get_thread_entry();
 // acquires TID 0 and sets up the signal thread entry, always returns 0

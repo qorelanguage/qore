@@ -4378,11 +4378,6 @@ UserConstructorVariant::~UserConstructorVariant() {
 }
 
 void UserConstructorVariant::evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
-   // in case this method is called from a subclass, switch to the program where the class was created
-   ProgramThreadCountContextHelper pch(xsink, pgm, true);
-   if (*xsink)
-      return;
-
    UserVariantExecHelper uveh(this, &ceh, xsink);
    if (!uveh)
       return;
