@@ -2791,7 +2791,7 @@ struct qore_socket_private {
 	    break;
 	 *t = '\0';
 	 t++;
-	 while (t && isblank(*t))
+	 while (t && qore_isblank(*t))
 	    t++;
 	 strtolower(buf);
 	 //printd(5, "setting %s = '%s'\n", buf, t);
