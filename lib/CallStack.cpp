@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -41,37 +41,14 @@ QoreRWLock *thread_stack_lock;
 QoreRWLock thread_stack_lock;
 #endif
 
-CallNode::CallNode(const char *f, int t, ClassObj o) : func(f), loc(RunTimeLocation), type(t), obj(o) {
-   // we do not reference the object here, because the object is already referenced by CodeContextHelper
-   // which is always used with this class
-   /*
-   QoreObject *qo = o.getObj();
-   if (qo) {
-      qo->ref();
-#ifdef DEBUG
-      printd(5, "CallNode::CallNode() pushing class=%p '%s' (name=%p) obj=%p\n", qo->getClass(), qo->getClass()->getName(), qo->getClass()->getName(), qo);
-#endif
-   }
-   */
+CallNode::CallNode(const char *f, int t, QoreObject* o, const qore_class_private* c) : func(f), loc(RunTimeLocation), type(t), obj(o), cls(c) {
 }
-
-/*
-void CallNode::objectDeref(ExceptionSink *xsink) {
-   QoreObject *qo = obj.getObj();
-   if (qo) {
-      printd(5, "CallNode::~CallNode() popping class=%s obj=%p\n", qo->getClass()->getName(), qo);
-      // deref object
-      qo->deref(xsink);
-   }
-}
-*/
 
 QoreHashNode* CallNode::getInfo() const {
    QoreHashNode* h = new QoreHashNode;
-   // FIXME: add class name
    QoreStringNode *str = new QoreStringNode;
-   if (obj) {
-      str->concat(obj.getClass()->name.c_str());
+   if (cls) {
+      str->concat(cls->name.c_str());
       str->concat("::");
    }
    str->concat(func);
@@ -122,12 +99,10 @@ void CallStack::push(CallNode *c) {
 
 void CallStack::pop(ExceptionSink *xsink) {
    QORE_TRACE("CallStack::pop()");
-   {
-      QoreAutoRWReadLocker l(thread_stack_lock);
-      tail = tail->prev;
-      if (tail)
-	 tail->next = 0;
-   }
+   QoreAutoRWReadLocker l(thread_stack_lock);
+   tail = tail->prev;
+   if (tail)
+      tail->next = 0;
 }
 
 QoreListNode *CallStack::getCallStack() const {
@@ -140,8 +115,9 @@ QoreListNode *CallStack::getCallStack() const {
    return l;
 }
 
+/*
 void CallStack::substituteObjectIfEqual(QoreObject *o) {
-   if (!tail->obj.getObj() && tail->prev && tail->prev->obj.getObj() == o) {
+   if (!tail->obj && tail->prev && tail->prev->obj == o) {
       tail->obj = o;
       o->ref();
    }
@@ -150,11 +126,12 @@ void CallStack::substituteObjectIfEqual(QoreObject *o) {
 QoreObject *CallStack::getStackObject() const {
    if (!tail)
       return 0;
-   return tail->obj.getObj();
+   return tail->obj;
 }
 
 QoreObject *CallStack::substituteObject(QoreObject *o) {
-   QoreObject *ro = tail->obj.getObj();
+   QoreObject *ro = tail->obj);
    tail->obj = o;
    return ro;
 }
+*/

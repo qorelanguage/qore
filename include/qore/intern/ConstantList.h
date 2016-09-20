@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   constants can only be defined when parsing
   constants values will be substituted during the 2nd parse phase
@@ -212,7 +212,7 @@ private:
    DLLLOCAL ConstantList& operator=(const ConstantList&);
 
    DLLLOCAL void clearIntern(ExceptionSink* xsink);
-   DLLLOCAL int checkDup(const char* name, ConstantList& committed, ConstantList& other, ConstantList& otherPend, bool priv, const char* cname);
+   DLLLOCAL int checkDup(const char* name, ConstantList& committed, ConstantList& other, ConstantList& otherPend, ConstantList& third, ConstantList& thirdPend, ClassAccess access, const char* cname);
 
 protected:
    // the object that owns the list (either a class or a namespace)
@@ -250,9 +250,9 @@ public:
    DLLLOCAL int importSystemConstants(const ConstantList& src, ExceptionSink* xsink);
 
    // assimilate a constant list in a class constant list with duplicate checking (pub & priv + pending)
-   DLLLOCAL void assimilate(ConstantList& n, ConstantList& committed, ConstantList& other, ConstantList& otherPend, bool priv, const char* cname);
+   DLLLOCAL void assimilate(ConstantList& n, ConstantList& committed, ConstantList& other, ConstantList& otherPend, ConstantList& third, ConstantList& thirdPend, ClassAccess access, const char* cname);
    // add a constant to a list with duplicate checking (pub & priv + pending)
-   DLLLOCAL void parseAdd(const std::string& name, AbstractQoreNode* val, ConstantList& committed, ConstantList& other, ConstantList& otherPend, bool priv, const char* cname);
+   DLLLOCAL void parseAdd(const std::string& name, AbstractQoreNode* val, ConstantList& committed, ConstantList& other, ConstantList& otherPend, ConstantList& third, ConstantList& thirdPend, ClassAccess access, const char* cname);
 
    DLLLOCAL void parseInit();
    DLLLOCAL QoreHashNode* getInfo();

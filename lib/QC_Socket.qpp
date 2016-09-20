@@ -1057,6 +1057,33 @@ nothing Socket::sendBinary2(binary bin, timeout timeout_ms = -1) {
    s->send(bin, timeout_ms, xsink);
 }
 
+//! Reads data from an @ref InputStream and sends the bytes over the socket
+/** If any errors occur writing to the socket, an exception is raised
+
+    @par Example:
+    @code{.py}
+sock.sendFromInputStream(is, -1); # write all data available
+    @endcode
+
+    @par Events:
+    @ref EVENT_PACKET_SENT
+
+    @param is the @ref InputStream providing the data to send
+    @param size the amount of data to send in bytes; to send all data available in the InputStream, use -1
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+
+    @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-TIMEOUT a single send() operation exceeded the given timeout period
+    @throw SOCKET-SEND-ERROR an error occurred sending the socket data
+    @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
+
+    @since %Qore 0.8.13
+ */
+nothing Socket::sendFromInputStream(Qore::InputStream[InputStream] is, softint size = -1, timeout timeout_ms = -1) {
+   SimpleRefHolder<InputStream> isHolder(is);
+   s->sendFromInputStream(is, size, timeout_ms, xsink);
+}
+
 //! Sends a 1-byte integer over the socket
 /** If any errors occur, an exception is thrown
 
@@ -1317,6 +1344,35 @@ binary Socket::recvBinary(softint size = 0, timeout timeout_ms = -1) {
 
    BinaryNode* str = s->recvBinary(timeout_ms, xsink);
    return !*xsink && !str ? new BinaryNode : str;
+}
+
+//! Receives data from the socket and writes the bytes to an @ref OutputStream
+/** If any errors occur reading from the socket, an exception is raised
+
+    @par Example:
+    @code{.py}
+sock.recvToOutputStream(os, -1); # read all data available
+    @endcode
+
+    @par Events:
+    @ref EVENT_PACKET_READ
+
+    @param os The output stream to write the response body to
+    @param size the amount of data to read in bytes; to read until the remote closes the connection, use -1
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-CLOSED the remote end has closed the connection.
+    @throw SOCKET-RECV-ERROR there was an error receiving the data.
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR there was an SSL error while reading data from the socket
+
+    @see Socket::recv()
+    @since %Qore 0.8.13
+ */
+nothing Socket::recvToOutputStream(Qore::OutputStream[OutputStream] os, softint size = -1, timeout timeout_ms = -1) {
+   SimpleRefHolder<OutputStream> osHolder(os);
+   s->recvToOutputStream(os, size, timeout_ms, xsink);
 }
 
 //! Receives a 1-byte signed integer from the socket
@@ -1869,6 +1925,55 @@ nothing Socket::sendHTTPResponseWithCallback(code scb, softint status_code, stri
    s->sendHTTPResponseWithCallback(xsink, status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, *scb, QORE_SOURCE_SOCKET, timeout_ms);
 }
 
+//! Sends an HTTP message body in chunked transfer encoding
+/** If any errors are encountered, an exception is raised. The @ref sendHTTPChunkedBodyTrailer() method must be called afterwards to finish the chunked transfer properly.
+
+    @par Example:
+    @code{.py}
+sock.sendHTTPChunkedBodyFromInputStream(inputStream);
+    @endcode
+
+    @par Events:
+    @ref EVENT_PACKET_SENT
+
+    @param is The input stream to read data from
+    @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
+    @throw SOCKET-SEND-ERROR send failed
+
+    @since %Qore 0.8.13
+ */
+nothing Socket::sendHTTPChunkedBodyFromInputStream(Qore::InputStream[InputStream] is, timeout timeout_ms = -1) {
+   SimpleRefHolder<InputStream> isHolder(is);
+   s->sendHTTPChunkedBodyFromInputStream(is, timeout_ms, xsink);
+}
+
+//! Sends the trialer of an HTTP message body in chunked transfer encoding
+/** If any errors are encountered, an exception is raised
+
+    @par Example:
+    @code{.py}
+sock.sendHTTPChunkedBodyTrailer({});
+    @endcode
+
+    @par Events:
+    @ref EVENT_PACKET_SENT
+
+    @param trailer optional trailer data
+    @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
+    @throw SOCKET-SEND-ERROR send failed
+
+    @since %Qore 0.8.13
+ */
+nothing Socket::sendHTTPChunkedBodyTrailer(*hash trailer, timeout timeout_ms = -1) {
+   s->sendHTTPChunkedBodyTrailer(trailer, timeout_ms, xsink);
+}
+
 //! Retuns a hash representing the data in the HTTP header read, or, if the data cannot be parsed as an HTTP header, then an exception is thrown, and the data read is returned as a string in the \c arg key of the exception hash
 /** If any errors occur reading from the socket or if invalid HTTP data is received, an exception is raised. Accepts an optional timeout value in milliseconds.
 
@@ -2000,6 +2105,34 @@ hash ans = sock.readHTTPChunkedBodyBinary(20s);
 hash Socket::readHTTPChunkedBodyBinary(timeout timeout_ms = -1) {
    // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
    return s->readHTTPChunkedBodyBinary(timeout_ms, xsink);
+}
+
+//! Reads in an HTTP message body sent in chunked transfer encoding, writes it in an @ref OutputStream and returns any footers received
+/** If any errors are encountered, an exception is raised
+
+    @par Example:
+    @code{.py}
+hash ans = sock.readHTTPChunkedBodyToOutputStream(outputStream, 20s);
+    @endcode
+
+    @par Events:
+    @ref EVENT_HTTP_CHUNK_SIZE, @ref EVENT_HTTP_FOOTERS_RECEIVED
+
+    @param os The output stream to write the response body to
+    @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+
+    @return a hash of any HTTP footers received (with footer keys converted to lower case)
+
+    @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-CLOSED The remote end has closed the connection
+    @throw SOCKET-RECV-ERROR There was an error receiving the data
+    @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
+    @throw READ-HTTP-CHUNK-ERROR negative value given for chunk size by server
+ */
+hash Socket::readHTTPChunkedBodyToOutputStream(Qore::OutputStream[OutputStream] os, timeout timeout_ms = -1) {
+   SimpleRefHolder<OutputStream> osHolder(os);
+   return s->readHTTPChunkedBodyToOutputStream(os, timeout_ms, xsink);
 }
 
 //! Reads in an HTTP message body sent in chunked transfer encoding and returns it with any footers received as a string in the \c "body" key of a hash (including footers received)
@@ -2502,7 +2635,8 @@ hash h = sock.getPeerInfo();
 
     @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
 
-    @throw SOCKET-GETPEERINFO-ERROR Socket is not open or error in getpeername()
+    @throw SOCKET-NOT-OPEN The socket is not open
+    @throw SOCKET-GETPEERINFO-ERROR error in getpeername()
 
     @since %Qore 0.8.8 added the \a host_lookup parameter
  */
@@ -2522,7 +2656,8 @@ hash h = sock.getSocketInfo();
 
     @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
 
-    @throw SOCKET-GETSOCKETINFO-ERROR Socket is not open or error in getsockname()
+    @throw SOCKET-NOT-OPEN The socket is not open
+    @throw SOCKET-GETSOCKETINFO-ERROR error in getsockname()
 
     @since %Qore 0.8.8 added the \a host_lookup parameter
  */
@@ -2538,7 +2673,10 @@ sock.upgradeClientToSSL();
 
     @param timeout_ms If a positive timeout value is passed and the SSL upgrade takes longer to establish than the timeout, an \c "SSL-TIMEOUT-ERROR" exception is thrown. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
+    @throw SOCKET-NOT-OPEN the socket must be open before making this call
     @throw SSL-TIMEOUT-ERROR timeout error negotiating SSL connection
+
+    @note if an SSL connection has already been established, this method call returns immediately without taking any further action
 
     @since %Qore 0.8.12 the timeout_ms parameter was added
  */
@@ -2554,7 +2692,10 @@ sock.upgradeServerToSSL();
 
     @param timeout_ms If a positive timeout value is passed and the SSL upgrade takes longer to establish than the timeout, an \c "SSL-TIMEOUT-ERROR" exception is thrown. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
+    @throw SOCKET-NOT-OPEN the socket must be open before making this call
     @throw SSL-TIMEOUT-ERROR timeout error negotiating SSL connection
+
+    @note if an SSL connection has already been established, this method call returns immediately without taking any further action
 
     @since %Qore 0.8.12 the timeout_ms parameter was added
  */

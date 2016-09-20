@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -238,7 +238,7 @@ DateTimeNode* DateTimeNode::makeRelativeFromSeconds(int64 s, int u) {
 }
 
 DateTimeValueHelper::DateTimeValueHelper(const AbstractQoreNode* n) {
-   // optmization without virtual function call for most common case
+   // optimization without virtual function call for most common case
    if (n) {
       if (n->getType() == NT_DATE) {
 	 dt = reinterpret_cast<const DateTimeNode*>(n);
@@ -261,32 +261,17 @@ DateTimeValueHelper::DateTimeValueHelper(const QoreValue& n) {
 	    return;
 	 }
 	 case QV_Bool: {
-	    dt = n.v.b ? OneDate : ZeroDate;
-	    del = false;
+	    dt = DateTime::makeRelativeFromSeconds(n.v.b ? 1 : 0);
+	    del = true;
 	    return;
 	 }
 	 case QV_Int: {
-	    if (n.v.i == 1) {
-	       dt = OneDate;
-	       del = false;
-	       return;
-	    }
 	    dt = DateTime::makeRelativeFromSeconds(n.v.i);
 	    del = true;
 	    return;
 	 }
 	 case QV_Float: {
-	    if (!n.v.f) {
-	       dt = ZeroDate;
-	       del = false;
-	       return;
-	    }
-	    if (n.v.f == 1.0) {
-	       dt = OneDate;
-	       del = false;
-	       return;
-	    }
-	    dt = DateTime::makeRelativeFromSeconds((int64)n.v.f, (int)((n.v.f - (float)((int)n.v.f)) * 1000000));
+	    dt = DateTime::makeRelativeFromSeconds((int64)n.v.f, (int)((n.v.f - (double)((int)n.v.f)) * 1000000));
 	    del = true;
 	    return;
 	 }
@@ -302,4 +287,37 @@ DateTimeValueHelper::DateTimeValueHelper(const QoreValue& n) {
 DateTimeValueHelper::~DateTimeValueHelper() {
    if (del)
       delete const_cast<DateTime*>(dt);
+}
+
+DateTimeNodeValueHelper::DateTimeNodeValueHelper(const QoreValue& n) {
+   if (!n.isNullOrNothing()) {
+      switch (n.type) {
+	 case QV_Node: {
+	    del = true;
+	    dt = new DateTimeNode;
+	    n.v.n->getDateTimeRepresentation(*dt);
+	    return;
+	 }
+	 case QV_Bool: {
+	    dt = DateTimeNode::makeRelativeFromSeconds(n.v.b ? 1 : 0);
+	    del = true;
+	    return;
+	 }
+	 case QV_Int: {
+	    dt = DateTimeNode::makeRelativeFromSeconds(n.v.i);
+	    del = true;
+	    return;
+	 }
+	 case QV_Float: {
+	    dt = DateTimeNode::makeRelativeFromSeconds((int64)n.v.f, (int)((n.v.f - (double)((int)n.v.f)) * 1000000));
+	    del = true;
+	    return;
+	 }
+	 default:
+	    assert(false);
+	    // no break
+      }
+   }
+   dt = ZeroDate;
+   del = false;
 }
