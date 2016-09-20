@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -41,9 +41,16 @@
 #  include "tests/QoreClassList_tests.cpp"
 #endif
 
+void QoreClassList::remove(hm_qc_t::iterator i) {
+   QoreClass* qc = i->second;
+   //printd(5, "QCL::remove() this: %p '%s' (%p)\n", this, qc->getName(), qc);
+   hm.erase(i);
+   qore_class_private::get(*qc)->deref();
+}
+
 void QoreClassList::deleteAll() {
    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
-      delete i->second;
+      qore_class_private::get(*i->second)->deref();
 
    hm.clear();
 }

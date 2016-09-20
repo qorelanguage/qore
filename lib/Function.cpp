@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1174,8 +1174,6 @@ QoreValue QoreFunction::evalFunction(const AbstractQoreFunctionVariant* variant,
    CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
    if (*xsink) return QoreValue();
 
-   ProgramThreadCountContextHelper tch(xsink, pgm, true);
-   if (*xsink) return QoreValue();
    return variant->evalFunction(fname, ceh, xsink);
 }
 
@@ -1345,10 +1343,6 @@ QoreValue UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreO
 QoreValue UserVariantBase::eval(const char* name, CodeEvaluationHelper *ceh, QoreObject *self, ExceptionSink* xsink, const qore_class_private* qc) const {
    QORE_TRACE("UserVariantBase::eval()");
    //printd(5, "UserVariantBase::eval() this: %p '%s()' args: %p (size: %d) self: %p class: %p '%s'\n", this, name, ceh ? ceh->getArgs() : 0, ceh && ceh->getArgs() ? ceh->getArgs()->size() : 0, self, qc, qc ? qc->name.c_str() : "n/a");
-
-   // if pgm is 0 or == the current pgm, then ProgramThreadCountContextHelper does nothing
-   ProgramThreadCountContextHelper tch(xsink, pgm, true);
-   if (*xsink) return QoreValue();
 
    UserVariantExecHelper uveh(this, ceh, xsink);
    if (!uveh)
@@ -1706,10 +1700,6 @@ QoreValue UserClosureFunction::evalClosure(const QoreClosureBase& closure_base, 
 
    // setup call, save runtime position
    CodeEvaluationHelper ceh(xsink, this, variant, "<anonymous closure>", args, 0, CT_USER);
-   if (*xsink)
-      return QoreValue();
-
-   ProgramThreadCountContextHelper tch(xsink, pgm, true);
    if (*xsink)
       return QoreValue();
 
