@@ -470,15 +470,15 @@ public:
    DLLLOCAL virtual void setRecheck() { recheck = true; }
 
 // this class ensures that instantiated variables in user code are uninstantiated, even if an exception occurs
-class UserVariantExecHelper {
+class UserVariantExecHelper : ProgramThreadCountContextHelper {
 protected:
    const UserVariantBase* uvb;
    ReferenceHolder<QoreListNode> argv;
    ExceptionSink* xsink;
 
 public:
-   DLLLOCAL UserVariantExecHelper(const UserVariantBase* n_uvb, CodeEvaluationHelper* ceh, ExceptionSink* n_xsink) : uvb(n_uvb), argv(n_xsink), xsink(n_xsink) {
-      if (uvb->setupCall(ceh, argv, xsink))
+   DLLLOCAL UserVariantExecHelper(const UserVariantBase* n_uvb, CodeEvaluationHelper* ceh, ExceptionSink* n_xsink) : ProgramThreadCountContextHelper(n_xsink, n_uvb->pgm, true), uvb(n_uvb), argv(n_xsink), xsink(n_xsink) {
+      if (*xsink || uvb->setupCall(ceh, argv, xsink))
 	 uvb = 0;
    }
    DLLLOCAL ~UserVariantExecHelper();

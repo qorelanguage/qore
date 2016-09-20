@@ -400,6 +400,15 @@ public:
    }
 };
 
+class QoreProgramContextHelper {
+protected:
+   QoreProgram *old_pgm;
+
+public:
+   DLLLOCAL QoreProgramContextHelper(QoreProgram* pgm);
+   DLLLOCAL ~QoreProgramContextHelper();
+};
+
 class QoreProgramOptionalLocationHelper {
 protected:
    QoreProgramLocation loc;

@@ -173,7 +173,7 @@ class FtpServer {
                 if (doBroken("retr", data))
                     break;
 
-                printf("get: empty %y\n", get_empty);
+                #printf("get: empty %y\n", get_empty);
                 if (!get_empty) {
                     # write a bunch of data and then exit
                     for (int i = 0; i < 200; ++i)
@@ -258,7 +258,7 @@ class FtpServer {
 class FtpTest inherits QUnit::Test {
     private {
         # file on some public ftp
-        const Url = 'ftp://ftp.wa.co.za/pub/CPAN/index.html';
+        const Url = "ftp://ftp.ed.ac.uk/.message";
 
         # FtpClient url
         string url;
@@ -283,7 +283,7 @@ class FtpTest inherits QUnit::Test {
         # set valid flag; skip tests if no connection can be made
         url = ARGV[0] ?? ENV.QORE_FTPTEST_URL ?? Url;
 
-        #addTestCase("FtpClient class test case", \testFtpClient());
+        addTestCase("FtpClient class test case", \testFtpClient());
         addTestCase("FtpClient simulated server", \testFtpClientSim());
         set_return_value(main());
     }

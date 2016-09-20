@@ -245,6 +245,9 @@ private:
    // This function must only be called from QoreObject
    DLLLOCAL void execDestructor(QoreObject* self, ExceptionSink* xsink) const;
 
+   //! deletes the object and frees all memory
+   DLLEXPORT ~QoreClass();
+
 public:
    //! creates the QoreClass object and assigns the name and the functional domain
    /** @note class names and subnamespaces names must be unique in a namespace; i.e. no class may have the same name as a subnamespace within a namespace and vice-versa
@@ -268,9 +271,6 @@ public:
    /** should be only called under the appropriate lock (ex: program parse lock while parsing)
     */
    DLLEXPORT QoreClass(const QoreClass &old);
-
-   //! deletes the object and frees all memory
-   DLLEXPORT ~QoreClass();
 
    //! adds a builtin method to a class
    /** @par Example:

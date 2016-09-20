@@ -41,9 +41,16 @@
 #  include "tests/QoreClassList_tests.cpp"
 #endif
 
+void QoreClassList::remove(hm_qc_t::iterator i) {
+   QoreClass* qc = i->second;
+   //printd(5, "QCL::remove() this: %p '%s' (%p)\n", this, qc->getName(), qc);
+   hm.erase(i);
+   qore_class_private::get(*qc)->deref();
+}
+
 void QoreClassList::deleteAll() {
    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
-      delete i->second;
+      qore_class_private::get(*i->second)->deref();
 
    hm.clear();
 }
