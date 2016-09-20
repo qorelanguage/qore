@@ -43,7 +43,7 @@ ThreadPoolThread::ThreadPoolThread(ThreadPool& n_tp, ExceptionSink* xsink) : tp(
 
 void ThreadPoolThread::worker(ExceptionSink* xsink) {
    SafeLocker sl(m);
-      
+
    while (!stopflag || task) {
       if (!task) {
          //printd(5, "ThreadPoolThread::worker() id %d about to wait stopflag: %d task: %p\n", id, stopflag, task);
@@ -51,15 +51,15 @@ void ThreadPoolThread::worker(ExceptionSink* xsink) {
          if (stopflag && !task)
             break;
       }
-      
+
       assert(task);
-      
+
       sl.unlock();
       task->run(xsink).discard(xsink);
       sl.lock();
       task->del(xsink);
       task = 0;
-      
+
       if (stopflag || tp.done(this))
          break;
    }
@@ -85,7 +85,7 @@ static void tp_start_thread(ExceptionSink* xsink, ThreadPool* tp) {
    tp->worker(xsink);
 }
 
-ThreadPool::ThreadPool(ExceptionSink* xsink, int n_max, int n_minidle, int n_maxidle, int n_release_ms) : 
+ThreadPool::ThreadPool(ExceptionSink* xsink, int n_max, int n_minidle, int n_maxidle, int n_release_ms) :
    max(n_max), minidle(n_minidle), maxidle(n_maxidle), release_ms(n_release_ms), quit(false), waiting(false), stopflag(false), stopped(false), confirm(false) {
    if (max < 0)
       max = 0;
@@ -185,7 +185,7 @@ void ThreadPool::worker(ExceptionSink* xsink) {
    }
 
 #ifdef DEBUG
-   q.clear();;
+   q.clear();
 #endif
 }
 
@@ -207,7 +207,7 @@ void ThreadPool::worker(ExceptionSink* xsink) {
     ThreadPools downscale over time when demand is lower according to the \a release_ms argument to
     @ref Qore::Thread::ThreadPool::constructor() "ThreadPool::constructor()"; when there more than \a minidle threads in the idle pool,
     then for each time period defined by \a release_ms, a single thread in the idle pool is released until the number of threads in the
-    idle pool reaches \a minidle. 
+    idle pool reaches \a minidle.
 
     Therefore the \a minidle argument defines the "ground state" of the ThreadPool (how many idle threads are waiting for tasks), and
     the \a release_ms argument defines the period in which the ThreadPool returns to its ground state after demand for threads results
@@ -236,9 +236,9 @@ ThreadPool tp(10, 2, 4);
 
     @param max the maximum number of threads in the pool
     @param minidle the minimum number of free idle threads to keep ready
-    @param maxidle the maximum number of idle threads to keep ready    
+    @param maxidle the maximum number of idle threads to keep ready
     @param release_ms this value gives the delay in terminating single idle threads when \a maxidle > \a minidle and there are more than \a minidle threads in the idle pool; for example, if \a release_ms = \c 10s then when there are more than \a minidle threads in the idle pool, every 10 seconds an idle thread is terminated until there are \a minidle threads in the pool.  Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
-    
+
     @throw THREADPOOL-ERROR minidle > max, maxidle > max or minidle > maxidle, or release_ms < 0
  */
 ThreadPool::constructor(int max = 0, int minidle = 0, int maxidle = 0, timeout release_ms = 5s) {

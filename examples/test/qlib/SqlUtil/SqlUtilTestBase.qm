@@ -82,6 +82,7 @@ public class SqlTestBase inherits QUnit::Test {
         addTestCase("Upsert", \upsertTest());
         addTestCase("BulkInsert", \bulkInsertTest());
         addTestCase("BulkUpsert", \bulkUpsertTest());
+        addTestCase("fetchColumns", \fetchColumnsTest());
     }
 
     globalTearDown() {
@@ -679,7 +680,7 @@ public class SqlTestBase inherits QUnit::Test {
     offsetLimitTest() {
         # TODO: remove once support for limit & offset is implemented in FreetdsSqlUtil
         if (self.className() == "FreetdsTest")
-            testSkip ("FreetdsSqlUtil does not support this feature yet");
+            testSkip("FreetdsSqlUtil does not support offset (yet)");
 
         if (!table) testSkip("no DB connection");
 
@@ -722,7 +723,7 @@ public class SqlTestBase inherits QUnit::Test {
                 continue;
             }
             *list rows = table.selectRows (t.value.in, \sql);
-            assertEq (t.value.out.count, rows.size(), "checking offset / limit " + t.key);
+            assertEq(t.value.out.count, rows.size(), "checking offset / limit " + t.key);
 
             foreach hash row in (rows) {
                 int rn = $#;
@@ -730,6 +731,16 @@ public class SqlTestBase inherits QUnit::Test {
                     assertEq (d.value, row{d.key}, sprintf ("checking offset / limit %s row %s column %s", t.key, rn, d.key));
             }
         }
+    }
+
+    fetchColumnsTest() {
+        if (!table) testSkip("no DB connection");
+
+        hash sh = ("columns": "id", "where": ("id": op_cne("id")));
+        SQLStatement stmt = table.getRowIterator(sh);
+        assertEq({}, stmt.fetchColumns(10));
+        # sanity select test
+        assertEq(("id": ()), table.select(sh));
     }
 
     static string getColumnName(string n) {

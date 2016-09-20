@@ -62,6 +62,15 @@ class Test2 {
     int pub() {
         return call_object_method(self, "priv");
     }
+
+    test() {
+        print("ERROR\n");
+    }
+
+    doit() {
+        delete self;
+        test();
+    }
 }
 
 %exec-class ClassesTest
@@ -70,6 +79,7 @@ public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         addTestCase("Class library test", \classLibraryTest());
         addTestCase("Deprecated method test", \deprecatedMethodTest());
+        addTestCase("Deletion test", \deletionTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -130,5 +140,10 @@ public class ClassesTest inherits QUnit::Test {
         assertEq("System", wh.type);
         assertEq(1, wh.line);
         assertEq(1, wh.endline);
+    }
+
+    deletionTest() {
+        Test2 t();
+        assertThrows("OBJECT-ALREADY-DELETED", \t.doit());
     }
 }

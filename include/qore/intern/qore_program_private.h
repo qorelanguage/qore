@@ -537,12 +537,10 @@ public:
       dc.ROreference();
    }
 
-   DLLLOCAL void depDeref(ExceptionSink* xsink) {
+   DLLLOCAL void depDeref() {
       printd(QPP_DBG_LVL, "qore_program_private::depDeref() this: %p pgm: %p %d->%d\n", this, pgm, dc.reference_count(), dc.reference_count() - 1);
-      if (dc.ROdereference()) {
-         del(xsink);
+      if (dc.ROdereference())
          delete pgm;
-      }
    }
 
    DLLLOCAL void clearProgramThreadData(ExceptionSink* xsink) {
@@ -611,6 +609,16 @@ public:
       assert(thread_count);
       ++tidmap[tid];
    }
+
+   /*
+   DLLLOCAL int checkValid(ExceptionSink* xsink) {
+      if (ptid && ptid != gettid()) {
+         xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed at runtime");
+         return -1;
+      }
+      return 0;
+   }
+   */
 
    // returns 0 for OK, -1 for error
    DLLLOCAL int incThreadCount(ExceptionSink* xsink) {

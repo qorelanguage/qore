@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -475,7 +475,7 @@ void ThreadProgramData::delProgram(QoreProgram* pgm) {
    //printd(5, "ThreadProgramData::delProgram() this: %p deref pgm: %p\n", this, pgm);
    // this can never cause the program to go out of scope because it's always called
    // when the reference count > 1, therefore *xsink = 0 is OK
-   pgm->depDeref(0);
+   pgm->depDeref();
    deref();
 }
 
@@ -525,7 +525,7 @@ void ThreadProgramData::del(ExceptionSink* xsink) {
          pgm_set.erase(i);
       }
       //printd(5, "ThreadProgramData::del() this: %p pgm: %p\n", this, pgm);
-      pgm->depDeref(xsink);
+      pgm->depDeref();
       // only dereference the current object if the thread was deleted from the program
       if (!qore_program_private::endThread(pgm, this, xsink))
          deref();
@@ -641,12 +641,12 @@ public:
 	 o->tRef();
    }
 
-   DLLLOCAL void del(ExceptionSink* xsink) {
+   DLLLOCAL void del() {
       // decrement program's thread count
       if (started) {
          qore_program_private::decThreadCount(*pgm, tid);
          //printd(5, "BGThreadParams::del() this: %p pgm: %p\n", this, pgm);
-         pgm->depDeref(xsink);
+         pgm->depDeref();
       }
       else if (registered)
          qore_program_private::cancelPreregistration(*pgm);
@@ -1313,6 +1313,17 @@ void ModuleContextFunctionList::clear() {
    mcfl_t::clear();
 }
 
+QoreProgramContextHelper::QoreProgramContextHelper(QoreProgram* pgm) {
+   ThreadData* td  = thread_data.get();
+   old_pgm = td->current_pgm;
+   td->current_pgm = pgm;
+}
+
+QoreProgramContextHelper::~QoreProgramContextHelper() {
+   ThreadData* td  = thread_data.get();
+   td->current_pgm = old_pgm;
+}
+
 ObjectSubstitutionHelper::ObjectSubstitutionHelper(QoreObject* obj) {
    ThreadData* td  = thread_data.get();
    old = td->current_classobj;
@@ -1476,12 +1487,17 @@ ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* 
    if (!pgm)
       return;
 
+   qore_program_private* pp = qore_program_private::get(*pgm);
+
    ThreadData* td = thread_data.get();
-   printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() current_pgm: %p new_pgm: %p\n", td->current_pgm, pgm);
+   //printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() current_pgm: %p new_pgm: %p\n", td->current_pgm, pgm);
    if (pgm != td->current_pgm) {
       // try to increment thread count
-      if (qore_program_private::incThreadCount(*pgm, xsink))
+      if (pp->incThreadCount(xsink)) {
+         //printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() failed\n");
          return;
+      }
+      //printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() OK\n");
 
       // set up thread stacks
       restore = true;
@@ -1536,7 +1552,7 @@ ProgramRuntimeParseCommitContextHelper::~ProgramRuntimeParseCommitContextHelper(
    ThreadData* td = thread_data.get();
 
    QoreProgram* pgm = td->current_pgm;
-   //printd(5, "ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() current_pgm: %p restoring old pgm: %p old tlpd: %p\n", td->current_pgm, old_pgm, old_tlpd);
+   //printd(5, "ProgramRuntimeParseCommitContextHelper::~ProgramRuntimeParseCommitContextHelper() current_pgm: %p restoring old pgm: %p old tlpd: %p\n", td->current_pgm, old_pgm, old_tlpd);
    td->current_pgm = old_pgm;
    td->tlpd        = old_tlpd;
 
@@ -1945,7 +1961,7 @@ namespace {
 
             int tid = btp->tid;
             // dereference current Program object
-            btp->del(&xsink);
+            btp->del();
 
             // delete any thread data
             thread_data.get()->del(&xsink);
@@ -2008,7 +2024,7 @@ static AbstractQoreNode* op_background(const AbstractQoreNode* left, const Abstr
 
    if ((rc = pthread_create(&ptid, ta_default.get_ptr(), op_background_thread, tp))) {
       tp->cleanup(xsink);
-      tp->del(xsink);
+      tp->del();
 
       thread_counter.dec();
       deregister_thread(tid);

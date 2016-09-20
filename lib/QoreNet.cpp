@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -131,14 +131,14 @@ int q_get_port_from_addr(const struct sockaddr *ai_addr) {
 // FIXME: check err?
 int q_gethostbyname(const char *host, struct in_addr *sin_addr) {
    QORE_TRACE("q_gethostbyname()");
-   
+
 #ifdef HAVE_GETHOSTBYNAME_R
    struct hostent he;
    int err;
    char buf[NET_BUFSIZE];
 # ifdef HAVE_GETHOSTBYNAME_R_GLIBC2_STYLE
    struct hostent *p;
-   
+
    int rc = gethostbyname_r(host, &he, buf, NET_BUFSIZE, &p, &err);
    if (!p || rc) {
       // NOTE: ERANGE means that the buffer was too small
@@ -189,7 +189,7 @@ void q_af_to_hash(int af, QoreHashNode& h, ExceptionSink* xsink) {
 
 static QoreHashNode *he_to_hash(struct hostent &he) {
    QoreHashNode *h = new QoreHashNode;
-   
+
    if (he.h_name && he.h_name[0])
       h->setKeyValue("name", new QoreStringNode(he.h_name), 0); // official host name
    if (he.h_aliases) {
@@ -248,14 +248,14 @@ static QoreStringNode *headdr_string(struct hostent &he) {
    return new QoreStringNode;
 }
 
-QoreHashNode *q_gethostbyname_to_hash(const char *host) {  
+QoreHashNode *q_gethostbyname_to_hash(const char *host) {
 #ifdef HAVE_GETHOSTBYNAME_R
    struct hostent he;
    int err;
    char buf[NET_BUFSIZE];
 # ifdef HAVE_GETHOSTBYNAME_R_GLIBC2_STYLE
    struct hostent *p;
-   
+
    int rc = gethostbyname_r(host, &he, buf, NET_BUFSIZE, &p, &err);
 
    if (!p || rc) {
@@ -282,14 +282,14 @@ QoreHashNode *q_gethostbyname_to_hash(const char *host) {
 #endif
 }
 
-QoreStringNode *q_gethostbyname_to_string(const char *host) {  
+QoreStringNode *q_gethostbyname_to_string(const char *host) {
 #ifdef HAVE_GETHOSTBYNAME_R
    struct hostent he;
    int err;
    char buf[NET_BUFSIZE];
 # ifdef HAVE_GETHOSTBYNAME_R_GLIBC2_STYLE
    struct hostent *p;
-   
+
    int rc = gethostbyname_r(host, &he, buf, NET_BUFSIZE, &p, &err);
    if (!p || rc) {
       // NOTE: ERANGE means that the buffer was too small
@@ -321,7 +321,7 @@ char *q_gethostbyaddr(const char *addr, int len, int type) {
    char *host;
 
    type = q_get_af(type);
-    
+
 #ifdef HAVE_GETHOSTBYADDR_R
    struct hostent he;
    char buf[NET_BUFSIZE];
@@ -379,7 +379,7 @@ QoreHashNode *q_gethostbyaddr_to_hash(ExceptionSink *xsink, const char *addr, in
    }
    if (rc < 0)
       return 0;
-   
+
 #ifdef HAVE_GETHOSTBYADDR_R
    struct hostent he;
    char buf[NET_BUFSIZE];
@@ -389,7 +389,7 @@ QoreHashNode *q_gethostbyaddr_to_hash(ExceptionSink *xsink, const char *addr, in
       return 0;
 # else // assume glibc2-style gethostbyaddr_r
    struct hostent *p;
-   
+
    rc = gethostbyaddr_r(dst, len, type, &he, buf, NET_BUFSIZE, &p, &err);
    if (rc || !p)
       return 0;
@@ -437,7 +437,7 @@ QoreStringNode *q_gethostbyaddr_to_string(ExceptionSink *xsink, const char *addr
    }
    if (rc < 0)
       return 0;
-   
+
 #ifdef HAVE_GETHOSTBYADDR_R
    struct hostent he;
    char buf[NET_BUFSIZE];
@@ -447,7 +447,7 @@ QoreStringNode *q_gethostbyaddr_to_string(ExceptionSink *xsink, const char *addr
       return 0;
 # else // assume glibc2-style gethostbyaddr_r
    struct hostent *p;
-   
+
    rc = gethostbyaddr_r(dst, len, type, &he, buf, NET_BUFSIZE, &p, &err);
    if (rc || !p)
       return 0;
@@ -512,7 +512,7 @@ int QoreAddrInfo::getInfo(ExceptionSink *xsink, const char *node, const char *se
 
    if (service)
       has_svc = true;
-   return 0;   
+   return 0;
 }
 
 QoreListNode *QoreAddrInfo::getList() const {

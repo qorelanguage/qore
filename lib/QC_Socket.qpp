@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1280,7 +1280,11 @@ string data = sock.recv(-1); # read all data available
     - Socket::recvBinary()
  */
 string Socket::recv(softint size = 0, timeout timeout_ms = -1) {
-   return size > 0 ? s->recv(size, timeout_ms, xsink) : s->recv(timeout_ms, xsink);
+   if (size > 0)
+      return s->recv(size, timeout_ms, xsink);
+
+   QoreStringNode* str = s->recv(timeout_ms, xsink);
+   return !*xsink && !str ? new QoreStringNode : str;
 }
 
 //! Receives data from the socket and returns a binary object
@@ -1308,7 +1312,11 @@ binary data = sock.recvBinary(-1); # read all data available
     @see Socket::recv()
  */
 binary Socket::recvBinary(softint size = 0, timeout timeout_ms = -1) {
-   return size > 0 ? s->recvBinary(size, timeout_ms, xsink) : s->recvBinary(timeout_ms, xsink);
+   if (size > 0)
+      return s->recvBinary(size, timeout_ms, xsink);
+
+   BinaryNode* str = s->recvBinary(timeout_ms, xsink);
+   return !*xsink && !str ? new BinaryNode : str;
 }
 
 //! Receives a 1-byte signed integer from the socket
