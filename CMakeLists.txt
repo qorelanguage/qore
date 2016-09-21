@@ -174,20 +174,20 @@ set(LIBQORE_QPP_SRC
 )
 
 set(PSEUDO_QPP_SRC
-        lib/Pseudo_QC_All.qpp
-	lib/Pseudo_QC_Nothing.qpp
-	lib/Pseudo_QC_Date.qpp
-	lib/Pseudo_QC_Object.qpp
-	lib/Pseudo_QC_Hash.qpp
-	lib/Pseudo_QC_String.qpp
-	lib/Pseudo_QC_Binary.qpp
-	lib/Pseudo_QC_List.qpp
-	lib/Pseudo_QC_Bool.qpp
-	lib/Pseudo_QC_Int.qpp
-	lib/Pseudo_QC_Float.qpp
-	lib/Pseudo_QC_Number.qpp
-	lib/Pseudo_QC_Closure.qpp
-	lib/Pseudo_QC_Callref.qpp
+    lib/Pseudo_QC_All.qpp
+    lib/Pseudo_QC_Nothing.qpp
+    lib/Pseudo_QC_Date.qpp
+    lib/Pseudo_QC_Object.qpp
+    lib/Pseudo_QC_Hash.qpp
+    lib/Pseudo_QC_String.qpp
+    lib/Pseudo_QC_Binary.qpp
+    lib/Pseudo_QC_List.qpp
+    lib/Pseudo_QC_Bool.qpp
+    lib/Pseudo_QC_Int.qpp
+    lib/Pseudo_QC_Float.qpp
+    lib/Pseudo_QC_Number.qpp
+    lib/Pseudo_QC_Closure.qpp
+    lib/Pseudo_QC_Callref.qpp
 )
 
 set(QMOD
@@ -464,12 +464,12 @@ set(LIBQORE_CPP_SRC
         lib/QoreExistsOperatorNode.cpp
         lib/QoreElementsOperatorNode.cpp
         lib/QoreInstanceOfOperatorNode.cpp
-	lib/QoreHashObjectDereferenceOperatorNode.cpp
-	lib/QoreRegexMatchOperatorNode.cpp
-	lib/QoreRegexNMatchOperatorNode.cpp
-	lib/QoreRegexExtractOperatorNode.cpp
-	lib/QoreRegexSubstOperatorNode.cpp
-	lib/QoreTransliterationOperatorNode.cpp
+        lib/QoreHashObjectDereferenceOperatorNode.cpp
+        lib/QoreRegexMatchOperatorNode.cpp
+        lib/QoreRegexNMatchOperatorNode.cpp
+        lib/QoreRegexExtractOperatorNode.cpp
+        lib/QoreRegexSubstOperatorNode.cpp
+        lib/QoreTransliterationOperatorNode.cpp
         lib/QoreAssignmentOperatorNode.cpp
         lib/QoreListAssignmentOperatorNode.cpp
         lib/QorePlusEqualsOperatorNode.cpp
@@ -513,22 +513,22 @@ set(LIBQORE_CPP_SRC
         lib/QorePushOperatorNode.cpp
         lib/QoreLogicalAndOperatorNode.cpp
         lib/QoreLogicalOrOperatorNode.cpp
-	lib/QoreLogicalComparisonOperatorNode.cpp
-	lib/QorePlusOperatorNode.cpp
-	lib/QoreMinusOperatorNode.cpp
-	lib/QoreMultiplicationOperatorNode.cpp
-	lib/QoreBackgroundOperatorNode.cpp
+        lib/QoreLogicalComparisonOperatorNode.cpp
+        lib/QorePlusOperatorNode.cpp
+        lib/QoreMinusOperatorNode.cpp
+        lib/QoreMultiplicationOperatorNode.cpp
+        lib/QoreBackgroundOperatorNode.cpp
         lib/QoreValue.cpp
         lib/StreamPipe.cpp
         lib/CompressionTransforms.cpp
         lib/QorePseudoMethods.cpp
         lib/xxhash.cpp
         lib/minitest.cpp
-	lib/FunctionalOperator.cpp
-	lib/FunctionalOperatorInterface.cpp
-	lib/QoreQuestionMarkOperatorNode.cpp
-	lib/QoreKeysOperatorNode.cpp
-	lib/QoreSelectOperatorNode.cpp
+        lib/FunctionalOperator.cpp
+        lib/FunctionalOperatorInterface.cpp
+        lib/QoreQuestionMarkOperatorNode.cpp
+        lib/QoreKeysOperatorNode.cpp
+        lib/QoreSelectOperatorNode.cpp
     )
 
 if (HAVE_SIGNAL_HANDLING)
