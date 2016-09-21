@@ -859,6 +859,35 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
    return 0;
 }
 
+void qore_class_private::generateBuiltinSignature(const char* nspath) {
+   // signature string - also processed in parseCommit()
+   QoreStringMaker csig("class %s::%s ", nspath, name.c_str());
+
+   if (scl) {
+      for (auto& i : *scl) {
+         assert((*i).sclass);
+         do_sig(csig, *i);
+      }
+   }
+
+   for (auto& i : hm)
+      i.second->priv->func->parseCommittedSignatures(csig, 0);
+   for (auto& i : shm)
+      i.second->priv->func->parseCommittedSignatures(csig, "static");
+
+   // add committed vars to signature first before members
+   for (QoreVarMap::SigOrderIterator i = vars.beginSigOrder(), e = vars.endSigOrder(); i != e; ++i) {
+      do_sig(csig, i);
+   }
+
+   for (QoreMemberMap::SigOrderIterator i = members.beginSigOrder(), e = members.endSigOrder(); i != e; ++i) {
+      do_sig(csig, i);
+   }
+
+   do_sig(csig, constlist);
+   hash.update(csig);
+}
+
 // returns a non-static method if it exists in the local class and has been committed to the class
 QoreMethod* qore_class_private::findLocalCommittedMethod(const char* nme) {
    QoreMethod* m = parseFindLocalMethod(nme);
@@ -2327,8 +2356,12 @@ void QoreClass::addBuiltinVirtualBaseClass(QoreClass* qc) {
 }
 
 const QoreMethod* qore_class_private::parseFindMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) {
-   access = Public;
    initialize();
+   return parseFindMethodNoInit(nme, access, class_ctx);
+}
+
+const QoreMethod* qore_class_private::parseFindMethodNoInit(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) {
+   access = Public;
 
    // if we have a class context, first we have to check here for an internal method
    if (class_ctx) {
@@ -2343,8 +2376,12 @@ const QoreMethod* qore_class_private::parseFindMethod(const char* nme, ClassAcce
 }
 
 const QoreMethod* qore_class_private::parseFindStaticMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) {
-   access = Public;
    initialize();
+   return parseFindStaticMethodNoInit(nme, access, class_ctx);
+}
+
+const QoreMethod* qore_class_private::parseFindStaticMethodNoInit(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) {
+   access = Public;
 
    // if we have a class context, first we have to check here for an internal method
    if (class_ctx) {
@@ -3217,7 +3254,7 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
 
    ClassAccess n_access = Public;
    // we cannot initialize the class here, so we have to use the "Intern" versions of the functions to find the method below
-   QoreMethod* m = const_cast<QoreMethod*>(!n_static ? parseFindMethodIntern(mname, n_access, this) : parseFindStaticMethodIntern(mname, n_access, this));
+   QoreMethod* m = const_cast<QoreMethod*>(!n_static ? parseFindMethodNoInit(mname, n_access, this) : parseFindStaticMethodNoInit(mname, n_access, this));
    if (!n_static && m && (dst || cpy || methGate || memGate || hasMemberNotification)) {
       parseException("ILLEGAL-METHOD-OVERLOAD", "a %s::%s() method has already been defined; cannot overload %s methods", tname, mname, mname);
       return -1;
@@ -3259,7 +3296,7 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
       return -1;
    }
 
-   //printd(5, "qore_class_private::addUserMethod() %s::%s() f: %p (%d)\n", tname, mname, f, ((QoreReferenceCounter*)f)->reference_count());
+   //printd(5, "qore_class_private::addUserMethod() %s %s::%s(%s) f: %p (%d) new: %d\n", privpub(f->getAccess()), tname, mname, f->getSignature()->getSignatureText(), f, ((QoreReferenceCounter*)f)->reference_count(), is_new);
 
    // set the pointer from the variant back to the owning method
    f->setMethod(m);

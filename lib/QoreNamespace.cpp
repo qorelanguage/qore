@@ -202,6 +202,10 @@ void QoreNamespace::setClassHandler(q_ns_class_handler_t class_handler) {
 void QoreNamespace::addSystemClass(QoreClass* oc) {
    QORE_TRACE("QoreNamespace::addSystemClass()");
 
+   // generate builtin class signature
+   std::string path;
+   priv->getPath(path);
+   qore_class_private::get(*oc)->generateBuiltinSignature(path.c_str());
 #ifdef DEBUG
    if (priv->classList.add(oc))
       assert(false);

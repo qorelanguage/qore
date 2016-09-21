@@ -1729,6 +1729,7 @@ public:
    }
 
    DLLLOCAL char* getHash() const {
+      assert(is_set);
       return (char*)buf;
    }
 
@@ -2561,6 +2562,8 @@ public:
    // returns a static method if it exists in the local class and has been committed to the class
    DLLLOCAL const QoreMethod* findLocalCommittedStaticMethod(const char* nme) const;
 
+   DLLLOCAL void generateBuiltinSignature(const char* nspath);
+
    DLLLOCAL static const QoreMethod* doMethodAccess(const QoreMethod* m, ClassAccess& access, ClassAccess ma) {
       assert(m);
 
@@ -2803,6 +2806,12 @@ public:
    DLLLOCAL const QoreMethod* parseFindMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx);
 
    DLLLOCAL const QoreMethod* parseFindStaticMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx);
+
+   // no class initialization
+   DLLLOCAL const QoreMethod* parseFindMethodNoInit(const char* nme, ClassAccess& access, const qore_class_private* class_ctx);
+
+   // no class initialization
+   DLLLOCAL const QoreMethod* parseFindStaticMethodNoInit(const char* nme, ClassAccess& access, const qore_class_private* class_ctx);
 
    // no class initialization
    DLLLOCAL const QoreMethod* parseFindAnyMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx);
