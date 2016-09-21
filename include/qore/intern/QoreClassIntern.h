@@ -1498,11 +1498,11 @@ class BCSMList : public class_list_t {
 public:
    DLLLOCAL BCSMList() {
    }
-   DLLLOCAL BCSMList(const BCSMList &old) {
-      reserve(old.size());
-      for (class_list_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i)
-         push_back(*i);
-   }
+
+   DLLLOCAL BCSMList(const BCSMList &old);
+
+   DLLLOCAL ~BCSMList();
+
    DLLLOCAL int add(QoreClass* thisclass, QoreClass* qc, bool is_virtual);
    DLLLOCAL int addBaseClassesToSubclass(QoreClass* thisclass, QoreClass* sc, bool is_virtual);
    DLLLOCAL QoreClass* getClass(qore_classid_t cid) const;
