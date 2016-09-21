@@ -1174,8 +1174,6 @@ QoreValue QoreFunction::evalFunction(const AbstractQoreFunctionVariant* variant,
    CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
    if (*xsink) return QoreValue();
 
-   ProgramThreadCountContextHelper tch(xsink, pgm, true);
-   if (*xsink) return QoreValue();
    return variant->evalFunction(fname, ceh, xsink);
 }
 
@@ -1702,10 +1700,6 @@ QoreValue UserClosureFunction::evalClosure(const QoreClosureBase& closure_base, 
 
    // setup call, save runtime position
    CodeEvaluationHelper ceh(xsink, this, variant, "<anonymous closure>", args, class_ctx, CT_USER);
-   if (*xsink)
-      return QoreValue();
-
-   ProgramThreadCountContextHelper tch(xsink, pgm, true);
    if (*xsink)
       return QoreValue();
 

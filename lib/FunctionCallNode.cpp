@@ -48,6 +48,14 @@ QoreValue AbstractMethodCallNode::exec(QoreObject* o, const char* c_str, Excepti
    if (qc && (o->getClass() == qc || o->getClass() == method->getClass())) {
       //printd(5, "AbstractMethodCallNode::exec() using parse info for %s::%s() qc: %s (o: %s)\n", method->getClassName(), method->getName(), qc->getName(), o->getClass()->getName());
       assert(method);
+      if (!o->isValid()) {
+	 if (variant)
+	    xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s(%s) on an object that has already been deleted", qc->getName(), method->getName(), variant->getSignature()->getSignatureText());
+	 else
+	    xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has already been deleted", qc->getName(), method->getName());
+	 return QoreValue();
+      }
+
       return variant
 	 ? qore_method_private::evalNormalVariant(*method, o, reinterpret_cast<const QoreExternalMethodVariant*>(variant), args, xsink)
 	 : qore_method_private::eval(*method, o, args, xsink);
@@ -192,7 +200,7 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar*
 QoreValue SelfFunctionCallNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    QoreObject* self = runtime_get_stack_object();
 
-   //printd(5, "SelfFunctionCallNode::evalImpl() this: %p self: %p method: %p (%s)\n", this, self, method, ns.ostr);
+   //printd(5, "SelfFunctionCallNode::evalImpl() this: %p self: %p method: %p (%s) v: %d\n", this, self, method, ns.ostr, self->isValid());
    if (is_copy)
       return self->getClass()->execCopy(self, xsink);
 

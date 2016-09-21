@@ -110,6 +110,7 @@
     - fixed a bug where different method variant resolution rules were used at parse time (best match in hierarchy) and runtime (best match in first matching class) in a class hierarchy (<a href="https://github.com/qorelanguage/qore/issues/1229">issue 1229</a>)
     - fixed a bug where exceptions in base class constructor calls did not reflect the actual source location (<a href="https://github.com/qorelanguage/qore/issues/1230">issue 1230</a>)
     - fixed a bug where runtime function/method variant matching was incorrectly biased towards default matches for missing arguments (<a href="https://github.com/qorelanguage/qore/issues/1231">issue 1231</a>)
+    - fixed bugs where calls to @ref Qore::Socket::upgradeClientToSSL() "Socket::upgradeClientToSSL()" and @ref Qore::Socket::upgradeServerToSSL() "Socket::upgradeServerToSSL()" were ignored with no exception thrown if the socket was not connected (<a href="https://github.com/qorelanguage/qore/issues/1258">issue 1258</a>)
 
     @section qore_08123 Qore 0.8.12.3
 
@@ -119,6 +120,11 @@
     @subsection qore_08123_bug_fixes Bug Fixes in Qore
 
     - fixed the documentation (and DB modules) where the SQLStatement::fetchColumns() was inconsistent; now it will return a empty hash when no more rows are available to fetch (<a href="https://github.com/qorelanguage/qore/issues/1241">issue 1241</a>)
+    - added I/O timeout support to the @ref Qore::FtpClient "FtpClient" class (<a href="https://github.com/qorelanguage/qore/issues/1252">issue 1252</a>)
+    - fixed bugs in @ref Qore::Socket::recv() "Socket::recv()" and @ref Qore::Socket::recvBinary() "Socket::recvBinary()" with <tt>size = 0</tt> where @ref nothing could be returned which is invalid according to the methods' declared return types (<a href="https://github.com/qorelanguage/qore/issues/1260">issue 1260</a>)
+    - fixed a bug where @ref Qore::FtpClient::get() "FtpClient:get()" would fail with an exception when retrieving an empty file (<a href="https://github.com/qorelanguage/qore/issues/1255">issue 1255</a>)
+    - fixed a bug where executing a call reference to a deleted object method would cause a crash (<a href="https://github.com/qorelanguage/qore/issues/1268">issue 1268</a>)
+    - fixed a bug where Qore would allow methods to be called on already deleted objects under certain conditions (<a href="https://github.com/qorelanguage/qore/issues/1270">issue 1270</a>)
 
     @section qore_08122 Qore 0.8.12.2
 

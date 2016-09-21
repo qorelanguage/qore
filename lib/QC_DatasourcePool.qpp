@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -403,12 +403,14 @@ any DatasourcePool::execRaw(string sql) {
     @param sql The %SQL command to execute on the server
     @param ... Include any values to be bound (using <tt>%%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
-    @return This method returns a hash (the keys are the column names) of lists (the column data per row) when executed with an %SQL select statement, however some DBI drivers allow any %SQL to be executed through this method, in which case other data types can be returned (such as an integer for a row count or a hash for output parameters when executing a stored procedure)
+    @return This method returns a hash (the keys are the column names) of lists (the column data per row) when executed with an %SQL select statement, however some DBI drivers allow any %SQL to be executed through this method, in which case other data types can be returned (such as an integer for a row count or a hash for output parameters when executing a stored procedure).  If no rows are found, a hash of column names assigned to empty lists is returned.
 
     @par Example:
     @code{.py}
 # bind a string and a date/time value by value in a query
-query = db.select("select * from table where varchar_column = %v and timestamp_column > %v", string, 2007-10-11T15:31:26.289);
+hash query = db.select("select * from table where varchar_column = %v and timestamp_column > %v", string, 2007-10-11T15:31:26.289);
+if (query.firstValue())
+    printf("got results\n");
     @endcode
 
     @note
@@ -490,11 +492,13 @@ any DatasourcePool::selectRows(string sql, ...) {
     @param sql The %SQL command to execute on the server
     @param vargs Include any values to be bound (using <tt>%%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
-    @return Normally returns a hash (the keys are the column names) of list (each hash key's value is a list giving the row data), however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+    @return Normally returns a hash (the keys are the column names) of list (each hash key's value is a list giving the row data), however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned.  If no rows are found, a hash of column names assigned to empty lists is returned.
 
     @par Example:
     @code{.py}
-*hash query = db.vselect("select * from example_table where id = %v and name = %v", arg_list);
+hash query = db.vselect("select * from example_table where id = %v and name = %v", arg_list);
+if (query.firstValue())
+    printf("got results\n");
     @endcode
 
     @note
