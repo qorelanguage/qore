@@ -12,31 +12,40 @@
 
 public class GzipTest inherits QUnit::Test {
     private {
-        const str = "This is a long string xxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-        binary bstr;
-        binary c;
+        string plain = "This is a long string xxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+        binary zlibData = <789c0bc9c82c5600a244859cfcbc7485e292a24c205581070000ef8814dd>;
+        binary gzipData = <1f8b08000000000000030bc9c82c5600a244859cfcbc7485e292a24c20558107000048db40a932000000>;
     }
 
     constructor() : Test("GzipTest", "1.0") {
-        addTestCase("What this method is testing", \gzipTest(), NOTHING);
+        addTestCase("zlib", \zlibTest(), NOTHING);
+        addTestCase("gzip", \gzipTest(), NOTHING);
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
     }
 
-    setUp() {
-        bstr = binary(str);
-        c = compress(str);
+    zlibTest() {
+        assertEq(zlibData, compress(plain));
+        assertEq(plain, uncompress_to_string(zlibData));
+        assertEq(binary(plain), uncompress_to_binary(zlibData));
+        assertThrows("ZLIB-ERROR", "Unexpected end", sub() { uncompress_to_binary(zlibData.substr(0, 20)); });
+        assertThrows("ZLIB-ERROR", "Unexpected bytes", sub() { uncompress_to_binary(zlibData + <01>); });
+        assertThrows("ZLIB-ERROR", "corrupted", sub() { uncompress_to_binary(gzipData); });
+        assertThrows("ZLIB-ERROR", "Unexpected end", sub() { uncompress_to_string(zlibData.substr(0, 20)); });
+        assertThrows("ZLIB-ERROR", "Unexpected bytes", sub() { uncompress_to_string(zlibData + <01>); });
+        assertThrows("ZLIB-ERROR", "corrupted", sub() { uncompress_to_string(gzipData); });
     }
 
     gzipTest() {
-        testAssertion("compress() and uncompress_to_string()", \uncompress_to_string(), (c,), new TestResultValue(str));
-        testAssertion("compress() and uncompress_to_binary()", \uncompress_to_binary(), (c,), new TestResultValue(bstr));
-
-        # TODO: This should test against a real gzip string
-        binary gz = gzip(str);
-
-        testAssertion("gzip() and gunzip_to_string()", \gunzip_to_string(), (gz,), new TestResultValue(str));
-        testAssertion("gzip() and gunzip_to_binary()", \gunzip_to_binary(), (gz,), new TestResultValue(bstr));
+        assertEq(gzipData, gzip(plain));
+        assertEq(plain, gunzip_to_string(gzipData));
+        assertEq(binary(plain), gunzip_to_binary(gzipData));
+        assertThrows("ZLIB-ERROR", "Unexpected end", sub() { gunzip_to_binary(gzipData.substr(0, 20)); });
+        assertThrows("ZLIB-ERROR", "Unexpected bytes", sub() { gunzip_to_binary(gzipData + <01>); });
+        assertThrows("ZLIB-ERROR", "corrupted", sub() { gunzip_to_binary(zlibData); });
+        assertThrows("ZLIB-ERROR", "Unexpected end", sub() { gunzip_to_string(gzipData.substr(0, 20)); });
+        assertThrows("ZLIB-ERROR", "Unexpected bytes", sub() { gunzip_to_string(gzipData + <01>); });
+        assertThrows("ZLIB-ERROR", "corrupted", sub() { gunzip_to_string(zlibData); });
     }
 }
