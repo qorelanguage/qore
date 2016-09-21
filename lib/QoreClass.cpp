@@ -640,13 +640,13 @@ qore_class_private::~qore_class_private() {
 
    // delete normal methods
    for (auto& i : hm) {
-      //printd(5, "QoreClass::~QoreClass() deleting method %p %s::%s()\n", m, name, m->getName());
+      //printd(5, "qore_class_private::~qore_class_private() deleting method %p %s::%s()\n", m, name, m->getName());
       delete i.second;
    }
 
    // delete static methods
    for (auto& i : shm) {
-      //printd(5, "QoreClass::~QoreClass() deleting static method %p %s::%s()\n", m, name, m->getName());
+      //printd(5, "qore_class_private::~qore_class_private() deleting static method %p %s::%s()\n", m, name, m->getName());
       delete i.second;
    }
 
@@ -4377,11 +4377,6 @@ UserConstructorVariant::~UserConstructorVariant() {
 }
 
 void UserConstructorVariant::evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
-   // in case this method is called from a subclass, switch to the program where the class was created
-   ProgramThreadCountContextHelper pch(xsink, pgm, true);
-   if (*xsink)
-      return;
-
    UserVariantExecHelper uveh(this, &ceh, xsink);
    if (!uveh)
       return;
@@ -4472,8 +4467,6 @@ void UserCopyVariant::evalCopy(const QoreClass& thisclass, QoreObject* self, Qor
       ceh.restorePosition();
    }
 
-   ProgramThreadCountContextHelper tch(xsink, pgm, true);
-   if (*xsink) return;
    evalIntern(uveh.getArgv(), self, xsink).discard(xsink);
 }
 
@@ -4576,21 +4569,19 @@ void DestructorMethodFunction::evalDestructor(const QoreClass& thisclass, QoreOb
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
 QoreValue NormalMethodFunction::evalMethod(const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
-   bool had_variant = (bool)variant;
+   const char* cname = getClassName();
    const char* mname = getName();
+   //printd(5, "NormalMethodFunction::evalMethod() %s::%s() v: %d\n", cname, mname, self->isValid());
+
    CodeEvaluationHelper ceh(xsink, this, variant, mname, args, self, qore_class_private::get(*qc));
    if (*xsink) return QoreValue();
 
    const MethodVariant* mv = METHV_const(variant);
    if (mv->isAbstract()) {
-      xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", qc->getName(), mname, mv->getSignature()->getSignatureText());
+      xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", cname, mname, mv->getSignature()->getSignatureText());
       return QoreValue();
    }
    //printd(5, "NormalMethodFunction::evalMethod() %s::%s(%s) (self: %s) variant: %p, mv: %p priv: %d access: %d (%p %s)\n",getClassName(), mname, mv->getSignature()->getSignatureText(), self->getClass()->getName(), variant, mv, mv->isPrivate(), qore_class_private::runtimeCheckPrivateClassAccess(*mv->getClass()), runtime_get_class(), runtime_get_class() ? runtime_get_class()->name.c_str() : "n/a");
-   if (!had_variant && mv->isPrivate() && !qore_class_private::runtimeCheckPrivateClassAccess(*mv->getClass())) {
-      xsink->raiseException("ILLEGAL-CALL", "cannot call private variant %s::%s(%s) from outside the class", qc->getName(), mname, mv->getSignature()->getSignatureText());
-      return QoreValue();
-   }
 
    return mv->evalMethod(self, ceh, xsink);
 }

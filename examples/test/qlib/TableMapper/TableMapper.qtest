@@ -296,15 +296,13 @@ public class TableMapperTest inherits QUnit::Test {
         if (!table)
             testSkip("no DB connection");
 
-        {
-            SqlStatementOutboundMapper m(table, SelectHash, OutMap1);
-            AbstractMapperIterator i = m.iterator();
-            list l;
-            while (list tl = i.mapBulk(2))
-                l += tl;
+        SqlStatementOutboundMapper m(table, SelectHash, OutMap1);
+        AbstractMapperIterator i = m.iterator();
+        list l;
+        while (list tl = i.mapBulk(2))
+            l += tl;
 
-            assertEq(Output2, l, "mapBulk");
-        }
+        assertEq(Output2, l, "mapBulk");
     }
 
     checkMap(list l, list il, list ol) {

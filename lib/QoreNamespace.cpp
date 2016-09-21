@@ -1270,7 +1270,7 @@ void qore_root_ns_private::parseAddClassIntern(const NamedScope& nscope, QoreCla
    }
    else {
       //printd(5, "qore_root_ns_private::parseAddClassIntern() class '%s' not added: '%s' namespace not found\n", oc->getName(), nscope.ostr);
-      delete oc;
+      qore_class_private::get(*oc)->deref();
    }
 }
 
@@ -1719,7 +1719,7 @@ void qore_ns_private::parseAddConstant(const NamedScope& nscope, AbstractQoreNod
 // public, only called either in single-threaded initialization or
 // while the program-level parse lock is held
 int qore_ns_private::parseAddPendingClass(QoreClass* oc) {
-   std::unique_ptr<QoreClass> och(oc);
+   qore_class_private_holder och(oc);
 
    if (!pub && qore_class_private::isPublic(*oc) && parse_check_parse_option(PO_IN_MODULE))
       qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "class '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), oc->getName(), name.c_str());
@@ -1759,7 +1759,7 @@ int qore_ns_private::parseAddPendingClass(QoreClass* oc) {
 
 // public, only called when parsing unattached namespaces
 int qore_ns_private::parseAddPendingClass(const NamedScope& n, QoreClass* oc) {
-   std::unique_ptr<QoreClass> och(oc);
+   qore_class_private_holder och(oc);
 
    //printd(5, "qore_ns_private::parseAddPendingClass() adding ns: %s (%s, %p)\n", n.ostr, oc->getName(), oc);
    QoreNamespace* sns = resolveNameScope(n);

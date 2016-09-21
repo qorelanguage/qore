@@ -24,8 +24,8 @@ public class ExistsFunctionTest inherits QUnit::Test {
     }
 
     existsFunctionTestMethod() {
-        testAssertion("exists_function() user function", \exists_function(), ("simple_shift",));
-        testAssertion("exists_function() builtin function", \exists_function(), ("printf",));
-        testAssertion("exists_function() non-existing", \exists_function(), ("abcdefgh_XYZ_123456789_1337",), new TestResultFailure());
+        assertEq(True, exists_function("simple_shift"), "exists_function() user function");
+        assertEq(True, exists_function("printf"), "exists_function() builtin function");
+        assertEq(False, exists_function("abcdefgh_XYZ_123456789_1337"), "exists_function() non-existing");
     }
 }

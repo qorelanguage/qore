@@ -489,7 +489,7 @@ StaticMethodCallReferenceNode::StaticMethodCallReferenceNode(const QoreMethod* n
 
 bool StaticMethodCallReferenceNode::derefImpl(ExceptionSink* xsink) {
    //printd(5, "StaticMethodCallReferenceNode::deref() this: %p pgm: %p refs: %d -> %d\n", this, pgm, reference_count(), reference_count() - 1);
-   pgm->depDeref(xsink);
+   pgm->depDeref();
 #ifdef DEBUG
    pgm = 0;
 #endif
@@ -606,7 +606,7 @@ bool LocalFunctionCallReferenceNode::is_equal_hard(const AbstractQoreNode* v, Ex
 
 bool FunctionCallReferenceNode::derefImpl(ExceptionSink* xsink) {
    //printd(5, "FunctionCallReferenceNode::deref() this: %p pgm: %p refs: %d -> %d\n", this, pgm, reference_count(), reference_count() - 1);
-   pgm->depDeref(xsink);
+   pgm->depDeref();
    return true;
 }
 

@@ -132,6 +132,12 @@ static void add_args(QoreStringNode &desc, const QoreValueList* args) {
 
 CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, QoreObject* self, const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy)
    : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc), loc(RunTimeLocation), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo* )-1), pgm(getProgram()), rtflags(0) {
+   if (self && !self->isValid()) {
+      assert(n_qc);
+      xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has already been deleted", qc->name.c_str(), func->getName());
+      return;
+   }
+
    tmp.assignEval(args);
 
    if (*xsink)
@@ -169,6 +175,12 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
 
 CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args, QoreObject* self, const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy)
    : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc), loc(RunTimeLocation), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo* )-1), pgm(getProgram()), rtflags(0) {
+   if (self && !self->isValid()) {
+      assert(n_qc);
+      xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has already been deleted", qc->name.c_str(), func->getName());
+      return;
+   }
+
    tmp.assignEval(args);
 
    if (*xsink)
@@ -1230,8 +1242,6 @@ QoreValue QoreFunction::evalFunction(const AbstractQoreFunctionVariant* variant,
    CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
    if (*xsink) return QoreValue();
 
-   ProgramThreadCountContextHelper tch(xsink, pgm, true);
-   if (*xsink) return QoreValue();
    return variant->evalFunction(fname, ceh, xsink);
 }
 
@@ -1758,10 +1768,6 @@ QoreValue UserClosureFunction::evalClosure(const QoreClosureBase& closure_base, 
 
    // setup call, save runtime position
    CodeEvaluationHelper ceh(xsink, this, variant, "<anonymous closure>", args, self, class_ctx, CT_USER);
-   if (*xsink)
-      return QoreValue();
-
-   ProgramThreadCountContextHelper tch(xsink, pgm, true);
    if (*xsink)
       return QoreValue();
 

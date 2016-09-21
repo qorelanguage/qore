@@ -408,7 +408,6 @@ public:
       // there cannot be any params
       assert(!signature.numParams());
       assert(!signature.getReturnTypeInfo() || signature.getReturnTypeInfo() == nothingTypeInfo);
-      ProgramThreadCountContextHelper pch(xsink, pgm, true);
       eval("destructor", 0, self, xsink, getClassPriv()).discard(xsink);
    }
 };
@@ -1792,7 +1791,7 @@ public:
       ;
 
    int64 domain;                    // capabilities of builtin class to use in the context of parse restrictions
-   QoreReferenceCounter nref;       // namespace references
+   mutable QoreReferenceCounter refs;       // references
 
    unsigned num_methods, num_user_methods, num_static_methods, num_static_user_methods;
 
@@ -1822,6 +1821,18 @@ public:
    DLLLOCAL qore_class_private(const qore_class_private &old, QoreClass* n_cls);
 
    DLLLOCAL ~qore_class_private();
+
+   DLLLOCAL void ref() const {
+      refs.ROreference();
+   }
+
+   DLLLOCAL bool deref() {
+      if (refs.ROdereference()) {
+         delete cls;
+         return true;
+      }
+      return false;
+   }
 
    DLLLOCAL bool hasAbstract() const {
       return !ahm.empty();
@@ -3062,6 +3073,35 @@ public:
    DLLLOCAL static void setFinal(QoreClass& qc) {
       assert(!qc.priv->final);
       qc.priv->final = true;
+   }
+};
+
+class qore_class_private_holder {
+   qore_class_private* c;
+
+public:
+   DLLLOCAL qore_class_private_holder(QoreClass* n_c) : c(qore_class_private::get(*n_c)) {
+   }
+
+   DLLLOCAL qore_class_private_holder(qore_class_private* n_c) : c(n_c) {
+   }
+
+   DLLLOCAL ~qore_class_private_holder() {
+      if (c)
+         c->deref();
+   }
+
+   DLLLOCAL qore_class_private* operator*() {
+      return c;
+   }
+
+   DLLLOCAL QoreClass* release() {
+      if (c) {
+         QoreClass* rv = c->cls;
+         c = 0;
+         return rv;
+      }
+      return 0;
    }
 };
 
