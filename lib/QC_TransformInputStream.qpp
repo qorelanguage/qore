@@ -28,8 +28,10 @@
   information.
 */
 
-#include <qore/Qore.h>
+#include "qore/Qore.h"
 #include "qore/intern/TransformInputStream.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreClassIntern.h"
 
 extern qore_classid_t CID_TRANSFORM;
 extern QoreClass* QC_TRANSFORM;
@@ -47,8 +49,10 @@ qclass TransformInputStream [arg=TransformInputStream* is; ns=Qore; vparent=Inpu
 TransformInputStream::constructor(Qore::InputStream[InputStream] is, Qore::Transform[Transform] t) {
    SimpleRefHolder<TransformInputStream> tis(new TransformInputStream(is, t));
    self->setPrivate(CID_TRANSFORMINPUTSTREAM, tis.release());
-   self->setValue("is", static_cast<QoreObject *>(obj_is->refSelf()), xsink);
-   self->setValue("t", static_cast<QoreObject *>(obj_t->refSelf()), xsink);
+   qore_object_private* o = qore_object_private::get(*self);
+   const qore_class_private* cls = qore_class_private::get(*QC_TRANSFORMINPUTSTREAM);
+   o->setValueIntern(cls, "is", static_cast<QoreObject *>(obj_is->refSelf()), xsink);
+   o->setValueIntern(cls, "t", static_cast<QoreObject *>(obj_t->refSelf()), xsink);
 }
 
 //! Reads bytes (up to a specified limit) from the input stream; returns \ref NOTHING if there are no more bytes in the stream

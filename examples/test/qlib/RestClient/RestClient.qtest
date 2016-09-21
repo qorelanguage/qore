@@ -7,9 +7,9 @@
 %strict-args
 
 %requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
 %requires ../../../../qlib/RestClient.qm
 %requires ../../../../qlib/HttpServer.qm
-%requires ../../../../qlib/Mime.qm
 #%requires ../../../../qlib/HttpServerUtil.qm
 
 %try-module yaml >= 0.5

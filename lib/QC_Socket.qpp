@@ -31,10 +31,10 @@
   information.
 */
 
-#include <qore/Qore.h>
-#include <qore/intern/QC_Socket.h>
-#include <qore/intern/ssl_constants.h>
-#include <qore/intern/QC_Queue.h>
+#include "qore/Qore.h"
+#include "qore/intern/QC_Socket.h"
+#include "qore/intern/ssl_constants.h"
+#include "qore/intern/QC_Queue.h"
 
 #include <errno.h>
 #include <string.h>

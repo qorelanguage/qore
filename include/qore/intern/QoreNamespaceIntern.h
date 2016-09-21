@@ -1090,7 +1090,7 @@ protected:
       // look up class constants first
       QoreClass* pc = parse_get_class();
       if (pc) {
-         AbstractQoreNode* rv = qore_class_private::parseFindConstantValue(pc, cname, typeInfo);
+         AbstractQoreNode* rv = qore_class_private::parseFindConstantValue(pc, cname, typeInfo, pc ? qore_class_private::get(*pc) : 0);
          if (rv)
             return rv;
       }

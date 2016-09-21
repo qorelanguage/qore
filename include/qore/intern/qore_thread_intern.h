@@ -560,11 +560,11 @@ private:
    const char* old_code;
    QoreObject* old_obj;
    const qore_class_private* old_class;
-   ExceptionSink* xsink;
    bool do_ref;
+   ExceptionSink* xsink;
 
 public:
-   DLLLOCAL CodeContextHelperBase(const char* code, QoreObject* o, const qore_class_private* qc, ExceptionSink* xs);
+   DLLLOCAL CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c, ExceptionSink* xsink);
    DLLLOCAL ~CodeContextHelperBase();
 };
 
@@ -585,7 +585,6 @@ private:
    bool subst;
 
 public:
-   //DLLLOCAL OptionalClassObjSubstitutionHelper(QoreObject* obj, const qore_class_private* c;
    DLLLOCAL OptionalClassObjSubstitutionHelper(const qore_class_private* qc);
    DLLLOCAL ~OptionalClassObjSubstitutionHelper();
 };

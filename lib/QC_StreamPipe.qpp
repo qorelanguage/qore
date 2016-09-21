@@ -28,8 +28,10 @@
   information.
 */
 
-#include <qore/Qore.h>
+#include "qore/Qore.h"
 #include "qore/intern/StreamPipe.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreClassIntern.h"
 
 DLLEXPORT extern QoreClass* QC_PIPEINPUTSTREAM;
 DLLEXPORT extern QoreClass* QC_PIPEOUTPUTSTREAM;
@@ -112,10 +114,12 @@ qclass StreamPipe [arg=StreamPipe* pipe; ns=Qore; flags=final; internal_members=
  */
 StreamPipe::constructor(bool syncClose = True, timeout timeout_ms = -1, int bufferSize = 4096) {
    SimpleRefHolder<StreamPipe> pipe(new StreamPipe(syncClose, timeout_ms, bufferSize, xsink));
+   qore_object_private* o = qore_object_private::get(*self);
+   const qore_class_private* cls = qore_class_private::get(*QC_STREAMPIPE);
    pipe->ref();
-   self->setValue("is", new QoreObject(QC_PIPEINPUTSTREAM, getProgram(), new PipeInputStream(*pipe)), xsink);
+   o->setValueIntern(cls, "is", new QoreObject(QC_PIPEINPUTSTREAM, getProgram(), new PipeInputStream(*pipe)), xsink);
    pipe->ref();
-   self->setValue("os", new QoreObject(QC_PIPEOUTPUTSTREAM, getProgram(), new PipeOutputStream(*pipe)), xsink);
+   o->setValueIntern(cls, "os", new QoreObject(QC_PIPEOUTPUTSTREAM, getProgram(), new PipeOutputStream(*pipe)), xsink);
    self->setPrivate(CID_STREAMPIPE, pipe.release());
 }
 

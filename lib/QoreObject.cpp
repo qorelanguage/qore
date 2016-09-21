@@ -142,7 +142,7 @@ void qore_object_private::merge(qore_object_private& o, AutoVLock& vl, Exception
          new_data = o.data->copy();
 
       if (class_ctx && o.cdmap) {
-         cdmap_t::iterator i = o.cdmap->find(class_ctx);
+         cdmap_t::iterator i = o.cdmap->find(class_ctx->getHash());
          if (i != o.cdmap->end()) {
             // see if the current object supports this class's data
             ClassAccess access;
@@ -466,11 +466,12 @@ int qore_object_private::getLValue(const char* key, LValueHelper& lvh, const qor
 
    qolhm.stay_locked();
 
-   //printd(5, "qore_object_private::getLValue() this: %p %s::%s type %s for_remove: %d\n", this, theclass->getName(), key, mti->getName(), for_remove);
    // save lvalue type info
    lvh.setTypeInfo(mti);
 
    QoreHashNode* odata = internal_member ? getCreateInternalData(class_ctx) : data;
+
+   //printd(5, "qore_object_private::getLValue() this: %p %s::%s type %s for_remove: %d int: %d odata: %p\n", this, theclass->getName(), key, mti->getName(), for_remove, internal_member, odata);
 
    HashMember* m;
    if (for_remove) {
@@ -482,6 +483,89 @@ int qore_object_private::getLValue(const char* key, LValueHelper& lvh, const qor
       m = odata->priv->findCreateMember(key);
    lvh.setPtr(m->node);
    return 0;
+}
+
+AbstractQoreNode* qore_object_private::getReferencedMemberNoMethod(const char* mem, ExceptionSink* xsink) const {
+   const qore_class_private* class_ctx = runtime_get_class();
+   if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx))
+      class_ctx = 0;
+
+   bool internal_member = class_ctx ? class_ctx->runtimeIsMemberInternal(mem) : false;
+
+   QoreSafeVarRWReadLocker sl(rml);
+
+   if (status == OS_DELETED) {
+      makeAccessDeletedObjectException(xsink, mem, theclass->getName());
+      return 0;
+   }
+
+   const QoreHashNode* odata = internal_member ? getInternalData(class_ctx) : data;
+
+   AbstractQoreNode* rv = odata ? odata->getReferencedKeyValue(mem) : 0;
+
+   //printd(5, "qore_object_private::getReferencedMemberNoMethod() this: %p obj: %p (%s) class_ctx: %p '%s' mem: '%s' xsink: %p internal: %d odata: %p odata->size(): %d fk: '%s' rv: %p %s\n", this, obj, theclass->getName(), class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", mem, xsink, internal_member, odata, odata ? odata->size() : -1, odata ? odata->getFirstKey() : "n/a", rv, get_type_name(rv));
+
+   return rv;
+   /*
+   printd(0, "qore_object_private::getReferencedMemberNoMethod() this: %p mem: %p (%s) xsink: %p internal: %d data->size(): %d\n",
+          this, mem, mem, xsink, internal_member, odata ? odata->size() : -1);
+
+   return odata ? odata->getReferencedKeyValue(mem) : 0;
+   */
+}
+
+void qore_object_private::setValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink) {
+   // get the current class context
+   const qore_class_private* class_ctx = runtime_get_class();
+   if (class_ctx && (!qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx) || !class_ctx->runtimeIsMemberInternal(key)))
+      class_ctx = 0;
+
+   setValueIntern(class_ctx, key, val, xsink);
+}
+
+// here if class_ctx is set it means that the member is an internal member and also that class_ctx is the current runtime class context
+void qore_object_private::setValueIntern(const qore_class_private* class_ctx, const char* key, AbstractQoreNode* val, ExceptionSink* xsink) {
+   AbstractQoreNode* old_value;
+
+   // initial count (true = possible recursive cycle, false = no cycle possible)
+   bool before;
+   bool after = needs_scan(val);
+
+   {
+      QoreSafeVarRWWriteLocker sl(rml);
+
+      if (status == OS_DELETED) {
+         makeAccessDeletedObjectException(xsink, key, theclass->getName());
+         return;
+      }
+
+      QoreHashNode* odata = class_ctx ? getCreateInternalData(class_ctx) : data;
+
+      //printd(5, "qore_object_private::setValueIntern() obj: %p '%s' class_ctx: %p '%s' odata: %p\n", obj, key, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", odata);
+
+      old_value = odata->takeKeyValue(key);
+
+      before = needs_scan(old_value);
+
+      odata->setKeyValue(key, val, xsink);
+
+      // calculate and apply delta
+      int dt = before ? (after ? 0 : -1) : (after ? 1 : 0);
+      if (dt)
+         incScanCount(dt);
+
+      // only set before if there was an object requiring a scan and the current object might have had a recursive reference
+      if (before && !mightHaveRecursiveReferences())
+         before = false;
+   }
+
+   if (old_value) {
+      old_value->deref(xsink);
+   }
+
+   // scan object if necessary
+   if (before || after)
+      RSetHelper rsh(*this);
 }
 
 // helper function for QoreObject::evalBuiltinMethodWithPrivateData() variations
@@ -1062,43 +1146,7 @@ QoreHashNode* QoreObject::getSlice(const QoreListNode* value_list, ExceptionSink
 }
 
 void QoreObject::setValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink) {
-   AbstractQoreNode* old_value;
-
-   // initial count (true = possible recursive cycle, false = no cycle possible)
-   bool before;
-   bool after = needs_scan(val);
-
-   {
-      QoreSafeVarRWWriteLocker sl(priv->rml);
-
-      if (priv->status == OS_DELETED) {
-         makeAccessDeletedObjectException(xsink, key, priv->theclass->getName());
-         return;
-      }
-
-      old_value = priv->data->takeKeyValue(key);
-
-      before = needs_scan(old_value);
-
-      priv->data->setKeyValue(key, val, xsink);
-
-      // calculate and apply delta
-      int dt = before ? (after ? 0 : -1) : (after ? 1 : 0);
-      if (dt)
-         priv->incScanCount(dt);
-
-      // only set before if there was an object requiring a scan and the current object might have had a recursive reference
-      if (before && !priv->mightHaveRecursiveReferences())
-         before = false;
-   }
-
-   if (old_value) {
-      old_value->deref(xsink);
-   }
-
-   // scan object if necessary
-   if (before || after)
-      RSetHelper rsh(*qore_object_private::get(*this));
+   priv->setValue(key, val, xsink);
 }
 
 int QoreObject::size(ExceptionSink* xsink) const {
@@ -1122,17 +1170,7 @@ int64 QoreObject::getMemberAsBigInt(const char* mem, bool& found, ExceptionSink*
 }
 
 AbstractQoreNode* QoreObject::getReferencedMemberNoMethod(const char* mem, ExceptionSink* xsink) const {
-   QoreSafeVarRWReadLocker sl(priv->rml);
-
-   printd(5, "QoreObject::getReferencedMemberNoMethod(this: %p, mem: %p (%s), xsink: %p, data->size(): %d)\n",
-          this, mem, mem, xsink, priv->data ? priv->data->size() : -1);
-
-   if (priv->status == OS_DELETED) {
-      makeAccessDeletedObjectException(xsink, mem, priv->theclass->getName());
-      return 0;
-   }
-
-   return priv->data->getReferencedKeyValue(mem);
+   return priv->getReferencedMemberNoMethod(mem, xsink);
 }
 
 QoreHashNode* QoreObject::copyData(ExceptionSink* xsink) const {

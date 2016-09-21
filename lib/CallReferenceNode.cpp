@@ -28,11 +28,11 @@
   information.
 */
 
-#include <qore/Qore.h>
-#include <qore/intern/QoreClassIntern.h>
-#include <qore/intern/qore_program_private.h>
-#include <qore/intern/QoreNamespaceIntern.h>
-#include <qore/intern/QoreObjectIntern.h>
+#include "qore/Qore.h"
+#include "qore/intern/QoreClassIntern.h"
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreNamespaceIntern.h"
+#include "qore/intern/QoreObjectIntern.h"
 
 #include <stdlib.h>
 #include <string.h>

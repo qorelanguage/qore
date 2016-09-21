@@ -205,6 +205,77 @@ class IntChild inherits private:internal Base {
     }
 }
 
+class BI1 {
+    private:internal {
+        int i = 2;
+    }
+
+    private int get() {
+        return i;
+    }
+}
+
+class CI1 inherits private:internal BI1 {
+    constructor() : BI1() {
+    }
+
+    int get() {
+        return BI1::get();
+    }
+}
+
+class BI2 {
+    private:internal {
+        int i;
+    }
+
+    private:internal constructor() {
+    }
+
+    private constructor(int n_i) {
+        i = n_i;
+    }
+
+    private int get() {
+        return i;
+    }
+}
+
+class CI2 inherits private:internal BI2 {
+    constructor(int i) : BI2(i) {
+    }
+
+    int get() {
+        return BI2::get();
+    }
+}
+
+class BI3 {
+    private:internal {
+        int i;
+    }
+
+    private:internal constructor() {
+    }
+
+    private constructor(int i) {
+        self.i = i;
+    }
+
+    private int get() {
+        return i;
+    }
+}
+
+class CI3 inherits private:internal BI2 {
+    constructor(int i) : BI2(i) {
+    }
+
+    int get() {
+        return BI2::get();
+    }
+}
+
 public class AccessTest inherits QUnit::Test {
     private {
         const Code = "
@@ -293,7 +364,7 @@ class TestInheritB {
         p.run();
 
         # this must fail: B::t(int) is private
-        testAssertion("negative-private-method-access-1", \p.callFunction(), ("t1",), new TestResultExceptionRegexp('ILLEGAL-CALL', "cannot call private variant"));
+        assertThrows("RUNTIME-OVERLOAD-ERROR",  \p.callFunction(), "t1");
 
         testAssertion("private-method-access-1", \p.callFunction(), ("t2",), new TestResultValue("string"));
 
@@ -323,7 +394,7 @@ class TestInheritB {
         testAssertion("private-method-access-11", string sub () { return p.callFunction("t15")(); }, NOTHING, new TestResultValue("none"));
 
         # this must fail when calling the call reference with an integer and succeed when calling with a string arg
-        assertThrows("ILLEGAL-CALL", "cannot call private variant", string sub () { return p.callFunction("t16_17")(1); }, NOTHING, "negative-private-method-access-9");
+        assertThrows("RUNTIME-OVERLOAD-ERROR", string sub () { return p.callFunction("t16_17")(1); }, NOTHING, "negative-private-method-access-9");
 
         assertEq("string", p.callFunction("t16_17")("str"), "private-method-access-12");
 
@@ -374,6 +445,15 @@ class TestInheritB {
         assertEq(1, c3.getCode()());
         assertThrows("METHOD-DOES-NOT-EXIST", \call_object_method(), (c3, "pubint"));
 
+        CI1 c4();
+        assertEq(2, c4.get());
+
+        CI2 c5(2);
+        assertEq(2, c5.get());
+
+        CI3 c6(2);
+        assertEq(2, c6.get());
+
         {
             Program p(PO_NEW_STYLE);
             assertThrows("PARSE-EXCEPTION", "illegal call.*b", \p.parse(), ("class B { int b() {} } class C inherits private B {} sub test() { C c(); c.b();}", ""));
@@ -412,6 +492,12 @@ class TestInheritB {
         {
             Program p(PO_NEW_STYLE);
             assertThrows("PARSE-EXCEPTION", "cannot resolve.*conint", \p.parse(), ("class B { private:internal { const conint = 1; }} class C inherits B { int test() { return conint; } }", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("class B { private:internal constructor() {}} class C inherits B {} sub test() { C c(); }", "");
+            assertThrows("RUNTIME-OVERLOAD-ERROR", \p.callFunction(), "test");
         }
     }
 }

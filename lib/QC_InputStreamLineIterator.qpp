@@ -31,6 +31,8 @@
 #include "qore/Qore.h"
 #include "qore/InputStream.h"
 #include "qore/intern/InputStreamLineIterator.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreClassIntern.h"
 
 //! This class defines a line iterator for input streams.
 /** @since %Qore 0.8.13
@@ -64,7 +66,9 @@ InputStreamLineIterator::constructor(Qore::InputStream[InputStream] is, *string 
    if (*xsink)
       return;
    self->setPrivate(CID_INPUTSTREAMLINEITERATOR, li.release());
-   self->setValue("is", static_cast<QoreObject *>(obj_is->refSelf()), xsink);
+   qore_object_private* o = qore_object_private::get(*self);
+   const qore_class_private* cls = qore_class_private::get(*QC_INPUTSTREAMLINEITERATOR);
+   o->setValueIntern(cls, "is", static_cast<QoreObject *>(obj_is->refSelf()), xsink);
 }
 
 //! Moves the current position to the next line in the data; returns @ref False if there are no more lines to read; if the iterator is not pointing at a valid element before this call, the iterator will be positioned to the beginning of the data.

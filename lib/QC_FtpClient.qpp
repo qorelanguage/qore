@@ -29,11 +29,10 @@
   information.
 */
 
-#include <qore/Qore.h>
-#include <qore/intern/ssl_constants.h>
-
-#include <qore/intern/QC_FtpClient.h>
-#include <qore/intern/QC_Queue.h>
+#include "qore/Qore.h"
+#include "qore/intern/ssl_constants.h"
+#include "qore/intern/QC_FtpClient.h"
+#include "qore/intern/QC_Queue.h"
 
 //! The FtpClient class allows %Qore code to communicate with FTP servers with the FTP and FTPS protocols
 /** The constructor takes an optional URL with the following format:\n

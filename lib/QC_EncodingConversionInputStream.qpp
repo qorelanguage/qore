@@ -28,8 +28,10 @@
   information.
 */
 
-#include <qore/Qore.h>
+#include "qore/Qore.h"
 #include "qore/intern/EncodingConversionInputStream.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreClassIntern.h"
 
 //! An @ref InputStream implementation that performs on-the-fly conversion between two character encodings.
 /** @since %Qore 0.8.13
@@ -56,7 +58,9 @@ EncodingConversionInputStream::constructor(Qore::InputStream[InputStream] is, st
    SimpleRefHolder<EncodingConversionInputStream> ecis(new EncodingConversionInputStream(
          is, QEM.findCreate(sourceEncoding), QEM.findCreate(destEncoding), xsink));
    self->setPrivate(CID_ENCODINGCONVERSIONINPUTSTREAM, ecis.release());
-   self->setValue("is", static_cast<QoreObject *>(obj_is->refSelf()), xsink);
+   qore_object_private* o = qore_object_private::get(*self);
+   const qore_class_private* cls = qore_class_private::get(*QC_ENCODINGCONVERSIONINPUTSTREAM);
+   o->setValueIntern(cls, "is", static_cast<QoreObject *>(obj_is->refSelf()), xsink);
 }
 
 //! Reads bytes (up to a specified limit) from the input stream; returns \ref NOTHING if there are no more bytes in the stream

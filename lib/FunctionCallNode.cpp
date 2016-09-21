@@ -136,8 +136,12 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar*
       else
          func->parseInit();
 
+      const qore_class_private* class_ctx = qc ? parse_get_class_priv() : 0;
+      if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*qc, class_ctx))
+	 class_ctx = 0;
+
       // find variant
-      variant = func->parseFindVariant(loc, argTypeInfo);
+      variant = func->parseFindVariant(loc, argTypeInfo, class_ctx);
 
       QoreProgram* pgm = getProgram();
 
@@ -329,7 +333,7 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
       if (abr && !qore_class_private::parseResolveInternalMemberAccess(qc, c_str, returnTypeInfo)) {
 	 n = new SelfVarrefNode(takeName(), loc);
       }
-      else if ((n = qore_class_private::parseFindConstantValue(const_cast<QoreClass*>(qc), c_str, returnTypeInfo))) {
+      else if ((n = qore_class_private::parseFindConstantValue(const_cast<QoreClass*>(qc), c_str, returnTypeInfo, qore_class_private::get(*qc)))) {
 	 //printd(5, "FunctionCallNode::parseInitImpl() this: %p n: %p (%d -> %d)\n", this, n, n->reference_count(), n->reference_count() + 1);
 	 n->ref();
       }

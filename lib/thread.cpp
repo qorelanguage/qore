@@ -598,7 +598,7 @@ public:
          class_ctx = td->current_class;
       }
 
-//printd(5, "BGThreadParams::BGThreadParams(f: %p (%s %d), t: %d) this: %p call_obj: %p\n", f, f->getTypeName(), f->getType(), t, this, call_obj);
+      //printd(5, "BGThreadParams::BGThreadParams(f: %p (%s %d), t: %d) this: %p call_obj: %p '%s' cc: %p '%s' fct: %d\n", f, f->getTypeName(), f->getType(), t, this, call_obj, call_obj ? call_obj->getClassName() : "n/a", class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", fc->getType());
 
       // first try to preregister the new thread
       if (qore_program_private::preregisterNewThread(*pgm, xsink)) {
@@ -620,26 +620,6 @@ public:
 	 obj->ref();
          call_obj = 0;
       }
-      /*
-      else if (fctype == NT_OPERATOR) {
-         QoreDotEvalOperatorNode* deon = dynamic_cast<QoreDotEvalOperatorNode*>(fc);
-         if (deon) {
-	    // evaluate object
-	    QoreNodeEvalOptionalRefHolder n(deon->getExpression(), xsink);
-	    if (*xsink || is_nothing(*n))
-	       return;
-
-	    // if we have actually evaluated something, then we save the result in the tree
-	    if (n.isTemp()) {
-               deon->replaceExpression(n.getReferencedValue());
-	    } else if (n->getType() == NT_OBJECT) {
-	       // we reference the object so it won't go out of scope while the thread is running
-	       obj = reinterpret_cast<QoreObject*>(n.getReferencedValue());
-               call_obj = 0;
-	    }
-	 }
-      }
-      */
 
       if (call_obj)
 	 call_obj->tRef();
@@ -1342,18 +1322,6 @@ ObjectSubstitutionHelper::~ObjectSubstitutionHelper() {
    td->current_class = old_class;
 }
 
-/*
-OptionalClassObjSubstitutionHelper::OptionalClassObjSubstitutionHelper(QoreObject* obj, const qore_class_private* c) : subst(obj ? true : false) {
-   if (obj) {
-      ThreadData* td  = thread_data.get();
-      old_obj = td->current_obj;
-      old_class = td->current_class;
-      td->current_obj = obj;
-      td->current_class = c;
-   }
-}
-*/
-
 OptionalClassObjSubstitutionHelper::OptionalClassObjSubstitutionHelper(const qore_class_private* qc) : subst(qc ? true : false) {
    if (qc) {
       ThreadData* td  = thread_data.get();
@@ -1372,38 +1340,31 @@ OptionalClassObjSubstitutionHelper::~OptionalClassObjSubstitutionHelper() {
    }
 }
 
-CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* o, const qore_class_private* qc, ExceptionSink* xs) {
-   assert(!o || qc);
-
+CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c, ExceptionSink* xsink) {
    ThreadData* td  = thread_data.get();
    old_code = td->current_code;
-   old_obj = td->current_obj;
-   old_class = td->current_class;
-   xsink = xs;
+   td->current_code = code;
 
-   if (o && o != old_obj) {
-      o->ref();
+   old_obj = td->current_obj;
+   td->current_obj = obj;
+
+   old_class = td->current_class;
+   td->current_class = c;
+
+   if (obj && obj != old_obj) {
+      obj->ref();
       do_ref = true;
    }
    else
       do_ref = false;
-
-   td->current_code = code;
-   td->current_obj = o;
-   td->current_class = qc;
-
-   //printd(5, "CodeContextHelperBase::CodeContextHelperBase(code: '%s', {cls: %p, obj: %p}) this: %p td: %p, old_code: %s, old {cls: %p, obj: %p}\n", code ? code : "null", qc, o, this, td, old_code ? old_code : "null", old_class, old_obj);
 }
 
 CodeContextHelperBase::~CodeContextHelperBase() {
    ThreadData* td  = thread_data.get();
-
    if (do_ref) {
       assert(td->current_obj);
       td->current_obj->deref(xsink);
    }
-
-   //printd(5, "CodeContextHelper::~CodeContextHelper() this: %p td: %p current=(code: %s, {cls: %p, obj: %p}) restoring code: %s, {cls: %p, obj: %p}\n", this, td, td->current_code ? td->current_code : "null", td->current_class, td->current_obj, old_code ? old_code : "null", old_class, old_obj);
    td->current_code = old_code;
    td->current_obj = old_obj;
    td->current_class = old_class;

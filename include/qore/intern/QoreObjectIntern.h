@@ -64,7 +64,7 @@
 class LValueHelper;
 
 // per-class internal data
-typedef std::map<const qore_class_private*, QoreHashNode*> cdmap_t;
+typedef std::map<char*, QoreHashNode*, ltstr> cdmap_t;
 
 /*
   Qore internal class data is stored against the object with this data structure
@@ -357,7 +357,7 @@ public:
    DLLLOCAL const QoreHashNode* getInternalData(const qore_class_private* class_ctx) const {
       if (!cdmap)
          return 0;
-      cdmap_t::const_iterator i = cdmap->find(class_ctx);
+      cdmap_t::const_iterator i = cdmap->find(class_ctx->getHash());
       return i != cdmap->end() ? i->second : 0;
    }
 
@@ -365,14 +365,14 @@ public:
    DLLLOCAL QoreHashNode* getInternalData(const qore_class_private* class_ctx) {
       if (!cdmap)
          return 0;
-      cdmap_t::iterator i = cdmap->find(class_ctx);
+      cdmap_t::iterator i = cdmap->find(class_ctx->getHash());
       return i != cdmap->end() ? i->second : 0;
    }
 
    // must be called in the object write lock
    DLLLOCAL QoreHashNode* getCreateInternalData(const qore_class_private* class_ctx) {
       if (cdmap) {
-         cdmap_t::iterator i = cdmap->find(class_ctx);
+         cdmap_t::iterator i = cdmap->find(class_ctx->getHash());
          if (i != cdmap->end())
             return i->second;
       }
@@ -380,9 +380,13 @@ public:
          cdmap = new cdmap_t;
 
       QoreHashNode* id = new QoreHashNode;
-      cdmap->insert(cdmap_t::value_type(class_ctx, id));
+      cdmap->insert(cdmap_t::value_type(class_ctx->getHash(), id));
       return id;
    }
+
+   DLLLOCAL void setValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink);
+
+   DLLLOCAL void setValueIntern(const qore_class_private* class_ctx, const char* key, AbstractQoreNode* val, ExceptionSink* xsink);
 
    DLLLOCAL int checkMemberAccess(const char* mem, const qore_class_private* class_ctx, bool& internal_member) const {
       ClassAccess access;
@@ -412,8 +416,7 @@ public:
       ClassAccess access;
       const QoreMemberInfo* mi = qore_class_private::runtimeGetMemberInfo(*theclass, mem, access, class_ctx, internal_member);
       if (mi) {
-         // check access if necessary; note that if the member was internally accessed, then the check has already been made
-	 if (access > Public && !class_ctx && access != Internal) {
+	 if (access > Public && !class_ctx) {
 	    doPrivateException(mem, xsink);
 	    return -1;
 	 }
@@ -435,6 +438,8 @@ public:
    DLLLOCAL AbstractQoreNode* takeMember(LValueHelper& lvh, const char* mem);
 
    DLLLOCAL void takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, const QoreListNode* l);
+
+   DLLLOCAL AbstractQoreNode* getReferencedMemberNoMethod(const char* mem, ExceptionSink* xsink) const;
 
    // lock not held on entry
    DLLLOCAL void doDeleteIntern(ExceptionSink* xsink) {
@@ -556,7 +561,7 @@ public:
 
    DLLLOCAL virtual bool isValidImpl() const {
       if (status != OS_OK || in_destructor) {
-         printd(QRO_LVL, "qore_object_intern::isValidImpl() this: %p cannot delete graph obj '%s' status: %d in_destructor: %d\n", this, theclass->getName(), status, in_destructor);
+         printd(QRO_LVL, "qore_object_intern::isValidImpl() this: %p cannot delete graph obj status: %d in_destructor: %d\n", this, status, in_destructor);
          return false;
       }
       return true;
@@ -614,6 +619,7 @@ public:
    // no locking necessary; if class_ctx is non-null, an internal member is being initialized
    AbstractQoreNode** getMemberValuePtrForInitialization(const char* member, const qore_class_private* class_ctx) {
       QoreHashNode* odata = class_ctx ? getCreateInternalData(class_ctx) : data;
+      //printd(5, "qore_object_private::getMemberValuePtrForInitialization() this: %p mem: '%s' class_ctx: %p %s odata: %p\n", this, member, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", odata);
       return odata->getKeyValuePtr(member);
    }
 

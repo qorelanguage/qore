@@ -28,8 +28,10 @@
   information.
 */
 
-#include <qore/Qore.h>
+#include "qore/Qore.h"
 #include "qore/intern/TransformOutputStream.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreClassIntern.h"
 
 extern qore_classid_t CID_TRANSFORM;
 extern QoreClass* QC_TRANSFORM;
@@ -47,8 +49,10 @@ qclass TransformOutputStream [arg=TransformOutputStream* os; ns=Qore; vparent=Ou
 TransformOutputStream::constructor(Qore::OutputStream[OutputStream] os, Qore::Transform[Transform] t) {
    SimpleRefHolder<TransformOutputStream> tos(new TransformOutputStream(os, t));
    self->setPrivate(CID_TRANSFORMOUTPUTSTREAM, tos.release());
-   self->setValue("os", static_cast<QoreObject *>(obj_os->refSelf()), xsink);
-   self->setValue("t", static_cast<QoreObject *>(obj_t->refSelf()), xsink);
+   qore_object_private* o = qore_object_private::get(*self);
+   const qore_class_private* cls = qore_class_private::get(*QC_TRANSFORMOUTPUTSTREAM);
+   o->setValueIntern(cls, "os", static_cast<QoreObject *>(obj_os->refSelf()), xsink);
+   o->setValueIntern(cls, "t", static_cast<QoreObject *>(obj_t->refSelf()), xsink);
 }
 
 //! Flushes any buffered (unwritten) bytes, closes the output stream and releases all resources.
