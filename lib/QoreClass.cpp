@@ -2703,6 +2703,20 @@ void QoreClass::addMember(const char* mname, ClassAccess access, const QoreTypeI
    priv->addMember(mname, access, n_typeInfo, initial_value);
 }
 
+BCSMList::BCSMList(const BCSMList &old) {
+   reserve(old.size());
+   for (class_list_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i) {
+      push_back(*i);
+      i->first->priv->ref();
+   }
+}
+
+BCSMList::~BCSMList() {
+   for (class_list_t::iterator i = begin(), e = end(); i != e; ++i) {
+      i->first->priv->deref();
+   }
+}
+
 int BCSMList::addBaseClassesToSubclass(QoreClass* thisclass, QoreClass* sc, bool is_virtual) {
    //printd(5, "BCSMList::addBaseClassesToSubclass(this: %s, sc: %s) size: %d\n", thisclass->getName(), sc->getName());
    for (class_list_t::const_iterator i = begin(), e = end(); i != e; ++i) {
@@ -2734,6 +2748,7 @@ int BCSMList::add(QoreClass* thisclass, QoreClass* qc, bool is_virtual) {
       }
       i++;
    }
+   qc->priv->ref();
 
    // append to the end of the list
    push_back(std::make_pair(qc, is_virtual));
