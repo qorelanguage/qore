@@ -933,7 +933,6 @@ public:
    }
 
    DLLLOCAL const char* getClassName() {
-      assert(this);
       assert(parseTypeInfo);
       return parseTypeInfo->cscope->ostr;
    }
