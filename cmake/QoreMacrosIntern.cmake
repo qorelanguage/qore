@@ -649,7 +649,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "HP-UX")
 endif()
 
 add_definitions(${QORE_CPPFLAGS})
-set(CMAKE_REQUIRED_DEFINITIONS ${QORE_CPP_FLAGS})
+set(CMAKE_REQUIRED_DEFINITIONS ${QORE_CPPFLAGS})
 endmacro()
 
 # make sure dlfcn.h header file can be parsed without 'extern "C" {}'
