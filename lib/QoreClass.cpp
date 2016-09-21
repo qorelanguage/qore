@@ -3324,7 +3324,7 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
          ahm.parseOverrideAbstractVariant(mname, f);
       }
    }
-   else if (!n_static)
+   else if (!n_static && !con && !dst)
       ahm.parseOverrideAbstractVariant(mname, f);
 
    return 0;
