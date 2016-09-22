@@ -30,6 +30,8 @@
 
 #include <qore/Qore.h>
 
+#include <stdlib.h>
+
 ExceptionSink::ExceptionSink() : priv(new qore_es_private) {
 }
 
@@ -99,9 +101,9 @@ void ExceptionSink::clear() {
 
 AbstractQoreNode* ExceptionSink::raiseException(const char *err, const char *fmt, ...) {
    QoreStringNode *desc = new QoreStringNode;
-   
+
    va_list args;
-   
+
    while (true) {
       va_start(args, fmt);
       int rc = desc->vsprintf(fmt, args);
@@ -126,9 +128,9 @@ AbstractQoreNode* ExceptionSink::raiseErrnoException(const char *err, int en, Qo
 
 AbstractQoreNode* ExceptionSink::raiseErrnoException(const char *err, int en, const char *fmt, ...) {
    QoreStringNode *desc = new QoreStringNode;
-   
+
    va_list args;
-   
+
    while (true) {
       va_start(args, fmt);
       int rc = desc->vsprintf(fmt, args);
@@ -157,9 +159,9 @@ AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, AbstractQore
 
 AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, AbstractQoreNode* arg, const char* fmt, ...) {
    QoreStringNode *desc = new QoreStringNode;
-   
+
    va_list args;
-   
+
    while (true) {
       va_start(args, fmt);
       int rc = desc->vsprintf(fmt, args);
@@ -240,6 +242,6 @@ void ExceptionSink::outOfMemory() {
    priv->insert(ex);
 #else
    printf("OUT OF MEMORY: aborting\n");
-   exit(1);
+   quick_exit(1);
 #endif
 }
