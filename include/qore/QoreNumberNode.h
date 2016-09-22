@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -307,6 +307,48 @@ public:
    }
 
    static const qore_type_t TYPE = NT_NUMBER;
+};
+
+//! manages conversions of a QoreValue to a QoreNumberNode
+class QoreNumberNodeHelper {
+private:
+   const QoreNumberNode* num;
+   bool del;
+
+   DLLLOCAL QoreNumberNodeHelper(const QoreNumberNodeHelper&); // not implemented
+   DLLLOCAL QoreNumberNodeHelper& operator=(const QoreNumberNodeHelper&); // not implemented
+   DLLLOCAL void* operator new(size_t); // not implemented, make sure it is not new'ed
+
+public:
+   //! converts the argument to a QoreNumberNode if necessary
+   DLLLOCAL QoreNumberNodeHelper(const QoreValue n);
+
+   //! destroys the object and dereferences the pointer being managed if it was a temporary object
+   DLLLOCAL ~QoreNumberNodeHelper();
+
+   //! returns the object being managed
+   /**
+      @return the object being managed
+   */
+   DLLLOCAL const QoreNumberNode* operator->() { return num; }
+
+   //! returns the object being managed
+   /**
+      @return the object being managed
+   */
+   DLLLOCAL const QoreNumberNode* operator*() { return num; }
+
+   //! returns a referenced value and leaves the current object empty; the caller will own the reference
+   /**
+      The number is referenced if necessary (if it was a temporary value)
+      @return the number, where the caller will own the reference count
+   */
+   DLLEXPORT QoreNumberNode* getReferencedValue();
+
+   //! returns true if the referenced being managed is temporary
+   DLLLOCAL bool is_temp() const {
+      return del;
+   }
 };
 
 #endif
