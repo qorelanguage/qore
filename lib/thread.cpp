@@ -724,7 +724,7 @@ void ThreadCleanupList::exec() {
 }
 
 void ThreadCleanupList::push(qtdest_t func, void* arg) {
-   class ThreadCleanupNode* w = new ThreadCleanupNode;
+   ThreadCleanupNode* w = new ThreadCleanupNode;
    w->next = head;
    w->func = func;
    w->arg = arg;
@@ -733,16 +733,11 @@ void ThreadCleanupList::push(qtdest_t func, void* arg) {
 }
 
 void ThreadCleanupList::pop(bool exec) {
-   //printf("TCL::pop() this: %p, &head: %p, head: %p\n", this, &head, head);
-   // NOTE: if exit() is called, then somehow head = 0 !!!
-   // I can't explain it, but that's why the if statement is there... :-(
-   if (head) {
-      if (exec)
-	 head->func(head->arg);
-      ThreadCleanupNode* w = head->next;
-      delete head;
-      head = w;
-   }
+   if (exec)
+      head->func(head->arg);
+   ThreadCleanupNode* w = head->next;
+   delete head;
+   head = w;
 }
 
 #ifdef QORE_MANAGE_STACK
@@ -1694,19 +1689,9 @@ QoreException* catchGetException() {
 }
 
 void qore_exit_process(int rc) {
-   // we cannot do joins on threads because we may have canceled a thread while holding a lock that another thread will block
-   // indefinitely on; pthread_mutex_lock() is not a cancellation point, for example
-   // so we cancel all threads except the current thread and wait for half a second here before calling exit
-   if (thread_list.cancelAllActiveThreads())
-      usleep(500000);
-
-#ifdef HAVE_SIGNAL_HANDLING
-   // stop signal handling thread
-   QSM.del();
-#endif
-
-   threads_initialized = false;
-   exit(rc);
+   // do not call exit here since it will try to execute cleanup, which will cause crashes
+   // in multithreaded programs; call quick_exit() instead (issue
+   quick_exit(rc);
 }
 
 // sets up the signal thread entry in the thread list
