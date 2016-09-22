@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   namespaces are children of a program object.  there is a parse
   lock per program object to ensure that objects are added (or backed out)

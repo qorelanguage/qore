@@ -162,7 +162,7 @@ class Test inherits QUnit::Test {
     }
 
     basicTests() {
-        FixedLengthDataIterator i(StrData, Specs, GlobalOptions);
+        FixedLengthAbstractIterator i = new FixedLengthDataIterator(StrData, Specs, GlobalOptions);
         testAssertionValue("line 1 present", i.next(), True);
         testAssertionValue("line 1 content check", i.getValue(), HashData[0]);
         testAssertionValue("line 2 present", i.next(), True);
@@ -171,20 +171,28 @@ class Test inherits QUnit::Test {
         testAssertionValue("line 3 content check", i.getValue(), HashData[2]);
         testAssertionValue("line 4 is not there", i.next(), False);
 
-        FixedLengthDataIterator i2(StrData, RedundantSpecs, GlobalOptions);
+        i = new FixedLengthDataIterator(StrData, RedundantSpecs, GlobalOptions);
 
         code test_closure = sub () {
-            i2.next();
-            i2.getValue();
+            i.next();
+            i.getValue();
         };
         testAssertion("Line with byte length", test_closure, NOTHING, new TestResultExceptionType("FIXED-LENGTH-UTIL-NON-MATCHING-TYPE"));
 
         FixedLengthDataWriter w(Specs, GlobalWriterOptions);
         testAssertionValue("file content check", w.write(HashData), StrData);
 
-        FixedLengthDataWriter w2(SpecsWithDefault, GlobalWriterOptions);
-        testAssertionValue("file content check", w2.write(HashData2), StrData2);
+        w = new FixedLengthDataWriter(SpecsWithDefault, GlobalWriterOptions);
+        testAssertionValue("file content check", w.write(HashData2), StrData2);
 
+        StringOutputStream output();
+        FixedLengthWriter writer(output, Specs, GlobalWriterOptions);
+        writer.write(HashData);
+        assertEq(StrData, output.getData());
+
+        writer = new FixedLengthWriter(output, SpecsWithDefault, GlobalWriterOptions);
+        writer.write(HashData2);
+        assertEq(StrData2, output.getData());
     }
 
     test_padding_1() {
