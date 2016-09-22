@@ -100,7 +100,7 @@ void QoreSignalManager::init(bool disable_signal_mask) {
       ExceptionSink xsink;
       if (start_signal_thread(&xsink)) {
 	 xsink.handleExceptions();
-	 quick_exit(1);
+	 _Exit(1);
       }
    }
 }
