@@ -150,15 +150,16 @@ public:
 class qore_object_private : public RObject {
 public:
    const QoreClass* theclass;
-   int status;
+   int status = OS_OK;
 
    // used for weak references, to ensure that assignments will not deadlock when the object is locked for update
    mutable QoreThreadLock ref_mutex;
-   KeyList* privateData;
+   KeyList* privateData = 0;
    // member data
    QoreHashNode* data;
    QoreProgram* pgm;
    cdmap_t* cdmap = 0;
+   mutable unsigned obj_count = 0;
 
    bool system_object, delete_blocker_run, in_destructor;
    bool recursive_ref_found;
@@ -603,10 +604,6 @@ public:
       }
    }
 
-   DLLLOCAL unsigned getScanCount() const;
-
-   DLLLOCAL void incScanCount(int dt);
-
    DLLLOCAL AbstractPrivateData* getAndRemovePrivateData(qore_classid_t key, ExceptionSink* xsink) {
       QoreSafeVarRWWriteLocker sl(rml);
       return privateData ? privateData->getAndRemovePtr(key) : 0;
@@ -629,6 +626,17 @@ public:
       @return member data of the object
    */
    DLLLOCAL QoreHashNode* getRuntimeMemberHash(ExceptionSink* xsink) const;
+
+   DLLLOCAL void incScanCount(int dt) {
+      assert(dt);
+      assert(obj_count || dt > 0);
+      //printd(5, "qore_object_private::incScanCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
+      obj_count += dt;
+   }
+
+   DLLLOCAL unsigned getScanCount() const {
+      return obj_count;
+   }
 
    /*
    DLLLOCAL static bool hackId(const QoreObject& obj) {
