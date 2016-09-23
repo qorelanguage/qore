@@ -39,8 +39,7 @@
 
 qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass* oc, QoreProgram* p, QoreHashNode* n_data) :
    RObject(n_obj->references, true),
-   theclass(oc), status(OS_OK),
-   privateData(0), data(n_data), pgm(p), system_object(!p),
+   theclass(oc), data(n_data), pgm(p), system_object(!p),
    delete_blocker_run(false), in_destructor(false),
    recursive_ref_found(false),
    obj(n_obj) {
@@ -224,7 +223,7 @@ void qore_object_private::mergeIntern(ExceptionSink* xsink, const QoreHashNode* 
 
          QoreHashNode* odata = internal_member ? (id ? id : (id = getCreateInternalData(class_ctx))) : data;
 
-         AbstractQoreNode* n = odata->swapKeyValue(hi.getKey(), val.release());
+         AbstractQoreNode* n = odata->priv->swapKeyValue(hi.getKey(), val.release(), this);
          if (!check_recursive && (needs_scan(n) || needs_scan(nv)))
             check_recursive = true;
 
@@ -249,7 +248,7 @@ void qore_object_private::mergeIntern(ExceptionSink* xsink, const QoreHashNode* 
       ConstHashIterator hi(new_internal_data);
       while (hi.next()) {
          AbstractQoreNode* nv = hi.getReferencedValue();
-         AbstractQoreNode* n = id->swapKeyValue(hi.getKey(), nv);
+         AbstractQoreNode* n = id->priv->swapKeyValue(hi.getKey(), nv, this);
          if (!check_recursive && (needs_scan(n) || needs_scan(nv)))
             check_recursive = true;
 
@@ -298,14 +297,6 @@ QoreHashNode* qore_object_private::getRuntimeMemberHash(ExceptionSink* xsink) co
    return h;
 }
 
-unsigned qore_object_private::getScanCount() const {
-   return data->priv->obj_count;
-}
-
-void qore_object_private::incScanCount(int dt) {
-   data->priv->incScanCount(dt);
-}
-
 AbstractQoreNode* qore_object_private::takeMember(ExceptionSink* xsink, const char* key, bool check_access) {
    const QoreTypeInfo* mti = 0;
 
@@ -327,9 +318,9 @@ AbstractQoreNode* qore_object_private::takeMember(ExceptionSink* xsink, const ch
    QoreHashNode* odata = internal_member ? getCreateInternalData(class_ctx) : data;
 
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-   return odata->swapKeyValue(key, mti->getDefaultValue());
+   return odata->priv->swapKeyValue(key, mti->getDefaultValue(), this);
 #else
-   return odata->swapKeyValue(key, 0);
+   return odata->priv->swapKeyValue(key, 0, this);
 #endif
 }
 
@@ -355,9 +346,9 @@ AbstractQoreNode* qore_object_private::takeMember(LValueHelper& lvh, const char*
 
    AbstractQoreNode* rv;
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-   rv = odata->swapKeyValue(key, mti->getDefaultValue());
+   rv = odata->priv->swapKeyValue(key, mti->getDefaultValue(), this);
 #else
-   rv = odata->swapKeyValue(key, 0);
+   rv = odata->priv->swapKeyValue(key, 0, this);
 #endif
 
    if (needs_scan(rv)) {
@@ -404,9 +395,9 @@ void qore_object_private::takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, 
       QoreHashNode* odata = internal_member ? (id ? id : (id = getCreateInternalData(class_ctx))) : data;
 
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-      AbstractQoreNode* n = odata->swapKeyValue(key, mti->getDefaultValue());
+      AbstractQoreNode* n = odata->priv->swapKeyValue(key, mti->getDefaultValue(), this);
 #else
-      AbstractQoreNode* n = odata->swapKeyValue(key, 0);
+      AbstractQoreNode* n = odata->priv->swapKeyValue(key, 0, this);
 #endif
 
       // note that no exception can occur here

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -64,16 +64,12 @@ class qore_hash_private {
 public:
    qhlist_t member_list;
    hm_hm_t hm;
-   unsigned obj_count;
+   unsigned obj_count = 0;
 #ifdef DEBUG
-   bool is_obj;
+   bool is_obj = false;
 #endif
 
-   DLLLOCAL qore_hash_private() : obj_count(0)
-#ifdef DEBUG
-                                , is_obj(0)
-#endif
-   {
+   DLLLOCAL qore_hash_private() {
    }
 
    // hashes should always be empty by the time they are deleted
@@ -254,7 +250,7 @@ public:
 
       // copy all members to new object
       for (qhlist_t::const_iterator i = member_list.begin(), e = member_list.end(); i != e; ++i) {
-         //printd(5, "QoreHashNode::copy() this=%p node=%p key='%s'\n", this, where->node, where->key);
+         //printd(5, "QoreHashNode::copy() this: %p node: %p key='%s'\n", this, where->node, where->key);
          h->setKeyValue((*i)->key, (*i)->node ? (*i)->node->refSelf() : 0, 0);
       }
       return h;
@@ -274,6 +270,11 @@ public:
 
    DLLLOCAL void setKeyValue(const std::string& key, AbstractQoreNode* val, ExceptionSink* xsink) {
       hash_assignment_priv ha(*this, key.c_str());
+      ha.assign(val, xsink);
+   }
+
+   DLLLOCAL void setKeyValue(const char* key, AbstractQoreNode* val, qore_object_private* o, ExceptionSink* xsink) {
+      hash_assignment_priv ha(*this, key, false, o);
       ha.assign(val, xsink);
    }
 
@@ -298,6 +299,13 @@ public:
       return true;
    }
 
+   DLLLOCAL AbstractQoreNode* swapKeyValue(const char* key, AbstractQoreNode* val, qore_object_private* o) {
+      //printd(0, "qore_hash_private::swapKeyValue() this: %p key: %s val: %p (%s) deprecated API called\n", this, key, val, get_node_type(val));
+      //assert(false);
+      hash_assignment_priv ha(*this, key, false, o);
+      return ha.swap(val);
+   }
+
    DLLLOCAL void clear(ExceptionSink* xsink, bool reverse) {
       derefImpl(xsink, reverse);
    }
@@ -311,6 +319,7 @@ public:
    }
 
    DLLLOCAL void incScanCount(int dt) {
+      assert(!is_obj);
       assert(dt);
       assert(obj_count || dt > 0);
       //printd(5, "qore_hash_private::incScanCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
@@ -318,10 +327,12 @@ public:
    }
 
    DLLLOCAL static unsigned getScanCount(const QoreHashNode& h) {
+      assert(!h.priv->is_obj);
       return h.priv->obj_count;
    }
 
    DLLLOCAL static void incScanCount(const QoreHashNode& h, int dt) {
+      assert(!h.priv->is_obj);
       h.priv->incScanCount(dt);
    }
 

@@ -614,16 +614,18 @@ public:
 */
 
 class qore_hash_private;
+class qore_object_private;
 
 class hash_assignment_priv {
 public:
    qore_hash_private& h;
    HashMember* om;
+   qore_object_private* o = 0;
 
    DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, HashMember* n_om) : h(n_h), om(n_om) {
    }
 
-   DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, const char* key, bool must_already_exist = false);
+   DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, const char* key, bool must_already_exist = false, qore_object_private* obj = 0);
 
    DLLLOCAL hash_assignment_priv(QoreHashNode& n_h, const char* key, bool must_already_exist = false);
 
