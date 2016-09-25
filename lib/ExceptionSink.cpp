@@ -242,6 +242,6 @@ void ExceptionSink::outOfMemory() {
    priv->insert(ex);
 #else
    printf("OUT OF MEMORY: aborting\n");
-   quick_exit(1);
+   _Exit(1);
 #endif
 }

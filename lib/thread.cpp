@@ -1691,7 +1691,7 @@ QoreException* catchGetException() {
 void qore_exit_process(int rc) {
    // do not call exit here since it will try to execute cleanup, which will cause crashes
    // in multithreaded programs; call quick_exit() instead (issue
-   quick_exit(rc);
+   _Exit(rc);
 }
 
 // sets up the signal thread entry in the thread list
