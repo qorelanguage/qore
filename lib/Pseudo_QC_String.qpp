@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -442,7 +442,7 @@ bool b = "hello".regex("^hel"); # returns True
     @since %Qore 0.8.5
  */
 bool <string>::regex(string regex, int options = 0) [flags=RET_VALUE_ONLY] {
-   QoreRegexNode qr(*regex, options, xsink);
+   QoreRegex qr(*regex, options, xsink);
    if (*xsink)
       return QoreValue();
 
@@ -476,7 +476,7 @@ string str = "ns:element";
     @since %Qore 0.8.8 this function accepts the @ref Qore::RE_Global option to extract all occurrences of the pattern(s) in a string
  */
 *list <string>::regexExtract(string regex, int options = 0) [flags=RET_VALUE_ONLY] {
-   QoreRegexNode qr(*regex, options, xsink);
+   QoreRegex qr(*regex, options, xsink);
    if (*xsink)
       return QoreValue();
 

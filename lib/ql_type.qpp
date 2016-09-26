@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/ql_type.h>
 #include <qore/intern/qore_date_private.h>
+#include <qore/intern/QoreObjectIntern.h>
 
 #include <memory>
 
@@ -123,7 +124,7 @@ int i = int("fabc9", 16);
 */
 int int(string str, softint base) [flags=RET_VALUE_ONLY] {
    if (base < 0 || base == 1 || base > 36)
-      return xsink->raiseException("INVALID-BASE", "base "QLLD" is invalid; base must be 0 or 2 - 36 inclusive", base);
+      return xsink->raiseException("INVALID-BASE", "base " QLLD " is invalid; base must be 0 or 2 - 36 inclusive", base);
    return strtoll(str->getBuffer(), 0, (int)base);
 }
 
@@ -308,7 +309,7 @@ hash h = hash(obj);
     @endcode
 */
 hash hash(object obj) [flags=RET_VALUE_ONLY] {
-   return obj->getRuntimeMemberHash(xsink);
+   return qore_object_private::get(*obj)->getRuntimeMemberHash(xsink);
 }
 
 //! Returns a hash by taking even numbered list elements (starting with 0) and converting them to strings for the hash keys, and the odd numbered elements following the keys as the key value
