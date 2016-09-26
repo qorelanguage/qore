@@ -79,12 +79,7 @@ public class HttpServerTest inherits QUnit::Test {
         mServer.setHandler("/route/b", "/route/b", MimeTypeHtml, new SimpleStringHandler("/route/b"));
         mServer.setHandler("/route", "/route", MimeTypeHtml, new SimpleStringHandler("/route"));
         mServer.setDefaultHandler("my-handler", mHandler);
-<<<<<<< Updated upstream
         port = mServer.addListener(0).port;
-=======
-        mServer.addListener(0);
-        port = mServer.getListenerInfo(0).port;
->>>>>>> Stashed changes
     }
 
     globalTearDown() {
