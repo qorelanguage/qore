@@ -51,13 +51,12 @@ class ReqHandler inherits AbstractHttpRequestHandler {
     }
 }
 
-const HttpServerTestPort = 49876;
-
 public class HttpServerTest inherits QUnit::Test {
     private {
         HttpServer mServer;
         HTTPClient mClient;
         ReqHandler mHandler;
+        int port;
     }
 
     constructor() : Test("HttpServerTest", "1.0") {
@@ -80,7 +79,12 @@ public class HttpServerTest inherits QUnit::Test {
         mServer.setHandler("/route/b", "/route/b", MimeTypeHtml, new SimpleStringHandler("/route/b"));
         mServer.setHandler("/route", "/route", MimeTypeHtml, new SimpleStringHandler("/route"));
         mServer.setDefaultHandler("my-handler", mHandler);
-        mServer.addListener(HttpServerTestPort);
+<<<<<<< Updated upstream
+        port = mServer.addListener(0).port;
+=======
+        mServer.addListener(0);
+        port = mServer.getListenerInfo(0).port;
+>>>>>>> Stashed changes
     }
 
     globalTearDown() {
@@ -89,7 +93,7 @@ public class HttpServerTest inherits QUnit::Test {
     }
 
     setUp() {
-        mClient = new HTTPClient(("url": "http://localhost:" + HttpServerTestPort));
+        mClient = new HTTPClient(("url": "http://localhost:" + port));
         mClient.connect();
     }
 
