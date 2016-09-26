@@ -44,8 +44,7 @@ void RObject::setRSet(RSet* rs, int rcnt) {
    printd(QRO_LVL, "RObject::setRSet() this: %p %s rs: %p rcnt: %d\n", this, getName(), rs, rcnt);
    if (rset) {
       // invalidating the rset removes the weak references to all contained objects
-      rset->invalidate();
-      rset->deref();
+      rset->invalidateDeref();
    }
    rset = rs;
    rcount = rcnt;
@@ -59,11 +58,15 @@ void RObject::setRSet(RSet* rs, int rcnt) {
 }
 
 void RObject::removeInvalidateRSet() {
+   QoreAutoVarRWWriteLocker al(rml);
+   removeInvalidateRSetIntern();
+}
+
+void RObject::removeInvalidateRSetIntern() {
    assert(rml.checkRSectionExclusive());
    if (rset) {
       // invalidating the rset removes the weak references to all contained objects
-      rset->invalidate();
-      rset->deref();
+      rset->invalidateDeref();
       rset = 0;
       rcount = 0;
    }

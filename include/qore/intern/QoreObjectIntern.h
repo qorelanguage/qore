@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -389,7 +389,7 @@ public:
 	 td = data;
 	 data = 0;
 
-         removeInvalidateRSet();
+         removeInvalidateRSetIntern();
       }
 
       cleanup(xsink, td);
@@ -442,7 +442,7 @@ public:
 	 QoreHashNode* td = data;
 	 data = 0;
 
-         removeInvalidateRSet();
+         removeInvalidateRSetIntern();
 
 	 //printd(5, "Object lock %p unlocked (safe)\n", &rml);
 	 sl.unlock();

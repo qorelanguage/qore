@@ -92,6 +92,7 @@ public:
    DLLLOCAL void setRSet(RSet* rs, int rcnt);
 
    DLLLOCAL void removeInvalidateRSet();
+   DLLLOCAL void removeInvalidateRSetIntern();
 
    DLLLOCAL bool scanCheck(RSetHelper& rsh, AbstractQoreNode* n);
 
@@ -184,7 +185,24 @@ public:
          invalidateIntern();
    }
 
+   DLLLOCAL void invalidateDeref() {
+      bool del = false;
+      {
+         QoreAutoRWWriteLocker al(rwl);
+         if (valid) {
+            invalidateIntern();
+            valid = false;
+         }
+         //printd(5, "RSet::invalidateDeref() this: %p %d -> %d\n", this, acnt, acnt - 1);
+         assert(acnt > 0);
+         del = !--acnt;
+      }
+      if (del)
+         delete this;
+   }
+
    DLLLOCAL void ref() {
+      QoreAutoRWWriteLocker al(rwl);
       ++acnt;
    }
 
