@@ -16,6 +16,7 @@
     - fixed a bug where executing a call reference to a deleted object method would cause a crash (<a href="https://github.com/qorelanguage/qore/issues/1268">issue 1268</a>)
     - fixed a bug where Qore would allow methods to be called on already deleted objects under certain conditions (<a href="https://github.com/qorelanguage/qore/issues/1270">issue 1270</a>)
     - fixed a bug where calling @ref Qore::exit() "exit()" in a multithreaded program could result in a segmentation fault (<a href="https://github.com/qorelanguage/qore/issues/1215">issue 1215</a>)
+    - fixed a race condition in @ref garbage_collection "prompt collection" that could lead to a crash (<a href="https://github.com/qorelanguage/qore/issues/1284">issue 1284</a>)
 
     @section qore_08122 Qore 0.8.12.2
 

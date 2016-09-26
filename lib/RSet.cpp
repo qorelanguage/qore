@@ -30,6 +30,7 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/QoreObjectIntern.h>
 
 RObject::~RObject() {
    assert(!rset);
@@ -123,6 +124,37 @@ int RSet::canDelete(int ref_copy, int rcount) {
 
    printd(QRO_LVL, "RSet::canDelete() this: %p can delete all objects in graph\n", this);
    return 1;
+}
+
+robject_dereference_helper::~robject_dereference_helper() {
+   //printd(5, "robject_dereference_helper::~robject_dereference_helper() this: %p o: %p refs: %d del: %d qo: %p '%s' ip: %d w: %d\n", this, o, o->references, del, qo, qo ? qo->getClassName() : "n/a", o->ref_inprogress, o->ref_waiting);
+
+   // the mutex ensures atomicity
+   // here we use a safe locker so we can unlock it before deleting the object (and hence also the mutex)
+   SafeLocker sl(o->ref_mutex);
+   // decrement the in progress count, if it's the last thread, and there are waiting threads, then wake one up
+   if ((!--o->ref_inprogress) && o->ref_waiting) {
+      o->ref_cond.signal();
+      assert(!del);
+   }
+   else if (del) {
+      // if we are going to delete the object, then wait for all other in-progress calls to complete first
+      // wait
+      while (o->ref_inprogress) {
+         ++o->ref_waiting;
+         o->ref_cond.wait(o->ref_mutex);
+         --o->ref_waiting;
+      }
+      // if it's the final dereference, then we unlock the lock and remove the weak reference
+      if (qo) {
+         // which would result in the object (and therefore the mutex) being deleted
+         sl.unlock();
+         // the object may not be valid after this call
+         qo->tDeref();
+      }
+   }
+   else
+      assert(!qo);
 }
 
 class RSectionScanHelper {

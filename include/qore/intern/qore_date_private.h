@@ -491,7 +491,7 @@ protected:
    // epoch is set to local time; needs to be converted to UTC
    DLLLOCAL void setLocalIntern(int n_us) {
       // normalize units in case us > 1000000 or < 0
-      normalize_units2<int64>(epoch, n_us, 1000000);
+      normalize_units2<int64, int>(epoch, n_us, 1000000);
       us = n_us;
 
       // get standard time UTC offset

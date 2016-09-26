@@ -65,6 +65,7 @@ class QoreObject : public AbstractQoreNode {
    friend class qore_object_private;
    friend class ObjectRSetHelper;
    friend class ObjectRSet;
+   friend class qore_object_dereference_helper;
 
 private:
    //! the private implementation of the class

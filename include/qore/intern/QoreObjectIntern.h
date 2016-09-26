@@ -149,8 +149,6 @@ public:
    const QoreClass* theclass;
    int status;
 
-   // used for weak references, to ensure that assignments will not deadlock when the object is locked for update
-   mutable QoreThreadLock ref_mutex;
    KeyList* privateData;
    // member data
    QoreHashNode* data;
@@ -534,6 +532,12 @@ public:
       return false;
    }
    */
+
+   DLLLOCAL void customDeref(ExceptionSink* xsink);
+
+   DLLLOCAL const char* getClassName() const {
+      return theclass->getName();
+   }
 
    DLLLOCAL static QoreValue evalBuiltinMethodWithPrivateData(QoreObject& obj, const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
       return obj.priv->evalBuiltinMethodWithPrivateData(method, meth, args, rtflags, xsink);

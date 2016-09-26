@@ -304,6 +304,105 @@ AbstractPrivateData* qore_object_private::getReferencedPrivateData(qore_classid_
    return privateData->getReferencedPrivateData(key);
 }
 
+void qore_object_private::customDeref(ExceptionSink* xsink) {
+   {
+      //printd(5, "qore_object_private::customDeref() this: %p '%s' references: %d->%d (trefs: %d) status: %d has_delete_blocker: %d delete_blocker_run: %d\n", this, getClassName(), obj->references, obj->references - 1, tRefs.reference_count(), status, theclass->has_delete_blocker(), delete_blocker_run);
+
+#ifdef QORE_DEBUG_OBJ_REFS
+      printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::customDeref() this: %p '%s': references %d->%d\n", this, status == OS_OK ? getClassName() : "<deleted>", references, references - 1);
+#endif
+
+      robject_dereference_helper qodh(this);
+      int ref_copy = qodh.getRefs();
+
+      // in case this is the last reference (even in recursive cases), ref_copy will remain equal to references throughout this code
+      // in other cases, the references value could change in another thread
+
+      bool rrf = false;
+      if (ref_copy) {
+         while (true) {
+            bool recalc = false;
+            {
+               QoreSafeVarRWReadLocker sl(rml);
+
+               if (in_destructor || status != OS_OK || recursive_ref_found) {
+                  return;
+               }
+
+               printd(QRO_LVL, "qore_object_private::customDeref() this: %p '%s' rset: %p (valid: %d) rcount: %d ref_copy: %d references: %d\n", this, getClassName(), rset, rset->isValid(), rcount, ref_copy, references);
+
+               int rc;
+               RSet* rs = rset;
+
+               if (!rs) {
+                  if (rcount == ref_copy) {
+                     // this must be true if we really are dealing with an object with no more valid (non-recursive) references
+                     assert(references == ref_copy);
+                     rc = 1;
+                  }
+                  else
+                     return;
+               }
+               else
+                  rc = rs->canDelete(ref_copy, rcount);
+
+               if (!rc)
+                  return;
+
+               if (rc == -1) {
+                  printd(QRO_LVL, "qore_object_private::customDeref() this: %p '%s' invalid rset, recalculating\n", this, getClassName());
+                  recalc = true;
+               }
+            }
+            if (recalc) {
+               // recalculate rset
+               RSetHelper rsh(*this);
+               continue;
+            }
+
+	    printd(QRO_LVL, "qore_object_private::customDeref() this: %p rcount/refs: %d/%d collecting object (%s) with only recursive references\n", this, rcount, ref_copy, getClassName());
+
+            qodh.willDelete();
+            rrf = true;
+            break;
+         }
+      }
+
+      QoreSafeVarRWWriteLocker sl(rml);
+
+      if (rrf)
+         recursive_ref_found = true;
+
+      // if the destructor has already been run, then just run tDeref() which should delete the QoreObject
+      if (in_destructor || status != OS_OK) {
+         sl.unlock();
+         qodh.finalDeref(this);
+         return;
+      }
+
+      // if the scope deletion is blocked, then do not run the destructor
+      if (!delete_blocker_run && theclass->has_delete_blocker()) {
+         if (theclass->execDeleteBlocker(obj, xsink)) {
+            //printd(5, "qore_object_private::customDeref() this: %p class: %s blocking delete\n", this, getClassName());
+            delete_blocker_run = true;
+            //printd(5, "Object lock %p unlocked (safe)\n", &rml);
+            return;
+         }
+      }
+
+      in_destructor = true;
+
+      //printd(5, "qore_object_private::customDeref() class: %s this: %p going out of scope\n", getClassName(), this);
+
+      // mark status as in destructor
+      status = gettid();
+
+      //printd(5, "Object lock %p unlocked (safe)\n", &rml);
+   }
+
+   doDeleteIntern(xsink);
+}
+
 void QoreObject::externalDelete(qore_classid_t key, ExceptionSink* xsink) {
    {
       QoreAutoVarRWWriteLocker al(priv->rml);
@@ -615,122 +714,13 @@ bool QoreObject::derefImpl(ExceptionSink* xsink) {
 
 // manages the custom dereference and executes the destructor if necessary
 void QoreObject::customDeref(ExceptionSink* xsink) {
-   {
-      //printd(5, "QoreObject::customDeref() this: %p '%s' references: %d->%d (trefs: %d) status: %d has_delete_blocker: %d delete_blocker_run: %d\n", this, getClassName(), references, references - 1, priv->tRefs.reference_count(), priv->status, priv->theclass->has_delete_blocker(), priv->delete_blocker_run);
-
-#ifdef QORE_DEBUG_OBJ_REFS
-      printd(QORE_DEBUG_OBJ_REFS, "QoreObject::customDeref() this: %p '%s': references %d->%d\n", this, priv->status == OS_OK ? getClassName() : "<deleted>", references, references - 1);
-#endif
-
-      int ref_copy;
-      {
-         AutoLocker slr(priv->ref_mutex);
-         ref_copy = --references;
-      }
-
-      // in case this is the last reference (even in recursive cases), ref_copy will remain equal to references throughout this code
-      // in other cases, the references value could change in another thread
-
-      bool rrf = false;
-      if (ref_copy) {
-         while (true) {
-            bool recalc = false;
-            {
-               QoreSafeVarRWReadLocker sl(priv->rml);
-
-               if (priv->in_destructor || priv->status != OS_OK || priv->recursive_ref_found) {
-                  return;
-               }
-
-               printd(QRO_LVL, "QoreObject::customDeref() this: %p '%s' rset: %p (valid: %d) rcount: %d ref_copy: %d references: %d\n", this, getClassName(), priv->rset, priv->rset->isValid(), priv->rcount, ref_copy, references);
-
-               int rc;
-               RSet* rs = priv->rset;
-
-               if (!rs) {
-                  if (priv->rcount == ref_copy) {
-                     // this must be true if we really are dealing with an object with no more valid (non-recursive) references
-                     assert(references == ref_copy);
-                     rc = 1;
-                  }
-                  else
-                     return;
-               }
-               else
-                  rc = rs->canDelete(ref_copy, priv->rcount);
-
-               if (!rc)
-                  return;
-
-               if (rc == -1) {
-                  printd(QRO_LVL, "QoreObject::customDeref() this: %p '%s' invalid rset, recalculating\n", this, getClassName());
-                  recalc = true;
-               }
-            }
-            if (recalc) {
-               // recalculate rset
-               RSetHelper rsh(*priv);
-               continue;
-            }
-
-	    printd(QRO_LVL, "QoreObject::customDeref() this: %p rcount/refs: %d/%d collecting object (%s) with only recursive references\n", this, priv->rcount, ref_copy, getClassName());
-
-            rrf = true;
-            break;
-         }
-      }
-
-      QoreSafeVarRWWriteLocker sl(priv->rml);
-
-      if (rrf)
-         priv->recursive_ref_found = true;
-
-      // if the destructor has already been run, then just run tDeref() which should delete the QoreObject
-      if (priv->in_destructor || priv->status != OS_OK) {
-         sl.unlock();
-         if (!ref_copy)
-            priv->tDeref();
-         return;
-      }
-
-      // if the scope deletion is blocked, then do not run the destructor
-      if (!priv->delete_blocker_run && priv->theclass->has_delete_blocker()) {
-         if (priv->theclass->execDeleteBlocker(this, xsink)) {
-            //printd(5, "QoreObject::customDeref() this: %p class: %s blocking delete\n", this, getClassName());
-            priv->delete_blocker_run = true;
-            //printd(5, "Object lock %p unlocked (safe)\n", &priv->rml);
-            return;
-         }
-      }
-
-      priv->in_destructor = true;
-
-      //printd(5, "QoreObject::derefImpl() class: %s this: %p going out of scope\n", getClassName(), this);
-
-      // mark status as in destructor
-      priv->status = gettid();
-
-      //printd(5, "Object lock %p unlocked (safe)\n", &priv->rml);
-   }
-
-   priv->doDeleteIntern(xsink);
+   priv->customDeref(xsink);
 }
 
 // this method is called when there is an exception in a constructor and the object should be deleted
 void QoreObject::obliterate(ExceptionSink* xsink) {
    priv->obliterate(xsink);
 }
-
-/*
-// unlocking the lock is managed with the AutoVLock object
-AbstractQoreNode** QoreObject::getMemberValuePtr(const QoreString* key, AutoVLock *vl, const QoreTypeInfo*& typeInfo, ExceptionSink* xsink) const {
-   TempEncodingHelper enc(key, QCS_DEFAULT, xsink);
-   if (!enc)
-      return 0;
-
-   return getMemberValuePtr(enc->getBuffer(), vl, typeInfo, xsink);
-}
-*/
 
 // unlocking the lock is managed with the AutoVLock object
 AbstractQoreNode* QoreObject::getMemberValueNoMethod(const QoreString* key, AutoVLock *vl, ExceptionSink* xsink) const {
