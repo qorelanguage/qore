@@ -30,7 +30,7 @@
 %new-style
 
 module HttpServerUtil {
-    version = "0.3.11";
+    version = "0.3.11.1";
     desc = "HttpServerUtil class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -70,6 +70,9 @@ module HttpServerUtil {
 
     @section httpserverutil_relnotes HttpServerUtil Module Release Notes
 
+    @subsection httputil0311 HttpServerUtil 0.3.11.1
+    - aligned version with HttpServer module version
+
     @subsection httputil0311 HttpServerUtil 0.3.11
     - initial version of the module
     - implemented support for notifying persistent connections when the connection is terminated while a persistent connection is in place
@@ -86,7 +89,7 @@ module HttpServerUtil {
  */
 public namespace HttpServer {
     #! version of the HttpServer's implementation
-    public const HttpServerVersion = "0.3.11";
+    public const HttpServerVersion = "0.3.11.1";
 
     #! default HTTP server string
     public const HttpServerString = sprintf("Qore-HTTP-Server/%s", HttpServerVersion);
