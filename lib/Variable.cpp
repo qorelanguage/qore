@@ -458,22 +458,6 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
    else if (ntype == NT_REFERENCE) {
       if (doLValue(reinterpret_cast<const ReferenceNode*>(n), for_remove))
          return -1;
-<<<<<<< HEAD
-   }
-   else if (ntype == NT_OPERATOR) {
-      const QoreSquareBracketsOperatorNode* op = dynamic_cast<const QoreSquareBracketsOperatorNode*>(n);
-      assert(op);
-      if (doListLValue(op, for_remove))
-         return -1;
-   }
-   else {
-      assert(n->getType() == NT_TREE);
-      // it must be a tree
-      const QoreTreeNode* tree = reinterpret_cast<const QoreTreeNode*>(n);
-      assert(tree->getOp() == OP_OBJECT_REF);
-      if (doHashObjLValue(tree, for_remove))
-         return -1;
-=======
    }
    else {
       assert(ntype == NT_OPERATOR);
@@ -488,7 +472,6 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
          if (doHashObjLValue(hop, for_remove))
             return -1;
       }
->>>>>>> develop
    }
 
 #if 0
@@ -1335,16 +1318,8 @@ void ClosureVarValue::deref(ExceptionSink* xsink) {
       robject_dereference_helper qodh(this);
       ref_copy = qodh.getRefs();
 
-<<<<<<< HEAD
       if (!ref_copy) {
          do_del = true;
-=======
-   if (!ref_copy) {
-      // first invalidate any rset
-      {
-         QoreAutoVarRWWriteLocker al(rml);
-         removeInvalidateRSet();
->>>>>>> develop
       }
       else {
          while (true) {
@@ -1377,14 +1352,7 @@ void ClosureVarValue::deref(ExceptionSink* xsink) {
 
    if (do_del) {
       // first invalidate any rset
-<<<<<<< HEAD
       removeInvalidateRSet();
-=======
-      {
-         QoreAutoVarRWWriteLocker al(rml);
-         removeInvalidateRSet();
-      }
->>>>>>> develop
       // now delete the value which should cause the entire chain to be destroyed
       del(xsink);
    }
