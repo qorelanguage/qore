@@ -128,7 +128,10 @@
     - fixed a bug where Qore would allow methods to be called on already deleted objects under certain conditions (<a href="https://github.com/qorelanguage/qore/issues/1270">issue 1270</a>)
     - fixed a bug where calling @ref Qore::exit() "exit()" in a multithreaded program could result in a segmentation fault (<a href="https://github.com/qorelanguage/qore/issues/1215">issue 1215</a>)
     - fixed a bug where <a href="../../modules/HttpServer/html/index.html">HttpServer::addListener()</a> could not accept a bind on port 0 to mean any random port (<a href="https://github.com/qorelanguage/qore/issues/1284">issue 1284</a>)
-    - fixed a race condition in @ref garbage_collection "prompt collection" that could lead to a crash (<a href="https://github.com/qorelanguage/qore/issues/1284">issue 12
+    - fixed a race condition in @ref garbage_collection "prompt collection" that could lead to a crash (<a href="https://github.com/qorelanguage/qore/issues/1084">issue 1084</a>)
+    - fixed a bug clearing @ref Qore::Socket "Socket" event queues when the @ref Qore::Socket "Socket" goes out of scope that could lead to a crash (<a href="https://github.com/qorelanguage/qore/issues/1292">issue 1292</a>)
+    - fixed a bug with @ref Qore::FtpClient::setWarningQueue() "FtpClient::setWarningQueue()" that could cause a crash (<a href="https://github.com/qorelanguage/qore/issues/1293">issue 1293</a>)
+    - fixed a bug where @ref Qore::FtpClient::pwd() returned invalid directory names (<a href="https://github.com/qorelanguage/qore/issues/1295">issue 1295</a>)
 
     @section qore_08122 Qore 0.8.12.2
 

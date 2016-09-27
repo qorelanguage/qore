@@ -48,7 +48,7 @@ if [ -s "./.libs/qore" ] && [ -f "./qore" ] && [ -f "./lib/.libs/libqore.so" -o 
     QR="./.libs/qr"
 else
     for D in `ls -d */`; do
-        d=`echo ${D%%/}` 
+        d=`echo ${D%%/}`
         if [ -f "$d/CMakeCache.txt" ] && [ -f "$d/qore" ] && [ -f "$d/libqore.so" -o "$d/libqore.dylib" ]; then
             if [ -f "$d/libqore.so" ]; then
                 LIBQORE="$d/libqore.so"
@@ -86,13 +86,13 @@ for test in $TESTS; do
         echo "-------------------------------------"
     fi
 
-    if [ "$test" = "./examples/test/qore/classes/FtpClient/FtpClient.qtest" ]; then
-        echo "Skipping $test because it doesn't really test what it should. Need to fix it."
-        echo "-------------------------------------"; echo
-        PASSED_TEST_COUNT=`expr $PASSED_TEST_COUNT + 1`
-        i=`expr $i + 1`
-        continue
-    fi
+    #if [ "$test" = "./examples/test/qore/classes/FtpClient/FtpClient.qtest" ]; then
+    #    echo "Skipping $test because it doesn't really test what it should. Need to fix it."
+    #    echo "-------------------------------------"; echo
+    #    PASSED_TEST_COUNT=`expr $PASSED_TEST_COUNT + 1`
+    #    i=`expr $i + 1`
+    #    continue
+    #fi
 
     # Run single test.
     QORE_MODULE_DIR=./qlib:$QORE_MODULE_DIR LD_PRELOAD=$LIBQORE LD_LIBRARY_PATH=$QORE_LIB_PATH $QORE $test $TEST_OUTPUT_FORMAT
