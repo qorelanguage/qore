@@ -256,8 +256,11 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
-* Sun Sep 11 2016 <ondrej.musil@qoretechnologies.com> 0.8.13
+* Tue Sep 27 2016 David Nichols <david@qore.org> 0.8.13
 - updated version to 0.8.13
+
+* Tue Sep 27 2016 David Nichols <david@qore.org> 0.8.12.3
+- updated to 0.8.12.3
 
 * Sat Sep 10 2016 David Nichols <david@qore.org> 0.8.12.2
 - updated to 0.8.12.2
