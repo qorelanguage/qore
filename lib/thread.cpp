@@ -1355,7 +1355,7 @@ CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* obj, 
 }
 
 CodeContextHelperBase::~CodeContextHelperBase() {
-   ThreadData* td  = thread_data.get();
+   ThreadData* td = thread_data.get();
    if (do_ref) {
       assert(td->current_obj);
       td->current_obj->deref(xsink);

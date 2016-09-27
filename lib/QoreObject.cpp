@@ -493,16 +493,8 @@ AbstractQoreNode* qore_object_private::getReferencedMemberNoMethod(const char* m
    const QoreHashNode* odata = internal_member ? getInternalData(class_ctx) : data;
 
    AbstractQoreNode* rv = odata ? odata->getReferencedKeyValue(mem) : 0;
-
-   //printd(5, "qore_object_private::getReferencedMemberNoMethod() this: %p obj: %p (%s) class_ctx: %p '%s' mem: '%s' xsink: %p internal: %d odata: %p odata->size(): %d fk: '%s' rv: %p %s\n", this, obj, theclass->getName(), class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", mem, xsink, internal_member, odata, odata ? odata->size() : -1, odata ? odata->getFirstKey() : "n/a", rv, get_type_name(rv));
-
+   //printd(5, "qore_object_private::getReferencedMemberNoMethod() this: %p mem: %p (%s) xsink: %p internal: %d data->size(): %d rv: %p %s\n", this, mem, mem, xsink, internal_member, odata ? odata->size() : -1, rv, get_type_name(rv));
    return rv;
-   /*
-   printd(0, "qore_object_private::getReferencedMemberNoMethod() this: %p mem: %p (%s) xsink: %p internal: %d data->size(): %d\n",
-          this, mem, mem, xsink, internal_member, odata ? odata->size() : -1);
-
-   return odata ? odata->getReferencedKeyValue(mem) : 0;
-   */
 }
 
 void qore_object_private::setValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink) {
@@ -664,6 +656,7 @@ void qore_object_private::customDeref(ExceptionSink* xsink) {
       // if the destructor has already been run, then just run tDeref() which should delete the QoreObject
       if (in_destructor || status != OS_OK) {
          sl.unlock();
+         //printd(5, "qore_object_private::customDeref() this: %p obj: %p %s deleting\n", this, obj, getClassName());
          qodh.finalDeref(this);
          return;
       }

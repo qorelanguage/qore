@@ -156,8 +156,6 @@ public:
    const QoreClass* theclass;
    int status = OS_OK;
 
-   // used for weak references, to ensure that assignments will not deadlock when the object is locked for update
-   mutable QoreThreadLock ref_mutex;
    KeyList* privateData = 0;
    // member data
    QoreHashNode* data;
