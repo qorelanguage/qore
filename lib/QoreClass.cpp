@@ -4365,6 +4365,13 @@ MethodVariantBase* MethodFunctionBase::parseHasVariantWithSignature(MethodVarian
    return 0;
 }
 
+QoreValue UserMethodVariant::evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
+   VRMutexOptionalLockHelper vrmolh(synchronized ? (self ? qore_object_private::get(*self)->getGate() : ceh.getClass()->getGate()) : 0, xsink);
+   if (*xsink)
+      return QoreValue();
+   return eval(qmethod->getName(), &ceh, self, xsink, getClassPriv());
+}
+
 void BuiltinConstructorValueVariant::evalConstructor(const QoreClass& thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
    CodeContextHelper cch(xsink, CT_BUILTIN, "constructor", self, qore_class_private::get(thisclass));
 

@@ -33,10 +33,11 @@
 
 #define _QORE_QORECLASSINTERN_H
 
-#include <qore/safe_dslist>
-#include <qore/intern/ConstantList.h>
-#include <qore/intern/QoreLValue.h>
-#include <qore/intern/qore_var_rwlock_priv.h>
+#include "qore/safe_dslist"
+#include "qore/intern/ConstantList.h"
+#include "qore/intern/QoreLValue.h"
+#include "qore/intern/qore_var_rwlock_priv.h"
+#include "qore/intern/VRMutex.h"
 
 #include <string.h>
 
@@ -316,8 +317,11 @@ public:
 #define COPYMV_const(f) (reinterpret_cast<const CopyMethodVariant*>(f))
 
 class UserMethodVariant : public MethodVariant, public UserVariantBase {
+protected:
+   bool synchronized;
+
 public:
-   DLLLOCAL UserMethodVariant(ClassAccess n_access, bool n_final, StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced, int64 n_flags, bool is_abstract) : MethodVariant(n_access, n_final, n_flags, true, is_abstract), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
+   DLLLOCAL UserMethodVariant(ClassAccess n_access, bool n_final, StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced, int64 n_flags, bool is_abstract) : MethodVariant(n_access, n_final, n_flags, true, is_abstract), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, false), synchronized(synced) {
    }
 
    DLLLOCAL ~UserMethodVariant() {
@@ -346,9 +350,7 @@ public:
          f->parseCheckDuplicateSignatureCommitted(&signature);
    }
 
-   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      return eval(qmethod->getName(), &ceh, self, xsink, getClassPriv());
-   }
+   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const;
 };
 
 #define UMV(f) (reinterpret_cast<UserMethodVariant*>(f))
@@ -1752,6 +1754,8 @@ public:
    qore_ns_private* ns;          // parent namespace
    BCList* scl;                  // base class list
 
+   mutable VRMutex gate;                 // for synchronized static methods
+
    hm_method_t hm,               // "normal" (non-static) method map
       shm;                       // static method map
 
@@ -2801,6 +2805,10 @@ public:
          return true;
 
       return scl ? scl->parseCheckHierarchy(n_cls, access, toplevel) : false;
+   }
+
+   DLLLOCAL VRMutex* getGate() const {
+      return &gate;
    }
 
    DLLLOCAL const QoreMethod* parseFindMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx);
