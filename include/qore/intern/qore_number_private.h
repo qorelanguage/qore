@@ -33,13 +33,16 @@
 
 #define _QORE_QORE_NUMBER_PRIVATE_H
 
-#include <math.h>
+#include <cmath>
 #include <memory>
 
 // the number of consecutive trailing 0 or 9 digits that will be rounded in string output
 #define QORE_MPFR_ROUND_THRESHOLD 9
 // the number of consecutive trailing 0 or 9 digits that will be rounded in string output if there are 2 trailing non-0/9 digits
 #define QORE_MPFR_ROUND_THRESHOLD_2 15
+
+// the magic precesion number that indicates that all decimals should be included in the output string when formatting
+#define QORE_NUM_ALL_DIGITS -999999
 
 #define QORE_DEFAULT_PREC 128
 #define QORE_MAX_PREC 8192
@@ -268,13 +271,18 @@ struct qore_number_private : public qore_number_private_intern {
       return formatNumberString(str, fmt, xsink);
    }
 
+   DLLLOCAL int format(QoreString& str, int prec, const QoreString& dsep_str, const QoreString& tsep_str, ExceptionSink* xsink) {
+      getAsString(str);
+      return formatNumberString(str, prec, dsep_str, tsep_str, xsink);
+   }
+
    DLLLOCAL bool lessThan(const qore_number_private& right) const {
       return mpfr_less_p(num, right.num);
    }
 
    DLLLOCAL bool lessThan(double right) const {
       MPFR_TMP_VAR(r, QORE_DEFAULT_PREC);
-      if (mpfr_nan_p(num) || isnan(right)) // If any of the "numbers" is NaN.
+      if (mpfr_nan_p(num) || std::isnan(right)) // If any of the "numbers" is NaN.
          return false;
       mpfr_set_d(r, right, QORE_MPFR_RND);
       return mpfr_less_p(num, r);
@@ -294,7 +302,7 @@ struct qore_number_private : public qore_number_private_intern {
 
    DLLLOCAL bool lessThanOrEqual(double right) const {
       MPFR_TMP_VAR(r, QORE_DEFAULT_PREC);
-      if (mpfr_nan_p(num) || isnan(right)) // If any of the "numbers" is NaN.
+      if (mpfr_nan_p(num) || std::isnan(right)) // If any of the "numbers" is NaN.
          return false;
       mpfr_set_d(r, right, QORE_MPFR_RND);
       return mpfr_lessequal_p(num, r);
@@ -314,7 +322,7 @@ struct qore_number_private : public qore_number_private_intern {
 
    DLLLOCAL bool greaterThan(double right) const {
       MPFR_TMP_VAR(r, QORE_DEFAULT_PREC);
-      if (mpfr_nan_p(num) || isnan(right)) // If any of the "numbers" is NaN.
+      if (mpfr_nan_p(num) || std::isnan(right)) // If any of the "numbers" is NaN.
          return false;
       mpfr_set_d(r, right, QORE_MPFR_RND);
       return mpfr_greater_p(num, r);
@@ -334,7 +342,7 @@ struct qore_number_private : public qore_number_private_intern {
 
    DLLLOCAL bool greaterThanOrEqual(double right) const {
       MPFR_TMP_VAR(r, QORE_DEFAULT_PREC);
-      if (mpfr_nan_p(num) || isnan(right)) // If any of the "numbers" is NaN.
+      if (mpfr_nan_p(num) || std::isnan(right)) // If any of the "numbers" is NaN.
          return false;
       mpfr_set_d(r, right, QORE_MPFR_RND);
       return mpfr_greaterequal_p(num, r);
@@ -353,7 +361,7 @@ struct qore_number_private : public qore_number_private_intern {
    }
 
    DLLLOCAL bool equals(double right) const {
-      if (mpfr_nan_p(num) || isnan(right)) // If any of the "numbers" is NaN.
+      if (mpfr_nan_p(num) || std::isnan(right)) // If any of the "numbers" is NaN.
          return false;
       return 0 == mpfr_cmp_d(num, right);
    }
@@ -375,7 +383,7 @@ struct qore_number_private : public qore_number_private_intern {
       } else {
          prec = QORE_MAX(mpfr_get_prec(num), mpfr_get_prec(r.num)) + 1;
       }
-      std::auto_ptr<qore_number_private> p(new qore_number_private(prec));
+      std::unique_ptr<qore_number_private> p(new qore_number_private(prec));
       func(p->num, num, r.num, QORE_MPFR_RND);
       if (xsink)
          checkFlags(xsink);
@@ -483,8 +491,17 @@ struct qore_number_private : public qore_number_private_intern {
       n.priv->negateInPlace();
    }
 
+   DLLLOCAL static int doRound(QoreString& num, qore_offset_t& dp, int prec);
+
    DLLLOCAL static int formatNumberString(QoreString& num, const QoreString& fmt, ExceptionSink* xsink);
 
+   DLLLOCAL static int formatNumberString(QoreString& num, int prec, const QoreString& dsep_str, const QoreString& tsep_str, ExceptionSink* xsink);
+
+protected:
+   // assumes dsep, tsep and num all have the same encoding
+   DLLLOCAL static int formatNumberStringIntern(QoreString& num, int prec, const QoreString& dsep, const QoreString& tsep, ExceptionSink* xsink);
+
+public:
    DLLLOCAL static void numError(QoreString& str) {
       str.concat("<number error>");
    }
