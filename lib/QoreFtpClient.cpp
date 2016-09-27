@@ -760,11 +760,13 @@ public:
       data.clearWarningQueue(xsink);
    }
 
-   DLLLOCAL void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, class Queue* wq, AbstractQoreNode* arg, int64 min_ms) {
+   DLLLOCAL void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, AbstractQoreNode* arg, int64 min_ms) {
       AutoLocker al(m);
       control.setWarningQueue(xsink, warning_ms, warning_bs, wq, arg, min_ms);
-      if (!*xsink)
-	 data.setWarningQueue(xsink, warning_ms, warning_bs, wq, arg, min_ms);
+      if (!*xsink) {
+         wq->ref();
+	 data.setWarningQueue(xsink, warning_ms, warning_bs, wq, arg ? arg->refSelf() : 0, min_ms);
+      }
    }
 
    DLLLOCAL QoreHashNode* getUsageInfo() const {

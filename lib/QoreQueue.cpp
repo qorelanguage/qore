@@ -35,6 +35,13 @@
 #include <sys/time.h>
 #include <errno.h>
 
+void Queue::deref(ExceptionSink* xsink) {
+   if (ROdereference()) {
+      priv->destructor(xsink);
+      delete this;
+   }
+}
+
 void qore_queue_private::destructor(ExceptionSink* xsink) {
    AutoLocker al(&l);
    if (read_waiting) {

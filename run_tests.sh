@@ -62,13 +62,13 @@ for test in $TESTS; do
         echo "-------------------------------------"
     fi
 
-    if [ "$test" = "./examples/test/qore/classes/FtpClient/FtpClient.qtest" ]; then
-        echo "Skipping $test because it doesn't really test what it should. Need to fix it."
-        echo "-------------------------------------"; echo
-        PASSED_TEST_COUNT=$((PASSED_TEST_COUNT+1))
-        i=$((i+1))
-        continue
-    fi
+    #if [ "$test" = "./examples/test/qore/classes/FtpClient/FtpClient.qtest" ]; then
+    #    echo "Skipping $test because it doesn't really test what it should. Need to fix it."
+    #    echo "-------------------------------------"; echo
+    #    PASSED_TEST_COUNT=$((PASSED_TEST_COUNT+1))
+    #    i=$((i+1))
+    #    continue
+    #fi
 
     # Run single test.
     QORE_MODULE_DIR=./qlib:$QORE_MODULE_DIR LD_LIBRARY_PATH=$QORE_LIB_PATH $QORE $test $TEST_OUTPUT_FORMAT
