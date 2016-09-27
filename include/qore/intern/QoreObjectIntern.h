@@ -33,6 +33,8 @@
 
 #define _QORE_QOREOBJECTINTERN_H
 
+#include "qore/intern/VRMutex.h"
+
 #include <stdlib.h>
 #include <assert.h>
 
@@ -147,6 +149,8 @@ public:
    }
 };
 
+class VRMutex;
+
 class qore_object_private : public RObject {
 public:
    const QoreClass* theclass;
@@ -159,7 +163,11 @@ public:
    QoreHashNode* data;
    QoreProgram* pgm;
    cdmap_t* cdmap = 0;
+
+   // used for garbage collection
    mutable unsigned obj_count = 0;
+
+   mutable VRMutex gate;
 
    bool system_object, delete_blocker_run, in_destructor;
    bool recursive_ref_found;
@@ -568,8 +576,6 @@ public:
       return true;
    }
 
-   DLLLOCAL void mergeDataToHash(QoreHashNode* hash, ExceptionSink* xsink) const;
-
    DLLLOCAL virtual bool scanMembersIntern(RSetHelper& rsh, QoreHashNode* odata);
 
    DLLLOCAL virtual bool scanMembers(RSetHelper& rsh);
@@ -577,6 +583,8 @@ public:
    DLLLOCAL virtual bool needsScan() const {
       return (bool)getScanCount();
    }
+
+   DLLLOCAL void mergeDataToHash(QoreHashNode* hash, ExceptionSink* xsink) const;
 
    DLLLOCAL void setPrivate(qore_classid_t key, AbstractPrivateData* pd) {
       if (!privateData)
@@ -636,6 +644,10 @@ public:
 
    DLLLOCAL unsigned getScanCount() const {
       return obj_count;
+   }
+
+   DLLLOCAL VRMutex* getGate() const {
+      return &gate;
    }
 
    /*

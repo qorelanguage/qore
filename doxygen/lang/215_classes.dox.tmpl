@@ -100,6 +100,7 @@ softstring MyNamespace::MyClass::myMethod(softint i) {
     @anchor synchronized_methods
     @par Synchronized Methods
     Methods declared with the <tt><b>synchronized</b></tt> keyword will only run in one thread at a time.\n\n
+    <tt><b>synchronized</b></tt> normal class methods share a reentrant lock associated with the object, while <tt><b>synchronized</b></tt> static class methods share a reentrant lock associated with the class itself.\n\n
     For more information, see the @ref synchronized "synchronized keyword".
 
     @anchor static_methods
