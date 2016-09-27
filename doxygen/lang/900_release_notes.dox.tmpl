@@ -20,6 +20,7 @@
     - fixed a race condition in @ref garbage_collection "prompt collection" that could lead to a crash (<a href="https://github.com/qorelanguage/qore/issues/1084">issue 1084</a>)
     - fixed a bug clearing @ref Qore::Socket "Socket" event queues when the @ref Qore::Socket "Socket" goes out of scope that could lead to a crash (<a href="https://github.com/qorelanguage/qore/issues/1292">issue 1292</a>)
     - fixed a bug with @ref Qore::FtpClient::setWarningQueue() "FtpClient::setWarningQueue()" that could cause a crash (<a href="https://github.com/qorelanguage/qore/issues/1293">issue 1293</a>)
+    - fixed a bug where @ref Qore::FtpClient::pwd() returned invalid directory names (<a href="https://github.com/qorelanguage/qore/issues/1295">issue 1295</a>)
 
     @section qore_08122 Qore 0.8.12.2
 

@@ -345,6 +345,9 @@ class FtpTest inherits QUnit::Test {
         testAssertion("FtpClient mode-3", \fc.getMode(), NOTHING, new TestResultValue("pasv"));
         fc.disconnect();
         testAssertion("FtpClient mode-4", \fc.getMode(), NOTHING, new TestResultValue("pasv"));
+
+        # test for issue #1295
+        assertEq(False, fc.pwd() =~ /"/);
     }
 
     testFtpClientSim() {

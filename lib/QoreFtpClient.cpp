@@ -1203,6 +1203,23 @@ int QoreFtpClient::cwd(const char* dir, ExceptionSink* xsink) {
    return -1;
 }
 
+static QoreStringNode* get_ftp_quoted_string(QoreStringNode* str) {
+   // find leading quote
+   qore_offset_t start = str->find('"');
+   if (start >= 0) {
+      ++start;
+      qore_offset_t end = str->rfind('"');
+      if (end > start) {
+         int et = str->size() - end;
+         str->replace(0, start, (const char*)0);
+         str->replace(str->size() - et, et, (const char*)0);
+         str->replaceAll("\"\"", "\"");
+      }
+   }
+
+   return str;
+}
+
 // public locked
 QoreStringNode* QoreFtpClient::pwd(ExceptionSink* xsink) {
    SafeLocker sl(priv->m);
@@ -1223,7 +1240,7 @@ QoreStringNode* QoreFtpClient::pwd(ExceptionSink* xsink) {
       QoreStringNode* rv = p->substr(4, xsink);
       assert(!*xsink); // not possible to have an exception here
       rv->chomp();
-      return rv;
+      return get_ftp_quoted_string(rv);
    }
    p->chomp();
    xsink->raiseException("FTP-PWD-ERROR", "FTP server returned an error response to the PWD command: %s", p->getBuffer());
