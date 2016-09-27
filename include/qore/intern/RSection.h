@@ -103,6 +103,7 @@ protected:
       assert(write_tid != -1 || rs_tid != -1);
       list.push_back(rn);
       rn->set();
+      //printd(5, "qrp::sNI t: %p r: %p\n", this, rn);
    }
 
 public:

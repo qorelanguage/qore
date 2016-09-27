@@ -41,6 +41,8 @@ class RSet;
 class RSetHelper;
 
 class RObject {
+   friend class robject_dereference_helper;
+
 public:
    // read-write lock with special rsection handling
    mutable RSectionLock rml;
@@ -49,12 +51,18 @@ public:
 
    // this lock is needed for the condition variable
    mutable QoreThreadLock rlck;
-   QoreCondition rdone; // recursive scan done flag
+   // this lock is needed for references
+   mutable QoreThreadLock ref_mutex;
 
-   int rscan,   // TID flag for starting a recursive scan
-      rcount,   // the number of unique recursive references to this object
-      rwaiting, // the number of threads waiting for a scan of this object
-      rcycle;   // the recursive cycle number to see if the object has been scanned since a transaction restart
+   QoreCondition rdone, // recursive scan done condition
+      ref_cond;         // dereference done condition
+
+   int rscan,         // TID flag for starting a recursive scan
+      rcount,         // the number of unique recursive references to this object
+      rwaiting,       // the number of threads waiting for a scan of this object
+      rcycle,         // the recursive cycle number to see if the object has been scanned since a transaction restart
+      ref_inprogress, // counts the number of dereference actions in progress
+      ref_waiting;    // counts the number of threads waiting on a dereference action to complete
 
    // set of objects in a cyclic directed graph
    RSet* rset;
@@ -65,7 +73,7 @@ public:
    // do we need to call isValidImpl()
    bool needs_is_valid;
 
-   DLLLOCAL RObject(int& n_refs, bool niv = false) : rscan(0), rcount(0), rwaiting(0), rcycle(0), rset(0), references(n_refs), needs_is_valid(niv) {
+   DLLLOCAL RObject(int& n_refs, bool niv = false) : rscan(0), rcount(0), rwaiting(0), rcycle(0), ref_inprogress(0), ref_waiting(0), rset(0), references(n_refs), needs_is_valid(niv) {
    }
 
    DLLLOCAL virtual ~RObject();
@@ -92,6 +100,7 @@ public:
    DLLLOCAL void setRSet(RSet* rs, int rcnt);
 
    DLLLOCAL void removeInvalidateRSet();
+   DLLLOCAL void removeInvalidateRSetIntern();
 
    DLLLOCAL bool scanCheck(RSetHelper& rsh, AbstractQoreNode* n);
 
@@ -189,7 +198,24 @@ public:
          invalidateIntern();
    }
 
+   DLLLOCAL void invalidateDeref() {
+      bool del = false;
+      {
+         QoreAutoRWWriteLocker al(rwl);
+         if (valid) {
+            invalidateIntern();
+            valid = false;
+         }
+         //printd(5, "RSet::invalidateDeref() this: %p %d -> %d\n", this, acnt, acnt - 1);
+         assert(acnt > 0);
+         del = !--acnt;
+      }
+      if (del)
+         delete this;
+   }
+
    DLLLOCAL void ref() {
+      QoreAutoRWWriteLocker al(rwl);
       ++acnt;
    }
 
@@ -364,6 +390,50 @@ public:
       rset_t::iterator i = tr_out.lower_bound(ro);
       if (i == tr_out.end() || *i != ro)
          tr_out.insert(i, ro);
+   }
+};
+
+class qore_object_private;
+
+/** this class ensures that RObjects will not be deleted until all deref() calls are complete
+ */
+class robject_dereference_helper {
+protected:
+   RObject* o;
+   qore_object_private* qo;
+   int refs;
+   bool del;
+
+public:
+   DLLLOCAL robject_dereference_helper(RObject* obj) : o(obj), qo(0) {
+      // the mutex ensures atomicity
+      AutoLocker al(obj->ref_mutex);
+      // dereference the object and save the resulting value on the stack
+      refs = --obj->references;
+      // if we got 0, then we will be deleting in any case, otherwise we may not (subject to recursive graph analysis)
+      del = !refs;
+      // mark that we have a dereference action in progress
+      ++obj->ref_inprogress;
+   }
+
+   DLLLOCAL ~robject_dereference_helper();
+
+   // return our reference count as captured atomically in the constructor
+   DLLLOCAL int getRefs() const {
+      return refs;
+   }
+
+   // mark for final dereferencing
+   DLLLOCAL void finalDeref(qore_object_private* obj) {
+      assert(!qo);
+      qo = obj;
+   }
+
+   // mark that we will be deleting the object
+   // (and therefore need to wait for any in progress dereferences to complete before deleting)
+   DLLLOCAL void willDelete() {
+      assert(!del);
+      del = true;
    }
 };
 
