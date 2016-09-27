@@ -171,6 +171,12 @@ class PgsqlTest inherits SqlTestBase {
         if (ds) {
             initTestData(CustomColumns);
 
+            { # Make sure the DB is clear before doing the tests.
+                PgsqlTable t = new PgsqlTable(ds, "pgsql_test");
+                if (t.checkExistence())
+                    t.dropCommit();
+            }
+
             # create the test schema
             schema = new PgsqlTestSchema(ds);
 

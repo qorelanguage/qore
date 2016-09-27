@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -206,7 +206,7 @@ void DateTime::getISOWeek(int& yr, int& week, int& wday) const {
 // a NULL return value means an exception was raised
 // static method
 DateTime* DateTime::getDateFromISOWeek(int year, int week, int day, ExceptionSink* xsink) {
-   std::auto_ptr<DateTime> rv(new DateTime);
+   std::unique_ptr<DateTime> rv(new DateTime);
    if (qore_date_private::getDateFromISOWeek(*rv->priv, year, week, day, xsink))
       return 0;
    return rv.release();
@@ -366,6 +366,10 @@ DateTime* DateTime::makeRelativeFromSeconds(int64 s, int u) {
 
 const AbstractQoreZoneInfo* DateTime::getZone() const {
    return priv->getZone();
+}
+
+void DateTime::setRelativeDateSeconds(int64 s, int us) {
+   priv->setRelativeDateSeconds(s, us);
 }
 
 int qore_tm::secsEast() const {
