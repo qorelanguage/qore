@@ -345,6 +345,9 @@ class FtpTest inherits QUnit::Test {
         testAssertion("FtpClient mode-3", \fc.getMode(), NOTHING, new TestResultValue("pasv"));
         fc.disconnect();
         testAssertion("FtpClient mode-4", \fc.getMode(), NOTHING, new TestResultValue("pasv"));
+
+        # test for issue #1295
+        assertEq(False, fc.pwd() =~ /"/);
     }
 
     testFtpClientSim() {
@@ -361,6 +364,8 @@ class FtpTest inherits QUnit::Test {
 
         port = serv.getPort();
         FtpClient fc("ftp://user:pass@localhost:" + port);
+        Queue q();
+        fc.setWarningQueue(20000, 20000, q, "test");
         assertEq(NOTHING, fc.connect());
 
         # create a local file to send
