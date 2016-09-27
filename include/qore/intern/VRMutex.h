@@ -52,7 +52,7 @@ private:
 public:
    DLLLOCAL VRMutex();
 
-   // grabs the lock recursively, returns 0 for OK, non-zero for error
+   // grabs the lock recursively, returns >= 0 for OK, -1 for error
    DLLLOCAL int enter(ExceptionSink *xsink);
 
    // releases the lock, returns 0 if the lock is unlocked, -1 if there are still more calls to exit
@@ -70,7 +70,7 @@ protected:
    VRMutex* m;
 
 public:
-   DLLLOCAL VRMutexOptionalLockHelper(VRMutex* vm, ExceptionSink* xsink) : m(vm && !vm->enter(xsink) ? vm : 0) {
+   DLLLOCAL VRMutexOptionalLockHelper(VRMutex* vm, ExceptionSink* xsink) : m(vm && vm->enter(xsink) >= 0 ? vm : 0) {
       //printd(5, "VRMutexOptionalLockHelper::VRMutexOptionalLockHelper() vm: %p m: %p\n", vm, m);
    }
 
