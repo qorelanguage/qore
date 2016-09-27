@@ -1318,16 +1318,8 @@ void ClosureVarValue::deref(ExceptionSink* xsink) {
       robject_dereference_helper qodh(this);
       ref_copy = qodh.getRefs();
 
-<<<<<<< HEAD
       if (!ref_copy) {
          do_del = true;
-=======
-   if (!ref_copy) {
-      // first invalidate any rset
-      {
-         QoreAutoVarRWWriteLocker al(rml);
-         removeInvalidateRSet();
->>>>>>> develop
       }
       else {
          while (true) {
