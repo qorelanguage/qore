@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -149,8 +149,6 @@ public:
    const QoreClass* theclass;
    int status;
 
-   // used for weak references, to ensure that assignments will not deadlock when the object is locked for update
-   mutable QoreThreadLock ref_mutex;
    KeyList* privateData;
    // member data
    QoreHashNode* data;
@@ -389,7 +387,7 @@ public:
 	 td = data;
 	 data = 0;
 
-         removeInvalidateRSet();
+         removeInvalidateRSetIntern();
       }
 
       cleanup(xsink, td);
@@ -442,7 +440,7 @@ public:
 	 QoreHashNode* td = data;
 	 data = 0;
 
-         removeInvalidateRSet();
+         removeInvalidateRSetIntern();
 
 	 //printd(5, "Object lock %p unlocked (safe)\n", &rml);
 	 sl.unlock();
@@ -534,6 +532,12 @@ public:
       return false;
    }
    */
+
+   DLLLOCAL void customDeref(ExceptionSink* xsink);
+
+   DLLLOCAL const char* getClassName() const {
+      return theclass->getName();
+   }
 
    DLLLOCAL static QoreValue evalBuiltinMethodWithPrivateData(QoreObject& obj, const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
       return obj.priv->evalBuiltinMethodWithPrivateData(method, meth, args, rtflags, xsink);
