@@ -130,7 +130,7 @@ static void add_args(QoreStringNode &desc, const QoreValueList* args) {
    }
 }
 
-CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, QoreObject* self, const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy)
+CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, QoreObject* self, const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, bool only_current_class)
    : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc), loc(RunTimeLocation), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo* )-1), pgm(getProgram()), rtflags(0) {
    if (self && !self->isValid()) {
       assert(n_qc);
@@ -149,7 +149,7 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
       if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*qc->cls, class_ctx))
          class_ctx = 0;
 
-      variant = func->runtimeFindVariant(getArgs(), false, class_ctx, xsink);
+      variant = func->runtimeFindVariant(xsink, getArgs(), false, class_ctx, only_current_class);
       if (!variant) {
          assert(*xsink);
          return;
@@ -173,7 +173,7 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
    setReturnTypeInfo(variant->getReturnTypeInfo());
 }
 
-CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args, QoreObject* self, const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy)
+CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args, QoreObject* self, const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, bool only_current_class)
    : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc), loc(RunTimeLocation), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo* )-1), pgm(getProgram()), rtflags(0) {
    if (self && !self->isValid()) {
       assert(n_qc);
@@ -192,7 +192,7 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
       if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*qc->cls, class_ctx))
          class_ctx = 0;
 
-      variant = func->runtimeFindVariant(getArgs(), false, class_ctx, xsink);
+      variant = func->runtimeFindVariant(xsink, getArgs(), false, class_ctx, only_current_class);
       if (!variant) {
          assert(*xsink);
          return;
@@ -635,7 +635,7 @@ static bool skip_method_variant(const AbstractQoreFunctionVariant* v, const qore
 }
 
 // finds a variant at runtime
-const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(const QoreValueList* args, bool only_user, const qore_class_private* class_ctx, ExceptionSink* xsink) const {
+const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSink* xsink, const QoreValueList* args, bool only_user, const qore_class_private* class_ctx, bool only_current_class) const {
    int match = -1;
    const AbstractQoreFunctionVariant* variant = 0;
 
@@ -658,8 +658,13 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(const QoreVa
    for (ilist_t::const_iterator aqfi = ilist.begin(), aqfe = ilist.end(); aqfi != aqfe; ++aqfi) {
       bool stop;
       aqf = ilist.getFunction(class_ctx, last_class, aqfi, internal_access, stop);
-      if (!aqf)
+      if (!stop && only_current_class)
+         stop = true;
+      if (!aqf) {
+         if (stop)
+            break;
          continue;
+      }
       aqf = (*aqfi).func;
 
       //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s::%s(...) size: %d\n", this, aqf->className(), getName(), ilist.size());
@@ -758,8 +763,13 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(const QoreVa
          for (ilist_t::const_iterator aqfi = ilist.begin(), aqfe = ilist.end(); aqfi != aqfe; ++aqfi) {
             bool stop;
             aqf = ilist.getFunction(class_ctx, last_class, aqfi, internal_access, stop);
-            if (!aqf)
+            if (!stop && only_current_class)
+               stop = true;
+            if (!aqf) {
+               if (stop)
+                  break;
                continue;
+            }
             class_name = aqf->className();
 
             for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
@@ -861,7 +871,7 @@ static void warn_excess_args(QoreFunction* func, const type_vec_t& argTypeInfo, 
 }
 
 // finds a variant at parse time
-const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProgramLocation& loc, const type_vec_t& argTypeInfo, const qore_class_private* class_ctx) {
+const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProgramLocation& loc, const type_vec_t& argTypeInfo, const qore_class_private* class_ctx, bool only_current_class) {
    // the number of parameters * 2 matched to arguments (compatible but not perfect match = 1, perfect match = 2)
    int match = -1;
    // the number of possible matches at runtime (due to missing types at parse time); number of parameters
@@ -891,8 +901,13 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
    for (ilist_t::iterator aqfi = ilist.begin(), aqfe = ilist.end(); aqfi != aqfe; ++aqfi) {
       bool stop;
       aqf = ilist.getFunction(class_ctx, last_class, aqfi, internal_access, stop);
-      if (!aqf)
+      if (!stop && only_current_class)
+         stop = true;
+      if (!aqf) {
+         if (stop)
+            break;
          continue;
+      }
       aqf = (*aqfi).func;
       //printd(5, "QoreFunction::parseFindVariant() %p %s testing function %p\n", this, getName(), aqf);
       assert(!aqf->vlist.empty() || !aqf->pending_vlist.empty());
@@ -1184,8 +1199,13 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
             aqf = (*aqfi).func;
             bool stop;
             aqf = ilist.getFunction(class_ctx, last_class, aqfi, internal_access, stop);
-            if (!aqf)
+            if (!stop && only_current_class)
+               stop = true;
+            if (!aqf) {
+               if (stop)
+                  break;
                continue;
+            }
             const char* class_name = aqf->className();
 
             for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {

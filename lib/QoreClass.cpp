@@ -2410,6 +2410,27 @@ const QoreMethod* qore_class_private::parseFindAnyMethod(const char* nme, ClassA
    return parseFindAnyMethodIntern(nme, access, class_ctx);
 }
 
+const QoreMethod* qore_class_private::parseFindClassSpecificAnyMethod(const char* nme, const qore_class_private* class_ctx) const {
+   const QoreMethod* m = parseFindAnyLocalMethod(nme);
+   if (m) {
+      ClassAccess ma = qore_method_private::parseGetAccess(*m);
+      if (ma == Public || (class_ctx && ((ma != Internal) || (is_equal(*class_ctx)))))
+	 return m;
+   }
+
+   ClassAccess access = Public;
+   if (!scl)
+      return 0;
+   m = scl->parseFindAnyMethod(nme, access, class_ctx, class_ctx == this);
+   if (m) {
+      ClassAccess ma = qore_method_private::parseGetAccess(*m);
+      m = doMethodAccess(m, access, ma);
+      if (m && access > Public && !class_ctx)
+	 m = 0;
+   }
+   return m;
+}
+
 const QoreMethod* qore_class_private::parseResolveSelfMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) {
    access = Public;
 
@@ -2467,6 +2488,27 @@ const QoreMethod* qore_class_private::parseResolveSelfMethod(NamedScope* nme) {
    }
 
    return qc->priv->parseResolveSelfMethod(nme->getIdentifier(), this);
+}
+
+const QoreMethod* qore_class_private::parseResolveClassSpecificSelfMethod(const char* nme, const qore_class_private* class_ctx) const {
+   assert(class_ctx);
+
+   const QoreMethod* m = parseFindAnyLocalMethod(nme);
+   if (m && (qore_method_private::parseGetAccess(*m) != Internal || is_equal(*class_ctx)))
+      return m;
+
+   if (scl) {
+      ClassAccess access = Public;
+      m = scl->parseFindStaticMethod(nme, access, class_ctx, class_ctx == this);
+      if (m) {
+	 m = doMethodAccess(m, access, qore_method_private::parseGetAccess(*m));
+	 if (m)
+	    return m;
+      }
+   }
+
+   parse_error("cannot resolve call '%s::%s()' to any accessible method", name.c_str(), nme);
+   return 0;
 }
 
 const QoreMethod* qore_class_private::parseFindAnyMethodIntern(const char* mname, ClassAccess& access, const qore_class_private* class_ctx) {
@@ -2703,7 +2745,7 @@ void QoreMethod::assign_class(const QoreClass* p_class) {
 QoreValue QoreMethod::execManaged(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
    // to ensure the object does not get referenced for the call
    ObjectSubstitutionHelper osh(self, qore_class_private::get(*priv->parent_class));
-   return qore_method_private::eval(*this, self, args, xsink);
+   return priv->eval(xsink, self, args, false);
 }
 
 // FIXME: DEPRECATED API non functional
@@ -3001,13 +3043,13 @@ QoreValue QoreClass::evalMethod(QoreObject* self, const char* nme, const QoreLis
       return QoreValue();
 
    if (w)
-      return qore_method_private::eval(*w, self, args, xsink);
+      return qore_method_private::eval(*w, xsink, self, args, false);
 
    // first see if there is a pseudo-method for this
    QoreClass* qc = 0;
    w = pseudo_classes_find_method(NT_OBJECT, nme, qc);
    if (w)
-      return qore_method_private::evalPseudoMethod(w, 0, self, args, xsink);
+      return qore_method_private::evalPseudoMethod(*w, xsink, 0, self, args);
    else if (priv->methodGate && !priv->methodGate->inMethod(self)) // call methodGate with unknown method name and arguments
       return evalMethodGate(self, nme, args, xsink);
 
@@ -4006,11 +4048,11 @@ QoreValue qore_class_private::evalPseudoMethod(const QoreValue n, const char* nm
 
    //printd(5, "qore_class_private::evalPseudoMethod() %s::%s() found method %p class %s\n", priv->name, nme, w, w->getClassName());
 
-   return qore_method_private::evalPseudoMethod(m, 0, n, args, xsink);
+   return qore_method_private::evalPseudoMethod(*m, xsink, 0, n, args);
 }
 
 QoreValue qore_class_private::evalPseudoMethod(const QoreMethod* m, const AbstractQoreFunctionVariant* variant, const QoreValue n, const QoreListNode* args, ExceptionSink* xsink) const {
-   return qore_method_private::evalPseudoMethod(m, variant, n, args, xsink);
+   return qore_method_private::evalPseudoMethod(*m, xsink, variant, n, args);
 }
 
 bool qore_class_private::parseCheckPrivateClassAccess(const qore_class_private* opc) const {
@@ -4627,12 +4669,12 @@ void DestructorMethodFunction::evalDestructor(const QoreClass& thisclass, QoreOb
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-QoreValue NormalMethodFunction::evalMethod(const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
+QoreValue NormalMethodFunction::evalMethod(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args, bool only_current_class) const {
    const char* cname = getClassName();
    const char* mname = getName();
    //printd(5, "NormalMethodFunction::evalMethod() %s::%s() v: %d\n", cname, mname, self->isValid());
 
-   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, self, qore_class_private::get(*qc));
+   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, self, qore_class_private::get(*qc), CT_UNUSED, false, only_current_class);
    if (*xsink) return QoreValue();
 
    const MethodVariant* mv = METHV_const(variant);
@@ -4646,7 +4688,7 @@ QoreValue NormalMethodFunction::evalMethod(const AbstractQoreFunctionVariant* va
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-QoreValue NormalMethodFunction::evalPseudoMethod(const AbstractQoreFunctionVariant* variant, const QoreValue n, const QoreListNode* args, ExceptionSink* xsink) const {
+QoreValue NormalMethodFunction::evalPseudoMethod(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant, const QoreValue n, const QoreListNode* args) const {
    const char* mname = getName();
    CodeEvaluationHelper ceh(xsink, this, variant, mname, args, 0, qore_class_private::get(*qc));
    if (*xsink)
@@ -4656,9 +4698,9 @@ QoreValue NormalMethodFunction::evalPseudoMethod(const AbstractQoreFunctionVaria
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-QoreValue StaticMethodFunction::evalMethod(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const {
+QoreValue StaticMethodFunction::evalMethod(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant, const QoreListNode* args, bool only_current_class) const {
    const char* mname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, 0, qore_class_private::get(*qc));
+   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, 0, qore_class_private::get(*qc), CT_UNUSED, false, only_current_class);
    if (*xsink) return QoreValue();
 
    return METHV_const(variant)->evalMethod(0, ceh, xsink);

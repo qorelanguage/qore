@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -70,23 +70,28 @@ protected:
    }
 
    DLLLOCAL virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const;
+
    DLLLOCAL virtual AbstractQoreNode* evalImpl(bool &needs_deref, ExceptionSink* xsink) const;
+
    DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink* xsink) const {
       return 0;
    }
+
    DLLLOCAL virtual int integerEvalImpl(ExceptionSink* xsink) const {
       return 0;
    }
+
    DLLLOCAL virtual bool boolEvalImpl(ExceptionSink* xsink) const {
       return false;
    }
+
    DLLLOCAL virtual double floatEvalImpl(ExceptionSink* xsink) const {
       return 0.0;
    }
 
 public:
    DLLLOCAL LocalStaticMethodCallReferenceNode(const QoreMethod* n_method) : ResolvedCallReferenceNode(true), method(n_method) {
-      //printd(5, "LocalStaticMethodCallReferenceNode::LocalStaticMethodCallReferenceNode() this=%p %s::%s() pgm=%p\n", this, method->getClass()->getName(), method->getName(), pgm);
+      //printd(5, "LocalStaticMethodCallReferenceNode::LocalStaticMethodCallReferenceNode() this: %p %s::%s() pgm: %p\n", this, method->getClass()->getName(), method->getName(), pgm);
    }
    DLLLOCAL virtual ~LocalStaticMethodCallReferenceNode() {
    }
@@ -104,14 +109,17 @@ public:
 class StaticMethodCallReferenceNode : public LocalStaticMethodCallReferenceNode {
 protected:
    QoreProgram* pgm;
+   bool only_current_class;
 
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
 
 public:
-   DLLLOCAL StaticMethodCallReferenceNode(const QoreMethod *n_method, QoreProgram *n_pgm);
+   DLLLOCAL StaticMethodCallReferenceNode(const QoreMethod *n_method, QoreProgram *n_pgm, bool n_only_current_class = false);
+
    DLLLOCAL ~StaticMethodCallReferenceNode() {
       assert(!pgm);
    }
+
    DLLLOCAL virtual QoreValue execValue(const QoreListNode *args, ExceptionSink *xsink) const;
 };
 
@@ -122,12 +130,12 @@ protected:
    DLLLOCAL virtual AbstractQoreNode* evalImpl(bool &needs_deref, ExceptionSink* xsink) const;
 
    DLLLOCAL LocalMethodCallReferenceNode(const QoreMethod* n_method, bool n_needs_eval) : LocalStaticMethodCallReferenceNode(n_method, n_needs_eval) {
-      //printd(5, "LocalMethodCallReferenceNode::LocalStaticMethodCallReferenceNode() this=%p %s::%s() pgm=%p\n", this, method->getClass()->getName(), method->getName(), pgm);
+      //printd(5, "LocalMethodCallReferenceNode::LocalStaticMethodCallReferenceNode() this: %p %s::%s() pgm: %p\n", this, method->getClass()->getName(), method->getName(), pgm);
    }
 
 public:
    DLLLOCAL LocalMethodCallReferenceNode(const QoreMethod* n_method) : LocalStaticMethodCallReferenceNode(n_method) {
-      //printd(5, "LocalMethodCallReferenceNode::LocalStaticMethodCallReferenceNode() this=%p %s::%s() pgm=%p\n", this, method->getClass()->getName(), method->getName(), pgm);
+      //printd(5, "LocalMethodCallReferenceNode::LocalStaticMethodCallReferenceNode() this: %p %s::%s() pgm: %p\n", this, method->getClass()->getName(), method->getName(), pgm);
    }
    DLLLOCAL virtual ~LocalMethodCallReferenceNode() {
    }
@@ -141,11 +149,12 @@ public:
 class MethodCallReferenceNode : public LocalMethodCallReferenceNode {
 protected:
    QoreObject* obj;
+   bool only_current_class;
 
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
 
 public:
-   DLLLOCAL MethodCallReferenceNode(const QoreMethod* n_method, QoreProgram* n_pgm);
+   DLLLOCAL MethodCallReferenceNode(const QoreMethod* n_method, QoreProgram* n_pgm, bool n_only_current_class = false);
    DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
 };
 

@@ -413,6 +413,14 @@ public:
    */
    DLLEXPORT QoreValue evalMethodValue(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink);
 
+   //! evaluates the given method with the arguments passed and returns the return value, caller owns the AbstractQoreNode (reference) returned; does not search any parent class methods
+   /**
+      @param method the method to evaluate
+      @param args the arguments for the method (may be 0)
+      @param xsink if an error occurs, the Qore-language exception information will be added here
+   */
+   DLLEXPORT QoreValue evalSingleMethodValue(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink);
+
    //! evaluates the given method with the arguments passed and returns the return value, caller owns the AbstractQoreNode (reference) returned
    /**
       @param method the method to evaluate

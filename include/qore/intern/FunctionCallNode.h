@@ -54,8 +54,11 @@ public:
       if (args)
 	 args->deref(0);
    }
+
    DLLLOCAL const QoreListNode* getArgs() const { return args; }
-   DLLLOCAL int parseArgsVariant(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, QoreFunction* func, const QoreTypeInfo*& returnTypeInfo);
+
+   DLLLOCAL int parseArgsVariant(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, QoreFunction* func, const QoreTypeInfo*& returnTypeInfo, bool only_current_class = false);
+
    DLLLOCAL const AbstractQoreFunctionVariant* getVariant() const {
       return variant;
    }
@@ -95,8 +98,8 @@ public:
       }
    }
 
-   DLLLOCAL int parseArgs(LocalVar* oflag, int pflag, QoreFunction* func, const QoreTypeInfo*& returnTypeInfo) {
-      int lvids = parseArgsVariant(loc, oflag, pflag, func, returnTypeInfo);
+   DLLLOCAL int parseArgs(LocalVar* oflag, int pflag, QoreFunction* func, const QoreTypeInfo*& returnTypeInfo, bool only_current_class = false) {
+      int lvids = parseArgsVariant(loc, oflag, pflag, func, returnTypeInfo, only_current_class);
       // clear "effect" flag if possible, only if QC_CONSTANT is set on the variant or function
       if (variant)
          doFlags(variant->getFlags());
@@ -352,7 +355,7 @@ public:
    DLLLOCAL SelfFunctionCallNode(char* n, QoreListNode* n_args) : AbstractMethodCallNode(NT_SELF_CALL, n_args, parse_get_class()), ns(n), is_copy(false) {
    }
 
-   DLLLOCAL SelfFunctionCallNode(char* n, QoreListNode* n_args, const QoreMethod* m) : AbstractMethodCallNode(NT_SELF_CALL, n_args, parse_get_class(), m), ns(n), is_copy(false) {
+   DLLLOCAL SelfFunctionCallNode(char* n, QoreListNode* n_args, const QoreMethod* m, const QoreClass* n_qc) : AbstractMethodCallNode(NT_SELF_CALL, n_args, n_qc, m), ns(n), is_copy(false) {
    }
 
    DLLLOCAL SelfFunctionCallNode(char* n, QoreListNode* n_args, const QoreClass* n_qc) : AbstractMethodCallNode(NT_SELF_CALL, n_args, n_qc), ns(n), is_copy(false) {
