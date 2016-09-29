@@ -109,12 +109,11 @@ public:
 class StaticMethodCallReferenceNode : public LocalStaticMethodCallReferenceNode {
 protected:
    QoreProgram* pgm;
-   bool only_current_class;
 
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
 
 public:
-   DLLLOCAL StaticMethodCallReferenceNode(const QoreMethod *n_method, QoreProgram *n_pgm, bool n_only_current_class = false);
+   DLLLOCAL StaticMethodCallReferenceNode(const QoreMethod *n_method, QoreProgram *n_pgm);
 
    DLLLOCAL ~StaticMethodCallReferenceNode() {
       assert(!pgm);
@@ -149,12 +148,11 @@ public:
 class MethodCallReferenceNode : public LocalMethodCallReferenceNode {
 protected:
    QoreObject* obj;
-   bool only_current_class;
 
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
 
 public:
-   DLLLOCAL MethodCallReferenceNode(const QoreMethod* n_method, QoreProgram* n_pgm, bool n_only_current_class = false);
+   DLLLOCAL MethodCallReferenceNode(const QoreMethod* n_method, QoreProgram* n_pgm);
    DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
 };
 

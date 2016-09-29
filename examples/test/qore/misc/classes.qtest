@@ -222,9 +222,23 @@ public class ClassesTest inherits QUnit::Test {
         }
 
         {
+            # ensure proper parse-time resolution of scoped static method calls
+            Program p(PO_NEW_STYLE);
+            p.parse("class B{static int m(int i){return i+1;}}class C inherits B{static m(string str){}static int m(any i){return i;}int t(int i){return C::m(i);}}int sub t(int i){C c();return c.t(i);}", "");
+            assertEq(1, p.callFunction("t", 1));
+        }
+
+        {
             # ensure proper runtime resolution of scoped method calls
             Program p(PO_NEW_STYLE);
             p.parse("class B{int m(int i){return i+1;}}class C inherits B{m(string str){}int m(any i){return i;}int t(any i){return C::m(i);}}int sub t(any i){C c();return c.t(i);}", "");
+            assertEq(1, p.callFunction("t", 1));
+        }
+
+        {
+            # ensure proper runtime resolution of scoped static method calls
+            Program p(PO_NEW_STYLE);
+            p.parse("class B{static int m(int i){return i+1;}}class C inherits B{static m(string str){}static int m(any i){return i;}int t(any i){return C::m(i);}}int sub t(any i){C c();return c.t(i);}", "");
             assertEq(1, p.callFunction("t", 1));
         }
 
@@ -238,14 +252,59 @@ public class ClassesTest inherits QUnit::Test {
         {
             # ensure proper runtime resolution of scoped method call references
             Program p(PO_NEW_STYLE);
-            p.parse("class B{int m(int i){return i+1;}}class C inherits B{m(string str){}int m(any i){return i;}code t(){return \\m();}}int sub t(int i){C c();code cd = c.t(); return cd(i);}", "");
+            p.parse("class B{static int m(int i){return i+1;}}class C inherits B{static m(string str){}static int m(any i){return i;}code t(){return \\m();}}int sub t(int i){C c();code cd = c.t(); return cd(i);}", "");
+            assertEq(1, p.callFunction("t", 1));
+        }
+
+        {
+            # test for resolution in the current class only with scoped method calls
+            Program p(PO_NEW_STYLE);
+            p.parse("class B{int m(int i){return i+1;}}class C inherits B{int m(string str){return str.toInt();}int t(int i){return C::m(i);}}int sub t(int i){C c();return c.t(i);}", "");
             assertEq(2, p.callFunction("t", 1));
         }
 
         {
-            # negative test for resolution in the current class only with scoped method calls
+            # test for resolution in the current class only with scoped static method calls
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("class B{m(int i){}}class C inherits B{m(string str){}t(){C::m(1);}}", ""));
+            p.parse("class B{static int m(int i){return i+1;}}class C inherits B{static int m(string str){return str.toInt();}int t(int i){return C::m(i);}}int sub t(int i){C c();return c.t(i);}", "");
+            assertEq(2, p.callFunction("t", 1));
+        }
+
+        {
+            # ensure that methods can be directly accessed
+            Program p(PO_NEW_STYLE);
+            p.parse("class B{m(){}}class C inherits B{code t(){return\\m();}}code sub t(){C c();return c.t();}", "");
+            assertEq(Type::CallReference, p.callFunction("t").type());
+        }
+
+        {
+            # ensure that private methods cannot be directly accessed
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{private:internal m(){}}class C inherits B{code t(){return\\m();}}", ""));
+        }
+
+        {
+            # ensure that private methods cannot be directly accessed
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-ERROR", \p.parse(), ("class B{private m(){}}class C inherits B{}code sub t(){C c();return\\c.m();}", ""));
+        }
+
+        {
+            # ensure that private methods cannot be directly accessed
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-ERROR", \p.parse(), ("class B{private:internal m(){}}class C inherits B{}code sub t(){C c();return\\c.m();}", ""));
+        }
+
+        {
+            # ensure that special methods cannot be directly accessed
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{constructor(){}}class C inherits B{constructor(){}code t(){return\\constructor();}}", ""));
+        }
+
+        {
+            # ensure that special methods cannot be directly accessed
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
+            assertThrows("PARSE-ERROR", \p.parse(), ("class B{constructor(){}}class C inherits B{constructor(){}}sub t(){C c();code cd=\\c.constructor();cd();}", ""));
         }
     }
 }

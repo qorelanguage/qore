@@ -849,35 +849,31 @@ double QoreObject::floatEvalMethod(const char* name, const QoreListNode* args, E
 }
 
 QoreValue QoreObject::evalMethodValue(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink) {
-   return qore_method_private::eval(method, xsink, this, args, false);
-}
-
-QoreValue QoreObject::evalSingleMethodValue(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink) {
-   return qore_method_private::eval(method, xsink, this, args, true);
+   return qore_method_private::eval(method, xsink, this, args);
 }
 
 AbstractQoreNode* QoreObject::evalMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink) {
-   ValueHolder rv(qore_method_private::eval(method, xsink, this, args, false), xsink);
+   ValueHolder rv(qore_method_private::eval(method, xsink, this, args), xsink);
    return *xsink ? 0 : rv.getReferencedValue();
 }
 
 int64 QoreObject::bigIntEvalMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink) {
-   ValueHolder rv(qore_method_private::eval(method, xsink, this, args, false), xsink);
+   ValueHolder rv(qore_method_private::eval(method, xsink, this, args), xsink);
    return *xsink ? 0 : rv->getAsBigInt();
 }
 
 int QoreObject::intEvalMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink) {
-   ValueHolder rv(qore_method_private::eval(method, xsink, this, args, false), xsink);
+   ValueHolder rv(qore_method_private::eval(method, xsink, this, args), xsink);
    return *xsink ? 0 : rv->getAsBigInt();
 }
 
 bool QoreObject::boolEvalMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink) {
-   ValueHolder rv(qore_method_private::eval(method, xsink, this, args, false), xsink);
+   ValueHolder rv(qore_method_private::eval(method, xsink, this, args), xsink);
    return *xsink ? false : rv->getAsBool();
 }
 
 double QoreObject::floatEvalMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink) {
-   ValueHolder rv(qore_method_private::eval(method, xsink, this, args, false), xsink);
+   ValueHolder rv(qore_method_private::eval(method, xsink, this, args), xsink);
    return *xsink ? 0.0 : rv->getAsFloat();
 }
 

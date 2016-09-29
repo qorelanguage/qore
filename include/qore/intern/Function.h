@@ -266,10 +266,10 @@ protected:
 
 public:
    // saves current program location in case there's an exception
-   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args = 0, QoreObject* self = 0, const qore_class_private* n_qc = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false, bool only_current_class = false);
+   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args = 0, QoreObject* self = 0, const qore_class_private* n_qc = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false);
 
    // saves current program location in case there's an exception
-   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, QoreObject* self = 0, const qore_class_private* n_qc = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false, bool only_current_class = false);
+   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, QoreObject* self = 0, const qore_class_private* n_qc = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false);
 
    DLLLOCAL ~CodeEvaluationHelper();
 
@@ -903,7 +903,7 @@ public:
 
    // find variant at parse time, throw parse exception if no variant can be matched
    // class_ctx is only for use in a class hierarchy and is only set if there is a current class context and it's reachable
-   DLLLOCAL const AbstractQoreFunctionVariant* parseFindVariant(const QoreProgramLocation& loc, const type_vec_t& argTypeInfo, const qore_class_private* class_ctx, bool only_current_class);
+   DLLLOCAL const AbstractQoreFunctionVariant* parseFindVariant(const QoreProgramLocation& loc, const type_vec_t& argTypeInfo, const qore_class_private* class_ctx);
 
    // returns true if there are no committed variants in the function
    DLLLOCAL bool committedEmpty() const {
@@ -919,7 +919,7 @@ public:
 
    // find variant at runtime
    // class_ctx is only for use in a class hierarchy and is only set if there is a current class context and it's reachable from the object being executed
-   DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindVariant(ExceptionSink* xsink, const QoreValueList* args, bool only_user, const qore_class_private* class_ctx, bool only_current_class) const;
+   DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindVariant(ExceptionSink* xsink, const QoreValueList* args, bool only_user, const qore_class_private* class_ctx) const;
 
    DLLLOCAL void parseAssimilate(QoreFunction& other) {
       // ensure there are no committed variants
