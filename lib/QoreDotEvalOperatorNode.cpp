@@ -121,18 +121,13 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
    if (!m)
       return this;
 
-   qore_class_private* class_ctx;
-   if (oflag)
-      class_ctx = qore_class_private::get(*const_cast<QoreClass*>(oflag->getTypeInfo()->getUniqueReturnClass()));
-   else {
-      class_ctx = parse_get_class_priv();
-      if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*qc, class_ctx))
-	 class_ctx = 0;
-   }
+   qore_class_private* class_ctx = parse_get_class_priv();
+   if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*qc, class_ctx))
+      class_ctx = 0;
    ClassAccess access;
    meth = qore_class_private::parseFindMethod(*qc, mname, access, class_ctx);
 
-   //printd(5, "QoreDotEvalOperatorNode::parseInitImpl() %s::%s() method: %p (%s) (%s)\n", qc->getName(), mname, meth, meth ? meth->getClassName() : "n/a", privpub(access));
+   //printd(5, "QoreDotEvalOperatorNode::parseInitImpl() %s::%s() method: %p (%s) (%s) class_ctx: %p (%s)\n", qc->getName(), mname, meth, meth ? meth->getClassName() : "n/a", privpub(access), class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a");
    // FIXME
 
    const QoreListNode* args = m->getArgs();

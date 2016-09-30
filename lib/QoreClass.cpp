@@ -2351,7 +2351,7 @@ const QoreMethod* qore_class_private::parseFindMethod(const char* nme, ClassAcce
    initialize();
 
    // do not return special methods
-   if (!strcmp(nme, "constructor") || !strcmp(nme, "destructor") || !strcmp(nme, "copy"))
+   if (!strcmp(nme, "constructor") || !strcmp(nme, "destructor"))
       return 0;
 
    return parseFindMethodNoInit(nme, access, class_ctx);
@@ -2486,62 +2486,55 @@ const QoreMethod* qore_class_private::parseResolveSelfMethod(NamedScope* nme) {
 
 const QoreMethod* qore_class_private::parseFindAnyMethodIntern(const char* mname, const qore_class_private* class_ctx) {
    const QoreMethod* m = parseFindAnyLocalMethod(mname);
-   if (!m && scl)
+   if (m && doMethodAccess(m, qore_method_private::parseGetAccess(*m), class_ctx))
+      return m;
+   if (scl) {
       m = scl->parseFindAnyMethod(mname, class_ctx, class_ctx == this);
-   if (!m)
-      return 0;
-   ClassAccess access = qore_method_private::parseGetAccess(*m);
-   return ((access == Public) || (class_ctx && access == Private)) ? m : 0;
+      if (m && doMethodAccess(m, qore_method_private::parseGetAccess(*m), class_ctx))
+         return m;
+   }
+   return 0;
 }
 
 // finds a non-static method in the class hierarchy at parse time, optionally initializes classes
 const QoreMethod* qore_class_private::parseFindMethodIntern(const char* mname, ClassAccess& access, const qore_class_private* class_ctx) {
    const QoreMethod* m = parseFindLocalMethod(mname);
-   if (!m && scl)
+   if (m && doMethodAccess(m, access, qore_method_private::parseGetAccess(*m)))
+      return m;
+   if (scl) {
       m = scl->parseFindMethod(mname, access, class_ctx, class_ctx == this);
-   if (!m)
-      return 0;
-   return doMethodAccess(m, access, qore_method_private::parseGetAccess(*m));
+      if (m && doMethodAccess(m, access, qore_method_private::parseGetAccess(*m)))
+         return m;
+   }
+   return 0;
 }
 
 // finds a static method in the class hierarchy at parse time, optionally initializes classes
 const QoreMethod* qore_class_private::parseFindStaticMethodIntern(const char* mname, ClassAccess& access, const qore_class_private* class_ctx) {
    const QoreMethod* m = parseFindLocalStaticMethod(mname);
-   if (m) {
-      m = doMethodAccess(m, access, qore_method_private::parseGetAccess(*m));
-      if (m)
-	 return m;
+   if (m && doMethodAccess(m, access, qore_method_private::parseGetAccess(*m)))
+      return m;
+   if (scl) {
+      m = scl->parseFindStaticMethod(mname, access, class_ctx, class_ctx == this);
+      if (m && doMethodAccess(m, access, qore_method_private::parseGetAccess(*m)))
+         return m;
    }
-   if (!scl)
-      return 0;
-   m = scl->parseFindStaticMethod(mname, access, class_ctx, class_ctx == this);
-   return m ? doMethodAccess(m, access, qore_method_private::parseGetAccess(*m)) : 0;
+   return 0;
 }
 
 const QoreMethod* qore_class_private::parseResolveSelfMethodIntern(const char* nme, const qore_class_private* class_ctx) {
    const QoreMethod* m = parseFindLocalMethod(nme);
-   if (m) {
-      ClassAccess ca = qore_method_private::parseGetAccess(*m);
-      if ((ca > Public && !class_ctx) || (class_ctx && ca == Internal))
-	 m = 0;
-   }
-   if (!m) {
-      m = parseFindLocalStaticMethod(nme);
-      if (m) {
-	 ClassAccess ca = qore_method_private::parseGetAccess(*m);
-	 if ((ca > Public && !class_ctx) || (class_ctx && ca == Internal))
-	    m = 0;
-      }
-   }
-   if (!m && scl) {
+   if (m && doMethodAccess(m, qore_method_private::parseGetAccess(*m), class_ctx))
+      return m;
+   m = parseFindLocalStaticMethod(nme);
+   if (m && doMethodAccess(m, qore_method_private::parseGetAccess(*m), class_ctx))
+      return m;
+   if (scl) {
       m = scl->parseResolveSelfMethod(nme, class_ctx, this == class_ctx);
-      if (m) {
-	 ClassAccess ca = qore_method_private::parseGetAccess(*m);
-	 if ((ca > Public && !class_ctx) || (class_ctx && ca == Internal))
-	    m = 0;
-      }
+      if (m && doMethodAccess(m, qore_method_private::parseGetAccess(*m), class_ctx))
+         return m;
    }
-   return m;
+   return 0;
 }
 
 int qore_class_private::parseCheckClassHierarchyMembers(const char* mname, const QoreMemberInfo& b_mi, const qore_class_private& b_qc, const QoreMemberInfo& l_mi) {

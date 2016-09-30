@@ -2574,6 +2574,11 @@ public:
 
    DLLLOCAL void generateBuiltinSignature(const char* nspath);
 
+   DLLLOCAL static const QoreMethod* doMethodAccess(const QoreMethod* m, ClassAccess ma, const qore_class_private* class_ctx) {
+      assert(m);
+      return ((ma == Public) || ((ma == Private && class_ctx))) ? m : 0;
+   }
+
    DLLLOCAL static const QoreMethod* doMethodAccess(const QoreMethod* m, ClassAccess& access, ClassAccess ma) {
       assert(m);
 
@@ -2814,8 +2819,10 @@ public:
       return &gate;
    }
 
+   // class initialization
    DLLLOCAL const QoreMethod* parseFindMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx);
 
+   // class initialization
    DLLLOCAL const QoreMethod* parseFindStaticMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx);
 
    // no class initialization
