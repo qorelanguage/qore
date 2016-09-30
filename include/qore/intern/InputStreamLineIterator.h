@@ -71,6 +71,7 @@ public:
          src = new EncodingConversionInputStream(src.release(), srcEnc, enc, xsink);
       }
 
+      src->ref();
       reader = new StreamReader(xsink, *src, enc);
    }
 

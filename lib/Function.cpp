@@ -149,7 +149,7 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
       if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*qc->cls, class_ctx))
          class_ctx = 0;
 
-      variant = func->runtimeFindVariant(getArgs(), false, class_ctx, xsink);
+      variant = func->runtimeFindVariant(xsink, getArgs(), false, class_ctx);
       if (!variant) {
          assert(*xsink);
          return;
@@ -192,7 +192,7 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
       if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*qc->cls, class_ctx))
          class_ctx = 0;
 
-      variant = func->runtimeFindVariant(getArgs(), false, class_ctx, xsink);
+      variant = func->runtimeFindVariant(xsink, getArgs(), false, class_ctx);
       if (!variant) {
          assert(*xsink);
          return;
@@ -635,7 +635,7 @@ static bool skip_method_variant(const AbstractQoreFunctionVariant* v, const qore
 }
 
 // finds a variant at runtime
-const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(const QoreValueList* args, bool only_user, const qore_class_private* class_ctx, ExceptionSink* xsink) const {
+const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSink* xsink, const QoreValueList* args, bool only_user, const qore_class_private* class_ctx) const {
    int match = -1;
    const AbstractQoreFunctionVariant* variant = 0;
 
@@ -659,8 +659,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(const QoreVa
       bool stop;
       aqf = ilist.getFunction(class_ctx, last_class, aqfi, internal_access, stop);
       if (!aqf)
-         continue;
-      aqf = (*aqfi).func;
+         break;
 
       //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s::%s(...) size: %d\n", this, aqf->className(), getName(), ilist.size());
 
@@ -732,8 +731,8 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(const QoreVa
             }
          }
       }
-      // issue 1229: continue searching the class hierarchy for a perfect match
-      if (stop)
+      // issue 1229: stop searching the class hierarchy if a match found
+      if (stop || variant)
          break;
    }
    if (!variant && !only_user) {
@@ -759,7 +758,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(const QoreVa
             bool stop;
             aqf = ilist.getFunction(class_ctx, last_class, aqfi, internal_access, stop);
             if (!aqf)
-               continue;
+               break;
             class_name = aqf->className();
 
             for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
@@ -892,8 +891,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
       bool stop;
       aqf = ilist.getFunction(class_ctx, last_class, aqfi, internal_access, stop);
       if (!aqf)
-         continue;
-      aqf = (*aqfi).func;
+         break;
       //printd(5, "QoreFunction::parseFindVariant() %p %s testing function %p\n", this, getName(), aqf);
       assert(!aqf->vlist.empty() || !aqf->pending_vlist.empty());
 
@@ -1158,7 +1156,8 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
             }
          }
       }
-      if (stop)
+      // issue 1229: stop searching the class hierarchy if a match found
+      if (stop || variant)
          break;
    }
 
@@ -1181,11 +1180,10 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
          // add variants tested
          // iterate through inheritance list
          for (ilist_t::iterator aqfi = ilist.begin(), aqfe = ilist.end(); aqfi != aqfe; ++aqfi) {
-            aqf = (*aqfi).func;
             bool stop;
             aqf = ilist.getFunction(class_ctx, last_class, aqfi, internal_access, stop);
             if (!aqf)
-               continue;
+               break;
             const char* class_name = aqf->className();
 
             for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {

@@ -286,23 +286,19 @@ AbstractQoreNode* ParseObjectMethodReferenceNode::parseInitImpl(LocalVar* oflag,
 	 else {
 	    const QoreClass* n_qc = argTypeInfo->getUniqueReturnClass();
 	    if (n_qc) {
-	       qore_class_private* class_ctx;
-	       if (oflag)
-		  class_ctx = qore_class_private::get(*const_cast<QoreClass*>(oflag->getTypeInfo()->getUniqueReturnClass()));
-	       else {
-		  class_ctx = parse_get_class_priv();
-		  if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*n_qc, class_ctx))
-		     class_ctx = 0;
-	       }
-	       ClassAccess access;
-	       m = qore_class_private::parseFindMethod(*const_cast<QoreClass*>(n_qc), method.c_str(), access, class_ctx);
+               qore_class_private* class_ctx = oflag ? qore_class_private::get(*const_cast<QoreClass*>(oflag->getTypeInfo()->getUniqueReturnClass())) : parse_get_class_priv();
+               if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*n_qc, class_ctx))
+                  class_ctx = 0;
+
+               // class access is checked internally
+	       m = qore_class_private::get(*const_cast<QoreClass*>(n_qc))->parseFindAnyMethod(method.c_str(), class_ctx);
 	       if (m) {
+                  if (!m->isStatic() && !strcmp(m->getName(), "copy"))
+                     parseException("PARSE-ERROR", "cannot take a call reference to copy method %s::%s()", n_qc->getName(), method.c_str());
 		  qc = n_qc;
-		  if (!class_ctx && (access > Public))
-		     parseException("PARSE-ERROR", "method %s::%s() is private in this context, therefore a call reference cannot be taken", qc->getName(), method.c_str());
 	       }
 	       else
-		  parseException("PARSE-ERROR", "method %s::%s() cannot be found", n_qc->getName(), method.c_str());
+		  parseException("PARSE-ERROR", "no method %s::%s() is accessible in this context", n_qc->getName(), method.c_str());
 	    }
 	 }
       }
@@ -373,7 +369,7 @@ RunTimeResolvedMethodReferenceNode::~RunTimeResolvedMethodReferenceNode() {
 
 QoreValue RunTimeResolvedMethodReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
    OptionalClassObjSubstitutionHelper osh(qc);
-   return qore_method_private::eval(*method, obj, args, xsink);
+   return qore_method_private::eval(*method, xsink, obj, args);
 }
 
 QoreProgram* RunTimeResolvedMethodReferenceNode::getProgram() const {
@@ -451,7 +447,7 @@ AbstractQoreNode* LocalStaticMethodCallReferenceNode::evalImpl(bool& needs_deref
 }
 
 QoreValue LocalStaticMethodCallReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
-   return qore_method_private::eval(*method, 0, args, xsink);
+   return qore_method_private::eval(*method, xsink, 0, args);
 }
 
 bool LocalStaticMethodCallReferenceNode::is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const {
@@ -471,7 +467,7 @@ AbstractQoreNode* LocalMethodCallReferenceNode::evalImpl(bool& needs_deref, Exce
 }
 
 QoreValue LocalMethodCallReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
-   return qore_method_private::eval(*method, runtime_get_stack_object(), args, xsink);
+   return qore_method_private::eval(*method, xsink, runtime_get_stack_object(), args);
 }
 
 bool LocalMethodCallReferenceNode::is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const {
@@ -482,6 +478,7 @@ bool LocalMethodCallReferenceNode::is_equal_hard(const AbstractQoreNode* v, Exce
 
 StaticMethodCallReferenceNode::StaticMethodCallReferenceNode(const QoreMethod* n_method, QoreProgram* n_pgm) : LocalStaticMethodCallReferenceNode(n_method, false), pgm(n_pgm) {
    assert(pgm);
+   //printd(5, "StaticMethodCallReferenceNode::StaticMethodCallReferenceNode() this: %p %s::%s()\n", this, n_method->getClass()->getName(), n_method->getName());
    //printd(5, "StaticMethodCallReferenceNode::StaticMethodCallReferenceNode() this: %p calling QoreProgram::depRef() pgm: %p\n", this, pgm);
    // make a weak reference to the Program - a strong reference (QoreProgram::ref()) could cause a recursive reference
    pgm->depRef();
@@ -498,11 +495,12 @@ bool StaticMethodCallReferenceNode::derefImpl(ExceptionSink* xsink) {
 
 QoreValue StaticMethodCallReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
    // do not set pgm context here before evaluating args
-   return qore_method_private::eval(*method, 0, args, xsink);
+   return qore_method_private::eval(*method, xsink, 0, args);
 }
 
 MethodCallReferenceNode::MethodCallReferenceNode(const QoreMethod* n_method, QoreProgram* n_pgm) : LocalMethodCallReferenceNode(n_method, false), obj(runtime_get_stack_object()) {
    assert(obj);
+   //printd(5, "MethodCallReferenceNode::MethodCallReferenceNode() this: %p %s::%s()\n", this, n_method->getClass()->getName(), n_method->getName());
    //printd(5, "MethodCallReferenceNode::MethodCallReferenceNode() this: %p calling QoreProgram::depRef() pgm: %p\n", this, pgm);
    // make a weak reference to the object
    obj->tRef();
@@ -515,7 +513,7 @@ bool MethodCallReferenceNode::derefImpl(ExceptionSink* xsink) {
 }
 
 QoreValue MethodCallReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
-   return qore_method_private::eval(*method, obj, args, xsink);
+   return qore_method_private::eval(*method, xsink, obj, args);
 }
 
 UnresolvedStaticMethodCallReferenceNode::UnresolvedStaticMethodCallReferenceNode(NamedScope* n_scope) : AbstractUnresolvedCallReferenceNode(false), scope(n_scope) {
@@ -543,29 +541,41 @@ AbstractQoreNode* UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar* o
       return this;
    }
 
-   qore_class_private* class_ctx = oflag ? qore_class_private::get(*const_cast<QoreClass*>(oflag->getTypeInfo()->getUniqueReturnClass())) : 0;
+   qore_class_private* class_ctx = oflag ? qore_class_private::get(*const_cast<QoreClass*>(oflag->getTypeInfo()->getUniqueReturnClass())) : parse_get_class_priv();
+   if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*qc, class_ctx))
+      class_ctx = 0;
 
    const QoreMethod* qm = 0;
-   // try to find a pointer to a non-static method if parsing in the class' context
+   // try to find a pointer to a non-static method if parsing in the class's context
    // and bare references are enabled
-   ClassAccess access;
-   if (oflag && parse_check_parse_option(PO_ALLOW_BARE_REFS)
-       && class_ctx->parseCheckHierarchy(qc, access)) {
-      qm = qore_class_private::parseFindMethod(*qc, scope->getIdentifier(), access, class_ctx);
-      assert(!qm || !qm->isStatic());
-   }
-   if (!qm) {
-      if (!oflag) {
-	 class_ctx = parse_get_class_priv();
-	 if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*qc, class_ctx))
-	    class_ctx = 0;
+   if (oflag && parse_check_parse_option(PO_ALLOW_BARE_REFS)) {
+      qm = qore_class_private::get(*qc)->parseFindAnyMethodStaticFirst(scope->getIdentifier(), class_ctx);
+      //assert(!qm || !qm->isStatic());
+
+      if (qm) {
+         if (!qm->isStatic() && !strcmp(qm->getName(), "copy")) {
+            parseException("INVALID-METHOD", "cannot take a reference to base class copy method %s::%s()", qc->getName(), scope->getIdentifier());
+            return this;
+         }
       }
+      else {
+	 parseException("INVALID-METHOD", "class '%s' has no accessible method '%s'", qc->getName(), scope->getIdentifier());
+	 return this;
+      }
+   }
+   else {
+      ClassAccess access;
       qm = qore_class_private::parseFindStaticMethod(*qc, scope->getIdentifier(), access, class_ctx);
+
       if (!qm) {
 	 parseException("INVALID-METHOD", "class '%s' has no static method '%s'", qc->getName(), scope->getIdentifier());
 	 return this;
       }
-      assert(qm->isStatic());
+
+      if (!class_ctx && access > Public) {
+	 parseException("METHOD-IS-PRIVATE", "'%s::%s()' is private in this context", qc->getName(), scope->getIdentifier());
+	 return this;
+      }
    }
 
    // check class capabilities against parse options
@@ -574,6 +584,7 @@ AbstractQoreNode* UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar* o
       return this;
    }
 
+   //printd(5, "UnresolvedStaticMethodCallReferenceNode::parseInit() got %s::%s() static: %d\n", qm->getClass()->getName(), qm->getName(), qm->isStatic());
    AbstractQoreNode* rv = qm->isStatic() ? new LocalStaticMethodCallReferenceNode(qm) : new LocalMethodCallReferenceNode(qm);
    deref();
    return rv;

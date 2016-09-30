@@ -483,10 +483,13 @@ public:
       if (*xsink || uvb->setupCall(ceh, argv, xsink))
 	 uvb = 0;
    }
+
    DLLLOCAL ~UserVariantExecHelper();
+
    DLLLOCAL operator bool() const {
       return uvb;
    }
+
    DLLLOCAL ReferenceHolder<QoreListNode>& getArgv() {
       return argv;
    }
@@ -916,7 +919,7 @@ public:
 
    // find variant at runtime
    // class_ctx is only for use in a class hierarchy and is only set if there is a current class context and it's reachable from the object being executed
-   DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindVariant(const QoreValueList* args, bool only_user, const qore_class_private* class_ctx, ExceptionSink* xsink) const;
+   DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindVariant(ExceptionSink* xsink, const QoreValueList* args, bool only_user, const qore_class_private* class_ctx) const;
 
    DLLLOCAL void parseAssimilate(QoreFunction& other) {
       // ensure there are no committed variants

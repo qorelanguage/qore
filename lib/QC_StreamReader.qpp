@@ -64,7 +64,7 @@ StreamReader::constructor(Qore::InputStream[InputStream] is, *string encoding) {
    self->setPrivate(CID_STREAMREADER, reader.release());
    qore_object_private* o = qore_object_private::get(*self);
    const qore_class_private* cls = qore_class_private::get(*QC_STREAMREADER);
-   o->setValueIntern(cls, "is", static_cast<QoreObject *>(obj_is->refSelf()), xsink);
+   o->setValueIntern(cls, "is", static_cast<QoreObject*>(obj_is->refSelf()), xsink);
 }
 
 //! Returns the @ref character_encoding "character encoding" for the StreamReader.

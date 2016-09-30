@@ -402,7 +402,7 @@ class TestInheritB {
         testAssertion("negative-private-method-access-10", \p.callFunction(), ("t18",), new TestResultExceptionRegexp('ILLEGAL-CALL-REFERENCE', "cannot create a call reference"));
 
         # this must fail at parse time because B::t() is privately inherited in D, therefore it should not be possible to take a reference to the method of the privately-inherited class
-        testAssertion("negative-private-method-access-11", \p.parse(), ("code sub test() { D t(); return \\t.t(); }", "test"), new TestResultExceptionRegexp('PARSE-ERROR', "is private in this context"));
+        assertThrows("PARSE-ERROR", \p.parse(), ("code sub test() { D t(); return \\t.t(); }", "test"));
 
         # check inheritance
         p.parse(Class1, "class-1");
@@ -429,8 +429,8 @@ class TestInheritB {
         assertEq(3, c1.getConInt());
         assertEq(1, c1.pubint());
         assertEq(1, call_object_method(c1, "pubint"));
-        assertEq(1, c1.pubtest(1));
-        assertEq(1, call_object_method(c1, "pubtest", 1));
+        assertEq(2.0, c1.pubtest(1));
+        assertEq(2.0, call_object_method(c1, "pubtest", 1));
         assertEq(2.0, c1.pubtest(1.0));
         assertEq(2.0, call_object_method(c1, "pubtest", 1.0));
 
@@ -455,23 +455,30 @@ class TestInheritB {
         assertEq(2, c6.get());
 
         {
-            Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", "illegal call.*b", \p.parse(), ("class B { int b() {} } class C inherits private B {} sub test() { C c(); c.b();}", ""));
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES|PO_STRICT_ARGS);
+            *hash wh = p.parse("class B { int b() {} } class C inherits private B {} sub test() { C c(); c.b();}", "", WARN_ALL);
+            assertEq("NON-EXISTENT-METHOD-CALL", wh.err);
+            assertThrows("BASE-CLASS-IS-PRIVATE", \p.callFunction(), "test");
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-TYPE-ERROR", "no variant", \p.parse(), ("class B { int b(int i) { return i; } } class C inherits B { private:internal int b(int i) { return i + 1; } string b(string s) { return s; }} sub test() { C c(); c.b(1n);}", ""));
+            assertThrows("PARSE-ERROR", \p.parse(), ("class B { int b() {} } class C inherits private B {} code sub test() { C c(); return \\c.b();}", ""));
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-ERROR", "a call reference cannot be taken", \p.parse(), ("class B { int b() {} } class C inherits private B {} sub test() { C c(); code cd = \\c.b();}", ""));
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("class B { int b(int i) { return i; } } class C inherits B { private:internal int b(int i) { return i + 1; } string b(string s) { return s; }} sub test() { C c(); c.b(1n);}", ""));
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-ERROR", "method.*cannot be found", \p.parse(), ("class B { int b() {} } class C inherits private:internal B {} sub test() { C c(); code cd = \\c.b();}", ""));
+            assertThrows("PARSE-ERROR", \p.parse(), ("class B { int b() {} } class C inherits private B {} sub test() { C c(); code cd = \\c.b();}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-ERROR", \p.parse(), ("class B { int b() {} } class C inherits private:internal B {} sub test() { C c(); code cd = \\c.b();}", ""));
         }
 
         {
