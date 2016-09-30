@@ -2983,13 +2983,16 @@ public:
          i->second->serializeStaticCppMethod(fp, lname.c_str(), arg.c_str());
       }
 
-      if (is_pseudo)
-         fprintf(fp, "DLLLOCAL QoreClass* init%sClass() {\n   QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
-      else
-         fprintf(fp, "DLLLOCAL QoreClass* init%sClass(QoreNamespace& ns) {\n   QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
+      fprintf(fp, "DLLLOCAL void preinit%sClass() {\n   QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
       dom_output_cpp(fp, dom);
       fprintf(fp, ");\n   CID_%s = QC_%s->getID();\n", UC.c_str(), UC.c_str());
-      fprintf(fp, "   QC_%s->setSystem();\n", UC.c_str());
+      fprintf(fp, "   QC_%s->setSystem();\n}\n\n", UC.c_str());
+
+      if (is_pseudo)
+         fprintf(fp, "DLLLOCAL QoreClass* init%sClass() {\n", lname.c_str());
+      else
+         fprintf(fp, "DLLLOCAL QoreClass* init%sClass(QoreNamespace& ns) {\n", lname.c_str());
+      fprintf(fp, "   if (!QC_%s)\n      preinit%sClass();\n", UC.c_str(), lname.c_str());
 
       if (!defbase.empty())
          fprintf(fp, "\n   // set default builtin base class\n   assert(%s);\n  QC_%s->addDefaultBuiltinBaseClass(%s);\n", defbase.c_str(), UC.c_str(), defbase.c_str());
