@@ -560,7 +560,11 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
       }
       if (pc && qore_class_private::get(*pc)->parseCheckHierarchy(qc, access)) {
 	 // checks access already
-	 method = qore_class_private::get(*qc)->parseFindAnyMethod(scope->getIdentifier(), class_ctx);
+	 method = qore_class_private::get(*qc)->parseFindAnyMethodStaticFirst(scope->getIdentifier(), class_ctx);
+         if (method && !method->isStatic() && !strcmp(method->getName(), "copy")) {
+            parseException("INVALID-METHOD", "cannot explicitly call base class %s::%s() copy method", qc->getName(), scope->getIdentifier());
+            return this;
+         }
 	 //printd(5, "StaticMethodCallNode::parseInitImpl() '%s' pc: %s qc: %s access: %s m_access: %s method: %p\n", scope->ostr, pc->getName(), qc->getName(),  privpub(access), privpub(m_access), method);
       }
       else

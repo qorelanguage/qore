@@ -278,33 +278,67 @@ public class ClassesTest inherits QUnit::Test {
         }
 
         {
-            # ensure that private methods cannot be directly accessed
-            Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{private:internal m(){}}class C inherits B{code t(){return\\m();}}", ""));
-        }
-
-        {
-            # ensure that private methods cannot be directly accessed
-            Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-ERROR", \p.parse(), ("class B{private m(){}}class C inherits B{}code sub t(){C c();return\\c.m();}", ""));
-        }
-
-        {
-            # ensure that private methods cannot be directly accessed
-            Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-ERROR", \p.parse(), ("class B{private:internal m(){}}class C inherits B{}code sub t(){C c();return\\c.m();}", ""));
-        }
-
-        {
-            # ensure that special methods cannot be directly accessed
-            Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{constructor(){}}class C inherits B{constructor(){}code t(){return\\constructor();}}", ""));
-        }
-
-        {
-            # ensure that special methods cannot be directly accessed
             Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
+            # ensure that private methods cannot be directly accessed
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{private:internal m(){}}class C inherits B{code t(){return\\m();}}", ""));
+            # ensure that private methods cannot be directly accessed
+            assertThrows("PARSE-ERROR", \p.parse(), ("class B{private m(){}}class C inherits B{}code sub t(){C c();return\\c.m();}", ""));
+            # ensure that private methods cannot be directly accessed
+            assertThrows("PARSE-ERROR", \p.parse(), ("class B{private:internal m(){}}class C inherits B{}code sub t(){C c();return\\c.m();}", ""));
+            # ensure that special methods cannot be directly accessed
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{constructor(){}}class C inherits B{constructor(){}code t(){return\\constructor();}}", ""));
+
+            # ensure that call references cannot be taken of constructors
             assertThrows("PARSE-ERROR", \p.parse(), ("class B{constructor(){}}class C inherits B{constructor(){}}sub t(){C c();code cd=\\c.constructor();cd();}", ""));
+
+            # ensure that call references cannot be taken of constructors
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{constructor(){}}class C inherits B{constructor(){}code t(){return \\constructor();}}", ""));
+            # ensure that call references cannot be taken of constructors
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{constructor(){}}class C inherits B{constructor(){}code t(){return \\C::constructor();}}", ""));
+            # ensure that call references cannot be taken of constructors
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{constructor(){}}class C inherits B{constructor(){}code t(){return \\B::constructor();}}", ""));
+            # ensure that call references cannot be taken of constructors
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{}class C inherits B{code t(){return \\constructor();}}", ""));
+            # ensure that call references cannot be taken of constructors
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{}class C inherits B{code t(){return \\C::constructor();}}", ""));
+            # ensure that call references cannot be taken of constructors
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{}class C inherits B{code t(){return \\B::constructor();}}", ""));
+            # ensure that call references cannot be taken of constructors
+            assertThrows("PARSE-ERROR", \p.parse(), ("class B{}class C inherits B{}sub t(){C c();code cd=\\c.constructor();cd();}", ""));
+
+            # ensure that call references cannot be taken of destructors
+            assertThrows("PARSE-ERROR", \p.parse(), ("class B{destructor(){}}class C inherits B{destructor(){}}sub t(){C c();code cd=\\c.destructor();cd();}", ""));
+            # ensure that call references cannot be taken of destructors
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{destructor(){}}class C inherits B{destructor(){}code t(){return \\destructor();}}", ""));
+            # ensure that call references cannot be taken of destructors
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{destructor(){}}class C inherits B{destructor(){}code t(){return \\C::destructor();}}", ""));
+            # ensure that call references cannot be taken of destructors
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{destructor(){}}class C inherits B{destructor(){}code t(){return \\B::destructor();}}", ""));
+            # ensure that call references cannot be taken of destructors
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{}class C inherits B{code t(){return \\destructor();}}", ""));
+            # ensure that call references cannot be taken of destructors
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{}class C inherits B{code t(){return \\C::destructor();}}", ""));
+            # ensure that call references cannot be taken of destructors
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{}class C inherits B{code t(){return \\B::destructor();}}", ""));
+            # ensure that call references cannot be taken of destructors
+            assertThrows("PARSE-ERROR", \p.parse(), ("class B{}class C inherits B{}sub t(){C c();code cd=\\c.destructor();cd();}", ""));
+
+            # ensure that call references cannot be taken of copy methods
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{copy(){}}class C inherits B{copy(){}}sub t(){C c();code cd=\\c.copy();cd();}", ""));
+            # ensure that call references cannot be taken of copy methods
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{copy(){}}class C inherits B{copy(){}code t(){return \\copy();}}", ""));
+            # ensure that call references cannot be taken of copy methods
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{copy(){}}class C inherits B{copy(){}code t(){return \\C::copy();}}", ""));
+            # ensure that call references cannot be taken of copy methods
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{copy(){}}class C inherits B{copy(){}code t(){return \\B::copy();}}", ""));
+            # ensure that call references cannot be taken of copy methods
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{}class C inherits B{code t(){return \\copy();}}", ""));
+            # ensure that call references cannot be taken of copy methods
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{}class C inherits B{code t(){return \\C::copy();}}", ""));
+            # ensure that call references cannot be taken of copy methods
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{}class C inherits B{code t(){return \\B::copy();}}", ""));
+            # ensure that call references cannot be taken of copy methods
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{copy(){}}class C inherits B{copy(){}}sub t(){C c();code cd=\\c.copy();cd();}", ""));
         }
     }
 }

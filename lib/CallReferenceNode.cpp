@@ -286,23 +286,19 @@ AbstractQoreNode* ParseObjectMethodReferenceNode::parseInitImpl(LocalVar* oflag,
 	 else {
 	    const QoreClass* n_qc = argTypeInfo->getUniqueReturnClass();
 	    if (n_qc) {
-	       qore_class_private* class_ctx;
-	       if (oflag)
-		  class_ctx = qore_class_private::get(*const_cast<QoreClass*>(oflag->getTypeInfo()->getUniqueReturnClass()));
-	       else {
-		  class_ctx = parse_get_class_priv();
-		  if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*n_qc, class_ctx))
-		     class_ctx = 0;
-	       }
-	       ClassAccess access;
-	       m = qore_class_private::parseFindMethod(*const_cast<QoreClass*>(n_qc), method.c_str(), access, class_ctx);
+               qore_class_private* class_ctx = oflag ? qore_class_private::get(*const_cast<QoreClass*>(oflag->getTypeInfo()->getUniqueReturnClass())) : parse_get_class_priv();
+               if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*n_qc, class_ctx))
+                  class_ctx = 0;
+
+               // class access is checked internally
+	       m = qore_class_private::get(*const_cast<QoreClass*>(n_qc))->parseFindAnyMethod(method.c_str(), class_ctx);
 	       if (m) {
+                  if (!m->isStatic() && !strcmp(m->getName(), "copy"))
+                     parseException("PARSE-ERROR", "cannot take a call reference to copy method %s::%s()", n_qc->getName(), method.c_str());
 		  qc = n_qc;
-		  if (!class_ctx && (access > Public))
-		     parseException("PARSE-ERROR", "method %s::%s() is private in this context, therefore a call reference cannot be taken", qc->getName(), method.c_str());
 	       }
 	       else
-		  parseException("PARSE-ERROR", "method %s::%s() cannot be found", n_qc->getName(), method.c_str());
+		  parseException("PARSE-ERROR", "no method %s::%s() is accessible in this context", n_qc->getName(), method.c_str());
 	    }
 	 }
       }
@@ -553,10 +549,16 @@ AbstractQoreNode* UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar* o
    // try to find a pointer to a non-static method if parsing in the class's context
    // and bare references are enabled
    if (oflag && parse_check_parse_option(PO_ALLOW_BARE_REFS)) {
-      qm = qore_class_private::get(*qc)->parseFindAnyMethod(scope->getIdentifier(), class_ctx);
+      qm = qore_class_private::get(*qc)->parseFindAnyMethodStaticFirst(scope->getIdentifier(), class_ctx);
       //assert(!qm || !qm->isStatic());
 
-      if (!qm) {
+      if (qm) {
+         if (!qm->isStatic() && !strcmp(qm->getName(), "copy")) {
+            parseException("INVALID-METHOD", "cannot take a reference to base class copy method %s::%s()", qc->getName(), scope->getIdentifier());
+            return this;
+         }
+      }
+      else {
 	 parseException("INVALID-METHOD", "class '%s' has no accessible method '%s'", qc->getName(), scope->getIdentifier());
 	 return this;
       }

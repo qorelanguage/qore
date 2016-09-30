@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -53,7 +53,6 @@ public:
       bufCapacity(STREAMREADER_BUFFER_SIZE),
       bufSize(0),
       buf(0) {
-      is->ref();
       if (!enc->isAsciiCompat()) {
          xsink->raiseException("UNSUPPORTED-ENCODING-ERROR", "StreamReader does not support ASCII-incompatible encodings");
          return;
