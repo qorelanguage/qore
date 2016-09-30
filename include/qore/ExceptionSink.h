@@ -52,7 +52,7 @@ private:
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL ExceptionSink& operator=(const ExceptionSink&);
-      
+
 public:
    //! creates an empty ExceptionSink object
    DLLEXPORT ExceptionSink();
@@ -150,6 +150,12 @@ public:
 
    //! deletes the exception list immediately
    DLLEXPORT void clear();
+
+   //! returns the argument of the top exception
+   DLLEXPORT const AbstractQoreNode *getExceptionArg();
+
+   //! returns the description of the top exception
+   DLLEXPORT const AbstractQoreNode *getExceptionDesc();
 
    DLLLOCAL void raiseException(QoreException* e);
    DLLLOCAL void raiseException(const QoreListNode* n);

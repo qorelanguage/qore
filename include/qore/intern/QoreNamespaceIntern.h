@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1088,9 +1088,9 @@ protected:
 
    DLLLOCAL AbstractQoreNode* parseFindConstantValueIntern(const char* cname, const QoreTypeInfo*& typeInfo, bool error) {
       // look up class constants first
-      QoreClass* pc = getParseClass();
+      QoreClass* pc = parse_get_class();
       if (pc) {
-         AbstractQoreNode* rv = qore_class_private::parseFindConstantValue(pc, cname, typeInfo);
+         AbstractQoreNode* rv = qore_class_private::parseFindConstantValue(pc, cname, typeInfo, pc ? qore_class_private::get(*pc) : 0);
          if (rv)
             return rv;
       }
