@@ -96,6 +96,9 @@ public:
    // send a binary object
    DLLEXPORT int send(const BinaryNode* b);
    DLLEXPORT int send(const BinaryNode* b, int timeout_ms, ExceptionSink* xsink);
+   // send a certain number of bytes (read from an InputStream)
+   DLLEXPORT void sendFromInputStream(InputStream *is, int64 size, int64 timeout_ms, ExceptionSink *xsink);
+
    // send from a file descriptor
    DLLEXPORT int send(int fd, int size = -1);
    // send bytes and convert to network order
@@ -114,6 +117,9 @@ public:
    DLLEXPORT BinaryNode* recvBinary(int bufsize, int timeout, ExceptionSink* xsink);
    // receive a packet of bytes as a binary object
    DLLEXPORT BinaryNode* recvBinary(int timeout, ExceptionSink* xsink);
+   // receive a certain number of bytes and write them to an OutputStream
+   DLLEXPORT void recvToOutputStream(OutputStream *os, int64 size, int64 timeout_ms, ExceptionSink *xsink);
+
    // receive and write data to a file descriptor
    DLLEXPORT int recv(int fd, int size, int timeout);
    // receive integers and convert from network byte order
@@ -139,10 +145,16 @@ public:
    DLLEXPORT int sendHTTPResponseWithCallback(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms);
    DLLEXPORT int sendHTTPResponseWithCallback(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms, bool* aborted);
 
+   // send data in HTTP chunked format
+   DLLEXPORT void sendHTTPChunkedBodyFromInputStream(InputStream *is, int timeout_ms, ExceptionSink* xsink);
+   DLLEXPORT void sendHTTPChunkedBodyTrailer(const QoreHashNode *headers, int timeout_ms, ExceptionSink* xsink);
+
    // read and parse HTTP header
    DLLEXPORT AbstractQoreNode* readHTTPHeader(ExceptionSink* xsink, QoreHashNode* info, int timeout);
    // receive a binary message in HTTP chunked format
    DLLEXPORT QoreHashNode* readHTTPChunkedBodyBinary(int timeout, ExceptionSink* xsink);
+   // receive a binary message in HTTP chunked format
+   DLLEXPORT QoreHashNode* readHTTPChunkedBodyToOutputStream(OutputStream *os, int timeout_ms, ExceptionSink* xsink);
    // receive a string message in HTTP chunked format
    DLLEXPORT QoreHashNode* readHTTPChunkedBody(int timeout, ExceptionSink* xsink);
 

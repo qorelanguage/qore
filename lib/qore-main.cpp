@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -42,6 +42,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <time.h>
+#include <stdlib.h>
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -111,6 +112,16 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
    qore_string_init();
    QoreHttpClientObject::static_init();
 
+   // initialize random number generator
+   if (!(qore_library_options & QLO_DO_NOT_SEED_RNG)) {
+      unsigned seed = (unsigned)q_clock_getmicros();
+#ifdef HAVE_RANDOM
+      srandom(seed);
+#else
+      srand(seed);
+#endif
+   }
+
    // init random salt
    qore_init_random_salt();
 
@@ -127,9 +138,6 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
 
    // create default type values
    init_qore_types();
-
-   // set up core operators
-   oplist.init();
 
    // init module subsystem
    QMM.init(show_module_errors);
