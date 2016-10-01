@@ -3214,7 +3214,7 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
    }
 
    // we cannot initialize the class here
-   QoreMethod* m = const_cast<QoreMethod*>(!n_static ? parseFindNormalMethod(mname, this, false) : parseFindStaticMethod(mname, this, false));
+   QoreMethod* m = const_cast<QoreMethod*>(!n_static ? parseFindLocalMethod(mname) : parseFindLocalStaticMethod(mname));
    if (!n_static && m && (dst || cpy || methGate || memGate || hasMemberNotification)) {
       parseException("ILLEGAL-METHOD-OVERLOAD", "a %s::%s() method has already been defined; cannot overload %s methods", tname, mname, mname);
       return -1;
