@@ -1409,7 +1409,7 @@ BinaryNode* QoreSocket::recvBinary(int timeout, ExceptionSink* xsink) {
 QoreStringNode* QoreSocket::recv(qore_offset_t bufsize, int timeout, int *rc) {
    assert(rc);
    qore_offset_t nrc;
-   QoreStringNode* str = priv->recv(bufsize, timeout, nrc, 0);
+   QoreStringNode* str = priv->recv((ExceptionSink*)0, bufsize, timeout, nrc);
    *rc = (int)nrc;
    return str;
 }
@@ -1417,7 +1417,7 @@ QoreStringNode* QoreSocket::recv(qore_offset_t bufsize, int timeout, int *rc) {
 QoreStringNode* QoreSocket::recv(int timeout, int *rc) {
    assert(rc);
    qore_offset_t nrc;
-   QoreStringNode* str = priv->recv(timeout, nrc, 0);
+   QoreStringNode* str = priv->recv((ExceptionSink*)0, timeout, nrc);
    *rc = (int)nrc;
    return str;
 }
@@ -1425,14 +1425,14 @@ QoreStringNode* QoreSocket::recv(int timeout, int *rc) {
 QoreStringNode* QoreSocket::recv(qore_offset_t bufsize, int timeout, ExceptionSink* xsink) {
    assert(xsink);
    qore_offset_t rc;
-   QoreStringNodeHolder str(priv->recv(bufsize, timeout, rc, xsink));
+   QoreStringNodeHolder str(priv->recv(xsink, bufsize, timeout, rc));
    return *xsink ? 0 : str.release();
 }
 
 QoreStringNode* QoreSocket::recv(int timeout, ExceptionSink* xsink) {
    assert(xsink);
    qore_offset_t rc;
-   QoreStringNodeHolder str(priv->recv(timeout, rc, xsink));
+   QoreStringNodeHolder str(priv->recv(xsink, timeout, rc));
    return *xsink ? 0 : str.release();
 }
 

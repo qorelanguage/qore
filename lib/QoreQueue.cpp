@@ -55,11 +55,10 @@ void qore_queue_private::destructor(ExceptionSink* xsink) {
 
    clearIntern(xsink);
    len = Queue_Deleted;
-   if (desc)
+   if (desc) {
       desc->deref();
-#ifdef DEBUG
-   desc = 0;
-#endif
+      desc = 0;
+   }
 }
 
 void qore_queue_private::clearIntern(ExceptionSink* xsink) {

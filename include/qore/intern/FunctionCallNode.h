@@ -54,8 +54,11 @@ public:
       if (args)
 	 args->deref(0);
    }
+
    DLLLOCAL const QoreListNode* getArgs() const { return args; }
+
    DLLLOCAL int parseArgsVariant(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, QoreFunction* func, const QoreTypeInfo*& returnTypeInfo);
+
    DLLLOCAL const AbstractQoreFunctionVariant* getVariant() const {
       return variant;
    }
@@ -352,7 +355,7 @@ public:
    DLLLOCAL SelfFunctionCallNode(char* n, QoreListNode* n_args) : AbstractMethodCallNode(NT_SELF_CALL, n_args, parse_get_class()), ns(n), is_copy(false) {
    }
 
-   DLLLOCAL SelfFunctionCallNode(char* n, QoreListNode* n_args, const QoreMethod* m) : AbstractMethodCallNode(NT_SELF_CALL, n_args, parse_get_class(), m), ns(n), is_copy(false) {
+   DLLLOCAL SelfFunctionCallNode(char* n, QoreListNode* n_args, const QoreMethod* m, const QoreClass* n_qc) : AbstractMethodCallNode(NT_SELF_CALL, n_args, n_qc, m), ns(n), is_copy(false) {
    }
 
    DLLLOCAL SelfFunctionCallNode(char* n, QoreListNode* n_args, const QoreClass* n_qc) : AbstractMethodCallNode(NT_SELF_CALL, n_args, n_qc), ns(n), is_copy(false) {

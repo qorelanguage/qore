@@ -1677,6 +1677,9 @@ QoreException* catchGetException() {
 }
 
 void qore_exit_process(int rc) {
+   // call exit() in a single-threaded process; flushes file buffers, etc
+   if (thread_list.getNumThreads() <= 1)
+      exit(rc);
    // do not call exit here since it will try to execute cleanup, which will cause crashes
    // in multithreaded programs; call quick_exit() instead (issue
    _Exit(rc);

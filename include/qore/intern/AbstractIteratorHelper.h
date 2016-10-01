@@ -39,7 +39,7 @@ class AbstractIteratorHelper {
 protected:
    DLLLOCAL static const QoreExternalMethodVariant* getCheckVariant(const char* op, const QoreMethod* m, ExceptionSink* xsink) {
       const qore_class_private* class_ctx = runtime_get_class();
-      const MethodVariantBase* variant = reinterpret_cast<const MethodVariantBase*>(m->getFunction()->runtimeFindVariant((QoreValueList*)0, false, class_ctx, xsink));
+      const MethodVariantBase* variant = reinterpret_cast<const MethodVariantBase*>(m->getFunction()->runtimeFindVariant(xsink, (QoreValueList*)0, false, class_ctx));
       // this could throw an exception if the variant is builtin and has functional flags not allowed in the current pgm, for example
       if (*xsink)
          return 0;
@@ -102,14 +102,14 @@ public:
    DLLLOCAL bool next(ExceptionSink* xsink) {
       assert(nextMethod);
       assert(nextVariant);
-      ValueHolder rv(qore_method_private::evalNormalVariant(*nextMethod, obj, nextVariant, 0, xsink), xsink);
+      ValueHolder rv(qore_method_private::evalNormalVariant(*nextMethod, xsink, obj, nextVariant, 0), xsink);
       return rv->getAsBool();
    }
 
    DLLLOCAL QoreValue getValue(ExceptionSink* xsink) {
       assert(getValueMethod);
       assert(getValueVariant);
-      return qore_method_private::evalNormalVariant(*getValueMethod, obj, getValueVariant, 0, xsink);
+      return qore_method_private::evalNormalVariant(*getValueMethod, xsink, obj, getValueVariant, 0);
    }
 
    /*
