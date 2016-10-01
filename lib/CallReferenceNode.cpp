@@ -565,7 +565,7 @@ AbstractQoreNode* UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar* o
       }
    }
    else {
-      qm = qore_class_private::get(*qc)->parseFindStaticMethod(scope->getIdentifier(), class_ctx, true);
+      qm = qore_class_private::get(*qc)->parseFindStaticMethod(scope->getIdentifier(), class_ctx);
 
       if (!qm) {
          parseException("INVALID-METHOD", "class '%s' has no accessible static method '%s'", qc->getName(), scope->getIdentifier());
