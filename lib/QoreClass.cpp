@@ -2358,8 +2358,7 @@ const QoreMethod* qore_class_private::parseFindAnyMethod(const char* nme, const 
    if (!m)
       m = parseFindNormalMethodIntern(nme, class_ctx);
 
-   if (!strcmp(nme, "sendData"))
-      printd(0, "qore_class_private::parseFindAnyMethod() cls: '%s' nme: '%s' class_ctx: %p m: %p (%s) %s\n", name.c_str(), nme, class_ctx, m, m ? m->getName() : "n/a", m ? privpub(qore_method_private::parseGetAccess(*m)) : "n/a");
+   //printd(5, "qore_class_private::parseFindAnyMethod() cls: '%s' nme: '%s' class_ctx: %p m: %p (%s) %s\n", name.c_str(), nme, class_ctx, m, m ? m->getName() : "n/a", m ? privpub(qore_method_private::parseGetAccess(*m)) : "n/a");
 
    if (m && strcmp(nme, "constructor") && strcmp(nme, "destructor") && strcmp(nme, "copy") && ((qore_method_private::parseGetAccess(*m) == Public) || class_ctx))
       return m;
