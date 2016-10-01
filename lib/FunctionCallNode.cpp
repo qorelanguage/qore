@@ -548,30 +548,26 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
    // see if this is a call to a base class method if bare refs are allowed
    // and we're parsing in a class context and the class found is in the
    // current class parse context
-   ClassAccess access = Public;
    if (qc) {
-      qore_class_private* class_ctx;
-      if (oflag)
-	 class_ctx = qore_class_private::get(*const_cast<QoreClass*>(oflag->getTypeInfo()->getUniqueReturnClass()));
-      else {
-	 class_ctx = parse_get_class_priv();
-	 if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*qc, class_ctx))
-	    class_ctx = 0;
-      }
-      if (pc && qore_class_private::get(*pc)->parseCheckHierarchy(qc, access)) {
+      qore_class_private* class_ctx = oflag
+         ? qore_class_private::get(*const_cast<QoreClass*>(pc ? pc : oflag->getTypeInfo()->getUniqueReturnClass()))
+         : parse_get_class_priv();
+      if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*qc, class_ctx))
+         class_ctx = 0;
+      if (pc && class_ctx) {
 	 // checks access already
 	 method = qore_class_private::get(*qc)->parseFindAnyMethodStaticFirst(scope->getIdentifier(), class_ctx);
          if (method && !method->isStatic() && !strcmp(method->getName(), "copy")) {
             parseException("INVALID-METHOD", "cannot explicitly call base class %s::%s() copy method", qc->getName(), scope->getIdentifier());
             return this;
          }
-	 //printd(5, "StaticMethodCallNode::parseInitImpl() '%s' pc: %s qc: %s access: %s m_access: %s method: %p\n", scope->ostr, pc->getName(), qc->getName(),  privpub(access), privpub(m_access), method);
+	 //printd(5, "StaticMethodCallNode::parseInitImpl() '%s' pc: %s qc: %smethod: %p\n", scope->ostr, pc->getName(), qc->getName(), method);
       }
       else
-	 method = qore_class_private::get(*qc)->parseFindStaticMethod(scope->getIdentifier(), access, class_ctx);
+	 method = qore_class_private::get(*qc)->parseFindStaticMethod(scope->getIdentifier(), class_ctx, true);
    }
 
-   //printd(5, "StaticMethodCallNode::parseInitImpl() %s qc: %p '%s' method: %p '%s()' access: %s\n", scope->ostr, qc, qc ? qc->getName() : "n/a", method, scope->getIdentifier(), privpub(access));
+   //printd(5, "StaticMethodCallNode::parseInitImpl() %s qc: %p '%s' method: %p '%s()'\n", scope->ostr, qc, qc ? qc->getName() : "n/a", method, scope->getIdentifier());
 
    // see if a constant can be resolved
    if (!method) {
@@ -629,13 +625,6 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
    // need to get the current contextual class when parsing in case we're in a static method for example
    if (!pc)
       pc = parse_get_class();
-
-   if (access > Public) {
-      if (!pc || !qore_class_private::get(*pc)->parseCheckHierarchy(qc, access)) {
-	 parseException("PRIVATE-METHOD", "method %s::%s() is private and cannot be accessed outside of the class", qc->getName(), method->getName());
-	 return this;
-      }
-   }
 
    lvids += parseArgs(oflag, pflag, method->getFunction(), typeInfo);
    return this;
