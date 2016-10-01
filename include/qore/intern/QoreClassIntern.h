@@ -1505,14 +1505,11 @@ public:
    DLLLOCAL const QoreClass* getClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const;
    DLLLOCAL const QoreClass* parseGetClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const;
 
-   DLLLOCAL const QoreMethod* parseFindMethod(const char* name, ClassAccess& n_access, const qore_class_private* class_ctx, bool allow_internal) const;
-   DLLLOCAL const QoreMethod* parseFindStaticMethod(const char* name, ClassAccess& n_access, const qore_class_private* class_ctx, bool allow_internal) const;
+   // inaccessible methods are ignored
+   DLLLOCAL const QoreMethod* parseFindNormalMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal) const;
 
-   // no class initialization; inaccessible methods are ignored
-   DLLLOCAL const QoreMethod* parseFindNormalMethodNoInit(const char* name, const qore_class_private* class_ctx, bool allow_internal) const;
-
-   // no class initialization; inaccessible methods are ignored
-   DLLLOCAL const QoreMethod* parseFindStaticMethodNoInit(const char* name, const qore_class_private* class_ctx, bool allow_internal) const;
+   // inaccessible methods are ignored
+   DLLLOCAL const QoreMethod* parseFindStaticMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal) const;
 
    // inaccessible methods are ignored
    DLLLOCAL const QoreMethod* parseResolveSelfMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal) const;
@@ -1563,14 +1560,10 @@ public:
    // inaccessible methods are ignored
    DLLLOCAL const QoreMethod* parseResolveSelfMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal);
 
-   // looks in committed and pending method lists
-   DLLLOCAL const QoreMethod* parseFindMethod(const char* name, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal);
-   DLLLOCAL const QoreMethod* parseFindStaticMethod(const char* name, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal);
-
-   // no class initialization; inaccessible methods are ignored
-   DLLLOCAL const QoreMethod* parseFindNormalMethodNoInit(const char* name, const qore_class_private* class_ctx, bool allow_internal);
-   // no class initialization; inaccessible methods are ignored
-   DLLLOCAL const QoreMethod* parseFindStaticMethodNoInit(const char* name, const qore_class_private* class_ctx, bool allow_internal);
+   // inaccessible methods are ignored
+   DLLLOCAL const QoreMethod* parseFindNormalMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal);
+   // inaccessible methods are ignored
+   DLLLOCAL const QoreMethod* parseFindStaticMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal);
 
    DLLLOCAL const QoreMethod* runtimeFindCommittedMethod(const char* name, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const;
    DLLLOCAL const QoreMethod* runtimeFindCommittedStaticMethod(const char* name, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const;
@@ -2580,6 +2573,8 @@ public:
 
    DLLLOCAL void generateBuiltinSignature(const char* nspath);
 
+   DLLLOCAL static const QoreMethod* doParseMethodAccess(const QoreMethod* m, const qore_class_private* class_ctx);
+
    DLLLOCAL static const QoreMethod* doMethodAccess(const QoreMethod* m, ClassAccess ma, const qore_class_private* class_ctx) {
       assert(m);
       return ((ma == Public) || ((ma == Private && class_ctx))) ? m : 0;
@@ -2607,17 +2602,17 @@ public:
       return m;
    }
 
-   // find either a normal method in the class hierarchy at parse time; inaccessible methods are ignored
-   DLLLOCAL const QoreMethod* parseFindNormalMethodNoInit(const char* mname, const qore_class_private* class_ctx);
+   // performs class initialization; find a static method in the class hierarchy at parse time; inaccessible methods are ignored
+   DLLLOCAL const QoreMethod* parseFindNormalMethod(const char* mname, const qore_class_private* class_ctx);
 
-   // find either a static method in the class hierarchy at parse time; inaccessible methods are ignored
-   DLLLOCAL const QoreMethod* parseFindStaticMethodNoInit(const char* mname, const qore_class_private* class_ctx);
+   // performs class initialization; find a static method in the class hierarchy at parse time; inaccessible methods are ignored
+   DLLLOCAL const QoreMethod* parseFindStaticMethod(const char* mname, const qore_class_private* class_ctx);
 
-   // finds a non-static method in the class hierarchy at parse time, optionally initializes classes
-   DLLLOCAL const QoreMethod* parseFindMethodIntern(const char* mname, ClassAccess& access, const qore_class_private* class_ctx);
+   // performs class initialization; finds a non-static method in the class hierarchy at parse time, optionally initializes classes
+   DLLLOCAL const QoreMethod* parseFindNormalMethodIntern(const char* mname, const qore_class_private* class_ctx);
 
-   // finds a static method in the class hierarchy at parse time, optionally initializes classes
-   DLLLOCAL const QoreMethod* parseFindStaticMethodIntern(const char* mname, ClassAccess& access, const qore_class_private* class_ctx);
+   // performs class initialization; finds a static method in the class hierarchy at parse time, optionally initializes classes
+   DLLLOCAL const QoreMethod* parseFindStaticMethodIntern(const char* mname, const qore_class_private* class_ctx);
 
    DLLLOCAL const QoreMethod* parseResolveSelfMethodIntern(const char* nme, const qore_class_private* class_ctx);
 
@@ -2828,19 +2823,10 @@ public:
       return &gate;
    }
 
-   // class initialization
-   DLLLOCAL const QoreMethod* parseFindStaticMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx);
-
-   // no class initialization
-   DLLLOCAL const QoreMethod* parseFindMethodNoInit(const char* nme, ClassAccess& access, const qore_class_private* class_ctx);
-
-   // no class initialization
-   DLLLOCAL const QoreMethod* parseFindStaticMethodNoInit(const char* nme, ClassAccess& access, const qore_class_private* class_ctx);
-
-   // no class initialization; inaccessible methods are ignored
+   // class initialization; inaccessible methods are ignored
    DLLLOCAL const QoreMethod* parseFindAnyMethod(const char* nme, const qore_class_private* class_ctx);
 
-   // no class initialization; inaccessible methods are ignored
+   // class initialization; inaccessible methods are ignored
    DLLLOCAL const QoreMethod* parseFindAnyMethodStaticFirst(const char* nme, const qore_class_private* class_ctx);
 
    // class initialization
@@ -2900,10 +2886,6 @@ public:
 
    DLLLOCAL static const QoreMethod* parseFindLocalMethod(const QoreClass& qc, const char* mname) {
       return qc.priv->parseFindLocalMethod(mname);
-   }
-
-   DLLLOCAL static const QoreMethod* parseFindStaticMethod(const QoreClass& qc, const char* nme, ClassAccess& access, const qore_class_private* class_ctx) {
-      return qc.priv->parseFindStaticMethod(nme, access, class_ctx);
    }
 
    DLLLOCAL static bool parseHasPendingChanges(const QoreClass& qc) {
