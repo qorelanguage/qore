@@ -233,6 +233,11 @@ public class ClassesTest inherits QUnit::Test {
         assertEq(1, c2.m());
 
         {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("class C { m() {} } sub t() { C c(); c.m(1); }", ""));
+        }
+
+        {
             # ensure proper parse-time resolution of scoped method calls
             Program p(PO_NEW_STYLE);
             p.parse("class B{int m(int i){return i+1;}}class C inherits B{m(string str){}int m(any i){return i;}int t(int i){return C::m(i);}}int sub t(int i){C c();return c.t(i);}", "");

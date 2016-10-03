@@ -677,7 +677,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
 
          //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s(%s) args: %p (%d) class: %s class_ctx: %p '%s'\n", this, getName(), sig->getSignatureText(), args, args ? args->size() : 0, aqf->className() ? aqf->className() : "n/a", class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a");
 
-         if (!variant && !sig->getParamTypes() && !nargs) {
+         if (!variant && !sig->getParamTypes() && (!nargs || (*i)->getFlags() & QC_USES_EXTRA_ARGS)) {
             match = 0;
             variant = *i;
 
@@ -904,7 +904,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 
          //printd(5, "QoreFunction::parseFindVariant() this: %p checking %s(%s) variant: %p sig->pt: %d sig->mpt: %d match: %d, args: %d\n", this, getName(), sig->getSignatureText(), variant, sig->getParamTypes(), sig->getMinParamTypes(), match, num_args);
 
-         if (!variant && !sig->getParamTypes() && pmatch == -1 && !num_args) {
+         if (!variant && !sig->getParamTypes() && pmatch == -1 && (!num_args || ((*i)->getFlags() & QC_USES_EXTRA_ARGS))) {
             match = pmatch = nperfect = 0;
             variant = *i;
 
@@ -1016,7 +1016,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
                      variant = 0;
                }
             }
-            else if (variant_pmatch >= pmatch) {
+            else if (variant_pmatch && variant_pmatch >= pmatch) {
                // if we could possibly match less than another variant
                // then we have to match at runtime
                variant = 0;
@@ -1038,7 +1038,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
          // resolve types in signature if necessary
          sig->resolve();
 
-         if (!variant && !sig->getParamTypes() && pmatch == -1 && !num_args) {
+         if (!variant && !sig->getParamTypes() && pmatch == -1 && (!num_args || ((*i)->getFlags() & QC_USES_EXTRA_ARGS))) {
             match = pmatch = nperfect = 0;
             variant = *i;
 
@@ -1150,7 +1150,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
                      variant = 0;
                }
             }
-            else if (variant_pmatch >= pmatch) {
+            else if (variant_pmatch && variant_pmatch >= pmatch) {
                // if we could possibly match less than another variant
                // then we have to match at runtime
                variant = 0;
@@ -1240,10 +1240,9 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
       if (desc.size() > 1)
          desc.terminate(desc.size() - 2);
       desc.concat(")");
-      printd(0, "QoreFunction::parseFindVariant() this: %p %s%s%s() call args: '%s' returning %p %s(%s) flags: %lld\n", this, className() ? className() : "", className() ? "::" : "", getName(), desc.c_str(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll);
+      printd(0, "QoreFunction::parseFindVariant() this: %p %s%s%s() pmatch: %d call args: '%s' returning %p %s(%s) flags: %lld\n", this, className() ? className() : "", className() ? "::" : "", getName(), pmatch, desc.c_str(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll);
    }
    */
-
    //printd(5, "QoreFunction::parseFindVariant() this: %p %s%s%s() returning %p %s(%s) flags: %lld\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll);
    return variant;
 }

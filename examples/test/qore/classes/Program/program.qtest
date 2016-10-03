@@ -182,7 +182,7 @@ class ProgramTest inherits QUnit::Test {
     typeErrorTest() {
         {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS);
-            assertThrows("CALL-WITH-TYPE-ERRORS", \p.parse(), ("sub f() {} f(1);", ""));
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub f() {} f(1);", ""));
         }
         {
             Program p(PO_NEW_STYLE|PO_NO_CHILD_PO_RESTRICTIONS|PO_STRICT_ARGS);
