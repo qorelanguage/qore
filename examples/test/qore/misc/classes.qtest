@@ -112,11 +112,27 @@ class Base2 {
     int doInt(float f) {
         return f.toInt();
     }
+
+    int doOther(string str) {
+        return 1;
+    }
+
+    int doOther() {
+        return 2;
+    }
+
+    int m(*string str) {
+        return 1;
+    }
 }
 
 class Child2 inherits Base2 {
     int doInt(int i) {
         return i + 1;
+    }
+
+    int doOther() {
+        return 3;
     }
 }
 
@@ -213,6 +229,8 @@ public class ClassesTest inherits QUnit::Test {
         Child2 c2();
         Child1 c1(c2);
         assertEq(2, c1.i);
+        assertEq(1, c2.doOther("str"));
+        assertEq(1, c2.m());
 
         {
             # ensure proper parse-time resolution of scoped method calls
