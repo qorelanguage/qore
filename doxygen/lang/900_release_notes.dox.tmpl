@@ -10,6 +10,13 @@
     @subsection qore_08124_bug_fixes Bug Fixes in Qore
 
     - fixed a reference bug in the @ref Qore::Queue "Queue" class introduced in the last release (<a href="https://github.com/qorelanguage/qore/issues/1309">issue 1309</a>)
+    - fixed a bug where database types could not be correctly aligned if they had dependencies (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>); entailed updates in the following modules:
+      - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>
+      - <a href="../../modules/FreetdsSqlUtil/html/index.html">FreetdsSqlUtil</a>
+      - <a href="../../modules/MysqlSqlUtil/html/index.html">MysqlSqlUtil</a>
+      - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a>
+      - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a>
+      - <a href="../../modules/Schema/html/index.html">Schema</a>
 
     @section qore_08123 Qore 0.8.12.3
 

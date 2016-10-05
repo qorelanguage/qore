@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file SqlUtil.qm Qore user module for working with SQL data
 
-/*  SqlUtil.qm Copyright (C) 2013 - 2016 Qore Technologies, sro
+/*  SqlUtil.qm Copyright (C) 2013 - 2016 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.3";
+    version = "1.3.1";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -99,6 +99,9 @@ module SqlUtil {
       - @ref dba_space_management
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
+
+    @subsection sqlutilv1_3_1 SqlUtil v1.3.1
+    - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
 
     @subsection sqlutilv1_3 SqlUtil v1.3
     - implemented insert option support (see @ref AbstractTable::InsertOptions) with the \c "returning" clause in supported drivers
@@ -5691,12 +5694,17 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
         abstract string getCreateSql(*hash opt);
 
         #! returns a string that can be used to drop the sequence from the database
-        string getDropSql() {
+        /** @param opt drop options (if supported by the driver and object); in this generic base class method, this argument is ignored
+         */
+        string getDropSql(*hash opt) {
             return sprintf("drop sequence %s", name);
         }
 
-        #! returns a string that can be used to rename the sequence in the database
-        abstract string getRenameSql(string new_name);
+        #! returns a list of strings that can be used to rename the sequence in the database
+        /** @param new_name the new name of the object
+            @param opt drop options (if supported by the driver and object)
+         */
+        abstract softlist getRenameSql(string new_name, *hash opt);
     }
 
     #! base class for views
@@ -5725,13 +5733,17 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
         abstract string getCreateSql(*hash opt);
 
         #! returns a string that can be used to drop the view from the database
-        string getDropSql() {
+        /** @param opt drop options (if supported by the driver and object); in this generic base class method, this argument is ignored
+         */
+        string getDropSql(*hash opt) {
             return sprintf("drop view %s", name);
         }
 
         #! returns a list with command(s) that can be used to rename the view in the database
-        abstract softlist getRenameSql(string new_name);
-
+        /** @param new_name the new name of the object
+            @param opt drop options (if supported by the driver and object)
+         */
+        abstract softlist getRenameSql(string new_name, *hash opt);
     }
 
     #! base class for function or objects with code
@@ -5763,9 +5775,10 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
             return type;
         }
 
-        # FIXME: not appropriate for pgsql triggers for example
         #! returns a string that can be used to drop the function from the database
-        string getDropSql() {
+        /** @param opt drop options (if supported by the driver and object); in this generic base class method, this argument is ignored
+         */
+        string getDropSql(*hash opt) {
             return sprintf("drop %s %s", type, name);
         }
 
@@ -5806,8 +5819,11 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
         #! returns a list of SQL strings that can be used to create the function in the database
         abstract list getCreateSql(*hash opt);
 
-        #! returns a string that can be used to rename the function in the database
-        abstract list getRenameSql(string new_name);
+        #! returns a list of strings that can be used to rename the function in the database
+        /** @param new_name the new name of the object
+            @param opt drop options (if supported by the driver and object)
+         */
+        abstract softlist getRenameSql(string new_name, *hash opt);
 
         #! sets the new name of the object
         setName(string new_name) {
@@ -5865,7 +5881,7 @@ AbstractFunction f = funcs.func1;
         abstract list getCreateSql(string table_name, *hash opt);
 
         #! returns a string that can be used to rename the trigger in the database
-        abstract list getRenameSql(string table_name, string new_name);
+        abstract softlist getRenameSql(string table_name, string new_name);
 
         #! returns a string that can be used to drop the trigger in the database
         abstract list getDropSql(string table_name);
@@ -6329,7 +6345,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
 
             #! default generic creation options
             /** This option is comprised of @ref AbstractDatabase::CallbackOptions plus the following keys:
-                - \c replace: (@ref bool_type) if @ref Qore::True "True" and supported by the underlying db driver "create or replace" text is used when creating objects
+                - \c replace: (@ref bool_type) if @ref Qore::True "True" and supported by the underlying db driver, \c "create or replace" text is used when creating objects
                 - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables and foreign key relationships between tables
                 - \c data_tablespace: (@ref string_type) a string giving the data tablespace to use for tables
                 - \c index_tablespace: (@ref string_type) a string giving the index tablespace to use for indexes
@@ -6342,14 +6358,20 @@ AbstractDatabase db("pgsql:user/pass@db%host");
                 );
 
             #! default generic schema description / alignment options
-            /** Currently this option is identical to @ref AbstractDatabase::CreationOptions
+            /** Currently this option is identical to @ref AbstractDatabase::CreationOptions plus the following keys:
+                - \c force: (@ref bool_Type) is @ref Qore::True "True" and supported by the underlying db driver, \c FORCE or \c CASCADE options are used when dropping or aligning objects
             */
-            const AlignSchemaOptions = CreationOptions;
+            const AlignSchemaOptions = CreationOptions + (
+                "force": Type::Boolean,
+                );
 
             #! default generic drop schema options
-            /** Currently this option is identical to @ref AbstractDatabase::CallbackOptions
+            /** Currently this option is identical to @ref AbstractDatabase::CallbackOptions plus the following keys:
+                - \c force: (@ref bool_Type) is @ref Qore::True "True" and supported by the underlying db driver, \c FORCE or \c CASCADE options are used when dropping objects
             */
-            const DropSchemaOptions = CallbackOptions;
+            const DropSchemaOptions = CallbackOptions + (
+                "force": Type::Boolean,
+                );
 
             #! default generic schema description keys
             /** The following keys can be set in @ref schema_desc_hash "schema description hashes":
@@ -6579,6 +6601,9 @@ list l = db.getAlignSql(schema_hash);
             validateOptionsIntern("OPTION-ERROR", getAlignSchemaOptions(), \opt);
             validateHashKeysForWhitespaces(schema_hash);
 
+            # get creation options
+            *hash copt = opt{getCreationOptions().keys()};
+
             if (!table_cache)
                 table_cache = new Tables();
 
@@ -6628,7 +6653,7 @@ list l = db.getAlignSql(schema_hash);
             }
 
             # create template tables
-            table_cache.populate(ds, schema_hash.tables, opt - "db_table_cache");
+            table_cache.populate(ds, schema_hash.tables, copt);
 
             # rename any tables
             AbstractDatabase::checkDriverOptions(\schema_hash.table_map, drv);
@@ -6735,7 +6760,7 @@ list l = db.getDropSchemaSql(schema_hash);
             # call driver-specific align schema sql function (end)
             # Option "force" is here to drop all objects (where required)
             # without dependencies checking (Oracle NTY for now)
-            tl = getDropSchemaSqlImpl(schema_hash, opt + ( "force" : True ) );
+            tl = getDropSchemaSqlImpl(schema_hash, opt + ("force": True) );
             if (tl) l += tl;
 
             return l;
@@ -6757,14 +6782,8 @@ list l = db.getDropSchemaSql(schema_hash);
 
                 # see if object exists
                 *object f = get(name);
-                if (f) {
-                    if (opt.force) {
-                        # Oracle NTY
-                        l += AbstractDatabase::doCallback(opt, tmpl.getDropSqlForce(), AC_Drop, type, name);
-                    }
-                    else
-                        l += AbstractDatabase::doCallback(opt, tmpl.getDropSql(), AC_Drop, type, name);
-                }
+                if (f)
+                    l += AbstractDatabase::doCallback(opt, tmpl.getDropSql(opt), AC_Drop, type, name);
                 else
                     AbstractDatabase::doOkCallback(opt, AC_NotFound, type, name);
             }
@@ -6823,7 +6842,7 @@ list l = db.getDropSchemaSql(schema_hash);
                 }
 
                 if (!templateFunc.equal(f)) {
-                    l += AbstractDatabase::doCallback(opt, f.getDropSql(), AC_Drop, type, name);
+                    l += AbstractDatabase::doCallback(opt, f.getDropSql(opt), AC_Drop, type, name);
                     l += AbstractDatabase::doCallback(opt, templateFunc.getCreateSql(opt), AC_Create, type, name);
                 }
                 else
@@ -6930,11 +6949,11 @@ db.dropFunctionIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         bool dropFunctionIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractFunction f = getFunction(name);
             if (!f)
                 return False;
-            return AbstractDatabase::doDrop(f.getDropSql(), "function", name, opt);
+            return AbstractDatabase::doDrop(f.getDropSql(opt), "function", name, opt);
         }
 
         #! drops the given procedure if it exists; returns @ref Qore::True "True" if the procedure was dropped, @ref Qore::False "False" if not
@@ -6951,11 +6970,11 @@ db.dropProcedureIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         bool dropProcedureIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractFunction f = getProcedure(name);
             if (!f)
                 return False;
-            return AbstractDatabase::doDrop(f.getDropSql(), "procedure", name, opt);
+            return AbstractDatabase::doDrop(f.getDropSql(opt), "procedure", name, opt);
         }
 
         #! drops the given sequence if it exists; returns @ref Qore::True "True" if the sequence was dropped, @ref Qore::False "False" if not
@@ -6972,11 +6991,11 @@ db.dropSequenceIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         bool dropSequenceIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractSequence seq = getSequence(name);
             if (!seq)
                 return False;
-            return AbstractDatabase::doDrop(seq.getDropSql(), "sequence", name, opt);
+            return AbstractDatabase::doDrop(seq.getDropSql(opt), "sequence", name, opt);
         }
 
         #! drops the given view if it exists; returns @ref Qore::True "True" if the view was dropped, @ref Qore::False "False" if not
@@ -6993,11 +7012,11 @@ db.dropViewIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         bool dropViewIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractView obj = getView(name);
             if (!obj)
                 return False;
-            return AbstractDatabase::doDrop(obj.getDropSql(), "view", name, opt);
+            return AbstractDatabase::doDrop(obj.getDropSql(opt), "view", name, opt);
         }
 
         #! drops the given table if it exists; returns @ref Qore::True "True" if the table was dropped, @ref Qore::False "False" if not
@@ -7014,7 +7033,7 @@ db.dropTableIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         bool dropTableIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractTable obj = getTable(name);
             if (!obj)
                 return False;
@@ -7036,11 +7055,11 @@ string sql = db.getDropFunctionSqlIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         *string getDropFunctionSqlIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractFunction f = getFunction(name);
             if (!f)
                 return;
-            return AbstractDatabase::doDropSql(f.getDropSql(), "function", name, opt);
+            return AbstractDatabase::doDropSql(f.getDropSql(opt), "function", name, opt);
         }
 
         #! returns the SQL require to drop the given procedure if it exists or @ref nothing if the named procedure does not exist
@@ -7057,11 +7076,11 @@ string sql = db.getDropProcedureSqlIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         *string getDropProcedureSqlIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractFunction f = getProcedure(name);
             if (!f)
                 return;
-            return AbstractDatabase::doDropSql(f.getDropSql(), "procedure", name, opt);
+            return AbstractDatabase::doDropSql(f.getDropSql(opt), "procedure", name, opt);
         }
 
         #! returns the SQL require to drop the given sequence if it exists or @ref nothing if the named sequence does not exist
@@ -7078,11 +7097,11 @@ string sql = db.getDropSequenceSqlIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         *string getDropSequenceSqlIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractSequence obj = getSequence(name);
             if (!obj)
                 return;
-            return AbstractDatabase::doDropSql(obj.getDropSql(), "sequence", name, opt);
+            return AbstractDatabase::doDropSql(obj.getDropSql(opt), "sequence", name, opt);
         }
 
         #! returns the SQL require to drop the given table if it exists or @ref nothing if the named table does not exist
@@ -7099,7 +7118,7 @@ string sql = db.getDropTableSqlIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         *list getDropTableSqlIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractTable t = getTable(name);
             if (!t)
                 return;
@@ -7136,7 +7155,7 @@ list l = db.getAlignFunctionSql(f);
             @throw OPTION-ERROR invalid or unsupported option passed
          */
         list getAlignFunctionSql(AbstractFunction f, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCreationOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getAlignSchemaOptions(), \opt);
 
             *AbstractFunction of = getFunctionImpl(f.name);
 
@@ -7146,7 +7165,7 @@ list l = db.getAlignFunctionSql(f);
                 l += AbstractDatabase::doCallback(opt, f.getCreateSql(opt), AC_Create, "function", f.name);
             }
             else if (!of.equal(f)) {
-                l += AbstractDatabase::doCallback(opt, of.getDropSql(), AC_Drop, "function", f.name);
+                l += AbstractDatabase::doCallback(opt, of.getDropSql(opt), AC_Drop, "function", f.name);
                 l += AbstractDatabase::doCallback(opt, of.getCreateSql(opt), AC_Create, "function", f.name);
             }
             else
@@ -7176,7 +7195,7 @@ list l = db.getAlignProcedureSql(f);
             if (!of)
                 l += f.getCreateSql(opt);
             else if (!of.equal(f)) {
-                l += of.getDropSql();
+                l += of.getDropSql(opt);
                 l += f.getCreateSql(opt);
             }
 
@@ -7778,11 +7797,12 @@ Table table("pgsql:user/pass@db%host", "table");
 
             #! table alignment options
             /** currently this option is a combination of @ref SqlUtil::AbstractTable::TableCreationOptions and the following options:
-                - \c column_map: a hash for automatically renaming columns; if the source name (key) exists and the target name (value) does not exist, then the source column is automatically renamed
-                - \c index_map: a hash for automatically renaming indexes; if the source name (key) exists and the target name (value) does not exist, then the source index is automatically renamed
-                - \c constraint_map: a hash for automatically renaming constraints; if the source name (key) exists and the target name (value) does not exist, then the source constraint is automatically renamed
-                - \c trigger_map: a hash for automatically renaming triggers; if the source name (key) exists and the target name (value) does not exist, then the source trigger is automatically renamed
+                - \c column_map: (@ref hash_type) a hash for automatically renaming columns; if the source name (key) exists and the target name (value) does not exist, then the source column is automatically renamed
+                - \c index_map: (@ref hash_type) a hash for automatically renaming indexes; if the source name (key) exists and the target name (value) does not exist, then the source index is automatically renamed
+                - \c constraint_map: (@ref hash_type) a hash for automatically renaming constraints; if the source name (key) exists and the target name (value) does not exist, then the source constraint is automatically renamed
+                - \c trigger_map: (@ref hash_type) a hash for automatically renaming triggers; if the source name (key) exists and the target name (value) does not exist, then the source trigger is automatically renamed
                 - \c db_table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining tables in the database and foreign key relationships between tables
+                - \c force: (@ref bool_type) if @ref Qore::True "True" and supported by the driver and object, any objects dropped will be dropped with \c FORCE or \c CASCADE options
             */
             const AlignTableOptions = TableCreationOptions + (
                 "column_map": Type::Hash,
@@ -7790,6 +7810,7 @@ Table table("pgsql:user/pass@db%host", "table");
                 "constraint_map": Type::Hash,
                 "trigger_map": Type::Hash,
                 "db_table_cache": "Tables",
+                "force": Type::Boolean,
                 );
 
             #! Table description options
