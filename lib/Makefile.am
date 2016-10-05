@@ -11,7 +11,7 @@ dummy:
 	echo "Build started!"
 
 EXTRA_INCLUDES = -I$(top_srcdir)/include -I$(top_builddir)/include -I$(top_builddir)/lib
-libqore_la_LDFLAGS = -version-info 18:0:13 -no-undefined ${QORE_LIB_LDFLAGS}
+libqore_la_LDFLAGS = -version-info 19:0:14 -no-undefined ${QORE_LIB_LDFLAGS}
 AM_CPPFLAGS = $(EXTRA_INCLUDES) ${QORE_LIB_CPPFLAGS}
 AM_CXXFLAGS = ${QORE_LIB_CXXFLAGS}
 AM_YFLAGS = -d
@@ -57,8 +57,8 @@ QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC
 	QC_ObjectPairIterator.cpp QC_ObjectPairReverseIterator.cpp \
 	QC_HashListIterator.cpp QC_HashListReverseIterator.cpp \
 	QC_ListHashIterator.cpp QC_ListHashReverseIterator.cpp \
-	QC_FileLineIterator.cpp QC_SingleValueIterator.cpp \
-	QC_DataLineIterator.cpp \
+	QC_AbstractLineIterator.cpp QC_FileLineIterator.cpp QC_DataLineIterator.cpp QC_InputStreamLineIterator.cpp \
+	QC_SingleValueIterator.cpp \
 	QC_RangeIterator.cpp \
 	QC_ThreadPool.cpp \
 	QC_TreeMap.cpp \
@@ -66,6 +66,11 @@ QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC
 	QC_Datasource.cpp QC_DatasourcePool.cpp QC_SQLStatement.cpp QC_Dir.cpp QC_Program.cpp \
 	QC_GetOpt.cpp QC_TermIOS.cpp QC_TimeZone.cpp QC_SSLCertificate.cpp QC_SSLPrivateKey.cpp \
 	QC_AbstractThreadResource.cpp \
+	QC_InputStream.cpp QC_BinaryInputStream.cpp QC_StringInputStream.cpp QC_FileInputStream.cpp QC_EncodingConversionInputStream.cpp \
+	QC_OutputStream.cpp QC_BinaryOutputStream.cpp QC_FileOutputStream.cpp QC_EncodingConversionOutputStream.cpp \
+	QC_StreamPipe.cpp QC_PipeInputStream.cpp QC_PipeOutputStream.cpp \
+	QC_StreamWriter.cpp QC_StreamReader.cpp QC_StringOutputStream.cpp \
+	QC_Transform.cpp QC_TransformInputStream.cpp QC_TransformOutputStream.cpp \
 	ql_misc.cpp ql_compression.cpp ql_thread.cpp ql_crypto.cpp ql_lib.cpp ql_file.cpp \
 	ql_string.cpp ql_time.cpp ql_math.cpp ql_list.cpp ql_pwd.cpp ql_object.cpp \
 	ql_dbi.cpp ql_context.cpp ql_env.cpp ql_type.cpp \
@@ -104,8 +109,6 @@ nodist_libqore_la_SOURCES = $(QORE_GENERATED_SOURCES)
 libqore_la_SOURCES = \
 	parser.ypp \
 	scanner.lpp \
-	Operator.cpp \
-	QoreTreeNode.cpp \
 	BarewordNode.cpp \
 	SelfVarrefNode.cpp \
 	StaticClassVarRefNode.cpp \
@@ -205,10 +208,10 @@ libqore_la_SOURCES = \
 	QoreCondition.cpp \
 	QoreQueue.cpp \
 	QoreQueueHelper.cpp \
-	QoreRegexNode.cpp \
+	QoreRegex.cpp \
 	QoreRegexBase.cpp \
-	RegexSubstNode.cpp \
-	RegexTransNode.cpp \
+	QoreRegexSubst.cpp \
+	QoreTransliteration.cpp \
 	Sequence.cpp \
 	QoreReferenceCounter.cpp \
 	SystemEnvironment.cpp \
@@ -226,12 +229,32 @@ libqore_la_SOURCES = \
 	QoreSpliceOperatorNode.cpp \
 	QoreExtractOperatorNode.cpp \
 	QoreCastOperatorNode.cpp \
+	QoreKeysOperatorNode.cpp \
 	QoreUnaryMinusOperatorNode.cpp \
+	QoreUnaryPlusOperatorNode.cpp \
 	QoreLogicalNotOperatorNode.cpp \
 	QoreDotEvalOperatorNode.cpp \
 	QoreLogicalEqualsOperatorNode.cpp \
+	QoreLogicalAbsoluteEqualsOperatorNode.cpp \
 	QoreModuloOperatorNode.cpp \
+	QoreBinaryAndOperatorNode.cpp \
+	QoreBinaryOrOperatorNode.cpp \
+	QoreBinaryXorOperatorNode.cpp \
+	QoreBinaryNotOperatorNode.cpp \
+	QoreShiftLeftOperatorNode.cpp \
+	QoreShiftRightOperatorNode.cpp \
+	QoreExistsOperatorNode.cpp \
+	QoreElementsOperatorNode.cpp \
+	QoreInstanceOfOperatorNode.cpp \
+	QoreQuestionMarkOperatorNode.cpp \
+	QoreHashObjectDereferenceOperatorNode.cpp \
+	QoreRegexMatchOperatorNode.cpp \
+	QoreRegexNMatchOperatorNode.cpp \
+	QoreRegexExtractOperatorNode.cpp \
+	QoreRegexSubstOperatorNode.cpp \
+	QoreTransliterationOperatorNode.cpp \
 	QoreAssignmentOperatorNode.cpp \
+	QoreListAssignmentOperatorNode.cpp \
 	QorePlusEqualsOperatorNode.cpp \
 	QoreIntPlusEqualsOperatorNode.cpp \
 	QoreMinusEqualsOperatorNode.cpp \
@@ -261,18 +284,35 @@ libqore_la_SOURCES = \
 	QoreMapSelectOperatorNode.cpp \
 	QoreHashMapOperatorNode.cpp \
 	QoreHashMapSelectOperatorNode.cpp \
+	QoreFoldlOperatorNode.cpp \
+	QoreSelectOperatorNode.cpp \
 	QoreNullCoalescingOperatorNode.cpp \
 	QoreValueCoalescingOperatorNode.cpp \
 	QoreChompOperatorNode.cpp \
 	QoreTrimOperatorNode.cpp \
 	QoreSquareBracketsOperatorNode.cpp \
+	QoreShiftOperatorNode.cpp \
+	QoreUnshiftOperatorNode.cpp \
+	QorePopOperatorNode.cpp \
+	QorePushOperatorNode.cpp \
+	QoreLogicalAndOperatorNode.cpp \
+	QoreLogicalOrOperatorNode.cpp \
+	QoreLogicalComparisonOperatorNode.cpp \
+	QorePlusOperatorNode.cpp \
+	QoreMinusOperatorNode.cpp \
+	QoreMultiplicationOperatorNode.cpp \
+	QoreBackgroundOperatorNode.cpp \
 	QorePseudoMethods.cpp \
 	QoreHTTPClient.cpp \
 	QoreHttpClientObject.cpp \
 	QoreValue.cpp \
+	StreamPipe.cpp \
+	CompressionTransforms.cpp \
 	xxhash.cpp \
 	minitest.cpp \
-	QoreValueList.cpp
+	QoreValueList.cpp \
+	FunctionalOperatorInterface.cpp \
+	FunctionalOperator.cpp
 
 if COND_SIGNAL_HANDLING
 libqore_la_SOURCES += QoreSignal.cpp

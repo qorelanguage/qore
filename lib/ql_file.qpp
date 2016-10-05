@@ -31,11 +31,13 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/ql_file.h>
+#include <qore/intern/QoreDir.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
+
 
 #ifdef _Q_WINDOWS
 #include <io.h>
@@ -667,8 +669,9 @@ nothing umask() [flags=RUNTIME_NOOP;dom=PROCESS] {
 //! Creates a directory, optionally specifying the mode
 /** @param path the path to the directory to create
     @param mode the file mode of the new directory (which will be AND'ed with the umask)
+    @parents if True then parent directories are created
 
-    @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
+    @return if no error occurred returns 0 or the count of newly created directory when parents = @ref Qore::True "True"; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
     @code{.py}
@@ -677,8 +680,15 @@ if (mkdir("/tmp/newdir", 0755))
     @endcode
 
     @see umask()
+
+    @since %Qore 0.8.13 added the <i>parents</i> parameter
  */
-int mkdir(string path, softint mode = 0777) [dom=FILESYSTEM] {
+int mkdir(string path, softint mode = 0777, bool parents = False) [dom=FILESYSTEM] {
+    if (parents) {
+        QoreDir dir(xsink);
+        dir.chdir(path->getBuffer(), xsink);
+        return dir.create((int) mode, xsink);
+    }
 #ifdef _Q_WINDOWS
    return _mkdir(path->getBuffer());
 #else
