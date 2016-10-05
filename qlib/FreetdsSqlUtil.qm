@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module FreetdsSqlUtil {
-    version = "1.1.1";
+    version = "1.1";
     desc = "user module for working with FreeTDS SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
