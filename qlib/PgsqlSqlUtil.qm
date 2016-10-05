@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file PgsqlSqlUtil.qm Qore user module for working with PostgreSQL SQL data
 
-/*  PgsqlSqlUtil.qm Copyright (C) 2013 - 2016 Qore Technologies, sro
+/*  PgsqlSqlUtil.qm Copyright (C) 2013 - 2016 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module PgsqlSqlUtil {
-    version = "1.1";
+    version = "1.1.1";
     desc = "user module for working with PostgreSQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -152,6 +152,9 @@ $function$
 
     @section pgsql_relnotes Release Notes
 
+    @subsection pgsqlsqlutilv111 PgsqlSqlUtil v1.1.1
+    - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
+
     @subsection pgsqlsqlutilv11 PgsqlSqlUtil v1.1
     - added support for \c cop_cast operator (<a href="https://github.com/qorelanguage/qore/issues/535">feature 535</a>)
     - added support for the following datatypes and aliases: bool, float, int, timetz, timestamptz, varbit
@@ -242,7 +245,7 @@ public namespace PgsqlSqlUtil {
                 }
                 hash h = tl[$#];
                 if (oldh.type != h.type)
-                    sqll += sprintf("alter type %s alter attribute %s type %s%s", name, oldh.name, h.type, opt.cascade ? " cascade" : "");
+                    sqll += sprintf("alter type %s alter attribute %s type %s%s", name, oldh.name, h.type, opt.force ? " cascade" : "");
                 if (oldh.name != h.name)
                     sqll += sprintf("alter type %s rename attribute %s to %s", name, oldh.name, h.name);
             }
@@ -258,18 +261,18 @@ public namespace PgsqlSqlUtil {
             return sprintf("create type %s as (%s)", name, src);
         }
 
-        #! returns a string that can be used to drop a type
+        #! returns a string that can be used to drop the function from the database
+        /** @param opt drop options; if \a force is @ref Qore::True "True", then the \c CASCADE option will be used in the drop statement
+         */
         string getDropSql(*hash opt) {
-            return sprintf("drop type %s%s", name, opt.cascade ? " cascade" : "");
-        }
-
-        #! returns a string that can be used to drop a type and all dependencies
-        string getDropSqlForce() {
-            return sprintf("drop type %s cascade", name);
+            return sprintf("drop type %s%s", name, opt.force ? " cascade" : "");
         }
 
         #! returns a string that can be used to rename a type
-        string getRenameSql(string new_name) {
+        /** @param new_name the new name of the object
+            @param opt this argument is ignored
+         */
+        string getRenameSql(string new_name, *hash opt) {
             return sprintf("alter type %s rename to %s", name, new_name);
         }
 
@@ -673,7 +676,11 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the sequence in the database
-        string getRenameSql(string new_name) {
+        /** The object is renamed in place with this call
+            @param new_name the new name of the object
+            @param opt this option is ignored
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
             return sprintf("alter sequence %s rename to %s", name, new_name);
         }
     }
@@ -707,7 +714,11 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the view in the database
-        softlist getRenameSql(string new_name) {
+        /** The object is renamed in place with this call
+            @param new_name the new name of the object
+            @param opt this option is ignored
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
             return sprintf("alter view %s rename to %s", name, new_name);
         }
     }
@@ -755,8 +766,10 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to drop the function from the database
-        string getDropSql() {
-            return sprintf("drop function %s", name);
+        /** @param opt drop options; if \a force is @ref Qore::True "True", then the \c CASCADE option will be used in the drop statement
+         */
+        string getDropSql(*hash opt) {
+            return sprintf("drop function %s%s", name, opt.force ? " cascade" : "");
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
@@ -765,7 +778,10 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the function in the database
-        softlist getRenameSql(string new_name) {
+        /** @param new_name the new name of the object
+            @param opt this argument is ignored
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
             return sprintf("alter function %s rename to %s(%s)", name, new_name, args);
         }
 
@@ -1058,7 +1074,7 @@ my any $v = $c.name;
                     }
 
                     if (!templateType.equal(type)) {
-                        l += AbstractDatabase::doCallback(opt, templateType.getModifySql(type, opt + ("cascade": True)), AbstractDatabase::AC_Modify, "type", name);
+                        l += AbstractDatabase::doCallback(opt, templateType.getModifySql(type, opt + ("force": True)), AbstractDatabase::AC_Modify, "type", name);
                     }
                 }
                 return l;
@@ -1823,7 +1839,7 @@ my any $v = $c.name;
                         l += AbstractDatabase::doCallback(opt, triggers{f.trigger}.getDropSql(name), AbstractDatabase::AC_Drop, "trigger", f.trigger, name);
                         triggers.take(f.trigger);
                     }
-                    l += AbstractDatabase::doCallback(opt, f.getDropSql(), AbstractDatabase::AC_Drop, "trigger function", f.name, name);
+                    l += AbstractDatabase::doCallback(opt, f.getDropSql(opt.force), AbstractDatabase::AC_Drop, "trigger function", f.name, name);
                 }
             }
 

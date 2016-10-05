@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file MysqlSqlUtil.qm Qore user module for working with MySQL SQL data
 
-/*  MysqlSqlUtil.qm Copyright 2013 - 2016 Qore Technologies, sro
+/*  MysqlSqlUtil.qm Copyright 2013 - 2016 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -90,6 +90,9 @@ module MysqlSqlUtil {
     constraint on the column.
 
     @section mysql_relnotes Release Notes
+
+    @subsection mysqlsqlutilv111 MysqlSqlUtil v1.1.1
+    - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
 
     @subsection mysqlsqlutilv11 MysqlSqlUtil v1.1
     - corrected support for the \c varbinary type (<a href="https://github.com/qorelanguage/qore/issues/403">bug 403</a>)
@@ -468,7 +471,9 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to drop the function from the database
-        string getDropSql() {
+        /** @param opt this argument is ignored
+         */
+        string getDropSql(*hash opt) {
             return sprintf("drop function %s", name);
         }
 
@@ -478,7 +483,10 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the function in the database
-        softlist getRenameSql(string new_name) {
+        /** @param new_name the new name of the object
+            @param opt this argument is ignored
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
             return sprintf("alter function %s rename to %s", name, new_name);
         }
     }
@@ -502,19 +510,23 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the sequence in the database
-        string getRenameSql(string new_name) {
+        /** @param new_name the new name of the object
+            @param opt this argument is ignored
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
             return sprintf("update %s set name = '%s' where name = '%s'", table_name, new_name, name);
         }
 
         #! returns a string that can be used to drop the sequence from the database
-        string getDropSql() {
+        /** @param opt this argument is ignored
+         */
+        string getDropSql(*hash opt) {
             return sprintf("delete from %s where name = '%s'", table_name, name);
         }
     }
 
     #! represents a MySQL view
     public class MysqlView inherits SqlUtil::AbstractView {
-
         public {
             #! table catalog value
             *string tablecatalog;
@@ -542,7 +554,7 @@ my any $v = $c.name;
 
         #! returns a string that can be used to create the view in the database
         string getCreateSql(*hash opt) {
-            # TODO/FIXME: more mysql options - what's allows in "opt"?
+            # TODO/FIXME: check options
             return sprintf("create %sview %s as %s",
                            opt.replace ? "or replace " : "",
                            name,
@@ -551,9 +563,12 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the view in the database
-        softlist getRenameSql(string new_name) {
+        /** @param new_name the new name of the object
+            @param opt this argument is ignored
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
             list ret;
-            push ret, getDropSql();
+            push ret, getDropSql(opt);
             string origName = name;
             name = new_name;
             push ret, getCreateSql(); # TODO/FIXME: opts
