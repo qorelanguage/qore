@@ -110,6 +110,9 @@ module FreetdsSqlUtil {
     To use other types, use the \c "native_type" @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the
     native FreeTDS type name instead (under the \c "driver" and \c "freetds" keys for schemas supporting multiple databases).
 
+    @subsection freetdssqlutilv11 FreetdsSqlUtil v1.1
+    - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
+
     @subsection freetdssqlutilv10 FreetdsSqlUtil v1.0
     - initial release
 */
@@ -504,7 +507,11 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the sequence in the database
-        string getRenameSql(string new_name) {
+        /** The object is renamed in place with this call
+            @param new_name the new name of the object
+            @param opt this option is ignored
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
             # no idea if this will work
             return sprintf("sp_rename '%s', '%s', 'OBJECT'", name, new_name);
         }
@@ -530,7 +537,11 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the view in the database
-        softlist getRenameSql(string new_name) {
+        /** The object is renamed in place with this call
+            @param new_name the new name of the object
+            @param opt this option is ignored
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
             # no idea if this will work
             return sprintf("sp_rename '%s', '%s', 'OBJECT'", name, new_name);
         }
@@ -580,7 +591,9 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to drop the function from the database
-        string getDropSql() {
+        /** @param opt this argument is ignored
+         */
+        string getDropSql(*hash opt) {
             return sprintf("drop function %s", name);
         }
 
@@ -590,7 +603,10 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the function in the database
-        softlist getRenameSql(string new_name) {
+        /** @param new_name the new name of the object
+            @param opt this argument is ignored
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
             # no idea if this will work
             return sprintf("sp_rename '%s', '%s', 'OBJECT'", name, new_name);
         }

@@ -44,7 +44,7 @@
 %strict-args
 
 module Schema {
-    version = "1.1";
+    version = "1.1.1";
     desc = "user module for working with SQL schemas";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -70,6 +70,9 @@ module Schema {
     - @ref Schema::AbstractVersionedSchema "AbstractVersionedSchema": base class for versioned schema representation and management where the schema contains its current version
 
     @section schema_relnotes Schema Module Release History
+
+    @subsection schema_v1_1_1 Schema Module v1.1.1
+    - applied the \a force option (i.e. cascade) when aligning schemas (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
 
     @subsection schema_v1_1 Schema Module v1.1
     - added the following public functions:
@@ -567,9 +570,9 @@ public namespace Schema {
             Tables table_cache();
 
 %ifndef QoreDebug
-            db.getAlignSql(schema, callback_opts, table_cache);
+            db.getAlignSql(schema, callback_opts + ("force": True), table_cache);
 %else
-            list al = db.getAlignSql(schema, callback_opts, table_cache);
+            list al = db.getAlignSql(schema, callback_opts + ("force": True), table_cache);
 
             if (al.size() != sch.sql_cache.size()) {
                 printf("callback had %d lines, getAlignSql() had %d lines\n", sch.sql_cache.size(), al.size());
