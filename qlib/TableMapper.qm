@@ -1463,13 +1463,13 @@ InboundTableMapperIterator i(input, mapper);
             }
         }
 
-        #! Retrieve mapped data as a hash of lists.
+        #! Retrieve mapped data as a list of hashes.
         /** @return *list with data or Qore::NOTHING in case there are no more data available.
 
-            Size of the batch is driven by \c select_block option passed in constructor.
+            Size of the batch is driven by the \c select_block option passed in the constructor.
 
             List is in Qore::SQL::AbstractDatasource::selectRows() form - meaning it is a list
-            with hashes, where every hashs has column names as keys with single values as
+            with hashes, where every hash has column names as keys with single values as
             hash values.
          */
         *list getDataRows() {
