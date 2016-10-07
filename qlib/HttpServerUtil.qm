@@ -753,8 +753,15 @@ public class HttpServer::AbstractHttpRequestHandler {
     #! called externally when a persistent connection is closed
     nothing persistentClosed() {
         *code c = get_thread_data(NotificationThreadKey);
-        if (c)
-            c();
+        if (c) {
+            try {
+                c();
+            }
+            catch (hash ex) {
+                if (ex.err != "OBJECT-ALREADY-DELETED")
+                    rethrow;
+            }
+        }
     }
 
     #! this method will throw an exception if a persistent connection cannot be granted

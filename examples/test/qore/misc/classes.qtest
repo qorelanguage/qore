@@ -112,11 +112,41 @@ class Base2 {
     int doInt(float f) {
         return f.toInt();
     }
+
+    int doOther(string str) {
+        return 1;
+    }
+
+    int doOther() {
+        return 2;
+    }
+
+    int m(*string str) {
+        return 1;
+    }
+
+    int m1() {
+        delete argv;
+        return 1;
+    }
+
+    int m2(int i) {
+        delete argv;
+        return i + 1;
+    }
 }
 
 class Child2 inherits Base2 {
     int doInt(int i) {
         return i + 1;
+    }
+
+    int doOther() {
+        return 3;
+    }
+
+    int m2(int i) {
+        return i;
     }
 }
 
@@ -213,6 +243,19 @@ public class ClassesTest inherits QUnit::Test {
         Child2 c2();
         Child1 c1(c2);
         assertEq(2, c1.i);
+        assertEq(1, c2.doOther("str"));
+        assertEq(1, c2.m());
+        assertEq(1, c2.m1(1));
+        assertEq(1, c2.m2(1));
+        assertEq(2, c2.m2(1, 2));
+        assertEq(1, call_object_method(c2, "m1", 1));
+        assertEq(1, call_object_method(c2, "m2", 1));
+        assertEq(2, call_object_method(c2, "m2", 1, 2));
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("class C { m() {} } sub t() { C c(); c.m(1); }", ""));
+        }
 
         {
             # ensure proper parse-time resolution of scoped method calls

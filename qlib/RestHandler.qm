@@ -641,7 +641,8 @@ public namespace RestHandler {
             }
             catch (hash ex) {
                 # make sure the error is registered with the stream handler
-                rsh.streamError(ex);
+                if (rsh)
+                    rsh.streamError(ex);
                 string desc = !cx.debug
                     ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
                     : get_exception_string(ex);

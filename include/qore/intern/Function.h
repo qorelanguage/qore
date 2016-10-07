@@ -346,6 +346,8 @@ public:
       return is_user ? CT_USER : CT_BUILTIN;
    }
 
+   DLLLOCAL int64 getParseOptions(int64 po) const;
+
    DLLLOCAL int64 getFlags() const {
       return flags;
    }
@@ -457,6 +459,8 @@ public:
    DLLLOCAL bool hasBody() const {
       return (bool)statements;
    }
+
+   DLLLOCAL int64 getParseOptions(int64 po) const;
 
    DLLLOCAL void parseInitPushLocalVars(const QoreTypeInfo* classTypeInfo);
 
