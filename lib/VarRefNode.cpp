@@ -346,8 +346,6 @@ AbstractQoreNode *VarRefDeclNode::makeNewCall(AbstractQoreNode *args) {
 }
 
 void VarRefDeclNode::makeGlobal() {
-   assert(type == VT_UNRESOLVED);
-
    type = VT_GLOBAL;
    if (parseTypeInfo)
       ref.var = qore_root_ns_private::parseAddGlobalVarDef(name, takeParseTypeInfo());
