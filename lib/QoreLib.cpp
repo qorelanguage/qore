@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -36,6 +36,7 @@
 #include <qore/intern/QoreObjectIntern.h>
 #include <qore/intern/qore_qd_private.h>
 #include <qore/intern/ql_crypto.h>
+#include <qore/intern/qore_program_private.h>
 
 #include <string.h>
 #ifdef HAVE_PWD_H
@@ -1469,13 +1470,15 @@ int check_lvalue(AbstractQoreNode* node, bool assignment) {
       if (op) {
 	 return check_lvalue(op->getLeft(), assignment);
       }
+      else {
+         QoreHashObjectDereferenceOperatorNode* hop = dynamic_cast<QoreHashObjectDereferenceOperatorNode*>(node);
+         if (hop) {
+            return check_lvalue(hop->getLeft(), assignment);
+         }
+      }
       return -1;
    }
 
-   if (ntype == NT_TREE) {
-      QoreTreeNode* t = reinterpret_cast<QoreTreeNode*>(node);
-      return t->getOp() == OP_OBJECT_REF ? check_lvalue(t->left, assignment) : -1;
-   }
    return -1;
 }
 
@@ -1624,7 +1627,7 @@ bool q_path_is_readable(const char* path) {
 
    if ((rc = stat(path, &sbuf)))
       return false;
-   
+
    if (S_ISDIR(sbuf.st_mode)) { // If path is a directory.
       DIR* dp = opendir(path);
       if (dp != NULL) {
@@ -2099,3 +2102,105 @@ int q_fstatvfs(const char* filepath, struct statvfs* buf) {
    return statvfs(dir, buf);
 }
 #endif
+
+// call to get a node with reference count 1 (copy on write)
+void ensure_unique(AbstractQoreNode* *v, ExceptionSink* xsink) {
+   assert(*v);
+   if (!(*v)->is_unique()) {
+      AbstractQoreNode* old = *v;
+      (*v) = old->realCopy();
+      old->deref(xsink);
+      assert(!*xsink);
+   }
+}
+
+// checks for illegal "self" assignments in an object context
+void check_self_assignment(AbstractQoreNode* n, LocalVar* selfid) {
+   qore_type_t ntype = n->getType();
+
+   // if it's a variable reference
+   if (ntype == NT_VARREF) {
+      VarRefNode* v = reinterpret_cast<VarRefNode*>(n);
+      if (v->getType() == VT_LOCAL && v->ref.id == selfid)
+         parse_error("illegal assignment to 'self' in an object context");
+      return;
+   }
+}
+
+int check_lvalue_int(const QoreTypeInfo*& typeInfo, const char* name) {
+   // make sure the lvalue can be assigned an integer value
+   // raise a parse exception only if parse exceptions are not suppressed
+   if (!typeInfo->parseAcceptsReturns(NT_INT)) {
+      if (getProgram()->getParseExceptionSink()) {
+	 QoreStringNode* desc = new QoreStringNode("lvalue has type ");
+	 typeInfo->getThisType(*desc);
+	 desc->sprintf(", but the %s will assign it an integer value", name);
+	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+      }
+      return -1;
+   }
+   return 0;
+}
+
+int check_lvalue_number(const QoreTypeInfo*& typeInfo, const char* name) {
+   // make sure the lvalue can be assigned a floating-point value
+   // raise a parse exception only if parse exceptions are not suppressed
+   if (!typeInfo->parseAcceptsReturns(NT_NUMBER) && getProgram()->getParseExceptionSink()) {
+      QoreStringNode* desc = new QoreStringNode("lvalue has type ");
+      typeInfo->getThisType(*desc);
+      desc->sprintf(", but the %s will assign it a number value", name);
+      qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+      return -1;
+   }
+   return 0;
+}
+
+int check_lvalue_float(const QoreTypeInfo*& typeInfo, const char* name) {
+   // make sure the lvalue can be assigned a floating-point value
+   // raise a parse exception only if parse exceptions are not suppressed
+   if (!typeInfo->parseAcceptsReturns(NT_FLOAT) && getProgram()->getParseExceptionSink()) {
+      QoreStringNode* desc = new QoreStringNode("lvalue has type ");
+      typeInfo->getThisType(*desc);
+      desc->sprintf(", but the %s will assign it a float value", name);
+      qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+      return -1;
+   }
+   return 0;
+}
+
+int check_lvalue_int_float_number(const QoreTypeInfo*& typeInfo, const char* name) {
+   // make sure the lvalue can be assigned an integer value
+   // raise a parse exception only if parse exceptions are not suppressed
+   if (!typeInfo->parseAcceptsReturns(NT_INT)
+         && !typeInfo->parseAcceptsReturns(NT_FLOAT)
+         && !typeInfo->parseAcceptsReturns(NT_NUMBER)) {
+      if (getProgram()->getParseExceptionSink()) {
+         QoreStringNode* desc = new QoreStringNode("lvalue has type ");
+         typeInfo->getThisType(*desc);
+         desc->sprintf(", but the %s only works with integer, floating-point, or numeric lvalues", name);
+         qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+      }
+      return -1;
+   }
+   if (typeInfo->parseReturnsType(NT_INT)) {
+      if (typeInfo->parseReturnsType(NT_FLOAT)) {
+         if (typeInfo->parseReturnsType(NT_NUMBER))
+            typeInfo = bigIntFloatOrNumberTypeInfo;
+         else
+            typeInfo = bigIntOrFloatTypeInfo;
+      }
+      else
+         typeInfo = bigIntTypeInfo;
+   }
+   else {
+      if (typeInfo->parseReturnsType(NT_FLOAT))
+         if (typeInfo->parseReturnsType(NT_NUMBER))
+            typeInfo = floatOrNumberTypeInfo;
+         else
+            typeInfo = floatTypeInfo;
+      else
+         typeInfo = numberTypeInfo;
+   }
+
+   return 0;
+}

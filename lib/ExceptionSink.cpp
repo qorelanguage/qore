@@ -99,6 +99,14 @@ void ExceptionSink::clear() {
    priv->thread_exit = false;
 }
 
+const AbstractQoreNode *ExceptionSink::getExceptionArg() {
+   return priv->head ? priv->head->arg : 0;
+}
+
+const AbstractQoreNode *ExceptionSink::getExceptionDesc() {
+   return priv->head ? priv->head->desc : 0;
+}
+
 AbstractQoreNode* ExceptionSink::raiseException(const char *err, const char *fmt, ...) {
    QoreStringNode *desc = new QoreStringNode;
 

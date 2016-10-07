@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -64,6 +64,7 @@ QoreValue QoreCastOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
 	 xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from class '%s' to class '%s'", obj->getClassName(), qc->getName());
 	 return QoreValue();
       }
+      //printd(5, "QoreCastOperatorNode::evalValueImpl() %s -> %s priv: %d\n", oc->getName(), tc->getName(), priv);
       if (priv && !qore_class_private::runtimeCheckPrivateClassAccess(*tc)) {
 	 xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from class '%s' to privately-accessible class '%s' in this context", obj->getClassName(), qc->getName());
 	 return QoreValue();
@@ -86,18 +87,19 @@ AbstractQoreNode* QoreCastOperatorNode::parseInitImpl(LocalVar* oflag, int pflag
 
    //printd(5, "QoreCastOperatorNode::parseInit() this=%p resolved %s->%s\n", this, path->getIdentifier(), qc ? qc->getName() : "<generic object cast>");
 
-   if (exp)
+   if (exp) {
       exp = exp->parseInit(oflag, pflag, lvids, typeInfo);
 
-   if (typeInfo->hasType()) {
-      if (!objectTypeInfo->parseAccepts(typeInfo)) {
-	 parse_error(loc, "cast<%s>(%s) is invalid; cannot cast from %s to %s", qc ? qc->getName() : "object", typeInfo->getName(), typeInfo->getName(), qc ? qc->getName() : "object");
-      }
+      if (typeInfo->hasType()) {
+	 if (!objectTypeInfo->parseAccepts(typeInfo)) {
+	    parse_error(loc, "cast<%s>(%s) is invalid; cannot cast from %s to %s", qc ? qc->getName() : "object", typeInfo->getName(), typeInfo->getName(), qc ? qc->getName() : "object");
+	 }
 #ifdef _QORE_STRICT_CAST
-      else if (qc && (qc->getTypeInfo()->parseAccepts(typeInfo) == QTI_NOT_EQUAL) && typeInfo->parseAccepts(qc->getTypeInfo()) == QTI_NOT_EQUAL) {
-	 parse_error(loc, "cannot cast from %s to %s; the classes are not compatible", typeInfo->getName(), path->ostr);
-      }
+	 else if (qc && (qc->getTypeInfo()->parseAccepts(typeInfo) == QTI_NOT_EQUAL) && typeInfo->parseAccepts(qc->getTypeInfo()) == QTI_NOT_EQUAL) {
+	    parse_error(loc, "cannot cast from %s to %s; the classes are not compatible", typeInfo->getName(), path->ostr);
+	 }
 #endif
+      }
    }
 
    // free temporary memory
