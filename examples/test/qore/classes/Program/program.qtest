@@ -189,6 +189,16 @@ class ProgramTest inherits QUnit::Test {
             p.parse("Program p(PO_NEW_STYLE); p.parse('sub f() {}', ''); p.callFunction('f', 1);", "");
             assertEq(NOTHING, p.run());
         }
+        {
+            Program p(PO_NEW_STYLE|PO_NO_CHILD_PO_RESTRICTIONS|PO_STRICT_ARGS);
+            p.parse("Program p(PO_NEW_STYLE|PO_STRICT_ARGS); p.parse('sub f() {}', ''); p.callFunction('f', 1);", "");
+            assertThrows("RUNTIME-OVERLOAD-ERROR", \p.run());
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_NO_CHILD_PO_RESTRICTIONS|PO_STRICT_ARGS);
+            p.parse("Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES); p.parse('sub f() {}', ''); p.callFunction('f', 1);", "");
+            assertThrows("RUNTIME-OVERLOAD-ERROR", \p.run());
+        }
     }
 
     brokenOperatorsTest() {
