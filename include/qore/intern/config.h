@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2005 - 2014 David Nichols
+  Copyright (C) 2005 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -38,10 +38,10 @@
 #endif
 
 #ifdef HAVE_UNIX_CONFIG_H
-#include <qore/intern/unix-config.h>
+#include "unix-config.h"
 #else
 #if defined(_WIN32) && !defined(__CYGWIN__)
-#include <qore/intern/win32-config.h>
+#include "win32-config.h"
 #else
 #error no configuration file for this build
 #endif

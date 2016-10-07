@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file WebSocketHandler.qm Qore handler definition for the HttpServer module for providing WebSocket server services
 
-/*  WebSocketHandler.qm Copyright 2013 Qore Technologies, sro
+/*  WebSocketHandler.qm Copyright 2013 - 2016 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.11 or better
-%requires qore >= 0.8.11
+# this module requires Qore 0.8.12 or better
+%requires qore >= 0.8.12
 
 # require type definitions everywhere
 %require-types
@@ -31,23 +31,22 @@
 # enable all warnings
 %enable-all-warnings
 
-%requires HttpServer >= 0.3.7
+%requires HttpServerUtil >= 0.3.11
 %requires WebSocketUtil >= 1.0
 
+%new-style
+
 module WebSocketHandler {
-    version = "1.0";
+    version = "1.2";
     desc = "user module for providing WebSocket server services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
 }
 
-/*  Version History
-    * 2013-10-04 v1.0: David Nichols <david@qore.org>
-      + the initial version of the WebSocketHandler module
-*/
-
 /** @mainpage WebSocketHandler Module
+
+    @tableofcontents
 
     @section websockethandlerintro Introduction to the WebSocketHandler Module
 
@@ -55,12 +54,24 @@ module WebSocketHandler {
     provide server-side <a href="http://tools.ietf.org/html/rfc6455">RFC-6455 based WebSocket services</a> to clients.
 
     To use this module, use \c "%requires WebSocketHandler" and \c "%requires HttpServer" in your code.
-    
+
     All the public symbols in the module are defined in the WebSocketHandler namespace.
 
     The main classes provided in this module are:
     - @ref WebSocketHandler::WebSocketConnection
     - @ref WebSocketHandler::WebSocketHandler
+
+    @section websockethandler_relnotes WebSocketHandler Release History
+
+    @subsection websockethandler_v1_2 Version 1.2
+    - fixed a bug parsing and generating the websocket close status code (<a href="https://github.com/qorelanguage/qore/issues/1216">issue 1216</a>)
+
+    @subsection websockethandler_v1_1 Version 1.1
+    - bug fix: do not delete the connection object when the connection closes, remove it so it can go out of scope naturally to avoid excess exceptions in the server code
+    - added the WebSocketConnection::connectionClosed() method which is called when the connection is closed
+
+    @subsection websockethandler_v1_0 Version 1.0
+    - the initial version of the WebSocketHandler module
 */
 
 #! the WebSocketHandler namespace contains all the objects in the WebSocketHandler module
@@ -72,57 +83,67 @@ public namespace WebSocketHandler {
         @par Sending WebSocket Message to Clients
         To send a message to a websocket client, call one of the following methods:
         - @ref WebSocketHandler::WebSocketConnection::send() "WebSocketConnection::send()": to send an unencoded message to the client
-        - @ref WebSocketHandler::WebSocketConnection::sendEncoded() "WebSocketConnection::sendEncoded()": to send an already-encoded message to the client 
+        - @ref WebSocketHandler::WebSocketConnection::sendEncoded() "WebSocketConnection::sendEncoded()": to send an already-encoded message to the client
     */
     public class WebSocketConnection {
         public {
-            WebSocketHandler $.handler;
+            WebSocketHandler handler;
 
             const DefaultQueuePollingInterval = 50ms;
         }
 
         private {
-            #! the @ref Qore::Thread::Queue "Queue" object stored messages to be sent to the server 
-            Qore::Thread::Queue $.queue();
+            #! the @ref Qore::Thread::Queue "Queue" object stores messages to be sent to the server
+            Qore::Thread::Queue queue();
         }
 
         #! the constructor is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when a new connection is made by a websocket client; it is called from @ref WebSocketHandler::WebSocketHandler::getConnectionImpl() "WebSocketHandler::getConnectionImpl()", which can be overridden in subclasses to allow a subclass of this class to be used as the connection object
-        constructor(WebSocketHandler $handler) {
-            $.handler = $handler;
+        constructor(WebSocketHandler n_handler) {
+            handler = n_handler;
         }
 
         #! this method is called by the @ref @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" to poll for messages from the client to send from the server
         *binary pollData() {
             try {
-                return $.queue.get(DefaultQueuePollingInterval);
+                return queue.get(DefaultQueuePollingInterval);
             }
-            catch (hash $ex) {
-                if ($ex.err != "QUEUE-TIMEOUT")
+            catch (hash ex) {
+                if (ex.err != "QUEUE-TIMEOUT")
                     rethrow;
             }
-        }        
+        }
 
         #! this method is called by the @ref @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" to poll for messages from the client to send from the server
         *binary pollDataImmediate() {
-            return $.queue.empty() ? NOTHING : $.queue.get();
-        }        
+            return queue.empty() ? NOTHING : queue.get();
+        }
 
         #! pushes an already-encoded message on the connection's message queue
-        sendEncoded(binary $msg) {
-            $.queue.push($msg);
+        sendEncoded(binary msg) {
+            queue.push(msg);
         }
 
         #! pushes an unencoded message on the connection's message queue; the message will be encoded with @ref WebSocketUtil::ws_encode_message() before sending
-        send(data $msg) {
-            $.queue.push(ws_encode_message($msg));
+        send(data msg) {
+            queue.push(ws_encode_message(msg));
         }
 
         #! this method is called by the @ref @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when messages from the client are received
-        gotMessage(string $msg) {
+        /** the implementation in this class is empty; implement this method in a subclass to provide custom behavior
+        */
+        gotMessage(string msg) {
         }
 
         #! this method is called by the @ref @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when messages from the client are received
-        gotMessage(binary $msg) {
+        /** the implementation in this class is empty; implement this method in a subclass to provide custom behavior
+        */
+        gotMessage(binary msg) {
+        }
+
+        #! this method is called by the @ref @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when the connection is closed
+        /** the implementation in this class is empty; implement this method in a subclass to provide custom behavior
+        */
+        connectionClosed() {
         }
     }
 
@@ -139,7 +160,7 @@ public namespace WebSocketHandler {
         - @ref WebSocketHandler::WebSocketHandler::sendOne() "WebSocketHandler::sendOne()": send a message to single connection given its connection ID
         - @ref WebSocketHandler::WebSocketHandler::sendAll() "WebSocketHandler::sendAll()": send a message to all connected clients
 
-        Websocket connections are identified by their HTTP connection ID as passed in @ref WebSocketHandler::WebSocketHandler::handleRequest() "WebSocketHandler::handleRequest()" in the \c "$cx.id" argument when the connection is first established.
+        Websocket connections are identified by their HTTP connection ID as passed in @ref WebSocketHandler::WebSocketHandler::handleRequest() "WebSocketHandler::handleRequest()" in the \c "cx.id" argument when the connection is first established.
     */
     public class WebSocketHandler inherits HttpServer::AbstractHttpSocketHandler {
         public {
@@ -147,16 +168,16 @@ public namespace WebSocketHandler {
 
         private {
             #! connection read-write lock
-            RWLock $.rwl();
+            RWLock rwl();
 
             #! connection hash
-            hash $.ch;            
+            hash ch;
         }
 
         #! create the object optionally with the given @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator"
         /** @param auth the authentication object to use to authenticate connections (see @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator"); if no @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator" object is passed, then by default no authentication will be required
          */
-        constructor(*HttpServer::AbstractAuthenticator $auth) : HttpServer::AbstractHttpSocketHandler($auth) {
+        constructor(*HttpServer::AbstractAuthenticator auth) : HttpServer::AbstractHttpSocketHandler(auth) {
         }
 
         #! called by the HTTP server to handle incoming HTTP requests
@@ -177,34 +198,34 @@ public namespace WebSocketHandler {
             @param b message body, if any
 
             @return a hash representing the response to the client as follows; to accept a dedicated connection; make sure the \c "code" is 101 (ie \c "Switching Protocols") and the \c "close" key is not @ref Qore::False "False":
-            - \c "code": the HTTP return code (see @ref HttpServer::HttpServer::HttpCodes) (101 \c "Switching Protocols" to accept the dedicated connection, in which case the start() method will be called)
+            - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes) (101 \c "Switching Protocols" to accept the dedicated connection, in which case the start() method will be called)
             - \c "body": the message body to return in the response
             - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
 
-            Websocket connections are identified by their HTTP connection ID as passed in \c "$cx.id"
+            Websocket connections are identified by their HTTP connection ID as passed in \c "cx.id"
          */
-        hash handleRequest(hash $cx, hash $hdr, *data $b) {
-            #$.logDebug("websocket request: cx: %N", $cx);
-            #$.logDebug("websocket request: hdr: %N", $hdr);
-            if (!$hdr."sec-websocket-key")
+        hash handleRequest(hash cx, hash hdr, *data b) {
+            #logDebug("websocket request: cx: %N", cx);
+            #logDebug("websocket request: hdr: %N", hdr);
+            if (!hdr."sec-websocket-key")
                 return (
                     "code": 400,
                     "body": "cannot open WebSocket connection; no Sec-WebSocket-Key header found in request",
                 );
 
-            my string $key = $hdr."sec-websocket-key";
-            my string $response_key = makeBase64String(SHA1_bin($key + WS_GUID));
+            string key = hdr."sec-websocket-key";
+            string response_key = make_base64_string(SHA1_bin(key + WS_GUID));
 
-            my hash $rhdr = (
+            hash rhdr = (
                 "Upgrade": "websocket",
                 "Connection": "Upgrade",
-                "Sec-WebSocket-Accept": $response_key,
+                "Sec-WebSocket-Accept": response_key,
                 );
 
             return (
                 "code": 101,
-                "hdr": $rhdr,
+                "hdr": rhdr,
                 );
         }
 
@@ -223,169 +244,170 @@ public namespace WebSocketHandler {
             @param hdr a hash of headers in the request
             @param sock the @ref Qore::Socket "Socket" object for the dedicated connection to the client
          */
-        startImpl(softstring $lid, hash $cx, hash $hdr, Qore::Socket $sock) {
-            $.logDebug("WebSocketHandler::startImpl() cid: %y from %s:%d", $cx.id, $cx."peer-info".hostname_desc, $cx."peer-info".port);
+        startImpl(softstring lid, hash cx, hash hdr, Qore::Socket sock) {
+            logDebug("WebSocketHandler::startImpl() cid: %y from %s:%d", cx.id, cx."peer-info".hostname_desc, cx."peer-info".port);
 
-            my softstring $cid = $cx.id;
+            softstring cid = cx.id;
 
             # get new connection object
-            my WebSocketConnection $wsc = $.getConnectionImpl($cx, $hdr, $cid);
+            WebSocketConnection wsc = getConnectionImpl(cx, hdr, cid);
 
             # add connection object to hash
             {
-                $.rwl.writeLock();
-                on_exit $.rwl.writeUnlock();
-                $.ch.$cid = $wsc;
+                rwl.writeLock();
+                on_exit rwl.writeUnlock();
+                ch{cid} = wsc;
             }
 
             on_exit {
-                $.deregisterConnectionImpl($wsc);
-                $.rwl.writeLock();
-                on_exit $.rwl.writeUnlock();
-                delete $.ch.$cid;
+                deregisterConnectionImpl(wsc);
+                wsc.connectionClosed();
+                rwl.writeLock();
+                on_exit rwl.writeUnlock();
+                remove ch{cid};
             }
 
             while (True) {
-                if ($.stop || $.lsh.$lid) {
-                    #$.logDebug("WebSocketHandler::startImpl() cid: %y stopping stop: %y", $cx.id, $.stop);
-                    $.sendClose($sock, WSCC_GoingAway);
+                if (stop || lsh{lid}) {
+                    #logDebug("WebSocketHandler::startImpl() cid: %y stopping stop: %y", cx.id, stop);
+                    sendClose(sock, WSCC_GoingAway);
                     break;
                 }
 
                 try {
                     # send any and all messages on the queue
-                    my *binary $d = $wsc.pollData();
-                    while ($d) {
-                        #printf("WebSocketHandler::startImpl() cid: %y sending msg %d bytes\n", $cx.id, $d.size());
-                        $sock.send($d);
-                        $d = $wsc.pollDataImmediate();
+                    *binary d = wsc.pollData();
+                    while (d) {
+                        #printf("WebSocketHandler::startImpl() cid: %y sending msg %d bytes\n", cx.id, d.size());
+                        sock.send(d);
+                        d = wsc.pollDataImmediate();
                     }
-                    
-                    if (!$sock.isDataAvailable(0))
+
+                    if (!sock.isDataAvailable(0))
                         continue;
 
-                    my hash $h = ws_read_message($sock);
+                    hash h = ws_read_message(sock);
 
-                    if ($h.op == WSOP_Close) {
-                        if (!$h.close) {
-                            $.logDebug("client sent OpClose without code; closing immediately");
+                    if (h.op == WSOP_Close) {
+                        if (!h.close) {
+                            logDebug("client sent OpClose without code; closing immediately");
                             break;
                         }
-                        $.logDebug("client sent WSOP_Close code %d (%s): %s", $h.close, WSCCMap.($h.close), $h.msg);
-                        $.sendClose($sock, $h.close, $h.msg);
+                        logDebug("client sent WSOP_Close code %d (%s): %s", h.close, WSCCMap.(h.close), h.msg);
+                        sendClose(sock, h.close, h.msg);
                         break;
                     }
 
-                    $.logDebug("received msg (%s: %d bytes%s): %s", WSOPMap.($h.op), $h.msg.size(), $h.masked ? " masked" : "", WebSocketHandler::getDataString($h.msg));
+                    logDebug("received msg (%s: %d bytes%s): %s", WSOPMap.(h.op), h.msg.size(), h.masked ? " masked" : "", WebSocketHandler::getDataString(h.msg));
 
-                    if (!$h.masked) {
-                        $.logError("unmasked client frame received");
-                        $.sendClose($sock, WSCC_ProtocolError);
+                    if (!h.masked) {
+                        logError("unmasked client frame received");
+                        sendClose(sock, WSCC_ProtocolError);
                         break;
                     }
-                    
-                    if ($h.op == WSOP_Ping) {
-                        $sock.send(ws_encode_message($h.msg, WSOP_Pong));
+
+                    if (h.op == WSOP_Ping) {
+                        sock.send(ws_encode_message(h.msg, WSOP_Pong));
                         continue;
                     }
-                    
-                    if ($h.op == WSOP_Text || $h.op == WSOP_Binary) {
-                        $wsc.gotMessage($h.msg);
+
+                    if (h.op == WSOP_Text || h.op == WSOP_Binary) {
+                        wsc.gotMessage(h.msg);
                         continue;
                     }
                     # unrecognized opcode - close the connection
-                    $.sendClose($sock, WSCC_UnsupportedData);
+                    sendClose(sock, WSCC_UnsupportedData);
                     break;
                 }
-                catch (hash $ex) {
+                catch (hash ex) {
                     # error in websocket handler server, log and close the connection
-                    my string $err = sprintf("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc);
-                    $.logError($err);
-                    $.sendClose($sock, WSCC_InternalServerError, $err);
+                    string err = sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
+                    logError(err);
+                    sendClose(sock, WSCC_InternalServerError, err);
                     break;
                 }
             }
 
-            #$.logDebug("WebSocketHandler::startImpl() exiting");
+            #logDebug("WebSocketHandler::startImpl() exiting");
         }
 
         #! called when a connection is established; the default implementation creates a WebSocketConnection object
-        WebSocketConnection getConnectionImpl(hash $cx, hash $hdr, string $cid) {
-            return new WebSocketConnection($self);
+        WebSocketConnection getConnectionImpl(hash cx, hash hdr, string cid) {
+            return new WebSocketConnection(self);
         }
 
         #! called when the connection terminates; the default implementation does nothing
-        deregisterConnectionImpl(WebSocketConnection $wsc) {
+        deregisterConnectionImpl(WebSocketConnection wsc) {
         }
 
         #! sends a message to all connected clients
         /** Messages are automatically encoded with @ref WebSocketUtil::ws_encode_message() before sending.
         */
-        sendAll(data $d) {
-            my binary $msg = ws_encode_message($d);
+        sendAll(data d) {
+            binary msg = ws_encode_message(d);
 
-            $.rwl.readLock();
-            on_exit $.rwl.readUnlock();
+            rwl.readLock();
+            on_exit rwl.readUnlock();
 
             # push the data on all connection queues
-            map $1.sendEncoded($msg), $.ch.iterator();
+            map $1.sendEncoded(msg), ch.iterator();
 
-            #if ($.ch) $.logDebug("sending data to connections: %y", $.ch.keys());
+            #if (ch) logDebug("sending data to connections: %y", ch.keys());
         }
 
         #! sends a message to the given connection ID
-        /** Websocket connections are identified by their HTTP connection ID as passed in @ref WebSocketHandler::WebSocketHandler::handleRequest() "WebSocketHandler::handleRequest()" in the \c "$cx.id" argument when the connection is first established.
+        /** Websocket connections are identified by their HTTP connection ID as passed in @ref WebSocketHandler::WebSocketHandler::handleRequest() "WebSocketHandler::handleRequest()" in the \c "cx.id" argument when the connection is first established.
 
             Messages are automatically encoded with @ref WebSocketUtil::ws_encode_message() before sending.
         */
-        sendOne(string $id, data $d) {
-            $.rwl.readLock();
-            on_exit $.rwl.readUnlock();
+        sendOne(string id, data d) {
+            rwl.readLock();
+            on_exit rwl.readUnlock();
 
-            if (!$.ch.$id)
-                throw "WEBSOCKET-CONNECTION-ERROR", sprintf("connection %y does not exist (valid connections: %y)", $id, $.ch.keys());
+            if (!ch{id})
+                throw "WEBSOCKET-CONNECTION-ERROR", sprintf("connection %y does not exist (valid connections: %y)", id, ch.keys());
 
-            $.ch.$id.send($d);
+            ch{id}.send(d);
         }
 
-        private sendClose(Qore::Socket $sock, int $code, *string $txtmsg) {
-            my binary $msg = $code.encodeMsb(4);
-
-            if (!WSCCMap.$code) {
-                $.logError("WebSocketHandler::sendClose(): invalid close code %d received; expecting one of: %y", $code, (map $1.toInt(), WSCCMap.keyIterator()));
-                $code = WSCC_InternalServerError;
+        private sendClose(Qore::Socket sock, int code, *string txtmsg) {
+            if (!WSCCMap{code}) {
+                logError("WebSocketHandler::sendClose(): invalid close code %d received; expecting one of: %y", code, (map $1.toInt(), WSCCMap.keyIterator()));
+                code = WSCC_InternalServerError;
             }
 
-            if ($txtmsg)
-                $txtmsg = convert_encoding($txtmsg, "utf8");
+            binary msg = code.encodeMsb(2);
+
+            if (txtmsg)
+                txtmsg = convert_encoding(txtmsg, "utf8");
             else
-                $txtmsg = WSCCMap.$code;
-            $msg += $txtmsg;
-            $sock.send(ws_encode_message($msg, WSOP_Close));
+                txtmsg = WSCCMap{code};
+            msg += txtmsg;
+            sock.send(ws_encode_message(msg, WSOP_Close));
         }
 
-        static string getDataString(*data $data) {
-            if (!$data)
+        static string getDataString(*data data) {
+            if (!data)
                 return "n/a";
-            return sprintf("type: %s: %y", $data.type(), $data);
+            return sprintf("type: %s: %y", data.type(), data);
         }
 
         #! default implementation is empty
-        logInfo(string $fmt) {
+        logInfo(string fmt) {
             # to avoid warnings about extra arguments in the call
-            delete $argv;
+            delete argv;
         }
 
         #! default implementation is empty
-        logError(string $fmt) {
+        logError(string fmt) {
             # to avoid warnings about extra arguments in the call
-            delete $argv;
+            delete argv;
         }
 
         #! default implementation is empty
-        logDebug(string $fmt) {
+        logDebug(string fmt) {
             # to avoid warnings about extra arguments in the call
-            delete $argv;
+            delete argv;
         }
     }
 }

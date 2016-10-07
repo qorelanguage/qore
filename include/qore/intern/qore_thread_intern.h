@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -45,8 +45,8 @@
 // the values here are subject to change and come from purely empirical testing
 #ifndef QORE_STACK_GUARD
 #ifdef CPU_X86_64
-// for some reason we need 20K of stack guard on x86_64
-#define QORE_STACK_GUARD (1024 * 20)
+// for some reason we need 32K of stack guard on x86_64
+#define QORE_STACK_GUARD (1024 * 32)
 #else
 
 #ifdef SPARC
@@ -72,9 +72,10 @@ class Context;
 class CVNode;
 class CallNode;
 class CallStack;
+class LocalVar;
 class LocalVarValue;
 class ClosureParseEnvironment;
-class ThreadSafeLocalVarRuntimeEnvironment;
+class QoreClosureBase;
 struct ClosureVarValue;
 class VLock;
 class ConstantEntry;
@@ -84,6 +85,7 @@ class qore_class_private;
 class AbstractQoreFunctionVariant;
 class AbstractQoreZoneInfo;
 class ThreadProgramData;
+class QoreAbstractModule;
 
 DLLLOCAL extern Operator* OP_BACKGROUND;
 
@@ -105,7 +107,7 @@ class ModuleContextNamespaceList : public mcnl_t {
 private:
    // not implemented
    DLLLOCAL ModuleContextNamespaceList(const ModuleContextNamespaceList&);
-   
+
 public:
    DLLLOCAL ModuleContextNamespaceList() {
    }
@@ -132,7 +134,7 @@ class ModuleContextFunctionList : public mcfl_t {
 private:
    // not implemented
    DLLLOCAL ModuleContextFunctionList(const ModuleContextFunctionList&);
-   
+
 public:
    DLLLOCAL ModuleContextFunctionList() {
    }
@@ -229,6 +231,7 @@ public:
 // returns 0 if the last mark has been cleared, -1 if there are more marks to check
 DLLLOCAL int purge_thread_resources_to_mark(ExceptionSink* xsink);
 DLLLOCAL void purge_thread_resources(ExceptionSink* xsink);
+DLLLOCAL void purge_pgm_thread_resources(const QoreProgram* pgm, ExceptionSink* xsink);
 DLLLOCAL void mark_thread_resources();
 DLLLOCAL void beginParsing(const char* file, void* ps = NULL, const char* src = 0, int offset = 0);
 DLLLOCAL void* endParsing();
@@ -236,6 +239,7 @@ DLLLOCAL Context* get_context_stack();
 DLLLOCAL void update_context_stack(Context* cstack);
 
 DLLLOCAL QoreProgramLocation get_runtime_location();
+DLLLOCAL QoreProgramLocation update_get_runtime_location(const QoreProgramLocation& loc);
 DLLLOCAL void update_runtime_location(const QoreProgramLocation& loc);
 
 DLLLOCAL void update_parse_line_location(int start_line, int end_line);
@@ -261,7 +265,7 @@ DLLLOCAL void substituteObjectIfEqual(QoreObject* o);
 DLLLOCAL QoreObject* substituteObject(QoreObject* o);
 DLLLOCAL QoreException* catchSwapException(QoreException* e);
 DLLLOCAL QoreException* catchGetException();
-DLLLOCAL VLock *getVLock();
+DLLLOCAL VLock* getVLock();
 DLLLOCAL void end_signal_thread(ExceptionSink* xsink);
 DLLLOCAL void delete_thread_local_data();
 DLLLOCAL void parse_cond_push(bool mark = false);
@@ -317,11 +321,11 @@ DLLLOCAL int get_pop_argv_ref();
 // clears the argv reference stack
 DLLLOCAL void clear_argv_ref();
 
-// ignore further local references to $argv
-//DLLLOCAL void ignore_local_argv();
+DLLLOCAL int set_constant(ConstantEntry* ce);
+DLLLOCAL void remove_constant(ConstantEntry* ce);
 
-DLLLOCAL int set_constant(ConstantEntry *ce);
-DLLLOCAL void remove_constant(ConstantEntry *ce);
+DLLLOCAL QoreAbstractModule* set_reexport(QoreAbstractModule* m, bool current_reexport, bool& old_reexport);
+DLLLOCAL void set_reexport(QoreAbstractModule* m, bool reexport);
 
 DLLLOCAL void parseSetCodeInfo(const char* parse_code, const QoreTypeInfo* returnTypeInfo, const char*& old_code, const QoreTypeInfo*& old_returnTypeInfo);
 DLLLOCAL void parseRestoreCodeInfo(const char* parse_code, const QoreTypeInfo* returnTypeInfo);
@@ -329,10 +333,12 @@ DLLLOCAL void parseRestoreCodeInfo(const char* parse_code, const QoreTypeInfo* r
 DLLLOCAL const QoreTypeInfo* saveReturnTypeInfo(const QoreTypeInfo* returnTypeInfo);
 DLLLOCAL const QoreTypeInfo* getReturnTypeInfo();
 
+DLLLOCAL const QoreTypeInfo* parse_get_return_type_info();
+
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 DLLLOCAL void pushCall(CallNode* cn);
 DLLLOCAL void popCall(ExceptionSink* xsink);
-DLLLOCAL CallStack *getCallStack();
+DLLLOCAL CallStack* getCallStack();
 DLLLOCAL QoreListNode* getCallStackList();
 #else
 #ifdef __GNUC__
@@ -342,6 +348,16 @@ DLLLOCAL QoreListNode* getCallStackList();
 #endif
 #define popCall(x)
 #endif
+
+class ModuleReExportHelper {
+protected:
+   QoreAbstractModule* m;
+   bool reexport;
+
+public:
+   DLLLOCAL ModuleReExportHelper(QoreAbstractModule* mi, bool reexp);
+   DLLLOCAL ~ModuleReExportHelper();
+};
 
 class QoreParseCountContextHelper {
 protected:
@@ -373,12 +389,21 @@ class QoreProgramLocationHelper {
 protected:
    QoreProgramLocation loc;
 public:
-   DLLLOCAL QoreProgramLocationHelper() : loc(get_runtime_location()) {
+   DLLLOCAL QoreProgramLocationHelper(QoreProgramLocation& n_loc) : loc(update_get_runtime_location(n_loc)) {
    }
 
    DLLLOCAL ~QoreProgramLocationHelper() {
       update_runtime_location(loc);
    }
+};
+
+class QoreProgramContextHelper {
+protected:
+   QoreProgram *old_pgm;
+
+public:
+   DLLLOCAL QoreProgramContextHelper(QoreProgram* pgm);
+   DLLLOCAL ~QoreProgramContextHelper();
 };
 
 // acquires a TID and thread entry, returns -1 if not successful
@@ -401,19 +426,23 @@ DLLLOCAL block_list_t::iterator popBlock();
 // called by each "on_block_exit" statement to activate it's code for the block exit
 DLLLOCAL void advanceOnBlockExit();
 
-DLLLOCAL LocalVarValue *thread_instantiate_lvar();
+DLLLOCAL LocalVarValue* thread_instantiate_lvar();
 DLLLOCAL void thread_uninstantiate_lvar(ExceptionSink* xsink);
+DLLLOCAL void thread_uninstantiate_self();
 
 DLLLOCAL void thread_set_closure_parse_env(ClosureParseEnvironment* cenv);
 DLLLOCAL ClosureParseEnvironment* thread_get_closure_parse_env();
 
-DLLLOCAL ClosureVarValue *thread_instantiate_closure_var(const char* id, const QoreTypeInfo* typeInfo, QoreValue& nval);
+DLLLOCAL ClosureVarValue* thread_instantiate_closure_var(const char* id, const QoreTypeInfo* typeInfo, QoreValue& nval);
+DLLLOCAL void thread_instantiate_closure_var(ClosureVarValue* cvar);
 DLLLOCAL void thread_uninstantiate_closure_var(ExceptionSink* xsink);
-DLLLOCAL ClosureVarValue *thread_find_closure_var(const char* id);
-DLLLOCAL ClosureVarValue *thread_get_runtime_closure_var(const LocalVar* id);
+DLLLOCAL ClosureVarValue* thread_find_closure_var(const char* id);
 
-DLLLOCAL ThreadSafeLocalVarRuntimeEnvironment* thread_get_runtime_closure_env();
-DLLLOCAL void thread_set_runtime_closure_env(ThreadSafeLocalVarRuntimeEnvironment* cenv);
+DLLLOCAL ClosureVarValue* thread_get_runtime_closure_var(const LocalVar* id);
+DLLLOCAL const QoreClosureBase* thread_set_runtime_closure_env(const QoreClosureBase* current);
+
+typedef std::vector<ClosureVarValue*> cvv_vec_t;
+DLLLOCAL cvv_vec_t* thread_get_all_closure_vars();
 
 DLLLOCAL int get_implicit_element();
 DLLLOCAL int save_implicit_element(int n_element);
@@ -431,7 +460,7 @@ public:
       qore_type_t t = n_n ? n_n->getType() : NT_NOTHING;
       if ((t == NT_LIST || t == NT_HASH || t == NT_OBJECT || t >= QORE_NUM_TYPES)) {
 	 if (!thread_push_container(n_n)) {
-	    n = n_n;	    
+	    n = n_n;
 	    err = false;
 	 }
 	 else {
@@ -453,25 +482,9 @@ public:
    }
 };
 
-class ThreadSafeLocalVarRuntimeEnvironmentHelper {
-private:
-   ThreadSafeLocalVarRuntimeEnvironment* cenv;
-      
-public:
-   DLLLOCAL ThreadSafeLocalVarRuntimeEnvironmentHelper(ThreadSafeLocalVarRuntimeEnvironment* n_cenv) : cenv(n_cenv ? thread_get_runtime_closure_env() : 0) {
-      if (n_cenv)
-         thread_set_runtime_closure_env(n_cenv);
-   }
-   
-   DLLLOCAL ~ThreadSafeLocalVarRuntimeEnvironmentHelper() {
-      if (cenv)
-         thread_set_runtime_closure_env(cenv);
-   }
-};
-
 DLLLOCAL const QoreListNode* thread_get_implicit_args();
 
-DLLLOCAL LocalVarValue *thread_find_lvar(const char* id);
+DLLLOCAL LocalVarValue* thread_find_lvar(const char* id);
 
 // to get the current runtime object
 DLLLOCAL QoreObject* runtime_get_stack_object();
@@ -541,8 +554,6 @@ public:
    DLLLOCAL const qore_class_private* getClass() const;
 };
 
-struct ClosureVarValue;
-
 class lvalue_ref {
 public:
    AbstractQoreNode* vexp;
@@ -588,6 +599,7 @@ private:
    const char* old_code;
    ClassObj old;
    ExceptionSink* xsink;
+   bool do_ref;
 
 public:
    DLLLOCAL CodeContextHelper(const char* code, ClassObj obj, ExceptionSink* xs);
@@ -603,27 +615,48 @@ public:
    DLLLOCAL ~ObjectSubstitutionHelper();
 };
 
-class OptionalObjectSubstitutionHelper {
+class OptionalClassObjSubstitutionHelper {
 private:
    ClassObj old;
    bool subst;
 
 public:
-   DLLLOCAL OptionalObjectSubstitutionHelper(QoreObject* obj);
-   DLLLOCAL ~OptionalObjectSubstitutionHelper();
+   DLLLOCAL OptionalClassObjSubstitutionHelper(QoreObject* obj);
+   DLLLOCAL OptionalClassObjSubstitutionHelper(const qore_class_private* qc);
+   DLLLOCAL ~OptionalClassObjSubstitutionHelper();
+};
+
+class ThreadSafeLocalVarRuntimeEnvironmentHelper {
+private:
+   const QoreClosureBase* prev;
+
+public:
+   DLLLOCAL ThreadSafeLocalVarRuntimeEnvironmentHelper(const QoreClosureBase* current);
+   DLLLOCAL ~ThreadSafeLocalVarRuntimeEnvironmentHelper();
 };
 
 typedef std::map<const LocalVar*, ClosureVarValue*> cvar_map_t;
+typedef std::set<ClosureVarValue*> cvv_set_t;
 
 class ThreadSafeLocalVarRuntimeEnvironment {
 private:
    cvar_map_t cmap;
+   cvv_set_t cvvset;
 
 public:
    DLLLOCAL ThreadSafeLocalVarRuntimeEnvironment(const lvar_set_t* vlist);
    DLLLOCAL ~ThreadSafeLocalVarRuntimeEnvironment();
-   DLLLOCAL ClosureVarValue* find(const LocalVar* id);
+   DLLLOCAL ClosureVarValue* find(const LocalVar* id) const;
+   DLLLOCAL bool hasVar(ClosureVarValue* cvv) const;
    DLLLOCAL void del(ExceptionSink* xsink);
+
+   DLLLOCAL bool empty() {
+      return cmap.empty();
+   }
+
+   DLLLOCAL const cvar_map_t& getMap() const {
+      return cmap;
+   }
 };
 
 struct ThreadLocalProgramData;
@@ -646,6 +679,44 @@ protected:
 public:
    DLLLOCAL ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime);
    DLLLOCAL ~ProgramThreadCountContextHelper();
+};
+
+class ProgramRuntimeParseContextHelper {
+protected:
+   QoreProgram* old_pgm;
+   bool restore;
+
+public:
+   DLLLOCAL ProgramRuntimeParseContextHelper(ExceptionSink* xsink, QoreProgram* pgm);
+   DLLLOCAL ~ProgramRuntimeParseContextHelper();
+};
+
+// ensures the program is locked for parsing and that thread-local data is available for execution at parse commit time
+class ProgramRuntimeParseCommitContextHelper {
+protected:
+   QoreProgram* old_pgm;
+   ThreadLocalProgramData* old_tlpd;
+   bool restore;
+
+public:
+   DLLLOCAL ProgramRuntimeParseCommitContextHelper(ExceptionSink* xsink, QoreProgram* pgm);
+   DLLLOCAL ~ProgramRuntimeParseCommitContextHelper();
+};
+
+class CurrentProgramRuntimeParseContextHelper {
+public:
+   DLLLOCAL CurrentProgramRuntimeParseContextHelper();
+   DLLLOCAL ~CurrentProgramRuntimeParseContextHelper();
+};
+
+class ProgramRuntimeParseAccessHelper {
+protected:
+   QoreProgram* old_pgm;
+   bool restore;
+
+public:
+   DLLLOCAL ProgramRuntimeParseAccessHelper(ExceptionSink* xsink, QoreProgram* pgm);
+   DLLLOCAL ~ProgramRuntimeParseAccessHelper();
 };
 
 //int thread_ref_set(const lvalue_ref* r);
@@ -691,7 +762,7 @@ class ArgvContextHelper {
 private:
    QoreListNode* old_argv;
    ExceptionSink* xsink;
-   
+
 public:
    DLLLOCAL ArgvContextHelper(QoreListNode* argv, ExceptionSink* n_xsink);
    // calls deref(xsink) on list in destructor
@@ -702,9 +773,10 @@ class SingleArgvContextHelper {
 private:
    QoreListNode* old_argv;
    ExceptionSink* xsink;
-   
+
 public:
-   DLLLOCAL SingleArgvContextHelper(const AbstractQoreNode* val, ExceptionSink* n_xsink);
+   // any reference in val will be overtaken by the SingleArgvContextHelper object
+   DLLLOCAL SingleArgvContextHelper(QoreValue val, ExceptionSink* n_xsink);
    // calls deref(xsink) on list in destructor
    DLLLOCAL ~SingleArgvContextHelper();
 };
@@ -732,7 +804,7 @@ public:
    CallNode* next, *prev;
 
    DLLLOCAL CallNode(const char* f, int t, ClassObj o);
-   DLLLOCAL void objectDeref(ExceptionSink* xsink);
+   //DLLLOCAL void objectDeref(ExceptionSink* xsink);
    DLLLOCAL QoreHashNode* getInfo() const;
 };
 
@@ -755,12 +827,12 @@ public:
 
 class CallStackHelper : public CallNode {
    ExceptionSink* xsink;
-   
+
    // not implemented
    DLLLOCAL CallStackHelper(const CallStackHelper&);
    DLLLOCAL CallStackHelper& operator=(const CallStackHelper&);
    DLLLOCAL void* operator new(size_t);
-   
+
 public:
    DLLLOCAL CallStackHelper(const char* f, int t, ClassObj o, ExceptionSink* n_xsink) : CallNode(f, t, o), xsink(n_xsink) {
       pushCall(this);
@@ -791,17 +863,17 @@ public:
    }
 
    DLLLOCAL ~QorePThreadAttr() {
-      //printd(2, "calling pthread_attr_destroy(%08p)\n", &attr);
+      //printd(2, "calling pthread_attr_destroy(%p)\n", &attr);
       pthread_attr_destroy(&attr);
-      //printd(2, "returned from pthread_attr_destroy(%08p)\n", &attr);
+      //printd(2, "returned from pthread_attr_destroy(%p)\n", &attr);
    }
 
 #ifdef HAVE_PTHREAD_ATTR_GETSTACK
-   DLLLOCAL void getstack(void*& ptr, size_t &ssize) {
+   DLLLOCAL void getstack(void*& ptr, size_t& ssize) {
       pthread_attr_getstack(&attr, &ptr, &ssize);
    }
 #endif
-      
+
    DLLLOCAL size_t getstacksize() const {
       size_t ssize;
       pthread_attr_getstacksize(&attr, &ssize);
@@ -897,7 +969,7 @@ public:
    }
 
    DLLLOCAL void delProgram(QoreProgram* pgm);
-   DLLLOCAL void saveProgram(bool runtime);
+   DLLLOCAL void saveProgram(bool runtime, ExceptionSink* xsink);
    DLLLOCAL void del(ExceptionSink* xsink);
 
    DLLLOCAL void deref() {

@@ -1,0 +1,137 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../../qlib/QUnit.qm
+
+%try-module oracle
+%define NoOracle
+%endtry
+
+%exec-class SQLStatementTest
+
+class SQLStatementTest inherits QUnit::Test {
+    public {
+        const MyOpts = Opts + (
+            "connstr": "c,conn=s",
+            );
+
+        const OptionColumn = 22;
+    }
+
+    private {
+        DatasourcePool dsp;
+        Datasource ds;
+    }
+
+    constructor() : Test("SQLStatementTest", "1.0", \ARGV, MyOpts) {
+        try {
+            dsp = getDatasourcePool();
+            ds = new Datasource(dsp.getConfigHash());
+            ds.open();
+        }
+        catch (hash ex) {
+            if (m_options.verbose)
+                printf("%s: %s\n", ex.err, ex.desc);
+            # skip tests if we can't create the datasource
+        }
+
+        if (dsp) {
+            on_success dsp.commit();
+            on_error dsp.rollback();
+
+            try {
+                dsp.exec("drop table test");
+            }
+            catch (hash ex) {
+            }
+
+            dsp.exec("create table test (string varchar2(20))");
+        }
+
+        addTestCase("Transaction Test", \transTest());
+
+        set_return_value(main());
+    }
+
+    globalTearDown() {
+        # drop the test schema
+        if (dsp) {
+            on_success dsp.commit();
+            on_error dsp.rollback();
+
+            dsp.exec("drop table test");
+        }
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"oracle:user/pass@db\")", OptionColumn);
+    }
+
+    DatasourcePool getDatasourcePool() {
+        if (!m_options.connstr)
+            m_options.connstr = ENV.QORE_DB_CONNSTR_ORACLE ?? "oracle:omquser/omquser@xbox";
+        DatasourcePool dsp(m_options.connstr);
+        if (dsp.getDriverName() != "oracle")
+            throw "ORACLE-ERROR", sprintf("cannot execute these tests on a connection using driver %y; expecting \"oracle\"", dsp.getDriverName());
+        return dsp;
+    }
+
+    transTest() {
+        if (!dsp)
+            testSkip("no DB connection");
+
+        {
+            SQLStatement stmt(dsp);
+            on_error dsp.rollback();
+
+            stmt.prepare("insert into test (string) values (%v)");
+            stmt.exec("hi");
+            assertEq(1, stmt.affectedRows());
+
+            int rc = dsp.exec("update test set string = %v where string = %v", "hi1", "hi");
+            assertEq(1, rc);
+            dsp.commit();
+
+            # test that an exception is thrown when we try to execute a stmt prepared on another connection
+            assertThrows("SQLSTATEMENT-ERROR", sub () {stmt.exec("hi2");});
+        }
+
+        {
+            SQLStatement stmt(dsp);
+            on_error dsp.rollback();
+
+            stmt.prepare("insert into test (string) values (%v)");
+            dsp.commit();
+
+            # test that an exception is thrown when we try to execute a stmt prepared on another connection
+            assertThrows("SQLSTATEMENT-ERROR", sub () {stmt.exec("hi2");});
+        }
+        {
+            SQLStatement stmt(ds);
+            on_error ds.rollback();
+            on_success ds.commit();
+
+            ds.exec("delete from test");
+            stmt.prepare("insert into test (string) values (%v)");
+            stmt.exec("hi");
+            assertEq(1, stmt.affectedRows());
+
+            softint rc = ds.exec("update test set string = %v where string = %v", "hi1", "hi");
+            assertEq(1, rc);
+            ds.commit();
+
+            # this will succeed with a Datasource since it's the same connection
+            stmt.exec("hi2");
+            assertEq(1, stmt.affectedRows());
+
+            rc = ds.selectRow("select count(1) cnt from test").cnt;
+            assertEq(2, rc);
+        }
+    }
+}

@@ -1,10 +1,10 @@
 /*
   ManagedDatasource.cpp
- 
+
   Qore Programming Language
- 
-  Copyright 2003 - 2014 Qore Technologies, sro
- 
+
+  Copyright 2003 - 2015 Qore Technologies, sro
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -92,10 +92,10 @@ int ManagedDatasource::grabLockIntern() {
 	 cond.wait(&ds_lock);
       --waiting;
    }
-   
+
    tid = ctid;
-   
-   return 0;   
+
+   return 0;
 }
 
 int ManagedDatasource::grabLock(ExceptionSink *xsink) {
@@ -104,8 +104,8 @@ int ManagedDatasource::grabLock(ExceptionSink *xsink) {
       const char *un = getUsername();
       const char *db = getDBName();
       xsink->raiseException("TRANSACTION-LOCK-TIMEOUT", "%s:%s@%s: TID %d timed out on datasource '%s@%s' after waiting %d millisecond%s on transaction lock held by TID %d",
-			    getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str(), 
-			    gettid(), un ? un : "<n/a>", db ? db : "<n/a>", tl_timeout_ms, 
+			    getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str(),
+			    gettid(), un ? un : "<n/a>", db ? db : "<n/a>", tl_timeout_ms,
 			    tl_timeout_ms == 1 ? "" : "s", tid);
       return -1;
    }
@@ -131,7 +131,12 @@ void ManagedDatasource::forceReleaseLockIntern() {
 }
 
 ManagedDatasource *ManagedDatasource::copy() {
-   return new ManagedDatasource(*this);   
+   return new ManagedDatasource(*this);
+}
+
+int ManagedDatasource::acquireLock(ExceptionSink *xsink) {
+   AutoLocker al(&ds_lock);
+   return grabLock(xsink);
 }
 
 int ManagedDatasource::startDBAction(ExceptionSink *xsink, bool &new_transaction) {
@@ -164,11 +169,11 @@ bool ManagedDatasource::endDBActionIntern(char cmd, bool new_transaction) {
    }
    else if (cmd) {
       assert(cmd == DAH_RELEASE);
-      
+
       // transaction is complete, remove the transaction thread resource
       if (!new_transaction)
 	 remove_thread_resource(this);
-      
+
       releaseLockIntern();
    }
 
@@ -252,7 +257,7 @@ bool ManagedDatasource::beginTransaction(ExceptionSink *xsink) {
       return false;
 
    Datasource::beginTransaction(xsink);
-   //printd(0, "ManagedDatasource::beginTransaction() this=%08p isInTransaction()=%d\n", this, isInTransaction());
+   //printd(0, "ManagedDatasource::beginTransaction() this=%p isInTransaction()=%d\n", this, isInTransaction());
 
    return dbah.newTransaction();
 }
@@ -304,7 +309,7 @@ int ManagedDatasource::closeUnlocked(ExceptionSink *xsink) {
 
       Datasource::close();
    }
-   
+
    return rc;
 }
 
@@ -395,21 +400,25 @@ AbstractQoreNode *ManagedDatasource::getClientVersion(ExceptionSink *xsink) cons
 }
 
 QoreHashNode* ManagedDatasource::getOptionHash(ExceptionSink* xsink) {
-   DatasourceActionHelper dbah(*this, xsink);
+   DatasourceActionHelper dbah(*this, xsink, DAH_NOCONN);
    if (!dbah)
       return 0;
    return Datasource::getOptionHash();
 }
 
-int ManagedDatasource::setOption(const char* opt, const AbstractQoreNode* val, ExceptionSink* xsink) {
-   DatasourceActionHelper dbah(*this, xsink);
+int ManagedDatasource::setOptionInit(const char* opt, const QoreValue val, ExceptionSink* xsink) {
+   return Datasource::setOption(opt, val, xsink);
+}
+
+int ManagedDatasource::setOption(const char* opt, const QoreValue val, ExceptionSink* xsink) {
+   DatasourceActionHelper dbah(*this, xsink, DAH_NOCONN);
    if (!dbah)
       return 0;
    return Datasource::setOption(opt, val, xsink);
 }
 
 AbstractQoreNode* ManagedDatasource::getOption(const char* opt, ExceptionSink* xsink) {
-   DatasourceActionHelper dbah(*this, xsink);
+   DatasourceActionHelper dbah(*this, xsink, DAH_NOCONN);
    if (!dbah)
       return 0;
    return Datasource::getOption(opt, xsink);
@@ -419,4 +428,3 @@ void ManagedDatasource::setEventQueue(Queue* q, AbstractQoreNode* arg, Exception
    AutoLocker al(&ds_lock);
    Datasource::setEventQueue(q, arg, xsink);
 }
-

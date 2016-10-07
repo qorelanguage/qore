@@ -1,0 +1,136 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/HttpServer.qm
+
+%exec-class HttpServerTest
+
+sub log(string str) {
+    printf("", argv);
+}
+
+class AltHandler inherits AbstractHttpRequestHandler {
+    hash handleRequest(hash cx, hash hdr, *data body) {
+        return makeResponse(201, "a1, " + hdr.method + ", " + hdr.path + ", " + cx.raw_path);
+    }
+}
+
+class SimpleStringHandler inherits AbstractHttpRequestHandler {
+    private { string mString; }
+    constructor (string str) { mString = str; }
+    hash handleRequest(hash cx, hash hdr, *data body) {
+        return makeResponse(200, mString);
+    }
+}
+
+class ReqHandler inherits AbstractHttpRequestHandler {
+    hash handleRequest(hash cx, hash hdr, *data body) {
+        string rpath = hdr.path;
+        if (rpath =~ /^test400\//) {
+            return make400("test400");
+        }
+        else if (rpath =~ /^test501\//) {
+            return make501("test501");
+        }
+        else if (rpath =~ /^nonexistingcode/) {
+            return makeResponse(723, "test");
+        }
+
+        if (hdr.method == "POST")
+            return makeResponse(200, "POST, " + body + ", " + rpath + ", " + cx.raw_path);
+        else
+            return makeResponse(200, hdr.method + ", " + rpath + ", " + cx.raw_path);
+    }
+}
+
+public class HttpServerTest inherits QUnit::Test {
+    private {
+        HttpServer mServer;
+        HTTPClient mClient;
+        ReqHandler mHandler;
+        int port;
+    }
+
+    constructor() : Test("HttpServerTest", "1.0") {
+        addTestCase("Test basics", \basicTest());
+        addTestCase("Test routing", \routingTest());
+        addTestCase("Test status codes", \testStatusCodes());
+        addTestCase("misc", \misc());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    globalSetUp() {
+        mServer = new HttpServer(\log(), \log());
+        mHandler = new ReqHandler();
+        mServer.setHandler("my-handler", "", MimeTypeHtml, mHandler);
+        mServer.setHandler("alt-handler", "/alt1", MimeTypeHtml, new AltHandler());
+        mServer.setHandler("/route/a/c", "/route/a/c", MimeTypeHtml, new SimpleStringHandler("/route/a/c"));
+        mServer.setHandler("/route/a", "/route/a", MimeTypeHtml, new SimpleStringHandler("/route/a"));
+        mServer.setHandler("/route/b", "/route/b", MimeTypeHtml, new SimpleStringHandler("/route/b"));
+        mServer.setHandler("/route", "/route", MimeTypeHtml, new SimpleStringHandler("/route"));
+        mServer.setDefaultHandler("my-handler", mHandler);
+        port = mServer.addListener(0).port;
+    }
+
+    globalTearDown() {
+        delete mServer;
+        delete mHandler;
+    }
+
+    setUp() {
+        mClient = new HTTPClient(("url": "http://localhost:" + port));
+        mClient.connect();
+    }
+
+    tearDown() {
+        mClient.disconnect();
+        delete mClient;
+    }
+
+    basicTest() {
+        assertEq("GET, abc, /abc", mClient.get("/abc"));
+        assertEq("GET, abc, abc", mClient.get("abc"));
+        assertEq("GET, abc/test/1/5/t, /abc/test/1/5/t", mClient.get("/abc/test/1/5/t"));
+        hash resp = mClient.send("dx123", "POST", "/abc");
+        assertEq(200, resp.status_code);
+        assertEq("POST, dx123, abc, /abc", resp.body);
+
+        assertEq("a1, GET, alt1, /alt1", mClient.get("/alt1"));
+        assertEq("a1, POST, alt1/test, alt1/test", mClient.post("alt1/test", ""));
+    }
+
+    routingTest() {
+        assertEq("/route", mClient.get("/route"));
+        assertEq("/route", mClient.get("/route/something"));
+        assertEq("/route/a", mClient.get("/route/a"));
+        assertEq("/route/a", mClient.get("/route/a/something"));
+        assertEq("/route/a/c", mClient.get("/route/a/c"));
+        assertEq("/route/a/c", mClient.get("/route/a/c/something"));
+        assertEq("/route/b", mClient.get("/route/b"));
+        assertEq("/route/b", mClient.get("/route/b/something"));
+    }
+
+    testStatusCodes() {
+        code c = sub() { mClient.get("/test400/"); };
+        testAssertion("400", c, NOTHING, new QUnit::TestResultExceptionRegexp("HTTP-CLIENT-RECEIVE-ERROR", "status code 400 received"));
+        c = sub() { mClient.get("/test501/xyz"); };
+        testAssertion("501", c, NOTHING, new QUnit::TestResultExceptionRegexp("HTTP-CLIENT-RECEIVE-ERROR", "status code 501 received"));
+        c = sub() { mClient.get("/nonexistingcode/abc"); };
+        testAssertion("non-existing status code", c, NOTHING, new QUnit::TestResultExceptionRegexp("HTTP-CLIENT-RECEIVE-ERROR", "status code 500 received"));
+    }
+
+    misc() {
+        assertEq(("method": "path", "params": ("a": "1", "b": "2")), parse_uri_query("path?a=1;b=2"));
+        assertEq(("method": "path", "params": ("a": "1", "b": True)), parse_uri_query("path?a=1;b"));
+    }
+}

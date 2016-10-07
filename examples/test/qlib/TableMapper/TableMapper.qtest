@@ -1,0 +1,219 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%exec-class TableMapperTest
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/SqlUtil.qm
+# load all possible SqlUtil driver-specific modules to ensure that our version is used when testing
+%requires ../../../../qlib/OracleSqlUtil.qm
+%requires ../../../../qlib/PgsqlSqlUtil.qm
+%requires ../../../../qlib/MysqlSqlUtil.qm
+%requires ../../../../qlib/FreetdsSqlUtil.qm
+%requires ../../../../qlib/Schema.qm
+%requires ../../../../qlib/Mapper.qm
+%requires ../../../../qlib/TableMapper.qm
+
+public class TableMapperTestSchema inherits AbstractSchema {
+    public {
+        const T_TableMapperTest = (
+            "columns": (
+                "id": c_number(True),
+                "string": c_varchar(50, C_NULL),
+            ),
+            );
+
+        const Tables = (
+            "table_mapper_test": T_TableMapperTest,
+            );
+
+        const Sequences = (
+            "seq_table_mapper_test": {},
+            );
+    }
+
+    constructor(AbstractDatasource ds, *string dts, *string its) : AbstractSchema(ds, dts, its) {
+    }
+
+    private *hash getTablesImpl() {
+        return Tables;
+    }
+
+    private *hash getSequencesImpl() {
+        return Sequences;
+    }
+
+    string getNameImpl() {
+        return "TableMapperTestSchema";
+    }
+
+    string getVersionImpl() {
+        return "1.0";
+    }
+
+    log(string fmt) {
+        #vprintf(fmt + "\n", argv);
+        delete argv;
+    }
+
+    logpf(string fmt) {
+        #vprintf(fmt + "\n", argv);
+        delete argv;
+    }
+
+    logProgress(string fmt) {
+        #vprintf(fmt + "\n", argv);
+        delete argv;
+    }
+}
+
+public class TableMapperTest inherits QUnit::Test {
+    private {
+        AbstractSchema schema;
+        AbstractTable table;
+
+        const Map1 = (
+            "id": ("sequence": "seq_table_mapper_test"),
+            "string": True,
+            );
+
+        const Input1 = (("string": "string_1"),
+                        ("string": "string_2"),
+                        ("string": ""),
+                       );
+        const Output1 = (("string" : "string_1"),
+                         ("string" : "string_2"),
+                         ("string" : ""),
+                        );
+
+        const OutMap1 = (
+            "seq": "id",
+            "tstr": string sub (any ignored, hash rec) {
+                return sprintf("%s-%s", rec.id, rec.string);
+            },
+            );
+
+        const SelectHash = (
+            "orderby": "id",
+            );
+
+        const Output2 = (
+            ("seq": 7, "tstr": "7-string_1"),
+            ("seq": 8, "tstr": "8-string_2"),
+            ("seq": 9, "tstr": "9-"),
+            );
+
+        const MyOpts = Opts + (
+            "connstr": "c,conn=s",
+            );
+
+        const OptionColumn = 22;
+    }
+
+    constructor(any args, *hash mopts) : Test("TableMapperTest", "1.0", \args, mopts ?? MyOpts) {
+        Datasource ds;
+        try {
+            ds = getDatasource();
+            # create the test schema
+            schema = new TableMapperTestSchema(ds);
+            schema.align(False, m_options.verbose);
+            # get table object
+            table = (new Table(schema.getDatasource(), "table_mapper_test")).getTable();
+        }
+        catch (hash ex) {
+            if (m_options.verbose)
+                printf("%s: %s\n", ex.err, ex.desc);
+        }
+        # add test cases
+        addTestCase("InboundTableMapper", \inboundTableMapperTest());
+        addTestCase("OutputTableMapper", \outputTableMapperTest());
+
+        set_return_value(main());
+    }
+
+    globalTearDown() {
+        # drop the test schema
+        if (schema)
+            schema.drop(False, m_options.verbose);
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"driver:user/pass@db\")", OptionColumn);
+    }
+
+    inboundTableMapperTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        list output1 = Output1;
+        if (table.bindEmptyStringsAsNull())
+            output1[2].string = NULL;
+
+        # insertRow() test
+        {
+            on_exit table.rollback();
+
+            InboundTableMapper mapper(table, Map1);
+            checkMap((map mapper.insertRow($1), Input1), Input1, output1);
+            checkMap(table.selectRows(("orderby": "id")), Input1, output1);
+        }
+
+        # queueData(hash) test
+        {
+            on_exit table.rollback();
+
+            InboundTableMapper mapper(table, Map1);
+            map mapper.queueData($1), Input1;
+            checkMap((map $1, mapper.flush().contextIterator()), Input1, output1);
+            checkMap(table.selectRows(("orderby": "id")), Input1, output1);
+        }
+
+        # queueData(list) test
+        # NOTE: the outbound test depends on the data from this test, which is committed
+        {
+            on_error table.rollback();
+            on_success table.commit();
+
+            InboundTableMapper mapper(table, Map1);
+            mapper.queueData(Input1.iterator());
+            checkMap((map $1, mapper.flush().contextIterator()), Input1, output1);
+            checkMap(table.selectRows(("orderby": "id")), Input1, output1);
+        }
+    }
+
+    outputTableMapperTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        SqlStatementOutboundMapper m(table, SelectHash, OutMap1);
+        AbstractMapperIterator i = m.iterator();
+        list l;
+        while (list tl = i.mapBulk(2))
+            l += tl;
+
+        assertEq(Output2, l, "mapBulk");
+    }
+
+    checkMap(list l, list il, list ol) {
+        foreach hash h in (l) {
+            assertEq(Type::Int, h.id.type(), "id type for row " + $#);
+            any hval = h.string === NULL ? NOTHING : h.string;
+            any oval = ol[$#].string === NULL ? NOTHING : ol[$#].string;
+            assertEq(oval, hval);
+        }
+    }
+
+    Datasource getDatasource() {
+        if (!m_options.connstr)
+            m_options.connstr = ENV.QORE_DB_CONNSTR_ORACLE ?? ENV.QORE_DB_CONNSTR_PGSQL ?? ENV.QORE_DB_CONNSTR_MYSQL ?? ENV.QORE_DB_CONNSTR_FREETDS ?? ENV.QORE_DB_CONNSTR_SYBASE;
+        Datasource ds(m_options.connstr);
+        ds.open();
+        return ds;
+    }
+}

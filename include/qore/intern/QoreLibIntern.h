@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,7 @@
 #include <sys/types.h>
 
 #ifdef HAVE_SYS_STATVFS_H
+#define Q_HAVE_STATVFS
 #include <sys/statvfs.h>
 #endif
 #include <sys/stat.h>
@@ -100,9 +101,6 @@ extern char* strcasestr(const char* s1, const char* s2);
 // for arbitrary-precision numeric support
 #include <mpfr.h>
 
-//#define DO_OBJ_RECURSIVE_CHECK 1
-#undef DO_OBJ_RECURSIVE_CHECK
-
 // printf format for size_t or qore_size_t integers
 #if TARGET_BITS == 64
 #define QSD QLLD
@@ -136,7 +134,17 @@ extern char* strcasestr(const char* s1, const char* s2);
 
 typedef std::set<QoreObject*> obj_set_t;
 
-DLLLOCAL bool is_container(const AbstractQoreNode* n);
+// check if "this" is valid in class member functions (cannot check "this" directly in g++ 4.9+ for example with optimization enabled)
+DLLLOCAL inline bool qore_check_this(const void* p) {
+   return p;
+}
+
+// returns true if the node needs to be scanned for recursive references or not
+DLLLOCAL bool needs_scan(const AbstractQoreNode* n);
+// increments or decrements the object count depending on the sign of the argument (cannot be 0)
+DLLLOCAL void inc_container_obj(const AbstractQoreNode* n, int dt);
+
+DLLLOCAL AbstractQoreNode* missing_openssl_feature(const char* f, ExceptionSink* xsink);
 
 struct ParseWarnOptions {
    int64 parse_options;
@@ -148,12 +156,12 @@ struct ParseWarnOptions {
    DLLLOCAL ParseWarnOptions(int64 n_parse_options, int n_warn_mask = 0) : parse_options(n_parse_options), warn_mask(n_warn_mask) {
    }
 
-   DLLLOCAL void operator=(const ParseWarnOptions &pwo) {
+   DLLLOCAL void operator=(const ParseWarnOptions& pwo) {
       parse_options = pwo.parse_options;
       warn_mask = pwo.warn_mask;
    }
 
-   DLLLOCAL bool operator==(const ParseWarnOptions &pwo) const {
+   DLLLOCAL bool operator==(const ParseWarnOptions& pwo) const {
       return parse_options == pwo.parse_options && warn_mask == pwo.warn_mask;
    }
 };
@@ -223,17 +231,19 @@ DLLLOCAL void parseException(const QoreProgramLocation& loc, const char* err, co
 DLLLOCAL void parseException(const char* err, const char* fmt, ...);
 DLLLOCAL void parseException(const char* err, QoreStringNode* desc);
 DLLLOCAL void parseException(const QoreProgramLocation& loc, const char* err, QoreStringNode* desc);
-DLLLOCAL QoreString *findFileInPath(const char* file, const char* path);
-DLLLOCAL QoreString *findFileInEnvPath(const char* file, const char* varname);
 
-DLLLOCAL const QoreTypeInfo *getBuiltinUserTypeInfo(const char* str);
-DLLLOCAL const QoreTypeInfo *getBuiltinUserOrNothingTypeInfo(const char* str);
+DLLLOCAL QoreString* findFileInPath(const char* file, const char* path);
+DLLLOCAL QoreString* findFileInEnvPath(const char* file, const char* varname);
+DLLLOCAL int qore_find_file_in_path(QoreString& str, const char* file, const char* path);
+
+DLLLOCAL const QoreTypeInfo* getBuiltinUserTypeInfo(const char* str);
+DLLLOCAL const QoreTypeInfo* getBuiltinUserOrNothingTypeInfo(const char* str);
 //DLLLOCAL qore_type_t getBuiltinType(const char* str);
 DLLLOCAL const char* getBuiltinTypeName(qore_type_t type);
 
 // processes parameter information
-DLLLOCAL void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &defaultArgList, va_list args);
-DLLLOCAL void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &defaultArgList, name_vec_t& nameList, va_list args);
+DLLLOCAL void qore_process_params(unsigned num_params, type_vec_t& typeList, arg_vec_t& defaultArgList, va_list args);
+DLLLOCAL void qore_process_params(unsigned num_params, type_vec_t& typeList, arg_vec_t& defaultArgList, name_vec_t& nameList, va_list args);
 
 // call to get a node with reference count 1 (copy on write)
 void ensure_unique(AbstractQoreNode** v, ExceptionSink* xsink);
@@ -268,20 +278,39 @@ static inline long long atoll(const char* str) {
 #define OPENSSL_CONST
 #endif
 
-typedef std::set<const AbstractQoreNode* > const_node_set_t;
-typedef std::set<LocalVar *> lvar_set_t;
+typedef std::set<const AbstractQoreNode*> const_node_set_t;
+typedef std::set<LocalVar*> lvar_set_t;
+
+class LVarSet : public lvar_set_t {
+protected:
+   // true if at least one variable in the set could contain an object or a closure (also through a container)
+   bool needs_scan;
+
+public:
+   // creates the object
+   DLLLOCAL LVarSet() : needs_scan(false) {
+   }
+
+   // adds a local variable to the set
+   DLLLOCAL void add(LocalVar* var);
+
+   // returns true if at least one variable in the set could contain an object or a closure (also through a container)
+   DLLLOCAL bool needsScan() const {
+      return needs_scan;
+   }
+};
 
 enum obe_type_e { OBE_Unconditional, OBE_Success, OBE_Error };
 
 class StatementBlock;
-typedef std::pair<enum obe_type_e, StatementBlock *> qore_conditional_block_exit_statement_t;
+typedef std::pair<enum obe_type_e, StatementBlock*> qore_conditional_block_exit_statement_t;
 
 typedef std::list<qore_conditional_block_exit_statement_t> block_list_t;
 
 // for maps of thread condition variables to TIDs
-typedef std::map<QoreCondition *, int> cond_map_t;
+typedef std::map<QoreCondition*, int> cond_map_t;
 
-#if defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE) && defined(HAVE_CHECK_STACK_POS)
+#if defined(HAVE_CHECK_STACK_POS)
 #define QORE_MANAGE_STACK
 #endif
 
@@ -297,113 +326,55 @@ enum qore_call_t {
 #define DAH_NOCHANGE  0 // acquire lock temporarily
 #define DAH_ACQUIRE   1 // acquire lock and hold
 #define DAH_RELEASE   2 // release lock at end of action
+#define DAH_NOCONN    3 // acquire lock temporarily and do not make a connection
 
 #define DAH_TEXT(d) (d == DAH_RELEASE ? "RELEASE" : (d == DAH_ACQUIRE ? "ACQUIRE" : "NOCHANGE"))
 
-// keep a map of objects to member names to find recursive data structures
-//typedef std::map<QoreObject*, const char*> obj_map_t;
-//typedef std::vector<obj_map_t::iterator> obj_vec_t;
-//typedef std::set<QoreObject*> obj_set_tt;
-
-/*
-class ObjMap {
-protected:
-   // map of object ptrs to keys
-   obj_map_t omap;
-   // vector to store object insert order
-   obj_vec_t ovec;
-   // set of already-mapped object ptrs
-   obj_set_t oset;
-   // start of new objects, objects in ovec before this index have already been added
-   unsigned start;
-
-   DLLLOCAL void popAll(obj_map_t::iterator i) {
-      while (ovec.back() != i) {
-         omap.erase(ovec.back());
-         ovec.pop_back();
-      }
-   }
-
-public:
-   DLLLOCAL ObjMap() : start(0) {
-   }
-
-   DLLLOCAL unsigned getMark() const {
-      return start;
-   }
-
-   DLLLOCAL void set(QoreObject *obj, const char* key);
-   DLLLOCAL void reset(QoreObject *obj, const char* key);
-
-   DLLLOCAL void foundObj(QoreObject *obj, const char* key);
-
-   // erase all objects pushed since the one passed
-   DLLLOCAL void erase(QoreObject *obj) {
-      obj_map_t::iterator i = omap.find(obj);
-      if (i != omap.end()) {
-         // erase objects inserted after key
-         popAll(i);
-
-         omap.erase(i);
-         ovec.pop_back();
-      }
-      if (start > ovec.size())
-         start = ovec.size();
-   }
-
-   DLLLOCAL void mark() {
-      start = ovec.size();
-      if (start)
-         --start;
-   }
-
-   DLLLOCAL int check(QoreObject *obj);
-
-   DLLLOCAL const char* getKey(QoreObject *obj) const {
-      obj_map_t::const_iterator i = omap.find(obj);
-      if (i == omap.end())
-         return 0;
-
-      return i->second;
-   }
-
-   DLLLOCAL bool empty() const {
-      return ovec.empty();
-   }
-
-   DLLLOCAL unsigned size() const {
-      return ovec.size();
-   }
-};
-
-class ObjectCycleHelper {
-protected:
-   ObjMap& omap;
-   QoreObject* obj;
-
-public:
-   DLLLOCAL ObjectCycleHelper(ObjMap& n_omap, QoreObject* n_obj) : omap(n_omap), obj(n_obj) {
-   }
-
-   DLLLOCAL ~ObjectCycleHelper() {
-      omap.erase(obj);
-   }
-};
-
-DLLLOCAL int qoreCheckContainer(AbstractQoreNode* v, ObjMap &omap, AutoVLock &vl, ExceptionSink* xsink);
-*/
-
-
 DLLLOCAL int check_lvalue(AbstractQoreNode* n, bool assign = true);
-DLLLOCAL int check_lvalue_int(const QoreTypeInfo *&typeInfo, const char* name);
-DLLLOCAL int check_lvalue_float(const QoreTypeInfo *&typeInfo, const char* name);
-DLLLOCAL int check_lvalue_int_float_number(const QoreTypeInfo *&typeInfo, const char* name);
-DLLLOCAL int check_lvalue_number(const QoreTypeInfo *&typeInfo, const char* name);
+DLLLOCAL int check_lvalue_int(const QoreTypeInfo*& typeInfo, const char* name);
+DLLLOCAL int check_lvalue_float(const QoreTypeInfo*& typeInfo, const char* name);
+DLLLOCAL int check_lvalue_int_float_number(const QoreTypeInfo*& typeInfo, const char* name);
+DLLLOCAL int check_lvalue_number(const QoreTypeInfo*& typeInfo, const char* name);
 
 DLLLOCAL extern QoreClass* QC_PSEUDOVALUE;
 DLLLOCAL extern QoreClass* QC_PSEUDONOTHING;
 
 DLLLOCAL bool node_has_effect(const AbstractQoreNode* n);
+
+#ifdef _Q_WINDOWS
+// simulated block size for statvfs() on Windows
+#define Q_SVF_BSIZE 4096
+#define Q_HAVE_STATVFS
+struct statvfs {
+   unsigned long   f_bsize;        /* File system block size */
+   unsigned long   f_frsize;       /* Fundamental file system block size */
+   unsigned int    f_blocks;       /* Blocks on FS in units of f_frsize */
+   unsigned int    f_bfree;        /* Free blocks */
+   unsigned int    f_bavail;       /* Blocks available to non-root */
+   unsigned int    f_files;        /* Total inodes */
+   unsigned int    f_ffree;        /* Free inodes */
+   unsigned int    f_favail;       /* Free inodes for non-root */
+   unsigned long   f_fsid;         /* Filesystem ID */
+   unsigned long   f_flag;         /* Bit mask of values */
+   unsigned long   f_namemax;      /* Max file name length */
+
+   DLLLOCAL void set(int64 avail, int64 total, int64 free) {
+      f_frsize = f_bsize = Q_SVF_BSIZE;
+      f_blocks = total / Q_SVF_BSIZE;
+      f_bfree = free / Q_SVF_BSIZE;
+      f_bavail = avail / Q_SVF_BSIZE;
+      // simulate inodes
+      f_files = f_blocks / 8;
+      f_ffree = f_bfree / 8;
+      f_favail = f_bavail / 8;
+      f_fsid = 0;
+      f_flag = 0;
+      f_namemax = 256;
+   }
+};
+DLLLOCAL int statvfs(const char* path, struct statvfs* buf);
+DLLLOCAL int q_fstatvfs(const char* filepath, struct statvfs* buf);
+#endif
 
 #include <qore/intern/NamedScope.h>
 #include <qore/intern/QoreTypeInfo.h>
@@ -483,19 +454,20 @@ DLLLOCAL extern char table64[64];
 
 DLLLOCAL int get_nibble(char c, ExceptionSink* xsink);
 DLLLOCAL BinaryNode* parseHex(const char* buf, int len);
-DLLLOCAL void print_node(FILE *fp, const AbstractQoreNode* node);
+DLLLOCAL void print_node(FILE* fp, const QoreValue qv);
 DLLLOCAL void delete_global_variables();
 DLLLOCAL void init_lib_intern(char* env[]);
-DLLLOCAL QoreListNode* makeArgs(AbstractQoreNode* arg);
+DLLLOCAL QoreListNode* make_args(AbstractQoreNode* arg);
 
 DLLLOCAL AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, ExceptionSink* xsink);
+DLLLOCAL QoreValue copy_value_and_resolve_lvar_refs(const QoreValue n, ExceptionSink* xsink);
 
 DLLLOCAL void init_qore_types();
 DLLLOCAL void delete_qore_types();
 
-DLLLOCAL QoreListNode* stat_to_list(const struct stat &sbuf);
-DLLLOCAL QoreHashNode* stat_to_hash(const struct stat &sbuf);
-DLLLOCAL QoreHashNode* statvfs_to_hash(const struct statvfs &statvfs);
+DLLLOCAL QoreListNode* stat_to_list(const struct stat& sbuf);
+DLLLOCAL QoreHashNode* stat_to_hash(const struct stat& sbuf);
+DLLLOCAL QoreHashNode* statvfs_to_hash(const struct statvfs& statvfs);
 
 // only called in stage 1 parsing: true means node requires run-time evaluation
 //DLLLOCAL bool needsEval(AbstractQoreNode* n);
@@ -515,16 +487,16 @@ DLLLOCAL extern StaticSystemNamespace* staticSystemNamespace;
 
 class QoreListNodeParseInitHelper : public ListIterator {
 private:
-   LocalVar *oflag;
+   LocalVar* oflag;
    int pflag;
-   int &lvids;
+   int& lvids;
 
 public:
-   DLLLOCAL QoreListNodeParseInitHelper(QoreListNode* n_l, LocalVar *n_oflag, int n_pflag, int &n_lvids) :
+   DLLLOCAL QoreListNodeParseInitHelper(QoreListNode* n_l, LocalVar* n_oflag, int n_pflag, int& n_lvids) :
       ListIterator(n_l), oflag(n_oflag), pflag(n_pflag), lvids(n_lvids) {
    }
 
-   DLLLOCAL AbstractQoreNode* parseInit(const QoreTypeInfo *&typeInfo) {
+   DLLLOCAL AbstractQoreNode* parseInit(const QoreTypeInfo*& typeInfo) {
       assert(!typeInfo);
       //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, index(), getList()->size(), getList());
 
@@ -547,16 +519,16 @@ public:
 
 class QorePossibleListNodeParseInitHelper {
 private:
-   LocalVar *oflag;
+   LocalVar* oflag;
    int pflag;
-   int &lvids;
+   int& lvids;
    QoreListNode* l;
    bool finished;
    qore_size_t pos;
-   const QoreTypeInfo *singleTypeInfo;
+   const QoreTypeInfo* singleTypeInfo;
 
 public:
-   DLLLOCAL QorePossibleListNodeParseInitHelper(AbstractQoreNode** n, LocalVar *n_oflag, int n_pflag, int &n_lvids) :
+   DLLLOCAL QorePossibleListNodeParseInitHelper(AbstractQoreNode** n, LocalVar* n_oflag, int n_pflag, int& n_lvids) :
       oflag(n_oflag),
       pflag(n_pflag),
       lvids(n_lvids),
@@ -600,7 +572,7 @@ public:
       return l->get_entry_ptr(pos);
    }
 
-   DLLLOCAL void parseInit(const QoreTypeInfo *&typeInfo) {
+   DLLLOCAL void parseInit(const QoreTypeInfo*& typeInfo) {
       //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, l ? pos : 0, l ? l->size() : 1, l);
 
       typeInfo = 0;
@@ -634,7 +606,7 @@ public:
    }
 };
 
-DLLLOCAL void raiseNonExistentMethodCallWarning(const QoreClass *qc, const char* method);
+DLLLOCAL void raiseNonExistentMethodCallWarning(const QoreClass* qc, const char* method);
 
 /*
 class abstract_assignment_helper {
@@ -648,21 +620,23 @@ class qore_hash_private;
 
 class hash_assignment_priv {
 public:
-   qore_hash_private &h;
-   HashMember *om;
+   qore_hash_private& h;
+   HashMember* om;
 
-   DLLLOCAL hash_assignment_priv(qore_hash_private &n_h, HashMember *n_om) : h(n_h), om(n_om) {
+   DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, HashMember* n_om) : h(n_h), om(n_om) {
    }
 
-   DLLLOCAL hash_assignment_priv(qore_hash_private &n_h, const char* key, bool must_already_exist = false);
+   DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, const char* key, bool must_already_exist = false);
 
-   DLLLOCAL hash_assignment_priv(QoreHashNode &n_h, const char* key, bool must_already_exist = false);
+   DLLLOCAL hash_assignment_priv(QoreHashNode& n_h, const char* key, bool must_already_exist = false);
 
-   DLLLOCAL hash_assignment_priv(QoreHashNode &n_h, const std::string &key, bool must_already_exist = false);
+   DLLLOCAL hash_assignment_priv(QoreHashNode& n_h, const std::string &key, bool must_already_exist = false);
 
-   DLLLOCAL hash_assignment_priv(ExceptionSink* xsink, QoreHashNode &n_h, const QoreString &key, bool must_already_exist = false);
+   DLLLOCAL hash_assignment_priv(ExceptionSink* xsink, QoreHashNode& n_h, const QoreString& key, bool must_already_exist = false);
 
-   DLLLOCAL hash_assignment_priv(ExceptionSink* xsink, QoreHashNode &n_h, const QoreString *key, bool must_already_exist = false);
+   DLLLOCAL hash_assignment_priv(ExceptionSink* xsink, QoreHashNode& n_h, const QoreString* key, bool must_already_exist = false);
+
+   DLLLOCAL void reassign(const char* key, bool must_already_exist = false);
 
    DLLLOCAL AbstractQoreNode* swapImpl(AbstractQoreNode* v);
 
@@ -672,14 +646,7 @@ public:
       return getValueImpl();
    }
 
-   DLLLOCAL void assign(AbstractQoreNode* v, ExceptionSink* xsink) {
-      AbstractQoreNode* old = swapImpl(v);
-      //qoreCheckContainer(v);
-      if (old) {
-         // "remove" logic here
-         old->deref(xsink);
-      }
-   }
+   DLLLOCAL void assign(AbstractQoreNode* v, ExceptionSink* xsink);
 
    DLLLOCAL AbstractQoreNode* swap(AbstractQoreNode* v) {
       return swapImpl(v);
@@ -695,14 +662,14 @@ DLLLOCAL void qore_machine_backtrace();
 template <typename T, int S1 = QORE_THREAD_STACK_BLOCK>
 class ThreadBlock {
 private:
-   DLLLOCAL ThreadBlock(const ThreadBlock &);
+   DLLLOCAL ThreadBlock(const ThreadBlock&);
 
 public:
    T var[S1];
    int pos;
-   ThreadBlock<T, S1> *prev, *next;
+   ThreadBlock<T, S1>* prev, * next;
 
-   DLLLOCAL ThreadBlock(ThreadBlock *n_prev = 0) : pos(0), prev(n_prev), next(0) { }
+   DLLLOCAL ThreadBlock(ThreadBlock* n_prev = 0) : pos(0), prev(n_prev), next(0) { }
    DLLLOCAL ~ThreadBlock() { }
    DLLLOCAL T& get(int p) {
       return var[p];
@@ -717,11 +684,11 @@ public:
    typedef ThreadBlock<T, S1> Block;
 
 protected:
-   Block *orig, *curr;
+   Block* orig, * curr;
    int pos;
 
 public:
-   DLLLOCAL ThreadLocalDataIterator(Block *n_orig) : orig(n_orig && n_orig->pos ? n_orig : 0), curr(0), pos(0) {
+   DLLLOCAL ThreadLocalDataIterator(Block* n_orig) : orig(n_orig && n_orig->pos ? n_orig : 0), curr(0), pos(0) {
    }
    DLLLOCAL ThreadLocalDataIterator() : orig(0), curr(0), pos(0) {
    }
@@ -757,13 +724,13 @@ public:
 template <typename T, int S1 = QORE_THREAD_STACK_BLOCK>
 class ThreadLocalData {
 private:
-   DLLLOCAL ThreadLocalData(const ThreadLocalData &);
+   DLLLOCAL ThreadLocalData(const ThreadLocalData&);
 
 public:
    typedef ThreadBlock<T, S1> Block;
    typedef ThreadLocalDataIterator<T, S1> iterator;
 
-   Block *curr;
+   Block* curr;
 
    DLLLOCAL ThreadLocalData() {
       curr = new Block;
@@ -790,48 +757,6 @@ public:
 
 DLLLOCAL int q_get_af(int type);
 DLLLOCAL int q_get_sock_type(int t);
-
-/*
-struct QoreParam {
-   const char* name;
-   const QoreTypeInfo *type;
-
-   DLLLOCAL QoreParam() : name(0), type(0) {
-   }
-
-   DLLLOCAL QoreParam(const char* n_name, const QoreTypeInfo *n_type) : name(n_name), type(n_type) {
-   }
-};
-
-typedef std::vector<QoreParam> param_vec_t;
-
-class AbstractVirtualMethod {
-protected:
-   const char* name;
-   bool requires_value;
-   const QoreTypeInfo *return_type;
-   param_vec_t params;
-
-   DLLLOCAL virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const = 0;
-
-public:
-   DLLLOCAL AbstractVirtualMethod(const char* n_name, bool n_requires_lvalue, const QoreTypeInfo *n_return_type, ...);
-   DLLLOCAL virtual ~AbstractVirtualMethod();
-   DLLLOCAL AbstractQoreNode* eval(AbstractQoreNode* self, const QoreListNode* args, ExceptionSink* xsink) const;
-   DLLLOCAL unsigned numArgs() const {
-      return params.size();
-   }
-   DLLLOCAL const QoreTypeInfo *getReturnTypeInfo() const {
-      return return_type;
-   }
-   DLLLOCAL const char* getName() const {
-      return name;
-   }
-   DLLLOCAL const param_vec_t &getParamList() const {
-      return params;
-   }
-};
-*/
 
 class OptHashRefHelper {
    const ReferenceNode* ref;
@@ -879,15 +804,36 @@ public:
    DLLLOCAL ~VariableBlockHelper();
 };
 
+class ParseOptionMaps {
+protected:
+   DLLLOCAL void doMap(int64 code, const char* desc);
+
+public:
+   typedef std::map<int64, const char*> pomap_t;
+   typedef std::map<const char*, int64, ltstr> pormap_t;
+
+   pomap_t pomap;
+   pormap_t pormap;
+
+   DLLLOCAL ParseOptionMaps();
+
+   DLLLOCAL QoreHashNode* getCodeToStringMap() const;
+   DLLLOCAL QoreHashNode* getStringToCodeMap() const;
+};
+
+DLLLOCAL extern ParseOptionMaps pomaps;
+
 DLLLOCAL extern QoreString YamlNullString;
 
-DLLLOCAL AbstractQoreNode* qore_parse_get_define_value(const char* str, QoreString &arg, bool &ok);
+DLLLOCAL extern bool q_disable_gc;
+
+DLLLOCAL AbstractQoreNode* qore_parse_get_define_value(const char* str, QoreString& arg, bool& ok);
 
 #ifndef HAVE_INET_NTOP
-DLLLOCAL const char* inet_ntop(int af, const void *src, char* dst, size_t size);
+DLLLOCAL const char* inet_ntop(int af, const void* src, char* dst, size_t size);
 #endif
 #ifndef HAVE_INET_PTON
-DLLLOCAL int inet_pton(int af, const char* src, void *dst);
+DLLLOCAL int inet_pton(int af, const char* src, void* dst);
 #endif
 
 DLLLOCAL AbstractQoreNode* missing_function_error(const char* func, ExceptionSink* xsink);
@@ -895,7 +841,7 @@ DLLLOCAL AbstractQoreNode* missing_function_error(const char* func, const char* 
 DLLLOCAL AbstractQoreNode* missing_method_error(const char* meth, const char* opt, ExceptionSink* xsink);
 
 // checks for illegal $self assignments in an object context
-DLLLOCAL void check_self_assignment(AbstractQoreNode* n, LocalVar *selfid);
+DLLLOCAL void check_self_assignment(AbstractQoreNode* n, LocalVar* selfid);
 
 DLLLOCAL void ignore_return_value(AbstractQoreNode* n);
 
@@ -904,12 +850,12 @@ DLLLOCAL void qore_string_init();
 DLLLOCAL QoreListNode* split_intern(const char* pattern, qore_size_t pl, const char* str, qore_size_t sl, const QoreEncoding* enc, bool with_separator = false);
 DLLLOCAL QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNode* l, int offset, ExceptionSink* xsink);
 DLLLOCAL QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, const QoreString* quote, bool trim_unquoted, ExceptionSink* xsink);
-DLLLOCAL bool inlist_intern(const AbstractQoreNode *arg, const QoreListNode *l, ExceptionSink* xsink);
-DLLLOCAL QoreStringNode* format_float_intern(const QoreString& fmt, double num);
+DLLLOCAL bool inlist_intern(const QoreValue arg, const QoreListNode* l, ExceptionSink* xsink);
+DLLLOCAL QoreStringNode* format_float_intern(const QoreString& fmt, double num, ExceptionSink* xsink);
 DLLLOCAL DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreString& dtstr, const QoreString& mask, ExceptionSink* xsink);
 DLLLOCAL QoreHashNode* date_info(const DateTime& d);
 DLLLOCAL void init_charmaps();
-DLLLOCAL int do_unaccent(QoreString& str, ExceptionSink* xsink);
+DLLLOCAL int do_unaccent(QoreString& str, const QoreString& src, ExceptionSink* xsink);
 DLLLOCAL int do_unaccent(QoreString& str, const QoreString& src, ExceptionSink* xsink);
 DLLLOCAL int do_tolower(QoreString& str, const QoreString& src, ExceptionSink* xsink);
 DLLLOCAL int do_toupper(QoreString& str, const QoreString& src, ExceptionSink* xsink);
@@ -917,5 +863,26 @@ DLLLOCAL int do_toupper(QoreString& str, const QoreString& src, ExceptionSink* x
 DLLLOCAL int64 q_clock_getmillis();
 DLLLOCAL int64 q_clock_getmicros();
 DLLLOCAL int64 q_clock_getnanos();
+
+DLLLOCAL void qore_init_random_salt();
+DLLLOCAL int qore_get_ptr_hash(QoreString& str, const void* ptr);
+
+// find the position of the first path separator in the string, or 0
+DLLLOCAL const char* q_find_first_path_sep(const char* path);
+// find the position of the last path separator in the string, or 0
+DLLLOCAL const char* q_find_last_path_sep(const char* path);
+
+// reutrns the given file's mode or 0 if the stat() call fails
+DLLLOCAL int q_get_mode(const QoreString& path);
+//! returns the byte length of the next UTF-8 character or 0 for an encoding error or a negative number if the string is too short to represent the character
+/** FIXME: change return type to qore_offset_t
+ */
+DLLLOCAL qore_size_t q_UTF8_get_char_len(const char* p, qore_size_t valid_len);
+
+//! returns the byte length of the next UTF-16 (big-endian encoded) character or 0 for an encoding error or a negative number if the string is too short to represent the character
+/** FIXME: change return type to qore_offset_t
+ */
+DLLLOCAL qore_size_t q_UTF16BE_get_char_len(const char* p, qore_size_t valid_len);
+DLLLOCAL qore_size_t q_UTF16LE_get_char_len(const char* p, qore_size_t len);
 
 #endif

@@ -19,19 +19,18 @@
     Time zone information is read in from binary time zone data in the Windows registry under:\n
     - <tt>HKEY_LOCAL_MACHINE SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones</tt>
 
-    Time zone region names must correspond to registry keys under the above key or the time zone information will not be loaded.
+    Time zone region names must correspond to registry keys under the above key or to zoneinfo names (which will be temporarily converted to the corresponding Windows registry keys according to a lookup table), otherwise the time zone information will not be loaded.
 
-    The region name reported by Qore::TimeZone::region() will be the display name for the time zone, as found in the registry.
+    The region name reported by Qore::TimeZone::region() will be the zoneinfo name passed to TimeZone's constructor or a zoneinfo name corresponding to the Windows-style name (first corresponding zoneinfo name according to alphabet).
 
     For example:
 
     @verbatim
 O:\bin>qore -ne "TimeZone tz('Central Europe Standard Time'); printf(\"%s\n\", tz.region());"
-(GMT+01:00) Belgrade, Bratislava, Budapest, Ljubljana, Prague@endverbatim
+Europe/Belgrade
 
-    This differs from UNIX where the region name passed to the TimeZone constructor is the same region name that appears in the @ref Qore::TimeZone::region() output; this is because Windows uses \c "Standard Time" in the key name in the registry, even though the underlying zone definition is for both standard and daylight savings time.
-
-    @note Please be aware that the region names may differ in localized versions of Windows
+O:\bin>qore -ne "TimeZone tz('Europe/Vienna'); printf(\"%s\n\", tz.region());"
+Europe/Vienna@endverbatim
 
     @section time_zone_examples More Time Zone Information and Examples
 

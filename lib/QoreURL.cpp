@@ -1,10 +1,10 @@
 /*
   QoreURL.cpp
-  
+
   Qore Programming Language
-  
-  Copyright (C) 2003 - 2014 David Nichols
-  
+
+  Copyright (C) 2003 - 2016 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -40,12 +40,12 @@ private:
    DLLLOCAL void parse_intern(const char* buf, bool keep_brackets) {
       if (!buf || !buf[0])
 	 return;
-   
+
       printd(5, "QoreURL::parse_intern(%s)\n", buf);
-   
+
       char* p = (char* )strstr(buf, "://");
       const char* pos;
-   
+
       // get scheme, aka protocol
       if (p) {
 	 protocol = new QoreStringNode(buf, p - buf);
@@ -56,9 +56,16 @@ private:
       }
       else
 	 pos = buf;
-   
+
+      // see if the rest of the URL is a windows path
+      if ((isalpha(*pos) && *(pos + 1) == ':')
+	  || (*pos == '\\' && *(pos + 1) == '\\')) {
+	 path = new QoreStringNode(pos);
+	 return;
+      }
+
       char* nbuf;
-   
+
       // find end of hostname
       if ((p = (char* )strchr(pos, '/'))) {
 	 // get pathname if not at EOS
@@ -71,7 +78,7 @@ private:
       }
       else
 	 nbuf = strdup(pos);
-   
+
       // see if there's a username
       // note that nbuf here has already had the path removed so we can safely do a reverse search for the '@' sign
       if ((p = strrchr(nbuf, '@'))) {
@@ -99,20 +106,23 @@ private:
       bool has_port = false;
       // see if there's a port
       if ((p = (char* )strrchr(pos, ':'))) {
-	 *p = '\0';
-	 port = atoi(p + 1);
-	 has_port = true;
-	 printd(5, "QoreURL::parse_intern port=%d\n", port);
+         // see if it's Ipv6 localhost (::)
+         if (p != (pos + 1) || *pos != ':') {
+            *p = '\0';
+            port = atoi(p + 1);
+            has_port = true;
+            printd(5, "QoreURL::parse_intern port=%d\n", port);
+         }
       }
 
-      // there is no hostname if there is no port specification and 
+      // there is no hostname if there is no port specification and
       // no protocol, username, or password -- just a relative path
       if (!host) {
 	 if (!has_port && !protocol && !username && !password && path)
 	    path->replace(0, 0, pos);
 	 else if (*pos) {
 	    // set hostname
-	    printd(5, "QoreURL::parse_intern host=%s\n", pos);	 
+	    printd(5, "QoreURL::parse_intern host=%s\n", pos);
 
 	    // see if the hostname is in the form "socket=xxxx" in which case we interpret as a UNIX domain socket
 	    if (!strncasecmp(pos, "socket=", 7)) {
@@ -143,7 +153,7 @@ public:
       protocol = path = username = password = host = 0;
       port = 0;
    }
-      
+
    DLLLOCAL void reset() {
       if (protocol)
 	 protocol->deref();
@@ -193,7 +203,7 @@ public:
       }
       if (port)
 	 h->setKeyValue("port", new QoreBigIntNode(port), 0);
-   
+
       return h;
    }
 };

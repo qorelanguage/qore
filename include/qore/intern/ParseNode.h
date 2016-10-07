@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   ParseNode.h
-  
+
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -48,26 +48,56 @@ protected:
    //! if the node has undergone "parse initialization"
    bool parse_init : 1;
 
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) = 0;
-   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const = 0;
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) = 0;
+
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const = 0;
+
+   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink* xsink) const {
+      ValueEvalRefHolder v(this, xsink);
+      return v->getAsBigInt();
+   }
+   DLLLOCAL virtual int integerEvalImpl(ExceptionSink* xsink) const {
+      ValueEvalRefHolder v(this, xsink);
+      return v->getAsBigInt();
+   }
+   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink* xsink) const {
+      ValueEvalRefHolder v(this, xsink);
+      return v->getAsBool();
+   }
+   DLLLOCAL virtual double floatEvalImpl(ExceptionSink* xsink) const {
+      ValueEvalRefHolder v(this, xsink);
+      return v->getAsFloat();
+   }
+   DLLLOCAL virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const {
+      ValueEvalRefHolder v(this, xsink);
+      return v.getReferencedValue();
+   }
+   DLLLOCAL virtual AbstractQoreNode* evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
+      ValueEvalRefHolder v(this, xsink);
+      return v.takeNode(needs_deref);
+   }
+
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const = 0;
 
 public:
    DLLLOCAL ParseNode(qore_type_t t, bool n_needs_eval = true) : SimpleQoreNode(t, false, n_needs_eval), effect(n_needs_eval), ref_rv(true), parse_init(false) {
+      has_value_api = true;
    }
    DLLLOCAL ParseNode(qore_type_t t, bool n_needs_eval, bool n_effect) : SimpleQoreNode(t, false, n_needs_eval), effect(n_effect), ref_rv(true), parse_init(false) {
+      has_value_api = true;
    }
-   DLLLOCAL ParseNode(const ParseNode &old) : SimpleQoreNode(old.type, false, old.needs_eval_flag), effect(old.effect), ref_rv(old.ref_rv), parse_init(false) {
+   DLLLOCAL ParseNode(const ParseNode& old) : SimpleQoreNode(old.type, false, old.needs_eval_flag), effect(old.effect), ref_rv(old.ref_rv), parse_init(false) {
    }
    // parse types should never be copied
-   DLLLOCAL virtual AbstractQoreNode *realCopy() const {
+   DLLLOCAL virtual AbstractQoreNode* realCopy() const {
       assert(false);
       return 0;
    }
-   DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const {
+   DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const {
       assert(false);
       return false;
    }
-   DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
+   DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const {
       assert(false);
       return false;
    }
@@ -84,7 +114,7 @@ public:
       return ref_rv;
    }
 
-   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   DLLLOCAL virtual AbstractQoreNode* parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
       if (parse_init) {
          typeInfo = getTypeInfo();
          return this;
@@ -92,49 +122,35 @@ public:
       parse_init = true;
       return parseInitImpl(oflag, pflag, lvids, typeInfo);
    }
+
+   // FIXME: move to AbstractQoreNode
+   DLLLOCAL QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) const {
+      needs_deref = true;
+      return evalValueImpl(needs_deref, xsink);
+   }
 };
 
-// these objects will never be copied or referenced therefore they can have 
+// these objects will never be copied or referenced therefore they can have
 // public destructors - the deref() functions just call "delete this;"
 class ParseNoEvalNode : public ParseNode {
 private:
    // not implemented
    DLLLOCAL ParseNoEvalNode& operator=(const ParseNoEvalNode&);
 
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) = 0;
-   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const = 0;
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) = 0;
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const = 0;
 
 protected:
-   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const {
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
       assert(false);
-      return 0;
-   }
-   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const {
-      assert(false);
-      return 0;
-   }
-   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const {
-      assert(false);
-      return false;
-   }
-   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const {
-      assert(false);
-      return 0.0;
-   }
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const {
-      assert(false);
-      return 0;
-   }
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-      assert(false);
-      return 0;
+      return QoreValue();
    }
 
 public:
    DLLLOCAL ParseNoEvalNode(qore_type_t t) : ParseNode(t, false) {
    }
 
-   DLLLOCAL ParseNoEvalNode(const ParseNoEvalNode &old) : ParseNode(old) {
+   DLLLOCAL ParseNoEvalNode(const ParseNoEvalNode& old) : ParseNode(old) {
    }
 };
 

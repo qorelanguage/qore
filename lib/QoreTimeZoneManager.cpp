@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -35,7 +35,6 @@
 
 #include <stdio.h>
 #include <time.h>
-#include <sys/timeb.h>
 
 #ifdef HAVE_GLOB_H
 #include <glob.h>
@@ -52,14 +51,17 @@
 #include <ctype.h>
 
 #include <memory>
+#include <map>
 
 #define QB(x) ((x) ? "true" : "false")
 
 QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink *xsink) : AbstractQoreZoneInfo(n_name), first_pos(-1), valid(false), std_abbr(0) {
-   printd(5, "QoreZoneInfo::QoreZoneInfo() this=%p root=%s name=%s\n", this, root.getBuffer(), name.c_str());
+   printd(5, "QoreZoneInfo::QoreZoneInfo() this: %p root: %s name: %s\n", this, root.getBuffer(), name.c_str());
 
    std::string fn = root.getBuffer();
-   fn += "/" + name;
+   if (!fn.empty())
+      fn += "/";
+   fn += name;
 
    QoreFile f;
    if (f.open2(xsink, fn.c_str()))
@@ -108,7 +110,7 @@ QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink 
    if (f.readu4(&tzh_charcnt, xsink))
       return;
 
-   printd(5, "QoreZoneInfo::QoreZoneInfo() tzh_ttisutccnt=%d tzh_ttisstdcnt=%d tzh_leapcnt=%d tzh_timecnt=%d tzh_typecnt=%d tzh_charcnt=%d\n", tzh_ttisutccnt, tzh_ttisstdcnt, tzh_leapcnt, tzh_timecnt, tzh_typecnt, tzh_charcnt);
+   printd(5, "QoreZoneInfo::QoreZoneInfo() tzh_ttisutccnt: %d tzh_ttisstdcnt: %d tzh_leapcnt: %d tzh_timecnt: %d tzh_typecnt: %d tzh_charcnt: %d\n", tzh_ttisutccnt, tzh_ttisstdcnt, tzh_leapcnt, tzh_timecnt, tzh_typecnt, tzh_charcnt);
 
    if (tzh_ttisutccnt > tzh_typecnt) {
       xsink->raiseException("TZINFO-ERROR", "tzh_ttisutccnt (%d) > tzh_typecnt (%d)", tzh_ttisutccnt, tzh_typecnt);
@@ -154,14 +156,14 @@ QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink 
       if (f.readi4(&tti[i].utcoff, xsink))
 	 return;
 
-      //printd(5, "QoreZoneInfo::QoreZoneInfo() utcoff=%d\n", tti[i].utcoff);
+      //printd(5, "QoreZoneInfo::QoreZoneInfo() utcoff: %d\n", tti[i].utcoff);
 
       unsigned char c;
       if (f.readu1(&c, xsink))
 	 return;
 
       tti[i].isdst = c;
-      if (!has_dst && c)
+      if (c && !has_dst)
          has_dst = true;
 
       if (f.readu1(&c, xsink))
@@ -184,7 +186,7 @@ QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink 
                printd(1, "QoreZoneInfo::QoreZoneInfo() skipping invalid transition [%d] at %d\n", i, t.time);
                QoreDSTTransitions.erase(di);
                di = prev;
-               if (i < first_pos)
+               if ((int)i < first_pos)
                  --first_pos;
             }
          }
@@ -237,14 +239,22 @@ QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink 
    for (unsigned i = tzh_ttisutccnt; i < tzh_typecnt; ++i)
       tti[i].isutc = false;
 
-   for (unsigned i = 0; i < tzh_typecnt; ++i) {
-      if (utcoff == -1 && !tti[i].isdst)
-         utcoff = tti[i].utcoff;
-      //printd(5, "QoreZoneInfo::QoreZoneInfo() tti[%d] %s: utcoff=%d isdst=%s isstd=%s isutc=%s\n", i, tti[i].abbr.c_str(), tti[i].utcoff, QB(tti[i].isdst), QB(tti[i].isstd), QB(tti[i].isutc));
+   // scan time bands from the end to get the default UTC offset for this zone
+   // if we start from the first, we'll get some historical offset which may be different than the modern offset
+   {
+      unsigned i = tzh_typecnt;
+      while (i) {
+         --i;
+         if (utcoff == -1 && !tti[i].isdst && tti[i].utcoff != -1) {
+            utcoff = tti[i].utcoff;
+            //printd(5, "QoreZoneInfo::QoreZoneInfo() tti[%d] %s: utcoff: %d isdst: %s isstd: %s isutc: %s\n", i, tti[i].abbr.c_str(), tti[i].utcoff, QB(tti[i].isdst), QB(tti[i].isstd), QB(tti[i].isutc));
+            break;
+         }
+      }
    }
 
 #if 0
-   for (unsigned i = 0; i < QoreDSTTransitions.size(); ++i) {
+   for (unsigned i = 0, e = QoreDSTTransitions.size(); i < e; ++i) {
       DateTime d((int64)QoreDSTTransitions[i].time);
       str.clear();
       d.format(str, "Dy Mon DD YYYY HH:mm:SS");
@@ -252,7 +262,7 @@ QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink 
       DateTime local(d.getEpochSeconds() + trans.utcoff);
       QoreString lstr;
       local.format(lstr, "Dy Mon DD YYYY HH:mm:SS");
-      printd(0, "QoreZoneInfo::QoreZoneInfo() trans[%3d] time=%d %s UTC = %s %s isdst=%d isstd=%d isutc=%d utcoff=%d\n", i, QoreDSTTransitions[i].time, str.getBuffer(), lstr.getBuffer(), trans.abbr.c_str(), trans.isdst, trans.isstd, trans.isutc, trans.utcoff);
+      printd(0, "QoreZoneInfo::QoreZoneInfo() trans[%3d] time: %d %s UTC = %s %s isdst: %d isstd: %d isutc: %d utcoff: %d\n", i, QoreDSTTransitions[i].time, str.getBuffer(), lstr.getBuffer(), trans.abbr.c_str(), trans.isdst, trans.isstd, trans.isutc, trans.utcoff);
    }
 #endif
 
@@ -265,21 +275,34 @@ int QoreTimeZoneManager::process(const char *fn) {
    return processIntern(fn, &xsink);
 }
 
-const AbstractQoreZoneInfo *QoreTimeZoneManager::processFile(const char *fn, ExceptionSink *xsink) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+const AbstractQoreZoneInfo *QoreTimeZoneManager::processFile(const char *fn, bool use_path, ExceptionSink *xsink) {
+#ifdef _Q_WINDOWS
    tzmap_t::iterator i = tzmap.find(fn);
    if (i != tzmap.end())
       return i->second;
 
-   //printd(5, "QoreTimeZoneManager::processFile() %s: loading from registry\n", fn);
 
-   std::auto_ptr<QoreWindowsZoneInfo> tzi(new QoreWindowsZoneInfo(fn, xsink));
-   if (!*(tzi.get())) {
-      return 0;
+   AbstractQoreZoneInfo* rv;
+
+   if (q_absolute_path_windows(fn)) {
+      //printd(5, "QoreTimeZoneManager::processFile() %s: loading absolute path\n", fn);
+      std::string name = fn;
+      std::auto_ptr<QoreZoneInfo> tzi(new QoreZoneInfo(*NullString, name, xsink));
+      if (!*(tzi.get())) {
+         //printd(1, "skipping %s/%s\n", root.getBuffer(), name.c_str());
+         return 0;
+      }
+      rv = tzi.release();
    }
+   else {
+      //printd(5, "QoreTimeZoneManager::processFile() %s: loading from registry\n", fn);
+      std::auto_ptr<QoreWindowsZoneInfo> tzi(new QoreWindowsZoneInfo(fn, xsink));
+      if (!*(tzi.get()))
+         return 0;
 
-   //printd(5, "QoreTimeZoneManager::processFile() %s -> %p\n", name.c_str(), tzi.get());
-   QoreWindowsZoneInfo *rv = tzi.release();
+      //printd(5, "QoreTimeZoneManager::processFile() %s -> %p\n", name.c_str(), tzi.get());
+      rv = tzi.release();
+   }
    tzmap[fn] = rv;
    ++tzsize;
 
@@ -290,7 +313,7 @@ const AbstractQoreZoneInfo *QoreTimeZoneManager::processFile(const char *fn, Exc
    if (i != tzmap.end())
       return i->second;
 
-   std::auto_ptr<QoreZoneInfo> tzi(new QoreZoneInfo(root, name, xsink));
+   std::auto_ptr<QoreZoneInfo> tzi(new QoreZoneInfo(use_path ? *NullString : root, name, xsink));
    if (!*(tzi.get())) {
       //printd(1, "skipping %s/%s\n", root.getBuffer(), name.c_str());
       return 0;
@@ -317,10 +340,11 @@ int QoreTimeZoneManager::processIntern(const char *fn, ExceptionSink *xsink) {
    if ((sbuf.st_mode & S_IFMT) == S_IFDIR)
       return processDir(fn, xsink);
 
-   return processFile(fn, xsink) ? 0 : -1;
+   return processFile(fn, false, xsink) ? 0 : -1;
 }
 
 int QoreZoneInfo::getUTCOffsetImpl(int64 epoch_offset, bool &is_dst, const char *&zone_name) const {
+   //printf("QoreZoneInfo::getUTCOffsetImpl() epoch_offset: %lld first_pos: %d time: %lld\n", epoch_offset, first_pos, first_pos > 0 ? QoreDSTTransitions[first_pos - 1].time : -1ll);
    unsigned i = 0;
    if (first_pos > 0 && epoch_offset >= QoreDSTTransitions[first_pos - 1].time) {
       i = first_pos - 1;
@@ -330,7 +354,7 @@ int QoreZoneInfo::getUTCOffsetImpl(int64 epoch_offset, bool &is_dst, const char 
             zone_name = QoreDSTTransitions[i].trans->abbr.c_str();
             is_dst = QoreDSTTransitions[i].trans->isdst;
 
-            //printf("QoreZoneInfo::getUTCOffsetImpl(epoch=%lld) tt[<=]=%d tt[>]=%d zone_name=%s is_dst=%d utcoff=%d\n", epoch_offset, QoreDSTTransitions[i].time, QoreDSTTransitions[i + 1].time, zone_name, is_dst, QoreDSTTransitions[i].trans->utcoff);
+            //printf("QoreZoneInfo::getUTCOffsetImpl(epoch: %lld) tt[<=]: %d tt[>]: %d zone_name: %s is_dst: %d utcoff: %d\n", epoch_offset, QoreDSTTransitions[i].time, QoreDSTTransitions[i + 1].time, zone_name, is_dst, QoreDSTTransitions[i].trans->utcoff);
             return QoreDSTTransitions[i].trans->utcoff;
          }
          ++i;
@@ -339,7 +363,7 @@ int QoreZoneInfo::getUTCOffsetImpl(int64 epoch_offset, bool &is_dst, const char 
       is_dst = false;
       zone_name = std_abbr;
 
-      //printf("QoreZoneInfo::getUTCOffsetImpl(epoch=%lld) NOT FOUND zone_name=%s is_dst=%d utcoff=%d\n", epoch_offset, zone_name, is_dst, utcoff);
+      //printf("QoreZoneInfo::getUTCOffsetImpl(epoch: %lld) NOT FOUND zone_name: %s is_dst: %d utcoff: %d\n", epoch_offset, zone_name, is_dst, utcoff);
 
       return utcoff;
    }
@@ -350,7 +374,7 @@ int QoreZoneInfo::getUTCOffsetImpl(int64 epoch_offset, bool &is_dst, const char 
          zone_name = QoreDSTTransitions[i].trans->abbr.c_str();
          is_dst = QoreDSTTransitions[i].trans->isdst;
 
-         //printf("QoreZoneInfo::getUTCOffsetImpl(epoch=%lld) tt[<=]=%d tt[>]=%d zone_name=%s is_dst=%d utcoff=%d\n", epoch_offset, QoreDSTTransitions[i].time, QoreDSTTransitions[i + 1].time, zone_name, is_dst, QoreDSTTransitions[i].trans->utcoff);
+         //printf("QoreZoneInfo::getUTCOffsetImpl(epoch: %lld) i: %d tt[<=]: %d tt[>]: %d zone_name: %s is_dst: %d utcoff: %d\n", epoch_offset, i, QoreDSTTransitions[i].time, QoreDSTTransitions[i + 1].time, zone_name, is_dst, QoreDSTTransitions[i].trans->utcoff);
          return QoreDSTTransitions[i].trans->utcoff;
       }
       --i;
@@ -359,7 +383,7 @@ int QoreZoneInfo::getUTCOffsetImpl(int64 epoch_offset, bool &is_dst, const char 
    is_dst = false;
    zone_name = std_abbr;
 
-   //printf("QoreZoneInfo::getUTCOffsetImpl(epoch=%lld) NOT FOUND zone_name=%s is_dst=%d utcoff=%d\n", epoch_offset, zone_name, is_dst, utcoff);
+   //printf("QoreZoneInfo::getUTCOffsetImpl(epoch: %lld) NOT FOUND zone_name: %s is_dst: %d utcoff: %d\n", epoch_offset, zone_name, is_dst, utcoff);
 
    return utcoff;
 }
@@ -434,7 +458,7 @@ const QoreOffsetZoneInfo *QoreTimeZoneManager::findCreateOffsetZone(const char *
       }
    }
 
-   //printd(5, "QoreTimeZoneManager::findCreateOffsetZone(%s) secs=%d\n", offset, secs);
+   //printd(5, "QoreTimeZoneManager::findCreateOffsetZone(%s) secs: %d\n", offset, secs);
 
    // this is not an error; this is the UTC offset
    if (!secs)
@@ -459,7 +483,7 @@ const QoreOffsetZoneInfo *QoreTimeZoneManager::findCreateOffsetZone(const char *
    concatOffset(secs, tmp);
    QoreOffsetZoneInfo *ozi = new QoreOffsetZoneInfo(tmp.getBuffer(), secs);
    tzomap[secs] = ozi;
-   //printd(5, "QoreTimeZoneManager::findCreateOffsetZone(%s) secs=%d returning %p\n", offset, secs, ozi);
+   //printd(5, "QoreTimeZoneManager::findCreateOffsetZone(%s) secs: %d returning %p\n", offset, secs, ozi);
    return ozi;
 }
 
@@ -503,7 +527,7 @@ int QoreTimeZoneManager::setLocalTZ(std::string fname, AbstractQoreZoneInfo *tzi
    localtzname = fname;
    ++tzsize;
 
-   printd(1, "QoreTimeZoneManager::setLocalTZ() set zoneinfo from region: %s (%s has_dst=%d utcoff=%d)\n", fname.c_str(), tzi->getRegionName(), tzi->hasDST(), tzi->getUTCOffset());
+   printd(1, "QoreTimeZoneManager::setLocalTZ() set zoneinfo from region: %s (%s has_dst: %d utcoff: %d)\n", fname.c_str(), tzi->getRegionName(), tzi->hasDST(), tzi->getUTCOffset());
 
    return 0;
 }
@@ -660,7 +684,472 @@ QoreTimeZoneManager::QoreTimeZoneManager() : tzsize(0), our_utcoffset(0), root(Z
    MAKE_STD_ZONE(-12 * SECS_PER_HOUR, "-12");
 }
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+// type for mapping zoneinfo names to Windows names
+typedef std::map<const char*, const char*, ltstr> tzmap_t;
+
+// maps zoneinfo names to Windows names
+tzmap_t win_tzmap;
+
+#ifdef _Q_WINDOWS
+static void win_add_map(const char* win, const char* tzr) {
+   assert(!strchr(tzr, ' '));
+   assert(win_tzmap.find(tzr) == win_tzmap.end());
+
+   win_tzmap[tzr] = win;
+}
+
+static const char* win_lookup_tz(const char* tzr) {
+   tzmap_t::const_iterator i = win_tzmap.find(tzr);
+   return i == win_tzmap.end() ? 0 : i->second;
+}
+
+static const char* win_inverse_lookup_tz(const char* tz) {
+   for (tzmap_t::const_iterator it = win_tzmap.begin(); it != win_tzmap.end(); ++it) {
+      if (strcmp(tz, it->second) == 0)
+         return it->first;
+   }
+   return 0;
+}
+
+static void win_init_maps() {
+   win_add_map("AUS Central Standard Time", "Australia/Darwin");
+   win_add_map("AUS Eastern Standard Time", "Australia/Sydney");
+   win_add_map("AUS Eastern Standard Time", "Australia/Melbourne");
+   win_add_map("Afghanistan Standard Time", "Asia/Kabul");
+   win_add_map("Alaskan Standard Time", "America/Anchorage");
+   win_add_map("Alaskan Standard Time", "America/Juneau");
+   win_add_map("Alaskan Standard Time", "America/Metlakatla");
+   win_add_map("Alaskan Standard Time", "America/Nome");
+   win_add_map("Alaskan Standard Time", "America/Sitka");
+   win_add_map("Alaskan Standard Time", "America/Yakutat");
+   win_add_map("Arab Standard Time", "Asia/Riyadh");
+   win_add_map("Arab Standard Time", "Asia/Bahrain");
+   win_add_map("Arab Standard Time", "Asia/Kuwait");
+   win_add_map("Arab Standard Time", "Asia/Qatar");
+   win_add_map("Arab Standard Time", "Asia/Aden");
+   win_add_map("Arabian Standard Time", "Asia/Dubai");
+   win_add_map("Arabian Standard Time", "Asia/Muscat");
+   win_add_map("Arabian Standard Time", "Etc/GMT-4");
+   win_add_map("Arabic Standard Time", "Asia/Baghdad");
+   win_add_map("Argentina Standard Time", "America/Buenos_Aires");
+   win_add_map("Argentina Standard Time", "America/Argentina/La_Rioja");
+   win_add_map("Argentina Standard Time", "America/Argentina/Rio_Gallegos");
+   win_add_map("Argentina Standard Time", "America/Argentina/Salta");
+   win_add_map("Argentina Standard Time", "America/Argentina/San_Juan");
+   win_add_map("Argentina Standard Time", "America/Argentina/San_Luis");
+   win_add_map("Argentina Standard Time", "America/Argentina/Tucuman");
+   win_add_map("Argentina Standard Time", "America/Argentina/Ushuaia");
+   win_add_map("Argentina Standard Time", "America/Catamarca");
+   win_add_map("Argentina Standard Time", "America/Cordoba");
+   win_add_map("Argentina Standard Time", "America/Jujuy");
+   win_add_map("Argentina Standard Time", "America/Mendoza");
+   win_add_map("Atlantic Standard Time", "America/Halifax");
+   win_add_map("Atlantic Standard Time", "Atlantic/Bermuda");
+   win_add_map("Atlantic Standard Time", "America/Glace_Bay");
+   win_add_map("Atlantic Standard Time", "America/Goose_Bay");
+   win_add_map("Atlantic Standard Time", "America/Moncton");
+   win_add_map("Atlantic Standard Time", "America/Thule");
+   win_add_map("Azerbaijan Standard Time", "Asia/Baku");
+   win_add_map("Azores Standard Time", "Atlantic/Azores");
+   win_add_map("Azores Standard Time", "America/Scoresbysund");
+   win_add_map("Bahia Standard Time", "America/Bahia");
+   win_add_map("Bangladesh Standard Time", "Asia/Dhaka");
+   win_add_map("Bangladesh Standard Time", "Asia/Thimphu");
+   win_add_map("Belarus Standard Time", "Europe/Minsk");
+   win_add_map("Canada Central Standard Time", "America/Regina");
+   win_add_map("Canada Central Standard Time", "America/Swift_Current");
+   win_add_map("Cape Verde Standard Time", "Atlantic/Cape_Verde");
+   win_add_map("Cape Verde Standard Time", "Etc/GMT+1");
+   win_add_map("Caucasus Standard Time", "Asia/Yerevan");
+   win_add_map("Cen. Australia Standard Time", "Australia/Adelaide");
+   win_add_map("Cen. Australia Standard Time", "Australia/Broken_Hill");
+   win_add_map("Central America Standard Time", "America/Guatemala");
+   win_add_map("Central America Standard Time", "America/Belize");
+   win_add_map("Central America Standard Time", "America/Costa_Rica");
+   win_add_map("Central America Standard Time", "Pacific/Galapagos");
+   win_add_map("Central America Standard Time", "America/Tegucigalpa");
+   win_add_map("Central America Standard Time", "America/Managua");
+   win_add_map("Central America Standard Time", "America/El_Salvador");
+   win_add_map("Central America Standard Time", "Etc/GMT+6");
+   win_add_map("Central Asia Standard Time", "Asia/Almaty");
+   win_add_map("Central Asia Standard Time", "Antarctica/Vostok");
+   win_add_map("Central Asia Standard Time", "Asia/Urumqi");
+   win_add_map("Central Asia Standard Time", "Indian/Chagos");
+   win_add_map("Central Asia Standard Time", "Asia/Bishkek");
+   win_add_map("Central Asia Standard Time", "Asia/Qyzylorda");
+   win_add_map("Central Asia Standard Time", "Etc/GMT-6");
+   win_add_map("Central Brazilian Standard Time", "America/Cuiaba");
+   win_add_map("Central Brazilian Standard Time", "America/Campo_Grande");
+   win_add_map("Central Europe Standard Time", "Europe/Budapest");
+   win_add_map("Central Europe Standard Time", "Europe/Tirane");
+   win_add_map("Central Europe Standard Time", "Europe/Prague");
+   win_add_map("Central Europe Standard Time", "Europe/Podgorica");
+   win_add_map("Central Europe Standard Time", "Europe/Belgrade");
+   win_add_map("Central Europe Standard Time", "Europe/Ljubljana");
+   win_add_map("Central Europe Standard Time", "Europe/Bratislava");
+   win_add_map("Central European Standard Time", "Europe/Warsaw");
+   win_add_map("Central European Standard Time", "Europe/Sarajevo");
+   win_add_map("Central European Standard Time", "Europe/Zagreb");
+   win_add_map("Central European Standard Time", "Europe/Skopje");
+   win_add_map("Central Pacific Standard Time", "Pacific/Guadalcanal");
+   win_add_map("Central Pacific Standard Time", "Antarctica/Macquarie");
+   win_add_map("Central Pacific Standard Time", "Pacific/Ponape");
+   win_add_map("Central Pacific Standard Time", "Pacific/Kosrae");
+   win_add_map("Central Pacific Standard Time", "Pacific/Noumea");
+   win_add_map("Central Pacific Standard Time", "Pacific/Norfolk");
+   win_add_map("Central Pacific Standard Time", "Pacific/Bougainville");
+   win_add_map("Central Pacific Standard Time", "Pacific/Efate");
+   win_add_map("Central Pacific Standard Time", "Etc/GMT-11");
+   win_add_map("Central Standard Time", "America/Chicago");
+   win_add_map("Central Standard Time", "America/Winnipeg");
+   win_add_map("Central Standard Time", "America/Rainy_River");
+   win_add_map("Central Standard Time", "America/Rankin_Inlet");
+   win_add_map("Central Standard Time", "America/Resolute");
+   win_add_map("Central Standard Time", "America/Matamoros");
+   win_add_map("Central Standard Time", "America/Indiana/Knox");
+   win_add_map("Central Standard Time", "America/Indiana/Tell_City");
+   win_add_map("Central Standard Time", "America/Menominee");
+   win_add_map("Central Standard Time", "America/North_Dakota/Beulah");
+   win_add_map("Central Standard Time", "America/North_Dakota/Center");
+   win_add_map("Central Standard Time", "America/North_Dakota/New_Salem");
+   win_add_map("Central Standard Time", "CST6CDT");
+   win_add_map("Central Standard Time (Mexico)", "America/Mexico_City");
+   win_add_map("Central Standard Time (Mexico)", "America/Bahia_Banderas");
+   win_add_map("Central Standard Time (Mexico)", "America/Merida");
+   win_add_map("Central Standard Time (Mexico)", "America/Monterrey");
+   win_add_map("China Standard Time", "Asia/Shanghai");
+   win_add_map("China Standard Time", "Asia/Hong_Kong");
+   win_add_map("China Standard Time", "Asia/Macau");
+   win_add_map("Dateline Standard Time", "Etc/GMT+12");
+   win_add_map("E. Africa Standard Time", "Africa/Nairobi");
+   win_add_map("E. Africa Standard Time", "Antarctica/Syowa");
+   win_add_map("E. Africa Standard Time", "Africa/Djibouti");
+   win_add_map("E. Africa Standard Time", "Africa/Asmera");
+   win_add_map("E. Africa Standard Time", "Africa/Addis_Ababa");
+   win_add_map("E. Africa Standard Time", "Indian/Comoro");
+   win_add_map("E. Africa Standard Time", "Indian/Antananarivo");
+   win_add_map("E. Africa Standard Time", "Africa/Khartoum");
+   win_add_map("E. Africa Standard Time", "Africa/Mogadishu");
+   win_add_map("E. Africa Standard Time", "Africa/Juba");
+   win_add_map("E. Africa Standard Time", "Africa/Dar_es_Salaam");
+   win_add_map("E. Africa Standard Time", "Africa/Kampala");
+   win_add_map("E. Africa Standard Time", "Indian/Mayotte");
+   win_add_map("E. Africa Standard Time", "Etc/GMT-3");
+   win_add_map("E. Australia Standard Time", "Australia/Brisbane");
+   win_add_map("E. Australia Standard Time", "Australia/Lindeman");
+   win_add_map("E. Europe Standard Time", "Europe/Chisinau");
+   win_add_map("E. South America Standard Time", "America/Sao_Paulo");
+   win_add_map("Eastern Standard Time", "America/New_York");
+   win_add_map("Eastern Standard Time", "America/Nassau");
+   win_add_map("Eastern Standard Time", "America/Toronto");
+   win_add_map("Eastern Standard Time", "America/Iqaluit");
+   win_add_map("Eastern Standard Time", "America/Montreal");
+   win_add_map("Eastern Standard Time", "America/Nipigon");
+   win_add_map("Eastern Standard Time", "America/Pangnirtung");
+   win_add_map("Eastern Standard Time", "America/Thunder_Bay");
+   win_add_map("Eastern Standard Time", "America/Havana");
+   win_add_map("Eastern Standard Time", "America/Port-au-Prince");
+   win_add_map("Eastern Standard Time", "America/Detroit");
+   win_add_map("Eastern Standard Time", "America/Indiana/Petersburg");
+   win_add_map("Eastern Standard Time", "America/Indiana/Vincennes");
+   win_add_map("Eastern Standard Time", "America/Indiana/Winamac");
+   win_add_map("Eastern Standard Time", "America/Kentucky/Monticello");
+   win_add_map("Eastern Standard Time", "America/Louisville");
+   win_add_map("Eastern Standard Time", "EST5EDT");
+   win_add_map("Eastern Standard Time (Mexico)", "America/Cancun");
+   win_add_map("Egypt Standard Time", "Africa/Cairo");
+   win_add_map("Ekaterinburg Standard Time", "Asia/Yekaterinburg");
+   win_add_map("FLE Standard Time", "Europe/Kiev");
+   win_add_map("FLE Standard Time", "Europe/Mariehamn");
+   win_add_map("FLE Standard Time", "Europe/Sofia");
+   win_add_map("FLE Standard Time", "Europe/Tallinn");
+   win_add_map("FLE Standard Time", "Europe/Helsinki");
+   win_add_map("FLE Standard Time", "Europe/Vilnius");
+   win_add_map("FLE Standard Time", "Europe/Riga");
+   win_add_map("FLE Standard Time", "Europe/Uzhgorod");
+   win_add_map("FLE Standard Time", "Europe/Zaporozhye");
+   win_add_map("Fiji Standard Time", "Pacific/Fiji");
+   win_add_map("GMT Standard Time", "Europe/London");
+   win_add_map("GMT Standard Time", "Atlantic/Canary");
+   win_add_map("GMT Standard Time", "Atlantic/Faeroe");
+   win_add_map("GMT Standard Time", "Europe/Guernsey");
+   win_add_map("GMT Standard Time", "Europe/Dublin");
+   win_add_map("GMT Standard Time", "Europe/Isle_of_Man");
+   win_add_map("GMT Standard Time", "Europe/Jersey");
+   win_add_map("GMT Standard Time", "Europe/Lisbon");
+   win_add_map("GMT Standard Time", "Atlantic/Madeira");
+   win_add_map("GTB Standard Time", "Europe/Bucharest");
+   win_add_map("GTB Standard Time", "Asia/Nicosia");
+   win_add_map("GTB Standard Time", "Europe/Athens");
+   win_add_map("Georgian Standard Time", "Asia/Tbilisi");
+   win_add_map("Greenland Standard Time", "America/Godthab");
+   win_add_map("Greenwich Standard Time", "Atlantic/Reykjavik");
+   win_add_map("Greenwich Standard Time", "Africa/Ouagadougou");
+   win_add_map("Greenwich Standard Time", "Africa/Abidjan");
+   win_add_map("Greenwich Standard Time", "Africa/Accra");
+   win_add_map("Greenwich Standard Time", "Africa/Banjul");
+   win_add_map("Greenwich Standard Time", "Africa/Conakry");
+   win_add_map("Greenwich Standard Time", "Africa/Bissau");
+   win_add_map("Greenwich Standard Time", "Africa/Monrovia");
+   win_add_map("Greenwich Standard Time", "Africa/Bamako");
+   win_add_map("Greenwich Standard Time", "Africa/Nouakchott");
+   win_add_map("Greenwich Standard Time", "Atlantic/St_Helena");
+   win_add_map("Greenwich Standard Time", "Africa/Freetown");
+   win_add_map("Greenwich Standard Time", "Africa/Dakar");
+   win_add_map("Greenwich Standard Time", "Africa/Sao_Tome");
+   win_add_map("Greenwich Standard Time", "Africa/Lome");
+   win_add_map("Hawaiian Standard Time", "Pacific/Honolulu");
+   win_add_map("Hawaiian Standard Time", "Pacific/Rarotonga");
+   win_add_map("Hawaiian Standard Time", "Pacific/Tahiti");
+   win_add_map("Hawaiian Standard Time", "Pacific/Johnston");
+   win_add_map("Hawaiian Standard Time", "Etc/GMT+10");
+   win_add_map("India Standard Time", "Asia/Calcutta");
+   win_add_map("Iran Standard Time", "Asia/Tehran");
+   win_add_map("Israel Standard Time", "Asia/Jerusalem");
+   win_add_map("Jordan Standard Time", "Asia/Amman");
+   win_add_map("Kaliningrad Standard Time", "Europe/Kaliningrad");
+   win_add_map("Korea Standard Time", "Asia/Seoul");
+   win_add_map("Libya Standard Time", "Africa/Tripoli");
+   win_add_map("Line Islands Standard Time", "Pacific/Kiritimati");
+   win_add_map("Line Islands Standard Time", "Etc/GMT-14");
+   win_add_map("Magadan Standard Time", "Asia/Magadan");
+   win_add_map("Mauritius Standard Time", "Indian/Mauritius");
+   win_add_map("Mauritius Standard Time", "Indian/Reunion");
+   win_add_map("Mauritius Standard Time", "Indian/Mahe");
+   win_add_map("Middle East Standard Time", "Asia/Beirut");
+   win_add_map("Montevideo Standard Time", "America/Montevideo");
+   win_add_map("Morocco Standard Time", "Africa/Casablanca");
+   win_add_map("Morocco Standard Time", "Africa/El_Aaiun");
+   win_add_map("Mountain Standard Time", "America/Denver");
+   win_add_map("Mountain Standard Time", "America/Edmonton");
+   win_add_map("Mountain Standard Time", "America/Cambridge_Bay");
+   win_add_map("Mountain Standard Time", "America/Inuvik");
+   win_add_map("Mountain Standard Time", "America/Yellowknife");
+   win_add_map("Mountain Standard Time", "America/Ojinaga");
+   win_add_map("Mountain Standard Time", "America/Boise");
+   win_add_map("Mountain Standard Time", "MST7MDT");
+   win_add_map("Mountain Standard Time (Mexico)", "America/Chihuahua");
+   win_add_map("Mountain Standard Time (Mexico)", "America/Mazatlan");
+   win_add_map("Myanmar Standard Time", "Asia/Rangoon");
+   win_add_map("Myanmar Standard Time", "Indian/Cocos");
+   win_add_map("N. Central Asia Standard Time", "Asia/Novosibirsk");
+   win_add_map("N. Central Asia Standard Time", "Asia/Omsk");
+   win_add_map("Namibia Standard Time", "Africa/Windhoek");
+   win_add_map("Nepal Standard Time", "Asia/Katmandu");
+   win_add_map("New Zealand Standard Time", "Pacific/Auckland");
+   win_add_map("New Zealand Standard Time", "Antarctica/McMurdo");
+   win_add_map("Newfoundland Standard Time", "America/St_Johns");
+   win_add_map("North Asia East Standard Time", "Asia/Irkutsk");
+   win_add_map("North Asia Standard Time", "Asia/Krasnoyarsk");
+   win_add_map("North Asia Standard Time", "Asia/Novokuznetsk");
+   win_add_map("North Korea Standard Time", "Asia/Pyongyang");
+   win_add_map("Pacific SA Standard Time", "America/Santiago");
+   win_add_map("Pacific SA Standard Time", "Antarctica/Palmer");
+   win_add_map("Pacific Standard Time", "America/Los_Angeles");
+   win_add_map("Pacific Standard Time", "America/Vancouver");
+   win_add_map("Pacific Standard Time", "America/Dawson");
+   win_add_map("Pacific Standard Time", "America/Whitehorse");
+   win_add_map("Pacific Standard Time", "America/Tijuana");
+   win_add_map("Pacific Standard Time", "America/Santa_Isabel");
+   win_add_map("Pacific Standard Time", "PST8PDT");
+   win_add_map("Pakistan Standard Time", "Asia/Karachi");
+   win_add_map("Paraguay Standard Time", "America/Asuncion");
+   win_add_map("Romance Standard Time", "Europe/Paris");
+   win_add_map("Romance Standard Time", "Europe/Brussels");
+   win_add_map("Romance Standard Time", "Europe/Copenhagen");
+   win_add_map("Romance Standard Time", "Europe/Madrid");
+   win_add_map("Romance Standard Time", "Africa/Ceuta");
+   win_add_map("Russia Time Zone 10", "Asia/Srednekolymsk");
+   win_add_map("Russia Time Zone 11", "Asia/Kamchatka");
+   win_add_map("Russia Time Zone 11", "Asia/Anadyr");
+   win_add_map("Russia Time Zone 3", "Europe/Samara");
+   win_add_map("Russian Standard Time", "Europe/Moscow");
+   win_add_map("Russian Standard Time", "Europe/Simferopol");
+   win_add_map("Russian Standard Time", "Europe/Volgograd");
+   win_add_map("SA Eastern Standard Time", "America/Cayenne");
+   win_add_map("SA Eastern Standard Time", "Antarctica/Rothera");
+   win_add_map("SA Eastern Standard Time", "America/Fortaleza");
+   win_add_map("SA Eastern Standard Time", "America/Araguaina");
+   win_add_map("SA Eastern Standard Time", "America/Belem");
+   win_add_map("SA Eastern Standard Time", "America/Maceio");
+   win_add_map("SA Eastern Standard Time", "America/Recife");
+   win_add_map("SA Eastern Standard Time", "America/Santarem");
+   win_add_map("SA Eastern Standard Time", "Atlantic/Stanley");
+   win_add_map("SA Eastern Standard Time", "America/Paramaribo");
+   win_add_map("SA Eastern Standard Time", "Etc/GMT+3");
+   win_add_map("SA Pacific Standard Time", "America/Bogota");
+   win_add_map("SA Pacific Standard Time", "America/Rio_Branco");
+   win_add_map("SA Pacific Standard Time", "America/Eirunepe");
+   win_add_map("SA Pacific Standard Time", "America/Coral_Harbour");
+   win_add_map("SA Pacific Standard Time", "Pacific/Easter");
+   win_add_map("SA Pacific Standard Time", "America/Guayaquil");
+   win_add_map("SA Pacific Standard Time", "America/Jamaica");
+   win_add_map("SA Pacific Standard Time", "America/Cayman");
+   win_add_map("SA Pacific Standard Time", "America/Panama");
+   win_add_map("SA Pacific Standard Time", "America/Lima");
+   win_add_map("SA Pacific Standard Time", "Etc/GMT+5");
+   win_add_map("SA Western Standard Time", "America/La_Paz");
+   win_add_map("SA Western Standard Time", "America/Antigua");
+   win_add_map("SA Western Standard Time", "America/Anguilla");
+   win_add_map("SA Western Standard Time", "America/Aruba");
+   win_add_map("SA Western Standard Time", "America/Barbados");
+   win_add_map("SA Western Standard Time", "America/St_Barthelemy");
+   win_add_map("SA Western Standard Time", "America/Kralendijk");
+   win_add_map("SA Western Standard Time", "America/Manaus");
+   win_add_map("SA Western Standard Time", "America/Boa_Vista");
+   win_add_map("SA Western Standard Time", "America/Porto_Velho");
+   win_add_map("SA Western Standard Time", "America/Blanc-Sablon");
+   win_add_map("SA Western Standard Time", "America/Curacao");
+   win_add_map("SA Western Standard Time", "America/Dominica");
+   win_add_map("SA Western Standard Time", "America/Santo_Domingo");
+   win_add_map("SA Western Standard Time", "America/Grenada");
+   win_add_map("SA Western Standard Time", "America/Guadeloupe");
+   win_add_map("SA Western Standard Time", "America/Guyana");
+   win_add_map("SA Western Standard Time", "America/St_Kitts");
+   win_add_map("SA Western Standard Time", "America/St_Lucia");
+   win_add_map("SA Western Standard Time", "America/Marigot");
+   win_add_map("SA Western Standard Time", "America/Martinique");
+   win_add_map("SA Western Standard Time", "America/Montserrat");
+   win_add_map("SA Western Standard Time", "America/Puerto_Rico");
+   win_add_map("SA Western Standard Time", "America/Lower_Princes");
+   win_add_map("SA Western Standard Time", "America/Grand_Turk");
+   win_add_map("SA Western Standard Time", "America/Port_of_Spain");
+   win_add_map("SA Western Standard Time", "America/St_Vincent");
+   win_add_map("SA Western Standard Time", "America/Tortola");
+   win_add_map("SA Western Standard Time", "America/St_Thomas");
+   win_add_map("SA Western Standard Time", "Etc/GMT+4");
+   win_add_map("SE Asia Standard Time", "Asia/Bangkok");
+   win_add_map("SE Asia Standard Time", "Antarctica/Davis");
+   win_add_map("SE Asia Standard Time", "Indian/Christmas");
+   win_add_map("SE Asia Standard Time", "Asia/Jakarta");
+   win_add_map("SE Asia Standard Time", "Asia/Pontianak");
+   win_add_map("SE Asia Standard Time", "Asia/Phnom_Penh");
+   win_add_map("SE Asia Standard Time", "Asia/Vientiane");
+   win_add_map("SE Asia Standard Time", "Asia/Hovd");
+   win_add_map("SE Asia Standard Time", "Asia/Saigon");
+   win_add_map("SE Asia Standard Time", "Etc/GMT-7");
+   win_add_map("Samoa Standard Time", "Pacific/Apia");
+   win_add_map("Singapore Standard Time", "Asia/Singapore");
+   win_add_map("Singapore Standard Time", "Asia/Brunei");
+   win_add_map("Singapore Standard Time", "Asia/Makassar");
+   win_add_map("Singapore Standard Time", "Asia/Kuala_Lumpur");
+   win_add_map("Singapore Standard Time", "Asia/Kuching");
+   win_add_map("Singapore Standard Time", "Asia/Manila");
+   win_add_map("Singapore Standard Time", "Etc/GMT-8");
+   win_add_map("South Africa Standard Time", "Africa/Johannesburg");
+   win_add_map("South Africa Standard Time", "Africa/Bujumbura");
+   win_add_map("South Africa Standard Time", "Africa/Gaborone");
+   win_add_map("South Africa Standard Time", "Africa/Lubumbashi");
+   win_add_map("South Africa Standard Time", "Africa/Maseru");
+   win_add_map("South Africa Standard Time", "Africa/Blantyre");
+   win_add_map("South Africa Standard Time", "Africa/Maputo");
+   win_add_map("South Africa Standard Time", "Africa/Kigali");
+   win_add_map("South Africa Standard Time", "Africa/Mbabane");
+   win_add_map("South Africa Standard Time", "Africa/Lusaka");
+   win_add_map("South Africa Standard Time", "Africa/Harare");
+   win_add_map("South Africa Standard Time", "Etc/GMT-2");
+   win_add_map("Sri Lanka Standard Time", "Asia/Colombo");
+   win_add_map("Syria Standard Time", "Asia/Damascus");
+   win_add_map("Taipei Standard Time", "Asia/Taipei");
+   win_add_map("Tasmania Standard Time", "Australia/Hobart");
+   win_add_map("Tasmania Standard Time", "Australia/Currie");
+   win_add_map("Tokyo Standard Time", "Asia/Tokyo");
+   win_add_map("Tokyo Standard Time", "Asia/Jayapura");
+   win_add_map("Tokyo Standard Time", "Pacific/Palau");
+   win_add_map("Tokyo Standard Time", "Asia/Dili");
+   win_add_map("Tokyo Standard Time", "Etc/GMT-9");
+   win_add_map("Tonga Standard Time", "Pacific/Tongatapu");
+   win_add_map("Tonga Standard Time", "Pacific/Enderbury");
+   win_add_map("Tonga Standard Time", "Pacific/Fakaofo");
+   win_add_map("Tonga Standard Time", "Etc/GMT-13");
+   win_add_map("Turkey Standard Time", "Europe/Istanbul");
+   win_add_map("US Eastern Standard Time", "America/Indianapolis");
+   win_add_map("US Eastern Standard Time", "America/Indiana/Marengo");
+   win_add_map("US Eastern Standard Time", "America/Indiana/Vevay");
+   win_add_map("US Mountain Standard Time", "America/Phoenix");
+   win_add_map("US Mountain Standard Time", "America/Dawson_Creek");
+   win_add_map("US Mountain Standard Time", "America/Creston");
+   win_add_map("US Mountain Standard Time", "America/Fort_Nelson");
+   win_add_map("US Mountain Standard Time", "America/Hermosillo");
+   win_add_map("US Mountain Standard Time", "Etc/GMT+7");
+   win_add_map("UTC", "Etc/GMT");
+   win_add_map("UTC", "America/Danmarkshavn");
+   win_add_map("UTC+12", "Etc/GMT-12");
+   win_add_map("UTC+12", "Pacific/Tarawa");
+   win_add_map("UTC+12", "Pacific/Majuro");
+   win_add_map("UTC+12", "Pacific/Kwajalein");
+   win_add_map("UTC+12", "Pacific/Nauru");
+   win_add_map("UTC+12", "Pacific/Funafuti");
+   win_add_map("UTC+12", "Pacific/Wake");
+   win_add_map("UTC+12", "Pacific/Wallis");
+   win_add_map("UTC-02", "Etc/GMT+2");
+   win_add_map("UTC-02", "America/Noronha");
+   win_add_map("UTC-02", "Atlantic/South_Georgia");
+   win_add_map("UTC-11", "Etc/GMT+11");
+   win_add_map("UTC-11", "Pacific/Pago_Pago");
+   win_add_map("UTC-11", "Pacific/Niue");
+   win_add_map("UTC-11", "Pacific/Midway");
+   win_add_map("Ulaanbaatar Standard Time", "Asia/Ulaanbaatar");
+   win_add_map("Ulaanbaatar Standard Time", "Asia/Choibalsan");
+   win_add_map("Venezuela Standard Time", "America/Caracas");
+   win_add_map("Vladivostok Standard Time", "Asia/Vladivostok");
+   win_add_map("Vladivostok Standard Time", "Asia/Sakhalin");
+   win_add_map("Vladivostok Standard Time", "Asia/Ust-Nera");
+   win_add_map("W. Australia Standard Time", "Australia/Perth");
+   win_add_map("W. Australia Standard Time", "Antarctica/Casey");
+   win_add_map("W. Central Africa Standard Time", "Africa/Lagos");
+   win_add_map("W. Central Africa Standard Time", "Africa/Luanda");
+   win_add_map("W. Central Africa Standard Time", "Africa/Porto-Novo");
+   win_add_map("W. Central Africa Standard Time", "Africa/Kinshasa");
+   win_add_map("W. Central Africa Standard Time", "Africa/Bangui");
+   win_add_map("W. Central Africa Standard Time", "Africa/Brazzaville");
+   win_add_map("W. Central Africa Standard Time", "Africa/Douala");
+   win_add_map("W. Central Africa Standard Time", "Africa/Algiers");
+   win_add_map("W. Central Africa Standard Time", "Africa/Libreville");
+   win_add_map("W. Central Africa Standard Time", "Africa/Malabo");
+   win_add_map("W. Central Africa Standard Time", "Africa/Niamey");
+   win_add_map("W. Central Africa Standard Time", "Africa/Ndjamena");
+   win_add_map("W. Central Africa Standard Time", "Africa/Tunis");
+   win_add_map("W. Central Africa Standard Time", "Etc/GMT-1");
+   win_add_map("W. Europe Standard Time", "Europe/Berlin");
+   win_add_map("W. Europe Standard Time", "Europe/Andorra");
+   win_add_map("W. Europe Standard Time", "Europe/Vienna");
+   win_add_map("W. Europe Standard Time", "Europe/Zurich");
+   win_add_map("W. Europe Standard Time", "Europe/Busingen");
+   win_add_map("W. Europe Standard Time", "Europe/Gibraltar");
+   win_add_map("W. Europe Standard Time", "Europe/Rome");
+   win_add_map("W. Europe Standard Time", "Europe/Vaduz");
+   win_add_map("W. Europe Standard Time", "Europe/Luxembourg");
+   win_add_map("W. Europe Standard Time", "Europe/Monaco");
+   win_add_map("W. Europe Standard Time", "Europe/Malta");
+   win_add_map("W. Europe Standard Time", "Europe/Amsterdam");
+   win_add_map("W. Europe Standard Time", "Europe/Oslo");
+   win_add_map("W. Europe Standard Time", "Europe/Stockholm");
+   win_add_map("W. Europe Standard Time", "Arctic/Longyearbyen");
+   win_add_map("W. Europe Standard Time", "Europe/San_Marino");
+   win_add_map("W. Europe Standard Time", "Europe/Vatican");
+   win_add_map("West Asia Standard Time", "Asia/Tashkent");
+   win_add_map("West Asia Standard Time", "Antarctica/Mawson");
+   win_add_map("West Asia Standard Time", "Asia/Oral");
+   win_add_map("West Asia Standard Time", "Asia/Aqtau");
+   win_add_map("West Asia Standard Time", "Asia/Aqtobe");
+   win_add_map("West Asia Standard Time", "Indian/Maldives");
+   win_add_map("West Asia Standard Time", "Indian/Kerguelen");
+   win_add_map("West Asia Standard Time", "Asia/Dushanbe");
+   win_add_map("West Asia Standard Time", "Asia/Ashgabat");
+   win_add_map("West Asia Standard Time", "Asia/Samarkand");
+   win_add_map("West Asia Standard Time", "Etc/GMT-5");
+   win_add_map("West Pacific Standard Time", "Pacific/Port_Moresby");
+   win_add_map("West Pacific Standard Time", "Antarctica/DumontDUrville");
+   win_add_map("West Pacific Standard Time", "Pacific/Truk");
+   win_add_map("West Pacific Standard Time", "Pacific/Guam");
+   win_add_map("West Pacific Standard Time", "Pacific/Saipan");
+   win_add_map("West Pacific Standard Time", "Etc/GMT-10");
+   win_add_map("Yakutsk Standard Time", "Asia/Yakutsk");
+   win_add_map("Yakutsk Standard Time", "Asia/Chita");
+   win_add_map("Yakutsk Standard Time", "Asia/Khandyga");
+}
+
 /*
 static int wdate2date(const SYSTEMTIME &st, DateTime &dt) {
    dt.setDate(0, st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds * 1000);
@@ -699,7 +1188,6 @@ QoreStringNode *get_windows_err(LONG rc) {
    return desc;
 }
 
-#define RRF_RT_REG_SZ 0x0000ffff
 static int wgetregstr(HKEY hk, const char *name, QoreString &val, ExceptionSink *xsink) {
    DWORD size = 0;
    LONG rc = RegQueryValueEx(hk, name, 0, 0, 0, &size);
@@ -735,13 +1223,29 @@ QoreWindowsZoneInfo::QoreWindowsZoneInfo(const char *n_name, ExceptionSink *xsin
 
    HKEY hk;
    LONG rc = wopenkey(HKEY_LOCAL_MACHINE, key.getBuffer(), KEY_QUERY_VALUE, &hk);
-   if (rc) {
-      QoreStringNode *desc = get_windows_err(rc);
-      desc->prepend("': ");
-      desc->prepend(key.getBuffer());
-      desc->prepend("error opening windows registry key '");
-      xsink->raiseException("TZINFO-ERROR", desc);
-      return;
+   if (!rc) { // success -> find zoneinfo name
+      const char* zoneinfoName = win_inverse_lookup_tz(n_name);
+      name = zoneinfoName ? zoneinfoName : n_name;
+   }
+   else {
+      // try to lookup Windows timezone name from zoneinfo name
+      const char* wz = win_lookup_tz(n_name);
+      if (wz) {
+         key.set(WTZ_INFO);
+         key.concat(wz);
+         rc = wopenkey(HKEY_LOCAL_MACHINE, key.getBuffer(), KEY_QUERY_VALUE, &hk);
+         if (!rc)
+            name = n_name;
+      }
+
+      if (rc) {
+         QoreStringNode *desc = get_windows_err(rc);
+         desc->prepend("': ");
+         desc->prepend(key.getBuffer());
+         desc->prepend("error opening windows registry key '");
+         xsink->raiseException("TZINFO-ERROR", desc);
+         return;
+      }
    }
    ON_BLOCK_EXIT(RegCloseKey, hk);
 
@@ -751,9 +1255,6 @@ QoreWindowsZoneInfo::QoreWindowsZoneInfo(const char *n_name, ExceptionSink *xsin
       return;
    if (wgetregstr(hk, "Std", standard, xsink))
       return;
-
-   // set name from display name
-   name = standard.getBuffer();
 
    // get TZI value
    REG_TZI_FORMAT tzi;
@@ -768,7 +1269,7 @@ QoreWindowsZoneInfo::QoreWindowsZoneInfo(const char *n_name, ExceptionSink *xsin
    QoreString sd, dd;
    wdate2str(tzi.StandardDate, sd);
    wdate2str(tzi.DaylightDate, dd);
-   printd(5, "QoreWindowsZoneInfo::QoreWindowsZoneInfo(%s) bias=%ld standardbias=%ld daylightbias=%ld standarddate=%s daylightdate=%s\n", n_name, tzi.Bias, tzi.StandardBias, tzi.DaylightBias, sd.getBuffer(), dd.getBuffer());
+   printd(5, "QoreWindowsZoneInfo::QoreWindowsZoneInfo(%s) bias: %ld standardbias: %ld daylightbias: %ld standarddate: %s daylightdate: %s\n", n_name, tzi.Bias, tzi.StandardBias, tzi.DaylightBias, sd.getBuffer(), dd.getBuffer());
 #endif
 
    // convert to seconds east
@@ -790,9 +1291,10 @@ QoreWindowsZoneInfo::QoreWindowsZoneInfo(const char *n_name, ExceptionSink *xsin
       if (daylight_date.wMonth < standard_date.wMonth)
          daylight_first = true;
 
-      // FIXME: change logic to set valid = false
-      assert(standard_date.wDay >= 1 && standard_date.wDay <= 5);
-      assert(daylight_date.wDay >= 1 && daylight_date.wDay <= 5);
+      if (standard_date.wDay < 1 || standard_date.wDay > 5 || daylight_date.wDay < 1 || daylight_date.wDay > 5) {
+         assert(false);
+         valid = false;
+      }
    }
    else {
       // cannot handle this yet
@@ -800,7 +1302,7 @@ QoreWindowsZoneInfo::QoreWindowsZoneInfo(const char *n_name, ExceptionSink *xsin
       valid = false;
    }
 
-   //printd(5, "QoreWindowsZoneInfo::QoreWindowsZoneInfo(%s) utcoff=%d has_dst=%d dst_off=%d\n", n_name, utcoff, has_dst, dst_off);
+   //printd(5, "QoreWindowsZoneInfo::QoreWindowsZoneInfo(%s) utcoff: %d has_dst: %d dst_off: %d\n", n_name, utcoff, has_dst, dst_off);
 }
 
 int QoreWindowsZoneInfo::getUTCOffsetImpl(int64 epoch_offset, bool &is_dst, const char *&zone_name) const {
@@ -841,7 +1343,7 @@ static int64 wget_trans_date(int year, SYSTEMTIME date, int utc_offset) {
 
    QoreString td;
    wdate2str(date, td);
-   //printf("wget_trans_date(year=%d, trans=%s, utc_offset=%d) day=%d (dow=%d, ld=%d)\n", year, td.getBuffer(), utc_offset, day, dow, ld);
+   //printf("wget_trans_date(year: %d, trans: %s, utc_offset: %d) day: %d (dow: %d, ld: %d)\n", year, td.getBuffer(), utc_offset, day, dow, ld);
 
    // get epoch offset for this date as UTC
    int64 rc = qore_date_info::getEpochSeconds(year, date.wMonth, day, date.wHour, date.wMinute, date.wSecond);
@@ -881,7 +1383,7 @@ void QoreTimeZoneManager::init_intern(QoreString &TZ) {
 void QoreTimeZoneManager::init() {
    QoreString TZ(QCS_USASCII);
 
-#if (!defined _WIN32 && !defined __WIN32__) || defined __CYGWIN__
+#ifndef _Q_WINDOWS
    init_intern(TZ);
 #endif
 
@@ -906,7 +1408,8 @@ void QoreTimeZoneManager::init() {
       }
    }
 #endif
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
+   win_init_maps();
    TIME_ZONE_INFORMATION tzi;
    int rc = GetTimeZoneInformation(&tzi);
    // assume UTC if no zone info is available
@@ -1007,7 +1510,13 @@ int QoreTimeZoneManager::readAll(ExceptionSink *xsink) {
 const AbstractQoreZoneInfo *QoreTimeZoneManager::findLoadRegion(const char *name, ExceptionSink *xsink) {
    QoreAutoRWWriteLocker al(rwl);
    // find or load region
-   return processFile(name, xsink);
+   return processFile(name, false, xsink);
+}
+
+const AbstractQoreZoneInfo *QoreTimeZoneManager::findLoadRegionFromPath(const char *name, ExceptionSink *xsink) {
+   QoreAutoRWWriteLocker al(rwl);
+   // find or load region
+   return processFile(name, true, xsink);
 }
 
 const AbstractQoreZoneInfo *findCreateOffsetZone(int seconds_east) {

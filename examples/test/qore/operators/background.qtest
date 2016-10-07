@@ -1,0 +1,348 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class Test
+
+class Result {
+    private {
+        Counter c;
+        any res;
+    }
+
+    reset() {
+        c = new Counter(1);
+    }
+
+    test(any r) {
+        res = r;
+        c.dec();
+    }
+
+    testException(code cd) {
+        try {
+            res = cd();
+        }
+        catch (hash ex) {
+            res = ex;
+        }
+        c.dec();
+    }
+
+    any get() {
+        c.waitForZero();
+        return res;
+    }
+}
+
+class Test inherits QUnit::Test {
+    constructor() : QUnit::Test("background operator", "1.0", \ARGV) {
+        addTestCase("basic case", \basicCase());
+        set_return_value(main());
+    }
+
+    basicCase() {
+        Result res();
+
+        res.reset();
+        background res.test(1 % 4);
+        assertEq(1, res.get());
+
+        res.reset();
+        {
+            int i = 1;
+            background res.test(i % 4);
+            assertEq(1, res.get());
+        }
+
+        res.reset();
+        {
+            int i = 1;
+            background res.test(i > 4);
+            assertEq(False, res.get());
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 1; background i &= 4;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 1; background i = 4;", ""));
+        }
+
+        res.reset();
+        {
+            Mutex m();
+            background res.test(cast<Mutex>(m));
+            assertEq(m, res.get());
+        }
+
+        res.reset();
+        {
+            any i = 1;
+            background res.testException(sub () { printf("%y\n", cast<Mutex>(i)); });
+            assertEq("RUNTIME-CAST-ERROR", res.get().err);
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any str = 'str\n'; background chomp str;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any str = 'str\n'; background delete str;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i = 4; background i =/ 2;", ""));
+        }
+
+        res.reset();
+        {
+            int i = 4;
+            background res.test(i / 2);
+            assertEq(2, res.get());
+        }
+
+        res.reset();
+        {
+            Counter c(1);
+            background c.dec();
+            c.waitForZero();
+            assertEq(0, c.getCount());
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any str = 'str\n'; background extract str, 0, 1;", ""));
+        }
+
+        res.reset();
+        {
+            list l = ("a", "b");
+            background res.test(map {$1: True}, l);
+            assertEq(("a": True, "b": True), res.get());
+        }
+
+        res.reset();
+        {
+            list l = ("a", "b");
+            background res.test(map {$1: True}, l, $# % 2);
+            assertEq(("b": True), res.get());
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i = 4; background i -= 2;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i = 4; background i += 2;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i = 4; background i--;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i = 4; background i++;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i = 4; background --i;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i = 4; background ++i;", ""));
+        }
+
+        res.reset();
+        {
+            int i = 4;
+            background res.test(i == 4);
+            assertEq(True, res.get());
+        }
+
+        res.reset();
+        {
+            int i = 4;
+            background res.test(i > 4);
+            assertEq(False, res.get());
+        }
+
+        res.reset();
+        {
+            int i = 4;
+            background res.test(i >= 4);
+            assertEq(True, res.get());
+        }
+
+        res.reset();
+        {
+            int i = 4;
+            background res.test(i < 4);
+            assertEq(False, res.get());
+        }
+
+        res.reset();
+        {
+            int i = 4;
+            background res.test(i <= 4);
+            assertEq(True, res.get());
+        }
+
+        res.reset();
+        {
+            int i = 4;
+            background res.test(i != 4);
+            assertEq(False, res.get());
+        }
+
+        res.reset();
+        {
+            int i = 4;
+            background res.test(!i);
+            assertEq(False, res.get());
+        }
+
+        res.reset();
+        {
+            list l = ("a", "b");
+            background res.test(map $1, l);
+            assertEq(("a", "b"), res.get());
+        }
+
+        res.reset();
+        {
+            list l = ("a", "b");
+            background res.test(map $1, l, $# % 2);
+            assertEq(("b",), res.get());
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i = 4; background i -= 2;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i = 4; background i %= 2;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i = 4; background i *= 2;", ""));
+        }
+
+        res.reset();
+        {
+            int i = 4;
+            background res.test(NOTHING ?? i ?? 5);
+            assertEq(4, res.get());
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i = 4; background i |= 2;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i = 4; background i += 2;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("float f = 4; background f--;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("float f = 4; background f++;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("float f = 4; background --f;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("float f = 4; background ++f;", ""));
+        }
+
+        res.reset();
+        {
+            int i = 4;
+            background res.test(i ? True : False);
+            assertEq(True, res.get());
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any str = 'str\n'; background remove str;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 4; background i <<= 2;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 4; background i >>= 2;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any str = 'str\n'; background splice str, 0, 1, 'nstr';", ""));
+        }
+
+        res.reset();
+        {
+            list l = (1, 2);
+            background res.test(l[1]);
+            assertEq(2, res.get());
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any str = 'str\n'; background trim str;", ""));
+        }
+
+        res.reset();
+        {
+            any i = 2;
+            background res.test(-i);
+            assertEq(-2, res.get());
+        }
+
+        res.reset();
+        {
+            int i = 4;
+            background res.test(0 ?* i ?* 5);
+            assertEq(4, res.get());
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 4; background i %= 2;", ""));
+        }
+    }
+}

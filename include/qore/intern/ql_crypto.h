@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -57,28 +57,28 @@ DLLLOCAL void init_crypto_functions(QoreNamespace& ns);
 
 class BaseHelper {
 protected:
-   unsigned char *input;
+   unsigned char* input;
    size_t input_len;
 
    unsigned char md_value[EVP_MAX_MD_SIZE > HMAC_MAX_MD_CBLOCK ? EVP_MAX_MD_SIZE : HMAC_MAX_MD_CBLOCK];
    unsigned int md_len;
 
-   DLLLOCAL void setInput(const QoreStringNode& str) {
-      input = (unsigned char *)str.getBuffer();
+   DLLLOCAL void setInput(const QoreString& str) {
+      input = (unsigned char*)str.getBuffer();
       input_len = str.strlen();
    }
 
    DLLLOCAL void setInput(const BinaryNode& b) {
-      input = (unsigned char *)b.getPtr();
+      input = (unsigned char*)b.getPtr();
       input_len = b.size();
    }
 
-   DLLLOCAL void setInput(const AbstractQoreNode *pt) {
-      if (pt->getType() == NT_STRING)
-         setInput(*reinterpret_cast<const QoreStringNode *>(pt));
+   DLLLOCAL void setInput(const QoreValue pt) {
+      if (pt.getType() == NT_STRING)
+         setInput(*pt.get<const QoreStringNode>());
       else {
-         assert(pt->getType() == NT_BINARY);
-         setInput(*reinterpret_cast<const BinaryNode *>(pt));
+         assert(pt.getType() == NT_BINARY);
+         setInput(*pt.get<const BinaryNode>());
       }
    }
 
@@ -91,16 +91,21 @@ public:
       return (const void*)md_value;
    }
 
-   DLLLOCAL QoreStringNode *getString() const {
-      QoreStringNode *str = new QoreStringNode();
+   DLLLOCAL void getString(QoreString& str) const {
+      for (unsigned i = 0; i < md_len; i++)
+	 str.sprintf("%02x", md_value[i]);
+   }
+
+   DLLLOCAL QoreStringNode* getString() const {
+      QoreStringNode* str = new QoreStringNode;
       for (unsigned i = 0; i < md_len; i++)
 	 str->sprintf("%02x", md_value[i]);
 
       return str;
    }
 
-   DLLLOCAL BinaryNode *getBinary() const {
-      BinaryNode *b = new BinaryNode();
+   DLLLOCAL BinaryNode* getBinary() const {
+      BinaryNode* b = new BinaryNode;
       b->append(md_value, md_len);
       return b;
    }
@@ -108,11 +113,17 @@ public:
 
 class DigestHelper : public BaseHelper {
 public:
-   DLLLOCAL DigestHelper(const QoreListNode *params) {
+   /*
+   DLLLOCAL DigestHelper(const QoreListNode* params) {
       setInput(get_param(params, 0));
    }
+   */
 
-   DLLLOCAL DigestHelper(const QoreStringNode& str) {
+   DLLLOCAL DigestHelper(const QoreValueList* params) {
+      setInput(get_param_value(params, 0));
+   }
+
+   DLLLOCAL DigestHelper(const QoreString& str) {
       setInput(str);
    }
 
@@ -125,7 +136,7 @@ public:
       input_len = len;
    }
 
-   DLLLOCAL int doDigest(const char *err, const EVP_MD *md, ExceptionSink *xsink = 0) {
+   DLLLOCAL int doDigest(const char* err, const EVP_MD* md, ExceptionSink* xsink = 0) {
       EVP_MD_CTX mdctx;
       EVP_MD_CTX_init(&mdctx);
 
@@ -147,9 +158,15 @@ public:
 class HMACHelper : public BaseHelper {
 
 public:
-    DLLLOCAL HMACHelper(const QoreListNode *params) {
+   /*
+    DLLLOCAL HMACHelper(const QoreListNode* params) {
         setInput(get_param(params, 0));
     }
+   */
+
+   DLLLOCAL HMACHelper(const QoreValueList* params) {
+      setInput(get_param_value(params, 0));
+   }
 
     DLLLOCAL HMACHelper(const QoreStringNode& str) {
         setInput(str);
@@ -164,7 +181,7 @@ public:
         input_len = len;
     }
 
-    DLLLOCAL int doHMAC(const char *err, const EVP_MD *md, const QoreStringNode *key, ExceptionSink *xsink) {
+    DLLLOCAL int doHMAC(const char* err, const EVP_MD* md, const QoreString* key, ExceptionSink* xsink) {
         HMAC_CTX ctx;
         HMAC_CTX_init(&ctx);
 

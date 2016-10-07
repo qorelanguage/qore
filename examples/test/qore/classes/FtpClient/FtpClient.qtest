@@ -1,0 +1,404 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../../qlib/Util.qm
+%requires ../../../../../qlib/QUnit.qm
+
+%exec-class FtpTest
+
+class FtpServer {
+    private {
+        Socket s();
+        Counter cnt();
+        bool quit;
+        int verbose;
+        hash broken;
+        bool get_empty;
+
+        const PollInterval = 500ms;
+    }
+
+    constructor(int port, int verbose = 0) {
+        self.verbose = verbose;
+        s.bindINET("localhost", port.toString(), True);
+        if (s.listen())
+            throw "FTPSERVER-ERROR", strerror();
+        cnt.inc();
+        background listener();
+    }
+
+    shutdown() {
+        quit = True;
+        cnt.waitForZero();
+    }
+
+    private listener() {
+        on_exit cnt.dec();
+
+        while (!quit) {
+            *Socket ns = s.accept(PollInterval);
+            if (ns) {
+                cnt.inc();
+                background connectionThread(ns);
+            }
+        }
+    }
+
+    private ftpSend(Socket ns, int code, string msg) {
+        string str = sprintf("%d %s\r\n", code, vsprintf(msg, argv));
+        if (verbose > 2)
+            printf("FTP > %s", str);
+        ns.send(str);
+    }
+
+    private string ftpGetCommand(Socket ns) {
+        string str;
+        while (True) {
+            if (quit)
+                return "";
+            try {
+                string c = ns.recv(1, PollInterval);
+                str += c;
+                if (c == "\n")
+                    break;
+            }
+            catch (hash ex) {
+                if (ex.err == "SOCKET-NOT-OPEN" || ex.err == "SOCKET-CLOSED")
+                    return "";
+                if (ex.err != "SOCKET-TIMEOUT")
+                    rethrow;
+            }
+        }
+        trim str;
+        if (verbose > 2)
+            printf("FTP < %s\n", str);
+        return str;
+    }
+
+    private connectionThread(Socket ns) {
+        on_exit cnt.dec();
+
+        # output banner
+        ftpSend(ns, 220, "Qore FtpClient Test Fake FTP Server");
+
+        # wait for user
+        while (True) {
+            string cmd = ftpGetCommand(ns);
+            if (quit)
+                return;
+            if (cmd !~ /^USER \w+/i) {
+                ftpSend(ns, 530, "Please login with USER and PASS.");
+                continue;
+            }
+            break;
+        }
+        ftpSend(ns, 331, "Please specify the password.");
+        # wait for pass
+        while (True) {
+            string cmd = ftpGetCommand(ns);
+            if (quit)
+                return;
+            if (cmd !~ /^PASS \w+/i) {
+                ftpSend(ns, 530, "Please login with USER and PASS.");
+                continue;
+            }
+            break;
+        }
+        ftpSend(ns, 230, "Login successful.");
+
+        Socket data();
+        Counter dcnt();
+        bool dataquit;
+
+        while (True) {
+            string cmd = ftpGetCommand(ns);
+            if (quit || cmd == "")
+                break;
+
+            if (cmd =~ /^EPSV$/i) {
+                termWaitData(data, dcnt, \dataquit);
+                doEpsv(ns, \data, dcnt, \dataquit);
+                continue;
+            }
+
+            if (cmd =~ /^QUIT$/i) {
+                ftpSend(ns, 221, "Goodbye.");
+                break;
+            }
+
+            if (cmd =~ /^TYPE /i) {
+                *string arg = (cmd =~ x/^TYPE (.*)$/i)[0];
+                if (arg != "I")
+                    ftpSend(ns, 500, "Unrecognised TYPE command %y.", arg);
+                else
+                    ftpSend(ns, 200, "Switching to Binary mode.");
+                continue;
+            }
+
+            if (cmd =~ /^STOR .+$/i) {
+                string file = (cmd =~ x/^STOR (.+)$/i)[0];
+                if (!data.isOpen()) {
+                    ftpSend(ns, 425, "Use EPASV first.");
+                    continue;
+                }
+                dcnt.waitForZero();
+                ftpSend(ns, 150, "Opening BINARY mode data connection for %s.", file);
+
+                if (doBroken("stor", data))
+                    break;
+
+                # read all data from data connection until closed
+                while (data.isOpen()) {
+                    data.recv(0, 20s);
+                }
+                data.close();
+                ftpSend(ns, 226, "Transfer completed.");
+                continue;
+            }
+
+            if (cmd =~ /^RETR .+$/i) {
+                string file = (cmd =~ x/^RETR (.+)$/i)[0];
+                if (!data.isOpen()) {
+                    ftpSend(ns, 425, "Use EPASV first.");
+                    continue;
+                }
+                dcnt.waitForZero();
+                ftpSend(ns, 150, "Opening BINARY mode data connection for %s.", file);
+
+                if (doBroken("retr", data))
+                    break;
+
+                #printf("get: empty %y\n", get_empty);
+                if (!get_empty) {
+                    # write a bunch of data and then exit
+                    for (int i = 0; i < 200; ++i)
+                        data.send("testing abcdefghijklmnopqrstuvwxyz 0123456789\n");
+                }
+
+                data.close();
+                ftpSend(ns, 226, "Transfer completed.");
+                continue;
+            }
+
+            ftpSend(ns, 500, "Unknown command.");
+        }
+
+        # ensure any data connections terminate
+        termWaitData(data, dcnt, \dataquit);
+    }
+
+    private bool doBroken(string cmd, Socket data) {
+        if (broken{cmd}) {
+            usleep(broken{cmd});
+            data.close();
+            return True;
+        }
+        return False;
+    }
+
+    private termWaitData(Socket data, Counter dcnt, reference dataquit) {
+        if (data.isOpen()) {
+            dataquit = True;
+            dcnt.waitForZero();
+            dataquit = False;
+        }
+    }
+
+    private doEpsv(Socket ns, reference data, Counter dcnt, reference dataquit) {
+        # get random port
+        int dport;
+        # workaround for issue #1259 (https://github.com/qorelanguage/qore/issues/1259)
+        while (True) {
+            dport = 10000 + (rand() % 40000);
+            try {
+                data.bindINET("localhost", dport, True);
+                break;
+            }
+            catch (hash ex) {
+                continue;
+            }
+        }
+        data.listen();
+        ftpSend(ns, 229, "Entering Extended Passive Mode (|||%d|)", dport);
+
+        dcnt.inc();
+        background doDataConnection(\data, dcnt, \dataquit);
+    }
+
+    private doDataConnection(reference data, Counter dcnt, reference dataquit) {
+        on_exit dcnt.dec();
+
+        while (!dataquit) {
+            *Socket ns = data.accept(PollInterval);
+            if (ns) {
+                data = ns;
+                return;
+            }
+        }
+    }
+
+    int getPort() {
+        return s.getSocketInfo().port;
+    }
+
+    setBroken(string cmd, timeout v) {
+        broken{cmd} = v;
+    }
+
+    setGetEmpty(bool v = True) {
+        get_empty = v;
+    }
+}
+
+class FtpTest inherits QUnit::Test {
+    private {
+        # file on some public ftp
+        const Url = "ftp://ftp.ed.ac.uk/.message";
+
+        # FtpClient url
+        string url;
+
+        # path on remote host
+        string path;
+
+        # file on remote host
+        string file;
+
+        # valid flag
+        bool valid = True;
+
+        const MyOpts = Opts + (
+            "port": "p,port=i",
+            );
+
+        const OptionColumn = 22;
+    }
+
+    constructor() : Test("FtpClient Test", "1.0", \ARGV, MyOpts) {
+        # set valid flag; skip tests if no connection can be made
+        url = ARGV[0] ?? ENV.QORE_FTPTEST_URL ?? Url;
+
+        addTestCase("FtpClient class test case", \testFtpClient());
+        addTestCase("FtpClient simulated server", \testFtpClientSim());
+        set_return_value(main());
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-p,--port=ARG", "set FTP server port", OptionColumn);
+    }
+
+    FtpClient getClient() {
+        hash h = parse_url(url);
+        if (!exists h.path)
+            throw "FTP-ERROR", sprintf("url %y is missing a path to retrieve", url);
+        if (!exists h.host)
+            throw "FTP-ERROR", sprintf("url %y is missing the hostname", url);
+
+        path = dirname(h.path);
+        file = basename(h.path);
+
+        FtpClient fc();
+        fc.setURL(url);
+        fc.connect();
+        fc.disconnect();
+        return fc;
+    }
+
+    testFtpClient() {
+        FtpClient fc;
+        try {
+            fc = getClient();
+        }
+        catch (hash ex) {
+            testSkip(sprintf("FtpClient object is not valid: %s: %s", ex.err, ex.desc));
+            return;
+        }
+
+        testAssertion("FtpClient::connect()", \fc.connect(), NOTHING, new TestResultValue(NOTHING));
+
+        string local_path = tmp_location() + '/ftptest';
+        unlink(local_path);
+
+        fc.cwd(path);
+
+        testAssertion("FtpClient::get()", \fc.get(), (file, local_path), new TestResultValue(NOTHING));
+
+        *list l = stat(local_path);
+        testAssertion("FtpClient::get() return value", int sub () {return l.typeCode();}, NOTHING, new TestResultValue(NT_LIST));
+
+        testAssertion("FtpClient mode-1", \notEquals(), (fc.getMode(), "auto"));
+
+        fc.disconnect();
+        unlink(local_path);
+
+        testAssertion("FtpClient mode-2", \fc.getMode(), NOTHING, new TestResultValue("auto"));
+        fc.setModePASV();
+
+        testAssertion("FtpClient::connect() PASV", \fc.connect(), NOTHING, new TestResultValue(NOTHING));
+
+        testAssertion("FtpClient mode-3", \fc.getMode(), NOTHING, new TestResultValue("pasv"));
+        fc.disconnect();
+        testAssertion("FtpClient mode-4", \fc.getMode(), NOTHING, new TestResultValue("pasv"));
+
+        # test for issue #1295
+        assertEq(False, fc.pwd() =~ /"/);
+    }
+
+    testFtpClientSim() {
+        int port;
+        if (m_options.port)
+            port = m_options.port;
+        else if (ENV.FTPCLIENT_TEST_PORT)
+            port = ENV.FTPCLIENT_TEST_PORT.toInt();
+        else
+            port = 0;
+
+        FtpServer serv(port, m_options.verbose);
+        on_exit serv.shutdown();
+
+        port = serv.getPort();
+        FtpClient fc("ftp://user:pass@localhost:" + port);
+        Queue q();
+        fc.setWarningQueue(20000, 20000, q, "test");
+        assertEq(NOTHING, fc.connect());
+
+        # create a local file to send
+        string local_path = tmp_location() + '/ftptest';
+        on_exit unlink(local_path);
+
+        File f();
+        f.open2(local_path, O_CREAT|O_WRONLY|O_TRUNC);
+        for (int i = 0; i < 200; ++i)
+            f.write("this is a test 1234567890\n");
+
+        assertEq(NOTHING, fc.put(local_path));
+
+        serv.setBroken("stor", 2s);
+        fc.setTimeout(1ms);
+        assertThrows("SOCKET-TIMEOUT", \fc.put(), local_path);
+
+        fc.setTimeout(60s);
+        serv.setBroken("stor", 0);
+        assertEq(NOTHING, fc.put(local_path));
+
+        assertEq(NOTHING, fc.get(local_path, local_path));
+        assertEq(True, ReadOnlyFile::readTextFile(local_path) =~ /abc/);
+
+        serv.setBroken("retr", 2s);
+        fc.setTimeout(1ms);
+        assertThrows("SOCKET-TIMEOUT", \fc.get(), (local_path, local_path));
+
+        fc.setTimeout(60s);
+        serv.setBroken("retr", 0);
+        serv.setGetEmpty();
+        assertEq(NOTHING, fc.get(local_path, local_path));
+        assertEq("", ReadOnlyFile::readTextFile(local_path));
+        assertEq("", fc.getAsString(local_path));
+    }
+}

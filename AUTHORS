@@ -1,18 +1,3 @@
-
 Original Author:
-David Nichols <david_nichols@users.sourceforge.net>
+David Nichols <david@qore.org>
 
-C++ Guru, Tuxedo module, TIBCO Operations, mssql and sybase drivers, library infrastructure, etc:
-Pavel Vozenilek <pvozenilek@users.sourceforge.net>
-
-Man Page & Initial Qore Web Site Design:
-Marian Bonda <marian_bonda@users.sourceforge.net>
-
-Bug Fixing and Patches:
-Wolfgang Ritzinger <aargon@rat.at>
-
-Docbook, Documentation Help, & regular expression help:
-Helmut Wollmersdorfer <wollmersdorfer@users.sourceforge.net>
-
-Qore Eclipse IDE:
-Pavol Potancok <pavol_potancok@users.sourceforge.net>

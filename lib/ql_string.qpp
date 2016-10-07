@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/ql_string.h>
+#include <qore/intern/qore_number_private.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -39,10 +40,54 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <float.h>
+
+// for use in floating-point number formatting
+// from: http://stackoverflow.com/questions/16839658/printf-width-specifier-to-maintain-precision-of-floating-point-value
+#ifdef DBL_DECIMAL_DIG
+  #define OP_DBL_Digs (DBL_DECIMAL_DIG)
+#else
+  #ifdef DECIMAL_DIG
+    #define OP_DBL_Digs (DECIMAL_DIG)
+  #else
+    #define OP_DBL_Digs (DBL_DIG + 3)
+  #endif
+#endif
+
+static int fix_num(QoreString& tmp, const QoreString& fmt, ExceptionSink* xsink) {
+   qore_offset_t off = fmt.getByteOffset(1, xsink);
+   //printd(5, "fix_num tmp: '%s' fmt: '%s' off: %lld\n", tmp.getBuffer(), fmt.getBuffer(), off);
+   if (*xsink)
+      return -1;
+   if (off < 0)
+      return 0;
+
+   // replace all thousands separators with nothing
+   QoreString t(fmt.getBuffer(), off, fmt.getEncoding());
+   tmp.replaceAll(t.getBuffer(), "");
+
+   if (fmt.size() <= (qore_size_t)off)
+      return 0;
+
+   t.clear();
+   if (t.concat(fmt, 1, 1, xsink))
+      return -1;
+
+   if (t.size() == 1 && t[0] == '.')
+      return 0;
+
+   off = tmp.bindex(t.getBuffer(), 0);
+   if (off < 0)
+      return 0;
+
+   tmp.replace(off, t.size(), ".");
+   return 0;
+}
 
 // finds the last occurrence of needle in haystack at or before position pos
 // pos must be a non-negative valid byte offset in haystack
-static inline int rindex_simple_intern(const char *haystack, int hlen, const char *needle, int nlen, int pos) {
+/*
+static int rindex_simple_intern(const char* haystack, int hlen, const char* needle, int nlen, int pos) {
    // if the offset does not allow for the needle string to be present, then adjust
    if ((pos + nlen) > hlen) {
       pos = hlen - nlen;
@@ -57,14 +102,15 @@ static inline int rindex_simple_intern(const char *haystack, int hlen, const cha
    }
    return -1;
 }
+*/
 
-static const char *memstr(const char *str, const char *pattern, qore_size_t pl, qore_size_t len) {
+static const char* memstr(const char* str, const char* pattern, qore_size_t pl, qore_size_t len) {
    while (true) {
-      const char *p = (const char *)memchr(str, pattern[0], len);
+      const char* p = (const char* )memchr(str, pattern[0], len);
       if (!p)
 	 return 0;
 
-      //printd(5, "memstr() pattern=%s str=%p p=%p len=%d pl=%d remaining=%d (%c %c %c)\n", pattern, str, p, len, pl, len-(p-str), p[1], p[2], p[3]);
+      //printd(5, "memstr() pattern: %s str: %p p: %p len: %d pl: %d remaining: %d (%c %c %c)\n", pattern, str, p, len, pl, len-(p-str), p[1], p[2], p[3]);
 
       // if there is not enough string left for the pattern, then return
       if ((len - (p - str)) < pl)
@@ -83,26 +129,26 @@ static const char *memstr(const char *str, const char *pattern, qore_size_t pl, 
 	 continue;
 
       // found
-      //printd(5, "memstr() got it! p=%p\n", p);
+      //printd(5, "memstr() got it! p: %p\n", p);
       return p;
    }
    return 0;
 }
 
-static void split_add_element(QoreListNode *l, const char *str, unsigned len, const QoreEncoding *enc) {
+static void split_add_element(QoreListNode* l, const char* str, unsigned len, const QoreEncoding *enc) {
    if (enc)
       l->push(new QoreStringNode(str, len, enc));
    else {
-      BinaryNode *b = new BinaryNode;
+      BinaryNode* b = new BinaryNode;
       b->append(str, len);
       l->push(b);
    }
 }
 
-QoreListNode *split_intern(const char *pattern, qore_size_t pl, const char *str, qore_size_t sl, const QoreEncoding *enc, bool with_separator) {
-   QoreListNode *l = new QoreListNode();
-   const char *ostr = str;
-   while (const char *p = memstr(str, pattern, pl, sl - (str - ostr))) {
+QoreListNode* split_intern(const char* pattern, qore_size_t pl, const char* str, qore_size_t sl, const QoreEncoding *enc, bool with_separator) {
+   QoreListNode* l = new QoreListNode();
+   const char* ostr = str;
+   while (const char* p = memstr(str, pattern, pl, sl - (str - ostr))) {
       split_add_element(l, str, p - str + (with_separator ? pl : 0), enc);
       str = p + pl;
    }
@@ -130,12 +176,12 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
       return split_intern(pat->getBuffer(), pat->strlen(), str->getBuffer(), str->strlen(), str->getEncoding());
 
    ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
-   const char *ostr = str->getBuffer();
+   const char* ostr = str->getBuffer();
    qore_size_t sl = str->strlen();
-   const char *tpattern = pat->getBuffer();
+   const char* tpattern = pat->getBuffer();
    qore_size_t pl = pat->strlen();
 
-   const char *ststr = ostr;
+   const char* ststr = ostr;
 
    // remaining byte length
    qore_size_t len = sl;
@@ -148,8 +194,8 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
          // advance pointer past quote
          ststr += tquote->strlen();
          // find next quote character, ignore escaped quotes
-         const char *tstr = ststr;
-         const char *p;
+         const char* tstr = ststr;
+         const char* p;
          while (true) {
             p = memstr(tstr, tquote->getBuffer(), tquote->strlen(), len);
             if (!p) {
@@ -182,7 +228,7 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
          continue;
       }
 
-      const char *p = memstr(ststr, tpattern, pl, sl - (ststr - ostr));
+      const char* p = memstr(ststr, tpattern, pl, sl - (ststr - ostr));
       if (!p) {
          QoreStringNode* se = new QoreStringNode(ststr, sl - (ststr - ostr), sep->getEncoding());
          if (trim_unquoted)
@@ -202,11 +248,30 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
    return l.release();
 }
 
-QoreStringNode *join_intern(const QoreStringNode *p0, const QoreListNode *l, int offset, ExceptionSink* xsink) {
+QoreStringNode* join_intern(const QoreStringNode* p0, const QoreValueList* l, int offset, ExceptionSink* xsink) {
    SimpleRefHolder<QoreStringNode> str(new QoreStringNode(p0->getEncoding()));
 
    for (unsigned i = offset; i < l->size(); i++) {
-      const AbstractQoreNode *p = l->retrieve_entry(i);
+      QoreValue p = l->retrieveEntry(i);
+      if (!p.isNothing()) {
+	 QoreStringValueHelper t(p, p0->getEncoding(), xsink);
+	 if (*xsink)
+	    return 0;
+
+	 str->concat(*t);
+      }
+      if (i < (l->size() - 1))
+	 str->concat(p0);
+   }
+
+   return str.release();
+}
+
+QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNode* l, int offset, ExceptionSink* xsink) {
+   SimpleRefHolder<QoreStringNode> str(new QoreStringNode(p0->getEncoding()));
+
+   for (unsigned i = offset; i < l->size(); i++) {
+      const AbstractQoreNode* p = l->retrieve_entry(i);
       if (p) {
 	 QoreStringValueHelper t(p, p0->getEncoding(), xsink);
 	 if (*xsink)
@@ -221,101 +286,13 @@ QoreStringNode *join_intern(const QoreStringNode *p0, const QoreListNode *l, int
    return str.release();
 }
 
-QoreStringNode* format_float_intern(const QoreString& fmt, double num) {
-   int decimals = 0, neg = 1, len;
-   int64 tr, bi, mi, th, val;
-   char thousands_sep, decimal_sep = '.', chr[40], str[40], dec[20];
-
-   len = fmt.strlen();
-   if ((len != 1) && (len != 3))
-      return new QoreStringNode;
-
-   thousands_sep = fmt.getBuffer()[0];
-   if (len == 3) {
-      decimal_sep = fmt.getBuffer()[1];
-      decimals = atoi(fmt.getBuffer() + 2);
-   }
-
-   if (num < 0) {
-      neg = -1;
-      num *= -1;
-   }
-   val = (int64)num;
-   if (len == 3) {
-      num -= (double)val;
-      sprintf(chr, "%%.%df", decimals);
-      sprintf(dec, chr, num);
-   }
-   tr = val / 1000000000000ll;
-   val -= tr * 1000000000000ll;
-   bi = val / 1000000000ll;
-   val -= bi * 1000000000ll;
-   mi = val / 1000000ll;
-   val -= mi * 1000000ll;
-   th = val / 1000ll;
-   val -= th * 1000ll;
-   //printd(0, "tr=%lld bi=%lld mi=%lld th=%lld val=%lld\n", tr, bi, mi, th, val);
-
-   if (tr) {
-      if (len == 3)
-         //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld%c%03lld%c%s",
-         sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c%s",
-               neg * tr, thousands_sep,
-               bi, thousands_sep,
-               mi, thousands_sep,
-               th, thousands_sep,
-               val, decimal_sep,
-               dec + 2);
-      else
-         //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld%c%03lld",
-         sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03),
-               neg * tr, thousands_sep,
-               bi, thousands_sep,
-               mi, thousands_sep,
-               th, thousands_sep,
-               val);
-   }
-   else if (bi)
-      if (len == 3)
-         //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld%c%s",
-         sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c%s",
-               neg * bi, thousands_sep,
-               mi, thousands_sep,
-               th, thousands_sep,
-               val, decimal_sep,
-               dec + 2);
-      else
-         //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld",
-         sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03),
-               neg * bi, thousands_sep, mi, thousands_sep,
-               th, thousands_sep, val);
-   else if (mi)
-      if (len == 3)
-         //sprintf(str, "%lld%c%03lld%c%03lld%c%s", neg * mi, thousands_sep,
-         sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c%s", neg * mi, thousands_sep,
-               th, thousands_sep, val, decimal_sep, dec + 2);
-      else
-         //sprintf(str, "%lld%c%03lld%c%03lld", neg * mi, thousands_sep,
-         sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03), neg * mi, thousands_sep,
-               th, thousands_sep, val);
-   else if (th)
-      if (len == 3)
-         //sprintf(str, "%lld%c%03lld%c%s", neg * th, thousands_sep,
-         sprintf(str, QLLD "%c" QLLDx(03) "%c%s", neg * th, thousands_sep,
-               val, decimal_sep,
-               dec + 2);
-      else
-         //sprintf(str, "%lld%c%03lld", neg * th, thousands_sep, val);
-         sprintf(str, QLLD "%c" QLLDx(03), neg * th, thousands_sep, val);
-   else
-      if (len == 3)
-         //sprintf(str, "%lld%c%s", neg * val, decimal_sep, &dec[2]);
-         sprintf(str, QLLD "%c%s", neg * val, decimal_sep, &dec[2]);
-      else
-         //sprintf(str, "%lld", neg * val);
-         sprintf(str, QLLD, neg * val);
-
-   return new QoreStringNode(str);
+QoreStringNode* format_float_intern(const QoreString& fmt, double num, ExceptionSink* xsink) {
+   if (fmt.empty())
+      return new QoreStringNodeMaker("%.9g", num);
+   SimpleRefHolder<QoreStringNode> str(new QoreStringNodeMaker("%.*f", OP_DBL_Digs + 6, num));
+   if (qore_number_private::formatNumberString(**str, fmt, xsink))
+      return 0;
+   return str.release();
 }
 
 /** @defgroup regex_constants Regular Expression Constants
@@ -405,8 +382,8 @@ const RE_Global = QRE_GLOBAL;
     @return the length in characters for the string passed
 
     @par Example:
-    @code
-my int $len = length($str);
+    @code{.py}
+int len = length(str);
     @endcode
 
     @note
@@ -430,8 +407,8 @@ int length(softstring str) [flags=CONSTANT] {
     @return the number of bytes in the binary object
 
     @par Example:
-    @code
-my int $nbytes = length($bin);
+    @code{.py}
+int nbytes = length(bin);
     @endcode
  */
 int length(binary bin) [flags=CONSTANT] {
@@ -459,8 +436,8 @@ int length(any[doc] arg) [flags=NOOP] {
     @return the length in bytes for the string passed
 
     @par Example:
-    @code
-my int $size = strlen($str);
+    @code{.py}
+int size = strlen(str);
     @endcode
 
     @note equivalent to <string>::strlen() and <string>::size()
@@ -488,8 +465,8 @@ int strlen(any[doc] arg) [flags=NOOP] {
 
 //! Returns a string in all lower-case characters based on the argument passed
 /** @par Example:
-    @code
-my string $lwr = tolower($str);
+    @code{.py}
+string lwr = tolower(str);
     @endcode
 
     This function operates on a very wide range of non-ASCII characters using a Unicode lookup table for mapping Latin, Cyrillic, Greek, Armenian, Georgian, etc characters.
@@ -511,7 +488,7 @@ my string $lwr = tolower($str);
 string tolower(string str) [flags=CONSTANT] {
    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(str->getEncoding()));
    if (do_tolower(*(*rv), *str, xsink))
-      return 0;
+      return QoreValue();
 
    return rv.release();
 }
@@ -524,8 +501,8 @@ nothing tolower() [flags=RUNTIME_NOOP] {
 
 //! Returns a string in all upper-case characters based on the argument passed
 /** @par Example:
-    @code
-my string $upr = toupper($str);
+    @code{.py}
+string upr = toupper(str);
     @endcode
 
     This function operates on a very wide range of non-ASCII characters using a Unicode lookup table for mapping Latin, Cyrillic, Greek, Armenian, Georgian, etc characters.
@@ -547,7 +524,7 @@ my string $upr = toupper($str);
 string toupper(string str) [flags=CONSTANT] {
    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(str->getEncoding()));
    if (do_toupper(*(*rv), *str, xsink))
-      return 0;
+      return QoreValue();
 
    return rv.release();
 }
@@ -567,9 +544,9 @@ nothing toupper() [flags=RUNTIME_NOOP] {
     @return the substring of the string starting from an integer character offset; the rest of the string is returned after this offset; an empty string is returned if the argument cannot be satisfied
 
     @par Example:
-    @code
+    @code{.py}
 # get the last 10 characters of a string
-my string $substr = substr($str, -10);
+string substr = substr(str, -10);
     @endcode
 
     @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
@@ -593,9 +570,9 @@ string substr(softstring str, softint start) [flags=RET_VALUE_ONLY] {
     @return the substring of the string according to the arguments passed; an empty string is returned if the argument cannot be satisfied
 
     @par Example:
-    @code
+    @code{.py}
 # get a substring 10 characters into the string except omitting the last 2 characters of the string
-my string $substr = substr($str, 10, -2);
+string substr = substr(str, 10, -2);
     @endcode
 
     @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
@@ -618,9 +595,9 @@ string substr(softstring str, softint start, softint len) [flags=RET_VALUE_ONLY]
     @return the portion of the binary data argument starting from an integer byte offset; the rest of the data is returned after this offset
 
     @par Example:
-    @code
+    @code{.py}
 # get the last 10 bytes
-my binary $b1 = substr($b, -10);
+binary b1 = substr(b, -10);
     @endcode
 
     @note equivalent to <binary>::substr(softint)
@@ -643,9 +620,9 @@ binary substr(binary b, softint start) [flags=CONSTANT] {
     @return the portion of the binary data argument according to the arguments passed
 
     @par Example:
-    @code
+    @code{.py}
 # get a binary object 10 characters into the data except omitting the last 2 bytes
-my binary $b1 = substr($b, 10, -2);
+binary b1 = substr(b, 10, -2);
     @endcode
 
     @note equivalent to <binary>::substr(softint, softint)
@@ -674,10 +651,10 @@ nothing substr() [flags=NOOP] {
     @return the character position of a substring within a string, -1 is returned if the substring is not found
 
     @par Example:
-    @code
-my int $i = index($str, $substr);
-if ($i == -1)
-    printf("could not find %y in %y\n", $substr, $str);
+    @code{.py}
+int i = index(str, substr);
+if (i == -1)
+    printf("could not find %y in %y\n", substr, str);
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -712,10 +689,10 @@ int index() [flags=RUNTIME_NOOP] {
     @return the byte position of a substring within a string, -1 is returned if the substring is not found
 
     @par Example:
-    @code
-my int $i = bindex($str, $substr);
-if ($i == -1)
-    printf("could not find %y in %y\n", $substr, $str);
+    @code{.py}
+int i = bindex(str, substr);
+if (i == -1)
+    printf("could not find %y in %y\n", substr, str);
     @endcode
 
     @note no character encoding conversions are made by this function even if the string arguments have different @ref character_encoding "character encodings"
@@ -748,10 +725,10 @@ int bindex() [flags=RUNTIME_NOOP] {
     @return the character position of a substring within a string, -1 is returned if the substring is not found
 
     @par Example:
-    @code
-my int $i = rindex($str, $substr);
-if ($i == -1)
-    printf("could not find %y in %y\n", $substr, $str);
+    @code{.py}
+int i = rindex(str, substr);
+if (i == -1)
+    printf("could not find %y in %y\n", substr, str);
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -786,10 +763,10 @@ int rindex() [flags=RUNTIME_NOOP] {
     @return the byte position of a substring within a string, -1 is returned if the substring is not found
 
     @par Example:
-    @code
-my int $i = brindex($str, $substr);
-if ($i == -1)
-    printf("could not find %y in %y\n", $substr, $str);
+    @code{.py}
+int i = brindex(str, substr);
+if (i == -1)
+    printf("could not find %y in %y\n", substr, str);
     @endcode
 
     @note no character encoding conversions are made by this function even if the string arguments have different @ref character_encoding "character encodings"
@@ -820,8 +797,8 @@ int brindex() [flags=RUNTIME_NOOP] {
     @return the numeric value of the given byte in the string passed; if the offset is after the end of the string or negative, -1 is returned
 
     @par Example:
-    @code
-my int $i = ord($str);
+    @code{.py}
+int i = ord(str);
     @endcode
 
     @note ord() only works on byte offsets and returns byte values
@@ -847,8 +824,8 @@ int ord() [flags=RUNTIME_NOOP] {
     @return a string containing a single ASCII character represented by the numeric value passed
 
     @par Example:
-    @code
-my string $char = chr(13);
+    @code{.py}
+string char = chr(13);
     @endcode
 
     @since %Qore 0.8.5 the encoding argument is supported
@@ -882,8 +859,8 @@ nothing chr() [flags=RUNTIME_NOOP] {
     @return a list of each component of a string separated by a separator string, with the separator removed; the separator pattern will not be included in the elements of the list returned unless the \a with_separator argument is @ref True
 
     @par Example:
-    @code
-my list $list = split(":", "some:text:here"); # returns ("some", "text", "here")
+    @code{.py}
+list list = split(":", "some:text:here"); # returns ("some", "text", "here")
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -894,7 +871,7 @@ list split(string sep, string str, bool with_separator = False) [flags=RET_VALUE
    // convert pattern encoding to string if necessary
    TempEncodingHelper temp(sep, str->getEncoding(), xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    return split_intern(temp->getBuffer(), temp->strlen(), str->getBuffer(), str->strlen(), str->getEncoding(), with_separator);
 }
@@ -910,8 +887,8 @@ list split(string sep, string str, bool with_separator = False) [flags=RET_VALUE
     @return a list of each component of a string separated by a separator string, with the separator and any enclosing quote characters removed
 
     @par Example:
-    @code
-my list $list = split(",", "some,'text with spaces',here", "'"); # returns ("some", "text with spaces", "here")
+    @code{.py}
+list list = split(",", "some,'text with spaces',here", "'"); # returns ("some", "text with spaces", "here")
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -933,8 +910,8 @@ list split(string sep, string str, string quote, bool trim_unquoted = False) [fl
     @return a list of binary objects representing each component of the binary object separated by the bytes identified by the separator argument, with the separator removed
 
     @par Example:
-    @code
-my list $l = split($sep, $bin);
+    @code{.py}
+list l = split(sep, bin);
     @endcode
 
     @note equivalent to <binary>::split(binary)
@@ -957,8 +934,8 @@ list split() [flags=RUNTIME_NOOP] {
     @return a string describing the character encoding of the string argument passed
 
     @par Example:
-    @code
-my string $enc = get_encoding($str);
+    @code{.py}
+string enc = get_encoding(str);
     @endcode
 
     @note equivalent to <string>::encoding()
@@ -981,8 +958,8 @@ nothing get_encoding() [flags=RUNTIME_NOOP] {
     @return a string corresponding to the string argument converted to the encoding given
 
     @par Example:
-    @code
-my string $enc = convert_encoding($str, "iso-8859-1");
+    @code{.py}
+string enc = convert_encoding(str, "iso-8859-1");
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -1006,8 +983,8 @@ nothing convert_encoding() [flags=RUNTIME_NOOP] {
     @return the first string argument tagged with the character encoding given as the second argument; does not actually change the string data
 
     @par Example:
-    @code
-my string $nstr = force_encoding($str, "iso-8859-1");
+    @code{.py}
+string nstr = force_encoding(str, "iso-8859-1");
     @endcode
  */
 string force_encoding(string str, string encoding) [flags=CONSTANT] {
@@ -1030,8 +1007,8 @@ nothing force_encoding() [flags=RUNTIME_NOOP] {
     @return @ref True if the regular expression matches the string passed, otherwise returns @ref False
 
     @par Example:
-    @code
-my bool $b = regex("hello", "^hel"); # returns True
+    @code{.py}
+bool b = regex("hello", "^hel"); # returns True
     @endcode
 
     @throw REGEX-COMPILATION-ERROR There was an error compiling the regular expression
@@ -1045,7 +1022,7 @@ my bool $b = regex("hello", "^hel"); # returns True
 bool regex(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
    QoreRegexNode qr(*regex, options, xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    return qr.exec(str, xsink);
 }
@@ -1067,17 +1044,17 @@ nothing regex() [flags=RUNTIME_NOOP] {
     @return a string with patterns substituted according to the arguments passed
 
     @par Example:
-    @code
+    @code{.py}
 regex_subst("hello there", "^(.*) there$", "you $1"); #returns "you hello"
     @endcode
 
     @par Example of global replacement:
-    @code
-my $content = "123
+    @code{.py}
+string content = "123
 123
 123";
 
-printf("%s\n", regex_subst($content, "123", "456", Qore::RE_Global));
+printf("%s\n", regex_subst(content, "123", "456", Qore::RE_Global));
 
 resulting in:
 456
@@ -1104,7 +1081,7 @@ string regex_subst(string str, string regex, string subst, int options = 0) [fla
 
    RegexSubstNode qrs(regex, (int)options, xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    if (global)
       qrs.setGlobal();
@@ -1127,8 +1104,8 @@ nothing regex_subst() [flags=RUNTIME_NOOP] {
     @return a list of substrings in a string based on matching patterns defined by a regular expression or @ref nothing if no match was made
 
     @par Example:
-    @code
-my *list $rv = regex_extract("ns:element", "(\\w+):(\\w+)");
+    @code{.py}
+*list rv = regex_extract("ns:element", "(\\w+):(\\w+)");
     @endcode
 
     @throw REGEX-COMPILATION-ERROR There was an error compiling the regular expression
@@ -1144,7 +1121,7 @@ my *list $rv = regex_extract("ns:element", "(\\w+):(\\w+)");
 *list regex_extract(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
    QoreRegexNode qr(*regex, options, xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    return qr.extractSubstrings(str, xsink);
 }
@@ -1161,13 +1138,13 @@ nothing regex_extract() [flags=RUNTIME_NOOP] {
     @param source the substring to replace; if this string has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding"
     @param target the replacement value for \a source; if this string has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding"
     @param start the starting character position in the source for the replacement where the first character is at position 0 (may not be the same as the byte position for multibyte @ref character_encoding "character encodings")
-    @param end the ending character position in the source for the replacement where the first character is at position 0 (may not be the same as the byte position for multibyte @ref character_encoding "character encodings"; that negative numbers mean to use the entire string)
+    @param end the ending character position in the source for the replacement where the first character is at position 0 (may not be the same as the byte position for multibyte @ref character_encoding "character encodings"; negative numbers mean to use the entire string)
 
     @return a string with all occurrences of \a source replaced with \a target
 
     @par Example:
-    @code
-my string $str = replace("hello there", "there", "you"); # returns "hello you"
+    @code{.py}
+string str = replace("hello there", "there", "you"); # returns "hello you"
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -1181,18 +1158,18 @@ string replace(string str, string source, string target, int start = 0, int end 
 
    TempEncodingHelper t1(source, ccs, xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    if (t1->empty() || !end || (end > 0 && end < start))
       return str->refSelf();
 
    TempEncodingHelper t2(target, ccs, xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
-   QoreStringNode *nstr = new QoreStringNode(ccs);
+   QoreStringNode* nstr = new QoreStringNode(ccs);
 
-   const char *cstr, *pattern;
+   const char* cstr, *pattern;
    cstr = str->getBuffer();
    pattern = t1->getBuffer();
    int plen = strlen(pattern);
@@ -1202,7 +1179,7 @@ string replace(string str, string source, string target, int start = 0, int end 
       qore_size_t i = ccs->getByteLen(cstr, cn, start, xsink);
       cstr = cn;
       if (*xsink || (i == str->size()))
-         return 0;
+         return QoreValue();
 
       cstr += i;
    }
@@ -1212,13 +1189,13 @@ string replace(string str, string source, string target, int start = 0, int end 
       qore_size_t i = ccs->getByteLen(cstr, cn, end, xsink);
       cstr = cn;
       if (*xsink || i == str->size())
-         return 0;
+         return QoreValue();
 
       cstr += i;
    }
 
    while (const char* p = strstr(cstr, pattern)) {
-      //printd(5, "str=%08p p=%08p '%s' '%s'->'%s'\n", cstr, p, cstr, pattern, t1->getBuffer());
+      //printd(5, "str: %p p: %p '%s' '%s'->'%s'\n", cstr, p, cstr, pattern, t1->getBuffer());
       if ((end > 0) && (p - str->getBuffer() + plen) > end)
          break;
 
@@ -1249,8 +1226,8 @@ nothing replace() [flags=RUNTIME_NOOP] {
     @return a string created from a list and a seperator string, each element in the list will be present in the return value separated by the separator string
 
     @par Example:
-    @code
-my string $str = join(":", "a", "b", "c"); # returns "a:b:c"
+    @code{.py}
+string str = join(":", "a", "b", "c"); # returns "a:b:c"
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -1267,8 +1244,8 @@ string join(string str, ...) [flags=RET_VALUE_ONLY] {
     @return a string created from a list and a separator string, each element in the list will be present in the return value separated by the separator string; the string returned with have the same @ref character_encoding "character encoding" as \a str
 
     @par Example:
-    @code
-my string $str = join(":", ("a", "b", "c")); # returns "a:b:c"
+    @code{.py}
+string str = join(":", ("a", "b", "c")); # returns "a:b:c"
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -1293,14 +1270,14 @@ nothing join() [flags=RUNTIME_NOOP] {
     @return the new string with any end-of-line character(s) removed
 
     @par Example:
-    @code
-my string $line = chomp("hello\n"); # returns "hello"
+    @code{.py}
+string line = chomp("hello\n"); # returns "hello"
     @endcode
 
     @see the @ref chomp "chomp operator"
  */
 string chomp(string str) [flags=CONSTANT] {
-   QoreStringNode *rv = str->copy();
+   QoreStringNode* rv = str->copy();
    rv->chomp();
    return rv;
 }
@@ -1313,18 +1290,18 @@ string chomp(string str) [flags=CONSTANT] {
     @return the string as modified
 
     @par Example:
-    @code
-chomp(\$str);
+    @code{.py}
+chomp(\str);
     @endcode
  */
 *string chomp(reference str) {
    QoreTypeSafeReferenceHelper ref(str, xsink);
    if (!ref || ref.getType() != NT_STRING)
-      return 0;
+      return QoreValue();
 
-   QoreStringNode *rv = reinterpret_cast<QoreStringNode *>(ref.getUnique(xsink));
+   QoreStringNode* rv = reinterpret_cast<QoreStringNode* >(ref.getUnique(xsink));
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    rv->chomp();
    return rv->refSelf();
@@ -1345,15 +1322,15 @@ nothing chomp() [flags=RUNTIME_NOOP] {
     @return the trimmed string
 
     @par Example:
-    @code
-my string $tstr = trim($str);
+    @code{.py}
+string tstr = trim(str);
     @endcode
 
     @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
  */
 string trim(string str, *string chars) [flags=CONSTANT] {
-   const char *tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
-   QoreStringNode *rv = str->copy();
+   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
+   QoreStringNode* rv = str->copy();
    rv->trim(tchars);
    return rv;
 }
@@ -1369,8 +1346,8 @@ string trim(string str, *string chars) [flags=CONSTANT] {
     @return the trimmed string
 
     @par Example:
-    @code
-trim(\$str);
+    @code{.py}
+trim(\str);
     @endcode
 
     @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
@@ -1378,13 +1355,13 @@ trim(\$str);
 *string trim(reference str, *string chars) {
    QoreTypeSafeReferenceHelper ref(str, xsink);
    if (!ref || ref.getType() != NT_STRING)
-      return 0;
+      return QoreValue();
 
-   QoreStringNode *rv = reinterpret_cast<QoreStringNode *>(ref.getUnique(xsink));
+   QoreStringNode* rv = reinterpret_cast<QoreStringNode* >(ref.getUnique(xsink));
    if (*xsink)
-      return 0;
+      return QoreValue();
 
-   const char *tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
+   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
    rv->trim(tchars);
    return rv->refSelf();
 }
@@ -1393,6 +1370,114 @@ trim(\$str);
 /**
  */
 nothing trim() [flags=RUNTIME_NOOP] {
+}
+
+//! Removes byte characters from the start of a string and returns the new string
+/** By default (if the second argument is omitted or passed as an empty string) the following whitespace byte characters are removed: \c " ", \c "\n", \c "\r", \c "\t", \c "\v" (vertical tab, ASCII 11), and \c "\0" (null character). To trim other characters, pass a string as the second argument specifying the byte characters to be removed.
+
+    @param str the string to trim
+    @param chars the characters to trim from the start of the string (default:  \c " ", \c "\n", \c "\r", \c "\t", \c "\v" (vertical tab, ASCII 11), and \c "\0" (null character))
+
+    @return the trimmed string
+
+    @par Example:
+    @code{.py}
+string tstr = ltrim(" ABC ");
+# returns string "ABC "
+    @endcode
+
+    @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
+ */
+string ltrim(string str, *string chars) [flags=CONSTANT] {
+   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
+   QoreStringNode* rv = str->copy();
+   rv->trim_leading(tchars);
+   return rv;
+}
+
+//! Removes byte characters from the start of a reference to an lvalue containing a string and returns string after processing
+/** By default (if the second argument is omitted or passed as an empty string) the following whitespace byte characters are removed: \c " ", \c "\n", \c "\r", \c "\t", \c "\v" (vertical tab, ASCII 11), and \c "\0" (null character). To trim other characters, pass a string as the second argument specifying the byte characters to be removed.
+
+    This variant accepts variable references, in which case it will modify the string in place and also return the modified string.
+
+    @param str a reference to an lvalue containing the string value to process; if the lvalue does not have a string value @ref nothing is returned
+    @param chars the characters to trim from the start of the string (default:  \c " ", \c "\n", \c "\r", \c "\t", \c "\v" (vertical tab, ASCII 11), and \c "\0" (null character))
+
+    @return the trimmed string
+
+    @par Example:
+    @code{.py}
+ltrim(\str);
+    @endcode
+
+    @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
+ */
+*string ltrim(reference str, *string chars) {
+   QoreTypeSafeReferenceHelper ref(str, xsink);
+   if (!ref || ref.getType() != NT_STRING)
+      return QoreValue();
+
+   QoreStringNode* rv = reinterpret_cast<QoreStringNode* >(ref.getUnique(xsink));
+   if (*xsink)
+      return QoreValue();
+
+   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
+   rv->trim_leading(tchars);
+   return rv->refSelf();
+}
+
+//! Removes byte characters from the end of a string and returns the new string
+/** By default (if the second argument is omitted or passed as an empty string) the following whitespace byte characters are removed: \c " ", \c "\n", \c "\r", \c "\t", \c "\v" (vertical tab, ASCII 11), and \c "\0" (null character). To trim other characters, pass a string as the second argument specifying the byte characters to be removed.
+
+    @param str the string to trim
+    @param chars the characters to trim from the end of the string (default:  \c " ", \c "\n", \c "\r", \c "\t", \c "\v" (vertical tab, ASCII 11), and \c "\0" (null character))
+
+    @return the trimmed string
+
+    @par Example:
+    @code{.py}
+string tstr = rtrim(str);
+# returns string " ABC"
+    @endcode
+
+    @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
+ */
+string rtrim(string str, *string chars) [flags=CONSTANT] {
+   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
+   QoreStringNode* rv = str->copy();
+   rv->trim_trailing(tchars);
+   return rv;
+}
+
+//! Removes byte characters from the end of a reference to an lvalue containing a string and returns string after processing
+/** By default (if the second argument is omitted or passed as an empty string) the following whitespace byte characters are removed: \c " ", \c "\n", \c "\r", \c "\t", \c "\v" (vertical tab, ASCII 11), and \c "\0" (null character). To trim other characters, pass a string as the second argument specifying the byte characters to be removed.
+
+    This variant accepts variable references, in which case it will modify the string in place and also return the modified string.
+
+    @param str a reference to an lvalue containing the string value to process; if the lvalue does not have a string value @ref nothing is returned
+    @param chars the characters to trim from the end of the string (default:  \c " ", \c "\n", \c "\r", \c "\t", \c "\v" (vertical tab, ASCII 11), and \c "\0" (null character))
+
+    @return the trimmed string
+
+    @par Example:
+    @code{.py}
+rtrim(\str);
+    @endcode
+
+    @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
+ */
+*string rtrim(reference str, *string chars) {
+   QoreTypeSafeReferenceHelper ref(str, xsink);
+   if (!ref || ref.getType() != NT_STRING)
+      return QoreValue();
+
+   QoreStringNode* rv = reinterpret_cast<QoreStringNode* >(ref.getUnique(xsink));
+   if (*xsink)
+      return QoreValue();
+
+   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
+   rv->trim_trailing(tchars);
+   return rv->refSelf();
 }
 
 //! Returns a truncated string with no more than the given number of bytes and optionally converted to a specific @ref character_encoding "character encoding"
@@ -1404,8 +1489,8 @@ nothing trim() [flags=RUNTIME_NOOP] {
     @return the string truncated to be no longer than the given byte length in the @ref character_encoding "character encoding" given (or in the original string's @ref character_encoding "character encoding" if no \a encoding argument was passed to the function); if the string has a multi-byte @ref character_encoding "character encoding", this function will guarantee that the returned string ends on a valid character (in this case the byte length of the string could be less than the limit given)
 
     @par Example:
-    @code
-my string $column = trunc_str($str, 80, $dsp.getOSEncoding());
+    @code{.py}
+string column = trunc_str(str, 80, dsp.getOSEncoding());
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if an explicit @ref character_encoding "character encoding" was given and an error occurs during encoding conversion
@@ -1417,7 +1502,7 @@ string trunc_str(softstring str, softint len, *string encoding) [flags=RET_VALUE
 
    TempEncodingHelper tmp(str, enc, xsink);
    if (!tmp)
-      return 0;
+      return QoreValue();
 
    if (tmp->strlen() <= (qore_size_t)len) {
       len = tmp->strlen();
@@ -1428,7 +1513,7 @@ string trunc_str(softstring str, softint len, *string encoding) [flags=RET_VALUE
       return new QoreStringNode(tmp->getBuffer(), len, enc);
 
    // find position of last character fitting in len bytes
-   const char *p = tmp->getBuffer();
+   const char* p = tmp->getBuffer();
    int64 sl = 0;
    while (true) {
       qore_size_t size = enc->getCharLen(p, len - sl);
@@ -1448,37 +1533,31 @@ string trunc_str(softstring str, softint len, *string encoding) [flags=RET_VALUE
     @param offset the number of characters that should be removed from the end of the string after processing
 
     @par Example:
-    @code
-my string $ret = strmul("%s,", 3, 1); # returns "%s,%s,%s"
+    @code{.py}
+string ret = strmul("%s,", 3, 1); # returns "%s,%s,%s"
     @endcode
 
-    @throw STRMUL-ERROR \a offset is < 0 or \a smul < 1
+    @throw STRMUL-ERROR \a offset is < 0 or \a smul < 0
  */
 string strmul(softstring str, softint smul, *softint offset) [flags=RET_VALUE_ONLY] {
-   if (offset < 0) {
-      xsink->raiseException("STRMUL-ERROR", "Offset argument has to be >= 0; value: "QSD, offset);
-      return 0;
-   }
+   if (offset < 0)
+      return xsink->raiseException("STRMUL-ERROR", "Offset argument has to be >= 0; value: "QSD, offset);
 
-   if (smul < 1) {
-      xsink->raiseException("STRMUL-ERROR", "Multiple argument has to be > 0; value: "QSD, smul);
-      return 0;
-   }
+   if (smul < 0)
+      return xsink->raiseException("STRMUL-ERROR", "Multiple argument has to be >= 0; value: "QSD, smul);
 
-   QoreStringNodeHolder ret(new QoreStringNode(str));
-   while (smul != 1) {
+   QoreStringNodeHolder ret(new QoreStringNode());
+   while (smul > 0) {
       ret->concat(str);
       --smul;
    }
 
    if (offset) {
-      if (offset > (int64)ret->length()) {
-         xsink->raiseException("STRMUL-ERROR", "Offset (%d) is greater than string length (%d)", offset, ret->length());
-         return 0;
-      }
+      if (offset > (int64)ret->length())
+         return xsink->raiseException("STRMUL-ERROR", "Offset ("QLLD") is greater than string length (%d)", offset, ret->length());
       ret->splice(ret->length() - offset, xsink);
       if (*xsink)
-         return 0;
+         return QoreValue();
    }
 
    return ret.release();
@@ -1486,23 +1565,23 @@ string strmul(softstring str, softint smul, *softint offset) [flags=RET_VALUE_ON
 
 //! Returns a string of a formatted number according to a number argument and a format string
 /** @param fmt the format string has the following format:\n
-    <em>\<thousands_separator\></em><tt>[</tt><em>\<decimal_separator\>\<decimals\></em><tt>]</tt>\n
+    <em>\<thousands_separator\></em><tt>[</tt><em>\<decimal_separator\>[\<decimals\>]</em><tt>]</tt>\n
     where:\n
-    - \a thousands_separator and \a decimal_separator are single ASCII characters defining the thousands and decimal separator characters respectively, and
-    - \a decimals is a single digit defining how may decimals should appear after the decimal point
+    - \a thousands_separator and \a decimal_separator are single characters defining the thousands and decimal separator characters respectively, and
+    - \a decimals is one or more digits defining how may decimals should appear after the decimal point
     @param num the number to format
 
-    @return a string of a formatted number according to a number argument and a format string; if the format string does not follow the given format, then an empty string is returned
+    @return a string of a formatted number according to a number argument and a format string; if the format string does not follow the given format, then the number without formatting is returned
 
     @par Example:
-    @code
-my string $nstr = format_number(".,3", -48392093894.2349); # returns "-48.392.093.894,235"
+    @code{.py}
+string nstr = format_number(".,3", -48392093894.2349); # returns "-48.392.093.894,235"
     @endcode
 
     @see <float>::format()
  */
 string format_number(string fmt, softfloat num) [flags=CONSTANT] {
-   return format_float_intern(*fmt, num);
+   return format_float_intern(*fmt, num, xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -1519,8 +1598,8 @@ nothing format_number() [flags=RUNTIME_NOOP] {
     @return a string with all characters in reverse order
 
     @par Example:
-    @code
-my string $ns = reverse($str);
+    @code{.py}
+string ns = reverse(str);
     @endcode
 
     @see reverse(list)
@@ -1534,7 +1613,7 @@ string reverse(softstring str) [flags=CONSTANT] {
     @param ... each of the arguments passed to this function will be output literally with no output formatting
 
     @par Example:
-    @code
+    @code{.py}
 print("hello\n");
     @endcode
 
@@ -1542,11 +1621,10 @@ print("hello\n");
  */
 nothing print(...) [dom=TERMINAL_IO] {
    if (!args)
-      return 0;
+      return QoreValue();
 
    for (unsigned i = 0; i < args->size(); i++)
-      print_node(stdout, get_param(args, i));
-   return 0;
+      print_node(stdout, get_param_value(args, i));
 }
 
 //! Returns a formatted string based on a @ref string_formatting "format string" and other arguments; enforces field widths on arguments larger than the given field width
@@ -1559,8 +1637,8 @@ nothing print(...) [dom=TERMINAL_IO] {
     @return a formatted string corresponding to the arguments given
 
     @par Example:
-    @code
-my string $str = f_sprintf("%5s", "a long string"); # will return "a lon"
+    @code{.py}
+string str = f_sprintf("%5s", "a long string"); # will return "a lon"
     @endcode
 
     @see
@@ -1588,8 +1666,8 @@ string f_sprintf() [flags=NOOP] {
     @return a formatted string corresponding to the arguments given
 
     @par Example:
-    @code
-my string $str = sprintf("%5s", "a long string"); # will return "a long string"
+    @code{.py}
+string str = sprintf("%5s", "a long string"); # will return "a long string"
     @endcode
 
     @see
@@ -1617,8 +1695,8 @@ string sprintf() [flags=NOOP] {
     @return a formatted string corresponding to the arguments given
 
     @par Example:
-    @code
-my string $str = f_vsprintf("%5s %3d\n", ("a lon", 500)); # will return "a lon 500"
+    @code{.py}
+string str = f_vsprintf("%5s %3d\n", ("a lon", 500)); # will return "a lon 500"
     @endcode
 
     @see
@@ -1641,8 +1719,8 @@ string f_vsprintf(string[doc] fmt, any[doc] varg) [flags=CONSTANT] {
     @return a formatted string corresponding to the arguments given
 
     @par Example:
-    @code
-my string $str = vsprintf("%5s %3d\n", ("a long string", 5000)); # will return "a long string 5000"
+    @code{.py}
+string str = vsprintf("%5s %3d\n", ("a long string", 5000)); # will return "a long string 5000"
     @endcode
 
     @see
@@ -1670,7 +1748,7 @@ string vsprintf() [flags=NOOP] {
     @return the formatted string output corresponding to the arguments given
 
     @par Example:
-    @code
+    @code{.py}
 f_printf("%5s", "a long string"); # will print out "a lon"
     @endcode
 
@@ -1679,7 +1757,7 @@ f_printf("%5s", "a long string"); # will print out "a lon"
     - printf() for a similar function that does not enforce field widths
  */
 string f_printf(string[doc] fmt, ...) [dom=TERMINAL_IO] {
-   AbstractQoreNode *node;
+   AbstractQoreNode* node;
    print_node(stdout, node = q_sprintf(args, 1, 0, xsink));
    return node;
 }
@@ -1701,7 +1779,7 @@ string f_printf() [flags=NOOP] {
     @return the formatted string output corresponding to the arguments given
 
     @par Example:
-    @code
+    @code{.py}
 printf("%5s", "a long string"); # will print out "a long string"
     @endcode
 
@@ -1710,7 +1788,7 @@ printf("%5s", "a long string"); # will print out "a long string"
     - f_printf() for a similar function that enforces field widths
  */
 string printf(string[doc] fmt, ...) [dom=TERMINAL_IO] {
-   AbstractQoreNode *node;
+   AbstractQoreNode* node;
    print_node(stdout, node = q_sprintf(args, 0, 0, xsink));
    return node;
 }
@@ -1732,7 +1810,7 @@ string printf() [flags=NOOP;dom=TERMINAL_IO] {
     @return the formatted string output corresponding to the arguments given
 
     @par Example:
-    @code
+    @code{.py}
 f_vprintf("%5s %3d", ("a long string", 5000)); # will print out "a lon 500"
     @endcode
 
@@ -1743,7 +1821,7 @@ f_vprintf("%5s %3d", ("a long string", 5000)); # will print out "a lon 500"
     @since %Qore 0.8.4
  */
 string f_vprintf(string[doc] fmt, any[doc] varg) [dom=TERMINAL_IO] {
-   AbstractQoreNode *node;
+   AbstractQoreNode* node;
    print_node(stdout, node = q_vsprintf(args, 1, 0, xsink));
    return node;
 }
@@ -1758,7 +1836,7 @@ string f_vprintf(string[doc] fmt, any[doc] varg) [dom=TERMINAL_IO] {
     @return the formatted string output corresponding to the arguments given
 
     @par Example:
-    @code
+    @code{.py}
 vprintf("%5s %3d", ("a long string", 5000)); # will print out "a long string 5000"
     @endcode
 
@@ -1767,7 +1845,7 @@ vprintf("%5s %3d", ("a long string", 5000)); # will print out "a long string 500
     - f_vprintf() for a similar function that enforces field widths
  */
 string vprintf(string[doc] fmt, ...) [dom=TERMINAL_IO] {
-   AbstractQoreNode *node;
+   AbstractQoreNode* node;
    print_node(stdout, node = q_vsprintf(args, 0, 0, xsink));
    return node;
 }
@@ -1782,7 +1860,7 @@ string vprintf() [flags=NOOP] {
 //! Flushes output to the console output with print(), printf(), etc
 /**
     @par Example:
-    @code
+    @code{.py}
 flush();
     @endcode
  */
@@ -1792,13 +1870,15 @@ nothing flush() [dom=TERMINAL_IO] {
 
 //! tries to parse a string value as a boolean
 /** @par Example:
-    @code
-my bool $b = parse_boolean($str);
+    @code{.py}
+bool b = parse_boolean(str);
     @endcode
 
-    @param str case-insensitive \c "on", \c "true", \c "enable*", \c "yes" are @ref Qore::True "True", the rest is interpreted as a number where 0 is @ref Qore::False "False", everything else is  @ref Qore::True "True"
+    @param str case-insensitive \c "on", \c "true", \c "enable*", \c "yes", \c "y" are @ref Qore::True "True", the rest is interpreted as a number where 0 is @ref Qore::False "False", everything else is  @ref Qore::True "True"
 
     @return a boolean value according to the parsed argument
+
+    @since Qore 0.8.12 \c "y" is also parsed as @ref Qore::True "True"
  */
 bool parse_boolean(string str) [flags=CONSTANT] {
    return q_parse_bool(str->getBuffer());
@@ -1806,14 +1886,65 @@ bool parse_boolean(string str) [flags=CONSTANT] {
 
 //! returns the first value passed as a boolean
 /** @par Example:
-    @code
-my bool $b = parse_boolean($i);
+    @code{.py}
+bool b = parse_boolean(i);
     @endcode
+
+    @param val the value to convert to a boolean
 
     @return the first value passed as a boolean
  */
-bool parse_boolean(...) [flags=CONSTANT] {
-   const AbstractQoreNode* p = get_param(args, 0);
-   return p ? p->getAsBool() : false;
+bool parse_boolean(any val) [flags=CONSTANT] {
+   return val.getAsBool();
+}
+
+//! returns a number corresponding to the string and the argument, giving the format
+/** @par Example:
+    @code{.py}
+number n = parse_number("1.150.200,55", ".,");
+    @endcode
+
+    @param str the string to parse
+    @param fmt the format of the number in the string, consisting of two characters, the first for the thousands separator, the second for the decimal point (ex: \c ".," for many European locales)
+
+    @return the number value represented by the string
+
+    @since %Qore 0.8.11.1
+*/
+number parse_number(string str, string fmt) [flags=RET_VALUE_ONLY] {
+   TempEncodingHelper tfmt(fmt, str->getEncoding(), xsink);
+   if (*xsink)
+      return QoreValue();
+
+   QoreString tmp(*str);
+   if (fix_num(tmp, **tfmt, xsink))
+      return QoreValue();
+
+   return new QoreNumberNode(tmp.getBuffer());
+}
+
+//! returns a number corresponding to the string and the argument, giving the format
+/** @par Example:
+    @code{.py}
+number n = parse_number("1.150.200,55", ".,");
+    @endcode
+
+    @param str the string to parse
+    @param fmt the format of the number in the string, consisting of two characters, the first for the thousands separator, the second for the decimal point (ex: \c ".," for many European locales)
+
+    @return the number value represented by the string
+
+    @since %Qore 0.8.11.1
+*/
+float parse_float(string str, string fmt) [flags=RET_VALUE_ONLY] {
+   TempEncodingHelper tfmt(fmt, str->getEncoding(), xsink);
+   if (*xsink)
+      return QoreValue();
+
+   QoreString tmp(*str);
+   if (fix_num(tmp, **tfmt, xsink))
+      return QoreValue();
+
+   return strtod(tmp.getBuffer(), 0);
 }
 //@}

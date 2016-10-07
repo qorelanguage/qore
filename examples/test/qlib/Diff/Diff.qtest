@@ -1,0 +1,62 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Diff.qm
+
+%exec-class DiffTest
+
+public class DiffTest inherits QUnit::Test {
+    constructor() : Test("Diff Test", "1.0") {
+        addTestCase("Test list diffs", \listDiff(), NOTHING);
+        addTestCase("Test string diffs", \stringDiff(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    listDiff() {
+        list a = (0,    2, 3,    5, 6, 7, 8);
+        list b = (   1, 2, 3, 4, 5, 6, 7, 8);
+        list ab = (("d" : list(0), "i" : list(1)), 2, 3, ("i" : list(4), "d" : list()), 5, 6, 7, 8);
+        testAssertion("diff same length lists", \diff(), (a, b), new QUnit::TestResultValue(ab));
+
+        list c = ("a", "b", "c", "d", "e", "f");
+        list d = (     "b",           "e", "f", "g", "h");
+        list cd = (("d" : list("a"), "i" : list()), "b", ("d" : list("c", "d"), "i" : list()), "e", "f", ("d" : list(), "i" : list("g", "h")));
+
+        testAssertion("diff different length lists", \diff(), (c, d), new QUnit::TestResultValue(cd));
+    }
+
+    stringDiff() {
+        string a = "r
+abc
+d
+e
+f
+g";
+        string b = "s
+abc
+f
+g
+h
+h";
+        string result = "1c1
+< r
+---
+> s
+3,4d2
+< d
+< e
+6a5,6
+> h
+> h
+";
+        testAssertion("diff string", \diff_text(), (a, b), new QUnit::TestResultValue(result));
+    }
+}

@@ -3,7 +3,7 @@
 
   Qore programming language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -38,13 +38,13 @@
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int VarRefNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   str.sprintf("variable reference '%s' %s (0x%p)", name.ostr, type == VT_GLOBAL ? "global" : type == VT_LOCAL ? "local" : "unresolved", this);
+int VarRefNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
+   str.sprintf("variable reference '%s' %s (%p)", name.ostr, type == VT_GLOBAL ? "global" : type == VT_LOCAL ? "local" : "unresolved", this);
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *VarRefNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
+QoreString *VarRefNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
    del = true;
    QoreString *rv = new QoreString();
    getAsString(*rv, foff, xsink);
@@ -72,146 +72,58 @@ void VarRefNode::resolve(const QoreTypeInfo* typeInfo) {
       else
 	 type = VT_LOCAL;
 
-      printd(5, "VarRefNode::resolve(): local var %s resolved (id=%p, in_closure=%d)\n", name.ostr, ref.id, in_closure);
+      printd(5, "VarRefNode::resolve(): local var %s resolved (id: %p, in_closure: %d)\n", name.ostr, ref.id, in_closure);
    }
    else {
       ref.var = qore_root_ns_private::parseCheckImplicitGlobalVar(loc, name, typeInfo);
       type = VT_GLOBAL;
-      printd(5, "VarRefNode::resolve(): implicit global var %s resolved (var=%p)\n", name.ostr, ref.var);
+      printd(5, "VarRefNode::resolve(): implicit global var %s resolved (var: %p)\n", name.ostr, ref.var);
    }
 }
 
-AbstractQoreNode *VarRefNode::evalImpl(ExceptionSink *xsink) const {
-   AbstractQoreNode* v;
+QoreValue VarRefNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+   QoreValue v;
    if (type == VT_LOCAL) {
-      printd(5, "VarRefNode::evalImpl() this=%p lvar %p (%s)\n", this, ref.id, ref.id->getName());
-      v = ref.id->eval(xsink);
+      printd(5, "VarRefNode::evalImpl() this: %p lvar %p (%s)\n", this, ref.id, ref.id->getName());
+      v = ref.id->evalValue(needs_deref, xsink);
    }
    else if (type == VT_CLOSURE) {
-      printd(5, "VarRefNode::evalImpl() this=%p closure var %p (%s)\n", this, ref.id, ref.id->getName());
+      printd(5, "VarRefNode::evalImpl() this: %p closure var %p (%s)\n", this, ref.id, ref.id->getName());
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
-      v = val->eval(xsink);
+      v = val->evalValue(needs_deref, xsink);
    }
    else if (type == VT_LOCAL_TS) {
-      printd(5, "VarRefNode::evalImpl() this=%p local thread-safe var %p (%s)\n", this, ref.id, ref.id->getName());
+      printd(5, "VarRefNode::evalImpl() this: %p local thread-safe var %p (%s)\n", this, ref.id, ref.id->getName());
       ClosureVarValue *val = thread_find_closure_var(ref.id->getName());
-      v = val->eval(xsink);
+      v = val->evalValue(needs_deref, xsink);
    }
    else if (type == VT_IMMEDIATE)
-      v = ref.cvv->eval(xsink);
+      v = ref.cvv->evalValue(needs_deref, xsink);
    else {
-      printd(5, "VarRefNode::evalImpl() this=%p global var=%p (%s)\n", this, ref.var, ref.var->getName());
+      assert(needs_deref);
+      printd(5, "VarRefNode::evalImpl() this: %p global var: %p (%s)\n", this, ref.var, ref.var->getName());
       v = ref.var->eval();
    }
 
-   if (v && v->getType() == NT_REFERENCE) {
-      AbstractQoreNode* nv = v->eval(xsink);
-      v->deref(xsink);
-      v = nv;
-   }
-
-   return v;
-}
-
-AbstractQoreNode* VarRefNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   AbstractQoreNode* v;
-   if (type == VT_LOCAL)
-      v = ref.id->eval(needs_deref, xsink);
-   else if (type == VT_CLOSURE) {
-      ClosureVarValue* val = thread_get_runtime_closure_var(ref.id);
-      v = val->eval(needs_deref, xsink);
-   }
-   else if (type == VT_LOCAL_TS) {
-      ClosureVarValue* val = thread_find_closure_var(ref.id->getName());
-      v = val->eval(needs_deref, xsink);
-   }
-   else if (type == VT_IMMEDIATE)
-      v = ref.cvv->eval(needs_deref, xsink);
-   else
-      v = ref.var->eval(needs_deref);
-
-   if (v && v->getType() == NT_REFERENCE) {
-      AbstractQoreNode* nv = v->eval(xsink);
+   AbstractQoreNode* n = v.getInternalNode();
+   if (n && n->getType() == NT_REFERENCE) {
+      ReferenceNode* r = reinterpret_cast<ReferenceNode*>(n);
+      bool nd;
+      QoreValue nv = r->evalValue(nd, xsink);
       if (needs_deref)
-         v->deref(xsink);
-      else
-         needs_deref = true;
-      v = nv;
+	 discard(v.getInternalNode(), xsink);
+      needs_deref = nd;
+      return v = nv;
    }
+
    return v;
 }
 
-int64 VarRefNode::bigIntEvalImpl(ExceptionSink *xsink) const {
-   if (type == VT_LOCAL)
-      return ref.id->bigIntEval(xsink);
-   if (type == VT_CLOSURE) {
-      ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
-      return val->bigIntEval(xsink);
-   }
-   if (type == VT_LOCAL_TS) {
-      ClosureVarValue *val = thread_find_closure_var(ref.id->getName());
-      return val->bigIntEval(xsink);
-   }
-   if (type == VT_IMMEDIATE)
-      return ref.cvv->bigIntEval(xsink);
-
-   return ref.var->bigIntEval();
-}
-
-int VarRefNode::integerEvalImpl(ExceptionSink *xsink) const {
-   if (type == VT_LOCAL)
-      return ref.id->intEval(xsink);
-   if (type == VT_CLOSURE) {
-      ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
-      return val->intEval(xsink);
-   }
-   if (type == VT_LOCAL_TS) {
-      ClosureVarValue *val = thread_find_closure_var(ref.id->getName());
-      return val->intEval(xsink);
-   }
-   if (type == VT_IMMEDIATE)
-      return ref.cvv->intEval(xsink);
-
-   return (int)ref.var->bigIntEval();
-}
-
-bool VarRefNode::boolEvalImpl(ExceptionSink *xsink) const {
-   if (type == VT_LOCAL)
-      return ref.id->boolEval(xsink);
-   if (type == VT_CLOSURE) {
-      ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
-      return val->boolEval(xsink);
-   }
-   if (type == VT_LOCAL_TS) {
-      ClosureVarValue *val = thread_find_closure_var(ref.id->getName());
-      return val->boolEval(xsink);
-   }
-   if (type == VT_IMMEDIATE)
-      return ref.cvv->boolEval(xsink);
-
-   return (bool)ref.var->boolEval();
-}
-
-double VarRefNode::floatEvalImpl(ExceptionSink *xsink) const {
-   if (type == VT_LOCAL)
-      return ref.id->floatEval(xsink);
-   if (type == VT_CLOSURE) {
-      ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
-      return val->floatEval(xsink);
-   }
-   if (type == VT_LOCAL_TS) {
-      ClosureVarValue *val = thread_find_closure_var(ref.id->getName());
-      return val->floatEval(xsink);
-   }
-   if (type == VT_IMMEDIATE)
-      return ref.cvv->floatEval(xsink);
-
-   return ref.var->floatEval();
-}
-
-AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo, bool is_new) {
-   if (pflag & PF_CONST_EXPRESSION)
+AbstractQoreNode* VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo, bool is_new) {
+   if (pflag & PF_CONST_EXPRESSION) {
       parseException("ILLEGAL-VARIABLE-REFERENCE", "variable reference '%s' used illegally in an expression executed at parse time to initialize a constant value", name.ostr);
+      return 0;
+   }
 
    //printd(5, "VarRefNode::parseInitIntern() this: %p '%s' type: %d %p '%s'\n", this, name.ostr, type, typeInfo, typeInfo->getName());
    // if it is a new variable being declared
@@ -220,7 +132,7 @@ AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &l
 	 ref.id = push_local_var(name.ostr, loc, typeInfo, true, is_new ? 1 : 0, pflag & PF_TOP_LEVEL);
 	 ++lvids;
       }
-      //printd(5, "VarRefNode::parseInitIntern() this=%p local var '%s' declared (id=%p)\n", this, name.ostr, ref.id);
+      //printd(5, "VarRefNode::parseInitIntern() this: %p local var '%s' declared (id: %p)\n", this, name.ostr, ref.id);
    }
    else if (type != VT_GLOBAL) {
       assert(type == VT_UNRESOLVED);
@@ -231,7 +143,7 @@ AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &l
    return this;
 }
 
-AbstractQoreNode *VarRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
+AbstractQoreNode* VarRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
    parseInitIntern(oflag, pflag, lvids, 0);
 
    bool is_assignment = pflag & PF_FOR_ASSIGNMENT;
@@ -249,11 +161,11 @@ AbstractQoreNode *VarRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvi
    return this;
 }
 
-VarRefNewObjectNode *VarRefNode::globalMakeNewCall(AbstractQoreNode *args) {
+VarRefNewObjectNode* VarRefNode::globalMakeNewCall(AbstractQoreNode* args) {
    assert(type == VT_GLOBAL);
    if (ref.var->hasTypeInfo()) {
       QoreParseTypeInfo* pti = ref.var->copyParseTypeInfo();
-      VarRefNewObjectNode *rv = new VarRefNewObjectNode(takeName(), ref.var, makeArgs(args), pti ? 0 : ref.var->getTypeInfo(), pti);
+      VarRefNewObjectNode* rv = new VarRefNewObjectNode(takeName(), ref.var, make_args(args), pti ? 0 : ref.var->getTypeInfo(), pti);
       deref();
       return rv;
    }
@@ -261,7 +173,7 @@ VarRefNewObjectNode *VarRefNode::globalMakeNewCall(AbstractQoreNode *args) {
    return 0;
 }
 
-AbstractQoreNode *VarRefNode::makeNewCall(AbstractQoreNode *args) {
+AbstractQoreNode* VarRefNode::makeNewCall(AbstractQoreNode* args) {
    return type == VT_GLOBAL && new_decl ? globalMakeNewCall(args) : 0;
 }
 
@@ -322,7 +234,7 @@ void VarRefDeclNode::parseInitCommon(LocalVar *oflag, int pflag, int &lvids, boo
    parseInitIntern(oflag, pflag, lvids, typeInfo, is_new);
 }
 
-AbstractQoreNode *VarRefDeclNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
+AbstractQoreNode* VarRefDeclNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
    parseInitCommon(oflag, pflag, lvids, outTypeInfo);
 
    bool is_assignment = pflag & PF_FOR_ASSIGNMENT;
@@ -339,13 +251,16 @@ AbstractQoreNode *VarRefDeclNode::parseInitImpl(LocalVar *oflag, int pflag, int 
 }
 
 // for checking for new object calls
-AbstractQoreNode *VarRefDeclNode::makeNewCall(AbstractQoreNode *args) {
-   VarRefNewObjectNode *rv = new VarRefNewObjectNode(loc, takeName(), typeInfo, takeParseTypeInfo(), makeArgs(args), type);
+AbstractQoreNode* VarRefDeclNode::makeNewCall(AbstractQoreNode* args) {
+   VarRefNewObjectNode* rv = new VarRefNewObjectNode(loc, takeName(), typeInfo, takeParseTypeInfo(), make_args(args), type);
    deref();
    return rv;
 }
 
 void VarRefDeclNode::makeGlobal() {
+   // could be tagged as local if allow-bare-refs is enabled
+   assert(type == VT_UNRESOLVED || (type == VT_LOCAL && parse_check_parse_option(PO_ALLOW_BARE_REFS)));
+
    type = VT_GLOBAL;
    if (parseTypeInfo)
       ref.var = qore_root_ns_private::parseAddGlobalVarDef(name, takeParseTypeInfo());
@@ -367,7 +282,7 @@ void VarRefFunctionCallBase::parseInitConstructorCall(const QoreProgramLocation&
       const QoreTypeInfo *typeInfo;
       lvids += parseArgsVariant(loc, oflag, pflag, constructor ? constructor->getFunction() : 0, typeInfo);
 
-      //printd(5, "VarRefFunctionCallBase::parseInitConstructorCall() this=%p constructor=%p variant=%p\n", this, constructor, variant);
+      //printd(5, "VarRefFunctionCallBase::parseInitConstructorCall() this: %p constructor: %p variant: %p\n", this, constructor, variant);
 
       if (((constructor && constructor->parseIsPrivate()) || (variant && CONMV_const(variant)->isPrivate())) && !qore_class_private::parseCheckPrivateClassAccess(*qc)) {
 	 if (variant)
@@ -376,14 +291,14 @@ void VarRefFunctionCallBase::parseInitConstructorCall(const QoreProgramLocation&
 	    parse_error(loc, "illegal external access to private constructor of class %s", qc->getName());
       }
 
-      //printd(5, "VarRefFunctionCallBase::parseInitConstructorCall() this=%p class=%s (%p) constructor=%p function=%p variant=%p\n", this, qc->getName(), qc, constructor, constructor ? constructor->getFunction() : 0, variant);
+      //printd(5, "VarRefFunctionCallBase::parseInitConstructorCall() this: %p class: %s (%p) constructor: %p function: %p variant: %p\n", this, qc->getName(), qc, constructor, constructor ? constructor->getFunction() : 0, variant);
    }
 
    if (pflag & PF_FOR_ASSIGNMENT)
       parse_error(loc, "variable new object instantiation will be assigned when the object is created; it is an error to make an additional assignment");
 }
 
-AbstractQoreNode *VarRefNewObjectNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
+AbstractQoreNode* VarRefNewObjectNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
    parseInitCommon(oflag, pflag, lvids, true);
 
    const QoreClass *qc = typeInfo->getUniqueReturnClass();
@@ -395,23 +310,18 @@ AbstractQoreNode *VarRefNewObjectNode::parseInitImpl(LocalVar *oflag, int pflag,
    return this;
 }
 
-AbstractQoreNode *VarRefNewObjectNode::evalImpl(ExceptionSink *xsink) const {
+QoreValue VarRefNewObjectNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    assert(typeInfo->getUniqueReturnClass());
-   ReferenceHolder<QoreObject> obj(typeInfo->getUniqueReturnClass()->execConstructor(variant, args, xsink), xsink);
+   ReferenceHolder<QoreObject> obj(qore_class_private::execConstructor(*typeInfo->getUniqueReturnClass(), variant, args, xsink), xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
-   QoreObject *rv = *obj;
+   QoreObject* rv = *obj;
    LValueHelper lv(this, xsink);
    if (!lv)
-      return 0;
+      return QoreValue();
    lv.assign(obj.release());
    if (*xsink)
-      return 0;
-   return rv->refSelf();
-}
-
-AbstractQoreNode *VarRefNewObjectNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = true;
-   return VarRefNewObjectNode::evalImpl(xsink);
+      return QoreValue();
+   return QoreValue(rv->refSelf());
 }
