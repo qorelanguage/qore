@@ -868,8 +868,6 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
       if (pgm) {
          // get runtime parse options
          int64 po = variant->getParseOptions(ppo);
-         // if we should ignore "noop" variants
-         bool strict_args = po & (PO_REQUIRE_TYPES|PO_STRICT_ARGS);
 
          // check parse options
          int64 vflags = variant->getFunctionality();
@@ -884,7 +882,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
             return 0;
          }
 
-         assert(!strict_args || !(variant->getFlags() & QC_RUNTIME_NOOP));
+         assert(!(po & (PO_REQUIRE_TYPES|PO_STRICT_ARGS)) || !(variant->getFlags() & QC_RUNTIME_NOOP));
       }
    }
 
