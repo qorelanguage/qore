@@ -202,6 +202,8 @@ void QoreNamespace::setClassHandler(q_ns_class_handler_t class_handler) {
 void QoreNamespace::addSystemClass(QoreClass* oc) {
    QORE_TRACE("QoreNamespace::addSystemClass()");
 
+   oc->setSystem();
+
    // generate builtin class signature
    std::string path;
    priv->getPath(path);
@@ -625,6 +627,12 @@ QoreNamespace* QoreNamespace::findCreateNamespacePath(const char* nspath) {
    NamedScope nscope(nspath);
    bool is_new = false;
    return priv->findCreateNamespacePath(nscope, false, is_new);
+}
+
+QoreNamespace* QoreNamespace::findCreateNamespacePath(const char* nspath, bool pub) {
+   NamedScope nscope(nspath);
+   bool is_new = false;
+   return priv->findCreateNamespacePath(nscope, pub, is_new);
 }
 
 QoreNamespace* qore_ns_private::findCreateNamespacePath(const NamedScope& nscope, bool pub, bool& is_new) {
@@ -2315,4 +2323,54 @@ StaticSystemNamespace::~StaticSystemNamespace() {
    ExceptionSink xsink;
    deleteData(&xsink);
    priv->purge();
+}
+
+QoreNamespaceIterator::QoreNamespaceIterator(QoreNamespace* ns) : priv(new QorePrivateNamespaceIterator(qore_ns_private::get(*ns), true, true)) {
+}
+
+bool QoreNamespaceIterator::next() {
+   return priv->next();
+}
+
+QoreNamespace* QoreNamespaceIterator::operator->() {
+   return priv->get()->ns;
+}
+
+QoreNamespace* QoreNamespaceIterator::operator*() {
+   return priv->get()->ns;
+}
+
+const QoreNamespace* QoreNamespaceIterator::operator->() const {
+   return priv->get()->ns;
+}
+
+const QoreNamespace* QoreNamespaceIterator::operator*() const {
+   return priv->get()->ns;
+}
+
+QoreNamespace* QoreNamespaceIterator::get() {
+   return priv->get()->ns;
+}
+
+const QoreNamespace* QoreNamespaceIterator::get() const {
+   return priv->get()->ns;
+}
+
+QoreNamespaceConstIterator::QoreNamespaceConstIterator(const QoreNamespace* ns) : priv(new QorePrivateNamespaceIterator(const_cast<qore_ns_private*>(qore_ns_private::get(*ns)), true, true)) {
+}
+
+bool QoreNamespaceConstIterator::next() {
+   return priv->next();
+}
+
+const QoreNamespace* QoreNamespaceConstIterator::operator->() const {
+   return priv->get()->ns;
+}
+
+const QoreNamespace* QoreNamespaceConstIterator::operator*() const {
+   return priv->get()->ns;
+}
+
+const QoreNamespace* QoreNamespaceConstIterator::get() const {
+   return priv->get()->ns;
 }

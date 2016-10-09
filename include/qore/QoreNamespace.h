@@ -168,10 +168,25 @@ public:
 
    //! finds a Namespace based on the argument; creates it (or the whole path) if necessary
    /** can only be called in the parse lock
+
        @param nspath must be a complete path ("ns1::ns2[::ns3...]" to a namespace, which will be found or created in this namespace
+
        @return the namespace found or created according to the path
+
+       @note namespaces are created private by default
     */
    DLLEXPORT QoreNamespace* findCreateNamespacePath(const char* nspath);
+
+   //! finds a Namespace based on the argument; creates it (or the whole path) if necessary
+   /** can only be called in the parse lock
+
+       @param nspath must be a complete path ("ns1::ns2[::ns3...]" to a namespace, which will be found or created in this namespace
+
+       @return the namespace found or created according to the path
+
+       @since %Qore 0.8.13
+    */
+   DLLEXPORT QoreNamespace* findCreateNamespacePath(const char* nspath, bool pub);
 
    //! finds a class in this namespace, does not search child namespaces
    /** can only be called in the parse lock
@@ -244,6 +259,57 @@ public:
 
    //! destructor is not exported in the library's public API
    DLLLOCAL ~RootQoreNamespace();
+};
+
+class QorePrivateNamespaceIterator;
+
+//! allows namespaces to be iterated
+/** @since %Qore 0.8.13
+ */
+class QoreNamespaceIterator {
+private:
+   QorePrivateNamespaceIterator* priv;
+
+public:
+   //! creates the iterator
+   DLLEXPORT QoreNamespaceIterator(QoreNamespace* ns);
+   //! moves to the next position; returns true if on a valid position
+   DLLEXPORT bool next();
+
+   //! returns the namespace
+   DLLEXPORT QoreNamespace* operator->();
+   //! returns the namespace
+   DLLEXPORT QoreNamespace* operator*();
+   //! returns the namespace
+   DLLEXPORT QoreNamespace* get();
+
+   //! returns the namespace
+   DLLEXPORT const QoreNamespace* operator->() const;
+   //! returns the namespace
+   DLLEXPORT const QoreNamespace* operator*() const;
+   //! returns the namespace
+   DLLEXPORT const QoreNamespace* get() const;
+};
+
+//! allows namespaces to be iterated
+/** @since %Qore 0.8.13
+ */
+class QoreNamespaceConstIterator {
+private:
+   QorePrivateNamespaceIterator* priv;
+
+public:
+   //! creates the iterator
+   DLLEXPORT QoreNamespaceConstIterator(const QoreNamespace* ns);
+   //! moves to the next position; returns true if on a valid position
+   DLLEXPORT bool next();
+
+   //! returns the namespace
+   DLLEXPORT const QoreNamespace* operator->() const;
+   //! returns the namespace
+   DLLEXPORT const QoreNamespace* operator*() const;
+   //! returns the namespace
+   DLLEXPORT const QoreNamespace* get() const;
 };
 
 #endif // QORE_NAMESPACE_H

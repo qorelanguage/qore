@@ -714,14 +714,14 @@ static void do_sig(QoreString& csig, ConstantList& clist) {
 }
 
 int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
-   //printd(5, "QoreClass::initializeIntern() this: %p %s class: %p scl: %p initialized: %d\n", this, name.c_str(), cls, scl, initialized);
+   //printd(5, "qore_class_private::initializeIntern() this: %p %s class: %p scl: %p initialized: %d\n", this, name.c_str(), cls, scl, initialized);
    if (initialized)
       return 0;
 
    initialized = true;
 
    assert(!name.empty());
-   //printd(5, "QoreClass::initializeIntern() %s class: %p scl: %p\n", name.c_str(), cls, scl);
+   //printd(5, "qore_class_private::initializeIntern() %s class: %p scl: %p\n", name.c_str(), cls, scl);
 
    // initialize static vars
    if (scl) {
@@ -1260,7 +1260,7 @@ void qore_class_private::parseCommitRuntimeInit(ExceptionSink* xsink) {
    // add all pending static vars to real list and initialize them
    if (!pending_vars.empty()) {
       for (QoreVarMap::DeclOrderIterator i = pending_vars.beginDeclOrder(), e = pending_vars.endDeclOrder(); i != e; ++i) {
-         //printd(5, "QoreClass::parseCommitRuntimeInit() %s committing %s var %p %s\n", name.c_str(), privpub(i->second->access), l->first, l->first);
+         //printd(5, "qore_class_private::parseCommitRuntimeInit() %s committing %s var %p %s\n", name.c_str(), privpub(i->second->access), l->first, l->first);
          vars.addNoCheck(i->first, i->second);
          // initialize variable
          initVar(i->first, *(i->second), xsink);
@@ -2154,6 +2154,10 @@ int BCAList::execBaseClassConstructorArgs(BCEAList* bceal, ExceptionSink* xsink)
          return -1;
    }
    return 0;
+}
+
+void QoreClass::ref() {
+   priv->ref();
 }
 
 bool QoreClass::hasAbstract() const {

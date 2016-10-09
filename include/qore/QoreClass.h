@@ -990,6 +990,9 @@ public:
     */
    DLLEXPORT bool hasAbstract() const;
 
+   //! references the class for when assigning to multiple namespaces
+   DLLEXPORT void ref();
+
    //! constructor not exported in library's API
    DLLLOCAL QoreClass();
 
