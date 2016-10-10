@@ -177,17 +177,6 @@ public:
     */
    DLLEXPORT QoreNamespace* findCreateNamespacePath(const char* nspath);
 
-   //! finds a Namespace based on the argument; creates it (or the whole path) if necessary
-   /** can only be called in the parse lock
-
-       @param nspath must be a complete path ("ns1::ns2[::ns3...]" to a namespace, which will be found or created in this namespace
-
-       @return the namespace found or created according to the path
-
-       @since %Qore 0.8.13
-    */
-   DLLEXPORT QoreNamespace* findCreateNamespacePath(const char* nspath, bool pub);
-
    //! finds a class in this namespace, does not search child namespaces
    /** can only be called in the parse lock
        does not call the class handler

@@ -191,6 +191,20 @@ public:
    DLLLOCAL MethodFunctionBase* getFunction() const;
 };
 
+//! an abstract class for class-specific external user data
+/** @since %Qore 0.8.13
+ */
+class AbstractQoreClassUserData {
+public:
+   DLLEXPORT virtual ~AbstractQoreClassUserData();
+
+   //! for reference-counted classes, returns the same object with the reference count incremented
+   virtual AbstractQoreClassUserData* copy() const = 0;
+
+   //! for non-reference counted classes, deletes the object immediately
+   virtual void doDeref() = 0;
+};
+
 //! defines a Qore-language class
 /** Qore's classes can be either implemented by Qore language code (user classes)
     or in C++ (builtin classes), or both, as in the case of a builtin class that
@@ -956,10 +970,24 @@ public:
    DLLEXPORT void addPrivateMember(const char* mem, const QoreTypeInfo* n_typeInfo, AbstractQoreNode* initial_value = 0);
 
    //! sets a pointer to user-specific data in the class
+   /** @deprecated use setUserData(AbstractQoreClassUserData*) instead
+    */
    DLLEXPORT void setUserData(const void* ptr);
 
    //! retrieves the user-specific data pointer
+   /** @deprecated use getManagedUserData() instead
+    */
    DLLEXPORT const void* getUserData() const;
+
+   //! sets a pointer to user-specific data in the class
+   /** @since %Qore 0.8.13
+    */
+   DLLEXPORT void setManagedUserData(AbstractQoreClassUserData* cud);
+
+   //! retrieves the user-specific data pointer
+   /** @since %Qore 0.8.13
+    */
+   DLLEXPORT AbstractQoreClassUserData* getManagedUserData() const;
 
    //! rechecks for inherited methods in base classes when adding builtin classes
    DLLEXPORT void recheckBuiltinMethodHierarchy();
@@ -989,9 +1017,6 @@ public:
    /** @return true if the class has at least one abstract method variant
     */
    DLLEXPORT bool hasAbstract() const;
-
-   //! references the class for when assigning to multiple namespaces
-   DLLEXPORT void ref();
 
    //! constructor not exported in library's API
    DLLLOCAL QoreClass();

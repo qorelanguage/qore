@@ -195,7 +195,7 @@ const char* QoreNamespace::getName() const {
 }
 
 void QoreNamespace::setClassHandler(q_ns_class_handler_t class_handler) {
-   priv->class_handler = class_handler;
+   priv->setClassHandler(class_handler);
 }
 
 // public, only called in single-threaded initialization
@@ -239,6 +239,15 @@ qore_ns_private::qore_ns_private() : constant(this), pendConstant(this), depth(0
 void qore_ns_private::setPublic() {
    pub = true;
    //printd(5, "qore_ns_private::setPublic() this: %p '%s::' pub:%d\n", this, name.c_str(), pub);
+}
+
+void qore_ns_private::setClassHandler(q_ns_class_handler_t n_class_handler) {
+   class_handler = n_class_handler;
+
+   // register namespace with class handler in the root namespace
+   qore_root_ns_private* rootns = getRoot();
+   if (rootns)
+      rootns->nshlist.add(this);
 }
 
 void qore_ns_private::runtimeImportSystemClasses(const qore_ns_private& source, qore_root_ns_private& rns, ExceptionSink* xsink) {
@@ -627,12 +636,6 @@ QoreNamespace* QoreNamespace::findCreateNamespacePath(const char* nspath) {
    NamedScope nscope(nspath);
    bool is_new = false;
    return priv->findCreateNamespacePath(nscope, false, is_new);
-}
-
-QoreNamespace* QoreNamespace::findCreateNamespacePath(const char* nspath, bool pub) {
-   NamedScope nscope(nspath);
-   bool is_new = false;
-   return priv->findCreateNamespacePath(nscope, pub, is_new);
 }
 
 QoreNamespace* qore_ns_private::findCreateNamespacePath(const NamedScope& nscope, bool pub, bool& is_new) {

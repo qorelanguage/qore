@@ -1819,6 +1819,9 @@ public:
    // user-specific data
    const void* ptr;
 
+   // managed user-specific data
+   AbstractQoreClassUserData* mud;
+
    // pointer to new class when copying
    mutable QoreClass* new_copy;
 
@@ -1864,11 +1867,21 @@ public:
    DLLLOCAL void resolveCopy();
 
    DLLLOCAL void setUserData(const void* n_ptr) {
+      assert(!ptr);
       ptr = n_ptr;
    }
 
    DLLLOCAL const void* getUserData() const {
       return ptr;
+   }
+
+   DLLLOCAL void setManagedUserData(AbstractQoreClassUserData* n_mud) {
+      assert(!mud);
+      mud = n_mud;
+   }
+
+   DLLLOCAL AbstractQoreClassUserData* getManagedUserData() const {
+      return mud;
    }
 
    DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
