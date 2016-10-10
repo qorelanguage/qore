@@ -44,7 +44,10 @@
 // global class ID sequence
 DLLLOCAL Sequence classIDSeq(1);
 
-DLLLOCAL QoreValue qore_method_private::evalNormalVariant(QoreObject* self, const QoreExternalMethodVariant* ev, const QoreListNode* args, ExceptionSink* xsink) const {
+AbstractQoreClassUserData::~AbstractQoreClassUserData() {
+}
+
+QoreValue qore_method_private::evalNormalVariant(QoreObject* self, const QoreExternalMethodVariant* ev, const QoreListNode* args, ExceptionSink* xsink) const {
    const AbstractQoreFunctionVariant* variant = reinterpret_cast<const AbstractQoreFunctionVariant*>(ev);
 
    CodeEvaluationHelper ceh(xsink, getFunction(), variant, getName(), args, self, parent_class->priv);
@@ -522,6 +525,7 @@ qore_class_private::qore_class_private(QoreClass* n_cls, const char* nme, int64 
      orNothingTypeInfo(0),
      selfid("self", typeInfo),
      ptr(0),
+     mud(0),
      new_copy(0),
      spgm(0) {
    assert(methodID == classID);
@@ -577,6 +581,7 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
      selfid(old.selfid),
      hash(old.hash),
      ptr(old.ptr),
+     mud(old.mud ? old.mud->copy() : 0),
      new_copy(0),
      spgm(old.spgm ? old.spgm->programRefSelf() : 0) {
    QORE_TRACE("qore_class_private::qore_class_private(const qore_class_private& old)");
@@ -659,6 +664,9 @@ qore_class_private::~qore_class_private() {
 
    if (owns_ornothingtypeinfo)
       delete orNothingTypeInfo;
+
+   if (mud)
+      mud->doDeref();
 }
 
 const QoreMethod* qore_class_private::doParseMethodAccess(const QoreMethod* m, const qore_class_private* class_ctx) {
@@ -2156,10 +2164,6 @@ int BCAList::execBaseClassConstructorArgs(BCEAList* bceal, ExceptionSink* xsink)
    return 0;
 }
 
-void QoreClass::ref() {
-   priv->ref();
-}
-
 bool QoreClass::hasAbstract() const {
    return priv->hasAbstract();
 }
@@ -2833,6 +2837,14 @@ void QoreClass::setUserData(const void *n_ptr) {
 
 const void *QoreClass::getUserData() const {
    return priv->getUserData();
+}
+
+void QoreClass::setManagedUserData(AbstractQoreClassUserData *n_mud) {
+   priv->setManagedUserData(n_mud);
+}
+
+AbstractQoreClassUserData* QoreClass::getManagedUserData() const {
+   return priv->getManagedUserData();
 }
 
 QoreClass* QoreClass::getClass(qore_classid_t cid) const {
