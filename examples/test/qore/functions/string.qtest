@@ -1,0 +1,45 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class StringTest
+
+public class StringTest inherits QUnit::Test {
+    constructor() : Test("StringTest", "1.0") {
+        addTestCase("function tests", \functionTests());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    functionTests() {
+        assertEq(1150200.55n, parse_number("1.150.200,55", ".,"));
+        assertEq(1150200.55, parse_float("1.150.200,55", ".,"));
+        assertEq(1150200, parse_int("1.150.200,55", ".,"));
+
+        assertEq(1150200.55n, parse_number("1,150,200.55", ",."));
+        assertEq(1150200.55, parse_float("1,150,200.55", ",."));
+        assertEq(1150200, parse_int("1,150,200.55", ",."));
+
+        assertEq(-4970.55n, parse_number("-4.970,55", ".,"));
+        assertEq(-4970.55, parse_float("-4.970,55", ".,"));
+        assertEq(-4970, parse_int("-4.970,55", ".,"));
+
+        assertEq(-4970.55n, parse_number("-4,970.55", ",."));
+        assertEq(-4970.55, parse_float("-4,970.55", ",."));
+        assertEq(-4970, parse_int("-4,970.55", ",."));
+
+        assertEq("asd", trunc_str("asdfäzxcv", 3));
+        assertEq("asdf", trunc_str("asdfäzxcv", 4));
+        assertEq("asdf", trunc_str("asdfäzxcv", 5));
+        assertEq("asdfä", trunc_str("asdfäzxcv", 6));
+        assertEq("asdfäz", trunc_str("asdfäzxcv", 7));
+        assertEq("asdfäzx", trunc_str("asdfäzxcv", 8));
+    }
+}
