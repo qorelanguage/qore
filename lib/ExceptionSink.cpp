@@ -3,7 +3,7 @@
 
   Qore programming language exception handling support
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -99,12 +99,16 @@ void ExceptionSink::clear() {
    priv->thread_exit = false;
 }
 
-const AbstractQoreNode *ExceptionSink::getExceptionArg() {
-   return priv->head ? priv->head->arg : 0;
+const AbstractQoreNode* ExceptionSink::getExceptionErr() {
+   return priv->head ? priv->head->err : 0;
 }
 
-const AbstractQoreNode *ExceptionSink::getExceptionDesc() {
+const AbstractQoreNode* ExceptionSink::getExceptionDesc() {
    return priv->head ? priv->head->desc : 0;
+}
+
+const AbstractQoreNode* ExceptionSink::getExceptionArg() {
+   return priv->head ? priv->head->arg : 0;
 }
 
 AbstractQoreNode* ExceptionSink::raiseException(const char *err, const char *fmt, ...) {

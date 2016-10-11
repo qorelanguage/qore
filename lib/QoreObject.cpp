@@ -530,7 +530,7 @@ void qore_object_private::setValueIntern(const qore_class_private* class_ctx, co
 
       before = needs_scan(old_value);
 
-      odata->setKeyValue(key, val, xsink);
+      qore_hash_private::get(*odata)->setKeyValue(key, val, this, xsink);
 
       // calculate and apply delta
       int dt = before ? (after ? 0 : -1) : (after ? 1 : 0);

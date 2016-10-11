@@ -326,6 +326,14 @@ public:
       obj_count += dt;
    }
 
+   DLLLOCAL static qore_hash_private* get(QoreHashNode& h) {
+      return h.priv;
+   }
+
+   DLLLOCAL static const qore_hash_private* get(const QoreHashNode& h) {
+      return h.priv;
+   }
+
    DLLLOCAL static unsigned getScanCount(const QoreHashNode& h) {
       assert(!h.priv->is_obj);
       return h.priv->obj_count;
