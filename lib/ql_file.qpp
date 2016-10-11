@@ -669,7 +669,7 @@ nothing umask() [flags=RUNTIME_NOOP;dom=PROCESS] {
 //! Creates a directory, optionally specifying the mode
 /** @param path the path to the directory to create
     @param mode the file mode of the new directory (which will be AND'ed with the umask)
-    @parents if True then parent directories are created
+    @param parents if True then parent directories are created
 
     @return if no error occurred returns 0 or the count of newly created directory when parents = @ref Qore::True "True"; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
