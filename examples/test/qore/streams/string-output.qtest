@@ -1,0 +1,43 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class StringOutputStreamTest
+
+public class StringOutputStreamTest inherits QUnit::Test {
+    constructor() : Test("StringOutputStreamTest", "1.0") {
+        addTestCase("ctor empty", \empty());
+        addTestCase("write", \write());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    empty() {
+        StringOutputStream sos();
+        assertEq("", sos.getData());
+        assertEq("", sos.getData());
+    }
+
+    write() {
+        StringOutputStream sos();
+        sos.write(binary("hello"));
+        assertEq("hello", sos.getData());
+        assertEq("", sos.getData());
+        sos.write("hello");
+        assertEq("hello", sos.getData());
+        string utf16str = convert_encoding("hello", "utf16");
+        # with the BOM the byte length will be 12
+        assertEq(True, utf16str.size() >= 10);
+        sos.write(utf16str);
+        assertEq("hello", sos.getData());
+        sos.printf("%s%s", "he", "llo");
+        assertEq("hello", sos.getData());
+    }
+}

@@ -104,6 +104,11 @@ public:
 
    DLLLOCAL bool scanCheck(RSetHelper& rsh, AbstractQoreNode* n);
 
+   // very fast check if the object might have recursive references
+   DLLLOCAL bool mightHaveRecursiveReferences() const {
+      return rset || rcount;
+   }
+
    // if the object is valid (and can be deleted)
    DLLLOCAL bool isValid() const {
       return !needs_is_valid ? true : isValidImpl();
