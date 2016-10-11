@@ -89,6 +89,60 @@ nothing StringOutputStream::write(binary data) {
    os->writeHelper(data, xsink);
 }
 
+//! Writes string data to the output stream
+/**
+    @param data the data to write
+
+    @par Example:
+    @code{.py}
+    StringOutputStream sos();
+    sos.write("ABC");
+    sos.getData();      # returns "ABC"
+    @endcode
+
+    @note the input string is converted to the output stream's character_encoding "character encoding" if necessary
+
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if an encoding error is encountered when converting the given string to the output stream's character_encoding "character encoding"
+ */
+nothing StringOutputStream::write(string data) {
+   TempEncodingHelper dstr(data, os->getEncoding(), xsink);
+   if (*xsink)
+      return QoreValue();
+
+   os->writeHelper(*dstr, xsink);
+}
+
+//! Writes formatted string data to the output stream
+/**
+    @param fmt the @ref string_formatting "format string"
+    @param ... the argument(s) corresponding to format specifiers in the format string
+
+    @par Example:
+    @code{.py}
+    StringOutputStream sos();
+    sos.printf("AB%s", "C");
+    sos.getData();      # returns "ABC"
+    @endcode
+
+    @note the input string is converted to the output stream's character_encoding "character encoding" if necessary
+
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if an encoding error is encountered when converting the given string to the output stream's character_encoding "character encoding"
+ */
+nothing StringOutputStream::printf(string fmt, ...) {
+   TempEncodingHelper nfmt(fmt, os->getEncoding(), xsink);
+   if (*xsink)
+      return QoreValue();
+
+   QoreStringNodeHolder str(q_sprintf(args, 1, 0, xsink));
+   if (*xsink) {
+      assert(!str);
+      return 0;
+   }
+   assert(str);
+
+   os->writeHelper(*str, xsink);
+}
+
 //! Returns the data written to the stream, clearing the internal buffer
 /**
     @return the data written to the @ref StringOutputStream

@@ -66,6 +66,19 @@ public:
    }
 
    /**
+    * @brief Helper method that checks that the current thread is the same as when the instance was created,
+    * that the stream has not yet been closed and calls write().
+    * @param data the data to write
+    * @param xsink the exception sink
+    */
+   DLLLOCAL void writeHelper(const QoreString* data, ExceptionSink *xsink) {
+      if (!check(xsink)) {
+         return;
+      }
+      write(data->c_str(), data->size(), xsink);
+   }
+
+   /**
     * @brief Checks that the current thread is the same as when the instance was created and that the stream has
     * not yet been closed.
     * @param xsink the exception sink
