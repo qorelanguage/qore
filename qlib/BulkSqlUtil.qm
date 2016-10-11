@@ -645,7 +645,7 @@ inserter.setRowCode(rowcode);
             }
         }
 
-        #! inserts internally-queued queued data in the database wuith bulk DML operations
+        #! inserts internally-queued queued data in the database with bulk DML operations
         /**
             This method sets up the SQL DML query used for inserts when row is queued.
             Output values are only retrieved if @ref sql_iops_funcs are used and a
@@ -666,8 +666,27 @@ inserter.setRowCode(rowcode);
             }
             else {
                 # execute the SQLStatement on the args
-                stmt.execArgs(hbuf.values());
-                rh = stmt.getOutput();
+                if (table.hasArrayBind()) {
+                    stmt.execArgs((hbuf + cval + static_ret_expr).values());
+                    rh = stmt.getOutput();
+                }
+                else {
+                    softlist args = (hbuf + cval + static_ret_expr).values();
+                    int size = 0;
+                    foreach any arg in (args) {
+                        if (arg.typeCode() == NT_LIST) {
+                            size = arg.size();
+                            break;
+                        }
+                    }
+                    if (size) {
+                        for (int i = 0; i < size; ++i) {
+                            # get arg list for row
+                            list targs = map $1.typeCode() == NT_LIST ? $1[i] : $1, args;
+                            stmt.execArgs(targs);
+                        }
+                    }
+                }
             }
 
             # call rowcode if it exists
