@@ -86,6 +86,13 @@ enum qore_license_t {
    QL_MIT = 2          //!< code to be used under the MIT license
 };
 
+// class access values
+enum ClassAccess : unsigned char {
+   Public = 0,   // publicly accessible
+   Private = 1,  // accessible only in the class hierarchy (like c++'s 'protected')
+   Internal = 2  // accessible only in the class itself
+};
+
 #if defined _MSC_VER || ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
 #define _Q_WINDOWS 1
 #ifdef _WIN64

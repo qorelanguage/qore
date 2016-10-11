@@ -4,7 +4,7 @@
 
   Qore Programming Language ExceptionSink class definition
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -52,7 +52,7 @@ private:
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL ExceptionSink& operator=(const ExceptionSink&);
-      
+
 public:
    //! creates an empty ExceptionSink object
    DLLEXPORT ExceptionSink();
@@ -150,6 +150,15 @@ public:
 
    //! deletes the exception list immediately
    DLLEXPORT void clear();
+
+   //! returns the error of the top exception
+   DLLEXPORT const AbstractQoreNode* getExceptionErr();
+
+   //! returns the description of the top exception
+   DLLEXPORT const AbstractQoreNode* getExceptionDesc();
+
+   //! returns the argument of the top exception
+   DLLEXPORT const AbstractQoreNode* getExceptionArg();
 
    DLLLOCAL void raiseException(QoreException* e);
    DLLLOCAL void raiseException(const QoreListNode* n);
