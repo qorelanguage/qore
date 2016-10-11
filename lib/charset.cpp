@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,7 @@
 #include <map>
 
 const QoreEncoding* QCS_DEFAULT, *QCS_USASCII, *QCS_UTF8,
-   *QCS_UTF16, *QCS_UTF16BE, *QCS_UTF16LE, 
+   *QCS_UTF16, *QCS_UTF16BE, *QCS_UTF16LE,
    *QCS_ISO_8859_1, *QCS_ISO_8859_2, *QCS_ISO_8859_3, *QCS_ISO_8859_4,
    *QCS_ISO_8859_5, *QCS_ISO_8859_6, *QCS_ISO_8859_7, *QCS_ISO_8859_8,
    *QCS_ISO_8859_9, *QCS_ISO_8859_10, *QCS_ISO_8859_11, *QCS_ISO_8859_13,
@@ -130,7 +130,7 @@ qore_size_t QoreEncoding::getByteLen(const char* p, const char* end, qore_size_t
 	 c = len;
       return c;
    }
-      
+
    bool invalid;
    qore_size_t rc = fend(p, end, c, invalid);
    if (invalid) {
@@ -147,7 +147,7 @@ qore_size_t QoreEncoding::getCharPos(const char* p, const char* end, bool& inval
 qore_size_t QoreEncoding::getCharPos(const char* p, const char* end, ExceptionSink* xsink) const {
    if (!fpos)
       return end - p;
-      
+
    bool invalid;
    qore_size_t rc = fpos(p, end, invalid);
    if (invalid) {
@@ -158,7 +158,7 @@ qore_size_t QoreEncoding::getCharPos(const char* p, const char* end, ExceptionSi
 }
 
 qore_size_t QoreEncoding::getCharLen(const char* p, qore_size_t valid_len) const {
-      return fcharlen ? fcharlen(p, valid_len) : 1;
+   return fcharlen ? fcharlen(p, valid_len) : 1;
 }
 
 bool QoreEncoding::isMultiByte() const {
@@ -240,7 +240,7 @@ const QoreEncoding* QoreEncodingManager::add(const char* code, const char* desc,
 
 QoreEncodingManager::QoreEncodingManager() {
    // add character sets and setup aliases
-   
+
    QCS_USASCII     = addUnlocked("US-ASCII",    "7-bit ASCII character set");
    addAlias(QCS_USASCII, "ASCII");
    addAlias(QCS_USASCII, "USASCII");
@@ -406,7 +406,7 @@ QoreEncodingManager::QoreEncodingManager() {
    addAlias(QCS_KOI8_U, "KOI8U");
 
    QCS_KOI7        = addUnlocked("KOI7",        "Russian: Kod Obmena Informatsiey, 7 bit characters");
-   
+
    QCS_DEFAULT = QCS_UTF8;
 };
 
@@ -497,7 +497,7 @@ qore_size_t q_UTF8_get_char_len(const char* p, qore_size_t len) {
    if ((*p & 0xc0) == 0xc0) {
       //printd(5, "MULTIBYTE *p = %hhx\n", *p);
       // check for a 3-byte sequence
-      if ((*p) & 0x20) { 
+      if ((*p) & 0x20) {
 	 // check for a 4-byte sequence
 	 if ((*p) & 0x10) {
 	    if (len >= 4) {
@@ -583,7 +583,7 @@ qore_size_t q_UTF16LE_get_char_len(const char* p, qore_size_t len) {
    assert(len);
    if (len == 1)
       return -2;
-   
+
    unsigned char c = (unsigned char)p[1];
    size_t l = c >= 0xd8 && c < 0xdc ? 4 : 2;
    return len >= l ? l : -l;
@@ -598,7 +598,7 @@ static unsigned UTF16LE_getUnicode(const char* p) {
    }
    return code_unit;
 }
-   
+
 static qore_size_t UTF16LE_getLength(const char* p, const char* end, bool& invalid) {
    qore_size_t i = 0;
    while (p < end) {
@@ -650,7 +650,7 @@ static qore_size_t UTF16LE_getCharPos(const char* p, const char* end, bool& inva
 
 qore_size_t q_UTF16BE_get_char_len(const char* p, qore_size_t len) {
    assert(len);
-   
+
    unsigned char c = (unsigned char)*p;
    size_t l = c >= 0xd8 && c < 0xdc ? 4 : 2;
    return len >= l ? l : -l;
@@ -665,7 +665,7 @@ static unsigned UTF16BE_getUnicode(const char* p) {
    }
    return code_unit;
 }
-   
+
 static qore_size_t UTF16BE_getLength(const char* p, const char* end, bool& invalid) {
    qore_size_t i = 0;
    while (p < end) {
@@ -720,7 +720,7 @@ qore_size_t q_get_byte_len(const QoreEncoding* enc, const char* p, const char* e
 }
 
 qore_size_t q_get_char_len(const QoreEncoding* enc, const char* p, qore_size_t valid_len, ExceptionSink* xsink) {
-   qore_size_t rc = enc->getCharLen(p, valid_len);
+   qore_offset_t rc = (qore_offset_t)enc->getCharLen(p, valid_len);
    if (rc <= 0) {
       xsink->raiseException("INVALID-ENCODING", "invalid %s encoding encountered in string", enc->getCode());
       return -1;
