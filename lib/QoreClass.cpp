@@ -3371,6 +3371,10 @@ void QoreClass::addAbstractMethodVariant(const char *n_name, ClassAccess access,
    priv->addBuiltinMethod(n_name, new BuiltinAbstractMethodVariant(access, n_flags, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
+void QoreClass::addAbstractMethodVariant(const char* n_name, ClassAccess access, int64 n_flags, const QoreTypeInfo* returnTypeInfo, const type_vec_t& typeList, const arg_vec_t& defaultArgList, const name_vec_t& nameList) {
+   priv->addBuiltinMethod(n_name, new BuiltinAbstractMethodVariant(access, n_flags, returnTypeInfo, typeList, defaultArgList, nameList));
+}
+
 void QoreClass::addAbstractMethodVariantExtended3(const char *n_name, bool n_priv, int64 n_flags, const QoreTypeInfo* returnTypeInfo, unsigned num_params, ...) {
    type_vec_t typeList;
    arg_vec_t defaultArgList;
@@ -3897,11 +3901,11 @@ void qore_class_private::parseInit() {
       for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
          i->second->priv->parseInitStatic();
       }
+      // search for new concrete variants of abstract variants last
+      ahm.parseInit(*this, scl);
    }
 
    //printd(5, "qore_class_private::parseInit() this: %p cls: %p %s scl: %p\n", this, cls, name.c_str(), scl);
-   // search for new concrete variants of abstract variants last
-   ahm.parseInit(*this, scl);
 }
 
 void qore_class_private::recheckBuiltinMethodHierarchy() {

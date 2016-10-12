@@ -488,6 +488,9 @@ public:
    //! adds an unimplemented abstract method variant to the class with extended information; with return and parameter type info
    DLLEXPORT void addAbstractMethodVariant(const char* n_name, ClassAccess access = Public, int64 n_flags = QC_NO_FLAGS, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
+   //! adds an unimplemented abstract method variant to the class with return and parameter type info
+   DLLEXPORT void addAbstractMethodVariant(const char* n_name, ClassAccess access, int64 n_flags, const QoreTypeInfo* returnTypeInfo, const type_vec_t& n_typeList, const arg_vec_t& defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t());
+
    //! adds an unimplemented abstract method variant to the class with extended information; with return and parameter type info
    /** @deprecated for addAbstractMethodVariant()
     */
