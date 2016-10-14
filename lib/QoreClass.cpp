@@ -4159,6 +4159,14 @@ void QoreClass::addBuiltinStaticVar(const char* name, AbstractQoreNode* value, b
    priv->addBuiltinStaticVar(name, value, is_priv ? Private : Public, typeInfo);
 }
 
+void QoreClass::addBuiltinConstant(const char* name, QoreValue value, ClassAccess access, const QoreTypeInfo* typeInfo) {
+   priv->addBuiltinConstant(name, value.takeNode(), access, typeInfo);
+}
+
+void QoreClass::addBuiltinStaticVar(const char* name, QoreValue value, ClassAccess access, const QoreTypeInfo* typeInfo) {
+   priv->addBuiltinStaticVar(name, value.takeNode(), access, typeInfo);
+}
+
 void MethodFunctionBase::parseInit() {
    QoreFunction::parseInit();
 }
