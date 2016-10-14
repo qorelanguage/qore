@@ -85,6 +85,13 @@ public:
    //! destroys the object and frees all associated memory
    DLLEXPORT ~QoreNamespace();
 
+   //! clears the contents of the namespace before deleting
+   /** use if the namespace could contain objects
+
+       @since %Qore 0.8.13
+    */
+   DLLEXPORT void clear(ExceptionSink* xsink);
+
    //! adds a constant definition to the namespace
    /** use addConstant(const char* name, AbstractQoreNode* value, const QoreTypeInfo* typeInfo) when adding
        constants of externally-defined base (non-class) types; all other types (and all objects) can have

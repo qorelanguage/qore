@@ -207,7 +207,7 @@ void QoreNamespace::addSystemClass(QoreClass* oc) {
    // generate builtin class signature
    std::string path;
    priv->getPath(path);
-   qore_class_private::get(*oc)->generateBuiltinSignature(path.c_str());
+   qore_class_private::get(*oc)->finalizeBuiltin(path.c_str());
 #ifdef DEBUG
    if (priv->classList.add(oc))
       assert(false);
@@ -535,6 +535,13 @@ qore_ns_private* QoreNamespaceList::runtimeAdd(QoreNamespace* ns, qore_ns_privat
    ns->priv->parent = parent;
    ns->priv->updateDepthRecursive(parent->depth + 1);
    return ns->priv;
+}
+
+void QoreNamespace::clear(ExceptionSink* xsink) {
+   ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
+   priv->clearConstants(**l);
+   priv->clearData(xsink);
+   priv->deleteData(xsink);
 }
 
 QoreNamespace* QoreNamespace::copy(int po) const {

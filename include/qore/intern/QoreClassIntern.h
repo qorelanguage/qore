@@ -2625,6 +2625,7 @@ public:
    // returns a static method if it exists in the local class and has been committed to the class
    DLLLOCAL const QoreMethod* findLocalCommittedStaticMethod(const char* nme) const;
 
+   DLLLOCAL void finalizeBuiltin(const char* nspath);
    DLLLOCAL void generateBuiltinSignature(const char* nspath);
 
    DLLLOCAL static const QoreMethod* doParseMethodAccess(const QoreMethod* m, const qore_class_private* class_ctx);
