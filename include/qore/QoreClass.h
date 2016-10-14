@@ -1148,4 +1148,33 @@ public:
    DLLEXPORT const QoreMethod* getMethod() const;
 };
 
+//! allows for temporary storage of a QoreClass pointer
+/** @since %Qore 0.8.13
+ */
+class QoreClassHolder {
+public:
+   //! creates the object
+   DLLLOCAL QoreClassHolder(QoreClass* c) : c(c) {
+   }
+
+   //! deletes the QoreClass object if still managed
+   DLLEXPORT ~QoreClassHolder();
+
+   //! implicit conversion to QoreClass*
+   DLLLOCAL operator QoreClass*() const {
+      return c;
+   }
+
+   //! releases the QoreClass*
+   DLLLOCAL QoreClass* release() {
+      auto rv = c;
+      c = 0;
+      return rv;
+   }
+
+private:
+   //! the object being managed
+   QoreClass* c;
+};
+
 #endif // _QORE_QORECLASS_H

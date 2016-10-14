@@ -556,8 +556,9 @@ static void check_meth_eval(const QoreClass* cls, const char* mname, const QoreC
    if (!xsink->isException()) {
       if (cls == mclass)
          xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() cannot be executed because the object has already been deleted", cls->getName(), mname);
-      else
+      else {
          xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() (base class of '%s') cannot be executed because the object has already been deleted", mclass->getName(), mname, cls->getName());
+      }
    }
 }
 
@@ -710,7 +711,7 @@ QoreObject::QoreObject(const QoreClass* oc, QoreProgram* p) : AbstractQoreNode(N
 
 QoreObject::QoreObject(const QoreClass* oc, QoreProgram* p, AbstractPrivateData* data) : AbstractQoreNode(NT_OBJECT, false, false, false, true), priv(new qore_object_private(this, oc, p, new QoreHashNode)) {
    assert(data);
-   setPrivate(oc->getID(), data);
+   priv->setPrivate(oc->getID(), data);
 }
 
 QoreObject::QoreObject(const QoreClass* oc, QoreProgram* p, QoreHashNode* h) : AbstractQoreNode(NT_OBJECT, false, false, false, true), priv(new qore_object_private(this, oc, p, h)) {

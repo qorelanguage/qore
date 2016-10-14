@@ -874,6 +874,11 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
    return 0;
 }
 
+void qore_class_private::finalizeBuiltin(const char* nspath) {
+   generateBuiltinSignature(nspath);
+   initialized = true;
+}
+
 void qore_class_private::generateBuiltinSignature(const char* nspath) {
    // signature string - also processed in parseCommit()
    QoreStringMaker csig("class %s::%s ", nspath, name.c_str());
@@ -2329,6 +2334,10 @@ void QoreClass::addBuiltinVirtualBaseClass(QoreClass* qc) {
    if (!priv->scl)
       priv->scl = new BCList;
    priv->scl->push_back(new BCNode(qc, true));
+
+   if (qc->priv->scl)
+      qc->priv->scl->sml.addBaseClassesToSubclass(qc, this, true);
+   priv->scl->sml.add(this, qc, true);
 }
 
 const QoreMethod* qore_class_private::parseFindNormalMethod(const char* nme, const qore_class_private* class_ctx) {
@@ -4838,4 +4847,9 @@ void QoreVarMap::moveAllTo(QoreClass* qc, ClassAccess access) {
    }
    map.clear();
    list.clear();
+}
+
+QoreClassHolder::~QoreClassHolder() {
+   if (c)
+      qore_class_private::get(*c)->deref();
 }

@@ -592,10 +592,13 @@ public:
       addVirtualPrivateData(key, pd);
    }
 
+   static void breakit() {}
+
    // add virtual IDs for private data to class list
    DLLLOCAL void addVirtualPrivateData(qore_classid_t key, AbstractPrivateData* apd) {
       // first get parent class corresponding to "key"
       QoreClass* qc = theclass->getClass(key);
+
       //printd(5, "qore_object_private::addVirtualPrivateData() this: %p privateData: %p key: %d apd: %p qc: %p '%s'\n", this, privateData, key, apd, qc, qc->getName());
       assert(qc);
       BCSMList* sml = qc->getBCSMList();
