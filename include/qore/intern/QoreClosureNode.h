@@ -193,6 +193,7 @@ public:
    }
 
    DLLLOCAL ~QoreObjectClosureNode() {
+      assert(!obj);
    }
 
    DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
