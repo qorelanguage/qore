@@ -1798,7 +1798,9 @@ QoreValue UserClosureFunction::evalClosure(const QoreClosureBase& closure_base, 
    const AbstractQoreFunctionVariant* variant = first();
 
    // setup call, save runtime position
-   CodeEvaluationHelper ceh(xsink, this, variant, "<anonymous closure>", args, self, class_ctx, CT_USER);
+   // issue #1303: do not check for object validity here in the call, we already have a weak reference to the object,
+   // so it will stay valid, if the closure code itself refers to the object, it will fail then if the object is invalid
+   CodeEvaluationHelper ceh(xsink, this, variant, "<anonymous closure>", args, 0, class_ctx, CT_USER);
    if (*xsink)
       return QoreValue();
 
