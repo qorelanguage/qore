@@ -1564,12 +1564,16 @@ ProgramRuntimeParseContextHelper::~ProgramRuntimeParseContextHelper() {
 CurrentProgramRuntimeParseContextHelper::CurrentProgramRuntimeParseContextHelper() {
    ThreadData* td = thread_data.get();
    // attach to and lock current program for parsing - cannot fail with a running program
-   qore_program_private::lockParsing(*td->current_pgm, 0);
+   // but current_pgm can be null when loading binary modules
+   if (td->current_pgm)
+      qore_program_private::lockParsing(*td->current_pgm, 0);
 }
 
 CurrentProgramRuntimeParseContextHelper::~CurrentProgramRuntimeParseContextHelper() {
    ThreadData* td = thread_data.get();
-   qore_program_private::unlockParsing(*td->current_pgm);
+   // current_pgm can be null when loading binary modules
+   if (td->current_pgm)
+      qore_program_private::unlockParsing(*td->current_pgm);
 }
 
 ProgramRuntimeParseAccessHelper::ProgramRuntimeParseAccessHelper(ExceptionSink* xsink, QoreProgram* pgm) : restore(false) {
