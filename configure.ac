@@ -169,6 +169,8 @@ case "${host_os}" in
 		   NATIVE_CXX=`which g++|head -1 2>/dev/null`
 		   if test -z "$NATIVE_CXX"; then
 		      AC_MSG_ERROR(unable to find a native c++ compiler; please set NATIVE_CXX to the path to the native c++ compiler for building qpp)
+		   else
+                      NATIVE_CXX="$NATIVE_CXX -std=c++11"
 		   fi
 		fi
 		if test -z "$NATIVE_CXX"; then
