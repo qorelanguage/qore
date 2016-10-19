@@ -2318,6 +2318,7 @@ void QoreClass::addBuiltinBaseClass(QoreClass* qc, QoreListNode* xargs) {
    if (!priv->scl)
       priv->scl = new BCList;
    priv->scl->push_back(new BCNode(qc));
+   priv->scl->sml.add(this, qc, false);
 }
 
 void QoreClass::addDefaultBuiltinBaseClass(QoreClass* qc, QoreListNode* xargs) {
