@@ -34,9 +34,7 @@
 #include "qore/intern/QoreClassIntern.h"
 
 //! An @ref InputStream implementation that performs on-the-fly conversion between two character encodings.
-/** @since %Qore 0.8.13
-
-    @par Example: EncodingConversionInputStream basic usage
+/** @par Example: EncodingConversionInputStream basic usage
     @code{.py}
     EncodingConversionInputStream latin2Stream(sourceUtf8Stream, "UTF-8", "ISO-8859-2");
     binary *b;
@@ -45,7 +43,11 @@
     }
     @endcode
 
+    @note stream classes are not designed to be accessed from multiple threads; they have been implemented without locking for fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of such methods in threads other than the thread where the constructor was called will cause a \c STREAM-THREAD-ERROR to be thrown.
+
     @see @ref Qore::StreamReader "StreamReader" for a class that can be used to read various kinds of data from an @ref Qore::InputStream "InputStream"
+
+    @since %Qore 0.8.13
  */
 qclass EncodingConversionInputStream [arg=EncodingConversionInputStream* is; ns=Qore; vparent=InputStream; flags=final; internal_members=InputStream is;];
 
@@ -81,6 +83,8 @@ EncodingConversionInputStream::constructor(Qore::InputStream[InputStream] is, st
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR if an invalid multibyte sequence is encountered in the input
+    @throw INPUT-STREAM-ERROR \a limit is not positive
+    @throw INPUT-STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 *binary EncodingConversionInputStream::read(int limit) {
    return is->readHelper(limit, xsink);

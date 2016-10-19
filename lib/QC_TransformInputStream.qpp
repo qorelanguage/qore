@@ -37,7 +37,10 @@ extern qore_classid_t CID_TRANSFORM;
 extern QoreClass* QC_TRANSFORM;
 
 //! This class implements the @ref InputStream interface for reading bytes from another InputStream while applying a transformation
-/** @see @ref Qore::StreamReader "StreamReader" for a class that can be used to read various kinds of data from an @ref Qore::InputStream "InputStream"
+/**
+    @note stream classes are not designed to be accessed from multiple threads; they have been implemented without locking for fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of such methods in threads other than the thread where the constructor was called will cause a \c STREAM-THREAD-ERROR to be thrown.
+
+    @see @ref Qore::StreamReader "StreamReader" for a class that can be used to read various kinds of data from an @ref Qore::InputStream "InputStream"
 
     @since %Qore 0.8.13
  */
@@ -60,7 +63,11 @@ TransformInputStream::constructor(Qore::InputStream[InputStream] is, Qore::Trans
 //! Reads bytes (up to a specified limit) from the input stream; returns \ref NOTHING if there are no more bytes in the stream
 /**
     @param limit the maximum number of bytes to read
+
     @return the read bytes (the length is between 1 and `limit` inclusive) or \ref NOTHING if no more bytes are available
+
+    @throw INPUT-STREAM-ERROR \a limit is not positive
+    @throw INPUT-STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 *binary TransformInputStream::read(int limit) {
    return is->readHelper(limit, xsink);
