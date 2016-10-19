@@ -191,6 +191,7 @@ set(PSEUDO_QPP_SRC
 )
 
 set(QMOD
+    qlib/Qdx.qm
     qlib/BulkSqlUtil.qm
     qlib/CsvUtil.qm
     qlib/Diff.qm

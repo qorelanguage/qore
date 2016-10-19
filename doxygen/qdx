@@ -6,6 +6,10 @@
 %require-types
 %strict-args
 
+%requires qore >= 0.8.13
+
+%requires Qdx
+
 %exec-class qdx
 
 const opts = (
