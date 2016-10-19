@@ -44,6 +44,8 @@
         #b contains up to 20 bytes representing latin-2 characters
     }
     @endcode
+
+    @see @ref Qore::StreamReader "StreamReader" for a class that can be used to read various kinds of data from an @ref Qore::InputStream "InputStream"
  */
 qclass EncodingConversionInputStream [arg=EncodingConversionInputStream* is; ns=Qore; vparent=InputStream; flags=final; internal_members=InputStream is;];
 

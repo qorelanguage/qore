@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -41,7 +41,6 @@
  * @brief Private data for the Qore::StreamWriter class.
  */
 class StreamWriter : public AbstractPrivateData {
-
 public:
    DLLLOCAL StreamWriter(ExceptionSink* xsink, OutputStream* os, const QoreEncoding* enc = QCS_DEFAULT) :
       out(os, xsink),

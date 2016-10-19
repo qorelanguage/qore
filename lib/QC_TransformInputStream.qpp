@@ -37,7 +37,9 @@ extern qore_classid_t CID_TRANSFORM;
 extern QoreClass* QC_TRANSFORM;
 
 //! This class implements the @ref InputStream interface for reading bytes from another InputStream while applying a transformation
-/** @since %Qore 0.8.13
+/** @see @ref Qore::StreamReader "StreamReader" for a class that can be used to read various kinds of data from an @ref Qore::InputStream "InputStream"
+
+    @since %Qore 0.8.13
  */
 qclass TransformInputStream [arg=TransformInputStream* is; ns=Qore; vparent=InputStream; flags=final; internal_members=InputStream is,Transform t];
 

@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -48,6 +48,8 @@ static void FILEOUTPUTSTREAM_system_constructor(QoreObject* self, int fd, va_lis
     fos.close();
     # file.ext now contains three bytes: 01 02 03
     @endcode
+
+    @see @ref Qore::StreamWriter "StreamWriter" for a class that can be used to write various kinds of data to an @ref Qore::OutputStream "OutputStream"
  */
 qclass FileOutputStream [system_constructor=FILEOUTPUTSTREAM_system_constructor; arg=FileOutputStream* os; ns=Qore; vparent=OutputStream; flags=final; dom=FILESYSTEM];
 
@@ -55,10 +57,13 @@ qclass FileOutputStream [system_constructor=FILEOUTPUTSTREAM_system_constructor;
 /**
     @param fileName the name of the file to open
     @param append if true, then bytes will be written to the end of the file
-    @param mode permission bits for when the file is to be created (default: 0666)
+    @param mode permission bits for when the file is to be created (default: 0644)
+    @oaram encoding the @ref character_encoding "character encoding" of the file; if not present, defaults to the @ref default_encoding "default encoding"
+
+    @note raw binary data is written to the output stream, so it's up to the caller to ensure that only valid character data for the given encoding is written to the @ref FileOutputStream object
  */
-FileOutputStream::constructor(string fileName, bool append = False, softint mode = 0666) {
-   SimpleRefHolder<FileOutputStream> fos(new FileOutputStream(fileName, append, mode, xsink));
+FileOutputStream::constructor(string fileName, bool append = False, softint mode = 0644, *string encoding) {
+   SimpleRefHolder<FileOutputStream> fos(new FileOutputStream(fileName, append, mode, encoding ? QEM.findCreate(encoding) : QCS_DEFAULT, xsink));
    self->setPrivate(CID_FILEOUTPUTSTREAM, fos.release());
 }
 
@@ -85,7 +90,24 @@ nothing FileOutputStream::close() {
     @endcode
 
     @throw FILE-WRITE-ERROR if an I/O error occurs
+
+    @note raw binary data is written to the output stream, so it's up to the caller to ensure that only valid character data for the given encoding is written to the @ref FileOutputStream object
  */
 nothing FileOutputStream::write(binary data) {
    os->writeHelper(data, xsink);
+}
+
+//! Returns the @ref character_encoding "character encoding" for the @ref FileOutputStream
+/** @par Example:
+    @code{.py}
+FileOutputStream fos(filname);
+string encoding = fos.getEncoding();
+    @endcode
+
+    @return the @ref character_encoding "character encoding" for the @ref FileOutputStream
+
+    @note raw binary data is written to the output stream, so it's up to the caller to ensure that only valid character data for the given encoding is written to the @ref FileOutputStream object
+ */
+string FileOutputStream::getEncoding() [flags=CONSTANT] {
+   return new QoreStringNode(os->getEncoding());
 }

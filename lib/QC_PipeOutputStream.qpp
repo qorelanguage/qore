@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,9 +32,12 @@
 #include "qore/intern/StreamPipe.h"
 
 //! This class is not intended to be instantiated directly, please see @ref StreamPipe
-/** @since %Qore 0.8.13
+/**
+    @see
+    - @ref Qore::StreamWriter "StreamWriter" for a class that can be used to write various kinds of data to an @ref Qore::OutputStream "OutputStream"
+    - @ref Qore::StreamPipe
 
-    @see StreamPipe
+    @since %Qore 0.8.13
  */
 qclass PipeOutputStream [arg=PipeOutputStream* os; ns=Qore; vparent=OutputStream; flags=final];
 

@@ -41,6 +41,8 @@
     EncodingConversionOutputStream latin2Stream(destUtf8Stream, "ISO-8859-2", "UTF-8");
     latin2Stream.write(latin2Data);     #writes UTF-8 equivalents to destUtf8Stream
     @endcode
+
+    @see @ref Qore::StreamWriter "StreamWriter" for a class that can be used to write various kinds of data to an @ref Qore::OutputStream "OutputStream"
  */
 qclass EncodingConversionOutputStream [arg=EncodingConversionOutputStream* os; ns=Qore; vparent=OutputStream; flags=final; internal_members=OutputStream os;];
 

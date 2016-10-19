@@ -37,7 +37,10 @@ extern qore_classid_t CID_TRANSFORM;
 extern QoreClass* QC_TRANSFORM;
 
 //! This class implements the @ref OutputStream interface for writing bytes to another OutputStream while applying a transformation
-/** @since %Qore 0.8.13
+/**
+    @see @ref Qore::StreamWriter "StreamWriter" for a class that can be used to write various kinds of data to an @ref Qore::OutputStream "OutputStream"
+
+    @since %Qore 0.8.13
  */
 qclass TransformOutputStream [arg=TransformOutputStream* os; ns=Qore; vparent=OutputStream; flags=final; internal_members=OutputStream os,Transform t];
 
