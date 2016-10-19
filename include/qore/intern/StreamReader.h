@@ -161,6 +161,38 @@ public:
       }
    }
 
+   //! Read string data from the stream.
+   /** @param limit max amount of data to read; if equal to -1, all data will be read, if equal to 0, no data will be read
+    */
+   DLLLOCAL QoreStringNode* readString(int64 limit, ExceptionSink* xsink) {
+      SimpleRefHolder<QoreStringNode> str(new QoreStringNode(enc));
+      if (limit >= 0 && static_cast<int64>(bufSize) >= limit) {
+         str->concat((const char*)buf, limit);
+         shiftBuffer(limit);
+         return str->empty() ? 0 : str.release();
+      }
+      else { // Either limit is -1 or we need more data than is currently in the buffer.
+         int64 toRead = limit;
+         str->concat((const char*)buf, bufSize);
+         toRead -= bufSize;
+         bufSize = 0;
+         while (true) {
+            qore_size_t bytes = limit < 0 ? bufCapacity : QORE_MIN(static_cast<qore_size_t>(toRead), bufCapacity);
+            int64 rc = fillBuffer(bytes, xsink);
+            if (*xsink)
+               return 0;
+            if (rc == 0) // Input stream end.
+               return str->empty() ? 0 : str.release();
+
+            str->concat((const char*)buf, bufSize);
+            toRead -= bufSize;
+            bufSize = 0;
+            if (toRead == 0)
+               return str.release();
+         }
+      }
+   }
+
    DLLLOCAL int64 readi1(ExceptionSink* xsink) {
       char i = 0;
       if (!prepareEnoughData(1, xsink))

@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,6 @@ static void FILEINPUTSTREAM_system_constructor(QoreObject* self, int fd, va_list
    self->setPrivate(CID_FILEINPUTSTREAM, new FileInputStream(fd));
 }
 
-
 //! This class implements the @ref InputStream interface for reading bytes from a file
 /** @since %Qore 0.8.13
 
@@ -49,6 +48,8 @@ static void FILEINPUTSTREAM_system_constructor(QoreObject* self, int fd, va_list
         printf("read %s\n", make_hex_string(b));
     }
     @endcode
+
+    @see @ref Qore::StreamReader "StreamReader" for a class that can be used to read various kinds of data from an @ref Qore::InputStream "InputStream"
  */
 qclass FileInputStream [system_constructor=FILEINPUTSTREAM_system_constructor; arg=FileInputStream* is; ns=Qore; vparent=InputStream; flags=final; dom=FILESYSTEM];
 
@@ -81,6 +82,8 @@ FileInputStream::constructor(string fileName, timeout timeout_ms = -1) {
 
     @throw FILE-READ-ERROR if an I/O error occurs
     @throw FILE-READ-TIMEOUT-ERROR if no byte could be read in the timeout specified in the constructor
+
+    @see FileInputStream::readString()
  */
 *binary FileInputStream::read(int limit) {
    return is->readHelper(limit, xsink);

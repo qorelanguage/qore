@@ -117,16 +117,16 @@ class qdx {
 
         printf("processing %y -> %y (module %s %s src: %y trg: %y)\n", fn, ofn, name, h.version, src, trg);
 
-        File inf();
-        inf.open2(fn);
+        InputStreamLineIterator i(new FileInputStream(fn), NOTHING, NOTHING, False);
 
-        File of();
-        of.open2(ofn, O_CREAT | O_TRUNC | O_WRONLY);
+        StreamWriter w(new FileOutputStream(ofn));
 
         # get tags substitution string
         string tags = o.tag ? o.tag.join(" ") : "";
 
-        while ((*string line = inf.readLine()).val()) {
+        while (i.next()) {
+            string line = i.getValue();
+
             if (line =~ /{module}/)
                 line = replace(line, "{module}", name);
             else if (line =~ /{input}/)
@@ -138,28 +138,24 @@ class qdx {
             else if (line =~ /{qore_version}/)
                 line = replace(line, "{qore_version}", QoreVer);
 
-            of.write(line);
+            w.write(line);
         }
     }
 
     doDox(string fn, string ofn) {
         printf("processing %y -> %y\n", fn, ofn);
 
-        File inf();
-        inf.open2(fn);
+        DocumentTableInputStreamLineIterator i(new FileInputStream(fn), NOTHING, NOTHING, False);
 
-        File of();
-        of.open2(ofn, O_CREAT | O_TRUNC | O_WRONLY);
+        StreamWriter w(new FileOutputStream(ofn));
 
-        DocumentTableHelper dth();
-
-        while ((*string line = inf.readLine()).val()) {
-            line = dth.process(line);
+        while (i.next()) {
+            string line = i.getValue();
 
             if (line =~ /{qore_version}/)
                 line = replace(line, "{qore_version}", QoreVer);
 
-            of.write(line);
+            w.write(line);
         }
     }
 
@@ -176,22 +172,20 @@ class qdx {
     }
 
     postProcessIntern(string ifn, bool tex) {
-        File inf();
-        inf.open2(ifn);
+        DocumentTableInputStreamLineIterator i(new FileInputStream(ifn), NOTHING, NOTHING, False);
 
         string ofn = ifn + ".new";
 
         printf("processing API file %s\n", ifn);
 
-        File of();
-        of.open2(ofn, O_CREAT | O_WRONLY | O_TRUNC);
+        StreamWriter w(new FileOutputStream(ofn));
 
         on_success rename(ofn, ifn);
 
         DocumentTableHelper dth();
 
-        while (exists (*string line = inf.readLine())) {
-            line = dth.process(line);
+        while (i.next()) {
+            string line = i.getValue();
 
             if (tex) {
                 line =~ s/\\_\\-\\_\\-1\\_\\-/[/g;
@@ -227,7 +221,7 @@ class qdx {
             line =~ s/'Qore::zzz8([a-z]+)zzz9::([^']+)\(([^\)]*)\)'/'Qore::\&lt;$1\&gt;::$2($3)'/g;
             line =~ s/'zzz8([a-z]+)zzz9'/'$1'/g;
 
-            of.print(line);
+            w.write(line);
         }
     }
 
@@ -244,7 +238,7 @@ class qdx {
         }
     }
 
-    string getComment(string comment, File inf, bool fix_param = False) {
+    string getComment(string comment, ReadOnlyFile inf, bool fix_param = False) {
         comment =~ s/^[ \t]+//g;
         if (fix_param)
             fixParam(\comment);
@@ -252,8 +246,6 @@ class qdx {
         DocumentTableHelper dth();
 
         while (exists (*string line = inf.readLine())) {
-            #line =~ s/\$/__6_/g; #/;
-
             if (fix_param)
                 fixParam(\line);
 
@@ -264,7 +256,7 @@ class qdx {
                 break;
             }
 
-            # remove <!--% ... %--> comments to allow for invisible spacing, to allow for "*/" to be outout in particular places, for example
+            # remove <!--% ... %--> comments to allow for invisible spacing, to allow for "*/" to be output in particular places, for example
             line =~ s/<!--%.*%-->//g;
 
             comment += line;
@@ -276,11 +268,9 @@ class qdx {
     processQore(string fn, string nn) {
         checkNames(fn, nn);
 
-        File inf();
-        inf.open2(fn);
+        ReadOnlyFile inf(fn);
 
-        File of();
-        of.open2(nn, O_CREAT|O_WRONLY|O_TRUNC);
+        StreamWriter w(new FileOutputStream(nn));
 
         printf("processing %y -> %y\n", fn, nn);
 
@@ -308,8 +298,6 @@ class qdx {
         list nss = ();
 
         while (exists (*string line = inf.readLine())) {
-            #printf("line: %s", line);
-
             line =~ s/\$\.//g;
             line =~ s/([^\/\*])\*([a-zA-Z])/$1__7_ $2/g;
             #line =~ s/\$/__6_/g;
@@ -321,7 +309,7 @@ class qdx {
             if (in_doc) {
                 if (line =~ /\*\//)
                     in_doc = False;
-                of.print(line);
+                w.write(line);
                 continue;
             }
 
@@ -330,16 +318,16 @@ class qdx {
                 continue;
 
             # see if the line is the start of a doxygen block comment
-            if (line =~ /^[[:blank:]]*\/\*\*/) {
+            if (line =~ /^[[:blank:]]*\/\*\*/) { #/){
                 line = getComment(line, inf);
-                of.print(line);
+                w.write(line);
                 continue;
             }
 
             if (line =~ /^[[:blank:]]*\/\*/){ #/){
                 if (line !~ /\*\//)
                     in_doc = True;
-                of.print(line);
+                w.write(line);
                 continue;
             }
 
@@ -366,8 +354,9 @@ class qdx {
 
             # skip module declarations for now
             if (line =~ /^[[:space:]]*module[[:space:]]+/) {
-                while (line.val() && line !~ /}/)
+                while (line.val() && line !~ /}/) {
                     line = inf.readLine();
+                }
                 continue;
             }
 
@@ -401,7 +390,7 @@ class qdx {
 
             # skip lines that are only comments
             if (line =~ /^[[:blank:]]*\/\//) {
-                of.write(line);
+                w.write(line);
                 continue;
             }
 
@@ -423,10 +412,6 @@ class qdx {
                 # add {} to any inline empty class declaration
                 if (line =~ /;[ \t]*/) #/)
                     line =~ s/;[ \t]*/ {};/; #/;# this comment is only needed for emacs' broken qore-mode :(
-
-                #printf("x: %y line: %y\n", xl, line);
-                #of.print(line);
-                #continue;
             }
 
             # temporary string variable
@@ -448,7 +433,7 @@ class qdx {
                 if (sc)
                     line =~ s/;/ {}/;
 
-                of.print(line);
+                w.write(line);
                 continue;
             }
             else {
@@ -472,7 +457,7 @@ class qdx {
                             delete class_name;
                     }
 
-                    of.print(line);
+                    w.write(line);
                     continue;
                 }
                 else if (class_name) {
@@ -489,7 +474,7 @@ class qdx {
                     }
 
                     if (exists (xs = (line =~ x/(public|private)[ \t]+{(.*)}/)[1])) {
-                        of.printf("private:\n%s\npublic:\n", xs);
+                        w.printf("private:\n%s\npublic:\n", xs);
                         continue;
                     }
                     else if (!ppc) {
@@ -541,7 +526,7 @@ class qdx {
                         if (mod == "private") {
                             if (!mpp) {
                                 mpp = True;
-                                of.printf("\nprivate:\n");
+                                w.write("\nprivate:\n");
                             }
                         }
                         #line = regex_subst(line, mod, "");
@@ -553,7 +538,7 @@ class qdx {
                 }
             }
 
-            of.print(line);
+            w.write(line);
 
             if (mpp) {
                 if (line =~ /{/)
@@ -562,14 +547,14 @@ class qdx {
                     --mpc;
 
                 if (!mpc) {
-                    of.print("\npublic:\n");
+                    w.write("\npublic:\n");
                     mpp = False;
                 }
             }
         }
     }
 
-    private readUntilCloseBracket(File inf) {
+    private readUntilCloseBracket(ReadOnlyFile inf) {
         int cnt = 1;
         string quote;
         bool need = True;
@@ -655,57 +640,5 @@ class qdx {
                     need = False;
             }
         }
-    }
-}
-
-class DocumentTableHelper {
-    private {
-        bool css = False;
-        bool inTable = False;
-    }
-
-    # no public members
-    public {}
-
-    string process(string line) {
-        if (line =~ /@page/) {
-            #printf("PAGE: css: %n %s", css, line);#exit(1);
-            css = False;
-        }
-        #printf("XXX %s", line);
-
-        if (line !~ /^(\s)*\|/) {
-            if (inTable) {
-                inTable = False;
-                return "    </table>\n" + line;
-            }
-            return line;
-        }
-
-        string str;
-
-        if (!inTable) {
-            if (!css) {
-                str = "    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly\n";
-                css = True;
-            }
-            str += "    <table>\n";
-        }
-
-        inTable = True;
-
-        str += "      <tr>\n";
-
-        trim line;
-        splice line, 0, 1;
-        foreach *string cell in (split("|", line)) {
-            trim cell;
-            if (cell =~ /^!/)
-                str += sprintf("        <td class=\"qore\"><b>%s</b></td>\n", substr(cell, 1));
-            else
-                str += sprintf("        <td>%s</td>\n", cell);
-        }
-        str += "      </tr>\n";
-        return str;
     }
 }

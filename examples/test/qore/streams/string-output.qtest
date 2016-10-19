@@ -30,14 +30,18 @@ public class StringOutputStreamTest inherits QUnit::Test {
         sos.write(binary("hello"));
         assertEq("hello", sos.getData());
         assertEq("", sos.getData());
-        sos.write("hello");
+
+        StreamWriter w(sos);
+
+        w.write("hello");
         assertEq("hello", sos.getData());
         string utf16str = convert_encoding("hello", "utf16");
         # with the BOM the byte length will be 12
         assertEq(True, utf16str.size() >= 10);
-        sos.write(utf16str);
+        w.write(utf16str);
         assertEq("hello", sos.getData());
-        sos.printf("%s%s", "he", "llo");
+
+        w.printf("%s%s", "he", "llo");
         assertEq("hello", sos.getData());
     }
 }

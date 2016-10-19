@@ -74,6 +74,20 @@ string StreamReader::getEncoding() [flags=CONSTANT] {
    return new QoreStringNode(sr->getEncoding()->getCode());
 }
 
+//! Reads a string from the input stream
+/** @par Example:
+    @code{.py}
+string str = sr.read(len);
+    @endcode
+
+    @param limit maximum amount of bytes of string data to read; if not given or equal to -1, all the data from the @ref InputStream will be read; if equal to 0, @ref nothing will be read
+
+    @return a @ref string value or @ref nothing if there is no more data available in the stream
+ */
+*string StreamReader::readString(int limit = -1) {
+   return sr->readString(limit, xsink);
+}
+
 //! Reads a text line from the input stream.
 /** @par Example:
     @code{.py}
