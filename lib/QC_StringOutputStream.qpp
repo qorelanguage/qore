@@ -32,9 +32,7 @@
 #include "qore/intern/StringOutputStream.h"
 
 //! This class implements the @ref OutputStream interface for writing bytes to a @ref string buffer
-/** @since %Qore 0.8.13
-
-    @par Example: StringOutputStream basic usage
+/** @par Example: StringOutputStream basic usage
     @code{.py}
     StringOutputStream sos();
     sos.write(<41>);
@@ -43,7 +41,11 @@
     sos.getData();      # returns "ABC"
     @endcode
 
+    @note stream classes are not designed to be accessed from multiple threads; they have been implemented without locking for fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of such methods in threads other than the thread where the constructor was called will cause a \c STREAM-THREAD-ERROR to be thrown.
+
     @see @ref Qore::StreamWriter "StreamWriter" for a class that can be used to write various kinds of data to an @ref Qore::OutputStream "OutputStream"
+
+    @since %Qore 0.8.13
  */
 qclass StringOutputStream [arg=StringOutputStream* os; ns=Qore; vparent=OutputStream; flags=final];
 
@@ -69,6 +71,9 @@ StringOutputStream::constructor(string encoding) {
 
 //! Closes the output stream and releases any resources.
 /** Any methods called on a closed output stream will throw an exception.
+
+    @throw OUTPUT-STREAM-CLOSED-ERROR the output stream has already been closed
+    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 nothing StringOutputStream::close() {
    os->closeHelper(xsink);
@@ -86,6 +91,9 @@ nothing StringOutputStream::close() {
     sos.write(<43>);
     sos.getData();      # returns "ABC"
     @endcode
+
+    @throw OUTPUT-STREAM-CLOSED-ERROR the output stream has already been closed
+    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 nothing StringOutputStream::write(binary data) {
    os->writeHelper(data, xsink);
@@ -103,6 +111,9 @@ nothing StringOutputStream::write(binary data) {
     sos.write(<43>);
     sos.getData();      # returns "ABC"
     @endcode
+
+    @throw OUTPUT-STREAM-CLOSED-ERROR the output stream has already been closed
+    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 string StringOutputStream::getData() {
    return os->getData(xsink);

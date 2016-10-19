@@ -38,6 +38,8 @@ extern QoreClass* QC_TRANSFORM;
 
 //! This class implements the @ref OutputStream interface for writing bytes to another OutputStream while applying a transformation
 /**
+    @note stream classes are not designed to be accessed from multiple threads; they have been implemented without locking for fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of such methods in threads other than the thread where the constructor was called will cause a \c STREAM-THREAD-ERROR to be thrown.
+
     @see @ref Qore::StreamWriter "StreamWriter" for a class that can be used to write various kinds of data to an @ref Qore::OutputStream "OutputStream"
 
     @since %Qore 0.8.13
@@ -60,6 +62,9 @@ TransformOutputStream::constructor(Qore::OutputStream[OutputStream] os, Qore::Tr
 
 //! Flushes any buffered (unwritten) bytes, closes the output stream and releases all resources.
 /** Any methods called on a closed output stream will throw an exception.
+
+    @throw OUTPUT-STREAM-CLOSED-ERROR the output stream has already been closed
+    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 nothing TransformOutputStream::close() {
    os->closeHelper(xsink);
@@ -68,6 +73,9 @@ nothing TransformOutputStream::close() {
 //! Writes bytes to the output stream
 /**
     @param data the data to write
+
+    @throw OUTPUT-STREAM-CLOSED-ERROR the output stream has already been closed
+    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 nothing TransformOutputStream::write(binary data) {
    os->writeHelper(data, xsink);

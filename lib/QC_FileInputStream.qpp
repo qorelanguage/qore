@@ -38,9 +38,7 @@ static void FILEINPUTSTREAM_system_constructor(QoreObject* self, int fd, va_list
 }
 
 //! This class implements the @ref InputStream interface for reading bytes from a file
-/** @since %Qore 0.8.13
-
-    @par Example: FileInputStream basic usage
+/** @par Example: FileInputStream basic usage
     @code{.py}
     FileInputStream fis("file.ext");
     binary *b;
@@ -49,7 +47,11 @@ static void FILEINPUTSTREAM_system_constructor(QoreObject* self, int fd, va_list
     }
     @endcode
 
+    @note stream classes are not designed to be accessed from multiple threads; they have been implemented without locking for fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of such methods in threads other than the thread where the constructor was called will cause a \c STREAM-THREAD-ERROR to be thrown.
+
     @see @ref Qore::StreamReader "StreamReader" for a class that can be used to read various kinds of data from an @ref Qore::InputStream "InputStream"
+
+    @since %Qore 0.8.13
  */
 qclass FileInputStream [system_constructor=FILEINPUTSTREAM_system_constructor; arg=FileInputStream* is; ns=Qore; vparent=InputStream; flags=final; dom=FILESYSTEM];
 
@@ -82,6 +84,9 @@ FileInputStream::constructor(string fileName, timeout timeout_ms = -1) {
 
     @throw FILE-READ-ERROR if an I/O error occurs
     @throw FILE-READ-TIMEOUT-ERROR if no byte could be read in the timeout specified in the constructor
+
+    @throw INPUT-STREAM-ERROR \a limit is not positive
+    @throw INPUT-STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
 
     @see FileInputStream::readString()
  */
