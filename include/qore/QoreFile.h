@@ -473,6 +473,16 @@ public:
    */
    DLLEXPORT BinaryNode *readBinary(qore_offset_t size, int timeout_ms, ExceptionSink *xsink);
 
+   //! reads data from the file
+   /** A Qore-language exception can be thrown if the file is not opened
+       @param ptr the destination buffer
+       @param limit the maximum number of bytes to read
+       @param timeout_ms the maximum time to read a single block from the file; -1 = never timeout, 0 timeout immediately if no data is available
+       @param xsink if an error occurs, the Qore-language exception info will be added here
+       @return the number of bytes read, 0 means EOF
+   */
+   DLLEXPORT qore_size_t read(void *ptr, qore_size_t limit, int timeout_ms, ExceptionSink *xsink);
+
    //! sets the absolute file position to "pos"
    /** @param pos the file position in bytes to set (starting with byte position 0)
     */

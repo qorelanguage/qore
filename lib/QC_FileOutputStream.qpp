@@ -1,0 +1,119 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_FileOutputStream.qpp FileOutputStream class definition */
+/*
+  Qore Programming Language
+
+  Copyright (C) 2016 Qore Technologies, s.r.o.
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+  Note that the Qore library is released under a choice of three open-source
+  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+  information.
+*/
+
+#include <qore/Qore.h>
+#include "qore/intern/FileOutputStream.h"
+
+extern qore_classid_t CID_FILEOUTPUTSTREAM;
+
+static void FILEOUTPUTSTREAM_system_constructor(QoreObject* self, int fd, va_list args) {
+   self->setPrivate(CID_FILEOUTPUTSTREAM, new FileOutputStream(fd));
+}
+
+//! This class implements the @ref OutputStream interface for writing bytes to a file
+/** @par Example: FileOutputStream basic usage
+    @code{.py}
+    FileOutputStream fos("file.ext");
+    fos.write(<01>);
+    fos.write(<0203>);
+    fos.close();
+    # file.ext now contains three bytes: 01 02 03
+    @endcode
+
+    @note stream classes are not designed to be accessed from multiple threads; they have been implemented without locking for fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of such methods in threads other than the thread where the constructor was called will cause a \c STREAM-THREAD-ERROR to be thrown.
+
+    @see @ref Qore::StreamWriter "StreamWriter" for a class that can be used to write various kinds of data to an @ref Qore::OutputStream "OutputStream"
+
+    @since %Qore 0.8.13
+ */
+qclass FileOutputStream [system_constructor=FILEOUTPUTSTREAM_system_constructor; arg=FileOutputStream* os; ns=Qore; vparent=OutputStream; flags=final; dom=FILESYSTEM];
+
+//! Creates the FileOutputStream by opening or creating a file
+/**
+    @param fileName the name of the file to open
+    @param append if true, then bytes will be written to the end of the file
+    @param mode permission bits for when the file is to be created (default: 0644)
+    @oaram encoding the @ref character_encoding "character encoding" of the file; if not present, defaults to the @ref default_encoding "default encoding"
+
+    @note raw binary data is written to the output stream, so it's up to the caller to ensure that only valid character data for the given encoding is written to the @ref FileOutputStream object
+ */
+FileOutputStream::constructor(string fileName, bool append = False, softint mode = 0644, *string encoding) {
+   SimpleRefHolder<FileOutputStream> fos(new FileOutputStream(fileName, append, mode, encoding ? QEM.findCreate(encoding) : QCS_DEFAULT, xsink));
+   self->setPrivate(CID_FILEOUTPUTSTREAM, fos.release());
+}
+
+//! Closes the output stream and releases any resources.
+/** Any methods called on a closed output stream will throw an IO-ERROR exception.
+
+    @throw IO-ERROR if an I/O error occurs
+    @throw OUTPUT-STREAM-CLOSED-ERROR the output stream has already been closed
+    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+ */
+nothing FileOutputStream::close() {
+   os->closeHelper(xsink);
+}
+
+//! Writes bytes to the output stream
+/**
+    @param data the data to write
+
+    @par Example:
+    @code{.py}
+    FileOutputStream fos("file.ext");
+    fos.write(<01>);
+    fos.write(<0203>);
+    fos.close();
+    # file.ext now contains three bytes: 01 02 03
+    @endcode
+
+    @throw FILE-WRITE-ERROR if an I/O error occurs
+    @throw OUTPUT-STREAM-CLOSED-ERROR the output stream has already been closed
+    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+
+    @note raw binary data is written to the output stream, so it's up to the caller to ensure that only valid character data for the given encoding is written to the @ref FileOutputStream object
+ */
+nothing FileOutputStream::write(binary data) {
+   os->writeHelper(data, xsink);
+}
+
+//! Returns the @ref character_encoding "character encoding" for the @ref FileOutputStream
+/** @par Example:
+    @code{.py}
+FileOutputStream fos(filname);
+string encoding = fos.getEncoding();
+    @endcode
+
+    @return the @ref character_encoding "character encoding" for the @ref FileOutputStream
+
+    @note raw binary data is written to the output stream, so it's up to the caller to ensure that only valid character data for the given encoding is written to the @ref FileOutputStream object
+ */
+string FileOutputStream::getEncoding() [flags=CONSTANT] {
+   return new QoreStringNode(os->getEncoding());
+}

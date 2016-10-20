@@ -8,6 +8,7 @@
 
 %exec-class TableMapperTest
 
+%requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/SqlUtil.qm
 # load all possible SqlUtil driver-specific modules to ensure that our version is used when testing
@@ -28,8 +29,20 @@ public class TableMapperTestSchema inherits AbstractSchema {
             ),
             );
 
+        const T_TableMapperUpsertTest = (
+            "columns": (
+                "id": c_int(True),
+                "string": c_varchar(50, C_NOT_NULL),
+            ),
+            "primary_key": ("name": "pk_table_mapper_upsert_test", "columns": "id"),
+            "indexes": (
+                "driver": ("oracle": ("pk_table_mapper_upsert_test": ("columns": "id", "unique": True))),
+            ),
+            );
+
         const Tables = (
             "table_mapper_test": T_TableMapperTest,
+            "table_mapper_upsert_test": T_TableMapperUpsertTest,
             );
 
         const Sequences = (
@@ -76,6 +89,7 @@ public class TableMapperTest inherits QUnit::Test {
     private {
         AbstractSchema schema;
         AbstractTable table;
+        AbstractTable upsert_table;
 
         const Map1 = (
             "id": ("sequence": "seq_table_mapper_test"),
@@ -86,10 +100,34 @@ public class TableMapperTest inherits QUnit::Test {
                         ("string": "string_2"),
                         ("string": ""),
                        );
-        const Output1 = (("string" : "string_1"),
-                         ("string" : "string_2"),
-                         ("string" : ""),
+        const Output1 = (("string": "string_1"),
+                         ("string": "string_2"),
+                         ("string": ""),
                         );
+
+        const UpsertMap = (
+            "id": "num",
+            "string": "label",
+            );
+
+        const UpsertInput1 = (
+            "num": (1, 2, 3, 4, 5),
+            "label": ("one", "two", "three", "four", "five"),
+            );
+
+        const UpsertInput2 = (
+            ("num": 1, "label": "uno"),
+            ("num": 2, "label": "dos"),
+            ("num": 3, "label": "tres"),
+            ("num": 4, "label": "cuatro"),
+            ("num": 5, "label": "cinco"),
+            ("num": 6, "label": "seis"),
+            );
+
+        const UpsertInput3 = (
+            "num": (1, 2, 3, 4, 5, 6, 7),
+            "label": ("jedna", "dva", "tři", "čtyři", "pět", "šest", "sedm"),
+            );
 
         const OutMap1 = (
             "seq": "id",
@@ -122,15 +160,17 @@ public class TableMapperTest inherits QUnit::Test {
             # create the test schema
             schema = new TableMapperTestSchema(ds);
             schema.align(False, m_options.verbose);
-            # get table object
+            # get table objects
             table = (new Table(schema.getDatasource(), "table_mapper_test")).getTable();
+            upsert_table = (new Table(schema.getDatasource(), "table_mapper_upsert_test")).getTable();
         }
         catch (hash ex) {
             if (m_options.verbose)
                 printf("%s: %s\n", ex.err, ex.desc);
         }
         # add test cases
-        addTestCase("InboundTableMapper", \inboundTableMapperTest());
+        addTestCase("InboundTableMapper insert", \inboundTableMapperTest());
+        addTestCase("InboundTableMapper upsert", \inboundTableMapperUpsertTest());
         addTestCase("OutputTableMapper", \outputTableMapperTest());
 
         set_return_value(main());
@@ -185,6 +225,71 @@ public class TableMapperTest inherits QUnit::Test {
             checkMap((map $1, mapper.flush().contextIterator()), Input1, output1);
             checkMap(table.selectRows(("orderby": "id")), Input1, output1);
         }
+    }
+
+    inboundTableMapperUpsertTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        InboundTableMapper mapper(upsert_table, UpsertMap, ("upsert": True));
+
+        {
+            on_success {
+                mapper.flush();
+                mapper.commit();
+            }
+            on_error {
+                mapper.discard();
+                mapper.rollback();
+            }
+
+            mapper.queueData(UpsertInput1);
+        }
+
+        checkUpsert(UpsertInput1, "English");
+
+        {
+            on_success {
+                mapper.flush();
+                mapper.commit();
+            }
+            on_error {
+                mapper.discard();
+                mapper.rollback();
+            }
+
+            mapper.queueData(UpsertInput2);
+        }
+
+        checkUpsert(UpsertInput2, "Spanish");
+
+        {
+            on_success {
+                mapper.flush();
+                mapper.commit();
+            }
+            on_error {
+                mapper.discard();
+                mapper.rollback();
+            }
+
+            mapper.queueData(UpsertInput3);
+        }
+
+        checkUpsert(UpsertInput3, "Czech");
+    }
+
+    checkUpsert(hash h, string label) {
+        map checkUpsertRow($1, label), h.contextIterator();
+    }
+
+    checkUpsert(list l, string label) {
+        map checkUpsertRow($1, label), l;
+    }
+
+    checkUpsertRow(hash h, string label) {
+        *hash row = upsert_table.selectRow(("where": ("id": h.num)));
+        assertEq(row.string, h.label, "upsert " + label);
     }
 
     outputTableMapperTest() {

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -392,8 +392,6 @@ DLLLOCAL int q_fstatvfs(const char* filepath, struct statvfs* buf);
 #include <qore/intern/ScopedRefNode.h>
 #include <qore/intern/ClassRefNode.h>
 #include <qore/intern/Context.h>
-#include <qore/intern/Operator.h>
-#include <qore/intern/QoreTreeNode.h>
 #include <qore/intern/BarewordNode.h>
 #include <qore/intern/SelfVarrefNode.h>
 #include <qore/intern/StaticClassVarRefNode.h>
@@ -408,9 +406,9 @@ DLLLOCAL int q_fstatvfs(const char* filepath, struct statvfs* buf);
 #include <qore/intern/StatementBlock.h>
 #include <qore/intern/VarRefNode.h>
 #include <qore/intern/FunctionCallNode.h>
-#include <qore/intern/RegexSubstNode.h>
-#include <qore/intern/QoreRegexNode.h>
-#include <qore/intern/RegexTransNode.h>
+#include <qore/intern/QoreRegexSubst.h>
+#include <qore/intern/QoreRegex.h>
+#include <qore/intern/QoreTransliteration.h>
 #include <qore/intern/ObjectMethodReferenceNode.h>
 #include <qore/intern/QoreClosureParseNode.h>
 #include <qore/intern/QoreClosureNode.h>
@@ -497,7 +495,6 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode* parseInit(const QoreTypeInfo*& typeInfo) {
-      assert(!typeInfo);
       //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, index(), getList()->size(), getList());
 
       typeInfo = 0;
@@ -617,16 +614,18 @@ public:
 */
 
 class qore_hash_private;
+class qore_object_private;
 
 class hash_assignment_priv {
 public:
    qore_hash_private& h;
    HashMember* om;
+   qore_object_private* o = 0;
 
    DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, HashMember* n_om) : h(n_h), om(n_om) {
    }
 
-   DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, const char* key, bool must_already_exist = false);
+   DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, const char* key, bool must_already_exist = false, qore_object_private* obj = 0);
 
    DLLLOCAL hash_assignment_priv(QoreHashNode& n_h, const char* key, bool must_already_exist = false);
 
@@ -852,6 +851,7 @@ DLLLOCAL QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNod
 DLLLOCAL QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, const QoreString* quote, bool trim_unquoted, ExceptionSink* xsink);
 DLLLOCAL bool inlist_intern(const QoreValue arg, const QoreListNode* l, ExceptionSink* xsink);
 DLLLOCAL QoreStringNode* format_float_intern(const QoreString& fmt, double num, ExceptionSink* xsink);
+DLLLOCAL QoreStringNode* format_float_intern(int prec, const QoreString& dsep, const QoreString& tsep, double num, ExceptionSink* xsink);
 DLLLOCAL DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreString& dtstr, const QoreString& mask, ExceptionSink* xsink);
 DLLLOCAL QoreHashNode* date_info(const DateTime& d);
 DLLLOCAL void init_charmaps();
