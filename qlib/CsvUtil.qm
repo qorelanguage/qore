@@ -248,6 +248,9 @@ while (i.next()) {
       - @ref CsvUtil::CsvWriter "CsvWriter": provides a more generic interface than @ref CsvUtil::CsvStringWriter "CsvStringWriter" and @ref CsvUtil::CsvFileWriter "CsvFileWriter"
     - fixed a bug in an error message validating input data (<a href="https://github.com/qorelanguage/qore/issues/1062">issue 1062</a>)
 
+    @subsection csvutil_v1_5_1 Version 1.5.1
+    - fixed a bug in @ref CsvUtil::AbstractCsvIterator::identifyTypeImpl() "AbstractCsvIterator::identifyTypeImpl()" generating an error message (<a href="https://github.com/qorelanguage/qore/issues/1355">issue 1355</a>)
+
     @subsection csvutil_v1_5 Version 1.5
     - fixed a bug handling the global option \c "eol"
     - converted to new-style
