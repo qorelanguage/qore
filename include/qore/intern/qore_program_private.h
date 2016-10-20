@@ -438,7 +438,7 @@ public:
         requires_exception(false), tclear(0),
         exceptions_raised(0), ptid(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(0), twaiting(0),
         thr_init(0), exec_class_rv(0), pgm(n_pgm) {
-      printd(QPP_DBG_LVL, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: "QLLD"\n", this, pgm, n_parse_options);
+      printd(QPP_DBG_LVL, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: " QLLD "\n", this, pgm, n_parse_options);
 
       if (p_pgm)
 	 setParent(p_pgm, n_parse_options);
@@ -1483,7 +1483,7 @@ public:
          pend_dom |= neg;
       }
 
-      //printd(5, "qore_program_private::parseAddDomain() this: %p n_dom: "QLLD" po: "QLLD"\n", this, n_dom, pwo.parse_options);
+      //printd(5, "qore_program_private::parseAddDomain() this: %p n_dom: " QLLD " po: " QLLD "\n", this, n_dom, pwo.parse_options);
       return rv;
    }
 
