@@ -37,6 +37,8 @@
 #include "qore/qore_bitopts.h"
 #include "qore/InputStream.h"
 
+DLLLOCAL extern qore_classid_t CID_STREAMREADER;
+
 /**
  * @brief Private data for the Qore::StreamReader class.
  */

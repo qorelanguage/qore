@@ -54,7 +54,8 @@ public:
       eol(0),
       num(0),
       validp(false),
-      trim(n_trim) {
+      trim(n_trim)
+   {
       if (n_eol) {
          if (enc != n_eol->getEncoding()) {
             SimpleRefHolder<QoreStringNode> neol(n_eol->convertEncoding(enc, xsink));
@@ -73,6 +74,30 @@ public:
 
       src->ref();
       reader = new StreamReader(xsink, *src, enc);
+   }
+
+   DLLLOCAL InputStreamLineIterator(ExceptionSink* xsink, StreamReader* sr, const QoreStringNode* n_eol = 0, bool n_trim = true) :
+      src(xsink),
+      reader(sr, xsink),
+      srcEnc(sr ? sr->getEncoding() : 0),
+      enc(srcEnc),
+      line(0),
+      eol(0),
+      num(0),
+      validp(false),
+      trim(n_trim)
+   {
+      if (n_eol) {
+         if (enc != n_eol->getEncoding()) {
+            SimpleRefHolder<QoreStringNode> neol(n_eol->convertEncoding(enc, xsink));
+            if (*xsink)
+               return;
+            eol = neol.release();
+         }
+         else {
+            eol = n_eol->stringRefSelf();
+         }
+      }
    }
 
    DLLLOCAL ~InputStreamLineIterator() {
