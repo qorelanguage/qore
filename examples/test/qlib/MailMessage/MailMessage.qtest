@@ -7,11 +7,17 @@
 %strict-args
 
 %requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
 %requires ../../../../qlib/MailMessage.qm
 
 %exec-class Main
 
 public class Main inherits QUnit::Test {
+    private {
+        const Sender = "foo@bar.cz";
+        const Subject = "foo bar";
+        const To = "target@bar.cz";
+    }
 
     constructor() : Test("MailMessageTest", "1.0") {
         addTestCase("Test serialize()", \testSerialize(), NOTHING);
@@ -20,40 +26,78 @@ public class Main inherits QUnit::Test {
     }
 
     testSerialize() {
-         string sender = "foo@bar.cz";
-         string subject = "foo bar";
-         string body = "some body";
+        {
+            string body = "some body";
 
-         Message msg(sender, subject);
-         msg.setBody(body);
+            Message msg(Sender, Subject);
+            msg.setBody(body);
 
-         msg.addTO("target@bar.cz");
+            msg.addTO(To);
 
-         msg.attach("foo.txt", "text/plain", "lorem ipsum", MailMessage::EncBase64);
-         string r = msg.serialize();
+            msg.attach("foo.txt", MimeTypeText, "lorem ipsum", EncBase64);
+            string r = msg.serialize();
 
-         string refstr = "From: foo@bar.cz
-To: target@bar.cz
-Subject: foo bar
-MIME-Version: 1.0
-Content-Type: multipart/mixed;boundary=MjAxNjAxMjIxMTQ4MDg
-
-This is a MIME multipart message
---MjAxNjAxMjIxMTQ4MDg
-Content-Type: text/plain;charset=UTF-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-some body
---MjAxNjAxMjIxMTQ4MDg
-Content-Type: text/plain;charset=UTF-8
-Content-Disposition: attachment; filename=\"foo.txt\"
-Content-Transfer-Encoding: base64
-
-bG9yZW0gaXBzdW0=
---MjAxNjAxMjIxMTQ4MDg--
+            string refstr = "From: foo@bar.cz\r
+To: target@bar.cz\r
+Subject: foo bar\r
+MIME-Version: 1.0\r
+Content-Type: multipart/mixed;boundary=MjAxNjAxMjIxMTQ4MDg\r
+\r
+This is a MIME multipart message\r
+--MjAxNjAxMjIxMTQ4MDg\r
+Content-Type: text/plain;charset=UTF-8\r
+Content-Disposition: inline\r
+Content-Transfer-Encoding: quoted-printable\r
+\r
+some body\r
+--MjAxNjAxMjIxMTQ4MDg\r
+Content-Type: text/plain;charset=UTF-8\r
+Content-Disposition: attachment; filename=\"foo.txt\"\r
+Content-Transfer-Encoding: base64\r
+\r
+bG9yZW0gaXBzdW0=\r
+--MjAxNjAxMjIxMTQ4MDg--\r
 ";
-         # line count checked becasue of generated boundary values
-         testAssertion("seialize", \equals(), (r.split("\n").size(), refstr.split("\n").size()));
+            # get boundary from generated message
+            string boundary = (r =~ x/boundary=(\w+)/)[0];
+            r = replace(r, boundary, "MjAxNjAxMjIxMTQ4MDg");
+            assertEq(refstr, r);
+        }
+        {
+            Message msg(Sender, Subject);
+            msg.setBody("body");
+            msg.addTO(To);
+
+            msg.attach("foo.txt", MimeTypeText, "lorem ipsum");
+            string r = msg.serialize();
+
+            string refstr = "From: foo@bar.cz\r
+To: target@bar.cz\r
+Subject: foo bar\r
+MIME-Version: 1.0\r
+Content-Type: multipart/mixed;boundary=MjAxNjAxMjIxMTQ4MDg\r
+\r
+This is a MIME multipart message\r
+--MjAxNjAxMjIxMTQ4MDg\r
+Content-Type: text/plain;charset=UTF-8\r
+Content-Disposition: inline\r
+Content-Transfer-Encoding: quoted-printable\r
+\r
+body\r
+--MjAxNjAxMjIxMTQ4MDg\r
+Content-Type: text/plain;charset=UTF-8\r
+Content-Disposition: attachment; filename=\"foo.txt\"\r
+Content-Transfer-Encoding: quoted-printable\r
+\r
+lorem ipsum\r
+--MjAxNjAxMjIxMTQ4MDg--\r
+";
+
+            # get boundary from generated message
+            string boundary = (r =~ x/boundary=(\w+)/)[0];
+            r = replace(r, boundary, "MjAxNjAxMjIxMTQ4MDg");
+            assertEq(refstr.split("\r\n"), r.split("\r\n"));
+            #assertEq(refstr, r);
+        }
     }
 }
