@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file MailMessage.qm MailMessage module definition
 
-/*  MailMessage.qm Copyright 2012 - 2015 Qore Technologies, sro
+/*  MailMessage.qm Copyright 2012 - 2016 Qore Technologies, s.r.o.
 
     Original Authors: Wolfgang Ritzinger, Marian Bonda, Pavol Potoncok
 
@@ -25,50 +25,31 @@
 */
 
 # minimum qore version
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 
 # need mime definitions
 %requires Mime >= 1.3
 
 # assume local var scope, do not use "$" for vars, members, and method calls
 %new-style
+# require type declarations everywhere
+%require-types
+# disallows access to backwards-compatible "noop" variants
+%strict-args
+# enables all warnings
+%enable-all-warnings
 
 module MailMessage {
-    version = "1.2";
+    version = "1.2.1";
     desc = "defines the MailMessage class and supporting definitions";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
 }
 
-/*  Version History
-    * 2015-11-11 v1.2: David Nichols <david@qore.org>
-      + converted to new-style
-
-    * 2013-06-05 v1.1: David Nichols <david@qore.org>
-      + added the Message::serialize() method
-
-    * 2012-11-02 v1.0.4: David Nichols <david@qore.org>
-      + minor doc corrections and non-functional code changes
-
-    * 2012-11-02 v1.0.3: David Nichols <david@qore.org>
-      + requires Mime module 1.3 for the MultiPartMessage::parseBody() method
-      + fixed a bug where the part/attachment content-type was set to the content-type of the message
-      + try to get the filename of attachments from the content-type header if not set in the content-disposition header
-      + message parts that themselves have parts are now supported
-      + fixed recognizing mime messages with additional text after the version number (ex: "Mime-Version: 1.0 (Mac OS X Mail 6.2 \(1499\))")
-
-    * 2012-09-17 v1.0.2: David Nichols <david@qore.org>
-      + use <string>::isPrintableAscii() to determine which mail headers need encoding
-
-    * 2012-09-17 v1.0.1: David Nichols <david@qore.org>
-      + fixed a bug encoding mail headers where mail headers requiring encoding were not encoded and those not requiring encoding were encoded with Q encoding
-
-    * 2012-06-14 v1.0: David Nichols <david@qore.org>
-      + moved from the SmtpClient module to an independent module to also support the Pop3Client class
-*/
-
 /** @mainpage MailMessage Module
+
+    @section mailmessageintro MailMessage Module Introduction
 
     The %MailMessage module provides the MailMessage class for representing represents an email message.  This module is used by the <a href="../../SmtpClient/html/index.html">SmtpClient</a> and <a href="../../Pop3Client/html/index.html">Pop3Client</a> modules.
 
@@ -90,6 +71,36 @@ my MailMessage::Message msg("Me, Myself, and I <me@email.com>", "My Subject");
 msg.setBody("hello world!");
 msg.addTO("My Best Friend <you@friend.com>");
     @endcode
+
+    @section mailmessage_relnotes MailMessage Release Notes
+
+    @subsection mailmessage_v1_2_1
+    - fixed a bug using the default encoding in @ref MailMessage::Message::attach() "Message::attach()" (issue <a href="https://github.com/qorelanguage/qore/issues/1352">issue 1352</a>)
+
+    @subsection mailmessage_v1_2
+    - converted to @ref new-style "%new-style"
+
+    @subsection mailmessage_v1_1
+    - added the @ref MailMessage::Message::serialize() "Message::serialize()" method
+
+    @subsection mailmessage_v1_0_4
+    - minor doc corrections and non-functional code changes
+
+    @subsection mailmessage_v1_0_3
+    - requires Mime module 1.3 for the MultiPartMessage::parseBody() method
+    - fixed a bug where the part/attachment content-type was set to the content-type of the message
+    - try to get the filename of attachments from the content-type header if not set in the content-disposition header
+    - message parts that themselves have parts are now supported
+    - fixed recognizing mime messages with additional text after the version number (ex: "Mime-Version: 1.0 (Mac OS X Mail 6.2 \(1499\))")
+
+    @subsection mailmessage_v1_0_2
+    - use <string>::isPrintableAscii() to determine which mail headers need encoding
+
+    @subsection mailmessage_v1_0_1
+    - fixed a bug encoding mail headers where mail headers requiring encoding were not encoded and those not requiring encoding were encoded with Q encoding
+
+    @subsection mailmessage_v1_0
+    - moved from the SmtpClient module to an independent module to also support the Pop3Client class
 */
 
 #! the %MailMessage namespace holds all public definitions in the %MailMessage module
@@ -506,11 +517,8 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
         }
 
         #! return all the email addresses the message will be sent to, a combination of the "To:", "CC:", and "BCC:" lists
-        list getRecipients() {
-            list recpt = ();
-            foreach string e in (to + cc + bcc)
-                recpt += getEmailAddress(e);
-            return recpt;
+        softlist getRecipients() {
+            return map getEmailAddress($1), (to + cc + bcc);
         }
 
         #! returns @ref Qore::True "True" if the message can be sent, @ref Qore::False "False" if not
@@ -1125,7 +1133,7 @@ msg.attach(att);
             @throw INVALID-ENCODING the encoding given cannot be used with data given
          */
         constructor(string name, string mime, data data, string enc = EncDefault, *hash hdr) : Part(name, mime, data, enc, hdr) {
-            enc = Message::checkEncoding(data, enc);
+            self.enc = Message::checkEncoding(data, enc);
         }
     }
 }
