@@ -43,6 +43,9 @@ class InputStreamLineIteratorTest inherits QUnit::Test {
         assertEq(0, a.index());
         assertThrows('ITERATOR-ERROR', \a.getValue());
 
+        InputStreamLineIterator isli = a;
+        StreamReader sr = isli.getStreamReader(); # Just checking that no double-free occurs.
+
         bis = new BinaryInputStream(binary(Data[0]));
         a = new InputStreamLineIterator(bis);
         assertFalse(a.valid());

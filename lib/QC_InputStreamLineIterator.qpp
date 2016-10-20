@@ -34,6 +34,8 @@
 #include "qore/intern/QoreObjectIntern.h"
 #include "qore/intern/QoreClassIntern.h"
 
+DLLEXPORT extern QoreClass* QC_STREAMREADER;
+
 //! This class defines a line iterator for input streams.
 /** @since %Qore 0.8.13
 
@@ -154,6 +156,20 @@ while (i.next()) {
  */
 int InputStreamLineIterator::index() [flags=CONSTANT] {
    return isli->index();
+}
+
+//! Returns the @ref StreamReader object used internally
+/** @par Example:
+    @code{.py}
+StreamReader sr = i.getStreamReader();
+    @endcode
+
+    @return the @ref StreamReader object used internally
+ */
+StreamReader InputStreamLineIterator::getStreamReader() {
+   StreamReader* sr = isli->getStreamReader();
+   sr->ref();
+   return new QoreObject(QC_STREAMREADER, getProgram(), sr);
 }
 
 //! Returns the @ref character_encoding "character encoding" for the @ref InputStreamLineIterator

@@ -120,6 +120,10 @@ public:
       return 0;
    }
 
+   DLLLOCAL StreamReader* getStreamReader() {
+      return *reader;
+   }
+
    DLLLOCAL const QoreEncoding* getEncoding() const {
       return enc;
    }
