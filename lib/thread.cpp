@@ -1346,7 +1346,7 @@ CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* obj, 
    old_class = td->current_class;
    td->current_class = c;
 
-   if (obj && obj != old_obj && !qore_object_private::get(*o)->startCall(code, xsink))
+   if (obj && obj != old_obj && !qore_object_private::get(*obj)->startCall(code, xsink))
       do_ref = true;
    else
       do_ref = false;

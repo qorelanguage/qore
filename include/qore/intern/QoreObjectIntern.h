@@ -168,10 +168,10 @@ public:
    mutable VRMutex gate;
 
    // number of calls currently in progress
-   int call_count;
+   int call_count = 0;
 
    // flag to force a scan after a call
-   mutable bool scan_after_call;
+   mutable bool scan_after_call = false;
 
    bool system_object, delete_blocker_run, in_destructor;
    bool recursive_ref_found;
