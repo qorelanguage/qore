@@ -448,6 +448,9 @@ void qore_object_private::endCall(ExceptionSink* xsink) {
       assert(obj->references > 0);
    }
 
+   if (do_scan)
+      removeInvalidateRSet();
+
    //printd(5, "qore_object_private::endCall() this: %p obj: %p '%s' calling customDeref()\n", this, obj, theclass->getName());
 
    customDeref(do_scan, xsink);

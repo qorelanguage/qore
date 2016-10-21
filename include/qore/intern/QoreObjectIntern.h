@@ -496,8 +496,6 @@ public:
             if (!scan_after_call)
                scan_after_call = true;
             sl.unlock();
-            const_cast<qore_object_private*>(this)->removeInvalidateRSetIntern();
-            printd(QRO_LVL, "qore_object_private::needsScan() this: %p obj: %p '%s' invalidating rset; sc: %d cc: %d\n", this, obj, theclass->getName(), getScanCount(), call_count);
             return false;
          }
          return true;
