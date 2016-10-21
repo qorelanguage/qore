@@ -167,6 +167,12 @@ public:
 
    mutable VRMutex gate;
 
+   // number of calls currently in progress
+   int call_count = 0;
+
+   // flag to force a scan after a call
+   mutable bool scan_after_call = false;
+
    bool system_object, delete_blocker_run, in_destructor;
    bool recursive_ref_found;
 
@@ -579,7 +585,21 @@ public:
    DLLLOCAL virtual bool scanMembers(RSetHelper& rsh);
 
    DLLLOCAL virtual bool needsScan() const {
-      return (bool)getScanCount();
+      if (!getScanCount() || status != OS_OK)
+         return false;
+      SafeLocker sl(ref_mutex);
+      if (status != OS_OK)
+         return false;
+      if (getScanCount()) {
+         if (call_count) {
+            if (!scan_after_call)
+               scan_after_call = true;
+            sl.unlock();
+            return false;
+         }
+         return true;
+      }
+      return false;
    }
 
    DLLLOCAL void mergeDataToHash(QoreHashNode* hash, ExceptionSink* xsink) const;
@@ -662,7 +682,11 @@ public:
    }
    */
 
-   DLLLOCAL void customDeref(ExceptionSink* xsink);
+   DLLLOCAL void customDeref(bool do_scan, ExceptionSink* xsink);
+
+   DLLLOCAL int startCall(const char* mname, ExceptionSink* xsink);
+
+   DLLLOCAL void endCall(ExceptionSink* xsink);
 
    DLLLOCAL const char* getClassName() const {
       return theclass->getName();
