@@ -18,6 +18,7 @@
       - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a>
       - <a href="../../modules/Schema/html/index.html">Schema</a>
     - fixed a bug in @ref Qore::trunc_str() "trunc_str()" where an infinite loop could be triggered with certain arguments and multi-byte character encodings (<a href="https://github.com/qorelanguage/qore/issues/1327">issue 1327</a>)
+    - improved @ref garbage_collection "prompt collection" performance with larger graphs of objects by eliminating unnecessary graph scans made during object method calls (<a href="https://github.com/qorelanguage/qore/issues/1363">issue 1363</a>)
     - <a href="../../modules/CsvUtil/html/index.html">CsvUtil.qm</a> module:
       - fixed a bug in \c AbstractCsvIterator::identifyTypeImpl() generating an error message (<a href="https://github.com/qorelanguage/qore/issues/1355">issue 1355</a>)
     - <a href="../../modules/MailMessage/html/index.html">MailMessage.qm</a> module:

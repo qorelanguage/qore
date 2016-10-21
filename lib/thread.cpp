@@ -1360,10 +1360,8 @@ CodeContextHelper::CodeContextHelper(const char* code, ClassObj obj, ExceptionSi
    xsink = xs;
 
    QoreObject* o = obj.getObj();
-   if (o && o != old.getObj()) {
-      o->ref();
+   if (o && o != old.getObj() && !qore_object_private::get(*o)->startCall(code, xsink))
       do_ref = true;
-   }
    else
       do_ref = false;
 
@@ -1378,7 +1376,7 @@ CodeContextHelper::~CodeContextHelper() {
    if (do_ref) {
       QoreObject* o = td->current_classobj.getObj();
       assert(o);
-      o->deref(xsink);
+      qore_object_private::get(*o)->endCall(xsink);
    }
 
    //printd(5, "CodeContextHelper::~CodeContextHelper() this: %p td: %p current=(code: %s, {cls: %p, obj: %p}) restoring code: %s, {cls: %p, obj: %p}\n", this, td, td->current_code ? td->current_code : "null", td->current_classobj.getClass(), o, old_code ? old_code : "null", old.getClass(), old.getObj());
