@@ -154,6 +154,12 @@ public:
    QoreHashNode* data;
    QoreProgram* pgm;
 
+   // number of calls currently in progress
+   int call_count;
+
+   // flag to force a scan after a call
+   mutable bool scan_after_call;
+
    bool system_object, delete_blocker_run, in_destructor;
    bool recursive_ref_found;
 
@@ -480,7 +486,23 @@ public:
    DLLLOCAL virtual bool scanMembers(RSetHelper& rsh);
 
    DLLLOCAL virtual bool needsScan() const {
-      return (bool)getScanCount();
+      if (!getScanCount() || status != OS_OK)
+         return false;
+      SafeLocker sl(ref_mutex);
+      if (status != OS_OK)
+         return false;
+      if (getScanCount()) {
+         if (call_count) {
+            if (!scan_after_call)
+               scan_after_call = true;
+            sl.unlock();
+            const_cast<qore_object_private*>(this)->removeInvalidateRSetIntern();
+            printd(QRO_LVL, "qore_object_private::needsScan() this: %p obj: %p '%s' invalidating rset; sc: %d cc: %d\n", this, obj, theclass->getName(), getScanCount(), call_count);
+            return false;
+         }
+         return true;
+      }
+      return false;
    }
 
    DLLLOCAL void setPrivate(qore_classid_t key, AbstractPrivateData* pd) {
@@ -533,7 +555,11 @@ public:
    }
    */
 
-   DLLLOCAL void customDeref(ExceptionSink* xsink);
+   DLLLOCAL void customDeref(bool do_scan, ExceptionSink* xsink);
+
+   DLLLOCAL int startCall(const char* mname, ExceptionSink* xsink);
+
+   DLLLOCAL void endCall(ExceptionSink* xsink);
 
    DLLLOCAL const char* getClassName() const {
       return theclass->getName();

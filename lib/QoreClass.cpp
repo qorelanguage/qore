@@ -4135,10 +4135,6 @@ QoreValue NormalMethodFunction::evalMethod(const AbstractQoreFunctionVariant* va
    const char* cname = getClassName();
    const char* mname = getName();
    //printd(5, "NormalMethodFunction::evalMethod() %s::%s() v: %d\n", cname, mname, self->isValid());
-   if (!self->isValid()) {
-      xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has already been deleted", cname, mname);
-      return QoreValue();
-   }
 
    bool had_variant = (bool)variant;
    CodeEvaluationHelper ceh(xsink, this, variant, mname, args, cname);

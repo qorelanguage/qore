@@ -40,7 +40,9 @@
 qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass* oc, QoreProgram* p, QoreHashNode* n_data) :
    RObject(n_obj->references, true),
    theclass(oc), status(OS_OK),
-   privateData(0), data(n_data), pgm(p), system_object(!p),
+   privateData(0), data(n_data), pgm(p),
+   call_count(0), scan_after_call(false),
+   system_object(!p),
    delete_blocker_run(false), in_destructor(false),
    recursive_ref_found(false),
    obj(n_obj) {
@@ -77,6 +79,9 @@ qore_object_private::~qore_object_private() {
 
 // returns true if a lock error has occurred and the transaction should be aborted or restarted; the rsection lock is held when this function is called
 bool qore_object_private::scanMembers(RSetHelper& rsh) {
+   // we should never perform a scan while a call is in progress - such calls should be deferred until the last call has exited
+   assert(!call_count);
+
    HashIterator hi(data);
    while (hi.next()) {
 #ifdef DEBUG
@@ -304,12 +309,14 @@ AbstractPrivateData* qore_object_private::getReferencedPrivateData(qore_classid_
    return privateData->getReferencedPrivateData(key);
 }
 
-void qore_object_private::customDeref(ExceptionSink* xsink) {
+void qore_object_private::customDeref(bool do_scan, ExceptionSink* xsink) {
    {
       //printd(5, "qore_object_private::customDeref() this: %p '%s' references: %d->%d (trefs: %d) status: %d has_delete_blocker: %d delete_blocker_run: %d\n", this, getClassName(), obj->references, obj->references - 1, tRefs.reference_count(), status, theclass->has_delete_blocker(), delete_blocker_run);
 
+      //printd(5, "qore_object_private::customDeref() this: %p '%s': references %d->%d do_scan: %d\n", this, status == OS_OK ? getClassName() : "<deleted>", references, references - 1, do_scan);
+
 #ifdef QORE_DEBUG_OBJ_REFS
-      printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::customDeref() this: %p '%s': references %d->%d\n", this, status == OS_OK ? getClassName() : "<deleted>", references, references - 1);
+      printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::customDeref() this: %p '%s': references %d->%d do_scan: %d\n", this, status == OS_OK ? getClassName() : "<deleted>", references, references - 1, do_scan);
 #endif
 
       robject_dereference_helper qodh(this);
@@ -339,6 +346,11 @@ void qore_object_private::customDeref(ExceptionSink* xsink) {
                      // this must be true if we really are dealing with an object with no more valid (non-recursive) references
                      assert(references == ref_copy);
                      rc = 1;
+                  }
+                  else if (do_scan) {
+                     recalc = true;
+                     do_scan = false;
+                     rc = -1;
                   }
                   else
                      return;
@@ -401,6 +413,44 @@ void qore_object_private::customDeref(ExceptionSink* xsink) {
    }
 
    doDeleteIntern(xsink);
+}
+
+int qore_object_private::startCall(const char* mname, ExceptionSink* xsink) {
+   AutoLocker al(ref_mutex);
+   if (status == OS_DELETED) {
+      xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call method '%s()' on an object that has already been deleted", mname);
+      return -1;
+   }
+
+   ++call_count;
+
+   obj->customRefIntern();
+   return 0;
+}
+
+void qore_object_private::endCall(ExceptionSink* xsink) {
+   bool do_scan = false;
+   {
+      AutoLocker al(ref_mutex);
+      assert(call_count > 0);
+      if (--call_count) {
+         assert(obj->references > 1);
+         // simple deref here without a scan
+         --obj->references;
+         return;
+      }
+      if (scan_after_call) {
+         scan_after_call = false;
+         do_scan = true;
+      }
+
+      // do final deref below
+      assert(obj->references > 0);
+   }
+
+   //printd(5, "qore_object_private::endCall() this: %p obj: %p '%s' calling customDeref()\n", this, obj, theclass->getName());
+
+   customDeref(do_scan, xsink);
 }
 
 void QoreObject::externalDelete(qore_classid_t key, ExceptionSink* xsink) {
@@ -714,7 +764,7 @@ bool QoreObject::derefImpl(ExceptionSink* xsink) {
 
 // manages the custom dereference and executes the destructor if necessary
 void QoreObject::customDeref(ExceptionSink* xsink) {
-   priv->customDeref(xsink);
+   priv->customDeref(false, xsink);
 }
 
 // this method is called when there is an exception in a constructor and the object should be deleted
