@@ -42,7 +42,8 @@ DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/Schema.qm \
 	qlib/QUnit.qm \
 	qlib/Diff.qm \
-	qlib/BulkSqlUtil.qm
+	qlib/BulkSqlUtil.qm \
+	qlib/Qdx.qm
 
 USER_MODULES = $(DOX_SRC_MODULES) \
 	$(DOX_MODULES)
@@ -102,8 +103,10 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_HashListReverseIterator.qpp \
 	lib/QC_ListHashIterator.qpp \
 	lib/QC_ListHashReverseIterator.qpp \
+	lib/QC_AbstractLineIterator.qpp \
 	lib/QC_DataLineIterator.qpp \
 	lib/QC_FileLineIterator.qpp \
+	lib/QC_InputStreamLineIterator.qpp \
 	lib/QC_SingleValueIterator.qpp \
 	lib/QC_AbstractDatasource.qpp \
 	lib/QC_RangeIterator.qpp \
@@ -130,6 +133,24 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_ThreadPool.qpp \
 	lib/QC_TreeMap.qpp \
 	lib/QC_AbstractThreadResource.qpp \
+	lib/QC_InputStream.qpp \
+	lib/QC_BinaryInputStream.qpp \
+	lib/QC_StringInputStream.qpp \
+	lib/QC_FileInputStream.qpp \
+	lib/QC_EncodingConversionInputStream.qpp \
+	lib/QC_OutputStream.qpp \
+	lib/QC_BinaryOutputStream.qpp \
+	lib/QC_StringOutputStream.qpp \
+	lib/QC_FileOutputStream.qpp \
+	lib/QC_EncodingConversionOutputStream.qpp \
+	lib/QC_StreamPipe.qpp \
+	lib/QC_PipeInputStream.qpp \
+	lib/QC_PipeOutputStream.qpp \
+	lib/QC_StreamWriter.qpp \
+	lib/QC_StreamReader.qpp \
+	lib/QC_Transform.qpp \
+	lib/QC_TransformInputStream.qpp \
+	lib/QC_TransformOutputStream.qpp \
 	lib/Pseudo_QC_All.qpp \
 	lib/Pseudo_QC_Nothing.qpp \
 	lib/Pseudo_QC_Date.qpp \
@@ -244,7 +265,10 @@ include_HEADERS = \
 	include/qore/QoreFile.h \
 	include/qore/Qore.h \
 	include/qore/QoreNodeEvalOptionalRefHolder.h \
-	include/qore/QoreEvents.h
+	include/qore/QoreEvents.h \
+	include/qore/InputStream.h \
+	include/qore/OutputStream.h \
+	include/qore/Transform.h
 
 noinst_HEADERS = \
 	include/qore/minitest.hpp \
@@ -276,7 +300,6 @@ noinst_HEADERS = \
 	include/qore/intern/QoreQueueIntern.h \
 	include/qore/intern/ModuleInfo.h \
 	include/qore/intern/QoreTimeZoneManager.h \
-	include/qore/intern/QoreTreeNode.h \
 	include/qore/intern/BarewordNode.h \
 	include/qore/intern/StaticClassVarRefNode.h \
 	include/qore/intern/SelfVarrefNode.h \
@@ -293,16 +316,15 @@ noinst_HEADERS = \
 	include/qore/intern/RWLock.h \
 	include/qore/intern/SSLSocketHelper.h \
 	include/qore/intern/QoreSignal.h \
-	include/qore/intern/RegexSubstNode.h \
-	include/qore/intern/RegexTransNode.h \
-	include/qore/intern/QoreRegexNode.h \
+	include/qore/intern/QoreRegexSubst.h \
+	include/qore/intern/QoreTransliteration.h \
+	include/qore/intern/QoreRegex.h \
 	include/qore/intern/QoreRegexBase.h \
 	include/qore/intern/QoreLibIntern.h \
 	include/qore/intern/QoreGetOpt.h \
 	include/qore/intern/QoreClassList.h \
 	include/qore/intern/QException.h \
 	include/qore/intern/ParserSupport.h \
-	include/qore/intern/Operator.h \
 	include/qore/intern/ObjectMethodReferenceNode.h \
 	include/qore/intern/NamedScope.h \
 	include/qore/intern/QoreNamespaceIntern.h \
@@ -373,13 +395,33 @@ noinst_HEADERS = \
 	include/qore/intern/QoreSpliceOperatorNode.h \
 	include/qore/intern/QoreExtractOperatorNode.h \
 	include/qore/intern/QoreCastOperatorNode.h \
+	include/qore/intern/QoreKeysOperatorNode.h \
 	include/qore/intern/QoreUnaryMinusOperatorNode.h \
+	include/qore/intern/QoreUnaryPlusOperatorNode.h \
 	include/qore/intern/QoreLogicalNotOperatorNode.h \
 	include/qore/intern/QoreDotEvalOperatorNode.h \
 	include/qore/intern/QoreLogicalEqualsOperatorNode.h \
 	include/qore/intern/QoreLogicalNotEqualsOperatorNode.h \
+	include/qore/intern/QoreLogicalAbsoluteEqualsOperatorNode.h \
+	include/qore/intern/QoreLogicalAbsoluteNotEqualsOperatorNode.h \
 	include/qore/intern/QoreModuloOperatorNode.h \
+	include/qore/intern/QoreBinaryAndOperatorNode.h \
+	include/qore/intern/QoreBinaryOrOperatorNode.h \
+	include/qore/intern/QoreBinaryXorOperatorNode.h \
+	include/qore/intern/QoreBinaryNotOperatorNode.h \
+	include/qore/intern/QoreShiftLeftOperatorNode.h \
+	include/qore/intern/QoreShiftRightOperatorNode.h \
+	include/qore/intern/QoreExistsOperatorNode.h \
+	include/qore/intern/QoreElementsOperatorNode.h \
+	include/qore/intern/QoreInstanceOfOperatorNode.h \
+	include/qore/intern/QoreHashObjectDereferenceOperatorNode.h \
+	include/qore/intern/QoreRegexMatchOperatorNode.h \
+	include/qore/intern/QoreRegexNMatchOperatorNode.h \
+	include/qore/intern/QoreRegexExtractOperatorNode.h \
+	include/qore/intern/QoreRegexSubstOperatorNode.h \
+	include/qore/intern/QoreTransliterationOperatorNode.h \
 	include/qore/intern/QoreAssignmentOperatorNode.h \
+	include/qore/intern/QoreListAssignmentOperatorNode.h \
 	include/qore/intern/QorePlusEqualsOperatorNode.h \
 	include/qore/intern/QoreIntPlusEqualsOperatorNode.h \
 	include/qore/intern/QoreMinusEqualsOperatorNode.h \
@@ -413,9 +455,22 @@ noinst_HEADERS = \
 	include/qore/intern/QoreMapSelectOperatorNode.h \
 	include/qore/intern/QoreHashMapOperatorNode.h \
 	include/qore/intern/QoreHashMapSelectOperatorNode.h \
+	include/qore/intern/QoreFoldlOperatorNode.h \
+	include/qore/intern/QoreSelectOperatorNode.h \
 	include/qore/intern/QoreChompOperatorNode.h \
 	include/qore/intern/QoreTrimOperatorNode.h \
 	include/qore/intern/QoreSquareBracketsOperatorNode.h \
+	include/qore/intern/QoreShiftOperatorNode.h \
+	include/qore/intern/QoreUnshiftOperatorNode.h \
+	include/qore/intern/QorePopOperatorNode.h \
+	include/qore/intern/QorePushOperatorNode.h \
+	include/qore/intern/QoreLogicalAndOperatorNode.h \
+	include/qore/intern/QoreLogicalOrOperatorNode.h \
+	include/qore/intern/QoreLogicalComparisonOperatorNode.h \
+	include/qore/intern/QorePlusOperatorNode.h \
+	include/qore/intern/QoreMinusOperatorNode.h \
+	include/qore/intern/QoreMultiplicationOperatorNode.h \
+	include/qore/intern/QoreBackgroundOperatorNode.h \
 	include/qore/intern/QorePseudoMethods.h \
 	include/qore/intern/QoreHashIterator.h \
 	include/qore/intern/QoreListIterator.h \
@@ -425,8 +480,28 @@ noinst_HEADERS = \
 	include/qore/intern/SingleValueIterator.h \
 	include/qore/intern/RangeIterator.h \
 	include/qore/intern/ThreadPool.h \
+	include/qore/intern/FunctionalOperatorInterface.h \
+	include/qore/intern/FunctionalOperator.h \
 	include/qore/intern/qore_var_rwlock_priv.h \
 	include/qore/intern/qore_qd_private.h \
+        include/qore/intern/BinaryInputStream.h \
+        include/qore/intern/BinaryOutputStream.h \
+        include/qore/intern/EncodingConversionInputStream.h \
+        include/qore/intern/EncodingConversionOutputStream.h \
+        include/qore/intern/FileInputStream.h \
+        include/qore/intern/FileOutputStream.h \
+        include/qore/intern/InputStreamBase.h \
+        include/qore/intern/InputStreamLineIterator.h \
+        include/qore/intern/InputStreamWrapper.h \
+        include/qore/intern/OutputStreamBase.h \
+        include/qore/intern/OutputStreamWrapper.h \
+        include/qore/intern/StreamPipe.h \
+        include/qore/intern/StreamReader.h \
+        include/qore/intern/StreamWriter.h \
+        include/qore/intern/StringInputStream.h \
+        include/qore/intern/StringOutputStream.h \
+        include/qore/intern/TransformInputStream.h \
+        include/qore/intern/TransformOutputStream.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \
