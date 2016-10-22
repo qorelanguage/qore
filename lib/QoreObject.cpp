@@ -585,6 +585,24 @@ AbstractPrivateData* qore_object_private::getReferencedPrivateData(qore_classid_
       return 0;
    }
 
+   AbstractPrivateData* d = privateData->getReferencedPrivateData(key);
+   if (!d)
+      makeAccessDeletedObjectException(xsink, theclass->getName());
+
+   return d;
+}
+
+AbstractPrivateData* qore_object_private::tryGetReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const {
+   QoreSafeVarRWReadLocker sl(rml);
+
+   if (status == OS_DELETED) {
+      makeAccessDeletedObjectException(xsink, theclass->getName());
+      return 0;
+   }
+
+   if (!privateData)
+      return 0;
+
    return privateData->getReferencedPrivateData(key);
 }
 
@@ -1247,6 +1265,10 @@ AbstractQoreNode** QoreObject::getExistingValuePtr(const char* mem, AutoVLock *v
 
 AbstractPrivateData* QoreObject::getReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const {
    return priv->getReferencedPrivateData(key, xsink);
+}
+
+AbstractPrivateData* QoreObject::tryGetReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const {
+   return priv->tryGetReferencedPrivateData(key, xsink);
 }
 
 AbstractPrivateData* QoreObject::getAndClearPrivateData(qore_classid_t key, ExceptionSink* xsink) {
