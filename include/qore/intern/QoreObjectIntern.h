@@ -640,6 +640,8 @@ public:
 
    DLLLOCAL AbstractPrivateData* getReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const;
 
+   DLLLOCAL AbstractPrivateData* tryGetReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const;
+
    DLLLOCAL QoreValue evalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
 
    // no locking necessary; if class_ctx is non-null, an internal member is being initialized
