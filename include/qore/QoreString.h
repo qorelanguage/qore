@@ -779,6 +779,21 @@ public:
    //! returns true if the other string is equal to this string (encodings also must be equal)
    DLLEXPORT bool operator==(const char* other) const;
 
+   //! returns true if the other string is equal to this string (encodings also must be equal)
+   DLLLOCAL bool operator!=(const QoreString& other) const {
+      return !(*this == other);
+   }
+
+   //! returns true if the other string is equal to this string (encodings also must be equal)
+   DLLLOCAL bool operator!=(const std::string& other) const {
+      return !(*this == other);
+   }
+
+   //! returns true if the other string is equal to this string (encodings also must be equal)
+   DLLLOCAL bool operator!=(const char* other) const {
+      return !(*this == other);
+   }
+
    //! returns the byte (not character) at the given location; if the location is invalid, returns 0
    /** @param pos offset in string, negative offsets are form the end of the string
        @return the byte (not character) at the given location; if the location is invalid, returns 0
