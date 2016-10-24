@@ -779,17 +779,17 @@ public:
    //! returns true if the other string is equal to this string (encodings also must be equal)
    DLLEXPORT bool operator==(const char* other) const;
 
-   //! returns true if the other string is equal to this string (encodings also must be equal)
+   //! returns true if the other string is not equal to this string (encodings also must be equal)
    DLLLOCAL bool operator!=(const QoreString& other) const {
       return !(*this == other);
    }
 
-   //! returns true if the other string is equal to this string (encodings also must be equal)
+   //! returns true if the other string is not equal to this string (encodings also must be equal)
    DLLLOCAL bool operator!=(const std::string& other) const {
       return !(*this == other);
    }
 
-   //! returns true if the other string is equal to this string (encodings also must be equal)
+   //! returns true if the other string is not equal to this string (encodings also must be equal)
    DLLLOCAL bool operator!=(const char* other) const {
       return !(*this == other);
    }
