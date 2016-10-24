@@ -75,8 +75,8 @@
     @section ftpclient_timeouts FtpClient Timeouts
 
     FtpClient objects have a default socket I/O timeout value of 60 seconds.  The following methods can be used to set or retrieve the socket I/O timeout value:
-    - @ref Qore::Socket::getTimeout() "Socket::getTimeout()"
-    - @ref Qore::Socket::setTimeout() "Socket::setTimeout()"
+    - @ref Qore::FtpClient::getTimeout() "FtpClient::getTimeout()"
+    - @ref Qore::FtpClient::setTimeout() "FtpClient::setTimeout()"
 
     @note This class is not available with the @ref PO_NO_NETWORK parse option.
  */
