@@ -60,7 +60,7 @@ qclass FileOutputStream [system_constructor=FILEOUTPUTSTREAM_system_constructor;
     @param fileName the name of the file to open
     @param append if true, then bytes will be written to the end of the file
     @param mode permission bits for when the file is to be created (default: 0644)
-    @oaram encoding the @ref character_encoding "character encoding" of the file; if not present, defaults to the @ref default_encoding "default encoding"
+    @param encoding the @ref character_encoding "character encoding" of the file; if not present, defaults to the @ref default_encoding "default encoding"
 
     @note raw binary data is written to the output stream, so it's up to the caller to ensure that only valid character data for the given encoding is written to the @ref FileOutputStream object
  */
