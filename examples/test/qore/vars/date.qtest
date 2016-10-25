@@ -92,9 +92,11 @@ class DateTest inherits QUnit::Test {
         testAssertionValue("fourth date month subtraction", date1 - 4M,   2003-10-01T12:30:00);
         testAssertionValue("date function", date1,        date("20040201123000"));
 
-        testAssertionValue("first date mask function", 2001-01-01,   date("2001-01", "YYYY-MM-DD"));
-        testAssertionValue("second date mask function", 2001-01-01,   date("2001 Jan xx", "YYYY Mon DD"));
-        testAssertionValue("second date mask function", 2001-01-01T13:01,  date("2001 JAN 01 13:01", "YYYY MON DD HH:mm"));
+        assertThrows("INVALID-DATE", \date(), ("2001-01", "YYYY-MM-DD"));
+        assertThrows("INVALID-DATE", \date(), ("2001 Jan xx", "YYYY Mon DD"));
+        assertEq(2001-01-01, date("2001-01", "YYYY-MM"));
+        assertEq(2001-01-01, date("2001", "YYYY"));
+        assertEq(2001-01-01T13:01, date("2001 JAN 01 13:01", "YYYY MON DD HH:mm"));
 
         # times without a date are assumed to be on Jan 1, 1970
         testAssertionValue("direct hour", 11:25:27, 1970-01-01T11:25:27.000);
@@ -197,7 +199,25 @@ class DateTest inherits QUnit::Test {
         assertEq(59, date1.minutes());
         assertEq(12, date1.seconds());
         assertEq(2341, date1.microseconds());
-}
+
+        assertEq(2016-12-01, date("20161201", "YYYYMMDD"));
+        assertEq(2016-12-31, date("20161231", "YYYYMMDD"));
+        assertEq(2016-12-01, date("01-12-2016", "DD-MM-YYYY"));
+        assertEq(2016-12-31, date("31-12-2016", "DD-MM-YYYY"));
+
+        assertEq(2016-01-01, date("20160101xxxx"));
+
+        assertThrows("INVALID-DATE", \date(), ("20161301"));
+        assertThrows("INVALID-DATE", \date(), ("20161232"));
+
+        assertThrows("INVALID-DATE", \date(), ("20161301", "YYYYMMDD"));
+        assertThrows("INVALID-DATE", \date(), ("20161232", "YYYYMMDD"));
+        assertThrows("INVALID-DATE", \date(), ("01-13-2016", "DD-MM-YYYY"));
+        assertThrows("INVALID-DATE", \date(), ("32-12-2016", "DD-MM-YYYY"));
+
+        assertThrows("INVALID-DATE", \date(), ("2016"));
+        assertThrows("INVALID-DATE", \date(), ("201601"));
+    }
 
     timeZoneTests() {
         testAssertionValue("UTC offset", (new TimeZone("Europe/Prague")).UTCOffset(), 3600);
@@ -225,7 +245,7 @@ class DateTest inherits QUnit::Test {
         assertEq("Europe/Vienna", new TimeZone("Europe/Vienna").region());
         assertEq("Europe/Belgrade", new TimeZone("Central Europe Standard Time").region());
         assertEq("Europe/Sarajevo", new TimeZone("Central European Standard Time").region());
-        assertThrows("TZINFO-ERROR", sub () { any x = new TimeZone("ABCDEF"); });
+        assertThrows("TZINFO-ERROR", sub () { TimeZone tz("ABCDEF"); });
     }
 
     testDate(date d, int y, int w, int day, int n, reference ri) {

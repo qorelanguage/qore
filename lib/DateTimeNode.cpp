@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -55,6 +55,9 @@ DateTimeNode::DateTimeNode(int64 seconds, int ms) : SimpleValueQoreNode(NT_DATE)
 }
 
 DateTimeNode::DateTimeNode(const char* date) : SimpleValueQoreNode(NT_DATE), DateTime(date) {
+}
+
+DateTimeNode::DateTimeNode(const char* date, ExceptionSink* xsink) : SimpleValueQoreNode(NT_DATE), DateTime(date, xsink) {
 }
 
 DateTimeNode::DateTimeNode(const AbstractQoreZoneInfo* zone, const char* date) : SimpleValueQoreNode(NT_DATE), DateTime(zone, date) {
@@ -213,6 +216,10 @@ DateTimeNode* DateTimeNode::makeAbsolute(const AbstractQoreZoneInfo* z, int y, i
    return new DateTimeNode(new qore_date_private(z, y, mo, d, h, mi, s, u));
 }
 
+DateTimeNode* DateTimeNode::makeAbsolute(const AbstractQoreZoneInfo* z, int y, int mo, int d, int h, int mi, int s, int u, ExceptionSink* xsink) {
+   return new DateTimeNode(new qore_date_private(z, y, mo, d, h, mi, s, u, xsink));
+}
+
 DateTimeNode* DateTimeNode::makeAbsolute(const AbstractQoreZoneInfo* zone, int64 seconds, int us) {
    return new DateTimeNode(new qore_date_private(zone, seconds, us));
 }
@@ -302,4 +309,32 @@ DateTimeValueHelper::DateTimeValueHelper(const QoreValue& n) {
 DateTimeValueHelper::~DateTimeValueHelper() {
    if (del)
       delete const_cast<DateTime*>(dt);
+}
+
+DateTimeNodeValueHelper::DateTimeNodeValueHelper(const AbstractQoreNode* n, ExceptionSink* xsink) : dt(0), temp(false) {
+   if (!n) {
+      dt = ZeroDate;
+      temp = false;
+      return;
+   }
+
+   qore_type_t t = n->getType();
+
+   // optmization without virtual function call for most common case
+   if (t == NT_DATE) {
+      dt = const_cast<DateTimeNode*>(reinterpret_cast<const DateTimeNode*>(n));
+      temp = false;
+      return;
+   }
+
+   // special logic for strings to verify that the input data represents a valid date
+   if (t == NT_STRING) {
+      temp = true;
+      dt = new DateTimeNode(reinterpret_cast<const QoreStringNode*>(n)->c_str(), xsink);
+      return;
+   }
+
+   dt = new DateTimeNode;
+   n->getDateTimeRepresentation(*dt);
+   temp = true;
 }
