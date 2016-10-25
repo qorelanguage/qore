@@ -80,7 +80,14 @@ qore_object_private::~qore_object_private() {
 // returns true if a lock error has occurred and the transaction should be aborted or restarted; the rsection lock is held when this function is called
 bool qore_object_private::scanMembers(RSetHelper& rsh) {
    // we should never perform a scan while a call is in progress - such calls should be deferred until the last call has exited
-   assert(!call_count);
+   if (call_count) {
+      AutoLocker al(ref_mutex);
+      if (call_count) {
+         if (!scan_after_call)
+            scan_after_call = true;
+         return false;
+      }
+   }
 
    HashIterator hi(data);
    while (hi.next()) {
