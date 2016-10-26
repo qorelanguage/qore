@@ -54,6 +54,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <limits.h>
+#include <ctype.h>
 
 FeatureList qoreFeatureList;
 
@@ -2200,6 +2201,48 @@ int check_lvalue_int_float_number(const QoreTypeInfo*& typeInfo, const char* nam
             typeInfo = floatTypeInfo;
       else
          typeInfo = numberTypeInfo;
+   }
+
+   return 0;
+}
+
+static void do_subst(QoreString& str, const char* i, const char* ep) {
+   assert(i < ep);
+   QoreString var(i + 1, ep - i - 1, str.getEncoding());
+   QoreString val;
+   SystemEnvironment::get(var.c_str(), val);
+
+   str.replace(i - str.c_str(), ep - i, val.c_str());
+}
+
+static int do_bracket_subst(QoreString& str, const char* i, char c) {
+   const char* ep = strchr(i + 1, c);
+   if (!ep)
+      return -1;
+
+   do_subst(str, i, ep);
+   return 0;
+}
+
+int q_env_subst(QoreString& str) {
+   const char* i;
+   while ((i = strchr(str.c_str(), '$'))) {
+      const char* ep = i + 1;
+      if (!*ep)
+         return -1;
+      if (*ep == '(') {
+         if (do_bracket_subst(str, i, ')'))
+            return -1;
+         continue;
+      }
+      if (*ep == '{') {
+         if (do_bracket_subst(str, i, '}'))
+            return -1;
+         continue;
+      }
+      while (*ep && (*ep == '_' || isalnum(*ep)))
+         ++ep;
+      do_subst(str, i, ep);
    }
 
    return 0;
