@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -38,7 +38,6 @@
  * @brief Base class for private data of output stream implementations in C++.
  */
 class OutputStreamBase : public OutputStream {
-
 public:
    /**
     * @brief Helper method that checks that the current thread is the same as when the instance was created,
@@ -66,6 +65,19 @@ public:
    }
 
    /**
+    * @brief Helper method that checks that the current thread is the same as when the instance was created,
+    * that the stream has not yet been closed and calls write().
+    * @param data the data to write
+    * @param xsink the exception sink
+    */
+   DLLLOCAL void writeHelper(const QoreString* data, ExceptionSink *xsink) {
+      if (!check(xsink)) {
+         return;
+      }
+      write(data->c_str(), data->size(), xsink);
+   }
+
+   /**
     * @brief Checks that the current thread is the same as when the instance was created and that the stream has
     * not yet been closed.
     * @param xsink the exception sink
@@ -75,7 +87,7 @@ public:
     */
    bool check(ExceptionSink *xsink) {
       if (tid != gettid()) {
-         xsink->raiseException("OUTPUT-STREAM-THREAD-ERROR", "this %s object was created in TID %d; it is an error "
+         xsink->raiseException("STREAM-THREAD-ERROR", "this %s object was created in TID %d; it is an error "
                "to access it from any other thread (accessed from TID %d)", getName(), tid, gettid());
          return false;
       }

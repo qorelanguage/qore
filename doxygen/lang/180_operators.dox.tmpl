@@ -787,7 +787,7 @@ foldr $1 - $2, (10, 4, 1);
     @par Synopsis
     Selects elements from a list that meet the given criteria and returns the new list.\n\n
     If the first argument (\a iterator_expression) is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>select</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the implicit argument <tt>$1</tt> in \a expression is the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()"; in this case the operator always returns a list (which may be empty if \a expression returns @ref Qore::False "False" for all elements in the iterator object or if the iterator object is empty), and the value of the object in the list returned is the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".\n\n
-    If the list expression does not evaluate to a list or an object inheriting @ref Qore::AbstractIterator "AbstractIterator", then the select expression is evaluated using the value of the list expression as an argument, if it evaluates to @ref True, then the value is returned, otherwise, no value is returned.\n\n
+    If the list expression does not evaluate to a list or an object inheriting @ref Qore::AbstractIterator "AbstractIterator", then the select expression is evaluated using the value of the list expression as an argument, if it evaluates to @ref Qore::True "True", then the value is returned, otherwise, no value is returned.\n\n
     If possible, \a expression is evaluated using @ref op_functional "lazy functional evaluation".
 
     @par Syntax

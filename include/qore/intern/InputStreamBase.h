@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -68,12 +68,12 @@ public:
     * not yet been closed.
     * @param xsink the exception sink
     * @return true if the checks passed, false if an exception has been raised
-    * @throws INPUT-STREAM-THREAD-ERROR if the current thread is not the same as when the instance was created
+    * @throws STREAM-THREAD-ERROR if the current thread is not the same as when the instance was created
     * @throws INPUT-STREAM-CLOSED-ERROR if the stream has been closed
     */
    bool check(ExceptionSink *xsink) {
       if (tid != gettid()) {
-         xsink->raiseException("INPUT-STREAM-THREAD-ERROR", "this %s object was created in TID %d; it is an error "
+         xsink->raiseException("STREAM-THREAD-ERROR", "this %s object was created in TID %d; it is an error "
                "to access it from any other thread (accessed from TID %d)", getName(), tid, gettid());
          return false;
       }

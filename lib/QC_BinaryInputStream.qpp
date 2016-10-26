@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,9 +32,7 @@
 #include "qore/intern/BinaryInputStream.h"
 
 //! This class implements the @ref InputStream interface for reading bytes from a @ref binary variable
-/** @since %Qore 0.8.13
-
-    @par Example: BinaryInputStream basic usage
+/** @par Example: BinaryInputStream basic usage
     @code{.py}
     binary src = <2AFF04>;
     BinaryInputStream bis(src);
@@ -46,6 +44,12 @@
     read 2AFF
     read 04
     @endcode
+
+    @note stream classes are not designed to be accessed from multiple threads; they have been implemented without locking for fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of such methods in threads other than the thread where the constructor was called will cause a \c STREAM-THREAD-ERROR to be thrown.
+
+    @see @ref Qore::StreamReader "StreamReader" for a class that can be used to read various kinds of data from an @ref Qore::InputStream "InputStream"
+
+    @since %Qore 0.8.13
  */
 qclass BinaryInputStream [arg=BinaryInputStream* is; ns=Qore; vparent=InputStream; flags=final];
 
@@ -76,6 +80,9 @@ BinaryInputStream::constructor(binary src) {
     read 2aff
     read 04
     @endcode
+
+    @throw INPUT-STREAM-ERROR \a limit is not positive
+    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 *binary BinaryInputStream::read(int limit) {
    return is->readHelper(limit, xsink);

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -71,6 +71,7 @@ public:
          src = new EncodingConversionInputStream(src.release(), srcEnc, enc, xsink);
       }
 
+      src->ref();
       reader = new StreamReader(xsink, *src, enc);
    }
 

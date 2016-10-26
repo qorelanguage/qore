@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,8 @@
 #include "qore/Qore.h"
 #include "qore/InputStream.h"
 #include "qore/intern/InputStreamLineIterator.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreClassIntern.h"
 
 //! This class defines a line iterator for input streams.
 /** @since %Qore 0.8.13
@@ -47,7 +49,7 @@ while (it.next()) {
     @see @ref Qore::DataLineIterator
     @see @ref Qore::FileLineIterator
  */
-qclass InputStreamLineIterator [arg=InputStreamLineIterator* isli; ns=Qore; vparent=AbstractLineIterator; private_members=InputStream is];
+qclass InputStreamLineIterator [arg=InputStreamLineIterator* isli; ns=Qore; vparent=AbstractLineIterator; internal_members=InputStream is];
 
 //! Creates the InputStreamLineIterator for iterating over the given \c InputStream.
 /** @param is the \c InputStream to iterate over
@@ -64,7 +66,9 @@ InputStreamLineIterator::constructor(Qore::InputStream[InputStream] is, *string 
    if (*xsink)
       return;
    self->setPrivate(CID_INPUTSTREAMLINEITERATOR, li.release());
-   self->setValue("is", static_cast<QoreObject *>(obj_is->refSelf()), xsink);
+   qore_object_private* o = qore_object_private::get(*self);
+   const qore_class_private* cls = qore_class_private::get(*QC_INPUTSTREAMLINEITERATOR);
+   o->setValueIntern(cls, "is", static_cast<QoreObject *>(obj_is->refSelf()), xsink);
 }
 
 //! Moves the current position to the next line in the data; returns @ref False if there are no more lines to read; if the iterator is not pointing at a valid element before this call, the iterator will be positioned to the beginning of the data.
@@ -150,4 +154,16 @@ while (i.next()) {
  */
 int InputStreamLineIterator::index() [flags=CONSTANT] {
    return isli->index();
+}
+
+//! Returns the @ref character_encoding "character encoding" for the @ref InputStreamLineIterator
+/** @par Example:
+    @code{.py}
+string encoding = i.getEncoding();
+    @endcode
+
+    @return the @ref character_encoding "character encoding" for the @ref InputStreamLineIterator
+ */
+string InputStreamLineIterator::getEncoding() [flags=CONSTANT] {
+   return new QoreStringNode(isli->getEncoding());
 }

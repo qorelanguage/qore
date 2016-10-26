@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -28,8 +28,10 @@
   information.
 */
 
-#include <qore/Qore.h>
+#include "qore/Qore.h"
 #include "qore/intern/StreamPipe.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreClassIntern.h"
 
 DLLEXPORT extern QoreClass* QC_PIPEINPUTSTREAM;
 DLLEXPORT extern QoreClass* QC_PIPEOUTPUTSTREAM;
@@ -101,7 +103,7 @@ DLLEXPORT extern QoreClass* QC_PIPEOUTPUTSTREAM;
 
     @since %Qore 0.8.13
  */
-qclass StreamPipe [arg=StreamPipe* pipe; ns=Qore; flags=final; private_members=OutputStream os,InputStream is];
+qclass StreamPipe [arg=StreamPipe* pipe; ns=Qore; flags=final; internal_members=OutputStream os,InputStream is];
 
 //! Creates the StreamPipe
 /** @param syncClose if True, then the output stream's close() method blocks until the input stream's @ref PipeInputStream::finishClose() "finishClose()" method is called
@@ -112,10 +114,12 @@ qclass StreamPipe [arg=StreamPipe* pipe; ns=Qore; flags=final; private_members=O
  */
 StreamPipe::constructor(bool syncClose = True, timeout timeout_ms = -1, int bufferSize = 4096) {
    SimpleRefHolder<StreamPipe> pipe(new StreamPipe(syncClose, timeout_ms, bufferSize, xsink));
+   qore_object_private* o = qore_object_private::get(*self);
+   const qore_class_private* cls = qore_class_private::get(*QC_STREAMPIPE);
    pipe->ref();
-   self->setValue("is", new QoreObject(QC_PIPEINPUTSTREAM, getProgram(), new PipeInputStream(*pipe)), xsink);
+   o->setValueIntern(cls, "is", new QoreObject(QC_PIPEINPUTSTREAM, getProgram(), new PipeInputStream(*pipe)), xsink);
    pipe->ref();
-   self->setValue("os", new QoreObject(QC_PIPEOUTPUTSTREAM, getProgram(), new PipeOutputStream(*pipe)), xsink);
+   o->setValueIntern(cls, "os", new QoreObject(QC_PIPEOUTPUTSTREAM, getProgram(), new PipeOutputStream(*pipe)), xsink);
    self->setPrivate(CID_STREAMPIPE, pipe.release());
 }
 

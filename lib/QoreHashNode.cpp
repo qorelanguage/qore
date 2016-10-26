@@ -529,7 +529,7 @@ QoreString* QoreHashNode::getAsString(bool &del, int foff, ExceptionSink* xsink)
 }
 
 QoreHashNode* QoreHashNode::getSlice(const QoreListNode* value_list, ExceptionSink* xsink) const {
-   ReferenceHolder<QoreHashNode> rv(new QoreHashNode(), xsink);
+   ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
 
    ConstListIterator li(value_list);
    while (li.next()) {
@@ -848,7 +848,7 @@ bool ReverseConstHashIterator::prev() {
    return ConstHashIterator::next();
 }
 
-hash_assignment_priv::hash_assignment_priv(qore_hash_private& n_h, const char* key, bool must_already_exist) : h(n_h), om(must_already_exist ? h.findMember(key) : h.findCreateMember(key)) {
+hash_assignment_priv::hash_assignment_priv(qore_hash_private& n_h, const char* key, bool must_already_exist, qore_object_private* obj) : h(n_h), om(must_already_exist ? h.findMember(key) : h.findCreateMember(key)), o(obj) {
 }
 
 hash_assignment_priv::hash_assignment_priv(QoreHashNode& n_h, const char* key, bool must_already_exist) : h(*n_h.priv), om(must_already_exist ? h.findMember(key) : h.findCreateMember(key)) {
@@ -888,11 +888,19 @@ AbstractQoreNode* hash_assignment_priv::swapImpl(AbstractQoreNode* v) {
    bool before = needs_scan(old);
    bool after = needs_scan(v);
    if (before) {
-      if (!after)
-	 h.incScanCount(-1);
+      if (!after) {
+	 if (o)
+	    o->incScanCount(-1);
+	 else
+	    h.incScanCount(-1);
+      }
    }
-   else if (after)
-      h.incScanCount(1);
+   else if (after) {
+      if (o)
+	 o->incScanCount(1);
+      else
+	 h.incScanCount(1);
+   }
 
    return old;
 }

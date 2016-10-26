@@ -52,7 +52,8 @@ x=null@endverbatim
 
     @anchor synchronized
     @par synchronized
-    The <tt><b>synchronized</b></tt> keyword can be used before function or class method definitions in order to guarantee that the function or method call will only be executed in one thread at a time. As in Java, this keyword can also be used safely with recursive functions and methods (internally a recursive mutual exclusion lock that participates in %Qore's deadlock detection framework is used to guarantee thread-exclusivity and allow recursion).
+    The <tt><b>synchronized</b></tt> keyword can be used before function or class method definitions in order to guarantee that the function or method call will only be executed in one thread at a time. As in Java, this keyword can also be used safely with recursive functions and methods (internally a recursive mutual exclusion lock that participates in %Qore's deadlock detection framework is used to guarantee thread-exclusivity and allow recursion).\n\n
+    <tt><b>synchronized</b></tt> functions have a dedicated reentrant lock associated with the function, while <tt><b>synchronized</b></tt> normal class methods share a reentrant lock associated with the object, and a <tt><b>synchronized</b></tt> static class methods share a reentrant lock associated with the class itself.
 
     @par Classes Useful With Threading
     The following classes are useful when developing multi-threaded %Qore programs:\n

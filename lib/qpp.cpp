@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1136,7 +1136,7 @@ static size_t find_start(std::string& str) {
    return i + 5;
 }
 
-static int serialize_dox_comment(FILE* fp, std::string& buf, const strlist_t& dom = strlist_t(), const strlist_t& flags = strlist_t()) {
+static void process_comment(std::string& buf) {
    size_t start = 0;
 
    // edit references to pseudo-methods
@@ -1208,8 +1208,12 @@ static int serialize_dox_comment(FILE* fp, std::string& buf, const strlist_t& do
 
       buf.replace(start, end - start, tstr);
    }
+}
 
-   start = 0;
+static int serialize_dox_comment(FILE* fp, std::string& buf, const strlist_t& dom = strlist_t(), const strlist_t& flags = strlist_t()) {
+   process_comment(buf);
+
+   size_t start = 0;
    if (!flags.empty()) {
       start = find_start(buf);
       if (start == std::string::npos) {
@@ -1291,6 +1295,7 @@ public:
    }
 
    int serializeDox(FILE* fp) {
+      process_comment(doc);
       output_file(fp, doc);
 
       std::string qv;
@@ -2740,8 +2745,9 @@ protected:
 
    strlist_t vparents;   // builtin virtual base/parent classes
 
-   paramlist_t public_members;  // public members
-   paramlist_t private_members; // private members
+   paramlist_t public_members;   // public members
+   paramlist_t private_members;  // private members
+   paramlist_t internal_members; // internal members
 
    strlist_t dom;        // functional domains
 
@@ -2759,7 +2765,7 @@ protected:
       l.push_back(se);
    }
 
-   void parseMembers(bool isPublic, const std::string &x) {
+   void parseMembers(ClassAccess access, const std::string &x) {
       strlist_t pml;
       get_string_list(pml, x);
 
@@ -2773,10 +2779,12 @@ protected:
          std::string type(pml[i], 0, p);
          std::string name(pml[i], p + 1);
 
-         if (isPublic) {
+         if (access == Public) {
             public_members.push_back(Param(type, name, "", ""));
-         } else {
+         } else if (access == Private) {
             private_members.push_back(Param(type, name, "", ""));
+         } else {
+            internal_members.push_back(Param(type, name, "", ""));
          }
       }
    }
@@ -2825,12 +2833,17 @@ public:
          }
 
          if (i->first == "public_members") {
-            parseMembers(true, i->second);
+            parseMembers(Public, i->second);
             continue;
          }
 
          if (i->first == "private_members") {
-            parseMembers(false, i->second);
+            parseMembers(Private, i->second);
+            continue;
+         }
+
+         if (i->first == "internal_members") {
+            parseMembers(Internal, i->second);
             continue;
          }
 
@@ -2970,13 +2983,16 @@ public:
          i->second->serializeStaticCppMethod(fp, lname.c_str(), arg.c_str());
       }
 
-      if (is_pseudo)
-         fprintf(fp, "DLLLOCAL QoreClass* init%sClass() {\n   QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
-      else
-         fprintf(fp, "DLLLOCAL QoreClass* init%sClass(QoreNamespace& ns) {\n   QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
+      fprintf(fp, "DLLLOCAL void preinit%sClass() {\n   QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
       dom_output_cpp(fp, dom);
       fprintf(fp, ");\n   CID_%s = QC_%s->getID();\n", UC.c_str(), UC.c_str());
-      fprintf(fp, "   QC_%s->setSystem();\n", UC.c_str());
+      fprintf(fp, "   QC_%s->setSystem();\n}\n\n", UC.c_str());
+
+      if (is_pseudo)
+         fprintf(fp, "DLLLOCAL QoreClass* init%sClass() {\n", lname.c_str());
+      else
+         fprintf(fp, "DLLLOCAL QoreClass* init%sClass(QoreNamespace& ns) {\n", lname.c_str());
+      fprintf(fp, "   if (!QC_%s)\n      preinit%sClass();\n", UC.c_str(), lname.c_str());
 
       if (!defbase.empty())
          fprintf(fp, "\n   // set default builtin base class\n   assert(%s);\n  QC_%s->addDefaultBuiltinBaseClass(%s);\n", defbase.c_str(), UC.c_str(), defbase.c_str());
@@ -3005,7 +3021,7 @@ public:
          for (paramlist_t::iterator i = public_members.begin(), e = public_members.end(); i != e; ++i) {
             std::string mt;
             get_qore_type((*i).type, mt);
-            fprintf(fp, "   QC_%s->addPublicMember(\"%s\", %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
+            fprintf(fp, "   QC_%s->addMember(\"%s\", Public, %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
          }
       }
 
@@ -3015,7 +3031,17 @@ public:
          for (paramlist_t::iterator i = private_members.begin(), e = private_members.end(); i != e; ++i) {
             std::string mt;
             get_qore_type((*i).type, mt);
-            fprintf(fp, "   QC_%s->addPrivateMember(\"%s\", %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
+            fprintf(fp, "   QC_%s->addMember(\"%s\", Private, %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
+         }
+      }
+
+      // output internal members if any
+      if (!internal_members.empty()) {
+         fputs("\n   // private:internal members\n", fp);
+         for (paramlist_t::iterator i = internal_members.begin(), e = internal_members.end(); i != e; ++i) {
+            std::string mt;
+            get_qore_type((*i).type, mt);
+            fprintf(fp, "   QC_%s->addMember(\"%s\", Internal, %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
          }
       }
 
@@ -3023,7 +3049,7 @@ public:
          fprintf(fp, "\n   QC_%s->unsetPublicMemberFlag();\n", UC.c_str());
 
       if (is_final)
-         fprintf(fp, "\n   qore_class_private::setFinal(*QC_%s);\n", UC.c_str());
+         fprintf(fp, "\n   QC_%s->setFinal();\n", UC.c_str());
 
       for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i) {
          if (i->second->serializeNormalCppBinding(fp, lname.c_str(), UC.c_str())) {

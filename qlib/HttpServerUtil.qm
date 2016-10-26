@@ -73,6 +73,9 @@ module HttpServerUtil {
     @subsection httputil0311 HttpServerUtil 0.3.12
     - fixed a bug in AbstractAuthenticator::do401() where the \a msg argument was ignored (<a href="https://github.com/qorelanguage/qore/issues/1047">issue 1047</a>)
 
+    @subsection httputil0311 HttpServerUtil 0.3.11.1
+    - aligned version with HttpServer module version
+
     @subsection httputil0311 HttpServerUtil 0.3.11
     - initial version of the module
     - implemented support for notifying persistent connections when the connection is terminated while a persistent connection is in place
@@ -89,7 +92,7 @@ module HttpServerUtil {
  */
 public namespace HttpServer {
     #! version of the HttpServer's implementation
-    public const HttpServerVersion = "0.3.11";
+    public const HttpServerVersion = "0.3.11.1";
 
     #! default HTTP server string
     public const HttpServerString = sprintf("Qore-HTTP-Server/%s", HttpServerVersion);
@@ -750,8 +753,15 @@ public class HttpServer::AbstractHttpRequestHandler {
     #! called externally when a persistent connection is closed
     nothing persistentClosed() {
         *code c = get_thread_data(NotificationThreadKey);
-        if (c)
-            c();
+        if (c) {
+            try {
+                c();
+            }
+            catch (hash ex) {
+                if (ex.err != "OBJECT-ALREADY-DELETED")
+                    rethrow;
+            }
+        }
     }
 
     #! this method will throw an exception if a persistent connection cannot be granted

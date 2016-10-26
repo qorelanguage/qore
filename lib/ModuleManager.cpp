@@ -788,10 +788,10 @@ void QoreModuleManager::parseLoadModule(ExceptionSink& xsink, const char* name, 
 
       QoreString op;
       do {
-	 if (!isblank(*p))
+	 if (!qore_isblank(*p))
 	    op.concat(*p);
 	 ++p;
-      } while (*p == '<' || *p == '>' || *p == '=' || isblank(*p));
+      } while (*p == '<' || *p == '>' || *p == '=' || qore_isblank(*p));
 
       // get version operator
       mod_op_e mo;

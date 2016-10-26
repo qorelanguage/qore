@@ -1,12 +1,12 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  RegexTransNode.h
+  QoreTransliteration.h
 
   regex-like transliteration class definition
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,23 +31,11 @@
   information.
 */
 
-#ifndef _QORE_REGEXTRANSNODE_H
+#ifndef _QORE_QORETRANSLITERATION_H
 
-#define _QORE_REGEXTRANSNODE_H
+#define _QORE_QORETRANSLITERATION_H
 
-class RegexTransNode : public ParseNoEvalNode {
-protected:
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-      // FIXME: implement a type for this
-      typeInfo = 0;
-      return this;
-   }
-
-   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
-      // FIXME: implement a type for this
-      return 0;
-   }
-
+class QoreTransliteration : public QoreReferenceCounter {
 private:
    QoreString *source, *target;
    bool sr, tr;
@@ -55,21 +43,8 @@ private:
    DLLLOCAL void doRange(class QoreString *str, char end);
 
 public:
-   DLLLOCAL RegexTransNode();
-   DLLLOCAL virtual ~RegexTransNode();
-
-   // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-   // the ExceptionSink is only needed for QoreObject where a method may be executed
-   // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-   // returns -1 for exception raised, 0 = OK
-   DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
-   // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
-
-   // returns the data type
-   DLLLOCAL virtual qore_type_t getType() const;
-   // returns the type name as a c string
-   DLLLOCAL virtual const char *getTypeName() const;      
+   DLLLOCAL QoreTransliteration();
+   DLLLOCAL virtual ~QoreTransliteration();
 
    DLLLOCAL void finishSource();
    DLLLOCAL void finishTarget();
@@ -78,6 +53,20 @@ public:
    DLLLOCAL void concatTarget(char c);
    DLLLOCAL void setTargetRange();
    DLLLOCAL void setSourceRange();
+
+   DLLLOCAL void ref() const {
+      ROreference();
+   }
+
+   DLLLOCAL void deref() {
+      if (ROdereference())
+         delete this;
+   }
+
+   DLLLOCAL QoreTransliteration* refSelf() const {
+      ref();
+      return const_cast<QoreTransliteration*>(this);
+   }
 };
 
-#endif // _QORE_REGEXTRANSNODE_H
+#endif // _QORE_QORETRANSLITERATION_H

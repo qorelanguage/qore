@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -28,16 +28,23 @@
   information.
 */
 
-#include <qore/Qore.h>
+#include "qore/Qore.h"
 #include "qore/intern/TransformInputStream.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreClassIntern.h"
 
 extern qore_classid_t CID_TRANSFORM;
 extern QoreClass* QC_TRANSFORM;
 
 //! This class implements the @ref InputStream interface for reading bytes from another InputStream while applying a transformation
-/** @since %Qore 0.8.13
+/**
+    @note stream classes are not designed to be accessed from multiple threads; they have been implemented without locking for fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of such methods in threads other than the thread where the constructor was called will cause a \c STREAM-THREAD-ERROR to be thrown.
+
+    @see @ref Qore::StreamReader "StreamReader" for a class that can be used to read various kinds of data from an @ref Qore::InputStream "InputStream"
+
+    @since %Qore 0.8.13
  */
-qclass TransformInputStream [arg=TransformInputStream* is; ns=Qore; vparent=InputStream; flags=final; private_members=InputStream is,Transform t];
+qclass TransformInputStream [arg=TransformInputStream* is; ns=Qore; vparent=InputStream; flags=final; internal_members=InputStream is,Transform t];
 
 //! Creates the TransformInputStream
 /**
@@ -47,14 +54,20 @@ qclass TransformInputStream [arg=TransformInputStream* is; ns=Qore; vparent=Inpu
 TransformInputStream::constructor(Qore::InputStream[InputStream] is, Qore::Transform[Transform] t) {
    SimpleRefHolder<TransformInputStream> tis(new TransformInputStream(is, t));
    self->setPrivate(CID_TRANSFORMINPUTSTREAM, tis.release());
-   self->setValue("is", static_cast<QoreObject *>(obj_is->refSelf()), xsink);
-   self->setValue("t", static_cast<QoreObject *>(obj_t->refSelf()), xsink);
+   qore_object_private* o = qore_object_private::get(*self);
+   const qore_class_private* cls = qore_class_private::get(*QC_TRANSFORMINPUTSTREAM);
+   o->setValueIntern(cls, "is", static_cast<QoreObject *>(obj_is->refSelf()), xsink);
+   o->setValueIntern(cls, "t", static_cast<QoreObject *>(obj_t->refSelf()), xsink);
 }
 
 //! Reads bytes (up to a specified limit) from the input stream; returns \ref NOTHING if there are no more bytes in the stream
 /**
     @param limit the maximum number of bytes to read
+
     @return the read bytes (the length is between 1 and `limit` inclusive) or \ref NOTHING if no more bytes are available
+
+    @throw INPUT-STREAM-ERROR \a limit is not positive
+    @throw INPUT-STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 *binary TransformInputStream::read(int limit) {
    return is->readHelper(limit, xsink);

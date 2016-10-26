@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -96,7 +96,7 @@ public:
 class ZlibDeflateTransform : public Transform {
 
 public:
-   ZlibDeflateTransform(int64 level, ExceptionSink *xsink, bool gzipFormat) : state(NOT_INIT) {
+   ZlibDeflateTransform(int64 level, ExceptionSink *xsink, bool gzipFormat) : state(STATE_NOT_INIT) {
       strm.zalloc = Z_NULL;
       strm.zfree = Z_NULL;
       strm.opaque = Z_NULL;
@@ -113,17 +113,17 @@ public:
          CompressionErrorHelper::mapZlibError(rc, xsink);
          return;
       }
-      state = OK;
+      state = STATE_OK;
    }
 
    ~ZlibDeflateTransform() {
-      if (state != NOT_INIT) {
+      if (state != STATE_NOT_INIT) {
          deflateEnd(&strm);
       }
    }
 
    std::pair<int64, int64> apply(const void *src, int64 srcLen, void *dst, int64 dstLen, ExceptionSink *xsink) {
-      if (state != OK) {
+      if (state != STATE_OK) {
           xsink->raiseException("ZLIB-ERROR", "invalid zlib stream state");
           return std::make_pair(0, 0);
       }
@@ -134,7 +134,7 @@ public:
       int rc = deflate(&strm, src ? Z_NO_FLUSH : Z_FINISH);
       if (rc != Z_OK && rc != Z_STREAM_END) {
          CompressionErrorHelper::mapZlibError(rc, xsink);
-         state = ERROR;
+         state = STATE_ERROR;
          return std::make_pair(0, 0);
       }
       return std::make_pair(srcLen - strm.avail_in, dstLen - strm.avail_out);
@@ -142,7 +142,7 @@ public:
 
 private:
    enum State {
-      OK, ERROR, NOT_INIT
+      STATE_OK, STATE_ERROR, STATE_NOT_INIT
    };
 
 private:
@@ -153,7 +153,7 @@ private:
 class ZlibInflateTransform : public Transform {
 
 public:
-   ZlibInflateTransform(ExceptionSink *xsink, bool gzipFormat) : state(NOT_INIT) {
+   ZlibInflateTransform(ExceptionSink *xsink, bool gzipFormat) : state(STATE_NOT_INIT) {
       strm.zalloc = Z_NULL;
       strm.zfree = Z_NULL;
       strm.opaque = Z_NULL;
@@ -163,24 +163,24 @@ public:
          CompressionErrorHelper::mapZlibError(rc, xsink);
          return;
       }
-      state = OK;
+      state = STATE_OK;
    }
 
    ~ZlibInflateTransform() {
-      if (state != NOT_INIT) {
+      if (state != STATE_NOT_INIT) {
          inflateEnd(&strm);
       }
    }
 
    std::pair<int64, int64> apply(const void *src, int64 srcLen, void *dst, int64 dstLen, ExceptionSink *xsink) {
-      if (state == END) {
+      if (state == STATE_END) {
          if (src) {
             xsink->raiseException("ZLIB-ERROR", "Unexpected extra bytes at the end of the compressed data stream");
-            state = ERROR;
+            state = STATE_ERROR;
          }
          return std::make_pair(0, 0);
       }
-      if (state != OK) {
+      if (state != STATE_OK) {
          xsink->raiseException("ZLIB-ERROR", "invalid zlib stream state");
          return std::make_pair(0, 0);
       }
@@ -192,17 +192,17 @@ public:
       if (rc == Z_STREAM_END) {
          if (strm.avail_in != 0) {
             xsink->raiseException("ZLIB-ERROR", "Unexpected extra bytes at the end of the compressed data stream");
-            state = ERROR;
+            state = STATE_ERROR;
             return std::make_pair(0, 0);
          }
-         state = END;
+         state = STATE_END;
       } else if ((rc == Z_OK || rc == Z_BUF_ERROR) && (!src && dstLen - strm.avail_out == 0)) {
          xsink->raiseException("ZLIB-ERROR", "Unexpected end of compressed data stream");
-         state = ERROR;
+         state = STATE_ERROR;
          return std::make_pair(0, 0);
       } else if (rc != Z_OK) {
          CompressionErrorHelper::mapZlibError(rc, xsink);
-         state = ERROR;
+         state = STATE_ERROR;
          return std::make_pair(0, 0);
       }
       return std::make_pair(srcLen - strm.avail_in, dstLen - strm.avail_out);
@@ -210,7 +210,7 @@ public:
 
 private:
    enum State {
-      OK, ERROR, END, NOT_INIT
+      STATE_OK, STATE_ERROR, STATE_END, STATE_NOT_INIT
    };
 
 private:
@@ -221,7 +221,7 @@ private:
 class Bzip2CompressTransform : public Transform {
 
 public:
-    Bzip2CompressTransform(int64 level, ExceptionSink *xsink) : state(NOT_INIT) {
+    Bzip2CompressTransform(int64 level, ExceptionSink *xsink) : state(STATE_NOT_INIT) {
       strm.bzalloc = Z_NULL;
       strm.bzfree = Z_NULL;
       strm.opaque = Z_NULL;
@@ -238,20 +238,20 @@ public:
          CompressionErrorHelper::mapBzip2Error(rc, xsink);
          return;
       }
-      state = OK;
+      state = STATE_OK;
    }
 
    ~Bzip2CompressTransform() {
-      if (state != NOT_INIT) {
+      if (state != STATE_NOT_INIT) {
          BZ2_bzCompressEnd(&strm);
       }
    }
 
    std::pair<int64, int64> apply(const void *src, int64 srcLen, void *dst, int64 dstLen, ExceptionSink *xsink) {
-      if (state == END) {
+      if (state == STATE_END) {
          return std::make_pair(0, 0);
       }
-      if (state != OK) {
+      if (state != STATE_OK) {
          xsink->raiseException("BZIP2-ERROR", "invalid zlib stream state");
          return std::make_pair(0, 0);
       }
@@ -262,18 +262,18 @@ public:
       int rc = BZ2_bzCompress(&strm, src ? BZ_RUN : BZ_FINISH);
       if (rc != BZ_RUN_OK && rc != BZ_FINISH_OK && rc != BZ_STREAM_END) {
          CompressionErrorHelper::mapBzip2Error(rc, xsink);
-         state = ERROR;
+         state = STATE_ERROR;
          return std::make_pair(0, 0);
       }
       if (rc == BZ_STREAM_END) {
-         state = END;
+         state = STATE_END;
       }
       return std::make_pair(srcLen - strm.avail_in, dstLen - strm.avail_out);
    }
 
 private:
    enum State {
-      OK, ERROR, END, NOT_INIT
+      STATE_OK, STATE_ERROR, STATE_END, STATE_NOT_INIT
    };
 
 private:
@@ -284,7 +284,7 @@ private:
 class Bzip2DecompressTransform : public Transform {
 
 public:
-    Bzip2DecompressTransform(ExceptionSink *xsink) : state(NOT_INIT) {
+    Bzip2DecompressTransform(ExceptionSink *xsink) : state(STATE_NOT_INIT) {
       strm.bzalloc = Z_NULL;
       strm.bzfree = Z_NULL;
       strm.opaque = Z_NULL;
@@ -294,24 +294,24 @@ public:
          CompressionErrorHelper::mapBzip2Error(rc, xsink);
          return;
       }
-      state = OK;
+      state = STATE_OK;
    }
 
    ~Bzip2DecompressTransform() {
-      if (state != NOT_INIT) {
+      if (state != STATE_NOT_INIT) {
          BZ2_bzDecompressEnd(&strm);
       }
    }
 
    std::pair<int64, int64> apply(const void *src, int64 srcLen, void *dst, int64 dstLen, ExceptionSink *xsink) {
-      if (state == END) {
+      if (state == STATE_END) {
          if (src) {
             xsink->raiseException("BZIP2-ERROR", "Unexpected extra bytes at the end of the compressed data stream");
-            state = ERROR;
+            state = STATE_ERROR;
          }
          return std::make_pair(0, 0);
       }
-      if (state != OK) {
+      if (state != STATE_OK) {
          xsink->raiseException("BZIP2-ERROR", "invalid bzip2 stream state");
          return std::make_pair(0, 0);
       }
@@ -323,17 +323,17 @@ public:
       if (rc == BZ_STREAM_END) {
          if (strm.avail_in != 0) {
             xsink->raiseException("BZIP2-ERROR", "Unexpected extra bytes at the end of the compressed data stream");
-            state = ERROR;
+            state = STATE_ERROR;
             return std::make_pair(0, 0);
          }
-         state = END;
+         state = STATE_END;
       } else if (rc == BZ_OK && (!src && dstLen - strm.avail_out == 0)) {
          xsink->raiseException("BZIP2-ERROR", "Unexpected end of compressed data stream");
-         state = ERROR;
+         state = STATE_ERROR;
          return std::make_pair(0, 0);
       } else if (rc != BZ_OK) {
          CompressionErrorHelper::mapBzip2Error(rc, xsink);
-         state = ERROR;
+         state = STATE_ERROR;
          return std::make_pair(0, 0);
       }
       return std::make_pair(srcLen - strm.avail_in, dstLen - strm.avail_out);
@@ -341,7 +341,7 @@ public:
 
 private:
    enum State {
-      OK, ERROR, END, NOT_INIT
+      STATE_OK, STATE_ERROR, STATE_END, STATE_NOT_INIT
    };
 
 private:

@@ -686,22 +686,25 @@ int qore_string_private::concatEncode(ExceptionSink* xsink, const QoreString& st
    for (qore_size_t i = 0; i < p->len; ++i) {
       // see if we are dealing with a non-ascii character
       const unsigned char c = p->buf[i];
-      if (c & 0x80) {
+      if ((c & 0x80)) {
 	 unsigned len = 0;
 	 unsigned cp = p->getUnicodePointFromBytePos(i, len, xsink);
-	 if (*xsink)
-	    return -1;
-	 assert(len);
-	 assert(cp);
-	 // see if it's an known special character
-	 smap_t::iterator si = smap.find(cp);
-	 //printd(5, "qore_string_private::concatEncode() i: %u c: %u cp: %u len: %u found: %s (%s)\n", i, c, cp, len, si != smap.end() ? "true" : "false", getEncoding()->getCode());
-	 if (si != smap.end()) {
-	    sprintf("&%s;", si->second.c_str());
-	    i += len - 1;
-	    continue;
+	 if ((code & CE_HTML)) {
+	    if (*xsink)
+	       return -1;
+	    assert(len);
+	    assert(cp);
+	    // see if it's an known special character
+	    smap_t::iterator si = smap.find(cp);
+	    //printd(5, "qore_string_private::concatEncode() i: %u c: %u cp: %u len: %u found: %s (%s)\n", i, c, cp, len, si != smap.end() ? "true" : "false", getEncoding()->getCode());
+	    if (si != smap.end()) {
+	       sprintf("&%s;", si->second.c_str());
+	       i += len - 1;
+	       continue;
+	    }
 	 }
-	 else if (code & CE_NONASCII) {
+
+	 if (code & CE_NONASCII) {
 	    // otherwise just output the character entity
 	    sprintf("&#%u;", cp);
 	    i += len - 1;

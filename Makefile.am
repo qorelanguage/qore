@@ -44,6 +44,7 @@ DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/Diff.qm \
 	qlib/BulkSqlUtil.qm \
 	qlib/SchemaReverse.qm
+	qlib/Qdx.qm
 
 USER_MODULES = $(DOX_SRC_MODULES) \
 	$(DOX_MODULES)
@@ -300,7 +301,6 @@ noinst_HEADERS = \
 	include/qore/intern/QoreQueueIntern.h \
 	include/qore/intern/ModuleInfo.h \
 	include/qore/intern/QoreTimeZoneManager.h \
-	include/qore/intern/QoreTreeNode.h \
 	include/qore/intern/BarewordNode.h \
 	include/qore/intern/StaticClassVarRefNode.h \
 	include/qore/intern/SelfVarrefNode.h \
@@ -317,16 +317,15 @@ noinst_HEADERS = \
 	include/qore/intern/RWLock.h \
 	include/qore/intern/SSLSocketHelper.h \
 	include/qore/intern/QoreSignal.h \
-	include/qore/intern/RegexSubstNode.h \
-	include/qore/intern/RegexTransNode.h \
-	include/qore/intern/QoreRegexNode.h \
+	include/qore/intern/QoreRegexSubst.h \
+	include/qore/intern/QoreTransliteration.h \
+	include/qore/intern/QoreRegex.h \
 	include/qore/intern/QoreRegexBase.h \
 	include/qore/intern/QoreLibIntern.h \
 	include/qore/intern/QoreGetOpt.h \
 	include/qore/intern/QoreClassList.h \
 	include/qore/intern/QException.h \
 	include/qore/intern/ParserSupport.h \
-	include/qore/intern/Operator.h \
 	include/qore/intern/ObjectMethodReferenceNode.h \
 	include/qore/intern/NamedScope.h \
 	include/qore/intern/QoreNamespaceIntern.h \
@@ -404,6 +403,8 @@ noinst_HEADERS = \
 	include/qore/intern/QoreDotEvalOperatorNode.h \
 	include/qore/intern/QoreLogicalEqualsOperatorNode.h \
 	include/qore/intern/QoreLogicalNotEqualsOperatorNode.h \
+	include/qore/intern/QoreLogicalAbsoluteEqualsOperatorNode.h \
+	include/qore/intern/QoreLogicalAbsoluteNotEqualsOperatorNode.h \
 	include/qore/intern/QoreModuloOperatorNode.h \
 	include/qore/intern/QoreBinaryAndOperatorNode.h \
 	include/qore/intern/QoreBinaryOrOperatorNode.h \
@@ -415,7 +416,13 @@ noinst_HEADERS = \
 	include/qore/intern/QoreElementsOperatorNode.h \
 	include/qore/intern/QoreInstanceOfOperatorNode.h \
 	include/qore/intern/QoreHashObjectDereferenceOperatorNode.h \
+	include/qore/intern/QoreRegexMatchOperatorNode.h \
+	include/qore/intern/QoreRegexNMatchOperatorNode.h \
+	include/qore/intern/QoreRegexExtractOperatorNode.h \
+	include/qore/intern/QoreRegexSubstOperatorNode.h \
+	include/qore/intern/QoreTransliterationOperatorNode.h \
 	include/qore/intern/QoreAssignmentOperatorNode.h \
+	include/qore/intern/QoreListAssignmentOperatorNode.h \
 	include/qore/intern/QorePlusEqualsOperatorNode.h \
 	include/qore/intern/QoreIntPlusEqualsOperatorNode.h \
 	include/qore/intern/QoreMinusEqualsOperatorNode.h \
@@ -454,6 +461,17 @@ noinst_HEADERS = \
 	include/qore/intern/QoreChompOperatorNode.h \
 	include/qore/intern/QoreTrimOperatorNode.h \
 	include/qore/intern/QoreSquareBracketsOperatorNode.h \
+	include/qore/intern/QoreShiftOperatorNode.h \
+	include/qore/intern/QoreUnshiftOperatorNode.h \
+	include/qore/intern/QorePopOperatorNode.h \
+	include/qore/intern/QorePushOperatorNode.h \
+	include/qore/intern/QoreLogicalAndOperatorNode.h \
+	include/qore/intern/QoreLogicalOrOperatorNode.h \
+	include/qore/intern/QoreLogicalComparisonOperatorNode.h \
+	include/qore/intern/QorePlusOperatorNode.h \
+	include/qore/intern/QoreMinusOperatorNode.h \
+	include/qore/intern/QoreMultiplicationOperatorNode.h \
+	include/qore/intern/QoreBackgroundOperatorNode.h \
 	include/qore/intern/QorePseudoMethods.h \
 	include/qore/intern/QoreHashIterator.h \
 	include/qore/intern/QoreListIterator.h \

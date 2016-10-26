@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,8 @@
 #include "qore/Qore.h"
 #include "qore/OutputStream.h"
 #include "qore/intern/StreamWriter.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreClassIntern.h"
 
 //! This class defines a stream writer for output streams.
 /** @since %Qore 0.8.13
@@ -48,19 +50,20 @@ sw.writei4(0xf4f4);
 
     @see @ref OutputStream
  */
-qclass StreamWriter [arg=StreamWriter* sw; ns=Qore; private_members=OutputStream os];
+qclass StreamWriter [arg=StreamWriter* sw; ns=Qore; internal_members=OutputStream os];
 
 //! Creates the StreamWriter for writing data to the given @ref OutputStream.
 /** @param os the @ref OutputStream for writing data
     @param encoding character encoding of the StreamWriter; all passed string data will be converted to this encoding before being written to the output stream; if not present, the @ref default_encoding "default character encoding" is assumed
  */
 StreamWriter::constructor(Qore::OutputStream[OutputStream] os, *string encoding) {
-
    SimpleRefHolder<StreamWriter> writer(new StreamWriter(xsink, os, encoding ? QEM.findCreate(encoding) : QCS_DEFAULT));
    if (*xsink)
       return;
    self->setPrivate(CID_STREAMWRITER, writer.release());
-   self->setValue("os", static_cast<QoreObject *>(obj_os->refSelf()), xsink);
+   qore_object_private* o = qore_object_private::get(*self);
+   const qore_class_private* cls = qore_class_private::get(*QC_STREAMWRITER);
+   o->setValueIntern(cls, "os", static_cast<QoreObject *>(obj_os->refSelf()), xsink);
 }
 
 //! Returns the @ref character_encoding "character encoding" for the StreamWriter.
@@ -81,6 +84,8 @@ sw.print(str);
     @param str the string to be written to the output stream; string data is converted to the StreamWriter's @ref character_encoding "character encoding" if necessary before writing
 
     @throw ENCODING-CONVERSION-ERROR error converting from the string's @ref character_encoding "character encoding" to the StreamWriter's @ref character_encoding "character encoding"
+
+    @note equivalent to write(string)
  */
 nothing StreamWriter::print(string str) {
    sw->print(str, xsink);
@@ -158,6 +163,20 @@ sw.f_vprintf("%5s: %d\n", ("hello there", 2)); # outputs "hello: 2\n", enforcing
  */
 nothing StreamWriter::f_vprintf(string[doc] fmt, any[doc] fmt_args) {
    sw->f_vprintf(args, xsink);
+}
+
+//! Writes a @ref string to the output stream.
+/** @par Example:
+    @code{.py}
+sw.write("string");
+    @endcode
+
+    @param str the string to write
+
+    @note equivalent to print(string)
+ */
+nothing StreamWriter::write(string str) {
+   sw->print(str, xsink);
 }
 
 //! Writes a @ref binary to the output stream.

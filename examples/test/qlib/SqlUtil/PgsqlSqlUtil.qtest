@@ -66,21 +66,6 @@ class PgsqlTestSchema inherits SqlUtilTestSchema {
 
     private *hash getTablesImpl() {
         return doTables(Tables, PgsqlTest::CustomColumns);
-        /*
-        hash tables = Tables;
-        # add custom columns to pgsql_test
-        foreach hash h in (PgsqlTest::CustomColumns.pairIterator()) {
-            string type = h.value.type ?? h.key;
-            hash ch = (
-                "native_type": type,
-                "notnull": True,
-                );
-            if (h.value.typeCode() == NT_HASH)
-                ch += (h.value - ("value", "bind", "expect", type));
-            tables.pgsql_test.columns{SqlTestBase::getColumnName(h.key)} = ch;
-        }
-        return tables;
-        */
     }
 
     private *hash getSequencesImpl() {
@@ -186,8 +171,28 @@ class PgsqlTest inherits SqlTestBase {
         if (ds) {
             initTestData(CustomColumns);
 
+            { # Make sure the DB is clear before doing the tests.
+                PgsqlTable t = new PgsqlTable(ds, "pgsql_test");
+                if (t.checkExistence())
+                    t.dropCommit();
+            }
+
             # create the test schema
             schema = new PgsqlTestSchema(ds);
+
+            # workaround for issue #853 (https://github.com/qorelanguage/qore/issues/853)
+            try {
+                on_error ds.rollback();
+                on_success ds.commit();
+                ds.exec("drop table pgsql_test");
+            }
+            catch () {}
+            try {
+                on_error ds.rollback();
+                on_success ds.commit();
+                ds.exec("drop sequence pgsql_test_seq");
+            }
+            catch () {}
 
             schema.align(False, m_options.verbose);
 

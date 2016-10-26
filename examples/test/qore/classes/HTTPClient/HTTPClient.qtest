@@ -13,7 +13,7 @@
 
 class HttpTestServer {
     public {
-        const Port = 49876;
+        int port;
     }
 
     private {
@@ -25,11 +25,13 @@ class HttpTestServer {
         resp = r;
         # start a fake server
         Socket s();
-        if (s.bind(Port, True))
+        if (s.bind(0, True))
             throw "BIND-ERROR", strerror();
 
         if (s.listen())
             throw "LISTEN-ERROR", strerror();
+
+        port = s.getSocketInfo().port;
 
         background startListener(s);
     }
@@ -65,10 +67,9 @@ public class Main inherits QUnit::Test {
     }
 
     testClient() {
-        HTTPClient hc(("url": "http://localhost:" + HttpTestServer::Port));
-
         {
             HttpTestServer serv(ErrorReply1);
+            HTTPClient hc(("url": "http://localhost:" + serv.port));
             *string str = hc.get("/something");
             assertEq(NOTHING, str);
             serv.done();
@@ -76,6 +77,7 @@ public class Main inherits QUnit::Test {
         }
         {
             HttpTestServer serv(ErrorReply2);
+            HTTPClient hc(("url": "http://localhost:" + serv.port));
             *string str = hc.get("/something");
             assertEq(NOTHING, str);
             serv.done();
@@ -83,6 +85,7 @@ public class Main inherits QUnit::Test {
         }
         {
             HttpTestServer serv(ChunkedReply1);
+            HTTPClient hc(("url": "http://localhost:" + serv.port));
             *string str = hc.get("/something");
             assertEq("Test Message.", str);
             serv.done();

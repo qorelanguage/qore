@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -228,7 +228,7 @@ const PO_NO_PROCESS_CONTROL = PO_NO_PROCESS_CONTROL;
 const PO_NO_SUBROUTINE_DEFS = PO_NO_SUBROUTINE_DEFS;
 
 //! Prohibits system classes from being imported into the new Program object
-/** @note: PO_NO_SYSTEM_CLASSES is a synonym of this constant
+/** @note @ref Qore::PO_NO_SYSTEM_CLASSES "PO_NO_SYSTEM_CLASSES" is a synonym of this constant
 
     @since %Qore 0.8.12 to harmonize permission names
  */
@@ -236,12 +236,12 @@ const PO_NO_INHERIT_SYSTEM_CLASSES = PO_NO_INHERIT_SYSTEM_CLASSES;
 
 //! Prohibits system classes from being imported into the new Program object
 /**
-    @note PO_NO_INHERIT_SYSTEM_CLASSES was added in %Qore 0.8.12 with the same value of this constant to provide a consistent naming convention for inheritance permissions
+    @note @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES "PO_NO_INHERIT_SYSTEM_CLASSES" was added in %Qore 0.8.12 with the same value of this constant to provide a consistent naming convention for inheritance permissions
  */
 const PO_NO_SYSTEM_CLASSES = PO_NO_INHERIT_SYSTEM_CLASSES;
 
 //! Prohibits builtin/system function variants from being imported into the new Program object
-/** @note: PO_NO_SYSTEM_FUNC_VARIANTS is a synonym of this constant
+/** @note @ref Qore::PO_NO_SYSTEM_FUNC_VARIANTS "PO_NO_SYSTEM_FUNC_VARIANTS" is a synonym of this constant
 
     @since %Qore 0.8.12 to harmonize permission names
  */
@@ -249,7 +249,7 @@ const PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS = PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS;
 
 //! Prohibits builtin/system function variants from being imported into the new Program object
 /**
-    @note PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS was added in %Qore 0.8.12 with the same value of this constant to provide a consistent naming convention for inheritance permissions
+    @note @ref Qore::PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS "PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS" was added in %Qore 0.8.12 with the same value of this constant to provide a consistent naming convention for inheritance permissions
 */
 const PO_NO_SYSTEM_FUNC_VARIANTS = PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS;
 
@@ -284,7 +284,7 @@ const PO_NO_THREAD_INFO = PO_NO_THREAD_INFO;
 const PO_NO_TOP_LEVEL_STATEMENTS = PO_NO_TOP_LEVEL_STATEMENTS;
 
 //! Prohibits user classes from being imported into the new Program object
-/** @note: PO_NO_USER_CLASSES is a synonym of this constant
+/** @note @ref Qore::PO_NO_USER_CLASSES "PO_NO_USER_CLASSES" is a synonym of this constant
 
     @since %Qore 0.8.12 to harmonize permission names
  */
@@ -292,7 +292,7 @@ const PO_NO_INHERIT_USER_CLASSES = PO_NO_INHERIT_USER_CLASSES;
 
 //! Prohibits user classes from being imported into the new Program object
 /**
-    @note PO_NO_INHERIT_USER_CLASSES was added in %Qore 0.8.12 with the same value of this constant to provide a consistent naming convention for inheritance permissions
+    @note @ref Qore::PO_NO_INHERIT_USER_CLASSES "PO_NO_INHERIT_USER_CLASSES" was added in %Qore 0.8.12 with the same value of this constant to provide a consistent naming convention for inheritance permissions
  */
 const PO_NO_USER_CLASSES = PO_NO_INHERIT_USER_CLASSES;
 
@@ -439,6 +439,13 @@ const PO_BROKEN_OPERATORS = PO_BROKEN_OPERATORS;
     @since %Qore 0.8.13
 */
 const PO_BROKEN_LOOP_STATEMENT = PO_BROKEN_LOOP_STATEMENT;
+
+//! disallows out-of-line class and namespace declarations
+/** @see @ref strong-encapsulation "%strong-encapsulation"
+
+    @since %Qore 0.8.13
+*/
+const PO_STRONG_ENCAPSULATION = PO_STRONG_ENCAPSULATION;
 //@}
 
 /** @defgroup warning_constants Warning Constants

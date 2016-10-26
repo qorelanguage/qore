@@ -1,0 +1,36 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class ClassCopyTest
+
+class CopyTest {
+    public {
+        int g = 0;
+    }
+
+    synchronized copy() {
+        ++g;
+    }
+}
+
+class ClassCopyTest inherits QUnit::Test {
+    constructor() : QUnit::Test("ClassCopy test", "1.0") {
+        addTestCase("ClassCopyTest", \classCopyTest());
+        set_return_value(main());
+    }
+
+    classCopyTest() {
+        CopyTest t();
+        assertEq(0, t.g);
+
+        CopyTest t1 = t.copy();
+        assertEq(1, t1.g);
+    }
+}

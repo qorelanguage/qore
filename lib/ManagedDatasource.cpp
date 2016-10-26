@@ -134,6 +134,11 @@ ManagedDatasource *ManagedDatasource::copy() {
    return new ManagedDatasource(*this);
 }
 
+int ManagedDatasource::acquireLock(ExceptionSink *xsink) {
+   AutoLocker al(&ds_lock);
+   return grabLock(xsink);
+}
+
 int ManagedDatasource::startDBAction(ExceptionSink *xsink, bool &new_transaction) {
    AutoLocker al(&ds_lock);
 
@@ -395,21 +400,25 @@ AbstractQoreNode *ManagedDatasource::getClientVersion(ExceptionSink *xsink) cons
 }
 
 QoreHashNode* ManagedDatasource::getOptionHash(ExceptionSink* xsink) {
-   DatasourceActionHelper dbah(*this, xsink);
+   DatasourceActionHelper dbah(*this, xsink, DAH_NOCONN);
    if (!dbah)
       return 0;
    return Datasource::getOptionHash();
 }
 
+int ManagedDatasource::setOptionInit(const char* opt, const QoreValue val, ExceptionSink* xsink) {
+   return Datasource::setOption(opt, val, xsink);
+}
+
 int ManagedDatasource::setOption(const char* opt, const QoreValue val, ExceptionSink* xsink) {
-   DatasourceActionHelper dbah(*this, xsink);
+   DatasourceActionHelper dbah(*this, xsink, DAH_NOCONN);
    if (!dbah)
       return 0;
    return Datasource::setOption(opt, val, xsink);
 }
 
 AbstractQoreNode* ManagedDatasource::getOption(const char* opt, ExceptionSink* xsink) {
-   DatasourceActionHelper dbah(*this, xsink);
+   DatasourceActionHelper dbah(*this, xsink, DAH_NOCONN);
    if (!dbah)
       return 0;
    return Datasource::getOption(opt, xsink);

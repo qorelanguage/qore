@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -46,6 +46,10 @@
     read 6162
     read 63
     @endcode
+
+    @note stream classes are not designed to be accessed from multiple threads; they have been implemented without locking for fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of such methods in threads other than the thread where the constructor was called will cause a \c STREAM-THREAD-ERROR to be thrown.
+
+    @see @ref Qore::StreamReader "StreamReader" for a class that can be used to read various kinds of data from an @ref Qore::InputStream "InputStream"
  */
 qclass StringInputStream [arg=StringInputStream* is; ns=Qore; vparent=InputStream; flags=final];
 
@@ -76,6 +80,9 @@ StringInputStream::constructor(string src) {
     read 7879
     read 7a
     @endcode
+
+    @throw INPUT-STREAM-ERROR \a limit is not positive
+    @throw INPUT-STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 *binary StringInputStream::read(int limit) {
    return is->readHelper(limit, xsink);

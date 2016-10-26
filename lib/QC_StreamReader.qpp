@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,8 @@
 #include "qore/Qore.h"
 #include "qore/InputStream.h"
 #include "qore/intern/StreamReader.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreClassIntern.h"
 
 //! This class defines a stream reader for input streams.
 /** @since %Qore 0.8.13
@@ -47,7 +49,7 @@ int i = sr.readi4();
 
     @see @ref Qore::InputStream
  */
-qclass StreamReader [arg=StreamReader* sr; ns=Qore; private_members=InputStream is];
+qclass StreamReader [arg=StreamReader* sr; ns=Qore; internal_members=InputStream is];
 
 //! Creates the StreamReader for reading data from the given @ref InputStream.
 /** @param is the @ref InputStream for reading data
@@ -60,7 +62,9 @@ StreamReader::constructor(Qore::InputStream[InputStream] is, *string encoding) {
    if (*xsink)
       return;
    self->setPrivate(CID_STREAMREADER, reader.release());
-   self->setValue("is", static_cast<QoreObject *>(obj_is->refSelf()), xsink);
+   qore_object_private* o = qore_object_private::get(*self);
+   const qore_class_private* cls = qore_class_private::get(*QC_STREAMREADER);
+   o->setValueIntern(cls, "is", static_cast<QoreObject*>(obj_is->refSelf()), xsink);
 }
 
 //! Returns the @ref character_encoding "character encoding" for the StreamReader.
@@ -68,6 +72,20 @@ StreamReader::constructor(Qore::InputStream[InputStream] is, *string encoding) {
  */
 string StreamReader::getEncoding() [flags=CONSTANT] {
    return new QoreStringNode(sr->getEncoding()->getCode());
+}
+
+//! Reads a string from the input stream
+/** @par Example:
+    @code{.py}
+string str = sr.read(len);
+    @endcode
+
+    @param limit maximum amount of bytes of string data to read; if not given or equal to -1, all the data from the @ref InputStream will be read; if equal to 0, @ref nothing will be read
+
+    @return a @ref string value or @ref nothing if there is no more data available in the stream
+ */
+*string StreamReader::readString(int limit = -1) {
+   return sr->readString(limit, xsink);
 }
 
 //! Reads a text line from the input stream.
