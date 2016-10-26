@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -179,6 +179,7 @@ public:
 class QoreObjectClosureNode : public QoreClosureBase {
 private:
    QoreObject* obj;
+   const qore_class_private* class_ctx;
 
    DLLLOCAL QoreObjectClosureNode(const QoreObjectClosureNode&); // not implemented
    DLLLOCAL QoreObjectClosureNode& operator=(const QoreObjectClosureNode&); // not implemented
@@ -187,11 +188,12 @@ protected:
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
 
 public:
-   DLLLOCAL QoreObjectClosureNode(QoreObject* n_obj, const QoreClosureParseNode* n_closure, cvv_vec_t* cv = 0) : QoreClosureBase(n_closure, cv), obj(n_obj) {
+   DLLLOCAL QoreObjectClosureNode(QoreObject* n_obj, const qore_class_private* c_ctx, const QoreClosureParseNode* n_closure, cvv_vec_t* cv = 0) : QoreClosureBase(n_closure, cv), obj(n_obj), class_ctx(c_ctx) {
       obj->tRef();
    }
 
    DLLLOCAL ~QoreObjectClosureNode() {
+      assert(!obj);
    }
 
    DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
@@ -207,7 +209,7 @@ public:
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const {
       del = true;
-      QoreString* rv = new QoreString();
+      QoreString* rv = new QoreString;
       getAsString(*rv, foff, xsink);
       return rv;
    }

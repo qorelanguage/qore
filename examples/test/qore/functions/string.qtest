@@ -21,15 +21,19 @@ public class StringTest inherits QUnit::Test {
     functionTests() {
         assertEq(1150200.55n, parse_number("1.150.200,55", ".,"));
         assertEq(1150200.55, parse_float("1.150.200,55", ".,"));
+        assertEq(1150200, parse_int("1.150.200,55", ".,"));
 
         assertEq(1150200.55n, parse_number("1,150,200.55", ",."));
         assertEq(1150200.55, parse_float("1,150,200.55", ",."));
+        assertEq(1150200, parse_int("1,150,200.55", ",."));
 
         assertEq(-4970.55n, parse_number("-4.970,55", ".,"));
         assertEq(-4970.55, parse_float("-4.970,55", ".,"));
+        assertEq(-4970, parse_int("-4.970,55", ".,"));
 
         assertEq(-4970.55n, parse_number("-4,970.55", ",."));
         assertEq(-4970.55, parse_float("-4,970.55", ",."));
+        assertEq(-4970, parse_int("-4,970.55", ",."));
 
         assertEq("asd", trunc_str("asdfäzxcv", 3));
         assertEq("asdf", trunc_str("asdfäzxcv", 4));

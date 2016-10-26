@@ -316,7 +316,7 @@ int ReadOnlyFile::close() {
     @throw FILE-READ-TIMEOUT timeout limit exceeded
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
-    @see File::readBinary()
+    @see ReadOnlyFile::readBinary()
  */
 *string ReadOnlyFile::read(softint size, timeout timeout_ms = -1) {
    if (check_terminal_io(self, "ReadOnlyFile::read", xsink))
