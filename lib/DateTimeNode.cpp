@@ -296,10 +296,10 @@ DateTimeValueHelper::~DateTimeValueHelper() {
       delete const_cast<DateTime*>(dt);
 }
 
-DateTimeNodeValueHelper::DateTimeNodeValueHelper(const AbstractQoreNode* n, ExceptionSink* xsink) : dt(0), temp(false) {
+DateTimeNodeValueHelper::DateTimeNodeValueHelper(const AbstractQoreNode* n, ExceptionSink* xsink) : dt(0), del(false) {
    if (!n) {
       dt = ZeroDate;
-      temp = false;
+      del = false;
       return;
    }
 
@@ -308,20 +308,20 @@ DateTimeNodeValueHelper::DateTimeNodeValueHelper(const AbstractQoreNode* n, Exce
    // optmization without virtual function call for most common case
    if (t == NT_DATE) {
       dt = const_cast<DateTimeNode*>(reinterpret_cast<const DateTimeNode*>(n));
-      temp = false;
+      del = false;
       return;
    }
 
    // special logic for strings to verify that the input data represents a valid date
    if (t == NT_STRING) {
-      temp = true;
+      del = true;
       dt = new DateTimeNode(reinterpret_cast<const QoreStringNode*>(n)->c_str(), xsink);
       return;
    }
 
    dt = new DateTimeNode;
    n->getDateTimeRepresentation(*dt);
-   temp = true;
+   del = true;
 }
 
 DateTimeNodeValueHelper::DateTimeNodeValueHelper(const QoreValue& n) {
