@@ -1151,7 +1151,7 @@ end";
                         case Type::Int: defval = defval.toInt(); break;
                         case Type::Float: defval = defval.toFloat(); break;
                         case Type::Number: defval = defval.toNumber(); break;
-                        case Type::Date: defval = date(defval); break;
+                        case Type::Date: defval = defval !~ /\(/ ? date(defval) : defval; break;
                         # don't know what to do with Type::Binary ???
                         default: break;
                     }
