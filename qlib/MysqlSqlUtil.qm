@@ -1161,6 +1161,7 @@ end";
                                 if (ex.err != "INVALID-DATE")
                                     rethrow;
                             }
+                        }
                         # don't know what to do with Type::Binary ???
                         default: break;
                     }
