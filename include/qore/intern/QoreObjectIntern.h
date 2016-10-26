@@ -587,14 +587,13 @@ public:
    DLLLOCAL virtual bool needsScan() const {
       if (!getScanCount() || status != OS_OK)
          return false;
-      SafeLocker sl(ref_mutex);
+      AutoLocker al(ref_mutex);
       if (status != OS_OK)
          return false;
       if (getScanCount()) {
          if (call_count) {
             if (!scan_after_call)
                scan_after_call = true;
-            sl.unlock();
             return false;
          }
          return true;

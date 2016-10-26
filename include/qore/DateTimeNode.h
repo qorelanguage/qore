@@ -129,10 +129,18 @@ public:
    */
    DLLEXPORT explicit DateTimeNode(const QoreValue v);
 
-   //! constructor for setting the date from a string with a flexible format
+   //! constructor for setting the date from a string with a flexible format, silently accepts invalid date strings
    /** @param date the string to use to set the date
    */
    DLLEXPORT DateTimeNode(const char* date);
+
+   //! constructor for setting the date from a string with a flexible format, throws a Qore-language exception if the date string is invalid
+   /** @param date the string to use to set the date
+       @param xsink any errors in the data string cause a Qore-language exception to be thrown here
+
+       @since %Qore 0.8.12.4
+   */
+   DLLEXPORT DateTimeNode(const char* date, ExceptionSink* xsink);
 
    //! constructor for setting the date from a string with a flexible format
    /**
@@ -274,6 +282,11 @@ public:
    //! static "constructor" to create an absolute time, including microseconds
    DLLEXPORT static DateTimeNode* makeAbsolute(const AbstractQoreZoneInfo* n_zone, int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, int n_us = 0);
 
+   //! static "constructor" to create an absolute time, including microseconds, throws an exception with invalid date/time components
+   /** @since %Qore 0.8.12.4
+    */
+   DLLEXPORT static DateTimeNode* makeAbsolute(const AbstractQoreZoneInfo* n_zone, int n_year, int n_month, int n_day, int n_hour, int n_minute, int n_second, int n_us, ExceptionSink* xsink);
+
    //! static "constructor" to create an absolute time as an offset from the epoch, including microseconds
    /**
       @param zone time zone for the date/time value, 0 = UTC, @see currentTZ()
@@ -353,15 +366,22 @@ public:
 
       // optmization without virtual function call for most common case
       if (n->getType() == NT_DATE) {
-         dt = const_cast<DateTimeNode* >(reinterpret_cast<const DateTimeNode* >(n));
+         dt = const_cast<DateTimeNode*>(reinterpret_cast<const DateTimeNode*>(n));
          del = false;
          return;
       }
 
-      dt = new DateTimeNode();
+      dt = new DateTimeNode;
       n->getDateTimeRepresentation(*dt);
       del = true;
    }
+
+   //! gets the DateTimeNode value and sets the temporary flag
+   /** this variant throws a Qore-language exception if the input is invalid
+
+       @since %Qore 0.8.12.4
+    */
+   DLLLOCAL DateTimeNodeValueHelper(const AbstractQoreNode* n, ExceptionSink* xsink);
 
    //! gets the DateTime value and set the delete flag
    DLLEXPORT DateTimeNodeValueHelper(const QoreValue& n);
