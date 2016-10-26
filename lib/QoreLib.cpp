@@ -2206,21 +2206,23 @@ int check_lvalue_int_float_number(const QoreTypeInfo*& typeInfo, const char* nam
    return 0;
 }
 
-static void do_subst(QoreString& str, const char* i, const char* ep) {
+static void do_subst(QoreString& str, const char* i, const char* ep, int offset) {
    assert(i < ep);
-   QoreString var(i + 1, ep - i - 1, str.getEncoding());
+   QoreString var(i + 1 + offset, ep - i - 1 - offset, str.getEncoding());
    QoreString val;
    SystemEnvironment::get(var.c_str(), val);
 
-   str.replace(i - str.c_str(), ep - i, val.c_str());
+   printd(0, "do_subst() '%s': '%s'\n", var.c_str(), val.c_str());
+
+   str.replace(i - str.c_str(), ep - i + offset, val.c_str());
 }
 
 static int do_bracket_subst(QoreString& str, const char* i, char c) {
-   const char* ep = strchr(i + 1, c);
+   const char* ep = strchr(i + 2, c);
    if (!ep)
       return -1;
 
-   do_subst(str, i, ep);
+   do_subst(str, i, ep, 1);
    return 0;
 }
 
@@ -2242,7 +2244,7 @@ int q_env_subst(QoreString& str) {
       }
       while (*ep && (*ep == '_' || isalnum(*ep)))
          ++ep;
-      do_subst(str, i, ep);
+      do_subst(str, i, ep, 0);
    }
 
    return 0;
