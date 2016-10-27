@@ -154,17 +154,17 @@ public:
 
       SimpleRefHolder<QoreStringNode> str(new QoreStringNode(enc));
       char buffer[STREAMREADER_BUFFER_SIZE];
-      qore_size_t bufSize = 0;
+      qore_size_t bufCount = 0;
       if (eolstr) {
          while (true) {
-            int64 rc = in->read(buffer + bufSize, 1, xsink);
+            int64 rc = in->read(buffer + bufCount, 1, xsink);
             if (*xsink)
                return 0;
             if (rc == 0) { // End of stream.
-               str->concat(buffer, bufSize);
+               str->concat(buffer, bufCount);
                return str->empty() ? 0 : str.release();
             }
-            if (buffer[bufSize] == eolstr->c_str()[0]) {
+            if (buffer[bufCount] == eolstr->c_str()[0]) {
                if (eolstr->size() > 1) {
                   int64 p = in->peek(xsink);
                   if (*xsink)
@@ -175,10 +175,10 @@ public:
                      if (*xsink)
                         return 0;
                      if (trim) {
-                        str->concat(buffer, bufSize);
+                        str->concat(buffer, bufCount);
                      }
                      else {
-                        str->concat(buffer, bufSize + 1);
+                        str->concat(buffer, bufCount + 1);
                         str->concat(c2);
                      }
                      return str.release();
@@ -186,36 +186,36 @@ public:
                }
                else {
                   if (trim)
-                     str->concat(buffer, bufSize);
+                     str->concat(buffer, bufCount);
                   else
-                     str->concat(buffer, bufSize + 1);
+                     str->concat(buffer, bufCount + 1);
                   return str.release();
                }
                if (*xsink)
                   return 0;
             }
-            ++bufSize;
-            if (bufSize == STREAMREADER_BUFFER_SIZE) {
-               str->concat(buffer, bufSize);
-               bufSize = 0;
+            ++bufCount;
+            if (bufCount == STREAMREADER_BUFFER_SIZE) {
+               str->concat(buffer, bufCount);
+               bufCount = 0;
             }
          }
       }
       else {
          while (true) {
-            int64 rc = in->read(buffer + bufSize, 1, xsink);
+            int64 rc = in->read(buffer + bufCount, 1, xsink);
             if (*xsink)
                return 0;
             if (rc == 0) { // End of stream.
-               str->concat(buffer, bufSize);
+               str->concat(buffer, bufCount);
                return str->empty() ? 0 : str.release();
             }
-            char c = buffer[bufSize];
+            char c = buffer[bufCount];
             if (c == '\n') {
                if (trim)
-                  str->concat(buffer, bufSize);
+                  str->concat(buffer, bufCount);
                else
-                  str->concat(buffer, bufSize + 1);
+                  str->concat(buffer, bufCount + 1);
                return str.release();
             }
             else if (c == '\r') {
@@ -224,20 +224,20 @@ public:
                   return 0;
                if (p == '\n') {
                   if (trim)
-                     --bufSize;
+                     --bufCount;
                }
                else {
                   if (trim)
-                     str->concat(buffer, bufSize);
+                     str->concat(buffer, bufCount);
                   else
-                     str->concat(buffer, bufSize + 1);
+                     str->concat(buffer, bufCount + 1);
                   return str.release();
                }
             }
-            ++bufSize;
-            if (bufSize == STREAMREADER_BUFFER_SIZE) {
-               str->concat(buffer, bufSize);
-               bufSize = 0;
+            ++bufCount;
+            if (bufCount == STREAMREADER_BUFFER_SIZE) {
+               str->concat(buffer, bufCount);
+               bufCount = 0;
             }
          }
       }
