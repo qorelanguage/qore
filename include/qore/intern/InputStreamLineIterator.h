@@ -36,6 +36,7 @@
 #include <errno.h>
 
 #include "qore/InputStream.h"
+#include "qore/intern/BufferedStreamReader.h"
 #include "qore/intern/StreamReader.h"
 #include "qore/intern/EncodingConversionInputStream.h"
 
@@ -73,7 +74,7 @@ public:
       }
 
       src->ref();
-      reader = new StreamReader(xsink, *src, enc);
+      reader = new BufferedStreamReader(xsink, *src, enc);
    }
 
    DLLLOCAL InputStreamLineIterator(ExceptionSink* xsink, StreamReader* sr, const QoreStringNode* n_eol = 0, bool n_trim = true) :

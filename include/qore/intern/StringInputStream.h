@@ -62,6 +62,12 @@ public:
       return count;
    }
 
+   DLLLOCAL int64 peek(ExceptionSink* xsink) override {
+      if ((src->size() - offset) == 0) // No more data.
+         return -1;
+      return src->getBuffer()[offset];
+   }
+
    DLLLOCAL const QoreEncoding* getEncoding() const {
       return src->getEncoding();
    }

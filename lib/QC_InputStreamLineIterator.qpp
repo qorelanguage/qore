@@ -35,8 +35,6 @@
 #include "qore/intern/QoreClassIntern.h"
 #include "qore/intern/StreamReader.h"
 
-DLLEXPORT extern QoreClass* QC_STREAMREADER;
-
 //! This class defines a line iterator for input streams.
 /** @since %Qore 0.8.13
 

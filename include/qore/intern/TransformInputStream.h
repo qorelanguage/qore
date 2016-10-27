@@ -40,7 +40,13 @@
 class TransformInputStream : public InputStreamBase {
 
 public:
-   TransformInputStream(InputStream *is, Transform *t) : is(is), t(t), count(0), eof(false) {
+   TransformInputStream(InputStream *is, Transform *t) :
+      is(is),
+      t(t),
+      bufSize(0),
+      outBufSize(0),
+      eof(false)
+   {
    }
 
    const char *getName() override {
@@ -48,27 +54,34 @@ public:
    }
 
    int64 read(void *ptr, int64 limit, ExceptionSink *xsink) override {
+      if (outBufSize > 0) {
+         int64 toCopy = QORE_MIN(static_cast<int64>(outBufSize), limit);
+         memcpy(ptr, outBuf, toCopy);
+         memmove(outBuf, outBuf + toCopy, outBufSize - toCopy); // Shift out buffer.
+         outBufSize -= toCopy;
+         return toCopy;
+      }
       while (true) {
-         if (!eof && BUFSIZE - count > 0) {
-            int64 r = is->read(buf + count, BUFSIZE - count, xsink);
+         if (!eof && TIS_BUFFER_SIZE - bufSize > 0) {
+            int64 r = is->read(buf + bufSize, TIS_BUFFER_SIZE - bufSize, xsink);
             if (*xsink) {
                return 0;
             }
             if (!r) {
                eof = true;
             } else {
-               count += r;
+               bufSize += r;
             }
          }
 
-         assert(eof || count > 0);
-         std::pair<int64, int64> r = t->apply(count ? buf : nullptr, count, ptr, limit, xsink);
+         assert(eof || bufSize > 0);
+         std::pair<int64, int64> r = t->apply(bufSize ? buf : nullptr, bufSize, ptr, limit, xsink);
          if (*xsink) {
             return 0;
          }
          if (r.first) {
-            count -= r.first;
-            memmove(buf, buf + r.first, count);
+            bufSize -= r.first;
+            memmove(buf, buf + r.first, bufSize);
          }
          if (r.second) {
             return r.second;
@@ -76,20 +89,37 @@ public:
          if (!r.first) {
             //did not produce anything and did not read anything
             assert(eof);
-            assert(!count);
+            assert(!bufSize);
             return 0;
          }
       }
    }
 
+   DLLLOCAL int64 peek(ExceptionSink* xsink) override {
+      if (outBufSize > 0)
+         return outBuf[0];
+      int64 rc = read(outBuf, TIS_OUT_BUFFER_SIZE, xsink);
+      if (*xsink)
+         return -2;
+      if (rc == 0) {
+         eof = true;
+         return -1;
+      }
+      outBufSize += rc;
+      return outBuf[0];
+   }
+
 private:
-   static constexpr size_t BUFSIZE = 4096;
+   static constexpr size_t TIS_BUFFER_SIZE = 4096;
+   static constexpr size_t TIS_OUT_BUFFER_SIZE = 1024;
 
 private:
    SimpleRefHolder<InputStream> is;
    SimpleRefHolder<Transform> t;
-   char buf[BUFSIZE];
-   size_t count;
+   char buf[TIS_BUFFER_SIZE];
+   char outBuf[TIS_OUT_BUFFER_SIZE];
+   size_t bufSize;
+   size_t outBufSize;
    bool eof;
 };
 

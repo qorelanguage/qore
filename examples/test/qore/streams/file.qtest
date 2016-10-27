@@ -40,5 +40,16 @@ public class FileStreamTest inherits QUnit::Test {
         assertEq(<31>, fis.read(1));
         assertEq(<32330A>, fis.read(4));
         assertEq(NOTHING, fis.read(10));
+
+        fis = new FileInputStream(file);
+        assertEq(65, fis.peek());
+        assertEq(<4162630A>, fis.read(4));
+        assertEq(49, fis.peek());
+        assertEq(<31>, fis.read(1));
+        assertEq(50, fis.peek());
+        assertEq(<32330A>, fis.read(4));
+        assertEq(-1, fis.peek());
+        assertEq(NOTHING, fis.read(10));
+        assertEq(-1, fis.peek());
     }
 }
