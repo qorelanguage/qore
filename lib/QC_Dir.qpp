@@ -640,7 +640,7 @@ catch (hash ex) {
 }
     @endcode
 
-    @throw DIR-REMOVEFILE-PARAMETER-ERROR only filenames without path (i.e. without '%c' characters) are allowed
+    @throw DIR-REMOVEFILE-PARAMETER-ERROR only filenames without path (i.e. without path separator characters) are allowed
     @throw DIR-REMOVEFILE-FAILURE the unlink() function returned an error (\c arg will be assigned to the errno value)
  */
 bool Dir::removeFile(string file) {
