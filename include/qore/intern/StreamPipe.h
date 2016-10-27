@@ -76,6 +76,7 @@ public:
    }
 
    DLLLOCAL int64 read(void *ptr, int64 limit, ExceptionSink *xsink) override;
+   DLLLOCAL int64 peek(ExceptionSink *xsink) override;
    DLLLOCAL void finishClose();
    DLLLOCAL void reportError(const QoreHashNode* ex) { pipe->reportError(ex); }
 

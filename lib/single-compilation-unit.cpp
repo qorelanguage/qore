@@ -329,6 +329,7 @@
 #include "QC_PipeOutputStream.cpp"
 #include "QC_StreamWriter.cpp"
 #include "QC_StreamReader.cpp"
+#include "QC_BufferedStreamReader.cpp"
 #include "QC_Transform.cpp"
 #include "QC_TransformInputStream.cpp"
 #include "QC_TransformOutputStream.cpp"

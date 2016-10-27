@@ -36,6 +36,11 @@ class SrcStream inherits InputStream {
         offset += limit;
         return b;
     }
+
+    int peek() {
+        *binary b = data.substr(offset, 1);
+        return ord(b.toString(b, "UTF-8"), 0);
+    }
 }
 
 public class CompressionStreamTest inherits QUnit::Test {
