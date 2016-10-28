@@ -305,7 +305,7 @@ public:
       return i;
    }
 
-   DLLLOCAL virtual const char* getName() const { return "BufferedStreamReader"; }
+   DLLLOCAL virtual const char* getName() const override { return "BufferedStreamReader"; }
 
 private:
    DLLLOCAL int64 fillBuffer(qore_size_t bytes, ExceptionSink* xsink) {

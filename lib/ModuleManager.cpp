@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,15 @@
 
 #include <errno.h>
 #include <string.h>
+
+#ifdef RTLD_NODELETE
+// we use RTLD_NODELETE if possible to avoid removing binary modules from the qore library's address space
+// in case they use c++11 thread-local data which could be destroyed after the module is removed which would
+// cause a crash
+#define QORE_DLOPEN_FLAGS RTLD_LAZY|RTLD_GLOBAL|RTLD_NODELETE
+#else
+#define QORE_DLOPEN_FLAGS RTLD_LAZY|RTLD_GLOBAL
+#endif
 
 #ifdef HAVE_GLOB_H
 #include <glob.h>
@@ -1032,7 +1041,7 @@ struct DLHelper {
 QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* pgm, bool reexport) {
    QoreAbstractModule* mi = 0;
 
-   void* ptr = dlopen(path, RTLD_LAZY|RTLD_GLOBAL);
+   void* ptr = dlopen(path, QORE_DLOPEN_FLAGS);
    if (!ptr) {
       xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(path), "error loading qore module '%s': %s", path, dlerror());
       return 0;
