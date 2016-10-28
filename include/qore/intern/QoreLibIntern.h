@@ -314,14 +314,6 @@ typedef std::map<QoreCondition*, int> cond_map_t;
 #define QORE_MANAGE_STACK
 #endif
 
-enum qore_call_t {
-   CT_UNUSED     = -1,
-   CT_USER       =  0,
-   CT_BUILTIN    =  1,
-   CT_NEWTHREAD  =  2,
-   CT_RETHROW    =  3
-};
-
 // Datasource Access Helper codes
 #define DAH_NOCHANGE  0 // acquire lock temporarily
 #define DAH_ACQUIRE   1 // acquire lock and hold
