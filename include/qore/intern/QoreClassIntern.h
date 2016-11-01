@@ -1472,6 +1472,8 @@ public:
    DLLLOCAL int addBaseClassesToSubclass(QoreClass* thisclass, QoreClass* sc, bool is_virtual);
 
    DLLLOCAL void alignBaseClassesInSubclass(QoreClass* thisclass, QoreClass* child, bool is_virtual);
+
+   // returns 0 = can add, non-0 = cannot add
    DLLLOCAL void align(QoreClass* thisclass, QoreClass* qc, bool is_virtual);
 
    DLLLOCAL QoreClass* getClass(qore_classid_t cid) const;

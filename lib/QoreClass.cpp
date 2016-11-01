@@ -1782,11 +1782,12 @@ void BCList::rescanParents(QoreClass* cls) {
    if (rescanned)
       return;
    rescanned = true;
-   // iterate sml for all virtual parent classes
-   for (auto& i : sml) {
-      if (i.second && i.first->priv->scl) {
-         i.first->priv->scl->rescanParents(i.first);
-         i.first->priv->scl->sml.alignBaseClassesInSubclass(i.first, cls, true);
+   // iterate sml for all virtual parent classes; must iterate with offsets;
+   // the vector can be reallocated during this operation
+   for (unsigned i = 0; i < sml.size(); ++i) {
+      if (sml[i].second && sml[i].first->priv->scl) {
+         sml[i].first->priv->scl->rescanParents(sml[i].first);
+         sml[i].first->priv->scl->sml.alignBaseClassesInSubclass(sml[i].first, cls, true);
       }
    }
 }
@@ -2752,16 +2753,18 @@ BCSMList::~BCSMList() {
 
 void BCSMList::alignBaseClassesInSubclass(QoreClass* thisclass, QoreClass* child, bool is_virtual) {
    //printd(5, "BCSMList::alignBaseClassesInSubclass(this: %s, sc: %s) size: %d\n", thisclass->getName(), sc->getName());
-   for (auto& i : *this) {
-      //printd(5, "BCSMList::alignBaseClassesInSubclass() %s sc: %s is_virt: %d\n", thisclass->getName(), sc->getName(), is_virtual);
-      child->priv->scl->sml.align(child, i.first, is_virtual || i.second);
+   // we must iterate with offsets, because the vector can be reallocated during this iteration
+   for (unsigned i = 0; i < (*this).size(); ++i) {
+      bool virt = is_virtual || (*this)[i].second;
+      //printd(5, "BCSMList::alignBaseClassesInSubclass() %s child: %s virt: %d\n", thisclass->getName(), sc->getName(), virt);
+      child->priv->scl->sml.align(child, (*this)[i].first, virt);
    }
 }
 
 void BCSMList::align(QoreClass* thisclass, QoreClass* qc, bool is_virtual) {
    assert(thisclass->getID() != qc->getID());
 
-   // see if class already exists in list
+   // see if class already exists in vector
    for (auto& i : *this) {
       if (i.first->getID() == qc->getID())
          return;
@@ -2769,7 +2772,7 @@ void BCSMList::align(QoreClass* thisclass, QoreClass* qc, bool is_virtual) {
    }
    qc->priv->ref();
 
-   // append to the end of the list
+   // append to the end of the vector
    //printd(5, "BCSMList::align() adding %p '%s' (virt: %d) as a base class of %p '%s'\n", qc, qc->getName(), is_virtual, thisclass, thisclass->getName());
    push_back(std::make_pair(qc, is_virtual));
 }
