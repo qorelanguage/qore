@@ -200,8 +200,8 @@ class MethodVariantBase : public AbstractQoreFunctionVariant {
 protected:
    const QoreMethod* qmethod;    // pointer to method that owns the variant
    ClassAccess access;           // variant access code
-   bool final,                   // is the variant final or not
-      abstract;                  // is the variant abstract or not
+   bool final;                   // is the variant final or not
+   bool abstract;                // is the variant abstract or not
    std::string asig;             // abstract signature, only set for abstract method variants
 
 public:
@@ -1583,8 +1583,8 @@ protected:
 public:
    // special method (constructor, destructor, copy) list for superclasses
    BCSMList sml;
-   bool valid = true,
-      rescanned = false;
+   bool valid = true;
+   bool rescanned = false;
 
    DLLLOCAL BCList(BCNode* n) {
       push_back(n);
