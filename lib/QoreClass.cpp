@@ -1773,6 +1773,25 @@ void BCNode::execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsi
    sclass->priv->execBaseClassConstructor(o, bceal, xsink);
 }
 
+int BCNode::addBaseClassesToSubclass(QoreClass* child, bool is_virtual) {
+   assert(sclass);
+   return sclass->priv->addBaseClassesToSubclass(child, is_virtual);
+}
+
+void BCList::rescanParents(QoreClass* cls) {
+   if (rescanned)
+      return;
+   rescanned = true;
+   // iterate sml for all virtual parent classes; must iterate with offsets;
+   // the vector can be reallocated during this operation
+   for (unsigned i = 0; i < sml.size(); ++i) {
+      if (sml[i].second && sml[i].first->priv->scl) {
+         sml[i].first->priv->scl->rescanParents(sml[i].first);
+         sml[i].first->priv->scl->sml.alignBaseClassesInSubclass(sml[i].first, cls, true);
+      }
+   }
+}
+
 int BCList::runtimeInitInternalMembers(QoreObject& o, bool& need_scan, ExceptionSink* xsink) const {
    for (auto& i : *this) {
       if ((*i).runtimeInitInternalMembers(o, need_scan, xsink))
@@ -2337,7 +2356,8 @@ void QoreClass::addBuiltinVirtualBaseClass(QoreClass* qc) {
    priv->scl->push_back(new BCNode(qc, true));
 
    if (qc->priv->scl)
-      qc->priv->scl->sml.addBaseClassesToSubclass(qc, this, true);
+      qc->priv->scl->addBaseClassesToSubclass(qc, this, true);
+      //qc->priv->scl->sml.addBaseClassesToSubclass(qc, this, true);
    priv->scl->sml.add(this, qc, true);
 }
 
@@ -2729,6 +2749,32 @@ BCSMList::~BCSMList() {
    for (class_list_t::iterator i = begin(), e = end(); i != e; ++i) {
       i->first->priv->deref();
    }
+}
+
+void BCSMList::alignBaseClassesInSubclass(QoreClass* thisclass, QoreClass* child, bool is_virtual) {
+   //printd(5, "BCSMList::alignBaseClassesInSubclass(this: %s, sc: %s) size: %d\n", thisclass->getName(), sc->getName());
+   // we must iterate with offsets, because the vector can be reallocated during this iteration
+   for (unsigned i = 0; i < (*this).size(); ++i) {
+      bool virt = is_virtual || (*this)[i].second;
+      //printd(5, "BCSMList::alignBaseClassesInSubclass() %s child: %s virt: %d\n", thisclass->getName(), sc->getName(), virt);
+      child->priv->scl->sml.align(child, (*this)[i].first, virt);
+   }
+}
+
+void BCSMList::align(QoreClass* thisclass, QoreClass* qc, bool is_virtual) {
+   assert(thisclass->getID() != qc->getID());
+
+   // see if class already exists in vector
+   for (auto& i : *this) {
+      if (i.first->getID() == qc->getID())
+         return;
+      assert(i.first->getID() != thisclass->getID());
+   }
+   qc->priv->ref();
+
+   // append to the end of the vector
+   //printd(5, "BCSMList::align() adding %p '%s' (virt: %d) as a base class of %p '%s'\n", qc, qc->getName(), is_virtual, thisclass, thisclass->getName());
+   push_back(std::make_pair(qc, is_virtual));
 }
 
 int BCSMList::addBaseClassesToSubclass(QoreClass* thisclass, QoreClass* sc, bool is_virtual) {
@@ -3189,11 +3235,12 @@ QoreObject* qore_class_private::execCopy(QoreObject* old, ExceptionSink* xsink) 
    return *xsink ? 0 : self.release();
 }
 
-int qore_class_private::addBaseClassesToSubclass(QoreClass* sc, bool is_virtual) {
+int qore_class_private::addBaseClassesToSubclass(QoreClass* child, bool is_virtual) {
    //printd(5, "qore_class_private::addBaseClassesToSubclass() this: %p '%s' sc: %p '%s' is_virtual: %d scl: %p\n", this, name.c_str(), sc, sc->getName(), is_virtual, scl);
-   if (scl && scl->sml.addBaseClassesToSubclass(cls, sc, is_virtual))
+   if (scl && scl->addBaseClassesToSubclass(cls, child, is_virtual))
       return -1;
-   return sc->priv->scl->sml.add(sc, cls, is_virtual);
+   assert(child->priv->scl);
+   return child->priv->scl->sml.add(child, cls, is_virtual);
 }
 
 int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, bool n_static) {
@@ -4175,6 +4222,12 @@ void QoreClass::addBuiltinConstant(const char* name, QoreValue value, ClassAcces
 
 void QoreClass::addBuiltinStaticVar(const char* name, QoreValue value, ClassAccess access, const QoreTypeInfo* typeInfo) {
    priv->addBuiltinStaticVar(name, value.takeNode(), access, typeInfo);
+}
+
+void QoreClass::rescanParents() {
+   // rebuild parent class data
+   if (priv->scl)
+      priv->scl->rescanParents(this);
 }
 
 void MethodFunctionBase::parseInit() {
