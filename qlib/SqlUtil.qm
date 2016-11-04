@@ -6605,14 +6605,13 @@ list l = db.getAlignSql(schema_hash);
             validateHashKeysForWhitespaces(schema_hash);
 
             # get creation options
-            *hash copt = opt{getCreationOptions().keys()};
+            *hash copt = opt{getAlignSchemaOptions().keys()};
 
             if (!table_cache)
                 table_cache = new Tables();
 
             # setup db table cache
             opt.db_table_cache = new Tables();
-
             list l = ();
 
             string drv = getDriverName();
@@ -8476,8 +8475,8 @@ bool b = table.empty();
 
             # check options
             hash copt = getColumnOptions();
+            opt = opt{getTableCreationOptions().keys() + copt.keys()};
             validateOptionsIntern("OPTION-ERROR", getTableCreationOptions() + copt, \opt);
-
             # setup table cache
             if (!opt.table_cache)
                 opt.table_cache = new Tables();
