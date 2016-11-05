@@ -39,14 +39,8 @@
 #include <errno.h>
 #include <string.h>
 
-#ifdef RTLD_NODELETE
-// we use RTLD_NODELETE if possible to avoid removing binary modules from the qore library's address space
-// in case they use c++11 thread-local data which could be destroyed after the module is removed which would
-// cause a crash
-#define QORE_DLOPEN_FLAGS RTLD_LAZY|RTLD_GLOBAL|RTLD_NODELETE
-#else
+// dlopen() flags
 #define QORE_DLOPEN_FLAGS RTLD_LAZY|RTLD_GLOBAL
-#endif
 
 #ifdef HAVE_GLOB_H
 #include <glob.h>
@@ -564,7 +558,6 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
    assert(mmi == map.end() || !strcmp(mmi->second->getName(), name));
 
    QoreAbstractModule* mi = (mmi == map.end() ? 0 : mmi->second);
-   //printd(5, "QoreModuleManager::loadModuleIntern() '%s' mi: %p\n", name, mi);
 
    // handle module reloads
    if (load_opt & QMLO_RELOAD) {
