@@ -117,6 +117,7 @@
     - fixed a bug where runtime function/method variant matching was incorrectly biased towards default matches for missing arguments (<a href="https://github.com/qorelanguage/qore/issues/1231">issue 1231</a>)
     - fixed bugs where calls to @ref Qore::Socket::upgradeClientToSSL() "Socket::upgradeClientToSSL()" and @ref Qore::Socket::upgradeServerToSSL() "Socket::upgradeServerToSSL()" were ignored with no exception thrown if the socket was not connected (<a href="https://github.com/qorelanguage/qore/issues/1258">issue 1258</a>)
     - fixed a bug where a closure created in an object scope could not be called if the object had been deleted, even if the closure did not refer to the object (<a href="https://github.com/qorelanguage/qore/issues/1258">issue 1303</a>)
+    - fixed a bug where @ref Qore::ord() "ord()" would return negative numbers for bytes with the high bit set with compilers where <tt>char</tt> is the same as <tt>signed char</tt> (<a href="https://github.com/qorelanguage/qore/issues/1385">issue 1385</a>)
 
     @section qore_08124 Qore 0.8.12.4
 

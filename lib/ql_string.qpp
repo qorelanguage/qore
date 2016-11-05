@@ -796,12 +796,12 @@ int brindex() [flags=RUNTIME_NOOP] {
    return -1;
 }
 
-//! Gives the numeric value of the given byte in the string passed; if no string is passed or the offset is after the end of the string, -1 is returned
+//! Gives the positive numeric value of the given byte in the string passed; if no string is passed or the offset is after the end of the string, -1 is returned
 /**
     @param str the string containing the byte to be retrieved
     @param offset the byte offset of the byte to be retrieved
 
-    @return the numeric value of the given byte in the string passed; if the offset is after the end of the string or negative, -1 is returned
+    @return the positive numeric value of the given byte in the string passed; if the offset is after the end of the string or negative, -1 is returned
 
     @par Example:
     @code{.py}
@@ -814,7 +814,7 @@ int ord(softstring str, softint offset = 0) [flags=CONSTANT] {
    if (offset < 0 || (qore_size_t)offset >= str->strlen())
       return -1;
 
-   return str->getBuffer()[offset];
+   return (unsigned char)str->getBuffer()[offset];
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments

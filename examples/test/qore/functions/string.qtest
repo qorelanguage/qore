@@ -41,5 +41,7 @@ public class StringTest inherits QUnit::Test {
         assertEq("asdfä", trunc_str("asdfäzxcv", 6));
         assertEq("asdfäz", trunc_str("asdfäzxcv", 7));
         assertEq("asdfäzx", trunc_str("asdfäzxcv", 8));
+
+        assertEq(195, ord("à"));
     }
 }
