@@ -2212,7 +2212,7 @@ static void do_subst(QoreString& str, const char* i, const char* ep, int offset)
    QoreString val;
    SystemEnvironment::get(var.c_str(), val);
 
-   printd(0, "do_subst() '%s': '%s'\n", var.c_str(), val.c_str());
+   //printd(5, "do_subst() '%s': '%s'\n", var.c_str(), val.c_str());
 
    str.replace(i - str.c_str(), ep - i + offset, val.c_str());
 }
