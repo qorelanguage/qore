@@ -43,6 +43,7 @@ DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/QUnit.qm \
 	qlib/Diff.qm \
 	qlib/BulkSqlUtil.qm \
+	qlib/SchemaReverse.qm
 	qlib/Qdx.qm
 
 USER_MODULES = $(DOX_SRC_MODULES) \
