@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,9 @@
 
 #include <errno.h>
 #include <string.h>
+
+// dlopen() flags
+#define QORE_DLOPEN_FLAGS RTLD_LAZY|RTLD_GLOBAL
 
 #ifdef HAVE_GLOB_H
 #include <glob.h>
@@ -555,7 +558,6 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
    assert(mmi == map.end() || !strcmp(mmi->second->getName(), name));
 
    QoreAbstractModule* mi = (mmi == map.end() ? 0 : mmi->second);
-   //printd(5, "QoreModuleManager::loadModuleIntern() '%s' mi: %p\n", name, mi);
 
    // handle module reloads
    if (load_opt & QMLO_RELOAD) {
@@ -1032,7 +1034,7 @@ struct DLHelper {
 QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* pgm, bool reexport) {
    QoreAbstractModule* mi = 0;
 
-   void* ptr = dlopen(path, RTLD_LAZY|RTLD_GLOBAL);
+   void* ptr = dlopen(path, QORE_DLOPEN_FLAGS);
    if (!ptr) {
       xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(path), "error loading qore module '%s': %s", path, dlerror());
       return 0;

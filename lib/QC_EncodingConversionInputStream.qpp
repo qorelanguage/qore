@@ -84,8 +84,25 @@ EncodingConversionInputStream::constructor(Qore::InputStream[InputStream] is, st
 
     @throw ENCODING-CONVERSION-ERROR if an invalid multibyte sequence is encountered in the input
     @throw INPUT-STREAM-ERROR \a limit is not positive
-    @throw INPUT-STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 *binary EncodingConversionInputStream::read(int limit) {
    return is->readHelper(limit, xsink);
+}
+
+//! Peeks the next byte available from the input stream; returns -1 if no more data available
+/**
+    @return the next byte available from the input stream or -1 if no more data is available
+
+    @par Example:
+    @code{.py}
+    EncodingConversionInputStream latin2Stream(sourceUtf8Stream, "UTF-8", "ISO-8859-2");
+    int nextByte = latin2Stream.peek();
+    @endcode
+
+    @throw ENCODING-CONVERSION-ERROR if an invalid multibyte sequence is encountered in the input
+    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+ */
+int EncodingConversionInputStream::peek() {
+   return is->peekHelper(xsink);
 }

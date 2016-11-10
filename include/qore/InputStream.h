@@ -52,6 +52,13 @@ public:
     */
    virtual int64 read(void *ptr, int64 limit, ExceptionSink *xsink) = 0;
 
+   /**
+    * @brief Peeks the next byte from the input stream.
+    * @param xsink the exception sink
+    * @return the next byte available to be read, -1 indicates end of the stream, -2 indicates an error
+    */
+   virtual int64 peek(ExceptionSink *xsink) = 0;
+
 protected:
    /**
     * @brief Constructor.

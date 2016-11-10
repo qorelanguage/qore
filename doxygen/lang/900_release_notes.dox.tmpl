@@ -117,6 +117,7 @@
     - fixed a bug where runtime function/method variant matching was incorrectly biased towards default matches for missing arguments (<a href="https://github.com/qorelanguage/qore/issues/1231">issue 1231</a>)
     - fixed bugs where calls to @ref Qore::Socket::upgradeClientToSSL() "Socket::upgradeClientToSSL()" and @ref Qore::Socket::upgradeServerToSSL() "Socket::upgradeServerToSSL()" were ignored with no exception thrown if the socket was not connected (<a href="https://github.com/qorelanguage/qore/issues/1258">issue 1258</a>)
     - fixed a bug where a closure created in an object scope could not be called if the object had been deleted, even if the closure did not refer to the object (<a href="https://github.com/qorelanguage/qore/issues/1258">issue 1303</a>)
+    - fixed a bug where @ref Qore::ord() "ord()" would return negative numbers for bytes with the high bit set with compilers where <tt>char</tt> is the same as <tt>signed char</tt> (<a href="https://github.com/qorelanguage/qore/issues/1385">issue 1385</a>)
 
     @section qore_08124 Qore 0.8.12.4
 
@@ -140,6 +141,12 @@
       - fixed a bug in \c AbstractCsvIterator::identifyTypeImpl() generating an error message (<a href="https://github.com/qorelanguage/qore/issues/1355">issue 1355</a>)
     - <a href="../../modules/MailMessage/html/index.html">MailMessage.qm</a> module:
       - fixed a bug using the default encoding in \c Message::attach() (issue <a href="https://github.com/qorelanguage/qore/issues/1352">issue 1352</a>)
+    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil.qm</a> module:
+      - fixed the ignored character_semantics column option in schema alignmed (<a href="https://github.com/qorelanguage/qore/issues/1379">issue 1379</a>)
+    - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil.qm</a> module:
+      - OraclePackage attribute body_src is now public to access package bodies
+    - <a href="../../modules/Qorize/html/index.html">Qorize.qm</a> module:
+      -  Qorize module: new qorize_val() set of functions; qorize_named() introduced; qorize tests
 
     @section qore_08123 Qore 0.8.12.3
 

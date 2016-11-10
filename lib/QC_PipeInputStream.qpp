@@ -52,7 +52,6 @@ private PipeInputStream::constructor() {
 //! Reads bytes (up to a specified limit) from the input stream; returns \ref NOTHING if there are no more bytes in the stream
 /**
     @throw INPUT-STREAM-ERROR \a limit is not positive
-    @throw INPUT-STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 *binary PipeInputStream::read(int limit) {
    if (limit <= 0) {
@@ -64,6 +63,18 @@ private PipeInputStream::constructor() {
    int64 count = is->read(const_cast<void *>(result->getPtr()), limit, xsink);
    result->setSize(count);
    return count ? result.release() : 0;
+}
+
+//! Peeks the next byte available from the input stream; returns -1 if no more data available
+/** @return the next byte available from the input stream or -1 if no more data is available
+ */
+int PipeInputStream::peek() {
+   SimpleRefHolder<QoreBigIntNode> result(new QoreBigIntNode());
+   int64 res = is->peek(xsink);
+   if (*xsink)
+      return result.release();
+   result->val = res;
+   return result.release();
 }
 
 //! Call when the background operation is finished to wakeup PipeOutputStream::close().

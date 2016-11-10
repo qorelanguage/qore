@@ -57,6 +57,18 @@ public:
       return f.read(ptr, limit, timeout, xsink);
    }
 
+   DLLLOCAL int64 peek(ExceptionSink *xsink) override {
+      qore_size_t pos = f.getPos(); // Save initial position.
+      unsigned char c;
+      qore_size_t rc = f.read(&c, 1, -1, xsink);
+      if (*xsink)
+         return -2;
+      if (rc == 0)
+         return -1;
+      f.setPos(pos); // Restore initial position.
+      return c;
+   }
+
    DLLLOCAL QoreFile& getFile() { return f; }
 
    DLLLOCAL int64 getTimeout() const { return timeout; }

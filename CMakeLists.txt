@@ -149,6 +149,7 @@ set(LIBQORE_QPP_SRC
 	lib/QC_PipeOutputStream.qpp
 	lib/QC_StreamWriter.qpp
 	lib/QC_StreamReader.qpp
+	lib/QC_BufferedStreamReader.qpp
 	lib/QC_Transform.qpp
 	lib/QC_TransformInputStream.qpp
 	lib/QC_TransformOutputStream.qpp

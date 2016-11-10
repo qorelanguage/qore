@@ -120,6 +120,42 @@ int64 PipeInputStream::read(void *ptr, int64 limit, ExceptionSink *xsink) {
    return dst - static_cast<uint8_t *>(ptr);
 }
 
+int64 PipeInputStream::peek(ExceptionSink *xsink) {
+   printd(1, "PipeInputStream::peek()\n");
+   AutoLocker lock(pipe->mutex);
+
+   printd(1, "peek - lock acquired\n");
+   while (true) {
+      if (pipe->exception) {
+         pipe->rethrow(xsink);
+         return -2;
+      }
+      if (pipe->broken) {
+         xsink->raiseException("BROKEN-PIPE-ERROR", "one of the streams of the pipe has been destroyed");
+         return -2;
+      }
+
+      printd(1, "peek - count: " QLLD "\n", pipe->count);
+      if (pipe->count > 0) {
+         break;
+      }
+
+      if (pipe->outputClosed) {
+         return -1; // No more data.
+      }
+
+      printd(1, "peek - buffer empty, before wait\n");
+      int rc = pipe->timeout < 0 ? pipe->readCondVar.wait(pipe->mutex) : pipe->readCondVar.wait2(pipe->mutex, pipe->timeout);
+      printd(1, "peek - buffer empty, after wait, rc: %d\n", rc);
+      if (rc != 0) {
+         xsink->raiseException("TIMEOUT-ERROR", "operation timed out");
+         return -2;
+      }
+   }
+
+   return *(pipe->buffer.data() + pipe->readPtr);
+}
+
 PipeOutputStream::~PipeOutputStream() {
    printd(1, "PipeOutputStream::~PipeOutputStream()\n");
    AutoLocker lock(pipe->mutex);

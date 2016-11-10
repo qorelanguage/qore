@@ -73,6 +73,16 @@ public:
       return count;
    }
 
+   DLLLOCAL virtual int64 peek(ExceptionSink *xsink) override {
+      ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
+      ValueHolder resHolder(self->evalMethodValue("peek", *args, xsink), xsink);
+      if (!resHolder) {
+         return -2;
+      }
+      QoreBigIntNode *res = resHolder->get<QoreBigIntNode>();
+      return res->val;
+   }
+
 private:
    QoreObject *self;                    //!< The QoreObject this private data is associated with
 };
