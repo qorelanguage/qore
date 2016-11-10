@@ -1,9 +1,9 @@
 /*
   QoreFloatNode.cpp
-  
+
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -55,12 +55,13 @@ void QoreFloatNode::getStringRepresentation(QoreString &str) const {
 // if del is true, then the returned DateTime * should be deleted, if false, then it should not
 DateTime *QoreFloatNode::getDateTimeRepresentation(bool &del) const {
    del = true;
-   return DateTime::makeAbsoluteLocal(currentTZ(), (int64)f, (int)((f - (float)((int)f)) * 1000000));
+   return DateTime::makeRelativeFromSeconds((int64)f, (int)((f - (double)((int)f)) * 1000000));
 }
 
 // assign date representation to a DateTime (no action for complex types = default implementation)
 void QoreFloatNode::getDateTimeRepresentation(DateTime &dt) const {
-   dt.setLocalDate(currentTZ(), (int64)f, (int)((f - (float)((int)f)) * 1000000));
+   int64 secs = (int64)f;
+   dt.setRelativeDateSeconds(secs, (int)((f - (double)secs) * 1000000));
 }
 
 bool QoreFloatNode::getAsBoolImpl() const {

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -42,7 +42,7 @@ struct lvih_intern {
       lv.instantiate(val);
       VarRefNode *vr = new VarRefNode(strdup("ref_arg_helper"), VT_LOCAL);
       vr->ref.id = &lv;
-      ref = new ReferenceNode(vr, 0, vr);
+      ref = new ReferenceNode(vr, 0, vr, 0);
    }
 
    DLLLOCAL ~lvih_intern() {
@@ -83,4 +83,3 @@ AbstractQoreNode *ReferenceArgumentHelper::getArg() const {
 AbstractQoreNode *ReferenceArgumentHelper::getOutputValue() {
    return priv->getOutputValue();
 }
-
