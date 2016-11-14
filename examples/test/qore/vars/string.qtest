@@ -15,7 +15,8 @@ class StringTest inherits QUnit::Test {
         addTestCase("Basic functions test", \testBasics());
         addTestCase("Encoding test", \testEncoding());
         addTestCase("Base64 and hex test", \testBase64Hex());
-        addTestCase("Splice and extract test", \testSpliceAndExtract());
+        addTestCase("Splice test", \testSplice());
+        addTestCase("Extract test", \testExtract());
         addTestCase("Join test", \testJoin());
         addTestCase("Transliteration test", \testTransliteration());
         addTestCase("Regex test", \testRegex());
@@ -124,8 +125,8 @@ class StringTest inherits QUnit::Test {
         assertEq("", parse_base64_string_to_string(""));
     }
 
-    testSpliceAndExtract() {
-        # UTF-8 string splice tests
+    testSplice() {
+        # UTF-8 string splice operator tests
         string str = "äbcdéf";
         splice str, 5;
         assertEq(str, "äbcdé", "first UTF-8 string splice");
@@ -144,14 +145,7 @@ class StringTest inherits QUnit::Test {
         splice str, -4, -2, "QRS";
         assertEq(str, "kQRSNO", "eighth UTF-8 string splice");
 
-        # UTF-8 string extract tests
-        str = "äbcdéf";
-        assertEq((extract str, 4), "éf", "first UTF-8 string extract");
-        assertEq((extract str, 1, 2), "bc", "second UTF-8 string extract");
-        assertEq((extract str, 1, 1, "bcdef"), "d", "third UTF-8 string extract");
-        assertEq(str, "äbcdef", "final UTF-8 string extract");
-
-        # single-byte string splice tests
+        # single-byte string splice operator tests
         str = convert_encoding("äbcdéf", "ISO-8859-1");
         splice str, 5;
         assertTrue(str == "äbcdé", "first ISO-8859-1 string splice");
@@ -170,7 +164,53 @@ class StringTest inherits QUnit::Test {
         splice str, -4, -2, "QRS";
         assertTrue(str == "kQRSNO", "eighth ISO-8859-1 string splice");
 
+        # UTF-8 string splice function tests
+        str = "äbcdéf";
+        str = splice str, 5;
+        assertEq(str, "äbcdé", "first UTF-8 string splice");
+        str = splice str, 3, 1;
+        assertEq(str, "äbcé", "second UTF-8 string splice");
+        str = splice str, 1, 2, "GHI";
+        assertEq(str, "äGHIé", "third UTF-8 string splice");
+        str = splice str, 0, 4, "jkl";
+        assertEq(str, "jklé", "fourth UTF-8 string splice");
+        str = splice str, 0, 1;
+        assertEq(str, "klé", "fifth UTF-8 string splice");
+        str = splice str, 5, 2, "MNO";
+        assertEq(str, "kléMNO", "sixth UTF-8 string splice");
+        str = splice str, -4, 2, "p";
+        assertEq(str, "klpNO", "seventh UTF-8 string splice");
+        str = splice str, -4, -2, "QRS";
+        assertEq(str, "kQRSNO", "eighth UTF-8 string splice");
+
+        # single-byte string splice function tests
+        str = convert_encoding("äbcdéf", "ISO-8859-1");
+        str = splice str, 5;
+        assertTrue(str == "äbcdé", "first ISO-8859-1 string splice");
+        str = splice str, 3, 1;
+        assertTrue(str == "äbcé", "second ISO-8859-1 string splice");
+        str = splice str, 1, 2, "GHI";
+        assertTrue(str == "äGHIé", "third ISO-8859-1 string splice");
+        str = splice str, 0, 4, "jkl";
+        assertTrue(str == "jklé", "fouth ISO-8859-1 string splice");
+        str = splice str, 0, 1;
+        assertTrue(str == "klé", "fifth ISO-8859-1 string splice");
+        str = splice str, 5, 2, "MNO";
+        assertTrue(str == "kléMNO", "sixth ISO-8859-1 string splice");
+        str = splice str, -4, 2, "p";
+        assertTrue(str == "klpNO", "seventh ISO-8859-1 string splice");
+        str = splice str, -4, -2, "QRS";
+        assertTrue(str == "kQRSNO", "eighth ISO-8859-1 string splice");
+    }
+
+    testExtract() {
         # UTF-8 string extract tests
+        string str = "äbcdéf";
+        assertEq((extract str, 4), "éf", "first UTF-8 string extract");
+        assertEq((extract str, 1, 2), "bc", "second UTF-8 string extract");
+        assertEq((extract str, 1, 1, "bcdef"), "d", "third UTF-8 string extract");
+        assertEq(str, "äbcdef", "final UTF-8 string extract");
+
         str = convert_encoding("äbcdéf", "ISO-8859-1");
         string val = extract str, 4;
         assertTrue(val == "éf", "first UTF-8 string extract");

@@ -41,6 +41,8 @@ public class ArrayTest inherits QUnit::Test {
     constructor() : Test("Array test", "1.0") {
         addTestCase("Basics test", \testBasics(), NOTHING);
         addTestCase("Basics test 2", \testBasics2(), NOTHING);
+        addTestCase("Splice test", \testSplice(), NOTHING);
+        addTestCase("Extract test", \testExtract(), NOTHING);
         addTestCase("String and binary element dereference test", \testElementDereference(), NOTHING);
         addTestCase("Range test", \testRange(), NOTHING);
         addTestCase("Pseudomethods test", \testPseudomethods(), NOTHING);
@@ -203,27 +205,51 @@ public class ArrayTest inherits QUnit::Test {
         assertEq(5, v2, "first pop");
         assertEq((3,2,4,1,6), lst1, "second pop");
         push lst1, "hi";
-
-        # splice tests
         assertEq((3,2,4,1,6,"hi"), lst1, "push");
-        splice lst1, 5;
-        assertEq((3,2,4,1,6), lst1, "first list splice");
-        splice lst1, 3, 1;
-        assertEq((3,2,4,6), lst1, "second list splice");
-        splice lst1, 1, 2, (4, 5, 5.5);
-        assertEq((3,4,5,5.5,6), lst1, "third list splice");
-        splice lst1, 0, 4, (10, 11, 12);
-        assertEq((10, 11, 12, 6), lst1, "third list splice");
-        splice lst1, 0, 1;
-        assertEq((11, 12, 6), lst1, "fourth list splice");
-        splice lst1, 5, 2, (1, 2, 3);
-        assertEq((11, 12, 6, 1, 2, 3), lst1, "fifth list splice");
-        splice lst1, -4, 2, 9;
-        assertEq((11, 12, 9, 2, 3), lst1, "sixth list splice");
-        splice lst1, -4, -2, (21, 22, 23);
-        assertEq((11, 21, 22, 23, 2, 3), lst1, "seventh list splice");
+    }
 
-        # extract tests
+    testSplice() {
+        # splice operator tests
+        list lst1 = (3,2,4,1,6,"hi");
+        splice lst1, 5;
+        assertEq((3,2,4,1,6), lst1);
+        splice lst1, 3, 1;
+        assertEq((3,2,4,6), lst1);
+        splice lst1, 1, 2, (4, 5, 5.5);
+        assertEq((3,4,5,5.5,6), lst1);
+        splice lst1, 0, 4, (10, 11, 12);
+        assertEq((10, 11, 12, 6), lst1);
+        splice lst1, 0, 1;
+        assertEq((11, 12, 6), lst1);
+        splice lst1, 5, 2, (1, 2, 3);
+        assertEq((11, 12, 6, 1, 2, 3), lst1);
+        splice lst1, -4, 2, 9;
+        assertEq((11, 12, 9, 2, 3), lst1);
+        splice lst1, -4, -2, (21, 22, 23);
+        assertEq((11, 21, 22, 23, 2, 3), lst1);
+
+        # splice function tests
+        lst1 = (3,2,4,1,6,"hi");
+        lst1 = splice(lst1, 5);
+        assertEq((3,2,4,1,6), lst1);
+        lst1 = splice(lst1, 3, 1);
+        assertEq((3,2,4,6), lst1);
+        lst1 = splice(lst1, 1, 2, (4, 5, 5.5));
+        assertEq((3,4,5,5.5,6), lst1);
+        lst1 = splice(lst1, 0, 4, (10, 11, 12));
+        assertEq((10, 11, 12, 6), lst1);
+        lst1 = splice(lst1, 0, 1);
+        assertEq((11, 12, 6), lst1);
+        lst1 = splice(lst1, 5, 2, (1, 2, 3));
+        assertEq((11, 12, 6, 1, 2, 3), lst1);
+        lst1 = splice(lst1, -4, 2, 9);
+        assertEq((11, 12, 9, 2, 3), lst1);
+        lst1 = splice(lst1, -4, -2, (21, 22, 23));
+        assertEq((11, 21, 22, 23, 2, 3), lst1);
+    }
+
+    testExtract() {
+        list lst1 = (11, 21, 22, 23, 2, 3);
         assertEq(list(3), (extract lst1, 5), "first list extract");
         assertEq((22, 23), (extract lst1, 2, 2), "second list extract");
         assertEq((21, 2), (extract lst1, 1, 2, 4), "second list extract");
