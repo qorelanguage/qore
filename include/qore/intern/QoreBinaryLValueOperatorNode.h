@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreBinaryLValueOperatorNode.h
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -44,6 +44,10 @@ public:
 
    DLLLOCAL QoreBinaryLValueOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<LValueOperatorNode>(n_left, n_right), ti(0) {
    }
+
+   DLLLOCAL virtual bool hasEffect() const {
+      return true;
+   }
 };
 
 // for operators that try to change the lvalue to an int
@@ -73,6 +77,10 @@ public:
       mti = 0;
       // FIXME: check for invalid operation - type cannot be converted to integer
       right = right->parseInit(oflag, pflag, lvids, mti);
+   }
+
+   DLLLOCAL virtual bool hasEffect() const {
+      return true;
    }
 };
 #endif
