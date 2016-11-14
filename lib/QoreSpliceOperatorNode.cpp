@@ -1,10 +1,10 @@
 /*
   QoreSpliceOperatorNode.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
-  
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -47,7 +47,7 @@ int QoreSpliceOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink
 AbstractQoreNode *QoreSpliceOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    assert(!typeInfo);
    const QoreTypeInfo *expTypeInfo = 0;
-   
+
    pflag &= ~PF_RETURN_VALUE_IGNORED;
 
    // check lvalue expression
@@ -111,7 +111,7 @@ QoreValue QoreSpliceOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
    ReferenceHolder<> exp_holder(xsink);
    if (new_exp)
       exp_holder = exp.getReferencedValue();
-   
+
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper val(lvalue_exp, xsink);
    if (!val)
@@ -134,7 +134,7 @@ QoreValue QoreSpliceOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
       xsink->raiseException("EXTRACT-ERROR", "first (lvalue) argument to the extract operator is not a list, string, or binary object");
       return QoreValue();
    }
-   
+
    // no exception can occur here
    val.ensureUnique();
 
@@ -153,14 +153,17 @@ QoreValue QoreSpliceOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
 
    if (vt == NT_LIST) {
       QoreListNode *vl = reinterpret_cast<QoreListNode *>(val.getValue());
-      if (!length_exp && !new_exp)
-	 vl->splice(offset, xsink);
+      if (!length_exp && !new_exp) {
+         vl->splice(offset, xsink);
+      }
       else {
-	 qore_size_t length = (qore_size_t)elength->getAsBigInt();
-	 if (!new_exp)
-	    vl->splice(offset, length, xsink);
-	 else	    
-	    vl->splice(offset, length, *exp_holder, xsink);
+         qore_size_t length = (qore_size_t)elength->getAsBigInt();
+         if (!new_exp) {
+            vl->splice(offset, length, xsink);
+         }
+         else {
+            vl->splice(offset, length, *exp_holder, xsink);
+         }
       }
    }
    else if (vt == NT_STRING) {
