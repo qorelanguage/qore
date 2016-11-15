@@ -1,0 +1,25 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class DatasourceTest
+
+public class DatasourceTest inherits QUnit::Test {
+    constructor() : Test("DatasourceTest", "1.0") {
+        addTestCase("Datasource string test", \datasourceStringTest());
+
+        set_return_value(main());
+    }
+
+    datasourceStringTest() {
+        assertThrows("DATASOURCE-PARSE-ERROR", "driver is missing", sub() { Datasource ds("a/b@c(utf8)"); });
+        assertThrows("DATASOURCE-PARSE-ERROR", "driver is missing", sub() { Datasource ds("a/b@c(utf8)%localhost:5432"); });
+    }
+}
