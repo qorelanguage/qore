@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -350,6 +350,9 @@ class qore_program_private_base {
 
 protected:
    DLLLOCAL void setDefines();
+
+   typedef std::map<const char*, AbstractQoreProgramExternalData*, ltstr> extmap_t;
+   extmap_t extmap;
 
 public:
    LocalVariableList local_var_list;
@@ -1544,6 +1547,18 @@ public:
    DLLLOCAL void doThreadInit(ExceptionSink* xsink);
 
    DLLLOCAL QoreClass* runtimeFindClass(const char* class_name, ExceptionSink* xsink) const;
+
+   DLLLOCAL void setExternalData(const char* owner, AbstractQoreProgramExternalData* pud) {
+      AutoLocker al(plock);
+      assert(extmap.find(owner) == extmap.end());
+      extmap.insert(extmap_t::value_type(owner, pud));
+   }
+
+   DLLLOCAL AbstractQoreProgramExternalData* getExternalData(const char* owner) const {
+      AutoLocker al(plock);
+      extmap_t::const_iterator i = extmap.find(owner);
+      return i == extmap.end() ? nullptr : i->second;
+   }
 
    DLLLOCAL static QoreClass* runtimeFindClass(const QoreProgram& pgm, const char* class_name, ExceptionSink* xsink) {
       return pgm.priv->runtimeFindClass(class_name, xsink);

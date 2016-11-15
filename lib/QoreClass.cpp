@@ -765,43 +765,7 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
 
    // initialize parent classes
    if (scl) {
-      // merge direct base class abstract method lists to ourselves
-      for (auto& i : *scl) {
-         if ((*i).sclass) {
-            if (has_sig_changes)
-               do_sig(csig, *i);
-
-            // called during class initialization to copy committed abstract variants to our variant lists
-            AbstractMethodMap& mm = (*i).sclass->priv->ahm;
-            //printd(5, "qore_class_private::initializeIntern() this: %p '%s' parent: %p '%s' mm empty: %d\n", this, name.c_str(), (*i).sclass, (*i).sclass->getName(), (int)mm.empty());
-            for (auto& j : mm) {
-               // skip if vlist is empty
-               if (j.second->vlist.empty() && j.second->pending_vlist.empty()) {
-                  //printd(5, "qore_class_private::initializeIntern() this: %p '%s' skipping %s::%s(): vlist empty (pending_vlist empty: %d)\n", this, name.c_str(), (*i).sclass->getName(), j.first.c_str(), (int)j.second->pending_vlist.empty());
-                  continue;
-               }
-               amap_t::iterator vi = ahm.find(j.first);
-               if (vi != ahm.end()) {
-                  vi->second->parseMergeBase(*(j.second), true);
-                  continue;
-               }
-               // now we import the abstract method to our class
-               AbstractMethod* m = new AbstractMethod;
-               // see if there are pending normal variants...
-               hm_method_t::iterator mi = hm.find(j.first);
-               // merge committed parent abstract variants with any pending local variants
-               m->parseMergeBase((*j.second), mi == hm.end() ? 0 : mi->second->getFunction(), true);
-               //if (m->vlist.empty())
-               //if (m->vlist.empty() && m->pending_vlist.empty())
-               if (m->empty())
-                  delete m;
-               else {
-                  ahm.insert(amap_t::value_type(j.first, m));
-                  //printd(5, "qore_class_private::initializeIntern() this: %p '%s' insert abstract method variant %s::%s()\n", this, name.c_str(), (*i).sclass->getName(), j.first.c_str());
-               }
-            }
-         }
-      }
+      mergeAbstract(csig);
    }
 
    if (has_sig_changes) {
@@ -874,14 +838,61 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
    return 0;
 }
 
+void qore_class_private::mergeAbstract(QoreString& csig) {
+   assert(scl);
+   // merge direct base class abstract method lists to ourselves
+   for (auto& i : *scl) {
+      if ((*i).sclass) {
+         if (has_sig_changes)
+            do_sig(csig, *i);
+
+         // called during class initialization to copy committed abstract variants to our variant lists
+         AbstractMethodMap& mm = (*i).sclass->priv->ahm;
+         //printd(5, "qore_class_private::initializeIntern() this: %p '%s' parent: %p '%s' mm empty: %d\n", this, name.c_str(), (*i).sclass, (*i).sclass->getName(), (int)mm.empty());
+         for (auto& j : mm) {
+            // skip if vlist is empty
+            if (j.second->vlist.empty() && j.second->pending_vlist.empty()) {
+               //printd(5, "qore_class_private::initializeIntern() this: %p '%s' skipping %s::%s(): vlist empty (pending_vlist empty: %d)\n", this, name.c_str(), (*i).sclass->getName(), j.first.c_str(), (int)j.second->pending_vlist.empty());
+               continue;
+            }
+            amap_t::iterator vi = ahm.find(j.first);
+            if (vi != ahm.end()) {
+               vi->second->parseMergeBase(*(j.second), true);
+               continue;
+            }
+            // now we import the abstract method to our class
+            AbstractMethod* m = new AbstractMethod;
+            // see if there are pending normal variants...
+            hm_method_t::iterator mi = hm.find(j.first);
+            // merge committed parent abstract variants with any pending local variants
+            m->parseMergeBase((*j.second), mi == hm.end() ? 0 : mi->second->getFunction(), true);
+            //if (m->vlist.empty())
+            //if (m->vlist.empty() && m->pending_vlist.empty())
+            if (m->empty())
+               delete m;
+            else {
+               ahm.insert(amap_t::value_type(j.first, m));
+               //printd(5, "qore_class_private::initializeIntern() this: %p '%s' insert abstract method variant %s::%s()\n", this, name.c_str(), (*i).sclass->getName(), j.first.c_str());
+            }
+         }
+      }
+   }
+}
+
 void qore_class_private::finalizeBuiltin(const char* nspath) {
    generateBuiltinSignature(nspath);
+
+   //initialize();
    initialized = true;
 }
 
 void qore_class_private::generateBuiltinSignature(const char* nspath) {
    // signature string - also processed in parseCommit()
    QoreStringMaker csig("class %s::%s ", nspath, name.c_str());
+
+   // finalize parent classes
+   if (scl)
+      mergeAbstract(csig);
 
    if (scl) {
       for (auto& i : *scl) {

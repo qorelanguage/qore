@@ -2030,6 +2030,8 @@ public:
       return checkAssignSpecialIntern(m);
    }
 
+   DLLLOCAL void mergeAbstract(QoreString& csig);
+
    // returns -1 if a recursive inheritance list was found, 0 if not
    DLLLOCAL int initializeIntern(qcp_set_t& qcp_set);
    DLLLOCAL void initialize();

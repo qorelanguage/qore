@@ -1494,7 +1494,7 @@ ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() {
    QoreProgram* pgm = td->current_pgm;
    //printd(5, "ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() current_pgm: %p restoring old pgm: %p old tlpd: %p\n", td->current_pgm, old_pgm, old_tlpd);
    td->current_pgm = old_pgm;
-   td->tlpd        = old_tlpd;
+   td->tlpd = old_tlpd;
 
    qore_program_private::decThreadCount(*pgm, td->tid);
 }

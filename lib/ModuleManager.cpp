@@ -264,6 +264,9 @@ static QoreStringNode* loadModuleError(const char* name, ExceptionSink& xsink) {
 void QoreBuiltinModule::addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink) const {
    QoreModuleContextHelper qmc(name.getBuffer(), pgm, xsink);
 
+   // make sure getProgram() returns this Program when module_ns_init() is called
+   QoreProgramContextHelper pch(pgm);
+
    RootQoreNamespace* rns = pgm->getRootNS();
    QoreNamespace* qns = pgm->getQoreNS();
 
@@ -1211,7 +1214,7 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
 
    printd(5, "QoreModuleManager::loadBinaryModuleFromPath(%s) %s: calling module_init@%p\n", path, name, *module_init);
 
-   // this is needed for backwards-compatibility for modules that add builtin functions in the module initilization code
+   // this is needed for backwards-compatibility for modules that add builtin functions in the module initialization code
    QoreModuleContextHelper qmc(name, pgm, xsink);
    QoreStringNode* str = (*module_init)();
    if (str) {

@@ -309,6 +309,14 @@ void qore_program_private_base::setParent(QoreProgram* p_pgm, int64 n_parse_opti
    // copy program defines to child program
    for (dmap_t::const_iterator i = p_pgm->priv->dmap.begin(), e = p_pgm->priv->dmap.end(); i != e; ++i)
       dmap[i->first] = i->second ? i->second->refSelf() : 0;
+
+   // copy external data if present
+   {
+      AutoLocker al(p_pgm->priv->plock);
+      for (auto& i : p_pgm->priv->extmap) {
+         extmap.insert(extmap_t::value_type(i.first, i.second->copy(pgm)));
+      }
+   }
 }
 
 void qore_program_private::internParseRollback() {
@@ -639,7 +647,12 @@ void qore_program_private::exportGlobalVariable(const char* vname, bool readonly
 }
 
 void qore_program_private::del(ExceptionSink* xsink) {
-   printd(5, "QoreProgram::del() pgm: %p (base_object: %d)\n", pgm, base_object);
+   printd(5, "qore_program_private::del() pgm: %p (base_object: %d)\n", pgm, base_object);
+
+   // dereference all external data
+   for (auto& i : extmap) {
+      i.second->doDeref();
+   }
 
    if (thr_init)
       thr_init->deref(xsink);
@@ -1265,6 +1278,17 @@ void QoreProgram::parseCmdLineDefines(ExceptionSink& xs, ExceptionSink& ws, int 
 QoreProgram* QoreProgram::programRefSelf() const {
    const_cast<QoreProgram*>(this)->ref();
    return const_cast<QoreProgram*>(this);
+}
+
+void QoreProgram::setExternalData(const char* owner, AbstractQoreProgramExternalData* pud) {
+   priv->setExternalData(owner, pud);
+}
+
+AbstractQoreProgramExternalData* QoreProgram::getExternalData(const char* owner) const {
+   return priv->getExternalData(owner);
+}
+
+AbstractQoreProgramExternalData::~AbstractQoreProgramExternalData() {
 }
 
 int get_warning_code(const char* str) {
