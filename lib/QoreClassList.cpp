@@ -66,7 +66,6 @@ void QoreClassList::addInternal(QoreClass *oc) {
    hm[oc->getName()] = oc;
 }
 
-
 int QoreClassList::add(QoreClass *oc) {
    printd(5, "QCL::add() this: %p '%s' (%p)\n", this, oc->getName(), oc);
 
@@ -242,9 +241,11 @@ AbstractQoreNode *QoreClassList::parseResolveBareword(const char *name, const Qo
       if (rv)
 	 return rv->refSelf();
 
-      QoreVarInfo *vi = qore_class_private::parseFindLocalStaticVar(i->second, name, typeInfo);
-      if (vi)
+      QoreVarInfo *vi = qore_class_private::parseFindLocalStaticVar(i->second, name);
+      if (vi) {
+	 typeInfo = vi->getTypeInfo();
 	 return new StaticClassVarRefNode(name, *(i->second), *vi);
+      }
    }
 
    return 0;
