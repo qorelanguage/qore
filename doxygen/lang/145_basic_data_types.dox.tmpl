@@ -294,6 +294,12 @@ prompt% qore -X 'P0000-00-03T21:00:00'
 
     @par Description:
     The binary data type is used to hold binary arbitrary binary data. Internally it is represented by a pointer to a memory location for the data and a size indicator.\n\n
+    Binary literal values are given in between angle brackets as an even series of hexadecimal digits:\n
+    @code{.py}
+binary b = <651144fe3310b5cc84>;
+b += <abde77>;
+# b now contains <651144fe3310b5cc84abde77>
+    @endcode \n
     Binary data can be concatenated with the + and += operators and manipulated with the @ref splice "splice" and @ref extract "extract" operators.\n\n
     This data can be manipulated by being written and read from @ref Qore::File, @ref Qore::Socket, @ref Qore::SQL::Datasource, @ref Qore::SQL::DatasourcePool, or @ref Qore::SQL::SQLStatement objects, or converted and parsed to/from base64 encoded strings using the makeBase64String() and parseBase64String() functions, or compressed and decompressed using the compress(), gzip(), bzip2(), etc. functions, and processed by most cryptographic funtions, among others.\n\n
     Binary objects can be read from a @ref Qore::File object using the Qore::File::readBinary() method and can be written using the Qore::File::write() method. Please see the @ref Qore::File class for more information.\n\n
