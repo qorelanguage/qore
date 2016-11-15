@@ -1018,7 +1018,7 @@ public:
    DLLEXPORT void addPrivateMember(const char* mem, const QoreTypeInfo* n_typeInfo, AbstractQoreNode* initial_value = 0);
 
    //! sets a pointer to user-specific data in the class
-   /** @deprecated use setUserData(AbstractQoreClassUserData*) instead
+   /** @deprecated use setManagedUserData(AbstractQoreClassUserData*) instead
     */
    DLLEXPORT void setUserData(const void* ptr);
 

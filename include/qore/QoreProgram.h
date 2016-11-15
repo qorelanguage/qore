@@ -91,6 +91,7 @@ class QoreParseTypeInfo;
 class ParamList;
 class AbstractQoreZoneInfo;
 class qore_program_private;
+class AbstractQoreProgramExternalData;
 
 //! supports parsing and executing Qore-language code, reference counted, dynamically-allocated only
 /** This class implements a transaction and thread-safe container for qore-language code
@@ -607,6 +608,23 @@ public:
    */
    DLLEXPORT void parseCmdLineDefines(ExceptionSink& xs, ExceptionSink& ws, int w, const std::map<std::string, std::string>& defmap);
 
+   //! sets a pointer to external data in the Program
+   /** @param owner a unique string identifying the owner of the data; for modules this should be the module name
+       @param pud the external data
+
+       @since %Qore 0.8.13
+    */
+   DLLEXPORT void setExternalData(const char* owner, AbstractQoreProgramExternalData* pud);
+
+   //! retrieves the external data pointer
+   /** @param owner a unique string identifying the owner of the data; for modules this should be the module name
+
+       @return the data if set otherwise nullptr is returned
+
+       @since %Qore 0.8.13
+    */
+   DLLEXPORT AbstractQoreProgramExternalData* getExternalData(const char* owner) const;
+
    DLLLOCAL QoreProgram(QoreProgram* pgm, int64 po, bool ec = false, const char* ecn = 0);
 
    DLLLOCAL LocalVar *createLocalVar(const char* name, const QoreTypeInfo *typeInfo);
@@ -663,6 +681,65 @@ public:
 
    //! returns the QoreProgram object being managed
    DLLEXPORT QoreProgram* operator*();
+};
+
+//! allows for the parse lock for the current program to be acquired by binary modules
+/** @since %Qore 0.8.13
+ */
+class CurrentProgramRuntimeParseContextHelper {
+public:
+   //! acquires the parse lock; if already acquired by another thread, then this call blocks until the lock can be acquired
+   DLLEXPORT CurrentProgramRuntimeParseContextHelper();
+   //! releases the parse lock for the current program
+   DLLEXPORT ~CurrentProgramRuntimeParseContextHelper();
+
+private:
+   // not implemented
+   CurrentProgramRuntimeParseContextHelper(const CurrentProgramRuntimeParseContextHelper&) = delete;
+   void* operator new(size_t) = delete;
+};
+
+//! allows for external modules to set the current Program context explicitly
+/** @since %Qore 0.8.13
+ */
+class QoreProgramContextHelper {
+public:
+   //! sets the current Program context
+   DLLEXPORT QoreProgramContextHelper(QoreProgram* pgm);
+   //! restores the previous Program context
+   DLLEXPORT ~QoreProgramContextHelper();
+
+private:
+   QoreProgram* old_pgm;
+
+   // not implemented
+   QoreProgramContextHelper(const QoreProgramContextHelper&) = delete;
+   void* operator new(size_t) = delete;
+};
+
+//! an abstract class for program-specific external data
+/** This class can be used by binary modules to store custom data in a QoreProgram object
+
+    @see
+    - QoreProgram::getExternalData()
+    - QoreProgram::setExternalData()
+
+    @since %Qore 0.8.13
+ */
+class AbstractQoreProgramExternalData {
+public:
+   DLLEXPORT virtual ~AbstractQoreProgramExternalData();
+
+   //! for reference-counted classes, returns the same object with the reference count incremented
+   /** This function is called for external data when a new program object is created that inherits the configuration of the parent.
+       The call is made after the child program has been completely set up.
+
+       @param pgm the new (child) QoreProgram object after setup
+    */
+   virtual AbstractQoreProgramExternalData* copy(QoreProgram* pgm) const = 0;
+
+   //! for non-reference counted classes, deletes the object immediately
+   virtual void doDeref() = 0;
 };
 
 #endif  // _QORE_QOREPROGRAM_H
