@@ -1346,10 +1346,8 @@ CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* obj, 
    old_class = td->current_class;
    td->current_class = c;
 
-   if (obj && obj != old_obj) {
-      obj->ref();
+   if (obj && obj != old_obj && !qore_object_private::get(*obj)->startCall(code, xsink))
       do_ref = true;
-   }
    else
       do_ref = false;
 }
@@ -1358,7 +1356,7 @@ CodeContextHelperBase::~CodeContextHelperBase() {
    ThreadData* td = thread_data.get();
    if (do_ref) {
       assert(td->current_obj);
-      td->current_obj->deref(xsink);
+      qore_object_private::get(*td->current_obj)->endCall(xsink);
    }
    td->current_code = old_code;
    td->current_obj = old_obj;
@@ -1496,7 +1494,7 @@ ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() {
    QoreProgram* pgm = td->current_pgm;
    //printd(5, "ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() current_pgm: %p restoring old pgm: %p old tlpd: %p\n", td->current_pgm, old_pgm, old_tlpd);
    td->current_pgm = old_pgm;
-   td->tlpd        = old_tlpd;
+   td->tlpd = old_tlpd;
 
    qore_program_private::decThreadCount(*pgm, td->tid);
 }

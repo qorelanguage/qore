@@ -30,11 +30,11 @@ class InputStreamLineIteratorTest inherits QUnit::Test {
         string WithNLines = foldl $1 + "\n" + $2, Data;
         string WithRNLines = foldl $1 + "\r\n" + $2, Data;
         string WithRLines = foldl $1 + "\r" + $2, Data;
-        string weirdEOL = "XYZ123";
+        string weirdEOL = "XY";
         string WithWeirdEOL = foldl $1 + weirdEOL + $2, Data;
 
         BinaryInputStream bis = new BinaryInputStream(binary());
-        AbstractLineIterator a = new InputStreamLineIterator(bis);
+        InputStreamLineIterator a = new InputStreamLineIterator(bis);
         assertFalse(a.valid());
         assertEq(0, a.index());
         assertThrows('ITERATOR-ERROR', \a.getValue());
@@ -42,6 +42,9 @@ class InputStreamLineIteratorTest inherits QUnit::Test {
         assertFalse(a.valid());
         assertEq(0, a.index());
         assertThrows('ITERATOR-ERROR', \a.getValue());
+
+        StreamReader sr = a.getStreamReader(); # Just checking that no double-free occurs.
+        assertEq(NOTHING, sr.readString());
 
         bis = new BinaryInputStream(binary(Data[0]));
         a = new InputStreamLineIterator(bis);
@@ -168,7 +171,7 @@ class InputStreamLineIteratorTest inherits QUnit::Test {
         string sWithRN = s + "\r\n";
         string sWithR = s + "\r";
         string sWithRNabcdef = sWithRN + "abcdef";
-        string weirdEOL = "XYZ123";
+        string weirdEOL = "XY";
         string sWithWeirdEOL = s + weirdEOL;
         string sWithWeirdEOLabc = sWithWeirdEOL + "abc";
 

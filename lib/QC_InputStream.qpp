@@ -64,3 +64,14 @@ InputStream::constructor() {
     @endcode
  */
 abstract *binary InputStream::read(int limit);
+
+//! Peeks the next byte available from the input stream; returns -1 if no more data available
+/**
+    @return the next byte available from the input stream or -1 if no more data is available
+
+    @par Example:
+    @code{.py}
+    int nextByte = is.peek();
+    @endcode
+ */
+abstract int InputStream::peek();

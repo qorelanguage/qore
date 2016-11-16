@@ -153,14 +153,17 @@ QoreValue QoreSpliceOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
 
    if (vt == NT_LIST) {
       QoreListNode *vl = reinterpret_cast<QoreListNode *>(val.getValue());
-      if (!length_exp && !new_exp)
-	 vl->splice(offset, xsink);
+      if (!length_exp && !new_exp) {
+         vl->splice(offset, xsink);
+      }
       else {
-	 qore_size_t length = (qore_size_t)elength->getAsBigInt();
-	 if (!new_exp)
-	    vl->splice(offset, length, xsink);
-	 else
-	    vl->splice(offset, length, *exp_holder, xsink);
+         qore_size_t length = (qore_size_t)elength->getAsBigInt();
+         if (!new_exp) {
+            vl->splice(offset, length, xsink);
+         }
+         else {
+            vl->splice(offset, length, *exp_holder, xsink);
+         }
       }
    }
    else if (vt == NT_STRING) {

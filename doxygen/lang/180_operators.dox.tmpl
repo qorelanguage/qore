@@ -973,7 +973,7 @@ foreach string key in (keys hash)
     @par Synopsis
     With @ref float "float", @ref integer "integer", or @ref number "number" arguments, subtracts one number from another.\n\n
     With @ref date "date" arguments, subtracts one date from another; if both date arguments are @ref absolute_dates "absolute dates", the result is a @ref relative_dates "relative date" (duration) giving the time between them; if the first date argument is an @ref absolute_dates "absolute date" and the second is a @ref relative_dates "relative date" (duration), then the result is an @ref absolute_dates "absolute date". If both date arguments are @ref relative_dates "relative dates", then the result is a @ref relative_dates "relative date". If the first argument is a @ref relative_dates "relative date" and the second date is an @ref absolute_dates "absolute date", the @ref absolute_dates "absolute date"'s epoch offset (offset in seconds and microseconds from \c 1970-01-01Z) is used to perform the calculation, and a @ref relative_dates "relative date/time value" is produced.\n\n
-    However, if the left-hand side is a @ref hash "hash", and the right-hand side is a string, then the hash key represented by the string will be removed from the hash. If the left-hand side is a hash and the right-hand side is a list, then each element in the list will be converted to a string and any hash key with that name will be deleted from the hash.
+    However, if the left-hand side is a @ref hash "hash", and the right-hand side is a string, then the hash key represented by the string will be removed from the hash. If the left-hand side is a hash and the right-hand side is a list, then each element in the list will be converted to a string and any hash key with that name will be deleted from the hash. Having both left and right arguments hashes is an invalid operation which does not modify the hashes in any way and silently returns @ref nothing.
 
     @par Syntax
     \a expression1 <tt>-</tt> \a expression2
@@ -995,6 +995,7 @@ foreach string key in (keys hash)
     |@ref int_type "int"|arithmetic subtraction: \a expression1 - \a expression2
     |@ref hash_type "hash" - @ref string_type "string"|hash key deletion: \a expression1 - \a expression2
     |@ref hash_type "hash" - @ref list_type "list"|hash key deletion: \a expression1 - \a expression2; all elements of the list are converted to strings (if necessary) and any keys with those names are deleted from the hash.
+    |@ref hash_type "hash" - @ref hash_type "hash"|no-op; silently returns @ref nothing
 
     This operator does not throw any exceptions.
 

@@ -400,15 +400,6 @@ public:
    }
 };
 
-class QoreProgramContextHelper {
-protected:
-   QoreProgram *old_pgm;
-
-public:
-   DLLLOCAL QoreProgramContextHelper(QoreProgram* pgm);
-   DLLLOCAL ~QoreProgramContextHelper();
-};
-
 class QoreProgramOptionalLocationHelper {
 protected:
    QoreProgramLocation loc;
@@ -664,12 +655,6 @@ protected:
 public:
    DLLLOCAL ProgramRuntimeParseCommitContextHelper(ExceptionSink* xsink, QoreProgram* pgm);
    DLLLOCAL ~ProgramRuntimeParseCommitContextHelper();
-};
-
-class CurrentProgramRuntimeParseContextHelper {
-public:
-   DLLLOCAL CurrentProgramRuntimeParseContextHelper();
-   DLLLOCAL ~CurrentProgramRuntimeParseContextHelper();
 };
 
 class ProgramRuntimeParseAccessHelper {

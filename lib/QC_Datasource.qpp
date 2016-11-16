@@ -286,7 +286,14 @@ Datasource db(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 5432);
 Datasource::constructor(string driver, *string user, *string pass, *string db, *string encoding, *string host, *softint port, *hash options, *Qore::Thread::Queue[Queue] queue, any arg) {
    ReferenceHolder<Queue> q(queue, xsink);
 
-   if (!port && driver->find(':') != -1) {
+   if (!port && driver->find('@') != -1) {
+      qore_offset_t colon = driver->find(':');
+      qore_offset_t atsign = driver->find('@');
+      if (colon < 0 || (atsign < colon)) {
+         xsink->raiseException("DATASOURCE-PARSE-ERROR", "driver is missing from the datasource string");
+         return;
+      }
+
       ReferenceHolder<QoreHashNode> h(parseDatasource(driver->getBuffer(), xsink), xsink);
       if (!h) {
          assert(*xsink);
@@ -355,6 +362,17 @@ Datasource ds("pgsql:user/pass@db01(utf8)%localhost:5432");
  */
 Datasource::constructor(string desc, *Qore::Thread::Queue[Queue] queue, any arg) {
    ReferenceHolder<Queue> q(queue, xsink);
+
+   TempEncodingHelper tstr(desc, QCS_UTF8, xsink);
+   if (*xsink)
+      return;
+   qore_offset_t colon = tstr->find(':');
+   qore_offset_t atsign = tstr->find('@');
+   if (colon < 0 || (atsign < colon)) {
+      xsink->raiseException("DATASOURCE-PARSE-ERROR", "driver is missing from the datasource string");
+      return;
+   }
+
    ReferenceHolder<QoreHashNode> h(parseDatasource(desc->getBuffer(), xsink), xsink);
    if (!h) {
       assert(*xsink);

@@ -64,6 +64,21 @@ public:
    }
 
    /**
+    * @brief Helper method that checks that the current thread is the same as when the instance was created,
+    * calls peek() and wraps the result to Qore's `int` value.
+    * @param xsink the exception sink
+    * @return the `int` wrapping the result or `NOTHING` if the end of the stream has been reached
+    */
+   DLLLOCAL QoreBigIntNode *peekHelper(ExceptionSink *xsink) {
+      if (!check(xsink)) {
+         return 0;
+      }
+
+      int64 res = peek(xsink);
+      return (*xsink) ? 0 : new QoreBigIntNode(res);
+   }
+
+   /**
     * @brief Checks that the current thread is the same as when the instance was created and that the stream has
     * not yet been closed.
     * @param xsink the exception sink

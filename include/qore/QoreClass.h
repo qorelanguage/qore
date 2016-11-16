@@ -1018,7 +1018,7 @@ public:
    DLLEXPORT void addPrivateMember(const char* mem, const QoreTypeInfo* n_typeInfo, AbstractQoreNode* initial_value = 0);
 
    //! sets a pointer to user-specific data in the class
-   /** @deprecated use setUserData(AbstractQoreClassUserData*) instead
+   /** @deprecated use setManagedUserData(AbstractQoreClassUserData*) instead
     */
    DLLEXPORT void setUserData(const void* ptr);
 
@@ -1089,6 +1089,15 @@ public:
    /** @return true if the class has at least one abstract method variant
     */
    DLLEXPORT bool hasAbstract() const;
+
+   //! rescan builtin parent classes in a class hierarchy; to be used with out-of-order class hierarchy construction
+   /** For example, when Qore classes are generated externally such as with the jni module, parent class
+       information may need to be rescanned after adding to the class hierarchy to ensure that all
+       virtual parents are correctly marked in child classes
+
+       @since %Qore 0.8.13
+    */
+   DLLEXPORT void rescanParents();
 
    //! constructor not exported in library's API
    DLLLOCAL QoreClass();

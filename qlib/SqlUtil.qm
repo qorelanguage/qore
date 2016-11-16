@@ -105,6 +105,7 @@ module SqlUtil {
 
     @subsection sqlutilv1_3_1 SqlUtil v1.3.1
     - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
+    - fixed the ignored character_semantics column option in schema alignmed (<a href="https://github.com/qorelanguage/qore/issues/1379">issue 1379</a>)
 
     @subsection sqlutilv1_3 SqlUtil v1.3
     - implemented insert option support (see @ref AbstractTable::InsertOptions) with the \c "returning" clause in supported drivers
@@ -6605,7 +6606,7 @@ list l = db.getAlignSql(schema_hash);
             validateHashKeysForWhitespaces(schema_hash);
 
             # get creation options
-            *hash copt = opt{getCreationOptions().keys()};
+            *hash copt = opt{getAlignSchemaOptions().keys()};
 
             if (!table_cache)
                 table_cache = new Tables();
@@ -8476,7 +8477,9 @@ bool b = table.empty();
 
             # check options
             hash copt = getColumnOptions();
-            validateOptionsIntern("OPTION-ERROR", getTableCreationOptions() + copt, \opt);
+            hash tcopt = getTableCreationOptions() + copt;
+            opt = opt{tcopt.keys()};
+            validateOptionsIntern("OPTION-ERROR", tcopt, \opt);
 
             # setup table cache
             if (!opt.table_cache)

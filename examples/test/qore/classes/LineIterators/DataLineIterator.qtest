@@ -64,7 +64,7 @@ class DataLineIteratorTest inherits QUnit::Test {
         string WithNLines = foldl $1 + "\n" + $2, BasicData;
         string WithRNLines = foldl $1 + "\r\n" + $2, BasicData;
         string WithRLines = foldl $1 + "\r" + $2, BasicData;
-        string weirdEOL = "XYZ123";
+        string weirdEOL = "XY";
         string WithWeirdEOL = foldl $1 + weirdEOL + $2, BasicData;
 
         AbstractLineIterator a = new DataLineIterator("");

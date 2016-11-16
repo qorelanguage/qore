@@ -200,8 +200,8 @@ class MethodVariantBase : public AbstractQoreFunctionVariant {
 protected:
    const QoreMethod* qmethod;    // pointer to method that owns the variant
    ClassAccess access;           // variant access code
-   bool final,                   // is the variant final or not
-      abstract;                  // is the variant abstract or not
+   bool final;                   // is the variant final or not
+   bool abstract;                // is the variant abstract or not
    std::string asig;             // abstract signature, only set for abstract method variants
 
 public:
@@ -1470,6 +1470,12 @@ public:
 
    DLLLOCAL int add(QoreClass* thisclass, QoreClass* qc, bool is_virtual);
    DLLLOCAL int addBaseClassesToSubclass(QoreClass* thisclass, QoreClass* sc, bool is_virtual);
+
+   DLLLOCAL void alignBaseClassesInSubclass(QoreClass* thisclass, QoreClass* child, bool is_virtual);
+
+   // returns 0 = can add, non-0 = cannot add
+   DLLLOCAL void align(QoreClass* thisclass, QoreClass* qc, bool is_virtual);
+
    DLLLOCAL QoreClass* getClass(qore_classid_t cid) const;
    //DLLLOCAL void execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsink) const;
    DLLLOCAL void execDestructors(QoreObject* o, ExceptionSink* xsink) const;
@@ -1560,6 +1566,8 @@ public:
    DLLLOCAL QoreVarInfo* parseFindStaticVar(const char* vname, const QoreClass*& qc, ClassAccess& n_access, bool check, bool toplevel) const;
 
    DLLLOCAL AbstractQoreNode* parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, const qore_class_private* class_ctx, bool allow_internal) const;
+
+   DLLLOCAL int addBaseClassesToSubclass(QoreClass* child, bool is_virtual);
 };
 
 typedef std::vector<BCNode*> bclist_t;
@@ -1575,16 +1583,17 @@ protected:
 public:
    // special method (constructor, destructor, copy) list for superclasses
    BCSMList sml;
-   bool valid;
+   bool valid = true;
+   bool rescanned = false;
 
-   DLLLOCAL BCList(BCNode* n) : valid(true) {
+   DLLLOCAL BCList(BCNode* n) {
       push_back(n);
    }
 
-   DLLLOCAL BCList() : valid(true) {
+   DLLLOCAL BCList() {
    }
 
-   DLLLOCAL BCList(const BCList& old) : sml(old.sml), valid(true) {
+   DLLLOCAL BCList(const BCList& old) : sml(old.sml) {
       assert(old.valid);
       reserve(old.size());
       for (bclist_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i)
@@ -1649,6 +1658,16 @@ public:
    DLLLOCAL MethodVariantBase* matchNonAbstractVariant(const std::string& name, MethodVariantBase* v) const;
 
    DLLLOCAL bool isBaseClass(QoreClass* qc, bool toplevel) const;
+
+   DLLLOCAL int addBaseClassesToSubclass(QoreClass* thisparent, QoreClass* child, bool is_virtual) {
+      for (auto& i : *this) {
+         if ((*i).addBaseClassesToSubclass(child, is_virtual))
+            return -1;
+      }
+      return sml.addBaseClassesToSubclass(thisparent, child, is_virtual);
+   }
+
+   DLLLOCAL void rescanParents(QoreClass* cls);
 };
 
 // BCEANode
@@ -2010,6 +2029,8 @@ public:
 
       return checkAssignSpecialIntern(m);
    }
+
+   DLLLOCAL void mergeAbstract(QoreString& csig);
 
    // returns -1 if a recursive inheritance list was found, 0 if not
    DLLLOCAL int initializeIntern(qcp_set_t& qcp_set);

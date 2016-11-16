@@ -62,6 +62,12 @@ public:
       return count;
    }
 
+   DLLLOCAL int64 peek(ExceptionSink* xsink) override {
+      if ((src->size() - offset) == 0) // No more data.
+         return -1;
+      return static_cast<const char*>(src->getPtr())[offset];
+   }
+
 private:
    SimpleRefHolder<BinaryNode> src;
    qore_size_t offset;                          //!< @invariant offset >= 0 && offset <= src->size()

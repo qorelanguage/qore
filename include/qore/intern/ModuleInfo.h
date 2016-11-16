@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -602,13 +602,8 @@ public:
    DLLLOCAL virtual ~QoreBuiltinModule() {
       printd(5, "QoreBuiltinModule::~QoreBuiltinModule() '%s': %s calling module_delete: %p\n", name.getBuffer(), filename.getBuffer(), module_delete);
       module_delete();
-      if (dlptr) {
-         printd(5, "calling dlclose(%p)\n", dlptr);
-#ifndef DEBUG
-         // do not close modules when debugging
-         dlclose((void* )dlptr);
-#endif
-      }
+      // we do not close binary modules because we may have thread local data that needs to be
+      // destroyed when exit() is called
    }
 
    DLLLOCAL unsigned getAPIMajor() const {

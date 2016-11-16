@@ -169,6 +169,15 @@ AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, AbstractQore
    return 0;
 }
 
+AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, AbstractQoreNode* arg, QoreStringNode *desc, const QoreCallStack& stack) {
+   printd(5, "ExceptionSink::raiseExceptionArg(%s, %s, %p)\n", err, desc->getBuffer(), &stack);
+   QoreException* exc = new QoreException(err, desc);
+   exc->arg = arg;
+   priv->insert(exc);
+   priv->addStackInfo(stack);
+   return 0;
+}
+
 AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, AbstractQoreNode* arg, const char* fmt, ...) {
    QoreStringNode *desc = new QoreStringNode;
 

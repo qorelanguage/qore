@@ -66,7 +66,6 @@ void QoreClassList::addInternal(QoreClass *oc) {
    hm[oc->getName()] = oc;
 }
 
-
 int QoreClassList::add(QoreClass *oc) {
    printd(5, "QCL::add() this: %p '%s' (%p)\n", this, oc->getName(), oc);
 
