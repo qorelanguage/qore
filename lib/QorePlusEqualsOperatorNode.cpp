@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/QoreObjectIntern.h>
 
 QoreString QorePlusEqualsOperatorNode::op_str("+= operator expression");
 
@@ -123,7 +124,7 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
       }
       else if (new_right->getType() == NT_OBJECT) {
 	 v.ensureUnique();
-	 new_right->get<QoreObject>()->mergeDataToHash(reinterpret_cast<QoreHashNode*>(v.getValue()), xsink);
+	 qore_object_private::get(*new_right->get<QoreObject>())->mergeDataToHash(reinterpret_cast<QoreHashNode*>(v.getValue()), xsink);
       }
    }
    // do hash/object plus-equals if left side is an object

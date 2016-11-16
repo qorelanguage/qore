@@ -437,7 +437,7 @@ public namespace Schema {
             *hash all_options;
 
             #! the datasource for the schema
-            AbstractDatasource ds;
+            Qore::SQL::AbstractDatasource ds;
             #! the name of the database driver
             string drv;
 
@@ -465,7 +465,7 @@ public namespace Schema {
             @param its an optional index tablespace name for the schema
             @param opts options for @ref SqlUtil::Database::constructor()
         */
-        constructor(AbstractDatasource n_ds, *string dts, *string its, *hash opts) {
+        constructor(Qore::SQL::AbstractDatasource n_ds, *string dts, *string its, *hash opts) {
             ds = n_ds;
             name = getName();
             version = getVersion();
@@ -504,12 +504,12 @@ public namespace Schema {
         }
 
         #! returns the datasource used for the schema
-        AbstractDatasource getDatasource() {
+        Qore::SQL::AbstractDatasource getDatasource() {
             return ds;
         }
 
         #! returns the @ref SqlUtil::AbstractDatabase "AbstractDatabase" object used for the schema
-        AbstractDatabase getDatabase() {
+        SqlUtil::AbstractDatabase getDatabase() {
             return db.getDatabase();
         }
 
@@ -823,7 +823,7 @@ public namespace Schema {
             return getInsertOnlyReferenceDataImpl();
         }
 
-        #! returns the version of the schema
+        #! returns the name of the schema
         private abstract string getNameImpl();
 
         #! returns the version of the schema
@@ -1072,7 +1072,7 @@ public namespace Schema {
             @param its an optional index tablespace name for the schema
             @param opts options for @ref SqlUtil::Database::constructor()
         */
-        constructor(AbstractDatasource ds, *string dts, *string its, *hash opts) : AbstractSchema(ds, dts, its, opts) {
+        constructor(Qore::SQL::AbstractDatasource ds, *string dts, *string its, *hash opts) : AbstractSchema(ds, dts, its, opts) {
             version_table = getVersionTable();
             version_column = getVersionColumn();
             version_where = getVersionWhere();
