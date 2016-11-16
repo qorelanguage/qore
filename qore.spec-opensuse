@@ -20,7 +20,7 @@
 
 %define module_dir %{_libdir}/qore-modules
 Name:           qore
-Version:        0.8.12.4
+Version:        0.8.13
 Release:        0
 Summary:        Multithreaded Programming Language
 License:        LGPL-2.1+ or GPL-2.0+ or MIT
@@ -52,8 +52,10 @@ development but is also useful as a general purpose language.
 Summary:        The libraries for the qore runtime and qore clients
 License:        LGPL-2.0+ or GPL-2.0+ or MIT
 Group:          Development/Languages
-Provides: 	qore-module(abi)%{?_isa} = 0.19
-Provides: 	qore-module(abi)%{?_isa} = 0.18
+Provides:       qore-module(abi)%{?_isa} = 0.20
+Provides:       qore-module(abi)%{?_isa} = 0.19
+Provides:       qore-module(abi)%{?_isa} = 0.18
+Provides:       libqore5 = %{version}
 # provided for backwards-compatibility with unversioned capabilities and will be removed when the ABI drops backwards-compatibility
 Provides:       qore-module-api-0.10
 Provides:       qore-module-api-0.11
@@ -80,9 +82,9 @@ functionality.
 
 %files -n libqore5
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.5.12.2
+%{_libdir}/libqore.so.5.14
 %{_libdir}/libqore.so.5
-%doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS ABOUT
+%doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
 %post -n libqore5
 ldconfig %{_libdir}
@@ -180,3 +182,5 @@ rm %{buildroot}/%{_libdir}/libqore.la
 %{_mandir}/man1/qore.1.*
 
 %changelog
+* Thu Jun 16 2016 <ondrej.musil@qoretechnologies.com> 0.8.13
+- updated version to 0.8.13
