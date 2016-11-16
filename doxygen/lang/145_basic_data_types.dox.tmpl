@@ -119,7 +119,7 @@ on more than 1 line";
     @section number Number
 
     @par Description:
-    %Qore "number" values are arbitrary-precision numbers as provided by the <a href="http://gmplib.org">GMP</a> and <a href="http://www.mpfr.org">MPFR</a> libraries.\n\n
+    %Qore "number" values are arbitrary-precision numbers as provided by the <a href="http://gmplib.org">GMP</a> and <a href="http://www.mpfr.org">MPFR</a> libraries. Inside, they are implemented as floating-point values and therefore comparing them entails the same problems as comparing floats. You should not compare two number values for equality directly.\n\n
     Operations with number values are generally slower than those with @ref float "floats" but support far greater accuracy.  To give an immediate number value; write an integer or floating-point value and append an \c "n" to it, designating a "number" value.\n\n
     In numeric operations where at least one argument is a number type, the other operands will generally be automatically converted to a number type and the result of the operation will also be a number type.  When an operator acts on two values of type number, the result of the operation has the precision of the operand with the greatest precision.
 
