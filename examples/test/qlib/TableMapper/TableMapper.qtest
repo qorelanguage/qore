@@ -141,9 +141,9 @@ public class TableMapperTest inherits QUnit::Test {
             );
 
         const Output2 = (
-            ("seq": 7, "tstr": "7-string_1"),
-            ("seq": 8, "tstr": "8-string_2"),
-            ("seq": 9, "tstr": "9-"),
+            ("seq": 10, "tstr": "10-string_1"),
+            ("seq": 11, "tstr": "11-string_2"),
+            ("seq": 12, "tstr": "12-"),
             );
 
         const MyOpts = Opts + (
@@ -202,6 +202,19 @@ public class TableMapperTest inherits QUnit::Test {
             InboundTableMapper mapper(table, Map1);
             checkMap((map mapper.insertRow($1), Input1), Input1, output1);
             checkMap(table.selectRows(("orderby": "id")), Input1, output1);
+            assertEq(3, mapper.getCount());
+        }
+
+        # iterator() test
+        {
+            on_exit table.rollback();
+
+            InboundTableMapper mapper(table, Map1);
+            InboundTableMapperIterator i = mapper.iterator(Input1.iterator());
+            map $1, i;
+            checkMap(table.selectRows(("orderby": "id")), Input1, output1);
+            assertEq(3, i.getCount());
+            assertEq(3, mapper.getCount());
         }
 
         # queueData(hash) test
@@ -212,6 +225,7 @@ public class TableMapperTest inherits QUnit::Test {
             map mapper.queueData($1), Input1;
             checkMap((map $1, mapper.flush().contextIterator()), Input1, output1);
             checkMap(table.selectRows(("orderby": "id")), Input1, output1);
+            assertEq(3, mapper.getCount());
         }
 
         # queueData(list) test
@@ -224,6 +238,7 @@ public class TableMapperTest inherits QUnit::Test {
             mapper.queueData(Input1.iterator());
             checkMap((map $1, mapper.flush().contextIterator()), Input1, output1);
             checkMap(table.selectRows(("orderby": "id")), Input1, output1);
+            assertEq(3, mapper.getCount());
         }
     }
 
@@ -297,12 +312,14 @@ public class TableMapperTest inherits QUnit::Test {
             testSkip("no DB connection");
 
         SqlStatementOutboundMapper m(table, SelectHash, OutMap1);
-        AbstractMapperIterator i = m.iterator();
+        SqlStatementMapperIterator i = m.iterator();
         list l;
         while (list tl = i.mapBulk(2))
             l += tl;
 
         assertEq(Output2, l, "mapBulk");
+        assertEq(3, i.getCount());
+        assertEq(3, m.getCount());
     }
 
     checkMap(list l, list il, list ol) {

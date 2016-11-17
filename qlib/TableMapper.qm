@@ -205,6 +205,19 @@ on_error table1.rollback();
     - fixed a bug with the @ref TableMapper::SqlStatementOutboundMapper::iterator() method; corrected the iterator object return value which was causing \c AbstractMapperIterator::mapBulk() to fail (<a href="https://github.com/qorelanguage/qore/issues/979">issue 979</a>)
     - fixed a bug with @ref TableMapper::SqlStatementOutboundMapper; it would throw an error if the required \c "table" or \c "sh" options were used and only worked with subclasses that declared these options (<a href="https://github.com/qorelanguage/qore/issues/981">issue 981</a>)
 
+    @subsection tablemapperv1_1_1 TableMapper v1.1.1
+    - fixed runtime option propagation to @ref TableMapper::SqlStatementMapperIterator "SqlStatementMapperIterator" from @ref TableMapper::AbstractSqlStatementOutboundMapper::iterator() "AbstractSqlStatementOutboundMapper::iterator()" (<a href="https://github.com/qorelanguage/qore/issues/1418">issue 1418</a>)
+    - fixed @ref TableMapper::SqlStatementMapperIterator::getCount() "SqlStatementMapperIterator::getCount()" (<a href="https://github.com/qorelanguage/qore/issues/1417">issue 1417</a>)
+    - added the following methods:
+      - @ref TableMapper::AbstractSqlStatementOutboundMapper::getRowIterator() "AbstractSqlStatementOutboundMapper::getRowIterator()"
+      - @ref TableMapper::InboundTableMapper::iterator() "InboundTableMapper::iterator()"
+      - @ref TableMapper::InboundTableMapperIterator::getRuntime() "InboundTableMapperIterator::getRuntime()"
+      - @ref TableMapper::InboundTableMapperIterator::replaceRuntime() "InboundTableMapperIterator::replaceRuntime()"
+      - @ref TableMapper::InboundTableMapperIterator::setRuntime() "InboundTableMapperIterator::setRuntime()"
+      - @ref TableMapper::SqlStatementMapperIterator::getRuntime() "SqlStatementMapperIterator::getRuntime()"
+      - @ref TableMapper::SqlStatementMapperIterator::replaceRuntime() "SqlStatementMapperIterator::replaceRuntime()"
+      - @ref TableMapper::SqlStatementMapperIterator::setRuntime() "SqlStatementMapperIterator::setRuntime()"
+
     @subsection tablemapperv1_1 TableMapper v1.1
     - added table name and datasource description to error messages
     - added the getDatasource() method to classes
@@ -947,6 +960,16 @@ on_error table_mapper.rollback();
         logOutput(hash h) {
         }
 
+        #! returns an iterator for the current object
+        /**
+            @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
+
+            @since %TableMapper 1.1.1
+         */
+        TableMapper::InboundTableMapperIterator iterator(Qore::AbstractIterator i) {
+            return new InboundTableMapperIterator(i, self);
+        }
+
         #! Plain alias to insertRow(). Obsolete. Do not use.
         deprecated hash insertRowNoCommit(hash rec) {
             return insertRow(rec);
@@ -1070,6 +1093,17 @@ InboundIdentityTableMapper mapper(table, DbMapper);
 
             #! a copy of the last hash value mapped
             hash val;
+        }
+
+        #! creates the iterator from the mapper passed
+        /**
+            @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
+            @param mapper the mapper object that the iterator will be based on
+
+            @since %TableMapper 1.1.1
+         */
+        constructor(Qore::AbstractIterator i, InboundTableMapper mapper) : Mapper::AbstractMapperIterator(i) {
+            mapc = mapper;
         }
 
         #! creates the iterator from the arguments passed
@@ -1235,6 +1269,68 @@ InboundTableMapperIterator i(input, mapper);
         Qore::SQL::AbstractDatasource getDatasource() {
             return mapc.getDatasource();
         }
+
+        #! set the @ref mapper_runtime_handling "runtime option" with \a "key" to value \a "value"
+        /**
+             @param key a string with valid runtime key
+             @param value anything passed to the current runtime \c key
+
+            @see
+            - @ref mapper_runtime_handling
+            - replaceRuntime()
+            - getRuntime()
+
+            @since %TableMapper 1.1.1
+         */
+        setRuntime(string key, any value) {
+            mapc.setRuntime(key, value);
+        }
+
+        #! adds @ref mapper_runtime_handling "runtime options" to the current runtime option hash
+        /**
+            @param runtime a hash of runtime options to add to the current @ref mapper_runtime_handling "runtime option hash"
+
+            @see
+            - @ref mapper_runtime_handling
+            - replaceRuntime()
+            - getRuntime()
+
+            @since %TableMapper 1.1.1
+         */
+        setRuntime(hash runtime) {
+            mapc.setRuntime(runtime);
+        }
+
+        #! replaces @ref mapper_runtime_handling "runtime options"
+        /**
+            @param runtime a hash of runtime options to use to replace the current @ref mapper_runtime_handling "runtime option hash"
+
+            @see
+            - @ref mapper_runtime_handling
+            - getRuntime()
+            - setRuntime()
+
+            @since %TableMapper 1.1.1
+         */
+        replaceRuntime(*hash runtime) {
+            mapc.replaceRuntime(runtime);
+        }
+
+        #! get current @ref mapper_runtime_handling "runtime option" value for a key
+        /**
+            @param key the runtime option key
+            @returns a runtime value if the key exists in the current @ref mapper_runtime_handling "runtime option hash" and is set
+
+            @see
+            - @ref mapper_runtime_handling
+            - replaceRuntime()
+            - setRuntime()
+
+            @since %TableMapper 1.1.1
+         */
+        any getRuntime(string key) {
+            return mapc.getRuntime(key);
+        }
     }
 
     #! provides a hash iterator based on a mapper object and an SQLStatement or SqlUtil select hash
@@ -1249,6 +1345,14 @@ InboundTableMapperIterator i(input, mapper);
         private {
             #! data mapper
             Mapper::Mapper m_mapper;
+        }
+
+        #! creates the iterator from the Mapper passed
+        /** @param mapper the mapper to iterate
+         */
+        constructor(TableMapper::AbstractSqlStatementOutboundMapper mapper)
+            : Mapper::AbstractMapperIterator(mapper.getRowIterator()) {
+            m_mapper = mapper;
         }
 
         #! creates the iterator from the arguments passed
@@ -1333,6 +1437,68 @@ InboundTableMapperIterator i(input, mapper);
             *hash h = stmt.fetchColumns(size);
             return !h ? () : m_mapper.mapAll(h);
         }
+
+        #! set the @ref mapper_runtime_handling "runtime option" with \a "key" to value \a "value"
+        /**
+             @param key a string with valid runtime key
+             @param value anything passed to the current runtime \c key
+
+            @see
+            - @ref mapper_runtime_handling
+            - replaceRuntime()
+            - getRuntime()
+
+            @since %TableMapper 1.1.1
+         */
+        setRuntime(string key, any value) {
+            m_mapper.setRuntime(key, value);
+        }
+
+        #! adds @ref mapper_runtime_handling "runtime options" to the current runtime option hash
+        /**
+            @param runtime a hash of runtime options to add to the current @ref mapper_runtime_handling "runtime option hash"
+
+            @see
+            - @ref mapper_runtime_handling
+            - replaceRuntime()
+            - getRuntime()
+
+            @since %TableMapper 1.1.1
+         */
+        setRuntime(hash runtime) {
+            m_mapper.setRuntime(runtime);
+        }
+
+        #! replaces @ref mapper_runtime_handling "runtime options"
+        /**
+            @param runtime a hash of runtime options to use to replace the current @ref mapper_runtime_handling "runtime option hash"
+
+            @see
+            - @ref mapper_runtime_handling
+            - getRuntime()
+            - setRuntime()
+
+            @since %TableMapper 1.1
+         */
+        replaceRuntime(*hash runtime) {
+            m_mapper.replaceRuntime(runtime);
+        }
+
+        #! get current @ref mapper_runtime_handling "runtime option" value for a key
+        /**
+            @param key the runtime option key
+            @returns a runtime value if the key exists in the current @ref mapper_runtime_handling "runtime option hash" and is set
+
+            @see
+            - @ref mapper_runtime_handling
+            - replaceRuntime()
+            - setRuntime()
+
+            @since %TableMapper 1.1.1
+         */
+        any getRuntime(string key) {
+            return m_mapper.getRuntime(key);
+        }
     } # class SqlStatementMapperIterator
 
     #! provides an abstract base for all SQL based outbound mappers
@@ -1416,6 +1582,15 @@ InboundTableMapperIterator i(input, mapper);
         #! re-implement to initialize Qore::SQL::SQLStatement on demand
         abstract private initStatement();
 
+        #! returns a row iterator for the underlying SQL statement for this object
+        /** @since TableMapper 1.1.1
+         */
+        Qore::SQL::SQLStatement getRowIterator() {
+            if (!m_stmt)
+                initStatement();
+            return m_stmt;
+        }
+
         #! Returns an SqlStatementMapperIterator based on the current object
         /** @return an SqlStatementMapperIterator based on the current object
 
@@ -1425,7 +1600,7 @@ InboundTableMapperIterator i(input, mapper);
         SqlStatementMapperIterator iterator() {
             if (!m_stmt)
                 initStatement();
-            return new SqlStatementMapperIterator(m_stmt, mapc, m_orig_opts);
+            return new SqlStatementMapperIterator(self);
         }
 
         #! Retrieve mapped data as a hash of lists.

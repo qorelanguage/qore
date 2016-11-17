@@ -1153,7 +1153,6 @@ end";
                         case Type::Number: defval = defval.toNumber(); break;
                         case Type::Date: {
                             try {
-                                # see if it is a date/time value
                                 defval = date(defval);
                             }
                             catch (hash ex) {
