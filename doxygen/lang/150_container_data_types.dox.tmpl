@@ -130,6 +130,43 @@ element3 = hash{"this-element-1!"};
     In the case of using a literal string with the dot operator, keep in mind that the string is always interpreted as a literal string name of the member, even if there is a constant with the same name.  To use the value of a constant to dereference a hash, use curly brackets with the constant: ex: @verbatim hash{MyConstant} @endverbatim
     Note that hash keys can also be given by constants (as long as the constant resolves to a string) when using curly brackets.\n
 
+    @par Hash slicing:
+    Hashes can be "sliced" by dereferencing them using parenthesis syntax with more than one key, as in the following example:\n
+    @code{.py}
+hash h = {
+    "a": 3,
+    "b": 5,
+    "x": "test",
+    "y": 0,
+    "text": "lorem ipsum dolor sit amet",
+    "float": 2.71828
+};
+
+# Creates a new hash with key-value pairs "a" and "b" from the original hash.
+hash nh = h.("a", "b");
+printf("slice 1: %n\n", nh);
+
+# Creates a new hash with key-value pairs "x", "y" and "float" from the original hash.
+printf("slice 2: %n\n", h.("x", "y", "float"));
+
+# Creates a new hash with a key-value pair "x" from the original hash.
+printf("slice 3: %n\n", h.("x", "random"));
+
+# Creates an empty hash because hash h does not contain keys "abc" or "xyz".
+printf("slice 4: %n\n", h.("abc", "xyz"));
+
+
+---------------------------------
+
+
+slice 1: hash: (a : 3, b : 5)
+slice 2: hash: (x : "test", y : 0, float : 2.71828)
+slice 3: hash: (x : "test")
+slice 4: <EMPTY HASH>
+    @endcode \n
+
+    All keys matching with the original hash's key-value pairs will be included in the newly created hash. Keys which are not in the original hash will be silently ignored.
+
     @par Immediate Value Example:
     @verbatim {"key1": 1, "key2": "two", get_key_3(): 3.141592653589793238462643383279502884195n}@endverbatim
     Hashes can be declared with parentheses or curly brackets:
