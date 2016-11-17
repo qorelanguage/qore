@@ -147,6 +147,18 @@
       - OraclePackage attribute body_src is now public to access package bodies
     - <a href="../../modules/Qorize/html/index.html">Qorize.qm</a> module:
       -  Qorize module: new qorize_val() set of functions; qorize_named() introduced; qorize tests
+    - <a href="../../modules/TableMapper/html/index.html">TableMapper.qm</a> module:
+      - fixed runtime option propagation to \c TableMapper::SqlStatementMapperIterator from \c TableMapper::AbstractSqlStatementOutboundMapper::iterator() (<a href="https://github.com/qorelanguage/qore/issues/1418">issue 1418</a>)
+      - fixed SqlStatementMapperIterator::getCount() (<a href="https://github.com/qorelanguage/qore/issues/1417">issue 1417</a>)
+      - added the following methods:
+        - \c TableMapper::AbstractSqlStatementOutboundMapper::getRowIterator()
+        - \c TableMapper::InboundTableMapper::iterator()
+        - \c TableMapper::InboundTableMapperIterator::getRuntime()
+        - \c TableMapper::InboundTableMapperIterator::replaceRuntime()
+        - \c TableMapper::InboundTableMapperIterator::setRuntime()
+        - \c TableMapper::SqlStatementMapperIterator::getRuntime()
+        - \c TableMapper::SqlStatementMapperIterator::replaceRuntime()
+        - \c TableMapper::SqlStatementMapperIterator::setRuntime()
     - fixed inconsistency between list splice operator and splice function (<a href="https://github.com/qorelanguage/qore/issues/1380">issue 1380</a>)
 
     @section qore_08123 Qore 0.8.12.3
