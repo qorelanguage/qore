@@ -41,12 +41,13 @@
     @endcode
 
     @note stream classes are not designed to be accessed from multiple threads; they have been implemented without locking for fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of such methods in threads other than the thread where the constructor was called will cause a \c STREAM-THREAD-ERROR to be thrown.
+    @note This class is not available with the @ref PO_NO_TERMINAL_IO parse option
 
     @see @ref Qore::StreamWriter "StreamWriter" for a class that can be used to write various kinds of data to an @ref Qore::OutputStream "OutputStream"
 
     @since %Qore 0.8.13
  */
-qclass StderrOutputStream [arg=StderrOutputStream* os; ns=Qore; vparent=OutputStream; flags=final];
+qclass StderrOutputStream [dom=TERMINAL_IO; arg=StderrOutputStream* os; ns=Qore; vparent=OutputStream; flags=final];
 
 //! Creates the StderrOutputStream.
 /**
