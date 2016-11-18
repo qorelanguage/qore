@@ -152,6 +152,8 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_Transform.qpp \
 	lib/QC_TransformInputStream.qpp \
 	lib/QC_TransformOutputStream.qpp \
+	lib/QC_StdoutOutputStream.qpp \
+	lib/QC_StderrOutputStream.qpp \
 	lib/Pseudo_QC_All.qpp \
 	lib/Pseudo_QC_Nothing.qpp \
 	lib/Pseudo_QC_Date.qpp \
@@ -504,6 +506,8 @@ noinst_HEADERS = \
 	include/qore/intern/StringOutputStream.h \
 	include/qore/intern/TransformInputStream.h \
 	include/qore/intern/TransformOutputStream.h \
+	include/qore/intern/StdoutOutputStream.h \
+	include/qore/intern/StderrOutputStream.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \
