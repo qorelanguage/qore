@@ -14,7 +14,7 @@
 %requires Util
 
 module QUnit {
-    version = "0.1";
+    version = "0.2";
     desc = "User module for unit testing with dependency injection support";
     author = "Zdenek Behan <zdenek.behan@qoretechnologies.com>";
     url = "http://qore.org";
@@ -129,6 +129,9 @@ public class MyTestClass inherits QUnit::DependencyInjectedTest {
     - junit - machine readable format for further processing
 
     @section unittest_relnotes Release Notes
+
+    @subsection qunit_v0_2 Version 0.2
+    - fixed showing the assertion location when there are test modules on top of QUnit.qm (<a href="https://github.com/qorelanguage/qore/issues/1046">issue 1046</a>)
 
     @subsection qunit_v0_1 Version 0.1
     - initial version of module
@@ -428,7 +431,7 @@ public class QUnit::TestCase {
 
     static *string getStackPos(list stack) {
         foreach hash callSite in (stack) {
-            if (callSite.file !~ /QUnit\.qm/) {
+            if (callSite.file !~ /\.qm/) {
                 string fn = regex_subst (callSite.file, "<run-time-loaded: (.*)>", "$1");
                 return sprintf("%s:%d", fn, callSite.line + callSite.offset);
             }
@@ -437,7 +440,7 @@ public class QUnit::TestCase {
 
     static string getPos(hash ex) {
         string pos = get_ex_pos(ex);
-        if (pos =~ /QUnit\.qm/ && ex.callstack) {
+        if (pos =~ /\.qm/ && ex.callstack) {
             *string np = TestCase::getStackPos(ex.callstack);
             if (np)
                 pos = np;
