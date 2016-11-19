@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@
 //! The SQLStatement class provides the most flexibilty for executing SQL on a database server
 /** This class allows statements to be executed and result sets to be iteratively returned in all formats supported by %Qore (single row at a time as a hash or blocks of rows as either hashes of lists or lists of hashes). The same flexibility of choosing the output format for result sets also applies to output values from stored procedure or function execution, for example.
 
-    This class does not differentiate between executing select statement or stored procedures or functions or other SQL code; the transaction lock for Datasource objects and a dedicated connection for DatasourcePool objects is allocated to the object when the connection is necessary, and it is not automatically released by this class. The transaction lock or connection must be manually released by calling SQLStatement::commit() or SQLStatement::rollback() (or the methods with the same name in the parent Datasource or DatasourcePool object).
+    This class does not differentiate between executing select statements, stored procedures, functions, or other SQL code; the transaction lock for Datasource objects and a dedicated connection for DatasourcePool objects is allocated to the object when the connection is necessary, and it is not automatically released by this class. The transaction lock or connection must be manually released by calling SQLStatement::commit() or SQLStatement::rollback() (or the methods with the same name in the parent Datasource or DatasourcePool object).
 
     Here is an example executing a select statement:
     @code{.py}

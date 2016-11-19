@@ -80,15 +80,19 @@ public class SqlTestBase inherits QUnit::Test {
         addTestCase("Offset / Limit", \offsetLimitTest());
         addTestCase("Update", \updateTest());
         addTestCase("Upsert", \upsertTest());
+
+        # Cannot delete because additional tests in the module-specific .qtest files
+        # are too inter-connected (tightly coupled) to these tests' DB modifications.
         addTestCase("BulkInsert", \bulkInsertTest());
         addTestCase("BulkUpsert", \bulkUpsertTest());
         addTestCase("fetchColumns", \fetchColumnsTest());
+        addTestCase("Delete", \deleteTest());
     }
 
     globalTearDown() {
         # drop the test schema
         if (schema)
-            schema.drop(False, m_options.verbose);
+            schema.drop(True, m_options.verbose);
     }
 
     insertTest() {
@@ -762,5 +766,27 @@ public class SqlTestBase inherits QUnit::Test {
         }
         insert_data = (("id": 1, "id_": 2, "null_f": "abc") + row, ("id": 2, "id_": 2, "null_f": NULL) + row,);
         upsert_data = (("id": 2, "id_": 2, "null_f": "abc") + row, ("id": 3, "id_": 2, "null_f": NULL) + row,);
+    }
+
+    deleteTest() {
+        int count = table.del();
+        assertEq (insert_data.size(), count, "del()");
+
+        map table.insert($1), insert_data;
+
+        count = table.del({});
+        assertEq (insert_data.size(), count, "del({})");
+
+        table.del();
+        map table.insert($1), insert_data;
+
+        count = table.del(("id" : 1));
+        assertEq (insert_data.size() - 1, count, "del(('id' : 1))");
+        table.del();
+
+        map table.insert($1), insert_data;
+
+        count = table.del(("id" : -1));
+        assertEq (0, count, "del(('id' : -1))");
     }
 }
