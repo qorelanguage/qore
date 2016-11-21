@@ -106,6 +106,7 @@ module SqlUtil {
     @subsection sqlutilv1_3_1 SqlUtil v1.3.1
     - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
     - fixed the ignored character_semantics column option in schema alignmed (<a href="https://github.com/qorelanguage/qore/issues/1379">issue 1379</a>)
+    - implemented the @ref SqlUtil::cop_length() column function (<a href="https://github.com/qorelanguage/qore/issues/1395">issue 1395</a>)
 
     @subsection sqlutilv1_3 SqlUtil v1.3
     - implemented insert option support (see @ref AbstractTable::InsertOptions) with the \c "returning" clause in supported drivers
@@ -1808,7 +1809,6 @@ db.computeStatistics(opts);
 
 #! the SqlUtil namespace contains all the objects in the SqlUtil module
 public namespace SqlUtil {
-
     /* @defgroup DBFeaturesConstants DB Features Constants
         These constants can be used as a lookup values in AbstractDatabase::features() method.
     */
@@ -2006,6 +2006,13 @@ public namespace SqlUtil {
     */
     public const COP_SUBSTR = "substr";
 
+    #! to get the length of a text field
+    /** @see cop_length()
+
+        @since %SqlUtil 1.3.1
+    */
+    public const COP_LENGTH = "length";
+
     #! a hash of default column operator descriptions
     public const DefaultCopMap = (
         COP_AS: (
@@ -2131,18 +2138,38 @@ public namespace SqlUtil {
                 return sprintf("substring(%s from %d for %d)", cve, args[0], args[1]);
             },
         ),
+        COP_LENGTH: (
+            "code": string sub (string cve, any arg) {
+                return sprintf("length(%s)", cve);
+            },
+        ),
         );
     #@}
 
     /** @defgroup sql_cop_funcs SQL Column Operator Functions
         These are functions that can be used in the \c "columns" argument for select statements:
-        - @ref cop_as(): rename columns
-        - @ref cop_cast(): convert column value into another datatype
-        - @ref cop_prepend(): prepend a string to the output of a column
         - @ref cop_append(): append a string to the output of a column
-        - @ref cop_value(): return a constant value (SQL literal) in a column
-        - @ref cop_upper(): return a column in upper case
+        - @ref cop_as(): rename columns
+        - @ref cop_avg(): return the averge value for the given column when grouping
+        - @ref cop_cast(): convert column value into another datatype
+        - @ref cop_coalesce(): returns the first non-NULL value in the given columns
+        - @ref cop_distinct(): add \c DISTINCT to the column name
+        - @ref cop_length(): return the length of the given text column
         - @ref cop_lower(): return a column in lower case
+        - @ref cop_max(): return the maximum value for the given column when grouping
+        - @ref cop_min(): return the minimum value for the given column when grouping
+        - @ref cop_over(): return a hash for the \c "over" operator for windowing functions
+        - @ref cop_prepend(): prepend a string to the output of a column
+        - @ref cop_seq(): increments the sequence and returns the next value
+        - @ref cop_seq_currval(): returns the current value of the given sequence without changing the sequence
+        - @ref cop_substr(): returns a substring of a text column
+        - @ref cop_sum(): return the sum of all values for the given column when grouping
+        - @ref cop_upper(): return a column in upper case
+        - @ref cop_value(): return a constant value (SQL literal) in a column
+        - @ref cop_year(): return the year of the given date column
+        - @ref cop_year_day(): return the year to day value of the given date column
+        - @ref cop_year_hour(): return the year to hour value of the given date column
+        - @ref cop_year_month(): return the year and month value of the given date column
 
         Column operator functions can be nested as in the following example:
         @par Example:
@@ -2632,6 +2659,22 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     */
     public hash sub cop_substr(any column, int start, *int count) {
         return make_cop(COP_SUBSTR, column, (start, count));
+    }
+
+    #! returns a hash for the \c "len" operator with the given argument; returns the length of the given text field
+    /** @par Example:
+        @code{.py}
+*list rows = table.selectRows(("columns": ("id", cop_length("product_code")), "where": ("type": "user")));
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins)
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+
+        @since %SqlUtil 1.3.1
+    */
+    public hash sub cop_length(any column) {
+        return make_cop(COP_LENGTH, column);
     }
     #@}
 
