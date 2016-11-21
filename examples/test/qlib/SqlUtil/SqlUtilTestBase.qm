@@ -281,20 +281,21 @@ public class SqlTestBase inherits QUnit::Test {
 
         hash soh = (
             "columns": (
-                cop_as (cop_cast ("id", "string"), "cop_cast"),
-                cop_as (cop_value (0), "cop_value"), # triggers bug #511 (GitHub)
-                cop_as (cop_lower (cop_value ("Ahoj")), "cop_lower"),
-                cop_as (cop_upper (cop_value ("Ahoj")), "cop_upper"),
-                cop_as (cop_prepend (cop_value ("abc"), "def"), "cop_prepend"),
-                cop_as (cop_append (cop_value ("abc"), "def"), "cop_append"),
-                cop_as (cop_substr (cop_value ("honeymoon"), 6), "cop_substr_1"),
-                cop_as (cop_substr (cop_value ("hematology"), 3, 4), "cop_substr_2"),
-                cop_as (cop_minus ("id", "id"), "cop_minus"),
-                cop_as (cop_plus ("id", "id"), "cop_plus"),
-                cop_as (cop_divide ("id", "id"), "cop_divide"),
-                cop_as (cop_multiply ("id", "id"), "cop_multiply"),
-                cop_as (cop_coalesce("null_f", vc, "char_f"), "cop_coalesce"),
-                cop_as (cop_coalesce("null_f", cop_value("test")), "cop_coalesce2"),
+                cop_as(cop_cast ("id", "string"), "cop_cast"),
+                cop_as(cop_value (0), "cop_value"), # triggers bug #511 (GitHub)
+                cop_as(cop_lower (cop_value ("Ahoj")), "cop_lower"),
+                cop_as(cop_upper (cop_value ("Ahoj")), "cop_upper"),
+                cop_as(cop_prepend (cop_value ("abc"), "def"), "cop_prepend"),
+                cop_as(cop_append (cop_value ("abc"), "def"), "cop_append"),
+                cop_as(cop_substr (cop_value ("honeymoon"), 6), "cop_substr_1"),
+                cop_as(cop_substr (cop_value ("hematology"), 3, 4), "cop_substr_2"),
+                cop_as(cop_minus ("id", "id"), "cop_minus"),
+                cop_as(cop_plus ("id", "id"), "cop_plus"),
+                cop_as(cop_divide ("id", "id"), "cop_divide"),
+                cop_as(cop_multiply ("id", "id"), "cop_multiply"),
+                cop_as(cop_coalesce("null_f", vc, "char_f"), "cop_coalesce"),
+                cop_as(cop_coalesce("null_f", cop_value("test")), "cop_coalesce2"),
+                cop_as(cop_length(cop_value("hi")), "cop_length"),
                 # cop_as (cop_minus ("id", cop_value(2)), "cop_minus"),
                 # cop_as (cop_plus ("id", cop_value(2)), "cop_plus"),
                 # cop_as (cop_divide ("id", cop_value(2)), "cop_divide"),
@@ -319,19 +320,20 @@ public class SqlTestBase inherits QUnit::Test {
             "cop_divide": 1,
             "cop_multiply": 4,
             "cop_coalesce": "hello",
+            "cop_length": 2,
             );
 
         foreach hash e in (expect.pairIterator())
             assertEq (e.value, row{e.key}, "checking column operator " + e.key);
 
         soh = ("columns": (
-                cop_as ("char_f", "pivo"),
-                cop_as (cop_min ("id"), "cop_min"),
-                cop_as (cop_max ("id"), "cop_max"),
-                cop_as (cop_avg ("id"), "cop_avg"),
-                cop_as (cop_sum ("id"), "cop_sum"),
-                cop_as (cop_count ("char_f"), "cop_count"),
-                cop_as (cop_count (cop_distinct ("char_f")), "cop_distinct"),
+                   cop_as("char_f", "pivo"),
+                   cop_as(cop_min("id"), "cop_min"),
+                   cop_as(cop_max("id"), "cop_max"),
+                   cop_as(cop_avg("id"), "cop_avg"),
+                   cop_as(cop_sum("id"), "cop_sum"),
+                   cop_as(cop_count("char_f"), "cop_count"),
+                   cop_as(cop_count(cop_distinct("char_f")), "cop_distinct"),
                 ),
                 "groupby": ("char_f")
                 );
@@ -339,13 +341,13 @@ public class SqlTestBase inherits QUnit::Test {
         row = table.selectRow (soh, \sql);
 
         expect = (
-                "cop_min": 1,
-                "cop_max": 2,
-                "cop_avg": 1.5n,
-                "cop_sum": 3,
-                "cop_count": 2,
-                "cop_distinct": 1,
-                );
+            "cop_min": 1,
+            "cop_max": 2,
+            "cop_avg": 1.5n,
+            "cop_sum": 3,
+            "cop_count": 2,
+            "cop_distinct": 1,
+            );
 
         foreach hash e in (expect.pairIterator())
             assertEq (e.value, row{e.key}, "checking column operator " + e.key);
