@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.3.1";
+    version = "1.4";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -99,6 +99,9 @@ module SqlUtil {
       - @ref dba_space_management
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
+
+    @subsection sqlutilv1_4 SqlUtil v1.4
+    - fixed a bug in update and upsert statement generation when the given data does not have enough columns to use the unique index found, an error message is generated that contains all the columns names instead of just the column names required by the index (<a href="https://github.com/qorelanguage/qore/issues/1013">issue 1013</a>)
 
     @subsection sqlutilv1_3_1 SqlUtil v1.3.1
     - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
@@ -12522,7 +12525,7 @@ int ucnt = table.update(("id": id), ("name": name));
 
             # if not all columns of the unique constraint are used, then throw an exception
             if (cl.size() != cols.size())
-                throw "UPSERT-ERROR", sprintf("%s: not all columns from %s are used in the upsert statement; required: %y; used: %y", getDesc(), csrc, columns.keys(), cl);
+                throw "UPSERT-ERROR", sprintf("%s: not all columns from %s are used in the upsert statement; required: %y; used: %y", getDesc(), csrc, cols.keys(), cl);
 
             # use UpsertSelectFirst if the row size == the key size (ie only key values are used)
             if (cols.size() == row.size())

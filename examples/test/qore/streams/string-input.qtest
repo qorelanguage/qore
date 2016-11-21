@@ -1,0 +1,51 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class StringInputStreamTest
+
+public class StringInputStreamTest inherits QUnit::Test {
+
+    constructor() : Test("StringInputStreamTest", "1.0") {
+        addTestCase("ctor empty", \ctorEmpty());
+        addTestCase("read test", \readTest());
+        addTestCase("peek test", \peekTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    ctorEmpty() {
+        StringInputStream sis("");
+        assertEq(NOTHING, sis.read(100));
+        assertEq(NOTHING, sis.read(100));
+    }
+
+    readTest() {
+        StringInputStream sis(binary_to_string(<010203>));
+        assertThrows("INPUT-STREAM-ERROR", sub() { sis.read(0); });
+        assertThrows("INPUT-STREAM-ERROR", sub() { sis.read(-2); });
+        assertEq(<0102>, sis.read(2));
+        assertEq(<03>, sis.read(2));
+        assertEq(NOTHING, sis.read(2));
+        assertEq(NOTHING, sis.read(10));
+    }
+
+    peekTest() {
+        StringInputStream sis(binary_to_string(<010203>));
+        assertEq(1, sis.peek());
+        assertThrows("INPUT-STREAM-ERROR", sub() { sis.read(0); });
+        assertThrows("INPUT-STREAM-ERROR", sub() { sis.read(-2); });
+        assertEq(1, sis.peek());
+        assertEq(<0102>, sis.read(2));
+        assertEq(3, sis.peek());
+        assertEq(<03>, sis.read(2));
+        assertEq(-1, sis.peek());
+    }
+}

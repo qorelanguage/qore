@@ -1,0 +1,56 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class MkdirTest
+
+class MkdirTest inherits QUnit::Test {
+    public {}
+
+    private {
+        const dir_pos = "/mkpos";
+        const dir_neg = "/mkneg/mk2/mk3/mk4";
+        const dir_par = "/mkparpos3";
+    }
+
+    constructor() : Test("Read Test", "1.0") {
+        addTestCase("mkdirPosTest", \mkdirPosTest());
+        addTestCase("mkdirNegTest", \mkdirNegTest());
+        addTestCase("mkdirParentTest", \mkdirParentTest());
+
+        set_return_value(main());
+    }
+
+    mkdirPosTest() {
+        string dir = tmp_location() + dir_pos;
+        on_exit rmdir(dir);
+        int ret = mkdir(dir);
+        testAssertionValue('Directory shall be created.', ret, 0);
+    }
+
+    mkdirNegTest() {
+        string dir = tmp_location() + dir_neg;
+        on_exit rmdir(dir);
+        int ret = mkdir(dir);
+        testAssertionValue("Directory shall not be created.", ret, -1);
+    }
+    mkdirParentTest() {
+        string dir = tmp_location() + dir_par;
+        string dir2 = dir + "/mk2";
+        string dir3 = dir2 + "/mk3";
+        on_exit {
+            rmdir(dir3);
+            rmdir(dir2);
+            rmdir(dir);
+        }
+        int ret = mkdir(dir3, 0777, True);
+        testAssertionValue("Directories shall be created.", ret, 3);
+    }
+}
