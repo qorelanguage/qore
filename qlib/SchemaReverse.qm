@@ -1,0 +1,837 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file SchemaReverse.qm Qore user module for reverse engineering of database SQL schemas
+
+/*  SchemaReverse.qm Copyright 2016 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FORANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# this module requires Qore 0.8.12 or better
+%requires qore >= 0.8.12
+
+# requires the SqlUtil module
+%requires SqlUtil >= 1.2
+
+# requires the Util module
+%requires Util >= 1.1
+
+# requires the Qorize module
+%requires Qorize >= 0.1.1
+
+%requires Schema
+
+%new-style
+%require-types
+%enable-all-warnings
+%strict-args
+
+module SchemaReverse {
+    version = "1.0";
+    desc = "user module for reverse engineering of database SQL schemas";
+    author = "Petr Vanek <petr@yarpen.cz>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+/** @mainpage SchemaReverse Module
+
+SchemaReverse module provides functionality to create Qore source code usable
+as an input for Schema::AbstractSchema (Schema.qm user module).
+
+To use this module, use "%requires SchemaReverse" in your code.
+
+All the public symbols in the module are defined in the @ref SchemaReverse namespace.
+
+Currently it can handle only database object types.
+
+    - sequences
+    - tables
+    - types
+    - views
+    - materialized views
+    - functions
+    - procedures
+    - packages
+
+Not all database object types are available in all DBMS.
+
+Simple example (to get one table definition):
+
+@code{.py}
+%new-style
+%requires SchemaReverse
+
+Datasource ds("oracle:omq/omq@xbpx");
+on_exit ds.commit();
+
+TableReverse t = SchemaReverse::get_object("table", ds, "schema_reverse_t1");
+string str = t.toString();
+
+printf("%N\n", str);
+@endcode
+
+The output will be:
+
+@code
+        (
+        "columns" :
+            (
+            "id" :
+                (
+                "qore_type" : "number",
+                "comment" : "comment for id",
+                "notnull" : True,
+                ),
+            "foo" :
+                (
+                "qore_type" : "string",
+                "size" : 10,
+                "comment" : "comment for foo",
+                ),
+            "bar" :
+                (
+                "qore_type" : "date",
+                "driver" :
+                    (
+                    "oracle" :
+                        (
+                        "native_type" : "date",
+                        ),
+                    "pgsql" :
+                        (
+                        "native_type" : "date",
+                        ),
+                    ),
+                "comment" : "comment for bar",
+                "notnull" : True,
+                ),
+            ),
+        "indexes" :
+            (
+            "schema_reverse_ix1" :
+                (
+                "columns" :
+                    ("id",),
+                "unique" : True,
+                ),
+            ),
+        )
+@endcode
+
+*/
+
+#! this namespace contains all public definitions in the %SchemaReverse module
+public namespace SchemaReverse {
+
+    #! A map translating simple DB object name into its class
+    const TYPE_TO_CLASS = (
+            "sequence" : "SequenceReverse",
+            "table" : "TableReverse",
+            "type" : "TypeReverse",
+            "view" : "ViewReverse",
+            "mview" : "MViewReverse",
+            "function" : "FunctionReverse",
+            "procedure" : "ProcedureReverse",
+            "package" : "PackageReverse",
+        );
+
+    #! A map translating multi DB objects name into its class
+    const MULTI_TO_CLASS = (
+            "sequences" : "SequencesReverse",
+            "tables" : "TablesReverse",
+            "types" : "TypesReverse",
+            "views" : "ViewsReverse",
+            "mviews" : "MViewsReverse",
+            "functions" : "FunctionsReverse",
+            "procedures" : "ProceduresReverse",
+            "packages" : "PackagesReverse",
+        );
+
+    #! A template string for full schema used in SchemaReverse::SchemaReverse class
+    const TEMPLATE = '
+%requires Schema
+%requires SqlUtil
+
+%new-style
+%require-types
+%enable-all-warnings
+
+
+const GenericOptions = (
+        "replace": True,
+    );
+
+const IndexOptions = (
+        "driver": (
+                "oracle": ("compute_statistics": False,),
+            ),
+    );
+
+const ColumnOptions = (
+        "driver": (
+                "oracle": ("character_semantics": True,),
+            ),
+    );
+
+const SEQUENCES = <SCHEMA_SEQUENCES>;
+
+const TABLES = <SCHEMA_TABLES>;
+
+const TYPES = <SCHEMA_TYPES>;
+
+const VIEWS = <SCHEMA_VIEWS>;
+
+const MATERIALIZED_VIEWS = <SCHEMA_MVIEWS>;
+
+const FUNCTIONS = <SCHEMA_FUNCTIONS>;
+
+const PROCEDURES = <SCHEMA_PROCEDURES>;
+
+const PACKAGES = <SCHEMA_PACKAGES>;
+
+
+class <X_SCHEMA_NAME> inherits AbstractSchema {
+    public {
+        const SchemaName = "<X_SCHEMA_NAME>";
+        const SchemaVersion = "1.0";
+    }
+
+    constructor(AbstractDatasource ds, *string dts, *string its) :  AbstractSchema(ds, dts, its) {
+    }
+
+    private string getNameImpl() {
+        return SchemaName;
+    }
+
+    private string getVersionImpl() {
+        return SchemaVersion;
+    }
+
+    private *hash getTablesImpl() {
+        return TABLES;
+    }
+
+    private *hash getSequencesImpl() {
+        return SEQUENCES;
+    }
+
+    private *hash getTypesImpl() {
+        return TYPES;
+    }
+
+    private *hash getViewsImpl() {
+        return VIEWS;
+    }
+
+    private *hash getMaterializedViewsImpl() {
+        return MATERIALIZED_VIEWS;
+    }
+
+    private *hash getFunctionsImpl() {
+        return FUNCTIONS;
+    }
+
+    private *hash getProceduresImpl() {
+        return PROCEDURES;
+    }
+
+    private *hash getPackagesImpl() {
+        return PACKAGES;
+    }
+
+    private *hash getIndexOptionsImpl() {
+        return IndexOptions;
+    }
+
+    private *hash getGenericOptionsImpl() {
+        return GenericOptions;
+    }
+
+    private *hash getColumnOptionsImpl() {
+        return ColumnOptions;
+    }
+
+} # class <X_SCHEMA_NAME>
+';
+
+    #! A basic class for all SchemaReverse DB object related classes
+    /*! It provides basic shared functionality for all specialized
+        object related classes.
+
+        All inherited classe must implement abstract method AbstractReverseObject::toQore()
+        for object related functionality.
+     */
+    public class AbstractReverseObject {
+        private {
+            AbstractDatasource m_ds;
+            Database m_db;
+            string m_name;
+        }
+
+        /*! Setup basic shared attributes.
+            @param ds a AbstractDatasource with DB connection
+            @param name a string with exact name or regex to match names of DB objects
+         */
+        constructor(AbstractDatasource ds, string name) {
+            m_ds = ds;
+            m_name = name;
+        }
+
+        #! @return current AbstractDatasource
+        AbstractDatasource datasource() {
+            return m_ds;
+        }
+
+        #! @return current SqlUtil::database object when required
+        Database database() {
+            if (!m_db) {
+                m_db = new SqlUtil::Database(m_ds);
+            }
+            return m_db;
+        }
+
+        #! @return a string with exact name or regex to match names
+        string name() {
+            return m_name;
+        }
+
+        #! Dedicated functionlity to get DB object info into the internal structure is done here.
+        /*! All inerited classe must implement this method to get
+            all required DB metadata n proper format
+         */
+        abstract any toQore();
+
+        #! Make a string with Qore code from a structure prepared by AbstractReverseObject::toQore().
+        /*! @return string with final Qore source code
+         */
+        string toString() {
+            string ret = qorize_val(toQore());
+            if (ret.regex(".*\,$")) {
+                ret = ret.substr(0, -1);
+            }
+            return ret;
+        }
+    } # class AbstractReverseObject
+
+    #! Structure dump of a sequence
+    public class SequenceReverse inherits AbstractReverseObject {
+        /*! @param ds an AbstractDatasource object
+            @param name a string with exact object name
+         */
+        constructor(AbstractDatasource ds, string name)
+            : AbstractReverseObject(ds, name)
+        {
+        }
+
+        hash toQore() {
+            return hash();
+        }
+    } # class SequenceReverse
+
+    #! Structure dump of sequences
+    /** This class uses SchemaReverse::SeqenceReverse internally.
+     */
+    public class SequencesReverse inherits AbstractReverseObject {
+        /*! @param ds an AbstractDatasource object
+            @param mask a regexp mask used to specify what objects of this type are fetched
+         */
+        constructor(AbstractDatasource ds, string mask = ".*")
+            : AbstractReverseObject(ds, mask)
+        {
+        }
+
+        hash toQore() {
+            ListIterator it = database().sequenceIterator();
+            hash ret = hash();
+            while (it.next()) {
+                string s = it.getValue();
+                if (s.regex(name())) {
+                    ret{s} = hash();
+                }
+            }
+            return ret;
+        }
+    } # class SequencesReverse
+
+    #! Structure dump of a 'type' or 'named type'
+    public class TypeReverse inherits AbstractReverseObject {
+        /*! @param ds an AbstractDatasource object
+            @param name a string with exact object name
+         */
+        constructor(AbstractDatasource ds, string name)
+            : AbstractReverseObject(ds, name)
+        {
+        }
+
+        hash toQore() {
+            if (database().supportsTypes()) {
+                return ( name() : database().getType(name()).src );
+            }
+            return hash();
+        }
+    } # class TypeReverse
+
+    #! Structure dump of 'types' or 'named types'
+    public class TypesReverse inherits AbstractReverseObject {
+        /*! @param ds an AbstractDatasource object
+            @param mask a regexp mask used to specify what objects of this type are fetched
+         */
+        constructor(AbstractDatasource ds, string mask = ".*")
+            : AbstractReverseObject(ds, mask)
+        {
+        }
+
+        hash toQore() {
+            if (!database().supportsTypes()) {
+                return hash();
+            }
+
+            ListIterator it = database().typeIterator();
+            hash ret = hash();
+            while (it.next()) {
+                string s = it.getValue();
+                if (s.regex(name())) {
+                    ret += new TypeReverse(datasource(), s).toQore();
+                }
+            }
+            return ret;
+        }
+    } # class TypesReverse
+
+    #! Structure dump of a table
+    public class TableReverse inherits AbstractReverseObject {
+        /*! @param ds an AbstractDatasource object
+            @param name a string with exact object name
+         */
+        constructor(AbstractDatasource ds, string name)
+            : AbstractReverseObject(ds, name)
+        {
+        }
+
+        hash toQore() {
+            Table t(datasource(), name());
+            hash ret;
+
+            # columns
+            HashIterator cit = t.describe().iterator();
+            while (cit.next()) {
+                #printf("%n\n", cit.getValue());
+                AbstractColumn c = cit.getValue();
+                ret.columns{c.name} = columnToQore(c);
+            }
+
+            # indexes
+            if (!t.getIndexes().empty()) {
+                my HashIterator it = t.getIndexes().iterator();
+                while (it.next()) {
+                    ret.indexes{it.getValue().name} = ( "columns" : it.getValue().columns.keys(),
+                                                        "unique" : it.getValue().unique,
+                                                    );
+                }
+            }
+
+            # PK
+            AbstractPrimaryKey pk = t.getPrimaryKey();
+            #printf("PK: %N\n", pk);
+            if (!pk.empty()) {
+                ret.primary_key = ( "name" : pk.getName(),
+                                    "columns" : pk.keys(),
+                                );
+            }
+
+            # Triggers
+            if (!t.getTriggers().empty()) {
+                HashIterator it = t.getTriggers().iterator();
+                while (it.next()) {
+                    ret.triggers = ( it.getValue().name : it.getValue().src);
+                }
+            }
+
+            return ret;
+        }
+
+        static any columnToQore(AbstractColumn c) {
+            hash ret = hash();
+            #printf("%N\n", c);
+            switch (c.native_type) {
+                case "varchar":
+                case "varchar2":
+                    ret = c_varchar(c.size, !c.nullable, c.comment);
+                    break;
+                case "char":
+                    ret = c_char(c.size, !c.nullable, c.comment);
+                    break;
+                case "date":
+                    ret = c_date(!c.nullable, c.comment);
+                    break;
+                case "timestamp":
+                case /^timestamp.*/:
+                    ret = c_timestamp(!c.nullable, c.comment);
+                    break;
+                case "number":
+                    ret = c_number(c.size, /* c.scale */ 0, !c.nullable, c.comment); # TODO/FIXME: scale
+                    break;
+                case "clob":
+                    ret =  ("qore_type": SQL::CLOB, "comment": c.comment, "notnull" : !c.nullable);
+                    break;
+                case "blob":
+                    ret =  ("qore_type": SQL::BLOB, "comment": c.comment, "notnull" : !c.nullable);
+                    break;
+                #case "rowid":
+                #case "sdo_geometry":
+                #case "raw":
+                #    # TODO/FIXME ret =  ("qore_type": SQL::RAW, "comment": c.comment, "notnull" : !c.nullable);
+                #    break;
+                #default:
+                #    printf("%N\n", c);
+                #    throw "REVERSE-DB-ERROR", sprintf("Unimplemented column describe: %n", ("name" : c.name, "type" : c.native_type));
+                    #ret = ( "todo" : "fixme");
+            }
+
+            if (exists c.def_val) {
+                ret.default_value = c.def_val;
+            }
+            if (!ret.size) {
+                delete ret.size;
+            }
+            if (!ret.scale) {
+                delete ret.scale;
+            }
+            if (!ret.comment) {
+                delete ret.comment;
+            }
+
+            return ret;
+        }
+
+    } # class TableReverse
+
+    #! Structure dump of tables
+    public class TablesReverse inherits AbstractReverseObject {
+        /*! @param ds an AbstractDatasource object
+            @param mask a regexp mask used to specify what objects of this type are fetched
+         */
+        constructor(AbstractDatasource ds, string mask = ".*")
+            : AbstractReverseObject(ds, mask)
+        {
+        }
+
+        hash toQore() {
+            ListIterator it = database().tableIterator();
+            hash ret = hash();
+            while (it.next()) {
+                string s = it.getValue();
+                if (s.regex(name())) {
+                    ret{s} = new TableReverse(datasource(), s).toQore();
+                }
+            }
+            return ret;
+        }
+    } # class TablesReverse
+
+    #! A basic class for all DB object classes which use SQL code as base of its content
+    /*! For example VIEW or PROCEDURE etc.
+        This class is not primarily used for direct usage in user code,
+        but only as a base for real implementations.
+     */
+    public class CodeBaseReverse inherits AbstractReverseObject {
+        private {
+            string m_object_type;
+            string m_function_name;
+            list m_ignored_keys;
+        }
+
+        /*! @param object_type a string with DB type name see TYPE_TO_CLASS map
+            @param ds a datasource
+            @param name a string with DB object name
+            @param function_name to get the DB object info, as eg 'getView'
+            @param ignored_keys an optional list with keys to ignore from result of meta call of \c function_name
+         */
+        constructor(string object_type,
+                    AbstractDatasource ds,
+                    string name,
+                    string function_name,
+                    softlist ignored_keys
+                   )
+            : AbstractReverseObject(ds, name)
+        {
+            m_object_type = object_type;
+            m_function_name = function_name;
+            m_ignored_keys = ignored_keys;
+        }
+
+        hash toQore() {
+            if (database().hasCallableMethod(m_function_name)) {
+                return hash();
+            }
+
+            object o = call_object_method(database(), m_function_name, name());
+            ObjectIterator it = o.iterator();
+            hash ret = hash();
+            while (it.next()) {
+                if (inlist(it.getKey(), m_ignored_keys)) {
+                    continue;
+                }
+                if (exists it.getValue()) {
+                    ret{it.getKey()} = it.getValue();
+                }
+            }
+            return ret;
+        }
+    } # class CodeBaseReverse
+
+    #! A basic class for all DB object classes which use SQL code as base of its content
+    /*! For example multiple VIEWs or PROCEDUREs etc.
+        This class is not primarily used for direct usage in user code,
+        but only as a base for real implementations.
+     */
+    public class CodesBaseReverse inherits AbstractReverseObject {
+        private {
+            string m_object_type;
+            string m_function_name;
+        }
+
+        /*! @param object_type a string with DB type name see TYPE_TO_CLASS map
+            @param ds a datasource
+            @param mask a string with DB object name or regex to match names
+            @param function_name to get the DB object info, as eg 'getView'
+         */
+        constructor(string object_type,
+                    AbstractDatasource ds,
+                    string mask,
+                    string function_name,
+                   )
+            : AbstractReverseObject(ds, mask)
+        {
+            if (!exists TYPE_TO_CLASS{object_type}) {
+                throw "CODES-BASE-REVERSE-ERROR", sprintf("Unknown object type: %s; available: %y", object_type, TYPE_TO_CLASS.keys());
+            }
+            m_object_type = object_type;
+            m_function_name = function_name;
+        }
+
+        hash toQore() {
+            if (database().hasCallableMethod(m_function_name)) {
+                return hash();
+            }
+
+            ListIterator it = call_object_method(database(), m_function_name);
+            hash ret = hash();
+            while (it.next()) {
+                string s = it.getValue();
+                if (s.regex(name())) {
+                    AbstractReverseObject o = create_object(TYPE_TO_CLASS{m_object_type}, datasource(), s);
+                    ret{s} = o.toQore();
+                }
+            }
+            return ret;
+        }
+    } # class CodeBaseReverse
+
+    #! Structure dump of a view
+    public class ViewReverse inherits CodeBaseReverse {
+        /*! @param ds an AbstractDatasource object
+            @param name a string with exact object name
+         */
+        constructor(AbstractDatasource ds, string name)
+            : CodeBaseReverse("view", ds, name, "getView", ("schema", "name", ))
+        {
+        }
+    } # class ViewReverse
+
+    #! Structure dump of views
+    public class ViewsReverse inherits CodesBaseReverse {
+        /*! @param ds an AbstractDatasource object
+            @param mask a regexp mask used to specify what objects of this type are fetched
+         */
+        constructor(AbstractDatasource ds, string mask = ".*")
+            : CodesBaseReverse("view", ds, mask, "viewIterator")
+        {
+        }
+    } # class ViewsReverse
+
+    #! Structure dump of a materialized view or snapshot
+    public class MViewReverse inherits CodeBaseReverse {
+        /*! @param ds an AbstractDatasource object
+            @param name a string with exact object name
+         */
+        constructor(AbstractDatasource ds, string name)
+            : CodeBaseReverse("mview", ds, name, "getMaterializedView", ("schema", "name", "type"))
+        {
+        }
+    } # class MViewReverse
+
+    #! Structure dump of materialized views or snapshots
+    public class MViewsReverse inherits CodesBaseReverse {
+        /*! @param ds an AbstractDatasource object
+            @param mask a regexp mask used to specify what objects of this type are fetched
+         */
+        constructor(AbstractDatasource ds, string mask = ".*")
+            : CodesBaseReverse("mview", ds, mask, "materializedViewIterator")
+        {
+        }
+    } # class MViewsReverse
+
+    #! Structure dump of a function
+    public class FunctionReverse inherits AbstractReverseObject {
+        /*! @param ds an AbstractDatasource object
+            @param name a string with exact object name
+         */
+        constructor(AbstractDatasource ds, string name)
+            : AbstractReverseObject(ds, name)
+        {
+        }
+
+        string toQore() {
+            if (database().hasCallableMethod("getFunction")) {
+                return "";
+            }
+            object o = database().getFunction(name());
+            return o.src;
+        }
+    } # class FunctionReverse
+
+    #! Structure dump of functions
+    public class FunctionsReverse inherits CodesBaseReverse {
+        /*! @param ds an AbstractDatasource object
+            @param mask a regexp mask used to specify what objects of this type are fetched
+         */
+        constructor(AbstractDatasource ds, string mask = ".*")
+            : CodesBaseReverse("function", ds, mask, "functionIterator")
+        {
+        }
+    } # class FunctionsReverse
+
+    #! Structure dump of a procedure
+    public class ProcedureReverse inherits AbstractReverseObject {
+        /*! @param ds an AbstractDatasource object
+            @param name a string with exact object name
+         */
+        constructor(AbstractDatasource ds, string name)
+            : AbstractReverseObject(ds, name)
+        {
+        }
+
+        string toQore() {
+            if (database().hasCallableMethod("getProcedure")) {
+                return "";
+            }
+            object o = database().getProcedure(name());
+            return o.src;
+        }
+    } # class ProcedureReverse
+
+    #! Structure dump of procedures
+    public class ProceduresReverse inherits CodesBaseReverse {
+        /*! @param ds an AbstractDatasource object
+            @param mask a regexp mask used to specify what objects of this type are fetched
+         */
+        constructor(AbstractDatasource ds, string mask = ".*")
+            : CodesBaseReverse("procedure", ds, mask, "procedureIterator")
+        {
+        }
+    } # class ProceduresReverse
+
+    #! Structure dump of a package
+    public class PackageReverse inherits AbstractReverseObject {
+        /*! @param ds an AbstractDatasource object
+            @param name a string with exact object name
+         */
+        constructor(AbstractDatasource ds, string name)
+            : AbstractReverseObject(ds, name)
+        {
+        }
+
+        hash toQore() {
+            if (database().hasCallableMethod("getPackage")) {
+                return hash();
+            }
+            object o = database().getPackage(name());
+            return ( "src" : o.src, "body" : o.body_src );
+        }
+    } # class ProcedureReverse
+
+    #! Structure dump of packages
+    public class PackagesReverse inherits CodesBaseReverse {
+        /*! @param ds an AbstractDatasource object
+            @param mask a regexp mask used to specify what objects of this type are fetched
+         */
+        constructor(AbstractDatasource ds, string mask = ".*")
+            : CodesBaseReverse("package", ds, mask, "packageIterator")
+        {
+        }
+    } # class ProceduresReverse
+
+    #! Structure dump of all objects in given schema/connection
+    public class SchemaReverse {
+        private {
+            AbstractDatasource m_ds;
+            string m_class_name;
+        }
+
+        /*! @param ds an AbstractDatasource object
+            @param class_name a string with name of the resulting schema class
+         */
+        constructor(AbstractDatasource ds, string class_name) {
+            m_ds = ds;
+            m_class_name = class_name;
+        }
+
+        string toString() {
+            string ret = TEMPLATE;
+            ret = replace(ret, "<X_SCHEMA_NAME>", m_class_name);
+
+            softlist toReplace = regex_extract(TEMPLATE, "(<SCHEMA_.*>)", Qore::RE_MultiLine|Qore::RE_Global);
+            ListIterator it(toReplace);
+            while (it.next()) {
+                string key = regex_extract(it.getValue(), "<SCHEMA_(.*)>")[0];
+                AbstractReverseObject o = get_object(key.lwr(), m_ds);
+                string out = o.toString();
+                # HACK: let's guess that SchemaDescriptionOptions constains
+                #       objects supported in all DB servers/dialects.
+                #       All other objects must go to the driver specific sub-hash.
+                if (!SqlUtil::AbstractDatabase::SchemaDescriptionOptions.hasKey(key.lwr())) {
+                    out = sprintf("(\"driver\" : (\"%s\" :\n%s\n ), ); # end of driver/%s", m_ds.getDriverName(), out, m_ds.getDriverName());
+                }
+                ret = replace(ret, it.getValue(), out);
+            }
+
+            return ret;
+        }
+
+    } # class SchemaReverse
+
+    #! An universal wrapper to get any of SchemaReverse::AbstractReverseObject instance
+    /** @param object_type a string with object type. See keys in SchemaReverse::TYPE_TO_CLASS and SchemaReverse::MULTI_TO_MULTI
+        @param ds an Qore::AbstractDatasource instance
+        @param name a string with exact object name or a regex mask
+
+        Parameters \c ds and \c name are passed as \c argv into class constructor.
+        See apropritate class for constructor reference.
+     */
+    public AbstractReverseObject sub get_object(string object_type) {
+        *string className = TYPE_TO_CLASS{object_type} ?? MULTI_TO_CLASS{object_type};
+        if (!exists className) {
+            throw "SCHEMA-REVERSE-ERROR", sprintf("Unknown object type: %s; available: %y", object_type, TYPE_TO_CLASS.keys()+MULTI_TO_CLASS.keys());
+        }
+        object o = create_object_args(className, argv);
+        return o;
+    }
+
+} # namespace SchemaReverse
