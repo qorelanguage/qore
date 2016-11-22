@@ -61,6 +61,7 @@ const char usage_str[] = "usage: %s [options] <input file(s)...>\n" \
    " -d, --dox-output=arg   doxygen output file name\n" \
    " -h, --help             this help text\n" \
    " -o, --output=arg       cpp output file name\n" \
+   " -u, --unit=arg         qtest (QUnit) output file name\n" \
    " -t, --table=arg        process the given file for doxygen tables (|!...)\n" \
    " -V, --value            use the QoreValue API\n" \
    " -v, --verbose          increases verbosity level\n";
@@ -69,6 +70,7 @@ static const option pgm_opts[] = {
    {"dox-output", required_argument, NULL, 'd'},
    {"help", no_argument, NULL, 'h'},
    {"output", required_argument, NULL, 'o'},
+   {"unit-output", required_argument, NULL, 'u'},
    {"table", required_argument, NULL, 't'},
    {"verbose", optional_argument, NULL, 'v'},
    {"value", no_argument, NULL, 'V'},
@@ -86,6 +88,7 @@ enum LogLevel {
 static struct qpp_opts {
    std::string output_fn;
    std::string dox_fn;
+   std::string unit_test_fn;
    std::string table_fn;
    int verbose;
    qpp_opts() : verbose(LL_INFO) {
@@ -1316,6 +1319,12 @@ public:
    TextGroupElement(const std::string& t, unsigned sl, const std::string& fn) : text(t), startLine(sl), fileName(fn) {
    }
 
+    int serializeUnitTest(FILE* fp) const {
+        //fprintf(fp, "# TextGroupElement::serializeUnitTest\n");
+        //fprintf(fp, "/*\n%s\n*/\n", text.c_str());
+        return 0;
+    }
+
    int serializeCpp(FILE* fp) const {
       fprintf(fp, "# %d \"%s\"\n", startLine, fileName.c_str());
       output_file(fp, text);
@@ -1627,10 +1636,11 @@ protected:
       return 0;
    }
 
-   void serializeQoreAttrComment(FILE* fp, unsigned indent = 0) const {
+   void serializeQoreAttrComment(FILE* fp, unsigned indent = 0, const char* comment_str = "//") const {
       while (indent--)
          fputc(' ', fp);
-      fputs("// ", fp);
+      fputs(comment_str, fp);
+      fputs(" ", fp);
       if (attr & QCA_SYNCHRONIZED)
          fputs("synchronized ", fp);
       if (attr & QCA_STATIC)
@@ -1759,8 +1769,8 @@ public:
 
 class FunctionGroupElement : public CodeBase {
 protected:
-   void serializeQorePrototypeComment(FILE* fp, unsigned indent = 0) const {
-      serializeQoreAttrComment(fp, indent);
+   void serializeQorePrototypeComment(FILE* fp, unsigned indent = 0, const char* comment_str = "//") const {
+      serializeQoreAttrComment(fp, indent, comment_str);
       fprintf(fp, "%s %s(", return_type.empty() ? "nothing" : return_type.c_str(), name.c_str());
       serializeQoreParams(fp);
       fputs(") {}\n", fp);
@@ -1773,6 +1783,17 @@ public:
                         unsigned n_line, bool n_doconly)
       : CodeBase(fn, n_name, n_attr, n_params, n_docs, n_return_type, n_flags, n_dom, n_code, n_line, n_doconly) {
    }
+
+    int serializeUnitTest(FILE* fp) const {
+        //fprintf(fp, "# FunctionGroupElement::serializeUnitTest\n");
+
+        if (doconly)
+            return 0;
+
+        serializeQorePrototypeComment(fp, 8, "#");
+
+        return 0;
+    }
 
    int serializeCpp(FILE* fp) const {
       if (doconly)
@@ -2129,6 +2150,36 @@ public:
       return valid;
    }
 
+    int serializeUnitTest(FILE* fp) const {
+        //fprintf(fp, "# Group::serializeUnitTest\n");
+        fprintf(fp, "    # %s: %d\n", fileName, startLineNumber);
+
+        if (fmap.empty())
+            return 0;
+
+        std::string mock_filename = fileName;
+        std::replace(mock_filename.begin(), mock_filename.end(), '.', '_');
+        fprintf(fp, "    private test_%s_%d() {\n", mock_filename.c_str(), startLineNumber);
+
+        // first serialize text
+        for (unsigned i = 0; i < tlist.size(); ++i) {
+            //fprintf(fp, "       # text\n");
+            tlist[i]->serializeUnitTest(fp);
+        }
+
+        // now serialize function group members
+        //fputc('\n', fp);
+        for (fmap_t::const_iterator i = fmap.begin(), e = fmap.end(); i != e; ++i) {
+            //fprintf(fp, "       # func group: %s\n", i->first.c_str());
+            if (i->second->serializeUnitTest(fp))
+                return -1;
+        }
+
+        fprintf(fp, "    }");
+
+        return 0;
+    }
+
    int serializeFunctionCpp(FILE* fp) const {
       if (fmap.empty())
          return 0;
@@ -2259,6 +2310,21 @@ public:
       return grouplist.empty();
    }
 
+    int serializeUnitTest(FILE* fp) const {
+        //fprintf(fp, "# Groups::serializeUnitTest\n");
+
+        if (!has_funcs)
+            return 0;
+
+        for (unsigned i = 0; i < grouplist.size(); ++i) {
+            if (grouplist[i]->serializeUnitTest(fp)) {
+                return -1;
+            }
+        }
+
+        return 0;
+    }
+
    int serializeFunctionCpp(FILE* fp, const char* rootName) {
       if (!has_funcs)
          return 0;
@@ -2355,6 +2421,7 @@ public:
 
    virtual int serializeCpp(FILE* fp) = 0;
    virtual int serializeDox(FILE* fp) = 0;
+   virtual int serializeUnitTest(FILE* fp) = 0;
 };
 
 class TextElement : public AbstractElement {
@@ -2375,6 +2442,10 @@ public:
       //return serialize_dox_comment(fp, buf);
       return 0;
    }
+
+    virtual int serializeUnitTest(FILE* fp) {
+        return 0;
+    }
 };
 
 class Method : public CodeBase {
@@ -2444,20 +2515,20 @@ protected:
       return 0;
    }
 
-   void serializeQoreDestructorCopyPrototypeComment(FILE* fp, const char* cname, unsigned indent = 0) const {
-      serializeQoreAttrComment(fp, indent);
+   void serializeQoreDestructorCopyPrototypeComment(FILE* fp, const char* cname, unsigned indent = 0, const char* comment_str = "//") const {
+      serializeQoreAttrComment(fp, indent, comment_str);
       fprintf(fp, "%s::%s() {}\n", cname, name.c_str());
    }
 
-   void serializeQoreConstructorPrototypeComment(FILE* fp, const char* cname, unsigned indent = 0) const {
-      serializeQoreAttrComment(fp, indent);
+   void serializeQoreConstructorPrototypeComment(FILE* fp, const char* cname, unsigned indent = 0, const char* comment_str = "//") const {
+      serializeQoreAttrComment(fp, indent, comment_str);
       fprintf(fp, "%s::constructor(", cname);
       serializeQoreParams(fp);
       fputs(") {}\n", fp);
    }
 
-   void serializeQorePrototypeComment(FILE* fp, const char* cname, unsigned indent = 0) const {
-      serializeQoreAttrComment(fp, indent);
+   void serializeQorePrototypeComment(FILE* fp, const char* cname, unsigned indent = 0, const char* comment_str = "//") const {
+      serializeQoreAttrComment(fp, indent, comment_str);
       fprintf(fp, "%s %s::%s(", return_type.empty() ? "nothing" : return_type.c_str(), cname, name.c_str());
       serializeQoreParams(fp);
       fputs(")",fp);
@@ -2530,6 +2601,14 @@ public:
 
    virtual ~Method() {
    }
+
+    void serializeUnitTestMethod(FILE* fp, const char* cname) const {
+        serializeQorePrototypeComment(fp, cname, 8, "#");
+    }
+
+    void serializeUnitTestStatic(FILE* fp, const char* cname) const {
+        serializeQorePrototypeComment(fp, cname, 8, "#");
+    }
 
    void serializeNormalCppMethod(FILE* fp, const char* cname, const char* arg) const {
       assert(!(attr & QCA_STATIC));
@@ -2952,6 +3031,23 @@ public:
       return !*m;
    }
 
+    virtual int serializeUnitTest(FILE* fp) {
+        //fprintf(fp, "# ClassElement::serializeUnitTest\n");
+        fprintf(fp, "    # Qore class %s::%s\n", ns.empty() ? "Qore" : ns.c_str(), name.c_str());
+        fprintf(fp, "    private test_%s_%s() {\n", ns.empty() ? "Qore" : ns.c_str(), name.c_str());
+
+        for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i) {
+            i->second->serializeUnitTestMethod(fp, name.c_str());
+        }
+
+        for (mmap_t::const_iterator i = static_mmap.begin(), e = static_mmap.end(); i != e; ++i) {
+            i->second->serializeUnitTestStatic(fp, name.c_str());
+        }
+
+        fprintf(fp, "    }\n\n");
+        return 0;
+    }
+
    virtual int serializeCpp(FILE* fp) {
       fprintf(fp, "/* Qore class %s::%s */\n\n", ns.empty() ? "Qore" : ns.c_str(), name.c_str());
 
@@ -3136,7 +3232,8 @@ protected:
    const char* fileName;
    std::string cppFileName,
       doxFileName,
-      rootName;
+      rootName,
+      unitTestFileName;
    // argument to fopen()
    const char* cpp_open_flag,
       *dox_open_flag;
@@ -3401,6 +3498,7 @@ protected:
 
 public:
    Code(const char* fn, const std::string& ofn, const std::string& dfn,
+        const std::string &unit_test_fn,
         bool cpp_append = false, bool dox_append = false) : fileName(fn),
                                                             cpp_open_flag(cpp_append ? "a" : "w"),
                                                             dox_open_flag(dox_append ? "a" : "w"),
@@ -3425,6 +3523,8 @@ public:
 
       cppFileName = !ofn.empty() ? ofn : dir + "/" + base + ".cpp";
       doxFileName = !dfn.empty() ? dfn : dir + "/" + base + ".dox.h";
+      unitTestFileName = !unit_test_fn.empty() ? unit_test_fn : dir + "/" + base + ".qtest";
+
       if (parse())
          valid = false;
 
@@ -3439,6 +3539,56 @@ public:
       for (source_t::iterator i = source.begin(), e = source.end(); i != e; ++i)
 	 delete *i;
    }
+
+    int serializeUnitTest() {
+        FILE* fp = fopen(unitTestFileName.c_str(), cpp_open_flag);
+        if (!fp) {
+            error("%s: %s\n", unitTestFileName.c_str(), strerror(errno));
+            return -1;
+        }
+        log(LL_INFO, "creating unit test file %s -> %s\n", fileName, unitTestFileName.c_str());
+
+        fprintf(fp, "#!/usr/bin/env qore\n");
+        fprintf(fp, "# -*- mode: qore; indent-tabs-mode: nil -*-\n");
+        fprintf(fp, "\n");
+        fprintf(fp, "%%new-style\n");
+        fprintf(fp, "%%enable-all-warnings\n");
+        fprintf(fp, "%%require-types\n");
+        fprintf(fp, "%%strict-args\n");
+        fprintf(fp, "\n");
+        fprintf(fp, "%%requires ../../../qlib/QUnit.qm\n");
+        fprintf(fp, "\n");
+        fprintf(fp, "%%exec-class Main\n");
+        fprintf(fp, "\n");
+        fprintf(fp, "class Main inherits QUnit::Test {\n");
+        fprintf(fp, "\n");
+        fprintf(fp, "    constructor() : Test(\"Main\", \"1.0\", \\ARGV) {\n");
+        fprintf(fp, "\n");
+        // TODO/FIXME: get list of test cases in advance
+        fprintf(fp, "        # addTestCase(\"foobar\", \\testFoobar());\n");
+        fprintf(fp, "\n");
+        fprintf(fp, "        # Return for compatibility with test harness that checks return value.\n");
+        fprintf(fp, "        set_return_value(main());\n");
+        fprintf(fp, "    }\n");
+        fprintf(fp, "\n");
+
+        for (source_t::const_iterator i = source.begin(), e = source.end(); i != e; ++i) {
+            if ((*i)->serializeUnitTest(fp)) {
+                fclose(fp);
+                return -1;
+            }
+        }
+
+        if (groups.serializeUnitTest(fp)) {
+            fclose(fp);
+            return -1;
+        }
+
+        fprintf(fp, "\n\n} # class Main \n");
+
+        fclose(fp);
+        return 0;
+    }
 
    int serializeCpp() {
       FILE* fp = fopen(cppFileName.c_str(), cpp_open_flag);
@@ -3740,6 +3890,10 @@ void process_command_line(int& argc, char**& argv) {
             opts.output_fn = optarg;
             break;
 
+         case 'u':
+            opts.unit_test_fn = optarg;
+            break;
+
          case 't':
             opts.table_fn = optarg;
             break;
@@ -3783,13 +3937,17 @@ int main(int argc, char* argv[]) {
    init();
 
    for (int i = 0; i < argc; ++i) {
-      Code code(argv[i], opts.output_fn, opts.dox_fn, i && !opts.output_fn.empty(), i && !opts.dox_fn.empty());
+      Code code(argv[i], opts.output_fn, opts.dox_fn, opts.unit_test_fn, i && !opts.output_fn.empty(), i && !opts.dox_fn.empty());
       if (!code) {
          error("please correct the errors above and try again\n");
          exit(1);
       }
       // create cpp output file
       if (code.serializeCpp())
+         return -1;
+
+      // create unit test output file
+      if (code.serializeUnitTest())
          return -1;
 
       // create dox output file
