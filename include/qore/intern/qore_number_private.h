@@ -443,6 +443,44 @@ struct qore_number_private : public qore_number_private_intern {
       return p;
    }
 
+    // for round functions: round(), ceil(), floor()
+    DLLLOCAL qore_number_private* doRoundNR(q_mpfr_unary_nr_func_t func, int prec = 0, ExceptionSink* xsink = NULL) const {
+        qore_number_private* p0 = new qore_number_private(*this);
+
+        if (prec == 0) {
+            func(p0 -> num, num);
+
+            if (xsink)
+                checkFlags(xsink);
+
+            return p0;
+        }
+
+        qore_number_private *p1, *p2, *c;
+
+        if (prec > 0) {
+            c = new qore_number_private(pow(10, prec));
+            p1 = p0 -> doMultiply(*c);
+            func(p1 -> num, p1 -> num);
+            p2 = p1 -> doDivideBy(*c, xsink);
+        }
+        else {
+            c = new qore_number_private(pow(10, -prec));
+            p1 = p0 -> doDivideBy(*c, xsink);
+            func(p1 -> num, p1 -> num);
+            p2 = p1 -> doMultiply(*c);
+        }
+
+        delete p0;
+        delete p1;
+        delete c;
+
+        if (xsink)
+            checkFlags(xsink);
+
+        return p2;
+    }
+
    DLLLOCAL mpfr_prec_t getPrec() const {
       return mpfr_get_prec(num);
    }
@@ -553,6 +591,11 @@ public:
 
    DLLLOCAL static QoreNumberNode* doUnaryNR(const QoreNumberNode& n, q_mpfr_unary_nr_func_t func, ExceptionSink* xsink = 0) {
       qore_number_private* p = n.priv->doUnaryNR(func, xsink);
+      return p ? new QoreNumberNode(p) : 0;
+   }
+
+   DLLLOCAL static QoreNumberNode* doRoundNR(const QoreNumberNode& n, q_mpfr_unary_nr_func_t func, int prec = 0, ExceptionSink* xsink = 0) {
+      qore_number_private* p = n.priv->doRoundNR(func, prec, xsink);
       return p ? new QoreNumberNode(p) : 0;
    }
 
