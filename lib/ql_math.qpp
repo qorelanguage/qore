@@ -88,6 +88,8 @@ const MININT = qore(new QoreBigIntNode(-LLONG_MAX - 1));
   *     round(-6450, -4);  // returns -10000
   *     round( 6450, -5);  // returns      0
   * @endcode
+  *
+  * @since %Qore 0.8.13 this function accepts the <b>prec</b> argument to specify the rounding precision
   */
 int round(softint num, int prec = 0) [flags=CONSTANT] {
     return round_ceil_floor_intern(num, prec, ROUND);
@@ -108,6 +110,8 @@ int round(softint num, int prec = 0) [flags=CONSTANT] {
   *     round( 6450.36481, -4);  // returns 10000.0
   *     round(-6450.36481, -5);  // returns     0.0
   * @endcode
+  *
+  * @since %Qore 0.8.13 this function accepts the <b>prec</b> argument to specify the rounding precision
   */
 float round(softfloat num, int prec = 0) [flags=CONSTANT] {
 #ifdef HAVE_ROUND
@@ -138,6 +142,8 @@ float round(softfloat num, int prec = 0) [flags=CONSTANT] {
   *     round( 645084.36481772n, -6);  // returns 1000000n
   *     round(-645084.36481772n, -7);  // returns       0n
   * @endcode
+  *
+  * @since %Qore 0.8.13 this function accepts the <b>prec</b> argument to specify the rounding precision
   */
 number round(number num, int prec = 0) [flags=CONSTANT] {
     return qore_number_private::doRoundNR(*num, mpfr_round, prec);
@@ -163,6 +169,8 @@ float round() [flags=RUNTIME_NOOP] {
   * @endcode
   *
   * @see floor(softint num, int prec = 0)
+  *
+  * @since %Qore 0.8.13 this function accepts the <b>prec</b> argument to specify the rounding precision
   */
 int ceil(softint num, int prec = 0) [flags=CONSTANT] {
     return round_ceil_floor_intern(num, prec, CEIL);
@@ -183,6 +191,8 @@ int ceil(softint num, int prec = 0) [flags=CONSTANT] {
   * @endcode
   *
   * @see floor(softfloat num, int prec = 0)
+  *
+  * @since %Qore 0.8.13 this function accepts the <b>prec</b> argument to specify the rounding precision
   */
 float ceil(softfloat num, int prec = 0) [flags=CONSTANT] {
     if (prec > 0) {
@@ -211,6 +221,8 @@ float ceil(softfloat num, int prec = 0) [flags=CONSTANT] {
   * @endcode
   *
   * @see floor(number num, int prec = 0)
+  *
+  * @since %Qore 0.8.13 this function accepts the <b>prec</b> argument to specify the rounding precision
   */
 number ceil(number n, int prec = 0) [flags=CONSTANT] {
     return qore_number_private::doRoundNR(*n, mpfr_ceil, prec);
@@ -236,6 +248,8 @@ float ceil() [flags=RUNTIME_NOOP] {
   * @endcode
   *
   * @see ceil(softint num, int prec = 0)
+  *
+  * @since %Qore 0.8.13 this function accepts the <b>prec</b> argument to specify the rounding precision
   */
 int floor(softint num, int prec = 0) [flags=CONSTANT] {
     return round_ceil_floor_intern(num, prec, FLOOR);
@@ -256,6 +270,8 @@ int floor(softint num, int prec = 0) [flags=CONSTANT] {
   * @endcode
   *
   * @see ceil(softfloat num, int prec = 0)
+  *
+  * @since %Qore 0.8.13 this function accepts the <b>prec</b> argument to specify the rounding precision
   */
 float floor(softfloat f, int prec = 0) [flags=CONSTANT] {
     if (prec > 0) {
@@ -284,6 +300,8 @@ float floor(softfloat f, int prec = 0) [flags=CONSTANT] {
   * @endcode
   *
   * @see ceil(number num, int prec = 0)
+  *
+  * @since %Qore 0.8.13 this function accepts the <b>prec</b> argument to specify the rounding precision
   */
 number floor(number n, int prec = 0) [flags=CONSTANT] {
     return qore_number_private::doRoundNR(*n, mpfr_floor, prec);
