@@ -124,6 +124,19 @@
     - fixed a bug where a closure created in an object scope could not be called if the object had been deleted, even if the closure did not refer to the object (<a href="https://github.com/qorelanguage/qore/issues/1258">issue 1303</a>)
     - fixed a bug where @ref Qore::ord() "ord()" would return negative numbers for bytes with the high bit set with compilers where <tt>char</tt> is the same as <tt>signed char</tt> (<a href="https://github.com/qorelanguage/qore/issues/1385">issue 1385</a>)
 
+    @section qore_08125 Qore 0.8.12.5
+
+    @par Release Summary
+    Bugfix release; see details below
+
+    @subsection qore_08125_bug_fixes Bug Fixes in Qore
+
+    - fixed handling of invalid compressed data in the following functions (<a href="https://github.com/qorelanguage/qore/issues/1432">issue 1432</a>):
+      - @ref Qore::gunzip_to_binary()
+      - @ref Qore::gunzip_to_string()
+      - @ref Qore::uncompress_to_binary()
+      - @ref Qore::uncompress_to_string()
+
     @section qore_08124 Qore 0.8.12.4
 
     @par Release Summary
