@@ -269,7 +269,7 @@ public namespace RestClient {
 
             #! Data serialization options; this is a hash to simulate a set of strings
             /** Data serialization options are as follows:
-                - \c "auto": prefers in this order: json, yaml, xml, xml-rpc, url, and text
+                - \c "auto": prefers in this order: json, yaml, rawxml, xml-rpc, url, and text
                 - \c "xml": use only XML-RPC serialization
                 - \c "rawxml": use raw XML serialization
                 - \c "json": use only JSON serialization
