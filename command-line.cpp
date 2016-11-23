@@ -3,11 +3,11 @@
 
   Qore Programming Language
 
-  this whole file comes out of a very old getopt-stype implementation by me
+  this whole file comes out of a very old getopt-stype implementation
 
   it should offer POSIX style command-line handling on any platform...
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -892,7 +892,7 @@ int qore_main_intern(int argc, char* argv[], int other_po) {
       bool mod_errs = false;
 
       // set parse defines
-      qpgm->parseCmdLineDefines(defmap, xsink, wsink, warnings);
+      qpgm->parseCmdLineDefines(xsink, wsink, warnings, defmap);
 
       if (xsink.isException()) {
          rc = 2;
