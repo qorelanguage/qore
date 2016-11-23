@@ -390,11 +390,12 @@ QoreStringNode* qore_inflate_to_string(const BinaryNode* b, const QoreEncoding* 
       if (rc == Z_STREAM_END)
          break;
       if (rc == Z_BUF_ERROR) {
-         if (!d_stream.avail_in) {
-            do_zlib_exception(Z_DATA_ERROR, "inflate", xsink);
+         if (d_stream.avail_in == 0 && d_stream.avail_out > 0) {
+            xsink->raiseException("ZLIB-ERROR", "Unexpected end of compressed data");
+            free(buf);
             return 0;
          }
-         int new_space = ((len * 3) + 100);
+         int new_space = ((b->size() * 3) + 100);
          bsize += new_space;
          d_stream.avail_out += new_space;
          buf = realloc(buf, bsize);
@@ -444,11 +445,12 @@ BinaryNode* qore_inflate_to_binary(const BinaryNode* b, ExceptionSink* xsink) {
       if (rc == Z_STREAM_END)
          break;
       if (rc == Z_BUF_ERROR) {
-         if (!d_stream.avail_in) {
-            do_zlib_exception(Z_DATA_ERROR, "inflate", xsink);
+         if (d_stream.avail_in == 0 && d_stream.avail_out > 0) {
+            xsink->raiseException("ZLIB-ERROR", "Unexpected end of compressed data");
+            free(buf);
             return 0;
          }
-         int new_space = ((len * 3) + 100);
+         int new_space = ((b->size() * 3) + 100);
          bsize += new_space;
          d_stream.avail_out += new_space;
          buf = realloc(buf, bsize);
@@ -561,11 +563,12 @@ QoreStringNode* qore_gunzip_to_string(const BinaryNode* bin, const QoreEncoding*
       if (rc == Z_STREAM_END)
          break;
       if (rc == Z_BUF_ERROR) {
-         if (!d_stream.avail_in) {
-            do_zlib_exception(Z_DATA_ERROR, "inflate", xsink);
+         if (d_stream.avail_in == 0 && d_stream.avail_out > 0) {
+            xsink->raiseException("ZLIB-ERROR", "Unexpected end of compressed data");
+            free(buf);
             return 0;
          }
-         int new_space = ((len * 3) + 100);
+         int new_space = ((bin->size() * 3) + 100);
          bsize += new_space;
          d_stream.avail_out += new_space;
          buf = realloc(buf, bsize);
@@ -616,11 +619,12 @@ BinaryNode* qore_gunzip_to_binary(const BinaryNode* bin, ExceptionSink* xsink) {
       if (rc == Z_STREAM_END)
          break;
       if (rc == Z_BUF_ERROR) {
-         if (!d_stream.avail_in) {
-            do_zlib_exception(Z_DATA_ERROR, "inflate", xsink);
+         if (d_stream.avail_in == 0 && d_stream.avail_out > 0) {
+            xsink->raiseException("ZLIB-ERROR", "Unexpected end of compressed data");
+            free(buf);
             return 0;
          }
-         int new_space = ((len * 3) + 100);
+         int new_space = ((bin->size() * 3) + 100);
          bsize += new_space;
          d_stream.avail_out += new_space;
          buf = realloc(buf, bsize);
