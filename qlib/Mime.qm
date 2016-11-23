@@ -691,7 +691,7 @@ public namespace Mime {
     }
 
     #! returns a single string in MIME URL encoded format
-    /** spaces are replaced with \c '+' signs, reserved characters are replaced with percent encoding, characters outside the ASCII character set cause an exception to be thrown
+    /** reserved characters are replaced with percent encoding, characters outside the ASCII character set cause an exception to be thrown
 
         @param the input value
 
@@ -701,6 +701,8 @@ public namespace Mime {
         @throw INVALID-CHARACTER an invalid character has been found
 
         @see <a href="https://tools.ietf.org/html/rfc1738">RFC 2738 2.2</a>
+
+        @note spaces are not replaced with \c '+' signs but rather encoded as \c %20 because \c '+' signs are often encoded and decoded improperly in URLs, and \c %20 is unambiguous
 
         @since %Mime 1.3.4.1
      */
