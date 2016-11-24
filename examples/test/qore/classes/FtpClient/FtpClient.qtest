@@ -325,6 +325,10 @@ class FtpTest inherits QUnit::Test {
         string local_path = tmp_location() + '/ftptest';
         unlink(local_path);
 
+%ifdef Windows
+        path =~ s/\\/\//g;
+%endif
+
         fc.cwd(path);
 
         testAssertion("FtpClient::get()", \fc.get(), (file, local_path), new TestResultValue(NOTHING));
