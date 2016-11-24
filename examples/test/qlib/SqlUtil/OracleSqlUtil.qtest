@@ -34,7 +34,9 @@ class OracleTestSchema inherits SqlUtilTestSchema {
 
         const IndexOptions = {};
 
-        const ColumnOptions = {};
+        const ColumnOptions = (
+            "character_semantics": True,
+            );
 
         const T_OracleTest = (
             "columns": (
@@ -83,6 +85,14 @@ class OracleTestSchema inherits SqlUtilTestSchema {
 
     private *hash getColumnOptionsImpl() {
         return ColumnOptions;
+    }
+}
+
+class OracleByteSchema inherits OracleTestSchema {
+    constructor(AbstractDatasource ds, *string dts, *string its) : OracleTestSchema(ds, dts, its) {
+    }
+
+    private *hash getColumnOptionsImpl() {
     }
 }
 
@@ -147,9 +157,35 @@ class OracleTest inherits SqlTestBase {
 
             addTestCase("sequence operators", \testSequenceOperators());
             addTestCase("pseudo-columns", \testPseudoColumns());
+            addTestCase("character semantics", \testCharacterSemantics());
         }
 
         set_return_value(main());
+    }
+
+    testCharacterSemantics() {
+        AbstractDatasource ds = table.getDatasource();
+
+        assertEq(True, schema.getColumnOptions().character_semantics, "character_semantics value in schema");
+
+        hash c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "VARCHAR2_F");
+        # it must be C (CHAR) in case of character_semantics=True, B is for BYTE
+        assertEq("C", c.char_used, "character_semantics from data dictionary");
+
+        # align schema with byte semantics
+        OracleByteSchema byte_schema(ds);
+        byte_schema.align(True, m_options.verbose);
+
+        c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "VARCHAR2_F");
+        # it must be C (CHAR) in case of character_semantics=True, B is for BYTE
+        assertEq("B", c.char_used, "character_semantics after alignment");
+
+        # align schema with character semantics
+        schema.align(True, m_options.verbose);
+
+        c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "VARCHAR2_F");
+        # it must be C (CHAR) in case of character_semantics=True, B is for BYTE
+        assertEq("C", c.char_used, "character_semantics after alignment");
     }
 
     testSequenceOperators() {
