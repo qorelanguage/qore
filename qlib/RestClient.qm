@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file RestClient.qm Qore user module for calling REST services
 
-/*  RestClient.qm Copyright (C) 2013 - 2016 Qore Technologies, sro
+/*  RestClient.qm Copyright (C) 2013 - 2016 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -82,11 +82,12 @@ module RestClient {
     The main classes are:
     - @ref RestClient::RestClient "RestClient": this class provides the REST client API
 
-    The @ref RestClient::RestClient "RestClient" class can support these methods of data serialization:
+    The @ref RestClient::RestClient "RestClient" class can support the following methods of data serialization:
     - \c "json": using the \c "json" module; messages bodies are encoded using JSON
-    - \c "yaml": using the \c "yaml" module; message bodies are encoded using YAML
+    - \c "rawxml": using the \c "xml" module; message bodies are encoded with XML without any data type encodings
+    - \c "url": message bodies are encoded in URL form encoded format (see <a href="https://tools.ietf.org/html/rfc1738">RFC 2738 2.2</a>)
     - \c "xml": using the \c "xml" module; message bodies are encoded using XML-RPC value encoding
-    - \c "xml_raw": using the \c "xml" module; message bodies are encoded using XML value encoding
+    - \c "yaml": using the \c "yaml" module; message bodies are encoded using YAML
     - \c "text": message bodies are not serialized, plain text value is used
 
     If none of the above modules can be loaded by the RestClient module, then the RestClient module will fail to initialize.
@@ -112,7 +113,10 @@ printf("%N\n", ans.body);
     @subsection restclientv1_4 RestClient v1.4
     - added:
       - support for \c text/plain Content-Type
-      - support for \c xml_raw serialization and deserialization
+
+    @subsection restclientv1_3_1 RestClient v1.3.1
+    - added support for the \c "url" encoding for URL form encodeded message bodies (<a href="https://github.com/qorelanguage/qore/issues/1436">issue 1436</a>)
+    - added support for the \c "rawxml" data type; when parsing XML responses, if the XML cannot be parsed as XML-RPC data, then it's attempted to be parsed as untyped XML data (<a href="https://github.com/qorelanguage/qore/issues/1437"issue 1437</a>)
 
     @subsection restclientv1_3 RestClient v1.3
     - added:
@@ -162,42 +166,56 @@ public namespace RestClient {
                 ),
 %endif
 %ifndef NoXml
-                "xml_raw": (
-                    "ct": MimeTypeXml,
-                    "out": \make_xml(),
-                ),
                 "xml": (
                     "ct": MimeTypeXml,
                     "out": \make_xmlrpc_value(),
                 ),
+                "rawxml": (
+                    "ct": MimeTypeXmlApp,
+                    "out": \make_xml(),
+                ),
 %endif
+                "url": (
+                    "ct": MimeTypeFormUrlEncoded,
+                    "out": \mime_get_form_urlencoded_string(),
+                ),
                 "text": (
                     "ct": MimeTypeText,
                     "out": string sub (any s) { return sprintf("%s", s); },
                 ),
                 };
 
-
 %ifndef NoYaml
             const DeserializeYaml = (
-                    "code": "yaml",
-                    "in": \parse_yaml(),
+                "code": "yaml",
+                "in": \parse_yaml(),
                 );
 %endif
 %ifndef NoXml
-            const DeserializeXmlRpc = (
-                    "code": "xml_rpc",
-                    "in": \parse_xmlrpc_response(),
-                    "continue_on_error" : True,
-                );
             const DeserializeXml = (
-                    "code": "xml_raw",
-                    "in": \parse_xml(),
+                "code": "xml",
+                "in": hash sub (string xml) {
+                    try {
+                        return parse_xmlrpc_value(xml);
+                    }
+                    catch (hash ex) {
+                        try {
+                            return parse_xml(xml);
+                        }
+                        catch () {
+                        }
+                        rethrow;
+                    }
+                },
                 );
 %endif
 
             #! Data deserialization support MIME types to codes and de/serialization functions
             const DataDeserializationSupport = {
+                MimeTypeFormUrlEncoded: (
+                    "code": "url",
+                    "in": \mime_parse_form_urlencoded_string(),
+                ),
 %ifndef NoJson
                 MimeTypeJson: (
                     "code": "json",
@@ -209,8 +227,8 @@ public namespace RestClient {
                 MimeTypeYaml: DeserializeYaml,
 %endif
 %ifndef NoXml
-                MimeTypeXml: (DeserializeXmlRpc, DeserializeXml, ),
-                MimeTypeXmlApp: (DeserializeXmlRpc, DeserializeXml, ),
+                MimeTypeXml: DeserializeXml,
+                MimeTypeXmlApp: DeserializeXml,
 %endif
                 MimeTypeText: (
                     "code": "text",
@@ -230,6 +248,7 @@ public namespace RestClient {
 %ifndef NoJson
                 MimeTypeJsonRpc,
 %endif
+                MimeTypeFormUrlEncoded,
                 MimeTypeText,
                 );
 
@@ -250,10 +269,11 @@ public namespace RestClient {
 
             #! Data serialization options; this is a hash to simulate a set of strings
             /** Data serialization options are as follows:
-                - \c "auto": prefers in this order: json, yaml, xml, xml-rpc, and text
+                - \c "auto": prefers in this order: json, yaml, rawxml, xml-rpc, url, and text
+                - \c "xml": use only XML-RPC serialization
+                - \c "rawxml": use raw XML serialization
                 - \c "json": use only JSON serialization
                 - \c "yaml": use only YAML serialization
-                - \c "xml_raw": use raw XML message
                 - \c "xml": use only XML-RPC serialization
                 - \c "text": use only plain text. No serialization is used.
              */
@@ -266,9 +286,10 @@ public namespace RestClient {
                 "yaml": True,
 %endif
 %ifndef NoXml
+                "rawxml": True,
                 "xml": True,
-                "xml_raw": True,
 %endif
+                "url": True,
                 "text": True,
                 );
 

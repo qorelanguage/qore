@@ -266,7 +266,7 @@ int floor(softint num, int prec = 0) [flags=CONSTANT] {
   *     floor( 64599.28, -2);  // returns 64500.0
   *     floor( 17500.28, -4);  // returns 10000.0
   *     floor( 34500.28, -7);  // returns 0.0
-  *     floor(-34500.28, -7);  // returns -10000000.0 
+  *     floor(-34500.28, -7);  // returns -10000000.0
   * @endcode
   *
   * @see ceil(softfloat num, int prec = 0)
@@ -1147,7 +1147,7 @@ long long round_ceil_floor_intern(long long num, int prec, FUN fun) {
     if (prec >= 0)
         return num;
 
-    string s = string(to_string(LLONG_MAX).length() + 4, '0') + to_string(abs(num));
+    string s = string(to_string(LLONG_MAX).length() + 4, '0') + to_string(num < 0 ? -num : num);
     int len = s.length();
     if (len < -prec)
         return 0;

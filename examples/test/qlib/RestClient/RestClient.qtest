@@ -9,8 +9,8 @@
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mime.qm
 %requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/HttpServerUtil.qm
 %requires ../../../../qlib/HttpServer.qm
-#%requires ../../../../qlib/HttpServerUtil.qm
 
 %try-module yaml >= 0.5
 %define NoYaml
@@ -37,8 +37,8 @@ const VALUE_XML = (
         "output" : ("foo" : ("bar" : "1")),
     );
 const VALUE_XMLRPC = (
-        "input" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?><methodResponse><params><param><value><i4>1</i4></value></param></params></methodResponse>",
-        "output" : ("params" : 1),
+        "input" : "<struct><member><name>foo</name><value><i4>1</i4></value></member></struct>",
+        "output" : ("foo": 1),
     );
 const VALUE_YAML = (
         "input" : "foo:\n bar: 1",
@@ -69,7 +69,7 @@ class SimpleStringHandler inherits AbstractHttpRequestHandler {
 }
 
 sub log(string str) {
-    printf("", argv);
+    delete argv;
 }
 
 public class Main inherits QUnit::Test {
@@ -88,7 +88,7 @@ public class Main inherits QUnit::Test {
     setUp() {
         m_http = new HttpServer(\log(), \log());
         m_http.setHandler("/api_text", "/api_text", MimeTypeText, new SimpleStringHandler(MimeTypeText, VALUE_TEXT.input));
-        m_http.setHandler("/api_xml", "/api_xml", MimeTypeXml, new SimpleStringHandler(MimeTypeXml, VALUE_XML.input));
+        m_http.setHandler("/api_xml", "/api_xml", MimeTypeXmlApp, new SimpleStringHandler(MimeTypeXmlApp, VALUE_XML.input));
         m_http.setHandler("/api_rpc", "/api_rpc", MimeTypeXml, new SimpleStringHandler(MimeTypeXml, VALUE_XMLRPC.input));
         m_http.setHandler("/api_json", "/api_json", MimeTypeJson, new SimpleStringHandler(MimeTypeJson, VALUE_JSON.input));
         m_http.setHandler("/api_yaml", "/api_yaml", MimeTypeYaml, new SimpleStringHandler(MimeTypeYaml, VALUE_YAML.input));
@@ -134,7 +134,7 @@ public class Main inherits QUnit::Test {
         testAssertionValue("/api_text", ret.body, VALUE_TEXT.output);
 
 %ifndef NoXml
-        rest.setSerialization("xml_raw");
+        rest.setSerialization("rawxml");
         ret = rest.put("/api_xml", VALUE_XML.output);
         testAssertionValue("/api_xml", ret.body, VALUE_XML.output);
 
