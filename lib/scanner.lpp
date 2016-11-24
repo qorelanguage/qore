@@ -55,7 +55,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <limits.h>
-#include <math.h>
+#include <cmath>
 
 QoreParserLocation::QoreParserLocation() : explicit_first(false), first_line(0) {
 }
