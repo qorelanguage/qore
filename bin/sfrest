@@ -256,24 +256,24 @@ class SfRestClient {
     private string getBody(hash info) {
         switch (info.headers."Content-Encoding") {
             case "deflate":
-                case "x-deflate":
+            case "x-deflate":
                 info."request-body" = uncompress_to_string(info."request-body");
-            break;
+                break;
             case "gzip":
-                case "x-gzip":
+            case "x-gzip":
                 info."request-body" = gunzip_to_string(info."request-body");
-            break;
+                break;
             case "bzip2":
-                case "x-bzip2":
+            case "x-bzip2":
                 info."request-body" = bunzip2_to_string(info."request-body");
-            break;
+                break;
             case "identity":
                 info."request-body" = binary_to_string(info."request-body");
-            break;
+                break;
             case NOTHING:
-            break;
+                break;
             default:
-            throw "UNKNOWN-CONTENT-ENCODING", sprintf("unknown Content-Encoding %y used to send message", info.headers."Content-Encoding");
+                throw "UNKNOWN-CONTENT-ENCODING", sprintf("unknown Content-Encoding %y used to send message", info.headers."Content-Encoding");
         }
         return trim(info."request-body");
     }
