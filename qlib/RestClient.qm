@@ -317,7 +317,13 @@ RestClient rest(("url": "http://localhost:8001/rest"));
             @endcode
 
             @param opts valid options are:
+            - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref Qore::True "True" or @ref Qore::False "False": indicating if the method required a message body as well. Example:
+                @code{.py}
+# add new HTTP methods for WebDAV. Both of them require body posting to the server
+("additional_methods": ("PROPFIND": True, "MKCOL": True ));
+                @endcode
             - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a relative date-time value for clarity, ex: \c 20s)
+            - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding
             - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "auto"
             - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
             - \c default_port: The default port number to connect to if none is given in the URL
@@ -326,7 +332,6 @@ RestClient rest(("url": "http://localhost:8001/rest"));
             - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
             - \c proxy: The proxy URL for connecting through a proxy
             - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
-            - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding
             - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 30s)
             - \c url: A string giving the URL to connect to
             @param do_not_connect if \c False (the default), then a connection will be immediately established to the remote server

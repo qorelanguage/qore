@@ -242,6 +242,11 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 /usr/bin/qore
+/usr/bin/qget
+/usr/bin/rest
+/usr/bin/schema
+/usr/bin/sfrest
+/usr/bin/sqlutil
 %if 0%{?rh_dist}
 %if %{?rh_dist} <= 5
 /usr/man/man1/qore.1.*
