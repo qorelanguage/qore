@@ -157,10 +157,15 @@ make check
 
 %files
 %{_bindir}/qore
+%{_bindir}/qget
+%{_bindir}/rest
+%{_bindir}/schema
+%{_bindir}/sfrest
+%{_bindir}/sqlutil
 %{_mandir}/man1/qore.1.*
 
 %changelog
-* Web Nov 23 2016 David Nichols <david@qore.org> 0.8.12.5-1
+* Wed Nov 23 2016 David Nichols <david@qore.org> 0.8.12.5-1
 - updated to 0.8.12.5
 
 * Fri Oct 21 2016 David Nichols <david@qore.org> 0.8.12.4-1

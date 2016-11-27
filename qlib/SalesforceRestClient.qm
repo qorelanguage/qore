@@ -1,0 +1,398 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file SalesforceRestClient.qm Qore user module for calling Salesforce.com REST services
+
+/*  SalesforceRestClient.qm Copyright (C) 2016 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# this module requires Qore 0.8.12 or better
+%requires qore >= 0.8.12
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+
+# don't use "$" for vars, members, and methods, assume local variable scope
+%new-style
+
+# do not ignore argument errors
+%strict-args
+
+%requires(reexport) Mime >= 1.3
+%requires(reexport) RestClient >= 1.3.1
+
+module SalesforceRestClient {
+    version = "1.0";
+    desc = "user module for calling Salesforce.com REST services";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+/** @mainpage SalesforceRestClient Module
+
+    @tableofcontents
+
+    @section salesforcerestclientintro SalesforceRestClient Introduction
+
+    The %SalesforceRestClient module provides an API for calling REST services with Salesforce.com.
+
+    To use this module, use \c "%requires SalesforceRestClient" in your code.
+
+    All the public symbols in the module are defined in the SalesforceRestClient namespace.
+
+    The main classes are:
+    - @ref SalesforceRestClient::SalesforceRestClient "SalesforceRestClient": this class provides the REST client API for communuication with Salesforce.com; it also automates authentication and authorization to the target Connected App
+
+    @par Example:
+    @code{.py}
+#!/usr/bin/env qore
+
+%requires SalesforceRestClient
+
+hash opts = (
+    "client_id": ENV.SALESFORCE_CONSUMER_KEY,
+    "client_secret": ENV.SALESFORCE_CONSUMER_SECRET,
+    "username": ENV.SALESFORCE_USER,
+    "password": ENV.SALESFORCE_PASS,
+);
+
+SalesforceRestClient rest(opts);
+hash ans = rest.get("sobjects");
+printf("%N\n", ans.body);
+    @endcode
+
+    @section salesforcerestclientrelnotes Release Notes
+
+    @subsection salesforcerestclientv1_0 SalesforceRestClient v1.0
+    - the initial version of the %SalesforceRestClient module
+*/
+
+#! the SalesforceRestClient namespace contains all the objects in the SalesforceRestClient module
+public namespace SalesforceRestClient {
+    #! this class provides the REST client API for communication with Salesforce.com
+    /** This class requires the following options for Salesforce.com authentication and authorization to the target Connected App:
+        - \c client_id: the Salesforce.com "consumer key"
+        - \c client_secret: the Salesforce.com "consumer secret"
+        - \c username: the Salesforce.com account username
+        - \c password: the Salesforce.com account password
+
+        The following options can be overridden; default values are provided as follows:
+        - \c api: default value \c "auto" for the Salesforce.com REST API version; \c "auto" means use the latest version available
+        - \c oauth_url_auth: default value \c "https://login.salesforce.com/services/oauth2/authorize" (not currently used)
+        - \c oauth_url_token: default value \c "https://login.salesforce.com/services/oauth2/token" (used for logging in to Salesforce.com)
+        - \c oauth_url_revoke: default value \c "https://login.salesforce.com/services/oauth2/revoke"
+
+        This class also automatically adds support for the \c "PATCH" HTTP method used by Salesforce.com for updates to existing objects,
+        as well as the @ref SalesforceRestClient::SalesforceRestClient::patch() "SalesforceRestClient::patch()" method
+
+        The @ref SalesforceRestClient::SalesforceRestClient::doRequest() "SalesforceRestClient::patchdoRequest()" method is overridden in
+        this class to provide transparent authentication and authorization to Salesforce.com.  With every REST request, if no token has
+        been acquired, first a login token will be acquired, the internal URL set to the target URL provided by the token call, and then
+        the requested REST call will be made.
+
+        When logging in to Salesforce.com (see @ref SalesforceRestClient::SalesforceRestClient::login() "SalesforceRestClient::login()"),
+        the \c Authorization header is set by default to be included with any future calls made through this object (or with
+        @ref RestClient::RestClient "RestClient" methods in the parent class).
+
+        When sending headers to Salesforce.com, any headers with date values are converted to GMT format; for example, the
+        \c "If-Modified-Since" and \c "If-Unmodified-Since" headers can be set to date/time values, and this object will
+        convert them to date strings in GMT format; ex:
+        @code
+SalesforceRestClient rest(opts);
+hash ans = rest.get("sobjects", NOTHING, NOTHING, ("If-Modified-Since": 2016-11-25));
+        @endcode
+
+        In a request sent from the call above in the \c Europe/Prague time zone, the \c "If-Modified-Since" header would be sent as:
+        @verbatim
+If-Modified-Since: Thu, 24 Nov 2016 23:00:00 GMT
+        @endverbatim
+     */
+    public class SalesforceRestClient inherits RestClient::RestClient {
+        public {
+            #! defaults
+            const Defaults = (
+                "oauth_url_auth": "https://login.salesforce.com/services/oauth2/authorize",
+                "oauth_url_token": "https://login.salesforce.com/services/oauth2/token",
+                "oauth_url_revoke": "https://login.salesforce.com/services/oauth2/revoke",
+                "api": "auto",
+                );
+
+            #! required options
+            const RequiredOptions = (
+                # the Salesforce.com "consumer key"
+                "client_id",
+                # the Salesforce.com "consumer secret"
+                "client_secret",
+                # the Salesforce.com username
+                "username",
+                # the Salesforce.com password
+                "password",
+                );
+        }
+
+        private {
+            #! Salesforce.com OAuth2 Authorization URL
+            string oauth_url_auth;
+
+            #! Salesforce.com OAuth2 Get Token URL
+            string oauth_url_token;
+
+            #! Salesforce.com OAuth2 Revoke Token URL
+            string oauth_url_revoke;
+
+            #! Mutex for token acquisition
+            Mutex m();
+
+            #! Salesforce.com token
+            string token;
+
+            #! Salesforce.com "consumer key"
+            string client_id;
+
+            #! Salesforce.com "consumer secret"
+            string client_secret;
+
+            #! Salesforce.com username
+            string username;
+
+            #! Salesforce.com password
+            string password;
+
+            #! Salesforce.com REST API version to be used (\c "auto" = latest version)
+            string api;
+
+            #! Salesforce.com REST API version currently in use
+            string api_used;
+
+            #! hash of APIs retrieved from GET /services/data; keyed by API version string; values: \c "label", \c "url"
+            hash api_hash;
+        }
+
+        #! creates the object with the given options (which include the following mandatory options for Salesforce.com authentication: \c client_id, \c client_secret, \c username, \c password)
+        /**
+            @par Example:
+            @code{.py}
+SalesforceRestClient rest(("url": "http://localhost:8001/rest"));
+            @endcode
+
+            @param opts valid options are:
+            - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref Qore::True "True" or @ref Qore::False "False": indicating if the method required a message body as well. Example:
+                @code{.py}
+# add new HTTP methods for WebDAV. Both of them require body posting to the server
+("additional_methods": ("PROPFIND": True, "MKCOL": True ));
+                @endcode
+            - \c api: the Salesforce.com API to use; use \c "auto" (the default) to use the latest API version
+            - \c client_id: (required) the Salesforce.com "consumer key" for the Connected App
+            - \c client_secret: (required) the Salesforce.com "consumer secret" for the Connected App
+            - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a relative date-time value for clarity, ex: \c 20s)
+            - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding
+            - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "json"
+            - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
+            - \c default_port: The default port number to connect to if none is given in the URL
+            - \c headers: an optional hash of headers to send with every request, these can also be overridden in request method calls
+            - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing message headers
+            - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
+            - \c password": (required) the Salesforce.com account password for the Connected App
+            - \c proxy: The proxy URL for connecting through a proxy
+            - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+            - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 30s)
+            - \c username: (required) the Salesforce.com account username for the Connected App
+            @param do_not_connect if \c False (the default), then a connection will be immediately established to the remote server and a token will be received
+
+            @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
+            @throw SALESFORCERESTCLIENT-ERROR missing or invalid required option for Salesforce.com REST authentication or communication
+        */
+        constructor(*hash opts, *softbool do_not_connect) : RestClient(SalesforceRestClient::getOptions(opts), True) {
+            # set options
+            map self.$1 = opts.$1 ?? Defaults.$1, Defaults.keyIterator();
+
+            # check required options
+            foreach string key in (RequiredOptions) {
+                any v = opts{key};
+                if (!exists v || v == "")
+                    throw "SALESFORCERESTCLIENT-ERROR", sprintf("missing required option %y in option argument", key);
+                if (v.typeCode() != NT_STRING)
+                    throw "SALESFORCERESTCLIENT-ERROR", sprintf("required option %y was passed as a %s (%y); expecting \"string\"", key, v.type(), v);
+
+                self{key} = v;
+            }
+
+            if (!do_not_connect)
+                loginIntern();
+        }
+
+        #! sends an HTTP PATCH request to the Salesforce.com REST server and returns the response; performs an implicit login to Salesforce.com if necessary
+        /** @par Example:
+            @code{.py}
+hash ans = rest.patch("/orders/1", ("action": "cancel"));
+            @endcode
+
+            @param path the URI path to add (will be appended to any root path given in the constructor)
+            @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
+            @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+            @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
+
+            @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be assigned to the value of the \c "body" key
+
+            @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid serialization)
+            @throw HTTP-CLIENT-RECEIVE-ERROR if this exception is thrown by the @ref Qore::HTTPClient::send() call in case of an HTTP response code < 100 or >= 300, the message body is still deserialized if possible and the response information can be retrieved in the \a info hash output keys as follows:
+            - \c "response-code": the HTTP response code given
+            - \c "response-headers": a hash of response headers
+            - \c "response-body": the decoded response body
+
+            Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
+
+            @see
+            - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
+            - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+        */
+        hash patch(string path, any body, *reference info, *hash hdr) {
+            return doRequest("PATCH", path, body, \info, NOTHING, hdr);
+        }
+
+        #! sends an HTTP request to the REST server and returns the response; performs an implicit login to Salesforce.com if necessary
+        /** @par Example:
+            @code{.py}
+hash ans = rest.doRequest("GET", "sobjects");
+            @endcode
+
+            @param m the HTTP method to be used; case is ignored (if not a valid method an \c HTTP-CLIENT-METHOD-ERROR exception is raised)
+            @param path the URI path to add (will be appended to any root path given in the constructor)
+            @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
+            @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+            @param decode_errors decode the message body with HTTP error responses and throw an exception based on the message body
+            @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
+
+            @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be assigned to the value of the \c "body" key
+
+            @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid serialization)
+            @throw HTTP-CLIENT-METHOD-ERROR invalid HTTP method argument passed
+            @throw HTTP-CLIENT-RECEIVE-ERROR if this exception is thrown by the @ref Qore::HTTPClient::send() call in case of an HTTP response code < 100 or >= 300, the message body is still deserialized if possible and the response information can be retrieved in the \a info hash output keys as follows:
+            - \c "response-code": the HTTP response code given
+            - \c "response-headers": a hash of response headers
+            - \c "response-body": the decoded response body
+
+            Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
+
+            @see
+            - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
+            - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+         */
+        hash doRequest(string m, string path, any body, *reference info, softbool decode_errors = True, *hash hdr) {
+            # convert any dates in headers to GMT format
+            map hdr.($1.key) = getGmtDate($1.value), hdr.pairIterator(), $1.value.typeCode() == NT_DATE;
+
+            AutoLock al(self.m);
+
+            if (!token)
+                loginIntern(\info);
+            return RestClient::doRequest(m, path, body, \info, decode_errors, hdr);
+        }
+
+        #! logs in to Salesforce.com with the credentials provided in the constructor()
+        /** @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+
+            @note this call is made implicitly before each REST call and should not need to be called manually
+         */
+        login(*reference info) {
+            AutoLock al(m);
+
+            loginIntern(\info);
+        }
+
+        #! returns the Salesforce.com REST API version currently in use
+        string getApi() {
+            return api_used;
+        }
+
+        #! returns a date string in GMT for use in Salesforce.com requests
+        static string getGmtDate(date d) {
+            return gmtime(d).format("Dy, DD Mon YYYY HH:mm:SS") + " GMT";
+        }
+
+        #! returns options for the @ref RestClient::RestClient::constructor() "RestClient::constructor()"
+        private static hash getOptions(*hash opts) {
+            return (
+                "additional_methods": ("PATCH": False) + opts.additional_methods,
+                "data": "json",
+                "url": opts.oauth_url_auth ?? Defaults.oauth_url_auth,
+                ) + opts;
+        }
+
+        #! performs authentication and authorization with Salesforce.com using the OAuth2 authorization URL
+        /** called with the Mutex held
+        */
+        private loginIntern(*reference info) {
+            # ensure that if json serialization is set, that we do not claim to understand XML responses (which Salesforce.com will prefer otherwise, and then no type information will be transmitted)
+            if (ds == "json")
+                addDefaultHeaders(("Accept": MimeTypeJson));
+            else
+                delete headers.Accept;
+
+            # create login hash
+            hash lh = self.("client_id", "client_secret", "username", "password") + (
+                "grant_type": "password",
+                );
+
+            # use the Salesforce.com OAuth2 authorization URL to get the token
+            setURL(oauth_url_token);
+
+            # restore the old serialization option on exit
+            string old_ds = ds;
+            on_exit
+                setSerialization(old_ds);
+
+            # use URL form encoding for the message body
+            setSerialization("url");
+
+            # make the authorization call
+            hash h = RestClient::doRequest("POST", "", lh, \info).body;
+
+            # set the token
+            token = sprintf("%s %s", h.token_type, h.access_token);
+            addDefaultHeaders(("Authorization": token));
+
+            # set the URL to the Salesforce.com URL for REST API calls
+            setURL(h.instance_url);
+
+            # get as hash of supported APIs
+            api_hash = map {$1.version: $1 - "version"}, RestClient::doRequest("GET", "services/data").body;
+
+            hash ah;
+            if (api == "auto") {
+                api = api_used = api_hash.lastKey();
+                ah = api_hash.lastValue();
+            }
+            else {
+                *hash aah = api_hash{api};
+                if (!aah)
+                    throw "SALESFORCE-API-ERROR", sprintf("Salesforce.com REST API %y was requested but is not supported; supported Salesforce.com APIs: %y", api, api_hash.keys());
+                api_used = api;
+                ah = aah;
+            }
+
+            # set the URL to the Salesforce.com URL for REST API calls
+            setURL(h.instance_url + ah.url);
+        }
+    }
+}
