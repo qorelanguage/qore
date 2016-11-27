@@ -20,7 +20,8 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/HttpServer.qm \
 	qlib/WebSocketUtil.qm \
 	qlib/SqlUtil.qm \
-	qlib/Mapper.qm
+	qlib/Mapper.qm \
+	qlib/RestClient.qm
 
 DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/TelnetClient.qm \
@@ -34,7 +35,6 @@ DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/Qorize.qm \
 	qlib/MysqlSqlUtil.qm \
 	qlib/RestHandler.qm \
-	qlib/RestClient.qm \
 	qlib/WebSocketHandler.qm \
 	qlib/WebSocketClient.qm \
 	qlib/WebUtil.qm \
@@ -43,6 +43,7 @@ DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/QUnit.qm \
 	qlib/Diff.qm \
 	qlib/BulkSqlUtil.qm \
+	qlib/SalesforceRestClient.qm \
 	qlib/Qdx.qm
 
 USER_MODULES = $(DOX_SRC_MODULES) \
@@ -637,11 +638,7 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
 	examples/obj2.q \
 	examples/old2new \
 	examples/pop3.q \
-	examples/qget \
-	examples/rest \
 	examples/restserver.q \
-	examples/schema \
-	examples/sqlutil \
 	examples/stmt.q \
 	examples/telnet.q \
 	qore.spec \
@@ -733,6 +730,9 @@ doxygen/qlib/Doxyfile.WebSocketUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 doxygen/qlib/Doxyfile.Mapper: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/Mapper.qm:doxygen/qlib/Mapper.qm.dox.h $< $@
 
+doxygen/qlib/Doxyfile.RestClient: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/RestClient.qm:doxygen/qlib/RestClient.qm.dox.h -tMime.tag=../../Mime/html $< $@
+
 DOXYFILE_TARG = $(addprefix doxygen/qlib/Doxyfile.,$(DOX_USER_MODS))
 $(DOXYFILE_TARG): doxygen/qlib/Doxyfile.%: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/$*.qm:doxygen/qlib/$*.qm.dox.h $(QDX_MTAG_ARGS) $< $@
@@ -816,7 +816,7 @@ endif
 
 bin_PROGRAMS = qore
 # qr
-dist_bin_SCRIPTS = doxygen/qdx
+dist_bin_SCRIPTS = doxygen/qdx bin/qget bin/rest bin/schema bin/sfrest bin/sqlutil
 if COND_SINGLE_COMPILATION_UNIT
 qore_SOURCES = qore-single-compilation-unit.cpp
 #qr_SOURCES = qr-single-compilation-unit.cpp

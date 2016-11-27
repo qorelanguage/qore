@@ -178,6 +178,11 @@ rm %{buildroot}/%{_libdir}/libqore.la
 %files
 %defattr(-,root,root,-)
 %{_bindir}/qore
+%{_bindir}/qget
+%{_bindir}/rest
+%{_bindir}/schema
+%{_bindir}/sfrest
+%{_bindir}/sqlutil
 %{module_dir}
 %{_mandir}/man1/qore.1.*
 
