@@ -40,6 +40,7 @@ class SfRestClient {
             "oath_url_token": "U,oauth-token-url=s",
             "verbose":        "v,verbose:i+",
 
+            "bulk":           "b,bulk-api",
             "mod":            "m,if-modified-since=d",
             "unmod":          "n,if-unmodified-since=d",
 
@@ -157,7 +158,9 @@ class SfRestClient {
                 showRestRequest(info, body, opt);
                 showRestResponse(info, h.body, opt);
             }
-            h = rc.doRequest(meth, "", body, \info, NOTHING, hdr);
+            h = opt.bulk
+                ? rc.doBulkRequest(meth, "", body, \info, NOTHING, hdr)
+                : rc.doRequest(meth, "", body, \info, NOTHING, hdr);
             if (!opt.lit)
                 printf("%N\n", h.body);
         }
@@ -287,6 +290,7 @@ class SfRestClient {
  -p,--password=ARG             the account password (or from $SALESFORCE_PASS)
 
 ** Data Options
+ -b,--bulk-api                 use the Bulk REST API
  -m,--if-modified-since=ARG    set the If-Modified-Since header
  -n,--if-unmodified-since=ARG  set the If-Unmodified-Since header
 
