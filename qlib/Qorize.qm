@@ -647,12 +647,18 @@ class QorizeHelper {
         if (substruct) {
             code += sprintf("\n%s", strmul(" ", (level+1)*4));
         }
+        bool pending = False;
         while (it.next()) {
             any v = it.getValue();
-            process(v);
-            if (inlist(v.typeCode(), (NT_HASH, NT_LIST)) && !it.last()) {
-                code += sprintf("\n%s", strmul(" ", (level+1)*4));
+            if (inlist(v.typeCode(), (NT_HASH, NT_LIST))) {
+                pending = True;
+            } else {
+                if (pending) {
+                    code += sprintf("\n%s", strmul(" ", (level+1)*4));
+                    pending = False;
+                }
             }
+            process(v);
         }
         if (substruct) {
             code += sprintf("\n%s", strmul(" ", level*4));
