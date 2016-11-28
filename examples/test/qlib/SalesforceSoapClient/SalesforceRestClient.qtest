@@ -93,5 +93,17 @@ class SalesforceTest inherits QUnit::Test {
 
         hash h = rc.get("sobjects");
         assertEq(Type::List, h.body.sobjects.type());
+
+        # create a bulk job
+        h = rc.bulkJobCreate(BulkJobInsert, "Account", BulkJobCsv).jobInfo;
+        assertEq(Type::Hash, h.type());
+        assertEq(Type::String, h.id.type());
+
+        # close the bulk job
+        hash ch = rc.bulkJobClose(h.id);
+        assertEq(h.jobInfo.id, ch.id);
+
+        rc.logout();
+        assertEq(NOTHING, rc.getToken());
     }
 }
