@@ -29,7 +29,7 @@
 %new-style
 
 module Qorize {
-    version = "0.1.1";
+    version = "0.1.2";
     desc = "Create Qore source code from data structures";
     author = "Petr Vanek";
     url = "http://qore.org";
@@ -37,6 +37,9 @@ module Qorize {
 }
 
 /*  Version History
+    * 2016-28-11 v 0.1.2 Tomas Mandys
+      + qorize() formatting improvement when a list contains list or hash
+
     * 2016-06029 v 0.1.1: Petr Vanek <petr@yarpen.cz>
       + qorize_val() implemented
       + new style is used as default for arguments
@@ -633,9 +636,26 @@ class QorizeHelper {
 
         code += sprintf("\n%s(", strmul(" ", level*4));
         ListIterator it(val);
+        bool substruct = False;
+        while (it.next()) {
+            if (inlist(it.getValue().typeCode(), (NT_HASH, NT_LIST))) {
+                substruct = True;
+                break;
+            }
+        }
+        it.reset();
+        if (substruct) {
+            code += sprintf("\n%s", strmul(" ", (level+1)*4));
+        }
         while (it.next()) {
             any v = it.getValue();
             process(v);
+            if (inlist(v.typeCode(), (NT_HASH, NT_LIST)) && !it.last()) {
+                code += sprintf("\n%s", strmul(" ", (level+1)*4));
+            }
+        }
+        if (substruct) {
+            code += sprintf("\n%s", strmul(" ", level*4));
         }
         code += ")";
 
