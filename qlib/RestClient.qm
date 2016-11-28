@@ -631,7 +631,7 @@ hash ans = rest.post("/orders", ("product": "xyz123", "options": 500));
         #! sends an HTTP DELETE request to the REST server and returns the response
         /** @par Example:
             @code{.py}
-hash ans = rest.bulkDel("/orders/1");
+hash ans = rest.del("/orders/1");
             @endcode
 
             @param path the URI path to add (will be appended to any root path given in the constructor)
