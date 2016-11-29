@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -58,8 +58,9 @@ private:
 	 pos = buf;
 
       // see if the rest of the URL is a windows path
-      if ((isalpha(*pos) && *(pos + 1) == ':')
-	  || (*pos == '\\' && *(pos + 1) == '\\')) {
+      if (((isalpha(*pos) && *(pos + 1) == ':')
+           || (*pos == '\\' && *(pos + 1) == '\\'))
+          && !strchr(pos, '@')) {
 	 path = new QoreStringNode(pos);
 	 return;
       }
