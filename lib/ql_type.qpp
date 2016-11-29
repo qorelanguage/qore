@@ -106,26 +106,37 @@ bool boolean(any arg) [flags=CONSTANT] {
    return arg.getAsBool();
 }
 
-//! Converts the argument to an integer value
+//! Converts the string to an integer value with respect to the <b>base</b> (does the same as \link <string>::toInt(int base) \endlink). If a character is out of range of the corresponding <b>base</b> only the substring preceeding the character is taken into account. Base 0 means to interpret as a code literal, so that the actual base is 8, 10, or 16.
 /**
-    @param str the string to convert to an integer
-    @param base the base of the integer in the string; this value must be 0 or 2 - 36 inclusive or an \c INVALID-BASE exception will be thrown
-
-    @return the integer value corresponding to the arguments
-
-    @par Example:
-    @code{.py}
-int i = int("fabc9", 16);
-    @endcode
-
-    @throw INVALID-BASE the base is invalid; must be 0 or 2 - 36 inclusive
-
-    @since %Qore 0.8.5, this variant with the \a base argument is supported
-*/
-int int(string str, softint base) [flags=RET_VALUE_ONLY] {
-   if (base < 0 || base == 1 || base > 36)
-      return xsink->raiseException("INVALID-BASE", "base " QLLD " is invalid; base must be 0 or 2 - 36 inclusive", base);
-   return strtoll(str->getBuffer(), 0, (int)base);
+  * @param str the string to convert to an integer
+  * @param base the base of the integer in the string; this value must be 0 or 2 - 36 inclusive or an \c INVALID-BASE exception will be thrown
+  *
+  * @return the integer value corresponding to the arguments
+  *
+  * @par Example:
+  * @code{.py}
+  *     int("fe", 16);   // returns 254
+  *     int("34", 5);    // returns 19
+  *     int("2p", 25);   // returns 2  (p means 25, which is out of range)
+  *     int("2p", 26);   // returns 77
+  *     int("2z", 36);   // returns 107
+  *     int("21");       // returns 21 (base = 10)
+  *     int("21", 0);    // returns 21 (base = 10)
+  *     int("021", 0);   // returns 17 (base =  8)
+  *     int("0x21", 0);  // returns 33 (base = 16)
+  * @endcode
+  *
+  * @throw INVALID-BASE the base is invalid; must be 0 or 2 - 36 inclusive
+  *
+  * @see
+  *     \link <string>::toInt(int base) \endlink
+  *
+  * @since %Qore 0.8.5, this variant with the <b>base</b> argument is supported
+  */
+int int(string str, int base = 10) [flags=RET_VALUE_ONLY] {
+    if (base < 0 || base == 1 || base > 36)
+        return xsink->raiseException("INVALID-BASE", "base " QLLD " is invalid; base must be 0 or 2 - 36 inclusive", base);
+    return strtoll(str->getBuffer(), 0, (int)base);
 }
 
 //! Converts the argument to an integer value

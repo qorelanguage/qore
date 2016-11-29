@@ -296,6 +296,38 @@ bool <string>::intp() [flags=CONSTANT] {
    return (isdigit(c)) ? true : false;
 }
 
+//! Converts the string to an integer value with respect to the <b>base</b> (does the same as Qore::int(string str, softint base)). If a character is out of range of the corresponding <b>base</b> only the substring preceeding the character is taken into account. Base 0 means to interpret as a code literal, so that the actual base is 8, 10, or 16.
+/** @param base the base of the integer in the string; this value must be 0 or 2 - 36 inclusive or an \c INVALID-BASE exception will be thrown
+  *
+  * @return the integer value corresponding to the arguments
+  *
+  * @par Example:
+  * @code{.py}
+  *     "fe".toInt(16);   // returns 254
+  *     "34".toInt(5);    // returns 19
+  *     "2p".toInt(25);   // returns 2  (p means 25, which is out of range)
+  *     "2p".toInt(26);   // returns 77
+  *     "2z".toInt(36);   // returns 107
+  *     "21".toInt();     // returns 21 (base = 10)
+  *     "21".toInt(0);    // returns 21 (base = 10)
+  *     "021".toInt(0);   // returns 17 (base =  8)
+  *     "0x21".toInt(0);  // returns 33 (base = 16)
+  * @endcode
+  *
+  * @throw INVALID-BASE the base is invalid; must be 0 or 2 - 36 inclusive
+  *
+  * @see
+  * - <value>::toInt()
+  * - Qore::int(string str, int base = 10)
+  *
+  * @since %Qore 0.8.13; in previous versions the \link <value>::toInt() \endlink function (without the <b>base</b> argument) applied also to strings
+  */
+int <string>::toInt(int base=10) [flags=RET_VALUE_ONLY] {
+    if (base < 0 || base == 1 || base > 36)
+        return xsink -> raiseException("INVALID-BASE", "base " QLLD " is invalid; base must be 0 or 2 - 36 inclusive", base);
+    return strtoll(str -> getBuffer(), 0, (int)base);
+}
+
 //! Returns @ref True by default
 /**
     @return @ref True by default
