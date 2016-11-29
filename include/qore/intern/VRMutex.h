@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -52,14 +52,32 @@ private:
 public:
    DLLLOCAL VRMutex();
 
-   // grabs the lock recursively, returns 0 for OK, non-zero for error
+   // grabs the lock recursively, returns >= 0 for OK, -1 for error
    DLLLOCAL int enter(ExceptionSink *xsink);
 
    // releases the lock, returns 0 if the lock is unlocked, -1 if there are still more calls to exit
    DLLLOCAL int exit();
 
-   DLLLOCAL virtual const char *getName() const { return "VRMutex"; }
-   DLLLOCAL int get_count() const { return count; }
+   DLLLOCAL virtual const char* getName() const { return "VRMutex"; }
+
+   DLLLOCAL int get_count() const {
+      return count;
+   }
+};
+
+class VRMutexOptionalLockHelper {
+protected:
+   VRMutex* m;
+
+public:
+   DLLLOCAL VRMutexOptionalLockHelper(VRMutex* vm, ExceptionSink* xsink) : m(vm && vm->enter(xsink) >= 0 ? vm : 0) {
+      //printd(5, "VRMutexOptionalLockHelper::VRMutexOptionalLockHelper() vm: %p m: %p\n", vm, m);
+   }
+
+   DLLLOCAL ~VRMutexOptionalLockHelper() {
+      if (m)
+         m->exit();
+   }
 };
 
 #endif

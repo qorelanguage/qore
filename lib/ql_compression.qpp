@@ -29,16 +29,13 @@
   information.
 */
 
-#include <qore/Qore.h>
-
-#include <zlib.h>
-
-#include <qore/intern/ql_compression.h>
-
 #include <bzlib.h>
-
+#include <zlib.h>
 #include <errno.h>
 #include <limits.h>
+#include "qore/Qore.h"
+#include "qore/intern/ql_compression.h"
+#include "qore/intern/CompressionTransforms.h"
 
 #ifndef QORE_BZ2_WORK_FACTOR
 #define QORE_BZ2_WORK_FACTOR 30
@@ -51,6 +48,10 @@
 #ifndef BZ2_DEFAULT_COMPRESSION
 #define BZ2_DEFAULT_COMPRESSION 3
 #endif
+
+#define COMPRESSION_LEVEL_DEFAULT CompressionTransforms::LEVEL_DEFAULT
+
+extern QoreClass* QC_TRANSFORM;
 
 class qore_bz_stream : public bz_stream {
 public:
@@ -183,6 +184,10 @@ public:
 	    return 0;
 	 }
       }
+      if (avail_in > 0) {
+         xsink->raiseException("BZIP2-DECOMPRESS-ERROR", "Unexpected bytes at the end of compressed data");
+         return 0;
+      }
       b->setSize((int64)total_out_lo32 + (((int64)total_out_hi32) << 32));
 
       return b.release();
@@ -295,178 +300,7 @@ static void do_inflate_end(z_stream* d_stream, ExceptionSink* xsink) {
       do_zlib_exception(rc, "inflateEnd", xsink);
 }
 
-BinaryNode* qore_deflate(const void* ptr, unsigned long len, int level, ExceptionSink* xsink) {
-   z_stream c_stream; // compression stream
-   c_stream.zalloc = Z_NULL;
-   c_stream.zfree = Z_NULL;
-   c_stream.opaque = Z_NULL;
-
-   int rc = deflateInit(&c_stream, level);
-   if (rc != Z_OK) {
-      do_zlib_exception(rc, "deflateInit", xsink);
-      return 0;
-   }
-
-   ON_BLOCK_EXIT(do_deflate_end, &c_stream, xsink);
-
-   // allocate new buffer
-   unsigned long bsize = len / 5 + 100;
-   void* buf = malloc(bsize);
-
-   c_stream.next_in = (Bytef*)ptr;
-   c_stream.next_out = (Bytef*)buf;
-   c_stream.avail_in = len;
-   c_stream.avail_out = bsize;
-
-   while (c_stream.avail_in) {
-      rc = deflate(&c_stream, Z_NO_FLUSH);
-      if (rc != Z_OK && rc != Z_BUF_ERROR) {
-         free(buf);
-         do_zlib_exception(rc, "deflate", xsink);
-         return 0;
-      }
-
-      if (!c_stream.avail_out) {
-         int new_space = ((len / 3) + 100);
-         //printd(5, "deflate() Z_BUF_ERROR:1 bsize: %d->%d, new_space: %d avail_out: %d -> %d next_out: %p\n", bsize, bsize + new_space, new_space, c_stream.avail_out, c_stream.avail_out + new_space, c_stream.next_out);
-         bsize += new_space;
-         c_stream.avail_out += new_space;
-         buf = realloc(buf, bsize);
-         c_stream.next_out = ((Bytef*)buf) + c_stream.total_out;
-      }
-      //printd(5, "deflate() Z_BUF_ERROR:1 bsize: %d, avail_out: %d, next_out: %p\n", bsize, c_stream.avail_out, c_stream.next_out);
-   }
-
-   while (true) {
-      rc = deflate(&c_stream, Z_FINISH);
-      if (rc == Z_STREAM_END)
-         break;
-      if (rc != Z_OK && rc != Z_BUF_ERROR) {
-         free(buf);
-         do_zlib_exception(rc, "deflate", xsink);
-         return 0;
-      }
-      // resize buffer
-      int new_space = 2; //((len / 3) + 100);
-      //printd(5, "deflate() Z_BUF_ERROR:2 bsize: %d->%d, new_space: %d avail_out: %d -> %d, next_out: %p\n", bsize, bsize + new_space, new_space, c_stream.avail_out, c_stream.avail_out + new_space, c_stream.next_out);
-
-      bsize += new_space;
-      c_stream.avail_out += new_space;
-      buf = realloc(buf, bsize);
-      c_stream.next_out = ((Bytef*)buf) + c_stream.total_out;
-   }
-
-   //printd(5, "deflate() buf: %p, bsize: %d, avail_out: %d, size: %d, next_out: %p\n", buf, bsize, c_stream.avail_out, bsize - c_stream.avail_out, c_stream.next_out);
-   return new BinaryNode(buf, bsize - c_stream.avail_out);
-}
-
-QoreStringNode* qore_inflate_to_string(const BinaryNode* b, const QoreEncoding* enc, ExceptionSink* xsink) {
-   z_stream d_stream; // decompression stream
-   d_stream.zalloc = Z_NULL;
-   d_stream.zfree = Z_NULL;
-   d_stream.opaque = Z_NULL;
-
-   int rc = inflateInit(&d_stream);
-   if (rc != Z_OK) {
-      do_zlib_exception(rc, "inflateInit", xsink);
-      return 0;
-   }
-
-   ON_BLOCK_EXIT(do_inflate_end, &d_stream, xsink);
-
-   int len = b->size();
-
-   // allocate new buffer
-   unsigned long bsize = len * 2 + 100;
-   void* buf = malloc(bsize);
-
-   d_stream.next_in = (Bytef*)b->getPtr();
-   d_stream.next_out = (Bytef*)buf;
-   d_stream.avail_in = b->size();
-   d_stream.avail_out = bsize;
-
-   while (true) {
-      rc = inflate(&d_stream, Z_NO_FLUSH);
-      if (rc == Z_STREAM_END)
-         break;
-      if (rc == Z_BUF_ERROR) {
-         if (d_stream.avail_in == 0 && d_stream.avail_out > 0) {
-            xsink->raiseException("ZLIB-ERROR", "Unexpected end of compressed data");
-            free(buf);
-            return 0;
-         }
-         int new_space = ((b->size() * 3) + 100);
-         bsize += new_space;
-         d_stream.avail_out += new_space;
-         buf = realloc(buf, bsize);
-         d_stream.next_out = ((Bytef*)buf) + d_stream.total_out;
-      }
-      else if (rc != Z_OK) {
-         free(buf);
-         do_zlib_exception(rc, "inflate", xsink);
-         return 0;
-      }
-   }
-
-   // how much data was decompressed
-   len = bsize - d_stream.avail_out;
-
-   // create and return the string
-   return new QoreStringNode((char*)buf, len, len, enc);
-}
-
-BinaryNode* qore_inflate_to_binary(const BinaryNode* b, ExceptionSink* xsink) {
-   z_stream d_stream; // decompression stream
-   d_stream.zalloc = Z_NULL;
-   d_stream.zfree = Z_NULL;
-   d_stream.opaque = Z_NULL;
-
-   int rc = inflateInit(&d_stream);
-   if (rc != Z_OK) {
-      do_zlib_exception(rc, "inflateInit", xsink);
-      return 0;
-   }
-
-   ON_BLOCK_EXIT(do_inflate_end, &d_stream, xsink);
-
-   int len = b->size();
-
-   // allocate new buffer
-   unsigned long bsize = len * 2 + 100;
-   void* buf = malloc(bsize);
-
-   d_stream.next_in = (Bytef*)b->getPtr();
-   d_stream.next_out = (Bytef*)buf;
-   d_stream.avail_in = b->size();
-   d_stream.avail_out = bsize;
-
-   while (true){
-      rc = inflate(&d_stream, Z_NO_FLUSH);
-      if (rc == Z_STREAM_END)
-         break;
-      if (rc == Z_BUF_ERROR) {
-         if (d_stream.avail_in == 0 && d_stream.avail_out > 0) {
-            xsink->raiseException("ZLIB-ERROR", "Unexpected end of compressed data");
-            free(buf);
-            return 0;
-         }
-         int new_space = ((b->size() * 3) + 100);
-         bsize += new_space;
-         d_stream.avail_out += new_space;
-         buf = realloc(buf, bsize);
-         d_stream.next_out = ((Bytef*)buf) + d_stream.total_out;
-      }
-      else if (rc != Z_OK) {
-         free(buf);
-         do_zlib_exception(rc, "inflate", xsink);
-         return 0;
-      }
-   }
-
-   return new BinaryNode(buf, bsize - d_stream.avail_out);
-}
-
-BinaryNode* qore_gzip(const void* ptr, unsigned long len, int level, ExceptionSink* xsink) {
+static BinaryNode* qore_deflate_intern(const void* ptr, unsigned long len, int level, bool gzipFormat, ExceptionSink* xsink) {
    z_stream c_stream; // compression stream
    c_stream.zalloc = Z_NULL;
    c_stream.zfree = Z_NULL;
@@ -474,7 +308,7 @@ BinaryNode* qore_gzip(const void* ptr, unsigned long len, int level, ExceptionSi
    c_stream.next_in = (Bytef*)ptr;
    c_stream.avail_in = len;
 
-   int rc = deflateInit2(&c_stream, level, Z_DEFLATED, 31, 8,  Z_DEFAULT_STRATEGY);
+   int rc = deflateInit2(&c_stream, level, Z_DEFLATED, 15 + (gzipFormat ? 16 : 0), 8, Z_DEFAULT_STRATEGY);
    if (rc != Z_OK) {
       do_zlib_exception(rc, "deflateInit2", xsink);
       return 0;
@@ -532,27 +366,24 @@ BinaryNode* qore_gzip(const void* ptr, unsigned long len, int level, ExceptionSi
    return new BinaryNode(buf, bsize - c_stream.avail_out);
 }
 
-QoreStringNode* qore_gunzip_to_string(const BinaryNode* bin, const QoreEncoding* enc, ExceptionSink* xsink) {
+static char* qore_inflate_intern(const BinaryNode* b, int &len, bool gzipFormat, ExceptionSink* xsink) {
    z_stream d_stream; // decompression stream
    d_stream.zalloc = Z_NULL;
    d_stream.zfree = Z_NULL;
    d_stream.opaque = Z_NULL;
+   d_stream.next_in = (Bytef*)b->getPtr();
+   d_stream.avail_in = b->size();
 
-   d_stream.next_in = (Bytef*)bin->getPtr();
-   d_stream.avail_in = bin->size();
-
-   int rc = inflateInit2(&d_stream, 47);
+   int rc = inflateInit2(&d_stream, 15 + (gzipFormat ? 16 : 0));
    if (rc != Z_OK) {
-      do_zlib_exception(rc, "inflateInit2", xsink);
+      do_zlib_exception(rc, "inflateInit", xsink);
       return 0;
    }
 
    ON_BLOCK_EXIT(do_inflate_end, &d_stream, xsink);
 
-   int len = bin->size();
-
    // allocate new buffer
-   unsigned long bsize = len * 2 + 100;
+   unsigned long bsize = b->size() * 2 + 100;
    void* buf = malloc(bsize);
 
    d_stream.next_out = (Bytef*)buf;
@@ -568,7 +399,7 @@ QoreStringNode* qore_gunzip_to_string(const BinaryNode* bin, const QoreEncoding*
             free(buf);
             return 0;
          }
-         int new_space = ((bin->size() * 3) + 100);
+         int new_space = ((b->size() * 3) + 100);
          bsize += new_space;
          d_stream.avail_out += new_space;
          buf = realloc(buf, bsize);
@@ -579,65 +410,49 @@ QoreStringNode* qore_gunzip_to_string(const BinaryNode* bin, const QoreEncoding*
          do_zlib_exception(rc, "inflate", xsink);
          return 0;
       }
+   }
+
+   if (d_stream.avail_in > 0) {
+      xsink->raiseException("ZLIB-ERROR", "Unexpected bytes at the end of compressed data");
+      free(buf);
+      return 0;
    }
 
    // how much data was decompressed
    len = bsize - d_stream.avail_out;
+   return static_cast<char *>(buf);
+}
 
-   // create and return the string
-   return new QoreStringNode((char*)buf, len, len, enc);
+BinaryNode* qore_deflate(const void* ptr, unsigned long len, int level, ExceptionSink* xsink) {
+   return qore_deflate_intern(ptr, len, level, false, xsink);
+}
+
+QoreStringNode* qore_inflate_to_string(const BinaryNode* b, const QoreEncoding* enc, ExceptionSink* xsink) {
+   int len;
+   char *buf = qore_inflate_intern(b, len, false, xsink);
+   return buf ? new QoreStringNode(buf, len, len, enc) : 0;
+}
+
+BinaryNode* qore_inflate_to_binary(const BinaryNode* b, ExceptionSink* xsink) {
+   int len;
+   char *buf = qore_inflate_intern(b, len, false, xsink);
+   return buf ? new BinaryNode(buf, len) : 0;
+}
+
+BinaryNode* qore_gzip(const void* ptr, unsigned long len, int level, ExceptionSink* xsink) {
+   return qore_deflate_intern(ptr, len, level, true, xsink);
+}
+
+QoreStringNode* qore_gunzip_to_string(const BinaryNode* bin, const QoreEncoding* enc, ExceptionSink* xsink) {
+   int len;
+   char *buf = qore_inflate_intern(bin, len, true, xsink);
+   return buf ? new QoreStringNode(buf, len, len, enc) : 0;
 }
 
 BinaryNode* qore_gunzip_to_binary(const BinaryNode* bin, ExceptionSink* xsink) {
-   z_stream d_stream; // decompression stream
-   d_stream.zalloc = Z_NULL;
-   d_stream.zfree = Z_NULL;
-   d_stream.opaque = Z_NULL;
-
-   d_stream.next_in = (Bytef*)bin->getPtr();
-   d_stream.avail_in = bin->size();
-
-   int rc = inflateInit2(&d_stream, 47);
-   if (rc != Z_OK) {
-      do_zlib_exception(rc, "inflateInit2", xsink);
-      return 0;
-   }
-
-   ON_BLOCK_EXIT(do_inflate_end, &d_stream, xsink);
-
-   int len = bin->size();
-
-   // allocate new buffer
-   unsigned long bsize = len * 2 + 100;
-   void* buf = malloc(bsize);
-
-   d_stream.next_out = (Bytef*)buf;
-   d_stream.avail_out = bsize;
-
-   while (true) {
-      rc = inflate(&d_stream, Z_NO_FLUSH);
-      if (rc == Z_STREAM_END)
-         break;
-      if (rc == Z_BUF_ERROR) {
-         if (d_stream.avail_in == 0 && d_stream.avail_out > 0) {
-            xsink->raiseException("ZLIB-ERROR", "Unexpected end of compressed data");
-            free(buf);
-            return 0;
-         }
-         int new_space = ((bin->size() * 3) + 100);
-         bsize += new_space;
-         d_stream.avail_out += new_space;
-         buf = realloc(buf, bsize);
-         d_stream.next_out = ((Bytef*)buf) + d_stream.total_out;
-      }
-      else if (rc != Z_OK) {
-         free(buf);
-         do_zlib_exception(rc, "inflate", xsink);
-         return 0;
-      }
-   }
-
-   return new BinaryNode(buf, bsize - d_stream.avail_out);
+   int len;
+   char *buf = qore_inflate_intern(bin, len, true, xsink);
+   return buf ? new BinaryNode(buf, len) : 0;
 }
 
 /** @defgroup compression_constants Compression Constants
@@ -648,6 +463,30 @@ const Z_DEFAULT_COMPRESSION = Z_DEFAULT_COMPRESSION;
 
 //! gives the default compression level for the bzip2() function, providing a trade-off between compression speed and compression size (value: \c 3)
 const BZ2_DEFAULT_COMPRESSION = BZ2_DEFAULT_COMPRESSION;
+
+//! Identifies the default compression level appropriate for given algorithm
+const COMPRESSION_LEVEL_DEFAULT = COMPRESSION_LEVEL_DEFAULT;
+//@}
+
+/** @defgroup compression_transformations Compression Stream Transformations
+
+    The following @ref Transform constants can be used with @ref TransformInputStream and @ref TransformOutputStream to transform stream data
+
+    @par Example:
+    @code
+FileOutputStream of("my-file.txt");
+TransformOutputStream tos(of, )
+    @endcode
+ */
+//@{
+//! Identifies the ZLIB Compressed Data Format (<a href="http://www.ietf.org/rfc/rfc1950.txt">RFC 1950</a>)
+const COMPRESSION_ALG_ZLIB = str(CompressionTransforms::ALG_ZLIB);
+
+//! Identifies the GZIP Format (<a href="http://www.ietf.org/rfc/rfc1952.txt">RFC 1952</a>)
+const COMPRESSION_ALG_GZIP = str(CompressionTransforms::ALG_GZIP);
+
+//! Identifies the <a href="http://en.wikipedia.org/wiki/Bzip2">bzip2 algorithm</a>
+const COMPRESSION_ALG_BZIP2 = str(CompressionTransforms::ALG_BZIP2);
 //@}
 
 /** @defgroup compresssion_functions Compression Functions
@@ -956,5 +795,44 @@ string bunzip2_to_string(binary bin, *string encoding) {
 /**
 */
 nothing bunzip2_to_string() [flags=RUNTIME_NOOP] {
+}
+
+//! Returns a @ref Transform object for compressing data using the given @ref compression_transformations "algorithm" for use with @ref TransformInputStream and @ref TransformOutputStream
+/** @par Example:
+    @code
+Qore::FileOutputStream of("my-file.txt.bz2");
+Qore::TransformOutputStream ts(of, get_compressor(Qore::COMPRESSION_ALG_BZIP2));
+    @endcode
+
+    @param alg the transformation algorithm; see @ref compression_transformations for possible values
+    @param level compression level as defined by the algorithm or @ref COMPRESSION_LEVEL_DEFAULT to use the default compression level
+
+    @return a @ref Transform object for compressing data using the given @ref compression_transformations "algorithm" for use with @ref TransformInputStream and @ref TransformOutputStream
+ */
+Transform get_compressor(string alg, int level = COMPRESSION_LEVEL_DEFAULT) {
+   SimpleRefHolder<Transform> t(CompressionTransforms::getCompressor(alg, level, xsink));
+   if (*xsink) {
+      return 0;
+   }
+   return new QoreObject(QC_TRANSFORM, getProgram(), t.release());
+}
+
+//! Returns a @ref Transform object for decompressing data using the given @ref compression_transformations "algorithm" for use with @ref TransformInputStream and @ref TransformOutputStream
+/** @par Example:
+    @code
+Qore::FileOutputStream of("my-file.txt.bz2");
+Qore::TransformOutputStream ts(of, get_decompressor(Qore::COMPRESSION_ALG_BZIP2));
+    @endcode
+
+    @param alg the transformation algorithm; see @ref compression_transformations for possible values
+
+    @return a @ref Transform object for decompressing data using the given @ref compression_transformations "algorithm" for use with @ref TransformInputStream and @ref TransformOutputStream
+ */
+Transform get_decompressor(string alg) {
+   SimpleRefHolder<Transform> t(CompressionTransforms::getDecompressor(alg, xsink));
+   if (*xsink) {
+      return 0;
+   }
+   return new QoreObject(QC_TRANSFORM, getProgram(), t.release());
 }
 //@}

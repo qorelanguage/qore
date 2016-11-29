@@ -49,7 +49,7 @@
 %endtry
 
 module RestClient {
-    version = "1.3.1";
+    version = "1.4";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -88,6 +88,7 @@ module RestClient {
     - \c "url": message bodies are encoded in URL form encoded format (see <a href="https://tools.ietf.org/html/rfc1738">RFC 2738 2.2</a>)
     - \c "xml": using the \c "xml" module; message bodies are encoded using XML-RPC value encoding
     - \c "yaml": using the \c "yaml" module; message bodies are encoded using YAML
+    - \c "text": message bodies are not serialized, plain text value is used
 
     If none of the above modules can be loaded by the RestClient module, then the RestClient module will fail to initialize.
 
@@ -108,6 +109,10 @@ printf("%N\n", ans.body);
     See example file \c "rest" in the examples directory for a more detailed example using this module
 
     @section restclientrelnotes Release Notes
+
+    @subsection restclientv1_4 RestClient v1.4
+    - added:
+      - support for \c text/plain Content-Type
 
     @subsection restclientv1_3_1 RestClient v1.3.1
     - added support for the \c "url" encoding for URL form encodeded message bodies (<a href="https://github.com/qorelanguage/qore/issues/1436">issue 1436</a>)
@@ -175,8 +180,11 @@ public namespace RestClient {
                     "ct": MimeTypeFormUrlEncoded,
                     "out": \mime_get_form_urlencoded_string(),
                 ),
+                "text": (
+                    "ct": MimeTypeText,
+                    "out": string sub (any s) { return sprintf("%s", s); },
+                ),
                 };
-
 
 %ifndef NoYaml
             const DeserializeYaml = (
@@ -226,7 +234,12 @@ public namespace RestClient {
                 MimeTypeXml: DeserializeXml,
                 MimeTypeXmlApp: DeserializeXml,
 %endif
-                };
+                MimeTypeText: (
+                    "code": "text",
+                    "in": string sub (string s) { return s; },
+                ),
+
+            };
 
             #! Accept header list
             const AcceptList = (
@@ -240,6 +253,7 @@ public namespace RestClient {
                 MimeTypeJsonRpc,
 %endif
                 MimeTypeFormUrlEncoded,
+                MimeTypeText,
                 );
 
             #! Accept header value
@@ -259,19 +273,28 @@ public namespace RestClient {
 
             #! Data serialization options; this is a hash to simulate a set of strings
             /** Data serialization options are as follows:
-                - \c "auto": prefers in this order: json, yaml, xml-rpc
+                - \c "auto": prefers in this order: json, yaml, rawxml, xml-rpc, url, and text
                 - \c "xml": use only XML-RPC serialization
                 - \c "rawxml": use raw XML serialization
                 - \c "json": use only JSON serialization
                 - \c "yaml": use only YAML serialization
+                - \c "xml": use only XML-RPC serialization
+                - \c "text": use only plain text. No serialization is used.
              */
             const DataSerializationOptions = (
                 "auto": True,
-                "url": True,
-                "xml": True,
-                "rawxml": True,
+%ifndef NoJson
                 "json": True,
+%endif
+%ifndef NoYaml
                 "yaml": True,
+%endif
+%ifndef NoXml
+                "rawxml": True,
+                "xml": True,
+%endif
+                "url": True,
+                "text": True,
                 );
 
             #! Send content encoding options
@@ -820,5 +843,6 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
 
             info."response-serialization" = code;
         }
-    }
+
+    } # class RestClient
 }
