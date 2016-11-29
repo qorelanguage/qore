@@ -34,5 +34,8 @@ public class parseUrlTest inherits QUnit::Test {
 
         # IPv6 localhost
         assertEq(("host": "::"), parse_url("::"));
+
+        # one-character username
+        assertEq(("protocol": "http", "username": "u", "password": "p", "host": "h"), parse_url("http://u:p@h"));
     }
 }
