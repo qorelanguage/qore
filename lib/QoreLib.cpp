@@ -30,13 +30,13 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/git-revision.h>
-#include <qore/intern/qore_number_private.h>
-#include <qore/intern/QoreSignal.h>
-#include <qore/intern/QoreObjectIntern.h>
-#include <qore/intern/qore_qd_private.h>
-#include <qore/intern/ql_crypto.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/git-revision.h"
+#include "qore/intern/qore_number_private.h"
+#include "qore/intern/QoreSignal.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/qore_qd_private.h"
+#include "qore/intern/ql_crypto.h"
+#include "qore/intern/qore_program_private.h"
 
 #include <string.h>
 #ifdef HAVE_PWD_H

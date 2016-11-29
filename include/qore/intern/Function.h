@@ -40,7 +40,7 @@
 #include <string>
 #include <vector>
 
-#include <qore/intern/qore_value_list_private.h>
+#include "qore/intern/qore_value_list_private.h"
 
 class qore_class_private;
 

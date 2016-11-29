@@ -33,7 +33,7 @@
 
 #define _QORE_QORECLOSUREPARSENODE_H
 
-#include <qore/intern/ParseNode.h>
+#include "qore/intern/ParseNode.h"
 
 #include <vector>
 

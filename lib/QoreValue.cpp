@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ParseNode.h>
+#include "qore/intern/ParseNode.h"
 
 QoreValue::QoreValue() : type(QV_Node) {
    v.n = 0;

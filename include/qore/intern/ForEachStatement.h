@@ -33,11 +33,11 @@
 
 #define _QORE_FOREACHSTATEMENT_H
 
-#include <qore/intern/AbstractStatement.h>
-#include <qore/intern/AbstractIteratorHelper.h>
+#include "qore/intern/AbstractStatement.h"
+#include "qore/intern/AbstractIteratorHelper.h"
 
-#include <qore/intern/FunctionalOperator.h>
-#include <qore/intern/FunctionalOperatorInterface.h>
+#include "qore/intern/FunctionalOperator.h"
+#include "qore/intern/FunctionalOperatorInterface.h"
 
 class ForEachStatement : public AbstractStatement {
 private:

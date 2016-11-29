@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_File.h>
+#include "qore/intern/QC_File.h"
 
 DLLEXPORT extern QoreClass* QC_FILEINPUTSTREAM;
 DLLEXPORT extern QoreClass* QC_FILEOUTPUTSTREAM;

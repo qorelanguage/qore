@@ -29,9 +29,9 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_list_private.h>
-#include <qore/intern/QoreHashNodeIntern.h>
-#include <qore/intern/QoreClosureNode.h>
+#include "qore/intern/qore_list_private.h"
+#include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/QoreClosureNode.h"
 
 #include <string.h>
 #include <stdlib.h>

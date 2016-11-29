@@ -32,7 +32,7 @@
 #ifndef _QORE_INTERN_PARSEREFERENCENODE_H
 #define _QORE_INTERN_PARSEREFERENCENODE_H
 
-#include <qore/intern/ParseNode.h>
+#include "qore/intern/ParseNode.h"
 
 class IntermediateParseReferenceNode;
 

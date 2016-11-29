@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/DoWhileStatement.h>
-#include <qore/intern/StatementBlock.h>
+#include "qore/intern/DoWhileStatement.h"
+#include "qore/intern/StatementBlock.h"
 
 int DoWhileStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
    int rc = 0;

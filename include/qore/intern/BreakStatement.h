@@ -33,7 +33,7 @@
 
 #define _QORE_BREAKSTATEMENT_H
 
-#include <qore/intern/AbstractStatement.h>
+#include "qore/intern/AbstractStatement.h"
 
 class BreakStatement : public AbstractStatement {
 private:

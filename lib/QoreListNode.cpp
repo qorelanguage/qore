@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_list_private.h>
+#include "qore/intern/qore_list_private.h"
 
 #include <stdlib.h>
 #include <string.h>

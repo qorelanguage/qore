@@ -35,8 +35,8 @@
 
 #define _QORE_VRMUTEX_H
 
-#include <qore/intern/AbstractSmartLock.h>
-#include <qore/intern/VLock.h>
+#include "qore/intern/AbstractSmartLock.h"
+#include "qore/intern/VLock.h"
 
 // reentrant thread lock using tiered locking and deadlock detection infrastructure
 class VRMutex : public AbstractSmartLock {

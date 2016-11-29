@@ -36,7 +36,7 @@
 #include <qore/Qore.h>
 #include <qore/QoreSocket.h>
 
-#include <qore/intern/qore_socket_private.h>
+#include "qore/intern/qore_socket_private.h"
 
 void se_in_op(const char* cname, const char* meth, ExceptionSink* xsink) {
    assert(xsink);

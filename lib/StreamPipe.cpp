@@ -29,7 +29,7 @@
   information.
 */
 #include <qore/Qore.h>
-#include <qore/intern/StreamPipe.h>
+#include "qore/intern/StreamPipe.h"
 
 StreamPipe::StreamPipe(bool syncClose, int64 timeout, int64 bufferSize, ExceptionSink *xsink)
       : buffer(bufferSize > 0 ? bufferSize : 4096), broken(false), outputClosed(false), closeFinished(!syncClose),

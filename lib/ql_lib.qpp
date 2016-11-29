@@ -30,9 +30,9 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ql_lib.h>
-#include <qore/intern/ExecArgList.h>
-#include <qore/intern/QoreSignal.h>
+#include "qore/intern/ql_lib.h"
+#include "qore/intern/ExecArgList.h"
+#include "qore/intern/QoreSignal.h"
 #include <qore/minitest.hpp>
 
 #include <errno.h>
@@ -56,7 +56,7 @@
 #ifdef HAVE_GLOB_H
 #include <glob.h>
 #else
-#include <qore/intern/glob.h>
+#include "qore/intern/glob.h"
 #endif
 
 #ifndef SIGHUP

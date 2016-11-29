@@ -34,25 +34,25 @@
 #include <qore/Qore.h>
 #include <openssl/err.h>
 
-#include <qore/intern/ThreadResourceList.h>
-#include <qore/intern/ConstantList.h>
-#include <qore/intern/QoreSignal.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/ThreadResourceList.h"
+#include "qore/intern/ConstantList.h"
+#include "qore/intern/QoreSignal.h"
+#include "qore/intern/qore_program_private.h"
 
 // to register object types
-#include <qore/intern/QC_Queue.h>
-#include <qore/intern/QC_Mutex.h>
-#include <qore/intern/QC_Condition.h>
-#include <qore/intern/QC_RWLock.h>
-#include <qore/intern/QC_Gate.h>
-#include <qore/intern/QC_Sequence.h>
-#include <qore/intern/QC_Counter.h>
-#include <qore/intern/QC_AutoLock.h>
-#include <qore/intern/QC_AutoGate.h>
-#include <qore/intern/QC_AutoReadLock.h>
-#include <qore/intern/QC_AutoWriteLock.h>
-#include <qore/intern/QC_AbstractSmartLock.h>
-#include <qore/intern/QC_AbstractThreadResource.h>
+#include "qore/intern/QC_Queue.h"
+#include "qore/intern/QC_Mutex.h"
+#include "qore/intern/QC_Condition.h"
+#include "qore/intern/QC_RWLock.h"
+#include "qore/intern/QC_Gate.h"
+#include "qore/intern/QC_Sequence.h"
+#include "qore/intern/QC_Counter.h"
+#include "qore/intern/QC_AutoLock.h"
+#include "qore/intern/QC_AutoGate.h"
+#include "qore/intern/QC_AutoReadLock.h"
+#include "qore/intern/QC_AutoWriteLock.h"
+#include "qore/intern/QC_AbstractSmartLock.h"
+#include "qore/intern/QC_AbstractThreadResource.h"
 
 #include <pthread.h>
 #include <sys/time.h>

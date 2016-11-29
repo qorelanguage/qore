@@ -31,10 +31,10 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_program_private.h>
-#include <qore/intern/ModuleInfo.h>
-#include <qore/intern/QoreNamespaceIntern.h>
-#include <qore/intern/QoreException.h>
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/ModuleInfo.h"
+#include "qore/intern/QoreNamespaceIntern.h"
+#include "qore/intern/QoreException.h"
 
 #include <errno.h>
 #include <string.h>
@@ -45,7 +45,7 @@
 #ifdef HAVE_GLOB_H
 #include <glob.h>
 #else
-#include <qore/intern/glob.h>
+#include "qore/intern/glob.h"
 #endif
 
 #include <stdlib.h>

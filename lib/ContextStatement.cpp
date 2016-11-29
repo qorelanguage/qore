@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ContextStatement.h>
-#include <qore/intern/StatementBlock.h>
+#include "qore/intern/ContextStatement.h"
+#include "qore/intern/StatementBlock.h"
 
 ContextMod::ContextMod(int t, AbstractQoreNode *n) {
    type = t;

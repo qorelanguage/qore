@@ -43,8 +43,8 @@ DLLEXPORT extern QoreClass* QC_SOCKET;
 #include <qore/AbstractPrivateData.h>
 #include <qore/QoreThreadLock.h>
 #include <qore/QoreSocketObject.h>
-#include <qore/intern/QC_SSLCertificate.h>
-#include <qore/intern/QC_SSLPrivateKey.h>
+#include "qore/intern/QC_SSLCertificate.h"
+#include "qore/intern/QC_SSLPrivateKey.h"
 
 class my_socket_priv {
 public:

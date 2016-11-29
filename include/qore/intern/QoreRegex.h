@@ -39,7 +39,7 @@
 
 #define _QORE_QOREREGEX_H
 
-#include <qore/intern/QoreRegexBase.h>
+#include "qore/intern/QoreRegexBase.h"
 
 class QoreRegex : public QoreRegexBase, public QoreReferenceCounter {
 private:

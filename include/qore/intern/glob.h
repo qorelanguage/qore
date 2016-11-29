@@ -38,7 +38,7 @@
 #include <vector>
 #include <algorithm>
 
-#include <qore/intern/QoreRegex.h>
+#include "qore/intern/QoreRegex.h"
 
 typedef int (*glob_error_t)(const char *, int);
 
