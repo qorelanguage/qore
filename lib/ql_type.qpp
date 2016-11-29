@@ -106,8 +106,11 @@ bool boolean(any arg) [flags=CONSTANT] {
    return arg.getAsBool();
 }
 
-//! Converts the string to an integer value with respect to the <b>base</b> (does the same as \link <string>::toInt(int base) \endlink). If a character is out of range of the corresponding <b>base</b> only the substring preceeding the character is taken into account. Base 0 means to interpret as a code literal, so that the actual base is 8, 10, or 16.
-/**
+//! Converts the string to an integer value with respect to the <b>base</b>.
+/** If a character is out of range of the corresponding <b>base</b> only the substring preceeding the character is taken into account.\n
+  * Base 0 means to interpret as a code literal, so that the actual base is 8, 10, or 16.\n
+  * (Does the same as \link <string>::toInt(int base) \endlink).
+  *
   * @param str the string to convert to an integer
   * @param base the base of the integer in the string; this value must be 0 or 2 - 36 inclusive or an \c INVALID-BASE exception will be thrown
   *
