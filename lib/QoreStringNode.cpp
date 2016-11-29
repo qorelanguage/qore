@@ -32,7 +32,7 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/qore_string_private.h>
+#include "qore/intern/qore_string_private.h"
 
 #include <stdarg.h>
 

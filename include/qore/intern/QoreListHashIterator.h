@@ -33,7 +33,7 @@
 
 #define _QORE_QORELISTHASHITERATOR_H
 
-#include <qore/intern/QoreListIterator.h>
+#include "qore/intern/QoreListIterator.h"
 
 #include <assert.h>
 

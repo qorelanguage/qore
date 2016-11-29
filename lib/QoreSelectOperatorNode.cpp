@@ -30,9 +30,9 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/qore_program_private.h>
-#include <qore/intern/FunctionalOperator.h>
-#include <qore/intern/FunctionalOperatorInterface.h>
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/FunctionalOperator.h"
+#include "qore/intern/FunctionalOperatorInterface.h"
 
 #include <memory>
 

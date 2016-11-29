@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 #include <qore/QoreFile.h>
-#include <qore/intern/qore_qf_private.h>
+#include "qore/intern/qore_qf_private.h"
 
 QoreFile::QoreFile(const QoreEncoding *cs) : priv(new qore_qf_private(cs)) {
 }

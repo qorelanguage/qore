@@ -38,13 +38,13 @@
 #include <assert.h>
 
 #include <qore/QoreType.h>
-#include <qore/intern/ParserSupport.h>
-#include <qore/intern/QoreClassIntern.h>
-#include <qore/intern/QoreObjectIntern.h>
-#include <qore/intern/QoreLValue.h>
-#include <qore/intern/qore_number_private.h>
-#include <qore/intern/qore_list_private.h>
-#include <qore/intern/QoreHashNodeIntern.h>
+#include "qore/intern/ParserSupport.h"
+#include "qore/intern/QoreClassIntern.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreLValue.h"
+#include "qore/intern/qore_number_private.h"
+#include "qore/intern/qore_list_private.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 #include <memory>
 

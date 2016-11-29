@@ -41,10 +41,10 @@ enum qore_var_t {
    VT_IMMEDIATE  = 6   // used in references with immediate variable storage
 };
 
-#include <qore/intern/RSet.h>
-#include <qore/intern/VRMutex.h>
-#include <qore/intern/QoreLValue.h>
-#include <qore/intern/qore_var_rwlock_priv.h>
+#include "qore/intern/RSet.h"
+#include "qore/intern/VRMutex.h"
+#include "qore/intern/QoreLValue.h"
+#include "qore/intern/qore_var_rwlock_priv.h"
 
 #include <string.h>
 #include <stdlib.h>

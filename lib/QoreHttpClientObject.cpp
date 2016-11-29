@@ -37,12 +37,12 @@
 #include <qore/Qore.h>
 #include <qore/QoreURL.h>
 #include <qore/QoreHttpClientObject.h>
-#include <qore/intern/ql_misc.h>
-#include <qore/intern/QC_Socket.h>
-#include <qore/intern/QC_Queue.h>
-#include <qore/intern/QoreHttpClientObjectIntern.h>
+#include "qore/intern/ql_misc.h"
+#include "qore/intern/QC_Socket.h"
+#include "qore/intern/QC_Queue.h"
+#include "qore/intern/QoreHttpClientObjectIntern.h"
 
-#include <qore/intern/qore_socket_private.h>
+#include "qore/intern/qore_socket_private.h"
 
 #include <string>
 #include <map>

@@ -35,7 +35,7 @@
 
 #define _QORE_QOREREGEXSUBST_H
 
-#include <qore/intern/QoreRegexBase.h>
+#include "qore/intern/QoreRegexBase.h"
 #include <sys/types.h>
 
 class QoreRegexSubst : public QoreRegexBase, public QoreReferenceCounter {

@@ -30,9 +30,9 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ql_time.h>
-#include <qore/intern/QC_TimeZone.h>
-#include <qore/intern/qore_date_private.h>
+#include "qore/intern/ql_time.h"
+#include "qore/intern/QC_TimeZone.h"
+#include "qore/intern/qore_date_private.h"
 
 #include <stdio.h>
 #include <time.h>

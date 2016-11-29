@@ -29,10 +29,10 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreClassList.h>
-#include <qore/intern/QoreNamespaceList.h>
-#include <qore/intern/QoreClassIntern.h>
-#include <qore/intern/QoreNamespaceIntern.h>
+#include "qore/intern/QoreClassList.h"
+#include "qore/intern/QoreNamespaceList.h"
+#include "qore/intern/QoreClassIntern.h"
+#include "qore/intern/QoreNamespaceIntern.h"
 #include <qore/minitest.hpp>
 
 #include <assert.h>

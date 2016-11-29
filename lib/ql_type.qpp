@@ -30,9 +30,9 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ql_type.h>
-#include <qore/intern/qore_date_private.h>
-#include <qore/intern/QoreObjectIntern.h>
+#include "qore/intern/ql_type.h"
+#include "qore/intern/qore_date_private.h"
+#include "qore/intern/QoreObjectIntern.h"
 
 #include <memory>
 

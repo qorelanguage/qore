@@ -30,8 +30,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ql_string.h>
-#include <qore/intern/qore_number_private.h>
+#include "qore/intern/ql_string.h"
+#include "qore/intern/qore_number_private.h"
 
 #include <stdlib.h>
 #include <string.h>

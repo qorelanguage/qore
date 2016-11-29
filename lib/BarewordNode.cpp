@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreNamespaceIntern.h>
+#include "qore/intern/QoreNamespaceIntern.h"
 
 // object takes over ownership of str
 BarewordNode::BarewordNode(char *c_str, int sline, int eline) : ParseNoEvalNode(NT_BAREWORD), loc(sline, eline), finalized(false), str(c_str) {

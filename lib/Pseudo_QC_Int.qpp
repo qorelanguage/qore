@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_number_private.h>
+#include "qore/intern/qore_number_private.h"
 
 //! Methods in this pseudo-class can be executed on @ref integer "integer values"
 /**

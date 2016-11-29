@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/qore_program_private.h"
 
 QoreString QoreTransliterationOperatorNode::op_str("transliteration (=~ tr///) operator expression");
 

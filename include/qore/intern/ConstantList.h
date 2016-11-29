@@ -39,7 +39,7 @@
 #define _QORE_CONSTANTLIST_H
 
 #include <qore/common.h>
-#include <qore/intern/ParseNode.h>
+#include "qore/intern/ParseNode.h"
 
 #include <map>
 #include <string>
@@ -203,7 +203,7 @@ public:
 #ifdef HAVE_QORE_HASH_MAP
 //#warning compiling with hash_map
 #include <qore/hash_map_include.h>
-#include <qore/intern/xxhash.h>
+#include "qore/intern/xxhash.h"
 
 typedef HASH_MAP<const char*, ConstantEntry*, qore_hash_str, eqstr> cnemap_t;
 #else

@@ -33,8 +33,8 @@
 #include <qore/DBI.h>
 #include <qore/QoreHttpClientObject.h>
 
-#include <qore/intern/QoreSignal.h>
-#include <qore/intern/ModuleInfo.h>
+#include "qore/intern/QoreSignal.h"
+#include "qore/intern/ModuleInfo.h"
 
 #include <stdio.h>
 #include <string.h>

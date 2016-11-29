@@ -29,9 +29,9 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ForEachStatement.h>
-#include <qore/intern/StatementBlock.h>
-#include <qore/intern/AbstractIteratorHelper.h>
+#include "qore/intern/ForEachStatement.h"
+#include "qore/intern/StatementBlock.h"
+#include "qore/intern/AbstractIteratorHelper.h"
 
 #include <memory>
 

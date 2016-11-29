@@ -30,12 +30,12 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/Sequence.h>
-#include <qore/intern/QoreClassIntern.h>
-#include <qore/intern/ConstantList.h>
-#include <qore/intern/qore_program_private.h>
-#include <qore/intern/ql_crypto.h>
-#include <qore/intern/QoreObjectIntern.h>
+#include "qore/intern/Sequence.h"
+#include "qore/intern/QoreClassIntern.h"
+#include "qore/intern/ConstantList.h"
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/ql_crypto.h"
+#include "qore/intern/QoreObjectIntern.h"
 
 #include <string.h>
 #include <stdlib.h>
