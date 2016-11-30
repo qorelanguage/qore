@@ -65,30 +65,62 @@ public class QorizeTest inherits QUnit::Test {
     }
 
     qorizeStructures() {
-        hash h = (
-                "foo" : 1,
-                "bar" : (1,2,3,4,),
+        hash h1 = (
+                "foo": 1,
+                "bar": (1, 2, 3, 4),
             );
-        string h_ok = "
-        (
-        \"foo\" : 1,
-        \"bar\" : 
-            (1,2,3,4,),
-        )";
+        string h1_ok = "{
+  \"foo\": 1,
+  \"bar\": (1, 2, 3, 4),
+}";
+        hash h2 = hash();
+        string h2_ok = "{}";
+        string h2_old_ok = "hash()";
 
-        list l = ( 1, 2, 3, ("foo" : "bar"), (1, 2, 3),(4,5) );
-        string l_ok = "
-        (
-            1,2,3,
-            (
-            \"foo\" : \"bar\",
-            ),
-            (1,2,3,),
-            (4,5,),
-        )";
+        list l1 = (1, 2, 3, {"foo" : "bar"}, (1, 2, 3),(4, 5));
+        string l1_ok = "(
+  1, 2, 3, {
+    \"foo\": \"bar\",
+  }, (1, 2, 3), (4, 5)
+)";
+        list l2 = ();
+        string l2_ok = "()";
 
-        testAssertion("hash test val", \qorize_val(), (h,), new TestResultValue(h_ok));
-        testAssertion("list test val", \qorize_val(), (l,), new TestResultValue(l_ok));
+        hash h3 = (
+            "A": 1,
+            "B": 2,
+            "C": (1, "xyz", (), 2, {}, 3, (7, 6, 5), (4, 3, 2), {"Q": "A", "W": "S", "E": {"R": "F"}}, {"T": "T"}),
+            "D": (11, 22, 33),
+        );
+        string h3_ok = "{
+  \"A\": 1,
+  \"B\": 2,
+  \"C\": (
+    1, \"xyz\", (), 2, {}, 3, (7, 6, 5), (4, 3, 2), {
+      \"Q\": \"A\",
+      \"W\": \"S\",
+      \"E\": {
+        \"R\": \"F\",
+      },
+    }, {
+      \"T\": \"T\",
+    }
+  ),
+  \"D\": (11, 22, 33),
+}";
+        string l1_old_4_ok = "(
+    1, 2, 3, (
+        \"foo\": \"bar\",
+    ), (1, 2, 3), (4, 5)
+)";
+
+        testAssertion("hash test val", \qorize_val(), (h1,), new TestResultValue(h1_ok));
+        testAssertion("list test val", \qorize_val(), (l1,), new TestResultValue(l1_ok));
+        testAssertion("list test val old indent", \qorize_val(), (l1, 4, False), new TestResultValue(l1_old_4_ok));
+        testAssertion("empty hash test val", \qorize_val(), (h2,), new TestResultValue(h2_ok));
+        testAssertion("empty old hash test val", \qorize_val(), (h2, 4, False), new TestResultValue(h2_old_ok));
+        testAssertion("empty list test val", \qorize_val(), (l2,), new TestResultValue(l2_ok));
+        testAssertion("hash test val", \qorize_val(), (h3,), new TestResultValue(h3_ok));
     }
 
     namedTest() {
