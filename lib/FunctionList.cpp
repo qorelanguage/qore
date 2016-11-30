@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/FunctionList.h>
-#include <qore/intern/QoreNamespaceIntern.h>
+#include "qore/intern/FunctionList.h"
+#include "qore/intern/QoreNamespaceIntern.h"
 
 #include <string.h>
 

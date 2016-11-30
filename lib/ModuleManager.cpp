@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,18 +31,21 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_program_private.h>
-#include <qore/intern/ModuleInfo.h>
-#include <qore/intern/QoreNamespaceIntern.h>
-#include <qore/intern/QoreException.h>
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/ModuleInfo.h"
+#include "qore/intern/QoreNamespaceIntern.h"
+#include "qore/intern/QoreException.h"
 
 #include <errno.h>
 #include <string.h>
 
+// dlopen() flags
+#define QORE_DLOPEN_FLAGS RTLD_LAZY|RTLD_GLOBAL
+
 #ifdef HAVE_GLOB_H
 #include <glob.h>
 #else
-#include <qore/intern/glob.h>
+#include "qore/intern/glob.h"
 #endif
 
 #include <stdlib.h>
@@ -57,7 +60,7 @@
 #include <vector>
 #include <set>
 
-static const qore_mod_api_compat_s qore_mod_api_list_l[] = { {0, 19}, {0, 18}, {0, 17}, {0, 16}, {0, 15}, {0, 14}, {0, 13}, {0, 12}, {0, 11}, {0, 10}, {0, 9}, {0, 8}, {0, 7}, {0, 6}, {0, 5} };
+static const qore_mod_api_compat_s qore_mod_api_list_l[] = { {0, 20}, {0, 19}, {0, 18}, {0, 17}, {0, 16}, {0, 15}, {0, 14}, {0, 13}, {0, 12}, {0, 11}, {0, 10}, {0, 9}, {0, 8}, {0, 7}, {0, 6}, {0, 5} };
 #define QORE_MOD_API_LEN (sizeof(qore_mod_api_list_l)/sizeof(struct qore_mod_api_compat_s))
 
 // public symbols
@@ -260,6 +263,9 @@ static QoreStringNode* loadModuleError(const char* name, ExceptionSink& xsink) {
 
 void QoreBuiltinModule::addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink) const {
    QoreModuleContextHelper qmc(name.getBuffer(), pgm, xsink);
+
+   // make sure getProgram() returns this Program when module_ns_init() is called
+   QoreProgramContextHelper pch(pgm);
 
    RootQoreNamespace* rns = pgm->getRootNS();
    QoreNamespace* qns = pgm->getQoreNS();
@@ -555,7 +561,6 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
    assert(mmi == map.end() || !strcmp(mmi->second->getName(), name));
 
    QoreAbstractModule* mi = (mmi == map.end() ? 0 : mmi->second);
-   //printd(5, "QoreModuleManager::loadModuleIntern() '%s' mi: %p\n", name, mi);
 
    // handle module reloads
    if (load_opt & QMLO_RELOAD) {
@@ -838,7 +843,7 @@ void QoreModuleManager::registerUserModuleFromSource(const char* name, const cha
 }
 
 // const char* path, const char* feature, ReferenceHolder<QoreProgram>& pgm
-QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std::auto_ptr<QoreUserModule>& mi, QoreUserModuleDefContextHelper& qmd, unsigned load_opt) {
+QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std::unique_ptr<QoreUserModule>& mi, QoreUserModuleDefContextHelper& qmd, unsigned load_opt) {
    // see if a module with this name is already registered
    QoreAbstractModule* omi = findModuleUnlocked(mi->getName());
    if (omi)
@@ -962,10 +967,10 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
    else
       pgm = new QoreProgram(po);
 
-   //printd(5, "QoreModuleManager::loadUserModuleFromPath(path: '%s') cwd: '%s' tpgm: %p po: "QLLD" allow-injection: %s tpgm allow-injection: %s pgm allow-injection: %s\n", path, td ? td : "n/a", tpgm, po, po & PO_ALLOW_INJECTION ? "true" : "false", (tpgm ? tpgm->getParseOptions64() & PO_ALLOW_INJECTION : 0) ? "true" : "false", pgm->getParseOptions64() & PO_ALLOW_INJECTION ? "true" : "false");
+   //printd(5, "QoreModuleManager::loadUserModuleFromPath(path: '%s') cwd: '%s' tpgm: %p po: " QLLD " allow-injection: %s tpgm allow-injection: %s pgm allow-injection: %s\n", path, td ? td : "n/a", tpgm, po, po & PO_ALLOW_INJECTION ? "true" : "false", (tpgm ? tpgm->getParseOptions64() & PO_ALLOW_INJECTION : 0) ? "true" : "false", pgm->getParseOptions64() & PO_ALLOW_INJECTION ? "true" : "false");
 
    // note: the module will contain a normalized path which will be used for parsing
-   std::auto_ptr<QoreUserModule> mi(new QoreUserModule(td, path, feature, pgm, load_opt));
+   std::unique_ptr<QoreUserModule> mi(new QoreUserModule(td, path, feature, pgm, load_opt));
 
    td = mi->getFileName();
    //printd(5, "QoreModuleManager::loadUserModuleFromPath() normalized path: '%s'\n", td);
@@ -1001,7 +1006,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& x
    else
       pgm = new QoreProgram(po);
 
-   std::auto_ptr<QoreUserModule> mi(new QoreUserModule(0, path, feature, pgm, QMLO_NONE));
+   std::unique_ptr<QoreUserModule> mi(new QoreUserModule(0, path, feature, pgm, QMLO_NONE));
 
    ModuleReExportHelper mrh(mi.get(), reexport);
 
@@ -1032,7 +1037,7 @@ struct DLHelper {
 QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* pgm, bool reexport) {
    QoreAbstractModule* mi = 0;
 
-   void* ptr = dlopen(path, RTLD_LAZY|RTLD_GLOBAL);
+   void* ptr = dlopen(path, QORE_DLOPEN_FLAGS);
    if (!ptr) {
       xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(path), "error loading qore module '%s': %s", path, dlerror());
       return 0;
@@ -1209,7 +1214,7 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
 
    printd(5, "QoreModuleManager::loadBinaryModuleFromPath(%s) %s: calling module_init@%p\n", path, name, *module_init);
 
-   // this is needed for backwards-compatibility for modules that add builtin functions in the module initilization code
+   // this is needed for backwards-compatibility for modules that add builtin functions in the module initialization code
    QoreModuleContextHelper qmc(name, pgm, xsink);
    QoreStringNode* str = (*module_init)();
    if (str) {

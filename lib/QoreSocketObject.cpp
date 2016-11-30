@@ -32,10 +32,10 @@
 
 #include <qore/Qore.h>
 #include <qore/QoreSocketObject.h>
-#include <qore/intern/qore_socket_private.h>
-#include <qore/intern/QC_Socket.h>
-#include <qore/intern/QC_SSLCertificate.h>
-#include <qore/intern/QC_SSLPrivateKey.h>
+#include "qore/intern/qore_socket_private.h"
+#include "qore/intern/QC_Socket.h"
+#include "qore/intern/QC_SSLCertificate.h"
+#include "qore/intern/QC_SSLPrivateKey.h"
 
 QoreSocketObject::QoreSocketObject(QoreSocket* s, QoreSSLCertificate* cert, QoreSSLPrivateKey* pk) : priv(new my_socket_priv(s, cert, pk)) {
 }
@@ -149,6 +149,11 @@ int QoreSocketObject::send(const BinaryNode* b) {
    return priv->socket->send(b);
 }
 
+void QoreSocketObject::sendFromInputStream(InputStream *is, int64 size, int64 timeout_ms, ExceptionSink *xsink) {
+   AutoLocker al(priv->m);
+   priv->socket->priv->sendFromInputStream(is, size, timeout_ms, xsink, &priv->m);
+}
+
 // send from a file descriptor
 int QoreSocketObject::send(int fd, int size) {
    AutoLocker al(priv->m);
@@ -213,6 +218,11 @@ BinaryNode* QoreSocketObject::recvBinary(int timeout_ms, ExceptionSink* xsink) {
 BinaryNode* QoreSocketObject::recvBinary(int bufsize, int timeout_ms, ExceptionSink* xsink) {
    AutoLocker al(priv->m);
    return priv->socket->recvBinary(bufsize, timeout_ms, xsink);
+}
+
+void QoreSocketObject::recvToOutputStream(OutputStream *os, int64 size, int64 timeout_ms, ExceptionSink *xsink) {
+   AutoLocker al(priv->m);
+   priv->socket->priv->recvToOutputStream(os, size, timeout_ms, xsink, &priv->m);
 }
 
 // receive and write data to a file descriptor
@@ -315,10 +325,27 @@ int QoreSocketObject::sendHTTPResponseWithCallback(ExceptionSink* xsink, int cod
    return priv->socket->priv->sendHttpResponse(xsink, "Socket", "sendHTTPResponseWithCallback", code, desc, http_version, headers, 0, 0, &send_callback, source, timeout_ms, &priv->m, aborted);
 }
 
+// send data in HTTP chunked format
+void QoreSocketObject::sendHTTPChunkedBodyFromInputStream(InputStream *is, int timeout_ms, ExceptionSink* xsink) {
+   AutoLocker al(priv->m);
+   return priv->socket->priv->sendHttpChunkedBodyFromInputStream(is, timeout_ms, xsink, &priv->m);
+}
+
+void QoreSocketObject::sendHTTPChunkedBodyTrailer(const QoreHashNode *headers, int timeout_ms, ExceptionSink* xsink) {
+   AutoLocker al(priv->m);
+   return priv->socket->priv->sendHttpChunkedBodyTrailer(headers, timeout_ms, xsink);
+}
+
 // receive a binary message in HTTP chunked format
 QoreHashNode* QoreSocketObject::readHTTPChunkedBodyBinary(int timeout_ms, ExceptionSink* xsink) {
    AutoLocker al(priv->m);
    return priv->socket->readHTTPChunkedBodyBinary(timeout_ms, xsink);
+}
+
+// receive a binary message in HTTP chunked format
+QoreHashNode* QoreSocketObject::readHTTPChunkedBodyToOutputStream(OutputStream *os, int timeout_ms, ExceptionSink* xsink) {
+   AutoLocker al(priv->m);
+   return priv->socket->priv->readHttpChunkedBodyBinary(timeout_ms, xsink, "Socket", QORE_SOURCE_SOCKET, 0, &priv->m, 0, os);
 }
 
 // receive a string message in HTTP chunked format
