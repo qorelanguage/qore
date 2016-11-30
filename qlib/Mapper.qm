@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Mapper.qm data mapping module
 
-/*  Mapper.qm Copyright 2014 - 2016 Qore Technologies, sro
+/*  Mapper.qm Copyright 2014 - 2016 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -524,7 +524,7 @@ Mapper mapv(DataMap);
         /** @param k the field name
             @param fh a reference to the field's value in the map
         */
-        private checkMapField(string k, reference fh, *hash th) {
+        private checkMapField(string k, reference fh) {
             *hash outf;
             # check output name
             if (output) {

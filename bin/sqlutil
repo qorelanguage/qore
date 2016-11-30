@@ -234,7 +234,7 @@ class DumpObjects {
                 printf("Unable to dump object of type: %n\n", type);
                 continue;
             }
-            else if (!is_object_supported (m_db, type))
+            else if (!is_object_supported (m_db, type)) {
                 printf("Unable to dump object of type: %n\n", type);
                 continue;
             }
