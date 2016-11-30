@@ -32,9 +32,9 @@
 #ifndef _QORE_QORE_SOCKET_PRIVATE_H
 #define _QORE_QORE_SOCKET_PRIVATE_H
 
-#include <qore/intern/SSLSocketHelper.h>
+#include "qore/intern/SSLSocketHelper.h"
 
-#include <qore/intern/QC_Queue.h>
+#include "qore/intern/QC_Queue.h"
 
 #include <ctype.h>
 #include <stdlib.h>

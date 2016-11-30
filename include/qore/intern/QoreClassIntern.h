@@ -50,7 +50,7 @@
 
 #ifdef HAVE_QORE_HASH_MAP
 #include <qore/hash_map_include.h>
-#include <qore/intern/xxhash.h>
+#include "qore/intern/xxhash.h"
 
 typedef HASH_MAP<std::string, QoreMethod*> hm_method_t;
 #else

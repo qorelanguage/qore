@@ -33,7 +33,7 @@
 
 #define _QORE_INTERN_RSETHELPER_H
 
-#include <qore/intern/RSection.h>
+#include "qore/intern/RSection.h"
 
 #include <set>
 

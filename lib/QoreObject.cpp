@@ -32,10 +32,10 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreClassIntern.h>
-#include <qore/intern/QoreObjectIntern.h>
-#include <qore/intern/QoreHashNodeIntern.h>
-#include <qore/intern/QoreClosureNode.h>
+#include "qore/intern/QoreClassIntern.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/QoreClosureNode.h"
 
 qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass* oc, QoreProgram* p, QoreHashNode* n_data) :
    RObject(n_obj->references, true),

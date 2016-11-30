@@ -33,7 +33,7 @@
 
 #define _QORE_QORELIBINTERN_H
 
-#include <qore/intern/config.h>
+#include "qore/intern/config.h"
 
 #include <stdarg.h>
 #include <sys/types.h>
@@ -368,50 +368,50 @@ DLLLOCAL int statvfs(const char* path, struct statvfs* buf);
 DLLLOCAL int q_fstatvfs(const char* filepath, struct statvfs* buf);
 #endif
 
-#include <qore/intern/NamedScope.h>
-#include <qore/intern/QoreTypeInfo.h>
-#include <qore/intern/ParseNode.h>
-#include <qore/intern/QoreThreadList.h>
-#include <qore/intern/qore_thread_intern.h>
-#include <qore/intern/Function.h>
-#include <qore/intern/CallReferenceCallNode.h>
-#include <qore/intern/CallReferenceNode.h>
-#include <qore/intern/BuiltinFunction.h>
-#include <qore/intern/AbstractStatement.h>
-#include <qore/intern/Variable.h>
-#include <qore/intern/LocalVar.h>
-#include <qore/intern/ScopedObjectCallNode.h>
-#include <qore/intern/ScopedRefNode.h>
-#include <qore/intern/ClassRefNode.h>
-#include <qore/intern/Context.h>
-#include <qore/intern/BarewordNode.h>
-#include <qore/intern/SelfVarrefNode.h>
-#include <qore/intern/StaticClassVarRefNode.h>
-#include <qore/intern/BackquoteNode.h>
-#include <qore/intern/ContextrefNode.h>
-#include <qore/intern/ContextRowNode.h>
-#include <qore/intern/ComplexContextrefNode.h>
-#include <qore/intern/FindNode.h>
-#include <qore/intern/VRMutex.h>
-#include <qore/intern/VLock.h>
-#include <qore/intern/QoreException.h>
-#include <qore/intern/StatementBlock.h>
-#include <qore/intern/VarRefNode.h>
-#include <qore/intern/FunctionCallNode.h>
-#include <qore/intern/QoreRegexSubst.h>
-#include <qore/intern/QoreRegex.h>
-#include <qore/intern/QoreTransliteration.h>
-#include <qore/intern/ObjectMethodReferenceNode.h>
-#include <qore/intern/QoreClosureParseNode.h>
-#include <qore/intern/QoreClosureNode.h>
-#include <qore/intern/QoreImplicitArgumentNode.h>
-#include <qore/intern/QoreImplicitElementNode.h>
-#include <qore/intern/QoreOperatorNode.h>
-#include <qore/intern/QoreTimeZoneManager.h>
-#include <qore/intern/ContextStatement.h>
-#include <qore/intern/SwitchStatement.h>
-#include <qore/intern/QorePseudoMethods.h>
-#include <qore/intern/ParseReferenceNode.h>
+#include "qore/intern/NamedScope.h"
+#include "qore/intern/QoreTypeInfo.h"
+#include "qore/intern/ParseNode.h"
+#include "qore/intern/QoreThreadList.h"
+#include "qore/intern/qore_thread_intern.h"
+#include "qore/intern/Function.h"
+#include "qore/intern/CallReferenceCallNode.h"
+#include "qore/intern/CallReferenceNode.h"
+#include "qore/intern/BuiltinFunction.h"
+#include "qore/intern/AbstractStatement.h"
+#include "qore/intern/Variable.h"
+#include "qore/intern/LocalVar.h"
+#include "qore/intern/ScopedObjectCallNode.h"
+#include "qore/intern/ScopedRefNode.h"
+#include "qore/intern/ClassRefNode.h"
+#include "qore/intern/Context.h"
+#include "qore/intern/BarewordNode.h"
+#include "qore/intern/SelfVarrefNode.h"
+#include "qore/intern/StaticClassVarRefNode.h"
+#include "qore/intern/BackquoteNode.h"
+#include "qore/intern/ContextrefNode.h"
+#include "qore/intern/ContextRowNode.h"
+#include "qore/intern/ComplexContextrefNode.h"
+#include "qore/intern/FindNode.h"
+#include "qore/intern/VRMutex.h"
+#include "qore/intern/VLock.h"
+#include "qore/intern/QoreException.h"
+#include "qore/intern/StatementBlock.h"
+#include "qore/intern/VarRefNode.h"
+#include "qore/intern/FunctionCallNode.h"
+#include "qore/intern/QoreRegexSubst.h"
+#include "qore/intern/QoreRegex.h"
+#include "qore/intern/QoreTransliteration.h"
+#include "qore/intern/ObjectMethodReferenceNode.h"
+#include "qore/intern/QoreClosureParseNode.h"
+#include "qore/intern/QoreClosureNode.h"
+#include "qore/intern/QoreImplicitArgumentNode.h"
+#include "qore/intern/QoreImplicitElementNode.h"
+#include "qore/intern/QoreOperatorNode.h"
+#include "qore/intern/QoreTimeZoneManager.h"
+#include "qore/intern/ContextStatement.h"
+#include "qore/intern/SwitchStatement.h"
+#include "qore/intern/QorePseudoMethods.h"
+#include "qore/intern/ParseReferenceNode.h"
 
 DLLLOCAL extern int qore_library_options;
 

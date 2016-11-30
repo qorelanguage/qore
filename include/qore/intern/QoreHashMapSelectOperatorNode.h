@@ -32,7 +32,7 @@
 #ifndef _QORE_QOREHASHMAPSELECTOPERATORNODE_H
 #define _QORE_QOREHASHMAPSELECTOPERATORNODE_H
 
-#include <qore/intern/AbstractIteratorHelper.h>
+#include "qore/intern/AbstractIteratorHelper.h"
 
 class QoreHashMapSelectOperatorNode : public QoreNOperatorNodeBase<4> {
 protected:

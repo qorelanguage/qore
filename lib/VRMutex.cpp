@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/VRMutex.h>
+#include "qore/intern/VRMutex.h"
 
 #include <assert.h>
 

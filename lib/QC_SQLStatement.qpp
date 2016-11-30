@@ -30,9 +30,9 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_SQLStatement.h>
-#include <qore/intern/QC_Datasource.h>
-#include <qore/intern/QC_DatasourcePool.h>
+#include "qore/intern/QC_SQLStatement.h"
+#include "qore/intern/QC_Datasource.h"
+#include "qore/intern/QC_DatasourcePool.h"
 
 //! The SQLStatement class provides the most flexibilty for executing SQL on a database server
 /** This class allows statements to be executed and result sets to be iteratively returned in all formats supported by %Qore (single row at a time as a hash or blocks of rows as either hashes of lists or lists of hashes). The same flexibility of choosing the output format for result sets also applies to output values from stored procedure or function execution, for example.

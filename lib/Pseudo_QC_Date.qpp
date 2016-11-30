@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_TimeZone.h>
+#include "qore/intern/QC_TimeZone.h"
 
 //! Methods in this pseudo-class can be executed on @ref date "date/time value types"
 /**

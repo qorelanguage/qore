@@ -30,8 +30,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreTimeZoneManager.h>
-#include <qore/intern/qore_date_private.h>
+#include "qore/intern/QoreTimeZoneManager.h"
+#include "qore/intern/qore_date_private.h"
 
 #include <stdio.h>
 #include <time.h>
@@ -39,7 +39,7 @@
 #ifdef HAVE_GLOB_H
 #include <glob.h>
 #else
-#include <qore/intern/glob.h>
+#include "qore/intern/glob.h"
 #endif
 
 #include <string.h>

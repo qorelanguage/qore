@@ -32,9 +32,9 @@
 #ifndef _QORE_INTERN_QORE_QF_PRIVATE_H
 #define _QORE_INTERN_QORE_QF_PRIVATE_H
 
-#include <qore/intern/QC_Queue.h>
+#include "qore/intern/QC_Queue.h"
 #ifdef HAVE_TERMIOS_H
-#include <qore/intern/QC_TermIOS.h>
+#include "qore/intern/QC_TermIOS.h"
 #endif
 
 #include <unistd.h>

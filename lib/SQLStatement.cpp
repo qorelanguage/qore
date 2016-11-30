@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/sql_statement_private.h>
+#include "qore/intern/sql_statement_private.h"
 
 SQLStatement::SQLStatement() : priv(new sql_statement_private) {
 }

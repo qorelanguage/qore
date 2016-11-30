@@ -31,7 +31,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreTransliteration.h>
+#include "qore/intern/QoreTransliteration.h"
 
 #include <stdlib.h>
 #include <strings.h>

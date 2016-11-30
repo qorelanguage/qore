@@ -29,11 +29,11 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/SwitchStatement.h>
-#include <qore/intern/StatementBlock.h>
-#include <qore/intern/CaseNodeWithOperator.h>
-#include <qore/intern/CaseNodeRegex.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/SwitchStatement.h"
+#include "qore/intern/StatementBlock.h"
+#include "qore/intern/CaseNodeWithOperator.h"
+#include "qore/intern/CaseNodeRegex.h"
+#include "qore/intern/qore_program_private.h"
 #include <qore/minitest.hpp>
 
 #ifdef DEBUG_TESTS
