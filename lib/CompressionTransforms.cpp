@@ -28,8 +28,11 @@
   licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
   information.
 */
+
 #include <zlib.h>
 #include <bzlib.h>
+#include <errno.h>
+
 #include "qore/Qore.h"
 #include "qore/intern/CompressionTransforms.h"
 
