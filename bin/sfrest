@@ -1,0 +1,313 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+# requires at least this qore version to run
+%requires qore >= 0.8.12
+
+%new-style
+%strict-args
+%require-types
+%enable-all-warnings
+
+%try-module yaml >= 0.5
+%define NoYaml
+%endtry
+
+%try-module xml >= 1.3
+%define NoXml
+%endtry
+
+%try-module json >= 1.5
+%define NoJson
+%endtry
+
+%requires SalesforceRestClient
+%requires Util
+
+%exec-class SfRestClient
+
+class SfRestClient {
+    public {
+        #! program options
+        const Opts = (
+            "proxy":          "P,proxy-url=s",
+            "show":           "W,show-url",
+            "timeout":        "t,timeout=i",
+            "lit":            "l,literal:i+",
+            "reformat":       "R,reformat",
+            "fullex":         "E,full-exception",
+            "header":         "H,header=s@",
+            "oath_url_token": "U,oauth-token-url=s",
+            "verbose":        "v,verbose:i+",
+
+            "bulk":           "b,bulk-api",
+            "mod":            "m,if-modified-since=d",
+            "unmod":          "n,if-unmodified-since=d",
+
+            "client_id":      "i,client_id=s",
+            "client_secret":  "s,client_secret=s",
+            "user":           "u,username=s",
+            "pass":           "p,password=s",
+
+            "help":           "h,help",
+            );
+
+        #! recognized HTTP methods
+        const Methods = (
+            "GET": True,
+            "PATCH": True,
+            "PUT": True,
+            "POST": True,
+            "DELETE": True,
+            "OPTIONS": True,
+            );
+    }
+
+    constructor() {
+        GetOpt g(Opts);
+        hash opt = g.parse3(\ARGV);
+        if (opt.help)
+            usage();
+
+        opt.client_id = opt.client_id ?? ENV.SALESFORCE_CONSUMER_KEY;
+        if (!opt.client_id)
+            error("missing --client_id option or SALESFORCE_CONSUMER_KEY environment variable");
+        opt.client_secret = opt.client_secret ?? ENV.SALESFORCE_CONSUMER_SECRET;
+        if (!opt.client_secret)
+            error("missing --client_secret option or SALESFORCE_CONSUMER_SECRET environment variable");
+        opt.username = opt.user ?? ENV.SALESFORCE_USER;
+        if (!opt.username)
+            error("missing --username option or SALESFORCE_CONSUMER_USER environment variable");
+        opt.password = opt.pass ?? ENV.SALESFORCE_PASS;
+        if (!opt.password)
+            error("missing --password option or SALESFORCE_CONSUMER_PASS environment variable");
+
+        if (opt.timeout)
+            opt.connect_timeout = opt.timeout;
+
+        SalesforceRestClient rc(opt - ("lit", "reformat", "fullex", "header", "show"), True);
+
+        if (opt.show) {
+            if (rc.getProxyURL())
+                printf("%s (through HTTP proxy: %s)\n", rc.getURL(), rc.getProxyURL());
+            else
+                printf("%s\n", rc.getURL());
+            exit(0);
+        }
+
+        *string meth = shift ARGV;
+        if (!meth)
+            usage();
+
+        *string path = shift ARGV;
+        any body;
+        if (!Methods{meth.upr()}) {
+            body = path;
+            path = meth;
+            meth = "GET";
+        }
+        else {
+            meth = meth.upr();
+            body = shift ARGV;
+        }
+
+        if (!path) {
+            printf("ERROR: missing path for REST call\n");
+            usage();
+        }
+
+        foreach string h in (opt.header) {
+            (*string k, *string v) = (h =~ x/([^:]+):(.+)$/); #/);
+            trim k;
+            trim v;
+            if (!k || !v) {
+                stderr.printf("invalid header %y; expecting \"key: value\" format\n", h);
+                exit(1);
+            }
+            rc.addDefaultHeaders((k: v));
+        }
+
+        if (exists body)
+            body = parse_to_qore_value(body);
+
+        rc.login();
+
+        if (opt.verbose)
+            printf("Salesforce.com API: %y URL: %y\n", rc.getApi(), rc.getURL());
+
+        # set path
+        if (path) {
+            if (path =~ /^\//)
+                path = path.substr(1);
+            printf("URL: %y\n", rc.getURL());
+            rc.setURL(rc.getURL() + "/" + path);
+        }
+
+        hash hdr;
+
+        # set headers
+        if (opt.mod)
+            hdr."If-Modified-Since" = opt.mod;
+        if (opt.nmod)
+            hdr."If-Unmodified-Since" = opt.mod;
+
+        hash info;
+        try {
+            hash h;
+            on_exit if (opt.lit) {
+                showRestRequest(info, body, opt);
+                showRestResponse(info, h.body, opt);
+            }
+            h = opt.bulk
+                ? rc.doBulkRequest(meth, "", body, \info, NOTHING, hdr)
+                : rc.doRequest(meth, "", body, \info, NOTHING, hdr);
+            if (!opt.lit)
+                printf("%N\n", h.body);
+        }
+        catch (hash ex) {
+            if (opt.fullex)
+                printf("%s\n", get_exception_string(ex));
+            else {
+                if (ex.err == "DESERIALIZATION-ERROR" && info."response-headers"."content-type" == "text/html")
+                    printf("%s\n%s\n", info."response-uri", html_decode(info."response-body"));
+                else {
+                    printf("%s: %s: %s", rc.getURL(), ex.err, ex.desc);
+                    if (ex.arg) {
+                        print(": ");
+                        if (ex.arg.body.typeCode() == NT_STRING) {
+                            trim ex.arg.body;
+                            print(ex.arg.body);
+                        }
+                        else {
+                            if (ex.arg.typeCode() == NT_STRING) {
+                                trim ex.arg;
+                                printf("%y", ex.arg);
+                            }
+                            else
+                                printf("%y", ex.arg);
+                        }
+                    }
+                    print("\n");
+                }
+            }
+        }
+    }
+
+    error(string fmt) {
+        stderr.printf("%s: ERROR: %s\n", get_script_name(), vsprintf(fmt, argv));
+        exit(1);
+    }
+
+    private showRestRequest(hash info, any args, *hash opt) {
+        printf("> %s\n", info."request-uri");
+        if (opt.lit > 1)
+            printf("> %N\n", info.headers);
+        if (info."request-body") {
+            *string str;
+            if (opt.reformat) {
+                switch (info."request-serialization") {
+%ifndef NoXml
+                    case "xml": str = make_xmlrpc_value(args, XGF_ADD_FORMATTING); break;
+                    case "rawxml": str = make_xml(args, XGF_ADD_FORMATTING); break;
+%endif
+%ifndef NoJson
+                    case "json": str = make_json(args, JGF_ADD_FORMATTING); break;
+%endif
+%ifndef NoYaml
+                    case "yaml": str = trim(make_yaml(args, YAML::BlockStyle)); break;
+%endif
+                    case "url": str = mime_get_form_urlencoded_string(args); break;
+                    default: str = getBody(info); break;
+                }
+            }
+            else
+                str = getBody(info);
+            printf("> %s\n", str);
+        }
+    }
+
+    private showRestResponse(hash info, any rv, *hash opt) {
+        if (!info."response-uri")
+            return;
+        printf("< %s\n", info."response-uri");
+        if (opt.lit > 1)
+            printf("< %N\n", info."response-headers" - "body");
+        if (info."response-body") {
+            string str;
+            if (opt.reformat) {
+                switch (info."response-serialization") {
+%ifndef NoXml
+                    case "xml": str = make_xmlrpc_value(rv, XGF_ADD_FORMATTING); break;
+                    case "rawxml": str = make_xml(rv, XGF_ADD_FORMATTING); break;
+%endif
+%ifndef NoJson
+                    case "json": str = make_json(rv, JGF_ADD_FORMATTING); break;
+%endif
+%ifndef NoYaml
+                    case "yaml": str = trim(make_yaml(rv, YAML::BlockStyle)); break;
+%endif
+                    case "url": str = mime_get_form_urlencoded_string(rv); break;
+                    default: str = trim(info."response-body"); break;
+                }
+            }
+            else
+                str = trim(info."response-body");
+            printf("< %s\n", str);
+        }
+    }
+
+    private string getBody(hash info) {
+        switch (info.headers."Content-Encoding") {
+            case "deflate":
+            case "x-deflate":
+                info."request-body" = uncompress_to_string(info."request-body");
+                break;
+            case "gzip":
+            case "x-gzip":
+                info."request-body" = gunzip_to_string(info."request-body");
+                break;
+            case "bzip2":
+            case "x-bzip2":
+                info."request-body" = bunzip2_to_string(info."request-body");
+                break;
+            case "identity":
+                info."request-body" = binary_to_string(info."request-body");
+                break;
+            case NOTHING:
+                break;
+            default:
+                throw "UNKNOWN-CONTENT-ENCODING", sprintf("unknown Content-Encoding %y used to send message", info.headers."Content-Encoding");
+        }
+        return trim(info."request-body");
+    }
+
+    usage() {
+        printf("usage: %s [options] [get|patch|post|delete] path|URL ['qore msg body']
+** Required Options (can be set with environment variables as well)
+ -i,--client_id=ARG            the consumer key (or from $SALESFORCE_CONSUMER_KEY)
+ -s,--client_secret=ARG        the consumer secret (or from $SALESFORCE_CONSUMER_SECRET)
+ -u,--username=ARG             the account username (or from $SALESFORCE_USER)
+ -p,--password=ARG             the account password (or from $SALESFORCE_PASS)
+
+** Data Options
+ -b,--bulk-api                 use the Bulk REST API
+ -m,--if-modified-since=ARG    set the If-Modified-Since header
+ -n,--if-unmodified-since=ARG  set the If-Unmodified-Since header
+
+** Other Options
+ -E,--full-exception           show full exception output
+ -H,--header=ARG               send header with request
+ -P,--proxy-url=ARG            set the proxy URL (ex: http://user:pass@proxy:port)
+ -l,--literal                  show literal API calls (more l's, more info)
+ -R,--reformat                 reformat data with -l+ for better readability
+ -t,--timeout=ARG              set HTTP timeout in seconds
+ -U,--oauth-token-url=ARG      the URL for the OAuth2 token request
+                               default: %y
+ -v,--verbose                  show more information
+ -W,--show-url                 show default REST API URL and exit
+ -h,--help                     this help text
+", get_script_name(), (SalesforceRestClient::Defaults).oauth_url_token);
+        exit(1);
+    }
+
+}

@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_date_private.h>
+#include "qore/intern/qore_date_private.h"
 
 #include <time.h>
 #include <stdlib.h>

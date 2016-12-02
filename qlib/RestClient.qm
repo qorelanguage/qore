@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file RestClient.qm Qore user module for calling REST services
 
-/*  RestClient.qm Copyright (C) 2013 - 2016 Qore Technologies, sro
+/*  RestClient.qm Copyright (C) 2013 - 2016 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -82,11 +82,12 @@ module RestClient {
     The main classes are:
     - @ref RestClient::RestClient "RestClient": this class provides the REST client API
 
-    The @ref RestClient::RestClient "RestClient" class can support these methods of data serialization:
+    The @ref RestClient::RestClient "RestClient" class can support the following methods of data serialization:
     - \c "json": using the \c "json" module; messages bodies are encoded using JSON
-    - \c "yaml": using the \c "yaml" module; message bodies are encoded using YAML
+    - \c "rawxml": using the \c "xml" module; message bodies are encoded with XML without any data type encodings
+    - \c "url": message bodies are encoded in URL form encoded format (see <a href="https://tools.ietf.org/html/rfc1738">RFC 2738 2.2</a>)
     - \c "xml": using the \c "xml" module; message bodies are encoded using XML-RPC value encoding
-    - \c "xml_raw": using the \c "xml" module; message bodies are encoded using XML value encoding
+    - \c "yaml": using the \c "yaml" module; message bodies are encoded using YAML
     - \c "text": message bodies are not serialized, plain text value is used
 
     If none of the above modules can be loaded by the RestClient module, then the RestClient module will fail to initialize.
@@ -112,7 +113,11 @@ printf("%N\n", ans.body);
     @subsection restclientv1_4 RestClient v1.4
     - added:
       - support for \c text/plain Content-Type
-      - support for \c xml_raw serialization and deserialization
+
+    @subsection restclientv1_3_1 RestClient v1.3.1
+    - added support for the \c "url" encoding for URL form encodeded message bodies (<a href="https://github.com/qorelanguage/qore/issues/1436">issue 1436</a>)
+    - added support for the \c "rawxml" data type; when parsing XML responses, if the XML cannot be parsed as XML-RPC data, then it's attempted to be parsed as untyped XML data (<a href="https://github.com/qorelanguage/qore/issues/1437">issue 1437</a>)
+    - fixed a bug where an empty chunked response would cause a spurious exception to be thrown (<a href="https://github.com/qorelanguage/qore/issues/1448">issue 1448</a>)
 
     @subsection restclientv1_3 RestClient v1.3
     - added:
@@ -162,42 +167,59 @@ public namespace RestClient {
                 ),
 %endif
 %ifndef NoXml
-                "xml_raw": (
-                    "ct": MimeTypeXml,
-                    "out": \make_xml(),
-                ),
                 "xml": (
                     "ct": MimeTypeXml,
                     "out": \make_xmlrpc_value(),
                 ),
+                "rawxml": (
+                    "ct": MimeTypeXmlApp,
+                    "out": \make_xml(),
+                ),
 %endif
+                "url": (
+                    "ct": MimeTypeFormUrlEncoded,
+                    "out": \mime_get_form_urlencoded_string(),
+                ),
                 "text": (
                     "ct": MimeTypeText,
                     "out": string sub (any s) { return sprintf("%s", s); },
                 ),
                 };
 
-
 %ifndef NoYaml
             const DeserializeYaml = (
-                    "code": "yaml",
-                    "in": \parse_yaml(),
+                "code": "yaml",
+                "in": \parse_yaml(),
                 );
 %endif
 %ifndef NoXml
-            const DeserializeXmlRpc = (
-                    "code": "xml_rpc",
-                    "in": \parse_xmlrpc_response(),
-                    "continue_on_error" : True,
-                );
             const DeserializeXml = (
-                    "code": "xml_raw",
-                    "in": \parse_xml(),
+                "code": "xml",
+                "arg": True,
+                "in": hash sub (string xml, reference type) {
+                    try {
+                        on_success type = "xml";
+                        return parse_xmlrpc_value(xml);
+                    }
+                    catch (hash ex) {
+                        try {
+                            on_success type = "rawxml";
+                            return parse_xml(xml);
+                        }
+                        catch () {
+                        }
+                        rethrow;
+                    }
+                },
                 );
 %endif
 
             #! Data deserialization support MIME types to codes and de/serialization functions
             const DataDeserializationSupport = {
+                MimeTypeFormUrlEncoded: (
+                    "code": "url",
+                    "in": \mime_parse_form_urlencoded_string(),
+                ),
 %ifndef NoJson
                 MimeTypeJson: (
                     "code": "json",
@@ -209,8 +231,8 @@ public namespace RestClient {
                 MimeTypeYaml: DeserializeYaml,
 %endif
 %ifndef NoXml
-                MimeTypeXml: (DeserializeXmlRpc, DeserializeXml, ),
-                MimeTypeXmlApp: (DeserializeXmlRpc, DeserializeXml, ),
+                MimeTypeXml: DeserializeXml,
+                MimeTypeXmlApp: DeserializeXml,
 %endif
                 MimeTypeText: (
                     "code": "text",
@@ -230,6 +252,7 @@ public namespace RestClient {
 %ifndef NoJson
                 MimeTypeJsonRpc,
 %endif
+                MimeTypeFormUrlEncoded,
                 MimeTypeText,
                 );
 
@@ -250,10 +273,11 @@ public namespace RestClient {
 
             #! Data serialization options; this is a hash to simulate a set of strings
             /** Data serialization options are as follows:
-                - \c "auto": prefers in this order: json, yaml, xml, xml-rpc, and text
+                - \c "auto": prefers in this order: json, yaml, rawxml, xml-rpc, url, and text
+                - \c "xml": use only XML-RPC serialization
+                - \c "rawxml": use raw XML serialization
                 - \c "json": use only JSON serialization
                 - \c "yaml": use only YAML serialization
-                - \c "xml_raw": use raw XML message
                 - \c "xml": use only XML-RPC serialization
                 - \c "text": use only plain text. No serialization is used.
              */
@@ -266,9 +290,10 @@ public namespace RestClient {
                 "yaml": True,
 %endif
 %ifndef NoXml
+                "rawxml": True,
                 "xml": True,
-                "xml_raw": True,
 %endif
+                "url": True,
                 "text": True,
                 );
 
@@ -319,7 +344,13 @@ RestClient rest(("url": "http://localhost:8001/rest"));
             @endcode
 
             @param opts valid options are:
+            - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref Qore::True "True" or @ref Qore::False "False": indicating if the method required a message body as well. Example:
+                @code{.py}
+# add new HTTP methods for WebDAV. Both of them require body posting to the server
+("additional_methods": ("PROPFIND": True, "MKCOL": True ));
+                @endcode
             - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a relative date-time value for clarity, ex: \c 20s)
+            - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding
             - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "auto"
             - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
             - \c default_port: The default port number to connect to if none is given in the URL
@@ -328,7 +359,6 @@ RestClient rest(("url": "http://localhost:8001/rest"));
             - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
             - \c proxy: The proxy URL for connecting through a proxy
             - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
-            - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding
             - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 30s)
             - \c url: A string giving the URL to connect to
             @param do_not_connect if \c False (the default), then a connection will be immediately established to the remote server
@@ -512,10 +542,20 @@ hash ans = rest.get("/orders/1?info=verbose");
 
             @param path the URI path to add (will be appended to any root path given in the constructor)
             @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
-            @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+            @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request; if present the hash will contain the following keys:
+            - \c headers: a hash of outgoing HTTP request headers
+            - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
+            - \c body-content-type: the outgoing message body Mime \c Content-Type value
+            - \c response-headers: a hash of incoming HTTP headers in the response
+            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c response-code: the HTTP response code
+            - \c response-body: the raw message body in the response (after any content decoding)
+            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
+            - \c request-body: the raw message body in the request (before any content encoding)
+            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values
             @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
 
-            @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be assigned to the value of the \c "body" key
+            @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be deserialized to %Qore data and assigned to the value of the \c "body" key
 
             @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid serialization)
             @throw HTTP-CLIENT-RECEIVE-ERROR if this exception is thrown by the @ref Qore::HTTPClient::send() call in case of an HTTP response code < 100 or >= 300, the message body is still deserialized if possible and the response information can be retrieved in the \a info hash output keys as follows:
@@ -541,10 +581,20 @@ hash ans = rest.put("/orders/1", ("action": "cancel"));
 
             @param path the URI path to add (will be appended to any root path given in the constructor)
             @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
-            @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+            @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request; if present the hash will contain the following keys:
+            - \c headers: a hash of outgoing HTTP request headers
+            - \c request-uri: the request URI string sent (ex: \c "PUT /services/async/38.0/job HTTP/1.1")
+            - \c body-content-type: the outgoing message body Mime \c Content-Type value
+            - \c response-headers: a hash of incoming HTTP headers in the response
+            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c response-code: the HTTP response code
+            - \c response-body: the raw message body in the response (after any content decoding)
+            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
+            - \c request-body: the raw message body in the request (before any content encoding)
+            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values
             @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
 
-            @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be assigned to the value of the \c "body" key
+            @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be deserialized to %Qore data and assigned to the value of the \c "body" key
 
             @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid serialization)
             @throw HTTP-CLIENT-RECEIVE-ERROR if this exception is thrown by the @ref Qore::HTTPClient::send() call in case of an HTTP response code < 100 or >= 300, the message body is still deserialized if possible and the response information can be retrieved in the \a info hash output keys as follows:
@@ -570,10 +620,20 @@ hash ans = rest.post("/orders", ("product": "xyz123", "options": 500));
 
             @param path the URI path to add (will be appended to any root path given in the constructor)
             @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
-            @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+            @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request; if present the hash will contain the following keys:
+            - \c headers: a hash of outgoing HTTP request headers
+            - \c request-uri: the request URI string sent (ex: \c "POST /services/async/38.0/job HTTP/1.1")
+            - \c body-content-type: the outgoing message body Mime \c Content-Type value
+            - \c response-headers: a hash of incoming HTTP headers in the response
+            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c response-code: the HTTP response code
+            - \c response-body: the raw message body in the response (after any content decoding)
+            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
+            - \c request-body: the raw message body in the request (before any content encoding)
+            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values
             @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
 
-            @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be assigned to the value of the \c "body" key
+            @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be deserialized to %Qore data and assigned to the value of the \c "body" key
 
             @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid serialization)
             @throw HTTP-CLIENT-RECEIVE-ERROR if this exception is thrown by the @ref Qore::HTTPClient::send() call in case of an HTTP response code < 100 or >= 300, the message body is still deserialized if possible and the response information can be retrieved in the \a info hash output keys as follows:
@@ -594,15 +654,25 @@ hash ans = rest.post("/orders", ("product": "xyz123", "options": 500));
         #! sends an HTTP DELETE request to the REST server and returns the response
         /** @par Example:
             @code{.py}
-hash ans = rest.post("/orders/1");
+hash ans = rest.del("/orders/1");
             @endcode
 
             @param path the URI path to add (will be appended to any root path given in the constructor)
             @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
-            @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+            @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request; if present the hash will contain the following keys:
+            - \c headers: a hash of outgoing HTTP request headers
+            - \c request-uri: the request URI string sent (ex: \c "DELETE /services/async/38.0/job HTTP/1.1")
+            - \c body-content-type: the outgoing message body Mime \c Content-Type value
+            - \c response-headers: a hash of incoming HTTP headers in the response
+            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c response-code: the HTTP response code
+            - \c response-body: the raw message body in the response (after any content decoding)
+            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
+            - \c request-body: the raw message body in the request (before any content encoding)
+            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values
             @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
 
-            @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be assigned to the value of the \c "body" key
+            @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be deserialized to %Qore data and assigned to the value of the \c "body" key
 
             @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid serialization)
             @throw HTTP-CLIENT-RECEIVE-ERROR if this exception is thrown by the @ref Qore::HTTPClient::send() call in case of an HTTP response code < 100 or >= 300, the message body is still deserialized if possible and the response information can be retrieved in the \a info hash output keys as follows:
@@ -666,11 +736,21 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             @param m the HTTP method to be used; case is ignored (if not a valid method an \c HTTP-CLIENT-METHOD-ERROR exception is raised)
             @param path the URI path to add (will be appended to any root path given in the constructor)
             @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
-            @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+            @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request; if present the hash will contain the following keys:
+            - \c headers: a hash of outgoing HTTP request headers
+            - \c request-uri: the request URI string sent (ex: \c "POST /services/async/38.0/job HTTP/1.1")
+            - \c body-content-type: the outgoing message body Mime \c Content-Type value
+            - \c response-headers: a hash of incoming HTTP headers in the response
+            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c response-code: the HTTP response code
+            - \c response-body: the raw message body in the response (after any content decoding)
+            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
+            - \c request-body: the raw message body in the request (before any content encoding)
+            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values
             @param decode_errors decode the message body with HTTP error responses and throw an exception based on the message body
             @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
 
-            @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be assigned to the value of the \c "body" key
+            @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be deserialized to %Qore data and assigned to the value of the \c "body" key
 
             @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid serialization)
             @throw HTTP-CLIENT-METHOD-ERROR invalid HTTP method argument passed
@@ -719,7 +799,7 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             }
 
             # decode any response body
-            if (exists h.body)
+            if (exists h.body && !h.body.empty())
                 decodeResponse(\h, \info);
 
             return h;
@@ -749,28 +829,19 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
         decodeResponse(reference h, *reference info) {
             info."response-body" = h.body;
 
-            *softlist dh = DataDeserializationSupport.(h."content-type");
+            *hash dh = DataDeserializationSupport.(h."content-type");
             if (!dh)
                 throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y; types supported: %y; response body: %y", h."content-type", DataDeserializationSupport.keys(), h.body);
 
-            ListIterator it(dh);
-            while (it.next()) {
-                if (h.body.typeCode() != NT_STRING)
-                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y but body type is %y", h."content-type", h.body.type());
+            if (h.body.typeCode() != NT_STRING)
+                throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y but body type is %y", h."content-type", h.body.type());
 
-                try {
-                    any parsed = it.getValue().in(h.body);
-                    h.body = parsed;
-                    info."response-serialization" = it.getValue().code;
-                    break;
-                }
-                catch (hash ex) {
-                    if (!it.getValue().continue_on_error)
-                        rethrow;
-                    continue;
-                }
+            string code = dh.code;
+            h.body = dh.arg
+                ? dh.in(h.body, \code)
+                : dh.in(h.body);
 
-            } # while
+            info."response-serialization" = code;
         }
 
     } # class RestClient

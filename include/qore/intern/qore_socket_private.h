@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,9 +32,9 @@
 #ifndef _QORE_QORE_SOCKET_PRIVATE_H
 #define _QORE_QORE_SOCKET_PRIVATE_H
 
-#include <qore/intern/SSLSocketHelper.h>
+#include "qore/intern/SSLSocketHelper.h"
 
-#include <qore/intern/QC_Queue.h>
+#include "qore/intern/QC_Queue.h"
 
 #include <ctype.h>
 #include <stdlib.h>
@@ -2642,6 +2642,7 @@ struct qore_socket_private {
          while (true) {
             char* buf;
             rc = brecv(xsink, "readHTTPChunkedBodyBinary", buf, bs, 0, timeout, false);
+            //printd(5, "qore_socket_private::readHTTPChunkedBodyBinary() str: '%s' bs: %lld rc: %lld b: %p (%lld) recv_callback: %p\n", str.c_str(), bs, rc, *b, b->size(), recv_callback);
             if (rc <= 0) {
                if (!*xsink) {
                   assert(!rc);

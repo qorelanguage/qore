@@ -31,7 +31,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_date_private.h>
+#include "qore/intern/qore_date_private.h"
 
 DateTimeNode::DateTimeNode(qore_date_private* n_priv) : SimpleValueQoreNode(NT_DATE), DateTime(n_priv) {
 }

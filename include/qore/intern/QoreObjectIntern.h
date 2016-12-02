@@ -51,9 +51,9 @@
 #define QRO_LVL 1
 #endif
 
-#include <qore/intern/QoreClassIntern.h>
-#include <qore/intern/RSection.h>
-#include <qore/intern/RSet.h>
+#include "qore/intern/QoreClassIntern.h"
+#include "qore/intern/RSection.h"
+#include "qore/intern/RSet.h"
 
 #define OS_OK            0
 #define OS_DELETED      -1

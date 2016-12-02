@@ -8,7 +8,7 @@ option(ICONV_TRANSLIT
 
 option(QORE_RUNTIME_THREAD_STACK_TRACE
        "enable runtime thread stack trace (performance penalty), only for debug builds"
-       OFF)
+       ON)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 8)
@@ -29,9 +29,9 @@ else ()
     add_definitions(-DNDEBUG)
 endif ()
 
-if ((NOT ${QORE_BUILD_TYPE_LWR} MATCHES "debug") AND QORE_RUNTIME_THREAD_STACK_TRACE)
-    message(FATAL_ERROR "QORE_RUNTIME_THREAD_STACK_TRACE only available on debug builds")
-endif()
+#if ((NOT ${QORE_BUILD_TYPE_LWR} MATCHES "debug") AND QORE_RUNTIME_THREAD_STACK_TRACE)
+#    message(FATAL_ERROR "QORE_RUNTIME_THREAD_STACK_TRACE only available on debug builds")
+#endif()
 
 # simulate QoreConfig
 set(QORE_QDX_EXECUTABLE "${CMAKE_SOURCE_DIR}/doxygen/qdx")
@@ -223,6 +223,47 @@ set(QMOD
     qlib/WebSocketHandler.qm
     qlib/WebSocketUtil.qm
     qlib/WebUtil.qm
+)
+
+set(QORE_DOX_TMPL_SRC
+    doxygen/lang/mainpage.dox.tmpl
+    doxygen/lang/000_intro.dox.tmpl
+    doxygen/lang/105_desc_overview.dox.tmpl
+    doxygen/lang/110_environment_variables.dox.tmpl
+    doxygen/lang/115_conditional_parsing.dox.tmpl
+    doxygen/lang/120_modules.dox.tmpl
+    doxygen/lang/125_include_files.dox.tmpl
+    doxygen/lang/130_identifiers.dox.tmpl
+    doxygen/lang/135_comments.dox.tmpl
+    doxygen/lang/140_variables.dox.tmpl
+    doxygen/lang/145_basic_data_types.dox.tmpl
+    doxygen/lang/150_container_data_types.dox.tmpl
+    doxygen/lang/152_code_data_types.dox.tmpl
+    doxygen/lang/155_data_type_declarations.dox.tmpl
+    doxygen/lang/157_lvalue_references.dox.tmpl
+    doxygen/lang/160_overloading.dox.tmpl
+    doxygen/lang/165_time_zones.dox.tmpl
+    doxygen/lang/170_character_encoding.dox.tmpl
+    doxygen/lang/175_expressions.dox.tmpl
+    doxygen/lang/180_operators.dox.tmpl
+    doxygen/lang/185_qore_regex.dox.tmpl
+    doxygen/lang/190_date_time_arithmetic.dox.tmpl
+    doxygen/lang/195_statements.dox.tmpl
+    doxygen/lang/200_functions.dox.tmpl
+    doxygen/lang/202_code_flags.dox.tmpl
+    doxygen/lang/205_namespaces.dox.tmpl
+    doxygen/lang/210_constants.dox.tmpl
+    doxygen/lang/215_classes.dox.tmpl
+    doxygen/lang/220_threading.dox.tmpl
+    doxygen/lang/225_exception_handling.dox.tmpl
+    doxygen/lang/230_signal_handling.dox.tmpl
+    doxygen/lang/235_event_handling.dox.tmpl
+    doxygen/lang/240_command_line_processing.dox.tmpl
+    doxygen/lang/245_parse_directives.dox.tmpl
+    doxygen/lang/250_warnings.dox.tmpl
+    doxygen/lang/255_keywords.dox.tmpl
+    doxygen/lang/900_release_notes.dox.tmpl
+    doxygen/lang/Doxyfile.tmpl
 )
 
 # qore interpreter
@@ -424,6 +465,7 @@ set(LIBQORE_CPP_SRC
         lib/QoreSQLStatement.cpp
         lib/ExecArgList.cpp
         lib/CallReferenceNode.cpp
+        lib/CallStack.cpp
         lib/NamedScope.cpp
         lib/RWLock.cpp
         lib/QoreSSLBase.cpp
@@ -556,6 +598,10 @@ add_dependencies(QPP_GENERATED_FILES qpp)
 add_dependencies(libqore QPP_GENERATED_FILES BISON_GENERATED_FILES FLEX_GENERATED_FILES)
 
 target_compile_definitions(libqore PUBLIC _QORE_LIB_INTERN HAVE_UNIX_CONFIG_H)
+target_compile_definitions(libqore PRIVATE MODULE_DIR="${MODULE_DIR}")
+target_compile_definitions(libqore PRIVATE MODULE_VER_DIR="${MODULE_VER_DIR}")
+target_compile_definitions(libqore PRIVATE USER_MODULE_DIR="${USER_MODULE_DIR}")
+target_compile_definitions(libqore PRIVATE USER_MODULE_VER_DIR="${USER_MODULE_VER_DIR}")
 if (WIN32 AND MINGW AND MSYS)
     target_compile_definitions(libqore PUBLIC BUILDING_DLL)
 endif (WIN32 AND MINGW AND MSYS)
@@ -592,6 +638,16 @@ configure_file(${CMAKE_SOURCE_DIR}/qore.pc.in
 
 install(PROGRAMS doxygen/qdx
         DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
+install(PROGRAMS bin/qget
+        DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
+install(PROGRAMS bin/rest
+        DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
+install(PROGRAMS bin/schema
+        DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
+install(PROGRAMS bin/sfrest
+        DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
+install(PROGRAMS bin/sqlutil
+        DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
 install(TARGETS qore qpp qr libqore
 	RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
 	LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
@@ -617,6 +673,14 @@ if (DOXYGEN_FOUND)
     # documentation
     configure_file(${CMAKE_SOURCE_DIR}/doxygen/footer_template.html ${CMAKE_BINARY_DIR}/doxygen/footer_template.html @ONLY)
     add_custom_target(docs COMMENT "Generating API documentation")
+
+    # doc generators
+    qore_wrap_dox(QORE_DOX_SRC ${QORE_DOX_TMPL_SRC})
+    add_custom_target(QORE_DOX_FILES DEPENDS ${QORE_DOX_SRC})
+    add_dependencies(QORE_DOX_FILES qpp)
+
+    add_dependencies(libqore QORE_DOX_FILES)
+
 # TODO/FIXME    add_dependencies(libqore docs)
     # library
     message(STATUS "Doxyfile for library")

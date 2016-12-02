@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/qore_program_private.h"
-#include <qore/intern/QoreObjectIntern.h>
+#include "qore/intern/QoreObjectIntern.h"
 
 QoreString QoreKeysOperatorNode::keys_str("keys operator expression");
 

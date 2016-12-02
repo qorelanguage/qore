@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_number_private.h>
+#include "qore/intern/qore_number_private.h"
 
 void qore_number_private::getAsString(QoreString& str, bool round) const {
    // first check for zero

@@ -801,7 +801,7 @@ public:
 class CodeContextHelper : public CodeContextHelperBase {
 public:
    DLLLOCAL CodeContextHelper(ExceptionSink* xs, int t, const char* c, QoreObject* obj = 0, const qore_class_private* cls = 0) :
-      CodeContextHelperBase(c, obj, cls, xs),
+      CodeContextHelperBase(c, obj, cls, xs) {
    }
 };
 #endif

@@ -33,9 +33,9 @@
 
 #define _QORE_QOREMAPOPERATORNODE_H
 
-#include <qore/intern/AbstractIteratorHelper.h>
-#include <qore/intern/FunctionalOperator.h>
-#include <qore/intern/FunctionalOperatorInterface.h>
+#include "qore/intern/AbstractIteratorHelper.h"
+#include "qore/intern/FunctionalOperator.h"
+#include "qore/intern/FunctionalOperatorInterface.h"
 
 class QoreMapOperatorNode : public QoreBinaryOperatorNode<>, public FunctionalOperator {
    friend class QoreFunctionalMapListOperator;

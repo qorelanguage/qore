@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/qore_program_private.h"
 
 QoreString QoreListAssignmentOperatorNode::op_str("list assignment operator expression");
 

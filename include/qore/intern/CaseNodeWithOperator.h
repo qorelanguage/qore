@@ -32,7 +32,7 @@
 #ifndef QORE_CASENODEWITHOPERATOR_H
 #define QORE_CASENODEWITHOPERATOR_H
 
-#include <qore/intern/SwitchStatement.h>
+#include "qore/intern/SwitchStatement.h"
 
 // Class supporting:
 // switch ($a) {

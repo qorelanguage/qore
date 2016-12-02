@@ -30,8 +30,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ql_file.h>
-#include <qore/intern/QoreDir.h>
+#include "qore/intern/ql_file.h"
+#include "qore/intern/QoreDir.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -51,7 +51,7 @@
 #ifdef HAVE_GLOB_H
 #include <glob.h>
 #else
-#include <qore/intern/glob.h>
+#include "qore/intern/glob.h"
 #endif
 
 static bool check_stat(unsigned code, const QoreString& path) {

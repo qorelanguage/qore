@@ -30,11 +30,11 @@
 
 #include <qore/Qore.h>
 #include <qore/minitest.hpp>
-#include <qore/intern/QoreHashNodeIntern.h>
-#include <qore/intern/QoreParseHashNode.h>
-#include <qore/intern/QoreNamespaceIntern.h>
-#include <qore/intern/ParserSupport.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/QoreParseHashNode.h"
+#include "qore/intern/QoreNamespaceIntern.h"
+#include "qore/intern/ParserSupport.h"
+#include "qore/intern/qore_program_private.h"
 
 #include <string.h>
 #include <strings.h>

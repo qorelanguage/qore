@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_Counter.h>
+#include "qore/intern/QC_Counter.h"
 
 //! Implements a class that can be used for blocking a thread until a counter reaches zero
 /** Counter objects allow Qore threads to sleep until a counter reaches zero.

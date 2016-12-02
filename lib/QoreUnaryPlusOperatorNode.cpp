@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_number_private.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/qore_number_private.h"
+#include "qore/intern/qore_program_private.h"
 
 QoreString QoreUnaryPlusOperatorNode::unaryplus_str("unary plus (+) operator expression");
 

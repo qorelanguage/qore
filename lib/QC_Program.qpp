@@ -30,13 +30,13 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_Program.h>
-#include <qore/intern/QC_TimeZone.h>
-#include <qore/intern/qore_program_private.h>
-#include <qore/intern/QoreObjectIntern.h>
-#include <qore/intern/ModuleInfo.h>
+#include "qore/intern/QC_Program.h"
+#include "qore/intern/QC_TimeZone.h"
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/ModuleInfo.h"
 
-#include <qore/intern/ModuleInfo.h>
+#include "qore/intern/ModuleInfo.h"
 extern QoreModuleManager QMM;
 
 /** @defgroup parse_options Parse Option Constants

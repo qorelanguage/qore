@@ -33,9 +33,9 @@
 
 #define _QORE_QOREMAPSELECTOPERATORNODE_H
 
-#include <qore/intern/AbstractIteratorHelper.h>
-#include <qore/intern/FunctionalOperator.h>
-#include <qore/intern/FunctionalOperatorInterface.h>
+#include "qore/intern/AbstractIteratorHelper.h"
+#include "qore/intern/FunctionalOperator.h"
+#include "qore/intern/FunctionalOperatorInterface.h"
 
 class QoreMapSelectOperatorNode : public QoreNOperatorNodeBase<3>, public FunctionalOperator {
    friend class QoreFunctionalMapSelectListOperator;

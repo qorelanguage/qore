@@ -32,11 +32,11 @@
 #ifndef _QORE_QORENAMESPACEINTERN_H
 #define _QORE_QORENAMESPACEINTERN_H
 
-#include <qore/intern/QoreClassList.h>
-#include <qore/intern/QoreNamespaceList.h>
-#include <qore/intern/ConstantList.h>
-#include <qore/intern/FunctionList.h>
-#include <qore/intern/GlobalVariableList.h>
+#include "qore/intern/QoreClassList.h"
+#include "qore/intern/QoreNamespaceList.h"
+#include "qore/intern/ConstantList.h"
+#include "qore/intern/FunctionList.h"
+#include "qore/intern/GlobalVariableList.h"
 
 #include <map>
 #include <vector>

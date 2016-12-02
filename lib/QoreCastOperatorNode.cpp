@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreNamespaceIntern.h>
-#include <qore/intern/QoreClassIntern.h>
+#include "qore/intern/QoreNamespaceIntern.h"
+#include "qore/intern/QoreClassIntern.h"
 
 QoreString QoreCastOperatorNode::cast_str("cast operator expression");
 

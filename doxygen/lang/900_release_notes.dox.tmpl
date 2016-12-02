@@ -72,10 +72,14 @@
       - <int>::format(int, string, string)
       - <float>::format(int, string, string)
       - <number>::format(int, string, string)
+      - <string>::toInt(int)
     - new functions:
       - @ref Qore::parse_int()
     - updated functions:
       - @ref Qore::mkdir(string path, softint mode = 0777, bool parents = False)
+      - @ref Qore::round(int/float/number num, int prec = 0)
+      - @ref Qore::floor(int/float/number num, int prec = 0)
+      - @ref Qore::ceil(int/float/number num, int prec = 0)
     - new parse options:
       - @ref broken-loop-statement "%broken-loop-statement"
     - new constants:
@@ -121,6 +125,30 @@
     - fixed a bug where a closure created in an object scope could not be called if the object had been deleted, even if the closure did not refer to the object (<a href="https://github.com/qorelanguage/qore/issues/1258">issue 1303</a>)
     - fixed a bug where @ref Qore::ord() "ord()" would return negative numbers for bytes with the high bit set with compilers where <tt>char</tt> is the same as <tt>signed char</tt> (<a href="https://github.com/qorelanguage/qore/issues/1385">issue 1385</a>)
 
+    @section qore_08125 Qore 0.8.12.5
+
+    @par Release Summary
+    Bugfix release; see details below
+
+    @subsection qore_08125_new_features New Features in Qore
+
+    - added the <a href="../../modules/SalesforceRestClient/html/index.html">SalesforceRestClient</a> module for communicating with Salesforce.com using the REST APIs
+
+    @subsection qore_08125_bug_fixes Bug Fixes in Qore
+
+    - <a href="../../modules/Mime/html/index.html">Mime</a> module:
+      - added support for URL form-encoded messages (<a href="https://github.com/qorelanguage/qore/issues/1436">issue 1436</a>
+    - <a href="../../modules/RestClient/html/index.html">RestClient</a> module:
+      - added support for URL form-encoded messages (<a href="https://github.com/qorelanguage/qore/issues/1436">issue 1436</a>
+      - added support for the \c "rawxml" message body encoding (<a href="https://github.com/qorelanguage/qore/issues/1437">issue 1437</a>
+    - fixed handling of invalid compressed data in the following functions (<a href="https://github.com/qorelanguage/qore/issues/1432">issue 1432</a>):
+      - @ref Qore::gunzip_to_binary()
+      - @ref Qore::gunzip_to_string()
+      - @ref Qore::uncompress_to_binary()
+      - @ref Qore::uncompress_to_string()
+    - fixed \c @inf@ on Windows (<a href="https://github.com/qorelanguage/qore/issues/1442">issue 1442</a>):
+    - fixed @ref Qore::parse_url() with single-character usernames (<a href="https://github.com/qorelanguage/qore/issues/1455">issue 1455</a>):
+
     @section qore_08124 Qore 0.8.12.4
 
     @par Release Summary
@@ -139,18 +167,18 @@
     - fixed a bug in @ref Qore::trunc_str() "trunc_str()" where an infinite loop could be triggered with certain arguments and multi-byte character encodings (<a href="https://github.com/qorelanguage/qore/issues/1327">issue 1327</a>)
     - improved @ref garbage_collection "prompt collection" performance with larger graphs of objects by eliminating unnecessary graph scans made during object method calls (<a href="https://github.com/qorelanguage/qore/issues/1363">issue 1363</a>)
     - fixed bugs in @ref Qore::date(string) "date(string)" and @ref Qore::date(string, string) "date(string, string)" where invalid input data was ignored and invalid dates were returned (<a href="https://github.com/qorelanguage/qore/issues/1369">issue 1369</a>)
-    - <a href="../../modules/CsvUtil/html/index.html">CsvUtil.qm</a> module:
+    - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module:
       - fixed a bug in \c AbstractCsvIterator::identifyTypeImpl() generating an error message (<a href="https://github.com/qorelanguage/qore/issues/1355">issue 1355</a>)
-    - <a href="../../modules/MailMessage/html/index.html">MailMessage.qm</a> module:
+    - <a href="../../modules/MailMessage/html/index.html">MailMessage</a> module:
       - fixed a bug using the default encoding in \c Message::attach() (issue <a href="https://github.com/qorelanguage/qore/issues/1352">issue 1352</a>)
-    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil.qm</a> module:
+    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module:
       - fixed the ignored character_semantics column option in schema alignmed (<a href="https://github.com/qorelanguage/qore/issues/1379">issue 1379</a>)
       - implemented the \c cop_length() column function (<a href="https://github.com/qorelanguage/qore/issues/1395">issue 1395</a>)
-    - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil.qm</a> module:
+    - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module:
       - OraclePackage attribute body_src is now public to access package bodies
-    - <a href="../../modules/Qorize/html/index.html">Qorize.qm</a> module:
+    - <a href="../../modules/Qorize/html/index.html">Qorize</a> module:
       -  Qorize module: new qorize_val() set of functions; qorize_named() introduced; qorize tests
-    - <a href="../../modules/TableMapper/html/index.html">TableMapper.qm</a> module:
+    - <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module:
       - fixed runtime option propagation to \c TableMapper::SqlStatementMapperIterator from \c TableMapper::AbstractSqlStatementOutboundMapper::iterator() (<a href="https://github.com/qorelanguage/qore/issues/1418">issue 1418</a>)
       - fixed SqlStatementMapperIterator::getCount() (<a href="https://github.com/qorelanguage/qore/issues/1417">issue 1417</a>)
       - added the following methods:
@@ -162,8 +190,8 @@
         - \c TableMapper::SqlStatementMapperIterator::getRuntime()
         - \c TableMapper::SqlStatementMapperIterator::replaceRuntime()
         - \c TableMapper::SqlStatementMapperIterator::setRuntime()
-    - <a href="../../modules/QUnit/html/index.html">QUnit.qm</a> module:
-      - fixed showing the assertion location when there are test modules on top of QUnit.qm (<a href="https://github.com/qorelanguage/qore/issues/1046">issue 1046</a>)
+    - <a href="../../modules/QUnit/html/index.html">QUnit</a> module:
+      - fixed showing the assertion location when there are test modules on top of QUnit (<a href="https://github.com/qorelanguage/qore/issues/1046">issue 1046</a>)
     - fixed inconsistency between list splice operator and splice function (<a href="https://github.com/qorelanguage/qore/issues/1380">issue 1380</a>)
 
     @section qore_08123 Qore 0.8.12.3
@@ -931,7 +959,7 @@
     - new pseudo-methods:
       - @ref <value>::sizep(): returns @ref Qore::True "True" if the type can return a non-zero size (@ref Qore::True "True" for containers including @ref binary "binary objects" and @ref string "strings", @ref Qore::False "False" for everything else)
       - @ref <string>::getLine(): finds lines in a string buffer
-    - <a href="../../modules/Mime/html/index.html">Mime.qm</a> module updates:
+    - <a href="../../modules/Mime/html/index.html">Mime</a> module updates:
       - added mime type for WSDL files (\c "application/wsdl+xml")
       - added mappings for \c "xls" and \c "xlst" extensions to MimeTypeXml
     - added new modules:
@@ -1305,7 +1333,7 @@
     - <a href="../../modules/Pop3Client/html/index.html">Pop3Client</a> module:
       - added the Pop3Client::logPassword() methods and masked password by default in the debug log
       - updated module to v1.1
-    - <a href="../../modules/Mime/html/index.html">Mime.qm</a> module:
+    - <a href="../../modules/Mime/html/index.html">Mime</a> module:
       - declared the MultiPartMessage::getMsgAndHeaders() method abstract as originally intended
       - added MultiPartMessage::parseBody() static method
       - updated module to v1.3
@@ -1317,10 +1345,10 @@
     - fixed a static memory leak in Program objects when constants contain code references to functions or static methods
     - fixed a bug parsing user modules; the Program context was not set properly which could lead to a crash when parsing user modules loaded from the command-line or to incorrect parse options when loaded from user Program code
     - fixed a bug where the @ref invalid-operation warning with the @ref keys "keys operator" was not being triggered in common cases that should have triggered the warning
-    - <a href="../../modules/MailMessage/html/index.html">MailMessage.qm</a> module:
+    - <a href="../../modules/MailMessage/html/index.html">MailMessage</a> module:
       - fixed recognizing mime messages with additional text after the version number (ex: \c "Mime-Version: 1.0 (Mac OS X Mail 6.2 \(1499\))")
-      - fixed a bug setting the content-type of message parts (this fix is now in the <a href="../../modules/Mime/html/index.html">Mime.qm</a> in the MultiPartMessage::getMsgAndHeaders() method
-      - fixed multipart message parsing by using MultiPartMessage::parseBody() in the <a href="../../modules/Mime/html/index.html">Mime.qm</a> module; now also parts with subparts are parsed correctly as well
+      - fixed a bug setting the content-type of message parts (this fix is now in the <a href="../../modules/Mime/html/index.html">Mime</a> in the MultiPartMessage::getMsgAndHeaders() method
+      - fixed multipart message parsing by using MultiPartMessage::parseBody() in the <a href="../../modules/Mime/html/index.html">Mime</a> module; now also parts with subparts are parsed correctly as well
       - fixed a bug where the sender and from values were not being set properly when parsing email messages
       - updated module to v1.0.3
 
@@ -1547,8 +1575,8 @@ class MyConcreteClass inherits MyAbstractClass {
     @subsection qore_0851_bug_fixes Bug Fixes in Qore
     - fixed a race condition accessing global and closure-bound thread-local variables in multithreaded contexts
     - fixed a bug in transaction management with the @ref Qore::SQL::DatasourcePool "DatasourcePool" class when used with the @ref Qore::SQL::SQLStatement "SQLStatement" class
-    - fixed an error in the <a href="../../modules/MailMessage/html/index.html">MailMessage.qm</a> user module where mail headers requiring encoding were not encoded and those not requiring encoding were encoded with Q encoding
-    - fixed an error in the <a href="../../modules/Mime/html/index.html">Mime.qm</a> user module where \c "_" characters in q-encoded headers were not encoded correctly
+    - fixed an error in the <a href="../../modules/MailMessage/html/index.html">MailMessage</a> user module where mail headers requiring encoding were not encoded and those not requiring encoding were encoded with Q encoding
+    - fixed an error in the <a href="../../modules/Mime/html/index.html">Mime</a> user module where \c "_" characters in q-encoded headers were not encoded correctly
 
     <hr>
     @section qore_085 Qore 0.8.5

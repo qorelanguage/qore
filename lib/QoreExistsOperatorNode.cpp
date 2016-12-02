@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_number_private.h>
+#include "qore/intern/qore_number_private.h"
 
 QoreString QoreExistsOperatorNode::Exists_str("exists operator expression");
 

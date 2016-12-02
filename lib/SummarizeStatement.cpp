@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/SummarizeStatement.h>
-#include <qore/intern/StatementBlock.h>
+#include "qore/intern/SummarizeStatement.h"
+#include "qore/intern/StatementBlock.h"
 
 int SummarizeStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
    int rc = 0;

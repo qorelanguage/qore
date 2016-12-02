@@ -35,6 +35,7 @@
 
 #include <cmath>
 #include <memory>
+using namespace std;
 
 // the number of consecutive trailing 0 or 9 digits that will be rounded in string output
 #define QORE_MPFR_ROUND_THRESHOLD 9
@@ -443,6 +444,40 @@ struct qore_number_private : public qore_number_private_intern {
       return p;
    }
 
+    // for round functions: round(), ceil(), floor()
+    DLLLOCAL qore_number_private* doRoundNR(q_mpfr_unary_nr_func_t func, int prec = 0, ExceptionSink* xsink = NULL) const {
+        unique_ptr<qore_number_private> p0(new qore_number_private(*this));
+
+        if (prec == 0) {
+            func(p0 -> num, num);
+
+            if (xsink)
+                checkFlags(xsink);
+
+            return p0.release();
+        }
+
+        qore_number_private* p2;
+
+        if (prec > 0) {
+            unique_ptr<qore_number_private> c(new qore_number_private(pow(10, prec)));
+            unique_ptr<qore_number_private> p1(p0 -> doMultiply(*c));
+            func(p1 -> num, p1 -> num);
+            p2 = p1 -> doDivideBy(*c, xsink);
+        }
+        else {
+            unique_ptr<qore_number_private> c(new qore_number_private(pow(10, -prec)));
+            unique_ptr<qore_number_private> p1(p0 -> doDivideBy(*c, xsink));
+            func(p1 -> num, p1 -> num);
+            p2 = p1 -> doMultiply(*c);
+        }
+
+        if (xsink)
+            checkFlags(xsink);
+
+        return p2;
+    }
+
    DLLLOCAL mpfr_prec_t getPrec() const {
       return mpfr_get_prec(num);
    }
@@ -553,6 +588,11 @@ public:
 
    DLLLOCAL static QoreNumberNode* doUnaryNR(const QoreNumberNode& n, q_mpfr_unary_nr_func_t func, ExceptionSink* xsink = 0) {
       qore_number_private* p = n.priv->doUnaryNR(func, xsink);
+      return p ? new QoreNumberNode(p) : 0;
+   }
+
+   DLLLOCAL static QoreNumberNode* doRoundNR(const QoreNumberNode& n, q_mpfr_unary_nr_func_t func, int prec = 0, ExceptionSink* xsink = 0) {
+      qore_number_private* p = n.priv->doRoundNR(func, prec, xsink);
       return p ? new QoreNumberNode(p) : 0;
    }
 

@@ -32,13 +32,13 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ql_thread.h>
-#include <qore/intern/QC_TimeZone.h>
-#include <qore/intern/qore_program_private.h>
-#include <qore/intern/QC_AbstractThreadResource.h>
+#include "qore/intern/ql_thread.h"
+#include "qore/intern/QC_TimeZone.h"
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/QC_AbstractThreadResource.h"
 
 #include <pthread.h>
-#include <qore/intern/QC_TimeZone.h>
+#include "qore/intern/QC_TimeZone.h"
 
 extern QoreClass* QC_TIMEZONE;
 

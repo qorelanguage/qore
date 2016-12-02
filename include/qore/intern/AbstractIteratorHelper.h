@@ -33,7 +33,7 @@
 
 #define _QORE_ABSTRACTITERATORHELPER_H
 
-#include <qore/intern/QoreClassIntern.h>
+#include "qore/intern/QoreClassIntern.h"
 
 class AbstractIteratorHelper {
 protected:

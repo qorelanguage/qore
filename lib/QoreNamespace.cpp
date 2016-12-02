@@ -31,55 +31,55 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/ParserSupport.h>
-#include <qore/intern/QoreRegexBase.h>
-#include <qore/intern/QoreNamespaceList.h>
-#include <qore/intern/ssl_constants.h>
-#include <qore/intern/ConstantList.h>
-#include <qore/intern/QoreClassList.h>
-#include <qore/intern/QoreClassIntern.h>
-#include <qore/intern/QoreSignal.h>
-#include <qore/intern/QoreNamespaceIntern.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/ParserSupport.h"
+#include "qore/intern/QoreRegexBase.h"
+#include "qore/intern/QoreNamespaceList.h"
+#include "qore/intern/ssl_constants.h"
+#include "qore/intern/ConstantList.h"
+#include "qore/intern/QoreClassList.h"
+#include "qore/intern/QoreClassIntern.h"
+#include "qore/intern/QoreSignal.h"
+#include "qore/intern/QoreNamespaceIntern.h"
+#include "qore/intern/qore_program_private.h"
 
 #include <qore/minitest.hpp>
 
 // include files for default object classes
-#include <qore/intern/QC_Socket.h>
-#include <qore/intern/QC_SSLCertificate.h>
-#include <qore/intern/QC_SSLPrivateKey.h>
-#include <qore/intern/QC_Program.h>
-#include <qore/intern/QC_File.h>
-#include <qore/intern/QC_Dir.h>
-#include <qore/intern/QC_GetOpt.h>
-#include <qore/intern/QC_FtpClient.h>
-#include <qore/intern/QC_HTTPClient.h>
-#include <qore/intern/QC_TermIOS.h>
-#include <qore/intern/QC_TimeZone.h>
-#include <qore/intern/QC_TreeMap.h>
+#include "qore/intern/QC_Socket.h"
+#include "qore/intern/QC_SSLCertificate.h"
+#include "qore/intern/QC_SSLPrivateKey.h"
+#include "qore/intern/QC_Program.h"
+#include "qore/intern/QC_File.h"
+#include "qore/intern/QC_Dir.h"
+#include "qore/intern/QC_GetOpt.h"
+#include "qore/intern/QC_FtpClient.h"
+#include "qore/intern/QC_HTTPClient.h"
+#include "qore/intern/QC_TermIOS.h"
+#include "qore/intern/QC_TimeZone.h"
+#include "qore/intern/QC_TreeMap.h"
 
-#include <qore/intern/QC_Datasource.h>
-#include <qore/intern/QC_DatasourcePool.h>
-#include <qore/intern/QC_SQLStatement.h>
+#include "qore/intern/QC_Datasource.h"
+#include "qore/intern/QC_DatasourcePool.h"
+#include "qore/intern/QC_SQLStatement.h"
 
 // functions
-#include <qore/intern/ql_time.h>
-#include <qore/intern/ql_lib.h>
-#include <qore/intern/ql_math.h>
-#include <qore/intern/ql_type.h>
-#include <qore/intern/ql_env.h>
-#include <qore/intern/ql_string.h>
-#include <qore/intern/ql_pwd.h>
-#include <qore/intern/ql_misc.h>
-#include <qore/intern/ql_list.h>
-#include <qore/intern/ql_thread.h>
-#include <qore/intern/ql_crypto.h>
-#include <qore/intern/ql_object.h>
-#include <qore/intern/ql_file.h>
-#include <qore/intern/ql_compression.h>
+#include "qore/intern/ql_time.h"
+#include "qore/intern/ql_lib.h"
+#include "qore/intern/ql_math.h"
+#include "qore/intern/ql_type.h"
+#include "qore/intern/ql_env.h"
+#include "qore/intern/ql_string.h"
+#include "qore/intern/ql_pwd.h"
+#include "qore/intern/ql_misc.h"
+#include "qore/intern/ql_list.h"
+#include "qore/intern/ql_thread.h"
+#include "qore/intern/ql_crypto.h"
+#include "qore/intern/ql_object.h"
+#include "qore/intern/ql_file.h"
+#include "qore/intern/ql_compression.h"
 
 #ifdef DEBUG
-#include <qore/intern/ql_debug.h>
+#include "qore/intern/ql_debug.h"
 #endif // DEBUG
 
 #include <string.h>

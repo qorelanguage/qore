@@ -39,7 +39,7 @@
 
 // include configuration first if compiling the library
 #ifdef _QORE_LIB_INTERN
-#include <qore/intern/config.h>
+#include "qore/intern/config.h"
 #endif
 
 #include <qore/common.h>
@@ -220,7 +220,7 @@ DLLEXPORT bool qore_check_option(int opt);
 
 // include private definitions if compiling the library
 #ifdef _QORE_LIB_INTERN
-#include <qore/intern/QoreLibIntern.h>
+#include "qore/intern/QoreLibIntern.h"
 #endif
 
 #endif  // _QORE_QORE_H

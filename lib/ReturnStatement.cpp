@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ReturnStatement.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/ReturnStatement.h"
+#include "qore/intern/qore_program_private.h"
 
 int ReturnStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
    if (exp) {

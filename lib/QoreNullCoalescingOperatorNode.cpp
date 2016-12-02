@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/QoreNullCoalescingOperatorNode.h>
+#include "qore/intern/QoreNullCoalescingOperatorNode.h"
 //#include <qore/intern/qore_program_private.h>
 
 QoreString QoreNullCoalescingOperatorNode::null_coalescing_str("null coalescing operator");

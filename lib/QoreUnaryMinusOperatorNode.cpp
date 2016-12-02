@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_number_private.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/qore_number_private.h"
+#include "qore/intern/qore_program_private.h"
 
 QoreString QoreUnaryMinusOperatorNode::unaryminus_str("unary minus (-) operator expression");
 

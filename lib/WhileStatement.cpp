@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/WhileStatement.h>
-#include <qore/intern/StatementBlock.h>
+#include "qore/intern/WhileStatement.h"
+#include "qore/intern/StatementBlock.h"
 
 WhileStatement::WhileStatement(int start_line, int end_line, AbstractQoreNode *c, class StatementBlock *cd) : AbstractStatement(start_line, end_line) {
    cond = c;
