@@ -2152,47 +2152,47 @@ public:
       return valid;
    }
 
-    strlist_t precalculateUnitTest() const {
-        strlist_t ret;
+   strlist_t precalculateUnitTest() const {
+      strlist_t ret;
 
-        std::string mock_filename = fileName;
-        std::replace(mock_filename.begin(), mock_filename.end(), '.', '_');
+      std::string mock_filename = fileName;
+      std::replace(mock_filename.begin(), mock_filename.end(), '.', '_');
 
-        std::string v = "test_" + mock_filename + "_" + std::to_string(startLineNumber);
-        ret.push_back(v);
+      std::string v = "test_" + mock_filename + "_" + std::to_string(startLineNumber);
+      ret.push_back(v);
 
-        return ret;
-    }
+      return std::move(ret);
+   }
 
-    int serializeUnitTest(FILE* fp) const {
-        //fprintf(fp, "# Group::serializeUnitTest\n");
-        fprintf(fp, "    # %s: %d\n", fileName, startLineNumber);
+   int serializeUnitTest(FILE* fp) const {
+      //fprintf(fp, "# Group::serializeUnitTest\n");
+      fprintf(fp, "    # %s: %d\n", fileName, startLineNumber);
 
-        if (fmap.empty())
-            return 0;
+      if (fmap.empty())
+         return 0;
 
-        strlist_t names = precalculateUnitTest();
-        fprintf(fp, "    private %s() {\n", names[0].c_str());
+      strlist_t names = precalculateUnitTest();
+      fprintf(fp, "    private %s() {\n", names[0].c_str());
 
-        // first serialize text
-        for (unsigned i = 0; i < tlist.size(); ++i) {
-            //fprintf(fp, "       # text\n");
-            tlist[i]->serializeUnitTest(fp);
-        }
+      // first serialize text
+      for (unsigned i = 0; i < tlist.size(); ++i) {
+         //fprintf(fp, "       # text\n");
+         tlist[i]->serializeUnitTest(fp);
+      }
 
-        // now serialize function group members
-        //fputc('\n', fp);
-        for (fmap_t::const_iterator i = fmap.begin(), e = fmap.end(); i != e; ++i) {
-            //fprintf(fp, "       # func group: %s\n", i->first.c_str());
-            if (i->second->serializeUnitTest(fp))
-                return -1;
-        }
+      // now serialize function group members
+      //fputc('\n', fp);
+      for (fmap_t::const_iterator i = fmap.begin(), e = fmap.end(); i != e; ++i) {
+         //fprintf(fp, "       # func group: %s\n", i->first.c_str());
+         if (i->second->serializeUnitTest(fp))
+            return -1;
+      }
 
-        fprintf(fp, "        assertEq(True, False, \"assertion placeholder; the real test needs to be implemented\");\n");
-        fprintf(fp, "    }");
+      fprintf(fp, "        assertEq(True, False, \"assertion placeholder; the real test needs to be implemented\");\n");
+      fprintf(fp, "    }");
 
-        return 0;
-    }
+      return 0;
+   }
 
    int serializeFunctionCpp(FILE* fp) const {
       if (fmap.empty())
@@ -2324,34 +2324,34 @@ public:
       return grouplist.empty();
    }
 
-    strlist_t precalculateUnitTest() const {
-        strlist_t ret;
+   strlist_t precalculateUnitTest() const {
+      strlist_t ret;
 
-        if (!has_funcs)
-            return ret;
+      if (!has_funcs)
+         return std::move(ret);
 
-        for (unsigned i = 0; i < grouplist.size(); ++i) {
-            strlist_t v = grouplist[i]->precalculateUnitTest();
-            ret.insert(ret.end(), v.begin(), v.end());
-        }
+      for (unsigned i = 0; i < grouplist.size(); ++i) {
+         strlist_t v = grouplist[i]->precalculateUnitTest();
+         ret.insert(ret.end(), v.begin(), v.end());
+      }
 
-        return ret;
-    }
+      return std::move(ret);
+   }
 
-    int serializeUnitTest(FILE* fp) const {
-        //fprintf(fp, "# Groups::serializeUnitTest\n");
+   int serializeUnitTest(FILE* fp) const {
+      //fprintf(fp, "# Groups::serializeUnitTest\n");
 
-        if (!has_funcs)
-            return 0;
+      if (!has_funcs)
+         return 0;
 
-        for (unsigned i = 0; i < grouplist.size(); ++i) {
-            if (grouplist[i]->serializeUnitTest(fp)) {
-                return -1;
-            }
-        }
+      for (unsigned i = 0; i < grouplist.size(); ++i) {
+         if (grouplist[i]->serializeUnitTest(fp)) {
+            return -1;
+         }
+      }
 
-        return 0;
-    }
+      return 0;
+   }
 
    int serializeFunctionCpp(FILE* fp, const char* rootName) {
       if (!has_funcs)
@@ -2450,7 +2450,7 @@ public:
    virtual int serializeCpp(FILE* fp) = 0;
    virtual int serializeDox(FILE* fp) = 0;
    virtual int serializeUnitTest(FILE* fp) = 0;
-    virtual strlist_t precalculateUnitTest() = 0;
+   virtual strlist_t precalculateUnitTest() = 0;
 };
 
 class TextElement : public AbstractElement {
@@ -2472,14 +2472,14 @@ public:
       return 0;
    }
 
-    virtual strlist_t precalculateUnitTest() {
-        strlist_t ret;
-        return ret;
-    }
+   virtual strlist_t precalculateUnitTest() {
+      strlist_t ret;
+      return std::move(ret);
+   }
 
-    virtual int serializeUnitTest(FILE* fp) {
-        return 0;
-    }
+   virtual int serializeUnitTest(FILE* fp) {
+      return 0;
+   }
 };
 
 class Method : public CodeBase {
@@ -2636,13 +2636,13 @@ public:
    virtual ~Method() {
    }
 
-    void serializeUnitTestMethod(FILE* fp, const char* cname) const {
-        serializeQorePrototypeComment(fp, cname, 8, "#");
-    }
+   void serializeUnitTestMethod(FILE* fp, const char* cname) const {
+      serializeQorePrototypeComment(fp, cname, 8, "#");
+   }
 
-    void serializeUnitTestStatic(FILE* fp, const char* cname) const {
-        serializeQorePrototypeComment(fp, cname, 8, "#");
-    }
+   void serializeUnitTestStatic(FILE* fp, const char* cname) const {
+      serializeQorePrototypeComment(fp, cname, 8, "#");
+   }
 
    void serializeNormalCppMethod(FILE* fp, const char* cname, const char* arg) const {
       assert(!(attr & QCA_STATIC));
@@ -3065,33 +3065,33 @@ public:
       return !*m;
    }
 
-    virtual strlist_t precalculateUnitTest() {
-        strlist_t ret;
+   virtual strlist_t precalculateUnitTest() {
+      strlist_t ret;
 
-        std::string v = "test_" + (ns.empty() ? "Qore" : ns) + "_" + name;
-        ret.push_back(v);
+      std::string v = "test_" + (ns.empty() ? "Qore" : ns) + "_" + name;
+      ret.push_back(v);
 
-        return ret;
-    }
+      return std::move(ret);
+   }
 
-    virtual int serializeUnitTest(FILE* fp) {
-        //fprintf(fp, "# ClassElement::serializeUnitTest\n");
-        fprintf(fp, "    # Qore class %s::%s\n", ns.empty() ? "Qore" : ns.c_str(), name.c_str());
-        strlist_t names = precalculateUnitTest();
-        fprintf(fp, "    private %s() {\n", names[0].c_str());
+   virtual int serializeUnitTest(FILE* fp) {
+      //fprintf(fp, "# ClassElement::serializeUnitTest\n");
+      fprintf(fp, "    # Qore class %s::%s\n", ns.empty() ? "Qore" : ns.c_str(), name.c_str());
+      strlist_t names = precalculateUnitTest();
+      fprintf(fp, "    private %s() {\n", names[0].c_str());
 
-        for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i) {
-            i->second->serializeUnitTestMethod(fp, name.c_str());
-        }
+      for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i) {
+         i->second->serializeUnitTestMethod(fp, name.c_str());
+      }
 
-        for (mmap_t::const_iterator i = static_mmap.begin(), e = static_mmap.end(); i != e; ++i) {
-            i->second->serializeUnitTestStatic(fp, name.c_str());
-        }
+      for (mmap_t::const_iterator i = static_mmap.begin(), e = static_mmap.end(); i != e; ++i) {
+         i->second->serializeUnitTestStatic(fp, name.c_str());
+      }
 
-        fprintf(fp, "        assertEq(True, False, \"assertion placeholder; the real test needs to be implemented\");\n");
-        fprintf(fp, "    }\n\n");
-        return 0;
-    }
+      fprintf(fp, "        assertEq(True, False, \"assertion placeholder; the real test needs to be implemented\");\n");
+      fprintf(fp, "    }\n\n");
+      return 0;
+   }
 
    virtual int serializeCpp(FILE* fp) {
       fprintf(fp, "/* Qore class %s::%s */\n\n", ns.empty() ? "Qore" : ns.c_str(), name.c_str());
@@ -3585,68 +3585,68 @@ public:
 	 delete *i;
    }
 
-    int serializeUnitTest() {
-        FILE* fp = fopen(unitTestFileName.c_str(), cpp_open_flag);
-        if (!fp) {
-            error("%s: %s\n", unitTestFileName.c_str(), strerror(errno));
-            return -1;
-        }
-        log(LL_INFO, "creating unit test file %s -> %s\n", fileName, unitTestFileName.c_str());
+   int serializeUnitTest() {
+      FILE* fp = fopen(unitTestFileName.c_str(), cpp_open_flag);
+      if (!fp) {
+         error("%s: %s\n", unitTestFileName.c_str(), strerror(errno));
+         return -1;
+      }
+      log(LL_INFO, "creating unit test file %s -> %s\n", fileName, unitTestFileName.c_str());
 
-        fprintf(fp, "#!/usr/bin/env qore\n");
-        fprintf(fp, "# -*- mode: qore; indent-tabs-mode: nil -*-\n");
-        fprintf(fp, "\n");
-        fprintf(fp, "%%new-style\n");
-        fprintf(fp, "%%enable-all-warnings\n");
-        fprintf(fp, "%%require-types\n");
-        fprintf(fp, "%%strict-args\n");
-        fprintf(fp, "\n");
-        fprintf(fp, "%%requires ../../../qlib/QUnit.qm\n");
-        fprintf(fp, "\n");
-        fprintf(fp, "%%exec-class Main\n");
-        fprintf(fp, "\n");
-        fprintf(fp, "class Main inherits QUnit::Test {\n");
-        fprintf(fp, "\n");
-        fprintf(fp, "    constructor() : Test(\"Main\", \"1.0\", \\ARGV) {\n");
-        fprintf(fp, "\n");
+      fprintf(fp, "#!/usr/bin/env qore\n");
+      fprintf(fp, "# -*- mode: qore; indent-tabs-mode: nil -*-\n");
+      fprintf(fp, "\n");
+      fprintf(fp, "%%new-style\n");
+      fprintf(fp, "%%enable-all-warnings\n");
+      fprintf(fp, "%%require-types\n");
+      fprintf(fp, "%%strict-args\n");
+      fprintf(fp, "\n");
+      fprintf(fp, "%%requires ../../../qlib/QUnit.qm\n");
+      fprintf(fp, "\n");
+      fprintf(fp, "%%exec-class Main\n");
+      fprintf(fp, "\n");
+      fprintf(fp, "class Main inherits QUnit::Test {\n");
+      fprintf(fp, "\n");
+      fprintf(fp, "    constructor() : Test(\"Main\", \"1.0\", \\ARGV) {\n");
+      fprintf(fp, "\n");
 
-        for (source_t::const_iterator i = source.begin(), e = source.end(); i != e; ++i) {
-            strlist_t names = (*i)->precalculateUnitTest();
-            for (unsigned i = 0; i < names.size(); i++) {
-                fprintf(fp, "        addTestCase(\"%s\", \\%s());\n", names[i].c_str(), names[i].c_str());
-            }
-        }
+      for (source_t::const_iterator i = source.begin(), e = source.end(); i != e; ++i) {
+         strlist_t names = (*i)->precalculateUnitTest();
+         for (unsigned i = 0; i < names.size(); i++) {
+            fprintf(fp, "        addTestCase(\"%s\", \\%s());\n", names[i].c_str(), names[i].c_str());
+         }
+      }
 
-        strlist_t gnames = groups.precalculateUnitTest();
-        for (unsigned i = 0; i < gnames.size(); i++) {
-            fprintf(fp, "        addTestCase(\"%s\", \\%s());\n", gnames[i].c_str(), gnames[i].c_str());
-        }
+      strlist_t gnames = groups.precalculateUnitTest();
+      for (unsigned i = 0; i < gnames.size(); i++) {
+         fprintf(fp, "        addTestCase(\"%s\", \\%s());\n", gnames[i].c_str(), gnames[i].c_str());
+      }
 
-        fprintf(fp, "\n");
-        fprintf(fp, "        # Return for compatibility with test harness that checks return value.\n");
-        fprintf(fp, "        set_return_value(main());\n");
-        fprintf(fp, "    }\n");
-        fprintf(fp, "\n");
+      fprintf(fp, "\n");
+      fprintf(fp, "        # Return for compatibility with test harness that checks return value.\n");
+      fprintf(fp, "        set_return_value(main());\n");
+      fprintf(fp, "    }\n");
+      fprintf(fp, "\n");
 
-        for (source_t::const_iterator i = source.begin(), e = source.end(); i != e; ++i) {
-            if ((*i)->serializeUnitTest(fp)) {
-                fclose(fp);
-                return -1;
-            }
-        }
-
-        if (groups.serializeUnitTest(fp)) {
+      for (source_t::const_iterator i = source.begin(), e = source.end(); i != e; ++i) {
+         if ((*i)->serializeUnitTest(fp)) {
             fclose(fp);
             return -1;
-        }
+         }
+      }
 
-        fprintf(fp, "\n\n} # class Main \n");
+      if (groups.serializeUnitTest(fp)) {
+         fclose(fp);
+         return -1;
+      }
 
-        fclose(fp);
+      fprintf(fp, "\n\n} # class Main \n");
 
-        chmod(unitTestFileName.c_str(), 0744);
-        return 0;
-    }
+      fclose(fp);
+
+      chmod(unitTestFileName.c_str(), 0744);
+      return 0;
+   }
 
    int serializeCpp() {
       FILE* fp = fopen(cppFileName.c_str(), cpp_open_flag);
