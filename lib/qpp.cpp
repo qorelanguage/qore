@@ -2150,6 +2150,18 @@ public:
       return valid;
    }
 
+    strlist_t precalculateUnitTest() const {
+        strlist_t ret;
+
+        std::string mock_filename = fileName;
+        std::replace(mock_filename.begin(), mock_filename.end(), '.', '_');
+
+        std::string v = "test_" + mock_filename + "_" + std::to_string(startLineNumber);
+        ret.push_back(v);
+
+        return ret;
+    }
+
     int serializeUnitTest(FILE* fp) const {
         //fprintf(fp, "# Group::serializeUnitTest\n");
         fprintf(fp, "    # %s: %d\n", fileName, startLineNumber);
@@ -2157,9 +2169,8 @@ public:
         if (fmap.empty())
             return 0;
 
-        std::string mock_filename = fileName;
-        std::replace(mock_filename.begin(), mock_filename.end(), '.', '_');
-        fprintf(fp, "    private test_%s_%d() {\n", mock_filename.c_str(), startLineNumber);
+        strlist_t names = precalculateUnitTest();
+        fprintf(fp, "    private %s() {\n", names[0].c_str());
 
         // first serialize text
         for (unsigned i = 0; i < tlist.size(); ++i) {
@@ -2310,6 +2321,20 @@ public:
       return grouplist.empty();
    }
 
+    strlist_t precalculateUnitTest() const {
+        strlist_t ret;
+
+        if (!has_funcs)
+            return ret;
+
+        for (unsigned i = 0; i < grouplist.size(); ++i) {
+            strlist_t v = grouplist[i]->precalculateUnitTest();
+            ret.insert(ret.end(), v.begin(), v.end());
+        }
+
+        return ret;
+    }
+
     int serializeUnitTest(FILE* fp) const {
         //fprintf(fp, "# Groups::serializeUnitTest\n");
 
@@ -2422,6 +2447,7 @@ public:
    virtual int serializeCpp(FILE* fp) = 0;
    virtual int serializeDox(FILE* fp) = 0;
    virtual int serializeUnitTest(FILE* fp) = 0;
+    virtual strlist_t precalculateUnitTest() = 0;
 };
 
 class TextElement : public AbstractElement {
@@ -2442,6 +2468,11 @@ public:
       //return serialize_dox_comment(fp, buf);
       return 0;
    }
+
+    virtual strlist_t precalculateUnitTest() {
+        strlist_t ret;
+        return ret;
+    }
 
     virtual int serializeUnitTest(FILE* fp) {
         return 0;
@@ -3031,10 +3062,20 @@ public:
       return !*m;
    }
 
+    virtual strlist_t precalculateUnitTest() {
+        strlist_t ret;
+
+        std::string v = "test_" + (ns.empty() ? "Qore" : ns) + "_" + name;
+        ret.push_back(v);
+
+        return ret;
+    }
+
     virtual int serializeUnitTest(FILE* fp) {
         //fprintf(fp, "# ClassElement::serializeUnitTest\n");
         fprintf(fp, "    # Qore class %s::%s\n", ns.empty() ? "Qore" : ns.c_str(), name.c_str());
-        fprintf(fp, "    private test_%s_%s() {\n", ns.empty() ? "Qore" : ns.c_str(), name.c_str());
+        strlist_t names = precalculateUnitTest();
+        fprintf(fp, "    private %s() {\n", names[0].c_str());
 
         for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i) {
             i->second->serializeUnitTestMethod(fp, name.c_str());
@@ -3564,8 +3605,19 @@ public:
         fprintf(fp, "\n");
         fprintf(fp, "    constructor() : Test(\"Main\", \"1.0\", \\ARGV) {\n");
         fprintf(fp, "\n");
-        // TODO/FIXME: get list of test cases in advance
-        fprintf(fp, "        # addTestCase(\"foobar\", \\testFoobar());\n");
+
+        for (source_t::const_iterator i = source.begin(), e = source.end(); i != e; ++i) {
+            strlist_t names = (*i)->precalculateUnitTest();
+            for (unsigned i = 0; i < names.size(); i++) {
+                fprintf(fp, "        addTestCase(\"%s\", \\%s());\n", names[i].c_str(), names[i].c_str());
+            }
+        }
+
+        strlist_t gnames = groups.precalculateUnitTest();
+        for (unsigned i = 0; i < gnames.size(); i++) {
+            fprintf(fp, "        addTestCase(\"%s\", \\%s());\n", gnames[i].c_str(), gnames[i].c_str());
+        }
+
         fprintf(fp, "\n");
         fprintf(fp, "        # Return for compatibility with test harness that checks return value.\n");
         fprintf(fp, "        set_return_value(main());\n");
