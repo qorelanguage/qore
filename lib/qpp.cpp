@@ -45,6 +45,8 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <sys/stat.h>
+
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -2186,6 +2188,7 @@ public:
                 return -1;
         }
 
+        fprintf(fp, "        assertEq(True, False, \"assertion placeholder; the real test needs to be implemented\");\n");
         fprintf(fp, "    }");
 
         return 0;
@@ -3085,6 +3088,7 @@ public:
             i->second->serializeUnitTestStatic(fp, name.c_str());
         }
 
+        fprintf(fp, "        assertEq(True, False, \"assertion placeholder; the real test needs to be implemented\");\n");
         fprintf(fp, "    }\n\n");
         return 0;
     }
