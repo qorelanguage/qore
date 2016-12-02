@@ -3643,6 +3643,8 @@ public:
         fprintf(fp, "\n\n} # class Main \n");
 
         fclose(fp);
+
+        chmod(unitTestFileName.c_str(), 0744);
         return 0;
     }
 
