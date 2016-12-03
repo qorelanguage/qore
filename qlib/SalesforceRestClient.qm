@@ -891,6 +891,13 @@ sfrest.logout();
             else
                 delete headers.Accept;
 
+            # save send encoding and retore on error
+            *hash old_seh = seh;
+            # turn off compression for the login request (is not currently supported in Salesforce.com)
+            setSendEncoding("identity");
+            # restore the encoding on exit
+            on_exit seh = old_seh;
+
             # create login hash
             hash lh = self.("client_id", "client_secret", "username", "password") + (
                 "grant_type": "password",

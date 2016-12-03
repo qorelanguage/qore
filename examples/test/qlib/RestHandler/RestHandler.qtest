@@ -1,0 +1,129 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/RestHandler.qm
+%requires ../../../../qlib/RestClient.qm
+
+%exec-class RestHandlerTest
+
+class TestRestClass inherits AbstractRestClass {
+    string name() {
+        return "test";
+    }
+
+    hash getEcho(hash cx, *hash ah) {
+        return RestHandler::makeResponse(200, cx.body);
+    }
+
+    hash putEcho(hash cx, *hash ah) {
+        return RestHandler::makeResponse(200, cx.body);
+    }
+}
+
+class MyRestHandler inherits RestHandler {
+    constructor() {
+        addClass(new TestRestClass());
+    }
+}
+
+public class RestHandlerTest inherits QUnit::Test {
+    private {
+        HttpServer mServer;
+        RestClient mClient;
+        MyRestHandler mHandler();
+        int port;
+
+        const SimpleHashValue = ("a": "1");
+        const LargerHashValue = ("a": "1", "b": "2");
+        const HashValue = ("a": ("1", "2"));
+
+        const ListValue = ("1", "two", "3");
+
+        const AllValues = ("1", "one", ListValue, SimpleHashValue, LargerHashValue, HashValue);
+
+        const DataValues = (
+            "xml": AllValues,
+            "auto": AllValues,
+            "yaml": AllValues,
+            "json": AllValues,
+            "rawxml": SimpleHashValue,
+            "url": (SimpleHashValue, LargerHashValue),
+            );
+    }
+
+    public {
+    }
+
+    constructor() : Test("RestHandlerTest", "1.0") {
+        addTestCase("Test basics", \basicTest());
+
+        mServer = new HttpServer(\log(), \log());
+        mServer.setHandler("rest-handler", "", MimeTypeHtml, mHandler);
+        mServer.setDefaultHandler("rest-handler", mHandler);
+        port = mServer.addListener(0).port;
+
+        mClient = new RestClient(("url": "http://localhost:" + port));
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+
+        mServer.stop();
+        delete mServer;
+    }
+
+    basicTest() {
+        map testSerialization($1.key, $1.value), DataValues.pairIterator();
+
+        # special tests for rawxml (typeless / raw XML encoding)
+        mClient.setSerialization("rawxml");
+
+        hash info;
+        on_error printf("info: %N\n", info);
+
+        hash h = mClient.get("test?action=echo", LargerHashValue, \info);
+        assertEq(("value": LargerHashValue), h.body);
+        h = mClient.put("test?action=echo", LargerHashValue, \info);
+        assertEq(("value": LargerHashValue), h.body);
+        h = mClient.get("test?action=echo", HashValue, \info);
+        assertEq(("value": HashValue), h.body);
+        h = mClient.put("test?action=echo", HashValue, \info);
+        assertEq(("value": HashValue), h.body);
+        h = mClient.put("test?action=echo", "1", \info);
+        assertEq(("value": "1"), h.body);
+        h = mClient.put("test?action=echo", ListValue, \info);
+        assertEq(("list": ("element": ListValue)), h.body);
+
+        # special tests for "url" (form URL encoding)
+        mClient.setSerialization("url");
+
+        assertThrows("FORMURLENCODING-ERROR", \mClient.put(), ("test?action=echo", "1", \info));
+        assertThrows("FORMURLENCODING-ERROR", \mClient.put(), ("test?action=echo", ListValue, \info));
+        assertThrows("INVALID-VALUE", \mClient.put(), ("test?action=echo", HashValue, \info));
+    }
+
+    testSerialization(string data, softlist values) {
+        mClient.setSerialization(data);
+
+        foreach any val in (values) {
+            hash info;
+            on_error printf("info: %N\n", info);
+            hash h = mClient.get("test?action=echo", val, \info);
+            assertEq(val, h.body, sprintf("GET %s: %s", data, val.type()));
+            h = mClient.put("test?action=echo", val, \info);
+            assertEq(val, h.body, sprintf("PUT %s: %s", data, val.type()));
+        }
+    }
+
+    log(string str) {
+        delete argv;
+    }
+}

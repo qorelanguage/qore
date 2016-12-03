@@ -9,6 +9,9 @@
 %require-types
 %enable-all-warnings
 
+%requires SalesforceRestClient
+%requires Util
+
 %try-module yaml >= 0.5
 %define NoYaml
 %endtry
@@ -21,15 +24,15 @@
 %define NoJson
 %endtry
 
-%requires SalesforceRestClient
-%requires Util
-
 %exec-class SfRestClient
 
 class SfRestClient {
     public {
         #! program options
         const Opts = (
+            "sendenc":        "e,send-encoding:s",
+            "data":           "S,serialization=s",
+            "examples":       "x,show-examples",
             "proxy":          "P,proxy-url=s",
             "show":           "W,show-url",
             "timeout":        "t,timeout=i",
@@ -40,6 +43,7 @@ class SfRestClient {
             "oath_url_token": "U,oauth-token-url=s",
             "verbose":        "v,verbose:i+",
 
+            "job":            "j,job-command",
             "bulk":           "b,bulk-api",
             "mod":            "m,if-modified-since=d",
             "unmod":          "n,if-unmodified-since=d",
@@ -95,8 +99,13 @@ class SfRestClient {
             exit(0);
         }
 
+        if (opt.examples) {
+            showExamples();
+            exit(0);
+        }
+
         *string meth = shift ARGV;
-        if (!meth)
+        if (!exists meth)
             usage();
 
         *string path = shift ARGV;
@@ -130,6 +139,20 @@ class SfRestClient {
         if (exists body)
             body = parse_to_qore_value(body);
 
+        if (opt.data) {
+            if (!RestClient::DataSerializationOptions{opt.data})
+                error("data serialization option %y is unknown; valid options: %y", opt.data, RestClient::DataSerializationOptions.keys());
+            rc.setSerialization(opt.data);
+        }
+
+        if (opt.sendenc) {
+            if (opt.sendenc === True)
+                opt.sendenc = "deflate";
+            else if (!RestClient::EncodingSupport{opt.sendenc})
+                error("send encoding option %y is unknown; valid options: %y", opt.sendenc, RestClient::EncodingSupport.keys());
+            rc.setSendEncoding(opt.sendenc);
+        }
+
         rc.login();
 
         if (opt.verbose)
@@ -158,6 +181,21 @@ class SfRestClient {
                 showRestRequest(info, body, opt);
                 showRestResponse(info, h.body, opt);
             }
+
+            if (opt.job) {
+                opt.bulk = True;
+                if (body) {
+                    if (body.typeCode() != NT_HASH)
+                        throw "ERR", "option -j requires a hash message body";
+                    body = (opt.job: (
+                                "^attributes": (
+                                    "xmlns": SalesforceRestClient::AsyncDataloadNs,
+                                ),
+                            ) + body,
+                        );
+                }
+            }
+
             h = opt.bulk
                 ? rc.doBulkRequest(meth, "", body, \info, NOTHING, hdr)
                 : rc.doRequest(meth, "", body, \info, NOTHING, hdr);
@@ -193,9 +231,26 @@ class SfRestClient {
         }
     }
 
-    error(string fmt) {
+    static error(string fmt) {
         stderr.printf("%s: ERROR: %s\n", get_script_name(), vsprintf(fmt, argv));
         exit(1);
+    }
+
+    showExamples() {
+        printf("* REST API EXAMPLES\n");
+        printf("** return information about an object\n");
+        printf("     sfrest sobjects/Account/0012A000022K3zxQAC\n\n");
+        printf("** execute a SOQL query\n");
+        printf("     sfrest query?q=\"select id from account where name like 'acc_%'\"\n\n");
+        printf("* BULK REST API EXAMPLES\n");
+        printf("** create a bulk job\n");
+        printf("     sfrest -j=jobInfo post job 'operation=delete,object=Account,contentType=XML'\n\n");
+        printf("** add a batch to a bulk job\n");
+        printf("     sfrest -j=sObjects post job/7502A000008lo8fQAA/batch 'sObject=(Id=0012A000022K3ypQAC)'\n\n");
+        printf("** show job info\n");
+        printf("     sfrest -j job/7502A000008lo8fQAA\n\n");
+        printf("** close a bulk job\n");
+        printf("     sfrest -j=jobInfo post job/7502A000008lo8fQAA state=Closed\n\n");
     }
 
     private showRestRequest(hash info, any args, *hash opt) {
@@ -233,25 +288,23 @@ class SfRestClient {
         if (opt.lit > 1)
             printf("< %N\n", info."response-headers" - "body");
         if (info."response-body") {
+            if (!exists rv)
+                rv = info."response-body";
             string str;
-            if (opt.reformat) {
-                switch (info."response-serialization") {
+            switch (info."response-serialization") {
 %ifndef NoXml
-                    case "xml": str = make_xmlrpc_value(rv, XGF_ADD_FORMATTING); break;
-                    case "rawxml": str = make_xml(rv, XGF_ADD_FORMATTING); break;
+                case "xml": str = make_xmlrpc_value(rv, opt.reformat ? XGF_ADD_FORMATTING : NOTHING); break;
+                case "rawxml": str = make_xml(rv, opt.reformat ? XGF_ADD_FORMATTING : NOTHING); break;
 %endif
 %ifndef NoJson
-                    case "json": str = make_json(rv, JGF_ADD_FORMATTING); break;
+                case "json": str = make_json(rv, opt.reformat ? JGF_ADD_FORMATTING : NOTHING); break;
 %endif
 %ifndef NoYaml
-                    case "yaml": str = trim(make_yaml(rv, YAML::BlockStyle)); break;
+                case "yaml": str = trim(make_yaml(rv, opt.reformat ? YAML::BlockStyle : NOTHING)); break;
 %endif
-                    case "url": str = mime_get_form_urlencoded_string(rv); break;
-                    default: str = trim(info."response-body"); break;
-                }
+                case "url": str = mime_get_form_urlencoded_string(rv); break;
+                default: str = trim(info."response-body"); break;
             }
-            else
-                str = trim(info."response-body");
             printf("< %s\n", str);
         }
     }
@@ -290,23 +343,32 @@ class SfRestClient {
  -p,--password=ARG             the account password (or from $SALESFORCE_PASS)
 
 ** Data Options
- -b,--bulk-api                 use the Bulk REST API
+ -b,--bulk-api                 use the Bulk REST API (uses \"rawxml\" encoding)
+ -j,--job-command=ARG          use the Bulk REST API and serialize for a batch job request
+                               ARG=top-level XML element (ex: jobInfo, sObjects, etc)
+                               uses \"rawxml\" encoding by default
+                               includes xmlns=%y
  -m,--if-modified-since=ARG    set the If-Modified-Since header
  -n,--if-unmodified-since=ARG  set the If-Unmodified-Since header
 
 ** Other Options
+ -e,--send-encoding[=ARG]      set compression in outgoing request
+                               [ARG=gzip,deflate,bzip2,identity]
  -E,--full-exception           show full exception output
  -H,--header=ARG               send header with request
  -P,--proxy-url=ARG            set the proxy URL (ex: http://user:pass@proxy:port)
  -l,--literal                  show literal API calls (more l's, more info)
  -R,--reformat                 reformat data with -l+ for better readability
+ -S,--serialization=ARG        set REST data serialization type:
+                               auto, json, yaml, xml, rawxml, url
  -t,--timeout=ARG              set HTTP timeout in seconds
  -U,--oauth-token-url=ARG      the URL for the OAuth2 token request
                                default: %y
  -v,--verbose                  show more information
  -W,--show-url                 show default REST API URL and exit
+ -x,--show-examples            show usage examples and exit
  -h,--help                     this help text
-", get_script_name(), (SalesforceRestClient::Defaults).oauth_url_token);
+", get_script_name(), SalesforceRestClient::AsyncDataloadNs, (SalesforceRestClient::Defaults).oauth_url_token);
         exit(1);
     }
 
