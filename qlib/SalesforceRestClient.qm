@@ -121,6 +121,9 @@ rc.bulkJobAddBatch(h.id, data, BulkJobJson, \info);
 rc.bulkJobClose(h.id);
     @endcode
 
+    @see \c "sfrest" in the bin directory for a user-friendly command-line interface to Salesforce.com REST API
+    functionality and a more detailed example of code using this module.
+
     @section salesforcerestclientrelnotes Release Notes
 
     @subsection salesforcerestclientv1_0 SalesforceRestClient v1.0
