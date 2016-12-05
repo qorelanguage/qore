@@ -803,10 +803,10 @@ public namespace Mime {
      */
     public hash sub mime_parse_form_urlencoded_string(string str) {
         hash rv = {};
-        foreach string str in (str.split("&")) {
-            (*string key, *string value) = (str =~ x/([^=]+)=(.+)$/);
+        foreach string ustr in (str.split("&")) {
+            (*string key, *string value) = (ustr =~ x/([^=]+)=(.+)$/);
             if (!key || !value)
-                throw "URLENCODED-PARSE-ERROR", sprintf("urlencoded parameter element not in key=value format: %y", str);
+                throw "URLENCODED-PARSE-ERROR", sprintf("urlencoded parameter element not in key=value format: %y", ustr);
             rv{mime_decode_urlencoded_string(key)} = mime_decode_urlencoded_string(value);
         }
 

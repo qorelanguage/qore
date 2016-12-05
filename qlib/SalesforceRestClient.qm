@@ -121,6 +121,9 @@ rc.bulkJobAddBatch(h.id, data, BulkJobJson, \info);
 rc.bulkJobClose(h.id);
     @endcode
 
+    @see \c "sfrest" in the bin directory for a user-friendly command-line interface to Salesforce.com REST API
+    functionality and a more detailed example of code using this module.
+
     @section salesforcerestclientrelnotes Release Notes
 
     @subsection salesforcerestclientv1_0 SalesforceRestClient v1.0
@@ -258,6 +261,7 @@ If-Modified-Since: Thu, 24 Nov 2016 23:00:00 GMT
                 "oauth_url_token": "https://login.salesforce.com/services/oauth2/token",
                 "oauth_url_revoke": "https://login.salesforce.com/services/oauth2/revoke",
                 "api": "auto",
+                "send_encoding": "gzip",
                 );
 
             #! required options
@@ -329,7 +333,7 @@ SalesforceRestClient rest(("url": "http://localhost:8001/rest"));
             @endcode
 
             @param opts valid options are:
-            - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref Qore::True "True" or @ref Qore::False "False": indicating if the method required a message body as well. Example:
+            - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref Qore::True "True" or @ref Qore::False "False": indicating if the method requires a message body as well. Example:
                 @code{.py}
 # add new HTTP methods for WebDAV. Both of them require body posting to the server
 ("additional_methods": ("PROPFIND": True, "MKCOL": True ));
@@ -338,7 +342,7 @@ SalesforceRestClient rest(("url": "http://localhost:8001/rest"));
             - \c client_id: (required) the Salesforce.com "consumer key" for the Connected App
             - \c client_secret: (required) the Salesforce.com "consumer secret" for the Connected App
             - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a relative date-time value for clarity, ex: \c 20s)
-            - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding
+            - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size); additionally please note that Salesforce.com does not support \c "bzip2" compression
             - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "json"
             - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
             - \c default_port: The default port number to connect to if none is given in the URL
@@ -347,7 +351,7 @@ SalesforceRestClient rest(("url": "http://localhost:8001/rest"));
             - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
             - \c password: (required) the Salesforce.com account password for the Connected App
             - \c proxy: The proxy URL for connecting through a proxy
-            - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+            - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to \c "gzip" content encoding on sent message bodies (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size); additionally please note that Salesforce.com does not support \c "bzip2" compression
             - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 30s)
             - \c username: (required) the Salesforce.com account username for the Connected App
             @param do_not_connect if \c False (the default), then a connection will be immediately established to the remote server and a token will be received
@@ -374,7 +378,7 @@ SalesforceRestClient rest(("url": "http://localhost:8001/rest"));
                 loginIntern();
         }
 
-        #! sends an HTTP PATCH request to the Salesforce.com REST server and returns the response; performs an implicit login to Salesforce.com if necessary
+        #! sends an HTTP \c PATCH request to the Salesforce.com REST server and returns the response; performs an implicit login to Salesforce.com if necessary
         /** @par Example:
             @code{.py}
 hash ans = rest.patch("/orders/1", ("action": "cancel"));
@@ -539,7 +543,7 @@ hash ans = rest.doBulkRequest("POST", "job", job);
             return RestClient::doRequest(m, path, body, \info, decode_errors, hdr);
         }
 
-        #! sends an HTTP GET request to the REST server using the Salesforce.com Bulk REST API and returns the response
+        #! sends an HTTP \c GET request to the REST server using the Salesforce.com Bulk REST API and returns the response
         /** @par Example:
             @code{.py}
 hash ans = rest.bulkGet("/orders/1?info=verbose");
@@ -580,7 +584,7 @@ hash ans = rest.bulkGet("/orders/1?info=verbose");
             return doBulkRequest("GET", path, body, \info, NOTHING, hdr);
         }
 
-        #! sends an HTTP POST request to the REST server using the Salesforce.com Bulk REST API and returns the response
+        #! sends an HTTP \c POST request to the REST server using the Salesforce.com Bulk REST API and returns the response
         /** @par Example:
             @code{.py}
 hash ans = rest.bulkPost("/orders", ("product": "xyz123", "options": 500));
@@ -747,7 +751,7 @@ printf("batch ID: %y batch state: %y\n", h.id, h.state);
             return sendAndDecodeResponse(batch_data, "POST", path, hdr, \info, True);
         }
 
-        #! sends a Bulk REST API job close POST request to the server and returns the deserialized result message body
+        #! sends a Bulk REST API job close \c POST request to the server and returns the deserialized result message body
         /** @par Example:
             @code{.py}
 sfrest.bulkJobClose(jh.id);
@@ -890,6 +894,13 @@ sfrest.logout();
                 addDefaultHeaders(("Accept": MimeTypeJson));
             else
                 delete headers.Accept;
+
+            # save send encoding and retore on error
+            *hash old_seh = seh;
+            # turn off compression for the login request (is not currently supported in Salesforce.com)
+            setSendEncoding("identity");
+            # restore the encoding on exit
+            on_exit seh = old_seh;
 
             # create login hash
             hash lh = self.("client_id", "client_secret", "username", "password") + (

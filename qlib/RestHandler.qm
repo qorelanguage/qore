@@ -774,7 +774,13 @@ public namespace RestHandler {
                     "deserialize": \parse_xmlrpc_value(),
                 ),
                 MimeTypeXmlApp: (
-                    "serialize": \make_xml(),
+                    "serialize": string sub (any v) {
+                        switch (v.typeCode()) {
+                            case NT_LIST: return make_xml(("list": ("element": v)));
+                            case NT_HASH: return v.size() == 1 && v.firstValue().lsize() == 1 ? make_xml(v) : make_xml(("value": v));
+                        }
+                        return make_xml(("value": v));
+                    },
                     "deserialize": hash sub (string xml) {
                         try {
                             return parse_xmlrpc_value(xml);
