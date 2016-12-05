@@ -274,7 +274,7 @@ class <X_SCHEMA_NAME> inherits AbstractSchema {
     /*! It provides basic shared functionality for all specialized
         object related classes.
 
-        All inherited classe must implement abstract method AbstractReverseObject::toQore()
+        All inherited classes must implement abstract method AbstractReverseObject::toQore()
         for object related functionality.
      */
     public class AbstractReverseObject {
@@ -312,8 +312,8 @@ class <X_SCHEMA_NAME> inherits AbstractSchema {
         }
 
         #! Dedicated functionlity to get DB object info into the internal structure is done here.
-        /*! All inerited classe must implement this method to get
-            all required DB metadata n proper format
+        /*! All inherited classes must implement this method to get
+            all required DB metadata in proper format
          */
         abstract any toQore();
 
@@ -803,7 +803,7 @@ class <X_SCHEMA_NAME> inherits AbstractSchema {
                 string key = regex_extract(it.getValue(), "<SCHEMA_(.*)>")[0];
                 AbstractReverseObject o = get_object(key.lwr(), m_ds);
                 string out = o.toString();
-                # HACK: let's guess that SchemaDescriptionOptions constains
+                # HACK: let's guess that SchemaDescriptionOptions contains
                 #       objects supported in all DB servers/dialects.
                 #       All other objects must go to the driver specific sub-hash.
                 if (!SqlUtil::AbstractDatabase::SchemaDescriptionOptions.hasKey(key.lwr())) {
@@ -823,7 +823,7 @@ class <X_SCHEMA_NAME> inherits AbstractSchema {
         @param name a string with exact object name or a regex mask
 
         Parameters \c ds and \c name are passed as \c argv into class constructor.
-        See apropritate class for constructor reference.
+        See appropriate class for constructor reference.
      */
     public AbstractReverseObject sub get_object(string object_type) {
         *string className = TYPE_TO_CLASS{object_type} ?? MULTI_TO_CLASS{object_type};
