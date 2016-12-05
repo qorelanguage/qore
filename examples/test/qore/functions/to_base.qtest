@@ -11,7 +11,7 @@
 %exec-class ToBaseTest
 
 public class ToBaseTest inherits QUnit::Test {
-    constructor() : Test("FloorTest", "1.1") {
+    constructor() : Test("ToBaseTest", "1.1") {
         addTestCase("Test <int>::toBase()", \testIntToBase(), NOTHING);
         addTestCase("Test <number>::toBase()", \testNumberToBase(), NOTHING);
         set_return_value(main());
