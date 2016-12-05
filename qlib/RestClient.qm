@@ -105,12 +105,13 @@ hash ans = rest.get("orders/1?option=full");
 printf("%N\n", ans.body);
     @endcode
 
-    See example file \c "rest" in the examples directory for a more detailed example using this module
+    @see \c "rest" in the bin directory for a user-friendly command-line interface to REST
+    functionality and a more detailed example of code using this module.
 
     @section restclientrelnotes Release Notes
 
     @subsection restclientv1_3_1 RestClient v1.3.1
-    - added support for the \c "url" encoding for URL form encodeded message bodies (<a href="https://github.com/qorelanguage/qore/issues/1436">issue 1436</a>)
+    - added support for the \c "url" encoding for URL form encoded message bodies (<a href="https://github.com/qorelanguage/qore/issues/1436">issue 1436</a>)
     - added support for the \c "rawxml" data type; when parsing XML responses, if the XML cannot be parsed as XML-RPC data, then it's attempted to be parsed as untyped XML data (<a href="https://github.com/qorelanguage/qore/issues/1437">issue 1437</a>)
     - fixed a bug where an empty chunked response would cause a spurious exception to be thrown (<a href="https://github.com/qorelanguage/qore/issues/1448">issue 1448</a>)
 
@@ -168,12 +169,22 @@ public namespace RestClient {
                 ),
                 "rawxml": (
                     "ct": MimeTypeXmlApp,
-                    "out": \make_xml(),
+                    "out": string sub (any v) {
+                        switch (v.typeCode()) {
+                            case NT_LIST: return make_xml(("list": ("element": v)));
+                            case NT_HASH: return v.size() == 1 && v.firstValue().lsize() == 1 ? make_xml(v) : make_xml(("value": v));
+                        }
+                        return make_xml(("value": v));
+                    },
                 ),
 %endif
                 "url": (
                     "ct": MimeTypeFormUrlEncoded,
-                    "out": \mime_get_form_urlencoded_string(),
+                    "out": string sub (any v) {
+                        if (v.typeCode() == NT_HASH)
+                            return mime_get_form_urlencoded_string(v);
+                        throw "FORMURLENCODING-ERROR", sprintf("form URL encoding can only encode hashes; type %y requested", v.type());
+                    },
                 ),
                 };
 
@@ -246,7 +257,7 @@ public namespace RestClient {
             const Accept = AcceptList.join(",");
 
             #! RestClient Version
-            const Version = "1.3";
+            const Version = "1.3.1";
 
             #! RestClient Version String
             const VersionString = sprintf("Qore-RestClient/%s", RestClient::Version);
@@ -321,13 +332,13 @@ RestClient rest(("url": "http://localhost:8001/rest"));
             @endcode
 
             @param opts valid options are:
-            - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref Qore::True "True" or @ref Qore::False "False": indicating if the method required a message body as well. Example:
+            - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref Qore::True "True" or @ref Qore::False "False": indicating if the method requires a message body as well. Example:
                 @code{.py}
 # add new HTTP methods for WebDAV. Both of them require body posting to the server
 ("additional_methods": ("PROPFIND": True, "MKCOL": True ));
                 @endcode
             - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a relative date-time value for clarity, ex: \c 20s)
-            - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding
+            - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
             - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "auto"
             - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
             - \c default_port: The default port number to connect to if none is given in the URL
@@ -335,7 +346,7 @@ RestClient rest(("url": "http://localhost:8001/rest"));
             - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing message headers
             - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
             - \c proxy: The proxy URL for connecting through a proxy
-            - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+            - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
             - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 30s)
             - \c url: A string giving the URL to connect to
             @param do_not_connect if \c False (the default), then a connection will be immediately established to the remote server
@@ -511,7 +522,7 @@ string ser = rest.getSerialization();
             return ds;
         }
 
-        #! sends an HTTP GET request to the REST server and returns the response
+        #! sends an HTTP \c GET request to the REST server and returns the response
         /** @par Example:
             @code{.py}
 hash ans = rest.get("/orders/1?info=verbose");
@@ -550,7 +561,7 @@ hash ans = rest.get("/orders/1?info=verbose");
             return doRequest("GET", path, body, \info, NOTHING, hdr);
         }
 
-        #! sends an HTTP PUT request to the REST server and returns the response
+        #! sends an HTTP \c PUT request to the REST server and returns the response
         /** @par Example:
             @code{.py}
 hash ans = rest.put("/orders/1", ("action": "cancel"));
@@ -589,7 +600,7 @@ hash ans = rest.put("/orders/1", ("action": "cancel"));
             return doRequest("PUT", path, body, \info, NOTHING, hdr);
         }
 
-        #! sends an HTTP POST request to the REST server and returns the response
+        #! sends an HTTP \c POST request to the REST server and returns the response
         /** @par Example:
             @code{.py}
 hash ans = rest.post("/orders", ("product": "xyz123", "options": 500));
@@ -628,7 +639,7 @@ hash ans = rest.post("/orders", ("product": "xyz123", "options": 500));
             return doRequest("POST", path, body, \info, NOTHING, hdr);
         }
 
-        #! sends an HTTP DELETE request to the REST server and returns the response
+        #! sends an HTTP \c DELETE request to the REST server and returns the response
         /** @par Example:
             @code{.py}
 hash ans = rest.del("/orders/1");
