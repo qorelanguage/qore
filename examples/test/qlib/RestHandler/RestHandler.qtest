@@ -66,16 +66,20 @@ public class RestHandlerTest inherits QUnit::Test {
     constructor() : Test("RestHandlerTest", "1.0") {
         addTestCase("Test basics", \basicTest());
 
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    globalSetUp() {
         mServer = new HttpServer(\log(), \log());
         mServer.setHandler("rest-handler", "", MimeTypeHtml, mHandler);
         mServer.setDefaultHandler("rest-handler", mHandler);
         port = mServer.addListener(0).port;
 
         mClient = new RestClient(("url": "http://localhost:" + port));
+    }
 
-        # Return for compatibility with test harness that checks return value.
-        set_return_value(main());
-
+    globalTearDown() {
         mServer.stop();
         delete mServer;
     }
