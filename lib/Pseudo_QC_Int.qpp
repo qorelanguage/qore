@@ -32,6 +32,8 @@
 #include <qore/Qore.h>
 #include "qore/intern/qore_number_private.h"
 
+string to_base_intern(int64 i, int base, ExceptionSink* xsink);
+
 //! Methods in this pseudo-class can be executed on @ref integer "integer values"
 /**
  */
@@ -317,4 +319,60 @@ string <int>::toUnicode() [flags=RET_VALUE_ONLY] {
    SimpleRefHolder<QoreStringNode> str(new QoreStringNode(QCS_UTF8));
    str->concatUnicode(i);
    return *xsink ? 0 : str.release();
+}
+
+//! Converts the integer to a different <b>base</b> (and returns it as a string).
+/** @param base the base to convert the integer to; this value must be 2 - 36 inclusive or an \c INVALID-BASE exception will be thrown
+
+    @return the converted value as a string
+
+    @par Example:
+    @code{.py}
+        27.toBase(2));       // returns "11011"
+        033.toBase(2));      // returns "11011"
+        0x1B.toBase(2));     // returns "11011"
+        (-27).toBase(5));    // returns  "-102"
+        (-0x1B).toBase(5));  // returns  "-102"
+        27.toBase(8));       // returns    "33"
+        033.toBase(8));      // returns    "33"
+        27.toBase());        // returns    "27"
+        033.toBase());       // returns    "27"
+        0x1B.toBase());      // returns    "27"
+        (-27).toBase(13));   // returns   "-21"
+        27.toBase(16));      // returns    "1B"
+        0x1B.toBase(16));    // returns    "1B"
+        27.toBase(27));      // returns    "10"
+        27.toBase(28));      // returns     "R"
+        (-27).toBase(36));   // returns    "-R"
+        35.toBase(36));      // returns     "Z"
+    @endcode
+
+    @throw INVALID-BASE the base is invalid; must be 2 - 36 inclusive
+
+    @see \link <number>::toBase(int base) \endlink
+
+    @since %Qore 0.8.13
+*/
+string <int>::toBase(int base = 10) [flags=RET_VALUE_ONLY] {
+    string s = to_base_intern(i, base, xsink);
+    return *xsink ? QoreValue() : ((SimpleRefHolder<QoreStringNode>)new QoreStringNode(s)).release();
+}
+
+string to_base_intern(int64 i, int base, ExceptionSink* xsink) {
+    if (base < 2 || base > 36) {
+        xsink -> raiseException("INVALID-BASE", "base " QLLD " is invalid; base must be 2 - 36 inclusive", base);
+        return "";
+    }
+
+    if (i < 0)
+        return '-' + to_base_intern(-i, base, xsink);
+
+    string s;
+    while (true) {
+        int rem = i % base;
+        s = char((rem < 10 ? 48 : 55) + rem) + s;
+        if ((i /= base) == 0)
+            break;
+    }
+    return s;
 }
