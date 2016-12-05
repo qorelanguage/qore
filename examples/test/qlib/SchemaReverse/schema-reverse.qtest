@@ -54,18 +54,35 @@ class Main inherits QUnit::Test {
     }
 
     constructor() : QUnit::Test("SchemaReverseTest", "1.0", \ARGV, LOCAL_OPTS) {
-        if (!m_options.connstr)
-            m_options.connstr = ENV.QORE_DB_CONNSTR_ORACLE;
-
-        m_ds = new Datasource(m_options.connstr);
-        m_db = new Database(m_ds);
-
         addTestCase("schema reverse - table", \testSchemaReverseTable());
         addTestCase("schema reverse - tables", \testSchemaReverseTables());
         addTestCase("schema reverse - sequence", \testSchemaReverseSequence());
         addTestCase("schema reverse - sequences", \testSchemaReverseSequences());
 
         set_return_value(main());
+    }
+
+    private globalMakeSchema(string method) {
+        on_exit m_ds.commit();
+        list sql = call_object_method(m_db, method, REF_SCHEMA);
+        ListIterator it(sql);
+        while (it.next()) {
+            m_ds.exec(it.getValue());
+        }
+    }
+
+    globalSetUp() {
+        if (!m_options.connstr)
+            m_options.connstr = ENV.QORE_DB_CONNSTR ? ENV.QORE_DB_CONNSTR : (ENV.QORE_DB_CONNSTR_ORACLE ? ENV.QORE_DB_CONNSTR_ORACLE : ENV.QORE_DB_CONNSTR_PGSQL);
+
+        m_ds = new Datasource(m_options.connstr);
+        m_db = new Database(m_ds);
+
+        globalMakeSchema("getAlignSql");
+    }
+
+    globalTearDown() {
+        globalMakeSchema("getDropSchemaSql");
     }
 
     testSchemaReverseTable() {
@@ -91,23 +108,4 @@ class Main inherits QUnit::Test {
         hash q = r.toQore();
         assertEq(REF_SCHEMA.sequences, q, "SequencesReverse::toQore()");
     }
-
-
-    private globalMakeSchema(string method) {
-        on_exit m_ds.commit();
-        list sql = call_object_method(m_db, method, REF_SCHEMA);
-        ListIterator it(sql);
-        while (it.next()) {
-            m_ds.exec(it.getValue());
-        }
-    }
-
-    globalSetUp() {
-        globalMakeSchema("getAlignSql");
-    }
-
-    globalTearDown() {
-        globalMakeSchema("getDropSchemaSql");
-    }
-
 } # class Main
