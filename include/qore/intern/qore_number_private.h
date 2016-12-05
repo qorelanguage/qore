@@ -52,6 +52,8 @@ using namespace std;
 #endif
 // round to nearest (roundTiesToEven in IEEE 754-2008)
 #define QORE_MPFR_RND MPFR_RNDN
+// round toward zero
+#define QORE_MPFR_RNDZ MPFR_RNDZ
 // MPFR_RNDA
 
 #ifndef HAVE_MPFR_EXP_T
@@ -182,7 +184,7 @@ struct qore_number_private : public qore_number_private_intern {
    }
 
    DLLLOCAL int64 getAsBigInt() const {
-      return mpfr_get_sj(num, QORE_MPFR_RND);
+      return mpfr_get_sj(num, QORE_MPFR_RNDZ);
    }
 
    DLLLOCAL bool getAsBool() const {
