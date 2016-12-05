@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_Queue.h>
+#include "qore/intern/QC_Queue.h"
 
 QoreQueueHelper::QoreQueueHelper(QoreObject* obj, ExceptionSink* xs) : QorePrivateObjectAccessHelper(xs) {
    Queue* q = reinterpret_cast<Queue*>(obj->getReferencedPrivateData(CID_QUEUE, xs));
