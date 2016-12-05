@@ -302,5 +302,5 @@ number <number>::abs() [flags=CONSTANT] {
 */
 string <number>::toBase(int base = 10) [flags=RET_VALUE_ONLY] {
     string s = to_base_intern(n -> getAsBigInt(), base, xsink);
-    return *xsink ? NULL : ((SimpleRefHolder<QoreStringNode>)new QoreStringNode(s)).release();
+    return *xsink ? QoreValue() : ((SimpleRefHolder<QoreStringNode>)new QoreStringNode(s)).release();
 }

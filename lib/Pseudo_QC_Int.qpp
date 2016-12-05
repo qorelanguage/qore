@@ -355,7 +355,7 @@ string <int>::toUnicode() [flags=RET_VALUE_ONLY] {
 */
 string <int>::toBase(int base = 10) [flags=RET_VALUE_ONLY] {
     string s = to_base_intern(i, base, xsink);
-    return *xsink ? NULL : ((SimpleRefHolder<QoreStringNode>)new QoreStringNode(s)).release();
+    return *xsink ? QoreValue() : ((SimpleRefHolder<QoreStringNode>)new QoreStringNode(s)).release();
 }
 
 string to_base_intern(long long i, int base, ExceptionSink* xsink) {
