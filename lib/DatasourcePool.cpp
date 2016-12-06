@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/DatasourcePool.h>
+#include "qore/intern/DatasourcePool.h"
 
 #include <memory>
 
@@ -97,7 +97,7 @@ DatasourcePool::~DatasourcePool() {
 // common constructor code
 void DatasourcePool::init(ExceptionSink* xsink) {
    // ths intiial Datasource creation could throw an exception if there is an error in a driver option, for example
-   std::auto_ptr<Datasource> ds(config.get(xsink));
+   std::unique_ptr<Datasource> ds(config.get(xsink));
    if (*xsink)
       return;
 
@@ -598,7 +598,7 @@ void DatasourcePool::clearWarningCallback(ExceptionSink* xsink) {
 
 void DatasourcePool::setWarningCallback(int64 warning_ms, ResolvedCallReferenceNode* cb, AbstractQoreNode* arg, ExceptionSink* xsink) {
    if (warning_ms <= 0) {
-      xsink->raiseException("DATASOURCEPOOL-SETWARNINGCALLBACK-ERROR", "DatasourcePool::setWarningCallback() warning ms argument: "QLLD" must be greater than zero; to clear, call DatasourcePool::clearWarningCallback() with no arguments", warning_ms);
+      xsink->raiseException("DATASOURCEPOOL-SETWARNINGCALLBACK-ERROR", "DatasourcePool::setWarningCallback() warning ms argument: " QLLD " must be greater than zero; to clear, call DatasourcePool::clearWarningCallback() with no arguments", warning_ms);
       return;
    }
    AutoLocker al((QoreThreadLock*)this);

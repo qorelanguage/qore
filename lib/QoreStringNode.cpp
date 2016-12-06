@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,35 +32,9 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/qore_string_private.h>
+#include "qore/intern/qore_string_private.h"
 
 #include <stdarg.h>
-
-/*
-#include <map>
-class StrSet {
-   typedef std::set<QoreStringNode*> strset_t;
-   strset_t st;
-
-public:
-   DLLLOCAL StrSet() {
-   }
-   DLLLOCAL ~StrSet() {
-      for (strset_t::iterator i = st.begin(), e = st.end(); i != e; ++i)
-	 printf("STR: '%s'\n", (*i)->getBuffer());
-   }
-   DLLLOCAL void add(QoreStringNode* str) {
-      st.insert(str);
-   }
-   DLLLOCAL void del(QoreStringNode* str) {
-      strset_t::iterator i = st.find(str);
-      assert(i != st.end());
-      st.erase(i);
-   }
-};
-
-static StrSet sset;
-*/
 
 QoreStringNodeMaker::QoreStringNodeMaker(const char* fmt, ...) {
    va_list args;
@@ -473,67 +447,77 @@ QoreStringValueHelper::QoreStringValueHelper(const AbstractQoreNode* n, const Qo
    setup(xsink, const_cast<AbstractQoreNode*>(n), enc);
 }
 
-QoreStringNodeValueHelper::QoreStringNodeValueHelper(const QoreValue& n) {
+void QoreStringNodeValueHelper::setup(ExceptionSink* xsink, const QoreValue n, const QoreEncoding* enc) {
    switch (n.type) {
       case QV_Bool:
       case QV_Int:
-         str = new QoreStringNodeMaker(QLLD, n.getAsBigInt());
-	 temp = true;
+	 str = new QoreStringNodeMaker(QLLD, n.getAsBigInt());
+	 del = true;
 	 break;
+
       case QV_Float:
 	 str = new QoreStringNodeMaker("%.9g", n.getAsFloat());
-	 temp = true;
+	 del = true;
 	 break;
+
       case QV_Node:
 	 if (n.v.n) {
 	    //optimization to remove the need for a virtual function call in the most common case
 	    if (n.v.n->getType() == NT_STRING) {
-	       temp = false;
+	       del = false;
 	       str = const_cast<QoreStringNode*>(n.get<QoreStringNode>());
 	    }
 	    else {
+	       del = true;
 	       str = new QoreStringNode;
-	       temp = true;
 	       n.get<AbstractQoreNode>()->getStringRepresentation(*str);
 	    }
-	    break;
+	    if (enc && str->getEncoding() != enc) {
+	       QoreStringNode* t = str->convertEncoding(enc, xsink);
+	       if (!t)
+		  break;
+	       if (del)
+		  str->deref();
+	       str = t;
+	       del = true;
+	    }
 	 }
-	 str = NullString;
-	 temp = false;
+	 else {
+	    str = NullString;
+	    del = false;
+	 }
 	 break;
+
       default:
 	 assert(false);
-	 // no break;
+	 // no break
    }
+}
+
+QoreStringNodeValueHelper::QoreStringNodeValueHelper(const QoreValue& n) {
+   setup(0, n);
+}
+
+QoreStringNodeValueHelper::QoreStringNodeValueHelper(const QoreValue& n, const QoreEncoding* enc, ExceptionSink* xsink) {
+   setup(xsink, n, enc);
 }
 
 QoreStringNodeValueHelper::QoreStringNodeValueHelper(const AbstractQoreNode* n) {
-   if (!n) {
-      str = NullString;
-      temp = false;
-      return;
-   }
+   setup(0, const_cast<AbstractQoreNode*>(n));
+}
 
-   qore_type_t ntype = n->getType();
-   if (ntype == NT_STRING) {
-      str = const_cast<QoreStringNode*>(reinterpret_cast<const QoreStringNode*>(n));
-      temp = false;
-   }
-   else {
-      str = new QoreStringNode;
-      n->getStringRepresentation(*(static_cast<QoreString*>(str)));
-      temp = true;
-   }
+QoreStringNodeValueHelper::QoreStringNodeValueHelper(const AbstractQoreNode* n, const QoreEncoding* enc, ExceptionSink* xsink) {
+   setup(xsink, const_cast<AbstractQoreNode*>(n), enc);
 }
 
 QoreStringNodeValueHelper::~QoreStringNodeValueHelper() {
-   if (temp)
+   if (del)
       str->deref();
 }
 
 QoreStringNode* QoreStringNodeValueHelper::getReferencedValue() {
-   if (temp)
-      temp = false;
+   if (del)
+      del = false;
    else if (str)
       str->ref();
    return str;

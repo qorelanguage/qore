@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -45,6 +45,8 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <sys/stat.h>
+
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -61,6 +63,7 @@ const char usage_str[] = "usage: %s [options] <input file(s)...>\n" \
    " -d, --dox-output=arg   doxygen output file name\n" \
    " -h, --help             this help text\n" \
    " -o, --output=arg       cpp output file name\n" \
+   " -u, --unit=arg         qtest (QUnit) output file name\n" \
    " -t, --table=arg        process the given file for doxygen tables (|!...)\n" \
    " -V, --value            use the QoreValue API\n" \
    " -v, --verbose          increases verbosity level\n";
@@ -69,6 +72,7 @@ static const option pgm_opts[] = {
    {"dox-output", required_argument, NULL, 'd'},
    {"help", no_argument, NULL, 'h'},
    {"output", required_argument, NULL, 'o'},
+   {"unit-output", required_argument, NULL, 'u'},
    {"table", required_argument, NULL, 't'},
    {"verbose", optional_argument, NULL, 'v'},
    {"value", no_argument, NULL, 'V'},
@@ -86,6 +90,7 @@ enum LogLevel {
 static struct qpp_opts {
    std::string output_fn;
    std::string dox_fn;
+   std::string unit_test_fn;
    std::string table_fn;
    int verbose;
    qpp_opts() : verbose(LL_INFO) {
@@ -1136,7 +1141,7 @@ static size_t find_start(std::string& str) {
    return i + 5;
 }
 
-static int serialize_dox_comment(FILE* fp, std::string& buf, const strlist_t& dom = strlist_t(), const strlist_t& flags = strlist_t()) {
+static void process_comment(std::string& buf) {
    size_t start = 0;
 
    // edit references to pseudo-methods
@@ -1208,8 +1213,12 @@ static int serialize_dox_comment(FILE* fp, std::string& buf, const strlist_t& do
 
       buf.replace(start, end - start, tstr);
    }
+}
 
-   start = 0;
+static int serialize_dox_comment(FILE* fp, std::string& buf, const strlist_t& dom = strlist_t(), const strlist_t& flags = strlist_t()) {
+   process_comment(buf);
+
+   size_t start = 0;
    if (!flags.empty()) {
       start = find_start(buf);
       if (start == std::string::npos) {
@@ -1291,6 +1300,7 @@ public:
    }
 
    int serializeDox(FILE* fp) {
+      process_comment(doc);
       output_file(fp, doc);
 
       std::string qv;
@@ -1310,6 +1320,12 @@ protected:
 public:
    TextGroupElement(const std::string& t, unsigned sl, const std::string& fn) : text(t), startLine(sl), fileName(fn) {
    }
+
+    int serializeUnitTest(FILE* fp) const {
+        //fprintf(fp, "# TextGroupElement::serializeUnitTest\n");
+        //fprintf(fp, "/*\n%s\n*/\n", text.c_str());
+        return 0;
+    }
 
    int serializeCpp(FILE* fp) const {
       fprintf(fp, "# %d \"%s\"\n", startLine, fileName.c_str());
@@ -1622,10 +1638,11 @@ protected:
       return 0;
    }
 
-   void serializeQoreAttrComment(FILE* fp, unsigned indent = 0) const {
+   void serializeQoreAttrComment(FILE* fp, unsigned indent = 0, const char* comment_str = "//") const {
       while (indent--)
          fputc(' ', fp);
-      fputs("// ", fp);
+      fputs(comment_str, fp);
+      fputs(" ", fp);
       if (attr & QCA_SYNCHRONIZED)
          fputs("synchronized ", fp);
       if (attr & QCA_STATIC)
@@ -1754,8 +1771,8 @@ public:
 
 class FunctionGroupElement : public CodeBase {
 protected:
-   void serializeQorePrototypeComment(FILE* fp, unsigned indent = 0) const {
-      serializeQoreAttrComment(fp, indent);
+   void serializeQorePrototypeComment(FILE* fp, unsigned indent = 0, const char* comment_str = "//") const {
+      serializeQoreAttrComment(fp, indent, comment_str);
       fprintf(fp, "%s %s(", return_type.empty() ? "nothing" : return_type.c_str(), name.c_str());
       serializeQoreParams(fp);
       fputs(") {}\n", fp);
@@ -1768,6 +1785,17 @@ public:
                         unsigned n_line, bool n_doconly)
       : CodeBase(fn, n_name, n_attr, n_params, n_docs, n_return_type, n_flags, n_dom, n_code, n_line, n_doconly) {
    }
+
+    int serializeUnitTest(FILE* fp) const {
+        //fprintf(fp, "# FunctionGroupElement::serializeUnitTest\n");
+
+        if (doconly)
+            return 0;
+
+        serializeQorePrototypeComment(fp, 8, "#");
+
+        return 0;
+    }
 
    int serializeCpp(FILE* fp) const {
       if (doconly)
@@ -2124,6 +2152,48 @@ public:
       return valid;
    }
 
+   strlist_t precalculateUnitTest() const {
+      strlist_t ret;
+
+      std::string mock_filename = fileName;
+      std::replace(mock_filename.begin(), mock_filename.end(), '.', '_');
+
+      std::string v = "test_" + mock_filename + "_" + std::to_string(startLineNumber);
+      ret.push_back(v);
+
+      return std::move(ret);
+   }
+
+   int serializeUnitTest(FILE* fp) const {
+      //fprintf(fp, "# Group::serializeUnitTest\n");
+      fprintf(fp, "    # %s: %d\n", fileName, startLineNumber);
+
+      if (fmap.empty())
+         return 0;
+
+      strlist_t names = precalculateUnitTest();
+      fprintf(fp, "    private %s() {\n", names[0].c_str());
+
+      // first serialize text
+      for (unsigned i = 0; i < tlist.size(); ++i) {
+         //fprintf(fp, "       # text\n");
+         tlist[i]->serializeUnitTest(fp);
+      }
+
+      // now serialize function group members
+      //fputc('\n', fp);
+      for (fmap_t::const_iterator i = fmap.begin(), e = fmap.end(); i != e; ++i) {
+         //fprintf(fp, "       # func group: %s\n", i->first.c_str());
+         if (i->second->serializeUnitTest(fp))
+            return -1;
+      }
+
+      fprintf(fp, "        assertEq(True, False, \"assertion placeholder; the real test needs to be implemented\");\n");
+      fprintf(fp, "    }");
+
+      return 0;
+   }
+
    int serializeFunctionCpp(FILE* fp) const {
       if (fmap.empty())
          return 0;
@@ -2254,6 +2324,35 @@ public:
       return grouplist.empty();
    }
 
+   strlist_t precalculateUnitTest() const {
+      strlist_t ret;
+
+      if (!has_funcs)
+         return std::move(ret);
+
+      for (unsigned i = 0; i < grouplist.size(); ++i) {
+         strlist_t v = grouplist[i]->precalculateUnitTest();
+         ret.insert(ret.end(), v.begin(), v.end());
+      }
+
+      return std::move(ret);
+   }
+
+   int serializeUnitTest(FILE* fp) const {
+      //fprintf(fp, "# Groups::serializeUnitTest\n");
+
+      if (!has_funcs)
+         return 0;
+
+      for (unsigned i = 0; i < grouplist.size(); ++i) {
+         if (grouplist[i]->serializeUnitTest(fp)) {
+            return -1;
+         }
+      }
+
+      return 0;
+   }
+
    int serializeFunctionCpp(FILE* fp, const char* rootName) {
       if (!has_funcs)
          return 0;
@@ -2350,6 +2449,8 @@ public:
 
    virtual int serializeCpp(FILE* fp) = 0;
    virtual int serializeDox(FILE* fp) = 0;
+   virtual int serializeUnitTest(FILE* fp) = 0;
+   virtual strlist_t precalculateUnitTest() = 0;
 };
 
 class TextElement : public AbstractElement {
@@ -2368,6 +2469,15 @@ public:
 
    virtual int serializeDox(FILE* fp) {
       //return serialize_dox_comment(fp, buf);
+      return 0;
+   }
+
+   virtual strlist_t precalculateUnitTest() {
+      strlist_t ret;
+      return std::move(ret);
+   }
+
+   virtual int serializeUnitTest(FILE* fp) {
       return 0;
    }
 };
@@ -2439,20 +2549,20 @@ protected:
       return 0;
    }
 
-   void serializeQoreDestructorCopyPrototypeComment(FILE* fp, const char* cname, unsigned indent = 0) const {
-      serializeQoreAttrComment(fp, indent);
+   void serializeQoreDestructorCopyPrototypeComment(FILE* fp, const char* cname, unsigned indent = 0, const char* comment_str = "//") const {
+      serializeQoreAttrComment(fp, indent, comment_str);
       fprintf(fp, "%s::%s() {}\n", cname, name.c_str());
    }
 
-   void serializeQoreConstructorPrototypeComment(FILE* fp, const char* cname, unsigned indent = 0) const {
-      serializeQoreAttrComment(fp, indent);
+   void serializeQoreConstructorPrototypeComment(FILE* fp, const char* cname, unsigned indent = 0, const char* comment_str = "//") const {
+      serializeQoreAttrComment(fp, indent, comment_str);
       fprintf(fp, "%s::constructor(", cname);
       serializeQoreParams(fp);
       fputs(") {}\n", fp);
    }
 
-   void serializeQorePrototypeComment(FILE* fp, const char* cname, unsigned indent = 0) const {
-      serializeQoreAttrComment(fp, indent);
+   void serializeQorePrototypeComment(FILE* fp, const char* cname, unsigned indent = 0, const char* comment_str = "//") const {
+      serializeQoreAttrComment(fp, indent, comment_str);
       fprintf(fp, "%s %s::%s(", return_type.empty() ? "nothing" : return_type.c_str(), cname, name.c_str());
       serializeQoreParams(fp);
       fputs(")",fp);
@@ -2524,6 +2634,14 @@ public:
    }
 
    virtual ~Method() {
+   }
+
+   void serializeUnitTestMethod(FILE* fp, const char* cname) const {
+      serializeQorePrototypeComment(fp, cname, 8, "#");
+   }
+
+   void serializeUnitTestStatic(FILE* fp, const char* cname) const {
+      serializeQorePrototypeComment(fp, cname, 8, "#");
    }
 
    void serializeNormalCppMethod(FILE* fp, const char* cname, const char* arg) const {
@@ -2740,8 +2858,9 @@ protected:
 
    strlist_t vparents;   // builtin virtual base/parent classes
 
-   paramlist_t public_members;  // public members
-   paramlist_t private_members; // private members
+   paramlist_t public_members;   // public members
+   paramlist_t private_members;  // private members
+   paramlist_t internal_members; // internal members
 
    strlist_t dom;        // functional domains
 
@@ -2759,7 +2878,7 @@ protected:
       l.push_back(se);
    }
 
-   void parseMembers(bool isPublic, const std::string &x) {
+   void parseMembers(ClassAccess access, const std::string &x) {
       strlist_t pml;
       get_string_list(pml, x);
 
@@ -2773,10 +2892,12 @@ protected:
          std::string type(pml[i], 0, p);
          std::string name(pml[i], p + 1);
 
-         if (isPublic) {
+         if (access == Public) {
             public_members.push_back(Param(type, name, "", ""));
-         } else {
+         } else if (access == Private) {
             private_members.push_back(Param(type, name, "", ""));
+         } else {
+            internal_members.push_back(Param(type, name, "", ""));
          }
       }
    }
@@ -2825,12 +2946,17 @@ public:
          }
 
          if (i->first == "public_members") {
-            parseMembers(true, i->second);
+            parseMembers(Public, i->second);
             continue;
          }
 
          if (i->first == "private_members") {
-            parseMembers(false, i->second);
+            parseMembers(Private, i->second);
+            continue;
+         }
+
+         if (i->first == "internal_members") {
+            parseMembers(Internal, i->second);
             continue;
          }
 
@@ -2939,6 +3065,34 @@ public:
       return !*m;
    }
 
+   virtual strlist_t precalculateUnitTest() {
+      strlist_t ret;
+
+      std::string v = "test_" + (ns.empty() ? "Qore" : ns) + "_" + name;
+      ret.push_back(v);
+
+      return std::move(ret);
+   }
+
+   virtual int serializeUnitTest(FILE* fp) {
+      //fprintf(fp, "# ClassElement::serializeUnitTest\n");
+      fprintf(fp, "    # Qore class %s::%s\n", ns.empty() ? "Qore" : ns.c_str(), name.c_str());
+      strlist_t names = precalculateUnitTest();
+      fprintf(fp, "    private %s() {\n", names[0].c_str());
+
+      for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i) {
+         i->second->serializeUnitTestMethod(fp, name.c_str());
+      }
+
+      for (mmap_t::const_iterator i = static_mmap.begin(), e = static_mmap.end(); i != e; ++i) {
+         i->second->serializeUnitTestStatic(fp, name.c_str());
+      }
+
+      fprintf(fp, "        assertEq(True, False, \"assertion placeholder; the real test needs to be implemented\");\n");
+      fprintf(fp, "    }\n\n");
+      return 0;
+   }
+
    virtual int serializeCpp(FILE* fp) {
       fprintf(fp, "/* Qore class %s::%s */\n\n", ns.empty() ? "Qore" : ns.c_str(), name.c_str());
 
@@ -2970,12 +3124,16 @@ public:
          i->second->serializeStaticCppMethod(fp, lname.c_str(), arg.c_str());
       }
 
-      if (is_pseudo)
-         fprintf(fp, "DLLLOCAL QoreClass* init%sClass() {\n   QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
-      else
-         fprintf(fp, "DLLLOCAL QoreClass* init%sClass(QoreNamespace& ns) {\n   QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
+      fprintf(fp, "DLLLOCAL void preinit%sClass() {\n   QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
       dom_output_cpp(fp, dom);
       fprintf(fp, ");\n   CID_%s = QC_%s->getID();\n", UC.c_str(), UC.c_str());
+      fprintf(fp, "   QC_%s->setSystem();\n}\n\n", UC.c_str());
+
+      if (is_pseudo)
+         fprintf(fp, "DLLLOCAL QoreClass* init%sClass() {\n", lname.c_str());
+      else
+         fprintf(fp, "DLLLOCAL QoreClass* init%sClass(QoreNamespace& ns) {\n", lname.c_str());
+      fprintf(fp, "   if (!QC_%s)\n      preinit%sClass();\n", UC.c_str(), lname.c_str());
 
       if (!defbase.empty())
          fprintf(fp, "\n   // set default builtin base class\n   assert(%s);\n  QC_%s->addDefaultBuiltinBaseClass(%s);\n", defbase.c_str(), UC.c_str(), defbase.c_str());
@@ -3004,7 +3162,7 @@ public:
          for (paramlist_t::iterator i = public_members.begin(), e = public_members.end(); i != e; ++i) {
             std::string mt;
             get_qore_type((*i).type, mt);
-            fprintf(fp, "   QC_%s->addPublicMember(\"%s\", %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
+            fprintf(fp, "   QC_%s->addMember(\"%s\", Public, %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
          }
       }
 
@@ -3014,7 +3172,17 @@ public:
          for (paramlist_t::iterator i = private_members.begin(), e = private_members.end(); i != e; ++i) {
             std::string mt;
             get_qore_type((*i).type, mt);
-            fprintf(fp, "   QC_%s->addPrivateMember(\"%s\", %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
+            fprintf(fp, "   QC_%s->addMember(\"%s\", Private, %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
+         }
+      }
+
+      // output internal members if any
+      if (!internal_members.empty()) {
+         fputs("\n   // private:internal members\n", fp);
+         for (paramlist_t::iterator i = internal_members.begin(), e = internal_members.end(); i != e; ++i) {
+            std::string mt;
+            get_qore_type((*i).type, mt);
+            fprintf(fp, "   QC_%s->addMember(\"%s\", Internal, %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
          }
       }
 
@@ -3022,7 +3190,7 @@ public:
          fprintf(fp, "\n   QC_%s->unsetPublicMemberFlag();\n", UC.c_str());
 
       if (is_final)
-         fprintf(fp, "\n   qore_class_private::setFinal(*QC_%s);\n", UC.c_str());
+         fprintf(fp, "\n   QC_%s->setFinal();\n", UC.c_str());
 
       for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i) {
          if (i->second->serializeNormalCppBinding(fp, lname.c_str(), UC.c_str())) {
@@ -3109,7 +3277,8 @@ protected:
    const char* fileName;
    std::string cppFileName,
       doxFileName,
-      rootName;
+      rootName,
+      unitTestFileName;
    // argument to fopen()
    const char* cpp_open_flag,
       *dox_open_flag;
@@ -3374,6 +3543,7 @@ protected:
 
 public:
    Code(const char* fn, const std::string& ofn, const std::string& dfn,
+        const std::string &unit_test_fn,
         bool cpp_append = false, bool dox_append = false) : fileName(fn),
                                                             cpp_open_flag(cpp_append ? "a" : "w"),
                                                             dox_open_flag(dox_append ? "a" : "w"),
@@ -3398,6 +3568,8 @@ public:
 
       cppFileName = !ofn.empty() ? ofn : dir + "/" + base + ".cpp";
       doxFileName = !dfn.empty() ? dfn : dir + "/" + base + ".dox.h";
+      unitTestFileName = !unit_test_fn.empty() ? unit_test_fn : dir + "/" + base + ".qtest";
+
       if (parse())
          valid = false;
 
@@ -3411,6 +3583,69 @@ public:
    ~Code() {
       for (source_t::iterator i = source.begin(), e = source.end(); i != e; ++i)
 	 delete *i;
+   }
+
+   int serializeUnitTest() {
+      FILE* fp = fopen(unitTestFileName.c_str(), cpp_open_flag);
+      if (!fp) {
+         error("%s: %s\n", unitTestFileName.c_str(), strerror(errno));
+         return -1;
+      }
+      log(LL_INFO, "creating unit test file %s -> %s\n", fileName, unitTestFileName.c_str());
+
+      fprintf(fp, "#!/usr/bin/env qore\n");
+      fprintf(fp, "# -*- mode: qore; indent-tabs-mode: nil -*-\n");
+      fprintf(fp, "\n");
+      fprintf(fp, "%%new-style\n");
+      fprintf(fp, "%%enable-all-warnings\n");
+      fprintf(fp, "%%require-types\n");
+      fprintf(fp, "%%strict-args\n");
+      fprintf(fp, "\n");
+      fprintf(fp, "%%requires ../../../qlib/QUnit.qm\n");
+      fprintf(fp, "\n");
+      fprintf(fp, "%%exec-class Main\n");
+      fprintf(fp, "\n");
+      fprintf(fp, "class Main inherits QUnit::Test {\n");
+      fprintf(fp, "\n");
+      fprintf(fp, "    constructor() : Test(\"Main\", \"1.0\", \\ARGV) {\n");
+      fprintf(fp, "\n");
+
+      for (source_t::const_iterator i = source.begin(), e = source.end(); i != e; ++i) {
+         strlist_t names = (*i)->precalculateUnitTest();
+         for (unsigned i = 0; i < names.size(); i++) {
+            fprintf(fp, "        addTestCase(\"%s\", \\%s());\n", names[i].c_str(), names[i].c_str());
+         }
+      }
+
+      strlist_t gnames = groups.precalculateUnitTest();
+      for (unsigned i = 0; i < gnames.size(); i++) {
+         fprintf(fp, "        addTestCase(\"%s\", \\%s());\n", gnames[i].c_str(), gnames[i].c_str());
+      }
+
+      fprintf(fp, "\n");
+      fprintf(fp, "        # Return for compatibility with test harness that checks return value.\n");
+      fprintf(fp, "        set_return_value(main());\n");
+      fprintf(fp, "    }\n");
+      fprintf(fp, "\n");
+
+      for (source_t::const_iterator i = source.begin(), e = source.end(); i != e; ++i) {
+         if ((*i)->serializeUnitTest(fp)) {
+            fclose(fp);
+            return -1;
+         }
+      }
+
+      if (groups.serializeUnitTest(fp)) {
+         fclose(fp);
+         return -1;
+      }
+
+      fprintf(fp, "\n\n} # class Main \n");
+
+      fclose(fp);
+
+      chmod(unitTestFileName.c_str(), 0744);
+      return 0;
    }
 
    int serializeCpp() {
@@ -3713,6 +3948,10 @@ void process_command_line(int& argc, char**& argv) {
             opts.output_fn = optarg;
             break;
 
+         case 'u':
+            opts.unit_test_fn = optarg;
+            break;
+
          case 't':
             opts.table_fn = optarg;
             break;
@@ -3756,13 +3995,17 @@ int main(int argc, char* argv[]) {
    init();
 
    for (int i = 0; i < argc; ++i) {
-      Code code(argv[i], opts.output_fn, opts.dox_fn, i && !opts.output_fn.empty(), i && !opts.dox_fn.empty());
+      Code code(argv[i], opts.output_fn, opts.dox_fn, opts.unit_test_fn, i && !opts.output_fn.empty(), i && !opts.dox_fn.empty());
       if (!code) {
          error("please correct the errors above and try again\n");
          exit(1);
       }
       // create cpp output file
       if (code.serializeCpp())
+         return -1;
+
+      // create unit test output file
+      if (code.serializeUnitTest())
          return -1;
 
       // create dox output file

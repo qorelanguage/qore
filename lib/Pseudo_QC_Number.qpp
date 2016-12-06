@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_number_private.h>
+#include "qore/intern/qore_number_private.h"
 
 /** @defgroup number_formatting_constants Number Formatting Constants
 */
@@ -49,6 +49,18 @@ const NF_Scientific = QORE_NF_SCIENTIFIC;
     @endcode
  */
 const NF_Raw = QORE_NF_RAW;
+//@}
+
+/** @defgroup number_string_formatting_constants Number String Formatting Constants
+*/
+//@{
+//! This is a special constant to be used with string number formatting pseudo-methods that take an integer \a prec argument; this value indicates that all available digits should be included in the output string
+/** @see the following pseudo-methods that accept this value in the \a prec argument:
+    - @ref <number>::format(int, string, string)
+    - @ref <float>::format(int, string, string)
+    - @ref <int>::format(int, string, string)
+ */
+const SNF_AllDigits = QORE_NUM_ALL_DIGITS;
 //@}
 
 //! Methods in this pseudo-class can be executed on @ref number "arbitrary precision number values"
@@ -199,30 +211,60 @@ string <number>::toString(int fmt) [flags=CONSTANT] {
    return rv;
 }
 
-//! Returns a string of a formatted number according to a format string
+//! Returns a formatted string of the number according to the format argument
 /** @param fmt the format string has the following format:\n
     <em>\<thousands_separator\></em><tt>[</tt><em>\<decimal_separator\>[\<decimals\>]</em><tt>]</tt>\n
     where:\n
     - \a thousands_separator and \a decimal_separator are single characters defining the thousands and decimal separator characters respectively, and
-    - \a decimals is one or more digits defining how may decimals should appear after the decimal point
+    - \a decimals is one or more digits defining how may decimals should appear after the decimal point; a negative number means to round that number of digits before the decimal place
 
     @return a string of a formatted number according to a format string; if the format string does not follow the given format, then the number without formatting is returned
 
     @par Example:
     @code{.py}
-number n = -48392093894.2349n;
-string nstr = n.format(".,3"); # returns "-48.392.093.894,235"
+float f = -48392093894.2349;
+string fstr = f.format(".,3"); # returns "-48.392.093.894,235"
     @endcode
 
     @see
     - @ref <float>::format(string)
     - @ref <int>::format(string)
+    - @ref <number>::format(int, string, string)
+    - @ref <float>::format(int, string, string)
+    - @ref <int>::format(int, string, string)
 
     @since %Qore 0.8.6
  */
-string <number>::format(string fmt) [flags=CONSTANT] {
+string <number>::format(string fmt) [flags=RET_VALUE_ONLY] {
    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(fmt->getEncoding()));
    return qore_number_private::get(*n)->format(**rv, *fmt, xsink) ? 0 : rv.release();
+}
+
+//! Returns a formatted string of the number according to format arguments
+/** @param prec the number of digits after the decimal point; a negative value means to round that number of digits before the decimal place, whereas the special constant @ref SNF_AllDigits means to include all possible digits after the decimal point
+    @param decimal_sep a single character that defines the decimal separator; an empty string means no decimal separator
+    @param thousands_sep a single character that defines the thousands and further separators every three digits before the decimal point; an empty string means no thousands separator
+
+    @return a string representing the number according to the format arguments as described above
+
+    @par Example:
+    @code{.py}
+float f = -48392093894.2349;
+string fstr = f.format(3, ".", ","); # returns "-48.392.093.894,235"
+    @endcode
+
+    @see
+    - @ref <float>::format(int, string, string)
+    - @ref <int>::format(int, string, string)
+    - @ref <number>::format(string)
+    - @ref <float>::format(string)
+    - @ref <int>::format(string)
+
+    @since %Qore 0.8.13
+ */
+string <number>::format(int prec = 2, string decimal_sep = ".", string thousands_sep = "") [flags=RET_VALUE_ONLY] {
+   SimpleRefHolder<QoreStringNode> rv(new QoreStringNode);
+   return qore_number_private::get(*n)->format(**rv, prec, *decimal_sep, *thousands_sep, xsink) ? 0 : rv.release();
 }
 
 //! Returns the absolute value of the number
@@ -239,4 +281,26 @@ n = n.abs();
 */
 number <number>::abs() [flags=CONSTANT] {
    return qore_number_private::doUnary(*n, mpfr_abs);
+}
+
+//! Converts the integer to a different <b>base</b> (and returns it as a string).
+/** @param base the base to convert the integer to; this value must be 2 - 36 inclusive or an \c INVALID-BASE exception will be thrown
+
+    @return the converted value as a string
+
+    @par Example:
+    @code{.py}
+        (-276536798792387623n).toBase(29)); // returns "-MJ934KRG1O3R"
+          276536798792387623n.toBase(2));   // returns "1111010110011101001100000011011011010110000000110000100111"
+    @endcode
+
+    @throw INVALID-BASE the base is invalid; must be 2 - 36 inclusive
+
+    @see \link <int>::toBase(int base) \endlink
+
+    @since %Qore 0.8.13
+*/
+string <number>::toBase(int base = 10) [flags=RET_VALUE_ONLY] {
+    string s = to_base_intern(n -> getAsBigInt(), base, xsink);
+    return *xsink ? QoreValue() : ((SimpleRefHolder<QoreStringNode>)new QoreStringNode(s)).release();
 }
