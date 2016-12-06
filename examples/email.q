@@ -85,8 +85,8 @@ class mail {
         }
 
         # if we have either user or pass, make sure we have both
-        if (!opt.user.empty() || !opt.pass.empty() && (opt.pass.empty() || opt.user.empty())) {
-            stderr.printf("missing one of the username or password; if one is supplied then both must be supplied\n");
+        if ((!opt.user.empty() || !opt.pass.empty()) && (opt.pass.empty() || opt.user.empty())) {
+            stderr.printf("missing one of the username or password; if one is supplied then both must be supplied opt: %y\n", opt);
             exit(1);
         }
 
