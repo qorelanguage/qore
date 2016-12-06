@@ -485,6 +485,7 @@ class <X_SCHEMA_NAME> inherits AbstractSchema {
                     ret = c_timestamp(!c.nullable, c.comment);
                     break;
                 case "number":
+                case "numeric":
                     ret = c_number(c.size, /* c.scale */ 0, !c.nullable, c.comment); # TODO/FIXME: scale
                     break;
                 case "clob":
@@ -498,10 +499,8 @@ class <X_SCHEMA_NAME> inherits AbstractSchema {
                 #case "raw":
                 #    # TODO/FIXME ret =  ("qore_type": SQL::RAW, "comment": c.comment, "notnull" : !c.nullable);
                 #    break;
-                #default:
-                #    printf("%N\n", c);
-                #    throw "REVERSE-DB-ERROR", sprintf("Unimplemented column describe: %n", ("name" : c.name, "type" : c.native_type));
-                    #ret = ( "todo" : "fixme");
+                default:
+                    ret = ( "unknown_column_type" : sprintf("%n", c) );
             }
 
             if (exists c.def_val) {
