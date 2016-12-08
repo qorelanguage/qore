@@ -1,0 +1,154 @@
+#!/usr/bin/env qore
+%new-style
+%exec-class Main
+%requires SchemaReverse
+%requires SqlUtil
+
+const VERSION = "0.1";
+
+const OBJECT_OPTIONS = (
+        "sequences"     : "seq,q:s",
+        "tables"        : "table,t:s",
+        "types"         : "type,y:s",
+        "views"         : "view,v:s",
+        "mviews"        : "mview,m:s",
+        "procedures"    : "proc,p:s",
+        "functions"     : "func,f:s",
+        "packages"      : "pkg,g:s",
+    );
+
+const OPTIONS = (
+        "help" : "help,h",
+        "version" : "version,V",
+        "verbose" : "verbose",
+        "schema" : "schema,s=s",
+    ) + OBJECT_OPTIONS;
+
+sub help(int exitCode) {
+    printf("Usage:
+%s <options> <connection_string>
+
+Options:
+ -h --help          Display help and exits
+ -V --version       Show version of this script
+    --verbose       Show additional verbose info
+ -s --schema=<name> Export full (supported objects) DB schema.
+                    The class of the qsm output will be named <name>
+ -t --table=<val>   Export specified table(s). See <val> section below.
+ -q --seq=<val>     Export specified sequence(s). See <val> section below.
+ -y --type=<val>    Export specified type(s). See <val> section below.
+ -v --view=<val>    Export specified view(s). See <val> section below.
+ -m --mview=<val>   Export specified materialized view(s). See <val> section below.
+ -p --proc=<val>    Export specified procedure(s). See <val> section below.
+ -f --func=<val>    Export specified function(s). See <val> section below.
+ -g --pkg=<val>     Export specified package(s). See <val> section below.
+
+Object <val> filtering:
+    Any <val> can be exact name of the object, a list (separated by ','),
+    or a regular expression to match object name.
+
+Note:
+    --schema and (--tables or --sequences or --types) cannot be
+    used together
+
+Example:
+    %s -s=OmqXbox oracle:omq/omq@xbox
+        export full OMQ schema
+
+    %s -t=\"workflows,.*step.*\" oracle:omq/omq@xbox
+        export only tables whch matches exact table name 'workflows',
+        and any of tables with 'step' in name
+
+",
+    get_script_name(), get_script_name(), get_script_name()
+    );
+    exit(exitCode);
+}
+
+class Main {
+    private {
+        hash m_opts;
+        Datasource m_ds;
+    }
+
+    constructor() {
+        GetOpt go(OPTIONS);
+        m_opts = go.parse2(\ARGV);
+
+        if (m_opts.help) {
+            help(0);
+        }
+
+        if (m_opts.version) {
+            printf(VERSION + "\n");
+            exit(0);
+        }
+
+        bool userObjects = False;
+        foreach string i in (OBJECT_OPTIONS.keyIterator()) {
+            if (m_opts{i}.typeCode() == NT_BOOLEAN && m_opts{i}) {
+                m_opts{i} = ".*";
+            }
+            if (m_opts{i}.size()) {
+                userObjects = True;
+            }
+        }
+
+        if (!m_opts.schema && !userObjects) {
+            error("NOT-ALLOWED-OPTS", sprintf("At least one option must be set: \"schema\" or %y", OBJECT_OPTIONS.keys()));
+        }
+
+        if (m_opts.schema && userObjects) {
+            error("NOT-ALLOWED-OPTS", sprintf("Cannot combine \"schema\" and %y together", OBJECT_OPTIONS.keys()));
+        }
+
+        *string connstr = shift ARGV;
+        if (!connstr) {
+            error("NO-CONNECTION-STRING", "Please specify qore DB connection string");
+        }
+
+        m_ds = new Datasource(connstr);
+
+        if (m_opts.schema) {
+            cout("Exporting full schema: %s", m_opts.schema);
+            SchemaReverse sr(m_ds, m_opts.schema);
+            printf("%s\n", sr.toString());
+        }
+        else {
+            HashIterator it(OBJECT_OPTIONS);
+            while (it.next()) {
+                string key = it.getKey();
+                if (exists m_opts{key}) {
+                    exportObjects(m_opts{key}, key);
+                }
+            }
+        }
+    } # constructor
+
+    private string makeRxString(string val) {
+        list ret = val.split(",");
+        ret = map trim($1), ret;
+        return ret.join("|");
+    }
+
+    private exportObjects(string input, string objectType) {
+        cout("Exporting objects: %s, for: %s", objectType, input);
+        string rx = makeRxString(input);
+        AbstractReverseObject o = SchemaReverse::get_object(objectType, m_ds, input);
+        printf("%s\n", o.toString());
+    }
+
+    private cout(string msg) {
+        if (!m_opts.verbose) {
+            return;
+        }
+
+        printf("# %s\n", vsprintf(msg, argv));
+    }
+    
+    static error(string errcode, string msg) {
+        stderr.printf("%s: %s\n", errcode, msg);
+        exit(1);
+    }
+
+} # class Main

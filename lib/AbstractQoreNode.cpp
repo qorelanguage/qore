@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,9 +29,9 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_list_private.h>
-#include <qore/intern/QoreHashNodeIntern.h>
-#include <qore/intern/QoreClosureNode.h>
+#include "qore/intern/qore_list_private.h"
+#include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/QoreClosureNode.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -451,11 +451,6 @@ static inline AbstractQoreNode* crlr_hash_copy(const QoreHashNode* n, ExceptionS
    return h.release();
 }
 
-static inline AbstractQoreNode* crlr_tree_copy(const QoreTreeNode* n, ExceptionSink* xsink) {
-   return new QoreTreeNode(copy_and_resolve_lvar_refs(n->left, xsink), n->getOp(),
-			   n->right ? copy_and_resolve_lvar_refs(n->right, xsink) : 0);
-}
-
 static inline AbstractQoreNode* crlr_selfcall_copy(const SelfFunctionCallNode* n, ExceptionSink* xsink) {
    QoreListNode* na = const_cast<QoreListNode*>(n->getArgs());
    if (na)
@@ -541,9 +536,6 @@ AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, Exceptio
 
    if (ntype == NT_HASH)
       return crlr_hash_copy(reinterpret_cast<const QoreHashNode*>(n), xsink);
-
-   if (ntype == NT_TREE)
-      return crlr_tree_copy(reinterpret_cast<const QoreTreeNode*>(n), xsink);
 
    if (ntype == NT_OPERATOR)
       return reinterpret_cast<const QoreOperatorNode*>(n)->copyBackground(xsink);
