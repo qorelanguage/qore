@@ -255,14 +255,16 @@ If-Modified-Since: Thu, 24 Nov 2016 23:00:00 GMT
      */
     public class SalesforceRestClient inherits RestClient::RestClient {
         public {
-            #! defaults
+            #! defaults for direct member values
             const Defaults = (
                 "oauth_url_auth": "https://login.salesforce.com/services/oauth2/authorize",
                 "oauth_url_token": "https://login.salesforce.com/services/oauth2/token",
                 "oauth_url_revoke": "https://login.salesforce.com/services/oauth2/revoke",
                 "api": "auto",
-                "send_encoding": "gzip",
                 );
+
+            #! default send encoding
+            const DefaultSendEncoding = "gzip";
 
             #! required options
             const RequiredOptions = (
@@ -361,6 +363,7 @@ SalesforceRestClient rest(("url": "http://localhost:8001/rest"));
         */
         constructor(*hash opts, *softbool do_not_connect) : RestClient(SalesforceRestClient::getOptions(opts), True) {
             # set options
+            setSendEncoding(opts.send_encoding ?? DefaultSendEncoding);
             map self.$1 = opts.$1 ?? Defaults.$1, Defaults.keyIterator();
 
             # check required options
