@@ -6093,9 +6093,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
         private validateOptionsIntern(string err, hash ropt, reference opt, string tag) {
             # make sure driver-specific options take precedence over generic options
             string dn = getDriverName();
-            if (opt.driver{dn})
-                opt += remove opt.driver{dn};
-            delete opt.driver;
+            AbstractDatabase::checkDriverOptions(\opt, dn);
 
             # check valid options and option value types
             foreach string k in (opt.keyIterator()) {
@@ -8551,10 +8549,7 @@ bool b = table.empty();
             foreach string cn in (desc.columns.keyIterator()) {
                 if (desc.columns{cn}.typeCode() != NT_HASH)
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to column key %y is not a hash, got type %y instead (%y)", getDesc(), cn, desc.columns{cn}.type(), desc.columns{cn});
-                if (desc.columns{cn}.driver) {
-                    desc.columns{cn} += desc.columns{cn}.driver{drv};
-                    delete desc.columns{cn}.driver;
-                }
+                AbstractDatabase::checkDriverOptions(\desc.columns{cn}, drv);
             }
 
             preSetupTableImpl(\desc, opt);
@@ -14018,9 +14013,7 @@ string sql = table.getAlignSqlString(table2);
             # make sure driver options take precedence over generic options
             if (opt) {
                 string dn = getDriverName();
-                if (opt.driver{dn})
-                    opt += remove opt.driver{dn};
-                delete opt.driver;
+                AbstractDatabase::checkDriverOptions(\opt, dn);
             }
 
             # mark in options that the entire table is being created
