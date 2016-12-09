@@ -612,6 +612,7 @@ void QoreSocket::doException(int rc, const char* meth, int timeout_ms, Exception
 }
 
 int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf, int size, int timeout_ms, bool read, bool do_timeout) {
+   //printd(5, "SSLSocketHelper::doSSLRW() %s size: %d timeout_ms: %d read: %d do_timeout: %d\n", mname, size, timeout_ms, read, do_timeout);
    SSLSocketReferenceHelper ssrh(this);
 
    if (timeout_ms < 0) {
@@ -686,12 +687,11 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
       }
       else if (err == SSL_ERROR_SYSCALL) {
          if (xsink) {
-            if (!sslError(xsink, mname, read ? "SSL_read" : "SSL_write")) {
+            if (!sslError(xsink, mname, read ? "SSL_read" : "SSL_write", !read)) {
                if (!rc)
                   xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported an EOF condition that violates the SSL protocol while calling SSL_%s()", mname, read ? "read" : "write");
                else if (rc == -1) {
                   xsink->raiseErrnoException("SOCKET-SSL-ERROR", sock_get_error(), "error in Socket::%s(): the openssl library reported an I/O error while calling SSL_%s()", mname, read ? "read" : "write");
-
 #ifdef ECONNRESET
                   // close the socket if connection reset received
                   if (qs.isOpen() && sock_get_error() == ECONNRESET)
@@ -721,7 +721,7 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
       }
    }
 
-   //printd(0, "SSLSocketHelper::doSSLRW(buf: %p, size: %d, to: %d, read: %d) rc: %d\n", buf, size, timeout_ms, (int)read, rc);
+   //printd(5, "SSLSocketHelper::doSSLRW(buf: %p, size: %d, to: %d, read: %d) rc: %d\n", buf, size, timeout_ms, (int)read, rc);
    return rc;
 }
 
@@ -807,11 +807,13 @@ bool SSLSocketHelper::sslError(ExceptionSink* xsink, const char* mname, const ch
 
    long e = ERR_get_error();
    do {
+      //printd(5, "SSLSocketHelper::sslError() '%s' func: '%s' always_error: %d e: %ld\n", mname, func, always_error, e);
       if (!e || e == SSL_ERROR_ZERO_RETURN) {
-	 qs.close();
-	 //printd(0, "SSLSocketHelper::sslError() Socket::%s() (%s) socket closed by remote end\n", mname, func);
-	 if (always_error)
+	 //printd(5, "SSLSocketHelper::sslError() Socket::%s() (%s) socket closed by remote end\n", mname, func);
+	 if (always_error) {
+            qs.close();
 	    xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the %s() call could not be completed because the TLS/SSL connection was terminated", mname, func);
+         }
       }
       else {
 	 char buf[121];
