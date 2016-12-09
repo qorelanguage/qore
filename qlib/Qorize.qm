@@ -29,7 +29,7 @@
 %new-style
 
 module Qorize {
-    version = "0.1.1";
+    version = "0.1.2";
     desc = "Create Qore source code from data structures";
     author = "Petr Vanek";
     url = "http://qore.org";
@@ -37,6 +37,13 @@ module Qorize {
 }
 
 /*  Version History
+    * 2016-28-11 v 0.1.2 Tomas Mandys
+      + open parenthesis at the same line
+      + more compact output
+      + indentation size
+      + cutly or round parenthesis for hash
+      + qorize() formatting improvement when a list contains list or hash
+
     * 2016-06029 v 0.1.1: Petr Vanek <petr@yarpen.cz>
       + qorize_val() implemented
       + new style is used as default for arguments
@@ -252,6 +259,8 @@ public string sub qorize(binary val, string name = "var", bool newstyle = True) 
     @param val an input value
     @param name an optional name of the resulting variable
     @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
+    @param indentation number of characters to indent inner hashes
+    @param curlyHash use new style curly parentesis to surround hashes or old style round ones
     @retval string a generated code
 
 @code{.py}
@@ -268,8 +277,8 @@ public string sub qorize(binary val, string name = "var", bool newstyle = True) 
 
     @throw QORIZE-ERROR in case of error in code generator
 */
-public string sub qorize(list val, string name = "var", bool newstyle = True) {
-    QorizeHelper qh(val, newstyle);
+public string sub qorize(list val, string name = "var", bool newstyle = True, int indentation = 2, bool curlyHash = True) {
+    QorizeHelper qh(val, newstyle, indentation, curlyHash);
     return sprintf("%s = %s;", QorizeHelper::checkVariableName(name, val, newstyle),
                                qh.list());
 }
@@ -279,50 +288,46 @@ public string sub qorize(list val, string name = "var", bool newstyle = True) {
     @param val an input value
     @param name an optional name of the resulting variable
     @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
+    @param indentation number of characters to indent inner hashes
+    @param curlyHash use new style curly parentesis to surround hashes or old style round ones
     @retval string a generated code
 
 @code{.py}
     hash h = (
-            "foo" : "bar",
-            "key1" : now(),
-            "key2" : 12,
-            "key3" : ( 1, 2, 3),
-            "key4" : ( "subkey1" : 1, "subkey2" : 2, ),
-        );
+        "foo" : "bar",
+        "key1" : now(),
+        "key2" : 12,
+        "key3" : ( 1, 2, 3 ),
+        "key4" : ( "subkey1" : 1, "subkey2" : 2, ),
+    );
     string s = qorize(h);
-    # "hash var =
-    #        (
-    #        "foo" : "bar",
-    #        "key1" : 2013-08-16T15:10:30.000,
-    #        "key2" : 12,
-    #        "key3" :
-    #            (1,2,3,),
-    #        "key4" :
-    #            (
-    #            "subkey1" : 1,
-    #            "subkey2" : 2,
-    #            ),
-    #       );"
+    # "hash var = (
+    #      "foo" : "bar",
+    #      "key1" : 2013-08-16T15:10:30.000,
+    #      "key2" : 12,
+    #      "key3" : (1,2,3,),
+    #      "key4" : (
+    #          "subkey1" : 1,
+    #          "subkey2" : 2,
+    #      ),
+    #  );"
     string s = qorize(h, "foo", True);
-    # "hash foo =
-    #        (
-    #        "foo" : "bar",
-    #        "key1" : 2013-08-16T15:10:30.000,
-    #        "key2" : 12,
-    #        "key3" :
-    #            (1,2,3,),
-    #        "key4" :
-    #            (
-    #            "subkey1" : 1,
-    #            "subkey2" : 2,
-    #            ),
-    #        );"
+    # "hash foo = (
+    #      "foo" : "bar",
+    #      "key1" : 2013-08-16T15:10:30.000,
+    #      "key2" : 12,
+    #      "key3" : (1,2,3,),
+    #      "key4" : (
+    #          "subkey1" : 1,
+    #          "subkey2" : 2,
+    #      ),
+    #  );"
 @endcode
 
     @throw QORIZE-ERROR in case of error in code generator
 */
-public string sub qorize(hash val, string name = "var", bool newstyle = True) {
-    QorizeHelper qh(val, newstyle);
+public string sub qorize(hash val, string name = "var", bool newstyle = True, int indentation = 2, bool curlyHash = True) {
+    QorizeHelper qh(val, newstyle, indentation, curlyHash);
     return sprintf("%s = %s;", QorizeHelper::checkVariableName(name, val, newstyle),
                                qh.hash());
 }
@@ -332,16 +337,18 @@ public string sub qorize(hash val, string name = "var", bool newstyle = True) {
     @param val an input value
     @param name an optional name of the resulting variable
     @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
+    @param indentation number of characters to indent inner hashes
+    @param curlyHash use new style curly parentesis to surround hashes or old style round ones
     @retval string a generated code
 
 @code{.py}
     hash h = (
-            "foo" : "bar",
-            "key1" : now(),
-            "key2" : 12,
-            "key3" : ( 1, 2, 3),
-            "key4" : ( "subkey1" : 1, "subkey2" : 2, ),
-        );
+        "foo" : "bar",
+        "key1" : now(),
+        "key2" : 12,
+        "key3" : ( 1, 2, 3 ),
+        "key4" : ( "subkey1" : 1, "subkey2" : 2, ),
+    );
     string s = qorize_named(h);
     # "hash name;
     # var."foo" = "bar";
@@ -362,8 +369,8 @@ public string sub qorize(hash val, string name = "var", bool newstyle = True) {
 
     @throw QORIZE-ERROR in case of error in code generator
 */
-public string sub qorize_named(hash val, string name = "var", bool newstyle = True) {
-    QorizeHelper qh(val, newstyle);
+public string sub qorize_named(hash val, string name = "var", bool newstyle = True, int indentation = 2, bool curlyHash = True) {
+    QorizeHelper qh(val, newstyle, indentation, curlyHash);
     return sprintf("%s;\n%s", QorizeHelper::checkVariableName(name, val, newstyle),
                               qh.hashNamed(name));
 }
@@ -397,24 +404,28 @@ public string sub qorize(any val, string name = "var", bool newstyle = True) {
 #! create code without any variable assignment (lvalue)
 /**
     @param val an input value
+    @param indentation number of characters to indent inner hashes
+    @param curlyHash use new style curly parentesis to surround hashes or old style round ones
     @retval string a generated code
 
     @throw QORIZE-ERROR in case of error in code generator
 */
-public string sub qorize_val(list val) {
-    QorizeHelper qh(val);
+public string sub qorize_val(list val, int indentation = 2, bool curlyHash = True) {
+    QorizeHelper qh(val, True, indentation, curlyHash);
     return sprintf("%s", qh.list());
 }
 
 #! create code without any variable assignment (lvalue)
 /**
     @param val an input value
+    @param indentation number of characters to indent inner hashes
+    @param curlyHash use new style curly parentesis to surround hashes or old style round ones
     @retval string a generated code
 
     @throw QORIZE-ERROR in case of error in code generator
 */
-public string sub qorize_val(hash val) {
-    QorizeHelper qh(val);
+public string sub qorize_val(hash val, int indentation = 2, bool curlyHash = True) {
+    QorizeHelper qh(val, True, indentation, curlyHash);
     return sprintf("%s", qh.hash());
 }
 
@@ -439,9 +450,11 @@ class QorizeHelper {
         any container;
         int type;
         string code;
-        int level = 1;
+        int level = 0;
         list inlineLevel = ();
         bool newstyle;
+        int indentation;
+        bool curlyHash;
     }
 
     static string checkVariableName(string name, any val, bool newstyle) {
@@ -532,9 +545,11 @@ class QorizeHelper {
         }
     }
 
-    constructor(any n_container, bool n_newstyle = True) {
+    constructor(any n_container, bool n_newstyle = True, int n_indentation = 2, bool n_curlyHash = True) {
         container = n_container;
         type = n_container.typeCode();
+        indentation = n_indentation;
+        curlyHash = n_curlyHash;
         newstyle = n_newstyle;
         if (!inlist(type, (NT_LIST, NT_HASH)))
             throw "QORIZE-ERROR", sprintf("Unsupported type %y (expecting \"list\", \"hash\")", n_container.type());
@@ -625,72 +640,92 @@ class QorizeHelper {
 
     private process(list val) {
         if (!val.size()) {
-            code += "list(),";
-            return;
+            code += "()";
+        } else {
+            code += sprintf("(");
+            ListIterator it(val);
+            bool substruct = False;
+            while (it.next()) {
+                if (inlist(it.getValue().typeCode(), (NT_HASH, NT_LIST))) {
+                    substruct = True;
+                    break;
+                }
+            }
+            level++;
+            it.reset();
+            if (substruct) {
+                code += sprintf("\n%s", strmul(" ", level*indentation));
+            }
+            bool pending = False;
+            while (it.next()) {
+                if (!it.first()) 
+                    code += ", ";
+                any v = it.getValue();
+                if (inlist(v.typeCode(), (NT_HASH, NT_LIST))) {
+                    #pending = True;
+                } else {
+                    if (pending) {
+                        code += sprintf("\n%s", strmul(" ", level*indentation));
+                        pending = False;
+                    }
+                }
+                process(v);
+            }
+            level--;
+            if (substruct) {
+                code += sprintf("\n%s", strmul(" ", level*indentation));
+            }
+            code += ")";
         }
-
-        level++;
-
-        code += sprintf("\n%s(", strmul(" ", level*4));
-        ListIterator it(val);
-        while (it.next()) {
-            any v = it.getValue();
-            process(v);
-        }
-        code += ")";
-
-        level--;
-        if (level > 1)
-            code += ",";
     }
 
     private process(hash val) {
         if (!val.size()) {
-            code += "hash(),";
-            return;
+            if (curlyHash) {
+                code += "{}";
+            } else {
+                code += "hash()";
+            }
+        } else {
+            code += curlyHash ? "{" : "(";
+            level++;
+            HashIterator it(val);
+            while (it.next()) {
+                 code += sprintf("\n%s\"%s\": ", strmul(" ", level*indentation), it.getKey());
+                 process(it.getValue());
+                 code += ",";
+            }
+            level--;
+            code += sprintf("\n%s%s", strmul(" ", level*indentation), curlyHash ? "}" : ")");
         }
-
-        level++;
-
-        code += sprintf("\n%s(", strmul(" ", level*4));
-        HashIterator it(val);
-        while (it.next()) {
-             code += sprintf("\n%s\"%s\" : ", strmul(" ", level*4), it.getKey());
-             process(it.getValue());
-        }
-        code += sprintf("\n%s)", strmul(" ", level*4));
-
-        level--;
-        if (level > 1)
-            code += ",";
     }
 
     private process(binary val) {
-        code += sprintf("%s,", escape(val));
+        code += sprintf("%s", escape(val));
     }
 
     private process(string val) {
-        code += sprintf("%s,", escape(val));
+        code += sprintf("%s", escape(val));
     }
 
     private process(bool val) {
-        code += sprintf("%s,", escape(val));
+        code += sprintf("%s", escape(val));
     }
 
     private process(date val) {
-        code += sprintf("%s,", escape(val));
+        code += sprintf("%s", escape(val));
     }
 
     private process(int val) {
-        code += sprintf("%s,", escape(val));
+        code += sprintf("%s", escape(val));
     }
 
     private process(float val) {
-        code += sprintf("%s,", escape(val));
+        code += sprintf("%s", escape(val));
     }
 
     private process(any val) {
-        code += sprintf("%s,", escape(val));
+        code += sprintf("%s", escape(val));
     }
 
 } # class QorizeHelper

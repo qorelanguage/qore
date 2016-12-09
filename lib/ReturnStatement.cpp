@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ReturnStatement.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/ReturnStatement.h"
+#include "qore/intern/qore_program_private.h"
 
 int ReturnStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
    if (exp) {
@@ -67,7 +67,7 @@ int ReturnStatement::parseInitImpl(LocalVar* oflag, int pflag) {
    // check return type and throw a parse exception or warning
    if (!returnTypeInfo->parseAccepts(argTypeInfo)) {
       // check if a warning should be generated, if require-types is not set and it is a class-special method
-      const QoreClass *qc = getParseClass();
+      const QoreClass *qc = parse_get_class();
       const char* fname = get_parse_code();
       if (!parse_check_parse_option(PO_REQUIRE_TYPES) && qc &&
 	  (!strcmp(fname, "constructor") || !strcmp(fname, "copy") || !strcmp(fname, "destructor"))) {
@@ -86,7 +86,7 @@ int ReturnStatement::parseInitImpl(LocalVar* oflag, int pflag) {
       }
    }
    else if (returnTypeInfo->isType(NT_NOTHING) && exp && (!argTypeInfo->hasType() || !argTypeInfo->isType(NT_NOTHING))) {
-      const QoreClass* qc = getParseClass();
+      const QoreClass* qc = parse_get_class();
       const char* fname = get_parse_code();
       QoreStringNode* desc = new QoreStringNode;
       desc->sprintf("the return statement for %s%s%s() has an expression whose type cannot be resolved at parse time, however the block does not allow any value to be returned; if this expression resolves to a value a run-time error will result; to suppress this warning, move the expression in front of the return statement or use '%%disable-warning invalid-operation' in your code", qc ? qc->getName() : "", qc ? "::" : "", fname);

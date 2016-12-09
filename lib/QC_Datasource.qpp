@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_Datasource.h>
+#include "qore/intern/QC_Datasource.h"
 
 extern QoreClass* QC_ABSTRACTDATASOURCE;
 
