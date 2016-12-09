@@ -809,22 +809,22 @@ bool SSLSocketHelper::sslError(ExceptionSink* xsink, const char* mname, const ch
    do {
       //printd(5, "SSLSocketHelper::sslError() '%s' func: '%s' always_error: %d e: %ld\n", mname, func, always_error, e);
       if (!e || e == SSL_ERROR_ZERO_RETURN) {
-	 //printd(5, "SSLSocketHelper::sslError() Socket::%s() (%s) socket closed by remote end\n", mname, func);
-	 if (always_error) {
+         //printd(5, "SSLSocketHelper::sslError() Socket::%s() (%s) socket closed by remote end\n", mname, func);
+         if (always_error) {
             qs.close();
-	    xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the %s() call could not be completed because the TLS/SSL connection was terminated", mname, func);
+            xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the %s() call could not be completed because the TLS/SSL connection was terminated", mname, func);
          }
       }
       else {
-	 char buf[121];
-	 ERR_error_string(e, buf);
-	 xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): %s(): %s", mname, func, buf);
+         char buf[121];
+         ERR_error_string(e, buf);
+         xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): %s(): %s", mname, func, buf);
 #ifdef ECONNRESET
-	 // close the socket if connection reset received
-	 if (e == SSL_ERROR_SYSCALL && sock_get_error() == ECONNRESET) {
-	    //printd(5, "SSLSocketHelper::sslError() Socket::%s() (%s) socket closed by remote end\n", mname, func);
-	    qs.close();
-	 }
+         // close the socket if connection reset received
+         if (e == SSL_ERROR_SYSCALL && sock_get_error() == ECONNRESET) {
+            //printd(5, "SSLSocketHelper::sslError() Socket::%s() (%s) socket closed by remote end\n", mname, func);
+            qs.close();
+         }
 #endif
       }
    } while ((e = ERR_get_error()));
