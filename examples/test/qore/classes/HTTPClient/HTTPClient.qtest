@@ -135,8 +135,11 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
         int port = q.get();
 
         HTTPClient hc(("url": "https://localhost:" + port));
-        hc.setEventQueue(q);
         assertThrows("SOCKET-CLOSED", \hc.get(), ("/"));
+
+        # issue 1488: currently only reproducible with the following URL
+        hc.setURL("https://group.three.com/qcbin/rest/is-authenticated");
+        assertThrows("SOCKET-SSL-ERROR", "Connection reset", \hc.get(), ("", ("Host": "group.three.com:443")));
     }
 
     sslReadError(Queue q) {
