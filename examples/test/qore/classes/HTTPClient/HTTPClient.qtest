@@ -104,26 +104,47 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
     testClient() {
         {
             HttpTestServer serv(ErrorReply1);
+            on_exit serv.done();
             HTTPClient hc(("url": "http://localhost:" + serv.port));
-            *string str = hc.get("/something");
+            hash info;
+            *string str = hc.get("/something", NOTHING, \info);
+            assertEq(serv.port, (info.headers.Host =~ x/:([0-9]+)/)[0].toInt());
             assertEq(NOTHING, str);
-            serv.done();
             hc.disconnect();
         }
         {
             HttpTestServer serv(ErrorReply2);
+            on_exit serv.done();
             HTTPClient hc(("url": "http://localhost:" + serv.port));
             *string str = hc.get("/something");
             assertEq(NOTHING, str);
-            serv.done();
             hc.disconnect();
         }
         {
             HttpTestServer serv(ChunkedReply1);
+            on_exit serv.done();
             HTTPClient hc(("url": "http://localhost:" + serv.port));
             *string str = hc.get("/something");
             assertEq("Test Message.", str);
-            serv.done();
+        }
+        {
+            HTTPClient hc(("url": "http://localhost"));
+            hash info;
+            try { hc.get("", NOTHING, \info); } catch () {}
+            assertEq(Type::String, info.headers.Host.type());
+            assertEq(True, info.headers.Host !~ /:/);
+            hc.setURL("http://localhost:80");
+            try { hc.get("", NOTHING, \info); } catch () {}
+            assertEq(Type::String, info.headers.Host.type());
+            assertEq(True, info.headers.Host !~ /:/);
+            hc.setURL("https://localhost");
+            try { hc.get("", NOTHING, \info); } catch () {}
+            assertEq(Type::String, info.headers.Host.type());
+            assertEq(True, info.headers.Host !~ /:/);
+            hc.setURL("https://localhost:443");
+            try { hc.get("", NOTHING, \info); } catch () {}
+            assertEq(Type::String, info.headers.Host.type());
+            assertEq(True, info.headers.Host !~ /:/);
         }
     }
 
@@ -152,5 +173,4 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
         Socket ns = s.acceptSSL(15s);
         ns.bind(0);
     }
-
 }
