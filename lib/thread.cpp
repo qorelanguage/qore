@@ -610,7 +610,11 @@ public:
 
       qore_type_t fctype = fc->getType();
       if (fctype == NT_SELF_CALL) {
-         class_ctx = qore_class_private::get(*reinterpret_cast<SelfFunctionCallNode*>(fc)->getClass());
+         {
+            const QoreClass* qc = reinterpret_cast<SelfFunctionCallNode*>(fc)->getClass();
+            if (qc)
+               class_ctx = qore_class_private::get(*qc);
+         }
 
 	 // must have a current object if an in-object method call is being executed
 	 // (i.e. $.method())
