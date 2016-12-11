@@ -32,8 +32,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_dbi_private.h>
-#include <qore/intern/qore_ds_private.h>
+#include "qore/intern/qore_dbi_private.h"
+#include "qore/intern/qore_ds_private.h"
 
 #include <stdlib.h>
 #include <string.h>

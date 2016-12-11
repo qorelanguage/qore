@@ -32,7 +32,7 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/qore_dbi_private.h>
+#include "qore/intern/qore_dbi_private.h"
 
 #include <string.h>
 #include <stdio.h>
