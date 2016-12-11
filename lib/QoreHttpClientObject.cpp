@@ -294,7 +294,13 @@ struct qore_httpclient_priv {
    // always generate a Host header pointing to the host hosting the resource, not the proxy
    // (RFC 2616 is not totally clear on this, but other clients do it this way)
    DLLLOCAL AbstractQoreNode* getHostHeaderValue() {
-      if (connection.port == 80)
+      // RFC 7230 section 5.5: "if the connection's incoming TCP port number
+      //   differs from the default port for the effective request URI's
+      //   scheme, then a colon (":") and the incoming port number (in
+      //   decimal form) are appended to the authority component"
+      // https://tools.ietf.org/html/rfc7230#section-5.5
+      // therefore, we don't include the port number if it's the default port for the protocol
+      if ((!connection.ssl && connection.port == 80) || (connection.ssl && connection.port == 443))
 	 return new QoreStringNode(connection.host.c_str());
 
       QoreStringNode* str = new QoreStringNode;
@@ -923,6 +929,9 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 	 meth = "CONNECT";
 	 use_proxy_connect = true;
 	 hostport.concat(connection.host);
+         // RFC 7231 section 4.3.6 (https://tools.ietf.org/html/rfc7231#section-4.3.6) states
+         // that the hostname and port number should be included when establishing an HTTP tunnel
+         // with the CONNECT method
 	 if (connection.port)
 	    hostport.sprintf(":%d", connection.port);
 	 proxy_path = hostport.getBuffer();
