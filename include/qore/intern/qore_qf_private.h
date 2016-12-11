@@ -32,9 +32,9 @@
 #ifndef _QORE_INTERN_QORE_QF_PRIVATE_H
 #define _QORE_INTERN_QORE_QF_PRIVATE_H
 
-#include <qore/intern/QC_Queue.h>
+#include "qore/intern/QC_Queue.h"
 #ifdef HAVE_TERMIOS_H
-#include <qore/intern/QC_TermIOS.h>
+#include "qore/intern/QC_TermIOS.h"
 #endif
 
 #include <unistd.h>
@@ -305,7 +305,7 @@ struct qore_qf_private {
       if (rc > 0)
 	 do_write_event_unlocked(rc, rc, len);
       else if (xsink && rc < 0)
-         xsink->raiseErrnoException("FILE-WRITE-ERROR", errno, "failed writing "QLLD" byte%s to File", len, len == 1 ? "" : "s");
+         xsink->raiseErrnoException("FILE-WRITE-ERROR", errno, "failed writing " QLLD " byte%s to File", len, len == 1 ? "" : "s");
 
       return rc;
    }
@@ -366,7 +366,7 @@ struct qore_qf_private {
 	    if (rc >= 0)
 	       break;
             if (errno != EINTR) {
-               xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after "QLLD" bytes read in File::%s()", br, mname);
+               xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QLLD " bytes read in File::%s()", br, mname);
                break;
             }
 	 }

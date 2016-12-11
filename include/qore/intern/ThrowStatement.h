@@ -33,7 +33,7 @@
 
 #define _QORE_THROWSTATEMENT_H
 
-#include <qore/intern/AbstractStatement.h>
+#include "qore/intern/AbstractStatement.h"
 
 class ThrowStatement : public AbstractStatement {
 private:

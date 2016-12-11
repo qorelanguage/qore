@@ -39,8 +39,8 @@
 #include <qore/QoreString.h>
 #include <qore/AbstractThreadResource.h>
 
-#include <qore/intern/DatasourceStatementHelper.h>
-#include <qore/intern/QoreSQLStatement.h>
+#include "qore/intern/DatasourceStatementHelper.h"
+#include "qore/intern/QoreSQLStatement.h"
 
 #include <map>
 #include <deque>

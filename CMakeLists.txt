@@ -8,16 +8,16 @@ option(ICONV_TRANSLIT
 
 option(QORE_RUNTIME_THREAD_STACK_TRACE
        "enable runtime thread stack trace (performance penalty), only for debug builds"
-       OFF)
+       ON)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 8)
-set(VERSION_SUB 12)
+set(VERSION_SUB 13)
 
 # If changing the module API numbers, make sure to change the appropriate
 # defines in include/qore/ModuleManager.h too.
 set(MODULE_API_MAJOR 0)
-set(MODULE_API_MINOR 19)
+set(MODULE_API_MINOR 20)
 
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "release")
@@ -29,9 +29,9 @@ else ()
     add_definitions(-DNDEBUG)
 endif ()
 
-if ((NOT ${QORE_BUILD_TYPE_LWR} MATCHES "debug") AND QORE_RUNTIME_THREAD_STACK_TRACE)
-    message(FATAL_ERROR "QORE_RUNTIME_THREAD_STACK_TRACE only available on debug builds")
-endif()
+#if ((NOT ${QORE_BUILD_TYPE_LWR} MATCHES "debug") AND QORE_RUNTIME_THREAD_STACK_TRACE)
+#    message(FATAL_ERROR "QORE_RUNTIME_THREAD_STACK_TRACE only available on debug builds")
+#endif()
 
 # simulate QoreConfig
 set(QORE_QDX_EXECUTABLE "${CMAKE_SOURCE_DIR}/doxygen/qdx")
@@ -43,6 +43,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 include_directories( ${CMAKE_BINARY_DIR} )
 include_directories( ${CMAKE_BINARY_DIR}/include/ )
+include_directories( ${CMAKE_BINARY_DIR}/include/qore )
+include_directories( ${CMAKE_BINARY_DIR}/include/qore/intern )
 include_directories( ${CMAKE_SOURCE_DIR}/include )
 include_directories( ${CMAKE_SOURCE_DIR}/include/qore )
 
@@ -103,11 +105,13 @@ set(LIBQORE_QPP_SRC
 	lib/QC_HashListReverseIterator.qpp
 	lib/QC_ListHashIterator.qpp
 	lib/QC_ListHashReverseIterator.qpp
+	lib/QC_AbstractLineIterator.qpp
 	lib/QC_FileLineIterator.qpp
+	lib/QC_DataLineIterator.qpp
+	lib/QC_InputStreamLineIterator.qpp
 	lib/QC_SingleValueIterator.qpp
 	lib/QC_AbstractDatasource.qpp
 	lib/QC_RangeIterator.qpp
-	lib/QC_DataLineIterator.qpp
 	lib/QC_Datasource.qpp
 	lib/QC_DatasourcePool.qpp
 	lib/QC_Dir.qpp
@@ -130,20 +134,27 @@ set(LIBQORE_QPP_SRC
 	lib/QC_SSLCertificate.qpp
 	lib/QC_SSLPrivateKey.qpp
 	lib/QC_ThreadPool.qpp
-	lib/Pseudo_QC_All.qpp
-	lib/Pseudo_QC_Nothing.qpp
-	lib/Pseudo_QC_Date.qpp
-	lib/Pseudo_QC_Object.qpp
-	lib/Pseudo_QC_Hash.qpp
-	lib/Pseudo_QC_String.qpp
-	lib/Pseudo_QC_Binary.qpp
-	lib/Pseudo_QC_List.qpp
-	lib/Pseudo_QC_Bool.qpp
-	lib/Pseudo_QC_Int.qpp
-	lib/Pseudo_QC_Float.qpp
-	lib/Pseudo_QC_Number.qpp
-	lib/Pseudo_QC_Closure.qpp
-	lib/Pseudo_QC_Callref.qpp
+	lib/QC_InputStream.qpp
+	lib/QC_BinaryInputStream.qpp
+	lib/QC_StringInputStream.qpp
+	lib/QC_FileInputStream.qpp
+	lib/QC_EncodingConversionInputStream.qpp
+	lib/QC_OutputStream.qpp
+	lib/QC_BinaryOutputStream.qpp
+	lib/QC_StringOutputStream.qpp
+	lib/QC_FileOutputStream.qpp
+	lib/QC_EncodingConversionOutputStream.qpp
+	lib/QC_StreamPipe.qpp
+	lib/QC_PipeInputStream.qpp
+	lib/QC_PipeOutputStream.qpp
+	lib/QC_StreamWriter.qpp
+	lib/QC_StreamReader.qpp
+	lib/QC_BufferedStreamReader.qpp
+	lib/QC_Transform.qpp
+	lib/QC_TransformInputStream.qpp
+	lib/QC_TransformOutputStream.qpp
+	lib/QC_StdoutOutputStream.qpp
+	lib/QC_StderrOutputStream.qpp
 	lib/ql_misc.qpp
 	lib/ql_compression.qpp
 	lib/ql_thread.qpp
@@ -165,7 +176,25 @@ set(LIBQORE_QPP_SRC
 	lib/qc_qore.qpp
 )
 
+set(PSEUDO_QPP_SRC
+    lib/Pseudo_QC_All.qpp
+    lib/Pseudo_QC_Nothing.qpp
+    lib/Pseudo_QC_Date.qpp
+    lib/Pseudo_QC_Object.qpp
+    lib/Pseudo_QC_Hash.qpp
+    lib/Pseudo_QC_String.qpp
+    lib/Pseudo_QC_Binary.qpp
+    lib/Pseudo_QC_List.qpp
+    lib/Pseudo_QC_Bool.qpp
+    lib/Pseudo_QC_Int.qpp
+    lib/Pseudo_QC_Float.qpp
+    lib/Pseudo_QC_Number.qpp
+    lib/Pseudo_QC_Closure.qpp
+    lib/Pseudo_QC_Callref.qpp
+)
+
 set(QMOD
+    qlib/Qdx.qm
     qlib/BulkSqlUtil.qm
     qlib/CsvUtil.qm
     qlib/Diff.qm
@@ -185,6 +214,7 @@ set(QMOD
     qlib/RestClient.qm
     qlib/RestHandler.qm
     qlib/Schema.qm
+    qlib/SchemaReverse.qm
     qlib/SmtpClient.qm
     qlib/SqlUtil.qm
     qlib/TableMapper.qm
@@ -194,6 +224,47 @@ set(QMOD
     qlib/WebSocketHandler.qm
     qlib/WebSocketUtil.qm
     qlib/WebUtil.qm
+)
+
+set(QORE_DOX_TMPL_SRC
+    doxygen/lang/mainpage.dox.tmpl
+    doxygen/lang/000_intro.dox.tmpl
+    doxygen/lang/105_desc_overview.dox.tmpl
+    doxygen/lang/110_environment_variables.dox.tmpl
+    doxygen/lang/115_conditional_parsing.dox.tmpl
+    doxygen/lang/120_modules.dox.tmpl
+    doxygen/lang/125_include_files.dox.tmpl
+    doxygen/lang/130_identifiers.dox.tmpl
+    doxygen/lang/135_comments.dox.tmpl
+    doxygen/lang/140_variables.dox.tmpl
+    doxygen/lang/145_basic_data_types.dox.tmpl
+    doxygen/lang/150_container_data_types.dox.tmpl
+    doxygen/lang/152_code_data_types.dox.tmpl
+    doxygen/lang/155_data_type_declarations.dox.tmpl
+    doxygen/lang/157_lvalue_references.dox.tmpl
+    doxygen/lang/160_overloading.dox.tmpl
+    doxygen/lang/165_time_zones.dox.tmpl
+    doxygen/lang/170_character_encoding.dox.tmpl
+    doxygen/lang/175_expressions.dox.tmpl
+    doxygen/lang/180_operators.dox.tmpl
+    doxygen/lang/185_qore_regex.dox.tmpl
+    doxygen/lang/190_date_time_arithmetic.dox.tmpl
+    doxygen/lang/195_statements.dox.tmpl
+    doxygen/lang/200_functions.dox.tmpl
+    doxygen/lang/202_code_flags.dox.tmpl
+    doxygen/lang/205_namespaces.dox.tmpl
+    doxygen/lang/210_constants.dox.tmpl
+    doxygen/lang/215_classes.dox.tmpl
+    doxygen/lang/220_threading.dox.tmpl
+    doxygen/lang/225_exception_handling.dox.tmpl
+    doxygen/lang/230_signal_handling.dox.tmpl
+    doxygen/lang/235_event_handling.dox.tmpl
+    doxygen/lang/240_command_line_processing.dox.tmpl
+    doxygen/lang/245_parse_directives.dox.tmpl
+    doxygen/lang/250_warnings.dox.tmpl
+    doxygen/lang/255_keywords.dox.tmpl
+    doxygen/lang/900_release_notes.dox.tmpl
+    doxygen/lang/Doxyfile.tmpl
 )
 
 # qore interpreter
@@ -224,6 +295,16 @@ endif (WIN32 AND MINGW AND MSYS)
 
 create_git_revision()
 
+# Check for C++11.
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+if(COMPILER_SUPPORTS_CXX11)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+else()
+    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+endif()
+
+# Other checks
 qore_os_checks()
 qore_iconv_translit_check()
 qore_openssl_checks()
@@ -278,8 +359,9 @@ target_link_libraries(qpp ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES})
 
 # libqore generators
 qore_wrap_qpp_value(LIBQORE_QPP_CPP_SRC ${LIBQORE_QPP_SRC})
+qore_wrap_qpp_value(PSEUDO_QPP_CPP_SRC ${PSEUDO_QPP_SRC})
 
-add_custom_target(QPP_GENERATED_FILES DEPENDS ${LIBQORE_QPP_CPP_SRC})
+add_custom_target(QPP_GENERATED_FILES DEPENDS ${LIBQORE_QPP_CPP_SRC} ${PSEUDO_QPP_CPP_SRC})
 add_custom_target(BISON_GENERATED_FILES DEPENDS ${BISON_qoreparser_OUTPUTS})
 add_custom_target(FLEX_GENERATED_FILES DEPENDS ${FLEX_qorescanner_OUTPUTS})
 
@@ -289,8 +371,6 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 set(LIBQORE_CPP_SRC
         ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp
-        lib/Operator.cpp
-        lib/QoreTreeNode.cpp
         lib/BarewordNode.cpp
         lib/SelfVarrefNode.cpp
         lib/StaticClassVarRefNode.cpp
@@ -386,6 +466,7 @@ set(LIBQORE_CPP_SRC
         lib/QoreSQLStatement.cpp
         lib/ExecArgList.cpp
         lib/CallReferenceNode.cpp
+        lib/CallStack.cpp
         lib/NamedScope.cpp
         lib/RWLock.cpp
         lib/QoreSSLBase.cpp
@@ -395,10 +476,10 @@ set(LIBQORE_CPP_SRC
         lib/QoreCondition.cpp
         lib/QoreQueue.cpp
         lib/QoreQueueHelper.cpp
-        lib/QoreRegexNode.cpp
+        lib/QoreRegex.cpp
         lib/QoreRegexBase.cpp
-        lib/RegexSubstNode.cpp
-        lib/RegexTransNode.cpp
+        lib/QoreRegexSubst.cpp
+        lib/QoreTransliteration.cpp
         lib/Sequence.cpp
         lib/QoreReferenceCounter.cpp
         lib/QoreHTTPClient.cpp
@@ -415,11 +496,29 @@ set(LIBQORE_CPP_SRC
         lib/QoreExtractOperatorNode.cpp
         lib/QoreCastOperatorNode.cpp
         lib/QoreUnaryMinusOperatorNode.cpp
+        lib/QoreUnaryPlusOperatorNode.cpp
         lib/QoreLogicalNotOperatorNode.cpp
         lib/QoreDotEvalOperatorNode.cpp
         lib/QoreLogicalEqualsOperatorNode.cpp
+        lib/QoreLogicalAbsoluteEqualsOperatorNode.cpp
         lib/QoreModuloOperatorNode.cpp
+        lib/QoreBinaryAndOperatorNode.cpp
+        lib/QoreBinaryNotOperatorNode.cpp
+        lib/QoreBinaryOrOperatorNode.cpp
+        lib/QoreBinaryXorOperatorNode.cpp
+        lib/QoreShiftLeftOperatorNode.cpp
+        lib/QoreShiftRightOperatorNode.cpp
+        lib/QoreExistsOperatorNode.cpp
+        lib/QoreElementsOperatorNode.cpp
+        lib/QoreInstanceOfOperatorNode.cpp
+        lib/QoreHashObjectDereferenceOperatorNode.cpp
+        lib/QoreRegexMatchOperatorNode.cpp
+        lib/QoreRegexNMatchOperatorNode.cpp
+        lib/QoreRegexExtractOperatorNode.cpp
+        lib/QoreRegexSubstOperatorNode.cpp
+        lib/QoreTransliterationOperatorNode.cpp
         lib/QoreAssignmentOperatorNode.cpp
+        lib/QoreListAssignmentOperatorNode.cpp
         lib/QorePlusEqualsOperatorNode.cpp
         lib/QoreIntPlusEqualsOperatorNode.cpp
         lib/QoreMinusEqualsOperatorNode.cpp
@@ -449,91 +548,34 @@ set(LIBQORE_CPP_SRC
         lib/QoreMapSelectOperatorNode.cpp
         lib/QoreHashMapOperatorNode.cpp
         lib/QoreHashMapSelectOperatorNode.cpp
+        lib/QoreFoldlOperatorNode.cpp
         lib/QoreNullCoalescingOperatorNode.cpp
         lib/QoreValueCoalescingOperatorNode.cpp
         lib/QoreChompOperatorNode.cpp
         lib/QoreTrimOperatorNode.cpp
         lib/QoreSquareBracketsOperatorNode.cpp
+        lib/QoreShiftOperatorNode.cpp
+        lib/QoreUnshiftOperatorNode.cpp
+        lib/QorePopOperatorNode.cpp
+        lib/QorePushOperatorNode.cpp
+        lib/QoreLogicalAndOperatorNode.cpp
+        lib/QoreLogicalOrOperatorNode.cpp
+        lib/QoreLogicalComparisonOperatorNode.cpp
+        lib/QorePlusOperatorNode.cpp
+        lib/QoreMinusOperatorNode.cpp
+        lib/QoreMultiplicationOperatorNode.cpp
+        lib/QoreBackgroundOperatorNode.cpp
         lib/QoreValue.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_thread.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_time.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_lib.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_math.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_type.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_env.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_string.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_pwd.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_misc.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_list.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_crypto.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_object.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_file.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_compression.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_dbi.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/ql_context.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/qc_option.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/qc_errno.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/qc_qore.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_Socket.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_Program.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ReadOnlyFile.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_File.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_Dir.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_GetOpt.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_FtpClient.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AbstractIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AbstractQuantifiedIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AbstractBidirectionalIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AbstractQuantifiedBidirectionalIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ListIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ListReverseIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_HashIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_HashReverseIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_HashKeyIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_HashKeyReverseIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_HashPairIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_HashPairReverseIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_HashListIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_HashListReverseIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ListHashIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ListHashReverseIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ObjectIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ObjectReverseIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ObjectKeyIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ObjectKeyReverseIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ObjectPairIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ObjectPairReverseIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_FileLineIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_DataLineIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_SingleValueIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_RangeIterator.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_ThreadPool.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AbstractDatasource.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_Datasource.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_DatasourcePool.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_SQLStatement.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_Queue.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_Mutex.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_Condition.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_RWLock.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_Gate.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_Sequence.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_Counter.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_SSLCertificate.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_SSLPrivateKey.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_HTTPClient.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AutoLock.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AutoGate.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AutoReadLock.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AutoWriteLock.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_TermIOS.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AbstractSmartLock.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_TimeZone.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_TreeMap.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/QC_AbstractThreadResource.cpp
+        lib/StreamPipe.cpp
+        lib/CompressionTransforms.cpp
         lib/QorePseudoMethods.cpp
         lib/xxhash.cpp
         lib/minitest.cpp
+        lib/FunctionalOperator.cpp
+        lib/FunctionalOperatorInterface.cpp
+        lib/QoreQuestionMarkOperatorNode.cpp
+        lib/QoreKeysOperatorNode.cpp
+        lib/QoreSelectOperatorNode.cpp
     )
 
 if (HAVE_SIGNAL_HANDLING)
@@ -552,11 +594,15 @@ if (${QORE_BUILD_TYPE_LWR} MATCHES "debug")
         set(LIBQORE_CPP_SRC ${LIBQORE_CPP_SRC} lib/ql_debug.cpp)
 endif ()
 
-add_library(libqore SHARED ${LIBQORE_CPP_SRC} ${LIBQORE_ASM_SRC})
+add_library(libqore SHARED ${LIBQORE_QPP_CPP_SRC} ${LIBQORE_CPP_SRC} ${LIBQORE_ASM_SRC})
 add_dependencies(QPP_GENERATED_FILES qpp)
 add_dependencies(libqore QPP_GENERATED_FILES BISON_GENERATED_FILES FLEX_GENERATED_FILES)
 
 target_compile_definitions(libqore PUBLIC _QORE_LIB_INTERN HAVE_UNIX_CONFIG_H)
+target_compile_definitions(libqore PRIVATE MODULE_DIR="${MODULE_DIR}")
+target_compile_definitions(libqore PRIVATE MODULE_VER_DIR="${MODULE_VER_DIR}")
+target_compile_definitions(libqore PRIVATE USER_MODULE_DIR="${USER_MODULE_DIR}")
+target_compile_definitions(libqore PRIVATE USER_MODULE_VER_DIR="${USER_MODULE_VER_DIR}")
 if (WIN32 AND MINGW AND MSYS)
     target_compile_definitions(libqore PUBLIC BUILDING_DLL)
 endif (WIN32 AND MINGW AND MSYS)
@@ -628,6 +674,14 @@ if (DOXYGEN_FOUND)
     # documentation
     configure_file(${CMAKE_SOURCE_DIR}/doxygen/footer_template.html ${CMAKE_BINARY_DIR}/doxygen/footer_template.html @ONLY)
     add_custom_target(docs COMMENT "Generating API documentation")
+
+    # doc generators
+    qore_wrap_dox(QORE_DOX_SRC ${QORE_DOX_TMPL_SRC})
+    add_custom_target(QORE_DOX_FILES DEPENDS ${QORE_DOX_SRC})
+    add_dependencies(QORE_DOX_FILES qpp)
+
+    add_dependencies(libqore QORE_DOX_FILES)
+
 # TODO/FIXME    add_dependencies(libqore docs)
     # library
     message(STATUS "Doxyfile for library")

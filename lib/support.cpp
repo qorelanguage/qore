@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/qore_program_private.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,14 +58,14 @@ int printe(const char *fmt, ...) {
       if (!rc)
 	 break;
    }
-		    
+
    fputs(buf.getBuffer(), stderr);
    fflush(stderr);
    return 0;
 }
 
 static void get_timestamp(QoreString &str) {
-   if (!threads_initialized)
+   if (!(threads_initialized && is_valid_qore_thread()))
       return;
 
    int us;
@@ -109,9 +109,9 @@ void trace_function(int code, const char *funcname) {
    QoreString ts;
    get_timestamp(ts);
    if (code == TRACE_IN)
-      printe("%s: TID %d: %s entered\n", ts.getBuffer(), threads_initialized ? gettid() : 0, funcname);
+      printe("%s: TID %d: %s entered\n", ts.getBuffer(), threads_initialized  && is_valid_qore_thread() ? gettid() : 0, funcname);
    else
-      printe("%s: TID %d: %s exited\n", ts.getBuffer(), threads_initialized ? gettid() : 0, funcname);
+      printe("%s: TID %d: %s exited\n", ts.getBuffer(), threads_initialized  && is_valid_qore_thread() ? gettid() : 0, funcname);
 }
 
 char *remove_trailing_newlines(char *str) {
