@@ -1466,6 +1466,7 @@ hash table_desc = (
     - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
     - \c scale: for numeric data types, this value gives the scale
     - \c default_value: the default value for the column
+    - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
     - \c comment: an optional comment for the column
     - \c notnull: if the column should have a "not null" constraint on it; if missing the default value is @ref Qore::False "False"
     - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the column description hash before processing; this way a column description hash can contain all the information required for the column including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys, see below for an example
@@ -6093,9 +6094,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
         private validateOptionsIntern(string err, hash ropt, reference opt, string tag) {
             # make sure driver-specific options take precedence over generic options
             string dn = getDriverName();
-            if (opt.driver{dn})
-                opt += remove opt.driver{dn};
-            delete opt.driver;
+            AbstractDatabase::checkDriverOptions(\opt, dn);
 
             # check valid options and option value types
             foreach string k in (opt.keyIterator()) {
@@ -7887,6 +7886,7 @@ Table table("pgsql:user/pass@db%host", "table");
                 - \c size: (@ref int_type) for data types requiring a size component, the size; for numeric columns this represents the precision for example
                 - \c scale: (@ref int_type) for numeric data types, this value gives the scale
                 - \c default_value: the default value for the column
+                - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
                 - \c comment: (@ref string_type) an optional comment for the column
                 - \c notnull: if the column should have a "not null" constraint on it; if missing the default value is @ref Qore::False "False"
                 - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the column description hash before processing; this way a column description hash can contain all the information required for the column including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys, see below for an example
@@ -7898,6 +7898,7 @@ Table table("pgsql:user/pass@db%host", "table");
                 "size": Type::Int,
                 "scale": Type::Int,
                 "default_value": Type::NothingType,
+                "default_value_native" : Type::Boolean,
                 "comment": Type::String,
                 );
 
@@ -8551,10 +8552,7 @@ bool b = table.empty();
             foreach string cn in (desc.columns.keyIterator()) {
                 if (desc.columns{cn}.typeCode() != NT_HASH)
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to column key %y is not a hash, got type %y instead (%y)", getDesc(), cn, desc.columns{cn}.type(), desc.columns{cn});
-                if (desc.columns{cn}.driver) {
-                    desc.columns{cn} += desc.columns{cn}.driver{drv};
-                    delete desc.columns{cn}.driver;
-                }
+                AbstractDatabase::checkDriverOptions(\desc.columns{cn}, drv);
             }
 
             preSetupTableImpl(\desc, opt);
@@ -8658,6 +8656,7 @@ table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
             - \c scale: for numeric data types, this value gives the scale
             - \c default_value: the default value for the column
+            - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
             @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
@@ -8689,6 +8688,7 @@ list l = table.getAddColumnSql("name", ("qore_type": Type::String, "size": 50), 
             - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
             - \c scale: for numeric data types, this value gives the scale
             - \c default_value: the default value for the column
+            - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
             @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
@@ -8762,6 +8762,7 @@ table.modifyColumn("name", ("qore_type": Type::String, "size": 240), False);
             - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
             - \c scale: for numeric data types, this value gives the scale
             - \c default_value: the default value for the column
+            - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
             @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
@@ -8808,6 +8809,7 @@ list l = table.getModifyColumnSql("name", ("qore_type": Type::String, "size": 24
             - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
             - \c scale: for numeric data types, this value gives the scale
             - \c default_value: the default value for the column
+            - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
             @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
@@ -10366,7 +10368,7 @@ string sql = table.getDropTriggerSql("trig_mytable");
                 opt.size = th.default_size;
 
             # check type of default value (must match column type)
-            if (exists opt.default_value) {
+            if (exists opt.default_value && !opt.default_value_native) {
                 checkValue(cname, "default_value", \opt.default_value, th.qore);
                 opt.default_value = getSqlValue(opt.default_value);
             }
@@ -14018,9 +14020,7 @@ string sql = table.getAlignSqlString(table2);
             # make sure driver options take precedence over generic options
             if (opt) {
                 string dn = getDriverName();
-                if (opt.driver{dn})
-                    opt += remove opt.driver{dn};
-                delete opt.driver;
+                AbstractDatabase::checkDriverOptions(\opt, dn);
             }
 
             # mark in options that the entire table is being created
