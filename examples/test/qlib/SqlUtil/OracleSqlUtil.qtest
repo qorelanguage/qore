@@ -43,6 +43,19 @@ class OracleTestSchema inherits SqlUtilTestSchema {
                 "id": c_number(14, True),
                 "id_": c_number(14, True),
                 "null_f": c_varchar(69),
+                # data for test of driver specific opts merged into tolevel hash
+                "drv_test" : ( "qore_type" : SqlUtil::VARCHAR,
+                               "size" : 1,
+                               "driver" : (
+                                   "oracle" : (
+                                      "qore_type" : SqlUtil::NUMERIC,
+                                   ),
+                               ),
+                             ),
+                # default value test for
+                # SqlUtil: schema alignment: default values can be complex statement instead of simple value only #1428
+                "def_test1" : c_date(C_NOT_NULL) + ("driver" : ("oracle" : ("default_value" : "to_date('1.1.2000', 'dd.mm.yyyy')", "default_value_native" : True))),
+                "def_test2" : c_number(C_NOT_NULL) + ( "default_value" : 0 ),
             ),
             "primary_key": ("name": "pk_oracle_test", "columns": ("id")),
             );
@@ -164,6 +177,8 @@ class OracleTest inherits SqlTestBase {
             addTestCase("sequence operators", \testSequenceOperators());
             addTestCase("pseudo-columns", \testPseudoColumns());
             addTestCase("character semantics", \testCharacterSemantics());
+            addTestCase("driver specific opts for columns", \testDriverSpecificColumns());
+            addTestCase("default values", \testDefaultValues());
         }
 
         set_return_value(main());
@@ -222,6 +237,27 @@ class OracleTest inherits SqlTestBase {
             );
 
         assertEq(Type::String, table.selectRow(sh).rowid.type());
+    }
+
+    testDriverSpecificColumns() {
+        if (!table)
+            testSkip("no DB connection");
+
+        AbstractDatasource ds = table.getDatasource();
+        hash c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "DRV_TEST");
+        assertEq("NUMBER", c.data_type);
+    }
+
+    testDefaultValues() {
+        if (!table)
+            testSkip("no DB connection");
+
+        AbstractDatasource ds = table.getDatasource();
+        hash c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "DEF_TEST1");
+        assertEq("to_date('1.1.2000', 'dd.mm.yyyy') ", c.data_default);
+
+        c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "DEF_TEST2");
+        assertEq("0 ", c.data_default);
     }
 
     private usageIntern() {
