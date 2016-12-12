@@ -32,7 +32,7 @@
 #include <qore/Qore.h>
 #include <qore/DBI.h>
 
-#include <qore/intern/QC_DatasourcePool.h>
+#include "qore/intern/QC_DatasourcePool.h"
 
 extern QoreClass* QC_ABSTRACTDATASOURCE;
 
@@ -204,17 +204,17 @@ DatasourcePool::constructor(string driver, *string user, *string pass, *string d
    }
 
    if (min <= 0) {
-      xsink->raiseException(DSPC_ERR, "minimum connections must be > 0 (value given: "QLLD")", min);
+      xsink->raiseException(DSPC_ERR, "minimum connections must be > 0 (value given: " QLLD ")", min);
       return;
    }
 
    if (max < min) {
-      xsink->raiseException(DSPC_ERR, "maximum connections must be >= min(%d) (value given: "QLLD")", min, max);
+      xsink->raiseException(DSPC_ERR, "maximum connections must be >= min(%d) (value given: " QLLD ")", min, max);
       return;
    }
 
    if (port < 0) {
-      xsink->raiseException(DSPC_ERR, "port value must be zero (meaning use the default port) or positive (value given: "QLLD")", port);
+      xsink->raiseException(DSPC_ERR, "port value must be zero (meaning use the default port) or positive (value given: " QLLD ")", port);
       return;
    }
 

@@ -30,7 +30,10 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_File.h>
+#include "qore/intern/QC_File.h"
+
+DLLEXPORT extern QoreClass* QC_FILEINPUTSTREAM;
+DLLEXPORT extern QoreClass* QC_FILEOUTPUTSTREAM;
 
 #ifdef WORDS_BIGENDIAN
 #define Q_MACHINE_MSB 1
@@ -377,5 +380,14 @@ const stdout = qore(QC_FILE->execSystemConstructor(1));
 
 //! system constant for stderr (file descriptor 2)
 const stderr = qore(QC_FILE->execSystemConstructor(2));
+
+//! system constant for stdin InputStream (file descriptor 0)
+const stdin_stream = qore(QC_FILEINPUTSTREAM->execSystemConstructor(0));
+
+//! system constant for stdout OutputStream (file descriptor 1)
+const stdout_stream = qore(QC_FILEOUTPUTSTREAM->execSystemConstructor(1));
+
+//! system constant for stderr OutputStream (file descriptor 2)
+const stderr_stream = qore(QC_FILEOUTPUTSTREAM->execSystemConstructor(2));
 //@}
 

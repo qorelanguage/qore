@@ -39,8 +39,8 @@
 #ifndef _QORE_MANAGEDDATASOURCE_H
 #define _QORE_MANAGEDDATASOURCE_H
 
-#include <qore/intern/DatasourceStatementHelper.h>
-#include <qore/intern/QoreSQLStatement.h>
+#include "qore/intern/DatasourceStatementHelper.h"
+#include "qore/intern/QoreSQLStatement.h"
 
 #include <set>
 
