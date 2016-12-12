@@ -38,7 +38,7 @@
 #include <assert.h>
 
 // FIXME: needed for the log10() call as a hack in float_minus_infinity_noop() below
-#include <math.h>
+#include <cmath>
 
 // FIXME: xxx set parse location
 static void duplicateSignatureException(const char* cname, const char* name, const AbstractFunctionSignature* sig) {
