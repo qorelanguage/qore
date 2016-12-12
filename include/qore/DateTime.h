@@ -271,6 +271,9 @@ public:
    */
    DLLEXPORT void setTime(int h, int m, int s, short ms = 0);
 
+   //! set the object to a relative date/time value as given in seconds and optionally microseconds
+   DLLEXPORT void setRelativeDateSeconds(int64 s, int us = 0);
+
    DLLEXPORT bool checkValidity() const;
    DLLEXPORT bool isEqual(const DateTime* dt) const;
    DLLEXPORT bool isEqual(const DateTime& dt) const;

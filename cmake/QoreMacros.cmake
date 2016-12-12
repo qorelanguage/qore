@@ -74,6 +74,40 @@ MACRO (QORE_WRAP_QPP_VALUE _cpp_files)
 
 ENDMACRO (QORE_WRAP_QPP_VALUE)
 
+#
+# Create dox code from dox.tmpl files
+#
+#  _dox_files : output dox filenames created in CMAKE_CURRENT_BINARY_DIR
+#
+# usage:
+# set(MY_DOX_TMPL foo.dox.tmpl bar.dox.tmpl)
+# qore_wrap_dox(MY_DOX ${MY_DOX_TMPL})
+#
+MACRO (QORE_WRAP_DOX _dox_files)
+    set(options)
+    set(oneValueArgs)
+    set(multiValueArgs OPTIONS)
+
+    cmake_parse_arguments(_WRAP_QPP "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    FOREACH (it ${_WRAP_QPP_UNPARSED_ARGUMENTS})
+
+        GET_FILENAME_COMPONENT(_outfile ${it} NAME_WE)
+        GET_FILENAME_COMPONENT(_infile ${it} ABSOLUTE)
+        SET(_doxfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.dox)
+
+        ADD_CUSTOM_COMMAND(OUTPUT ${_doxfile}
+                           COMMAND ${QORE_QPP_EXECUTABLE}
+                           ARGS --table=${_infile} --output=${_doxfile}
+                           MAIN_DEPENDENCY ${_infile}
+                           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                           VERBATIM
+                        )
+        SET(${_dox_files} ${${_dox_files}} ${_doxfile})
+    ENDFOREACH (it)
+
+ENDMACRO (QORE_WRAP_DOX)
+
 # Create qore binary module.
 # Arguments:
 #  _module_name - string name of the module
