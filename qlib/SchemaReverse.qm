@@ -466,7 +466,7 @@ class <X_SCHEMA_NAME> inherits AbstractSchema {
             return ret;
         }
 
-        static any columnToQore(AbstractColumn c) {
+        any columnToQore(AbstractColumn c) {
             hash ret = hash();
             #printf("%N\n", c);
             switch (c.native_type) {
@@ -500,7 +500,10 @@ class <X_SCHEMA_NAME> inherits AbstractSchema {
                 #    # TODO/FIXME ret =  ("qore_type": SQL::RAW, "comment": c.comment, "notnull" : !c.nullable);
                 #    break;
                 default:
-                    ret = ( "unknown_column_type" : sprintf("%n", c) );
+                    ret = ( #"unknown_column_type" : sprintf("%n", c),
+                            "driver" : ( self.datasource().getDriverName() : ( "native_type" : c.native_type, "notnull" : !c.nullable )
+                                       )
+                          );
             }
 
             if (exists c.def_val) {
