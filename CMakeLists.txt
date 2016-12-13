@@ -50,15 +50,6 @@ include_directories( ${CMAKE_SOURCE_DIR}/include/qore )
 
 include(CheckIncludeFiles)
 include(GNUInstallDirs)
-# usage: CHECK_INCLUDE_FILES (<header> <RESULT_VARIABLE> )
-#check_include_files(getopt.h HAVE_GETOPT_H)
-#check_include_files(malloc.h HAVE_MALLOC_H)
-#check_include_files("sys/param.h;sys/mount.h" HAVE_SYS_MOUNT_H)
-#configure_file(${CMAKE_SOURCE_DIR}/include/qore/intern/unix-config.h.in
-#               ${CMAKE_BINARY_DIR}/include/qore/intern/unix-config.h)
-#add_definitions(-DHAVE_UNIX_CONFIG_H)
-#add_definitions(-DHAVE_GETOPT_H)
-#add_definitions(-DHAVE_STRCASESTR)
 
 set(prefix ${CMAKE_INSTALL_PREFIX})
 set(exec_prefix ${CMAKE_INSTALL_PREFIX})
@@ -75,105 +66,105 @@ set(USER_MODULE_VER_DIR ${USER_MODULE_DIR}${VERSION})
 
 
 set(LIBQORE_QPP_SRC
-	lib/QC_AbstractSmartLock.qpp
-	lib/QC_AbstractThreadResource.qpp
-	lib/QC_AutoGate.qpp
-	lib/QC_AutoLock.qpp
-	lib/QC_AutoReadLock.qpp
-	lib/QC_AutoWriteLock.qpp
-	lib/QC_Condition.qpp
-	lib/QC_Counter.qpp
-	lib/QC_AbstractIterator.qpp
-	lib/QC_AbstractQuantifiedIterator.qpp
-	lib/QC_AbstractBidirectionalIterator.qpp
-	lib/QC_AbstractQuantifiedBidirectionalIterator.qpp
-	lib/QC_ListIterator.qpp
-	lib/QC_ListReverseIterator.qpp
-	lib/QC_HashIterator.qpp
-	lib/QC_HashReverseIterator.qpp
-	lib/QC_HashKeyIterator.qpp
-	lib/QC_HashKeyReverseIterator.qpp
-	lib/QC_HashPairIterator.qpp
-	lib/QC_HashPairReverseIterator.qpp
-	lib/QC_ObjectIterator.qpp
-	lib/QC_ObjectReverseIterator.qpp
-	lib/QC_ObjectKeyIterator.qpp
-	lib/QC_ObjectKeyReverseIterator.qpp
-	lib/QC_ObjectPairIterator.qpp
-	lib/QC_ObjectPairReverseIterator.qpp
-	lib/QC_HashListIterator.qpp
-	lib/QC_HashListReverseIterator.qpp
-	lib/QC_ListHashIterator.qpp
-	lib/QC_ListHashReverseIterator.qpp
-	lib/QC_AbstractLineIterator.qpp
-	lib/QC_FileLineIterator.qpp
-	lib/QC_DataLineIterator.qpp
-	lib/QC_InputStreamLineIterator.qpp
-	lib/QC_SingleValueIterator.qpp
-	lib/QC_AbstractDatasource.qpp
-	lib/QC_RangeIterator.qpp
-	lib/QC_Datasource.qpp
-	lib/QC_DatasourcePool.qpp
-	lib/QC_Dir.qpp
-	lib/QC_ReadOnlyFile.qpp
-	lib/QC_File.qpp
-	lib/QC_FtpClient.qpp
-	lib/QC_Gate.qpp
-	lib/QC_GetOpt.qpp
-	lib/QC_HTTPClient.qpp
-	lib/QC_Mutex.qpp
-	lib/QC_Program.qpp
-	lib/QC_Queue.qpp
-	lib/QC_RWLock.qpp
-	lib/QC_SQLStatement.qpp
-	lib/QC_Sequence.qpp
-	lib/QC_Socket.qpp
-	lib/QC_TermIOS.qpp
-	lib/QC_TimeZone.qpp
-	lib/QC_TreeMap.qpp
-	lib/QC_SSLCertificate.qpp
-	lib/QC_SSLPrivateKey.qpp
-	lib/QC_ThreadPool.qpp
-	lib/QC_InputStream.qpp
-	lib/QC_BinaryInputStream.qpp
-	lib/QC_StringInputStream.qpp
-	lib/QC_FileInputStream.qpp
-	lib/QC_EncodingConversionInputStream.qpp
-	lib/QC_OutputStream.qpp
-	lib/QC_BinaryOutputStream.qpp
-	lib/QC_StringOutputStream.qpp
-	lib/QC_FileOutputStream.qpp
-	lib/QC_EncodingConversionOutputStream.qpp
-	lib/QC_StreamPipe.qpp
-	lib/QC_PipeInputStream.qpp
-	lib/QC_PipeOutputStream.qpp
-	lib/QC_StreamWriter.qpp
-	lib/QC_StreamReader.qpp
-	lib/QC_BufferedStreamReader.qpp
-	lib/QC_Transform.qpp
-	lib/QC_TransformInputStream.qpp
-	lib/QC_TransformOutputStream.qpp
-	lib/QC_StdoutOutputStream.qpp
-	lib/QC_StderrOutputStream.qpp
-	lib/ql_misc.qpp
-	lib/ql_compression.qpp
-	lib/ql_thread.qpp
-	lib/ql_crypto.qpp
-	lib/ql_lib.qpp
-	lib/ql_file.qpp
-	lib/ql_string.qpp
-	lib/ql_time.qpp
-	lib/ql_math.qpp
-	lib/ql_list.qpp
-	lib/ql_type.qpp
-	lib/ql_pwd.qpp
-	lib/ql_object.qpp
-	lib/ql_env.qpp
-	lib/ql_dbi.qpp
-	lib/ql_context.qpp
-	lib/qc_option.qpp
-	lib/qc_errno.qpp
-	lib/qc_qore.qpp
+    lib/QC_AbstractSmartLock.qpp
+    lib/QC_AbstractThreadResource.qpp
+    lib/QC_AutoGate.qpp
+    lib/QC_AutoLock.qpp
+    lib/QC_AutoReadLock.qpp
+    lib/QC_AutoWriteLock.qpp
+    lib/QC_Condition.qpp
+    lib/QC_Counter.qpp
+    lib/QC_AbstractIterator.qpp
+    lib/QC_AbstractQuantifiedIterator.qpp
+    lib/QC_AbstractBidirectionalIterator.qpp
+    lib/QC_AbstractQuantifiedBidirectionalIterator.qpp
+    lib/QC_ListIterator.qpp
+    lib/QC_ListReverseIterator.qpp
+    lib/QC_HashIterator.qpp
+    lib/QC_HashReverseIterator.qpp
+    lib/QC_HashKeyIterator.qpp
+    lib/QC_HashKeyReverseIterator.qpp
+    lib/QC_HashPairIterator.qpp
+    lib/QC_HashPairReverseIterator.qpp
+    lib/QC_ObjectIterator.qpp
+    lib/QC_ObjectReverseIterator.qpp
+    lib/QC_ObjectKeyIterator.qpp
+    lib/QC_ObjectKeyReverseIterator.qpp
+    lib/QC_ObjectPairIterator.qpp
+    lib/QC_ObjectPairReverseIterator.qpp
+    lib/QC_HashListIterator.qpp
+    lib/QC_HashListReverseIterator.qpp
+    lib/QC_ListHashIterator.qpp
+    lib/QC_ListHashReverseIterator.qpp
+    lib/QC_AbstractLineIterator.qpp
+    lib/QC_FileLineIterator.qpp
+    lib/QC_DataLineIterator.qpp
+    lib/QC_InputStreamLineIterator.qpp
+    lib/QC_SingleValueIterator.qpp
+    lib/QC_AbstractDatasource.qpp
+    lib/QC_RangeIterator.qpp
+    lib/QC_Datasource.qpp
+    lib/QC_DatasourcePool.qpp
+    lib/QC_Dir.qpp
+    lib/QC_ReadOnlyFile.qpp
+    lib/QC_File.qpp
+    lib/QC_FtpClient.qpp
+    lib/QC_Gate.qpp
+    lib/QC_GetOpt.qpp
+    lib/QC_HTTPClient.qpp
+    lib/QC_Mutex.qpp
+    lib/QC_Program.qpp
+    lib/QC_Queue.qpp
+    lib/QC_RWLock.qpp
+    lib/QC_SQLStatement.qpp
+    lib/QC_Sequence.qpp
+    lib/QC_Socket.qpp
+    lib/QC_TermIOS.qpp
+    lib/QC_TimeZone.qpp
+    lib/QC_TreeMap.qpp
+    lib/QC_SSLCertificate.qpp
+    lib/QC_SSLPrivateKey.qpp
+    lib/QC_ThreadPool.qpp
+    lib/QC_InputStream.qpp
+    lib/QC_BinaryInputStream.qpp
+    lib/QC_StringInputStream.qpp
+    lib/QC_FileInputStream.qpp
+    lib/QC_EncodingConversionInputStream.qpp
+    lib/QC_OutputStream.qpp
+    lib/QC_BinaryOutputStream.qpp
+    lib/QC_StringOutputStream.qpp
+    lib/QC_FileOutputStream.qpp
+    lib/QC_EncodingConversionOutputStream.qpp
+    lib/QC_StreamPipe.qpp
+    lib/QC_PipeInputStream.qpp
+    lib/QC_PipeOutputStream.qpp
+    lib/QC_StreamWriter.qpp
+    lib/QC_StreamReader.qpp
+    lib/QC_BufferedStreamReader.qpp
+    lib/QC_Transform.qpp
+    lib/QC_TransformInputStream.qpp
+    lib/QC_TransformOutputStream.qpp
+    lib/QC_StdoutOutputStream.qpp
+    lib/QC_StderrOutputStream.qpp
+    lib/ql_misc.qpp
+    lib/ql_compression.qpp
+    lib/ql_thread.qpp
+    lib/ql_crypto.qpp
+    lib/ql_lib.qpp
+    lib/ql_file.qpp
+    lib/ql_string.qpp
+    lib/ql_time.qpp
+    lib/ql_math.qpp
+    lib/ql_list.qpp
+    lib/ql_type.qpp
+    lib/ql_pwd.qpp
+    lib/ql_object.qpp
+    lib/ql_env.qpp
+    lib/ql_dbi.qpp
+    lib/ql_context.qpp
+    lib/qc_option.qpp
+    lib/qc_errno.qpp
+    lib/qc_qore.qpp
 )
 
 set(PSEUDO_QPP_SRC
@@ -224,6 +215,16 @@ set(QMOD
     qlib/WebSocketHandler.qm
     qlib/WebSocketUtil.qm
     qlib/WebUtil.qm
+)
+
+set(QORE_BIN_FILES
+    doxygen/qdx
+    bin/qget
+    bin/rest
+    bin/schema
+    bin/schema-reverse
+    bin/sfrest
+    bin/sqlutil
 )
 
 set(QORE_DOX_TMPL_SRC
@@ -579,19 +580,19 @@ set(LIBQORE_CPP_SRC
     )
 
 if (HAVE_SIGNAL_HANDLING)
-        set(LIBQORE_CPP_SRC ${LIBQORE_CPP_SRC} lib/QoreSignal.cpp)
+    set(LIBQORE_CPP_SRC ${LIBQORE_CPP_SRC} lib/QoreSignal.cpp)
 endif ()
 if (NOT HAVE_GLOB)
-        set(LIBQORE_CPP_SRC ${LIBQORE_CPP_SRC} lib/glob.cpp)
+    set(LIBQORE_CPP_SRC ${LIBQORE_CPP_SRC} lib/glob.cpp)
 endif ()
 if (NOT HAVE_INET_NTOP)
-        set(LIBQORE_CPP_SRC ${LIBQORE_CPP_SRC} lib/inet_ntop.cpp)
+    set(LIBQORE_CPP_SRC ${LIBQORE_CPP_SRC} lib/inet_ntop.cpp)
 endif ()
 if (NOT HAVE_INET_PTON)
-        set(LIBQORE_CPP_SRC ${LIBQORE_CPP_SRC} lib/inet_pton.cpp)
+    set(LIBQORE_CPP_SRC ${LIBQORE_CPP_SRC} lib/inet_pton.cpp)
 endif ()
 if (${QORE_BUILD_TYPE_LWR} MATCHES "debug")
-        set(LIBQORE_CPP_SRC ${LIBQORE_CPP_SRC} lib/ql_debug.cpp)
+    set(LIBQORE_CPP_SRC ${LIBQORE_CPP_SRC} lib/ql_debug.cpp)
 endif ()
 
 add_library(libqore SHARED ${LIBQORE_QPP_CPP_SRC} ${LIBQORE_CPP_SRC} ${LIBQORE_ASM_SRC})
@@ -637,23 +638,12 @@ configure_file(${CMAKE_SOURCE_DIR}/cmake/QoreConfig.cmake.in
 configure_file(${CMAKE_SOURCE_DIR}/qore.pc.in
                ${CMAKE_BINARY_DIR}/qore.pc @ONLY)
 
-install(PROGRAMS doxygen/qdx
+install(PROGRAMS ${QORE_BIN_FILES}
         DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
-install(PROGRAMS bin/qget
-        DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
-install(PROGRAMS bin/rest
-        DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
-install(PROGRAMS bin/schema
-        DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
-install(PROGRAMS bin/schema-reverse
-        DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
-install(PROGRAMS bin/sfrest
-        DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
-install(PROGRAMS bin/sqlutil
-        DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
+
 install(TARGETS qore qpp qr libqore
-	RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
-	LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
+        RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
 install(FILES ${CMAKE_BINARY_DIR}/cmake/QoreConfig.cmake ${CMAKE_BINARY_DIR}/cmake/QoreConfigVersion.cmake cmake/QoreMacros.cmake
         DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/cmake/Qore)
 install(FILES ${CMAKE_BINARY_DIR}/qore.pc
@@ -714,7 +704,7 @@ endif (DOXYGEN_FOUND)
 #       for qore core qlib modules.
 # NOTE: anything below will be installed into versioned dirs!
 set(QORE_USER_MODULES_DIR ${USER_MODULE_VER_DIR})
-# modules must go after docs target - it’s depending on it
+# modules must go after docs target - it's depending on it
 qore_user_modules("${QMOD}")
 
 
