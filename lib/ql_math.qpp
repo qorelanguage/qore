@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,13 +30,15 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ql_math.h>
-#include <qore/intern/qore_number_private.h>
+#include "qore/intern/ql_math.h"
+#include "qore/intern/qore_number_private.h"
 
 #include <cmath>
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
+#include <string>
+using namespace std;
 
 static double minus_infinity() {
 #ifdef INFINITY
@@ -75,39 +77,76 @@ const MININT = qore(new QoreBigIntNode(-LLONG_MAX - 1));
 */
 //@{
 
-//! Returns a number equal to the closest integer to the argument passed; numbers halfway between two integers are rounded away from zero
-/** @param n a number to round
-
-    @return a number equal to the closest integer to the argument passed; numbers halfway between two integers are rounded away from zero
-
-    @par Example:
-    @code{.py}
-number n = round(num);
-    @endcode
- */
-number round(number n) [flags=CONSTANT] {
-   return qore_number_private::doUnaryNR(*n, mpfr_round);
+//! Returns the multiple of <b>-prec</b>-th power of 10 that is closest to <b>num</b> (numbers halfway between two such powers of 10 are rounded away from zero). (So, for non-negative <b>prec</b> just returns <b>num</b>).
+/** @param num an integer number to round
+  * @param prec precision
+  *
+  * @par Example:
+  * @code{.py}
+  *     round(-6450, -2);  // returns  -6500
+  *     round( 6450, -3);  // returns   6000
+  *     round(-6450, -4);  // returns -10000
+  *     round( 6450, -5);  // returns      0
+  * @endcode
+  *
+  * @since %Qore 0.8.13 this function accepts the <b>prec</b> argument to specify the rounding precision
+  */
+int round(softint num, int prec = 0) [flags=CONSTANT] {
+    return round_ceil_floor_intern(num, prec, ROUND);
 }
 
-//! Returns a floating-point number equal to the closest integer to the argument passed; numbers halfway between two integers are rounded away from zero
+//! Returns the multiple of <b>-prec</b>-th power of 10 that is closest to <b>num</b> (numbers halfway between two such powers of 10 are rounded away from zero).
 /** @par Platform Availability
-    @ref Qore::Option::HAVE_ROUND
-
-    @param f a number to round
-
-    @return a floating-point number equal to the closest integer to the argument passed; numbers halfway between two integers are rounded away from zero
-
-    @par Example:
-    @code{.py}
-float n = round(num);
-    @endcode
- */
-float round(softfloat f) [flags=CONSTANT] {
+  * @ref Qore::Option::HAVE_ROUND
+  * @param num a number to round
+  * @param prec precision
+  *
+  * @par Example:
+  * @code{.py}
+  *     round( 6450.36481,  3);  // returns  6450.365
+  *     round(-6450.36481,  2);  // returns -6450.36
+  *     round( 6450.36481, -2);  // returns  6500.0
+  *     round(-6450.36481, -3);  // returns -6000.0
+  *     round( 6450.36481, -4);  // returns 10000.0
+  *     round(-6450.36481, -5);  // returns     0.0
+  * @endcode
+  *
+  * @since %Qore 0.8.13 this function accepts the <b>prec</b> argument to specify the rounding precision
+  */
+float round(softfloat num, int prec = 0) [flags=CONSTANT] {
 #ifdef HAVE_ROUND
-   return round(f);
+    if (prec > 0) {
+        int c = pow(10, prec);
+        return round(c*num)/c;
+    }
+    if (prec < 0) {
+        int c = pow(10, -prec);
+        return c*round(num/c);
+    }
+    return round(num);
 #else
-   return missing_function_error("round", "ROUND", xsink);
+    return missing_function_error("round", "ROUND", xsink);
 #endif
+}
+
+//! Returns the multiple of <b>-prec</b>-th power of 10 that is closest to <b>num</b> (numbers halfway between two such powers of 10 are rounded away from zero).
+/** @param num a number to round
+  * @param prec precision
+  *
+  * @par Example:
+  * @code{.py}
+  *     round( 645084.36481772n,  5);  // returns  645084.36482n
+  *     round(-645084.36481772n,  3);  // returns -645084.365n
+  *     round( 645084.36481772n, -4);  // returns  650000n
+  *     round(-645084.36481772n, -5);  // returns -600000n
+  *     round( 645084.36481772n, -6);  // returns 1000000n
+  *     round(-645084.36481772n, -7);  // returns       0n
+  * @endcode
+  *
+  * @since %Qore 0.8.13 this function accepts the <b>prec</b> argument to specify the rounding precision
+  */
+number round(number num, int prec = 0) [flags=CONSTANT] {
+    return qore_number_private::doRoundNR(*num, mpfr_round, prec);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -117,38 +156,76 @@ float round() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
-//! Returns a number equal to the smallest integral value greater than or equal to the argument passed
-/**
-    @param n the value to process
-
-    @return a number equal to the smallest integral value greater than or equal to the argument passed
-
-    @par Example:
-    @code{.py}
-number x = ceil(3.2n); # returns 4.0n
-    @endcode
-
-    @see floor(number)
- */
-number ceil(number n) [flags=CONSTANT] {
-   return qore_number_private::doUnaryNR(*n, mpfr_ceil);
+//! Returns the smallest multiple of <b>-prec</b>-th power of 10 that is greater than or equal to <b>num</b>. (Thus, for non-negative <b>prec</b> just returns <b>num</b>).
+/** @param num an integer number to process (to round upwards)
+  * @param prec precision
+  *
+  * @par Example:
+  * @code{.py}
+  *     ceil( 64501, -2);  // returns 64600
+  *     ceil(-64999, -3);  // returns -64000
+  *     ceil( 34500, -8);  // returns 100000000
+  *     ceil(-34500, -8);  // returns 0
+  * @endcode
+  *
+  * @see floor(softint num, int prec = 0)
+  *
+  * @since %Qore 0.8.13 this function accepts the <b>prec</b> argument to specify the rounding precision
+  */
+int ceil(softint num, int prec = 0) [flags=CONSTANT] {
+    return round_ceil_floor_intern(num, prec, CEIL);
 }
 
-//! Returns a floating-point number equal to the smallest integral value greater than or equal to the argument passed
-/**
-    @param f the value to process
+//! Returns the smallest multiple of <b>-prec</b>-th power of 10 that is greater than or equal to <b>num</b>.
+/** @param num the number to process (to round upwards)
+  * @param prec precision
+  *
+  * @par Example:
+  * @code{.py}
+  *     ceil(   357.271, 2);  // returns 357.28
+  *     ceil(  -357.271, 1);  // returns -357.2
+  *     ceil(-64599.28, -2);  // returns -64500.0
+  *     ceil( 14500.28, -4);  // returns 20000.0
+  *     ceil( 34500.28, -7);  // returns 10000000.0
+  *     ceil(-34500.28, -7);  // returns 0.0
+  * @endcode
+  *
+  * @see floor(softfloat num, int prec = 0)
+  *
+  * @since %Qore 0.8.13 this function accepts the <b>prec</b> argument to specify the rounding precision
+  */
+float ceil(softfloat num, int prec = 0) [flags=CONSTANT] {
+    if (prec > 0) {
+        int c = pow(10, prec);
+        return ceil(c*num)/c;
+    }
+    if (prec < 0) {
+        int c = pow(10, -prec);
+        return c*ceil(num/c);
+    }
+    return ceil(num);
+}
 
-    @return a floating-point number equal to the smallest integral value greater than or equal to the argument passed
-
-    @par Example:
-    @code{.py}
-float x = ceil(3.2); # returns 4.0
-    @endcode
-
-    @see floor(softfloat)
- */
-float ceil(softfloat f) [flags=CONSTANT] {
-   return ceil(f);
+//! Returns the smallest multiple of <b>-prec</b>-th power of 10 that is greater than or equal to <b>num</b>.
+/** @param num the number to process (to round upwards)
+  * @param prec precision
+  *
+  * @par Example:
+  * @code{.py}
+  *     ceil(   357.271n, 2);  // returns 357.28n
+  *     ceil(  -357.271n, 1);  // returns -357.2n
+  *     ceil(-64599.28n, -2);  // returns -64500n
+  *     ceil( 14500n,    -4);  // returns 20000n
+  *     ceil( 34500.28n, -7);  // returns 10000000n
+  *     ceil(-34500.28n, -7);  // returns 0n
+  * @endcode
+  *
+  * @see floor(number num, int prec = 0)
+  *
+  * @since %Qore 0.8.13 this function accepts the <b>prec</b> argument to specify the rounding precision
+  */
+number ceil(number n, int prec = 0) [flags=CONSTANT] {
+    return qore_number_private::doRoundNR(*n, mpfr_ceil, prec);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -158,34 +235,76 @@ float ceil() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
-//! Returns a number equal to the largest integral value less than or equal to the argument passed
-/**
-    @param n the value to process
-
-    @par Example:
-    @code{.py}
-number x = floor(3.9n); # returns 3.0n
-    @endcode
-
-    @see ceil(number)
- */
-number floor(softnumber n) [flags=CONSTANT] {
-   return qore_number_private::doUnaryNR(*n, mpfr_floor);
+//! Returns the largest multiple of <b>-prec</b>-th power of 10 that is less than or equal to <b>num</b>. (Thus, for non-negative <b>prec</b> just returns <b>num</b>).
+/** @param num an integer number to process (to round downwards)
+  * @param prec precision
+  *
+  * @par Example:
+  * @code{.py}
+  *     floor(-64501, -2);  // returns -64600
+  *     floor( 64999, -3);  // returns 64000
+  *     floor(-34500, -8);  // returns -100000000
+  *     floor( 34500, -8);  // returns 0
+  * @endcode
+  *
+  * @see ceil(softint num, int prec = 0)
+  *
+  * @since %Qore 0.8.13 this function accepts the <b>prec</b> argument to specify the rounding precision
+  */
+int floor(softint num, int prec = 0) [flags=CONSTANT] {
+    return round_ceil_floor_intern(num, prec, FLOOR);
 }
 
-//! Returns a floating-point number equal to the largest integral value less than or equal to the argument passed
-/**
-    @param f the value to process
+//! Returns the largest multiple of <b>-prec</b>-th power of 10 that is less than or equal to <b>num</b>.
+/** @param num the number to process (to round downwards)
+  * @param prec precision
+  *
+  * @par Example:
+  * @code{.py}
+  *     floor(   357.271, 2);  // returns 357.27
+  *     floor(  -357.271, 1);  // returns -357.3
+  *     floor( 64599.28, -2);  // returns 64500.0
+  *     floor( 17500.28, -4);  // returns 10000.0
+  *     floor( 34500.28, -7);  // returns 0.0
+  *     floor(-34500.28, -7);  // returns -10000000.0
+  * @endcode
+  *
+  * @see ceil(softfloat num, int prec = 0)
+  *
+  * @since %Qore 0.8.13 this function accepts the <b>prec</b> argument to specify the rounding precision
+  */
+float floor(softfloat f, int prec = 0) [flags=CONSTANT] {
+    if (prec > 0) {
+        int c = pow(10, prec);
+        return floor(c*f)/c;
+    }
+    if (prec < 0) {
+        int c = pow(10, -prec);
+        return c*floor(f/c);
+    }
+    return floor(f);
+}
 
-    @par Example:
-    @code{.py}
-float x = floor(3.9); # returns 3.0
-    @endcode
-
-    @see ceil(softfloat)
- */
-float floor(softfloat f) [flags=CONSTANT] {
-   return floor(f);
+//! Returns the largest multiple of <b>-prec</b>-th power of 10 that is less than or equal to <b>num</b>.
+/** @param num the number to process (to round downwards)
+  * @param prec precision
+  *
+  * @par Example:
+  * @code{.py}
+  *     floor(   357.271n, 2);  // returns 357.27n
+  *     floor(  -357.271n, 1);  // returns -357.3n
+  *     floor( 64599.28n, -2);  // returns 64500n
+  *     floor( 17500.28n, -4);  // returns 10000n
+  *     floor( 34500.28n, -7);  // returns 0n
+  *     floor(-34500.28n, -7);  // returns -10000000n
+  * @endcode
+  *
+  * @see ceil(number num, int prec = 0)
+  *
+  * @since %Qore 0.8.13 this function accepts the <b>prec</b> argument to specify the rounding precision
+  */
+number floor(number n, int prec = 0) [flags=CONSTANT] {
+    return qore_number_private::doRoundNR(*n, mpfr_floor, prec);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -1022,3 +1141,26 @@ float expm1() [flags=RUNTIME_NOOP] {
    return 0;
 }
 //@}
+
+typedef enum {ROUND, CEIL, FLOOR} FUN;
+long long round_ceil_floor_intern(long long num, int prec, FUN fun) {
+    if (prec >= 0)
+        return num;
+
+    string s = string(to_string(LLONG_MAX).length() + 4, '0') + to_string(num < 0 ? -num : num);
+    int len = s.length();
+    if (len < -prec)
+        return 0;
+
+    int pos = len + prec;
+    unsigned long long n = stoll(s.substr(0, pos));
+
+    switch (fun) {
+        case ROUND: if (s[pos] - '0' > 4)                 n++; break;
+        case CEIL:  if (num >= 0 && stoll(s.substr(pos))) n++; break;
+        case FLOOR: if (num <  0 && stoll(s.substr(pos))) n++;
+    }
+
+    unsigned long long res = stoll(to_string(n) + string(-prec, '0'));
+    return num < 0 ? -res : res;
+}
