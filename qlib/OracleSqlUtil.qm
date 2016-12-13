@@ -2342,7 +2342,7 @@ my any $v = $c.name;
                     case "BLOB":
                     case "CLOB": size = 0; break;
                 }
-                # there i sno size for NTY objects (not listed in registered types in OraTypeMap)
+                # there is no size for NTY objects (not listed in registered types in OraTypeMap)
                 if (!exists th) {
                     size = 0;
                 }
