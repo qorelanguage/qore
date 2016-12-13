@@ -4996,7 +4996,6 @@ AbstractColumn c = cols.id;
         #! returns the string describing the native type that can be used in SQL (for example to add the colunn to a table or when creating the table)
         string getNativeTypeString() {
             string sql = native_type;
-
             if (size)
                 sql += sprintf("(%d)", size);
             return sql;
