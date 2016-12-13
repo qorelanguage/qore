@@ -10320,22 +10320,28 @@ string sql = table.getDropTriggerSql("trig_mytable");
             validateOptionsIntern("COLUMN-ERROR", copt, \opt, sprintf("%s.%s", name, cname));
 
             hash otm = getTypeMapImpl();
+            hash th;
 
-            if (!opt.native_type) {
-                hash qtm = getQoreTypeMapImpl();
-                opt.native_type = qtm{opt.qore_type};
-                if (!opt.native_type)
-                    throw "COLUMN-ERROR", sprintf("%s column %y: qore type %y cannot be mapped to a column type (valid values: %y)", getDesc(), cname, opt.qore_type, qtm.keys());
+            # first try to handle non-registered type (like eg. Oracle's objects)
+            if (opt.native_type && !otm.hasKey(opt.native_type) && !opt.qore_type) {
+                opt.qore_type = "any";
             }
-            else if (!otm{opt.native_type})
-                throw "COLUMN-ERROR", sprintf("%s column %s: unknown native_type %y (valid values: %y)", getDesc(), cname, opt.native_type, otm.keys());
+            else {
+                # get native_type from registered maps
+                if (!opt.native_type) {
+                    hash qtm = getQoreTypeMapImpl();
+                    opt.native_type = qtm{opt.qore_type};
+                    if (!opt.native_type)
+                        throw "COLUMN-ERROR", sprintf("%s column %y: qore type %y cannot be mapped to a column type (valid values: %y)", getDesc(), cname, opt.qore_type, qtm.keys());
+                }
 
-            # get native type description
-            hash th = otm{opt.native_type};
+                # get native type description
+                th = otm{opt.native_type};
 
-            # reset qore type from native type
-            opt.qore_type = th.qore;
-            opt.local_def = th;
+                # reset qore type from native type
+                opt.qore_type = th.qore;
+                opt.local_def = th;
+            }
 
             if (exists opt.size) {
                 if (!th.size)
@@ -10369,7 +10375,7 @@ string sql = table.getDropTriggerSql("trig_mytable");
 
             # check type of default value (must match column type)
             if (exists opt.default_value && !opt.default_value_native) {
-                checkValue(cname, "default_value", \opt.default_value, th.qore);
+                checkValue(cname, "default_value", \opt.default_value, opt.qore_type);
                 opt.default_value = getSqlValue(opt.default_value);
             }
         }

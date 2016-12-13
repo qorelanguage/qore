@@ -1,0 +1,115 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Qorize.qm
+%requires ../../../../qlib/SqlUtil.qm
+%requires ../../../../qlib/Schema.qm
+%requires ../../../../qlib/SchemaReverse.qm
+
+%exec-class Main
+
+
+#
+# NOTE: the SchemaReverse is automatic hash/string creator. So the reference
+#       (REF...) constants must be more strict than in user code.
+#       Example: if there is something like string or list, list should be used:
+#       ("columns" : ("id",), "unique" : True))...
+#
+our hash REF_TABLE;
+our hash REF_SCHEMA;
+
+class Main inherits QUnit::Test {
+
+    private {
+        const LOCAL_OPTS = Opts + (
+            "connstr": "c,conn=s",
+            );
+
+        Datasource m_ds;
+        Database m_db;
+    }
+
+    constructor() : QUnit::Test("SchemaReverseTest", "1.0", \ARGV, LOCAL_OPTS) {
+        addTestCase("schema reverse - table", \testSchemaReverseTable());
+        addTestCase("schema reverse - tables", \testSchemaReverseTables());
+        addTestCase("schema reverse - sequence", \testSchemaReverseSequence());
+        addTestCase("schema reverse - sequences", \testSchemaReverseSequences());
+
+        set_return_value(main());
+    }
+
+    private globalMakeSchema(string method) {
+        on_exit m_ds.commit();
+        list sql = call_object_method(m_db, method, REF_SCHEMA);
+        ListIterator it(sql);
+        while (it.next()) {
+            m_ds.exec(it.getValue());
+        }
+    }
+
+    globalSetUp() {
+        if (!m_options.connstr)
+            m_options.connstr = ENV.QORE_DB_CONNSTR ? ENV.QORE_DB_CONNSTR : (ENV.QORE_DB_CONNSTR_ORACLE ? ENV.QORE_DB_CONNSTR_ORACLE : ENV.QORE_DB_CONNSTR_PGSQL);
+
+        m_ds = new Datasource(m_options.connstr);
+        m_db = new Database(m_ds);
+
+        REF_TABLE = (
+            "columns" : (
+                "id" : c_number(C_NOT_NULL, "comment for id"),
+                "foo" : c_varchar(10, C_NULL, "comment for foo"),
+                "bar" : c_date(C_NOT_NULL, "comment for bar"),
+            ),
+            "indexes" : ( "schema_reverse_ix1" : ("columns" : ("id",), "unique" : True)),
+        );
+        # named types data
+        if (m_ds.getDriverName() == "oracle") {
+            REF_TABLE.columns.loc_col = ( "driver" : ( "oracle" : ("native_type" : "sdo_geometry", "notnull" : False )));
+        }
+
+        REF_SCHEMA = (
+            "sequences" : (
+                "schema_reverse_seq" : hash(),
+            ),
+            "tables" : (
+                "schema_reverse_t1" : REF_TABLE,
+            ),
+        );
+
+        globalMakeSchema("getAlignSql");
+    }
+
+    globalTearDown() {
+        globalMakeSchema("getDropSchemaSql");
+    }
+
+    testSchemaReverseTable() {
+        TableReverse r(m_ds, "schema_reverse_t1");
+        hash q = r.toQore();
+        assertEq(REF_TABLE, q, "TableReverse::toQore()");
+    }
+
+    testSchemaReverseTables() {
+        TablesReverse r(m_ds, "schema_reverse_t1");
+        hash q = r.toQore();
+        assertEq(REF_SCHEMA.tables, q, "TableReverse::toQore()");
+    }
+
+    testSchemaReverseSequence() {
+        SequenceReverse r(m_ds, "schema_reverse_seq");
+        hash q = r.toQore();
+        assertEq(REF_SCHEMA.sequences.schema_reverse_seq, q, "SequenceReverse::toQore()");
+    }
+
+    testSchemaReverseSequences() {
+        SequencesReverse r(m_ds, "schema_reverse_seq");
+        hash q = r.toQore();
+        assertEq(REF_SCHEMA.sequences, q, "SequencesReverse::toQore()");
+    }
+} # class Main

@@ -599,6 +599,8 @@ install(PROGRAMS bin/rest
         DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
 install(PROGRAMS bin/schema
         DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
+install(PROGRAMS bin/schema-reverse
+        DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
 install(PROGRAMS bin/sfrest
         DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
 install(PROGRAMS bin/sqlutil
