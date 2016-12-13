@@ -2342,6 +2342,10 @@ my any $v = $c.name;
                     case "BLOB":
                     case "CLOB": size = 0; break;
                 }
+                # there is no size for NTY objects (not listed in registered types in OraTypeMap)
+                if (!exists th) {
+                    size = 0;
+                }
 
                 # set default numeric precision to 0 if not given
                 if (row.data_precision === NULL && row.data_type == "NUMBER") {

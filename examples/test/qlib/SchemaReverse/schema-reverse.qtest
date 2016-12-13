@@ -20,27 +20,8 @@
 #       Example: if there is something like string or list, list should be used:
 #       ("columns" : ("id",), "unique" : True))...
 #
-
-const REF_TABLE = (
-        "columns" : (
-                "id" : c_number(C_NOT_NULL, "comment for id"),
-                "foo" : c_varchar(10, C_NULL, "comment for foo"),
-                "bar" : c_date(C_NOT_NULL, "comment for bar"),
-            ),
-        "indexes" : ( "schema_reverse_ix1" : ("columns" : ("id",), "unique" : True)),
-    );
-
-const REF_SCHEMA = (
-        "sequences" : (
-                "schema_reverse_seq" : hash(),
-            ),
-        "tables" : (
-                "schema_reverse_t1" : REF_TABLE,
-            ),
-        #"views" : (
-        #        "schema_reverse_v" : ( "src" : "select * from schema_reverse_t1"),
-        #    ),
-    );
+our hash REF_TABLE;
+our hash REF_SCHEMA;
 
 class Main inherits QUnit::Test {
 
@@ -77,6 +58,28 @@ class Main inherits QUnit::Test {
 
         m_ds = new Datasource(m_options.connstr);
         m_db = new Database(m_ds);
+
+        REF_TABLE = (
+            "columns" : (
+                "id" : c_number(C_NOT_NULL, "comment for id"),
+                "foo" : c_varchar(10, C_NULL, "comment for foo"),
+                "bar" : c_date(C_NOT_NULL, "comment for bar"),
+            ),
+            "indexes" : ( "schema_reverse_ix1" : ("columns" : ("id",), "unique" : True)),
+        );
+        # named types data
+        if (m_ds.getDriverName() == "oracle") {
+            REF_TABLE.columns.loc_col = ( "driver" : ( "oracle" : ("native_type" : "sdo_geometry", "notnull" : False )));
+        }
+
+        REF_SCHEMA = (
+            "sequences" : (
+                "schema_reverse_seq" : hash(),
+            ),
+            "tables" : (
+                "schema_reverse_t1" : REF_TABLE,
+            ),
+        );
 
         globalMakeSchema("getAlignSql");
     }
