@@ -172,8 +172,8 @@ MACRO (QORE_BINARY_MODULE _module_name _version)
     # docs
     FIND_PACKAGE(Doxygen)
     if (DOXYGEN_FOUND)
-        if (EXISTS "${CMAKE_SOURCE_DIR}/docs/Doxyfile.in")
-            configure_file(${CMAKE_SOURCE_DIR}/docs/Doxyfile.in ${CMAKE_BINARY_DIR}/Doxyfile @ONLY)
+        if (EXISTS "${QORE_USERMODULE_DOXYGEN_TEMPLATE}")
+            configure_file(${QORE_USERMODULE_DOXYGEN_TEMPLATE} ${CMAKE_BINARY_DIR}/Doxyfile @ONLY)
 
             add_custom_target(docs
                 ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/Doxyfile
@@ -187,7 +187,7 @@ MACRO (QORE_BINARY_MODULE _module_name _version)
             message(STATUS "documentation target: make docs")
             message(STATUS "")
         else()
-            message(WARNING "file does not exits: ${CMAKE_SOURCE_DIR}/docs/Doxyfile.in")
+            message(WARNING "file does not exits: ${QORE_USERMODULE_DOXYGEN_TEMPLATE}")
         endif()
 
     else (DOXYGEN_FOUND)
@@ -208,7 +208,7 @@ MACRO (QORE_USER_MODULES _inputs)
             get_filename_component(f ${i} NAME_WE)
             message(STATUS "Doxyfile for ${f}")
             set(QORE_QMOD_FNAME ${f}) # used for configure_file line below
-            configure_file(${CMAKE_SOURCE_DIR}/doxygen/qlib/Doxyfile.in ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f} @ONLY)
+            configure_file(${QORE_USERMODULE_DOXYGEN_TEMPLATE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f} @ONLY)
             file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/${f}/)
             add_custom_target(docs-${f}
                 ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f}
