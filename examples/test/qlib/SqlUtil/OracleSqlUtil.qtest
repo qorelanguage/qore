@@ -56,6 +56,9 @@ class OracleTestSchema inherits SqlUtilTestSchema {
                 # SqlUtil: schema alignment: default values can be complex statement instead of simple value only #1428
                 "def_test1" : c_date(C_NOT_NULL) + ("driver" : ("oracle" : ("default_value" : "to_date('1.1.2000', 'dd.mm.yyyy')", "default_value_native" : True))),
                 "def_test2" : c_number(C_NOT_NULL) + ( "default_value" : 0 ),
+                # SDO_GEOMETRY test: OracleSqlUtil does not support spatial data types #1465
+                # actually it tests it for any named type
+                "location" : ( "native_type" : "sdo_geometry", ),
             ),
             "primary_key": ("name": "pk_oracle_test", "columns": ("id")),
             );
@@ -173,12 +176,16 @@ class OracleTest inherits SqlTestBase {
             addTestCase("character semantics", \testCharacterSemantics());
             addTestCase("driver specific opts for columns", \testDriverSpecificColumns());
             addTestCase("default values", \testDefaultValues());
+            addTestCase("named types to align", \testNTYAlignment());
         }
 
         set_return_value(main());
     }
 
     testCharacterSemantics() {
+        if (!table)
+            testSkip("no DB connection");
+
         AbstractDatasource ds = table.getDatasource();
 
         assertEq(True, schema.getColumnOptions().character_semantics, "character_semantics value in schema");
@@ -252,6 +259,15 @@ class OracleTest inherits SqlTestBase {
 
         c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "DEF_TEST2");
         assertEq("0 ", c.data_default);
+    }
+
+    testNTYAlignment() {
+        if (!table)
+            testSkip("no DB connection");
+
+        AbstractDatasource ds = table.getDatasource();
+        hash c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "LOCATION");
+        assertEq("SDO_GEOMETRY", c.data_type);
     }
 
     private usageIntern() {
