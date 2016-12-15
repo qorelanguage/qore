@@ -1,8 +1,8 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/$(mypkglibdir)
-#modverdir = $(libdir)/$(mymodverdir)
 modverdir = $(datarootdir)/$(mymodverdir)
 includedir = $(prefix)/include/qore
+qoredatadir = $(datarootdir)/qore
 
 ## use automake to create the Makefile.in for configure
 
@@ -651,6 +651,8 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
 	$(LANG_QPP_SRC)
 
 dist_modver_DATA = $(USER_MODULES)
+
+dist_qoredata_DATA = doxygen/Doxyfile.in
 
 include $(srcdir)/qoretests.mk
 
