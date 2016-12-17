@@ -765,7 +765,15 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
 
    // initialize parent classes
    if (scl) {
-      mergeAbstract(csig);
+      mergeAbstract();
+      // add base classes to signature
+      if (has_sig_changes) {
+         for (auto& i : *scl) {
+            assert((*i).sclass);
+            assert((*i).sclass->priv->initialized);
+            do_sig(csig, *i);
+         }
+      }
    }
 
    if (has_sig_changes) {
@@ -838,19 +846,18 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
    return 0;
 }
 
-void qore_class_private::mergeAbstract(QoreString& csig) {
+void qore_class_private::mergeAbstract() {
    assert(scl);
    // merge direct base class abstract method lists to ourselves
    for (auto& i : *scl) {
       if ((*i).sclass) {
-         if (has_sig_changes)
-            do_sig(csig, *i);
+         assert((*i).sclass->priv->initialized);
 
          // called during class initialization to copy committed abstract variants to our variant lists
          AbstractMethodMap& mm = (*i).sclass->priv->ahm;
          //printd(5, "qore_class_private::initializeIntern() this: %p '%s' parent: %p '%s' mm empty: %d\n", this, name.c_str(), (*i).sclass, (*i).sclass->getName(), (int)mm.empty());
          for (auto& j : mm) {
-            // skip if vlist is empty
+            // skip if vlists are empty
             if (j.second->vlist.empty() && j.second->pending_vlist.empty()) {
                //printd(5, "qore_class_private::initializeIntern() this: %p '%s' skipping %s::%s(): vlist empty (pending_vlist empty: %d)\n", this, name.c_str(), (*i).sclass->getName(), j.first.c_str(), (int)j.second->pending_vlist.empty());
                continue;
@@ -861,17 +868,13 @@ void qore_class_private::mergeAbstract(QoreString& csig) {
                continue;
             }
             // now we import the abstract method to our class
-            AbstractMethod* m = new AbstractMethod;
+            unique_ptr<AbstractMethod> m(new AbstractMethod);
             // see if there are pending normal variants...
             hm_method_t::iterator mi = hm.find(j.first);
             // merge committed parent abstract variants with any pending local variants
             m->parseMergeBase((*j.second), mi == hm.end() ? 0 : mi->second->getFunction(), true);
-            //if (m->vlist.empty())
-            //if (m->vlist.empty() && m->pending_vlist.empty())
-            if (m->empty())
-               delete m;
-            else {
-               ahm.insert(amap_t::value_type(j.first, m));
+            if (!m->empty()) {
+               ahm.insert(amap_t::value_type(j.first, m.release()));
                //printd(5, "qore_class_private::initializeIntern() this: %p '%s' insert abstract method variant %s::%s()\n", this, name.c_str(), (*i).sclass->getName(), j.first.c_str());
             }
          }
@@ -880,23 +883,32 @@ void qore_class_private::mergeAbstract(QoreString& csig) {
 }
 
 void qore_class_private::finalizeBuiltin(const char* nspath) {
+   initializeBuiltin();
    generateBuiltinSignature(nspath);
+}
 
-   //initialize();
-   initialized = true;
+void qore_class_private::initializeBuiltin() {
+   assert(sys);
+   if (!initialized) {
+      initialized = true;
+      if (scl) {
+         // initialize builtin parent classes first
+         scl->initializeBuiltin();
+         // merge abstract variants from parent classes to this class
+         mergeAbstract();
+      }
+   }
 }
 
 void qore_class_private::generateBuiltinSignature(const char* nspath) {
    // signature string - also processed in parseCommit()
    QoreStringMaker csig("class %s::%s ", nspath, name.c_str());
 
-   // finalize parent classes
-   if (scl)
-      mergeAbstract(csig);
-
+   // add base classes to signature
    if (scl) {
       for (auto& i : *scl) {
          assert((*i).sclass);
+         assert((*i).sclass->priv->initialized);
          do_sig(csig, *i);
       }
    }
@@ -1787,6 +1799,11 @@ void BCNode::execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsi
 int BCNode::addBaseClassesToSubclass(QoreClass* child, bool is_virtual) {
    assert(sclass);
    return sclass->priv->addBaseClassesToSubclass(child, is_virtual);
+}
+
+void BCNode::initializeBuiltin() {
+   assert(sclass);
+   sclass->priv->initializeBuiltin();
 }
 
 void BCList::rescanParents(QoreClass* cls) {
@@ -4917,4 +4934,11 @@ void QoreVarMap::moveAllTo(QoreClass* qc, ClassAccess access) {
 QoreClassHolder::~QoreClassHolder() {
    if (c)
       qore_class_private::get(*c)->deref();
+}
+
+QoreBuiltinClass::QoreBuiltinClass(const char* name, int n_domain) : QoreClass(name, n_domain) {
+   setSystem();
+}
+
+QoreBuiltinClass::QoreBuiltinClass(const QoreBuiltinClass& old) : QoreClass(old) {
 }

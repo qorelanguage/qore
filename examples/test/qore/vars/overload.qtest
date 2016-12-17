@@ -26,10 +26,27 @@ string sub f_test(float x) {
     return type(x);
 }
 
+int sub f2_test(*int i) {
+    return -1;
+}
+
+int sub f2_test() {
+    return 0;
+}
+
+int sub f3_test(*int i, *int j) {
+    return -1;
+}
+
+int sub f3_test() {
+    return 0;
+}
+
 public class OverloadTest inherits QUnit::Test {
     constructor() : Test("Overload test", "1.0") {
-        addTestCase("Values test", \testValues(), NOTHING);
-        addTestCase("Variables test", \testVariables(), NOTHING);
+        addTestCase("Values test", \testValues());
+        addTestCase("Variables test", \testVariables());
+        addTestCase("Overload test", \testOverload());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -53,5 +70,15 @@ public class OverloadTest inherits QUnit::Test {
         assertEq("float", f1_test(i));
         assertEq("float", f_test(fi));
         assertEq("float", f1_test(fi));
+    }
+
+    testOverload() {
+        # test parse-time matching
+        assertEq(0, f2_test());
+        assertEq(0, f3_test());
+
+        # test runtime matching
+        assertEq(0, call_function(\f2_test()));
+        assertEq(0, call_function(\f3_test()));
     }
 }

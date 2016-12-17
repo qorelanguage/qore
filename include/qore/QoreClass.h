@@ -259,6 +259,7 @@ private:
    // This function must only be called from QoreObject
    DLLLOCAL void execDestructor(QoreObject* self, ExceptionSink* xsink) const;
 
+protected:
    //! deletes the object and frees all memory
    DLLEXPORT ~QoreClass();
 
@@ -1184,6 +1185,16 @@ public:
 private:
    //! the object being managed
    QoreClass* c;
+};
+
+//! creates a builtin class
+class QoreBuiltinClass : public QoreClass {
+public:
+   //! creates the object and marks it as a builtin class
+   DLLEXPORT QoreBuiltinClass(const char* name, int n_domain = QDOM_DEFAULT);
+
+   //! copies the object
+   DLLEXPORT QoreBuiltinClass(const QoreBuiltinClass& old);
 };
 
 #endif // _QORE_QORECLASS_H
