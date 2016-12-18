@@ -54,6 +54,10 @@ class Base {
         return 0;
     }
 
+    private:internal int intern(int i) {
+        return 1;
+    }
+
     int getStatPriv() {
         return statpriv;
     }
@@ -80,6 +84,10 @@ class Base {
 
     hash getSlice(list l) {
         return self{l};
+    }
+
+    code getCode() {
+        return \intern();
     }
 }
 
@@ -419,6 +427,8 @@ class TestInheritB {
         assertEq(("mempub": 1), hash(b));
         assertEq(("mempub": 1, "mempriv": 1, "memint": 1), b.getHash());
         assertEq(("mempub": 1, "memint": 1), b.getSlice(("mempub", "memint")));
+        assertEq(0, b.getCode()());
+        assertEq(0, call_function(b.getCode()));
 
         PubChild c1();
         assertEq(c1, cast<Base>(c1));

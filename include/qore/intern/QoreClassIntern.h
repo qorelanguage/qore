@@ -1568,6 +1568,8 @@ public:
    DLLLOCAL AbstractQoreNode* parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, const qore_class_private* class_ctx, bool allow_internal) const;
 
    DLLLOCAL int addBaseClassesToSubclass(QoreClass* child, bool is_virtual);
+
+   DLLLOCAL void initializeBuiltin();
 };
 
 typedef std::vector<BCNode*> bclist_t;
@@ -1668,6 +1670,12 @@ public:
    }
 
    DLLLOCAL void rescanParents(QoreClass* cls);
+
+   DLLLOCAL void initializeBuiltin() {
+      for (auto& i : *this) {
+         (*i).initializeBuiltin();
+      }
+   }
 };
 
 // BCEANode
@@ -2030,7 +2038,8 @@ public:
       return checkAssignSpecialIntern(m);
    }
 
-   DLLLOCAL void mergeAbstract(QoreString& csig);
+   // merge abstract variants from base classes to child class
+   DLLLOCAL void mergeAbstract();
 
    // returns -1 if a recursive inheritance list was found, 0 if not
    DLLLOCAL int initializeIntern(qcp_set_t& qcp_set);
@@ -2648,6 +2657,7 @@ public:
 
    DLLLOCAL void finalizeBuiltin(const char* nspath);
    DLLLOCAL void generateBuiltinSignature(const char* nspath);
+   DLLLOCAL void initializeBuiltin();
 
    DLLLOCAL static const QoreMethod* doParseMethodAccess(const QoreMethod* m, const qore_class_private* class_ctx);
 
