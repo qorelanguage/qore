@@ -707,7 +707,6 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
 
    // perfect match score
    unsigned nargs = args ? args->size() : 0;
-   int perfect = nargs * 2;
 
    const QoreFunction* aqf = 0;
    AbstractFunctionSignature* sig = 0;
@@ -817,10 +816,6 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
          if (count > match) {
             match = count;
             variant = *i;
-
-            // a perfect match only counts if the current variant meets the "perfect" criteria
-            if (match == perfect == sig->numParams() * 2)
-               break;
          }
       }
       // issue 1229: stop searching the class hierarchy if a match found

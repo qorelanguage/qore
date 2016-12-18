@@ -42,6 +42,15 @@ int sub f3_test() {
     return 0;
 }
 
+int sub f4_test() {
+    delete argv;
+    return -1;
+}
+
+int sub f4_test(list l) {
+    return 0;
+}
+
 public class OverloadTest inherits QUnit::Test {
     constructor() : Test("Overload test", "1.0") {
         addTestCase("Values test", \testValues());
@@ -76,9 +85,11 @@ public class OverloadTest inherits QUnit::Test {
         # test parse-time matching
         assertEq(0, f2_test());
         assertEq(0, f3_test());
+        assertEq(0, f4_test(()));
 
         # test runtime matching
         assertEq(0, call_function(\f2_test()));
         assertEq(0, call_function(\f3_test()));
+        assertEq(0, call_function(\f4_test(), ()));
     }
 }
