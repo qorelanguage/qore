@@ -535,7 +535,7 @@ qore_class_private::qore_class_private(QoreClass* n_cls, const char* nme, int64 
    else {
       name = parse_pop_name();
    }
-   printd(5, "qore_class_private::qore_class_private() this: %p creating '%s' ID:%d cls: %p pub: %d\n", this, name.c_str(), classID, cls, pub);
+   printd(5, "qore_class_private::qore_class_private() this: %p creating '%s' ID:%d cls: %p pub: %d sys: %d\n", this, name.c_str(), classID, cls, pub, sys);
 }
 
 // only called while the parse lock for the QoreProgram owning "old" is held
@@ -585,7 +585,7 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
      new_copy(0),
      spgm(old.spgm ? old.spgm->programRefSelf() : 0) {
    QORE_TRACE("qore_class_private::qore_class_private(const qore_class_private& old)");
-   printd(5, "qore_class_private::qore_class_private() this: %p creating copy of '%s' ID:%d cls: %p old: %p\n", this, name.c_str(), classID, cls, old.cls);
+   printd(5, "qore_class_private::qore_class_private() this: %p creating copy of '%s' ID:%d cls: %p old: %p sys: %d\n", this, name.c_str(), classID, cls, old.cls, sys);
 
    if (!old.initialized)
       const_cast<qore_class_private &>(old).initialize();
@@ -769,9 +769,12 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
       // add base classes to signature
       if (has_sig_changes) {
          for (auto& i : *scl) {
-            assert((*i).sclass);
-            assert((*i).sclass->priv->initialized);
-            do_sig(csig, *i);
+            // there could have been a parse failure and a pending rollback here
+            // so BCNode::sclass could be null here
+            if ((*i).sclass) {
+               assert((*i).sclass->priv->initialized);
+               do_sig(csig, *i);
+            }
          }
       }
    }
