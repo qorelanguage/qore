@@ -1025,7 +1025,6 @@ struct DLHelper {
    }
 
    DLLLOCAL ~DLHelper() {
-printd(0, "DLHelper::~DLHelper() ptr: %p\n", ptr);
       if (ptr)
 	 dlclose(ptr);
    }
