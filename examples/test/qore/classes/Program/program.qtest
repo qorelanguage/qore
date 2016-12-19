@@ -70,6 +70,7 @@ class ProgramTest inherits QUnit::Test {
         addTestCase("type error test", \typeErrorTest());
         addTestCase("broken-operators test", \brokenOperatorsTest());
         addTestCase("class test", \classTest());
+        addTestCase("setThreadInit test", \setThreadInitTest());
 	set_return_value(main());
     }
 
@@ -274,5 +275,25 @@ class ProgramTest inherits QUnit::Test {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
             assertEq(NOTHING, p.parse("class X { static copy(X obj) {}}", ""));
         }
+    }
+
+    setThreadInitTest() {
+        our int i = 0;
+        our Counter cnt(1);
+        Program p(PO_NEW_STYLE);
+        p.importGlobalVariable("i");
+        p.importGlobalVariable("cnt");
+        bool b = p.setThreadInit(sub () { i = 1;});
+        assertEq(False, b);
+        p.parse("background cnt.dec();", "");
+        p.run();
+        cnt.waitForZero();
+        assertEq(1, i);
+        b = p.setThreadInit();
+        assertEq(True, b);
+        i = 0;
+        cnt.inc();
+        p.run();
+        assertEq(0, i);
     }
 }
