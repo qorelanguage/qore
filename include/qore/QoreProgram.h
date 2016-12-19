@@ -686,16 +686,22 @@ public:
 //! allows for the parse lock for the current program to be acquired by binary modules
 /** @since %Qore 0.8.13
  */
-class CurrentProgramRuntimeParseContextHelper {
+class CurrentProgramRuntimeExternalParseContextHelper {
 public:
    //! acquires the parse lock; if already acquired by another thread, then this call blocks until the lock can be acquired
-   DLLEXPORT CurrentProgramRuntimeParseContextHelper();
+   DLLEXPORT CurrentProgramRuntimeExternalParseContextHelper();
+
    //! releases the parse lock for the current program
-   DLLEXPORT ~CurrentProgramRuntimeParseContextHelper();
+   DLLEXPORT ~CurrentProgramRuntimeExternalParseContextHelper();
+
+   //! returns true if the object is valid (lock acquired), false if not (program already deleted)
+   DLLEXPORT operator bool() const;
 
 private:
+   bool valid = true;
+
    // not implemented
-   CurrentProgramRuntimeParseContextHelper(const CurrentProgramRuntimeParseContextHelper&) = delete;
+   CurrentProgramRuntimeExternalParseContextHelper(const CurrentProgramRuntimeExternalParseContextHelper&) = delete;
    void* operator new(size_t) = delete;
 };
 
