@@ -1518,3 +1518,25 @@ pgm.importSystemApi();
 Program::importSystemApi() {
    qore_program_private::runtimeImportSystemApi(*p, xsink);
 }
+
+//! Sets a @ref call_reference "call reference" or @ref closure "closure" to run every time a new thread is started
+/** This code can be used to initialize @ref threading_and_variables "global thread-local variables", for example.
+
+    @param init a @ref call_reference "call reference" or @ref closure "closure" to run every time a new thread is started or @ref nothing to clear any thread initialization code
+
+    @return @ref True if there was already user initialization code set, @ref False if not
+
+    @par Example:
+    @code{.py}
+pgm.setThreadInit(sub () { var = 123; });
+    @endcode
+
+    @note the code will be run for all new threads, but is not run by this function for the current thread
+
+    @see @ref Qore::set_thread_init()
+
+    @since %Qore 0.8.13
+*/
+bool Program::setThreadInit(*code init) [dom=THREAD_CONTROL] {
+   return qore_program_private::setThreadInit(*p, init, xsink);
+}
