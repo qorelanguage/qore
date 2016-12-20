@@ -653,6 +653,7 @@ void qore_program_private::del(ExceptionSink* xsink) {
    for (auto& i : extmap) {
       i.second->doDeref();
    }
+   extmap.clear();
 
    if (thr_init)
       thr_init->deref(xsink);

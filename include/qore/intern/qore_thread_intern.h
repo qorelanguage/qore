@@ -417,6 +417,20 @@ public:
    }
 };
 
+// allows for the parse lock for the current program to be acquired by binary modules
+class CurrentProgramRuntimeParseContextHelper {
+public:
+   // acquires the parse lock; if already acquired by another thread, then this call blocks until the lock can be acquired
+   DLLEXPORT CurrentProgramRuntimeParseContextHelper();
+   // releases the parse lock for the current program
+   DLLEXPORT ~CurrentProgramRuntimeParseContextHelper();
+
+private:
+   // not implemented
+   CurrentProgramRuntimeParseContextHelper(const CurrentProgramRuntimeParseContextHelper&) = delete;
+   void* operator new(size_t) = delete;
+};
+
 // acquires a TID and thread entry, returns -1 if not successful
 DLLLOCAL int get_thread_entry();
 // acquires TID 0 and sets up the signal thread entry, always returns 0
