@@ -294,7 +294,7 @@ public:
       return func_list.find(name, false);
    }
 
-   DLLLOCAL QoreNamespace* findCreateNamespace(const char* nme, bool& is_new);
+   DLLLOCAL QoreNamespace* findCreateNamespace(const char* nme, bool& is_new, qore_root_ns_private* rns);
    DLLLOCAL QoreNamespace* findCreateNamespacePath(const nslist_t& nsl, bool& is_new);
    DLLLOCAL QoreNamespace* findCreateNamespacePath(const NamedScope& nspath, bool pub, bool& is_new);
 
