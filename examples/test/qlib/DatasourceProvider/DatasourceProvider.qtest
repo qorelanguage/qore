@@ -21,12 +21,12 @@ public class DatasourceProviderTest inherits QUnit::Test {
 
     datasourceProviderTest() {
         Program mp(PO_NO_CHILD_PO_RESTRICTIONS|PO_NEW_STYLE);
-        mp.parse("sub doenv() { ENV.DATASOURCE_PROVIDERS = './TestDatasourceProvider.qm'; }", "");
+        mp.parse("sub doenv() { ENV.DATASOURCE_PROVIDERS = '" + get_script_dir() + "./TestDatasourceProvider.qm'; }", "");
         mp.callFunction("doenv");
-        mp.loadApplyToUserModule("../../../../qlib/DatasourceProvider.qm", True);
+        mp.loadApplyToUserModule(get_script_dir() + "../../../../qlib/DatasourceProvider.qm", True);
 
         Program p();
-        p.loadModule("../../../../qlib/DatasourceProvider.qm");
+        p.loadModule("DatasourceProvider");
         p.parse("string sub test() { return get_ds_string('X'); }", "");
         assertEq("TEST", p.callFunction("test"));
     }

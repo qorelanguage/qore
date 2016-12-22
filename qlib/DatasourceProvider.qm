@@ -86,7 +86,6 @@ my string connstr = get_ds_string(str);
         @return the datasource connection string
      */
     public string sub get_ds_string(string str, *bool verbose) {
-        printf("DP: %y\n", ENV.DATASOURCE_PROVIDERS);
         if (ENV.DATASOURCE_PROVIDERS) {
             foreach string mod in (ENV.DATASOURCE_PROVIDERS.split(PathSep)) {
                 try {
