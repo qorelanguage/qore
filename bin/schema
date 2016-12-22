@@ -12,6 +12,8 @@
 %require-types
 %strict-args
 
+%requires DatasourceProvider
+
 %requires Schema
 
 # run our script logic in the main() function
@@ -306,7 +308,7 @@ sub main() {
     if (!dsstr)
         usage();
 
-    Datasource ds(dsstr);
+    Datasource ds(get_ds_string(dsstr));
 
     ExampleSchema schema(ds, o.data_ts, o.index_ts);
 

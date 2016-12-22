@@ -1,0 +1,113 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file DatasourceProvider.qm Qore user module for generally useful routines
+
+/*  DatasourceProvider.qm Copyright 2016 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# this module requires Qore 0.8.13 or better
+%requires qore >= 0.8.13
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+
+module DatasourceProvider {
+    version = "1.0";
+    desc    = "API for providing Datasource connection strings";
+    author  = "David Nichols <david.nichols@qoretechnologies.com>";
+    url     = "http://qore.org";
+    license = "MIT";
+}
+
+/** @mainpage DatasourceProvider Module
+
+    @tableofcontents
+
+    @section datasourceproviderintro DatasourceProvider Module Introduction
+
+    The %DatasourceProvider module provides an API for providing @ref Qore::SQL::Datasource "Datasource"
+    connection strings.
+
+    To use this module, use \c "%requires DatasourceProvider" in your code.
+
+    All the public symbols in the module are defined in the DatasourceProvider namespace
+
+    Functions:
+    - @ref DatasourceProvider::get_ds_string()
+
+    @subsection datasourceproviders_env Provider Modules
+
+    This module uses the \c "DATASOURCE_PROVIDERS" environment variable to load datasource provider
+    modules.  Each datasource provider module must provide a single public function called
+    \c get_mod_ds_string() with the following signature:
+    @code{.py}
+public string sub get_mod_ds_string(string str) {}
+    @endcode
+
+    If the string is not a valid identifier for a datasource, the function should throw an
+    exception (any exception; the exception is not displayed).
+
+    @section datasourceproviderrelnotes Release Notes
+
+    @subsection datasourceprovider_1_0
+    - the initial version of the DatasourceProvider module
+*/
+
+#! the DatasourceProvider namespace contains all the objects in the DatasourceProvider module
+public namespace DatasourceProvider {
+    #! returns a datasource connection string
+    /** @par Example:
+        @code{.py}
+my string connstr = get_ds_string(str);
+        @endcode
+
+        @param str the identifier or datasource connection string
+        @param verbose display datasource errors on stdout (otherwise errors are ignored)
+
+        @return the datasource connection string
+     */
+    public string sub get_ds_string(string str, *bool verbose) {
+        printf("DP: %y\n", ENV.DATASOURCE_PROVIDERS);
+        if (ENV.DATASOURCE_PROVIDERS) {
+            foreach string mod in (ENV.DATASOURCE_PROVIDERS.split(PathSep)) {
+                try {
+                    return try_get_ds_string(mod, str);
+                }
+                catch (hash ex) {
+                    if (verbose)
+                        printf("%s: %s\n", ex.err, ex.desc);
+                    # otherwise ignore exceptions
+                }
+            }
+        }
+        return str;
+    }
+}
+
+# private, non-exported namespace
+namespace Priv {
+    string sub try_get_ds_string(string mod, string str) {
+        Program p();
+        p.loadModule(mod);
+        return p.callFunction("get_mod_ds_string", str);
+    }
+}
