@@ -188,6 +188,7 @@ set(QMOD
     qlib/Qdx.qm
     qlib/BulkSqlUtil.qm
     qlib/CsvUtil.qm
+    qlib/DatasourceProvider.qm
     qlib/Diff.qm
     qlib/FixedLengthUtil.qm
     qlib/FreetdsSqlUtil.qm

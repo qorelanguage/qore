@@ -114,6 +114,8 @@ enum ClassAccess : unsigned char {
   #define QLLDx(a) "%" #a "I64d"
   #define QORE_DIR_SEP '\\'
   #define QORE_DIR_SEP_STR "\\"
+  #define QORE_PATH_SEP ';'
+  #define QORE_PATH_SEP_STR ";"
 #else
   #ifdef HAVE_GCC_VISIBILITY
     #define DLLEXPORT __attribute__ ((visibility("default")))
@@ -127,6 +129,8 @@ enum ClassAccess : unsigned char {
   #define QLLDx(a) "%" #a "lld"
   #define QORE_DIR_SEP '/'
   #define QORE_DIR_SEP_STR "/"
+  #define QORE_PATH_SEP ':'
+  #define QORE_PATH_SEP_STR ":"
 #endif
 
 #define _Q_MAKE_STRING(x) #x
