@@ -100,8 +100,7 @@
       - added \c FixedLengthFileIterator::getFileName() (<a href="https://github.com/qorelanguage/qore/issues/1164">issue 1164</a>)
     - updated the build to require a <a href="https://en.wikipedia.org/wiki/C%2B%2B11">C++11</a> compiler or better to build %Qore (<a href="https://github.com/qorelanguage/qore/issues/994">issue 994</a>)
     - <a href="../../modules/RestClient/html/index.html">RestClient</a> module updates:
-      - support for \c text/plain Content-Type
-      - support for \c xml_raw serialization and deserialization
+      - support for the \c text/plain \c Content-Type
 
     @subsection qore_0813_bug_fixes Bug Fixes in Qore
     - fixed a bug causing @ref Qore::AbstractQuantifiedBidirectionalIterator "AbstractQuantifiedBidirectionalIterator" not being available (<a href="https://github.com/qorelanguage/qore/issues/968">issue 968</a>)
@@ -157,7 +156,7 @@
       - @ref Qore::gunzip_to_string()
       - @ref Qore::uncompress_to_binary()
       - @ref Qore::uncompress_to_string()
-    - fixed \c @inf@ on Windows (<a href="https://github.com/qorelanguage/qore/issues/1442">issue 1442</a>):
+    - fixed \c \@inf\@ on Windows (<a href="https://github.com/qorelanguage/qore/issues/1442">issue 1442</a>)
     - fixed @ref Qore::parse_url() with single-character usernames (<a href="https://github.com/qorelanguage/qore/issues/1455">issue 1455</a>)
     - corrected the error message with SSL reads when the server closes the connection prematurely (<a href="https://github.com/qorelanguage/qore/issues/1488">issue 1488</a>)
     - fixed the \c Host header in HTTP requests to not include the port if the port is the default port for the scheme because it causes some servers to reject the request (<a href="https://github.com/qorelanguage/qore/issues/1489">issue 1489</a>)
@@ -1651,7 +1650,7 @@ class MyAbstractInterface {
     - qpp updated to support abstract methods and multiple inheritance (+ other minor qpp enhancements)
     - improved the \c QOREADDRINFO-GETINFO-ERROR exception description by adding information about the arguments passed
     - added a string argument to @ref Qore::chr(softint, __7_ string) "char(softint, *string)" to accept an output encoding
-    - added a @ref Qore::int(string, softint) "int(string, softint)" variant to parse a string as a number and give the base
+    - added a @ref Qore::int(string, int) "int(string, int)" variant to parse a string as a number and give the base
     - added a new parameter to parse_url() and parseURL() to allow for any [] in the hostname to be included in the \c "host" output key for indicating that the <a href="http://wikipedia.org/wiki/IPv6">ipv6</a> protocol be used
     - added the following pseudo-methods:
       - Qore::zzz8valuezzz9::lsize()

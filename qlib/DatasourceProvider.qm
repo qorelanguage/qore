@@ -52,11 +52,11 @@ module DatasourceProvider {
     All the public symbols in the module are defined in the DatasourceProvider namespace
 
     Functions:
-    - @ref DatasourceProvider::get_ds_string()
+    - @ref DatasourceProvider::get_ds_string() "get_ds_string()"
 
-    @subsection datasourceproviders_env Provider Modules
+    @subsection datasourceprovider_modules Datasource Provider Modules
 
-    This module uses the \c "DATASOURCE_PROVIDERS" environment variable to load datasource provider
+    This module uses the \c "QORE_DATASOURCE_PROVIDERS" environment variable to load datasource provider
     modules.  Each datasource provider module must provide a single public function called
     \c get_mod_ds_string() with the following signature:
     @code{.py}
@@ -65,6 +65,25 @@ public string sub get_mod_ds_string(string str) {}
 
     If the string is not a valid identifier for a datasource, the function should throw an
     exception (any exception; the exception is not displayed).
+
+    Datasource provider modules declared in the  \c "QORE_DATASOURCE_PROVIDERS" environment variable must
+    be separated by the platform-specific @ref Qore::PathSep "PathSep" character as in the following
+    examples:
+
+    @par Unix Example
+    @verbatim
+export QORE_DATASOURCE_PROVIDERS=MyDatasourceProvider:OtherDatasourceProvider
+    @endverbatim
+
+    @par Windows CMD.EXE Example
+    @verbatim
+set QORE_DATASOURCE_PROVIDERS=MyDatasourceProvider;OtherDatasourceProvider
+    @endverbatim
+
+    @par Windows PowerShell Example
+    @verbatim
+$env:QORE_DATASOURCE_PROVIDERS="MyDatasourceProvider;OtherDatasourceProvider"
+    @endverbatim
 
     @section datasourceproviderrelnotes Release Notes
 
@@ -77,17 +96,30 @@ public namespace DatasourceProvider {
     #! returns a datasource connection string
     /** @par Example:
         @code{.py}
-my string connstr = get_ds_string(str);
+string connstr = get_ds_string(str);
         @endcode
 
         @param str the identifier or datasource connection string
-        @param verbose display datasource errors on stdout (otherwise errors are ignored)
+        @param verbose display datasource provider module errors on stdout (otherwise errors are ignored)
 
         @return the datasource connection string
+
+        @throw DATASOURCE-ERROR the connection string cannot be matched as an external datasource identifier by a datasource provider module and there is no driver specification in the string (ex: \c "driver:...")
+
+        @note
+        - datasource provider modules are processed in the order they are declared with the \c QORE_DATASOURCE_PROVIDERS environment variable; datasource provider modules must be separated with @ref Qore::PathSep "PathSep" characters
+        - no database connection is attempted with this function call
+
+        @see @ref datasourceprovider_modules
      */
     public string sub get_ds_string(string str, *bool verbose) {
-        if (ENV.DATASOURCE_PROVIDERS) {
-            foreach string mod in (ENV.DATASOURCE_PROVIDERS.split(PathSep)) {
+        # check for a driver
+        bool driver = (str =~ /^.+:/);
+
+        # process datasource provider modules in declaration order
+        if (ENV.QORE_DATASOURCE_PROVIDERS) {
+            list pl = ENV.QORE_DATASOURCE_PROVIDERS.split(PathSep);
+            foreach string mod in (pl) {
                 try {
                     return try_get_ds_string(mod, str);
                 }
@@ -97,7 +129,12 @@ my string connstr = get_ds_string(str);
                     # otherwise ignore exceptions
                 }
             }
+            if (!driver)
+                throw "DATASOURCE-ERROR", sprintf("datasource identifier %y could not be matched to a known datasource; tried the following datasource provider modules: %y", str, pl);
         }
+
+        if (!driver)
+            throw "DATASOURCE-ERROR", sprintf("datasource identifier %y could not be matched to a known datasource; there is no driver specification in the string (ex: \"driver:...\") and no datasource provider modules are set in the QORE_DATASOURCE_PROVIDERS environment variable", str);
         return str;
     }
 }
