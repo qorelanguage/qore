@@ -224,8 +224,8 @@ float ceil(softfloat num, int prec = 0) [flags=CONSTANT] {
   *
   * @since %Qore 0.8.13 this function accepts the <b>prec</b> argument to specify the rounding precision
   */
-number ceil(number n, int prec = 0) [flags=CONSTANT] {
-    return qore_number_private::doRoundNR(*n, mpfr_ceil, prec);
+number ceil(number num, int prec = 0) [flags=CONSTANT] {
+    return qore_number_private::doRoundNR(*num, mpfr_ceil, prec);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -256,7 +256,7 @@ int floor(softint num, int prec = 0) [flags=CONSTANT] {
 }
 
 //! Returns the largest multiple of <b>-prec</b>-th power of 10 that is less than or equal to <b>num</b>.
-/** @param num the number to process (to round downwards)
+/** @param f the number to process (to round downwards)
   * @param prec precision
   *
   * @par Example:
@@ -303,8 +303,8 @@ float floor(softfloat f, int prec = 0) [flags=CONSTANT] {
   *
   * @since %Qore 0.8.13 this function accepts the <b>prec</b> argument to specify the rounding precision
   */
-number floor(number n, int prec = 0) [flags=CONSTANT] {
-    return qore_number_private::doRoundNR(*n, mpfr_floor, prec);
+number floor(number num, int prec = 0) [flags=CONSTANT] {
+    return qore_number_private::doRoundNR(*num, mpfr_floor, prec);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments

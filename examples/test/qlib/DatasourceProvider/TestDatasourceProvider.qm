@@ -40,6 +40,8 @@ module TestDatasourceProvider {
 
 public namespace TestDatasourceProvider {
     public string sub get_mod_ds_string(string str) {
+        if (str != "X")
+            throw "ERR";
         return "TEST";
     }
 }
