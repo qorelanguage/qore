@@ -39,7 +39,8 @@ public class DatasourceProviderTest inherits QUnit::Test {
 
         Program p();
         p.loadModule("DatasourceProvider");
-        p.parse("string sub test() { return get_ds_string('X'); }", "");
-        assertThrows("DATASOURCE-ERROR", \p.callFunction(), "test");
+        p.parse("string sub test(string str) { return get_ds_string(str); }", "");
+        assertThrows("DATASOURCE-ERROR", \p.callFunction(), ("test", "X"));
+        assertEq("X:", p.callFunction("test", "X:"));
     }
 }
