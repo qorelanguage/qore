@@ -726,7 +726,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
       if (!aqf)
          break;
 
-      //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s::%s(...) size: %d\n", this, aqf->className(), getName(), ilist.size());
+      //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s%s%s(...) size: %d last_class: %p ctx: %p: %s\n", this, aqf->className() ? aqf->className() : "", className() ? "::" : "", getName(), ilist.size(), last_class, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a");
 
       for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
          // skip checking variant if we are only looking for user variants and this variant is builtin

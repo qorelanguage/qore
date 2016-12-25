@@ -11,6 +11,7 @@
 
 %requires SalesforceRestClient
 %requires Util
+%requires ConnectionProvider
 
 %try-module yaml >= 0.5
 %define NoYaml
@@ -48,6 +49,7 @@ class SfRestClient {
             "mod":            "m,if-modified-since=d",
             "unmod":          "n,if-unmodified-since=d",
 
+            "conn":           "c,connection=s",
             "client_id":      "i,client_id=s",
             "client_secret":  "s,client_secret=s",
             "user":           "u,username=s",
@@ -73,23 +75,36 @@ class SfRestClient {
         if (opt.help)
             usage();
 
-        opt.client_id = opt.client_id ?? ENV.SALESFORCE_CONSUMER_KEY;
-        if (!opt.client_id)
-            error("missing --client_id option or SALESFORCE_CONSUMER_KEY environment variable");
-        opt.client_secret = opt.client_secret ?? ENV.SALESFORCE_CONSUMER_SECRET;
-        if (!opt.client_secret)
-            error("missing --client_secret option or SALESFORCE_CONSUMER_SECRET environment variable");
-        opt.username = opt.user ?? ENV.SALESFORCE_USER;
-        if (!opt.username)
-            error("missing --username option or SALESFORCE_CONSUMER_USER environment variable");
-        opt.password = opt.pass ?? ENV.SALESFORCE_PASS;
-        if (!opt.password)
-            error("missing --password option or SALESFORCE_CONSUMER_PASS environment variable");
+        SalesforceRestClient rc;
 
-        if (opt.timeout)
-            opt.connect_timeout = opt.timeout;
+        if (opt.conn) {
+            try {
+                AbstractConnection conn = get_connect(opt.conn);
 
-        SalesforceRestClient rc(opt - ("lit", "reformat", "fullex", "header", "show"), True);
+            }
+            catch (hash ex) {
+                stderr.printf("connection %y: %s: %s: %s\n", opt.conn, get_ex_pos(ex), ex.err, ex.desc);
+                exit(1);
+            }
+        }
+        else {
+            opt.client_id = opt.client_id ?? ENV.SALESFORCE_CONSUMER_KEY;
+            if (!opt.client_id)
+                error("missing --client_id option or SALESFORCE_CONSUMER_KEY environment variable");
+            opt.client_secret = opt.client_secret ?? ENV.SALESFORCE_CONSUMER_SECRET;
+            if (!opt.client_secret)
+                error("missing --client_secret option or SALESFORCE_CONSUMER_SECRET environment variable");
+            opt.username = opt.user ?? ENV.SALESFORCE_USER;
+            if (!opt.username)
+                error("missing --username option or SALESFORCE_CONSUMER_USER environment variable");
+            opt.password = opt.pass ?? ENV.SALESFORCE_PASS;
+            if (!opt.password)
+                error("missing --password option or SALESFORCE_CONSUMER_PASS environment variable");
+            if (opt.timeout)
+                opt.connect_timeout = opt.timeout;
+
+            rc = new SalesforceRestClient(opt - ("conn", "lit", "reformat", "fullex", "header", "show"), True);
+        }
 
         if (opt.show) {
             if (rc.getProxyURL())
@@ -337,6 +352,7 @@ class SfRestClient {
     usage() {
         printf("usage: %s [options] [get|patch|post|delete] path|URL ['qore msg body']
 ** Required Options (can be set with environment variables as well)
+ -c,--connection=ARG           the Salesforce.com connection name to use
  -i,--client_id=ARG            the consumer key (or from $SALESFORCE_CONSUMER_KEY)
  -s,--client_secret=ARG        the consumer secret (or from $SALESFORCE_CONSUMER_SECRET)
  -u,--username=ARG             the account username (or from $SALESFORCE_USER)

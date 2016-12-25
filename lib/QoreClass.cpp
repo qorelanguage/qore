@@ -1800,8 +1800,8 @@ void BCNode::execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsi
 }
 
 int BCNode::addBaseClassesToSubclass(QoreClass* child, bool is_virtual) {
-   assert(sclass);
-   return sclass->priv->addBaseClassesToSubclass(child, is_virtual);
+   // sclass may be 0 in case of a parse exception
+   return sclass ? sclass->priv->addBaseClassesToSubclass(child, is_virtual) : 0;
 }
 
 void BCNode::initializeBuiltin() {

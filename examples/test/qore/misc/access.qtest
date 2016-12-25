@@ -284,6 +284,24 @@ class CI3 inherits private:internal BI2 {
     }
 }
 
+class RefTest {
+    private {
+        code c;
+    }
+
+    constructor() {
+        c = \RefTest::priv();
+    }
+
+    int get() {
+        return call_function_args(c);
+    }
+
+    private static int priv() {
+        return 1;
+    }
+}
+
 public class AccessTest inherits QUnit::Test {
     private {
         const Code = "
@@ -429,6 +447,7 @@ class TestInheritB {
         assertEq(("mempub": 1, "memint": 1), b.getSlice(("mempub", "memint")));
         assertEq(0, b.getCode()());
         assertEq(0, call_function(b.getCode()));
+        assertEq(0, call_function_args(b.getCode()));
 
         PubChild c1();
         assertEq(c1, cast<Base>(c1));
@@ -453,6 +472,8 @@ class TestInheritB {
         assertEq(c3, c3.test());
         assertEq(1, c3.getInt());
         assertEq(1, c3.getCode()());
+        assertEq(1, call_function(c3.getCode()));
+        assertEq(1, call_function_args(c3.getCode()));
         assertThrows("METHOD-DOES-NOT-EXIST", \call_object_method(), (c3, "pubint"));
 
         CI1 c4();
@@ -463,6 +484,9 @@ class TestInheritB {
 
         CI3 c6(2);
         assertEq(2, c6.get());
+
+        RefTest rt();
+        assertEq(1, rt.get());
 
         {
             Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES|PO_STRICT_ARGS);

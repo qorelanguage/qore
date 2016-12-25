@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file TelnetClient.qm Telnet module definition
 
-/*  TelnetClient.qm Copyright 2012 - 2015 Qore Technologies sro
+/*  TelnetClient.qm Copyright 2012 - 2016 Qore Technologies s.r.o.
 
     Original Author: Pavol Potancok
 
@@ -29,23 +29,23 @@
 
 # assume local var scope, do not use "$" for vars, members, and method calls
 %new-style
+%strict-args
+%require-types
+%enable-all-warnings
+
+%requires(reexport) ConnectionProvider >= 1.0
 
 module TelnetClient {
-    version = "1.2";
+    version = "1.3";
     desc = "allows connections to a Telnet server, to remotely execute commands and read their output";
     author = "Pavol Potancok <ppotancok@gmail.com>";
     url = "http://qore.org";
     license = "MIT";
 }
 
-/*  Version History
-    * 1.2: David Nichols <david@qore.org>: converted to new-style
-    * 1.1: David Nichols <david@qore.org>: added socket instrumention support from Qore 0.8.9
-    * 1.0: David Nichols <david@qore.org>: updated to a user module
-    * 0.9: Pavol Potancok <ppotancok@gmail.com>: original author
-*/
-
 /** @mainpage TelnetClient Module
+
+    @tableofcontents
 
     @section telnetclientintro Introduction to the TelnetClient Module
 
@@ -55,12 +55,32 @@ module TelnetClient {
 
     All the public symbols in the module are defined in the TelnetClient namespace
 
-    The main class and definitions are:
+    The main classes are:
     - @ref TelnetClient::TelnetClient "TelnetClient": the telnet client class
-    - @ref TelnetDefaults "TelnetDefaults": default values for the @ref TelnetClient::TelnetClient "TelnetClient" class
+    - @ref TelnetClient::TelnetConnection "TelnetConnection": provides a connection object to a REST server (based on the @ref connectionproviderintro "ConnectionProvider" module)
+
+    The main definitions are:
     - @ref TelnetCommandCodes "TelnetCommandCodes": telnet protocol command codes and a lookup map
+    - @ref TelnetDefaults "TelnetDefaults": default values for the @ref TelnetClient::TelnetClient "TelnetClient" class
     - @ref TelnetOptionCodes "TelnetOptionCodes": telnet protocol option codes and a lookup map
- */
+
+    @section telnetclient_relnotes TelnetClient Module Release Notes
+
+    @subsection telnetclient_v1_3 TelnetClient v1.3
+    - added the @ref TelnetClient::TelnetConnection "TelnetConnection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
+
+    @subsection telnetclient_v1_2 TelnetClient v1.2
+    - converted to @ref new-style "%new-style"
+
+    @subsection telnetclient_v1_1 TelnetClient v1.1
+    - added socket instrumention support from Qore 0.8.9
+
+    @subsection telnetclient_v1_3 TelnetClient v1.0
+    - updated to a user module
+
+    @subsection telnetclient_v0_9 TelnetClient v0.9
+    - initial version
+*/
 
 #! contains constant definitions and the definition of the TelnetClient class
 public namespace TelnetClient {
@@ -857,5 +877,62 @@ telnet.clearStats();
             }
         }
         #! @endcond
+    }
+
+    #! class for Telnet connections; returns an object of class @ref TelnetClient for connecting to telnet sessions
+    /** supports the following runtime options in getImpl() for connection logging:
+        - \c "log": a closure accepting a single string for logging
+        - \c "dbglog": a closure taking a single string for detailed technical connection logging
+
+        @since %TelnetClient 1.3
+    */
+    public class TelnetConnection inherits ConnectionProvider::AbstractConnection {
+        #! creates the TelnetConnection object
+        /** @param name the name of the connection
+            @param desc connection description
+            @param url connection URL
+            @param monitor monitoring flag
+            @param opts connection options
+            @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+        */
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : AbstractConnection(name, desc, url, monitor, opts, urlh) {
+        }
+
+        #! returns \c "telnet"
+        string getType() {
+            return "telnet";
+        }
+
+        #! returns runtime options
+        /** @return a hash with the following keys reflecting support for the corresponding runtime options in getImpl() for connection logging:
+            - \c "log": a closure accepting a single string for logging
+            - \c "dbglog": a closure taking a single string for detailed technical connection logging
+        */
+        *hash getRuntimeOptions() {
+            return (
+                "log": True,
+                "dbglog": True,
+                );
+        }
+
+        #! returns an @ref TelnetClient object
+        /** @param connect if @ref Qore::True "True", then @ref TelnetClient::connect() is called
+            @param rtopts supports the following runtime options in getImpl() for connection logging:
+            - \c "log": a closure accepting a single string for logging
+            - \c "dbglog": a closure taking a single string for detailed technical connection logging
+
+            @return an @ref TelnetClient object
+        */
+        private TelnetClient getImpl(bool connect = True, *hash rtopts) {
+            TelnetClient::TelnetClient sc(url, rtopts.log, rtopts.dbglog);
+            if (connect)
+                sc.connect();
+            return sc;
+        }
+
+        #! static constructor
+        static TelnetConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
+            return new TelnetConnection(name, desc, url, monitor, opts, urlh);
+        }
     }
 }

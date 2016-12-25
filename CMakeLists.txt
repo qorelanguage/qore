@@ -187,6 +187,7 @@ set(PSEUDO_QPP_SRC
 set(QMOD
     qlib/Qdx.qm
     qlib/BulkSqlUtil.qm
+    qlib/ConnectionProvider.qm
     qlib/CsvUtil.qm
     qlib/DatasourceProvider.qm
     qlib/Diff.qm

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file TestDatasourceProvider.qm Test Datasource provider
+# @file TestConnectionProvider.qm Test Connection provider
 
-/*  TestDatasourceProvider.qm Copyright 2016 Qore Technologies, s.r.o.
+/*  TestConnectionProvider.qm Copyright 2016 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -30,18 +30,45 @@
 %new-style
 %strict-args
 
-module TestDatasourceProvider {
+%requires ../../../../qlib/ConnectionProvider.qm
+
+module TestConnectionProvider {
     version = "1.0";
-    desc    = "API for providing Test Datasource connection strings";
+    desc    = "API for providing Test connections";
     author  = "David Nichols <david.nichols@qoretechnologies.com>";
     url     = "http://qore.org";
     license = "MIT";
 }
 
-public namespace TestDatasourceProvider {
-    public string sub get_mod_ds_string(string str) {
+class TestConn;
+
+class TestConnection inherits AbstractConnection {
+    public {
+        const Url = "test://x";
+    }
+
+    constructor() : AbstractConnection("test", "test", Url, False, NOTHING, parse_url(Url)) {
+    }
+
+    string getType() {
+        return "TestConnection";
+    }
+
+    TestConn getImpl(bool connect = True, *hash rtopts) {
+        return new TestConn();
+    }
+}
+
+public namespace TestConnectionProvider {
+    public TestConnection sub get_mod_connection(string str) {
         if (str != "X")
             throw "ERR";
-        return "TEST";
+        return new TestConnection();
+    }
+
+    public *hash sub get_mod_connections() {
+        return (
+            "X": new TestConnection(),
+            );
     }
 }

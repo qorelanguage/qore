@@ -45,6 +45,8 @@
 %define NoJson
 %endtry
 
+%requires ConnectionProvider
+
 %exec-class RestCmd
 
 class RestCmd {
@@ -98,6 +100,8 @@ class RestCmd {
             printf("ERROR: missing URL for REST server\n");
             usage();
         }
+
+        url = get_connection_url(url);
 
         hash opts.url = url;
 
