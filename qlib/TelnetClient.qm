@@ -68,6 +68,7 @@ module TelnetClient {
 
     @subsection telnetclient_v1_3 TelnetClient v1.3
     - added the @ref TelnetClient::TelnetConnection "TelnetConnection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
+    - ignore \c "telnet://" at the beginning of the connection string
 
     @subsection telnetclient_v1_2 TelnetClient v1.2
     - converted to @ref new-style "%new-style"
@@ -309,6 +310,9 @@ public namespace TelnetClient {
         constructor(string n_connect, *code n_log, *code n_dbglog) {
             log_info = n_log;
             log_debug = n_dbglog;
+
+            # remove any "telnet://" at the beginning of the connection string
+            n_connect =~ s/^telnet:\/\///i;
 
             # add default port if the connect string has no port number and:
             # 1) is not a path (for a UNIX domain socket)

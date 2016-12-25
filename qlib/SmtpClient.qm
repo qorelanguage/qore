@@ -33,6 +33,8 @@
 # need MailMessage classes
 %requires MailMessage >= 1.0
 
+%requires(reexport) ConnectionProvider
+
 # assume local var scope, do not use "$" for vars, members, and method calls
 %new-style
 

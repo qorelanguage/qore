@@ -79,8 +79,12 @@ class SfRestClient {
 
         if (opt.conn) {
             try {
-                AbstractConnection conn = get_connect(opt.conn);
-
+                AbstractConnection conn = get_connection(opt.conn);
+                if (!(conn instanceof SalesforceRestConnection)) {
+                    stderr.printf("connection %y is a %y object; expecting \"SalesforceRestClient; exiting\"\n", opt.conn, conn.className());
+                    exit(1);
+                }
+                rc = conn.get();
             }
             catch (hash ex) {
                 stderr.printf("connection %y: %s: %s: %s\n", opt.conn, get_ex_pos(ex), ex.err, ex.desc);
