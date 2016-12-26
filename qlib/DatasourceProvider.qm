@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file DatasourceProvider.qm Qore user module for generally useful routines
+# @file DatasourceProvider.qm Qore user module providing an API for returning datasource connection strings from identifiers
 
 /*  DatasourceProvider.qm Copyright 2016 Qore Technologies, s.r.o.
 
@@ -32,7 +32,7 @@
 
 module DatasourceProvider {
     version = "1.0";
-    desc    = "API for providing Datasource connection strings";
+    desc    = "API for providing datasource connection strings";
     author  = "David Nichols <david.nichols@qoretechnologies.com>";
     url     = "http://qore.org";
     license = "MIT";
@@ -64,9 +64,9 @@ public string sub get_mod_ds_string(string str) {}
     @endcode
 
     If the string is not a valid identifier for a datasource, the function should throw an
-    exception (any exception; the exception is not displayed).
+    exception (any exception; the exception is not displayed by default).
 
-    Datasource provider modules declared in the  \c "QORE_DATASOURCE_PROVIDERS" environment variable must
+    Datasource provider modules declared in the \c "QORE_DATASOURCE_PROVIDERS" environment variable must
     be separated by the platform-specific @ref Qore::PathSep "PathSep" character as in the following
     examples:
 
@@ -87,7 +87,7 @@ $env:QORE_DATASOURCE_PROVIDERS="MyDatasourceProvider;OtherDatasourceProvider"
 
     @section datasourceproviderrelnotes Release Notes
 
-    @subsection datasourceprovider_1_0
+    @subsection datasourceprovider_1_0 DatasourceProvider 1.0
     - the initial version of the DatasourceProvider module
 */
 
