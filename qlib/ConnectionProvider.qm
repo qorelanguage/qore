@@ -65,7 +65,7 @@ module ConnectionProvider {
     @subsection connectionprovider_modules Connection Provider Modules
 
     This module uses the \c "QORE_CONNECTION_PROVIDERS" environment variable to load connection provider
-    modules.  Each connection provider module must provide a two public functions with the following signatures:
+    modules.  Each connection provider module must provide two public functions with the following signatures:
     @code{.py}
 # returns a ConnectionProvider::AbstractConnection object for the given identifier or throws an exception
 public ConnectionProvider::AbstractConnection sub get_mod_connection(string str) {}
