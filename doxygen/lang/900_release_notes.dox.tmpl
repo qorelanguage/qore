@@ -111,7 +111,8 @@
       - added the \c SmtpConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
     - <a href="../../modules/TelnetClient/html/index.html">TelnetClient</a> module updates:
       - added the \c TelnetConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
-      - ignore \c "telnet://" in the beginning of the connection string in the constructor
+      - added support for URLs in the constructor()
+      - added the \c TelnetClient::getTarget() method
 
     @subsection qore_0813_bug_fixes Bug Fixes in Qore
     - fixed a bug causing @ref Qore::AbstractQuantifiedBidirectionalIterator "AbstractQuantifiedBidirectionalIterator" not being available (<a href="https://github.com/qorelanguage/qore/issues/968">issue 968</a>)

@@ -68,7 +68,8 @@ module TelnetClient {
 
     @subsection telnetclient_v1_3 TelnetClient v1.3
     - added the @ref TelnetClient::TelnetConnection "TelnetConnection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
-    - ignore \c "telnet://" at the beginning of the connection string
+    - added the @ref TelnetClient::TelnetClient::getTarget() "TelnetClient::getTarget()" method
+    - added support for URLs in the constructor()
 
     @subsection telnetclient_v1_2 TelnetClient v1.2
     - converted to @ref new-style "%new-style"
@@ -76,7 +77,7 @@ module TelnetClient {
     @subsection telnetclient_v1_1 TelnetClient v1.1
     - added socket instrumention support from Qore 0.8.9
 
-    @subsection telnetclient_v1_3 TelnetClient v1.0
+    @subsection telnetclient_v1_0 TelnetClient v1.0
     - updated to a user module
 
     @subsection telnetclient_v0_9 TelnetClient v0.9
@@ -260,7 +261,7 @@ public namespace TelnetClient {
      */
     public class TelnetClient {
         #! @cond nodoc
-          private {
+        private {
             # the connection string
             string connect;
 
@@ -289,41 +290,61 @@ public namespace TelnetClient {
         /** @param host the hostname of the telnet server (use [hostname] to explicitly specify an ipv6 connection)
             @param port the port number of the telnet server
             @param log a closure or call reference for log messages; a single string argument will be passed to this code for logging
-            @param dbgLog a closure for debugging/technical log messages; a single string argument will be passed to this code for logging
+            @param dbglog a closure for debugging/technical log messages; a single string argument will be passed to this code for logging
          */
-          constructor(string host, softint port, *code log, *code dbgLog) {
+          constructor(string host, softint port, *code log, *code dbglog) {
             if (host.empty())
                 throw "TELNET-CONSTRUCTOR-ERROR", "the host parameter may not be empty";
 
             log_info = log;
-            log_debug = dbgLog;
+            log_debug = dbglog;
 
             connect = sprintf("%s:%d", host, port);
             logDbg("server: %y", connect);
         }
 
-        #! creates the TelnetClient object
-        /** @param n_connect the hostname of the Telnet server or a hostname:port specification (use [hostname] or [address] for ipv6 connections)
-            @param n_log a closure or call reference for log messages; a single string argument will be passed to this code for logging
-            @param n_dbglog a closure for debugging/technical log messages; a single string argument will be passed to this code for logging
+        #! creates the TelnetClient object from a target string and optional log closure(s)
+        /** @param connect the hostname of the Telnet server or a hostname:port specification (use [hostname] or [address] for ipv6 connections); also accepts URLs with a scheme \c "telnet://", any other scheme, or of the URL contains a username, password, or path, an \c INVALID-TARGET exception will be thrown
+            @param log a @ref closure "closure" or @ref call_reference "call reference" for log messages; a single string argument will be passed to this code for logging
+            @param dbglog a @ref closure "closure" or @ref call_reference "call reference" for debugging/technical log messages; a single string argument will be passed to this code for logging
+
+            @note a UNIX domain socket target can be given with a URL in the following format:
+            <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i>
+            is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example:
+            \c "telnet://socket=%2ftmp%socket-dir%2fsocket-file-1"; this allows a filesystem path to be used in the
+            host portion of the URL providing the path to the UNIX domain socket.
+
+            @throw INVALID-TARGET the connection argument contains a URL with an invalid target scheme or unsupported components (username, password, or path)
          */
-        constructor(string n_connect, *code n_log, *code n_dbglog) {
-            log_info = n_log;
-            log_debug = n_dbglog;
+        constructor(string connect, *code log, *code dbglog) {
+            log_info = log;
+            log_debug = dbglog;
 
-            # remove any "telnet://" at the beginning of the connection string
-            n_connect =~ s/^telnet:\/\///i;
-
-            # add default port if the connect string has no port number and:
-            # 1) is not a path (for a UNIX domain socket)
-            # 2) is not an ipv6 address enclosed in '[]' (ex '[2001:0db8:85a3:0000:0000:8a2e:0370:7334]')
-            if (n_connect !~ /^\//) {
-                *softint p = (n_connect =~ x/:([0-9]+)$/)[0];
+            if (connect =~ /^[^:]+:\/\//) {
+                hash h = parse_url(connect);
+                if (h.protocol != "telnet")
+                    throw "INVALID-TARGET", sprintf("URL %y contains invalid scheme %y; expecting \"telnet\"", connect, h.protocol);
+                foreach string key in ("username", "password", "path") {
+                    if (h{key})
+                        throw "INVALID-TARGET", sprintf("URL %y contains a value for the %s which is not supported, remove this value from the URL and try again", connect, key);
+                }
+                connect = h.host;
+                # if there is no port and the host is not a path for a UNIX domain socket, then add the default telnet port
+                if (!h.port && h.host[0] != "/")
+                    h.port = DefaultTelnetPort;
+                if (h.port)
+                    connect += sprintf(":%d", h.port);
+            }
+            else if (connect !~ /^\//) {
+                # add default port if the connect string has no port number and:
+                # 1) is not a path (for a UNIX domain socket)
+                # 2) is not an ipv6 address enclosed in '[]' (ex '[2001:0db8:85a3:0000:0000:8a2e:0370:7334]')
+                *softint p = (connect =~ x/:([0-9]+)$/)[0];
                 if (!p)
-                    n_connect += ":" + DefaultTelnetPort;
+                    connect += ":" + DefaultTelnetPort;
             }
 
-            connect = n_connect;
+            self.connect = connect;
             logDbg("server: %y", connect);
         }
 
@@ -504,7 +525,7 @@ public namespace TelnetClient {
 telnet.clearWarningQueue();
             @endcode
 
-            @see TelnetClient::setWarningQueue()
+            @see setWarningQueue()
 
             @since %TelnetClient 1.1
         */
@@ -523,7 +544,7 @@ telnet.setWarningQueue(5000, 5000, queue, "socket-1");
             - \c "operation": a string giving the operation that caused the warning (ex: \c "connect")
             - \c "us": an integer giving the number of microseconds for the operation
             - \c "timeout": an integer giving the warning threshold in microseconds
-            - \c "arg": if any \c "arg" argument is passed to the @ref Qore::TelnetClient::setWarningQueue() "TelnetClient::setWarningQueue()" method, it will be included in the warning hash here
+            - \c "arg": if any \c "arg" argument is passed to the @ref setWarningQueue() "TelnetClient::setWarningQueue()" method, it will be included in the warning hash here
             @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket warning is placed on the warning queue with the following keys:
             - \c "type": a string with the constant value \c "SOCKET-THROUGHPUT-WARNING"
             - \c "dir": either \c "send" or \c "recv" depending on the direction of the data flow
@@ -531,7 +552,7 @@ telnet.setWarningQueue(5000, 5000, queue, "socket-1");
             - \c "us": an integer giving the number of microseconds for the operation
             - \c "bytes_sec": a float giving the transfer speed in bytes per second
             - \c "threshold": an integer giving the warning threshold in bytes per second
-            - \c "arg": if any \c "arg" argument is passed to the @ref Qore::TelnetClient::setWarningQueue() "TelnetClient::setWarningQueue()" method, it will be included in the warning hash here
+            - \c "arg": if any \c "arg" argument is passed to the @ref setWarningQueue() "TelnetClient::setWarningQueue()" method, it will be included in the warning hash here
             @param queue the @ref Qore::Thread::Queue "Queue" object to receive warning events
             @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to identify the socket for example)
             @param min_ms the minimum transfer time with a resolution of milliseconds for a transfer to be eligible for triggering a warning; transfers that take less than this period of time are not eligible for raising a warning
@@ -558,9 +579,9 @@ hash h = telnet.getUsageInfo();
             - \c "bytes_recv": an integer giving the total amount of bytes received
             - \c "us_sent": an integer giving the total number of microseconds spent sending data
             - \c "us_recv": an integer giving the total number of microseconds spent receiving data
-            - \c "arg": (only if warning values have been set with @ref Qore::TelnetClient::setWarningQueue() "TelnetClient::setWarningQueue()") the optional argument for warning hashes
-            - \c "timeout": (only if warning values have been set with @ref Qore::TelnetClient::setWarningQueue() "TelnetClient::setWarningQueue()") the warning timeout in microseconds
-            - \c "min_throughput": (only if warning values have been set with @ref Qore::TelnetClient::setWarningQueue() "TelnetClient::setWarningQueue()") the minimum warning throughput in bytes/sec
+            - \c "arg": (only if warning values have been set with @ref setWarningQueue() "TelnetClient::setWarningQueue()") the optional argument for warning hashes
+            - \c "timeout": (only if warning values have been set with @ref setWarningQueue() "TelnetClient::setWarningQueue()") the warning timeout in microseconds
+            - \c "min_throughput": (only if warning values have been set with @ref setWarningQueue() "TelnetClient::setWarningQueue()") the minimum warning throughput in bytes/sec
 
             @since %TelnetClient 1.1
 
@@ -582,6 +603,13 @@ telnet.clearStats();
         */
         clearStats() {
             conn.clearStats();
+        }
+
+        #! Returns the connection target string
+        /** @since %TelnetClient 1.3
+        */
+        string getTarget() {
+            return connect;
         }
 
         #! @cond nodoc
