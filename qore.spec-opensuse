@@ -179,6 +179,7 @@ rm %{buildroot}/%{_libdir}/libqore.la
 %{_bindir}/qget
 %{_bindir}/rest
 %{_bindir}/schema
+%{_bindir}/schema-reverse
 %{_bindir}/sfrest
 %{_bindir}/sqlutil
 %{module_dir}
