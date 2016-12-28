@@ -161,6 +161,7 @@ make check
 %{_bindir}/qget
 %{_bindir}/rest
 %{_bindir}/schema
+%{_bindir}/schema-reverse
 %{_bindir}/sfrest
 %{_bindir}/sqlutil
 %{_mandir}/man1/qore.1.*
