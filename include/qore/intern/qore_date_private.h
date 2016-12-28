@@ -922,6 +922,20 @@ public:
       normalize();
    }
 
+   DLLLOCAL void setSeconds(int64 s, int usecs = 0) {
+      year = 0;
+      month = 0;
+      day = 0;
+      hour = s / 3600;
+      if (hour)
+         s -= hour * 3600;
+      minute = s / 60;
+      if (minute)
+         s -= minute * 60;
+      second = s;
+      us = usecs;
+   }
+
    DLLLOCAL void setTime(int h, int m, int s, int usecs) {
       hour = h;
       minute = m;
@@ -1377,6 +1391,11 @@ public:
    DLLLOCAL void setRelativeDateLiteral(int64 date, int us = 0) {
       relative = true;
       d.rel.setLiteral(date, us);
+   }
+
+   DLLLOCAL void setRelativeDateSeconds(int64 s, int us = 0) {
+      relative = true;
+      d.rel.setSeconds(s, us);
    }
 
    DLLLOCAL int64 getRelativeSeconds() const {

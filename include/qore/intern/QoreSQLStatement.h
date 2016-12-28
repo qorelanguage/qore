@@ -32,7 +32,7 @@
 #ifndef _QORE_QORESQLSTATEMENT_H
 #define _QORE_QORESQLSTATEMENT_H
 
-#include <qore/intern/sql_statement_private.h>
+#include "qore/intern/sql_statement_private.h"
 
 class DatasourceStatementHelper;
 
