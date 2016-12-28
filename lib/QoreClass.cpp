@@ -516,6 +516,7 @@ qore_class_private::qore_class_private(QoreClass* n_cls, const char* nme, int64 
      pub(false),
      final(false),
      inject(false),
+     gate_access(false),
      domain(dom),
      num_methods(0),
      num_user_methods(0),
@@ -571,6 +572,7 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
      pub(false), // the public flag must be explicitly set if necessary after this constructor
      final(old.final),
      inject(old.inject),
+     gate_access(old.gate_access),
      domain(old.domain),
      num_methods(old.num_methods),
      num_user_methods(old.num_user_methods),
@@ -3095,6 +3097,9 @@ QoreValue QoreClass::evalMethodGate(QoreObject* self, const char* nme, const Qor
 
    args_holder->insert(new QoreStringNode(nme));
 
+   if (priv->gate_access)
+      args_holder->insert(priv->runtimeCheckPrivateClassAccess() ? (AbstractQoreNode*)&True : (AbstractQoreNode*)&False);
+
    return self->evalMethod(*priv->methodGate, *args_holder, xsink);
 }
 
@@ -3110,8 +3115,10 @@ QoreValue QoreClass::evalMemberGate(QoreObject* self, const QoreString *nme, Exc
    if (!priv->memberGate || priv->memberGate->inMethod(self))
       return QoreValue();
 
-   ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
+   ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
    args->push(new QoreStringNode(*nme));
+   if (priv->gate_access)
+      args->push(priv->runtimeCheckPrivateClassAccess() ? (AbstractQoreNode*)&True : (AbstractQoreNode*)&False);
 
    return self->evalMethod(*priv->memberGate, *args, xsink);
 }
@@ -4259,6 +4266,14 @@ void QoreClass::rescanParents() {
    // rebuild parent class data
    if (priv->scl)
       priv->scl->rescanParents(this);
+}
+
+void QoreClass::setPublicMemberFlag() {
+   priv->has_public_memdecl = true;
+}
+
+void QoreClass::setGateAccessFlag() {
+   priv->gate_access = true;
 }
 
 void MethodFunctionBase::parseInit() {
