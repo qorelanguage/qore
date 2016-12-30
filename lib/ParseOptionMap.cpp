@@ -86,6 +86,7 @@ void ParseOptionMap::static_init() {
    DO_MAP("broken-operators",         PO_BROKEN_OPERATORS);
    DO_MAP("broken-loop-statement",    PO_BROKEN_LOOP_STATEMENT);
    DO_MAP("strong-encapsulation",     PO_STRONG_ENCAPSULATION);
+   DO_MAP("no-uncontrolled-apis",     PO_NO_UNCONTROLLED_APIS);
 }
 
 int ParseOptionMap::find_code(const char *name) {
