@@ -82,6 +82,7 @@
 #define PO_BROKEN_OPERATORS                 (1LL << 42)  //!< allow for old pre-%Qore 0.8.12 parsing of multi-character operators with spaces
 #define PO_BROKEN_LOOP_STATEMENT            (1LL << 43)  //!< allow for old pre-%Qore 0.8.13 handling of break and continue
 #define PO_STRONG_ENCAPSULATION             (1LL << 44)  //!< disallow out-of-line class and namespace declarations
+#define PO_NO_UNCONTROLLED_APIS             (1LL << 45)  //!< disallow access to "uncontrolled APIs" like external language bindings or direct generic system call APIs that could bypass sandboxing controls
 
 // aliases for old defines
 #define PO_NO_SYSTEM_FUNC_VARIANTS          PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
@@ -101,10 +102,10 @@
 #define PO_NO_THREADS                 (PO_NO_THREAD_CONTROL|PO_NO_THREAD_CLASSES|PO_NO_THREAD_INFO)
 
 //! prohibits any external access
-#define PO_NO_EXTERNAL_ACCESS         (PO_NO_PROCESS_CONTROL|PO_NO_NETWORK|PO_NO_FILESYSTEM|PO_NO_DATABASE|PO_NO_EXTERNAL_INFO|PO_NO_EXTERNAL_PROCESS|PO_NO_MODULES)
+#define PO_NO_EXTERNAL_ACCESS         (PO_NO_PROCESS_CONTROL|PO_NO_NETWORK|PO_NO_FILESYSTEM|PO_NO_DATABASE|PO_NO_EXTERNAL_INFO|PO_NO_EXTERNAL_PROCESS|PO_NO_MODULES|PO_NO_UNCONTROLLED_APIS)
 
 //! prohibits all terminal and file I/O and GUI operations
-#define PO_NO_IO                      (PO_NO_GUI|PO_NO_TERMINAL_IO|PO_NO_FILESYSTEM|PO_NO_NETWORK|PO_NO_DATABASE)
+#define PO_NO_IO                      (PO_NO_GUI|PO_NO_TERMINAL_IO|PO_NO_FILESYSTEM|PO_NO_NETWORK|PO_NO_DATABASE|PO_NO_UNCONTROLLED_APIS)
 
 //! most restrictive access - can just execute logic, no I/O, no threading, no external access
 #define PO_LOCKDOWN                   (PO_NO_EXTERNAL_ACCESS|PO_NO_THREADS|PO_NO_IO)
@@ -153,5 +154,6 @@
 #define QDOM_IN_MODULE          PO_IN_MODULE              //!< tagged with code that is restricted in user modules
 #define QDOM_EMBEDDED_LOGIC     PO_NO_EMBEDDED_LOGIC      //!< provides dynamic parsing functionality
 #define QDOM_INJECTION          PO_ALLOW_INJECTION        //!< provides functionality related to code / dependency injection
+#define QDOM_UNCONTROLLED_API   PO_NO_UNCONTROLLED_APIS   //!< provides unchecked access to system functionality that could bypass Qore's sandboxing controls
 
 #endif //_QORE_DOMAIN_H
