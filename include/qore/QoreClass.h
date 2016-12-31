@@ -268,9 +268,22 @@ public:
    /** @note class names and subnamespaces names must be unique in a namespace; i.e. no class may have the same name as a subnamespace within a namespace and vice-versa
        @param n_name the name of the class
        @param n_domain the functional domain of the class to be used to enforce functional restrictions within a Program object
+
        @see QoreProgram
+
+       @since %Qore 0.8.13
    */
-   DLLEXPORT QoreClass(const char* n_name, int n_domain = QDOM_DEFAULT);
+   DLLEXPORT QoreClass(const char* n_name, int64 n_domain = QDOM_DEFAULT);
+
+   //! creates the QoreClass object and assigns the name and the functional domain
+   /** @note class names and subnamespaces names must be unique in a namespace; i.e. no class may have the same name as a subnamespace within a namespace and vice-versa
+       @param n_name the name of the class
+       @param n_domain the functional domain of the class to be used to enforce functional restrictions within a Program object
+       @see QoreProgram
+
+       @deprecated use QoreClass(const char*, int64) instead
+   */
+   DLLEXPORT explicit QoreClass(const char* n_name, int n_domain);
 
    //! creates the QoreClass object and assigns the name, the functional domain, and a custom QoreTypeInfo object created with AbstractQoreClassTypeInfoHelper
    /** @note class names and subnamespaces names must be unique in a namespace; i.e. no class may have the same name as a subnamespace within a namespace and vice-versa
@@ -319,7 +332,7 @@ public:
    */
    DLLEXPORT void addMethod(const char* n_name, q_method_n_t meth, ClassAccess access = Public, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
-   //! adds a builtin method to a class
+   //! adds a builtin method variant to a class with the calling convention for external modules
    /** @par Example:
        @code
        // the actual function can be declared with the class to be expected as the private data as follows:
@@ -347,18 +360,22 @@ public:
        @param defaultArgList a list of default arguments to each parameter
        @param n_names a list of parameter names
 
-       @see Qoreclass::addStaticMethod()
-       @see QoreClass::setConstructor()
+       @see Qoreclass::addStaticMethodVariant()
+       @see QoreClass::addConstructorVariant()
        @see QoreClass::setDestructor()
        @see QoreClass::setCopy()
+
+       @since %Qore 0.8.13
    */
-   DLLEXPORT void addMethod(const void* ptr, const char* n_name, q_external_method_t meth, ClassAccess access = Public, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t());
+   DLLEXPORT void addMethodVariant(const void* ptr, const char* n_name, q_external_method_t meth, ClassAccess access = Public, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t());
 
    //! adds a builtin static method with extended information; additional functional domain info, return and parameter type info
    DLLEXPORT void addStaticMethod(const char* n_name, q_func_n_t meth, ClassAccess access = Public, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
    //! adds a builtin static method with extended information; additional functional domain info, return and parameter type info
-   DLLEXPORT void addStaticMethod(const void* ptr, const char* n_name, q_external_static_method_t meth, ClassAccess access = Public, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t());
+   /** @since %Qore 0.8.13
+    */
+   DLLEXPORT void addStaticMethodVariant(const void* ptr, const char* n_name, q_external_static_method_t meth, ClassAccess access = Public, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t());
 
    //! adds a builtin method to a class
    /** @par Example:
@@ -614,7 +631,9 @@ public:
    DLLEXPORT void addConstructor(q_constructor_n_t meth, ClassAccess access = Public, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, unsigned num_params = 0, ...);
 
    //! sets the constructor method with extended information; can set a private constructor, set additional functional domain info, and parameter type info (or adds an overloaded variant)
-   DLLEXPORT void addConstructor(const void* ptr, q_external_constructor_t meth, ClassAccess access = Public, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t());
+   /** @since %Qore 0.8.13
+    */
+   DLLEXPORT void addConstructorVariant(const void* ptr, q_external_constructor_t meth, ClassAccess access = Public, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t());
 
    //! sets the constructor method with extended information; can set a private constructor, set additional functional domain info, and parameter type info (or adds an overloaded variant)
    /** @deprecated use addConstructor(q_constructor_n_t, ClassAccess, int64, int64, unsigned, ...) instead
@@ -1201,7 +1220,7 @@ private:
 class QoreBuiltinClass : public QoreClass {
 public:
    //! creates the object and marks it as a builtin class
-   DLLEXPORT QoreBuiltinClass(const char* name, int n_domain = QDOM_DEFAULT);
+   DLLEXPORT QoreBuiltinClass(const char* name, int64 n_domain = QDOM_DEFAULT);
 
    //! copies the object
    DLLEXPORT QoreBuiltinClass(const QoreBuiltinClass& old);
