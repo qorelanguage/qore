@@ -873,7 +873,7 @@ void qore_class_private::mergeAbstract() {
                continue;
             }
             // now we import the abstract method to our class
-            unique_ptr<AbstractMethod> m(new AbstractMethod);
+            std::unique_ptr<AbstractMethod> m(new AbstractMethod);
             // see if there are pending normal variants...
             hm_method_t::iterator mi = hm.find(j.first);
             // merge committed parent abstract variants with any pending local variants
