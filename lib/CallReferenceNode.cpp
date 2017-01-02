@@ -438,13 +438,13 @@ AbstractQoreNode* UnresolvedCallReferenceNode::parseInit(LocalVar* oflag, int pf
 }
 
 AbstractQoreNode* LocalStaticMethodCallReferenceNode::evalImpl(ExceptionSink* xsink) const {
-   return new StaticMethodCallReferenceNode(method, ::getProgram());
+   return new StaticMethodCallReferenceNode(method, ::getProgram(), runtime_get_class());
 }
 
 // evalImpl(): return value requires a deref(xsink) if not 0
 AbstractQoreNode* LocalStaticMethodCallReferenceNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
    needs_deref = true;
-   return new StaticMethodCallReferenceNode(method, ::getProgram());
+   return new StaticMethodCallReferenceNode(method, ::getProgram(), runtime_get_class());
 }
 
 QoreValue LocalStaticMethodCallReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
@@ -477,7 +477,7 @@ bool LocalMethodCallReferenceNode::is_equal_hard(const AbstractQoreNode* v, Exce
    return vc && method == vc->method;
 }
 
-StaticMethodCallReferenceNode::StaticMethodCallReferenceNode(const QoreMethod* n_method, QoreProgram* n_pgm) : LocalStaticMethodCallReferenceNode(n_method, false), pgm(n_pgm) {
+StaticMethodCallReferenceNode::StaticMethodCallReferenceNode(const QoreMethod* n_method, QoreProgram* n_pgm, const qore_class_private* n_class_ctx) : LocalStaticMethodCallReferenceNode(n_method, false), pgm(n_pgm), class_ctx(n_class_ctx) {
    assert(pgm);
    //printd(5, "StaticMethodCallReferenceNode::StaticMethodCallReferenceNode() this: %p %s::%s()\n", this, n_method->getClass()->getName(), n_method->getName());
    //printd(5, "StaticMethodCallReferenceNode::StaticMethodCallReferenceNode() this: %p calling QoreProgram::depRef() pgm: %p\n", this, pgm);
@@ -495,6 +495,8 @@ bool StaticMethodCallReferenceNode::derefImpl(ExceptionSink* xsink) {
 }
 
 QoreValue StaticMethodCallReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
+   // set class ctx
+   ObjectSubstitutionHelper osh(0, class_ctx);
    // do not set pgm context here before evaluating args
    return qore_method_private::eval(*method, xsink, 0, args);
 }

@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.12 or better
-%requires qore >= 0.8.12
+# this module requires Qore 0.8.13 or better
+%requires qore >= 0.8.13
 
 # require type definitions everywhere
 %require-types
@@ -34,7 +34,10 @@
 # don't use "$" for vars, members, and methods, assume local variable scope
 %new-style
 
+%enable-all-warnings
+
 %requires Mime >= 1.3
+%requires(reexport) ConnectionProvider >= 1.0
 
 %try-module yaml >= 0.5
 %define NoYaml
@@ -81,6 +84,7 @@ module RestClient {
 
     The main classes are:
     - @ref RestClient::RestClient "RestClient": this class provides the REST client API
+    - @ref RestClient::RestConnection "RestConnection": provides a connection object to a REST server (based on the @ref connectionproviderintro "ConnectionProvider" module)
 
     The @ref RestClient::RestClient "RestClient" class can support the following methods of data serialization:
     - \c "json": using the \c "json" module; messages bodies are encoded using JSON
@@ -112,8 +116,8 @@ printf("%N\n", ans.body);
     @section restclientrelnotes Release Notes
 
     @subsection restclientv1_4 RestClient v1.4
-    - added:
-      - support for \c text/plain Content-Type
+    - added support for the \c text/plain Content-Type
+    - added the @ref RestClient::RestConnection "RestConnection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
 
     @subsection restclientv1_3_1 RestClient v1.3.1
     - added support for the \c "url" encoding for URL form encoded message bodies (<a href="https://github.com/qorelanguage/qore/issues/1436">issue 1436</a>)
@@ -856,4 +860,89 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
         }
 
     } # class RestClient
+
+    #! class for REST HTTP connections; returns @ref RestClient::RestClient objects
+    /** supports the following options:
+        - \c "connect_timeout": connection timeout to use in milliseconds
+        - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
+        - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values; the default is \c "auto" for possible values; note that it's recommended to use \c "yaml" when talking to Qorus
+        - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
+        - \c "max_redirects": maximum redirects to support
+        - \c "proxy": proxy URL to use
+        - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+        - \c "timeout": transfer timeout to use in milliseconds
+
+        @see @ref RestClient::RestClient::constructor() "RestClient::constructor()" for more information on the above options
+
+        @since %RestConnection 1.4
+    */
+    public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
+        public {
+            #! real options used when creating an object
+            hash real_opts;
+
+            #! RestConnection object connection options
+            const Options = HttpConnection::Options + (
+                "data": True,
+                "send_encoding": True,
+                "content_encoding": True,
+                );
+
+            const OptionList = Options.keys();
+        }
+
+        #! creates the RestConnection object
+        /** @param name the name of the connection
+            @param desc connection description
+            @param url connection URL (potentially with password info)
+            @param monitor monitoring flag
+            @param opts connection options
+            @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+        */
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : HttpBasedConnection(name, desc, url, monitor, opts, urlh) {
+            real_opts = ("url": real_url) + opts;
+        }
+
+        #! returns a @ref RestClient::RestClient object
+        /** @param connect if @ref Qore::True "True", then the connection is returned already connected
+            @param rtopts this connection type does not accept any runtime options, so this parameter is ignored
+
+            @return a @ref RestClient::RestClient "RestClient" object
+        */
+        private RestClient getImpl(bool connect = True, *hash rtopts) {
+            return new RestClient(real_opts, !connect);
+        }
+
+        #! gets options
+        /** @return returns a hash with the following supported options:
+            - \c "connect_timeout": connection timeout to use in milliseconds
+            - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
+            - \c "data": see @ref RestClient::RestClient::DataSerializationOptions "DataSerializationOptions" for possible values; the default is \c "auto" for possible values; note that it's recommended to use \c "yaml" when talking to Qorus
+            - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
+            - \c "max_redirects": maximum redirects to support
+            - \c "proxy": proxy URL to use
+            - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+            - \c "timeout": transfer timeout to use in milliseconds
+
+            @see @ref RestClient::RestClient::constructor() "RestClient::constructor()" for more information on the above options
+        */
+        hash getOptions() {
+            return Options;
+        }
+
+        #! returns default options
+        *hash getDefaultOptions() {
+            return HttpConnection::DefaultOptions;
+        }
+
+        #! returns \c "rest"
+        string getType() {
+            return "rest";
+        }
+
+        #! static constructor
+        static RestConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
+            return new RestConnection(name, desc, url, monitor, opts, urlh);
+        }
+    }
 }

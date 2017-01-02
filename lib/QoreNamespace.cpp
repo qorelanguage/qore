@@ -223,6 +223,7 @@ void QoreNamespace::addSystemClass(QoreClass* oc) {
    if (!rns)
       return;
 
+   //printd(5, "QoreNamespace::addSystemClass() adding '%s' %p to classmap %p in ns '%s'\n", oc->getName(), oc, &rns->clmap, priv->name.c_str());
    rns->clmap.update(oc->getName(), priv, oc);
 }
 
@@ -651,10 +652,13 @@ QoreNamespace* QoreNamespace::findCreateNamespacePath(const char* nspath) {
 QoreNamespace* qore_ns_private::findCreateNamespacePath(const NamedScope& nscope, bool pub, bool& is_new) {
    assert(!is_new);
 
+   // get root ns to add to namespace map if attached
+   qore_root_ns_private* rns = getRoot();
+
    // iterate through each level of the namespace path and find/create namespaces as needed
    QoreNamespace* nns = ns;
    for (unsigned i = 0; i < nscope.size() - 1; ++i) {
-      nns = nns->priv->findCreateNamespace(nscope[i], is_new);
+      nns = nns->priv->findCreateNamespace(nscope[i], is_new, rns);
       if (pub)
          nns->priv->pub = true;
    }
@@ -662,12 +666,15 @@ QoreNamespace* qore_ns_private::findCreateNamespacePath(const NamedScope& nscope
    return nns;
 }
 
-QoreNamespace* qore_ns_private::findCreateNamespace(const char* nsn, bool& is_new) {
+QoreNamespace* qore_ns_private::findCreateNamespace(const char* nsn, bool& is_new, qore_root_ns_private* rns) {
    QoreNamespace* ns = nsl.find(nsn);
    if (!ns) {
       ns = new QoreNamespace(nsn);
       nsl.runtimeAdd(ns, this);
       is_new = true;
+      // add to namespace map if attached
+      if (rns)
+         rns->rebuildIndexes(ns->priv);
    }
    return ns;
 }
@@ -676,12 +683,15 @@ QoreNamespace* qore_ns_private::findCreateNamespacePath(const nslist_t& nsl, boo
    assert(!nsl.empty());
    assert(!is_new);
 
+   // get root ns to add to namespace map if attached
+   qore_root_ns_private* rns = getRoot();
+
    //printd(5, "qore_ns_private::findCreateNamespacePath() this: %p nsv: %ld\n", this, nsv.size());
 
    // iterate through each level of the namespace path and find/create namespaces as needed
    QoreNamespace* nns = ns;
    for (nslist_t::const_iterator i = nsl.begin(), e = nsl.end(); i != e; ++i)
-      nns = nns->priv->findCreateNamespace((*i)->name.c_str(), is_new);
+      nns = nns->priv->findCreateNamespace((*i)->name.c_str(), is_new, rns);
 
    return nns;
 }
@@ -2242,6 +2252,7 @@ AbstractQoreNode* qore_ns_private::parseResolveReferencedClassConstant(QoreClass
    const QoreClass* aqc;
    ClassAccess access;
    QoreVarInfo* vi = qore_class_private::parseFindStaticVar(qc, name, aqc, access, true);
+   //printd(5, "qore_ns_private::parseResolveReferencedClassConstant() '%s' %p '%s' static var: %p\n", qc->getName(), qc, name, vi);
    if (vi) {
       typeInfo = vi->getTypeInfo();
       return new StaticClassVarRefNode(name, *qc, *vi);

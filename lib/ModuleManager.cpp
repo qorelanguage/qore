@@ -173,7 +173,7 @@ void QoreModuleDefContext::initClosure(AbstractQoreNode*& c, const char* n) {
    int lvids = 0;
    const QoreTypeInfo* typeInfo = 0;
    // check for local variables at the top level - this can only happen if the expresion is not a closure
-   c = c->parseInit(0, PO_LOCKDOWN, lvids, typeInfo);
+   c = c->parseInit(0, 0, lvids, typeInfo);
    if (lvids) {
       parseException("ILLEGAL-LOCAL-VAR", "local variables may not be declared in module '%s' code", n);
       // discard variables immediately
@@ -785,6 +785,8 @@ QoreStringNode* ModuleManager::parseLoadModule(const char* name, QoreProgram* pg
 
 void QoreModuleManager::parseLoadModule(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport) {
    //printd(5, "ModuleManager::parseLoadModule(name: %s, pgm: %p, reexport: %d)\n", name, pgm, reexport);
+
+   assert(!xsink);
 
    char* p = strchrs(name, "<>=");
    if (p) {

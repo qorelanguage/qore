@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -227,7 +227,20 @@ const MACHINE_MSB =   bool(Q_MACHINE_MSB);
 const Platform = ("OS": qore(new QoreStringNode(TARGET_OS)), "CPU": qore(new QoreStringNode(TARGET_ARCH)), "Unix": bool(Q_IS_UNIX), "Windows": bool(Q_IS_WINDOWS));
 
 //! platform-specific directory separator character string
+/** @note \c "/" on Unix-like platforms, \c "\\" on Windows
+
+    @see PathSep
+ */
 const DirSep = qore(new QoreStringNode(QORE_DIR_SEP_STR));
+
+//! platform-specific path separator character string
+/** @note \c ":" on Unix-like platforms, \c ";" on Windows
+
+    @see DirSep
+
+    @since %Qore 0.8.13
+ */
+const PathSep = qore(new QoreStringNode(QORE_PATH_SEP_STR));
 //@}
 
 /** @defgroup event_source_constants Event Source Constants
@@ -390,4 +403,3 @@ const stdout_stream = qore(QC_FILEOUTPUTSTREAM->execSystemConstructor(1));
 //! system constant for stderr OutputStream (file descriptor 2)
 const stderr_stream = qore(QC_FILEOUTPUTSTREAM->execSystemConstructor(2));
 //@}
-

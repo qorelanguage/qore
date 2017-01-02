@@ -259,6 +259,7 @@ private:
    // This function must only be called from QoreObject
    DLLLOCAL void execDestructor(QoreObject* self, ExceptionSink* xsink) const;
 
+protected:
    //! deletes the object and frees all memory
    DLLEXPORT ~QoreClass();
 
@@ -1099,6 +1100,16 @@ public:
     */
    DLLEXPORT void rescanParents();
 
+   //! sets the class's public member flag so that undeclared member references will fail
+   /** @since %Qore 0.8.13
+    */
+   DLLEXPORT void setPublicMemberFlag();
+
+   //! sets the class's gate access flag so that memberGate() and methodGate() methods will be called with an extra boolean argument giving the current class access before the call
+   /** @since %Qore 0.8.13
+    */
+   DLLEXPORT void setGateAccessFlag();
+
    //! constructor not exported in library's API
    DLLLOCAL QoreClass();
 
@@ -1184,6 +1195,16 @@ public:
 private:
    //! the object being managed
    QoreClass* c;
+};
+
+//! creates a builtin class
+class QoreBuiltinClass : public QoreClass {
+public:
+   //! creates the object and marks it as a builtin class
+   DLLEXPORT QoreBuiltinClass(const char* name, int n_domain = QDOM_DEFAULT);
+
+   //! copies the object
+   DLLEXPORT QoreBuiltinClass(const QoreBuiltinClass& old);
 };
 
 #endif // _QORE_QORECLASS_H

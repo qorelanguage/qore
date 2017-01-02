@@ -1568,6 +1568,8 @@ public:
    DLLLOCAL AbstractQoreNode* parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, const qore_class_private* class_ctx, bool allow_internal) const;
 
    DLLLOCAL int addBaseClassesToSubclass(QoreClass* child, bool is_virtual);
+
+   DLLLOCAL void initializeBuiltin();
 };
 
 typedef std::vector<BCNode*> bclist_t;
@@ -1668,6 +1670,12 @@ public:
    }
 
    DLLLOCAL void rescanParents(QoreClass* cls);
+
+   DLLLOCAL void initializeBuiltin() {
+      for (auto& i : *this) {
+         (*i).initializeBuiltin();
+      }
+   }
 };
 
 // BCEANode
@@ -1857,7 +1865,8 @@ public:
       owns_ornothingtypeinfo : 1,       // do we own the "or nothing" type info
       pub : 1,                          // is a public class (modules only)
       final : 1,                        // is the class "final" (cannot be inherited)
-      inject : 1                        // has the class been injected
+      inject : 1,                       // has the class been injected
+      gate_access : 1                   // if the methodGate and memberGate methods should be called with a class access boolean
       ;
 
    int64 domain;                    // capabilities of builtin class to use in the context of parse restrictions
@@ -2030,7 +2039,8 @@ public:
       return checkAssignSpecialIntern(m);
    }
 
-   DLLLOCAL void mergeAbstract(QoreString& csig);
+   // merge abstract variants from base classes to child class
+   DLLLOCAL void mergeAbstract();
 
    // returns -1 if a recursive inheritance list was found, 0 if not
    DLLLOCAL int initializeIntern(qcp_set_t& qcp_set);
@@ -2648,6 +2658,7 @@ public:
 
    DLLLOCAL void finalizeBuiltin(const char* nspath);
    DLLLOCAL void generateBuiltinSignature(const char* nspath);
+   DLLLOCAL void initializeBuiltin();
 
    DLLLOCAL static const QoreMethod* doParseMethodAccess(const QoreMethod* m, const qore_class_private* class_ctx);
 

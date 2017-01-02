@@ -610,7 +610,11 @@ public:
 
       qore_type_t fctype = fc->getType();
       if (fctype == NT_SELF_CALL) {
-         class_ctx = qore_class_private::get(*reinterpret_cast<SelfFunctionCallNode*>(fc)->getClass());
+         {
+            const QoreClass* qc = reinterpret_cast<SelfFunctionCallNode*>(fc)->getClass();
+            if (qc)
+               class_ctx = qore_class_private::get(*qc);
+         }
 
 	 // must have a current object if an in-object method call is being executed
 	 // (i.e. $.method())
@@ -1572,6 +1576,27 @@ CurrentProgramRuntimeParseContextHelper::~CurrentProgramRuntimeParseContextHelpe
    // current_pgm can be null when loading binary modules
    if (td->current_pgm)
       qore_program_private::unlockParsing(*td->current_pgm);
+}
+
+CurrentProgramRuntimeExternalParseContextHelper::CurrentProgramRuntimeExternalParseContextHelper() {
+   ThreadData* td = thread_data.get();
+   // attach to and lock current program for parsing - cannot fail with a running program
+   // but current_pgm can be null when loading binary modules
+   if (!td->current_pgm || qore_program_private::lockParsing(*td->current_pgm, 0))
+      valid = false;
+}
+
+CurrentProgramRuntimeExternalParseContextHelper::~CurrentProgramRuntimeExternalParseContextHelper() {
+   if (valid) {
+      ThreadData* td = thread_data.get();
+      // current_pgm can be null when loading binary modules
+      if (td->current_pgm)
+         qore_program_private::unlockParsing(*td->current_pgm);
+   }
+}
+
+CurrentProgramRuntimeExternalParseContextHelper::operator bool() const {
+   return valid;
 }
 
 ProgramRuntimeParseAccessHelper::ProgramRuntimeParseAccessHelper(ExceptionSink* xsink, QoreProgram* pgm) : restore(false) {

@@ -58,16 +58,23 @@
       - @ref foldr "foldlr": supports lazy evaluation of the iterator expression
       - @ref foreach "foreach": supports lazy evaluation of the iterator expression
     - new user modules:
+      - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a>
+      - <a href="../../modules/DatasourceProvider/html/index.html">DatasourceProvider</a>
       - <a href="../../modules/Qdx/html/index.html">Qdx</a>
     - <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module updates:
       - added support for upserts in \c InboundTableMapper (<a href="https://github.com/qorelanguage/qore/issues/1067">issue 1067</a>)
       - added \c InboundTableMapper::queueData(list)
     - new access modifiers: <tt><b>private:internal</b></tt> (providing strong encapsulation of the following declaration(s)) and <tt><b>private:hierarchy</b></tt> (which is equivalent to <tt><b>private</b></tt>; <a href="https://github.com/qorelanguage/qore/issues/1197">issue 1197</a>)
     - new parse options:
+      - @ref no-uncontrolled-apis "no-uncontrolled-apis": disallow access to uncontrolled APIs such as external language bindings or direct generic system call APIs that could bypass %Qore's sandboxing controls
       - @ref strong-encapsulation "%strong-encapsulation": disallows out of line class and namespace declarations
     - new constants:
+      - @ref Qore::PathSep "PathSep": defines the platform-specific path separator character
+      - @ref Qore::PO_NO_UNCONTROLLED_APIS "PO_NO_UNCONTROLLED_APIS": disallow access to uncontrolled APIs such as external language bindings or direct generic system call APIs that could bypass %Qore's sandboxing controls; note that this parse option was also added to @ref Qore::PO_NO_IO and @ref Qore::PO_NO_EXTERNAL_ACCESS
       - @ref Qore::PO_STRONG_ENCAPSULATION "PO_STRONG_ENCAPSULATION": disallows out of line class and namespace declarations
     - implemented additional parse-time checks for many @ref operators "operators" to provide feedback for invalid operations detected at parse time
+    - new methods:
+      - @ref Qore::Program::setThreadInit()
     - new pseudo-methods:
       - <int>::format(int, string, string)
       - <float>::format(int, string, string)
@@ -83,6 +90,7 @@
       - @ref Qore::round(int/float/number num, int prec = 0)
       - @ref Qore::floor(int/float/number num, int prec = 0)
       - @ref Qore::ceil(int/float/number num, int prec = 0)
+      - @ref Qore::set_thread_init()
     - new parse options:
       - @ref broken-loop-statement "%broken-loop-statement"
     - new constants:
@@ -95,9 +103,19 @@
       - added support for streams
       - added \c FixedLengthFileIterator::getFileName() (<a href="https://github.com/qorelanguage/qore/issues/1164">issue 1164</a>)
     - updated the build to require a <a href="https://en.wikipedia.org/wiki/C%2B%2B11">C++11</a> compiler or better to build %Qore (<a href="https://github.com/qorelanguage/qore/issues/994">issue 994</a>)
+    - <a href="../../modules/Pop3Client/html/index.html">Pop3Client</a> module updates:
+      - added the \c Pop3Connection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
     - <a href="../../modules/RestClient/html/index.html">RestClient</a> module updates:
-      - support for \c text/plain Content-Type
-      - support for \c xml_raw serialization and deserialization
+      - added the \c RestConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
+      - support for the \c text/plain \c Content-Type
+    - <a href="../../modules/SalesforceRestClient/html/index.html">SalesforceRestClient</a> module updates:
+      - added the \c SalesforcRestConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
+    - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> module updates:
+      - added the \c SmtpConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
+    - <a href="../../modules/TelnetClient/html/index.html">TelnetClient</a> module updates:
+      - added the \c TelnetConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
+      - added support for URLs in the constructor()
+      - added the \c TelnetClient::getTarget() method
 
     @subsection qore_0813_bug_fixes Bug Fixes in Qore
     - fixed a bug causing @ref Qore::AbstractQuantifiedBidirectionalIterator "AbstractQuantifiedBidirectionalIterator" not being available (<a href="https://github.com/qorelanguage/qore/issues/968">issue 968</a>)
@@ -127,6 +145,7 @@
     - fixed bugs where calls to @ref Qore::Socket::upgradeClientToSSL() "Socket::upgradeClientToSSL()" and @ref Qore::Socket::upgradeServerToSSL() "Socket::upgradeServerToSSL()" were ignored with no exception thrown if the socket was not connected (<a href="https://github.com/qorelanguage/qore/issues/1258">issue 1258</a>)
     - fixed a bug where a closure created in an object scope could not be called if the object had been deleted, even if the closure did not refer to the object (<a href="https://github.com/qorelanguage/qore/issues/1258">issue 1303</a>)
     - fixed a bug where @ref Qore::ord() "ord()" would return negative numbers for bytes with the high bit set with compilers where <tt>char</tt> is the same as <tt>signed char</tt> (<a href="https://github.com/qorelanguage/qore/issues/1385">issue 1385</a>)
+    - fixed a bug where @ref Qore::int(softint) "int(number)" returned rounded value instead of the integer part (while @ref Qore::int(softint) "int(float)" behaved correctly; also cf. initializing a softint value from a number vs. from a float) (<a href="https://github.com/qorelanguage/qore/issues/1463">issue 1463</a>)
 
     @section qore_08125 Qore 0.8.12.5
 
@@ -136,6 +155,9 @@
     @subsection qore_08125_new_features New Features in Qore
 
     - added the <a href="../../modules/SalesforceRestClient/html/index.html">SalesforceRestClient</a> module for communicating with Salesforce.com using the REST APIs
+    - module <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>
+      - has support for native default values in tables (<a href="https://github.com/qorelanguage/qore/issues/1428">issue 1428</a>)
+      - has support for Oracle named types (eg. spatial types) for Schema.qm and SchemaReverse.qm. (<a href="https://github.com/qorelanguage/qore/issues/1465">issue 1465</a>)
 
     @subsection qore_08125_bug_fixes Bug Fixes in Qore
 
@@ -149,8 +171,10 @@
       - @ref Qore::gunzip_to_string()
       - @ref Qore::uncompress_to_binary()
       - @ref Qore::uncompress_to_string()
-    - fixed \c @inf@ on Windows (<a href="https://github.com/qorelanguage/qore/issues/1442">issue 1442</a>):
-    - fixed @ref Qore::parse_url() with single-character usernames (<a href="https://github.com/qorelanguage/qore/issues/1455">issue 1455</a>):
+    - fixed \c \@inf\@ on Windows (<a href="https://github.com/qorelanguage/qore/issues/1442">issue 1442</a>)
+    - fixed @ref Qore::parse_url() with single-character usernames (<a href="https://github.com/qorelanguage/qore/issues/1455">issue 1455</a>)
+    - corrected the error message with SSL reads when the server closes the connection prematurely (<a href="https://github.com/qorelanguage/qore/issues/1488">issue 1488</a>)
+    - fixed the \c Host header in HTTP requests to not include the port if the port is the default port for the scheme because it causes some servers to reject the request (<a href="https://github.com/qorelanguage/qore/issues/1489">issue 1489</a>)
 
     @section qore_08124 Qore 0.8.12.4
 
@@ -1641,7 +1665,7 @@ class MyAbstractInterface {
     - qpp updated to support abstract methods and multiple inheritance (+ other minor qpp enhancements)
     - improved the \c QOREADDRINFO-GETINFO-ERROR exception description by adding information about the arguments passed
     - added a string argument to @ref Qore::chr(softint, __7_ string) "char(softint, *string)" to accept an output encoding
-    - added a @ref Qore::int(string, softint) "int(string, softint)" variant to parse a string as a number and give the base
+    - added a @ref Qore::int(string, int) "int(string, int)" variant to parse a string as a number and give the base
     - added a new parameter to parse_url() and parseURL() to allow for any [] in the hostname to be included in the \c "host" output key for indicating that the <a href="http://wikipedia.org/wiki/IPv6">ipv6</a> protocol be used
     - added the following pseudo-methods:
       - Qore::zzz8valuezzz9::lsize()

@@ -2161,7 +2161,7 @@ public:
       std::string v = "test_" + mock_filename + "_" + std::to_string(startLineNumber);
       ret.push_back(v);
 
-      return std::move(ret);
+      return ret;
    }
 
    int serializeUnitTest(FILE* fp) const {
@@ -2328,14 +2328,14 @@ public:
       strlist_t ret;
 
       if (!has_funcs)
-         return std::move(ret);
+         return ret;
 
       for (unsigned i = 0; i < grouplist.size(); ++i) {
          strlist_t v = grouplist[i]->precalculateUnitTest();
          ret.insert(ret.end(), v.begin(), v.end());
       }
 
-      return std::move(ret);
+      return ret;
    }
 
    int serializeUnitTest(FILE* fp) const {
@@ -2474,7 +2474,7 @@ public:
 
    virtual strlist_t precalculateUnitTest() {
       strlist_t ret;
-      return std::move(ret);
+      return ret;
    }
 
    virtual int serializeUnitTest(FILE* fp) {
@@ -3071,7 +3071,7 @@ public:
       std::string v = "test_" + (ns.empty() ? "Qore" : ns) + "_" + name;
       ret.push_back(v);
 
-      return std::move(ret);
+      return ret;
    }
 
    virtual int serializeUnitTest(FILE* fp) {

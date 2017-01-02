@@ -109,11 +109,12 @@ public:
 class StaticMethodCallReferenceNode : public LocalStaticMethodCallReferenceNode {
 protected:
    QoreProgram* pgm;
+   const qore_class_private* class_ctx;
 
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
 
 public:
-   DLLLOCAL StaticMethodCallReferenceNode(const QoreMethod *n_method, QoreProgram *n_pgm);
+   DLLLOCAL StaticMethodCallReferenceNode(const QoreMethod *n_method, QoreProgram *n_pgm, const qore_class_private* n_class_ctx);
 
    DLLLOCAL ~StaticMethodCallReferenceNode() {
       assert(!pgm);

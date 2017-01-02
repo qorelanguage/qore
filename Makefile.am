@@ -1,8 +1,8 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/$(mypkglibdir)
-#modverdir = $(libdir)/$(mymodverdir)
 modverdir = $(datarootdir)/$(mymodverdir)
 includedir = $(prefix)/include/qore
+qoredatadir = $(datarootdir)/qore
 
 ## use automake to create the Makefile.in for configure
 
@@ -21,30 +21,33 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/WebSocketUtil.qm \
 	qlib/SqlUtil.qm \
 	qlib/Mapper.qm \
+	qlib/ConnectionProvider.qm \
 	qlib/RestClient.qm
 
-DOX_MODULES = qlib/SmtpClient.qm \
-	qlib/TelnetClient.qm \
-	qlib/Pop3Client.qm \
+DOX_MODULES = qlib/BulkSqlUtil.qm \
 	qlib/CsvUtil.qm \
+	qlib/DatasourceProvider.qm \
+	qlib/Diff.qm \
 	qlib/FilePoller.qm \
 	qlib/FixedLengthUtil.qm \
+	qlib/FreetdsSqlUtil.qm \
 	qlib/OracleSqlUtil.qm \
 	qlib/PgsqlSqlUtil.qm \
-	qlib/FreetdsSqlUtil.qm \
+	qlib/Pop3Client.qm \
+	qlib/Qdx.qm \
 	qlib/Qorize.qm \
+	qlib/QUnit.qm \
 	qlib/MysqlSqlUtil.qm \
 	qlib/RestHandler.qm \
-	qlib/WebSocketHandler.qm \
-	qlib/WebSocketClient.qm \
-	qlib/WebUtil.qm \
-	qlib/TableMapper.qm \
-	qlib/Schema.qm \
-	qlib/QUnit.qm \
-	qlib/Diff.qm \
-	qlib/BulkSqlUtil.qm \
 	qlib/SalesforceRestClient.qm \
-	qlib/Qdx.qm
+	qlib/Schema.qm \
+	qlib/SchemaReverse.qm \
+	qlib/SmtpClient.qm \
+	qlib/TableMapper.qm \
+	qlib/TelnetClient.qm \
+	qlib/WebSocketClient.qm \
+	qlib/WebSocketHandler.qm \
+	qlib/WebUtil.qm
 
 USER_MODULES = $(DOX_SRC_MODULES) \
 	$(DOX_MODULES)
@@ -651,6 +654,8 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
 
 dist_modver_DATA = $(USER_MODULES)
 
+dist_qoredata_DATA = doxygen/Doxyfile.in
+
 include $(srcdir)/qoretests.mk
 
 # all tests
@@ -731,7 +736,7 @@ doxygen/qlib/Doxyfile.Mapper: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/Mapper.qm:doxygen/qlib/Mapper.qm.dox.h $< $@
 
 doxygen/qlib/Doxyfile.RestClient: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/RestClient.qm:doxygen/qlib/RestClient.qm.dox.h -tMime.tag=../../Mime/html $< $@
+	$(QDX) -M=qlib/RestClient.qm:doxygen/qlib/RestClient.qm.dox.h -tMime.tag=../../Mime/html -tConnectionProvider.tag=../../ConnectionProvider/html $< $@
 
 DOXYFILE_TARG = $(addprefix doxygen/qlib/Doxyfile.,$(DOX_USER_MODS))
 $(DOXYFILE_TARG): doxygen/qlib/Doxyfile.%: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
@@ -816,7 +821,7 @@ endif
 
 bin_PROGRAMS = qore
 # qr
-dist_bin_SCRIPTS = doxygen/qdx bin/qget bin/rest bin/schema bin/sfrest bin/sqlutil
+dist_bin_SCRIPTS = doxygen/qdx bin/qget bin/rest bin/schema bin/sfrest bin/sqlutil bin/schema-reverse
 if COND_SINGLE_COMPILATION_UNIT
 qore_SOURCES = qore-single-compilation-unit.cpp
 #qr_SOURCES = qr-single-compilation-unit.cpp
