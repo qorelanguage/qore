@@ -52,6 +52,8 @@ using namespace std;
 #endif
 // round to nearest (roundTiesToEven in IEEE 754-2008)
 #define QORE_MPFR_RND MPFR_RNDN
+// round toward zero
+#define QORE_MPFR_RNDZ MPFR_RNDZ
 // MPFR_RNDA
 
 #ifndef HAVE_MPFR_EXP_T
@@ -182,7 +184,7 @@ struct qore_number_private : public qore_number_private_intern {
    }
 
    DLLLOCAL int64 getAsBigInt() const {
-      return mpfr_get_sj(num, QORE_MPFR_RND);
+      return mpfr_get_sj(num, QORE_MPFR_RNDZ);
    }
 
    DLLLOCAL bool getAsBool() const {
@@ -257,7 +259,7 @@ struct qore_number_private : public qore_number_private_intern {
       }
    }
 
-   DLLLOCAL void getAsString(QoreString& str, bool round = true) const;
+   DLLLOCAL void getAsString(QoreString& str, bool round = true, int base = 10) const;
 
    DLLLOCAL void toString(QoreString& str, int fmt = QORE_NF_DEFAULT) const {
       bool raw = !(fmt & QORE_NF_RAW);
@@ -613,6 +615,27 @@ public:
    DLLLOCAL static qore_number_private* get(const QoreNumberNode& n) {
       return n.priv;
    }
+
+    DLLLOCAL static QoreStringNode* toBase(double f, int base, ExceptionSink* xsink) {
+        std::unique_ptr<qore_number_private> n(new qore_number_private(f));
+        return qore_number_private::toBase(n.get(), base, xsink);
+    }
+
+    DLLLOCAL static QoreStringNode* toBase(const QoreNumberNode& n, int base, ExceptionSink* xsink) {
+        return qore_number_private::toBase(n.priv, base, xsink);
+    }
+
+    DLLLOCAL static QoreStringNode* toBase(qore_number_private* n, int base, ExceptionSink* xsink) {
+        if (base < 2 || base > 36) {
+            xsink -> raiseException("INVALID-BASE", "base " QLLD " is invalid; base must be 2 - 36 inclusive", base);
+            return 0;
+        }
+
+        QoreString qs;
+        n -> getAsString(qs, 1, base);
+        qs.toupr();
+        return new QoreStringNode(qs);
+    }
 };
 
 #endif
