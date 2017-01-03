@@ -13,6 +13,7 @@
 public class ToBaseTest inherits QUnit::Test {
     constructor() : Test("ToBaseTest", "1.1") {
         addTestCase("Test <int>::toBase()", \testIntToBase(), NOTHING);
+        addTestCase("Test <float>::toBase()", \testFloatToBase(), NOTHING);
         addTestCase("Test <number>::toBase()", \testNumberToBase(), NOTHING);
         set_return_value(main());
     }
@@ -46,5 +47,14 @@ public class ToBaseTest inherits QUnit::Test {
     testNumberToBase() {
         assertEq("1111010110011101001100000011011011010110000000110000100111", 276536798792387623n.toBase(2));
         assertEq("-MJ934KRG1O3R", (-276536798792387623n).toBase(29));
+        assertEq("F.A", (15.5n).toBase(20));
+        assertEq("-D.G", (-13.8n).toBase(20));
+        assertEq("16.73", (21.48n).toBase(15));
+    }
+
+    testFloatToBase() {
+        assertEq("F.A", (15.5).toBase(20));
+        assertFloatEq(float("-D.G"), float((-13.8).toBase(20)));
+        assertEq("16.73", (21.48).toBase(15));
     }
 }

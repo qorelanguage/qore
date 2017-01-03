@@ -220,3 +220,26 @@ f = f.abs();
 float <float>::abs() [flags=CONSTANT] {
    return fabs(f);
 }
+
+//! Converts the number to a different <b>base</b> (and returns it as a string).
+/** @param base the base to convert the number to; this value must be 2 - 36 inclusive or an \c INVALID-BASE exception will be thrown
+
+    @return the converted value as a string
+
+    @par Example:
+    @code{.py}
+          (15.5).toBase(20));   // returns "F.A"
+         (-13.8).toBase(20));   // returns "-D.G"
+         (21.48).toBase(15));   // returns "16.73"
+    @endcode
+
+    @throw INVALID-BASE the base is invalid; must be 2 - 36 inclusive
+
+    @see \link <int>::toBase(int base) \endlink
+    @see \link <number>::toBase(int base) \endlink
+
+    @since %Qore 0.8.13
+*/
+string <float>::toBase(int base = 10) [flags=RET_VALUE_ONLY] {
+    return qore_number_private::toBase(f, base, xsink);
+}
