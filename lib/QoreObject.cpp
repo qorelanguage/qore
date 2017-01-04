@@ -883,12 +883,6 @@ QoreValue QoreObject::evalMethodValue(const QoreString* name, const QoreListNode
 }
 
 QoreValue QoreObject::evalMethodValue(const char* name, const QoreListNode* args, ExceptionSink* xsink) {
-   /*
-   // ensure object is valid during setup
-   QoreObjectCallSetupHelper qocsh(*priv, xsink);
-   if (*xsink)
-      return 0;
-   */
    return priv->theclass->evalMethod(this, name, args, xsink);
 }
 

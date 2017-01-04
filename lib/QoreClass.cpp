@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -2889,6 +2889,11 @@ void BCSMList::resolveCopy() {
    }
 }
 
+QoreClass::QoreClass(const char* nme, int64 dom) : priv(new qore_class_private(this, nme, dom)) {
+   priv->orNothingTypeInfo = new OrNothingTypeInfo(*(priv->typeInfo), nme);
+   priv->owns_ornothingtypeinfo = true;
+}
+
 QoreClass::QoreClass(const char* nme, int dom) : priv(new qore_class_private(this, nme, dom)) {
    priv->orNothingTypeInfo = new OrNothingTypeInfo(*(priv->typeInfo), nme);
    priv->owns_ornothingtypeinfo = true;
@@ -3412,7 +3417,7 @@ void QoreClass::addMethod(const char* nme, q_method_n_t m, ClassAccess access, i
    priv->addBuiltinMethod(nme, new BuiltinNormalMethodValueVariant(m, access, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
-void QoreClass::addMethod(const void* ptr, const char* nme, q_external_method_t m, ClassAccess access, int64 flags, int64 domain, const QoreTypeInfo* returnTypeInfo, const type_vec_t& typeList, const arg_vec_t& defaultArgList, const name_vec_t& nameList) {
+void QoreClass::addMethodVariant(const void* ptr, const char* nme, q_external_method_t m, ClassAccess access, int64 flags, int64 domain, const QoreTypeInfo* returnTypeInfo, const type_vec_t& typeList, const arg_vec_t& defaultArgList, const name_vec_t& nameList) {
    priv->addBuiltinMethod(nme, new BuiltinExternalNormalMethodValueVariant(ptr, m, access, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
@@ -3430,7 +3435,7 @@ void QoreClass::addStaticMethod(const char* nme, q_func_n_t m, ClassAccess acces
    priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodValueVariant(m, access, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
-void QoreClass::addStaticMethod(const void* ptr, const char* nme, q_external_static_method_t m, ClassAccess access, int64 flags, int64 domain, const QoreTypeInfo* returnTypeInfo, const type_vec_t& typeList, const arg_vec_t& defaultArgList, const name_vec_t& nameList) {
+void QoreClass::addStaticMethodVariant(const void* ptr, const char* nme, q_external_static_method_t m, ClassAccess access, int64 flags, int64 domain, const QoreTypeInfo* returnTypeInfo, const type_vec_t& typeList, const arg_vec_t& defaultArgList, const name_vec_t& nameList) {
    priv->addBuiltinStaticMethod(nme, new BuiltinExternalStaticMethodValueVariant(ptr, m, access, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
@@ -3447,7 +3452,7 @@ void QoreClass::addConstructor(q_constructor_n_t m, ClassAccess access, int64 n_
    priv->addBuiltinConstructor(new BuiltinConstructorValueVariant(m, access, n_flags, n_domain, typeList, defaultArgList, nameList));
 }
 
-void QoreClass::addConstructor(const void* ptr, q_external_constructor_t m, ClassAccess access, int64 n_flags, int64 n_domain, const type_vec_t& typeList, const arg_vec_t& defaultArgList, const name_vec_t& nameList) {
+void QoreClass::addConstructorVariant(const void* ptr, q_external_constructor_t m, ClassAccess access, int64 n_flags, int64 n_domain, const type_vec_t& typeList, const arg_vec_t& defaultArgList, const name_vec_t& nameList) {
    priv->addBuiltinConstructor(new BuiltinExternalConstructorValueVariant(ptr, m, access, n_flags, n_domain, typeList, defaultArgList, nameList));
 }
 
@@ -4493,7 +4498,7 @@ void BuiltinExternalConstructorValueVariant::evalConstructor(const QoreClass& th
    if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
       return;
 
-   constructor(thisclass, ptr, self, ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
+   constructor(*qmethod, ptr, self, ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
 }
 
 void BuiltinConstructorVariant::evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
@@ -4954,7 +4959,7 @@ QoreClassHolder::~QoreClassHolder() {
       qore_class_private::get(*c)->deref();
 }
 
-QoreBuiltinClass::QoreBuiltinClass(const char* name, int n_domain) : QoreClass(name, n_domain) {
+QoreBuiltinClass::QoreBuiltinClass(const char* name, int64 n_domain) : QoreClass(name, n_domain) {
    setSystem();
 }
 

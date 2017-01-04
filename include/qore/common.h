@@ -288,6 +288,8 @@ typedef QoreValue (*q_method_n_t)(QoreObject* self, AbstractPrivateData* private
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
 
     @return the return value of the function (can be 0); the caller owns any reference returned in the return value
+
+    @since %Qore 0.8.13
  */
 typedef QoreValue (*q_external_method_t)(const QoreMethod& method, const void* ptr, QoreObject* self, AbstractPrivateData* private_data, const QoreValueList* args, q_rt_flags_t flags, ExceptionSink* xsink);
 
@@ -373,6 +375,8 @@ typedef AbstractQoreNode* (*q_method3_t)(const QoreMethod& method, const type_ve
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
 
     @return the return value of the function; the caller owns any reference returned in the return value
+
+    @since %Qore 0.8.13
  */
 typedef QoreValue (*q_external_static_method_t)(const QoreMethod& method, const void* ptr, const QoreValueList* args, q_rt_flags_t flags, ExceptionSink* xsink);
 
@@ -405,14 +409,16 @@ typedef AbstractQoreNode* (*q_static_method3_t)(const QoreMethod& method, const 
 typedef void (*q_constructor_n_t)(QoreObject* self, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
 
 //! the type used for builtin QoreClass constructor method signatures
-/** @param thisclass a constant reference to the QoreClass being constructed (in a heirarchy, could be different than the QoreClass returned from QoreObject::getClass()
+/** @param method a constant reference to the QoreMethod being called for the constructor (in a heirarchy, the class of this method could be different than the QoreClass returned from QoreObject::getClass() if the constructor for a base class is being executed)
     @param ptr a pointer to user-defined data set when the variant is added to the method
     @param self the QoreObject that the function is being executed on
     @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
     @param rtflags runtime flags
     @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+
+    @since %Qore 0.8.13
  */
-typedef void (*q_external_constructor_t)(const QoreClass& thisclass, const void* ptr, QoreObject* self, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
+typedef void (*q_external_constructor_t)(const QoreMethod& method, const void* ptr, QoreObject* self, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
 
 //! the type used for builtin QoreClass constructor method signatures
 /** @param self the QoreObject that the function is being executed on

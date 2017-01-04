@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -971,7 +971,10 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 
             for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
                const QoreTypeInfo* t = sig->getParamTypeInfo(pi);
-               const QoreTypeInfo* a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
+               bool pos_has_arg = num_args && num_args > pi;
+               const QoreTypeInfo* a = pos_has_arg ? argTypeInfo[pi] : 0;
+               if (pos_has_arg)
+                  pos_has_arg = (bool)a;
 
                //printd(5, "QoreFunction::parseFindVariant() %s(%s) committed pi: %d num_args: %d t: %s (has type: %d) a: %s (%p) t->parseAccepts(a): %d\n", getName(), sig->getSignatureText(), pi, num_args, t->getName(), t->hasType(), a->getName(), a, t->parseAccepts(a));
 
@@ -1011,7 +1014,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
                   break;
                }
                ++variant_pmatch;
-               if (rc != QTI_IGNORE)
+               if (rc != QTI_IGNORE && pos_has_arg)
                   count += rc;
             }
 
@@ -1098,7 +1101,10 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 
             for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
                const QoreTypeInfo* t = sig->getParamTypeInfo(pi);
-               const QoreTypeInfo* a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
+               bool pos_has_arg = num_args && num_args > pi;
+               const QoreTypeInfo* a = pos_has_arg ? argTypeInfo[pi] : 0;
+               if (pos_has_arg)
+                  pos_has_arg = (bool)a;
 
                //printd(5, "QoreFunction::parseFindVariant() %s(%s) uncommitted pi: %d num_args: %d t: %s (has type: %d) a: %s (%p) t->parseAccepts(a): %d\n", getName(), sig->getSignatureText(), pi, num_args, t->getName(), t->hasType(), a->getName(), a, t->parseAccepts(a));
 
@@ -1138,7 +1144,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
                }
                ++variant_pmatch;
                //printd(5, "QoreFunction::parseFindVariant() this: %p %s() variant: %p i: %d match (param %s == %s)\n", this, getName(), variant, pi, t->getName(), a->getName());
-               if (rc != QTI_IGNORE)
+               if (rc != QTI_IGNORE && pos_has_arg)
                   count += rc;
             }
             //printd(5, "QoreFunction::parseFindVariant() this: %p tested %s(%s) ok: %d count: %d match: %d variant_missing_types: %d variant_pmatch: %d variant_nperfect: %d nperfect: %d params: %d args: %d uea: %d sa: %d cea: %d\n", this, getName(), sig->getSignatureText(), ok, count, match, variant_missing_types, variant_pmatch, variant_nperfect, nperfect, sig->numParams(), num_args, uses_extra_args, strict_args, check_extra_args(sig, argTypeInfo));
