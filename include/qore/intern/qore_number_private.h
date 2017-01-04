@@ -49,6 +49,7 @@ using namespace std;
 #define QORE_MAX_PREC 8192
 #ifndef HAVE_MPFR_RNDN
 #define MPFR_RNDN GMP_RNDN
+#define MPFR_RNDZ GMP_RNDZ
 #endif
 // round to nearest (roundTiesToEven in IEEE 754-2008)
 #define QORE_MPFR_RND MPFR_RNDN
