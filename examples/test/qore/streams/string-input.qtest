@@ -6,16 +6,17 @@
 %require-types
 %strict-args
 
+%requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 
 %exec-class StringInputStreamTest
 
 public class StringInputStreamTest inherits QUnit::Test {
-
     constructor() : Test("StringInputStreamTest", "1.0") {
         addTestCase("ctor empty", \ctorEmpty());
         addTestCase("read test", \readTest());
         addTestCase("peek test", \peekTest());
+        addTestCase("line test", \lineTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -47,5 +48,31 @@ public class StringInputStreamTest inherits QUnit::Test {
         assertEq(3, sis.peek());
         assertEq(<03>, sis.read(2));
         assertEq(-1, sis.peek());
+    }
+
+    lineTest() {
+        string fn = tmp_location() + DirSep + get_random_string();
+        {
+            File f();
+            f.open2(fn, O_CREAT|O_WRONLY|O_TRUNC);
+            f.write("hello there 1, 2, 3\nline 2\nline 3\n");
+        }
+        on_exit unlink(fn);
+
+        {
+            FileInputStream is(fn);
+            assertEq("hello ", binary_to_string(is.read(6)));
+            StreamReader sr(is);
+            assertEq("there ", sr.readString(6));
+            assertEq("1, 2, 3", binary_to_string(is.read(7)));
+        }
+
+        FileInputStream is(fn);
+        InputStreamLineIterator i(is);
+        assertEq(True, i.next());
+        assertEq("hello there 1, 2, 3", i.getValue());
+        StreamReader sr(is);
+        assertEq("line 2\n", binary_to_string(is.read(7)));
+        assertEq("line 3", i.getValue());
     }
 }
