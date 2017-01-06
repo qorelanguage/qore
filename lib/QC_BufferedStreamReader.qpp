@@ -34,6 +34,13 @@
 #include "qore/intern/QoreObjectIntern.h"
 #include "qore/intern/QoreClassIntern.h"
 
+/** @defgroup BufferedStreamReader Constants
+*/
+//@{
+//! The default buffer size for the @ref Qore::BufferedStreamReader "BufferedStreamReader" class
+const DefaultStreamBufferSize = 4096;
+//@}
+
 //! This class defines a buffered stream reader for input streams.
 /** @since %Qore 0.8.13
 
@@ -47,18 +54,22 @@ BufferedStreamReader sr(is, "UTF-8");
 int i = sr.readi4();
     @endcode
 
+    @note i any single read attempt from an object of this class for an amount of data larger than the buffer size will result in a \c STREAM-BUFFER-ERROR exception
+
     @see @ref Qore::InputStream
  */
 qclass BufferedStreamReader [arg=BufferedStreamReader* sr; ns=Qore; vparent=StreamReader; internal_members=InputStream is];
 
 //! Creates the BufferedStreamReader for reading data from the given @ref InputStream.
 /** @param is the @ref InputStream for reading data
-    @param encoding character encoding of the data from the @ref InputStream; the encoding has to be ASCII-compatible, otherwise an exception will be thrown; if not present, the @ref default_encoding "default character encoding" is assumed
+    @param encoding the character encoding of the data from the @ref InputStream; the encoding has to be ASCII-compatible, otherwise an exception will be thrown; if not present, the @ref default_encoding "default character encoding" is assumed
+    @param bufsize the size of the internal buffer in bytes; must be a positive integer
 
-    @throw UNSUPPORTED-ENCODING-ERROR ASCII-incompatible encoding has been passed
+    @throw STREAM-BUFFER-ERROR an invalid stream buffer size was specified; the buffer size must be a positive integer
+    @throw UNSUPPORTED-ENCODING-ERROR an ASCII-incompatible encoding was specified in the \a encoding argument
  */
-BufferedStreamReader::constructor(Qore::InputStream[InputStream] is, *string encoding) {
-   SimpleRefHolder<BufferedStreamReader> reader(new BufferedStreamReader(xsink, is, encoding ? QEM.findCreate(encoding) : QCS_DEFAULT));
+BufferedStreamReader::constructor(Qore::InputStream[InputStream] is, *string encoding, int bufsize = DefaultStreamBufferSize) {
+   SimpleRefHolder<BufferedStreamReader> reader(new BufferedStreamReader(xsink, is, encoding ? QEM.findCreate(encoding) : QCS_DEFAULT, bufsize));
    if (*xsink)
       return;
    self->setPrivate(CID_BUFFEREDSTREAMREADER, reader.release());
@@ -78,6 +89,7 @@ string line = bsr.readLine("\n");
 
     @return a text line read from the stream or @ref nothing if there is no more data available in the stream
 
+    @throw EOL-BUFFER-ERROR this exception is thrown if the \a eol string's byte length is greater than or equal to the buffer length or if no \a eol string is thrown and the buffer size is less than 2 bytes
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
  */
 *string BufferedStreamReader::readLine(*string eol, bool trim = True) {

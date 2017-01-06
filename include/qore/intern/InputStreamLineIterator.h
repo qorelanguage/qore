@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -44,9 +44,8 @@
  * @brief Private data for the Qore::InputStreamLineIterator class.
  */
 class InputStreamLineIterator : public QoreIteratorBase {
-
 public:
-   DLLLOCAL InputStreamLineIterator(ExceptionSink* xsink, InputStream* is, const QoreEncoding* encoding = QCS_DEFAULT, const QoreStringNode* n_eol = 0, bool n_trim = true) :
+   DLLLOCAL InputStreamLineIterator(ExceptionSink* xsink, InputStream* is, const QoreEncoding* encoding, const QoreStringNode* n_eol, bool n_trim, size_t bufsize = DefaultStreamBufferSize) :
       src(is, xsink),
       reader(xsink),
       srcEnc(encoding),
@@ -74,7 +73,8 @@ public:
       }
 
       src->ref();
-      reader = new BufferedStreamReader(xsink, *src, enc);
+      reader = new BufferedStreamReader(xsink, *src, enc, bufsize);
+      static_cast<BufferedStreamReader*>(*reader)->check(eol, xsink);
    }
 
    DLLLOCAL InputStreamLineIterator(ExceptionSink* xsink, StreamReader* sr, const QoreStringNode* n_eol = 0, bool n_trim = true) :

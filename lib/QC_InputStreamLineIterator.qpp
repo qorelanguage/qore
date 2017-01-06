@@ -57,13 +57,19 @@ qclass InputStreamLineIterator [arg=InputStreamLineIterator* isli; ns=Qore; vpar
     @param encoding character encoding of the data from input stream; if not ASCII-compatible, all data will be converted to UTF-8; if not present, the @ref default_encoding "default character encoding" is assumed
     @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"
     @param trim if @ref True the string return values for the lines iterated will be trimmed of the eol bytes
+    @param bufsize the size of the buffer for the internal @ref BufferedStreamReader in bytes; must be a positive integer
 
+    @throw STREAM-BUFFER-ERROR an invalid stream buffer size was specified; the buffer size must be a positive integer
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
+    @throw UNSUPPORTED-ENCODING-ERROR an ASCII-incompatible encoding was specified in the \a encoding argument
+    @throw EOL-BUFFER-ERROR this exception is thrown if the \a eol string's byte length is greater than or equal to the buffer length or if no \a eol string is thrown and the buffer size is less than 2 bytes
+
+    @note this variant of the InputStreamLineIterator::constructor creates a @ref BufferedStreamReader to read the input data
  */
-InputStreamLineIterator::constructor(Qore::InputStream[InputStream] is, *string encoding, *string eol, bool trim = True) {
+InputStreamLineIterator::constructor(Qore::InputStream[InputStream] is, *string encoding, *string eol, bool trim = True, int bufsize = DefaultStreamBufferSize) {
    if (eol && eol->empty())
       eol = 0;
-   SimpleRefHolder<InputStreamLineIterator> li(new InputStreamLineIterator(xsink, is, encoding ? QEM.findCreate(encoding) : QCS_DEFAULT, eol, trim));
+   SimpleRefHolder<InputStreamLineIterator> li(new InputStreamLineIterator(xsink, is, encoding ? QEM.findCreate(encoding) : QCS_DEFAULT, eol, trim, bufsize));
    if (*xsink)
       return;
    self->setPrivate(CID_INPUTSTREAMLINEITERATOR, li.release());

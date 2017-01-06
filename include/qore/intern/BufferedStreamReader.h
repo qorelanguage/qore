@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -38,21 +38,23 @@
 #include "qore/InputStream.h"
 #include "qore/intern/StreamReader.h"
 
+// this corresponds to the Qore constant size in QC_BufferedStreamReader; these values must be identical
+#define DefaultStreamBufferSize 4096
+
 //! Private data for the Qore::BufferedStreamReader class.
 class BufferedStreamReader : public StreamReader {
-
-private:
-   // Make sure to update the StreamReader test when updating this constant.
-   static const int BSR_BUFFER_SIZE = 4096;
-
 public:
-   DLLLOCAL BufferedStreamReader(ExceptionSink* xsink, InputStream* is, const QoreEncoding* encoding = QCS_DEFAULT) :
+   DLLLOCAL BufferedStreamReader(ExceptionSink* xsink, InputStream* is, const QoreEncoding* encoding, int64 bufsize = DefaultStreamBufferSize) :
       StreamReader(xsink, is, encoding),
-      bufCapacity(BSR_BUFFER_SIZE),
+      bufCapacity((size_t)bufsize),
       bufCount(0),
       buf(0) {
+      if (bufsize <= 0) {
+         xsink->raiseException("STREAM-BUFFER-ERROR", "the buffer size must be > 0 (value provided: " QLLD ")", bufsize);
+         return;
+      }
       if (!enc->isAsciiCompat()) {
-         xsink->raiseException("UNSUPPORTED-ENCODING-ERROR", "BufferedStreamReader does not support ASCII-incompatible encodings");
+         xsink->raiseException("UNSUPPORTED-ENCODING-ERROR", "BufferedStreamReader only supports ASCII-compatible encodings (encoding provided: '%s')", enc->getCode());
          return;
       }
 
@@ -63,6 +65,20 @@ public:
    DLLLOCAL virtual ~BufferedStreamReader() {
       if (buf)
          delete [] buf;
+   }
+
+   DLLLOCAL int check(const QoreStringNode* eolstr, ExceptionSink* xsink) {
+      if (eolstr) {
+         if (eolstr->size() > bufCapacity) {
+            xsink->raiseException("EOL-BUFFER-ERROR", "BufferedStreamReader has a buffer size of " QLLD " while the eol string has a size of " QLLD "; the eol string size must be less than the buffer size", bufCapacity, eolstr->size());
+            return -1;
+         }
+      }
+      else if (bufCapacity < 2) {
+         xsink->raiseException("EOL-BUFFER-ERROR", "BufferedStreamReader has a buffer size of " QLLD " which is too small to process a maximum eol string of 2; either set an explicit EOL character or increase the buffer size to 2 or more", bufCapacity);
+         return -1;
+      }
+      return 0;
    }
 
    DLLLOCAL virtual QoreStringNode* readLine(const QoreStringNode* eol = 0, bool trim = true, ExceptionSink* xsink = 0) override {
@@ -77,9 +93,12 @@ public:
                return 0;
          }
       }
+      if (check(*eolstr, xsink))
+         return 0;
 
       SimpleRefHolder<QoreStringNode> line(new QoreStringNode(enc));
       while (true) {
+         assert(bufCapacity != bufCount);
          int64 rc = fillBuffer(bufCapacity - bufCount, xsink);
          if (*xsink)
             return 0;
@@ -90,24 +109,69 @@ public:
          // Won't overflow because the buffer actually has real capacity of bufCapacity+1.
          buf[bufCount] = '\0';
 
+         //printd(5, "BufferedStreamReader::readLine() buf: '%s' bufCount: " QLLD "\n", buf, bufCount);
+
          qore_size_t eolLen;
-         const char* p = findEolInBuffer(*eolstr, eolLen, rc==0);
+         char this_pmatch;
+         const char* p = findEolInBuffer(*eolstr, eolLen, rc==0, this_pmatch);
          assert(eolLen >= 0);
 
          if (p) { // Found end of line.
             assert(p >= buf);
             qore_size_t dataSize = p - buf;
             line->concat(buf, dataSize + (trim ? 0 : eolLen));
-            // Move remaining data from middle to the front of the buffer.
+            assert(bufCount >= (dataSize + eolLen));
+            // Move remaining data to the front of the buffer.
             bufCount -= dataSize + eolLen;
-            memmove(buf, p + eolLen, bufCount);
+            if (bufCount)
+               memmove(buf, p + eolLen, bufCount);
             return line.release();
          }
          else {
             if (rc > 0) {
-               qore_size_t dataSize = (bufCount >= eolLen) ? bufCount - eolLen : 0;
+               if (eol) {
+                  // we read in new data, so here we need to look for a partial eol match at the end of the buffer
+                  // and move the buffer data accordingly
+                  bool moved = false;
+                  for (size_t i = eolLen; i; --i) {
+                     p = buf + bufCount - i;
+                     if (!strncmp(p, eolstr->c_str(), i)) {
+                        size_t dataSize = p - buf;
+                        assert(dataSize);
+                        assert((bufCount - dataSize) == i);
+                        //printd(5, "BufferedStreamReader::readLine() found eol partial match: buf: '%s' eol: '%s' i: " QLLD " p: '%s' consuming " QLLD " byte(s), leaving " QLLD " byte(s) in the buffer\n", buf, eolstr->c_str(), i, p, dataSize, bufCount - dataSize);
+                        line->concat(buf, dataSize);
+                        // Move remaining data to the front of the buffer.
+                        assert(bufCount > dataSize);
+                        bufCount = i;
+                        memmove(buf, buf + dataSize, bufCount);
+                        moved = true;
+                        break;
+                     }
+                  }
+                  if (!moved) {
+                     //printd(5, "BufferedStreamReader::readLine() no eol partial match; consuming entire buffer '%s'\n", buf);
+                     line->concat(buf, bufCount);
+                     bufCount = 0;
+                  }
+                  continue;
+               }
+               else if (this_pmatch) {
+                  // we read in new data and we got a possible partial \r\n match with a trailing \r character
+                  // so move the final character to the beginning of the buffer and continue processing
+                  --bufCount;
+                  assert(bufCount);
+                  //printd(5, "BufferedStreamReader::readLine() found eol partial match: buf: '%s' eol: '%s' i: " QLLD " p: '%s' consuming " QLLD " byte(s), leaving " QLLD " byte(s) in the buffer\n", buf, eolstr->c_str(), i, p, dataSize, bufCount - dataSize);
+                  line->concat(buf, bufCount);
+                  bufCount = 1;
+                  buf[0] = this_pmatch;
+                  continue;
+               }
+               // we must process at least one byte
+               qore_size_t dataSize = (bufCount > eolLen) ? bufCount - eolLen : 1;
+               assert(dataSize);
                line->concat(buf, dataSize);
-               // Move remaining data from middle to the front of the buffer.
+               // Move remaining data to the front of the buffer.
                assert(bufCount >= dataSize);
                bufCount -= dataSize;
                memmove(buf, buf + dataSize, bufCount);
@@ -308,7 +372,9 @@ public:
    DLLLOCAL virtual const char* getName() const override { return "BufferedStreamReader"; }
 
 private:
+   //! returns 0 = no data read (end of stream or error), > 0 = number of bytes read, increments bufCount
    DLLLOCAL int64 fillBuffer(qore_size_t bytes, ExceptionSink* xsink) {
+      assert(bytes);
       assert(bufCount + bytes <= bufCapacity);
       int64 rc = in->read(buf + bufCount, bytes, xsink);
       if (*xsink)
@@ -318,7 +384,10 @@ private:
    }
 
    DLLLOCAL bool prepareEnoughData(qore_size_t bytes, ExceptionSink* xsink) {
-      assert(bytes <= bufCapacity);
+      if (bytes > bufCapacity) {
+         xsink->raiseException("STREAM-BUFFER-ERROR", "a read of " QLLD " bytes was attempted on a BufferedStreamReader with a capacity of " QLLD " bytes", bytes, bufCapacity);
+         return false;
+      }
       if (bufCount < bytes) {
          while (true) {
             int64 rc = fillBuffer(bytes - bufCount, xsink);
@@ -326,7 +395,7 @@ private:
                return false;
             }
             if (rc == 0) {
-               xsink->raiseException("END-OF-STREAM-ERROR", "there is not enough data available in the stream");
+               xsink->raiseException("END-OF-STREAM-ERROR", "a read of " QLLD " bytes cannot be performed because there is not enough data available in the stream to satisfy the request", bytes);
                return false;
             }
             if (bufCount >= bytes)
@@ -347,7 +416,8 @@ private:
        @param eolLen size of eol in bytes
        @param endOfStream whether this is end of the stream
     */
-   DLLLOCAL const char* findEolInBuffer(const QoreStringNode* eol, qore_size_t& eolLen, bool endOfStream) const {
+   DLLLOCAL const char* findEolInBuffer(const QoreStringNode* eol, qore_size_t& eolLen, bool endOfStream, char& pmatch) const {
+      pmatch = '\0';
       if (eol) {
          const char* p = strstr(buf, eol->getBuffer());
          eolLen = eol->strlen();
@@ -367,8 +437,10 @@ private:
                // Unless this is the end of the stream.
                else if (static_cast<qore_size_t>(p - buf + 1) == bufCount) {
                   eolLen = 1;
-                  if (!endOfStream)
+                  if (!endOfStream) {
+                     pmatch = *p;
                      p = 0;
+                  }
                }
                else {
                   eolLen = 1;

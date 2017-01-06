@@ -14,7 +14,7 @@ const Data = (
     "123456"
 );
 
-const STREAMREADER_BUFFER_SIZE = 4096;
+const STREAMREADER_BUFFER_SIZE = 1024;
 
 %exec-class BufferedStreamReaderTest
 
@@ -38,101 +38,172 @@ class BufferedStreamReaderTest inherits QUnit::Test {
         string WithWeirdEOL = foldl $1 + weirdEOL + $2, Data;
 
         InputStream is = new BinaryInputStream(binary());
-        BufferedStreamReader sr = new BufferedStreamReader(is);
+        BufferedStreamReader sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(NOTHING, sr.readLine());
         assertEq(NOTHING, sr.readLine("\n"));
         assertEq(NOTHING, sr.readLine(NOTHING, False));
         assertEq(NOTHING, sr.readLine("\n", False));
 
         is = new StringInputStream(Data[0]);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(Data[0], sr.readLine());
         assertEq(NOTHING, sr.readLine());
 
         is = new StringInputStream(WithNLines);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(Data[0] + "\n", sr.readLine(NOTHING, False));
         assertEq(Data[1] + "\n", sr.readLine(NOTHING, False));
         assertEq(Data[2], sr.readLine(NOTHING, False));
         assertEq(NOTHING, sr.readLine(NOTHING, False));
 
         is = new StringInputStream(WithNLines);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(Data[0], sr.readLine());
         assertEq(Data[1], sr.readLine());
         assertEq(Data[2], sr.readLine());
         assertEq(NOTHING, sr.readLine());
 
         is = new StringInputStream(WithNLines);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(Data[0], sr.readLine("\n"));
         assertEq(Data[1], sr.readLine("\n"));
         assertEq(Data[2], sr.readLine("\n"));
         assertEq(NOTHING, sr.readLine("\n"));
 
         is = new StringInputStream(WithNLines);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(WithNLines, sr.readLine("\r"));
         assertEq(NOTHING, sr.readLine("\r"));
 
         is = new StringInputStream(WithRNLines);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(Data[0], sr.readLine());
         assertEq(Data[1], sr.readLine());
         assertEq(Data[2], sr.readLine());
         assertEq(NOTHING, sr.readLine());
 
         is = new StringInputStream(WithRNLines);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(Data[0], sr.readLine("\r\n"));
         assertEq(Data[1], sr.readLine("\r\n"));
         assertEq(Data[2], sr.readLine("\r\n"));
         assertEq(NOTHING, sr.readLine("\r\n"));
 
         is = new StringInputStream(WithRNLines);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(Data[0] + "\r", sr.readLine("\n"));
         assertEq(Data[1] + "\r", sr.readLine("\n"));
         assertEq(Data[2], sr.readLine("\n"));
         assertEq(NOTHING, sr.readLine("\n"));
 
         is = new StringInputStream(WithRNLines);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(Data[0], sr.readLine("\r"));
         assertEq("\n" + Data[1], sr.readLine("\r"));
         assertEq("\n" + Data[2], sr.readLine("\r"));
         assertEq(NOTHING, sr.readLine("\r"));
 
         is = new StringInputStream(WithRLines);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(Data[0], sr.readLine());
         assertEq(Data[1], sr.readLine());
         assertEq(Data[2], sr.readLine());
         assertEq(NOTHING, sr.readLine());
 
         is = new StringInputStream(WithRLines);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(Data[0], sr.readLine("\r"));
         assertEq(Data[1], sr.readLine("\r"));
         assertEq(Data[2], sr.readLine("\r"));
         assertEq(NOTHING, sr.readLine("\r"));
 
         is = new StringInputStream(WithRLines);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(WithRLines, sr.readLine("\n"));
         assertEq(NOTHING, sr.readLine("\n"));
 
         is = new StringInputStream(WithWeirdEOL);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(Data[0], sr.readLine(weirdEOL));
         assertEq(Data[1], sr.readLine(weirdEOL));
         assertEq(Data[2], sr.readLine(weirdEOL));
         assertEq(NOTHING, sr.readLine(weirdEOL));
 
         is = new StringInputStream(WithWeirdEOL);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(WithWeirdEOL, sr.readLine("\n"));
         assertEq(NOTHING, sr.readLine("\n"));
+
+        is = new StringInputStream(WithWeirdEOL);
+        sr = new BufferedStreamReader(is, NOTHING, 4);
+        assertThrows("EOL-BUFFER-ERROR", \sr.readLine(), WithWeirdEOL);
+
+        is = new StringInputStream(WithNLines);
+        sr = new BufferedStreamReader(is, NOTHING, 1);
+        assertEq(Data[0] + "\n", sr.readLine("\n", False));
+        assertEq(Data[1] + "\n", sr.readLine("\n", False));
+        assertEq(Data[2], sr.readLine("\n", False));
+        assertEq(NOTHING, sr.readLine("\n", False));
+
+        is = new StringInputStream(WithRLines);
+        sr = new BufferedStreamReader(is, NOTHING, 2);
+        assertEq(Data[0], sr.readLine());
+        assertEq(Data[1], sr.readLine());
+        assertEq(Data[2], sr.readLine());
+        assertEq(NOTHING, sr.readLine());
+
+        is = new StringInputStream(WithRLines);
+        sr = new BufferedStreamReader(is, NOTHING, 1);
+        assertEq(Data[0], sr.readLine("\r"));
+        assertEq(Data[1], sr.readLine("\r"));
+        assertEq(Data[2], sr.readLine("\r"));
+        assertEq(NOTHING, sr.readLine("\r"));
+
+        is = new StringInputStream(WithRLines);
+        sr = new BufferedStreamReader(is, NOTHING, 1);
+        assertEq(WithRLines, sr.readLine("\n"));
+        assertEq(NOTHING, sr.readLine("\n"));
+
+        is = new StringInputStream(WithNLines);
+        sr = new BufferedStreamReader(is, NOTHING, 2);
+        assertEq(Data[0] + "\n", sr.readLine(NOTHING, False));
+        assertEq(Data[1] + "\n", sr.readLine(NOTHING, False));
+        assertEq(Data[2], sr.readLine(NOTHING, False));
+        assertEq(NOTHING, sr.readLine(NOTHING, False));
+
+        is = new StringInputStream(WithRNLines);
+        sr = new BufferedStreamReader(is, NOTHING, 1);
+        assertThrows("EOL-BUFFER-ERROR", \sr.readLine());
+
+        sr = new BufferedStreamReader(is, NOTHING, 2);
+        assertEq(Data[0], sr.readLine());
+        assertEq(Data[1], sr.readLine());
+        assertEq(Data[2], sr.readLine());
+        assertEq(NOTHING, sr.readLine());
+
+        is = new StringInputStream(WithRNLines);
+        sr = new BufferedStreamReader(is, NOTHING, 2);
+        assertEq(Data[0], sr.readLine("\r\n"));
+        assertEq(Data[1], sr.readLine("\r\n"));
+        assertEq(Data[2], sr.readLine("\r\n"));
+        assertEq(NOTHING, sr.readLine("\r\n"));
+
+        is = new StringInputStream(WithRNLines);
+        sr = new BufferedStreamReader(is, NOTHING, 2);
+        assertEq(Data[0] + "\r", sr.readLine("\n"));
+        assertEq(Data[1] + "\r", sr.readLine("\n"));
+        assertEq(Data[2], sr.readLine("\n"));
+        assertEq(NOTHING, sr.readLine("\n"));
+
+        is = new StringInputStream(WithRNLines);
+        sr = new BufferedStreamReader(is, NOTHING, 2);
+        assertEq(Data[0], sr.readLine("\r"));
+        assertEq("\n" + Data[1], sr.readLine("\r"));
+        assertEq("\n" + Data[2], sr.readLine("\r"));
+        assertEq(NOTHING, sr.readLine("\r"));
+
+        assertThrows("STREAM-BUFFER-ERROR", sub () { new BufferedStreamReader(is, NOTHING, 0); });
+        assertThrows("STREAM-BUFFER-ERROR", sub () { new BufferedStreamReader(is, NOTHING, -1); });
     }
 
     bufferEdgeTests() {
@@ -149,60 +220,64 @@ class BufferedStreamReaderTest inherits QUnit::Test {
         string sWithWeirdEOLabc = sWithWeirdEOL + "abc";
 
         InputStream is = new StringInputStream(sWith123456);
-        BufferedStreamReader sr = new BufferedStreamReader(is);
+        BufferedStreamReader sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(sWith123456, sr.readLine());
         assertEq(NOTHING, sr.readLine());
 
         is = new StringInputStream(sWithRN);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(s, sr.readLine());
         assertEq(NOTHING, sr.readLine());
 
         is = new StringInputStream(sWithRN);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(sWithRN, sr.readLine(NOTHING, False));
         assertEq(NOTHING, sr.readLine(NOTHING, False));
 
         is = new StringInputStream(sWithR);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(s, sr.readLine());
         assertEq(NOTHING, sr.readLine());
 
         is = new StringInputStream(sWithR);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(sWithR, sr.readLine(NOTHING, False));
         assertEq(NOTHING, sr.readLine(NOTHING, False));
 
         is = new StringInputStream(sWithRNabcdef);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(s, sr.readLine());
         assertEq("abcdef", sr.readLine());
         assertEq(NOTHING, sr.readLine());
 
         is = new StringInputStream(sWithRNabcdef);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(sWithRN, sr.readLine(NOTHING, False));
         assertEq("abcdef", sr.readLine(NOTHING, False));
         assertEq(NOTHING, sr.readLine(NOTHING, False));
 
         is = new StringInputStream(sWithWeirdEOL);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(s, sr.readLine(weirdEOL));
         assertEq(NOTHING, sr.readLine(weirdEOL));
 
         is = new StringInputStream(sWithWeirdEOL);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, 4);
+        assertThrows("EOL-BUFFER-ERROR", \sr.readLine(), "weirdEOL");
+
+        is = new StringInputStream(sWithWeirdEOL);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(sWithWeirdEOL, sr.readLine(weirdEOL, False));
         assertEq(NOTHING, sr.readLine(weirdEOL, False));
 
         is = new StringInputStream(sWithWeirdEOLabc);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(s, sr.readLine(weirdEOL));
         assertEq("abc", sr.readLine(weirdEOL));
         assertEq(NOTHING, sr.readLine(weirdEOL));
 
         is = new StringInputStream(sWithWeirdEOLabc);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(sWithWeirdEOL, sr.readLine(weirdEOL, False));
         assertEq("abc", sr.readLine(weirdEOL, False));
         assertEq(NOTHING, sr.readLine(weirdEOL, False));
@@ -217,22 +292,22 @@ class BufferedStreamReaderTest inherits QUnit::Test {
         string i88592eol = convert_encoding("\n", "ISO-8859-2");
 
         InputStream is = new StringInputStream(s);
-        BufferedStreamReader sr = new BufferedStreamReader(is);
+        BufferedStreamReader sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq("".encoding(), sr.getEncoding());
         assertEq("".encoding(), sr.readLine().encoding());
 
         is = new StringInputStream(sUTF8);
-        sr = new BufferedStreamReader(is, "UTF-8");
+        sr = new BufferedStreamReader(is, "UTF-8", STREAMREADER_BUFFER_SIZE);
         assertEq("UTF-8", sr.getEncoding());
         assertEq("UTF-8", sr.readLine().encoding());
 
         is = new StringInputStream(sISO88592);
-        sr = new BufferedStreamReader(is, "ISO-8859-2");
+        sr = new BufferedStreamReader(is, "ISO-8859-2", STREAMREADER_BUFFER_SIZE);
         assertEq("ISO-8859-2", sr.getEncoding());
         assertEq("ISO-8859-2", sr.readLine().encoding());
 
         is = new StringInputStream(sUTF8);
-        sr = new BufferedStreamReader(is, "UTF-8");
+        sr = new BufferedStreamReader(is, "UTF-8", STREAMREADER_BUFFER_SIZE);
         assertEq(s1, sr.readLine(i88592eol));
         assertEq(s2, sr.readLine(i88592eol));
         assertEq(NOTHING, sr.readLine(i88592eol));
@@ -244,34 +319,34 @@ class BufferedStreamReaderTest inherits QUnit::Test {
         binary b = b1 + b2;
 
         BinaryInputStream is = new BinaryInputStream(binary());
-        BufferedStreamReader sr = new BufferedStreamReader(is);
+        BufferedStreamReader sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(NOTHING, sr.readBinary());
         assertEq(NOTHING, sr.readBinary(-1));
         assertEq(NOTHING, sr.readBinary(0));
         assertEq(NOTHING, sr.readBinary(100));
 
         is = new BinaryInputStream(b);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(b, sr.readBinary());
         assertEq(NOTHING, sr.readBinary());
 
         is = new BinaryInputStream(b);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(b, sr.readBinary(-1));
         assertEq(NOTHING, sr.readBinary(-1));
 
         is = new BinaryInputStream(b);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(NOTHING, sr.readBinary(0));
         assertEq(b, sr.readBinary());
 
         is = new BinaryInputStream(b);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(b, sr.readBinary(100));
         assertEq(NOTHING, sr.readBinary(100));
 
         is = new BinaryInputStream(b);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(b1, sr.readBinary(8));
         assertEq(b2, sr.readBinary(100));
     }
@@ -279,7 +354,7 @@ class BufferedStreamReaderTest inherits QUnit::Test {
     readIntTests() {
         binary b = <0a1b2c3d001122334455667700102030405060708090>;
         BinaryInputStream is = new BinaryInputStream(b);
-        BufferedStreamReader sr = new BufferedStreamReader(is);
+        BufferedStreamReader sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(0x0a, sr.readi1());
         assertEq(0x1b, sr.readi1());
         assertEq(0x2c3d, sr.readi2());
@@ -289,7 +364,11 @@ class BufferedStreamReaderTest inherits QUnit::Test {
         assertEq(0x2030405060708090, sr.readi8());
 
         is = new BinaryInputStream(b);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, 7);
+        assertThrows("STREAM-BUFFER-ERROR", \sr.readi8());
+
+        is = new BinaryInputStream(b);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(0x1b0a, sr.readi2LSB());
         assertEq(0x3d2c, sr.readi2LSB());
         assertEq(0x33221100, sr.readi4LSB());
@@ -297,7 +376,7 @@ class BufferedStreamReaderTest inherits QUnit::Test {
         assertEq(0x7060504030201000, sr.readi8LSB());
 
         is = new BinaryInputStream(<abcd0123aabbccdd0011223344556677>);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(0xab, sr.readu1());
         assertEq(0xcd, sr.readu1());
         assertEq(0x0123, sr.readu2());
@@ -308,7 +387,7 @@ class BufferedStreamReaderTest inherits QUnit::Test {
         assertEq(0x77, sr.readu1());
 
         is = new BinaryInputStream(<abcd0123aabbccdd001122334455>);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(0xcdab, sr.readu2LSB());
         assertEq(0x2301, sr.readu2LSB());
         assertEq(0xbbaa, sr.readu2LSB());
@@ -316,7 +395,7 @@ class BufferedStreamReaderTest inherits QUnit::Test {
         assertEq(0x55443322, sr.readu4LSB());
 
         is = new BinaryInputStream(<FEFFFD008080000000FCFFFFFFFFFFFFFFFFFFFFFBFAFFFFFFFFFFFFFF>);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(-2, sr.readi1());
         assertEq(-3, sr.readi2());
         assertEq(-0x8000, sr.readi2LSB());
@@ -326,7 +405,7 @@ class BufferedStreamReaderTest inherits QUnit::Test {
         assertEq(-6, sr.readi8LSB());
 
         is = new BinaryInputStream(<FEFFFD008080000000FCFFFFFF>);
-        sr = new BufferedStreamReader(is);
+        sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertEq(0xFE, sr.readu1());
         assertEq(0xFFFD, sr.readu2());
         assertEq(0x8000, sr.readu2LSB());
@@ -336,7 +415,7 @@ class BufferedStreamReaderTest inherits QUnit::Test {
 
     exceptionTests() {
         InputStream is = new BinaryInputStream(binary());
-        BufferedStreamReader sr = new BufferedStreamReader(is);
+        BufferedStreamReader sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
         assertThrows("END-OF-STREAM-ERROR", sub () { sr.readi1(); });
         assertThrows("END-OF-STREAM-ERROR", sub () { sr.readi2(); });
         assertThrows("END-OF-STREAM-ERROR", sub () { sr.readi4(); });
