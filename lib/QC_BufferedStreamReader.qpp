@@ -54,7 +54,7 @@ BufferedStreamReader sr(is, "UTF-8");
 int i = sr.readi4();
     @endcode
 
-    @note i any single read attempt from an object of this class for an amount of data larger than the buffer size will result in a \c STREAM-BUFFER-ERROR exception
+    @note Any single read attempt from an object of this class for an amount of data larger than the buffer size will result in a \c STREAM-BUFFER-ERROR exception
 
     @see @ref Qore::InputStream
  */
