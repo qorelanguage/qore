@@ -188,48 +188,6 @@ class qdx {
         on_success rename(ofn, ifn);
 
         map w.write($1), ins;
-
-        /*
-        while (i.next()) {
-            string line = i.getValue();
-
-            if (tex) {
-                line =~ s/\\_\\-\\_\\-1\\_\\-/[/g;
-                line =~ s/\\_\\-\\_\\-2\\_\\-/]/g;
-                line =~ s/\\_\\-\\_\\-4\\_\\-/./g;
-                line =~ s/\\_\\-\\_\\-5\\_\\-/-/g;
-                line =~ s/\\_\\-\\_\\-6\\_\\-/\$/g;
-                line =~ s/\\_\\-\\_\\-7\\_\\-/* /g; #//;
-            }
-
-            line =~ s/__1_/[/g;
-            line =~ s/__2_/]/g;
-            line =~ s/__3_/* /g;
-            line =~ s/__4_/./g;
-            line =~ s/__5_/-/g;
-            if (o.keepdollar)
-                line =~ s/__6_/$/g;
-            else
-                line =~ s/__6_//g;
-            line =~ s/__7_ /* /g; #//;
-
-            # remove "inline" tags
-            line =~ s/\[inline\]//g;
-            line =~ s/, inline\]/]/g;
-            line =~ s/\[inline, /[/g;
-
-            line =~ s/"Qore::zzz8([a-z]+)zzz9"/"<$1>"/g;
-            line =~ s/>([^<>]*)Qore::zzz8([a-z]+)zzz9([^<>]*)<\//\>$1\&lt;$2\&gt;$3<\//g;
-            line =~ s/>([^<>]*)zzz8([a-z]+)zzz9([^<>]*)<\//\>$1\&lt;$2\&gt;$3<\//g;
-            line =~ s/for Qore::zzz8([a-z]+)zzz9:/for Qore::\&lt;$1\&gt;:/g;
-            line =~ s/'Qore::zzz8([a-z]+)zzz9'/'\&lt;$1\&gt;'/g;
-            line =~ s/"zzz8([a-z]+)zzz9"/"<$1>"/g;
-            line =~ s/'Qore::zzz8([a-z]+)zzz9::([^']+)\(([^\)]*)\)'/'Qore::\&lt;$1\&gt;::$2($3)'/g;
-            line =~ s/'zzz8([a-z]+)zzz9'/'$1'/g;
-
-            w.write(line);
-        }
-        */
     }
 
     fixParam(reference line) {
@@ -252,7 +210,6 @@ class qdx {
 
         DocumentTableHelper dth();
 
-        #while (exists (*string line = inf.readLine())) {
         while (ins.next()) {
             string line = ins.getValue();
             if (fix_param)
@@ -270,7 +227,6 @@ class qdx {
 
             comment += line;
         }
-        #printf("comment: %s", comment);
         return comment;
     }
 
@@ -308,7 +264,6 @@ class qdx {
         # namespace stack
         list nss = ();
 
-        #while (exists (*string line = inf.readLine())) {
         while (ins.next()) {
             string line = ins.getValue();
             line =~ s/\$\.//g;
@@ -333,7 +288,6 @@ class qdx {
             # see if the line is the start of a doxygen block comment
             if (line =~ /^[[:blank:]]*\/\*\*/) { #/){
                 line = getComment(line, ins);
-                #line = getComment(line, inf);
                 w.write(line);
                 continue;
             }
@@ -369,7 +323,6 @@ class qdx {
             # skip module declarations for now
             if (line =~ /^[[:space:]]*module[[:space:]]+/) {
                 while (line.val() && line !~ /}/ && ins.next()) {
-                    #line = inf.readLine();
                     line = ins.getValue();
                 }
                 continue;
