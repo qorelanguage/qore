@@ -278,8 +278,8 @@ class qdx {
         checkNames(fn, nn);
 
         FileInputStream inf(fn);
-        InputStreamLineIterator ins(inf, NOTHING, NOTHING, False);
-        #ReadOnlyFile inf(fn);
+        # need to use an unbuffered StreamReader here
+        InputStreamLineIterator ins(new StreamReader(inf), NOTHING, False);
 
         StreamWriter w(new FileOutputStream(nn));
 
@@ -389,7 +389,6 @@ class qdx {
                 # make into a declaration (also remove any parent class constructor calls)
                 line =~ s/[[:blank:]]*(?:([^:]):[^:].*\(.*)?{[[:blank:]]*$/$1;/;
 
-                printf("line: %y\n", line);
                 # read until closing curly bracket '}'
                 readUntilCloseBracket(inf);
             }
@@ -584,16 +583,12 @@ class qdx {
         string c = fc;
         need = False;
 
-        string dbg;
-
         while (True) {
             if (need) {
                 c = sr.readString(1);
             }
             else
                 need = True;
-
-            dbg += c;
 
             if (regex) {
                 if (c == "\\")
@@ -636,7 +631,6 @@ class qdx {
                 ++cnt;
             else if (c == "}") {
                 if (!--cnt) {
-                    printf("DBG: %y\n", dbg);
                     return;
                 }
             }
@@ -647,7 +641,7 @@ class qdx {
             }
             else if (c == "#") {
                 # read until EOL
-                dbg += sr.readLine();
+                sr.readLine();
             }
             else if (c == "/") {
                 c = sr.readString(1);

@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -80,7 +80,7 @@ string StreamReader::getEncoding() [flags=CONSTANT] {
 string str = sr.read(len);
     @endcode
 
-    @param limit maximum amount of bytes of string data to read; if not given or equal to -1, all the data from the @ref InputStream will be read; if equal to 0, @ref nothing will be read
+    @param limit maximum amount of characters of string data to read; if not given or equal to -1, all the data from the @ref InputStream will be read; if equal to 0, @ref nothing will be read
 
     @return a @ref string value or @ref nothing if there is no more data available in the stream
  */

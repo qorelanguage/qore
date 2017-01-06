@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -97,7 +97,7 @@ public:
    }
 
    //! Read string data from the stream.
-   /** @param limit max amount of data to read; if equal to -1, all data will be read, if equal to 0, no data will be read
+   /** @param limit max amount of data to read as a number of characters; if equal to -1, all data will be read, if equal to 0, no data will be read
        @param xsink exception sink
 
        @return Qore string read from the stream
