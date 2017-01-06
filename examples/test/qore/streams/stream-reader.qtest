@@ -26,6 +26,7 @@ class StreamReaderTest inherits QUnit::Test {
         addTestCase("Read binary tests", \readBinaryTests());
         addTestCase("Read int tests", \readIntTests());
         addTestCase("Exception tests", \exceptionTests());
+        addTestCase("Read string tests", \readStringTests());
 
         set_return_value(main());
     }
@@ -356,5 +357,17 @@ class StreamReaderTest inherits QUnit::Test {
         assertThrows("UNSUPPORTED-ENCODING-ERROR", sub () { sr = new StreamReader(is, "UTF16"); });
         assertThrows("UNSUPPORTED-ENCODING-ERROR", sub () { sr = new StreamReader(is, "UTF16LE"); });
         assertThrows("UNSUPPORTED-ENCODING-ERROR", sub () { sr = new StreamReader(is, "UTF16BE"); });
+    }
+
+    readStringTests() {
+        string s1 = "Příliš žluťoučký kůň úpěl ďábelské ódy.";
+
+        StringInputStream is(s1);
+        StreamReader sr(is);
+
+        assertEq("Příliš", sr.readString(6));
+        assertEq(" žluťoučký", sr.readString(10));
+        assertEq(" kůň úpěl ďábelské ódy.", sr.readString(-1));
+        assertThrows("END-OF-STREAM-ERROR", \sr.readu1());
     }
 }

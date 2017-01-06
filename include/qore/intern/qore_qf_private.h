@@ -386,6 +386,9 @@ struct qore_qf_private {
 
             //printd(5, "qore_qf_private::readString() bs: " QLLD "\n", bs);
 
+            // ensure there is space in the buffer
+            buf->reserve(buf->size() + bs);
+
             qore_offset_t rc;
             while (true) {
                rc = ::read(fd, (void*)(buf->c_str() + buf->size()), bs);
@@ -416,7 +419,7 @@ struct qore_qf_private {
 
             // scan data read and find the last valid character position
             const char* e = buf->c_str() + buf->size();
-            while (char_len < orig_size) {
+            while (char_len < orig_size && last_char < buf->size()) {
                const char* p = buf->c_str() + last_char;
                int cc = charset->getCharLen(p, e - p);
                if (!cc) {
