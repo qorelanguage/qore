@@ -1,0 +1,65 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class InputStreamLineIteratorTest
+
+public class InputStreamLineIteratorTest inherits QUnit::Test {
+    public {
+        const InputString = "hello there 1, 2, 3\nline 2\nline 3\n";
+    }
+
+    constructor() : Test("InputStreamLineIteratorTest", "1.0") {
+        addTestCase("string test", \stringTest());
+        addTestCase("file test", \fileTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    stringTest() {
+        StringInputStream is(InputString);
+        doTests(is, "string");
+
+        assertThrows("EOL-BUFFER-ERROR", sub () { InputStreamLineIterator i(is, NOTHING, NOTHING, True, 1);});
+        assertThrows("EOL-BUFFER-ERROR", sub () { InputStreamLineIterator i(is, NOTHING, "test", True, 3);});
+    }
+
+    fileTest() {
+        string fn = tmp_location() + DirSep + get_random_string();
+        {
+            File f();
+            f.open2(fn, O_CREAT|O_WRONLY|O_TRUNC);
+            f.write(InputString);
+        }
+        on_exit unlink(fn);
+
+        {
+            FileInputStream is(fn);
+            assertEq("hello ", binary_to_string(is.read(6)));
+            StreamReader sr(is);
+            assertEq("there ", sr.readString(6));
+            assertEq("1, 2, 3", binary_to_string(is.read(7)));
+        }
+
+        FileInputStream is(fn);
+        doTests(is, "file");
+    }
+
+    private doTests(InputStream is, string label) {
+        InputStreamLineIterator i(is, NOTHING, "\n", True, 1);
+        assertEq(True, i.next(), label + " next");
+        assertEq("hello there 1, 2, 3", i.getValue(), label + " first");
+        StreamReader sr(is);
+        assertEq("line 2\n", binary_to_string(is.read(7)), label + " second");
+        i.next();
+        assertEq("line 3", i.getValue(), label + " third");
+    }
+}
