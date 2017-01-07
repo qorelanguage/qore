@@ -219,36 +219,129 @@ public:
       }
    }
 
-   //! Read string data from the stream.
-   /** @param limit max amount of data to read; if equal to -1, all data will be read, if equal to 0, no data will be read
-    */
-   DLLLOCAL virtual QoreStringNode* readString(int64 limit, ExceptionSink* xsink) override {
-      SimpleRefHolder<QoreStringNode> str(new QoreStringNode(enc));
-      if (limit >= 0 && static_cast<int64>(bufCount) >= limit) {
-         str->concat((const char*)buf, limit);
-         shiftBuffer(limit);
-         return str->empty() ? 0 : str.release();
-      }
-      else { // Either limit is -1 or we need more data than is currently in the buffer.
-         int64 toRead = limit;
-         str->concat((const char*)buf, bufCount);
-         toRead -= bufCount;
-         bufCount = 0;
-         while (true) {
-            qore_size_t bytes = limit < 0 ? bufCapacity : QORE_MIN(static_cast<qore_size_t>(toRead), bufCapacity);
-            int64 rc = fillBuffer(bytes, xsink);
-            if (*xsink)
-               return 0;
-            if (rc == 0) // Input stream end.
-               return str->empty() ? 0 : str.release();
 
-            str->concat((const char*)buf, bufCount);
-            toRead -= bufCount;
-            bufCount = 0;
-            if (toRead == 0)
-               return str.release();
+   //! Read string data from the stream.
+   /** @param size max amount of data to read as a number of characters; if equal to -1, all data will be read, if equal to 0, no data will be read
+       @param xsink exception sink
+
+       @return Qore string read from the stream
+    */
+   DLLLOCAL virtual QoreStringNode* readString(int64 size, ExceptionSink* xsink) override {
+      if (size == 0)
+         return 0;
+      if (size < 0)
+         return readStringAll(xsink);
+
+      // original number of characters requested
+      size_t orig_size = size;
+
+      // byte offset of the byte position directly after the last full character scanned
+      size_t last_char = 0;
+
+      // total number of characters read
+      size_t char_len = 0;
+
+      SimpleRefHolder<QoreStringNode> str(new QoreStringNode(enc));
+      while (char_len < orig_size) {
+         // get the minimum number of bytes to read
+         size_t bs = size - str->size();
+
+         // ensure there is space in the buffer
+         str->reserve(str->size() + bs);
+
+         int rc = readBufferedDataLimit((void*)(str->c_str() + str->size()), bs, xsink);
+         if (*xsink)
+            return 0;
+         if (rc == 0)
+            break;
+
+         str->terminate(str->size() + rc);
+
+         // if we have a non-multi-byte character encoding, then we can use byte lengths
+         if (!enc->isMultiByte()) {
+            if (size == str->size())
+               break;
+            continue;
          }
+
+         // scan data read and find the last valid character position
+         const char* e = str->c_str() + str->size();
+         while (char_len < orig_size && last_char < str->size()) {
+            const char* p = str->c_str() + last_char;
+            int cc = enc->getCharLen(p, e - p);
+            if (!cc) {
+               xsink->raiseException("STREAM-ENCODING-ERROR", "invalid multi-byte character received in byte offset " QLLD " according to the file's encoding: '%s'", last_char, enc->getCode());
+
+               return 0;
+            }
+
+            //printd(5, "StreamReader::readString() orig: " QLLD " size: " QLLD " char_len: " QLLD " rc: %d last_char: " QLLD " c: %d (offset: " QLLD ") cc: %d '%s'\n", orig_size, size, char_len, rc, last_char, *p, p - str->c_str(), cc, enc->getCode());
+
+            if (cc > 0) {
+               // increment character count
+               ++char_len;
+               // increment byte position after last full character read
+               last_char += cc;
+               continue;
+            }
+
+            // otherwise we need to recalculate the total size to read and break
+            cc = -cc;
+            // how many bytes of this character do we have
+            unsigned hb = (str->size() - last_char);
+            assert(cc > hb);
+            // we will add one byte for the missing character below; here we add in any other bytes we might need
+            if (cc > (hb + 1))
+               size += (cc - hb - 1);
+            break;
+         }
+
+         // now we add 1 byte to the remaining size to get for every character we have not yet read
+         size += (orig_size - char_len);
       }
+
+      return str->empty() ? 0 : str.release();
+   }
+
+   DLLLOCAL QoreStringNode* readStringAll(ExceptionSink* xsink) {
+      SimpleRefHolder<QoreStringNode> str(new QoreStringNode(enc));
+      str->concat((const char*)buf, bufCount);
+      bufCount = 0;
+      while (true) {
+         qore_size_t bytes = bufCapacity;
+         int64 rc = fillBuffer(bytes, xsink);
+         if (*xsink)
+            return 0;
+         if (rc == 0) // Input stream end.
+            return str->empty() ? 0 : str.release();
+
+         str->concat((const char*)buf, bufCount);
+         bufCount = 0;
+      }
+   }
+
+   //! Read buffered and then stream data until a limit.
+   /** @param dest destination buffer
+       @param limit maximum amount of data to read
+       @param xsink exception sink
+
+       @return amount of data read, -1 in case of error
+    */
+   DLLLOCAL qore_offset_t readBufferedDataLimit(void* dest, qore_size_t limit, ExceptionSink* xsink) {
+      size_t read = 0;
+      if (bufCount) {
+         size_t len = QORE_MIN(limit, bufCount);
+         memcpy(dest, buf, len);
+         bufCount -= len;
+         limit -= len;
+         read = len;
+         dest = (char*)dest + len;
+      }
+      if (!limit)
+         return read;
+      // if we have data still left to read, we read it directly into the target buffer
+      qore_offset_t rc = readDataLimit(dest, limit, xsink);
+      return rc < 0 ? rc : read + rc;
    }
 
    DLLLOCAL virtual int64 readi1(ExceptionSink* xsink) override {

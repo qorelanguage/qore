@@ -412,6 +412,29 @@ protected:
    //! Encoding of the source input stream.
    const QoreEncoding* enc;
 
+   //! Read data until a limit.
+   /** @param dest destination buffer
+       @param limit maximum amount of data to read
+       @param xsink exception sink
+
+       @return amount of data read, -1 in case of error
+    */
+   DLLLOCAL qore_offset_t readDataLimit(void* dest, qore_size_t limit, ExceptionSink* xsink) {
+      char* destPtr = static_cast<char*>(dest);
+      qore_size_t read = 0;
+      if (limit > 0) {
+         while (true) {
+            int64 rc = in->read(destPtr + read, limit - read, xsink);
+            if (*xsink)
+               return -1;
+            read += rc;
+            if (read == limit || rc == 0)
+               break;
+         }
+      }
+      return read;
+   }
+
 private:
    //! Read all the required data.
    /** @param dest destination buffer
@@ -438,29 +461,6 @@ private:
          }
       }
       return 0;
-   }
-
-   //! Read data until a limit.
-   /** @param dest destination buffer
-       @param limit maximum amount of data to read
-       @param xsink exception sink
-
-       @return amount of data read, -1 in case of error
-    */
-   DLLLOCAL int readDataLimit(void* dest, qore_size_t limit, ExceptionSink* xsink) {
-      char* destPtr = static_cast<char*>(dest);
-      qore_size_t read = 0;
-      if (limit > 0) {
-         while (true) {
-            int64 rc = in->read(destPtr + read, limit - read, xsink);
-            if (*xsink)
-               return -1;
-            read += rc;
-            if (read == limit || rc == 0)
-               break;
-         }
-      }
-      return read;
    }
 };
 
