@@ -207,9 +207,7 @@ class BufferedStreamReaderTest inherits QUnit::Test {
     }
 
     bufferEdgeTests() {
-        string s = "";
-        for (int i = 0; i < (STREAMREADER_BUFFER_SIZE-1); i++)
-            s += "a";
+        string s = strmul("a", STREAMREADER_BUFFER_SIZE - 1);
 
         string sWith123456 = s + "a" + "123456"; # "a" is there to fill the buffer
         string sWithRN = s + "\r\n";
@@ -281,6 +279,14 @@ class BufferedStreamReaderTest inherits QUnit::Test {
         assertEq(sWithWeirdEOL, sr.readLine(weirdEOL, False));
         assertEq("abc", sr.readLine(weirdEOL, False));
         assertEq(NOTHING, sr.readLine(weirdEOL, False));
+
+        s = strmul("a", STREAMREADER_BUFFER_SIZE - 3);
+        sWith123456 = s + "123456xyz";
+        is = new StringInputStream(sWith123456);
+        sr = new BufferedStreamReader(is);
+        assertEq(s, sr.readLine("123456"));
+        assertEq("xyz", sr.readLine("123456"));
+        assertEq(NOTHING, sr.readLine());
     }
 
     encodingTests() {
