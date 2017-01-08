@@ -1773,6 +1773,12 @@ public:
 
    DLLLOCAL void update(const QoreString& str);
 
+   DLLLOCAL void updateEmpty() {
+      assert(!is_set);
+      clearHash();
+      is_set = true;
+   }
+
    DLLLOCAL bool operator==(const SignatureHash& other) const {
       // if either one of the hashes is not set, then the comparison always fails
       if (!is_set || !other.is_set)
@@ -2711,20 +2717,21 @@ public:
          return m;
       if (!scl)
          return 0;
-      m = scl->runtimeFindCommittedStaticMethod(nme, access, class_ctx, class_ctx == this);
-      return m ? doRuntimeMethodAccess(m, access, m->getAccess(), class_ctx) : 0;
+      // access already checked in subclasses, do not need to check again
+      return scl->runtimeFindCommittedStaticMethod(nme, access, class_ctx, class_ctx == this);
    }
 
    // returns a non-static method if it exists in class hierarchy and has been committed to the class
    // class_ctx is only set if it is present and accessible, so we only need to check for internal access here
    DLLLOCAL const QoreMethod* runtimeFindCommittedMethodIntern(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
       const QoreMethod* m = findLocalCommittedMethod(nme);
+      //printd(5, "qore_class_private::runtimeFindCommittedMethodIntern(%s) '%s' class_ctx: %p '%s' FIRST m: %p\n", nme, name.c_str(), class_ctx, class_ctx ? class_ctx.name.c_str() : "n/a", m);
       if (m && doRuntimeMethodAccess(m, access, m->getAccess(), class_ctx))
          return m;
       if (!scl)
          return 0;
-      m = scl->runtimeFindCommittedMethod(nme, access, class_ctx, class_ctx == this);
-      return m ? doRuntimeMethodAccess(m, access, m->getAccess(), class_ctx) : 0;
+      // access already checked in subclasses, do not need to check again
+      return scl->runtimeFindCommittedMethod(nme, access, class_ctx, class_ctx == this);
    }
 
    DLLLOCAL const QoreMethod* runtimeFindCommittedStaticMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
@@ -2887,6 +2894,8 @@ public:
          scl = bcl;
          if (!has_new_user_changes)
             has_new_user_changes = true;
+         if (!has_sig_changes)
+            has_sig_changes = true;
       }
    }
 

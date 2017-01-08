@@ -1275,18 +1275,21 @@ void qore_class_private::parseCommit() {
 
       has_new_user_changes = false;
    }
-#ifdef DEBUG
    else {
+      if (!hash)
+         hash.updateEmpty();
+#ifdef DEBUG
       for (auto& i : hm)
          assert(i.second->priv->func->pendingEmpty());
       for (auto& i : shm)
          assert(i.second->priv->func->pendingEmpty());
+#endif
       assert(pending_members.empty());
       assert(pending_vars.empty());
       assert(!pending_has_public_memdecl);
    }
-#endif
 
+   assert((bool)hash);
    assert(!pend_hash);
 
    // we check base classes if they have public members if we don't have any
@@ -3011,6 +3014,7 @@ const QoreMethod* qore_class_private::getMethodForEval(const char* nme, QoreProg
    const qore_class_private* class_ctx = runtime_get_class();
    if (class_ctx && !runtimeCheckPrivateClassAccess(class_ctx))
       class_ctx = 0;
+   //printd(5, "qore_class_private::getMethodForEval() %s::%s() class_ctx: %p %s\n", name.c_str(), nme, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a");
 
    {
       ProgramRuntimeParseContextHelper pch(xsink, pgm);
@@ -4121,8 +4125,8 @@ bool qore_class_private::runtimeCheckPrivateClassAccess(const qore_class_private
       //printd(5, "runtimeCheckPrivateClassAccess() this: %p '%s' no runtime class context: failed\n", this, name.c_str());
       return QTI_NOT_EQUAL;
    }
-   //bool np = false; printd(5, "runtimeCheckPrivateClassAccess() qc: %p '%s' test: %p '%s' okl: %d okr: %d\n", qc, qc->name.c_str(), this, name.c_str(), qc->getClassIntern(*this, np), (scl && scl->getClass(*qc, np)));
    ClassAccess access = Public;
+   //printd(5, "runtimeCheckPrivateClassAccess() qc: %p '%s' test: %p '%s' okl: %d okr: %d\n", qc, qc->name.c_str(), this, name.c_str(), qc->getClassIntern(*this, access, true), (scl && scl->getClass(*qc, access, true)));
    return qc->getClassIntern(*this, access, true) || (scl && scl->getClass(*qc, access, true)) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
 }
 
