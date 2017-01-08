@@ -302,6 +302,18 @@ class RefTest {
     }
 }
 
+class Base1 {
+    int m() {
+        return m1();
+    }
+
+    private:internal int m1() {
+        return 1;
+    }
+}
+
+class Child1 inherits Base1;
+
 public class AccessTest inherits QUnit::Test {
     private {
         const Code = "
@@ -487,6 +499,9 @@ class TestInheritB {
 
         RefTest rt();
         assertEq(1, rt.get());
+
+        Child1 child1();
+        assertEq(1, child1.m());
 
         {
             Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES|PO_STRICT_ARGS);

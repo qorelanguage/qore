@@ -3011,6 +3011,7 @@ const QoreMethod* qore_class_private::getMethodForEval(const char* nme, QoreProg
    const qore_class_private* class_ctx = runtime_get_class();
    if (class_ctx && !runtimeCheckPrivateClassAccess(class_ctx))
       class_ctx = 0;
+   //printd(5, "qore_class_private::getMethodForEval() %s::%s() class_ctx: %p %s\n", name.c_str(), nme, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a");
 
    {
       ProgramRuntimeParseContextHelper pch(xsink, pgm);
