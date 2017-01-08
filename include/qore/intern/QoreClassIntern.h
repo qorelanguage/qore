@@ -1773,6 +1773,12 @@ public:
 
    DLLLOCAL void update(const QoreString& str);
 
+   DLLLOCAL void updateEmpty() {
+      assert(!is_set);
+      clearHash();
+      is_set = true;
+   }
+
    DLLLOCAL bool operator==(const SignatureHash& other) const {
       // if either one of the hashes is not set, then the comparison always fails
       if (!is_set || !other.is_set)

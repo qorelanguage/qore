@@ -1275,17 +1275,19 @@ void qore_class_private::parseCommit() {
 
       has_new_user_changes = false;
    }
-#ifdef DEBUG
    else {
+      if (!hash)
+         hash.updateEmpty();
+#ifdef DEBUG
       for (auto& i : hm)
          assert(i.second->priv->func->pendingEmpty());
       for (auto& i : shm)
          assert(i.second->priv->func->pendingEmpty());
+#endif
       assert(pending_members.empty());
       assert(pending_vars.empty());
       assert(!pending_has_public_memdecl);
    }
-#endif
 
    assert((bool)hash);
    assert(!pend_hash);
