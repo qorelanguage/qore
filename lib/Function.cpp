@@ -163,7 +163,7 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
       if (qc) {
          const MethodVariant* mv = reinterpret_cast<const MethodVariant*>(variant);
          ClassAccess va = mv->getAccess();
-         if ((va > Public && !class_ctx) || (va == Internal && mv->getClass() != qc->cls)) {
+         if ((va > Public && !class_ctx) || (va == Internal && !qore_class_private::get(*mv->getClass())->is_equal(*qc))) {
             xsink->raiseException("METHOD-IS-PRIVATE", "%s::%s(%s) is not accessible in this context", mv->className(), func->getName(), mv->getSignature()->getSignatureText());
             return;
          }

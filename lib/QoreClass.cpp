@@ -1287,6 +1287,7 @@ void qore_class_private::parseCommit() {
    }
 #endif
 
+   assert((bool)hash);
    assert(!pend_hash);
 
    // we check base classes if they have public members if we don't have any
@@ -4122,8 +4123,8 @@ bool qore_class_private::runtimeCheckPrivateClassAccess(const qore_class_private
       //printd(5, "runtimeCheckPrivateClassAccess() this: %p '%s' no runtime class context: failed\n", this, name.c_str());
       return QTI_NOT_EQUAL;
    }
-   //bool np = false; printd(5, "runtimeCheckPrivateClassAccess() qc: %p '%s' test: %p '%s' okl: %d okr: %d\n", qc, qc->name.c_str(), this, name.c_str(), qc->getClassIntern(*this, np), (scl && scl->getClass(*qc, np)));
    ClassAccess access = Public;
+   //printd(5, "runtimeCheckPrivateClassAccess() qc: %p '%s' test: %p '%s' okl: %d okr: %d\n", qc, qc->name.c_str(), this, name.c_str(), qc->getClassIntern(*this, access, true), (scl && scl->getClass(*qc, access, true)));
    return qc->getClassIntern(*this, access, true) || (scl && scl->getClass(*qc, access, true)) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
 }
 

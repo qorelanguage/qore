@@ -386,6 +386,10 @@ class TestInheritB {
 
         const Class2 = "class TestInheritAB inherits TestInheritA, TestInheritB {}";
         const Class3 = "class TestInheritBA inherits TestInheritB, TestInheritA {}";
+
+        const Code2 = "class Base1 {int m() {return m1();} private:internal int m1() {return 1;}} class Child1 inherits Base1; Child1 sub test() {return new Child1();}";
+
+        const Code3 = "class Child1 inherits Base1; int sub test() {Child1 c(); return c.m();}";
     }
 
     constructor() : Test("AccessTest", "1.0") {
@@ -500,8 +504,30 @@ class TestInheritB {
         RefTest rt();
         assertEq(1, rt.get());
 
-        Child1 child1();
-        assertEq(1, child1.m());
+        {
+            Child1 child1();
+            assertEq(1, child1.m());
+            assertEq(1, call_object_method(child1, "m"));
+            int i = child1.m();
+            assertEq(1, i);
+
+            {
+                Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES|PO_STRICT_ARGS);
+                p.parse(Code2, "");
+                object o = p.callFunction("test");
+                assertEq(1, o.m());
+                # issue 1551: test assignment of classes created accross Program boundaries
+                child1 = p.callFunction("test");
+                assertEq(1, child1.m());
+            }
+
+            {
+                Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES|PO_STRICT_ARGS);
+                p.importClass("Base1");
+                p.parse(Code3, "");
+                assertEq(1, p.callFunction("test"));
+            }
+        }
 
         {
             Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES|PO_STRICT_ARGS);
