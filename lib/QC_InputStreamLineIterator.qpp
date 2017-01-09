@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -62,7 +62,6 @@ qclass InputStreamLineIterator [arg=InputStreamLineIterator* isli; ns=Qore; vpar
     @throw STREAM-BUFFER-ERROR an invalid stream buffer size was specified; the buffer size must be a positive integer
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
     @throw UNSUPPORTED-ENCODING-ERROR an ASCII-incompatible encoding was specified in the \a encoding argument
-    @throw EOL-BUFFER-ERROR this exception is thrown if the \a eol string's byte length is greater than or equal to the buffer length or if no \a eol string is thrown and the buffer size is less than 2 bytes
 
     @note this variant of the InputStreamLineIterator::constructor creates a @ref BufferedStreamReader to read the input data
  */

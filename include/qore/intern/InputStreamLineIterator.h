@@ -74,7 +74,6 @@ public:
 
       src->ref();
       reader = new BufferedStreamReader(xsink, *src, enc, bufsize);
-      static_cast<BufferedStreamReader*>(*reader)->check(eol, xsink);
    }
 
    DLLLOCAL InputStreamLineIterator(ExceptionSink* xsink, StreamReader* sr, const QoreStringNode* n_eol = 0, bool n_trim = true) :

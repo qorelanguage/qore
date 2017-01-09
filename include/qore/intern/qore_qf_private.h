@@ -37,6 +37,8 @@
 #include "qore/intern/QC_TermIOS.h"
 #endif
 
+#include "qore/intern/StringReaderHelper.h"
+
 #include <unistd.h>
 #include <sys/types.h>
 #include <stdlib.h>
@@ -344,116 +346,31 @@ struct qore_qf_private {
       return charset->getUnicode(buf);
    }
 
-   DLLLOCAL QoreStringNode* readString(qore_offset_t size, int timeout_ms, const char* mname, ExceptionSink *xsink) {
-      if (!size)
-         return 0;
-      if (size < 0) {
-         char* buf = readBlock(size, timeout_ms, mname, xsink);
-         if (!buf)
-            return 0;
-         QoreStringNode* str = new QoreStringNode(buf, size, size + 1, charset);
-         assert(size >= 0);
-         str->terminate(size);
-         return str;
+   DLLLOCAL qore_offset_t readData(void* dest, qore_size_t limit, int timeout_ms, const char* mname, ExceptionSink* xsink) {
+      // wait for data
+      if (timeout_ms >= 0 && !isDataAvailableIntern(timeout_ms, mname, xsink)) {
+         if (!*xsink)
+            xsink->raiseException("FILE-READ-TIMEOUT", "timeout limit exceeded (%d ms) reading file block in ReadOnlyFile::%s()", timeout_ms, mname);
+         return -1;
       }
 
-      size_t orig_size = size;
-
-      SimpleRefHolder<QoreStringNode> buf(new QoreStringNode(charset));
-
-      {
-         AutoLocker al(m);
-
-         if (check_read_open(xsink))
-            return 0;
-
-         // byte offset of the byte position directly after the last full character scanned
-         size_t last_char = 0;
-
-         // total number of characters read
-         size_t char_len = 0;
-
-         while (char_len < orig_size) {
-            // wait for data
-            if (timeout_ms >= 0 && !isDataAvailableIntern(timeout_ms, mname, xsink)) {
-               if (!*xsink)
-                  xsink->raiseException("FILE-READ-TIMEOUT", "timeout limit exceeded (%d ms) reading file block in ReadOnlyFile::%s()", timeout_ms, mname);
-               break;
-            }
-
-            // get the minimum number of bytes to read
-            size_t bs = size - buf->size();
-
-            //printd(5, "qore_qf_private::readString() bs: " QLLD "\n", bs);
-
-            // ensure there is space in the buffer
-            buf->reserve(buf->size() + bs);
-
-            qore_offset_t rc;
-            while (true) {
-               rc = ::read(fd, (void*)(buf->c_str() + buf->size()), bs);
-               // try again if we were interrupted by a signal
-               if (rc >= 0)
-                  break;
-               if (errno != EINTR) {
-                  xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QLLD " bytes read in ReadOnlyFile::%s()", buf->size(), mname);
-                  break;
-               }
-            }
-
-            if (*xsink)
-               return 0;
-            if (rc <= 0)
-               break;
-
-            buf->terminate(buf->size() + rc);
-
-            //printd(5, "qore_qf_private::readString() orig: " QLLD " size: " QLLD " last_char: " QLLD " char_len: " QLLD " rc: " QLLD "\n", orig_size, size, last_char, char_len, rc);
-
-            // if we have a non-multi-byte character encoding, then we can use byte lengths
-            if (!charset->isMultiByte()) {
-               if (size == buf->size())
-                  break;
-               continue;
-            }
-
-            // scan data read and find the last valid character position
-            const char* e = buf->c_str() + buf->size();
-            while (char_len < orig_size && last_char < buf->size()) {
-               const char* p = buf->c_str() + last_char;
-               int cc = charset->getCharLen(p, e - p);
-               if (!cc) {
-                  xsink->raiseException("FILE-READ-ERROR", "invalid multi-byte character received in byte offset " QLLD " according to the file's encoding: '%s'", last_char, charset->getCode());
-
-                  return 0;
-               }
-               if (cc > 0) {
-                  // increment character count
-                  ++char_len;
-                  // increment byte position after last full character read
-                  last_char += cc;
-                  continue;
-               }
-
-               // otherwise we need to recalculate the total size to read and break
-               cc = -cc;
-               // how many bytes of this character do we have
-               unsigned hb = (buf->size() - last_char);
-               assert(cc > hb);
-               // we will add one byte for the missing character below; here we add in any other bytes we might need
-               if (cc > (hb + 1))
-                  size += (cc - hb - 1);
-               break;
-            }
-
-            // now we add 1 byte to the remaining size to get for every character we have not yet read
-            size += (orig_size - char_len);
+      qore_offset_t rc;
+      while (true) {
+         rc = ::read(fd, dest, limit);
+         // try again if we were interrupted by a signal
+         if (rc >= 0)
+            break;
+         if (errno != EINTR) {
+            xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file in ReadOnlyFile::%s()", mname);
+            return -1;
          }
       }
 
-      assert(buf->length() <= orig_size);
+      return rc;
+   }
 
-      return buf.release();
+   DLLLOCAL QoreStringNode* readString(qore_offset_t size, int timeout_ms, const char* mname, ExceptionSink* xsink) {
+      return q_read_string(xsink, size, charset, std::bind(&qore_qf_private::readData, this, _1, _2, timeout_ms, mname, _3));
    }
 
    DLLLOCAL char* readBlock(qore_offset_t &size, int timeout_ms, const char* mname, ExceptionSink* xsink) {

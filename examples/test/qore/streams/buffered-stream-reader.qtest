@@ -137,7 +137,7 @@ class BufferedStreamReaderTest inherits QUnit::Test {
 
         is = new StringInputStream(WithWeirdEOL);
         sr = new BufferedStreamReader(is, NOTHING, 4);
-        assertThrows("EOL-BUFFER-ERROR", \sr.readLine(), WithWeirdEOL);
+        assertEq("abcdef", sr.readLine(weirdEOL));
 
         is = new StringInputStream(WithNLines);
         sr = new BufferedStreamReader(is, NOTHING, 1);
@@ -174,9 +174,6 @@ class BufferedStreamReaderTest inherits QUnit::Test {
 
         is = new StringInputStream(WithRNLines);
         sr = new BufferedStreamReader(is, NOTHING, 1);
-        assertThrows("EOL-BUFFER-ERROR", \sr.readLine());
-
-        sr = new BufferedStreamReader(is, NOTHING, 2);
         assertEq(Data[0], sr.readLine());
         assertEq(Data[1], sr.readLine());
         assertEq(Data[2], sr.readLine());
@@ -262,7 +259,7 @@ class BufferedStreamReaderTest inherits QUnit::Test {
 
         is = new StringInputStream(sWithWeirdEOL);
         sr = new BufferedStreamReader(is, NOTHING, 4);
-        assertThrows("EOL-BUFFER-ERROR", \sr.readLine(), "weirdEOL");
+        assertEq(s, sr.readLine(weirdEOL));
 
         is = new StringInputStream(sWithWeirdEOL);
         sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
@@ -371,8 +368,8 @@ class BufferedStreamReaderTest inherits QUnit::Test {
         assertEq(0x2030405060708090, sr.readi8());
 
         is = new BinaryInputStream(b);
-        sr = new BufferedStreamReader(is, NOTHING, 7);
-        assertThrows("STREAM-BUFFER-ERROR", \sr.readi8());
+        sr = new BufferedStreamReader(is, NOTHING, 1);
+        assertEq(0x1b0a, sr.readi2LSB());
 
         is = new BinaryInputStream(b);
         sr = new BufferedStreamReader(is, NOTHING, STREAMREADER_BUFFER_SIZE);
