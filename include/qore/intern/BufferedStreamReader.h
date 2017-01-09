@@ -133,7 +133,8 @@ private:
             }
             break;
          }
-         size_t len = QORE_MIN(rc, to_read);
+         assert(rc > 0);
+         size_t len = QORE_MIN((size_t)rc, to_read);
          memcpy(destPtr + read, buf, len);
          shiftBuffer(len);
          read += len;

@@ -111,7 +111,7 @@ DLLLOCAL QoreStringNode* q_read_string(ExceptionSink* xsink, int64 size, const Q
 
       // if we have a non-multi-byte character encoding, then we can use byte lengths
       if (!enc->isMultiByte()) {
-         if (size == str->size())
+         if ((size_t)size == str->size())
             break;
          continue;
       }
@@ -141,9 +141,9 @@ DLLLOCAL QoreStringNode* q_read_string(ExceptionSink* xsink, int64 size, const Q
          cc = -cc;
          // how many bytes of this character do we have
          unsigned hb = (str->size() - last_char);
-         assert(cc > hb);
+         assert((unsigned)cc > hb);
          // we will add one byte for the missing character below; here we add in any other bytes we might need
-         if (cc > (hb + 1))
+         if ((unsigned)cc > (hb + 1))
             size += (cc - hb - 1);
 
          break;
