@@ -512,6 +512,7 @@ noinst_HEADERS = \
 	include/qore/intern/TransformOutputStream.h \
 	include/qore/intern/StdoutOutputStream.h \
 	include/qore/intern/StderrOutputStream.h \
+	include/qore/intern/StringReaderHelper.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \
@@ -734,6 +735,9 @@ doxygen/qlib/Doxyfile.WebSocketUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 
 doxygen/qlib/Doxyfile.Mapper: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/Mapper.qm:doxygen/qlib/Mapper.qm.dox.h $< $@
+
+doxygen/qlib/Doxyfile.ConnectionProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/ConnectionProvider.qm:doxygen/qlib/ConnectionProvider.qm.dox.h -tMime.tag=../../Mime/html $< $@
 
 doxygen/qlib/Doxyfile.RestClient: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/RestClient.qm:doxygen/qlib/RestClient.qm.dox.h -tMime.tag=../../Mime/html -tConnectionProvider.tag=../../ConnectionProvider/html $< $@

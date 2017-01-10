@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -44,61 +44,41 @@
  * @brief Private data for the Qore::InputStreamLineIterator class.
  */
 class InputStreamLineIterator : public QoreIteratorBase {
-
 public:
-   DLLLOCAL InputStreamLineIterator(ExceptionSink* xsink, InputStream* is, const QoreEncoding* encoding = QCS_DEFAULT, const QoreStringNode* n_eol = 0, bool n_trim = true) :
+   DLLLOCAL InputStreamLineIterator(ExceptionSink* xsink, InputStream* is, const QoreEncoding* encoding, const QoreStringNode* n_eol, bool n_trim, size_t bufsize = DefaultStreamBufferSize) :
       src(is, xsink),
       reader(xsink),
-      srcEnc(encoding),
-      enc((encoding && encoding->isAsciiCompat()) ? encoding : QCS_UTF8),
+      enc(encoding),
       line(0),
       eol(0),
       num(0),
       validp(false),
       trim(n_trim)
    {
-      if (n_eol) {
-         if (enc != n_eol->getEncoding()) {
-            SimpleRefHolder<QoreStringNode> neol(n_eol->convertEncoding(enc, xsink));
-            if (*xsink)
-               return;
-            eol = neol.release();
-         }
-         else {
-            eol = n_eol->stringRefSelf();
-         }
-      }
+      if (assignEol(n_eol, xsink))
+         return;
 
-      if (srcEnc != enc) {
-         src = new EncodingConversionInputStream(src.release(), srcEnc, enc, xsink);
-      }
-
+      // reference src for assignment to BufferedStreamReader
       src->ref();
-      reader = new BufferedStreamReader(xsink, *src, enc);
+      reader = new BufferedStreamReader(xsink, *src, enc, bufsize);
    }
 
    DLLLOCAL InputStreamLineIterator(ExceptionSink* xsink, StreamReader* sr, const QoreStringNode* n_eol = 0, bool n_trim = true) :
       src(xsink),
       reader(sr, xsink),
-      srcEnc(sr ? sr->getEncoding() : 0),
-      enc(srcEnc),
+      enc(sr->getEncoding()),
       line(0),
       eol(0),
       num(0),
       validp(false),
       trim(n_trim)
    {
-      if (n_eol) {
-         if (enc != n_eol->getEncoding()) {
-            SimpleRefHolder<QoreStringNode> neol(n_eol->convertEncoding(enc, xsink));
-            if (*xsink)
-               return;
-            eol = neol.release();
-         }
-         else {
-            eol = n_eol->stringRefSelf();
-         }
-      }
+      if (assignEol(n_eol, xsink))
+         return;
+
+      // update the stream reader's encoding if necessary
+      if (enc != sr->getEncoding())
+         sr->setEncoding(enc);
    }
 
    DLLLOCAL ~InputStreamLineIterator() {
@@ -162,6 +142,21 @@ public:
    DLLLOCAL virtual const char* getName() const { return "InputStreamLineIterator"; }
 
 private:
+   DLLLOCAL int assignEol(const QoreStringNode* n_eol, ExceptionSink* xsink) {
+      if (!n_eol || n_eol->empty())
+         return 0;
+      if (enc != n_eol->getEncoding()) {
+         SimpleRefHolder<QoreStringNode> neol(n_eol->convertEncoding(enc, xsink));
+         if (*xsink)
+            return -1;
+         eol = q_remove_bom_utf16(neol.release(), enc);
+      }
+      else {
+         eol = n_eol->stringRefSelf();
+      }
+      return 0;
+   }
+
    DLLLOCAL bool getLine(ExceptionSink* xsink) {
       if (line)
          line->deref();
@@ -172,7 +167,6 @@ private:
 private:
    ReferenceHolder<InputStream> src;
    ReferenceHolder<StreamReader> reader;
-   const QoreEncoding* srcEnc;
    const QoreEncoding* enc;
    QoreStringNode* line;
    QoreStringNode* eol;

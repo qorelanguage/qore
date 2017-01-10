@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -604,6 +604,10 @@ public:
 
    DLLLOCAL const QoreEncoding* getEncoding() const {
       return charset ? charset : QCS_USASCII;
+   }
+
+   DLLLOCAL static qore_string_private* get(QoreString& str) {
+      return str.priv;
    }
 
    DLLLOCAL static int getHex(const char*& p) {

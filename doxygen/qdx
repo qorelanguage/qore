@@ -174,6 +174,11 @@ class qdx {
     postProcessIntern(string ifn, bool tex) {
         DocumentTableInputStreamLineIterator i(new FileInputStream(ifn), NOTHING, NOTHING, False);
 
+        FileInputStream inf(ifn);
+        InputStreamLineIterator ins = tex
+            ? new QorePostProcessingInputStreamLineIterator(inf)
+            : new QorePostProcessingTexInputStreamLineIterator(inf);
+
         string ofn = ifn + ".new";
 
         printf("processing API file %s\n", ifn);
@@ -182,47 +187,7 @@ class qdx {
 
         on_success rename(ofn, ifn);
 
-        DocumentTableHelper dth();
-
-        while (i.next()) {
-            string line = i.getValue();
-
-            if (tex) {
-                line =~ s/\\_\\-\\_\\-1\\_\\-/[/g;
-                line =~ s/\\_\\-\\_\\-2\\_\\-/]/g;
-                line =~ s/\\_\\-\\_\\-4\\_\\-/./g;
-                line =~ s/\\_\\-\\_\\-5\\_\\-/-/g;
-                line =~ s/\\_\\-\\_\\-6\\_\\-/\$/g;
-                line =~ s/\\_\\-\\_\\-7\\_\\-/*/g; #//;
-            }
-
-            line =~ s/__1_/[/g;
-            line =~ s/__2_/]/g;
-            line =~ s/__3_/*/g;
-            line =~ s/__4_/./g;
-            line =~ s/__5_/-/g;
-            if (o.keepdollar)
-                line =~ s/__6_/$/g;
-            else
-                line =~ s/__6_//g;
-            line =~ s/__7_ /*/g; #//;
-
-            # remove "inline" tags
-            line =~ s/\[inline\]//g;
-            line =~ s/, inline\]/]/g;
-            line =~ s/\[inline, /[/g;
-
-            line =~ s/"Qore::zzz8([a-z]+)zzz9"/"<$1>"/g;
-            line =~ s/>([^<>]*)Qore::zzz8([a-z]+)zzz9([^<>]*)<\//\>$1\&lt;$2\&gt;$3<\//g;
-            line =~ s/>([^<>]*)zzz8([a-z]+)zzz9([^<>]*)<\//\>$1\&lt;$2\&gt;$3<\//g;
-            line =~ s/for Qore::zzz8([a-z]+)zzz9:/for Qore::\&lt;$1\&gt;:/g;
-            line =~ s/'Qore::zzz8([a-z]+)zzz9'/'\&lt;$1\&gt;'/g;
-            line =~ s/"zzz8([a-z]+)zzz9"/"<$1>"/g;
-            line =~ s/'Qore::zzz8([a-z]+)zzz9::([^']+)\(([^\)]*)\)'/'Qore::\&lt;$1\&gt;::$2($3)'/g;
-            line =~ s/'zzz8([a-z]+)zzz9'/'$1'/g;
-
-            w.write(line);
-        }
+        map w.write($1), ins;
     }
 
     fixParam(reference line) {
@@ -238,14 +203,15 @@ class qdx {
         }
     }
 
-    string getComment(string comment, ReadOnlyFile inf, bool fix_param = False) {
+    string getComment(string comment, InputStreamLineIterator ins, bool fix_param = False) {
         comment =~ s/^[ \t]+//g;
         if (fix_param)
             fixParam(\comment);
 
         DocumentTableHelper dth();
 
-        while (exists (*string line = inf.readLine())) {
+        while (ins.next()) {
+            string line = ins.getValue();
             if (fix_param)
                 fixParam(\line);
 
@@ -261,14 +227,15 @@ class qdx {
 
             comment += line;
         }
-        #printf("comment: %s", comment);
         return comment;
     }
 
     processQore(string fn, string nn) {
         checkNames(fn, nn);
 
-        ReadOnlyFile inf(fn);
+        FileInputStream inf(fn);
+        # need to use an unbuffered StreamReader here
+        InputStreamLineIterator ins(new StreamReader(inf), NOTHING, False);
 
         StreamWriter w(new FileOutputStream(nn));
 
@@ -297,7 +264,8 @@ class qdx {
         # namespace stack
         list nss = ();
 
-        while (exists (*string line = inf.readLine())) {
+        while (ins.next()) {
+            string line = ins.getValue();
             line =~ s/\$\.//g;
             line =~ s/([^\/\*])\*([a-zA-Z])/$1__7_ $2/g;
             #line =~ s/\$/__6_/g;
@@ -319,7 +287,7 @@ class qdx {
 
             # see if the line is the start of a doxygen block comment
             if (line =~ /^[[:blank:]]*\/\*\*/) { #/){
-                line = getComment(line, inf);
+                line = getComment(line, ins);
                 w.write(line);
                 continue;
             }
@@ -354,8 +322,8 @@ class qdx {
 
             # skip module declarations for now
             if (line =~ /^[[:space:]]*module[[:space:]]+/) {
-                while (line.val() && line !~ /}/) {
-                    line = inf.readLine();
+                while (line.val() && line !~ /}/ && ins.next()) {
+                    line = ins.getValue();
                 }
                 continue;
             }
@@ -554,27 +522,35 @@ class qdx {
         }
     }
 
-    private readUntilCloseBracket(ReadOnlyFile inf) {
+    private readUntilCloseBracket(FileInputStream inf) {
         int cnt = 1;
         string quote;
         bool need = True;
         int regex = 0;
-        string c;
+
+        StreamReader sr(inf);
+        *string fc = sr.readString(1);
+        if (!exists fc)
+            return;
+
+        string c = fc;
+        need = False;
+
         while (True) {
-            if (need)
-                c = inf.read(1);
+            if (need) {
+                c = sr.readString(1);
+            }
             else
                 need = True;
 
             if (regex) {
                 if (c == "\\")
-                    inf.read(1);
+                    sr.readString(1);
                 if (c == "/")
                     --regex;
                 continue;
             }
 
-            #printf("%s", c);
             if (c == "'" || c == '"') {
                 if (quote.val()) {
                     if (c == quote)
@@ -586,15 +562,15 @@ class qdx {
             }
             if (quote.val()) {
                 if (c == "\\" && quote != "'")
-                    inf.read(1);
+                    sr.readString(1);
                 continue;
             }
             if (c == "!" || c == "=") {
-                c = inf.read(1);
+                c = sr.readString(1);
                 if (c == "~") {
                     regex = 1;
                     while (True) {
-                        c = inf.read(1);
+                        c = sr.readString(1);
                         if (c == "s")
                             ++regex;
                         else if (c == "/")
@@ -607,25 +583,26 @@ class qdx {
             if (c == "{")
                 ++cnt;
             else if (c == "}") {
-                if (!--cnt)
+                if (!--cnt) {
                     return;
+                }
             }
             else if (c == "$") {#"){
-                c = inf.read(1);
+                c = sr.readString(1);
                 if (c != "#")
                     need = False;
             }
             else if (c == "#") {
                 # read until EOL
-                inf.readLine();
+                sr.readLine();
             }
             else if (c == "/") {
-                c = inf.read(1);
+                c = sr.readString(1);
                 if (c == "*") {
                     # read until close block comment
                     bool star = False;
                     while (True) {
-                        c = inf.read(1);
+                        c = sr.readString(1);
                         if (star) {
                             if (c == "/")
                                 break;

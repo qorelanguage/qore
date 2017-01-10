@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -291,7 +291,7 @@ int ReadOnlyFile::close() {
    return f->close();
 }
 
-//! Reads a certain number of bytes from the %ReadOnlyFile within an optional timeout period and returns a string of the data read or @ref nothing if no data can be read
+//! Reads a certain number of characters from the %ReadOnlyFile within an optional timeout period and returns a string of the data read or @ref nothing if no data can be read
 /** Reads a certain amount of string data from the %ReadOnlyFile; the size argument is required. To read binary data, use the ReadOnlyFile::readBinary() method.
 
     Note that the amount of data read from the file may be less than the size given, for example if the file does not contain enough data to fulfill the request. In this case, only the data available in the file is returned.
@@ -306,7 +306,7 @@ int ReadOnlyFile::close() {
     @par Events:
     @ref EVENT_DATA_READ
 
-    @param size the number of bytes to read of the file, -1 will read the entire file
+    @param size the number of characters to read of the file, -1 will read the entire file
     @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates "relative date/time value"; integer arguments will be assumed to be milliseconds); if not given or negative the call will never time out and will only return when the data has been read
 
     @return the data read from the file, returned as a string tagged with the %ReadOnlyFile's @ref character_encoding "character encoding".  @ref nothing is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and @ref nothing (signifying EOF) will be returned on the next call to this method.
@@ -317,6 +317,8 @@ int ReadOnlyFile::close() {
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see ReadOnlyFile::readBinary()
+
+    @since %Qore 0.8.13 this method uses character semantics instead of byte semantics
  */
 *string ReadOnlyFile::read(softint size, timeout timeout_ms = -1) {
    if (check_terminal_io(self, "ReadOnlyFile::read", xsink))

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -318,13 +318,12 @@ QoreStringNode *QoreFile::getchar(ExceptionSink *xsink) {
 	 return 0;
 
       str->concat((char)c);
-      if (priv->charset->isMultiByte())
+      if (!priv->charset->isMultiByte())
 	 return str.release();
 
       // read in more characters for multi-byte chars if needed
-      qore_size_t rc = priv->charset->getCharLen(str->getBuffer(), 1);
-      // rc == 0: invalid character; but we can't throw an exception here - anyway I think this can't happen with UTF-8 currently
-      //          which is the only multi-byte encoding we currently support
+      qore_offset_t rc = priv->charset->getCharLen(str->getBuffer(), 1);
+      // rc == 0: invalid character encountered
       if (!rc) {
 	 xsink->raiseException("FILE-GETCHAR-ERROR", "invalid multi-byte character received: initial byte 0x%x is an invalid initial character for '%s' character encoding", c, priv->charset->getCode());
 	 return 0;
@@ -336,7 +335,7 @@ QoreStringNode *QoreFile::getchar(ExceptionSink *xsink) {
 
       assert(rc < 0);
       rc = -rc;
-      while (rc--) {
+      while (--rc) {
 	 c = priv->readChar();
 	 if (c < 0) {
 	    xsink->raiseException("FILE-GETCHAR-ERROR", "invalid multi-byte character received: EOF encountered after %d byte%s read of a %d byte %s character", str->strlen(), str->strlen() == 1 ? "" : "s", str->strlen() + rc + 1, priv->charset->getCode());
@@ -434,29 +433,11 @@ int QoreFile::read(QoreString &str, qore_offset_t size, ExceptionSink *xsink) {
 }
 
 QoreStringNode *QoreFile::read(qore_offset_t size, ExceptionSink *xsink) {
-   if (!size)
-      return 0;
+   return priv->readString(size, -1, "read", xsink);
+}
 
-   char *buf;
-   {
-      AutoLocker al(priv->m);
-
-      if (priv->check_read_open(xsink))
-	 return 0;
-
-      buf = priv->readBlock(size, -1, "read", xsink);
-   }
-   if (!buf)
-      return 0;
-
-   QoreStringNode* str;
-   if (size) {
-      str = new QoreStringNode(buf, size, size, priv->charset);
-      str->terminate(size);
-   }
-   else
-      str = new QoreStringNode(priv->charset);
-   return str;
+QoreStringNode *QoreFile::read(qore_offset_t size, int timeout_ms, ExceptionSink *xsink) {
+   return priv->readString(size, timeout_ms, "read", xsink);
 }
 
 int QoreFile::readBinary(BinaryNode &b, qore_offset_t size, ExceptionSink *xsink) {
@@ -500,27 +481,6 @@ BinaryNode *QoreFile::readBinary(qore_offset_t size, ExceptionSink *xsink) {
       return 0;
 
    return new BinaryNode(buf, size);
-}
-
-QoreStringNode *QoreFile::read(qore_offset_t size, int timeout_ms, ExceptionSink *xsink) {
-   if (!size)
-      return 0;
-
-   char *buf;
-   {
-      AutoLocker al(priv->m);
-
-      if (priv->check_read_open(xsink))
-	 return 0;
-
-      buf = priv->readBlock(size, timeout_ms, "read", xsink);
-   }
-   if (!buf)
-      return 0;
-
-   QoreStringNode *str = new QoreStringNode(buf, size, size, priv->charset);
-   str->terminate(size);
-   return str;
 }
 
 BinaryNode *QoreFile::readBinary(qore_offset_t size, int timeout_ms, ExceptionSink *xsink) {

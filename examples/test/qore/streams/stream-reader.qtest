@@ -26,6 +26,7 @@ class StreamReaderTest inherits QUnit::Test {
         addTestCase("Read binary tests", \readBinaryTests());
         addTestCase("Read int tests", \readIntTests());
         addTestCase("Exception tests", \exceptionTests());
+        addTestCase("Read string tests", \readStringTests());
 
         set_return_value(main());
     }
@@ -136,9 +137,7 @@ class StreamReaderTest inherits QUnit::Test {
     }
 
     bufferEdgeTests() {
-        string s = "";
-        for (int i = 0; i < (STREAMREADER_BUFFER_SIZE-1); i++)
-            s += "a";
+        string s = strmul("a", STREAMREADER_BUFFER_SIZE - 1);
 
         string sWith123456 = s + "a" + "123456"; # "a" is there to fill the buffer
         string sWithRN = s + "\r\n";
@@ -206,6 +205,14 @@ class StreamReaderTest inherits QUnit::Test {
         assertEq(sWithWeirdEOL, sr.readLine(weirdEOL, False));
         assertEq("abc", sr.readLine(weirdEOL, False));
         assertEq(NOTHING, sr.readLine(weirdEOL, False));
+
+        s = strmul("a", STREAMREADER_BUFFER_SIZE - 3);
+        sWith123456 = s + "123456xyz";
+        is = new StringInputStream(sWith123456);
+        sr = new StreamReader(is);
+        assertEq(s, sr.readLine("123456"));
+        assertEq("xyz", sr.readLine("123456"));
+        assertEq(NOTHING, sr.readLine());
     }
 
     encodingTests() {
@@ -352,9 +359,34 @@ class StreamReaderTest inherits QUnit::Test {
         assertThrows("END-OF-STREAM-ERROR", sub () { sr.readu4LSB(); });
 
         assertThrows("ENCODING-CONVERSION-ERROR", sub () { sr = new StreamReader(is, "abcd"); sr.readLine("\n"); });
+    }
 
-        assertThrows("UNSUPPORTED-ENCODING-ERROR", sub () { sr = new StreamReader(is, "UTF16"); });
-        assertThrows("UNSUPPORTED-ENCODING-ERROR", sub () { sr = new StreamReader(is, "UTF16LE"); });
-        assertThrows("UNSUPPORTED-ENCODING-ERROR", sub () { sr = new StreamReader(is, "UTF16BE"); });
+    readStringTests() {
+        string s1 = "Příliš žluťoučký kůň úpěl ďábelské ódy.";
+
+        StringInputStream is(s1);
+        StreamReader sr(is);
+
+        assertEq("Příliš", sr.readString(6));
+        assertEq(" žluťoučký", sr.readString(10));
+        assertEq(" kůň úpěl ďábelské ódy.", sr.readString(-1));
+        assertThrows("END-OF-STREAM-ERROR", \sr.readu1());
+
+        s1 = convert_encoding(s1, "utf-16");
+        is = new StringInputStream(s1);
+        sr = new StreamReader(is, "utf-16");
+
+        assertEq(80, s1.size());
+        assertEq(40, s1.length());
+
+        assertEq("Příliš", sr.readString(6));
+        assertEq(" žluťoučký", sr.readString(10));
+        assertEq(" kůň úpěl ďábelské ódy.", sr.readString(-1));
+        assertThrows("END-OF-STREAM-ERROR", \sr.readu1());
+
+        is = new StringInputStream(s1);
+        sr = new StreamReader(is, "utf-16");
+        assertEq(s1, sr.readLine());
+        assertEq(NOTHING, sr.readLine());
     }
 }

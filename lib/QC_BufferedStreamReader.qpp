@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,13 @@
 #include "qore/intern/QoreObjectIntern.h"
 #include "qore/intern/QoreClassIntern.h"
 
+/** @defgroup BufferedStreamReader Constants
+*/
+//@{
+//! The default buffer size for the @ref Qore::BufferedStreamReader "BufferedStreamReader" class
+const DefaultStreamBufferSize = 4096;
+//@}
+
 //! This class defines a buffered stream reader for input streams.
 /** @since %Qore 0.8.13
 
@@ -53,33 +60,17 @@ qclass BufferedStreamReader [arg=BufferedStreamReader* sr; ns=Qore; vparent=Stre
 
 //! Creates the BufferedStreamReader for reading data from the given @ref InputStream.
 /** @param is the @ref InputStream for reading data
-    @param encoding character encoding of the data from the @ref InputStream; the encoding has to be ASCII-compatible, otherwise an exception will be thrown; if not present, the @ref default_encoding "default character encoding" is assumed
+    @param encoding the character encoding of the data from the @ref InputStream; if not present, the @ref default_encoding "default character encoding" is assumed
+    @param bufsize the size of the internal buffer in bytes; must be a positive integer
 
-    @throw UNSUPPORTED-ENCODING-ERROR ASCII-incompatible encoding has been passed
+    @throw STREAM-BUFFER-ERROR an invalid stream buffer size was specified; the buffer size must be a positive integer
  */
-BufferedStreamReader::constructor(Qore::InputStream[InputStream] is, *string encoding) {
-   SimpleRefHolder<BufferedStreamReader> reader(new BufferedStreamReader(xsink, is, encoding ? QEM.findCreate(encoding) : QCS_DEFAULT));
+BufferedStreamReader::constructor(Qore::InputStream[InputStream] is, *string encoding, int bufsize = DefaultStreamBufferSize) {
+   SimpleRefHolder<BufferedStreamReader> reader(new BufferedStreamReader(xsink, is, encoding ? QEM.findCreate(encoding) : QCS_DEFAULT, bufsize));
    if (*xsink)
       return;
    self->setPrivate(CID_BUFFEREDSTREAMREADER, reader.release());
    qore_object_private* o = qore_object_private::get(*self);
    const qore_class_private* cls = qore_class_private::get(*QC_BUFFEREDSTREAMREADER);
    o->setValueIntern(cls, "is", static_cast<QoreObject*>(obj_is->refSelf()), xsink);
-}
-
-//! Reads a text line from the input stream.
-/** @par Example:
-    @code{.py}
-string line = bsr.readLine("\n");
-    @endcode
-
-    @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"
-    @param trim if @ref True the returned lines will be trimmed of the eol bytes
-
-    @return a text line read from the stream or @ref nothing if there is no more data available in the stream
-
-    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
- */
-*string BufferedStreamReader::readLine(*string eol, bool trim = True) {
-   return sr->readLine(eol, trim, xsink);
 }

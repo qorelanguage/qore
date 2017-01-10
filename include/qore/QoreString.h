@@ -1091,6 +1091,11 @@ public:
          return str->giveBuffer();
       return strdup(str->getBuffer());
    }
+
+   //! remove any leading byte order marker (BOM) from UTF-16* strings
+   /** @since Qore 0.8.13
+    */
+   DLLEXPORT void removeBom();
 };
 
 #endif

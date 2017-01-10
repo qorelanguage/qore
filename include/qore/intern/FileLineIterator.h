@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -47,9 +47,9 @@ public:
    DLLLOCAL FileLineIterator(ExceptionSink* xsink, const QoreStringNode* name, const QoreEncoding* enc = QCS_DEFAULT, const QoreStringNode* n_eol = 0, bool n_trim = true) :
       src(0),
       fis(0),
+      eol(n_eol ? n_eol->stringRefSelf() : 0),
       encoding(enc),
       filename(name->stringRefSelf()),
-      eol(n_eol ? n_eol->stringRefSelf() : 0),
       trim(n_trim) {
       doReset(xsink);
    }
@@ -57,18 +57,14 @@ public:
    DLLLOCAL FileLineIterator(ExceptionSink* xsink, const FileLineIterator& old) :
       src(0),
       fis(0),
+      eol(old.eol ? old.eol->stringRefSelf() : 0),
       encoding(old.encoding),
       filename(old.filename->stringRefSelf()),
-      eol(old.eol ? old.eol->stringRefSelf() : 0),
       trim(old.trim) {
       doReset(xsink);
    }
 
    DLLLOCAL ~FileLineIterator() {
-      if (eol)
-         eol->deref();
-      if (filename)
-         filename->deref();
    }
 
    DLLLOCAL bool next(ExceptionSink* xsink) {
@@ -105,8 +101,8 @@ public:
       return src->getEncoding();
    }
 
-   DLLLOCAL QoreStringNode* getFileName() {
-      return filename;
+   DLLLOCAL const QoreStringNode* getFileName() {
+      return *filename;
    }
 
    DLLLOCAL QoreListNode* stat(ExceptionSink* xsink) {
@@ -130,19 +126,22 @@ public:
 
 private:
    DLLLOCAL void doReset(ExceptionSink* xsink) {
-      fis = new FileInputStream(filename, -1, xsink);
+      fis = new FileInputStream(*filename, -1, xsink);
       if (*xsink)
          return;
       fis->ref();
-      src = new InputStreamLineIterator(xsink, *fis, encoding, eol, trim);
-   }
+      if (!encoding->isAsciiCompat())
+         src = new InputStreamLineIterator(xsink, new EncodingConversionInputStream(*fis, encoding, QCS_UTF8, xsink), QCS_UTF8, *eol, trim);
+      else
+         src = new InputStreamLineIterator(xsink, *fis, encoding, *eol, trim);
+    }
 
 private:
    SimpleRefHolder<InputStreamLineIterator> src;
    SimpleRefHolder<FileInputStream> fis;
+   SimpleRefHolder<QoreStringNode> eol;
    const QoreEncoding* encoding;
-   QoreStringNode* filename;
-   QoreStringNode* eol;
+   SimpleRefHolder<QoreStringNode> filename;
    bool trim;
 };
 

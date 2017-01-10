@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -55,15 +55,19 @@ qclass InputStreamLineIterator [arg=InputStreamLineIterator* isli; ns=Qore; vpar
 //! Creates the InputStreamLineIterator for iterating over the given \c InputStream.
 /** @param is the \c InputStream to iterate over
     @param encoding character encoding of the data from input stream; if not ASCII-compatible, all data will be converted to UTF-8; if not present, the @ref default_encoding "default character encoding" is assumed
-    @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"
+    @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then if the character-encoding is ASCII-compatible, the end of line character(s) are detected automatically from \c "\n", \c "\r", or \c "\r\n"; if the stream uses a non-ASCII-compatible character encoding, then \c "\n" is assumed
     @param trim if @ref True the string return values for the lines iterated will be trimmed of the eol bytes
+    @param bufsize the size of the buffer for the internal @ref BufferedStreamReader in bytes; must be a positive integer
 
+    @throw STREAM-BUFFER-ERROR an invalid stream buffer size was specified; the buffer size must be a positive integer
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
+
+    @note this variant of the InputStreamLineIterator::constructor creates a @ref BufferedStreamReader to read the input data
  */
-InputStreamLineIterator::constructor(Qore::InputStream[InputStream] is, *string encoding, *string eol, bool trim = True) {
+InputStreamLineIterator::constructor(Qore::InputStream[InputStream] is, *string encoding, *string eol, bool trim = True, int bufsize = DefaultStreamBufferSize) {
    if (eol && eol->empty())
       eol = 0;
-   SimpleRefHolder<InputStreamLineIterator> li(new InputStreamLineIterator(xsink, is, encoding ? QEM.findCreate(encoding) : QCS_DEFAULT, eol, trim));
+   SimpleRefHolder<InputStreamLineIterator> li(new InputStreamLineIterator(xsink, is, encoding ? QEM.findCreate(encoding) : QCS_DEFAULT, eol, trim, bufsize));
    if (*xsink)
       return;
    self->setPrivate(CID_INPUTSTREAMLINEITERATOR, li.release());
@@ -74,7 +78,7 @@ InputStreamLineIterator::constructor(Qore::InputStream[InputStream] is, *string 
 
 //! Creates the InputStreamLineIterator for iterating data from the given \c StreamReader.
 /** @param sr the \c StreamReader used as a source of data to iterate over
-    @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"
+    @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then if the character-encoding is ASCII-compatible, the end of line character(s) are detected automatically from \c "\n", \c "\r", or \c "\r\n"; if the stream uses a non-ASCII-compatible character encoding, then \c "\n" is assumed
     @param trim if @ref True the string return values for the lines iterated will be trimmed of the eol bytes
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion

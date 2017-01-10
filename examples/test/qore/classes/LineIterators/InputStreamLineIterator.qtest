@@ -6,6 +6,7 @@
 %require-types
 %strict-args
 
+%requires ../../../../../qlib/Util.qm
 %requires ../../../../../qlib/QUnit.qm
 
 const Data = (
@@ -19,10 +20,16 @@ const ISLIBufferSize = 4096;
 %exec-class InputStreamLineIteratorTest
 
 class InputStreamLineIteratorTest inherits QUnit::Test {
+    public {
+        const InputString = "hello there 1, 2, 3\nline 2\nline 3\n";
+    }
+
     constructor() : QUnit::Test("InputStreamLineIterator test", "1.0") {
         addTestCase("Basic tests", \basicTests());
         addTestCase("Buffer edge test", \bufferEdgeTest());
         addTestCase("Encoding test", \encodingTest());
+        addTestCase("string test", \stringTest());
+        addTestCase("file test", \fileTest());
         set_return_value(main());
     }
 
@@ -293,19 +300,19 @@ class InputStreamLineIteratorTest inherits QUnit::Test {
         assertFalse(a.next());
 
         bis = new BinaryInputStream(binary(sUTF16));
-        a = new InputStreamLineIterator(bis, "UTF16");
+        a = new InputStreamLineIterator(bis, "UTF16", convert_encoding("\n", "UTF16"));
         assertTrue(a.next());
         assertTrue(a.valid());
         assertEq(s, a.getLine());
-        assertEq("UTF-8", a.getLine().encoding());
+        assertEq("UTF-16", a.getLine().encoding().substr(0, 6));
         assertFalse(a.next());
 
         bis = new BinaryInputStream(binary(sUTF16LE));
-        a = new InputStreamLineIterator(bis, "UTF16LE");
+        a = new InputStreamLineIterator(bis, "UTF16LE", convert_encoding("\n", "UTF16LE"));
         assertTrue(a.next());
         assertTrue(a.valid());
         assertEq(s, a.getLine());
-        assertEq("UTF-8", a.getLine().encoding());
+        assertEq("UTF-16LE", a.getLine().encoding());
         assertFalse(a.next());
 
         bis = new BinaryInputStream(binary(sISO88592));
@@ -315,5 +322,48 @@ class InputStreamLineIteratorTest inherits QUnit::Test {
         assertEq(s, a.getLine());
         assertEq("ISO-8859-2", a.getLine().encoding());
         assertFalse(a.next());
+    }
+
+    stringTest() {
+        StringInputStream is(InputString);
+        doTests(is, "string");
+
+        assertEq(NOTHING, sub () { InputStreamLineIterator i(is, NOTHING, NOTHING, True, 1);}());
+        assertEq(NOTHING, sub () { InputStreamLineIterator i(is, NOTHING, "test", True, 3);}());
+
+        is = new StringInputStream(convert_encoding(InputString, "utf16"));
+        doTests(is, "utf-16 string", "utf16");
+    }
+
+    fileTest() {
+        string fn = tmp_location() + DirSep + get_random_string();
+        {
+            File f();
+            f.open2(fn, O_CREAT|O_WRONLY|O_TRUNC);
+            f.write(InputString);
+        }
+        on_exit unlink(fn);
+
+        {
+            FileInputStream is(fn);
+            assertEq("hello ", binary_to_string(is.read(6)));
+            StreamReader sr(is);
+            assertEq("there ", sr.readString(6));
+            assertEq("1, 2, 3", binary_to_string(is.read(7)));
+        }
+
+        FileInputStream is(fn);
+        doTests(is, "file");
+    }
+
+    private doTests(InputStream is, string label, *string enc) {
+        InputStreamLineIterator i(is, enc, "\n", True, 1);
+        assertEq(True, i.next(), label + " next");
+        assertEq("hello there 1, 2, 3", i.getValue(), label + " first");
+        StreamReader sr(is, enc);
+        assertEq("line 2\n", sr.readLine("\n", False));
+        #assertEq("line 2\n", binary_to_string(is.read(7 * x), enc), label + " second");
+        i.next();
+        assertEq("line 3", i.getValue(), label + " third");
     }
 }
