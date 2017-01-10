@@ -77,21 +77,3 @@ BufferedStreamReader::constructor(Qore::InputStream[InputStream] is, *string enc
    const qore_class_private* cls = qore_class_private::get(*QC_BUFFEREDSTREAMREADER);
    o->setValueIntern(cls, "is", static_cast<QoreObject*>(obj_is->refSelf()), xsink);
 }
-
-//! Reads a text line from the input stream.
-/** @par Example:
-    @code{.py}
-string line = bsr.readLine("\n");
-    @endcode
-
-    @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"
-    @param trim if @ref True the returned lines will be trimmed of the eol bytes
-
-    @return a text line read from the stream or @ref nothing if there is no more data available in the stream
-
-    @throw EOL-BUFFER-ERROR this exception is thrown if the \a eol string's byte length is greater than or equal to the buffer length or if no \a eol string is thrown and the buffer size is less than 2 bytes
-    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
- */
-*string BufferedStreamReader::readLine(*string eol, bool trim = True) {
-   return sr->readLine(eol, trim, xsink);
-}

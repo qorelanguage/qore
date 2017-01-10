@@ -83,6 +83,12 @@ string str = sr.read(len);
     @param limit maximum amount of characters of string data to read; if not given or equal to -1, all the data from the @ref InputStream will be read; if equal to 0, @ref nothing will be read
 
     @return a @ref string value or @ref nothing if there is no more data available in the stream
+
+    @throw STREAM-ENCODING-ERROR this exception is thrown if invalid character data is detected on the stream; this exception is not thrown when \a limit is negative, in such cases the input data is not verified
+
+    @note
+    - a short read (a string returned with fewer characters than requested) indicates that there is no more data left in the stream
+    - other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 *string StreamReader::readString(int limit = -1) {
    return sr->readString(limit, xsink);
@@ -100,6 +106,8 @@ string line = sr.readLine("\n");
     @return a text line read from the stream or @ref nothing if there is no more data available in the stream
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 *string StreamReader::readLine(*string eol, bool trim = True) {
    return sr->readLine(eol, trim, xsink);
@@ -114,6 +122,10 @@ string line = sr.readLine("\n");
     @param limit maximum amount of binary data to read; if not given or equal to -1, all the data from the @ref InputStream will be read; if equal to 0, @ref nothing will be read
 
     @return a @ref binary value or @ref nothing if there is no more data available in the stream
+
+    @note
+    - a short read (a binary object returned with fewer bytes than requested) indicates that there is no more data left in the stream
+    - other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 *binary StreamReader::readBinary(int limit = -1) {
    return sr->readBinary(limit, xsink);
@@ -128,6 +140,8 @@ int i = sr.readi1();
     @return a 1-byte signed integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readi1() {
    return sr->readi1(xsink);
@@ -142,6 +156,8 @@ int i = sr.readi2();
     @return a 2-byte signed integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readi2() {
    return sr->readi2(xsink);
@@ -156,6 +172,8 @@ int i = sr.readi4();
     @return a 4-byte signed integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readi4() {
    return sr->readi4(xsink);
@@ -170,6 +188,8 @@ int i = sr.readi8();
     @return a 8-byte signed integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readi8() {
    return sr->readi8(xsink);
@@ -184,6 +204,8 @@ int i = sr.readi2LSB();
     @return a 2-byte signed integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readi2LSB() {
    return sr->readi2LSB(xsink);
@@ -198,6 +220,8 @@ int i = sr.readi4LSB();
     @return a 4-byte signed integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readi4LSB() {
    return sr->readi4LSB(xsink);
@@ -212,6 +236,8 @@ int i = sr.readi8LSB();
     @return a 8-byte signed integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readi8LSB() {
    return sr->readi8LSB(xsink);
@@ -226,6 +252,8 @@ int i = sr.readu1();
     @return a 1-byte unsigned integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readu1() {
    return sr->readu1(xsink);
@@ -240,6 +268,8 @@ int i = sr.readu2();
     @return a 2-byte unsigned integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readu2() {
    return sr->readu2(xsink);
@@ -254,6 +284,8 @@ int i = sr.readu4();
     @return a 4-byte unsigned integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readu4() {
    return sr->readu4(xsink);
@@ -268,6 +300,8 @@ int i = sr.readu2LSB();
     @return a 2-byte unsigned integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readu2LSB() {
    return sr->readu2LSB(xsink);
@@ -282,6 +316,8 @@ int i = sr.readu4LSB();
     @return a 4-byte unsigned integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readu4LSB() {
    return sr->readu4LSB(xsink);

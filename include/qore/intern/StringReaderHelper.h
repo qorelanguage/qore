@@ -63,6 +63,8 @@ DLLLOCAL QoreStringNode* q_read_string_all(ExceptionSink* xsink, const QoreEncod
 
       size += rc;
    }
+   if (!size)
+      return 0;
    str->terminate(size);
    return str.release();;
 }
