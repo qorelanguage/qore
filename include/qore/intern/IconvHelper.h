@@ -2,7 +2,7 @@
 //
 //  Qore Programming Language
 //
-//  Copyright (C) 2016 Qore Technologies, sro
+//  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -66,15 +66,15 @@ public:
       return iconv_adapter(::iconv, c, inbuf, inavail, outbuf, outavail);
    }
 
-   void reportIllegalSequence(ExceptionSink *xsink) {
+   void reportIllegalSequence(size_t offset, ExceptionSink *xsink) {
       xsink->raiseException("ENCODING-CONVERSION-ERROR",
-            "illegal character sequence found in input type \"%s\" (while converting to \"%s\")",
-            from->getCode(), to->getCode());
+                            "illegal character sequence at byte offset " QLLD " found in input type \"%s\" (while converting to \"%s\")",
+                            offset, from->getCode(), to->getCode());
    }
 
    void reportUnknownError(ExceptionSink *xsink) {
       xsink->raiseErrnoException("ENCODING-CONVERSION-ERROR", errno, "unknown error converting from \"%s\" to \"%s\"",
-            from->getCode(), to->getCode());
+                                 from->getCode(), to->getCode());
    }
 
 private:

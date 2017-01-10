@@ -300,19 +300,19 @@ class InputStreamLineIteratorTest inherits QUnit::Test {
         assertFalse(a.next());
 
         bis = new BinaryInputStream(binary(sUTF16));
-        a = new InputStreamLineIterator(bis, "UTF16");
+        a = new InputStreamLineIterator(bis, "UTF16", convert_encoding("\n", "UTF16"));
         assertTrue(a.next());
         assertTrue(a.valid());
         assertEq(s, a.getLine());
-        assertEq("UTF-8", a.getLine().encoding());
+        assertEq("UTF-16", a.getLine().encoding().substr(0, 6));
         assertFalse(a.next());
 
         bis = new BinaryInputStream(binary(sUTF16LE));
-        a = new InputStreamLineIterator(bis, "UTF16LE");
+        a = new InputStreamLineIterator(bis, "UTF16LE", convert_encoding("\n", "UTF16LE"));
         assertTrue(a.next());
         assertTrue(a.valid());
         assertEq(s, a.getLine());
-        assertEq("UTF-8", a.getLine().encoding());
+        assertEq("UTF-16LE", a.getLine().encoding());
         assertFalse(a.next());
 
         bis = new BinaryInputStream(binary(sISO88592));
@@ -330,6 +330,9 @@ class InputStreamLineIteratorTest inherits QUnit::Test {
 
         assertEq(NOTHING, sub () { InputStreamLineIterator i(is, NOTHING, NOTHING, True, 1);}());
         assertEq(NOTHING, sub () { InputStreamLineIterator i(is, NOTHING, "test", True, 3);}());
+
+        is = new StringInputStream(convert_encoding(InputString, "utf16"));
+        doTests(is, "utf-16 string", "utf16");
     }
 
     fileTest() {
@@ -353,12 +356,13 @@ class InputStreamLineIteratorTest inherits QUnit::Test {
         doTests(is, "file");
     }
 
-    private doTests(InputStream is, string label) {
-        InputStreamLineIterator i(is, NOTHING, "\n", True, 1);
+    private doTests(InputStream is, string label, *string enc) {
+        InputStreamLineIterator i(is, enc, "\n", True, 1);
         assertEq(True, i.next(), label + " next");
         assertEq("hello there 1, 2, 3", i.getValue(), label + " first");
-        StreamReader sr(is);
-        assertEq("line 2\n", binary_to_string(is.read(7)), label + " second");
+        StreamReader sr(is, enc);
+        assertEq("line 2\n", sr.readLine("\n", False));
+        #assertEq("line 2\n", binary_to_string(is.read(7 * x), enc), label + " second");
         i.next();
         assertEq("line 3", i.getValue(), label + " third");
     }

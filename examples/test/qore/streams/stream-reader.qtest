@@ -359,10 +359,6 @@ class StreamReaderTest inherits QUnit::Test {
         assertThrows("END-OF-STREAM-ERROR", sub () { sr.readu4LSB(); });
 
         assertThrows("ENCODING-CONVERSION-ERROR", sub () { sr = new StreamReader(is, "abcd"); sr.readLine("\n"); });
-
-        assertThrows("UNSUPPORTED-ENCODING-ERROR", sub () { sr = new StreamReader(is, "UTF16"); });
-        assertThrows("UNSUPPORTED-ENCODING-ERROR", sub () { sr = new StreamReader(is, "UTF16LE"); });
-        assertThrows("UNSUPPORTED-ENCODING-ERROR", sub () { sr = new StreamReader(is, "UTF16BE"); });
     }
 
     readStringTests() {
@@ -375,5 +371,22 @@ class StreamReaderTest inherits QUnit::Test {
         assertEq(" žluťoučký", sr.readString(10));
         assertEq(" kůň úpěl ďábelské ódy.", sr.readString(-1));
         assertThrows("END-OF-STREAM-ERROR", \sr.readu1());
+
+        s1 = convert_encoding(s1, "utf-16");
+        is = new StringInputStream(s1);
+        sr = new StreamReader(is, "utf-16");
+
+        assertEq(80, s1.size());
+        assertEq(40, s1.length());
+
+        assertEq("Příliš", sr.readString(6));
+        assertEq(" žluťoučký", sr.readString(10));
+        assertEq(" kůň úpěl ďábelské ódy.", sr.readString(-1));
+        assertThrows("END-OF-STREAM-ERROR", \sr.readu1());
+
+        is = new StringInputStream(s1);
+        sr = new StreamReader(is, "utf-16");
+        assertEq(s1, sr.readLine());
+        assertEq(NOTHING, sr.readLine());
     }
 }

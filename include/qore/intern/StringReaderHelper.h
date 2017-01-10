@@ -33,6 +33,7 @@
 #define _QORE_STRINGREADERHELPER_H
 
 #include <functional>
+#include <type_traits>
 
 using namespace std::placeholders;
 
@@ -40,6 +41,39 @@ using namespace std::placeholders;
 #define DefaultStreamReaderHelperBufferSize 4096
 
 typedef std::function<qore_offset_t(void*, size_t, ExceptionSink*)> f_read_t;
+
+template <class T>
+DLLLOCAL T* q_remove_bom_tmpl(T* str, const QoreEncoding*& enc) {
+   static_assert(std::is_base_of<QoreString, T>::value, "T must inherit QoreString");
+   assert(str->getEncoding() == enc);
+   if (str->size() > 1 && !enc->isAsciiCompat()) {
+      if ((enc == QCS_UTF16 || enc == QCS_UTF16BE) && str->c_str()[0] == (char)0xfe && str->c_str()[1] == (char)0xff) {
+         str->replace(0, 2, (const char*)nullptr);
+         if (enc == QCS_UTF16) {
+            str->setEncoding(QCS_UTF16BE);
+            enc = QCS_UTF16BE;
+         }
+      }
+      else if ((enc == QCS_UTF16 || enc == QCS_UTF16LE) && str->c_str()[1] == (char)0xfe && str->c_str()[0] == (char)0xff) {
+         str->replace(0, 2, (const char*)nullptr);
+         if (enc == QCS_UTF16) {
+            str->setEncoding(QCS_UTF16LE);
+            enc = QCS_UTF16LE;
+         }
+      }
+   }
+   return str;
+}
+
+//! remove any BOM in UTF-16 strings, adjust the encoding if required
+DLLLOCAL QoreString* q_remove_bom(QoreString* str, const QoreEncoding*& enc) {
+   return q_remove_bom_tmpl<QoreString>(str, enc);
+}
+
+//! remove any BOM in UTF-16 strings, adjust the encoding if required
+DLLLOCAL QoreStringNode* q_remove_bom(QoreStringNode* str, const QoreEncoding*& enc) {
+   return q_remove_bom_tmpl<QoreStringNode>(str, enc);
+}
 
 //! helper function for reading all possible data and returning it as a string
 /** @param xsink for Qore-language exceptions
@@ -93,6 +127,13 @@ DLLLOCAL QoreStringNode* q_read_string(ExceptionSink* xsink, int64 size, const Q
    // total number of characters read
    size_t char_len = 0;
 
+   // minimum character width
+   unsigned mw = enc->getMinCharWidth();
+   // get minimum byte length
+   size *= mw;
+
+   bool check_bom = false;
+
    SimpleRefHolder<QoreStringNode> str(new QoreStringNode(enc));
    while (char_len < orig_size) {
       // get the minimum number of bytes to read
@@ -117,6 +158,10 @@ DLLLOCAL QoreStringNode* q_read_string(ExceptionSink* xsink, int64 size, const Q
             break;
          continue;
       }
+      else if (!check_bom && str->size() > 1) {
+         check_bom = true;
+         q_remove_bom(*str, enc);
+      }
 
       // scan data read and find the last valid character position
       const char* e = str->c_str() + str->size();
@@ -124,7 +169,7 @@ DLLLOCAL QoreStringNode* q_read_string(ExceptionSink* xsink, int64 size, const Q
          const char* p = str->c_str() + last_char;
          int cc = enc->getCharLen(p, e - p);
          if (!cc) {
-            xsink->raiseException("STREAM-ENCODING-ERROR", "invalid multi-byte character received in byte offset " QLLD " according to the file's encoding: '%s'", last_char, enc->getCode());
+            xsink->raiseException("STREAM-ENCODING-ERROR", "invalid multi-byte character received in byte offset " QLLD " according to the input encoding: '%s'", last_char, enc->getCode());
 
             return 0;
          }
@@ -151,8 +196,9 @@ DLLLOCAL QoreStringNode* q_read_string(ExceptionSink* xsink, int64 size, const Q
          break;
       }
 
-      // now we add 1 byte to the remaining size to get for every character we have not yet read
-      size = str->size() + (orig_size - char_len);
+      // now we add the minimum character byte length to the remaining size
+      // for every character we have not yet read
+      size = str->size() + ((orig_size - char_len) * mw);
    }
 
    return str->empty() ? 0 : str.release();

@@ -53,9 +53,7 @@ qclass StreamReader [arg=StreamReader* sr; ns=Qore; internal_members=InputStream
 
 //! Creates the StreamReader for reading data from the given @ref InputStream.
 /** @param is the @ref InputStream for reading data
-    @param encoding character encoding of the data from the @ref InputStream; the encoding has to be ASCII-compatible, otherwise an exception will be thrown; if not present, the @ref default_encoding "default character encoding" is assumed
-
-    @throw UNSUPPORTED-ENCODING-ERROR ASCII-incompatible encoding has been passed
+    @param encoding character encoding of the data from the @ref InputStream; if not present, the @ref default_encoding "default character encoding" is assumed
  */
 StreamReader::constructor(Qore::InputStream[InputStream] is, *string encoding) {
    SimpleRefHolder<StreamReader> reader(new StreamReader(xsink, is, encoding ? QEM.findCreate(encoding) : QCS_DEFAULT));
@@ -100,7 +98,7 @@ string str = sr.read(len);
 string line = sr.readLine("\n");
     @endcode
 
-    @param eol the optional end of line character(s) to use to detect lines in the data - can be maximally 2 bytes long; if it is longer, the rest is ignored; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"
+    @param eol the optional end of line character(s) to use to detect lines in the data - can be maximally 2 bytes long; if it is longer, the rest is ignored; if this string is not passed, then, if the character-encoding is ASCII-compatible, the end of line character(s) are detected automatically from \c "\n", \c "\r", or \c "\r\n"; if the stream uses a non-ASCII-compatible character encoding, then \c "\n" is assumed
     @param trim if @ref True the returned lines will be trimmed of the eol bytes
 
     @return a text line read from the stream or @ref nothing if there is no more data available in the stream

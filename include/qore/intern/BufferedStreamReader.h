@@ -53,10 +53,6 @@ public:
          xsink->raiseException("STREAM-BUFFER-ERROR", "the buffer size must be > 0 (value provided: " QLLD ")", bufsize);
          return;
       }
-      if (!enc->isAsciiCompat()) {
-         xsink->raiseException("UNSUPPORTED-ENCODING-ERROR", "BufferedStreamReader only supports ASCII-compatible encodings (encoding provided: '%s')", enc->getCode());
-         return;
-      }
 
       // +1 is added to the real capacity for terminating null-character.
       buf = new char[bufCapacity + 1];

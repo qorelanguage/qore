@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -114,7 +114,7 @@ double QoreStringNode::getAsFloatImpl() const {
 
 QoreString *QoreStringNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
-   TempString str(getEncoding());
+   TempString str;
    str->concat('"');
    str->concatEscape(this, '\"', '\\', xsink);
    if (*xsink)
@@ -124,6 +124,7 @@ QoreString *QoreStringNode::getAsString(bool &del, int foff, ExceptionSink *xsin
 }
 
 int QoreStringNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
+   assert(str.getEncoding()->isAsciiCompat());
    str.concat('"');
    str.concatEscape(this, '\"', '\\', xsink);
    if (*xsink)
@@ -352,22 +353,6 @@ QoreNodeAsStringHelper::QoreNodeAsStringHelper(const AbstractQoreNode *n, int fo
 
 QoreNodeAsStringHelper::QoreNodeAsStringHelper(const QoreValue n, int format_offset, ExceptionSink *xsink) {
    str = n.getAsString(del, format_offset, xsink);
-   /*
-   if (n.isNothing()) {
-      str = format_offset == FMT_YAML_SHORT ? &YamlNullString : &NothingTypeString;
-      del = false;
-      return;
-   }
-   switch (n.type) {
-      case QV_Int: str = new QoreStringMaker(QLLD, n.v.i); del = true; break;
-      case QV_Bool: str = n.v.b ? &TrueString : &FalseString; del = false; break;
-      case QV_Float: str = new QoreStringMaker("%.9g", n.v.f); del = true; break;
-      case QV_Node: str = n.getAsString(del, format_offset, xsink); break;
-      default:
-	 assert(false);
-	 // no break;
-   }
-   */
 }
 
 QoreNodeAsStringHelper::~QoreNodeAsStringHelper() {

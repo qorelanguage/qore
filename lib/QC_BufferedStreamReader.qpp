@@ -62,11 +62,10 @@ qclass BufferedStreamReader [arg=BufferedStreamReader* sr; ns=Qore; vparent=Stre
 
 //! Creates the BufferedStreamReader for reading data from the given @ref InputStream.
 /** @param is the @ref InputStream for reading data
-    @param encoding the character encoding of the data from the @ref InputStream; the encoding has to be ASCII-compatible, otherwise an exception will be thrown; if not present, the @ref default_encoding "default character encoding" is assumed
+    @param encoding the character encoding of the data from the @ref InputStream; if not present, the @ref default_encoding "default character encoding" is assumed
     @param bufsize the size of the internal buffer in bytes; must be a positive integer
 
     @throw STREAM-BUFFER-ERROR an invalid stream buffer size was specified; the buffer size must be a positive integer
-    @throw UNSUPPORTED-ENCODING-ERROR an ASCII-incompatible encoding was specified in the \a encoding argument
  */
 BufferedStreamReader::constructor(Qore::InputStream[InputStream] is, *string encoding, int bufsize = DefaultStreamBufferSize) {
    SimpleRefHolder<BufferedStreamReader> reader(new BufferedStreamReader(xsink, is, encoding ? QEM.findCreate(encoding) : QCS_DEFAULT, bufsize));

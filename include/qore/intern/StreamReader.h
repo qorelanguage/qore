@@ -46,12 +46,7 @@ class StreamReader : public AbstractPrivateData {
 public:
    DLLLOCAL StreamReader(ExceptionSink* xsink, InputStream* is, const QoreEncoding* encoding = QCS_DEFAULT) :
       in(is, xsink),
-      enc(encoding)
-   {
-      if (!enc->isAsciiCompat()) {
-         xsink->raiseException("UNSUPPORTED-ENCODING-ERROR", "StreamReader does not support ASCII-incompatible encodings");
-         return;
-      }
+      enc(encoding) {
    }
 
    virtual DLLLOCAL ~StreamReader() {
@@ -59,6 +54,10 @@ public:
 
    DLLLOCAL const QoreEncoding* getEncoding() const {
       return enc;
+   }
+
+   DLLLOCAL void setEncoding(const QoreEncoding* n_enc) {
+      enc = n_enc;
    }
 
    //! Read binary data from the stream.
@@ -108,20 +107,26 @@ public:
    }
 
    //! Read one line.
-   /** @param eol end-of-line symbol, only '\n', '\r' and '\r\n' are supported
+   /** @param eol end-of-line symbol, if missing and the character encoding is ASCII-compatible, then '\n', '\r' and '\r\n' are supported), otherwise if missing, and the character encoding is not ASCII-compatible, then '\n' is assumed
        @param trim whether to trim the EOL symbols
        @param xsink exception sink
 
        @return Qore string read from the stream
     */
    DLLLOCAL QoreStringNode* readLine(const QoreStringNode* eol, bool trim, ExceptionSink* xsink) {
+      if (!eol && !enc->isAsciiCompat()) {
+         QoreString nl("\n");
+         return readLineEol(&nl, trim, xsink);
+      }
+
       return eol ? readLineEol(eol, trim, xsink) : readLine(trim, xsink);
    }
 
-   DLLLOCAL QoreStringNode* readLineEol(const QoreStringNode* eol, bool trim, ExceptionSink* xsink) {
+   DLLLOCAL QoreStringNode* readLineEol(const QoreString* eol, bool trim, ExceptionSink* xsink) {
       TempEncodingHelper eolstr(eol, enc, xsink);
       if (*xsink)
          return 0;
+      eolstr.removeBom();
 
       SimpleRefHolder<QoreStringNode> str(new QoreStringNode(enc));
 
@@ -130,10 +135,11 @@ public:
       while (true) {
          char c;
          int64 rc = readData(xsink, &c, 1, false);
+         //printd(5, "StreamReader::readLineEol() eolpos: %d/%d rc: %d c: %d str: '%s' (%s)\n", eolpos, eolstr->size(), rc, c, str->c_str(), enc->getCode());
          if (*xsink)
             return 0;
          if (!rc)
-            return str->empty() ? 0 : str.release();
+            return str->empty() ? 0 : q_remove_bom(str.release(), enc);
 
          // add the char to the string
          str->concat(c);
@@ -143,14 +149,16 @@ public:
             if (eolpos == eolstr->size()) {
                if (trim)
                   str->terminate(str->size() - eolpos);
-               return str.release();
+               return q_remove_bom(str.release(), enc);
             }
          }
          else if (eolpos) {
             // check all positions to see if the string matches
             bool found = false;
             for (size_t i = eolpos; i; --i) {
-               if (!strncmp(eolstr->c_str(), str->c_str() + str->size() - i, i)) {
+               // we have to use memcmp here because we could be dealing with character
+               // encodings that include nulls in the string (ex: UTF-16*)
+               if (!memcmp(eolstr->c_str(), str->c_str() + str->size() - i, i)) {
                   found = true;
                   if (eolpos != i)
                      eolpos = i;
