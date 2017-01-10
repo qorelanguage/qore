@@ -33,7 +33,8 @@
 #include <qore/Qore.h>
 #include "qore/intern/qore_string_private.h"
 #include "qore/intern/IconvHelper.h"
-#include <qore/minitest.hpp>
+#include "qore/intern/StringReaderHelper.h"
+#include "qore/minitest.hpp"
 
 #include <errno.h>
 #include <string.h>
