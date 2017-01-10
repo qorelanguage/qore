@@ -139,7 +139,7 @@ public:
          if (*xsink)
             return 0;
          if (!rc)
-            return str->empty() ? 0 : q_remove_bom(str.release(), enc);
+            return str->empty() ? 0 : q_remove_bom_utf16(str.release(), enc);
 
          // add the char to the string
          str->concat(c);
@@ -149,7 +149,7 @@ public:
             if (eolpos == eolstr->size()) {
                if (trim)
                   str->terminate(str->size() - eolpos);
-               return q_remove_bom(str.release(), enc);
+               return q_remove_bom_utf16(str.release(), enc);
             }
          }
          else if (eolpos) {

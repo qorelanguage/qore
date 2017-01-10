@@ -43,7 +43,7 @@ using namespace std::placeholders;
 typedef std::function<qore_offset_t(void*, size_t, ExceptionSink*)> f_read_t;
 
 template <class T>
-DLLLOCAL T* q_remove_bom_tmpl(T* str, const QoreEncoding*& enc) {
+DLLLOCAL T* q_remove_bom_utf16_tmpl(T* str, const QoreEncoding*& enc) {
    static_assert(std::is_base_of<QoreString, T>::value, "T must inherit QoreString");
    assert(str->getEncoding() == enc);
    if (str->size() > 1 && !enc->isAsciiCompat()) {
@@ -66,13 +66,13 @@ DLLLOCAL T* q_remove_bom_tmpl(T* str, const QoreEncoding*& enc) {
 }
 
 //! remove any BOM in UTF-16 strings, adjust the encoding if required
-DLLLOCAL QoreString* q_remove_bom(QoreString* str, const QoreEncoding*& enc) {
-   return q_remove_bom_tmpl<QoreString>(str, enc);
+DLLLOCAL QoreString* q_remove_bom_utf16(QoreString* str, const QoreEncoding*& enc) {
+   return q_remove_bom_utf16_tmpl<QoreString>(str, enc);
 }
 
 //! remove any BOM in UTF-16 strings, adjust the encoding if required
-DLLLOCAL QoreStringNode* q_remove_bom(QoreStringNode* str, const QoreEncoding*& enc) {
-   return q_remove_bom_tmpl<QoreStringNode>(str, enc);
+DLLLOCAL QoreStringNode* q_remove_bom_utf16(QoreStringNode* str, const QoreEncoding*& enc) {
+   return q_remove_bom_utf16_tmpl<QoreStringNode>(str, enc);
 }
 
 //! helper function for reading all possible data and returning it as a string
@@ -100,7 +100,7 @@ DLLLOCAL QoreStringNode* q_read_string_all(ExceptionSink* xsink, const QoreEncod
    if (!size)
       return 0;
    str->terminate(size);
-   return str.release();;
+   return str.release();
 }
 
 //! helper function for reading valid strings with character semantics
@@ -160,7 +160,7 @@ DLLLOCAL QoreStringNode* q_read_string(ExceptionSink* xsink, int64 size, const Q
       }
       else if (!check_bom && str->size() > 1) {
          check_bom = true;
-         q_remove_bom(*str, enc);
+         q_remove_bom_utf16(*str, enc);
       }
 
       // scan data read and find the last valid character position

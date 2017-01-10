@@ -149,7 +149,7 @@ private:
          SimpleRefHolder<QoreStringNode> neol(n_eol->convertEncoding(enc, xsink));
          if (*xsink)
             return -1;
-         eol = q_remove_bom(neol.release(), enc);
+         eol = q_remove_bom_utf16(neol.release(), enc);
       }
       else {
          eol = n_eol->stringRefSelf();

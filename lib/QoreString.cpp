@@ -2881,5 +2881,5 @@ void TempEncodingHelper::removeBom() {
       str = new QoreString(*str);
       temp = true;
    }
-   q_remove_bom(str, qore_string_private::get(*str)->charset);
+   q_remove_bom_utf16(str, qore_string_private::get(*str)->charset);
 }
