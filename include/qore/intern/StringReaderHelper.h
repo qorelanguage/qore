@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  StrignReaderHelper.h
+  StringReaderHelper.h
 
   Qore Programming Language
 
