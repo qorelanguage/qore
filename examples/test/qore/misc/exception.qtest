@@ -23,6 +23,7 @@ class ExceptionTest inherits QUnit::Test {
     constructor() : QUnit::Test("Exception test", "1.0") {
         addTestCase("Test simple try/catch block", \testSimpleTryCatch());
         addTestCase("Test rethrow", \testRethrow());
+        addTestCase("misc tests", \miscTests());
         #addTestCase("Complex try/catch hierarchy", \testComplexHierarchy());
         set_return_value(main());
     }
@@ -69,6 +70,11 @@ class ExceptionTest inherits QUnit::Test {
         assertEq("User", type);
     }
 
+    miscTests() {
+        Program p(PO_NEW_STYLE);
+        assertThrows("PARSE-EXCEPTION", \p.parse(), ("try {} catch (Exception e) {}", ""));
+    }
+
     /*testComplexHierarchy() {
         try {
             try {
@@ -88,7 +94,7 @@ class ExceptionTest inherits QUnit::Test {
                             printf("QORE %s Exception in line %d of file %s: %s: %s\n", 
                                 ex1.type, ex1.line, ex1.file, ex1.err, ex1.desc);
                             throw snope.blah();
-                        }		
+                        }               
                         throw snope.sdfds();
                     }
                     catch (ex2) {
