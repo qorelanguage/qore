@@ -42,29 +42,6 @@ using namespace std::placeholders;
 
 typedef std::function<qore_offset_t(void*, size_t, ExceptionSink*)> f_read_t;
 
-template <class T>
-DLLLOCAL static T* q_remove_bom_utf16_tmpl(T* str, const QoreEncoding*& enc) {
-   static_assert(std::is_base_of<QoreString, T>::value, "T must inherit QoreString");
-   assert(str->getEncoding() == enc);
-   if (str->size() > 1 && !enc->isAsciiCompat()) {
-      if ((enc == QCS_UTF16 || enc == QCS_UTF16BE) && str->c_str()[0] == (char)0xfe && str->c_str()[1] == (char)0xff) {
-         str->replace(0, 2, (const char*)nullptr);
-         if (enc == QCS_UTF16) {
-            str->setEncoding(QCS_UTF16BE);
-            enc = QCS_UTF16BE;
-         }
-      }
-      else if ((enc == QCS_UTF16 || enc == QCS_UTF16LE) && str->c_str()[1] == (char)0xfe && str->c_str()[0] == (char)0xff) {
-         str->replace(0, 2, (const char*)nullptr);
-         if (enc == QCS_UTF16) {
-            str->setEncoding(QCS_UTF16LE);
-            enc = QCS_UTF16LE;
-         }
-      }
-   }
-   return str;
-}
-
 //! remove any BOM in UTF-16 strings, adjust the encoding if required
 DLLLOCAL QoreString* q_remove_bom_utf16(QoreString* str, const QoreEncoding*& enc);
 
