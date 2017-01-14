@@ -1236,7 +1236,7 @@ AbstractQoreNode* qore_parse_get_define_value(const char* str, QoreString& arg, 
 
    p = arg.getBuffer();
    if (flt)
-      return new QoreFloatNode(atof(p));
+      return new QoreFloatNode(q_strtod(p));
    return new QoreBigIntNode(strtoll(p, 0, 10));
 }
 

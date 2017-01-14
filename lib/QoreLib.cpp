@@ -39,6 +39,9 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/StringReaderHelper.h"
 
+#include <sstream>
+#include <locale>
+
 #include <string.h>
 #ifdef HAVE_PWD_H
 #include <pwd.h>
@@ -613,6 +616,11 @@ static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, in
 	    *f = '\0';
 	    double val = qv.getAsFloat();
 	    tbuf.sprintf(fmt, val);
+            // issue 1556: external module that call setlocale() can change
+            // the decimal point character used here from '.' to ','
+            char* p = strchr(tbuf.c_str(), ',');
+            if (p)
+               *p = '.';
 	    //printd(5, "fmt: '%s' val: %f\n", fmt, val);
 	 }
 	 if (type && (width != -1))
@@ -2079,6 +2087,17 @@ void* q_memmem(const void* big, size_t big_len, const void* little, size_t littl
    }
    return 0;
 #endif
+}
+
+double q_strtod(const char* str) {
+   return strtod(str, 0);
+   /*
+   std::istringstream istr(str);
+   istr.imbue(std::locale::classic());
+   double rv;
+   istr >> rv;
+   return rv;
+   */
 }
 
 #ifdef _Q_WINDOWS
