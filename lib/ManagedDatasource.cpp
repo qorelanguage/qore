@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ManagedDatasource.h>
+#include "qore/intern/ManagedDatasource.h"
 
 #include <stdlib.h>
 #include <string.h>

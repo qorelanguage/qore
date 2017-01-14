@@ -1,0 +1,53 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+%allow-injection
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class ConnectionProviderTest
+
+public class ConnectionProviderTest inherits QUnit::Test {
+    constructor() : Test("ConnectionProvider Test", "1.0") {
+        addTestCase("urlp test", \urlProviderTest());
+        addTestCase("urlp neg test", \urlProviderNegativeTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    urlProviderTest() {
+        Program mp(PO_NO_CHILD_PO_RESTRICTIONS|PO_NEW_STYLE);
+        mp.parse("sub doenv() { ENV.QORE_CONNECTION_PROVIDERS = '" + get_script_dir() + "./TestConnectionProvider.qm'; }", "");
+        mp.callFunction("doenv");
+        mp.loadApplyToUserModule(get_script_dir() + "../../../../qlib/ConnectionProvider.qm", True);
+
+        Program p();
+        p.loadModule("ConnectionProvider");
+        p.parse("string sub test(string str) { return get_connection_url(str); }", "");
+        assertEq("test://x", p.callFunction("test", "X"));
+        assertThrows("CONNECTION-ERROR", \p.callFunction(), ("test", "Y"));
+
+        p.parse("AbstractConnection sub get_obj(string str) { return get_connection(str); }", "");
+        p.parse("hash sub get_conn() { return get_connections(); }", "");
+        p.parse("hash sub get_hash() { return get_connection_hash(); }", "");
+        assertEq(Type::Object, p.callFunction("get_obj", "X").type());
+        assertEq(Type::Hash, p.callFunction("get_conn").type());
+        assertEq(Type::Hash, p.callFunction("get_hash").type());
+    }
+
+    urlProviderNegativeTest() {
+        Program mp(PO_NO_CHILD_PO_RESTRICTIONS|PO_NEW_STYLE);
+        mp.loadApplyToUserModule(get_script_dir() + "../../../../qlib/ConnectionProvider.qm", True);
+
+        Program p();
+        p.loadModule("ConnectionProvider");
+        p.parse("string sub test(string str) { return get_connection_url(str); }", "");
+        assertThrows("CONNECTION-ERROR", \p.callFunction(), ("test", "X"));
+        assertEq("X://x", p.callFunction("test", "X://x"));
+    }
+}

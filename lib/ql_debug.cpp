@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ql_debug.h>
-#include <qore/intern/ql_type.h>
+#include "qore/intern/ql_debug.h"
+#include "qore/intern/ql_type.h"
 
 static inline void strindent(QoreString *s, int indent) {
    for (int i = 0; i < indent; i++)
