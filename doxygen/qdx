@@ -208,6 +208,7 @@ class qdx {
             else
                 line =~ s/__6_//g;
             line =~ s/__7_ /*/g; #//;
+            line =~ s/__8_/$/g;
 
             # remove "inline" tags
             line =~ s/\[inline\]//g;
