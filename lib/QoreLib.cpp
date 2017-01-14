@@ -29,7 +29,7 @@
   information.
 */
 
-#include <qore/Qore.h>
+#include "qore/Qore.h"
 #include "qore/intern/git-revision.h"
 #include "qore/intern/qore_number_private.h"
 #include "qore/intern/QoreSignal.h"
@@ -616,9 +616,9 @@ static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, in
 	    *f = '\0';
 	    double val = qv.getAsFloat();
 	    tbuf.sprintf(fmt, val);
-            // issue 1556: external module that call setlocale() can change
+            // issue 1556: external modules that call setlocale() can change
             // the decimal point character used here from '.' to ','
-            char* p = strchr(tbuf.c_str(), ',');
+            char* p = const_cast<char*>(strchr(tbuf.c_str(), ','));
             if (p)
                *p = '.';
 	    //printd(5, "fmt: '%s' val: %f\n", fmt, val);
