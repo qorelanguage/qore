@@ -2090,14 +2090,11 @@ void* q_memmem(const void* big, size_t big_len, const void* little, size_t littl
 }
 
 double q_strtod(const char* str) {
-   return strtod(str, 0);
-   /*
    std::istringstream istr(str);
    istr.imbue(std::locale::classic());
    double rv;
    istr >> rv;
    return rv;
-   */
 }
 
 #ifdef _Q_WINDOWS
