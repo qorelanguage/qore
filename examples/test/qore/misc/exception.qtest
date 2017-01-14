@@ -94,7 +94,7 @@ class ExceptionTest inherits QUnit::Test {
                             printf("QORE %s Exception in line %d of file %s: %s: %s\n", 
                                 ex1.type, ex1.line, ex1.file, ex1.err, ex1.desc);
                             throw snope.blah();
-                        }               
+                        }
                         throw snope.sdfds();
                     }
                     catch (ex2) {
