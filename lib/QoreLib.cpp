@@ -2251,12 +2251,34 @@ int q_env_subst(QoreString& str) {
    return 0;
 }
 
+static void q_remove_bom_utf16_intern(QoreString* str, const QoreEncoding*& enc) {
+   assert(str->getEncoding() == enc);
+   if (str->size() > 1 && !enc->isAsciiCompat()) {
+      if ((enc == QCS_UTF16 || enc == QCS_UTF16BE) && str->c_str()[0] == (char)0xfe && str->c_str()[1] == (char)0xff) {
+         str->replace(0, 2, (const char*)nullptr);
+         if (enc == QCS_UTF16) {
+            str->setEncoding(QCS_UTF16BE);
+            enc = QCS_UTF16BE;
+         }
+      }
+      else if ((enc == QCS_UTF16 || enc == QCS_UTF16LE) && str->c_str()[1] == (char)0xfe && str->c_str()[0] == (char)0xff) {
+         str->replace(0, 2, (const char*)nullptr);
+         if (enc == QCS_UTF16) {
+            str->setEncoding(QCS_UTF16LE);
+            enc = QCS_UTF16LE;
+         }
+      }
+   }
+}
+
 QoreString* q_remove_bom_utf16(QoreString* str, const QoreEncoding*& enc) {
-   return q_remove_bom_utf16_tmpl<QoreString>(str, enc);
+   q_remove_bom_utf16_intern(str, enc);
+   return str;
 }
 
 QoreStringNode* q_remove_bom_utf16(QoreStringNode* str, const QoreEncoding*& enc) {
-   return q_remove_bom_utf16_tmpl<QoreStringNode>(str, enc);
+   q_remove_bom_utf16_intern(str, enc);
+   return str;
 }
 
 QoreStringNode* q_read_string_all(ExceptionSink* xsink, const QoreEncoding* enc, f_read_t my_read) {
