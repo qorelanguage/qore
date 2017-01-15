@@ -899,13 +899,14 @@ addTestCase(obj);
             }
         }
         else {
-            if (exp.typeCode() == NT_BINARY)
-                expected = sprintf("(binary) <%s>", make_hex_string(exp));
+            if (exp.typeCode() == NT_BINARY) {
+                expected = sprintf("(binary: size %d) <%s>", exp.size(), make_hex_string(exp));
+            }
             else
                 expected = sprintf("%N", exp);
 
             if (act.typeCode() == NT_BINARY)
-                actual = neg ? "<identical>" : sprintf("(binary) <%s>", make_hex_string(act));
+                actual = neg ? "<identical>" : sprintf("(binary: size %d) <%s>", act.size(), make_hex_string(act));
             else
                 actual = neg ? "<identical>" : sprintf("%N", act);
         }

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file Qdx.qm Qore user module for generally useful routines
+# @file Qdx.qm Qore user module for documentation generation with doxygen
 
-/*  Qdx.qm Copyright 2016 Qore Technologies, s.r.o.
+/*  Qdx.qm Copyright 2016 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -182,7 +182,7 @@ public namespace Qdx {
 
             @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the \a eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
          */
-        constructor(Qore::InputStream is, *string encoding, *string eol, bool do_trim = True) : InputStreamLineIterator(is, encoding, eol, do_trim) {
+        constructor(Qore::InputStream is, *string encoding, *string eol, bool do_trim = False) : InputStreamLineIterator(is, encoding, eol, do_trim) {
         }
 
         /** Creates the object for iterating over the given @ref Qore::StreamReader "StreamReader"
@@ -193,7 +193,7 @@ public namespace Qdx {
 
             @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the \a eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
          */
-        constructor(Qore::StreamReader sr, *string eol, bool do_trim = True) : InputStreamLineIterator(sr, eol, do_trim) {
+        constructor(Qore::StreamReader sr, *string eol, bool do_trim = False) : InputStreamLineIterator(sr, eol, do_trim) {
         }
 
         #! Returns the processed version of the current line in the input data or throws an \c ITERATOR-ERROR exception if the iterator is invalid
@@ -267,7 +267,7 @@ public namespace Qdx {
 
             @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the \a eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
          */
-        constructor(Qore::InputStream is, *string encoding, *string eol, bool do_trim = True) : QorePostProcessingInputStreamLineIterator(is, encoding, eol, do_trim) {
+        constructor(Qore::InputStream is, *string encoding, *string eol, bool do_trim = False) : QorePostProcessingInputStreamLineIterator(is, encoding, eol, do_trim) {
         }
 
         /** Creates the object for iterating over the given @ref Qore::StreamReader "StreamReader"
@@ -278,7 +278,7 @@ public namespace Qdx {
 
             @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the \a eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
          */
-        constructor(Qore::StreamReader sr, *string eol, bool do_trim = True) : QorePostProcessingInputStreamLineIterator(sr, eol, do_trim) {
+        constructor(Qore::StreamReader sr, *string eol, bool do_trim = False) : QorePostProcessingInputStreamLineIterator(sr, eol, do_trim) {
         }
 
         #! Returns the processed version of the current line in the input data or throws an \c ITERATOR-ERROR exception if the iterator is invalid
