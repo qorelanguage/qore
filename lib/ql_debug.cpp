@@ -42,7 +42,7 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
       s->concat("node=NULL");
       return;
    }
-   
+
    s->sprintf("node=%p refs=%d type=%s ", n, n->reference_count(), n->getTypeName());
 
    qore_type_t ntype = n->getType();
@@ -52,7 +52,7 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
       s->sprintf("val=(enc=%s, %d:%d) \"%s\"", str->getEncoding()->getCode(), str->length(), str->strlen(), str->getBuffer());
       return;
    }
-   
+
    if (ntype == NT_BOOLEAN) {
       s->sprintf("val=%s", reinterpret_cast<const QoreBoolNode *>(n)->getValue() ? "True" : "False");
       return;
@@ -62,7 +62,7 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
       s->sprintf("val=%lld", (reinterpret_cast<const QoreBigIntNode *>(n))->val);
       return;
    }
-  
+
    if (ntype == NT_NOTHING) {
       s->sprintf("val=NOTHING");
       return;
@@ -74,10 +74,18 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
    }
 
    if (ntype == NT_FLOAT) {
-      s->sprintf("val=%f", reinterpret_cast<const QoreFloatNode *>(n)->f);
+      s->concat("val=");
+      size_t offset = s->size();
+      s->sprintf("%f", reinterpret_cast<const QoreFloatNode*>(n)->f);
+      // issue 1556: external modules that call setlocale() can change
+      // the decimal point character used here from '.' to ','
+      // only search the double added, QoreString::sprintf() concatenates
+      char* p = const_cast<char*>(strchr(s->c_str() + offset, ','));
+      if (p)
+         *p = '.';
       return;
    }
-   
+
    if (ntype == NT_LIST) {
       const QoreListNode *l = reinterpret_cast<const QoreListNode *>(n);
       s->sprintf("elements=%d", l->size());
@@ -90,7 +98,7 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
       }
       return;
    }
-   
+
    if (ntype == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject *>(n);
       s->sprintf("elements=%d (cls=%p, type=%s, valid=%s)", o->size(xsink),
@@ -154,7 +162,7 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
    s->sprintf("don't know how to print type %d: '%s' :-(", ntype, n->getTypeName());
 }
 
-//static 
+//static
 AbstractQoreNode *f_dbg_node_info(const QoreListNode *params, ExceptionSink *xsink) {
    QoreStringNodeHolder s(new QoreStringNode());
    dni(*s, get_param(params, 0), 0, xsink);

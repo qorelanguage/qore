@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -49,7 +49,14 @@ QoreString *QoreFloatNode::getStringRepresentation(bool &del) const {
 
 // concatenate string representation to a QoreString (no action for complex types = default implementation)
 void QoreFloatNode::getStringRepresentation(QoreString &str) const {
+   size_t offset = str.size();
    str.sprintf("%.9g", f);
+   // issue 1556: external modules that call setlocale() can change
+   // the decimal point character used here from '.' to ','
+   // only search the double added, QoreString::sprintf() concatenates
+   char* p = const_cast<char*>(strchr(str.c_str() + offset, ','));
+   if (p)
+      *p = '.';
 }
 
 // if del is true, then the returned DateTime * should be deleted, if false, then it should not
