@@ -232,7 +232,7 @@ public class CompressionStreamTest inherits QUnit::Test {
                255 - unknown
     */
     private binary ignoreOs(binary b, binary expected) {
-        splice b, 9, 1, chr(expected[9].toInt());
+        splice b, 9, 1, chr(expected[9]);
         return b;
     }
 
