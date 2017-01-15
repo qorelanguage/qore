@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file Qorize.qm Qorize module definition
 
-/*  Qorize.qm Copyright 2013 - 2015 Qore Technologies s r.o.
+/*  Qorize.qm Copyright 2013 - 2017 Qore Technologies s r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 %new-style
 
 module Qorize {
-    version = "0.1.2";
+    version = "0.1.3";
     desc = "Create Qore source code from data structures";
     author = "Petr Vanek";
     url = "http://qore.org";
@@ -37,6 +37,10 @@ module Qorize {
 }
 
 /*  Version History
+    * 2017-01-15 v 0.1.3 Tomas Mandys
+      + object support
+      + qorize_named() supports hash, object, list, any
+
     * 2016-28-11 v 0.1.2 Tomas Mandys
       + open parenthesis at the same line
       + more compact output
@@ -44,7 +48,7 @@ module Qorize {
       + cutly or round parenthesis for hash
       + qorize() formatting improvement when a list contains list or hash
 
-    * 2016-06029 v 0.1.1: Petr Vanek <petr@yarpen.cz>
+    * 2016-06-29 v 0.1.1: Petr Vanek <petr@yarpen.cz>
       + qorize_val() implemented
       + new style is used as default for arguments
       + qorizeNamed() is deprecated now. Use qorize_named() instead
@@ -83,8 +87,9 @@ Currently it can handle only simple types:
   - NULL, NOTHING
   - list of simple types (recursive parsing supported)
   - hash of simple types (recursive parsing supported)
+  - object
 
-@note There is no support for objects
+@note There is no support for private object members and overloaded constructors and references are not considered
 
 */
 
@@ -332,13 +337,34 @@ public string sub qorize(hash val, string name = "var", bool newstyle = True, in
                                qh.hash());
 }
 
-#! create code from the hash value - with one value per one line
+#! create code from the object value. Just initializes object with empty constructor. To initilize members use @ref qorize_named() function
 /**
     @param val an input value
     @param name an optional name of the resulting variable
     @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
     @param indentation number of characters to indent inner hashes
     @param curlyHash use new style curly parentesis to surround hashes or old style round ones
+    @retval string a generated code
+
+@code{.py}
+    MyClass o();
+    string s = qorize(o);
+    # "MyClass var = new MyClass();"
+@endcode
+
+    @throw QORIZE-ERROR in case of error in code generator
+*/
+public string sub qorize(object val, string name = "var", bool newstyle = True, int indentation = 2, bool curlyHash = True) {
+    QorizeHelper qh(val, newstyle, indentation, curlyHash);
+    return sprintf("%s = %s;", QorizeHelper::checkVariableName(name, val, newstyle), QorizeHelper::escape(val));
+}
+
+
+#! create code from the hash value - with one value per one line
+/**
+    @param val an input value
+    @param name an optional name of the resulting variable
+    @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
     @retval string a generated code
 
 @code{.py}
@@ -354,7 +380,9 @@ public string sub qorize(hash val, string name = "var", bool newstyle = True, in
     # var."foo" = "bar";
     # var."key1" = 2013-08-16T15:14:40.000;
     # var."key2" = 12;
-    # var."key3" = (1,2,3,);
+    # var."key3"[0] = 1;
+    # var."key3"[1] = 2;
+    # var."key3"[2] = 3;
     # var."key4"."subkey1" = 1;
     # var."key4"."subkey2" = 2;
     string s = qorize_named(h, "foo", True);
@@ -362,23 +390,100 @@ public string sub qorize(hash val, string name = "var", bool newstyle = True, in
     # foo."foo" = "bar";
     # foo."key1" = 2013-08-16T15:14:40.000;
     # foo."key2" = 12;
-    # foo."key3" = (1,2,3,);
+    # foo."key3"[0] = 1;
+    # foo."key3"[1] = 2;
+    # foo."key3"[2] = 3;
     # foo."key4"."subkey1" = 1;
     # foo."key4"."subkey2" = 2;"
 @endcode
 
     @throw QORIZE-ERROR in case of error in code generator
 */
-public string sub qorize_named(hash val, string name = "var", bool newstyle = True, int indentation = 2, bool curlyHash = True) {
-    QorizeHelper qh(val, newstyle, indentation, curlyHash);
-    return sprintf("%s;\n%s", QorizeHelper::checkVariableName(name, val, newstyle),
-                              qh.hashNamed(name));
+public string sub qorize_named(hash val, string name = "var", bool newstyle = True) {
+    QorizeHelper qh(val, newstyle);
+    return QorizeHelper::checkVariableName(name, val, newstyle) + ";\n" + qh.named(name);
+}
+
+#! create code from the object value, constructor with empty parameters is called and members are created with one member per line. It may not generate valid code as because of private members and overloaded constructor. Circular references are handled to avoid endless loop.
+/**
+    @param val an input value
+    @param name an optional name of the resulting variable
+    @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
+    @retval string a generated code
+
+@code{.py}
+    class MyClass {
+    private {
+        int m1;
+        int m2;
+    }
+
+    public {
+        int m3;
+        string s1;
+        list l;
+        any a;
+    }
+
+        public constructor(int n_m1, int n_m2, int n_m3) {m1=n_m1; m2=n_m2; m3=n_m3;}
+    }
+
+    MyClass o(1, 2, 3);
+    o.s1 = "xyz";
+    o.a = o;
+    string s = qorize_named(o);
+    # "MyClass var;
+    # var = new MyClass();
+    # var."m3" = 3;
+    # var."s1" = "xyz";
+    # var."l" = NOTHING;
+    # var."a" = var;"
+@endcode
+
+    @throw QORIZE-ERROR in case of error in code generator
+*/
+public string sub qorize_named(object val, string name = "var", bool newstyle = True) {
+    QorizeHelper qh(val, newstyle);
+    return QorizeHelper::checkVariableName(name, val, newstyle) + ";\n" + qh.named(name);
+}
+
+#! create code from the list value.
+/**
+    @param val an input value
+    @param name an optional name of the resulting variable
+    @param newstyle an optional argument. @ref True when to use @ref Qore::PO_NEW_STYLE syntax, @ref False otherwise
+    @retval string a generated code
+
+@code{.py}
+    list l = (1,2,3);
+    string s = qorize_named(l);
+    # "list var;
+    # var[0] = 1;
+    # var[1] = 2;
+    # var[2] = 3;
+@endcode
+
+    @throw QORIZE-ERROR in case of error in code generator
+*/
+public string sub qorize_named(list val, string name = "var", bool newstyle = True) {
+    string rv = QorizeHelper::checkVariableName(name, val, newstyle) + ";\n";
+    if (val) {
+        QorizeHelper qh(val, newstyle);
+        rv += qh.named(name);
+    }
+    return rv;
 }
 
 #! Deprecated, use qorize_named() instead
 public deprecated string sub qorizeNamed(hash val, string name = "var", bool newstyle = True) {
     return qorize_named(val, name, newstyle);
 }
+
+#! Process other types normal way using @ref qorize().
+public string sub qorize_named(any val, string name = "var", bool newstyle = True) {
+    return qorize(val, name, newstyle);
+}
+
 
 #! create code from the any value - fallback for NULL and NOTHINGS
 /**
@@ -439,7 +544,6 @@ public string sub qorize_val(hash val, int indentation = 2, bool curlyHash = Tru
 public string sub qorize_val(any val) {
     return sprintf("%s", QorizeHelper::escape(val));
 }
-
 #@}
 
 
@@ -448,13 +552,12 @@ class QorizeHelper {
 
     private {
         any container;
-        int type;
         string code;
         int level = 0;
-        list inlineLevel = ();
         bool newstyle;
         int indentation;
         bool curlyHash;
+        hash objectSignatures;
     }
 
     static string checkVariableName(string name, any val, bool newstyle) {
@@ -474,6 +577,7 @@ class QorizeHelper {
             case NT_HASH:      ret += "hash"; break;
             case NT_NULL:
             case NT_NOTHING:   ret += "any"; break;
+            case NT_OBJECT:    ret += val.className(); break;
             default:
                 throw "QORIZE-ERROR", sprintf("Unsupported type for checkVariableName %s", val.type());
         } # switch
@@ -534,6 +638,10 @@ class QorizeHelper {
         return sprintf("parseHexString(\"%s\")", makeHexString(val));
     }
 
+    static string escape(object val) {
+        return sprintf("new %s()", val.className());
+    }
+
     static string escape(any val) {
         switch (val.typeCode()) {
             case NT_NULL:
@@ -547,16 +655,15 @@ class QorizeHelper {
 
     constructor(any n_container, bool n_newstyle = True, int n_indentation = 2, bool n_curlyHash = True) {
         container = n_container;
-        type = n_container.typeCode();
         indentation = n_indentation;
         curlyHash = n_curlyHash;
         newstyle = n_newstyle;
-        if (!inlist(type, (NT_LIST, NT_HASH)))
-            throw "QORIZE-ERROR", sprintf("Unsupported type %y (expecting \"list\", \"hash\")", n_container.type());
+        if (!inlist(container.typeCode(), (NT_LIST, NT_HASH, NT_OBJECT)))
+            throw "QORIZE-ERROR", sprintf("Unsupported type %y (expecting \"object\", \"list\", \"hash\")", container.type());
     }
 
     string list() {
-        if (type != NT_LIST)
+        if (container.typeCode() != NT_LIST)
             throw "QORIZE-ERROR", sprintf("Cannot call %s::list() for type \"hash\"", self.className());
 
         process(container);
@@ -565,7 +672,7 @@ class QorizeHelper {
     }
 
     string hash() {
-        if (type != NT_HASH)
+        if (container.typeCode() != NT_HASH)
             throw "QORIZE-ERROR", sprintf("Cannot call %s::hash() for type \"list\"", self.className());
 
         process(container);
@@ -573,69 +680,60 @@ class QorizeHelper {
         return code;
     }
 
-    string hashNamed(string name) {
+    *string named(string name) {
+        if (!newstyle) {
+            name = "$" + name;
+        }
         processNamed(container, name);
         return code;
     }
 
-    private processNamed(hash node, string name) {
-
-        HashIterator it(node);
+    private processNamed(hash val, string prefixName) {
+        HashIterator it = val.iterator();
         while (it.next()) {
-            any value = it.getValue();
-            string key = it.getKey();
+            processNamed(it.getValue(), prefixName+".\""+it.getKey()+"\"");
+        }
+    }
 
-            switch(value.typeCode()) {
-                case NT_HASH:
-                    code += sprintf("# hash leveled %n\n", key);
-                    push inlineLevel, sprintf("\"%s\"", key);
-                    processNamed(value, name);
-                    pop inlineLevel;
-                    break;
-                case NT_LIST:
-                    code += sprintf("# list %s\n", key);
-                    #push inlineLevel, sprintf("\"%s\"", key);
-
-                    ListIterator lit(value);
-                    bool isListOfHashes = True;
-
-                    while (lit.next()) {
-                        if (lit.getValue().typeCode() != NT_HASH) {
-                            isListOfHashes = False;
-                            break;
-                        }
-                    }
-
-# TODO/FIXME
-                    string levelHolder = "";
-                    if (inlineLevel.size())
-                        levelHolder = "." + sprintf("%s", join(".", inlineLevel));
-
-                    # regular list
-                    if (!isListOfHashes) {
-                        QorizeHelper lh(value, newstyle);
-                        code += sprintf("%s%s%s.\"%s\" = %s;\n", newstyle ? "" : "$", name, levelHolder, key, lh.list());
-                    }
-                    else {
-                        # list of hashes (eg. XML)
-# TODO/FIXME: proper inline formatting...
-                        QorizeHelper lh(value, newstyle);
-                        code += sprintf("%s%s%s.\"%s\" = %s;\n", newstyle ? "" : "$", name, levelHolder, key, lh.list());
-                        #lit.reset();
-                        #while (lit.next()) {
-                        #    processNamed(lit.getValue(), name);
-                        #}
-                        #code += "\n    );\n";
-                    }
-                    #pop inlineLevel;
-                    break;
-                default:
-                    string levelHolder = "";
-                    if (inlineLevel.size())
-                        levelHolder = "." + sprintf("%s", join(".", inlineLevel));
-                    code += sprintf("%s%s%s.\"%s\" = %s;\n", newstyle ? "" : "$", name, levelHolder, key, escape(value));
+    private processNamed(object val, string prefixName) {
+        if (objectSignatures{val.uniqueHash()}) {
+            code += sprintf("%s = %s;\n", prefixName, objectSignatures{val.uniqueHash()});
+            return;
+        }
+        objectSignatures{val.uniqueHash()} = prefixName;
+        code += sprintf("%s = %s;\n", prefixName, QorizeHelper::escape(val));
+        AbstractIterator it2 = val.iterator();
+        if (it2 instanceof HashIterator) {
+            HashIterator it = cast<HashIterator>(it2);
+            while (it.next()) {
+                any value = it.getValue();
+                string key = it.getKey();
+                processNamed(it.getValue(), prefixName+".\""+it.getKey()+"\"");
+            }
+        } else {
+            # when a class overrides iterator() then process it as well
+            while (it2.next()) {
+                processNamed(it2.getValue(), prefixName);
             }
         }
+    }
+
+    private processNamed(list val, string prefixName) {
+        if (!val) {
+            code += prefixName + " = ();\n";
+        } else {
+            ListIterator it = val.iterator();
+            while (it.next()) {
+                any value = it.getValue();
+                if (exists value) {
+                    processNamed(value, prefixName + sprintf("[%d]", it.index()));
+                }
+            }
+        }
+    }
+
+    private processNamed(any val, string prefixName) {
+        code += prefixName + " = " + escape(val) + ";\n";
     }
 
     private process(list val) {
@@ -700,32 +798,8 @@ class QorizeHelper {
         }
     }
 
-    private process(binary val) {
-        code += sprintf("%s", escape(val));
-    }
-
-    private process(string val) {
-        code += sprintf("%s", escape(val));
-    }
-
-    private process(bool val) {
-        code += sprintf("%s", escape(val));
-    }
-
-    private process(date val) {
-        code += sprintf("%s", escape(val));
-    }
-
-    private process(int val) {
-        code += sprintf("%s", escape(val));
-    }
-
-    private process(float val) {
-        code += sprintf("%s", escape(val));
-    }
-
     private process(any val) {
-        code += sprintf("%s", escape(val));
+        code += escape(val);
     }
 
 } # class QorizeHelper
