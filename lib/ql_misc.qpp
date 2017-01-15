@@ -40,7 +40,6 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
-#include <locale.h>
 
 static const QoreFunction* get_builtin_func(const QoreStringNode* str, ExceptionSink* xsink) {
    const qore_ns_private* ns;
