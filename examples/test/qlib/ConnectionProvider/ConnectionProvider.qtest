@@ -29,13 +29,18 @@ public class ConnectionProviderTest inherits QUnit::Test {
         Program p();
         p.loadModule("ConnectionProvider");
         p.parse("string sub test(string str) { return get_connection_url(str); }", "");
-        assertEq("test://x", p.callFunction("test", "X"));
+        assertEq("test://user:pass@x", p.callFunction("test", "X"));
         assertThrows("CONNECTION-ERROR", \p.callFunction(), ("test", "Y"));
 
         p.parse("AbstractConnection sub get_obj(string str) { return get_connection(str); }", "");
         p.parse("hash sub get_conn() { return get_connections(); }", "");
         p.parse("hash sub get_hash() { return get_connection_hash(); }", "");
-        assertEq(Type::Object, p.callFunction("get_obj", "X").type());
+        any obj = p.callFunction("get_obj", "X");
+        assertEq(Type::Object, obj.type());
+        assertEq("test://user@x", obj.getInfo().url);
+        assertEq(NOTHING, obj.getInfo().url_hash.password);
+        assertEq("test://user:pass@x", obj.getInfo(True).url);
+        assertEq("pass", obj.getInfo(True).url_hash.password);
         assertEq(Type::Hash, p.callFunction("get_conn").type());
         assertEq(Type::Hash, p.callFunction("get_hash").type());
     }

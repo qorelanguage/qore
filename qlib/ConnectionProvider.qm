@@ -369,8 +369,10 @@ string connstr = get_connection(str);
             hash h = self.("name", "desc", "url", "safe_url", "monitor", "last_check", "updated", "status", "up", "loopback") + ("type": getType(), "url_hash": urlh);
             if (with_password)
                 delete h.safe_url;
-            else
+            else {
                 h.url = remove h.safe_url;
+                delete h.url_hash.password;
+            }
             h.opts = orig_opts;
             return h;
         }
@@ -439,16 +441,6 @@ string connstr = get_connection(str);
         /** reimplement this method in subclasses to parse the option hash as set from a text file if needed (for special option formats, etc)
         */
         parseTextOptions() {
-        }
-
-        #! helper method for post-processing options for environment variable substitution; can be called in subclasses' constructor methods with a list of options to have environment variable substitution performed on them
-        private doEnvOptions() {
-            foreach string opt in (argv) {
-                if (exists opts{opt} && opts{opt}.find("\$") != -1) {
-                    map opts{opt} = replace(opts{opt}, "\$" + $1, ENV.$1 ?? ""), (opts{opt} =~ x/\$(\w+)/g);
-                    map opts{opt} = replace(opts{opt}, "\${" + $1 + "}", ENV.$1 ?? ""), (opts{opt} =~ x/\${(\w+)}/g);
-                }
-            }
         }
 
         #! this method must return the connection object corresponding to the object's configuration
