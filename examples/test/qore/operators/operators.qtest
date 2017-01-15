@@ -27,6 +27,7 @@ class Test inherits QUnit::Test {
         addTestCase("identity assignment", \idAssignment());
         addTestCase("assignment type restriction test", \assignmentTypeRestrictionTest());
         addTestCase("delete/remove test", \deleteRemoveTest());
+        addTestCase("square brackets test", \squareBracketsTest());
         set_return_value(main());
     }
 
@@ -337,5 +338,14 @@ class Test inherits QUnit::Test {
             remove a.b.c.c;
             assertEq(("c": ("d": 1)), a.b);
         }
+    }
+
+    squareBracketsTest() {
+        # issue 1566
+        binary b = <00010203>;
+        assertEq(Type::Int, b[1].type());
+        assertEq(1, b[1]);
+        splice b, 2, 1, chr(b[3]);
+        assertEq(<00010303>, b);
     }
 }
