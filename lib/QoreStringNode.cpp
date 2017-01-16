@@ -381,7 +381,7 @@ void QoreStringValueHelper::setup(ExceptionSink* xsink, const QoreValue n, const
 	 break;
 
       case QV_Float:
-	 str = new QoreStringMaker("%.9g", n.getAsFloat());
+	 str = q_fix_decimal(new QoreStringMaker("%.9g", n.getAsFloat()));
 	 del = true;
 	 break;
 
@@ -441,7 +441,7 @@ void QoreStringNodeValueHelper::setup(ExceptionSink* xsink, const QoreValue n, c
 	 break;
 
       case QV_Float:
-	 str = new QoreStringNodeMaker("%.9g", n.getAsFloat());
+	 str = q_fix_decimal(new QoreStringNodeMaker("%.9g", n.getAsFloat()));
 	 del = true;
 	 break;
 

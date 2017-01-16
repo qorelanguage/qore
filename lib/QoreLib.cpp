@@ -618,10 +618,8 @@ static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, in
 	    tbuf.sprintf(fmt, val);
             // issue 1556: external modules that call setlocale() can change
             // the decimal point character used here from '.' to ','
-            char* p = const_cast<char*>(strchr(tbuf.c_str(), ','));
-            if (p)
-               *p = '.';
-	    //printd(5, "fmt: '%s' val: %f\n", fmt, val);
+            q_fix_decimal(&tbuf);
+	    //printd(5, "fmt: '%s' val: %f tbuf: '%s'\n", fmt, val, tbuf.c_str());
 	 }
 	 if (type && (width != -1))
 	    tbuf.terminate(width);
@@ -2409,4 +2407,20 @@ QoreStringNode* q_read_string(ExceptionSink* xsink, int64 size, const QoreEncodi
    }
 
    return str->empty() ? 0 : str.release();
+}
+
+template <typename T>
+T* q_fix_decimal_tmpl(T* str, size_t offset = 0) {
+   char* p = const_cast<char*>(strchr(str->c_str() + offset, ','));
+   if (p)
+      *p = '.';
+   return str;
+}
+
+QoreString* q_fix_decimal(QoreString* str, size_t offset) {
+   return q_fix_decimal_tmpl<QoreString>(str, offset);
+}
+
+QoreStringNode* q_fix_decimal(QoreStringNode* str, size_t offset) {
+   return q_fix_decimal_tmpl<QoreStringNode>(str, offset);
 }

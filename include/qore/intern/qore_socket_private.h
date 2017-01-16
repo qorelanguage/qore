@@ -382,9 +382,7 @@ struct qore_socket_private {
             // issue 1556: external modules that call setlocale() can change
             // the decimal point character used here from '.' to ','
             // only search the double added, QoreString::sprintf() concatenates
-            char* p = const_cast<char*>(strchr(hdr.c_str() + offset, ','));
-            if (p)
-               *p = '.';
+            q_fix_decimal(&hdr, offset);
 	    break;
          }
 	 case NT_NUMBER:

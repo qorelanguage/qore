@@ -1013,13 +1013,11 @@ QoreString::QoreString(double f) : priv(new qore_string_private) {
    priv->allocated = MAX_FLOAT_STRING_LEN + 1;
    priv->buf = (char*)malloc(sizeof(char) * priv->allocated);
    priv->len = ::snprintf(priv->buf, MAX_FLOAT_STRING_LEN, "%.9g", f);
-   // issue 1556: external modules that call setlocale() can change
-   // the decimal point character used here from '.' to ','
-   char* p = const_cast<char*>(strchr(priv->buf, ','));
-   if (p)
-      *p = '.';
    // snprintf() always terminates the string
    priv->charset = QCS_DEFAULT;
+   // issue 1556: external modules that call setlocale() can change
+   // the decimal point character used here from '.' to ','
+   q_fix_decimal(this);
 }
 
 QoreString::QoreString(const DateTime *d) : priv(new qore_string_private) {

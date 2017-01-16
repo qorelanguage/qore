@@ -80,9 +80,7 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
       // issue 1556: external modules that call setlocale() can change
       // the decimal point character used here from '.' to ','
       // only search the double added, QoreString::sprintf() concatenates
-      char* p = const_cast<char*>(strchr(s->c_str() + offset, ','));
-      if (p)
-         *p = '.';
+      q_fix_decimal(s, offset);
       return;
    }
 
@@ -190,4 +188,3 @@ void init_debug_functions(QoreNamespace& qns) {
    qns.addBuiltinVariant("dbg_global_vars", f_dbg_global_vars, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo);
    qns.addBuiltinVariant("dbg_get_ns_info", f_dbg_get_ns_info, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo);
 }
-

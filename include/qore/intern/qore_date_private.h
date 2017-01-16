@@ -1490,7 +1490,7 @@ public:
       }
 
       if (day < 1 || day > 7) {
-         xsink->raiseException("ISO-8601-INVALID-DAY", "calendar week days must be between 1 and 7 for Mon - Sun (day value passed: %f)", day);
+         xsink->raiseException("ISO-8601-INVALID-DAY", "calendar week days must be between 1 and 7 for Mon - Sun (day value passed: %d)", day);
          return 0;
       }
 

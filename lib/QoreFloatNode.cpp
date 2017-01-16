@@ -54,9 +54,7 @@ void QoreFloatNode::getStringRepresentation(QoreString &str) const {
    // issue 1556: external modules that call setlocale() can change
    // the decimal point character used here from '.' to ','
    // only search the double added, QoreString::sprintf() concatenates
-   char* p = const_cast<char*>(strchr(str.c_str() + offset, ','));
-   if (p)
-      *p = '.';
+   q_fix_decimal(&str, offset);
 }
 
 // if del is true, then the returned DateTime * should be deleted, if false, then it should not

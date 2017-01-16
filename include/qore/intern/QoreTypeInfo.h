@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1845,7 +1845,7 @@ protected:
       }
 
       if (t == NT_FLOAT) {
-         discard(n.assign(new QoreStringNodeMaker("%.9g", n.getAsFloat())), xsink);
+         discard(n.assign(q_fix_decimal(new QoreStringNodeMaker("%.9g", n.getAsFloat()))), xsink);
          return true;
       }
 
@@ -1899,7 +1899,7 @@ protected:
       }
 
       if (t == NT_FLOAT) {
-         discard(n.assign(new QoreStringNodeMaker("%.9g", n.getAsFloat())), xsink);
+         discard(n.assign(q_fix_decimal(new QoreStringNodeMaker("%.9g", n.getAsFloat()))), xsink);
          return true;
       }
 

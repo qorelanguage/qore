@@ -567,9 +567,7 @@ void DBI_concat_numeric(QoreString* str, const AbstractQoreNode* v) {
       // issue 1556: external modules that call setlocale() can change
       // the decimal point character used here from '.' to ','
       // only search the double added, QoreString::sprintf() concatenates
-      char* p = const_cast<char*>(strchr(str->c_str() + offset, ','));
-      if (p)
-         *p = '.';
+      q_fix_decimal(str, offset);
       return;
    }
    else if (t == NT_NUMBER) {
