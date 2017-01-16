@@ -311,7 +311,7 @@ int QoreValue::getAsString(QoreString& str, int format_offset, ExceptionSink *xs
    switch (type) {
       case QV_Int: str.sprintf(QLLD, v.i); break;
       case QV_Bool: str.concat(v.b ? &TrueString : &FalseString); break;
-      case QV_Float: str.sprintf("%.9g", v.f); break;
+      case QV_Float: str.sprintf("%.9g", v.f); q_fix_decimal(&str); break;
       case QV_Node: return v.n->getAsString(str, format_offset, xsink);
       default:
 	 assert(false);
@@ -328,7 +328,7 @@ QoreString* QoreValue::getAsString(bool& del, int format_offset, ExceptionSink* 
    switch (type) {
       case QV_Int: del = true; return new QoreStringMaker(QLLD, v.i);
       case QV_Bool: del = false; return v.b ? &TrueString : &FalseString;
-      case QV_Float: del = true; return new QoreStringMaker("%.9g", v.f);
+      case QV_Float: del = true; return q_fix_decimal(new QoreStringMaker("%.9g", v.f));
       case QV_Node: return v.n->getAsString(del, format_offset, xsink);
       default:
 	 assert(false);

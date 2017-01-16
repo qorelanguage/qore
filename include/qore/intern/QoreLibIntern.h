@@ -333,6 +333,9 @@ DLLLOCAL extern QoreClass* QC_PSEUDONOTHING;
 
 DLLLOCAL bool node_has_effect(const AbstractQoreNode* n);
 
+DLLLOCAL QoreString* q_fix_decimal(QoreString* str, size_t offset = 0);
+DLLLOCAL QoreStringNode* q_fix_decimal(QoreStringNode* str, size_t offset = 0);
+
 #ifdef _Q_WINDOWS
 // simulated block size for statvfs() on Windows
 #define Q_SVF_BSIZE 4096

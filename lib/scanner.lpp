@@ -1480,7 +1480,7 @@ cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); retu
 #ifdef NAN
                                            yylval->decimal = NAN;
 #else
-                                           yylval->decimal = strtod("NAN", 0);
+                                           yylval->decimal = q_strtod("NAN");
 #endif
                                            return QFLOAT;
                                         }
@@ -1488,13 +1488,13 @@ cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); retu
 #ifdef INFINITY
                                            yylval->decimal = INFINITY;
 #else
-                                           yylval->decimal = strtod("INFINITY", 0);
+                                           yylval->decimal = q_strtod("INFINITY");
 #endif
                                            return QFLOAT;
                                         }
-{DIGIT}+"."{DIGIT}+                     yylval->decimal = strtod(yytext, 0); return QFLOAT;
-{DIGIT}+[eE][+-]?{DIGIT}+               yylval->decimal = strtod(yytext, 0); return QFLOAT;
-{DIGIT}+"."{DIGIT}+[eE][+-]?{DIGIT}+    yylval->decimal = strtod(yytext, 0); return QFLOAT;
+{DIGIT}+"."{DIGIT}+                     yylval->decimal = q_strtod(yytext); return QFLOAT;
+{DIGIT}+[eE][+-]?{DIGIT}+               yylval->decimal = q_strtod(yytext); return QFLOAT;
+{DIGIT}+"."{DIGIT}+[eE][+-]?{DIGIT}+    yylval->decimal = q_strtod(yytext); return QFLOAT;
 @[Nn][Aa][Nn]@n                         yylval->num = new QoreNumberNode("@nan@"); return NUMBER;
 @[Ii][Nn][Ff]@n                         yylval->num = new QoreNumberNode("@inf@"); return NUMBER;
 {DIGIT}+n                               yylval->num = new QoreNumberNode(yytext); return NUMBER;

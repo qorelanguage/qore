@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1013,9 +1013,11 @@ QoreString::QoreString(double f) : priv(new qore_string_private) {
    priv->allocated = MAX_FLOAT_STRING_LEN + 1;
    priv->buf = (char*)malloc(sizeof(char) * priv->allocated);
    priv->len = ::snprintf(priv->buf, MAX_FLOAT_STRING_LEN, "%.9g", f);
-   // terminate string just in case
-   priv->buf[MAX_FLOAT_STRING_LEN] = '\0';
+   // snprintf() always terminates the string
    priv->charset = QCS_DEFAULT;
+   // issue 1556: external modules that call setlocale() can change
+   // the decimal point character used here from '.' to ','
+   q_fix_decimal(this);
 }
 
 QoreString::QoreString(const DateTime *d) : priv(new qore_string_private) {

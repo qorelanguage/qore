@@ -375,9 +375,16 @@ struct qore_socket_private {
 	 case NT_INT:
 	    hdr.sprintf("%s: " QLLD "\r\n", key, reinterpret_cast<const QoreBigIntNode*>(v)->val);
 	    break;
-	 case NT_FLOAT:
-	    hdr.sprintf("%s: %f\r\n", key, reinterpret_cast<const QoreFloatNode*>(v)->f);
+	 case NT_FLOAT: {
+	    hdr.sprintf("%s: ", key);
+            size_t offset = hdr.size();
+	    hdr.sprintf("%f\r\n", reinterpret_cast<const QoreFloatNode*>(v)->f);
+            // issue 1556: external modules that call setlocale() can change
+            // the decimal point character used here from '.' to ','
+            // only search the double added, QoreString::sprintf() concatenates
+            q_fix_decimal(&hdr, offset);
 	    break;
+         }
 	 case NT_NUMBER:
 	    hdr.sprintf("%s: ", key);
 	    reinterpret_cast<const QoreNumberNode*>(v)->toString(hdr);

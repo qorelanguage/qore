@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -288,15 +288,15 @@ QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNode* l, int
 
 QoreStringNode* format_float_intern(const QoreString& fmt, double num, ExceptionSink* xsink) {
    if (fmt.empty())
-      return new QoreStringNodeMaker("%.9g", num);
-   SimpleRefHolder<QoreStringNode> str(new QoreStringNodeMaker("%.*f", OP_DBL_Digs + 6, num));
+      return q_fix_decimal(new QoreStringNodeMaker("%.9g", num));
+   SimpleRefHolder<QoreStringNode> str(q_fix_decimal(new QoreStringNodeMaker("%.*f", OP_DBL_Digs + 6, num)));
    if (qore_number_private::formatNumberString(**str, fmt, xsink))
       return 0;
    return str.release();
 }
 
 QoreStringNode* format_float_intern(int prec, const QoreString& dsep, const QoreString& tsep, double num, ExceptionSink* xsink) {
-   SimpleRefHolder<QoreStringNode> str(new QoreStringNodeMaker("%.*f", OP_DBL_Digs + 6, num));
+   SimpleRefHolder<QoreStringNode> str(q_fix_decimal(new QoreStringNodeMaker("%.*f", OP_DBL_Digs + 6, num)));
    if (qore_number_private::formatNumberString(**str, prec, dsep, tsep, xsink))
       return 0;
    return str.release();
@@ -1960,7 +1960,7 @@ float parse_float(string str, string fmt) [flags=RET_VALUE_ONLY] {
    if (fix_num(tmp, **tfmt, xsink))
       return QoreValue();
 
-   return strtod(tmp.getBuffer(), 0);
+   return q_strtod(tmp.getBuffer());
 }
 
 //! returns an integer corresponding to a string representing the number and an argument giving the format

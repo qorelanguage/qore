@@ -109,7 +109,7 @@ int64 QoreStringNode::getAsBigIntImpl() const {
 }
 
 double QoreStringNode::getAsFloatImpl() const {
-   return strtod(getBuffer(), 0);
+   return q_strtod(getBuffer());
 }
 
 QoreString *QoreStringNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
@@ -136,7 +136,7 @@ int QoreStringNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink)
 bool QoreStringNode::getAsBoolImpl() const {
    // check if we should do perl-style boolean evaluation
    if (runtime_check_parse_option(PO_STRICT_BOOLEAN_EVAL))
-      return atof(getBuffer());
+      return q_strtod(c_str());
    if (priv->len == 1 && priv->buf[0] == '0')
       return false;
    return !empty();
@@ -381,7 +381,7 @@ void QoreStringValueHelper::setup(ExceptionSink* xsink, const QoreValue n, const
 	 break;
 
       case QV_Float:
-	 str = new QoreStringMaker("%.9g", n.getAsFloat());
+	 str = q_fix_decimal(new QoreStringMaker("%.9g", n.getAsFloat()));
 	 del = true;
 	 break;
 
@@ -441,7 +441,7 @@ void QoreStringNodeValueHelper::setup(ExceptionSink* xsink, const QoreValue n, c
 	 break;
 
       case QV_Float:
-	 str = new QoreStringNodeMaker("%.9g", n.getAsFloat());
+	 str = q_fix_decimal(new QoreStringNodeMaker("%.9g", n.getAsFloat()));
 	 del = true;
 	 break;
 

@@ -29,7 +29,7 @@
   information.
 */
 
-#include <qore/Qore.h>
+#include "qore/Qore.h"
 #include "qore/intern/git-revision.h"
 #include "qore/intern/qore_number_private.h"
 #include "qore/intern/QoreSignal.h"
@@ -38,6 +38,9 @@
 #include "qore/intern/ql_crypto.h"
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/StringReaderHelper.h"
+
+#include <sstream>
+#include <locale>
 
 #include <string.h>
 #ifdef HAVE_PWD_H
@@ -613,7 +616,10 @@ static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, in
 	    *f = '\0';
 	    double val = qv.getAsFloat();
 	    tbuf.sprintf(fmt, val);
-	    //printd(5, "fmt: '%s' val: %f\n", fmt, val);
+            // issue 1556: external modules that call setlocale() can change
+            // the decimal point character used here from '.' to ','
+            q_fix_decimal(&tbuf);
+	    //printd(5, "fmt: '%s' val: %f tbuf: '%s'\n", fmt, val, tbuf.c_str());
 	 }
 	 if (type && (width != -1))
 	    tbuf.terminate(width);
@@ -2081,6 +2087,14 @@ void* q_memmem(const void* big, size_t big_len, const void* little, size_t littl
 #endif
 }
 
+double q_strtod(const char* str) {
+   std::istringstream istr(str);
+   istr.imbue(std::locale::classic());
+   double rv;
+   istr >> rv;
+   return rv;
+}
+
 #ifdef _Q_WINDOWS
 int statvfs(const char* path, struct statvfs* buf) {
    ULARGE_INTEGER avail;
@@ -2393,4 +2407,20 @@ QoreStringNode* q_read_string(ExceptionSink* xsink, int64 size, const QoreEncodi
    }
 
    return str->empty() ? 0 : str.release();
+}
+
+template <typename T>
+T* q_fix_decimal_tmpl(T* str, size_t offset = 0) {
+   char* p = const_cast<char*>(strchr(str->c_str() + offset, ','));
+   if (p)
+      *p = '.';
+   return str;
+}
+
+QoreString* q_fix_decimal(QoreString* str, size_t offset) {
+   return q_fix_decimal_tmpl<QoreString>(str, offset);
+}
+
+QoreStringNode* q_fix_decimal(QoreStringNode* str, size_t offset) {
+   return q_fix_decimal_tmpl<QoreStringNode>(str, offset);
 }

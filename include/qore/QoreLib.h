@@ -545,4 +545,9 @@ DLLEXPORT void* q_memmem(const void* big, size_t big_len, const void* little, si
  */
 DLLEXPORT int q_env_subst(QoreString& str);
 
+//! converts a string to a double in a locale-independent way
+/** @since %Qore 0.8.13
+ */
+DLLEXPORT double q_strtod(const char* str);
+
 #endif // _QORE_QORELIB_H
