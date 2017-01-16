@@ -1276,8 +1276,6 @@ void qore_class_private::parseCommit() {
       has_new_user_changes = false;
    }
    else {
-      if (!hash)
-         hash.updateEmpty();
 #ifdef DEBUG
       for (auto& i : hm)
          assert(i.second->priv->func->pendingEmpty());
@@ -1289,7 +1287,9 @@ void qore_class_private::parseCommit() {
       assert(!pending_has_public_memdecl);
    }
 
-   assert((bool)hash);
+   if (!hash)
+      hash.updateEmpty();
+
    assert(!pend_hash);
 
    // we check base classes if they have public members if we don't have any

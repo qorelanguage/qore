@@ -150,6 +150,10 @@ class Child2 inherits Base2 {
     }
 }
 
+class Issue1576 {
+    public {}
+}
+
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         addTestCase("Class library test", \classLibraryTest());
@@ -157,6 +161,7 @@ public class ClassesTest inherits QUnit::Test {
         addTestCase("Deletion test", \deletionTest());
         addTestCase("Built-in class w/o methods", \builtinNoMethods());
         addTestCase("Base class tests", \baseClassTests());
+        addTestCase("misc tests", \miscTests());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -383,5 +388,10 @@ public class ClassesTest inherits QUnit::Test {
             # ensure that call references cannot be taken of copy methods
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{copy(){}}class C inherits B{copy(){}}sub t(){C c();code cd=\\c.copy();cd();}", ""));
         }
+    }
+
+    miscTests() {
+        Issue1576 i();
+        assertEq(True, i instanceof Issue1576);
     }
 }
