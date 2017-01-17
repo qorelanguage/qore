@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,9 +32,9 @@
 #ifndef _QORE_QORE_SOCKET_PRIVATE_H
 #define _QORE_QORE_SOCKET_PRIVATE_H
 
-#include <qore/intern/SSLSocketHelper.h>
+#include "qore/intern/SSLSocketHelper.h"
 
-#include <qore/intern/QC_Queue.h>
+#include "qore/intern/QC_Queue.h"
 
 #include <ctype.h>
 #include <stdlib.h>
@@ -375,9 +375,16 @@ struct qore_socket_private {
 	 case NT_INT:
 	    hdr.sprintf("%s: " QLLD "\r\n", key, reinterpret_cast<const QoreBigIntNode*>(v)->val);
 	    break;
-	 case NT_FLOAT:
-	    hdr.sprintf("%s: %f\r\n", key, reinterpret_cast<const QoreFloatNode*>(v)->f);
+	 case NT_FLOAT: {
+	    hdr.sprintf("%s: ", key);
+            size_t offset = hdr.size();
+	    hdr.sprintf("%f\r\n", reinterpret_cast<const QoreFloatNode*>(v)->f);
+            // issue 1556: external modules that call setlocale() can change
+            // the decimal point character used here from '.' to ','
+            // only search the double added, QoreString::sprintf() concatenates
+            q_fix_decimal(&hdr, offset);
 	    break;
+         }
 	 case NT_NUMBER:
 	    hdr.sprintf("%s: ", key);
 	    reinterpret_cast<const QoreNumberNode*>(v)->toString(hdr);
@@ -1338,7 +1345,7 @@ struct qore_socket_private {
 
    DLLLOCAL QoreHashNode* getPeerInfo(ExceptionSink* xsink, bool host_lookup = true) const {
       if (sock == QORE_INVALID_SOCKET) {
-	 xsink->raiseException("SOCKET-GETPEERINFO-ERROR", "socket is not open()");
+         se_not_open("Socket", "getPeerInfo", xsink);
 	 return 0;
       }
 
@@ -1354,7 +1361,7 @@ struct qore_socket_private {
 
    DLLLOCAL QoreHashNode* getSocketInfo(ExceptionSink* xsink, bool host_lookup = true) const {
       if (sock == QORE_INVALID_SOCKET) {
-	 xsink->raiseException("SOCKET-GETSOCKETINFO-ERROR", "socket is not open()");
+         se_not_open("Socket", "getSocketInfo", xsink);
 	 return 0;
       }
 
@@ -1643,7 +1650,7 @@ struct qore_socket_private {
       return hdr.release();
    }
 
-   DLLLOCAL QoreStringNode* recv(qore_offset_t bufsize, int timeout, qore_offset_t& rc, ExceptionSink* xsink) {
+   DLLLOCAL QoreStringNode* recv(ExceptionSink* xsink, qore_offset_t bufsize, int timeout, qore_offset_t& rc) {
       if (sock == QORE_INVALID_SOCKET) {
 	 if (xsink)
 	    se_not_open("Socket", "recv", xsink);
@@ -1701,7 +1708,7 @@ struct qore_socket_private {
       return *xsink ? 0 : str.release();
    }
 
-   DLLLOCAL QoreStringNode* recv(int timeout, qore_offset_t& rc, ExceptionSink* xsink) {
+   DLLLOCAL QoreStringNode* recv(ExceptionSink* xsink, int timeout, qore_offset_t& rc) {
       if (sock == QORE_INVALID_SOCKET) {
 	 if (xsink)
 	    se_not_open("Socket", "recv", xsink);
@@ -1761,6 +1768,8 @@ struct qore_socket_private {
       rc = str->size();
       return str.release();
    }
+
+   DLLLOCAL int recv(int fd, qore_offset_t size, int timeout_ms, ExceptionSink* xsink);
 
    DLLLOCAL BinaryNode* recvBinary(qore_offset_t bufsize, int timeout, qore_offset_t& rc, ExceptionSink* xsink) {
       if (sock == QORE_INVALID_SOCKET) {
@@ -2308,6 +2317,8 @@ struct qore_socket_private {
       return send(xsink, "Socket", mname, buf, size, timeout_ms);
    }
 
+   DLLLOCAL int send(int fd, qore_offset_t size, int timeout_ms, ExceptionSink* xsink);
+
    DLLLOCAL int send(ExceptionSink* xsink, const char* cname, const char* mname, const char* buf, qore_size_t size, int timeout_ms = -1) {
       if (sock == QORE_INVALID_SOCKET) {
 	 if (xsink)
@@ -2638,6 +2649,7 @@ struct qore_socket_private {
          while (true) {
             char* buf;
             rc = brecv(xsink, "readHTTPChunkedBodyBinary", buf, bs, 0, timeout, false);
+            //printd(5, "qore_socket_private::readHTTPChunkedBodyBinary() str: '%s' bs: %lld rc: %lld b: %p (%lld) recv_callback: %p\n", str.c_str(), bs, rc, *b, b->size(), recv_callback);
             if (rc <= 0) {
                if (!*xsink) {
                   assert(!rc);
@@ -2996,7 +3008,7 @@ struct qore_socket_private {
 	    break;
 	 *t = '\0';
 	 t++;
-	 while (t && isblank(*t))
+	 while (t && qore_isblank(*t))
 	    t++;
 	 strtolower(buf);
 	 //printd(5, "setting %s = '%s'\n", buf, t);

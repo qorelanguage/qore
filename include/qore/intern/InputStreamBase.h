@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -64,16 +64,31 @@ public:
    }
 
    /**
+    * @brief Helper method that checks that the current thread is the same as when the instance was created,
+    * calls peek() and wraps the result to Qore's `int` value.
+    * @param xsink the exception sink
+    * @return the `int` wrapping the result or `NOTHING` if the end of the stream has been reached
+    */
+   DLLLOCAL QoreBigIntNode *peekHelper(ExceptionSink *xsink) {
+      if (!check(xsink)) {
+         return 0;
+      }
+
+      int64 res = peek(xsink);
+      return (*xsink) ? 0 : new QoreBigIntNode(res);
+   }
+
+   /**
     * @brief Checks that the current thread is the same as when the instance was created and that the stream has
     * not yet been closed.
     * @param xsink the exception sink
     * @return true if the checks passed, false if an exception has been raised
-    * @throws INPUT-STREAM-THREAD-ERROR if the current thread is not the same as when the instance was created
+    * @throws STREAM-THREAD-ERROR if the current thread is not the same as when the instance was created
     * @throws INPUT-STREAM-CLOSED-ERROR if the stream has been closed
     */
    bool check(ExceptionSink *xsink) {
       if (tid != gettid()) {
-         xsink->raiseException("INPUT-STREAM-THREAD-ERROR", "this %s object was created in TID %d; it is an error "
+         xsink->raiseException("STREAM-THREAD-ERROR", "this %s object was created in TID %d; it is an error "
                "to access it from any other thread (accessed from TID %d)", getName(), tid, gettid());
          return false;
       }

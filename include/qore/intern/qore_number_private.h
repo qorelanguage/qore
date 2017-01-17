@@ -35,6 +35,7 @@
 
 #include <cmath>
 #include <memory>
+using namespace std;
 
 // the number of consecutive trailing 0 or 9 digits that will be rounded in string output
 #define QORE_MPFR_ROUND_THRESHOLD 9
@@ -48,9 +49,12 @@
 #define QORE_MAX_PREC 8192
 #ifndef HAVE_MPFR_RNDN
 #define MPFR_RNDN GMP_RNDN
+#define MPFR_RNDZ GMP_RNDZ
 #endif
 // round to nearest (roundTiesToEven in IEEE 754-2008)
 #define QORE_MPFR_RND MPFR_RNDN
+// round toward zero
+#define QORE_MPFR_RNDZ MPFR_RNDZ
 // MPFR_RNDA
 
 #ifndef HAVE_MPFR_EXP_T
@@ -181,7 +185,7 @@ struct qore_number_private : public qore_number_private_intern {
    }
 
    DLLLOCAL int64 getAsBigInt() const {
-      return mpfr_get_sj(num, QORE_MPFR_RND);
+      return mpfr_get_sj(num, QORE_MPFR_RNDZ);
    }
 
    DLLLOCAL bool getAsBool() const {
@@ -256,7 +260,7 @@ struct qore_number_private : public qore_number_private_intern {
       }
    }
 
-   DLLLOCAL void getAsString(QoreString& str, bool round = true) const;
+   DLLLOCAL void getAsString(QoreString& str, bool round = true, int base = 10) const;
 
    DLLLOCAL void toString(QoreString& str, int fmt = QORE_NF_DEFAULT) const {
       bool raw = !(fmt & QORE_NF_RAW);
@@ -443,6 +447,40 @@ struct qore_number_private : public qore_number_private_intern {
       return p;
    }
 
+    // for round functions: round(), ceil(), floor()
+    DLLLOCAL qore_number_private* doRoundNR(q_mpfr_unary_nr_func_t func, int prec = 0, ExceptionSink* xsink = NULL) const {
+        unique_ptr<qore_number_private> p0(new qore_number_private(*this));
+
+        if (prec == 0) {
+            func(p0 -> num, num);
+
+            if (xsink)
+                checkFlags(xsink);
+
+            return p0.release();
+        }
+
+        qore_number_private* p2;
+
+        if (prec > 0) {
+            unique_ptr<qore_number_private> c(new qore_number_private(pow(10, prec)));
+            unique_ptr<qore_number_private> p1(p0 -> doMultiply(*c));
+            func(p1 -> num, p1 -> num);
+            p2 = p1 -> doDivideBy(*c, xsink);
+        }
+        else {
+            unique_ptr<qore_number_private> c(new qore_number_private(pow(10, -prec)));
+            unique_ptr<qore_number_private> p1(p0 -> doDivideBy(*c, xsink));
+            func(p1 -> num, p1 -> num);
+            p2 = p1 -> doMultiply(*c);
+        }
+
+        if (xsink)
+            checkFlags(xsink);
+
+        return p2;
+    }
+
    DLLLOCAL mpfr_prec_t getPrec() const {
       return mpfr_get_prec(num);
    }
@@ -556,6 +594,11 @@ public:
       return p ? new QoreNumberNode(p) : 0;
    }
 
+   DLLLOCAL static QoreNumberNode* doRoundNR(const QoreNumberNode& n, q_mpfr_unary_nr_func_t func, int prec = 0, ExceptionSink* xsink = 0) {
+      qore_number_private* p = n.priv->doRoundNR(func, prec, xsink);
+      return p ? new QoreNumberNode(p) : 0;
+   }
+
    DLLLOCAL static QoreNumberNode* getNaNumber() {
       return new QoreNumberNode(new qore_number_private("@NaN@"));
    }
@@ -573,6 +616,27 @@ public:
    DLLLOCAL static qore_number_private* get(const QoreNumberNode& n) {
       return n.priv;
    }
+
+    DLLLOCAL static QoreStringNode* toBase(double f, int base, ExceptionSink* xsink) {
+        std::unique_ptr<qore_number_private> n(new qore_number_private(f));
+        return qore_number_private::toBase(n.get(), base, xsink);
+    }
+
+    DLLLOCAL static QoreStringNode* toBase(const QoreNumberNode& n, int base, ExceptionSink* xsink) {
+        return qore_number_private::toBase(n.priv, base, xsink);
+    }
+
+    DLLLOCAL static QoreStringNode* toBase(qore_number_private* n, int base, ExceptionSink* xsink) {
+        if (base < 2 || base > 36) {
+            xsink -> raiseException("INVALID-BASE", "base " QLLD " is invalid; base must be 2 - 36 inclusive", base);
+            return 0;
+        }
+
+        QoreString qs;
+        n -> getAsString(qs, 1, base);
+        qs.toupr();
+        return new QoreStringNode(qs);
+    }
 };
 
 #endif

@@ -243,6 +243,12 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 /usr/bin/qore
+/usr/bin/qget
+/usr/bin/rest
+/usr/bin/schema
+/usr/bin/schema-reverse
+/usr/bin/sfrest
+/usr/bin/sqlutil
 %if 0%{?rh_dist}
 %if %{?rh_dist} <= 5
 /usr/man/man1/qore.1.*
@@ -256,8 +262,17 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
-* Sun Sep 11 2016 <ondrej.musil@qoretechnologies.com> 0.8.13
+* Wed Nov 23 2016 David Nichols <david@qore.org> 0.8.13
 - updated version to 0.8.13
+
+* Wed Nov 23 2016 David Nichols <david@qore.org> 0.8.12.5
+- updated to 0.8.12.5
+
+* Fri Oct 21 2016 David Nichols <david@qore.org> 0.8.12.4
+- updated to 0.8.12.4
+
+* Tue Sep 27 2016 David Nichols <david@qore.org> 0.8.12.3
+- updated to 0.8.12.3
 
 * Sat Sep 10 2016 David Nichols <david@qore.org> 0.8.12.2
 - updated to 0.8.12.2

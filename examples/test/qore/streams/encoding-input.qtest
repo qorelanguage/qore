@@ -36,6 +36,11 @@ class SrcStream inherits InputStream {
         offset += limit;
         return b;
     }
+
+    int peek() {
+        *binary b = data.substr(offset, 1);
+        return ord(b.toString(b, "UTF-8"), 0);
+    }
 }
 
 our bool destroyed;
@@ -52,13 +57,18 @@ class DestructMockStream inherits InputStream {
     *binary read(int limit) {
         throw "UNEXPECTED-CALL";
     }
+
+    int peek() {
+        return 0;
+    }
 }
 
 public class EncodingConversionInputStreamTest inherits QUnit::Test {
 
     constructor() : Test("EncodingConversionInputStreamTest", "1.0") {
         addTestCase("empty", \empty());
-        addTestCase("read", \read());
+        addTestCase("read test", \readTest());
+        addTestCase("peek test", \peekTest());
         addTestCase("invalid", \invalid());
         addTestCase("invalidAtEnd", \invalidAtEnd());
         addTestCase("circular reference", \circRef());
@@ -73,7 +83,7 @@ public class EncodingConversionInputStreamTest inherits QUnit::Test {
         assertEq(NOTHING, is.read(100));
     }
 
-    read() {
+    readTest() {
         EncodingConversionInputStream is(new SrcStream(<C5A0C48D>), "UTF-8", "UTF-16BE");
         assertThrows("INPUT-STREAM-ERROR", sub() { is.read(0); });
         assertThrows("INPUT-STREAM-ERROR", sub() { is.read(-2); });
@@ -82,6 +92,19 @@ public class EncodingConversionInputStreamTest inherits QUnit::Test {
         assertEq(<0D>, is.read(1));
         assertEq(NOTHING, is.read(2));
         assertEq(NOTHING, is.read(10));
+    }
+
+    peekTest() {
+        EncodingConversionInputStream is(new SrcStream(<C5A0C48D>), "UTF-8", "UTF-16BE");
+        assertEq(1, is.peek());
+        assertThrows("INPUT-STREAM-ERROR", sub() { is.read(0); });
+        assertThrows("INPUT-STREAM-ERROR", sub() { is.read(-2); });
+        assertEq(<0160>, is.read(2));
+        assertEq(1, is.peek());
+        assertEq(<01>, is.read(1));
+        assertEq(13, is.peek());
+        assertEq(<0D>, is.read(1));
+        assertEq(-1, is.peek());
     }
 
     invalid() {

@@ -38,7 +38,7 @@
 #include <vector>
 #include <algorithm>
 
-#include <qore/intern/QoreRegex.h>
+#include "qore/intern/QoreRegex.h"
 
 typedef int (*glob_error_t)(const char *, int);
 
@@ -118,7 +118,7 @@ public:
       while (FindNextFile(h, &pfd)) {
          if (pfd.cFileName[0] == '.' && !get_dot)
             continue;
-	 if (qrn->exec(pfd.cFileName, strlen(pfd.cFileName))) {
+	 if (qrn.exec(pfd.cFileName, strlen(pfd.cFileName))) {
             QoreString str(orig_dir);
             str.concat(pfd.cFileName);
 	    names.push_back(str.c_str());

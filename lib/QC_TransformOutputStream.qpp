@@ -28,14 +28,21 @@
   information.
 */
 
-#include <qore/Qore.h>
+#include "qore/Qore.h"
 #include "qore/intern/TransformOutputStream.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreClassIntern.h"
 
 extern qore_classid_t CID_TRANSFORM;
 extern QoreClass* QC_TRANSFORM;
 
 //! This class implements the @ref OutputStream interface for writing bytes to another OutputStream while applying a transformation
-/** @since %Qore 0.8.13
+/**
+    @note stream classes are not designed to be accessed from multiple threads; they have been implemented without locking for fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of such methods in threads other than the thread where the constructor was called will cause a \c STREAM-THREAD-ERROR to be thrown.
+
+    @see @ref Qore::StreamWriter "StreamWriter" for a class that can be used to write various kinds of data to an @ref Qore::OutputStream "OutputStream"
+
+    @since %Qore 0.8.13
  */
 qclass TransformOutputStream [arg=TransformOutputStream* os; ns=Qore; vparent=OutputStream; flags=final; internal_members=OutputStream os,Transform t];
 
@@ -47,12 +54,17 @@ qclass TransformOutputStream [arg=TransformOutputStream* os; ns=Qore; vparent=Ou
 TransformOutputStream::constructor(Qore::OutputStream[OutputStream] os, Qore::Transform[Transform] t) {
    SimpleRefHolder<TransformOutputStream> tos(new TransformOutputStream(os, t));
    self->setPrivate(CID_TRANSFORMOUTPUTSTREAM, tos.release());
-   self->setValue("os", static_cast<QoreObject *>(obj_os->refSelf()), xsink);
-   self->setValue("t", static_cast<QoreObject *>(obj_t->refSelf()), xsink);
+   qore_object_private* o = qore_object_private::get(*self);
+   const qore_class_private* cls = qore_class_private::get(*QC_TRANSFORMOUTPUTSTREAM);
+   o->setValueIntern(cls, "os", static_cast<QoreObject *>(obj_os->refSelf()), xsink);
+   o->setValueIntern(cls, "t", static_cast<QoreObject *>(obj_t->refSelf()), xsink);
 }
 
 //! Flushes any buffered (unwritten) bytes, closes the output stream and releases all resources.
 /** Any methods called on a closed output stream will throw an exception.
+
+    @throw OUTPUT-STREAM-CLOSED-ERROR the output stream has already been closed
+    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 nothing TransformOutputStream::close() {
    os->closeHelper(xsink);
@@ -61,6 +73,9 @@ nothing TransformOutputStream::close() {
 //! Writes bytes to the output stream
 /**
     @param data the data to write
+
+    @throw OUTPUT-STREAM-CLOSED-ERROR the output stream has already been closed
+    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 nothing TransformOutputStream::write(binary data) {
    os->writeHelper(data, xsink);

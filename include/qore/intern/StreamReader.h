@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -36,333 +36,322 @@
 
 #include "qore/qore_bitopts.h"
 #include "qore/InputStream.h"
+#include "qore/intern/StringReaderHelper.h"
 
-/**
- * @brief Private data for the Qore::StreamReader class.
- */
+DLLLOCAL extern qore_classid_t CID_STREAMREADER;
+DLLLOCAL extern QoreClass* QC_STREAMREADER;
+
+//! Private data for the Qore::StreamReader class.
 class StreamReader : public AbstractPrivateData {
-
-private:
-   // Make sure to update the StreamReader test when updating this constant.
-   static const int STREAMREADER_BUFFER_SIZE = 4096;
-
 public:
    DLLLOCAL StreamReader(ExceptionSink* xsink, InputStream* is, const QoreEncoding* encoding = QCS_DEFAULT) :
       in(is, xsink),
-      enc(encoding),
-      bufCapacity(STREAMREADER_BUFFER_SIZE),
-      bufSize(0),
-      buf(0) {
-      is->ref();
-      if (!enc->isAsciiCompat()) {
-         xsink->raiseException("UNSUPPORTED-ENCODING-ERROR", "StreamReader does not support ASCII-incompatible encodings");
-         return;
-      }
-
-      // +1 is added to the real capacity for terminating null-character.
-      buf = new char[bufCapacity + 1];
+      enc(encoding) {
    }
 
-   DLLLOCAL ~StreamReader() {
-      if (buf)
-         delete [] buf;
+   virtual DLLLOCAL ~StreamReader() {
    }
 
    DLLLOCAL const QoreEncoding* getEncoding() const {
       return enc;
    }
 
-   DLLLOCAL QoreStringNode* readLine(const QoreStringNode* eol = 0, bool trim = true, ExceptionSink* xsink = 0) {
-      SimpleRefHolder<QoreStringNode> eolstr;
-      if (eol) {
-         if (eol->getEncoding() == enc) {
-            eolstr = eol->stringRefSelf();
-         }
-         else { // Create a temporary EOL string with correct encoding.
-            eolstr = eol->convertEncoding(enc, xsink);
-            if (*xsink)
-               return 0;
-         }
-      }
-
-      SimpleRefHolder<QoreStringNode> line(new QoreStringNode(enc));
-      while (true) {
-         int64 rc = fillBuffer(bufCapacity - bufSize, xsink);
-         if (*xsink)
-            return 0;
-         if (bufSize == 0 && rc == 0)
-            return line->empty() ? 0 : line.release();
-
-         // Is done because of string searches in findEolInBuffer().
-         // Won't overflow because the buffer actually has real capacity of bufCapacity+1.
-         buf[bufSize] = '\0';
-
-         qore_size_t eolLen;
-         const char* p = findEolInBuffer(*eolstr, eolLen, rc==0);
-         assert(eolLen >= 0);
-
-         if (p) { // Found end of line.
-            assert(p >= buf);
-            qore_size_t dataSize = p - buf;
-            line->concat(buf, dataSize + (trim ? 0 : eolLen));
-            // Move remaining data from middle to the front of the buffer.
-            bufSize -= dataSize + eolLen;
-            memmove(buf, p + eolLen, bufSize);
-            return line.release();
-         }
-         else {
-            if (rc > 0) {
-               qore_size_t dataSize = (bufSize >= eolLen) ? bufSize - eolLen : 0;
-               line->concat(buf, dataSize);
-               // Move remaining data from middle to the front of the buffer.
-               assert(bufSize >= dataSize);
-               bufSize -= dataSize;
-               memmove(buf, buf + dataSize, bufSize);
-               continue;
-            }
-            else if (rc == 0) { // At the end of stream.
-               assert(bufCapacity != bufSize);
-               line->concat(buf, bufSize);
-               bufSize = 0;
-               return line.release();
-            }
-         }
-      }
+   DLLLOCAL void setEncoding(const QoreEncoding* n_enc) {
+      enc = n_enc;
    }
 
    //! Read binary data from the stream.
    /** @param limit max amount of data to read; if equal to -1, all data will be read, if equal to 0, no data will be read
+       @param xsink exception sink
+
+       @return Qore binary read from the stream
     */
    DLLLOCAL BinaryNode* readBinary(int64 limit, ExceptionSink* xsink) {
+      if (limit == 0)
+         return 0;
       SimpleRefHolder<BinaryNode> b(new BinaryNode());
-      if (limit >= 0 && static_cast<int64>(bufSize) >= limit) {
-         b->append(buf, limit);
-         shiftBuffer(limit);
-         return b->empty() ? 0 : b.release();
-      }
-      else { // Either limit is -1 or we need more data than is currently in the buffer.
-         int64 toRead = limit;
-         b->append(buf, bufSize);
-         toRead -= bufSize;
-         bufSize = 0;
+      char buffer[STREAMREADER_BUFFER_SIZE];
+      if (limit == -1) {
          while (true) {
-            qore_size_t bytes = limit < 0 ? bufCapacity : QORE_MIN(static_cast<qore_size_t>(toRead), bufCapacity);
-            int64 rc = fillBuffer(bytes, xsink);
+            int rc = readData(xsink, buffer, STREAMREADER_BUFFER_SIZE, false);
             if (*xsink)
                return 0;
-            if (rc == 0) // Input stream end.
-               return b->empty() ? 0 : b.release();
-
-            b->append(buf, bufSize);
-            toRead -= bufSize;
-            bufSize = 0;
-            if (toRead == 0)
-               return b.release();
+            if (rc == 0)
+               break;
+            b->append(buffer, rc);
          }
+      }
+      else {
+         while (limit > 0) {
+            int rc = readData(xsink, buffer, QORE_MIN(limit, STREAMREADER_BUFFER_SIZE), false);
+            if (*xsink)
+               return 0;
+            if (rc == 0)
+               break;
+            b->append(buffer, rc);
+            limit -= rc;
+         }
+      }
+
+      return b->empty() ? 0 : b.release();
+   }
+
+   //! Read string data from the stream.
+   /** @param size max amount of data to read as a number of characters; if equal to -1, all data will be read, if equal to 0, no data will be read
+       @param xsink exception sink
+
+       @return Qore string read from the stream
+    */
+   DLLLOCAL QoreStringNode* readString(int64 size, ExceptionSink* xsink) {
+      return q_read_string(xsink, size, enc, std::bind(&StreamReader::readData, this, _3, _1, _2, false));
+   }
+
+   //! Read one line.
+   /** @param eol end-of-line symbol, if missing and the character encoding is ASCII-compatible, then '\n', '\r' and '\r\n' are supported), otherwise if missing, and the character encoding is not ASCII-compatible, then '\n' is assumed
+       @param trim whether to trim the EOL symbols
+       @param xsink exception sink
+
+       @return Qore string read from the stream
+    */
+   DLLLOCAL QoreStringNode* readLine(const QoreStringNode* eol, bool trim, ExceptionSink* xsink) {
+      if (!eol && !enc->isAsciiCompat()) {
+         QoreString nl("\n");
+         return readLineEol(&nl, trim, xsink);
+      }
+
+      return eol ? readLineEol(eol, trim, xsink) : readLine(trim, xsink);
+   }
+
+   DLLLOCAL QoreStringNode* readLineEol(const QoreString* eol, bool trim, ExceptionSink* xsink) {
+      TempEncodingHelper eolstr(eol, enc, xsink);
+      if (*xsink)
+         return 0;
+      eolstr.removeBom();
+
+      SimpleRefHolder<QoreStringNode> str(new QoreStringNode(enc));
+
+      qore_size_t eolpos = 0;
+
+      while (true) {
+         char c;
+         int64 rc = readData(xsink, &c, 1, false);
+         //printd(5, "StreamReader::readLineEol() eolpos: %d/%d rc: %d c: %d str: '%s' (%s)\n", eolpos, eolstr->size(), rc, c, str->c_str(), enc->getCode());
+         if (*xsink)
+            return 0;
+         if (!rc)
+            return str->empty() ? 0 : q_remove_bom_utf16(str.release(), enc);
+
+         // add the char to the string
+         str->concat(c);
+
+         if ((**eolstr)[eolpos] == c) {
+            ++eolpos;
+            if (eolpos == eolstr->size()) {
+               if (trim)
+                  str->terminate(str->size() - eolpos);
+               return q_remove_bom_utf16(str.release(), enc);
+            }
+         }
+         else if (eolpos) {
+            // check all positions to see if the string matches
+            bool found = false;
+            for (size_t i = eolpos; i; --i) {
+               // we have to use memcmp here because we could be dealing with character
+               // encodings that include nulls in the string (ex: UTF-16*)
+               if (!memcmp(eolstr->c_str(), str->c_str() + str->size() - i, i)) {
+                  found = true;
+                  if (eolpos != i)
+                     eolpos = i;
+                  break;
+               }
+            }
+            if (!found)
+               eolpos = 0;
+         }
+      }
+   }
+
+   DLLLOCAL QoreStringNode* readLine(bool trim, ExceptionSink* xsink) {
+      SimpleRefHolder<QoreStringNode> str(new QoreStringNode(enc));
+
+      while (true) {
+         char c;
+         int64 rc = readData(xsink, &c, 1, false);
+         if (*xsink)
+            return 0;
+         if (!rc) { // End of stream.
+            return str->empty() ? 0 : str.release();
+         }
+
+         if (c == '\n') {
+            if (!trim)
+               str->concat(c);
+            return str.release();
+         }
+         else if (c == '\r') {
+            if (!trim)
+               str->concat(c);
+            int64 p = peek(xsink);
+            if (*xsink)
+               return 0;
+            if (p == '\n') {
+               readData(xsink, &c, 1);
+               if (!trim)
+                  str->concat((char)p);
+            }
+            return str.release();
+         }
+         str->concat(c);
       }
    }
 
    DLLLOCAL int64 readi1(ExceptionSink* xsink) {
       char i = 0;
-      if (!prepareEnoughData(1, xsink))
+      if (readData(xsink, &i, 1) < 0)
          return 0;
-      i = buf[0];
-      shiftBuffer(1);
       return i;
    }
 
    DLLLOCAL int64 readi2(ExceptionSink* xsink) {
       short i = 0;
-      if (!prepareEnoughData(2, xsink))
+      if (readData(xsink, &i, 2) < 0)
          return 0;
-      i = reinterpret_cast<short*>(buf)[0];
-      shiftBuffer(2);
       i = ntohs(i);
       return i;
    }
 
    DLLLOCAL int64 readi4(ExceptionSink* xsink) {
       int32_t i = 0;
-      if (!prepareEnoughData(4, xsink))
+      if (readData(xsink, &i, 4) < 0)
          return 0;
-      i = reinterpret_cast<int32_t*>(buf)[0];
-      shiftBuffer(4);
       i = ntohl(i);
       return i;
    }
 
    DLLLOCAL int64 readi8(ExceptionSink* xsink) {
       int64 i = 0;
-      if (!prepareEnoughData(8, xsink))
+      if (readData(xsink, &i, 8) < 0)
          return 0;
-      i = reinterpret_cast<int64*>(buf)[0];
-      shiftBuffer(8);
       i = i8MSB(i);
       return i;
    }
 
    DLLLOCAL int64 readi2LSB(ExceptionSink* xsink) {
       short i = 0;
-      if (!prepareEnoughData(2, xsink))
+      if (readData(xsink, &i, 2) < 0)
          return 0;
-      i = reinterpret_cast<short*>(buf)[0];
-      shiftBuffer(2);
       i = i2LSB(i);
       return i;
    }
 
    DLLLOCAL int64 readi4LSB(ExceptionSink* xsink) {
       int32_t i = 0;
-      if (!prepareEnoughData(4, xsink))
+      if (readData(xsink, &i, 4) < 0)
          return 0;
-      i = reinterpret_cast<int32_t*>(buf)[0];
-      shiftBuffer(4);
       i = i4LSB(i);
       return i;
    }
 
    DLLLOCAL int64 readi8LSB(ExceptionSink* xsink) {
       int64 i = 0;
-      if (!prepareEnoughData(8, xsink))
+      if (readData(xsink, &i, 8) < 0)
          return 0;
-      i = reinterpret_cast<int64*>(buf)[0];
-      shiftBuffer(8);
       i = i8LSB(i);
       return i;
    }
 
    DLLLOCAL int64 readu1(ExceptionSink* xsink) {
       unsigned char i = 0;
-      if (!prepareEnoughData(1, xsink))
+      if (readData(xsink, &i, 1) < 0)
          return 0;
-      i = reinterpret_cast<unsigned char*>(buf)[0];
-      shiftBuffer(1);
       return i;
    }
 
    DLLLOCAL int64 readu2(ExceptionSink* xsink) {
       unsigned short i = 0;
-      if (!prepareEnoughData(2, xsink))
+      if (readData(xsink, &i, 2) < 0)
          return 0;
-      i = reinterpret_cast<unsigned short*>(buf)[0];
-      shiftBuffer(2);
       i = ntohs(i);
       return i;
    }
 
    DLLLOCAL int64 readu4(ExceptionSink* xsink) {
       uint32_t i = 0;
-      if (!prepareEnoughData(4, xsink))
+      if (readData(xsink, &i, 4) < 0)
          return 0;
-      i = reinterpret_cast<uint32_t*>(buf)[0];
-      shiftBuffer(4);
       i = ntohl(i);
       return i;
    }
 
    DLLLOCAL int64 readu2LSB(ExceptionSink* xsink) {
       unsigned short i = 0;
-      if (!prepareEnoughData(2, xsink))
+      if (readData(xsink, &i, 2) < 0)
          return 0;
-      i = reinterpret_cast<unsigned short*>(buf)[0];
-      shiftBuffer(2);
       i = i2LSB(i);
       return i;
    }
 
    DLLLOCAL int64 readu4LSB(ExceptionSink* xsink) {
       uint32_t i = 0;
-      if (!prepareEnoughData(4, xsink))
+      if (readData(xsink, &i, 4) < 0)
          return 0;
-      i = reinterpret_cast<uint32_t*>(buf)[0];
-      shiftBuffer(4);
       i = i4LSB(i);
       return i;
    }
 
    DLLLOCAL virtual const char* getName() const { return "StreamReader"; }
 
-private:
-   DLLLOCAL int64 fillBuffer(qore_size_t bytes, ExceptionSink* xsink) {
-      assert(bufSize + bytes <= bufCapacity);
-      int64 rc = in->read(buf + bufSize, bytes, xsink);
-      if (*xsink)
-         return 0;
-      bufSize += rc;
-      return rc;
-   }
+protected:
+   // default buffer size (note that I/O is generally unbuffered in this class)
+   static const int STREAMREADER_BUFFER_SIZE = 4096;
 
-   DLLLOCAL bool prepareEnoughData(qore_size_t bytes, ExceptionSink* xsink) {
-      assert(bytes <= bufCapacity);
-      if (bufSize < bytes) {
-         while (true) {
-            int64 rc = fillBuffer(bytes - bufSize, xsink);
-            if (*xsink) {
-               return false;
-            }
-            if (rc == 0) {
-               xsink->raiseException("END-OF-STREAM-ERROR", "there is not enough data available in the stream");
-               return false;
-            }
-            if (bufSize >= bytes)
-               break;
-         }
-      }
-      return true;
-   }
-
-   DLLLOCAL void shiftBuffer(qore_size_t bytes) {
-      assert(bytes <= bufSize);
-      bufSize -= bytes;
-      memmove(buf, buf+bytes, bufSize);
-   }
-
-   //! Try to find EOL in buffer and write it's size to eolLen parameter.
-   /** @param eol end-of-line string
-       @param eolLen size of eol in bytes
-       @param endOfStream whether this is end of the stream
-    */
-   DLLLOCAL const char* findEolInBuffer(const QoreStringNode* eol, qore_size_t& eolLen, bool endOfStream) const {
-      if (eol) {
-         const char* p = strstr(buf, eol->getBuffer());
-         eolLen = eol->strlen();
-         return p;
-      }
-      else {
-         const char* p = strpbrk(buf, "\n\r"); // Find first occurence of '\n' or '\r'.
-         if (p) { // Found end of line.
-            if (*p == '\n') {
-               eolLen = 1;
-            }
-            else { // *p == '\r'
-               if (*(p+1) == '\n') {
-                  eolLen = 2;
-               }
-               // '\r' is the last character in the buffer, '\n' could be next in the stream.
-               // Unless this is the end of the stream.
-               else if (static_cast<qore_size_t>(p - buf + 1) == bufSize) {
-                  eolLen = 1;
-                  if (!endOfStream)
-                     p = 0;
-               }
-               else {
-                  eolLen = 1;
-               }
-            }
-         }
-         else {
-            eolLen = 0;
-         }
-         return p;
-      }
-   }
-
-private:
+   //! Source input stream.
    ReferenceHolder<InputStream> in;
+
+   //! Encoding of the source input stream.
    const QoreEncoding* enc;
-   qore_size_t bufCapacity; //! Total capacity of buf.
-   qore_size_t bufSize; //! Current size of data in buf.
-   char* buf;
+
+private:
+   //! Read data until a limit.
+   /** @param xsink exception sink
+       @param dest destination buffer
+       @param limit maximum amount of data to read
+       @param require_all if true then throw an exception if the required amount of data cannot be read from the stream
+
+       @return amount of data read, -1 in case of error
+    */
+   DLLLOCAL virtual qore_offset_t readData(ExceptionSink* xsink, void* dest, qore_size_t limit, bool require_all = true) {
+      assert(dest);
+      assert(limit > 0);
+      char* destPtr = static_cast<char*>(dest);
+      qore_size_t read = 0;
+      while (true) {
+         int64 rc = in->read(destPtr + read, limit - read, xsink);
+         if (*xsink)
+            return -1;
+         //printd(5, "StreamReader::readData() dest: %p limit: " QLLD " read: " QLLD " rc: " QLLD " char: %d\n", dest, limit, read, rc, destPtr[0]);
+         if (!rc) {
+            if (require_all) {
+               xsink->raiseException("END-OF-STREAM-ERROR", "there is not enough data available in the stream; " QLLD " bytes were requested, and " QLLD " were read", limit, read);
+               return -1;
+            }
+            break;
+         }
+         read += rc;
+         if (read == limit)
+            break;
+      }
+      return read;
+   }
+
+   /**
+    * @brief Peeks the next byte from the input stream.
+    * @param xsink the exception sink
+    * @return the next byte available to be read, -1 indicates end of the stream, -2 indicates an error
+    */
+   virtual int64 peek(ExceptionSink* xsink) {
+      return in->peek(xsink);
+   }
 };
 
 #endif // _QORE_STREAMREADER_H

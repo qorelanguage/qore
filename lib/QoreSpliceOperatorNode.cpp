@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/qore_program_private.h"
 
 QoreString QoreSpliceOperatorNode::splice_str("splice operator expression");
 
@@ -153,14 +153,17 @@ QoreValue QoreSpliceOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
 
    if (vt == NT_LIST) {
       QoreListNode *vl = reinterpret_cast<QoreListNode *>(val.getValue());
-      if (!length_exp && !new_exp)
-	 vl->splice(offset, xsink);
+      if (!length_exp && !new_exp) {
+         vl->splice(offset, xsink);
+      }
       else {
-	 qore_size_t length = (qore_size_t)elength->getAsBigInt();
-	 if (!new_exp)
-	    vl->splice(offset, length, xsink);
-	 else
-	    vl->splice(offset, length, *exp_holder, xsink);
+         qore_size_t length = (qore_size_t)elength->getAsBigInt();
+         if (!new_exp) {
+            vl->splice(offset, length, xsink);
+         }
+         else {
+            vl->splice(offset, length, *exp_holder, xsink);
+         }
       }
    }
    else if (vt == NT_STRING) {

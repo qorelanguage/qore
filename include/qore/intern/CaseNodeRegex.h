@@ -32,8 +32,8 @@
 #ifndef QORE_CASENODEREGEX_H
 #define QORE_CASENODEREGEX_H
 
-#include <qore/intern/SwitchStatement.h>
-#include <qore/intern/QoreRegex.h>
+#include "qore/intern/SwitchStatement.h"
+#include "qore/intern/QoreRegex.h"
 
 // Class supporting:
 // switch ($a) {

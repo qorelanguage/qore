@@ -1,8 +1,8 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/$(mypkglibdir)
-#modverdir = $(libdir)/$(mymodverdir)
 modverdir = $(datarootdir)/$(mymodverdir)
 includedir = $(prefix)/include/qore
+qoredatadir = $(datarootdir)/qore
 
 ## use automake to create the Makefile.in for configure
 
@@ -20,29 +20,34 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/HttpServer.qm \
 	qlib/WebSocketUtil.qm \
 	qlib/SqlUtil.qm \
-	qlib/Mapper.qm
+	qlib/Mapper.qm \
+	qlib/ConnectionProvider.qm \
+	qlib/RestClient.qm
 
-DOX_MODULES = qlib/SmtpClient.qm \
-	qlib/TelnetClient.qm \
-	qlib/Pop3Client.qm \
+DOX_MODULES = qlib/BulkSqlUtil.qm \
 	qlib/CsvUtil.qm \
+	qlib/DatasourceProvider.qm \
+	qlib/Diff.qm \
 	qlib/FilePoller.qm \
 	qlib/FixedLengthUtil.qm \
+	qlib/FreetdsSqlUtil.qm \
 	qlib/OracleSqlUtil.qm \
 	qlib/PgsqlSqlUtil.qm \
-	qlib/FreetdsSqlUtil.qm \
+	qlib/Pop3Client.qm \
+	qlib/Qdx.qm \
 	qlib/Qorize.qm \
+	qlib/QUnit.qm \
 	qlib/MysqlSqlUtil.qm \
 	qlib/RestHandler.qm \
-	qlib/RestClient.qm \
-	qlib/WebSocketHandler.qm \
-	qlib/WebSocketClient.qm \
-	qlib/WebUtil.qm \
-	qlib/TableMapper.qm \
+	qlib/SalesforceRestClient.qm \
 	qlib/Schema.qm \
-	qlib/QUnit.qm \
-	qlib/Diff.qm \
-	qlib/BulkSqlUtil.qm
+	qlib/SchemaReverse.qm \
+	qlib/SmtpClient.qm \
+	qlib/TableMapper.qm \
+	qlib/TelnetClient.qm \
+	qlib/WebSocketClient.qm \
+	qlib/WebSocketHandler.qm \
+	qlib/WebUtil.qm
 
 USER_MODULES = $(DOX_SRC_MODULES) \
 	$(DOX_MODULES)
@@ -147,9 +152,12 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_PipeOutputStream.qpp \
 	lib/QC_StreamWriter.qpp \
 	lib/QC_StreamReader.qpp \
+	lib/QC_BufferedStreamReader.qpp \
 	lib/QC_Transform.qpp \
 	lib/QC_TransformInputStream.qpp \
 	lib/QC_TransformOutputStream.qpp \
+	lib/QC_StdoutOutputStream.qpp \
+	lib/QC_StderrOutputStream.qpp \
 	lib/Pseudo_QC_All.qpp \
 	lib/Pseudo_QC_Nothing.qpp \
 	lib/Pseudo_QC_Date.qpp \
@@ -483,24 +491,28 @@ noinst_HEADERS = \
 	include/qore/intern/FunctionalOperator.h \
 	include/qore/intern/qore_var_rwlock_priv.h \
 	include/qore/intern/qore_qd_private.h \
-        include/qore/intern/BinaryInputStream.h \
-        include/qore/intern/BinaryOutputStream.h \
-        include/qore/intern/EncodingConversionInputStream.h \
-        include/qore/intern/EncodingConversionOutputStream.h \
-        include/qore/intern/FileInputStream.h \
-        include/qore/intern/FileOutputStream.h \
-        include/qore/intern/InputStreamBase.h \
-        include/qore/intern/InputStreamLineIterator.h \
-        include/qore/intern/InputStreamWrapper.h \
-        include/qore/intern/OutputStreamBase.h \
-        include/qore/intern/OutputStreamWrapper.h \
-        include/qore/intern/StreamPipe.h \
-        include/qore/intern/StreamReader.h \
-        include/qore/intern/StreamWriter.h \
-        include/qore/intern/StringInputStream.h \
-        include/qore/intern/StringOutputStream.h \
-        include/qore/intern/TransformInputStream.h \
-        include/qore/intern/TransformOutputStream.h \
+	include/qore/intern/BinaryInputStream.h \
+	include/qore/intern/BinaryOutputStream.h \
+	include/qore/intern/EncodingConversionInputStream.h \
+	include/qore/intern/EncodingConversionOutputStream.h \
+	include/qore/intern/FileInputStream.h \
+	include/qore/intern/FileOutputStream.h \
+	include/qore/intern/InputStreamBase.h \
+	include/qore/intern/InputStreamLineIterator.h \
+	include/qore/intern/InputStreamWrapper.h \
+	include/qore/intern/OutputStreamBase.h \
+	include/qore/intern/OutputStreamWrapper.h \
+	include/qore/intern/StreamPipe.h \
+	include/qore/intern/StreamWriter.h \
+	include/qore/intern/StreamReader.h \
+	include/qore/intern/BufferedStreamReader.h \
+	include/qore/intern/StringInputStream.h \
+	include/qore/intern/StringOutputStream.h \
+	include/qore/intern/TransformInputStream.h \
+	include/qore/intern/TransformOutputStream.h \
+	include/qore/intern/StdoutOutputStream.h \
+	include/qore/intern/StderrOutputStream.h \
+	include/qore/intern/StringReaderHelper.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \
@@ -630,11 +642,7 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
 	examples/obj2.q \
 	examples/old2new \
 	examples/pop3.q \
-	examples/qget \
-	examples/rest \
 	examples/restserver.q \
-	examples/schema \
-	examples/sqlutil \
 	examples/stmt.q \
 	examples/telnet.q \
 	qore.spec \
@@ -646,6 +654,8 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
 	$(LANG_QPP_SRC)
 
 dist_modver_DATA = $(USER_MODULES)
+
+dist_qoredata_DATA = doxygen/Doxyfile.in
 
 include $(srcdir)/qoretests.mk
 
@@ -725,6 +735,12 @@ doxygen/qlib/Doxyfile.WebSocketUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 
 doxygen/qlib/Doxyfile.Mapper: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/Mapper.qm:doxygen/qlib/Mapper.qm.dox.h $< $@
+
+doxygen/qlib/Doxyfile.ConnectionProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/ConnectionProvider.qm:doxygen/qlib/ConnectionProvider.qm.dox.h -tMime.tag=../../Mime/html $< $@
+
+doxygen/qlib/Doxyfile.RestClient: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/RestClient.qm:doxygen/qlib/RestClient.qm.dox.h -tMime.tag=../../Mime/html -tConnectionProvider.tag=../../ConnectionProvider/html $< $@
 
 DOXYFILE_TARG = $(addprefix doxygen/qlib/Doxyfile.,$(DOX_USER_MODS))
 $(DOXYFILE_TARG): doxygen/qlib/Doxyfile.%: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
@@ -809,7 +825,7 @@ endif
 
 bin_PROGRAMS = qore
 # qr
-dist_bin_SCRIPTS = doxygen/qdx
+dist_bin_SCRIPTS = doxygen/qdx bin/qget bin/rest bin/schema bin/sfrest bin/sqlutil bin/schema-reverse
 if COND_SINGLE_COMPILATION_UNIT
 qore_SOURCES = qore-single-compilation-unit.cpp
 #qr_SOURCES = qr-single-compilation-unit.cpp

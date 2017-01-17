@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -42,7 +42,6 @@ DLLEXPORT extern QoreClass* QC_INPUTSTREAM;
  * Methods in this interface serve as low-level API for using input streams from C++ code.
  */
 class InputStream : public AbstractPrivateData {
-
 public:
    /**
     * @brief Reads up to `limit` bytes from the input stream.
@@ -52,6 +51,13 @@ public:
     * @return the number of bytes read, 0 indicates the end of the stream
     */
    virtual int64 read(void *ptr, int64 limit, ExceptionSink *xsink) = 0;
+
+   /**
+    * @brief Peeks the next byte from the input stream.
+    * @param xsink the exception sink
+    * @return the next byte available to be read, -1 indicates end of the stream, -2 indicates an error
+    */
+   virtual int64 peek(ExceptionSink *xsink) = 0;
 
 protected:
    /**

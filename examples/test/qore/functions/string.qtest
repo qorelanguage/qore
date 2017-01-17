@@ -34,5 +34,14 @@ public class StringTest inherits QUnit::Test {
         assertEq(-4970.55n, parse_number("-4,970.55", ",."));
         assertEq(-4970.55, parse_float("-4,970.55", ",."));
         assertEq(-4970, parse_int("-4,970.55", ",."));
+
+        assertEq("asd", trunc_str("asdfäzxcv", 3));
+        assertEq("asdf", trunc_str("asdfäzxcv", 4));
+        assertEq("asdf", trunc_str("asdfäzxcv", 5));
+        assertEq("asdfä", trunc_str("asdfäzxcv", 6));
+        assertEq("asdfäz", trunc_str("asdfäzxcv", 7));
+        assertEq("asdfäzx", trunc_str("asdfäzxcv", 8));
+
+        assertEq(195, ord("à"));
     }
 }

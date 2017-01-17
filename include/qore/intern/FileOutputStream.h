@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -41,8 +41,8 @@
 class FileOutputStream : public OutputStreamBase {
 
 public:
-   DLLLOCAL FileOutputStream(const QoreStringNode *fileName, bool append, int mode, ExceptionSink *xsink) {
-      f.open2(xsink, fileName->getBuffer(), O_WRONLY | (append ? O_APPEND : O_TRUNC) | O_CREAT, mode);
+   DLLLOCAL FileOutputStream(const QoreStringNode *fileName, bool append, int mode, const QoreEncoding* encoding, ExceptionSink *xsink) {
+      f.open2(xsink, fileName->getBuffer(), O_WRONLY | (append ? O_APPEND : O_TRUNC) | O_CREAT, mode, encoding);
    }
 
    DLLLOCAL FileOutputStream(int fd) {
@@ -72,6 +72,8 @@ public:
          xsink->raiseException("FILE-WRITE-ERROR", "Error writing to file");
       }
    }
+
+   DLLLOCAL const QoreEncoding* getEncoding() const { return f.getEncoding(); }
 
 private:
    QoreFile f;

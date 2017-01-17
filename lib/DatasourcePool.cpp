@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/DatasourcePool.h>
+#include "qore/intern/DatasourcePool.h"
 
 #include <memory>
 

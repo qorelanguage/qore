@@ -30,9 +30,9 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_number_private.h>
+#include "qore/intern/qore_number_private.h"
 
-void qore_number_private::getAsString(QoreString& str, bool round) const {
+void qore_number_private::getAsString(QoreString& str, bool round, int base) const {
    // first check for zero
    if (zero()) {
       str.concat("0");
@@ -41,7 +41,7 @@ void qore_number_private::getAsString(QoreString& str, bool round) const {
 
    mpfr_exp_t exp;
 
-   char* buf = mpfr_get_str(0, &exp, 10, 0, num, QORE_MPFR_RND);
+   char* buf = mpfr_get_str(0, &exp, base, 0, num, QORE_MPFR_RND);
    if (!buf) {
       numError(str);
       return;

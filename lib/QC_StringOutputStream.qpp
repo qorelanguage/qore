@@ -32,9 +32,7 @@
 #include "qore/intern/StringOutputStream.h"
 
 //! This class implements the @ref OutputStream interface for writing bytes to a @ref string buffer
-/** @since %Qore 0.8.13
-
-    @par Example: StringOutputStream basic usage
+/** @par Example: StringOutputStream basic usage
     @code{.py}
     StringOutputStream sos();
     sos.write(<41>);
@@ -42,23 +40,29 @@
     sos.write(<43>);
     sos.getData();      # returns "ABC"
     @endcode
+
+    @note stream classes are not designed to be accessed from multiple threads; they have been implemented without locking for fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of such methods in threads other than the thread where the constructor was called will cause a \c STREAM-THREAD-ERROR to be thrown.
+
+    @see @ref Qore::StreamWriter "StreamWriter" for a class that can be used to write various kinds of data to an @ref Qore::OutputStream "OutputStream"
+
+    @since %Qore 0.8.13
  */
 qclass StringOutputStream [arg=StringOutputStream* os; ns=Qore; vparent=OutputStream; flags=final];
 
 //! Creates the StringOutputStream
 /** This variant assumes the @ref default_encoding for the string
 
-    @note raw binary data will be written to the string; it's up to the caller to ensure that only valid character data for the given encoding is written to the @ref StringOutputStream object, otherwise a string with invalid character data will be returned by getData()
+    @note raw binary data is written to the output stream, so it's up to the caller to ensure that only valid character data for the given encoding is written to the @ref StringOutputStream object, otherwise a string with invalid character data will be returned by getData()
  */
 StringOutputStream::constructor() {
-   SimpleRefHolder<StringOutputStream> sos(new StringOutputStream());
+   SimpleRefHolder<StringOutputStream> sos(new StringOutputStream);
    self->setPrivate(CID_STRINGOUTPUTSTREAM, sos.release());
 }
 
 //! Creates the StringOutputStream
 /** @param encoding the encoding to tag the string data with
 
-    @note raw binary data will be written to the string; it's up to the caller to ensure that only valid character data for the given encoding is written to the @ref StringOutputStream object, otherwise a string with invalid character data will be returned by getData()
+    @note raw binary data is written to the output stream, so it's up to the caller to ensure that only valid character data for the given encoding is written to the @ref StringOutputStream object, otherwise a string with invalid character data will be returned by getData()
  */
 StringOutputStream::constructor(string encoding) {
    SimpleRefHolder<StringOutputStream> sos(new StringOutputStream(QEM.findCreate(encoding)));
@@ -67,6 +71,9 @@ StringOutputStream::constructor(string encoding) {
 
 //! Closes the output stream and releases any resources.
 /** Any methods called on a closed output stream will throw an exception.
+
+    @throw OUTPUT-STREAM-CLOSED-ERROR the output stream has already been closed
+    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 nothing StringOutputStream::close() {
    os->closeHelper(xsink);
@@ -84,6 +91,9 @@ nothing StringOutputStream::close() {
     sos.write(<43>);
     sos.getData();      # returns "ABC"
     @endcode
+
+    @throw OUTPUT-STREAM-CLOSED-ERROR the output stream has already been closed
+    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 nothing StringOutputStream::write(binary data) {
    os->writeHelper(data, xsink);
@@ -101,6 +111,9 @@ nothing StringOutputStream::write(binary data) {
     sos.write(<43>);
     sos.getData();      # returns "ABC"
     @endcode
+
+    @throw OUTPUT-STREAM-CLOSED-ERROR the output stream has already been closed
+    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 string StringOutputStream::getData() {
    return os->getData(xsink);
@@ -114,6 +127,8 @@ string encoding = sos.getEncoding();
     @endcode
 
     @return the @ref character_encoding "character encoding" for the @ref StringOutputStream
+
+    @note raw binary data is written to the output stream, so it's up to the caller to ensure that only valid character data for the given encoding is written to the @ref StringOutputStream object, otherwise a string with invalid character data will be returned by getData()
  */
 string StringOutputStream::getEncoding() [flags=CONSTANT] {
    return new QoreStringNode(os->getEncoding());

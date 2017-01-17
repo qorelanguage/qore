@@ -33,7 +33,7 @@
 
 #define _QORE_QORECLOSURENODE_H
 
-#include <qore/intern/QoreObjectIntern.h>
+#include "qore/intern/QoreObjectIntern.h"
 
 #include <map>
 
@@ -193,6 +193,7 @@ public:
    }
 
    DLLLOCAL ~QoreObjectClosureNode() {
+      assert(!obj);
    }
 
    DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;

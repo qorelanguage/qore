@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreObjectIntern.h>
+#include "qore/intern/QoreObjectIntern.h"
 
 QoreString QorePlusOperatorNode::plus_str("+ operator expression");
 

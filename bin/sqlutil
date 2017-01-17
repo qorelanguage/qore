@@ -34,25 +34,27 @@
 %define NoYaml
 %endtry
 
-const opts = (
-    "align_all": "A,align-all=s",
-    "align_data": "D,align-data=s",
-    "align_data_strict": "s,align-data-strict",
-    "align_table": "a,align-table=s",
-    "dump_table": "t,dump-table=s@",
-    "export_table": "export=s",
-    "import_table": "import=s",
-    "dump_sequence": "S,dump-sequence=s@",
-    "dump_object": "dump=s@",
-    "omit": "O,omit=s@",
-    "list_tables": "L,list-tables",
-    "list_objects": "list=s@",
+%requires DatasourceProvider
 
-    "data_tablespace": "d,data-tablespace=s",
-    "index_tablespace": "i,index-tablespace=s",
-    "target_ds": "T,target-ds=s",
-    "verbose": "v,verbose:i+",
-    "help": "h,help",
+const opts = (
+    "align_all":         "A,align-all=s",
+    "align_data":        "D,align-data=s",
+    "align_data_strict": "s,align-data-strict",
+    "align_table":       "a,align-table=s",
+    "dump_table":        "t,dump-table=s@",
+    "export_table":      "export=s",
+    "import_table":      "import=s",
+    "dump_sequence":     "S,dump-sequence=s@",
+    "dump_object":       "dump=s@",
+    "omit":              "O,omit=s@",
+    "list_tables":       "L,list-tables",
+    "list_objects":      "list=s@",
+
+    "data_tablespace":   "d,data-tablespace=s",
+    "index_tablespace":  "i,index-tablespace=s",
+    "target_ds":         "T,target-ds=s",
+    "verbose":           "v,verbose:i+",
+    "help":              "h,help",
     );
 
 # list of options that require a target datasource
@@ -234,7 +236,7 @@ class DumpObjects {
                 printf("Unable to dump object of type: %n\n", type);
                 continue;
             }
-            else if (!is_object_supported (m_db, type))
+            else if (!is_object_supported (m_db, type)) {
                 printf("Unable to dump object of type: %n\n", type);
                 continue;
             }
@@ -302,7 +304,7 @@ sub main() {
     }
 
     # source datasource
-    Datasource source(ARGV[0]);
+    Datasource source(get_ds_string(ARGV[0]));
 
     # info callback closure and embedded variables
     int change_count = 0;

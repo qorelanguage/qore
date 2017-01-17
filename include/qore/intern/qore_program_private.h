@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -37,8 +37,8 @@
 extern QoreListNode* ARGV, * QORE_ARGV;
 extern QoreHashNode* ENV;
 
-#include <qore/intern/ParserSupport.h>
-#include <qore/intern/QoreNamespaceIntern.h>
+#include "qore/intern/ParserSupport.h"
+#include "qore/intern/QoreNamespaceIntern.h"
 
 #include <stdarg.h>
 #include <errno.h>
@@ -351,6 +351,9 @@ class qore_program_private_base {
 protected:
    DLLLOCAL void setDefines();
 
+   typedef std::map<const char*, AbstractQoreProgramExternalData*, ltstr> extmap_t;
+   extmap_t extmap;
+
 public:
    LocalVariableList local_var_list;
 
@@ -439,6 +442,10 @@ public:
         exceptions_raised(0), ptid(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(0), twaiting(0),
         thr_init(0), exec_class_rv(0), pgm(n_pgm) {
       printd(QPP_DBG_LVL, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: " QLLD "\n", this, pgm, n_parse_options);
+
+#ifdef DEBUG
+      pgm->priv = (qore_program_private*)this;
+#endif
 
       if (p_pgm)
 	 setParent(p_pgm, n_parse_options);
@@ -537,12 +544,10 @@ public:
       dc.ROreference();
    }
 
-   DLLLOCAL void depDeref(ExceptionSink* xsink) {
+   DLLLOCAL void depDeref() {
       printd(QPP_DBG_LVL, "qore_program_private::depDeref() this: %p pgm: %p %d->%d\n", this, pgm, dc.reference_count(), dc.reference_count() - 1);
-      if (dc.ROdereference()) {
-         del(xsink);
+      if (dc.ROdereference())
          delete pgm;
-      }
    }
 
    DLLLOCAL void clearProgramThreadData(ExceptionSink* xsink) {
@@ -612,6 +617,16 @@ public:
       ++tidmap[tid];
    }
 
+   /*
+   DLLLOCAL int checkValid(ExceptionSink* xsink) {
+      if (ptid && ptid != gettid()) {
+         xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed at runtime");
+         return -1;
+      }
+      return 0;
+   }
+   */
+
    // returns 0 for OK, -1 for error
    DLLLOCAL int incThreadCount(ExceptionSink* xsink) {
       int tid = gettid();
@@ -657,8 +672,8 @@ public:
       }
 
       if (ptid && ptid != gettid()) {
-         assert(xsink);
-         xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed");
+         if (xsink)
+            xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed");
          return -1;
       }
 
@@ -1536,6 +1551,18 @@ public:
    DLLLOCAL void doThreadInit(ExceptionSink* xsink);
 
    DLLLOCAL QoreClass* runtimeFindClass(const char* class_name, ExceptionSink* xsink) const;
+
+   DLLLOCAL void setExternalData(const char* owner, AbstractQoreProgramExternalData* pud) {
+      AutoLocker al(plock);
+      assert(extmap.find(owner) == extmap.end());
+      extmap.insert(extmap_t::value_type(owner, pud));
+   }
+
+   DLLLOCAL AbstractQoreProgramExternalData* getExternalData(const char* owner) const {
+      AutoLocker al(plock);
+      extmap_t::const_iterator i = extmap.find(owner);
+      return i == extmap.end() ? nullptr : i->second;
+   }
 
    DLLLOCAL static QoreClass* runtimeFindClass(const QoreProgram& pgm, const char* class_name, ExceptionSink* xsink) {
       return pgm.priv->runtimeFindClass(class_name, xsink);

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file RestHandler.qm Qore handler definition for the HttpServer module for exporting REST services
 
-/* RestHandler.qm Copyright (C) 2013 - 2016 Qore Technologies, sro
+/* RestHandler.qm Copyright (C) 2013 - 2016 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -82,6 +82,8 @@ module RestHandler {
     - <a href="http://qore.org/qore-modules/41-json-module">json</a>: provides automatic support for JSON payload de/serialization
     - <a href="http://qore.org/qore-modules/40-xml-module">xml</a>: provides automatic support for XML-RPC payload de/serialization
     - <a href="http://qore.org/qore-modules/38-yaml-module">yaml</a>: provides automatic support for YAML payload de/serialization
+
+    URL form encoding is supported as well for message bodies according to <a href="https://tools.ietf.org/html/rfc1738">RFC 2738 2.2</a> with \c "Content-Type: application/x-www-form-urlencoded".
 
     For standard REST web service development, the <a href="http://qore.org/qore-modules/41-json-module">json</a> module will be required to support JSON serialization.
 
@@ -313,6 +315,9 @@ Content-Length: 36
     - @ref RestHandler::AbstractRestStreamRequestHandler is now the base abstract class for REST stream request handlers
     - send errors are now reported in the @ref RestHandler::AbstractRestStreamRequestHandler object so they can be properly logged (<a href="https://github.com/qorelanguage/qore/issues/734">issue 734</a>)
     - unknown REST class errors with the base class are now reported consistently like all other such errors (<a href="https://github.com/qorelanguage/qore/issues/859">issue 859</a>)
+
+    @subsection rh_1_0_1 RestHandler v1.0.1
+    - added support for URL form encoded formatted message bodies (<a href="https://github.com/qorelanguage/qore/issues/1436">issue 1436</a>)
 
     @subsection rh_1_0 RestHandler v1.0
     - the initial version of the RestHandler module
@@ -641,7 +646,8 @@ public namespace RestHandler {
             }
             catch (hash ex) {
                 # make sure the error is registered with the stream handler
-                rsh.streamError(ex);
+                if (rsh)
+                    rsh.streamError(ex);
                 string desc = !cx.debug
                     ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
                     : get_exception_string(ex);
@@ -767,7 +773,33 @@ public namespace RestHandler {
                     "serialize": \make_xmlrpc_value(),
                     "deserialize": \parse_xmlrpc_value(),
                 ),
+                MimeTypeXmlApp: (
+                    "serialize": string sub (any v) {
+                        switch (v.typeCode()) {
+                            case NT_LIST: return make_xml(("list": ("element": v)));
+                            case NT_HASH: return v.size() == 1 && v.firstValue().lsize() == 1 ? make_xml(v) : make_xml(("value": v));
+                        }
+                        return make_xml(("value": v));
+                    },
+                    "deserialize": hash sub (string xml) {
+                        try {
+                            return parse_xmlrpc_value(xml);
+                        }
+                        catch (hash ex) {
+                            try {
+                                return parse_xml(xml);
+                            }
+                            catch () {
+                            }
+                            rethrow;
+                        }
+                    },
+                ),
 %endif
+                MimeTypeFormUrlEncoded: (
+                    "serialize": \mime_get_form_urlencoded_string(),
+                    "deserialize": \mime_parse_form_urlencoded_string(),
+                ),
                 MimeTypeHtml: (
                     "serialize": string sub (any body) { return sprintf("<pre>%N</pre>", body); },
                 ),

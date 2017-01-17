@@ -63,14 +63,14 @@ public:
             switch (errno) {
                case EINVAL:
                   if (src == nullptr) {         //flushing - there will be no more input
-                     conv.reportIllegalSequence(xsink);
+                     conv.reportIllegalSequence(inbuf - inBuf, xsink);
                      return std::make_pair(0, 0);
                   }
                   break;
                case E2BIG:
                   break;
                case EILSEQ:
-                  conv.reportIllegalSequence(xsink);
+                  conv.reportIllegalSequence(inbuf - inBuf, xsink);
                   return std::make_pair(0, 0);
                default:
                   conv.reportUnknownError(xsink);

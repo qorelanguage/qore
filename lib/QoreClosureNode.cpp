@@ -80,7 +80,7 @@ void ThreadSafeLocalVarRuntimeEnvironment::del(ExceptionSink* xsink) {
 
 bool QoreClosureNode::derefImpl(ExceptionSink* xsink) {
    del(xsink);
-   pgm->depDeref(xsink);
+   pgm->depDeref();
    return true;
 }
 

@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/qore_string_private.h>
+#include "qore/intern/qore_string_private.h"
 
 #include <stdarg.h>
 
@@ -109,12 +109,12 @@ int64 QoreStringNode::getAsBigIntImpl() const {
 }
 
 double QoreStringNode::getAsFloatImpl() const {
-   return strtod(getBuffer(), 0);
+   return q_strtod(getBuffer());
 }
 
 QoreString *QoreStringNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
-   TempString str(getEncoding());
+   TempString str;
    str->concat('"');
    str->concatEscape(this, '\"', '\\', xsink);
    if (*xsink)
@@ -124,6 +124,7 @@ QoreString *QoreStringNode::getAsString(bool &del, int foff, ExceptionSink *xsin
 }
 
 int QoreStringNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
+   assert(str.getEncoding()->isAsciiCompat());
    str.concat('"');
    str.concatEscape(this, '\"', '\\', xsink);
    if (*xsink)
@@ -135,7 +136,7 @@ int QoreStringNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink)
 bool QoreStringNode::getAsBoolImpl() const {
    // check if we should do perl-style boolean evaluation
    if (runtime_check_parse_option(PO_STRICT_BOOLEAN_EVAL))
-      return atof(getBuffer());
+      return q_strtod(c_str());
    if (priv->len == 1 && priv->buf[0] == '0')
       return false;
    return !empty();
@@ -352,22 +353,6 @@ QoreNodeAsStringHelper::QoreNodeAsStringHelper(const AbstractQoreNode *n, int fo
 
 QoreNodeAsStringHelper::QoreNodeAsStringHelper(const QoreValue n, int format_offset, ExceptionSink *xsink) {
    str = n.getAsString(del, format_offset, xsink);
-   /*
-   if (n.isNothing()) {
-      str = format_offset == FMT_YAML_SHORT ? &YamlNullString : &NothingTypeString;
-      del = false;
-      return;
-   }
-   switch (n.type) {
-      case QV_Int: str = new QoreStringMaker(QLLD, n.v.i); del = true; break;
-      case QV_Bool: str = n.v.b ? &TrueString : &FalseString; del = false; break;
-      case QV_Float: str = new QoreStringMaker("%.9g", n.v.f); del = true; break;
-      case QV_Node: str = n.getAsString(del, format_offset, xsink); break;
-      default:
-	 assert(false);
-	 // no break;
-   }
-   */
 }
 
 QoreNodeAsStringHelper::~QoreNodeAsStringHelper() {
@@ -396,7 +381,7 @@ void QoreStringValueHelper::setup(ExceptionSink* xsink, const QoreValue n, const
 	 break;
 
       case QV_Float:
-	 str = new QoreStringMaker("%.9g", n.getAsFloat());
+	 str = q_fix_decimal(new QoreStringMaker("%.9g", n.getAsFloat()));
 	 del = true;
 	 break;
 
@@ -456,7 +441,7 @@ void QoreStringNodeValueHelper::setup(ExceptionSink* xsink, const QoreValue n, c
 	 break;
 
       case QV_Float:
-	 str = new QoreStringNodeMaker("%.9g", n.getAsFloat());
+	 str = q_fix_decimal(new QoreStringNodeMaker("%.9g", n.getAsFloat()));
 	 del = true;
 	 break;
 

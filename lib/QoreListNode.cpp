@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_list_private.h>
+#include "qore/intern/qore_list_private.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -432,7 +432,10 @@ void QoreListNode::splice(qore_offset_t offset, qore_offset_t len, ExceptionSink
 void QoreListNode::splice(qore_offset_t offset, qore_offset_t len, const AbstractQoreNode* l, ExceptionSink* xsink) {
    qore_size_t n_offset, n_len;
    check_offset(offset, len, n_offset, n_len);
-   splice_intern(n_offset, n_len, l, xsink);
+   if (l)
+      splice_intern(n_offset, n_len, l, xsink);
+   else
+      splice_intern(n_offset, n_len, xsink);
 }
 
 QoreListNode* QoreListNode::extract(qore_offset_t offset, ExceptionSink* xsink) {

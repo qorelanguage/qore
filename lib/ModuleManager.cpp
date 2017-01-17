@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,19 +30,22 @@
   information.
 */
 
-#include <qore/Qore.h>
-#include <qore/intern/qore_program_private.h>
-#include <qore/intern/ModuleInfo.h>
-#include <qore/intern/QoreNamespaceIntern.h>
-#include <qore/intern/QoreException.h>
+#include "qore/Qore.h"
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/ModuleInfo.h"
+#include "qore/intern/QoreNamespaceIntern.h"
+#include "qore/intern/QoreException.h"
 
 #include <errno.h>
 #include <string.h>
 
+// dlopen() flags
+#define QORE_DLOPEN_FLAGS RTLD_LAZY|RTLD_GLOBAL
+
 #ifdef HAVE_GLOB_H
 #include <glob.h>
 #else
-#include <qore/intern/glob.h>
+#include "qore/intern/glob.h"
 #endif
 
 #include <stdlib.h>
@@ -170,7 +173,7 @@ void QoreModuleDefContext::initClosure(AbstractQoreNode*& c, const char* n) {
    int lvids = 0;
    const QoreTypeInfo* typeInfo = 0;
    // check for local variables at the top level - this can only happen if the expresion is not a closure
-   c = c->parseInit(0, PO_LOCKDOWN, lvids, typeInfo);
+   c = c->parseInit(0, 0, lvids, typeInfo);
    if (lvids) {
       parseException("ILLEGAL-LOCAL-VAR", "local variables may not be declared in module '%s' code", n);
       // discard variables immediately
@@ -260,6 +263,9 @@ static QoreStringNode* loadModuleError(const char* name, ExceptionSink& xsink) {
 
 void QoreBuiltinModule::addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink) const {
    QoreModuleContextHelper qmc(name.getBuffer(), pgm, xsink);
+
+   // make sure getProgram() returns this Program when module_ns_init() is called
+   QoreProgramContextHelper pch(pgm);
 
    RootQoreNamespace* rns = pgm->getRootNS();
    QoreNamespace* qns = pgm->getQoreNS();
@@ -555,7 +561,6 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
    assert(mmi == map.end() || !strcmp(mmi->second->getName(), name));
 
    QoreAbstractModule* mi = (mmi == map.end() ? 0 : mmi->second);
-   //printd(5, "QoreModuleManager::loadModuleIntern() '%s' mi: %p\n", name, mi);
 
    // handle module reloads
    if (load_opt & QMLO_RELOAD) {
@@ -781,6 +786,8 @@ QoreStringNode* ModuleManager::parseLoadModule(const char* name, QoreProgram* pg
 void QoreModuleManager::parseLoadModule(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport) {
    //printd(5, "ModuleManager::parseLoadModule(name: %s, pgm: %p, reexport: %d)\n", name, pgm, reexport);
 
+   assert(!xsink);
+
    char* p = strchrs(name, "<>=");
    if (p) {
       QoreString str(name, p - name);
@@ -788,10 +795,10 @@ void QoreModuleManager::parseLoadModule(ExceptionSink& xsink, const char* name, 
 
       QoreString op;
       do {
-	 if (!isblank(*p))
+	 if (!qore_isblank(*p))
 	    op.concat(*p);
 	 ++p;
-      } while (*p == '<' || *p == '>' || *p == '=' || isblank(*p));
+      } while (*p == '<' || *p == '>' || *p == '=' || qore_isblank(*p));
 
       // get version operator
       mod_op_e mo;
@@ -1032,7 +1039,7 @@ struct DLHelper {
 QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* pgm, bool reexport) {
    QoreAbstractModule* mi = 0;
 
-   void* ptr = dlopen(path, RTLD_LAZY|RTLD_GLOBAL);
+   void* ptr = dlopen(path, QORE_DLOPEN_FLAGS);
    if (!ptr) {
       xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(path), "error loading qore module '%s': %s", path, dlerror());
       return 0;
@@ -1209,7 +1216,7 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
 
    printd(5, "QoreModuleManager::loadBinaryModuleFromPath(%s) %s: calling module_init@%p\n", path, name, *module_init);
 
-   // this is needed for backwards-compatibility for modules that add builtin functions in the module initilization code
+   // this is needed for backwards-compatibility for modules that add builtin functions in the module initialization code
    QoreModuleContextHelper qmc(name, pgm, xsink);
    QoreStringNode* str = (*module_init)();
    if (str) {

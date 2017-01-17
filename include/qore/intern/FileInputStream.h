@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,6 @@
  * @brief Private data for the Qore::FileInputStream class.
  */
 class FileInputStream : public InputStreamBase {
-
 public:
    DLLLOCAL FileInputStream(const QoreStringNode *fileName, int64 timeout, ExceptionSink *xsink) : timeout(timeout) {
       f.open2(xsink, fileName->getBuffer(), O_RDONLY);
@@ -58,7 +57,21 @@ public:
       return f.read(ptr, limit, timeout, xsink);
    }
 
+   DLLLOCAL int64 peek(ExceptionSink *xsink) override {
+      qore_size_t pos = f.getPos(); // Save initial position.
+      unsigned char c;
+      qore_size_t rc = f.read(&c, 1, -1, xsink);
+      if (*xsink)
+         return -2;
+      if (rc == 0)
+         return -1;
+      f.setPos(pos); // Restore initial position.
+      return c;
+   }
+
    DLLLOCAL QoreFile& getFile() { return f; }
+
+   DLLLOCAL int64 getTimeout() const { return timeout; }
 
 private:
    QoreFile f;

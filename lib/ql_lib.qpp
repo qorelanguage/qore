@@ -30,9 +30,9 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ql_lib.h>
-#include <qore/intern/ExecArgList.h>
-#include <qore/intern/QoreSignal.h>
+#include "qore/intern/ql_lib.h"
+#include "qore/intern/ExecArgList.h"
+#include "qore/intern/QoreSignal.h"
 #include <qore/minitest.hpp>
 
 #include <errno.h>
@@ -56,7 +56,7 @@
 #ifdef HAVE_GLOB_H
 #include <glob.h>
 #else
-#include <qore/intern/glob.h>
+#include "qore/intern/glob.h"
 #endif
 
 #ifndef SIGHUP
@@ -207,7 +207,7 @@ int system(string command) [dom=EXTERNAL_PROCESS] {
       // exec pgm like system(): sh -c "command"
       execl("/bin/sh", "sh", "-c", command->getBuffer(), NULL);
       fprintf(stderr, "execvp() failed in child process for target '/bin/sh' with error code %d: %s\n", errno, strerror(errno));
-      exit(-1);
+      _Exit(-1);
       //qore_exit_process(-1);
    }
    if (pid == -1)

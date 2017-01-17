@@ -14,7 +14,8 @@ public class BinaryInputStreamTest inherits QUnit::Test {
 
     constructor() : Test("BinaryInputStreamTest", "1.0") {
         addTestCase("ctor empty", \ctorEmpty());
-        addTestCase("read", \read());
+        addTestCase("read test", \readTest());
+        addTestCase("peek test", \peekTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -26,7 +27,7 @@ public class BinaryInputStreamTest inherits QUnit::Test {
         assertEq(NOTHING, bis.read(100));
     }
 
-    read() {
+    readTest() {
         BinaryInputStream bis(<010203>);
         assertThrows("INPUT-STREAM-ERROR", sub() { bis.read(0); });
         assertThrows("INPUT-STREAM-ERROR", sub() { bis.read(-2); });
@@ -34,5 +35,17 @@ public class BinaryInputStreamTest inherits QUnit::Test {
         assertEq(<03>, bis.read(2));
         assertEq(NOTHING, bis.read(2));
         assertEq(NOTHING, bis.read(10));
+    }
+
+    peekTest() {
+        BinaryInputStream bis(<010203>);
+        assertEq(1, bis.peek());
+        assertThrows("INPUT-STREAM-ERROR", sub() { bis.read(0); });
+        assertThrows("INPUT-STREAM-ERROR", sub() { bis.read(-2); });
+        assertEq(1, bis.peek());
+        assertEq(<0102>, bis.read(2));
+        assertEq(3, bis.peek());
+        assertEq(<03>, bis.read(2));
+        assertEq(-1, bis.peek());
     }
 }

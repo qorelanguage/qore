@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,10 +31,10 @@
   information.
 */
 
-#include <qore/Qore.h>
-#include <qore/intern/QC_Socket.h>
-#include <qore/intern/ssl_constants.h>
-#include <qore/intern/QC_Queue.h>
+#include "qore/Qore.h"
+#include "qore/intern/QC_Socket.h"
+#include "qore/intern/ssl_constants.h"
+#include "qore/intern/QC_Queue.h"
 
 #include <errno.h>
 #include <string.h>
@@ -1307,7 +1307,11 @@ string data = sock.recv(-1); # read all data available
     - Socket::recvBinary()
  */
 string Socket::recv(softint size = 0, timeout timeout_ms = -1) {
-   return size > 0 ? s->recv(size, timeout_ms, xsink) : s->recv(timeout_ms, xsink);
+   if (size > 0)
+      return s->recv(size, timeout_ms, xsink);
+
+   QoreStringNode* str = s->recv(timeout_ms, xsink);
+   return !*xsink && !str ? new QoreStringNode : str;
 }
 
 //! Receives data from the socket and returns a binary object
@@ -1335,7 +1339,11 @@ binary data = sock.recvBinary(-1); # read all data available
     @see Socket::recv()
  */
 binary Socket::recvBinary(softint size = 0, timeout timeout_ms = -1) {
-   return size > 0 ? s->recvBinary(size, timeout_ms, xsink) : s->recvBinary(timeout_ms, xsink);
+   if (size > 0)
+      return s->recvBinary(size, timeout_ms, xsink);
+
+   BinaryNode* str = s->recvBinary(timeout_ms, xsink);
+   return !*xsink && !str ? new BinaryNode : str;
 }
 
 //! Receives data from the socket and writes the bytes to an @ref OutputStream
@@ -2627,7 +2635,8 @@ hash h = sock.getPeerInfo();
 
     @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
 
-    @throw SOCKET-GETPEERINFO-ERROR Socket is not open or error in getpeername()
+    @throw SOCKET-NOT-OPEN The socket is not open
+    @throw SOCKET-GETPEERINFO-ERROR error in getpeername()
 
     @since %Qore 0.8.8 added the \a host_lookup parameter
  */
@@ -2647,7 +2656,8 @@ hash h = sock.getSocketInfo();
 
     @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
 
-    @throw SOCKET-GETSOCKETINFO-ERROR Socket is not open or error in getsockname()
+    @throw SOCKET-NOT-OPEN The socket is not open
+    @throw SOCKET-GETSOCKETINFO-ERROR error in getsockname()
 
     @since %Qore 0.8.8 added the \a host_lookup parameter
  */
@@ -2663,7 +2673,10 @@ sock.upgradeClientToSSL();
 
     @param timeout_ms If a positive timeout value is passed and the SSL upgrade takes longer to establish than the timeout, an \c "SSL-TIMEOUT-ERROR" exception is thrown. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
+    @throw SOCKET-NOT-OPEN the socket must be open before making this call
     @throw SSL-TIMEOUT-ERROR timeout error negotiating SSL connection
+
+    @note if an SSL connection has already been established, this method call returns immediately without taking any further action
 
     @since %Qore 0.8.12 the timeout_ms parameter was added
  */
@@ -2679,7 +2692,10 @@ sock.upgradeServerToSSL();
 
     @param timeout_ms If a positive timeout value is passed and the SSL upgrade takes longer to establish than the timeout, an \c "SSL-TIMEOUT-ERROR" exception is thrown. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
+    @throw SOCKET-NOT-OPEN the socket must be open before making this call
     @throw SSL-TIMEOUT-ERROR timeout error negotiating SSL connection
+
+    @note if an SSL connection has already been established, this method call returns immediately without taking any further action
 
     @since %Qore 0.8.12 the timeout_ms parameter was added
  */

@@ -417,6 +417,20 @@ public:
    }
 };
 
+// allows for the parse lock for the current program to be acquired by binary modules
+class CurrentProgramRuntimeParseContextHelper {
+public:
+   // acquires the parse lock; if already acquired by another thread, then this call blocks until the lock can be acquired
+   DLLEXPORT CurrentProgramRuntimeParseContextHelper();
+   // releases the parse lock for the current program
+   DLLEXPORT ~CurrentProgramRuntimeParseContextHelper();
+
+private:
+   // not implemented
+   CurrentProgramRuntimeParseContextHelper(const CurrentProgramRuntimeParseContextHelper&) = delete;
+   void* operator new(size_t) = delete;
+};
+
 // acquires a TID and thread entry, returns -1 if not successful
 DLLLOCAL int get_thread_entry();
 // acquires TID 0 and sets up the signal thread entry, always returns 0
@@ -551,11 +565,11 @@ private:
    const char* old_code;
    QoreObject* old_obj;
    const qore_class_private* old_class;
-   ExceptionSink* xsink;
    bool do_ref;
+   ExceptionSink* xsink;
 
 public:
-   DLLLOCAL CodeContextHelperBase(const char* code, QoreObject* o, const qore_class_private* qc, ExceptionSink* xs);
+   DLLLOCAL CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c, ExceptionSink* xsink);
    DLLLOCAL ~CodeContextHelperBase();
 };
 
@@ -576,7 +590,6 @@ private:
    bool subst;
 
 public:
-   //DLLLOCAL OptionalClassObjSubstitutionHelper(QoreObject* obj, const qore_class_private* c;
    DLLLOCAL OptionalClassObjSubstitutionHelper(const qore_class_private* qc);
    DLLLOCAL ~OptionalClassObjSubstitutionHelper();
 };
@@ -656,12 +669,6 @@ protected:
 public:
    DLLLOCAL ProgramRuntimeParseCommitContextHelper(ExceptionSink* xsink, QoreProgram* pgm);
    DLLLOCAL ~ProgramRuntimeParseCommitContextHelper();
-};
-
-class CurrentProgramRuntimeParseContextHelper {
-public:
-   DLLLOCAL CurrentProgramRuntimeParseContextHelper();
-   DLLLOCAL ~CurrentProgramRuntimeParseContextHelper();
 };
 
 class ProgramRuntimeParseAccessHelper {
@@ -808,7 +815,7 @@ public:
 class CodeContextHelper : public CodeContextHelperBase {
 public:
    DLLLOCAL CodeContextHelper(ExceptionSink* xs, int t, const char* c, QoreObject* obj = 0, const qore_class_private* cls = 0) :
-      CodeContextHelperBase(c, obj, cls, xs),
+      CodeContextHelperBase(c, obj, cls, xs) {
    }
 };
 #endif

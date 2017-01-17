@@ -63,6 +63,7 @@ class QoreObject : public AbstractQoreNode {
    friend class qore_object_private;
    friend class ObjectRSetHelper;
    friend class ObjectRSet;
+   friend class qore_object_dereference_helper;
 
 private:
    //! the private implementation of the class
@@ -327,6 +328,15 @@ public:
       @param xsink if an error occurs, the Qore-language exception information will be added here
    */
    DLLEXPORT AbstractPrivateData* getReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const;
+
+   //! returns the private data corresponding to the class ID passed with an incremented reference count if it exists, caller owns the reference
+   /**
+      @param key the class ID of the class to get the private data for
+      @param xsink if an error occurs (the object has already been deleted), the Qore-language exception information will be added here
+
+      @since %Qore 0.8.13
+   */
+   DLLEXPORT AbstractPrivateData* tryGetReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const;
 
    //! evaluates the given method with the arguments passed and returns the return value, caller owns the AbstractQoreNode (reference) returned
    /**
@@ -659,17 +669,15 @@ public:
    }
 };
 
+//! convenience class for holding AbstractPrivateData references
+template <class T>
+class TryPrivateDataRefHolder : public ReferenceHolder<T> {
+public:
+   DLLLOCAL TryPrivateDataRefHolder(const QoreObject* o, qore_classid_t cid, ExceptionSink* xsink) : ReferenceHolder<T>(reinterpret_cast<T*>(o->tryGetReferencedPrivateData(cid, xsink)), xsink) {
+   }
+};
+
 class QorePrivateObjectAccessHelper {
-private:
-   // not implemented
-   DLLLOCAL QorePrivateObjectAccessHelper(const QorePrivateObjectAccessHelper&);
-   DLLLOCAL QorePrivateObjectAccessHelper& operator=(const QorePrivateObjectAccessHelper&);
-   DLLLOCAL void* operator new(size_t);
-
-protected:
-   ExceptionSink* xsink;
-   void* ptr;
-
 public:
    DLLLOCAL QorePrivateObjectAccessHelper(ExceptionSink* xs) : xsink(xs), ptr(0) {
    }
@@ -677,6 +685,15 @@ public:
    DLLLOCAL operator bool() const {
       return (bool)ptr;
    }
+
+private:
+   DLLLOCAL QorePrivateObjectAccessHelper(const QorePrivateObjectAccessHelper&) = delete;
+   DLLLOCAL QorePrivateObjectAccessHelper& operator=(const QorePrivateObjectAccessHelper&) = delete;
+   DLLLOCAL void* operator new(size_t) = delete;
+
+protected:
+   ExceptionSink* xsink;
+   void* ptr;
 };
 
 #endif

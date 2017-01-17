@@ -6,7 +6,18 @@
 
     %Qore modules allow the %Qore language to be extended at run-time.
 
-    To load a module at parse time (normally required for most modules), use the @ref requires "%requires" or @ref try-module "%try-module" parse directive. If the named feature is not already present in %Qore, %Qore looks for a module with this name in the directories listed in the \c QORE_MODULE_DIR environment variable (see @ref environment_variables).
+    To load a module at parse time (normally required for most modules), use the @ref requires "%requires" or @ref try-module "%try-module" parse directive. If the named feature is not already present in %Qore, %Qore will try to load the module from its list of module directories (module path). This list contains the following directories:\n
+    -# directories listed in the environment variable \c QORE_MODULE_DIR (see @ref environment_variables)
+    -# \c USER_MODULE_VER_DIR - build variable set to directory where Qore user modules of the specific Qore version should be installed (ex: \c /usr/share/qore-modules/0.8.12)
+    -# \c MODULE_VER_DIR - build variable set to directory where Qore binary modules of the specific Qore version should be installed (ex: \c /usr/lib/x86_64-linux-gnu/qore-modules/0.8.12)
+    -# \c USER_MODULE_DIR - build variable set to directory where user modules of external binary modules should be installed (ex: \c /usr/share/qore-modules)
+    -# \c MODULE_DIR - build variable set to directory where external binary modules should be installed (ex: \c /usr/lib/x86_64-linux-gnu/qore-modules)
+    -# directories added using @ref append-module-path "%append-module-path"
+
+    Modules can also be loaded directly by using a path relative to the Qore script or module requiring them when using @ref requires "%requires" or @ref try-module "%try-module" parse directives:
+    @code{.py}
+%requires ../../directory/Module.qm
+    @endcode \n
 
     Use the load_module() function to load %Qore modules at run-time; however, note that any module providing parse support (classes, constants, functions, etc) must be loaded at parse time using the @ref requires "%requires" or @ref try-module "%try-module" parse directive.
 
@@ -21,7 +32,9 @@
     <b>Modules Provided With %Qore</b>
     |!Type|!Module|!Description
     |user|<a href="../../modules/BulkSqlUtil/html/index.html">BulkSqlUtil</a>|Provides APIs based on <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> for executing bulk DML operations
+    |user|<a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a>|Provides an API for pluggable connection and URL providers
     |user|<a href="../../modules/CsvUtil/html/index.html">CsvUtil</a>|Provides code to help parse CSV or other structured text files and also to easily generate such files
+    |user|<a href="../../modules/DatasourceProvider/html/index.html">DatasourceProvider</a>|Provides an API to translate datasource identifiers to datasource connection strings
     |user|<a href="../../modules/FilePoller/html/index.html">FilePoller</a>|Provides an API for polling files on the filesystem
     |user|<a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a>|Provides code to help parse data in format of fixed length lines records
     |user|<a href="../../modules/FreetdsSqlUtil/html/index.html">FreetdsSqlUtil</a>|Provides a high-level DB-independent API for working with MS SQL Server and Sybase database objects; loaded automatically by the <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with the <a href="https://github.com/qorelanguage/module-sybase">freetds DBI driver</a> for automated schema management, programmatic DB access, schema and data synchronization, and more
@@ -34,10 +47,12 @@
     |user|<a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a>|Provides a high-level DB-independent API for working with Oracle database objects; loaded automatically by the <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with Oracle databases for automated schema management, programmatic DB access, schema and data synchronization, and more
     |user|<a href="../../modules/Pop3Client/html/index.html">Pop3Client</a>|Provides POP3 client functionality; provides an API to retrieve email messages from a POP3 server
     |user|<a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a>|Provides a high-level DB-independent API for working with PostgreSQL database objects; loaded automatically by the <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with PostgreSQL databases for automated schema management, programmatic DB access, schema and data synchronization, and more
-    |user|<a href="../../modules/Qorize/html/index.html">Qorize</a>|Provides basic support for automatically-generating Qore code from data
+    |user|<a href="../../modules/Qdx/html/index.html">Qdx</a>|Provides support for documentation generation with doxygen from %Qore sources
+    |user|<a href="../../modules/Qorize/html/index.html">Qorize</a>|Provides basic support for automatically-generating %Qore code from data
     |user|<a href="../../modules/QUnit/html/index.html">QUnit</a>|Provides an API for defining and executing tests and reporting results in various formats
     |user|<a href="../../modules/RestClient/html/index.html">RestClient</a>|Provides a simple API for communicating with HTTP servers implementing <a href="http://en.wikipedia.org/wiki/Representational_state_transfer">REST</a> services
     |user|<a href="../../modules/RestHandler/html/index.html">RestHandler</a>|Provides an easy to use interface to the %Qore <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module for implementing server-side <a href="http://en.wikipedia.org/wiki/Representational_state_transfer">REST</a> services
+    |user|<a href="../../modules/SalesforceRestClient/html/index.html">SalesforceRestClient</a>|Provides an API for communicating with <a href="https://www.salesforce.com">Salesforce.com</a> <a href="http://en.wikipedia.org/wiki/Representational_state_transfer">REST</a> services (extends and reexports functionality provided by the <a href="../../modules/RestClient/html/index.html">RestClient</a> module)
     |user|<a href="../../modules/Schema/html/index.html">Schema</a>|Provides automatic schema management functionality as a meta-layer for <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>'s medium and low-level schema management functionality
     |user|<a href="../../modules/SmtpClient/html/index.html">SmtpClient</a>|Provides SMTP client functionality; provides an API for sending emails via an SMTP server
     |user|<a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>|Provides a high-level DB-independent API for working with databases; for automated schema management, programmatic DB access, schema and data synchronization, and more
@@ -52,13 +67,12 @@
     <b>Modules Provided Separately</b>
     |!Type|!Module|!Description
     |binary|<a href="https://github.com/qorelanguage/module-sybase">freetds</a>|Provides a FreeTDS-based DBI driver for communicating with Sybase and MS SQL Server databases
-    |binary|<a href="https://github.com/qorelanguage/module-fsevent">fsevent</a>|Provides an event-driven filesystem event API
-    |binary|<a href="https://github.com/qorelanguage/module-glut">glut</a>|Provides GLUT functionality
+    |binary|<a href="https://github.com/qorelanguage/module-jni">jni</a>|Provides access to Java APIs in %Qore
     |binary|<a href="https://github.com/qorelanguage/module-json">json</a>|Provides JSON and JSON-RPC client functionality, also provides the following user modules:\n- <a href="http://www.qore.org/manual/modules/json/current/JsonRpcHandler/html/index.html">JsonRpcHandler</a>: provides infrastructure for implementing JSON-RPC server-side services using the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
-    |binary|<a href="https://github.com/qorelanguage/module-linenoise">linenoise</a>|Provides a readline-like API to Qore under a permissive license
+    |binary|<a href="https://github.com/qorelanguage/module-linenoise">linenoise</a>|Provides a readline-like API to %Qore under a permissive license
     |binary|<a href="https://github.com/qorelanguage/module-mysql">mysql</a>|Provides a MySQL / MariaDB / Percona DBI driver
+    |binary|<a href="https://github.com/qorelanguage/module-odbc">odbc</a>|Provides an ODBC DBI driver to %Qore
     |binary|<a href="https://github.com/qorelanguage/module-oracle">oracle</a>|Provides an Oracle DBI driver, providing many advanced features such as support for named types and collections, advanced queuing, etc, also provides the following user modules:\n- <a href="http://www.qore.org/manual/modules/oracle/current/OracleExtensions/html/index.html">OracleExtensions</a>: provides infrastructure for SQL tracing
-    |binary|<a href="https://github.com/qorelanguage/module-opengl">opengl</a>|Provides an OpenGL API to %Qore
     |binary|<a href="https://github.com/qorelanguage/module-openldap">openldap</a>|Provides an OpenLDAP API to %Qore
     |binary|<a href="https://github.com/qorelanguage/module-pgsql">pgsql</a>|Provides a PostgreSQL DBI driver
     |binary|<a href="https://github.com/qorelanguage/module-sqlite3">sqlite3</a>|Provides an SQLite3 DBI driver
@@ -68,17 +82,9 @@
     |binary|<a href="https://github.com/qorelanguage/module-tibae">tibae</a>|Provides TIBCO ActiveEnterprise(TM) (TIBCO, Inc) functionality
     |binary|<a href="https://github.com/qorelanguage/module-tibrv">tibrv</a>|Provides TIBCO Rendezvous(R) (TIBCO, Inc) functionality
     |binary|<a href="https://github.com/qorelanguage/module-uuid">uuid</a>|Provices an API for generating UUIDs
-    |binary|<a href="https://github.com/qorelanguage/module-xml">xml</a>|Provides XML (SAX and DOM parsers), XPath, XML-RPC, SOAP client and server, etc functionality, also provides the following user modules:\n- <a href="http://www.qore.org/manual/modules/xml/current/SoapClient/html/index.html">SoapClient</a>: provides an easy to use API for making requests to SOAP servers\n- <a href="http://www.qore.org/manual/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a>: provides infrastructure for implementing SOAP server-side services using the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module\n- <a href="http://www.qore.org/manual/modules/xml/current/WSDL/html/index.html">WSDL</a>: provides underlying web service/WSDL support for the <a href="http://www.qore.org/manual/modules/xml/current/SoapClient/html/index.html">SoapClient</a> and <a href="http://www.qore.org/manual/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a> modules\n- <a href="http://www.qore.org/manual/modules/xml/current/XmlRpcHandler/html/index.html">XmlRpcHandler</a>: provides infrastructure for implementing XML-RPC server-side services using the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
+    |binary|<a href="https://github.com/qorelanguage/module-xml">xml</a>|Provides XML (SAX and DOM parsers), XPath, XML-RPC, SOAP client and server, etc functionality, also provides the following user modules:\n- <a href="http://www.qore.org/manual/modules/xml/current/SoapClient/html/index.html">SoapClient</a>: provides an easy to use API for making requests to SOAP servers\n- <a href="http://www.qore.org/manual/modules/xml/current/SalesforceSoapClient/html/index.html">SalesforceSoapClient</a>: provides an easy to use API for making requests to Salesforce.com SOAP servers\n- <a href="http://www.qore.org/manual/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a>: provides infrastructure for implementing SOAP server-side services using the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module\n- <a href="http://www.qore.org/manual/modules/xml/current/WSDL/html/index.html">WSDL</a>: provides underlying web service/WSDL support for the <a href="http://www.qore.org/manual/modules/xml/current/SoapClient/html/index.html">SoapClient</a> and <a href="http://www.qore.org/manual/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a> modules\n- <a href="http://www.qore.org/manual/modules/xml/current/XmlRpcHandler/html/index.html">XmlRpcHandler</a>: provides infrastructure for implementing XML-RPC server-side services using the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
     |binary|<a href="https://github.com/qorelanguage/module-xmlsec">xmlsec</a>|Provides xmldsig and xmlenc functionality
     |binary|<a href="https://github.com/qorelanguage/module-yaml">yaml</a>|Provides YAML functionality, also provides the following user modules:\n- <a href="http://www.qore.org/manual/modules/yaml/current/DataStreamClient/html/index.html">DataStreamClient</a>: provides a DataStream client API extending the RestClient\n- <a href="http://www.qore.org/manual/modules/yaml/current/DataStreamRequestHandler/html/index.html">DataStreamRequestHandler</a>: provides a DataStream server-side handler API extending the RestHandler\n- <a href="http://www.qore.org/manual/modules/yaml/current/DataStreamUtil/html/index.html">DataStreamUtil</a>: provides underlying DataStream client and server protocol support\n- <a href="http://www.qore.org/manual/modules/yaml/current/YamlRpcClient/html/index.html">YamlRpcClient</a>: provides an API for easily making YAML-RPC calls over the network\n- <a href="http://www.qore.org/manual/modules/yaml/current/YamlRpcHandler/html/index.html">YamlRpcHandler</a>: provides infrastructure for implementing YAML-RPC server-side services using the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
-
-    <b>Other Modules Provided Separately</b>
-    |!Type|!Module|!Description
-    |binary|<a href="https://github.com/qorelanguage/module-asn1">asn1</a>|Provides some ASN.1 functionality; stable but only partial ASN.1 functionality is provided, uses very old APIs
-    |binary|<a href="https://github.com/qorelanguage/module-db2">db2</a>|Provides an IBM DB2 driver; stuck in protype phase due to lack of development
-    |binary|<a href="https://github.com/qorelanguage/module-ncurses">ncurses</a>|Provides curses APIs; stable and works, but uses old APIs, needs updating
-    |binary|<a href="https://github.com/qorelanguage/module-qt4">qt4</a>|Provides Nokia (formerly Trolltech) QT4 APIs for GUI development; this module works for a subset of the QT API, but due to the need for complete object lifecycle control, it's not recommended for use until we can implement a new garbage collector for %Qore objects created from external modules
-    |binary|<a href="https://github.com/qorelanguage/module-tuxedo">tuxedo</a>|Provides Oracle (ex Bea) Tuxedo functionality; this module has not been updated for some time, uses old APIs
 
     @section binary_modules Binary Modules
 

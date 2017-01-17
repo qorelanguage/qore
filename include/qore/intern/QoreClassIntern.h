@@ -33,10 +33,11 @@
 
 #define _QORE_QORECLASSINTERN_H
 
-#include <qore/safe_dslist>
-#include <qore/intern/ConstantList.h>
-#include <qore/intern/QoreLValue.h>
-#include <qore/intern/qore_var_rwlock_priv.h>
+#include "qore/safe_dslist"
+#include "qore/intern/ConstantList.h"
+#include "qore/intern/QoreLValue.h"
+#include "qore/intern/qore_var_rwlock_priv.h"
+#include "qore/intern/VRMutex.h"
 
 #include <string.h>
 
@@ -49,7 +50,7 @@
 
 #ifdef HAVE_QORE_HASH_MAP
 #include <qore/hash_map_include.h>
-#include <qore/intern/xxhash.h>
+#include "qore/intern/xxhash.h"
 
 typedef HASH_MAP<std::string, QoreMethod*> hm_method_t;
 #else
@@ -199,8 +200,8 @@ class MethodVariantBase : public AbstractQoreFunctionVariant {
 protected:
    const QoreMethod* qmethod;    // pointer to method that owns the variant
    ClassAccess access;           // variant access code
-   bool final,                   // is the variant final or not
-      abstract;                  // is the variant abstract or not
+   bool final;                   // is the variant final or not
+   bool abstract;                // is the variant abstract or not
    std::string asig;             // abstract signature, only set for abstract method variants
 
 public:
@@ -266,8 +267,8 @@ class MethodVariant : public MethodVariantBase {
 public:
    DLLLOCAL MethodVariant(ClassAccess n_access, bool n_final, int64 n_flags, bool n_is_user = false, bool is_abstract = false) : MethodVariantBase(n_access, n_final, n_flags, n_is_user, is_abstract) {
    }
-   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const = 0;
-   DLLLOCAL virtual QoreValue evalPseudoMethod(const QoreValue n, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
+   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const = 0;
+   DLLLOCAL virtual QoreValue evalPseudoMethod(const QoreValue n, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
       assert(false);
       return QoreValue();
    }
@@ -279,13 +280,13 @@ public:
 class ConstructorMethodVariant : public MethodVariantBase {
 protected:
    // evaluates base class constructors and initializes members
-   DLLLOCAL int constructorPrelude(const QoreClass &thisclass, CodeEvaluationHelper &ceh, QoreObject* self, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
+   DLLLOCAL int constructorPrelude(const QoreClass &thisclass, CodeEvaluationHelper& ceh, QoreObject* self, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
 
 public:
    DLLLOCAL ConstructorMethodVariant(ClassAccess n_access, int64 n_flags, bool n_is_user = false) : MethodVariantBase(n_access, false, n_flags, n_is_user) {
    }
    DLLLOCAL virtual const BCAList* getBaseClassArgumentList() const = 0;
-   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const = 0;
+   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper& ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const = 0;
 };
 
 #define CONMV(f) (reinterpret_cast<ConstructorMethodVariant*>(f))
@@ -309,15 +310,18 @@ public:
    DLLLOCAL CopyMethodVariant(ClassAccess n_access, bool n_is_user = false) : MethodVariantBase(n_access, QC_NO_FLAGS, n_is_user) {
    }
 
-   DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject* self, QoreObject* old, CodeEvaluationHelper &ceh, BCList* scl, ExceptionSink* xsink) const = 0;
+   DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject* self, QoreObject* old, CodeEvaluationHelper& ceh, BCList* scl, ExceptionSink* xsink) const = 0;
 };
 
 #define COPYMV(f) (reinterpret_cast<CopyMethodVariant*>(f))
 #define COPYMV_const(f) (reinterpret_cast<const CopyMethodVariant*>(f))
 
 class UserMethodVariant : public MethodVariant, public UserVariantBase {
+protected:
+   bool synchronized;
+
 public:
-   DLLLOCAL UserMethodVariant(ClassAccess n_access, bool n_final, StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced, int64 n_flags, bool is_abstract) : MethodVariant(n_access, n_final, n_flags, true, is_abstract), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
+   DLLLOCAL UserMethodVariant(ClassAccess n_access, bool n_final, StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced, int64 n_flags, bool is_abstract) : MethodVariant(n_access, n_final, n_flags, true, is_abstract), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, false), synchronized(synced) {
    }
 
    DLLLOCAL ~UserMethodVariant() {
@@ -346,9 +350,7 @@ public:
          f->parseCheckDuplicateSignatureCommitted(&signature);
    }
 
-   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-      return eval(qmethod->getName(), &ceh, self, xsink, getClassPriv());
-   }
+   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const;
 };
 
 #define UMV(f) (reinterpret_cast<UserMethodVariant*>(f))
@@ -372,7 +374,7 @@ public:
       return bcal;
    }
 
-   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
+   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper& ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual void parseInit(QoreFunction* f);
 };
@@ -408,7 +410,6 @@ public:
       // there cannot be any params
       assert(!signature.numParams());
       assert(!signature.getReturnTypeInfo() || signature.getReturnTypeInfo() == nothingTypeInfo);
-      ProgramThreadCountContextHelper pch(xsink, pgm, true);
       eval("destructor", 0, self, xsink, getClassPriv()).discard(xsink);
    }
 };
@@ -427,7 +428,7 @@ public:
 
    DLLLOCAL virtual void parseInit(QoreFunction* f);
 
-   DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject* self, QoreObject* old, CodeEvaluationHelper &ceh, BCList* scl, ExceptionSink* xsink) const;
+   DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject* self, QoreObject* old, CodeEvaluationHelper& ceh, BCList* scl, ExceptionSink* xsink) const;
 };
 
 #define UCOPYV(f) (reinterpret_cast<UserCopyVariant*>(f))
@@ -456,9 +457,9 @@ class BuiltinNormalMethodVariantBase : public BuiltinMethodVariant {
 public:
    DLLLOCAL BuiltinNormalMethodVariantBase(ClassAccess n_access, bool n_final, int64 n_flags, int64 n_functionality, const QoreTypeInfo* n_returnTypeInfo, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_access, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {}
 
-   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const;
+   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual QoreValue evalPseudoMethod(const QoreValue n, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const;
+   DLLLOCAL virtual QoreValue evalPseudoMethod(const QoreValue n, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) const = 0;
 };
@@ -492,6 +493,19 @@ public:
    }
    DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) const {
       return method(self, private_data, args, rtflags, xsink);
+   }
+};
+
+class BuiltinExternalNormalMethodValueVariant : public BuiltinNormalMethodVariantBase {
+protected:
+   q_external_method_t method;
+   const void* ptr;
+
+public:
+   DLLLOCAL BuiltinExternalNormalMethodValueVariant(const void* n_ptr, q_external_method_t m, ClassAccess n_access, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_access, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m), ptr(n_ptr) {
+   }
+   DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) const {
+      return method(*qmethod, ptr, self, private_data, args, rtflags, xsink);
    }
 };
 
@@ -531,7 +545,7 @@ public:
    DLLLOCAL BuiltinStaticMethodVariantTemplate(F m, ClassAccess n_access, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_access, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m) {
    }
 
-   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
+   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
       CodeContextHelper cch(xsink, CT_BUILTIN, qmethod->getName(), 0, getClassPriv());
       const QoreValueList* args = ceh.getArgs();
       ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
@@ -552,10 +566,26 @@ public:
    DLLLOCAL BuiltinStaticMethodValueVariant(q_func_n_t m, ClassAccess n_access, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_access, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m) {
    }
 
-   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
+   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
       CodeContextHelper cch(xsink, CT_BUILTIN, qmethod->getName(), 0, getClassPriv());
 
       return static_method(ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
+   }
+};
+
+class BuiltinExternalStaticMethodValueVariant : public BuiltinMethodVariant {
+protected:
+   q_external_static_method_t static_method;
+   const void* ptr;
+
+public:
+   DLLLOCAL BuiltinExternalStaticMethodValueVariant(const void* n_ptr, q_external_static_method_t m, ClassAccess n_access, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_access, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m), ptr(n_ptr) {
+   }
+
+   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
+      CodeContextHelper cch(xsink, CT_BUILTIN, qmethod->getName(), 0, getClassPriv());
+
+      return static_method(*qmethod, ptr, ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
    }
 };
 
@@ -567,7 +597,7 @@ protected:
 public:
    DLLLOCAL BuiltinStaticMethod2Variant(q_static_method2_t m, ClassAccess n_access, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_access, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m) {
    }
-   DLLLOCAL QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
+   DLLLOCAL QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
       CodeContextHelper cch(xsink, CT_BUILTIN, qmethod->getName(), 0, getClassPriv());
       const QoreValueList* args = ceh.getArgs();
       ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
@@ -584,7 +614,7 @@ protected:
 public:
    DLLLOCAL BuiltinStaticMethod3Variant(const void* n_ptr, q_static_method3_t m, ClassAccess n_access, bool n_final, int64 n_flags, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_access, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m), ptr(n_ptr) {
    }
-   DLLLOCAL QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
+   DLLLOCAL QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
       CodeContextHelper cch(xsink, CT_BUILTIN, qmethod->getName(), 0, getClassPriv());
       const QoreValueList* args = ceh.getArgs();
       ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
@@ -614,7 +644,19 @@ public:
    DLLLOCAL BuiltinConstructorValueVariant(q_constructor_n_t m, ClassAccess n_access, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinConstructorVariantBase(n_access, n_flags, n_functionality, n_typeList, n_defaultArgList, n_names), constructor(m) {
    }
 
-   DLLLOCAL virtual void evalConstructor(const QoreClass& thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
+   DLLLOCAL virtual void evalConstructor(const QoreClass& thisclass, QoreObject* self, CodeEvaluationHelper& ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
+};
+
+class BuiltinExternalConstructorValueVariant : public BuiltinConstructorVariantBase {
+protected:
+   q_external_constructor_t constructor;
+   const void* ptr;
+
+public:
+   DLLLOCAL BuiltinExternalConstructorValueVariant(const void* n_ptr, q_external_constructor_t m, ClassAccess n_access, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinConstructorVariantBase(n_access, n_flags, n_functionality, n_typeList, n_defaultArgList, n_names), constructor(m), ptr(n_ptr) {
+   }
+
+   DLLLOCAL virtual void evalConstructor(const QoreClass& thisclass, QoreObject* self, CodeEvaluationHelper& ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
 };
 
 class BuiltinConstructorVariant : public BuiltinConstructorVariantBase {
@@ -625,7 +667,7 @@ public:
    DLLLOCAL BuiltinConstructorVariant(q_constructor_t m, ClassAccess n_access, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinConstructorVariantBase(n_access, n_flags, n_functionality, n_typeList, n_defaultArgList, n_names), constructor(m) {
    }
 
-   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
+   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper& ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
 };
 
 class BuiltinConstructor2Variant : public BuiltinConstructorVariantBase {
@@ -636,7 +678,7 @@ public:
    // return type info is set to 0 because the new operator actually returns the new object, not the constructor
    DLLLOCAL BuiltinConstructor2Variant(q_constructor2_t m, ClassAccess n_access, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinConstructorVariantBase(n_access, n_flags, n_functionality, n_typeList, n_defaultArgList, n_names), constructor(m) {
    }
-   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
+   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper& ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
 };
 
 class BuiltinConstructor3Variant : public BuiltinConstructorVariantBase {
@@ -649,7 +691,7 @@ public:
    DLLLOCAL BuiltinConstructor3Variant(const void* n_ptr, q_constructor3_t m, ClassAccess n_access, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinConstructorVariantBase(n_access, n_flags, n_functionality, n_typeList, n_defaultArgList, n_names), constructor(m), ptr(n_ptr) {
    }
 
-   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
+   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper& ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
 };
 
 class BuiltinDestructorVariantBase : public DestructorMethodVariant, public BuiltinFunctionVariantBase {
@@ -701,7 +743,7 @@ public:
    // the following defines the pure virtual functions that are common to all builtin variants
    COMMON_BUILTIN_VARIANT_FUNCTIONS
 
-   DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject* self, QoreObject* old, CodeEvaluationHelper &ceh, BCList* scl, ExceptionSink* xsink) const;
+   DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject* self, QoreObject* old, CodeEvaluationHelper& ceh, BCList* scl, ExceptionSink* xsink) const;
    DLLLOCAL virtual void evalImpl(const QoreClass &thisclass, QoreObject* self, QoreObject* old, AbstractPrivateData* private_data, ExceptionSink* xsink) const = 0;
 };
 
@@ -755,10 +797,10 @@ public:
    }
 
    // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-   DLLLOCAL QoreValue evalMethod(const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const;
+   DLLLOCAL QoreValue evalMethod(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args) const;
 
    // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-   DLLLOCAL QoreValue evalPseudoMethod(const AbstractQoreFunctionVariant* variant, const QoreValue n, const QoreListNode* args, ExceptionSink* xsink) const;
+   DLLLOCAL QoreValue evalPseudoMethod(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant, const QoreValue n, const QoreListNode* args) const;
 };
 
 #define NMETHF(f) (reinterpret_cast<NormalMethodFunction*>(f))
@@ -773,7 +815,7 @@ public:
    DLLLOCAL virtual ~StaticMethodFunction() {
    }
    // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-   DLLLOCAL QoreValue evalMethod(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const;
+   DLLLOCAL QoreValue evalMethod(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant, const QoreListNode* args) const;
 };
 
 #define SMETHF(f) (reinterpret_cast<StaticMethodFunction*>(f))
@@ -920,7 +962,7 @@ public:
    DLLLOCAL BuiltinDeleteBlocker(q_delete_blocker_t m) : BuiltinNormalMethod(0, "<delete_blocker>"), delete_blocker(m) {
    }
 
-   DLLLOCAL BuiltinDeleteBlocker(const BuiltinDeleteBlocker &old, const QoreClass* n_qc) : BuiltinNormalMethod(old, n_qc), delete_blocker(old.delete_blocker) {
+   DLLLOCAL BuiltinDeleteBlocker(const BuiltinDeleteBlocker& old, const QoreClass* n_qc) : BuiltinNormalMethod(old, n_qc), delete_blocker(old.delete_blocker) {
    }
 
    DLLLOCAL bool eval(QoreObject* self, AbstractPrivateData* private_data) const {
@@ -1389,7 +1431,6 @@ public:
    DLLLOCAL void parseInit(BCList* bcl, const char* classname);
 };
 
-//typedef safe_dslist<BCANode*> bcalist_t;
 typedef std::vector<BCANode*> bcalist_t;
 
 // BCAList
@@ -1422,13 +1463,19 @@ class BCSMList : public class_list_t {
 public:
    DLLLOCAL BCSMList() {
    }
-   DLLLOCAL BCSMList(const BCSMList &old) {
-      reserve(old.size());
-      for (class_list_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i)
-         push_back(*i);
-   }
+
+   DLLLOCAL BCSMList(const BCSMList &old);
+
+   DLLLOCAL ~BCSMList();
+
    DLLLOCAL int add(QoreClass* thisclass, QoreClass* qc, bool is_virtual);
    DLLLOCAL int addBaseClassesToSubclass(QoreClass* thisclass, QoreClass* sc, bool is_virtual);
+
+   DLLLOCAL void alignBaseClassesInSubclass(QoreClass* thisclass, QoreClass* child, bool is_virtual);
+
+   // returns 0 = can add, non-0 = cannot add
+   DLLLOCAL void align(QoreClass* thisclass, QoreClass* qc, bool is_virtual);
+
    DLLLOCAL QoreClass* getClass(qore_classid_t cid) const;
    //DLLLOCAL void execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsink) const;
    DLLLOCAL void execDestructors(QoreObject* o, ExceptionSink* xsink) const;
@@ -1494,6 +1541,10 @@ public:
 
    DLLLOCAL bool runtimeIsPrivateMember(const char* str, bool toplevel) const;
 
+   DLLLOCAL int runtimeInitInternalMembers(QoreObject& o, bool& need_scan, ExceptionSink* xsink) const;
+
+   DLLLOCAL void execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsink) const;
+
    DLLLOCAL const QoreMemberInfo* parseFindMember(const char* mem, const qore_class_private*& qc, ClassAccess& n_access, bool toplevel) const;
    DLLLOCAL const QoreVarInfo* parseFindVar(const char* name, const qore_class_private*& qc, ClassAccess& n_access, bool toplevel) const;
 
@@ -1501,17 +1552,24 @@ public:
    DLLLOCAL const QoreClass* getClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const;
    DLLLOCAL const QoreClass* parseGetClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const;
 
-   DLLLOCAL const QoreMethod* parseFindMethod(const char* name, ClassAccess& n_access, const qore_class_private* class_ctx, bool allow_internal) const;
-   DLLLOCAL const QoreMethod* parseFindStaticMethod(const char* name, ClassAccess& n_access, const qore_class_private* class_ctx, bool allow_internal) const;
-   DLLLOCAL const QoreMethod* parseFindAnyMethod(const char* name, ClassAccess& n_access, const qore_class_private* class_ctx, bool allow_internal) const;
+   // inaccessible methods are ignored
+   DLLLOCAL const QoreMethod* parseFindNormalMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal) const;
 
-   DLLLOCAL const QoreMethod* parseResolveSelfMethod(const char* name, ClassAccess& n_access, const qore_class_private* class_ctx, bool allow_internal) const;
+   // inaccessible methods are ignored
+   DLLLOCAL const QoreMethod* parseFindStaticMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal) const;
+
+   // inaccessible methods are ignored
+   DLLLOCAL const QoreMethod* parseResolveSelfMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal) const;
 
    DLLLOCAL bool parseCheckHierarchy(const QoreClass* cls, ClassAccess& n_access, bool toplevel) const;
 
    DLLLOCAL QoreVarInfo* parseFindStaticVar(const char* vname, const QoreClass*& qc, ClassAccess& n_access, bool check, bool toplevel) const;
 
-   DLLLOCAL AbstractQoreNode* parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, bool check, bool toplevel) const;
+   DLLLOCAL AbstractQoreNode* parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, const qore_class_private* class_ctx, bool allow_internal) const;
+
+   DLLLOCAL int addBaseClassesToSubclass(QoreClass* child, bool is_virtual);
+
+   DLLLOCAL void initializeBuiltin();
 };
 
 typedef std::vector<BCNode*> bclist_t;
@@ -1527,16 +1585,17 @@ protected:
 public:
    // special method (constructor, destructor, copy) list for superclasses
    BCSMList sml;
-   bool valid;
+   bool valid = true;
+   bool rescanned = false;
 
-   DLLLOCAL BCList(BCNode* n) : valid(true) {
+   DLLLOCAL BCList(BCNode* n) {
       push_back(n);
    }
 
-   DLLLOCAL BCList() : valid(true) {
+   DLLLOCAL BCList() {
    }
 
-   DLLLOCAL BCList(const BCList& old) : sml(old.sml), valid(true) {
+   DLLLOCAL BCList(const BCList& old) : sml(old.sml) {
       assert(old.valid);
       reserve(old.size());
       for (bclist_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i)
@@ -1549,12 +1608,14 @@ public:
    }
 
    DLLLOCAL int initialize(QoreClass* thisclass, bool& has_delete_blocker, qcp_set_t& qcp_set);
-   DLLLOCAL const QoreMethod* parseResolveSelfMethod(const char* name, ClassAccess& n_access, const qore_class_private* class_ctx, bool allow_internal);
 
-   // looks in committed and pending method lists
-   DLLLOCAL const QoreMethod* parseFindMethod(const char* name, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal);
-   DLLLOCAL const QoreMethod* parseFindStaticMethod(const char* name, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal);
-   DLLLOCAL const QoreMethod* parseFindAnyMethod(const char* name, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal);
+   // inaccessible methods are ignored
+   DLLLOCAL const QoreMethod* parseResolveSelfMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal);
+
+   // inaccessible methods are ignored
+   DLLLOCAL const QoreMethod* parseFindNormalMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal);
+   // inaccessible methods are ignored
+   DLLLOCAL const QoreMethod* parseFindStaticMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal);
 
    DLLLOCAL const QoreMethod* runtimeFindCommittedMethod(const char* name, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const;
    DLLLOCAL const QoreMethod* runtimeFindCommittedStaticMethod(const char* name, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const;
@@ -1562,8 +1623,9 @@ public:
    DLLLOCAL const QoreMemberInfo* runtimeGetMemberInfo(const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const;
    DLLLOCAL const qore_class_private* runtimeGetMemberClass(const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const;
 
+   DLLLOCAL int runtimeInitInternalMembers(QoreObject& o, bool& need_scan, ExceptionSink* xsink) const;
+
    DLLLOCAL bool match(const QoreClass* cls);
-   //DLLLOCAL int initMembers(QoreObject& o, BCEAList* bceal, ExceptionSink* xsink) const;
    DLLLOCAL void execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsink) const;
    DLLLOCAL bool execDeleteBlockers(QoreObject* o, ExceptionSink* xsink) const;
 
@@ -1589,7 +1651,7 @@ public:
    DLLLOCAL void parseAddAncestors(QoreMethod* m);
    DLLLOCAL void parseAddStaticAncestors(QoreMethod* m);
 
-   DLLLOCAL AbstractQoreNode* parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, bool check, bool toplevel) const;
+   DLLLOCAL AbstractQoreNode* parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, const qore_class_private* class_ctx, bool allow_internal) const;
 
    DLLLOCAL QoreVarInfo* parseFindStaticVar(const char* vname, const QoreClass*& qc, ClassAccess& access, bool check, bool toplevel) const;
 
@@ -1598,6 +1660,22 @@ public:
    DLLLOCAL MethodVariantBase* matchNonAbstractVariant(const std::string& name, MethodVariantBase* v) const;
 
    DLLLOCAL bool isBaseClass(QoreClass* qc, bool toplevel) const;
+
+   DLLLOCAL int addBaseClassesToSubclass(QoreClass* thisparent, QoreClass* child, bool is_virtual) {
+      for (auto& i : *this) {
+         if ((*i).addBaseClassesToSubclass(child, is_virtual))
+            return -1;
+      }
+      return sml.addBaseClassesToSubclass(thisparent, child, is_virtual);
+   }
+
+   DLLLOCAL void rescanParents(QoreClass* cls);
+
+   DLLLOCAL void initializeBuiltin() {
+      for (auto& i : *this) {
+         (*i).initializeBuiltin();
+      }
+   }
 };
 
 // BCEANode
@@ -1609,7 +1687,7 @@ public:
    bool execed;
    bool member_init_done;
 
-   DLLLOCAL BCEANode(QoreListNode* n_args, const AbstractQoreFunctionVariant* n_variant) : args(n_args), variant(n_variant), execed(false), member_init_done(false) {}
+   DLLLOCAL BCEANode(QoreListNode* n_args, const AbstractQoreFunctionVariant* n_variant) : args(n_args), variant(reinterpret_cast<const MethodVariant*>(n_variant)), execed(false), member_init_done(false) {}
    DLLLOCAL BCEANode(bool n_execed = true, bool mid = true) : args(0), variant(0), execed(n_execed), member_init_done(mid) {}
 };
 
@@ -1695,6 +1773,12 @@ public:
 
    DLLLOCAL void update(const QoreString& str);
 
+   DLLLOCAL void updateEmpty() {
+      assert(!is_set);
+      clearHash();
+      is_set = true;
+   }
+
    DLLLOCAL bool operator==(const SignatureHash& other) const {
       // if either one of the hashes is not set, then the comparison always fails
       if (!is_set || !other.is_set)
@@ -1725,6 +1809,11 @@ public:
          str.sprintf("%02x", buf[i]);
    }
 
+   DLLLOCAL char* getHash() const {
+      assert(is_set);
+      return (char*)buf;
+   }
+
    DLLLOCAL void clear() {
       if (is_set) {
          is_set = false;
@@ -1744,17 +1833,15 @@ public:
    qore_ns_private* ns;          // parent namespace
    BCList* scl;                  // base class list
 
+   mutable VRMutex gate;                 // for synchronized static methods
+
    hm_method_t hm,               // "normal" (non-static) method map
       shm;                       // static method map
 
    AbstractMethodMap ahm;        // holds abstract variants with no implementation in the current class
 
-   ConstantList pend_pub_const,  // pending public constants
-      pend_priv_const,           // pending private constants
-      pend_int_const,            // pending internal constants
-      pub_const,                 // committed public constants
-      priv_const,                // committed private constants
-      int_const;                 // committed internal constants
+   ConstantList pend_constlist,  // pending constants
+      constlist;                 // committed constants
 
    // member lists (maps)
    QoreMemberMap members, pending_members;
@@ -1784,11 +1871,12 @@ public:
       owns_ornothingtypeinfo : 1,       // do we own the "or nothing" type info
       pub : 1,                          // is a public class (modules only)
       final : 1,                        // is the class "final" (cannot be inherited)
-      inject : 1                        // has the class been injected
+      inject : 1,                       // has the class been injected
+      gate_access : 1                   // if the methodGate and memberGate methods should be called with a class access boolean
       ;
 
    int64 domain;                    // capabilities of builtin class to use in the context of parse restrictions
-   QoreReferenceCounter nref;       // namespace references
+   mutable QoreReferenceCounter refs;       // references
 
    unsigned num_methods, num_user_methods, num_static_methods, num_static_user_methods;
 
@@ -1806,6 +1894,9 @@ public:
    // user-specific data
    const void* ptr;
 
+   // managed user-specific data
+   AbstractQoreClassUserData* mud;
+
    // pointer to new class when copying
    mutable QoreClass* new_copy;
 
@@ -1818,6 +1909,18 @@ public:
    DLLLOCAL qore_class_private(const qore_class_private &old, QoreClass* n_cls);
 
    DLLLOCAL ~qore_class_private();
+
+   DLLLOCAL void ref() const {
+      refs.ROreference();
+   }
+
+   DLLLOCAL bool deref() {
+      if (refs.ROdereference()) {
+         delete cls;
+         return true;
+      }
+      return false;
+   }
 
    DLLLOCAL bool hasAbstract() const {
       return !ahm.empty();
@@ -1839,11 +1942,21 @@ public:
    DLLLOCAL void resolveCopy();
 
    DLLLOCAL void setUserData(const void* n_ptr) {
+      assert(!ptr);
       ptr = n_ptr;
    }
 
    DLLLOCAL const void* getUserData() const {
       return ptr;
+   }
+
+   DLLLOCAL void setManagedUserData(AbstractQoreClassUserData* n_mud) {
+      assert(!mud);
+      mud = n_mud;
+   }
+
+   DLLLOCAL AbstractQoreClassUserData* getManagedUserData() const {
+      return mud;
    }
 
    DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
@@ -1932,6 +2045,9 @@ public:
       return checkAssignSpecialIntern(m);
    }
 
+   // merge abstract variants from base classes to child class
+   DLLLOCAL void mergeAbstract();
+
    // returns -1 if a recursive inheritance list was found, 0 if not
    DLLLOCAL int initializeIntern(qcp_set_t& qcp_set);
    DLLLOCAL void initialize();
@@ -2017,7 +2133,28 @@ public:
       return scl ? scl->parseHasPublicMembersInHierarchy() : false;
    }
 
-   // returns true = found, false = not found
+   DLLLOCAL bool runtimeIsMemberInternal(const char* mem) const {
+      QoreMemberInfo* info = members.findByName(mem);
+      return info && info->getAccess() == Internal ? true : false;
+   }
+
+   // class_ctx is only set if it is present and accessible, so we only need to check for internal access here
+   DLLLOCAL const QoreMemberInfo* runtimeGetMemberInfo(const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool& internal_member) const {
+      if (class_ctx) {
+         QoreMemberInfo *info = class_ctx->members.findByName(mem);
+         if (info && info->getAccess() == Internal) {
+            internal_member = true;
+            access = Internal;
+            return info;
+         }
+      }
+      access = Public;
+      internal_member = false;
+
+      return runtimeGetMemberInfoIntern(mem, access, class_ctx);
+   }
+
+   // class_ctx is only set if it is present and accessible, so we only need to check for internal access here
    DLLLOCAL const QoreMemberInfo* runtimeGetMemberInfoIntern(const char* mem, ClassAccess& access, const qore_class_private* class_ctx) const {
       QoreMemberInfo *info = members.findByName(mem);
       if (info) {
@@ -2029,7 +2166,7 @@ public:
          }
       }
 
-      return scl ? scl->runtimeGetMemberInfo(mem, access, class_ctx, class_ctx == this) : 0;
+      return scl ? scl->runtimeGetMemberInfo(mem, access, class_ctx, class_ctx && is_equal(*class_ctx)) : 0;
    }
 
    DLLLOCAL const QoreMemberInfo* parseFindMember(const char* mem, const qore_class_private*& qc, ClassAccess& access) const {
@@ -2146,15 +2283,9 @@ public:
    }
 
    DLLLOCAL void addBuiltinConstant(const char* cname, AbstractQoreNode* value, ClassAccess access = Public, const QoreTypeInfo* cTypeInfo = 0) {
-      assert(!pub_const.inList(cname));
-      assert(!priv_const.inList(cname));
-      assert(!int_const.inList(cname));
-      if (access == Private)
-         priv_const.add(cname, value, cTypeInfo);
-      else if (access == Public)
-         pub_const.add(cname, value, cTypeInfo);
-      else
-         int_const.add(cname, value, cTypeInfo);
+      assert(!constlist.inList(cname));
+      assert(!pend_constlist.inList(cname));
+      constlist.add(cname, value, cTypeInfo, access);
    }
 
    DLLLOCAL void addBuiltinStaticVar(const char* vname, AbstractQoreNode* value, ClassAccess access = Public, const QoreTypeInfo* vTypeInfo = 0) {
@@ -2169,12 +2300,9 @@ public:
       if (!has_sig_changes)
          has_sig_changes = true;
 
-      if (access == Public)
-         pend_pub_const.assimilate(cmap, pub_const, priv_const, pend_priv_const, int_const, pend_int_const, Public, name.c_str());
-      else if (access == Private)
-         pend_priv_const.assimilate(cmap, priv_const, pub_const, pend_pub_const, int_const, pend_int_const, Private, name.c_str());
-      else
-         pend_int_const.assimilate(cmap, int_const, pub_const, pend_pub_const, priv_const, pend_priv_const, Internal, name.c_str());
+      // set access if necessary
+      cmap.setAccess(access);
+      pend_constlist.assimilate(cmap, constlist, "class", name.c_str());
    }
 
    DLLLOCAL void parseAddConstant(const std::string &cname, AbstractQoreNode* val, ClassAccess access) {
@@ -2190,12 +2318,7 @@ public:
 
       //printd(5, "parseAddConstant() this: %p cls: %p const: %s access: %d\n", this, cls, cname.c_str(), access);
 
-      if (access == Public)
-         pend_pub_const.parseAdd(cname, val, pub_const, priv_const, pend_priv_const, int_const, pend_int_const, Public, name.c_str());
-      else if (access == Private)
-         pend_priv_const.parseAdd(cname, val, priv_const, pub_const, pend_pub_const, int_const, pend_int_const, Private, name.c_str());
-      else
-         pend_int_const.parseAdd(cname, val, int_const, pub_const, pend_pub_const, priv_const, pend_priv_const, Internal, name.c_str());
+      pend_constlist.parseAdd(cname, val, constlist, access, name.c_str());
    }
 
    DLLLOCAL bool parseHasVar(const char* vn) {
@@ -2205,83 +2328,59 @@ public:
    }
 
    DLLLOCAL bool parseHasConstant(const std::string &cname) const {
-      return pub_const.inList(cname) || pend_pub_const.inList(cname)
-         || priv_const.inList(cname) || pend_priv_const.inList(cname)
-         || int_const.inList(cname) || pend_int_const.inList(cname)
-         ? true
-         : false;
+      return constlist.inList(cname) || pend_constlist.inList(cname) ? true : false;
    }
 
    DLLLOCAL AbstractQoreNode* parseFindLocalConstantValue(const char* cname, const QoreTypeInfo*& cTypeInfo) {
       parseInitPartial();
 
-      // first check public constants
-      AbstractQoreNode* rv = pub_const.find(cname, cTypeInfo);
-      if (!rv) {
-	 rv = pend_pub_const.find(cname, cTypeInfo);
-	 if (!rv) {
-	    // now check private constants
-	    rv = priv_const.find(cname, cTypeInfo);
-	    if (!rv) {
-	       rv = pend_priv_const.find(cname, cTypeInfo);
-               if (!rv) {
-                  rv = int_const.find(cname, cTypeInfo);
-                  if (!rv)
-                     rv = pend_int_const.find(cname, cTypeInfo);
-               }
-            }
+      // first check committed constants
+      ClassAccess access = Public;
+      AbstractQoreNode* rv = constlist.find(cname, cTypeInfo, access);
+      if (!rv)
+	 rv = pend_constlist.parseFind(cname, cTypeInfo, access);
 
-	    // check for accessibility to private constants
-	    if (rv && !parseCheckPrivateClassAccess()) {
-	       rv = 0;
-	       typeInfo = 0;
-	    }
-	 }
+      // check for accessibility to private constants
+      if (rv && (access > Public)) {
+         qore_class_private* class_ctx = parse_get_class_priv();
+         if ((access == Internal && class_ctx != this) || !parseCheckPrivateClassAccess(class_ctx)) {
+            rv = 0;
+            cTypeInfo = 0;
+         }
       }
 
       //printd(5, "qore_class_private::parseFindLocalConstantValue(%s) this: %p (cls: %p %s) rv: %p\n", cname, this, cls, name.c_str(), rv);
       return rv;
    }
 
-   DLLLOCAL AbstractQoreNode* parseFindConstantValue(const char* cname, const QoreTypeInfo*& cTypeInfo, bool check = false) {
-      return parseFindConstantValueIntern(cname, cTypeInfo, check, true);
+   DLLLOCAL AbstractQoreNode* parseFindConstantValue(const char* cname, const QoreTypeInfo*& cTypeInfo, const qore_class_private* class_ctx) {
+      return parseFindConstantValueIntern(cname, cTypeInfo, class_ctx);
    }
 
-   DLLLOCAL AbstractQoreNode* parseFindConstantValueIntern(const char* cname, const QoreTypeInfo*& cTypeInfo, bool check, bool toplevel) {
+   DLLLOCAL AbstractQoreNode* parseFindConstantValueIntern(const char* cname, const QoreTypeInfo*& cTypeInfo, const qore_class_private* class_ctx) {
       parseInitPartial();
 
-      bool priv = false;
-
-      // first check public constants
-      AbstractQoreNode* rv = pub_const.find(cname, cTypeInfo);
-      if (!rv) {
-	 rv = pend_pub_const.find(cname, cTypeInfo);
-	 if (!rv) {
-	    // now check private constants
-	    rv = priv_const.find(cname, cTypeInfo);
-	    if (!rv) {
-	       rv = pend_priv_const.find(cname, cTypeInfo);
-               if (!rv && toplevel) {
-                  rv = int_const.find(cname, cTypeInfo);
-                  if (!rv)
-                     rv = pend_int_const.find(cname, cTypeInfo);
-               }
-            }
-            if (rv)
-               priv = true;
-	 }
-      }
+      // first check committed constants
+      ClassAccess access = Public;
+      AbstractQoreNode* rv = constlist.find(cname, cTypeInfo, access);
+      if (!rv)
+	 rv = pend_constlist.parseFind(cname, cTypeInfo, access);
 
       // check for accessibility to private constants
       if (rv) {
-         if (check && priv && !parseCheckPrivateClassAccess()) {
-            cTypeInfo = 0;
-            return 0;
+         if (access == Internal) {
+            if (class_ctx == this)
+               return rv;
+            else
+               cTypeInfo = 0;
          }
-         return rv;
+         else if (access == Private && !parseCheckPrivateClassAccess(class_ctx))
+            cTypeInfo = 0;
+         else
+            return rv;
       }
 
-      return scl ? scl->parseFindConstantValue(cname, cTypeInfo, check, toplevel) : 0;
+      return scl ? scl->parseFindConstantValue(cname, cTypeInfo, class_ctx, class_ctx == this) : 0;
    }
 
    DLLLOCAL QoreVarInfo* parseFindLocalStaticVar(const char* vname) const {
@@ -2406,13 +2505,13 @@ public:
       scl->parseAddAncestors(m);
    }
 
+   // class_ctx is only set if it is present and accessible, so we only need to check for internal access here
    DLLLOCAL const qore_class_private* runtimeGetMemberClass(const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool& internal_member) const {
-      // if we have a class context, first we have to check here for an internal member
       if (class_ctx) {
          QoreMemberInfo *info = class_ctx->members.findByName(mem);
          if (info && info->getAccess() == Internal) {
-            access = Internal;
             internal_member = true;
+            access = Internal;
             return this;
          }
       }
@@ -2428,13 +2527,16 @@ public:
       if (info) {
          ClassAccess ma = info->getAccess();
          if (ma != Internal) {
-            access = ma;
+            if (access < ma)
+               access = ma;
             return this;
          }
       }
 
-      return scl ? scl->runtimeGetMemberClass(mem, access, class_ctx, class_ctx == this) : 0;
+      return scl ? scl->runtimeGetMemberClass(mem, access, class_ctx, class_ctx && is_equal(*class_ctx)) : 0;
    }
+
+   DLLLOCAL int runtimeInitMembers(QoreObject& o, bool& need_scan, bool internal_only, ExceptionSink* xsink) const;
 
    DLLLOCAL int initMembers(QoreObject& o, bool& need_scan, ExceptionSink* xsink) const;
 
@@ -2458,9 +2560,7 @@ public:
    }
 
    DLLLOCAL void clearConstants(QoreListNode& l) {
-      priv_const.clear(l);
-      pub_const.clear(l);
-      int_const.clear(l);
+      constlist.clear(l);
    }
 
    DLLLOCAL void clear(ExceptionSink* xsink) {
@@ -2469,9 +2569,7 @@ public:
 
    DLLLOCAL void deleteClassData(ExceptionSink* xsink) {
       vars.del(xsink);
-      priv_const.deleteAll(xsink);
-      pub_const.deleteAll(xsink);
-      int_const.deleteAll(xsink);
+      constlist.deleteAll(xsink);
       if (spgm) {
          spgm->deref(xsink);
          spgm = 0;
@@ -2564,6 +2662,17 @@ public:
    // returns a static method if it exists in the local class and has been committed to the class
    DLLLOCAL const QoreMethod* findLocalCommittedStaticMethod(const char* nme) const;
 
+   DLLLOCAL void finalizeBuiltin(const char* nspath);
+   DLLLOCAL void generateBuiltinSignature(const char* nspath);
+   DLLLOCAL void initializeBuiltin();
+
+   DLLLOCAL static const QoreMethod* doParseMethodAccess(const QoreMethod* m, const qore_class_private* class_ctx);
+
+   DLLLOCAL static const QoreMethod* doMethodAccess(const QoreMethod* m, ClassAccess ma, const qore_class_private* class_ctx) {
+      assert(m);
+      return ((ma == Public) || ((ma == Private && class_ctx))) ? m : 0;
+   }
+
    DLLLOCAL static const QoreMethod* doMethodAccess(const QoreMethod* m, ClassAccess& access, ClassAccess ma) {
       assert(m);
 
@@ -2575,67 +2684,62 @@ public:
       return m;
    }
 
-   // find either a normal or a static method in the class hierarchy at parse time
-   DLLLOCAL const QoreMethod* parseFindAnyMethodIntern(const char* mname, ClassAccess& access, const qore_class_private* class_ctx);
+   DLLLOCAL const QoreMethod* doRuntimeMethodAccess(const QoreMethod* m, ClassAccess& access, ClassAccess ma, const qore_class_private* class_ctx) const {
+      assert(m);
 
-   // finds a non-static method in the class hierarchy at parse time, optionally initializes classes
-   DLLLOCAL const QoreMethod* parseFindMethodIntern(const char* mname, ClassAccess& access, const qore_class_private* class_ctx);
+      if (ma == Internal && (!class_ctx || !is_equal(*class_ctx)))
+         m = 0;
+      else if (access < ma)
+         access = ma;
 
-   // finds a static method in the class hierarchy at parse time, optionally initializes classes
-   DLLLOCAL const QoreMethod* parseFindStaticMethodIntern(const char* mname, ClassAccess& access, const qore_class_private* class_ctx);
+      return m;
+   }
 
-   DLLLOCAL const QoreMethod* parseResolveSelfMethodIntern(const char* nme, ClassAccess& access, const qore_class_private* class_ctx);
+   // performs class initialization; find a static method in the class hierarchy at parse time; inaccessible methods are ignored
+   DLLLOCAL const QoreMethod* parseFindNormalMethod(const char* mname, const qore_class_private* class_ctx);
+
+   // performs class initialization; find a static method in the class hierarchy at parse time; inaccessible methods are ignored
+   DLLLOCAL const QoreMethod* parseFindStaticMethod(const char* mname, const qore_class_private* class_ctx);
+
+   // performs class initialization; finds a non-static method in the class hierarchy at parse time, optionally initializes classes
+   DLLLOCAL const QoreMethod* parseFindNormalMethodIntern(const char* mname, const qore_class_private* class_ctx);
+
+   // performs class initialization; finds a static method in the class hierarchy at parse time, optionally initializes classes
+   DLLLOCAL const QoreMethod* parseFindStaticMethodIntern(const char* mname, const qore_class_private* class_ctx);
+
+   DLLLOCAL const QoreMethod* parseResolveSelfMethodIntern(const char* nme, const qore_class_private* class_ctx);
 
    // returns a non-static method if it exists in class hierarchy and has been committed to the class
+   // class_ctx is only set if it is present and accessible, so we only need to check for internal access here
    DLLLOCAL const QoreMethod* runtimeFindCommittedStaticMethodIntern(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
       const QoreMethod* m = findLocalCommittedStaticMethod(nme);
-      if (m) {
-         m = doMethodAccess(m, access, m->getAccess());
-         if (m)
-            return m;
-      }
+      if (m && doRuntimeMethodAccess(m, access, m->getAccess(), class_ctx))
+         return m;
       if (!scl)
          return 0;
-      m = scl->runtimeFindCommittedStaticMethod(nme, access, class_ctx, class_ctx == this);
-      return m ? doMethodAccess(m, access, m->getAccess()) : 0;
+      // access already checked in subclasses, do not need to check again
+      return scl->runtimeFindCommittedStaticMethod(nme, access, class_ctx, class_ctx == this);
    }
 
    // returns a non-static method if it exists in class hierarchy and has been committed to the class
+   // class_ctx is only set if it is present and accessible, so we only need to check for internal access here
    DLLLOCAL const QoreMethod* runtimeFindCommittedMethodIntern(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
       const QoreMethod* m = findLocalCommittedMethod(nme);
-      if (m) {
-         m = doMethodAccess(m, access, m->getAccess());
-         if (m)
-            return m;
-      }
+      //printd(5, "qore_class_private::runtimeFindCommittedMethodIntern(%s) '%s' class_ctx: %p '%s' FIRST m: %p\n", nme, name.c_str(), class_ctx, class_ctx ? class_ctx.name.c_str() : "n/a", m);
+      if (m && doRuntimeMethodAccess(m, access, m->getAccess(), class_ctx))
+         return m;
       if (!scl)
          return 0;
-      m = scl->runtimeFindCommittedMethod(nme, access, class_ctx, class_ctx == this);
-      return m ? doMethodAccess(m, access, m->getAccess()) : 0;
+      // access already checked in subclasses, do not need to check again
+      return scl->runtimeFindCommittedMethod(nme, access, class_ctx, class_ctx == this);
    }
 
    DLLLOCAL const QoreMethod* runtimeFindCommittedStaticMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
-      if (class_ctx) {
-         const QoreMethod* m = class_ctx->findLocalCommittedStaticMethod(nme);
-         if (m && m->getAccess() == Internal) {
-            access = Internal;
-            return m;
-         }
-      }
-
       access = Public;
       return runtimeFindCommittedStaticMethodIntern(nme, access, class_ctx);
    }
 
    DLLLOCAL const QoreMethod* runtimeFindCommittedMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
-      if (class_ctx) {
-         const QoreMethod* m = class_ctx->findLocalCommittedMethod(nme);
-         if (m && m->getAccess() == Internal) {
-            access = Internal;
-            return m;
-         }
-      }
-
       access = Public;
       return runtimeFindCommittedMethodIntern(nme, access, class_ctx);
    }
@@ -2780,9 +2884,6 @@ public:
 
    DLLLOCAL const QoreClass* parseGetClass(const qore_class_private& qc, ClassAccess& n_access) const;
 
-   DLLLOCAL const QoreMethod* parseResolveSelfMethod(const char* nme, const qore_class_private* class_ctx);
-   DLLLOCAL const QoreMethod* parseResolveSelfMethod(NamedScope* nme);
-
    DLLLOCAL int addBaseClassesToSubclass(QoreClass* sc, bool is_virtual);
 
    DLLLOCAL void setPublic();
@@ -2793,6 +2894,8 @@ public:
          scl = bcl;
          if (!has_new_user_changes)
             has_new_user_changes = true;
+         if (!has_sig_changes)
+            has_sig_changes = true;
       }
    }
 
@@ -2812,37 +2915,40 @@ public:
       return scl ? scl->parseCheckHierarchy(n_cls, access, toplevel) : false;
    }
 
-   DLLLOCAL const QoreMethod* parseFindMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx);
+   DLLLOCAL VRMutex* getGate() const {
+      return &gate;
+   }
 
-   DLLLOCAL const QoreMethod* parseFindStaticMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx);
+   // class initialization; inaccessible methods are ignored
+   DLLLOCAL const QoreMethod* parseFindAnyMethod(const char* nme, const qore_class_private* class_ctx);
 
-   // no class initialization
-   DLLLOCAL const QoreMethod* parseFindAnyMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx);
+   // class initialization; inaccessible methods are ignored
+   DLLLOCAL const QoreMethod* parseFindAnyMethodStaticFirst(const char* nme, const qore_class_private* class_ctx);
 
-   DLLLOCAL const QoreMethod* parseResolveSelfMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx);
+   // class initialization
+   DLLLOCAL const QoreMethod* parseResolveSelfMethod(const char* nme, const qore_class_private* class_ctx);
+   DLLLOCAL const QoreMethod* parseResolveSelfMethod(NamedScope* nme);
+
+   // class initialization
+   DLLLOCAL const QoreMethod* parseFindSelfMethod(const char* nme);
+
+   DLLLOCAL char* getHash() const {
+      return hash.getHash();
+   }
 
    // static methods
    //DLLLOCAL static
+
+   DLLLOCAL static char* getHash(const QoreClass& qc) {
+      return qc.priv->getHash();
+   }
 
    DLLLOCAL static void parseAddConstant(QoreClass& qc, const std::string &cname, AbstractQoreNode* val, ClassAccess access) {
       qc.priv->parseAddConstant(cname, val, access);
    }
 
    DLLLOCAL static const QoreMemberInfo* runtimeGetMemberInfo(const QoreClass& qc, const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool& internal_member) {
-      // if we have a class context, first we have to check here for an internal member
-      if (class_ctx) {
-         QoreMemberInfo *info = class_ctx->members.findByName(mem);
-         if (info && info->getAccess() == Internal) {
-            access = Internal;
-            internal_member = true;
-            return info;
-         }
-      }
-
-      access = Public;
-      internal_member = false;
-
-      return qc.priv->runtimeGetMemberInfoIntern(mem, access, class_ctx);
+      return qc.priv->runtimeGetMemberInfo(mem, access, class_ctx, internal_member);
    }
 
    DLLLOCAL static LocalVar* getSelfId(const QoreClass& qc) {
@@ -2876,18 +2982,6 @@ public:
 
    DLLLOCAL static const QoreMethod* parseFindLocalMethod(const QoreClass& qc, const char* mname) {
       return qc.priv->parseFindLocalMethod(mname);
-   }
-
-   DLLLOCAL static const QoreMethod* parseFindMethod(const QoreClass& qc, const char* nme, ClassAccess& access, const qore_class_private* class_ctx) {
-      return qc.priv->parseFindMethod(nme, access, class_ctx);
-   }
-
-   DLLLOCAL static const QoreMethod* parseFindStaticMethod(const QoreClass& qc, const char* nme, ClassAccess& access, const qore_class_private* class_ctx) {
-      return qc.priv->parseFindStaticMethod(nme, access, class_ctx);
-   }
-
-   DLLLOCAL static const QoreMethod* parseFindAnyMethod(const QoreClass* qc, const char* mname, ClassAccess& access, const qore_class_private* class_ctx) {
-      return qc->priv->parseFindAnyMethod(mname, access, class_ctx);
    }
 
    DLLLOCAL static bool parseHasPendingChanges(const QoreClass& qc) {
@@ -2989,9 +3083,9 @@ public:
       return qc->priv->parseFindLocalStaticVar(vname);
    }
 
-   // searches this class and all superclasses, if check = false, then assumes parsing from within the class (parse_get_class() == this class)
-   DLLLOCAL static AbstractQoreNode* parseFindConstantValue(QoreClass* qc, const char* cname, const QoreTypeInfo*& typeInfo, bool check = false) {
-      return qc->priv->parseFindConstantValue(cname, typeInfo, check);
+   // searches this class and all superclasses
+   DLLLOCAL static AbstractQoreNode* parseFindConstantValue(QoreClass* qc, const char* cname, const QoreTypeInfo*& typeInfo, const qore_class_private* class_ctx) {
+      return qc->priv->parseFindConstantValue(cname, typeInfo, class_ctx);
    }
 
    // searches this class and all superclasses, if check = false, then assumes parsing from within the class (parse_get_class() == this class)
@@ -3016,17 +3110,7 @@ public:
    }
 
    DLLLOCAL static const QoreMethod* parseFindSelfMethod(QoreClass* qc, const char* mname) {
-      qc->priv->initialize();
-      ClassAccess access;
-      const QoreMethod* m = qc->priv->parseResolveSelfMethod(mname, access, qc->priv);
-      if (!m)
-         return 0;
-
-      // make sure we're not calling a method that cannot be called directly
-      if (!m->isStatic() && (!strcmp(mname, "constructor") || !strcmp(mname, "destructor") || !strcmp(mname, "copy")))
-         return 0;
-
-      return m;
+      return qc->priv->parseFindSelfMethod(mname);
    }
 
    DLLLOCAL static void parseAddMember(QoreClass& qc, char* nme, ClassAccess access, QoreMemberInfo* mInfo) {
@@ -3090,6 +3174,35 @@ public:
    DLLLOCAL static void setFinal(QoreClass& qc) {
       assert(!qc.priv->final);
       qc.priv->final = true;
+   }
+};
+
+class qore_class_private_holder {
+   qore_class_private* c;
+
+public:
+   DLLLOCAL qore_class_private_holder(QoreClass* n_c) : c(qore_class_private::get(*n_c)) {
+   }
+
+   DLLLOCAL qore_class_private_holder(qore_class_private* n_c) : c(n_c) {
+   }
+
+   DLLLOCAL ~qore_class_private_holder() {
+      if (c)
+         c->deref();
+   }
+
+   DLLLOCAL qore_class_private* operator*() {
+      return c;
+   }
+
+   DLLLOCAL QoreClass* release() {
+      if (c) {
+         QoreClass* rv = c->cls;
+         c = 0;
+         return rv;
+      }
+      return 0;
    }
 };
 
@@ -3180,12 +3293,12 @@ public:
       BSYSCONB(func)->eval(*parent_class, self, code, args);
    }
 
-   DLLLOCAL QoreValue eval(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
+   DLLLOCAL QoreValue eval(ExceptionSink* xsink, QoreObject* self, const QoreListNode* args) const {
       if (!static_flag) {
          assert(self);
-         return NMETHF(func)->evalMethod(0, self, args, xsink);
+         return NMETHF(func)->evalMethod(xsink, 0, self, args);
       }
-      return SMETHF(func)->evalMethod(0, args, xsink);
+      return SMETHF(func)->evalMethod(xsink, 0, args);
    }
 
    DLLLOCAL QoreValue evalPseudoMethod(const AbstractQoreFunctionVariant* variant, const QoreValue n, const QoreListNode* args, ExceptionSink* xsink) const {
@@ -3193,7 +3306,7 @@ public:
 
       assert(!static_flag);
 
-      QoreValue rv = NMETHF(func)->evalPseudoMethod(variant, n, args, xsink);
+      QoreValue rv = NMETHF(func)->evalPseudoMethod(xsink, variant, n, args);
       printd(5, "qore_method_private::evalPseudoMethod() %s::%s() returning type: %s\n", parent_class->getName(), getName(), rv.getTypeName());
       return rv;
    }
@@ -3208,16 +3321,16 @@ public:
       return m.priv->parseGetAccess();
    }
 
-   DLLLOCAL static QoreValue evalNormalVariant(const QoreMethod& m, QoreObject* self, const QoreExternalMethodVariant* ev, const QoreListNode* args, ExceptionSink* xsink) {
+   DLLLOCAL static QoreValue evalNormalVariant(const QoreMethod& m, ExceptionSink* xsink, QoreObject* self, const QoreExternalMethodVariant* ev, const QoreListNode* args) {
       return m.priv->evalNormalVariant(self, ev, args, xsink);
    }
 
-   DLLLOCAL static QoreValue evalPseudoMethod(const QoreMethod* m, const AbstractQoreFunctionVariant* variant, const QoreValue n, const QoreListNode* args, ExceptionSink* xsink) {
-      return m->priv->evalPseudoMethod(variant, n, args, xsink);
+   DLLLOCAL static QoreValue evalPseudoMethod(const QoreMethod& m, ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant, const QoreValue n, const QoreListNode* args) {
+      return m.priv->evalPseudoMethod(variant, n, args, xsink);
    }
 
-   DLLLOCAL static QoreValue eval(const QoreMethod& m, QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) {
-      return m.priv->eval(self, args, xsink);
+   DLLLOCAL static QoreValue eval(const QoreMethod& m, ExceptionSink* xsink, QoreObject* self, const QoreListNode* args) {
+      return m.priv->eval(xsink, self, args);
    }
 };
 

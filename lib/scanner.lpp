@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -40,10 +40,10 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ParserSupport.h>
-#include <qore/intern/qore_program_private.h>
-#include <qore/intern/ModuleInfo.h>
-#include <qore/intern/QoreParseHashNode.h>
+#include "qore/intern/ParserSupport.h"
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/ModuleInfo.h"
+#include "qore/intern/QoreParseHashNode.h"
 
 #include "parser.hpp"
 
@@ -55,6 +55,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <limits.h>
+#include <cmath>
 
 QoreParserLocation::QoreParserLocation() : explicit_first(false), first_line(0) {
 }
@@ -746,6 +747,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%perl-bool-eval{WS}*$                  getProgram()->parseDisableParseOptions(PO_STRICT_BOOLEAN_EVAL);
 ^%strict-bool-eval{WS}*$                getProgram()->parseSetParseOptions(PO_STRICT_BOOLEAN_EVAL);
 ^%strong-encapsulation{WS}*$            getProgram()->parseSetParseOptions(PO_STRONG_ENCAPSULATION);
+^%no-uncontrolled-apis{WS}*$            getProgram()->parseSetParseOptions(PO_NO_UNCONTROLLED_APIS);
 ^%broken-list-parsing{WS}*$             getProgram()->parseSetParseOptions(PO_BROKEN_LIST_PARSING);
 ^%broken-logic-precedence{WS}*$         getProgram()->parseSetParseOptions(PO_BROKEN_LOGIC_PRECEDENCE);
 ^%broken-loop-statement{WS}*$           getProgram()->parseSetParseOptions(PO_BROKEN_LOOP_STATEMENT);
@@ -918,7 +920,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                               if (!check_reexport("requires", cn, reexport)) {
                                                  //printd(5, "scanner requesting feature: '%s'\n", cn);
                                                  QoreProgram* pgm = getProgram();
-                                                 QMM.parseLoadModule(*(pgm->getParseExceptionSink()), cn, pgm, reexport);
+                                                 ExceptionSink xsink;
+                                                 QMM.parseLoadModule(xsink, cn, pgm, reexport);
+                                                 pgm->getParseExceptionSink()->assimilate(xsink);
                                               }
                                            }
                                            BEGIN(INITIAL);
@@ -1472,11 +1476,25 @@ P{D2}:{D2}(:{D2}(\.{US})?)?             yylval->datetime = makeRelativeTime(yyte
 cast\<{WS}*({WORD}::)+{WORD}{WS}*\>     yylval->string = make_cast(yytext); return QORE_CAST;
 cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); return QORE_CAST;
 ({WORD}::)+\$\.{WORD}                   yylval->nscope = new NamedScope(strdup(yytext)); yylval->nscope->fixBCCall(); return BASE_CLASS_CALL;
-@[Nn][Aa][Nn]@                          yylval->decimal = strtod("NAN", 0); return QFLOAT;
-@[Ii][Nn][Ff]@                          yylval->decimal = strtod("INFINITY", 0); return QFLOAT;
-{DIGIT}+"."{DIGIT}+                     yylval->decimal = strtod(yytext, 0); return QFLOAT;
-{DIGIT}+[eE][+-]?{DIGIT}+               yylval->decimal = strtod(yytext, 0); return QFLOAT;
-{DIGIT}+"."{DIGIT}+[eE][+-]?{DIGIT}+    yylval->decimal = strtod(yytext, 0); return QFLOAT;
+@[Nn][Aa][Nn]@                          {
+#ifdef NAN
+                                           yylval->decimal = NAN;
+#else
+                                           yylval->decimal = q_strtod("NAN");
+#endif
+                                           return QFLOAT;
+                                        }
+@[Ii][Nn][Ff]@                          {
+#ifdef INFINITY
+                                           yylval->decimal = INFINITY;
+#else
+                                           yylval->decimal = q_strtod("INFINITY");
+#endif
+                                           return QFLOAT;
+                                        }
+{DIGIT}+"."{DIGIT}+                     yylval->decimal = q_strtod(yytext); return QFLOAT;
+{DIGIT}+[eE][+-]?{DIGIT}+               yylval->decimal = q_strtod(yytext); return QFLOAT;
+{DIGIT}+"."{DIGIT}+[eE][+-]?{DIGIT}+    yylval->decimal = q_strtod(yytext); return QFLOAT;
 @[Nn][Aa][Nn]@n                         yylval->num = new QoreNumberNode("@nan@"); return NUMBER;
 @[Ii][Nn][Ff]@n                         yylval->num = new QoreNumberNode("@inf@"); return NUMBER;
 {DIGIT}+n                               yylval->num = new QoreNumberNode(yytext); return NUMBER;

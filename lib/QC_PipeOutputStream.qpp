@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,9 +32,14 @@
 #include "qore/intern/StreamPipe.h"
 
 //! This class is not intended to be instantiated directly, please see @ref StreamPipe
-/** @since %Qore 0.8.13
+/**
+    @note stream classes are not designed to be accessed from multiple threads; they have been implemented without locking for fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of such methods in threads other than the thread where the constructor was called will cause a \c STREAM-THREAD-ERROR to be thrown.
 
-    @see StreamPipe
+    @see
+    - @ref Qore::StreamWriter "StreamWriter" for a class that can be used to write various kinds of data to an @ref Qore::OutputStream "OutputStream"
+    - @ref Qore::StreamPipe
+
+    @since %Qore 0.8.13
  */
 qclass PipeOutputStream [arg=PipeOutputStream* os; ns=Qore; vparent=OutputStream; flags=final];
 
@@ -47,6 +52,8 @@ private PipeOutputStream::constructor() {
 
 //! Closes the output stream and releases any resources.
 /**
+    @throw OUTPUT-STREAM-CLOSED-ERROR the output stream has already been closed
+    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 nothing PipeOutputStream::close() {
    os->close(xsink);
@@ -54,6 +61,8 @@ nothing PipeOutputStream::close() {
 
 //! Writes bytes to the output stream
 /**
+    @throw OUTPUT-STREAM-CLOSED-ERROR the output stream has already been closed
+    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 nothing PipeOutputStream::write(binary data) {
    os->write(data->getPtr(), data->size(), xsink);

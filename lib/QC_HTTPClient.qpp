@@ -31,9 +31,9 @@
 
 #include <qore/Qore.h>
 #include <qore/QoreHttpClientObject.h>
-#include <qore/intern/QC_HTTPClient.h>
-#include <qore/intern/QC_Queue.h>
-#include <qore/intern/ssl_constants.h>
+#include "qore/intern/QC_HTTPClient.h"
+#include "qore/intern/QC_Queue.h"
+#include "qore/intern/ssl_constants.h"
 #include <qore/minitest.hpp>
 
 extern QoreClass* QC_SOCKET;

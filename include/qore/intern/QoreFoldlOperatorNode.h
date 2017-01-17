@@ -33,9 +33,9 @@
 
 #define _QORE_QOREFOLDLOPERATORNODE_H
 
-#include <qore/intern/AbstractIteratorHelper.h>
-#include <qore/intern/FunctionalOperator.h>
-#include <qore/intern/FunctionalOperatorInterface.h>
+#include "qore/intern/AbstractIteratorHelper.h"
+#include "qore/intern/FunctionalOperator.h"
+#include "qore/intern/FunctionalOperatorInterface.h"
 
 class QoreFoldlOperatorNode : public QoreBinaryOperatorNode<> {
 protected:

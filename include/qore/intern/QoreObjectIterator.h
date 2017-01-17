@@ -33,8 +33,8 @@
 
 #define _QORE_QOREOBJECTITERATOR_H
 
-#include <qore/intern/QoreHashIterator.h>
-#include <qore/intern/QoreObjectIntern.h>
+#include "qore/intern/QoreHashIterator.h"
+#include "qore/intern/QoreObjectIntern.h"
 
 extern QoreClass* QC_OBJECTITERATOR;
 extern QoreClass* QC_OBJECTKEYITERATOR;

@@ -36,6 +36,11 @@ class SrcStream inherits InputStream {
         offset += limit;
         return b;
     }
+
+    int peek() {
+        *binary b = data.substr(offset, 1);
+        return ord(b.toString(b, "UTF-8"), 0);
+    }
 }
 
 public class CompressionStreamTest inherits QUnit::Test {
@@ -78,14 +83,14 @@ public class CompressionStreamTest inherits QUnit::Test {
     }
 
     gzipCompressInput() {
-        assertEq(gzip, compressInput(plain, COMPRESSION_ALG_GZIP, 1, 100000));
-        assertEq(gzip, compressInput(plain, COMPRESSION_ALG_GZIP, 100000, 1));
-        assertEq(gzip, compressInput(plain, COMPRESSION_ALG_GZIP, 100000, 100000));
+        assertEq(gzip, ignoreOs(compressInput(plain, COMPRESSION_ALG_GZIP, 1, 100000), gzip));
+        assertEq(gzip, ignoreOs(compressInput(plain, COMPRESSION_ALG_GZIP, 100000, 1), gzip));
+        assertEq(gzip, ignoreOs(compressInput(plain, COMPRESSION_ALG_GZIP, 100000, 100000), gzip));
     }
 
     gzipCompressOutput() {
-        assertEq(gzip, compressOutput(plain, COMPRESSION_ALG_GZIP, 1));
-        assertEq(gzip, compressOutput(plain, COMPRESSION_ALG_GZIP, 100000));
+        assertEq(gzip, ignoreOs(compressOutput(plain, COMPRESSION_ALG_GZIP, 1), gzip));
+        assertEq(gzip, ignoreOs(compressOutput(plain, COMPRESSION_ALG_GZIP, 100000), gzip));
     }
 
     bzip2CompressInput() {
@@ -193,6 +198,42 @@ public class CompressionStreamTest inherits QUnit::Test {
                 sub() { decompressOutput(zlib, COMPRESSION_ALG_BZIP2, 100000); });
         assertThrows("BZIP2-ERROR", "corrupted",
                 sub() { decompressOutput(gzip, COMPRESSION_ALG_BZIP2, 100000); });
+    }
+
+    /*
+        issue 1565: the gzip compressed data sometimes differs in the OS byte in the header
+
+        reference: https://tools.ietf.org/html/rfc1952#page-5
+
+        the header looks like:
+        +---+---+---+---+---+---+---+---+---+---+
+        |ID1|ID2|CM |FLG|     MTIME     |XFL|OS | (more-->)
+        +---+---+---+---+---+---+---+---+---+---+
+
+        OS (Operating System)
+            This identifies the type of file system on which compression
+            took place.  This may be useful in determining end-of-line
+            convention for text files.  The currently defined values are
+            as follows:
+                 0 - FAT filesystem (MS-DOS, OS/2, NT/Win32)
+                 1 - Amiga
+                 2 - VMS (or OpenVMS)
+                 3 - Unix
+                 4 - VM/CMS
+                 5 - Atari TOS
+                 6 - HPFS filesystem (OS/2, NT)
+                 7 - Macintosh
+                 8 - Z-System
+                 9 - CP/M
+                10 - TOPS-20
+                11 - NTFS filesystem (NT)
+                12 - QDOS
+                13 - Acorn RISCOS
+               255 - unknown
+    */
+    private binary ignoreOs(binary b, binary expected) {
+        splice b, 9, 1, chr(expected[9]);
+        return b;
     }
 
     private binary compressInput(binary src, string alg, int chunk, int readSize) {

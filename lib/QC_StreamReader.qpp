@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,8 @@
 #include "qore/Qore.h"
 #include "qore/InputStream.h"
 #include "qore/intern/StreamReader.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreClassIntern.h"
 
 //! This class defines a stream reader for input streams.
 /** @since %Qore 0.8.13
@@ -51,16 +53,16 @@ qclass StreamReader [arg=StreamReader* sr; ns=Qore; internal_members=InputStream
 
 //! Creates the StreamReader for reading data from the given @ref InputStream.
 /** @param is the @ref InputStream for reading data
-    @param encoding character encoding of the data from the @ref InputStream; the encoding has to be ASCII-compatible, otherwise an exception will be thrown; if not present, the @ref default_encoding "default character encoding" is assumed
-
-    @throw UNSUPPORTED-ENCODING-ERROR ASCII-incompatible encoding has been passed
+    @param encoding character encoding of the data from the @ref InputStream; if not present, the @ref default_encoding "default character encoding" is assumed
  */
 StreamReader::constructor(Qore::InputStream[InputStream] is, *string encoding) {
    SimpleRefHolder<StreamReader> reader(new StreamReader(xsink, is, encoding ? QEM.findCreate(encoding) : QCS_DEFAULT));
    if (*xsink)
       return;
    self->setPrivate(CID_STREAMREADER, reader.release());
-   self->setValue("is", static_cast<QoreObject *>(obj_is->refSelf()), xsink);
+   qore_object_private* o = qore_object_private::get(*self);
+   const qore_class_private* cls = qore_class_private::get(*QC_STREAMREADER);
+   o->setValueIntern(cls, "is", static_cast<QoreObject*>(obj_is->refSelf()), xsink);
 }
 
 //! Returns the @ref character_encoding "character encoding" for the StreamReader.
@@ -70,18 +72,40 @@ string StreamReader::getEncoding() [flags=CONSTANT] {
    return new QoreStringNode(sr->getEncoding()->getCode());
 }
 
+//! Reads a string from the input stream
+/** @par Example:
+    @code{.py}
+string str = sr.read(len);
+    @endcode
+
+    @param limit maximum amount of characters of string data to read; if not given or equal to -1, all the data from the @ref InputStream will be read; if equal to 0, @ref nothing will be read
+
+    @return a @ref string value or @ref nothing if there is no more data available in the stream
+
+    @throw STREAM-ENCODING-ERROR this exception is thrown if invalid character data is detected on the stream; this exception is not thrown when \a limit is negative, in such cases the input data is not verified
+
+    @note
+    - a short read (a string returned with fewer characters than requested) indicates that there is no more data left in the stream
+    - other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
+ */
+*string StreamReader::readString(int limit = -1) {
+   return sr->readString(limit, xsink);
+}
+
 //! Reads a text line from the input stream.
 /** @par Example:
     @code{.py}
 string line = sr.readLine("\n");
     @endcode
 
-    @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"
+    @param eol the optional end of line character(s) to use to detect lines in the data - can be maximally 2 bytes long; if it is longer, the rest is ignored; if this string is not passed, then, if the character-encoding is ASCII-compatible, the end of line character(s) are detected automatically from \c "\n", \c "\r", or \c "\r\n"; if the stream uses a non-ASCII-compatible character encoding, then \c "\n" is assumed
     @param trim if @ref True the returned lines will be trimmed of the eol bytes
 
     @return a text line read from the stream or @ref nothing if there is no more data available in the stream
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 *string StreamReader::readLine(*string eol, bool trim = True) {
    return sr->readLine(eol, trim, xsink);
@@ -96,6 +120,10 @@ string line = sr.readLine("\n");
     @param limit maximum amount of binary data to read; if not given or equal to -1, all the data from the @ref InputStream will be read; if equal to 0, @ref nothing will be read
 
     @return a @ref binary value or @ref nothing if there is no more data available in the stream
+
+    @note
+    - a short read (a binary object returned with fewer bytes than requested) indicates that there is no more data left in the stream
+    - other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 *binary StreamReader::readBinary(int limit = -1) {
    return sr->readBinary(limit, xsink);
@@ -110,6 +138,8 @@ int i = sr.readi1();
     @return a 1-byte signed integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readi1() {
    return sr->readi1(xsink);
@@ -124,6 +154,8 @@ int i = sr.readi2();
     @return a 2-byte signed integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readi2() {
    return sr->readi2(xsink);
@@ -138,6 +170,8 @@ int i = sr.readi4();
     @return a 4-byte signed integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readi4() {
    return sr->readi4(xsink);
@@ -152,6 +186,8 @@ int i = sr.readi8();
     @return a 8-byte signed integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readi8() {
    return sr->readi8(xsink);
@@ -166,6 +202,8 @@ int i = sr.readi2LSB();
     @return a 2-byte signed integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readi2LSB() {
    return sr->readi2LSB(xsink);
@@ -180,6 +218,8 @@ int i = sr.readi4LSB();
     @return a 4-byte signed integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readi4LSB() {
    return sr->readi4LSB(xsink);
@@ -194,6 +234,8 @@ int i = sr.readi8LSB();
     @return a 8-byte signed integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readi8LSB() {
    return sr->readi8LSB(xsink);
@@ -208,6 +250,8 @@ int i = sr.readu1();
     @return a 1-byte unsigned integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readu1() {
    return sr->readu1(xsink);
@@ -222,6 +266,8 @@ int i = sr.readu2();
     @return a 2-byte unsigned integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readu2() {
    return sr->readu2(xsink);
@@ -236,6 +282,8 @@ int i = sr.readu4();
     @return a 4-byte unsigned integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readu4() {
    return sr->readu4(xsink);
@@ -250,6 +298,8 @@ int i = sr.readu2LSB();
     @return a 2-byte unsigned integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readu2LSB() {
    return sr->readu2LSB(xsink);
@@ -264,6 +314,8 @@ int i = sr.readu4LSB();
     @return a 4-byte unsigned integer
 
     @throw END-OF-STREAM-ERROR there is not enough data available in the stream
+
+    @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readu4LSB() {
    return sr->readu4LSB(xsink);

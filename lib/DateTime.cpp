@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_date_private.h>
+#include "qore/intern/qore_date_private.h"
 
 #include <time.h>
 #include <stdlib.h>
@@ -61,6 +61,10 @@ DateTime::DateTime(int64 seconds, int ms) : priv(new qore_date_private) {
 
 DateTime::DateTime(const char* str) : priv(new qore_date_private) {
    setDate(str);
+}
+
+DateTime::DateTime(const char* str, ExceptionSink* xsink) : priv(new qore_date_private) {
+   setDate(str, xsink);
 }
 
 DateTime::DateTime(const AbstractQoreZoneInfo* zone, const char* str) : priv(new qore_date_private) {
@@ -257,6 +261,10 @@ void DateTime::setDate(const struct tm* tms, short ms) {
 
 void DateTime::setDate(const char* str) {
    priv->setDate(str);
+}
+
+void DateTime::setDate(const char* str, ExceptionSink* xsink) {
+   priv->setDate(str, xsink);
 }
 
 void DateTime::setDate(const AbstractQoreZoneInfo* zone, const char* str) {

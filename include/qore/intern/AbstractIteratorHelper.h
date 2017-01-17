@@ -33,12 +33,13 @@
 
 #define _QORE_ABSTRACTITERATORHELPER_H
 
-#include <qore/intern/QoreClassIntern.h>
+#include "qore/intern/QoreClassIntern.h"
 
 class AbstractIteratorHelper {
 protected:
    DLLLOCAL static const QoreExternalMethodVariant* getCheckVariant(const char* op, const QoreMethod* m, ExceptionSink* xsink) {
-      const MethodVariantBase* variant = reinterpret_cast<const MethodVariantBase*>(m->getFunction()->findVariant((QoreValueList*)0, false, xsink));
+      const qore_class_private* class_ctx = runtime_get_class();
+      const MethodVariantBase* variant = reinterpret_cast<const MethodVariantBase*>(m->getFunction()->runtimeFindVariant(xsink, (QoreValueList*)0, false, class_ctx));
       // this could throw an exception if the variant is builtin and has functional flags not allowed in the current pgm, for example
       if (*xsink)
          return 0;
@@ -46,7 +47,7 @@ protected:
       assert(variant);
       if (variant->isPrivate()) {
          // check for access to the class holding the private method
-         if (!qore_class_private::runtimeCheckPrivateClassAccess(*(variant->method()->getClass()))) {
+         if (!qore_class_private::runtimeCheckPrivateClassAccess(*(variant->method()->getClass()), class_ctx)) {
             QoreString opstr(op);
             opstr.toupr();
             opstr.concat("-ITERATOR-ERROR");
@@ -101,14 +102,14 @@ public:
    DLLLOCAL bool next(ExceptionSink* xsink) {
       assert(nextMethod);
       assert(nextVariant);
-      ValueHolder rv(qore_method_private::evalNormalVariant(*nextMethod, obj, nextVariant, 0, xsink), xsink);
+      ValueHolder rv(qore_method_private::evalNormalVariant(*nextMethod, xsink, obj, nextVariant, 0), xsink);
       return rv->getAsBool();
    }
 
    DLLLOCAL QoreValue getValue(ExceptionSink* xsink) {
       assert(getValueMethod);
       assert(getValueVariant);
-      return qore_method_private::evalNormalVariant(*getValueMethod, obj, getValueVariant, 0, xsink);
+      return qore_method_private::evalNormalVariant(*getValueMethod, xsink, obj, getValueVariant, 0);
    }
 
    /*

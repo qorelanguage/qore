@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,9 +32,13 @@
 #include "qore/intern/StreamPipe.h"
 
 //! This class is not intended to be instantiated directly, please see @ref StreamPipe
-/** @since %Qore 0.8.13
+/** @note stream classes are not designed to be accessed from multiple threads; they have been implemented without locking for fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of such methods in threads other than the thread where the constructor was called will cause a \c STREAM-THREAD-ERROR to be thrown.
 
-    @see StreamPipe
+    @see
+    - @ref Qore::StreamReader "StreamReader" for a class that can be used to read various kinds of data from an @ref Qore::InputStream "InputStream"
+    - StreamPipe
+
+    @since %Qore 0.8.13
  */
 qclass PipeInputStream [arg=PipeInputStream* is; ns=Qore; vparent=InputStream; flags=final];
 
@@ -47,6 +51,7 @@ private PipeInputStream::constructor() {
 
 //! Reads bytes (up to a specified limit) from the input stream; returns \ref NOTHING if there are no more bytes in the stream
 /**
+    @throw INPUT-STREAM-ERROR \a limit is not positive
  */
 *binary PipeInputStream::read(int limit) {
    if (limit <= 0) {
@@ -58,6 +63,18 @@ private PipeInputStream::constructor() {
    int64 count = is->read(const_cast<void *>(result->getPtr()), limit, xsink);
    result->setSize(count);
    return count ? result.release() : 0;
+}
+
+//! Peeks the next byte available from the input stream; returns -1 if no more data available
+/** @return the next byte available from the input stream or -1 if no more data is available
+ */
+int PipeInputStream::peek() {
+   SimpleRefHolder<QoreBigIntNode> result(new QoreBigIntNode());
+   int64 res = is->peek(xsink);
+   if (*xsink)
+      return result.release();
+   result->val = res;
+   return result.release();
 }
 
 //! Call when the background operation is finished to wakeup PipeOutputStream::close().

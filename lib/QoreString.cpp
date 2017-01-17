@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,9 +31,10 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_string_private.h>
-#include <qore/intern/IconvHelper.h>
-#include <qore/minitest.hpp>
+#include "qore/intern/qore_string_private.h"
+#include "qore/intern/IconvHelper.h"
+#include "qore/intern/StringReaderHelper.h"
+#include "qore/minitest.hpp"
 
 #include <errno.h>
 #include <string.h>
@@ -605,7 +606,7 @@ int qore_string_private::convert_encoding_intern(const char* src, qore_size_t sr
          switch (errno) {
             case EINVAL:
             case EILSEQ:
-               c.reportIllegalSequence(xsink);
+               c.reportIllegalSequence(ib - src, xsink);
                targ.clear();
                return -1;
             case E2BIG:
@@ -1012,9 +1013,11 @@ QoreString::QoreString(double f) : priv(new qore_string_private) {
    priv->allocated = MAX_FLOAT_STRING_LEN + 1;
    priv->buf = (char*)malloc(sizeof(char) * priv->allocated);
    priv->len = ::snprintf(priv->buf, MAX_FLOAT_STRING_LEN, "%.9g", f);
-   // terminate string just in case
-   priv->buf[MAX_FLOAT_STRING_LEN] = '\0';
+   // snprintf() always terminates the string
    priv->charset = QCS_DEFAULT;
+   // issue 1556: external modules that call setlocale() can change
+   // the decimal point character used here from '.' to ','
+   q_fix_decimal(this);
 }
 
 QoreString::QoreString(const DateTime *d) : priv(new qore_string_private) {
@@ -2872,4 +2875,14 @@ int64 QoreString::toBigInt() const {
 
 qore_offset_t QoreString::getByteOffset(qore_size_t i, ExceptionSink* xsink) const {
    return priv->getByteOffset(i, xsink);
+}
+
+void TempEncodingHelper::removeBom() {
+   if (!str || str->getEncoding()->isAsciiCompat())
+      return;
+   if (!temp) {
+      str = new QoreString(*str);
+      temp = true;
+   }
+   q_remove_bom_utf16(str, qore_string_private::get(*str)->charset);
 }

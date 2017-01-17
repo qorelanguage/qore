@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_number_private.h>
+#include "qore/intern/qore_number_private.h"
 
 /** @defgroup number_formatting_constants Number Formatting Constants
 */
@@ -281,4 +281,29 @@ n = n.abs();
 */
 number <number>::abs() [flags=CONSTANT] {
    return qore_number_private::doUnary(*n, mpfr_abs);
+}
+
+//! Converts the number to a different <b>base</b> (and returns it as a string).
+/** @param base the base to convert the number to; this value must be 2 - 36 inclusive or an \c INVALID-BASE exception will be thrown
+
+    @return the converted value as a string
+
+    @par Example:
+    @code{.py}
+        (-276536798792387623n).toBase(29)); // returns "-MJ934KRG1O3R"
+          276536798792387623n.toBase(2));   // returns "1111010110011101001100000011011011010110000000110000100111"
+          (15.5n).toBase(20));              // returns "F.A"
+         (-13.8n).toBase(20));              // returns "-D.G"
+         (21.48n).toBase(15));              // returns "16.73"
+    @endcode
+
+    @throw INVALID-BASE the base is invalid; must be 2 - 36 inclusive
+
+    @see \link <int>::toBase(int base) \endlink
+    @see \link <float>::toBase(int base) \endlink
+
+    @since %Qore 0.8.13
+*/
+string <number>::toBase(int base = 10) [flags=RET_VALUE_ONLY] {
+    return qore_number_private::toBase(*n, base, xsink);
 }

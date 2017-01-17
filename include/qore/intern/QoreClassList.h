@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -45,7 +45,7 @@
 #ifdef HAVE_QORE_HASH_MAP
 //#warning compiling with hash_map
 #include <qore/hash_map_include.h>
-#include <qore/intern/xxhash.h>
+#include "qore/intern/xxhash.h"
 
 typedef HASH_MAP<const char*, QoreClass*, qore_hash_str, eqstr> hm_qc_t;
 #else
@@ -67,12 +67,7 @@ private:
    DLLLOCAL void deleteAll();
    DLLLOCAL void assimilate(QoreClassList& n);
 
-   DLLLOCAL void remove(hm_qc_t::iterator i) {
-      QoreClass* qc = i->second;
-      //printd(5, "QCL::remove() this=%p '%s' (%p)\n", this, qc->getName(), qc);
-      hm.erase(i);
-      delete qc;
-   }
+   DLLLOCAL void remove(hm_qc_t::iterator i);
 
    DLLLOCAL void addInternal(QoreClass* ot);
 

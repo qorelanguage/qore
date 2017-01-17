@@ -31,7 +31,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_date_private.h>
+#include "qore/intern/qore_date_private.h"
 
 DateTimeNode::DateTimeNode(qore_date_private* n_priv) : SimpleValueQoreNode(NT_DATE), DateTime(n_priv) {
 }
@@ -55,6 +55,9 @@ DateTimeNode::DateTimeNode(int64 seconds, int ms) : SimpleValueQoreNode(NT_DATE)
 }
 
 DateTimeNode::DateTimeNode(const char* date) : SimpleValueQoreNode(NT_DATE), DateTime(date) {
+}
+
+DateTimeNode::DateTimeNode(const char* date, ExceptionSink* xsink) : SimpleValueQoreNode(NT_DATE), DateTime(date, xsink) {
 }
 
 DateTimeNode::DateTimeNode(const AbstractQoreZoneInfo* zone, const char* date) : SimpleValueQoreNode(NT_DATE), DateTime(zone, date) {
@@ -213,6 +216,10 @@ DateTimeNode* DateTimeNode::makeAbsolute(const AbstractQoreZoneInfo* z, int y, i
    return new DateTimeNode(new qore_date_private(z, y, mo, d, h, mi, s, u));
 }
 
+DateTimeNode* DateTimeNode::makeAbsolute(const AbstractQoreZoneInfo* z, int y, int mo, int d, int h, int mi, int s, int u, ExceptionSink* xsink) {
+   return new DateTimeNode(new qore_date_private(z, y, mo, d, h, mi, s, u, xsink));
+}
+
 DateTimeNode* DateTimeNode::makeAbsolute(const AbstractQoreZoneInfo* zone, int64 seconds, int us) {
    return new DateTimeNode(new qore_date_private(zone, seconds, us));
 }
@@ -287,6 +294,34 @@ DateTimeValueHelper::DateTimeValueHelper(const QoreValue& n) {
 DateTimeValueHelper::~DateTimeValueHelper() {
    if (del)
       delete const_cast<DateTime*>(dt);
+}
+
+DateTimeNodeValueHelper::DateTimeNodeValueHelper(const AbstractQoreNode* n, ExceptionSink* xsink) : dt(0), del(false) {
+   if (!n) {
+      dt = ZeroDate;
+      del = false;
+      return;
+   }
+
+   qore_type_t t = n->getType();
+
+   // optmization without virtual function call for most common case
+   if (t == NT_DATE) {
+      dt = const_cast<DateTimeNode*>(reinterpret_cast<const DateTimeNode*>(n));
+      del = false;
+      return;
+   }
+
+   // special logic for strings to verify that the input data represents a valid date
+   if (t == NT_STRING) {
+      del = true;
+      dt = new DateTimeNode(reinterpret_cast<const QoreStringNode*>(n)->c_str(), xsink);
+      return;
+   }
+
+   dt = new DateTimeNode;
+   n->getDateTimeRepresentation(*dt);
+   del = true;
 }
 
 DateTimeNodeValueHelper::DateTimeNodeValueHelper(const QoreValue& n) {

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file OracleSqlUtil.qm Qore user module for working with Oracle SQL data
 
-/*  OracleSqlUtil.qm Copyright 2013 - 2016 Qore Technologies, sro
+/*  OracleSqlUtil.qm Copyright 2013 - 2016 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -46,7 +46,7 @@
 %enable-all-warnings
 
 module OracleSqlUtil {
-    version = "1.2";
+    version = "1.2.1";
     desc = "user module for working with Oracle SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -254,6 +254,9 @@ my hash $schema = (
     @see OracleSqlUtil::OracleDatabase::OracleSchemaDescriptionOptions for a list of Oracle-specific schema description hash keys.
 
     @section ora_relnotes Release Notes
+
+    @subsection v121 OracleSqlUtil v1.2.1
+    - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
 
     @subsection v12 OracleSqlUtil v1.2
     - implemented support for the \c "returning" clause as an insert option
@@ -696,7 +699,11 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the sequence in the database
-        string getRenameSql(string new_name) {
+        /** The object is renamed in place with this call
+            @param new_name the new name of the object
+            @param opt this option is ignored
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
             return sprintf("rename %s to %s", name, new_name);
         }
     }
@@ -746,7 +753,11 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the view in the database
-        softlist getRenameSql(string new_name) {
+        /** The object is renamed in place with this call
+            @param new_name the new name of the object
+            @param opt this option is ignored
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
             return sprintf("rename %s to %s", name, new_name);
         }
     }
@@ -793,8 +804,17 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to create the object in the database
+        /** @param opt create options; if \a replace is @ref Qore::True "True", then <tt>CREATE OR REPLACE</tt> will be used in the create statement
+         */
         softlist getCreateSql(*hash opt) {
             return sprintf("create%s %s %s", opt.replace ? " or replace" : "", type, src);
+        }
+
+        #! returns a string that can be used to drop the type from the database
+        /** @param opt drop options; if \a force is @ref Qore::True "True", then the \c FORCE option will be used in the drop statement
+         */
+        string getDropSql(*hash opt) {
+            return sprintf("drop %s %s%s", type, name, opt.force ? " force" : "");
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
@@ -803,29 +823,42 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the object in the database
-        list getRenameSql(string new_name) {
+        /** The object is renamed in place with this call
+            @param new_name the new name of the object
+            @param opt this option is ignored
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
+            return sprintf("rename %s to %s", name, new_name);
+        }
+    }
+
+    #! the base class for Oracle code objects that cannot be renamed in place
+    public class OracleCodeBaseNoRename inherits OracleCodeBase {
+        #! creates the object from the arguments passed
+        /** @param n the name of the object
+            @param n_type the type of object
+            @param n_src the source of the object
+         */
+        constructor(string n, string n_type, string n_src) : OracleCodeBase(n, n_type, n_src) {
+        }
+
+        #! returns a string that can be used to rename the object in the database
+        /** The object is dropped and recreated with this method call
+
+            @param new_name the new name of the object
+            @param opt rename options; if \a force if @ref Qore::True "True", then the \c FORCE option will be used with the drop statement
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
             list l = ();
-            l += getDropSql();
+            l += getDropSql(opt);
             l += getCreateSql();
             return l;
         }
     }
 
     #! represents an Oracle type
-    public class OracleType inherits OracleCodeBase {
-        constructor(string n_name, string n_src) : OracleCodeBase(n_name, "type", n_src) {
-        }
-
-        #! Force to drop named type (object or collection)
-        /** Named types in schema can have dependencies between each other.
-            But the FORCE keyword used in drop allows us to avoid complex
-            dependency tree calculation because all objects will be dropped
-            at the end
-
-            @note this method is intended for use in schema management
-         */
-        string getDropSqlForce() {
-            return sprintf("drop %s %s force", type, name);
+    public class OracleType inherits OracleCodeBaseNoRename {
+        constructor(string n_name, string n_src) : OracleCodeBaseNoRename(n_name, "type", n_src) {
         }
     }
 
@@ -850,8 +883,8 @@ my any $v = $c.name;
     }
 
     #! represents an Oracle package
-    public class OraclePackage inherits OracleCodeBase {
-        private {
+    public class OraclePackage inherits OracleCodeBaseNoRename {
+        public {
             #! package body source
             *string body_src;
         }
@@ -861,7 +894,7 @@ my any $v = $c.name;
             @param n_src the source of the package declaration
             @param n_body_src the package body source
          */
-        constructor(string n, string n_src, *string n_body_src) : OracleCodeBase(n, "package", n_src) {
+        constructor(string n, string n_src, *string n_body_src) : OracleCodeBaseNoRename(n, "package", n_src) {
             body_src = n_body_src;
         }
 
@@ -883,7 +916,7 @@ my any $v = $c.name;
     }
 
     #! represents an Oracle materialized view
-    public class OracleMaterializedView inherits OracleCodeBase {
+    public class OracleMaterializedView inherits OracleCodeBaseNoRename {
         public {
             #! Flag if is loggign mode used
             bool logging;
@@ -900,7 +933,7 @@ my any $v = $c.name;
             @param n_logging if the materialized view should use logging
             @param n_use_index if the materialized view should use an index
          */
-        constructor(string n, string n_src, bool n_logging = True, bool n_use_index = True, *string n_tablespace) : OracleCodeBase(n, "materialized view", n_src) {
+        constructor(string n, string n_src, bool n_logging = True, bool n_use_index = True, *string n_tablespace) : OracleCodeBaseNoRename(n, "materialized view", n_src) {
             logging = n_logging;
             use_index = n_use_index;
             tablespace = n_tablespace;
@@ -937,7 +970,7 @@ my any $v = $c.name;
                 );
 
             #! oracle-specific schema description / alignment options
-            const OracleAlignSchemaOptions = AbstractDatabase::CreationOptions
+            const OracleAlignSchemaOptions = AbstractDatabase::AlignSchemaOptions
                 + OracleCreationOptions
                 + OracleTable::OracleAlignTableOptions
                 ;
@@ -2308,6 +2341,10 @@ my any $v = $c.name;
                     case "BFILE":
                     case "BLOB":
                     case "CLOB": size = 0; break;
+                }
+                # there is no size for NTY objects (not listed in registered types in OraTypeMap)
+                if (!exists th) {
+                    size = 0;
                 }
 
                 # set default numeric precision to 0 if not given

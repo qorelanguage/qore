@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -61,10 +61,6 @@ public:
    }
 
    DLLLOCAL ~DataLineIterator() {
-      if (eol)
-         eol->deref();
-      if (str)
-         str->deref();
    }
 
    DLLLOCAL bool next(ExceptionSink* xsink) {
@@ -110,13 +106,16 @@ public:
 
 private:
    DLLLOCAL void doReset(ExceptionSink* xsink) {
-      src = new InputStreamLineIterator(xsink, new StringInputStream(str), str->getEncoding(), eol, trim);
+      if (!str->getEncoding()->isAsciiCompat())
+         src = new InputStreamLineIterator(xsink, new EncodingConversionInputStream(new StringInputStream(*str), str->getEncoding(), QCS_UTF8, xsink), QCS_UTF8, *eol, trim);
+      else
+         src = new InputStreamLineIterator(xsink, new StringInputStream(*str), str->getEncoding(), *eol, trim);
    }
 
 private:
    SimpleRefHolder<InputStreamLineIterator> src;
-   QoreStringNode* str;
-   QoreStringNode* eol;
+   SimpleRefHolder<QoreStringNode> str;
+   SimpleRefHolder<QoreStringNode> eol;
    bool trim;
 };
 

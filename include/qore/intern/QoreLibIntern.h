@@ -33,7 +33,7 @@
 
 #define _QORE_QORELIBINTERN_H
 
-#include <qore/intern/config.h>
+#include "qore/intern/config.h"
 
 #include <stdarg.h>
 #include <sys/types.h>
@@ -314,14 +314,6 @@ typedef std::map<QoreCondition*, int> cond_map_t;
 #define QORE_MANAGE_STACK
 #endif
 
-enum qore_call_t {
-   CT_UNUSED     = -1,
-   CT_USER       =  0,
-   CT_BUILTIN    =  1,
-   CT_NEWTHREAD  =  2,
-   CT_RETHROW    =  3
-};
-
 // Datasource Access Helper codes
 #define DAH_NOCHANGE  0 // acquire lock temporarily
 #define DAH_ACQUIRE   1 // acquire lock and hold
@@ -340,6 +332,9 @@ DLLLOCAL extern QoreClass* QC_PSEUDOVALUE;
 DLLLOCAL extern QoreClass* QC_PSEUDONOTHING;
 
 DLLLOCAL bool node_has_effect(const AbstractQoreNode* n);
+
+DLLLOCAL QoreString* q_fix_decimal(QoreString* str, size_t offset = 0);
+DLLLOCAL QoreStringNode* q_fix_decimal(QoreStringNode* str, size_t offset = 0);
 
 #ifdef _Q_WINDOWS
 // simulated block size for statvfs() on Windows
@@ -376,50 +371,50 @@ DLLLOCAL int statvfs(const char* path, struct statvfs* buf);
 DLLLOCAL int q_fstatvfs(const char* filepath, struct statvfs* buf);
 #endif
 
-#include <qore/intern/NamedScope.h>
-#include <qore/intern/QoreTypeInfo.h>
-#include <qore/intern/ParseNode.h>
-#include <qore/intern/QoreThreadList.h>
-#include <qore/intern/qore_thread_intern.h>
-#include <qore/intern/Function.h>
-#include <qore/intern/CallReferenceCallNode.h>
-#include <qore/intern/CallReferenceNode.h>
-#include <qore/intern/BuiltinFunction.h>
-#include <qore/intern/AbstractStatement.h>
-#include <qore/intern/Variable.h>
-#include <qore/intern/LocalVar.h>
-#include <qore/intern/ScopedObjectCallNode.h>
-#include <qore/intern/ScopedRefNode.h>
-#include <qore/intern/ClassRefNode.h>
-#include <qore/intern/Context.h>
-#include <qore/intern/BarewordNode.h>
-#include <qore/intern/SelfVarrefNode.h>
-#include <qore/intern/StaticClassVarRefNode.h>
-#include <qore/intern/BackquoteNode.h>
-#include <qore/intern/ContextrefNode.h>
-#include <qore/intern/ContextRowNode.h>
-#include <qore/intern/ComplexContextrefNode.h>
-#include <qore/intern/FindNode.h>
-#include <qore/intern/VRMutex.h>
-#include <qore/intern/VLock.h>
-#include <qore/intern/QoreException.h>
-#include <qore/intern/StatementBlock.h>
-#include <qore/intern/VarRefNode.h>
-#include <qore/intern/FunctionCallNode.h>
-#include <qore/intern/QoreRegexSubst.h>
-#include <qore/intern/QoreRegex.h>
-#include <qore/intern/QoreTransliteration.h>
-#include <qore/intern/ObjectMethodReferenceNode.h>
-#include <qore/intern/QoreClosureParseNode.h>
-#include <qore/intern/QoreClosureNode.h>
-#include <qore/intern/QoreImplicitArgumentNode.h>
-#include <qore/intern/QoreImplicitElementNode.h>
-#include <qore/intern/QoreOperatorNode.h>
-#include <qore/intern/QoreTimeZoneManager.h>
-#include <qore/intern/ContextStatement.h>
-#include <qore/intern/SwitchStatement.h>
-#include <qore/intern/QorePseudoMethods.h>
-#include <qore/intern/ParseReferenceNode.h>
+#include "qore/intern/NamedScope.h"
+#include "qore/intern/QoreTypeInfo.h"
+#include "qore/intern/ParseNode.h"
+#include "qore/intern/QoreThreadList.h"
+#include "qore/intern/qore_thread_intern.h"
+#include "qore/intern/Function.h"
+#include "qore/intern/CallReferenceCallNode.h"
+#include "qore/intern/CallReferenceNode.h"
+#include "qore/intern/BuiltinFunction.h"
+#include "qore/intern/AbstractStatement.h"
+#include "qore/intern/Variable.h"
+#include "qore/intern/LocalVar.h"
+#include "qore/intern/ScopedObjectCallNode.h"
+#include "qore/intern/ScopedRefNode.h"
+#include "qore/intern/ClassRefNode.h"
+#include "qore/intern/Context.h"
+#include "qore/intern/BarewordNode.h"
+#include "qore/intern/SelfVarrefNode.h"
+#include "qore/intern/StaticClassVarRefNode.h"
+#include "qore/intern/BackquoteNode.h"
+#include "qore/intern/ContextrefNode.h"
+#include "qore/intern/ContextRowNode.h"
+#include "qore/intern/ComplexContextrefNode.h"
+#include "qore/intern/FindNode.h"
+#include "qore/intern/VRMutex.h"
+#include "qore/intern/VLock.h"
+#include "qore/intern/QoreException.h"
+#include "qore/intern/StatementBlock.h"
+#include "qore/intern/VarRefNode.h"
+#include "qore/intern/FunctionCallNode.h"
+#include "qore/intern/QoreRegexSubst.h"
+#include "qore/intern/QoreRegex.h"
+#include "qore/intern/QoreTransliteration.h"
+#include "qore/intern/ObjectMethodReferenceNode.h"
+#include "qore/intern/QoreClosureParseNode.h"
+#include "qore/intern/QoreClosureNode.h"
+#include "qore/intern/QoreImplicitArgumentNode.h"
+#include "qore/intern/QoreImplicitElementNode.h"
+#include "qore/intern/QoreOperatorNode.h"
+#include "qore/intern/QoreTimeZoneManager.h"
+#include "qore/intern/ContextStatement.h"
+#include "qore/intern/SwitchStatement.h"
+#include "qore/intern/QorePseudoMethods.h"
+#include "qore/intern/ParseReferenceNode.h"
 
 DLLLOCAL extern int qore_library_options;
 
@@ -614,16 +609,18 @@ public:
 */
 
 class qore_hash_private;
+class qore_object_private;
 
 class hash_assignment_priv {
 public:
    qore_hash_private& h;
    HashMember* om;
+   qore_object_private* o = 0;
 
    DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, HashMember* n_om) : h(n_h), om(n_om) {
    }
 
-   DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, const char* key, bool must_already_exist = false);
+   DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, const char* key, bool must_already_exist = false, qore_object_private* obj = 0);
 
    DLLLOCAL hash_assignment_priv(QoreHashNode& n_h, const char* key, bool must_already_exist = false);
 
@@ -875,12 +872,12 @@ DLLLOCAL int q_get_mode(const QoreString& path);
 //! returns the byte length of the next UTF-8 character or 0 for an encoding error or a negative number if the string is too short to represent the character
 /** FIXME: change return type to qore_offset_t
  */
-DLLLOCAL qore_size_t q_UTF8_get_char_len(const char* p, qore_size_t valid_len);
+DLLLOCAL qore_offset_t q_UTF8_get_char_len(const char* p, qore_size_t valid_len);
 
 //! returns the byte length of the next UTF-16 (big-endian encoded) character or 0 for an encoding error or a negative number if the string is too short to represent the character
 /** FIXME: change return type to qore_offset_t
  */
-DLLLOCAL qore_size_t q_UTF16BE_get_char_len(const char* p, qore_size_t valid_len);
-DLLLOCAL qore_size_t q_UTF16LE_get_char_len(const char* p, qore_size_t len);
+DLLLOCAL qore_offset_t q_UTF16BE_get_char_len(const char* p, qore_size_t valid_len);
+DLLLOCAL qore_offset_t q_UTF16LE_get_char_len(const char* p, qore_size_t len);
 
 #endif

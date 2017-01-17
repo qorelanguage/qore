@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_date_private.h>
+#include "qore/intern/qore_date_private.h"
 
 #include <sys/time.h>
 #include <errno.h>
@@ -192,11 +192,13 @@ void qore_absolute_time::set(const AbstractQoreZoneInfo* n_zone, const QoreValue
    }
 }
 
-void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone) {
+void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone, ExceptionSink* xsink) {
    size_t len = strlen(str);
 
    // we need at least YYYYMMDD
    if (len < 8) {
+      if (xsink)
+         xsink->raiseException("INVALID-DATE", "date '%s' is too short; need at least 8 digits for a date/time value (ex: YYYYMMDD)", str);
       set(n_zone, 0, 0);
       return;
    }
@@ -205,6 +207,8 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
 
    int year = get_uint(p, 4);
    if (year < 0) {
+      if (xsink)
+         xsink->raiseException("INVALID-DATE", "date '%s': cannot parse year value", str);
       set(n_zone, 0, 0);
       return;
    }
@@ -217,7 +221,15 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
 
    int month = get_uint(p, 2);
    if (month < 0) {
+      if (xsink)
+         xsink->raiseException("INVALID-DATE", "date '%s': cannot parse month value; expecting 1 - 12 inclusive", str);
       set(n_zone, year, 1, 1, 0, 0, 0, 0);
+      return;
+   }
+
+   if (xsink && (month < 1 || month > 12)) {
+      xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid month value: %d; expecting 1 - 12 inclusive", str, month);
+      set(n_zone, year, month, 1, 0, 0, 0, 0);
       return;
    }
 
@@ -225,6 +237,13 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
       if (*p == '-')
          ++p;
       else {
+         if (xsink) {
+            if (*p)
+               xsink->raiseException("INVALID-DATE", "cannot parse date string '%s'; encountered unknown char '%c'", str, *p);
+            else
+               xsink->raiseException("INVALID-DATE", "cannot parse date string '%s'; encountered end of data after month", str);
+         }
+
          set(n_zone, year, month, 1, 0, 0, 0, 0);
          return;
       }
@@ -232,8 +251,28 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
 
    int day = get_uint(p, 2);
    if (day < 0) {
+      if (xsink)
+         xsink->raiseException("INVALID-DATE", "date '%s': cannot parse day value", str);
       set(n_zone, year, month, 1, 0, 0, 0, 0);
       return;
+   }
+
+   // check if day is valid
+   if (xsink) {
+      if (day < 1) {
+         xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid day of the month: %d; %04d-%02 has %d days", str, day, year, month);
+         set(n_zone, year, month, day, 0, 0, 0, 0);
+         return;
+      }
+      else if (day > 28) {
+         // check how many days in the given month
+         int dom = qore_date_info::getLastDayOfMonth(month, year);
+         if (day > dom) {
+            xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid day of the month: %d; %04d-%02 has %d days", str, day, year, month, dom);
+            set(n_zone, year, month, day, 0, 0, 0, 0);
+            return;
+         }
+      }
    }
 
    //printd(5, "set: date: %04d-%02d-%02d\n", year, month, day);
@@ -252,6 +291,12 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
       return;
    }
 
+   if (xsink && hour > 23) {
+      xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid hour value: %d; expecting 0 - 23 inclusive", str, hour);
+      set(n_zone, year, month, day, hour, 0, 0, 0);
+      return;
+   }
+
    needs_sep = false;
    if (*p == ':') {
       needs_sep = true;
@@ -260,14 +305,21 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
 
    int minute = get_uint(p, 2);
    if (minute < 0) {
+      if (xsink)
+         xsink->raiseException("INVALID-DATE", "date '%s': cannot parse minute value; expecting 0 - 59 inclusive", str);
       set(n_zone, year, month, day, hour, 0, 0, 0);
       return;
    }
+
+   if (xsink && minute > 59)
+      xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid minute value: %d; expecting 0 - 59 inclusive", str, minute);
 
    if (needs_sep) {
       if (*p == ':')
          ++p;
       else {
+         if (*p && xsink)
+            xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered unknown char '%c'", str, *p);
          set(n_zone, year, month, day, hour, minute, 0, 0);
          return;
       }
@@ -276,6 +328,12 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
    int second = get_uint(p, 2);
    if (second < 0) {
       set(n_zone, year, month, day, hour, minute, 0, 0);
+      return;
+   }
+
+   if (xsink && second > 59) {
+      xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid second value: %d; expecting 0 - 59 inclusive", str, second);
+      set(n_zone, year, month, day, hour, minute, second, 0);
       return;
    }
 
@@ -288,6 +346,12 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
    if (*p == '.') {
       ++p;
       if (!isdigit(*p)) {
+         if (xsink) {
+            if (*p)
+               xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered unknown char '%c' when parsing microseconds", str, *p);
+            else
+               xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered end of data after decimal point", str);
+         }
          set(n_zone, year, month, day, hour, minute, second, 0);
          return;
       }
@@ -331,6 +395,12 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
 
       ++p;
       if (!isdigit(*p)) {
+         if (xsink) {
+            if (*p)
+               xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered unknown char '%c' when parsing the UTC offset", str, *p);
+            else
+               xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered end of data when parsing the UTC offset", str);
+         }
          set(n_zone, year, month, day, hour, minute, second, us);
          return;
       }
@@ -349,6 +419,12 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
             ++p;
 
 	 if (!isdigit(*p)) {
+            if (xsink) {
+               if (*p)
+                  xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered unknown char '%c' when parsing the UTC offset minutes", str, *p);
+               else
+                  xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered end of data when parsing the UTC offset minutes", str);
+            }
             // ignore any time zone passed
             n_zone = findCreateOffsetZone(offset * mult);
             set(n_zone, year, month, day, hour, minute, second, us);
@@ -866,9 +942,9 @@ void qore_date_private::setRelativeDate(const char *str) {
    d.rel.set(str);
 }
 
-void qore_date_private::setAbsoluteDate(const char *str, const AbstractQoreZoneInfo *zone) {
+void qore_date_private::setAbsoluteDate(const char *str, const AbstractQoreZoneInfo *zone, ExceptionSink* xsink) {
    relative = false;
-   d.abs.set(str, zone);
+   d.abs.set(str, zone, xsink);
 }
 
 void qore_date_private::setDate(const char *str) {
@@ -877,6 +953,14 @@ void qore_date_private::setDate(const char *str) {
       setRelativeDate(str);
    else
       setAbsoluteDate(str);
+}
+
+void qore_date_private::setDate(const char *str, ExceptionSink* xsink) {
+   assert(str);
+   if (*str == 'P' || *str == 'p')
+      setRelativeDate(str);
+   else
+      setAbsoluteDate(str, currentTZ(), xsink);
 }
 
 void qore_simple_tm2::getISOWeek(int &yr, int &week, int &wday) const {

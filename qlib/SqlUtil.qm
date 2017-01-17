@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file SqlUtil.qm Qore user module for working with SQL data
 
-/*  SqlUtil.qm Copyright (C) 2013 - 2016 Qore Technologies, sro
+/*  SqlUtil.qm Copyright (C) 2013 - 2016 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -102,6 +102,11 @@ module SqlUtil {
 
     @subsection sqlutilv1_4 SqlUtil v1.4
     - fixed a bug in update and upsert statement generation when the given data does not have enough columns to use the unique index found, an error message is generated that contains all the columns names instead of just the column names required by the index (<a href="https://github.com/qorelanguage/qore/issues/1013">issue 1013</a>)
+
+    @subsection sqlutilv1_3_1 SqlUtil v1.3.1
+    - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
+    - fixed the ignored character_semantics column option in schema alignmed (<a href="https://github.com/qorelanguage/qore/issues/1379">issue 1379</a>)
+    - implemented the @ref SqlUtil::cop_length() column function (<a href="https://github.com/qorelanguage/qore/issues/1395">issue 1395</a>)
 
     @subsection sqlutilv1_3 SqlUtil v1.3
     - implemented insert option support (see @ref AbstractTable::InsertOptions) with the \c "returning" clause in supported drivers
@@ -1464,6 +1469,7 @@ hash table_desc = (
     - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
     - \c scale: for numeric data types, this value gives the scale
     - \c default_value: the default value for the column
+    - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
     - \c comment: an optional comment for the column
     - \c notnull: if the column should have a "not null" constraint on it; if missing the default value is @ref Qore::False "False"
     - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the column description hash before processing; this way a column description hash can contain all the information required for the column including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys, see below for an example
@@ -1804,7 +1810,6 @@ db.computeStatistics(opts);
 
 #! the SqlUtil namespace contains all the objects in the SqlUtil module
 public namespace SqlUtil {
-
     /* @defgroup DBFeaturesConstants DB Features Constants
         These constants can be used as a lookup values in AbstractDatabase::features() method.
     */
@@ -2002,6 +2007,13 @@ public namespace SqlUtil {
     */
     public const COP_SUBSTR = "substr";
 
+    #! to get the length of a text field
+    /** @see cop_length()
+
+        @since %SqlUtil 1.3.1
+    */
+    public const COP_LENGTH = "length";
+
     #! a hash of default column operator descriptions
     public const DefaultCopMap = (
         COP_AS: (
@@ -2127,18 +2139,38 @@ public namespace SqlUtil {
                 return sprintf("substring(%s from %d for %d)", cve, args[0], args[1]);
             },
         ),
+        COP_LENGTH: (
+            "code": string sub (string cve, any arg) {
+                return sprintf("length(%s)", cve);
+            },
+        ),
         );
     #@}
 
     /** @defgroup sql_cop_funcs SQL Column Operator Functions
         These are functions that can be used in the \c "columns" argument for select statements:
-        - @ref cop_as(): rename columns
-        - @ref cop_cast(): convert column value into another datatype
-        - @ref cop_prepend(): prepend a string to the output of a column
         - @ref cop_append(): append a string to the output of a column
-        - @ref cop_value(): return a constant value (SQL literal) in a column
-        - @ref cop_upper(): return a column in upper case
+        - @ref cop_as(): rename columns
+        - @ref cop_avg(): return the averge value for the given column when grouping
+        - @ref cop_cast(): convert column value into another datatype
+        - @ref cop_coalesce(): returns the first non-NULL value in the given columns
+        - @ref cop_distinct(): add \c DISTINCT to the column name
+        - @ref cop_length(): return the length of the given text column
         - @ref cop_lower(): return a column in lower case
+        - @ref cop_max(): return the maximum value for the given column when grouping
+        - @ref cop_min(): return the minimum value for the given column when grouping
+        - @ref cop_over(): return a hash for the \c "over" operator for windowing functions
+        - @ref cop_prepend(): prepend a string to the output of a column
+        - @ref cop_seq(): increments the sequence and returns the next value
+        - @ref cop_seq_currval(): returns the current value of the given sequence without changing the sequence
+        - @ref cop_substr(): returns a substring of a text column
+        - @ref cop_sum(): return the sum of all values for the given column when grouping
+        - @ref cop_upper(): return a column in upper case
+        - @ref cop_value(): return a constant value (SQL literal) in a column
+        - @ref cop_year(): return the year of the given date column
+        - @ref cop_year_day(): return the year to day value of the given date column
+        - @ref cop_year_hour(): return the year to hour value of the given date column
+        - @ref cop_year_month(): return the year and month value of the given date column
 
         Column operator functions can be nested as in the following example:
         @par Example:
@@ -2628,6 +2660,22 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     */
     public hash sub cop_substr(any column, int start, *int count) {
         return make_cop(COP_SUBSTR, column, (start, count));
+    }
+
+    #! returns a hash for the \c "len" operator with the given argument; returns the length of the given text field
+    /** @par Example:
+        @code{.py}
+*list rows = table.selectRows(("columns": ("id", cop_length("product_code")), "where": ("type": "user")));
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins)
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+
+        @since %SqlUtil 1.3.1
+    */
+    public hash sub cop_length(any column) {
+        return make_cop(COP_LENGTH, column);
     }
     #@}
 
@@ -5694,12 +5742,17 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
         abstract string getCreateSql(*hash opt);
 
         #! returns a string that can be used to drop the sequence from the database
-        string getDropSql() {
+        /** @param opt drop options (if supported by the driver and object); in this generic base class method, this argument is ignored
+         */
+        string getDropSql(*hash opt) {
             return sprintf("drop sequence %s", name);
         }
 
-        #! returns a string that can be used to rename the sequence in the database
-        abstract string getRenameSql(string new_name);
+        #! returns a list of strings that can be used to rename the sequence in the database
+        /** @param new_name the new name of the object
+            @param opt drop options (if supported by the driver and object)
+         */
+        abstract softlist getRenameSql(string new_name, *hash opt);
     }
 
     #! base class for views
@@ -5728,13 +5781,17 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
         abstract string getCreateSql(*hash opt);
 
         #! returns a string that can be used to drop the view from the database
-        string getDropSql() {
+        /** @param opt drop options (if supported by the driver and object); in this generic base class method, this argument is ignored
+         */
+        string getDropSql(*hash opt) {
             return sprintf("drop view %s", name);
         }
 
         #! returns a list with command(s) that can be used to rename the view in the database
-        abstract softlist getRenameSql(string new_name);
-
+        /** @param new_name the new name of the object
+            @param opt drop options (if supported by the driver and object)
+         */
+        abstract softlist getRenameSql(string new_name, *hash opt);
     }
 
     #! base class for function or objects with code
@@ -5766,9 +5823,10 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
             return type;
         }
 
-        # FIXME: not appropriate for pgsql triggers for example
         #! returns a string that can be used to drop the function from the database
-        string getDropSql() {
+        /** @param opt drop options (if supported by the driver and object); in this generic base class method, this argument is ignored
+         */
+        string getDropSql(*hash opt) {
             return sprintf("drop %s %s", type, name);
         }
 
@@ -5809,8 +5867,11 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
         #! returns a list of SQL strings that can be used to create the function in the database
         abstract list getCreateSql(*hash opt);
 
-        #! returns a string that can be used to rename the function in the database
-        abstract list getRenameSql(string new_name);
+        #! returns a list of strings that can be used to rename the function in the database
+        /** @param new_name the new name of the object
+            @param opt drop options (if supported by the driver and object)
+         */
+        abstract softlist getRenameSql(string new_name, *hash opt);
 
         #! sets the new name of the object
         setName(string new_name) {
@@ -5868,7 +5929,7 @@ AbstractFunction f = funcs.func1;
         abstract list getCreateSql(string table_name, *hash opt);
 
         #! returns a string that can be used to rename the trigger in the database
-        abstract list getRenameSql(string table_name, string new_name);
+        abstract softlist getRenameSql(string table_name, string new_name);
 
         #! returns a string that can be used to drop the trigger in the database
         abstract list getDropSql(string table_name);
@@ -6036,9 +6097,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
         private validateOptionsIntern(string err, hash ropt, reference opt, string tag) {
             # make sure driver-specific options take precedence over generic options
             string dn = getDriverName();
-            if (opt.driver{dn})
-                opt += remove opt.driver{dn};
-            delete opt.driver;
+            AbstractDatabase::checkDriverOptions(\opt, dn);
 
             # check valid options and option value types
             foreach string k in (opt.keyIterator()) {
@@ -6332,7 +6391,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
 
             #! default generic creation options
             /** This option is comprised of @ref AbstractDatabase::CallbackOptions plus the following keys:
-                - \c replace: (@ref bool_type) if @ref Qore::True "True" and supported by the underlying db driver "create or replace" text is used when creating objects
+                - \c replace: (@ref bool_type) if @ref Qore::True "True" and supported by the underlying db driver, \c "create or replace" text is used when creating objects
                 - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables and foreign key relationships between tables
                 - \c data_tablespace: (@ref string_type) a string giving the data tablespace to use for tables
                 - \c index_tablespace: (@ref string_type) a string giving the index tablespace to use for indexes
@@ -6345,14 +6404,20 @@ AbstractDatabase db("pgsql:user/pass@db%host");
                 );
 
             #! default generic schema description / alignment options
-            /** Currently this option is identical to @ref AbstractDatabase::CreationOptions
+            /** Currently this option is identical to @ref AbstractDatabase::CreationOptions plus the following keys:
+                - \c force: (@ref bool_Type) is @ref Qore::True "True" and supported by the underlying db driver, \c FORCE or \c CASCADE options are used when dropping or aligning objects
             */
-            const AlignSchemaOptions = CreationOptions;
+            const AlignSchemaOptions = CreationOptions + (
+                "force": Type::Boolean,
+                );
 
             #! default generic drop schema options
-            /** Currently this option is identical to @ref AbstractDatabase::CallbackOptions
+            /** Currently this option is identical to @ref AbstractDatabase::CallbackOptions plus the following keys:
+                - \c force: (@ref bool_Type) is @ref Qore::True "True" and supported by the underlying db driver, \c FORCE or \c CASCADE options are used when dropping objects
             */
-            const DropSchemaOptions = CallbackOptions;
+            const DropSchemaOptions = CallbackOptions + (
+                "force": Type::Boolean,
+                );
 
             #! default generic schema description keys
             /** The following keys can be set in @ref schema_desc_hash "schema description hashes":
@@ -6582,6 +6647,9 @@ list l = db.getAlignSql(schema_hash);
             validateOptionsIntern("OPTION-ERROR", getAlignSchemaOptions(), \opt);
             validateHashKeysForWhitespaces(schema_hash);
 
+            # get creation options
+            *hash copt = opt{getAlignSchemaOptions().keys()};
+
             if (!table_cache)
                 table_cache = new Tables();
 
@@ -6631,7 +6699,7 @@ list l = db.getAlignSql(schema_hash);
             }
 
             # create template tables
-            table_cache.populate(ds, schema_hash.tables, opt - "db_table_cache");
+            table_cache.populate(ds, schema_hash.tables, copt);
 
             # rename any tables
             AbstractDatabase::checkDriverOptions(\schema_hash.table_map, drv);
@@ -6738,7 +6806,7 @@ list l = db.getDropSchemaSql(schema_hash);
             # call driver-specific align schema sql function (end)
             # Option "force" is here to drop all objects (where required)
             # without dependencies checking (Oracle NTY for now)
-            tl = getDropSchemaSqlImpl(schema_hash, opt + ( "force" : True ) );
+            tl = getDropSchemaSqlImpl(schema_hash, opt + ("force": True) );
             if (tl) l += tl;
 
             return l;
@@ -6760,14 +6828,8 @@ list l = db.getDropSchemaSql(schema_hash);
 
                 # see if object exists
                 *object f = get(name);
-                if (f) {
-                    if (opt.force) {
-                        # Oracle NTY
-                        l += AbstractDatabase::doCallback(opt, tmpl.getDropSqlForce(), AC_Drop, type, name);
-                    }
-                    else
-                        l += AbstractDatabase::doCallback(opt, tmpl.getDropSql(), AC_Drop, type, name);
-                }
+                if (f)
+                    l += AbstractDatabase::doCallback(opt, tmpl.getDropSql(opt), AC_Drop, type, name);
                 else
                     AbstractDatabase::doOkCallback(opt, AC_NotFound, type, name);
             }
@@ -6826,7 +6888,7 @@ list l = db.getDropSchemaSql(schema_hash);
                 }
 
                 if (!templateFunc.equal(f)) {
-                    l += AbstractDatabase::doCallback(opt, f.getDropSql(), AC_Drop, type, name);
+                    l += AbstractDatabase::doCallback(opt, f.getDropSql(opt), AC_Drop, type, name);
                     l += AbstractDatabase::doCallback(opt, templateFunc.getCreateSql(opt), AC_Create, type, name);
                 }
                 else
@@ -6933,11 +6995,11 @@ db.dropFunctionIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         bool dropFunctionIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractFunction f = getFunction(name);
             if (!f)
                 return False;
-            return AbstractDatabase::doDrop(f.getDropSql(), "function", name, opt);
+            return AbstractDatabase::doDrop(f.getDropSql(opt), "function", name, opt);
         }
 
         #! drops the given procedure if it exists; returns @ref Qore::True "True" if the procedure was dropped, @ref Qore::False "False" if not
@@ -6954,11 +7016,11 @@ db.dropProcedureIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         bool dropProcedureIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractFunction f = getProcedure(name);
             if (!f)
                 return False;
-            return AbstractDatabase::doDrop(f.getDropSql(), "procedure", name, opt);
+            return AbstractDatabase::doDrop(f.getDropSql(opt), "procedure", name, opt);
         }
 
         #! drops the given sequence if it exists; returns @ref Qore::True "True" if the sequence was dropped, @ref Qore::False "False" if not
@@ -6975,11 +7037,11 @@ db.dropSequenceIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         bool dropSequenceIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractSequence seq = getSequence(name);
             if (!seq)
                 return False;
-            return AbstractDatabase::doDrop(seq.getDropSql(), "sequence", name, opt);
+            return AbstractDatabase::doDrop(seq.getDropSql(opt), "sequence", name, opt);
         }
 
         #! drops the given view if it exists; returns @ref Qore::True "True" if the view was dropped, @ref Qore::False "False" if not
@@ -6996,11 +7058,11 @@ db.dropViewIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         bool dropViewIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractView obj = getView(name);
             if (!obj)
                 return False;
-            return AbstractDatabase::doDrop(obj.getDropSql(), "view", name, opt);
+            return AbstractDatabase::doDrop(obj.getDropSql(opt), "view", name, opt);
         }
 
         #! drops the given table if it exists; returns @ref Qore::True "True" if the table was dropped, @ref Qore::False "False" if not
@@ -7017,7 +7079,7 @@ db.dropTableIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         bool dropTableIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractTable obj = getTable(name);
             if (!obj)
                 return False;
@@ -7039,11 +7101,11 @@ string sql = db.getDropFunctionSqlIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         *string getDropFunctionSqlIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractFunction f = getFunction(name);
             if (!f)
                 return;
-            return AbstractDatabase::doDropSql(f.getDropSql(), "function", name, opt);
+            return AbstractDatabase::doDropSql(f.getDropSql(opt), "function", name, opt);
         }
 
         #! returns the SQL require to drop the given procedure if it exists or @ref nothing if the named procedure does not exist
@@ -7060,11 +7122,11 @@ string sql = db.getDropProcedureSqlIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         *string getDropProcedureSqlIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractFunction f = getProcedure(name);
             if (!f)
                 return;
-            return AbstractDatabase::doDropSql(f.getDropSql(), "procedure", name, opt);
+            return AbstractDatabase::doDropSql(f.getDropSql(opt), "procedure", name, opt);
         }
 
         #! returns the SQL require to drop the given sequence if it exists or @ref nothing if the named sequence does not exist
@@ -7081,11 +7143,11 @@ string sql = db.getDropSequenceSqlIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         *string getDropSequenceSqlIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractSequence obj = getSequence(name);
             if (!obj)
                 return;
-            return AbstractDatabase::doDropSql(obj.getDropSql(), "sequence", name, opt);
+            return AbstractDatabase::doDropSql(obj.getDropSql(opt), "sequence", name, opt);
         }
 
         #! returns the SQL require to drop the given table if it exists or @ref nothing if the named table does not exist
@@ -7102,7 +7164,7 @@ string sql = db.getDropTableSqlIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         *list getDropTableSqlIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractTable t = getTable(name);
             if (!t)
                 return;
@@ -7139,7 +7201,7 @@ list l = db.getAlignFunctionSql(f);
             @throw OPTION-ERROR invalid or unsupported option passed
          */
         list getAlignFunctionSql(AbstractFunction f, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCreationOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getAlignSchemaOptions(), \opt);
 
             *AbstractFunction of = getFunctionImpl(f.name);
 
@@ -7149,7 +7211,7 @@ list l = db.getAlignFunctionSql(f);
                 l += AbstractDatabase::doCallback(opt, f.getCreateSql(opt), AC_Create, "function", f.name);
             }
             else if (!of.equal(f)) {
-                l += AbstractDatabase::doCallback(opt, of.getDropSql(), AC_Drop, "function", f.name);
+                l += AbstractDatabase::doCallback(opt, of.getDropSql(opt), AC_Drop, "function", f.name);
                 l += AbstractDatabase::doCallback(opt, of.getCreateSql(opt), AC_Create, "function", f.name);
             }
             else
@@ -7179,7 +7241,7 @@ list l = db.getAlignProcedureSql(f);
             if (!of)
                 l += f.getCreateSql(opt);
             else if (!of.equal(f)) {
-                l += of.getDropSql();
+                l += of.getDropSql(opt);
                 l += f.getCreateSql(opt);
             }
 
@@ -7781,11 +7843,12 @@ Table table("pgsql:user/pass@db%host", "table");
 
             #! table alignment options
             /** currently this option is a combination of @ref SqlUtil::AbstractTable::TableCreationOptions and the following options:
-                - \c column_map: a hash for automatically renaming columns; if the source name (key) exists and the target name (value) does not exist, then the source column is automatically renamed
-                - \c index_map: a hash for automatically renaming indexes; if the source name (key) exists and the target name (value) does not exist, then the source index is automatically renamed
-                - \c constraint_map: a hash for automatically renaming constraints; if the source name (key) exists and the target name (value) does not exist, then the source constraint is automatically renamed
-                - \c trigger_map: a hash for automatically renaming triggers; if the source name (key) exists and the target name (value) does not exist, then the source trigger is automatically renamed
+                - \c column_map: (@ref hash_type) a hash for automatically renaming columns; if the source name (key) exists and the target name (value) does not exist, then the source column is automatically renamed
+                - \c index_map: (@ref hash_type) a hash for automatically renaming indexes; if the source name (key) exists and the target name (value) does not exist, then the source index is automatically renamed
+                - \c constraint_map: (@ref hash_type) a hash for automatically renaming constraints; if the source name (key) exists and the target name (value) does not exist, then the source constraint is automatically renamed
+                - \c trigger_map: (@ref hash_type) a hash for automatically renaming triggers; if the source name (key) exists and the target name (value) does not exist, then the source trigger is automatically renamed
                 - \c db_table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining tables in the database and foreign key relationships between tables
+                - \c force: (@ref bool_type) if @ref Qore::True "True" and supported by the driver and object, any objects dropped will be dropped with \c FORCE or \c CASCADE options
             */
             const AlignTableOptions = TableCreationOptions + (
                 "column_map": Type::Hash,
@@ -7793,6 +7856,7 @@ Table table("pgsql:user/pass@db%host", "table");
                 "constraint_map": Type::Hash,
                 "trigger_map": Type::Hash,
                 "db_table_cache": "Tables",
+                "force": Type::Boolean,
                 );
 
             #! Table description options
@@ -7825,6 +7889,7 @@ Table table("pgsql:user/pass@db%host", "table");
                 - \c size: (@ref int_type) for data types requiring a size component, the size; for numeric columns this represents the precision for example
                 - \c scale: (@ref int_type) for numeric data types, this value gives the scale
                 - \c default_value: the default value for the column
+                - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
                 - \c comment: (@ref string_type) an optional comment for the column
                 - \c notnull: if the column should have a "not null" constraint on it; if missing the default value is @ref Qore::False "False"
                 - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the column description hash before processing; this way a column description hash can contain all the information required for the column including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys, see below for an example
@@ -7836,6 +7901,7 @@ Table table("pgsql:user/pass@db%host", "table");
                 "size": Type::Int,
                 "scale": Type::Int,
                 "default_value": Type::NothingType,
+                "default_value_native" : Type::Boolean,
                 "comment": Type::String,
                 );
 
@@ -8455,7 +8521,9 @@ bool b = table.empty();
 
             # check options
             hash copt = getColumnOptions();
-            validateOptionsIntern("OPTION-ERROR", getTableCreationOptions() + copt, \opt);
+            hash tcopt = getTableCreationOptions() + copt;
+            opt = opt{tcopt.keys()};
+            validateOptionsIntern("OPTION-ERROR", tcopt, \opt);
 
             # setup table cache
             if (!opt.table_cache)
@@ -8487,10 +8555,7 @@ bool b = table.empty();
             foreach string cn in (desc.columns.keyIterator()) {
                 if (desc.columns{cn}.typeCode() != NT_HASH)
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to column key %y is not a hash, got type %y instead (%y)", getDesc(), cn, desc.columns{cn}.type(), desc.columns{cn});
-                if (desc.columns{cn}.driver) {
-                    desc.columns{cn} += desc.columns{cn}.driver{drv};
-                    delete desc.columns{cn}.driver;
-                }
+                AbstractDatabase::checkDriverOptions(\desc.columns{cn}, drv);
             }
 
             preSetupTableImpl(\desc, opt);
@@ -8594,6 +8659,7 @@ table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
             - \c scale: for numeric data types, this value gives the scale
             - \c default_value: the default value for the column
+            - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
             @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
@@ -8625,6 +8691,7 @@ list l = table.getAddColumnSql("name", ("qore_type": Type::String, "size": 50), 
             - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
             - \c scale: for numeric data types, this value gives the scale
             - \c default_value: the default value for the column
+            - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
             @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
@@ -8698,6 +8765,7 @@ table.modifyColumn("name", ("qore_type": Type::String, "size": 240), False);
             - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
             - \c scale: for numeric data types, this value gives the scale
             - \c default_value: the default value for the column
+            - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
             @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
@@ -8744,6 +8812,7 @@ list l = table.getModifyColumnSql("name", ("qore_type": Type::String, "size": 24
             - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
             - \c scale: for numeric data types, this value gives the scale
             - \c default_value: the default value for the column
+            - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
             @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
@@ -10254,22 +10323,28 @@ string sql = table.getDropTriggerSql("trig_mytable");
             validateOptionsIntern("COLUMN-ERROR", copt, \opt, sprintf("%s.%s", name, cname));
 
             hash otm = getTypeMapImpl();
+            hash th;
 
-            if (!opt.native_type) {
-                hash qtm = getQoreTypeMapImpl();
-                opt.native_type = qtm{opt.qore_type};
-                if (!opt.native_type)
-                    throw "COLUMN-ERROR", sprintf("%s column %y: qore type %y cannot be mapped to a column type (valid values: %y)", getDesc(), cname, opt.qore_type, qtm.keys());
+            # first try to handle non-registered type (like eg. Oracle's objects)
+            if (opt.native_type && !otm.hasKey(opt.native_type) && !opt.qore_type) {
+                opt.qore_type = "any";
             }
-            else if (!otm{opt.native_type})
-                throw "COLUMN-ERROR", sprintf("%s column %s: unknown native_type %y (valid values: %y)", getDesc(), cname, opt.native_type, otm.keys());
+            else {
+                # get native_type from registered maps
+                if (!opt.native_type) {
+                    hash qtm = getQoreTypeMapImpl();
+                    opt.native_type = qtm{opt.qore_type};
+                    if (!opt.native_type)
+                        throw "COLUMN-ERROR", sprintf("%s column %y: qore type %y cannot be mapped to a column type (valid values: %y)", getDesc(), cname, opt.qore_type, qtm.keys());
+                }
 
-            # get native type description
-            hash th = otm{opt.native_type};
+                # get native type description
+                th = otm{opt.native_type};
 
-            # reset qore type from native type
-            opt.qore_type = th.qore;
-            opt.local_def = th;
+                # reset qore type from native type
+                opt.qore_type = th.qore;
+                opt.local_def = th;
+            }
 
             if (exists opt.size) {
                 if (!th.size)
@@ -10302,8 +10377,8 @@ string sql = table.getDropTriggerSql("trig_mytable");
                 opt.size = th.default_size;
 
             # check type of default value (must match column type)
-            if (exists opt.default_value) {
-                checkValue(cname, "default_value", \opt.default_value, th.qore);
+            if (exists opt.default_value && !opt.default_value_native) {
+                checkValue(cname, "default_value", \opt.default_value, opt.qore_type);
                 opt.default_value = getSqlValue(opt.default_value);
             }
         }
@@ -13954,9 +14029,7 @@ string sql = table.getAlignSqlString(table2);
             # make sure driver options take precedence over generic options
             if (opt) {
                 string dn = getDriverName();
-                if (opt.driver{dn})
-                    opt += remove opt.driver{dn};
-                delete opt.driver;
+                AbstractDatabase::checkDriverOptions(\opt, dn);
             }
 
             # mark in options that the entire table is being created

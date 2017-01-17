@@ -5,6 +5,7 @@
 %enable-all-warnings
 %require-types
 %strict-args
+%no-child-restrictions
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -53,6 +54,10 @@ class Base {
         return 0;
     }
 
+    private:internal int intern(int i) {
+        return 1;
+    }
+
     int getStatPriv() {
         return statpriv;
     }
@@ -79,6 +84,10 @@ class Base {
 
     hash getSlice(list l) {
         return self{l};
+    }
+
+    code getCode() {
+        return \intern();
     }
 }
 
@@ -204,6 +213,107 @@ class IntChild inherits private:internal Base {
     }
 }
 
+class BI1 {
+    private:internal {
+        int i = 2;
+    }
+
+    private int get() {
+        return i;
+    }
+}
+
+class CI1 inherits private:internal BI1 {
+    constructor() : BI1() {
+    }
+
+    int get() {
+        return BI1::get();
+    }
+}
+
+class BI2 {
+    private:internal {
+        int i;
+    }
+
+    private:internal constructor() {
+    }
+
+    private constructor(int n_i) {
+        i = n_i;
+    }
+
+    private int get() {
+        return i;
+    }
+}
+
+class CI2 inherits private:internal BI2 {
+    constructor(int i) : BI2(i) {
+    }
+
+    int get() {
+        return BI2::get();
+    }
+}
+
+class BI3 {
+    private:internal {
+        int i;
+    }
+
+    private:internal constructor() {
+    }
+
+    private constructor(int i) {
+        self.i = i;
+    }
+
+    private int get() {
+        return i;
+    }
+}
+
+class CI3 inherits private:internal BI2 {
+    constructor(int i) : BI2(i) {
+    }
+
+    int get() {
+        return BI2::get();
+    }
+}
+
+class RefTest {
+    private {
+        code c;
+    }
+
+    constructor() {
+        c = \RefTest::priv();
+    }
+
+    int get() {
+        return call_function_args(c);
+    }
+
+    private static int priv() {
+        return 1;
+    }
+}
+
+class Base1 {
+    int m() {
+        return m1();
+    }
+
+    private:internal int m1() {
+        return 1;
+    }
+}
+
+class Child1 inherits Base1;
+
 public class AccessTest inherits QUnit::Test {
     private {
         const Code = "
@@ -253,11 +363,13 @@ string sub t13() { C t(); return t.get_x()(); }
 
 string sub t14() { object t = new C(); return t.x(); }
 
-code sub t15() { C t(); return t.get_x(); }
+our C ctg();
+code sub t15() { return ctg.get_x(); }
 
-code sub t16_17() { C t(); return \\t.t(); }
+code sub t16_17() { return \\ctg.t(); }
 
-code sub t18() { object t = new D(); return \\t.t(); }
+our object dtg = new D();
+code sub t18() { return \\dtg.t(); }
 ";
 
 const Class1 = "
@@ -274,6 +386,10 @@ class TestInheritB {
 
         const Class2 = "class TestInheritAB inherits TestInheritA, TestInheritB {}";
         const Class3 = "class TestInheritBA inherits TestInheritB, TestInheritA {}";
+
+        const Code2 = "class Base1 {int m() {return m1();} private:internal int m1() {return 1;}} class Child1 inherits Base1; Child1 sub test() {return new Child1();}";
+
+        const Code3 = "class Child1 inherits Base1; int sub test() {Child1 c(); return c.m();}";
     }
 
     constructor() : Test("AccessTest", "1.0") {
@@ -287,9 +403,10 @@ class TestInheritB {
     accessTestMethod() {
         Program p(PO_NEW_STYLE);
         p.parse(Code, "access");
+        p.run();
 
         # this must fail: B::t(int) is private
-        testAssertion("negative-private-method-access-1", \p.callFunction(), ("t1",), new TestResultExceptionRegexp('ILLEGAL-CALL', "cannot call private variant"));
+        assertThrows("RUNTIME-OVERLOAD-ERROR",  \p.callFunction(), "t1");
 
         testAssertion("private-method-access-1", \p.callFunction(), ("t2",), new TestResultValue("string"));
 
@@ -319,15 +436,15 @@ class TestInheritB {
         testAssertion("private-method-access-11", string sub () { return p.callFunction("t15")(); }, NOTHING, new TestResultValue("none"));
 
         # this must fail when calling the call reference with an integer and succeed when calling with a string arg
-        testAssertion("negative-private-method-access-9", string sub () { return p.callFunction("t16_17")(1); }, NOTHING, new TestResultExceptionRegexp('ILLEGAL-CALL', "cannot call private variant"));
+        assertThrows("RUNTIME-OVERLOAD-ERROR", string sub () { return p.callFunction("t16_17")(1); }, NOTHING, "negative-private-method-access-9");
 
-        testAssertion("private-method-access-12", string sub () { return p.callFunction("t16_17")("str"); }, NOTHING, new TestResultValue("string"));
+        assertEq("string", p.callFunction("t16_17")("str"), "private-method-access-12");
 
         # this must fail because B is privately inherited in D
         testAssertion("negative-private-method-access-10", \p.callFunction(), ("t18",), new TestResultExceptionRegexp('ILLEGAL-CALL-REFERENCE', "cannot create a call reference"));
 
         # this must fail at parse time because B::t() is privately inherited in D, therefore it should not be possible to take a reference to the method of the privately-inherited class
-        testAssertion("negative-private-method-access-11", \p.parse(), ("code sub test() { D t(); return \\t.t(); }", "test"), new TestResultExceptionRegexp('PARSE-ERROR', "is private in this context"));
+        assertThrows("PARSE-ERROR", \p.parse(), ("code sub test() { D t(); return \\t.t(); }", "test"));
 
         # check inheritance
         p.parse(Class1, "class-1");
@@ -344,6 +461,9 @@ class TestInheritB {
         assertEq(("mempub": 1), hash(b));
         assertEq(("mempub": 1, "mempriv": 1, "memint": 1), b.getHash());
         assertEq(("mempub": 1, "memint": 1), b.getSlice(("mempub", "memint")));
+        assertEq(0, b.getCode()());
+        assertEq(0, call_function(b.getCode()));
+        assertEq(0, call_function_args(b.getCode()));
 
         PubChild c1();
         assertEq(c1, cast<Base>(c1));
@@ -354,8 +474,8 @@ class TestInheritB {
         assertEq(3, c1.getConInt());
         assertEq(1, c1.pubint());
         assertEq(1, call_object_method(c1, "pubint"));
-        assertEq(1, c1.pubtest(1));
-        assertEq(1, call_object_method(c1, "pubtest", 1));
+        assertEq(2.0, c1.pubtest(1));
+        assertEq(2.0, call_object_method(c1, "pubtest", 1));
         assertEq(2.0, c1.pubtest(1.0));
         assertEq(2.0, call_object_method(c1, "pubtest", 1.0));
 
@@ -368,26 +488,72 @@ class TestInheritB {
         assertEq(c3, c3.test());
         assertEq(1, c3.getInt());
         assertEq(1, c3.getCode()());
+        assertEq(1, call_function(c3.getCode()));
+        assertEq(1, call_function_args(c3.getCode()));
         assertThrows("METHOD-DOES-NOT-EXIST", \call_object_method(), (c3, "pubint"));
 
+        CI1 c4();
+        assertEq(2, c4.get());
+
+        CI2 c5(2);
+        assertEq(2, c5.get());
+
+        CI3 c6(2);
+        assertEq(2, c6.get());
+
+        RefTest rt();
+        assertEq(1, rt.get());
+
         {
-            Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", "illegal call.*b", \p.parse(), ("class B { int b() {} } class C inherits private B {} sub test() { C c(); c.b();}", ""));
+            Child1 child1();
+            assertEq(1, child1.m());
+            assertEq(1, call_object_method(child1, "m"));
+            int i = child1.m();
+            assertEq(1, i);
+
+            {
+                Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES|PO_STRICT_ARGS);
+                p.parse(Code2, "");
+                object o = p.callFunction("test");
+                assertEq(1, o.m());
+                # issue 1551: test assignment of classes created accross Program boundaries
+                child1 = p.callFunction("test");
+                assertEq(1, child1.m());
+            }
+
+            {
+                Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES|PO_STRICT_ARGS);
+                p.importClass("Base1");
+                p.parse(Code3, "");
+                assertEq(1, p.callFunction("test"));
+            }
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES|PO_STRICT_ARGS);
+            *hash wh = p.parse("class B { int b() {} } class C inherits private B {} sub test() { C c(); c.b();}", "", WARN_ALL);
+            assertEq("NON-EXISTENT-METHOD-CALL", wh.err);
+            assertThrows("BASE-CLASS-IS-PRIVATE", \p.callFunction(), "test");
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-TYPE-ERROR", "no variant", \p.parse(), ("class B { int b(int i) { return i; } } class C inherits B { private:internal int b(int i) { return i + 1; } string b(string s) { return s; }} sub test() { C c(); c.b(1n);}", ""));
+            assertThrows("PARSE-ERROR", \p.parse(), ("class B { int b() {} } class C inherits private B {} code sub test() { C c(); return \\c.b();}", ""));
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-ERROR", "a call reference cannot be taken", \p.parse(), ("class B { int b() {} } class C inherits private B {} sub test() { C c(); code cd = \\c.b();}", ""));
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("class B { int b(int i) { return i; } } class C inherits B { private:internal int b(int i) { return i + 1; } string b(string s) { return s; }} sub test() { C c(); c.b(1n);}", ""));
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-ERROR", "method.*cannot be found", \p.parse(), ("class B { int b() {} } class C inherits private:internal B {} sub test() { C c(); code cd = \\c.b();}", ""));
+            assertThrows("PARSE-ERROR", \p.parse(), ("class B { int b() {} } class C inherits private B {} sub test() { C c(); code cd = \\c.b();}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-ERROR", \p.parse(), ("class B { int b() {} } class C inherits private:internal B {} sub test() { C c(); code cd = \\c.b();}", ""));
         }
 
         {
@@ -408,6 +574,12 @@ class TestInheritB {
         {
             Program p(PO_NEW_STYLE);
             assertThrows("PARSE-EXCEPTION", "cannot resolve.*conint", \p.parse(), ("class B { private:internal { const conint = 1; }} class C inherits B { int test() { return conint; } }", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("class B { private:internal constructor() {}} class C inherits B {} sub test() { C c(); }", "");
+            assertThrows("RUNTIME-OVERLOAD-ERROR", \p.callFunction(), "test");
         }
     }
 }

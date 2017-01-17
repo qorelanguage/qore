@@ -30,10 +30,17 @@
 
 #include <qore/Qore.h>
 #include <qore/QoreQueue.h>
-#include <qore/intern/QoreQueueIntern.h>
+#include "qore/intern/QoreQueueIntern.h"
 
 #include <sys/time.h>
 #include <errno.h>
+
+void Queue::deref(ExceptionSink* xsink) {
+   if (ROdereference()) {
+      priv->destructor(xsink);
+      delete this;
+   }
+}
 
 void qore_queue_private::destructor(ExceptionSink* xsink) {
    AutoLocker al(&l);
@@ -48,11 +55,10 @@ void qore_queue_private::destructor(ExceptionSink* xsink) {
 
    clearIntern(xsink);
    len = Queue_Deleted;
-   if (desc)
+   if (desc) {
       desc->deref();
-#ifdef DEBUG
-   desc = 0;
-#endif
+      desc = 0;
+   }
 }
 
 void qore_queue_private::clearIntern(ExceptionSink* xsink) {

@@ -30,9 +30,9 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ql_time.h>
-#include <qore/intern/QC_TimeZone.h>
-#include <qore/intern/qore_date_private.h>
+#include "qore/intern/ql_time.h"
+#include "qore/intern/QC_TimeZone.h"
+#include "qore/intern/qore_date_private.h"
 
 #include <stdio.h>
 #include <time.h>
@@ -130,23 +130,29 @@ QoreHashNode* date_info(const DateTime& d) {
 DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreString& dtstr, const QoreString& mask, ExceptionSink* xsink) {
    qore_tm dt;
    dt.clear();
+   dt.month = 1;
+   dt.day = 1;
 
-   const char *d = dtstr.getBuffer();
-   const char *de = d + dtstr.strlen();
+   const char* d = dtstr.getBuffer();
+   const char* de = d + dtstr.strlen();
 
-   const char *s = mask.getBuffer();
-   const char *se = s + mask.strlen();
+   const char* s = mask.getBuffer();
+   const char* se = s + mask.strlen();
 
    while (*s) {
       // break if we run out of data in either the mask or the date string
-      if (d >= de || s >= se)
+      if (s >= se)
          break;
       switch (*s) {
          case 'Y':
             if (s[1] != 'Y') {
-               xsink->raiseException("DATE-CONVERT-ERROR", "'Y' has to be used as 'YY' or 'YYYY'");
+               xsink->raiseException("INVALID-DATE", "'Y' has to be used as 'YY' or 'YYYY'");
                return 0;
                break;
+            }
+            if (d >= de) {
+               xsink->raiseException("INVALID-DATE", "no more input to process for year mask");
+               return 0;
             }
             if (s[2] == 'Y' && s[3] == 'Y') {
                dt.year = parse_int_4(d);
@@ -165,6 +171,10 @@ DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreStri
             break;
 
          case 'M':
+            if (d >= de) {
+               xsink->raiseException("INVALID-DATE", "no more input to process for month mask");
+               return 0;
+            }
             if (s[1] == 'M') {
                dt.month = parse_int_2(d);
                s++;
@@ -176,7 +186,7 @@ DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreStri
                QoreString str(d, 3);
                dt.month = str.strlen() == 3 ? qore_date_info::getMonthIxFromAbbr(str.getBuffer()) : -1;
                if (dt.month < 0 || dt.month > 11) {
-                  xsink->raiseException("DATE-CONVERT-ERROR", "Invalid 'Mon' string: '%s'", !str.empty() ? str.getBuffer() : "<none>");
+                  xsink->raiseException("INVALID-DATE", "Invalid 'Mon' string: '%s'", !str.empty() ? str.getBuffer() : "<none>");
                   return 0;
                }
 
@@ -188,6 +198,10 @@ DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreStri
             break;
 
          case 'm':
+            if (d >= de) {
+               xsink->raiseException("INVALID-DATE", "no more input to process for minute mask");
+               return 0;
+            }
             if (s[1] == 'm') {
                dt.minute = parse_int_2(d);
                s++;
@@ -204,15 +218,23 @@ DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreStri
 
          case 'D':
          case 'd':
+            if (d >= de) {
+               xsink->raiseException("INVALID-DATE", "no more input to process for day mask");
+               return 0;
+            }
             if (s[1] == 'D' || s[1] == 'd') {
                dt.day = parse_int_2(d);
                s++;
                d++;
             }
-           break;
+            break;
 
          case 'H':
          case 'h':
+            if (d >= de) {
+               xsink->raiseException("INVALID-DATE", "no more input to process for hour mask");
+               return 0;
+            }
             if (s[1] == 'H' || s[1] == 'h') {
                dt.hour = parse_int_2(d);
                s++;
@@ -222,6 +244,10 @@ DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreStri
 
          case 's':
             if (s[1] == 's' && s[2] == 's') {
+               if (d >= de) {
+                  xsink->raiseException("INVALID-DATE", "no more input to process for sub-second mask");
+                  return 0;
+               }
                if (s[3] == 's' && s[4] == 's' && s[5] == 's') {
                   dt.us = parse_int_6(d);
                   s += 5;
@@ -236,6 +262,10 @@ DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreStri
             break;
 
          case 'S':
+            if (d >= de) {
+               xsink->raiseException("INVALID-DATE", "no more input to process for second mask");
+               return 0;
+            }
             if (s[1] == 'S') {
                dt.second = parse_int_2(d);
                s++;
@@ -245,6 +275,10 @@ DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreStri
 
          case 'u':
             if (s[1] == 's') {
+               if (d >= de) {
+                  xsink->raiseException("INVALID-DATE", "no more input to process for microsecond mask");
+                  return 0;
+               }
                dt.us = parse_int_6(d);
                ++s;
                d += 5;
@@ -258,7 +292,8 @@ DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreStri
    if (*xsink)
       return 0;
 
-   return DateTimeNode::makeAbsolute(tz, dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.us);
+   SimpleRefHolder<DateTimeNode> rv(DateTimeNode::makeAbsolute(tz, dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.us, xsink));
+   return *xsink ? 0 : rv.release();
 }
 
 /** @defgroup date_and_time_functions Date and Time Functions
@@ -1658,11 +1693,15 @@ date d = date("2001-01-01-153523-020000"); # returns 2001-01-01 15:35:23 Mon -02
 date d = date("20010101-153523"); # returns 2001-01-01 15:35:23 Mon +01:00 (CET)
     @endcode
 
+    @throw INVALID-DATE thrown if the date is invalid; invalid or missing date components
+
     @see date(string, string)
+
+    @since %Qore 0.8.12.4 \c INVALID-DATE exceptions are thrown if the date is invalid
  */
 date date(string dtstr) [flags=CONSTANT] {
-   DateTimeNodeValueHelper date(dtstr);
-   return date.getReferencedValue();
+   DateTimeNodeValueHelper date(dtstr, xsink);
+   return *xsink ? 0 : date.getReferencedValue();
 }
 
 //! The argument is assumed to be the number of seconds and fractions of a second
@@ -1729,7 +1768,7 @@ date date(null[doc] null) [flags=CONSTANT] {
 date dt = date("20100401 234520 230394", "YYYYMMDD HHmmSS ssssss"); # returns 2010-04-01T23:45:20.230394
     @endcode
 
-    @throw DATE-CONVERT-ERROR invalid mask specification
+    @throw INVALID-DATE invalid mask specification
 
     @see @ref Qore::TimeZone::date(string, string) for a method that allows the date to be parsed in a particular @ref time_zones "time zone"
 */

@@ -33,7 +33,7 @@
 
 #define _QORE_INTERN_RSECTION_H
 
-#include <qore/intern/qore_var_rwlock_priv.h>
+#include "qore/intern/qore_var_rwlock_priv.h"
 
 class qore_rsection_priv;
 class RNotifier {
@@ -103,6 +103,7 @@ protected:
       assert(write_tid != -1 || rs_tid != -1);
       list.push_back(rn);
       rn->set();
+      //printd(5, "qrp::sNI t: %p r: %p\n", this, rn);
    }
 
 public:
