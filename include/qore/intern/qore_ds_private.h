@@ -99,6 +99,7 @@ struct qore_ds_private {
 
    DLLLOCAL ~qore_ds_private() {
       assert(!private_data);
+      assert(stmt_set.empty());
       ExceptionSink xsink;
       if (opt)
          opt->deref(&xsink);
