@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   The Datasource class provides the low-level interface to Qore DBI drivers.
 
@@ -53,6 +53,7 @@ class DBIDriver;
 */
 class Datasource {
    friend class QoreSQLStatement;
+   friend struct qore_ds_private;
 
 private:
    struct qore_ds_private *priv; // private implementation
@@ -433,6 +434,7 @@ public:
 
    //! executes the "get_client_version" function of the driver, if any, and returns the result
    /** the caller owns the AbstractQoreNode pointer's reference count returned (if the pointer is not 0)
+
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
    DLLEXPORT AbstractQoreNode* getClientVersion(ExceptionSink* xsink) const;
@@ -453,7 +455,13 @@ public:
    DLLEXPORT void connectionAborted();
 
    //! should be called by the DBIDriver if the connection to the server is lost
-   /** if a transaction was in progress, an appropriate exception will be raised; does not close the connection
+   /** if a transaction was in progress, an appropriate exception will be raised and the transaction
+       is marked as aborted (i.e. wasConnectionAborted() will return true);
+       does not close the connection.
+
+       This function also closes any active SQLStatement objects open on the Datasource.
+
+       @param xsink if an error occurs, the Qore-language exception information will be added here
 
        @return 0 for no transaction in progress and no exception raised, -1 for transaction in progress and exception raised
 

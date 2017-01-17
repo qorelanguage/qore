@@ -193,8 +193,8 @@ struct qore_ds_private {
 
    DLLLOCAL void removeStatement(QoreSQLStatement* stmt) {
       stmt_set_t::iterator i = stmt_set.find(stmt);
-      assert(i != stmt_set.end());
-      stmt_set.erase(i);
+      if (i != stmt_set.end())
+         stmt_set.erase(i);
    }
 
    DLLLOCAL void connectionAborted() {
@@ -209,14 +209,37 @@ struct qore_ds_private {
       int rc;
       if (active_transaction) {
          xsink->raiseException("TRANSACTION-CONNECTION-ERROR", "%s:%s@%s: connection to server lost while in a transaction; transaction has been lost", dsl->getName(),  username.empty() ? "n/a" : username.c_str(), dbname.empty() ? "n/a" : dbname.c_str());
+         connection_aborted = true;
          rc = -1;
       }
       else
          rc = 0;
 
-      for (stmt_set_t::iterator i = stmt_set.begin(), e = stmt_set.end(); i != e; ++i)
-         (*i)->connectionLost(xsink);
+      transactionDone(false, xsink);
 
+      return rc;
+   }
+
+   // @param clear if true then clears the statement's datasource, if false, does not
+   DLLLOCAL void transactionDone(bool clear, ExceptionSink* xsink) {
+      assert(isopen);
+      in_transaction = false;
+      active_transaction = false;
+      for (auto& i : stmt_set)
+         (*i).transactionDone(clear, xsink);
+      stmt_set.clear();
+   }
+
+   DLLLOCAL int commit(ExceptionSink* xsink) {
+      int rc = qore_dbi_private::get(*dsl)->commit(ds, xsink);
+      transactionDone(true, xsink);
+      return rc;
+   }
+
+   DLLLOCAL int rollback(ExceptionSink* xsink) {
+      //printd(5, "qore_ds_private::rollback() this: %p in_transaction: %d active_transaction: %d\n", this, priv->in_transaction, priv->active_transaction);
+      int rc = qore_dbi_private::get(*dsl)->rollback(ds, xsink);
+      transactionDone(true, xsink);
       return rc;
    }
 
@@ -229,6 +252,10 @@ struct qore_ds_private {
          return 0;
       }
       return -1;
+   }
+
+   DLLLOCAL static qore_ds_private* get(Datasource& ds) {
+      return ds.priv;
    }
 };
 

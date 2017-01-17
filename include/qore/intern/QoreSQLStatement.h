@@ -119,8 +119,8 @@ public:
    DLLLOCAL bool active() const;
    DLLLOCAL bool currentThreadInTransaction(ExceptionSink* xsink);
 
-   // called by the datasource object if the connection is lost
-   DLLLOCAL void connectionLost(ExceptionSink* xsink);
+   // called by the datasource object if the connection is lost or the transaction has been committed or rolled back
+   DLLLOCAL void transactionDone(bool clear, ExceptionSink* xsink);
 
    DLLLOCAL QoreStringNode* getSQL(ExceptionSink* xsink);
 };

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   NOTE that 2 copies of connection values are kept in case
   the values are changed while a connection is in use
@@ -222,23 +222,14 @@ int Datasource::commit(ExceptionSink* xsink) {
    if (!priv->in_transaction && beginImplicitTransaction(xsink))
       return -1;
 
-   int rc = qore_dbi_private::get(*priv->dsl)->commit(this, xsink);
-   priv->in_transaction = false;
-   priv->active_transaction = false;
-
-   return rc;
+   return priv->commit(xsink);
 }
 
 int Datasource::rollback(ExceptionSink* xsink) {
    if (!priv->in_transaction && beginImplicitTransaction(xsink))
       return -1;
 
-   //printd(5, "Datasource::rollback() this: %p in_transaction: %d active_transaction: %d\n", this, priv->in_transaction, priv->active_transaction);
-
-   int rc = qore_dbi_private::get(*priv->dsl)->rollback(this, xsink);
-   priv->in_transaction = false;
-   priv->active_transaction = false;
-   return rc;
+   return priv->rollback(xsink);
 }
 
 int Datasource::open(ExceptionSink* xsink) {
