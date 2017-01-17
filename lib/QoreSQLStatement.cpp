@@ -96,8 +96,6 @@ public:
 
 QoreSQLStatement::~QoreSQLStatement() {
    assert(!priv->data);
-   if (priv->ds)
-      qore_ds_private::get(*priv->ds)->removeStatement(this);
 }
 
 void QoreSQLStatement::init(DatasourceStatementHelper* n_dsh) {
@@ -157,6 +155,9 @@ void QoreSQLStatement::deref(ExceptionSink* xsink) {
             closeIntern(xsink);
       }
 
+      if (priv->ds)
+         qore_ds_private::get(*priv->ds)->removeStatement(this);
+
       dsh->helperDestructor(this, xsink);
 
       if (prepare_args)
@@ -167,16 +168,15 @@ void QoreSQLStatement::deref(ExceptionSink* xsink) {
 }
 
 void QoreSQLStatement::transactionDone(bool clear, ExceptionSink* xsink) {
-   //printd(5, "QoreSQLStatement::transactionDone() this: %p data: %p ds: %p\n", this, priv->data, priv->ds);
-   if (!priv->data)
-      return;
-
-   assert(priv->ds);
-   qore_dbi_private::get(*priv->ds->getDriver())->stmt_close(this, xsink);
-   assert(!priv->data);
-   if (clear)
+   //printd(5, "QoreSQLStatement::transactionDone() this: %p data: %p ds: %p clear: %d\n", this, priv->data, priv->ds, clear);
+   if (priv->data) {
+      assert(priv->ds);
+      qore_dbi_private::get(*priv->ds->getDriver())->stmt_close(this, xsink);
+      assert(!priv->data);
+      status = STMT_IDLE;
+   }
+   if (clear && priv->ds)
       priv->ds = nullptr;
-   status = STMT_IDLE;
 }
 
 int QoreSQLStatement::closeIntern(ExceptionSink* xsink) {
