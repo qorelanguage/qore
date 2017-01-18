@@ -1152,7 +1152,7 @@ const AbstractQoreZoneInfo* currentTZ() {
    if (td->tpd) {
       if (td->tlpd && td->tlpd->tz_set)
          return td->tlpd->tz;
-      if (td->current_pgm)
+      if (td->current_pgm && td->current_pgm->isInitialized())
          return qore_program_private::currentTZIntern(*(td->current_pgm));
    }
    return QTZM.getLocalZoneInfo();
