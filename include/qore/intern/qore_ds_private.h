@@ -128,7 +128,7 @@ struct qore_ds_private {
       port        = p_port;
    }
 
-   DLLLOCAL void statementExecuted(int rc, ExceptionSink *xsink);
+   DLLLOCAL void statementExecuted(int rc);
 
    DLLLOCAL void copyOptions(const Datasource* ods);
 
@@ -201,7 +201,17 @@ struct qore_ds_private {
    DLLLOCAL void connectionAborted() {
       assert(isopen);
       connection_aborted = true;
+
+      // unfortunately we have to ignore any exceptions here
+      // but this API is deprecated now anyway
+      ExceptionSink xsink;
+      // close statements but do not clear datasource or statements in the datasource
+      transactionDone(false, &xsink);
+      xsink.clear();
+
       close();
+
+      //printd(5, "qore_ds_private::connectionAborted() this: %p in_trans: %d active_trans: %d\n", this, in_transaction, active_transaction);
    }
 
    DLLLOCAL int connectionLost(ExceptionSink* xsink) {
@@ -217,18 +227,20 @@ struct qore_ds_private {
          rc = 0;
 
       assert(isopen);
-      in_transaction = false;
-      active_transaction = false;
       transactionDone(false, xsink);
+
+      if (rc == -1)
+         close();
 
       return rc;
    }
 
-   // @param clear if true then clears the statement's datasource, if false, does not
+   // @param clear if true then clears the statements' datasource ptrs and the stmt_set, if false, does not
    DLLLOCAL void transactionDone(bool clear, ExceptionSink* xsink) {
       for (auto& i : stmt_set)
          (*i).transactionDone(clear, xsink);
-      stmt_set.clear();
+      if (clear)
+         stmt_set.clear();
    }
 
    DLLLOCAL int commitIntern(ExceptionSink* xsink) {

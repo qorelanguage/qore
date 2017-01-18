@@ -49,12 +49,13 @@ public:
    DLLLOCAL DBActionHelper(QoreSQLStatement& n_stmt, ExceptionSink* n_xsink, char n_cmd = DAH_NOCHANGE) : stmt(n_stmt), xsink(n_xsink), valid(false), cmd(n_cmd), nt(false) {
       Datasource* newds = stmt.dsh->helperStartAction(xsink, nt);
       assert(!newds || !stmt.priv->ds || (newds == stmt.priv->ds));
+      assert(newds || *xsink);
       if (newds && !stmt.priv->ds)
          qore_ds_private::get(*newds)->addStatement(&n_stmt);
       stmt.priv->ds = newds;
 
-      //printd(5, "DBActionHelper::DBActionHelper() ds: %p new: %p cmd: %s nt: %d xs: %d\n", stmt.priv->ds, newds, DAH_TEXT(cmd), nt, (bool)*xsink);
-      valid = *xsink ? false : true;
+      //printd(5, "DBActionHelper::DBActionHelper() ds: %p new: %p cmd: %s nt: %d xs: %d stmt: %p\n", stmt.priv->ds, newds, DAH_TEXT(cmd), nt, (bool)*xsink, &stmt);
+      valid = (bool)stmt.priv->ds;
    }
 
    DLLLOCAL ~DBActionHelper() {
@@ -65,8 +66,6 @@ public:
       /* release the Datasource if:
          1) the transaction was aborted
          or
-         2) the datasource has been closed
-         or
          2) the Datasource was acquired for this call, and
               the command was NOCHANGE, meaning, leave the Datasource in the same state it was before the call
        */
@@ -75,17 +74,28 @@ public:
 
       //printd(5, "DBActionHelper::~DBActionHelper() ds: %p cmd: %s nt: %d xsink: %d stmt: %p status: %d data: %p\n", stmt.priv->ds, DAH_TEXT(cmd), nt, xsink->isEvent(), &stmt, stmt.status, stmt.priv->data);
 
-      Datasource* oldds = stmt.priv->ds;
+      // remove statement from Datasource if the connection is no longer allocated
+      // must be executed in the Datasource allocation lock
+      if (cmd == DAH_RELEASE) {
+         qore_ds_private* dspriv = qore_ds_private::get(*stmt.priv->ds);
+         //printd(5, "DBActionHelper::~DBActionHelper() old: %p ds: %p removing stmt %p\n", oldds, stmt.priv->ds, &stmt);
+         dspriv->removeStatement(&stmt);
+      }
 
       // call end action with the command
       stmt.priv->ds = stmt.dsh->helperEndAction(cmd, nt, xsink);
 
+      // we have to remove the datasource from the statement immediately if the Datasource is closed or committed
+      assert((cmd == DAH_RELEASE) || stmt.priv->ds);
+
+      /*
       // remove statement from Datasource if the connection is no longer allocated
       if (oldds && !stmt.priv->ds) {
          //printd(5, "DBActionHelper::~DBActionHelper() old: %p ds: %p removing stmt %p\n", oldds, stmt.priv->ds, &stmt);
          qore_ds_private::get(*oldds)->removeStatement(&stmt);
          stmt.priv->ds = 0;
       }
+      */
    }
 
    DLLLOCAL operator bool() const {
@@ -149,14 +159,9 @@ int QoreSQLStatement::checkStatus(ExceptionSink* xsink, DBActionHelper& dba, int
 
 void QoreSQLStatement::deref(ExceptionSink* xsink) {
    if (ROdereference()) {
-      char cmd = DAH_NOCHANGE;
+      //char cmd = DAH_NOCHANGE;
       //printd(5, "QoreSQLStatement::deref() deleting this: %p cmd: %s\n", this, DAH_TEXT(cmd));
-      {
-         assert(!*xsink);
-         DBActionHelper dba(*this, xsink, cmd);
-         if (dba)
-            closeIntern(xsink);
-      }
+      closeIntern(xsink);
 
       if (priv->ds)
          qore_ds_private::get(*priv->ds)->removeStatement(this);
@@ -303,7 +308,7 @@ int QoreSQLStatement::execIntern(DBActionHelper& dba, ExceptionSink* xsink) {
 
    //printd(5, "QoreSQLStatement::execIntern() this: %p ds: %p: %s@%s: %s\n", this, priv->ds, priv->ds->getUsername(), priv->ds->getDBName(), str.getBuffer());
 
-   priv->ds->priv->statementExecuted(rc, xsink);
+   priv->ds->priv->statementExecuted(rc);
    return rc;
 }
 

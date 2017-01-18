@@ -38,13 +38,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-void qore_ds_private::statementExecuted(int rc, ExceptionSink* xsink) {
+void qore_ds_private::statementExecuted(int rc) {
    // we always assume we are in a transaction after executing a transaction-relevant statement
+   // unless the connection was aborted
    if (!in_transaction) {
-      assert(!active_transaction);
-      in_transaction = true;
-      active_transaction = true;
-      return;
+      if (!connection_aborted) {
+         assert(!active_transaction);
+         assert(isopen);
+         in_transaction = true;
+         active_transaction = true;
+         return;
+      }
    }
    else if (!rc && !active_transaction)
       active_transaction = true;
@@ -163,7 +167,7 @@ AbstractQoreNode* Datasource::exec_internal(bool doBind, const QoreString* query
    if (priv->autocommit)
       qore_dbi_private::get(*priv->dsl)->autoCommit(this, xsink);
    else
-      priv->statementExecuted(*xsink, xsink);
+      priv->statementExecuted(*xsink);
 
    return rv;
 }
