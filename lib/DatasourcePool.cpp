@@ -180,13 +180,6 @@ void DatasourcePool::destructor(ExceptionSink* xsink) {
       freeDS(xsink);
    }
 
-   /*
-   // ensure all statements are released
-   for (unsigned j = 0; j < cmax; ++j) {
-      qore_ds_private::get(*pool[j])->transactionDone(true, xsink);
-   }
-   */
-
    if (warning_callback) {
       warning_callback->deref(xsink);
       discard(callback_arg, xsink);
