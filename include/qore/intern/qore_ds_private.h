@@ -43,9 +43,10 @@
 typedef std::set<QoreSQLStatement*> stmt_set_t;
 
 struct qore_ds_private {
+   // mutex
+   mutable QoreThreadLock m;
+
    Datasource* ds;
-   // set of active SQLStatements on this datasource
-   stmt_set_t stmt_set;
 
    bool in_transaction;
    bool active_transaction;
@@ -188,11 +189,13 @@ struct qore_ds_private {
    }
 
    DLLLOCAL void addStatement(QoreSQLStatement* stmt) {
+      AutoLocker al(m);
       assert(stmt_set.find(stmt) == stmt_set.end());
       stmt_set.insert(stmt);
    }
 
    DLLLOCAL void removeStatement(QoreSQLStatement* stmt) {
+      AutoLocker al(m);
       stmt_set_t::iterator i = stmt_set.find(stmt);
       if (i != stmt_set.end())
          stmt_set.erase(i);
@@ -214,6 +217,7 @@ struct qore_ds_private {
 
    // @param clear if true then clears the statements' datasource ptrs and the stmt_set, if false, does not
    DLLLOCAL void transactionDone(bool clear, ExceptionSink* xsink) {
+      AutoLocker al(m);
       for (auto& i : stmt_set)
          (*i).transactionDone(clear, xsink);
       if (clear)
@@ -261,6 +265,10 @@ struct qore_ds_private {
    DLLLOCAL static qore_ds_private* get(Datasource& ds) {
       return ds.priv;
    }
+
+private:
+   // set of active SQLStatements on this datasource
+   stmt_set_t stmt_set;
 };
 
 #endif
