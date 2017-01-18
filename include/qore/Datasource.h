@@ -449,8 +449,6 @@ public:
    /** The DBIDriver should raise its own exception when this call is made, as making this call will
        suppress further Qore exceptions from being raised in the Datasource destructor (at least for
        derived classes)
-
-       @deprecated use connectionLost() instead
    */
    DLLEXPORT void connectionAborted();
 

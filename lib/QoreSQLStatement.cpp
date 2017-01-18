@@ -87,15 +87,6 @@ public:
 
       // we have to remove the datasource from the statement immediately if the Datasource is closed or committed
       assert((cmd == DAH_RELEASE) || stmt.priv->ds);
-
-      /*
-      // remove statement from Datasource if the connection is no longer allocated
-      if (oldds && !stmt.priv->ds) {
-         //printd(5, "DBActionHelper::~DBActionHelper() old: %p ds: %p removing stmt %p\n", oldds, stmt.priv->ds, &stmt);
-         qore_ds_private::get(*oldds)->removeStatement(&stmt);
-         stmt.priv->ds = 0;
-      }
-      */
    }
 
    DLLLOCAL operator bool() const {
