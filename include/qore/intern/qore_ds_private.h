@@ -216,6 +216,9 @@ struct qore_ds_private {
       else
          rc = 0;
 
+      assert(isopen);
+      in_transaction = false;
+      active_transaction = false;
       transactionDone(false, xsink);
 
       return rc;
@@ -223,23 +226,34 @@ struct qore_ds_private {
 
    // @param clear if true then clears the statement's datasource, if false, does not
    DLLLOCAL void transactionDone(bool clear, ExceptionSink* xsink) {
-      assert(isopen);
-      in_transaction = false;
-      active_transaction = false;
       for (auto& i : stmt_set)
          (*i).transactionDone(clear, xsink);
       stmt_set.clear();
    }
 
+   DLLLOCAL int commitIntern(ExceptionSink* xsink) {
+      assert(isopen);
+      in_transaction = false;
+      active_transaction = false;
+      return qore_dbi_private::get(*dsl)->commit(ds, xsink);
+   }
+
+   DLLLOCAL int rollbackIntern(ExceptionSink* xsink) {
+      //printd(5, "qore_ds_private::rollbackIntern() this: %p in_transaction: %d active_transaction: %d\n", this, in_transaction, active_transaction);
+      assert(isopen);
+      in_transaction = false;
+      active_transaction = false;
+      return qore_dbi_private::get(*dsl)->rollback(ds, xsink);
+   }
+
    DLLLOCAL int commit(ExceptionSink* xsink) {
-      int rc = qore_dbi_private::get(*dsl)->commit(ds, xsink);
+      int rc = commitIntern(xsink);
       transactionDone(true, xsink);
       return rc;
    }
 
    DLLLOCAL int rollback(ExceptionSink* xsink) {
-      //printd(5, "qore_ds_private::rollback() this: %p in_transaction: %d active_transaction: %d\n", this, priv->in_transaction, priv->active_transaction);
-      int rc = qore_dbi_private::get(*dsl)->rollback(ds, xsink);
+      int rc = rollbackIntern(xsink);
       transactionDone(true, xsink);
       return rc;
    }

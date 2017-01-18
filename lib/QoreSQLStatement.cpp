@@ -63,11 +63,14 @@ public:
          return;
 
       /* release the Datasource if:
-         1) there is no transaction in progress for whatever reason
+         1) the transaction was aborted
+         or
+         2) the datasource has been closed
+         or
          2) the Datasource was acquired for this call, and
               the command was NOCHANGE, meaning, leave the Datasource in the same state it was before the call
        */
-      if (!stmt.priv->ds->isInTransaction() || (nt && (cmd == DAH_NOCHANGE)))
+      if (stmt.priv->ds->wasConnectionAborted() || !stmt.priv->ds->isOpen() || (nt && (cmd == DAH_NOCHANGE)))
          cmd = DAH_RELEASE;
 
       //printd(5, "DBActionHelper::~DBActionHelper() ds: %p cmd: %s nt: %d xsink: %d stmt: %p status: %d data: %p\n", stmt.priv->ds, DAH_TEXT(cmd), nt, xsink->isEvent(), &stmt, stmt.status, stmt.priv->data);
@@ -77,7 +80,7 @@ public:
       // call end action with the command
       stmt.priv->ds = stmt.dsh->helperEndAction(cmd, nt, xsink);
 
-      // remove statement from Datasource
+      // remove statement from Datasource if the connection is no longer allocated
       if (oldds && !stmt.priv->ds) {
          //printd(5, "DBActionHelper::~DBActionHelper() old: %p ds: %p removing stmt %p\n", oldds, stmt.priv->ds, &stmt);
          qore_ds_private::get(*oldds)->removeStatement(&stmt);
@@ -439,9 +442,8 @@ int QoreSQLStatement::commit(ExceptionSink* xsink) {
    if (!dba)
       return -1;
 
-   //int rc = closeIntern(xsink);
-   // the commit call closes the SQLStatement
-   int rc = priv->ds->commit(xsink);
+   int rc = closeIntern(xsink);
+   rc = qore_ds_private::get(*priv->ds)->commitIntern(xsink);
    //printd(5, "QoreSQLStatement::commit() this: %p ds: %p rc: %d\n", this, priv->ds, rc);
    return rc;
 }
@@ -451,9 +453,8 @@ int QoreSQLStatement::rollback(ExceptionSink* xsink) {
    if (!dba)
       return -1;
 
-   //int rc = closeIntern(xsink);
-   // the rollback call closes the SQLStatement
-   int rc = priv->ds->rollback(xsink);
+   int rc = closeIntern(xsink);
+   rc = qore_ds_private::get(*priv->ds)->rollbackIntern(xsink);
    //printd(5, "QoreSQLStatement::rollback() this: %p ds: %p rc: %d\n", this, priv->ds, rc);
    return rc;
 }
