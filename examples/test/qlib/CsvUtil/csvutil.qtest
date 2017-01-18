@@ -53,7 +53,7 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
 
         CsvDataIterator i("1x2,1.2x,1e2n3", opts);
         i.next();
-        testAssertion ("Non-numeric field value", \i.getValue(), (), new TestResultExceptionType("FIELD-VALUE-ERROR"));
+        testAssertion("Non-numeric field value", \i.getValue(), (), new TestResultExceptionType("FIELD-VALUE-ERROR"));
 
     escapeTest() {
         list row = ( ( '12"', 'a"bc"', ), );
@@ -69,4 +69,3 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
         testAssertion("double escaping", \equals(), (esc_double, out_double));
     }
 }
-
