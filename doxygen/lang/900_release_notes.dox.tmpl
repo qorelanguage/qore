@@ -5,7 +5,7 @@
     @section qore_0813 Qore 0.8.13
 
     @par Release Summary
-    Major new features and bug fixes: TBD
+    Major new features and bug fixes including input and output stream support and sigificant new functionality including several new modules.
 
     @subsection qore_0813_compatibility Changes That Can Affect Backwards-Compatibility
     - fixed broken @ref continue "continue" and @ref break "break" statements that were accepted anywhere in the source and behaved like a @ref return "return" statement; now such statements outside a loop context will result in a parse exception; to get the old behavior, use @ref broken-loop-statement "%broken-loop-statement" in your source code
@@ -71,6 +71,7 @@
       - @ref strong-encapsulation "%strong-encapsulation": disallows out of line class and namespace declarations
     - new constants:
       - @ref Qore::PathSep "PathSep": defines the platform-specific path separator character
+      - @ref Qore::PO_BROKEN_LOOP_STATEMENT "PO_BROKEN_LOOP_STATEMENT"
       - @ref Qore::PO_NO_UNCONTROLLED_APIS "PO_NO_UNCONTROLLED_APIS": disallow access to uncontrolled APIs such as external language bindings or direct generic system call APIs that could bypass %Qore's sandboxing controls; note that this parse option was also added to @ref Qore::PO_NO_IO "PO_NO_IO" and @ref Qore::PO_NO_EXTERNAL_ACCESS "PO_NO_EXTERNAL_ACCESS"
       - @ref Qore::PO_STRONG_ENCAPSULATION "PO_STRONG_ENCAPSULATION": disallows out of line class and namespace declarations
     - implemented additional parse-time checks for many @ref operators "operators" to provide feedback for invalid operations detected at parse time
@@ -94,8 +95,6 @@
       - @ref Qore::set_thread_init()
     - new parse options:
       - @ref broken-loop-statement "%broken-loop-statement"
-    - new constants:
-      - @ref Qore::PO_BROKEN_LOOP_STATEMENT
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module updates:
       - added a minimal substring of string bodies received to the log message when logging HTTP requests
     - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
@@ -117,7 +116,7 @@
       - added the \c TelnetConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
       - added support for URLs in the constructor()
       - added the \c TelnetClient::getTarget() method
-    - added internal API support to make it easier for DBI drivers to handle lost connections (<a href="https://github.com/qorelanguage/qore/issues/1250">issue 1250</a>)
+    - added internal API support to make it easier for DBI drivers to handle lost connections; due to this change, @ref Qore::SQL::SQLStatement "SQLStatement" objects based on a @ref Qore::SQL::DatasourcePool "DatasourcePool" are closed automatically whenever the datasource is returned to the pool (<a href="https://github.com/qorelanguage/qore/issues/1250">issue 1250</a>)
 
     @subsection qore_0813_bug_fixes Bug Fixes in Qore
     - fixed a bug causing @ref Qore::AbstractQuantifiedBidirectionalIterator "AbstractQuantifiedBidirectionalIterator" not being available (<a href="https://github.com/qorelanguage/qore/issues/968">issue 968</a>)

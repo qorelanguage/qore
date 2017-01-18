@@ -454,21 +454,6 @@ public:
    */
    DLLEXPORT void connectionAborted();
 
-   //! should be called by the DBIDriver if the connection to the server is lost
-   /** if a transaction was in progress, an appropriate exception will be raised and the transaction
-       is marked as aborted (i.e. wasConnectionAborted() will return true);
-       does not close the connection.
-
-       This function also closes any active SQLStatement objects open on the Datasource.
-
-       @param xsink if an error occurs, the Qore-language exception information will be added here
-
-       @return 0 for no transaction in progress and no exception raised, -1 for transaction in progress and exception raised
-
-       @since Qore 0.8.13
-   */
-   DLLEXPORT int connectionLost(ExceptionSink* xsink);
-
    //! returns the connection aborted status
    /** @return the connection aborted status
     */

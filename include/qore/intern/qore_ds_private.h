@@ -214,27 +214,6 @@ struct qore_ds_private {
       //printd(5, "qore_ds_private::connectionAborted() this: %p in_trans: %d active_trans: %d\n", this, in_transaction, active_transaction);
    }
 
-   DLLLOCAL int connectionLost(ExceptionSink* xsink) {
-      assert(isopen);
-
-      int rc;
-      if (active_transaction) {
-         xsink->raiseException("TRANSACTION-CONNECTION-ERROR", "%s:%s@%s: connection to server lost while in a transaction; transaction has been lost", dsl->getName(),  username.empty() ? "n/a" : username.c_str(), dbname.empty() ? "n/a" : dbname.c_str());
-         connection_aborted = true;
-         rc = -1;
-      }
-      else
-         rc = 0;
-
-      assert(isopen);
-      transactionDone(false, xsink);
-
-      if (rc == -1)
-         close();
-
-      return rc;
-   }
-
    // @param clear if true then clears the statements' datasource ptrs and the stmt_set, if false, does not
    DLLLOCAL void transactionDone(bool clear, ExceptionSink* xsink) {
       for (auto& i : stmt_set)

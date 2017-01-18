@@ -261,10 +261,6 @@ int Datasource::close() {
    return priv->close();
 }
 
-int Datasource::connectionLost(ExceptionSink* xsink) {
-   return priv->connectionLost(xsink);
-}
-
 void Datasource::connectionAborted() {
    priv->connectionAborted();
 }
