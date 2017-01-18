@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -85,7 +85,7 @@ DatasourcePool::DatasourcePool(const DatasourcePool& old, ExceptionSink* xsink) 
 }
 
 DatasourcePool::~DatasourcePool() {
-   //printd(5, "DatasourcePool::~DatasourcePool() trlist.remove() this: %p\n", this);
+   //printd(5, "DatasourcePool::~DatasourcePool() this: %p\n", this);
    for (unsigned i = 0; i < cmax; ++i)
       delete pool[i];
    delete [] tid_list;
@@ -155,6 +155,7 @@ void DatasourcePool::cleanup(ExceptionSink* xsink) {
 }
 
 void DatasourcePool::destructor(ExceptionSink* xsink) {
+   //printd(5, "DatasourcePool::destructor() this: %p\n", this);
    SafeLocker sl((QoreThreadLock*)this);
 
    // mark object as invalid in case any threads are waiting on a free Datasource
@@ -176,7 +177,7 @@ void DatasourcePool::destructor(ExceptionSink* xsink) {
       // execute rollback on Datasource before releasing to pool
       pool[curr]->rollback(xsink);
 
-      freeDS();
+      freeDS(xsink);
    }
 
    if (warning_callback) {
@@ -217,7 +218,7 @@ QoreString* DatasourcePool::getAndResetSQL() {
 }
 #endif
 
-void DatasourcePool::freeDS() {
+void DatasourcePool::freeDS(ExceptionSink* xsink) {
    // remove from thread resource list
    //printd(5, "DatasourcePool::freeDS() remove_thread_resource(this: %p)\n", this);
 
@@ -230,7 +231,12 @@ void DatasourcePool::freeDS() {
    thread_use_t::iterator i = tmap.find(tid);
    assert(!pool[i->second]->isInTransaction());
    free_list.push_back(i->second);
+
+   // issue 1250: close any other statements created on this datasource
+   qore_ds_private::get(*pool[i->second])->transactionDone(true, xsink);
+
    tmap.erase(i);
+
    if (wait_count)
       signal();
 }
@@ -254,7 +260,7 @@ Datasource* DatasourcePool::getDS(bool &new_ds, ExceptionSink* xsink) {
    if (wait_total && checkWait(wait_total, xsink)) {
       assert(new_ds);
       assert(!ds->isInTransaction());
-      freeDS();
+      freeDS(xsink);
       return 0;
    }
 
@@ -263,7 +269,7 @@ Datasource* DatasourcePool::getDS(bool &new_ds, ExceptionSink* xsink) {
       assert(new_ds);
       if (ds->open(xsink)) {
 	 assert(!ds->isInTransaction());
-	 freeDS();
+	 freeDS(xsink);
 	 return 0;
       }
    }
