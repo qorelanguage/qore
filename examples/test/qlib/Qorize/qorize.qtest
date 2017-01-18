@@ -228,10 +228,13 @@ name."a"."l"[0] = name."a";
 name."a"."h" = NOTHING;
 name."s2" = NOTHING;
 name."l"[0] = name."a";
+name."l"[1] = name."a";
 name."h"."self" = name."a";
 ';
         c2.a = c1;
         c2.l[0] = c2;
+        c1.l[0] = c2;
+        c1.l[1] = \c2;
         testAssertion("circular", \qorize_named(), (c1, "name", NEWSTYLE), new TestResultValue(testResultString));
     }
 

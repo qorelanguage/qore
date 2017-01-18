@@ -89,7 +89,7 @@ Currently it can handle only simple types:
   - hash of simple types (recursive parsing supported)
   - object
 
-@note There is no support for private object members and overloaded constructors and references are not considered
+@note There is no support for private object members and overloaded constructors.  References are not considered
 
 */
 
