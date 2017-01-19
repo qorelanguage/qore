@@ -135,7 +135,7 @@
     - fixed a bug causing an infinite loop in decompression functions (<a href="https://github.com/qorelanguage/qore/issues/966">issue 966</a>)
     - fixed an issue where an internal C++ API (QoreProgram::parseCmdLineDefines()) performed a needless copy of a data structure (<a href="https://github.com/qorelanguage/qore/issues/1099">issue 1099</a>)
     - fixed a stack corruption bug with asynchronous I/O on UNIX systems with @ref Qore::ReadOnlyFile "ReadOnlyFile" methods (<a href="https://github.com/qorelanguage/qore/issues/1106">issue 1106</a>)
-    - fixed BulkSqlUtil module to work properly even with DB drivers that do not support parameter array binding (<a href="https://github.com/qorelanguage/qore/issues/1154">issue 1154</a>)
+    - fixed <a href="../../modules/BulkSqlUtil/html/index.html">BulkSqlUtil</a> module to work properly even with DB drivers that do not support parameter array binding (<a href="https://github.com/qorelanguage/qore/issues/1154">issue 1154</a>)
     - fixed bugs with inconsistent conversions of @ref int_type "int", @ref float_type "float", and @ref bool_type "boolean" values to date/time values, now they are all converted uniformly to @ref relative_dates "relative date/time values" (<a href="https://github.com/qorelanguage/qore/issues/1156">issue 1156</a>)
     - fixed a bug where Qore allowed code to be declared both public and private without a warning (<a href="https://github.com/qorelanguage/qore/issues/1187">issue 1187</a>)
     - fixed a bug in qpp support of the 'final' class flag (<a href="https://github.com/qorelanguage/qore/issues/1222">issue 1222</a>)
@@ -147,10 +147,11 @@
     - fixed a bug where a closure created in an object scope could not be called if the object had been deleted, even if the closure did not refer to the object (<a href="https://github.com/qorelanguage/qore/issues/1303">issue 1303</a>)
     - fixed a bug where @ref Qore::ord() "ord()" would return negative numbers for bytes with the high bit set with compilers where <tt>char</tt> is the same as <tt>signed char</tt> (<a href="https://github.com/qorelanguage/qore/issues/1385">issue 1385</a>)
     - fixed a bug where @ref Qore::int(softint) "int(number)" returned rounded value instead of the integer part (while @ref Qore::int(softint) "int(float)" behaved correctly; also cf. initializing a softint value from a number vs. from a float) (<a href="https://github.com/qorelanguage/qore/issues/1463">issue 1463</a>)
-    - File::getchar() now reads in characters with multi-byte character encodings correctly (<a href="https://github.com/qorelanguage/qore/issues/1547">issue 1547</a>)
-    - File::read() now uses character semantics for the length argument (<a href="https://github.com/qorelanguage/qore/issues/1548">issue 1548</a>)
+    - @ref Qore::File::getchar() "File::getchar()" now reads in characters with multi-byte character encodings correctly (<a href="https://github.com/qorelanguage/qore/issues/1547">issue 1547</a>)
+    - @ref Qore::File::read() "File::read()" now uses character semantics for the length argument (<a href="https://github.com/qorelanguage/qore/issues/1548">issue 1548</a>)
     - fixed a bug with strongly-typed lvalue assignments with classes created in different @ref Qore::Program "Program" objects (<a href="https://github.com/qorelanguage/qore/issues/1551">issue 1551</a>)
-    - fixed a bug comparing sints in \c UTF-16 encoding (<a href="https://github.com/qorelanguage/qore/issues/1579">issue 1579</a>)
+    - fixed bug comparing strings in \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1579">issue 1579</a>)
+    - fixed @ref Qore::substr() and <string>::substr() with strings in \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1586">issue 1586</a>)
 
     @section qore_08126 Qore 0.8.12.6
 

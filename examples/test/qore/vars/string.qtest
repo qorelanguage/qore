@@ -119,10 +119,40 @@ class StringTest inherits QUnit::Test {
         string a = convert_encoding("xbcd", "UTF16BE");
         string b = convert_encoding("aaaa", "UTF16BE");
         assertEq(True, a != b);
+        assertEq(True, a > b);
+        assertEq(True, a >= b);
+        assertEq(True, b < a);
+        assertEq(True, b <= a);
+        assertEq(True, a == a);
+        assertEq(True, a === a);
+        assertEq(1, a <=> b);
+        assertEq(0, a <=> a);
+        assertEq(-1, b <=> a);
+        assertEq(True, b.equalPartial(b.substr(2)));
+        assertEq(True, b.equalPartial(b.substr(2, 1)));
+        assertEq(True, b.equalPartial(b.substr(2, -1)));
+        assertEq(True, b.equalPartial(substr(b, 2)));
+        assertEq(True, b.equalPartial(substr(b, 2, 1)));
+        assertEq(True, b.equalPartial(substr(b, 2, -1)));
 
         string c = convert_encoding("abcd", "UTF16LE");
         string d = convert_encoding("aaaa", "UTF16LE");
         assertEq(True, c != d);
+        assertEq(True, c > d);
+        assertEq(True, c >= d);
+        assertEq(True, d < c);
+        assertEq(True, d <= c);
+        assertEq(True, c == c);
+        assertEq(True, c === c);
+        assertEq(1, c <=> d);
+        assertEq(0, c <=> c);
+        assertEq(-1, d <=> c);
+        assertEq(True, d.equalPartial(d.substr(2)));
+        assertEq(True, d.equalPartial(d.substr(2, 1)));
+        assertEq(True, d.equalPartial(d.substr(2, -1)));
+        assertEq(True, d.equalPartial(substr(d, 2)));
+        assertEq(True, d.equalPartial(substr(d, 2, 1)));
+        assertEq(True, d.equalPartial(substr(d, 2, -1)));
     }
 
     testBase64Hex() {

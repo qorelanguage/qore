@@ -1080,7 +1080,11 @@ int QoreString::compare(const QoreString* str) const {
    if (str->priv->getEncoding() != priv->getEncoding())
       return 1;
 
-   return strcmp(priv->buf, str->priv->buf);
+
+   int rc = memcmp(priv->buf, str->priv->buf, QORE_MIN(priv->len, str->size()));
+   if (rc < 0)
+      return -1;
+   return !rc ? 0 : 1;
 }
 
 int QoreString::compare(const char* str) const {
@@ -2112,7 +2116,7 @@ int QoreString::substr_complex(QoreString* ns, qore_offset_t offset, ExceptionSi
    }
 
    // calculate byte offset
-   ns->concat(priv->buf + start);
+   ns->concat(priv->buf + start, priv->len - start);
    return 0;
 }
 
@@ -2345,7 +2349,10 @@ int QoreString::compareSoft(const QoreString* str, ExceptionSink* xsink) const {
    if (*xsink)
       return 1;
 
-   return memcmp(priv->buf, t->priv->buf, QORE_MIN(priv->len, t->size()));
+   int rc = memcmp(priv->buf, t->priv->buf, QORE_MIN(priv->len, t->size()));
+   if (rc < 0)
+      return -1;
+   return !rc ? 0 : 1;
 }
 
 void QoreString::concatEscape(const char* str, char c, char esc_char) {
