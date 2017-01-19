@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -47,7 +47,10 @@ extern "C" {
 #include <memory>
 #include <vector>
 
-// user module parse options
+// parse options set while parsing the module's header (init & del)
+#define MOD_HEADER_PO (PO_LOCKDOWN & ~PO_NO_MODULES)
+
+// initial user module parse options
 #define USER_MOD_PO (PO_NO_TOP_LEVEL_STATEMENTS | PO_REQUIRE_PROTOTYPES | PO_REQUIRE_OUR | PO_IN_MODULE)
 
 // module load options
@@ -76,7 +79,7 @@ public:
       set(v);
       return *this;
    }
-   
+
    DLLLOCAL const char* operator*() const {
       return ver.getBuffer();
    }
@@ -90,7 +93,7 @@ private:
 
 protected:
    QoreString filename,
-      name, 
+      name,
       desc,
       author,
       url,
@@ -103,7 +106,7 @@ protected:
    bool priv : 1,
       injected : 1,
       reinjected : 1;
-   
+
    DLLLOCAL QoreHashNode* getHashIntern(bool with_filename = true) const {
       QoreHashNode* h = new QoreHashNode;
 
@@ -125,7 +128,7 @@ protected:
       }
       h->setKeyValue("injected", get_bool_node(injected), 0);
       h->setKeyValue("reinjected", get_bool_node(injected), 0);
-      
+
       return h;
    }
 
@@ -138,7 +141,7 @@ protected:
       license = l;
       version_list = v;
    }
-   
+
 public:
    version_list_t version_list;
    // list of dependent modules to reexport
@@ -248,7 +251,7 @@ public:
       priv = p;
    }
 
-   DLLLOCAL void setLink(QoreAbstractModule* n) {      
+   DLLLOCAL void setLink(QoreAbstractModule* n) {
       assert(!next);
       assert(!n->prev);
       next = n;
@@ -258,7 +261,7 @@ public:
    DLLLOCAL QoreAbstractModule* getNext() const {
       return next;
    }
-   
+
    DLLLOCAL virtual bool isBuiltin() const = 0;
    DLLLOCAL virtual bool isUser() const = 0;
    DLLLOCAL virtual QoreHashNode* getHash(bool with_filename = true) const = 0;
@@ -401,7 +404,7 @@ public:
          for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
             str.sprintf("'%s',", (*si).c_str());
          str.concat("]");
-	 
+
          printd(0, " + rmd_map '%s' -> %s\n", i->first.c_str(), str.getBuffer());
       }
    }
@@ -410,7 +413,7 @@ public:
 
 class QoreModuleManager {
    friend class QoreAbstractModule;
-   
+
 private:
    // not implemented
    DLLLOCAL QoreModuleManager(const QoreModuleManager&);
@@ -433,7 +436,7 @@ protected:
    // module hash
    typedef std::map<const char*, QoreAbstractModule*, ltstr> module_map_t;
    module_map_t map;
-   
+
    // set of user modules with no dependencies
    strset_t umset;
 
@@ -534,7 +537,7 @@ public:
    }
 
    DLLLOCAL void setUserModuleDependency(const char* name, const char* dep) {
-      //printd(5, "QoreModuleManager::setUserModuleDependency('%s' -> '%s')\n", name, dep);      
+      //printd(5, "QoreModuleManager::setUserModuleDependency('%s' -> '%s')\n", name, dep);
       if (md_map.addDep(name, dep))
          return;
       rmd_map.addDep(dep, name);
@@ -556,7 +559,7 @@ public:
          for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si) {
             md_map_t::iterator di = md_map.find(*si);
             assert(di != md_map.end());
-            
+
             strset_t::iterator dsi = di->second.find(i->first);
             assert(dsi != di->second.end());
             di->second.erase(dsi);
@@ -570,7 +573,7 @@ public:
          // remove from dep map
          rmd_map.erase(i);
       }
-      
+
       i = md_map.find(name);
       if (i != md_map.end())
          md_map.erase(i);
@@ -629,11 +632,11 @@ public:
 
    DLLLOCAL QoreHashNode* getHash(bool with_filename = true) const {
       QoreHashNode* h = getHashIntern(with_filename);
-   
+
       h->setKeyValue("user", &False, 0);
       h->setKeyValue("api_major", new QoreBigIntNode(api_major), 0);
       h->setKeyValue("api_minor", new QoreBigIntNode(api_minor), 0);
-   
+
       return h;
    }
 
@@ -663,7 +666,7 @@ public:
    DLLLOCAL QoreProgram* getProgram() const {
       return pgm;
    }
-   
+
    DLLLOCAL virtual ~QoreUserModule();
 
    DLLLOCAL virtual bool isBuiltin() const {
@@ -677,7 +680,7 @@ public:
    DLLLOCAL virtual QoreHashNode* getHash(bool with_filename = true) const {
       return getHashIntern(with_filename);
    }
-   
+
    DLLLOCAL virtual void issueParseCmd(QoreString &cmd) {
       parseException("PARSE-COMMAND-ERROR", "module '%s' loaded from '%s' is a user module; only builtin modules can support parse commands", name.getBuffer(), filename.getBuffer());
    }
@@ -686,12 +689,15 @@ public:
 class QoreUserModuleDefContextHelper : public QoreModuleDefContextHelper {
 protected:
    const char* old_name;
+
+   qore_program_private* pgm;
+   int64 po;
+
    ExceptionSink& xsink;
    bool dup;
-   
+
 public:
-   DLLLOCAL QoreUserModuleDefContextHelper(const char* name, ExceptionSink& xs) : old_name(set_user_module_context_name(name)), xsink(xs), dup(false) {
-   }
+   DLLLOCAL QoreUserModuleDefContextHelper(const char* name, QoreProgram* p, ExceptionSink& xs);
 
    DLLLOCAL ~QoreUserModuleDefContextHelper() {
       const char* name = set_user_module_context_name(old_name);
@@ -704,6 +710,10 @@ public:
       assert(!dup);
       dup = true;
    }
+
+   DLLLOCAL void setNameInit(const char* name);
+
+   DLLLOCAL void close();
 };
 
 #endif

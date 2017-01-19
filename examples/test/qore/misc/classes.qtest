@@ -80,6 +80,7 @@ public class ClassesTest inherits QUnit::Test {
         addTestCase("Class library test", \classLibraryTest());
         addTestCase("Deprecated method test", \deprecatedMethodTest());
         addTestCase("Deletion test", \deletionTest());
+        addTestCase("misc test", \miscTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -145,5 +146,10 @@ public class ClassesTest inherits QUnit::Test {
     deletionTest() {
         Test2 t();
         assertThrows("OBJECT-ALREADY-DELETED", \t.doit());
+    }
+
+    miscTest() {
+        Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES);
+        assertThrows("ILLEGAL-ABSTRACT-METHOD", \p.parse(), ("class X{static abstract m();}", ""));
     }
 }

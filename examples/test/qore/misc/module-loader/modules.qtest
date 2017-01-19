@@ -13,6 +13,7 @@
 class ModulesTest inherits QUnit::Test {
     constructor() : QUnit::Test("Modules test", "1.0") {
         addTestCase("Test modules", \testModules());
+        addTestCase("Side effect test", \sideEffectTest());
         set_return_value(main());
     }
 
@@ -29,5 +30,9 @@ mt.assertEq(1, AC, \"AC\");
 mt.assertEq(1, BC, \"BC\");
 ", "p");
         p.run();
+    }
+
+    sideEffectTest() {
+        assertThrows("PARSE-EXCEPTION", \load_module(), getcwd() + DirSep + "SideEffect.qm");
     }
 }

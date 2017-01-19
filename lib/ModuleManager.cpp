@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -170,7 +170,7 @@ void QoreModuleDefContext::initClosure(AbstractQoreNode*& c, const char* n) {
    int lvids = 0;
    const QoreTypeInfo* typeInfo = 0;
    // check for local variables at the top level - this can only happen if the expresion is not a closure
-   c = c->parseInit(0, PO_LOCKDOWN, lvids, typeInfo);
+   c = c->parseInit(0, 0, lvids, typeInfo);
    if (lvids) {
       parseException("ILLEGAL-LOCAL-VAR", "local variables may not be declared in module '%s' code", n);
       // discard variables immediately
@@ -218,6 +218,23 @@ QoreModuleContextHelper::QoreModuleContextHelper(const char* name, QoreProgram* 
 
 QoreModuleContextHelper::~QoreModuleContextHelper() {
    set_module_context(0);
+}
+
+QoreUserModuleDefContextHelper::QoreUserModuleDefContextHelper(const char* name, QoreProgram* p, ExceptionSink& xs) : old_name(set_user_module_context_name(name)), pgm(qore_program_private::get(*p)), po(0), xsink(xs), dup(false) {
+}
+
+void QoreUserModuleDefContextHelper::setNameInit(const char* name) {
+   assert(vmap.find("name") == vmap.end());
+   vmap["name"] = name;
+
+   assert(!po);
+
+   po = pgm->pwo.parse_options;
+   pgm->pwo.parse_options |= MOD_HEADER_PO;
+}
+
+void QoreUserModuleDefContextHelper::close() {
+   pgm->pwo.parse_options = po;
 }
 
 void UniqueDirectoryList::addDirList(const char* str) {
@@ -978,7 +995,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
 
    ModuleReExportHelper mrh(mi.get(), reexport);
 
-   QoreUserModuleDefContextHelper qmd(feature, xsink);
+   QoreUserModuleDefContextHelper qmd(feature, pgm, xsink);
    mi->getProgram()->parseFile(td, &xsink, &xsink, QP_WARN_MODULES);
 
    return setupUserModule(xsink, mi, qmd, load_opt);
@@ -1005,7 +1022,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& x
 
    ModuleReExportHelper mrh(mi.get(), reexport);
 
-   QoreUserModuleDefContextHelper qmd(feature, xsink);
+   QoreUserModuleDefContextHelper qmd(feature, pgm, xsink);
    mi->getProgram()->parse(src, path, &xsink, &xsink, QP_WARN_MODULES);
 
    return setupUserModule(xsink, mi, qmd);

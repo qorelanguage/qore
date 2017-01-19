@@ -1281,8 +1281,11 @@ QoreModuleDefContext* get_module_def_context() {
 
 void parse_set_module_def_context_name(const char* name) {
    ThreadData* td = thread_data.get();
-   if (td->qmd)
-      td->qmd->setName(name);
+   if (td->qmd) {
+      QoreUserModuleDefContextHelper* uqmd = static_cast<QoreUserModuleDefContextHelper*>(td->qmd);
+      // set name and setup for parsing any header closures / call references
+      uqmd->setNameInit(name);
+   }
 }
 
 const char* set_user_module_context_name(const char* n) {
