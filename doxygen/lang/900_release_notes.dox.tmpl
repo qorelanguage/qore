@@ -5,7 +5,7 @@
     @section qore_0813 Qore 0.8.13
 
     @par Release Summary
-    Major new features and bug fixes: TBD
+    Major new features and bug fixes including input and output stream support and sigificant new functionality including several new modules.
 
     @subsection qore_0813_compatibility Changes That Can Affect Backwards-Compatibility
     - fixed broken @ref continue "continue" and @ref break "break" statements that were accepted anywhere in the source and behaved like a @ref return "return" statement; now such statements outside a loop context will result in a parse exception; to get the old behavior, use @ref broken-loop-statement "%broken-loop-statement" in your source code
@@ -71,6 +71,7 @@
       - @ref strong-encapsulation "%strong-encapsulation": disallows out of line class and namespace declarations
     - new constants:
       - @ref Qore::PathSep "PathSep": defines the platform-specific path separator character
+      - @ref Qore::PO_BROKEN_LOOP_STATEMENT "PO_BROKEN_LOOP_STATEMENT"
       - @ref Qore::PO_NO_UNCONTROLLED_APIS "PO_NO_UNCONTROLLED_APIS": disallow access to uncontrolled APIs such as external language bindings or direct generic system call APIs that could bypass %Qore's sandboxing controls; note that this parse option was also added to @ref Qore::PO_NO_IO "PO_NO_IO" and @ref Qore::PO_NO_EXTERNAL_ACCESS "PO_NO_EXTERNAL_ACCESS"
       - @ref Qore::PO_STRONG_ENCAPSULATION "PO_STRONG_ENCAPSULATION": disallows out of line class and namespace declarations
     - implemented additional parse-time checks for many @ref operators "operators" to provide feedback for invalid operations detected at parse time
@@ -94,8 +95,6 @@
       - @ref Qore::set_thread_init()
     - new parse options:
       - @ref broken-loop-statement "%broken-loop-statement"
-    - new constants:
-      - @ref Qore::PO_BROKEN_LOOP_STATEMENT
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module updates:
       - added a minimal substring of string bodies received to the log message when logging HTTP requests
     - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
@@ -119,6 +118,7 @@
       - added the \c TelnetClient::getTarget() method
     - <a href="../../modules/Qorize/html/index.html">Qorize</a> module:
       - Qorize module: qorize_named() added support for objects
+    - added internal API support to make it easier for DBI drivers to handle lost connections; due to this change, @ref Qore::SQL::SQLStatement "SQLStatement" objects based on a @ref Qore::SQL::DatasourcePool "DatasourcePool" are closed automatically whenever the datasource is returned to the pool (<a href="https://github.com/qorelanguage/qore/issues/1250">issue 1250</a>)
 
     @subsection qore_0813_bug_fixes Bug Fixes in Qore
     - fixed a bug causing @ref Qore::AbstractQuantifiedBidirectionalIterator "AbstractQuantifiedBidirectionalIterator" not being available (<a href="https://github.com/qorelanguage/qore/issues/968">issue 968</a>)
@@ -137,7 +137,7 @@
     - fixed a bug causing an infinite loop in decompression functions (<a href="https://github.com/qorelanguage/qore/issues/966">issue 966</a>)
     - fixed an issue where an internal C++ API (QoreProgram::parseCmdLineDefines()) performed a needless copy of a data structure (<a href="https://github.com/qorelanguage/qore/issues/1099">issue 1099</a>)
     - fixed a stack corruption bug with asynchronous I/O on UNIX systems with @ref Qore::ReadOnlyFile "ReadOnlyFile" methods (<a href="https://github.com/qorelanguage/qore/issues/1106">issue 1106</a>)
-    - fixed BulkSqlUtil module to work properly even with DB drivers that do not support parameter array binding (<a href="https://github.com/qorelanguage/qore/issues/1154">issue 1154</a>)
+    - fixed <a href="../../modules/BulkSqlUtil/html/index.html">BulkSqlUtil</a> module to work properly even with DB drivers that do not support parameter array binding (<a href="https://github.com/qorelanguage/qore/issues/1154">issue 1154</a>)
     - fixed bugs with inconsistent conversions of @ref int_type "int", @ref float_type "float", and @ref bool_type "boolean" values to date/time values, now they are all converted uniformly to @ref relative_dates "relative date/time values" (<a href="https://github.com/qorelanguage/qore/issues/1156">issue 1156</a>)
     - fixed a bug where Qore allowed code to be declared both public and private without a warning (<a href="https://github.com/qorelanguage/qore/issues/1187">issue 1187</a>)
     - fixed a bug in qpp support of the 'final' class flag (<a href="https://github.com/qorelanguage/qore/issues/1222">issue 1222</a>)
@@ -146,12 +146,14 @@
     - fixed a bug where exceptions in base class constructor calls did not reflect the actual source location (<a href="https://github.com/qorelanguage/qore/issues/1230">issue 1230</a>)
     - fixed a bug where runtime function/method variant matching was incorrectly biased towards default matches for missing arguments (<a href="https://github.com/qorelanguage/qore/issues/1231">issue 1231</a>)
     - fixed bugs where calls to @ref Qore::Socket::upgradeClientToSSL() "Socket::upgradeClientToSSL()" and @ref Qore::Socket::upgradeServerToSSL() "Socket::upgradeServerToSSL()" were ignored with no exception thrown if the socket was not connected (<a href="https://github.com/qorelanguage/qore/issues/1258">issue 1258</a>)
-    - fixed a bug where a closure created in an object scope could not be called if the object had been deleted, even if the closure did not refer to the object (<a href="https://github.com/qorelanguage/qore/issues/1258">issue 1303</a>)
+    - fixed a bug where a closure created in an object scope could not be called if the object had been deleted, even if the closure did not refer to the object (<a href="https://github.com/qorelanguage/qore/issues/1303">issue 1303</a>)
     - fixed a bug where @ref Qore::ord() "ord()" would return negative numbers for bytes with the high bit set with compilers where <tt>char</tt> is the same as <tt>signed char</tt> (<a href="https://github.com/qorelanguage/qore/issues/1385">issue 1385</a>)
     - fixed a bug where @ref Qore::int(softint) "int(number)" returned rounded value instead of the integer part (while @ref Qore::int(softint) "int(float)" behaved correctly; also cf. initializing a softint value from a number vs. from a float) (<a href="https://github.com/qorelanguage/qore/issues/1463">issue 1463</a>)
-    - File::getchar() now reads in characters with multi-byte character encodings correctly (<a href="https://github.com/qorelanguage/qore/issues/1547">issue 1547</a>)
-    - File::read() now uses character semantics for the length argument (<a href="https://github.com/qorelanguage/qore/issues/1548">issue 1548</a>)
+    - @ref Qore::File::getchar() "File::getchar()" now reads in characters with multi-byte character encodings correctly (<a href="https://github.com/qorelanguage/qore/issues/1547">issue 1547</a>)
+    - @ref Qore::File::read() "File::read()" now uses character semantics for the length argument (<a href="https://github.com/qorelanguage/qore/issues/1548">issue 1548</a>)
     - fixed a bug with strongly-typed lvalue assignments with classes created in different @ref Qore::Program "Program" objects (<a href="https://github.com/qorelanguage/qore/issues/1551">issue 1551</a>)
+    - fixed bug comparing strings in \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1579">issue 1579</a>)
+    - fixed @ref Qore::substr() and <string>::substr() with strings in \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1586">issue 1586</a>)
 
     @section qore_08126 Qore 0.8.12.6
 

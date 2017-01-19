@@ -4,7 +4,7 @@
 
  Qore Programming Language
 
- Copyright (C) 2003 - 2015 David Nichols
+ Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -170,8 +170,9 @@ public:
    DLLLOCAL virtual Datasource* helperEndAction(char cmd, bool new_transaction, ExceptionSink* xsink) {
       // execute a commit if auto-commit is enabled and the resource is being released
       // and the connection was not aborted
-      if (cmd == DAH_RELEASE)
+      if (cmd == DAH_RELEASE) {
          autoCommit(xsink);
+      }
       return endDBAction(cmd, new_transaction) ? this : 0;
    }
 };
