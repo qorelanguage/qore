@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -113,11 +113,7 @@ public:
    COMMON_BUILTIN_VARIANT_FUNCTIONS
 
    DLLLOCAL virtual QoreValue evalFunction(const char* name, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
-      CodeContextHelper cch(name, 0, xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-      // push call on call stack in debugging mode
-      CallStackHelper csh(name, CT_BUILTIN, 0, xsink);
-#endif
+      CodeContextHelper cch(xsink, CT_BUILTIN, name);
 
       const QoreValueList* l = ceh.getArgs();
       ReferenceHolder<QoreListNode> arg_holder(l ? l->getOldList() : 0, xsink);
@@ -143,11 +139,7 @@ public:
    COMMON_BUILTIN_VARIANT_FUNCTIONS
 
    DLLLOCAL virtual QoreValue evalFunction(const char* name, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
-      CodeContextHelper cch(name, 0, xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-      // push call on call stack in debugging mode
-      CallStackHelper csh(name, CT_BUILTIN, 0, xsink);
-#endif
+      CodeContextHelper cch(xsink, CT_BUILTIN, name);
 
       return func(ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
    }

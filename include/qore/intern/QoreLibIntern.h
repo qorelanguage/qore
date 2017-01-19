@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 
 #define _QORE_QORELIBINTERN_H
 
-#include <qore/intern/config.h>
+#include "qore/intern/config.h"
 
 #include <stdarg.h>
 #include <sys/types.h>
@@ -314,14 +314,6 @@ typedef std::map<QoreCondition*, int> cond_map_t;
 #define QORE_MANAGE_STACK
 #endif
 
-enum qore_call_t {
-   CT_UNUSED     = -1,
-   CT_USER       =  0,
-   CT_BUILTIN    =  1,
-   CT_NEWTHREAD  =  2,
-   CT_RETHROW    =  3
-};
-
 // Datasource Access Helper codes
 #define DAH_NOCHANGE  0 // acquire lock temporarily
 #define DAH_ACQUIRE   1 // acquire lock and hold
@@ -340,6 +332,9 @@ DLLLOCAL extern QoreClass* QC_PSEUDOVALUE;
 DLLLOCAL extern QoreClass* QC_PSEUDONOTHING;
 
 DLLLOCAL bool node_has_effect(const AbstractQoreNode* n);
+
+DLLLOCAL QoreString* q_fix_decimal(QoreString* str, size_t offset = 0);
+DLLLOCAL QoreStringNode* q_fix_decimal(QoreStringNode* str, size_t offset = 0);
 
 #ifdef _Q_WINDOWS
 // simulated block size for statvfs() on Windows
@@ -376,52 +371,50 @@ DLLLOCAL int statvfs(const char* path, struct statvfs* buf);
 DLLLOCAL int q_fstatvfs(const char* filepath, struct statvfs* buf);
 #endif
 
-#include <qore/intern/NamedScope.h>
-#include <qore/intern/QoreTypeInfo.h>
-#include <qore/intern/ParseNode.h>
-#include <qore/intern/QoreThreadList.h>
-#include <qore/intern/qore_thread_intern.h>
-#include <qore/intern/Function.h>
-#include <qore/intern/CallReferenceCallNode.h>
-#include <qore/intern/CallReferenceNode.h>
-#include <qore/intern/BuiltinFunction.h>
-#include <qore/intern/AbstractStatement.h>
-#include <qore/intern/Variable.h>
-#include <qore/intern/LocalVar.h>
-#include <qore/intern/ScopedObjectCallNode.h>
-#include <qore/intern/ScopedRefNode.h>
-#include <qore/intern/ClassRefNode.h>
-#include <qore/intern/Context.h>
-#include <qore/intern/Operator.h>
-#include <qore/intern/QoreTreeNode.h>
-#include <qore/intern/BarewordNode.h>
-#include <qore/intern/SelfVarrefNode.h>
-#include <qore/intern/StaticClassVarRefNode.h>
-#include <qore/intern/BackquoteNode.h>
-#include <qore/intern/ContextrefNode.h>
-#include <qore/intern/ContextRowNode.h>
-#include <qore/intern/ComplexContextrefNode.h>
-#include <qore/intern/FindNode.h>
-#include <qore/intern/VRMutex.h>
-#include <qore/intern/VLock.h>
-#include <qore/intern/QoreException.h>
-#include <qore/intern/StatementBlock.h>
-#include <qore/intern/VarRefNode.h>
-#include <qore/intern/FunctionCallNode.h>
-#include <qore/intern/RegexSubstNode.h>
-#include <qore/intern/QoreRegexNode.h>
-#include <qore/intern/RegexTransNode.h>
-#include <qore/intern/ObjectMethodReferenceNode.h>
-#include <qore/intern/QoreClosureParseNode.h>
-#include <qore/intern/QoreClosureNode.h>
-#include <qore/intern/QoreImplicitArgumentNode.h>
-#include <qore/intern/QoreImplicitElementNode.h>
-#include <qore/intern/QoreOperatorNode.h>
-#include <qore/intern/QoreTimeZoneManager.h>
-#include <qore/intern/ContextStatement.h>
-#include <qore/intern/SwitchStatement.h>
-#include <qore/intern/QorePseudoMethods.h>
-#include <qore/intern/ParseReferenceNode.h>
+#include "qore/intern/NamedScope.h"
+#include "qore/intern/QoreTypeInfo.h"
+#include "qore/intern/ParseNode.h"
+#include "qore/intern/QoreThreadList.h"
+#include "qore/intern/qore_thread_intern.h"
+#include "qore/intern/Function.h"
+#include "qore/intern/CallReferenceCallNode.h"
+#include "qore/intern/CallReferenceNode.h"
+#include "qore/intern/BuiltinFunction.h"
+#include "qore/intern/AbstractStatement.h"
+#include "qore/intern/Variable.h"
+#include "qore/intern/LocalVar.h"
+#include "qore/intern/ScopedObjectCallNode.h"
+#include "qore/intern/ScopedRefNode.h"
+#include "qore/intern/ClassRefNode.h"
+#include "qore/intern/Context.h"
+#include "qore/intern/BarewordNode.h"
+#include "qore/intern/SelfVarrefNode.h"
+#include "qore/intern/StaticClassVarRefNode.h"
+#include "qore/intern/BackquoteNode.h"
+#include "qore/intern/ContextrefNode.h"
+#include "qore/intern/ContextRowNode.h"
+#include "qore/intern/ComplexContextrefNode.h"
+#include "qore/intern/FindNode.h"
+#include "qore/intern/VRMutex.h"
+#include "qore/intern/VLock.h"
+#include "qore/intern/QoreException.h"
+#include "qore/intern/StatementBlock.h"
+#include "qore/intern/VarRefNode.h"
+#include "qore/intern/FunctionCallNode.h"
+#include "qore/intern/QoreRegexSubst.h"
+#include "qore/intern/QoreRegex.h"
+#include "qore/intern/QoreTransliteration.h"
+#include "qore/intern/ObjectMethodReferenceNode.h"
+#include "qore/intern/QoreClosureParseNode.h"
+#include "qore/intern/QoreClosureNode.h"
+#include "qore/intern/QoreImplicitArgumentNode.h"
+#include "qore/intern/QoreImplicitElementNode.h"
+#include "qore/intern/QoreOperatorNode.h"
+#include "qore/intern/QoreTimeZoneManager.h"
+#include "qore/intern/ContextStatement.h"
+#include "qore/intern/SwitchStatement.h"
+#include "qore/intern/QorePseudoMethods.h"
+#include "qore/intern/ParseReferenceNode.h"
 
 DLLLOCAL extern int qore_library_options;
 
@@ -497,7 +490,6 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode* parseInit(const QoreTypeInfo*& typeInfo) {
-      assert(!typeInfo);
       //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, index(), getList()->size(), getList());
 
       typeInfo = 0;
@@ -617,16 +609,18 @@ public:
 */
 
 class qore_hash_private;
+class qore_object_private;
 
 class hash_assignment_priv {
 public:
    qore_hash_private& h;
    HashMember* om;
+   qore_object_private* o = 0;
 
    DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, HashMember* n_om) : h(n_h), om(n_om) {
    }
 
-   DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, const char* key, bool must_already_exist = false);
+   DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, const char* key, bool must_already_exist = false, qore_object_private* obj = 0);
 
    DLLLOCAL hash_assignment_priv(QoreHashNode& n_h, const char* key, bool must_already_exist = false);
 
@@ -852,6 +846,7 @@ DLLLOCAL QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNod
 DLLLOCAL QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, const QoreString* quote, bool trim_unquoted, ExceptionSink* xsink);
 DLLLOCAL bool inlist_intern(const QoreValue arg, const QoreListNode* l, ExceptionSink* xsink);
 DLLLOCAL QoreStringNode* format_float_intern(const QoreString& fmt, double num, ExceptionSink* xsink);
+DLLLOCAL QoreStringNode* format_float_intern(int prec, const QoreString& dsep, const QoreString& tsep, double num, ExceptionSink* xsink);
 DLLLOCAL DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreString& dtstr, const QoreString& mask, ExceptionSink* xsink);
 DLLLOCAL QoreHashNode* date_info(const DateTime& d);
 DLLLOCAL void init_charmaps();
