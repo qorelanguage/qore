@@ -14,6 +14,7 @@ class StringTest inherits QUnit::Test {
     constructor() : QUnit::Test("String test", "1.0") {
         addTestCase("Basic functions test", \testBasics());
         addTestCase("Encoding test", \testEncoding());
+        addTestCase("UTF-16 test", \testUtf16());
         addTestCase("Base64 and hex test", \testBase64Hex());
         addTestCase("Splice test", \testSplice());
         addTestCase("Extract test", \testExtract());
@@ -112,6 +113,16 @@ class StringTest inherits QUnit::Test {
         string ustr = str.upr();
         assertEq(ustr, "PŘÍLIŠ ŽLUŤOUČKÝ KŮŇ ÚPĚL ĎÁBELSKÉ ÓDY", "<string>::upr()");
         assertEq(ustr.lwr(), "příliš žluťoučký kůň úpěl ďábelské ódy", "<string>::lwr()");
+    }
+
+    testUtf16() {
+        string a = convert_encoding("xbcd", "UTF16BE");
+        string b = convert_encoding("aaaa", "UTF16BE");
+        assertEq(True, a != b);
+
+        string c = convert_encoding("abcd", "UTF16LE");
+        string d = convert_encoding("aaaa", "UTF16LE");
+        assertEq(True, c != d);
     }
 
     testBase64Hex() {

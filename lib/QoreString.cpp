@@ -1106,7 +1106,7 @@ bool QoreString::equal(const QoreString& str) const {
    if (priv->getEncoding() != str.priv->getEncoding())
       return false;
 
-   return !strcmp(priv->buf, str.priv->buf);
+   return !memcmp(priv->buf, str.priv->buf, priv->len);
 }
 
 bool QoreString::equalPartial(const QoreString& str) const {
@@ -1125,7 +1125,7 @@ bool QoreString::equalPartial(const QoreString& str) const {
    if (priv->len < str.priv->len)
       return false;
 
-   return !strncmp(priv->buf, str.priv->buf, str.priv->len);
+   return !memcmp(priv->buf, str.priv->buf, str.priv->len);
 }
 
 bool QoreString::equal(const char* str) const {
@@ -1172,7 +1172,10 @@ bool QoreString::equalSoft(const QoreString& str, ExceptionSink* xsink) const {
    if (*xsink)
       return false;
 
-   return !strcmp(priv->buf, t->getBuffer());
+   if (priv->len != t->size())
+      return false;
+
+   return !memcmp(priv->buf, t->getBuffer(), priv->len);
 }
 
 bool QoreString::equalPartialSoft(const QoreString& str, ExceptionSink* xsink) const {
@@ -1185,7 +1188,7 @@ bool QoreString::equalPartialSoft(const QoreString& str, ExceptionSink* xsink) c
    if (!str.priv->len)
       return false;
 
-   // if the encodings are equal or equivalent and the lenghts are different then the strings are not equal
+   // if the encodings are equal or equivalent and the lengths are different then the strings are not equal
    if ((priv->getEncoding() == str.priv->getEncoding() || (!priv->getEncoding()->isMultiByte() && !str.priv->getEncoding()->isMultiByte())) && priv->len < str.priv->len)
       return false;
 
@@ -1193,7 +1196,10 @@ bool QoreString::equalPartialSoft(const QoreString& str, ExceptionSink* xsink) c
    if (*xsink)
       return false;
 
-   return !strncmp(priv->buf, t->getBuffer(), t->size());
+   if (priv->len < t->size())
+      return false;
+
+   return !memcmp(priv->buf, t->getBuffer(), t->size());
 }
 
 bool QoreString::equalPartialPath(const QoreString& str, ExceptionSink* xsink) const {
@@ -1214,12 +1220,16 @@ bool QoreString::equalPartialPath(const QoreString& str, ExceptionSink* xsink) c
    if (*xsink)
       return false;
 
-   int rc = !strncmp(priv->buf, t->getBuffer(), t->size());
+   if (priv->len < t->size())
+      return false;
+
+   int rc = !memcmp(priv->buf, t->getBuffer(), t->size());
    if (!rc)
       return false;
 
    if (priv->len == t->priv->len)
       return true;
+   // NOTE: does not work with UTF-16 or other non-ASCII-compatible multi-byte encodings
    if (priv->buf[t->priv->len] == '/' || priv->buf[t->priv->len] == '?')
       return true;
    return false;
@@ -2335,7 +2345,7 @@ int QoreString::compareSoft(const QoreString* str, ExceptionSink* xsink) const {
    if (*xsink)
       return 1;
 
-   return strcmp(priv->buf, t->priv->buf);
+   return memcmp(priv->buf, t->priv->buf, QORE_MIN(priv->len, t->size()));
 }
 
 void QoreString::concatEscape(const char* str, char c, char esc_char) {
@@ -2771,6 +2781,7 @@ bool QoreString::operator==(const std::string& other) const {
 }
 
 bool QoreString::operator==(const char* other) const {
+   // NOTE: does not work with UTF-16 or other non-ASCII-compatible multi-byte encodings
    return !strcmp(other, priv->buf);
 }
 
