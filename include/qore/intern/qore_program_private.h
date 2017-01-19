@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1199,6 +1199,18 @@ public:
       return *parseSink;
    }
 
+   DLLLOCAL void setParseOptionsIntern(int64 po) {
+      pwo.parse_options |= po;
+   }
+
+   DLLLOCAL void disableParseOptionsIntern(int64 po) {
+      pwo.parse_options &= ~po;
+   }
+
+   DLLLOCAL void replaceParseOptionsIntern(int64 po) {
+      pwo.parse_options = po;
+   }
+
    DLLLOCAL void setParseOptions(int64 po, ExceptionSink* xsink = 0) {
       // only raise the exception if parse options are locked and the option is not a "free option"
       // also check if options may be made more restrictive and the option also does so
@@ -1210,7 +1222,7 @@ public:
          return;
       }
 
-      pwo.parse_options |= po;
+      setParseOptionsIntern(po);
    }
 
    DLLLOCAL void disableParseOptions(int64 po, ExceptionSink* xsink = 0) {
@@ -1224,7 +1236,7 @@ public:
          return;
       }
 
-      pwo.parse_options &= ~po;
+      disableParseOptionsIntern(po);
    }
 
    DLLLOCAL void replaceParseOptions(int64 po, ExceptionSink* xsink) {
@@ -1234,7 +1246,7 @@ public:
       }
 
       //printd(5, "qore_program_private::replaceParseOptions() this: %p pgm: %p replacing po: %lld with po: %lld\n", this, pgm, pwo.parse_options, po);
-      pwo.parse_options = po;
+      replaceParseOptionsIntern(po);
    }
 
    DLLLOCAL void parseSetTimeZone(const char* zone) {
@@ -1663,7 +1675,7 @@ public:
       return pgm->priv->runtimeGetCallReference(name, xsink);
    }
 
-   DLLLOCAL static const ParseWarnOptions &getParseWarnOptions(const QoreProgram* pgm) {
+   DLLLOCAL static const ParseWarnOptions& getParseWarnOptions(const QoreProgram* pgm) {
       return pgm->priv->pwo;
    }
 

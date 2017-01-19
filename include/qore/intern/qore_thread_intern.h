@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 20167 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -219,11 +219,8 @@ public:
    }
 
    DLLLOCAL void parseInit();
+
    DLLLOCAL int init(QoreProgram& pgm, ExceptionSink& xsink);
-   DLLLOCAL void setName(const char* name) {
-      assert(vmap.find("name") == vmap.end());
-      vmap["name"] = name;
-   }
 
    DLLLOCAL QoreClosureParseNode* takeDel();
 };
