@@ -14,6 +14,7 @@ class StringTest inherits QUnit::Test {
     constructor() : QUnit::Test("String test", "1.0") {
         addTestCase("Basic functions test", \testBasics());
         addTestCase("Encoding test", \testEncoding());
+        addTestCase("UTF-16 test", \testUtf16());
         addTestCase("Base64 and hex test", \testBase64Hex());
         addTestCase("Splice test", \testSplice());
         addTestCase("Extract test", \testExtract());
@@ -112,6 +113,66 @@ class StringTest inherits QUnit::Test {
         string ustr = str.upr();
         assertEq(ustr, "PŘÍLIŠ ŽLUŤOUČKÝ KŮŇ ÚPĚL ĎÁBELSKÉ ÓDY", "<string>::upr()");
         assertEq(ustr.lwr(), "příliš žluťoučký kůň úpěl ďábelské ódy", "<string>::lwr()");
+    }
+
+    testUtf16() {
+        string a = convert_encoding("xbcd", "UTF16BE");
+        string b = convert_encoding("aaaa", "UTF16BE");
+        assertTrue(a != b);
+        assertFalse(a != a);
+        assertFalse(a == b);
+        assertFalse(a === b);
+        assertTrue(a == a);
+        assertTrue(a === a);
+        assertTrue(a > b);
+        assertTrue(a >= b);
+        assertFalse(a > a);
+        assertTrue(a >= a);
+        assertTrue(b < a);
+        assertTrue(b <= a);
+        assertFalse(b < b);
+        assertTrue(b <= b);
+        assertEq(1, a <=> b);
+        assertEq(0, a <=> a);
+        assertEq(-1, b <=> a);
+        assertTrue(b.equalPartial(b));
+        assertFalse(b.equalPartial(a));
+        assertFalse(b.equalPartial(b+b));
+        assertTrue(b.equalPartial(b.substr(2)));
+        assertTrue(b.equalPartial(b.substr(2, 1)));
+        assertTrue(b.equalPartial(b.substr(2, -1)));
+        assertTrue(b.equalPartial(substr(b, 2)));
+        assertTrue(b.equalPartial(substr(b, 2, 1)));
+        assertTrue(b.equalPartial(substr(b, 2, -1)));
+
+        string c = convert_encoding("abcd", "UTF16LE");
+        string d = convert_encoding("aaaa", "UTF16LE");
+        assertTrue(c != d);
+        assertFalse(c != c);
+        assertFalse(c == d);
+        assertFalse(c === d);
+        assertTrue(c == c);
+        assertTrue(c === c);
+        assertTrue(c > d);
+        assertTrue(c >= d);
+        assertFalse(c > c);
+        assertTrue(c >= c);
+        assertTrue(d < c);
+        assertTrue(d <= c);
+        assertFalse(d < d);
+        assertTrue(d <= d);
+        assertEq(1, c <=> d);
+        assertEq(0, c <=> c);
+        assertEq(-1, d <=> c);
+        assertTrue(d.equalPartial(d));
+        assertFalse(d.equalPartial(c));
+        assertFalse(d.equalPartial(d+d));
+        assertTrue(d.equalPartial(d.substr(2)));
+        assertTrue(d.equalPartial(d.substr(2, 1)));
+        assertTrue(d.equalPartial(d.substr(2, -1)));
+        assertTrue(d.equalPartial(substr(d, 2)));
+        assertTrue(d.equalPartial(substr(d, 2, 1)));
+        assertTrue(d.equalPartial(substr(d, 2, -1)));
     }
 
     testBase64Hex() {
