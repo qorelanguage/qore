@@ -55,6 +55,7 @@
 #include "qore/intern/GlobalVariableList.h"
 #include "qore/intern/QoreNamespaceIntern.h"
 #include "qore/intern/QoreParseHashNode.h"
+#include "qore/intern/ModuleInfo.h"
 
 #include "parser.hpp"
 
