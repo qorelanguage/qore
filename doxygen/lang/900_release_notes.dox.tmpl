@@ -9,6 +9,7 @@
 
     @subsection qore_08126_bug_fixes Bug Fixes in Qore
 
+    - fixed a bug in @ref Qore::parse_url() parsing single-character hostnames (<a href="https://github.com/qorelanguage/qore/issues/1524">issue 1524</a>)
     - fixed a bug dereferencing @ref binary "binary values" with the @ref list_element_operator "[] operator"; the behavior now corresponds to the documentation (<a href="https://github.com/qorelanguage/qore/issues/1566">issue 1566</a>)
     - fixed a bug parsing exception catch block parameter errors (in debug builds only; <a href="https://github.com/qorelanguage/qore/issues/1558">issue 1558</a>)
     - fixed a bug that would result in a crash if a method were declared both \c static and \c abstract (<a href="https://github.com/qorelanguage/qore/issues/1590">issue 1590</a>)
