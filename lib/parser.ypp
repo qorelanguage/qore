@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
   information.
 */
 
-#include <qore/Qore.h>
+#include "qore/Qore.h"
 #include "qore/intern/BreakStatement.h"
 #include "qore/intern/ContinueStatement.h"
 #include "qore/intern/ReturnStatement.h"
@@ -55,6 +55,7 @@
 #include "qore/intern/GlobalVariableList.h"
 #include "qore/intern/QoreNamespaceIntern.h"
 #include "qore/intern/QoreParseHashNode.h"
+#include "qore/intern/ModuleInfo.h"
 
 #include "parser.hpp"
 
@@ -1596,7 +1597,10 @@ top_level_command:
            QoreModuleDefContext* qmd = get_module_def_context();
            if (!qmd)
               qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "module definitions are ignored when not defining a module");
-
+           else {
+              QoreUserModuleDefContextHelper* uqmd = static_cast<QoreUserModuleDefContextHelper*>(qmd);
+              uqmd->close();
+           }
            // registered internally
         }
         | TRY_MODULE_ERROR {

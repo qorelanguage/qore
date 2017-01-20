@@ -223,6 +223,23 @@ QoreModuleContextHelper::~QoreModuleContextHelper() {
    set_module_context(0);
 }
 
+QoreUserModuleDefContextHelper::QoreUserModuleDefContextHelper(const char* name, QoreProgram* p, ExceptionSink& xs) : old_name(set_user_module_context_name(name)), pgm(qore_program_private::get(*p)), po(0), xsink(xs), dup(false) {
+}
+
+void QoreUserModuleDefContextHelper::setNameInit(const char* name) {
+   assert(vmap.find("name") == vmap.end());
+   vmap["name"] = name;
+
+   assert(!po);
+
+   po = pgm->pwo.parse_options;
+   pgm->pwo.parse_options |= MOD_HEADER_PO;
+}
+
+void QoreUserModuleDefContextHelper::close() {
+   pgm->pwo.parse_options = po;
+}
+
 void UniqueDirectoryList::addDirList(const char* str) {
    if (!str)
       return;
@@ -985,7 +1002,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
 
    ModuleReExportHelper mrh(mi.get(), reexport);
 
-   QoreUserModuleDefContextHelper qmd(feature, xsink);
+   QoreUserModuleDefContextHelper qmd(feature, pgm, xsink);
    mi->getProgram()->parseFile(td, &xsink, &xsink, QP_WARN_MODULES);
 
    return setupUserModule(xsink, mi, qmd, load_opt);
@@ -1012,7 +1029,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& x
 
    ModuleReExportHelper mrh(mi.get(), reexport);
 
-   QoreUserModuleDefContextHelper qmd(feature, xsink);
+   QoreUserModuleDefContextHelper qmd(feature, pgm, xsink);
    mi->getProgram()->parse(src, path, &xsink, &xsink, QP_WARN_MODULES);
 
    return setupUserModule(xsink, mi, qmd);
