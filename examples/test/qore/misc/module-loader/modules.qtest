@@ -33,6 +33,8 @@ mt.assertEq(1, BC, \"BC\");
     }
 
     sideEffectTest() {
-        assertThrows("PARSE-EXCEPTION", "parse options do not allow access", \load_module(), getcwd() + DirSep + "SideEffect.qm");
+        Program p(PO_NEW_STYLE);
+        p.setScriptPath(get_script_path());
+        assertThrows("PARSE-EXCEPTION", "parse options do not allow access", \p.parse(), ("%requires ./SideEffect.qm", ""));
     }
 }
