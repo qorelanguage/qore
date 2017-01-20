@@ -2424,3 +2424,7 @@ QoreString* q_fix_decimal(QoreString* str, size_t offset) {
 QoreStringNode* q_fix_decimal(QoreStringNode* str, size_t offset) {
    return q_fix_decimal_tmpl<QoreStringNode>(str, offset);
 }
+
+bool q_libqore_shutdown() {
+   return qore_shutdown.load(std::memory_order_relaxed);
+}
