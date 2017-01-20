@@ -3297,9 +3297,15 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
 
    std::unique_ptr<MethodVariantBase> func(f);
 
-   if (f->isAbstract() && initialized) {
-      parseException("ILLEGAL-ABSTRACT-METHOD", "abstract %s::%s(): abstract methods cannot be added to a class once the class has been committed", name.c_str(), mname);
-      return -1;
+   if (f->isAbstract()) {
+      if (initialized) {
+         parseException("ILLEGAL-ABSTRACT-METHOD", "abstract %s::%s(): abstract methods cannot be added to a class once the class has been committed", name.c_str(), mname);
+         return -1;
+      }
+      if (n_static) {
+         parseException("ILLEGAL-ABSTRACT-METHOD", "abstract %s::%s(): abstract methods cannot be static", name.c_str(), mname);
+         return -1;
+      }
    }
 
    bool dst = !strcmp(mname, "destructor");

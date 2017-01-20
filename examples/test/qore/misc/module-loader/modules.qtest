@@ -13,6 +13,7 @@
 class ModulesTest inherits QUnit::Test {
     constructor() : QUnit::Test("Modules test", "1.0") {
         addTestCase("Test modules", \testModules());
+        addTestCase("Side effect test", \sideEffectTest());
         set_return_value(main());
     }
 
@@ -29,5 +30,11 @@ mt.assertEq(1, AC, \"AC\");
 mt.assertEq(1, BC, \"BC\");
 ", "p");
         p.run();
+    }
+
+    sideEffectTest() {
+        Program p(PO_NEW_STYLE);
+        p.setScriptPath(get_script_path());
+        assertThrows("PARSE-EXCEPTION", "parse options do not allow access", \p.parse(), ("%requires ./SideEffect.qm", ""));
     }
 }
