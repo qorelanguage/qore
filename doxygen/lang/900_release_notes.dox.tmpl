@@ -152,6 +152,7 @@
     - fixed a bug with strongly-typed lvalue assignments with classes created in different @ref Qore::Program "Program" objects (<a href="https://github.com/qorelanguage/qore/issues/1551">issue 1551</a>)
     - fixed bug comparing strings in \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1579">issue 1579</a>)
     - fixed @ref Qore::substr() and <string>::substr() with strings in \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1586">issue 1586</a>)
+    - fixed a bug where an ASCII string and the same string in a different encoding and with diacritics could incorrectly be marked as equal (<a href="https://github.com/qorelanguage/qore/issues/1579">issue 1579</a>)
 
     @section qore_08126 Qore 0.8.12.6
 
