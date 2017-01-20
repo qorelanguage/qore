@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,8 @@
 #define _QORE_QORELIBINTERN_H
 
 #include "qore/intern/config.h"
+
+#include <atomic>
 
 #include <stdarg.h>
 #include <sys/types.h>
@@ -415,6 +417,8 @@ DLLLOCAL int q_fstatvfs(const char* filepath, struct statvfs* buf);
 #include "qore/intern/SwitchStatement.h"
 #include "qore/intern/QorePseudoMethods.h"
 #include "qore/intern/ParseReferenceNode.h"
+
+DLLLOCAL extern std::atomic<bool> qore_shutdown;
 
 DLLLOCAL extern int qore_library_options;
 

@@ -275,7 +275,8 @@ include_HEADERS = \
 	include/qore/QoreEvents.h \
 	include/qore/InputStream.h \
 	include/qore/OutputStream.h \
-	include/qore/Transform.h
+	include/qore/Transform.h \
+	include/qore/AbstractException.h
 
 noinst_HEADERS = \
 	include/qore/minitest.hpp \
