@@ -639,7 +639,6 @@ public:
    DLLLOCAL QoreListNode* getVarList();
    DLLLOCAL void parseSetIncludePath(const char* path);
    DLLLOCAL const char* parseGetIncludePath() const;
-   DLLLOCAL bool isInitialized() const {return priv != 0;}
 
    /* for run-time module loading; the parse lock must be grabbed
       before loading new modules - note this should only be assigned
