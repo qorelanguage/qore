@@ -30,6 +30,7 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/ManagedDatasource.h"
+#include "qore/intern/qore_ds_private.h"
 
 #include <stdlib.h>
 #include <string.h>
