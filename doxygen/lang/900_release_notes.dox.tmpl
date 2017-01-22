@@ -154,6 +154,7 @@
     - fixed a bug with strongly-typed lvalue assignments with classes created in different @ref Qore::Program "Program" objects (<a href="https://github.com/qorelanguage/qore/issues/1551">issue 1551</a>)
     - fixed bug comparing strings in \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1579">issue 1579</a>)
     - fixed @ref Qore::substr() and <string>::substr() with strings in \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1586">issue 1586</a>)
+    - fixed a bug where an ASCII string and the same string in a different encoding and with diacritics could incorrectly be marked as equal (<a href="https://github.com/qorelanguage/qore/issues/1579">issue 1579</a>)
 
     @section qore_08126 Qore 0.8.12.6
 
@@ -162,8 +163,11 @@
 
     @subsection qore_08126_bug_fixes Bug Fixes in Qore
 
-    - fixed a bug dereferencing @ref binary "binary values" with the @ref list_element_operator "[] operator"; the behavior now corresponds to the documentation (<a href="https://github.com/qorelanguage/qore/issues/1566">issue 1566</a>)
+    - fixed a bug in @ref Qore::parse_url() parsing single-character hostnames (<a href="https://github.com/qorelanguage/qore/issues/1524">issue 1524</a>)
+    - fixed a bug where @ref Qore::PO_LOCKDOWN "PO_LOCKDOWN" was not set when parsing \c init and \c del attributes in @ref user_modules "user module" headers (<a href="https://github.com/qorelanguage/qore/issues/1535">issue 1535</a>)
     - fixed a bug parsing exception catch block parameter errors (in debug builds only; <a href="https://github.com/qorelanguage/qore/issues/1558">issue 1558</a>)
+    - fixed a bug dereferencing @ref binary "binary values" with the @ref list_element_operator "[] operator"; the behavior now corresponds to the documentation (<a href="https://github.com/qorelanguage/qore/issues/1566">issue 1566</a>)
+    - fixed a bug that would result in a crash if a method were declared both \c static and \c abstract (<a href="https://github.com/qorelanguage/qore/issues/1590">issue 1590</a>)
 
     @section qore_08125 Qore 0.8.12.5
 

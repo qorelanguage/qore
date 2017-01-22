@@ -106,13 +106,13 @@ softstring MyNamespace::MyClass::myMethod(softint i) {
     @anchor static_methods
     @par Static Methods
     Methods declared with the <tt><b>static</b></tt> keyword are like regular functions that are attached to the class. These methods are not associated with a particular object's state and therefore are not allowed to refer to object members or call non-static methods. Also, no reference to the special <tt>self</tt> variable is allowed within static methods.\n\n
-    Static methods may be declared <tt><b>private</b></tt>, <tt><b>private:internal</b></tt>, or <tt><b>public</b></tt> or <tt><b>synchronized</b></tt> like non-static methods; static methods can also access private members of a class (through an object of the class for non-static members).\n\n
+    Static methods may be declared <tt><b>private</b></tt>, <tt><b>private:internal</b></tt>, or <tt><b>public</b></tt> or <tt><b>synchronized</b></tt> like non-static methods; static methods can also access private members of a class (through an object of the class for non-static members).   Static methods may not be also @ref abstract "abstract".\n\n
     Static method calls take a special syntax as documented in @ref static_method_calls.\n
 
     @anchor abstract
     @par Abstract Methods
     Methods declared with the <tt><b>abstract</b></tt> keyword define methods interfaces that must be defined in child classes for the class to be instantiated.  Methods defining the declared interfaces in child classes must define exactly the same parameters in order for the abstract method to match, but the return type of the concrete method in the child class has to simply be compatible with the return type of the abstract method in the parent class.\n\n
-    Classes with undefined abstract methods cannot be instantiated.  Abstract methods cannot have a method body; an abstract method's declaration must be terminated with a semicolon (\c ";").\n\n
+    Classes with undefined abstract methods cannot be instantiated.  Abstract methods cannot have a method body; an abstract method's declaration must be terminated with a semicolon (\c ";").   Furthermore, abstract methods cannot be also @ref static_methods "static".\n\n
     The <tt><b>abstract</b></tt> keyword can only be used in abstract method declaration; the use of this keyword with a method declaration with a method body will cause a parse exception to be thrown.
 
     @anchor class_special_methods

@@ -393,5 +393,8 @@ public class ClassesTest inherits QUnit::Test {
     miscTests() {
         Issue1576 i();
         assertEq(True, i instanceof Issue1576);
+
+        Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES);
+        assertThrows("ILLEGAL-ABSTRACT-METHOD", \p.parse(), ("class X{static abstract m();}", ""));
     }
 }

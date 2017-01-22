@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -36,6 +36,8 @@
 #include "qore/intern/QoreSignal.h"
 #include "qore/intern/ModuleInfo.h"
 
+#include <vector>
+
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -49,14 +51,15 @@
 #include <openssl/conf.h>
 #include <openssl/engine.h>
 
+// shutdown flag
+std::atomic<bool> qore_shutdown = {false};
+
 #ifdef DARWIN
 #include <crt_externs.h>
 #define environ (*_NSGetEnviron())
 #else
-extern char **environ;
+extern char** environ;
 #endif
-
-#include <vector>
 
 int qore_trace = 0;
 int debug = 0;
@@ -169,6 +172,9 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
 // unloaded in case there are any module-specific thread
 // cleanup functions to be run...
 void qore_cleanup() {
+   // set shutdown flag for external modules
+   qore_shutdown.store(true, std::memory_order_relaxed);
+
    // purge thread resources before deleting modules
    {
       ExceptionSink xsink;
@@ -233,5 +239,6 @@ void qore_cleanup() {
       for (mutex_vec_t::iterator i = q_openssl_mutex_list.begin(), e = q_openssl_mutex_list.end(); i != e; ++i)
 	 delete *i;
    }
+
    printd(5, "qore_cleanup() exiting cleanly\n");
 }

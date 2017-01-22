@@ -550,4 +550,9 @@ DLLEXPORT int q_env_subst(QoreString& str);
  */
 DLLEXPORT double q_strtod(const char* str);
 
+//! returns true if the Qore library has been shut down
+/** @since %Qore 0.8.13
+ */
+DLLEXPORT bool q_libqore_shutdown();
+
 #endif // _QORE_QORELIB_H

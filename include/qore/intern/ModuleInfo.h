@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -47,7 +47,10 @@ extern "C" {
 #include <memory>
 #include <vector>
 
-// user module parse options
+// parse options set while parsing the module's header (init & del)
+#define MOD_HEADER_PO (PO_LOCKDOWN & ~PO_NO_MODULES)
+
+// initial user module parse options
 #define USER_MOD_PO (PO_NO_TOP_LEVEL_STATEMENTS | PO_REQUIRE_PROTOTYPES | PO_REQUIRE_OUR | PO_IN_MODULE)
 
 // module load options
@@ -681,12 +684,15 @@ public:
 class QoreUserModuleDefContextHelper : public QoreModuleDefContextHelper {
 protected:
    const char* old_name;
+
+   qore_program_private* pgm;
+   int64 po;
+
    ExceptionSink& xsink;
    bool dup;
 
 public:
-   DLLLOCAL QoreUserModuleDefContextHelper(const char* name, ExceptionSink& xs) : old_name(set_user_module_context_name(name)), xsink(xs), dup(false) {
-   }
+   DLLLOCAL QoreUserModuleDefContextHelper(const char* name, QoreProgram* p, ExceptionSink& xs);
 
    DLLLOCAL ~QoreUserModuleDefContextHelper() {
       const char* name = set_user_module_context_name(old_name);
@@ -699,6 +705,10 @@ public:
       assert(!dup);
       dup = true;
    }
+
+   DLLLOCAL void setNameInit(const char* name);
+
+   DLLLOCAL void close();
 };
 
 #endif
