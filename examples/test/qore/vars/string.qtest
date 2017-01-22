@@ -15,6 +15,7 @@ class StringTest inherits QUnit::Test {
         addTestCase("Basic functions test", \testBasics());
         addTestCase("Encoding test", \testEncoding());
         addTestCase("UTF-16 test", \testUtf16());
+        addTestCase("ASCII x UTF-8 string equality tests", \testASCIIUTF8Equality());
         addTestCase("Base64 and hex test", \testBase64Hex());
         addTestCase("Splice test", \testSplice());
         addTestCase("Extract test", \testExtract());
@@ -173,6 +174,19 @@ class StringTest inherits QUnit::Test {
         assertTrue(d.equalPartial(substr(d, 2)));
         assertTrue(d.equalPartial(substr(d, 2, 1)));
         assertTrue(d.equalPartial(substr(d, 2, -1)));
+    }
+
+    testASCIIUTF8Equality() {
+        string a = convert_encoding("ěščřžýáíé", "UTF-8");
+        string b = convert_encoding("escrzyaie", "ASCII");
+        assertFalse(a == b);
+        assertTrue(a != b);
+        assertFalse(b == a);
+        assertTrue(b != a);
+        assertFalse(a.equalPartial(b));
+        assertFalse(b.equalPartial(a));
+        assertFalse(a.equalPartialPath(b));
+        assertFalse(b.equalPartialPath(a));
     }
 
     testBase64Hex() {

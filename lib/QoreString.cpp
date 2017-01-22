@@ -1172,14 +1172,21 @@ bool QoreString::equalSoft(const QoreString& str, ExceptionSink* xsink) const {
    if ((priv->getEncoding() == str.priv->getEncoding() || (!priv->getEncoding()->isMultiByte() && !str.priv->getEncoding()->isMultiByte())) && priv->len != str.priv->len)
       return false;
 
-   TempEncodingHelper t(str, priv->getEncoding(), xsink);
+   // optionally convert both strings to the same encoding
+   const QoreEncoding* enc = priv->getEncoding();
+   if (enc == QCS_USASCII)
+      enc = str.priv->getEncoding();
+   TempEncodingHelper a(this, enc, xsink);
+   if (*xsink)
+      return false;
+   TempEncodingHelper b(str, enc, xsink);
    if (*xsink)
       return false;
 
-   if (priv->len != t->size())
+   if (a->size() != b->size())
       return false;
 
-   return !memcmp(priv->buf, t->getBuffer(), priv->len);
+   return !memcmp(a->getBuffer(), b->getBuffer(), a->size());
 }
 
 bool QoreString::equalPartialSoft(const QoreString& str, ExceptionSink* xsink) const {
@@ -1196,14 +1203,21 @@ bool QoreString::equalPartialSoft(const QoreString& str, ExceptionSink* xsink) c
    if ((priv->getEncoding() == str.priv->getEncoding() || (!priv->getEncoding()->isMultiByte() && !str.priv->getEncoding()->isMultiByte())) && priv->len < str.priv->len)
       return false;
 
-   TempEncodingHelper t(str, priv->getEncoding(), xsink);
+   // optionally convert both strings to the same encoding
+   const QoreEncoding* enc = priv->getEncoding();
+   if (enc == QCS_USASCII)
+      enc = str.priv->getEncoding();
+   TempEncodingHelper a(this, enc, xsink);
+   if (*xsink)
+      return false;
+   TempEncodingHelper b(str, enc, xsink);
    if (*xsink)
       return false;
 
-   if (priv->len < t->size())
+   if (a->size() < b->size())
       return false;
 
-   return !memcmp(priv->buf, t->getBuffer(), t->size());
+   return !memcmp(a->getBuffer(), b->getBuffer(), b->size());
 }
 
 bool QoreString::equalPartialPath(const QoreString& str, ExceptionSink* xsink) const {
@@ -1220,21 +1234,29 @@ bool QoreString::equalPartialPath(const QoreString& str, ExceptionSink* xsink) c
    if ((priv->getEncoding() == str.priv->getEncoding() || (!priv->getEncoding()->isMultiByte() && !str.priv->getEncoding()->isMultiByte())) && priv->len < str.priv->len)
       return false;
 
-   TempEncodingHelper t(str, priv->getEncoding(), xsink);
+   // optionally convert both strings to the same encoding
+   const QoreEncoding* enc = priv->getEncoding();
+   if (enc == QCS_USASCII)
+      enc = str.priv->getEncoding();
+   TempEncodingHelper a(this, enc, xsink);
+   if (*xsink)
+      return false;
+   TempEncodingHelper b(str, enc, xsink);
    if (*xsink)
       return false;
 
-   if (priv->len < t->size())
+   if (a->size() < b->size())
       return false;
 
-   int rc = !memcmp(priv->buf, t->getBuffer(), t->size());
+   int rc = !memcmp(a->getBuffer(), b->getBuffer(), b->size());
    if (!rc)
       return false;
 
-   if (priv->len == t->priv->len)
+   if (a->priv->len == b->priv->len)
       return true;
+
    // NOTE: does not work with UTF-16 or other non-ASCII-compatible multi-byte encodings
-   if (priv->buf[t->priv->len] == '/' || priv->buf[t->priv->len] == '?')
+   if (a->priv->buf[b->priv->len] == '/' || a->priv->buf[b->priv->len] == '?')
       return true;
    return false;
 }
