@@ -1,0 +1,354 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class ReferenceTest
+
+#! implements longest prefix match for path, Qore equivalent of TreeMap
+/**
+When a path is registered with corresponding value then is added into tree which is constructed to find longest prefix match, i,e, max.number of path parts divided by "/". When matching to a real path then the best match is returned.
+
+@par Example:
+@code{.py}
+
+(key:"/", value: "ROOT", nodes: (
+    (key: "api/get/": value: NOTHING, nodes: (
+    (key: "info/", value: "INFO"),
+    (key: "country/", value: "COUNTRY"),
+    (key: "city/", value: "CITY-BY-COUNTRY", nodes: (
+        (key: "all/", value: "CITY-ALL"),
+    ))
+    ))
+))
+
+
+QTreeMap lpm();
+lpm.add("", "ROOT");
+lpm.add("api/get/info", "INFO");
+lpm.add("api/get/city", "CITY-BY-COUNTRY");
+lpm.add("api/get/city/all", "CITY-ALL");
+lpm.add("api/get/country", "COUNTRY");
+
+printf("%y\n", lpm.find(""));  # ("path": "", value: "ROOT");
+printf("%y\n", lpm.find("foo/bar"));  # ("path": "foo/bar/", value: "ROOT");
+printf("%y\n", lpm.find("api"));  # ("path": "api/", value: "ROOT");
+printf("%y\n", lpm.find("api/get"));  # ("path": "", value: NOTHING);
+printf("%y\n", lpm.find("api/get/info"));  # ("path": "", value: "INFO");
+printf("%y\n", lpm.find("api/get/country"));  # ("path": "", value: "COUNTRY");
+printf("%y\n", lpm.find("api/get/country/hungary"));  # ("path": "hungary", value: "COUNTRY");
+printf("%y\n", lpm.find("api/get/city"));  # ("path": "", value: "CITY-BY-COUNTRY");
+printf("%y\n", lpm.find("api/get/city/buenos_aires/boca_juniors"));  # ("path": "buenos_aires/boca_juniors", value: "CITY-BY-COUNTRY");
+printf("%y\n", lpm.find("api/get/city/all"));  # ("path": "", value: "CITY-ALL");
+
+@endcode
+
+*/
+public class QTreeMap {
+    private {
+        hash root;
+    }
+    constructor () {
+        root.key = "/";
+        root.nodes = ();
+        root.value = NOTHING;
+    }
+    /** remove leading "/", multiple "/" inside and terminate with "/"
+    */
+    private normalizePath(reference path) {
+        trim(path, "/");
+        int i = 0;
+        while (True) {
+            i = index(path, "//", i);
+            if (i < 0) break;
+            i++;
+            int j = i+1;
+            while (path[j]=="/") {
+                j++;
+            }
+            path = splice(path, i, j-i);
+        }
+        path += "/";
+    }
+
+    /** compare two paths and return length to the rightmost "/" where starting path parts are equal
+
+    @return length of matching paths
+
+    @par Example:
+    @code{.py}
+        matchPaths("abc/efg/qwerty", "abc/efg/asdfg")   # returns 8
+        matchPaths("abc/efg/qwerty", "abcefg/asdfg")   # returns 0
+
+    @endcode
+    */
+    private int matchPaths(string p1, string p2) {
+        int n = min(strlen(p1), strlen(p2));
+        int i = 0;
+        int ret = 0;
+        while (i < n) {
+            if (p1[i] != p2[i]) {
+                return ret;
+            }
+            if (p1[i] == "/") {
+                ret = i+1;
+            }
+            i++;
+        }
+        return ret;
+    }
+
+    /** add path and value into container.
+
+    Raises exception PATH-CONTAINER-ERROR if path is already registered with non-NOTHING value
+
+    */
+    register(string path, any value) {
+        string p = path;
+        hash h = findNode(\p);
+        reference node = \h.node;
+        if (p == "") {
+            # node exactly found in tree
+            if (exists node.value) {
+                throw "PATH-CONTAINER-ERROR", "Path %y value already exists", path;
+            }
+            node.value = value;
+        } else {
+            if (!node.nodes) {
+                # the first subnode
+                push node.nodes, ("key": p, "nodes": (), "value": value);
+            } else {
+                int lo = 0;
+                int hi = node.nodes.size()-1;
+                while (lo <= hi) {
+                    int i = (lo + hi) / 2;
+                    int j = matchPaths(p, node.nodes[i].key);
+                    if (j > 0) {
+                        # found a partial match, split node
+                        hash n1 = node.nodes[i];
+                        n1.key = splice(node.nodes[i].key, 0, j);
+                        node.nodes[i].key = splice(p, j);
+                        node.nodes[i].nodes = ();
+                        node.nodes[i].value = NOTHING;
+                        hash n2.key = splice(p, 0, j);
+                        n2.nodes = ();
+                        n2.value = value;
+                        if (n1.key < n2.key) {
+                            push node.nodes[i].nodes, n1;
+                            push node.nodes[i].nodes, n2;
+                        } else {
+                            push node.nodes[i].nodes, n2;
+                            push node.nodes[i].nodes, n1;
+                        }
+                        return;
+                    }
+                    if (lo == hi) {
+                        hash n.key = p;
+                        n.nodes = ();
+                        n.value = value;
+                        if (p > node.nodes[i].key) {
+                            i++;  # add behind
+                        }
+                        node.nodes = splice(node.nodes, i, 0, n);  # insert new node
+                        return;
+                    } else if (p > node.nodes[i].key) {
+                        lo = hi+1;
+                    } else {
+                        hi = lo-1;
+                    }
+                }
+            }
+        }
+    }
+
+    /** remove path from container
+    */
+    unregister(string path) {
+        hash h = findNode(\path);
+        if (path != "") {
+            throw "PATH-CONTAINER-ERROR", "Path %y was not found in container", path;
+        }
+        if (!exists h.parent) {
+            # root node
+            h.node.value = NOTHING;
+        }
+        if (!h.node.nodes()) {
+            # not sub nodes, simply remove node, it's not perfect if it is the the only node then we should compart also grandparent node when created automatically
+            splice h.parent.nodes, h.index, 1;
+        } else {
+            # just invalidate node value
+            h.node.value = NOTHING;
+        }
+    }
+
+    #! find value corresponding to longest path prefix
+    /**
+    @param path to find in container
+    @return hash with 'value' corresponding found path, 'path' remaining non-matched path, path is normalized and keep original trailing slash
+    */
+    any find(string path) {
+        bool slashTerm = path =~ /\/$/;
+
+        hash h = findNode(\path);
+        if (!slashTerm) {
+            path = rtrim(path, "/");
+        }
+        hash rv.path = path;
+        rv.value = h.node.value;
+        return rv;
+    }
+
+    /** find node in container
+    @param path to find, remaining non matched part is returned
+    @return info about mode, "node" reference to node, "parent" reference to parent node or nothing when node is root mode, "index" index in parent node list
+    */
+    private hash findNode(reference path) {
+        reference node = \root;  # use reference to avoid recursive algorithm
+        normalizePath(\path);
+        hash rv;
+        if (strlen(path) > 1) {   # not just "/"
+            bool found;
+            do {
+                found = False;
+                if (node.nodes) {
+                    int lo = 0;
+                    int hi = node.nodes.size()-1;
+                    while (lo <= hi) {
+                        int i = (lo + hi) / 2;
+                        if (index(path, node.nodes[i].key) == 0) {
+                            path = substr(path, strlen(node.nodes[i].key));
+                            rv.parent = node;
+                            rv.index = i;
+                            node = \node.nodes[i];
+                            if (path != "") {
+                                found = True;
+                            } # otherwise break outer loop
+                            break;
+                        }
+                        if (path > node.nodes[i].key) {
+                            lo = hi+1;
+                        } else {
+                            hi = lo-1;
+                        }
+                    }
+                }
+            } while (found);
+        } else {
+            path = ""; # exactly found root
+        }
+        rv.node = \node;
+        return rv;
+    }
+
+}
+
+class ReferenceTest inherits QUnit::Test {
+    constructor () : Test("Hash test", "1.0") {
+        addTestCase("Reference test", \testReference(), NOTHING);
+        addTestCase("Hash reference test", \testHashReference(), NOTHING);
+        addTestCase("QTreeMap test", \testQTreeMap(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    testReference() {
+        list l = (
+            ("val": 1),
+            ("val", 2),
+        );
+        reference r1;
+        reference r2;
+        r1 = \l[0];
+        r2 = \l[1];
+        r1.val = 10;
+        r2.val = 20;
+        assertEq(10, l[0].val);
+        assertEq(20, l[1].val);
+        r2 = r1;
+        assertEq(10, l[0].val);
+        assertEq(10, l[1].val);
+
+        r2 = \r1;
+        r2.val = 20;
+        assertEq(20, l[0].val);
+        assertEq(20, l[1].val);
+
+        r2 = \r1.val;
+        r2 = 30;
+        assertEq(30, l[0].val);
+        assertEq(20, l[1].val);
+
+        r1.val = 40;
+        assertEq(40, r2);
+    }
+
+    testHashReference() {
+        list l = (
+            ("val": 1),
+            ("val", 2),
+        );
+        hash h;
+        h.r1 = \l[0];
+        h.r2 = \l[1];
+        h.r1.val = 10;
+        h.r2.val = 20;
+        assertEq(10, l[0].val);
+        assertEq(20, l[1].val);
+        h.r2 = h.r1;
+        assertEq(10, l[0].val);
+        assertEq(10, l[1].val);
+
+        h.r2 = \h.r1;
+        h.r2.val = 20;
+        assertEq(20, l[0].val);
+        assertEq(20, l[1].val);
+
+        h.r2 = \h.r1.val;
+        h.r2 = 30;
+        assertEq(30, l[0].val);
+        assertEq(20, l[1].val);
+
+        h.r1.val = 40;
+        assertEq(40, h.r2);
+    }
+
+    testQTreeMap() {
+        QTreeMap lpm();
+        lpm.register("", "ROOT");
+        lpm.register("api/get/info", "INFO");
+        lpm.register("api/get/city", "CITY-BY-COUNTRY");
+        lpm.register("api/get/city/all", "CITY-ALL");
+        lpm.register("api/get/country", "COUNTRY");
+
+        hash h;
+        h = lpm.find("");
+        assertEq(("path": "", "value": "ROOT"), h);
+        h = lpm.find("foo/bar");
+        assertEq(("path": "foo/bar", "value": "ROOT"), h);
+        h = lpm.find("foo/bar/");
+        assertEq(("path": "//foo////bar/", "value": "ROOT"), h);
+        h = lpm.find("api");
+        assertEq(("path": "api", "value": "ROOT"), h);
+        h = lpm.find("api/get");
+        assertEq(("path": "", "value": NOTHING), h);
+        h = lpm.find("api/get/info");
+        assertEq(("path": "", "value": "INFO"), h);
+        h = lpm.find("api/get/country");
+        assertEq(("path": "", "value": "COUNTRY"), h);
+        h = lpm.find("api/get/country/hungary");
+        assertEq(("path": "hungary", "value": "COUNTRY"), h);
+        h = lpm.find("api/get/city");
+        assertEq(("path": "", "value": "CITY-BY-COUNTRY"), h);
+        h = lpm.find("api/get/city/buenos_aires/boca_juniors");
+        assertEq(("path": "buenos_aires/boca_juniors", "value": "CITY-BY-COUNTRY"), h);
+        h = lpm.find("api/get/city/all");
+        assertEq(("path": "", "value": "CITY-ALL"), h);
+    }
+
+}
