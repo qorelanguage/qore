@@ -100,7 +100,6 @@ public:
          while (it != b && !(--it)->first.compare(0, prefixLen, path, 0, prefixLen)) {
             if (isPathPrefix(it->first, path)) {
                if (unmatched) {
-                  // it.first.length();
                   size_t l = it->first.length();
                   if (isPathEnd(path[l])) {
                      l++;
@@ -108,7 +107,8 @@ public:
                   QoreTypeSafeReferenceHelper ref(unmatched, xsink);
                   if (!ref)
                      return 0;
-                  ref.assign(key->substr(l, xsink));
+                  if (ref.assign(key->substr(l, xsink)))
+                     return 0;
                }
                return it->second.getReferencedValue();
             }
@@ -118,7 +118,8 @@ public:
          QoreTypeSafeReferenceHelper ref(unmatched, xsink);
          if (!ref)
             return 0;
-         ref.assign(&Nothing);
+         if (ref.assign(&Nothing))
+            return 0;
       }
       return 0;
    }
