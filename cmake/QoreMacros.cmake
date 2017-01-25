@@ -111,6 +111,11 @@ MACRO (QORE_BINARY_MODULE _module_name _version)
         set(_libs "${_libs};${value}")
     endforeach (value)
 
+    # add pthread library on Windows
+    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        set(_libs "${_libs};pthread")
+    endif()
+
     # add additional libraries
     if(DEFINED QORE_POST_LIBS)
         foreach (value ${QORE_POST_LIBS})
