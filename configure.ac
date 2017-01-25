@@ -1775,11 +1775,11 @@ AC_SUBST([libdir])
 
 # set module path
 if test "$windows" = yes; then
-  winprefix=z:`echo ${myprefix}|sed 's/\//\\\\\\\\\\\\\\\\/g'`
-  winlibdir=`echo ${mypkglibdir}|sed 's/\/$//'|sed 's/\//\\\\\\\\\\\\\\\\/g'`
+  winprefix="z:${myprefix}"
+  winlibdir=`echo ${mypkglibdir}|sed 's/\/$//`
   # we don't know the real final install location, but at least we can set a valid windows path
-  MODULE_DIR="${winprefix}\\\\\\\\\lib${LIBSUFFIX}\\\\\\\\${winlibdir}"
-  USER_MODULE_DIR="${winprefix}\\\\\\\\\share\\\\\\\\${winlibdir}"
+  MODULE_DIR="${winprefix}/lib${LIBSUFFIX}/${winlibdir}"
+  USER_MODULE_DIR="${winprefix}/share/${winlibdir}"
 else
   MODULE_DIR="${myprefix}/lib${LIBSUFFIX}/${mypkglibdir}"
   if test -z "${datarootdir}"; then
@@ -1801,8 +1801,8 @@ AC_SUBST([mymodverdir])
 # get version-dependent module path
 if test "$windows" = yes; then
   # we don't know the real final install location, but at least we can set a valid windows path
-  MODULE_VER_DIR="${MODULE_DIR}\\\\\\\\${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}"
-  USER_MODULE_VER_DIR="${USER_MODULE_DIR}\\\\\\\\${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}"
+  MODULE_VER_DIR="${MODULE_DIR}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}"
+  USER_MODULE_VER_DIR="${USER_MODULE_DIR}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}"
 else
   MODULE_VER_DIR="${myprefix}/lib${LIBSUFFIX}/${mymodverdir}"
   if test -n "echo ${datarootdir}|grep \$"; then

@@ -125,6 +125,9 @@ MACRO (QORE_BINARY_MODULE _module_name _version)
 
     # standard repeating stuff for modules
     add_definitions("-DPACKAGE_VERSION=\"${_version}\"")
+    if(DEFINED QORE_PRE_INCLUDES)
+       include_directories( ${QORE_PRE_INCLUDES} )
+    endif()
     include_directories( ${QORE_INCLUDE_DIR} )
     include_directories( ${CMAKE_BINARY_DIR} )
 
@@ -133,11 +136,26 @@ MACRO (QORE_BINARY_MODULE _module_name _version)
         SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
     endif (CMAKE_COMPILER_IS_GNUCXX)
 
+    # add BUILDING_DLL=1 define to modules' CXXFLAGS
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILDING_DLL=1")
+
     # setup the target
     set (_libs "")
     foreach (value ${ARGN})
         set(_libs "${_libs};${value}")
     endforeach (value)
+
+    # add pthread library on Windows
+    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        set(_libs "${_libs};pthread")
+    endif()
+
+    # add additional libraries
+    if(DEFINED QORE_POST_LIBS)
+        foreach (value ${QORE_POST_LIBS})
+            set(_libs "${_libs};${value}")
+        endforeach (value)
+    endif()
 
     set_target_properties(${_module_name} PROPERTIES PREFIX "" SUFFIX "-api-${QORE_API_VERSION}.qmod")
     target_link_libraries(${_module_name} ${QORE_LIBRARY} ${_libs})
