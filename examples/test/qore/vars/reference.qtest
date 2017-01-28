@@ -1,0 +1,41 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class ReferenceTest
+
+class ReferenceTest inherits QUnit::Test {
+    constructor () : Test("Hash test", "1.0") {
+        addTestCase("Reference test", \testReference());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    testReference() {
+        list l = (
+            ("val": 1),
+            ("val", 2),
+        );
+        reference r1;
+        reference r2;
+        r1 = \l[0];
+        r2 = \l[1];
+        r1.val = 10;
+        r2.val = 20;
+        assertEq(10, l[0].val);
+        assertEq(20, l[1].val);
+        r2 = r1;
+        assertEq(10, l[0].val);
+        assertEq(10, l[1].val);
+
+        r2 = \r1;
+        assertThrows("REFERENCE-ERROR", sub () { r2.val = 20; });
+   }
+}
