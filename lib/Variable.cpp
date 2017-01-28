@@ -419,10 +419,8 @@ int LValueHelper::doLValue(const ReferenceNode* ref, bool for_remove) {
    const lvalue_ref* r = lvalue_ref::get(ref);
    if (!lvid_set)
       lvid_set = new lvid_set_t;
-#ifdef DEBUG
-   else
-      assert(lvid_set->find(r->lvalue_id) == lvid_set->end());
-#endif
+   else if (lvid_set->find(r->lvalue_id) != lvid_set->end())
+      return doRecursiveException();
    lvid_set->insert(r->lvalue_id);
    return doLValue(r->vexp, for_remove);
 }
@@ -545,9 +543,8 @@ int LValueHelper::assign(QoreValue n, const char* desc) {
    }
 
    if (lvid_set && n.getType() == NT_REFERENCE && (lvid_set->find(lvalue_ref::get(reinterpret_cast<const ReferenceNode*>(n.getInternalNode()))->lvalue_id) != lvid_set->end())) {
-      vl.xsink->raiseException("REFERENCE-ERROR", "recursive reference detected in assignment");
       saveTemp(n);
-      return -1;
+      return doRecursiveException();
    }
 
    if (val) {
