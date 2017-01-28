@@ -54,8 +54,11 @@ public:
       if (args)
 	 args->deref(0);
    }
+
    DLLLOCAL const QoreListNode* getArgs() const { return args; }
+
    DLLLOCAL int parseArgsVariant(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, QoreFunction* func, const QoreTypeInfo*& returnTypeInfo);
+
    DLLLOCAL const AbstractQoreFunctionVariant* getVariant() const {
       return variant;
    }
@@ -349,16 +352,16 @@ protected:
    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo);
 
 public:
-   DLLLOCAL SelfFunctionCallNode(char* n, QoreListNode* n_args) : AbstractMethodCallNode(NT_SELF_CALL, n_args, getParseClass()), ns(n), is_copy(false) {
+   DLLLOCAL SelfFunctionCallNode(char* n, QoreListNode* n_args) : AbstractMethodCallNode(NT_SELF_CALL, n_args, parse_get_class()), ns(n), is_copy(false) {
    }
 
-   DLLLOCAL SelfFunctionCallNode(char* n, QoreListNode* n_args, const QoreMethod* m) : AbstractMethodCallNode(NT_SELF_CALL, n_args, getParseClass(), m), ns(n), is_copy(false) {
+   DLLLOCAL SelfFunctionCallNode(char* n, QoreListNode* n_args, const QoreMethod* m, const QoreClass* n_qc) : AbstractMethodCallNode(NT_SELF_CALL, n_args, n_qc, m), ns(n), is_copy(false) {
    }
 
    DLLLOCAL SelfFunctionCallNode(char* n, QoreListNode* n_args, const QoreClass* n_qc) : AbstractMethodCallNode(NT_SELF_CALL, n_args, n_qc), ns(n), is_copy(false) {
    }
 
-   DLLLOCAL SelfFunctionCallNode(NamedScope* n_ns, QoreListNode* n_args) : AbstractMethodCallNode(NT_SELF_CALL, n_args, getParseClass()), ns(n_ns), is_copy(false) {
+   DLLLOCAL SelfFunctionCallNode(NamedScope* n_ns, QoreListNode* n_args) : AbstractMethodCallNode(NT_SELF_CALL, n_args, parse_get_class()), ns(n_ns), is_copy(false) {
    }
 
    DLLLOCAL SelfFunctionCallNode(const SelfFunctionCallNode &old, QoreListNode* n_args) : AbstractMethodCallNode(old, n_args), ns(old.ns), is_copy(old.is_copy) {

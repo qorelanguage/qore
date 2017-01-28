@@ -31,7 +31,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/GlobalVariableList.h>
+#include "qore/intern/GlobalVariableList.h"
 
 #include <assert.h>
 
