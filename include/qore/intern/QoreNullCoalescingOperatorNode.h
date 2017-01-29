@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 #ifndef _QORE_QORENULLCOALESCINGOPERATORNODE_H
 #define _QORE_QORENULLCOALESCINGOPERATORNODE_H
 
-class QoreNullCoalescingOperatorNode : public QoreNOperatorNodeBase<2> {
+class QoreNullCoalescingOperatorNode : public QoreBinaryOperatorNode<QoreOperatorNode> {
 protected:
    static QoreString null_coalescing_str;
 
@@ -43,13 +43,13 @@ protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreNullCoalescingOperatorNode(AbstractQoreNode* e0, AbstractQoreNode* e1) : QoreNOperatorNodeBase<2>(e0, e1), typeInfo(0) { 
+   DLLLOCAL QoreNullCoalescingOperatorNode(AbstractQoreNode* e0, AbstractQoreNode* e1) : QoreBinaryOperatorNode<QoreOperatorNode>(e0, e1), typeInfo(0) {
    }
 
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
 
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
-   
+
    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
       return typeInfo;
    }
@@ -59,9 +59,8 @@ public:
       return null_coalescing_str.getBuffer();
    }
 
-   DLLLOCAL virtual bool hasEffect() const {
-      // FIXME: check expressions to return a correct value
-      return true;
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      return copyBackgroundExplicit<QoreNullCoalescingOperatorNode>(xsink);
    }
 };
 

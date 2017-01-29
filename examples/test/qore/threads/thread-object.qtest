@@ -6,53 +6,37 @@
 %require-types
 %strict-args
 
-%requires UnitTest
+%requires ../../../../qlib/QUnit.qm
 
-%exec-class thread_object_test
+%exec-class ThreadObjectTest
 
-const opts =
-    ( "help"       : "h,help",
-      "verbose"    : "v,verbose" );
-
-class thread_object_test {
+class ThreadObjectTest inherits QUnit::Test {
     private {
         int threads;
         int iters;
     }
-    constructor() {
-        UnitTest t();
-        process_command_line();
-        new CounterTest(threads, iters, t);
-        new QueueTest(threads, iters, t);
-        new ThreadTest(threads, iters, t);
+    constructor() : QUnit::Test("Thread object test", "1.0") {
+        addTestCase("Test Counter", \testCounter());
+        addTestCase("Test Queue", \testQueue());
+        addTestCase("Test Thread", \testThread());
+        set_return_value(main());
     }
 
-    usage() {
-        printf("usage: %s -[options] [iterations [threads]]
-  -h,--help           this help text
-  -v,--verbose        more information
-", basename(ENV."_"));
-        exit();
+    globalSetUp() {
+        threads = 5;
+        iters = 2000;
     }
 
-    process_command_line() {
-        GetOpt g(opts);
-        any o = g.parse(\ARGV);
+    testCounter() {
+        new CounterTest(threads, iters, self);
+    }
 
-        if (exists o."_ERRORS_") {
-            printf("%s\n", o."_ERRORS_"[0]);
-            exit(1);
-        }
+    testQueue() {
+        new QueueTest(threads, iters, self);
+    }
 
-        if (o.help)
-            usage();
-
-        iters = int(shift ARGV);
-        if (!iters)
-            iters = 2000;
-        threads = int(shift ARGV);
-        if (!threads)
-            threads = 5;
+    testThread() {
+        new ThreadTest(threads, iters, self);
     }
 }
 
@@ -63,14 +47,14 @@ class CounterTest {
         any obj;
         Counter c();
     }
-    constructor(int nthreads, int niters, UnitTest t) {
+    constructor(int nthreads, int niters, ThreadObjectTest t) {
         threads = nthreads;
         iters = niters;
         obj.key.500.hello = 0;
 
         do_threads();
         c.waitForZero();
-        t.ok(!obj.key.500.hello, "counter");
+        t.assertTrue(!obj.key.500.hello, "counter");
     }
 
     private do_threads() {
@@ -100,12 +84,12 @@ class QueueTest {
         Queue q();
         Counter x();
     }
-    constructor(int threads, int iters, UnitTest t) {
-        for (int i; i < threads; i++) {
+    constructor(int nthreads, int niters, ThreadObjectTest t) {
+        for (int i; i < nthreads; i++) {
             x.inc();
-            background qt(threads, iters);
+            background qt(niters);
         }
-        int c = threads * iters;
+        int c = nthreads * niters;
         while (c--)
             if (rand() % 2)
                 q.pop();
@@ -113,11 +97,11 @@ class QueueTest {
                 q.get();
 
         x.waitForZero();
-        t.ok(!q.size(), "queue");
+        t.assertTrue(!q.size(), "queue");
     }
 
-    private qt(int threads, int iters) {
-        for (int i; i < iters; i++)
+    private qt(int niters) {
+        for (int i; i < niters; i++)
             q.push(sprintf("tid-%d-%d", gettid(), i));
         x.dec();
     }
@@ -136,7 +120,7 @@ class ThreadTest inherits Mutex {
         hash gdata;
         hash rwdata;
     }
-    constructor(int nthreads, int niters, UnitTest t) {
+    constructor(int nthreads, int niters, ThreadObjectTest t) {
         threads = nthreads;
         iters = niters;
         while (threads) {
@@ -145,7 +129,7 @@ class ThreadTest inherits Mutex {
             threads--;
         }
         c.waitForZero();
-        t.ok(True, "thread object tests");
+        t.assertTrue(True, "thread object tests");
     }
     *hash getData(list l) {
         lock();

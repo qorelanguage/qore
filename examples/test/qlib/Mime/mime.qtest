@@ -19,13 +19,17 @@ public class MimeTest inherits QUnit::Test {
         string base64Encoded = "VGhpcyBpcyBhIHRlc3Q6IMOmw6nDrMWTw7w=";
         string headerWordQEncoded = "=?UTF-8?Q?This_is_a_test:_=C3=A6=C3=A9=C3=AC=C5=93=C3=BC?=";
         string headerWordBEncoded = "=?UTF-8?B?VGhpcyBpcyBhIHRlc3Q6IMOmw6nDrMWTw7w=?=";
+
+        const UrlEncodingSource = "this,is!a\"test\"&it really is$-_.*'()";
+        const UrlEncodingTarget = "this,is!a%22test%22%26it%20really%20is$-_.*'()";
     }
 
     constructor() : Test("MimeTest", "1.0") {
-        addTestCase("Printable test", \printableTest(), NOTHING);
-        addTestCase("Base64 test", \base64Test(), NOTHING);
-        addTestCase("Header word q test", \wordQTest(), NOTHING);
-        addTestCase("Header word b test", \wordBTest(), NOTHING);
+        addTestCase("Printable test", \printableTest());
+        addTestCase("Base64 test", \base64Test());
+        addTestCase("Header word q test", \wordQTest());
+        addTestCase("Header word b test", \wordBTest());
+        addTestCase("urlencoding", \urlEncodingTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -49,5 +53,11 @@ public class MimeTest inherits QUnit::Test {
     wordBTest() {
         testAssertion("encode", \mime_encode_header_word_b(), (testString,), new TestResultValue(headerWordBEncoded));
         testAssertion("decode", \mime_decode_header(), (headerWordBEncoded,), new TestResultValue(testString));
+    }
+
+    urlEncodingTest() {
+        assertEq(UrlEncodingTarget, mime_get_urlencoded_string(UrlEncodingSource));
+        assertEq("a=b&a%20x=c", mime_get_form_urlencoded_string(("a": "b", "a x": "c")));
+        assertEq(UrlEncodingSource, mime_decode_urlencoded_string(UrlEncodingTarget));
     }
 }

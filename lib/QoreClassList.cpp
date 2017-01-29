@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,10 +29,10 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreClassList.h>
-#include <qore/intern/QoreNamespaceList.h>
-#include <qore/intern/QoreClassIntern.h>
-#include <qore/intern/QoreNamespaceIntern.h>
+#include "qore/intern/QoreClassList.h"
+#include "qore/intern/QoreNamespaceList.h"
+#include "qore/intern/QoreClassIntern.h"
+#include "qore/intern/QoreNamespaceIntern.h"
 #include <qore/minitest.hpp>
 
 #include <assert.h>
@@ -41,9 +41,16 @@
 #  include "tests/QoreClassList_tests.cpp"
 #endif
 
+void QoreClassList::remove(hm_qc_t::iterator i) {
+   QoreClass* qc = i->second;
+   //printd(5, "QCL::remove() this: %p '%s' (%p)\n", this, qc->getName(), qc);
+   hm.erase(i);
+   qore_class_private::get(*qc)->deref();
+}
+
 void QoreClassList::deleteAll() {
    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
-      delete i->second;
+      qore_class_private::get(*i->second)->deref();
 
    hm.clear();
 }
@@ -58,7 +65,6 @@ void QoreClassList::addInternal(QoreClass *oc) {
    assert(!find(oc->getName()));
    hm[oc->getName()] = oc;
 }
-
 
 int QoreClassList::add(QoreClass *oc) {
    printd(5, "QCL::add() this: %p '%s' (%p)\n", this, oc->getName(), oc);
@@ -106,7 +112,7 @@ void QoreClassList::mergeUserPublic(const QoreClassList& old, qore_ns_private* n
 	 assert(qore_class_private::injected(*qc));
 	 continue;
       }
-      
+
       qc = new QoreClass(*i->second);
       qore_class_private::setNamespace(qc, ns);
       addInternal(qc);
@@ -173,7 +179,7 @@ void QoreClassList::assimilate(QoreClassList& n) {
    hm_qc_t::iterator i = n.hm.begin();
    while (i != n.hm.end()) {
       QoreClass *nc = i->second;
-      n.hm.erase(i);      
+      n.hm.erase(i);
       i = n.hm.begin();
 
       assert(!find(nc->getName()));
@@ -235,9 +241,11 @@ AbstractQoreNode *QoreClassList::parseResolveBareword(const char *name, const Qo
       if (rv)
 	 return rv->refSelf();
 
-      QoreVarInfo *vi = qore_class_private::parseFindLocalStaticVar(i->second, name, typeInfo);
-      if (vi)
+      QoreVarInfo *vi = qore_class_private::parseFindLocalStaticVar(i->second, name);
+      if (vi) {
+	 typeInfo = vi->getTypeInfo();
 	 return new StaticClassVarRefNode(name, *(i->second), *vi);
+      }
    }
 
    return 0;

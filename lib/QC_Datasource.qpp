@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_Datasource.h>
+#include "qore/intern/QC_Datasource.h"
 
 extern QoreClass* QC_ABSTRACTDATASOURCE;
 
@@ -42,7 +42,7 @@ static int ds_set_options(ManagedDatasource* ds, const QoreHashNode* opts, Excep
       if (!strcmp(hi.getKey(), "min") || !strcmp(hi.getKey(), "max"))
          continue;
 
-      if (ds->setOption(hi.getKey(), hi.getValue(), xsink))
+      if (ds->setOptionInit(hi.getKey(), hi.getValue(), xsink))
          return -1;
    }
    return 0;
@@ -286,7 +286,14 @@ Datasource db(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 5432);
 Datasource::constructor(string driver, *string user, *string pass, *string db, *string encoding, *string host, *softint port, *hash options, *Qore::Thread::Queue[Queue] queue, any arg) {
    ReferenceHolder<Queue> q(queue, xsink);
 
-   if (!port && driver->find(':') != -1) {
+   if (!port && driver->find('@') != -1) {
+      qore_offset_t colon = driver->find(':');
+      qore_offset_t atsign = driver->find('@');
+      if (colon < 0 || (atsign < colon)) {
+         xsink->raiseException("DATASOURCE-PARSE-ERROR", "driver is missing from the datasource string");
+         return;
+      }
+
       ReferenceHolder<QoreHashNode> h(parseDatasource(driver->getBuffer(), xsink), xsink);
       if (!h) {
          assert(*xsink);
@@ -355,6 +362,17 @@ Datasource ds("pgsql:user/pass@db01(utf8)%localhost:5432");
  */
 Datasource::constructor(string desc, *Qore::Thread::Queue[Queue] queue, any arg) {
    ReferenceHolder<Queue> q(queue, xsink);
+
+   TempEncodingHelper tstr(desc, QCS_UTF8, xsink);
+   if (*xsink)
+      return;
+   qore_offset_t colon = tstr->find(':');
+   qore_offset_t atsign = tstr->find('@');
+   if (colon < 0 || (atsign < colon)) {
+      xsink->raiseException("DATASOURCE-PARSE-ERROR", "driver is missing from the datasource string");
+      return;
+   }
+
    ReferenceHolder<QoreHashNode> h(parseDatasource(desc->getBuffer(), xsink), xsink);
    if (!h) {
       assert(*xsink);
@@ -580,12 +598,14 @@ any Datasource::execRaw(string sql) {
     @param sql The %SQL command to execute on the server
     @param ... Include any values to be bound (using <tt>%%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
-    @return This method returns a hash (the keys are the column names) of lists (the column data per row) when executed with an %SQL select statement, however some DBI drivers allow any %SQL to be executed through this method, in which case other data types can be returned (such as an integer for a row count or a hash for output parameters when executing a stored procedure)
+    @return This method returns a hash (the keys are the column names) of lists (the column data per row) when executed with an %SQL select statement, however some DBI drivers allow any %SQL to be executed through this method, in which case other data types can be returned (such as an integer for a row count or a hash for output parameters when executing a stored procedure).  If no rows are found, a hash of column names assigned to empty lists is returned.
 
     @par Example:
     @code{.py}
 # bind a string and a date/time value by value in a query
-query = db.select("select * from table where varchar_column = %v and timestamp_column > %v", string, 2007-10-11T15:31:26.289);
+hash query = db.select("select * from table where varchar_column = %v and timestamp_column > %v", string, 2007-10-11T15:31:26.289);
+if (query.firstValue())
+    printf("got results\n");
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
@@ -674,11 +694,13 @@ any Datasource::selectRows(string sql, ...) {
     @param sql The %SQL command to execute on the server
     @param vargs Include any values to be bound (using <tt>%%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
-    @return Normally returns a hash (the keys are the column names) of list (each hash key's value is a list giving the row data), however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+    @return Normally returns a hash (the keys are the column names) of list (each hash key's value is a list giving the row data), however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned.  If no rows are found, a hash of column names assigned to empty lists is returned.
 
     @par Example:
     @code{.py}
-*hash query = db.vselect("select * from example_table where id = %v and name = %v", arg_list);
+hash query = db.vselect("select * from example_table where id = %v and name = %v", arg_list);
+if (query.firstValue())
+    printf("got results\n");
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock

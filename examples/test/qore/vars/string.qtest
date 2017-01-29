@@ -14,13 +14,17 @@ class StringTest inherits QUnit::Test {
     constructor() : QUnit::Test("String test", "1.0") {
         addTestCase("Basic functions test", \testBasics());
         addTestCase("Encoding test", \testEncoding());
+        addTestCase("UTF-16 test", \testUtf16());
+        addTestCase("ASCII x UTF-8 string equality tests", \testASCIIUTF8Equality());
         addTestCase("Base64 and hex test", \testBase64Hex());
-        addTestCase("Splice and extract test", \testSpliceAndExtract());
+        addTestCase("Splice test", \testSplice());
+        addTestCase("Extract test", \testExtract());
         addTestCase("Join test", \testJoin());
         addTestCase("Transliteration test", \testTransliteration());
         addTestCase("Regex test", \testRegex());
         addTestCase("Chomp and trim test", \testChompAndTrim());
         addTestCase("Float strings test", \testFloat());
+        addTestCase("String conversion test", \testConversions());
         set_return_value(main());
     }
 
@@ -112,6 +116,79 @@ class StringTest inherits QUnit::Test {
         assertEq(ustr.lwr(), "příliš žluťoučký kůň úpěl ďábelské ódy", "<string>::lwr()");
     }
 
+    testUtf16() {
+        string a = convert_encoding("xbcd", "UTF16BE");
+        string b = convert_encoding("aaaa", "UTF16BE");
+        assertTrue(a != b);
+        assertFalse(a != a);
+        assertFalse(a == b);
+        assertFalse(a === b);
+        assertTrue(a == a);
+        assertTrue(a === a);
+        assertTrue(a > b);
+        assertTrue(a >= b);
+        assertFalse(a > a);
+        assertTrue(a >= a);
+        assertTrue(b < a);
+        assertTrue(b <= a);
+        assertFalse(b < b);
+        assertTrue(b <= b);
+        assertEq(1, a <=> b);
+        assertEq(0, a <=> a);
+        assertEq(-1, b <=> a);
+        assertTrue(b.equalPartial(b));
+        assertFalse(b.equalPartial(a));
+        assertFalse(b.equalPartial(b+b));
+        assertTrue(b.equalPartial(b.substr(2)));
+        assertTrue(b.equalPartial(b.substr(2, 1)));
+        assertTrue(b.equalPartial(b.substr(2, -1)));
+        assertTrue(b.equalPartial(substr(b, 2)));
+        assertTrue(b.equalPartial(substr(b, 2, 1)));
+        assertTrue(b.equalPartial(substr(b, 2, -1)));
+
+        string c = convert_encoding("abcd", "UTF16LE");
+        string d = convert_encoding("aaaa", "UTF16LE");
+        assertTrue(c != d);
+        assertFalse(c != c);
+        assertFalse(c == d);
+        assertFalse(c === d);
+        assertTrue(c == c);
+        assertTrue(c === c);
+        assertTrue(c > d);
+        assertTrue(c >= d);
+        assertFalse(c > c);
+        assertTrue(c >= c);
+        assertTrue(d < c);
+        assertTrue(d <= c);
+        assertFalse(d < d);
+        assertTrue(d <= d);
+        assertEq(1, c <=> d);
+        assertEq(0, c <=> c);
+        assertEq(-1, d <=> c);
+        assertTrue(d.equalPartial(d));
+        assertFalse(d.equalPartial(c));
+        assertFalse(d.equalPartial(d+d));
+        assertTrue(d.equalPartial(d.substr(2)));
+        assertTrue(d.equalPartial(d.substr(2, 1)));
+        assertTrue(d.equalPartial(d.substr(2, -1)));
+        assertTrue(d.equalPartial(substr(d, 2)));
+        assertTrue(d.equalPartial(substr(d, 2, 1)));
+        assertTrue(d.equalPartial(substr(d, 2, -1)));
+    }
+
+    testASCIIUTF8Equality() {
+        string a = convert_encoding("ěščřžýáíé", "UTF-8");
+        string b = convert_encoding("escrzyaie", "ASCII");
+        assertFalse(a == b);
+        assertTrue(a != b);
+        assertFalse(b == a);
+        assertTrue(b != a);
+        assertFalse(a.equalPartial(b));
+        assertFalse(b.equalPartial(a));
+        assertFalse(a.equalPartialPath(b));
+        assertFalse(b.equalPartialPath(a));
+    }
+
     testBase64Hex() {
         # assign binary object
         binary x = <0abf83e8ca72d32c>;
@@ -120,10 +197,11 @@ class StringTest inherits QUnit::Test {
         assertEq("aGVsbG8=", make_base64_string("hello"), "makeBase64String()");
         string hex = make_hex_string(x);
         assertEq(x, parse_hex_string(hex), "first hex");
+        assertEq("", parse_base64_string_to_string(""));
     }
 
-    testSpliceAndExtract() {
-        # UTF-8 string splice tests
+    testSplice() {
+        # UTF-8 string splice operator tests
         string str = "äbcdéf";
         splice str, 5;
         assertEq(str, "äbcdé", "first UTF-8 string splice");
@@ -142,14 +220,7 @@ class StringTest inherits QUnit::Test {
         splice str, -4, -2, "QRS";
         assertEq(str, "kQRSNO", "eighth UTF-8 string splice");
 
-        # UTF-8 string extract tests
-        str = "äbcdéf";
-        assertEq((extract str, 4), "éf", "first UTF-8 string extract");
-        assertEq((extract str, 1, 2), "bc", "second UTF-8 string extract");
-        assertEq((extract str, 1, 1, "bcdef"), "d", "third UTF-8 string extract");
-        assertEq(str, "äbcdef", "final UTF-8 string extract");
-
-        # single-byte string splice tests
+        # single-byte string splice operator tests
         str = convert_encoding("äbcdéf", "ISO-8859-1");
         splice str, 5;
         assertTrue(str == "äbcdé", "first ISO-8859-1 string splice");
@@ -168,7 +239,53 @@ class StringTest inherits QUnit::Test {
         splice str, -4, -2, "QRS";
         assertTrue(str == "kQRSNO", "eighth ISO-8859-1 string splice");
 
+        # UTF-8 string splice function tests
+        str = "äbcdéf";
+        str = splice str, 5;
+        assertEq(str, "äbcdé", "first UTF-8 string splice");
+        str = splice str, 3, 1;
+        assertEq(str, "äbcé", "second UTF-8 string splice");
+        str = splice str, 1, 2, "GHI";
+        assertEq(str, "äGHIé", "third UTF-8 string splice");
+        str = splice str, 0, 4, "jkl";
+        assertEq(str, "jklé", "fourth UTF-8 string splice");
+        str = splice str, 0, 1;
+        assertEq(str, "klé", "fifth UTF-8 string splice");
+        str = splice str, 5, 2, "MNO";
+        assertEq(str, "kléMNO", "sixth UTF-8 string splice");
+        str = splice str, -4, 2, "p";
+        assertEq(str, "klpNO", "seventh UTF-8 string splice");
+        str = splice str, -4, -2, "QRS";
+        assertEq(str, "kQRSNO", "eighth UTF-8 string splice");
+
+        # single-byte string splice function tests
+        str = convert_encoding("äbcdéf", "ISO-8859-1");
+        str = splice str, 5;
+        assertTrue(str == "äbcdé", "first ISO-8859-1 string splice");
+        str = splice str, 3, 1;
+        assertTrue(str == "äbcé", "second ISO-8859-1 string splice");
+        str = splice str, 1, 2, "GHI";
+        assertTrue(str == "äGHIé", "third ISO-8859-1 string splice");
+        str = splice str, 0, 4, "jkl";
+        assertTrue(str == "jklé", "fouth ISO-8859-1 string splice");
+        str = splice str, 0, 1;
+        assertTrue(str == "klé", "fifth ISO-8859-1 string splice");
+        str = splice str, 5, 2, "MNO";
+        assertTrue(str == "kléMNO", "sixth ISO-8859-1 string splice");
+        str = splice str, -4, 2, "p";
+        assertTrue(str == "klpNO", "seventh ISO-8859-1 string splice");
+        str = splice str, -4, -2, "QRS";
+        assertTrue(str == "kQRSNO", "eighth ISO-8859-1 string splice");
+    }
+
+    testExtract() {
         # UTF-8 string extract tests
+        string str = "äbcdéf";
+        assertEq((extract str, 4), "éf", "first UTF-8 string extract");
+        assertEq((extract str, 1, 2), "bc", "second UTF-8 string extract");
+        assertEq((extract str, 1, 1, "bcdef"), "d", "third UTF-8 string extract");
+        assertEq(str, "äbcdef", "final UTF-8 string extract");
+
         str = convert_encoding("äbcdéf", "ISO-8859-1");
         string val = extract str, 4;
         assertTrue(val == "éf", "first UTF-8 string extract");
@@ -321,5 +438,8 @@ class StringTest inherits QUnit::Test {
         assertEq(sprintf("%g", 1.5), "1.5", "%f float");
         assertEq(sprintf("%g", 1.5n), "1.5", "%f number");
     }
-}
 
+    testConversions() {
+        assertEq("", string(NULL));
+    }
+}

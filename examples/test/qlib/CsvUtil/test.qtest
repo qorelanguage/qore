@@ -58,11 +58,11 @@ http://www.anthrax.com/,US,Anthrax,anthrax.jpg,2012-12-29T14:02:53,395
             "header-names" : True,
             "verify-columns" : True,
             "fields" : (
-            	"mod_data" : (
+                "mod_data" : (
                     "type" : "date",
                     "format" : "YYYY-MM-DDTHH:mm:SS",
                 ),
-            	"id" : "int",
+                "id" : "int",
             ),
         );
 
@@ -73,7 +73,6 @@ http://www.anthrax.com/,US,Anthrax,anthrax.jpg,2012-12-29T14:02:53,395
         CsvFileIterator it1(rfile, iterator_opts);
         CsvFileWriter fw1(wfile2, write_opts);
         CsvStringWriter sw1(write_opts);
-
         list headers = ('website', 'origin', 'name', 'image', 'mod_data', 'id');
         fw1.writeLine(headers);
         sw1.writeLine(headers);

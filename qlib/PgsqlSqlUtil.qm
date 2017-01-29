@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file PgsqlSqlUtil.qm Qore user module for working with PostgreSQL SQL data
 
-/*  PgsqlSqlUtil.qm Copyright (C) 2013 - 2016 Qore Technologies, sro
+/*  PgsqlSqlUtil.qm Copyright (C) 2013 - 2016 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module PgsqlSqlUtil {
-    version = "1.1";
+    version = "1.1.1";
     desc = "user module for working with PostgreSQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -152,6 +152,9 @@ $function$
 
     @section pgsql_relnotes Release Notes
 
+    @subsection pgsqlsqlutilv111 PgsqlSqlUtil v1.1.1
+    - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
+
     @subsection pgsqlsqlutilv11 PgsqlSqlUtil v1.1
     - added support for \c cop_cast operator (<a href="https://github.com/qorelanguage/qore/issues/535">feature 535</a>)
     - added support for the following datatypes and aliases: bool, float, int, timetz, timestamptz, varbit
@@ -162,6 +165,7 @@ $function$
     - implemented support for the \c "returning" clause as an insert option
     - fixed a bug handling tablespaces in unique constraints
     - fixed bugs in @ref SqlUtil::cop_seq() and @ref SqlUtil::cop_seq_currval() (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
+    - added support for listing PostgreSQL types and materialized views (<a href="https://github.com/qorelanguage/qore/issues/699">issue 699</a>)
 
     @subsection pgsqlsqlutilv10 PgsqlSqlUtil v1.0
     - initial release
@@ -241,7 +245,7 @@ public namespace PgsqlSqlUtil {
                 }
                 hash h = tl[$#];
                 if (oldh.type != h.type)
-                    sqll += sprintf("alter type %s alter attribute %s type %s%s", name, oldh.name, h.type, opt.cascade ? " cascade" : "");
+                    sqll += sprintf("alter type %s alter attribute %s type %s%s", name, oldh.name, h.type, opt.force ? " cascade" : "");
                 if (oldh.name != h.name)
                     sqll += sprintf("alter type %s rename attribute %s to %s", name, oldh.name, h.name);
             }
@@ -257,18 +261,18 @@ public namespace PgsqlSqlUtil {
             return sprintf("create type %s as (%s)", name, src);
         }
 
-        #! returns a string that can be used to drop a type
+        #! returns a string that can be used to drop the function from the database
+        /** @param opt drop options; if \a force is @ref Qore::True "True", then the \c CASCADE option will be used in the drop statement
+         */
         string getDropSql(*hash opt) {
-            return sprintf("drop type %s%s", name, opt.cascade ? " cascade" : "");
-        }
-
-        #! returns a string that can be used to drop a type and all dependencies
-        string getDropSqlForce() {
-            return sprintf("drop type %s cascade", name);
+            return sprintf("drop type %s%s", name, opt.force ? " cascade" : "");
         }
 
         #! returns a string that can be used to rename a type
-        string getRenameSql(string new_name) {
+        /** @param new_name the new name of the object
+            @param opt this argument is ignored
+         */
+        string getRenameSql(string new_name, *hash opt) {
             return sprintf("alter type %s rename to %s", name, new_name);
         }
 
@@ -672,7 +676,11 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the sequence in the database
-        string getRenameSql(string new_name) {
+        /** The object is renamed in place with this call
+            @param new_name the new name of the object
+            @param opt this option is ignored
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
             return sprintf("alter sequence %s rename to %s", name, new_name);
         }
     }
@@ -706,7 +714,11 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the view in the database
-        softlist getRenameSql(string new_name) {
+        /** The object is renamed in place with this call
+            @param new_name the new name of the object
+            @param opt this option is ignored
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
             return sprintf("alter view %s rename to %s", name, new_name);
         }
     }
@@ -754,8 +766,10 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to drop the function from the database
-        string getDropSql() {
-            return sprintf("drop function %s", name);
+        /** @param opt drop options; if \a force is @ref Qore::True "True", then the \c CASCADE option will be used in the drop statement
+         */
+        string getDropSql(*hash opt) {
+            return sprintf("drop function %s%s", name, opt.force ? " cascade" : "");
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
@@ -764,7 +778,10 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the function in the database
-        softlist getRenameSql(string new_name) {
+        /** @param new_name the new name of the object
+            @param opt this argument is ignored
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
             return sprintf("alter function %s rename to %s(%s)", name, new_name, args);
         }
 
@@ -808,8 +825,8 @@ my any $v = $c.name;
         }
 
         private list featuresImpl() {
-            return list(DB_FUNCTIONS, DB_PROCEDURES,
-                        DB_SEQUENCES, DB_TABLES, DB_TYPES, DB_VIEWS);
+            return (DB_FUNCTIONS, DB_PROCEDURES, DB_SEQUENCES,
+                    DB_TABLES, DB_TYPES, DB_VIEWS, DB_MVIEWS);
         }
 
         PgsqlType makeType(string name, string src, *hash opts) {
@@ -1057,7 +1074,7 @@ my any $v = $c.name;
                     }
 
                     if (!templateType.equal(type)) {
-                        l += AbstractDatabase::doCallback(opt, templateType.getModifySql(type, opt + ("cascade": True)), AbstractDatabase::AC_Modify, "type", name);
+                        l += AbstractDatabase::doCallback(opt, templateType.getModifySql(type, opt + ("force": True)), AbstractDatabase::AC_Modify, "type", name);
                     }
                 }
                 return l;
@@ -1067,8 +1084,11 @@ my any $v = $c.name;
 
         #! returns a list of string table names in the database
         private list listTablesImpl() {
-            return ds.select("select n.nspname \"schema\", c.relname \"name\", case c.relkind when 'r' then 'table' when 'v' then 'view' when 'i' then 'index' when 'S' then 'sequence' when 's' then 'special' when 'f' then 'foreign table' end \"Type\", pg_catalog.pg_get_userbyid(c.relowner) \"owner\" from pg_catalog.pg_class c left join pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'information_schema' and n.nspname !~ '^pg_toast' and pg_catalog.pg_table_is_visible(c.oid) order by 1,2").name;
+            string sql = "select n.nspname as schema, c.relname as name, pg_catalog.pg_get_userbyid(c.relowner) as owner,"
+                               " case c.relkind when 'r' then 'table' when 'v' then 'view' when 'i' then 'index' when 'S' then 'sequence' when 's' then 'special' when 'f' then 'foreign table' end as type"
+                          " from pg_catalog.pg_class c left join pg_catalog.pg_namespace n ON n.oid = c.relnamespace"
+                         " where c.relkind in ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'information_schema' and n.nspname !~ '^pg_toast' and pg_catalog.pg_table_is_visible(c.oid) order by 1,2";
+            return ds.select(sql).name;
         }
 
         #! returns a list of string function names in the database
@@ -1077,7 +1097,11 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
             @return a list of string function names in the database
         */
         private list listFunctionsImpl() {
-            *hash qh = ds.select("select n.nspname schema, p.proname name, pg_catalog.pg_get_function_result(p.oid) result_type, pg_catalog.pg_get_function_arguments(p.oid) args, case when p.proisagg then 'agg' when p.proiswindow then 'window' when p.prorettype = 'pg_catalog.trigger'::pg_catalog.regtype then 'trigger' else 'normal' end type from pg_catalog.pg_proc p left join pg_catalog.pg_namespace n ON n.oid = p.pronamespace where n.nspname ~ '^(public)$' order by 1, 2, 4");
+            string sql = "select n.nspname as schema, p.proname as name, pg_catalog.pg_get_function_result(p.oid) as result_type, pg_catalog.pg_get_function_arguments(p.oid) as args,"
+                               " case when p.proisagg then 'agg' when p.proiswindow then 'window' when p.prorettype = 'pg_catalog.trigger'::pg_catalog.regtype then 'trigger' else 'normal' end as type"
+                          " from pg_catalog.pg_proc p left join pg_catalog.pg_namespace n on n.oid = p.pronamespace"
+                         " where n.nspname ~ '^(public)$' order by 1, 2, 4";
+            *hash qh = ds.select(sql);
 
             return map sprintf("%s(%s)", $1.name, $1.args), qh.contextIterator();
         }
@@ -1090,11 +1114,36 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         }
 
         private list listSequencesImpl() {
-            return ds.select("select relname from pg_class where relkind = 'S'").relname;
+            return ds.select("select relname from pg_class where relkind = 'S' order by 1").relname;
         }
 
         private list listViewsImpl() {
-            return ds.select("select table_name from information_schema.views where table_schema = any (current_schemas(false))").table_name;
+            return ds.select("select table_name from information_schema.views where table_schema = any (current_schemas(false)) order by 1").table_name;
+        }
+
+        #! returns a list of string materialized view names in the database
+        list listMaterializedViews() {
+            string sql = "select relname from pg_class"
+                         " where relkind = 'r' and relnamespace in"
+                               " (select oid from pg_namespace"
+                                 " where nspname != 'information_schema' and nspname not like 'pg\_%')"
+                         " order by 1";
+            return ds.select(sql).relname;
+        }
+
+        #! returns an iterator listing the string materialized view names in the database
+        ListIterator materializedViewIterator() {
+            return listMaterializedViews().iterator();
+        }
+
+        #! returns a list of string type names in the database
+        list listTypes() {
+            return ds.select("select user_defined_type_name as name from information_schema.user_defined_types order by 1").name;
+        }
+
+        #! returns an iterator listing the string type names in the database
+        ListIterator typeIterator() {
+            return listTypes().iterator();
         }
 
         #! returns a string that can be used to create the schema in the database
@@ -1405,6 +1454,23 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                     "placeholder": "currval(%v)",
                 ),
                 );
+
+            #! a hash of default update operator definitions for PostgreSQL
+            const PgsqlUopMap = DefaultUopMap + (
+                COP_SEQ: (
+                    "nocolumn": True,
+                    "code": string sub (*string cve, string arg) {
+                        return sprintf("nextval('%s')", arg);
+                    }
+                ),
+                COP_SEQ_CURRVAL: (
+                    "nocolumn": True,
+                    "withalias": True,
+                    "code": string sub (*string cve, string arg) {
+                        return sprintf("currval('%s')", arg);
+                    }
+                ),
+                );
         }
 
         private {
@@ -1505,6 +1571,11 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
         #! returns the insert operator map for this object
         private hash getInsertOperatorMap() {
             return PgsqlIopMap;
+        }
+
+        #! returns the raw (default) update operator map for this object
+        private hash getRawUpdateOperatorMap() {
+            return PgsqlUopMap;
         }
 
         private bool checkExistenceImpl() {
@@ -1768,7 +1839,7 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
                         l += AbstractDatabase::doCallback(opt, triggers{f.trigger}.getDropSql(name), AbstractDatabase::AC_Drop, "trigger", f.trigger, name);
                         triggers.take(f.trigger);
                     }
-                    l += AbstractDatabase::doCallback(opt, f.getDropSql(), AbstractDatabase::AC_Drop, "trigger function", f.name, name);
+                    l += AbstractDatabase::doCallback(opt, f.getDropSql(opt.force), AbstractDatabase::AC_Drop, "trigger function", f.name, name);
                 }
             }
 
@@ -1944,12 +2015,20 @@ WHERE c.relkind IN ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'info
 
         private *hash doReturningImpl(hash opt, reference sql, list args) {
             list l = ();
-            foreach softstring k in (opt.returning) {
-                *PgsqlColumn c = columns{k};
+            foreach any v in (opt.returning) {
+                hash rh;
+                switch (v.typeCode()) {
+                    case NT_STRING: rh.key = v; break;
+                    case NT_HASH: rh = v; break;
+                    default: throw "RETURNING-ERROR", sprintf("got type %y in \"returning\" option; expected \"string\" or \"hash\"", v.type());
+                }
+                if (!rh.key.val() || rh.key.typeCode() != NT_STRING)
+                    throw "RETURNING-ERROR", sprintf("got %y for \"returning\" option key value instead of name of output column", rh.key.type());
+                *PgsqlColumn c = columns{rh.key};
                 if (!c)
-                    throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column for the \"returning\" clause (valid columns: %y)", name, k, columns.keys());
-                l += k;
-                args += c.qore_type ?* Type::String;
+                    throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column for the \"returning\" clause (valid columns: %y)", name, rh.key, columns.keys());
+                l += rh.key;
+                args += rh.type ?* c.qore_type ?* Type::String;
             }
             sql += sprintf(" returning %s", (foldl $1 + "," + $2, l));
 

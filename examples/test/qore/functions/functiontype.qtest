@@ -24,8 +24,8 @@ public class FunctionTypeTest inherits QUnit::Test {
     }
 
     functionTypeTestMethod() {
-        testAssertion("function_type() user", \function_type(), ("simple_shift",), "user");
-        testAssertion("function_type() builtin", \function_type(), ("printf",), "builtin");
-        testAssertion("function_type() non-existing", \function_type(), ("abcdefgh_XYZ_123456789_1337",), new TestResultValue(NOTHING));
+        assertEq("user", function_type("simple_shift"), "function_type() user");
+        assertEq("builtin", function_type("printf"), "function_type() builtin");
+        assertEq(NOTHING, function_type("abcdefgh_XYZ_123456789_1337"), "function_type() non-existing");
     }
 }

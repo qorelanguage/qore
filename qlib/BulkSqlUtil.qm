@@ -137,7 +137,7 @@ on_error ds.rollback();
 
             #! default option values
             const OptionDefaults = (
-                "block_size": 500,
+                "block_size": 1000,
                 );
         }
 
@@ -171,7 +171,7 @@ on_error ds.rollback();
         /** @param name the name of the operation
             @param target the target table object
             @param opts an optional hash of options for the object as follows:
-            - \c "block_size": the number of rows executed at once (default: 500)
+            - \c "block_size": the number of rows executed at once (default: 1000)
             - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
         */
         constructor(string name, SqlUtil::Table target, *hash opts) {
@@ -184,7 +184,7 @@ on_error ds.rollback();
         /** @param name the name of the operation
             @param target the target table object
             @param opts an optional hash of options for the object as follows:
-            - \c "block_size": the number of rows executed at once (default: 500)
+            - \c "block_size": the number of rows executed at once (default: 1000)
             - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
         */
         constructor(string name, SqlUtil::AbstractTable target, *hash opts) {
@@ -565,7 +565,7 @@ on_error ds.rollback();
         /** @param target the target table object
             @param opts an optional hash of options for the object as follows:
             - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
-            - \c "block_size": the number of rows executed at once (default: 500)
+            - \c "block_size": the number of rows executed at once (default: 1000)
             - \c "rowcode": a per-row @ref closure or @ref call_reference for batch inserts; this must take a single hash argument and will be called for every row after a bulk insert; the hash argument representing the row inserted will also contain any output values if applicable (for example if @ref sql_iop_funcs are used in the row hashes submitted to queueData())
 
             @see setRowCode()
@@ -577,7 +577,7 @@ on_error ds.rollback();
         /** @param target the target table object
             @param opts an optional hash of options for the object as follows:
             - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
-            - \c "block_size": the number of rows executed at once (default: 500)
+            - \c "block_size": the number of rows executed at once (default: 1000)
             - \c "rowcode": a per-row @ref closure or @ref call_reference for batch inserts; this must take a single hash argument and will be called for every row after a bulk insert; the hash argument representing the row inserted will also contain any output values if applicable (for example if @ref sql_iop_funcs are used in the row hashes submitted to queueData())
 
             @see setRowCode()
@@ -645,7 +645,7 @@ inserter.setRowCode(rowcode);
             }
         }
 
-        #! inserts internally-queued queued data in the database wuith bulk DML operations
+        #! inserts internally-queued queued data in the database with bulk DML operations
         /**
             This method sets up the SQL DML query used for inserts when row is queued.
             Output values are only retrieved if @ref sql_iops_funcs are used and a
@@ -666,8 +666,27 @@ inserter.setRowCode(rowcode);
             }
             else {
                 # execute the SQLStatement on the args
-                stmt.execArgs(hbuf.values());
-                rh = stmt.getOutput();
+                if (table.hasArrayBind()) {
+                    stmt.execArgs((hbuf + cval + static_ret_expr).values());
+                    rh = stmt.getOutput();
+                }
+                else {
+                    softlist args = (hbuf + cval + static_ret_expr).values();
+                    int size = 0;
+                    foreach any arg in (args) {
+                        if (arg.typeCode() == NT_LIST) {
+                            size = arg.size();
+                            break;
+                        }
+                    }
+                    if (size) {
+                        for (int i = 0; i < size; ++i) {
+                            # get arg list for row
+                            list targs = map $1.typeCode() == NT_LIST ? $1[i] : $1, args;
+                            stmt.execArgs(targs);
+                        }
+                    }
+                }
             }
 
             # call rowcode if it exists
@@ -734,7 +753,7 @@ on_error ds.rollback();
         #! creates the object from the supplied arguments
         /** @param target the target table object
             @param opts an optional hash of options for the object as follows:
-            - \c "block_size": the number of rows executed at once (default: 500)
+            - \c "block_size": the number of rows executed at once (default: 1000)
             - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
             - \c "upsert_strategy": the upsert strategy to use; default SqlUtil::AbstractTable::UpsertAuto; see @ref upsert_options for possible values for the upsert strategy
         */
@@ -744,7 +763,7 @@ on_error ds.rollback();
         #! creates the object from the supplied arguments
         /** @param target the target table object
             @param opts an optional hash of options for the object as follows:
-            - \c "block_size": the number of rows executed at once (default: 500)
+            - \c "block_size": the number of rows executed at once (default: 1000)
             - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
             - \c "upsert_strategy": the upsert strategy to use; default SqlUtil::AbstractTable::UpsertAuto; see @ref upsert_options for possible values for the upsert strategy
         */

@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,7 @@
 #ifndef QORE_QORE_DATE_PRIVATE_H
 #define QORE_QORE_DATE_PRIVATE_H
 
-#include <math.h>
+#include <cmath>
 
 // note: this implementation does not yet take into account leap seconds,
 //       even if this information is available in the zoneinfo data
@@ -284,7 +284,7 @@ struct qore_date_info {
 
       return secs
          + (int64)hour * 3600
-         + (int64)minute*  60
+         + (int64)minute * 60
          + (int64)second;
    }
 
@@ -491,7 +491,7 @@ protected:
    // epoch is set to local time; needs to be converted to UTC
    DLLLOCAL void setLocalIntern(int n_us) {
       // normalize units in case us > 1000000 or < 0
-      normalize_units2<int64>(epoch, n_us, 1000000);
+      normalize_units2<int64, int>(epoch, n_us, 1000000);
       us = n_us;
 
       // get standard time UTC offset
@@ -559,13 +559,56 @@ public:
       //printd(5, "qore_absolute_time::set(zone: %p (%s) %04d-%02d-%02d %02d:%02d:%02d.%06d) epoch: %lld\n", zone, zone->getRegionName(), year, month, day, hour, minute, second, n_us, epoch);
    }
 
+   DLLLOCAL void set(const AbstractQoreZoneInfo* n_zone, int year, int month, int day, int hour, int minute, int second, int n_us, ExceptionSink* xsink) {
+      zone = n_zone;
+
+      epoch = qore_date_info::getEpochSeconds(year, month, day, hour, minute, second);
+
+      setLocalIntern(n_us);
+
+      // check input
+      if (month < 1 || month > 12) {
+         xsink->raiseException("INVALID-DATE", "invalid month value: %d; expecting 1 - 12 inclusive", month);
+         return;
+      }
+      if (day < 1) {
+         xsink->raiseException("INVALID-DATE", "invalid day value: %d; day must be > 0", day);
+         return;
+      }
+      if (day > 28) {
+         int dom = qore_date_info::getLastDayOfMonth(month, year);
+         if (day > dom) {
+            xsink->raiseException("INVALID-DATE", "invalid day of the month: %d; %04d-%02 has %d days", day, year, month, dom);
+            return;
+         }
+      }
+      if (hour < 0 || hour > 23) {
+         xsink->raiseException("INVALID-DATE", "invalid hour value: %d; expecting 0 - 23 inclusive", hour);
+         return;
+      }
+      if (minute < 0 || minute > 60) {
+         xsink->raiseException("INVALID-DATE", "invalid minute value: %d; expecting 0 - 60 inclusive", minute);
+         return;
+      }
+      if (second < 0 || second > 60) {
+         xsink->raiseException("INVALID-DATE", "invalid second value: %d; expecting 0 - 60 inclusive", second);
+         return;
+      }
+      if (n_us < 0 || n_us > 999999) {
+         xsink->raiseException("INVALID-DATE", "invalid microsecond value: %d; expecting 0 - 999999 inclusive", n_us);
+         return;
+      }
+
+      //printd(5, "qore_absolute_time::set(zone: %p (%s) %04d-%02d-%02d %02d:%02d:%02d.%06d) epoch: %lld\n", zone, zone->getRegionName(), year, month, day, hour, minute, second, n_us, epoch);
+   }
+
    DLLLOCAL void set(const qore_absolute_time& p) {
       epoch = p.epoch;
       us = p.us;
       zone = p.zone;
    }
 
-   DLLLOCAL void set(const char* str, const AbstractQoreZoneInfo* n_zone = currentTZ());
+   DLLLOCAL void set(const char* str, const AbstractQoreZoneInfo* n_zone = currentTZ(), ExceptionSink* xsink = 0);
 
    DLLLOCAL void setZone(const AbstractQoreZoneInfo* n_zone) {
       zone = n_zone;
@@ -879,6 +922,20 @@ public:
       normalize();
    }
 
+   DLLLOCAL void setSeconds(int64 s, int usecs = 0) {
+      year = 0;
+      month = 0;
+      day = 0;
+      hour = s / 3600;
+      if (hour)
+         s -= hour * 3600;
+      minute = s / 60;
+      if (minute)
+         s -= minute * 60;
+      second = s;
+      us = usecs;
+   }
+
    DLLLOCAL void setTime(int h, int m, int s, int usecs) {
       hour = h;
       minute = m;
@@ -1120,6 +1177,10 @@ public:
       d.abs.set(zone, y, mo, dy, h, mi, s, us);
    }
 
+   DLLLOCAL qore_date_private(const AbstractQoreZoneInfo* zone, int y, int mo, int dy, int h, int mi, int s, int us, ExceptionSink* xsink) : relative(false) {
+      d.abs.set(zone, y, mo, dy, h, mi, s, us, xsink);
+   }
+
    DLLLOCAL qore_date_private(const QoreValue v) : relative(true) {
       d.rel.set(v);
    }
@@ -1171,10 +1232,11 @@ public:
       d.abs.set(currentTZ(), 1900 + tms.tm_year, tms.tm_mon + 1, tms.tm_mday, tms.tm_hour, tms.tm_min, tms.tm_sec, us);
    }
 
-   DLLLOCAL void setAbsoluteDate(const char* str, const AbstractQoreZoneInfo* zone = currentTZ());
+   DLLLOCAL void setAbsoluteDate(const char* str, const AbstractQoreZoneInfo* zone = currentTZ(), ExceptionSink* xsink = 0);
    DLLLOCAL void setRelativeDate(const char* str);
 
    DLLLOCAL void setDate(const char* str);
+   DLLLOCAL void setDate(const char* str, ExceptionSink* xsink);
 
    DLLLOCAL bool isRelative() const {
       return relative;
@@ -1331,6 +1393,11 @@ public:
       d.rel.setLiteral(date, us);
    }
 
+   DLLLOCAL void setRelativeDateSeconds(int64 s, int us = 0) {
+      relative = true;
+      d.rel.setSeconds(s, us);
+   }
+
    DLLLOCAL int64 getRelativeSeconds() const {
       return relative ? d.rel.getRelativeSeconds() : d.abs.getRelativeSeconds();
    }
@@ -1423,7 +1490,7 @@ public:
       }
 
       if (day < 1 || day > 7) {
-         xsink->raiseException("ISO-8601-INVALID-DAY", "calendar week days must be between 1 and 7 for Mon - Sun (day value passed: %f)", day);
+         xsink->raiseException("ISO-8601-INVALID-DAY", "calendar week days must be between 1 and 7 for Mon - Sun (day value passed: %d)", day);
          return 0;
       }
 

@@ -47,7 +47,7 @@
     For detailed information on %Qore character encoding handling, please see @ref character_encoding.\n\n
     It is legal to specify a string literal with newline characters like the following:\n
     @code{.py}
-$str = "this string is
+str = "this string is
 on more than 1 line";
     @endcode \n
     See @ref string_escape_chars "string escape characters" for a description of escape characters in double-quoted strings.\n\n
@@ -119,7 +119,7 @@ on more than 1 line";
     @section number Number
 
     @par Description:
-    %Qore "number" values are arbitrary-precision numbers as provided by the <a href="http://gmplib.org">GMP</a> and <a href="http://www.mpfr.org">MPFR</a> libraries.\n\n
+    %Qore "number" values are arbitrary-precision numbers as provided by the <a href="http://gmplib.org">GMP</a> and <a href="http://www.mpfr.org">MPFR</a> libraries. Inside, they are implemented as floating-point values and therefore comparing them entails the same problems as comparing floats. You should not compare two number values for equality directly.\n\n
     Operations with number values are generally slower than those with @ref float "floats" but support far greater accuracy.  To give an immediate number value; write an integer or floating-point value and append an \c "n" to it, designating a "number" value.\n\n
     In numeric operations where at least one argument is a number type, the other operands will generally be automatically converted to a number type and the result of the operation will also be a number type.  When an operator acts on two values of type number, the result of the operation has the precision of the operand with the greatest precision.
 
@@ -229,11 +229,11 @@ prompt% qore -X '18:35:26+08:00'
     .
     Such values are recommended to give to functions and methods taking a timeout value as the units are then clear in the source code (whereas if an integer is given, it may not be clear that the function or method expects a value in milliseconds, for example); for example:
     @code{.py}
-my any $val = $q.pop(20s);
+any val = q.pop(20s);
     @endcode
     is clearer than the alternative with an argument given as a value in implied milliseconds to the @ref Qore::Thread::Queue::pop(timeout) "Queue::pop()" method:
     @code{.py}
-my any $val = $q.pop(20000);
+any val = q.pop(20000);
     @endcode
     <b>Date Specifiers For Single Values For Relative Dates (non-<a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> syntax)</b>
     |!Component|!Meaning|!Example|!Description
@@ -287,13 +287,19 @@ prompt% qore -X 'P0000-00-03T21:00:00'
     - one month is treated as equivalent to 31 days (\c 1M == \c 31D)
     - 365 days are treated as equivalent to one year (\c 365D == \c 1Y)
 
-    These assumptions try to make sense of expressions like: @verbatim 45D > 1M @endverbatim for example.  Month lengths can range from 28 to 31 days, therefore while the expression: @verbatim 30D < 1M @endverbatim will be evaluated as @ref True, when adding \c 30D to an @ref absolute_dates "absolute date value", the result could be less than adding \c 1M (for example, when the operand is an @ref absolute_dates "absolute date" in February).
+    These assumptions try to make sense of expressions like: @verbatim 45D > 1M @endverbatim for example.  Month lengths can range from 28 to 31 days, therefore while the expression: @verbatim 30D < 1M @endverbatim will be evaluated as @ref Qore::True "True", when adding \c 30D to an @ref absolute_dates "absolute date value", the result could be less than adding \c 1M (for example, when the operand is an @ref absolute_dates "absolute date" in February).
 
     <hr>
     @section binary Binary
 
     @par Description:
     The binary data type is used to hold binary arbitrary binary data. Internally it is represented by a pointer to a memory location for the data and a size indicator.\n\n
+    Binary literal values are given in between angle brackets as an even series of hexadecimal digits:\n
+    @code{.py}
+binary b = <651144fe3310b5cc84>;
+b += <abde77>;
+# b now contains <651144fe3310b5cc84abde77>
+    @endcode \n
     Binary data can be concatenated with the + and += operators and manipulated with the @ref splice "splice" and @ref extract "extract" operators.\n\n
     This data can be manipulated by being written and read from @ref Qore::File, @ref Qore::Socket, @ref Qore::SQL::Datasource, @ref Qore::SQL::DatasourcePool, or @ref Qore::SQL::SQLStatement objects, or converted and parsed to/from base64 encoded strings using the makeBase64String() and parseBase64String() functions, or compressed and decompressed using the compress(), gzip(), bzip2(), etc. functions, and processed by most cryptographic funtions, among others.\n\n
     Binary objects can be read from a @ref Qore::File object using the Qore::File::readBinary() method and can be written using the Qore::File::write() method. Please see the @ref Qore::File class for more information.\n\n

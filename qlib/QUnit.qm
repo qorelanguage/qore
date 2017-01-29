@@ -14,7 +14,7 @@
 %requires Util
 
 module QUnit {
-    version = "0.1";
+    version = "0.2";
     desc = "User module for unit testing with dependency injection support";
     author = "Zdenek Behan <zdenek.behan@qoretechnologies.com>";
     url = "http://qore.org";
@@ -35,8 +35,83 @@ module QUnit {
     It also provides a number of pre-defined testing functions for use in assertions.
 
     <b>Examples:</b>
-    \include test/TestTemplate.qtest
-    \include test/TestTemplateInjected.qtest
+    @code{.py}
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../qlib/QUnit.qm
+
+#%include ./_some_module_to_test
+
+%exec-class QUnitTest
+
+public class QUnitTest inherits QUnit::Test {
+    constructor() : Test("QUnitTest", "1.0") {
+        addTestCase("What this method is testing", \testMethod(), NOTHING);
+        addTestCase("Skipped test", \testSkipped(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    testMethod() {
+        # Test against success
+        testAssertion("success", \equals(), (True, True));
+        # Test against something else
+        testAssertion("failure", \equals(), (True, False), RESULT_FAILURE);
+    }
+
+    testSkipped() {
+        # Skip this test
+        testSkip("Because of the reason it skipped");
+    }
+}
+    @endcode
+
+    @code{.py}
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../qlib/QUnit.qm
+
+#%include ./_MODULE_TO_TEST_
+
+%exec-class MyTestClass
+
+public class MyTestClass inherits QUnit::DependencyInjectedTest {
+    constructor() : DependencyInjectedTest("MyTestClass", "1.0") {
+        addTestCase("Test something", \testMethod(), NOTHING);
+
+        # Mandatory for injected tests
+        setScriptPath(get_script_path());
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    nothing performModuleInjections() {
+        #injectIntoModule("_MODULE_TO_INJECT_INTO_(same as _MODULE_TO_TEST_?)");
+    }
+
+    nothing performInjections(Program p) {
+        #p.importClass("_class_to_inject_", "_class_to_inject_into_", True);
+    }
+
+    testMethod() {
+        # Same test style as in TestExample.qtest
+        testAssertion("success", \equals(), (True, True));
+    }
+}
+    @endcode
 
     @subsection qunit_run Running tests
 
@@ -54,6 +129,9 @@ module QUnit {
     - junit - machine readable format for further processing
 
     @section unittest_relnotes Release Notes
+
+    @subsection qunit_v0_2 Version 0.2
+    - fixed showing the assertion location when there are test modules on top of QUnit.qm (<a href="https://github.com/qorelanguage/qore/issues/1046">issue 1046</a>)
 
     @subsection qunit_v0_1 Version 0.1
     - initial version of module
@@ -353,7 +431,7 @@ public class QUnit::TestCase {
 
     static *string getStackPos(list stack) {
         foreach hash callSite in (stack) {
-            if (callSite.file !~ /QUnit\.qm/) {
+            if (callSite.file !~ /\.qm/) {
                 string fn = regex_subst (callSite.file, "<run-time-loaded: (.*)>", "$1");
                 return sprintf("%s:%d", fn, callSite.line + callSite.offset);
             }
@@ -362,7 +440,7 @@ public class QUnit::TestCase {
 
     static string getPos(hash ex) {
         string pos = get_ex_pos(ex);
-        if (pos =~ /QUnit\.qm/ && ex.callstack) {
+        if (pos =~ /\.qm/ && ex.callstack) {
             *string np = TestCase::getStackPos(ex.callstack);
             if (np)
                 pos = np;
@@ -776,18 +854,65 @@ addTestCase(obj);
         testCases += tc;
     }
 
+    private string escapeSpecialChars(string str) {
+        str = replace(str, "\b", "<\\b>");
+        str = replace(str, "\f", "<\\f>");
+        str = replace(str, "\n", "<\\n>");
+        str = replace(str, "\r", "<\\r>");
+        str = replace(str, "\t", "<\\t>");
+        str = replace(str, "\v", "<\\v>");
+        return str;
+    }
+
+    private bool diffInSpecialCharsOnly(string a, string b) {
+        a =~ s/[[:space:]]//;
+        a =~ s/[[:cntrl:]]//;
+        b =~ s/[[:space:]]//;
+        b =~ s/[[:cntrl:]]//;
+        return (a == b);
+    }
+
     #! Helper function for printing out human-readable comparison of two values.
     private string printUnexpectedData(any exp, any act, *bool neg, *bool soft_comparisons) {
         string expected;
         string actual;
         # if values are "soft equal", then they must have different types, so we make the type differences explicit here
         if (exp == act) {
-            expected = sprintf("(%s) %N", exp.type(), exp);
-            actual = neg ? "<identical>" : sprintf("(%s) %N", act.type(), act);
+            bool done = False;
+            # if the values are strings that differ only in encodings, then show the encodings
+            if (exp.typeCode() == NT_STRING && act.typeCode() == NT_STRING && exp.encoding() != act.encoding() && exp.length() == act.length()) {
+                # in case of encoding errors, use exception handling
+                try {
+                    string nact = convert_encoding(exp.encoding(), act);
+                    if (exp === nact) {
+                        done = True;
+                        expected = sprintf("(string %y) %N", exp.encoding(), exp);
+                        actual = neg ? "<identical>" : sprintf("(string %y) %N", act.encoding(), act);
+                    }
+                }
+                catch (hash ex) {
+                }
+            }
+            if (!done) {
+                expected = sprintf("(%s) %N", exp.type(), exp);
+                actual = neg ? "<identical>" : sprintf("(%s) %N", act.type(), act);
+            }
         }
         else {
-            expected = sprintf("%N", exp);
-            actual = neg ? "<identical>" : sprintf("%N", act);
+            if (exp.typeCode() == NT_BINARY) {
+                expected = sprintf("(binary: size %d) <%s>", exp.size(), make_hex_string(exp));
+            }
+            else
+                expected = sprintf("%N", exp);
+
+            if (act.typeCode() == NT_BINARY)
+                actual = neg ? "<identical>" : sprintf("(binary: size %d) <%s>", act.size(), make_hex_string(act));
+            else
+                actual = neg ? "<identical>" : sprintf("%N", act);
+        }
+        if (diffInSpecialCharsOnly(expected, actual)) {
+            expected = escapeSpecialChars(expected);
+            actual = escapeSpecialChars(actual);
         }
         list expectedLines = expected.split("\n");
         list actualLines = actual.split("\n");
@@ -800,6 +925,12 @@ addTestCase(obj);
             # For some very simple values that fit on one line, just put it on one line. For values that would overflow the standard line size, do two lines.
             bool twoline = length(expected) + length(actual) > 40;
             result += sprintf("Expected%s: %s%sActual: %s", neg ? " Not Equal" : "", expected, twoline ? "\n" : ", ", actual);
+            # For numeric values, when really verbose or difference not visible, compute and show the difference.
+            if ((m_options.verbose > 1 || sprintf("%y", exp) == sprintf("%y", act)) &&
+                    inlist (exp.typeCode(), (NT_INT, NT_FLOAT, NT_NUMBER)) &&
+                    inlist (act.typeCode(), (NT_INT, NT_FLOAT, NT_NUMBER))) {
+                result += sprintf("%sDifference: %y", twoline ? "\n" : ", ", abs(exp-act));
+            }
         } else {
             string hr = "\t--------------------\n";
             result += sprintf("Expected%s:\n", neg ? " Not Equal" : "") + hr;
@@ -890,7 +1021,7 @@ testAssertionValue("date > operator", now() > (now() - 1D), True);
 
         @note make sure and use testAssertion() for any calls that could throw an exception
      */
-    public any testAssertionValue(string name, any actual, any expected) {
+    public any testAssertionValue(*string name, any actual, any expected) {
         assertEq(expected, actual, name);
         return actual;
     }
@@ -905,7 +1036,7 @@ assertEqSoft("5", functionThatShouldReturnFive());
         @param actual the value generated by the test
         @param name the name or description of the assertion
      */
-    public assertEqSoft(any expected, any actual, *string name = NOTHING) {
+    public assertEqSoft(any expected, any actual, *string name) {
         TestCase tc = getTestCase("assertEqSoft");
         # increment assertion count
         tc.incAssertions();
@@ -931,13 +1062,67 @@ assertEq(5, functionThatShouldReturnFive());
         @param actual the value generated by the test
         @param name the name or description of the assertion
      */
-    public assertEq(any expected, any actual, *string name = NOTHING) {
+    public assertEq(any expected, any actual, *string name) {
         TestCase tc = getTestCase("assertEq");
         # increment assertion count
         tc.incAssertions();
         ++num_asserts;
 
         if (expected !== actual) {
+            throw "TEST-EXCEPTION", printUnexpectedData(expected, actual), ("name": name, "pos": NOTHING);
+        } else {
+            tc.incAssertionsOk();
+            ++num_asserts_ok;
+            if (m_options.verbose > 1)
+                printf("+ OK: %y assertion %s\n", m_name, Test::getAssertionName(name));
+        }
+    }
+
+    #! Tests a float value for equality to an expected value with an allowed error
+    /** @par Example:
+        @code{.py}
+assertFloatEq(2.5, 2.50001, 0.001);
+        @endcode
+
+        @param expected the expected value
+        @param actual the value generated by the test
+        @param epsilon the allowed error
+        @param name the name or description of the assertion
+     */
+    public assertFloatEq(float expected, float actual, float epsilon = 0.0000000001, *string name) {
+        TestCase tc = getTestCase("assertFloatEq");
+        # increment assertion count
+        tc.incAssertions();
+        ++num_asserts;
+
+        if (abs(expected-actual) >= epsilon) {
+            throw "TEST-EXCEPTION", printUnexpectedData(expected, actual), ("name": name, "pos": NOTHING);
+        } else {
+            tc.incAssertionsOk();
+            ++num_asserts_ok;
+            if (m_options.verbose > 1)
+                printf("+ OK: %y assertion %s\n", m_name, Test::getAssertionName(name));
+        }
+    }
+
+    #! Tests a number value for equality to an expected value with an allowed error
+    /** @par Example:
+        @code{.py}
+assertNumberEq(2.5n, 2.50001n, 0.001n);
+        @endcode
+
+        @param expected the expected value
+        @param actual the value generated by the test
+        @param epsilon the allowed error
+        @param name the name or description of the assertion
+     */
+    public assertNumberEq(number expected, number actual, number epsilon = 0.0000000001, *string name) {
+        TestCase tc = getTestCase("assertNumberEq");
+        # increment assertion count
+        tc.incAssertions();
+        ++num_asserts;
+
+        if (abs(expected-actual) >= epsilon) {
             throw "TEST-EXCEPTION", printUnexpectedData(expected, actual), ("name": name, "pos": NOTHING);
         } else {
             tc.incAssertionsOk();
@@ -956,8 +1141,8 @@ assertTrue(functionThatShouldReturnTrue());
         @param actual the value generated by the test
         @param name the name or description of the assertion
      */
-    public assertTrue(any actual, *string name = NOTHING) {
-        testAssertionValue(name ?? "", actual, True);
+    public assertTrue(any actual, *string name) {
+        testAssertionValue(name, actual, True);
     }
 
     #! Tests a boolean value
@@ -969,8 +1154,8 @@ assertFalse(functionThatShouldReturnFalse());
         @param actual the value generated by the test
         @param name the name or description of the assertion
      */
-    public assertFalse(any actual, *string name = NOTHING) {
-        testAssertionValue(name ?? "", actual, False);
+    public assertFalse(any actual, *string name) {
+        testAssertionValue(name, actual, False);
     }
 
     #! Tests that a piece of code throws an exception with given description
@@ -984,7 +1169,7 @@ assertThrows("DIVISION-BY-ZERO", "division by zero found in integer expression",
         @param theCode the code to execute
         @param args optional arguments to the code
      */
-    public assertThrows(string expectedErr, *string expectedDesc, code theCode, *softlist args) {
+    public assertThrows(string expectedErr, *string expectedDesc, code theCode, *softlist args, *string name) {
         TestCase tc = getTestCase("assertEqThrows");
         tc.incAssertions();
         ++num_asserts;
@@ -993,9 +1178,11 @@ assertThrows("DIVISION-BY-ZERO", "division by zero found in integer expression",
         try {
             call_function_args(theCode, args);
         } catch (e) {
-            if (e.err == expectedErr && (expectedDesc == NOTHING || e.desc == expectedDesc)) {
+            if (e.err == expectedErr && (expectedDesc == NOTHING || e.desc.regex(expectedDesc))) {
                 tc.incAssertionsOk();
                 ++num_asserts_ok;
+                if (m_options.verbose > 1)
+                    printf("+ OK: %y assertion %s\n", m_name, Test::getAssertionName(name));
                 return;
             }
             throw "TEST-EXCEPTION", printUnexpectedData(exp, get_exception_string(e));
@@ -1013,8 +1200,8 @@ assertThrows("DIVISION-BY-ZERO", sub(int a) {print(5/a);}, 0);
         @param theCode the code to execute
         @param args optional arguments to the code
      */
-    public assertThrows(string expectedErr, code theCode, *softlist args) {
-        assertThrows(expectedErr, NOTHING, theCode, args);
+    public assertThrows(string expectedErr, code theCode, *softlist args, *string name) {
+        assertThrows(expectedErr, NOTHING, theCode, args, name);
     }
 
     #! Skips assertion on purpose
@@ -1054,7 +1241,7 @@ fail("Unexpected code executed");
 
         @param msg the failure message
      */
-    public fail(string msg) {
+    public fail(*string msg) {
         throw "TEST-EXCEPTION", msg;
     }
 

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -62,7 +62,7 @@ typedef qore_size_t (*mbcs_pos_t)(const char* str, const char* ptr, bool &invali
     @param len the number of valid bytes at the start of the character pointer
     @return 0=invalid, positive = number of characters needed, negative numbers = number of additional bytes needed to perform the check
  */
-typedef qore_size_t (*mbcs_charlen_t)(const char* str, qore_size_t valid_len);
+typedef qore_offset_t (*mbcs_charlen_t)(const char* str, qore_size_t valid_len);
 
 //! for multi-byte non-ascii compatible character encodings: returns the unicode code point for the given character, assumes there is enough data for the character (must be checked before calling)
 typedef unsigned (*mbcs_get_unicode_t)(const char* p);
@@ -105,7 +105,7 @@ public:
    //! gives the length of the string in characters
    /** @param p a pointer to the character data
        @param end a pointer to the next byte after the end of the character data
-       @param invalid if true after executing the function, invalid input was given and the return value should be ignored 
+       @param invalid if true after executing the function, invalid input was given and the return value should be ignored
        @return the number of characters in the string
    */
    DLLEXPORT qore_size_t getLength(const char* p, const char* end, bool& invalid) const;
@@ -122,7 +122,7 @@ public:
    /** @param p a pointer to the character data
        @param end a pointer to the next byte after the end of the character data
        @param c the number of characters to check
-       @param invalid if true after executing the function, invalid input was given and the return value should be ignored 
+       @param invalid if true after executing the function, invalid input was given and the return value should be ignored
        @return the number of bytes for the given number of characters in the string or up to the end of the string
    */
    DLLEXPORT qore_size_t getByteLen(const char* p, const char* end, qore_size_t c, bool& invalid) const;
@@ -139,7 +139,7 @@ public:
    //! gives the character position (number of characters) starting from the first pointer to the second
    /** @param p a pointer to the character data
        @param end a pointer to the next byte after the end of the character data
-       @param invalid if true after executing the function, invalid input was given and the return value should be ignored 
+       @param invalid if true after executing the function, invalid input was given and the return value should be ignored
        @return the number of bytes for the given number of characters in the string
    */
    DLLEXPORT qore_size_t getCharPos(const char* p, const char* end, bool& invalid) const;
@@ -156,10 +156,11 @@ public:
    /** always returns 1 for single-byte encodings
        @param p a pointer to the character data to check
        @param valid_len the number of valid bytes at the start of the character pointer
-       @return 0=invalid, positive = number of characters needed, negative numbers = number of additional bytes needed to perform the check
+
+       @return 0=invalid, positive = number of bytes needed to represent the character (and all are present), negative numbers = number of additional bytes needed to perform the check
    */
-   DLLEXPORT qore_size_t getCharLen(const char* p, qore_size_t valid_len) const;
-      
+   DLLEXPORT qore_offset_t getCharLen(const char* p, qore_size_t valid_len) const;
+
    //! returns true if the encoding is a multi-byte encoding
    DLLEXPORT bool isMultiByte() const;
 
@@ -176,14 +177,14 @@ public:
    /** @since Qore 0.8.12
     */
    DLLEXPORT unsigned getMinCharWidth() const;
-   
+
    //! returns true if the character encoding is backwards-compatible with ASCII
    /** @since Qore 0.8.12
     */
    DLLEXPORT bool isAsciiCompat() const;
 
    //! returns the unicode code point for the given character, must be a complete character and only one character; assumes that there is space left in the string for the character (call getCharLen() before calling this function)
-   /** @note: can only be called for character encodings where isAsciiCompat() returns false 
+   /** @note: can only be called for character encodings where isAsciiCompat() returns false
        @since Qore 0.8.12
     */
    DLLLOCAL unsigned getUnicode(const char* p) const;
@@ -203,7 +204,7 @@ private:
    DLLLOCAL static encoding_map_t emap;
    DLLLOCAL static const_encoding_map_t amap;
    DLLLOCAL static QoreThreadLock mutex;
-   
+
    DLLLOCAL static const QoreEncoding* addUnlocked(const char* n_code, const char* n_desc = 0, unsigned char n_minwidth = 1, unsigned char n_maxwidth = 1, mbcs_length_t l = 0, mbcs_end_t e = 0, mbcs_pos_t p = 0, mbcs_charlen_t c = 0,  mbcs_get_unicode_t gu = 0, bool n_ascii_compat = true);
    DLLLOCAL static const QoreEncoding* findUnlocked(const char* name);
 
@@ -232,13 +233,13 @@ public:
 };
 
 DLLEXPORT qore_size_t q_get_byte_len(const QoreEncoding* enc, const char* p, const char* end, qore_size_t c, ExceptionSink* xsink);
-DLLEXPORT qore_size_t q_get_char_len(const QoreEncoding* enc, const char* p, qore_size_t valid_len, ExceptionSink* xsink);
+DLLEXPORT qore_offset_t q_get_char_len(const QoreEncoding* enc, const char* p, qore_size_t valid_len, ExceptionSink* xsink);
 
 //! the QoreEncodingManager object
 DLLEXPORT extern QoreEncodingManager QEM;
 
 // builtin character encodings
-DLLEXPORT extern const QoreEncoding* QCS_DEFAULT, //!< the default encoding for the Qore library 
+DLLEXPORT extern const QoreEncoding* QCS_DEFAULT, //!< the default encoding for the Qore library
    *QCS_USASCII,                                  //!< ascii encoding
    *QCS_UTF8,                                     //!< UTF-8 multi-byte encoding (only UTF-8 and UTF-16 are multi-byte encodings)
    *QCS_UTF16,                                    //!< UTF-16 (only UTF-8 and UTF-16* are multi-byte encodings) - do not use; use UTF-8 instead

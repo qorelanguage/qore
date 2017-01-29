@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,26 +33,34 @@
 
 #define _QORE_QORELOGICALGREATERTHANOREQUALSOPERATORNODE_H
 
-class QoreLogicalGreaterThanOrEqualsOperatorNode : public QoreLogicalLessThanOperatorNode {
+class QoreLogicalGreaterThanOrEqualsOperatorNode : public QoreBoolBinaryOperatorNode {
 OP_COMMON
 protected:
-   DLLLOCAL virtual QoreValue evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
-      return !QoreLogicalLessThanOperatorNode::evalValueImpl(needs_deref, xsink).getAsBool();
-   }
+   // type of pointer to optimized versions depending on arguments found at parse-time
+   typedef bool(QoreLogicalGreaterThanOrEqualsOperatorNode::*eval_t)(ExceptionSink *xsink) const;
+   // pointer to optimized versions depending on arguments found at parse-time
+   eval_t pfunc;
+
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const;
 
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-      AbstractQoreNode *rv = QoreLogicalLessThanOperatorNode::parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
-      // make sure to reverse sense of comparison if this expression was resolved to a constant boolean value
-      if (rv != this) {
-         assert(get_node_type(rv) == NT_BOOLEAN);
-         return rv->getAsBool() ? (AbstractQoreNode*)&False : (AbstractQoreNode*)&True;
-      }
-      return rv;
+      return parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
    }
 
+   DLLLOCAL AbstractQoreNode *parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+
+   DLLLOCAL bool floatGreaterThanOrEquals(ExceptionSink *xsink) const;
+   DLLLOCAL bool bigIntGreaterThanOrEquals(ExceptionSink *xsink) const;
+
 public:
-   DLLLOCAL QoreLogicalGreaterThanOrEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreLogicalLessThanOperatorNode(n_left, n_right) {
+   DLLLOCAL QoreLogicalGreaterThanOrEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBoolBinaryOperatorNode(n_left, n_right), pfunc(0) {
    }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      return copyBackgroundExplicit<QoreLogicalGreaterThanOrEqualsOperatorNode>(xsink);
+   }
+
+   DLLLOCAL static bool doGreaterThanOrEquals(QoreValue l, QoreValue r, ExceptionSink* xsink);
 };
 
 #endif

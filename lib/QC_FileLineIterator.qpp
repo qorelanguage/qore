@@ -28,113 +28,11 @@
   information.
 */
 
-#include <qore/Qore.h>
-#include <qore/intern/qore_qf_private.h>
-
 #include <errno.h>
 
-class FileLineIterator : public QoreIteratorBase, public QoreFile {
-protected:
-   QoreStringNode* line,
-      * eol;
-   int64 num;
-   bool validp;
-   bool trim;
-   bool convert_to_utf8;
-
-   DLLLOCAL ~FileLineIterator() {
-      if (eol)
-         eol->deref();
-      if (line)
-         line->deref();
-   }
-
-public:
-   DLLLOCAL FileLineIterator(ExceptionSink* xsink, const char* name, const QoreEncoding* enc = QCS_DEFAULT, QoreStringNode* n_eol = 0, bool n_trim = true)
-      : QoreFile(enc), line(new QoreStringNode(enc->isAsciiCompat() ? enc : QCS_UTF8)), eol(n_eol), num(0), validp(false), trim(n_trim), convert_to_utf8(!enc->isAsciiCompat()) {
-      if (open(name, O_RDONLY, 0, enc))
-         xsink->raiseErrnoException("FILELINEITERATOR-OPEN-ERROR", errno, "cannot open '%s'", name);
-   }
-
-   DLLLOCAL FileLineIterator(ExceptionSink* xsink, const FileLineIterator& old)
-      : QoreFile(old.getEncoding()), line(new QoreStringNode(old.getEncoding())), eol(old.eol ? old.eol->stringRefSelf() : 0), num(old.num), validp(old.validp), trim(old.trim), convert_to_utf8(old.convert_to_utf8) {
-      // reopen file
-      std::string fn = old.getFileNameStr();
-      if (open(fn.c_str(), O_RDONLY, 0, old.getEncoding()))
-         xsink->raiseErrnoException("FILELINEITERATOR-COPY-ERROR", errno, "cannot reopen '%s'", fn.c_str());
-      else if (validp) {
-         // set file in same position
-         setPos(old.getPos());
-      }
-   }
-
-   DLLLOCAL bool next() {
-      // make sure and use a new string if the iterator was already valid
-      if (validp) {
-         line->deref();
-         line = new QoreStringNode(convert_to_utf8 ? QCS_UTF8 : getEncoding());
-      }
-      if (convert_to_utf8)
-         validp = eol ? !priv->readUntilUnicode(eol->getBuffer(), *line, !trim) : !priv->readLineUnicode(*line, !trim);
-      else
-         validp = eol ? !readUntil(eol->getBuffer(), *line, !trim) : !readLine(*line, !trim);
-
-      if (validp) {
-         // increment line number
-         ++num;
-      }
-      else {
-         // reset iterator
-         num = 0;
-         // reset file position
-         setPos(0);
-      }
-      //printd(5, "FileLineIterator::next() this: %p line: %d validp: %d '%s'\n", this, num, validp, line->getBuffer());
-      return validp;
-   }
-
-   DLLLOCAL int64 index() const {
-      return num;
-   }
-
-   DLLLOCAL QoreStringNode* getValue() {
-      assert(validp);
-      return line->stringRefSelf();
-   }
-
-   DLLLOCAL bool valid() const {
-      return validp;
-   }
-
-   DLLLOCAL int checkValid(ExceptionSink* xsink) const {
-      if (!validp) {
-         xsink->raiseException("ITERATOR-ERROR", "the %s is not pointing at a valid element; make sure %s::next() returns True before calling this method", getName(), getName());
-         return -1;
-      }
-      return 0;
-   }
-
-   DLLLOCAL void reset() {
-      if (validp) {
-         // reset line number
-         num = 0;
-         // mark as invalid
-         validp = false;
-         // reset line buffer
-         line->deref();
-         line = new QoreStringNode(getEncoding());
-         // reset file position
-         setPos(0);
-      }
-   }
-
-   DLLLOCAL virtual void deref() {
-      if (ROdereference())
-         delete this;
-   }
-
-   DLLLOCAL virtual const char* getName() const { return "FileLineIterator"; }
-};
+#include "qore/Qore.h"
+#include "qore/intern/FileLineIterator.h"
+#include "qore/intern/qore_qf_private.h"
 
 //! This class defines a line iterator for text files
 /** @since %Qore 0.8.6
@@ -159,33 +57,25 @@ public:
     /export/home/pvanek/ren.list:2155 = "zypper-1.4.5-1.10.x86_64"
     @endcode
 
+    @see @ref Qore::InputStreamLineIterator
     @see @ref Qore::DataLineIterator
  */
-qclass FileLineIterator [arg=FileLineIterator* i; ns=Qore; vparent=AbstractIterator; dom=FILESYSTEM];
+qclass FileLineIterator [arg=FileLineIterator* i; ns=Qore; vparent=AbstractLineIterator; dom=FILESYSTEM];
 
-//! opens the given file for reading with the given options and creates the FileLineIterator object
+//! Opens the given file for reading with the given options and creates the FileLineIterator object
 /** @param path the path to open for reading
-    @param encoding the character encoding tag for underlying file and therefore the string return values for the lines iterated with this class; if not present, the @ref default_encoding "default character encoding" is assumed
+    @param encoding character encoding of the data in the file; if not ASCII-compatible, all data will be converted to UTF-8; if not present, the @ref default_encoding "default character encoding" is assumed
     @param eol the optional end of line character(s) to use to detect lines in the file; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n" (the last one is only automatically detected when not connected to a terminal device in order to keep the I/O from stalling); if this string is passed and has a different @ref character_encoding "character encoding" from this object's (as determined by the \c encoding parameter), then it will be converted to the FileLineIterator's @ref character_encoding "character encoding"
-    @param trim if @ref Qore::True "True" the string return values for the lines iterated will be trimmed of the eol bytes
+    @param trim if @ref True the string return values for the lines iterated will be trimmed of the eol bytes
 
-    @throw FILELINEITERATOR-OPEN-ERROR the given file cannot be opened for reading (\c arg will be assigned to the errno value)
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the eol argument has a different @ref character_encoding "character encoding" from the File's and an error occurs during encoding conversion
     @throw ILLEGAL-EXPRESSION FileLineIterator::constructor() cannot be called with a TTY target when @ref no-terminal-io "%no-terminal-io" is set
  */
 FileLineIterator::constructor(string path, *string encoding, *string eol, bool trim = True) {
-   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
    if (eol && eol->empty())
       eol = 0;
-   // make sure that we use the same encoding for the EOL marker as for the file, convert if necessary
-   SimpleRefHolder<QoreStringNode> neol(eol ? new QoreStringNode(qe->isAsciiCompat() ? qe : QCS_UTF8) : 0);
-   if (eol) {
-      neol->concat(eol, xsink);
-      if (*xsink)
-         return;
-   }
 
-   SimpleRefHolder<FileLineIterator> fli(new FileLineIterator(xsink, path->getBuffer(), qe, neol.release(), trim));
+   SimpleRefHolder<FileLineIterator> fli(new FileLineIterator(xsink, path, encoding ? QEM.findCreate(encoding) : QCS_DEFAULT, eol, trim));
    if (*xsink)
       return;
 
@@ -203,7 +93,6 @@ FileLineIterator::constructor(string path, *string encoding, *string eol, bool t
 FileLineIterator ni = i.copy();
     @endcode
 
-    @throw FILELINEITERATOR-COPY-ERROR the original file cannot be reopened for reading (\c arg will be assigned to the errno value)
     @throw ILLEGAL-EXPRESSION FileLineIterator::constructor() cannot be called with a TTY target when @ref no-terminal-io "%no-terminal-io" is set
  */
 FileLineIterator::copy() {
@@ -236,11 +125,11 @@ while (i.next()) {
 bool FileLineIterator::next() {
    if (i->check(xsink))
       return false;
-   return i->next();
+   return i->next(xsink);
 }
 
-//! returns the current line in the file or throws an \c INVALID-ITERATOR exception if the iterator is invalid
-/** @return the current line in the file or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+//! Returns the current line in the file or throws an \c ITERATOR-ERROR exception if the iterator is invalid
+/** @return the current line in the file or throws an \c ITERATOR-ERROR exception if the iterator is invalid
 
     @par Example:
     @code{.py}
@@ -249,7 +138,7 @@ while (i.next()) {
 }
     @endcode
 
-    @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+    @throw ITERATOR-ERROR the iterator is not pointing at a valid element
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
 
     @see FileLineIterator::getLine()
@@ -258,8 +147,8 @@ string FileLineIterator::getValue() [flags=RET_VALUE_ONLY] {
    return i->checkValid(xsink) ? 0 : i->getValue();
 }
 
-//! returns the current line in the file or throws an \c INVALID-ITERATOR exception if the iterator is invalid
-/** @return the current line in the file or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+//! Returns the current line in the file or throws an \c ITERATOR-ERROR exception if the iterator is invalid
+/** @return the current line in the file or throws an \c ITERATOR-ERROR exception if the iterator is invalid
 
     @par Example:
     @code{.py}
@@ -268,7 +157,7 @@ while (i.next()) {
 }
     @endcode
 
-    @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+    @throw ITERATOR-ERROR the iterator is not pointing at a valid element
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
 
     @see FileLineIterator::getValue()
@@ -277,7 +166,7 @@ string FileLineIterator::getLine() [flags=RET_VALUE_ONLY] {
    return i->checkValid(xsink) ? 0 : i->getValue();
 }
 
-//! returns @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
+//! Returns @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
 /** @return @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
 
     @par Example:
@@ -290,7 +179,7 @@ bool FileLineIterator::valid() [flags=CONSTANT] {
    return i->valid();
 }
 
-//! returns the current iterator line number in the file (the first line is line 1) or 0 if not pointing at a valid element
+//! Returns the current iterator line number in the file (the first line is line 1) or 0 if not pointing at a valid element
 /** @return the current iterator line number in the file (the first line is line 1) or 0 if not pointing at a valid element
 
     @par Example:
@@ -316,23 +205,7 @@ string FileLineIterator::getEncoding() [flags=CONSTANT] {
    return new QoreStringNode(i->getEncoding()->getCode());
 }
 
-//! Returns the current file position as an integer giving the offset in bytes from the beginning of the file (starting from zero)
-/** @par Example:
-    @code{.py}
-int pos = i.getPos();
-    @endcode
-
-    @return the current file position as an integer giving the offset in bytes from the beginning of the file (starting from zero)
-
-    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
-
-    @see File::setPos()
- */
-int FileLineIterator::getPos() [flags=RET_VALUE_ONLY] {
-   return i->getPos();
-}
-
-//! returns @ref Qore::True "True" if the FileLineIterator is connected to a terminal device, @ref Qore::False "False" if not
+//! Returns @ref Qore::True "True" if the FileLineIterator is connected to a terminal device, @ref Qore::False "False" if not
 /** @return @ref Qore::True "True" if the FileLineIterator is connected to a terminal device, @ref Qore::False "False" if not
 
     @par Example:
@@ -344,7 +217,7 @@ bool FileLineIterator::isTty() [flags=CONSTANT] {
    return i->isTty();
 }
 
-//! returns the file path/name used to open the file
+//! Returns the file path/name used to open the file
 /** @par Example:
     @code{.py}
 string fn = f.getFileName();
@@ -356,7 +229,7 @@ string FileLineIterator::getFileName() [flags=CONSTANT] {
    return i->getFileName();
 }
 
-//! returns @ref stat_list of stat() of the underlying file
+//! Returns @ref stat_list of stat() of the underlying file
 /** If any errors occur, a \c FILE-HSTAT-ERROR exception is thrown
     @par Example:
     @code{.py}
@@ -370,7 +243,7 @@ list FileLineIterator::stat() [flags=CONSTANT] {
    return i->stat(xsink);
 }
 
-//! returns @ref stat_hash of hstat() of the underlying file
+//! Returns @ref stat_hash of hstat() of the underlying file
 /** If any errors occur, a \c FILE-HSTAT-ERROR exception is thrown
     @par Example:
     @code{.py}
@@ -396,5 +269,5 @@ i.reset();
  */
 FileLineIterator::reset() {
    if (!i->check(xsink))
-      i->reset();
+      i->reset(xsink);
 }

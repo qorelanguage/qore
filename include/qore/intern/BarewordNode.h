@@ -75,7 +75,6 @@ public:
    }
 
    DLLLOCAL void setFinalized() {
-      assert(!finalized);
       finalized = true;
    }
 };

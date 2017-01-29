@@ -1,7 +1,7 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QC_File.h
-  
+
   Qore Programming Language
 
   Copyright (C) 2003 - 2015 David Nichols
@@ -35,6 +35,7 @@
 
 DLLEXPORT extern qore_classid_t CID_FILE;
 DLLEXPORT extern QoreClass *QC_FILE;
+DLLEXPORT extern QoreClass *QC_READONLYFILE;
 
 DLLLOCAL QoreClass *initFileClass(QoreNamespace &qorens);
 
@@ -64,7 +65,7 @@ class File : public AbstractPrivateData, public QoreFile {
       }
 };
 
-static int check_terminal_io(QoreObject* self, const char* m, ExceptionSink* xsink) {
+inline int check_terminal_io(QoreObject* self, const char* m, ExceptionSink* xsink) {
    // check for no-terminal-io at runtime with system objecs
    if (self->isSystemObject() && runtime_check_parse_option(PO_NO_TERMINAL_IO)) {
       xsink->raiseException("ILLEGAL-EXPRESSION", "%s() cannot be called with a system constant object when 'no-terminal-io' is set", m);

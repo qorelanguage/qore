@@ -19,6 +19,7 @@ class DateTest inherits QUnit::Test {
     constructor() : QUnit::Test("DateTest", "1.0") {
         addTestCase("DateTests", \dateTests());
         addTestCase("TimeZoneTests", \timeZoneTests());
+        addTestCase("WindowsTimeZoneTests", \windowsTimeZoneTests());
 
         set_return_value(main());
     }
@@ -91,9 +92,11 @@ class DateTest inherits QUnit::Test {
         testAssertionValue("fourth date month subtraction", date1 - 4M,   2003-10-01T12:30:00);
         testAssertionValue("date function", date1,        date("20040201123000"));
 
-        testAssertionValue("first date mask function", 2001-01-01,   date("2001-01", "YYYY-MM-DD"));
-        testAssertionValue("second date mask function", 2001-01-01,   date("2001 Jan xx", "YYYY Mon DD"));
-        testAssertionValue("second date mask function", 2001-01-01T13:01,  date("2001 JAN 01 13:01", "YYYY MON DD HH:mm"));
+        assertThrows("INVALID-DATE", \date(), ("2001-01", "YYYY-MM-DD"));
+        assertThrows("INVALID-DATE", \date(), ("2001 Jan xx", "YYYY Mon DD"));
+        assertEq(2001-01-01, date("2001-01", "YYYY-MM"));
+        assertEq(2001-01-01, date("2001", "YYYY"));
+        assertEq(2001-01-01T13:01, date("2001 JAN 01 13:01", "YYYY MON DD HH:mm"));
 
         # times without a date are assumed to be on Jan 1, 1970
         testAssertionValue("direct hour", 11:25:27, 1970-01-01T11:25:27.000);
@@ -196,12 +199,30 @@ class DateTest inherits QUnit::Test {
         assertEq(59, date1.minutes());
         assertEq(12, date1.seconds());
         assertEq(2341, date1.microseconds());
-}
+
+        assertEq(2016-12-01, date("20161201", "YYYYMMDD"));
+        assertEq(2016-12-31, date("20161231", "YYYYMMDD"));
+        assertEq(2016-12-01, date("01-12-2016", "DD-MM-YYYY"));
+        assertEq(2016-12-31, date("31-12-2016", "DD-MM-YYYY"));
+
+        assertEq(2016-01-01, date("20160101xxxx"));
+
+        assertThrows("INVALID-DATE", \date(), ("20161301"));
+        assertThrows("INVALID-DATE", \date(), ("20161232"));
+
+        assertThrows("INVALID-DATE", \date(), ("20161301", "YYYYMMDD"));
+        assertThrows("INVALID-DATE", \date(), ("20161232", "YYYYMMDD"));
+        assertThrows("INVALID-DATE", \date(), ("01-13-2016", "DD-MM-YYYY"));
+        assertThrows("INVALID-DATE", \date(), ("32-12-2016", "DD-MM-YYYY"));
+
+        assertThrows("INVALID-DATE", \date(), ("2016"));
+        assertThrows("INVALID-DATE", \date(), ("201601"));
+    }
 
     timeZoneTests() {
         testAssertionValue("UTC offset", (new TimeZone("Europe/Prague")).UTCOffset(), 3600);
 
-        string fn = normalize_dir(get_script_dir() + "/" + TZ_File);
+        string fn = normalize_dir(get_script_dir() + DirSep + TZ_File);
         TimeZone z(fn);
         testAssertionValue("zone path", basename(z.region()), TZ_File);
         testAssertionValue("invalid band", z.date("1946-01-01").toString(), "19460101000000");
@@ -217,6 +238,16 @@ class DateTest inherits QUnit::Test {
         assertEq(-14400, new TimeZone("America/New_York").date("1980-07-01").info().utc_secs_east);
     }
 
+    windowsTimeZoneTests() {
+        if (PlatformOS != "Windows")
+            testSkip("skipping because the test is not run on Windows");
+
+        assertEq("Europe/Vienna", new TimeZone("Europe/Vienna").region());
+        assertEq("Europe/Belgrade", new TimeZone("Central Europe Standard Time").region());
+        assertEq("Europe/Sarajevo", new TimeZone("Central European Standard Time").region());
+        assertThrows("TZINFO-ERROR", sub () { TimeZone tz("ABCDEF"); });
+    }
+
     testDate(date d, int y, int w, int day, int n, reference ri) {
         string str = sprintf("%04d-W%02d-%d", y, w, day);
         hash h = ( "year" : y, "week" : w, "day" : day );
@@ -227,12 +258,11 @@ class DateTest inherits QUnit::Test {
         else
             d1 = d;
 
-        testAssertionValue("getISOWeekString() " + ri, d1,                                  date(int(d)));
-        testAssertionValue("getISOWeekHash() " + ri, get_iso_week_string(d),              str);
-        testAssertionValue("getDayOfWeek() " + ri, get_iso_week_hash(d),                h);
-        testAssertionValue("getDayNumber() " + ri, get_iso_day_of_week(d),              day);
-        testAssertionValue("getDateFromISOWeek() " + ri, get_day_number(d),                   n);
-        testAssertionValue("getDateFromISOWeek() " + ri, get_date_from_iso_week(y, w, day), get_midnight(d));
+        testAssertionValue("get_iso_week_string() " + ri, get_iso_week_string(d), str);
+        testAssertionValue("get_iso_week_hash() " + ri, get_iso_week_hash(d), h);
+        testAssertionValue("get_iso_day_of_week() " + ri, get_iso_day_of_week(d), day);
+        testAssertionValue("get_day_number() " + ri, get_day_number(d), n);
+        testAssertionValue("get_date_from_iso_week() " + ri, get_date_from_iso_week(y, w, day), get_midnight(d));
 
         # not all architectures support the timegm() system call
         #if (d >= 1970-01-01 && d < 2038-01-19)

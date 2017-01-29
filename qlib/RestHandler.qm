@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file RestHandler.qm Qore handler definition for the HttpServer module for exporting REST services
 
-/* RestHandler.qm Copyright (C) 2013 - 2015 Qore Technologies, sro
+/* RestHandler.qm Copyright (C) 2013 - 2016 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 
 # use new-style
 %new-style
@@ -51,7 +51,7 @@
 %endtry
 
 module RestHandler {
-    version = "1.1";
+    version = "1.2";
     desc = "user module for implementing REST services with the Qore HTTP server";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -82,6 +82,8 @@ module RestHandler {
     - <a href="http://qore.org/qore-modules/41-json-module">json</a>: provides automatic support for JSON payload de/serialization
     - <a href="http://qore.org/qore-modules/40-xml-module">xml</a>: provides automatic support for XML-RPC payload de/serialization
     - <a href="http://qore.org/qore-modules/38-yaml-module">yaml</a>: provides automatic support for YAML payload de/serialization
+
+    URL form encoding is supported as well for message bodies according to <a href="https://tools.ietf.org/html/rfc1738">RFC 2738 2.2</a> with \c "Content-Type: application/x-www-form-urlencoded".
 
     For standard REST web service development, the <a href="http://qore.org/qore-modules/41-json-module">json</a> module will be required to support JSON serialization.
 
@@ -301,6 +303,9 @@ Content-Length: 36
 
     @section resthandler_relnotes RestHandler Release Notes
 
+    @subsection rh_1_2 RestHandler v1.2
+    - added logic to attempt to mask passwords in debug log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
+
     @subsection rh_1_1 RestHandler v1.1
     - added support for the HTTP \c OPTIONS method
     - return an error if an unsupported HTTP method is used in a REST call
@@ -308,6 +313,11 @@ Content-Length: 36
     - fixed a bug where an error calling an internal nonexistent method would be reported with an incorrect error message
     - implemented support for notifying persistent connections when the connection is terminated while a persistent connection is in place
     - @ref RestHandler::AbstractRestStreamRequestHandler is now the base abstract class for REST stream request handlers
+    - send errors are now reported in the @ref RestHandler::AbstractRestStreamRequestHandler object so they can be properly logged (<a href="https://github.com/qorelanguage/qore/issues/734">issue 734</a>)
+    - unknown REST class errors with the base class are now reported consistently like all other such errors (<a href="https://github.com/qorelanguage/qore/issues/859">issue 859</a>)
+
+    @subsection rh_1_0_1 RestHandler v1.0.1
+    - added support for URL form encoded formatted message bodies (<a href="https://github.com/qorelanguage/qore/issues/1436">issue 1436</a>)
 
     @subsection rh_1_0 RestHandler v1.0
     - the initial version of the RestHandler module
@@ -329,6 +339,7 @@ public namespace RestHandler {
         private {
             #! call context hash
             hash cx;
+
             #! if an exception is raised in a callback then the exception hash is saved here
             *hash ex;
 
@@ -337,6 +348,9 @@ public namespace RestHandler {
 
             #! headers to add in the response
             hash rhdr;
+
+            #! socket I/O timeout in milliseconds
+            *int timeout_ms;
         }
 
         #! creates the object with the given arguments
@@ -344,9 +358,9 @@ public namespace RestHandler {
             - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
             - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
             - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
-            - \c url: a hash of broken-down URL information (as returned from parseURL())
+            - \c url: a hash of broken-down URL information (as returned from parse_url())
             - \c id: the unique HTTP connection ID
-            - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+            - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
             - \c user: the current RBAC username (if any)
             - \c hdr: a hash of header information as returned by @ref Qore::Socket::readHTTPHeader()
             - \c body: the deserialized message body
@@ -427,6 +441,22 @@ public namespace RestHandler {
             return False;
         }
 
+        #! sets the internal socket I/O timeout value in ms
+        setTimeout(timeout n_timeout_ms) {
+            timeout_ms = n_timeout_ms;
+        }
+
+        #! returns the timeout in milliseconds or @ref nothing if no timeout is set
+        *int getTimeout() {
+            return timeout_ms;
+        }
+
+        #! registers stream errors in the send operation with the stream handler if no error is already present
+        streamError(hash n_ex) {
+            if (!ex)
+                ex = n_ex;
+        }
+
         #! this method should return the response message description hash
         /**
             @return a hash with the following keys:
@@ -476,6 +506,17 @@ public namespace RestHandler {
                     handler.setPersistent();
                 }
             }
+
+            # set timeout if applicable
+            {
+                *int stream_timeout_ms = stream.getTimeout();
+                if (stream_timeout_ms) {
+                    timeout_ms = stream_timeout_ms;
+                    s.setSendTimeout(stream_timeout_ms);
+                    s.setRecvTimeout(stream_timeout_ms);
+                }
+            }
+
             deserialized = exists body;
         }
 
@@ -541,9 +582,9 @@ public namespace RestHandler {
             - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
             - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
             - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
-            - \c url: a hash of broken-down URL information (as returned from parseURL())
+            - \c url: a hash of broken-down URL information (as returned from parse_url())
             - \c id: the unique HTTP connection ID
-            - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+            - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
             - \c user: the current RBAC username (if any)
             - \c hdr: a hash of header information as returned by @ref Qore::Socket::readHTTPHeader()
             - \c body: the deserialized message body
@@ -571,19 +612,20 @@ public namespace RestHandler {
                 return cls.handleRequest(listener, rh, s, cl, mn, cx, args);
             }
 
-            rh.logDebug("REST DBG: class %y: dispatching method %y args: %y", name(), mn, args);
+            # try to mask passwords in args
+            string astr = sprintf("%y", args);
+            astr =~ s/(pass(?:word)?:\s*)"([^"]*)"/$1"<masked>"/;
+            rh.logDebug("REST DBG: class %y: dispatching method %y args: %s", name(), mn, astr);
             return dispatchStream(listener, rh, s, mn, args, cx);
         }
 
         #! this method is called to dispatch streamed requests on the given object
         private hash dispatchStream(HttpListenerInterface listener, RestHandler rh, Socket s, string mn, *hash ah, hash cx) {
             string sn = "stream" + mn[0].upr() + mn.substr(1);
+            AbstractRestStreamRequestHandler rsh;
             try {
                 cx.socketobject = s;
-                AbstractRestStreamRequestHandler rsh = call_object_method_args(self, sn, (cx, ah));
-
-                RestStreamRequest req(rsh, listener, rh, s, cx, cx.hdr, cx.hdr."content-length" ? cx.body : NOTHING);
-                return req.handleRequest();
+                rsh = call_object_method_args(self, sn, (cx, ah));
             }
             catch (hash ex) {
                 if (ex.err == "METHOD-DOES-NOT-EXIST") {
@@ -598,16 +640,47 @@ public namespace RestHandler {
                 rh.logDebug("REST DBG: class %y: stream method %y: %s", name(), sn, desc);
                 rethrow;
             }
+            try {
+                RestStreamRequest req(rsh, listener, rh, s, cx, cx.hdr, cx.hdr."content-length" ? cx.body : NOTHING);
+                return req.handleRequest();
+            }
+            catch (hash ex) {
+                # make sure the error is registered with the stream handler
+                if (rsh)
+                    rsh.streamError(ex);
+                string desc = !cx.debug
+                    ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
+                    : get_exception_string(ex);
+                rh.logDebug("REST DBG: class %y: stream method %y: %s", name(), sn, desc);
+                rethrow;
+            }
         }
 
         #! this method is called to dispatch requests on the given object
+        /** @param rh the RestHandler object
+            @param mn the method name
+            @param ah the holds URI and / or message body arguments for the REST call
+            @param cx call context hash; this hash will have the following keys:
+            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+            - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
+            - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
+            - \c url: a hash of broken-down URL information (as returned from parse_url())
+            - \c id: the unique HTTP connection ID
+            - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
+            - \c user: the current RBAC username (if any)
+
+            @return the return value is the same as the return value for @ref HttpServer::AbstractHttpRequestHandler::handleRequest()
+         */
         private hash dispatch(RestHandler rh, string mn, *hash ah, hash cx) {
             try {
                 return call_object_method_args(self, mn, (cx, ah));
             }
             catch (hash ex) {
                 if (ex.err == "METHOD-DOES-NOT-EXIST") {
-                    rh.logError("DISPATCH-ERROR: cannot dispatch to unimplemented method %y: class %y, args: %y", mn, name(), ah);
+                    # try to mask passwords in args
+                    string astr = sprintf("%y", ah);
+                    astr =~ s/(pass(?:word)?:\s*)"([^"]*)"/$1"<masked>"/;
+                    rh.logError("DISPATCH-ERROR: cannot dispatch to unimplemented method %y: class %y, args: %s", mn, name(), astr);
                     # see if alternate methods would work
                     list hl = ();
                     # break flag
@@ -700,7 +773,33 @@ public namespace RestHandler {
                     "serialize": \make_xmlrpc_value(),
                     "deserialize": \parse_xmlrpc_value(),
                 ),
+                MimeTypeXmlApp: (
+                    "serialize": string sub (any v) {
+                        switch (v.typeCode()) {
+                            case NT_LIST: return make_xml(("list": ("element": v)));
+                            case NT_HASH: return v.size() == 1 && v.firstValue().lsize() == 1 ? make_xml(v) : make_xml(("value": v));
+                        }
+                        return make_xml(("value": v));
+                    },
+                    "deserialize": hash sub (string xml) {
+                        try {
+                            return parse_xmlrpc_value(xml);
+                        }
+                        catch (hash ex) {
+                            try {
+                                return parse_xml(xml);
+                            }
+                            catch () {
+                            }
+                            rethrow;
+                        }
+                    },
+                ),
 %endif
+                MimeTypeFormUrlEncoded: (
+                    "serialize": \mime_get_form_urlencoded_string(),
+                    "deserialize": \mime_parse_form_urlencoded_string(),
+                ),
                 MimeTypeHtml: (
                     "serialize": string sub (any body) { return sprintf("<pre>%N</pre>", body); },
                 ),
@@ -733,9 +832,9 @@ public namespace RestHandler {
             - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
             - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
             - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
-            - \c url: a hash of broken-down URL information (as returned from parseURL())
+            - \c url: a hash of broken-down URL information (as returned from parse_url())
             - \c id: the unique HTTP connection ID
-            - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+            - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
             - \c user: the current RBAC username (if any)
             @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
             - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
@@ -752,8 +851,12 @@ public namespace RestHandler {
         hash handleRequest(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data b) {
             #logDebug("REST DBG: cx: %N", cx);
             #logDebug("REST DBG: hdr: %N", hdr);
-            if (b)
-                logDebug("REST DBG: body: %s", b.typeCode() == NT_STRING ? trim(b) : sprintf("%y", b));
+            if (b) {
+                string bstr = b.typeCode() == NT_STRING ? trim(b) : sprintf("%y", b);
+                # try to mask passwords in the message body
+                bstr =~ s/(pass(?:word)?"?[=:>\s]*).*/$1<masked>.../; #/;
+                logDebug("REST DBG: body: %s", bstr);
+            }
 
             any body = b;
 
@@ -825,7 +928,12 @@ public namespace RestHandler {
                 splice ah.method, 0, 1;
 
             # get class chain
-            *list cl = ah.method ? ah.method.split("/") : NOTHING;
+            *list cl;
+            if (ah.method) {
+                # combine continuous "/" chars into a single one
+                ah.method =~ s/\/\/+/\//g;
+                cl = ah.method.split("/");
+            }
 
             # get initial class
             *string cls = shift cl;
@@ -848,29 +956,28 @@ public namespace RestHandler {
             # set up context hash
             cx += ("hdr": hdr, "body": body, "aih": aih);
 
-            AbstractRestClass rcls;
-
-            if (!cls)
-                rcls = self;
-            else {
-                if (!ch{cls}) {
-                    *AbstractRestClass c = subClass(cls, cx, args);
-                    if (!c)
-                        return RestHandler::make400("unknown REST class %y in path %y (valid classes: %y)", cls, cx.url.path, ch.keys());
-                    rcls = c;
-                }
-                else
-                    rcls = ch{cls};
-            }
-
-            # check method
-            if (!Methods.(hdr.method))
-                return RestHandler::make501("cannot handle HTTP method %y; valid methods: %y", hdr.method, Methods.keys());
-
             # handle call with class
             hash rv;
 
             try {
+                AbstractRestClass rcls;
+
+                if (!cls)
+                    rcls = self;
+                else {
+                    if (!ch{cls}) {
+                        *AbstractRestClass c = subClass(cls, cx, args);
+                        if (!c)
+                            throw "REST-CLASS-ERROR", sprintf("unknown root REST class %y in path %y (valid classes: %y)", cls, cx.url.path, sort(ch.keys()));
+                        rcls = c;
+                    }
+                    else
+                        rcls = ch{cls};
+                }
+
+                # check method
+                if (!Methods.(hdr.method))
+                    return RestHandler::make501("cannot handle HTTP method %y; valid methods: %y", hdr.method, Methods.keys());
                 rv = rcls.handleRequest(listener, self, s, cl, mn, cx, args);
             }
             catch (hash ex) {

@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 
 # AC_PREREQ(2.59)
-AC_INIT([qore], [0.8.12],
+AC_INIT([qore], [0.8.13],
         [David Nichols <david@qore.org>],
         [qore])
 AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-ustar])
@@ -83,7 +83,7 @@ case "${host_os}" in
 		SHLIB_SUFFIX=so
 		;;
      *solaris*) # set compile flags for Solaris
-		CPPFLAGS="${CPPFLAGS} -D_POSIX_C_SOURCE=199506L -D_XPG4_2 -D_XPG5 -D__EXTENSIONS__"
+     		CPPFLAGS="${CPPFLAGS} -D_XPG6 -D_XOPEN_SOURCE=600"
 		# for checking for some network functions on Solaris
 		QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -lnsl -lsocket"
 		# assume we are using CC if not using g++, add -norunpath and -mt to link flags in this case
@@ -169,6 +169,8 @@ case "${host_os}" in
 		   NATIVE_CXX=`which g++|head -1 2>/dev/null`
 		   if test -z "$NATIVE_CXX"; then
 		      AC_MSG_ERROR(unable to find a native c++ compiler; please set NATIVE_CXX to the path to the native c++ compiler for building qpp)
+		   else
+                      NATIVE_CXX="$NATIVE_CXX -std=c++11"
 		   fi
 		fi
 		if test -z "$NATIVE_CXX"; then
@@ -206,6 +208,12 @@ QPP_CPPFLAGS="$QPP_CPPFLAGS -DHAVE_UNIX_CONFIG_H"
 AC_SUBST(QPP_CPPFLAGS)
 
 AC_PROG_LEX
+
+# test for C++11
+AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
+if test "$HAVE_CXX11" = "1"; then
+    AM_CXXFLAGS=-std=gnu++11
+fi
 
 # test for flex & flex version
 AC_MSG_CHECKING([for flex 2.5.31 or greater])
@@ -303,7 +311,7 @@ AC_ARG_WITH([libsuffix],
 # FIXME: add test on HP-UX if the compiler can generate the appropriate binaries
 if test "$enable_64bit" = "yes"; then
    case "${host_os}" in
-      *linux*)	if test "$GXX" = "yes"; then
+      *linux*)	if test "$GXX" = "yes" -a "$ARCH" != "aarch64"; then
 		   CXXFLAGS="$CXXFLAGS -m64"
 		fi
 		# only set LIBSUFFIX=64 if /usr/lib64 exists
@@ -389,7 +397,7 @@ else
 		;;
      *solaris*) if test "$GXX" = "yes"; then
 		    if test "$host_cpu" = "sparc"; then
-		        CXXFLAGS="$CXXFLAGS -mcpu=v9 -m32"
+		        CXXFLAGS="$CXXFLAGS -mv8plus -m32"
 		    else
 		        CXXFLAGS="$CXXFLAGS -m32"
 		    fi
@@ -732,6 +740,9 @@ set_pcre_cppflags() {
     if test "$1" != "/usr/include"; then
         PCRE_CPPFLAGS=-I$1
     fi
+    if test -n "$pcre_static"; then
+        PCRE_CPPFLAGS="${PCRE_CPPFLAGS} -DPCRE_STATIC=1"
+    fi
     with_pcre_includes="$1"
 }
 
@@ -989,7 +1000,7 @@ find_openssl() {
 }
 
 if test "$mingw" = yes; then
-    LIBS="$LIBS -lgdi32 -lz"
+    LIBS="$LIBS -lgdi32 -lz -lpsapi"
 fi
 
 # see if we can figure out where the openssl library is
@@ -1086,7 +1097,7 @@ find_dl() {
         inc="$dir/include"
     fi
 
-    if test -f "$lib/libdl.${SHLIB_SUFFIX}"; then
+    if test -f "$lib/libdl.${SHLIB_SUFFIX}" -o -f "$lib/libdl.${SHLIB_SUFFIX}.a"; then
         if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
      	    DL_LDFLAGS="-L$lib"
         fi
@@ -1220,7 +1231,7 @@ AC_ARG_ENABLE([debug],
 if test "${enable_debug}" = yes; then
    AC_DEFINE(DEBUG, 1, Define if debugging support should be included)
    # remove -O2 from CXXFLAGS so valgrind can report properly
-   CXXFLAGS=`echo $CXXFLAGS | sed 's/\-O2//'`
+   CXXFLAGS="`echo $CXXFLAGS | sed 's/\-O2//'`"
 else
    QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS -DNDEBUG=1"
 fi
@@ -1477,7 +1488,7 @@ AC_LANG_PUSH([C++])
 # about not profiled code, which confuses configure
 if test "$GXX" = "yes" -a "$with_other_libc" = "no"
 then
-  CXXFLAGS=`echo "$CXXFLAGS -Werror" | sed 's/-fbranch-probabilities//'`
+  CXXFLAGS="`echo $CXXFLAGS -Werror | sed 's/-fbranch-probabilities//'`"
 fi
 
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
@@ -1509,7 +1520,7 @@ AC_CACHE_CHECK([style of gethostname_r routines], qore_cv_gethostname_style,
 AC_LANG_PUSH([C++])
 if test "$GXX" = "yes" -a "$with_other_libc" = "no"
 then
-  CXXFLAGS=`echo "$CXXFLAGS -Werror" | sed 's/-fbranch-probabilities//'`
+  CXXFLAGS="`echo $CXXFLAGS -Werror | sed 's/-fbranch-probabilities//'`"
 fi
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 [[#undef inline
@@ -1541,7 +1552,7 @@ AC_CACHE_CHECK([3 argument to gethostname_r routines], qore_cv_gethostname_arg,
 AC_LANG_PUSH([C++])
 if test "$GXX" = "yes" -a "$with_other_libc" = "no"
 then
-  CXXFLAGS=`echo "$CXXFLAGS -Werror" | sed 's/-fbranch-probabilities//'`
+  CXXFLAGS="`echo $CXXFLAGS -Werror | sed 's/-fbranch-probabilities//'`"
 fi
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 [[#undef inline
@@ -1581,9 +1592,9 @@ if test "$enable_optimization" = "yes"; then
 	if test -z "`echo $CXXFLAGS|grep -e -O`"; then
 	   if test "$host_os" = "mingw32"; then
 	      # for some reason mingw32 segfaults with -O3, -O2 is OK
-              CXXFLAGS="$CXXFLAGS -O2"  # gcc
+              CXXFLAGS="$CXXFLAGS -O2"
    	   else
-              CXXFLAGS="$CXXFLAGS -O3"  # gcc
+              CXXFLAGS="$CXXFLAGS -O3"
 	   fi
         fi
     elif test "$CXX" = "CC" -a "`echo $host_os|cut -b-7`" = "solaris"; then
@@ -1755,13 +1766,20 @@ if test "${prefix}" = "NONE"; then
    prefix=${myprefix}
 fi
 
+# libdir that is set for Makefile in Makefile.am, but not set for configure in
+# configure.ac. This way (for example) config.status generates qore.pc from qore.pc.in
+# that points to incorrect libdir (using .../lib instead of .../lib64 on x64 machines,
+# for example). --PQ 03-Aug-2016
+libdir="\${exec_prefix}/lib${LIBSUFFIX}"
+AC_SUBST([libdir])
+
 # set module path
 if test "$windows" = yes; then
-  winprefix=z:`echo ${myprefix}|sed 's/\//\\\\\\\\\\\\\\\\/g'`
-  winlibdir=`echo ${mypkglibdir}|sed 's/\/$//'|sed 's/\//\\\\\\\\\\\\\\\\/g'`
+  winprefix="z:${myprefix}"
+  winlibdir=`echo ${mypkglibdir}|sed 's/\/$//`
   # we don't know the real final install location, but at least we can set a valid windows path
-  MODULE_DIR="${winprefix}\\\\\\\\\lib${LIBSUFFIX}\\\\\\\\${winlibdir}"
-  USER_MODULE_DIR="${winprefix}\\\\\\\\\share\\\\\\\\${winlibdir}"
+  MODULE_DIR="${winprefix}/lib${LIBSUFFIX}/${winlibdir}"
+  USER_MODULE_DIR="${winprefix}/share/${winlibdir}"
 else
   MODULE_DIR="${myprefix}/lib${LIBSUFFIX}/${mypkglibdir}"
   if test -z "${datarootdir}"; then
@@ -1783,8 +1801,8 @@ AC_SUBST([mymodverdir])
 # get version-dependent module path
 if test "$windows" = yes; then
   # we don't know the real final install location, but at least we can set a valid windows path
-  MODULE_VER_DIR="${MODULE_DIR}\\\\\\\\${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}"
-  USER_MODULE_VER_DIR="${USER_MODULE_DIR}\\\\\\\\${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}"
+  MODULE_VER_DIR="${MODULE_DIR}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}"
+  USER_MODULE_VER_DIR="${USER_MODULE_DIR}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}"
 else
   MODULE_VER_DIR="${myprefix}/lib${LIBSUFFIX}/${mymodverdir}"
   if test -n "echo ${datarootdir}|grep \$"; then
@@ -1797,12 +1815,14 @@ AC_SUBST([MODULE_VER_DIR])
 AC_SUBST([USER_MODULE_VER_DIR])
 
 # cmake variables used in the cmake build, needed to make the cmake build configure QoreConfig.cmake correctly
-CMAKE_INSTALL_FULL_BINDIR="${myprefix}/bin"
-CMAKE_INSTALL_FULL_INCLUDEDIR="${myprefix}/include"
-CMAKE_INSTALL_FULL_LIBDIR="${myprefix}/lib${LIBSUFFIX}"
+CMAKE_INSTALL_FULL_BINDIR="`eval echo ${myprefix}/bin`"
+CMAKE_INSTALL_FULL_INCLUDEDIR="`eval echo ${myprefix}/include`"
+CMAKE_INSTALL_FULL_LIBDIR="`eval echo ${myprefix}/lib${LIBSUFFIX}`"
+CMAKE_INSTALL_FULL_DATADIR="`eval echo ${datarootdir}`"
 AC_SUBST([CMAKE_INSTALL_FULL_BINDIR])
 AC_SUBST([CMAKE_INSTALL_FULL_INCLUDEDIR])
 AC_SUBST([CMAKE_INSTALL_FULL_LIBDIR])
+AC_SUBST([CMAKE_INSTALL_FULL_DATADIR])
 
 if test "$enable_profile" = yes; then
    QORE_LIB_CXXFLAGS="$QORE_LIB_CXXFLAGS -g -pg"

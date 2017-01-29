@@ -1,10 +1,10 @@
 /*
   QoreNullCoalescingOperatorNode.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 Qore Technologies, sro
-  
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/QoreNullCoalescingOperatorNode.h>
+#include "qore/intern/QoreNullCoalescingOperatorNode.h"
 //#include <qore/intern/qore_program_private.h>
 
 QoreString QoreNullCoalescingOperatorNode::null_coalescing_str("null coalescing operator");
@@ -48,27 +48,27 @@ int QoreNullCoalescingOperatorNode::getAsString(QoreString &str, int foff, Excep
 
 AbstractQoreNode* QoreNullCoalescingOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    assert(!typeInfo);
-   
+
    const QoreTypeInfo *leftTypeInfo = 0;
-   e[0] = e[0]->parseInit(oflag, pflag, lvids, leftTypeInfo);
-   
+   left = left->parseInit(oflag, pflag, lvids, leftTypeInfo);
+
    leftTypeInfo = 0;
-   e[1] = e[1]->parseInit(oflag, pflag, lvids, leftTypeInfo);
+   right = right->parseInit(oflag, pflag, lvids, leftTypeInfo);
 
    return this;
 }
 
 QoreValue QoreNullCoalescingOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    {
-      ValueEvalRefHolder arg(e[0], xsink);
+      ValueEvalRefHolder arg(left, xsink);
       if (*xsink)
          return QoreValue();
-      
+
       if (!arg->isNullOrNothing())
          return arg.takeValue(needs_deref);
    }
-   
-   ValueEvalRefHolder arg(e[1], xsink);
+
+   ValueEvalRefHolder arg(right, xsink);
    if (*xsink)
       return QoreValue();
 

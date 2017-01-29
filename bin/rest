@@ -1,0 +1,298 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+# @file rest example program for the RestClient module
+
+/*  Copyright 2013 - 2016 David Nichols
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires RestClient
+%requires Util
+%requires Mime
+
+%try-module yaml >= 0.5
+%define NoYaml
+%endtry
+
+%try-module xml >= 1.3
+%define NoXml
+%endtry
+
+%try-module json >= 1.5
+%define NoJson
+%endtry
+
+%requires ConnectionProvider
+
+%exec-class RestCmd
+
+class RestCmd {
+    public {
+        #! program options
+        const opts = (
+            "sendenc":   "e,send-encoding:s",
+            "header":    "H,header=s@",
+            "proxy":     "P,proxy-url=s",
+            "to":        "t,timeout=i",
+            "lit":       "l,literal:i+",
+            "reformat":  "R,reformat",
+            "fullex":    "E,full-exception",
+            "data":      "S,serialization=s",
+            "help":      "h,help",
+            );
+
+        #! recognized HTTP methods
+        const Methods = (
+            "GET": True,
+            "PUT": True,
+            "POST": True,
+            "DELETE": True,
+            );
+    }
+
+    constructor() {
+        GetOpt g(opts);
+        hash opt = g.parse3(\ARGV);
+
+        if (opt.help || !ARGV[0])
+            usage();
+
+        *string meth = shift ARGV;
+        if (!exists meth)
+            usage();
+
+        *string url = shift ARGV;
+        any body;
+        if (!Methods{meth.upr()}) {
+            body = url;
+            url = meth;
+            meth = "GET";
+        }
+        else {
+            meth = meth.upr();
+            body = shift ARGV;
+        }
+
+        if (!url) {
+            printf("ERROR: missing URL for REST server\n");
+            usage();
+        }
+
+        {
+            string orig_url = url;
+            url = get_connection_url(url);
+            if (url != orig_url)
+                printf("using connection: %y url: %y\n", orig_url, url);
+        }
+
+        hash opts.url = url;
+
+        if (opt.proxy)
+            opts.proxy = opt.proxy;
+
+        if (opt.to) {
+            int to = opt.to * 1000;
+            opts += (
+                "timeout": to,
+                "connect_timeout": to,
+                );
+        }
+
+        RestClient rest(opts);
+
+        foreach string h in (opt.header) {
+            (*string k, *string v) = (h =~ x/([^:]+):(.+)$/); #/);
+            trim k;
+            trim v;
+            if (!k || !v) {
+                stderr.printf("invalid header %y; expecting \"key: value\" format\n", h);
+                exit(1);
+            }
+            rest.addDefaultHeaders((k: v));
+        }
+
+        if (exists body)
+            body = parse_to_qore_value(body);
+
+        if (opt.data) {
+            if (!RestClient::DataSerializationOptions{opt.data})
+                error("data serialization option %y is unknown; valid options: %y", opt.data, RestClient::DataSerializationOptions.keys());
+            rest.setSerialization(opt.data);
+        }
+
+        if (opt.sendenc) {
+            if (opt.sendenc === True)
+                opt.sendenc = "deflate";
+            else if (!RestClient::EncodingSupport{opt.sendenc})
+                error("send encoding option %y is unknown; valid options: %y", opt.sendenc, RestClient::EncodingSupport.keys());
+            rest.setSendEncoding(opt.sendenc);
+        }
+
+        hash info;
+        #printf("body: %y\n", body);
+        try {
+            hash h;
+            on_exit if (opt.lit) {
+                showRestRequest(info, body, opt);
+                showRestResponse(info, h.body, opt);
+            }
+
+            h = rest.doRequest(meth, "", body, \info);
+            if (!opt.lit)
+                printf("%N\n", h.body);
+        }
+        catch (hash ex) {
+            if (opt.fullex)
+                printf("%s\n", get_exception_string(ex));
+            else {
+                if (ex.err == "DESERIALIZATION-ERROR" && info."response-headers"."content-type" == "text/html")
+                    printf("%s\n%s\n", info."response-uri", html_decode(info."response-body"));
+                else {
+                    printf("%s: %s: %s", rest.getURL(), ex.err, ex.desc);
+                    if (ex.arg) {
+                        print(": ");
+                        if (ex.arg.body.typeCode() == NT_STRING) {
+                            trim ex.arg.body;
+                            print(ex.arg.body);
+                        }
+                        else {
+                            if (ex.arg.typeCode() == NT_STRING) {
+                                trim ex.arg;
+                                printf("%y", ex.arg);
+                            }
+                            else
+                                printf("%y", ex.arg);
+                        }
+                    }
+                    print("\n");
+                }
+            }
+        }
+    }
+
+    private showRestRequest(hash info, any args, *hash opt) {
+        printf("> %s\n", info."request-uri");
+        if (opt.lit > 1)
+            printf("> %N\n", info.headers);
+        if (info."request-body") {
+            *string str;
+            if (opt.reformat) {
+                switch (info."request-serialization") {
+%ifndef NoXml
+                    case "xml": str = make_xmlrpc_value(args, XGF_ADD_FORMATTING); break;
+                    case "rawxml": str = make_xml(args, XGF_ADD_FORMATTING); break;
+%endif
+%ifndef NoJson
+                    case "json": str = make_json(args, JGF_ADD_FORMATTING); break;
+%endif
+%ifndef NoYaml
+                    case "yaml": str = trim(make_yaml(args, YAML::BlockStyle)); break;
+%endif
+                    case "url": str = mime_get_form_urlencoded_string(args); break;
+                    default: str = getBody(info); break;
+                }
+            }
+            else
+                str = getBody(info);
+            printf("> %s\n", str);
+        }
+    }
+
+    private showRestResponse(hash info, any rv, *hash opt) {
+        if (!info."response-uri")
+            return;
+        printf("< %s\n", info."response-uri");
+        if (opt.lit > 1)
+            printf("< %N\n", info."response-headers" - "body");
+        if (info."response-body") {
+            if (!exists rv)
+                rv = info."response-body";
+            string str;
+            switch (info."response-serialization") {
+%ifndef NoXml
+                case "xml": str = make_xmlrpc_value(rv, opt.reformat ? XGF_ADD_FORMATTING : NOTHING); break;
+                case "rawxml": str = make_xml(rv, opt.reformat ? XGF_ADD_FORMATTING : NOTHING); break;
+%endif
+%ifndef NoJson
+                case "json": str = make_json(rv, opt.reformat ? JGF_ADD_FORMATTING : NOTHING); break;
+%endif
+%ifndef NoYaml
+                case "yaml": str = trim(make_yaml(rv, opt.reformat ? YAML::BlockStyle : NOTHING)); break;
+%endif
+                case "url": str = mime_get_form_urlencoded_string(rv); break;
+                default: str = trim(info."response-body"); break;
+            }
+            printf("< %s\n", str);
+        }
+    }
+
+    private string getBody(hash info) {
+        switch (info.headers."Content-Encoding") {
+            case "deflate":
+            case "x-deflate":
+                info."request-body" = uncompress_to_string(info."request-body");
+                break;
+            case "gzip":
+            case "x-gzip":
+                info."request-body" = gunzip_to_string(info."request-body");
+                break;
+            case "bzip2":
+            case "x-bzip2":
+                info."request-body" = bunzip2_to_string(info."request-body");
+                break;
+            case "identity":
+                info."request-body" = binary_to_string(info."request-body");
+                break;
+            case NOTHING:
+                break;
+            default:
+                throw "UNKNOWN-CONTENT-ENCODING", sprintf("unknown Content-Encoding %y used to send message", info.headers."Content-Encoding");
+        }
+        return trim(info."request-body");
+    }
+
+    static usage() {
+        printf("usage: %s [options] get|put|post|delete URL ['qore msg body']
+ -e,--send-encoding[=ARG]  set compression in outgoing request
+                           [ARG=gzip,deflate,bzip2,identity]
+ -E,--full-exception       show full exception output
+ -H,--header=ARG           send header with request
+ -l,--literal              show literal API calls (more l's, more info)
+ -P,--proxy-url=ARG        set the proxy URL (ex: http://proxy:port)
+ -R,--reformat             reformat data with -l+ for better readability
+ -S,--serialization=ARG    set REST data serialization type:
+                           auto, json, yaml, xml, rawxml, url
+ -t,--timeout=ARG          set HTTP timeout in seconds
+ -h,--help                 this help text
+", get_script_name());
+        exit(1);
+    }
+
+    static error(string fmt) {
+        stderr.printf("%s: ERROR: %s\n", get_script_name(), vsprintf(fmt, argv));
+        exit(1);
+    }
+}

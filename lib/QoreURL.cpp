@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -58,8 +58,9 @@ private:
 	 pos = buf;
 
       // see if the rest of the URL is a windows path
-      if ((isalpha(*pos) && *(pos + 1) == ':')
-	  || (*pos == '\\' && *(pos + 1) == '\\')) {
+      if (((isalpha(*pos) && *(pos + 1) == ':')
+           || (*pos == '\\' && *(pos + 1) == '\\'))
+          && !strchr(pos, '@')) {
 	 path = new QoreStringNode(pos);
 	 return;
       }
@@ -106,10 +107,13 @@ private:
       bool has_port = false;
       // see if there's a port
       if ((p = (char* )strrchr(pos, ':'))) {
-	 *p = '\0';
-	 port = atoi(p + 1);
-	 has_port = true;
-	 printd(5, "QoreURL::parse_intern port=%d\n", port);
+         // see if it's Ipv6 localhost (::)
+         if (p != (pos + 1) || *pos != ':') {
+            *p = '\0';
+            port = atoi(p + 1);
+            has_port = true;
+            printd(5, "QoreURL::parse_intern port=%d\n", port);
+         }
       }
 
       // there is no hostname if there is no port specification and

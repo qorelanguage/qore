@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/qore_program_private.h"
 
 QoreString QoreChompOperatorNode::chomp_str("chomp operator expression");
 
@@ -98,27 +98,20 @@ AbstractQoreNode* QoreChompOperatorNode::parseInitImpl(LocalVar* oflag, int pfla
    assert(!typeInfo);
    if (!exp)
       return this;
-   exp = exp->parseInit(oflag, pflag, lvids, typeInfo);
-   if (exp && check_lvalue(exp))
-      parse_error("the chomp operator expects an lvalue as its operand, got '%s' instead", exp->getTypeName());
-   else {
-      if (typeInfo->hasType()
-	  && !typeInfo->parseAcceptsReturns(NT_STRING)
-	  && !typeInfo->parseAcceptsReturns(NT_LIST)
-	  && !typeInfo->parseAcceptsReturns(NT_HASH)) {
-	 QoreStringNode* desc = new QoreStringNode("the lvalue expression with the chomp operator is ");
-	 typeInfo->getThisType(*desc);
-	 desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings, lists, and hashes");
-	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
-      }
+   exp = exp->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, typeInfo);
+   if (exp)
+      checkLValue(exp, pflag);
+
+   if (typeInfo->hasType()
+       && !typeInfo->parseAcceptsReturns(NT_STRING)
+       && !typeInfo->parseAcceptsReturns(NT_LIST)
+       && !typeInfo->parseAcceptsReturns(NT_HASH)) {
+      QoreStringNode* desc = new QoreStringNode("the lvalue expression with the chomp operator is ");
+      typeInfo->getThisType(*desc);
+      desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings, lists, and hashes");
+      qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
    }
+
    returnTypeInfo = bigIntTypeInfo;
    return this;
-}
-
-QoreChompOperatorNode* QoreChompOperatorNode::copyBackground(ExceptionSink* xsink) const {
-   ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
-   if (*xsink)
-      return 0;
-   return new QoreChompOperatorNode(n_exp.release());
 }

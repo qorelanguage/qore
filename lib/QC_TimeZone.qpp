@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_TimeZone.h>
+#include "qore/intern/QC_TimeZone.h"
 
 //! The TimeZone class provides access to time zone functionality
 /** TimeZone objects based on zoneinfo region files (on UNIX) or registry information (on Windows) can have daylight savings time information; those based on UTC offsets have none.
@@ -40,7 +40,7 @@ qclass TimeZone [arg=TimeZoneData* z];
 //! Creates the TimeZone object based on the region name (ex: \c "America/Chicago")
 /** @param region The region name for the time zone (ex: \c "America/Chicago"); if the zoneinfo file for the region cannot be found or parsed (on UNIX) or if the registry entry cannot be found (on Windows), then an exception is thrown
 
-    @note On Windows the zoneinfo region names (ex: \c "Europe/Prague") are converted to registry entries under <tt>HKEY_LOCAL_MACHINE SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones</tt> (ex: \c "Central Europe Standard Time"); if an absolute path to a file is given as the argument, then a zoneinfo file is read and parsed from the given location
+    @note On Windows zoneinfo region names (ex: \c "Europe/Prague") are converted to registry entries under <tt>HKEY_LOCAL_MACHINE SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones</tt> (ex: \c "Central Europe Standard Time"); on Windows you can also pass a registry key directly (ex: \c "Central Europe Standard Time") as the region, in this case it will be used to find the timezone info in registry, however the region name will then be converted to the first corresponding zoneinfo region according to alphabet (ex: \c "Central Europe Standard Time" -> \c "Europe/Belgrade"); if an absolute path to a file is given as the argument, then a zoneinfo file is read and parsed from the given location
 
     @par Example:
     @code{.py}
@@ -263,7 +263,7 @@ static nothing TimeZone::setUTCOffset(softint seconds_east) [dom=LOCALE_CONTROL]
 /**
     @param region the region name to set
 
-    @note On Windows the region names correspond to registry entries under <tt>HKEY_LOCAL_MACHINE SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones</tt> (ex: \c "Central Europe Standard Time)
+    @note On Windows you can use both zoneinfo region names (ex: \c "Europe/Prague") as well as the Windows registry keys under <tt>HKEY_LOCAL_MACHINE SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones</tt> (ex: \c "Central Europe Standard Time); note that in this case the Windows-style names will only be used to load the timezone info from registry and the name will then be converted to the first corresponding zoneinfo region according to alphabet (ex: \c "Central Europe Standard Time" -> \c "Europe/Belgrade").
 
     @par Example:
     @code{.py}

@@ -1,0 +1,53 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/WebSocketUtil.qm
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class WebSocketUtilTest
+
+public class WebSocketUtilTest inherits QUnit::Test {
+    public {
+        const Msg = "test";
+        const WsMsg = <880603ed> + binary(Msg);
+    }
+
+    constructor() : Test("WebSocketUtilTest", "1.0") {
+        addTestCase("WebSocketUtil tests", \webSocketUtilTests());
+        set_return_value(main());
+    }
+
+    webSocketUtilTests() {
+        srand(clock_getmicros());
+        int port = 20000 + (rand() % 30000);
+
+        # test to ensure that close messages are encoded properly
+        binary msg = WSCC_NoStatusRcvd.encodeMsb(2) + binary(Msg);
+        binary b = ws_encode_message(msg, WSOP_Close);
+        assertEq(WsMsg, b);
+
+        Socket s();
+        # bind to a random port
+        s.bind(port);
+        s.listen();
+
+        background doSend(WsMsg, port);
+        s = s.accept(10s);
+        hash h = ws_read_message(s, 10s);
+        assertEq(WSOP_Close, h.op);
+        assertEq(False, h.masked);
+        assertEq(WSCC_NoStatusRcvd, h.close);
+        assertEq(Msg, h.msg);
+    }
+
+    private doSend(binary msg, int port) {
+        Socket s();
+        s.connectINET("localhost", port);
+        s.send(msg);
+    }
+}

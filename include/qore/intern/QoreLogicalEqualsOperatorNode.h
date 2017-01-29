@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreLogicalEqualsOperatorNode.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
- 
+
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -33,13 +33,11 @@
 
 #define _QORE_QORELOGICALEQUALSOPERATORNODE_H
 
-class QoreLogicalEqualsOperatorNode : public QoreOperatorNode {
+class QoreLogicalEqualsOperatorNode : public QoreBinaryOperatorNode<> {
 protected:
-   AbstractQoreNode *left, *right; // parts of the expression
-
    // type of pointer to optimized versions depending on arguments found at parse-time
    typedef bool(QoreLogicalEqualsOperatorNode::*eval_t)(ExceptionSink *xsink) const;
-   // pointer to optimized versions depending on arguments found at parse-time   
+   // pointer to optimized versions depending on arguments found at parse-time
    eval_t pfunc;
 
    DLLLOCAL static QoreString logical_equals_str;
@@ -57,14 +55,7 @@ protected:
    DLLLOCAL bool boolSoftEqual(ExceptionSink *xsink) const;
 
 public:
-   DLLLOCAL QoreLogicalEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : left(n_left), right(n_right), pfunc(0) {
-   }
-
-   DLLLOCAL ~QoreLogicalEqualsOperatorNode() {
-      if (left)
-         left->deref(0);
-      if (right)
-         right->deref(0);
+   DLLLOCAL QoreLogicalEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<>(n_left, n_right), pfunc(0) {
    }
 
    // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
@@ -83,8 +74,8 @@ public:
       return logical_equals_str.getBuffer();
    }
 
-   DLLLOCAL virtual bool hasEffect() const {
-      return false;
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      return copyBackgroundExplicit<QoreLogicalEqualsOperatorNode>(xsink);
    }
 
    DLLLOCAL static bool softEqual(const QoreValue left, const QoreValue right, ExceptionSink *xsink);

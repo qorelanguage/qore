@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -80,13 +80,13 @@ void ThreadSafeLocalVarRuntimeEnvironment::del(ExceptionSink* xsink) {
 
 bool QoreClosureNode::derefImpl(ExceptionSink* xsink) {
    del(xsink);
-   pgm->depDeref(xsink);
+   pgm->depDeref();
    return true;
 }
 
 QoreValue QoreClosureNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
    CVecInstantiator cvi(cvec, xsink);
-   return closure->exec(*this, pgm, args, 0, xsink);
+   return closure->exec(*this, pgm, args, 0, 0, xsink);
 }
 
 bool QoreClosureNode::getAsBoolImpl() const {
@@ -108,5 +108,5 @@ bool QoreObjectClosureNode::derefImpl(ExceptionSink* xsink) {
 
 QoreValue QoreObjectClosureNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
    CVecInstantiator cvi(cvec, xsink);
-   return closure->exec(*this, 0, args, obj, xsink);
+   return closure->exec(*this, 0, args, obj, class_ctx, xsink);
 }

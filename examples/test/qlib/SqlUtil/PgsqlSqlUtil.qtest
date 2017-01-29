@@ -39,7 +39,7 @@ class PgsqlTestSchema inherits SqlUtilTestSchema {
             "columns": (
                 "id": c_number(14, True),
                 "id_": c_number(14, True),
-                "null_f": c_int(),
+                "null_f": c_varchar(69),
             ),
             "primary_key": ("name": "pk_pgsql_test", "columns": ("id")),
             );
@@ -65,18 +65,7 @@ class PgsqlTestSchema inherits SqlUtilTestSchema {
     }
 
     private *hash getTablesImpl() {
-        hash tables = Tables;
-        # add custom columns to pgsql_test
-        foreach hash h in (PgsqlTest::CustomColumns.pairIterator()) {
-            hash ch = (
-                "native_type": h.key,
-                "notnull": True,
-                );
-            if (h.value.typeCode() == NT_HASH)
-                ch += (h.value - ("value", "bind", "expect"));
-            tables.pgsql_test.columns{SqlTestBase::getColumnName(h.key)} = ch;
-        }
-        return tables;
+        return doTables(Tables, PgsqlTest::CustomColumns);
     }
 
     private *hash getSequencesImpl() {
@@ -110,6 +99,10 @@ class PgsqlTest inherits SqlTestBase {
             "numeric": (
                 "size": 15,
                 "scale": 2,
+                "value": 400.95n,
+            ),
+            "numeric_def": (
+                "type": "numeric",
                 "value": 400.95n,
             ),
 
@@ -176,10 +169,30 @@ class PgsqlTest inherits SqlTestBase {
         }
 
         if (ds) {
-            init_test_data (CustomColumns);
+            initTestData(CustomColumns);
+
+            { # Make sure the DB is clear before doing the tests.
+                PgsqlTable t = new PgsqlTable(ds, "pgsql_test");
+                if (t.checkExistence())
+                    t.dropCommit();
+            }
 
             # create the test schema
             schema = new PgsqlTestSchema(ds);
+
+            # workaround for issue #853 (https://github.com/qorelanguage/qore/issues/853)
+            try {
+                on_error ds.rollback();
+                on_success ds.commit();
+                ds.exec("drop table pgsql_test");
+            }
+            catch () {}
+            try {
+                on_error ds.rollback();
+                on_success ds.commit();
+                ds.exec("drop sequence pgsql_test_seq");
+            }
+            catch () {}
 
             schema.align(False, m_options.verbose);
 
@@ -202,6 +215,12 @@ class PgsqlTest inherits SqlTestBase {
             );
 
         assertEq(("id": 2, "seq": 1, "seq_currval": 1), table.selectRow(sh));
+        assertEq(("id": 2, "seq": 2, "seq_currval": 2), table.selectRow(sh));
+        assertEq(("id": 2, "seq": 3, "seq_currval": 3), table.selectRow(sh));
+
+        assertEq(1, table.update(("id": uop_seq("pgsql_test_seq")), ("id": 2)));
+        sh."where".id = 4;
+        assertEq(("id": 4, "seq": 5, "seq_currval": 5), table.selectRow(sh));
     }
 
     private usageIntern() {
@@ -211,7 +230,7 @@ class PgsqlTest inherits SqlTestBase {
 
     Datasource getDatasource() {
         if (!m_options.connstr)
-            m_options.connstr = ENV.QORE_DB_CONNSTR_PGSQL ?? "pgsql:omquser/omquser@omquser";
+            m_options.connstr = ENV.QORE_DB_CONNSTR_PGSQL;
         Datasource ds(m_options.connstr);
         if (ds.getDriverName() != "pgsql")
             throw "PGSQL-ERROR", sprintf("cannot execute the pgsql tests on a connection using driver %y", ds.getDriverName());

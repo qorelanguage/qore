@@ -1,0 +1,35 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class GlobTest
+
+public class GlobTest inherits QUnit::Test {
+    constructor() : Test("GlobTest", "1.0") {
+        addTestCase("glob Tests", \globTests());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    globTests() {
+        list l = glob("*");
+        # make sure that glob() does not return paths beginning with "." by default (issue 660)
+        assertEq((), (map $1, l, $1 =~ /^\./));
+%ifdef Windows
+        # make sure that glob() returns a sorted list of paths by default (issue 665)
+        assertEq(l, sort(l));
+%endif
+
+        # make sure that glob("/*") succeeds (issue 664)
+        chdir(tmp_location());
+        assertEq(False, glob("/*").empty());
+    }
+}

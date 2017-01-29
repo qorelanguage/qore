@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -265,10 +265,10 @@ public:
 	 return 0;
       }
 
-      SimpleRefHolder<QoreRegexNode> re(0);
+      SimpleRefHolder<QoreRegex> re(0);
 
       if (regex) {
-	 re = new QoreRegexNode(*regex, regex_options, xsink);
+	 re = new QoreRegex(*regex, regex_options, xsink);
 	 if (*xsink)
 	    return 0;
       }
@@ -367,6 +367,13 @@ public:
 	 return -1;
       }
 
+#ifdef _Q_WINDOWS
+      // flag UNC paths for special processing, because the first two components of UNC paths designate the server location and cannot be created with mkdir()
+      bool unc = (dirname[0] == '/' || dirname[0] == '\\')
+         && (dirname[1] == '/' || dirname[1] == '\\')
+         && (dirname[2] != '/' && dirname[2] != '\\');
+#endif
+
       // split the directory in its subdirectories tree
       name_vec_t dirs;
       tokenize(dirname, dirs);
@@ -376,13 +383,23 @@ public:
       name_vec_t::iterator it;
       std::string path;
       int cnt = 0;
-      const char *path_str;
       for (it = dirs.begin(); it < dirs.end(); it++) {
+#ifdef _Q_WINDOWS
+	 if (it == dirs.begin() && q_absolute_path_windows((*it).c_str()))
+            path += *it;
+         else
+#endif
 	 path += QORE_DIR_SEP_STR + (*it); // the actual path
-	 path_str = path.c_str();
+#ifdef _Q_WINDOWS
+         // ignore the first two components of UNC paths
+         if (unc && cnt < 2) {
+            ++cnt;
+            continue;
+         }
+#endif
 	 if (verifyDirectory(path)) { // not existing
-	    if (::mkdir(path_str, mode)) { // failed
-	       xsink->raiseErrnoException("DIR-CREATE-FAILURE", errno, "cannot mkdir '%s'", path_str);
+	    if (::mkdir(path.c_str(), mode)) { // failed
+	       xsink->raiseErrnoException("DIR-CREATE-FAILURE", errno, "cannot mkdir '%s'", path.c_str());
 	       return -1;
 	    }
 	    cnt++;
@@ -505,6 +522,13 @@ public:
 
    // tokenizes the string (path) and recreates it
    DLLLOCAL static const std::string normalizePath(const std::string& odir) {
+#ifdef _Q_WINDOWS
+      // flag UNC paths for special processing, because otherwise they will be normalized to a single leading backslash
+      bool unc = (odir[0] == '/' || odir[0] == '\\')
+         && (odir[1] == '/' || odir[1] == '\\')
+         && (odir[2] != '/' && odir[2] != '\\');
+#endif
+
       // tokenize the string
       name_vec_t ptoken, dirs;
       tokenize(odir, ptoken);
@@ -523,6 +547,10 @@ public:
 
       // create string out of rest..
       std::string ret;
+#ifdef _Q_WINDOWS
+      if (unc)
+         ret += '\\';
+#endif
       for (name_vec_t::iterator it = dirs.begin(), et = dirs.end(); it != et; ++it) {
 #ifdef _Q_WINDOWS
 	 if (it == dirs.begin() && q_absolute_path_windows((*it).c_str()))

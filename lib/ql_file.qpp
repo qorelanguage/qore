@@ -30,12 +30,14 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ql_file.h>
+#include "qore/intern/ql_file.h"
+#include "qore/intern/QoreDir.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
+
 
 #ifdef _Q_WINDOWS
 #include <io.h>
@@ -49,7 +51,7 @@
 #ifdef HAVE_GLOB_H
 #include <glob.h>
 #else
-#include <qore/intern/glob.h>
+#include "qore/intern/glob.h"
 #endif
 
 static bool check_stat(unsigned code, const QoreString& path) {
@@ -70,26 +72,30 @@ static bool check_lstat(unsigned code, const QoreString& path) {
 
 static bool is_writable_intern(const QoreStringNode* path) {
 #if defined HAVE_PWD_H
-   // does not cover situations like:
-   // $ id
-   // uid=5920(user1) gid=6183(group1) groups=6003(group2),6183(group3)
-   // $ ls -la /foo/bar/
-   // drwxrwsr-x 2  5921 group2 4096 Aug  7 14:37 .
-   // where 6183(group1) is an effective group etc so geteuid() != dir group
-
    struct stat sbuf;
    int rc;
 
    if ((rc = stat(path->getBuffer(), &sbuf)))
       return false;
 
-   uid_t euid = geteuid();
-   if (!euid || sbuf.st_mode & S_IWOTH
-       || (euid      == sbuf.st_uid && (sbuf.st_mode & S_IWUSR))
-       || (getegid() == sbuf.st_gid && (sbuf.st_mode & S_IWGRP)))
-      return true;
+   if (S_ISDIR(sbuf.st_mode)) { // If path is a directory.
+      QoreStringMaker tfn("%s/xxx_qore_tmp_test_xxx", path->getBuffer());
+      rc = open(tfn.getBuffer(), O_WRONLY | O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+      if (rc != -1) {
+         close(rc);
+         unlink(tfn.getBuffer());
+         return true;
+      }
+      return false;
+   }
 
+   rc = open(path->getBuffer(), O_WRONLY);
+   if (rc != -1) {
+      close(rc);
+      return true;
+   }
    return false;
+
 #elif defined(HAVE_ACCESS) && defined(_Q_WINDOWS)
    // only use access(2) on Windows
    return access(path->getBuffer(), W_OK) == 0;
@@ -315,28 +321,26 @@ bool is_link(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 #endif
 }
 
-//! Returns @ref True if the string passed identifies a file readable by the current user, @ref False if not
+//! Returns @ref True if the string passed identifies a file or a directory readable by the current user, @ref False if not
 /**
     @param path the path to check
 
-    @return @ref True if the string passed identifies a file readable by the current user, @ref False if not
+    @return @ref True if the string passed identifies a file or a directory readable by the current user, @ref False if not
 
     @par Example:
     @code{.py}
 bool b = is_readable("/etc/hosts");
     @endcode
-
-    @bug on Windows this function always returns @ref Qore::True "True" for directories; this will be fixed in a later version of Qore
  */
 bool is_readable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    return q_path_is_readable(path->getBuffer());
 }
 
-//! Returns @ref True if the string passed identifies a file writable by the current user, @ref False if not
+//! Returns @ref True if the string passed identifies a file or a directory writable by the current user, @ref False if not
 /**
     @param path the path to check
 
-    @return @ref True if the string passed identifies a file writable by the current user, @ref False if not
+    @return @ref True if the string passed identifies a file or a directory writable by the current user, @ref False if not
 
     @par Example:
     @code{.py}
@@ -349,11 +353,11 @@ bool is_writable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
    return is_writable_intern(path);
 }
 
-//! Returns @ref True if the string passed identifies a file writable by the current user (backwards-compatible misspelling of is_writable())
+//! Returns @ref True if the string passed identifies a file or a directory writable by the current user (backwards-compatible misspelling of is_writable())
 /**
     @param path the path to check
 
-    @return @ref True if the string passed identifies a file writable by the current user, @ref False if not
+    @return @ref True if the string passed identifies a file or a directory writable by the current user, @ref False if not
 
     @par Example:
     @code{.py}
@@ -665,8 +669,9 @@ nothing umask() [flags=RUNTIME_NOOP;dom=PROCESS] {
 //! Creates a directory, optionally specifying the mode
 /** @param path the path to the directory to create
     @param mode the file mode of the new directory (which will be AND'ed with the umask)
+    @param parents if True then parent directories are created
 
-    @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
+    @return if no error occurred returns 0 or the count of newly created directory when parents = @ref Qore::True "True"; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
     @par Example:
     @code{.py}
@@ -675,8 +680,15 @@ if (mkdir("/tmp/newdir", 0755))
     @endcode
 
     @see umask()
+
+    @since %Qore 0.8.13 added the <i>parents</i> parameter
  */
-int mkdir(string path, softint mode = 0777) [dom=FILESYSTEM] {
+int mkdir(string path, softint mode = 0777, bool parents = False) [dom=FILESYSTEM] {
+    if (parents) {
+        QoreDir dir(xsink);
+        dir.chdir(path->getBuffer(), xsink);
+        return dir.create((int) mode, xsink);
+    }
 #ifdef _Q_WINDOWS
    return _mkdir(path->getBuffer());
 #else
@@ -694,6 +706,8 @@ int mkdir(string path, softint mode = 0777) [dom=FILESYSTEM] {
 if (rmdir("/tmp/newdir"))
     printf("rmdir /tmp/newdir: %s\n", strerror());
     @endcode
+
+    @see @ref Qore::Dir::rmdir()
  */
 int rmdir(string path) [dom=FILESYSTEM] {
    return rmdir(path->getBuffer());

@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreModuloOperatorNode.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
- 
+
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -29,9 +29,9 @@
   information.
 */
 
-#ifndef _QORE_QOREMODULAOPERATORNODE_H
+#ifndef _QORE_QOREMODULOOPERATORNODE_H
 
-#define _QORE_QOREMODULAOPERATORNODE_H
+#define _QORE_QOREMODULOOPERATORNODE_H
 
 class QoreModuloOperatorNode : public QoreIntBinaryOperatorNode {
 OP_COMMON
@@ -42,6 +42,10 @@ protected:
 
 public:
    DLLLOCAL QoreModuloOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreIntBinaryOperatorNode(n_left, n_right) {
+   }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      return copyBackgroundExplicit<QoreModuloOperatorNode>(xsink);
    }
 };
 

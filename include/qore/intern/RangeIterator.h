@@ -33,6 +33,8 @@
 
 #define _QORE_RANGEITERATOR_H
 
+extern QoreClass* QC_RANGEITERATOR;
+
 // the c++ object. See QC_RangeIterator.qpp for docs.
 class RangeIterator : public QoreIteratorBase {
 private:

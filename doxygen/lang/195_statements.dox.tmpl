@@ -4,39 +4,36 @@
 
     Non-block statements in %Qore are always terminated by a semi-colon \c ";" as in Perl, C, C++, or Java. Statements can be grouped into blocks, which are delimited by curly brackets \c "{" and \c "}" containing zero or more semi-colon delimited statements, as in C or Java. Like C, C++, and Java, but unlike perl, any %Qore statement taking a statement modifier will accept a single statement or a statement block.
 
-    A statement can be any of the following (note that statements are also recursively defined):
+    A statement can be any of the following (note that statements are also recursively defined, and note furthermore that all examples are given in @ref new-style "%new-style"):
 
     <b>%Qore Statements</b>
     |!Type|!Examples|!Reference
-    |An expression that changes an lvalue|@code{.py} $var = 1;@endcode @code{.py} $var += 5;@endcode @code{.py} $var[1].count++;@endcode @code{.py} shift $var.key[$i];@endcode|@ref expressions
+    |An expression that changes an lvalue|@code{.py} var = 1;@endcode @code{.py} var += 5;@endcode @code{.py} var[1].count++;@endcode @code{.py} shift var.key[i];@endcode|@ref expressions
     |An expression with the @ref new "new operator"|@code{.py} new ObjectClass(1, 2, 3);@endcode|@ref new
     |An expression with the @ref background "background operator"|@code{.py} background function();@endcode|@ref background
-    |A @ref call_reference "call reference" or @ref closure "closure" call|@code{.py} $call_reference($arg1, $arg2);@endcode|@ref call_reference, @ref closure
-    |A @ref object_method_call "method call"|@code{.py} $object.method(1, 2, 3);@endcode|@ref qore_classes
-    |An @ref if "if statement"|@code{.py} if ($var == 3) {}@endcode|@ref if
-    |An @ref if "if ... else" statement|@code{.py} if ($var == 3) {} else {}@endcode|@ref if
-    |A @ref while "while statement"|@code{.py} while ($var < 10) {}@endcode|@ref while
+    |An expression making a code call|@code{.py} func(arg1, arg2);@endcode|@ref qore_functions, @ref object_method_calls, @ref static_method_calls, @ref closure, @ref call_reference
+    |A @ref variable_declarations "variable declaration expression"|@code{.py} int var;@endcode @code{.py} out (float a, int b, hash c);@endcode|@ref variables, @ref variable_declarations
+    |An @ref if "if statement"|@code{.py} if (var == 3) {}@endcode|@ref if
+    |An @ref if "if ... else" statement|@code{.py} if (var == 3) {} else {}@endcode|@ref if
+    |A @ref while "while statement"|@code{.py} while (var < 10) {}@endcode|@ref while
     |A @ref do "do while statement"|@code{.py} do {} while (True);@endcode|@ref do
-    |A @ref for "for statement"|@code{.py} for (my int $i = 0; $i < 10; ++ $i) {}@endcode|@ref for
-    |A @ref foreach "foreach statement"|@code{.py} foreach my softint $i in ($list) {}@endcode|@ref foreach
-    |A @ref switch "switch statement"|@code{.py} switch ($var) { case =~ /error/: throw "ERROR", $var; default: printf("%s\n", $var); }@endcode|@ref switch
-    |A @ref return "return statement"|@code{.py} return $val;@endcode|@ref return
-    |A @ref variable_declarations "local variable declaration"|@code{.py} my string $var;@endcode @code{.py} my (int $a, string $b, bool $c);@endcode|@ref variables, @ref variable_declarations
-    |A @ref variable_declarations "global variable declaration"|@code{.py} our int $var;@endcode @code{.py} our (float $a, int $b, hash $c);@endcode|@ref variables, @ref variable_declarations
-    |A @ref function_calls "function call"|@code{.py} calculate($this, $that, $the_other);@endcode|@ref function_library
+    |A @ref for "for statement"|@code{.py} for (int i = 0; i < 10; ++ i) {}@endcode|@ref for
+    |A @ref foreach "foreach statement"|@code{.py} foreach softint i in (list) {}@endcode|@ref foreach
+    |A @ref switch "switch statement"|@code{.py} switch (var) { case =~ /error/: throw "ERROR", var; default: printf("%s\n", var); }@endcode|@ref switch
+    |A @ref return "return statement"|@code{.py} return val;@endcode|@ref return
     |A @ref continue "continue statement"|@code{.py} continue;@endcode|@ref continue
     |A @ref break "break statement"|@code{.py} break;@endcode|@ref break
     |A statement block|@code{.py} {}@endcode|zero or more statements enclosed in curly brackets
-    |A @ref throw "throw statement"|@code{.py} throw "ERROR", $description;@endcode|@ref throw
-    |A @ref try "try and catch statement"|@code{.py} try { func(); } catch (hash $ex) { printf("%s:%d: %s: %s\n", $ex.file, $ex.line, $ex.err, $ex.desc); }@endcode|@ref try
+    |A @ref throw "throw statement"|@code{.py} throw "ERROR", description;@endcode|@ref throw
+    |A @ref try "try and catch statement"|@code{.py} try { func(); } catch (hash ex) { printf("%s:%d: %s: %s\n", ex.file, ex.line, ex.err, ex.desc); }@endcode|@ref try
     |A @ref rethrow "rethrow statement"|@code{.py} rethrow;@endcode|@ref rethrow
     |A @ref thread_exit "thread_exit statement"|@code{.py} thread_exit;@endcode|@ref thread_exit
-    |A @ref context "context statement"|@code{.py} context top ($q) {}@endcode|@ref context
-    |A @ref summarize "summarize statement"|@code{.py} summarize ($q) by (%date) where (%id != NULL) {}@endcode|@ref summarize
+    |A @ref context "context statement"|@code{.py} context top (q) {}@endcode|@ref context
+    |A @ref summarize "summarize statement"|@code{.py} summarize (q) by (%date) where (%id != NULL) {}@endcode|@ref summarize
     |A @ref subcontext "subcontext statement"|@code{.py} subcontext where (%type == "INBOUND" ) {}@endcode|@ref subcontext
-    |An @ref on_exit "on_exit statement"|@code{.py} on_exit $l.unlock();@endcode|@ref on_exit
-    |An @ref on_success "on_success statement"|@code{.py} on_success $ds.commit();@endcode|@ref on_success
-    |An @ref on_error "on_error statement"|@code{.py} on_error $ds.rollback();@endcode|@ref on_error
+    |An @ref on_exit "on_exit statement"|@code{.py} on_exit l.unlock();@endcode|@ref on_exit
+    |An @ref on_success "on_success statement"|@code{.py} on_success ds.commit();@endcode|@ref on_success
+    |An @ref on_error "on_error statement"|@code{.py} on_error ds.rollback();@endcode|@ref on_error
 
     <hr>
     @section if if and else Statements
@@ -76,8 +73,8 @@
     @par Example
     Here is an example of a for loop using a local variable:\n
     @code{.py}
-for (my int $i = 0; $i < 10; $i++)
-    print("%d\n", $i);@endcode
+for (int i = 0; i < 10; i++)
+    print("%d\n", i);@endcode
 
     <hr>
     @section foreach foreach Statements
@@ -86,31 +83,32 @@ for (my int $i = 0; $i < 10; $i++)
     The %Qore <tt><b>foreach</b></tt> statement is most similar to the <tt><b>for</b></tt> or <tt><b>foreach</b></tt> array iterator statement in Perl. To iterate an action until a condition is @ref Qore::True "True", use the @ref for "for statement" instead.
 
     @par Syntax
-    <tt><b>foreach</b></tt> <tt>[\b my|\b our] [</tt><em>@ref data_type_declarations "type"</em><tt>]</tt> $variable <tt><b>in</b></tt> <tt>(</tt><em>@ref expressions "expression"</em><tt>)</tt>\n
+    <tt><b>foreach</b></tt> <tt>[\b my|\b our] [</tt><em>@ref data_type_declarations "type"</em><tt>]</tt> variable <tt><b>in</b></tt> <tt>(</tt><em>@ref expressions "expression"</em><tt>)</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
     If \a expression does not evaluate to a list, then the variable will be assigned the value of the expression evaluation and the statement will only execute one time. Otherwise the variable will be assigned to each value of the list and the statement will be called once for each value.\n\n
-    If \a expression evaluates to an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>foreach</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the values assigned to the iterator variable on each iteration are the container values returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".
-    If \a expression evalutes to @ref nothing (no value); then the loop is not executed at all.
+    If \a expression evaluates to an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>foreach</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the values assigned to the iterator variable on each iteration are the container values returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".\n\n
+    If possible, \a expression is evaluated using @ref op_functional "lazy functional evaluation".\n\n
+    If \a expression evaluates to @ref nothing (no value); then the loop is not executed at all.
 
     @par Example
     Here is an example of a foreach loop using a local variable:\n
     @code{.py}
-# if $str_list is a list of strings, this will remove all whitespace from the
+# if str_list is a list of strings, this will remove all whitespace from the
 # strings; the reference in the list expression ensures that changes
 # to the iterator variable are written back to the list
-foreach my string $str in (\$str_list)
-    trim $str;
+foreach string str in (\str_list)
+    trim str;
     @endcode
     Here is an example of a foreach loop using an object derived from @ref Qore::AbstractIterator "AbstractIterator":\n
     @code{.py}
-my hash $h = ("a": 1, "b": 2);
-foreach my int $i in (new HashIterator($h))
-    printf("%s = %y\n", $i.key, $i.value);
+hash h = ("a": 1, "b": 2);
+foreach hash ih in (h.pairIterator())
+    printf("%s = %y\n", ih.key, ih.value);
     @endcode
 
-    @note If a reference (<tt>\\$lvalue_expression</tt>) is used as the list expression, any changes made to the <tt><b>foreach</b></tt> iterator variable will be written back to the list (in which case any @ref Qore::AbstractIterator "AbstractIterator" object is not iterated; references cannot be used with @ref Qore::AbstractIterator "AbstractIterator" objects as such objects provide read-only iteration).
+    @note If a reference (<tt>\\lvalue_expression</tt>) is used as the list expression, any changes made to the <tt><b>foreach</b></tt> iterator variable will be written back to the list (in which case any @ref Qore::AbstractIterator "AbstractIterator" object is not iterated; references cannot be used with @ref Qore::AbstractIterator "AbstractIterator" objects as such objects provide read-only iteration).
 
     @see @ref map for a flexible way to iterate a list or @ref Qore::AbstractIterator "AbstractIterator" object in a single expression
 
@@ -130,7 +128,7 @@ foreach my int $i in (new HashIterator($h))
 
     @par Example
     @code{.py}
-switch ($val) {
+switch (val) {
     case < -1:
         printf("less than -1\n");
 	break;
@@ -186,9 +184,9 @@ First the expression will be evaluated; if it evaluates to @ref Qore::True "True
 
     @par Example
     @code{.py}
-my int $a = 1;
-while ($a < 10)
-    $a++;@endcode
+int a = 1;
+while (a < 10)
+    a++;@endcode
 
     <hr>
     @section do do while Statements
@@ -207,10 +205,10 @@ while ($a < 10)
 
     @par Example
     @code{.py}
-$a = 1;
+a = 1;
 do
-    $a++;
-while ($a < 10);@endcode
+    a++;
+while (a < 10);@endcode
 
     <hr>
     @section continue continue Statements
@@ -261,7 +259,7 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
     @par Syntax
     <b><tt>try</tt></b>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>\n
-    <tt>\b catch ([</tt><em>$exception_hash_variable</em><tt>])</tt>\n
+    <tt>\b catch ([</tt><em>exception_hash_variable</em><tt>])</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
@@ -320,8 +318,8 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
     @par Example
     @code{.py}
 # note that "%service_type" and "%effective_start_date" represent values
-# in the $service_history hash of arrays.
-context ($service_history) where (%service_type == "voice")
+# in the service_history hash of arrays.
+context (service_history) where (%service_type == "voice")
 sortBy (%effective_start_date) {
    printf("%s: start date: %s\n", %msisdn, format_date("YYYY-MM-DD HH:mm:SS", %effective_start_date));
 }
@@ -357,8 +355,8 @@ sortBy (%effective_start_date) {
     @par Example
     @code{.py}
 # note that "%service_type" and "%effective_start_date" represent values
-# in the $services hash of arrays.
-summarize ($services)
+# in the services hash of arrays.
+summarize (services)
     by (%effective_start_date)
     where (%service_type == "voice")
     sortBy (%effective_start_date) {
@@ -393,7 +391,7 @@ summarize ($services)
 
     @par Example
     @code{.py}
-summarize ($services)
+summarize (services)
     by (%effective_start_date)
     where (%service_type == "voice")
     sortBy (%effective_start_date) {
@@ -430,7 +428,7 @@ summarize ($services)
 string sub getName() {
    return "Barney";
 }
-my string $name = getName();@endcode
+string name = getName();@endcode
 
     <hr>
     @section on_exit on_exit Statements
@@ -451,10 +449,10 @@ my string $name = getName();@endcode
     @par Example
 @code{.py}
 {
-    $mutex.lock();
+    mutex.lock();
     # here we queue the unlock of the mutex when the block exits, even if an exception is thrown below
-    on_exit $mutex.unlock();
-    if ($error)
+    on_exit mutex.unlock();
+    if (error)
         throw "ERROR", "Scary error happened";
     print("everything's OK!\n");
     return "OK";
@@ -479,12 +477,12 @@ my string $name = getName();@endcode
     @par Example
 @code{.py}
 {
-    $db.beginTransaction();
+    db.beginTransaction();
     # here we queue the commit in the case there are no errors
-    on_success $db.commit();
+    on_success db.commit();
     # here we queue a rollback in the case of an exception
-    on_error $db.rollback();
-    $db.select("select * from table where id = %v for update", $id);
+    on_error db.rollback();
+    db.select("select * from table where id = %v for update", id);
     # .. more code
 
     return "OK";
@@ -509,12 +507,12 @@ my string $name = getName();@endcode
 
     @par Example
 @code{.py}{
-    $db.beginTransaction();
+    db.beginTransaction();
     # here we queue the commit in the case there are no errors
-    on_success $db.commit();
+    on_success db.commit();
     # here we queue a rollback in the case of an exception
-    on_error $db.rollback();
-    $db.select("select * from table where id = %v for update", $id);
+    on_error db.rollback();
+    db.select("select * from table where id = %v for update", id);
     # .. more code
 
     return "OK";

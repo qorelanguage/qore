@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_TermIOS.h>
+#include "qore/intern/QC_TermIOS.h"
 
 /** @defgroup tattr_local_mode_constants Terminal Attribute Local Mode Constants
     If any of the constants in this group is not defined on the host system, then it will be assigned to 0 in Qore.
