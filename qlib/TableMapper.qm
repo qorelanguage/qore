@@ -799,7 +799,7 @@ on_error table_mapper.rollback();
             return h;
         }
 
-#! inserts a row into the block buffer based on a mapped input record; does not commit the transaction
+        #! inserts a row into the block buffer based on a mapped input record; does not commit the transaction
         /** Data is only inserted/upserted if the block buffer size reaches the limit defined by the \c "insert_block" option, in which case this method returns all the data inserted/upserted.  In case the mapped data is only inserted/upserted into the cache, no value is returned.
 
             @param rec a hash representing a single input record
