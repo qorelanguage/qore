@@ -365,6 +365,15 @@ public namespace Mapper {
             /** @since Mapper 1.1
              */
             bool m_empty_strings_to_nothing = False;
+
+            #! map of fields to be mapped 1:1 input -> output
+            hash identh;
+
+            #! list of fields to be mapped 1:1 input -> output
+            *list identl;
+
+            #! map of constant fields
+            hash consth;
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -492,6 +501,12 @@ Mapper mapv(DataMap);
         #! verifies the input map in the constructor
         private checkMap() {
             map checkMapField($1, \mapc.$1), mapc.keyIterator();
+            if (identh) {
+                identl = keys identh;
+                mapc -= identl;
+            }
+            if (consth)
+                mapc -= keys consth;
         }
 
         #! convert a field definition to a hash if possible
@@ -545,6 +560,9 @@ Mapper mapv(DataMap);
                     checkInputField(k, fh.name);
                 if (!allow_dot && fh.name =~ /\./)
                     fh.struct = (remove fh.name).split(".");
+                # add to ident list if the input and output fields are identical
+                if (fh.name == k && !fh.date_format && !fh.number_format && !fh.trunc && !trunc_all && !fh.subclass && !fh.code)
+                    identh{k} = True;
             }
             else if (fh.runtime) {
                 if (!m_runtime.hasKey(fh.runtime))
@@ -553,13 +571,13 @@ Mapper mapv(DataMap);
             else if (!fh.struct && input && !exists fh.constant && !fh.code && !exists fh.index)
                 checkInputField(k, k);
             if (exists fh.constant && exists fh.index) {
-                error("output field %y has a 'constant' and 'index' together. It's a conflict.", getFieldName(k));
+                error("output field %y has both 'constant' and 'index' which is not valid", getFieldName(k));
             }
             if (exists fh.constant || exists fh.index) {
                 *list cl = map $1, fh.keys(){ConstantConflictList};
                 string fieldType = exists fh.constant ? "constant" : "index";
                 if (cl)
-                    error("output field %y has a \"%s\" key conflicts with following key(s): %y", fieldType, getFieldName(k), cl);
+                    error("output field %y has key %y which conflicts with following key(s): %y", fieldType, getFieldName(k), cl);
             }
 
             switch (fh.struct.typeCode()) {
@@ -653,6 +671,10 @@ Mapper mapv(DataMap);
             # check if the output field should be a hash
             if (!allow_output_dot && k =~ /\./)
                 fh.ostruct = k.split(".");
+
+            # add to consth if a constant value is included
+            if (fh.constant)
+                consth{k} = fh.constant;
         }
 
         #! verifies a timezone constructor option
@@ -837,9 +859,17 @@ Mapper mapv(DataMap);
             # hash of mapped data to be added to h
             hash h;
 
+            # first copy all 1:1 mappings to the output hash
+            if (identl)
+                h = rec{identl};
+
+            # copy all constant mappings to the output hash
+            if (consth)
+                h += consth;
+
             # iterate through target fields
             foreach string key in (mapc.keyIterator()) {
-                any m = mapc{key};
+                hash m = mapc{key};
 
                 # get source field name
                 string name = m.name ?? key;
