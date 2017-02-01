@@ -35,7 +35,7 @@
 
 #define _QORE_GLOBALVARIABLELIST_H
 
-#include <qore/intern/Variable.h>
+#include "qore/intern/Variable.h"
 
 #include <map>
 
@@ -44,7 +44,7 @@ class Var;
 #ifdef HAVE_QORE_HASH_MAP
 //#warning compiling with hash_map
 #include <qore/hash_map_include.h>
-#include <qore/intern/xxhash.h>
+#include "qore/intern/xxhash.h"
 
 typedef HASH_MAP<const char*, Var*, qore_hash_str, eqstr> map_var_t;
 #else

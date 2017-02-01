@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,13 +30,13 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_Program.h>
-#include <qore/intern/QC_TimeZone.h>
-#include <qore/intern/qore_program_private.h>
-#include <qore/intern/QoreObjectIntern.h>
-#include <qore/intern/ModuleInfo.h>
+#include "qore/intern/QC_Program.h"
+#include "qore/intern/QC_TimeZone.h"
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/ModuleInfo.h"
 
-#include <qore/intern/ModuleInfo.h>
+#include "qore/intern/ModuleInfo.h"
 extern QoreModuleManager QMM;
 
 /** @defgroup parse_options Parse Option Constants
@@ -144,7 +144,7 @@ const PO_NO_DATABASE = PO_NO_DATABASE;
 const PO_NO_EMBEDDED_LOGIC = PO_NO_EMBEDDED_LOGIC;
 
 //! Prohibits any external access
-/** made up of @ref PO_NO_PROCESS_CONTROL | @ref PO_NO_NETWORK | @ref PO_NO_FILESYSTEM | @ref PO_NO_DATABASE | @ref PO_NO_EXTERNAL_INFO | @ref PO_NO_EXTERNAL_PROCESS
+/** made up of @ref PO_NO_PROCESS_CONTROL | @ref PO_NO_NETWORK | @ref PO_NO_FILESYSTEM | @ref PO_NO_DATABASE | @ref PO_NO_EXTERNAL_INFO | @ref PO_NO_EXTERNAL_PROCESS | @ref PO_NO_UNCONTROLLED_APIS
 
     @see @ref no-external-access "%no-external-access"
  */
@@ -181,7 +181,7 @@ const PO_NO_GLOBAL_VARS = PO_NO_GLOBAL_VARS;
 const PO_NO_GUI = PO_NO_GUI;
 
 //! Prohibits all terminal and file I/O and GUI operations
-/** made up of @ref PO_NO_GUI | @ref PO_NO_TERMINAL_IO | @ref PO_NO_FILESYSTEM | @ref PO_NO_NETWORK | @ref PO_NO_DATABASE
+/** made up of @ref PO_NO_GUI | @ref PO_NO_TERMINAL_IO | @ref PO_NO_FILESYSTEM | @ref PO_NO_NETWORK | @ref PO_NO_DATABASE | @ref PO_NO_UNCONTROLLED_APIS
 
     @see @ref no-io "%no-io"
  */
@@ -228,7 +228,7 @@ const PO_NO_PROCESS_CONTROL = PO_NO_PROCESS_CONTROL;
 const PO_NO_SUBROUTINE_DEFS = PO_NO_SUBROUTINE_DEFS;
 
 //! Prohibits system classes from being imported into the new Program object
-/** @note: PO_NO_SYSTEM_CLASSES is a synonym of this constant
+/** @note @ref Qore::PO_NO_SYSTEM_CLASSES "PO_NO_SYSTEM_CLASSES" is a synonym of this constant
 
     @since %Qore 0.8.12 to harmonize permission names
  */
@@ -236,12 +236,12 @@ const PO_NO_INHERIT_SYSTEM_CLASSES = PO_NO_INHERIT_SYSTEM_CLASSES;
 
 //! Prohibits system classes from being imported into the new Program object
 /**
-    @note PO_NO_INHERIT_SYSTEM_CLASSES was added in %Qore 0.8.12 with the same value of this constant to provide a consistent naming convention for inheritance permissions
+    @note @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES "PO_NO_INHERIT_SYSTEM_CLASSES" was added in %Qore 0.8.12 with the same value of this constant to provide a consistent naming convention for inheritance permissions
  */
 const PO_NO_SYSTEM_CLASSES = PO_NO_INHERIT_SYSTEM_CLASSES;
 
 //! Prohibits builtin/system function variants from being imported into the new Program object
-/** @note: PO_NO_SYSTEM_FUNC_VARIANTS is a synonym of this constant
+/** @note @ref Qore::PO_NO_SYSTEM_FUNC_VARIANTS "PO_NO_SYSTEM_FUNC_VARIANTS" is a synonym of this constant
 
     @since %Qore 0.8.12 to harmonize permission names
  */
@@ -249,7 +249,7 @@ const PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS = PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS;
 
 //! Prohibits builtin/system function variants from being imported into the new Program object
 /**
-    @note PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS was added in %Qore 0.8.12 with the same value of this constant to provide a consistent naming convention for inheritance permissions
+    @note @ref Qore::PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS "PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS" was added in %Qore 0.8.12 with the same value of this constant to provide a consistent naming convention for inheritance permissions
 */
 const PO_NO_SYSTEM_FUNC_VARIANTS = PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS;
 
@@ -284,7 +284,7 @@ const PO_NO_THREAD_INFO = PO_NO_THREAD_INFO;
 const PO_NO_TOP_LEVEL_STATEMENTS = PO_NO_TOP_LEVEL_STATEMENTS;
 
 //! Prohibits user classes from being imported into the new Program object
-/** @note: PO_NO_USER_CLASSES is a synonym of this constant
+/** @note @ref Qore::PO_NO_USER_CLASSES "PO_NO_USER_CLASSES" is a synonym of this constant
 
     @since %Qore 0.8.12 to harmonize permission names
  */
@@ -292,7 +292,7 @@ const PO_NO_INHERIT_USER_CLASSES = PO_NO_INHERIT_USER_CLASSES;
 
 //! Prohibits user classes from being imported into the new Program object
 /**
-    @note PO_NO_INHERIT_USER_CLASSES was added in %Qore 0.8.12 with the same value of this constant to provide a consistent naming convention for inheritance permissions
+    @note @ref Qore::PO_NO_INHERIT_USER_CLASSES "PO_NO_INHERIT_USER_CLASSES" was added in %Qore 0.8.12 with the same value of this constant to provide a consistent naming convention for inheritance permissions
  */
 const PO_NO_USER_CLASSES = PO_NO_INHERIT_USER_CLASSES;
 
@@ -432,6 +432,27 @@ const PO_BROKEN_INT_ASSIGNMENTS = PO_BROKEN_INT_ASSIGNMENTS;
     @since %Qore 0.8.12
 */
 const PO_BROKEN_OPERATORS = PO_BROKEN_OPERATORS;
+
+//! allows for old pre-%Qore 0.8.13 handling of break and continue
+/** @see @ref broken-loop-statement "%broken-loop-statement"
+
+    @since %Qore 0.8.13
+*/
+const PO_BROKEN_LOOP_STATEMENT = PO_BROKEN_LOOP_STATEMENT;
+
+//! disallows out-of-line class and namespace declarations
+/** @see @ref strong-encapsulation "%strong-encapsulation"
+
+    @since %Qore 0.8.13
+*/
+const PO_STRONG_ENCAPSULATION = PO_STRONG_ENCAPSULATION;
+
+//! disallow access to "uncontrolled APIs" like external language bindings or direct generic system call APIs that could bypass %Qore's sandboxing controls
+/** @see @ref no-uncontrolled-apis "%no-uncontrolled-apis"
+
+    @since %Qore 0.8.13
+*/
+const PO_NO_UNCONTROLLED_APIS = PO_NO_UNCONTROLLED_APIS;
 //@}
 
 /** @defgroup warning_constants Warning Constants
@@ -1503,4 +1524,26 @@ pgm.importSystemApi();
 */
 Program::importSystemApi() {
    qore_program_private::runtimeImportSystemApi(*p, xsink);
+}
+
+//! Sets a @ref call_reference "call reference" or @ref closure "closure" to run every time a new thread is started
+/** This code can be used to initialize @ref threading_and_variables "global thread-local variables", for example.
+
+    @param init a @ref call_reference "call reference" or @ref closure "closure" to run every time a new thread is started or @ref nothing to clear any thread initialization code
+
+    @return @ref True if there was already user initialization code set, @ref False if not
+
+    @par Example:
+    @code{.py}
+pgm.setThreadInit(sub () { var = 123; });
+    @endcode
+
+    @note the code will be run for all new threads, but is not run by this function for the current thread
+
+    @see @ref Qore::set_thread_init()
+
+    @since %Qore 0.8.13
+*/
+bool Program::setThreadInit(*code init) [dom=THREAD_CONTROL] {
+   return qore_program_private::setThreadInit(*p, init, xsink);
 }
