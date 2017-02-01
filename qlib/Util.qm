@@ -948,7 +948,7 @@ match = is_int("12x");
 
         @since Util 1.2
     */
-    public bool sub is_int (string text, bool pure = False) {
+    public bool sub is_int(string text, bool pure = False) {
         if (text =~ /^\s*[-+]?\d+\s*$/ || (!pure && is_float(text, True) && (float(text) == floor(float(text)))))
             return True;
         return False;
@@ -978,7 +978,7 @@ match = is_float("1.2x");
 
         @since Util 1.2
     */
-    public bool sub is_float (string text, bool pure = False) {
+    public bool sub is_float(string text, bool pure = False) {
         if (text.regex(RE_FLOAT) || (!pure && is_int(text)))
             return True;
         return False;
@@ -1009,7 +1009,7 @@ match = is_number("1.2x");
 
         @since Util 1.2
     */
-    public bool sub is_number (string text, bool pure = False) {
+    public bool sub is_number(string text, bool pure = False) {
         if (text.regex(RE_NUMBER) || (!pure && is_float(text, pure)))
             return True;
         return False;
