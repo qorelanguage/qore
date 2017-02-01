@@ -43,15 +43,14 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
         addTestCase("Basic CSV tests", \csvTest());
         addTestCase("Optional field CSV tests", \csvOptionalFieldTest());
         addTestCase("Multi-type CSV tests", \csvMultiTest());
+        addTestCase("Old style CSV tests", \csvOldStyleMultiTest());
+        addTestCase("CsvUtil non-numeric values", \csvNonNumeric());
+        addTestCase("Escaping", \escapeTest());
+        #addTestCase("csvData test", \csvData());
         addTestCase("Single-type CSV tests", \csvSingleTest());
         addTestCase("Single-type CSV map tests", \csvSingleMapTest());
-
-        addTestCase("Escaping", \escapeTest());
-        addTestCase("Old style CSV tests", \csvOldStyleMultiTest());
         addTestCase("Multi-type resolve CSV tests", \csvMultiResolveTest());
-
         addTestCase("Config stress", \csvConfig());
-
         addTestCase("CSV file iterator", \csvFileIterator());
 
         # Return for compatibility with test harness that checks return value.
@@ -212,6 +211,14 @@ UK,1234567893,28052012";
         CsvStringWriter w( ("write-headers": False, "optimal-quotes" : True, "quote_escape" : '"')+opts );
         string outstr = w.write(CsvMultiRecords2);
         testAssertion("multi writer", \equals(), (CsvMultiInput, outstr));
+    }
+
+    csvNonNumeric() {
+        hash opts = ("fields": ("int": "int", "float": "float", "number": "number"));
+
+        CsvDataIterator i("1x2,1.2x,1e2n3", opts);
+        i.next();
+        testAssertion("Non-numeric field value", \i.getValue(), (), new TestResultExceptionType("FIELD-VALUE-ERROR"));
     }
 
     escapeTest() {

@@ -25,6 +25,8 @@
 # minimum required Qore version
 %requires qore >= 0.8.13
 
+%requires Util
+
 # assume local var scope, do not use "$" for vars, members, and method calls
 %new-style
 %strict-args
@@ -1121,14 +1123,20 @@ while (i.next()) {
 
             switch (type) {
                 case "int": {
+                    if (!is_int(val))
+                        throw "FIELD-VALUE-ERROR", sprintf("invalid %s value: %y", type, val);
                     rv = int(val);
                     break;
                 }
                 case "float": {
+                    if (!is_float(val))
+                        throw "FIELD-VALUE-ERROR", sprintf("invalid %s value: %y", type, val);
                     rv = float(val);
                     break;
                 }
                 case "number": {
+                    if (!is_number(val))
+                        throw "FIELD-VALUE-ERROR", sprintf("invalid %s value: %y", type, val);
                     rv = number(val);
                     break;
                 }
