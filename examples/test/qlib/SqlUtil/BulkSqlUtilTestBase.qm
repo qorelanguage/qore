@@ -63,6 +63,8 @@ public class SqlTestBase inherits QUnit::Test {
 
         const OptionColumn = 22;
 
+        hash expect_data;
+
         list insert_data;
         list upsert_data;
 
@@ -160,10 +162,12 @@ public class SqlTestBase inherits QUnit::Test {
         foreach hash h in (custom_columns.pairIterator()) {
             string cn = getColumnName(h.key);
             row{cn} = h.value.bind ?? h.value.value ?? h.value;
+            expect_data{cn} = h.value.expect ?? h.value.bind."^value^" ?? h.value.value ?? h.value;
         }
         foreach hash h in (const_columns.pairIterator()) {
             string cn = getColumnName(h.key);
             crec{cn} = h.value.bind ?? h.value.value ?? h.value;
+            expect_data{cn} = h.value.expect ?? h.value.bind."^value^" ?? h.value.value ?? h.value;
         }
         insert_data = (
             {"id": 1, "id_": 2, "null_f": "abc"} + row,
