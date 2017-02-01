@@ -121,7 +121,7 @@ public class SqlTestBase inherits QUnit::Test {
         foreach hash h in (\l) {
             trim h.char_f;
         }
-        map assertEq(insert_data[$#] + crec, $1), l;
+        map assertEq(insert_data[$#] + crec + expect_data, $1), l;
     }
 
     static hash getRows(list l, int start, int end = -1) {
