@@ -117,10 +117,6 @@ public class SqlTestBase inherits QUnit::Test {
         # compare data inserted
         list l = table.selectRows(("orderby": "id"));
         assertEq(5, l.size());
-        # trim char fields for match
-        foreach hash h in (\l) {
-            trim h.char_f;
-        }
         map assertEq(insert_data[$#] + crec + expect_data, $1), l;
     }
 
