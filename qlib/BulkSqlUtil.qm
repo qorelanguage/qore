@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file BulkSqlUtil.qm module for performing bulk DML operations with SqlUtil
 
-/*  BulkSqlUtil.qm Copyright 2015 Qore Technologies, sro
+/*  BulkSqlUtil.qm Copyright 2015 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -154,6 +154,9 @@ on_error ds.rollback();
             #! "constant" row values; must be equal in all calls to queueData
             hash cval;
 
+            #! "constant" row value keys
+            list cvall;
+
             #! an optional info logging callback; must accept a sprintf()-style format specifier and optional arguments
             *code info_log;
 
@@ -254,6 +257,10 @@ on_error ds.rollback();
 
             # remove "returning" arguments
             data -= ret_args;
+
+            # remove constant args
+            if (cvall)
+                data -= cvall;
 
             # if we are working with bulk data where the row count would cause the buffer limit to be exceeded
             if (data.firstValue().typeCode() == NT_LIST) {
@@ -362,8 +369,11 @@ on_error ds.rollback();
             }
 
             # do not include constant values in the template row
-            if (has_list)
-                map cval.$1 = remove row.$1, row.keyIterator(), row.$1.typeCode() != NT_LIST;
+            if (has_list) {
+                cval = map {$1: remove row.$1}, row.keyIterator(), row.$1.typeCode() != NT_LIST;
+                if (cval)
+                    cvall = cval.keys();
+            }
 
             setupInitialRow(row);
         }
@@ -643,6 +653,8 @@ inserter.setRowCode(rowcode);
                     delete row.(h.key);
                 }
             }
+            if (static_ret_expr)
+                cvall += static_ret_expr.keys();
         }
 
         #! inserts internally-queued queued data in the database wuith bulk DML operations
@@ -666,7 +678,7 @@ inserter.setRowCode(rowcode);
             }
             else {
                 # execute the SQLStatement on the args
-                stmt.execArgs(hbuf.values());
+                stmt.execArgs((hbuf + cval + static_ret_expr).values());
                 rh = stmt.getOutput();
             }
 
