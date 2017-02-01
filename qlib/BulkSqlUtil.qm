@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file BulkSqlUtil.qm module for performing bulk DML operations with SqlUtil
 
-/*  BulkSqlUtil.qm Copyright 2015 Qore Technologies, sro
+/*  BulkSqlUtil.qm Copyright 2015 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -38,17 +38,12 @@
 %requires(reexport) SqlUtil
 
 module BulkSqlUtil {
-    version = "1.0";
+    version = "1.1";
     desc = "user module performing bulk DML operations with SqlUtil";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
 }
-
-/*  Version History
-    * 2015-08-02 v1.0: David Nichols <david@qore.org>
-      + the initial version of the BulkSqlUtil module
-*/
 
 /** @mainpage BulkSqlUtil Module
 
@@ -70,6 +65,9 @@ module BulkSqlUtil {
     See the above classes for detailed information and examples.
 
     @section bulksqlutil_relnotes Release Notes
+
+    @subsection bulksqlutil_v1_1 BulkSqlUtil v1.1
+    - fixed a bug in the @ref BulkSqlUtil::BulkInsertOperation "BulkInsertOperation" class where inserts would fail or silently insert invalid data in the second or later blocks when constant hashes were used (<a href="https://github.com/qorelanguage/qore/issues/1625">issue 1625</a>)
 
     @subsection bulksqlutil_v1_0 BulkSqlUtil v1.0
     - initial release of the module
@@ -153,6 +151,9 @@ on_error ds.rollback();
 
             #! "constant" row values; must be equal in all calls to queueData
             hash cval;
+
+            #! "constant" row value keys
+            list cval_keys;
 
             #! an optional info logging callback; must accept a sprintf()-style format specifier and optional arguments
             *code info_log;
@@ -254,6 +255,10 @@ on_error ds.rollback();
 
             # remove "returning" arguments
             data -= ret_args;
+
+            # remove constant args
+            if (cval_keys)
+                data -= cval_keys;
 
             # if we are working with bulk data where the row count would cause the buffer limit to be exceeded
             if (data.firstValue().typeCode() == NT_LIST) {
@@ -362,8 +367,11 @@ on_error ds.rollback();
             }
 
             # do not include constant values in the template row
-            if (has_list)
-                map cval.$1 = remove row.$1, row.keyIterator(), row.$1.typeCode() != NT_LIST;
+            if (has_list) {
+                cval = map {$1: remove row.$1}, row.keyIterator(), row.$1.typeCode() != NT_LIST;
+                if (cval)
+                    cval_keys = cval.keys();
+            }
 
             setupInitialRow(row);
         }
@@ -643,6 +651,8 @@ inserter.setRowCode(rowcode);
                     delete row.(h.key);
                 }
             }
+            if (static_ret_expr)
+                cval_keys += static_ret_expr.keys();
         }
 
         #! inserts internally-queued queued data in the database wuith bulk DML operations
@@ -666,7 +676,7 @@ inserter.setRowCode(rowcode);
             }
             else {
                 # execute the SQLStatement on the args
-                stmt.execArgs(hbuf.values());
+                stmt.execArgs((hbuf + cval + static_ret_expr).values());
                 rh = stmt.getOutput();
             }
 

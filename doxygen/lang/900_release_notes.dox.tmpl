@@ -16,6 +16,7 @@
     - fixed a bug that would result in a crash if a method were declared both \c static and \c abstract (<a href="https://github.com/qorelanguage/qore/issues/1590">issue 1590</a>)
     - fixed a runtime memory leak and invalid runtime behavior with undetected recursive lvalue references (<a href="https://github.com/qorelanguage/qore/issues/1617">issue 1617</a>)
     - fixed performance issues with the <a href="../../modules/Mapper/html/index.html">Mapper</a> module (and by extension the <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module) for mappers with many identity (i.e. 1:1) and constant mappings (<a href="https://github.com/qorelanguage/qore/issues/1620">issue 1620</a>)
+    - fixed a bug in the \c BulkInsertOperation class in the <a href="../../modules/BulkSqlUtil/html/index.html">BulkSqlUtil</a> module where inserts would fail or silently insert invalid data in the second or later blocks when constant hashes were used (<a href="https://github.com/qorelanguage/qore/issues/1625">issue 1625</a>)
 
     @section qore_08125 Qore 0.8.12.5
 
