@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Mapper.qm data mapping module
 
-/*  Mapper.qm Copyright 2014 - 2016 Qore Technologies, s.r.o.
+/*  Mapper.qm Copyright 2014 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 
 # require type definitions everywhere
 %require-types
@@ -35,7 +35,7 @@
 %new-style
 
 module Mapper {
-    version = "1.1";
+    version = "1.2";
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -219,6 +219,9 @@ m.mapData(input2);           # date_begin is still the same as from beginning of
 
     @section mapperrelnotes Release Notes
 
+    @subsection mapperv1_2 Mapper v1.2
+    - significantly improved mapper performance with identity (i.e. 1:1) and constant mappings (<a href="https://github.com/qorelanguage/qore/issues/1620">issue 1620</a>)
+
     @subsection mapperv1_1 Mapper v1.1
     - implemented \c "constant" field tag giving a constant value for the output of a field
     - implemented structured output for dotted output field names and the \c "allow_output_dot" option to suppress this behavior
@@ -311,6 +314,12 @@ public namespace Mapper {
             #! the hash providing output field names and mappings
             hash mapc;
 
+            #! the hash with a subset of the mappings used dynamically
+            hash mapd;
+
+            #! the hash of output records for key order
+            hash mapo;
+
             #! the output character encoding; if not given then the output encoding is assumed to be UTF-8
             string encoding = "utf-8";
 
@@ -365,6 +374,15 @@ public namespace Mapper {
             /** @since Mapper 1.1
              */
             bool m_empty_strings_to_nothing = False;
+
+            #! map of fields to be mapped 1:1 input -> output
+            hash identh;
+
+            #! list of fields to be mapped 1:1 input -> output
+            *list identl;
+
+            #! map of constant fields
+            hash consth;
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -435,7 +453,7 @@ Mapper mapv(DataMap);
                     }
                     if (h.value.typeCode() != NT_HASH)
                         error("\"output\" key %y passed to %s::constructor() assigned to type %y (value %y); expecting \"hash\"", h.key, self.className(), h.value.type(), h.value);
-                    foreach string k in (h.value.keyIterator()) {
+                    foreach string k in (keys h.value) {
                         if (!OutputKeys{k})
                             error("\"output\" key %y passed to %s::constructor() has unknown key %y (valid keys: %y)", h.key, self.className(), k, OutputKeys.keys());
                     }
@@ -450,7 +468,7 @@ Mapper mapv(DataMap);
 
             mapc = mapv;
             hash ck = optionKeys();
-            foreach string k in (opts.keyIterator()) {
+            foreach string k in (keys opts) {
                 if (!ck{k})
                     error("unknown option key %y passed to %s::constructor(); recognized option keys: %y", getFieldName(k), self.className(), ck.keys());
             }
@@ -491,7 +509,15 @@ Mapper mapv(DataMap);
 
         #! verifies the input map in the constructor
         private checkMap() {
-            map checkMapField($1, \mapc.$1), mapc.keyIterator();
+            map checkMapField($1, \mapc.$1), keys mapc;
+            mapd = mapc;
+            if (identh) {
+                identl = keys identh;
+                mapd -= identl;
+            }
+            if (consth) {
+                mapd -= keys consth;
+            }
         }
 
         #! convert a field definition to a hash if possible
@@ -545,6 +571,11 @@ Mapper mapv(DataMap);
                     checkInputField(k, fh.name);
                 if (!allow_dot && fh.name =~ /\./)
                     fh.struct = (remove fh.name).split(".");
+                else {
+                    # add to ident list if the input and output fields are identical
+                    if (fh.name == k && !fh.date_format && !fh.number_format && !fh.trunc && !trunc_all && !fh.subclass && !fh.code)
+                        identh{k} = True;
+                }
             }
             else if (fh.runtime) {
                 if (!m_runtime.hasKey(fh.runtime))
@@ -553,13 +584,13 @@ Mapper mapv(DataMap);
             else if (!fh.struct && input && !exists fh.constant && !fh.code && !exists fh.index)
                 checkInputField(k, k);
             if (exists fh.constant && exists fh.index) {
-                error("output field %y has a 'constant' and 'index' together. It's a conflict.", getFieldName(k));
+                error("output field %y has both 'constant' and 'index' which is not valid", getFieldName(k));
             }
             if (exists fh.constant || exists fh.index) {
                 *list cl = map $1, fh.keys(){ConstantConflictList};
                 string fieldType = exists fh.constant ? "constant" : "index";
                 if (cl)
-                    error("output field %y has a \"%s\" key conflicts with following key(s): %y", fieldType, getFieldName(k), cl);
+                    error("output field %y has key %y which conflicts with following key(s): %y", fieldType, getFieldName(k), cl);
             }
 
             switch (fh.struct.typeCode()) {
@@ -604,7 +635,7 @@ Mapper mapv(DataMap);
 
             # check for contradictory definitions and assign values according to the output definition
             if (outf) {
-                foreach string ok in (outf.keyIterator()) {
+                foreach string ok in (keys outf) {
                     # ignore the "desc" key
                     if (ok == "desc")
                         continue;
@@ -623,7 +654,7 @@ Mapper mapv(DataMap);
             hash vk = validKeys();
             hash vt = validTypes();
 
-            foreach string hk in (fh.keyIterator())
+            foreach string hk in (keys fh)
                 if (!vk{hk})
                     error("output field %y in map hash contains unknown key '%s' (valid keys: %y)", getFieldName(k), hk, vk.keys());
 
@@ -651,8 +682,16 @@ Mapper mapv(DataMap);
             }
 
             # check if the output field should be a hash
-            if (!allow_output_dot && k =~ /\./)
+            if (!allow_output_dot && k =~ /\./) {
                 fh.ostruct = k.split(".");
+                mapo{fh.ostruct[0]} = NOTHING;
+            }
+            else {
+                # add to consth if a constant value is included
+                if (fh.constant)
+                    consth{k} = fh.constant;
+                mapo{k} = NOTHING;
+            }
         }
 
         #! verifies a timezone constructor option
@@ -834,12 +873,20 @@ Mapper mapv(DataMap);
             if (input_log)
                 input_log(rec);
 
-            # hash of mapped data to be added to h
-            hash h;
+            # hash of mapped data to be added to h; mapo provides the output field order
+            hash h = mapo;
 
-            # iterate through target fields
-            foreach string key in (mapc.keyIterator()) {
-                any m = mapc{key};
+            # first copy all 1:1 mappings to the output hash
+            if (identl)
+                h = rec{identl};
+
+            # copy all constant mappings to the output hash
+            if (consth)
+                h += consth;
+
+            # iterate through dynamic target fields
+            foreach string key in (keys mapd) {
+                hash m = mapc{key};
 
                 # get source field name
                 string name = m.name ?? key;
