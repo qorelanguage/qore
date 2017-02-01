@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreHashIterator.h>
+#include "qore/intern/QoreHashIterator.h"
 
 //! This class an iterator class for hashes
 /** Call HashIterator::next() to iterate through the hash; do not use the iterator if HashIterator::next() returns @ref False.

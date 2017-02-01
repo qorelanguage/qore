@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -79,7 +79,7 @@ AutoVLock::~AutoVLock() {
    del();
    if (priv && priv->notify_list) {
       ExceptionSink xsink2;
-      
+
       for (qore_notify_list_t::iterator i = priv->notify_list->begin(), e = priv->notify_list->end(); i != e; ++i) {
 	 // run member notifications regardless of exception status
 	 //printd(5, "posting notification to object %p, member %s\n", i->obj, i->member.c_str());
@@ -147,7 +147,7 @@ void AutoVLock::addMemberNotification(QoreObject *obj, const char *member) {
 
 int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, ExceptionSink *xsink, int timeout_ms) {
    waiting_on = asl;
-   
+
    int rc = 0;
    AbstractSmartLock *vl_wait = vl->waiting_on;
    //printd(5, "VLock::waitOn(asl=%p) vl_wait=%p other_tid=%d\n", asl, vl_wait, vl->tid);
@@ -166,9 +166,9 @@ int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, ExceptionSink *xsink, int t
       rc = asl->self_wait(timeout_ms);
       //printd(0, "AbstractSmartLock::block() this=%p asl=%p regrabbed lock\n", this, asl);
    }
-   
+
    waiting_on = 0;
-   
+
    return rc;
 }
 
@@ -187,7 +187,7 @@ int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, Except
 	 xsink->raiseException("THREAD-DEADLOCK", "TID %d and %d have deadlocked trying to acquire the same resources", vl->tid, tid);
       rc = -1;
    }
-   
+
    if (!rc) {
       //printd(0, "AbstractSmartLock::block() this=%p asl=%p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
       rc = asl->self_wait(cond, timeout_ms);
@@ -195,7 +195,7 @@ int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, Except
    }
 
    waiting_on = 0;
-   
+
    return rc;
 }
 
@@ -217,7 +217,7 @@ int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, ExceptionSink *xsin
 	 break;
       }
    }
-   
+
    if (!rc) {
       //printd(0, "AbstractSmartLock::block() this=%p asl=%p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
       rc = asl->self_wait(timeout_ms);
@@ -259,7 +259,7 @@ int VLock::pop(AbstractSmartLock *g) {
    abstract_lock_list_t::iterator i = end();
    --i;
    --i;
-   while (*i != g) 
+   while (*i != g)
       --i;
 
    erase(i);
