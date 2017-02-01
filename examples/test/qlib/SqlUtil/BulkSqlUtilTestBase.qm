@@ -24,7 +24,7 @@ public class SqlUtilTestSchema inherits AbstractSchema {
     }
 
     private *hash doTables(hash tables, hash columns) {
-        foreach string table in (tables.keyIterator()) {
+        foreach string table in (keys tables) {
             foreach hash h in (columns.pairIterator()) {
                 string type = h.value.type ?? h.key;
                 hash ch = (
@@ -125,7 +125,7 @@ public class SqlTestBase inherits QUnit::Test {
     static hash getRows(list l, int start, int end = -1) {
         if (end < 0)
             end = l.size();
-        hash h = map {$1: ()}, l[0].keyIterator();
+        hash h = map {$1: ()}, keys l[0];
 
         for (int i = start; i < end; ++i)
             map h{$1.key} += $1.value, l[i].pairIterator();

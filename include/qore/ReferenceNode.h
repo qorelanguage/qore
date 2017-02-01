@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   ReferenceNode.h
-  
+
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,12 +31,12 @@
 
 #ifndef _QORE_REFERENCENODE_H
 
-#define _QORE_REFERENCENODE_H 
+#define _QORE_REFERENCENODE_H
 
 #include <qore/AbstractQoreNode.h>
 
 //! parse type: reference to a lvalue expression
-/** This type could be passed to a builtin function.  To get and set the value of the reference, 
+/** This type could be passed to a builtin function.  To get and set the value of the reference,
     use the TypeSafeReferenceHelper class.  To create a reference argument to pass to a user or builtin
     function, use the ReferenceArgumentHelper class.
     @see TypeSafeReferenceHelper
@@ -76,7 +76,7 @@ protected:
 
 public:
    //! creates the ReferenceNode object - internal function, not exported, not part of the Qore API
-   DLLLOCAL ReferenceNode(AbstractQoreNode* exp, QoreObject* self, const void* lvalue_id);
+   DLLLOCAL ReferenceNode(AbstractQoreNode* exp, QoreObject* self, const void* lvalue_id, const qore_class_private* cls);
 
    //! concatenate the verbose string representation of the value to an existing QoreString
    /** used for %n and %N printf formatting
