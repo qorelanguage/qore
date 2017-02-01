@@ -22,26 +22,21 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 # need mime definitions
 %requires Mime >= 1.0
 %requires Util >= 1.0
-%requires(reexport) HttpServerUtil >= 0.3.11
+%requires(reexport) HttpServerUtil >= 0.3.11.1
 
 %new-style
 
 module HttpServer {
-    version = "0.3.11";
+    version = "0.3.12";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
 }
-
-/*  Version History: see docs below
-   note that this server suffers from the following limitations, among many others:
-   + not totally HTTP 1.1 compliant although claims to be
-*/
 
 /** @mainpage HttpServer Module
 
@@ -51,9 +46,7 @@ module HttpServer {
 
     The %HttpServer module provides a multi-threaded HTTP server to Qore programs.
 
-    The %HttpServer implemented here was initially designed primarily for serving RPC-style requests, however it has been extended to support REST-style services, and additionally it can also be used to serve files or other content with an appropriate handler.
-
-    It has not been audited for security.
+    The %HttpServer implemented is designed for serving REST, RPC-style, and file-system-based requests as well as other types of traffic with an appropriate handler (for example handlers requiring protocol changes such as with the WebSocket protocol are supported as well).
 
     To use this module, use \c "%requires HttpServer" in your code.  See examples/httpserver.q for an example program using this module
 
@@ -119,6 +112,13 @@ log("started listener on %s", lh.desc);
 
     @section http_relnotes HttpServer Module Release Notes
 
+    @subsection http0311 HttpServer 0.3.12
+    - added a minimal substring of string bodies received to the log message when logging HTTP requests
+    - added logic to attempt to mask passwords in log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
+
+    @subsection http0311 HttpServer 0.3.11.1
+    - fixed a bug where @ref HttpServer::HttpServer::addListener() would not accept port 0 meaning bind on any random open port (<a href="https://github.com/qorelanguage/qore/issues/1284">bug 1284</a>)
+
     @subsection http0311 HttpServer 0.3.11
     - fixed a bug setting the response encoding in @ref HttpServer::HttpServer::setReplyHeaders() where the Socket encoding was not set properly and therefore the encoding in the \c Content-Type in the response header did not necessarily match the encoding of the response
     - added support for private keys with passwords
@@ -135,6 +135,7 @@ log("started listener on %s", lh.desc);
         - first, handlers without regexp are considered - if there are some handler with their path matching the request, the one with the longest path is selected
         - otherwise, the first (in order of their registration) handler with regexp that matches the request URI is chosen
       - if no path matches the request, the same logic as before applies
+    - added @ref HttpServer::HttpServer::addListeners(string, hash, *code, *code, *code, *string, int)
     - fixed a bug in @ref HttpServer::HttpServer::addListener() with an integer argument; a UNIX socket was opened instead of a wildcard listener on the given port
     - added the @ref HttpServer::HttpServer::listenerStarted() method to allow for reporting when listeners are actually running since they are started asynchronously
     - added the \c "ssl" key to the listener socket info hash
@@ -492,7 +493,7 @@ class HttpServer::DynamicHttpHandlerList inherits HttpServer::HttpHandlerList {
     }
 }
 
-#! The HttpServer class implements a multithreaded HTTP server primarily designed for serving RPC-style services
+#! The HttpServer class implements a multithreaded HTTP server
 public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     public {
         #! version of the HttpServer's implementation
@@ -701,8 +702,47 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
             return addINETListenersIntern(NOTHING, lp.bind, lp, h, logger, errorlogger, stopc, name, family);
         }
 
-        my (*string node, string service) = (lp.bind =~ x/(.+):(\w+)/);
+        (*string node, string service) = (lp.bind =~ x/(.+):(\w+)/);
         return addINETListenersIntern(node, service, lp, h, logger, errorlogger, stopc, name, family);
+    }
+
+    #! adds a dedicated listener to the server with an explicit/dedicated handler for incoming connections
+    /** @param bind the bind address for the dedicated listener; this can be a port number or an address (or hostname) and a port number separated by a colon (ex: \c "192.168.20.4:8021")
+        @param lp a hash with the following keys:
+        - \c cert_path: (optional) a path to an X509 certificate for HTTPS listeners
+        - \c key_path: (optional) a path to a private key file for an X509 certificate for HTTPS listeners
+        - \c key_password: (optional) an optional string giving the password for the private key (PEM format only)
+        - \c cert: (optional) a Qore::SSLCertificate object for HTTPS listeners
+        - \c key: (optional) a Qore::SSLPrivateKey object for HTTPS listeners
+        @param logger an optional @ref closure "closure" or @ref call_reference "call reference" that will be called with logging information; if this is not set, then the logger set in the HttpServer::constructor() will be used instead
+        @param errorlogger an optional @ref closure "closure" or @ref call_reference "call reference" that will be called with error information; if this is not set, then the error logger set in the HttpServer::constructor() will be used instead
+        @param stopc an optional @ref closure "closure" or @ref call_reference "call reference" that will be called immediately after the listener is stopped
+        @param name an optional name for the listener; the actual listener name will have the listener id appended to it and will be returned in the \c "name" key in each hash element in the return value for each listener started
+        @param family one of the following @ref network_address_family_constants "network family constants":
+        - @ref Qore::AF_INET "AF_INET": for binding an IPv4 socket
+        - @ref Qore::AF_INET6 "AF_INET6": for binding an IPv6 socket
+        - @ref Qore::AF_UNSPEC "AF_UNSPEC": for binding a socket with any available address family
+
+        @return a list of listener info hashes; see the return value of HttpServer::getListenerInfo() for the description of each hash element in the list returned by this method
+
+        @throw HTTPSERVER-ADDLISTENER-ERROR duplicate bind address
+
+        @note if \c bind begins with a "/" character then it is assumed to be a UNIX socket path and the \a family argument is ignored
+
+        @since HttpServer 0.3.11
+     */
+    final list addListeners(string bind, hash lp, *code logger, *code errorlogger, *code stopc, *string name, int family = AF_UNSPEC) {
+        if (lp.cert_path && !lp.cert)
+            lp += HttpServer::getSSLObjects(lp.cert_path, lp.key_path, lp.key_password);
+
+        if (bind !~ /:\w+/) {
+            if (bind =~ /^\//)
+                return list(addListenerIntern(bind, NOTHING, lp.cert, lp.key, NOTHING, logger, errorlogger, stopc, name).getInfo());
+            return addINETListenersIntern(NOTHING, bind, lp, NOTHING, logger, errorlogger, stopc, name, family);
+        }
+
+        (*string node, string service) = (bind =~ x/(.+):(\w+)/);
+        return addINETListenersIntern(node, service, lp, NOTHING, logger, errorlogger, stopc, name, family);
     }
 
     #! adds a global listener to the server
@@ -716,7 +756,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         - @ref Qore::AF_UNSPEC "AF_UNSPEC": for binding a socket with any available address family
         @param pwd an optional password for the private key file (PEM format only)
 
-        @return a listener info hash; see the return value of HttpServer::getListenerInfo() for the description of the hash returned by this method
+        @return a listener info hash; see the return value of HttpServer::HttpServer::getListenerInfo() for the description of the hash returned by this method
 
         @throw HTTPSERVER-ADDLISTENER-ERROR duplicate bind address
 
@@ -727,7 +767,8 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         if (cert_path)
             sd = HttpServer::getSSLObjects(cert_path, key_path, pwd);
 
-        my (*string node, *string service);
+        *string node;
+        *string service;
         if (sock =~ /:\w+/)
             (node, service) = (sock =~ x/(.+):(\w+)/);
         else if (sock =~ /^[0-9]+$/)
@@ -888,7 +929,12 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         c.waitForZero();
     }
 
-    # only called from listeners; do not call externally
+    #! called from listener when the actual listener thread is running
+    /** @param id the listener ID
+        @param sinfo a socket information hash as returned by @ref Qore::Socket::getSocketInfo()
+
+        @since HttpServer 0.3.11
+     */
     listenerStarted(int id, hash sinfo) {
         log("HTTP listener %d started on %s", id, sinfo.desc);
     }
@@ -1038,6 +1084,8 @@ http.setListenerLogOptions("app", LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
         @param bind the name of the listener or bind string
         @param code a binary-or'ed product of @ref ListenerLogOptions "listener log options"; bits set enable logging; bits not set disable logging
+
+        @since HttpServer 0.3.11
      */
     setListenerLogOptions(softstring bind, softint code) {
         lm.enter();
@@ -1054,6 +1102,8 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
         @param id the unique listener ID
         @param code a binary-or'ed product of @ref ListenerLogOptions "listener log options"; bits set enable logging; bits not set disable logging
+
+        @since HttpServer 0.3.11
      */
     setListenerLogOptionsID(softint id, softint code) {
         lm.enter();
@@ -1066,6 +1116,9 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     }
 
     #! returns a binary-or'ed product of @ref ListenerLogOptions "listener log options" corresponding to enabled log options for the given listener
+    /**
+        @since HttpServer 0.3.11
+    */
     int getListenerLogOptions(softstring bind) {
         lm.enter();
         on_exit lm.exit();
@@ -1074,6 +1127,9 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     }
 
     #! returns a binary-or'ed product of @ref ListenerLogOptions "listener log options" corresponding to enabled log options for the given listener
+    /**
+        @since HttpServer 0.3.11
+    */
     int getListenerLogOptionsID(softint id) {
         lm.enter();
         on_exit lm.exit();
@@ -1231,7 +1287,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         if (!errorlogger && errlogfunc)
             errorlogger = errlogfunc;
 
-        string sock = (service ? sprintf("%s:%s", node ? node : "*", service) : node);
+        string sock = (exists service ? sprintf("%s:%s", node ? node : "*", service) : node);
 
         lm.enter();
         on_exit lm.exit();
@@ -1465,7 +1521,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                     phi.clear();
 
                 if (rv.reply_sent)
-                    continue;
+                    return;
             }
 
             sendReply(listener, s, handler, rv, \cx, hdr, head);
@@ -1681,6 +1737,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
 
         const PollInterval = 1s;
         const ListenQueue = 100;
+        const BodyLogLimit = 40;
     }
 
     public {
@@ -1723,7 +1780,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             ssl = True;
         }
 
-        if (n_service) {
+        if (exists n_service) {
             bindINET(n_node, n_service, True, n_family);
             socket = sprintf("%s:%s", n_node ? n_node : "*", n_service);
         }
@@ -2135,9 +2192,22 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                     log("cid %d: RECV BODY: %y", cx.id, body);
 
                 {
+                    # attempt to mask any password in the URI path
+                    orig_path =~ s/(pass(?:word)?)=.*/$1=<masked>/g; #/;
                     string lstr = sprintf("cid %d src %y: %s %s HTTP/%s (agent: %y", cx.id, cx."peer-info".address_desc, hdr.method, orig_path, hdr.http_version, hdr."user-agent");
-                    if (body)
-                        lstr += sprintf(" body: %db", body.size());
+                    if (body) {
+                        if (body.typeCode() == NT_STRING) {
+                            string bstr = body.size() > BodyLogLimit ? body.substr(0, BodyLogLimit) + "..." : body;
+                            # attempt to mask any password in the message body
+                            bstr =~ s/(pass(?:word)?"?[=:>\s]*).*/$1<masked>.../; #/;
+                            bstr = replace(bstr, "\n", "\\n");
+                            bstr = replace(bstr, "\r", "\\r");
+                            bstr = replace(bstr, "\t", "\\t");
+                            lstr += sprintf(" body: '%s' (%db)", bstr, body.size());
+                        }
+                        else
+                            lstr += sprintf(" body: <bin> %db", body.size());
+                    }
                     else if (hdr."transfer-encoding" == "chunked")
                         lstr += " body: chunked";
                     if (hdr."_qore_orig_content_type")

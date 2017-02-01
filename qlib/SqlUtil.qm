@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file SqlUtil.qm Qore user module for working with SQL data
 
-/*  SqlUtil.qm Copyright (C) 2013 - 2016 Qore Technologies, sro
+/*  SqlUtil.qm Copyright (C) 2013 - 2016 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.3";
+    version = "1.4";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -100,6 +100,14 @@ module SqlUtil {
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
 
+    @subsection sqlutilv1_4 SqlUtil v1.4
+    - fixed a bug in update and upsert statement generation when the given data does not have enough columns to use the unique index found, an error message is generated that contains all the columns names instead of just the column names required by the index (<a href="https://github.com/qorelanguage/qore/issues/1013">issue 1013</a>)
+
+    @subsection sqlutilv1_3_1 SqlUtil v1.3.1
+    - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
+    - fixed the ignored character_semantics column option in schema alignmed (<a href="https://github.com/qorelanguage/qore/issues/1379">issue 1379</a>)
+    - implemented the @ref SqlUtil::cop_length() column function (<a href="https://github.com/qorelanguage/qore/issues/1395">issue 1395</a>)
+
     @subsection sqlutilv1_3 SqlUtil v1.3
     - implemented insert option support (see @ref AbstractTable::InsertOptions) with the \c "returning" clause in supported drivers
     - implemented support for late table resolution in joins to support executing SQL from serialized parameters
@@ -110,12 +118,19 @@ module SqlUtil {
     - implemented support for \c "or" logic in @ref where_clauses
     - implemented AbstractTable::getBulkUpsertClosure() to better support bulk SQL merge operations
     - implemented @ref SqlUtil::wop_or() to allow for generating complex SQL strings with \a "or" and \a "and" expressions
-    - implemented @ref SqlUtil::cop_cast() operator for converting [column] value into another datatype
-    - implemented @ref SqlUtil::cop_sum() aggregate operator for returning sum of column values
+    - implemented the @ref SqlUtil::cop_cast() operator for converting [column] value into another datatype
+    - implemented the @ref SqlUtil::cop_sum() aggregate operator for returning sum of column values
+    - implemented update operators @ref SqlUtil::uop_plus(), @ref SqlUtil::uop_minus(), @ref SqlUtil::uop_multiply(), @ref SqlUtil::uop_divide()
     - implemented support for numeric column arguments for the @ref select_option_orderby "orderby" and @ref select_option_groupby "groupby" options
+    - implemented the @ref SqlUtil::cop_coalesce() column operator functions for the \c "COALESCE" operator returning the first non-NULL value in a list of columns (<a href="https://github.com/qorelanguage/qore/issues/671">issue 671</a>)
     - column aliases (defined with @ref SqlUtil::cop_as()) can now be used in the @ref where_clauses "where hash argument" and in join criteria
     - removed all APIs that handle implicit transactions; APIs must commit transactions explicitly (<a href="https://github.com/qorelanguage/qore/issues/533">issue 533</a>)
-    - @ref sql_cop_funcs "column operator functions" can be used in @ref where_clauses "where hashes" and in @ref select_option_join "join conditions": (<a href="https://github.com/qorelanguage/qore/issues/529">issue 529</a>)
+    - @ref sql_cop_funcs "column operator functions" can be used in @ref where_clauses "where hashes" (<a href="https://github.com/qorelanguage/qore/issues/529">issue 529</a>)
+    - implemented @ref SqlUtil::AbstractTable::bindEmptyStringsAsNull() (<a href="https://github.com/qorelanguage/qore/issues/776">issue 776</a>)
+    - implemented the \c "omit_update" @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" for asymmetrical upserts (updates only update a subset of the columns inserted) (<a href="https://github.com/qorelanguage/qore/issues/791">issue 791</a>)
+    - implemented the @ref SqlUtil::AbstractTable::UpsertUpdateOnly upsert option (<a href="https://github.com/qorelanguage/qore/issues/793">issue 793</a>)
+    - implemented @ref SqlUtil::cop_substr() and @ref SqlUtil::uop_substr() operators (<a href="https://github.com/qorelanguage/qore/issues/801">issue 801</a>)
+    - implemented @ref SqlUtil::op_substr() where operator (<a href="https://github.com/qorelanguage/qore/issues/883">issue 883</a>)
     - fixed a bug with queries using a \a desc argument with the @ref select_option_orderby "orderby" query option with multiple sort columns; the \c "desc" string was added only to the last column but should have been added to all columns
     - fixed a bug where foreign key constraints with supporting indexes were not tracked and therefore schema alignment on DBs that automatically create indexes for foreign key constraints would fail
     - fixed a bug where driver-specific objects were not included when dropping a schema
@@ -131,6 +146,10 @@ module SqlUtil {
     - fixed @ref SqlUtil::cop_count() operator to allow other operators as its argument (<a href="https://github.com/qorelanguage/qore/issues/517">issue 517</a>)
     - fixed bugs in @ref SqlUtil::cop_seq() and @ref SqlUtil::cop_seq_currval() (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
     - fixed a bug in @ref SqlUtil::join_inner() where the \a cond argument was ignored (<a href="https://github.com/qorelanguage/qore/issues/645">issue 645</a>)
+    - fixed @ref SqlUtil::uop_lower() and @ref SqlUtil::uop_upper() operators to allow nesting (<a href="https://github.com/qorelanguage/qore/issues/657">issue 657</a>)
+    - fixed a bug where SqlUtil was generating invalid SQL for some DBs where a wilcard was used with explicit column names (<a href="https://github.com/qorelanguage/qore/issues/708">issue 708</a>)
+    - fixed a bug where updating an index without any source constraints caused an invalid exception to be raised (<a href="https://github.com/qorelanguage/qore/issues/768">issue 768</a>)
+    - fixed a bug in @ref SqlUtil::AbstractTable::update() "AbstractTable::update()" with sequence operators (<a href="https://github.com/qorelanguage/qore/issues/942">issue 942</a>)
 
     @subsection sqlutilv1_2 SqlUtil v1.2
     - added insert operator support; for example, for inserting with values from sequences
@@ -981,6 +1000,7 @@ else
     - @ref SqlUtil::AbstractTable::UpsertUpdateFirst "AbstractTable::UpsertUpdateFirst": first an update will be attempted, if it fails due to missing data, then an insert is performed; this strategy should be used if more updates will be made then inserts
     - @ref SqlUtil::AbstractTable::UpsertSelectFirst "AbstractTable::UpsertSelectFirst": first a select is made on the unique key, if the data to be updated is equal, nothing is done and @ref upsert_results "upsert result" @ref SqlUtil::AbstractTable::UR_Unchanged is returned
     - @ref SqlUtil::AbstractTable::UpsertInsertOnly "AbstractTable::UpsertInsertOnly": insert if the row doesn't exist, otherwise do nothing and @ref upsert_results "upsert result" @ref SqlUtil::AbstractTable::UR_Unchanged is returned
+    - @ref SqlUtil::AbstractTable::UpsertUpdateOnly "AbstractTable::UpsertUpdateOnly": update if the row exists, otherwise do nothing and @ref upsert_results "upsert result" @ref SqlUtil::AbstractTable::UR_Unchanged is returned
 
     @note @ref SqlUtil::AbstractTable::UpsertSelectFirst "AbstractTable::UpsertSelectFirst" is the only upsert strategy that can return @ref SqlUtil::AbstractTable::UR_Updated; the @ref SqlUtil::AbstractTable::UpsertSelectFirst "AbstractTable::UpsertSelectFirst" strategy should be used when verbose reporting is required, particularly if it's necessary to report the actual number of changed rows.
 */
@@ -1449,6 +1469,7 @@ hash table_desc = (
     - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
     - \c scale: for numeric data types, this value gives the scale
     - \c default_value: the default value for the column
+    - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
     - \c comment: an optional comment for the column
     - \c notnull: if the column should have a "not null" constraint on it; if missing the default value is @ref Qore::False "False"
     - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the column description hash before processing; this way a column description hash can contain all the information required for the column including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys, see below for an example
@@ -1789,7 +1810,6 @@ db.computeStatistics(opts);
 
 #! the SqlUtil namespace contains all the objects in the SqlUtil module
 public namespace SqlUtil {
-
     /* @defgroup DBFeaturesConstants DB Features Constants
         These constants can be used as a lookup values in AbstractDatabase::features() method.
     */
@@ -1798,7 +1818,7 @@ public namespace SqlUtil {
 
     #! Feature: functions
     public const DB_FUNCTIONS = "functions";
-    #! Feature: materialized views/snapshots
+    #! Feature: materialized views / snapshots
     public const DB_MVIEWS = "materialized views";
     #! Feature: packages
     public const DB_PACKAGES = "packages";
@@ -1812,6 +1832,8 @@ public namespace SqlUtil {
     public const DB_TYPES = "named types";
     #! Feature: views
     public const DB_VIEWS = "views";
+    #! Feature: synonyms
+    public const DB_SYNONYMS = "synonyms";
     #@}
 
     /* @defgroup SqlTypeConstants SQL Type Constants
@@ -1930,7 +1952,7 @@ public namespace SqlUtil {
     */
     public const COP_MINUS = "minus";
 
-    #! the SQL \c "minus" operator
+    #! the SQL \c "plus" operator
     /** @see cop_plus()
     */
     public const COP_PLUS = "plus";
@@ -1974,6 +1996,23 @@ public namespace SqlUtil {
     /** @see cop_seq_currval()
     */
     public const COP_SEQ_CURRVAL = "seq_currval";
+
+    #! to return the first non-null argument in the list
+    /** @see cop_coalesce()
+    */
+    public const COP_COALESCE = "coalesce";
+
+    #! to extract a substring from a column
+    /** @see cop_substr()
+    */
+    public const COP_SUBSTR = "substr";
+
+    #! to get the length of a text field
+    /** @see cop_length()
+
+        @since %SqlUtil 1.3.1
+    */
+    public const COP_LENGTH = "length";
 
     #! a hash of default column operator descriptions
     public const DefaultCopMap = (
@@ -2087,18 +2126,51 @@ public namespace SqlUtil {
                 throw "SEQUENCE-ERROR", sprintf("cannot select the current value of sequence %y because this database does not support sequences", arg.seq);
             }
         ),
+        COP_COALESCE: (
+            "columnargs": True,
+            "code": string sub (*string cve, hash arg) {
+                return sprintf("coalesce(%s)", (foldl $1 + "," + $2, arg.args));
+            }
+        ),
+        COP_SUBSTR: (
+            "code": string sub (string cve, list args) {
+                if (!exists args[1])
+                    return sprintf("substring(%s from %d)", cve, args[0]);
+                return sprintf("substring(%s from %d for %d)", cve, args[0], args[1]);
+            },
+        ),
+        COP_LENGTH: (
+            "code": string sub (string cve, any arg) {
+                return sprintf("length(%s)", cve);
+            },
+        ),
         );
     #@}
 
     /** @defgroup sql_cop_funcs SQL Column Operator Functions
         These are functions that can be used in the \c "columns" argument for select statements:
-        - @ref cop_as(): rename columns
-        - @ref cop_cast(): convert column value into another datatype
-        - @ref cop_prepend(): prepend a string to the output of a column
         - @ref cop_append(): append a string to the output of a column
-        - @ref cop_value(): return a constant value (SQL literal) in a column
-        - @ref cop_upper(): return a column in upper case
+        - @ref cop_as(): rename columns
+        - @ref cop_avg(): return the averge value for the given column when grouping
+        - @ref cop_cast(): convert column value into another datatype
+        - @ref cop_coalesce(): returns the first non-NULL value in the given columns
+        - @ref cop_distinct(): add \c DISTINCT to the column name
+        - @ref cop_length(): return the length of the given text column
         - @ref cop_lower(): return a column in lower case
+        - @ref cop_max(): return the maximum value for the given column when grouping
+        - @ref cop_min(): return the minimum value for the given column when grouping
+        - @ref cop_over(): return a hash for the \c "over" operator for windowing functions
+        - @ref cop_prepend(): prepend a string to the output of a column
+        - @ref cop_seq(): increments the sequence and returns the next value
+        - @ref cop_seq_currval(): returns the current value of the given sequence without changing the sequence
+        - @ref cop_substr(): returns a substring of a text column
+        - @ref cop_sum(): return the sum of all values for the given column when grouping
+        - @ref cop_upper(): return a column in upper case
+        - @ref cop_value(): return a constant value (SQL literal) in a column
+        - @ref cop_year(): return the year of the given date column
+        - @ref cop_year_day(): return the year to day value of the given date column
+        - @ref cop_year_hour(): return the year to hour value of the given date column
+        - @ref cop_year_month(): return the year and month value of the given date column
 
         Column operator functions can be nested as in the following example:
         @par Example:
@@ -2542,6 +2614,69 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     public hash sub cop_seq_currval(string seq, *string as) {
         return make_cop(COP_SEQ_CURRVAL, "", ("seq": seq, "as": as));
     }
+
+    #! returns a hash for the \c "coalesce" operator with the given column arguments; the first non-NULL column value will be returned
+    /** @par Example:
+        @code{.py}
+*list rows = table.selectRows(("columns": ("first_name", "last_name", cop_colesce("first_name", "last_name")), "where": ("type": "user")));
+        @endcode
+
+        @param col1 the name or column operator hash for the first value
+        @param col2 the name or column operator hash for the second value, additional values should follow this argument
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+
+        @throw COALESCE-ERROR the arguments must be either string column designators or column operator hashes
+    */
+    public hash sub cop_coalesce(any col1, any col2) {
+        code check = sub (any c) {
+            if (c.typeCode() != NT_STRING && c.typeCode() != NT_HASH)
+                throw "COALESCE-ERROR", sprintf("cop_coalesce() accepts string column designators or column operator hashes as arguments; got: %y", c);
+        };
+        # ensure at least two arguments
+        check(col1);
+        check(col2);
+        # validate any remaining args
+        map check($1), argv;
+
+        list args = (col1, col2);
+        if (argv)
+            args += argv;
+
+        return make_cop(COP_COALESCE, "", ("args": args));
+    }
+
+    #! returns a hash for the \c "substr" operator with the given arguments; returns a substring of a column value
+    /** @par Example:
+        @code{.py}
+*list rows = table.selectRows(("columns": ("id", cop_substr("name", 1, 1)), "where": ("type": "user")));
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins)
+        @param start position where the substring starts
+        @param count length of the substring in characters
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    */
+    public hash sub cop_substr(any column, int start, *int count) {
+        return make_cop(COP_SUBSTR, column, (start, count));
+    }
+
+    #! returns a hash for the \c "len" operator with the given argument; returns the length of the given text field
+    /** @par Example:
+        @code{.py}
+*list rows = table.selectRows(("columns": ("id", cop_length("product_code")), "where": ("type": "user")));
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins)
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+
+        @since %SqlUtil 1.3.1
+    */
+    public hash sub cop_length(any column) {
+        return make_cop(COP_LENGTH, column);
+    }
     #@}
 
     /** @defgroup sql_uops SQL Update Operators
@@ -2554,8 +2689,49 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
         COP_APPEND: True,
         COP_UPPER: True,
         COP_LOWER: True,
-        COP_SEQ: True,
-        COP_SEQ_CURRVAL: True,
+        COP_MINUS: (
+            "sqlvalue": True,
+            "code": string sub (string cve, any arg) {
+                return sprintf("%s - %s", cve, arg);
+            },
+        ),
+        COP_PLUS: (
+            "sqlvalue": True,
+            "code": string sub (string cve, any arg) {
+                return sprintf("%s + %s", cve, arg);
+            },
+        ),
+        COP_DIVIDE: (
+            "sqlvalue": True,
+            "code": string sub (string cve, any arg) {
+                return sprintf("%s / %s", cve, arg);
+            },
+        ),
+        COP_MULTIPLY: (
+            "sqlvalue": True,
+            "code": string sub (string cve, any arg) {
+                return sprintf("%s * %s", cve, arg);
+            },
+        ),
+        COP_SUBSTR: True,
+        COP_SEQ: (
+            "nocolumn": True,
+            "code": string sub (*string cve, string arg) {
+                throw "SEQUENCE-ERROR", sprintf("cannot select sequence %y because this database does not support sequences", arg);
+            }
+        ),
+        COP_SEQ_CURRVAL: (
+            "nocolumn": True,
+            "code": string sub (*string cve, string arg) {
+                throw "SEQUENCE-ERROR", sprintf("cannot select the current value of sequence %y because this database does not support sequences", arg);
+            }
+        ),
+        COP_COALESCE: (
+            "columnargs": True,
+            "code": string sub (*string cve, softlist args) {
+                return sprintf("coalesce(%s)", (foldl $1 + "," + $2, args));
+            }
+        ),
         );
     #@}
 
@@ -2565,6 +2741,11 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
         - @ref uop_append(): append a string to the output of a column
         - @ref uop_upper(): return a column in upper case
         - @ref uop_lower(): return a column in lower case
+        - @ref uop_substr(): extract a substring from a column
+        - @ref uop_plus(): add a numeric value to a column
+        - @ref uop_minus(): subtract a numeric value from a column
+        - @ref uop_multiply(): multiply a column by a numeric value
+        - @ref uop_divide(): divide a column by a numeric value
         - @ref uop_seq(): returns the value of the given sequence
         - @ref uop_seq_currval(): returns the last value issued in the current session for the given sequence
 
@@ -2629,7 +2810,7 @@ int rows_updated = t.update(("permission_type": uop_upper()));
         @return an update operator description hash corresponding to the arguments for use in update statements
     */
     public hash sub uop_upper(*hash nest) {
-        return make_uop(COP_UPPER, nest);
+        return make_uop(COP_UPPER, NOTHING, nest);
     }
 
     #! returns a hash for the \c "lower" operator with the given argument; returns a column value in lower case
@@ -2643,7 +2824,83 @@ int rows_updated = t.update(("permission_type": uop_lower()));
         @return an update operator description hash corresponding to the arguments for use in update statements
     */
     public hash sub uop_lower(*hash nest) {
-        return make_uop(COP_LOWER, nest);
+        return make_uop(COP_LOWER, NOTHING, nest);
+    }
+
+    #! returns a hash for the \c "substr" operator with the given arguments; returns a substring of a column value
+    /** @par Example:
+        @code{.py}
+int rows_updated = t.update(("first_name": uop_substr(1, 1)));
+        @endcode
+
+        @param start position where the substring starts
+        @param count length of the substring in characters
+        @param nest any nested operation to the operator
+
+        @return an update operator description hash corresponding to the arguments for use in update statements
+    */
+    public hash sub uop_substr(int start, *int count, *hash nest) {
+        return make_uop(COP_SUBSTR, (start, count), nest);
+    }
+
+    #! returns a hash for the \c "+" operator with the given arguments
+    /** @par Example:
+        @code{.py}
+int rows_updated = t.update(("counter": uop_plus(1)));
+        @endcode
+
+        @param arg numeric value to add to the column
+        @param nest any nested operation to the operator
+
+        @return an update operator description hash corresponding to the arguments for use in update statements
+    */
+    public hash sub uop_plus (any arg, *hash nest) {
+        return make_uop (COP_PLUS, arg, nest);
+    }
+
+    #! returns a hash for the \c "-" operator with the given arguments
+    /** @par Example:
+        @code{.py}
+int rows_updated = t.update(("counter": uop_minus(1)));
+        @endcode
+
+        @param arg numeric value to subtract from the column
+        @param nest any nested operation to the operator
+
+        @return an update operator description hash corresponding to the arguments for use in update statements
+    */
+    public hash sub uop_minus (any arg, *hash nest) {
+        return make_uop (COP_MINUS, arg, nest);
+    }
+
+    #! returns a hash for the \c "*" operator with the given arguments
+    /** @par Example:
+        @code{.py}
+int rows_updated = t.update(("counter": uop_multiply(2)));
+        @endcode
+
+        @param arg numeric value to multiply the column by
+        @param nest any nested operation to the operator
+
+        @return an update operator description hash corresponding to the arguments for use in update statements
+    */
+    public hash sub uop_multiply (any arg, *hash nest) {
+        return make_uop (COP_MULTIPLY, arg, nest);
+    }
+
+    #! returns a hash for the \c "/" operator with the given arguments
+    /** @par Example:
+        @code{.py}
+int rows_updated = t.update(("counter": uop_divide(2)));
+        @endcode
+
+        @param arg numeric value to divide the column by
+        @param nest any nested operation to the operator
+
+        @return an update operator description hash corresponding to the arguments for use in update statements
+    */
+    public hash sub uop_divide (any arg, *hash nest) {
+        return make_uop (COP_DIVIDE, arg, nest);
     }
 
     #! returns a hash for the \c "seq" operator with the given argument giving the sequence name whose value should be returned
@@ -3272,6 +3529,11 @@ int rows_updated = t.update(("permission_type": uop_lower()));
     */
     public const OP_NOT = "not";
 
+    #! the SQL \c "substr" operator for use in @ref where_clauses
+    /** @see op_substr()
+    */
+    public const OP_SUBSTR = "substr";
+
     #! to combine SQL expressions with \c "or" for use in @ref where_clauses
     public const OP_OR = "or";
 
@@ -3378,6 +3640,18 @@ int rows_updated = t.update(("permission_type": uop_lower()));
                 return sprintf("%s = %s", cn, arg);
             },
         ),
+        OP_SUBSTR: (
+            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+                args += arg[0]; # start
+                if (!exists arg[1]) {
+                    args += arg[2]; # text
+                    return sprintf("substring(%s from %v) = %v", cn);
+                }
+                args += arg[1]; # count
+                args += arg[2]; # text
+                return sprintf("substring(%s from %v for %v) = %v", cn);
+            },
+        ),
         OP_OR: (
             "code": string sub (object t, string cn, list arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return t.getOrClause(arg, \args, jch, join, ch, psch);
@@ -3391,6 +3665,7 @@ int rows_updated = t.update(("permission_type": uop_lower()));
         - op_between(): for the \c "between" operator
         - op_in(): for the \c "in" operator
         - op_like(): for the \c "like" operator
+        - op_substr(): for the \c "substr" operator
         - op_ge(): for the \c ">=" operator when comparing column values to immediate values
         - op_gt(): for the \c ">" operator when comparing column values to immediate values
         - op_le(): for the \c "<=" operator when comparing column values to immediate values
@@ -3679,6 +3954,37 @@ int rows_updated = t.update(("permission_type": uop_lower()));
     */
     public hash sub op_ceq(string arg) {
         return make_op(OP_CEQ, arg);
+    }
+
+    #! returns a hash for the \c "substr" operator with the given arguments; for use in @ref where_clauses "where clauses"
+    /** @par Example:
+        @code{.py}
+*list rows = table.selectRows(("where": ("name": op_substr(1, 6, "Martin"))));
+        @endcode
+
+        @param start position where the substring starts
+        @param count length of the substring in characters
+        @param text what substring should match
+
+        @return a where operation description hash for use in @ref where_clauses "where clauses"
+     */
+    public hash sub op_substr(int start, *int count, string text) {
+        return make_op(OP_SUBSTR, (start, count, text));
+    }
+
+    #! returns a hash for the \c "substr" operator with the given arguments; for use in @ref where_clauses "where clauses"
+    /** @par Example:
+        @code{.py}
+*list rows = table.selectRows(("where": ("hex": op_substr(5, "BEEF"))));
+        @endcode
+
+        @param start position where the substring starts
+        @param text what substring should match
+
+        @return a where operation description hash for use in @ref where_clauses "where clauses"
+     */
+    public hash sub op_substr(int start, string text) {
+        return make_op(OP_SUBSTR, (start, NOTHING, text));
     }
 
     #! returns a hash with a fake \c "_OR_" column name; the list of arguments to the function is combined such that each hash in the list generates SQL expressions combined with \a "and" logic, and each of those clauses is combined with \a "or" logic; this is for use in @ref where_clauses "where clauses"
@@ -5139,7 +5445,7 @@ AbstractConstraint ix = constraints.uk_jobs;
     public class AbstractColumnSupportingConstraint inherits AbstractConstraint, Columns {
         private {
             #! a hash of ForeignConstraintSources, keyed by table name, the value is a hash of foreign constraints keyed by constraint name
-            hash sourceConstraints;
+            *hash sourceConstraints;
 
             #! the index supporting the constraint
             *string index;
@@ -5436,12 +5742,17 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
         abstract string getCreateSql(*hash opt);
 
         #! returns a string that can be used to drop the sequence from the database
-        string getDropSql() {
+        /** @param opt drop options (if supported by the driver and object); in this generic base class method, this argument is ignored
+         */
+        string getDropSql(*hash opt) {
             return sprintf("drop sequence %s", name);
         }
 
-        #! returns a string that can be used to rename the sequence in the database
-        abstract string getRenameSql(string new_name);
+        #! returns a list of strings that can be used to rename the sequence in the database
+        /** @param new_name the new name of the object
+            @param opt drop options (if supported by the driver and object)
+         */
+        abstract softlist getRenameSql(string new_name, *hash opt);
     }
 
     #! base class for views
@@ -5470,13 +5781,17 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
         abstract string getCreateSql(*hash opt);
 
         #! returns a string that can be used to drop the view from the database
-        string getDropSql() {
+        /** @param opt drop options (if supported by the driver and object); in this generic base class method, this argument is ignored
+         */
+        string getDropSql(*hash opt) {
             return sprintf("drop view %s", name);
         }
 
         #! returns a list with command(s) that can be used to rename the view in the database
-        abstract softlist getRenameSql(string new_name);
-
+        /** @param new_name the new name of the object
+            @param opt drop options (if supported by the driver and object)
+         */
+        abstract softlist getRenameSql(string new_name, *hash opt);
     }
 
     #! base class for function or objects with code
@@ -5508,9 +5823,10 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
             return type;
         }
 
-        # FIXME: not appropriate for pgsql triggers for example
         #! returns a string that can be used to drop the function from the database
-        string getDropSql() {
+        /** @param opt drop options (if supported by the driver and object); in this generic base class method, this argument is ignored
+         */
+        string getDropSql(*hash opt) {
             return sprintf("drop %s %s", type, name);
         }
 
@@ -5529,7 +5845,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
                 #printf("%s\nXXXXXXXXXXXXXXX\n%s\n", src1, src2);
                 return False;
             }
-            #printf("%s\nXXXXXX EQUAL XXXXXXXXX\n%s\n", src1, src2);
+            #printf("%s\nXXXXXX EQUAL XXXXXX\n%s\n", src1, src2);
 
             return equalImpl(t);
         }
@@ -5551,8 +5867,11 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
         #! returns a list of SQL strings that can be used to create the function in the database
         abstract list getCreateSql(*hash opt);
 
-        #! returns a string that can be used to rename the function in the database
-        abstract list getRenameSql(string new_name);
+        #! returns a list of strings that can be used to rename the function in the database
+        /** @param new_name the new name of the object
+            @param opt drop options (if supported by the driver and object)
+         */
+        abstract softlist getRenameSql(string new_name, *hash opt);
 
         #! sets the new name of the object
         setName(string new_name) {
@@ -5610,7 +5929,7 @@ AbstractFunction f = funcs.func1;
         abstract list getCreateSql(string table_name, *hash opt);
 
         #! returns a string that can be used to rename the trigger in the database
-        abstract list getRenameSql(string table_name, string new_name);
+        abstract softlist getRenameSql(string table_name, string new_name);
 
         #! returns a string that can be used to drop the trigger in the database
         abstract list getDropSql(string table_name);
@@ -5778,9 +6097,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
         private validateOptionsIntern(string err, hash ropt, reference opt, string tag) {
             # make sure driver-specific options take precedence over generic options
             string dn = getDriverName();
-            if (opt.driver{dn})
-                opt += remove opt.driver{dn};
-            delete opt.driver;
+            AbstractDatabase::checkDriverOptions(\opt, dn);
 
             # check valid options and option value types
             foreach string k in (opt.keyIterator()) {
@@ -5835,6 +6152,21 @@ AbstractDatabase db("pgsql:user/pass@db%host");
                     foreach any v in (l) {
                         if (v.typeCode() != NT_STRING)
                             throw err, sprintf("%s: key %y element %d/%d (first is 0) has type %y, expecting \"string\" (value: %y)", tag, k, $#, l.size(), v.type(), opt);
+                    }
+
+                    opt = l;
+                    break;
+                }
+                case "stringhashlist": {
+                    softlist l = opt;
+                    foreach any v in (l) {
+                        switch (v.typeCode()) {
+                            case NT_STRING:
+                            case NT_HASH:
+                                break;
+                            default:
+                                throw err, sprintf("%s: key %y element %d/%d (first is 0) has type %y, expecting \"string\" or \"hash\" (value: %y)", tag, k, $#, l.size(), v.type(), opt);
+                        }
                     }
 
                     opt = l;
@@ -6059,7 +6391,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
 
             #! default generic creation options
             /** This option is comprised of @ref AbstractDatabase::CallbackOptions plus the following keys:
-                - \c replace: (@ref bool_type) if @ref Qore::True "True" and supported by the underlying db driver "create or replace" text is used when creating objects
+                - \c replace: (@ref bool_type) if @ref Qore::True "True" and supported by the underlying db driver, \c "create or replace" text is used when creating objects
                 - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables and foreign key relationships between tables
                 - \c data_tablespace: (@ref string_type) a string giving the data tablespace to use for tables
                 - \c index_tablespace: (@ref string_type) a string giving the index tablespace to use for indexes
@@ -6072,14 +6404,20 @@ AbstractDatabase db("pgsql:user/pass@db%host");
                 );
 
             #! default generic schema description / alignment options
-            /** Currently this option is identical to @ref AbstractDatabase::CreationOptions
+            /** Currently this option is identical to @ref AbstractDatabase::CreationOptions plus the following keys:
+                - \c force: (@ref bool_Type) is @ref Qore::True "True" and supported by the underlying db driver, \c FORCE or \c CASCADE options are used when dropping or aligning objects
             */
-            const AlignSchemaOptions = CreationOptions;
+            const AlignSchemaOptions = CreationOptions + (
+                "force": Type::Boolean,
+                );
 
             #! default generic drop schema options
-            /** Currently this option is identical to @ref AbstractDatabase::CallbackOptions
+            /** Currently this option is identical to @ref AbstractDatabase::CallbackOptions plus the following keys:
+                - \c force: (@ref bool_Type) is @ref Qore::True "True" and supported by the underlying db driver, \c FORCE or \c CASCADE options are used when dropping objects
             */
-            const DropSchemaOptions = CallbackOptions;
+            const DropSchemaOptions = CallbackOptions + (
+                "force": Type::Boolean,
+                );
 
             #! default generic schema description keys
             /** The following keys can be set in @ref schema_desc_hash "schema description hashes":
@@ -6309,6 +6647,9 @@ list l = db.getAlignSql(schema_hash);
             validateOptionsIntern("OPTION-ERROR", getAlignSchemaOptions(), \opt);
             validateHashKeysForWhitespaces(schema_hash);
 
+            # get creation options
+            *hash copt = opt{getAlignSchemaOptions().keys()};
+
             if (!table_cache)
                 table_cache = new Tables();
 
@@ -6358,7 +6699,7 @@ list l = db.getAlignSql(schema_hash);
             }
 
             # create template tables
-            table_cache.populate(ds, schema_hash.tables, opt - "db_table_cache");
+            table_cache.populate(ds, schema_hash.tables, copt);
 
             # rename any tables
             AbstractDatabase::checkDriverOptions(\schema_hash.table_map, drv);
@@ -6465,7 +6806,7 @@ list l = db.getDropSchemaSql(schema_hash);
             # call driver-specific align schema sql function (end)
             # Option "force" is here to drop all objects (where required)
             # without dependencies checking (Oracle NTY for now)
-            tl = getDropSchemaSqlImpl(schema_hash, opt + ( "force" : True ) );
+            tl = getDropSchemaSqlImpl(schema_hash, opt + ("force": True) );
             if (tl) l += tl;
 
             return l;
@@ -6487,14 +6828,8 @@ list l = db.getDropSchemaSql(schema_hash);
 
                 # see if object exists
                 *object f = get(name);
-                if (f) {
-                    if (opt.force) {
-                        # Oracle NTY
-                        l += AbstractDatabase::doCallback(opt, tmpl.getDropSqlForce(), AC_Drop, type, name);
-                    }
-                    else
-                        l += AbstractDatabase::doCallback(opt, tmpl.getDropSql(), AC_Drop, type, name);
-                }
+                if (f)
+                    l += AbstractDatabase::doCallback(opt, tmpl.getDropSql(opt), AC_Drop, type, name);
                 else
                     AbstractDatabase::doOkCallback(opt, AC_NotFound, type, name);
             }
@@ -6553,7 +6888,7 @@ list l = db.getDropSchemaSql(schema_hash);
                 }
 
                 if (!templateFunc.equal(f)) {
-                    l += AbstractDatabase::doCallback(opt, f.getDropSql(), AC_Drop, type, name);
+                    l += AbstractDatabase::doCallback(opt, f.getDropSql(opt), AC_Drop, type, name);
                     l += AbstractDatabase::doCallback(opt, templateFunc.getCreateSql(opt), AC_Create, type, name);
                 }
                 else
@@ -6660,11 +6995,11 @@ db.dropFunctionIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         bool dropFunctionIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractFunction f = getFunction(name);
             if (!f)
                 return False;
-            return AbstractDatabase::doDrop(f.getDropSql(), "function", name, opt);
+            return AbstractDatabase::doDrop(f.getDropSql(opt), "function", name, opt);
         }
 
         #! drops the given procedure if it exists; returns @ref Qore::True "True" if the procedure was dropped, @ref Qore::False "False" if not
@@ -6681,11 +7016,11 @@ db.dropProcedureIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         bool dropProcedureIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractFunction f = getProcedure(name);
             if (!f)
                 return False;
-            return AbstractDatabase::doDrop(f.getDropSql(), "procedure", name, opt);
+            return AbstractDatabase::doDrop(f.getDropSql(opt), "procedure", name, opt);
         }
 
         #! drops the given sequence if it exists; returns @ref Qore::True "True" if the sequence was dropped, @ref Qore::False "False" if not
@@ -6702,11 +7037,11 @@ db.dropSequenceIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         bool dropSequenceIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractSequence seq = getSequence(name);
             if (!seq)
                 return False;
-            return AbstractDatabase::doDrop(seq.getDropSql(), "sequence", name, opt);
+            return AbstractDatabase::doDrop(seq.getDropSql(opt), "sequence", name, opt);
         }
 
         #! drops the given view if it exists; returns @ref Qore::True "True" if the view was dropped, @ref Qore::False "False" if not
@@ -6723,11 +7058,11 @@ db.dropViewIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         bool dropViewIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractView obj = getView(name);
             if (!obj)
                 return False;
-            return AbstractDatabase::doDrop(obj.getDropSql(), "view", name, opt);
+            return AbstractDatabase::doDrop(obj.getDropSql(opt), "view", name, opt);
         }
 
         #! drops the given table if it exists; returns @ref Qore::True "True" if the table was dropped, @ref Qore::False "False" if not
@@ -6744,7 +7079,7 @@ db.dropTableIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         bool dropTableIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractTable obj = getTable(name);
             if (!obj)
                 return False;
@@ -6766,11 +7101,11 @@ string sql = db.getDropFunctionSqlIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         *string getDropFunctionSqlIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractFunction f = getFunction(name);
             if (!f)
                 return;
-            return AbstractDatabase::doDropSql(f.getDropSql(), "function", name, opt);
+            return AbstractDatabase::doDropSql(f.getDropSql(opt), "function", name, opt);
         }
 
         #! returns the SQL require to drop the given procedure if it exists or @ref nothing if the named procedure does not exist
@@ -6787,11 +7122,11 @@ string sql = db.getDropProcedureSqlIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         *string getDropProcedureSqlIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractFunction f = getProcedure(name);
             if (!f)
                 return;
-            return AbstractDatabase::doDropSql(f.getDropSql(), "procedure", name, opt);
+            return AbstractDatabase::doDropSql(f.getDropSql(opt), "procedure", name, opt);
         }
 
         #! returns the SQL require to drop the given sequence if it exists or @ref nothing if the named sequence does not exist
@@ -6808,11 +7143,11 @@ string sql = db.getDropSequenceSqlIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         *string getDropSequenceSqlIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractSequence obj = getSequence(name);
             if (!obj)
                 return;
-            return AbstractDatabase::doDropSql(obj.getDropSql(), "sequence", name, opt);
+            return AbstractDatabase::doDropSql(obj.getDropSql(opt), "sequence", name, opt);
         }
 
         #! returns the SQL require to drop the given table if it exists or @ref nothing if the named table does not exist
@@ -6829,7 +7164,7 @@ string sql = db.getDropTableSqlIfExists(name);
             @throw OPTION-ERROR invalid or unknown callback option
         */
         *list getDropTableSqlIfExists(string name, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCallbackOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getDropSchemaOptions(), \opt);
             *AbstractTable t = getTable(name);
             if (!t)
                 return;
@@ -6866,7 +7201,7 @@ list l = db.getAlignFunctionSql(f);
             @throw OPTION-ERROR invalid or unsupported option passed
          */
         list getAlignFunctionSql(AbstractFunction f, *hash opt) {
-            validateOptionsIntern("OPTION-ERROR", getCreationOptions(), \opt);
+            validateOptionsIntern("OPTION-ERROR", getAlignSchemaOptions(), \opt);
 
             *AbstractFunction of = getFunctionImpl(f.name);
 
@@ -6876,7 +7211,7 @@ list l = db.getAlignFunctionSql(f);
                 l += AbstractDatabase::doCallback(opt, f.getCreateSql(opt), AC_Create, "function", f.name);
             }
             else if (!of.equal(f)) {
-                l += AbstractDatabase::doCallback(opt, of.getDropSql(), AC_Drop, "function", f.name);
+                l += AbstractDatabase::doCallback(opt, of.getDropSql(opt), AC_Drop, "function", f.name);
                 l += AbstractDatabase::doCallback(opt, of.getCreateSql(opt), AC_Create, "function", f.name);
             }
             else
@@ -6906,7 +7241,7 @@ list l = db.getAlignProcedureSql(f);
             if (!of)
                 l += f.getCreateSql(opt);
             else if (!of.equal(f)) {
-                l += of.getDropSql();
+                l += of.getDropSql(opt);
                 l += f.getCreateSql(opt);
             }
 
@@ -7508,11 +7843,12 @@ Table table("pgsql:user/pass@db%host", "table");
 
             #! table alignment options
             /** currently this option is a combination of @ref SqlUtil::AbstractTable::TableCreationOptions and the following options:
-                - \c column_map: a hash for automatically renaming columns; if the source name (key) exists and the target name (value) does not exist, then the source column is automatically renamed
-                - \c index_map: a hash for automatically renaming indexes; if the source name (key) exists and the target name (value) does not exist, then the source index is automatically renamed
-                - \c constraint_map: a hash for automatically renaming constraints; if the source name (key) exists and the target name (value) does not exist, then the source constraint is automatically renamed
-                - \c trigger_map: a hash for automatically renaming triggers; if the source name (key) exists and the target name (value) does not exist, then the source trigger is automatically renamed
+                - \c column_map: (@ref hash_type) a hash for automatically renaming columns; if the source name (key) exists and the target name (value) does not exist, then the source column is automatically renamed
+                - \c index_map: (@ref hash_type) a hash for automatically renaming indexes; if the source name (key) exists and the target name (value) does not exist, then the source index is automatically renamed
+                - \c constraint_map: (@ref hash_type) a hash for automatically renaming constraints; if the source name (key) exists and the target name (value) does not exist, then the source constraint is automatically renamed
+                - \c trigger_map: (@ref hash_type) a hash for automatically renaming triggers; if the source name (key) exists and the target name (value) does not exist, then the source trigger is automatically renamed
                 - \c db_table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining tables in the database and foreign key relationships between tables
+                - \c force: (@ref bool_type) if @ref Qore::True "True" and supported by the driver and object, any objects dropped will be dropped with \c FORCE or \c CASCADE options
             */
             const AlignTableOptions = TableCreationOptions + (
                 "column_map": Type::Hash,
@@ -7520,6 +7856,7 @@ Table table("pgsql:user/pass@db%host", "table");
                 "constraint_map": Type::Hash,
                 "trigger_map": Type::Hash,
                 "db_table_cache": "Tables",
+                "force": Type::Boolean,
                 );
 
             #! Table description options
@@ -7552,6 +7889,7 @@ Table table("pgsql:user/pass@db%host", "table");
                 - \c size: (@ref int_type) for data types requiring a size component, the size; for numeric columns this represents the precision for example
                 - \c scale: (@ref int_type) for numeric data types, this value gives the scale
                 - \c default_value: the default value for the column
+                - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
                 - \c comment: (@ref string_type) an optional comment for the column
                 - \c notnull: if the column should have a "not null" constraint on it; if missing the default value is @ref Qore::False "False"
                 - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the column description hash before processing; this way a column description hash can contain all the information required for the column including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys, see below for an example
@@ -7563,6 +7901,7 @@ Table table("pgsql:user/pass@db%host", "table");
                 "size": Type::Int,
                 "scale": Type::Int,
                 "default_value": Type::NothingType,
+                "default_value_native" : Type::Boolean,
                 "comment": Type::String,
                 );
 
@@ -7589,24 +7928,30 @@ Table table("pgsql:user/pass@db%host", "table");
 
             #! generic SQL insert options
             /** In addition to any @ref SqlDataCallbackOptions, the following keys can be set for this option:
-                - \c returning: a list of \c "returning" columns
+                - \c returning: a list having elements of one of the two following types:
+                  - @ref type_string "string": column names to return the value inserted
+                  - @ref type_hash "hash": a hash having the following keys:
+                    - \c "key": (required) the column name to return
+                    - \c "type": (optional) the data type for the output placeholder buffer (ex: @ref Qore::Type::Number "Type::Number")
 
                 @note using \c "returning" with a database that does not support this clause will cause an exception to be thrown; see @ref SqlUtil::AbstractTable::hasReturning()
             */
             const InsertOptions = SqlDataCallbackOptions + (
-                "returning": "softstringlist",
+                "returning": "stringhashlist",
             );
 
             #! default upsert option keys
             /** The following keys can be set for this option:
-                - \c info_callback: see @ref upsert_info_callback
                 - \c commit_block: the number of changes made before an automatic commit is made for upsert methods that perform commits
                 - \c delete_others: if this option is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation allows tables to be completely synchronized by removing rows in the target table not present in the source table.  This operation is expensive for large data sets.
+                - \c info_callback: see @ref upsert_info_callback
+                - \c omit_update: allows for an asymmetrical upsert where a set of column values is inserted, but a smaller set is updated in case the unique key values are present in the target table; the value of this key should be set to the columns to omit in the update clause
             */
             const UpsertOptions = (
                 "info_callback": "code",
                 "commit_block": Type::Int,
                 "delete_others": Type::Boolean,
+                "omit_update": "softstringlist",
                 );
 
             #! default insert option keys
@@ -7638,7 +7983,7 @@ Table table("pgsql:user/pass@db%host", "table");
             /** with this option an insert is attempted, and if it fails due to a duplicate row, then an update is made unconditionally; with
                 this upsert strategy, the following row result codes are possible:
                 - @ref UR_Inserted
-                - @ref UR_Verified
+                - @ref UR_Verified (the only value returned by certain drivers with optimized upsert implementations)
              */
             const UpsertInsertFirst = 1;
 
@@ -7646,7 +7991,7 @@ Table table("pgsql:user/pass@db%host", "table");
             /** with this option an update is attempted, and if it fails due to a missing row, then an insert is performed; with
                 this upsert strategy, the following row result codes are possible:
                 - @ref UR_Inserted
-                - @ref UR_Verified
+                - @ref UR_Verified (the only value returned by certain drivers with optimized upsert implementations)
              */
             const UpsertUpdateFirst = 2;
 
@@ -7662,7 +8007,7 @@ Table table("pgsql:user/pass@db%host", "table");
             #! Upsert option: if the target table is empty, use @ref UpsertInsertFirst, otherwise use @ref UpsertUpdateFirst
             /** With this upsert strategy, the following row result codes are possible:
                 - @ref UR_Inserted
-                - @ref UR_Verified
+                - @ref UR_Verified (the only value returned by certain drivers with optimized upsert implementations)
              */
             const UpsertAuto = 4;
 
@@ -7673,6 +8018,13 @@ Table table("pgsql:user/pass@db%host", "table");
              */
             const UpsertInsertOnly = 5;
 
+            #! Upsert option: update if the row exists, otherwise ignore
+            /** With this upsert strategy, the following row result codes are possible:
+                - @ref UR_Verified
+                - @ref UR_Unchanged
+             */
+            const UpsertUpdateOnly = 6;
+
             #! hash mapping upsert strategy codes to a text description
             /** @see @ref UpsertStrategyDescriptionMap for a reverse mapping
             */
@@ -7682,6 +8034,7 @@ Table table("pgsql:user/pass@db%host", "table");
                 UpsertSelectFirst: "UpsertSelectFirst",
                 UpsertAuto: "UpsertAuto",
                 UpsertInsertOnly: "UpsertInsertOnly",
+                UpsertUpdateOnly: "UpsertUpdateOnly",
             );
 
             #! hash mapping upsert strategy descriptions to upsert strategy codes
@@ -7693,6 +8046,7 @@ Table table("pgsql:user/pass@db%host", "table");
                 "UpsertSelectFirst": UpsertSelectFirst,
                 "UpsertAuto": UpsertAuto,
                 "UpsertInsertOnly": UpsertInsertOnly,
+                "UpsertUpdateOnly": UpsertUpdateOnly,
             );
             #@}
 
@@ -7709,7 +8063,7 @@ Table table("pgsql:user/pass@db%host", "table");
             #! row was updated because it was different (only possible with @ref UpsertSelectFirst)
             const UR_Updated = 3;
 
-            #! row was unchanged (only possible with @ref UpsertSelectFirst)
+            #! row was unchanged (only possible with @ref UpsertSelectFirst, @ref UpsertInsertOnly, and @ref UpsertUpdateOnly)
             const UR_Unchanged = 4;
 
             #! row was deleted (only possible with batch upsert methods such as @ref AbstractTable::upsertFromIterator() where @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True")
@@ -8167,7 +8521,9 @@ bool b = table.empty();
 
             # check options
             hash copt = getColumnOptions();
-            validateOptionsIntern("OPTION-ERROR", getTableCreationOptions() + copt, \opt);
+            hash tcopt = getTableCreationOptions() + copt;
+            opt = opt{tcopt.keys()};
+            validateOptionsIntern("OPTION-ERROR", tcopt, \opt);
 
             # setup table cache
             if (!opt.table_cache)
@@ -8199,10 +8555,7 @@ bool b = table.empty();
             foreach string cn in (desc.columns.keyIterator()) {
                 if (desc.columns{cn}.typeCode() != NT_HASH)
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to column key %y is not a hash, got type %y instead (%y)", getDesc(), cn, desc.columns{cn}.type(), desc.columns{cn});
-                if (desc.columns{cn}.driver) {
-                    desc.columns{cn} += desc.columns{cn}.driver{drv};
-                    delete desc.columns{cn}.driver;
-                }
+                AbstractDatabase::checkDriverOptions(\desc.columns{cn}, drv);
             }
 
             preSetupTableImpl(\desc, opt);
@@ -8306,6 +8659,7 @@ table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
             - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
             - \c scale: for numeric data types, this value gives the scale
             - \c default_value: the default value for the column
+            - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
             @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
@@ -8337,6 +8691,7 @@ list l = table.getAddColumnSql("name", ("qore_type": Type::String, "size": 50), 
             - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
             - \c scale: for numeric data types, this value gives the scale
             - \c default_value: the default value for the column
+            - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
             @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
@@ -8410,6 +8765,7 @@ table.modifyColumn("name", ("qore_type": Type::String, "size": 240), False);
             - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
             - \c scale: for numeric data types, this value gives the scale
             - \c default_value: the default value for the column
+            - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
             @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
@@ -8456,6 +8812,7 @@ list l = table.getModifyColumnSql("name", ("qore_type": Type::String, "size": 24
             - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
             - \c scale: for numeric data types, this value gives the scale
             - \c default_value: the default value for the column
+            - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
             @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
             @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
@@ -9966,22 +10323,28 @@ string sql = table.getDropTriggerSql("trig_mytable");
             validateOptionsIntern("COLUMN-ERROR", copt, \opt, sprintf("%s.%s", name, cname));
 
             hash otm = getTypeMapImpl();
+            hash th;
 
-            if (!opt.native_type) {
-                hash qtm = getQoreTypeMapImpl();
-                opt.native_type = qtm{opt.qore_type};
-                if (!opt.native_type)
-                    throw "COLUMN-ERROR", sprintf("%s column %y: qore type %y cannot be mapped to a column type (valid values: %y)", getDesc(), cname, opt.qore_type, qtm.keys());
+            # first try to handle non-registered type (like eg. Oracle's objects)
+            if (opt.native_type && !otm.hasKey(opt.native_type) && !opt.qore_type) {
+                opt.qore_type = "any";
             }
-            else if (!otm{opt.native_type})
-                throw "COLUMN-ERROR", sprintf("%s column %s: unknown native_type %y (valid values: %y)", getDesc(), cname, opt.native_type, otm.keys());
+            else {
+                # get native_type from registered maps
+                if (!opt.native_type) {
+                    hash qtm = getQoreTypeMapImpl();
+                    opt.native_type = qtm{opt.qore_type};
+                    if (!opt.native_type)
+                        throw "COLUMN-ERROR", sprintf("%s column %y: qore type %y cannot be mapped to a column type (valid values: %y)", getDesc(), cname, opt.qore_type, qtm.keys());
+                }
 
-            # get native type description
-            hash th = otm{opt.native_type};
+                # get native type description
+                th = otm{opt.native_type};
 
-            # reset qore type from native type
-            opt.qore_type = th.qore;
-            opt.local_def = th;
+                # reset qore type from native type
+                opt.qore_type = th.qore;
+                opt.local_def = th;
+            }
 
             if (exists opt.size) {
                 if (!th.size)
@@ -10014,8 +10377,8 @@ string sql = table.getDropTriggerSql("trig_mytable");
                 opt.size = th.default_size;
 
             # check type of default value (must match column type)
-            if (exists opt.default_value) {
-                checkValue(cname, "default_value", \opt.default_value, th.qore);
+            if (exists opt.default_value && !opt.default_value_native) {
+                checkValue(cname, "default_value", \opt.default_value, opt.qore_type);
                 opt.default_value = getSqlValue(opt.default_value);
             }
         }
@@ -10538,6 +10901,7 @@ table.upsertCommit(row);
 
             @param row a hash representing the row to insert or update
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
+            @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
             @return an integer code giving the result of the update; see @ref upsert_results for more information
 
@@ -10546,11 +10910,11 @@ table.upsertCommit(row);
 
             @note if upserting multiple rows; it's better to use getBulkUpsertClosure(), getUpsertClosure(), or getUpsertClosureWithValidation() and execute the closure on each row; when using this method, the overhead for setting up the upsert is made for each row which is very inefficient
          */
-        int upsertCommit(hash row, int upsert_strategy = UpsertAuto) {
+        int upsertCommit(hash row, int upsert_strategy = UpsertAuto, *hash opt) {
             on_success ds.commit();
             on_error ds.rollback();
 
-            return upsert(row, upsert_strategy);
+            return upsert(row, upsert_strategy, opt);
         }
 
         #! update or insert the data in the table according to the hash argument; the table must have a unique key to do this
@@ -10561,6 +10925,7 @@ table.upsert(row);
 
             @param row a hash representing the row to insert or update
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
+            @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
             @return an integer code giving the result of the update; see @ref upsert_results for more information
 
@@ -10569,8 +10934,8 @@ table.upsert(row);
 
             @note if upserting multiple rows; it's better to use getBulkUpsertClosure(), getUpsertClosure(), or getUpsertClosureWithValidation() and execute the closure on each row; when using this method, the overhead for setting up the upsert is made for each row which is very inefficient
          */
-        int upsert(hash row, int upsert_strategy = UpsertAuto) {
-            return getUpsertClosure(row, upsert_strategy)(row);
+        int upsert(hash row, int upsert_strategy = UpsertAuto, *hash opt) {
+            return getUpsertClosure(row, upsert_strategy, opt)(row);
         }
 
         #! A legacy @ref SqlUtil::AbstractTable::upsert() wrapper
@@ -10591,6 +10956,7 @@ map upsert($1), row_list;
 
             @param row a hash representing an example row to insert or update; every row passed to the upsert closure returned must have the same keys in the same order
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
+            @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
             @return a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the closure returned does not check the input hash for validity; the closure has the following signature: @code{.py} int sub upsert(hash row) {} @endcode The return value of the closure is an integer code giving the result of the update; see @ref upsert_results for more information
 
@@ -10599,7 +10965,10 @@ map upsert($1), row_list;
 
             @note the row values passed to the closure for upserting are not checked if they match the example row passed to the getUpsertClosure() method; passing non-conforming data will cause errors; see @ref SqlUtil::AbstractTable::getUpsertClosureWithValidation() for a similar method that returns a validating closure; the closure returned by this method is faster than the one returned by @ref SqlUtil::AbstractTable::getUpsertClosure() since there is no validation
          */
-        code getUpsertClosure(hash row, int upsert_strategy = UpsertAuto) {
+        code getUpsertClosure(hash row, int upsert_strategy = UpsertAuto, *hash opt) {
+            # check upsert options
+            validateOptionsIntern("OPTION-ERROR", getUpsertOptions(), \opt);
+
             if (upsert_strategy == UpsertAuto)
                 upsert_strategy = emptyDataIntern() ? UpsertInsertFirst : UpsertUpdateFirst;
 
@@ -10611,16 +10980,19 @@ map upsert($1), row_list;
 
             switch (upsert_strategy) {
                 case UpsertInsertFirst:
-                    return getUpsertInsertFirst(cols, row);
+                    return getUpsertInsertFirst(cols, row, opt);
 
                 case UpsertUpdateFirst:
-                    return getUpsertUpdateFirst(cols, row);
+                    return getUpsertUpdateFirst(cols, row, opt);
 
                 case UpsertSelectFirst:
-                    return getUpsertSelectFirst(cols, row);
+                    return getUpsertSelectFirst(cols, row, opt);
 
                 case UpsertInsertOnly:
-                    return getUpsertInsertOnly(cols, row);
+                    return getUpsertInsertOnly(cols, row, opt);
+
+                case UpsertUpdateOnly:
+                    return getUpsertUpdateOnly(cols, row, opt);
             }
 
             throw "UPSERT-ERROR", sprintf("%s: invalid upsert code: %d", getDesc(), upsert_strategy);
@@ -10639,6 +11011,7 @@ upsert(row_hash);
 
             @param example_row a hash representing an example row to insert or update; every hash passed to the upsert closure returned must have the same keys in the same order
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
+            @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
             @return a closure that can be executed given a hash argument representing either a single row or a set of rows (where each key value is a list of column values) that will be updated or inserted in the database with the given upsert strategy; the closure returned does not check the input hash for validity; the closure has the following signature: @code{.py} int sub upsert(hash row) {} @endcode The return value of the closure is always @ref SqlUtil::AbstractTable::UR_Verified; see @ref upsert_results for more information
 
@@ -10653,8 +11026,8 @@ upsert(row_hash);
             - getUpsertClosure()
             - getUpsertClosureWithValidation()
          */
-        code getBulkUpsertClosure(hash example_row, int upsert_strategy = AbstractTable::UpsertAuto) {
-            code upsert = getUpsertClosure(example_row, upsert_strategy);
+        code getBulkUpsertClosure(hash example_row, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
+            code upsert = getUpsertClosure(example_row, upsert_strategy, opt);
             return int sub (hash h) {
                 map upsert($1), h.contextIterator();
                 return UR_Verified;
@@ -10674,6 +11047,7 @@ map upsert($1), row_list;
 
             @param example_row a hash representing an example row to insert or update; every row passed to the upsert closure returned must have the same keys in the same order or the closure returned will throw an \c UPSERT-ERROR exception
             @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
+            @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
 
             @return a closure that can be executed given a hash argument representing a single row that will be updated or inserted in the database with the given upsert strategy; the closure has the following signature: @code{.py} int sub upsert(hash row) {} @endcode The return value of the closure is an integer code giving the result of the update; see @ref upsert_results for more information
 
@@ -10682,8 +11056,8 @@ map upsert($1), row_list;
 
             @note the row values passed to the closure for upserting are checked if they match the example row passed to the getUpsertClosure() method; passing non-conforming data to the closure will cause the closure to throw an \c UPSERT-ERROR exception; see @ref SqlUtil::AbstractTable::getUpsertClosure() for a similar method that returns a non-validating closure; the closure returned by this method is a little slower than the one returned by @ref SqlUtil::AbstractTable::getUpsertClosure() since each row is validated
          */
-        code getUpsertClosureWithValidation(hash example_row, int upsert_strategy = UpsertAuto) {
-            code upsert = getUpsertClosure(example_row, upsert_strategy);
+        code getUpsertClosureWithValidation(hash example_row, int upsert_strategy = UpsertAuto, *hash opt) {
+            code upsert = getUpsertClosure(example_row, upsert_strategy, opt);
 
             return int sub (hash row) {
                 if (!row.compareKeys(example_row))
@@ -10706,7 +11080,7 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
             - \c "inserted": the number of rows inserted
             - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
             - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst or @ref SqlUtil::AbstractTable::UpsertInsertOnly
+            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, @ref SqlUtil::AbstractTable::UpsertInsertOnly, or @ref SqlUtil::AbstractTable::UpsertUpdateOnly
             - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw OPTION-ERROR invalid or unsupported option
@@ -10746,7 +11120,7 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
             - \c "inserted": the number of rows inserted
             - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
             - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst or @ref SqlUtil::AbstractTable::UpsertInsertOnly
+            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, @ref SqlUtil::AbstractTable::UpsertInsertOnly,  or @ref SqlUtil::AbstractTable::UpsertUpdateOnly
             - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw OPTION-ERROR invalid or unsupported option
@@ -10789,7 +11163,7 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
             hash pkh;
 
             hash row = i.getValue();
-            code upsert = getUpsertClosure(row, upsert_strategy);
+            code upsert = getUpsertClosure(row, upsert_strategy, opt);
 
             opt.change_count = 0;
             do {
@@ -10862,7 +11236,7 @@ hash h = table.upsertFromSelectCommit(table2, ("where": ("account_type": "CUSTOM
             - \c "inserted": the number of rows inserted
             - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
             - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst or @ref SqlUtil::AbstractTable::UpsertInsertOnly
+            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, @ref SqlUtil::AbstractTable::UpsertInsertOnly, or @ref SqlUtil::AbstractTable::UpsertUpdateOnly
             - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw OPTION-ERROR invalid or unsupported option
@@ -10918,7 +11292,7 @@ hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")),
             - \c "inserted": the number of rows inserted
             - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
             - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst or @ref SqlUtil::AbstractTable::UpsertInsertOnly
+            - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, @ref SqlUtil::AbstractTable::UpsertInsertOnly, or @ref SqlUtil::AbstractTable::UpsertUpdateOnly
             - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
 
             @throw OPTION-ERROR invalid or unsupported option
@@ -11381,8 +11755,8 @@ string sql = table.getSelectSql(sh, \args);
                             }
                             catch (hash ex) {
                                 # rethrow exception with additional contextual information
-                                throw ex.err, sprintf("%s: in \"columns\" hash element %d/%d: %s", getName(), $# + 1, qh.columns.lsize(), ex.desc), ex.arg;
-                             }
+                                throw ex.err, sprintf("%s: %s: in \"columns\" hash element %d/%d: %s", get_ex_pos(ex), getName(), $# + 1, qh.columns.lsize(), ex.desc), ex.arg;
+                            }
                             if (qh.superquery && cv.cop == COP_AS && cv.arg)
                                 mch{cv.arg} = True;
                             break;
@@ -11392,7 +11766,7 @@ string sql = table.getSelectSql(sh, \args);
                             throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in column list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv);
                     }
                 }
-                cstr = foldl $1 + "," + $2, ce.iterator();
+                cstr = foldl $1 + ", " + $2, ce.iterator();
                 coll = ce;
             }
             else
@@ -11407,7 +11781,7 @@ string sql = table.getSelectSql(sh, \args);
                 comment += sprintf("/*+ %s */ ", replace(qh.hint, "*/", ""));
             }
 
-            string sql = sprintf("select %s%s from %s", comment, cstr, from);
+            string sql = sprintf("select %s%s from %s", comment, cstr, getFromIntern(from, qh));
 
             # process join specifications
             foreach any js in (qh.join.iterator()) {
@@ -11509,7 +11883,7 @@ string sql = table.getSelectSql(sh, \args);
 
             if (qh.groupby) {
                 list ce = getGroupByListUnlocked(qh, jch, ch, psch, coll);
-                sql += " group by " + (foldl $1 + "," + $2, ce.iterator());
+                sql += " group by " + (foldl $1 + ", " + $2, ce.iterator());
             }
 
             if (qh.having) {
@@ -11569,6 +11943,10 @@ string sql = table.getSelectSql(sh, \args);
             }
 
             return sql;
+        }
+
+        private string getFromIntern(string from, *hash qh) {
+            return from;
         }
 
         private list getGroupByListUnlocked(hash qh, *hash jch, *hash ch, *hash psch, list coll) {
@@ -11673,8 +12051,19 @@ string sql = table.getSelectSql(sh, \args);
                     arg = getColumnNameIntern(arg, jch, join, ch, psch);
                 }
             }
+            else if (cmd.columnargs) {
+                if (arg.args.typeCode() != NT_LIST)
+                    throw "SELECT-ERROR", sprintf("%s: expecting a list of column designators for column operator %y; got type %y instead", getDesc(), cop, arg.args.type());
+                foreach any narg in (\arg.args) {
+                    switch (narg.typeCode()) {
+                        case NT_STRING: narg = getColumnNameIntern(narg, jch, join, ch, psch); break;
+                        case NT_HASH: narg = doColumnOperatorIntern(narg, jch, join, ch, psch); break;
+                        default: throw "COLUMN-ERROR", sprintf("%s: expecting a string column designator or a column operator hash; got %y in position %d/%d instead", getDesc(), narg, $#, arg.args.lsize());
+                    }
+                }
+            }
 
-            if (!exists cve && !cmd.nocolumn)
+            if (!exists cve && !cmd.nocolumn && !cmd.columnargs)
                 throw "SELECT-ERROR", sprintf("%s: column operator %y requires a column argument name but none was provided", getDesc(), cop);
 
             return cmd.withalias ? cmd.code(cve, arg, \psch_ref) : cmd.code(cve, arg);
@@ -11686,6 +12075,8 @@ string sql = table.getSelectSql(sh, \args);
             # return the name if it's a "technical name" (starts with "_")
             if (cv =~ /^_/)
                 return cv;
+
+            bool use_prefix = join;
 
             # see if we have a table.column spec
             *string tp = (cv =~ x/(\w+)\..+/)[0];
@@ -11709,14 +12100,21 @@ string sql = table.getSelectSql(sh, \args);
             }
             else {
                 tp = getSqlName();
-                if (cv != "*" && !columns.hasKey(cv) && !psch{cv})
+                if (cv == "*")
+                   use_prefix = asteriskRequiresPrefix();
+                else if (!columns.hasKey(cv) && !psch{cv})
                     throw "SELECT-ERROR", sprintf("%s: query references unknown column \"%s.%s\"; known columns: %y", getDesc(), tp, cv, columns.keys());
             }
 
             # ensure that reserved words are properly quoted
             cv = getColumnSqlName(cv);
 
-            return join ? sprintf("%s.%s", tp, cv) : cv;
+            return use_prefix ? sprintf("%s.%s", tp, cv) : cv;
+        }
+
+        #! returns @ref True if the database requires a wildcard \c "*" to be prefixed with the table name when it appears with other column arguments in a select statement
+        private bool asteriskRequiresPrefix() {
+            return False;
         }
 
         private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False, *hash ch, *hash psch) {
@@ -11822,7 +12220,7 @@ string sql = table.getSelectSql(sh, \args);
         private doSelectOrderBySqlUnlocked(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             list ce = getOrderByListUnlocked(qh, jch, ch, psch, coll);
 
-            sql += " order by " + (foldl $1 + "," + $2, (map $1 + (qh.desc || qh.orderbydesc.$1 ? " desc" : ""), ce));
+            sql += " order by " + (foldl $1 + ", " + $2, (map $1 + (qh.desc || qh.orderbydesc.$1 ? " desc" : ""), ce));
         }
 
         #! deletes rows in the table matching the condition and returns the count of rows deleted; the transaction is committed if successful, if an error occurs then it is rolled back
@@ -12059,7 +12457,7 @@ int ucnt = table.update(("id": id), ("name": name));
                 sl += exp;
             }
 
-            sql += foldl $1 + "," + $2, sl;
+            sql += foldl $1 + ", " + $2, sl;
 
             if (cond)
                 sql += getWhereClause(cond, \args);
@@ -12087,6 +12485,24 @@ int ucnt = table.update(("id": id), ("name": name));
 
             if (cmd.sqlvalue)
                 uh.arg = getSqlValue(uh.arg);
+            else if (cmd.argcolumn) {
+                if (!cmd.argoptional || uh.arg) {
+                    if (uh.arg.typeCode() != NT_STRING)
+                        throw "UPDATE-ERROR", sprintf("%s: expecting a string column designation for update operator %y; got type %y instead", getDesc(), uh.uop, uh.arg.type());
+                    uh.arg = getColumnNameIntern(uh.arg, NOTHING, False);
+                }
+            }
+            else if (cmd.columnargs) {
+                if (uh.arg.typeCode() != NT_LIST)
+                    throw "UPDATE-ERROR", sprintf("%s: expecting a list of column designators for update operator %y; got type %y instead", getDesc(), uh.uop, uh.arg.type());
+                foreach any narg in (\uh.arg) {
+                    switch (narg.typeCode()) {
+                        case NT_STRING: narg = getColumnNameIntern(narg, NOTHING, False); break;
+                        case NT_HASH: narg = doColumnOperatorIntern(narg, NOTHING, False); break;
+                        default: throw "COLUMN-ERROR", sprintf("%s: expecting a string column designator or a update operator hash; got %y in position %d/%d instead", getDesc(), narg, $#, uh.arg.lsize());
+                    }
+                }
+            }
 
             string arg = (uh.nest ? getUpdateExpression(col, uh.nest) : col);
 
@@ -12117,7 +12533,7 @@ int ucnt = table.update(("id": id), ("name": name));
 
             # if not all columns of the unique constraint are used, then throw an exception
             if (cl.size() != cols.size())
-                throw "UPSERT-ERROR", sprintf("%s: not all columns from %s are used in the upsert statement; required: %y; used: %y", getDesc(), csrc, columns.keys(), cl);
+                throw "UPSERT-ERROR", sprintf("%s: not all columns from %s are used in the upsert statement; required: %y; used: %y", getDesc(), csrc, cols.keys(), cl);
 
             # use UpsertSelectFirst if the row size == the key size (ie only key values are used)
             if (cols.size() == row.size())
@@ -12126,10 +12542,10 @@ int ucnt = table.update(("id": id), ("name": name));
             return cols;
         }
 
-        private code getUpsertInsertFirst(Columns cols, hash example_row) {
+        private code getUpsertInsertFirst(Columns cols, hash example_row, *hash opt) {
             string insert_sql = getUpsertInsertSql(example_row);
             list updc = ();
-            string update_sql = getUpsertUpdateSql(example_row, cols, \updc);
+            string update_sql = getUpsertUpdateSql(example_row, cols, \updc, opt);
 
             return int sub (hash row) {
                 if (tryInsertImpl(insert_sql, row))
@@ -12140,9 +12556,9 @@ int ucnt = table.update(("id": id), ("name": name));
             };
         }
 
-        private code getUpsertUpdateFirst(Columns cols, hash example_row) {
+        private code getUpsertUpdateFirst(Columns cols, hash example_row, *hash opt) {
             list updc = ();
-            string update_sql = getUpsertUpdateSql(example_row, cols, \updc);
+            string update_sql = getUpsertUpdateSql(example_row, cols, \updc, opt);
             string insert_sql = getUpsertInsertSql(example_row);
 
             return int sub (hash row) {
@@ -12154,12 +12570,12 @@ int ucnt = table.update(("id": id), ("name": name));
             };
         }
 
-        private code getUpsertSelectFirst(Columns cols, hash example_row) {
+        private code getUpsertSelectFirst(Columns cols, hash example_row, *hash opt) {
             #printf("getUpsertSelectFirst() %s: %y\n", name, cols.keys());
             list updc = ();
             string select_sql = getUpsertSelectSql(example_row, cols, \updc);
             string insert_sql = getUpsertInsertSql(example_row);
-            string update_sql = getUpsertUpdateSql(example_row, cols, \updc);
+            string update_sql = getUpsertUpdateSql(example_row, cols, \updc, opt);
 
             return int sub (hash row) {
                 list args = row.(cols.keys()).values();
@@ -12179,11 +12595,20 @@ int ucnt = table.update(("id": id), ("name": name));
             };
         }
 
-        private code getUpsertInsertOnly(Columns cols, hash example_row) {
+        private code getUpsertInsertOnly(Columns cols, hash example_row, *hash opt) {
             string insert_sql = getUpsertInsertSql(example_row);
 
             return int sub (hash row) {
                 return tryInsertImpl(insert_sql, row) ? UR_Inserted : UR_Unchanged;
+            };
+        }
+
+        private code getUpsertUpdateOnly(Columns cols, hash example_row, *hash opt) {
+            list updc = ();
+            string update_sql = getUpsertUpdateSql(example_row, cols, \updc, opt);
+
+            return int sub (hash row) {
+                return tryUpdate(update_sql, row, cols, updc) ? UR_Verified : UR_Unchanged;
             };
         }
 
@@ -12237,7 +12662,7 @@ int ucnt = table.update(("id": id), ("name": name));
                 updc = cols.keys();
 
             return sprintf("select %s from %s where %s",
-                           (foldl $1 + "," + $2, getColumnSqlNames(updc)),
+                           (foldl $1 + ", " + $2, getColumnSqlNames(updc)),
                            getSqlName(),
                            (foldl $1 + " and " + $2, (map sprintf("%s = %v", getColumnSqlName($1)), cols.keyIterator()))
                 );
@@ -12252,14 +12677,17 @@ int ucnt = table.update(("id": id), ("name": name));
             return sql;
         }
 
-        private string getUpsertUpdateSql(hash row, Columns cols, reference updc) {
+        private string getUpsertUpdateSql(hash row, Columns cols, reference updc, *hash opt) {
             # make list of columns not in unique key if necessary
-            if (!updc)
-                map updc += $1, row.keyIterator(), !cols.hasKey($1);
+            if (!updc) {
+                # hash of columns to skip on update if applicable
+                *hash suh = map {$1: True}, opt.omit_update;
+                map updc += $1, row.keyIterator(), !cols.hasKey($1) && !suh.$1;
+            }
 
             # make sql
             string sql = sprintf("update %s set ", getSqlName());
-            sql += foldl $1 + "," + $2, (map sprintf("%s = %v", getColumnSqlName($1)), updc);
+            sql += foldl $1 + ", " + $2, (map sprintf("%s = %v", getColumnSqlName($1)), updc);
             sql += " where ";
             sql += foldl $1 + " and " + $2, (map sprintf("%s = %v", getColumnSqlName($1)), cols.keyIterator());
 
@@ -13371,6 +13799,13 @@ string sql = table.getAlignSqlString(table2);
             return cols;
         }
 
+        #! returns @ref True if the DB treats empty strings as @ref NULL, @ref False if not; by default this method returns @ref False
+        /** @since SqlUtil 1.3
+        */
+        bool bindEmptyStringsAsNull() {
+            return False;
+        }
+
         #! returns @ref Qore::True "True" if the underlying DB driver supports bulk DML operations
         abstract bool hasArrayBind();
 
@@ -13518,7 +13953,16 @@ string sql = table.getAlignSqlString(table2);
         /** override in subclasses to return driver-specific options
         */
         private hash getUpdateOperatorMap() {
-            return getColumnOperatorMap().(DefaultUopMap.keys());
+            hash uom = getRawUpdateOperatorMap();
+            return getColumnOperatorMap().(uom.keys())
+                + (map {$1.key: $1.value}, uom.pairIterator(), $1.value.typeCode() == NT_HASH);
+        }
+
+        #! returns the raw (default) update operator map for this object
+        /** override in subclasses to return driver-specific options
+        */
+        private hash getRawUpdateOperatorMap() {
+            return DefaultUopMap;
         }
 
         #! returns a hash of valid pseudocolumns
@@ -13585,9 +14029,7 @@ string sql = table.getAlignSqlString(table2);
             # make sure driver options take precedence over generic options
             if (opt) {
                 string dn = getDriverName();
-                if (opt.driver{dn})
-                    opt += remove opt.driver{dn};
-                delete opt.driver;
+                AbstractDatabase::checkDriverOptions(\opt, dn);
             }
 
             # mark in options that the entire table is being created

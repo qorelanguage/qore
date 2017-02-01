@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2015 Qore Technologies
+  Copyright (C) 2006 - 2016 Qore Technologies
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,9 +31,9 @@
 
 #include <qore/Qore.h>
 #include <qore/QoreHttpClientObject.h>
-#include <qore/intern/QC_HTTPClient.h>
-#include <qore/intern/QC_Queue.h>
-#include <qore/intern/ssl_constants.h>
+#include "qore/intern/QC_HTTPClient.h"
+#include "qore/intern/QC_Queue.h"
+#include "qore/intern/ssl_constants.h"
 #include <qore/minitest.hpp>
 
 extern QoreClass* QC_SOCKET;
@@ -98,7 +98,7 @@ extern QoreClass* QC_SOCKET;
 
     @note
     - This class is not available with the @ref PO_NO_NETWORK parse option.
-    - URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=<url_encoded_path>/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
+    - URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
  */
 qclass HTTPClient [dom=NETWORK; arg=QoreHttpClientObject* client; vparent=Socket];
 
@@ -130,7 +130,7 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
     @throw HTTP-CLIENT-URL-ERROR invalid URL string
     @throw HTTP-CLIENT-UNKNOWN-PROTOCOL unknown protocol passed in URL
 
-    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=<url_encoded_path>/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
+    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
  */
 HTTPClient::constructor(hash opts) {
    ReferenceHolder<QoreHttpClientObject> client(new QoreHttpClientObject, xsink);
@@ -466,6 +466,50 @@ nothing HTTPClient::sendWithRecvCallback(code rcb, *binary body, string method, 
    client->sendWithRecvCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, body ? body->getPtr() : 0, body ? body->size() : 0, getbody, *ohrh, timeout_ms, rcb, self, xsink);
 }
 
+//! Sends an HTTP request with the specified method and optional message body; headers are returned through a receive callback and any body received is written to an @ref OutputStream
+/** This method is useful for receiving data in real time; data are sent to the output stream as soon as they are received.
+    If a connection has not already been established, an internal call to HTTPClient::connect() will be made before sending the message
+
+    @par Example:
+    @code{.py}
+httpclient.sendWithOutputStream(rcv_callback, outputStream, data, "POST", "/path", ("Content-Type":"application/x-yaml"));
+    @endcode
+
+    @param rcb The receive callback for the data received; this method is called with a hash of the message headers. Header or trailer data is placed in a hash with the following keys:
+    - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+    - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
+    @param os The @ref OutputStream to write the response body to
+    @param body The message body to send; pass @ref nothing (no value) to send no body
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT"). Additional
+     methods can be added in the constructor as a \c additional_methods option.
+    @param path The path for the message (i.e. \c "/path/resource?method&param=value")
+    @param headers An optional hash of headers to include in the message.
+    @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
+    @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
+    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
+
+    @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
+    @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
+    @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
+    @throw SOCKET-SEND-ERROR There was an error sending the data
+    @throw SOCKET-CLOSED The remote end closed the connection
+    @throw SOCKET-RECV-ERROR There was an error receiving the data
+    @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
+    @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
+    @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+
+    @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
+
+    @since %Qore 0.8.13
+ */
+nothing HTTPClient::sendWithOutputStream(code rcb, Qore::OutputStream[OutputStream] os, *binary body, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info) {
+   SimpleRefHolder<OutputStream> osHolder(os);
+   OptHashRefHelper ohrh(info, xsink);
+   client->sendWithOutputStream(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, body ? body->getPtr() : 0, body ? body->size() : 0, getbody, *ohrh, timeout_ms, rcb, self, os, xsink);
+}
+
 //! Sends an HTTP request with the specified method and chunked message body as given by a send callback; headers and any body received are returned through a receive callback
 /** This method is useful for sending chunked message data where the response is also a sent with chunked transfer encoding; chunks are sent to the receive callback as soon as they are received.
     If a connection has not already been established, an internal call to HTTPClient::connect() will be made before sending the message
@@ -736,7 +780,7 @@ httpclient.setURL("https://user:password@hostname:8080/path");
 
     @see HTTPClient::getURL()
 
-    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=<url_encoded_path>/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
+    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
  */
 HTTPClient::setURL(string url) {
    client->setURL(url->getBuffer(), xsink);
@@ -777,7 +821,7 @@ httpclient.setProxyURL("http://user:password@proxy_host:8080/path");
     @throw HTTP-CLIENT-URL-ERROR invalid proxy URL string; invalid authorization credentials in proxy URL (username without password or vice-versa)
     @throw HTTP-CLIENT-PROXY-PROTOCOL-ERROR unknown protocol passed in URL
 
-    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=<url_encoded_path>/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
+    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
  */
 nothing HTTPClient::setProxyURL(string url) {
    client->setProxyURL(url->getBuffer(), xsink);

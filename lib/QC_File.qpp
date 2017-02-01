@@ -30,9 +30,9 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_File.h>
-#include <qore/intern/QC_Queue.h>
-#include <qore/intern/QC_TermIOS.h>
+#include "qore/intern/QC_File.h"
+#include "qore/intern/QC_Queue.h"
+#include "qore/intern/QC_TermIOS.h"
 
 extern QoreClass* QC_READONLYFILE;
 

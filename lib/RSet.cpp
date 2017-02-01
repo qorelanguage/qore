@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,9 +30,10 @@
 */
 
 #include <qore/Qore.h>
+#include "qore/intern/QoreObjectIntern.h"
 
 RObject::~RObject() {
-   delete rset;
+   assert(!rset);
 }
 
 bool RObject::scanCheck(RSetHelper& rsh, AbstractQoreNode* n) {
@@ -44,8 +45,7 @@ void RObject::setRSet(RSet* rs, int rcnt) {
    printd(QRO_LVL, "RObject::setRSet() this: %p %s rs: %p rcnt: %d\n", this, getName(), rs, rcnt);
    if (rset) {
       // invalidating the rset removes the weak references to all contained objects
-      rset->invalidate();
-      rset->deref();
+      rset->invalidateDeref();
    }
    rset = rs;
    rcount = rcnt;
@@ -58,19 +58,16 @@ void RObject::setRSet(RSet* rs, int rcnt) {
    ++rcycle;
 }
 
-void RObject::invalidateRSet() {
-   assert(rml.checkRSectionExclusive());
-   // invalidating the rset removes the weak references to all contained objects
-   if (rset)
-      rset->invalidate();
+void RObject::removeInvalidateRSet() {
+   QoreAutoVarRWWriteLocker al(rml);
+   removeInvalidateRSetIntern();
 }
 
-void RObject::removeInvalidateRSet() {
+void RObject::removeInvalidateRSetIntern() {
    assert(rml.checkRSectionExclusive());
    if (rset) {
       // invalidating the rset removes the weak references to all contained objects
-      rset->invalidate();
-      rset->deref();
+      rset->invalidateDeref();
       rset = 0;
       rcount = 0;
    }
@@ -97,8 +94,6 @@ int RSet::canDelete(int ref_copy, int rcount) {
    if (!valid)
       return -1;
 
-   bool make_invalid = false;
-
    {
       QoreAutoRWReadLocker al(rwl);
       if (!valid)
@@ -118,20 +113,48 @@ int RSet::canDelete(int ref_copy, int rcount) {
          }
          printd(QRO_LVL, "RSet::canDelete() this: %p can delete graph obj %p '%s' rcount: %d refs: %d\n", this, *i, (*i)->getName(), (*i)->rcount, (*i)->refs());
       }
-      // invalidate the rset
-      make_invalid = true;
    }
 
-   if (make_invalid) {
-      QoreAutoRWWriteLocker al(rwl);
-      if (!valid)
-         return -1;
+   // invalidate the rset
+   QoreAutoRWWriteLocker al(rwl);
+   if (!valid)
+      return -1;
 
-      invalidateIntern();
-   }
+   invalidateIntern();
 
    printd(QRO_LVL, "RSet::canDelete() this: %p can delete all objects in graph\n", this);
    return 1;
+}
+
+robject_dereference_helper::~robject_dereference_helper() {
+   //printd(5, "robject_dereference_helper::~robject_dereference_helper() this: %p o: %p refs: %d del: %d qo: %p '%s' ip: %d w: %d\n", this, o, o->references, del, qo, qo ? qo->getClassName() : "n/a", o->ref_inprogress, o->ref_waiting);
+
+   // the mutex ensures atomicity
+   // here we use a safe locker so we can unlock it before deleting the object (and hence also the mutex)
+   SafeLocker sl(o->ref_mutex);
+   // decrement the in progress count, if it's the last thread, and there are waiting threads, then wake one up
+   if ((!--o->ref_inprogress) && o->ref_waiting) {
+      o->ref_cond.signal();
+      assert(!del);
+   }
+   else if (del) {
+      // if we are going to delete the object, then wait for all other in-progress calls to complete first
+      // wait
+      while (o->ref_inprogress) {
+         ++o->ref_waiting;
+         o->ref_cond.wait(o->ref_mutex);
+         --o->ref_waiting;
+      }
+      // if it's the final dereference, then we unlock the lock and remove the weak reference
+      if (qo) {
+         // which would result in the object (and therefore the mutex) being deleted
+         sl.unlock();
+         // the object may not be valid after this call
+         qo->tDeref();
+      }
+   }
+   else
+      assert(!qo);
 }
 
 class RSectionScanHelper {
@@ -408,6 +431,7 @@ bool RSetHelper::makeChain(int i, omap_t::iterator fi, int tid) {
    return false;
 }
 
+// XXX RSectionScanHelper
 bool RSetHelper::checkIntern(RObject& obj) {
 #ifdef DEBUG
    bool hl = obj.rml.hasRSectionLock();
@@ -655,6 +679,8 @@ void RSetHelper::commit(RObject& obj) {
 
    for (omap_t::iterator i = fomap.begin(), e = fomap.end(); i != e; ++i) {
       RSet* rs = i->second.rset;
+      assert(!rs || (rs->size() == rs->getCount()));
+
       if (!rs)
          continue;
       for (rset_t::iterator ri = rs->begin(), re = rs->end(); ri != re; ++ri) {

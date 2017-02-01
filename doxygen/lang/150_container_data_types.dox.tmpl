@@ -16,11 +16,11 @@
     Lists (or arrays) are simply ordered containers of values. A list element can be any %Qore type (even another list, @ref hash "hash", or @ref object "object").\n\n
     Lists are specified by giving expressions separated by commas as follows:\n
     @code{.py}
-$list = (expression, expression [, expression ...]);
+list = (expression, expression [, expression ...]);
     @endcode \n
     Here is a concrete example:\n
     @code{.py}
-my list $list = (
+list list = (
     1,
     2,
     "three",
@@ -34,7 +34,7 @@ my list $list = (
     List elements are dereferenced using square brackets: \c "[" and \c "]". The first element in a list has index zero.\n\n
     <b>Example:</b>
     @code{.py}
-$element3 = $list[2];
+element3 = list[2];
     @endcode \n
     The following operators perform special processing on lists:
     - @ref elements "elements"
@@ -82,7 +82,7 @@ $element3 = $list[2];
     Hashes are containers that associate values to a string key and also preserve key order for consistent data serialization/deserialization.  Hash key lookups are case-sensitive and use a hashing algorithm that in the worst case should provide <i>O(ln(n))</i> complexity to execute; in the best case finding a particular key in a hash is executed in constant time (ie <i>O(1)</i> complexity).\n\n
     Hashes are specified using the following syntax:\n
     @code{.py}
-$hash = (
+hash = (
     key_expression : value_expression,
     key_expression : value_expression,
     ...,
@@ -90,7 +90,7 @@ $hash = (
     @endcode \n
     or alternatively with curly brackets (syntax introduced in %Qore 0.8.12 - note that this syntax is used with the @ref hmap "hash version of the map operator"):
     @code{.py}
-$hash2 = {
+hash2 = {
     key_expression : value_expression,
     key_expression : value_expression,
     ...,
@@ -98,7 +98,7 @@ $hash2 = {
     @endcode \n
     Here is a concrete example: \n
     @code{.py}
-my hash $hash = (
+hash hash = (
     "apple" : 1 + 1,
     "pear"  : "good",
 );
@@ -106,36 +106,73 @@ my hash $hash = (
     Trailing commas are ignored (as with @ref list "lists") to allow for easier insertion and deletion of elements in source code.\n\n
     Hashes are dereferenced in one of two ways, either using curly brackets: \c "{" and \c "}", where any valid %Qore expression can be used, or using the dot "." hash member dereferencing operator, where literal strings can be used.\n\n
     @code{.py}
-$element3 = $hash{"pe" + "ar"};
+element3 = hash{"pe" + "ar"};
     @endcode \n
     Is equivalent to: \n
     @code{.py}
-$element3 = $hash.pear;
+element3 = hash.pear;
     @endcode \n
     and: \n
     @code{.py}
-$element3 = $hash."pear";
+element3 = hash."pear";
     @endcode \n
     and: \n
     @code{.py}
-$element3 = $hash.("pe" + "ar");
+element3 = hash.("pe" + "ar");
     @endcode \n
     Hash members can have the names of keywords or names that are not valid identifiers, but in this case to dereference them you cannot use the dot operator with a literal string, otherwise a parse error will be raised. Use quotes around the member name when dereferencing hash members with the same name as a qore keyword or other name that is not a valid identifier as follows:\n
     @code{.py}
-$element3 = $hash."keys";
-$element3 = $hash{"this-element-1!"};
+element3 = hash."keys";
+element3 = hash{"this-element-1!"};
     @endcode \n
     A literal string after the dot "." hash member dereferencing operator must be a valid %Qore identifier; therefore if you want to use a hash key that's not a valid identifier, enclose the string in quotes.\n\n
     If you want to use the result of an expression to dereference the hash, then either the curly bracket syntax must be used or the expression must be enclosed in parentheses.\n\n
-    In the case of using a literal string with the dot operator, keep in mind that the string is always interpreted as a literal string name of the member, even if there is a constant with the same name.  To use the value of a constant to dereference a hash, use curly brackets with the constant: ex: @verbatim $hash{MyConstant} @endverbatim
+    In the case of using a literal string with the dot operator, keep in mind that the string is always interpreted as a literal string name of the member, even if there is a constant with the same name.  To use the value of a constant to dereference a hash, use curly brackets with the constant: ex: @verbatim hash{MyConstant} @endverbatim
     Note that hash keys can also be given by constants (as long as the constant resolves to a string) when using curly brackets.\n
+
+    @par Hash slicing:
+    Hashes can be "sliced" by dereferencing them using parenthesis syntax with more than one key, as in the following example:\n
+    @code{.py}
+hash h = {
+    "a": 3,
+    "b": 5,
+    "x": "test",
+    "y": 0,
+    "text": "lorem ipsum dolor sit amet",
+    "float": 2.71828
+};
+
+# Creates a new hash with key-value pairs "a" and "b" from the original hash.
+hash nh = h.("a", "b");
+printf("slice 1: %n\n", nh);
+
+# Creates a new hash with key-value pairs "x", "y" and "float" from the original hash.
+printf("slice 2: %n\n", h.("x", "y", "float"));
+
+# Creates a new hash with a key-value pair "x" from the original hash.
+printf("slice 3: %n\n", h.("x", "random"));
+
+# Creates an empty hash because hash h does not contain keys "abc" or "xyz".
+printf("slice 4: %n\n", h.("abc", "xyz"));
+
+
+---------------------------------
+
+
+slice 1: hash: (a : 3, b : 5)
+slice 2: hash: (x : "test", y : 0, float : 2.71828)
+slice 3: hash: (x : "test")
+slice 4: <EMPTY HASH>
+    @endcode \n
+
+    All keys matching with the original hash's key-value pairs will be included in the newly created hash. Keys which are not in the original hash will be silently ignored.
 
     @par Immediate Value Example:
     @verbatim {"key1": 1, "key2": "two", get_key_3(): 3.141592653589793238462643383279502884195n}@endverbatim
     Hashes can be declared with parentheses or curly brackets:
     @verbatim ("key1": 1, "key2": "two", get_key_3(): 3.141592653589793238462643383279502884195n)@endverbatim
     Gives an empty hash (note that <tt>()</tt> gives an empty list):
-    @verbatim my hash $h = {};@endverbatim
+    @verbatim hash h = {};@endverbatim
 
     @par Pseudo Class for Type Hash:
     @ref Qore::zzz8hashzzz9
@@ -150,8 +187,8 @@ $element3 = $hash{"this-element-1!"};
 
     @note
     - Trailing commas are ignored in immediate hash declarations (as with @ref list "lists") to allow for easier insertion and deletion of elements in source code.
-    - Hashes are dereferenced in one of two ways, either using curly brackets: \c "{" and \c "}", where any valid %Qore expression can be used, or using the dot "." hash member dereferencing operator, where literal strings can be used.  In the case of using a literal string with the dot operator, keep in mind that the string is always interpreted as a literal string name of the member, even if there is a constant with the same name.  To use the value of a constant to dereference a hash, use curly brackets with the constant: ex: @code{.py} $hash{MyConstant} @endcode
-    - Use quotes around the member name when dereferencing hash members with the same name as a %Qore keyword or other name that is not a valid identifier: ex: @code{.py} $hash."my-tag-1!" @endcode
+    - Hashes are dereferenced in one of two ways, either using curly brackets: \c "{" and \c "}", where any valid %Qore expression can be used, or using the dot "." hash member dereferencing operator, where literal strings can be used.  In the case of using a literal string with the dot operator, keep in mind that the string is always interpreted as a literal string name of the member, even if there is a constant with the same name.  To use the value of a constant to dereference a hash, use curly brackets with the constant: ex: @code{.py} hash{MyConstant} @endcode
+    - Use quotes around the member name when dereferencing hash members with the same name as a %Qore keyword or other name that is not a valid identifier: ex: @code{.py} hash."my-tag-1!" @endcode
     - %Qore hashes preserve key insertion order to support consistent serialization and deserialization to strings (such as XML, JSON, or YAML strings) or data encoding formats, therefore the @ref keys "keys operator" and the <hash>::keys() pseudo-method will always return the hash keys in insertion/creation order
     - Dereferencing hash values that are not present in the hash will return @ref nothing; to catch typos in hash member names when dereferencing a hash, you can use an @ref object "object" and declare a list of allowed public members in the @ref qore_classes "class definition" (in which case dereferencing a non-existant member will cause a parse exception to be thrown, if the object's class is known at parse time, otherwise it will cause a runtime exception), also the Qore::ListHashIterator class allows for hash members to be dereferenced transparently and will throw an exception if a non-existant member name is given (to catch typos).
     - There are several pseudo-methods implemented in both the @ref Qore::zzz8hashzzz9 and the @ref Qore::zzz8nothingzzz9 pseudo-classes that provide asy access to special hash iterators:
@@ -189,12 +226,12 @@ $element3 = $hash{"this-element-1!"};
     @subsection object_overview Object Overview
     The recommended way to instantiate an object is to declare its type and give constructor arguments after the variable name in parentheses as follows:
     @code{.py}
-my class_name_or_path $var_name([argument list])
+class_name_or_path var_name([argument list])
     @endcode
 
     For example (for a constructor taking no arguments or having only default values for the aguments, the list is empty):
     @code{.py}
-my Mutex $m();
+Mutex m();
     @endcode
 
     If parse option @ref new-style "%new-style" is set, the above example declaring a local variable of class @ref Qore::Thread::Mutex would look as follows:
@@ -212,7 +249,7 @@ new class_identifier([argument list])
     For example:
 
     @code{.py}
-my Mutex $m = new Mutex();
+Mutex m = new Mutex();
     @endcode
 
     Or, with parse option %new-style:
@@ -238,7 +275,7 @@ object_reference.method_name([argument_list])
     Or, from within the class code itself to call another method from inside the same class hierarchy:
 
     @code{.py}
-$.method_name([argument_list])
+method_name([argument_list])
     @endcode
 
     Or, with parse option %new-style, the method call is made without the "$.":
@@ -265,28 +302,28 @@ method_name([argument_list])
 
     An example:
     @code{.py}
-sub test2(any $x) {
+sub test2(any x) {
    # we can modify the original object like so:
-   $x.member = "tree";
+   x.member = "tree";
 
-   # here we re-assign $x, but since the object is also assigned
-   # to $o in the calling function, the object's scope is still
+   # here we re-assign x, but since the object is also assigned
+   # to o in the calling function, the object's scope is still
    # valid, and therefore nothing happens to the object
-   $x = 1;
+   x = 1;
 }
 
 sub test() {
-   my TestObject $o();
+   TestObject o();
 
-   # here we pass a copy of a reference to the object in $o
-   test2($o);
+   # here we pass a copy of a reference to the object in o
+   test2(o);
 
    # this will print out "ok\n", because the object is still
    # valid and the member has been set by test2()
-   if ($o.member == "tree")
+   if (o.member == "tree")
       print("ok\n");
 }
-# when test() exits, the object in $o will go out of scope
+# when test() exits, the object in o will go out of scope
 # and be deleted
     @endcode
 
@@ -294,25 +331,25 @@ sub test() {
 
     An example:
     @code{.py}
-sub test2(any $x) {
+sub test2(any x) {
    # we can modify the original object like so:
-   $x.member = "tree";
+   x.member = "tree";
 
-   # here we re-assign $x, and since we own the only scope
+   # here we re-assign x, and since we own the only scope
    # reference to the object, the object will go out of
    # scope here and be deleted
-   $x = 1;
+   x = 1;
 }
 
 sub test() {
-   my TestObject $o();
+   TestObject o();
 
-   # here we pass a reference to the object in $o
-   test2(\$o);
+   # here we pass a reference to the object in o
+   test2(\o);
 
    # the object has already been deleted in test2() and
    # therefore nothing will be printed out
-   if ($o.member == "tree")
+   if (o.member == "tree")
       print("ok\n");
 }
     @endcode

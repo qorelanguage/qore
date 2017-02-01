@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 #include <qore/Qore.h>
 #include <qore/DBI.h>
 
-#include <qore/intern/QC_DatasourcePool.h>
+#include "qore/intern/QC_DatasourcePool.h"
 
 extern QoreClass* QC_ABSTRACTDATASOURCE;
 
@@ -142,7 +142,7 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Que
     The connection is released to the pool when DatasourcePool::commit() or DatasourcePool::rollback() are called (or in the case the thread terminates, in which case an exception is raised as well).\n\n
     To begin a transaction with one of the select methods (for example, with \c "select for update"), call DatasourcePool::beginTransaction() first to manually dedicate a Datasource to the thread before calling the select method. Otherwise statements that should be in the same transaction may be executed in different connections.\n\n
     Executing a %DatasourcePool method while not in a transaction is realized by allocating a temporary connection to the calling thread which is re-released when the method returns. No explicit commits are executed by the class, therefore it is an error to execute transaction-relevant commands without first calling DatasourcePool::exec(), DatasourcePool::vexec(), DatasourcePool::execRaw(), or DatasourcePool::beginTransaction().\n\n
-    Note that the @ref Qore::SQL::SQLStatement "SQLStatement" class also grabs allocates a persistent connection to the calling thread when executing if it is created using a %DatasourcePool object in the constructor; for more information see the @ref Qore::SQL::SQLStatement "SQLStatement" class documentation.
+    Note that the @ref Qore::SQL::SQLStatement "SQLStatement" class also grabs allocates a persistent connection to the calling thread when executing if it is created using a %DatasourcePool object in the constructor; when connections are returned to the pool, all SQLStatement objects using the allocated datasource are closed automatically; for more information see the @ref Qore::SQL::SQLStatement "SQLStatement" class documentation.
 
     @par Thread Resource Handling
     The DatasourcePool class manages connection allocations as a @ref thread_resources "thread resource"; if the
@@ -204,17 +204,17 @@ DatasourcePool::constructor(string driver, *string user, *string pass, *string d
    }
 
    if (min <= 0) {
-      xsink->raiseException(DSPC_ERR, "minimum connections must be > 0 (value given: "QLLD")", min);
+      xsink->raiseException(DSPC_ERR, "minimum connections must be > 0 (value given: " QLLD ")", min);
       return;
    }
 
    if (max < min) {
-      xsink->raiseException(DSPC_ERR, "maximum connections must be >= min(%d) (value given: "QLLD")", min, max);
+      xsink->raiseException(DSPC_ERR, "maximum connections must be >= min(%d) (value given: " QLLD ")", min, max);
       return;
    }
 
    if (port < 0) {
-      xsink->raiseException(DSPC_ERR, "port value must be zero (meaning use the default port) or positive (value given: "QLLD")", port);
+      xsink->raiseException(DSPC_ERR, "port value must be zero (meaning use the default port) or positive (value given: " QLLD ")", port);
       return;
    }
 
@@ -403,12 +403,14 @@ any DatasourcePool::execRaw(string sql) {
     @param sql The %SQL command to execute on the server
     @param ... Include any values to be bound (using <tt>%%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
-    @return This method returns a hash (the keys are the column names) of lists (the column data per row) when executed with an %SQL select statement, however some DBI drivers allow any %SQL to be executed through this method, in which case other data types can be returned (such as an integer for a row count or a hash for output parameters when executing a stored procedure)
+    @return This method returns a hash (the keys are the column names) of lists (the column data per row) when executed with an %SQL select statement, however some DBI drivers allow any %SQL to be executed through this method, in which case other data types can be returned (such as an integer for a row count or a hash for output parameters when executing a stored procedure).  If no rows are found, a hash of column names assigned to empty lists is returned.
 
     @par Example:
     @code{.py}
 # bind a string and a date/time value by value in a query
-query = db.select("select * from table where varchar_column = %v and timestamp_column > %v", string, 2007-10-11T15:31:26.289);
+hash query = db.select("select * from table where varchar_column = %v and timestamp_column > %v", string, 2007-10-11T15:31:26.289);
+if (query.firstValue())
+    printf("got results\n");
     @endcode
 
     @note
@@ -490,11 +492,13 @@ any DatasourcePool::selectRows(string sql, ...) {
     @param sql The %SQL command to execute on the server
     @param vargs Include any values to be bound (using <tt>%%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
-    @return Normally returns a hash (the keys are the column names) of list (each hash key's value is a list giving the row data), however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+    @return Normally returns a hash (the keys are the column names) of list (each hash key's value is a list giving the row data), however some DBI drivers allow any %SQL statement to be executed through this method (not only select statements), in this case other data types can be returned.  If no rows are found, a hash of column names assigned to empty lists is returned.
 
     @par Example:
     @code{.py}
-*hash query = db.vselect("select * from example_table where id = %v and name = %v", arg_list);
+hash query = db.vselect("select * from example_table where id = %v and name = %v", arg_list);
+if (query.firstValue())
+    printf("got results\n");
     @endcode
 
     @note

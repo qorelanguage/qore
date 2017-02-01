@@ -38,6 +38,8 @@
 #define _QORE_QORESOCKET_H
 
 #include <qore/Qore.h>
+#include <qore/InputStream.h>
+#include <qore/OutputStream.h>
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -125,6 +127,7 @@ class QoreSocket {
    friend struct qore_socket_private;
    friend struct qore_httpclient_priv;
    friend class QoreSocketObject;
+   friend class QoreFtpClient;
 
 private:
    //! private implementation of the class
@@ -651,6 +654,19 @@ public:
        @return 0 for OK, not 0 if an error occured
    */
    DLLEXPORT int send(int fd, qore_offset_t size = -1);
+
+   //! sends untranslated data from an open file descriptor
+   /**
+       @param fd a file descriptor, open for reading
+       @param size the number of bytes to send (-1 = send all until EOF)
+       @param timeout_ms a timeout in milliseconds for socket I/O operations
+       @param xsink if an I/O error occurs, the Qore-language exception information will be added here
+
+       @return 0 for OK, not 0 if an error occured
+
+       @since Qore 0.8.12.3
+   */
+   DLLEXPORT int send(int fd, qore_offset_t size, int timeout_ms, ExceptionSink* xsink);
 
    //! sends a 1-byte binary integer data to a connected socket
    /** The socket must be connected before this call is made.
@@ -1193,13 +1209,31 @@ public:
 
    //! receive data on the socket and write it to a file descriptor
    /** The socket must be connected before this call is made.
+
        @param fd the file descriptor to write to, must be already opened for writing
        @param size the number of bytes to read from the socket, -1 to read until the socket is closed
-       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+       @param timeout_ms timeout for socket I/O in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+
        @return 0 for OK, not 0 for error
+
        @note the timeout value applies to each read from the socket
    */
    DLLEXPORT int recv(int fd, qore_offset_t size, int timeout_ms);
+
+   //! receive data on the socket and write it to a file descriptor
+   /** The socket must be connected before this call is made.
+
+       @param fd the file descriptor to write to, must be already opened for writing
+       @param size the number of bytes to read from the socket, -1 to read until the socket is closed
+       @param timeout_ms timeout for socket I/O in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+
+       @return 0 for OK, not 0 for error
+
+       @note the timeout value applies to each read from the socket
+
+       @since Qore 0.8.12.3
+   */
+   DLLEXPORT int recv(int fd, qore_offset_t size, int timeout_ms, ExceptionSink* xsink);
 
    //! send an HTTP request message on the socket
    /** The socket must be connected before this call is made.
@@ -1396,7 +1430,7 @@ public:
    /** The socket must be connected before this call is made.
        The message body is returned as a BinaryNode in the "body" key, any footers read after the body
        are returned as the other hash keys in the hash.
-       @param timeout_ms tieout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @param source the event source code for socket events
        @return the message body as the value of the "body" key and any footers read after the body as other keys (0 if an error occurs)
@@ -1433,22 +1467,48 @@ public:
    //! returns true if data is available on the socket in the timeout period in milliseconds
    /** The socket must be connected before this call is made.
        use a timeout of 0 to see if there is any data available on the socket
+
        @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+
        @return true if data is available within the timeout period
+
+       @see asyncIoWait()
+
+       @note if data is available in the socket buffer, this call returns immediately
    */
    DLLEXPORT bool isDataAvailable(int timeout_ms = 0) const;
 
    //! returns true if data is available on the socket in the timeout period in milliseconds
    /** The socket must be connected before this call is made.
        use a timeout of 0 to see if there is any data available on the socket
+
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
 
        @return true if data is available within the timeout period
 
+       @see asyncIoWait()
+
+       @note if data is available in the socket buffer, this call returns immediately
+
        @since Qore 0.8.8
    */
    DLLEXPORT bool isDataAvailable(ExceptionSink* xsink, int timeout_ms = 0) const;
+
+   //! returns 1 if the event was satisfied in the timeout period, 0 if not (= timeout), or -1 in case of an error (see errno in this case)
+   /** @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+       @param read wait for data to be available for reading from the socket
+       @param write wait for data to be written on the socket
+
+       @see
+       - isDataAvailable()
+       - isWriteFinished()
+
+       @note This is a low-level socket function, if an SSL connection is in progress, then this function could return 1 for reading due to SSL protocol renegotiation for example.  The socket buffer is ignored for this call (unlike isDataAvaialble())
+
+       @since Qore 0.8.12
+    */
+   DLLEXPORT int asyncIoWait(int timeout_ms, bool read, bool write) const;
 
    //! closes the socket
    /** Deletes the socket file if it was a UNIX domain socket and was created with the QoreSocket::bind() call.
@@ -1560,8 +1620,12 @@ public:
    //! returns true if all write data has been written within the timeout period in milliseconds
    /** The socket must be connected before this call is made.
        use a timeout of 0 to receive an answer immediately
+
        @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+
        @return true if data is available within the timeout period
+
+       @see asyncIoWait()
    */
    DLLEXPORT bool isWriteFinished(int timeout_ms = 0) const;
 

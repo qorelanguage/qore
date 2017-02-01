@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,20 +33,28 @@
 
 #define _QORE_QORE_NUMBER_PRIVATE_H
 
+#include <cmath>
 #include <memory>
+using namespace std;
 
 // the number of consecutive trailing 0 or 9 digits that will be rounded in string output
 #define QORE_MPFR_ROUND_THRESHOLD 9
 // the number of consecutive trailing 0 or 9 digits that will be rounded in string output if there are 2 trailing non-0/9 digits
 #define QORE_MPFR_ROUND_THRESHOLD_2 15
 
+// the magic precesion number that indicates that all decimals should be included in the output string when formatting
+#define QORE_NUM_ALL_DIGITS -999999
+
 #define QORE_DEFAULT_PREC 128
 #define QORE_MAX_PREC 8192
 #ifndef HAVE_MPFR_RNDN
 #define MPFR_RNDN GMP_RNDN
+#define MPFR_RNDZ GMP_RNDZ
 #endif
 // round to nearest (roundTiesToEven in IEEE 754-2008)
 #define QORE_MPFR_RND MPFR_RNDN
+// round toward zero
+#define QORE_MPFR_RNDZ MPFR_RNDZ
 // MPFR_RNDA
 
 #ifndef HAVE_MPFR_EXP_T
@@ -57,6 +65,16 @@ typedef mp_exp_t mpfr_exp_t;
 #define QORE_MPFR_SPRINTF_ARG 'R'
 #else
 #define QORE_MPFR_SPRINTF_ARG 'L'
+#endif
+
+// some compilers (sun/oracle pro c notably) do not support arrays with a variable size
+// if not, we can't use the stack for the temporary variable and have to use a dynamically-allocated one
+// also MPFR_DECL_INIT is compiled incorrectly on g 5.2 on Solaris SPARC with all optimization levels
+// for some unknown reason (https://github.com/qorelanguage/qore/issues/958)
+#if defined(HAVE_LOCAL_VARIADIC_ARRAYS) && !(defined(SPARC) && defined(SOLARIS) && defined(__GNUC__))
+#define MPFR_TMP_VAR(x, p) MPFR_DECL_INIT(x, (p))
+#else
+#define MPFR_TMP_VAR(x, p) qore_number_private tmp_x((mpfr_prec_t)p); mpfr_t& x = tmp_x.num
 #endif
 
 // for binary operations on MPFR data
@@ -167,7 +185,7 @@ struct qore_number_private : public qore_number_private_intern {
    }
 
    DLLLOCAL int64 getAsBigInt() const {
-      return mpfr_get_sj(num, QORE_MPFR_RND);
+      return mpfr_get_sj(num, QORE_MPFR_RNDZ);
    }
 
    DLLLOCAL bool getAsBool() const {
@@ -242,7 +260,7 @@ struct qore_number_private : public qore_number_private_intern {
       }
    }
 
-   DLLLOCAL void getAsString(QoreString& str, bool round = true) const;
+   DLLLOCAL void getAsString(QoreString& str, bool round = true, int base = 10) const;
 
    DLLLOCAL void toString(QoreString& str, int fmt = QORE_NF_DEFAULT) const {
       bool raw = !(fmt & QORE_NF_RAW);
@@ -253,32 +271,123 @@ struct qore_number_private : public qore_number_private_intern {
    }
 
    DLLLOCAL int format(QoreString& str, const QoreString& fmt, ExceptionSink* xsink) {
-      getAsString(str, false);
+      getAsString(str);
       return formatNumberString(str, fmt, xsink);
    }
 
-   DLLLOCAL int compare(const qore_number_private& right) const {
-      return mpfr_cmp(num, right.num);
+   DLLLOCAL int format(QoreString& str, int prec, const QoreString& dsep_str, const QoreString& tsep_str, ExceptionSink* xsink) {
+      getAsString(str);
+      return formatNumberString(str, prec, dsep_str, tsep_str, xsink);
    }
 
-   DLLLOCAL int compare(double right) const {
-      return mpfr_cmp_d(num, right);
+   DLLLOCAL bool lessThan(const qore_number_private& right) const {
+      return mpfr_less_p(num, right.num);
    }
 
-   DLLLOCAL int compare(int64 right) const {
-      MPFR_DECL_INIT(r, QORE_DEFAULT_PREC);
+   DLLLOCAL bool lessThan(double right) const {
+      MPFR_TMP_VAR(r, QORE_DEFAULT_PREC);
+      if (mpfr_nan_p(num) || std::isnan(right)) // If any of the "numbers" is NaN.
+         return false;
+      mpfr_set_d(r, right, QORE_MPFR_RND);
+      return mpfr_less_p(num, r);
+   }
+
+   DLLLOCAL bool lessThan(int64 right) const {
+      MPFR_TMP_VAR(r, QORE_DEFAULT_PREC);
+      if (mpfr_nan_p(num)) // If the number is NaN.
+         return false;
       mpfr_set_sj(r, right, QORE_MPFR_RND);
-      return mpfr_cmp(num, r);
+      return mpfr_less_p(num, r);
+   }
+
+   DLLLOCAL bool lessThanOrEqual(const qore_number_private& right) const {
+      return mpfr_lessequal_p(num, right.num);
+   }
+
+   DLLLOCAL bool lessThanOrEqual(double right) const {
+      MPFR_TMP_VAR(r, QORE_DEFAULT_PREC);
+      if (mpfr_nan_p(num) || std::isnan(right)) // If any of the "numbers" is NaN.
+         return false;
+      mpfr_set_d(r, right, QORE_MPFR_RND);
+      return mpfr_lessequal_p(num, r);
+   }
+
+   DLLLOCAL bool lessThanOrEqual(int64 right) const {
+      MPFR_TMP_VAR(r, QORE_DEFAULT_PREC);
+      if (mpfr_nan_p(num)) // If the number is NaN.
+         return false;
+      mpfr_set_sj(r, right, QORE_MPFR_RND);
+      return mpfr_lessequal_p(num, r);
+   }
+
+   DLLLOCAL bool greaterThan(const qore_number_private& right) const {
+      return mpfr_greater_p(num, right.num);
+   }
+
+   DLLLOCAL bool greaterThan(double right) const {
+      MPFR_TMP_VAR(r, QORE_DEFAULT_PREC);
+      if (mpfr_nan_p(num) || std::isnan(right)) // If any of the "numbers" is NaN.
+         return false;
+      mpfr_set_d(r, right, QORE_MPFR_RND);
+      return mpfr_greater_p(num, r);
+   }
+
+   DLLLOCAL bool greaterThan(int64 right) const {
+      MPFR_TMP_VAR(r, QORE_DEFAULT_PREC);
+      if (mpfr_nan_p(num)) // If the number is NaN.
+         return false;
+      mpfr_set_sj(r, right, QORE_MPFR_RND);
+      return mpfr_greater_p(num, r);
+   }
+
+   DLLLOCAL bool greaterThanOrEqual(const qore_number_private& right) const {
+      return mpfr_greaterequal_p(num, right.num);
+   }
+
+   DLLLOCAL bool greaterThanOrEqual(double right) const {
+      MPFR_TMP_VAR(r, QORE_DEFAULT_PREC);
+      if (mpfr_nan_p(num) || std::isnan(right)) // If any of the "numbers" is NaN.
+         return false;
+      mpfr_set_d(r, right, QORE_MPFR_RND);
+      return mpfr_greaterequal_p(num, r);
+   }
+
+   DLLLOCAL bool greaterThanOrEqual(int64 right) const {
+      MPFR_TMP_VAR(r, QORE_DEFAULT_PREC);
+      if (mpfr_nan_p(num)) // If the number is NaN.
+         return false;
+      mpfr_set_sj(r, right, QORE_MPFR_RND);
+      return mpfr_greaterequal_p(num, r);
+   }
+
+   DLLLOCAL bool equals(const qore_number_private& right) const {
+      return mpfr_equal_p(num, right.num);
+   }
+
+   DLLLOCAL bool equals(double right) const {
+      if (mpfr_nan_p(num) || std::isnan(right)) // If any of the "numbers" is NaN.
+         return false;
+      return 0 == mpfr_cmp_d(num, right);
+   }
+
+   DLLLOCAL bool equals(int64 right) const {
+      MPFR_TMP_VAR(r, QORE_DEFAULT_PREC);
+      if (mpfr_nan_p(num)) // If the number is NaN.
+         return false;
+      mpfr_set_sj(r, right, QORE_MPFR_RND);
+      return mpfr_equal_p(num, r);
    }
 
    DLLLOCAL qore_number_private* doBinary(q_mpfr_binary_func_t func, const qore_number_private& r, ExceptionSink* xsink = 0) const {
       mpfr_prec_t prec;
-      if (func == mpfr_mul || func == mpfr_div) {
+      if (func == mpfr_pow) {
+         prec = mpfr_get_prec(num) * QORE_MIN(QORE_MAX_PREC, r.getAsBigInt());
+      } else if (func == mpfr_mul || func == mpfr_div) {
          prec = mpfr_get_prec(num) + mpfr_get_prec(r.num);
       } else {
          prec = QORE_MAX(mpfr_get_prec(num), mpfr_get_prec(r.num)) + 1;
       }
-      std::auto_ptr<qore_number_private> p(new qore_number_private(prec));
+      std::unique_ptr<qore_number_private> p(new qore_number_private(prec));
       func(p->num, num, r.num, QORE_MPFR_RND);
       if (xsink)
          checkFlags(xsink);
@@ -338,51 +447,63 @@ struct qore_number_private : public qore_number_private_intern {
       return p;
    }
 
+    // for round functions: round(), ceil(), floor()
+    DLLLOCAL qore_number_private* doRoundNR(q_mpfr_unary_nr_func_t func, int prec = 0, ExceptionSink* xsink = NULL) const {
+        unique_ptr<qore_number_private> p0(new qore_number_private(*this));
+
+        if (prec == 0) {
+            func(p0 -> num, num);
+
+            if (xsink)
+                checkFlags(xsink);
+
+            return p0.release();
+        }
+
+        qore_number_private* p2;
+
+        if (prec > 0) {
+            unique_ptr<qore_number_private> c(new qore_number_private(pow(10, prec)));
+            unique_ptr<qore_number_private> p1(p0 -> doMultiply(*c));
+            func(p1 -> num, p1 -> num);
+            p2 = p1 -> doDivideBy(*c, xsink);
+        }
+        else {
+            unique_ptr<qore_number_private> c(new qore_number_private(pow(10, -prec)));
+            unique_ptr<qore_number_private> p1(p0 -> doDivideBy(*c, xsink));
+            func(p1 -> num, p1 -> num);
+            p2 = p1 -> doMultiply(*c);
+        }
+
+        if (xsink)
+            checkFlags(xsink);
+
+        return p2;
+    }
+
    DLLLOCAL mpfr_prec_t getPrec() const {
       return mpfr_get_prec(num);
    }
 
    DLLLOCAL void inc() {
-      // some compilers (sun/oracle pro c++ notably) do not support arrays with a variable size
-      // if not, we can't use the stack for the temporary variable and have to use a dynamically-allocated one
-#ifdef HAVE_LOCAL_VARIADIC_ARRAYS
-      MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
+      MPFR_TMP_VAR(tmp, mpfr_get_prec(num));
       mpfr_set(tmp, num, QORE_MPFR_RND);
       mpfr_add_si(num, tmp, 1, QORE_MPFR_RND);
-#else
-      qore_number_private tmp(mpfr_get_prec(num));
-      mpfr_set(tmp.num, num, QORE_MPFR_RND);
-      mpfr_add_si(num, tmp.num, 1, QORE_MPFR_RND);
-#endif
    }
 
    DLLLOCAL void dec() {
-      // some compilers (sun/oracle pro c++ notably) do not support arrays with a variable size
-      // if not, we can't use the stack for the temporary variable and have to use a dynamically-allocated one
-#ifdef HAVE_LOCAL_VARIADIC_ARRAYS
-      MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
+      MPFR_TMP_VAR(tmp, mpfr_get_prec(num));
       mpfr_set(tmp, num, QORE_MPFR_RND);
       mpfr_sub_si(num, tmp, 1, QORE_MPFR_RND);
-#else
-      qore_number_private tmp(mpfr_get_prec(num));
-      mpfr_set(tmp.num, num, QORE_MPFR_RND);
-      mpfr_sub_si(num, tmp.num, 1, QORE_MPFR_RND);
-#endif
    }
 
    DLLLOCAL void doBinaryInplace(q_mpfr_binary_func_t func, const qore_number_private& r, ExceptionSink* xsink = 0) {
       checkPrec(func, r.num);
       // some compilers (sun/oracle pro c++ notably) do not support arrays with a variable size
       // if not, we can't use the stack for the temporary variable and have to use a dynamically-allocated one
-#ifdef HAVE_LOCAL_VARIADIC_ARRAYS
-      MPFR_DECL_INIT(tmp, mpfr_get_prec(num));
+      MPFR_TMP_VAR(tmp, mpfr_get_prec(num));
       mpfr_set(tmp, num, QORE_MPFR_RND);
       func(num, tmp, r.num, QORE_MPFR_RND);
-#else
-      qore_number_private tmp(mpfr_get_prec(num));
-      mpfr_set(tmp.num, num, QORE_MPFR_RND);
-      func(num, tmp.num, r.num, QORE_MPFR_RND);
-#endif
       if (xsink)
          checkFlags(xsink);
    }
@@ -408,8 +529,17 @@ struct qore_number_private : public qore_number_private_intern {
       n.priv->negateInPlace();
    }
 
+   DLLLOCAL static int doRound(QoreString& num, qore_offset_t& dp, int prec);
+
    DLLLOCAL static int formatNumberString(QoreString& num, const QoreString& fmt, ExceptionSink* xsink);
 
+   DLLLOCAL static int formatNumberString(QoreString& num, int prec, const QoreString& dsep_str, const QoreString& tsep_str, ExceptionSink* xsink);
+
+protected:
+   // assumes dsep, tsep and num all have the same encoding
+   DLLLOCAL static int formatNumberStringIntern(QoreString& num, int prec, const QoreString& dsep, const QoreString& tsep, ExceptionSink* xsink);
+
+public:
    DLLLOCAL static void numError(QoreString& str) {
       str.concat("<number error>");
    }
@@ -464,6 +594,11 @@ struct qore_number_private : public qore_number_private_intern {
       return p ? new QoreNumberNode(p) : 0;
    }
 
+   DLLLOCAL static QoreNumberNode* doRoundNR(const QoreNumberNode& n, q_mpfr_unary_nr_func_t func, int prec = 0, ExceptionSink* xsink = 0) {
+      qore_number_private* p = n.priv->doRoundNR(func, prec, xsink);
+      return p ? new QoreNumberNode(p) : 0;
+   }
+
    DLLLOCAL static QoreNumberNode* getNaNumber() {
       return new QoreNumberNode(new qore_number_private("@NaN@"));
    }
@@ -481,6 +616,27 @@ struct qore_number_private : public qore_number_private_intern {
    DLLLOCAL static qore_number_private* get(const QoreNumberNode& n) {
       return n.priv;
    }
+
+    DLLLOCAL static QoreStringNode* toBase(double f, int base, ExceptionSink* xsink) {
+        std::unique_ptr<qore_number_private> n(new qore_number_private(f));
+        return qore_number_private::toBase(n.get(), base, xsink);
+    }
+
+    DLLLOCAL static QoreStringNode* toBase(const QoreNumberNode& n, int base, ExceptionSink* xsink) {
+        return qore_number_private::toBase(n.priv, base, xsink);
+    }
+
+    DLLLOCAL static QoreStringNode* toBase(qore_number_private* n, int base, ExceptionSink* xsink) {
+        if (base < 2 || base > 36) {
+            xsink -> raiseException("INVALID-BASE", "base " QLLD " is invalid; base must be 2 - 36 inclusive", base);
+            return 0;
+        }
+
+        QoreString qs;
+        n -> getAsString(qs, 1, base);
+        qs.toupr();
+        return new QoreStringNode(qs);
+    }
 };
 
 #endif

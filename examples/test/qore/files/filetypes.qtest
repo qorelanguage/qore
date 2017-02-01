@@ -22,13 +22,16 @@ class FiletypesTest inherits QUnit::Test {
 %endif
         string nonExistantPath = "/abcdefgh/XYZ/X987654321/asde7g1b23m6u7e9s2c0h4g5sd6sf";
 
+        # in case /dev/null is a symlink (such as on Solaris)
+        string dev = realpath("/dev/null");
+
         assertEq(True, is_file(get_script_path()), "is_file()");
         assertEq(False, is_file("/"), "is_file() false 1");
         assertEq(False, is_file(nonExistantPath), "is_file() false 2");
         assertEq(False, is_file(""), "is_file() false 3");
 
         assertEq(True, is_executable("/bin/sh"), "is_executable()");
-        assertEq(False, is_executable("/dev/null"), "is_executable() false 1");
+        assertEq(False, is_executable(dev), "is_executable() false 1");
         assertEq(False, is_executable(nonExistantPath), "is_executable() false 2");
         assertEq(False, is_executable(""), "is_executable() false 3");
 
@@ -44,17 +47,17 @@ class FiletypesTest inherits QUnit::Test {
         assertEq(False, is_readable(nonExistantPath), "is_readable() false 1");
         assertEq(False, is_readable(""), "is_readable() false 2");
 
-        assertEq(True, is_dev("/dev/null"), "is_dev()");
+        assertEq(True, is_dev(dev), "is_dev()");
         assertEq(False, is_dev("/"), "is_dev() false 1");
         assertEq(False, is_dev(nonExistantPath), "is_dev() false 2");
         assertEq(False, is_dev(""), "is_dev() false 3");
 
-        assertEq(True, is_cdev("/dev/null"), "is_cdev()");
+        assertEq(True, is_cdev(dev), "is_cdev()");
         assertEq(False, is_cdev("/"), "is_cdev() false 1");
         assertEq(False, is_cdev(nonExistantPath), "is_cdev() false 2");
         assertEq(False, is_cdev(""), "is_cdev() false 3");
 
-        assertEq(False, is_bdev("/dev/null"), "is_bdev() 1");
+        assertEq(False, is_bdev(dev), "is_bdev() 1");
         assertEq(False, is_bdev(nonExistantPath), "is_bdev() 2");
         assertEq(False, is_bdev(""), "is_bdev() 3");
 

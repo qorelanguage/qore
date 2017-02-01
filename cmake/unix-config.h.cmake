@@ -13,7 +13,6 @@
 #cmakedefine HAVE_SYS_SOCKET_H
 #cmakedefine HAVE_SYS_TIME_H
 #cmakedefine HAVE_UNISTD_H
-#cmakedefine HAVE_EXECINFO_H
 #cmakedefine HAVE_CXXABI_H
 #cmakedefine HAVE_ARPA_INET_H
 #cmakedefine HAVE_SYS_SOCKET_H
@@ -28,6 +27,8 @@
 #cmakedefine HAVE_SYS_WAIT_H
 #cmakedefine HAVE_GETOPT_H
 #cmakedefine HAVE_STDINT_H
+#cmakedefine HAVE_SYS_SELECT_H
+#cmakedefine HAVE_POLL_H
 #cmakedefine HAVE_GRP_H
 #cmakedefine HAVE_UMEM_H
 
@@ -73,7 +74,6 @@
 #cmakedefine HAVE_GETPWNAM_R
 #cmakedefine HAVE_GETGRGID_R
 #cmakedefine HAVE_GETGRNAM_R
-#cmakedefine HAVE_BACKTRACE
 #cmakedefine HAVE_GLOB
 #cmakedefine HAVE_SYSTEM
 #cmakedefine HAVE_INET_NTOP
@@ -130,6 +130,13 @@
 #cmakedefine HAVE_MPFR_EXP_T
 #cmakedefine HAVE_RNDN
 
+/* backtrace */
+#cmakedefine Backtrace_FOUND
+#ifdef Backtrace_FOUND
+#define HAVE_EXECINFO_H
+#define HAVE_BACKTRACE
+#endif
+
 /* gethost* */
 #cmakedefine HAVE_SOLARIS_STYLE_GETHOST
 #cmakedefine HAVE_GETHOSTBYNAME_R_GLIBC2_STYLE
@@ -162,6 +169,7 @@
 #cmakedefine HAVE_STRUCT_FLOCK
 #cmakedefine HAVE_GCC_VISIBILITY
 #cmakedefine HAVE_SIGNAL_HANDLING
+#cmakedefine QORE_RUNTIME_THREAD_STACK_TRACE
 
 #cmakedefine ZONEINFO_LOCATION "@ZONEINFO_LOCATION@"
 

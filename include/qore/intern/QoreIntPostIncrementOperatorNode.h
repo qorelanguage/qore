@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -36,7 +36,7 @@ class QoreIntPostIncrementOperatorNode : public QoreSingleExpressionOperatorNode
 OP_COMMON
 protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
-   
+
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return bigIntTypeInfo;
    }
@@ -50,7 +50,14 @@ protected:
 public:
    DLLLOCAL QoreIntPostIncrementOperatorNode(AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(n_exp) {
    }
+
+   DLLLOCAL virtual bool hasEffect() const {
+      return true;
+   }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      return copyBackgroundExplicit<QoreIntPostIncrementOperatorNode>(xsink);
+   }
 };
 
 #endif
-

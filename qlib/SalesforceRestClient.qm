@@ -1,0 +1,1069 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file SalesforceRestClient.qm Qore user module for calling Salesforce.com REST services
+
+/*  SalesforceRestClient.qm Copyright (C) 2016 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# this module requires Qore 0.8.12 or better
+%requires qore >= 0.8.12
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+
+# don't use "$" for vars, members, and methods, assume local variable scope
+%new-style
+
+# do not ignore argument errors
+%strict-args
+
+%requires(reexport) Mime >= 1.3
+%requires(reexport) RestClient >= 1.3.1
+%requires(reexport) ConnectionProvider >= 1.0
+
+module SalesforceRestClient {
+    version = "1.1";
+    desc = "user module for calling Salesforce.com REST services";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+/** @mainpage SalesforceRestClient Module
+
+    @tableofcontents
+
+    @section salesforcerestclientintro SalesforceRestClient Introduction
+
+    The %SalesforceRestClient module provides an API for calling REST services with Salesforce.com.
+
+    To use this module, use \c "%requires SalesforceRestClient" in your code.
+
+    All the public symbols in the module are defined in the SalesforceRestClient namespace.
+
+    The main classes are:
+    - @ref SalesforceRestClient::SalesforceRestClient "SalesforceRestClient": this class provides the REST client API for communuication with Salesforce.com; it also automates authentication and authorization to the target Connected App
+    - @ref SalesforceRestClient::SalesforceRestConnection "SalesforceRestConnection": provides a REST connection object to a Salesforce.com server (based on the @ref connectionproviderintro "ConnectionProvider" module)
+
+    @par Example:
+    @code{.py}
+#!/usr/bin/env qore
+
+%new-style
+%strict-args
+%require-types
+%enable-all-warnings
+
+%requires SalesforceRestClient
+
+hash opts = (
+    "client_id": ENV.SALESFORCE_CONSUMER_KEY,
+    "client_secret": ENV.SALESFORCE_CONSUMER_SECRET,
+    "username": ENV.SALESFORCE_USER,
+    "password": ENV.SALESFORCE_PASS,
+);
+
+SalesforceRestClient rest(opts);
+hash ans = rest.get("sobjects");
+printf("%N\n", ans.body);
+    @endcode
+
+    The composite API can be used to work with multiple objects at once as in the following example:
+
+    @par Example:
+    @code{.py}
+list sub create_accounts(list account_list) {
+    # get list of account numbers for return value
+    list account_numbers = map $1.AccountNumber, account_list;
+
+    # add reference IDs for composite REST call
+    account_list = map $1 + ("attributes": ("type": "Account", "referenceId": $#.toString())), account_list;
+
+    # create accounts
+    hash info;
+    on_error printf("ERROR info: %N", info);
+    # maximum 200 accounts can be created; if any errors occur, an exception is thrown
+    rc.post("composite/tree/Account", ("records": account_list), \info);
+
+    log(LL_INFO, "created accounts: %y", account_numbers);
+    return account_numbers;
+}
+    @endcode
+
+    Requests can also be made with the Salesforce.com Bulk REST API; the following example shows how a list of accounts can be deleted:
+    @par Example:
+    @code{.py}
+#!/usr/bin/env qore
+
+%new-style
+%strict-args
+%require-types
+%enable-all-warnings
+
+%requires SalesforceRestClient
+%requires json
+
+hash opts = (
+    "client_id": ENV.SALESFORCE_CONSUMER_KEY,
+    "client_secret": ENV.SALESFORCE_CONSUMER_SECRET,
+    "username": ENV.SALESFORCE_USER,
+    "password": ENV.SALESFORCE_PASS,
+);
+
+SalesforceRestClient rest(opts);
+
+# get list of Account IDs to delete with the REST API with an SOQL query
+list al = map ("Id": $1.Id), rc.get("query?q=select Id, Name from Account where Name like 'Account %%'").body.records;
+# create job with the Bulk REST API
+hash h = rc.bulkJobCreate(BulkJobDelete, "Account", BulkJobJson).jobInfo;
+printf("created job %y\n", h.id);
+# create JSON data
+string data = make_json(al);
+# add batch to job with the Bulk REST API
+rc.bulkJobAddBatch(h.id, data, BulkJobJson, \info);
+# close job with the Bulk REST API
+rc.bulkJobClose(h.id);
+    @endcode
+
+    @see \c "sfrest" in the bin directory for a user-friendly command-line interface to Salesforce.com REST API
+    functionality and a more detailed example of code using this module.
+
+    @section salesforcerestclientrelnotes Release Notes
+
+    @subsection salesforcerestclientv1_0 SalesforceRestClient v1.1
+    - added the @ref SalesforceRestClient::SalesforceRestConnection "SalesforceRestConnection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
+
+    @subsection salesforcerestclientv1_0 SalesforceRestClient v1.0
+    - the initial version of the %SalesforceRestClient module
+*/
+
+#! the SalesforceRestClient namespace contains all the objects in the SalesforceRestClient module
+public namespace SalesforceRestClient {
+    /** @defgroup bulkjob_operations Salesforce.com Bulk REST API Job Operations
+     */
+    #@{
+    #! Salesforce.com bulk job "query" operation
+    public const BulkJobQuery = "query";
+
+    #! Salesforce.com bulk job "insert" operation
+    public const BulkJobInsert = "insert";
+
+    #! Salesforce.com bulk job "update" operation
+    public const BulkJobUpdate = "update";
+
+    #! Salesforce.com bulk job "upsert" operation
+    public const BulkJobUpsert = "upsert";
+
+    #! Salesforce.com bulk job "delete" operation
+    public const BulkJobDelete = "delete";
+    #@}
+
+    #! a hash of Salesforce.com bulk job operations; keys are @ref bulkjob_operations
+    /** valid operations are:
+        - @ref BulkJobQuery (\c "query")
+        - @ref BulkJobInsert (\c "insert")
+        - @ref BulkJobUpdate (\c "update")
+        - @ref BulkJobUpsert (\c "upsert")
+        - @ref BulkJobDelete (\c "delete")
+     */
+    public const BulkJobOperations = (
+        BulkJobQuery: True,
+        BulkJobInsert: True,
+        BulkJobUpdate: True,
+        BulkJobUpsert: True,
+        BulkJobDelete: True,
+        );
+
+    /** @defgroup bulkjob_contenttypes Salesforce.com Bulk REST API Job Content Types
+     */
+    #@{
+    #! Salesforce.com bulk job "CSV" content type
+    public const BulkJobCsv = "CSV";
+
+    #! Salesforce.com bulk job "JSON" content type
+    public const BulkJobJson = "JSON";
+
+    #! Salesforce.com bulk job "XML" content type
+    public const BulkJobXml = "XML";
+
+    #! Salesforce.com bulk job "ZIP_CSV" content type
+    public const BulkJobZipCsv = "ZIP_CSV";
+
+    #! Salesforce.com bulk job "ZIP_CSV" content type
+    public const BulkJobZipJson = "ZIP_JSON";
+
+    #! Salesforce.com bulk job "ZIP_CSV" content type
+    public const BulkJobZipXml = "ZIP_XML";
+    #@}
+
+    #! a hash of Salesforce.com bulk job content types; keys are @ref bulkjob_contenttypes; values are Mime \c Content-Type strings
+    /** valid content types are:
+        - \c BulkJobCsv (\c "CSV")
+        - \c BulkJobJson (\c "JSON")
+        - \c BulkJobXml (\c "XML")
+        - \c BulkJobZipCsv (\c "ZIP_CSV")
+        - \c BulkJobZipJson (\c "ZIP_JSON")
+        - \c BulkJobZipXml (\c "ZIP_XML")
+     */
+    public const BulkJobContentTypes = (
+        BulkJobCsv: MimeTypeCsv,
+        BulkJobJson: MimeTypeJson,
+        BulkJobXml: MimeTypeXmlApp,
+        BulkJobZipCsv: "zip/csv",
+        BulkJobZipJson: "zip/json",
+        BulkJobZipXml: "zip/xml",
+        );
+
+    #! this class provides the REST client API for communication with Salesforce.com
+    /** This class requires the following options for Salesforce.com authentication and authorization to the target Connected App:
+        - \c client_id: the Salesforce.com "consumer key"
+        - \c client_secret: the Salesforce.com "consumer secret"
+        - \c username: the Salesforce.com account username
+        - \c password: the Salesforce.com account password
+
+        The following options can be overridden; default values are provided as follows:
+        - \c api: default value \c "auto" for the Salesforce.com REST API version; \c "auto" means use the latest version available
+        - \c oauth_url_auth: default value \c "https://login.salesforce.com/services/oauth2/authorize" (not currently used)
+        - \c oauth_url_token: default value \c "https://login.salesforce.com/services/oauth2/token" (used for logging in to Salesforce.com)
+        - \c oauth_url_revoke: default value \c "https://login.salesforce.com/services/oauth2/revoke"
+
+        This class also automatically adds support for the \c "PATCH" HTTP method used by Salesforce.com for updates to existing objects,
+        as well as the @ref SalesforceRestClient::SalesforceRestClient::patch() "SalesforceRestClient::patch()" method
+
+        The @ref SalesforceRestClient::SalesforceRestClient::doRequest() "SalesforceRestClient::patchdoRequest()" method is overridden in
+        this class to provide transparent authentication and authorization to Salesforce.com.  With every REST request, if no token has
+        been acquired, first a login token will be acquired, the internal URL set to the target URL provided by the token call, and then
+        the requested REST call will be made.
+
+        When logging in to Salesforce.com (see @ref SalesforceRestClient::SalesforceRestClient::login() "SalesforceRestClient::login()"),
+        the \c Authorization header is set by default to be included with any future calls made through this object (or with
+        @ref RestClient::RestClient "RestClient" methods in the parent class).
+
+        When sending headers to Salesforce.com, any headers with date values are converted to GMT format; for example, the
+        \c "If-Modified-Since" and \c "If-Unmodified-Since" headers can be set to date/time values, and this object will
+        convert them to date strings in GMT format; ex:
+        @code{.py}
+SalesforceRestClient rest(opts);
+hash ans = rest.get("sobjects", NOTHING, NOTHING, ("If-Modified-Since": 2016-11-25));
+        @endcode
+
+        In a request sent from the call above in the \c Europe/Prague time zone, the \c "If-Modified-Since" header would be sent as:
+        @verbatim
+If-Modified-Since: Thu, 24 Nov 2016 23:00:00 GMT
+        @endverbatim
+
+        The following methods support communication with the Salesforce.com Bulk REST API:
+        - @ref bulkRequest()
+        - @ref bulkGet()
+        - @ref bulkPost()
+        - @ref bulkJobCreate()
+        - @ref bulkJobAddBatch()
+        - @ref bulkJobClose()
+     */
+    public class SalesforceRestClient inherits RestClient::RestClient {
+        public {
+            #! defaults for direct member values
+            const Defaults = (
+                "oauth_url_auth": "https://login.salesforce.com/services/oauth2/authorize",
+                "oauth_url_token": "https://login.salesforce.com/services/oauth2/token",
+                "oauth_url_revoke": "https://login.salesforce.com/services/oauth2/revoke",
+                "api": "auto",
+                );
+
+            #! default send encoding
+            const DefaultSendEncoding = "gzip";
+
+            #! required options
+            const RequiredOptions = (
+                # the Salesforce.com "consumer key"
+                "client_id",
+                # the Salesforce.com "consumer secret"
+                "client_secret",
+                # the Salesforce.com username
+                "username",
+                # the Salesforce.com password
+                "password",
+                );
+
+            #! Salesforce.com async dataload namespace
+            const AsyncDataloadNs = "http://www.force.com/2009/06/asyncapi/dataload";
+
+            #! Salesforce.com XML jobInfo attributes
+            const JobInfoAttributes = (
+                "^attributes^": (
+                    "xmlns": AsyncDataloadNs,
+                ),
+                );
+        }
+
+        private {
+            #! Salesforce.com OAuth2 Authorization URL
+            string oauth_url_auth;
+
+            #! Salesforce.com OAuth2 Get Token URL
+            string oauth_url_token;
+
+            #! Salesforce.com OAuth2 Revoke Token URL
+            string oauth_url_revoke;
+
+            #! Mutex for token acquisition
+            Mutex m();
+
+            #! Salesforce.com token
+            string token;
+
+            #! Salesforce.com "consumer key"
+            string client_id;
+
+            #! Salesforce.com "consumer secret"
+            string client_secret;
+
+            #! Salesforce.com username
+            string username;
+
+            #! Salesforce.com password
+            string password;
+
+            #! Salesforce.com REST API version to be used (\c "auto" = latest version)
+            string api;
+
+            #! Salesforce.com REST API version currently in use
+            string api_used;
+
+            #! hash of APIs retrieved from GET /services/data; keyed by API version string; values: \c "label", \c "url"
+            hash api_hash;
+        }
+
+        #! creates the object with the given options (which include the following mandatory options for Salesforce.com authentication: \c client_id, \c client_secret, \c username, \c password)
+        /**
+            @par Example:
+            @code{.py}
+SalesforceRestClient rest(("url": "http://localhost:8001/rest"));
+            @endcode
+
+            @param opts valid options are:
+            - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref Qore::True "True" or @ref Qore::False "False": indicating if the method requires a message body as well. Example:
+                @code{.py}
+# add new HTTP methods for WebDAV. Both of them require body posting to the server
+("additional_methods": ("PROPFIND": True, "MKCOL": True ));
+                @endcode
+            - \c api: the Salesforce.com API to use; use \c "auto" (the default) to use the latest API version
+            - \c client_id: (required) the Salesforce.com "consumer key" for the Connected App
+            - \c client_secret: (required) the Salesforce.com "consumer secret" for the Connected App
+            - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a relative date-time value for clarity, ex: \c 20s)
+            - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size); additionally please note that Salesforce.com does not support \c "bzip2" compression
+            - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "json"
+            - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
+            - \c default_port: The default port number to connect to if none is given in the URL
+            - \c headers: an optional hash of headers to send with every request, these can also be overridden in request method calls
+            - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing message headers
+            - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
+            - \c password: (required) the Salesforce.com account password for the Connected App
+            - \c proxy: The proxy URL for connecting through a proxy
+            - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to \c "gzip" content encoding on sent message bodies (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size); additionally please note that Salesforce.com does not support \c "bzip2" compression
+            - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 30s)
+            - \c username: (required) the Salesforce.com account username for the Connected App
+            @param do_not_connect if \c False (the default), then a connection will be immediately established to the remote server and a token will be received
+
+            @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
+            @throw SALESFORCERESTCLIENT-ERROR missing or invalid required option for Salesforce.com REST authentication or communication
+        */
+        constructor(*hash opts, *softbool do_not_connect) : RestClient(SalesforceRestClient::getOptions(opts), True) {
+            # set options
+            setSendEncoding(opts.send_encoding ?? DefaultSendEncoding);
+            map self.$1 = opts.$1 ?? Defaults.$1, Defaults.keyIterator();
+
+            # check required options
+            foreach string key in (RequiredOptions) {
+                any v = opts{key};
+                if (!exists v || v == "")
+                    throw "SALESFORCERESTCLIENT-ERROR", sprintf("missing required option %y in option argument", key);
+                if (v.typeCode() != NT_STRING)
+                    throw "SALESFORCERESTCLIENT-ERROR", sprintf("required option %y was passed as a %s (%y); expecting \"string\"", key, v.type(), v);
+
+                self{key} = v;
+            }
+
+            if (!do_not_connect)
+                loginIntern();
+        }
+
+        #! sends an HTTP \c PATCH request to the Salesforce.com REST server and returns the response; performs an implicit login to Salesforce.com if necessary
+        /** @par Example:
+            @code{.py}
+hash ans = rest.patch("/orders/1", ("action": "cancel"));
+            @endcode
+
+            @param path the URI path to add (will be appended to any root path given in the constructor)
+            @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
+            @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request; if present the hash will contain the following keys:
+            - \c headers: a hash of outgoing HTTP request headers
+            - \c request-uri: the request URI string sent (ex: \c "PATCH /services/async/38.0/job HTTP/1.1")
+            - \c body-content-type: the outgoing message body Mime \c Content-Type value
+            - \c response-headers: a hash of incoming HTTP headers in the response
+            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c response-code: the HTTP response code
+            - \c response-body: the raw message body in the response (after any content decoding)
+            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
+            - \c request-body: the raw message body in the request (before any content encoding)
+            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values
+            @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
+
+            @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be deserialized to %Qore data and assigned to the value of the \c "body" key
+
+            @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid serialization)
+            @throw HTTP-CLIENT-RECEIVE-ERROR if this exception is thrown by the @ref Qore::HTTPClient::send() call in case of an HTTP response code < 100 or >= 300, the message body is still deserialized if possible and the response information can be retrieved in the \a info hash output keys as follows:
+            - \c "response-code": the HTTP response code given
+            - \c "response-headers": a hash of response headers
+            - \c "response-body": the decoded response body
+
+            Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
+
+            @see
+            - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
+            - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+        */
+        hash patch(string path, any body, *reference info, *hash hdr) {
+            return doRequest("PATCH", path, body, \info, NOTHING, hdr);
+        }
+
+        #! sends an HTTP request to the REST server and returns the response; performs an implicit login to Salesforce.com if necessary
+        /** @par Example:
+            @code{.py}
+hash ans = rest.doRequest("GET", "sobjects");
+            @endcode
+
+            @param m the HTTP method to be used; case is ignored (if not a valid method an \c HTTP-CLIENT-METHOD-ERROR exception is raised)
+            @param path the URI path to add (will be appended to any root path given in the constructor)
+            @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
+            @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request; if present the hash will contain the following keys:
+            - \c headers: a hash of outgoing HTTP request headers
+            - \c request-uri: the request URI string sent (ex: \c "POST /services/async/38.0/job HTTP/1.1")
+            - \c body-content-type: the outgoing message body Mime \c Content-Type value
+            - \c response-headers: a hash of incoming HTTP headers in the response
+            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c response-code: the HTTP response code
+            - \c response-body: the raw message body in the response (after any content decoding)
+            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
+            - \c request-body: the raw message body in the request (before any content encoding)
+            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values
+            @param decode_errors decode the message body with HTTP error responses and throw an exception based on the message body
+            @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
+
+            @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be deserialized to %Qore data and assigned to the value of the \c "body" key
+
+            @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid serialization)
+            @throw HTTP-CLIENT-METHOD-ERROR invalid HTTP method argument passed
+            @throw HTTP-CLIENT-RECEIVE-ERROR if this exception is thrown by the @ref Qore::HTTPClient::send() call in case of an HTTP response code < 100 or >= 300, the message body is still deserialized if possible and the response information can be retrieved in the \a info hash output keys as follows:
+            - \c "response-code": the HTTP response code given
+            - \c "response-headers": a hash of response headers
+            - \c "response-body": the decoded response body
+
+            Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
+
+            @see
+            - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
+            - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+         */
+        hash doRequest(string m, string path, any body, *reference info, softbool decode_errors = True, *hash hdr) {
+            # convert any dates in headers to GMT format
+            map hdr.($1.key) = getGmtDate($1.value), hdr.pairIterator(), $1.value.typeCode() == NT_DATE;
+
+            AutoLock al(self.m);
+
+            if (!token)
+                loginIntern(\info);
+            return RestClient::doRequest(m, path, body, \info, decode_errors, hdr);
+        }
+
+        #! sends a Bulk API REST request to the Salesforce.com server using \c "rawxml" serialization and returns the response; performs an implicit login to Salesforce.com if necessary
+        /** @par Example:
+            @code{.py}
+hash ans = rest.doBulkRequest("POST", "job", job);
+            @endcode
+
+            @param m the HTTP method to be used; case is ignored (if not a valid method an \c HTTP-CLIENT-METHOD-ERROR exception is raised)
+            @param path the URI path to add (will be appended to any root path given in the constructor)
+            @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
+            @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request; if present the hash will contain the following keys:
+            - \c headers: a hash of outgoing HTTP request headers
+            - \c request-uri: the request URI string sent (ex: \c "POST /services/async/38.0/job HTTP/1.1")
+            - \c body-content-type: the outgoing message body Mime \c Content-Type value
+            - \c response-headers: a hash of incoming HTTP headers in the response
+            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c response-code: the HTTP response code
+            - \c response-body: the raw message body in the response (after any content decoding)
+            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
+            - \c request-body: the raw message body in the request (before any content encoding)
+            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values
+            @param decode_errors decode the message body with HTTP error responses and throw an exception based on the message body
+            @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
+
+            @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be deserialized to %Qore data and assigned to the value of the \c "body" key
+
+            @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid serialization)
+            @throw HTTP-CLIENT-METHOD-ERROR invalid HTTP method argument passed
+            @throw HTTP-CLIENT-RECEIVE-ERROR if this exception is thrown by the @ref Qore::HTTPClient::send() call in case of an HTTP response code < 100 or >= 300, the message body is still deserialized if possible and the response information can be retrieved in the \a info hash output keys as follows:
+            - \c "response-code": the HTTP response code given
+            - \c "response-headers": a hash of response headers
+            - \c "response-body": the decoded response body
+
+            Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
+
+            @note authentication and authorization is done transparently as with the standard OAuth2 mechanism used with the non-bulk REST API
+
+            @see
+            - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
+            - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+         */
+        hash doBulkRequest(string m, string path, any body, *reference info, softbool decode_errors = True, *hash hdr) {
+            # convert any dates in headers to GMT format
+            map hdr.($1.key) = getGmtDate($1.value), hdr.pairIterator(), $1.value.typeCode() == NT_DATE;
+
+            AutoLock al(self.m);
+
+            if (!token)
+                loginIntern(\info);
+
+            # restore the old serialization option on exit
+            string old_ds = ds;
+            on_exit
+                setSerialization(old_ds);
+
+            # set "rawxml" serialization
+            setSerialization("rawxml");
+
+            # restore old URL on exit
+            string old_url = getURL();
+            on_exit
+                setURL(old_url);
+
+            # create the async URL
+            string url = old_url;
+            url =~ s/data/async/;
+            url =~ s/\/v([0-9])/\/$1/;
+            setURL(url);
+
+            # setup the headers for bulk REST
+            hdr += (
+                "X-SFDC-Session": token,
+                "Authorization": "",
+            );
+
+            return RestClient::doRequest(m, path, body, \info, decode_errors, hdr);
+        }
+
+        #! sends an HTTP \c GET request to the REST server using the Salesforce.com Bulk REST API and returns the response
+        /** @par Example:
+            @code{.py}
+hash ans = rest.bulkGet("/orders/1?info=verbose");
+            @endcode
+
+            @param path the URI path to add (will be appended to any root path given in the constructor)
+            @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
+            @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request; if present the hash will contain the following keys:
+            - \c headers: a hash of outgoing HTTP request headers
+            - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
+            - \c body-content-type: the outgoing message body Mime \c Content-Type value
+            - \c response-headers: a hash of incoming HTTP headers in the response
+            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c response-code: the HTTP response code
+            - \c response-body: the raw message body in the response (after any content decoding)
+            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
+            - \c request-body: the raw message body in the request (before any content encoding)
+            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values
+            @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
+
+            @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be deserialized to %Qore data and assigned to the value of the \c "body" key
+
+            @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid serialization)
+            @throw HTTP-CLIENT-RECEIVE-ERROR if this exception is thrown by the @ref Qore::HTTPClient::send() call in case of an HTTP response code < 100 or >= 300, the message body is still deserialized if possible and the response information can be retrieved in the \a info hash output keys as follows:
+            - \c "response-code": the HTTP response code given
+            - \c "response-headers": a hash of response headers
+            - \c "response-body": the decoded response body
+
+            Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
+
+            @note authentication and authorization is done transparently as with the standard OAuth2 mechanism used with the non-bulk REST API
+
+            @see
+            - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
+            - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+         */
+        hash bulkGet(string path, any body, *reference info, *hash hdr) {
+            return doBulkRequest("GET", path, body, \info, NOTHING, hdr);
+        }
+
+        #! sends an HTTP \c POST request to the REST server using the Salesforce.com Bulk REST API and returns the response
+        /** @par Example:
+            @code{.py}
+hash ans = rest.bulkPost("/orders", ("product": "xyz123", "options": 500));
+            @endcode
+
+            @param path the URI path to add (will be appended to any root path given in the constructor)
+            @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
+            @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request; if present the hash will contain the following keys:
+            - \c headers: a hash of outgoing HTTP request headers
+            - \c request-uri: the request URI string sent (ex: \c "POST /services/async/38.0/job HTTP/1.1")
+            - \c body-content-type: the outgoing message body Mime \c Content-Type value
+            - \c response-headers: a hash of incoming HTTP headers in the response
+            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c response-code: the HTTP response code
+            - \c response-body: the raw message body in the response (after any content decoding)
+            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
+            - \c request-body: the raw message body in the request (before any content encoding)
+            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values
+            @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
+
+            @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be deserialized to %Qore data and assigned to the value of the \c "body" key
+
+            @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid serialization)
+            @throw HTTP-CLIENT-RECEIVE-ERROR if this exception is thrown by the @ref Qore::HTTPClient::send() call in case of an HTTP response code < 100 or >= 300, the message body is still deserialized if possible and the response information can be retrieved in the \a info hash output keys as follows:
+            - \c "response-code": the HTTP response code given
+            - \c "response-headers": a hash of response headers
+            - \c "response-body": the decoded response body
+
+            Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
+
+            @note authentication and authorization is done transparently as with the standard OAuth2 mechanism used with the non-bulk REST API
+
+            @see
+            - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
+            - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+         */
+        hash bulkPost(string path, any body, *reference info, *hash hdr) {
+            return doBulkRequest("POST", path, body, \info, NOTHING, hdr);
+        }
+
+        #! creates a Salesforce.com batch job and returns the job information as a hash
+        /** @par Example
+            @code{.py}
+hash h = sfrest.bulkJobCreate(BulkJobInsert, "Account", BulkJobJson);
+printf("job ID created: %y\n", h.jobInfo.id);
+            @endcode
+
+            @param operation the operation to create; see @ref bulkjob_operations for valid values
+            @param object the API object to operate on
+            @param job_content_type the content type of the job; see @ref bulkjob_contenttypes for valid values
+            @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request; if present the hash will contain the following keys:
+            - \c headers: a hash of outgoing HTTP request headers
+            - \c request-uri: the request URI string sent (ex: \c "POST /services/async/38.0/job HTTP/1.1")
+            - \c body-content-type: the outgoing message body Mime \c Content-Type value
+            - \c response-headers: a hash of incoming HTTP headers in the response
+            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c response-code: the HTTP response code
+            - \c response-body: the raw message body in the response (after any content decoding)
+            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
+            - \c request-body: the raw message body in the request (before any content encoding)
+            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values
+            @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
+
+            @return the deserialized message body returned by Salesforce.com
+
+            @throw INVALID-OPERATION invalid operation passed; see @ref BulkJobContentTypes for valid values
+            @throw INVALID-CONTENT-TYPE invalid job content type passed; see @ref BulkJobContentTypes for valid values
+
+            @note authentication and authorization is done transparently as with the standard OAuth2 mechanism used with the non-bulk REST API
+         */
+        hash bulkJobCreate(string operation, string object, string job_content_type, *reference info, *hash hdr) {
+            if (!BulkJobOperations{operation})
+                throw "INVALID-OPERATION", sprintf("invalid Salesforce.com Bulk REST API job operation %y; known operations: %y", operation, BulkJobOperations.keys());
+            if (!BulkJobContentTypes{job_content_type})
+                throw "INVALID-OPERATION", sprintf("invalid Salesforce.com Bulk REST API job content type %y; known content types: %y", job_content_type, BulkJobContentTypes.keys());
+
+            hash h = (
+                "jobInfo": (
+                    JobInfoAttributes + (
+                        "operation": operation,
+                        "object": object,
+                        "contentType": job_content_type,
+                    ),
+                ),
+            );
+
+            return doBulkRequest("POST", "job", h, \info, NOTHING, hdr).body;
+        }
+
+        #! add a batch to a job using the Bulk REST API
+        /** @par Example:
+            @code{.py}
+hash jh = sfrest.bulkJobCreate(BulkJobInsert, "Account", BulkJobCsv).jobInfo;
+printf("job ID created: %y\n", jh.id);
+hash h = sfrest.bulkJobAddBatch(jh.id, csv_string, BulkJobCsv).body;
+printf("batch ID: %y batch state: %y\n", h.id, h.state);
+            @endcode
+
+            @param jobid the job ID to add the batch to
+            @param batch_data the data for the job; this data is not serialized but rather sent as-is using the MIME \c Content-Type associated with the job content type value
+            @param job_content_type the content type of the job; see @ref bulkjob_contenttypes for valid values
+            @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request; if present the hash will contain the following keys:
+            - \c headers: a hash of outgoing HTTP request headers
+            - \c request-uri: the request URI string sent (ex: \c "POST /services/async/38.0/job HTTP/1.1")
+            - \c body-content-type: the outgoing message body Mime \c Content-Type value
+            - \c response-headers: a hash of incoming HTTP headers in the response
+            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c response-code: the HTTP response code
+            - \c response-body: the raw message body in the response (after any content decoding)
+            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
+            - \c request-body: the raw message body in the request (before any content encoding)
+            @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
+
+            @return the deserialized message body returned by Salesforce.com
+
+            @throw INVALID-CONTENT-TYPE invalid job content type passed; see @ref BulkJobContentTypes for valid values
+
+            @note authentication and authorization is done transparently as with the standard OAuth2 mechanism used with the non-bulk REST API
+         */
+        hash bulkJobAddBatch(string jobid, data batch_data, string job_content_type, *reference info, *hash hdr) {
+            *string ct = BulkJobContentTypes{job_content_type};
+            if (!ct)
+                throw "INVALID-OPERATION", sprintf("invalid Salesforce.com Bulk REST API job content type %y; known content types: %y", job_content_type, BulkJobContentTypes.keys());
+
+            # convert any dates in headers to GMT format
+            map hdr.($1.key) = getGmtDate($1.value), hdr.pairIterator(), $1.value.typeCode() == NT_DATE;
+
+            AutoLock al(m);
+
+            if (!token)
+                loginIntern(\info);
+
+            # restore old URL on exit
+            string old_url = getURL();
+            on_exit
+                setURL(old_url);
+
+            # create the async URL
+            string url = old_url;
+            url =~ s/data/async/;
+            url =~ s/\/v([0-9])/\/$1/;
+            setURL(url);
+
+            # setup the headers for bulk REST
+            hdr += (
+                "X-SFDC-Session": token,
+                "Authorization": "",
+            );
+
+            hdr = headers + hdr + (
+                "Content-Type": ct,
+            );
+
+            on_exit {
+                info += (
+                    "request-body": batch_data,
+                    );
+            }
+
+            # prepare path
+            string path = sprintf("job/" + jobid + "/batch");
+            preparePath(\path);
+
+            return sendAndDecodeResponse(batch_data, "POST", path, hdr, \info, True);
+        }
+
+        #! sends a Bulk REST API job close \c POST request to the server and returns the deserialized result message body
+        /** @par Example:
+            @code{.py}
+sfrest.bulkJobClose(jh.id);
+            @endcode
+
+            @param jobid the job ID to close
+            @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request; if present the hash will contain the following keys:
+            - \c headers: a hash of outgoing HTTP request headers
+            - \c request-uri: the request URI string sent (ex: \c "POST /services/async/38.0/job HTTP/1.1")
+            - \c body-content-type: the outgoing message body Mime \c Content-Type value
+            - \c response-headers: a hash of incoming HTTP headers in the response
+            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c response-code: the HTTP response code
+            - \c response-body: the raw message body in the response (after any content decoding)
+            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
+            - \c request-body: the raw message body in the request (before any content encoding)
+            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values
+            @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
+
+            @return the deserialized message body returned by Salesforce.com
+
+            @note authentication and authorization is done transparently as with the standard OAuth2 mechanism used with the non-bulk REST API
+         */
+        hash bulkJobClose(string jobid, *reference info, *hash hdr) {
+            hash h = (
+                "jobInfo": (
+                    JobInfoAttributes + (
+                        "state": "Closed",
+                    ),
+                ),
+            );
+
+            return doBulkRequest("POST", "job/" + jobid, h, \info, NOTHING, hdr).body;
+        }
+
+        #! logs in to Salesforce.com with the credentials provided in the constructor()
+        /** @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request; if present the hash will contain the following keys:
+            - \c headers: a hash of outgoing HTTP request headers
+            - \c request-uri: the request URI string sent (ex: \c "POST /services/async/38.0/job HTTP/1.1")
+            - \c body-content-type: the outgoing message body Mime \c Content-Type value
+            - \c response-headers: a hash of incoming HTTP headers in the response
+            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c response-code: the HTTP response code
+            - \c response-body: the raw message body in the response (after any content decoding)
+            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
+            - \c request-body: the raw message body in the request (before any content encoding)
+            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values
+
+            @note this call is made implicitly before each REST call and should not need to be called manually
+         */
+        login(*reference info) {
+            AutoLock al(m);
+
+            loginIntern(\info);
+        }
+
+        #! logs out of Salesforce.com by revoking the access token
+        /** @par Example:
+            @code{.py}
+sfrest.logout();
+            @endcode
+
+            if not logged in then this method returns immediately
+
+            @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request; if present the hash will contain the following keys:
+            - \c headers: a hash of outgoing HTTP request headers
+            - \c request-uri: the request URI string sent (ex: \c "POST /services/async/38.0/job HTTP/1.1")
+            - \c body-content-type: the outgoing message body Mime \c Content-Type value
+            - \c response-headers: a hash of incoming HTTP headers in the response
+            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c response-code: the HTTP response code
+            - \c response-body: the raw message body in the response (after any content decoding)
+            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
+            - \c request-body: the raw message body in the request (before any content encoding)
+            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values (for this method, always \c "url")
+         */
+        logout(*reference info) {
+            AutoLock al(m);
+
+            # if we are not logged in, then do nothing
+            if (!token)
+                return;
+
+            # use the Salesforce.com OAuth2 revocation URL to log out
+            setURL(oauth_url_revoke);
+
+            # use URL form encoding for the message body
+            setSerialization("url");
+
+            # create message body hash
+            hash lh.token = token;
+
+            # make the revoke call
+            RestClient::doRequest("POST", "", lh, \info);
+
+            delete token;
+        }
+
+        #! returns the Salesforce.com REST API version currently in use
+        string getApi() {
+            return api_used;
+        }
+
+        #! returns the access token
+        *string getToken() {
+            return token;
+        }
+
+        #! returns a date string for use with Salesforce.com Bulk REST API requests
+        /** @param d the date to return as a formatted string using \c "YYYY-MM-DDTHH:mm:SSZ"
+
+            @return the string corresponding to the date
+
+            @see @ref date_formatting "Date Formatting Strings"
+         */
+        static string getBulkDate(date d) {
+            return d.format("YYYY-MM-DDTHH:mm:SSZ");
+        }
+
+        #! returns a date string in GMT for use in Salesforce.com requests
+        static string getGmtDate(date d) {
+            return gmtime(d).format("Dy, DD Mon YYYY HH:mm:SS") + " GMT";
+        }
+
+        #! returns options for the @ref RestClient::RestClient::constructor() "RestClient::constructor()"
+        private static hash getOptions(*hash opts) {
+            return (
+                "additional_methods": ("PATCH": False) + opts.additional_methods,
+                "data": "json",
+                "url": opts.oauth_url_auth ?? Defaults.oauth_url_auth,
+                ) + opts;
+        }
+
+        #! performs authentication and authorization with Salesforce.com using the OAuth2 authorization URL
+        /** called with the Mutex held
+        */
+        private loginIntern(*reference info) {
+            # ensure that if json serialization is set, that we do not claim to understand XML responses (which Salesforce.com will prefer otherwise, and then no type information will be transmitted)
+            if (ds == "json")
+                addDefaultHeaders(("Accept": MimeTypeJson));
+            else
+                delete headers.Accept;
+
+            # save send encoding and retore on error
+            *hash old_seh = seh;
+            # turn off compression for the login request (is not currently supported in Salesforce.com)
+            setSendEncoding("identity");
+            # restore the encoding on exit
+            on_exit seh = old_seh;
+
+            # create login hash
+            hash lh = self.("client_id", "client_secret", "username", "password") + (
+                "grant_type": "password",
+                );
+
+            # use the Salesforce.com OAuth2 authorization URL to get the token
+            setURL(oauth_url_token);
+
+            # restore the old serialization option on exit
+            string old_ds = ds;
+            on_exit
+                setSerialization(old_ds);
+
+            # use URL form encoding for the message body
+            setSerialization("url");
+
+            # make the authorization call
+            hash h = RestClient::doRequest("POST", "", lh, \info).body;
+
+            # set the token
+            token = h.access_token;
+            addDefaultHeaders(("Authorization": sprintf("%s %s", h.token_type, h.access_token)));
+
+            # set the URL to the Salesforce.com URL for REST API calls
+            setURL(h.instance_url);
+
+            # get as hash of supported APIs
+            api_hash = map {$1.version: $1 - "version"}, RestClient::doRequest("GET", "services/data").body;
+
+            hash ah;
+            if (api == "auto") {
+                api = api_used = api_hash.lastKey();
+                ah = api_hash.lastValue();
+            }
+            else {
+                *hash aah = api_hash{api};
+                if (!aah)
+                    throw "SALESFORCE-API-ERROR", sprintf("Salesforce.com REST API %y was requested but is not supported; supported Salesforce.com APIs: %y", api, api_hash.keys());
+                api_used = api;
+                ah = aah;
+            }
+
+            # set the URL to the Salesforce.com URL for REST API calls
+            setURL(h.instance_url + ah.url);
+        }
+    }
+
+    #! class for Salesforce.com REST connections; returns @ref SalesforceRestClient::SalesforceRestClient objects
+    /** supports the following options:
+        - \c "api": the Salesforce.com API to use; use \c "auto" (the default) to use the latest API version
+        - \c "client_id": (required) the Salesforce.com "consumer key" for the Connected App
+        - \c "client_secret": (required) the Salesforce.com "consumer secret" for the Connected App
+        - \c "connect_timeout": connection timeout to use in milliseconds
+        - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
+        - \c "data": see @ref RestClient::RestClient::DataSerializationOptions "DataSerializationOptions" for possible values; the default is \c "auto" for possible values; note that it's recommended to use \c "yaml" when talking to Qorus
+        - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
+        - \c "max_redirects": maximum redirects to support
+        - \c "proxy": proxy URL to use
+        - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+        - \c "timeout": transfer timeout to use in milliseconds
+
+        @see @ref SalesforceRestClient::SalesforceRestClient::constructor() "SalesforceRestClient::constructor()" for more information on the above options
+
+        @since %SalesforceRestConnection 1.1
+    */
+    public class SalesforceRestConnection inherits RestClient::RestConnection {
+        public {
+            #! SalesforceRestConnection object connection options
+            const Options = RestConnection::Options + (
+                "api": True,
+                "client_id": True,
+                "client_secret": True,
+                );
+
+            const OptionList = Options.keys();
+        }
+
+        #! creates the SalesforceRestConnection object
+        /** @param name the name of the connection
+            @param desc connection description
+            @param url connection URL (potentially with password info)
+            @param monitor monitoring flag
+            @param opts connection options
+            @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+        */
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : RestConnection(name, desc, url, monitor, opts, urlh) {
+            real_opts = ("url": real_url) + urlh.("username", "password") + opts;
+        }
+
+        #! returns a @ref SalesforceRestClient::SalesforceRestClient object
+        /** @param connect if @ref Qore::True "True", then the connection is returned already connected
+            @param rtopts this connection type does not accept any runtime options, so this parameter is ignored
+
+            @return a @ref SalesforceRestClient::SalesforceRestClient "SalesforceRestClient" object
+        */
+        private SalesforceRestClient getImpl(bool connect = True, *hash rtopts) {
+            return new SalesforceRestClient(real_opts, !connect);
+        }
+
+        #! gets options
+        /** @return returns a hash with the following supported options:
+            - \c "api": the Salesforce.com API to use; use \c "auto" (the default) to use the latest API version
+            - \c "client_id": (required) the Salesforce.com "consumer key" for the Connected App
+            - \c "client_secret": (required) the Salesforce.com "consumer secret" for the Connected App
+            - \c "connect_timeout": connection timeout to use in milliseconds
+            - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
+            - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values; the default is \c "auto" for possible values; note that it's recommended to use \c "yaml" when talking to Qorus
+            - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
+            - \c "max_redirects": maximum redirects to support
+            - \c "proxy": proxy URL to use
+            - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+            - \c "timeout": transfer timeout to use in milliseconds
+
+            @see @ref SalesforceRestClient::SalesforceRestClient::constructor() "SalesforceRestClient::constructor()" for more information on the above options
+        */
+        hash getOptions() {
+            return Options;
+        }
+
+        #! returns default options
+        *hash getDefaultOptions() {
+            return HttpConnection::DefaultOptions;
+        }
+
+        #! returns \c "rest"
+        string getType() {
+            return "rest";
+        }
+
+        #! static constructor
+        static SalesforceRestConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
+            return new SalesforceRestConnection(name, desc, url, monitor, opts, urlh);
+        }
+    }
+}

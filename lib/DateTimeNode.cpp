@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_date_private.h>
+#include "qore/intern/qore_date_private.h"
 
 DateTimeNode::DateTimeNode(qore_date_private* n_priv) : SimpleValueQoreNode(NT_DATE), DateTime(n_priv) {
 }
@@ -55,6 +55,9 @@ DateTimeNode::DateTimeNode(int64 seconds, int ms) : SimpleValueQoreNode(NT_DATE)
 }
 
 DateTimeNode::DateTimeNode(const char* date) : SimpleValueQoreNode(NT_DATE), DateTime(date) {
+}
+
+DateTimeNode::DateTimeNode(const char* date, ExceptionSink* xsink) : SimpleValueQoreNode(NT_DATE), DateTime(date, xsink) {
 }
 
 DateTimeNode::DateTimeNode(const AbstractQoreZoneInfo* zone, const char* date) : SimpleValueQoreNode(NT_DATE), DateTime(zone, date) {
@@ -213,6 +216,10 @@ DateTimeNode* DateTimeNode::makeAbsolute(const AbstractQoreZoneInfo* z, int y, i
    return new DateTimeNode(new qore_date_private(z, y, mo, d, h, mi, s, u));
 }
 
+DateTimeNode* DateTimeNode::makeAbsolute(const AbstractQoreZoneInfo* z, int y, int mo, int d, int h, int mi, int s, int u, ExceptionSink* xsink) {
+   return new DateTimeNode(new qore_date_private(z, y, mo, d, h, mi, s, u, xsink));
+}
+
 DateTimeNode* DateTimeNode::makeAbsolute(const AbstractQoreZoneInfo* zone, int64 seconds, int us) {
    return new DateTimeNode(new qore_date_private(zone, seconds, us));
 }
@@ -238,7 +245,7 @@ DateTimeNode* DateTimeNode::makeRelativeFromSeconds(int64 s, int u) {
 }
 
 DateTimeValueHelper::DateTimeValueHelper(const AbstractQoreNode* n) {
-   // optmization without virtual function call for most common case
+   // optimization without virtual function call for most common case
    if (n) {
       if (n->getType() == NT_DATE) {
 	 dt = reinterpret_cast<const DateTimeNode*>(n);
@@ -261,32 +268,17 @@ DateTimeValueHelper::DateTimeValueHelper(const QoreValue& n) {
 	    return;
 	 }
 	 case QV_Bool: {
-	    dt = n.v.b ? OneDate : ZeroDate;
-	    del = false;
+	    dt = DateTime::makeRelativeFromSeconds(n.v.b ? 1 : 0);
+	    del = true;
 	    return;
 	 }
 	 case QV_Int: {
-	    if (n.v.i == 1) {
-	       dt = OneDate;
-	       del = false;
-	       return;
-	    }
 	    dt = DateTime::makeRelativeFromSeconds(n.v.i);
 	    del = true;
 	    return;
 	 }
 	 case QV_Float: {
-	    if (!n.v.f) {
-	       dt = ZeroDate;
-	       del = false;
-	       return;
-	    }
-	    if (n.v.f == 1.0) {
-	       dt = OneDate;
-	       del = false;
-	       return;
-	    }
-	    dt = DateTime::makeRelativeFromSeconds((int64)n.v.f, (int)((n.v.f - (float)((int)n.v.f)) * 1000000));
+	    dt = DateTime::makeRelativeFromSeconds((int64)n.v.f, (int)((n.v.f - (double)((int)n.v.f)) * 1000000));
 	    del = true;
 	    return;
 	 }
@@ -302,4 +294,65 @@ DateTimeValueHelper::DateTimeValueHelper(const QoreValue& n) {
 DateTimeValueHelper::~DateTimeValueHelper() {
    if (del)
       delete const_cast<DateTime*>(dt);
+}
+
+DateTimeNodeValueHelper::DateTimeNodeValueHelper(const AbstractQoreNode* n, ExceptionSink* xsink) : dt(0), del(false) {
+   if (!n) {
+      dt = ZeroDate;
+      del = false;
+      return;
+   }
+
+   qore_type_t t = n->getType();
+
+   // optmization without virtual function call for most common case
+   if (t == NT_DATE) {
+      dt = const_cast<DateTimeNode*>(reinterpret_cast<const DateTimeNode*>(n));
+      del = false;
+      return;
+   }
+
+   // special logic for strings to verify that the input data represents a valid date
+   if (t == NT_STRING) {
+      del = true;
+      dt = new DateTimeNode(reinterpret_cast<const QoreStringNode*>(n)->c_str(), xsink);
+      return;
+   }
+
+   dt = new DateTimeNode;
+   n->getDateTimeRepresentation(*dt);
+   del = true;
+}
+
+DateTimeNodeValueHelper::DateTimeNodeValueHelper(const QoreValue& n) {
+   if (!n.isNullOrNothing()) {
+      switch (n.type) {
+	 case QV_Node: {
+	    del = true;
+	    dt = new DateTimeNode;
+	    n.v.n->getDateTimeRepresentation(*dt);
+	    return;
+	 }
+	 case QV_Bool: {
+	    dt = DateTimeNode::makeRelativeFromSeconds(n.v.b ? 1 : 0);
+	    del = true;
+	    return;
+	 }
+	 case QV_Int: {
+	    dt = DateTimeNode::makeRelativeFromSeconds(n.v.i);
+	    del = true;
+	    return;
+	 }
+	 case QV_Float: {
+	    dt = DateTimeNode::makeRelativeFromSeconds((int64)n.v.f, (int)((n.v.f - (double)((int)n.v.f)) * 1000000));
+	    del = true;
+	    return;
+	 }
+	 default:
+	    assert(false);
+	    // no break
+      }
+   }
+   dt = ZeroDate;
+   del = false;
 }

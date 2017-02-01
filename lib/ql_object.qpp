@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,8 +30,9 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ql_object.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/ql_object.h"
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreClassIntern.h"
 
 static QoreObject* create_object_intern(const QoreStringNode* class_name, unsigned arg_offset, const QoreValueList* args, ExceptionSink* xsink) {
    TempEncodingHelper tmp(class_name, QCS_DEFAULT, xsink);
@@ -52,7 +53,6 @@ static QoreObject* create_object_intern(const QoreStringNode* class_name, unsign
 
    if (qore_class_private::runtimeCheckInstantiateClass(*qc, xsink))
       return 0;
-
 
    const QoreValueList* real_args;
    ReferenceHolder<QoreValueList> tmp_args(xsink);
@@ -137,8 +137,6 @@ any callObjectMethod(object obj, string method, ...) [flags=DEPRECATED] {
       call_args = args->getOldList(2);
    }
 
-   // make sure method call is internal (allows access to private methods) if this function was called internally
-   CodeContextHelper cch(0, obj, xsink);
    return obj->evalMethod(method, *call_args, xsink);
 }
 
@@ -179,8 +177,6 @@ any call_object_method(object obj, string method, ...) {
       call_args = args->getOldList(2);
    }
 
-   // make sure method call is internal (allows access to private methods) if this function was called internally
-   CodeContextHelper cch(0, obj, xsink);
    return obj->evalMethod(method, *call_args, xsink);
 }
 
@@ -202,7 +198,6 @@ any call_object_method(object obj, string method, ...) {
     @deprecated use call_object_method_args(); camel-case function names were deprecated in %Qore 0.8.12
  */
 any callObjectMethodArgs(object obj, string method, *softlist varg) [flags=DEPRECATED] {
-   CodeContextHelper cch(0, obj, xsink);
    return obj->evalMethod(method, varg, xsink);
 }
 
@@ -235,7 +230,6 @@ any result = call_object_method_args(obj, "method", arglist);
     @since %Qore 0.8.12 as a replacement for deprecated camel-case callObjectMethodArgs()
 */
 any call_object_method_args(object obj, string method, *softlist varg) {
-   CodeContextHelper cch(0, obj, xsink);
    return obj->evalMethod(method, varg, xsink);
 }
 

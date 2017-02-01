@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -570,6 +570,9 @@ public:
    //! returns the value of the current key with an incremented reference count
    DLLEXPORT AbstractQoreNode* getReferencedValue() const;
 
+   //! returns the hash
+   DLLEXPORT QoreHashNode* getHash() const;
+
    //! returns true if on the first key of the hash
    DLLEXPORT bool first() const;
 
@@ -678,6 +681,9 @@ public:
    //! returns the value of the current key with an incremented reference count
    DLLEXPORT AbstractQoreNode* getReferencedValue() const;
 
+   //! returns the hash
+   DLLEXPORT const QoreHashNode* getHash() const;
+
    //! returns true if on the first key of the hash
    DLLEXPORT bool first() const;
 
@@ -756,14 +762,14 @@ public:
        @param key the key to assign
        @param must_already_exist if true, then this constructor will only succeed if the key already exists
     */
-   DLLLOCAL HashAssignmentHelper(QoreHashNode& n_h, const char* key, bool must_already_exist = false);
+   DLLEXPORT HashAssignmentHelper(QoreHashNode& n_h, const char* key, bool must_already_exist = false);
 
    //! constructor taking a const std::string&
    /** @param n_h the hash to use
        @param key the key to assign
        @param must_already_exist if true, then this constructor will only succeed if the key already exists
     */
-   DLLLOCAL HashAssignmentHelper(QoreHashNode& n_h, const std::string& key, bool must_already_exist = false);
+   DLLEXPORT HashAssignmentHelper(QoreHashNode& n_h, const std::string& key, bool must_already_exist = false);
 
    //! constructor taking a const QoreString&
    /** this constructor may raise a Qore-language exception if the key argument cannot be successfully converted to the default encoding,
@@ -773,7 +779,7 @@ public:
        @param key the key to assign
        @param must_already_exist if true, then this constructor will only succeed if the key already exists
     */
-   DLLLOCAL HashAssignmentHelper(ExceptionSink* xsink, QoreHashNode& n_h, const QoreString& key, bool must_already_exist = false);
+   DLLEXPORT HashAssignmentHelper(ExceptionSink* xsink, QoreHashNode& n_h, const QoreString& key, bool must_already_exist = false);
 
    //! constructor taking a const QoreString&
    /** this constructor may raise a Qore-language exception if the key argument cannot be successfully converted to the default encoding,
@@ -783,38 +789,54 @@ public:
        @param key the key to assign
        @param must_already_exist if true, then this constructor will only succeed if the key already exists
     */
-   DLLLOCAL HashAssignmentHelper(ExceptionSink* xsink, QoreHashNode& n_h, const QoreString* key, bool must_already_exist = false);
+   DLLEXPORT HashAssignmentHelper(ExceptionSink* xsink, QoreHashNode& n_h, const QoreString* key, bool must_already_exist = false);
 
    //! constructor taking a HashIterator&
    /** @param hi the HashIterator to use for the key and hash
     */
-   DLLLOCAL HashAssignmentHelper(HashIterator &hi);
+   DLLEXPORT HashAssignmentHelper(HashIterator &hi);
 
    //! destroys the object and does post processing on the new value
-   DLLLOCAL ~HashAssignmentHelper();
+   DLLEXPORT ~HashAssignmentHelper();
+
+   //! reassigns the object to the given key for a new assignment
+   /** @param key the key to assign
+       @param must_already_exist if true, then this function will not create a new key
+
+       @since %Qore 0.8.12
+    */
+   DLLEXPORT void reassign(const char* key, bool must_already_exist = false);
+
+   //! reassigns the object to the given key for a new assignment
+   /** @param key the key to assign
+       @param must_already_exist if true, then this function will not create a new key
+
+       @since %Qore 0.8.12
+    */
+   DLLEXPORT void reassign(const std::string& key, bool must_already_exist = false);
 
    //! returns true if the object is holding a valid pointer, false if not
    /** in case this function returns false
     */
-   DLLLOCAL operator bool() const;
+   DLLEXPORT operator bool() const;
 
    //! assigns a value to the hash key, dereferences any old value, assumes that the value is already referenced for the assignment
    /** a Qore-language exception could be raised when the existing value is dereferenced
        (i.e. if it's an object that goes out of scope and the destructor raises an
        exception, for example)
     */
-   DLLLOCAL void assign(AbstractQoreNode* v, ExceptionSink* xsink);
+   DLLEXPORT void assign(AbstractQoreNode* v, ExceptionSink* xsink);
 
    //! swaps the current value with the new value of the hash key, assumes that the new value is already referenced for the assignment; returns the old value
    /** could throw a Qore-language exception if there is a type error; in this case 0 is returned and the value passed for the assignment is dereferenced
 @return the old value of the hash key including its reference count (the old value is not dereferenced); the caller owns the value returned
     */
-   DLLLOCAL AbstractQoreNode* swap(AbstractQoreNode* v, ExceptionSink* xsink);
+   DLLEXPORT AbstractQoreNode* swap(AbstractQoreNode* v, ExceptionSink* xsink);
 
    //! returns the current value of the hash key; the pointer returned is still owned by the hash
    /** @return the current value of the hash key
     */
-   DLLLOCAL AbstractQoreNode* operator*() const;
+   DLLEXPORT AbstractQoreNode* operator*() const;
 };
 
 #endif // _QORE_HASH_H

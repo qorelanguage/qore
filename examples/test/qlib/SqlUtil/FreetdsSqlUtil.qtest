@@ -37,7 +37,7 @@ class FreetdsTestSchema inherits SqlUtilTestSchema {
             "columns": (
                 "id": c_number(14, True),
                 "id_": c_number(14, True),
-                "null_f": c_int(),
+                "null_f": c_varchar(69),
             ),
             "primary_key": ("name": "pk_sqlutil_test", "columns": ("id")),
             );
@@ -59,18 +59,7 @@ class FreetdsTestSchema inherits SqlUtilTestSchema {
     }
 
     private *hash getTablesImpl() {
-        hash tables = Tables;
-        # add custom columns to sqlutil_test
-        foreach hash h in (FreetdsTest::CustomColumns.pairIterator()) {
-            hash ch = (
-                "native_type": h.key,
-                "notnull": True,
-                );
-            if (h.value.typeCode() == NT_HASH)
-                ch += (h.value - ("value", "bind", "expect"));
-            tables.sqlutil_test.columns{SqlTestBase::getColumnName(h.key)} = ch;
-        }
-        return tables;
+        return doTables(Tables, FreetdsTest::CustomColumns);
     }
 
     private *hash getIndexOptionsImpl() {
@@ -101,7 +90,11 @@ class FreetdsTest inherits SqlTestBase {
                 "size": 15,
                 "scale": 2,
                 "value": 400.95n,
-                ),
+            ),
+            "decimal_def": (
+                "type": "decimal",
+                "value": 401,
+            ),
 
             "text": "test",
 
@@ -145,7 +138,13 @@ class FreetdsTest inherits SqlTestBase {
         }
 
         if (ds) {
-            init_test_data (CustomColumns);
+            initTestData(CustomColumns);
+
+            { # Make sure the DB is clear before doing the tests.
+                FreetdsTable t = new FreetdsTable(ds, "sqlutil_test");
+                if (t.checkExistence())
+                    t.dropCommit();
+            }
 
             # create the test schema
             schema = new FreetdsTestSchema(ds);
@@ -166,7 +165,7 @@ class FreetdsTest inherits SqlTestBase {
 
     Datasource getDatasource() {
         if (!m_options.connstr)
-            m_options.connstr = ENV.QORE_DB_CONNSTR_FREETDS ?? "freetds:test/test@mssql";
+            m_options.connstr = ENV.QORE_DB_CONNSTR_FREETDS;
         Datasource ds(m_options.connstr);
         if (ds.getDriverName() != "freetds")
             throw "FREETDS-ERROR", sprintf("cannot execute the freetds tests on a connection using driver %y", ds.getDriverName());

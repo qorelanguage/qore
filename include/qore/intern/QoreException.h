@@ -4,7 +4,7 @@
 
   Qore programming language exception handling support
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -43,14 +43,14 @@
 
 struct QoreExceptionBase {
    int type;
-   QoreListNode *callStack;
-   AbstractQoreNode *err, *desc, *arg;
+   QoreListNode* callStack = new QoreListNode;
+   AbstractQoreNode* err, *desc, *arg;
 
-   DLLLOCAL QoreExceptionBase(AbstractQoreNode *n_err, AbstractQoreNode *n_desc, AbstractQoreNode *n_arg = 0, int n_type = ET_SYSTEM) 
-      : type(n_type), callStack(new QoreListNode), err(n_err), desc(n_desc), arg(n_arg) {
+   DLLLOCAL QoreExceptionBase(AbstractQoreNode* n_err, AbstractQoreNode* n_desc, AbstractQoreNode* n_arg = 0, int n_type = ET_SYSTEM)
+      : type(n_type), err(n_err), desc(n_desc), arg(n_arg) {
    }
 
-   DLLLOCAL QoreExceptionBase(const QoreExceptionBase &old) :
+   DLLLOCAL QoreExceptionBase(const QoreExceptionBase& old) :
                type(old.type), callStack(old.callStack->copy()),
                err(old.err ? old.err->refSelf() : 0), desc(old.desc ? old.desc->refSelf() : 0),
                arg(old.arg ? old.arg->refSelf() : 0) {
@@ -62,7 +62,7 @@ struct QoreExceptionLocation : QoreProgramLineLocation {
    std::string source;
    int offset;
 
-   DLLLOCAL QoreExceptionLocation(const QoreProgramLocation &loc) : QoreProgramLineLocation(loc),
+   DLLLOCAL QoreExceptionLocation(const QoreProgramLocation& loc) : QoreProgramLineLocation(loc),
          file(loc.file ? loc.file : ""), source(loc.source ? loc.source : ""), offset(loc.offset) {
    }
 
@@ -95,25 +95,30 @@ protected:
       assert(!arg);
    }
 
-   DLLLOCAL void addStackInfo(AbstractQoreNode *n);
-   DLLLOCAL static QoreHashNode *getStackHash(int type, const char *class_name, const char *code, const QoreProgramLocation& loc);
+   DLLLOCAL void addStackInfo(AbstractQoreNode* n);
+
+   DLLLOCAL static const char* getType(qore_call_t type);
+
+   DLLLOCAL static QoreHashNode* getStackHash(int type, const char *class_name, const char *code, const QoreProgramLocation& loc);
+
+   DLLLOCAL static QoreHashNode* getStackHash(const QoreCallStackElement& cse);
 
 public:
    QoreException *next;
 
    // called for generic exceptions
-   DLLLOCAL QoreHashNode *makeExceptionObjectAndDelete(ExceptionSink *xsink);
-   DLLLOCAL QoreHashNode *makeExceptionObject();
+   DLLLOCAL QoreHashNode* makeExceptionObjectAndDelete(ExceptionSink *xsink);
+   DLLLOCAL QoreHashNode* makeExceptionObject();
 
    // called for runtime exceptions
-   DLLLOCAL QoreException(const char *n_err, AbstractQoreNode *n_desc, AbstractQoreNode *n_arg = 0) : QoreExceptionBase(new QoreStringNode(n_err), n_desc, n_arg), QoreExceptionLocation(QoreProgramLocation(RunTimeLocation)), next(0) {
+   DLLLOCAL QoreException(const char *n_err, AbstractQoreNode* n_desc, AbstractQoreNode* n_arg = 0) : QoreExceptionBase(new QoreStringNode(n_err), n_desc, n_arg), QoreExceptionLocation(QoreProgramLocation(RunTimeLocation)), next(0) {
    }
 
-   DLLLOCAL QoreException(const QoreException &old) : QoreExceptionBase(old), QoreExceptionLocation(old), next(old.next ? new QoreException(*old.next) : 0) {
+   DLLLOCAL QoreException(const QoreException& old) : QoreExceptionBase(old), QoreExceptionLocation(old), next(old.next ? new QoreException(*old.next) : 0) {
    }
 
    // called for user exceptions
-   DLLLOCAL QoreException(const QoreListNode *n) : QoreExceptionBase(0, 0, 0, ET_USER), QoreExceptionLocation(QoreProgramLocation(RunTimeLocation)), next(0) {
+   DLLLOCAL QoreException(const QoreListNode* n) : QoreExceptionBase(0, 0, 0, ET_USER), QoreExceptionLocation(QoreProgramLocation(RunTimeLocation)), next(0) {
       if (n) {
          err = n->get_referenced_entry(0);
          desc = n->get_referenced_entry(1);
@@ -122,27 +127,27 @@ public:
    }
 ;
 
-   DLLLOCAL QoreException(const QoreProgramLocation &n_loc, const char *n_err, AbstractQoreNode *n_desc, AbstractQoreNode *n_arg = 0, int n_type = ET_SYSTEM) : QoreExceptionBase(new QoreStringNode(n_err), n_desc, n_arg, n_type), QoreExceptionLocation(n_loc), next(0) {
+   DLLLOCAL QoreException(const QoreProgramLocation& n_loc, const char *n_err, AbstractQoreNode* n_desc, AbstractQoreNode* n_arg = 0, int n_type = ET_SYSTEM) : QoreExceptionBase(new QoreStringNode(n_err), n_desc, n_arg, n_type), QoreExceptionLocation(n_loc), next(0) {
    }
-   
+
    DLLLOCAL void del(ExceptionSink *xsink);
 
    DLLLOCAL QoreException *rethrow() {
       QoreException *e = new QoreException(*this);
 
       // insert current position as a rethrow entry in the new callstack
-      QoreListNode *l = e->callStack;
+      QoreListNode* l = e->callStack;
       const char *fn = 0;
-      QoreHashNode *n = reinterpret_cast<QoreHashNode *>(l->retrieve_entry(0));
+      QoreHashNode* n = reinterpret_cast<QoreHashNode* >(l->retrieve_entry(0));
       // get function name
       if (n) {
-         QoreStringNode *func = reinterpret_cast<QoreStringNode *>(n->getKeyValue("function"));
+         QoreStringNode* func = reinterpret_cast<QoreStringNode* >(n->getKeyValue("function"));
          fn = func->getBuffer();
       }
       if (!fn)
          fn = "<unknown>";
-   
-      QoreHashNode *h = getStackHash(CT_RETHROW, 0, fn, get_runtime_location());
+
+      QoreHashNode* h = getStackHash(CT_RETHROW, 0, fn, get_runtime_location());
       l->insert(h);
 
       return e;
@@ -161,14 +166,12 @@ public:
 };
 
 struct qore_es_private {
-   bool thread_exit;
-   QoreException* head, * tail;
+   bool thread_exit = false;
+   QoreException* head = 0, * tail = 0;
 
    DLLLOCAL qore_es_private() {
-      thread_exit = false;
-      head = tail = 0;
    }
-   
+
    DLLLOCAL ~qore_es_private() {
    }
 
@@ -225,6 +228,24 @@ struct qore_es_private {
          if (w)
             n->ref();
       }
+   }
+
+   DLLLOCAL void addStackInfo(const QoreCallStackElement& cse) {
+      assert(head);
+      QoreHashNode* n = QoreException::getStackHash(cse);
+
+      QoreException *w = head;
+      while (w) {
+         w->addStackInfo(n);
+         w = w->next;
+         if (w)
+            n->ref();
+      }
+   }
+
+   DLLLOCAL void addStackInfo(const QoreCallStack& stack) {
+      for (auto& i : stack)
+         addStackInfo(i);
    }
 
    DLLLOCAL static void addStackInfo(ExceptionSink& xsink, int type, const char* class_name, const char* code, const QoreProgramLocation& loc = QoreProgramLocation(ParseLocation)) {

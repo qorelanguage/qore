@@ -34,7 +34,7 @@
 
 typedef ReferenceHolder<QoreListNode> safe_qorelist_t;
 
-static QoreListNode* do_args(AbstractQoreNode* e1, AbstractQoreNode* e2) {
+inline QoreListNode* do_args(AbstractQoreNode* e1, AbstractQoreNode* e2) {
    QoreListNode* l = new QoreListNode;
    e1->ref();
    l->push(e1);

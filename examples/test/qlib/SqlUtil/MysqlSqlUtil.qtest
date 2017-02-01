@@ -39,7 +39,7 @@ class MysqlTestSchema inherits SqlUtilTestSchema {
             "columns": (
                 "id": c_number(14, True),
                 "id_": c_number(14, True),
-                "null_f": c_int(),
+                "null_f": c_varchar(69),
             ),
             "primary_key": ("name": "pk_mysql_test", "columns": ("id")),
             );
@@ -61,18 +61,7 @@ class MysqlTestSchema inherits SqlUtilTestSchema {
     }
 
     private *hash getTablesImpl() {
-        hash tables = Tables;
-        # add custom columns to mysql_test
-        foreach hash h in (MysqlTest::CustomColumns.pairIterator()) {
-            hash ch = (
-                "native_type": h.key,
-                "notnull": True,
-                );
-            if (h.value.typeCode() == NT_HASH)
-                ch += (h.value - ("value", "bind", "expect"));
-            tables.mysql_test.columns{SqlTestBase::getColumnName(h.key)} = ch;
-        }
-        return tables;
+        return doTables(Tables, MysqlTest::CustomColumns);
     }
 
     private *hash getIndexOptionsImpl() {
@@ -104,6 +93,10 @@ class MysqlTest inherits SqlTestBase {
                 "scale": 2,
                 "value": 400.95n,
             ),
+            "decimal_def": (
+                "type": "decimal",
+                "value": 401,
+            ),
 
             "tinyint": 10,
             "smallint": 512,
@@ -131,11 +124,13 @@ class MysqlTest inherits SqlTestBase {
             "tinyblob": <bead>,
             "blob": <bead>,
             "mediumblob": <bead>,
-            "longblob": <bead>,
+            # temporarily disabled due to a bug on rhel7 handling logblob columns with mariadb
+            #"longblob": <bead>,
 
             "tinytext": "test",
             "mediumtext": "test",
-            "longtext": "test",
+            # temporarily disabled due to a bug on rhel7 handling logtext columns with mariadb
+            #"longtext": "test",
 
             #"bit": 100,
             );
@@ -153,7 +148,13 @@ class MysqlTest inherits SqlTestBase {
         }
 
         if (ds) {
-            init_test_data (CustomColumns);
+            initTestData(CustomColumns);
+
+            { # Make sure the DB is clear before doing the tests.
+                MysqlTable t = new MysqlTable(ds, "mysql_test");
+                if (t.checkExistence())
+                    t.dropCommit();
+            }
 
             # create the test schema
             schema = new MysqlTestSchema(ds);
@@ -174,7 +175,7 @@ class MysqlTest inherits SqlTestBase {
 
     Datasource getDatasource() {
         if (!m_options.connstr)
-            m_options.connstr = ENV.QORE_DB_CONNSTR_MYSQL ?? "mysql:omquser/omquser@omquser";
+            m_options.connstr = ENV.QORE_DB_CONNSTR_MYSQL;
         Datasource ds(m_options.connstr);
         if (ds.getDriverName() != "mysql")
             throw "MYSQL-ERROR", sprintf("cannot execute the mysql tests on a connection using driver %y", ds.getDriverName());

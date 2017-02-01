@@ -4,7 +4,7 @@
 
   Qore programming language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -161,6 +161,14 @@ public:
    */
    DLLEXPORT DateTime(const char* date);
 
+   //! constructor for setting the date from a string with a flexible format, throws a Qore-language exception if the date string is invalid
+   /** @param date the string to use to set the date
+       @param xsink any errors in the data string cause a Qore-language exception to be thrown here
+
+       @since %Qore 0.8.12.4
+   */
+   DLLEXPORT DateTime(const char* date, ExceptionSink* xsink);
+
    //! constructor for setting the date from a string with a flexible format
    /** @param zone the time zone for the time (0 = UTC, @see currentTZ())
        @param date the string to use to set the date
@@ -229,6 +237,15 @@ public:
    */
    DLLEXPORT void setDate(const char* str);
 
+   //! sets an absolute date value from a string with a flexible format
+   /** note that the local time zone will be assumed
+       @param str the string to use to set the date
+       @param xsink any errors in the data string cause a Qore-language exception to be thrown here
+
+       @since %Qore 0.8.12.4
+   */
+   DLLEXPORT void setDate(const char* str, ExceptionSink* xsink);
+
    //! sets an absolute date value from a time zone pointer and a string with a flexible format
    /**
        @param zone the time zone for the time (0 = UTC, @see currentTZ())
@@ -253,6 +270,9 @@ public:
       @param ms the milliseconds value
    */
    DLLEXPORT void setTime(int h, int m, int s, short ms = 0);
+
+   //! set the object to a relative date/time value as given in seconds and optionally microseconds
+   DLLEXPORT void setRelativeDateSeconds(int64 s, int us = 0);
 
    DLLEXPORT bool checkValidity() const;
    DLLEXPORT bool isEqual(const DateTime* dt) const;

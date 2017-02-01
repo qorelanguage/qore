@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 # need mime definitions
 %requires Mime >= 1.0
 %requires Util >= 1.0
@@ -30,7 +30,7 @@
 %new-style
 
 module HttpServerUtil {
-    version = "0.3.11";
+    version = "0.3.12";
     desc = "HttpServerUtil class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -70,12 +70,19 @@ module HttpServerUtil {
 
     @section httpserverutil_relnotes HttpServerUtil Module Release Notes
 
+    @subsection httputil0311 HttpServerUtil 0.3.12
+    - fixed a bug in AbstractAuthenticator::do401() where the \a msg argument was ignored (<a href="https://github.com/qorelanguage/qore/issues/1047">issue 1047</a>)
+
+    @subsection httputil0311 HttpServerUtil 0.3.11.1
+    - aligned version with HttpServer module version
+
     @subsection httputil0311 HttpServerUtil 0.3.11
     - initial version of the module
     - implemented support for notifying persistent connections when the connection is terminated while a persistent connection is in place
     - removed unused AbstractStreamRequestHandler class
     - fixed @ref HttpServer::parse_uri_query() to always return \a params as a hash (<a href="https://github.com/qorelanguage/qore/issues/569">issue 569</a>)
     - added \c root_path to the context hash if the path was matched by a URL path prefix (<a href="https://github.com/qorelanguage/qore/issues/570">issue 570</a>)
+    - implemented support for custom timeout values in stream handlers (<a href="https://github.com/qorelanguage/qore/issues/719">issue 719</a>)
  */
 
 #! the main namespace for the HttpServer and HttpServerUtil modules
@@ -85,13 +92,16 @@ module HttpServerUtil {
  */
 public namespace HttpServer {
     #! version of the HttpServer's implementation
-    public const HttpServerVersion = "0.3.11";
+    public const HttpServerVersion = "0.3.11.1";
 
     #! default HTTP server string
     public const HttpServerString = sprintf("Qore-HTTP-Server/%s", HttpServerVersion);
 
-    #! default read timeout in ms
-    public const ReadTimeout = 30s;  # recvs timeout after 30 seconds
+    #! default timeout in ms
+    public const DefaultTimeout = 30s;  # recvs timeout after 30 seconds
+
+    #! read timeout in ms
+    public const ReadTimeout = DefaultTimeout;
 
     #! map of HTTP result codes and text messages
     public const HttpCodes = (
@@ -227,6 +237,10 @@ public namespace HttpServer {
             else
                 h.host = (!host || host == gethostname()) ? "localhost" : host;
         }
+
+        # encose IPv6 addresses in "[]"
+        if (h.host =~ /^[[:xdigit:]:]+$/)
+            h.host = "[" + h.host + "]";
 
         string login = h.password ? (h.password + ":") : "";
         if (h.username)
@@ -401,7 +415,7 @@ public class HttpServer::AbstractAuthenticator {
     private hash do401(string msg = "Authentication is required to access this server") {
         return (
             "code": 401,
-            "body": "Authentication is required to access this server",
+            "body": msg,
             "hdr": getAuthHeader(),
             );
     }
@@ -505,6 +519,8 @@ public class HttpServer::AbstractStreamRequest {
         hash hdr;
         #! any message body given in a non-chunked request; could already be deserialized
         any body;
+        #! send and receive timeout
+        timeout timeout_ms = HttpServer::DefaultTimeout;
     }
 
     #! creates the object with the given attributes
@@ -541,9 +557,9 @@ public class HttpServer::AbstractStreamRequest {
         else {
             if (hdr."transfer-encoding" == "chunked") {
                 if (hdr."content-encoding")
-                    s.readHTTPChunkedBodyBinaryWithCallback(\recv(), HttpServer::ReadTimeout);
+                    s.readHTTPChunkedBodyBinaryWithCallback(\recv(), timeout_ms);
                 else
-                    s.readHTTPChunkedBodyWithCallback(\recv(), HttpServer::ReadTimeout);
+                    s.readHTTPChunkedBodyWithCallback(\recv(), timeout_ms);
             }
             else # signal end of data
                 recvImpl(("hdr": NOTHING));
@@ -566,7 +582,7 @@ public class HttpServer::AbstractStreamRequest {
         http_set_reply_headers(s, cx, \rv);
 
         # send chunked response
-        s.sendHTTPResponseWithCallback(\send(), rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr, HttpServer::ReadTimeout);
+        s.sendHTTPResponseWithCallback(\send(), rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr, timeout_ms);
 
         rv.reply_sent = True;
         return rv;
@@ -679,6 +695,9 @@ public class HttpServer::AbstractHttpRequestHandler {
         #! if the handler supports streaming requests/responses with chunked data
         bool stream;
 
+        #! send and receive socket timeout in milliseconds
+        timeout timeout_ms = HttpServer::DefaultTimeout;
+
         #! thread-local key string for notification callbacks
         const NotificationThreadKey = "_AHRH_pc";
 
@@ -734,8 +753,15 @@ public class HttpServer::AbstractHttpRequestHandler {
     #! called externally when a persistent connection is closed
     nothing persistentClosed() {
         *code c = get_thread_data(NotificationThreadKey);
-        if (c)
-            c();
+        if (c) {
+            try {
+                c();
+            }
+            catch (hash ex) {
+                if (ex.err != "OBJECT-ALREADY-DELETED")
+                    rethrow;
+            }
+        }
     }
 
     #! this method will throw an exception if a persistent connection cannot be granted
@@ -782,7 +808,7 @@ public class HttpServer::AbstractHttpRequestHandler {
     hash handleRequest(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data body) {
         # classic, non-streaming interface
         if (!stream) {
-            any rv = handleRequest(cx, hdr, getMessageBody(s, hdr, body));
+            any rv = handleRequest(cx, hdr, body ?? getMessageBody(s, hdr, body));
             switch (rv.typeCode()) {
                 case NT_HASH: return rv;
                 case NT_STRING:
@@ -837,7 +863,7 @@ public class HttpServer::AbstractHttpRequestHandler {
     #! optionally retrieves and post-processes any message body
     *data getMessageBody(Socket s, hash hdr, *data body, bool decode = True) {
         if (!body && hdr."transfer-encoding" == "chunked") {
-            hdr += (hdr."content-encoding" ? s.readHTTPChunkedBodyBinary(HttpServer::ReadTimeout) : s.readHTTPChunkedBody(HttpServer::ReadTimeout));
+            hdr += (hdr."content-encoding" ? s.readHTTPChunkedBodyBinary(timeout_ms) : s.readHTTPChunkedBody(timeout_ms));
             body = remove hdr.body;
         }
 

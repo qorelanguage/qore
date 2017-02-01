@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreExtractOperatorNode.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
- 
+
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -57,11 +57,12 @@ protected:
 
 public:
    DLLLOCAL QoreExtractOperatorNode(AbstractQoreNode *n_lvalue_exp, AbstractQoreNode *n_offset_exp,
-                                   AbstractQoreNode *n_length_exp, AbstractQoreNode *n_new_exp) : lvalue_exp(n_lvalue_exp),
-                                                                                                  offset_exp(n_offset_exp),
-                                                                                                  length_exp(n_length_exp),
-                                                                                                  new_exp(n_new_exp),
-                                                                                                  returnTypeInfo(0) {
+                                    AbstractQoreNode *n_length_exp, AbstractQoreNode *n_new_exp) :
+      lvalue_exp(n_lvalue_exp),
+      offset_exp(n_offset_exp),
+      length_exp(n_length_exp),
+      new_exp(n_new_exp),
+      returnTypeInfo(0) {
    }
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
@@ -70,7 +71,25 @@ public:
       return extract_str.getBuffer();
    }
 
-   //DLLLOCAL QoreValue extract(ExceptionSink* xsink) const;
+   DLLLOCAL virtual bool hasEffect() const {
+      return true;
+   }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      ReferenceHolder<> n_lv(copy_and_resolve_lvar_refs(lvalue_exp, xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_of(copy_and_resolve_lvar_refs(offset_exp, xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_ln(copy_and_resolve_lvar_refs(length_exp, xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_nw(copy_and_resolve_lvar_refs(new_exp, xsink), xsink);
+      if (*xsink)
+         return 0;
+      return new QoreExtractOperatorNode(n_lv.release(), n_of.release(), n_ln.release(), n_nw.release());
+   }
 };
 
 #endif

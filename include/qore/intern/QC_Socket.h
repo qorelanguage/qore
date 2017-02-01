@@ -37,14 +37,14 @@
 
 DLLLOCAL QoreClass* initSocketClass(QoreNamespace& qorens);
 DLLEXPORT extern qore_classid_t CID_SOCKET;
-DLLLOCAL extern QoreClass* QC_SOCKET;
+DLLEXPORT extern QoreClass* QC_SOCKET;
 
 #include <qore/QoreSocket.h>
 #include <qore/AbstractPrivateData.h>
 #include <qore/QoreThreadLock.h>
 #include <qore/QoreSocketObject.h>
-#include <qore/intern/QC_SSLCertificate.h>
-#include <qore/intern/QC_SSLPrivateKey.h>
+#include "qore/intern/QC_SSLCertificate.h"
+#include "qore/intern/QC_SSLPrivateKey.h"
 
 class my_socket_priv {
 public:
@@ -64,7 +64,7 @@ public:
 	 cert->deref();
       if (pk)
 	 pk->deref();
-   
+
       delete socket;
    }
 

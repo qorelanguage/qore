@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -37,8 +37,8 @@
 extern QoreListNode* ARGV, * QORE_ARGV;
 extern QoreHashNode* ENV;
 
-#include <qore/intern/ParserSupport.h>
-#include <qore/intern/QoreNamespaceIntern.h>
+#include "qore/intern/ParserSupport.h"
+#include "qore/intern/QoreNamespaceIntern.h"
 
 #include <stdarg.h>
 #include <errno.h>
@@ -351,6 +351,9 @@ class qore_program_private_base {
 protected:
    DLLLOCAL void setDefines();
 
+   typedef std::map<const char*, AbstractQoreProgramExternalData*, ltstr> extmap_t;
+   extmap_t extmap;
+
 public:
    LocalVariableList local_var_list;
 
@@ -438,7 +441,11 @@ public:
         requires_exception(false), tclear(0),
         exceptions_raised(0), ptid(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(0), twaiting(0),
         thr_init(0), exec_class_rv(0), pgm(n_pgm) {
-      printd(QPP_DBG_LVL, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: "QLLD"\n", this, pgm, n_parse_options);
+      printd(QPP_DBG_LVL, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: " QLLD "\n", this, pgm, n_parse_options);
+
+#ifdef DEBUG
+      pgm->priv = (qore_program_private*)this;
+#endif
 
       if (p_pgm)
 	 setParent(p_pgm, n_parse_options);
@@ -537,12 +544,10 @@ public:
       dc.ROreference();
    }
 
-   DLLLOCAL void depDeref(ExceptionSink* xsink) {
+   DLLLOCAL void depDeref() {
       printd(QPP_DBG_LVL, "qore_program_private::depDeref() this: %p pgm: %p %d->%d\n", this, pgm, dc.reference_count(), dc.reference_count() - 1);
-      if (dc.ROdereference()) {
-         del(xsink);
+      if (dc.ROdereference())
          delete pgm;
-      }
    }
 
    DLLLOCAL void clearProgramThreadData(ExceptionSink* xsink) {
@@ -612,6 +617,16 @@ public:
       ++tidmap[tid];
    }
 
+   /*
+   DLLLOCAL int checkValid(ExceptionSink* xsink) {
+      if (ptid && ptid != gettid()) {
+         xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed at runtime");
+         return -1;
+      }
+      return 0;
+   }
+   */
+
    // returns 0 for OK, -1 for error
    DLLLOCAL int incThreadCount(ExceptionSink* xsink) {
       int tid = gettid();
@@ -657,8 +672,8 @@ public:
       }
 
       if (ptid && ptid != gettid()) {
-         assert(xsink);
-         xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed");
+         if (xsink)
+            xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed");
          return -1;
       }
 
@@ -759,7 +774,7 @@ public:
    }
 
    DLLLOCAL QoreListNode* getFeatureList() const {
-      QoreListNode* l = new QoreListNode();
+      QoreListNode* l = new QoreListNode;
 
       for (CharPtrList::const_iterator i = featureList.begin(), e = featureList.end(); i != e; ++i)
 	 l->push(new QoreStringNode(*i));
@@ -1191,6 +1206,18 @@ public:
       return *parseSink;
    }
 
+   DLLLOCAL void setParseOptionsIntern(int64 po) {
+      pwo.parse_options |= po;
+   }
+
+   DLLLOCAL void disableParseOptionsIntern(int64 po) {
+      pwo.parse_options &= ~po;
+   }
+
+   DLLLOCAL void replaceParseOptionsIntern(int64 po) {
+      pwo.parse_options = po;
+   }
+
    DLLLOCAL void setParseOptions(int64 po, ExceptionSink* xsink = 0) {
       // only raise the exception if parse options are locked and the option is not a "free option"
       // also check if options may be made more restrictive and the option also does so
@@ -1202,7 +1229,7 @@ public:
          return;
       }
 
-      pwo.parse_options |= po;
+      setParseOptionsIntern(po);
    }
 
    DLLLOCAL void disableParseOptions(int64 po, ExceptionSink* xsink = 0) {
@@ -1216,7 +1243,7 @@ public:
          return;
       }
 
-      pwo.parse_options &= ~po;
+      disableParseOptionsIntern(po);
    }
 
    DLLLOCAL void replaceParseOptions(int64 po, ExceptionSink* xsink) {
@@ -1226,7 +1253,7 @@ public:
       }
 
       //printd(5, "qore_program_private::replaceParseOptions() this: %p pgm: %p replacing po: %lld with po: %lld\n", this, pgm, pwo.parse_options, po);
-      pwo.parse_options = po;
+      replaceParseOptionsIntern(po);
    }
 
    DLLLOCAL void parseSetTimeZone(const char* zone) {
@@ -1475,7 +1502,7 @@ public:
          pend_dom |= neg;
       }
 
-      //printd(5, "qore_program_private::parseAddDomain() this: %p n_dom: "QLLD" po: "QLLD"\n", this, n_dom, pwo.parse_options);
+      //printd(5, "qore_program_private::parseAddDomain() this: %p n_dom: " QLLD " po: " QLLD "\n", this, n_dom, pwo.parse_options);
       return rv;
    }
 
@@ -1536,6 +1563,18 @@ public:
    DLLLOCAL void doThreadInit(ExceptionSink* xsink);
 
    DLLLOCAL QoreClass* runtimeFindClass(const char* class_name, ExceptionSink* xsink) const;
+
+   DLLLOCAL void setExternalData(const char* owner, AbstractQoreProgramExternalData* pud) {
+      AutoLocker al(plock);
+      assert(extmap.find(owner) == extmap.end());
+      extmap.insert(extmap_t::value_type(owner, pud));
+   }
+
+   DLLLOCAL AbstractQoreProgramExternalData* getExternalData(const char* owner) const {
+      AutoLocker al(plock);
+      extmap_t::const_iterator i = extmap.find(owner);
+      return i == extmap.end() ? nullptr : i->second;
+   }
 
    DLLLOCAL static QoreClass* runtimeFindClass(const QoreProgram& pgm, const char* class_name, ExceptionSink* xsink) {
       return pgm.priv->runtimeFindClass(class_name, xsink);
@@ -1655,7 +1694,7 @@ public:
       return pgm->priv->runtimeGetCallReference(name, xsink);
    }
 
-   DLLLOCAL static const ParseWarnOptions &getParseWarnOptions(const QoreProgram* pgm) {
+   DLLLOCAL static const ParseWarnOptions& getParseWarnOptions(const QoreProgram* pgm) {
       return pgm->priv->pwo;
    }
 

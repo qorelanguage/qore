@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols, Vaclav Pfeifer
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 #ifndef _QORE_QOREHASHMAPSELECTOPERATORNODE_H
 #define _QORE_QOREHASHMAPSELECTOPERATORNODE_H
 
-#include <qore/intern/AbstractIteratorHelper.h>
+#include "qore/intern/AbstractIteratorHelper.h"
 
 class QoreHashMapSelectOperatorNode : public QoreNOperatorNodeBase<4> {
 protected:
@@ -54,11 +54,6 @@ protected:
       return returnTypeInfo;
    }
 
-   DLLLOCAL virtual bool hasEffect() const {
-      // FIXME: check iterated expression to see if it really has an effect
-      return true;
-   }
-
    DLLLOCAL QoreValue mapIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
 
 public:
@@ -77,7 +72,21 @@ public:
       return map_str.getBuffer();
    }
 
-   //DLLLOCAL AbstractQoreNode* map(ExceptionSink* xsink) const;
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      ReferenceHolder<> n_e0(copy_and_resolve_lvar_refs(e[0], xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_e1(copy_and_resolve_lvar_refs(e[1], xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_e2(copy_and_resolve_lvar_refs(e[2], xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_e3(copy_and_resolve_lvar_refs(e[3], xsink), xsink);
+      if (*xsink)
+         return 0;
+      return new QoreHashMapSelectOperatorNode(n_e0.release(), n_e1.release(), n_e2.release(), n_e3.release());
+   }
 };
 
 #endif // QOREHASHMAPSELECTOPERATORNODE_H

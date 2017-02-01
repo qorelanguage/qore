@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/qore_program_private.h"
 
 QoreString QoreAssignmentOperatorNode::op_str("assignment operator expression");
 
@@ -45,6 +45,11 @@ AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int
    // return type info is the same as the lvalue's typeinfo
    typeInfo = ti;
 
+   // if "broken-int-assignments" is set, then cle if applicable
+   if ((ti == bigIntTypeInfo || ti == softBigIntTypeInfo)
+       && (getProgram()->getParseOptions64() & PO_BROKEN_INT_ASSIGNMENTS))
+      broken_int = true;
+
    const QoreTypeInfo* r = 0;
    right = right->parseInit(oflag, pflag, lvids, r);
 
@@ -53,6 +58,10 @@ AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int
       check_self_assignment(left, oflag);
 
    //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() this: %p left: %s ti: %p '%s', right: %s ti: %s\n", this, get_type_name(left), ti, ti->getName(), get_type_name(right), r->getName());
+
+   if (left->getType() == NT_VARREF && right->getType() == NT_VARREF
+       && !strcmp(static_cast<VarRefNode *>(left)->getName(), static_cast<VarRefNode *>(right)->getName()))
+      qore_program_private::makeParseException(getProgram(), loc, "PARSE-EXCEPTION", new QoreStringNodeMaker("illegal assignment of variable \"%s\" to itself", static_cast<VarRefNode *>(left)->getName()));
 
    if (ti->hasType() && r->hasType() && !ti->parseAccepts(r)) {
       if (getProgram()->getParseExceptionSink()) {
@@ -63,10 +72,6 @@ AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int
 	 qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
       }
    }
-
-   // replace this node with optimized operator implementations, if possible
-   if (ti == bigIntTypeInfo || ti == softBigIntTypeInfo)
-      return makeSpecialization<QoreIntAssignmentOperatorNode>();
 
    return this;
 }
@@ -81,9 +86,17 @@ QoreValue QoreAssignmentOperatorNode::evalValueImpl(bool& needs_deref, Exception
    if (*xsink)
       return QoreValue();
 
-   // we have to ensure that the value is referenced before the assignment in case the lvalue
-   // is the same value, so it can be copied in the LValueHelper constructor
-   new_value.ensureReferencedValue();
+   if (broken_int) {
+      // convert the value to an int unconditionally
+      new_value.setValue(new_value->getAsBigInt());
+      if (*xsink)
+         return QoreValue();
+   }
+   else {
+      // we have to ensure that the value is referenced before the assignment in case the lvalue
+      // is the same value, so it can be copied in the LValueHelper constructor
+      new_value.ensureReferencedValue();
+   }
 
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);

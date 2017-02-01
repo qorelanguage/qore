@@ -1,9 +1,9 @@
 /*
-  windows-lib.cpp
+  glob.cpp
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/glob.h>
+#include "qore/intern/glob.h"
 
 int glob(const char *pattern, int flags, glob_error_t errfunc, glob_t *buf) {
    return buf->set(pattern, flags, errfunc);

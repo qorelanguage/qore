@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreCastOperatorNode.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
- 
+
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -47,6 +47,9 @@ protected:
       return qc ? qc->getTypeInfo() : objectTypeInfo;
    }
 
+   DLLLOCAL QoreCastOperatorNode(QoreClass* q, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(n_exp), path(0), qc(q) {
+   }
+
 public:
    DLLLOCAL QoreCastOperatorNode(char *str, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(n_exp), path(new NamedScope(str)), qc(0) {
    }
@@ -64,8 +67,13 @@ public:
       return cast_str.getBuffer();
    }
 
-   DLLLOCAL virtual bool hasEffect() const {
-      return false;
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
+      if (*xsink)
+         return 0;
+      assert(!path);
+      assert(qc);
+      return new QoreCastOperatorNode(qc, n_exp.release());
    }
 };
 

@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -779,6 +779,21 @@ public:
    //! returns true if the other string is equal to this string (encodings also must be equal)
    DLLEXPORT bool operator==(const char* other) const;
 
+   //! returns true if the other string is not equal to this string (encodings also must be equal)
+   DLLLOCAL bool operator!=(const QoreString& other) const {
+      return !(*this == other);
+   }
+
+   //! returns true if the other string is not equal to this string (encodings also must be equal)
+   DLLLOCAL bool operator!=(const std::string& other) const {
+      return !(*this == other);
+   }
+
+   //! returns true if the other string is not equal to this string (encodings also must be equal)
+   DLLLOCAL bool operator!=(const char* other) const {
+      return !(*this == other);
+   }
+
    //! returns the byte (not character) at the given location; if the location is invalid, returns 0
    /** @param pos offset in string, negative offsets are form the end of the string
        @return the byte (not character) at the given location; if the location is invalid, returns 0
@@ -1076,6 +1091,11 @@ public:
          return str->giveBuffer();
       return strdup(str->getBuffer());
    }
+
+   //! remove any leading byte order marker (BOM) from UTF-16* strings
+   /** @since Qore 0.8.13
+    */
+   DLLEXPORT void removeBom();
 };
 
 #endif

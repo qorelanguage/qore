@@ -29,12 +29,12 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/StatementBlock.h>
-#include <qore/intern/OnBlockExitStatement.h>
-#include <qore/intern/ParserSupport.h>
-#include <qore/intern/QoreClassIntern.h>
-#include <qore/intern/qore_program_private.h>
-#include <qore/intern/QoreNamespaceIntern.h>
+#include "qore/intern/StatementBlock.h"
+#include "qore/intern/OnBlockExitStatement.h"
+#include "qore/intern/ParserSupport.h"
+#include "qore/intern/QoreClassIntern.h"
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreNamespaceIntern.h"
 #include <qore/minitest.hpp>
 
 #include <stdio.h>
@@ -157,7 +157,7 @@ VariableBlockHelper::VariableBlockHelper() {
 }
 
 VariableBlockHelper::~VariableBlockHelper() {
-   std::auto_ptr<VNode> vnode(getVStack());
+   std::unique_ptr<VNode> vnode(getVStack());
    assert(vnode.get());
    updateVStack(vnode->next);
    //printd(5, "VariableBlockHelper::~VariableBlockHelper() this=%p got %p\n", this, vnode->lvar);
@@ -314,7 +314,7 @@ LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const
 }
 
 int pop_local_var_get_id() {
-   std::auto_ptr<VNode> vnode(getVStack());
+   std::unique_ptr<VNode> vnode(getVStack());
    assert(vnode.get());
    int refs = vnode->refCount();
    printd(5, "pop_local_var_get_id(): popping var %s (refs=%d)\n", vnode->lvar->getName(), refs);
@@ -323,7 +323,7 @@ int pop_local_var_get_id() {
 }
 
 LocalVar* pop_local_var(bool set_unassigned) {
-   std::auto_ptr<VNode> vnode(getVStack());
+   std::unique_ptr<VNode> vnode(getVStack());
    assert(vnode.get());
    LocalVar* rc = vnode->lvar;
    if (set_unassigned)
@@ -485,14 +485,17 @@ void TopLevelStatementBlock::parseInit(int64 po) {
 
    //printd(5, "TopLevelStatementBlock::parseInit(rns=%p) first=%d\n", &rns, first);
 
+   // resolve global variables before initializing the top-level statements
+   if (!qore_root_ns_private::parseResolveGlobalVars()) {
+      return;
+   }
+
    if (!first && lvars) {
       // push already-registered local variables on the stack
       for (unsigned i = 0; i < lvars->size(); ++i)
          push_top_level_local_var(lvars->lv[i], loc);
    }
 
-   // resolve global variables before initializing the top-level statements
-   qore_root_ns_private::parseResolveGlobalVars();
    int lvids = parseInitIntern(0, PF_TOP_LEVEL, hwm);
 
    //printd(5, "TopLevelStatementBlock::parseInit(rns=%p) first=%d, lvids=%d\n", &rns, first, lvids);

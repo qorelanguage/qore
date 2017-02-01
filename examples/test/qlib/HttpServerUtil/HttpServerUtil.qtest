@@ -1,0 +1,28 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+
+%exec-class HttpServerUtilTest
+
+public class HttpServerUtilTest inherits QUnit::Test {
+    constructor() : Test("HttpServerUtilTest", "1.0") {
+        addTestCase("funcs", \funcTests());
+
+        # Return for compatibility with test harness that checks the process's return value
+        set_return_value(main());
+    }
+
+    funcTests() {
+        assertEq("https://[fe80::468a:5bff:fe86:43ee]:8011", http_get_url_from_bind("https://fe80::468a:5bff:fe86:43ee:8011"));
+        assertEq("http://[::]", http_get_url_from_bind("::"));
+    }
+}

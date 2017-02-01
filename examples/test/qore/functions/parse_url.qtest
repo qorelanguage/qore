@@ -31,5 +31,11 @@ public class parseUrlTest inherits QUnit::Test {
         # windows file paths
         assertEq(("protocol": "file", "path": "c:\\tmp"), parse_url("file://c:\\tmp"));
         assertEq(("protocol": "file", "path": "\\\\share\\dir"), parse_url("file://\\\\share\\dir"));
+
+        # IPv6 localhost
+        assertEq(("host": "::"), parse_url("::"));
+
+        # one-character username
+        assertEq(("protocol": "http", "username": "u", "password": "p", "host": "h"), parse_url("http://u:p@h"));
     }
 }

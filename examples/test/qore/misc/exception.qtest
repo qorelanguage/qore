@@ -1,91 +1,121 @@
 #!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
+%new-style
+%enable-all-warnings
 %require-types
-%old-style
+%strict-args
 
-%requires UnitTest
+%requires ../../../../qlib/QUnit.qm
 
-my UnitTest $t();
+%exec-class ExceptionTest
 
-
-my string $err  = '';
-my string $desc = '';
-my string $arg  = '';
-try  {
-    throw "testing", "123", "test";
-}
-catch ($ex) {
-    $err  = $ex.err;
-    $desc = $ex.desc;
-    $arg  = $ex.arg;
-}
-$t.cmp($err,  "testing", 'exception name');
-$t.cmp($desc, "123",     'exception desc');
-$t.cmp($arg,  "test",    'exception arg');
-
-
-$err  = '';
-$desc = '';
-my string $type  = '';
-try {
-    try {
-        throw "TEST-ERROR", "this is a test";
+class ExceptionTest inherits QUnit::Test {
+    private {
+        string err;
+        string err2;
+        string err3;
+        string desc;
+        string arg;
+        string type;
     }
-    catch () {
-        rethrow;
+
+    constructor() : QUnit::Test("Exception test", "1.0") {
+        addTestCase("Test simple try/catch block", \testSimpleTryCatch());
+        addTestCase("Test rethrow", \testRethrow());
+        addTestCase("misc tests", \miscTests());
+        #addTestCase("Complex try/catch hierarchy", \testComplexHierarchy());
+        set_return_value(main());
     }
-}
-catch ($ex) {
-    $err  = $ex.err;
-    $desc = $ex.desc;
-    $type = $ex.type;
-}
-$t.cmp($err,  "TEST-ERROR",     'exception name');
-$t.cmp($desc, "this is a test", 'exception desc');
-$t.cmp($type, "User",           'exception type');
 
+    setUp() {
+        err  = '';
+        err2 = '';
+        err3 = '';
+        desc = '';
+        arg  = '';
+        type = '';
+    }
 
-$err  = '';
-my string $err2  = '';
-my string $err3  = '';
-try {
-    try {
-        try {
-            printf("%s\n", $snope.refresh());
+    testSimpleTryCatch() {
+        try  {
+            throw "testing", "123", "test";
         }
-        catch ($ex) {
-            $err = $ex.err;
+        catch (ex) {
+            err  = ex.err;
+            desc = ex.desc;
+            arg  = ex.arg;
+        }
+        assertEq("testing", err);
+        assertEq("123", desc);
+        assertEq("test", arg);
+    }
 
+    testRethrow() {
+        try {
+            try {
+                throw "TEST-ERROR", "this is a test";
+            }
+            catch () {
+                rethrow;
+            }
+        }
+        catch (ex) {
+            err  = ex.err;
+            desc = ex.desc;
+            type = ex.type;
+        }
+        assertEq("TEST-ERROR", err);
+        assertEq("this is a test", desc);
+        assertEq("User", type);
+    }
+
+    miscTests() {
+        Program p(PO_NEW_STYLE);
+        assertThrows("PARSE-EXCEPTION", \p.parse(), ("try {} catch (Exception e) {}", ""));
+    }
+
+    /*testComplexHierarchy() {
+        try {
             try {
                 try {
-                    context gee ($gee) where (%foo == "gee")
-                        printf("%s\n", %sdfdas);
+                    printf("%s\n", snope.refresh());
                 }
-                catch ($ex1) {
-                    $desc = shift $argv;
-                    printf("QORE %s Exception in line %d of file %s: %s: %s\n", 
-                        $ex1.type, $ex1.line, $ex1.file, $ex1.err, $ex1.desc);
-                    throw $snope.blah();
-                }		
-                throw $snope.sdfds();
+                catch (ex) {
+                    err = ex.err;
+
+                    try {
+                        try {
+                            context gee (gee) where (%foo == "gee")
+                                printf("%s\n", sdfdas);
+                        }
+                        catch (ex1) {
+                            desc = shift argv;
+                            printf("QORE %s Exception in line %d of file %s: %s: %s\n", 
+                                ex1.type, ex1.line, ex1.file, ex1.err, ex1.desc);
+                            throw snope.blah();
+                        }
+                        throw snope.sdfds();
+                    }
+                    catch (ex2) {
+                        err2 = ex2.err;
+                        throw "TEST";
+                    }
+                }
             }
-            catch ($ex2) {
-                $err2 = $ex2.err;
-                throw "TEST";
+            catch (ex) {
+                err3 = ex.err;
             }
         }
-    }
-    catch ($ex) {
-        $err3 = $ex.err;
-    }
-}
-catch ($ex) {
-    printf("QORE %s Exception in line %d of file %s: %s: %s\n", 
-        $ex.type, $ex.line, $ex.file, $ex.err, $ex.desc);
-    context ($gee) where (%whiz == "wdsf")
-        printf("%s\n", %dsfdf);
-}
+        catch (ex) {
+            printf("QORE %s Exception in line %d of file %s: %s: %s\n", 
+                ex.type, ex.line, ex.file, ex.err, ex.desc);
+            context (gee) where (%whiz == "wdsf")
+                printf("%s\n", %dsfdf);
+        }
 
-$t.cmp($err, "PSEUDO-METHOD-DOES-NOT-EXIST", 'exception error');
-$t.cmp($err2, "PSEUDO-METHOD-DOES-NOT-EXIST", 'exception error');
-$t.cmp($err3, "TEST", 'exception error');
+        assertEq("PSEUDO-METHOD-DOES-NOT-EXIST", err);
+        assertEq("PSEUDO-METHOD-DOES-NOT-EXIST", err2);
+        assertEq("TEST", err3);
+    }*/
+}

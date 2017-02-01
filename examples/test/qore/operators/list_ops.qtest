@@ -5,6 +5,7 @@
 %enable-all-warnings
 %require-types
 %strict-args
+%no-child-restrictions
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -32,6 +33,8 @@ class Test inherits QUnit::Test {
         addTestCase("shift basics", \shiftBasics());
         addTestCase("shift from nothing", \shiftFromNothing());
         addTestCase("shift after delete", \shiftAfterDelete());
+        addTestCase("strict-args", \strictArgsTest());
+        addTestCase("list assignment", \listAssignment());
         set_return_value(main());
     }
 
@@ -160,6 +163,31 @@ class Test inherits QUnit::Test {
         assertEq((), l);
         assertEq(NOTHING, pop l);
         assertEq((), l);
+
+        list l1 = (1, 2);
+        *list l2 = (1, 2);
+        softlist l3 = (1, 2);
+        *softlist l4 = (1, 2);
+
+        assertEq(2, pop l1);
+        assertEq(1, pop l1);
+        assertEq(NOTHING, pop l1);
+        assertEq(NOTHING, pop l1);
+
+        assertEq(2, pop l2);
+        assertEq(1, pop l2);
+        assertEq(NOTHING, pop l2);
+        assertEq(NOTHING, pop l2);
+
+        assertEq(2, pop l3);
+        assertEq(1, pop l3);
+        assertEq(NOTHING, pop l3);
+        assertEq(NOTHING, pop l3);
+
+        assertEq(2, pop l4);
+        assertEq(1, pop l4);
+        assertEq(NOTHING, pop l4);
+        assertEq(NOTHING, pop l4);
     }
 
     popFromNothing() {
@@ -203,6 +231,31 @@ class Test inherits QUnit::Test {
         assertEq((), l);
         assertEq(NOTHING, shift l);
         assertEq((), l);
+
+        list l1 = (1, 2);
+        *list l2 = (1, 2);
+        softlist l3 = (1, 2);
+        *softlist l4 = (1, 2);
+
+        assertEq(1, shift l1);
+        assertEq(2, shift l1);
+        assertEq(NOTHING, shift l1);
+        assertEq(NOTHING, shift l1);
+
+        assertEq(1, shift l2);
+        assertEq(2, shift l2);
+        assertEq(NOTHING, shift l2);
+        assertEq(NOTHING, shift l2);
+
+        assertEq(1, shift l3);
+        assertEq(2, shift l3);
+        assertEq(NOTHING, shift l3);
+        assertEq(NOTHING, shift l3);
+
+        assertEq(1, shift l4);
+        assertEq(2, shift l4);
+        assertEq(NOTHING, shift l4);
+        assertEq(NOTHING, shift l4);
     }
 
     shiftFromNothing() {
@@ -235,5 +288,56 @@ class Test inherits QUnit::Test {
         assertEq(NOTHING, shift l3);
         assertEq(NOTHING, l3);
         assertEq(NOTHING, l4);
+    }
+
+    strictArgsTest() {
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
+            p.parse("any l = 'str'; push l, 1; pop l; shift l;", "");
+            assertEq(NOTHING, p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
+            p.parse("any l = 'str'; unshift l, 1;", "");
+            assertThrows("UNSHIFT-ERROR", \p.run());
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES|PO_STRICT_ARGS);
+            p.parse("any l = 'str'; push l, 1;", "");
+            assertThrows("PUSH-ERROR", \p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES|PO_STRICT_ARGS);
+            p.parse("any l = 'str'; pop l;", "");
+            assertThrows("POP-ERROR", \p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES|PO_STRICT_ARGS);
+            p.parse("any l = 'str'; shift l;", "");
+            assertThrows("SHIFT-ERROR", \p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES|PO_STRICT_ARGS);
+            p.parse("any l = 'str'; unshift l, 1;", "");
+            assertThrows("UNSHIFT-ERROR", \p.run());
+        }
+    }
+
+    listAssignment() {
+        {
+            (int i, string str) = (1, "hello");
+            assertEq(1, i);
+            assertEq("hello", str);
+        }
+        {
+            (int i, string str, *float f) = (1, "hello");
+            assertEq(1, i);
+            assertEq("hello", str);
+            assertEq(NOTHING, f);
+        }
     }
 }

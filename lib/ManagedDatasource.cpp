@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2015 Qore Technologies, sro
+  Copyright 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ManagedDatasource.h>
+#include "qore/intern/ManagedDatasource.h"
+#include "qore/intern/qore_ds_private.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -45,13 +46,16 @@ void ManagedDatasource::cleanup(ExceptionSink *xsink) {
    releaseLockIntern();
 }
 
-void ManagedDatasource::destructor(ExceptionSink *xsink) {
+void ManagedDatasource::destructor(ExceptionSink* xsink) {
    AutoLocker al(&ds_lock);
    if (tid == gettid() || tid == -1)
       // closeUnlocked will throw an exception if a transaction is in progress (and release the transaction lock if held)
       closeUnlocked(xsink);
    else
       xsink->raiseException("DATASOURCE-ERROR", "%s:%s@%s: TID %d deleted Datasource while TID %d is holding the transaction lock", getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str(), gettid(), tid);
+
+   // issue 1250: close all statements created on this datasource
+   qore_ds_private::get(*this)->transactionDone(true, xsink);
 }
 
 void ManagedDatasource::deref(ExceptionSink *xsink) {
@@ -134,6 +138,11 @@ ManagedDatasource *ManagedDatasource::copy() {
    return new ManagedDatasource(*this);
 }
 
+int ManagedDatasource::acquireLock(ExceptionSink *xsink) {
+   AutoLocker al(&ds_lock);
+   return grabLock(xsink);
+}
+
 int ManagedDatasource::startDBAction(ExceptionSink *xsink, bool &new_transaction) {
    AutoLocker al(&ds_lock);
 
@@ -152,7 +161,7 @@ int ManagedDatasource::startDBAction(ExceptionSink *xsink, bool &new_transaction
       return -1;
    }
 
-   //printd(0, "ManagedDatasource::startDBAction() this=%p need_lock=%d new_trans=%p had_lock=%d\n", this, need_transaction_lock, new_transaction, had_lock);
+   //printd(5, "ManagedDatasource::startDBAction() this=%p need_lock=%d new_trans=%p had_lock=%d\n", this, need_transaction_lock, new_transaction, had_lock);
    return 0;
 }
 
@@ -225,7 +234,7 @@ AbstractQoreNode *ManagedDatasource::exec(const QoreString *query_str, const Qor
    if (!dbah)
       return 0;
 
-   //printd(0, "ManagedDatasource::exec() st=%d tid=%d\n", start_transaction, tid);
+   //printd(5, "ManagedDatasource::exec() st=%d tid=%d\n", start_transaction, tid);
 
    return Datasource::exec(query_str, args, xsink);
 }
@@ -252,7 +261,7 @@ bool ManagedDatasource::beginTransaction(ExceptionSink *xsink) {
       return false;
 
    Datasource::beginTransaction(xsink);
-   //printd(0, "ManagedDatasource::beginTransaction() this=%p isInTransaction()=%d\n", this, isInTransaction());
+   //printd(5, "ManagedDatasource::beginTransaction() this=%p isInTransaction()=%d\n", this, isInTransaction());
 
    return dbah.newTransaction();
 }
@@ -395,21 +404,25 @@ AbstractQoreNode *ManagedDatasource::getClientVersion(ExceptionSink *xsink) cons
 }
 
 QoreHashNode* ManagedDatasource::getOptionHash(ExceptionSink* xsink) {
-   DatasourceActionHelper dbah(*this, xsink);
+   DatasourceActionHelper dbah(*this, xsink, DAH_NOCONN);
    if (!dbah)
       return 0;
    return Datasource::getOptionHash();
 }
 
+int ManagedDatasource::setOptionInit(const char* opt, const QoreValue val, ExceptionSink* xsink) {
+   return Datasource::setOption(opt, val, xsink);
+}
+
 int ManagedDatasource::setOption(const char* opt, const QoreValue val, ExceptionSink* xsink) {
-   DatasourceActionHelper dbah(*this, xsink);
+   DatasourceActionHelper dbah(*this, xsink, DAH_NOCONN);
    if (!dbah)
       return 0;
    return Datasource::setOption(opt, val, xsink);
 }
 
 AbstractQoreNode* ManagedDatasource::getOption(const char* opt, ExceptionSink* xsink) {
-   DatasourceActionHelper dbah(*this, xsink);
+   DatasourceActionHelper dbah(*this, xsink, DAH_NOCONN);
    if (!dbah)
       return 0;
    return Datasource::getOption(opt, xsink);

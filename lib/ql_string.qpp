@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ql_string.h>
+#include "qore/intern/ql_string.h"
+#include "qore/intern/qore_number_private.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -39,6 +40,19 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <float.h>
+
+// for use in floating-point number formatting
+// from: http://stackoverflow.com/questions/16839658/printf-width-specifier-to-maintain-precision-of-floating-point-value
+#ifdef DBL_DECIMAL_DIG
+  #define OP_DBL_Digs (DBL_DECIMAL_DIG)
+#else
+  #ifdef DECIMAL_DIG
+    #define OP_DBL_Digs (DECIMAL_DIG)
+  #else
+    #define OP_DBL_Digs (DBL_DIG + 3)
+  #endif
+#endif
 
 static int fix_num(QoreString& tmp, const QoreString& fmt, ExceptionSink* xsink) {
    qore_offset_t off = fmt.getByteOffset(1, xsink);
@@ -96,7 +110,7 @@ static const char* memstr(const char* str, const char* pattern, qore_size_t pl, 
       if (!p)
 	 return 0;
 
-      //printd(5, "memstr() pattern=%s str=%p p=%p len=%d pl=%d remaining=%d (%c %c %c)\n", pattern, str, p, len, pl, len-(p-str), p[1], p[2], p[3]);
+      //printd(5, "memstr() pattern: %s str: %p p: %p len: %d pl: %d remaining: %d (%c %c %c)\n", pattern, str, p, len, pl, len-(p-str), p[1], p[2], p[3]);
 
       // if there is not enough string left for the pattern, then return
       if ((len - (p - str)) < pl)
@@ -115,7 +129,7 @@ static const char* memstr(const char* str, const char* pattern, qore_size_t pl, 
 	 continue;
 
       // found
-      //printd(5, "memstr() got it! p=%p\n", p);
+      //printd(5, "memstr() got it! p: %p\n", p);
       return p;
    }
    return 0;
@@ -185,7 +199,7 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
          while (true) {
             p = memstr(tstr, tquote->getBuffer(), tquote->strlen(), len);
             if (!p) {
-               xsink->raiseException("SPLIT-ERROR", "cannot find closing quote '%s' in field "QSD, tquote->getBuffer(), l->size() + 1);
+               xsink->raiseException("SPLIT-ERROR", "cannot find closing quote '%s' in field " QSD, tquote->getBuffer(), l->size() + 1);
                return 0;
             }
             if (p == tstr)
@@ -206,7 +220,7 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
 
          // or a separator string comes next
          if (len < pl || memcmp(tpattern, ststr, pl)) {
-            xsink->raiseException("SPLIT-ERROR", "separator pattern '%s' does not follow end quote in field "QSD, tpattern, l->size());
+            xsink->raiseException("SPLIT-ERROR", "separator pattern '%s' does not follow end quote in field " QSD, tpattern, l->size());
             return 0;
          }
          ststr += pl;
@@ -272,101 +286,20 @@ QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNode* l, int
    return str.release();
 }
 
-QoreStringNode* format_float_intern(const QoreString& fmt, double num) {
-   int decimals = 0, neg = 1, len;
-   int64 tr, bi, mi, th, val;
-   char thousands_sep, decimal_sep = '.', chr[40], str[40], dec[20];
+QoreStringNode* format_float_intern(const QoreString& fmt, double num, ExceptionSink* xsink) {
+   if (fmt.empty())
+      return q_fix_decimal(new QoreStringNodeMaker("%.9g", num));
+   SimpleRefHolder<QoreStringNode> str(q_fix_decimal(new QoreStringNodeMaker("%.*f", OP_DBL_Digs + 6, num)));
+   if (qore_number_private::formatNumberString(**str, fmt, xsink))
+      return 0;
+   return str.release();
+}
 
-   len = fmt.strlen();
-   if ((len != 1) && (len != 3))
-      return new QoreStringNode;
-
-   thousands_sep = fmt.getBuffer()[0];
-   if (len == 3) {
-      decimal_sep = fmt.getBuffer()[1];
-      decimals = atoi(fmt.getBuffer() + 2);
-   }
-
-   if (num < 0) {
-      neg = -1;
-      num *= -1;
-   }
-   val = (int64)num;
-   if (len == 3) {
-      num -= (double)val;
-      sprintf(chr, "%%.%df", decimals);
-      sprintf(dec, chr, num);
-   }
-   tr = val / 1000000000000ll;
-   val -= tr * 1000000000000ll;
-   bi = val / 1000000000ll;
-   val -= bi * 1000000000ll;
-   mi = val / 1000000ll;
-   val -= mi * 1000000ll;
-   th = val / 1000ll;
-   val -= th * 1000ll;
-   //printd(0, "tr=%lld bi=%lld mi=%lld th=%lld val=%lld\n", tr, bi, mi, th, val);
-
-   if (tr) {
-      if (len == 3)
-         //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld%c%03lld%c%s",
-         sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c%s",
-               neg * tr, thousands_sep,
-               bi, thousands_sep,
-               mi, thousands_sep,
-               th, thousands_sep,
-               val, decimal_sep,
-               dec + 2);
-      else
-         //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld%c%03lld",
-         sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03),
-               neg * tr, thousands_sep,
-               bi, thousands_sep,
-               mi, thousands_sep,
-               th, thousands_sep,
-               val);
-   }
-   else if (bi)
-      if (len == 3)
-         //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld%c%s",
-         sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c%s",
-               neg * bi, thousands_sep,
-               mi, thousands_sep,
-               th, thousands_sep,
-               val, decimal_sep,
-               dec + 2);
-      else
-         //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld",
-         sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03),
-               neg * bi, thousands_sep, mi, thousands_sep,
-               th, thousands_sep, val);
-   else if (mi)
-      if (len == 3)
-         //sprintf(str, "%lld%c%03lld%c%03lld%c%s", neg * mi, thousands_sep,
-         sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c%s", neg * mi, thousands_sep,
-               th, thousands_sep, val, decimal_sep, dec + 2);
-      else
-         //sprintf(str, "%lld%c%03lld%c%03lld", neg * mi, thousands_sep,
-         sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03), neg * mi, thousands_sep,
-               th, thousands_sep, val);
-   else if (th)
-      if (len == 3)
-         //sprintf(str, "%lld%c%03lld%c%s", neg * th, thousands_sep,
-         sprintf(str, QLLD "%c" QLLDx(03) "%c%s", neg * th, thousands_sep,
-               val, decimal_sep,
-               dec + 2);
-      else
-         //sprintf(str, "%lld%c%03lld", neg * th, thousands_sep, val);
-         sprintf(str, QLLD "%c" QLLDx(03), neg * th, thousands_sep, val);
-   else
-      if (len == 3)
-         //sprintf(str, "%lld%c%s", neg * val, decimal_sep, &dec[2]);
-         sprintf(str, QLLD "%c%s", neg * val, decimal_sep, &dec[2]);
-      else
-         //sprintf(str, "%lld", neg * val);
-         sprintf(str, QLLD, neg * val);
-
-   return new QoreStringNode(str);
+QoreStringNode* format_float_intern(int prec, const QoreString& dsep, const QoreString& tsep, double num, ExceptionSink* xsink) {
+   SimpleRefHolder<QoreStringNode> str(q_fix_decimal(new QoreStringNodeMaker("%.*f", OP_DBL_Digs + 6, num)));
+   if (qore_number_private::formatNumberString(**str, prec, dsep, tsep, xsink))
+      return 0;
+   return str.release();
 }
 
 /** @defgroup regex_constants Regular Expression Constants
@@ -863,12 +796,12 @@ int brindex() [flags=RUNTIME_NOOP] {
    return -1;
 }
 
-//! Gives the numeric value of the given byte in the string passed; if no string is passed or the offset is after the end of the string, -1 is returned
+//! Gives the positive numeric value of the given byte in the string passed; if no string is passed or the offset is after the end of the string, -1 is returned
 /**
     @param str the string containing the byte to be retrieved
     @param offset the byte offset of the byte to be retrieved
 
-    @return the numeric value of the given byte in the string passed; if the offset is after the end of the string or negative, -1 is returned
+    @return the positive numeric value of the given byte in the string passed; if the offset is after the end of the string or negative, -1 is returned
 
     @par Example:
     @code{.py}
@@ -881,7 +814,7 @@ int ord(softstring str, softint offset = 0) [flags=CONSTANT] {
    if (offset < 0 || (qore_size_t)offset >= str->strlen())
       return -1;
 
-   return str->getBuffer()[offset];
+   return (unsigned char)str->getBuffer()[offset];
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -1094,7 +1027,7 @@ bool b = regex("hello", "^hel"); # returns True
     @see @ref qore_regex for more information about regular expression support in Qore
  */
 bool regex(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
-   QoreRegexNode qr(*regex, options, xsink);
+   QoreRegex qr(*regex, options, xsink);
    if (*xsink)
       return QoreValue();
 
@@ -1153,7 +1086,7 @@ string regex_subst(string str, string regex, string subst, int options = 0) [fla
    else
       global = false;
 
-   RegexSubstNode qrs(regex, (int)options, xsink);
+   QoreRegexSubst qrs(regex, (int)options, xsink);
    if (*xsink)
       return QoreValue();
 
@@ -1193,7 +1126,7 @@ nothing regex_subst() [flags=RUNTIME_NOOP] {
     @since %Qore 0.8.8 this function accepts the @ref Qore::RE_Global option to extract all occurrences of the pattern(s) in a string
  */
 *list regex_extract(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
-   QoreRegexNode qr(*regex, options, xsink);
+   QoreRegex qr(*regex, options, xsink);
    if (*xsink)
       return QoreValue();
 
@@ -1269,7 +1202,7 @@ string replace(string str, string source, string target, int start = 0, int end 
    }
 
    while (const char* p = strstr(cstr, pattern)) {
-      //printd(5, "str=%p p=%p '%s' '%s'->'%s'\n", cstr, p, cstr, pattern, t1->getBuffer());
+      //printd(5, "str: %p p: %p '%s' '%s'->'%s'\n", cstr, p, cstr, pattern, t1->getBuffer());
       if ((end > 0) && (p - str->getBuffer() + plen) > end)
          break;
 
@@ -1590,8 +1523,8 @@ string trunc_str(softstring str, softint len, *string encoding) [flags=RET_VALUE
    const char* p = tmp->getBuffer();
    int64 sl = 0;
    while (true) {
-      qore_size_t size = enc->getCharLen(p, len - sl);
-      if ((sl + size) > (qore_size_t)len)
+      qore_offset_t size = (qore_offset_t)enc->getCharLen(p, len - sl);
+      if (size <= 0 || ((sl + size) > len))
 	 break;
       sl += size;
       p += size;
@@ -1611,24 +1544,24 @@ string trunc_str(softstring str, softint len, *string encoding) [flags=RET_VALUE
 string ret = strmul("%s,", 3, 1); # returns "%s,%s,%s"
     @endcode
 
-    @throw STRMUL-ERROR \a offset is < 0 or \a smul < 1
+    @throw STRMUL-ERROR \a offset is < 0 or \a smul < 0
  */
 string strmul(softstring str, softint smul, *softint offset) [flags=RET_VALUE_ONLY] {
    if (offset < 0)
-      return xsink->raiseException("STRMUL-ERROR", "Offset argument has to be >= 0; value: "QSD, offset);
+      return xsink->raiseException("STRMUL-ERROR", "Offset argument has to be >= 0; value: " QSD, offset);
 
-   if (smul < 1)
-      return xsink->raiseException("STRMUL-ERROR", "Multiple argument has to be > 0; value: "QSD, smul);
+   if (smul < 0)
+      return xsink->raiseException("STRMUL-ERROR", "Multiple argument has to be >= 0; value: " QSD, smul);
 
-   QoreStringNodeHolder ret(new QoreStringNode(str));
-   while (smul != 1) {
+   QoreStringNodeHolder ret(new QoreStringNode());
+   while (smul > 0) {
       ret->concat(str);
       --smul;
    }
 
    if (offset) {
       if (offset > (int64)ret->length())
-         return xsink->raiseException("STRMUL-ERROR", "Offset ("QLLD") is greater than string length (%d)", offset, ret->length());
+         return xsink->raiseException("STRMUL-ERROR", "Offset (" QLLD ") is greater than string length (%d)", offset, ret->length());
       ret->splice(ret->length() - offset, xsink);
       if (*xsink)
          return QoreValue();
@@ -1639,13 +1572,13 @@ string strmul(softstring str, softint smul, *softint offset) [flags=RET_VALUE_ON
 
 //! Returns a string of a formatted number according to a number argument and a format string
 /** @param fmt the format string has the following format:\n
-    <em>\<thousands_separator\></em><tt>[</tt><em>\<decimal_separator\>\<decimals\></em><tt>]</tt>\n
+    <em>\<thousands_separator\></em><tt>[</tt><em>\<decimal_separator\>[\<decimals\>]</em><tt>]</tt>\n
     where:\n
-    - \a thousands_separator and \a decimal_separator are single ASCII characters defining the thousands and decimal separator characters respectively, and
-    - \a decimals is a single digit defining how may decimals should appear after the decimal point
+    - \a thousands_separator and \a decimal_separator are single characters defining the thousands and decimal separator characters respectively, and
+    - \a decimals is one or more digits defining how may decimals should appear after the decimal point
     @param num the number to format
 
-    @return a string of a formatted number according to a number argument and a format string; if the format string does not follow the given format, then an empty string is returned
+    @return a string of a formatted number according to a number argument and a format string; if the format string does not follow the given format, then the number without formatting is returned
 
     @par Example:
     @code{.py}
@@ -1655,7 +1588,7 @@ string nstr = format_number(".,3", -48392093894.2349); # returns "-48.392.093.89
     @see <float>::format()
  */
 string format_number(string fmt, softfloat num) [flags=CONSTANT] {
-   return format_float_intern(*fmt, num);
+   return format_float_intern(*fmt, num, xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -1983,6 +1916,10 @@ number n = parse_number("1.150.200,55", ".,");
 
     @return the number value represented by the string
 
+    @see
+    - @ref parse_int()
+    - @ref parse_float()
+
     @since %Qore 0.8.11.1
 */
 number parse_number(string str, string fmt) [flags=RET_VALUE_ONLY] {
@@ -1997,16 +1934,20 @@ number parse_number(string str, string fmt) [flags=RET_VALUE_ONLY] {
    return new QoreNumberNode(tmp.getBuffer());
 }
 
-//! returns a number corresponding to the string and the argument, giving the format
+//! returns a floating-point value corresponding to a string representing the number and an argument giving the format
 /** @par Example:
     @code{.py}
-number n = parse_number("1.150.200,55", ".,");
+float f = parse_float("1.150.200,55", ".,");
     @endcode
 
     @param str the string to parse
     @param fmt the format of the number in the string, consisting of two characters, the first for the thousands separator, the second for the decimal point (ex: \c ".," for many European locales)
 
-    @return the number value represented by the string
+    @return the floating-point value represented by the string
+
+    @see
+    - @ref parse_number()
+    - @ref parse_int()
 
     @since %Qore 0.8.11.1
 */
@@ -2019,6 +1960,35 @@ float parse_float(string str, string fmt) [flags=RET_VALUE_ONLY] {
    if (fix_num(tmp, **tfmt, xsink))
       return QoreValue();
 
-   return strtod(tmp.getBuffer(), 0);
+   return q_strtod(tmp.getBuffer());
+}
+
+//! returns an integer corresponding to a string representing the number and an argument giving the format
+/** @par Example:
+    @code{.py}
+int i = parse_int("1.150.200,55", ".,");
+    @endcode
+
+    @param str the string to parse
+    @param fmt the format of the number in the string, consisting of two characters, the first for the thousands separator, the second for the decimal point (ex: \c ".," for many European locales)
+
+    @return the number value represented by the string
+
+    @see
+    - @ref parse_number()
+    - @ref parse_float()
+
+    @since %Qore 0.8.13
+*/
+int parse_int(string str, string fmt) [flags=RET_VALUE_ONLY] {
+   TempEncodingHelper tfmt(fmt, str->getEncoding(), xsink);
+   if (*xsink)
+      return QoreValue();
+
+   QoreString tmp(*str);
+   if (fix_num(tmp, **tfmt, xsink))
+      return QoreValue();
+
+   return strtoll(tmp.getBuffer(), 0, 10);
 }
 //@}
