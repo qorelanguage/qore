@@ -24,7 +24,7 @@ public class SqlUtilTestSchema inherits AbstractSchema {
     }
 
     private *hash doTables(hash tables, hash columns) {
-        foreach string table in (tables.keyIterator()) {
+        foreach string table in (keys tables) {
             foreach hash h in (columns.pairIterator()) {
                 string type = h.value.type ?? h.key;
                 hash ch = (
@@ -67,6 +67,9 @@ public class SqlTestBase inherits QUnit::Test {
 
         list insert_data;
         list upsert_data;
+
+        # constant record
+        *hash crec;
     }
 
     constructor(string testName, string testVer, any args, *hash mopts) : Test(testName, testVer, \args, mopts) {
@@ -88,12 +91,44 @@ public class SqlTestBase inherits QUnit::Test {
 
         table.del();
 
-        BulkInsertOperation insert(table, {"block_size": 3});
-        on_success insert.flush();
-        on_error insert.discard();
+        {
+            BulkInsertOperation insert(table, {"block_size": 3});
+            on_success insert.flush();
+            on_error insert.discard();
 
-        foreach hash data in (insert_data)
-            assertEq(NOTHING, insert.queueData(data));
+            foreach hash data in (insert_data)
+                assertEq(NOTHING, insert.queueData(data + crec));
+        }
+
+        table.del();
+
+        {
+            # now do a bulk insert with a hash of lists
+            BulkInsertOperation insert(table, {"block_size": 3});
+
+            on_success insert.flush();
+            on_error insert.discard();
+
+            assertEq(NOTHING, insert.queueData(getRows(insert_data, 0, 2) + crec));
+            assertEq(NOTHING, insert.queueData(getRows(insert_data, 2, 4) + crec));
+            assertEq(NOTHING, insert.queueData(getRows(insert_data, 4) + crec));
+        }
+
+        # compare data inserted
+        list l = table.selectRows(("orderby": "id"));
+        assertEq(5, l.size());
+        map assertEq(insert_data[$#] + crec + expect_data, $1), l;
+    }
+
+    static hash getRows(list l, int start, int end = -1) {
+        if (end < 0)
+            end = l.size();
+        hash h = map {$1: ()}, keys l[0];
+
+        for (int i = start; i < end; ++i)
+            map h{$1.key} += $1.value, l[i].pairIterator();
+
+        return h;
     }
 
     bulkUpsertTest() {
@@ -109,7 +144,7 @@ public class SqlTestBase inherits QUnit::Test {
         on_error insert.discard();
 
         foreach hash data in (upsert_data)
-            assertEq(NOTHING, insert.queueData(data));
+            assertEq(NOTHING, insert.queueData(data + crec));
     }
 
     static string getColumnName(string n) {
@@ -117,17 +152,18 @@ public class SqlTestBase inherits QUnit::Test {
         return n + "_f";
     }
 
-    initTestData(hash custom_columns) {
+    initTestData(hash custom_columns, *hash const_columns) {
         hash row;
 
         foreach hash h in (custom_columns.pairIterator()) {
             string cn = getColumnName(h.key);
             row{cn} = h.value.bind ?? h.value.value ?? h.value;
-
-            if (h.value.typeCode() == NT_HASH && h.value.hasKey('expect'))
-                expect_data{cn} = h.value.expect;
-            else
-                expect_data{cn} = h.value.bind.'^value^' ?? h.value.value ?? h.value;
+            expect_data{cn} = h.value.expect ?? h.value.bind."^value^" ?? h.value.value ?? h.value;
+        }
+        foreach hash h in (const_columns.pairIterator()) {
+            string cn = getColumnName(h.key);
+            crec{cn} = h.value.bind ?? h.value.value ?? h.value;
+            expect_data{cn} = h.value.expect ?? h.value.bind."^value^" ?? h.value.value ?? h.value;
         }
         insert_data = (
             {"id": 1, "id_": 2, "null_f": "abc"} + row,
