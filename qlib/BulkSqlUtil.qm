@@ -153,7 +153,7 @@ on_error ds.rollback();
             hash cval;
 
             #! "constant" row value keys
-            list cvall;
+            list cval_keys;
 
             #! an optional info logging callback; must accept a sprintf()-style format specifier and optional arguments
             *code info_log;
@@ -257,8 +257,8 @@ on_error ds.rollback();
             data -= ret_args;
 
             # remove constant args
-            if (cvall)
-                data -= cvall;
+            if (cval_keys)
+                data -= cval_keys;
 
             # if we are working with bulk data where the row count would cause the buffer limit to be exceeded
             if (data.firstValue().typeCode() == NT_LIST) {
@@ -370,7 +370,7 @@ on_error ds.rollback();
             if (has_list) {
                 cval = map {$1: remove row.$1}, row.keyIterator(), row.$1.typeCode() != NT_LIST;
                 if (cval)
-                    cvall = cval.keys();
+                    cval_keys = cval.keys();
             }
 
             setupInitialRow(row);
@@ -652,7 +652,7 @@ inserter.setRowCode(rowcode);
                 }
             }
             if (static_ret_expr)
-                cvall += static_ret_expr.keys();
+                cval_keys += static_ret_expr.keys();
         }
 
         #! inserts internally-queued queued data in the database wuith bulk DML operations
