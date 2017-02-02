@@ -160,6 +160,7 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
 
         # issue 1488: currently only reproducible with the following URL
         hc.setURL("https://group.three.com/qcbin/rest/is-authenticated");
+        hc.setTimeout(15s);
         assertThrows("SOCKET-SSL-ERROR", "Connection reset", \hc.get(), ("", ("Host": "group.three.com:443")));
     }
 

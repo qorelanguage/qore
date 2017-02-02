@@ -4,11 +4,9 @@
 
   thread-safe object definition
 
-  references: how many variables are pointing at this object?
-
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -141,7 +139,7 @@ public:
       @param p the QoreProgram object where the object "lives", this QoreProgram object is referenced for the life of the object to ensure that it is not deleted while the object still exists (for example, if the object is exported to a parent QoreProgram object)
       @param data the private data corresponding to the class ID of the class passed
    */
-   DLLEXPORT QoreObject(const QoreClass* oc, QoreProgram* p, AbstractPrivateData *data);
+   DLLEXPORT QoreObject(const QoreClass* oc, QoreProgram* p, AbstractPrivateData* data);
 
    //! returns false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
    /** @return false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
@@ -322,14 +320,23 @@ public:
       @param key the class ID of the class to set the private data for
       @param pd the private data for the given class ID
    */
-   DLLEXPORT void setPrivate(qore_classid_t key, AbstractPrivateData *pd);
+   DLLEXPORT void setPrivate(qore_classid_t key, AbstractPrivateData* pd);
 
    //! returns the private data corresponding to the class ID passed with an incremented reference count, caller owns the reference
    /**
       @param key the class ID of the class to get the private data for
       @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT AbstractPrivateData *getReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const;
+   DLLEXPORT AbstractPrivateData* getReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const;
+
+   //! returns the private data corresponding to the class ID passed with an incremented reference count if it exists, caller owns the reference
+   /**
+      @param key the class ID of the class to get the private data for
+      @param xsink if an error occurs (the object has already been deleted), the Qore-language exception information will be added here
+
+      @since %Qore 0.8.13
+   */
+   DLLEXPORT AbstractPrivateData* tryGetReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const;
 
    //! evaluates the given method with the arguments passed and returns the return value, caller owns the AbstractQoreNode (reference) returned
    /**
@@ -576,13 +583,6 @@ public:
    */
    DLLLOCAL QoreValue evalMember(const QoreString* member, ExceptionSink* xsink);
 
-   //! retuns member data of the object (or 0 if there's an exception), private members are excluded if called outside the class, caller owns the QoreHashNode reference returned
-   /**
-      @param xsink if an error occurs, the Qore-language exception information will be added here
-      @return member data of the object
-   */
-   DLLLOCAL QoreHashNode* getRuntimeMemberHash(ExceptionSink* xsink) const;
-
    DLLLOCAL class KeyNode* getReferencedPrivateDataNode(qore_classid_t key);
 
    //! retrieves the private data pointer and clears it from the object's private data store, used when executing destructors
@@ -590,7 +590,7 @@ public:
       @param key the class key to use
       @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLLOCAL AbstractPrivateData *getAndClearPrivateData(qore_classid_t key, ExceptionSink* xsink);
+   DLLLOCAL AbstractPrivateData* getAndClearPrivateData(qore_classid_t key, ExceptionSink* xsink);
 
    //! called to evaluate a builtin method when private data is available
    /**
@@ -659,9 +659,6 @@ public:
 
    //! executes the member notification on the object the given member
    DLLLOCAL void execMemberNotification(const char* member, ExceptionSink* xsink);
-
-   //! returns a pointer to an object member during initialization (no locking; interal use only)
-   DLLLOCAL AbstractQoreNode** getMemberValuePtrForInitialization(const char* member);
 };
 
 //! convenience class for holding AbstractPrivateData references
@@ -672,17 +669,15 @@ public:
    }
 };
 
+//! convenience class for holding AbstractPrivateData references
+template <class T>
+class TryPrivateDataRefHolder : public ReferenceHolder<T> {
+public:
+   DLLLOCAL TryPrivateDataRefHolder(const QoreObject* o, qore_classid_t cid, ExceptionSink* xsink) : ReferenceHolder<T>(reinterpret_cast<T*>(o->tryGetReferencedPrivateData(cid, xsink)), xsink) {
+   }
+};
+
 class QorePrivateObjectAccessHelper {
-private:
-   // not implemented
-   DLLLOCAL QorePrivateObjectAccessHelper(const QorePrivateObjectAccessHelper&);
-   DLLLOCAL QorePrivateObjectAccessHelper& operator=(const QorePrivateObjectAccessHelper&);
-   DLLLOCAL void* operator new(size_t);
-
-protected:
-   ExceptionSink* xsink;
-   void* ptr;
-
 public:
    DLLLOCAL QorePrivateObjectAccessHelper(ExceptionSink* xs) : xsink(xs), ptr(0) {
    }
@@ -690,6 +685,15 @@ public:
    DLLLOCAL operator bool() const {
       return (bool)ptr;
    }
+
+private:
+   DLLLOCAL QorePrivateObjectAccessHelper(const QorePrivateObjectAccessHelper&) = delete;
+   DLLLOCAL QorePrivateObjectAccessHelper& operator=(const QorePrivateObjectAccessHelper&) = delete;
+   DLLLOCAL void* operator new(size_t) = delete;
+
+protected:
+   ExceptionSink* xsink;
+   void* ptr;
 };
 
 #endif

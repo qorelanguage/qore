@@ -3,7 +3,7 @@
 
   Qore programming language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/QoreHashNodeIntern.h>
+#include "qore/intern/QoreHashNodeIntern.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -76,7 +76,7 @@ static inline int in_list(AbstractQoreNode *node, struct node_row_list_s *nlist,
 }
 
 /*
- * if exp == 0, then it is a subcontext.  Calling with exp == 0 
+ * if exp == 0, then it is a subcontext.  Calling with exp == 0
  * should only be possible if there is a parent context, so no checks are
  * needed to see if there really is a parent context.
  * The code in summary contexts is only executed once for each discrete value,
@@ -87,7 +87,7 @@ static inline int in_list(AbstractQoreNode *node, struct node_row_list_s *nlist,
  * (for now)
  */
 
-Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, AbstractQoreNode *cond, 
+Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, AbstractQoreNode *cond,
 		 int sort_type, AbstractQoreNode *sort, AbstractQoreNode *summary,
 		 int ignore_key) : value(0), master_row_list(0), row_list(0), group_values(0) {
    int allocated = 0;
@@ -151,11 +151,11 @@ Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, Abstrac
       }
       else
 	 max_pos = 0;
-      
+
       rv.release();
    }
 
-   printd(5, "Context::Context() %s max_pos=%d row_list=%p\n", 
+   printd(5, "Context::Context() %s max_pos=%d row_list=%p\n",
 	  sub ? "<SUBCONTEXT>" : "<NORMAL>", max_pos, row_list);
    // check for nested contexts
 /*
@@ -178,7 +178,7 @@ Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, Abstrac
 */
    //printd(2, "Context::Context() %p (%s) cond=%p\n", key, key ? sense == K_DIRECT ? "direct" : "reverse" : "none", cond);
    // if there are restrictions, then evaluate each row
-   if (//key || 
+   if (//key ||
        cond)
    {
       // use master_row_list to hold the new row_list
@@ -193,13 +193,13 @@ Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, Abstrac
       for (pos = 0; pos < max_pos; pos++)
       {
 	 //printd(5, "Context::Context() row iteration: %d/%d (%p)\n", pos, max_pos, key);
-	 
+
 	 // if query is in nested context
 /*
 	 if (key)
 	 {
 	    int j, rc = 1;
-	    
+
 	    // if the parent context is a summary context
 	    if (next->master_row_list)
 	    {
@@ -208,7 +208,7 @@ Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, Abstrac
 	       for (j = 0; j < next->max_pos && !*e; j++)
 		  if (!(rc = compareSoft(&query->row_val[row_list[pos]][lcolumn],
 		        &next->query->row_val[next->row_list[j]][fcolumn], xsink)))
-	             break;	       
+	             break;
 	    }
 	    else // otherwise it is a "regular" subcontext
 	       rc = compareSoft(&query->row_val[row_list[pos]][lcolumn],
@@ -221,7 +221,7 @@ Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, Abstrac
 	       printd(5, "Context::Context() row %d REJECTED (ne key match)\n", pos);
 	       master_row_list[pos] = 0;
 	       continue;
-	    } 
+	    }
 	 }
 */
 	 // if there are constraints to check
@@ -317,9 +317,9 @@ Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, Abstrac
 	    return;
 	 }
 
-	 printd(5, "%d: start row_list: %p\n", max_group_pos, 
+	 printd(5, "%d: start row_list: %p\n", max_group_pos,
 		group_values[max_group_pos].row_list);
-	 group_values[max_group_pos].row_list[0] = 
+	 group_values[max_group_pos].row_list[0] =
 	    master_row_list[pos];
 	 printd(4, "Context::Context() row %d creating unique value list %d\n",
 		master_row_list[pos], max_group_pos);
@@ -354,7 +354,7 @@ Context::~Context() {
       free(master_row_list);
       if (group_values) {
 	 int i;
-	 
+
 	 for (i = 0; i < max_group_pos; i++) {
 	    printd(5, "%d/%d: ", i, max_group_pos);
 	    group_values[i].node->deref(0);
@@ -375,7 +375,7 @@ Context::~Context() {
 int Context::check_condition(AbstractQoreNode *cond, ExceptionSink *xsinkx) {
    AbstractQoreNode *val;
    int rc;
-   
+
    QORE_TRACE("Context::check_condition()");
    val = cond->eval(xsinkx);
    if (xsinkx->isEvent()) {
@@ -452,7 +452,7 @@ QoreHashNode *Context::getRow(ExceptionSink *xsink) {
 	 h->setKeyValue(key, l->eval_entry(row_list[pos], xsink), 0);
       }
    }
-   
+
    return h.release();
 }
 
@@ -466,16 +466,15 @@ static inline int compare_templist(class Templist t1, class Templist t2) {
       return 1;
 
    ExceptionSink xsink;
-   ValueHolder v(OP_LOG_LT->eval(t1.node, t2.node, true, &xsink), &xsink);
-   return (int)v->getAsBool();
+   return QoreLogicalLessThanOperatorNode::doLessThan(t1.node, t2.node, &xsink);
 }
 
 void Context::Sort(AbstractQoreNode *snode, int sort_type) {
    int sense = 1, i;
 
    QORE_TRACE("Context::Sort()");
-      
-   printd(5, "sorting context (%d row(s)) (type=%d)\n", 
+
+   printd(5, "sorting context (%d row(s)) (type=%d)\n",
 	  //query->name,
 	  max_pos, sort_type);
    Templist *list = new Templist[max_pos];
@@ -505,14 +504,14 @@ void Context::Sort(AbstractQoreNode *snode, int sort_type) {
    {
       i = max_pos - 1;
       sense = -1;
-   }   
+   }
    else
       i = 0;
    for (pos = 0; pos < max_pos; pos++)
    {
       row_list[pos] = list[i].pos;
       printd(5, "Context::Sort() deref(): max=%d list[%d].node = %p (refs=%d)\n",
-	     max_pos, i, list[i].node ? list[pos].node : 0, 
+	     max_pos, i, list[i].node ? list[pos].node : 0,
 	     list[pos].node ? list[i].node->reference_count() : 0);
       discard(list[i].node, sort_xsink);
       i += sense;
