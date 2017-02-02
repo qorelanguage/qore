@@ -1768,7 +1768,7 @@ AC_SUBST([libdir])
 # set module path
 if test "$windows" = yes; then
   winprefix="z:${myprefix}"
-  winlibdir=`echo ${mypkglibdir}|sed 's/\/$//`
+  winlibdir=`echo ${mypkglibdir}|sed 's/\/$//'`
   # we don't know the real final install location, but at least we can set a valid windows path
   MODULE_DIR="${winprefix}/lib${LIBSUFFIX}/${winlibdir}"
   USER_MODULE_DIR="${winprefix}/share/${winlibdir}"
