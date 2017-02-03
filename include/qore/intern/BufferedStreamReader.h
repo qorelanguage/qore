@@ -50,7 +50,7 @@ public:
       bufCount(0),
       buf(0) {
       if (bufsize <= 0) {
-         xsink->raiseException("STREAM-BUFFER-ERROR", "the buffer size must be > 0 (value provided: " QLLD ")", (int64)bufsize);
+         xsink->raiseException("STREAM-BUFFER-ERROR", "the buffer size must be > 0 (value provided: " QLLD ")", bufsize);
          return;
       }
 
@@ -103,7 +103,7 @@ private:
             return -1;
          if (!rc) {
             if (require_all) {
-               xsink->raiseException("END-OF-STREAM-ERROR", "there is not enough data available in the stream; " QLLD " bytes were requested, and " QLLD " were read", (int64)limit, (int64)read);
+               xsink->raiseException("END-OF-STREAM-ERROR", "there is not enough data available in the stream; " QSD " bytes were requested, and " QSD " were read", limit, read);
                return -1;
             }
             break;
@@ -124,7 +124,7 @@ private:
             return -1;
          if (!rc) {
             if (require_all) {
-               xsink->raiseException("END-OF-STREAM-ERROR", "there is not enough data available in the stream; " QLLD " bytes were requested, and " QLLD " were read", (int64)limit, (int64)read);
+               xsink->raiseException("END-OF-STREAM-ERROR", "there is not enough data available in the stream; " QSD " bytes were requested, and " QSD " were read", limit, read);
                return -1;
             }
             break;
@@ -169,7 +169,7 @@ private:
 
    DLLLOCAL bool prepareEnoughData(qore_size_t bytes, ExceptionSink* xsink) {
       if (bytes > bufCapacity) {
-         xsink->raiseException("STREAM-BUFFER-ERROR", "a read of " QLLD " bytes was attempted on a BufferedStreamReader with a capacity of " QLLD " bytes", (int64)bytes, (int64)bufCapacity);
+         xsink->raiseException("STREAM-BUFFER-ERROR", "a read of " QSD " bytes was attempted on a BufferedStreamReader with a capacity of " QSD " bytes", bytes, bufCapacity);
          return false;
       }
       if (bufCount < bytes) {
@@ -179,7 +179,7 @@ private:
                return false;
             }
             if (rc == 0) {
-               xsink->raiseException("END-OF-STREAM-ERROR", "a read of " QLLD " bytes cannot be performed because there is not enough data available in the stream to satisfy the request", (int64)bytes);
+               xsink->raiseException("END-OF-STREAM-ERROR", "a read of " QSD " bytes cannot be performed because there is not enough data available in the stream to satisfy the request", bytes);
                return false;
             }
             if (bufCount >= bytes)

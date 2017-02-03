@@ -50,7 +50,7 @@ protected:
          return 0;
       const AbstractQoreNode* n = getValue();
       if (get_node_type(n) != NT_HASH) {
-         xsink->raiseException("ITERATOR-ERROR", "The %s object is not a list of hashes, element " QLLD " (starting with 0) is type '%s' instead (expected 'hash')", getName(), (int64)index(), get_type_name(n));
+         xsink->raiseException("ITERATOR-ERROR", "The %s object is not a list of hashes, element " QSD " (starting with 0) is type '%s' instead (expected 'hash')", getName(), index(), get_type_name(n));
          return 0;
       }
       return static_cast<const QoreHashNode*>(n);
@@ -60,7 +60,7 @@ protected:
       bool exists = false;
       const AbstractQoreNode* n = h->getKeyValueExistence(key, exists);
       if (!exists) {
-         xsink->raiseException("LISTHASHITERATOR-ERROR", "key '%s' does not exist in the hash at element " QLLD " (starting with 0)", key, (int64)index());
+         xsink->raiseException("LISTHASHITERATOR-ERROR", "key '%s' does not exist in the hash at element " QSD " (starting with 0)", key, index());
          return 0;
       }
       return n ? n->refSelf() : 0;
