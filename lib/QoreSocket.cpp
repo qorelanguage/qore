@@ -510,11 +510,7 @@ int qore_socket_private::send(int fd, qore_offset_t size, int timeout_ms, Except
          if (rc >= 0)
             break;
          if (errno != EINTR) {
-<<<<<<< HEAD
             xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QLLD " bytes read in Socket::send()", (int64)bs);
-=======
-            xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QLLD " bytes read in Socket::send()", bs);
->>>>>>> develop
             break;
          }
       }
@@ -542,11 +538,7 @@ int qore_socket_private::recv(int fd, qore_offset_t size, int timeout_ms, Except
    if (!size)
       return 0;
    if (sock == QORE_INVALID_SOCKET) {
-<<<<<<< HEAD
       printd(5, "QoreSocket::send() ERROR: sock: %d size: " QSD "\n", sock, (int64)size);
-=======
-      printd(5, "QoreSocket::send() ERROR: sock: %d size: " QSD "\n", sock, size);
->>>>>>> develop
       se_not_open("Socket", "recv", xsink);
       return -1;
    }
@@ -577,11 +569,7 @@ int qore_socket_private::recv(int fd, qore_offset_t size, int timeout_ms, Except
             break;
          // write(2) should not return 0, but in case it does, it's treated as an error
          if (errno != EINTR) {
-<<<<<<< HEAD
             xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QLLD " bytes read in Socket::send()", (int64)br);
-=======
-            xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QLLD " bytes read in Socket::send()", br);
->>>>>>> develop
             break;
          }
       }
@@ -1344,11 +1332,7 @@ int64 QoreSocket::recvu4LSB(int timeout, unsigned int *val, ExceptionSink* xsink
 
 int QoreSocket::send(int fd, qore_offset_t size) {
    if (priv->sock == QORE_INVALID_SOCKET || !size) {
-<<<<<<< HEAD
       printd(5, "QoreSocket::send() ERROR: sock: %d size: " QSD "\n", priv->sock, (int64)size);
-=======
-      printd(5, "QoreSocket::send() ERROR: sock: %d size: " QSD "\n", priv->sock, size);
->>>>>>> develop
       return -1;
    }
 
