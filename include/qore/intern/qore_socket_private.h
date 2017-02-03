@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1591,22 +1591,14 @@ struct qore_socket_private {
 		  se_closed("Socket", meth, xsink);
 	       }
 	       else
-<<<<<<< Updated upstream
 		  xsink->raiseExceptionArg("SOCKET-HTTP-ERROR", hdr.release(), "socket closed on remote end while reading header data after reading " QSD " byte%s", (int64)count, (int64)count == 1 ? "" : "s");
-=======
-		  xsink->raiseExceptionArg("SOCKET-HTTP-ERROR", hdr.release(), "socket closed on remote end while reading header data after reading " QSD " byte%s", count, count == 1 ? "" : "s");
->>>>>>> Stashed changes
 	    }
 	    return 0;
 	 }
 	 char c = buf[0];
 	 if (++count == QORE_MAX_HEADER_SIZE) {
 	    if (xsink)
-<<<<<<< Updated upstream
 	       xsink->raiseException("SOCKET-HTTP-ERROR", "header size cannot exceed " QSD " bytes", (int64)count);
-=======
-	       xsink->raiseException("SOCKET-HTTP-ERROR", "header size cannot exceed " QSD " bytes", count);
->>>>>>> Stashed changes
 	    return 0;
 	 }
 
@@ -1688,11 +1680,7 @@ struct qore_socket_private {
 	 rc = brecv(xsink, "recv", buf, bs, 0, timeout, false);
 
 	 if (rc <= 0) {
-<<<<<<< Updated upstream
 	    printd(5, "qore_socket_private::recv(" QSD ", %d) bs=" QSD ", br=" QSD ", rc=" QSD ", errno: %d (%s)\n", (int64)bufsize, timeout, (int64)bs, (int64)str->size(), (int64)rc, errno, strerror(errno));
-=======
-	    printd(5, "qore_socket_private::recv(%d, %d) bs=" QSD ", br=" QSD ", rc=" QSD ", errno: %d (%s)\n", bufsize, timeout, bs, str->size(), rc, errno, strerror(errno));
->>>>>>> Stashed changes
 	    break;
 	 }
 
@@ -1709,11 +1697,7 @@ struct qore_socket_private {
 	 }
       }
 
-<<<<<<< Updated upstream
       printd(5, "qore_socket_private::recv() received " QSD " byte(s), bufsize=" QSD ", strlen=" QSD " str='%s'\n", (int64)str->size(), (int64)bufsize, (int64)(str ? str->strlen() : 0), str ? str->getBuffer() : "n/a");
-=======
-      printd(5, "qore_socket_private::recv() received " QSD " byte(s), bufsize=" QSD ", strlen=" QSD " str='%s'\n", str->size(), bufsize, (size_t)(str ? str->strlen() : 0), str ? str->getBuffer() : "n/a");
->>>>>>> Stashed changes
 
       // "fix" return code value if no error occurred
       if (rc >= 0)
@@ -1761,7 +1745,7 @@ struct qore_socket_private {
       if (isDataAvailable(0, "recv", xsink)) {
 	 do {
 	    rc = brecv(xsink, "recv", buf, DEFAULT_SOCKET_BUFSIZE, 0, 0, false);
-	    //printd(5, "qore_socket_private::recv(to: %d) rc=" QSD " rd=" QSD "\n", timeout, rc, str->size());
+	    //printd(5, "qore_socket_private::recv(to: %d) rc=" QSD " rd=" QSD "\n", timeout, (int64)rc, (int64)str->size());
 	    // if the remote end has closed the connection, return what we have
 	    if (!rc)
 	       break;
@@ -1836,11 +1820,7 @@ struct qore_socket_private {
       if (rc >= 0)
 	 rc = b->size();
 
-<<<<<<< Updated upstream
       printd(5, "qore_socket_private::recvBinary() received " QSD " byte(s), bufsize=" QSD ", blen=" QSD "\n", (int64)b->size(), (int64)bufsize, (int64)b->size());
-=======
-      printd(5, "qore_socket_private::recvBinary() received " QSD " byte(s), bufsize=" QSD ", blen=" QSD "\n", b->size(), bufsize, b->size());
->>>>>>> Stashed changes
       return b.release();
    }
 
@@ -1866,7 +1846,7 @@ struct qore_socket_private {
 
       SimpleRefHolder<BinaryNode> b(new BinaryNode);
 
-      //printd(5, "QoreSocket::recvBinary(%d, " QSD ") this: %p\n", timeout, rc, this);
+      //printd(5, "QoreSocket::recvBinary(%d, " QSD ") this: %p\n", timeout, (int64)rc, this);
       // perform first read with timeout
       char* buf;
       rc = brecv(xsink, "recvBinary", buf, DEFAULT_SOCKET_BUFSIZE, 0, timeout, false);
