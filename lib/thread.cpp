@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,7 @@
 #include <qore/intern/ConstantList.h>
 #include <qore/intern/QoreSignal.h>
 #include <qore/intern/qore_program_private.h>
+#include <qore/intern/ModuleInfo.h>
 
 // to register object types
 #include <qore/intern/QC_Queue.h>
