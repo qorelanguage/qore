@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -142,11 +142,11 @@ QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
 #ifdef DEBUG
    if (vt == NT_LIST) {
       QoreListNode *vl = reinterpret_cast<QoreListNode*>(val.getValue());
-      printd(5, "op_extract() val: %p (size: " QLLD ") offset: " QSD "\n", vl, vl->size(), offset);
+      printd(5, "op_extract() val: %p (size: " QLLD ") offset: " QSD "\n", vl, (int64)vl->size(), (int64)offset);
    }
    else if (vt == NT_STRING) {
       QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(val.getValue());
-      printd(5, "op_extract() val: %p (strlen: " QLLD ") offset: " QSD "\n", vs, vs->strlen(), offset);
+      printd(5, "op_extract() val: %p (strlen: " QLLD ") offset: " QSD "\n", vs, (int64)vs->strlen(), (int64)offset);
    }
 #endif
 

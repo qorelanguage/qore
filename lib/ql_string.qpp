@@ -199,7 +199,7 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
          while (true) {
             p = memstr(tstr, tquote->getBuffer(), tquote->strlen(), len);
             if (!p) {
-               xsink->raiseException("SPLIT-ERROR", "cannot find closing quote '%s' in field " QSD, tquote->getBuffer(), l->size() + 1);
+               xsink->raiseException("SPLIT-ERROR", "cannot find closing quote '%s' in field " QSD, tquote->getBuffer(), (int64)(l->size() + 1));
                return 0;
             }
             if (p == tstr)
@@ -220,7 +220,7 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
 
          // or a separator string comes next
          if (len < pl || memcmp(tpattern, ststr, pl)) {
-            xsink->raiseException("SPLIT-ERROR", "separator pattern '%s' does not follow end quote in field " QSD, tpattern, l->size());
+            xsink->raiseException("SPLIT-ERROR", "separator pattern '%s' does not follow end quote in field " QSD, tpattern, (int64)l->size());
             return 0;
          }
          ststr += pl;
@@ -1553,7 +1553,7 @@ string strmul(softstring str, softint smul, *softint offset) [flags=RET_VALUE_ON
    if (smul < 0)
       return xsink->raiseException("STRMUL-ERROR", "Multiple argument has to be >= 0; value: " QSD, smul);
 
-   QoreStringNodeHolder ret(new QoreStringNode());
+   QoreStringNodeHolder ret(new QoreStringNode);
    while (smul > 0) {
       ret->concat(str);
       --smul;
@@ -1561,7 +1561,7 @@ string strmul(softstring str, softint smul, *softint offset) [flags=RET_VALUE_ON
 
    if (offset) {
       if (offset > (int64)ret->length())
-         return xsink->raiseException("STRMUL-ERROR", "Offset (" QLLD ") is greater than string length (%d)", offset, ret->length());
+         return xsink->raiseException("STRMUL-ERROR", "Offset (" QLLD ") is greater than string length (" QLLD ")", offset, (int64)ret->length());
       ret->splice(ret->length() - offset, xsink);
       if (*xsink)
          return QoreValue();

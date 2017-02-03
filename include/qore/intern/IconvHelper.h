@@ -69,7 +69,7 @@ public:
    void reportIllegalSequence(size_t offset, ExceptionSink *xsink) {
       xsink->raiseException("ENCODING-CONVERSION-ERROR",
                             "illegal character sequence at byte offset " QLLD " found in input type \"%s\" (while converting to \"%s\")",
-                            offset, from->getCode(), to->getCode());
+                            (int64)offset, from->getCode(), to->getCode());
    }
 
    void reportUnknownError(ExceptionSink *xsink) {

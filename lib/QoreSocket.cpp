@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -485,7 +485,7 @@ int qore_socket_private::send(int fd, qore_offset_t size, int timeout_ms, Except
    if (!size)
       return 0;
    if (sock == QORE_INVALID_SOCKET) {
-      printd(5, "QoreSocket::send() ERROR: sock: %d size: " QSD "\n", sock, size);
+      printd(5, "QoreSocket::send() ERROR: sock: %d size: " QSD "\n", sock, (int64)size);
       se_not_open("Socket", "send", xsink);
       return -1;
    }
@@ -510,7 +510,7 @@ int qore_socket_private::send(int fd, qore_offset_t size, int timeout_ms, Except
          if (rc >= 0)
             break;
          if (errno != EINTR) {
-            xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QLLD " bytes read in Socket::send()", bs);
+            xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QLLD " bytes read in Socket::send()", (int64)bs);
             break;
          }
       }
@@ -538,7 +538,7 @@ int qore_socket_private::recv(int fd, qore_offset_t size, int timeout_ms, Except
    if (!size)
       return 0;
    if (sock == QORE_INVALID_SOCKET) {
-      printd(5, "QoreSocket::send() ERROR: sock: %d size: " QSD "\n", sock, size);
+      printd(5, "QoreSocket::send() ERROR: sock: %d size: " QSD "\n", sock, (int64)size);
       se_not_open("Socket", "recv", xsink);
       return -1;
    }
@@ -569,7 +569,7 @@ int qore_socket_private::recv(int fd, qore_offset_t size, int timeout_ms, Except
             break;
          // write(2) should not return 0, but in case it does, it's treated as an error
          if (errno != EINTR) {
-            xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QLLD " bytes read in Socket::send()", br);
+            xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QLLD " bytes read in Socket::send()", (int64)br);
             break;
          }
       }
@@ -1332,7 +1332,7 @@ int64 QoreSocket::recvu4LSB(int timeout, unsigned int *val, ExceptionSink* xsink
 
 int QoreSocket::send(int fd, qore_offset_t size) {
    if (priv->sock == QORE_INVALID_SOCKET || !size) {
-      printd(5, "QoreSocket::send() ERROR: sock: %d size: " QSD "\n", priv->sock, size);
+      printd(5, "QoreSocket::send() ERROR: sock: %d size: " QSD "\n", priv->sock, (int64)size);
       return -1;
    }
 

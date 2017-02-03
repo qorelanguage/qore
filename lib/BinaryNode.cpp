@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -138,7 +138,7 @@ int BinaryNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) con
       str.sprintf("!!binary %s", bstr.getBuffer());
    }
    else
-      str.sprintf("binary object %p (" QSD " byte%s)", getPtr(), size(), size() == 1 ? "" : "s");
+      str.sprintf("binary object %p (" QSD " byte%s)", getPtr(), (int64)size(), size() == 1 ? "" : "s");
    return 0;
 }
 
@@ -292,7 +292,7 @@ void BinaryNode::splice(qore_offset_t offset, qore_offset_t length, const void* 
 }
 
 int BinaryNode::substr(BinaryNode& b, qore_offset_t offset) const {
-   printd(5, "BinaryNode::substr(offset: " QSD ") this: %p len: " QSD ")\n", offset, this, len);
+   printd(5, "BinaryNode::substr(offset: " QSD ") this: %p len: " QSD ")\n", (int64)offset, this, (int64)len);
 
    checkOffset(offset);
    if (offset == (qore_offset_t)len)
@@ -303,7 +303,7 @@ int BinaryNode::substr(BinaryNode& b, qore_offset_t offset) const {
 }
 
 int BinaryNode::substr(BinaryNode& b, qore_offset_t offset, qore_offset_t length) const {
-   printd(5, "BinaryNode::substr(offset: " QSD ", length: " QSD ") this: %p len: " QSD "\n", offset, length, this, len);
+   printd(5, "BinaryNode::substr(offset: " QSD ", length: " QSD ") this: %p len: " QSD "\n", (int64)offset, (int64)length, this, (int64)len);
 
    checkOffset(offset, length);
 

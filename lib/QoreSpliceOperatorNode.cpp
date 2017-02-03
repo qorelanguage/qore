@@ -143,7 +143,11 @@ QoreValue QoreSpliceOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
 #ifdef DEBUG
    if (vt == NT_LIST) {
       QoreListNode *vl = reinterpret_cast<QoreListNode*>(val.getValue());
-      printd(5, "op_splice() val: %p (size: " QSD ") offset: " QSD "\n", vl, vl->size(), offset);
+      printd(5, "op_splice() val: %p (size: " QSD ") offset: " QSD "\n", vl, (int64)vl->size(), (int64)offset);
+   }
+   else if (vt == NT_STRING) {
+      QoreStringNode *vs = reinterpret_cast<QoreStringNode*>(val.getValue());
+      printd(5, "op_splice() val: %p (strlen: " QSD ") offset: " QSD "\n", vs, (int64)vs->strlen(), (int64)offset);
    }
    else if (vt == NT_STRING) {
       QoreStringNode *vs = reinterpret_cast<QoreStringNode*>(val.getValue());
