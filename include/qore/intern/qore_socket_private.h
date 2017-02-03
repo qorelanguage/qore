@@ -420,7 +420,7 @@ struct qore_socket_private {
       }
       // add data and content-length header if necessary
       if (size || addsize)
-	 hdr.sprintf("Content-Length: " QSD "\r\n", (int64)size);
+	 hdr.sprintf("Content-Length: " QSD "\r\n", size);
 
       hdr.concat("\r\n");
    }
@@ -1591,14 +1591,14 @@ struct qore_socket_private {
 		  se_closed("Socket", meth, xsink);
 	       }
 	       else
-		  xsink->raiseExceptionArg("SOCKET-HTTP-ERROR", hdr.release(), "socket closed on remote end while reading header data after reading " QSD " byte%s", (int64)count, (int64)count == 1 ? "" : "s");
+		  xsink->raiseExceptionArg("SOCKET-HTTP-ERROR", hdr.release(), "socket closed on remote end while reading header data after reading " QSD " byte%s", count, count == 1 ? "" : "s");
 	    }
 	    return 0;
 	 }
 	 char c = buf[0];
 	 if (++count == QORE_MAX_HEADER_SIZE) {
 	    if (xsink)
-	       xsink->raiseException("SOCKET-HTTP-ERROR", "header size cannot exceed " QSD " bytes", (int64)count);
+	       xsink->raiseException("SOCKET-HTTP-ERROR", "header size cannot exceed " QSD " bytes", count);
 	    return 0;
 	 }
 
@@ -1680,7 +1680,7 @@ struct qore_socket_private {
 	 rc = brecv(xsink, "recv", buf, bs, 0, timeout, false);
 
 	 if (rc <= 0) {
-	    printd(5, "qore_socket_private::recv(" QSD ", %d) bs=" QSD ", br=" QSD ", rc=" QSD ", errno: %d (%s)\n", (int64)bufsize, timeout, (int64)bs, (int64)str->size(), (int64)rc, errno, strerror(errno));
+	    printd(5, "qore_socket_private::recv(" QSD ", %d) bs=" QSD ", br=" QSD ", rc=" QSD ", errno: %d (%s)\n", bufsize, timeout, bs, str->size(), rc, errno, strerror(errno));
 	    break;
 	 }
 
@@ -1697,7 +1697,7 @@ struct qore_socket_private {
 	 }
       }
 
-      printd(5, "qore_socket_private::recv() received " QSD " byte(s), bufsize=" QSD ", strlen=" QSD " str='%s'\n", (int64)str->size(), (int64)bufsize, (int64)(str ? str->strlen() : 0), str ? str->getBuffer() : "n/a");
+      printd(5, "qore_socket_private::recv() received " QSD " byte(s), bufsize=" QSD ", strlen=" QSD " str='%s'\n", str->size(), bufsize, (str ? str->strlen() : 0), str ? str->getBuffer() : "n/a");
 
       // "fix" return code value if no error occurred
       if (rc >= 0)
@@ -1745,7 +1745,7 @@ struct qore_socket_private {
       if (isDataAvailable(0, "recv", xsink)) {
 	 do {
 	    rc = brecv(xsink, "recv", buf, DEFAULT_SOCKET_BUFSIZE, 0, 0, false);
-	    //printd(5, "qore_socket_private::recv(to: %d) rc=" QSD " rd=" QSD "\n", timeout, (int64)rc, (int64)str->size());
+	    //printd(5, "qore_socket_private::recv(to: %d) rc=" QSD " rd=" QSD "\n", timeout, rc, str->size());
 	    // if the remote end has closed the connection, return what we have
 	    if (!rc)
 	       break;
@@ -1820,7 +1820,7 @@ struct qore_socket_private {
       if (rc >= 0)
 	 rc = b->size();
 
-      printd(5, "qore_socket_private::recvBinary() received " QSD " byte(s), bufsize=" QSD ", blen=" QSD "\n", (int64)b->size(), (int64)bufsize, (int64)b->size());
+      printd(5, "qore_socket_private::recvBinary() received " QSD " byte(s), bufsize=" QSD ", blen=" QSD "\n", b->size(), bufsize, b->size());
       return b.release();
    }
 
@@ -1846,7 +1846,7 @@ struct qore_socket_private {
 
       SimpleRefHolder<BinaryNode> b(new BinaryNode);
 
-      //printd(5, "QoreSocket::recvBinary(%d, " QSD ") this: %p\n", timeout, (int64)rc, this);
+      //printd(5, "QoreSocket::recvBinary(%d, " QSD ") this: %p\n", timeout, rc, this);
       // perform first read with timeout
       char* buf;
       rc = brecv(xsink, "recvBinary", buf, DEFAULT_SOCKET_BUFSIZE, 0, timeout, false);

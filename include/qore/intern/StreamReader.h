@@ -332,7 +332,7 @@ private:
          //printd(5, "StreamReader::readData() dest: %p limit: " QLLD " read: " QLLD " rc: " QLLD " char: %d\n", dest, limit, read, rc, destPtr[0]);
          if (!rc) {
             if (require_all) {
-               xsink->raiseException("END-OF-STREAM-ERROR", "there is not enough data available in the stream; " QLLD " bytes were requested, and " QLLD " were read", (int64)limit, (int64)read);
+               xsink->raiseException("END-OF-STREAM-ERROR", "there is not enough data available in the stream; " QSD " bytes were requested, and " QSD " were read", limit, read);
                return -1;
             }
             break;

@@ -2027,7 +2027,7 @@ int QoreString::snprintf(size_t size, const char* fmt, ...) {
 
 int QoreString::substr_simple(QoreString* ns, qore_offset_t offset, qore_offset_t length) const {
    printd(5, "QoreString::substr_simple(offset=" QSD ", length=" QSD ") string=\"%s\" (this=%p priv->len=" QSD ")\n",
-	  (int64)offset, (int64)length, priv->buf, this, (int64)priv->len);
+	  offset, length, priv->buf, this, priv->len);
 
    qore_size_t n_offset;
    if (offset < 0)
@@ -2056,7 +2056,7 @@ int QoreString::substr_simple(QoreString* ns, qore_offset_t offset, qore_offset_
 
 int QoreString::substr_simple(QoreString* ns, qore_offset_t offset) const {
    printd(5, "QoreString::substr_simple(offset=" QSD ") string=\"%s\" (this=%p priv->len=" QSD ")\n",
-	  (int64)offset, priv->buf, this, (int64)priv->len);
+	  offset, priv->buf, this, priv->len);
 
    qore_size_t n_offset;
    if (offset < 0)
@@ -2074,7 +2074,7 @@ int QoreString::substr_simple(QoreString* ns, qore_offset_t offset) const {
 int QoreString::substr_complex(QoreString* ns, qore_offset_t offset, qore_offset_t length, ExceptionSink* xsink) const {
    QORE_TRACE("QoreString::substr_complex(offset, length)");
    printd(5, "QoreString::substr_complex(offset=" QSD ", length=" QSD ") string=\"%s\" (this=%p priv->len=" QSD ")\n",
-	  (int64)offset, (int64)length, priv->buf, this, (int64)priv->len);
+	  offset, length, priv->buf, this, priv->len);
 
    char* pend = priv->buf + priv->len;
    if (offset < 0) {
