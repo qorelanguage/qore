@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/qore_program_private.h"
 
 QoreString QoreExtractOperatorNode::extract_str("extract operator expression");
 
@@ -144,7 +144,7 @@ QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
       QoreListNode *vl = reinterpret_cast<QoreListNode*>(val.getValue());
       printd(5, "op_extract() val: %p (size: " QLLD ") offset: " QSD "\n", vl, (int64)vl->size(), (int64)offset);
    }
-   else {
+   else if (vt == NT_STRING) {
       QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(val.getValue());
       printd(5, "op_extract() val: %p (strlen: " QLLD ") offset: " QSD "\n", vs, (int64)vs->strlen(), (int64)offset);
    }

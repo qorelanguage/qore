@@ -157,7 +157,7 @@ public:
        @param p a pointer to the character data to check
        @param valid_len the number of valid bytes at the start of the character pointer
 
-       @return 0=invalid, positive = number of characters needed, negative numbers = number of additional bytes needed to perform the check
+       @return 0=invalid, positive = number of bytes needed to represent the character (and all are present), negative numbers = number of additional bytes needed to perform the check
    */
    DLLEXPORT qore_offset_t getCharLen(const char* p, qore_size_t valid_len) const;
 
