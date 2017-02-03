@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   NOTE that 2 copies of connection values are kept in case
   the values are changed while a connection is in use
@@ -32,19 +32,23 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_dbi_private.h>
-#include <qore/intern/qore_ds_private.h>
+#include "qore/intern/qore_dbi_private.h"
+#include "qore/intern/qore_ds_private.h"
 
 #include <stdlib.h>
 #include <string.h>
 
-void qore_ds_private::statementExecuted(int rc, ExceptionSink* xsink) {
+void qore_ds_private::statementExecuted(int rc) {
    // we always assume we are in a transaction after executing a transaction-relevant statement
+   // unless the connection was aborted
    if (!in_transaction) {
-      assert(!active_transaction);
-      in_transaction = true;
-      active_transaction = true;
-      return;
+      if (!connection_aborted) {
+         assert(!active_transaction);
+         assert(isopen);
+         in_transaction = true;
+         active_transaction = true;
+         return;
+      }
    }
    else if (!rc && !active_transaction)
       active_transaction = true;
@@ -163,7 +167,7 @@ AbstractQoreNode* Datasource::exec_internal(bool doBind, const QoreString* query
    if (priv->autocommit)
       qore_dbi_private::get(*priv->dsl)->autoCommit(this, xsink);
    else
-      priv->statementExecuted(*xsink, xsink);
+      priv->statementExecuted(*xsink);
 
    return rv;
 }
@@ -222,23 +226,14 @@ int Datasource::commit(ExceptionSink* xsink) {
    if (!priv->in_transaction && beginImplicitTransaction(xsink))
       return -1;
 
-   int rc = qore_dbi_private::get(*priv->dsl)->commit(this, xsink);
-   priv->in_transaction = false;
-   priv->active_transaction = false;
-
-   return rc;
+   return priv->commit(xsink);
 }
 
 int Datasource::rollback(ExceptionSink* xsink) {
    if (!priv->in_transaction && beginImplicitTransaction(xsink))
       return -1;
 
-   //printd(5, "Datasource::rollback() this: %p in_transaction: %d active_transaction: %d\n", this, priv->in_transaction, priv->active_transaction);
-
-   int rc = qore_dbi_private::get(*priv->dsl)->rollback(this, xsink);
-   priv->in_transaction = false;
-   priv->active_transaction = false;
-   return rc;
+   return priv->rollback(xsink);
 }
 
 int Datasource::open(ExceptionSink* xsink) {
@@ -263,20 +258,11 @@ int Datasource::open(ExceptionSink* xsink) {
 }
 
 int Datasource::close() {
-   if (priv->isopen) {
-      qore_dbi_private::get(*priv->dsl)->close(this);
-      priv->isopen = false;
-      priv->in_transaction = false;
-      priv->active_transaction = false;
-      return 0;
-   }
-   return -1;
+   return priv->close();
 }
 
 void Datasource::connectionAborted() {
-   assert(priv->isopen);
-   priv->connection_aborted = true;
-   close();
+   priv->connectionAborted();
 }
 
 bool Datasource::wasConnectionAborted() const {
