@@ -46,7 +46,7 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
         addTestCase("Old style CSV tests", \csvOldStyleMultiTest());
         addTestCase("CsvUtil non-numeric values", \csvNonNumeric());
         addTestCase("Escaping", \escapeTest());
-        #addTestCase("csvData test", \csvData());
+        addTestCase("csvData test", \csvData());
         addTestCase("Single-type CSV tests", \csvSingleTest());
         addTestCase("Single-type CSV map tests", \csvSingleMapTest());
         addTestCase("Multi-type resolve CSV tests", \csvMultiResolveTest());
@@ -254,7 +254,7 @@ UK,1234567893,28052012";
         list Output = (
             {"id": 1, "name": "UK", "descr": "United Kingdom"},
             {"id": 2, "name": "AT", "descr": "Austria"},
-            {"id": 3, "name": "UK", "descr": "Czech rep."},
+            {"id": 3, "name": "CZ", "descr": "Czech rep."},
             {"id": 4, "name": "IE", "descr": "Ireland"},
         );
 
