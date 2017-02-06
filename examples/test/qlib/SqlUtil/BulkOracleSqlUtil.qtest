@@ -66,7 +66,7 @@ class OracleTestSchema inherits SqlUtilTestSchema {
     }
 
     private *hash getTablesImpl() {
-        return doTables(Tables, OracleTest::CustomColumns);
+        return doTables(Tables, OracleTest::CustomColumns + OracleTest::ConstColumns);
     }
 
     private *hash getSequencesImpl() {
@@ -96,7 +96,7 @@ class OracleTest inherits SqlTestBase {
             "char": (
                 "value": "hello",
                 "size": "20",
-                "expect": rpad ("hello", 20),
+                "expect": rpad("hello", 20),
             ),
             "number": (
                 "size": 15,
@@ -121,6 +121,14 @@ class OracleTest inherits SqlTestBase {
             #bfile
             #long
             );
+
+        const ConstColumns = (
+            "const_f": (
+                "type": "varchar2",
+                "value": "test",
+                "size": "20",
+            ),
+            );
     }
 
     constructor() : SqlTestBase("OracleTest", "1.0", \ARGV, MyOpts) {
@@ -135,7 +143,7 @@ class OracleTest inherits SqlTestBase {
         }
 
         if (ds) {
-            initTestData(CustomColumns);
+            initTestData(CustomColumns, ConstColumns);
 
             { # Make sure the DB is clear before doing the tests.
                 OracleTable t = new OracleTable(ds, "oracle_test");

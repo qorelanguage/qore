@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -510,7 +510,7 @@ int qore_socket_private::send(int fd, qore_offset_t size, int timeout_ms, Except
          if (rc >= 0)
             break;
          if (errno != EINTR) {
-            xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QLLD " bytes read in Socket::send()", bs);
+            xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QSD " bytes read in Socket::send()", bs);
             break;
          }
       }
@@ -569,7 +569,7 @@ int qore_socket_private::recv(int fd, qore_offset_t size, int timeout_ms, Except
             break;
          // write(2) should not return 0, but in case it does, it's treated as an error
          if (errno != EINTR) {
-            xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QLLD " bytes read in Socket::send()", br);
+            xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QSD " bytes read in Socket::send()", br);
             break;
          }
       }

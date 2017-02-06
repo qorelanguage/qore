@@ -1524,8 +1524,8 @@ string trunc_str(softstring str, softint len, *string encoding) [flags=RET_VALUE
    int64 sl = 0;
    while (true) {
       qore_offset_t size = (qore_offset_t)enc->getCharLen(p, len - sl);
-      if (size <= 0 || ((sl + size) > len))
-	 break;
+      if (size <= 0 || ((sl + size) > (qore_offset_t)len))
+         break;
       sl += size;
       p += size;
    }
@@ -1548,12 +1548,12 @@ string ret = strmul("%s,", 3, 1); # returns "%s,%s,%s"
  */
 string strmul(softstring str, softint smul, *softint offset) [flags=RET_VALUE_ONLY] {
    if (offset < 0)
-      return xsink->raiseException("STRMUL-ERROR", "Offset argument has to be >= 0; value: " QSD, offset);
+      return xsink->raiseException("STRMUL-ERROR", "Offset argument has to be >= 0; value: "QLLD, offset);
 
    if (smul < 0)
-      return xsink->raiseException("STRMUL-ERROR", "Multiple argument has to be >= 0; value: " QSD, smul);
+      return xsink->raiseException("STRMUL-ERROR", "Multiple argument has to be >= 0; value: "QLLD, smul);
 
-   QoreStringNodeHolder ret(new QoreStringNode());
+   QoreStringNodeHolder ret(new QoreStringNode);
    while (smul > 0) {
       ret->concat(str);
       --smul;
@@ -1561,7 +1561,7 @@ string strmul(softstring str, softint smul, *softint offset) [flags=RET_VALUE_ON
 
    if (offset) {
       if (offset > (int64)ret->length())
-         return xsink->raiseException("STRMUL-ERROR", "Offset (" QLLD ") is greater than string length (%d)", offset, ret->length());
+         return xsink->raiseException("STRMUL-ERROR", "Offset (" QLLD ") is greater than string length (" QSD ")", offset, ret->length());
       ret->splice(ret->length() - offset, xsink);
       if (*xsink)
          return QoreValue();
