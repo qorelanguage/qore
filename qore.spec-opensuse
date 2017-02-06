@@ -188,5 +188,5 @@ rm %{buildroot}/%{_libdir}/libqore.la
 %{_mandir}/man1/qore.1.*
 
 %changelog
-* Thu Jun 16 2016 <ondrej.musil@qoretechnologies.com> 0.8.13
+* Wed Feb 1 2017 David Nichols <david@qore.org> 0.8.13
 - updated version to 0.8.13

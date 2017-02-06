@@ -117,7 +117,7 @@ public:
          }
 
 	 if (b->preallocate(bs)) {
-	    xsink->outOfMemory();
+	    xsink->raiseException("BZIP2-COMPRESS-ERROR", "the bzip2 library requested a buffer that is too large to be handled by the API");
 	    return 0;
 	 }
       }
@@ -180,7 +180,7 @@ public:
          }
 
 	 if (b->preallocate(bs)) {
-	    xsink->outOfMemory();
+	    xsink->raiseException("BZIP2-DECOMPRESS-ERROR", "the bzip2 library requested a buffer that is too large to be handled by the API");
 	    return 0;
 	 }
       }

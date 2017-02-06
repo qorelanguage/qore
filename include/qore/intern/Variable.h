@@ -391,6 +391,11 @@ protected:
    DLLLOCAL int makeFloat(const char* desc);
    DLLLOCAL int makeNumber(const char* desc);
 
+   DLLLOCAL int doRecursiveException() {
+      vl.xsink->raiseException("REFERENCE-ERROR", "recursive reference detected in assignment");
+      return -1;
+   }
+
 public:
    AutoVLock vl;
    AbstractQoreNode** v;     // ptr to ptr for lvalue expression

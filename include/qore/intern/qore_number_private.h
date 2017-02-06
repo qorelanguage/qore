@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -628,7 +628,7 @@ public:
 
     DLLLOCAL static QoreStringNode* toBase(qore_number_private* n, int base, ExceptionSink* xsink) {
         if (base < 2 || base > 36) {
-            xsink -> raiseException("INVALID-BASE", "base " QLLD " is invalid; base must be 2 - 36 inclusive", base);
+            xsink -> raiseException("INVALID-BASE", "base %d is invalid; base must be 2 - 36 inclusive", base);
             return 0;
         }
 

@@ -2374,12 +2374,12 @@ QoreStringNode* q_read_string(ExceptionSink* xsink, int64 size, const QoreEncodi
          const char* p = str->c_str() + last_char;
          int cc = enc->getCharLen(p, e - p);
          if (!cc) {
-            xsink->raiseException("STREAM-ENCODING-ERROR", "invalid multi-byte character received in byte offset " QLLD " according to the input encoding: '%s'", last_char, enc->getCode());
+            xsink->raiseException("STREAM-ENCODING-ERROR", "invalid multi-byte character received in byte offset " QSD " according to the input encoding: '%s'", last_char, enc->getCode());
 
             return 0;
          }
 
-         //printd(5, "StreamReader::readString() orig: " QLLD " size: " QLLD " char_len: " QLLD " rc: %d last_char: " QLLD " c: %d (offset: " QLLD ") cc: %d '%s'\n", orig_size, size, char_len, rc, last_char, *p, p - str->c_str(), cc, enc->getCode());
+         //printd(5, "StreamReader::readString() orig: " QLLD " size: " QLLD " char_len: " QLLD " rc: %d last_char: " QSD " c: %d (offset: " QLLD ") cc: %d '%s'\n", orig_size, size, char_len, rc, last_char, *p, p - str->c_str(), cc, enc->getCode());
 
          if (cc > 0) {
             // increment character count
