@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -51,16 +51,16 @@ AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObj
       if (v->getType() == VT_CLOSURE) {
          const char* name = v->ref.id->getName();
          ClosureVarValue* cvv = thread_get_runtime_closure_var(v->ref.id);
-	 lvalue_id = cvv;
-         //printd(5, "ParseReferenceNode::doPartialEval() this: %p '%s' cvv: %p\n", this, name, cvv);
+         lvalue_id = cvv->getLValueId();
+         //printd(5, "ParseReferenceNode::doPartialEval() this: %p '%s' closure lvalue_id: %p\n", this, name, lvalue_id);
          return new VarRefImmediateNode(strdup(name), cvv, v->ref.id->getTypeInfo());
       }
 
       if (v->getType() == VT_LOCAL_TS) {
          const char* name = v->ref.id->getName();
          ClosureVarValue* cvv = thread_find_closure_var(name);
-         //printd(5, "ParseReferenceNode::doPartialEval() this: %p '%s' cvv: %p\n", this, name, cvv);
-	 lvalue_id = cvv;
+         lvalue_id = cvv->getLValueId();
+         //printd(5, "ParseReferenceNode::doPartialEval() this: %p '%s' closure(ts) lvalue_id: %p\n", this, name, lvalue_id);
          return new VarRefImmediateNode(strdup(name), cvv, v->ref.id->getTypeInfo());
       }
    }
@@ -107,7 +107,7 @@ ReferenceNode* ParseReferenceNode::evalToRef(ExceptionSink* xsink) const {
    const void* lvalue_id = 0;
    const qore_class_private* qc = 0;
    AbstractQoreNode* nv = doPartialEval(lvexp, self, lvalue_id, qc, xsink);
-   //printd(5, "ParseReferenceNode::evalToRef() this: %p nv: %p lvexp: %p\n", this, nv, lvexp);
+   //printd(5, "ParseReferenceNode::evalToRef() this: %p nv: %p lvexp: %p lvalue_id: %p\n", this, nv, lvexp, lvalue_id);
    return nv ? new ReferenceNode(nv, self, lvalue_id, qc) : 0;
 }
 

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,13 +34,13 @@
 
 struct lvih_intern {
    LocalVar lv;
-   ExceptionSink *xsink;
-   ReferenceNode *ref;
+   ExceptionSink* xsink;
+   ReferenceNode* ref;
 
-   DLLLOCAL lvih_intern(AbstractQoreNode *val, ExceptionSink *xs) : lv("ref_arg_helper", 0), xsink(xs) {
+   DLLLOCAL lvih_intern(AbstractQoreNode* val, ExceptionSink* xs) : lv("ref_arg_helper", 0), xsink(xs) {
       printd(5, "ReferenceArgumentHelper::ReferenceArgumentHelper() instantiating %p (val: %p type: '%s') \n", &lv, val, val ? val->getTypeName() : "n/a");
       lv.instantiate(val);
-      VarRefNode *vr = new VarRefNode(strdup("ref_arg_helper"), VT_LOCAL);
+      VarRefNode* vr = new VarRefNode(strdup("ref_arg_helper"), VT_LOCAL);
       vr->ref.id = &lv;
       ref = new ReferenceNode(vr, 0, vr, 0);
    }
@@ -64,7 +64,7 @@ struct lvih_intern {
       return vp.removeNode();
    }
 
-   DLLLOCAL AbstractQoreNode *getArg() {
+   DLLLOCAL AbstractQoreNode* getArg() {
       return ref->refSelf();
    }
 };
@@ -76,10 +76,10 @@ ReferenceArgumentHelper::~ReferenceArgumentHelper() {
    delete priv;
 }
 
-AbstractQoreNode *ReferenceArgumentHelper::getArg() const {
+AbstractQoreNode* ReferenceArgumentHelper::getArg() const {
    return priv->getArg();
 }
 
-AbstractQoreNode *ReferenceArgumentHelper::getOutputValue() {
+AbstractQoreNode* ReferenceArgumentHelper::getOutputValue() {
    return priv->getOutputValue();
 }
