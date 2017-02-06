@@ -538,28 +538,10 @@ int LValueHelper::assign(QoreValue n, const char* desc) {
       return -1;
    }
 
-   if (lvid_set && n.getType() == NT_REFERENCE) {
-      const ReferenceNode* ref = n.get<const ReferenceNode>();
-      const AbstractQoreNode* lv = reinterpret_cast<const AbstractQoreNode*>(lvalue_ref::get(ref)->lvalue_id);
-      printd(0, "checking ref %p: %p\n", ref, lv);
-      printd(0, "lvid_set: \n");
-      for (lvid_set_t::const_iterator i = lvid_set->begin(), e = lvid_set->end(); i != e; ++i) {
-         const AbstractQoreNode* p = reinterpret_cast<const AbstractQoreNode*>(*i);
-         printd(0, "+ %p\n", p);
-      }
-      printd(0, "match: %d\n", lvid_set->find(lv) != lvid_set->end());
-
-      if (lvid_set->find(lvalue_ref::get(reinterpret_cast<const ReferenceNode*>(n.getInternalNode()))->lvalue_id) != lvid_set->end()) {
-         saveTemp(n);
-         return doRecursiveException();
-      }
-   }
-   /*
    if (lvid_set && n.getType() == NT_REFERENCE && (lvid_set->find(lvalue_ref::get(reinterpret_cast<const ReferenceNode*>(n.getInternalNode()))->lvalue_id) != lvid_set->end())) {
       saveTemp(n);
       return doRecursiveException();
    }
-   */
    if (val) {
       saveTemp(val->assignAssume(n));
       return 0;

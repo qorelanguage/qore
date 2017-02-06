@@ -48,5 +48,9 @@ class ReferenceTest inherits QUnit::Test {
         assertEq(10, l[0].val);
         assertEq(10, l[1].val);
         assertThrows("REFERENCE-ERROR", sub () { r2 = \r1; });
+        reference r3 = \r1;
+        assertThrows("REFERENCE-ERROR", sub () { r2 = \r3; });
+        reference r4 = \r3;
+        assertThrows("REFERENCE-ERROR", sub () { r2 = \r4; });
    }
 }
