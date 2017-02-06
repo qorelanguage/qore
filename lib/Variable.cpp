@@ -414,8 +414,9 @@ int LValueHelper::doLValue(const ReferenceNode* ref, bool for_remove) {
    const lvalue_ref* r = lvalue_ref::get(ref);
    if (!lvid_set)
       lvid_set = new lvid_set_t;
-   else if (lvid_set->find(r->lvalue_id) != lvid_set->end())
-      return doRecursiveException();
+   // issue 1617: the lvalue_id might already be present in the set in case there is
+   // a reference to a reference, however it's safe to insert it multiple times;
+   // the reference count for the lvalue_id object is handled elsewhere
    lvid_set->insert(r->lvalue_id);
    return doLValue(r->vexp, for_remove);
 }
@@ -541,7 +542,6 @@ int LValueHelper::assign(QoreValue n, const char* desc) {
       saveTemp(n);
       return doRecursiveException();
    }
-
    if (val) {
       saveTemp(val->assignAssume(n));
       return 0;
@@ -1229,6 +1229,15 @@ void LocalVarValue::remove(LValueRemoveHelper& lvrh, const QoreTypeInfo* typeInf
    }
 
    lvrh.doRemove((QoreLValueGeneric&)val, typeInfo);
+}
+
+const void* ClosureVarValue::getLValueId() const {
+   QoreSafeVarRWWriteLocker sl(rml);
+   if (val.getType() == NT_REFERENCE) {
+      ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
+      return lvalue_ref::get(ref)->lvalue_id;
+   }
+   return this;
 }
 
 int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {

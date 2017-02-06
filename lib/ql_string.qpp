@@ -1517,8 +1517,8 @@ string trunc_str(softstring str, softint len, *string encoding) [flags=RET_VALUE
    int64 sl = 0;
    while (true) {
       qore_offset_t size = (qore_offset_t)enc->getCharLen(p, len - sl);
-      if (size <= 0 || ((sl + size) > (qore_size_t)len))
-	 break;
+      if (size <= 0 || ((sl + size) > (qore_offset_t)len))
+         break;
       sl += size;
       p += size;
    }
