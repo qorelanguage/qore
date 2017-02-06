@@ -195,7 +195,7 @@ list: (2 elements)
         - grouping of the output data
 
     @par Example:
-    @code{.py}{.py}
+    @code{.py}
 hash mapv = (
     "foo": ("constant": "bar"),
      # ...
@@ -387,7 +387,7 @@ public namespace Mapper {
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
         /** @par Example:
-            @code{.py}{.py}
+            @code{.py}
 const DataMap = (
     # output field: "id" mapper from the "Id" element of any "^attributes^" hash in the input record
     "id": "^attributes^.Id",
