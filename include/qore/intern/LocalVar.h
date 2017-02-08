@@ -33,10 +33,10 @@
 
 #define _QORE_LOCALVAR_H
 
-#include <qore/intern/qore_thread_intern.h>
-#include <qore/intern/QoreLValue.h>
-#include <qore/intern/RSection.h>
-#include <qore/intern/RSet.h>
+#include "qore/intern/qore_thread_intern.h"
+#include "qore/intern/QoreLValue.h"
+#include "qore/intern/RSection.h"
+#include "qore/intern/RSet.h"
 
 template <class T>
 class VarStackPointerHelper {
