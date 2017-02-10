@@ -46,7 +46,7 @@
 %enable-all-warnings
 
 module OracleSqlUtil {
-    version = "1.2.1";
+    version = "1.2.2";
     desc = "user module for working with Oracle SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -1875,7 +1875,7 @@ my any $v = $c.name;
                         }
 
                         if (count)
-                            return cn + " in (" + (map "select column_value from table(%v)", range(1,count)).join(" union all ") + ")";
+                            return cn + " in (" + (map "select column_value from table(%v)", xrange(1,count)).join(" union all ") + ")";
                         else
                             return "1 != 1";
 %endif
