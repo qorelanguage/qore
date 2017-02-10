@@ -257,6 +257,7 @@ my hash $schema = (
 
     @subsection v121 OracleSqlUtil v1.2.1
     - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
+    - worked around ORA-22165 from op_in() caused by Oracle's limit on number of collection elements (<a href="https://github.com/qorelanguage/qore/issues/1660">issue 1660</a>)
 
     @subsection v12 OracleSqlUtil v1.2
     - implemented support for the \c "returning" clause as an insert option
@@ -1872,7 +1873,7 @@ my any $v = $c.name;
                         }
 
                         if (count)
-                            return cn + " in (" + (map "select column_value from table(%v)", range(1,count)).join(" union all ") + ")";
+                            return cn + " in (" + (map "select column_value from table(%v)", xrange(1,count)).join(" union all ") + ")";
                         else
                             return "1 != 1";
 %endif
