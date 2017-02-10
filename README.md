@@ -24,8 +24,8 @@ refer to the following files/locations for specific information:
 
 ### RELEASE-NOTES:
   Release notes, known issues, etc - however see the following URL for full
-  release notes online:
-  	  http://qore.org/manual/current/lang/html/release_notes.html
+  and up-to-date release notes online:
+  	  https://docs.qore.org/current/lang/html/release_notes.html
 
 ### docs/lang/html:
   Qore reference manual (built during the build process if you have doxygen).
@@ -38,8 +38,7 @@ refer to the following files/locations for specific information:
   Many example Qore scripts/programs.
 
 ### examples/test/:
-  Qore test scripts. run_tests.sh is the main regression test script. Testing is
-  not yet automated as a part of the build...
+  Qore test scripts. Use `run_tests.sh` script to run all the tests.
 
 
 ## Quick Build Info
