@@ -105,11 +105,6 @@ public:
       set(typeInfo);
    }
 
-   DLLLOCAL void setClosure() {
-      assert(!is_closure);
-      is_closure = true;
-   }
-
    DLLLOCAL QoreLValue(const QoreLValue<U>& old) : type(old.type), fixed_type(old.fixed_type), assigned(old.assigned), static_assignment(false), is_closure(old.is_closure) {
       if (!assigned)
          return;
@@ -132,6 +127,11 @@ public:
       assert(!assigned || type != QV_Node || !v.n);
    }
 #endif
+
+   DLLLOCAL void setClosure() {
+      assert(!is_closure);
+      is_closure = true;
+   }
 
    DLLLOCAL valtype_t getOptimizedType() const {
       return fixed_type ? type : QV_Node;
@@ -706,6 +706,10 @@ public:
          case QV_Int: v.i = n.v.i; n.v.i = val.v.i; break;
          case QV_Float: v.f = n.v.f; n.v.f = val.v.f; break;
          case QV_Node:
+            if (n.is_closure) {
+               assert(!is_closure);
+               is_closure = true;
+            }
             v.n = n.v.n;
             n.v.n = val.takeNode();
             break;
@@ -728,7 +732,14 @@ public:
          case QV_Bool: v.b = n.v.b; n.v.b = false; break;
          case QV_Int: v.i = n.v.i; n.v.i = 0; break;
          case QV_Float: v.f = n.v.f; n.v.f = 0; break;
-         case QV_Node: v.n = n.v.n; n.v.n = 0; break;
+         case QV_Node:
+            if (n.is_closure) {
+               assert(!is_closure);
+               is_closure = true;
+            }
+            v.n = n.v.n;
+            n.v.n = 0;
+            break;
          default: assert(false);
          // no break
       }
