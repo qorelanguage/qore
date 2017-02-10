@@ -255,6 +255,9 @@ my hash $schema = (
 
     @section ora_relnotes Release Notes
 
+    @subsection v122 OracleSqlUtil v1.2.2
+    - worked around ORA-22165 from op_in() caused by Oracle's limit on number of collection elements (<a href="https://github.com/qorelanguage/qore/issues/1660">issue 1660</a>)
+
     @subsection v121 OracleSqlUtil v1.2.1
     - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
 
