@@ -191,6 +191,7 @@ public:
 
    DLLLOCAL ClosureVarValue(const char* n_id, const QoreTypeInfo* varTypeInfo, QoreValue& nval) : VarValueBase(n_id, varTypeInfo), RObject(references), references(1), typeInfo(varTypeInfo) {
       //printd(5, "ClosureVarValue::ClosureVarValue() this: %p refs: 0 -> 1 val: %s\n", this, val.getTypeName());
+      val.setClosure();
 
       // try to set an optimized value type for the value holder if possible
       val.set(varTypeInfo);

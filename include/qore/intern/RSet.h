@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -49,7 +49,7 @@ public:
    // weak references
    QoreReferenceCounter tRefs;
 
-   // this lock is needed for the condition variable
+   // this lock is needed for the condition variable (notifications)
    mutable QoreThreadLock rlck;
    // this lock is needed for references
    mutable QoreThreadLock ref_mutex;
@@ -70,10 +70,19 @@ public:
    // reference count
    int& references;
 
+   // the number of "real" (i.e. non-dependent refs - not possibly part of a recursive graph)
+   int rrefs;
+
+   // do we need to make a scan when the object is eligible for it?
+   bool deferred_scan;
+
    // do we need to call isValidImpl()
    bool needs_is_valid;
 
-   DLLLOCAL RObject(int& n_refs, bool niv = false) : rscan(0), rcount(0), rwaiting(0), rcycle(0), ref_inprogress(0), ref_waiting(0), rset(0), references(n_refs), needs_is_valid(niv) {
+   DLLLOCAL RObject(int& n_refs, bool niv = false) :
+      rscan(0), rcount(0), rwaiting(0), rcycle(0), ref_inprogress(0),
+      ref_waiting(0), rset(0), references(n_refs), rrefs(0), deferred_scan(false),
+      needs_is_valid(niv) {
    }
 
    DLLLOCAL virtual ~RObject();
@@ -98,6 +107,13 @@ public:
    }
 
    DLLLOCAL void setRSet(RSet* rs, int rcnt);
+
+   // check if we should defer the scan, marks the object for a deferred scan if necessary
+   // returns 0 if the scan can be made now, -1 if deferred
+   DLLLOCAL int checkDeferScan();
+
+   // marks the object as needing a scan on the next dereference
+   DLLLOCAL void markInvalid();
 
    DLLLOCAL void removeInvalidateRSet();
    DLLLOCAL void removeInvalidateRSetIntern();
@@ -166,6 +182,9 @@ public:
 
    DLLLOCAL RSet(RObject* o) : acnt(0), valid(true) {
       set.insert(o);
+   }
+
+   DLLLOCAL RSet(bool n_valid) : acnt(1), valid(n_valid) {
    }
 
    DLLLOCAL ~RSet() {
@@ -328,9 +347,6 @@ protected:
    // set of scanned closures
    closure_set_t closure_set;
 
-   // fomap size, to detect changes in the scanned set
-   unsigned fomap_size;
-
 #ifdef DEBUG
    int lcnt;
    DLLLOCAL void inccnt() { ++lcnt; }
@@ -376,7 +392,7 @@ public:
    }
 
    DLLLOCAL unsigned size() const {
-      return fomap_size;
+      return fomap.size();
    }
 
    DLLLOCAL void add(RObject* ro) {
@@ -397,16 +413,34 @@ protected:
    RObject* o;
    qore_object_private* qo;
    int refs;
-   bool del;
+   bool del,
+      do_scan,
+      deferred_scan;
 
 public:
-   DLLLOCAL robject_dereference_helper(RObject* obj) : o(obj), qo(0) {
+   DLLLOCAL robject_dereference_helper(RObject* obj, bool real = false) : o(obj), qo(0) {
       // the mutex ensures atomicity
       AutoLocker al(obj->ref_mutex);
       // dereference the object and save the resulting value on the stack
       refs = --obj->references;
       // if we got 0, then we will be deleting in any case, otherwise we may not (subject to recursive graph analysis)
       del = !refs;
+      if (real) {
+         assert(obj->rrefs > 0);
+         --obj->rrefs;
+      }
+      else
+         assert(obj->rrefs >= 0);
+      do_scan = !obj->rrefs;
+
+      if (do_scan) {
+         deferred_scan = obj->deferred_scan;
+         if (deferred_scan)
+            obj->deferred_scan = false;
+      }
+      else
+         deferred_scan = false;
+
       // mark that we have a dereference action in progress
       ++obj->ref_inprogress;
    }
@@ -416,6 +450,20 @@ public:
    // return our reference count as captured atomically in the constructor
    DLLLOCAL int getRefs() const {
       return refs;
+   }
+
+   // return an indicator if we have a deferred scan or not
+   DLLLOCAL bool deferredScan() {
+      if (deferred_scan) {
+         deferred_scan = false;
+         return true;
+      }
+      return false;
+   }
+
+   // return an indicator if we should do a scan or not
+   DLLLOCAL bool doScan() const {
+      return do_scan;
    }
 
    // mark for final dereferencing

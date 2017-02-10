@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -56,6 +56,38 @@ void RObject::setRSet(RSet* rs, int rcnt) {
    }
    // increment transaction count
    ++rcycle;
+}
+
+int RObject::checkDeferScan() {
+   {
+      AutoLocker al(ref_mutex);
+      // if we have a "real reference" (a reference that cannot be recursive), then we delay the scan
+      if (!rrefs) {
+         printd(QRO_LVL, "RObject::checkDeferScan() this: %p (%s) rrefs: %d scan OK\n", this, getName(), rrefs);
+         return 0;
+      }
+      if (deferred_scan) {
+         printd(QRO_LVL, "RObject::checkDeferScan() this: %p (%s) rrefs: %d deferred_scan already set\n", this, getName(), rrefs);
+         return -1;
+      }
+      else {
+         printd(QRO_LVL, "RObject::checkDeferScan() this: %p (%s) rrefs: %d setting deferred_scan\n", this, getName(), rrefs);
+         deferred_scan = true;
+      }
+   }
+
+   removeInvalidateRSet();
+   return -1;
+}
+
+void RObject::markInvalid() {
+   {
+      AutoLocker al(ref_mutex);
+      if (!deferred_scan)
+         deferred_scan = true;
+   }
+   QoreAutoVarRWWriteLocker al(rml);
+   removeInvalidateRSetIntern();
 }
 
 void RObject::removeInvalidateRSet() {
@@ -401,7 +433,7 @@ void RSetHelper::mergeRSet(int i, RSet*& rset) {
       else {
          printd(QRO_LVL, " + %p '%s': oi->second.rset: %p (%d) assimilating %p (%d)\n", oi->first, oi->first->getName(), oi->second.rset, (int)oi->second.rset->size(), rset, (int)rset->size());
          // merge rset into oi->second.rset and retag objects
-         RSet*old_rset = rset;
+         RSet* old_rset = rset;
          rset = oi->second.rset;
          for (rset_t::iterator i = old_rset->begin(), e = old_rset->end(); i != e; ++i) {
             rset->insert(*i);
@@ -558,10 +590,12 @@ bool RSetHelper::checkIntern(RObject& obj) {
 
       // insert into total scanned object set
       fi = fomap.insert(fi, omap_t::value_type(&obj, RSetStat()));
-      ++fomap_size;
 
       // check if the object should be iterated
       if (!obj.needsScan()) {
+         // remove from invalidation set if present
+         tr_out.erase(&obj);
+
          printd(QRO_LVL, "RSetHelper::checkIntern() obj %p '%s' will not be iterated since object count is 0\n", &obj, obj.getName());
          fi->second.ok = true;
          assert(!fi->second.rset);
@@ -613,11 +647,15 @@ public:
    }
 };
 
-RSetHelper::RSetHelper(RObject& obj) : fomap_size(0) {
+RSetHelper::RSetHelper(RObject& obj) {
 #ifdef DEBUG
    lcnt = 0;
 #endif
    if (q_disable_gc)
+      return;
+
+   // if the scan should be deferred
+   if (obj.checkDeferScan())
       return;
 
    printd(QRO_LVL, "RSetHelper::RSetHelper() this: %p (%p %s) ENTER\n", this, &obj, obj.getName());
@@ -650,6 +688,8 @@ void RSetHelper::commit(RObject& obj) {
 #ifdef DEBUG
    bool has_obj = false;
 #endif
+
+   assert(obj.rml.checkRSectionExclusive());
 
    // invalidate rsets
    for (rs_set_t::iterator i = tr_invalidate.begin(), e = tr_invalidate.end(); i != e; ++i) {
@@ -725,7 +765,6 @@ void RSetHelper::rollback() {
    }
 
    fomap.clear();
-   fomap_size = 0;
    ovec.clear();
    tr_out.clear();
    tr_invalidate.clear();

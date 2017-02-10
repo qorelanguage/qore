@@ -615,7 +615,7 @@ public:
 	 // we reference the object so it won't go out of scope while the thread is running
 	 obj = callobj.getObj();
          assert(obj);
-	 obj->ref();
+	 obj->realRef();
 	 callobj.clear();
       }
       else if (fctype == NT_OPERATOR) {
@@ -631,7 +631,8 @@ public:
                deon->replaceExpression(n.getReferencedValue());
 	    } else if (n->getType() == NT_OBJECT) {
 	       // we reference the object so it won't go out of scope while the thread is running
-	       obj = reinterpret_cast<QoreObject* >(n.getReferencedValue());
+	       obj =  reinterpret_cast<QoreObject*>(n.getReferencedValue());
+               qore_object_private::get(*obj)->setRealReference();
 	       callobj.clear();
 	    }
 	 }
@@ -687,7 +688,7 @@ public:
 
    DLLLOCAL void derefObj(ExceptionSink* xsink) {
       if (obj) {
-	 obj->deref(xsink);
+	 obj->realDeref(xsink);
 	 obj = 0;
       }
    }

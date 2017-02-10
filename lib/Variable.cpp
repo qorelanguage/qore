@@ -50,6 +50,15 @@
 // global environment hash
 QoreHashNode* ENV;
 
+void check_lvalue_object_in_out(AbstractQoreNode* in, AbstractQoreNode* out) {
+   if (in && in->getType() == NT_OBJECT) {
+      qore_object_private::get(*static_cast<QoreObject*>(in))->setRealReference();
+   }
+   if (out && out->getType() == NT_OBJECT) {
+      qore_object_private::get(*static_cast<QoreObject*>(out))->unsetRealReference();
+   }
+}
+
 int qore_gvar_ref_u::write(ExceptionSink* xsink) const {
    if (_refptr & 1) {
       xsink->raiseException("ACCESS-ERROR", "attempt to write to read-only imported global variable '%s'", getPtr()->getName());
@@ -213,9 +222,6 @@ LValueHelper::~LValueHelper() {
             else {
                bool after = needs_scan(*v);
                if (before) {
-                  // we have to assume that the objects have changed when before and after = true
-                  if (!obj_chg)
-                     obj_chg = true;
                   if (!after)
                      inc_container_obj(ocvec[ocvec.size() - 1].con, -1);
                }
@@ -227,6 +233,7 @@ LValueHelper::~LValueHelper() {
             }
          }
 
+         // write changes to container hierarchy
          if (ocvec.size() > 1) {
             for (int i = ocvec.size() - 2; i >= 0; --i) {
                int dt = ocvec[i + 1].getDifference();
@@ -259,8 +266,9 @@ LValueHelper::~LValueHelper() {
 
    if (robj) {
       // recalculate recursive references for objects if necessary
-      if (obj_chg)
+      if (obj_chg) {
          RSetHelper rsh(*robj);
+      }
       if (obj_ref)
          robj->tDeref();
    }
@@ -1275,34 +1283,6 @@ void ClosureVarValue::remove(LValueRemoveHelper& lvrh) {
    lvrh.doRemove((QoreLValueGeneric&)val, typeInfo);
 }
 
-/*
-static bool check_closure_loop_closure(ClosureVarValue* cvv, const QoreClosureBase* c) {
-   //printd(5, "check_closure_loop_closure() c: %p cvv: %p rv: %d\n", c, cvv, c->hasVar(cvv));
-   return c->hasVar(cvv);
-}
-
-static bool check_closure_loop(ClosureVarValue* cvv, const AbstractQoreNode* n) {
-   switch (get_node_type(n)) {
-      case NT_RUNTIME_CLOSURE: return check_closure_loop_closure(cvv, reinterpret_cast<const QoreClosureBase*>(n));
-      case NT_HASH: {
-         ConstHashIterator hi(reinterpret_cast<const QoreHashNode*>(n));
-         while (hi.next())
-            if (check_closure_loop(cvv, hi.getValue()))
-               return true;
-         break;
-      }
-      case NT_LIST: {
-         ConstListIterator li(reinterpret_cast<const QoreListNode*>(n));
-         while (li.next())
-            if (check_closure_loop(cvv, li.getValue()))
-               return true;
-         break;
-      }
-   }
-   return false;
-}
-*/
-
 void ClosureVarValue::ref() const {
    AutoLocker al(ref_mutex);
    //printd(5, "ClosureVarValue::ref() this: %p refs: %d -> %d val: %s\n", this, references, references + 1, val.getTypeName());
@@ -1324,7 +1304,7 @@ void ClosureVarValue::deref(ExceptionSink* xsink) {
       else {
          while (true) {
             {
-               QoreAutoVarRWReadLocker al(rml);
+               QoreRSectionLocker al(rml);
 
                if (!rset) {
                   if (ref_copy == rcount) {
@@ -1332,15 +1312,21 @@ void ClosureVarValue::deref(ExceptionSink* xsink) {
                   }
                   break;
                }
-               int rc = rset->canDelete(ref_copy, rcount);
-               if (rc == 1) {
-                  printd(QORE_DEBUG_OBJ_REFS, "ClosureVarValue::deref() this: %p found recursive reference; deleting value\n", this);
-                  do_del = true;
-                  break;
+               if (!qodh.deferredScan()) {
+                  int rc = rset->canDelete(ref_copy, rcount);
+                  if (rc == 1) {
+                     printd(QORE_DEBUG_OBJ_REFS, "ClosureVarValue::deref() this: %p found recursive reference; deleting value\n", this);
+                     do_del = true;
+                     break;
+                  }
+                  if (!rc)
+                     break;
+                  assert(rc == -1);
                }
-               if (!rc)
-                  break;
-               assert(rc == -1);
+            }
+            if (!qodh.doScan()) {
+               markInvalid();
+               return;
             }
             // need to recalculate references
             RSetHelper rsh(*this);

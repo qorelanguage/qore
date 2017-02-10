@@ -3,7 +3,7 @@
 
   Qore programming language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -323,5 +323,6 @@ QoreValue VarRefNewObjectNode::evalValueImpl(bool& needs_deref, ExceptionSink* x
    lv.assign(obj.release());
    if (*xsink)
       return QoreValue();
-   return QoreValue(rv->refSelf());
+   needs_deref = false;
+   return QoreValue(rv);
 }
