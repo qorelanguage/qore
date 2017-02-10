@@ -514,6 +514,25 @@ public class SqlTestBase inherits QUnit::Test {
                         "data": (("id": 1),),
                         ),
                     ),
+                "op_in_empty": (
+                    "in": (
+                        "where": ("id": op_in(list())),
+                        ),
+                    "out": (
+                        "count": 0,
+                        "data": (),
+                        ),
+                    ),
+                "op_in_large": (
+                    "in": (
+                        "where": ("id": op_in(range(32767))), # value 32767 is enough to trigger Oracle's ORA-22165
+                        "orderby": ("id",)
+                        ),
+                    "out": (
+                        "count": 2,
+                        "data": (("id": 1), ("id": 2)),
+                        ),
+                    ),
                 "op_not": (
                     "in": (
                         "where": ("id": op_not (op_in((0,1,3)))),
