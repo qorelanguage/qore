@@ -144,16 +144,6 @@ int RObject::checkDeferScan() {
    return -1;
 }
 
-void RObject::markInvalid() {
-   {
-      AutoLocker al(rlck);
-      if (!deferred_scan)
-         deferred_scan = true;
-   }
-   QoreAutoVarRWWriteLocker al(rml);
-   removeInvalidateRSetIntern();
-}
-
 void RObject::removeInvalidateRSet() {
    QoreAutoVarRWWriteLocker al(rml);
    removeInvalidateRSetIntern();
