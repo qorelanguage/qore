@@ -138,7 +138,9 @@ public:
    DLLLOCAL virtual bool scanMembers(RSetHelper& rsh) = 0;
 
    // returns true if the object needs to be scanned for recursive references (ie could contain an object or closure or a container containing one of those)
-   DLLLOCAL virtual bool needsScan() const = 0;
+   /** @param scan_now scan will be made now
+    */
+   DLLLOCAL virtual bool needsScan(bool scan_now) = 0;
 
    // deletes the object itself
    DLLLOCAL virtual void deleteObject() = 0;

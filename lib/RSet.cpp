@@ -121,6 +121,9 @@ int RObject::checkDeferScan() {
       AutoLocker al(rlck);
       // if we have a "real reference" (a reference that cannot be recursive), then we delay the scan
       if (!rrefs) {
+         // we are making a scan now, so if the deferred_scan flag is set, unset it
+         if (deferred_scan)
+            deferred_scan = false;
          printd(QRO_LVL, "RObject::checkDeferScan() this: %p (%s) rrefs: %d scan OK\n", this, getName(), rrefs);
          return 0;
       }
@@ -325,7 +328,7 @@ bool RSetHelper::checkIntern(AbstractQoreNode* n) {
 
          for (cvar_map_t::const_iterator i = cmap.begin(), e = cmap.end(); i != e; ++i) {
             // do not grab the lock if the lvalue cannot contain an object or closure (also not through a container)
-            if (!i->second->needsScan()) {
+            if (!i->second->needsScan(true)) {
                printd(QRO_LVL, "RSetHelper::checkIntern() closure %p: var %s: no scan\n", c, i->first->getName());
                continue;
             }
@@ -630,7 +633,7 @@ bool RSetHelper::checkIntern(RObject& obj) {
       fi = fomap.insert(fi, omap_t::value_type(&obj, RSetStat()));
 
       // check if the object should be iterated
-      if (!obj.needsScan()) {
+      if (!obj.needsScan(true)) {
          // remove from invalidation set if present
          tr_out.erase(&obj);
 

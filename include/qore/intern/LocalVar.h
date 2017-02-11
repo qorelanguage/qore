@@ -212,7 +212,7 @@ public:
    DLLLOCAL const void* getLValueId() const;
 
    // returns true if the value could contain an object or a closure
-   DLLLOCAL virtual bool needsScan() const {
+   DLLLOCAL virtual bool needsScan(bool scan_now) {
       return typeInfo->needsScan();
    }
 

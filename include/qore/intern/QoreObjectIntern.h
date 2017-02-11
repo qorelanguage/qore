@@ -480,31 +480,36 @@ public:
    DLLLOCAL virtual bool scanMembers(RSetHelper& rsh);
 
    // always called in the rsection lock
-   DLLLOCAL virtual bool needsScan() const {
+   DLLLOCAL virtual bool needsScan(bool scan_now) {
       assert(rml.hasRSectionLock());
       // the status cannot change while this lock is held
       if (!getScanCount() || status != OS_OK)
          return false;
       {
          AutoLocker al(rlck);
-         if (deferred_scan)
+         if (deferred_scan) {
+            if (!rrefs && scan_now) {
+               deferred_scan = false;
+               return true;
+            }
             return false;
+         }
          if (!rrefs)
             return true;
-         const_cast<qore_object_private*>(this)->deferred_scan = true;
+         deferred_scan = true;
          // if there is no rset, our job is done
          if (!rset)
             return false;
          // if we have an rset, then we need to invalidate it and ensure that
          // rrefs does not go to zero until this is done
-         const_cast<qore_object_private*>(this)->rref_wait = true;
+         rref_wait = true;
       }
 
-      const_cast<qore_object_private*>(this)->removeInvalidateRSetIntern();
+      removeInvalidateRSetIntern();
       AutoLocker al(rlck);
-      const_cast<qore_object_private*>(this)->rref_wait = false;
+      rref_wait = false;
       if (rref_waiting)
-         const_cast<qore_object_private*>(this)->rcond.broadcast();
+         rcond.broadcast();
 
       return false;
    }
