@@ -492,9 +492,20 @@ public:
          if (!rrefs)
             return true;
          const_cast<qore_object_private*>(this)->deferred_scan = true;
+         // if there is no rset, our job is done
+         if (!rset)
+            return false;
+         // if we have an rset, then we need to invalidate it and ensure that
+         // rrefs does not go to zero until this is done
+         const_cast<qore_object_private*>(this)->rref_wait = true;
       }
 
       const_cast<qore_object_private*>(this)->removeInvalidateRSetIntern();
+      AutoLocker al(rlck);
+      const_cast<qore_object_private*>(this)->rref_wait = false;
+      if (rref_waiting)
+         const_cast<qore_object_private*>(this)->rcond.broadcast();
+
       return false;
    }
 

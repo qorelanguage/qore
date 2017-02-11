@@ -79,10 +79,8 @@ int RObject::deref(bool real, bool& do_scan, bool& rescan) {
    else
       assert(rrefs >= 0);
 
-   // dereference the object and save the resulting value on the stack
+   // dereference the object and save the resulting value as the return value
    int rv_refs = --references;
-   //// if we got 0, then we will be deleting in any case, otherwise we may not (subject to recursive graph analysis)
-   //del = !rv_refs;
 
    do_scan = !rrefs;
 
@@ -132,6 +130,11 @@ int RObject::checkDeferScan() {
       }
       printd(QRO_LVL, "RObject::checkDeferScan() this: %p (%s) rrefs: %d setting deferred_scan\n", this, getName(), rrefs);
       deferred_scan = true;
+      // if there is no rset, we can return immediately, no rset can be attached while rrefs > 0
+      if (!rset)
+         return -1;
+      // otherwise we need to invalidate the rset and ensure that
+      // rrefs does not go to zero until this is done
       rref_wait = true;
    }
 
