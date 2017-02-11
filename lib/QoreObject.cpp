@@ -84,7 +84,7 @@ bool qore_object_private::scanMembers(RSetHelper& rsh) {
    if (rrefs) {
       bool invalidate = false;
       {
-         AutoLocker al(ref_mutex);
+         AutoLocker al(rlck);
          if (rrefs) {
             invalidate = true;
             if (!deferred_scan)
@@ -325,15 +325,15 @@ AbstractPrivateData* qore_object_private::getReferencedPrivateData(qore_classid_
 }
 
 void qore_object_private::setRealReference() {
-   AutoLocker al(ref_mutex);
+   AutoLocker al(rlck);
    printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::setRealReference() this: %p '%s': references %d rrefs %d->%d\n", this, status == OS_OK ? getClassName() : "<deleted>", references, rrefs, rrefs + 1);
    ++rrefs;
 }
 
 void qore_object_private::unsetRealReference() {
-   AutoLocker al(ref_mutex);
+   AutoLocker al(rlck);
    printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::unsetRealReference() this: %p '%s': references %d rrefs %d->%d\n", this, status == OS_OK ? getClassName() : "<deleted>", references, rrefs, rrefs - 1);
-   --rrefs;
+   derefRealIntern();
 }
 
 void qore_object_private::customDeref(bool real, ExceptionSink* xsink) {
@@ -403,8 +403,6 @@ void qore_object_private::customDeref(bool real, ExceptionSink* xsink) {
                   continue;
                }
                else {
-                  // do a scan in the next eligible dereference
-                  markInvalid();
                   return;
                }
             }
@@ -453,7 +451,7 @@ void qore_object_private::customDeref(bool real, ExceptionSink* xsink) {
 }
 
 int qore_object_private::startCall(const char* mname, ExceptionSink* xsink) {
-   AutoLocker al(ref_mutex);
+   AutoLocker al(rlck);
    if (status == OS_DELETED) {
       xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call method '%s()' on an object that has already been deleted", mname);
       return -1;
@@ -759,7 +757,7 @@ void qore_object_private::customRefIntern(bool real) {
 }
 
 void QoreObject::customRef() const {
-   AutoLocker al(priv->ref_mutex);
+   AutoLocker al(priv->rlck);
    priv->customRefIntern(false);
 }
 
@@ -767,7 +765,7 @@ void QoreObject::deleteBlockerRef() const {
 #ifdef QORE_DEBUG_OBJ_REFS
    printd(QORE_DEBUG_OBJ_REFS, "QoreObject::deleteBlockerRef() this: %p '%s' references %d->%d\n", this, getClassName(), references, references + 1);
 #endif
-   AutoLocker al(priv->ref_mutex);
+   AutoLocker al(priv->rlck);
    ++references;
 }
 
@@ -778,7 +776,7 @@ bool QoreObject::derefImpl(ExceptionSink* xsink) {
 }
 
 void QoreObject::realRef() {
-   AutoLocker al(priv->ref_mutex);
+   AutoLocker al(priv->rlck);
    priv->customRefIntern(true);
 }
 

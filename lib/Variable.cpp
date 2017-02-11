@@ -1284,7 +1284,7 @@ void ClosureVarValue::remove(LValueRemoveHelper& lvrh) {
 }
 
 void ClosureVarValue::ref() const {
-   AutoLocker al(ref_mutex);
+   AutoLocker al(rlck);
    //printd(5, "ClosureVarValue::ref() this: %p refs: %d -> %d val: %s\n", this, references, references + 1, val.getTypeName());
    ++references;
 }
@@ -1325,7 +1325,6 @@ void ClosureVarValue::deref(ExceptionSink* xsink) {
                }
             }
             if (!qodh.doScan()) {
-               markInvalid();
                return;
             }
             // need to recalculate references

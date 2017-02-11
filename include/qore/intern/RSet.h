@@ -49,20 +49,19 @@ public:
    // weak references
    QoreReferenceCounter tRefs;
 
-   // this lock is needed for the condition variable (notifications)
+   // ensures atomicity of robject reference counting and notification actions
    mutable QoreThreadLock rlck;
-   // this lock is needed for references
-   mutable QoreThreadLock ref_mutex;
 
-   QoreCondition rdone, // recursive scan done condition
-      ref_cond;         // dereference done condition
+   QoreCondition rcond; // condition variable (used with rlck)
 
    int rscan,         // TID flag for starting a recursive scan
       rcount,         // the number of unique recursive references to this object
       rwaiting,       // the number of threads waiting for a scan of this object
-      rcycle,         // the recursive cycle number to see if the object has been scanned since a transaction restart
-      ref_inprogress, // counts the number of dereference actions in progress
-      ref_waiting;    // counts the number of threads waiting on a dereference action to complete
+      rcycle,         // the recursive cycle/transaction number to see if the object has been scanned since a transaction restart
+      ref_inprogress, // the number of dereference actions in progress
+      ref_waiting,    // the number of threads waiting on a dereference action to complete
+      rref_waiting,   // the number of threads waiting on an rset invalidation to complete
+      rrefs;          // the number of "real" refs (i.e. refs not possibly part of a recursive graph)
 
    // set of objects in a cyclic directed graph
    RSet* rset;
@@ -70,19 +69,15 @@ public:
    // reference count
    int& references;
 
-   // the number of "real" (i.e. non-dependent refs - not possibly part of a recursive graph)
-   int rrefs;
-
-   // do we need to make a scan when the object is eligible for it?
-   bool deferred_scan;
-
-   // do we need to call isValidImpl()
-   bool needs_is_valid;
+   bool deferred_scan : 1, // do we need to make a scan when the object is eligible for it?
+      needs_is_valid : 1,  // do we need to call isValidImpl()
+      rref_wait : 1;       // rset invalidation in progress
 
    DLLLOCAL RObject(int& n_refs, bool niv = false) :
       rscan(0), rcount(0), rwaiting(0), rcycle(0), ref_inprogress(0),
-      ref_waiting(0), rset(0), references(n_refs), rrefs(0), deferred_scan(false),
-      needs_is_valid(niv) {
+      ref_waiting(0), rref_waiting(0), rrefs(0),
+      rset(0), references(n_refs),
+      deferred_scan(false), needs_is_valid(niv), rref_wait(false) {
    }
 
    DLLLOCAL virtual ~RObject();
@@ -102,6 +97,17 @@ public:
 	 deleteObject();
    }
 
+   // real: decrement rref too
+   // do_scan: is the object eleigible for a scan? (rrefs = 0)
+   // rescan: do we need to force a rescan of the object?
+   // return value: the final reference value after the deref
+   DLLLOCAL int deref(bool real, bool& do_scan, bool& rescan);
+
+   // decrements rref
+   DLLLOCAL void derefRealIntern();
+
+   DLLLOCAL void derefDone(bool del);
+
    DLLLOCAL int refs() const {
       return references;
    }
@@ -111,9 +117,6 @@ public:
    // check if we should defer the scan, marks the object for a deferred scan if necessary
    // returns 0 if the scan can be made now, -1 if deferred
    DLLLOCAL int checkDeferScan();
-
-   // marks the object as needing a scan on the next dereference
-   DLLLOCAL void markInvalid();
 
    DLLLOCAL void removeInvalidateRSet();
    DLLLOCAL void removeInvalidateRSetIntern();
@@ -418,32 +421,7 @@ protected:
       deferred_scan;
 
 public:
-   DLLLOCAL robject_dereference_helper(RObject* obj, bool real = false) : o(obj), qo(0) {
-      // the mutex ensures atomicity
-      AutoLocker al(obj->ref_mutex);
-      // dereference the object and save the resulting value on the stack
-      refs = --obj->references;
-      // if we got 0, then we will be deleting in any case, otherwise we may not (subject to recursive graph analysis)
-      del = !refs;
-      if (real) {
-         assert(obj->rrefs > 0);
-         --obj->rrefs;
-      }
-      else
-         assert(obj->rrefs >= 0);
-      do_scan = !obj->rrefs;
-
-      if (do_scan) {
-         deferred_scan = obj->deferred_scan;
-         if (deferred_scan)
-            obj->deferred_scan = false;
-      }
-      else
-         deferred_scan = false;
-
-      // mark that we have a dereference action in progress
-      ++obj->ref_inprogress;
-   }
+   DLLLOCAL robject_dereference_helper(RObject* obj, bool real = false);
 
    DLLLOCAL ~robject_dereference_helper();
 

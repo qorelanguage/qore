@@ -372,7 +372,7 @@ public:
 
       // increment reference count temporarily for destructor
       {
-	 AutoLocker slr(ref_mutex);
+	 AutoLocker slr(rlck);
 	 ++obj->references;
       }
 
@@ -417,7 +417,7 @@ public:
 #endif
 
       {
-	 AutoLocker slr(ref_mutex);
+	 AutoLocker slr(rlck);
 	 if (--obj->references)
 	    return;
       }
@@ -486,7 +486,7 @@ public:
       if (!getScanCount() || status != OS_OK)
          return false;
       {
-         AutoLocker al(ref_mutex);
+         AutoLocker al(rlck);
          if (deferred_scan)
             return false;
          if (!rrefs)
