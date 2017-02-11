@@ -225,32 +225,6 @@ int RSet::canDelete(int ref_copy, int rcount) {
 robject_dereference_helper::robject_dereference_helper(RObject* obj, bool real) : o(obj), qo(0) {
    refs = obj->deref(real, do_scan, deferred_scan);
    del = !refs;
-   /*
-   // the mutex ensures atomicity
-   AutoLocker al(obj->rlck);
-   // dereference the object and save the resulting value on the stack
-   refs = --obj->references;
-   // if we got 0, then we will be deleting in any case, otherwise we may not (subject to recursive graph analysis)
-   del = !refs;
-   if (real) {
-      assert(obj->rrefs > 0);
-      --obj->rrefs;
-   }
-   else
-      assert(obj->rrefs >= 0);
-   do_scan = !obj->rrefs;
-
-   if (do_scan) {
-      deferred_scan = obj->deferred_scan;
-      if (deferred_scan)
-         obj->deferred_scan = false;
-   }
-   else
-      deferred_scan = false;
-
-   // mark that we have a dereference action in progress
-   ++obj->ref_inprogress;
-   */
 }
 
 robject_dereference_helper::~robject_dereference_helper() {
