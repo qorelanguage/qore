@@ -610,37 +610,37 @@ public:
 
       qore_type_t fctype = fc->getType();
       if (fctype == NT_SELF_CALL) {
-	 // must have a current object if an in-object method call is being executed
-	 // (i.e. $.method())
-	 // we reference the object so it won't go out of scope while the thread is running
-	 obj = callobj.getObj();
+         // must have a current object if an in-object method call is being executed
+         // (i.e. $.method())
+         // we reference the object so it won't go out of scope while the thread is running
+         obj = callobj.getObj();
          assert(obj);
-	 obj->realRef();
-	 callobj.clear();
+         obj->realRef();
+         callobj.clear();
       }
       else if (fctype == NT_OPERATOR) {
          QoreDotEvalOperatorNode* deon = dynamic_cast<QoreDotEvalOperatorNode*>(fc);
          if (deon) {
-	    // evaluate object
-	    QoreNodeEvalOptionalRefHolder n(deon->getExpression(), xsink);
-	    if (*xsink || is_nothing(*n))
-	       return;
+            // evaluate object
+            QoreNodeEvalOptionalRefHolder n(deon->getExpression(), xsink);
+            if (*xsink || is_nothing(*n))
+               return;
 
-	    // if we have actually evaluated something, then we save the result in the tree
-	    if (n.isTemp()) {
+            // if we have actually evaluated something, then we save the result in the tree
+            if (n.isTemp()) {
                deon->replaceExpression(n.getReferencedValue());
-	    } else if (n->getType() == NT_OBJECT) {
-	       // we reference the object so it won't go out of scope while the thread is running
-	       obj =  reinterpret_cast<QoreObject*>(n.getReferencedValue());
+            } else if (n->getType() == NT_OBJECT) {
+               // we reference the object so it won't go out of scope while the thread is running
+               obj =  reinterpret_cast<QoreObject*>(n.getReferencedValue());
                qore_object_private::get(*obj)->setRealReference();
-	       callobj.clear();
-	    }
-	 }
+               callobj.clear();
+            }
+         }
       }
 
       QoreObject* o = callobj.getObj();
       if (o)
-	 o->tRef();
+         o->tRef();
    }
 
    DLLLOCAL void del() {
@@ -682,14 +682,14 @@ public:
       // dereference call object if present
       QoreObject* o = callobj.getObj();
       if (o)
-	 o->tDeref();
+         o->tDeref();
       callobj.clear();
    }
 
    DLLLOCAL void derefObj(ExceptionSink* xsink) {
       if (obj) {
-	 obj->realDeref(xsink);
-	 obj = 0;
+         obj->realDeref(xsink);
+         obj = 0;
       }
    }
 
