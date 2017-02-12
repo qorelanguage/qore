@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -36,24 +36,30 @@
 
 typedef unsigned char valtype_t;
 
-#define QV_Bool  (valtype_t)0
-#define QV_Int   (valtype_t)1
-#define QV_Float (valtype_t)2
-#define QV_Node  (valtype_t)3
-#define QV_Ref   (valtype_t)4
+//! @defgroup QoreValue type constants
+/** the possible values for QoreValue::type
+ */
+//@{
+#define QV_Bool  (valtype_t)0  //!< for boolean values
+#define QV_Int   (valtype_t)1  //!< for integer values
+#define QV_Float (valtype_t)2  //!< for floating-point values
+#define QV_Node  (valtype_t)3  //!< for heap-allocated values
+#define QV_Ref   (valtype_t)4  //!< for references (when used with lvalues)
+//@}
 
 // forward reference
 class AbstractQoreNode;
 class QoreString;
 
+//! this is the union that stores values in QoreValue
 union qore_value_u {
-   bool b;
-   int64 i;
-   double f;
-   AbstractQoreNode* n;
-//   void* p;
+   bool b;               //!< for boolean values
+   int64 i;              //!< for integer values
+   double f;             //!< for double values
+   AbstractQoreNode* n;  //!< for all heap-allocated values
 };
 
+//! namespace for implementation details of QoreValue functions
 namespace detail {
    //! used in QoreValue::get()
    template<typename Type>
@@ -96,103 +102,153 @@ namespace detail {
       typedef int64 Result;
 
       template<typename QV>
-      static double cast(QV *qv, valtype_t type) {
+      static int64 cast(QV *qv, valtype_t type) {
          return qv->getAsBigInt();
       }
    };
 } // namespace detail
 
+//! The main value class in Qore, designed to be passed by value
 struct QoreValue {
    friend class ValueHolder;
    friend class ValueEvalRefHolder;
    template<typename> friend struct detail::QoreValueCastHelper;
 
 protected:
+   //! returns the internal AbstractQoreNode pointer, does not check that type == QV_Node, leaves the object empty
    DLLEXPORT AbstractQoreNode* takeNodeIntern();
 
 public:
+   //! the actual value is stored here
    qore_value_u v;
+   //! indicates the value that the union is holding
    valtype_t type;
 
-   //! creates with no value (ie NOTHING)
+   //! creates with no value (i.e. @ref QoreNothingNode)
    DLLEXPORT QoreValue();
 
+   //! creates as a bool
    DLLEXPORT QoreValue(bool b);
 
+   //! creates as an int
    DLLEXPORT QoreValue(int i);
 
+   //! creates as an int
    DLLEXPORT QoreValue(unsigned int i);
 
+   //! creates as an int
    DLLEXPORT QoreValue(long i);
 
+   //! creates as an int
    DLLEXPORT QoreValue(unsigned long i);
 
+   //! creates as an int
    DLLEXPORT QoreValue(unsigned long long i);
 
+   //! creates as an int
    DLLEXPORT QoreValue(int64 i);
 
+   //! creates as a double
    DLLEXPORT QoreValue(double f);
 
-   // the QoreValue object takes the reference of the argument
+   //! the QoreValue object takes the reference of the argument passed
    DLLEXPORT QoreValue(AbstractQoreNode* n);
 
-   // does not reference n for any assignment
-   // sanitizes n (increases the reference of n if necessary) - meaning:
-   // if possible, the value is converted to an immediate value in place
-   // (int, float, or bool)
+   //! creates as the given object; does not reference n for the assignment to this object
+   /** sanitizes n (increases the reference of n if necessary), meaning that
+       if possible, the value is converted to an immediate value in place
+       (int, float, or bool)
+
+       if getType() == QV_Node after this assignment, then the node must be referenced for the assignment
+   */
    DLLEXPORT QoreValue(const AbstractQoreNode* n);
 
+   //! copies the value, in case type == QV_Node, no additional references are made in this function
    DLLEXPORT QoreValue(const QoreValue& old);
 
+   //! exchanges the values
    DLLEXPORT void swap(QoreValue& val);
 
+   //! returns the value as a bool
    DLLEXPORT bool getAsBool() const;
 
+   //! returns the value as an int
    DLLEXPORT int64 getAsBigInt() const;
 
+   //! returns the value as a float
    DLLEXPORT double getAsFloat() const;
 
+   //! references the contained value if type == QV_Node
    DLLEXPORT void ref() const;
 
+   //! references the contained value if type == QV_Node, returns itself
    DLLEXPORT QoreValue refSelf() const;
 
+   //! returns any AbstractQoreNode value held; if type != QV_Node, returns NULL
    DLLEXPORT AbstractQoreNode* getInternalNode();
 
+   //! returns any AbstractQoreNode value held; if type != QV_Node, returns NULL
    DLLEXPORT const AbstractQoreNode* getInternalNode() const;
 
-   // the QoreValue object takes the reference of the argument
+   //! the QoreValue object takes the reference of the argument
+   /** @param n the new node value of the object, sets type to QV_Node
+       @return any node value held before; if type != QV_Node before the assignment, returns NULL
+    */
    DLLEXPORT AbstractQoreNode* assign(AbstractQoreNode* n);
 
-   // the QoreValue object will increase the reference of n if necessary
-   //returns 0 or the previously held AbstractQoreNode*
-   // FIXME: remove with new API/ABI
+   //! sets the value of the object and returns any node value held previously
+   /** @param n the new value of the object
+       @return any node value held before; if type != QV_Node before the assignment, returns NULL
+    */
    DLLEXPORT AbstractQoreNode* assignAndSanitize(const QoreValue n);
 
+   //! sets the value of the object and returns any node value held previously
+   /** @param n the new value of the object; sets type to QV_Int
+       @return any node value held before; if type != QV_Node before the assignment, returns NULL
+    */
    DLLEXPORT AbstractQoreNode* assign(int64 n);
 
+   //! sets the value of the object and returns any node value held previously
+   /** @param n the new value of the object; sets type to QV_Float
+       @return any node value held before; if type != QV_Node before the assignment, returns NULL
+    */
    DLLEXPORT AbstractQoreNode* assign(double n);
 
+   //! sets the value of the object and returns any node value held previously
+   /** @param n the new value of the object; sets type to QV_Bool
+       @return any node value held before; if type != QV_Node before the assignment, returns NULL
+    */
    DLLEXPORT AbstractQoreNode* assign(bool n);
 
+   //! sets the value of the object to @ref QoreNothingNode and returns any node value held previously
+   /** sets type to QV_Node
+
+       @return any node value held before; if type != QV_Node before the assignment, returns NULL
+    */
    DLLEXPORT AbstractQoreNode* assignNothing();
 
+   //! returns trus if the argument value is equal to the current value with type conversions
    DLLEXPORT bool isEqualSoft(const QoreValue v, ExceptionSink* xsink) const;
+
+   //! returns trus if the argument value is equal to the current value without any type conversions
    DLLEXPORT bool isEqualHard(const QoreValue v) const;
 
-   // FIXME: remove with new API/ABI
-   // converts pointers to efficient representations
+   //! converts any node pointers to efficient representations if possible and dereferences the node value contained
    DLLEXPORT void sanitize();
 
+   //! assigns a new value
    DLLEXPORT QoreValue& operator=(const QoreValue& n);
 
-   // dereferences any contained AbstractQoreNode pointer and sets to 0; does not modify other values
+   //! dereferences any contained AbstractQoreNode pointer and sets to 0; does not modify other values
    DLLEXPORT void discard(ExceptionSink* xsink);
 
-   //! unconditionalls set the QoreValue to NOTHING (does not dereference any possible contained AbstractQoreNode ptr)
+   //! unconditionally set the QoreValue to @ref QoreNothingNode (does not dereference any possible contained AbstractQoreNode ptr)
    DLLEXPORT void clear();
 
+   //! appends the string value of the contained node to the string argument with optional formatting
    DLLEXPORT int getAsString(QoreString& str, int format_offset, ExceptionSink *xsink) const;
 
+   //! returns the string value with optional formatting of the contained node
    DLLEXPORT QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
 
    //! returns a pointer to an object of the given class; takes the pointer from the object; the caller owns the reference returned
@@ -207,11 +263,17 @@ public:
       return rv;
    }
 
+   //! returns the value as the given type
+   /** @note that if a pointer type is given and the object does not contain a node (i.e. type != QV_Node), then this call will cause a segfault, however it is always legal to cast to simple types (int64, bool, float), in which case type conversions are performed
+    */
    template<typename T>
    DLLLOCAL typename detail::QoreValueCastHelper<T>::Result get() {
       return detail::QoreValueCastHelper<T>::cast(this, type);
    }
 
+   //! returns the value as the given type
+   /** @note that if a pointer type is given and the object does not contain a node (i.e. type != QV_Node), then this call will cause a segfault, however it is always legal to cast to simple types (int64, bool, float), in which case type conversions are performed
+    */
    template<typename T>
    DLLLOCAL typename detail::QoreValueCastHelper<const T>::Result get() const {
       return detail::QoreValueCastHelper<const T>::cast(this, type);
@@ -245,15 +307,20 @@ public:
    DLLEXPORT bool isNullOrNothing() const;
 };
 
+//! base class for holding a QoreValue object
 class ValueHolderBase {
 protected:
+   //! the vlaue held
    QoreValue v;
+   //! for possible Qore-language exceptions
    ExceptionSink* xsink;
 
 public:
+   //! creates an ampty object
    DLLLOCAL ValueHolderBase(ExceptionSink* xs) : xsink(xs) {
    }
 
+   //! creates the object with the given value
    DLLLOCAL ValueHolderBase(QoreValue n_v, ExceptionSink* xs) : v(n_v), xsink(xs) {
    }
 
@@ -264,22 +331,27 @@ public:
    DLLLOCAL QoreValue& operator*() { return v; }
 };
 
+//! holds an object and dereferences it in the destructor
 class ValueHolder : public ValueHolderBase {
 public:
+   //! creates an empty object
    DLLLOCAL ValueHolder(ExceptionSink* xs) : ValueHolderBase(xs) {
    }
 
+   //! creates the object with the given value
    DLLLOCAL ValueHolder(QoreValue n_v, ExceptionSink* xs) : ValueHolderBase(n_v, xs) {
    }
 
+   //! dereferences any contained node
    DLLEXPORT ~ValueHolder();
 
-   //! returns a referenced AbstractQoreNode ptr; caller owns the referenced; the current object is left empty
+   //! returns a referenced AbstractQoreNode ptr; caller owns the reference; the current object is left empty
    DLLEXPORT AbstractQoreNode* getReferencedValue();
 
    //! returns a QoreValue object and leaves the current object empty; the caller owns any referenced contained in the return value
    DLLEXPORT QoreValue release();
 
+   //! assigns the object, any currently-held value is dereferenced before the assignment
    DLLLOCAL QoreValue& operator=(QoreValue nv) {
       v.discard(xsink);
       v = nv;
@@ -292,21 +364,26 @@ public:
    }
 };
 
+//! allows storing a value and setting a boolean flag that indicates if the value should be dereference in the destructor or not
 class ValueOptionalRefHolder : public ValueHolderBase {
 private:
    // not implemented
    DLLLOCAL QoreValue& operator=(QoreValue& nv);
 
 protected:
+   //! flag indicating if the value should be dereferenced in the destructor or not
    bool needs_deref;
 
+   //! creates an empty object
    DLLLOCAL ValueOptionalRefHolder(ExceptionSink* xs) : ValueHolderBase(xs), needs_deref(false) {
    }
 
 public:
+   //! creates the object with the given values
    DLLLOCAL ValueOptionalRefHolder(QoreValue n_v, bool nd, ExceptionSink* xs) : ValueHolderBase(n_v, xs), needs_deref(nd) {
    }
 
+   //! dereferences the object if needs_deref = true
    DLLEXPORT ~ValueOptionalRefHolder();
 
    //! returns true if the value is temporary (needs dereferencing)
@@ -331,10 +408,12 @@ public:
    }
 };
 
+//! evaluates an AbstractQoreNode and dereferences the stored value in the destructor
 class ValueEvalRefHolder : public ValueOptionalRefHolder {
 protected:
 
 public:
+   //! evaluates the AbstractQoreNode argument
    DLLEXPORT ValueEvalRefHolder(const AbstractQoreNode* exp, ExceptionSink* xs);
 
    // ensures that the held value is referenced
@@ -342,6 +421,7 @@ public:
     */
    DLLEXPORT void ensureReferencedValue();
 
+   //! returns the stored node value and leaves the current object empty
    template<typename T>
    DLLLOCAL T* takeReferencedNode() {
       T* rv = v.take<T>();
@@ -353,9 +433,10 @@ public:
       return rv;
    }
 
-   // leaves the container empty
+   //! returns a referenced AbstractQoreNode ptr; caller owns the reference; the current object is left empty
    DLLEXPORT AbstractQoreNode* getReferencedValue();
 
+   //! returns the stored AbstractQoreNode pointer and sets the dereference flag as an output variable
    DLLLOCAL AbstractQoreNode* takeNode(bool& nd) {
       if (v.type == QV_Node) {
          nd = needs_deref;
@@ -365,6 +446,7 @@ public:
       return v.takeNode();
    }
 
+   //! returns the stored value and sets the dereference flag as an output variable
    DLLLOCAL QoreValue takeValue(bool& nd) {
       if (v.type == QV_Node) {
          nd = needs_deref;
@@ -374,6 +456,7 @@ public:
       return v;
    }
 
+   //! returns the stored value which must be dereferenced if it is a node object (i.e. type == QV_Node)
    DLLEXPORT QoreValue takeReferencedValue();
 };
 

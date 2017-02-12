@@ -3,11 +3,11 @@
 
   Qore Programming Language
 
-  this whole file comes out of a very old getopt-stype implementation by me
+  this whole file comes out of a very old getopt-stype implementation
 
   it should offer POSIX style command-line handling on any platform...
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -113,6 +113,7 @@ static const char helpstr[] =
    "  -c, --charset=arg            sets default character set encoding\n"
    "  -D, --define=arg             sets the value of a parse define\n"
    "  -e, --exec=arg               execute program given on command-line\n"
+   "  -g, --disable-gc             disable the garbage collector\n"
    "  -h, --help                   shows this help text and exit\n"
    "  -i, --list-warnings          list all warnings and quit\n"
    "  -l, --load=arg               load module 'arg' immediately\n"
@@ -566,6 +567,10 @@ static void set_exec(const char* arg) {
    cl_pgm = arg;
 }
 
+static void disable_gc(const char* arg) {
+   qore_lib_options |= QLO_DISABLE_GARBAGE_COLLECTION;
+}
+
 static void show_module_errors(const char* arg) {
    show_mod_errs = true;
 }
@@ -599,6 +604,7 @@ static struct opt_struct_s {
    { 'B', "show-built-options",    ARG_NONE, show_build_options },
    { 'c', "charset",               ARG_MAND, set_charset },
    { 'e', "exec",                  ARG_MAND, set_exec },
+   { 'g', "disable-gc",            ARG_NONE, disable_gc },
    { 'h', "help",                  ARG_NONE, do_help },
    { 'i', "list-warnings",         ARG_NONE, list_warnings },
    { 'l', "load",                  ARG_MAND, load_module },

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -154,12 +154,6 @@ public:
    QoreHashNode* data;
    QoreProgram* pgm;
 
-   // number of calls currently in progress
-   int call_count;
-
-   // flag to force a scan after a call
-   mutable bool scan_after_call;
-
    bool system_object, delete_blocker_run, in_destructor;
    bool recursive_ref_found;
 
@@ -187,7 +181,7 @@ public:
 
    DLLLOCAL int getLValue(const char* key, LValueHelper& lvh, bool internal, bool for_remove, ExceptionSink* xsink) const;
 
-   DLLLOCAL AbstractQoreNode* *getMemberValuePtr(const char* key, AutoVLock *vl, const QoreTypeInfo*& typeInfo, ExceptionSink* xsink) const;
+   DLLLOCAL AbstractQoreNode** getMemberValuePtr(const char* key, AutoVLock *vl, const QoreTypeInfo*& typeInfo, ExceptionSink* xsink) const;
 
    DLLLOCAL QoreStringNode* firstKey(ExceptionSink* xsink) {
       QoreAutoVarRWReadLocker al(rml);
@@ -378,7 +372,7 @@ public:
 
       // increment reference count temporarily for destructor
       {
-	 AutoLocker slr(ref_mutex);
+	 AutoLocker slr(rlck);
 	 ++obj->references;
       }
 
@@ -423,7 +417,7 @@ public:
 #endif
 
       {
-	 AutoLocker slr(ref_mutex);
+	 AutoLocker slr(rlck);
 	 if (--obj->references)
 	    return;
       }
@@ -485,26 +479,44 @@ public:
 
    DLLLOCAL virtual bool scanMembers(RSetHelper& rsh);
 
-   DLLLOCAL virtual bool needsScan() const {
+   // always called in the rsection lock
+   DLLLOCAL virtual bool needsScan(bool scan_now) {
+      assert(rml.hasRSectionLock());
+      // the status cannot change while this lock is held
       if (!getScanCount() || status != OS_OK)
          return false;
-      AutoLocker al(ref_mutex);
-      if (status != OS_OK)
-         return false;
-      if (getScanCount()) {
-         if (call_count) {
-            if (!scan_after_call)
-               scan_after_call = true;
+      {
+         AutoLocker al(rlck);
+         if (deferred_scan) {
+            if (!rrefs && scan_now) {
+               deferred_scan = false;
+               return true;
+            }
             return false;
          }
-         return true;
+         if (!rrefs)
+            return true;
+         deferred_scan = true;
+         // if there is no rset, our job is done
+         if (!rset)
+            return false;
+         // if we have an rset, then we need to invalidate it and ensure that
+         // rrefs does not go to zero until this is done
+         rref_wait = true;
       }
+
+      removeInvalidateRSetIntern();
+      AutoLocker al(rlck);
+      rref_wait = false;
+      if (rref_waiting)
+         rcond.broadcast();
+
       return false;
    }
 
    DLLLOCAL void setPrivate(qore_classid_t key, AbstractPrivateData* pd) {
       if (!privateData)
-         privateData = new KeyList();
+         privateData = new KeyList;
       //printd(5, "qore_object_private::setPrivate() this: %p 2:privateData: %p (%s) key: %d pd: %p\n", this, privateData, theclass->getName(), key, pd);
       privateData->insert(key, pd);
       addVirtualPrivateData(key, pd);
@@ -552,11 +564,27 @@ public:
    }
    */
 
-   DLLLOCAL void customDeref(bool do_scan, ExceptionSink* xsink);
+   // custom reference handler - unlocked
+   /** @param real if the reference is "real" (i.e. cannot be part of a recursive cycle) or not
+    */
+   DLLLOCAL void customRefIntern(bool real);
+
+   // custom dereference handler - unlocked
+   /** @param real if the dereference is "real" (i.e. cannot be part of a recursive cycle) or not
+    */
+   DLLLOCAL void customDeref(bool real, ExceptionSink* xsink);
 
    DLLLOCAL int startCall(const char* mname, ExceptionSink* xsink);
 
    DLLLOCAL void endCall(ExceptionSink* xsink);
+
+   // increments the real reference count without incrementing the actual reference count
+   // (i.e. turns the current not real reference into a "real" reference; one that cannot
+   // participate in recursive graphs)
+   DLLLOCAL void setRealReference();
+
+   // decrements the real reference count without decrementing the actual reference count
+   DLLLOCAL void unsetRealReference();
 
    DLLLOCAL const char* getClassName() const {
       return theclass->getName();
@@ -586,7 +614,7 @@ public:
       return obj.priv->getLValue(key, lvh, internal, for_remove, xsink);
    }
 
-   DLLLOCAL static AbstractQoreNode* *getMemberValuePtr(const QoreObject* obj, const char* key, AutoVLock *vl, const QoreTypeInfo*& typeInfo, ExceptionSink* xsink) {
+   DLLLOCAL static AbstractQoreNode** getMemberValuePtr(const QoreObject* obj, const char* key, AutoVLock *vl, const QoreTypeInfo*& typeInfo, ExceptionSink* xsink) {
       return obj->priv->getMemberValuePtr(key, vl, typeInfo, xsink);
    }
 

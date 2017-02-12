@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,8 @@
 #ifndef _QORE_INTERN_QORELVALUE_H
 
 #define _QORE_INTERN_QORELVALUE_H
+
+DLLLOCAL void check_lvalue_object_in_out(AbstractQoreNode* in, AbstractQoreNode* out);
 
 template <typename U = qore_value_u>
 class QoreLValue {
@@ -77,14 +79,17 @@ public:
    // and therefore should not be dereferenced
    bool static_assignment : 1;
 
-   DLLLOCAL QoreLValue() : type(QV_Node), fixed_type(false), assigned(false), static_assignment(false) {
+   // true if assigned to a closure
+   bool is_closure : 1;
+
+   DLLLOCAL QoreLValue() : type(QV_Node), fixed_type(false), assigned(false), static_assignment(false), is_closure(false) {
 #ifdef DEBUG
       v.n = 0;
 #endif
       reset();
    }
 
-   DLLLOCAL QoreLValue(valtype_t t) : type(t), fixed_type(t != QV_Node), assigned(false), static_assignment(false) {
+   DLLLOCAL QoreLValue(valtype_t t) : type(t), fixed_type(t != QV_Node), assigned(false), static_assignment(false), is_closure(false) {
 #ifdef DEBUG
       if (t == QV_Node)
          v.n = 0;
@@ -93,21 +98,25 @@ public:
    }
 
    // fixed_type is assigned in set()
-   DLLLOCAL QoreLValue(const QoreTypeInfo* typeInfo) : assigned(false), static_assignment(false) {
+   DLLLOCAL QoreLValue(const QoreTypeInfo* typeInfo) : assigned(false), static_assignment(false), is_closure(false) {
 #ifdef DEBUG
       type = QV_Bool;
 #endif
       set(typeInfo);
    }
 
-   DLLLOCAL QoreLValue(const QoreLValue<U>& old) : type(old.type), fixed_type(old.fixed_type), assigned(old.assigned), static_assignment(false) {
+   DLLLOCAL QoreLValue(const QoreLValue<U>& old) : type(old.type), fixed_type(old.fixed_type), assigned(old.assigned), static_assignment(false), is_closure(old.is_closure) {
       if (!assigned)
          return;
       switch (old.type) {
          case QV_Bool: v.b = old.v.b; break;
          case QV_Int: v.i = old.v.i; break;
          case QV_Float: v.f = old.v.f; break;
-         case QV_Node: v.n = old.v.n ? old.v.n->refSelf() : 0; break;
+         case QV_Node:
+            v.n = old.v.n ? old.v.n->refSelf() : 0;
+            if (!is_closure)
+               check_lvalue_object_in_out(v.n, 0);
+            break;
          default: assert(false);
          // no break
       }
@@ -118,6 +127,11 @@ public:
       assert(!assigned || type != QV_Node || !v.n);
    }
 #endif
+
+   DLLLOCAL void setClosure() {
+      assert(!is_closure);
+      is_closure = true;
+   }
 
    DLLLOCAL valtype_t getOptimizedType() const {
       return fixed_type ? type : QV_Node;
@@ -214,6 +228,8 @@ public:
             AbstractQoreNode* rv = v.n;
             v.i = i;
             type = QV_Int;
+            if (!is_closure)
+               check_lvalue_object_in_out(0, rv);
             return rv;
          }
 
@@ -256,6 +272,8 @@ public:
             AbstractQoreNode* rv = v.n;
             v.f = f;
             type = QV_Float;
+            if (!is_closure)
+               check_lvalue_object_in_out(0, rv);
             return rv;
          }
 
@@ -307,6 +325,8 @@ public:
             AbstractQoreNode* rv = v.n;
             v.n = n;
             type = QV_Node;
+            if (!is_closure)
+               check_lvalue_object_in_out(0, rv);
             return rv;
          }
 
@@ -328,13 +348,17 @@ public:
          case QV_Bool: return QoreValue(v.b);
          case QV_Int: return QoreValue(v.i);
          case QV_Float: return QoreValue(v.f);
-         case QV_Node: return QoreValue(v.n);
+         case QV_Node:
+            if (!is_closure)
+               check_lvalue_object_in_out(0, v.n);
+            return QoreValue(v.n);
          default: assert(false);
          // no break
       }
       return false;
    }
 
+   /*
    DLLLOCAL QoreValue copyValue() const {
       if (!assigned)
          return QoreValue();
@@ -343,12 +367,14 @@ public:
          case QV_Bool: return QoreValue(v.b);
          case QV_Int: return QoreValue(v.i);
          case QV_Float: return QoreValue(v.f);
-         case QV_Node: return v.n ? QoreValue(v.n) : QoreValue();
+         case QV_Node:
+            return v.n ? QoreValue(v.n) : QoreValue();
          default: assert(false);
          // no break
       }
       return false;
    }
+   */
 
 /*
    DLLLOCAL QoreValue eval(ExceptionSink* xsink) const {
@@ -471,8 +497,11 @@ public:
       if (!assigned)
          return;
 
-      if (type == QV_Node && v.n)
+      if (type == QV_Node && v.n) {
+         if (!is_closure)
+            check_lvalue_object_in_out(0, v.n);
          v.n->deref(xsink);
+      }
    }
 
 #ifdef DEBUG
@@ -529,8 +558,15 @@ public:
       }
 
       AbstractQoreNode* rv;
-      if (assigned)
-         rv = (type == QV_Node) ? v.n : 0;
+      if (assigned) {
+         if (type == QV_Node) {
+            if (!is_closure)
+               check_lvalue_object_in_out(0, v.n);
+            rv = v.n;
+         }
+         else
+            rv = 0;
+      }
       else {
          assigned = true;
          rv = 0;
@@ -540,7 +576,13 @@ public:
          case QV_Bool: v.b = val.v.b; if (type != QV_Bool) type = QV_Bool; break;
          case QV_Int: v.i = val.v.i; if (type != QV_Int) type = QV_Int; break;
          case QV_Float: v.f = val.v.f; if (type != QV_Float) type = QV_Float; break;
-         case QV_Node: v.n = val.takeNode(); if (type != QV_Node) type = QV_Node; break;
+         case QV_Node:
+            v.n = val.takeNode();
+            if (type != QV_Node)
+               type = QV_Node;
+            if (!is_closure)
+               check_lvalue_object_in_out(v.n, 0);
+            break;
          default: assert(false);
             // no break
       }
@@ -563,8 +605,11 @@ public:
 
       AbstractQoreNode* rv;
       if (assigned) {
-         if (type == QV_Node)
+         if (type == QV_Node) {
+            if (!is_closure)
+               check_lvalue_object_in_out(0, v.n);
             rv = v.n;
+         }
          else
             rv = 0;
       }
@@ -594,8 +639,11 @@ public:
 
       AbstractQoreNode* rv;
       if (assigned) {
-         if (type == QV_Node)
+         if (type == QV_Node) {
+            if (!is_closure)
+               check_lvalue_object_in_out(0, v.n);
             rv = v.n;
+         }
          else
             rv = 0;
       }
@@ -625,8 +673,11 @@ public:
 
       AbstractQoreNode* rv;
       if (assigned) {
-         if (type == QV_Node)
+         if (type == QV_Node) {
+            if (!is_closure)
+               check_lvalue_object_in_out(0, v.n);
             rv = v.n;
+         }
          else
             rv = 0;
       }
@@ -654,7 +705,14 @@ public:
          case QV_Bool: v.b = n.v.b; n.v.b = val.v.b; break;
          case QV_Int: v.i = n.v.i; n.v.i = val.v.i; break;
          case QV_Float: v.f = n.v.f; n.v.f = val.v.f; break;
-         case QV_Node: v.n = n.v.n; n.v.n = val.takeNode(); break;
+         case QV_Node:
+            if (n.is_closure) {
+               assert(!is_closure);
+               is_closure = true;
+            }
+            v.n = n.v.n;
+            n.v.n = val.takeNode();
+            break;
          default: assert(false);
          // no break
       }
@@ -674,7 +732,14 @@ public:
          case QV_Bool: v.b = n.v.b; n.v.b = false; break;
          case QV_Int: v.i = n.v.i; n.v.i = 0; break;
          case QV_Float: v.f = n.v.f; n.v.f = 0; break;
-         case QV_Node: v.n = n.v.n; n.v.n = 0; break;
+         case QV_Node:
+            if (n.is_closure) {
+               assert(!is_closure);
+               is_closure = true;
+            }
+            v.n = n.v.n;
+            n.v.n = 0;
+            break;
          default: assert(false);
          // no break
       }
@@ -746,7 +811,8 @@ public:
       assigned = true;
       if (fixed_type) {
          switch (type) {
-            case QV_Bool: v.b = n ? n->getAsBool() : false; return n;
+            case QV_Bool:
+               v.b = n ? n->getAsBool() : false; return n;
             case QV_Int: v.i = n ? n->getAsBigInt() : 0; return n;
             case QV_Float: v.f = n ? n->getAsFloat() : 0; return n;
             default: assert(false);
@@ -755,9 +821,12 @@ public:
       }
       type = QV_Node;
       v.n = n;
+      if (!is_closure)
+         check_lvalue_object_in_out(v.n, 0);
       return 0;
    }
 
+   // the node is already referenced for the assignment
    DLLLOCAL AbstractQoreNode* assign(AbstractQoreNode* n) {
       if (fixed_type) {
          if (!assigned)
@@ -789,6 +858,8 @@ public:
                return 0;
             }
             case QV_Node: {
+               if (!is_closure)
+                  check_lvalue_object_in_out(n, v.n);
                AbstractQoreNode* rv = v.n;
                v.n = n;
                return rv;
@@ -802,8 +873,11 @@ public:
 
       AbstractQoreNode* rv;
       if (assigned) {
-         if (type == QV_Node)
+         if (type == QV_Node) {
+            if (!is_closure)
+               check_lvalue_object_in_out(0, v.n);
             rv = v.n;
+         }
          else
             rv = 0;
       }
@@ -819,6 +893,8 @@ public:
          case NT_FLOAT: v.b = reinterpret_cast<QoreFloatNode*>(n)->f; if (type != QV_Float) type = QV_Float; n->deref(0); break;
          default: {
             v.n = n;
+            if (!is_closure)
+               check_lvalue_object_in_out(v.n, 0);
             if (type != QV_Node)
                type = QV_Node;
             break;
@@ -1733,6 +1809,8 @@ public:
          case QV_Float:
             return v.f;
          case QV_Node:
+            if (!is_closure)
+               check_lvalue_object_in_out(0, v.n);
             return v.n;
          default:
             assert(false);
@@ -1747,6 +1825,8 @@ public:
          assigned = false;
          if (static_assignment)
             static_assignment = false;
+         if (type == QV_Node && !is_closure)
+            check_lvalue_object_in_out(0, v.n);
       }
    }
 
@@ -1764,6 +1844,8 @@ public:
          case QV_Float:
             return for_del ? 0 : new QoreFloatNode(v.f);
          case QV_Node:
+            if (!is_closure)
+               check_lvalue_object_in_out(0, v.n);
             return v.n;
          default:
             assert(false);

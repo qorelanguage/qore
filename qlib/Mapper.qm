@@ -195,7 +195,7 @@ list: (2 elements)
         - grouping of the output data
 
     @par Example:
-    @code{.py}{.py}
+    @code{.py}
 hash mapv = (
     "foo": ("constant": "bar"),
      # ...
@@ -235,7 +235,6 @@ m.mapData(input2);           # date_begin is still the same as from beginning of
     - implemented the \c "input" option with input record validation
     - implemented the \c "output" option with output record validation
     - implemented the \c "info_log" option and removed the \c "trunc" option
-    - implemented the @ref Mapper::Mapper::addConstantMapping() "Mapper::addConstantMapping()" methods
     - added runtime option handling (@ref mapper_runtime_handling):
       - \c "runtime" mapper option
       - @ref Mapper::Mapper::getRuntime()
@@ -387,7 +386,7 @@ public namespace Mapper {
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
         /** @par Example:
-            @code{.py}{.py}
+            @code{.py}
 const DataMap = (
     # output field: "id" mapper from the "Id" element of any "^attributes^" hash in the input record
     "id": "^attributes^.Id",

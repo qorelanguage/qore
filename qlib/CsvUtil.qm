@@ -100,7 +100,7 @@ UK,1234567893,"Sony, Xperia S",31052012
 #!/usr/bin/env qore
 
 %new-style
-%requires CsvFileIterator
+%requires CsvUtil
 
 CsvFileIterator i("example-file.csv", ("headers": ("cc", "serno", "desc", "received"), "fields": ("serno": "int", "received": ("type": "date", "format": "DDMMYYYY"))));
 while (i.next())
