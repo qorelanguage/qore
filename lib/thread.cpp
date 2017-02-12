@@ -490,6 +490,7 @@ void ThreadProgramData::saveProgram(bool runtime, ExceptionSink* xsink) {
       assert(pgm_set.find(td->current_pgm) == pgm_set.end());
       pgm_set.insert(td->current_pgm);
    }
+   td->tlpd->dbgAttachThread(xsink);
    if (runtime)
       qore_program_private::doThreadInit(*td->current_pgm, xsink);
 }
@@ -1256,6 +1257,12 @@ ThreadProgramData* get_thread_program_data() {
    ThreadData* td = thread_data.get();
    assert(td);
    return td->tpd;
+}
+
+ThreadLocalProgramData* get_thread_local_program_data() {
+   ThreadData* td = thread_data.get();
+   assert(td);
+   return td->tlpd;
 }
 
 // pushes a new argv reference counter

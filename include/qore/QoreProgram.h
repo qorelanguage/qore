@@ -64,6 +64,15 @@
 
 #define QP_WARN_DEFAULT (QP_WARN_UNKNOWN_WARNING|QP_WARN_MODULES|QP_WARN_DEPRECATED)
 
+enum ThreadDebugEnum : unsigned char {
+   DBG_SB_RUN = 0,
+   DBG_SB_STEP = 1,
+   DBG_SB_STEP_OVER = 2,
+   DBG_SB_UNTIL_RETURN = 3,
+   DBG_SB_STOPPED = 4,    // last one, see assert in setStepBreakpoint
+};
+
+
 //! list of strings of warning codes
 DLLEXPORT extern const char** qore_warnings;
 
@@ -672,6 +681,36 @@ public:
 
    // can only be called while parsing from the same thread doing the parsing
    DLLLOCAL bool parseExceptionRaised() const;
+
+   /**
+    *
+    */
+   DLLLOCAL ThreadDebugEnum dbgNewThreadEvent() const { return DBG_SB_RUN; }
+   /**
+    * Called when debugging is on and step break is acquired
+    */
+   DLLLOCAL ThreadDebugEnum dbgBreakEvent(const AbstractStatement *statement) const {return DBG_SB_RUN;}
+   /**
+    * Called when debugging is on and exception is raised
+    */
+   DLLLOCAL ThreadDebugEnum dbgExceptionEvent(const AbstractStatement *statement, const ExceptionSink *xsink) const {return DBG_SB_RUN; };
+
+   /** returns the value of the local variable given (do not include the "$" symbol), the caller owns the reference count returned
+    * The variable is related to current frame. This function can be executed only when program is stopped
+
+    *   @param var the variable name to return (do not include the "$" symbol)
+    *   @param found returns true if the variable exists, false if not
+    *   @return the value of the global variable given; if a non-zero pointer is returned, the caller owns the reference count returned
+    */
+   DLLEXPORT QoreValue getLocalVariableVal(const char* var, bool &found) const;
+   //DLLEXPORT getCallStack(int tid) const;
+   //DLLEXPORT setFrame(int tid, int frameId) const;
+   DLLEXPORT AbstractStatement* findStatement(const char* fileName, int line) const;
+   DLLEXPORT AbstractStatement* findFunction(const char* functionName) const;
+
+   DLLEXPORT void setBreakpoint(AbstractStatement* statement) const;   // threadId ???
+
+
 };
 
 //! safely manages QoreProgram objects; note the the destructor will block until all background threads in the qore library terminate and until the current QoreProgram terminates

@@ -128,6 +128,7 @@ class ThreadTest inherits Mutex {
             background worker();
             threads--;
         }
+printf("%N\n%N\n", get_all_thread_data(), get_all_thread_call_stacks());
         c.waitForZero();
         t.assertTrue(True, "thread object tests");
     }
@@ -208,6 +209,7 @@ class ThreadTest inherits Mutex {
                 continue;
             }
         }
+        sleep(2);
         c.dec();
     }
 }

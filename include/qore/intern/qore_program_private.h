@@ -98,7 +98,16 @@ private:
    // not implemented
    DLLLOCAL ThreadLocalProgramData(const ThreadLocalProgramData& old);
 
+   // thread debug types
+   volatile ThreadDebugEnum stepBreakpoint;
+   // Current debug state.
+   bool saveStepOver;
+   inline void setStepBreakpoint(ThreadDebugEnum st) {
+      assert(st < DBG_SB_STOPPED); // DBG_SB_STOPPED is wrong value when program is running
+      stepBreakpoint = st;
+   }
 public:
+
    // local variable data slots
    ThreadLocalVariableData lvstack;
    // closure variable stack
@@ -111,7 +120,8 @@ public:
    // top-level vars instantiated
    bool inst : 1;
 
-   DLLLOCAL ThreadLocalProgramData() : tz(0), tz_set(false), inst(false) {
+
+   DLLLOCAL ThreadLocalProgramData() : stepBreakpoint(DBG_SB_RUN), saveStepOver(false), tz(0), tz_set(false), inst(false) {
       //printd(5, "ThreadLocalProgramData::ThreadLocalProgramData() this: %p\n", this);
    }
 
@@ -139,6 +149,79 @@ public:
    DLLLOCAL void clearTZ() {
       tz_set = false;
       tz = 0;
+   }
+
+/*   void setEnable(bool n_enabled) {
+      enabled = n_enabled;
+      if (!enabled) {
+         stepBreakpoint = DBG_SB_RUN;
+         saveStepOver = false;
+      }
+   }*/
+
+   /**
+    * Data local for each program and thread. dbgXXX function are called from
+    * AbstractStatement places when particular action related to debugging is taken.
+    * xsink is passed as debugger can raise exception to be passed to program.
+    * When dbgXXX function is executed then stepBreakpoint is tested unless is DBG_SB_STOPPED
+    * then is set to DBG_SB_STOPPED. It's simple lock and debugging is disabled
+    * till returns from this event handler. To be precise it should be
+    * locked by an atomic lock but it is good enough not to break performance.
+    */
+
+   /**
+    * Executed when local thread data for QoreProgram.
+    * TODO: improve performance substituting getProgram() with more powerful way
+    */
+   DLLLOCAL void dbgAttachThread(ExceptionSink* xsink) {
+      saveStepOver = false;
+      stepBreakpoint = DBG_SB_STOPPED;
+      //setStepBreakpoint(getProgram()->dbgAttachThreadEvent(xsink));
+   }
+   /**
+    * Executed every step in BlockStatement.
+    * @param statement is step being proccesed
+    * @return 0 as neutral value or RC_RETURN/BREAK/CONTINUE to terminate block
+    */
+   DLLLOCAL int dbgStep(const AbstractStatement *statement, ExceptionSink* xsink) {
+      int rc = 0;
+      if (stepBreakpoint == DBG_SB_STEP) {
+         stepBreakpoint = DBG_SB_STOPPED;
+         //setStepBreakpoint(getProgram()->dbgStepEvent(statement, &rc, xsink));
+      }
+      return rc;
+   }
+   /**
+    * Executed when a function is entered. If step-over is requested then flag is cleared not to break
+    */
+   DLLLOCAL void dbgFunctionEnter(const AbstractStatement *statement, ExceptionSink* xsink) {
+      if (stepBreakpoint == DBG_SB_STEP_OVER) {
+         stepBreakpoint = DBG_SB_RUN;
+         saveStepOver = true;
+      }
+   }
+   /**
+    * Executed when a function is exited.
+    */
+   DLLLOCAL void dbgFunctionExit(const AbstractStatement *statement, QoreValue& returnValue, ExceptionSink* xsink) {
+      if (stepBreakpoint == DBG_SB_UNTIL_RETURN) {
+         saveStepOver = false;
+         stepBreakpoint = DBG_SB_STOPPED;
+         //setStepBreakpoint(getProgram()->dbgFunctionExitEvent(statement, returnValue, xsink));
+      } else if (saveStepOver) {
+         stepBreakpoint = DBG_SB_STEP;
+         saveStepOver = false;
+      }
+   }
+   /**
+    * Executed when an exception is raised.
+    */
+   DLLLOCAL void dbgException(const AbstractStatement *statement, const ExceptionSink* xsink) {
+//      if (enabled) {
+         saveStepOver = false;
+         stepBreakpoint = DBG_SB_STOPPED;
+         //setStepBreakpoint(getProgram()->dbgExceptionEvent(statement, xsink));
+//      }
    }
 };
 
