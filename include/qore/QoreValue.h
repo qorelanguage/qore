@@ -43,7 +43,7 @@ typedef unsigned char valtype_t;
 #define QV_Bool  (valtype_t)0  //!< for boolean values
 #define QV_Int   (valtype_t)1  //!< for integer values
 #define QV_Float (valtype_t)2  //!< for floating-point values
-#define QV_Node  (valtype_t)3  //!< for heal-allocated values
+#define QV_Node  (valtype_t)3  //!< for heap-allocated values
 #define QV_Ref   (valtype_t)4  //!< for references (when used with lvalues)
 //@}
 
@@ -184,10 +184,10 @@ public:
    //! references the contained value if type == QV_Node, returns itself
    DLLEXPORT QoreValue refSelf() const;
 
-   //! returns any AbstractQoreNode value held, it type != QV_Node, returns NULL
+   //! returns any AbstractQoreNode value held; if type != QV_Node, returns NULL
    DLLEXPORT AbstractQoreNode* getInternalNode();
 
-   //! returns any AbstractQoreNode value held, it type != QV_Node, returns NULL
+   //! returns any AbstractQoreNode value held; if type != QV_Node, returns NULL
    DLLEXPORT const AbstractQoreNode* getInternalNode() const;
 
    //! the QoreValue object takes the reference of the argument
@@ -242,7 +242,7 @@ public:
    //! dereferences any contained AbstractQoreNode pointer and sets to 0; does not modify other values
    DLLEXPORT void discard(ExceptionSink* xsink);
 
-   //! unconditionalls set the QoreValue to @ref QoreNothingNode (does not dereference any possible contained AbstractQoreNode ptr)
+   //! unconditionally set the QoreValue to @ref QoreNothingNode (does not dereference any possible contained AbstractQoreNode ptr)
    DLLEXPORT void clear();
 
    //! appends the string value of the contained node to the string argument with optional formatting
