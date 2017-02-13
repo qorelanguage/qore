@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 
 # require type definitions everywhere
 %require-types
@@ -38,7 +38,7 @@
 %requires(reexport) SqlUtil
 
 module BulkSqlUtil {
-    version = "1.1";
+    version = "1.2";
     desc = "user module performing bulk DML operations with SqlUtil";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -65,6 +65,9 @@ module BulkSqlUtil {
     See the above classes for detailed information and examples.
 
     @section bulksqlutil_relnotes Release Notes
+
+    @subsection bulksqlutil_v1_2 BulkSqlUtil v1.2
+    - updated the module to support drivers without bulk DML
 
     @subsection bulksqlutil_v1_1 BulkSqlUtil v1.1
     - fixed a bug in the @ref BulkSqlUtil::BulkInsertOperation "BulkInsertOperation" class where inserts would fail or silently insert invalid data in the second or later blocks when constant hashes were used (<a href="https://github.com/qorelanguage/qore/issues/1625">issue 1625</a>)
@@ -269,7 +272,7 @@ on_error ds.rollback();
                         break;
                     int ns = block_size - cs;
                     # add on rows until we get to the block size
-                    map hbuf.$1 += (extract data.$1, 0, ns), hbuf.keyIterator();
+                    map hbuf.$1 += (extract data.$1, 0, ns), keys hbuf;
                     flushIntern();
                 }
             }
@@ -336,7 +339,7 @@ on_error ds.rollback();
                 # remove and process rows to add
                 foreach hash row in (extract l, 0, ns) {
                     # add row data to block buffer
-                    map hbuf.$1 += row.$1, hbuf.keyIterator();
+                    map hbuf.$1 += row.$1, keys hbuf;
                 }
 
                 flushIntern();
@@ -344,7 +347,7 @@ on_error ds.rollback();
 
             foreach hash row in (l) {
                 # add row data to block buffer
-                map hbuf.$1 += row.$1, hbuf.keyIterator();
+                map hbuf.$1 += row.$1, keys hbuf;
             }
 
             # return nothing if nothing needs to be flushed
@@ -368,7 +371,7 @@ on_error ds.rollback();
 
             # do not include constant values in the template row
             if (has_list) {
-                cval = map {$1: remove row.$1}, row.keyIterator(), row.$1.typeCode() != NT_LIST;
+                cval = map {$1: remove row.$1}, keys row, row.$1.typeCode() != NT_LIST;
                 if (cval)
                     cval_keys = cval.keys();
             }
@@ -378,7 +381,7 @@ on_error ds.rollback();
 
         #! sets up the block buffer given the initial template row for inserting
         private setupInitialRow(hash row) {
-            map hbuf.$1 = (), row.keyIterator();
+            map hbuf.$1 = (), keys row;
         }
 
         #! flushes any remaining batched data to the database; this method should always be called before committing the transaction or destroying the object
@@ -427,7 +430,7 @@ on_error ds.rollback();
             if (info_log)
                 info_log("%s (%s): %d row%s flushed (total %d)", table.getSqlName(), opname, bs, bs == 1 ? "" : "s", row_count);
             # reset internal buffer
-            map hbuf.$1 = (), hbuf.keyIterator();
+            map hbuf.$1 = (), keys hbuf;
         }
 
         #! discards any buffered batched data; this method should be called before destroying the object if an error occurs
@@ -655,7 +658,7 @@ inserter.setRowCode(rowcode);
                 cval_keys += static_ret_expr.keys();
         }
 
-        #! inserts internally-queued queued data in the database wuith bulk DML operations
+        #! inserts internally-queued queued data in the database with bulk DML operations
         /**
             This method sets up the SQL DML query used for inserts when row is queued.
             Output values are only retrieved if @ref sql_iops_funcs are used and a
@@ -676,8 +679,27 @@ inserter.setRowCode(rowcode);
             }
             else {
                 # execute the SQLStatement on the args
-                stmt.execArgs((hbuf + cval + static_ret_expr).values());
-                rh = stmt.getOutput();
+                if (table.hasArrayBind()) {
+                    stmt.execArgs((hbuf + cval + static_ret_expr).values());
+                    rh = stmt.getOutput();
+                }
+                else {
+                    softlist args = (hbuf + cval + static_ret_expr).values();
+                    int size = 0;
+                    foreach any arg in (args) {
+                        if (arg.typeCode() == NT_LIST) {
+                            size = arg.size();
+                            break;
+                        }
+                    }
+                    if (size) {
+                        for (int i = 0; i < size; ++i) {
+                            # get arg list for row
+                            list targs = map $1.typeCode() == NT_LIST ? $1[i] : $1, args;
+                            stmt.execArgs(targs);
+                        }
+                    }
+                }
             }
 
             # call rowcode if it exists
