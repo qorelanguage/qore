@@ -39,7 +39,10 @@ extern QoreHashNode* ENV;
 
 #include "qore/intern/ParserSupport.h"
 #include "qore/intern/QoreNamespaceIntern.h"
+#include "qore/intern/QC_AutoReadLock.h"
+#include "qore/intern/QC_AutoWriteLock.h"
 #include "qore/QoreDebugProgram.h"
+#include "qore/QoreRWLock.h"
 
 #include <stdarg.h>
 #include <errno.h>
@@ -174,58 +177,25 @@ public:
     * Executed when local thread data for QoreProgram.
     * TODO: improve performance substituting getProgram() with more powerful way
     */
-   DLLLOCAL void dbgAttachThread(ExceptionSink* xsink) {
-      saveStepOver = false;
-      stepBreakpoint = DBG_SB_STOPPED;
-      //setStepBreakpoint(getProgram()->dbgAttachThreadEvent(xsink));
-      stepBreakpoint = DBG_SB_RUN;
-   }
+   DLLLOCAL void dbgAttachThread(ExceptionSink* xsink);
    /**
     * Executed every step in BlockStatement.
-    * @param statement is step being proccesed
+    * @param statement is step being processed
     * @return 0 as neutral value or RC_RETURN/BREAK/CONTINUE to terminate block
     */
-   DLLLOCAL int dbgStep(const StatementBlock* blockStatement, const AbstractStatement* statement, ExceptionSink* xsink) {
-      int rc = 0;
-      if (stepBreakpoint == DBG_SB_STEP) {
-         stepBreakpoint = DBG_SB_STOPPED;
-         //setStepBreakpoint(getProgram()->dbgStepEvent(statement, &rc, xsink));
-      }
-      return rc;
-   }
+   DLLLOCAL int dbgStep(const StatementBlock* blockStatement, const AbstractStatement* statement, ExceptionSink* xsink);
    /**
     * Executed when a function is entered. If step-over is requested then flag is cleared not to break
     */
-   DLLLOCAL void dbgFunctionEnter(const AbstractStatement* statement, ExceptionSink* xsink) {
-      if (stepBreakpoint == DBG_SB_STEP_OVER) {
-         stepBreakpoint = DBG_SB_RUN;
-         saveStepOver = true;
-         //setStepBreakpoint(getProgram()->dbgFunctionEnterEvent(statement, returnValue, xsink));
-      }
-   }
+   DLLLOCAL void dbgFunctionEnter(const StatementBlock* statement, ExceptionSink* xsink);
    /**
     * Executed when a function is exited.
     */
-   DLLLOCAL void dbgFunctionExit(const AbstractStatement* statement, QoreValue& returnValue, ExceptionSink* xsink) {
-      if (stepBreakpoint == DBG_SB_UNTIL_RETURN) {
-         saveStepOver = false;
-         stepBreakpoint = DBG_SB_STOPPED;
-         //setStepBreakpoint(getProgram()->dbgFunctionExitEvent(statement, returnValue, xsink));
-      } else if (saveStepOver) {
-         stepBreakpoint = DBG_SB_STEP;
-         saveStepOver = false;
-      }
-   }
+   DLLLOCAL void dbgFunctionExit(const StatementBlock* statement, QoreValue& returnValue, ExceptionSink* xsink);
    /**
     * Executed when an exception is raised.
     */
-   DLLLOCAL void dbgException(const AbstractStatement* statement, const ExceptionSink* xsink) {
-//      if (enabled) {
-         saveStepOver = false;
-         stepBreakpoint = DBG_SB_STOPPED;
-         //setStepBreakpoint(getProgram()->dbgExceptionEvent(statement, xsink));
-//      }
-   }
+   DLLLOCAL void dbgException(const AbstractStatement* statement, const ExceptionSink* xsink);
 };
 
 // maps from thread handles to thread-local data
@@ -416,8 +386,30 @@ public:
 
 class qore_debug_program_private;
 
+class AutoQoreCounterDec {
+private:
+   QoreCounter* cnt;
+   bool incFlag;
+   AutoQoreCounterDec() {}
+public:
+   AutoQoreCounterDec(QoreCounter* n_cnt, bool incNow = true): cnt(n_cnt), incFlag(false) {
+      if (incNow) {
+         inc();
+      }
+   }
+   ~AutoQoreCounterDec() {
+      if (incFlag)
+         cnt->dec();
+   }
+   void inc() {
+      cnt->inc();
+      incFlag = true;
+   }
+};
+
 class qore_program_private : public qore_program_private_base {
 private:
+   QoreCounter debug_program_counter;  // number of thread calls to debug program instance.
    DLLLOCAL void init(QoreProgram* n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo *n_TZ = QTZM.getLocalZoneInfo()) {
    }
 
@@ -433,6 +425,22 @@ private:
    }
 
    qore_debug_program_private* dpgm;
+
+   /**
+    * get safely debug program pointer. The debug program instance itself must exists. It's not matter of lock as the flow goes to QoreDebugProgram
+    * instance and may stay very long time.
+    */
+
+   DLLLOCAL qore_debug_program_private* getDebugProgram(AutoQoreCounterDec& ad) {
+      QoreAutoRWReadLocker al(&lck_debug_program);
+      qore_debug_program_private* ret = dpgm;
+      if (ret) {
+         // new debug call in progress
+         ad.inc();
+      }
+      return ret;
+
+   }
 public:
    DLLLOCAL qore_program_private(QoreProgram* n_pgm, int64 n_parse_options) : qore_program_private_base(n_pgm, n_parse_options) {
       printd(5, "qore_program_private::qore_program_private() this: %p pgm: %p\n", this, pgm);
@@ -1857,13 +1865,24 @@ public:
    }
 
    DLLLOCAL void attachDebug(const qore_debug_program_private* n_dpgm) {
+      QoreAutoRWWriteLocker al(&lck_debug_program);
       dpgm = const_cast<qore_debug_program_private*>(n_dpgm);
       // TODO: attachThread event ??
    }
    DLLLOCAL void detachDebug(const qore_debug_program_private* n_dpgm) {
+      QoreAutoRWWriteLocker al(&lck_debug_program);
       assert(n_dpgm==dpgm);
       dpgm = 0;
+      // debug_program_counter may be non zero to finish pending calls. Just this instance cannot be deleted, it's satisfied in destructor
    }
+
+   DLLLOCAL ThreadDebugEnum onAttach(ExceptionSink* xsink);
+   DLLLOCAL ThreadDebugEnum onDetach(ExceptionSink* xsink);
+   DLLLOCAL ThreadDebugEnum onStep(const StatementBlock *blockStatement, const AbstractStatement *statement, int &retCode, ExceptionSink* xsink);
+   DLLLOCAL ThreadDebugEnum onFunctionEnter(const StatementBlock *statement, ExceptionSink* xsink);
+   DLLLOCAL ThreadDebugEnum onFunctionExit(const StatementBlock *statement, QoreValue& returnValue, ExceptionSink* xsink);
+   DLLLOCAL ThreadDebugEnum onException(const AbstractStatement *statement, const ExceptionSink* xsink);
+
 };
 
 class ParseWarnHelper : public ParseWarnOptions {
@@ -1880,45 +1899,79 @@ public:
    }
 };
 
-DLLLOCAL QoreThreadLock lck_debug_program;
-
 typedef std::map<QoreProgram*, qore_program_private*> qore_program_map_t;
 struct QoreDebugProgram;
 
 class qore_debug_program_private {
 private:
+   mutable QoreThreadLock tlock;  // thread variable data lock, for accessing the program list variable
    QoreDebugProgram *dpgm;
    qore_program_map_t qore_program_map;
+   QoreCounter debug_program_counter;  // number of thread calls from program instance.
 public:
    DLLLOCAL qore_debug_program_private(QoreDebugProgram *n_dpgm): dpgm(n_dpgm) {};
    DLLLOCAL ~qore_debug_program_private() {
       assert(qore_program_map.empty());
+      // with till all debug calls finished, avoid deadlock as it might be handled in current thread
+      debug_program_counter.waitForZero();
    }
 
    DLLLOCAL void addProgram(QoreProgram *pgm) {
-      qore_program_private* qpp;
-      {
-         AutoLocker al(&lck_debug_program);
-         qore_program_map_t::iterator i = qore_program_map.find(pgm);
-         if (i != qore_program_map.end())
-            return;  // already exists
-         qpp = i->second;
-         qore_program_map.insert(qore_program_map_t::value_type(pgm, pgm->priv));
-      }
+      AutoLocker al(tlock);
+      qore_program_map_t::iterator i = qore_program_map.find(pgm);
+      if (i != qore_program_map.end())
+         return;  // already exists
+      qore_program_private* qpp = i->second;
+      qore_program_map.insert(qore_program_map_t::value_type(pgm, pgm->priv));
       qpp->attachDebug(this);
    }
 
    DLLLOCAL void removeProgram(QoreProgram *pgm) {
-      qore_program_private* qpp;
-      {
-         AutoLocker al(&lck_debug_program);
-         qore_program_map_t::iterator i = qore_program_map.find(pgm);
-         if (i == qore_program_map.end())
-            return;
-         qpp = i->second;
-         qore_program_map.erase(i);
-      }
+      AutoLocker al(tlock);
+      qore_program_map_t::iterator i = qore_program_map.find(pgm);
+      if (i == qore_program_map.end())
+         return;
+      qore_program_private* qpp = i->second;
+      qore_program_map.erase(i);
       qpp->detachDebug(this);
+   }
+
+   DLLLOCAL ThreadDebugEnum onAttach(QoreProgram *pgm, ExceptionSink* xsink) {
+      AutoQoreCounterDec ad(&debug_program_counter);
+      return dpgm->onAttach(pgm, xsink);
+   }
+   DLLLOCAL ThreadDebugEnum onDetach(QoreProgram *pgm, ExceptionSink* xsink) {
+      AutoQoreCounterDec ad(&debug_program_counter);
+      return dpgm->onDetach(pgm, xsink);
+   }
+   /**
+    * Executed on every step of StatementBlock.
+    * @param blockStatement
+    * @param statement current AbstractStatement of blockStatement being processed. Executed also when blockStatement is entered with value of NULL
+    * @param retCode
+    */
+   DLLLOCAL ThreadDebugEnum onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, int &retCode, ExceptionSink* xsink) {
+      AutoQoreCounterDec ad(&debug_program_counter);
+      return dpgm->onStep(pgm, blockStatement, statement, retCode, xsink);
+
+   }
+   DLLLOCAL ThreadDebugEnum onFunctionEnter(QoreProgram *pgm, const StatementBlock *statement, ExceptionSink* xsink) {
+      AutoQoreCounterDec ad(&debug_program_counter);
+      return dpgm->onFunctionEnter(pgm, statement, xsink);
+   }
+   /**
+    * Executed when a function is exited.
+    */
+   DLLLOCAL ThreadDebugEnum onFunctionExit(QoreProgram *pgm, const StatementBlock *statement, QoreValue& returnValue, ExceptionSink* xsink) {
+      AutoQoreCounterDec ad(&debug_program_counter);
+      return dpgm->onFunctionExit(pgm, statement, returnValue, xsink);
+   }
+   /**
+    * Executed when an exception is raised.
+    */
+   DLLLOCAL ThreadDebugEnum onException(QoreProgram *pgm, const AbstractStatement *statement, const ExceptionSink* xsink) {
+      AutoQoreCounterDec ad(&debug_program_counter);
+      return dpgm->onException(pgm, statement, xsink);
    }
 
 };

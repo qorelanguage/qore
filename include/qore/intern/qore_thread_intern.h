@@ -87,6 +87,8 @@ class AbstractQoreZoneInfo;
 class ThreadProgramData;
 struct ThreadLocalProgramData;
 class QoreAbstractModule;
+class QoreRWLock;
+
 
 DLLLOCAL extern Operator* OP_BACKGROUND;
 
@@ -968,5 +970,6 @@ public:
 };
 
 DLLLOCAL extern pthread_mutexattr_t ma_recursive;
+DLLLOCAL extern QoreRWLock lck_debug_program;
 
 #endif

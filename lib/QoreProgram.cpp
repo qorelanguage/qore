@@ -165,6 +165,8 @@ qore_program_private::~qore_program_private() {
    printd(5, "qore_program_private::~qore_program_private() this: %p pgm: %p\n", this, pgm);
    if (dpgm)
       dpgm->removeProgram(pgm);
+   // wait till all debug calls are finished, no new calls possible as dpgm->removeProgram() set dpmg to NULL
+   debug_program_counter.waitForZero();
    assert(!parseSink);
    assert(!warnSink);
    assert(!pendingParseSink);
@@ -867,6 +869,105 @@ const QoreTypeInfo* qore_program_private::getComplexReferenceOrNothingType(const
    return ti;
 }
 
+ThreadDebugEnum qore_program_private::onAttach(ExceptionSink* xsink) {
+   AutoQoreCounterDec ad(&debug_program_counter, false);
+   qore_debug_program_private* p = getDebugProgram(ad);
+   if (p) {
+      return p->onAttach(pgm, xsink);
+   }
+   return DBG_SB_RUN;
+}
+ThreadDebugEnum qore_program_private::onDetach(ExceptionSink* xsink) {
+   AutoQoreCounterDec ad(&debug_program_counter, false);
+   qore_debug_program_private* p = getDebugProgram(ad);
+   if (p) {
+      return p->onDetach(pgm, xsink);
+   }
+   return DBG_SB_RUN;
+}
+
+ThreadDebugEnum qore_program_private::onStep(const StatementBlock *blockStatement, const AbstractStatement *statement, int &retCode, ExceptionSink* xsink) {
+   AutoQoreCounterDec ad(&debug_program_counter, false);
+   qore_debug_program_private* p = getDebugProgram(ad);
+   if (p) {
+      return p->onStep(pgm, blockStatement, statement, retCode, xsink);
+   }
+   return DBG_SB_RUN;
+}
+ThreadDebugEnum qore_program_private::onFunctionEnter(const StatementBlock *statement, ExceptionSink* xsink) {
+   AutoQoreCounterDec ad(&debug_program_counter, false);
+   qore_debug_program_private* p = getDebugProgram(ad);
+   if (p) {
+      return p->onFunctionEnter(pgm, statement, xsink);
+   }
+   return DBG_SB_RUN;
+}
+
+ThreadDebugEnum qore_program_private::onFunctionExit(const StatementBlock *statement, QoreValue& returnValue, ExceptionSink* xsink) {
+   AutoQoreCounterDec ad(&debug_program_counter, false);
+   qore_debug_program_private* p = getDebugProgram(ad);
+   if (p) {
+      return p->onFunctionExit(pgm, statement, returnValue, xsink);
+   }
+   return DBG_SB_RUN;
+}
+
+ThreadDebugEnum qore_program_private::onException(const AbstractStatement *statement, const ExceptionSink* xsink) {
+   AutoQoreCounterDec ad(&debug_program_counter, false);
+   qore_debug_program_private* p = getDebugProgram(ad);
+   if (p) {
+      return p->onException(pgm, statement, xsink);
+   }
+   return DBG_SB_RUN;
+}
+
+void ThreadLocalProgramData::dbgAttachThread(ExceptionSink* xsink) {
+   saveStepOver = false;
+   stepBreakpoint = DBG_SB_STOPPED;
+
+   setStepBreakpoint(getProgram()->priv->onAttach(xsink));
+   stepBreakpoint = DBG_SB_RUN;
+}
+
+int ThreadLocalProgramData::dbgStep(const StatementBlock* blockStatement, const AbstractStatement* statement, ExceptionSink* xsink) {
+   int rc = 0;
+   if (stepBreakpoint == DBG_SB_STEP) {
+      stepBreakpoint = DBG_SB_STOPPED;
+      setStepBreakpoint(getProgram()->priv->onStep(blockStatement, statement, rc, xsink));
+   }
+   return rc;
+}
+
+void ThreadLocalProgramData::dbgFunctionEnter(const StatementBlock* statement, ExceptionSink* xsink) {
+   if (stepBreakpoint == DBG_SB_STEP_OVER) {
+      stepBreakpoint = DBG_SB_RUN;
+      saveStepOver = true;
+   } else if (stepBreakpoint == DBG_SB_STEP) {
+      saveStepOver = false;
+      stepBreakpoint = DBG_SB_STOPPED;
+      setStepBreakpoint(getProgram()->priv->onFunctionEnter(statement, xsink));
+   }
+}
+
+void ThreadLocalProgramData::dbgFunctionExit(const StatementBlock* statement, QoreValue& returnValue, ExceptionSink* xsink) {
+   if (stepBreakpoint == DBG_SB_UNTIL_RETURN || stepBreakpoint == DBG_SB_STEP) {
+      saveStepOver = false;
+      stepBreakpoint = DBG_SB_STOPPED;
+      setStepBreakpoint(getProgram()->priv->onFunctionExit(statement, returnValue, xsink));
+   } else if (stepBreakpoint != DBG_SB_STOPPED && saveStepOver) {
+      stepBreakpoint = DBG_SB_STEP;
+      saveStepOver = false;
+   }
+}
+
+void ThreadLocalProgramData::dbgException(const AbstractStatement* statement, const ExceptionSink* xsink) {
+   if (stepBreakpoint != DBG_SB_STOPPED) {
+      saveStepOver = false;
+      stepBreakpoint = DBG_SB_STOPPED;
+      setStepBreakpoint(getProgram()->priv->onException(statement, xsink));
+   }
+}
+
 QoreProgram::~QoreProgram() {
    printd(5, "QoreProgram::~QoreProgram() this: %p\n", this);
    delete priv;
@@ -1473,6 +1574,10 @@ int get_warning_code(const char* str) {
 
 QoreDebugProgram::QoreDebugProgram(): priv(new qore_debug_program_private(this)) {};
 
+QoreDebugProgram::~QoreDebugProgram() {
+   printd(5, "QoreDebugProgram::~QoreDebugProgram() this: %p\n", this);
+   delete priv;
+}
 
 void QoreDebugProgram::addProgram(QoreProgram *pgm) {
    priv->addProgram(pgm);
@@ -1481,3 +1586,33 @@ void QoreDebugProgram::addProgram(QoreProgram *pgm) {
 void QoreDebugProgram::removeProgram(QoreProgram *pgm) {
    priv->removeProgram(pgm);
 }
+/*
+ThreadDebugEnum qore_debug_program_private::onAttach(QoreProgram *pgm, ExceptionSink* xsink) {
+   AutoQoreCounterDec ad(&debug_program_counter);
+   return dpgm->onAttach(pgm, xsink);
+}
+ThreadDebugEnum qore_debug_program_private::onDetach(QoreProgram *pgm, ExceptionSink* xsink) {
+   AutoQoreCounterDec ad(&debug_program_counter);
+   return dpgm->onDetach(pgm, xsink);
+}
+
+ThreadDebugEnum qore_debug_program_private::onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, int &retCode, ExceptionSink* xsink) {
+   AutoQoreCounterDec ad(&debug_program_counter);
+   return dpgm->onStep(pgm, blockStatement, statement, retCode, xsink);
+
+}
+ThreadDebugEnum qore_debug_program_private::onFunctionEnter(QoreProgram *pgm, const StatementBlock *statement, ExceptionSink* xsink) {
+   AutoQoreCounterDec ad(&debug_program_counter);
+   return dpgm->onFunctionEnter(pgm, statement, xsink);
+}
+
+ThreadDebugEnum qore_debug_program_private::onFunctionExit(QoreProgram *pgm, const StatementBlock *statement, QoreValue& returnValue, ExceptionSink* xsink) {
+   AutoQoreCounterDec ad(&debug_program_counter);
+   return dpgm->onFunctionExit(pgm, statement, returnValue, xsink);
+}
+
+ThreadDebugEnum qore_debug_program_private::onException(QoreProgram *pgm, const AbstractStatement *statement, const ExceptionSink* xsink) {
+   AutoQoreCounterDec ad(&debug_program_counter);
+   return dpgm->onException(pgm, statement, xsink);
+}
+*/

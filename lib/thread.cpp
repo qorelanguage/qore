@@ -83,6 +83,8 @@ DLLLOCAL pthread_mutexattr_t ma_recursive;
 DLLLOCAL QoreThreadLock lck_gethostbyaddr;
 #endif
 
+DLLLOCAL QoreRWLock lck_debug_program;
+
 #ifdef QORE_MANAGE_STACK
 // default size and limit for qore threads; to be set in init_qore_threads()
 size_t qore_thread_stack_size = 0;
