@@ -111,6 +111,14 @@ public:
       return DBG_SB_RUN;
    }
 
+   /**
+    * Break specific program thread
+    */
+   DLLEXPORT void breakProgramThread(QoreProgram *pgm, int tid) const;
+   /**
+    * Break program, i.e. all threads
+    */
+   DLLEXPORT void breakProgram(QoreProgram *pgm) const;
 };
 
 

@@ -956,6 +956,7 @@ public:
       if (ROdereference())
          delete this;
    }
+   DLLLOCAL int gettid();
 };
 
 class ThreadFrameBoundaryHelper {

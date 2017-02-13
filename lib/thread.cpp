@@ -85,6 +85,7 @@ DLLLOCAL QoreThreadLock lck_gethostbyaddr;
 
 DLLLOCAL QoreRWLock lck_debug_program;
 
+
 #ifdef QORE_MANAGE_STACK
 // default size and limit for qore threads; to be set in init_qore_threads()
 size_t qore_thread_stack_size = 0;
@@ -533,6 +534,10 @@ void ThreadProgramData::del(ExceptionSink* xsink) {
       if (!qore_program_private::endThread(pgm, this, xsink))
          deref();
    }
+}
+
+int ThreadProgramData::gettid() {
+   return td->tid;
 }
 
 class ThreadCleanupNode {

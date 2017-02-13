@@ -102,13 +102,24 @@ private:
    // not implemented
    DLLLOCAL ThreadLocalProgramData(const ThreadLocalProgramData& old);
 
-   // thread debug types
-   volatile ThreadDebugEnum stepBreakpoint;
-   // Current debug state.
+   // thread debug types, field is read/write only in thread being debugged, no locking is needed
+   ThreadDebugEnum stepBreakpoint;
+   // Current debug state, dtto
    bool saveStepOver;
    inline void setStepBreakpoint(ThreadDebugEnum st) {
       assert(st < DBG_SB_STOPPED); // DBG_SB_STOPPED is wrong value when program is running
       stepBreakpoint = st;
+   }
+   // set to true by any process do break running program asap
+   volatile bool breakFlag;
+   // called from running thread
+   inline void checkBreakFlag() {
+      if (breakFlag) {
+         breakFlag = false;
+         if (stepBreakpoint != DBG_SB_STOPPED) {
+            stepBreakpoint = DBG_SB_STEP;
+         }
+      }
    }
 public:
 
@@ -196,6 +207,13 @@ public:
     * Executed when an exception is raised.
     */
    DLLLOCAL void dbgException(const AbstractStatement* statement, const ExceptionSink* xsink);
+
+   /**
+    * Executed from any thread to break running program
+    */
+   DLLLOCAL void dbgBreak() {
+      breakFlag = true;
+   }
 };
 
 // maps from thread handles to thread-local data
@@ -409,7 +427,7 @@ public:
 
 class qore_program_private : public qore_program_private_base {
 private:
-   QoreCounter debug_program_counter;  // number of thread calls to debug program instance.
+   mutable QoreCounter debug_program_counter;  // number of thread calls to debug program instance.
    DLLLOCAL void init(QoreProgram* n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo *n_TZ = QTZM.getLocalZoneInfo()) {
    }
 
@@ -1883,6 +1901,23 @@ public:
    DLLLOCAL ThreadDebugEnum onFunctionExit(const StatementBlock *statement, QoreValue& returnValue, ExceptionSink* xsink);
    DLLLOCAL ThreadDebugEnum onException(const AbstractStatement *statement, const ExceptionSink* xsink);
 
+   DLLLOCAL void breakProgramThread(int tid) {
+      AutoLocker al(tlock);
+      for (pgm_data_map_t::iterator i = pgm_data_map.begin(), e = pgm_data_map.end(); i != e; ++i) {
+         if (i->first->gettid() == tid) {
+            i->second->dbgBreak();
+            break;
+         }
+      }
+   }
+
+   DLLLOCAL void breakProgram() {
+      AutoLocker al(tlock);
+      for (pgm_data_map_t::iterator i = pgm_data_map.begin(), e = pgm_data_map.end(); i != e; ++i) {
+         i->second->dbgBreak();
+      }
+   }
+
 };
 
 class ParseWarnHelper : public ParseWarnOptions {
@@ -1907,7 +1942,7 @@ private:
    mutable QoreThreadLock tlock;  // thread variable data lock, for accessing the program list variable
    QoreDebugProgram *dpgm;
    qore_program_map_t qore_program_map;
-   QoreCounter debug_program_counter;  // number of thread calls from program instance.
+   mutable QoreCounter debug_program_counter;  // number of thread calls from program instance.
 public:
    DLLLOCAL qore_debug_program_private(QoreDebugProgram *n_dpgm): dpgm(n_dpgm) {};
    DLLLOCAL ~qore_debug_program_private() {
@@ -1972,6 +2007,22 @@ public:
    DLLLOCAL ThreadDebugEnum onException(QoreProgram *pgm, const AbstractStatement *statement, const ExceptionSink* xsink) {
       AutoQoreCounterDec ad(&debug_program_counter);
       return dpgm->onException(pgm, statement, xsink);
+   }
+
+   DLLLOCAL void breakProgramThread(QoreProgram *pgm, int tid) {
+      AutoLocker al(tlock);
+      qore_program_map_t::iterator i = qore_program_map.find(pgm);
+      if (i == qore_program_map.end())
+         return;
+      i->second->breakProgramThread(tid);
+   }
+
+   DLLLOCAL void breakProgram(QoreProgram *pgm) {
+      AutoLocker al(tlock);
+      qore_program_map_t::iterator i = qore_program_map.find(pgm);
+      if (i == qore_program_map.end())
+         return;
+      i->second->breakProgram();
    }
 
 };

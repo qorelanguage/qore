@@ -685,19 +685,8 @@ public:
    // can only be called while parsing from the same thread doing the parsing
    DLLLOCAL bool parseExceptionRaised() const;
 
-   /**
-    *
-    */
-   DLLLOCAL ThreadDebugEnum dbgNewThreadEvent() const { return DBG_SB_RUN; }
-   /**
-    * Called when debugging is on and step break is acquired
-    */
-   DLLLOCAL ThreadDebugEnum dbgBreakEvent(const AbstractStatement *statement) const {return DBG_SB_RUN;}
-   /**
-    * Called when debugging is on and exception is raised
-    */
-   DLLLOCAL ThreadDebugEnum dbgExceptionEvent(const AbstractStatement *statement, const ExceptionSink *xsink) const {return DBG_SB_RUN; };
 
+   // TODO: implement !
    /** returns the value of the local variable given (do not include the "$" symbol), the caller owns the reference count returned
     * The variable is related to current frame. This function can be executed only when program is stopped
 
@@ -711,7 +700,6 @@ public:
    DLLEXPORT AbstractStatement* findStatement(const char* fileName, int line) const;
    DLLEXPORT AbstractStatement* findFunction(const char* functionName) const;
 
-   DLLEXPORT void breakThread(int threadId, ExceptionSink* xsink) const;
    DLLEXPORT void setBreakpoint(AbstractStatement* statement, ExceptionSink* xsink) const;   // threadId ???
 
 };
