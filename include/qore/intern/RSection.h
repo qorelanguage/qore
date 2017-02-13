@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -89,6 +89,12 @@ protected:
    // tid of thread holding the rsection lock
    int rs_tid;
 
+   // number of threads waiting on the rsection lock
+   int rsection_waiting;
+
+   // rsection condition variablt
+   QoreCondition rsection_cond;
+
    // list of ObjectRSetHelper objects for notifications for rsection management
    n_list_t list;
 
@@ -107,7 +113,7 @@ protected:
    }
 
 public:
-   DLLLOCAL qore_rsection_priv() : rs_tid(-1) {
+   DLLLOCAL qore_rsection_priv() : rs_tid(-1), rsection_waiting(0) {
       has_notify = true;
    }
 
@@ -145,6 +151,19 @@ public:
       return -1;
    }
 
+   DLLLOCAL void upgradeReadToRSection(int tid = gettid()) {
+      AutoLocker al(l);
+      assert(write_tid == -1);
+
+      while (rs_tid != -1) {
+         ++rsection_waiting;
+         rsection_cond.wait(l);
+         --rsection_waiting;
+      }
+
+      rs_tid  = tid;
+   }
+
    DLLLOCAL void rSectionUnlock() {
       AutoLocker al(l);
       assert(write_tid == -1);
@@ -155,6 +174,9 @@ public:
       rs_tid = -1;
 
       qore_rsection_priv::notifyIntern();
+
+      if (rsection_waiting)
+         rsection_cond.signal();
 
       if (!--readers)
          unlock_read_signal();
@@ -198,8 +220,56 @@ public:
       return static_cast<qore_rsection_priv*>(priv)->checkRSectionExclusive(tid);
    }
 
+   DLLLOCAL void upgradeReadToRSection(int tid = gettid()) {
+      static_cast<qore_rsection_priv*>(priv)->upgradeReadToRSection(tid);
+   }
+
    DLLLOCAL int rSectionTid() const {
       return static_cast<qore_rsection_priv*>(priv)->rSectionTid();
+   }
+};
+
+class QoreSafeRSectionReadLocker : private QoreSafeVarRWReadLocker {
+public:
+   DLLLOCAL QoreSafeRSectionReadLocker(RSectionLock& n_l) : QoreSafeVarRWReadLocker(n_l), has_rsection(false) {
+   }
+
+   DLLLOCAL ~QoreSafeRSectionReadLocker() {
+      if (locked && has_rsection) {
+         static_cast<RSectionLock*>(l)->rSectionUnlock();
+         locked = false;
+      }
+   }
+
+   DLLLOCAL void acquireRSection(int tid = gettid()) {
+      static_cast<RSectionLock*>(l)->upgradeReadToRSection(tid);
+      has_rsection = true;
+   }
+
+   //! unlocks the object and updates the locked flag, assumes that the lock is held
+   DLLLOCAL void unlock() {
+      assert(locked);
+      locked = false;
+
+      if (has_rsection)
+         static_cast<RSectionLock*>(l)->rSectionUnlock();
+      else
+         l->unlock();
+   }
+
+private:
+   bool has_rsection;
+};
+
+class QoreRSectionLocker : private QoreSafeVarRWReadLocker {
+public:
+   DLLLOCAL QoreRSectionLocker(RSectionLock& n_l) : QoreSafeVarRWReadLocker(n_l) {
+      static_cast<RSectionLock*>(l)->upgradeReadToRSection();
+   }
+
+   DLLLOCAL ~QoreRSectionLocker() {
+      static_cast<RSectionLock*>(l)->rSectionUnlock();
+      locked = false;
    }
 };
 

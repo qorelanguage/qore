@@ -41,7 +41,7 @@ class SfRestClient {
             "reformat":       "R,reformat",
             "fullex":         "E,full-exception",
             "header":         "H,header=s@",
-            "oath_url_token": "U,oauth-token-url=s",
+            "oauth_url_token":"U,oauth-token-url=s",
             "verbose":        "v,verbose:i+",
 
             "job":            "j,job-command",

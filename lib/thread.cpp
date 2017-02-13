@@ -622,7 +622,7 @@ public:
 	 // we reference the object so it won't go out of scope while the thread is running
 	 obj = call_obj;
          assert(obj);
-	 obj->ref();
+	 obj->realRef();
          call_obj = 0;
       }
 
@@ -675,8 +675,8 @@ public:
 
    DLLLOCAL void derefObj(ExceptionSink* xsink) {
       if (obj) {
-	 obj->deref(xsink);
-	 obj = 0;
+         obj->realDeref(xsink);
+         obj = 0;
       }
    }
 
