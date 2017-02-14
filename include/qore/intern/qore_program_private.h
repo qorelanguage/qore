@@ -39,6 +39,7 @@ extern QoreHashNode* ENV;
 
 #include "qore/intern/ParserSupport.h"
 #include "qore/intern/QoreNamespaceIntern.h"
+#include "qore/QoreDebugProgram.h"
 
 #include <stdarg.h>
 #include <errno.h>
@@ -177,13 +178,14 @@ public:
       saveStepOver = false;
       stepBreakpoint = DBG_SB_STOPPED;
       //setStepBreakpoint(getProgram()->dbgAttachThreadEvent(xsink));
+      stepBreakpoint = DBG_SB_RUN;
    }
    /**
     * Executed every step in BlockStatement.
     * @param statement is step being proccesed
     * @return 0 as neutral value or RC_RETURN/BREAK/CONTINUE to terminate block
     */
-   DLLLOCAL int dbgStep(const AbstractStatement *statement, ExceptionSink* xsink) {
+   DLLLOCAL int dbgStep(const StatementBlock* blockStatement, const AbstractStatement* statement, ExceptionSink* xsink) {
       int rc = 0;
       if (stepBreakpoint == DBG_SB_STEP) {
          stepBreakpoint = DBG_SB_STOPPED;
@@ -194,16 +196,17 @@ public:
    /**
     * Executed when a function is entered. If step-over is requested then flag is cleared not to break
     */
-   DLLLOCAL void dbgFunctionEnter(const AbstractStatement *statement, ExceptionSink* xsink) {
+   DLLLOCAL void dbgFunctionEnter(const AbstractStatement* statement, ExceptionSink* xsink) {
       if (stepBreakpoint == DBG_SB_STEP_OVER) {
          stepBreakpoint = DBG_SB_RUN;
          saveStepOver = true;
+         //setStepBreakpoint(getProgram()->dbgFunctionEnterEvent(statement, returnValue, xsink));
       }
    }
    /**
     * Executed when a function is exited.
     */
-   DLLLOCAL void dbgFunctionExit(const AbstractStatement *statement, QoreValue& returnValue, ExceptionSink* xsink) {
+   DLLLOCAL void dbgFunctionExit(const AbstractStatement* statement, QoreValue& returnValue, ExceptionSink* xsink) {
       if (stepBreakpoint == DBG_SB_UNTIL_RETURN) {
          saveStepOver = false;
          stepBreakpoint = DBG_SB_STOPPED;
@@ -216,7 +219,7 @@ public:
    /**
     * Executed when an exception is raised.
     */
-   DLLLOCAL void dbgException(const AbstractStatement *statement, const ExceptionSink* xsink) {
+   DLLLOCAL void dbgException(const AbstractStatement* statement, const ExceptionSink* xsink) {
 //      if (enabled) {
          saveStepOver = false;
          stepBreakpoint = DBG_SB_STOPPED;
@@ -411,6 +414,8 @@ public:
    }
 };
 
+class qore_debug_program_private;
+
 class qore_program_private : public qore_program_private_base {
 private:
    DLLLOCAL void init(QoreProgram* n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo *n_TZ = QTZM.getLocalZoneInfo()) {
@@ -427,6 +432,7 @@ private:
       }
    }
 
+   qore_debug_program_private* dpgm;
 public:
    DLLLOCAL qore_program_private(QoreProgram* n_pgm, int64 n_parse_options) : qore_program_private_base(n_pgm, n_parse_options) {
       printd(5, "qore_program_private::qore_program_private() this: %p pgm: %p\n", this, pgm);
@@ -436,15 +442,7 @@ public:
       printd(5, "qore_program_private::qore_program_private() this: %p pgm: %p\n", this, pgm);
    }
 
-   DLLLOCAL ~qore_program_private() {
-      printd(5, "qore_program_private::~qore_program_private() this: %p pgm: %p\n", this, pgm);
-      assert(!parseSink);
-      assert(!warnSink);
-      assert(!pendingParseSink);
-      assert(pgm_data_map.empty());
-      assert(!exec_class_rv);
-      assert(!dc.reference_count());
-   }
+   DLLLOCAL ~qore_program_private();
 
    DLLLOCAL void depRef() {
       printd(QPP_DBG_LVL, "qore_program_private::depRef() this: %p pgm: %p %d->%d\n", this, pgm, dc.reference_count(), dc.reference_count() + 1);
@@ -1857,6 +1855,15 @@ public:
    DLLLOCAL static void exportGlobalVariable(QoreProgram* pgm, const char* name, bool readonly, QoreProgram* tpgm, ExceptionSink* xsink) {
       pgm->priv->exportGlobalVariable(name, readonly, *(tpgm->priv), xsink);
    }
+
+   DLLLOCAL void attachDebug(const qore_debug_program_private* n_dpgm) {
+      dpgm = const_cast<qore_debug_program_private*>(n_dpgm);
+      // TODO: attachThread event ??
+   }
+   DLLLOCAL void detachDebug(const qore_debug_program_private* n_dpgm) {
+      assert(n_dpgm==dpgm);
+      dpgm = 0;
+   }
 };
 
 class ParseWarnHelper : public ParseWarnOptions {
@@ -1871,6 +1878,49 @@ public:
       if (restore)
          qore_program_private::setParseWarnOptions(getProgram(), *this);
    }
+};
+
+DLLLOCAL QoreThreadLock lck_debug_program;
+
+typedef std::map<QoreProgram*, qore_program_private*> qore_program_map_t;
+struct QoreDebugProgram;
+
+class qore_debug_program_private {
+private:
+   QoreDebugProgram *dpgm;
+   qore_program_map_t qore_program_map;
+public:
+   DLLLOCAL qore_debug_program_private(QoreDebugProgram *n_dpgm): dpgm(n_dpgm) {};
+   DLLLOCAL ~qore_debug_program_private() {
+      assert(qore_program_map.empty());
+   }
+
+   DLLLOCAL void addProgram(QoreProgram *pgm) {
+      qore_program_private* qpp;
+      {
+         AutoLocker al(&lck_debug_program);
+         qore_program_map_t::iterator i = qore_program_map.find(pgm);
+         if (i != qore_program_map.end())
+            return;  // already exists
+         qpp = i->second;
+         qore_program_map.insert(qore_program_map_t::value_type(pgm, pgm->priv));
+      }
+      qpp->attachDebug(this);
+   }
+
+   DLLLOCAL void removeProgram(QoreProgram *pgm) {
+      qore_program_private* qpp;
+      {
+         AutoLocker al(&lck_debug_program);
+         qore_program_map_t::iterator i = qore_program_map.find(pgm);
+         if (i == qore_program_map.end())
+            return;
+         qpp = i->second;
+         qore_program_map.erase(i);
+      }
+      qpp->detachDebug(this);
+   }
+
 };
 
 #endif

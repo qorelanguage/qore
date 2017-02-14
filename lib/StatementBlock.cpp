@@ -228,11 +228,11 @@ int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
 =======
    ThreadLocalProgramData* tlpd = get_thread_local_program_data();
    // to execute even when block is empty, e.g. while(true);
-   rc = tlpd->dbgStep(this, xsink);
+   rc = tlpd->dbgStep(this, 0, xsink);
    if (!rc && !*xsink) {
       // execute block
       for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i) {
-         rc = tlpd->dbgStep(*i, xsink);
+         rc = tlpd->dbgStep(this, *i, xsink);
          if (rc || *xsink)
             break;
          if ((rc = (*i)->exec(return_value, xsink)) || xsink->isEvent()) {

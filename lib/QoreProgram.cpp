@@ -161,6 +161,18 @@ QoreHashNode* ParseOptionMaps::getStringToCodeMap() const {
 const char** qore_warnings = qore_warnings_l;
 unsigned qore_num_warnings = NUM_WARNINGS;
 
+qore_program_private::~qore_program_private() {
+   printd(5, "qore_program_private::~qore_program_private() this: %p pgm: %p\n", this, pgm);
+   if (dpgm)
+      dpgm->removeProgram(pgm);
+   assert(!parseSink);
+   assert(!warnSink);
+   assert(!pendingParseSink);
+   assert(pgm_data_map.empty());
+   assert(!exec_class_rv);
+   assert(!dpgm);
+}
+
 void qore_program_private_base::setDefines() {
    for (ParseOptionMaps::pomap_t::iterator i = pomaps.pomap.begin(), e = pomaps.pomap.end(); i != e; ++i) {
       if ((pwo.parse_options & i->first) == i->first) {
@@ -1457,4 +1469,15 @@ int get_warning_code(const char* str) {
       if (!strcasecmp(str, qore_warnings[i]))
          return 1 << i;
    return 0;
+}
+
+QoreDebugProgram::QoreDebugProgram(): priv(new qore_debug_program_private(this)) {};
+
+
+void QoreDebugProgram::addProgram(QoreProgram *pgm) {
+   priv->addProgram(pgm);
+}
+
+void QoreDebugProgram::removeProgram(QoreProgram *pgm) {
+   priv->removeProgram(pgm);
 }

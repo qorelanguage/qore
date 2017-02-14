@@ -37,6 +37,7 @@
 
 #include <qore/AbstractPrivateData.h>
 #include <qore/Restrictions.h>
+//#include <qore/intern/qore_program_private.h>
 
 // warnings - must correspond with the string order in QoreProgram.cpp
 // new warnings must also be added as constants
@@ -113,6 +114,8 @@ class AbstractQoreProgramExternalData;
 class QoreProgram : public AbstractPrivateData {
    friend class qore_program_private_base;
    friend class qore_program_private;
+   friend class qore_debug_program_private;
+   friend struct ThreadLocalProgramData;
 private:
    //! private implementation
    qore_program_private* priv;
@@ -708,8 +711,8 @@ public:
    DLLEXPORT AbstractStatement* findStatement(const char* fileName, int line) const;
    DLLEXPORT AbstractStatement* findFunction(const char* functionName) const;
 
-   DLLEXPORT void setBreakpoint(AbstractStatement* statement) const;   // threadId ???
-
+   DLLEXPORT void breakThread(int threadId, ExceptionSink* xsink) const;
+   DLLEXPORT void setBreakpoint(AbstractStatement* statement, ExceptionSink* xsink) const;   // threadId ???
 
 };
 
