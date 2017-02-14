@@ -916,7 +916,7 @@ Mapper mapv(DataMap);
             map h{$1.key} = m_runtime{$1.value}, rconsth.pairIterator();
 
             # iterate through dynamic target fields
-            map h{$1} = mapFieldIntern($1, rec), mapd.keyIterator();
+            map mapFieldIntern(\h, $1, rec), mapd.keyIterator();
 
             # increment record count
             ++count;
@@ -924,12 +924,14 @@ Mapper mapv(DataMap);
             return h;
         }
 
-        private any mapFieldIntern(string key, hash rec, *bool do_list) {
+        #! maps a single field to the target
+        private nothing mapFieldIntern(reference h, string key, hash rec, *bool do_list) {
             hash m = mapc{key};
 
             # closure to get the current record hash from a hash of lists
-            code getrec = hash sub (int offset) {
-                return map {$1.key: $1.value[offset] ?? $1.value}, rec.pairIterator();
+            # rec is not bound here for performance reasons (so it will remain unlocked)
+            code getrec = hash sub (hash rc, int offset) {
+                return map {$1.key: $1.value[offset] ?? $1.value}, rc.pairIterator();
             };
 
             # get source field name
@@ -940,11 +942,11 @@ Mapper mapv(DataMap);
             if (exists m.constant)
                 v = m.constant;
             else if (exists m.index) {
-                v = do_list ? (map m.index + count + $#, xrange(v.size() - 1)) : m.index + count;
+                v = do_list ? (map m.index + count + $#, v) : m.index + count;
             }
             else if (exists m.runtime) {
                 any rtv = m_runtime{m.runtime};
-                v = do_list ? (map rtv, xrange(v.size() - 1)) : rtv;
+                v = do_list ? (map rtv, v) : rtv;
             }
             else if (m.struct) {
                 # NOTE: hash of lists not supported with struct
@@ -970,7 +972,7 @@ Mapper mapv(DataMap);
             if (m.code) {
                 try {
                     v = do_list
-                        ? (map m.code($1, getrec($#)), v)
+                        ? (map m.code($1, getrec(rec, $#)), v)
                         : m.code(v, rec);
                 }
                 catch (hash ex) {
@@ -989,14 +991,14 @@ Mapper mapv(DataMap);
 
             if (m.type) {
                 if (do_list)
-                    map mapFieldType(key, m, \v[$#], getrec($#)), xrange(v.size() - 1), v[$#].typeCode() != m.typeCode;
+                    map mapFieldType(key, m, \v[$#], getrec(rec, $#)), v, $1.typeCode() != m.typeCode;
                 else
                     mapFieldType(key, m, \v, rec);
             }
 
             if (exists m."default") {
                 if (do_list) {
-                    map v[$#] = m."default", xrange(v.size() - 1), !exists v[$#];
+                    map v[$#] = m."default", v, !exists $1;
                 }
                 else if (!exists v)
                     v = m."default";
@@ -1006,9 +1008,9 @@ Mapper mapv(DataMap);
             if (m.maxlen) {
                 if (do_list) {
                     if (m.trunc)
-                        map v[$1] = truncateField(key, v[$1], $1, v.size(), m.maxlen), xrange(v.size() - 1), v[$#].size() > m.maxlen;
+                        map v[$1] = truncateField(key, $1, $#, v.size(), m.maxlen), v, $1.size() > m.maxlen;
                     else
-                        map fieldLengthError(key, $1, $#, v.size(), m.maxlen, getrec($#)), v, $1.size() > m.maxlen;
+                        map fieldLengthError(key, $1, $#, v.size(), m.maxlen, getrec(rec, $#)), v, $1.size() > m.maxlen;
                 }
                 else {
                     if (v.size() > m.maxlen) {
@@ -1026,7 +1028,7 @@ Mapper mapv(DataMap);
 
             if (m.mand) {
                 if (do_list) {
-                    map error2("MISSING-INPUT", "field %y element %d/%d is marked as mandatory but is missing in the input row: %y", getFieldName(key), $# + 1, v.size(), getrec($#)), v, !exists $1;
+                    map error2("MISSING-INPUT", "field %y element %d/%d is marked as mandatory but is missing in the input row: %y", getFieldName(key), $# + 1, v.size(), getrec(rec, $#)), v, !exists $1;
                 }
                 else if (!exists v)
                     error2("MISSING-INPUT", "field %y is marked as mandatory but is missing in the input row: %y", getFieldName(key), rec);
@@ -1036,18 +1038,19 @@ Mapper mapv(DataMap);
             if (m.ostruct) {
                 # NOTE: ostruct is not supported in list mode
                 # recursive closure for generating structured data
-                code ah = any sub (any ch, int off = 0) {
+                code ah = any sub (*hash ch, any vc, int off = 0) {
                     if (off == m.ostruct.size())
-                        return v;
+                        return vc;
                     string k = m.ostruct[off];
                     any oh = ch{k};
                     if (exists oh && oh.typeCode() != NT_HASH)
                         throw "INVALID-OUTPUT", sprintf("field %y cannot overwrite element %y with type %y", getFieldName(key), k, oh.type());
-                    ch{k} = ah(oh, off + 1);
+                    ch{k} = ah(oh, vc, off + 1);
                     return ch;
                 };
                 try {
-                    return ah((key: v));
+                    h = ah(h, v);
+                    return;
                 }
                 catch (hash ex) {
                     if (ex.err == "INVALID-OUTPUT")
@@ -1057,7 +1060,7 @@ Mapper mapv(DataMap);
                 }
             }
 
-            return v;
+            h{key} = v;
         }
 
         #! called to truncate fields when processing hashes of lists
