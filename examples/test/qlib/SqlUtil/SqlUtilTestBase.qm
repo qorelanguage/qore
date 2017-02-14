@@ -536,6 +536,7 @@ public class SqlTestBase inherits QUnit::Test {
                         "count": 2,
                         "data": (("id": 1), ("id": 2)),
                         ),
+                    "skip_for": ("FreetdsTest"), # TODO: remove once support is implemented in FreetdsSqlUtil
                     ),
                 "op_not": (
                     "in": (
@@ -642,6 +643,10 @@ public class SqlTestBase inherits QUnit::Test {
                 );
 
         foreach hash t in (test_set.pairIterator()) {
+            if (inlist (self.className(), t.value.skip_for)) {
+                assertSkip (t.value.skip_for + " might fail this test");
+                continue;
+            }
             *list rows = table.selectRows (t.value.in, \sql);
             hash out = t.value.out;
             assertEq (out.count, rows.size(), "checking where operator " + t.key);
