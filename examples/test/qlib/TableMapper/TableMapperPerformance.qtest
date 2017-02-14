@@ -1,0 +1,287 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%exec-class TableMapperPerformanceTest
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/SqlUtil.qm
+# load all possible SqlUtil driver-specific modules to ensure that our version is used when testing
+%requires ../../../../qlib/OracleSqlUtil.qm
+%requires ../../../../qlib/PgsqlSqlUtil.qm
+%requires ../../../../qlib/MysqlSqlUtil.qm
+%requires ../../../../qlib/FreetdsSqlUtil.qm
+%requires ../../../../qlib/Schema.qm
+%requires ../../../../qlib/Mapper.qm
+%requires ../../../../qlib/TableMapper.qm
+
+public class TableMapperPerformanceTestSchema inherits AbstractSchema {
+    public {
+        const ColumnWidth = 40;
+
+        const T_TableMapperPerformanceTest = (
+            "columns": (
+                "id": c_number(C_NOT_NULL),
+                "var_0": c_varchar(ColumnWidth, C_NOT_NULL),
+                "var_1": c_varchar(ColumnWidth, C_NOT_NULL),
+                "var_2": c_varchar(ColumnWidth, C_NOT_NULL),
+                "var_3": c_varchar(ColumnWidth, C_NOT_NULL),
+                "ncol_0": c_number(C_NOT_NULL),
+                "ncol_1": c_number(C_NOT_NULL),
+                "ncol_2": c_number(C_NOT_NULL),
+                "ncol_3": c_number(C_NOT_NULL),
+                "ncol_4": c_number(C_NOT_NULL),
+                "ncol_5": c_number(C_NOT_NULL),
+                "ncol_6": c_number(C_NOT_NULL),
+                "ncol_7": c_number(C_NOT_NULL),
+                "ncol_8": c_number(C_NOT_NULL),
+                "ncol_9": c_number(C_NOT_NULL),
+                "ncol_10": c_number(C_NOT_NULL),
+                "ncol_11": c_number(C_NOT_NULL),
+                "ncol_12": c_number(C_NOT_NULL),
+                "ncol_13": c_number(C_NOT_NULL),
+                "ncol_14": c_number(C_NOT_NULL),
+                "ncol_15": c_number(C_NOT_NULL),
+                "ncol_16": c_number(C_NOT_NULL),
+                "ncol_17": c_number(C_NOT_NULL),
+                "ncol_18": c_number(C_NOT_NULL),
+                "ncol_19": c_number(C_NOT_NULL),
+                "ncol_20": c_number(C_NOT_NULL),
+                "ncol_21": c_number(C_NOT_NULL),
+                "ncol_22": c_number(C_NOT_NULL),
+                "ncol_23": c_number(C_NOT_NULL),
+                "ncol_24": c_number(C_NOT_NULL),
+                "ncol_25": c_number(C_NOT_NULL),
+                "ncol_26": c_number(C_NOT_NULL),
+                "ncol_27": c_number(C_NOT_NULL),
+                "ncol_28": c_number(C_NOT_NULL),
+                "ncol_29": c_number(C_NOT_NULL),
+                "ncol_30": c_number(C_NOT_NULL),
+                "ncol_31": c_number(C_NOT_NULL),
+                "ncol_32": c_number(C_NOT_NULL),
+                "ncol_33": c_number(C_NOT_NULL),
+                "ncol_34": c_number(C_NOT_NULL),
+                "ncol_35": c_number(C_NOT_NULL),
+                "ncol_36": c_number(C_NOT_NULL),
+                "ncol_37": c_number(C_NOT_NULL),
+                "ncol_38": c_number(C_NOT_NULL),
+                "ncol_39": c_number(C_NOT_NULL),
+                "strcol_0": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_1": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_2": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_3": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_4": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_5": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_6": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_7": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_8": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_9": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_10": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_11": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_12": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_13": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_14": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_15": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_16": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_17": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_18": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_19": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_20": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_21": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_22": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_23": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_24": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_25": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_26": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_27": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_28": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_29": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_30": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_31": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_32": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_33": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_34": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_35": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_36": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_37": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_38": c_varchar(ColumnWidth, C_NOT_NULL),
+                "strcol_39": c_varchar(ColumnWidth, C_NOT_NULL),
+            ),
+            );
+
+        const Tables = (
+            "table_mapper_test": T_TableMapperPerformanceTest,
+            );
+
+        const Sequences = (
+            "seq_table_mapper_test": {},
+            );
+    }
+
+    constructor(AbstractDatasource ds, *string dts, *string its) : AbstractSchema(ds, dts, its) {
+    }
+
+    private *hash getTablesImpl() {
+        return Tables;
+    }
+
+    private *hash getSequencesImpl() {
+        return Sequences;
+    }
+
+    string getNameImpl() {
+        return "TableMapperPerformanceTestSchema";
+    }
+
+    string getVersionImpl() {
+        return "1.0";
+    }
+
+    log(string fmt) {
+        #vprintf(fmt + "\n", argv);
+        delete argv;
+    }
+
+    logpf(string fmt) {
+        #vprintf(fmt + "\n", argv);
+        delete argv;
+    }
+
+    logProgress(string fmt) {
+        #vprintf(fmt + "\n", argv);
+        delete argv;
+    }
+}
+
+public class TableMapperPerformanceTest inherits QUnit::Test {
+    private {
+        AbstractSchema schema;
+        AbstractTable table;
+
+        const Map1 = (
+            "id": ("sequence": "seq_table_mapper_test"),
+            );
+
+        const MyOpts = Opts + (
+            "block": "b,block=i",
+            "connstr": "c,conn=s",
+            "rows": "r,rows=i",
+            );
+
+        const DefaultRows = 100;
+
+        const DefaultBlockSize = 1000;
+
+        const OptionColumn = 22;
+
+        int rows;
+        int block;
+    }
+
+    constructor(any args, *hash mopts) : Test("TableMapperPerformanceTest", "1.0", \args, mopts ?? MyOpts) {
+        Datasource ds;
+        try {
+            ds = getDatasource();
+            # create the test schema
+            schema = new TableMapperPerformanceTestSchema(ds);
+            schema.align(False, m_options.verbose);
+            # get table object
+            table = (new Table(schema.getDatasource(), "table_mapper_test")).getTable();
+        }
+        catch (hash ex) {
+            if (m_options.verbose)
+                printf("%s: %s\n", ex.err, ex.desc);
+        }
+        # add test cases
+        addTestCase("InboundTableMapper", \inboundTableMapperPerformanceTest());
+
+        rows = m_options.rows ?? ENV.TABLEMAPPERPERFORMANCETEST_ROWS ?? DefaultRows;
+        if (rows < 1)
+            throw "ROWS-ERROR", sprintf("rows value: %d must be > 0", rows);
+
+        block = m_options.block ?? ENV.TABLEMAPPERPERFORMANCETEST_BLOCK ?? DefaultBlockSize;
+        if (block < 1)
+            throw "BLOCKSIZE-ERROR", sprintf("block size value: %d must be > 0", block);
+
+        set_return_value(main());
+    }
+
+    globalTearDown() {
+        # drop the test schema
+        if (schema)
+            schema.drop(False, m_options.verbose);
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"driver:user/pass@db\")", OptionColumn);
+        printOption("-r,--rows=ARG", sprintf("the number of rows to insert (default: %d)", ENV.TABLEMAPPERPERFORMANCETEST_ROWS ?? DefaultRows), OptionColumn);
+    }
+
+    inboundTableMapperPerformanceTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        hash cmap = map {
+            "ncol_" + $1: ("constant": rand() % 10000),
+        }, xrange(39);
+
+        cmap += map {
+            "strcol_" + $1: ("constant": get_random_string(TableMapperPerformanceTestSchema::ColumnWidth)),
+        }, xrange(39);
+
+        hash vmap = map {
+            "var_" + $1: True,
+        }, xrange(3);
+
+        # prepare map hash
+        hash map1 = Map1 + cmap + vmap;
+
+        # prepare input data for mapper
+        hash h = map {
+            "var_" + $1: (),
+        }, xrange(3);
+
+        map (map h{$1} += strmul("x", TableMapperPerformanceTestSchema::ColumnWidth), (map "var_" + $1, xrange(3))), xrange(rows - 1);
+
+        #printf("map1: %N\n", map1);
+        #printf("h: %N\n", h);
+
+        InboundTableMapper mapper(table, map1, ("insert_block": block));
+
+        printf("starting test inserting %d rows in %s:%s (block size %d)\n", rows, table.getDatasource().getDriverName(), table.getSqlName(), block);
+
+        date now = now_us();
+
+        {
+            on_error {
+                mapper.discard();
+                mapper.rollback();
+            }
+            on_success {
+                mapper.flush();
+                mapper.commit();
+            }
+
+            mapper.queueData(h);
+        }
+
+        date delta = now_us() - now;
+        float dt = delta.durationSecondsFloat();
+        float rps = dt ? rows / dt : 0;
+        printf("elapsed time: %y rows/s: %s\n", delta, rps);
+    }
+
+    Datasource getDatasource() {
+        if (!m_options.connstr)
+            m_options.connstr = ENV.QORE_DB_CONNSTR_ORACLE ?? ENV.QORE_DB_CONNSTR_PGSQL ?? ENV.QORE_DB_CONNSTR_MYSQL ?? ENV.QORE_DB_CONNSTR_FREETDS ?? ENV.QORE_DB_CONNSTR_SYBASE;
+        Datasource ds(m_options.connstr);
+        ds.open();
+        return ds;
+    }
+}
