@@ -155,7 +155,7 @@ public class MapperTest inherits QUnit::Test {
     testMapperMapData() {
         Mapper m(DataMap, m_opts);
         list l = map m.mapData($1), MapInput;
-        testAssertion("Verify mapped list", \equalsIterated(), (new ListIterator(l), new ListIterator(MapOutput)));
+        testAssertion("Verify mapped list", \equalsIterated(), (l.iterator(), MapOutput.iterator()));
         testAssertion("Verify item count", \equals(), (m.getCount(), 2));
     }
 
