@@ -154,7 +154,7 @@
 #define QDOM_TERMINAL_IO        PO_NO_TERMINAL_IO         //!< provides terminal I/O functionality
 #define QDOM_EXTERNAL_INFO      PO_NO_EXTERNAL_INFO       //!< provides access to external information (ex: hostname, pid, process uid, etc)
 #define QDOM_THREAD_INFO        PO_NO_THREAD_INFO         //!< provides access to information regarding threading (tid, active threads, etc)
-#define QDOM_LOCALE_CONTROL     PO_NO_LOCALE_CONTROL      //!< provices access to functionality that changes locale information
+#define QDOM_LOCALE_CONTROL     PO_NO_LOCALE_CONTROL      //!< provides access to functionality that changes locale information
 #define QDOM_MODULES            PO_NO_MODULES             //!< provides access to external modules
 #define QDOM_IN_MODULE          PO_IN_MODULE              //!< tagged with code that is restricted in user modules
 #define QDOM_EMBEDDED_LOGIC     PO_NO_EMBEDDED_LOGIC      //!< provides dynamic parsing functionality

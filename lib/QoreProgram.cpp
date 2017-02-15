@@ -348,6 +348,11 @@ void qore_program_private::internParseRollback() {
 }
 
 void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
+   // detach itself from debug
+   if (dpgm) {
+      dpgm->removeProgram(pgm);
+   }
+   debug_program_counter.waitForZero(xsink, 0);  // it is probably obsolete as the next waiting for thread termination will wait for the same threads as well
    // we only clear the internal data structures once
    bool clr = false;
    {
@@ -1589,4 +1594,9 @@ void QoreDebugProgram::addProgram(QoreProgram *pgm) {
 
 void QoreDebugProgram::removeProgram(QoreProgram *pgm) {
    priv->removeProgram(pgm);
+}
+
+void QoreDebugProgram::waitForTerminationAndDeref(ExceptionSink* xsink) {
+   priv->waitForTerminationAndClear(xsink);
+   deref(xsink);
 }

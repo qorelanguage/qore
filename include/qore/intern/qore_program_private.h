@@ -1947,8 +1947,6 @@ public:
    DLLLOCAL qore_debug_program_private(QoreDebugProgram *n_dpgm): dpgm(n_dpgm) {};
    DLLLOCAL ~qore_debug_program_private() {
       assert(qore_program_map.empty());
-      // with till all debug calls finished, avoid deadlock as it might be handled in current thread
-      debug_program_counter.waitForZero();
    }
 
    DLLLOCAL void addProgram(QoreProgram *pgm) {
@@ -1969,6 +1967,15 @@ public:
       qore_program_private* qpp = i->second;
       qore_program_map.erase(i);
       qpp->detachDebug(this);
+   }
+
+   DLLLOCAL void removeAllPrograms() {
+      AutoLocker al(tlock);
+      for (qore_program_map_t::iterator i = qore_program_map.begin(), e = qore_program_map.end(); i != e; ++i) {
+         qore_program_private* qpp = i->second;
+         qore_program_map.erase(i);
+         qpp->detachDebug(this);
+      }
    }
 
    DLLLOCAL ThreadDebugEnum onAttach(QoreProgram *pgm, ExceptionSink* xsink) {
@@ -2023,6 +2030,12 @@ public:
       if (i == qore_program_map.end())
          return;
       i->second->breakProgram();
+   }
+
+   DLLLOCAL void waitForTerminationAndClear(ExceptionSink *xsink) {
+      removeAllPrograms();
+      // wait till all debug calls finished, avoid deadlock as it might be handled in current thread
+      debug_program_counter.waitForZero();
    }
 
 };

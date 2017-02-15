@@ -1,0 +1,224 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  QC_DebugProgram.qpp
+
+  Qore Programming Language
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+  Note that the Qore library is released under a choice of three open-source
+  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+  information.
+*/
+
+#include <qore/Qore.h>
+#include "qore/intern/QC_DebugProgram.h"
+#include "qore/intern/QC_Program.h"
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreObjectIntern.h"
+
+/** @defgroup debug_step_options Debug Step Constants
+
+    These are the possible values that can be passed back to program as result to control next debugging process
+
+    @since %Qore 0.8.13
+*/
+//@{
+//! Run program, avoid stepping
+const DebugRun = DBG_SB_RUN;
+
+//! Run one step in program, in case of function call stepping goes on in function
+const DebugStep = DBG_SB_STEP;
+
+//! Run one step in program, in case of function call stepping does not go to function
+const DebugStepOver = DBG_SB_STEP_OVER;
+
+//! Run program till function is exited
+const DebugUntilReturn = DBG_SB_UNTIL_RETURN;
+
+//const DebugStopped = DBG_SB_STOPPED = 4,    // not needed
+//@}
+
+/** @defgroup debug_rc_options Debug Block Constants
+    These are the possible values that are passed back to program to support exit loops or function from debugger
+
+    @since %Qore 0.8.13
+ */
+//@{
+//! force @ref return command
+const DebugBlockReturn = RC_RETURN;
+//! force @ref break command
+const DebugBlockBreak = RC_BREAK;
+//! force @ref continue command
+const DebugBlockContinue = RC_CONTINUE;
+//@}
+
+//! DebugProgram class supports %Qore @ref Program debugging.
+/** One instance may be assigned to one or more @ref Program instances which may run in one or more threads.
+    @ref Program is added into debugging list, next the program being debugged notifies debugger when next qore script
+    event occurs. Calling of notification method is performed always in program thread. When the program flow is to be interrupted
+    then it happens in notification method of this class. Then debugger decides to continue then returns from notification function
+    and passes @ref debug_step_options value "step option" code back.
+
+    The debugger should probably handle control in separate thread.
+
+    DebugProgram class just defines interface and real functionality should be implemented in descendant class.
+
+    @par Example:
+    @code{.py}
+
+    const code = "
+       for (int i=0; i<10; i++) {
+
+       }
+
+    ";
+
+    class MyDebugProgram dbg() inherits DebugProgram {
+    private(local):
+       int onAttach(Program pgm, hash location) {
+          return DebugStep;
+       }
+
+    }
+
+    Program pgm();
+    dbg.addProgram(pgm);
+
+    pgm.parse(code);
+    pgm.saveProgram();
+    pgm.run();
+
+    @endcode
+
+    @since %Qore 0.8.13
+*/
+qclass DebugProgram [arg=QoreDebugProgramWithQoreObject* dpgm; ns=DebugProgram];
+
+//! Creates the debug program object with notification functions without any functionality
+/**
+ *
+ */
+DebugProgram::constructor() {
+   self->setPrivate(CID_DEBUGPROGRAM, new QoreDebugProgramWithQoreObject(self));
+}
+
+//! Throws an exception to prevent objects of this class from being copied
+/**
+    @throw DEBUGPROGRAM-COPY-ERROR copying DebugProgram objects is unsupported
+ */
+DebugProgram::copy() {
+   xsink->raiseException("DEBUGPROGRAM-COPY-ERROR", "copying DebugProgram objects is unsupported");
+}
+
+//! Waits for all threads to finish executing, then deletes all global variables, dereferences the internal Program object and deletes the %Qore object
+/**
+ *
+ */
+DebugProgram::destructor() {
+   dpgm->waitForTerminationAndDeref(xsink);
+}
+
+/**
+ *
+ */
+nothing DebugProgram::addProgram(Program[QoreProgram] pgm) {
+   dpgm->addProgram(pgm, args[0]);
+}
+
+/**
+ *
+ */
+nothing DebugProgram::removeProgram(Program[QoreProgram] pgm) {
+   dpgm->removeProgram(pgm);
+}
+
+//! Executed when new thread is attached to program being debugged
+/**
+ *
+ */
+int DebugProgram::onAttach(Program[QoreProgram] pgm) {
+   return DBG_SB_RUN;
+   /*
+      static int64 DebugProgram_onAttach_C7Program(QoreObject* self, QoreDebugProgramWithQoreObject* dpgm, const QoreListNode* args, ExceptionSink* xsink) {
+         HARD_QORE_OBJ_DATA(pgm, QoreProgram, args, 0, CID_PROGRAM, "DebugProgram::onAttach()", "Program", xsink);
+         if (*xsink)
+            return 0;
+      # 159 "QC_DebugProgram.qpp"
+         return DBG_SB_RUN;
+   */
+}
+
+//! Executed when thread is datached from program being debugged
+/**
+ *
+ */
+int DebugProgram::onDetach(Program[QoreProgram] pgm) {
+   return DBG_SB_RUN;
+}
+
+//! Executed when step is performed
+/**
+ *
+ */
+int DebugProgram::onStep(Program[QoreProgram] pgm, hash blockLocation, *hash location, reference retCode) {
+   return DBG_SB_RUN;
+}
+
+//! Executed when a function is entered.
+/**
+ *
+ */
+int DebugProgram::onFunctionEnter(Program[QoreProgram] pgm, hash location) {
+   return DBG_SB_RUN;
+}
+
+//! Executed when a function is exited.
+/**
+ *
+ */
+int DebugProgram::onFunctionExit(Program[QoreProgram] pgm, hash location, reference returnValue) {
+   return DBG_SB_RUN;
+}
+
+//! Executed when an exception is raised.
+/**
+ *
+ */
+int DebugProgram::onException(Program[QoreProgram] pgm, hash location) {
+   return DBG_SB_RUN;
+}
+
+//! Break particular program thread
+/**
+  *
+  */
+nothing DebugProgram::breakProgramThread(Program[QoreProgram] pgm, int tid) {
+   dpgm->breakProgramThread(pgm, tid);
+}
+
+//! Break program, i.e. all threads
+/**
+  *
+  */
+nothing DebugProgram::breakProgram(Program[QoreProgram] pgm) {
+    dpgm->breakProgram(pgm);
+}

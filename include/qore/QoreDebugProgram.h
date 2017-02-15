@@ -119,8 +119,15 @@ public:
     * Break program, i.e. all threads
     */
    DLLEXPORT void breakProgram(QoreProgram *pgm) const;
-};
 
+
+   //! this call blocks until the program's last thread terminates, and then calls QoreDebugProgram::deref()
+   /**
+      @param xsink if an error occurs, the Qore-language exception information will be added here
+   */
+   DLLEXPORT void waitForTerminationAndDeref(ExceptionSink* xsink);
+
+};
 
 #endif /* INCLUDE_QORE_QOREDEBUGPROGRAM_H_ */
 

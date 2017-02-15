@@ -127,6 +127,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_HTTPClient.qpp \
 	lib/QC_Mutex.qpp \
 	lib/QC_Program.qpp \
+	lib/QC_DebugProgram.qpp \
 	lib/QC_Queue.qpp \
 	lib/QC_RWLock.qpp \
 	lib/QC_SQLStatement.qpp \
@@ -550,6 +551,7 @@ noinst_HEADERS = \
 	include/qore/intern/QC_Sequence.h \
 	include/qore/intern/QC_RWLock.h \
 	include/qore/intern/QC_Program.h \
+	include/qore/intern/QC_DebugProgram.h \
 	include/qore/intern/QC_Mutex.h \
 	include/qore/intern/QC_Condition.h \
 	include/qore/intern/QC_Gate.h \

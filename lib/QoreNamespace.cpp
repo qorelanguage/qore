@@ -47,6 +47,7 @@
 #include "qore/intern/QC_SSLCertificate.h"
 #include "qore/intern/QC_SSLPrivateKey.h"
 #include "qore/intern/QC_Program.h"
+#include "qore/intern/QC_DebugProgram.h"
 #include "qore/intern/QC_File.h"
 #include "qore/intern/QC_Dir.h"
 #include "qore/intern/QC_GetOpt.h"
