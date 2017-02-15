@@ -3826,6 +3826,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         @endcode
 
         @return a where operation description hash for use in @ref where_clauses "where clauses"
+
+        @note The argument list size may be constrained depending on the database server / driver used; passing a large number of arguments to this function may be a sign of an improper application or query design; consider using a join with a temporary table instead of passing a large number of arguments to this function
     */
     public hash sub op_in() {
         return make_op(OP_IN, argv);
@@ -3840,6 +3842,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         @param args a list of values for the \c "in" operator
 
         @return a where operation description hash for use in @ref where_clauses "where clauses"
+
+        @note The argument list size may be constrained depending on the database server / driver used; passing a large number of arguments to this function may be a sign of an improper application or query design; consider using a join with a temporary table instead of passing a large number of arguments to this function
     */
     public hash sub op_in(list args) {
         return make_op(OP_IN, args);
