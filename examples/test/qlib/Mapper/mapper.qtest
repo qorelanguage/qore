@@ -8,7 +8,6 @@
 
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mapper.qm
-#%requires /tmp/Mapper.qm
 
 %exec-class MapperTest
 
