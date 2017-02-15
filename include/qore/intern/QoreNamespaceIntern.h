@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,11 +32,11 @@
 #ifndef _QORE_QORENAMESPACEINTERN_H
 #define _QORE_QORENAMESPACEINTERN_H
 
-#include <qore/intern/QoreClassList.h>
-#include <qore/intern/QoreNamespaceList.h>
-#include <qore/intern/ConstantList.h>
-#include <qore/intern/FunctionList.h>
-#include <qore/intern/GlobalVariableList.h>
+#include "qore/intern/QoreClassList.h"
+#include "qore/intern/QoreNamespaceList.h"
+#include "qore/intern/ConstantList.h"
+#include "qore/intern/FunctionList.h"
+#include "qore/intern/GlobalVariableList.h"
 
 #include <map>
 #include <vector>
@@ -83,12 +83,6 @@ struct GVList : public std::vector<T> {
    DLLLOCAL void zero() {
       std::vector<T>::clear();
    }
-
-   /*
-   DLLLOCAL void assimilate(GVList<T>& l) {
-
-   }
-   */
 };
 
 typedef GVList<GVEntryBase> gvblist_t;
@@ -210,6 +204,8 @@ public:
       return w->root ? reinterpret_cast<qore_root_ns_private*>(w) : 0;
    }
 
+   DLLLOCAL void setClassHandler(q_ns_class_handler_t n_class_handler);
+
    // finds a local class in the committed class list, if not found executes the class handler
    DLLLOCAL QoreClass* findLoadClass(const char* cname) {
       //printd(5, "qore_ns_private::findLoadClass('%s') this: %p ('%s') class_handler: %p found: %d\n", cname, this, name.c_str(), class_handler, classList.find(cname));
@@ -298,7 +294,7 @@ public:
       return func_list.find(name, false);
    }
 
-   DLLLOCAL QoreNamespace* findCreateNamespace(const char* nme, bool& is_new);
+   DLLLOCAL QoreNamespace* findCreateNamespace(const char* nme, bool& is_new, qore_root_ns_private* rns);
    DLLLOCAL QoreNamespace* findCreateNamespacePath(const nslist_t& nsl, bool& is_new);
    DLLLOCAL QoreNamespace* findCreateNamespacePath(const NamedScope& nspath, bool pub, bool& is_new);
 
@@ -672,6 +668,45 @@ public:
    FunctionEntry* findObj(const char* name) {
       femap_t::iterator i = find(name);
       return i == end() ? 0 : i->second.obj;
+   }
+};
+
+class NamespaceDepthList {
+   friend class NamespaceDepthListIterator;
+protected:
+   // map from depth to namespace
+   typedef std::multimap<unsigned, qore_ns_private*> nsdmap_t;
+   nsdmap_t nsdmap;
+
+public:
+   DLLLOCAL NamespaceDepthList() {
+   }
+
+   DLLLOCAL void add(qore_ns_private* ns) {
+      nsdmap.insert(nsdmap_t::value_type(ns->depth, ns));
+   }
+
+   DLLLOCAL void clear() {
+      nsdmap.clear();
+   }
+};
+
+class NamespaceDepthListIterator {
+   NamespaceDepthList::nsdmap_t::iterator i, e;
+public:
+   DLLLOCAL NamespaceDepthListIterator(NamespaceDepthList& m) : i(m.nsdmap.begin()), e(m.nsdmap.end()) {
+   }
+
+   DLLLOCAL bool next() {
+      if (i == e)
+         return false;
+      ++i;
+      return i != e;
+   }
+
+   DLLLOCAL qore_ns_private* get() const {
+      assert(i->second);
+      return i->second;
    }
 };
 
@@ -1088,9 +1123,9 @@ protected:
 
    DLLLOCAL AbstractQoreNode* parseFindConstantValueIntern(const char* cname, const QoreTypeInfo*& typeInfo, bool error) {
       // look up class constants first
-      QoreClass* pc = getParseClass();
+      QoreClass* pc = parse_get_class();
       if (pc) {
-         AbstractQoreNode* rv = qore_class_private::parseFindConstantValue(pc, cname, typeInfo);
+         AbstractQoreNode* rv = qore_class_private::parseFindConstantValue(pc, cname, typeInfo, pc ? qore_class_private::get(*pc) : 0);
          if (rv)
             return rv;
       }
@@ -1147,6 +1182,14 @@ protected:
 
       if (ip != pend_clmap.end())
          return ip->second.obj;
+
+      // now check all namespaces with class handlers
+      NamespaceDepthListIterator nhi(nshlist);
+      while (nhi.next()) {
+         QoreClass* qc = nhi.get()->findLoadClass(cname);
+         if (qc)
+            return qc;
+      }
 
       //printd(5, "qore_root_ns_private::parseFindClassIntern() this: %p '%s' not found\n", this, cname);
       return 0;
@@ -1355,6 +1398,9 @@ protected:
 
       // reindex namespace
       nsmap.update(ns);
+
+      // inserts into depth list
+      nshlist.add(ns);
    }
 
    DLLLOCAL void parseRebuildIndexes(qore_ns_private* ns) {
@@ -1422,6 +1468,9 @@ protected:
    }
 
    DLLLOCAL void rebuildAllIndexes() {
+      // clear depth list
+      nshlist.clear();
+
       // rebuild root indexes - only for committed objects
       QorePrivateNamespaceIterator qpni(this, true);
       while (qpni.next())
@@ -1446,6 +1495,8 @@ public:
 
    NamespaceMap nsmap,  // root namespace map
       pend_nsmap;       // root pending namespace map (used only during parsing)
+
+   NamespaceDepthList nshlist; // root namespace with handler map
 
    // unresolved pending global variable list - only used in the 1st stage of parsing (data read in to tree)
    gvlist_t pend_gvlist;
@@ -1731,12 +1782,14 @@ public:
       return rns.rpriv->runtimeImportGlobalVariable(*tns.priv, v, readonly, xsink);
    }
 
+   /*
    DLLLOCAL static void runtimeModuleRebuildIndexes(RootQoreNamespace& rns) {
       // rebuild root indexes
       QorePrivateNamespaceIterator qpni(rns.priv, true);
       while (qpni.next())
          rns.rpriv->rebuildIndexes(qpni.get());
    }
+   */
 
    DLLLOCAL static QoreClass* runtimeFindClass(RootQoreNamespace& rns, const char* name) {
       return rns.rpriv->runtimeFindClass(name);
