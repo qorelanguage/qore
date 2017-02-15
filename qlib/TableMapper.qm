@@ -689,7 +689,7 @@ on_error table_mapper.rollback();
                     *hash th = insertRow(row);
                     if (th) {
                         if (h)
-                            map h.$1 += th.$1, th.keyIterator();
+                            map h.$1 += th.$1, keys th;
                         else
                             h = th;
                     }
@@ -706,7 +706,7 @@ on_error table_mapper.rollback();
             # copy all runtime mappings to the output hash
             map dh{$1.key} = m_runtime{$1.value}, rconsth.pairIterator();
 
-            map mapFieldIntern(\dh, $1, rec, True), mapd.keyIterator();
+            map mapFieldIntern(\dh, $1, rec, True), keys mapd();
 
             # map record data to get the keys for the buffer
             if (!hbuf) {
@@ -732,7 +732,7 @@ on_error table_mapper.rollback();
 
             if (th) {
                 if (h)
-                    map h.$1 += th.$1, th.keyIterator();
+                    map h.$1 += th.$1, keys th;
                 else
                     h = th;
             }
@@ -784,7 +784,7 @@ on_error table_mapper.rollback();
                 *hash th = queueDataIntern(row + crec);
                 if (th) {
                     if (h)
-                        map h.$1 += th.$1, th.keyIterator();
+                        map h.$1 += th.$1, keys th;
                     else
                         h = th;
                 }
@@ -837,7 +837,7 @@ on_error table_mapper.rollback();
                 *hash th = queueDataIntern(row + crec);
                 if (th) {
                     if (h)
-                        map h.$1 += th.$1, th.keyIterator();
+                        map h.$1 += th.$1, keys th;
                     else
                         h = th;
                 }
@@ -982,7 +982,7 @@ on_error table_mapper.rollback();
             # get return value
             hash rv = hbuf + rh;
             # clear buffer but keep hash keys
-            map hbuf.$1 = (), hbuf.keyIterator();
+            map hbuf.$1 = (), keys hbuf;
 
             if (output_log) {
                 if (rowcode)
