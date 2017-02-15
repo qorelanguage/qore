@@ -706,7 +706,7 @@ on_error table_mapper.rollback();
             # copy all runtime mappings to the output hash
             map dh{$1.key} = m_runtime{$1.value}, rconsth.pairIterator();
 
-            map mapFieldIntern(\dh, $1, rec, True), keys mapd();
+            map mapFieldIntern(\dh, $1, rec, True), keys mapd;
 
             # map record data to get the keys for the buffer
             if (!hbuf) {
