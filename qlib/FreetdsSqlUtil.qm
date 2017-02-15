@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file FreetdsSqlUtil.qm Qore user module for working with PostgreSQL SQL data
 
-/*  FreetdsSqlUtil.qm Copyright (C) 2015 - 2016 Qore Technologies, s.r.o.
+/*  FreetdsSqlUtil.qm Copyright (C) 2015 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -63,6 +63,9 @@ module FreetdsSqlUtil {
     @note This module requires the <a href="https://github.com/qorelanguage/module-sybase">freetds</a> binary module for communication with MS SQL Server and Sybase databases
 
     @section freetds_sql_operations SQL Operations with the FreeTDS Driver
+
+    Queries are limited in the number of arguments in the \c "in" operator depending on the database server; use a join with a temporary table
+    to select a large number of values known at runtime instead of using the \c "in" operator (see @ref SqlUtil::op_in()).
 
     %FreetdsSqlUtil supports the following additional @ref select_option_hash "select option" when working with MS SQL Server databases:
     - \c "tablehint": A single string or a list of strings with the following possible values:
@@ -941,7 +944,7 @@ my any $v = $c.name;
             #! where operator specializations for FreeTDS
             const FreetdsOpMap = DefaultOpMap + (
                 OP_SUBSTR: (
-                    "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+                    "code": string sub (object t, string cn, softlist arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
                         args += arg[0]; # start
                         if (!exists arg[1]) {
                             args += arg[2]; # text
