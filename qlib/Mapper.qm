@@ -35,7 +35,7 @@
 %new-style
 
 module Mapper {
-    version = "1.2";
+    version = "1.3";
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -219,6 +219,9 @@ m.mapData(input2);           # date_begin is still the same as from beginning of
 
     @section mapperrelnotes Release Notes
 
+    @subsection mapperv1_3 Mapper v1.3
+    - internal updates to allow for TableMapper insert performance improvements (<a href="https://github.com/qorelanguage/qore/issues/1626">issue 1626</a>)
+
     @subsection mapperv1_2 Mapper v1.2
     - significantly improved mapper performance with identity (i.e. 1:1) and constant mappings (<a href="https://github.com/qorelanguage/qore/issues/1620">issue 1620</a>)
 
@@ -382,6 +385,9 @@ public namespace Mapper {
 
             #! map of constant fields
             hash consth;
+
+            #! map of constant runtime fields
+            hash rconsth;
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -516,6 +522,9 @@ Mapper mapv(DataMap);
             }
             if (consth) {
                 mapd -= keys consth;
+            }
+            if (rconsth) {
+                mapd -= keys rconsth;
             }
         }
 
@@ -664,8 +673,26 @@ Mapper mapv(DataMap);
                 fh.type = "number";
                 delete fh.number;
             }
-            else if (exists fh.type && !vt.(fh.type))
-                error("output field %y contains an invalid type value '%s' (valid types: %y)", getFieldName(k), fh.type, vt.keys());
+            else if (exists fh.type) {
+                if (!vt.(fh.type))
+                    error("output field %y contains an invalid type value '%s' (valid types: %y)", getFieldName(k), fh.type, vt.keys());
+                switch (fh.type) {
+                    case "date": {
+                        if (!timezone)
+                            fh.typeCode = NT_DATE;
+                        break;
+                    }
+                    case "string": {
+                        fh.typeCode = NT_STRING;
+                        break;
+                    }
+                    case "integer":
+                    case "int": {
+                        fh.typeCode = NT_INT;
+                        break;
+                    }
+                }
+            }
 
             if (exists fh.code && !fh.code.callp())
                 error("output field %y has a code argument assigned to type '%s'", getFieldName(k), fh.code.type());
@@ -689,6 +716,8 @@ Mapper mapv(DataMap);
                 # add to consth if a constant value is included
                 if (fh.constant)
                     consth{k} = fh.constant;
+                if (fh.runtime)
+                    rconsth{k} = fh.runtime;
                 mapo{k} = NOTHING;
             }
         }
@@ -877,110 +906,173 @@ Mapper mapv(DataMap);
 
             # first copy all 1:1 mappings to the output hash
             if (identl)
-                h = rec{identl};
+                h += rec{identl};
 
             # copy all constant mappings to the output hash
             if (consth)
                 h += consth;
 
+            # copy all runtime constant mappings to the output hash
+            map h{$1.key} = m_runtime{$1.value}, rconsth.pairIterator();
+
             # iterate through dynamic target fields
-            foreach string key in (mapd.keyIterator()) {
-                hash m = mapc{key};
-
-                # get source field name
-                string name = m.name ?? key;
-
-                # get source record value
-                any v;
-                if (exists m.constant)
-                    v = m.constant;
-                else if (exists m.index)
-                    v = m.index + count;
-                else if (m.runtime) {
-                    v = m_runtime{m.runtime}; # TODO/FIXME: throw an exception if it does not exist?
-                }
-                else if (m.struct) {
-                    # get the value
-                    v = rec;
-                    map v = v{m.struct[$1]}, xrange(0, m.struct.size() - 1);
-                }
-                else
-                    v = rec{name} ?? NOTHING;
-
-                # move any XML CDATA into the field value
-                if (v."^cdata^")
-                    v = v."^cdata^";
-
-                # if the internal field was marked as needing processing by a subclass, then call the mapSubclass method
-                if (m.subclass)
-                    v = mapSubclass(m, v);
-
-                # execute any field filter if necessary
-                if (m.code) {
-                    try {
-                        v = m.code(v, rec);
-                    }
-                    catch (hash ex) {
-                        ex.desc = sprintf("field %y closure: %s", key, ex.desc);
-                        throw ex.err, ex.desc, ex.arg;
-                    }
-                }
-
-                if ((m_empty_strings_to_nothing && v === "") || v === NULL)
-                    delete v;
-
-                if (m.type)
-                    mapFieldType(key, m, \v, rec);
-
-                if (exists m."default" && !exists v)
-                    v = m."default";
-
-                # check maximum length
-                if (m.maxlen && v.size() > m.maxlen) {
-                    # truncate the string if necessary
-                    if (m.trunc) {
-                        if (info_log)
-                            info_log("field %y = %y input length %d truncating to %d bytes", getFieldName(key), v, v.size(), m.maxlen);
-                        v = trunc_str(v, m.maxlen, encoding);
-                    }
-                    else
-                        error2("STRING-TOO-LONG", "field %y = %y, input length %d exceeds maximum byte length %d for input row: %y", getFieldName(key), v, strlen(v), m.maxlen, rec);
-                }
-
-                if (m.mand && !exists v)
-                    error2("MISSING-INPUT", "field %y is marked as mandatory but is missing in the input row: %y", getFieldName(key), rec);
-
-                # add value to row list
-                if (m.ostruct) {
-                    # recursive closure for generating structured data
-                    code ah = any sub (any ch, int off = 0) {
-                        if (off == m.ostruct.size())
-                            return v;
-                        string k = m.ostruct[off];
-                        any oh = ch{k};
-                        if (exists oh && oh.typeCode() != NT_HASH)
-                            throw "INVALID-OUTPUT", sprintf("field %y cannot overwrite element %y with type %y", getFieldName(key), k, oh.type());
-                        ch{k} = ah(oh, off + 1);
-                        return ch;
-                    };
-                    try {
-                        h = ah(h);
-                    }
-                    catch (hash ex) {
-                        if (ex.err == "INVALID-OUTPUT")
-                            error2(ex.err, ex.desc);
-                        else
-                            rethrow;
-                    }
-                }
-                else
-                    h{key} = v;
-            }
+            map mapFieldIntern(\h, $1, rec), mapd.keyIterator();
 
             # increment record count
             ++count;
 
             return h;
+        }
+
+        #! maps a single field to the target
+        private nothing mapFieldIntern(reference h, string key, hash rec, *bool do_list) {
+            hash m = mapc{key};
+
+            # closure to get the current record hash from a hash of lists
+            # rec is not bound here for performance reasons (so it will remain unlocked)
+            code getrec = hash sub (hash rc, int offset) {
+                return map {$1.key: $1.value[offset] ?? $1.value}, rc.pairIterator();
+            };
+
+            # get source field name
+            string name = m.name ?? key;
+
+            # get source record value
+            any v;
+            if (exists m.constant)
+                v = m.constant;
+            else if (exists m.index) {
+                v = do_list ? (map m.index + count + $#, v) : m.index + count;
+            }
+            else if (exists m.runtime) {
+                any rtv = m_runtime{m.runtime};
+                v = do_list ? (map rtv, v) : rtv;
+            }
+            else if (m.struct) {
+                # NOTE: hash of lists not supported with struct
+                v = rec;
+                map v = v{m.struct[$1]}, xrange(0, m.struct.size() - 1);
+            }
+            else
+                v = rec{name} ?? NOTHING;
+
+            if (do_list && v.typeCode() != NT_LIST)
+                error2("MAPPER-FIELD-LIST-ERROR", "field %y value passed is %y in list mode; expecting \"list\"", key, v.type());
+
+            # move any XML CDATA into the field value
+            # NOTE: cdata not supported with hashes of lists
+            if (v."^cdata^")
+                v = v."^cdata^";
+
+            # if the internal field was marked as needing processing by a subclass, then call the mapSubclass method
+            if (m.subclass)
+                v = do_list ? (map mapSubclass(m, $1), v) : mapSubclass(m, v);
+
+            # execute any field filter if necessary
+            if (m.code) {
+                try {
+                    v = do_list
+                        ? (map m.code($1, getrec(rec, $#)), v)
+                        : m.code(v, rec);
+                }
+                catch (hash ex) {
+                    ex.desc = sprintf("field %y closure: %s", key, ex.desc);
+                    throw ex.err, ex.desc, ex.arg;
+                }
+            }
+
+            if (do_list) {
+                map delete v[$#], v, (m_empty_strings_to_nothing && $1 === "" || $1 === NULL);
+            }
+            else {
+                if ((m_empty_strings_to_nothing && v === "") || v === NULL)
+                    delete v;
+            }
+
+            if (m.type) {
+                if (do_list)
+                    map mapFieldType(key, m, \v[$#], getrec(rec, $#)), v, $1.typeCode() != m.typeCode;
+                else
+                    mapFieldType(key, m, \v, rec);
+            }
+
+            if (exists m."default") {
+                if (do_list) {
+                    map v[$#] = m."default", v, !exists $1;
+                }
+                else if (!exists v)
+                    v = m."default";
+            }
+
+            # check maximum length
+            if (m.maxlen) {
+                if (do_list) {
+                    if (m.trunc)
+                        map v[$1] = truncateField(key, $1, $#, v.size(), m.maxlen), v, $1.size() > m.maxlen;
+                    else
+                        map fieldLengthError(key, $1, $#, v.size(), m.maxlen, getrec(rec, $#)), v, $1.size() > m.maxlen;
+                }
+                else {
+                    if (v.size() > m.maxlen) {
+                        # truncate the string if necessary
+                        if (m.trunc) {
+                            if (info_log)
+                                info_log("field %y = %y input length %d truncating to %d bytes", getFieldName(key), v, v.size(), m.maxlen);
+                            v = trunc_str(v, m.maxlen, encoding);
+                        }
+                        else
+                            error2("STRING-TOO-LONG", "field %y = %y, input length %d exceeds maximum byte length %d for input row: %y", getFieldName(key), v, strlen(v), m.maxlen, rec);
+                    }
+                }
+            }
+
+            if (m.mand) {
+                if (do_list) {
+                    map error2("MISSING-INPUT", "field %y element %d/%d is marked as mandatory but is missing in the input row: %y", getFieldName(key), $# + 1, v.size(), getrec(rec, $#)), v, !exists $1;
+                }
+                else if (!exists v)
+                    error2("MISSING-INPUT", "field %y is marked as mandatory but is missing in the input row: %y", getFieldName(key), rec);
+            }
+
+            # add value to row list
+            if (m.ostruct) {
+                # NOTE: ostruct is not supported in list mode
+                # recursive closure for generating structured data
+                code ah = any sub (*hash ch, any vc, int off = 0) {
+                    if (off == m.ostruct.size())
+                        return vc;
+                    string k = m.ostruct[off];
+                    any oh = ch{k};
+                    if (exists oh && oh.typeCode() != NT_HASH)
+                        throw "INVALID-OUTPUT", sprintf("field %y cannot overwrite element %y with type %y", getFieldName(key), k, oh.type());
+                    ch{k} = ah(oh, vc, off + 1);
+                    return ch;
+                };
+                try {
+                    h = ah(h, v);
+                    return;
+                }
+                catch (hash ex) {
+                    if (ex.err == "INVALID-OUTPUT")
+                        error2(ex.err, ex.desc);
+                    else
+                        rethrow;
+                }
+            }
+
+            h{key} = v;
+        }
+
+        #! called to truncate fields when processing hashes of lists
+        private string truncateField(string k, string val, int ix, int sze, int maxlen) {
+            if (info_log)
+                info_log("field %y = %y element %d/%d input length %d truncating to %d bytes", getFieldName(k), val, ix + 1, sze, val.size(), maxlen);
+            return trunc_str(val, maxlen, encoding);
+        }
+
+        #! called when a field exceeds its maximum length when processing hashes of lists
+        private fieldLengthError(string k, string val, int ix, int sze, int maxlen, hash rc) {
+            error2("STRING-TOO-LONG", "field %y = %y element %d/%d, input length %d exceeds maximum byte length %d for input row: %y", getFieldName(k), val, ix + 1, val.size(), maxlen, rc);
         }
 
         #! calls the output logging @ref closure "closure" or @ref call_reference "call reference" (if any) to log the output record
