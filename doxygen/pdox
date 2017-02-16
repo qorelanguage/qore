@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # updates codes for characters that confuse doxygen back to the original characters
 
