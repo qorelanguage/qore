@@ -12,7 +12,7 @@
     |An expression with the @ref new "new operator"|@code{.py} new ObjectClass(1, 2, 3);@endcode|@ref new
     |An expression with the @ref background "background operator"|@code{.py} background function();@endcode|@ref background
     |A @ref call_reference "call reference" or @ref closure "closure" call|@code{.py} call_reference(arg1, arg2);@endcode|@ref call_reference, @ref closure
-    |A @ref object_method_call "method call"|@code{.py} object.method(1, 2, 3);@endcode|@ref qore_classes
+    |A @ref object_method_calls "method call"|@code{.py} object.method(1, 2, 3);@endcode|@ref qore_classes
     |An @ref if "if statement"|@code{.py} if (var == 3) {}@endcode|@ref if
     |An @ref if "if ... else" statement|@code{.py} if (var == 3) {} else {}@endcode|@ref if
     |A @ref while "while statement"|@code{.py} while (var < 10) {}@endcode|@ref while
@@ -23,7 +23,7 @@
     |A @ref return "return statement"|@code{.py} return val;@endcode|@ref return
     |A @ref variable_declarations "local variable declaration"|@code{.py} string var;@endcode @code{.py} my (int a, string b, bool c);@endcode|@ref variables, @ref variable_declarations
     |A @ref variable_declarations "global variable declaration"|@code{.py} our int var;@endcode @code{.py} our (float a, int b, hash c);@endcode|@ref variables, @ref variable_declarations
-    |A @ref function_calls "function call"|@code{.py} calculate(this, that, the_other);@endcode|@ref function_library
+    |A @ref qore_functions "function call"|@code{.py} calculate(this, that, the_other);@endcode|@ref qore_functions
     |A @ref continue "continue statement"|@code{.py} continue;@endcode|@ref continue
     |A @ref break "break statement"|@code{.py} break;@endcode|@ref break
     |A statement block|@code{.py} {}@endcode|zero or more statements enclosed in curly brackets

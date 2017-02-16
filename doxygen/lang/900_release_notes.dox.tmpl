@@ -14,7 +14,8 @@
     - improved @ref garbage_collection "prompt collection" performance with large graphs of objects by eliminating additional unnecessary graph scans, resulting in further large performance improvements in the garbage collector (<a href="https://github.com/qorelanguage/qore/issues/1363">issue 1363</a>)
     - improved \c InboundTableMapper::queueData() performance (in the <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module) when used with data in hash of lists format to use bulk DML in input and output without internal data conversions (<a href="https://github.com/qorelanguage/qore/issues/1626">issue 1626</a>)
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module fixes:
-      - worked around ORA-22165 from op_in() caused by Oracle's limit on number of collection elements (<a href="https://github.com/qorelanguage/qore/issues/1660">issue 1660</a>)
+      - worked around \c ORA-22165 from \c op_in() caused by Oracle's limit on number of collection elements (<a href="https://github.com/qorelanguage/qore/issues/1660">issue 1660</a>)
+    - improved @ref try-module "%try-module" error reporting and documentation (<a href="https://github.com/qorelanguage/qore/issues/1648">issue 1648</a>)
 
     @section qore_08126 Qore 0.8.12.6
 
@@ -55,7 +56,7 @@
       - @ref Qore::gunzip_to_string()
       - @ref Qore::uncompress_to_binary()
       - @ref Qore::uncompress_to_string()
-    - fixed \c @inf@ on Windows (<a href="https://github.com/qorelanguage/qore/issues/1442">issue 1442</a>):
+    - fixed \c \@inf\@ on Windows (<a href="https://github.com/qorelanguage/qore/issues/1442">issue 1442</a>):
     - fixed @ref Qore::parse_url() with single-character usernames (<a href="https://github.com/qorelanguage/qore/issues/1455">issue 1455</a>)
     - corrected the error message with SSL reads when the server closes the connection prematurely (<a href="https://github.com/qorelanguage/qore/issues/1488">issue 1488</a>)
     - fixed the \c Host header in HTTP requests to not include the port if the port is the default port for the scheme because it causes some servers to reject the request (<a href="https://github.com/qorelanguage/qore/issues/1489">issue 1489</a>)
@@ -138,7 +139,7 @@
     @par Release Summary
     Bugfix release; see details below
 
-    @subsection qore_0812_bug_fixes Bug Fixes in Qore
+    @subsection qore_08121_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module fixes:
       - fixed a bug with the \c SqlStatementOutboundMapper::iterator() method; corrected the iterator object return value which was causing \c AbstractMapperIterator::mapBulk() to fail (<a href="https://github.com/qorelanguage/qore/issues/979">issue 979</a>)
       - fixed a bug with \c SqlStatementOutboundMapper; it would throw an error if the required \c "table" or \c "sh" options were used and only worked with subclasses that declared these options (<a href="https://github.com/qorelanguage/qore/issues/981">issue 981</a>)

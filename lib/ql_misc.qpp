@@ -960,7 +960,7 @@ hash hash = parse_url(url_string);
 
     @throw PARSE-URL-ERROR The URL string given could not be parsed
 
-    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=<url_encoded_path>/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
+    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=&lt;url_encoded_path&gt;/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
 
     @see parseURL() for a version of this function that does not throw exceptions if the URL cannot be parsed
 */
@@ -989,7 +989,7 @@ hash parse_url(string url, bool keep_brackets = False) {
 *hash hash = parseURL(url_string);
     @endcode
 
-    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=<url_encoded_path>/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
+    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=&lt;url_encoded_path&gt;/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
 
     @see parse_url() for a version of this function that throws exceptions if the URL cannot be parsed
 */

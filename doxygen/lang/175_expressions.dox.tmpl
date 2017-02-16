@@ -7,14 +7,14 @@
     <b>Expressions</b>
     |!Type|!Description|!Examples
     |An immediate value|Qore values that can be expressed directly (see @ref basic_data_types and @ref container_data_types for more information)|@code{.py} True@endcode @code{.py}1.2@endcode @code{.py} "a string"@endcode @code{.py} 2005-10-27@endcode @code{.py} NULL@endcode @code{.py} NOTHING@endcode @code{.py} ("key" : val)@endcode
-    |A variable reference|@ref variables<br>see also @ref allow-bare-refs "%allow-bare-refs"|@code{.py} var@endcode
-    |A variable declaration|@ref variable_declarations, @ref variables<br>see also @ref assume-local "%assume-local" and @ref new-style "%new-style"|@code{.py} int var@endcode
+    |A variable reference|@ref variables <br>see also @ref allow-bare-refs "%allow-bare-refs"|@code{.py} var@endcode
+    |A variable declaration|@ref variable_declarations, @ref variables <br>see also @ref assume-local "%assume-local" and @ref new-style "%new-style"|@code{.py} int var@endcode
     |An in-class object member reference|References to members of an object from within the class<br>see @ref class_members also allow-bare-refs "%allow-bare-refs"|@code{.py} member@endcode
     |An lvalue assignment|Assigns a value to a lvalue (see @ref assignment_operator)|@code{.py} var = 1@endcode @code{.py} (a, b, c, date) = (1, "two", 3.3, 2005-10-28)@endcode
     |A function call|Qore function calls (see @ref qore_functions)|@code{.py} calculate(var1, var2, "string", 4)@endcode
     |A method call|Qore object method calls (see @ref object_method_calls)<br>see also @ref allow-bare-refs "%allow-bare-refs"|@code{.py} object.method("argument")@endcode
     |An in-class method call|Qore in-class object method calls (see @ref object_method_calls)<br>see also @ref allow-bare-refs "%allow-bare-refs"|@code{.py} method("argument")@endcode
-    |A @ref static_method_call "static method call"|Qore static method calls (see @ref static_methods)|@code{.py} ClassName::static_method("argument")@endcode
+    |A @ref static_method_calls "static method call"|Qore static method calls (see @ref static_methods)|@code{.py} ClassName::static_method("argument")@endcode
     |Expressions with operators|Use of @ref operators "Qore operators"|@code{.py} 1 + 2@endcode @code{.py} a || b@endcode @code{.py} background my_function()@endcode
     |An expression in parentheses|Use of parentheses for clarity or to specify evaluation precedence|@code{.py} (3 * (2 + a))@endcode
     |A @ref find "find expression"|Finds a value or values in a hash of lists, such as returned by the Qore::SQL::Datasource::select() or Qore::SQL::SQLStatement::fetchColumns() method|@code{.py} find %name, %id in data where (%name =~ /Smith/)@endcode
