@@ -287,7 +287,7 @@ prompt% qore -X 'P0000-00-03T21:00:00'
     - one month is treated as equivalent to 31 days (\c 1M == \c 31D)
     - 365 days are treated as equivalent to one year (\c 365D == \c 1Y)
 
-    These assumptions try to make sense of expressions like: @verbatim 45D > 1M @endverbatim for example.  Month lengths can range from 28 to 31 days, therefore while the expression: @verbatim 30D < 1M @endverbatim will be evaluated as @ref True, when adding \c 30D to an @ref absolute_dates "absolute date value", the result could be less than adding \c 1M (for example, when the operand is an @ref absolute_dates "absolute date" in February).
+    These assumptions try to make sense of expressions like: @verbatim 45D > 1M @endverbatim for example.  Month lengths can range from 28 to 31 days, therefore while the expression: @verbatim 30D < 1M @endverbatim will be evaluated as @ref Qore::True "True", when adding \c 30D to an @ref absolute_dates "absolute date value", the result could be less than adding \c 1M (for example, when the operand is an @ref absolute_dates "absolute date" in February).
 
     <hr>
     @section binary Binary
