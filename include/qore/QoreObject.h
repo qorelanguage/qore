@@ -113,9 +113,6 @@ protected:
     */
    DLLLOCAL virtual double floatEvalImpl(ExceptionSink* xsink) const;
 
-   //! custom reference handler - unlocked
-   DLLLOCAL void customRefIntern() const;
-
    //! custom reference handler
    DLLLOCAL virtual void customRef() const;
 
@@ -538,6 +535,12 @@ public:
        @see QoreObject::tRef()
    */
    DLLEXPORT void tDeref();
+
+   //! increments the standard reference count of the object for references that cannot be part of a recursive graph
+   DLLEXPORT void realRef();
+
+   //! decrements the standard reference count of the object for references that cannot be part of a recursive graph
+   DLLEXPORT void realDeref(ExceptionSink* xsink);
 
    //! returns the pointer to the value of the member
    /** if the member exists, the lock is held and added to the AutoVLock "vl", otherwise the lock is released

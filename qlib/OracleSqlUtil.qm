@@ -257,6 +257,7 @@ my hash $schema = (
 
     @subsection v121 OracleSqlUtil v1.2.1
     - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
+    - worked around ORA-22165 from op_in() caused by Oracle's limit on number of collection elements (<a href="https://github.com/qorelanguage/qore/issues/1660">issue 1660</a>)
 
     @subsection v12 OracleSqlUtil v1.2
     - implemented support for the \c "returning" clause as an insert option
@@ -1837,8 +1838,8 @@ my any $v = $c.name;
                                 case NT_NOTHING:
                                     continue;
                                 case NT_DATE:
-                                case NT_FLOAT:
                                 case NT_INT:
+                                case NT_FLOAT:
                                 case NT_NUMBER:
                                 case NT_STRING:
                                     ltype = it.getValue().typeCode();
@@ -1849,21 +1850,32 @@ my any $v = $c.name;
                             if (ltype) break;
                         }
 
-                        # Bind to oracle by expected type
-                        switch (ltype) {
-                            case NT_DATE:
-                                args += bindOracleCollection("SYS.ODCIDATELIST", arg);
-                                break;
-                            case NT_FLOAT:
-                            case NT_NUMBER:
-                            case NT_INT:
-                                args += bindOracleCollection("SYS.ODCINUMBERLIST", arg);
-                                break;
-                            default:
-                                args += bindOracleCollection("SYS.ODCIVARCHAR2LIST", arg);
+                        # Split long array to chunks of no more than 32767 elements due to Oracle limitation
+                        # "ORA-22165: OCI-22165: given index [32767] must be in the range of [0] to [32766]"
+                        int count;
+                        while (arg.size()) {
+                            ++count;
+                            list chunk = extract arg, 0, 32767;
+
+                            # Bind to Oracle by expected type
+                            switch (ltype) {
+                                case NT_DATE:
+                                    args += bindOracleCollection("SYS.ODCIDATELIST", chunk);
+                                    break;
+                                case NT_INT:
+                                case NT_FLOAT:
+                                case NT_NUMBER:
+                                    args += bindOracleCollection("SYS.ODCINUMBERLIST", chunk);
+                                    break;
+                                default:
+                                    args += bindOracleCollection("SYS.ODCIVARCHAR2LIST", chunk);
+                            }
                         }
 
-                        return cn + " in (select column_value from table(%v))";
+                        if (count)
+                            return cn + " in (" + (map "select column_value from table(%v)", xrange(1,count)).join(" union all ") + ")";
+                        else
+                            return "1 != 1";
 %endif
 %ifdef NO_ORACLE
                         throw "MISSING-ORACLE-DRIVER", "op_in requires oracle driver";

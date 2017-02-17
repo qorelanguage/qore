@@ -13,6 +13,7 @@ option(QORE_RUNTIME_THREAD_STACK_TRACE
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 8)
 set(VERSION_SUB 13)
+#set(VERSION_PATCH xxx)
 
 # If changing the module API numbers, make sure to change the appropriate
 # defines in include/qore/ModuleManager.h too.
@@ -57,7 +58,11 @@ set(myprefix ${CMAKE_INSTALL_PREFIX})
 set(includedir ${CMAKE_INSTALL_FULL_INCLUDEDIR})
 set(libdir ${CMAKE_INSTALL_FULL_LIBDIR})
 
-set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB})
+if(DEFINED VERSION_PATCH)
+    set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}.${VERSION_PATCH})
+else
+    set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB})
+endif()
 
 set(MODULE_DIR ${CMAKE_INSTALL_FULL_LIBDIR}/qore-modules)
 set(MODULE_VER_DIR ${MODULE_DIR}/${VERSION})
