@@ -106,7 +106,10 @@
 
     When parsing module code, the default warning mask is set to @ref Qore::WARN_MODULES "WARN_MODULES", and any warnings are treated as errors.   Furthermore, any restrictions that the importing @ref Qore::Program "Program" object has will be added to the module's @ref Qore::Program "Program" object.
 
-    Any @ref qore_namespaces "namespaces", @ref qore_classes "classes", @ref constants "constants", @ref qore_functions "functions", and @ref global_variables "global variables" declared as @ref mod_public "public" will be exported into the importing @ref Qore::Program "Program" object; all other declarations will be private to the module's @ref Qore::Program "Program" object.  Note that the root namespace of a module @ref Qore::Program "Program" is always @ref mod_public "public" by default.
+    Any @ref qore_namespaces "namespaces", @ref qore_classes "classes", @ref constants "constants", @ref qore_functions "functions", and @ref global_variables "global variables" declared as @ref mod_public "public" will be exported into the importing @ref Qore::Program "Program" object; all other declarations will be private to the module's @ref Qore::Program "Program" object.
+
+    @note The root namespace of a module @ref Qore::Program "Program" is always @ref mod_public "public" by default, however
+    declarations in the root namespace must be marked @ref mod_public "public" to be exported to importing @ref Qore::Program "Program" objects.
 
     If a user module imports other modules with the <tt>%requires(reexport)</tt> form of the @ref requires "%requires" parse directive, then any loaded definitions will also be loaded into the importing @ref Qore::Program "Program".
 
