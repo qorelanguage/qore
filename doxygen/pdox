@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # updates codes for characters that confuse doxygen back to the original characters
 
@@ -19,15 +19,15 @@ fi
 while [ -n "$1" ]; do
     if [ $tex -eq 1 ]; then
 	for a in "$1"/*.tex; do
-            echo processing $a 
+            echo processing $a
     	    sed $OPT -e 's/-::zzz8([a-z]+)zzz9/-::\$\\langle\$\1\$\\rangle\$/g' -e 's/-:\\-:zzz8([a-z]+)zzz9/-:\\-:\$\\langle\$\1\$\\rangle\$/g' -e 's/!Qore::zzz8([a-z]+)zzz9/!Qore::<\1>/g' -e 's/\\-\\_\\-\\-\\_\\-7\\-\\_\\- /\\textasteriskcentered{}/g' -e 's/\\_\\-\\_\\-7\\_\\- /\\textasteriskcentered{}/g' -e 's/Qore::zzz8([a-z]+)zzz9/\$\\langle\$\1\$\\rangle\$/g' $a > t; mv t $a
 	done
     else
 	grep -e __[0-9]_ -e zzz "$1"/*.html "$1"/*.js "$1"/*.qhp 2>/dev/null |cut -f1 -d:|uniq|while read a; do
-            echo processing $a 
+            echo processing $a
             sed $OPT -e 's/__7_ /*/g' -e 's/"Qore::zzz8([a-z]+)zzz9"/"<\1>"/g' -e 's/>([^<>]*)Qore::zzz8([a-z]+)zzz9([^<>]*)<\//\>\1\&lt;\2\&gt;\3<\//g' -e 's/>([^<>]*)zzz8([a-z]+)zzz9([^<>]*)<\//\>\1\&lt;\2\&gt;\3<\//g' -e 's/for Qore::zzz8([a-z]+)zzz9:/for Qore::\&lt;\1\&gt;:/g' -e "s/'Qore::zzz8([a-z]+)zzz9'/'\&lt;\1\&gt;'/g" -e 's/"zzz8([a-z]+)zzz9"/"<\1>"/g' -e "s/'Qore::zzz8([a-z]+)zzz9::([^']+)\(([^\)]*)\)'/'Qore::\&lt;\1\&gt;::\2(\3)'/g" -e "s/'zzz8([a-z]+)zzz9'/'\1'/g" $a > t; mv t $a
             # titles in index.qhp xml tags need some special handlings
-            if [[ $a == *"index.qhp" ]]
+            if [ "`basename "$a"`" = "index.qhp" ]
             then
                 sed $OPT -e 's/\"</\"\&lt;/g' -e 's/>\"/\&gt;\"/g' $a > t; mv t $a
             fi
