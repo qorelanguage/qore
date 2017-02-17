@@ -33,7 +33,7 @@
 
 #define _QORE_INTERN_RSETHELPER_H
 
-#include <qore/intern/RSection.h>
+#include "qore/intern/RSection.h"
 
 #include <set>
 
@@ -122,6 +122,11 @@ public:
    DLLLOCAL void removeInvalidateRSetIntern();
 
    DLLLOCAL bool scanCheck(RSetHelper& rsh, AbstractQoreNode* n);
+
+   // very fast check if the object might have recursive references
+   DLLLOCAL bool mightHaveRecursiveReferences() const {
+      return rset || rcount;
+   }
 
    // if the object is valid (and can be deleted)
    DLLLOCAL bool isValid() const {
