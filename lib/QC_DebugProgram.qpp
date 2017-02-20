@@ -34,6 +34,7 @@
 #include "qore/intern/QC_Program.h"
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/AbstractStatement.h"
 
 /** @defgroup debug_step_options Debug Step Constants
 
@@ -54,7 +55,7 @@ const DebugStepOver = DBG_SB_STEP_OVER;
 //! Run program till function is exited
 const DebugUntilReturn = DBG_SB_UNTIL_RETURN;
 
-//const DebugStopped = DBG_SB_STOPPED = 4,    // not needed
+//  const DebugStopped = DBG_SB_STOPPED = 4,    // not needed
 //@}
 
 /** @defgroup debug_rc_options Debug Block Constants
@@ -137,13 +138,15 @@ DebugProgram::destructor() {
    dpgm->waitForTerminationAndDeref(xsink);
 }
 
+//! Add program to debugging
 /**
  *
  */
 nothing DebugProgram::addProgram(Program[QoreProgram] pgm) {
-   dpgm->addProgram(pgm, args[0]);
+   dpgm->addProgram(pgm, HARD_QORE_VALUE_OBJECT(args, 0));
 }
 
+//! Remove program from debugging
 /**
  *
  */
@@ -156,15 +159,7 @@ nothing DebugProgram::removeProgram(Program[QoreProgram] pgm) {
  *
  */
 int DebugProgram::onAttach(Program[QoreProgram] pgm) {
-   return DBG_SB_RUN;
-   /*
-      static int64 DebugProgram_onAttach_C7Program(QoreObject* self, QoreDebugProgramWithQoreObject* dpgm, const QoreListNode* args, ExceptionSink* xsink) {
-         HARD_QORE_OBJ_DATA(pgm, QoreProgram, args, 0, CID_PROGRAM, "DebugProgram::onAttach()", "Program", xsink);
-         if (*xsink)
-            return 0;
-      # 159 "QC_DebugProgram.qpp"
-         return DBG_SB_RUN;
-   */
+    return DBG_SB_RUN;
 }
 
 //! Executed when thread is datached from program being debugged
@@ -212,7 +207,7 @@ int DebugProgram::onException(Program[QoreProgram] pgm, hash location) {
   *
   */
 nothing DebugProgram::breakProgramThread(Program[QoreProgram] pgm, int tid) {
-   dpgm->breakProgramThread(pgm, tid);
+//  dpgm->breakProgramThread(pgm, tid);
 }
 
 //! Break program, i.e. all threads
@@ -220,5 +215,5 @@ nothing DebugProgram::breakProgramThread(Program[QoreProgram] pgm, int tid) {
   *
   */
 nothing DebugProgram::breakProgram(Program[QoreProgram] pgm) {
-    dpgm->breakProgram(pgm);
+//   dpgm->breakProgram(pgm);
 }

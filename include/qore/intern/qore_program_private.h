@@ -206,7 +206,7 @@ public:
    /**
     * Executed when an exception is raised.
     */
-   DLLLOCAL void dbgException(const AbstractStatement* statement, const ExceptionSink* xsink);
+   DLLLOCAL void dbgException(const AbstractStatement* statement, ExceptionSink* xsink);
 
    /**
     * Executed from any thread to break running program
@@ -1899,7 +1899,7 @@ public:
    DLLLOCAL ThreadDebugEnum onStep(const StatementBlock *blockStatement, const AbstractStatement *statement, int &retCode, ExceptionSink* xsink);
    DLLLOCAL ThreadDebugEnum onFunctionEnter(const StatementBlock *statement, ExceptionSink* xsink);
    DLLLOCAL ThreadDebugEnum onFunctionExit(const StatementBlock *statement, QoreValue& returnValue, ExceptionSink* xsink);
-   DLLLOCAL ThreadDebugEnum onException(const AbstractStatement *statement, const ExceptionSink* xsink);
+   DLLLOCAL ThreadDebugEnum onException(const AbstractStatement *statement, ExceptionSink* xsink);
 
    DLLLOCAL void breakProgramThread(int tid) {
       AutoLocker al(tlock);
@@ -2011,7 +2011,7 @@ public:
    /**
     * Executed when an exception is raised.
     */
-   DLLLOCAL ThreadDebugEnum onException(QoreProgram *pgm, const AbstractStatement *statement, const ExceptionSink* xsink) {
+   DLLLOCAL ThreadDebugEnum onException(QoreProgram *pgm, const AbstractStatement *statement, ExceptionSink* xsink) {
       AutoQoreCounterDec ad(&debug_program_counter);
       return dpgm->onException(pgm, statement, xsink);
    }

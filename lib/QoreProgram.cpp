@@ -917,7 +917,7 @@ ThreadDebugEnum qore_program_private::onFunctionExit(const StatementBlock *state
    return DBG_SB_RUN;
 }
 
-ThreadDebugEnum qore_program_private::onException(const AbstractStatement *statement, const ExceptionSink* xsink) {
+ThreadDebugEnum qore_program_private::onException(const AbstractStatement *statement, ExceptionSink* xsink) {
    AutoQoreCounterDec ad(&debug_program_counter, false);
    qore_debug_program_private* p = getDebugProgram(ad);
    if (p) {
@@ -969,7 +969,7 @@ void ThreadLocalProgramData::dbgFunctionExit(const StatementBlock* statement, Qo
    }
 }
 
-void ThreadLocalProgramData::dbgException(const AbstractStatement* statement, const ExceptionSink* xsink) {
+void ThreadLocalProgramData::dbgException(const AbstractStatement* statement, ExceptionSink* xsink) {
    if (stepBreakpoint != DBG_SB_STOPPED) {
       saveStepOver = false;
       stepBreakpoint = DBG_SB_STOPPED;

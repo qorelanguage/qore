@@ -107,7 +107,7 @@ public:
    /**
     * Executed when an exception is raised.
     */
-   DLLEXPORT virtual ThreadDebugEnum onException(QoreProgram *pgm, const AbstractStatement *statement, const ExceptionSink* xsink) {
+   DLLEXPORT virtual ThreadDebugEnum onException(QoreProgram *pgm, const AbstractStatement *statement, ExceptionSink* xsink) {
       return DBG_SB_RUN;
    }
 
