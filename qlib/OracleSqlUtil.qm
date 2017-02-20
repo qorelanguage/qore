@@ -811,13 +811,6 @@ my any $v = $c.name;
             return sprintf("create%s %s %s", opt.replace ? " or replace" : "", type, src);
         }
 
-        #! returns a string that can be used to drop the type from the database
-        /** @param opt drop options; if \a force is @ref Qore::True "True", then the \c FORCE option will be used in the drop statement
-         */
-        string getDropSql(*hash opt) {
-            return sprintf("drop %s %s%s", type, name, opt.force ? " force" : "");
-        }
-
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
         bool equalImpl(AbstractFunctionBase t) {
             return True;
@@ -860,6 +853,13 @@ my any $v = $c.name;
     #! represents an Oracle type
     public class OracleType inherits OracleCodeBaseNoRename {
         constructor(string n_name, string n_src) : OracleCodeBaseNoRename(n_name, "type", n_src) {
+        }
+
+        #! returns a string that can be used to drop the type from the database
+        /** @param opt drop options; if \a force is @ref Qore::True "True", then the \c FORCE option will be used in the drop statement
+         */
+        string getDropSql(*hash opt) {
+            return sprintf("drop %s %s%s", type, name, opt.force ? " force" : "");
         }
     }
 
