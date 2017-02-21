@@ -62,7 +62,7 @@ typedef qore_size_t (*mbcs_pos_t)(const char* str, const char* ptr, bool &invali
     @param len the number of valid bytes at the start of the character pointer
     @return 0=invalid, positive = number of characters needed, negative numbers = number of additional bytes needed to perform the check
  */
-typedef qore_size_t (*mbcs_charlen_t)(const char* str, qore_size_t valid_len);
+typedef qore_offset_t (*mbcs_charlen_t)(const char* str, qore_size_t valid_len);
 
 class ExceptionSink;
 
@@ -73,7 +73,7 @@ class ExceptionSink;
     have functions implemented.
     @note only encodings that are backwards compatible with ASCII are supported
     by Qore; currently the only multi-byte encoding supported by qore is UTF-8
-    @note the default encoding is represented by QCS_DEFAULT; unless another 
+    @note the default encoding is represented by QCS_DEFAULT; unless another
     encoding is explicitly given, all strings will be tagged with QCS_DEFAULT
     @see QCS_DEFAULT
 */
@@ -97,7 +97,7 @@ public:
    //! gives the length of the string in characters
    /** @param p a pointer to the character data
        @param end a pointer to the next byte after the end of the character data
-       @param invalid if true after executing the function, invalid input was given and the return value should be ignored 
+       @param invalid if true after executing the function, invalid input was given and the return value should be ignored
        @return the number of characters in the string
    */
    DLLLOCAL qore_size_t getLength(const char* p, const char* end, bool &invalid) const {
@@ -116,7 +116,7 @@ public:
    /** @param p a pointer to the character data
        @param end a pointer to the next byte after the end of the character data
        @param c the number of characters to check
-       @param invalid if true after executing the function, invalid input was given and the return value should be ignored 
+       @param invalid if true after executing the function, invalid input was given and the return value should be ignored
        @return the number of bytes for the given number of characters in the string or up to the end of the string
    */
    DLLLOCAL qore_size_t getByteLen(const char* p, const char* end, qore_size_t c, bool& invalid) const {
@@ -135,7 +135,7 @@ public:
    //! gives the character position (number of characters) starting from the first pointer to the second
    /** @param p a pointer to the character data
        @param end a pointer to the next byte after the end of the character data
-       @param invalid if true after executing the function, invalid input was given and the return value should be ignored 
+       @param invalid if true after executing the function, invalid input was given and the return value should be ignored
        @return the number of bytes for the given number of characters in the string
    */
    DLLLOCAL qore_size_t getCharPos(const char* p, const char* end, bool& invalid) const {
@@ -156,10 +156,10 @@ public:
        @param valid_len the number of valid bytes at the start of the character pointer
        @return 0=invalid, positive = number of characters needed, negative numbers = number of additional bytes needed to perform the check
    */
-   DLLLOCAL qore_size_t getCharLen(const char* p, qore_size_t valid_len) const {
+   DLLLOCAL qore_offset_t getCharLen(const char* p, qore_size_t valid_len) const {
       return fcharlen ? fcharlen(p, valid_len) : 1;
    }
-      
+
    //! returns true if the encoding is a multi-byte encoding
    DLLLOCAL bool isMultiByte() const {
       return (bool)flength;
@@ -195,7 +195,7 @@ private:
    DLLLOCAL static encoding_map_t emap;
    DLLLOCAL static const_encoding_map_t amap;
    DLLLOCAL static class QoreThreadLock mutex;
-   
+
    DLLLOCAL static const QoreEncoding* addUnlocked(const char* code, const char* desc, unsigned char maxwidth = 1, mbcs_length_t l = 0, mbcs_end_t e = 0, mbcs_pos_t p = 0, mbcs_charlen_t = 0);
    DLLLOCAL static const QoreEncoding* findUnlocked(const char* name);
 
@@ -224,13 +224,13 @@ public:
 };
 
 DLLEXPORT qore_size_t q_get_byte_len(const QoreEncoding* enc, const char* p, const char* end, qore_size_t c, ExceptionSink* xsink);
-DLLEXPORT qore_size_t q_get_char_len(const QoreEncoding* enc, const char* p, qore_size_t valid_len, ExceptionSink* xsink);
+DLLEXPORT qore_offset_t q_get_char_len(const QoreEncoding* enc, const char* p, qore_size_t valid_len, ExceptionSink* xsink);
 
 //! the QoreEncodingManager object
 DLLEXPORT extern QoreEncodingManager QEM;
 
 // builtin character encodings
-DLLEXPORT extern const QoreEncoding* QCS_DEFAULT, //!< the default encoding for the Qore library 
+DLLEXPORT extern const QoreEncoding* QCS_DEFAULT, //!< the default encoding for the Qore library
    *QCS_USASCII,                                  //!< ascii encoding
    *QCS_UTF8,                                     //!< UTF-8 multi-byte encoding (the only multi-byte encoding, all others are single-byte encodings)
    *QCS_ISO_8859_1,                               //!< latin-1, Western European encoding
@@ -253,6 +253,6 @@ DLLEXPORT extern const QoreEncoding* QCS_DEFAULT, //!< the default encoding for 
    *QCS_KOI7;                                     //!< Russian: Kod Obmena Informatsiey, 7 bit characters
 
 //! returns the length of the next UTF-8 character or 0 for an encoding error or a negative number if the string is too short to represent the character
-DLLEXPORT qore_size_t q_UTF8_get_char_len(const char* p, qore_size_t valid_len);
+DLLEXPORT qore_offset_t q_UTF8_get_char_len(const char* p, qore_size_t valid_len);
 
 #endif // _QORE_CHARSET_H
