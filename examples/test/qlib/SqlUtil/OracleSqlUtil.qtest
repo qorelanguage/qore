@@ -70,6 +70,15 @@ class OracleTestSchema inherits SqlUtilTestSchema {
         const Sequences = (
             "oracle_test_seq": {},
             );
+
+        const Functions = (
+            "oracle_test_func" : "oracle_test_func(in_foo in number) return number is begin return in_foo; end;",
+            );
+
+        const Types = (
+            "oracle_test_object" : "object ( id number )",
+            "oracle_test_coll" : "table of oracle_test_object",
+            );
     }
 
     constructor(AbstractDatasource ds, *string dts, *string its) : SqlUtilTestSchema(ds, dts, its) {
@@ -101,6 +110,14 @@ class OracleTestSchema inherits SqlUtilTestSchema {
 
     private *hash getColumnOptionsImpl() {
         return ColumnOptions;
+    }
+
+    private *hash getFunctionsImpl() {
+        return Functions;
+    }
+
+    private *hash getTypesImpl() {
+        return Types;
     }
 }
 
@@ -161,6 +178,14 @@ class OracleTest inherits SqlTestBase {
         }
 
         if (ds) {
+            # create dummy objects to test drop/create functionality of schema alignment
+            on_exit ds.commit();
+            ds.execRaw("create or replace function oracle_test_func(in_foo in number) return number is begin return 1; end");
+            ds.execRaw("begin execute immediate 'drop type oracle_test_object force'; exception when others then null; end;");
+            ds.execRaw("create type oracle_test_object as object (id date)");
+            ds.execRaw("begin execute immediate 'drop type oracle_test_coll force'; exception when others then null; end;");
+            ds.execRaw("create type oracle_test_coll as table of oracle_test_object");
+
             initTestData(CustomColumns);
 
             { # Make sure the DB is clear before doing the tests.

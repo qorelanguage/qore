@@ -172,6 +172,7 @@
     - improved \c InboundTableMapper::queueData() performance (in the <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module) when used with data in hash of lists format to use bulk DML in input and output without internal data conversions (<a href="https://github.com/qorelanguage/qore/issues/1626">issue 1626</a>)
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module fixes:
       - worked around ORA-22165 from op_in() caused by Oracle's limit on number of collection elements (<a href="https://github.com/qorelanguage/qore/issues/1660">issue 1660</a>)
+      - fixed a bug in the \a force option (i.e. cascade) for dropping types (<a href="https://github.com/qorelanguage/qore/issues/1683">issue 1683</a>)
 
     @section qore_08126 Qore 0.8.12.6
 
