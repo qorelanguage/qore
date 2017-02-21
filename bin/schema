@@ -1,0 +1,230 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires SqlUtil
+
+main();
+
+const opts = (
+    "drop": "D,drop",
+
+    "data_ts": "d,data-ts=s",
+    "index_ts": "i,index-ts=s",
+    "verbose": "v,verbose:i+",
+
+    "help": "h,help",
+    );
+
+sub usage() {
+    printf("usage: %s [options] <datasource-spec>
+    example datasource-specs:
+       oracle:user/pass@db%example.com:1521
+       pgsql:user/pass@db%localhost
+ -D,--drop              drop the schema
+ -d,--data-ts=<arg>     set the data tablespace name
+ -i,--index-ts=<arg>    set the index tablespace name
+ -v,--verbose           show more output
+ -h,--help              this help text
+  ", get_script_name());
+    exit(1);
+}
+
+const Options = (
+    "driver": (
+        "oracle": (
+            "compute_statistics": True,
+            "character_semantics": True,
+        ),
+    ),
+    );
+
+const T_Customers = (
+    "columns": (
+        "id": (
+            "qore_type": Type::Number,
+            "size": 14,
+            "notnull": True,
+            # this column is normally populated from a sequence by a trigger, but mysql
+            # enforces not null constraints before "before insert" triggers are fired, so
+            # we can't use our emulated sequences on mysql with a not null constraint on this
+            # column, also since this column is a part of the primary key for this table,
+            # we can't leave it nullable, so we use auto_increment
+            "driver": ("mysql": ("native_type": "bigint", "unsigned": True, "auto_increment": True, "size": NOTHING)),
+        ),
+        "family_name": (
+            "qore_type": Type::String,
+            "size": 120,
+            "notnull": True,
+        ),
+        "first_names": (
+            "qore_type": Type::String,
+            "size": 240,
+            "notnull": True,
+        ),
+        "created": (
+            "qore_type": Type::Date,
+            "notnull": True,
+            # this column is populated by a trigger, but mysql enforces not null
+            # constraints before "before insert" triggers are fired, so for mysql only
+            # this column must be nullable
+            "driver": ("mysql": ("notnull": False)),
+        ),
+        "modified": (
+            "qore_type": Type::Date,
+        ),
+    ),
+    "primary_key": ("name": "pk_customers", "columns": "id"),
+    "indexes": (
+        "sk_customers_name": ("columns": "family_name"),
+    ),
+    "driver": (
+        "pgsql": (
+            "functions": (
+                "trig_customers()": "returns trigger language plpgsql as $function$
+begin
+  if (tg_op = 'INSERT') then
+    if new.created is null then
+      select current_timestamp into new.created;
+    end if;
+  end if;
+  if new.modified is null  then
+    select current_timestamp into new.modified;
+  end if;
+  return new;
+end;
+$function$", #",
+            ),
+        ),
+    ),
+    "triggers": (
+        "driver": (
+            "oracle": (
+                "trig_customers": "BEFORE INSERT OR UPDATE ON customers
+REFERENCING NEW AS NEW OLD AS OLD
+FOR EACH ROW
+begin
+  if inserting then
+    if :new.id is null then
+      select seq_customers.nextval into :new.id from dual;
+    end if;
+    if :new.created is null then
+      :new.created := sysdate;
+    end if;
+  end if;
+  --
+  if :new.modified is null or :new.modified = :old.modified then
+    :new.modified := sysdate;
+  end if;
+end;",
+            ),
+            "pgsql": (
+                "trig_customers": "before insert or update on customers for each row execute procedure trig_customers()",
+            ),
+            "mysql": (
+                "trig_customers_insert": "before insert on customers for each row
+begin
+  if new.created is null then
+    set new.created = now();
+  end if;
+  if new.modified is null then
+    set new.modified = now();
+  end if;
+end",
+                "trig_customers_update": "before update on customers for each row
+begin
+  if new.modified is null or new.modified = old.modified then
+    set new.modified = now();
+  end if;
+end",
+            ),
+        ),
+    ),
+);
+
+const SequenceList = (
+    "seq_customers": {},
+    );
+
+const Sequences = (
+    "driver": (
+        "oracle": SequenceList,
+        "pgsql": SequenceList,
+    ),
+    );
+
+const Tables = (
+    "customers": T_Customers,
+    );
+
+const Schema = (
+    "sequences": Sequences,
+    "tables": Tables,
+    );
+
+sub main() {
+    GetOpt g(opts);
+    *hash o = g.parse3(\ARGV);
+    if (o.help)
+        usage();
+
+    *string dsstr = shift ARGV;
+    if (!dsstr)
+        usage();
+
+    Datasource ds(dsstr);
+
+    int change_count;
+    code info_callback = sub (string str) {
+        ++change_count;
+        if (o.verbose)
+            printf("*** %s\n", str);
+        else {
+            print(".");
+            flush();
+        }
+    };
+
+    code sql_callback = sub (string str) {
+        if (o.verbose > 1)
+            printf("%s\n", str);
+        ds.execRaw(str);
+    };
+
+    hash callback_opts = (
+        "info_callback": info_callback,
+        "sql_callback": sql_callback,
+        "sql_callback_executed": True,
+        );
+
+    Database db(ds);
+
+    on_success ds.commit();
+    on_error ds.rollback();
+
+    if (o.drop) {
+        db.getDropSchemaSql(Schema, callback_opts);
+        if (!o.verbose && change_count)
+            print("\n");
+        return;
+    }
+
+    hash creationOptions = Options;
+    if (o.data_ts)
+        creationOptions += (
+            "data_tablespace": o.data_ts,
+        );
+    if (o.index_ts)
+        creationOptions += (
+            "index_tablespace": o.index_ts,
+        );
+
+    Tables table_cache();
+    db.getAlignSql(Schema, creationOptions + callback_opts, table_cache);
+    if (!o.verbose && change_count)
+        print("\n");
+}

@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -85,10 +85,23 @@ DLLEXPORT void set_thread_resource(AbstractThreadResource* atr);
 DLLEXPORT int remove_thread_resource(AbstractThreadResource* atr);
 
 //! check if a thread resouce has been saved
-/** @param trid thread resource id to check
+/** @param atr thread resource id to check
     @return true if saved, false if not saved
 */
 DLLEXPORT bool check_thread_resource(AbstractThreadResource* atr);
+
+//! save a callable resource against a thread for thread resource handling
+/** @param rcr a pointer to a callable node for thread resource handling
+ */
+DLLEXPORT void set_thread_resource(const ResolvedCallReferenceNode* rcr, QoreValue arg);
+
+//! remove the callable resource from the thread resource list for the current thread
+/** @param rcr a pointer to the thread resource to remove
+    @param xsink any Qore-language exceptions raised when dereferencing the callable object will be saved here
+
+    @return 0 if successful (resource was found and removed), -1 if the resource was not found
+ */
+DLLEXPORT int remove_thread_resource(const ResolvedCallReferenceNode* rcr, ExceptionSink* xsink);
 
 #if 0
 //! save a resource against a thread for thread resource handling using the thread resource id
@@ -119,7 +132,7 @@ DLLEXPORT bool check_thread_resource_id(q_trid_t trid);
 DLLEXPORT q_trid_t qore_get_trid();
 
 //! list of functions to be run when a thread ends; required for some external libraries that require explicit cleanup when a thread terminates
-/** this list is not locked and therefore the ThreadCleanupList::push() and 
+/** this list is not locked and therefore the ThreadCleanupList::push() and
     ThreadCleanupList::pop() functions must only be called in module initialization
     and module deletion.  However this list is implemented in such a way that thread
     cleanup list execution may be safely called interally while push() is being

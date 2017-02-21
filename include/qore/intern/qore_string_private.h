@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 */
 
 #ifndef QORE_QORE_STRING_PRIVATE_H
-#define QORE_QORE_STRING_PRIVATE_H 
+#define QORE_QORE_STRING_PRIVATE_H
 
 #define MAX_INT_STRING_LEN     48
 #define MAX_BIGINT_STRING_LEN  48
@@ -41,6 +41,10 @@
 #define STR_CLASS_EXTRA        40
 
 #define MIN_SPRINTF_BUFSIZE   120
+
+#define QUS_PATH     0
+#define QUS_QUERY    1
+#define QUS_FRAGMENT 2
 
 struct qore_string_private {
 private:
@@ -136,6 +140,42 @@ public:
       return -1;
    }
 
+      // NOTE: this is purely byte oriented - no character semantics here
+   DLLLOCAL qore_offset_t findAny(const char* str, qore_offset_t pos = 0) {
+      if (pos < 0) {
+         pos = len + pos;
+         if (pos < 0)
+            pos = 0;
+      }
+      else if (pos > 0 && pos > (qore_offset_t)len)
+         return -1;
+      const char* p;
+      if (!(p = strstr(buf + pos, str)))
+         return -1;
+      return (qore_offset_t)(p - buf);
+   }
+
+   // NOTE: this is purely byte oriented - no character semantics here
+   DLLLOCAL qore_offset_t rfindAny(const char* str, qore_offset_t pos = -1) {
+      if (pos < 0) {
+         pos = len + pos;
+         if (pos < 0)
+            return -1;
+      }
+      else if (pos > 0 && pos > (qore_offset_t)len)
+         pos = len - 1;
+
+      const char* p = buf + pos;
+      while (p >= buf) {
+         for (const char* t = str; *t; ++t) {
+            if (*p == *t)
+               return (qore_offset_t)(p - buf);
+         }
+         --p;
+      }
+      return -1;
+   }
+
    DLLLOCAL static qore_offset_t index_simple(const char *haystack, const char *needle, qore_offset_t pos = 0) {
       const char *p;
       if (!(p = strstr(haystack + pos, needle)))
@@ -170,12 +210,12 @@ public:
          return -1;
 
       qore_offset_t ind = index_simple(buf + pos, needle->getBuffer());
-      if (ind != -1) {         
+      if (ind != -1) {
          ind = getEncoding()->getCharPos(buf, buf + pos + ind, xsink);
          if (*xsink)
             return -1;
       }
-   
+
       return ind;
    }
 
@@ -214,7 +254,7 @@ public:
          if (pos < 0)
             return -1;
       }
-      
+
       while (pos != -1) {
          if (!strncmp(haystack + pos, needle, nlen))
             return pos;
@@ -253,7 +293,7 @@ public:
                return -1;
          }
 
-         return rindex_simple(buf, len, needle->getBuffer(), needle->strlen(), pos);      
+         return rindex_simple(buf, len, needle->getBuffer(), needle->strlen(), pos);
       }
 
       // do multi-byte rindex
@@ -271,29 +311,29 @@ public:
          if (*xsink)
             return 0;
       }
-      
+
       return ind;
    }
 
    DLLLOCAL qore_offset_t brindex(const QoreString &needle, qore_offset_t pos) const {
       return brindex(needle.getBuffer(), needle.strlen(), pos);
    }
-   
+
    DLLLOCAL qore_offset_t brindex(const std::string &needle, qore_offset_t pos) const {
       return brindex(needle.c_str(), needle.size(), pos);
    }
-   
+
    DLLLOCAL qore_offset_t brindex(const char *needle, qore_size_t needle_len, qore_offset_t pos) const {
       if (needle_len + pos > len)
          return -1;
-      
+
       if (pos < 0)
          pos = len + pos;
-      
+
       if (pos < 0)
          return -1;
-      
-      return rindex_simple(buf, len, needle, needle_len, pos);      
+
+      return rindex_simple(buf, len, needle, needle_len, pos);
    }
 
    DLLLOCAL bool isDataPrintableAscii() const {
@@ -435,7 +475,7 @@ public:
 
    DLLLOCAL void concat(const qore_string_private* str) {
       assert(!str || (str->charset == charset) || !str->charset);
-      
+
       // if it's not a null string
       if (str && str->len) {
          // if priv->buffer needs to be resized
@@ -447,41 +487,79 @@ public:
       }
    }
 
-   DLLLOCAL void concatUTF8FromUnicode(unsigned code) {
-      // 6-byte code
-      if (code > 0x03ffffff) {
-         concat(0xfc | (((1 << 30) & code) ? 1 : 0));
-         concat(0x80 | ((code & (0x3f << 24)) >> 24));
-         concat(0x80 | ((code & (0x3f << 18)) >> 18));
-         concat(0x80 | ((code & (0x3f << 12)) >> 12));
-         concat(0x80 | ((code & (0x3f << 6)) >> 6));
-         concat(0x80 | (code & 0x3f));
+   DLLLOCAL void concat(const char *str) {
+      // if it's not a null string
+      if (str) {
+         qore_size_t i = 0;
+         // iterate through new string
+         while (str[i]) {
+            // if priv->buffer needs to be resized
+            check_char(len);
+            // concatenate one character at a time
+            buf[len++] = str[i++];
+         }
+         // see if priv->buffer needs to be resized for '\0'
+         check_char(len);
+         // terminate string
+         buf[len] = '\0';
       }
-      else if (code > 0x001fffff) { // 5-byte code
-         concat(0xf8 | ((code & (0x3 << 24)) >> 24));
-         concat(0x80 | ((code & (0x3f << 18)) >> 18));
-         concat(0x80 | ((code & (0x3f << 12)) >> 12));
-         concat(0x80 | ((code & (0x3f << 6)) >> 6));
-         concat(0x80 | (code & 0x3f));
-      }
-      else if (code > 0xffff) { // 4-byte code
-         concat(0xf0 | ((code & (0x7 << 18)) >> 18));
-         concat(0x80 | ((code & (0x3f << 12)) >> 12));
-         concat(0x80 | ((code & (0x3f << 6)) >> 6));
-         concat(0x80 | (code & 0x3f));
-      }
-      else if (code > 0x7ff) { // 3-byte code
-         concat(0xe0 | ((code & (0xf << 12)) >> 12));
-         concat(0x80 | ((code & (0x3f << 6)) >> 6));
-         concat(0x80 | (code & 0x3f));
-      }
-      else if (code > 0x7f) { // 2-byte code
-         concat(0xc0 | ((code & (0x2f << 6)) >> 6));
-         concat(0x80 | (code & 0x3f));
-      }
-      else
-         concat((char)code);
    }
+
+   DLLLOCAL int concat(const QoreString* str, ExceptionSink* xsink);
+
+   // return 0 for success
+   DLLLOCAL int vsprintf(const char *fmt, va_list args) {
+      size_t fmtlen = ::strlen(fmt);
+      // ensure minimum space is free
+      if ((allocated - len - fmtlen) < MIN_SPRINTF_BUFSIZE) {
+         allocated += fmtlen + MIN_SPRINTF_BUFSIZE;
+         // resize buffer
+         buf = (char *)realloc(buf, allocated * sizeof(char));
+      }
+      // set free buffer size
+      qore_offset_t free = allocated - len;
+
+      // copy formatted string to buffer
+      int i = ::vsnprintf(buf + len, free, fmt, args);
+
+#ifdef HPUX
+      // vsnprintf failed but didn't tell us how big the buffer should be
+      if (i < 0) {
+         //printf("DEBUG: vsnprintf() failed: i=%d allocated="QSD" len="QSD" buf=%p fmtlen="QSD" (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
+         // resize buffer
+         allocated += STR_CLASS_EXTRA;
+         buf = (char *)realloc(buf, sizeof(char) * allocated);
+         *(buf + len) = '\0';
+         return -1;
+      }
+#else
+      if (i >= free) {
+         //printf("DEBUG: vsnprintf() failed: i=%d allocated="QSD" len="QSD" buf=%p fmtlen="QSD" (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
+         // resize buffer
+         allocated = len + i + STR_CLASS_EXTRA;
+         buf = (char *)realloc(buf, sizeof(char) * allocated);
+         *(buf + len) = '\0';
+         return -1;
+      }
+#endif
+
+      len += i;
+      return 0;
+   }
+
+   DLLLOCAL int sprintf(const char *fmt, ...) {
+      va_list args;
+      while (true) {
+         va_start(args, fmt);
+         int rc = vsprintf(fmt, args);
+         va_end(args);
+         if (!rc)
+            break;
+      }
+      return 0;
+   }
+
+   DLLLOCAL void concatUTF8FromUnicode(unsigned code);
 
    DLLLOCAL int concatUnicode(unsigned code, ExceptionSink *xsink) {
       if (getEncoding() == QCS_UTF8) {
@@ -495,132 +573,39 @@ public:
       if (*xsink)
          return -1;
       concat(ns->priv);
-      return 0;   
-   }
-
-   DLLLOCAL int concatDecodeUriIntern(ExceptionSink* xsink, const qore_string_private& str, bool detect_query = false) {
-      bool in_query = false;
-
-      const char* url = str.buf;
-      while (*url) {
-         int x1 = getHex(url);
-         if (x1 >= 0) {
-            // see if a multi-byte char is starting
-            if ((x1 & 0xc0) == 0xc0) {
-               int x2 = getHex(url);
-               if (x2 == -1) {
-                  xsink->raiseException("URL-ENCODING-ERROR", "percent encoding indicated a multi-byte UTF-8 character but only one byte was provided");
-                  return -1;
-               }
-               // check for a 3-byte sequence
-               if (x1 & 0x20) { 
-                  int x3 = getHex(url);
-                  if (x3 == -1) {
-                     xsink->raiseException("URL-ENCODING-ERROR", "percent encoding indicated a %s-byte UTF-8 character but only two bytes were provided", (x1 & 0x10) ? "four" : "three");
-                     return -1;
-                  }
-	       
-                  // check for a 4-byte sequence
-                  if (x1 & 0x10) {
-                     int x4 = getHex(url);
-                     if (x4 == -1) {
-                        xsink->raiseException("URL-ENCODING-ERROR", "percent encoding indicated a four-byte UTF-8 character but only three bytes were provided");
-                        return -1;
-                     }
-                     if (!(x2 & 0x80 && x3 & 0x80 && x4 & 0x80)) {
-                        xsink->raiseException("URL-ENCODING-ERROR", "percent encoding gave an invalid four-byte UTF-8 character");
-                        return -1;
-                     }
-
-                     // if utf8 then concat directly
-                     if (getEncoding() == QCS_UTF8) {
-                        concat((char)x1);
-                        concat((char)x2);
-                        concat((char)x3);
-                        concat((char)x4);
-                     }
-                     else {
-                        unsigned cp = (((unsigned)(x1 & 0x07)) << 18) 
-                           | (((unsigned)(x2 & 0x3f)) << 12) 
-                           | ((((unsigned)x3 & 0x3f)) << 6) 
-                           | (((unsigned)x4 & 0x3f));
-                        if (concatUnicode(cp, xsink))
-                           return -1;
-                     }
-                     continue;
-                  }
-                  // 3-byte sequence
-                  if (!(x2 & 0x80 && x3 & 0x80)) {
-                     xsink->raiseException("URL-ENCODING-ERROR", "percent encoding gave an invalid three-byte UTF-8 character");
-                     return -1;
-                  }
-
-                  // if utf8 then concat directly
-                  if (getEncoding() == QCS_UTF8) {
-                     concat((char)x1);
-                     concat((char)x2);
-                     concat((char)x3);
-                  }
-                  else {
-                     unsigned cp = (((unsigned)(x1 & 0x0f)) << 12) 
-                        | (((unsigned)(x2 & 0x3f)) << 6)
-                        | (((unsigned)x3 & 0x3f));
-		  
-                     if (concatUnicode(cp, xsink))
-                        return -1;
-                  }
-                  continue;
-               }
-               // 2-byte sequence
-               if (!(x2 & 0x80)) {
-                  xsink->raiseException("URL-ENCODING-ERROR", "percent encoding gave an invalid two-byte UTF-8 character");
-                  return -1;
-               }
-
-               // if utf8 then concat directly
-               if (getEncoding() == QCS_UTF8) {
-                  concat((char)x1);
-                  concat((char)x2);
-               }
-               else {
-                  unsigned cp = (((unsigned)(x1 & 0x1f)) << 6)
-                     | ((unsigned)(x2 & 0x3f));
-                  if (concatUnicode(cp, xsink))
-                     return -1;
-               }
-               continue;
-            }
-            // single byte
-            concat(x1);
-            continue;
-         }
-
-         if (detect_query) {
-            if (!in_query) {
-               if ((*url) == '?')
-                  in_query = true;
-            }
-            else {
-               if ((*url) == '+') {
-                  ++url;
-                  concat(' ');
-                  continue;
-               }
-               else if ((*url) == '#') {
-                  in_query = false;                  
-               }
-            }
-         }
-         
-         concat(*(url++));
-      }
       return 0;
    }
 
-   DLLLOCAL const QoreEncoding* getEncoding() const {  
-      return charset ? charset : QCS_USASCII; 
+   DLLLOCAL int concatUnicode(unsigned code);
+
+   DLLLOCAL int concatDecodeUriIntern(ExceptionSink* xsink, const qore_string_private& str, bool detect_query = false);
+
+   DLLLOCAL int concatEncodeUriRequest(ExceptionSink* xsink, const qore_string_private& str);
+
+   DLLLOCAL unsigned int getUnicodePointFromBytePos(qore_size_t offset, unsigned& len, ExceptionSink* xsink) const;
+
+   DLLLOCAL int concatEncode(ExceptionSink* xsink, const QoreString& str, unsigned code = CE_XHTML);
+   DLLLOCAL int concatDecode(ExceptionSink* xsink, const QoreString& str, unsigned code = CD_ALL);
+
+   DLLLOCAL int allocate(unsigned requested_size) {
+      if ((unsigned)allocated >= requested_size)
+         return 0;
+      requested_size = (requested_size / 16 + 1) * 16; // fill complete cache line
+      char* aux = (char*)realloc(buf, requested_size * sizeof(char));
+      if (!aux) {
+         assert(false);
+         // FIXME: std::bad_alloc() should be thrown here;
+         return -1;
+      }
+      buf = aux;
+      allocated = requested_size;
+      return 0;
    }
-   
+
+   DLLLOCAL const QoreEncoding* getEncoding() const {
+      return charset ? charset : QCS_USASCII;
+   }
+
    DLLLOCAL static int getHex(const char*& p) {
       if (*p == '%' && isxdigit(*(p + 1)) && isxdigit(*(p + 2))) {
          char x[3] = { *(p + 1), *(p + 2), '\0' };
@@ -629,6 +614,8 @@ public:
       }
       return -1;
    }
+
+   DLLLOCAL static int convert_encoding_intern(const char* src, qore_size_t src_len, const QoreEncoding* from, QoreString& targ, const QoreEncoding* nccs, ExceptionSink* xsink);
 };
 
 #endif

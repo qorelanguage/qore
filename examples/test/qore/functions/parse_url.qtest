@@ -1,0 +1,41 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class parseUrlTest
+
+public class parseUrlTest inherits QUnit::Test {
+    constructor() : Test("parse_url test", "1.0") {
+        addTestCase("Test 1", \test());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    test() {
+        # "standard" test
+        assertEq(("protocol": "http", "path": "/path", "username": "user", "password": "pass", "host": "host", "port": 80), parse_url("http://user:pass@host:80/path"));
+
+        # "standard" path
+        assertEq(("protocol": "file", "path": "/tmp"), parse_url("file:///tmp"));
+
+        # UNIX socket URL
+        assertEq(("protocol": "http", "host": "/tmp/socket-file.sock"), parse_url("http://socket=%2Ftmp%2Fsocket-file.sock"));
+
+        # windows file paths
+        assertEq(("protocol": "file", "path": "c:\\tmp"), parse_url("file://c:\\tmp"));
+        assertEq(("protocol": "file", "path": "\\\\share\\dir"), parse_url("file://\\\\share\\dir"));
+
+        # IPv6 localhost
+        assertEq(("host": "::"), parse_url("::"));
+
+        # one-character username
+        assertEq(("protocol": "http", "username": "u", "password": "p", "host": "h"), parse_url("http://u:p@h"));
+    }
+}

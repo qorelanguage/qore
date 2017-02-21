@@ -1,0 +1,312 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/SqlUtil.qm
+%requires ../../../../qlib/BulkSqlUtil.qm
+%requires ../../../../qlib/OracleSqlUtil.qm
+%requires ../../../../qlib/Schema.qm
+
+%requires ./SqlUtilTestBase.qm
+#/;
+%try-module oracle
+%define NoOracle
+%endtry
+
+%exec-class OracleTest
+
+class OracleTestSchema inherits SqlUtilTestSchema {
+    public {
+        const SchemaName = "OracleTestSchema";
+        const SchemaVersion = "1.0";
+    }
+
+    private {
+        const GenericOptions = (
+            "replace": True,
+            );
+
+        const IndexOptions = {};
+
+        const ColumnOptions = (
+            "character_semantics": True,
+            );
+
+        const T_OracleTest = (
+            "columns": (
+                "id": c_number(14, True),
+                "id_": c_number(14, True),
+                "null_f": c_varchar(69),
+                # data for test of driver specific opts merged into tolevel hash
+                "drv_test" : ( "qore_type" : SqlUtil::VARCHAR,
+                               "size" : 1,
+                               "driver" : (
+                                   "oracle" : (
+                                      "qore_type" : SqlUtil::NUMERIC,
+                                   ),
+                               ),
+                             ),
+                # default value test for
+                # SqlUtil: schema alignment: default values can be complex statement instead of simple value only #1428
+                "def_test1" : c_date(C_NOT_NULL) + ("driver" : ("oracle" : ("default_value" : "to_date('1.1.2000', 'dd.mm.yyyy')", "default_value_native" : True))),
+                "def_test2" : c_number(C_NOT_NULL) + ( "default_value" : 0 ),
+                # SDO_GEOMETRY test: OracleSqlUtil does not support spatial data types #1465
+                # actually it tests it for any named type
+                "location" : ( "native_type" : "sdo_geometry", ),
+            ),
+            "primary_key": ("name": "pk_oracle_test", "columns": ("id")),
+            );
+
+        const Tables = (
+            "oracle_test": T_OracleTest,
+            );
+
+        const Sequences = (
+            "oracle_test_seq": {},
+            );
+
+        const Functions = (
+            "oracle_test_func" : "oracle_test_func(in_foo in number) return number is begin return in_foo; end;",
+            );
+
+        const Types = (
+            "oracle_test_object" : "object ( id number )",
+            "oracle_test_coll" : "table of oracle_test_object",
+            );
+    }
+
+    constructor(AbstractDatasource ds, *string dts, *string its) : SqlUtilTestSchema(ds, dts, its) {
+    }
+
+    private string getNameImpl() {
+        return SchemaName;
+    }
+
+    private string getVersionImpl() {
+        return SchemaVersion;
+    }
+
+    private *hash getTablesImpl() {
+        return doTables(Tables, OracleTest::CustomColumns);
+    }
+
+    private *hash getSequencesImpl() {
+        return Sequences;
+    }
+
+    private *hash getIndexOptionsImpl() {
+        return IndexOptions;
+    }
+
+    private *hash getGenericOptionsImpl() {
+        return GenericOptions;
+    }
+
+    private *hash getColumnOptionsImpl() {
+        return ColumnOptions;
+    }
+
+    private *hash getFunctionsImpl() {
+        return Functions;
+    }
+
+    private *hash getTypesImpl() {
+        return Types;
+    }
+}
+
+class OracleByteSchema inherits OracleTestSchema {
+    constructor(AbstractDatasource ds, *string dts, *string its) : OracleTestSchema(ds, dts, its) {
+    }
+
+    private *hash getColumnOptionsImpl() {
+    }
+}
+
+class OracleTest inherits SqlTestBase {
+    public {
+        const CustomColumns = (
+            "varchar2": (
+                "value": "hello",
+                "size": "20",
+            ),
+            "char": (
+                "value": "hello",
+                "size": "20",
+                "expect": rpad ("hello", 20),
+            ),
+            "number": (
+                "size": 15,
+                "scale": 2,
+                "value": 400.95n,
+            ),
+            "number_def": (
+                "type": "number",
+                "value": 400.95n,
+            ),
+            "date": 2016-01-11,
+            "timestamp": 2016-01-11T09:26:14.502134,
+            "timestamp with time zone": 2016-01-11T09:26:14.502134,
+            "timestamp with local time zone": 2016-01-11T09:26:14.502134,
+            #"interval year to month": 2Y + 6M,
+            #"interval day to second": 2D + 3h + 4m + 1s,
+            "clob": "test",
+            "blob": <bead>,
+            "binary_float": 1.5,
+            "binary_double": 1.5,
+            #raw
+            #bfile
+            #long
+            );
+    }
+
+    constructor() : SqlTestBase("OracleTest", "1.0", \ARGV, MyOpts) {
+        Datasource ds;
+        try {
+            ds = getDatasource();
+        }
+        catch (hash ex) {
+            if (m_options.verbose)
+                printf("%s: %s\n", ex.err, ex.desc);
+            # skip tests if we can't create the datasource
+        }
+
+        if (ds) {
+            # create dummy objects to test drop/create functionality of schema alignment
+            on_exit ds.commit();
+            ds.execRaw("create or replace function oracle_test_func(in_foo in number) return number is begin return 1; end");
+            ds.execRaw("begin execute immediate 'drop type oracle_test_object force'; exception when others then null; end;");
+            ds.execRaw("create type oracle_test_object as object (id date)");
+            ds.execRaw("begin execute immediate 'drop type oracle_test_coll force'; exception when others then null; end;");
+            ds.execRaw("create type oracle_test_coll as table of oracle_test_object");
+
+            initTestData(CustomColumns);
+
+            # create the test schema
+            schema = new OracleTestSchema(ds);
+
+            schema.align(False, m_options.verbose);
+
+            # get table object
+            table = (new Table(schema.getDatasource(), "oracle_test")).getTable();
+
+            addTestCase("sequence operators", \testSequenceOperators());
+            addTestCase("pseudo-columns", \testPseudoColumns());
+            addTestCase("character semantics", \testCharacterSemantics());
+            addTestCase("driver specific opts for columns", \testDriverSpecificColumns());
+            addTestCase("default values", \testDefaultValues());
+            addTestCase("named types to align", \testNTYAlignment());
+        }
+
+        set_return_value(main());
+    }
+
+    testCharacterSemantics() {
+        if (!table)
+            testSkip("no DB connection");
+
+        AbstractDatasource ds = table.getDatasource();
+
+        assertEq(True, schema.getColumnOptions().character_semantics, "character_semantics value in schema");
+
+        hash c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "VARCHAR2_F");
+        # it must be C (CHAR) in case of character_semantics=True, B is for BYTE
+        assertEq("C", c.char_used, "character_semantics from data dictionary");
+
+        # align schema with byte semantics
+        OracleByteSchema byte_schema(ds);
+        byte_schema.align(True, m_options.verbose);
+
+        c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "VARCHAR2_F");
+        # it must be C (CHAR) in case of character_semantics=True, B is for BYTE
+        assertEq("B", c.char_used, "character_semantics after alignment");
+
+        # align schema with character semantics
+        schema.align(True, m_options.verbose);
+
+        c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "VARCHAR2_F");
+        # it must be C (CHAR) in case of character_semantics=True, B is for BYTE
+        assertEq("C", c.char_used, "character_semantics after alignment");
+    }
+
+    testSequenceOperators() {
+        if (!table)
+            testSkip("no DB connection");
+
+        hash sh = (
+            "columns": ("id", cop_seq("oracle_test_seq", "seq"), cop_seq_currval("oracle_test_seq", "seq_currval")),
+            "where": ("id": 2),
+            );
+
+        assertEq(("id": 2, "seq": 1, "seq_currval": 1), table.selectRow(sh));
+        assertEq(("id": 2, "seq": 2, "seq_currval": 2), table.selectRow(sh));
+        assertEq(("id": 2, "seq": 3, "seq_currval": 3), table.selectRow(sh));
+
+        assertEq(1, table.update(("id": uop_seq("oracle_test_seq")), ("id": 2)));
+        sh."where".id = 4;
+        assertEq(("id": 4, "seq": 5, "seq_currval": 5), table.selectRow(sh));
+    }
+
+    testPseudoColumns() {
+        if (!table)
+            testSkip("no DB connection");
+
+        hash sh = (
+            "columns": ("rowid", "*"),
+            "limit": 1,
+            );
+
+        assertEq(Type::String, table.selectRow(sh).rowid.type());
+    }
+
+    testDriverSpecificColumns() {
+        if (!table)
+            testSkip("no DB connection");
+
+        AbstractDatasource ds = table.getDatasource();
+        hash c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "DRV_TEST");
+        assertEq("NUMBER", c.data_type);
+    }
+
+    testDefaultValues() {
+        if (!table)
+            testSkip("no DB connection");
+
+        AbstractDatasource ds = table.getDatasource();
+        hash c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "DEF_TEST1");
+        assertEq("to_date('1.1.2000', 'dd.mm.yyyy') ", c.data_default);
+
+        c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "DEF_TEST2");
+        assertEq("0 ", c.data_default);
+    }
+
+    testNTYAlignment() {
+        if (!table)
+            testSkip("no DB connection");
+
+        AbstractDatasource ds = table.getDatasource();
+        hash c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "LOCATION");
+        assertEq("SDO_GEOMETRY", c.data_type);
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"oracle:user/pass@db\")", OptionColumn);
+    }
+
+    Datasource getDatasource() {
+        if (!m_options.connstr)
+            m_options.connstr = ENV.QORE_DB_CONNSTR_ORACLE;
+        Datasource ds(m_options.connstr);
+        if (ds.getDriverName() != "oracle")
+            throw "ORACLE-ERROR", sprintf("cannot execute the oracle tests on a connection using driver %y", ds.getDriverName());
+        ds.open();
+        return ds;
+    }
+}

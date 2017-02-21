@@ -4,7 +4,7 @@
   
   Qore Programming Language
   
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -40,8 +40,8 @@ qclass Sequence [arg=QoreSequence* s; ns=Qore::Thread];
 //! Creates a new Sequence object
 /** 
     @par Example:
-    @code
-my Sequence $seq();
+    @code{.py}
+Sequence seq();
     @endcode
  */
 Sequence::constructor() {
@@ -51,8 +51,8 @@ Sequence::constructor() {
 //! Creates a new Sequence object with a starting value
 /** 
     @par Example:
-    @code
-my Sequence $seq(20);
+    @code{.py}
+Sequence seq(20);
     @endcode
  */
 Sequence::constructor(softint start) {
@@ -62,8 +62,8 @@ Sequence::constructor(softint start) {
 //! Creates a new Sequence object, not based on the original
 /** 
     @par Example:
-    @code
-my Sequence $s2 = $seq.copy();
+    @code{.py}
+Sequence s2 = seq.copy();
     @endcode
  */
 Sequence::copy() {
@@ -73,8 +73,8 @@ Sequence::copy() {
 //! Atomically increments the sequence value and returns the last value
 /** @return the last value of the sequence
     @par Example:
-    @code
-my int $next = $seq.next();
+    @code{.py}
+int next = seq.next();
     @endcode
  */
 int Sequence::next() {
@@ -84,8 +84,8 @@ int Sequence::next() {
 //! Returns the current value of the sequence
 /** @return current value of the sequence
     @par Example:
-    @code
-my int $v = $seq.getCurrent();
+    @code{.py}
+int v = seq.getCurrent();
     @endcode
  */
 int Sequence::getCurrent() [flags=CONSTANT] {

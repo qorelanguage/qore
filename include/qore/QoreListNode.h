@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -51,6 +51,7 @@ class ResolvedCallReferenceNode;
  */
 class QoreListNode : public AbstractQoreNode {   
    friend class StackList;
+   friend struct qore_list_private;
 
 private:
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
@@ -250,12 +251,16 @@ public:
       @param index the index of the element (first element is index 0)
       @param xsink if an error occurs, the Qore-language exception information will be added here
       @return -1 if the index was invalid, 0 if the index was valid
+
+      @note cannot be used when reference count > 1
    */
    DLLEXPORT int delete_entry(qore_size_t index, ExceptionSink* xsink);
 
    /**
       @param index the index of the element (first element is index 0)
       @param xsink if an error occurs, the Qore-language exception information will be added here
+
+      @note cannot be used when reference count > 1
    */
    DLLEXPORT void pop_entry(qore_size_t index, ExceptionSink* xsink);
 
@@ -463,9 +468,6 @@ public:
 
    //! this function is not exported in the qore library
    DLLLOCAL void setNeedsEval();
-
-   //! this function is not exported in the qore library
-   DLLLOCAL void clear();
 
    //! this function is not exported in the qore library
    /**

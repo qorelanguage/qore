@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2005 - 2014 David Nichols
+  Copyright (C) 2005 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -74,8 +74,10 @@ DLLEXPORT extern int debug;
 #endif
 #endif
 
-#if !defined(HAVE_ISBLANK) && !defined(isblank)
-#define isblank(a) ((a) == ' ' || (a) == '\t')
-#endif
+//#if !defined(HAVE_ISBLANK) && !defined(isblank)
+//#define isblank(a) ((a) == ' ' || (a) == '\t')
+//#endif
+
+#define qore_isblank(a) ((a) == ' ' || (a) == '\t')
 
 #endif

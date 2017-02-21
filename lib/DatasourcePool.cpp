@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,8 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/DatasourcePool.h>
+
+#include <memory>
 
 DatasourcePool::DatasourcePool(ExceptionSink* xsink, DBIDriver* ndsl, const char* user, const char* pass,
 			       const char* db, const char* charset, const char* hostname, unsigned mn, unsigned mx, int port, const QoreHashNode* opts,
@@ -94,24 +96,26 @@ DatasourcePool::~DatasourcePool() {
 
 // common constructor code
 void DatasourcePool::init(ExceptionSink* xsink) {
-   pool[0] = config.get();
-
-   // open connection to server
-   pool[0]->open(xsink);
+   // ths intiial Datasource creation could throw an exception if there is an error in a driver option, for example
+   std::auto_ptr<Datasource> ds(config.get(xsink));
    if (*xsink)
       return;
-   //printd(5, "DP::init() open %s: %p (%d)\n", ndsl->getName(), pool[0], xsink->isEvent());
 
+   ds->open(xsink);
+   if (*xsink)
+      return;
+
+   pool[0] = ds.release();
+   //printd(5, "DP::init() open %s: %p (%d)\n", ndsl->getName(), pool[0], xsink->isEvent());
    // add to free list
    free_list.push_back(0);
 
    while (++cmax < min) {
-      pool[cmax] = config.get();
-      // open connection to server
-      pool[cmax]->open(xsink);
+      ds.reset(config.get());
+      ds->open(xsink);
       if (*xsink)
-	 return;
-
+         return;
+      pool[cmax] = ds.release();
       //printd(5, "DP::init() open %s: %p (%d)\n", ndsl->getName(), pool[cmax], xsink->isEvent());
       // add to free list
       free_list.push_back(cmax);
@@ -122,20 +126,20 @@ void DatasourcePool::init(ExceptionSink* xsink) {
 void DatasourcePool::cleanup(ExceptionSink* xsink) {
    int tid = gettid();
 
+   // thread must have a Datasource allocated
+   SafeLocker sl((QoreThreadLock *)this);
+   thread_use_t::iterator i = tmap.find(tid);
+   assert(i != tmap.end());
+   sl.unlock();
+
 #ifndef DEBUG_1
-   xsink->raiseException("DATASOURCEPOOL-LOCK-EXCEPTION", "%s:%s@%s: TID %d terminated while in a transaction; transaction will be automatically rolled back and the datasource returned to the pool", pool[0]->getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), tid);
+   xsink->raiseException("DATASOURCEPOOL-LOCK-EXCEPTION", "%s:%s@%s: TID %d terminated while in a transaction with connection %d; transaction will be automatically rolled back and the datasource returned to the pool", pool[0]->getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), tid, i->second);
 #else
    QoreString* sql = getAndResetSQL();
    xsink->raiseException("DATASOURCEPOOL-LOCK-EXCEPTION", "%s:%s@%s: TID %d terminated while in a transaction; transaction will be automatically rolled back and the datasource returned to the pool\n%s", pool[0]->getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), tid, sql ? sql->getBuffer() : "<no data>");
    if (sql)
       delete sql;
 #endif
-
-   // thread must have a Datasource allocated
-   SafeLocker sl((QoreThreadLock *)this);
-   thread_use_t::iterator i = tmap.find(tid);
-   assert(i != tmap.end());
-   sl.unlock();
 
    // execute rollback on Datasource before releasing to pool
    pool[i->second]->rollback(xsink);
@@ -183,9 +187,11 @@ void DatasourcePool::destructor(ExceptionSink* xsink) {
       callback_arg = 0;
 #endif
    }
+
+   config.del(xsink);
 }
 
-#ifdef DEBUG
+#if 0
 void DatasourcePool::addSQL(const char* cmd, const QoreString* sql) {
    QoreString* str = thread_local_storage.get();
    if (!str)
@@ -213,7 +219,8 @@ QoreString* DatasourcePool::getAndResetSQL() {
 
 void DatasourcePool::freeDS() {
    // remove from thread resource list
-   //printd(5, "DatasourcePool::freeDS() remove_thread_resource(this: %p), tid: %d\n", this, tid);
+   //printd(5, "DatasourcePool::freeDS() remove_thread_resource(this: %p)\n", this);
+
    remove_thread_resource(this);
 
    int tid = gettid();
@@ -296,7 +303,7 @@ int DatasourcePool::checkWait(int64 wait_total, ExceptionSink* xsink) {
    args->push(new QoreBigIntNode(wait_total));
    args->push(new QoreBigIntNode(tl_warning_ms));
    args->push(callback_arg ? callback_arg->refSelf() : 0);
-   discard(wc->exec(*args, xsink), xsink);
+   wc->execValue(*args, xsink).discard(xsink);
    return *xsink ? -1 : 0;
 }
 
@@ -316,6 +323,7 @@ Datasource* DatasourcePool::getDSIntern(bool& new_ds, int64& wait_total, Excepti
    thread_use_t::iterator i = tmap.find(tid);
    if (i != tmap.end()) {
       ++stats_hits;
+      //printd(5, "DatasourcePool::getDSIntern() this: %p returning already allocated ds: %p\n", this, pool[i->second]);
       return pool[i->second];
    }
 
@@ -390,7 +398,8 @@ Datasource* DatasourcePool::getDSIntern(bool& new_ds, int64& wait_total, Excepti
    sl.unlock();
 
    // add to thread resource list
-   //printd(5, "DatasourcePool::getDS() set_thread_resource(this: %p), tid: %d\n", this, gettid());
+   //printd(5, "DatasourcePool::getDSIntern() set_thread_resource(this: %p) ds: %p\n", this, ds);
+
    set_thread_resource(this);
 
    assert(ds);
@@ -441,8 +450,6 @@ AbstractQoreNode* DatasourcePool::exec_internal(bool doBind, const QoreString* s
    DatasourcePoolActionHelper dpah(*this, xsink, DAH_ACQUIRE);
    if (!dpah)
       return 0;
-
-   //printd(5, "DatasourcePool::exec_internal() this: %p ds: %p: %s\n", this, *dpah, sql->getBuffer());
 
    return doBind ? dpah->exec(sql, args, xsink) : dpah->execRaw(sql, args, xsink);;
 }
@@ -634,4 +641,12 @@ void DatasourcePool::setEventQueue(Queue* q, AbstractQoreNode* arg, ExceptionSin
    }
 
    config.setQueue(q, arg, xsink);
+}
+
+QoreListNode* DatasourcePool::getCapabilityList() const {
+   return pool[0]->getCapabilityList();
+}
+
+int DatasourcePool::getCapabilities() const {
+   return pool[0]->getCapabilities();
 }

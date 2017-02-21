@@ -1,0 +1,41 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class Test
+
+class Test inherits QUnit::Test {
+    constructor() : QUnit::Test("broken-list-parsing", "1.0", \ARGV) {
+        addTestCase("fixed case", \fixedCase());
+        addTestCase("broken case", \brokenCase());
+        set_return_value(main());
+    }
+
+    fixedCase() {
+        testAssertion("+= neg-1", \Test::check(), "l += 3, 2", new TestResultExceptionType("PARSE-EXCEPTION"));
+        testAssertion("+= ok-1", \Test::check(), "l += (3, 2)", (10, 3, 2));
+        testAssertion("+= ok-2", \Test::check(), "(l += (3, 2))", (10, 3, 2));
+        testAssertion("+= neg-2", \Test::check(), "(l += 3, 2)", new TestResultExceptionType("PARSE-EXCEPTION"));
+        testAssertion("+= neg-3", \Test::check(), "(l += 3, 2)", new TestResultExceptionType("PARSE-EXCEPTION"));
+    }
+
+    brokenCase() {
+        testAssertion("+= rewrite-1", \Test::check(), ("l += 3, 2", PO_BROKEN_LIST_PARSING), (10, 3, 2));
+        testAssertion("+= rewrite-2", \Test::check(), ("l += (3, 2)", PO_BROKEN_LIST_PARSING), (10, 3, 2));
+        testAssertion("+= rewrite-3", \Test::check(), ("(l += (3, 2))", PO_BROKEN_LIST_PARSING), (10, 3, 2));
+        testAssertion("+= rewrite-neg-1", \Test::check(), ("(l += 3, 2)", PO_BROKEN_LIST_PARSING), new TestResultExceptionType("PARSE-EXCEPTION"));
+        testAssertion("+= rewrite-neg-2", \Test::check(), ("(l += 3, 2)", PO_BROKEN_LIST_PARSING), new TestResultExceptionType("PARSE-EXCEPTION"));
+    }
+
+    static private list check(string code, *int po) {
+        Program p(PO_NEW_STYLE|po);
+        p.parse(sprintf("list sub get() { list l = (10,); %s; return l; }", code), "test code");
+        return p.callFunction("get");
+    }
+}

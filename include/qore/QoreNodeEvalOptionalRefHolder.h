@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreNodeEvalOptionalRefHolder.h
-  
+
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -41,83 +41,83 @@
    QoreNodeEvalOptionalRefHolder evaluated_node(node, xsink);
    return evaluated_node ? evaluated_node->getAsBool() : false;
    @endcode
- */
+*/
 class QoreNodeEvalOptionalRefHolder {
-   private:
-      AbstractQoreNode *val;
-      ExceptionSink *xsink;
-      bool needs_deref;
+private:
+   AbstractQoreNode* val;
+   ExceptionSink* xsink;
+   bool needs_deref;
 
-      DLLLOCAL void discard_intern() {
-	 if (needs_deref && val)
-	    val->deref(xsink);
+   DLLLOCAL void discard_intern() {
+      if (needs_deref && val)
+         val->deref(xsink);
+   }
+
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreNodeEvalOptionalRefHolder(const QoreNodeEvalOptionalRefHolder&);
+
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreNodeEvalOptionalRefHolder& operator=(const QoreNodeEvalOptionalRefHolder&);
+
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   /** this function is not implemented in order to require objects of this type to be allocated on the stack.
+    */
+   DLLLOCAL void* operator new(size_t);
+
+public:
+   //! constructor used to create a holder object
+   DLLLOCAL QoreNodeEvalOptionalRefHolder(ExceptionSink* n_xsink) : val(0), xsink(n_xsink), needs_deref(false) {
+   }
+
+   //! constructor with a value that will call the class' eval(needs_deref) method
+   DLLLOCAL QoreNodeEvalOptionalRefHolder(const AbstractQoreNode* exp, ExceptionSink* n_xsink) : xsink(n_xsink) {
+      if (exp)
+         val = exp->eval(needs_deref, xsink);
+      else {
+         val = 0;
+         needs_deref = false;
       }
+   }
 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL QoreNodeEvalOptionalRefHolder(const QoreNodeEvalOptionalRefHolder&);
+   //! discards any temporary value evaluated by the constructor or assigned by "assign()"
+   DLLLOCAL ~QoreNodeEvalOptionalRefHolder() {
+      discard_intern();
+   }
 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL QoreNodeEvalOptionalRefHolder& operator=(const QoreNodeEvalOptionalRefHolder&);
+   //! discards any temporary value evaluated by the constructor or assigned by "assign()"
+   DLLLOCAL void discard() {
+      discard_intern();
+      needs_deref = false;
+      val = 0;
+   }
 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      /** this function is not implemented in order to require objects of this type to be allocated on the stack.
-       */
-      DLLLOCAL void *operator new(size_t);
+   //! assigns a new value to this holder object
+   DLLLOCAL void assign(bool n_needs_deref, AbstractQoreNode* n_val) {
+      discard_intern();
+      needs_deref = n_needs_deref;
+      val = n_val;
+   }
 
-   public:
-      //! constructor used to create a holder object
-      DLLLOCAL QoreNodeEvalOptionalRefHolder(ExceptionSink *n_xsink) : val(0), xsink(n_xsink), needs_deref(false) {
-      }
+   //! returns a referenced value - the caller will own the reference
+   DLLLOCAL AbstractQoreNode* getReferencedValue() {
+      if (needs_deref)
+         needs_deref = false;
+      else if (val)
+         val->ref();
+      return val;
+   }
 
-      //! constructor with a value that will call the class' eval(needs_deref) method
-      DLLLOCAL QoreNodeEvalOptionalRefHolder(const AbstractQoreNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink) {
-	 if (exp)
-	    val = exp->eval(needs_deref, xsink);
-	 else {
-	    val = 0;
-	    needs_deref = false;
-	 }	    
-      }
+   //! returns the object being managed
+   DLLLOCAL const AbstractQoreNode* operator->() const { return val; }
 
-      //! discards any temporary value evaluated by the constructor or assigned by "assign()"
-      DLLLOCAL ~QoreNodeEvalOptionalRefHolder() {
-	 discard_intern();
-      }
-      
-      //! discards any temporary value evaluated by the constructor or assigned by "assign()"
-      DLLLOCAL void discard() {
-	 discard_intern();
-	 needs_deref = false;
-	 val = 0;
-      }
+   //! returns the object being managed
+   DLLLOCAL const AbstractQoreNode* operator*() const { return val; }
 
-      //! assigns a new value to this holder object
-      DLLLOCAL void assign(bool n_needs_deref, AbstractQoreNode *n_val) {
-	 discard_intern();
-	 needs_deref = n_needs_deref;
-	 val = n_val;
-      }
+   //! returns true if a value is being held
+   DLLLOCAL operator bool() const { return val != 0; }
 
-      //! returns a referenced value - the caller will own the reference
-      DLLLOCAL AbstractQoreNode *getReferencedValue() {
-	 if (needs_deref)
-	    needs_deref = false;
-	 else if (val)
-	    val->ref();
-	 return val;
-      }
-
-      //! returns the object being managed
-      DLLLOCAL const AbstractQoreNode *operator->() const { return val; }
-
-      //! returns the object being managed
-      DLLLOCAL const AbstractQoreNode *operator*() const { return val; }
-
-      //! returns true if a value is being held
-      DLLLOCAL operator bool() const { return val != 0; }
-
-      //! returns true if the value is temporary (needs dereferencing)
-      DLLLOCAL bool isTemp() const { return needs_deref; }
+   //! returns true if the value is temporary (needs dereferencing)
+   DLLLOCAL bool isTemp() const { return needs_deref; }
 
 };
 
