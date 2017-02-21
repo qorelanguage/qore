@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_TreeMap.h>
+#include "qore/intern/QC_TreeMap.h"
 
 //! A container for efficient path prefix lookup.
 /** The primary use of this class is in HttpServer for matching request URIs to handlers.
@@ -88,13 +88,33 @@ nothing TreeMap::put(string path, any value) {
    tm->put(path, value, xsink);
 }
 
-//! Retrieves a value from the TreeMap.
+//! Retrieves a value from the TreeMap and returns optionally unmatched path suffix
 /** Looks for an entry whose key is the longest prefix of \c path.
     @param path the path to lookup
+    @param unmatched path suffix, reference to a ref @string_or_nothing_type "*string" compatible type is needed, if \c path not found then returns NOTHING
+    @since %Qore 0.8.13
+
     @return the value pointed to by the longest prefix of \c path or NOTHING if no such mapping exists
+
+    @par Example:
+    @code{.py}
+TreeMap tm();
+tm.put("abc", "1");
+tm.put("def/g/hi", "5");
+
+any v;
+*string unmatched;
+v = tm.get("abc");   # returns "1"
+v = tm.get("abc", \unmatched);   # returns "1" and unmatched is ""
+v = tm.get("abc/cde/", \unmatched);   # returns "1" and unmatched is "cde/"
+*hash h;
+v = tm.get("def/g/hi/five", \h.unmatched);  # returns "5" and h.unmatched is "five"
+
+    @endcode
+
  */
-any TreeMap::get(string path) [flags=RET_VALUE_ONLY] {
-   return tm->get(path, xsink);
+any TreeMap::get(string path, *reference unmatched) [flags=RET_VALUE_ONLY] {
+   return tm->get(path, unmatched, xsink);
 }
 
 //! Removes a value from the TreeMap and returns the value removed
