@@ -171,8 +171,9 @@
     - improved @ref garbage_collection "prompt collection" performance with large graphs of objects by eliminating additional unnecessary graph scans, resulting in further large performance improvements in the garbage collector (<a href="https://github.com/qorelanguage/qore/issues/1363">issue 1363</a>)
     - improved \c InboundTableMapper::queueData() performance (in the <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module) when used with data in hash of lists format to use bulk DML in input and output without internal data conversions (<a href="https://github.com/qorelanguage/qore/issues/1626">issue 1626</a>)
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module fixes:
-      - worked around ORA-22165 from op_in() caused by Oracle's limit on number of collection elements (<a href="https://github.com/qorelanguage/qore/issues/1660">issue 1660</a>)
+      - worked around \c ORA-22165 from \c op_in() caused by Oracle's limit on number of collection elements (<a href="https://github.com/qorelanguage/qore/issues/1660">issue 1660</a>)
       - fixed a bug in the \a force option (i.e. cascade) for dropping types (<a href="https://github.com/qorelanguage/qore/issues/1683">issue 1683</a>)
+    - improved @ref try-module "%try-module" error reporting and documentation (<a href="https://github.com/qorelanguage/qore/issues/1648">issue 1648</a>)
 
     @section qore_08126 Qore 0.8.12.6
 

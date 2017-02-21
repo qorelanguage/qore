@@ -11,8 +11,6 @@
     |An expression that changes an lvalue|@code{.py} var = 1;@endcode @code{.py} var += 5;@endcode @code{.py} var[1].count++;@endcode @code{.py} shift var.key[i];@endcode|@ref expressions
     |An expression with the @ref new "new operator"|@code{.py} new ObjectClass(1, 2, 3);@endcode|@ref new
     |An expression with the @ref background "background operator"|@code{.py} background function();@endcode|@ref background
-    |An expression making a code call|@code{.py} func(arg1, arg2);@endcode|@ref qore_functions, @ref object_method_calls, @ref static_method_calls, @ref closure, @ref call_reference
-    |A @ref variable_declarations "variable declaration expression"|@code{.py} int var;@endcode @code{.py} out (float a, int b, hash c);@endcode|@ref variables, @ref variable_declarations
     |An @ref if "if statement"|@code{.py} if (var == 3) {}@endcode|@ref if
     |An @ref if "if ... else" statement|@code{.py} if (var == 3) {} else {}@endcode|@ref if
     |A @ref while "while statement"|@code{.py} while (var < 10) {}@endcode|@ref while
@@ -21,6 +19,9 @@
     |A @ref foreach "foreach statement"|@code{.py} foreach softint i in (list) {}@endcode|@ref foreach
     |A @ref switch "switch statement"|@code{.py} switch (var) { case =~ /error/: throw "ERROR", var; default: printf("%s\n", var); }@endcode|@ref switch
     |A @ref return "return statement"|@code{.py} return val;@endcode|@ref return
+    |A @ref variable_declarations "local variable declaration"|@code{.py} string var;@endcode @code{.py} my (int a, string b, bool c);@endcode|@ref variables, @ref variable_declarations
+    |A @ref variable_declarations "global variable declaration"|@code{.py} our int var;@endcode @code{.py} our (float a, int b, hash c);@endcode|@ref variables, @ref variable_declarations
+    |A @ref qore_functions "function call"|@code{.py} calculate(this, that, the_other);@endcode|@ref qore_functions, @ref object_method_calls, @ref static_method_calls, @ref closure, @ref call_reference
     |A @ref continue "continue statement"|@code{.py} continue;@endcode|@ref continue
     |A @ref break "break statement"|@code{.py} break;@endcode|@ref break
     |A statement block|@code{.py} {}@endcode|zero or more statements enclosed in curly brackets

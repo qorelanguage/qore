@@ -1368,20 +1368,29 @@ if (str)
     A comparison operator (one of <tt>\<, \<=, =, \>=, or \></tt>) and version information can be optionally given after the module name as well. Version numbers are compared via integer comparisons of each element, where elements are separated by a \c ".". If one of the versions does not have as many elements as another, the missing elements are assumed to be \c "0" (i.e. version \c "1.0" compared with version \c "1.0.1" will be extended to \c "1.0.0").  Version errors are handled in the same was as any other module loading error.\n\n
     For example:\n
     @code{.py}
-%try-module($ex) some_module > 2.0
+%new-style
+%try-module (ex) some_module > 2.0
+%define DontHaveSomeModule
     printf("error loading module %y: %s: %s\n", ex.arg, ex.err, ex.desc);
     exit(1);
 %endtry
+
+%ifndef DontHaveSomeModule
+    some_module_api();
+%endif
     @endcode \n
-    This will load the \c "some_module" module if it is at least version 2.0, and print an error message and exit gracefully if it cannot be loaded.\n\n
+    This will load the \c "some_module" module if it is at least version 2.0, and print an error message and exit gracefully if it cannot be loaded.   Note that in order for the Qore script to be executable and exit gracefully in case the given module cannot be loaded, a parse define must be set in the \c %%try-module block and any code that accesses definitions provided by that module must be wrapped in \c %%ifndef blocks as in the above example.\n\n
     The @ref variable_declarations "variable declaration" in parentheses is optional; use the variant without the exception variable in code where parse option @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS "PO_NO_TOP_LEVEL_STATEMENTS" is set, for example.  In this case, for example, other parse options can be set before the @ref endtry "%endtry" directive.\n\n
     Here is an example without a @ref variable_declarations "variable declaration" in parentheses:\n
     @code{.py}
+%new-style
 %try-module some_module > 2.0
 %define DontHaveSomeModule
 %endtry
     @endcode \n
-    Note that there is one special feature name: \c "qore". This pseudo-feature can be used to check the minimum %Qore version; if this feature is requested with version information, then the %Qore library's version information is used for the version number comparison.
+    @note
+    - There is one special feature name: \c "qore". This pseudo-feature can be used to check the minimum %Qore version; if this feature is requested with version information, then the %Qore library's version information is used for the version number comparison.
+    - No type can be given with the \c %%try-module variable declaration; the value assigned to the variable will be a @ref hash_type "hash".
 
     @see @ref requires "%requires" for a similar parse directive where errors are handled with the default parse exception handler
 
