@@ -7,9 +7,11 @@
     @par Release Summary
     Bugfix release; see details below
 
-    - fixed a memory leak in @ref try-module "%try-module" error handling (<a href="https://github.com/qorelanguage/qore/issues/1690">issue 1690</a>)
+    @subsection qore_08128_bug_fixes Bug Fixes in Qore
 
-    @subsection qore_08127_bug_fixes Bug Fixes in Qore
+    - fixed a memory leak in @ref try-module "%try-module" error handling (<a href="https://github.com/qorelanguage/qore/issues/1690">issue 1690</a>)
+    - fixed a bug in @ref Qore::trunc_str() "trunc_str()" when the string has an invalid multi-byte character at the end of the string and the string is exactly the byte width requested (<a href="https://github.com/qorelanguage/qore/issues/1693">issue 1693</a>)
+
     @section qore_08127 Qore 0.8.12.7
 
     @par Release Summary
