@@ -318,7 +318,7 @@ QoreStringNode *QoreFile::getchar(ExceptionSink *xsink) {
 	 return 0;
 
       str->concat((char)c);
-      if (priv->charset->isMultiByte())
+      if (!priv->charset->isMultiByte())
 	 return str.release();
 
       // read in more characters for multi-byte chars if needed
@@ -335,7 +335,7 @@ QoreStringNode *QoreFile::getchar(ExceptionSink *xsink) {
 
       assert(rc < 0);
       rc = -rc;
-      while (rc--) {
+      while (--rc) {
 	 c = priv->readChar();
 	 if (c < 0) {
 	    xsink->raiseException("FILE-GETCHAR-ERROR", "invalid multi-byte character received: EOF encountered after %d byte%s read of a %d byte %s character", str->strlen(), str->strlen() == 1 ? "" : "s", str->strlen() + rc + 1, priv->charset->getCode());
