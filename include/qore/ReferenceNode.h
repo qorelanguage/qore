@@ -76,7 +76,7 @@ protected:
 
 public:
    //! creates the ReferenceNode object - internal function, not exported, not part of the Qore API
-   DLLLOCAL ReferenceNode(AbstractQoreNode* exp, QoreObject* self, const void* lvalue_id);
+   DLLLOCAL ReferenceNode(AbstractQoreNode* exp, QoreObject* self, const void* lvalue_id, const qore_class_private* cls);
 
    //! concatenate the verbose string representation of the value to an existing QoreString
    /** used for %n and %N printf formatting

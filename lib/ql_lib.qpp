@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,9 +30,9 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ql_lib.h>
-#include <qore/intern/ExecArgList.h>
-#include <qore/intern/QoreSignal.h>
+#include "qore/intern/ql_lib.h"
+#include "qore/intern/ExecArgList.h"
+#include "qore/intern/QoreSignal.h"
 #include <qore/minitest.hpp>
 
 #include <errno.h>
@@ -56,7 +56,7 @@
 #ifdef HAVE_GLOB_H
 #include <glob.h>
 #else
-#include <qore/intern/glob.h>
+#include "qore/intern/glob.h"
 #endif
 
 #ifndef SIGHUP
@@ -567,7 +567,7 @@ nothing kill() [flags=RUNTIME_NOOP;dom=EXTERNAL_PROCESS] {
 }
 
 //! Returns a random 64-bit integer number
-/** This function uses the C library function random() to generate the number if available on the current platform, otherwise uses %rand().
+/** This function uses the C library function \c random() to generate the number if available on the current platform, otherwise uses \c %rand().
 
     @return a random 64-bit integer number
 
@@ -577,6 +577,8 @@ int num = rand();
     @endcode
 
     @see srand() for a function to seed the random number generator
+
+    @since %Qore 0.8.13 the random number generator is seeded randomly when the %Qore library is initialized
  */
 int rand() [flags=CONSTANT] {
 #ifdef HAVE_RANDOM
@@ -596,6 +598,10 @@ int rand() [flags=CONSTANT] {
     @code{.py}
 srand(now());
     @endcode
+
+    @see rand() for a function that returns a random number related to the seed given here
+
+    @since %Qore 0.8.13 the random number generator is seeded randomly when the %Qore library is initialized
  */
 nothing srand(softint seed) [dom=PROCESS] {
 #ifdef HAVE_RANDOM
