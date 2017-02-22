@@ -32,13 +32,13 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ql_thread.h>
-#include <qore/intern/QC_TimeZone.h>
-#include <qore/intern/qore_program_private.h>
-#include <qore/intern/QC_AbstractThreadResource.h>
+#include "qore/intern/ql_thread.h"
+#include "qore/intern/QC_TimeZone.h"
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/QC_AbstractThreadResource.h"
 
 #include <pthread.h>
-#include <qore/intern/QC_TimeZone.h>
+#include "qore/intern/QC_TimeZone.h"
 
 extern QoreClass* QC_TIMEZONE;
 
@@ -513,6 +513,8 @@ nothing mark_thread_resources() [dom=THREAD_CONTROL] {
 //! Sets a @ref call_reference "call reference" or @ref closure "closure" to run every time a new thread is started
 /** This code can be used to initialize @ref threading_and_variables "global thread-local variables", for example.
 
+    @param init a @ref call_reference "call reference" or @ref closure "closure" to run every time a new thread is started or @ref nothing to clear any thread initialization code
+
     @return @ref True if there was already user initialization code set, @ref False if not
 
     @par Example:
@@ -521,8 +523,12 @@ set_thread_init(sub () { var = 123; });
     @endcode
 
     @note the code will be run for all new threads, but is not run by this function for the current thread
+
+    @see @ref Qore::Program::setThreadInit()
+
+    @since %Qore 0.8.13 added the ability to remove the thread initialization code by passing @ref nothing to this function
 */
-bool set_thread_init(code init) [dom=THREAD_CONTROL] {
+bool set_thread_init(*code init) [dom=THREAD_CONTROL] {
    return qore_program_private::setThreadInit(*getProgram(), init, xsink);
 }
 

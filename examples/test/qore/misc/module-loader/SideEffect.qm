@@ -1,0 +1,13 @@
+
+%new-style
+
+module SideEffect {
+    version = "0.1";
+    desc = "side effect test module";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+    init = sub () {
+        printf("hi\n");
+    };
+}
