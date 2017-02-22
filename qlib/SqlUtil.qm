@@ -101,6 +101,9 @@ module SqlUtil {
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
 
     @subsection sqlutilv1_3_1 SqlUtil v1.3.1
+    - fixed schema alignment skips column with name "driver" (<a href="https://github.com/qorelanguage/qore/issues/1684">issue 1684</a>)
+
+    @subsection sqlutilv1_3_1 SqlUtil v1.3.1
     - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
     - fixed the ignored character_semantics column option in schema alignmed (<a href="https://github.com/qorelanguage/qore/issues/1379">issue 1379</a>)
     - implemented the @ref SqlUtil::cop_length() column function (<a href="https://github.com/qorelanguage/qore/issues/1395">issue 1395</a>)
@@ -8545,7 +8548,12 @@ bool b = table.empty();
             *hash oc = opt.(copt.keys());
 
             # process descriptions
-            AbstractDatabase::checkDriverOptions(\desc.columns, drv);
+            #
+            # sqlutil: schema alignment skips column with name "driver" #1684
+            # Do not handle checkDriverOptions for columns hash.
+            # Driver is a potential valid column name. Column sub-hashes
+            # are handled in next section.
+            #AbstractDatabase::checkDriverOptions(\desc.columns, drv);
             AbstractDatabase::checkDriverOptions(\desc.indexes, drv);
             AbstractDatabase::checkDriverOptions(\desc.primary_key, drv);
             AbstractDatabase::checkDriverOptions(\desc.unique_constraints, drv);
