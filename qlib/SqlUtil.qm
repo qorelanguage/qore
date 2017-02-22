@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.3.1";
+    version = "1.3.2";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -100,7 +100,7 @@ module SqlUtil {
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
 
-    @subsection sqlutilv1_3_1 SqlUtil v1.3.1
+    @subsection sqlutilv1_3_2 SqlUtil v1.3.2
     - fixed schema alignment skips column with name "driver" (<a href="https://github.com/qorelanguage/qore/issues/1684">issue 1684</a>)
 
     @subsection sqlutilv1_3_1 SqlUtil v1.3.1
@@ -8553,7 +8553,7 @@ bool b = table.empty();
             # Do not handle checkDriverOptions for columns hash.
             # Driver is a potential valid column name. Column sub-hashes
             # are handled in next section.
-            #AbstractDatabase::checkDriverOptions(\desc.columns, drv);
+
             AbstractDatabase::checkDriverOptions(\desc.indexes, drv);
             AbstractDatabase::checkDriverOptions(\desc.primary_key, drv);
             AbstractDatabase::checkDriverOptions(\desc.unique_constraints, drv);
