@@ -13,7 +13,7 @@ option(QORE_RUNTIME_THREAD_STACK_TRACE
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 8)
 set(VERSION_SUB 12)
-set(VERSION_PATCH 7)
+set(VERSION_PATCH 8)
 
 # If changing the module API numbers, make sure to change the appropriate
 # defines in include/qore/ModuleManager.h too.
