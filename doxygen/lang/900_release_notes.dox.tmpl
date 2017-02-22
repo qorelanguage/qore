@@ -152,7 +152,6 @@
     - fixed a bug where a closure created in an object scope could not be called if the object had been deleted, even if the closure did not refer to the object (<a href="https://github.com/qorelanguage/qore/issues/1303">issue 1303</a>)
     - fixed a bug where @ref Qore::ord() "ord()" would return negative numbers for bytes with the high bit set with compilers where <tt>char</tt> is the same as <tt>signed char</tt> (<a href="https://github.com/qorelanguage/qore/issues/1385">issue 1385</a>)
     - fixed a bug where @ref Qore::int(softint) "int(number)" returned rounded value instead of the integer part (while @ref Qore::int(softint) "int(float)" behaved correctly; also cf. initializing a softint value from a number vs. from a float) (<a href="https://github.com/qorelanguage/qore/issues/1463">issue 1463</a>)
-    - @ref Qore::File::getchar() "File::getchar()" now reads in characters with multi-byte character encodings correctly (<a href="https://github.com/qorelanguage/qore/issues/1547">issue 1547</a>)
     - @ref Qore::File::read() "File::read()" now uses character semantics for the length argument (<a href="https://github.com/qorelanguage/qore/issues/1548">issue 1548</a>)
     - fixed a bug with strongly-typed lvalue assignments with classes created in different @ref Qore::Program "Program" objects (<a href="https://github.com/qorelanguage/qore/issues/1551">issue 1551</a>)
     - fixed bug comparing strings in \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1579">issue 1579</a>)
@@ -168,6 +167,7 @@
 
     - fixed a memory leak in @ref try-module "%try-module" error handling (<a href="https://github.com/qorelanguage/qore/issues/1690">issue 1690</a>)
     - fixed a bug in @ref Qore::trunc_str() "trunc_str()" when the string has an invalid multi-byte character at the end of the string and the string is exactly the byte width requested (<a href="https://github.com/qorelanguage/qore/issues/1693">issue 1693</a>)
+    - fixed a bug where @ref Qore::ReadOnlyFile::getchar() "ReadOnlyFile::getchar()" did not respect character semantics as documented (<a href="https://github.com/qorelanguage/qore/issues/1547">issue 1547</a>)
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module fixes:
       - fixed a bug in \c character_semantics for standalone column (<a href="https://github.com/qorelanguage/qore/issues/1688">issue 1688</a>)
 

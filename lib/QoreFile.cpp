@@ -323,7 +323,6 @@ QoreStringNode *QoreFile::getchar(ExceptionSink *xsink) {
 
       // read in more characters for multi-byte chars if needed
       qore_offset_t rc = priv->charset->getCharLen(str->getBuffer(), 1);
-      // rc == 0: invalid character encountered
       if (!rc) {
 	 xsink->raiseException("FILE-GETCHAR-ERROR", "invalid multi-byte character received: initial byte 0x%x is an invalid initial character for '%s' character encoding", c, priv->charset->getCode());
 	 return 0;
