@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreObjectIntern.h>
+#include "qore/intern/QoreObjectIntern.h"
 
 RObject::~RObject() {
    assert(!rset);
