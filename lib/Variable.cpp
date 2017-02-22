@@ -325,8 +325,11 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
 
       // if the lvalue is not already a list, then make it one
       // but first make sure the lvalue can be converted to a list
-      if (!typeInfo->parseAcceptsReturns(NT_LIST))
-         return var_type_err(typeInfo, "list", vl.xsink);
+      if (!typeInfo->parseAcceptsReturns(NT_LIST)) {
+         var_type_err(typeInfo, "list", vl.xsink);
+         clearPtr();
+         return -1;
+      }
 
       // save the old value for dereferencing outside any locks that may have been acquired
       //printd(5, "LValueHelper::doListLValue() this: %p saving old value: %p '%s'\n", this, vp, get_type_name(vp));
