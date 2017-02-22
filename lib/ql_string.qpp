@@ -1511,7 +1511,7 @@ string trunc_str(softstring str, softint len, *string encoding) [flags=RET_VALUE
    if (!tmp)
       return QoreValue();
 
-   if (tmp->strlen() <= (qore_size_t)len) {
+   if (tmp->strlen() < (qore_size_t)len) {
       len = tmp->strlen();
       return new QoreStringNode(tmp.giveBuffer(), len, len + 1, enc);
    }
@@ -1523,8 +1523,8 @@ string trunc_str(softstring str, softint len, *string encoding) [flags=RET_VALUE
    const char* p = tmp->getBuffer();
    int64 sl = 0;
    while (true) {
-      qore_offset_t size = (qore_offset_t)enc->getCharLen(p, len - sl);
-      if (size <= 0 || ((sl + size) > (qore_offset_t)len))
+      qore_offset_t size = enc->getCharLen(p, len - sl);
+      if (size <= 0 || ((sl + size) > len))
          break;
       sl += size;
       p += size;
