@@ -1652,13 +1652,13 @@ top_level_command:
 
            if (parse_check_parse_option(PO_NO_TOP_LEVEL_STATEMENTS)) {
               parse_error("'%%try-module' with exception variable cannot be used with parse option NO_TOP_LEVEL_STATEMENTS; use %%try-module without an exception variable instead");
-              delete $1;
            }
            else {
               VarRefTryModuleErrorNode* left = new VarRefTryModuleErrorNode(@1.first_line, @1.last_line, $1->takeName());
               QoreAssignmentOperatorNode* exp = new QoreAssignmentOperatorNode(left, $1->takeExceptionHash());
               qore_program_private::addStatement(*(getProgram()), new ExpressionStatement(@1.first_line, @1.last_line, exp));
            }
+           delete $1;
         }
         ;
 
