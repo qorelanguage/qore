@@ -167,8 +167,11 @@ make check
 %{_mandir}/man1/qore.1.*
 
 %changelog
-* Mon Feb 13 2017 David Nichols <david@qore.org> 0.8.13-1
+* Tue Feb 21 2017 David Nichols <david@qore.org> 0.8.13-1
 - updated version to 0.8.13-1
+
+* Tue Feb 21 2017 David Nichols <david@qore.org> 0.8.12.8-1
+- updated to 0.8.12.8
 
 * Sun Feb 12 2017 David Nichols <david@qore.org> 0.8.12.7-1
 - updated to 0.8.12.7
