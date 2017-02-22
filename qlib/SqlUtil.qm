@@ -8568,7 +8568,10 @@ bool b = table.empty();
             foreach string cn in (desc.columns.keyIterator()) {
                 hash ch = desc.columns{cn};
                 softbool nullable = !exists ch.notnull ? True : !(remove ch.notnull);
-                addColumnUnlocked(cn, ch + oc, nullable ? True : False);
+                # bug #1688: sqlutil: oracle: character_semantics can be
+                # different for each column. So the global options (oc)
+                # are overwriten with column options (ch).
+                addColumnUnlocked(cn, oc + ch, nullable ? True : False);
             }
 
             # add indexes to table
