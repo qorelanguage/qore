@@ -317,7 +317,7 @@ class Test inherits QUnit::Test {
             p.parse("Mutex m; m.a = 1;", "");
             try {
                 p.run();
-                assertEq(True, False);
+                fail("should have thrown a runtime exception");
             }
             catch (hash ex) {
                 assertEq("RUNTIME-TYPE-ERROR", ex.err);
@@ -330,7 +330,7 @@ class Test inherits QUnit::Test {
             p.parse("Mutex m(); reference r = \\m; r[0] = 1;", "");
             try {
                 p.run();
-                assertEq(True, False);
+                fail("should have thrown a runtime exception");
             }
             catch (hash ex) {
                 assertEq("RUNTIME-TYPE-ERROR", ex.err);
