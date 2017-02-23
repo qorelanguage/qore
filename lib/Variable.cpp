@@ -328,8 +328,11 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
 
       // if the lvalue is not already a list, then make it one
       // but first make sure the lvalue can be converted to a list
-      if (!typeInfo->parseAcceptsReturns(NT_LIST))
-         return var_type_err(typeInfo, "list", vl.xsink);
+      if (!typeInfo->parseAcceptsReturns(NT_LIST)) {
+         var_type_err(typeInfo, "list", vl.xsink);
+         clearPtr();
+         return -1;
+      }
 
       // save the old value for dereferencing outside any locks that may have been acquired
       //printd(5, "LValueHelper::doListLValue() this: %p saving old value: %p '%s'\n", this, vp, get_type_name(vp));
@@ -379,8 +382,11 @@ int LValueHelper::doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* o
 
          // if the variable's value is not already a hash or an object, then make it a hash
          // but first make sure the lvalue can be converted to a hash
-         if (!typeInfo->parseAcceptsReturns(NT_HASH))
-            return var_type_err(typeInfo, "hash", vl.xsink);
+         if (!typeInfo->parseAcceptsReturns(NT_HASH)) {
+            var_type_err(typeInfo, "hash", vl.xsink);
+            clearPtr();
+            return -1l;
+         }
 
          //printd(5, "LValueHelper::doHashObjLValue() this: %p saving value to dereference before making hash: %p '%s'\n", this, vp, get_type_name(vp));
          saveTemp(getValue());
@@ -540,6 +546,7 @@ double LValueHelper::getAsFloat() const {
 }
 
 int LValueHelper::assign(QoreValue n, const char* desc) {
+   assert(!*vl.xsink);
    if (n.type == QV_Node && n.v.n == &Nothing)
       n.v.n = 0;
 
