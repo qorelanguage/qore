@@ -63,8 +63,19 @@ class OracleTestSchema inherits SqlUtilTestSchema {
             "primary_key": ("name": "pk_oracle_test", "columns": ("id")),
             );
 
+        # bug #1688: sqlutil: oracle: character_semantics can be
+        # different for each column, not only for the whole schema
+        # BYTE semantics is forced here because global character_semantics = True
+        const T_OracleTestSemantics = (
+            "columns" : (
+                    "c_char" : c_varchar(1) + ( "character_semantics" : True ),
+                    "c_byte" : c_varchar(1) + ( "character_semantics" : False ),
+                ),
+            );
+
         const Tables = (
             "oracle_test": T_OracleTest,
+            "oracle_test_semantics" : T_OracleTestSemantics,
             );
 
         const Sequences = (
@@ -233,6 +244,16 @@ class OracleTest inherits SqlTestBase {
         c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "VARCHAR2_F");
         # it must be C (CHAR) in case of character_semantics=True, B is for BYTE
         assertEq("C", c.char_used, "character_semantics after alignment");
+
+        # bug #1688: sqlutil: oracle: character_semantics can be
+        # different for each column, not only for the whole schema
+        # BYTE semantics is forced here because global character_semantics = True
+        c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v",
+                         "ORACLE_TEST_SEMANTICS", "C_CHAR");
+        assertEq("C", c.char_used, "character_semantics CHAR enforced");
+        c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v",
+                         "ORACLE_TEST_SEMANTICS", "C_BYTE");
+        assertEq("B", c.char_used, "character_semantics BYTE enforced");
     }
 
     testSequenceOperators() {
