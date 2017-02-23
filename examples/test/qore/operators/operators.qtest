@@ -7,6 +7,7 @@
 %strict-args
 %no-child-restrictions
 
+%requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 
 %exec-class Test
@@ -309,6 +310,34 @@ class Test inherits QUnit::Test {
         assertThrows("RUNTIME-TYPE-ERROR", sub () {si = x;});
         assertThrows("RUNTIME-TYPE-ERROR", sub () {sn = x;});
         assertThrows("RUNTIME-TYPE-ERROR", sub () {ss = x;});
+
+        {
+            Program p(PO_NEW_STYLE);
+            # no parse exception is possible here (until we support implicit types)
+            p.parse("Mutex m; m.a = 1;", "");
+            try {
+                p.run();
+                fail("should have thrown a runtime exception");
+            }
+            catch (hash ex) {
+                assertEq("RUNTIME-TYPE-ERROR", ex.err);
+                assertEq(True, ex.desc =~ /Mutex.*hash/);
+                assertEq(NOTHING, ex.next);
+            }
+        }
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("Mutex m(); reference r = \\m; r[0] = 1;", "");
+            try {
+                p.run();
+                fail("should have thrown a runtime exception");
+            }
+            catch (hash ex) {
+                assertEq("RUNTIME-TYPE-ERROR", ex.err);
+                assertEq(True, ex.desc =~ /Mutex.*list/);
+                assertEq(NOTHING, ex.next);
+            }
+        }
     }
 
     deleteRemoveTest() {
