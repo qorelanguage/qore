@@ -30,8 +30,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_Dir.h>
-#include <qore/intern/QC_File.h>
+#include "qore/intern/QC_Dir.h"
+#include "qore/intern/QC_File.h"
 
 #include <sys/types.h>
 #include <errno.h>
