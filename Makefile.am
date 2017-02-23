@@ -558,6 +558,7 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
 	examples/old2new \
 	examples/pop3.q \
 	examples/restserver.q \
+	examples/schema \
 	examples/stmt.q \
 	examples/telnet.q \
 	qore.spec \
@@ -735,7 +736,7 @@ endif
 
 bin_PROGRAMS = qore
 # qr
-dist_bin_SCRIPTS = doxygen/qdx bin/qget bin/rest bin/schema bin/sfrest bin/sqlutil bin/schema-reverse
+dist_bin_SCRIPTS = doxygen/qdx bin/qget bin/rest bin/sfrest bin/sqlutil bin/schema-reverse
 if COND_SINGLE_COMPILATION_UNIT
 qore_SOURCES = qore-single-compilation-unit.cpp
 #qr_SOURCES = qr-single-compilation-unit.cpp
