@@ -59,6 +59,8 @@ class OracleTestSchema inherits SqlUtilTestSchema {
                 # SDO_GEOMETRY test: OracleSqlUtil does not support spatial data types #1465
                 # actually it tests it for any named type
                 "location" : ( "native_type" : "sdo_geometry", ),
+                # issue #1684: sqlutil: schema alignment skips column with name "driver"
+                "driver" : c_number(),
             ),
             "primary_key": ("name": "pk_oracle_test", "columns": ("id")),
             );
@@ -219,6 +221,7 @@ class OracleTest inherits SqlTestBase {
             addTestCase("driver specific opts for columns", \testDriverSpecificColumns());
             addTestCase("default values", \testDefaultValues());
             addTestCase("named types to align", \testNTYAlignment());
+            addTestCase("bug 1684 'driver' column name", \testDriverColumnName());
         }
 
         set_return_value(main());
@@ -320,6 +323,15 @@ class OracleTest inherits SqlTestBase {
         AbstractDatasource ds = table.getDatasource();
         hash c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "LOCATION");
         assertEq("SDO_GEOMETRY", c.data_type);
+    }
+
+    testDriverColumnName() {
+        if (!table)
+            testSkip("no DB connection");
+
+        AbstractDatasource ds = table.getDatasource();
+        *hash c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "DRIVER");
+        assertEq(True, exists c, "column 'driver' must exist in the table");
     }
 
     private usageIntern() {
