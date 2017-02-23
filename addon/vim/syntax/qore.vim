@@ -110,6 +110,9 @@ syn match qoreParseDirective "^%append-include-path\>"
 syn match qoreParseDirective "^%append-module-path\>"
 syn match qoreParseDirective "^%assume-global\>"
 syn match qoreParseDirective "^%assume-local\>"
+syn match qoreParseDirective "^%broken-int-assignments\>"
+syn match qoreParseDirective "^%broken-list-parsing\>"
+syn match qoreParseDirective "^%broken-operators\>"
 syn match qoreParseDirective "^%disable-all-warnings\>"
 syn match qoreParseDirective "^%disable-warning\>"
 syn match qoreParseDirective "^%enable-all-warnings\>"
@@ -159,6 +162,7 @@ syn match qoreParseDirective "^%strict-bool-eval\>"
 syn keyword qoreModule BulkSqlUtil
 syn keyword qoreModule CsvUtil
 syn keyword qoreModule Diff
+syn keyword qoreModule FilePoller
 syn keyword qoreModule FixedLengthUtil
 syn keyword qoreModule FreetdsSqlUtil
 syn keyword qoreModule HttpServer
@@ -170,10 +174,11 @@ syn keyword qoreModule MysqlSqlUtil
 syn keyword qoreModule OracleSqlUtil
 syn keyword qoreModule PgsqlSqlUtil
 syn keyword qoreModule Pop3Client
-syn keyword qoreModule QUnit
 syn keyword qoreModule Qorize
+syn keyword qoreModule QUnit
 syn keyword qoreModule RestClient
 syn keyword qoreModule RestHandler
+syn keyword qoreModule SalesforceRestClient
 syn keyword qoreModule Schema
 syn keyword qoreModule SmtpClient
 syn keyword qoreModule SqlUtil
