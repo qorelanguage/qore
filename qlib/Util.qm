@@ -63,6 +63,9 @@ module Util {
     - @ref Util::get_marketing_byte_size()
     - @ref Util::get_random_string()
     - @ref Util::glob_to_regex()
+    - @ref Util::is_int()
+    - @ref Util::is_float()
+    - @ref Util::is_number()
     - @ref Util::lpad()
     - @ref Util::normalize_dir()
       - @ref Util::normalize_dir_unix()
@@ -85,6 +88,9 @@ module Util {
       - @ref Qore::absolute_path_windows()
       - @ref Qore::absolute_path_unix()
     - added Util::glob_to_regex()
+    - added Util::is_int()
+    - added Util::is_float()
+    - added Util::is_number()
     - added Util::lpad()
     - added Util::ordinal()
     - added Util::plural()
@@ -922,6 +928,91 @@ unlink(testfile);
             throw "TMP-ERROR", sprintf("unable to find the location of the temporary directory; %y is not writable", dir);
 
         return realpath(dir);
+    }
+
+    #! Checks whether string represents a (true) integer value.
+    /**
+        @param  text a string to check
+        @param  pure if True then only integers match, otherwise check floats too.
+        @return True if input represents an integer value, False otherwise.
+
+        @par Example:
+        @code
+bool match = is_int("123");
+# returns True, while any of the following returns False:
+match = is_int("1.0", True);
+match = is_int("12x");
+        @endcode
+
+        @note The function only checks whether a string represents an integer value, but it does not validate size restrictions (that is whether it would fit %Qore's native int type) etc.
+
+        @since Util 1.2
+    */
+    public bool sub is_int(string text, bool pure = False) {
+        if (text =~ /^\s*[-+]?\d+\s*$/ || (!pure && is_float(text, True) && (float(text) == floor(float(text)))))
+            return True;
+        return False;
+    }
+
+    const RE_FLOAT = '^\s*[-+]?('
+        '\d+\.\d*(e[-+]?\d+)?' # floating point number, with dot, optional exponent
+        '|\.\d+(e[-+]?\d+)?' # floating point number, starting with a dot, optional exponent
+        '|\d+e[-+]?\d+' # floating point number, without dot, with exponent
+        ')\s*$';
+
+    #! Checks whether string represents a (true) float value.
+    /**
+        @param  text a string to check
+        @param  pure if True then only floats match, otherwise include integers.
+        @return True if input represents a float value, False otherwise.
+
+        @par Example:
+        @code
+bool match = is_float("1.2");
+# returns True, while any of the following returns False:
+match = is_float("12", True);
+match = is_float("1.2x");
+        @endcode
+
+        @note The function only checks whether a string represents a float value, but it does not validate size / precision restrictions (whether it would fit %Qore's native float type).
+
+        @since Util 1.2
+    */
+    public bool sub is_float(string text, bool pure = False) {
+        if (text.regex(RE_FLOAT) || (!pure && is_int(text)))
+            return True;
+        return False;
+    }
+
+    const RE_NUMBER = '^\s*[-+]?('
+        '\d+\.\d*(e[-+]?\d+)?' # floating point number, with dot, optional exponent
+        '|\.\d+(e[-+]?\d+)?' # floating point number, starting with a dot, optional exponent
+        '|\d+e[-+]?\d+' # floating point number, without dot, with exponent
+        '|\d+)n\s*$'; # integer
+
+    #! Checks whether string represents a (true) number value.
+    /**
+        @param  text a string to check
+        @param  pure if True then only numbers match, otherwise include floats and integers.
+        @return True if input represents a number value, False otherwise.
+
+        @par Example:
+        @code
+bool match = is_number("1.2n");
+# returns True, while any of the following returns False:
+match = is_number("12", True);
+match = is_number("1.2", True);
+match = is_number("1.2x");
+        @endcode
+
+        @note The function only checks whether a string represents an arbitrary precision number value, but it does not validate any restrictions (whether it would fit %Qore's native number type).
+
+        @since Util 1.2
+    */
+    public bool sub is_number(string text, bool pure = False) {
+        if (text.regex(RE_NUMBER) || (!pure && is_float(text, pure)))
+            return True;
+        return False;
     }
 
     #! Returns a string left-padded to a specified length with the specified characters.
