@@ -245,7 +245,6 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/qore
 /usr/bin/qget
 /usr/bin/rest
-/usr/bin/schema
 /usr/bin/schema-reverse
 /usr/bin/sfrest
 /usr/bin/sqlutil

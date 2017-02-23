@@ -160,7 +160,6 @@ make check
 %{_bindir}/qore
 %{_bindir}/qget
 %{_bindir}/rest
-%{_bindir}/schema
 %{_bindir}/schema-reverse
 %{_bindir}/sfrest
 %{_bindir}/sqlutil

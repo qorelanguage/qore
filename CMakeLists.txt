@@ -228,7 +228,6 @@ set(QORE_BIN_FILES
     doxygen/qdx
     bin/qget
     bin/rest
-    bin/schema
     bin/schema-reverse
     bin/sfrest
     bin/sqlutil
