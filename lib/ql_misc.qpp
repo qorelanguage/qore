@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,12 +30,12 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ql_misc.h>
-#include <qore/intern/QoreSignal.h>
-#include <qore/intern/QoreNamespaceIntern.h>
-#include <qore/intern/QC_Program.h>
-#include <qore/intern/ModuleInfo.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/ql_misc.h"
+#include "qore/intern/QoreSignal.h"
+#include "qore/intern/QoreNamespaceIntern.h"
+#include "qore/intern/QC_Program.h"
+#include "qore/intern/ModuleInfo.h"
+#include "qore/intern/qore_program_private.h"
 
 #include <string.h>
 #include <time.h>
@@ -960,7 +960,7 @@ hash hash = parse_url(url_string);
 
     @throw PARSE-URL-ERROR The URL string given could not be parsed
 
-    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=&lt;url_encoded_path&gt;/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
+    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
 
     @see parseURL() for a version of this function that does not throw exceptions if the URL cannot be parsed
 */
@@ -989,7 +989,7 @@ hash parse_url(string url, bool keep_brackets = False) {
 *hash hash = parseURL(url_string);
     @endcode
 
-    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=&lt;url_encoded_path&gt;/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
+    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
 
     @see parse_url() for a version of this function that throws exceptions if the URL cannot be parsed
 */
