@@ -63,6 +63,9 @@ class OracleTestSchema inherits SqlUtilTestSchema {
                 "driver" : c_number(),
             ),
             "primary_key": ("name": "pk_oracle_test", "columns": ("id")),
+            "indexes" : (
+                    "oracle_test_func_ix" : ( "columns" : "def_test2 desc", ),
+                ),
             );
 
         # bug #1688: sqlutil: oracle: character_semantics can be
