@@ -102,6 +102,7 @@ module SqlUtil {
 
     @subsection sqlutilv1_3_2 SqlUtil v1.3.2
     - fixed schema alignment skips column with name "driver" (<a href="https://github.com/qorelanguage/qore/issues/1684">issue 1684</a>)
+    - fixed sqlutil schema management: functional indexes are rejected without () in name (<a href="https://github.com/qorelanguage/qore/issues/1610">issue 1610</a>)
 
     @subsection sqlutilv1_3_1 SqlUtil v1.3.1
     - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
@@ -9467,8 +9468,10 @@ printf("%s;\n", sql);
                     throw "INDEX-ERROR", sprintf("%s: %y argument passed as column name to %s::addIndex(); expecting \"string\" (value: %y)", getDesc(), v.type(), self.className(), v);
                 # only check for column if the index is not a function index
                 if (!columns.hasKey(v)) {
-                    if (v !~ /\(.*\)/)
-                        throw "INDEX-ERROR", sprintf("%s: has no column named %y", getDesc(), v);
+                    # actually the original check for /\(.*\)/ in the value is not correct.
+                    # DBMS usually allow to specify special types of func. indexes. Like eg.
+                    # Oracle's "foo desc", PGSQL "collate" etc. All these constructs are
+                    # without () inside.
                     ch{v} = {};
                 }
                 else
