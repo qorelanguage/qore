@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file SqlUtil.qm Qore user module for working with SQL data
 
-/*  SqlUtil.qm Copyright (C) 2013 - 2016 Qore Technologies, s.r.o.
+/*  SqlUtil.qm Copyright (C) 2013 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -4083,6 +4083,15 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
         return make_iop(IOP_SEQ_CURRVAL, arg);
     }
     #@}
+
+    #! known drivers
+    public const SqlUtilDrivers = (
+        "oracle",
+        "pgsql",
+        "mysql",
+        "freetds",
+        "sybase",
+        );
 
     #! abstract container class that throws an exception if an unknown key is accessed
     public class AbstractHashContainer {
@@ -8549,11 +8558,22 @@ bool b = table.empty();
             *hash oc = opt.(copt.keys());
 
             # process descriptions
-            #
-            # sqlutil: schema alignment skips column with name "driver" #1684
-            # Do not handle checkDriverOptions for columns hash.
-            # Driver is a potential valid column name. Column sub-hashes
-            # are handled in next section.
+            /* issue #1684: sqlutil: schema alignment skips column with name "driver"
+               handle driver options with special logic: try to remove any driver
+               configurations so that a column with the name "driver" can be
+               supported
+            */
+            if (desc.columns.driver) {
+                *hash h = remove desc.columns.driver{SqlUtilDrivers};
+                if (h) {
+                    # if we have driver-specific info, add it to the columns hash
+                    if (h{drv})
+                        desc.columns += h{drv};
+                    # if there is no column information, then delete the "driver" key
+                    if (!desc.columns.driver)
+                        delete desc.columns.driver;
+                }
+            }
 
             AbstractDatabase::checkDriverOptions(\desc.indexes, drv);
             AbstractDatabase::checkDriverOptions(\desc.primary_key, drv);
