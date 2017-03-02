@@ -434,14 +434,8 @@ int SSLSocketHelper::doSSLRW(const char* mname, void* buf, int size, int timeout
    if (timeout_ms < 0) {
       while (true) {
          int rc = read ? SSL_read(ssl, buf, size) : SSL_write(ssl, buf, size);
-         if (rc < 0) {
+         if (rc <= 0) {
 	    // we set SSL_MODE_AUTO_RETRY so there should never be any need to retry
-#ifdef DEBUG
-            int err = SSL_get_error(ssl, rc);
-            if (err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE)
-	       assert(false);
-#endif
-
             // issue 1729: only return 0 when reading, indicating that the remote closed the connection
             if (xsink && !sslError(xsink, closed, mname, read ? "SSL_read" : "SSL_write", read ? false : true))
                rc = 0;
