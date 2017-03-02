@@ -2,7 +2,7 @@
   QoreSocket.cpp
 
   Socket Class for ipv4, ipv6 and UNIX domain sockets with SSL support
-  
+
   Qore Programming Language
 
   Copyright (C) 2003 - 2014 David Nichols
@@ -56,7 +56,7 @@ void se_closed(const char* mname, ExceptionSink* xsink) {
    xsink->raiseException("SOCKET-CLOSED", "error in Socket::%s(): remote end closed the connection", mname);
 }
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
 int sock_get_raw_error() {
    return WSAGetLastError();
 }
@@ -361,12 +361,12 @@ X509 *SSLSocketHelper::getPeerCertificate() const {
    return SSL_get_peer_certificate(ssl);
 }
 
-long SSLSocketHelper::verifyPeerCertificate() const {	 
+long SSLSocketHelper::verifyPeerCertificate() const {
    X509 *cert = SSL_get_peer_certificate(ssl);
-   
+
    if (!cert)
       return -1;
-   
+
    long rc = SSL_get_verify_result(ssl);
    X509_free(cert);
    return rc;
@@ -434,15 +434,10 @@ int SSLSocketHelper::doSSLRW(const char* mname, void* buf, int size, int timeout
    if (timeout_ms < 0) {
       while (true) {
          int rc = read ? SSL_read(ssl, buf, size) : SSL_write(ssl, buf, size);
-         if (rc < 0) {
+         if (rc <= 0) {
 	    // we set SSL_MODE_AUTO_RETRY so there should never be any need to retry
-#ifdef DEBUG
-            int err = SSL_get_error(ssl, rc);
-            if (err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE)
-	       assert(false);
-#endif
-
-            if (xsink && !sslError(xsink, closed, mname, read ? "SSL_read" : "SSL_write", false))
+            // issue 1729: only return 0 when reading, indicating that the remote closed the connection
+            if (xsink && !sslError(xsink, closed, mname, read ? "SSL_read" : "SSL_write", read ? false : true))
                rc = 0;
          }
          return rc;
@@ -577,7 +572,7 @@ bool SSLSocketHelper::sslError(ExceptionSink* xsink, bool& closed, const char* m
 #endif
       }
    } while ((e = ERR_get_error()));
-   
+
    return *xsink || closed;
 }
 
@@ -605,7 +600,7 @@ void PrivateQoreSocketThroughputHelper::finalize(int64 bytes) {
    if (bytes <= 0)
       return;
 
-   if (send) 
+   if (send)
       sock->tp_bytes_sent += bytes;
    else
       sock->tp_bytes_recv += bytes;
@@ -658,10 +653,10 @@ int QoreSocket::close() {
 int QoreSocket::shutdown() {
    int rc;
    if (priv->sock != QORE_INVALID_SOCKET)
-      rc = ::shutdown(priv->sock, SHUTDOWN_ARG); 
-   else 
-      rc = 0; 
-   
+      rc = ::shutdown(priv->sock, SHUTDOWN_ARG);
+   else
+      rc = 0;
+
    return rc;
 }
 
@@ -674,19 +669,19 @@ int QoreSocket::shutdownSSL(ExceptionSink* xsink) {
 }
 
 int QoreSocket::getSocket() const {
-   return priv->sock; 
+   return priv->sock;
 }
 
 const QoreEncoding *QoreSocket::getEncoding() const {
-   return priv->enc; 
+   return priv->enc;
 }
 
-void QoreSocket::setEncoding(const QoreEncoding *id) { 
-   priv->enc = id; 
-} 
+void QoreSocket::setEncoding(const QoreEncoding *id) {
+   priv->enc = id;
+}
 
-bool QoreSocket::isOpen() const { 
-   return (bool)(priv->sock != QORE_INVALID_SOCKET); 
+bool QoreSocket::isOpen() const {
+   return (bool)(priv->sock != QORE_INVALID_SOCKET);
 }
 
 const char* QoreSocket::getSSLCipherName() const {
@@ -757,7 +752,7 @@ int QoreSocket::connect(const char* name, int timeout_ms, ExceptionSink* xsink) 
 	 //printd(5, "QoreSocket::connect(%s, %s) [ipv6]\n", host.getBuffer() + 1, service.getBuffer());
 	 rc = priv->connectINET(host.getBuffer() + 1, service.getBuffer(), timeout_ms, xsink, AF_INET6);
       }
-      else 
+      else
 	 rc = priv->connectINET(host.getBuffer(), service.getBuffer(), timeout_ms, xsink);
    }
    else {
@@ -791,7 +786,7 @@ int QoreSocket::connectSSL(const char* name, int timeout_ms, X509 *cert, EVP_PKE
 	 //printd(5, "QoreSocket::connect(%s, %s) [ipv6]\n", host.getBuffer() + 1, service.getBuffer());
 	 rc = connectINET2SSL(host.getBuffer() + 1, service.getBuffer(), AF_INET6, SOCK_STREAM, 0, timeout_ms, cert, pkey, xsink);
       }
-      else 
+      else
 	 rc = connectINET2SSL(host.getBuffer(), service.getBuffer(), AF_UNSPEC, SOCK_STREAM, 0, timeout_ms, cert, pkey, xsink);
    }
    else {
@@ -1404,7 +1399,7 @@ int QoreSocket::bind(const struct sockaddr *addr, int size) {
       return -1;
 
    if ((::bind(priv->sock, addr, size)) == QORE_SOCKET_ERROR) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
       // set errno from windows error
       sock_get_error();
 #endif
@@ -1414,7 +1409,7 @@ int QoreSocket::bind(const struct sockaddr *addr, int size) {
    // set port number to unknown
    priv->port = -1;
    //printd(5, "QoreSocket::bind(interface, port) returning 0 (success)\n");
-   return 0;   
+   return 0;
 }
 
 int QoreSocket::bind(int family, const struct sockaddr *addr, int size, int sock_type, int protocol) {
@@ -1430,7 +1425,7 @@ int QoreSocket::bind(int family, const struct sockaddr *addr, int size, int sock
       return -1;
 
    if ((::bind(priv->sock, addr, size)) == -1) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
       // set errno from windows error
       sock_get_error();
 #endif
@@ -1441,7 +1436,7 @@ int QoreSocket::bind(int family, const struct sockaddr *addr, int size, int sock
    int prt = q_get_port_from_addr(addr);
    priv->port = prt ? prt : -1;
    //printd(5, "QoreSocket::bind(interface, port) returning 0 (success)\n");
-   return 0;   
+   return 0;
 }
 
 // find out what port we're connected to
@@ -1474,7 +1469,7 @@ QoreSocket *QoreSocket::acceptSSL(SocketSource *source, X509 *cert, EVP_PKEY *pk
       delete s;
       return 0;
    }
-   
+
    return s;
 }
 
@@ -1510,7 +1505,7 @@ QoreSocket *QoreSocket::acceptSSL(int timeout_ms, X509 *cert, EVP_PKEY *pkey, Ex
       assert(*xsink);
       return 0;
    }
-   
+
    return s.release();
 }
 
@@ -1641,7 +1636,7 @@ void QoreSocket::clearWarningQueue(ExceptionSink* xsink) {
 void QoreSocket::setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, AbstractQoreNode* arg, int64 min_ms) {
    priv->setWarningQueue(xsink, warning_ms, warning_bs, wq, arg, min_ms);
 }
-   
+
 QoreHashNode* QoreSocket::getUsageInfo() const {
    return priv->getUsageInfo();
 }
