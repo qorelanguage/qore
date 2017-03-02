@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2004 - 2013 David Nichols
+  Copyright (C) 2004 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -69,7 +69,9 @@ public:
 		    AbstractQoreNode *cond = NULL,
 		    int sort_type = -1, AbstractQoreNode *sort = NULL,
 		    AbstractQoreNode *summary = NULL, int ignore_key = 0);
+   // FIXME: change rv to QoreValue
    DLLLOCAL AbstractQoreNode *evalValue(const char *field, ExceptionSink *xsink);
+
    DLLLOCAL QoreHashNode *getRow(ExceptionSink *xsink);
    DLLLOCAL int next_summary();
    DLLLOCAL int check_condition(AbstractQoreNode *cond, ExceptionSink *xsinkx);
@@ -92,6 +94,7 @@ public:
    }
 };
 
+// FIXME: change rv to QoreValue
 DLLLOCAL AbstractQoreNode *evalContextRef(const char *key, ExceptionSink *xsink);
 DLLLOCAL AbstractQoreNode *evalContextRow(ExceptionSink *xsink);
 

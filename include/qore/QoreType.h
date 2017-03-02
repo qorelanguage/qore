@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreType.h
-  
+
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -47,25 +47,25 @@ DLLEXPORT extern QoreBigIntNode* Zero;
 DLLEXPORT extern QoreFloatNode* ZeroFloat;
 DLLEXPORT extern QoreNumberNode* ZeroNumber, * InfinityNumber, * NaNumber, * piNumber;
 
-DLLEXPORT extern QoreString NothingTypeString, NullTypeString, TrueString, 
+DLLEXPORT extern QoreString NothingTypeString, NullTypeString, TrueString,
    FalseString, EmptyHashString, EmptyListString;
 
 class QoreTypeInfo;
 DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
-   *bigIntTypeInfo, 
-   *floatTypeInfo, 
-   *boolTypeInfo, 
-   *stringTypeInfo, 
-   *binaryTypeInfo, 
-   *dateTypeInfo, 
-   *objectTypeInfo, 
-   *hashTypeInfo, 
-   *listTypeInfo, 
-   *nothingTypeInfo, 
-   *nullTypeInfo, 
+   *bigIntTypeInfo,
+   *floatTypeInfo,
+   *boolTypeInfo,
+   *stringTypeInfo,
+   *binaryTypeInfo,
+   *dateTypeInfo,
+   *objectTypeInfo,
+   *hashTypeInfo,
+   *listTypeInfo,
+   *nothingTypeInfo,
+   *nullTypeInfo,
    *numberTypeInfo,
    *runTimeClosureTypeInfo,
-   *callReferenceTypeInfo, 
+   *callReferenceTypeInfo,
    *referenceTypeInfo,
    *userReferenceTypeInfo,
    *codeTypeInfo,              // either closure or callref
@@ -81,8 +81,8 @@ DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
    *timeoutTypeInfo,           // accepts int or date and returns int giving timeout in milliseconds
    *bigIntOrFloatTypeInfo,     // accepts int or float and returns the same
 
-   *bigIntOrNothingTypeInfo, 
-   *floatOrNothingTypeInfo, 
+   *bigIntOrNothingTypeInfo,
+   *floatOrNothingTypeInfo,
    *numberOrNothingTypeInfo,
    *stringOrNothingTypeInfo,
    *boolOrNothingTypeInfo,
@@ -107,8 +107,12 @@ DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
 
 DLLEXPORT qore_type_t get_next_type_id();
 
+//! true = not equal, false = equal
 DLLEXPORT bool compareHard(const AbstractQoreNode* l, const AbstractQoreNode* r, ExceptionSink* xsink);
+//! true = not equal, false = equal
 DLLEXPORT bool compareSoft(const AbstractQoreNode* l, const AbstractQoreNode* r, ExceptionSink* xsink);
+//! true = not equal, false = equal
+DLLEXPORT bool q_compare_soft(const QoreValue l, const QoreValue r, ExceptionSink* xsink);
 
 static inline AbstractQoreNode* boolean_false() {
    return &False;
@@ -170,6 +174,7 @@ enum qore_type_result_e {
 
 //! this class is private; not exported
 class ExternalTypeInfo;
+struct QoreValue;
 
 //! helper type to allocate and manage QoreTypeInfo objects (not exported by the library)
 /** should be used to allocate and deallocate QoreTypeInfo objects for new types created in modules
@@ -184,7 +189,7 @@ protected:
    }
 
    //! this function must be reimplemented if setInputFilter() is called
-   DLLEXPORT virtual bool acceptInputImpl(AbstractQoreNode*& n, ExceptionSink* xsink) const;
+   DLLEXPORT virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const;
 
 public:
    //! allocates a QoreTypeInfo object with no type information

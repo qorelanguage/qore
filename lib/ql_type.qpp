@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -89,32 +89,32 @@ const Closure = "closure";
 //@{
 
 //! Converts the argument to a boolean value
-/** 
+/**
     @param arg the argument to convert to a boolean
 
     @return the boolean value corresponding to the argument
 
     @par Example:
-    @code
-my bool $b = boolean(1); # returns True
+    @code{.py}
+bool b = boolean(1); # returns True
     @endcode
 
     @note this function behaves differently when @ref strict-bool-eval "%strict-bool-eval" is set
 */
 bool boolean(any arg) [flags=CONSTANT] {
-   return arg ? arg->getAsBool() : false;
+   return arg.getAsBool();
 }
 
 //! Converts the argument to an integer value
-/** 
+/**
     @param str the string to convert to an integer
     @param base the base of the integer in the string; this value must be 0 or 2 - 36 inclusive or an \c INVALID-BASE exception will be thrown
 
     @return the integer value corresponding to the arguments
 
     @par Example:
-    @code
-my int $i = int("fabc9", 16);
+    @code{.py}
+int i = int("fabc9", 16);
     @endcode
 
     @throw INVALID-BASE the base is invalid; must be 0 or 2 - 36 inclusive
@@ -122,10 +122,8 @@ my int $i = int("fabc9", 16);
     @since %Qore 0.8.5, this variant with the \a base argument is supported
 */
 int int(string str, softint base) [flags=RET_VALUE_ONLY] {
-   if (base < 0 || base == 1 || base > 36) {
-      xsink->raiseException("INVALID-BASE", "base "QLLD" is invalid; base must be 0 or 2 - 36 inclusive", base);
-      return 0;
-   }
+   if (base < 0 || base == 1 || base > 36)
+      return xsink->raiseException("INVALID-BASE", "base "QLLD" is invalid; base must be 0 or 2 - 36 inclusive", base);
    return strtoll(str->getBuffer(), 0, (int)base);
 }
 
@@ -136,8 +134,8 @@ int int(string str, softint base) [flags=RET_VALUE_ONLY] {
     @return the integer value corresponding to the argument
 
     @par Example:
-    @code
-my int $i = int("1");
+    @code{.py}
+int i = int("1");
     @endcode
 */
 int int(softint i) [flags=CONSTANT] {
@@ -154,14 +152,14 @@ int int() [flags=CONSTANT] {
 }
 
 //! Converts the argument to a floating-point (float) value
-/** 
+/**
     @param f the argument to convert to a float
 
     @return the float value corresponding to the argument
 
     @par Example:
-    @code
-my float $i = float("3.1415");
+    @code{.py}
+float i = float("3.1415");
     @endcode
 */
 float float(softfloat f) [flags=CONSTANT] {
@@ -184,8 +182,8 @@ float float() [flags=CONSTANT] {
     @return the @ref number "number" value corresponding to the argument
 
     @par Example:
-    @code
-my number $n = number("2.23040945718005e35");
+    @code{.py}
+number n = number("2.23040945718005e35");
     @endcode
 */
 number number(softnumber n) [flags=CONSTANT] {
@@ -202,17 +200,25 @@ number number() [flags=CONSTANT] {
 }
 
 //! Converts the argument to a string
-/** 
+/**
     @param str the argument to convert to a string
+    @param enc the encoding of the string returned
 
-    @return the string value corresponding to the argument
+    @return the string value corresponding to the argument(s)
 
     @par Example:
-    @code
-my string $str = string(100);
+    @code{.py}
+string str = string(100);
     @endcode
+
+    @since the \c enc argument was added in %Qore 0.8.12
 */
-string string(softstring str) [flags=CONSTANT] {
+string string(softstring str, *string enc) [flags=CONSTANT] {
+   if (enc) {
+      const QoreEncoding* e = QEM.findCreate(enc->getBuffer());
+      if (e != str->getEncoding())
+         return str->convertEncoding(e, xsink);
+   }
    return str->refSelf();
 }
 
@@ -249,8 +255,8 @@ binary binary(null[doc] x) [flags=CONSTANT] {
 /** This function is useful if, for example, a string type actually contains binary data; using this function will ensure that all data in the string (even if it contains embedded nulls) is maintained in the binary object (Qore strings must normally be terminated by a single null, so some %Qore string operations do not work on binary data with embedded nulls).
 
     @par Example:
-    @code
-my binary $b = binary($str);
+    @code{.py}
+binary b = binary(str);
     @endcode
 */
 binary binary(softstring str) [flags=CONSTANT] {
@@ -272,19 +278,19 @@ binary binary(binary bin) [flags=CONSTANT] {
     @return a list of the arguments passed at the top level; if a sole argument of @ref nothing is passed, then an empty list is returned
 
     @par Example:
-    @code
-my list $l = list(1, 2, 3, 4);
+    @code{.py}
+list l = list(1, 2, 3, 4);
     @endcode
 */
 list list(...) [flags=CONSTANT] {
    QoreListNode *l;
    if (num_args(args) > 1)
-      l = args->copy();
+      l = args->getOldList();
    else {
       l = new QoreListNode;
-      const AbstractQoreNode *p0 = get_param(args, 0);
-      if (p0)
-	 l->push(p0->refSelf());
+      QoreValue p0 = get_param_value(args, 0);
+      if (!p0.isNothing())
+	 l->push(p0.getReferencedValue());
    }
    return l;
 }
@@ -297,8 +303,8 @@ list list(...) [flags=CONSTANT] {
     @return a hash of an object's members
 
     @par Example:
-    @code
-my hash $h = hash($obj);
+    @code{.py}
+hash h = hash(obj);
     @endcode
 */
 hash hash(object obj) [flags=RET_VALUE_ONLY] {
@@ -306,14 +312,14 @@ hash hash(object obj) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns a hash by taking even numbered list elements (starting with 0) and converting them to strings for the hash keys, and the odd numbered elements following the keys as the key value
-/** 
+/**
     @param l the list to process in a manner similar to perl's hash initialization
 
     @return a hash by taking even numbered list elements (starting with 0) and converting them to strings for the hash keys, and the odd numbered elements following the keys as the key value
 
     @par Example:
-    @code
-my hash $h = hash(("a", 1, "b", "two"));
+    @code{.py}
+hash h = hash(("a", 1, "b", "two"));
     @endcode
 */
 hash hash(list l) [flags=RET_VALUE_ONLY] {
@@ -324,7 +330,7 @@ hash hash(list l) [flags=RET_VALUE_ONLY] {
       QoreStringValueHelper str(li.getValue());
       h->setKeyValue(str->getBuffer(), li.next() ? li.getReferencedValue() : 0, xsink);
       if (*xsink)
-	 return 0;
+	 return QoreValue();
    }
    return h.release();
 }
@@ -338,8 +344,8 @@ hash hash(list l) [flags=RET_VALUE_ONLY] {
     @return a hash by taking the first list as a list of keys, and the second list as a list of values
 
     @par Example:
-    @code
-my hash $h = list($keys, $values);
+    @code{.py}
+hash h = hash(keysv, values);
     @endcode
 */
 hash hash(list keys, list values) [flags=RET_VALUE_ONLY] {
@@ -354,9 +360,9 @@ hash hash(list keys, list values) [flags=RET_VALUE_ONLY] {
 	 valid = vi.next();
 
       QoreStringValueHelper str(ki.getValue());
-      h->setKeyValue(str->getBuffer(), valid ? vi.getReferencedValue() : 0, xsink);      
+      h->setKeyValue(str->getBuffer(), valid ? vi.getReferencedValue() : 0, xsink);
       if (*xsink)
-	 return 0;
+	 return QoreValue();
    }
 
    return h.release();
@@ -369,8 +375,8 @@ hash hash(list keys, list values) [flags=RET_VALUE_ONLY] {
     @return the hash passed
 
     @par Example:
-    @code
-my hash $h = hash($h);
+    @code{.py}
+hash h = hash(h);
     @endcode
 */
 hash hash(hash h) [flags=CONSTANT] {
@@ -385,14 +391,14 @@ hash hash() [flags=CONSTANT] {
 }
 
 //! Returns a string giving the data type of the argument passed; see @ref string_type_constants for the values returned by this function
-/** 
+/**
     @param arg the argument to check
 
     @return a string giving the data type of the argument passed; see @ref string_type_constants for the values returned by this function
 
     @par Example:
-    @code
-my string $type = type($v);
+    @code{.py}
+string type = type(v);
     @endcode
 
     @note
@@ -402,18 +408,18 @@ my string $type = type($v);
     @see pseudo-method <value>::typeCode()
 */
 string type(any arg) [flags=CONSTANT] {
-   return new QoreStringNode(arg ? arg->getTypeName() : "nothing");
+   return new QoreStringNode(arg.getTypeName());
 }
 
 //! Returns a string giving the data type of the argument passed; see @ref string_type_constants for the values returned by this function
-/** 
+/**
     @param arg the argument to check
 
     @return a string giving the data type of the argument passed; see @ref string_type_constants for the values returned by this function
 
     @par Example:
-    @code
-my string $type = typename($v);
+    @code{.py}
+string type = typename(v);
     @endcode
 
     @note
@@ -421,25 +427,25 @@ my string $type = typename($v);
     - It is faster and more efficient to use <value>::typeCode() for comparing data types
 */
 string typename(any arg) [flags=CONSTANT] {
-   return new QoreStringNode(arg ? arg->getTypeName() : "nothing");
+   return new QoreStringNode(arg.getTypeName());
 }
 
 //! Returns a string created from the binary data passed, taking an optional second argument giving the string encoding; if no second argument is passed then the @ref default_encoding "default character encoding" is assumed
-/** 
+/**
     @param b the binary object to convert directly to a string
     @param encoding the character encoding tag for the string return value; if not present, the @ref default_encoding "default character encoding" is assumed
 
     @return a string created from the binary data passed
 
     @par Example:
-    @code
-my string $str = binary_to_string($b, "iso-8859-1");
+    @code{.py}
+string str = binary_to_string(b, "iso-8859-1");
     @endcode
 */
 string binary_to_string(binary b, *string encoding) [flags=CONSTANT] {
    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
    if (!b->size())
       return new QoreStringNode(qe);
-   return new QoreStringNode((const char *)b->getPtr(), b->size(), qe);
+   return new QoreStringNode((const char*)b->getPtr(), b->size(), qe);
 }
 //@}

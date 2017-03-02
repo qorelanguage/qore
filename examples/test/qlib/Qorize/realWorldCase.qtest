@@ -1,0 +1,84 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%require-types
+%enable-all-warnings
+%new-style
+
+%try-module xml >= 1.3
+%define NoXml
+%endtry
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Qorize.qm
+
+%exec-class QorizeRealWorldTest
+
+public class QorizeRealWorldTest inherits QUnit::Test {
+    public {
+        const OLDSTYLE = False;
+        const NEWSTYLE = True;
+
+        const MIN_LENGTH = 10000;
+
+        hash m_h;
+    }
+
+    constructor() : Test("QorizeRealWorldTest", "1.0") {
+        addTestCase("qorize newstyle", \testQorizeNewstyle(), NOTHING);
+        addTestCase("qorize oldstyle", \testQorizeOldstyle(), NOTHING);
+        addTestCase("qorize named newstyle", \testQorizeNamedNewstyle(), NOTHING);
+        addTestCase("qorize named oldstyle", \testQorizeNamedOldstyle(), NOTHING);
+
+	    set_return_value(main());
+    }
+
+    setUp() {
+%ifndef NoXml
+        string fname = get_script_dir() + '/complex.xml';
+
+        File f();
+        f.open2(fname);
+
+        string xml = f.read(-1);
+        m_h = parse_xml(xml, XPF_NONE);
+%endif
+    }
+
+    testQorizeNewstyle() {
+%ifdef NoXml
+        testSkip("no XML module present");
+%else
+        testAssertion("qorize NEWSTYLE",  bool sub () { return (qorize(m_h, 'name', NEWSTYLE).size() > MIN_LENGTH); }, list());
+%endif
+    }
+
+    testQorizeOldstyle() {
+%ifdef NoXml
+        testSkip("no XML module present");
+%else
+        testAssertion("qorize OLDSTYLE",  bool sub () { return (qorize(m_h, 'name', OLDSTYLE).size() > MIN_LENGTH); }, list());
+%endif
+    }
+
+    testQorizeNamedNewstyle() {
+%ifdef NoXml
+        testSkip("no XML module present");
+%else
+        testAssertion("qorizeNamed NEWSTYLE", bool sub () { return (qorize_named(m_h, 'name', NEWSTYLE).size() > MIN_LENGTH); }, list());
+%endif
+    }
+
+    testQorizeNamedOldstyle() {
+%ifdef NoXml
+        testSkip("no XML module present");
+%else
+        testAssertion("qorizeNamed OLDSTYLE", bool sub() { return (qorize_named(m_h, 'name', OLDSTYLE).size() > MIN_LENGTH); }, list());
+%endif
+    }
+}

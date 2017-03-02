@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -164,7 +164,6 @@ public:
 
 class DatasourcePool : public AbstractThreadResource, public QoreCondition, public QoreThreadLock, public DatasourceStatementHelper {
    friend class DatasourcePoolActionHelper;
-
 protected:
    Datasource** pool;
    int* tid_list;            // list of thread IDs per pool index
@@ -243,6 +242,9 @@ public:
       return pool[0]->getDriverName();
    }
 
+   DLLLOCAL QoreListNode* getCapabilityList() const;
+   DLLLOCAL int getCapabilities() const;
+
    DLLLOCAL AbstractQoreNode* getServerVersion(ExceptionSink* xsink);
    DLLLOCAL AbstractQoreNode* getClientVersion(ExceptionSink* xsink) {
       return pool[0]->getClientVersion(xsink);
@@ -274,7 +276,7 @@ public:
    }
 
    DLLLOCAL virtual Datasource* helperEndAction(char cmd, bool new_transaction, ExceptionSink* xsink) {
-      //printd(0, "DatasourcePool::helperEndAction() cmd=%d, nt=%d\n", cmd, new_transaction);
+      //printd(5, "DatasourcePool::helperEndAction() cmd: %d '%s', nt: %d\n", cmd, DAH_TEXT(cmd), new_transaction);
       if (cmd == DAH_RELEASE) {
          freeDS();
          return 0;
@@ -304,22 +306,6 @@ public:
    }
 
    DLLLOCAL void setEventQueue(Queue* q, AbstractQoreNode* arg, ExceptionSink* xsink);
-
-   using AbstractPrivateData::deref;
-   DLLLOCAL virtual void deref() {
-      if (ROdereference()) {
-         ExceptionSink xsink;
-         config.del(&xsink);
-         delete this;
-      }
-   }
-
-   DLLLOCAL virtual void deref(ExceptionSink* xsink) {
-      if (ROdereference()) {
-         config.del(xsink);
-         delete this;
-      }
-   }
 };
 
 class DatasourcePoolActionHelper {
@@ -334,19 +320,25 @@ public:
    DLLLOCAL DatasourcePoolActionHelper(DatasourcePool& n_dsp, ExceptionSink* n_xsink, char n_cmd = DAH_NOCHANGE) : dsp(n_dsp), xsink(n_xsink), new_ds(false), cmd(n_cmd) {
       ds = dsp.getDS(new_ds, xsink);
    }
+
+   /* release the connection if:
+         1) the connection was aborted (exception already raised)
+         2) the connection was acquired for this call, and
+              the command was NOCHANGE, meaning, leave the connection in the same state it was before the call
+   */
    DLLLOCAL ~DatasourcePoolActionHelper() {
       if (!ds)
 	 return;
 
       if (cmd == DAH_RELEASE
           || ds->wasConnectionAborted()
-          || (new_ds && ((cmd == DAH_NOCHANGE) || *xsink)))
+          || (new_ds && (cmd == DAH_NOCHANGE)))
 	 dsp.freeDS();
    }
 
 #if 0
    DLLLOCAL void addSQL(const QoreString* sql) {
-      if (ds && !((cmd == DAH_RELEASE) || (new_ds && ((cmd == DAH_NOCHANGE) || *xsink)) || ds->wasConnectionAborted()))
+      if (ds && !((cmd == DAH_RELEASE) || (new_ds && (cmd == DAH_NOCHANGE)) || ds->wasConnectionAborted()))
          dsp.addSQL(cmd == DAH_NOCHANGE ? "select" : "exec", sql);
    }
 #endif

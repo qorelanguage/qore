@@ -1,0 +1,62 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class HtmlEncodeTest
+
+public class HtmlEncodeTest inherits QUnit::Test {
+    constructor() : Test("HtmlEncodeTest", "1.0") {
+        addTestCase("html encoding/decoding", \htmlEncodeTestMethod(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    htmlEncodeTestMethod() {
+        assertEq("&<>\"", html_decode("&amp;&lt;&gt;&quot;"));
+        assertEq("©®", html_decode("&copy;&reg;"));
+        assertEq("€¢£¥¤", html_decode("&euro;&cent;&pound;&yen;&curren;"));
+        assertEq("¦§°", html_decode("&brvbar;&sect;&deg;"));
+
+        assertEq("&amp;&lt;&gt;&quot;", html_encode("&<>\""));
+        assertEq("&copy;&reg;", html_encode("©®"));
+        assertEq("&euro;&cent;&pound;&yen;&curren;", html_encode("€¢£¥¤"));
+        assertEq("&brvbar;&sect;&deg;", html_encode("¦§°"));
+
+        string str1 = "text &Theta; &apos; &#345;";
+        assertEq(str1, str1.getEncoded(0));
+        assertEq("text Θ ' ř", str1.getDecoded());
+        assertEq("text Θ ' ř", str1.getDecoded(CE_ALL));
+
+        assertEq("text Θ ' &#345;", str1.getDecoded(CE_XHTML));
+        assertEq("text &Theta; ' &#345;", str1.getDecoded(CE_XML));
+        assertEq("text Θ &apos; &#345;", str1.getDecoded(CE_HTML));
+
+        assertEq("text &Theta; ' ř", str1.getDecoded(CE_XML|CE_NONASCII));
+        assertEq("text Θ &apos; ř", str1.getDecoded(CE_HTML|CE_NONASCII));
+
+        str1 = "text Θ ' ř &";
+        doTest(str1, "text &Theta; &apos; ř &amp;", CE_XHTML);
+        doTest(str1, "text &Theta; &apos; ř &amp;");
+        doTest(str1, "text &Theta; &apos; &#345; &amp;", CE_ALL);
+        doTest(str1, "text Θ &apos; ř &amp;", CE_XML);
+        doTest(str1, "text &Theta; ' ř &amp;", CE_HTML);
+        doTest(str1, "text &Theta; &apos; &#345; &amp;", CE_XHTML|CE_NONASCII);
+        doTest(str1, "text &#920; &apos; &#345; &amp;", CE_XML|CE_NONASCII);
+        doTest(str1, "text &Theta; ' &#345; &amp;", CE_HTML|CE_NONASCII);
+        doTest(str1, "text &#920; ' &#345; &", CE_NONASCII);
+    }
+
+    doTest(string str, string eq, *int code) {
+        string estr = str.getEncoded(code);
+        string label = sprintf("encode %y", code);
+        assertEq(eq, estr, label);
+        assertEq(str, estr.getDecoded(code), label);
+    }
+}

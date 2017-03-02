@@ -1,0 +1,212 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mapper.qm
+
+%exec-class MapperTest
+
+public class MapperTest inherits QUnit::Test {
+    public {
+        const DataMap = (
+            # this will take the "Id" element of any "^attributes^" hash in the input record
+            "id": "^attributes^.Id",
+            # this maps input "name" -> output "name"
+            "name": True,
+            # this marks "explicit_count" as an integer field mapped from the input "Count" field
+            "explicit_count": ("type": "int", "name": "Count"),
+            # runs the given code on the input record and retuns the result - the number of "Products" sub-records
+            "implicit_count": int sub (any ignored, hash rec) { return rec.Products.size(); },
+            # converts the given field to a date in the specified format
+            "order_date": ("name": "OrderDate", "date_format": "DD.MM.YYYY HH:mm:SS.us"),
+            # converts the given field to a number in the specified format
+            "unit_price": ("name": "UnitPrice", "number_format": ".,"),
+            # returns a constant value
+            "target_sys": ("constant": "Orders"),
+            # returns structured output
+            "sr0.sr1.key0": ("constant": "key0"),
+            "sr0.sr1.^attributes^.key0": ("constant": "key0"),
+            "sr0.sr1.^attributes^.key1": ("constant": "key1"),
+            "sr0.sr1.^attributes^.type": ("name": "Type", "code": *string sub (*string v, hash rec) { return v ? v.lwr() : NOTHING;}, "default": "unknown"),
+            "sr0.sr1.key1": ("constant": "key1"),
+            "sr0.store_name": "StoreInfo.StoreName",
+            "runtimetest" : ("runtime" : "runtimetest"),
+            "indextest1" : ("index" : 0),
+            "indextest2" : ("index" : 1),
+            "indextest3" : ("index" : "a"),
+            "empty_string" : "EmptyString",
+        );
+
+        const MapInput = ((
+            "^attributes^": ("Id": 1),
+            "name": "John Smith",
+            "Count": 1,
+            "OrderDate": "02.01.2014 10:37:45.103948",
+            "UnitPrice": "1.543,50",
+            "StoreInfo": ("StoreName": "Store1"),
+            "EmptyString" : "",
+            "Products": ((
+                "ProductName": "Widget 1",
+                "Quantity": 1,
+                 ),
+            )), (
+            "^attributes^": ("Id": 2),
+            "name": "Steve Austin",
+            "Type": "Retail",
+            "Count": 2,
+            "OrderDate": "04.01.2014 19:21:08.882634",
+            "UnitPrice": "9,95",
+            "StoreInfo": ("StoreName": "Store2"),
+            "EmptyString" : "",
+            "Products": ((
+                "ProductName": "Widget X",
+                "Quantity": 4,
+                ), (
+                "ProductName": "Widget 2",
+                "Quantity": 2,
+                ),
+            )),
+        );
+
+        const MapOutput = ((
+            "id": 1,
+            "name": "John Smith",
+            "explicit_count": 1,
+            "implicit_count": 1,
+            "order_date": 2014-01-02T10:37:45.103948,
+            "unit_price": 1543.50n,
+            "target_sys": "Orders",
+            "sr0": (
+                "sr1": (
+                    "key0": "key0",
+                    "^attributes^": (
+                        "key0": "key0",
+                        "key1": "key1",
+                        "type": "unknown",
+                    ),
+                    "key1": "key1",
+                ),
+                "store_name": "Store1",
+            ),
+            "runtimetest" : 1,
+            "indextest1" : 0,
+            "indextest2" : 1,
+            "indextest3" : "a0",
+            "empty_string" : "",
+            ), (
+            "id": 2,
+            "name": "Steve Austin",
+            "explicit_count": 2,
+            "implicit_count": 2,
+            "order_date": 2014-01-04T19:21:08.882634,
+            "unit_price": 9.95n,
+            "target_sys": "Orders",
+            "sr0": (
+                "sr1": (
+                    "key0": "key0",
+                    "^attributes^": (
+                        "key0": "key0",
+                        "key1": "key1",
+                        "type": "retail",
+                    ),
+                    "key1": "key1",
+                ),
+                "store_name": "Store2",
+            ),
+            "runtimetest" : 1,
+            "indextest1" : 1,
+            "indextest2" : 2,
+            "indextest3" : "a1",
+            "empty_string" : "",
+            ),
+        );
+    }
+
+    constructor() : Test("MapperTest", "1.0") {
+        addTestCase("Test mapAll()", \testMapperMapAll(), NOTHING);
+        addTestCase("Test mapData()", \testMapperMapData(), NOTHING);
+        addTestCase("Runtime test", \testMapperRuntime());
+        addTestCase("Test 'input' option", \testMapperOptionInput());
+        addTestCase("Bulk Test", \testMapperBulk());
+        addTestCase("Index test", \testMapperIndex());
+        addTestCase("Empty String test", \testEmptyString());
+        set_return_value(main());
+    }
+
+    private {
+        hash m_opts = ( "runtime" : ("runtimetest" : 1), );
+    }
+
+    setUp() {
+    }
+
+    testMapperMapAll() {
+        Mapper m(DataMap, m_opts);
+        list l = m.mapAll(MapInput);
+        testAssertion("Verify mapped list", \equalsIterated(), (new ListIterator(l), new ListIterator(MapOutput)));
+        testAssertion("Verify item count", \equals(), (m.getCount(), 2));
+    }
+
+    testMapperMapData() {
+        Mapper m(DataMap, m_opts);
+        list l = map m.mapData($1), MapInput;
+        testAssertion("Verify mapped list", \equalsIterated(), (l.iterator(), MapOutput.iterator()));
+        testAssertion("Verify item count", \equals(), (m.getCount(), 2));
+    }
+
+    testMapperRuntime() {
+        Mapper m(DataMap, m_opts);
+        ListIterator it(MapInput);
+        int ix = 0;
+        while (it.next()) {
+            m.setRuntime("runtimetest", ix);
+            hash rec = m.mapData(it.getValue());
+            hash orig = MapOutput[ix] + ("runtimetest" : ix);
+            testAssertion(sprintf("runtime item: %d", ix), \equals(), (rec, orig));
+            ix++;
+        }
+    }
+
+    testMapperOptionInput() {
+        hash my_opts = m_opts + ("input": map {$1: $1}, MapInput[0].keys());
+        Mapper m(DataMap, my_opts);
+        m.mapData(MapInput[0]);
+    }
+
+    testMapperBulk() {
+        MapperIterator i(MapInput.iterator(), DataMap, m_opts);
+        list l = i.mapBulk(MapInput.lsize());
+        testAssertion("Verify mapped list", \equalsIterated(), (l.iterator(), MapOutput.iterator()));
+        assertEq(2, i.getCount());
+    }
+
+    testMapperIndex() {
+        Mapper m(DataMap, m_opts);
+        list l = m.mapAll(MapInput);
+        assertEq(l, MapOutput);
+
+        Mapper mi(DataMap, m_opts);
+        ListIterator it(MapInput);
+        int ix = 0;
+        while (it.next()) {
+            hash rec = mi.mapData(it.getValue());
+            assertEq(rec, MapOutput[ix]);
+            ix++;
+        }
+    }
+
+    testEmptyString() {
+        Mapper m(DataMap, m_opts + ( "empty_strings_to_nothing" : True ) );
+        list l = m.mapAll(MapInput);
+        list o = MapOutput;
+        # simulate "old empty string to NOTHING conversion"
+        o[0].empty_string = NOTHING;
+        o[1].empty_string = NOTHING;
+        assertEq(l, o);
+    }
+}

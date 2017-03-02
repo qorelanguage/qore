@@ -16,26 +16,34 @@ AM_CPPFLAGS = -I$(top_srcdir)/include
 DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/MailMessage.qm \
 	qlib/Util.qm \
+	qlib/HttpServerUtil.qm \
 	qlib/HttpServer.qm \
 	qlib/WebSocketUtil.qm \
 	qlib/SqlUtil.qm \
-	qlib/Mapper.qm
+	qlib/Mapper.qm \
+	qlib/RestClient.qm
 
 DOX_MODULES = qlib/SmtpClient.qm \
 	qlib/TelnetClient.qm \
 	qlib/Pop3Client.qm \
 	qlib/CsvUtil.qm \
+	qlib/FilePoller.qm \
+	qlib/FixedLengthUtil.qm \
 	qlib/OracleSqlUtil.qm \
 	qlib/PgsqlSqlUtil.qm \
-        qlib/Qorize.qm \
+	qlib/FreetdsSqlUtil.qm \
+	qlib/Qorize.qm \
 	qlib/MysqlSqlUtil.qm \
 	qlib/RestHandler.qm \
-	qlib/RestClient.qm \
 	qlib/WebSocketHandler.qm \
 	qlib/WebSocketClient.qm \
 	qlib/WebUtil.qm \
 	qlib/TableMapper.qm \
-	qlib/Schema.qm
+	qlib/Schema.qm \
+	qlib/QUnit.qm \
+	qlib/Diff.qm \
+	qlib/BulkSqlUtil.qm \
+	qlib/SalesforceRestClient.qm
 
 USER_MODULES = $(DOX_SRC_MODULES) \
 	$(DOX_MODULES)
@@ -60,8 +68,10 @@ QDX_SRC=doxygen/qdx
 if COND_MINGWCC
 # when cross-compiling, we just hope that qore is installed also natively, otherwise the documentation can't be built
 QDX=QORE_MODULE_DIR=./qlib $(QDX_SRC)
+QDX_DEP = $(QDX_SRC)
 else
 QDX=QORE_MODULE_DIR=./qlib ./qore $(QDX_SRC)
+QDX_DEP = $(QDX_SRC) qore
 endif
 
 LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
@@ -93,6 +103,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_HashListReverseIterator.qpp \
 	lib/QC_ListHashIterator.qpp \
 	lib/QC_ListHashReverseIterator.qpp \
+	lib/QC_DataLineIterator.qpp \
 	lib/QC_FileLineIterator.qpp \
 	lib/QC_SingleValueIterator.qpp \
 	lib/QC_AbstractDatasource.qpp \
@@ -118,6 +129,8 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_SSLCertificate.qpp \
 	lib/QC_SSLPrivateKey.qpp \
 	lib/QC_ThreadPool.qpp \
+	lib/QC_TreeMap.qpp \
+	lib/QC_AbstractThreadResource.qpp \
 	lib/Pseudo_QC_All.qpp \
 	lib/Pseudo_QC_Nothing.qpp \
 	lib/Pseudo_QC_Date.qpp \
@@ -153,6 +166,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/qc_qore.qpp
 
 include_HEADERS = \
+	include/qore/QoreValue.h \
 	include/qore/ReferenceArgumentHelper.h \
 	include/qore/QoreTypeSafeReferenceHelper.h \
 	include/qore/qore_thread.h \
@@ -163,6 +177,7 @@ include_HEADERS = \
 	include/qore/QoreIteratorBase.h \
 	include/qore/QoreType.h \
 	include/qore/QoreListNode.h \
+	include/qore/QoreValueList.h \
 	include/qore/QoreBigIntNode.h \
 	include/qore/QoreBoolNode.h \
 	include/qore/QoreFloatNode.h \
@@ -185,7 +200,6 @@ include_HEADERS = \
 	include/qore/support.h \
 	include/qore/ExceptionSink.h \
 	include/qore/AbstractQoreNode.h \
-	include/qore/QoreNodeEvalOptionalRefHolder.h \
 	include/qore/QoreStringNode.h \
 	include/qore/DateTimeNode.h \
 	include/qore/QoreHashNode.h \
@@ -198,6 +212,7 @@ include_HEADERS = \
 	include/qore/macros-powerpc.h \
 	include/qore/macros-sparc.h \
 	include/qore/macros-ia64.h \
+	include/qore/macros-parisc.h \
 	include/qore/QoreSocket.h \
 	include/qore/QoreSocketObject.h \
 	include/qore/QoreNet.h \
@@ -229,6 +244,7 @@ include_HEADERS = \
 	include/qore/AutoVLock.h \
 	include/qore/QoreFile.h \
 	include/qore/Qore.h \
+	include/qore/QoreNodeEvalOptionalRefHolder.h \
 	include/qore/QoreEvents.h
 
 noinst_HEADERS = \
@@ -242,6 +258,8 @@ noinst_HEADERS = \
 	include/qore/intern/win32-config.h \
 	include/qore/intern/git-revision.h \
 	include/qore/intern/glob.h \
+	include/qore/intern/RSet.h \
+	include/qore/intern/ParseList.h \
 	include/qore/intern/AbstractIteratorHelper.h \
 	include/qore/intern/ParseReferenceNode.h \
 	include/qore/intern/ReferenceHelper.h \
@@ -249,10 +267,12 @@ noinst_HEADERS = \
 	include/qore/intern/ssl_constants.h \
 	include/qore/intern/qore_thread_intern.h \
 	include/qore/intern/qore_list_private.h \
+	include/qore/intern/qore_value_list_private.h \
 	include/qore/intern/inline_printf.h \
+	include/qore/intern/qore_qf_private.h \
 	include/qore/intern/VRMutex.h \
 	include/qore/intern/Variable.h \
-	include/qore/intern/QoreValue.h \
+	include/qore/intern/QoreLValue.h \
 	include/qore/intern/LocalVar.h \
 	include/qore/intern/QoreQueueIntern.h \
 	include/qore/intern/ModuleInfo.h \
@@ -333,6 +353,7 @@ noinst_HEADERS = \
 	include/qore/intern/ParseNode.h \
 	include/qore/intern/QoreClosureNode.h \
 	include/qore/intern/QoreClosureParseNode.h \
+	include/qore/intern/QoreParseHashNode.h \
 	include/qore/intern/QoreImplicitArgumentNode.h \
 	include/qore/intern/QoreImplicitElementNode.h \
 	include/qore/intern/qore_string_private.h \
@@ -345,6 +366,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreTypeInfo.h \
 	include/qore/intern/QoreSSLIntern.h \
 	include/qore/intern/QoreObjectIntern.h \
+	include/qore/intern/RSection.h \
 	include/qore/intern/QoreHashNodeIntern.h \
 	include/qore/intern/QoreOperatorNode.h \
 	include/qore/intern/QoreDeleteOperatorNode.h \
@@ -353,18 +375,19 @@ noinst_HEADERS = \
 	include/qore/intern/QoreExtractOperatorNode.h \
 	include/qore/intern/QoreCastOperatorNode.h \
 	include/qore/intern/QoreUnaryMinusOperatorNode.h \
+	include/qore/intern/QoreLogicalNotOperatorNode.h \
 	include/qore/intern/QoreDotEvalOperatorNode.h \
 	include/qore/intern/QoreLogicalEqualsOperatorNode.h \
 	include/qore/intern/QoreLogicalNotEqualsOperatorNode.h \
+	include/qore/intern/QoreModuloOperatorNode.h \
 	include/qore/intern/QoreAssignmentOperatorNode.h \
-	include/qore/intern/QoreIntAssignmentOperatorNode.h \
 	include/qore/intern/QorePlusEqualsOperatorNode.h \
 	include/qore/intern/QoreIntPlusEqualsOperatorNode.h \
 	include/qore/intern/QoreMinusEqualsOperatorNode.h \
 	include/qore/intern/QoreIntMinusEqualsOperatorNode.h \
 	include/qore/intern/QoreOrEqualsOperatorNode.h \
 	include/qore/intern/QoreAndEqualsOperatorNode.h \
-	include/qore/intern/QoreModulaEqualsOperatorNode.h \
+	include/qore/intern/QoreModuloEqualsOperatorNode.h \
 	include/qore/intern/QoreMultiplyEqualsOperatorNode.h \
 	include/qore/intern/QoreDivideEqualsOperatorNode.h \
 	include/qore/intern/QoreXorEqualsOperatorNode.h \
@@ -382,8 +405,18 @@ noinst_HEADERS = \
 	include/qore/intern/QoreLogicalGreaterThanOperatorNode.h \
 	include/qore/intern/QoreLogicalLessThanOrEqualsOperatorNode.h \
 	include/qore/intern/QoreLogicalGreaterThanOrEqualsOperatorNode.h \
+	include/qore/intern/QoreDivisionOperatorNode.h \
 	include/qore/intern/QoreBinaryLValueOperatorNode.h \
 	include/qore/intern/QoreQuestionMarkOperatorNode.h \
+	include/qore/intern/QoreNullCoalescingOperatorNode.h \
+	include/qore/intern/QoreValueCoalescingOperatorNode.h \
+	include/qore/intern/QoreMapOperatorNode.h \
+	include/qore/intern/QoreMapSelectOperatorNode.h \
+	include/qore/intern/QoreHashMapOperatorNode.h \
+	include/qore/intern/QoreHashMapSelectOperatorNode.h \
+	include/qore/intern/QoreChompOperatorNode.h \
+	include/qore/intern/QoreTrimOperatorNode.h \
+	include/qore/intern/QoreSquareBracketsOperatorNode.h \
 	include/qore/intern/QorePseudoMethods.h \
 	include/qore/intern/QoreHashIterator.h \
 	include/qore/intern/QoreListIterator.h \
@@ -393,6 +426,8 @@ noinst_HEADERS = \
 	include/qore/intern/SingleValueIterator.h \
 	include/qore/intern/RangeIterator.h \
 	include/qore/intern/ThreadPool.h \
+	include/qore/intern/qore_var_rwlock_priv.h \
+	include/qore/intern/qore_qd_private.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \
@@ -434,6 +469,8 @@ noinst_HEADERS = \
 	include/qore/intern/QC_AutoWriteLock.h \
 	include/qore/intern/QC_AbstractSmartLock.h \
 	include/qore/intern/QC_TimeZone.h \
+	include/qore/intern/QC_TreeMap.h \
+	include/qore/intern/QC_AbstractThreadResource.h \
 	lib/getopt_long.h \
 	command-line.h
 
@@ -502,38 +539,28 @@ LANG_DOXYFILES_SRC = \
 	doxygen/lang/Doxyfile.tmpl \
 	$(LANG_TMP_DOXYFILES_TMPL)
 
-EXTRA_DIST = next_build.sh runtest.sh WHATISQORE RELEASE-NOTES \
-	AUTHORS BUILD \
-	README README-LICENSE README-MODULES \
+EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
+	AUTHORS BUILDING \
+	README.md README-LICENSE README-MODULES \
 	COPYING.LGPL COPYING.GPL COPYING.MIT \
-        examples/test/thread-object-test.q \
-        examples/test/create-iso-8859-1-file.q \
-        examples/test/empty.q \
-        examples/test/file-test.q \
-        examples/test/ftp-test.q \
-        examples/test/max-threads-test.q \
-        examples/test/stack-test.q \
-        examples/test/object-test.q \
-        examples/test/rwlock-test.q \
-        examples/test/socket-test.q \
-        examples/test/subprogram-thread-test.q \
-        examples/test/system-test.q \
-        examples/test/test-exception.q \
-        examples/test/test.q \
-        examples/test/Test.qc \
-        examples/test/unlocked-thread-test.q \
-	examples/test/regex.q \
-	examples/test/deadlock.q \
-	examples/test/optest.q \
-	examples/stmt.q \
-	examples/exp.q \
-	examples/obj2.q \
-	examples/hash.q \
+	examples/test \
+	examples/HelloWorld.q \
 	examples/clisrv.q \
+	examples/email.q \
+	examples/exp.q \
+	examples/getch.q \
+	examples/getopt.q \
+	examples/hash.q \
+	examples/httpserver.q \
 	examples/inherit.q \
 	examples/inherit2.q \
-	examples/getopt.q \
-	examples/getch.q \
+	examples/obj2.q \
+	examples/old2new \
+	examples/pop3.q \
+	examples/restserver.q \
+	examples/schema \
+	examples/stmt.q \
+	examples/telnet.q \
 	qore.spec \
 	qore.spec-fedora \
 	qore.spec-multi \
@@ -544,14 +571,21 @@ EXTRA_DIST = next_build.sh runtest.sh WHATISQORE RELEASE-NOTES \
 
 dist_modver_DATA = $(USER_MODULES)
 
-TESTS = examples/test/test.q
+include $(srcdir)/qoretests.mk
+
+# all tests
+TESTS = $(qore_tests)
+#TESTS = `find ./examples/test/ -name "*.qtest"`
+
 AM_TESTS_ENVIRONMENT = QORE_MODULE_DIR='$(srcdir)/qlib'; export QORE_MODULE_DIR;
-LOG_COMPILER = ./runtest.sh
 
 BUILT_SOURCES = dummy
 
 dummy:
-	./next_build.sh
+	$(top_srcdir)/next_build.sh
+
+dist-hook:
+	$(RM) -rf `find $(distdir)/examples/test -type f -a \! -name \*.qtest -a \! -name \*.qm -a \! -name Europe_Vienna`
 
 if COND_DOXYGEN
 MOD_OUTPUT = $(addprefix docs/modules/,$(addsuffix /html,$(USER_MODS)))
@@ -589,41 +623,42 @@ $(LANG_TMP_DOXYFILES_SRC): doxygen/lang/%.dox: doxygen/lang/%.dox.tmpl lib $(QPP
 lib/libqore.la: dummy
 	cd lib; make
 
-if COND_MINGWCC
-else
-$(QDX): qore
-endif
-
 QDX_MTAG_ARGS = $(foreach m,$(basename $(notdir $(DOX_SRC_MODULES))),-t$(m).tag=../../$(m)/html)
 
 # explicit Doxyfile rules for modules providing tags for other modules
-doxygen/qlib/Doxyfile.Mime: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+doxygen/qlib/Doxyfile.Mime: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/Mime.qm:doxygen/qlib/Mime.qm.dox.h $< $@
 
-doxygen/qlib/Doxyfile.Util: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+doxygen/qlib/Doxyfile.Util: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/Util.qm:doxygen/qlib/Util.qm.dox.h $< $@
 
-doxygen/qlib/Doxyfile.HttpServer: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
-	$(QDX) -M=qlib/HttpServer.qm:doxygen/qlib/HttpServer.qm.dox.h -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html $< $@
+doxygen/qlib/Doxyfile.HttpServerUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/HttpServerUtil.qm:doxygen/qlib/HttpServerUtil.qm.dox.h -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html $< $@
 
-doxygen/qlib/Doxyfile.MailMessage: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+doxygen/qlib/Doxyfile.HttpServer: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/HttpServer.qm:doxygen/qlib/HttpServer.qm.dox.h -tHttpServerUtil.tag=../../HttpServerUtil/html -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html $< $@
+
+doxygen/qlib/Doxyfile.MailMessage: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/MailMessage.qm:doxygen/qlib/MailMessage.qm.dox.h -tMime.tag=../../Mime/html $< $@
 
-doxygen/qlib/Doxyfile.SqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+doxygen/qlib/Doxyfile.SqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/SqlUtil.qm:doxygen/qlib/SqlUtil.qm.dox.h -tUtil.tag=../../Util/html $< $@
 
-doxygen/qlib/Doxyfile.WebSocketUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+doxygen/qlib/Doxyfile.WebSocketUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/WebSocketUtil.qm:doxygen/qlib/WebSocketUtil.qm.dox.h $< $@
 
-doxygen/qlib/Doxyfile.Mapper: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+doxygen/qlib/Doxyfile.Mapper: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/Mapper.qm:doxygen/qlib/Mapper.qm.dox.h $< $@
 
+doxygen/qlib/Doxyfile.RestClient: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/RestClient.qm:doxygen/qlib/RestClient.qm.dox.h -tMime.tag=../../Mime/html $< $@
+
 DOXYFILE_TARG = $(addprefix doxygen/qlib/Doxyfile.,$(DOX_USER_MODS))
-$(DOXYFILE_TARG): doxygen/qlib/Doxyfile.%: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+$(DOXYFILE_TARG): doxygen/qlib/Doxyfile.%: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/$*.qm:doxygen/qlib/$*.qm.dox.h $(QDX_MTAG_ARGS) $< $@
 
 TMP_MOD_TARG = $(addprefix doxygen/qlib/,$(addsuffix .qm.dox.h,$(USER_MODS)))
-$(TMP_MOD_TARG): doxygen/qlib/%.qm.dox.h: qlib/%.qm $(QDX_SRC)
+$(TMP_MOD_TARG): doxygen/qlib/%.qm.dox.h: qlib/%.qm $(QDX_DEP)
 	$(QDX) $< $@
 
 QLIB_TMP_DOXYFILES = $(TMP_MOD_TARG) $(addsuffix .tag,$(USER_MODS))
@@ -631,15 +666,18 @@ QLIB_TMP_DOXYFILES = $(TMP_MOD_TARG) $(addsuffix .tag,$(USER_MODS))
 DX_CLEANFILES = $(LIB_TMP_DOXYFILES) $(LANG_TMP_DOXYFILES) $(QLIB_TMP_DOXYFILES)
 
 docs/library/html: $(include_HEADERS) $(LIB_DOXYFILES)
+	$(MKDIR_P) $@
 	$(DOXYGEN_CMD) doxygen/lib/Doxyfile
 
 docs/lang/html: $(LANG_DOXYFILES) $(LANG_QPP_SRC)
+	$(MKDIR_P) $@
 	$(DOXYGEN_CMD) doxygen/lang/Doxyfile
 	$(top_srcdir)/doxygen/pdox docs/lang/html docs/lang/html/search
 	$(top_srcdir)/doxygen/pdox -t docs/lang/latex
 
 TMP_MOD_HTML_TARG = $(addsuffix /html,$(addprefix docs/modules/,$(USER_MODS)))
 $(TMP_MOD_HTML_TARG): docs/modules/%/html: doxygen/qlib/%.qm.dox.h doxygen/qlib/Doxyfile.% #docs/lang/html
+	$(MKDIR_P) $@
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.$*
 	$(top_srcdir)/doxygen/pdox $@ $@/search
 
@@ -676,6 +714,7 @@ dist_man_MANS = qore.1
 #$(dist_man_MANS): doxygen-doc
 
 qore_LDADD = lib/libqore.la
+#qr_LDADD = lib/libqore.la
 
 ACLOCAL_AMFLAGS=-I m4
 
@@ -684,23 +723,30 @@ AM_CXXFLAGS = ${PTHREAD_CFLAGS}
 if COND_PROFILE
 AM_CXXFLAGS += -g -pg
 qore_LDFLAGS=-g -pg
+#qr_LDFLAGS=-g -pg
 else
 if COND_DEBUG
 AM_CXXFLAGS += -g
 qore_LDFLAGS=-g
+#qr_LDFLAGS=-g
 else
 ##qore_LDFLAGS=-s
 endif
 endif
 
 bin_PROGRAMS = qore
-dist_bin_SCRIPTS = doxygen/qdx
+# qr
+dist_bin_SCRIPTS = doxygen/qdx bin/qget bin/rest bin/sfrest bin/sqlutil bin/schema-reverse
 if COND_SINGLE_COMPILATION_UNIT
-qore_SOURCES = single-compilation-unit.cpp
+qore_SOURCES = qore-single-compilation-unit.cpp
+#qr_SOURCES = qr-single-compilation-unit.cpp
 else
 qore_SOURCES = \
-	main.cpp \
+	qore-main.cpp \
 	command-line.cpp
+#qr_SOURCES = \
+#	qr-main.cpp \
+#	command-line.cpp
 endif
 
 pkgconfigdir = $(libdir)/pkgconfig
@@ -711,9 +757,15 @@ cmakedir = $(prefix)/lib${LIBSUFFIX}/cmake/Qore
 cmake_DATA = cmake/QoreConfig.cmake cmake/QoreConfigVersion.cmake cmake/QoreMacros.cmake
 
 BUILD=$(shell $(top_srcdir)/next_build.sh -b)
-PACKAGE_VERSION=$(shell grep PACKAGE_VERSION include/qore/intern/unix-config.h | cut -f3 -d\  | sed s/\"//g)
+PACKAGE_VERSION=$(shell grep PACKAGE_VERSION include/qore/intern/unix-config.h|cut -f3 -d\ |sed s/\"//g)
 TAR_NAME := arch/qore-v$(PACKAGE_VERSION)-$(BUILD)-$(shell date +%Y%m%d).tar
 
 tar: clean
 	find $(top_srcdir) -name \*~ -exec rm {} \;
 	cd ..; tar cvf $(TAR_NAME) src && gzip $(TAR_NAME)
+
+tests:
+	./run_tests.sh
+
+tests-ci:
+	./run_tests.sh -j

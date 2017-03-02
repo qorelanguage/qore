@@ -1,0 +1,53 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class ClosuresTest
+
+list sub closures(string x) {
+    my int a = 1;
+
+    my code inc = string sub (any y) {
+        return sprintf("%s-%n-%n", x, y, ++a);
+    };
+
+    my code dec = string sub (any y) {
+        return sprintf("%s-%n-%n", x, y, --a);
+    };
+
+    return (inc, dec);
+}
+
+public class ClosuresTest inherits QUnit::Test {
+    constructor() : Test("Closures test", "1.0") {
+        addTestCase("First test", \testPart1(), NOTHING);
+        addTestCase("Second test", \testPart2(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    testPart1() {
+        my (code inc, code dec) = closures("test");
+        assertEq("test-5-2", inc(5), "first closure");
+        assertEq("test-7-3", inc(7), "second closure");
+        assertEq("test-3-2", dec(3), "third closure");
+    }
+
+    testPart2() {
+        code c = sub (*reference r) {
+            r = "hi";
+        };
+
+        string str;
+        c(\str);
+
+        assertEq("hi", str, "closure with reference arg");
+    }
+}

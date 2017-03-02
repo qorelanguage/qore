@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -48,37 +48,8 @@ protected:
    }
 
    // returns a runtime reference (ReferenceNode)
-   DLLLOCAL virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const {
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
       return evalToRef(xsink);
-   }
-
-   DLLLOCAL virtual AbstractQoreNode* evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-      needs_deref = true;
-      return evalToRef(xsink);
-   }
-
-   //! should never be called
-   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink* xsink) const {
-      assert(false);
-      return 0;
-   }
-
-   //! should never be called
-   DLLLOCAL virtual int integerEvalImpl(ExceptionSink* xsink) const {
-      assert(false);
-      return 0;
-   }
-
-   //! should never be called
-   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink* xsink) const {
-      assert(false);
-      return false;
-   }
-
-   //! should never be called
-   DLLLOCAL virtual double floatEvalImpl(ExceptionSink* xsink) const {
-      assert(false);
-      return 0.0;
    }
 
    DLLLOCAL AbstractQoreNode* doPartialEval(AbstractQoreNode* n, QoreObject*& self, const void*& lvalue_id, ExceptionSink* xsink) const;

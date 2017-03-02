@@ -1,0 +1,31 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class ExistsFunctionTest
+
+# The function we test for
+any sub simple_shift() {
+    return shift argv;
+}
+
+public class ExistsFunctionTest inherits QUnit::Test {
+    constructor() : Test("ExistsFunctionTest", "1.1") {
+        addTestCase("exists_function() test", \existsFunctionTestMethod(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    existsFunctionTestMethod() {
+        assertEq(True, exists_function("simple_shift"), "exists_function() user function");
+        assertEq(True, exists_function("printf"), "exists_function() builtin function");
+        assertEq(False, exists_function("abcdefgh_XYZ_123456789_1337"), "exists_function() non-existing");
+    }
+}
