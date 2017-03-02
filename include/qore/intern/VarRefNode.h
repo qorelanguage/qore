@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 #ifndef _QORE_VARREFNODE_H
 #define _QORE_VARREFNODE_H
 
-#include <qore/intern/FunctionCallNode.h>
+#include "qore/intern/FunctionCallNode.h"
 
 class VarRefNewObjectNode;
 class LocalVar;
