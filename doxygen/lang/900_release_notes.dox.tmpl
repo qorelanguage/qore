@@ -180,6 +180,7 @@
     - <a href="../../modules/WebSocketUtil/html/index.html">WebSocketUtil</a> module fixes:
       - added timeout values to @ref Qore::Socket "Socket" calls (<a href="https://github.com/qorelanguage/qore/issues/1725">issue 1725</a>)
     - fixed a bug where a type conversion error in an lvalue assignment could generate a confusing unrelated runtime exception (<a href="https://github.com/qorelanguage/qore/issues/1697">issue 1697</a>)
+    - fixed a bug with SSL socket communication the remote closing the connection during a send operation could cause the current thread to go into an infinite loop consuming 100% CPU (<a href="https://github.com/qorelanguage/qore/issues/1729">issue 1729</a>)
 
     @section qore_08127 Qore 0.8.12.7
 

@@ -98,7 +98,47 @@ class SocketTest inherits QUnit::Test {
         addTestCase("Unconnected Socket tests", \unconnectedSocketTest());
         addTestCase("Random Port tests", \randomPortSocketTest());
         addTestCase("SSL read test", \sslReadTest());
+        addTestCase("SSL write disconnect test", \sslWriteDisconnectTest());
         set_return_value(main());
+    }
+
+    sslWriteDisconnectTest() {
+        Queue q();
+        background sslReadDisconnect(q);
+
+        # create server socket
+        Socket s();
+        # bind on a random free port
+        s.bind(0);
+        s.listen();
+        s.setCertificate(TestCert);
+        s.setPrivateKey(TestCert);
+        # send the port to the client
+        q.push(s.getSocketInfo().port);
+        # accept a new connection
+        Socket ns = s.acceptSSL(15s);
+
+        hash ex1;
+        while (True) {
+            try {
+                ns.send(TestCert);
+            }
+            catch (hash ex) {
+                ex1 = ex;
+                break;
+            }
+        }
+        assertEq("SOCKET-SSL-ERROR", ex1.err);
+    }
+
+    sslReadDisconnect(Queue q) {
+        Socket s();
+        int port = q.get();
+        s.connectSSL("localhost:" + port);
+
+        # get one byte
+        s.recvu1();
+        # and disconnect
     }
 
     sslReadTest() {
@@ -119,8 +159,7 @@ class SocketTest inherits QUnit::Test {
         s.setCertificate(TestCert);
         s.setPrivateKey(TestCert);
         q.push(s.getSocketInfo().port);
-        Socket ns = s.acceptSSL(15s);
-        remove ns;
+        s.acceptSSL(15s);
     }
 
     randomPortSocketTest() {
