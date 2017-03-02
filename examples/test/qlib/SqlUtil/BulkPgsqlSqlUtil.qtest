@@ -1,0 +1,224 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/SqlUtil.qm
+%requires ../../../../qlib/BulkSqlUtil.qm
+%requires ../../../../qlib/PgsqlSqlUtil.qm
+%requires ../../../../qlib/Schema.qm
+
+%requires ./BulkSqlUtilTestBase.qm
+#/;
+%try-module pgsql
+%define NoPgsql
+%endtry
+
+%exec-class PgsqlTest
+
+class PgsqlTestSchema inherits SqlUtilTestSchema {
+    public {
+        const SchemaName = "PgsqlTestSchema";
+        const SchemaVersion = "1.0";
+    }
+
+    private {
+        const GenericOptions = (
+            "replace": True,
+            );
+
+        const IndexOptions = {};
+
+        const ColumnOptions = {};
+
+        const T_PgsqlTest = (
+            "columns": (
+                "id": c_number(14, True),
+                "id_": c_number(14, True),
+                "null_f": c_varchar(69),
+            ),
+            "primary_key": ("name": "pk_pgsql_test", "columns": ("id")),
+            );
+
+        const Tables = (
+            "pgsql_test": T_PgsqlTest,
+            );
+
+        const Sequences = (
+            "pgsql_test_seq": {},
+            );
+    }
+
+    constructor(AbstractDatasource ds, *string dts, *string its) : SqlUtilTestSchema(ds, dts, its) {
+    }
+
+    private string getNameImpl() {
+        return SchemaName;
+    }
+
+    private string getVersionImpl() {
+        return SchemaVersion;
+    }
+
+    private *hash getTablesImpl() {
+        return doTables(Tables, PgsqlTest::CustomColumns);
+        /*
+        hash tables = Tables;
+        # add custom columns to pgsql_test
+        foreach hash h in (PgsqlTest::CustomColumns.pairIterator()) {
+            string type = h.value.type ?? h.key;
+            hash ch = (
+                "native_type": type,
+                "notnull": True,
+                );
+            if (h.value.typeCode() == NT_HASH)
+                ch += (h.value - ("value", "bind", "expect", type));
+            tables.pgsql_test.columns{SqlTestBase::getColumnName(h.key)} = ch;
+        }
+        return tables;
+        */
+    }
+
+    private *hash getSequencesImpl() {
+        return Sequences;
+    }
+
+    private *hash getIndexOptionsImpl() {
+        return IndexOptions;
+    }
+
+    private *hash getGenericOptionsImpl() {
+        return GenericOptions;
+    }
+
+    private *hash getColumnOptionsImpl() {
+        return ColumnOptions;
+    }
+}
+
+class PgsqlTest inherits SqlTestBase {
+    public {
+        const CustomColumns = (
+            "varchar": (
+                "value": "hello",
+                "size": "20",
+            ),
+            "char": (
+                "value": "hello",
+                "size": "20",
+            ),
+            "numeric": (
+                "size": 15,
+                "scale": 2,
+                "value": 400.95n,
+            ),
+            "numeric_def": (
+                "type": "numeric",
+                "value": 400.95n,
+            ),
+
+            "smallint": 100,
+            "integer": 1928381,
+            "bigint": 2198374739812,
+
+            "smallserial": 100,
+            "serial": 39484392,
+            "bigserial": 129383948393,
+
+            "real": 1.5,
+            "double precision": 3.1415927,
+            "float": 3.141592653589793238,
+            "oid": 1234, # should not be used
+
+            "date": 2016-01-11,
+            "abstime": 2016-01-11T09:26:14,
+            "reltime": (
+                "value": 5M + 71D + 19h + 245m + 51s,
+                "expect": PT5327H5M51S,
+            ),
+            "interval": 6M + 3D + 2h + 45m + 15s,
+            "time": 09:26:52,
+            "time with time zone": 09:27:03-06,
+            "timetz": 09:27:03-06,
+            "timestamp": 2016-01-11T09:27:59,
+            "timestamp with time zone": 2016-01-11T09:28:12.384629+03,
+            "timestamptz": 2016-01-11T09:28:12.384629+03,
+
+            /*
+            "money": (
+                "value": 400.56,
+%ifndef NoPgsql
+                "bind": pgsql_bind(PG_TYPE_CASH, "400.56"),
+%endif
+            ),
+            */
+            "text": "test",
+            "character": "c",
+            "character varying": "character varying",
+
+            "bool": True,
+            "boolean": False,
+
+            "bytea": <bead>,
+%ifndef NoPgsql
+            "bit": ("bind": pgsql_bind (PG_TYPE_BIT, "10011001"), "size": 8, "expect": <99>),
+            "varbit": ("bind": pgsql_bind (PG_TYPE_VARBIT, "xBEAF"), "expect": <BEAF>),
+
+            "macaddr": ("bind": pgsql_bind (PG_TYPE_MACADDR, "0a:1e:df:e4:4f:da")),
+            "inet": ("bind": pgsql_bind (PG_TYPE_INET, "192.168.11.1"), "expect": "192.168.11.1/32"),
+            "cidr": ("bind": pgsql_bind (PG_TYPE_CIDR, "192.168"), "expect": "192.168.0.0/24"),
+%endif
+            );
+    }
+
+    constructor() : SqlTestBase("PgsqlTest", "1.0", \ARGV, MyOpts) {
+        Datasource ds;
+        try {
+            ds = getDatasource();
+        }
+        catch (hash ex) {
+            if (m_options.verbose)
+                printf("%s: %s\n", ex.err, ex.desc);
+            # skip tests if we can't create the datasource
+        }
+
+        if (ds) {
+            initTestData(CustomColumns);
+
+            { # Make sure the DB is clear before doing the tests.
+                PgsqlTable t = new PgsqlTable(ds, "pgsql_test");
+                if (t.checkExistence())
+                    t.dropCommit();
+            }
+
+            # create the test schema
+            schema = new PgsqlTestSchema(ds);
+
+            schema.align(False, m_options.verbose);
+
+            # get table object
+            table = (new Table(schema.getDatasource(), "pgsql_test")).getTable();
+        }
+
+        set_return_value(main());
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"pgsql:user/pass@db\")", OptionColumn);
+    }
+
+    Datasource getDatasource() {
+        if (!m_options.connstr)
+            m_options.connstr = ENV.QORE_DB_CONNSTR_PGSQL;
+        Datasource ds(m_options.connstr);
+        if (ds.getDriverName() != "pgsql")
+            throw "PGSQL-ERROR", sprintf("cannot execute the pgsql tests on a connection using driver %y", ds.getDriverName());
+        ds.open();
+        return ds;
+    }
+}
