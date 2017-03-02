@@ -955,6 +955,7 @@ struct qore_socket_private {
 	 if (!::connect(sock, ai_addr, ai_addrlen))
 	    return 0;
 
+#ifdef _Q_WINDOWS
 	 if (sock_get_error() != EAGAIN) {
 	    qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()", 0, 0, 0, ai_addr);
 	    break;
