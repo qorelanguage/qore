@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file WebSocketUtil.qm WebSocket common client/server code
 
-/*  WebSocketUtil.qm Copyright 2013 - 2016 Qore Technologies, s.r.o.
+/*  WebSocketUtil.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,7 +35,7 @@
 %new-style
 
 module WebSocketUtil {
-    version = "1.2";
+    version = "1.3";
     desc = "user module providing common client and server support for the WebSocket protocol";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -64,6 +64,9 @@ module WebSocketUtil {
     - @ref opcodes
 
     @section websocketutil_relnotes WebSocketUtil Module Release History
+
+    @subsection wsu_v13 v1.3
+    - added timeout values to @ref Qore::Socket "Socket" calls (<a href="https://github.com/qorelanguage/qore/issues/1725">issue 1725</a>)
 
     @subsection wsu_v12 v1.2
     - fixed a bug parsing and generating the websocket close status code (<a href="https://github.com/qorelanguage/qore/issues/1216">issue 1216</a>)
@@ -239,7 +242,7 @@ hash h = ws_read_message(sock);
         int op = b0 & 0xf;
 
         # get next byte
-        int b1 = sock.recvu1();
+        int b1 = sock.recvu1(to);
         softbool masked = b1 & 0x80;
         b1 &= 0x7f;
 
@@ -247,17 +250,17 @@ hash h = ws_read_message(sock);
         if (b1 < 126)
             data_len = b1;
         else if (b1 == 126)
-            data_len = sock.recvu2();
+            data_len = sock.recvu2(to);
         else
-            data_len = sock.recvi8();
+            data_len = sock.recvi8(to);
 
         *binary mask;
         if (masked)
-            mask = sock.recvBinary(4);
+            mask = sock.recvBinary(4, to);
 
         *data data;
         if (data_len)
-            data = sock.recvBinary(data_len);
+            data = sock.recvBinary(data_len, to);
 
         # unmask data if necessary
         if (mask) {
