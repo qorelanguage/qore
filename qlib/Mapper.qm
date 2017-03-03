@@ -956,7 +956,7 @@ Mapper mapv(DataMap);
             else
                 v = rec{name} ?? NOTHING;
 
-            if (do_list && v.typeCode() != NT_LIST)
+            if (do_list && exists v && v.typeCode() != NT_LIST)
                 error2("MAPPER-FIELD-LIST-ERROR", "field %y value passed is %y in list mode; expecting \"list\"", key, v.type());
 
             # move any XML CDATA into the field value

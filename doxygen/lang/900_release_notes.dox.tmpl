@@ -14,6 +14,8 @@
     - fixed a bug where @ref Qore::ReadOnlyFile::getchar() "ReadOnlyFile::getchar()" did not respect character semantics as documented (<a href="https://github.com/qorelanguage/qore/issues/1574">issue 1574</a>)
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module fixes:
       - fixed a bug in \c character_semantics for standalone column (<a href="https://github.com/qorelanguage/qore/issues/1688">issue 1688</a>)
+    - <a href="../../modules/Mapper/html/index.html">Mapper</a> module fixes:
+      - fixed a bug in handling "list mode" data such as submitted by \c InboundTableMapper::queueData() (<a href="https://github.com/qorelanguage/qore/issues/1736">issue 1736</a>, bug introduced in Qore 0.8.12.6 with the fix for <a href="https://github.com/qorelanguage/qore/issues/1620">issue 1620</a>)
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module fixes:
       - fixed schema alignment skipping column with name "driver" (<a href="https://github.com/qorelanguage/qore/issues/1684">issue 1684</a>)
       - fixed sqlutil schema management: functional indexes are rejected without () in name (<a href="https://github.com/qorelanguage/qore/issues/1610">issue 1610</a>)
