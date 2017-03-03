@@ -26,6 +26,7 @@ public class TableMapperTestSchema inherits AbstractSchema {
                 "id": c_number(C_NOT_NULL),
                 "string": c_varchar(50, C_NULL),
                 "dte": c_timestamp(C_NOT_NULL),
+                "code1": c_varchar(50, C_NULL),
             ),
             );
 
@@ -104,10 +105,16 @@ public class TableMapperTest inherits QUnit::Test {
             "orderby": "id",
             );
 
+        const OutputBulk = (
+            ("id": 10, "code1": "code", "string": "string_1"),
+            ("id": 11, "code1": "code", "string": "string_2"),
+            ("id": 12, "code1": "code", "string": NOTHING),
+            );
+
         const Output2 = (
-            ("seq": 10, "tstr": "10-string_1"),
-            ("seq": 11, "tstr": "11-string_2"),
-            ("seq": 12, "tstr": "12-"),
+            ("seq": 13, "tstr": "13-string_1"),
+            ("seq": 14, "tstr": "14-string_2"),
+            ("seq": 15, "tstr": "15-"),
             );
 
         const MyOpts = Opts + (
@@ -199,11 +206,17 @@ public class TableMapperTest inherits QUnit::Test {
 
             on_exit table.rollback();
 
-            InboundTableMapper mapper(table, Map1);
+            list rl = ();
+            code rowcode = sub (hash h) { rl += h; };
+            InboundTableMapper mapper(table, Map1 + ("code1": ("constant": "code")), ("rowcode": rowcode));
             mapper.queueData(ih);
-            checkMap((map $1, mapper.flush().contextIterator()), Input1, output1);
+            # the output of the following method cannot be iterated with <hash>::contextIterator()
+            mapper.flush();
             checkMap(table.selectRows(("orderby": "id")), Input1, output1);
             assertEq(3, mapper.getCount());
+            assertEq(Type::Date, rl[0].dte.type());
+            map remove rl[$#].dte, rl;
+            assertEq(OutputBulk, rl);
         }
 
         # queueData(list) test
