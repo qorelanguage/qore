@@ -888,8 +888,10 @@ on_error table_mapper.rollback();
                 # find row size
                 int size;
                 foreach any v in (rv.iterator()) {
-                    if (size = v.lsize())
+                    if (v.typeCode() == NT_LIST) {
+                        size = v.lsize();
                         break;
+                    }
                 }
                 for (int i = 0; i < size; ++i) {
                     # make hash of row
