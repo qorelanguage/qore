@@ -95,12 +95,12 @@ private:
 
       // see if there's a username
       // note that nbuf here has already had the path removed so we can safely do a reverse search for the '@' sign
-      if ((p = strrchr(nbuf.c_str(), '@'))) {
+      if ((p = strrchr((char*)nbuf.c_str(), '@'))) {
 	 pos = p + 1;
          // we terminate the string internally here, so we can no longer use string::size()
 	 *p = '\0';
 	 // see if there's a password
-	 if ((p = strchr(nbuf.c_str(), ':'))) {
+	 if ((p = strchr((char*)nbuf.c_str(), ':'))) {
 	    printd(5, "QoreURL::parse_intern password: '%s'\n", p + 1);
 	    password = new QoreStringNode(p + 1);
 	    *p = '\0';
