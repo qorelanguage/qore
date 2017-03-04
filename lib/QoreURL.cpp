@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -35,15 +35,28 @@
 #include <ctype.h>
 #include <stdlib.h>
 
+#include <string>
+
 struct qore_url_private {
 private:
-   DLLLOCAL void parse_intern(const char* buf, bool keep_brackets) {
+   DLLLOCAL void invalidate() {
+      if (host) {
+         host->deref();
+         host = 0;
+      }
+      if (path) {
+         path->deref();
+         path = 0;
+      }
+   }
+
+   DLLLOCAL void parse_intern(const char* buf, bool keep_brackets, ExceptionSink* xsink) {
       if (!buf || !buf[0])
 	 return;
 
       printd(5, "QoreURL::parse_intern(%s)\n", buf);
 
-      char* p = (char* )strstr(buf, "://");
+      char* p = (char*)strstr(buf, "://");
       const char* pos;
 
       // get scheme, aka protocol
@@ -65,52 +78,75 @@ private:
 	 return;
       }
 
-      char* nbuf;
+      // use std::string for a temporary buffer for exception-safety
+      std::string nbuf;
 
       // find end of hostname
-      if ((p = (char* )strchr(pos, '/'))) {
+      if ((p = (char*)strchr(pos, '/'))) {
 	 // get pathname if not at EOS
 	 path = new QoreStringNode(p);
-	 printd(5, "QoreURL::parse_intern path=%s\n", path->getBuffer());
+	 printd(5, "QoreURL::parse_intern path: '%s'\n", path->getBuffer());
 	 // get copy of hostname string for localized searching and invasive parsing
-	 nbuf = (char* )malloc(sizeof(char) * (p - pos + 1));
-	 strncpy(nbuf, pos, p - pos);
-	 nbuf[p - pos] = '\0';
+         nbuf.assign(pos, p - pos);
+         //printd(5, "QoreURL::nbuf: '%s' size: %d\n", nbuf.c_str(), nbuf.size());
       }
       else
-	 nbuf = strdup(pos);
+	 nbuf.assign(pos);
 
       // see if there's a username
       // note that nbuf here has already had the path removed so we can safely do a reverse search for the '@' sign
-      if ((p = strrchr(nbuf, '@'))) {
+      if ((p = strrchr(nbuf.c_str(), '@'))) {
 	 pos = p + 1;
+         // we terminate the string internally here, so we can no longer use string::size()
 	 *p = '\0';
 	 // see if there's a password
-	 if ((p = strchr(nbuf, ':'))) {
-	    printd(5, "QoreURL::parse_intern password=%s\n", p + 1);
+	 if ((p = strchr(nbuf.c_str(), ':'))) {
+	    printd(5, "QoreURL::parse_intern password: '%s'\n", p + 1);
 	    password = new QoreStringNode(p + 1);
 	    *p = '\0';
 	 }
 	 // set username
-	 printd(5, "QoreURL::parse_intern username=%s\n", nbuf);
-	 username = new QoreStringNode(nbuf);
+	 //printd(5, "QoreURL::parse_intern username: '%s'\n", nbuf.c_str());
+	 username = new QoreStringNode(nbuf.c_str(), strlen(nbuf.c_str()));
       }
       else
-	 pos = nbuf;
+	 pos = nbuf.c_str();
 
       // see if the "hostname" is enclosed in square brackets, denoting an ipv6 address
-      if (*pos == '[' && (p = (char* )strchr(pos, ']'))) {
+      if (*pos == '[' && (p = (char*)strchr(pos, ']'))) {
 	 host = new QoreStringNode(pos + (keep_brackets ? 0 : 1), p - pos - (keep_brackets ? -1 : 1));
 	 pos = p + 1;
       }
 
       bool has_port = false;
       // see if there's a port
-      if ((p = (char* )strrchr(pos, ':'))) {
-         // see if it's Ipv6 localhost (::)
+      if ((p = (char*)strrchr(pos, ':'))) {
+         // see if it's IPv6 localhost (::)
          if (p != (pos + 1) || *pos != ':') {
             *p = '\0';
+            // find the end of port data
+            char* pe = p;
+            while (true) {
+               ++pe;
+               if (!*pe || *pe == '/') {
+                  if (pe == p + 1) {
+                     if (xsink)
+                        xsink->raiseException("PARSE-URL-ERROR", "URL '%s' has an invalid empty port specification", buf);
+                     invalidate();
+                     return;
+                  }
+                  break;
+               }
+               if (!isdigit(*pe)) {
+                  if (xsink)
+                     xsink->raiseException("PARSE-URL-ERROR", "URL '%s' has an invalid non-numeric character in the port specification", buf);
+                  invalidate();
+                  return;
+               }
+            }
+
             port = atoi(p + 1);
+
             has_port = true;
             printd(5, "QoreURL::parse_intern port=%d\n", port);
          }
@@ -134,8 +170,6 @@ private:
 	       host = new QoreStringNode(pos);
 	 }
       }
-
-      free(nbuf);
    }
 
 public:
@@ -168,10 +202,12 @@ public:
 	 host->deref();
    }
 
-   DLLLOCAL int parse(const char* url, bool keep_brackets = false) {
+   DLLLOCAL int parse(const char* url, bool keep_brackets = false, ExceptionSink* xsink = 0) {
       reset();
       zero();
-      parse_intern(url, keep_brackets);
+      parse_intern(url, keep_brackets, xsink);
+      if (xsink && !*xsink && !isValid())
+         xsink->raiseException("PARSE-URL-ERROR", "URL '%s' cannot be parsed", url);
       return isValid() ? 0 : -1;
    }
 
@@ -228,6 +264,10 @@ QoreURL::QoreURL(const QoreString* url, bool keep_brackets) : priv(new qore_url_
    parse(url->getBuffer(), keep_brackets);
 }
 
+QoreURL::QoreURL(const QoreString* url, bool keep_brackets, ExceptionSink* xsink) : priv(new qore_url_private) {
+   parse(url, keep_brackets, xsink);
+}
+
 QoreURL::~QoreURL() {
    delete priv;
 }
@@ -246,6 +286,13 @@ int QoreURL::parse(const char* url, bool keep_brackets) {
 
 int QoreURL::parse(const QoreString* url, bool keep_brackets) {
    return priv->parse(url->getBuffer(), keep_brackets);
+}
+
+int QoreURL::parse(const QoreString* url, bool keep_brackets, ExceptionSink* xsink) {
+   TempEncodingHelper tmp(url, QCS_UTF8, xsink);
+   if (*xsink)
+      return -1;
+   return priv->parse(tmp->c_str(), keep_brackets, xsink);
 }
 
 bool QoreURL::isValid() const {

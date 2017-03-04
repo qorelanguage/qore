@@ -146,6 +146,12 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
             assertEq(Type::String, info.headers.Host.type());
             assertEq(True, info.headers.Host !~ /:/);
         }
+
+        {
+            # issue 1728: check URL handling
+            string bad_url = "http://localhost:1234\"";
+            assertThrows("HTTP-CLIENT-URL-ERROR", sub () { HTTPClient hc(("url": bad_url)); });
+        }
     }
 
     sslReadTest() {
