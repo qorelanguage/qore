@@ -189,7 +189,7 @@ bool HashListIterator::last() [flags=CONSTANT] {
 }
 
 //! returns the current row value as a hash or throws an \c INVALID-ITERATOR exception if the iterator is invalid
-/** @return the current row value as a hash or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+/** @return the current row value as a hash or throws an \c INVALID-ITERATOR exception if the iterator is invalid; each key value in the hash returned will be equal to the current list element for the element being iterated, or, if the key value in the hash being iterated is a constant (i.e. non-list) value, then this constant value will be returned as the key value directly
 
     @par Example:
     @code{.py}
@@ -212,7 +212,7 @@ hash HashListIterator::getValue() [flags=RET_VALUE_ONLY] {
 }
 
 //! returns the current row value as a hash or throws an \c INVALID-ITERATOR exception if the iterator is invalid
-/** @return the current row value as a hash or throws an \c INVALID-ITERATOR exception if the iterator is invalid
+/** @return the current row value as a hash or throws an \c INVALID-ITERATOR exception if the iterator is invalid; each key value in the hash returned will be equal to the current list element for the element being iterated, or, if the key value in the hash being iterated is a constant (i.e. non-list) value, then this constant value will be returned as the key value directly
 
     @par Example:
     @code{.py}
@@ -283,7 +283,7 @@ bool HashListIterator::set(int pos) {
 //! This method allows the iterator to be dereferenced directly as a hash for the current row being iterated, as memberGate methods are called implicitly when an unknown member is accessed from outside the class.
 /** @param key the column name for the value to retrieve
 
-    @return the current column value of the given row
+    @return the current column value of the given row; the key value returned will be equal to the current list element for the given key, or, if the source key value is a constant (i.e. non-list) value, then this constant value will be returned directly
 
     @par Example:
     @code{.py}
@@ -308,7 +308,7 @@ any HashListIterator::memberGate(string key) [flags=RET_VALUE_ONLY] {
 //! Returns the current value for the column given as an argument
 /** @param key the column name for the value to retrieve
 
-    @return the current column value of the given row
+    @return the current column value of the given row; the key value returned will be equal to the current list element for the given key, or, if the source key value is a constant (i.e. non-list) value, then this constant value will be returned directly
 
     @par Example:
     @code{.py}
