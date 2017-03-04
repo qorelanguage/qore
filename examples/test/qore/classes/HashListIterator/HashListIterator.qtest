@@ -12,25 +12,20 @@
 
 class Test inherits QUnit::Test {
     private {
-        const SimpleHash = (
-            "a": 1,
-            "b": 2,
-            );
-
         const HashList = (
             "a": (1, 2,),
             "b": (2, 3,),
+            "c": 1,
+            "d": NOTHING,
             );
 
         const ListHash = (
-            (
-             "a": 1,
-             "b": 2,
-            ),
-            (
-             "a": 2,
-             "b": 3,
-            ),
+            ("a": 1, "b": 2, "c": 1, "d": NOTHING),
+            ("a": 2, "b": 3, "c": 1, "d": NOTHING),
+            );
+
+        const HashListBad = HashList + (
+            "e": (1,),
             );
     }
 
@@ -40,12 +35,14 @@ class Test inherits QUnit::Test {
     }
 
     simpleTests() {
-        list l = map $1, SimpleHash.contextIterator();
+        list l = map $1, ListHash[0].contextIterator();
         assertEq(1, l.size());
-        assertEq(SimpleHash, l[0]);
+        assertEq(ListHash[0], l[0]);
 
         l = map $1, HashList.contextIterator();
         assertEq(2, l.size());
         assertEq(ListHash, l);
+
+        assertThrows("HASHLISTITERATOR-ERROR", sub () { map $1, HashListBad.contextIterator(); });
     }
 }

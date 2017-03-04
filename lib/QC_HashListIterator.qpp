@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -39,22 +39,26 @@
 
     @par Example: HashListIterator basic usge
     @code{.py}
-    hash data = ( "column1" : ( 1, 2, 3, ),
-                      "column2" : ( "a", "b", "c", ) );
+    hash data = (
+        "column1": (1, 2, 3,),
+        "column2": ("a", "b", "c",),
+        "column3": "constant",
+    );
 
     HashListIterator it(data);
     while (it.next()) {
-        printf("iter %d: getValue: %n; getKeyValue('column1'): %n\n",
+        printf("iter %d: getValue: %y; getKeyValue('column1'): %y\n",
                it.index(), it.getValue(), it.getKeyValue('column1'));
     }
 
-    iter 0: getValue: hash: (column1 : 1, column2 : "a"); getKeyValue('column1'): 1
-    iter 1: getValue: hash: (column1 : 2, column2 : "b"); getKeyValue('column1'): 2
-    iter 2: getValue: hash: (column1 : 3, column2 : "c"); getKeyValue('column1'): 3
+    iter 0: getValue: {column1: 1, column2: "a", column3: "constant"); getKeyValue('column1'): 1
+    iter 1: getValue: {column1: 2, column2: "b", column3: "constant"); getKeyValue('column1'): 2
+    iter 2: getValue: {column1: 3, column2: "c", column3: "constant"); getKeyValue('column1'): 3
     @endcode
 
     @note
-    - a hash with non-list values will be iterated as if each key value were a single element list
+    - A hash with all non-list values will be iterated as if each key value were a single element list
+    - A hash with mixed lists and single values will have the single values used as the repeating value for every element in the list (as in the above example), however all lists must be of the same size or a runtime exception will be raised
     - In general, the HashListIterator class is not designed to be accessed from multiple threads; it was created without locking for
       fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of
       such methods in threads other than the thread where the constructor was called will cause an \c ITERATOR-THREAD-ERROR to be thrown.
@@ -198,7 +202,7 @@ while (i.next()) {
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element
-    @throw HASHLISTITERATOR-ERROR the one of the hash keys has a value that is not a list
+    @throw HASHLISTITERATOR-ERROR the one of the hash keys has a value that is a list with a size that does not match the expected list size
  */
 hash HashListIterator::getValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
@@ -220,7 +224,7 @@ while (i.next()) {
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element
-    @throw HASHLISTITERATOR-ERROR the one of the hash keys has a value that is not a list
+    @throw HASHLISTITERATOR-ERROR the one of the hash keys has a value that is a list with a size that does not match the expected list size
  */
 hash HashListIterator::getRow() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
@@ -289,7 +293,7 @@ while (i.next()) {
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element
-    @throw HASHLISTITERATOR-ERROR the hash key given has a value that is not a list
+    @throw HASHLISTITERATOR-ERROR the hash key given has a value that is a list with a size that does not match the expected list size
 
     @note equivalent to HashListIterator::getKeyValue() when called explicitly
  */
@@ -314,7 +318,7 @@ while (i.next()) {
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element
-    @throw HASHLISTITERATOR-ERROR the hash key given has a value that is not a list
+    @throw HASHLISTITERATOR-ERROR the hash key given has a value that is a list with a size that does not match the expected list size
 
     @note HashListIterator::memberGate() allows for the iterator to act as if it is a hash with members equal to the current row being iterated
  */
