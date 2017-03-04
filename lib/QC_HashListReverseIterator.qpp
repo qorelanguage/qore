@@ -80,6 +80,7 @@ public:
     @note
     - A hash with all non-list values will be iterated as if each key value were a single element list
     - A hash with mixed lists and single values will have the single values used as the repeating value for every element in the list (as in the above example), however all lists must be of the same size or a runtime exception will be raised
+    - A hash with empty lists and constants will not be iterated; in this case the constant values will be ignored; values with lists determine the number of times the data structure will be iterated
     - In general, the HashListReverseIterator class is not designed to be accessed from multiple threads; it was created without locking for
       fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of
       such methods in threads other than the thread where the constructor was called will cause an \c ITERATOR-THREAD-ERROR to be thrown.

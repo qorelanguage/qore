@@ -24,6 +24,17 @@ class Test inherits QUnit::Test {
             ("a": 2, "b": 3, "c": 1, "d": NOTHING),
             );
 
+        const HashListNothing = (
+            "a": NOTHING,
+            "b": NOTHING,
+            );
+
+        const HashListEmpty = (
+            "a": (),
+            "b": (),
+            "constant": "string",
+            );
+
         const HashListBad = HashList + (
             "e": (1,),
             );
@@ -42,6 +53,10 @@ class Test inherits QUnit::Test {
         l = map $1, HashList.contextIterator();
         assertEq(2, l.size());
         assertEq(ListHash, l);
+
+        # test corner cases
+        assertEq((HashListNothing,), map $1, HashListNothing.contextIterator());
+        assertEq((), map $1, HashListEmpty.contextIterator());
 
         assertThrows("HASHLISTITERATOR-ERROR", sub () { map $1, HashListBad.contextIterator(); });
     }
