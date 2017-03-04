@@ -208,10 +208,11 @@ public class TableMapperTest inherits QUnit::Test {
 
             list rl = ();
             code rowcode = sub (hash h) { rl += h; };
+            # test with constant mappings and with rowcode
             InboundTableMapper mapper(table, Map1 + ("code1": ("constant": "code")), ("rowcode": rowcode));
             mapper.queueData(ih);
-            # the output of the following method cannot be iterated with <hash>::contextIterator()
-            mapper.flush();
+            # issue #1738 test iterating mapper.flush() output including constant mappings with <hash>::contextIterator()
+            checkMap((map $1, mapper.flush().contextIterator()), Input1, output1);
             checkMap(table.selectRows(("orderby": "id")), Input1, output1);
             assertEq(3, mapper.getCount());
             assertEq(Type::Date, rl[0].dte.type());
