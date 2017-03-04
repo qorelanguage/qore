@@ -88,6 +88,7 @@ public:
        you can check if the URL was valid by calling QoreURL::isValid() after this call
        @param url the URL string to parse
        @param keep_brackets if this argument is true then if the hostname or address is enclosed in square brackets, then the brackets will be included in the \c "host" key output as well
+       @param xsink for Qore-language exceptions
 
        @note the input string will be converted to UTF-8 before parsing
 
