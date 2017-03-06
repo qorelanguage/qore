@@ -37,5 +37,14 @@ public class parseUrlTest inherits QUnit::Test {
 
         # one-character username
         assertEq(("protocol": "http", "username": "u", "password": "p", "host": "h"), parse_url("http://u:p@h"));
+
+        # check that we can parse a UTF-16-encoded URL
+        assertEq(("protocol": "http", "username": "u", "password": "p", "host": "h"), parse_url(convert_encoding("http://u:p@h", "UTF-16")));
+
+        # empty URL
+        assertThrows("PARSE-URL-ERROR", sub () { parse_url(""); } );
+
+        # invalid characters in port
+        assertThrows("PARSE-URL-ERROR", sub () { parse_url("scheme://user@host:hi/"); } );
     }
 }

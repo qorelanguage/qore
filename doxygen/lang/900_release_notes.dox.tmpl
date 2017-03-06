@@ -28,6 +28,7 @@
     - <a href="../../modules/WebSocketUtil/html/index.html">WebSocketUtil</a> module fixes:
       - added timeout values to @ref Qore::Socket "Socket" calls (<a href="https://github.com/qorelanguage/qore/issues/1725">issue 1725</a>)
     - fixed a bug where a type conversion error in an lvalue assignment could generate a confusing unrelated runtime exception (<a href="https://github.com/qorelanguage/qore/issues/1697">issue 1697</a>)
+    - fixed a bug where invalid characters in the port specification in a URL were ignored (<a href="https://github.com/qorelanguage/qore/issues/1728">issue 1728</a>)
     - fixed a bug with SSL socket communication the remote closing the connection during a send operation could cause the current thread to go into an infinite loop consuming 100% CPU (<a href="https://github.com/qorelanguage/qore/issues/1729">issue 1729</a>)
     - fixed a bug in the @ref Qore::HashListIterator "HashListIterator" class iterating hashes with a mix of lists and single values such as used by bulk DML binds; now the single values will appear as the current value for all list elements as per the original design instead of throwing a runtime exception (<a href="https://github.com/qorelanguage/qore/issues/1738">issue 1738</a>)
 
