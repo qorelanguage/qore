@@ -97,7 +97,7 @@ private:
       if (username_end != std::string::npos) {
           // see if there's a password
           size_t pw_start = sbuf.find(':');
-          if (pw_start != std::string::npos) {
+          if (pw_start < username_end && pw_start != std::string::npos) {
               printd(5, "QoreURL::parse_intern password: '%s'\n", sbuf.c_str() + pw_start + 1);
               password = new QoreStringNode(sbuf.c_str() + pw_start + 1, username_end - (pw_start + 1));
               // set username
