@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -60,21 +60,27 @@ public:
 
     @par Example: HashListReverseIterator basic usge
     @code{.py}
-    hash data = ( "column1" : ( 1, 2, 3, ),
-                      "column2" : ( "a", "b", "c", ) );
+    hash data = (
+        "column1": (1, 2, 3,),
+        "column2": ("a", "b", "c",),
+        "column3": "constant",
+    );
 
     HashListReverseIterator it(data);
     while (it.next()) {
-        printf("iter %d: getValue: %n; getKeyValue('column1'): %n\n",
+        printf("iter %d: getValue: %y; getKeyValue('column1'): %y\n",
                it.index(), it.getValue(), it.getKeyValue('column1'));
     }
 
-    iter 2: getValue: hash: (column1 : 3, column2 : "c"); getKeyValue('column1'): 3
-    iter 1: getValue: hash: (column1 : 2, column2 : "b"); getKeyValue('column1'): 2
-    iter 0: getValue: hash: (column1 : 1, column2 : "a"); getKeyValue('column1'): 1
+    iter 0: getValue: {column1: 3, column2: "c", column3: "constant"); getKeyValue('column1'): 3
+    iter 1: getValue: {column1: 2, column2: "b", column3: "constant"); getKeyValue('column1'): 2
+    iter 2: getValue: {column1: 1, column2: "a", column3: "constant"); getKeyValue('column1'): 1
     @endcode
 
     @note
+    - A hash with all non-list values will be iterated as if each key value were a single element list
+    - A hash with mixed lists and single values will have the single values used as the repeating value for every element in the list (as in the above example), however all lists must be of the same size or a runtime exception will be raised
+    - A hash with empty lists and constants will not be iterated; in this case the constant values will be ignored; values with lists determine the number of times the data structure will be iterated
     - In general, the HashListReverseIterator class is not designed to be accessed from multiple threads; it was created without locking for
       fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of
       such methods in threads other than the thread where the constructor was called will cause an \c ITERATOR-THREAD-ERROR to be thrown.
@@ -196,7 +202,7 @@ bool HashListReverseIterator::last() [flags=CONSTANT] {
 //! This method allows the iterator to be dereferenced directly as a hash for the current row being iterated, as memberGate methods are called implicitly when an unknown member is accessed from outside the class.
 /** @param key the column name for the value to retrieve
 
-    @return the current column value of the given row
+    @return the current column value of the given row; the key value returned will be equal to the current list element for the given key, or, if the source key value is a constant (i.e. non-list) value, then this constant value will be returned directly
 
     @par Example:
     @code{.py}
@@ -207,7 +213,7 @@ while (i.next()) {
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element
-    @throw HASHLISTITERATOR-ERROR the hash key given has a value that is not a list
+    @throw HASHLISTITERATOR-ERROR the hash key given has a value that is a list with a size that does not match the expected list size
 
     @note equivalent to HashListIterator::getKeyValue() when called explicitly
  */
