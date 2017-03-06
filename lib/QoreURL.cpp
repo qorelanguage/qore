@@ -1,3 +1,4 @@
+/* -*- indent-tabs-mode: nil -*- */
 /*
   QoreURL.cpp
 
@@ -52,7 +53,7 @@ private:
 
    DLLLOCAL void parse_intern(const char* buf, bool keep_brackets, ExceptionSink* xsink) {
       if (!buf || !buf[0])
-	 return;
+         return;
 
       printd(5, "QoreURL::parse_intern(%s)\n", buf);
 
@@ -61,21 +62,21 @@ private:
 
       // get scheme, aka protocol
       if (p) {
-	 protocol = new QoreStringNode(buf, p - buf);
-	 // convert to lower case
-	 protocol->tolwr();
-	 printd(5, "QoreURL::parse_intern protocol=%s\n", protocol->getBuffer());
-	 pos = p + 3;
+         protocol = new QoreStringNode(buf, p - buf);
+         // convert to lower case
+         protocol->tolwr();
+         printd(5, "QoreURL::parse_intern protocol=%s\n", protocol->getBuffer());
+         pos = p + 3;
       }
       else
-	 pos = buf;
+         pos = buf;
 
       // see if the rest of the URL is a windows path
       if (((isalpha(*pos) && *(pos + 1) == ':')
            || (*pos == '\\' && *(pos + 1) == '\\'))
           && !strchr(pos, '@')) {
-	 path = new QoreStringNode(pos);
-	 return;
+         path = new QoreStringNode(pos);
+         return;
       }
 
       // use std::string for a temporary buffer for exception-safety
@@ -83,39 +84,39 @@ private:
 
       // find end of hostname
       if ((p = (char*)strchr(pos, '/'))) {
-	 // get pathname if not at EOS
-	 path = new QoreStringNode(p);
-	 printd(5, "QoreURL::parse_intern path: '%s'\n", path->getBuffer());
-	 // get copy of hostname string for localized searching and invasive parsing
+         // get pathname if not at EOS
+         path = new QoreStringNode(p);
+         printd(5, "QoreURL::parse_intern path: '%s'\n", path->getBuffer());
+         // get copy of hostname string for localized searching and invasive parsing
          nbuf.assign(pos, p - pos);
          //printd(5, "QoreURL::nbuf: '%s' size: %d\n", nbuf.c_str(), nbuf.size());
       }
       else
-	 nbuf.assign(pos);
+         nbuf.assign(pos);
 
       // see if there's a username
       // note that nbuf here has already had the path removed so we can safely do a reverse search for the '@' sign
       if ((p = strrchr((char*)nbuf.c_str(), '@'))) {
-	 pos = p + 1;
+         pos = p + 1;
          // we terminate the string internally here, so we can no longer use string::size()
-	 *p = '\0';
-	 // see if there's a password
-	 if ((p = strchr((char*)nbuf.c_str(), ':'))) {
-	    printd(5, "QoreURL::parse_intern password: '%s'\n", p + 1);
-	    password = new QoreStringNode(p + 1);
-	    *p = '\0';
-	 }
-	 // set username
-	 //printd(5, "QoreURL::parse_intern username: '%s'\n", nbuf.c_str());
-	 username = new QoreStringNode(nbuf.c_str(), strlen(nbuf.c_str()));
+         *p = '\0';
+         // see if there's a password
+         if ((p = strchr((char*)nbuf.c_str(), ':'))) {
+            printd(5, "QoreURL::parse_intern password: '%s'\n", p + 1);
+            password = new QoreStringNode(p + 1);
+            *p = '\0';
+         }
+         // set username
+         //printd(5, "QoreURL::parse_intern username: '%s'\n", nbuf.c_str());
+         username = new QoreStringNode(nbuf.c_str(), strlen(nbuf.c_str()));
       }
       else
-	 pos = nbuf.c_str();
+         pos = nbuf.c_str();
 
       // see if the "hostname" is enclosed in square brackets, denoting an ipv6 address
       if (*pos == '[' && (p = (char*)strchr(pos, ']'))) {
-	 host = new QoreStringNode(pos + (keep_brackets ? 0 : 1), p - pos - (keep_brackets ? -1 : 1));
-	 pos = p + 1;
+         host = new QoreStringNode(pos + (keep_brackets ? 0 : 1), p - pos - (keep_brackets ? -1 : 1));
+         pos = p + 1;
       }
 
       bool has_port = false;
@@ -155,20 +156,20 @@ private:
       // there is no hostname if there is no port specification and
       // no protocol, username, or password -- just a relative path
       if (!host) {
-	 if (!has_port && !protocol && !username && !password && path)
-	    path->replace(0, 0, pos);
-	 else if (*pos) {
-	    // set hostname
-	    printd(5, "QoreURL::parse_intern host=%s\n", pos);
+         if (!has_port && !protocol && !username && !password && path)
+            path->replace(0, 0, pos);
+         else if (*pos) {
+            // set hostname
+            printd(5, "QoreURL::parse_intern host=%s\n", pos);
 
-	    // see if the hostname is in the form "socket=xxxx" in which case we interpret as a UNIX domain socket
-	    if (!strncasecmp(pos, "socket=", 7)) {
-	       host = new QoreStringNode();
-	       host->concatDecodeUrl(pos + 7);
-	    }
-	    else
-	       host = new QoreStringNode(pos);
-	 }
+            // see if the hostname is in the form "socket=xxxx" in which case we interpret as a UNIX domain socket
+            if (!strncasecmp(pos, "socket=", 7)) {
+               host = new QoreStringNode();
+               host->concatDecodeUrl(pos + 7);
+            }
+            else
+               host = new QoreStringNode(pos);
+         }
       }
    }
 
@@ -191,15 +192,15 @@ public:
 
    DLLLOCAL void reset() {
       if (protocol)
-	 protocol->deref();
+         protocol->deref();
       if (path)
-	 path->deref();
+         path->deref();
       if (username)
-	 username->deref();
+         username->deref();
       if (password)
-	 password->deref();
+         password->deref();
       if (host)
-	 host->deref();
+         host->deref();
    }
 
    DLLLOCAL int parse(const char* url, bool keep_brackets = false, ExceptionSink* xsink = 0) {
@@ -219,27 +220,27 @@ public:
    DLLLOCAL QoreHashNode* getHash() {
       QoreHashNode* h = new QoreHashNode;
       if (protocol) {
-	 h->setKeyValue("protocol", protocol, 0);
-	 protocol = 0;
+         h->setKeyValue("protocol", protocol, 0);
+         protocol = 0;
       }
       if (path) {
-	 h->setKeyValue("path", path, 0);
-	 path = 0;
+         h->setKeyValue("path", path, 0);
+         path = 0;
       }
       if (username) {
-	 h->setKeyValue("username", username, 0);
-	 username = 0;
+         h->setKeyValue("username", username, 0);
+         username = 0;
       }
       if (password) {
-	 h->setKeyValue("password", password, 0);
-	 password = 0;
+         h->setKeyValue("password", password, 0);
+         password = 0;
       }
       if (host) {
-	 h->setKeyValue("host", host, 0);
-	 host = 0;
+         h->setKeyValue("host", host, 0);
+         host = 0;
       }
       if (port)
-	 h->setKeyValue("port", new QoreBigIntNode(port), 0);
+         h->setKeyValue("port", new QoreBigIntNode(port), 0);
 
       return h;
    }
