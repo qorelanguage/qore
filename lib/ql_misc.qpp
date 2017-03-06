@@ -814,7 +814,7 @@ string str = html_encode("<hello>"); # returns "&lt;hello&gt;"
 */
 string html_encode(string str) [flags=CONSTANT] {
    QoreStringNodeHolder rv(new QoreStringNode(str->getEncoding()));
-   return rv->concatEncode(xsink, *str, CE_HTML) ? 0 : rv.release();
+   return rv->concatEncode(xsink, *str, CE_HTML) ? QoreValue() : rv.release();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -839,7 +839,7 @@ string str = html_decode("&lt;hello&gt;"); # returns "<hello>"
 */
 string html_decode(string str) [flags=CONSTANT] {
    QoreStringNodeHolder rv(new QoreStringNode(str->getEncoding()));
-   return rv->concatDecode(xsink, *str, CD_HTML) ? 0 : rv.release();
+   return rv->concatDecode(xsink, *str, CD_HTML) ? QoreValue() : rv.release();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -965,10 +965,10 @@ hash hash = parse_url(url_string);
     @see parseURL() for a version of this function that does not throw exceptions if the URL cannot be parsed
 */
 hash parse_url(string url, bool keep_brackets = False) {
-   QoreURL qurl(url, keep_brackets);
-   if (!qurl.isValid())
-      return xsink->raiseException("PARSE-URL-ERROR", "URL '%s' cannot be parsed", url->getBuffer());
-
+   QoreURL qurl(url, keep_brackets, xsink);
+   if (*xsink)
+      return QoreValue();
+   assert(qurl.isValid());
    return qurl.getHash();
 }
 
@@ -995,7 +995,7 @@ hash parse_url(string url, bool keep_brackets = False) {
 */
 *hash parseURL(string url, bool keep_brackets = False) [flags=CONSTANT] {
    QoreURL qurl(url, keep_brackets);
-   return qurl.isValid() ? qurl.getHash() : 0;
+   return qurl.isValid() ? qurl.getHash() : QoreValue();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -1921,7 +1921,7 @@ string str = splice(str2, 5);
 string splice(string str, softint start) {
    QoreStringNodeHolder pstr(str->copy());
    pstr->splice(start, xsink);
-   return *xsink ? 0 : pstr.release();
+   return *xsink ? QoreValue() : pstr.release();
 }
 
 //! Returns a string based on the argument string but optionally with characters removed and/or added from a certain character index
@@ -1944,7 +1944,7 @@ string str = splice(str2, 5, 7, "hello");
 string splice(string str, softint start, softint len, *string nstr) {
    QoreStringNodeHolder pstr(str->copy());
    pstr->splice(start, len, nstr, xsink);
-   return *xsink ? 0 : pstr.release();
+   return *xsink ? QoreValue() : pstr.release();
 }
 
 //! Returns a list based on the argument list but with elements removed from the given index to the end of the list
@@ -1963,7 +1963,7 @@ list l = splice(l2, 5);
 list splice(list l, softint start) {
    ReferenceHolder<QoreListNode> lst(l->copy(), xsink);
    lst->splice(start, xsink);
-   return *xsink ? 0 : lst.release();
+   return *xsink ? QoreValue() : lst.release();
 }
 
 //! Returns a list based on the argument list but optionally with elements removed and/or added from a certain index
@@ -1986,7 +1986,7 @@ list l = splice(l2, 5, 7, "hello");
 list splice(list l, softint start, softint len, *softlist nlist) {
    ReferenceHolder<QoreListNode> lst(l->copy(), xsink);
    lst->splice(start, len, nlist, xsink);
-   return *xsink ? 0 : lst.release();
+   return *xsink ? QoreValue() : lst.release();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -2298,7 +2298,7 @@ string decoded_url = decode_url(encoded_url);
 string decode_url(string url) [flags=CONSTANT] {
    QoreStringNodeHolder str(new QoreStringNode(QCS_UTF8));
    str->concatDecodeUrl(*url, xsink);
-   return *xsink ? 0 : str.release();
+   return *xsink ? QoreValue() : str.release();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -2328,7 +2328,7 @@ string encoded_url = encode_url(url);
 string encode_url(string url, softbool encode_all = False) [flags=CONSTANT] {
    QoreStringNodeHolder str(new QoreStringNode(url->getEncoding()));
    str->concatEncodeUrl(xsink, url, encode_all);
-   return *xsink ? 0 : str.release();
+   return *xsink ? QoreValue() : str.release();
 }
 
 //! Decodes percent-encoded codes in a URI path and converts \c "+" signs in the query component to spaces and returns the decoded string in UTF-8 encoding
@@ -2361,7 +2361,7 @@ string decoded_uri = decode_uri_request("path/to/something%20else?query=1%2b1+%2
 string decode_uri_request(string uri) [flags=CONSTANT] {
    QoreStringNodeHolder str(new QoreStringNode(QCS_UTF8));
    str->concatDecodeUriRequest(*uri, xsink);
-   return *xsink ? 0 : str.release();
+   return *xsink ? QoreValue() : str.release();
 }
 
 //! Encodes URI requests by substituting special characters in the path with percent-encoded ewquivalents and substituting spaces with \c "+" and \c "+" with the percent-encoded equivalent in the URI query component
@@ -2396,7 +2396,7 @@ string encoded_uri = encode_uri_request("path/to/something else?query=1+1 +2")'
 string encode_uri_request(string url) [flags=CONSTANT] {
    QoreStringNodeHolder str(new QoreStringNode(url->getEncoding()));
    str->concatEncodeUriRequest(xsink, url);
-   return *xsink ? 0 : str.release();
+   return *xsink ? QoreValue() : str.release();
 }
 
 //! Returns the path (directory and filename) of the current script or @ref nothing if unknown (i.e. no parent script, script read from stdin, etc)
