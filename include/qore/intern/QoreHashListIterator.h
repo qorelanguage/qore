@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -58,13 +58,15 @@ protected:
       if (t == NT_NOTHING)
          return 0;
 
-      if (!is_list)
+      if (!is_list || t != NT_LIST)
          return n->refSelf();
 
-      if (t != NT_LIST) {
-         xsink->raiseException("HASHLISTITERATOR-ERROR", "hash key '%s' is assigned to type '%s'; expecting 'list'", key, get_type_name(n));
+      const QoreListNode* l = reinterpret_cast<const QoreListNode*>(n);
+      if (l->size() != (size_t)limit) {
+         xsink->raiseException("HASHLISTITERATOR-ERROR", "hash key '%s' is assigned to a list of size " QSD "; expecting a list of size " QSD, key, l->size(), limit);
          return 0;
       }
+
       return reinterpret_cast<const QoreListNode*>(n)->get_referenced_entry(i);
    }
 
@@ -76,16 +78,17 @@ public:
    DLLLOCAL QoreHashListIterator(const QoreHashNode* n_h) : h(n_h->hashRefSelf()), i(-1), limit(0), is_list(false) {
       if (h->empty())
          return;
-      // use an iterator for quick access to the first key in the hash
+      // see if the hash has any lists assigned to it
       ConstHashIterator hi(h);
-      // must succeed because the hash is not empty
-      hi.next();
-      const AbstractQoreNode* n = hi.getValue();
-      if (get_node_type(n) == NT_LIST) {
-         is_list = true;
-         limit = (qore_offset_t)reinterpret_cast<const QoreListNode*>(n)->size();
+      while (hi.next()) {
+         const AbstractQoreNode* n = hi.getValue();
+         if (get_node_type(n) == NT_LIST) {
+            is_list = true;
+            limit = (qore_offset_t)reinterpret_cast<const QoreListNode*>(n)->size();
+            break;
+         }
       }
-      else
+      if (!is_list)
          limit = 1;
    }
 
