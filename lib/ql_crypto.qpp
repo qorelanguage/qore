@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ql_crypto.h>
+#include "qore/intern/ql_crypto.h"
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -39,7 +39,7 @@
 # variable scoping example
 %new-style
 
-our int a = 1;                    # this is a global variable
+our int a = 1;                  # this is a global variable
 our (string b, any c, hash d);  # list of global variables
 
 if (a == 1) {
@@ -48,17 +48,17 @@ if (a == 1) {
     # a, b, and c are local variables,
     # the use of which will not affect the
     # global variables of the same name
-    print("local a = %d\n", a);
+    printf("local a = %d\n", a);
 }
 
-print("global a = %d\n", a);
+printf("global a = %d\n", a);
     @endcode
 
-    The first print() statement will output:
+    The first printf() statement will output:
     @verbatim
 local a = 2@endverbatim
 
-    The second print() statement will output:
+    The second printf() statement will output:
     @verbatim
 global a = 1@endverbatim
 
