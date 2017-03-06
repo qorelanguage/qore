@@ -57,88 +57,84 @@ private:
 
       printd(5, "QoreURL::parse_intern(%s)\n", buf);
 
-      char* p = (char*)strstr(buf, "://");
-      const char* pos;
+      // buf is continuously shrinked depending on the part of the string
+      // that remains to be processed
+      std::string sbuf(buf);
 
-      // get scheme, aka protocol
-      if (p) {
-         protocol = new QoreStringNode(buf, p - buf);
+      // look for the protocol, move 'pos' after the protocol specification
+      size_t protocol_separator = sbuf.find("://");
+      if (protocol_separator != std::string::npos) {
+         protocol = new QoreStringNode(sbuf.c_str(), protocol_separator);
          // convert to lower case
          protocol->tolwr();
          printd(5, "QoreURL::parse_intern protocol=%s\n", protocol->getBuffer());
-         pos = p + 3;
+         sbuf = sbuf.substr(protocol_separator + 3);
       }
-      else
-         pos = buf;
 
       // see if the rest of the URL is a windows path
-      if (((isalpha(*pos) && *(pos + 1) == ':')
-           || (*pos == '\\' && *(pos + 1) == '\\'))
-          && !strchr(pos, '@')) {
-         path = new QoreStringNode(pos);
+      if (sbuf.size() >= 2 &&
+          ((isalpha(sbuf[0]) && sbuf[1] == ':')
+           || (sbuf[0] == '\\' && sbuf[1] == '\\'))
+          && sbuf.find('@') == std::string::npos) {
+         path = new QoreStringNode(sbuf.c_str());
          return;
       }
 
-      // use std::string for a temporary buffer for exception-safety
-      std::string nbuf;
-
       // find end of hostname
-      if ((p = (char*)strchr(pos, '/'))) {
-         // get pathname if not at EOS
-         path = new QoreStringNode(p);
-         printd(5, "QoreURL::parse_intern path: '%s'\n", path->getBuffer());
-         // get copy of hostname string for localized searching and invasive parsing
-         nbuf.assign(pos, p - pos);
-         //printd(5, "QoreURL::nbuf: '%s' size: %d\n", nbuf.c_str(), nbuf.size());
+      size_t first_slash = sbuf.find('/');
+      if (first_slash != std::string::npos) {
+          // get pathname if not at EOS
+          path = new QoreStringNode(sbuf.c_str() + first_slash);
+          printd(5, "QoreURL::parse_intern path: '%s'\n", path->getBuffer());
+          // get copy of hostname string for localized searching and invasive parsing
+          sbuf = sbuf.substr(0, first_slash);
+          //printd(5, "QoreURL::nbuf: '%s' size: %d\n", nbuf.c_str(), nbuf.size());
       }
-      else
-         nbuf.assign(pos);
 
       // see if there's a username
       // note that nbuf here has already had the path removed so we can safely do a reverse search for the '@' sign
-      if ((p = strrchr((char*)nbuf.c_str(), '@'))) {
-         pos = p + 1;
-         // we terminate the string internally here, so we can no longer use string::size()
-         *p = '\0';
-         // see if there's a password
-         if ((p = strchr((char*)nbuf.c_str(), ':'))) {
-            printd(5, "QoreURL::parse_intern password: '%s'\n", p + 1);
-            password = new QoreStringNode(p + 1);
-            *p = '\0';
-         }
-         // set username
-         //printd(5, "QoreURL::parse_intern username: '%s'\n", nbuf.c_str());
-         username = new QoreStringNode(nbuf.c_str(), strlen(nbuf.c_str()));
+      size_t username_end = sbuf.rfind('@');
+      if (username_end != std::string::npos) {
+          // see if there's a password
+          size_t pw_start = sbuf.find(':');
+          if (pw_start != std::string::npos) {
+              printd(5, "QoreURL::parse_intern password: '%s'\n", sbuf.c_str() + pw_start + 1);
+              password = new QoreStringNode(sbuf.c_str() + pw_start + 1, username_end - (pw_start + 1));
+              // set username
+              username = new QoreStringNode(sbuf.c_str(), pw_start);
+          }
+          else {
+              username = new QoreStringNode(sbuf.c_str(), username_end);
+          }
+          sbuf = sbuf.substr(username_end + 1);
       }
-      else
-         pos = nbuf.c_str();
+      // else no username, keep processing sbuf
 
       // see if the "hostname" is enclosed in square brackets, denoting an ipv6 address
-      if (*pos == '[' && (p = (char*)strchr(pos, ']'))) {
-         host = new QoreStringNode(pos + (keep_brackets ? 0 : 1), p - pos - (keep_brackets ? -1 : 1));
-         pos = p + 1;
+      if (!sbuf.empty() && sbuf[0] == '[') {
+         size_t right_bracket = sbuf.find(']');
+         if (right_bracket != std::string::npos) {
+             host = new QoreStringNode(sbuf.c_str() + (keep_brackets ? 0 : 1),
+                                       right_bracket - (keep_brackets ? -1 : 1));
+             sbuf = sbuf.substr(right_bracket + 1);
+         }
       }
 
       bool has_port = false;
       // see if there's a port
-      if ((p = (char*)strrchr(pos, ':'))) {
+      size_t port_start = sbuf.rfind(':');
+      if (port_start != std::string::npos) {
          // see if it's IPv6 localhost (::)
-         if (p != (pos + 1) || *pos != ':') {
-            *p = '\0';
+         if (port_start != 1 || sbuf[0] != ':') {
             // find the end of port data
-            char* pe = p;
-            while (true) {
-               ++pe;
-               if (!*pe || *pe == '/') {
-                  if (pe == p + 1) {
-                     if (xsink)
-                        xsink->raiseException("PARSE-URL-ERROR", "URL '%s' has an invalid empty port specification", buf);
-                     invalidate();
-                     return;
-                  }
-                  break;
-               }
-               if (!isdigit(*pe)) {
+            if (port_start + 1 == sbuf.size()) {
+                if (xsink)
+                    xsink->raiseException("PARSE-URL-ERROR", "URL '%s' has an invalid empty port specification", buf);
+                invalidate();
+                return;
+            }
+            for (size_t i = port_start + 1; i < sbuf.size(); ++i) {
+               if (!isdigit(sbuf[i])) {
                   if (xsink)
                      xsink->raiseException("PARSE-URL-ERROR", "URL '%s' has an invalid non-numeric character in the port specification", buf);
                   invalidate();
@@ -146,8 +142,8 @@ private:
                }
             }
 
-            port = atoi(p + 1);
-
+            port = atoi(sbuf.c_str() + port_start + 1);
+            sbuf = sbuf.substr(0, port_start);
             has_port = true;
             printd(5, "QoreURL::parse_intern port=%d\n", port);
          }
@@ -156,19 +152,20 @@ private:
       // there is no hostname if there is no port specification and
       // no protocol, username, or password -- just a relative path
       if (!host) {
-         if (!has_port && !protocol && !username && !password && path)
-            path->replace(0, 0, pos);
-         else if (*pos) {
+         if (!has_port && !protocol && !username && !password && path) {
+            path->replace(0, 0, buf);
+         }
+         else if (!sbuf.empty()) {
             // set hostname
-            printd(5, "QoreURL::parse_intern host=%s\n", pos);
+            printd(5, "QoreURL::parse_intern host=%s\n", sbuf.c_str());
 
             // see if the hostname is in the form "socket=xxxx" in which case we interpret as a UNIX domain socket
-            if (!strncasecmp(pos, "socket=", 7)) {
+            if (!strncasecmp(sbuf.c_str(), "socket=", 7)) {
                host = new QoreStringNode();
-               host->concatDecodeUrl(pos + 7);
+               host->concatDecodeUrl(sbuf.c_str() + 7);
             }
             else
-               host = new QoreStringNode(pos);
+               host = new QoreStringNode(sbuf.c_str());
          }
       }
    }
