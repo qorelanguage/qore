@@ -62,5 +62,11 @@ public class parseUrlTest inherits QUnit::Test {
 
         # corner case: a hostname must be returned just in the "host" key
         assertEq(("host": "hostname"), parse_url("hostname"));
+
+        # corner case: a single leading backslash is returned as a hostname
+        assertEq(("host": "\\hostname"), parse_url("\\hostname"));
+
+        # corner case: two leading backslashes are returned as a UNC path
+        assertEq(("path": "\\\\hostname"), parse_url("\\\\hostname"));
     }
 }
