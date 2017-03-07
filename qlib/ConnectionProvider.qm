@@ -462,7 +462,7 @@ string connstr = get_connection(str);
         }
 
         #! creates the invalid connection object
-        constructor(string n_name, string n_desc, string n_url, *hash n_opts, string n_error) : AbstractConnection(n_name, n_desc, n_url, False, n_opts, parse_url(n_url)) {
+        constructor(string n_name, string n_desc, string n_url, *hash n_opts, string n_error, hash urlh) : AbstractConnection(n_name, n_desc, n_url, False, n_opts, urlh) {
             error = n_error;
         }
 
