@@ -59,5 +59,8 @@ public class parseUrlTest inherits QUnit::Test {
 
         # corner case: a relative path must be parsed with just the "path" key
         assertEq(("path": "some/path"), parse_url("some/path"));
+
+        # corner case: a hostname must be returned just in the "host" key
+        assertEq(("host": "hostname"), parse_url("hostname"));
     }
 }
