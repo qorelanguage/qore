@@ -27,6 +27,7 @@ public class parseUrlTest inherits QUnit::Test {
 
         # UNIX socket URL
         assertEq(("protocol": "http", "host": "/tmp/socket-file.sock"), parse_url("http://socket=%2Ftmp%2Fsocket-file.sock"));
+        assertEq(("protocol": "http", "host": "/tmp/socket-file.sock", "path": "/path"), parse_url("http://socket=%2Ftmp%2Fsocket-file.sock/path"));
 
         # windows file paths
         assertEq(("protocol": "file", "path": "c:\\tmp"), parse_url("file://c:\\tmp"));
@@ -46,5 +47,17 @@ public class parseUrlTest inherits QUnit::Test {
 
         # invalid characters in port
         assertThrows("PARSE-URL-ERROR", sub () { parse_url("scheme://user@host:hi/"); } );
+
+        # corner case: a path string should be recognized and parsed into the path key
+        assertEq(("path": "/tmp/file"), parse_url("/tmp/file"));
+
+        # corner case: a UNIX socket path string with no protocol
+        assertEq(("host": "/tmp/socket-file.sock"), parse_url("socket=%2Ftmp%2Fsocket-file.sock"));
+
+        # corner case: a UNIX socket path string with no protocol but with a path
+        assertEq(("host": "/tmp/socket-file.sock", "path": "/path"), parse_url("socket=%2Ftmp%2Fsocket-file.sock/path"));
+
+        # corner case: a relative path must be parsed with just the "path" key
+        assertEq(("path": "some/path"), parse_url("some/path"));
     }
 }
