@@ -85,14 +85,14 @@ private:
       if (first_slash != std::string::npos) {
           // get pathname if not at EOS
           path = new QoreStringNode(sbuf.c_str() + first_slash);
-          printd(5, "QoreURL::parse_intern path: '%s'\n", path->getBuffer());
+          //printd(5, "QoreURL::parse_intern path: '%s'\n", path->getBuffer());
           // get copy of hostname string for localized searching and invasive parsing
           sbuf = sbuf.substr(0, first_slash);
-          //printd(5, "QoreURL::nbuf: '%s' size: %d\n", nbuf.c_str(), nbuf.size());
+          //printd(5, "QoreURL::sbuf: '%s' size: %d\n", sbuf.c_str(), sbuf.size());
       }
 
       // see if there's a username
-      // note that nbuf here has already had the path removed so we can safely do a reverse search for the '@' sign
+      // note that sbuf here has already had the path removed so we can safely do a reverse search for the '@' sign
       size_t username_end = sbuf.rfind('@');
       if (username_end != std::string::npos) {
           // see if there's a password
@@ -151,21 +151,19 @@ private:
 
       // there is no hostname if there is no port specification and
       // no protocol, username, or password -- just a relative path
-      if (!host) {
-         if (!has_port && !protocol && !username && !password && path) {
-            path->replace(0, 0, buf);
+      if (!host && !sbuf.empty()) {
+         // see if the hostname is in the form "socket=xxxx" in which case we interpret as a UNIX domain socket
+         if (!strncasecmp(sbuf.c_str(), "socket=", 7)) {
+            host = new QoreStringNode;
+            host->concatDecodeUrl(sbuf.c_str() + 7);
          }
-         else if (!sbuf.empty()) {
+         else if (!has_port && !protocol && !username && !password && path) {
+            path->replace(0, 0, sbuf.c_str());
+         }
+         else {
             // set hostname
             printd(5, "QoreURL::parse_intern host=%s\n", sbuf.c_str());
-
-            // see if the hostname is in the form "socket=xxxx" in which case we interpret as a UNIX domain socket
-            if (!strncasecmp(sbuf.c_str(), "socket=", 7)) {
-               host = new QoreStringNode();
-               host->concatDecodeUrl(sbuf.c_str() + 7);
-            }
-            else
-               host = new QoreStringNode(sbuf.c_str());
+            host = new QoreStringNode(sbuf.c_str());
          }
       }
    }
