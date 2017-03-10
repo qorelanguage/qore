@@ -143,6 +143,7 @@ public:
 	    curr->next = 0;
 	 }
 	 curr = curr->prev;
+         assert(curr);
       }
       --curr->pos;
    }
@@ -152,7 +153,7 @@ public:
       while (true) {
 	 int p = w->pos;
 	 while (p) {
-	    if (w->var[--p].id == id && !w->var[p].skip)
+	    if (w->var[--p].id == id && !w->var[p].skip && !w->var[p].frame_boundary)
 	       return &w->var[p];
 	 }
 	 w = w->prev;
@@ -161,7 +162,7 @@ public:
             printd(0, "ThreadLocalVariableData::find() this: %p no local variable '%s' (%p) on stack (pgm: %p) p: %d\n", this, id, id, getProgram(), p);
             p = curr->pos - 1;
             while (p >= 0) {
-               printd(0, "var p: %d: %s (%p) (skip: %d)\n", p, curr->var[p].id, curr->var[p].id, curr->var[p].skip);
+               printd(0, "var p: %d: %s (%p) (skip: %d frame_boundary: %d)\n", p, curr->var[p].id, curr->var[p].id, curr->var[p].skip, curr->var[p].frame_boundary);
                --p;
             }
          }
@@ -170,6 +171,17 @@ public:
       }
       // to avoid a warning on most compilers - note that this generates a warning on recent versions of aCC!
       return 0;
+   }
+
+   DLLLOCAL void pushFrameBoundary() {
+      LocalVarValue* v = instantiate();
+      v->setFrameBoundary();
+   }
+
+   DLLLOCAL void popFrameBoundary() {
+      assert(curr->var[curr->pos].frame_boundary);
+      curr->var[curr->pos].frame_boundary = false;
+      uninstantiateIntern();
    }
 };
 
@@ -220,7 +232,7 @@ public:
       instantiateIntern(cvar);
    }
 
-   DLLLOCAL void uninstantiate(ExceptionSink* xsink) {
+   DLLLOCAL void uninstantiateIntern() {
 #if 0
       if (!curr->pos)
          printd(5, "ThreadClosureVariableStack::uninstantiate() this: %p pos: %d %p %s\n", this, curr->prev->pos - 1, curr->prev->var[curr->prev->pos - 1]->id, curr->prev->var[curr->prev->pos - 1]->id);
@@ -235,7 +247,12 @@ public:
 	 }
 	 curr = curr->prev;
       }
-      curr->var[--curr->pos]->deref(xsink);
+      --curr->pos;
+   }
+
+   DLLLOCAL void uninstantiate(ExceptionSink* xsink) {
+      uninstantiateIntern();
+      curr->var[curr->pos]->deref(xsink);
    }
 
    DLLLOCAL ClosureVarValue* find(const char* id) {
@@ -245,7 +262,8 @@ public:
          int p = w->pos;
          while (p) {
 	    printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p checking %p '%s' skip: %d\n", id, id, this, w->var[p - 1]->id, w->var[p - 1]->id, w->var[p - 1]->skip);
-	    if (w->var[--p]->id == id && !w->var[p]->skip) {
+            --p;
+	    if (w->var[p] && w->var[p]->id == id && !w->var[p]->skip) {
 	       printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p returning: %p\n", id, id, this, w->var[p]);
 	       return w->var[p];
 	    }
@@ -256,7 +274,7 @@ public:
 	    printd(0, "ThreadClosureVariableStack::find() this: %p no closure-bound local variable '%s' (%p) on stack (pgm: %p) p: %d curr->prev: %p\n", this, id, id, getProgram(), p, curr->prev);
             p = curr->pos - 1;
             while (p >= 0) {
-               printd(0, "var p: %d: %s (%p) (skip: %d)\n", p, curr->var[p]->id, curr->var[p]->id, curr->var[p]->skip);
+               printd(0, "var p: %d: %s (%p) (skip: %d)\n", p, curr->var[p] ? curr->var[p]->id : "frame boundary", curr->var[p] ? curr->var[p]->id : nullptr, curr->var[p] ? curr->var[p]->skip : false);
                --p;
             }
          }
@@ -274,6 +292,9 @@ public:
          int p = w->pos;
          while (p) {
             --p;
+            // skip frame boundaries
+            if (!w->var[p])
+               continue;
             if (!cv)
                cv = new cvv_vec_t;
             cv->push_back(w->var[p]->refSelf());
@@ -282,6 +303,15 @@ public:
       }
       //printd(5, "ThreadClosureVariableStack::getAll() this: %p cv: %p size: %d\n", this, cv, cv ? cv->size() : 0);
       return cv;
+   }
+
+   DLLLOCAL void pushFrameBoundary() {
+      instantiateIntern(nullptr);
+   }
+
+   DLLLOCAL void popFrameBoundary() {
+      uninstantiateIntern();
+      assert(!curr->var[curr->pos]);
    }
 };
 

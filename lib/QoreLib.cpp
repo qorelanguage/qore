@@ -2428,3 +2428,13 @@ QoreStringNode* q_fix_decimal(QoreStringNode* str, size_t offset) {
 bool q_libqore_shutdown() {
    return qore_shutdown.load(std::memory_order_relaxed);
 }
+
+template<>
+bool ThreadBlock<LocalVarValue>::frameBoundary(int p) {
+   return var[p].frame_boundary;
+}
+
+template<>
+bool ThreadBlock<ClosureVarValue*>::frameBoundary(int p) {
+   return (bool)var[p];
+}

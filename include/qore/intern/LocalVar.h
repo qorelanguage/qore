@@ -100,14 +100,20 @@ public:
    const char* id;
    mutable bool skip : 1;
    bool finalized : 1;
+   bool frame_boundary : 1;
 
-   DLLLOCAL VarValueBase(const char* n_id, valtype_t t = QV_Node, bool n_skip = false) : val(t), id(n_id), skip(n_skip), finalized(false) {
+   DLLLOCAL VarValueBase(const char* n_id, valtype_t t = QV_Node, bool n_skip = false) : val(t), id(n_id), skip(n_skip), finalized(false), frame_boundary(false) {
    }
 
-   DLLLOCAL VarValueBase(const char* n_id, const QoreTypeInfo* varTypeInfo) : val(varTypeInfo), id(n_id), skip(false), finalized(false) {
+   DLLLOCAL VarValueBase(const char* n_id, const QoreTypeInfo* varTypeInfo) : val(varTypeInfo), id(n_id), skip(false), finalized(false), frame_boundary(false) {
    }
 
-   DLLLOCAL VarValueBase() : val(QV_Bool), finalized(false) {
+   DLLLOCAL VarValueBase() : val(QV_Bool), finalized(false), frame_boundary(false) {
+   }
+
+   DLLLOCAL void setFrameBoundary() {
+      assert(!frame_boundary);
+      frame_boundary = true;
    }
 
    DLLLOCAL void del(ExceptionSink* xsink) {
