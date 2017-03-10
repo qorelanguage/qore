@@ -1547,3 +1547,69 @@ pgm.setThreadInit(sub () { var = 123; });
 bool Program::setThreadInit(*code init) [dom=THREAD_CONTROL] {
    return qore_program_private::setThreadInit(*p, init, xsink);
 }
+
+//! returns a hash of local variables for the given stack frame
+/** @par Example:
+    @code{.py}
+hash h = pgm.getLocalVars(int i);
+    @endcode
+
+    @param frame the stack frame starting from 0 (the current frame)
+
+    @return a hash of local variables and their values
+
+    @since %Qore 0.8.13
+ */
+hash Program::getLocalVars(int frame) {
+   return new QoreHashNode();
+}
+
+//! returns a hash of global variables
+/** @par Example:
+    @code{.py}
+hash h = pgm.getGlobalVars();
+    @endcode
+
+    @return a hash of global variables and their values
+
+    @since %Qore 0.8.13
+ */
+hash Program::getGlobalVars() {
+   return new QoreHashNode();
+}
+
+//! set the value of a local variable in the current stack frame
+/** @par Example:
+    @code
+pgm.setLocalVar("a", 1);
+    @endcode
+
+    @param name the name of the variable
+    @param value the value to assign
+
+    @throw INVALID-VARIABLE the variable is not present in the current stack frame
+
+    @note other exceptions could be thrown if the value cannot be assigned to the given variable
+
+    @since %Qore 0.8.13
+ */
+nothing Program::setLocalVarValue(string name, any value) {
+}
+
+//! set the value of a global variable
+/** @par Example:
+    @code
+pgm.setGlobalVar("a", 1);
+    @endcode
+
+    @param name the name of the variable
+    @param value the value to assign
+
+    @throw INVALID-VARIABLE the variable is not a global variable
+
+    @note other exceptions could be thrown if the value cannot be assigned to the given variable
+
+    @since %Qore 0.8.13
+ */
+nothing Program::setGlobalVarValue(string name, any value) {
+}
