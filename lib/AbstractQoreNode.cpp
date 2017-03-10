@@ -82,10 +82,10 @@ void AbstractQoreNode::ref() const {
 #if TRACK_REFS
    if (type == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject*>(this);
-      printd(REF_LVL, "AbstractQoreNode::ref() %p type: %d object (%d->%d) object: %p, class: %s\n", this, type, references, references + 1, o, o->getClass()->getName());
+      printd(REF_LVL, "AbstractQoreNode::ref() %p type: %d object (%d->%d) object: %p, class: %s\n", this, type, references.load(), references.load() + 1, o, o->getClass()->getName());
    }
    else
-      printd(REF_LVL, "AbstractQoreNode::ref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), references, references + 1);
+      printd(REF_LVL, "AbstractQoreNode::ref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), references.load(), references.load() + 1);
 #endif
 #endif
    if (!there_can_be_only_one) {
@@ -125,21 +125,21 @@ void AbstractQoreNode::deref(ExceptionSink* xsink) {
    */
 #if TRACK_REFS
    if (type == NT_OBJECT)
-      printd(REF_LVL, "QoreObject::deref() %p class: %s (%d->%d) %d\n", this, ((QoreObject*)this)->getClassName(), references, references - 1, custom_reference_handlers);
+      printd(REF_LVL, "QoreObject::deref() %p class: %s (%d->%d) %d\n", this, ((QoreObject*)this)->getClassName(), references.load(), references.load() - 1, custom_reference_handlers);
    else
-      printd(REF_LVL, "AbstractQoreNode::deref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), references, references - 1);
+      printd(REF_LVL, "AbstractQoreNode::deref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), references.load(), references.load() - 1);
 
 #endif
-   if (references > 10000000 || references <= 0){
+   if (references.load() > 10000000 || references.load() <= 0){
       if (type == NT_STRING)
 	 printd(0, "AbstractQoreNode::deref() WARNING, node %p references: %d (type: %s) (val=\"%s\")\n",
-		this, references, getTypeName(), ((QoreStringNode*)this)->getBuffer());
+		this, references.load(), getTypeName(), ((QoreStringNode*)this)->getBuffer());
       else
-	 printd(0, "AbstractQoreNode::deref() WARNING, node %p references: %d (type: %s)\n", this, references, getTypeName());
+	 printd(0, "AbstractQoreNode::deref() WARNING, node %p references: %d (type: %s)\n", this, references.load(), getTypeName());
       assert(false);
    }
 #endif
-   assert(references > 0);
+   assert(references.load() > 0);
 
    if (there_can_be_only_one) {
       assert(is_unique());

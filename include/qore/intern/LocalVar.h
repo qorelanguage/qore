@@ -38,6 +38,8 @@
 #include "qore/intern/RSection.h"
 #include "qore/intern/RSet.h"
 
+#include <atomic>
+
 template <class T>
 class VarStackPointerHelper {
    const T* orig;
@@ -186,7 +188,7 @@ public:
 struct ClosureVarValue : public VarValueBase, public RObject {
 public:
    // reference count; access serialized with rlck from RObject
-   mutable int references;
+   mutable std::atomic_int references;
    const QoreTypeInfo* typeInfo; // type restriction for lvalue
 
    DLLLOCAL ClosureVarValue(const char* n_id, const QoreTypeInfo* varTypeInfo, QoreValue& nval) : VarValueBase(n_id, varTypeInfo), RObject(references), references(1), typeInfo(varTypeInfo) {
