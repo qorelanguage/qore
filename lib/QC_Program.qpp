@@ -1560,8 +1560,8 @@ hash h = pgm.getLocalVars(int i);
 
     @since %Qore 0.8.13
  */
-hash Program::getLocalVars(int frame) {
-   return new QoreHashNode();
+hash Program::getLocalVars(int frame) [flags=RET_VALUE_ONLY] {
+   return new QoreHashNode;
 }
 
 //! returns a hash of global variables
@@ -1574,8 +1574,8 @@ hash h = pgm.getGlobalVars();
 
     @since %Qore 0.8.13
  */
-hash Program::getGlobalVars() {
-   return new QoreHashNode();
+hash Program::getGlobalVars() [flags=RET_VALUE_ONLY] {
+   return p->getGlobalVars();
 }
 
 //! set the value of a local variable in the current stack frame

@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -624,6 +624,13 @@ public:
        @since %Qore 0.8.13
     */
    DLLEXPORT AbstractQoreProgramExternalData* getExternalData(const char* owner) const;
+
+   //! retrieves a hash of global variables and their values
+   /** @return a hash of global variable information; keys are namespace-justified global variable names, values are the values
+
+       @since %Qore 0.8.13
+    */
+   DLLEXPORT QoreHashNode* getGlobalVars() const;
 
    DLLLOCAL QoreProgram(QoreProgram* pgm, int64 po, bool ec = false, const char* ecn = 0);
 

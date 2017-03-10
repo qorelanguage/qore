@@ -4,11 +4,11 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   namespaces are children of a program object.  there is a parse
   lock per program object to ensure that objects are added (or backed out)
-  atomically per program object.  All the objects referenced here should 
+  atomically per program object.  All the objects referenced here should
   be safe to read & copied at all times.  They will only be deleted when the
   program object is deleted (except the pending structures, which will be
   deleted any time there is a parse error, together with all other
@@ -123,6 +123,8 @@ public:
    DLLLOCAL qore_size_t size() const {
       return nsmap.size();
    }
+
+   DLLLOCAL void getGlobalVars(QoreHashNode& h) const;
 };
 
 #endif

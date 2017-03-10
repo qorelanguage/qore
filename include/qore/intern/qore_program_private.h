@@ -1576,6 +1576,10 @@ public:
       return i == extmap.end() ? nullptr : i->second;
    }
 
+   DLLLOCAL QoreHashNode* getGlobalVars() const {
+      return qore_root_ns_private::getGlobalVars(*RootNS);
+   }
+
    DLLLOCAL static QoreClass* runtimeFindClass(const QoreProgram& pgm, const char* class_name, ExceptionSink* xsink) {
       return pgm.priv->runtimeFindClass(class_name, xsink);
    }

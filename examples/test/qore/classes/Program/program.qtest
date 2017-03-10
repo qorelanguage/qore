@@ -60,6 +60,9 @@ class ProgramTest inherits QUnit::Test {
 
     private {
 	const CombineSrc = "class B1 {private { x; }} class B2 {public {x;}} class D inherits B1, B2 {}";
+
+        # global variables provided by the Qore language
+        const QoreGlobalVars = ("Qore::ENV", "Qore::QORE_ARGV", "Qore::ARGV");
     }
 
     constructor() : QUnit::Test("ProgramTest", "1.0", \ARGV) {
@@ -71,6 +74,7 @@ class ProgramTest inherits QUnit::Test {
         addTestCase("broken-operators test", \brokenOperatorsTest());
         addTestCase("class test", \classTest());
         addTestCase("setThreadInit test", \setThreadInitTest());
+        addTestCase("var test", \varTest());
 	set_return_value(main());
     }
 
@@ -295,5 +299,14 @@ class ProgramTest inherits QUnit::Test {
         cnt.inc();
         p.run();
         assertEq(0, i);
+    }
+
+    varTest() {
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            p.parse("our int i = 1; namespace T { our string str; } T::str = 'hi';", "xxx");
+            p.run();
+            assertEq(("i": 1, "T::str": "hi"), p.getGlobalVars() - QoreGlobalVars);
+        }
     }
 }

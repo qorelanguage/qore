@@ -1289,6 +1289,10 @@ AbstractQoreProgramExternalData* QoreProgram::getExternalData(const char* owner)
    return priv->getExternalData(owner);
 }
 
+QoreHashNode* QoreProgram::getGlobalVars() const {
+   return priv->getGlobalVars();
+}
+
 AbstractQoreProgramExternalData::~AbstractQoreProgramExternalData() {
 }
 
