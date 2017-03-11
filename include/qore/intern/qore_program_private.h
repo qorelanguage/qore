@@ -179,9 +179,9 @@ public:
    }
 
    DLLLOCAL void popFrameBoundary() {
+      uninstantiateIntern();
       assert(curr->var[curr->pos].frame_boundary);
       curr->var[curr->pos].frame_boundary = false;
-      uninstantiateIntern();
    }
 };
 

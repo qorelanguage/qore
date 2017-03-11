@@ -864,6 +864,18 @@ ClosureParseEnvironment* thread_get_closure_parse_env() {
    return thread_data.get()->closure_parse_env;
 }
 
+void thread_push_frame_boundary() {
+   ThreadData* td = thread_data.get();
+   td->tlpd->lvstack.pushFrameBoundary();
+   td->tlpd->cvstack.pushFrameBoundary();
+}
+
+void thread_pop_frame_boundary() {
+   ThreadData* td = thread_data.get();
+   td->tlpd->lvstack.popFrameBoundary();
+   td->tlpd->cvstack.popFrameBoundary();
+}
+
 void parse_push_name(const char* name) {
    ThreadData* td = thread_data.get();
    td->pushName(name);

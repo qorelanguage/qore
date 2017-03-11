@@ -466,6 +466,9 @@ DLLLOCAL const QoreClosureBase* thread_set_runtime_closure_env(const QoreClosure
 typedef std::vector<ClosureVarValue*> cvv_vec_t;
 DLLLOCAL cvv_vec_t* thread_get_all_closure_vars();
 
+DLLLOCAL void thread_push_frame_boundary();
+DLLLOCAL void thread_pop_frame_boundary();
+
 DLLLOCAL int get_implicit_element();
 DLLLOCAL int save_implicit_element(int n_element);
 
@@ -947,6 +950,17 @@ public:
       if (ROdereference())
          delete this;
    }
+};
+
+class ThreadFrameBoundaryHelper {
+public:
+    DLLLOCAL ThreadFrameBoundaryHelper() {
+        thread_push_frame_boundary();
+    }
+
+    DLLLOCAL ~ThreadFrameBoundaryHelper() {
+        thread_pop_frame_boundary();
+    }
 };
 
 DLLLOCAL extern pthread_mutexattr_t ma_recursive;
