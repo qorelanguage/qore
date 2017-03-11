@@ -128,11 +128,24 @@ public:
    DLLLOCAL virtual ThreadDebugEnum onFunctionExit(QoreProgram *pgm, const StatementBlock *blockStatement, QoreValue& returnValue, ExceptionSink* xsink) {
       AbstractQoreNode* params[2];
       params[0] = getLocation(blockStatement);
-      ReferenceArgumentHelper rah(returnValue.getInternalNode(), xsink);
+      if (returnValue.getInternalNode()) {
+         printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit() getRetValue#1: QVtype: %d, refCount: %d\n", returnValue.type, returnValue.getInternalNode()->reference_count());
+      }
+      ReferenceArgumentHelper rah(returnValue.takeNode(), xsink); // grab node from returnValue and pass to helper
+      if (returnValue.getInternalNode()) {
+         printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit() getRetValue#2: refCount: %d\n", returnValue.getInternalNode()->reference_count());
+      }
       params[1] = rah.getArg(); // caller owns ref
       ThreadDebugEnum rv = callMethod("onFunctionExit", DBG_SB_RUN, pgm, 2, params, xsink);
       AbstractQoreNode* rc = rah.getOutputValue();  // caller owns ref
-      returnValue.assign(rc);  // takes reference
+      if (rc) {
+         printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit() rc#3: refCount: %d\n", rc->reference_count());
+      }
+      returnValue.assign(rc);  // takes reference   ... TODO: uninstantiate in helper
+//      returnValue.ref();
+      if (returnValue.getInternalNode()) {
+         printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit() getRetValue#4: refCount: %d\n", returnValue.getInternalNode()->reference_count());
+      }
       return rv;
    }
    DLLLOCAL virtual ThreadDebugEnum onException(QoreProgram *pgm, const AbstractStatement *statement, ExceptionSink* xsink) {

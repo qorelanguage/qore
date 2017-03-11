@@ -368,7 +368,7 @@ public:
    }
 
    DLLLOCAL void instantiateSelf(QoreObject* value) const {
-      //printd(5, "LocalVar::instantiateSelf(%p) this: %p '%s'\n", value, this, name.c_str());
+      printd(5, "LocalVar::instantiateSelf(%p) this: %p '%s'\n", value, this, name.c_str());
       if (!closure_use) {
          LocalVarValue* val = thread_instantiate_lvar();
          val->set(name.c_str(), typeInfo, value, true);

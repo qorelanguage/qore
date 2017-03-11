@@ -946,62 +946,63 @@ inline void ThreadLocalProgramData::checkAttach(ExceptionSink* xsink) {
          setStepBreakpoint(getProgram()->priv->onDetach(xsink));
       }
    }
-   printd(5, "ThreadLocalProgramData::checkAttach() this: %p, xsink: %d\n", this, xsink->isEvent());
 }
 
 int ThreadLocalProgramData::dbgStep(const StatementBlock* blockStatement, const AbstractStatement* statement, ExceptionSink* xsink) {
    checkAttach(xsink);
    checkBreakFlag();
-   printd(5, "ThreadLocalProgramData::dbgStep() this: %p, sb: %d, tid: %d\n", this, stepBreakpoint, gettid());
    int rc = 0;
    if (stepBreakpoint == DBG_SB_STEP) {
+      printd(5, "ThreadLocalProgramData::dbgStep() this: %p, sb: %d, tid: %d\n", this, stepBreakpoint, gettid());
       stepBreakpoint = DBG_SB_STOPPED;
       setStepBreakpoint(getProgram()->priv->onStep(blockStatement, statement, rc, xsink));
+      printd(5, "ThreadLocalProgramData::dbgStep() this: %p, rc: %d, xsink:%d\n", this, rc,xsink->isEvent());
    }
-   printd(5, "ThreadLocalProgramData::dbgStep() this: %p, rc: %d, xsink:%d\n", this, rc,xsink->isEvent());
    return rc;
 }
 
 void ThreadLocalProgramData::dbgFunctionEnter(const StatementBlock* statement, ExceptionSink* xsink) {
    checkAttach(xsink);
    checkBreakFlag();
-   printd(5, "ThreadLocalProgramData::dbgFunctionEnter() this: %p, sb: %d, tid: %d\n", this, stepBreakpoint, gettid());
    if (stepBreakpoint == DBG_SB_STEP_OVER) {
       stepBreakpoint = DBG_SB_RUN;
       saveStepOver = true;
+      printd(5, "ThreadLocalProgramData::dbgFunctionEnter(), stepping over, this: %p, sb: %d, tid: %d\n", this, stepBreakpoint, gettid());
    } else if (stepBreakpoint == DBG_SB_STEP) {
+      printd(5, "ThreadLocalProgramData::dbgFunctionEnter() this: %p, sb: %d, tid: %d\n", this, stepBreakpoint, gettid());
       saveStepOver = false;
       stepBreakpoint = DBG_SB_STOPPED;
       setStepBreakpoint(getProgram()->priv->onFunctionEnter(statement, xsink));
+      printd(5, "ThreadLocalProgramData::dbgFunctionEnter() this: %p, xsink: %d\n", this, xsink->isEvent());
    }
-   printd(5, "ThreadLocalProgramData::dbgFunctionEnter() this: %p, xsink: %d\n", this, xsink->isEvent());
 }
 
 void ThreadLocalProgramData::dbgFunctionExit(const StatementBlock* statement, QoreValue& returnValue, ExceptionSink* xsink) {
-   printd(5, "ThreadLocalProgramData::dbgFunctionExit() this: %p, sb: %d, tid: %d\n", this, stepBreakpoint, gettid());
    if (stepBreakpoint == DBG_SB_UNTIL_RETURN || stepBreakpoint == DBG_SB_STEP) {
+      printd(5, "ThreadLocalProgramData::dbgFunctionExit() this: %p, sb: %d, tid: %d\n", this, stepBreakpoint, gettid());
       saveStepOver = false;
       stepBreakpoint = DBG_SB_STOPPED;
       setStepBreakpoint(getProgram()->priv->onFunctionExit(statement, returnValue, xsink));
+      printd(5, "ThreadLocalProgramData::dbgFunctionExit() this: %p, xsink: %d\n", this, xsink->isEvent());
    } else if (stepBreakpoint != DBG_SB_STOPPED && stepBreakpoint != DBG_SB_DETACH && saveStepOver) {
       stepBreakpoint = DBG_SB_STEP;
       saveStepOver = false;
+      printd(5, "ThreadLocalProgramData::dbgFunctionExit() step over, this: %p, sb: %d, tid: %d\n", this, stepBreakpoint, gettid());
    } else {
       checkAttach(xsink);
       checkBreakFlag();
    }
-   printd(5, "ThreadLocalProgramData::dbgFunctionExit() this: %p, xsink: %d\n", this, xsink->isEvent());
 }
 
 void ThreadLocalProgramData::dbgException(const AbstractStatement* statement, ExceptionSink* xsink) {
-   printd(5, "ThreadLocalProgramData::dbgException() this: %p, sb: %d, tid: %d\n", this, stepBreakpoint, gettid());
    if (stepBreakpoint != DBG_SB_STOPPED && stepBreakpoint != DBG_SB_DETACH) {
+      printd(5, "ThreadLocalProgramData::dbgException() this: %p, sb: %d, tid: %d\n", this, stepBreakpoint, gettid());
       checkAttach(xsink);
       saveStepOver = false;
       stepBreakpoint = DBG_SB_STOPPED;
       setStepBreakpoint(getProgram()->priv->onException(statement, xsink));
+      printd(5, "ThreadLocalProgramData::dbgException() this: %p, xsink: %d\n", this, xsink->isEvent());
    }
-   printd(5, "ThreadLocalProgramData::dbgException() this: %p, xsink: %d\n", this, xsink->isEvent());
 }
 
 QoreProgram::~QoreProgram() {
