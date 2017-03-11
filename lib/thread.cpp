@@ -485,7 +485,7 @@ void ThreadProgramData::delProgram(QoreProgram* pgm) {
 void ThreadProgramData::saveProgram(bool runtime, ExceptionSink* xsink) {
    if (!qore_program_private::setThreadVarData(td->current_pgm, this, td->tlpd, runtime))
       return;
-   //printd(5, "ThreadProgramData::saveProgram() this: %p pgm: %p\n", this, td->current_pgm);
+   printd(5, "ThreadProgramData::saveProgram() this: %p pgm: %p\n", this, td->current_pgm);
    ref();
    td->current_pgm->depRef();
    {
@@ -493,7 +493,7 @@ void ThreadProgramData::saveProgram(bool runtime, ExceptionSink* xsink) {
       assert(pgm_set.find(td->current_pgm) == pgm_set.end());
       pgm_set.insert(td->current_pgm);
    }
-   td->tlpd->dbgAttachThread(xsink);
+   td->tlpd->dbgPendingAttach();
    if (runtime)
       qore_program_private::doThreadInit(*td->current_pgm, xsink);
 }
@@ -1551,14 +1551,14 @@ ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* 
    qore_program_private* pp = qore_program_private::get(*pgm);
 
    ThreadData* td = thread_data.get();
-   //printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() current_pgm: %p new_pgm: %p\n", td->current_pgm, pgm);
+   printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() current_pgm: %p new_pgm: %p\n", td->current_pgm, pgm);
    if (pgm != td->current_pgm) {
       // try to increment thread count
       if (pp->incThreadCount(xsink)) {
-         //printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() failed\n");
+         printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() failed\n");
          return;
       }
-      //printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() OK\n");
+      printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() OK\n");
 
       // set up thread stacks
       restore = true;
@@ -1705,6 +1705,7 @@ ProgramRuntimeParseAccessHelper::~ProgramRuntimeParseAccessHelper() {
 }
 
 QoreProgram* getProgram() {
+   printd(5, "getProgram(): %p\n", (thread_data.get())->current_pgm);
    return (thread_data.get())->current_pgm;
    //return (thread_data.get())->pgmStack->getProgram();
 }

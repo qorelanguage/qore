@@ -35,7 +35,7 @@
 
 DLLEXPORT extern qore_classid_t CID_DEBUGPROGRAM;
 DLLLOCAL extern QoreClass* QC_DEBUGPROGRAM;
-DLLLOCAL QoreClass *initProgramClass(QoreNamespace& ns);
+DLLLOCAL QoreClass *initDebugProgramClass(QoreNamespace& ns);
 
 #include <qore/QoreDebugProgram.h>
 #include <qore/ReferenceArgumentHelper.h>
@@ -48,21 +48,24 @@ private:
    typedef std::map<QoreProgram*, QoreObject*> qore_program_to_object_map_t;
    qore_program_to_object_map_t qore_program_to_object_map;
 
-   DLLLOCAL ThreadDebugEnum callMethod(const char* name, QoreProgram *pgm, int paramCount, AbstractQoreNode** params, ExceptionSink* xsink) {
+   DLLLOCAL ThreadDebugEnum callMethod(const char* name, const ThreadDebugEnum defaultResult, QoreProgram *pgm, int paramCount, AbstractQoreNode** params, ExceptionSink* xsink) {
       int rv;
       QoreListNode* l = new QoreListNode();
       qore_program_to_object_map_t::iterator i = qore_program_to_object_map.find(pgm);
       if (i == qore_program_to_object_map.end()) {
-         return DBG_SB_RUN;
+         return defaultResult;
       }
+      i->second->ref();
       l->push(i->second);
       //l->push(QoreProgram);
       for (int i=0; i<paramCount; i++) {
+         if (params[i])
+               params[i]->ref();
          l->push(params[i]);
       }
       rv = qo->intEvalMethod(name, l, xsink);
       for (int i=0; i<paramCount; i++) {
-         params[i]->deref(xsink);
+         //params[i]->deref(xsink);
       }
       l->deref(xsink);
       return (ThreadDebugEnum) rv;
@@ -77,14 +80,17 @@ private:
       h->setKeyValue("end_line", new QoreBigIntNode(s->loc.end_line), 0);
       return h;
    }
-   // hide parent methods
-   //DLLEXPORT void addProgram(QoreProgram *pgm);
 public:
-   DLLLOCAL QoreDebugProgramWithQoreObject(QoreObject* n_qo): qo(n_qo) {}
+   DLLLOCAL QoreDebugProgramWithQoreObject(QoreObject* n_qo): qo(n_qo) {
+      printd(5, "QoreDebugProgramWithCoreObject::QoreDebugProgramWithCoreObject() this: %p, qo: %p\n", this, n_qo);
+   }
 
+   // hide parent methods
+   DLLLOCAL void addProgram(QoreProgram *pgm) = delete;
    DLLLOCAL void addProgram(QoreProgram *pgm, QoreObject* o) {
       // for backcall we need link to QoreObject
       //AutoLocker al(tlock);
+      printd(5, "QoreDebugProgramWithCoreObject::addProgram() this: %p, pgm: %p, o: %p\n", this, pgm, o);
       qore_program_to_object_map_t::iterator i = qore_program_to_object_map.find(pgm);
       if (i != qore_program_to_object_map.end()) {
          assert(i->second == o);
@@ -93,19 +99,21 @@ public:
       qore_program_to_object_map.insert(qore_program_to_object_map_t::value_type(pgm, o));
       QoreDebugProgram::addProgram(pgm);
    }
-   DLLLOCAL ThreadDebugEnum onAttach(QoreProgram *pgm, ExceptionSink* xsink) {
-      return callMethod("onAttach", pgm, 0, 0, xsink);
+   DLLLOCAL virtual ThreadDebugEnum onAttach(QoreProgram *pgm, ExceptionSink* xsink) {
+      printd(5, "QoreDebugProgramWithCoreObject::onAttach() this: %p, pgm: %p\n", this, pgm);
+      return callMethod("onAttach", DBG_SB_RUN, pgm, 0, 0, xsink);
    }
-   DLLLOCAL ThreadDebugEnum onDetach(QoreProgram *pgm, ExceptionSink* xsink) {
-      return callMethod("onDetach", pgm, 0, 0, xsink);
+   DLLLOCAL virtual ThreadDebugEnum onDetach(QoreProgram *pgm, ExceptionSink* xsink) {
+      printd(5, "QoreDebugProgramWithCoreObject::onDetach() this: %p, pgm: %p\n", this, pgm);
+      return callMethod("onDetach", DBG_SB_DETACH, pgm, 0, 0, xsink);
    }
    DLLLOCAL virtual ThreadDebugEnum onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, int &retCode, ExceptionSink* xsink) {
       AbstractQoreNode* params[3];
       params[0] = getLocation(blockStatement);
-      params[1] = getLocation(statement);
+      params[1] = statement ? getLocation(statement) : 0;
       ReferenceArgumentHelper rah(new QoreBigIntNode(retCode), xsink);
       params[2] = rah.getArg(); // caller owns ref
-      ThreadDebugEnum rv = callMethod("onStep", pgm, 3, params, xsink);
+      ThreadDebugEnum rv = callMethod("onStep", DBG_SB_RUN, pgm, 3, params, xsink);
       AbstractQoreNode* rc = rah.getOutputValue();  // caller owns ref
       retCode = rc->getAsInt();
       rc->deref(xsink);
@@ -114,7 +122,7 @@ public:
    DLLLOCAL virtual ThreadDebugEnum onFunctionEnter(QoreProgram *pgm, const StatementBlock *blockStatement, ExceptionSink* xsink) {
       AbstractQoreNode* params[1];
       params[0] = getLocation(blockStatement);
-      ThreadDebugEnum rv = callMethod("onFunctionEnter", pgm, 1, params, xsink);
+      ThreadDebugEnum rv = callMethod("onFunctionEnter", DBG_SB_RUN, pgm, 1, params, xsink);
       return rv;
    }
    DLLLOCAL virtual ThreadDebugEnum onFunctionExit(QoreProgram *pgm, const StatementBlock *blockStatement, QoreValue& returnValue, ExceptionSink* xsink) {
@@ -122,7 +130,7 @@ public:
       params[0] = getLocation(blockStatement);
       ReferenceArgumentHelper rah(returnValue.getInternalNode(), xsink);
       params[1] = rah.getArg(); // caller owns ref
-      ThreadDebugEnum rv = callMethod("onFunctionExit", pgm, 2, params, xsink);
+      ThreadDebugEnum rv = callMethod("onFunctionExit", DBG_SB_RUN, pgm, 2, params, xsink);
       AbstractQoreNode* rc = rah.getOutputValue();  // caller owns ref
       returnValue.assign(rc);  // takes reference
       return rv;
@@ -130,7 +138,7 @@ public:
    DLLLOCAL virtual ThreadDebugEnum onException(QoreProgram *pgm, const AbstractStatement *statement, ExceptionSink* xsink) {
       AbstractQoreNode* params[1];
       params[0] = getLocation(statement);
-      ThreadDebugEnum rv = callMethod("onException", pgm, 1, params, xsink);
+      ThreadDebugEnum rv = callMethod("onException", DBG_SB_RUN, pgm, 1, params, xsink);
       return rv;
    }
 

@@ -66,11 +66,12 @@
 #define QP_WARN_DEFAULT (QP_WARN_UNKNOWN_WARNING|QP_WARN_MODULES|QP_WARN_DEPRECATED)
 
 enum ThreadDebugEnum : unsigned char {
-   DBG_SB_RUN = 0,
-   DBG_SB_STEP = 1,
-   DBG_SB_STEP_OVER = 2,
-   DBG_SB_UNTIL_RETURN = 3,
-   DBG_SB_STOPPED = 4,    // last one, see assert in setStepBreakpoint
+   DBG_SB_DETACH = 0,
+   DBG_SB_RUN = 1,
+   DBG_SB_STEP = 2,
+   DBG_SB_STEP_OVER = 3,
+   DBG_SB_UNTIL_RETURN = 4,
+   DBG_SB_STOPPED = 5,    // last one, see assert in setStepBreakpoint
 };
 
 

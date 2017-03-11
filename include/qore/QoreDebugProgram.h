@@ -37,6 +37,7 @@
 
 #include <qore/AbstractPrivateData.h>
 #include <qore/Restrictions.h>
+#include <qore/support.h>
 
 class QoreProgram;
 class ExceptionSink;
@@ -81,10 +82,11 @@ public:
    DLLEXPORT void removeProgram(QoreProgram *pgm);
 
    DLLEXPORT virtual ThreadDebugEnum onAttach(QoreProgram *pgm, ExceptionSink* xsink) {
+      printd(5, "QoreDebugProgram::onAttach() this: %p\n", this);
       return DBG_SB_RUN;
    }
    DLLEXPORT virtual ThreadDebugEnum onDetach(QoreProgram *pgm, ExceptionSink* xsink) {
-      return DBG_SB_RUN;
+      return DBG_SB_DETACH;
    }
    /**
     * Executed on every step of StatementBlock.

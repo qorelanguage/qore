@@ -43,6 +43,9 @@
     @since %Qore 0.8.13
 */
 //@{
+//! Detach program from debugging, it is not normally used from script
+const DebugDetach = DBG_SB_DETACH;
+
 //! Run program, avoid stepping
 const DebugRun = DBG_SB_RUN;
 
@@ -55,7 +58,7 @@ const DebugStepOver = DBG_SB_STEP_OVER;
 //! Run program till function is exited
 const DebugUntilReturn = DBG_SB_UNTIL_RETURN;
 
-//  const DebugStopped = DBG_SB_STOPPED = 4,    // not needed
+//  const DebugStopped = DBG_SB_STOPPED = 5,    // not needed
 //@}
 
 /** @defgroup debug_rc_options Debug Block Constants
@@ -101,8 +104,8 @@ const DebugBlockContinue = RC_CONTINUE;
 
     }
 
-    Program pgm();
-    dbg.addProgram(pgm);
+    Program p(PO_DEFAULT, True);
+    dbg.addProgram(p);
 
     pgm.parse(code);
     pgm.saveProgram();
@@ -167,7 +170,7 @@ int DebugProgram::onAttach(Program[QoreProgram] pgm) {
  *
  */
 int DebugProgram::onDetach(Program[QoreProgram] pgm) {
-   return DBG_SB_RUN;
+   return DBG_SB_DETACH;
 }
 
 //! Executed when step is performed

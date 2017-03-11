@@ -923,6 +923,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    qns.addSystemClass(initSSLPrivateKeyClass(qns));
    qns.addSystemClass(initSocketClass(qns));
    qns.addSystemClass(initProgramClass(qns));
+   qns.addSystemClass(initDebugProgramClass(qns));
 
    qns.addSystemClass(initTermIOSClass(qns));
    qns.addSystemClass(initReadOnlyFileClass(qns));

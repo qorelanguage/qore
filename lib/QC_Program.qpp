@@ -650,6 +650,7 @@ qclass Program [arg=QoreProgram* p];
     will be applied literally to the child object.
 
     @param po A binary OR'ed product of @ref parse_options "parse options"
+    @param currentPgm if True then assigns already currently running program 
 
     @par Example:
     @code{.py}
@@ -658,13 +659,19 @@ Program pgm();
 
     @throw PROGRAM-OPTION-ERROR invalid parse options used
  */
-Program::constructor(softint po = PO_DEFAULT) [dom=EMBEDDED_LOGIC] {
+Program::constructor(softint po = PO_DEFAULT, bool currentPgm = False) [dom=EMBEDDED_LOGIC] {
    if (po & PO_SYSTEM_OPS) {
       xsink->raiseException("PROGRAM-OPTION-ERROR", "parse options (0x" QLLX ") contain restricted options that can only be set by the system", po);
       return;
    }
 
-   QoreProgram* pgm = new QoreProgram(getProgram(), po);
+   QoreProgram* pgm;
+   pgm = getProgram();
+   if (currentPgm) {
+      pgm->ref();
+   } else {
+      pgm = new QoreProgram(pgm, po);
+   }
    self->setPrivate(CID_PROGRAM, pgm);
 }
 

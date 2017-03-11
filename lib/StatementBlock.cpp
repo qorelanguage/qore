@@ -235,10 +235,12 @@ int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
          rc = tlpd->dbgStep(this, *i, xsink);
          if (rc || *xsink)
             break;
-         if ((rc = (*i)->exec(return_value, xsink)) || xsink->isEvent()) {
+         rc = (*i)->exec(return_value, xsink);
+         if (xsink->isEvent()) {
             tlpd->dbgException(*i, xsink);
             break;
          }
+         if (rc) break;
       }
    }
    // execute "on block exit" code if applicable

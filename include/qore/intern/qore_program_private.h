@@ -97,6 +97,7 @@ typedef QoreThreadLocalStorage<QoreHashNode> qpgm_thread_local_storage_t;
 #include "qore/intern/ThreadLocalVariableData.h"
 #include "qore/intern/ThreadClosureVariableStack.h"
 
+
 struct ThreadLocalProgramData {
 private:
    // not implemented
@@ -114,13 +115,17 @@ private:
    volatile bool breakFlag;
    // called from running thread
    inline void checkBreakFlag() {
-      if (breakFlag) {
+      if (breakFlag && stepBreakpoint != DBG_SB_DETACH) {
          breakFlag = false;
          if (stepBreakpoint != DBG_SB_STOPPED) {
             stepBreakpoint = DBG_SB_STEP;
          }
+         printd(5, "ThreadLocalProgramData::checkBreakFlag(), this: %p, sb: %d\n", this, stepBreakpoint);
       }
    }
+   // to call onAttach when debug is attached or detached, -1 .. detach, 1 .. attach
+   int attachFlag;
+   inline void checkAttach(ExceptionSink* xsink);
 public:
 
    // local variable data slots
@@ -136,7 +141,7 @@ public:
    bool inst : 1;
 
 
-   DLLLOCAL ThreadLocalProgramData() : stepBreakpoint(DBG_SB_RUN), saveStepOver(false), tz(0), tz_set(false), inst(false) {
+   DLLLOCAL ThreadLocalProgramData() : stepBreakpoint(DBG_SB_DETACH), saveStepOver(false), breakFlag(false), tz(0), tz_set(false), inst(false) {
       //printd(5, "ThreadLocalProgramData::ThreadLocalProgramData() this: %p\n", this);
    }
 
@@ -185,11 +190,6 @@ public:
     */
 
    /**
-    * Executed when local thread data for QoreProgram.
-    * TODO: improve performance substituting getProgram() with more powerful way
-    */
-   DLLLOCAL void dbgAttachThread(ExceptionSink* xsink);
-   /**
     * Executed every step in BlockStatement.
     * @param statement is step being processed
     * @return 0 as neutral value or RC_RETURN/BREAK/CONTINUE to terminate block
@@ -212,7 +212,22 @@ public:
     * Executed from any thread to break running program
     */
    DLLLOCAL void dbgBreak() {
+      printd(5, "ThreadLocalProgramData::dbgBreak(), this: %p\n", this);
       breakFlag = true;
+   }
+   /**
+    * Executed from any thread to set pending attach flag
+    */
+   DLLLOCAL void dbgPendingAttach() {
+      printd(5, "ThreadLocalProgramData::dbgPendingAttach(), this: %p\n", this);
+      attachFlag = 1;
+   }
+   /**
+    * Executed from any thread to set pending detach flag
+    */
+   DLLLOCAL void dbgPendingDetach() {
+      printd(5, "ThreadLocalProgramData::dbgPendingDetach(), this: %p\n", this);
+      attachFlag = -1;
    }
 };
 
@@ -460,11 +475,11 @@ private:
 
    }
 public:
-   DLLLOCAL qore_program_private(QoreProgram* n_pgm, int64 n_parse_options) : qore_program_private_base(n_pgm, n_parse_options) {
+   DLLLOCAL qore_program_private(QoreProgram* n_pgm, int64 n_parse_options) : qore_program_private_base(n_pgm, n_parse_options), dpgm(0) {
       printd(5, "qore_program_private::qore_program_private() this: %p pgm: %p\n", this, pgm);
    }
 
-   DLLLOCAL qore_program_private(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm) : qore_program_private_base(n_pgm, n_parse_options, p_pgm) {
+   DLLLOCAL qore_program_private(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm) : qore_program_private_base(n_pgm, n_parse_options, p_pgm), dpgm(0) {
       printd(5, "qore_program_private::qore_program_private() this: %p pgm: %p\n", this, pgm);
    }
 
@@ -1084,7 +1099,7 @@ public:
          assert(!tclear);
          ThreadLocalProgramData* tlpd = new ThreadLocalProgramData;
 
-         //printd(5, "qore_program_private::setThreadVarData() (first) this: %p pgm: %p td: %p run: %s inst: %s\n", this, pgm, td, run ? "true" : "false", tlpd->inst ? "true" : "false");
+         printd(5, "qore_program_private::setThreadVarData() (first) this: %p pgm: %p td: %p run: %s inst: %s\n", this, pgm, td, run ? "true" : "false", tlpd->inst ? "true" : "false");
 
          new_tlpd = tlpd;
 
@@ -1093,7 +1108,7 @@ public:
          sl.unlock();
 
          if (run) {
-            //printd(5, "qore_program_private::setThreadVarData() (first) this: %p pgm: %p td: %p\n", this, pgm, td);
+            printd(5, "qore_program_private::setThreadVarData() (first) this: %p pgm: %p td: %p\n", this, pgm, td);
             doTopLevelInstantiation(*tlpd);
          }
 
@@ -1105,7 +1120,7 @@ public:
 
       sl.unlock();
 
-      //printd(5, "qore_program_private::setThreadVarData() (not first) this: %p pgm: %p td: %p run: %s inst: %s\n", this, pgm, td, run ? "true" : "false", tlpd->inst ? "true" : "false");
+      printd(5, "qore_program_private::setThreadVarData() (not first) this: %p pgm: %p td: %p run: %s inst: %s\n", this, pgm, td, run ? "true" : "false", tlpd->inst ? "true" : "false");
 
       if (run && !tlpd->inst) {
          doTopLevelInstantiation(*tlpd);
@@ -1883,14 +1898,30 @@ public:
    }
 
    DLLLOCAL void attachDebug(const qore_debug_program_private* n_dpgm) {
+      printd(5, "qore_program_private::attachDebug(n_dpgm: %p), dpgm: %p\n", n_dpgm, dpgm);
       QoreAutoRWWriteLocker al(&lck_debug_program);
+
+      if (dpgm == n_dpgm) return;
       dpgm = const_cast<qore_debug_program_private*>(n_dpgm);
-      // TODO: attachThread event ??
+      printd(5, "qore_program_private::attachDebug, dpgm: %p, pgm_data_map: size:%d, begin: %p, end: %p\n", dpgm, pgm_data_map.size(), pgm_data_map.begin(), pgm_data_map.end());
+      AutoLocker al2(tlock);
+      for (pgm_data_map_t::iterator i = pgm_data_map.begin(), e = pgm_data_map.end(); i != e; ++i) {
+         i->second->dbgPendingAttach();
+         i->second->dbgBreak();
+      }
    }
+
    DLLLOCAL void detachDebug(const qore_debug_program_private* n_dpgm) {
+      printd(5, "qore_program_private::detachDebug(n_dpgm: %p), dpgm: %p\n", n_dpgm, dpgm);
       QoreAutoRWWriteLocker al(&lck_debug_program);
       assert(n_dpgm==dpgm);
+      if (!n_dpgm) return;
       dpgm = 0;
+      printd(5, "qore_program_private::detachDebug, dpgm: %p, pgm_data_map: size:%d, begin: %p, end: %p\n", dpgm, pgm_data_map.size(), pgm_data_map.begin(), pgm_data_map.end());
+      AutoLocker al2(tlock);
+      for (pgm_data_map_t::iterator i = pgm_data_map.begin(), e = pgm_data_map.end(); i != e; ++i) {
+         i->second->dbgPendingDetach();
+      }
       // debug_program_counter may be non zero to finish pending calls. Just this instance cannot be deleted, it's satisfied in destructor
    }
 
@@ -1902,6 +1933,7 @@ public:
    DLLLOCAL ThreadDebugEnum onException(const AbstractStatement *statement, ExceptionSink* xsink);
 
    DLLLOCAL void breakProgramThread(int tid) {
+      printd(5, "qore_program_private::breakProgramThread(), this: %p, tid: %d\n", this, gettid());
       AutoLocker al(tlock);
       for (pgm_data_map_t::iterator i = pgm_data_map.begin(), e = pgm_data_map.end(); i != e; ++i) {
          if (i->first->gettid() == tid) {
@@ -1912,6 +1944,7 @@ public:
    }
 
    DLLLOCAL void breakProgram() {
+      printd(5, "qore_program_private::breakProgram(), this: %p\n", this);
       AutoLocker al(tlock);
       for (pgm_data_map_t::iterator i = pgm_data_map.begin(), e = pgm_data_map.end(); i != e; ++i) {
          i->second->dbgBreak();
@@ -1952,26 +1985,29 @@ public:
    DLLLOCAL void addProgram(QoreProgram *pgm) {
       AutoLocker al(tlock);
       qore_program_map_t::iterator i = qore_program_map.find(pgm);
+      printd(5, "qore_debug_program_private::addProgram(), this: %p, pgm: %p, i: %p, end: %p\n", this, pgm, i, qore_program_map.end());
       if (i != qore_program_map.end())
          return;  // already exists
-      qore_program_private* qpp = i->second;
       qore_program_map.insert(qore_program_map_t::value_type(pgm, pgm->priv));
-      qpp->attachDebug(this);
+      pgm->priv->attachDebug(this);
    }
 
    DLLLOCAL void removeProgram(QoreProgram *pgm) {
       AutoLocker al(tlock);
       qore_program_map_t::iterator i = qore_program_map.find(pgm);
+      printd(5, "qore_debug_program_private::removeProgram(), this: %p, pgm: %p, i: %p, end: %p\n", this, pgm, i, qore_program_map.end());
       if (i == qore_program_map.end())
          return;
-      qore_program_private* qpp = i->second;
+      pgm->priv->detachDebug(this);
       qore_program_map.erase(i);
-      qpp->detachDebug(this);
+      // onDetach will not be executed as program is removed
    }
 
    DLLLOCAL void removeAllPrograms() {
       AutoLocker al(tlock);
-      for (qore_program_map_t::iterator i = qore_program_map.begin(), e = qore_program_map.end(); i != e; ++i) {
+      printd(5, "qore_debug_program_private::removeAllPrograms(), this: %p\n", this);
+      qore_program_map_t::iterator i;
+      while ((i = qore_program_map.begin()) != qore_program_map.end()) {
          qore_program_private* qpp = i->second;
          qore_program_map.erase(i);
          qpp->detachDebug(this);
@@ -2019,6 +2055,7 @@ public:
    DLLLOCAL void breakProgramThread(QoreProgram *pgm, int tid) {
       AutoLocker al(tlock);
       qore_program_map_t::iterator i = qore_program_map.find(pgm);
+      printd(5, "qore_debug_program_private::breakProgramThread(), this: %p, pgm: %p, i: %p, end: %p, tid: %d\n", this, pgm, i, qore_program_map.end(), tid);
       if (i == qore_program_map.end())
          return;
       i->second->breakProgramThread(tid);
@@ -2027,6 +2064,7 @@ public:
    DLLLOCAL void breakProgram(QoreProgram *pgm) {
       AutoLocker al(tlock);
       qore_program_map_t::iterator i = qore_program_map.find(pgm);
+      printd(5, "qore_debug_program_private::breakProgram(), this: %p, pgm: %p, i: %p, end: %p\n", this, pgm, i, qore_program_map.end());
       if (i == qore_program_map.end())
          return;
       i->second->breakProgram();
