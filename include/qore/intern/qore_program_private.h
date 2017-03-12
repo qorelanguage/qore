@@ -183,6 +183,38 @@ public:
       assert(curr->var[curr->pos].frame_boundary);
       curr->var[curr->pos].frame_boundary = false;
    }
+
+   DLLLOCAL void getLocalVars(QoreHashNode& h, int frame, ExceptionSink* xsink) {
+      assert(frame >= 0);
+
+      // find requested frame
+      int cframe = 0;
+
+      bool in_frame = !frame;
+
+      Block* w = curr;
+      while (true) {
+	 int p = w->pos;
+	 while (p) {
+            --p;
+            const LocalVarValue& var = w->var[p];
+            if (var.frame_boundary) {
+               if (in_frame)
+                  break;
+               ++cframe;
+               if (frame == cframe)
+                  in_frame = true;
+               continue;
+            }
+
+            if (in_frame && !var.skip)
+               h.setKeyValue(var.id, var.evalValue(xsink).takeNode(), xsink);
+	 }
+	 w = w->prev;
+         if (!w)
+            break;
+      }
+   }
 };
 
 class ThreadClosureVariableStack : public ThreadLocalData<ClosureVarValue*> {
@@ -312,6 +344,9 @@ public:
    DLLLOCAL void popFrameBoundary() {
       uninstantiateIntern();
       assert(!curr->var[curr->pos]);
+   }
+
+   DLLLOCAL void getLocalVars(QoreHashNode& h, int frame, ExceptionSink* xsink) {
    }
 };
 
@@ -672,6 +707,20 @@ public:
       ++tidmap[tid];
       ++thread_count;
       return 0;
+   }
+
+   // throws a QoreStandardException if there is an error
+   DLLLOCAL void incThreadCount() {
+      int tid = gettid();
+
+      // grab program-level lock
+      AutoLocker al(plock);
+
+      if (ptid && ptid != tid)
+         throw QoreStandardException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed at runtime");
+
+      ++tidmap[tid];
+      ++thread_count;
    }
 
    DLLLOCAL void decThreadCount(int tid) {

@@ -431,6 +431,7 @@ set(LIBQORE_CPP_SRC
     lib/ModuleManager.cpp
     lib/QoreException.cpp
     lib/ExceptionSink.cpp
+    lib/QoreStandardException.cpp
     lib/QoreClass.cpp
     lib/Context.cpp
     lib/FindNode.cpp

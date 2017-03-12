@@ -187,6 +187,20 @@ public:
 
       return val.getReferencedValue(needs_deref);
    }
+
+   DLLLOCAL QoreValue evalValue(ExceptionSink* xsink) const {
+      if (val.getType() == NT_REFERENCE) {
+         ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
+         LocalRefHelper<LocalVarValue> helper(this, *ref, xsink);
+         if (!helper)
+            return QoreValue();
+
+         ValueEvalRefHolder erh(lvalue_ref::get(ref)->vexp, xsink);
+         return *xsink ? QoreValue() : erh.takeReferencedValue();
+      }
+
+      return val.getReferencedValue();
+   }
 };
 
 struct ClosureVarValue : public VarValueBase, public RObject {

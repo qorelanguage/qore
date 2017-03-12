@@ -453,6 +453,13 @@ const PO_STRONG_ENCAPSULATION = PO_STRONG_ENCAPSULATION;
     @since %Qore 0.8.13
 */
 const PO_NO_UNCONTROLLED_APIS = PO_NO_UNCONTROLLED_APIS;
+
+//! allows debugging actions that could be insecure such as reading the thread local variable stack
+/** @see @ref allow-debugging "%allow-debugging"
+
+    @since %Qore 0.8.13
+*/
+const PO_ALLOW_DEBUGGING = PO_ALLOW_DEBUGGING;
 //@}
 
 /** @defgroup warning_constants Warning Constants
@@ -1556,12 +1563,14 @@ hash h = pgm.getLocalVars(int i);
 
     @param frame the stack frame starting from 0 (the current frame)
 
-    @return a hash of local variables and their values
+    @return a hash of local variables and their values; if the frame does not exist, an empty hash is returned
 
     @since %Qore 0.8.13
  */
 hash Program::getLocalVars(int frame) [flags=RET_VALUE_ONLY] {
-   return new QoreHashNode;
+    // this call throws a c++ exception if it fails
+    ReferenceHolder<QoreHashNode> rv(thread_get_local_vars(frame, xsink), xsink);
+    return *xsink ? nullptr : rv.release();
 }
 
 //! returns a hash of global variables
@@ -1574,7 +1583,7 @@ hash h = pgm.getGlobalVars();
 
     @since %Qore 0.8.13
  */
-hash Program::getGlobalVars() [flags=RET_VALUE_ONLY] {
+hash Program::getGlobalVars() [flags=CONSTANT] {
    return p->getGlobalVars();
 }
 

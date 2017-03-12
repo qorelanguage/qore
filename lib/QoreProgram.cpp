@@ -1293,6 +1293,10 @@ QoreHashNode* QoreProgram::getGlobalVars() const {
    return priv->getGlobalVars();
 }
 
+QoreHashNode* QoreProgram::getLocalVars(int frame, ExceptionSink* xsink) const {
+    return thread_get_local_vars(frame, xsink);
+}
+
 AbstractQoreProgramExternalData::~AbstractQoreProgramExternalData() {
 }
 

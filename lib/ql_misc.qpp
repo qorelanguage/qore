@@ -2600,4 +2600,22 @@ string get_ex_pos(hash ex) [flags=CONSTANT] {
 
    return str;
 }
+
+//! retrieves a hash of local vars for the given stack frame
+/** @par Example:
+    @code
+hash h = get_local_vars(0);
+    @endcode
+
+    @param frame the stack frame where 0 is the current stack frame
+
+    @return a hash of local variables for the given stack frame; if the stack frame is invalid, an empty hash is returned
+
+    @throw CIRCULAR-REFERENCE-ERROR circular reference found when retrieving local variable values
+
+    @since %Qore 0.8.13
+ */
+hash get_local_vars(int frame) [dom=DEBUG_INSECURE;flags=RET_VALUE_ONLY] {
+    return thread_get_local_vars(frame, xsink);
+}
 //@}

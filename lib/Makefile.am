@@ -162,6 +162,7 @@ libqore_la_SOURCES = \
 	ModuleManager.cpp \
 	QoreException.cpp \
 	ExceptionSink.cpp \
+	QoreStandardException.cpp \
 	QoreClass.cpp \
 	Context.cpp \
 	FindNode.cpp \

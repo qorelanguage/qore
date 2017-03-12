@@ -304,9 +304,28 @@ class ProgramTest inherits QUnit::Test {
     varTest() {
         {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
-            p.parse("our int i = 1; namespace T { our string str; } T::str = 'hi';", "xxx");
+            p.parse("our int i = 1; namespace T { our string str; } T::str = 'hi';", "");
             p.run();
             assertEq(("i": 1, "T::str": "hi"), p.getGlobalVars() - QoreGlobalVars);
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
+            p.parse("hash sub test(int frame) { int i = 1; string str = 'hi'; return get_local_vars(frame); }", "");
+            assertEq(("frame": 0, "i": 1, "str": "hi", "argv": NOTHING), p.callFunction("test", 0));
+            assertEq({}, p.callFunction("test", 1));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
+            p.parse("hash sub test1(int frame) { return get_local_vars(frame); } hash sub test2(int frame) { int i = 1; string str = 'hi'; return test1(frame); }", "");
+            assertEq(("str": "hi", "i": 1, "argv": NOTHING, "frame": 1), p.callFunction("test2", 1));
+            assertEq(("frame": 0, "argv": NOTHING), p.callFunction("test2", 0));
+            assertEq({}, p.callFunction("test2", -1));
+            assertEq({}, p.callFunction("test2", 2));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertThrows("PARSE-EXCEPTION", "do not allow access", \p.parse(), ("get_local_vars(0);", ""));
         }
     }
 }

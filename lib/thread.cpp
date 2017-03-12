@@ -876,6 +876,20 @@ void thread_pop_frame_boundary() {
    td->tlpd->cvstack.popFrameBoundary();
 }
 
+QoreHashNode* thread_get_local_vars(int frame, ExceptionSink* xsink) {
+   ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
+   ThreadData* td = thread_data.get();
+   if (frame >= 0) {
+      td->tlpd->lvstack.getLocalVars(**rv, frame, xsink);
+      if (*xsink)
+         return nullptr;
+      td->tlpd->cvstack.getLocalVars(**rv, frame, xsink);
+      if (*xsink)
+         return nullptr;
+   }
+   return rv.release();
+}
+
 void parse_push_name(const char* name) {
    ThreadData* td = thread_data.get();
    td->pushName(name);

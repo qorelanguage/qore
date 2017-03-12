@@ -632,6 +632,17 @@ public:
     */
    DLLEXPORT QoreHashNode* getGlobalVars() const;
 
+   //! retrieves a hash of all local variables and their values for the given stack frame
+   /**
+       @param frame the stack frame starting from 0 (the current frame)
+       @param xsink for Qore-language exceptions
+
+       @return a hash of local variables and their values; if the frame does not exist, an empty hash is returned; if a Qore-language exception is thrown, then nullptr is returned
+
+       @since %Qore 0.8.13
+    */
+   DLLEXPORT QoreHashNode* getLocalVars(int level, ExceptionSink* xsink) const;
+
    DLLLOCAL QoreProgram(QoreProgram* pgm, int64 po, bool ec = false, const char* ecn = 0);
 
    DLLLOCAL LocalVar *createLocalVar(const char* name, const QoreTypeInfo *typeInfo);
