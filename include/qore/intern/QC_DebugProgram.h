@@ -48,7 +48,7 @@ private:
    typedef std::map<QoreProgram*, QoreObject*> qore_program_to_object_map_t;
    qore_program_to_object_map_t qore_program_to_object_map;
 
-   DLLLOCAL void callMethod(const char* name, QoreProgram *pgm, int paramCount, AbstractQoreNode** params, ThreadDebugEnum &sb, ExceptionSink* xsink) {
+   DLLLOCAL void callMethod(const char* name, QoreProgram *pgm, int paramCount, AbstractQoreNode** params, ThreadDebugEnum &sb, ExceptionSink* xsink, ExceptionSink &xsink2) {
       QoreListNode* l = new QoreListNode();
       qore_program_to_object_map_t::iterator i = qore_program_to_object_map.find(pgm);
       if (i == qore_program_to_object_map.end()) {
@@ -64,18 +64,22 @@ private:
          l->push(params[i]);
       }
       QoreBigIntNode *rc = new QoreBigIntNode(sb);
-      ReferenceArgumentHelper rah(rc, xsink);
+      ReferenceArgumentHelper rah(rc, &xsink2);
       l->push(rah.getArg()); // caller owns ref
 
-      printd(5, "QoreDebugProgramWithCoreObject::callMethod(%s) this: %p, pgm: %p, param#: %d, sb: %d\n", name, this, pgm, paramCount, sb);
-      qo->evalMethod(name, l, xsink);
+      printd(5, "QoreDebugProgramWithCoreObject::callMethod(%s) this: %p, pgm: %p, param#: %d, sb: %d, xsink2: %d\n", name, this, pgm, paramCount, sb, xsink2.isEvent());
+      qo->evalMethod(name, l, &xsink2);
 //      AbstractQoreNode* rc = rah.getOutputValue();  // caller owns ref
 //      sb = (ThreadDebugEnum) rc->getAsInt();
       QoreValue v(rah.getOutputQoreValue());
       sb = (ThreadDebugEnum) v.getAsBigInt();
       //rc->deref();
       printd(5, "QoreDebugProgramWithCoreObject::callMethod(%s) this: %p, pgm: %p, sb: %d\n", name, this, pgm, sb);
-      l->deref(xsink);
+      l->deref(&xsink2);
+      /* catch all exceptions from defbug code, optionally we could assimilate on demand or create exception handler
+       * but developer can try/catch by himself to handle it
+       */
+      // xsink->assimilate(xsink2);
    }
 
    DLLLOCAL QoreHashNode* getLocation(const AbstractStatement *s) const {
@@ -108,20 +112,23 @@ public:
    }
    DLLLOCAL virtual void onAttach(QoreProgram *pgm, ThreadDebugEnum &sb, ExceptionSink* xsink) {
       printd(5, "QoreDebugProgramWithCoreObject::onAttach() this: %p, pgm: %p\n", this, pgm);
-      callMethod("onAttach", pgm, 0, 0, sb, xsink);
+      ExceptionSink xsink2;
+      callMethod("onAttach", pgm, 0, 0, sb, xsink, xsink2);
    }
    DLLLOCAL virtual void onDetach(QoreProgram *pgm, ThreadDebugEnum &sb, ExceptionSink* xsink) {
       printd(5, "QoreDebugProgramWithCoreObject::onDetach() this: %p, pgm: %p\n", this, pgm);
-      callMethod("onDetach", pgm, 0, 0, sb, xsink);
+      ExceptionSink xsink2;
+      callMethod("onDetach", pgm, 0, 0, sb, xsink, xsink2);
    }
    DLLLOCAL virtual void onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, int &retCode, ThreadDebugEnum &sb, ExceptionSink* xsink) {
+      ExceptionSink xsink2;
       AbstractQoreNode* params[3];
       params[0] = getLocation(blockStatement);
       params[1] = statement ? getLocation(statement) : 0;
       QoreBigIntNode *rc = new QoreBigIntNode(retCode);
-      ReferenceArgumentHelper rah(rc, xsink);
+      ReferenceArgumentHelper rah(rc, &xsink2);
       params[2] = rah.getArg(); // caller owns ref
-      callMethod("onStep", pgm, 3, params, sb, xsink);
+      callMethod("onStep", pgm, 3, params, sb, xsink, xsink2);
 //      AbstractQoreNode* rc = rah.getOutputValue();  // caller owns ref
 //      retCode = rc->getAsInt();
       QoreValue v(rah.getOutputQoreValue());
@@ -129,23 +136,25 @@ public:
       //rc->deref();
    }
    DLLLOCAL virtual void onFunctionEnter(QoreProgram *pgm, const StatementBlock *blockStatement, ThreadDebugEnum &sb, ExceptionSink* xsink) {
+      ExceptionSink xsink2;
       AbstractQoreNode* params[1];
       params[0] = getLocation(blockStatement);
-      callMethod("onFunctionEnter", pgm, 1, params, sb, xsink);
+      callMethod("onFunctionEnter", pgm, 1, params, sb, xsink, xsink2);
    }
    DLLLOCAL virtual void onFunctionExit(QoreProgram *pgm, const StatementBlock *blockStatement, QoreValue& returnValue, ThreadDebugEnum &sb, ExceptionSink* xsink) {
+      ExceptionSink xsink2;
       AbstractQoreNode* params[2];
       params[0] = getLocation(blockStatement);
       printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit() getRetValue#0: type: %d, in: %p\n", returnValue.type, returnValue.getInternalNode());
       if (returnValue.getInternalNode()) {
          printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit() getRetValue#1: QVtype: %d, refCount: %d\n", returnValue.type, returnValue.getInternalNode()->reference_count());
       }
-      ReferenceArgumentHelper rah(returnValue.takeNode(), xsink);
+      ReferenceArgumentHelper rah(returnValue.takeNode(), &xsink2);
       if (returnValue.getInternalNode()) {
          printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit() getRetValue#2: refCount: %d\n", returnValue.getInternalNode()->reference_count());
       }
       params[1] = rah.getArg(); // caller owns ref
-      callMethod("onFunctionExit", pgm, 2, params, sb, xsink);
+      callMethod("onFunctionExit", pgm, 2, params, sb, xsink, xsink2);
       returnValue = rah.getOutputValue();  // caller owns ref
       printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit() getRetValue#3: type: %d, in: %p\n", returnValue.type, returnValue.getInternalNode());
       if (returnValue.getInternalNode()) {
@@ -153,13 +162,18 @@ public:
       }
    }
    DLLLOCAL virtual void onException(QoreProgram *pgm, const AbstractStatement *statement, ThreadDebugEnum &sb, ExceptionSink* xsink) {
-      AbstractQoreNode* params[2];
+      ExceptionSink xsink2;
+      AbstractQoreNode* params[3];
       params[0] = getLocation(statement);
       QoreException* except = xsink->getException();
       params[1] = except->makeExceptionObject();
-      ExceptionSink xsink2;
-      callMethod("onException", pgm, 2, params, sb, &xsink2);
-      xsink->assimilate(xsink2);
+      ReferenceArgumentHelper rah(get_bool_node(false), &xsink2);
+      params[2] = rah.getArg(); // caller owns ref
+      callMethod("onException", pgm, 3, params, sb, xsink, xsink2);
+      QoreValue v(rah.getOutputQoreValue());
+      if (v.getAsBool()) {
+         xsink->clear();  // dismiss exception
+      }
    }
 
 };

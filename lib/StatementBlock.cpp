@@ -238,7 +238,9 @@ int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
          rc = (*i)->exec(return_value, xsink);
          if (xsink->isEvent()) {
             tlpd->dbgException(*i, xsink);
-            break;
+            if (xsink->isEvent()) {
+               break;
+            }
          }
          if (rc) break;
       }

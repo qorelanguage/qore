@@ -196,7 +196,7 @@ DebugProgram::onFunctionExit(Program[QoreProgram] pgm, hash location, reference 
 /**
  *
  */
-DebugProgram::onException(Program[QoreProgram] pgm, hash location, hash ex, reference sb) {
+DebugProgram::onException(Program[QoreProgram] pgm, hash location, hash ex, reference dismiss, reference sb) {
 }
 
 //! Break particular program thread

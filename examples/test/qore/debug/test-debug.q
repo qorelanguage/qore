@@ -101,7 +101,11 @@ printf("it:%y, sb:%d, act:%y\n", it, sb, act);
     handle(ST_FUNC_EXIT, pgm, \sb, location, ("retVal": returnValue));
   }
 
-  onException(Program pgm, hash location, hash ex, reference sb) {
+  onException(Program pgm, hash location, hash ex, reference dismiss, reference sb) {
+    any act = getAction(ST_EXCEPTION);
+    if (exists act.dismiss) {
+        dismiss = act.dismiss;
+    }
     handle(ST_EXCEPTION, pgm, \sb, location, ("ex": ex));
   }
 
@@ -214,7 +218,7 @@ class DebugTest inherits QUnit::Test {
     }
     tstNoRetVal() {
     }
-    nothing tstProgram() {
+    any tstProgram() {
       int i = 1;
       string s = i.type();
       int tid = gettid();
@@ -233,7 +237,7 @@ class DebugTest inherits QUnit::Test {
         debugProgram.setActions(actions);
 printf("Actions: %N\n", debugProgram.actions);
         debugProgram.addProgram(thisProgram);
-        tstProgram();
+        any ret = tstProgram();
         debugProgram.removeProgram(thisProgram);
 printf("stack: %N\n", stack);
 printf("expected log: %N\n", traceLog);
