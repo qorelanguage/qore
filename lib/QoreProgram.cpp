@@ -938,14 +938,14 @@ inline void ThreadLocalProgramData::checkAttach(ExceptionSink* xsink) {
    if (stepBreakpoint != DBG_SB_STOPPED) {
       if (attachFlag > 0) {
          ThreadDebugEnum sb = stepBreakpoint;
-         saveStepOver = false;
+         functionCallLevel = 0;
          printd(5, "ThreadLocalProgramData::checkAttach(attach) this: %p, sb:%d, tid: %d\n", this, stepBreakpoint, gettid());
          stepBreakpoint = DBG_SB_STOPPED;
 
          getProgram()->priv->onAttach(sb, xsink);
-         if (sb != DBG_SB_DETACH) {
-            attachFlag = 0;
-         }
+         //if (sb != DBG_SB_DETACH) {   // TODO: why this exception ?
+             attachFlag = 0;
+         //}
          printd(5, "ThreadLocalProgramData::checkAttach(attach): setBreakpoint(%d)\n", sb);
          setStepBreakpoint(sb);
       } else if (attachFlag < 0) {
@@ -962,8 +962,9 @@ int ThreadLocalProgramData::dbgStep(const StatementBlock* blockStatement, const 
    checkAttach(xsink);
    checkBreakFlag();
    int rc = 0;
-   if (stepBreakpoint == DBG_SB_STEP) {
+   if (stepBreakpoint == DBG_SB_STEP || (stepBreakpoint == DBG_SB_STEP_OVER && functionCallLevel == 0)) {
       printd(5, "ThreadLocalProgramData::dbgStep() this: %p, sb: %d, tid: %d\n", this, stepBreakpoint, gettid());
+      functionCallLevel = 0;
       ThreadDebugEnum sb = stepBreakpoint;
       stepBreakpoint = DBG_SB_STOPPED;
       getProgram()->priv->onStep(blockStatement, statement, rc, sb, xsink);
@@ -976,34 +977,34 @@ int ThreadLocalProgramData::dbgStep(const StatementBlock* blockStatement, const 
 void ThreadLocalProgramData::dbgFunctionEnter(const StatementBlock* statement, ExceptionSink* xsink) {
    checkAttach(xsink);
    checkBreakFlag();
-   if (stepBreakpoint == DBG_SB_STEP_OVER) {
-      stepBreakpoint = DBG_SB_RUN;
-      saveStepOver = true;
+   if (stepBreakpoint == DBG_SB_STEP_OVER && functionCallLevel == 0) {
+      functionCallLevel = 1;
       printd(5, "ThreadLocalProgramData::dbgFunctionEnter(), stepping over, this: %p, sb: %d, tid: %d\n", this, stepBreakpoint, gettid());
    } else if (stepBreakpoint == DBG_SB_STEP) {
       printd(5, "ThreadLocalProgramData::dbgFunctionEnter() this: %p, sb: %d, tid: %d\n", this, stepBreakpoint, gettid());
-      saveStepOver = false;
+      functionCallLevel = 0;
       ThreadDebugEnum sb = stepBreakpoint;
       stepBreakpoint = DBG_SB_STOPPED;
       getProgram()->priv->onFunctionEnter(statement, sb, xsink);
       setStepBreakpoint(sb);
       printd(5, "ThreadLocalProgramData::dbgFunctionEnter() this: %p, xsink: %d\n", this, xsink->isEvent());
+   } else if (stepBreakpoint != DBG_SB_STOPPED && stepBreakpoint != DBG_SB_DETACH && functionCallLevel > 0) {
+      functionCallLevel++;
    }
 }
 
 void ThreadLocalProgramData::dbgFunctionExit(const StatementBlock* statement, QoreValue& returnValue, ExceptionSink* xsink) {
-   if (stepBreakpoint == DBG_SB_UNTIL_RETURN || stepBreakpoint == DBG_SB_STEP) {
+   if ((stepBreakpoint == DBG_SB_UNTIL_RETURN && functionCallLevel == 1) || stepBreakpoint == DBG_SB_STEP || (stepBreakpoint == DBG_SB_STEP_OVER && functionCallLevel == 0)) {
       printd(5, "ThreadLocalProgramData::dbgFunctionExit() this: %p, sb: %d, tid: %d\n", this, stepBreakpoint, gettid());
       ThreadDebugEnum sb = stepBreakpoint;
-      saveStepOver = false;
+      functionCallLevel = 0;
       stepBreakpoint = DBG_SB_STOPPED;
       getProgram()->priv->onFunctionExit(statement, returnValue, sb, xsink);
       setStepBreakpoint(sb);
       printd(5, "ThreadLocalProgramData::dbgFunctionExit() this: %p, xsink: %d\n", this, xsink->isEvent());
-   } else if (stepBreakpoint != DBG_SB_STOPPED && stepBreakpoint != DBG_SB_DETACH && saveStepOver) {
-      stepBreakpoint = DBG_SB_STEP;
-      saveStepOver = false;
-      printd(5, "ThreadLocalProgramData::dbgFunctionExit() step over, this: %p, sb: %d, tid: %d\n", this, stepBreakpoint, gettid());
+   } else if (stepBreakpoint != DBG_SB_STOPPED && stepBreakpoint != DBG_SB_DETACH && functionCallLevel > 0) {
+      functionCallLevel--;
+      printd(5, "ThreadLocalProgramData::dbgFunctionExit() exit, this: %p, sb: %d, level: %d, tid: %d\n", this, stepBreakpoint, functionCallLevel, gettid());
    } else {
       checkAttach(xsink);
       checkBreakFlag();
@@ -1014,7 +1015,7 @@ void ThreadLocalProgramData::dbgException(const AbstractStatement* statement, Ex
    if (stepBreakpoint != DBG_SB_STOPPED && stepBreakpoint != DBG_SB_DETACH) {
       printd(5, "ThreadLocalProgramData::dbgException() this: %p, sb: %d, tid: %d\n", this, stepBreakpoint, gettid());
       checkAttach(xsink);
-      saveStepOver = false;
+      functionCallLevel = 0;
       ThreadDebugEnum sb = stepBreakpoint;
       stepBreakpoint = DBG_SB_STOPPED;
       getProgram()->priv->onException(statement, sb, xsink);

@@ -63,8 +63,8 @@ class MyDebugProgram inherits DebugProgram {
     if (exists act) {
       shift actions;
       if (act.typeCode() == NT_HASH) {
-        if (exists act.rc)
-          sb = act.rc;
+        if (exists act.sb)
+          sb = act.sb;
       } else {
         sb = act;
       }
@@ -224,16 +224,18 @@ class DebugTest inherits QUnit::Test {
       int tid = gettid();
       string ret = tstFunction(i, "Func");
       tstNoRetVal();
-      s = sprintf("res: %y\n", ret);
+      s = sprintf("%s", ret);  # just test if ret do not coredumps
       try {
         i = (tid+s.size()+ret.size()) / (tid-tid);
       } catch (hash ex) {
-        printf("Catch block: Ex:%y\n", ex);
+        s = ex.err;
       }
+      return s;
     }
     # end of tested program
 
-    checkProgram(string name, list actions, list traceLog) {
+    checkProgram(string name, list actions, list traceLog, any expectedRet) {
+        printf("checkProgram(%y)\n", name);
         debugProgram.setActions(actions);
 printf("Actions: %N\n", debugProgram.actions);
         debugProgram.addProgram(thisProgram);
@@ -273,6 +275,7 @@ printf("actuallog: %N\n", debugProgram.log);
             i++;
         }
         testAssertionValue(sprintf(name+':tracelog end check, i:%d', i), debugProgram.log, ());
+        testAssertionValue(sprintf(name+':return value', i), ret, expectedRet);
     }
 
     singleThreadDebugTest1() {
@@ -327,14 +330,33 @@ printf("actuallog: %N\n", debugProgram.log);
             ("func": ST_STEP, "line": line.tstProgram+7),
             ("func": ST_BLOCK, "line": line.tstProgram+8),
             ("func": ST_STEP, "line": line.tstProgram+8),
-            ("func": ST_EXCEPTION, "line": line.tstProgram+8, "ex": "DIVISION-BY-ZERO"),
+            ("func": ST_EXCEPTION, "line": line.tstProgram+8, "ex": "DIVISION-BY-ZERO"), #50
             ("func": ST_BLOCK, "line": line.tstProgram+10),
             ("func": ST_STEP, "line": line.tstProgram+10),
+            ("func": ST_STEP, "line": line.tstProgram+12),
             ("func": ST_FUNC_EXIT, "line": line.tstProgram+1),
             ("func": ST_STEP),
         );
-        checkProgram("full trace", list(DebugStep), traceLog);
-
+        list l;
+        checkProgram("full trace", list(DebugStep), traceLog, "DIVISION-BY-ZERO");
+        checkProgram("full trace dismiss exception", list(DebugStep, ("func": ST_EXCEPTION, "dismiss": True) ), splice(traceLog, 51, 2), "DONE");
+        checkProgram("until return", list(DebugStep, ("func": ST_FUNC_ENTER), ("func": ST_FUNC_ENTER, "sb": DebugUntilReturn), DebugStep), splice(traceLog, 8, 33), "DIVISION-BY-ZERO");
+        l = splice(traceLog, 0, 50); # remove remove till exception
+        l = splice(l, 1, 3);  # till func exit
+        l = splice(l, 2, 1);
+        checkProgram("run till exception modify retVal", list(DebugRun, ("func": ST_EXCEPTION, "sb": DebugUntilReturn), ("func": ST_FUNC_EXIT, "retVal": "MODIFIED", "sb": DebugRun)), l, "MODIFIED");
+        l = splice(traceLog, 7, 35); # remove tstFunction
+        l = splice(l, 8, 3);  # remove tstNoRetVal
+        checkProgram("stepover", list(DebugStep, ("func": ST_FUNC_ENTER, "sb": DebugStepOver)), l, "DIVISION-BY-ZERO");
+        checkProgram("detach", list(DebugStep, ("func": ST_FUNC_ENTER, "sb": DebugDetach)), splice(traceLog, 2), "DIVISION-BY-ZERO");
+        l = ();
+        /*for (my int i=0; i<traceLog.size()-2; i++) {  # why -2 ... exception has no checkAttach
+            push l, ("func": ST_ATTACH);
+        }*/
+        checkProgram("do not attach", list(DebugDetach), list(), "DIVISION-BY-ZERO");
+        # TODO: DebugBlockReturn, DebugBlockBreak, DebugBlockContinue
+        # breakProgramThread, breakProgram
+        # multithread
     }
 
     multiThreadDebugTest1() {

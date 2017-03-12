@@ -73,7 +73,7 @@ private:
 //      sb = (ThreadDebugEnum) rc->getAsInt();
       QoreValue v(rah.getOutputQoreValue());
       sb = (ThreadDebugEnum) v.getAsBigInt();
-      //rc->deref();
+      //rc->deref();    // TODO: memleaks, but when deref then wrong memory access
       printd(5, "QoreDebugProgramWithCoreObject::callMethod(%s) this: %p, pgm: %p, sb: %d\n", name, this, pgm, sb);
       l->deref(&xsink2);
       /* catch all exceptions from defbug code, optionally we could assimilate on demand or create exception handler
@@ -104,10 +104,10 @@ public:
       printd(5, "QoreDebugProgramWithCoreObject::addProgram() this: %p, pgm: %p, o: %p\n", this, pgm, o);
       qore_program_to_object_map_t::iterator i = qore_program_to_object_map.find(pgm);
       if (i != qore_program_to_object_map.end()) {
-         assert(i->second == o);
-         return;  // already exists
+         assert(i->second == o);  // already exists
+      } else {
+         qore_program_to_object_map.insert(qore_program_to_object_map_t::value_type(pgm, o));
       }
-      qore_program_to_object_map.insert(qore_program_to_object_map_t::value_type(pgm, o));
       QoreDebugProgram::addProgram(pgm);
    }
    DLLLOCAL virtual void onAttach(QoreProgram *pgm, ThreadDebugEnum &sb, ExceptionSink* xsink) {

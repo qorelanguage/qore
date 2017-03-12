@@ -106,10 +106,13 @@ private:
    // thread debug types, field is read/write only in thread being debugged, no locking is needed
    ThreadDebugEnum stepBreakpoint;
    ThreadDebugEnum saveStepBreakpoint;
-   // Current debug state, dtto
-   bool saveStepOver;
+   // when stepover or until return we need calls function calls
+   int functionCallLevel;
    inline void setStepBreakpoint(ThreadDebugEnum st) {
       assert(st < DBG_SB_STOPPED); // DBG_SB_STOPPED is wrong value when program is running
+      if (st == DBG_SB_UNTIL_RETURN) {
+         functionCallLevel = 1;  // function called only when stepBreakpoint is not DBG_SB_UNTIL_RETURN
+      }
       stepBreakpoint = st;
    }
    // set to true by any process do break running program asap
@@ -142,7 +145,7 @@ public:
    bool inst : 1;
 
 
-   DLLLOCAL ThreadLocalProgramData() : stepBreakpoint(DBG_SB_DETACH), saveStepOver(false), breakFlag(false), tz(0), tz_set(false), inst(false) {
+   DLLLOCAL ThreadLocalProgramData() : stepBreakpoint(DBG_SB_DETACH), functionCallLevel(0), breakFlag(false), tz(0), tz_set(false), inst(false) {
       //printd(5, "ThreadLocalProgramData::ThreadLocalProgramData() this: %p\n", this);
    }
 
@@ -176,7 +179,7 @@ public:
       enabled = n_enabled;
       if (!enabled) {
          stepBreakpoint = DBG_SB_RUN;
-         saveStepOver = false;
+         functionCallLevel = 0;
       }
    }*/
 
