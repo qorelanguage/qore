@@ -53,10 +53,6 @@ enum qore_var_t {
 #include <memory>
 #include <set>
 
-#ifndef QORE_THREAD_STACK_BLOCK
-#define QORE_THREAD_STACK_BLOCK 1024
-#endif
-
 class Var;
 class ScopedObjectCallNode;
 class QoreSquareBracketsOperatorNode;

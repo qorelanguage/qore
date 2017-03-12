@@ -174,11 +174,13 @@ public:
    }
 
    DLLLOCAL void pushFrameBoundary() {
+      //printd(5, "ThreadLocalVariableData::pushFrameBoundary()\n");
       LocalVarValue* v = instantiate();
       v->setFrameBoundary();
    }
 
    DLLLOCAL void popFrameBoundary() {
+      //printd(5, "ThreadLocalVariableData::popFrameBoundary()\n");
       uninstantiateIntern();
       assert(curr->var[curr->pos].frame_boundary);
       curr->var[curr->pos].frame_boundary = false;
@@ -278,12 +280,14 @@ public:
 	    curr->next = 0;
 	 }
 	 curr = curr->prev;
+         assert(curr);
       }
       --curr->pos;
    }
 
    DLLLOCAL void uninstantiate(ExceptionSink* xsink) {
       uninstantiateIntern();
+      assert(curr->var[curr->pos]);
       curr->var[curr->pos]->deref(xsink);
    }
 
@@ -293,11 +297,12 @@ public:
       while (true) {
          int p = w->pos;
          while (p) {
-	    printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p checking %p '%s' skip: %d\n", id, id, this, w->var[p - 1]->id, w->var[p - 1]->id, w->var[p - 1]->skip);
             --p;
-	    if (w->var[p] && w->var[p]->id == id && !w->var[p]->skip) {
-	       printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p returning: %p\n", id, id, this, w->var[p]);
-	       return w->var[p];
+            ClosureVarValue* rv = w->var[p];
+	    printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p checking %p '%s' skip: %d\n", id, id, this, rv ? rv->id : nullptr, rv ? rv->id : "n/a", rv ? rv->skip : false);
+	    if (rv && rv->id == id && !rv->skip) {
+	       printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p returning: %p\n", id, id, this, rv);
+	       return rv;
 	    }
 	 }
 	 w = w->prev;
@@ -306,14 +311,15 @@ public:
 	    printd(0, "ThreadClosureVariableStack::find() this: %p no closure-bound local variable '%s' (%p) on stack (pgm: %p) p: %d curr->prev: %p\n", this, id, id, getProgram(), p, curr->prev);
             p = curr->pos - 1;
             while (p >= 0) {
-               printd(0, "var p: %d: %s (%p) (skip: %d)\n", p, curr->var[p] ? curr->var[p]->id : "frame boundary", curr->var[p] ? curr->var[p]->id : nullptr, curr->var[p] ? curr->var[p]->skip : false);
+               ClosureVarValue* cvv = w->var[p];
+               printd(0, "var p: %d: %s (%p) (skip: %d)\n", p, cvv ? cvv->id : "frame boundary", cvv ? cvv->id : nullptr, cvv ? cvv->skip : false);
                --p;
             }
          }
 #endif
 	 assert(w);
       }
-      // to avoid a warning on most compilers - note that this generates a warning on recent versions of aCC!
+      // to avoid a warning on most compilers - note that this generates a warning on aCC!
       return 0;
    }
 
@@ -324,12 +330,13 @@ public:
          int p = w->pos;
          while (p) {
             --p;
+            ClosureVarValue* cvv = w->var[p];
             // skip frame boundaries
-            if (!w->var[p])
+            if (!cvv)
                continue;
             if (!cv)
                cv = new cvv_vec_t;
-            cv->push_back(w->var[p]->refSelf());
+            cv->push_back(cvv->refSelf());
 	 }
 	 w = w->prev;
       }
@@ -338,10 +345,12 @@ public:
    }
 
    DLLLOCAL void pushFrameBoundary() {
+      //printd(5, "ThreadClosureVariableStack::pushFrameBoundary()\n");
       instantiateIntern(nullptr);
    }
 
    DLLLOCAL void popFrameBoundary() {
+      //printd(5, "ThreadClosureVariableStack::popFrameBoundary()\n");
       uninstantiateIntern();
       assert(!curr->var[curr->pos]);
    }
@@ -868,45 +877,46 @@ public:
 
    // call must push the current program on the stack and pop it afterwards
    DLLLOCAL int internParsePending(const char* code, const char* label, const char* orig_src = 0, int offset = 0) {
-       //printd(5, "qore_program_private::internParsePending() code: %d bytes label: '%s' src: '%s' offset: %d\n", strlen(code), label, orig_src ? orig_src : "(null)", offset);
+      //printd(5, "qore_program_private::internParsePending() code: %p %d bytes label: '%s' src: '%s' offset: %d\n", code, strlen(code), label, orig_src ? orig_src : "(null)", offset);
 
-       assert(code && code[0]);
+      assert(code && code[0]);
 
-       // save this file name for storage in the parse tree and deletion
-       // when the QoreProgram object is deleted
-       char* sname = strdup(label);
-       addFile(sname);
-       char* src = orig_src ? strdup(orig_src) : 0;
-       if (src)
-           addFile(src);
+      // save this file name for storage in the parse tree and deletion
+      // when the QoreProgram object is deleted
+      char* sname = strdup(label);
+      addFile(sname);
+      char* src = orig_src ? strdup(orig_src) : 0;
+      if (src)
+         addFile(src);
 
-       QoreParseLocationHelper qplh(sname, src, offset);
+      QoreParseLocationHelper qplh(sname, src, offset);
 
-       beginParsing(sname, 0, src, offset);
+      beginParsing(sname, 0, src, offset);
 
-       // no need to save buffer, because it's deleted automatically in lexer
-       //printd(5, "qore_program_private::internParsePending() parsing tag: %s (%p): '%s'\n", label, label, code);
+      // no need to save buffer, because it's deleted automatically in lexer
+      //printd(5, "qore_program_private::internParsePending() parsing tag: %s (%p): '%s'\n", label, label, code);
 
-       yyscan_t lexer;
-       yylex_init(&lexer);
-       yy_scan_string(code, lexer);
-       yyset_lineno(1, lexer);
-       // yyparse() will call endParsing() and restore old pgm position
-       yyparse(lexer);
+      yyscan_t lexer;
+      yylex_init(&lexer);
 
-       printd(5, "qore_program_private::internParsePending() returned from yyparse()\n");
-       int rc = 0;
-       if (parseSink->isException()) {
-           rc = -1;
-           printd(5, "qore_program_private::internParsePending() parse exception: calling parseRollback()\n");
-           internParseRollback();
-           requires_exception = false;
-       }
+      yy_scan_string(code, lexer);
+      yyset_lineno(1, lexer);
+      // yyparse() will call endParsing() and restore old pgm position
+      yyparse(lexer);
 
-       printd(5, "qore_program_private::internParsePending() about to call yylex_destroy()\n");
-       yylex_destroy(lexer);
-       printd(5, "qore_program_private::internParsePending() returned from yylex_destroy()\n");
-       return rc;
+      printd(5, "qore_program_private::internParsePending() returned from yyparse()\n");
+      int rc = 0;
+      if (parseSink->isException()) {
+         rc = -1;
+         printd(5, "qore_program_private::internParsePending() parse exception: calling parseRollback()\n");
+         internParseRollback();
+         requires_exception = false;
+      }
+
+      printd(5, "qore_program_private::internParsePending() about to call yylex_destroy()\n");
+      yylex_destroy(lexer);
+      printd(5, "qore_program_private::internParsePending() returned from yylex_destroy()\n");
+      return rc;
    }
 
    DLLLOCAL void startParsing(ExceptionSink* xsink, ExceptionSink* wS, int wm) {
