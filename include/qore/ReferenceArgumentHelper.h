@@ -59,47 +59,41 @@
     @endcode
  */
 class ReferenceArgumentHelper {
-   private:
-      struct lvih_intern* priv;
+private:
+   struct lvih_intern *priv;
 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL ReferenceArgumentHelper(const ReferenceArgumentHelper&);
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL ReferenceArgumentHelper(const ReferenceArgumentHelper&);
 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL ReferenceArgumentHelper& operator=(const ReferenceArgumentHelper&);
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL ReferenceArgumentHelper& operator=(const ReferenceArgumentHelper&);
 
-   public:
-      //! creates a fake local variable assigned to "val" and creates a reference to the local variable
-      /**
-         @param val the value to assign to the local variable
-         @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor
-       */
-      DLLEXPORT ReferenceArgumentHelper(AbstractQoreNode* val, ExceptionSink* xsink);
+public:
+   //! creates a fake local variable assigned to "val" and creates a reference to the local variable
+   /** @param val the value to assign to the local variable
+       @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor
+   */
+   DLLEXPORT ReferenceArgumentHelper(AbstractQoreNode *val, ExceptionSink *xsink);
 
-      //! creates a fake local variable assigned to "val" and creates a reference to the local variable
-      /**
-         @param val the value to assign to the local variable
-         @param typeInfo the type restriction for the lvalue
-         @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor
+   //! frees all memory still managed by the object
+   DLLEXPORT ~ReferenceArgumentHelper();
 
-         @since %Qore 0.8.13
-      */
-      DLLEXPORT ReferenceArgumentHelper(AbstractQoreNode* val, const QoreTypeInfo* typeInfo, ExceptionSink* xsink);
+   //! returns the reference to the fake local variable for use in an argument list, the caller owns the reference returned
+   /** @return the reference to the fake local variable for use in an argument list, the caller owns the reference returned
+    */
+   DLLEXPORT AbstractQoreNode *getArg() const;
 
-      //! frees all memory still managed by the object
-      DLLEXPORT ~ReferenceArgumentHelper();
+   //! returns the value of the reference and leaves the reference empty, the caller owns the reference returned
+   /** @return the value of the reference and leaves the reference empty, the caller owns the reference returned
+    */
+   DLLEXPORT AbstractQoreNode *getOutputValue();
 
-      //! returns the reference to the fake local variable for use in an argument list, the caller owns the reference returned
-      /**
-         @return the reference to the fake local variable for use in an argument list, the caller owns the reference returned
-      */
-      DLLEXPORT AbstractQoreNode* getArg() const;
+   //! returns the value of the reference and leaves the reference empty, the caller owns the reference returned
+   /** @return the value of the reference and leaves the reference empty, the caller owns the reference returned
 
-      //! returns the value of the reference and leaves the reference empty, the caller owns the reference returned
-      /**
-         @return the value of the reference and leaves the reference empty, the caller owns the reference returned
-       */
-      DLLEXPORT AbstractQoreNode* getOutputValue();
+       @sice %Qore 0.8.13
+    */
+   DLLEXPORT QoreValue getOutputQoreValue();
 };
 
 #endif

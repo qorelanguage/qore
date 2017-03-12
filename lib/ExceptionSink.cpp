@@ -85,6 +85,10 @@ QoreException *ExceptionSink::catchException() {
    return e;
 }
 
+QoreException *ExceptionSink::getException() {
+   return priv->head;
+}
+
 void ExceptionSink::handleExceptions() {
    if (priv->head) {
       defaultExceptionHandler(priv->head);

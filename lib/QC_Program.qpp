@@ -39,6 +39,9 @@
 #include "qore/intern/ModuleInfo.h"
 extern QoreModuleManager QMM;
 
+const int PO_ATTACH = -1;   // it makes not sense in C++ API
+
+
 /** @defgroup parse_options Parse Option Constants
     These are the possible values that can be or'ed together to set @ref Qore::Program "Program" parse options
 */
@@ -485,6 +488,11 @@ const PO_NO_INHERIT_SYSTEM_HASHDECLS = PO_NO_INHERIT_USER_HASHDECLS;
  */
 const PO_ALLOW_WEAK_REFERENCES = PO_ALLOW_WEAK_REFERENCES;
 
+//! attach @ref Qore::Program "Program" to currently running QoreProgram instance. 
+/**
+    @since %Qore 0.8.13
+*/
+const PO_ATTACH = PO_ATTACH;
 //@}
 
 /** @defgroup warning_constants Warning Constants
@@ -649,8 +657,9 @@ qclass Program [arg=QoreProgram* p];
     However, if @ref PO_NO_CHILD_PO_RESTRICTIONS is set in the parent Program object, then the parse option argument to the constructor
     will be applied literally to the child object.
 
+    Use @ref PO_ATTACH to attach currently running program
+
     @param po A binary OR'ed product of @ref parse_options "parse options"
-    @param currentPgm if True then assigns already currently running program 
 
     @par Example:
     @code{.py}
@@ -659,15 +668,15 @@ Program pgm();
 
     @throw PROGRAM-OPTION-ERROR invalid parse options used
  */
-Program::constructor(softint po = PO_DEFAULT, bool currentPgm = False) [dom=EMBEDDED_LOGIC] {
-   if (po & PO_SYSTEM_OPS) {
+Program::constructor(softint po = PO_DEFAULT) [dom=EMBEDDED_LOGIC] {
+   if (po != PO_ATTACH && (po & PO_SYSTEM_OPS)) {
       xsink->raiseException("PROGRAM-OPTION-ERROR", "parse options (0x" QLLX ") contain restricted options that can only be set by the system", po);
       return;
    }
 
    QoreProgram* pgm;
    pgm = getProgram();
-   if (currentPgm) {
+   if (po == PO_ATTACH) {
       pgm->ref();
    } else {
       pgm = new QoreProgram(pgm, po);

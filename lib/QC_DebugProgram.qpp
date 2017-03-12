@@ -104,7 +104,7 @@ const DebugBlockContinue = RC_CONTINUE;
 
     }
 
-    Program p(PO_DEFAULT, True);
+    Program p(PO_ATTACH);
     dbg.addProgram(p);
 
     pgm.parse(code);
@@ -161,48 +161,42 @@ nothing DebugProgram::removeProgram(Program[QoreProgram] pgm) {
 /**
  *
  */
-int DebugProgram::onAttach(Program[QoreProgram] pgm) {
-    return DBG_SB_RUN;
+DebugProgram::onAttach(Program[QoreProgram] pgm, reference sb) {
 }
 
 //! Executed when thread is datached from program being debugged
 /**
  *
  */
-int DebugProgram::onDetach(Program[QoreProgram] pgm) {
-   return DBG_SB_DETACH;
+DebugProgram::onDetach(Program[QoreProgram] pgm, reference sb) {
 }
 
 //! Executed when step is performed
 /**
  *
  */
-int DebugProgram::onStep(Program[QoreProgram] pgm, hash blockLocation, *hash location, reference retCode) {
-   return DBG_SB_RUN;
+DebugProgram::onStep(Program[QoreProgram] pgm, hash blockLocation, *hash location, reference retCode, reference sb) {
 }
 
 //! Executed when a function is entered.
 /**
  *
  */
-int DebugProgram::onFunctionEnter(Program[QoreProgram] pgm, hash location) {
-   return DBG_SB_RUN;
+DebugProgram::onFunctionEnter(Program[QoreProgram] pgm, hash location, reference sb) {
 }
 
 //! Executed when a function is exited.
 /**
  *
  */
-int DebugProgram::onFunctionExit(Program[QoreProgram] pgm, hash location, reference returnValue) {
-   return DBG_SB_RUN;
+DebugProgram::onFunctionExit(Program[QoreProgram] pgm, hash location, reference returnValue, reference sb) {
 }
 
 //! Executed when an exception is raised.
 /**
  *
  */
-int DebugProgram::onException(Program[QoreProgram] pgm, hash location) {
-   return DBG_SB_RUN;
+DebugProgram::onException(Program[QoreProgram] pgm, hash location, hash ex, reference sb) {
 }
 
 //! Break particular program thread

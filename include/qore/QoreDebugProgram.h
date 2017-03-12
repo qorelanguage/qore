@@ -81,12 +81,12 @@ public:
    DLLEXPORT void addProgram(QoreProgram *pgm);
    DLLEXPORT void removeProgram(QoreProgram *pgm);
 
-   DLLEXPORT virtual ThreadDebugEnum onAttach(QoreProgram *pgm, ExceptionSink* xsink) {
+   DLLEXPORT virtual void onAttach(QoreProgram *pgm, ThreadDebugEnum &sb, ExceptionSink* xsink) {
       printd(5, "QoreDebugProgram::onAttach() this: %p\n", this);
-      return DBG_SB_RUN;
+      sb = DBG_SB_RUN;
    }
-   DLLEXPORT virtual ThreadDebugEnum onDetach(QoreProgram *pgm, ExceptionSink* xsink) {
-      return DBG_SB_DETACH;
+   DLLEXPORT virtual void onDetach(QoreProgram *pgm, ThreadDebugEnum &sb, ExceptionSink* xsink) {
+      sb = DBG_SB_DETACH;
    }
    /**
     * Executed on every step of StatementBlock.
@@ -94,23 +94,19 @@ public:
     * @param statement current AbstractStatement of blockStatement being processed. Executed also when blockStatement is entered with value of NULL
     * @param retCode
     */
-   DLLEXPORT virtual ThreadDebugEnum onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, int &retCode, ExceptionSink* xsink) {
-      return DBG_SB_RUN;
+   DLLEXPORT virtual void onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, int &retCode, ThreadDebugEnum &sb, ExceptionSink* xsink) {
    }
-   DLLEXPORT virtual ThreadDebugEnum onFunctionEnter(QoreProgram *pgm, const StatementBlock *statement, ExceptionSink* xsink) {
-      return DBG_SB_RUN;
+   DLLEXPORT virtual void onFunctionEnter(QoreProgram *pgm, const StatementBlock *statement, ThreadDebugEnum &sb, ExceptionSink* xsink) {
    }
    /**
     * Executed when a function is exited.
     */
-   DLLEXPORT virtual ThreadDebugEnum onFunctionExit(QoreProgram *pgm, const StatementBlock *statement, QoreValue& returnValue, ExceptionSink* xsink) {
-      return DBG_SB_RUN;
+   DLLEXPORT virtual void onFunctionExit(QoreProgram *pgm, const StatementBlock *statement, QoreValue& returnValue, ThreadDebugEnum &sb, ExceptionSink* xsink) {
    }
    /**
     * Executed when an exception is raised.
     */
-   DLLEXPORT virtual ThreadDebugEnum onException(QoreProgram *pgm, const AbstractStatement *statement, ExceptionSink* xsink) {
-      return DBG_SB_RUN;
+   DLLEXPORT virtual void onException(QoreProgram *pgm, const AbstractStatement *statement, ThreadDebugEnum &sb, ExceptionSink* xsink) {
    }
 
    /**

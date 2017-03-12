@@ -9,6 +9,24 @@
 #%requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 
+const ST_ATTACH = 1;
+const ST_BLOCK = 2;
+const ST_STEP = 3;
+const ST_FUNC_ENTER = 4;
+const ST_FUNC_EXIT = 5;
+const ST_EXCEPTION = 6;
+const ST_DETACH = 7;
+
+const stResolve = (
+  ST_ATTACH: "onAttach",
+  ST_BLOCK: "onBlock",
+  ST_STEP: "onStep",
+  ST_FUNC_ENTER: "onFunctionEnter",
+  ST_FUNC_EXIT: "onFunctionExit",
+  ST_EXCEPTION: "onException",
+  ST_DETACH: "onDetach",
+);
+
 class MyDebugProgram inherits DebugProgram {
   public {
     list log;
@@ -23,50 +41,68 @@ class MyDebugProgram inherits DebugProgram {
     log = ();
     actions = act;
   }
-  int handle(string func, Program pgm, *hash location, *hash extra) {
-    printf("%y: pgm: %y, %y, %y\n", func, pgm, location, extra);
+  any getAction(int func) {
+    if (!actions) return;
+    printf("Act: %N\n", actions);
+    if (!exists actions[0].func || actions[0].func == func) {
+    printf("Act2: %N\n", actions);
+        return actions[0];
+    }
+  }
+  handle(int func, Program pgm, reference sb, *hash location, *hash extra) {
+    printf("%y: pgm: %y, %y, %y, %y\n", func, pgm, sb, location, extra);
     hash it = (
-      'func': func,
+      'func': stResolve{func},
       'file': location.file,
       'line': location.start_line,
       'tid': gettid(),
     );
     it += extra;
     push log, it;
-    *hash act = shift actions;
-    if (act.typeCode() == NT_HASH) {
-      return exists act.rc ? act.rc : DebugStep;
-    } else {
-      return exists act ? act : DebugStep;
+    any act = getAction(func);
+    if (exists act) {
+      shift actions;
+      if (act.typeCode() == NT_HASH) {
+        if (exists act.rc)
+          sb = act.rc;
+      } else {
+        sb = act;
+      }
     }
+printf("it:%y, sb:%d, act:%y\n", it, sb, act);
   }
 
-  int onAttach(Program pgm) {
-    return handle("onAttach", pgm);
+  onAttach(Program pgm, reference sb) {
+    handle(ST_ATTACH, pgm, \sb);
   }
 
-  int onDetach(Program pgm) {
-    return handle("onDetach", pgm); 
+  onDetach(Program pgm, reference sb) {
+    handle(ST_DETACH, pgm, \sb); 
   }
 
-  int onStep(Program pgm, hash blockLocation, *hash location, reference retCode) {
-    *hash act = actions[0];
+  onStep(Program pgm, hash blockLocation, *hash location, reference retCode, reference sb) {
+    int st = location ? ST_STEP : ST_BLOCK;
+    any act = getAction(st);
     if (exists act.retCode) {
         retCode = act.retCode;
     }
-    return handle("onStep", pgm, location ?? blockLocation);
+    handle(st, pgm, \sb, location ?? blockLocation);
   }
 
-  int onFunctionEnter(Program pgm, hash location) {
-    return handle("onFunctionEnter", pgm, location);
+  onFunctionEnter(Program pgm, hash location, reference sb) {
+    handle(ST_FUNC_ENTER, pgm, \sb, location);
   }
 
-  int onFunctionExit(Program pgm, hash location, reference returnValue) {
-    return handle("onFunctionExit", pgm, location, ("returnValue": returnValue));
+  onFunctionExit(Program pgm, hash location, reference returnValue, reference sb) {
+    any act = getAction(ST_FUNC_EXIT);
+    if (exists act.retVal) {
+        returnValue = act.retVal;
+    }
+    handle(ST_FUNC_EXIT, pgm, \sb, location, ("retVal": returnValue));
   }
 
-  int onException(Program pgm, hash location) {
-    return handle("onException", pgm, location);
+  onException(Program pgm, hash location, hash ex, reference sb) {
+    handle(ST_EXCEPTION, pgm, \sb, location, ("ex": ex));
   }
 
 }
@@ -130,8 +166,10 @@ sleep(1);  # TODO: more robust waitfortermination();
 class DebugTest inherits QUnit::Test {
     public {}
 
+
     private {
         hash stack;
+        hash line;
         #Program thisProgram;
         #DebugProgram debugProgram;
     }
@@ -140,10 +178,15 @@ class DebugTest inherits QUnit::Test {
         addTestCase("SingleThreadDebugTest1", \singleThreadDebugTest1());
         #addTestCase("MultiThreadDebugTest1", \multiThreadDebugTest1());
 
-        thisProgram = new Program(PO_DEFAULT, True);  # TODO: PO_xxx
+        thisProgram = new Program(PO_ATTACH);  # TODO: PO_xxx
         debugProgram = new MyDebugProgram();
         main_tid = gettid();
         stack = tstGetStack();
+        line.tstFunction2 = stack.line+1;
+        line.tstFunction = line.tstFunction2+7;
+        line.tstNoRetVal = line.tstFunction+12;
+        line.tstProgram = line.tstNoRetVal+2;
+        #printf("line: %N\n", line);
         set_return_value(main());
     }
 
@@ -175,30 +218,119 @@ class DebugTest inherits QUnit::Test {
       int i = 1;
       string s = i.type();
       int tid = gettid();
-      any /*TODO:string, getting reference wrongly from onFunctionExit*/ ret = tstFunction(i, "Func");
+      string ret = tstFunction(i, "Func");
       tstNoRetVal();
-      print("res: %y\n", ret);
+      s = sprintf("res: %y\n", ret);
       try {
         i = (tid+s.size()+ret.size()) / (tid-tid);
       } catch (hash ex) {
-        printf("Ex:%y\n", ex);
+        printf("Catch block: Ex:%y\n", ex);
       }
     }
     # end of tested program
 
-
-    singleThreadDebugTest1() {
-        debugProgram.setActions(list());
+    checkProgram(string name, list actions, list traceLog) {
+        debugProgram.setActions(actions);
+printf("Actions: %N\n", debugProgram.actions);
         debugProgram.addProgram(thisProgram);
         tstProgram();
         debugProgram.removeProgram(thisProgram);
+printf("stack: %N\n", stack);
+printf("expected log: %N\n", traceLog);
+printf("actuallog: %N\n", debugProgram.log);
+        hash l = shift debugProgram.log;
+        testAssertionValue(name+':method check', l.func, "onAttach");
 
+        int i = 0;
+        while (my *hash el = shift traceLog) {
+            *hash al = shift debugProgram.log;
+            if (!exists al) {
+                testAssertionValue(name+':tracelog missing steps', el + traceLog, ());
+                break;
+            }
+            if (exists el.tid) {
+                testAssertionValue(sprintf(name+':tracelog %d tid', i), al.tid, el.tid);
+            }
+            if (exists el.func) {
+                testAssertionValue(sprintf(name+':tracelog %d func', i), al.func, stResolve{el.func});
+            }
+            if (exists el.line) {
+                testAssertionValue(sprintf(name+':tracelog %d line', i), al.line, el.line);
+            }
+            if (exists el.file) {
+                testAssertionValue(sprintf(name+':tracelog %d file', i), al.file, el.file);
+            }
+            if (exists el.retVal) {
+                testAssertionValue(sprintf(name+':tracelog %d retval', i), al.retVal, el.retVal);
+            }
+            if (exists el.ex) {
+                testAssertionValue(sprintf(name+':tracelog %d exception err', i), al.ex.err, el.ex);
+            }
+            i++;
+        }
+        testAssertionValue(sprintf(name+':tracelog end check, i:%d', i), debugProgram.log, ());
+    }
 
+    singleThreadDebugTest1() {
+        list traceLog = (
+            ("func": ST_STEP, "tid": main_tid, "file": stack.file),
+            ("func": ST_FUNC_ENTER, "line": line.tstProgram+1),
+            ("func": ST_BLOCK, "line": line.tstProgram+1),
+            ("func": ST_STEP, "line": line.tstProgram+1),
+            ("func": ST_STEP, "line": line.tstProgram+2),
+            ("func": ST_STEP, "line": line.tstProgram+3),
+            ("func": ST_STEP, "line": line.tstProgram+4),
+            ("func": ST_FUNC_ENTER, "line": line.tstFunction+1),
+            ("func": ST_BLOCK, "line": line.tstFunction+1),
+            ("func": ST_STEP, "line": line.tstFunction+1),
+            ("func": ST_BLOCK, "line": line.tstFunction+2), # 10
+            ("func": ST_STEP, "line": line.tstFunction+2),
+            ("func": ST_STEP, "line": line.tstFunction+6),
+            ("func": ST_BLOCK, "line": line.tstFunction+7),
+            ("func": ST_STEP, "line": line.tstFunction+7),
+            ("func": ST_STEP, "line": line.tstFunction+9),
+            ("func": ST_FUNC_ENTER, "line": line.tstFunction2+1),  #3
+            ("func": ST_BLOCK, "line": line.tstFunction2+1),
+            ("func": ST_STEP, "line": line.tstFunction2+1),
+            ("func": ST_BLOCK, "line": line.tstFunction2+2),
+            ("func": ST_STEP, "line": line.tstFunction2+2), # 20
+            ("func": ST_FUNC_ENTER, "line": line.tstFunction2+1),  #2
+            ("func": ST_BLOCK, "line": line.tstFunction2+1),
+            ("func": ST_STEP, "line": line.tstFunction2+1),
+            ("func": ST_BLOCK, "line": line.tstFunction2+2),
+            ("func": ST_STEP, "line": line.tstFunction2+2),
+            ("func": ST_FUNC_ENTER, "line": line.tstFunction2+1),  #1
+            ("func": ST_BLOCK, "line": line.tstFunction2+1),
+            ("func": ST_STEP, "line": line.tstFunction2+1),
+            ("func": ST_BLOCK, "line": line.tstFunction2+2),
+            ("func": ST_STEP, "line": line.tstFunction2+2),  # 30
+            ("func": ST_FUNC_ENTER, "line": line.tstFunction2+1),  #0
+            ("func": ST_BLOCK, "line": line.tstFunction2+1),
+            ("func": ST_STEP, "line": line.tstFunction2+1),
+            ("func": ST_BLOCK, "line": line.tstFunction2+4),
+            ("func": ST_STEP, "line": line.tstFunction2+4),
+            ("func": ST_FUNC_EXIT, "line": line.tstFunction2+1, "retVal": 0), # 0
+            ("func": ST_FUNC_EXIT, "line": line.tstFunction2+1, "retVal": 1), # 1
+            ("func": ST_FUNC_EXIT, "line": line.tstFunction2+1, "retVal": 2), # 2
+            ("func": ST_FUNC_EXIT, "line": line.tstFunction2+1, "retVal": 3), # 3
+            ("func": ST_STEP, "line": line.tstFunction+10),   # 40
+            ("func": ST_FUNC_EXIT, "line": line.tstFunction+1, "retVal": "DONE"),
+            ("func": ST_STEP, "line": line.tstProgram+5),
+            ("func": ST_FUNC_ENTER, "line": line.tstNoRetVal+0),  # when empty block then func and block has start_line exceptionally one line up
+            ("func": ST_BLOCK, "line": line.tstNoRetVal+0),
+            ("func": ST_FUNC_EXIT, "line": line.tstNoRetVal+0),
+            ("func": ST_STEP, "line": line.tstProgram+6),
+            ("func": ST_STEP, "line": line.tstProgram+7),
+            ("func": ST_BLOCK, "line": line.tstProgram+8),
+            ("func": ST_STEP, "line": line.tstProgram+8),
+            ("func": ST_EXCEPTION, "line": line.tstProgram+8, "ex": "DIVISION-BY-ZERO"),
+            ("func": ST_BLOCK, "line": line.tstProgram+10),
+            ("func": ST_STEP, "line": line.tstProgram+10),
+            ("func": ST_FUNC_EXIT, "line": line.tstProgram+1),
+            ("func": ST_STEP),
+        );
+        checkProgram("full trace", list(DebugStep), traceLog);
 
-/*        testAssertionValue('end position check', fr.getPos(), 11);
-        testAssertionValue('read string check', s, String);
-        testAssertionValue('ReadOnlyFile::readTextFile() string check', ReadOnlyFile::readTextFile(file), String);
-        assertThrows("FILE-OPEN2-ERROR", \ReadOnlyFile::readTextFile(), tmp_location() + DirSep + get_random_string()); */
     }
 
     multiThreadDebugTest1() {
