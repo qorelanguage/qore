@@ -73,6 +73,31 @@ public class MapperTest inherits QUnit::Test {
             )),
         );
 
+        # structured as hash of lists
+        const MapInput2 = (
+            "^attributes^": (("Id": 1), ("Id" : 2)),
+            "name": ("John Smith", "Steve Austin"),
+            "Type" : (NOTHING, "Retail"),
+            "Count": (1, 2),
+            "OrderDate": ("02.01.2014 10:37:45.103948",
+                          "04.01.2014 19:21:08.882634",),
+            "UnitPrice": ("1.543,50", "9,95",),
+            "StoreInfo": (("StoreName": "Store1"),
+                          ("StoreName": "Store2")),
+            "EmptyString" : ("",""),
+            "Products": (((
+                "ProductName": "Widget 1",
+                "Quantity": 1,
+                ),),
+                ((
+                "ProductName": "Widget X",
+                "Quantity": 4,
+                ), (
+                "ProductName": "Widget 2",
+                "Quantity": 2,
+                ),)),
+        );
+
         const MapOutput = ((
             "id": 1,
             "name": "John Smith",
@@ -135,6 +160,7 @@ public class MapperTest inherits QUnit::Test {
         addTestCase("Bulk Test", \testMapperBulk());
         addTestCase("Index test", \testMapperIndex());
         addTestCase("Empty String test", \testEmptyString());
+        addTestCase("Test mapAll() with hash arg", \testMapperMapAllHash());
         set_return_value(main());
     }
 
@@ -209,4 +235,11 @@ public class MapperTest inherits QUnit::Test {
         o[1].empty_string = NOTHING;
         assertEq(l, o);
     }
+
+    testMapperMapAllHash() {
+        Mapper m(DataMap, m_opts);
+        list l = m.mapAll(MapInput2);
+        assertEq(l, MapOutput);
+    }
+
 }
