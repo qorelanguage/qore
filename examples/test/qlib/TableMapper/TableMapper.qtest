@@ -100,6 +100,7 @@ public class TableMapperTest inherits QUnit::Test {
                         ("string": NOTHING, "str2" : "str2_3"),
                        );
         const Input3 = ("string": ("string_1", "string_2", NOTHING), "str2": "str2");
+        const Input4 = ("str2": "str2", "string": ("string_1", "string_2", NOTHING));
         const Output1 = (("string" : "string_1"),
                          ("string" : "string_2"),
                          ("string" : ""),
@@ -247,6 +248,20 @@ public class TableMapperTest inherits QUnit::Test {
             mapper.queueData(Input3);
             checkMap((map $1, mapper.flush().contextIterator()), input3, Output3);
             checkMap(table.selectRows(("orderby": "id")), input3, Output3);
+            assertEq(3, mapper.getCount());
+        }
+
+        # issue #1754: queueData(hash of lists) test with mixing list and non-list
+        # with non-list in 1st place
+        {
+            on_exit table.rollback();
+
+            # prepare data for comparison
+            list input4 = map $1, Input4.contextIterator();
+            InboundTableMapper mapper(table, Map2);
+            mapper.queueData(Input4);
+            checkMap((map $1, mapper.flush().contextIterator()), input4, Output4);
+            checkMap(table.selectRows(("orderby": "id")), input4, Output4);
             assertEq(3, mapper.getCount());
         }
 
