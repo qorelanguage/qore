@@ -124,7 +124,39 @@ public class MapperTest inherits QUnit::Test {
             "indextest3" : "a1",
             "empty_string" : "",
             ),
-        );
+            );
+
+        const DotMap = (
+            "output.1": "input.2",
+            "output.2": "input.1",
+            "output.3": ("struct": ("a", "b")),
+            );
+
+        const DotInput = (
+            ("input.1": "abc", "input.2": 123, "a": ("b": 1)),
+            ("input.1": "xyz", "input.2": 456, "a": ("b": 2)),
+            );
+
+        const DotOutput = (
+            ("output.1": 123, "output.2": "abc", "output.3": 1),
+            ("output.1": 456, "output.2": "xyz", "output.3": 2),
+            );
+
+        const OStructMap = (
+            "a.id": "input.2",
+            "a.other": "input.1",
+            "a.something": ("struct": ("a", "b")),
+            );
+
+        const OStructInput = (
+            ("input.1": "abc", "input.2": 123, "a": ("b": 1)),
+            ("input.1": "xyz", "input.2": 456, "a": ("b": 2)),
+            );
+
+        const OStructOutput = (
+            ("a": ("id": 123, "other": "abc", "something": 1)),
+            ("a": ("id": 456, "other": "xyz", "something": 2)),
+            );
     }
 
     constructor() : Test("MapperTest", "1.0") {
@@ -135,6 +167,7 @@ public class MapperTest inherits QUnit::Test {
         addTestCase("Bulk Test", \testMapperBulk());
         addTestCase("Index test", \testMapperIndex());
         addTestCase("Empty String test", \testEmptyString());
+        addTestCase("Dot test", \dotTest());
         set_return_value(main());
     }
 
@@ -208,5 +241,33 @@ public class MapperTest inherits QUnit::Test {
         o[0].empty_string = NOTHING;
         o[1].empty_string = NOTHING;
         assertEq(l, o);
+    }
+
+    dotTest() {
+        {
+            Mapper m(DotMap, ("allow_dot": True, "allow_output_dot": True));
+            list l = m.mapAll(DotInput);
+            assertEq(DotOutput, l);
+            assertEq(2, m.getCount());
+
+            # test for hash of lists format
+            hash h = map {$1: ()}, DotInput[0].keyIterator();
+            map (map h{$1.key} += $1.value, $1.pairIterator()), DotInput;
+            assertEq(DotOutput, m.mapAll(h));
+            assertEq(4, m.getCount());
+        }
+
+        {
+            Mapper m(OStructMap, ("allow_dot": True,));
+            list l = m.mapAll(OStructInput);
+            assertEq(OStructOutput, l);
+            assertEq(2, m.getCount());
+
+            # test for hash of lists format
+            hash h = map {$1: ()}, OStructInput[0].keyIterator();
+            map (map h{$1.key} += $1.value, $1.pairIterator()), OStructInput;
+            assertEq(OStructOutput, m.mapAll(h));
+            assertEq(4, m.getCount());
+        }
     }
 }
