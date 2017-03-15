@@ -260,8 +260,8 @@ public class TableMapperTest inherits QUnit::Test {
             list input4 = map $1, Input4.contextIterator();
             InboundTableMapper mapper(table, Map2);
             mapper.queueData(Input4);
-            checkMap((map $1, mapper.flush().contextIterator()), input4, Output4);
-            checkMap(table.selectRows(("orderby": "id")), input4, Output4);
+            checkMap((map $1, mapper.flush().contextIterator()), input4, Output3);
+            checkMap(table.selectRows(("orderby": "id")), input4, Output3);
             assertEq(3, mapper.getCount());
         }
 
