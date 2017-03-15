@@ -263,6 +263,8 @@ public namespace Mapper {
 
             #! constructor option keys (can be extended by subclassing and reimplementing optionKeys())
             const OptionKeys = (
+                "allow_dot": "allows input fields to have a dot in their name without implying a structured format",
+                "allow_output_dot": "allows output fields to have a dot in their name without implying a structured format",
                 "date_format": "gives the default format for parsing dates from strings; ex: \"MM/DD/YYYY HH:mm:SS\"",
                 "encoding": "gives the default output character encoding for string fields",
                 "info_log": "a call reference / closure for informational logging",
@@ -952,7 +954,6 @@ Mapper mapv(DataMap);
                 v = do_list ? (map rtv, v) : rtv;
             }
             else if (m.struct) {
-                # NOTE: hash of lists not supported with struct
                 v = rec;
                 map v = v{m.struct[$1]}, xrange(0, m.struct.size() - 1);
             }
@@ -1043,7 +1044,6 @@ Mapper mapv(DataMap);
 
             # add value to row list
             if (m.ostruct) {
-                # NOTE: ostruct is not supported in list mode
                 # recursive closure for generating structured data
                 code ah = any sub (*hash ch, any vc, int off = 0) {
                     if (off == m.ostruct.size())
