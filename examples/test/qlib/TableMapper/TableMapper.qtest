@@ -122,9 +122,9 @@ public class TableMapperTest inherits QUnit::Test {
             );
 
         const Output2 = (
-            ("seq": 13, "tstr": "13-string_1"),
-            ("seq": 14, "tstr": "14-string_2"),
-            ("seq": 15, "tstr": "15-"),
+            ("seq": 10, "tstr": "10-string_1"),
+            ("seq": 11, "tstr": "11-string_2"),
+            ("seq": 12, "tstr": "12-str2_3"),
             );
 
         const MyOpts = Opts + (
@@ -173,6 +173,8 @@ public class TableMapperTest inherits QUnit::Test {
         list output1 = Output1;
         if (table.bindEmptyStringsAsNull())
             output1[2].string = NULL;
+        list output2 = Output1;
+        output2[2].string = "str2_3";
 
         # insertRow() test
         {
@@ -215,8 +217,8 @@ public class TableMapperTest inherits QUnit::Test {
 
             InboundTableMapper mapper(table, Map2);
             mapper.queueData(ih);
-            checkMap((map $1, mapper.flush().contextIterator()), Input2, output1);
-            checkMap(table.selectRows(("orderby": "id")), Input2, output1);
+            checkMap((map $1, mapper.flush().contextIterator()), Input2, output2);
+            checkMap(table.selectRows(("orderby": "id")), Input2, output2);
             assertEq(3, mapper.getCount());
         }
 
