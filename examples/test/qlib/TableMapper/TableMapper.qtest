@@ -116,9 +116,9 @@ public class TableMapperTest inherits QUnit::Test {
             );
 
         const OutputBulk = (
-            ("id": 10, "code1": "code", "string": "string_1"),
-            ("id": 11, "code1": "code", "string": "string_2"),
-            ("id": 12, "code1": "code", "string": NOTHING),
+            ("id": 13, "code1": "code", "string": "string_1"),
+            ("id": 14, "code1": "code", "string": "string_2"),
+            ("id": 15, "code1": "code", "string": NOTHING),
             );
 
         const Output2 = (
