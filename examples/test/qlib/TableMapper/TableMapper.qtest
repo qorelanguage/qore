@@ -122,9 +122,9 @@ public class TableMapperTest inherits QUnit::Test {
             );
 
         const Output2 = (
-            ("seq": 10, "tstr": "10-string_1"),
-            ("seq": 11, "tstr": "11-string_2"),
-            ("seq": 12, "tstr": "12-str2_3"),
+            ("seq": 16, "tstr": "16-string_1"),
+            ("seq": 17, "tstr": "17-string_2"),
+            ("seq": 18, "tstr": "18-str2_3"),
             );
 
         const MyOpts = Opts + (
