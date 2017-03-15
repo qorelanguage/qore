@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 #include <qore/QoreQueue.h>
-#include <qore/intern/QoreQueueIntern.h>
+#include "qore/intern/QoreQueueIntern.h"
 
 #include <sys/time.h>
 #include <errno.h>

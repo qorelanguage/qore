@@ -1,0 +1,154 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class EncodingConversionInputStreamTest
+
+class SrcStream inherits InputStream {
+    public {
+        binary data;
+        int offset = 0;
+        int chunk = 1;
+    }
+
+    constructor(binary d, int c = 1) {
+        data = d;
+        chunk = c;
+    }
+
+    *binary read(int limit) {
+        if (limit > chunk) {
+            limit = chunk;
+        }
+        if (limit > length(data) - offset) {
+            limit = length(data) - offset;
+        }
+        if (limit == 0) {
+            return NOTHING;
+        }
+        binary b = data.substr(offset, limit);
+        offset += limit;
+        return b;
+    }
+
+    int peek() {
+        *binary b = data.substr(offset, 1);
+        return ord(b.toString(b, "UTF-8"), 0);
+    }
+}
+
+our bool destroyed;
+
+class DestructMockStream inherits InputStream {
+    public {
+        EncodingConversionInputStream c;
+    }
+
+    destructor() {
+        destroyed = True;
+    }
+
+    *binary read(int limit) {
+        throw "UNEXPECTED-CALL";
+    }
+
+    int peek() {
+        return 0;
+    }
+}
+
+public class EncodingConversionInputStreamTest inherits QUnit::Test {
+
+    constructor() : Test("EncodingConversionInputStreamTest", "1.0") {
+        addTestCase("empty", \empty());
+        addTestCase("read test", \readTest());
+        addTestCase("peek test", \peekTest());
+        addTestCase("invalid", \invalid());
+        addTestCase("invalidAtEnd", \invalidAtEnd());
+        addTestCase("circular reference", \circRef());
+        addTestCase("large file", \largeFile());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    empty() {
+        EncodingConversionInputStream is(new BinaryInputStream(binary()), "UTF-8", "ISO8859-2");
+        assertEq(NOTHING, is.read(100));
+    }
+
+    readTest() {
+        EncodingConversionInputStream is(new SrcStream(<C5A0C48D>), "UTF-8", "UTF-16BE");
+        assertThrows("INPUT-STREAM-ERROR", sub() { is.read(0); });
+        assertThrows("INPUT-STREAM-ERROR", sub() { is.read(-2); });
+        assertEq(<0160>, is.read(2));
+        assertEq(<01>, is.read(1));
+        assertEq(<0D>, is.read(1));
+        assertEq(NOTHING, is.read(2));
+        assertEq(NOTHING, is.read(10));
+    }
+
+    peekTest() {
+        EncodingConversionInputStream is(new SrcStream(<C5A0C48D>), "UTF-8", "UTF-16BE");
+        assertEq(1, is.peek());
+        assertThrows("INPUT-STREAM-ERROR", sub() { is.read(0); });
+        assertThrows("INPUT-STREAM-ERROR", sub() { is.read(-2); });
+        assertEq(<0160>, is.read(2));
+        assertEq(1, is.peek());
+        assertEq(<01>, is.read(1));
+        assertEq(13, is.peek());
+        assertEq(<0D>, is.read(1));
+        assertEq(-1, is.peek());
+    }
+
+    invalid() {
+        EncodingConversionInputStream is(new SrcStream(<C5C48D>), "UTF-8", "ISO8859-2");
+        assertThrows("ENCODING-CONVERSION-ERROR", sub() { is.read(1); });
+        assertThrows("ENCODING-CONVERSION-ERROR", sub() { is.read(1); });
+    }
+
+    invalidAtEnd() {
+        EncodingConversionInputStream is(new SrcStream(<C5A0C4>), "UTF-8", "ISO8859-2");
+        assertEq(<A9>, is.read(1));
+        assertThrows("ENCODING-CONVERSION-ERROR", sub() { is.read(1); });
+        assertThrows("ENCODING-CONVERSION-ERROR", sub() { is.read(1); });
+    }
+
+    circRef() {
+        destroyed = False;
+        {
+            DestructMockStream src(\destroyed);
+            EncodingConversionInputStream is(src, "UTF-8", "ISO8859-2");
+            src.c = is;
+        }
+        assertTrue(destroyed);
+    }
+
+    largeFile() {
+        binary utf8 = File::readBinaryFile(get_script_dir() + "/../../data/lorem");
+        binary utf16le = File::readBinaryFile(get_script_dir() + "/../../data/lorem.utf16le");
+        assertEq(utf16le, convert(utf8, "UTF-8", "UTF-16LE", 1, 1));
+        assertEq(utf16le, convert(utf8, "UTF-8", "UTF-16LE", 100000, 100000));
+        assertEq(utf8, convert(utf16le, "UTF-16LE", "UTF-8", 1, 100000));
+        assertEq(utf8, convert(utf16le, "UTF-16LE", "UTF-8", 100000, 1));
+    }
+
+    private binary convert(binary src, string srcEnc, string dstEnc, int chunk, int readSize) {
+        EncodingConversionInputStream ecis(new SrcStream(src, chunk), srcEnc, dstEnc);
+        binary out = binary();
+        while (True) {
+            *binary b = ecis.read(readSize);
+            if (!b) {
+                break;
+            }
+            out = out + b;
+        }
+        return out;
+    }
+}

@@ -43,7 +43,7 @@
 #define _QORUS_QC_DATASOURCEPOOL_H
 
 #include <qore/AbstractPrivateData.h>
-#include <qore/intern/DatasourcePool.h>
+#include "qore/intern/DatasourcePool.h"
 
 #include <stdlib.h>
 #include <string.h>
