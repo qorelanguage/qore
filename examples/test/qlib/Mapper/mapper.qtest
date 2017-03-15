@@ -42,6 +42,10 @@ public class MapperTest inherits QUnit::Test {
             "empty_string" : "EmptyString",
         );
 
+        const DataMap2 = (
+            "int_field": ("type": "int", "name": "count"),
+            );
+
         const MapInput = ((
             "^attributes^": ("Id": 1),
             "name": "John Smith",
@@ -98,6 +102,9 @@ public class MapperTest inherits QUnit::Test {
                 ),)),
         );
 
+        const MapInput3 = (
+                "count" : (11, "10", NOTHING));
+
         const MapOutput = ((
             "id": 1,
             "name": "John Smith",
@@ -150,6 +157,12 @@ public class MapperTest inherits QUnit::Test {
             "empty_string" : "",
             ),
         );
+
+        const MapOutput2 = (
+                ("int_field" : 11),
+                ("int_field" : 10),
+                ("int_field" : NOTHING),);
+
     }
 
     constructor() : Test("MapperTest", "1.0") {
@@ -161,6 +174,7 @@ public class MapperTest inherits QUnit::Test {
         addTestCase("Index test", \testMapperIndex());
         addTestCase("Empty String test", \testEmptyString());
         addTestCase("Test mapAll() with hash arg", \testMapperMapAllHash());
+        addTestCase("Test mapFieldType", \testMapperMapFieldType());
         set_return_value(main());
     }
 
@@ -239,7 +253,13 @@ public class MapperTest inherits QUnit::Test {
     testMapperMapAllHash() {
         Mapper m(DataMap, m_opts);
         list l = m.mapAll(MapInput2);
-        assertEq(l, MapOutput);
+        assertEq(MapOutput, l);
+    }
+
+    testMapperMapFieldType() {
+        Mapper m(DataMap2, m_opts);
+        list l = m.mapAll(MapInput3);
+        assertEq(MapOutput2, l);
     }
 
 }
