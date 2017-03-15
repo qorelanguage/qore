@@ -99,6 +99,7 @@ public class TableMapperTest inherits QUnit::Test {
                         ("string": "string_2", "str2" : "str2_2"),
                         ("string": NOTHING, "str2" : "str2_3"),
                        );
+        const Input3 = ("string": ("string_1", "string_2", NOTHING), "str2": "str2");
         const Output1 = (("string" : "string_1"),
                          ("string" : "string_2"),
                          ("string" : ""),
@@ -115,16 +116,28 @@ public class TableMapperTest inherits QUnit::Test {
             "orderby": "id",
             );
 
-        const OutputBulk = (
-            ("id": 13, "code1": "code", "string": "string_1"),
-            ("id": 14, "code1": "code", "string": "string_2"),
-            ("id": 15, "code1": "code", "string": NOTHING),
+        const OutputBulk1 = (
+            ("id": 16, "code1": "code", "string": "string_1"),
+            ("id": 17, "code1": "code", "string": "string_2"),
+            ("id": 18, "code1": "code", "string": "str2"),
+            );
+
+        const OutputBulk2 = (
+            ("id": 19, "code1": "code", "string": "string_1"),
+            ("id": 20, "code1": "code", "string": "string_2"),
+            ("id": 21, "code1": "code", "string": NOTHING),
             );
 
         const Output2 = (
-            ("seq": 16, "tstr": "16-string_1"),
-            ("seq": 17, "tstr": "17-string_2"),
-            ("seq": 18, "tstr": "18-"),
+            ("seq": 22, "tstr": "22-string_1"),
+            ("seq": 23, "tstr": "23-string_2"),
+            ("seq": 24, "tstr": "24-"),
+            );
+
+        const Output3 =
+            (("string": "string_1"),
+             ("string": "string_2"),
+             ("string": "str2"),
             );
 
         const MyOpts = Opts + (
@@ -209,7 +222,7 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(3, mapper.getCount());
         }
 
-        # queueData(hash of list) test with code refering to the input
+        # queueData(list of hashes) test with code referring to the input
         {
             # prepare data
             hash ih = map {$1: ()}, Input2[0].keyIterator();
@@ -222,6 +235,38 @@ public class TableMapperTest inherits QUnit::Test {
             checkMap((map $1, mapper.flush().contextIterator()), Input2, output2);
             checkMap(table.selectRows(("orderby": "id")), Input2, output2);
             assertEq(3, mapper.getCount());
+        }
+
+        # issue #1754: queueData(hash of lists) test with code referring to the input
+        {
+            on_exit table.rollback();
+
+            # prepare data for comparison
+            list input3 = map $1, Input3.contextIterator();
+            InboundTableMapper mapper(table, Map2);
+            mapper.queueData(Input3);
+            checkMap((map $1, mapper.flush().contextIterator()), input3, Output3);
+            checkMap(table.selectRows(("orderby": "id")), input3, Output3);
+            assertEq(3, mapper.getCount());
+        }
+
+        # issue #1754: queueData(hash of lists) test with code, rowcode + a constant mapping
+        {
+            on_exit table.rollback();
+
+            # prepare data for comparison
+            list input3 = map $1, Input3.contextIterator();
+
+            list rl = ();
+            code rowcode = sub (hash h) { rl += h; };
+            InboundTableMapper mapper(table, Map2 + ("code1": ("constant": "code")), ("rowcode": rowcode));
+            mapper.queueData(Input3);
+            checkMap((map $1, mapper.flush().contextIterator()), input3, Output3);
+            checkMap(table.selectRows(("orderby": "id")), input3, Output3);
+            assertEq(3, mapper.getCount());
+            assertEq(Type::Date, rl[0].dte.type());
+            map remove rl[$#].dte, rl;
+            assertEq(OutputBulk1, rl);
         }
 
         # issue #1736: InboundTableMapper::queueData() error with hashes of lists
@@ -244,7 +289,7 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(3, mapper.getCount());
             assertEq(Type::Date, rl[0].dte.type());
             map remove rl[$#].dte, rl;
-            assertEq(OutputBulk, rl);
+            assertEq(OutputBulk2, rl);
         }
 
         # queueData(list) test

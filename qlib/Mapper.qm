@@ -934,7 +934,7 @@ Mapper mapv(DataMap);
             # closure to get the current record hash from a hash of lists
             # rec is not bound here for performance reasons (so it will remain unlocked)
             code getrec = hash sub (hash rc, int offset) {
-                return map {$1.key: $1.value[offset]}, rc.pairIterator();
+                return map {$1.key: $1.value.typeCode() == NT_LIST ? $1.value[offset] : $1.value}, rc.pairIterator();
             };
 
             # get source field name
