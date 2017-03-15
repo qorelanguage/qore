@@ -215,6 +215,8 @@ public class TableMapperTest inherits QUnit::Test {
             hash ih = map {$1: ()}, Input2[0].keyIterator();
             map (map ih{$1.key} += $1.value, $1.pairIterator()), Input2;
 
+            on_exit table.rollback();
+
             InboundTableMapper mapper(table, Map2);
             mapper.queueData(ih);
             checkMap((map $1, mapper.flush().contextIterator()), Input2, output2);
