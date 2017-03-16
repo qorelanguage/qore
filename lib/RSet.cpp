@@ -721,7 +721,8 @@ RSetHelper::RSetHelper(RObject& obj) {
       break;
    }
 
-   commit(obj);
+   if (obj.isValid())
+      commit(obj);
 
    printd(QRO_LVL, "RSetHelper::RSetHelper() this: %p (%p) EXIT\n", this, &obj);
 }
