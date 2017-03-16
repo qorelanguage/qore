@@ -162,6 +162,10 @@ public class TableMapperTest inherits QUnit::Test {
             ("id": 1,
              "string" : "2",
              "dte" : date("2017-05-03"));
+        const EmptyOutput =
+            ("id": 1,
+             "string" : list(),
+             "dte" : list());
         # FIXME this is actually an error, since from any queueData() we expect
         # hash of lists returned. --PQ 16-Mar-2017
         const ConstOutputHash2 =
@@ -310,7 +314,8 @@ public class TableMapperTest inherits QUnit::Test {
             InboundTableMapper mapper(table, Map2NoSequence);
             *hash ret = mapper.queueData(InputWithEmptyList);
             if (!ret) { ret = mapper.flush(); }
-            assertEq(NOTHING, ret);
+            # FIXME what should we return for empty bulk input?
+            assertEq(EmptyOuput, ret);
         }
 
         # queueData() test with all constants with empty list
@@ -320,7 +325,7 @@ public class TableMapperTest inherits QUnit::Test {
             *hash ret = mapper.queueData(InputWithEmptyList);
             if (!ret) { ret = mapper.flush(); }
             # FIXME this is actually incorrect I believe - should we insert data when there is no input?
-            # (should be (NOTHING, ret)???
+            # (should be (NOTHING, ret)??? - is the data actually inserted when the input is empty?
             assertEq(ConstOutputHash, ret);
         }
 
