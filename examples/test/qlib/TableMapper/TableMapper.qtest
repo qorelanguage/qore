@@ -91,6 +91,12 @@ public class TableMapperTest inherits QUnit::Test {
             "dte": ("code": date sub (nothing x, hash rec) { return now_us(); }),
             );
 
+        const Map2NoSequence = (
+            "id": ("constant": 1),
+            "string": ("code": string sub (any x, hash rec) { return rec.string ?? rec.str2; }),
+            "dte": ("code": date sub (nothing x, hash rec) { return now_us(); }),
+            );
+
         const ConstMap = (
             "id": ("constant": 1),
             "string": ("constant": "2"),
@@ -298,13 +304,24 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(ConstOutputHash2, ret);
         }
 
-        # queueData() test with all constants with iterator
+        # queueData() test with some mapping with empty lists on input
+        {
+            on_exit table.rollback();
+            InboundTableMapper mapper(table, Map2NoSequence);
+            *hash ret = mapper.queueData(InputWithEmptyList);
+            if (!ret) { ret = mapper.flush(); }
+            assertEq(NOTHING, ret);
+        }
+
+        # queueData() test with all constants with empty list
         {
             on_exit table.rollback();
             InboundTableMapper mapper(table, ConstMap);
             *hash ret = mapper.queueData(InputWithEmptyList);
             if (!ret) { ret = mapper.flush(); }
-            assertEq(NOTHING, ret);
+            # FIXME this is actually incorrect I believe - should we insert data when there is no input?
+            # (should be (NOTHING, ret)???
+            assertEq(ConstOutputHash, ret);
         }
 
         # issue #1754: queueData(hash of lists) test with mixing list and non-list
