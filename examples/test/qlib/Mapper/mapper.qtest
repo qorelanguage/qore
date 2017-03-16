@@ -163,8 +163,6 @@ public class MapperTest inherits QUnit::Test {
                 ("int_field" : 10),
                 ("int_field" : NOTHING),);
 
-            );
-
         const DotMap = (
             "output.1": "input.2",
             "output.2": "input.1",
