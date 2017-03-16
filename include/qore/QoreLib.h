@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -537,5 +537,22 @@ DLLEXPORT int q_realpath(const QoreString& path, QoreString& rv, ExceptionSink* 
 
 //! finds a memory sequence in a larger memory sequence
 DLLEXPORT void* q_memmem(const void* big, size_t big_len, const void* little, size_t little_len);
+
+//! performs environment variable substitution on the string argument
+/** return 0 for OK, -1 if an error occurred (mismatched parens, etc)
+
+    @since %Qore 0.8.13
+ */
+DLLEXPORT int q_env_subst(QoreString& str);
+
+//! converts a string to a double in a locale-independent way
+/** @since %Qore 0.8.13
+ */
+DLLEXPORT double q_strtod(const char* str);
+
+//! returns true if the Qore library has been shut down
+/** @since %Qore 0.8.13
+ */
+DLLEXPORT bool q_libqore_shutdown();
 
 #endif // _QORE_QORELIB_H
