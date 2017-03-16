@@ -265,7 +265,17 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(3, mapper.getCount());
         }
 
-        # queueData() test with all constants
+        # queueData() test with all constants with bulk ops
+        # NOTE: the outbound test depends on the data from this test, which is committed
+        {
+            on_exit table.rollback();
+            InboundTableMapper mapper(table, ConstMap);
+            *hash ret = mapper.queueData(Input3.iterator());
+            assertEq(3, mapper.getCount());
+            assertEq(ret, ConstOutputHash);
+        }
+
+        # queueData() test with all constants with iterator
         # NOTE: the outbound test depends on the data from this test, which is committed
         {
             on_exit table.rollback();
