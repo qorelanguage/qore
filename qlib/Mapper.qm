@@ -919,7 +919,7 @@ Mapper mapv(DataMap);
             map h{$1.key} = m_runtime{$1.value}, rconsth.pairIterator();
 
             # iterate through dynamic target fields
-            map mapFieldIntern(\h, $1, rec), mapd.keyIterator();
+            map mapFieldIntern(\h, $1, rec, False, 0), mapd.keyIterator();
 
             # increment record count
             ++count;
@@ -928,7 +928,29 @@ Mapper mapv(DataMap);
         }
 
         #! maps a single field to the target
-        private nothing mapFieldIntern(reference h, string key, hash rec, *int do_list) {
+        /**
+          * Performs the actual mapping
+          *
+          * @param h the hash to be updated with the mapped key/value pair
+          * @param key the column name (hash key) to be mapped (target field)
+          * @param rec input record - either single record of hash of lists (bulk);
+          *                           to increase performance, the input type
+          *                           (single record vs. bulk) is determined by
+          *                           the @ref do_list parameter. In case of
+          *                           bulk input, all the lists are supposed to
+          *                           have the same length @ref list_size
+          * @param do_list - whether the input record @ref rec is single record or
+          *                  bulk format (hash of lists)
+          * @param list_size - size of the lists in case the input is in bulk
+          *                    format (all lists must have the same length,
+          *                    asserted inside the function).
+          */
+        private nothing mapFieldIntern(reference h,
+                                       string key,
+                                       hash rec,
+                                       bool do_list,
+                                       int list_size) {
+            # FIXME add the assert for equal length of the lists
             hash m = mapc{key};
 
             # closure to get the current record hash from a hash of lists
@@ -945,29 +967,29 @@ Mapper mapv(DataMap);
             if (exists m.constant)
                 v = m.constant;
             else if (exists m.index) {
-                v = do_list ? (map m.index + count + $#, v) : m.index + count;
+                v = do_list ? (map m.index + count + $#, v) : m.index + count; # FIXME iterating empty list
             }
             else if (exists m.runtime) {
                 any rtv = m_runtime{m.runtime};
-                v = do_list ? (map rtv, v) : rtv;
+                v = do_list ? (map rtv, v) : rtv; # FIXME iterating empty list
             }
             else if (m.struct) {
-                # NOTE: hash of lists not supported with struct
+                # NOTE: hash of lists not supported with struct # FIXME do we ensure it?
                 v = rec;
                 map v = v{m.struct[$1]}, xrange(0, m.struct.size() - 1);
             }
             else
-                v = rec{name} ?? NOTHING;
+                v = rec{name} ?? NOTHING; # mitigate NULL -> NOTHING (?)
 
             if (do_list) {
                 if (!exists v)
-                    v = map NOTHING, xrange(do_list - 1);
+                    v = list_size > 0 ? (map NOTHING, xrange(list_size - 1)) : list();
                 else if (v.typeCode() != NT_LIST)
                     error2("MAPPER-FIELD-LIST-ERROR", "field %y value passed is %y in list mode; expecting \"list\"", key, v.type());
             }
 
             # move any XML CDATA into the field value
-            # NOTE: cdata not supported with hashes of lists
+            # NOTE: cdata not supported with hashes of lists # FIXME do we ensure it?
             if (v."^cdata^")
                 v = v."^cdata^";
 
@@ -1025,7 +1047,7 @@ Mapper mapv(DataMap);
                         if (m.trunc) {
                             if (info_log)
                                 info_log("field %y = %y input length %d truncating to %d bytes", getFieldName(key), v, v.size(), m.maxlen);
-                            v = trunc_str(v, m.maxlen, encoding);
+                            v = trunc_str(v, m.maxlen, encoding);   # FIXME should use truncateField too as above?
                         }
                         else
                             error2("STRING-TOO-LONG", "field %y = %y, input length %d exceeds maximum byte length %d for input row: %y", getFieldName(key), v, strlen(v), m.maxlen, rec);
@@ -1043,7 +1065,7 @@ Mapper mapv(DataMap);
 
             # add value to row list
             if (m.ostruct) {
-                # NOTE: ostruct is not supported in list mode
+                # NOTE: ostruct is not supported in list mode # FIXME how we ensure it?
                 # recursive closure for generating structured data
                 code ah = any sub (*hash ch, any vc, int off = 0) {
                     if (off == m.ostruct.size())
@@ -1056,7 +1078,7 @@ Mapper mapv(DataMap);
                     return ch;
                 };
                 try {
-                    h = ah(h, v);
+                    h = ah(h, v); # FIXME I don't understand ostruct, should be "v = ah(v)", or not?
                     return;
                 }
                 catch (hash ex) {

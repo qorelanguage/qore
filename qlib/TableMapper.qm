@@ -637,8 +637,10 @@ on_error table_mapper.rollback();
             if (unstable_input)
                 throw "MAPPER-BATCH-ERROR", sprintf("cannot call %s::queueData() when the unstable_input option is set", self.className());
 
-            if (rec.firstValue().typeCode() != NT_LIST)
+            *int rec_list_size = getRecListSize(rec);
+            if (!exists rec_list_size) {
                 return queueDataIntern(rec + crec);
+            }
 
             if (insert_block == 1) {
                 hash h;
@@ -663,8 +665,7 @@ on_error table_mapper.rollback();
             # copy all runtime mappings to the output hash
             map dh{$1.key} = m_runtime{$1.value}, rconsth.pairIterator();
 
-            int size = rec.firstValue().size();
-            map mapFieldIntern(\dh, $1, rec, size), mapd.keyIterator();
+            map mapFieldIntern(\dh, $1, rec, True, rec_list_size), mapd.keyIterator();
             count += size;
 
             # map record data to get the keys for the buffer
@@ -682,7 +683,10 @@ on_error table_mapper.rollback();
                 map hbuf{$1.key} += $1.value, dh.pairIterator();
 
             # return nothing if nothing needs to be flushed
-            if (hbuf.firstValue().size() < insert_block)
+            *int out_list_size = getRecListSize(hbuf);
+            # note - in case hbuf by some chance contains only "constant"
+            # elements, we don't flush until the end.
+            if (!exists out_list_size || out_list_size < insert_block)
                 return;
 
             hash h;
@@ -756,16 +760,25 @@ on_error table_mapper.rollback();
 
             @param rec a hash representing a single input record
 
-            @return if batch data was inserted then a hash (columns) of lists (row data) of all data inserted and potentially returned (in case of sequences) from the database server is returned; if constant mappings are used with batch data, then they are returned as single values assigned to the hash keys
+            @return if batch data was inserted (flushed) then a hash (columns) of lists (row data) of all data inserted and potentially returned (in case of sequences) from the database server is returned; if constant mappings are used with batch data, then they are returned as single values assigned to the hash keys; if nothing was flushed to the database in the call, Qore::NOTHING is returned
 
-            @throw MAPPER-BATCH-ERROR this exception is thrown if this method is called when the \c "unstable_input" option was given in the constructor
+            @note this function does not process hashes of lists (bulk format), it expects always single input record on the input
+
             @throw MISSING-INPUT a field marked mandatory is missing
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
+            @throw MAP-ERROR when the function is called wwith hash of lists (bulk) input
         */
         private *hash queueDataIntern(hash rec) {
             if (insert_block == 1) {
                 return insertRow(rec);
+            }
+
+            *int rec_list_size = getRecListSize(rec);
+            if (exists rec_list_size) {
+                throw "MAP-ERROR", sprintf("TableMapper::queueDataIntern() does not "
+                        "accept hash of lists - this is likely some internal "
+                        "error. Got %y", rec);
             }
 
             hash h = mapDataIntern(rec);
@@ -777,11 +790,28 @@ on_error table_mapper.rollback();
                 map hbuf{$1.key} += $1.value, h.pairIterator();
 
             # return nothing if nothing needs to be flushed
-            if (hbuf.firstValue().size() < insert_block)
+            *int out_list_size = getRecListSize(hbuf);
+            if (!exists out_list_size || out_list_size < insert_block)
                 return;
 
             # return all target data
             return flushIntern();
+        }
+
+        /** For a possible hash of lists (bulk data) returns the size of
+         * the first list found within the hash. If no list if found, returns
+         * NOTHING.
+         * @param rec a hash representing (possiblee) bulk data
+         * @return NOTHING if the hash represents single input record, or the number
+         *         of records represented (may also be 0)
+         */
+        private *int getRecListSize(hash rec) {
+            foreach hash i in (rec.pairIterator()) {
+                if (i.value.typeCode() == NT_LIST) {
+                    return i.value.size();
+                }
+            }
+            return NOTHING;
         }
 
         #! flushes any remaining batched data to the database; this method should always be called before committing the transaction or destroying the object
