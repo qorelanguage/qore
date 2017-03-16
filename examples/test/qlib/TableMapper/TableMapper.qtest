@@ -91,6 +91,12 @@ public class TableMapperTest inherits QUnit::Test {
             "dte": ("code": date sub (nothing x, hash rec) { return now_us(); }),
             );
 
+        const ConstMap = (
+            "id": ("constant": 1),
+            "string": ("constant": "2"),
+            "dte" : ("constant" : date("2017-05-03"),),
+            );
+
         const Input1 = (("string": "string_1"),
                         ("string": "string_2"),
                         ("string": ""),
@@ -118,21 +124,21 @@ public class TableMapperTest inherits QUnit::Test {
             );
 
         const OutputBulk1 = (
-            ("id": 16, "code1": "code", "string": "string_1"),
-            ("id": 17, "code1": "code", "string": "string_2"),
-            ("id": 18, "code1": "code", "string": "str2"),
+            ("id": 19, "code1": "code", "string": "string_1"),
+            ("id": 20, "code1": "code", "string": "string_2"),
+            ("id": 21, "code1": "code", "string": "str2"),
             );
 
         const OutputBulk2 = (
-            ("id": 19, "code1": "code", "string": "string_1"),
-            ("id": 20, "code1": "code", "string": "string_2"),
-            ("id": 21, "code1": "code", "string": NOTHING),
+            ("id": 22, "code1": "code", "string": "string_1"),
+            ("id": 23, "code1": "code", "string": "string_2"),
+            ("id": 24, "code1": "code", "string": NOTHING),
             );
 
         const Output2 = (
-            ("seq": 22, "tstr": "22-string_1"),
-            ("seq": 23, "tstr": "23-string_2"),
-            ("seq": 24, "tstr": "24-"),
+            ("seq": 25, "tstr": "25-string_1"),
+            ("seq": 26, "tstr": "26-string_2"),
+            ("seq": 27, "tstr": "27-"),
             );
 
         const Output3 =
@@ -140,6 +146,14 @@ public class TableMapperTest inherits QUnit::Test {
              ("string": "string_2"),
              ("string": "str2"),
             );
+
+        const ConstOutput =
+            (("id": 1, "string" : "2"),
+             ("id": 1, "string" : "2"),
+             ("id": 1, "string" : "2"),);
+        const ConstOutputHash =
+            ("id": (1,1,1),
+             "string" : ("2","2","2",));
 
         const MyOpts = Opts + (
             "connstr": "c,conn=s",
@@ -282,6 +296,18 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(Type::Date, rl[0].dte.type());
             map remove rl[$#].dte, rl;
             assertEq(OutputBulk1, rl);
+        }
+
+        # queueData() test with all constants
+        # NOTE: the outbound test depends on the data from this test, which is committed
+        {
+            on_exit table.rollback();
+            InboundTableMapper mapper(table, ConstMap);
+            *hash ret = mapper.queueData(Input2.iterator());
+            checkMap((map $1, mapper.flush().contextIterator()), Input2, ConstOutput);
+            checkMap(table.selectRows(("orderby": "id")), Input2, ConstOutput);
+            assertEq(3, mapper.getCount());
+            assertEq(ret, ConstOutputHash);
         }
 
         # issue #1736: InboundTableMapper::queueData() error with hashes of lists
