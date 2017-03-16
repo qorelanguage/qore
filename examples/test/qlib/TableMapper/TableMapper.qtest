@@ -270,7 +270,7 @@ public class TableMapperTest inherits QUnit::Test {
         {
             on_exit table.rollback();
             InboundTableMapper mapper(table, ConstMap);
-            *hash ret = mapper.queueData(Input3.iterator());
+            *hash ret = mapper.queueData(Input3);
             assertEq(3, mapper.getCount());
             assertEq(ret, ConstOutputHash);
         }
