@@ -265,6 +265,18 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(3, mapper.getCount());
         }
 
+        # queueData() test with all constants
+        # NOTE: the outbound test depends on the data from this test, which is committed
+        {
+            on_exit table.rollback();
+            InboundTableMapper mapper(table, ConstMap);
+            *hash ret = mapper.queueData(Input2.iterator());
+            checkMap((map $1, mapper.flush().contextIterator()), Input2, ConstOutput);
+            checkMap(table.selectRows(("orderby": "id")), Input2, ConstOutput);
+            assertEq(3, mapper.getCount());
+            assertEq(ret, ConstOutputHash);
+        }
+
         # issue #1754: queueData(hash of lists) test with mixing list and non-list
         # with non-list in 1st place
         {
@@ -296,18 +308,6 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(Type::Date, rl[0].dte.type());
             map remove rl[$#].dte, rl;
             assertEq(OutputBulk1, rl);
-        }
-
-        # queueData() test with all constants
-        # NOTE: the outbound test depends on the data from this test, which is committed
-        {
-            on_exit table.rollback();
-            InboundTableMapper mapper(table, ConstMap);
-            *hash ret = mapper.queueData(Input2.iterator());
-            checkMap((map $1, mapper.flush().contextIterator()), Input2, ConstOutput);
-            checkMap(table.selectRows(("orderby": "id")), Input2, ConstOutput);
-            assertEq(3, mapper.getCount());
-            assertEq(ret, ConstOutputHash);
         }
 
         # issue #1736: InboundTableMapper::queueData() error with hashes of lists
