@@ -315,7 +315,7 @@ public class TableMapperTest inherits QUnit::Test {
             *hash ret = mapper.queueData(InputWithEmptyList);
             if (!ret) { ret = mapper.flush(); }
             # FIXME what should we return for empty bulk input?
-            assertEq(EmptyOuput, ret);
+            assertEq(EmptyOutput, ret);
         }
 
         # queueData() test with all constants with empty list
