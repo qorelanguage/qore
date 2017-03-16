@@ -263,6 +263,8 @@ public namespace Mapper {
 
             #! constructor option keys (can be extended by subclassing and reimplementing optionKeys())
             const OptionKeys = (
+                "allow_dot": "allows input fields to have a dot in their name without implying a structured format",
+                "allow_output_dot": "allows output fields to have a dot in their name without implying a structured format",
                 "date_format": "gives the default format for parsing dates from strings; ex: \"MM/DD/YYYY HH:mm:SS\"",
                 "encoding": "gives the default output character encoding for string fields",
                 "info_log": "a call reference / closure for informational logging",
