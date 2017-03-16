@@ -158,17 +158,10 @@ public class TableMapperTest inherits QUnit::Test {
              "dte" : date("2017-05-03"));
         # FIXME this is actually an error, since from any queueData() we expect
         # hash of lists returned. --PQ 16-Mar-2017
-        const ConstOutputHash2 = (
-            ("id": 1,
-             "string" : "2",
-             "dte" : date("2017-05-03")),
-            ("id": 1,
-             "string" : "2",
-             "dte" : date("2017-05-03")),
-            ("id": 1,
-             "string" : "2",
-             "dte" : date("2017-05-03")),
-            );
+        const ConstOutputHash2 =
+            ("id": (1,1,1),
+             "string" : ("2","2","2"),
+             "dte" : (date("2017-05-03"), date("2017-05-03"), date("2017-05-03")));
 
         const MyOpts = Opts + (
             "connstr": "c,conn=s",
