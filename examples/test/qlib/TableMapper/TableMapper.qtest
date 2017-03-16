@@ -161,14 +161,14 @@ public class TableMapperTest inherits QUnit::Test {
         const ConstOutputHash2 = (
             ("id": 1,
              "string" : "2",
-             "dte" : date("2017-05-03"),
+             "dte" : date("2017-05-03")),
             ("id": 1,
              "string" : "2",
-             "dte" : date("2017-05-03"),
+             "dte" : date("2017-05-03")),
             ("id": 1,
              "string" : "2",
-             "dte" : date("2017-05-03"),
-            ));
+             "dte" : date("2017-05-03")),
+            );
 
         const MyOpts = Opts + (
             "connstr": "c,conn=s",
