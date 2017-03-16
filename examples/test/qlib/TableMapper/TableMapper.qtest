@@ -285,10 +285,11 @@ public class TableMapperTest inherits QUnit::Test {
             on_exit table.rollback();
             InboundTableMapper mapper(table, ConstMap);
             *hash ret = mapper.queueData(Input2.iterator());
-            checkMap((map $1, mapper.flush().contextIterator()), Input2, ConstOutput);
+            if (!ret) { ret = mapper.flush(); }
+            checkMap((map $1, ret.contextIterator()), Input2, ConstOutput);
             checkMap(table.selectRows(("orderby": "id")), Input2, ConstOutput);
             assertEq(3, mapper.getCount());
-            assertEq(ret, ConstOutputHash);
+            assertEq(ConstOutputHash, ret);
         }
 
         # issue #1754: queueData(hash of lists) test with mixing list and non-list
