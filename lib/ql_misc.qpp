@@ -2609,13 +2609,33 @@ hash h = get_local_vars(0);
 
     @param frame the stack frame where 0 is the current stack frame
 
-    @return a hash of local variables for the given stack frame; if the stack frame is invalid, an empty hash is returned
+    @return a hash of local variables for the given stack frame; if the stack frame is invalid, an empty hash is returned; hash keys are variable names; hash values are hashes with the following keys:
+    - \c "type": can be either "local" or "closure" for closure-bound local variables
+    - \c "value": the value of the variable
 
     @throw CIRCULAR-REFERENCE-ERROR circular reference found when retrieving local variable values
+
+    @see @ref Qore::Program::getLocalVars()
 
     @since %Qore 0.8.13
  */
 hash get_local_vars(int frame) [dom=DEBUG_INSECURE;flags=RET_VALUE_ONLY] {
     return thread_get_local_vars(frame, xsink);
+}
+
+//! returns a hash of global variables
+/** @par Example:
+    @code{.py}
+hash h = get_global_vars();
+    @endcode
+
+    @return a hash of global variables and their values
+
+    @see @ref Qore::Program::getGlobalVars()
+
+    @since %Qore 0.8.13
+ */
+hash get_global_vars() [flags=CONSTANT] {
+   return getProgram()->getGlobalVars();
 }
 //@}

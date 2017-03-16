@@ -1563,14 +1563,16 @@ hash h = pgm.getLocalVars(int i);
 
     @param frame the stack frame starting from 0 (the current frame)
 
-    @return a hash of local variables and their values; if the frame does not exist, an empty hash is returned
+    @return a hash of local variables for the given stack frame; if the stack frame is invalid, an empty hash is returned; hash keys are variable names; hash values are hashes with the following keys:
+    - \c "type": can be either "local" or "closure" for closure-bound local variables
+    - \c "value": the value of the variable
+
+    @see @ref Qore::get_local_vars()
 
     @since %Qore 0.8.13
  */
-hash Program::getLocalVars(int frame) [flags=RET_VALUE_ONLY] {
-    // this call throws a c++ exception if it fails
-    ReferenceHolder<QoreHashNode> rv(thread_get_local_vars(frame, xsink), xsink);
-    return *xsink ? nullptr : rv.release();
+hash Program::getLocalVars(int frame) [dom=DEBUG_INSECURE;flags=RET_VALUE_ONLY] {
+   return thread_get_local_vars(frame, xsink);
 }
 
 //! returns a hash of global variables
@@ -1580,6 +1582,8 @@ hash h = pgm.getGlobalVars();
     @endcode
 
     @return a hash of global variables and their values
+
+    @see @ref Qore::get_global_vars()
 
     @since %Qore 0.8.13
  */

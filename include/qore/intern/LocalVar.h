@@ -252,13 +252,25 @@ public:
       return VarValueBase::finalize();
    }
 
-   DLLLOCAL QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) {
+   DLLLOCAL QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) const {
       QoreSafeVarRWReadLocker sl(rml);
       if (val.getType() == NT_REFERENCE) {
          ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), xsink);
          sl.unlock();
          LocalRefHelper<ClosureVarValue> helper(this, **ref, xsink);
          return helper ? lvalue_ref::get(*ref)->vexp->eval(needs_deref, xsink) : QoreValue();
+      }
+
+      return val.getReferencedValue();
+   }
+
+   DLLLOCAL QoreValue evalValue(ExceptionSink* xsink) const {
+      QoreSafeVarRWReadLocker sl(rml);
+      if (val.getType() == NT_REFERENCE) {
+         ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), xsink);
+         sl.unlock();
+         LocalRefHelper<ClosureVarValue> helper(this, **ref, xsink);
+         return helper ? lvalue_ref::get(*ref)->vexp->eval(xsink) : QoreValue();
       }
 
       return val.getReferencedValue();

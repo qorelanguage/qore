@@ -209,8 +209,12 @@ public:
                continue;
             }
 
-            if (in_frame && !var.skip)
-               h.setKeyValue(var.id, var.evalValue(xsink).takeNode(), xsink);
+            if (in_frame && !var.skip) {
+               ReferenceHolder<QoreHashNode> v(new QoreHashNode, xsink);
+               v->setKeyValue("type", new QoreStringNode("local"), xsink);
+               v->setKeyValue("value", var.evalValue(xsink).takeNode(), xsink);
+               h.setKeyValue(var.id, v.release(), xsink);
+            }
 	 }
 	 w = w->prev;
          if (!w)
@@ -356,6 +360,39 @@ public:
    }
 
    DLLLOCAL void getLocalVars(QoreHashNode& h, int frame, ExceptionSink* xsink) {
+      assert(frame >= 0);
+
+      // find requested frame
+      int cframe = 0;
+
+      bool in_frame = !frame;
+
+      Block* w = curr;
+      while (true) {
+	 int p = w->pos;
+	 while (p) {
+            --p;
+            const ClosureVarValue* var = w->var[p];
+            if (!var) {
+               if (in_frame)
+                  break;
+               ++cframe;
+               if (frame == cframe)
+                  in_frame = true;
+               continue;
+            }
+
+            if (in_frame && !var->skip) {
+               ReferenceHolder<QoreHashNode> v(new QoreHashNode, xsink);
+               v->setKeyValue("type", new QoreStringNode("closure"), xsink);
+               v->setKeyValue("value", var->evalValue(xsink).takeNode(), xsink);
+               h.setKeyValue(var->id, v.release(), xsink);
+            }
+	 }
+	 w = w->prev;
+         if (!w)
+            break;
+      }
    }
 };
 

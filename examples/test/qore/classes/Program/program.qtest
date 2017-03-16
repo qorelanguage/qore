@@ -312,14 +312,39 @@ class ProgramTest inherits QUnit::Test {
         {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
             p.parse("hash sub test(int frame) { int i = 1; string str = 'hi'; return get_local_vars(frame); }", "");
-            assertEq(("frame": 0, "i": 1, "str": "hi", "argv": NOTHING), p.callFunction("test", 0));
+
+            hash vh = (
+                "frame": ("type": "local", "value": 0),
+                "i": ("type": "local", "value": 1),
+                "str": ("type": "local", "value": "hi"),
+                "argv": ("type": "local", "value": NOTHING),
+                );
+
+            assertEq(vh, p.callFunction("test", 0));
             assertEq({}, p.callFunction("test", 1));
         }
         {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
-            p.parse("hash sub test1(int frame) { return get_local_vars(frame); } hash sub test2(int frame) { int i = 1; string str = 'hi'; return test1(frame); }", "");
-            assertEq(("str": "hi", "i": 1, "argv": NOTHING, "frame": 1), p.callFunction("test2", 1));
-            assertEq(("frame": 0, "argv": NOTHING), p.callFunction("test2", 0));
+            p.parse("hash sub test1(int frame) { code c = sub () { if (frame > 10) throw 1; }; c(); return get_local_vars(frame); } hash sub test2(int frame) { int i = 1; string str = 'hi'; return test1(frame); }", "");
+
+            hash vh = (
+                "str": ("type": "local", "value": "hi"),
+                "i": ("type": "local", "value": 1),
+                "argv": ("type": "local", "value": NOTHING),
+                "frame": ("type": "local", "value": 1),
+                );
+
+            assertEq(vh, p.callFunction("test2", 1));
+
+            vh = (
+                "c": ("type": "local", "value": NOTHING),
+                "frame": ("type": "closure", "value": 0),
+                "argv": ("type": "local", "value": NOTHING),
+                );
+
+            hash pvh = p.callFunction("test2", 0);
+            pvh.c.value = NOTHING;
+            assertEq(vh, pvh);
             assertEq({}, p.callFunction("test2", -1));
             assertEq({}, p.callFunction("test2", 2));
         }
