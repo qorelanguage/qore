@@ -152,8 +152,8 @@ public class TableMapperTest inherits QUnit::Test {
              ("id": 1, "string" : "2"),
              ("id": 1, "string" : "2"),);
         const ConstOutputHash =
-            ("id": (1,1,1),
-             "string" : ("2","2","2",));
+            ("id": 1,
+             "string" : "2");
 
         const MyOpts = Opts + (
             "connstr": "c,conn=s",
@@ -271,8 +271,9 @@ public class TableMapperTest inherits QUnit::Test {
             on_exit table.rollback();
             InboundTableMapper mapper(table, ConstMap);
             *hash ret = mapper.queueData(Input3);
+            if (!ret) { ret = mapper.flush(); }
             assertEq(3, mapper.getCount());
-            assertEq(ret, ConstOutputHash);
+            assertEq(ConstOutputHash, ret);
         }
 
         # queueData() test with all constants with iterator
