@@ -281,7 +281,6 @@ public class TableMapperTest inherits QUnit::Test {
         }
 
         # queueData() test with all constants with bulk ops
-        # NOTE: the outbound test depends on the data from this test, which is committed
         {
             on_exit table.rollback();
             InboundTableMapper mapper(table, ConstMap);
@@ -294,7 +293,6 @@ public class TableMapperTest inherits QUnit::Test {
         }
 
         # queueData() test with all constants with iterator
-        # NOTE: the outbound test depends on the data from this test, which is committed
         {
             on_exit table.rollback();
             InboundTableMapper mapper(table, ConstMap);
@@ -308,7 +306,6 @@ public class TableMapperTest inherits QUnit::Test {
         }
 
         # queueData() test with all constants with iterator
-        # NOTE: the outbound test depends on the data from this test, which is committed
         {
             on_exit table.rollback();
             InboundTableMapper mapper(table, ConstMap);
