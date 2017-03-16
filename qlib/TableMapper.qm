@@ -671,6 +671,8 @@ on_error table_mapper.rollback();
             # map record data to get the keys for the buffer
             if (!hbuf) {
                 # copy all constant mappings to the output hash
+                # FIXME why copying const dat here again even if it is
+                # resolved in mapFieldIntern???
                 if (consth)
                     hbuf += consth;
                 if (crec)
@@ -688,6 +690,17 @@ on_error table_mapper.rollback();
             # elements, we don't flush until the end.
             if (!exists out_list_size || out_list_size < insert_block)
                 return;
+
+            /*
+            # FIXME: what if there are all constants or other non-lists?
+            # then we will get out_list_size == NOTHING here,
+            # and the output record won't be expanded, right?
+            # Empty lists should not appear here.
+            # I.e. if out_list_size is NOTHING, we have a "constant"
+            # mapping here that won't be expanded, which is IMHO an error.
+            # Nevertheless, we flush in this case anyway.
+            # --PQ 16-Mar-2017
+            */
 
             hash h;
             # return all target data
@@ -784,6 +797,8 @@ on_error table_mapper.rollback();
             hash h = mapDataIntern(rec);
 
             # map record data to get the keys for the buffer
+            # FIXME ANOTHER problem: if we already get some thing in hbuf
+            # and the constants are not expanded in hbuf, what THIS will do to it?
             if (!hbuf)
                 map hbuf{$1.key} = ($1.value,), h.pairIterator();
             else
@@ -875,37 +890,48 @@ on_error table_mapper.rollback();
         private hash flushIntern() {
             *hash rh;
 
-            if (info_log)
-                info_log("%s: flushing %d row%s", table.getSqlName(), hbuf.firstValue().size(), hbuf.firstValue().size() == 1 ? "" : "s");
+            *int rec_list_size = getRecListSize(hbuf);
 
-            try {
-                # when executing for the first time on stable input data, get an SQLStatement for the SQL used to insert
-                if (!stmt) {
-                    string sql;
-                    # update sequences to a single value for the insert
-                    if (ret_args && hbuf{ret_args[0]}.typeCode() == NT_LIST)
-                        map hbuf.$1 = hbuf.$1[0], ret_args;
-                    out_args = map Type::Number, ret_args;
-                    rh = table.insert(hbuf, \sql, ("returning": getReturning()));
-                    # create the statement for future inserts
-                    stmt = new SQLStatement(table.getDatasource());
-                    stmt.prepare(sql);
+            if (info_log)
+                info_log("%s: flushing %d row(s)", table.getSqlName(), (rec_list_size ?? 0));
+
+            # if we have a bulk (hash of list) AND the list is empty, do not attempt
+            # to insert into DB, since at least Oracle module then throws an exception
+            # since QoreOracleStatement::isArray() returns false and then
+            # OraBindNode::bindValue does not have any option how to bind the
+            # list data type. --PQ 16-Mar-2017
+
+            if (!exists rec_list_size || rec_list_size > 0) {
+                try {
+                    # when executing for the first time on stable input data, get an SQLStatement for the SQL used to insert
+                    if (!stmt) {
+                        string sql;
+                        # update sequences to a single value for the insert
+                        # FIXME will all sequences have the same type?
+                        if (ret_args && hbuf{ret_args[0]}.typeCode() == NT_LIST)
+                            map hbuf.$1 = hbuf.$1[0], ret_args;
+                        out_args = map Type::Number, ret_args;
+                        rh = table.insert(hbuf, \sql, ("returning": getReturning()));
+                        # create the statement for future inserts
+                        stmt = new SQLStatement(table.getDatasource());
+                        stmt.prepare(sql);
+                    }
+                    else {
+                        # remove sequences
+                        map remove hbuf.$1, ret_args;
+                        # execute the SQLStatement on the args
+                        stmt.execArgs(hbuf.values() + out_args);
+                        # get sequence values
+                        rh = stmt.getOutput();
+                    }
                 }
-                else {
-                    # remove sequences
-                    map remove hbuf.$1, ret_args;
-                    # execute the SQLStatement on the args
-                    stmt.execArgs(hbuf.values() + out_args);
-                    # get sequence values
-                    rh = stmt.getOutput();
+                catch (hash ex) {
+                    if (ex.err =~ /BIND-/ && info_log)
+                        info_log("%s: %s: column lengths: %y", ex.err, ex.desc, (map {$1.key: $1.value.lsize()}, hbuf.pairIterator()));
+                    # reset row count if an exception is thrown
+                    resetCount();
+                    rethrow;
                 }
-            }
-            catch (hash ex) {
-                if (ex.err =~ /BIND-/ && info_log)
-                    info_log("%s: %s: column lengths: %y", ex.err, ex.desc, (map {$1.key: $1.value.lsize()}, hbuf.pairIterator()));
-                # reset row count if an exception is thrown
-                resetCount();
-                rethrow;
             }
 
             # get return value
