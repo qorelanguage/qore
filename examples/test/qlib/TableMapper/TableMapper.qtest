@@ -295,6 +295,18 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(ConstOutputHash, ret);
         }
 
+        # queueData() test with all constants with bulk input, but with non-bulk output
+        {
+            on_exit table.rollback();
+            InboundTableMapper mapper(table, ConstMap, ("insert_block" : 1));
+            *hash ret = mapper.queueData(Input3);
+            if (!ret) { ret = mapper.flush(); }
+            checkMap((map $1, ret.contextIterator()), list(), ConstOutput);
+            checkMap(table.selectRows(("orderby": "id")), list(), ConstOutput);
+            assertEq(3, mapper.getCount());
+            assertEq(ConstOutputHash, ret);
+        }
+
         # queueData() test with all constants with iterator
         {
             on_exit table.rollback();
