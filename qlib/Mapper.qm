@@ -976,22 +976,21 @@ Mapper mapv(DataMap);
                 v = do_list ? (map rtv, v) : rtv; # FIXME iterating empty list
             }
             else if (m.struct) {
-                # NOTE: hash of lists not supported with struct # FIXME do we ensure it?
                 v = rec;
                 map v = v{m.struct[$1]}, xrange(0, m.struct.size() - 1);
             }
             else
-                v = rec{name} ?? NOTHING; # mitigate NULL -> NOTHING (?)
+                v = rec{name} ?? NOTHING; # mitigate NULL -> NOTHING
 
             if (do_list) {
                 if (!exists v)
-                    v = list_size > 0 ? (map NOTHING, xrange(list_size - 1)) : list();
+                    v = list_size > 0 ? (map NOTHING, xrange(list_size - 1)) : ();
                 else if (v.typeCode() != NT_LIST)
                     error2("MAPPER-FIELD-LIST-ERROR", "field %y value passed is %y in list mode; expecting \"list\"", key, v.type());
             }
 
             # move any XML CDATA into the field value
-            # NOTE: cdata not supported with hashes of lists # FIXME do we ensure it?
+            # NOTE: cdata not supported with hashes of lists # FIXME add a test for it
             if (v."^cdata^")
                 v = v."^cdata^";
 
@@ -1036,7 +1035,7 @@ Mapper mapv(DataMap);
             }
 
             # check maximum length
-            if (m.maxlen) {
+            if (m.maxlen) { # FIXME do we have a test for it?
                 if (do_list) {
                     if (m.trunc)
                         map v[$1] = truncateField(key, $1, $#, v.size(), m.maxlen), v, $1.size() > m.maxlen;
@@ -1047,12 +1046,10 @@ Mapper mapv(DataMap);
                     if (v.size() > m.maxlen) {
                         # truncate the string if necessary
                         if (m.trunc) {
-                            if (info_log)
-                                info_log("field %y = %y input length %d truncating to %d bytes", getFieldName(key), v, v.size(), m.maxlen);
-                            v = trunc_str(v, m.maxlen, encoding);   # FIXME should use truncateField too as above?
+                            v = truncateField(key, v, 0, 0, m.maxlen);
                         }
                         else
-                            error2("STRING-TOO-LONG", "field %y = %y, input length %d exceeds maximum byte length %d for input row: %y", getFieldName(key), v, strlen(v), m.maxlen, rec);
+                            fieldLengthError(key, $1, 0, 0, m.maxlen, rec);
                     }
                 }
             }
@@ -1067,7 +1064,6 @@ Mapper mapv(DataMap);
 
             # add value to row list
             if (m.ostruct) {
-                # NOTE: ostruct is not supported in list mode # FIXME how we ensure it?
                 # recursive closure for generating structured data
                 code ah = any sub (*hash ch, any vc, int off = 0) {
                     if (off == m.ostruct.size())
@@ -1080,7 +1076,7 @@ Mapper mapv(DataMap);
                     return ch;
                 };
                 try {
-                    h = ah(h, v); # FIXME I don't understand ostruct, should be "v = ah(v)", or not?
+                    h = ah(h, v);
                     return;
                 }
                 catch (hash ex) {
@@ -1097,13 +1093,15 @@ Mapper mapv(DataMap);
         #! called to truncate fields when processing hashes of lists
         private string truncateField(string k, string val, int ix, int sze, int maxlen) {
             if (info_log)
-                info_log("field %y = %y element %d/%d input length %d truncating to %d bytes", getFieldName(k), val, ix + 1, sze, val.size(), maxlen);
+                info_log("field %y = %y%s input length %d truncating to %d bytes",
+                        getFieldName(k), val, (sze > 0 ? sprintf(" element %d/%d", ix + 1, sze) : ""), val.size(), maxlen);
             return trunc_str(val, maxlen, encoding);
         }
 
         #! called when a field exceeds its maximum length when processing hashes of lists
         private fieldLengthError(string k, string val, int ix, int sze, int maxlen, hash rc) {
-            error2("STRING-TOO-LONG", "field %y = %y element %d/%d, input length %d exceeds maximum byte length %d for input row: %y", getFieldName(k), val, ix + 1, val.size(), maxlen, rc);
+            error2("STRING-TOO-LONG", "field %y = %y%s, input length %d exceeds maximum byte length %d for input row: %y",
+                    getFieldName(k), val, (sze > 0 ? sprintf(" element %d/%d", ix + 1, sze) : ""), val.size(), maxlen, rc);
         }
 
         #! calls the output logging @ref closure "closure" or @ref call_reference "call reference" (if any) to log the output record

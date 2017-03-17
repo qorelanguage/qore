@@ -673,6 +673,8 @@ on_error table_mapper.rollback();
                 # copy all constant mappings to the output hash
                 # FIXME why copying const dat here again even if it is
                 # resolved in mapFieldIntern???
+                # David: they are removed from mapd - indeed, but why they are processed
+                # in mapFieldIntern then?
                 if (consth)
                     hbuf += consth;
                 if (crec)
@@ -691,7 +693,6 @@ on_error table_mapper.rollback();
             if (!exists out_list_size || out_list_size < insert_block)
                 return;
 
-            /*
             # FIXME: what if there are all constants or other non-lists?
             # then we will get out_list_size == NOTHING here,
             # and the output record won't be expanded, right?
@@ -700,7 +701,6 @@ on_error table_mapper.rollback();
             # mapping here that won't be expanded, which is IMHO an error.
             # Nevertheless, we flush in this case anyway.
             # --PQ 16-Mar-2017
-            */
 
             hash h;
             # return all target data
@@ -780,18 +780,11 @@ on_error table_mapper.rollback();
             @throw MISSING-INPUT a field marked mandatory is missing
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
-            @throw MAP-ERROR when the function is called wwith hash of lists (bulk) input
+            @throw MAP-ERROR when the function is called with hash of lists (bulk) input
         */
         private *hash queueDataIntern(hash rec) {
             if (insert_block == 1) {
                 return insertRow(rec);
-            }
-
-            *int rec_list_size = getRecListSize(rec);
-            if (exists rec_list_size) {
-                throw "MAP-ERROR", sprintf("TableMapper::queueDataIntern() does not "
-                        "accept hash of lists - this is likely some internal "
-                        "error. Got %y", rec);
             }
 
             hash h = mapDataIntern(rec);
@@ -808,6 +801,9 @@ on_error table_mapper.rollback();
             *int out_list_size = getRecListSize(hbuf);
             if (!exists out_list_size || out_list_size < insert_block)
                 return;
+
+            # FIXME: see the queueData(hash rec, *hash crec) for more info
+            # about this situation. Also, is it possible that empty
 
             # return all target data
             return flushIntern();
