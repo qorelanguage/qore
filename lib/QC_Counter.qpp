@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_Counter.h>
+#include "qore/intern/QC_Counter.h"
 
 //! Implements a class that can be used for blocking a thread until a counter reaches zero
 /** Counter objects allow Qore threads to sleep until a counter reaches zero.
@@ -51,7 +51,7 @@ Counter counter();
  */
 Counter::constructor(softint c = 0) {
    if (c < 0) {
-      xsink->raiseException("COUNTER-ERROR", "Counter::constructor() called with initial value "QLLD", however value must be non-negative", c);
+      xsink->raiseException("COUNTER-ERROR", "Counter::constructor() called with initial value " QLLD ", however value must be non-negative", c);
       return;
    }
    self->setPrivate(CID_COUNTER, new Counter(c));
