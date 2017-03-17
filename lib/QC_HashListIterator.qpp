@@ -51,9 +51,9 @@
                it.index(), it.getValue(), it.getKeyValue('column1'));
     }
 
-    iter 0: getValue: {column1: 1, column2: "a", column3: "constant"); getKeyValue('column1'): 1
-    iter 1: getValue: {column1: 2, column2: "b", column3: "constant"); getKeyValue('column1'): 2
-    iter 2: getValue: {column1: 3, column2: "c", column3: "constant"); getKeyValue('column1'): 3
+    iter 0: getValue: {column1: 1, column2: "a", column3: "constant"}; getKeyValue('column1'): 1
+    iter 1: getValue: {column1: 2, column2: "b", column3: "constant"}; getKeyValue('column1'): 2
+    iter 2: getValue: {column1: 3, column2: "c", column3: "constant"}; getKeyValue('column1'): 3
     @endcode
 
     @note
