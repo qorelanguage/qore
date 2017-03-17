@@ -597,15 +597,41 @@ table_mapper.setRowCode(rowcode);
         }
 
         #! inserts a row (or a set of rows, in case a hash of lists is passed) into the block buffer based on a mapped input record; the block buffer is flushed to the DB if the buffer size reaches the limit defined by the \c "insert_block" option; does not commit the transaction
-        /** @par Example:
+        /** @par Examples:
             @code{.py}
-on_success table_mapper.commit();
-on_error table_mapper.rollback();
+# FIXME test the examples
+# Example 1:
 {
     on_success table_mapper.flush();
     on_error table_mapper.discard();
 
-    map table_mapper.queueData($1), data.iterator();
+    while (*hash h = stmt.fetchColumns(1000)) {
+        table_mapper.queueData(h);
+    }
+}
+
+# Example 2:
+{
+    const Map1 = (
+        "num": ("a"),
+        "str": ("b"),
+    );
+
+    Table table(someDataSource, "some_table");
+    InboundTableMapper table_mapper(table, DataMap. ("insert_block" : 3));
+
+    on_error table_mapper.discard();
+
+    list data = (("a" : 1, "b" : "bar"), ("a" : 2, "b" : "foo"));
+
+    list mapped_data = (map table_mapper.queueData($1), data.iterator()) ?? ();
+    # mapped_data = () - no insertion done yet since to insert_block=3
+
+    list flushed_data = table_mapper.flush() ?? ();
+
+    mapped_data += flushed_data;
+    # mapped_data = ("num" : (1,2), "str" : ("bar","foo"));
+    # the table is updated too
 }
             @endcode
 
@@ -622,7 +648,7 @@ on_error table_mapper.rollback();
             - this method and batched inserts in general cannot be used when the \c "unstable_input" option is given in the constructor
             - if the \c "insert_block" option is set to 1, then this method simply calls insertRow()
             - if an error occurs flushing data, the count is reset by calling @ref Mapper::Mapper::resetCount() "Mapper::resetCount()"
-            - in case a hash of lists is passed in \a rec, then the the underlying @ref Mapper::Mapper "Mapper" object does not support structured input or output or XML CDATA in the input (input data in this format is assumed to come from an SQL query); note that this provides very high performance with SQL drivers that support Bulk DML
+            - in case a hash of lists is passed in \a rec, then the underlying @ref Mapper::Mapper "Mapper" object does not support structured input or output or XML CDATA in the input (input data in this format is assumed to come from an SQL query); note that this provides very high performance with SQL drivers that support Bulk DML
 
             @see
             - flush()
@@ -650,7 +676,7 @@ on_error table_mapper.rollback();
                         if (h)
                             map h.$1 += th.$1, th.keyIterator();
                         else
-                            h = th;
+                            h = map { $1.key : ($1.value,) }, th.pairIterator();
                     }
                 }
                 return h;
@@ -761,6 +787,7 @@ on_error table_mapper.rollback();
                 if (th) {
                     if (h)
                         map h.$1 += th.$1, th.keyIterator();
+                        # FIXME add a test what happens when 'th' contains a constant?
                     else
                         h = th;
                 }
@@ -780,7 +807,6 @@ on_error table_mapper.rollback();
             @throw MISSING-INPUT a field marked mandatory is missing
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
-            @throw MAP-ERROR when the function is called with hash of lists (bulk) input
         */
         private *hash queueDataIntern(hash rec) {
             if (insert_block == 1) {
