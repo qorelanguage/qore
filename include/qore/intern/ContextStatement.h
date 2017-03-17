@@ -33,7 +33,7 @@
 
 #define _QORE_CONTEXTSTATEMENT_H
 
-#include <qore/intern/AbstractStatement.h>
+#include "qore/intern/AbstractStatement.h"
 
 #include <qore/safe_dslist>
 
