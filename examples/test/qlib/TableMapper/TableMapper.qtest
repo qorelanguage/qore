@@ -103,6 +103,10 @@ public class TableMapperTest inherits QUnit::Test {
             "dte" : ("constant" : date("2017-05-03"),),
             );
 
+        const TrivMap = (
+            "id": ("constant" : 0),
+             "dte" : ("constant" : date("2017-05-03")));
+
         const Input1 = (("string": "string_1"),
                         ("string": "string_2"),
                         ("string": ""),
@@ -114,6 +118,7 @@ public class TableMapperTest inherits QUnit::Test {
         const Input3 = ("string": ("string_1", "string_2", NOTHING), "str2": "str2");
         const Input4 = ("str2": "str2", "string": ("string_1", "string_2", NOTHING));
         const InputWithEmptyList = ("str2": list(), "string": list());
+        const Input5 = ("id" : 0);
         const Output1 = (("string" : "string_1"),
                          ("string" : "string_2"),
                          ("string" : ""),
@@ -296,6 +301,23 @@ public class TableMapperTest inherits QUnit::Test {
             checkMap((map $1, mapper.flush().contextIterator()), input3, Output3);
             checkMap(table.selectRows(("orderby": "id")), input3, Output3);
             assertEq(3, mapper.getCount());
+        }
+
+        # issue #1754: queueData() test with False-convertible value in 1st value
+        # that is mapped as constant
+        # FIXME this should break Oracle test due to hbuf.firstValue() used in flush()
+        # and TableMapper destructor.
+        {
+            on_exit table.rollback();
+
+            # prepare data for comparison
+            list input5 = map $1, Input5.contextIterator();
+            InboundTableMapper mapper(table, TrivMap);
+            *hash ret = mapper.queueData(Input5);
+            if (!ret ) { ret = mapper.flush(); }
+            checkMap((map $1, ret.contextIterator()), (("id" : 0),), ());
+            checkMap(table.selectRows(), input5, ());
+            assertEq(1, mapper.getCount());
         }
 
         # issue #1754: queueData(hash of lists) with insert_block=1
