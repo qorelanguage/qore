@@ -94,7 +94,7 @@ public class TableMapperTest inherits QUnit::Test {
         const Map2NoSequence = (
             "id": ("constant": 1),
             "string": ("code": string sub (any x, hash rec) { return rec.string ?? rec.str2; }),
-            "dte": ("code": date sub (nothing x, hash rec) { return now_us(); }),
+            "dte" : ("constant" : date("2017-05-03"),),
             );
 
         const ConstMap = (
@@ -142,6 +142,14 @@ public class TableMapperTest inherits QUnit::Test {
             ("id": 24, "code1": "code", "string": NOTHING),
             );
 
+        const OutputNoBulk1 =
+            ("id": (1,1,1),
+             "string": ("string_1", "string_2", "str2"),
+             "dte" : (
+                 date("2017-05-03"),
+                 date("2017-05-03"),
+                 date("2017-05-03"),),);
+
         const Output2 = (
             ("seq": 25, "tstr": "25-string_1"),
             ("seq": 26, "tstr": "26-string_2"),
@@ -152,6 +160,13 @@ public class TableMapperTest inherits QUnit::Test {
             (("string": "string_1"),
              ("string": "string_2"),
              ("string": "str2"),
+            );
+
+        const Output3a =
+            (
+             ("string": "str2"),
+             ("string": "string_1"),
+             ("string": "string_2"),
             );
 
         const ConstOutput =
@@ -280,6 +295,20 @@ public class TableMapperTest inherits QUnit::Test {
             mapper.queueData(Input3);
             checkMap((map $1, mapper.flush().contextIterator()), input3, Output3);
             checkMap(table.selectRows(("orderby": "id")), input3, Output3);
+            assertEq(3, mapper.getCount());
+        }
+
+        # issue #1754: queueData(hash of lists) with insert_block=1
+        {
+            on_exit table.rollback();
+
+            # prepare data for comparison
+            list input3 = map $1, Input3.contextIterator();
+            InboundTableMapper mapper(table, Map2NoSequence, ("insert_block" : 1));
+            *hash ret = mapper.queueData(Input3);
+            if (!ret) { ret = mapper.flush(); }
+            assertEq(OutputNoBulk1, ret);
+            checkMap(table.selectRows(("orderby": "string")), input3, Output3a);
             assertEq(3, mapper.getCount());
         }
 
