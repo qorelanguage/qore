@@ -315,8 +315,10 @@ public class TableMapperTest inherits QUnit::Test {
             InboundTableMapper mapper(table, TrivMap);
             *hash ret = mapper.queueData(Input5);
             if (!ret ) { ret = mapper.flush(); }
-            checkMap((map $1, ret.contextIterator()), (("id" : 0),), ());
-            checkMap(table.selectRows(), input5, ());
+            checkMap((map $1, ret.contextIterator()), (), (("id" : 0),));
+            *list rws = table.selectRows();
+            assertEq(1, rws.size());
+            checkMap(table.selectRows(), (), input5);
             assertEq(1, mapper.getCount());
         }
 
@@ -340,8 +342,8 @@ public class TableMapperTest inherits QUnit::Test {
             InboundTableMapper mapper(table, ConstMap);
             *hash ret = mapper.queueData(Input3);
             if (!ret) { ret = mapper.flush(); }
-            checkMap((map $1, ret.contextIterator()), list(), ConstOutput);
-            checkMap(table.selectRows(("orderby": "id")), list(), ConstOutput);
+            checkMap((map $1, ret.contextIterator()), (), ConstOutput);
+            checkMap(table.selectRows(("orderby": "id")), (), ConstOutput);
             assertEq(3, mapper.getCount());
             assertEq(ConstOutputHash, ret);
         }
@@ -352,8 +354,8 @@ public class TableMapperTest inherits QUnit::Test {
             InboundTableMapper mapper(table, ConstMap, ("insert_block" : 1));
             *hash ret = mapper.queueData(Input3);
             if (!ret) { ret = mapper.flush(); }
-            checkMap((map $1, ret.contextIterator()), list(), ConstOutput);
-            checkMap(table.selectRows(("orderby": "id")), list(), ConstOutput);
+            checkMap((map $1, ret.contextIterator()), (), ConstOutput);
+            checkMap(table.selectRows(("orderby": "id")), (), ConstOutput);
             assertEq(3, mapper.getCount());
             # FIXME see the definition of ConstOutputHash2, this test is actually wrong!
             # At least it is suprising that this test result differs from the previous one
@@ -479,6 +481,8 @@ public class TableMapperTest inherits QUnit::Test {
         assertEq(3, m.getCount());
     }
 
+    # FIXME this is very ad-hoc checking - 'il' not used at all, 'ol' used only
+    # when the actual value ('l') is present. No check if 'l' is empty, for example.
     checkMap(list l, list il, list ol) {
         foreach hash h in (l) {
             assertEq(Type::Int, h.id.type(), "id type for row " + $#);
