@@ -719,9 +719,10 @@ Mapper mapv(DataMap);
             }
             else {
                 # add to consth if a constant value is included
-                if (fh.constant)
+                # refs #1754 if constant is 0, we cannot simply check with fh.constant
+                if (exists fh.constant)
                     consth{k} = fh.constant;
-                if (fh.runtime)
+                if (exists fh.runtime)
                     rconsth{k} = fh.runtime;
                 mapo{k} = NOTHING;
             }
