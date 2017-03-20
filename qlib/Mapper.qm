@@ -720,6 +720,7 @@ Mapper mapv(DataMap);
             else {
                 # add to consth if a constant value is included
                 # refs #1754 if constant is 0, we cannot simply check with fh.constant
+                printf("KEY: %y FH: %y\n", k, fh);
                 if (exists fh.constant)
                     consth{k} = fh.constant;
                 if (exists fh.runtime)

@@ -315,7 +315,7 @@ public class TableMapperTest inherits QUnit::Test {
             InboundTableMapper mapper(table, TrivMap);
             *hash ret = mapper.queueData(Input5);
             if (!ret ) { ret = mapper.flush(); }
-            assertEq((map $1, ret.contextIterator()).size(), 1);
+            assertEq(1, (map $1, ret.contextIterator()).size());
             checkMap((map $1, ret.contextIterator()), (("id" : 0, "string" : "string_1"),));
             *list rws = table.selectRows();
             assertEq(1, rws.size());
