@@ -183,10 +183,6 @@ public class TableMapperTest inherits QUnit::Test {
             ("id": 1,
              "string" : "2",
              "dte" : date("2017-05-03"));
-        const EmptyOutput =
-            ("id": 1,
-             "string" : list(),
-             "dte" : list());
         # FIXME this is actually an error, since from any queueData() we expect
         # hash of lists returned. --PQ 16-Mar-2017
         const ConstOutputHash2 =
@@ -379,8 +375,8 @@ public class TableMapperTest inherits QUnit::Test {
             InboundTableMapper mapper(table, Map2NoSequence);
             *hash ret = mapper.queueData(InputWithEmptyList);
             if (!ret) { ret = mapper.flush(); }
-            # FIXME what should we return for empty bulk input?
-            assertEq(EmptyOutput, ret);
+            # nothing is returned when we map InputWithEmptyList (hash of empty lists)
+            assertEq(NOTHING, ret);
         }
 
         # queueData() test with number of rows on the border of flush()

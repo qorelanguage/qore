@@ -653,6 +653,7 @@ table_mapper.setRowCode(rowcode);
             - if the \c "insert_block" option is set to 1, then this method simply calls insertRow()
             - if an error occurs flushing data, the count is reset by calling @ref Mapper::Mapper::resetCount() "Mapper::resetCount()"
             - in case a hash of lists is passed in \a rec, then the underlying @ref Mapper::Mapper "Mapper" object does not support structured input or output or XML CDATA in the input (input data in this format is assumed to come from an SQL query); note that this provides very high performance with SQL drivers that support Bulk DML
+            - in case a hash of empty lists is passed, Qore::NOTHING is returned
 
             @see
             - flush()
