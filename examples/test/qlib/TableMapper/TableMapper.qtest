@@ -105,7 +105,8 @@ public class TableMapperTest inherits QUnit::Test {
 
         const TrivMap = (
             "id": ("constant" : 0),
-             "dte" : ("constant" : date("2017-05-03")));
+            "string" : ("name" : "string"),
+            "dte" : ("constant" : date("2017-05-03")));
 
         const Input1 = (("string": "string_1"),
                         ("string": "string_2"),
@@ -118,7 +119,7 @@ public class TableMapperTest inherits QUnit::Test {
         const Input3 = ("string": ("string_1", "string_2", NOTHING), "str2": "str2");
         const Input4 = ("str2": "str2", "string": ("string_1", "string_2", NOTHING));
         const InputWithEmptyList = ("str2": list(), "string": list());
-        const Input5 = ("id" : 0);
+        const Input5 = ("string" : ("string_1",));
         const Output1 = (("string" : "string_1"),
                          ("string" : "string_2"),
                          ("string" : ""),
@@ -247,8 +248,8 @@ public class TableMapperTest inherits QUnit::Test {
             on_exit table.rollback();
 
             InboundTableMapper mapper(table, Map1);
-            checkMap((map mapper.insertRow($1), Input1), Input1, output1);
-            checkMap(table.selectRows(("orderby": "id")), Input1, output1);
+            checkMap((map mapper.insertRow($1), Input1), output1);
+            checkMap(table.selectRows(("orderby": "id")), output1);
             assertEq(3, mapper.getCount());
         }
 
@@ -259,7 +260,7 @@ public class TableMapperTest inherits QUnit::Test {
             InboundTableMapper mapper(table, Map1);
             InboundTableMapperIterator i = mapper.iterator(Input1.iterator());
             map $1, i;
-            checkMap(table.selectRows(("orderby": "id")), Input1, output1);
+            checkMap(table.selectRows(("orderby": "id")), output1);
             assertEq(3, i.getCount());
             assertEq(3, mapper.getCount());
         }
@@ -270,8 +271,8 @@ public class TableMapperTest inherits QUnit::Test {
 
             InboundTableMapper mapper(table, Map1);
             map mapper.queueData($1), Input1;
-            checkMap((map $1, mapper.flush().contextIterator()), Input1, output1);
-            checkMap(table.selectRows(("orderby": "id")), Input1, output1);
+            checkMap((map $1, mapper.flush().contextIterator()), output1);
+            checkMap(table.selectRows(("orderby": "id")), output1);
             assertEq(3, mapper.getCount());
         }
 
@@ -285,8 +286,8 @@ public class TableMapperTest inherits QUnit::Test {
 
             InboundTableMapper mapper(table, Map2);
             mapper.queueData(ih);
-            checkMap((map $1, mapper.flush().contextIterator()), Input2, output2);
-            checkMap(table.selectRows(("orderby": "id")), Input2, output2);
+            checkMap((map $1, mapper.flush().contextIterator()), output2);
+            checkMap(table.selectRows(("orderby": "id")), output2);
             assertEq(3, mapper.getCount());
         }
 
@@ -295,11 +296,10 @@ public class TableMapperTest inherits QUnit::Test {
             on_exit table.rollback();
 
             # prepare data for comparison
-            list input3 = map $1, Input3.contextIterator();
             InboundTableMapper mapper(table, Map2);
             mapper.queueData(Input3);
-            checkMap((map $1, mapper.flush().contextIterator()), input3, Output3);
-            checkMap(table.selectRows(("orderby": "id")), input3, Output3);
+            checkMap((map $1, mapper.flush().contextIterator()), Output3);
+            checkMap(table.selectRows(("orderby": "id")), Output3);
             assertEq(3, mapper.getCount());
         }
 
@@ -315,10 +315,10 @@ public class TableMapperTest inherits QUnit::Test {
             InboundTableMapper mapper(table, TrivMap);
             *hash ret = mapper.queueData(Input5);
             if (!ret ) { ret = mapper.flush(); }
-            checkMap((map $1, ret.contextIterator()), (), (("id" : 0),));
+            checkMap((map $1, ret.contextIterator()), (("id" : 0, "string" : "string_1"),));
             *list rws = table.selectRows();
             assertEq(1, rws.size());
-            checkMap(table.selectRows(), (), input5);
+            checkMap(table.selectRows(), input5);
             assertEq(1, mapper.getCount());
         }
 
@@ -327,12 +327,11 @@ public class TableMapperTest inherits QUnit::Test {
             on_exit table.rollback();
 
             # prepare data for comparison
-            list input3 = map $1, Input3.contextIterator();
             InboundTableMapper mapper(table, Map2NoSequence, ("insert_block" : 1));
             *hash ret = mapper.queueData(Input3);
             if (!ret) { ret = mapper.flush(); }
             assertEq(OutputNoBulk1, ret);
-            checkMap(table.selectRows(("orderby": "string")), input3, Output3a);
+            checkMap(table.selectRows(("orderby": "string")), Output3a);
             assertEq(3, mapper.getCount());
         }
 
@@ -342,8 +341,8 @@ public class TableMapperTest inherits QUnit::Test {
             InboundTableMapper mapper(table, ConstMap);
             *hash ret = mapper.queueData(Input3);
             if (!ret) { ret = mapper.flush(); }
-            checkMap((map $1, ret.contextIterator()), (), ConstOutput);
-            checkMap(table.selectRows(("orderby": "id")), (), ConstOutput);
+            checkMap((map $1, ret.contextIterator()), ConstOutput);
+            checkMap(table.selectRows(("orderby": "id")), ConstOutput);
             assertEq(3, mapper.getCount());
             assertEq(ConstOutputHash, ret);
         }
@@ -354,8 +353,8 @@ public class TableMapperTest inherits QUnit::Test {
             InboundTableMapper mapper(table, ConstMap, ("insert_block" : 1));
             *hash ret = mapper.queueData(Input3);
             if (!ret) { ret = mapper.flush(); }
-            checkMap((map $1, ret.contextIterator()), (), ConstOutput);
-            checkMap(table.selectRows(("orderby": "id")), (), ConstOutput);
+            checkMap((map $1, ret.contextIterator()), ConstOutput);
+            checkMap(table.selectRows(("orderby": "id")), ConstOutput);
             assertEq(3, mapper.getCount());
             # FIXME see the definition of ConstOutputHash2, this test is actually wrong!
             # At least it is suprising that this test result differs from the previous one
@@ -368,8 +367,8 @@ public class TableMapperTest inherits QUnit::Test {
             InboundTableMapper mapper(table, ConstMap);
             *hash ret = mapper.queueData(Input2.iterator());
             if (!ret) { ret = mapper.flush(); }
-            checkMap((map $1, ret.contextIterator()), Input2, ConstOutput);
-            checkMap(table.selectRows(("orderby": "id")), Input2, ConstOutput);
+            checkMap((map $1, ret.contextIterator()), ConstOutput);
+            checkMap(table.selectRows(("orderby": "id")), ConstOutput);
             assertEq(3, mapper.getCount());
             # FIXME see the definition of ConstOutputHash2, this test is actually wrong!
             assertEq(ConstOutputHash2, ret);
@@ -402,11 +401,10 @@ public class TableMapperTest inherits QUnit::Test {
             on_exit table.rollback();
 
             # prepare data for comparison
-            list input4 = map $1, Input4.contextIterator();
             InboundTableMapper mapper(table, Map2);
             mapper.queueData(Input4);
-            checkMap((map $1, mapper.flush().contextIterator()), input4, Output3);
-            checkMap(table.selectRows(("orderby": "id")), input4, Output3);
+            checkMap((map $1, mapper.flush().contextIterator()), Output3);
+            checkMap(table.selectRows(("orderby": "id")), Output3);
             assertEq(3, mapper.getCount());
         }
 
@@ -414,15 +412,12 @@ public class TableMapperTest inherits QUnit::Test {
         {
             on_exit table.rollback();
 
-            # prepare data for comparison
-            list input3 = map $1, Input3.contextIterator();
-
             list rl = ();
             code rowcode = sub (hash h) { rl += h; };
             InboundTableMapper mapper(table, Map2 + ("code1": ("constant": "code")), ("rowcode": rowcode));
             mapper.queueData(Input3);
-            checkMap((map $1, mapper.flush().contextIterator()), input3, Output3);
-            checkMap(table.selectRows(("orderby": "id")), input3, Output3);
+            checkMap((map $1, mapper.flush().contextIterator()), Output3);
+            checkMap(table.selectRows(("orderby": "id")), Output3);
             assertEq(3, mapper.getCount());
             assertEq(Type::Date, rl[0].dte.type());
             map remove rl[$#].dte, rl;
@@ -444,8 +439,8 @@ public class TableMapperTest inherits QUnit::Test {
             InboundTableMapper mapper(table, Map1 + ("code1": ("constant": "code")), ("rowcode": rowcode));
             mapper.queueData(ih);
             # issue #1738 test iterating mapper.flush() output including constant mappings with <hash>::contextIterator()
-            checkMap((map $1, mapper.flush().contextIterator()), Input1, output1);
-            checkMap(table.selectRows(("orderby": "id")), Input1, output1);
+            checkMap((map $1, mapper.flush().contextIterator()), output1);
+            checkMap(table.selectRows(("orderby": "id")), output1);
             assertEq(3, mapper.getCount());
             assertEq(Type::Date, rl[0].dte.type());
             map remove rl[$#].dte, rl;
@@ -460,8 +455,8 @@ public class TableMapperTest inherits QUnit::Test {
 
             InboundTableMapper mapper(table, Map1);
             mapper.queueData(Input1.iterator());
-            checkMap((map $1, mapper.flush().contextIterator()), Input1, output1);
-            checkMap(table.selectRows(("orderby": "id")), Input1, output1);
+            checkMap((map $1, mapper.flush().contextIterator()), output1);
+            checkMap(table.selectRows(("orderby": "id")), output1);
             assertEq(3, mapper.getCount());
         }
     }
@@ -481,9 +476,10 @@ public class TableMapperTest inherits QUnit::Test {
         assertEq(3, m.getCount());
     }
 
-    # FIXME this is very ad-hoc checking - 'il' not used at all, 'ol' used only
-    # when the actual value ('l') is present. No check if 'l' is empty, for example.
-    checkMap(list l, list il, list ol) {
+    # FIXME this is very ad-hoc checking - 'ol' used only
+    # when the actual value ('l') is present in mapped result.
+    # No check if 'l' is empty, for example.
+    checkMap(list l, list ol) {
         foreach hash h in (l) {
             assertEq(Type::Int, h.id.type(), "id type for row " + $#);
             any hval = h.string === NULL ? NOTHING : h.string;
