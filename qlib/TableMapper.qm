@@ -368,9 +368,11 @@ InboundTableMapper mapper(table, DbMapper);
         */
         destructor() {
             # NOTE: we cannot decide on the number of elements based on firstValue()
-            *int rec_list_size = getRecListSize(hbuf);
-            if (!exists rec_list_size || rec_list_size > 0)
-                throw "BLOCK-ERROR", sprintf("there is still %d row(s) of data in the block cache; make sure to call %s::flush() or %s::discard() before destroying the object to flush all data to the database",  (rec_list_size ?? 1), self.className(), self.className());
+            if (exists hbuf) {
+                *int rec_list_size = getRecListSize(hbuf);
+                if (!exists rec_list_size || rec_list_size > 0)
+                    throw "BLOCK-ERROR", sprintf("there is still %d row(s) of data in the block cache; make sure to call %s::flush() or %s::discard() before destroying the object to flush all data to the database",  (rec_list_size ?? 1), self.className(), self.className());
+            }
         }
 
         #! returns a description of the output record based on the @ref SqlUtil::AbstractTable "AbstractTable" target
@@ -715,7 +717,7 @@ table_mapper.setRowCode(rowcode);
                 map hbuf{$1.key} += $1.value, dh.pairIterator();
 
             # return nothing if nothing needs to be flushed
-            *int out_list_size = getRecListSize(hbuf);
+            *int out_list_size = exists hbuf ? getRecListSize(hbuf) : NOTHING;
             # note - in case hbuf by some chance contains only "constant"
             # elements, we don't flush until the end.
             if (!exists out_list_size || out_list_size < insert_block)
@@ -826,7 +828,7 @@ on_error table_mapper.rollback();
                 map hbuf{$1.key} += $1.value, h.pairIterator();
 
             # return nothing if nothing needs to be flushed
-            *int out_list_size = getRecListSize(hbuf);
+            *int out_list_size = exists hbuf ? getRecListSize(hbuf) : NOTHING;
             if (!exists out_list_size || out_list_size < insert_block)
                 return;
 
@@ -842,9 +844,11 @@ on_error table_mapper.rollback();
          *         of records represented (may also be 0)
          */
         private *int getRecListSize(hash rec) {
-            foreach hash i in (rec.pairIterator()) {
-                if (i.value.typeCode() == NT_LIST) {
-                    return i.value.size();
+            if (exists rec) {
+                foreach hash i in (rec.pairIterator()) {
+                    if (i.value.typeCode() == NT_LIST) {
+                        return i.value.size();
+                    }
                 }
             }
             return NOTHING;
@@ -875,9 +879,11 @@ on_error table_mapper.rollback();
             - discard()
         */
         *hash flush() {
-            *int rec_list_size = getRecListSize(hbuf);
-            if (!exists rec_list_size || rec_list_size > 0)
-                return flushIntern(rec_list_size);
+            if (exists hbuf) {
+                *int rec_list_size = getRecListSize(hbuf);
+                if (!exists rec_list_size || rec_list_size > 0)
+                    return flushIntern(rec_list_size);
+            }
             remove rowcode;
         }
 
