@@ -344,8 +344,8 @@ class LValueHelper {
 
 private:
    // not implemented
-   DLLLOCAL LValueHelper(const LValueHelper&);
-   DLLLOCAL LValueHelper& operator=(const LValueHelper&);
+   DLLLOCAL LValueHelper(const LValueHelper&) = delete;
+   DLLLOCAL LValueHelper& operator=(const LValueHelper&) = delete;
 
 protected:
    template <class T, typename t, int nt>
@@ -419,6 +419,8 @@ public:
 
    DLLLOCAL LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove = false);
    DLLLOCAL LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bool for_remove = false);
+
+   DLLLOCAL LValueHelper(LValueHelper&& o);
 
    // to scan objects after initialization
    DLLLOCAL LValueHelper(QoreObject& obj, ExceptionSink* xsink);
