@@ -619,13 +619,13 @@ public:
    // must be reimplemented in subclasses if returns_mult is true
    DLLLOCAL virtual const type_vec_t& getReturnTypeList() const {
       assert(false);
-      return *((type_vec_t*)0);
+      throw;
    }
 
    // must be reimplemented in subclasses if accepts_mult is true
    DLLLOCAL virtual const type_vec_t& getAcceptTypeList() const {
       assert(false);
-      return *((type_vec_t*)0);
+      throw;
    }
 
    // FIXME: eliminate
