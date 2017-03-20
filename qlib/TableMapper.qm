@@ -367,8 +367,10 @@ InboundTableMapper mapper(table, DbMapper);
         /** @throw BLOCK-ERROR there is unflushed data in the block cache; make sure to call flush() or discard() before destroying the object
         */
         destructor() {
-            if (hbuf.firstValue())
-                throw "BLOCK-ERROR", sprintf("there %s still %d row%s of data in the block cache; make sure to call %s::flush() or %s::discard() before destroying the object to flush all data to the database", hbuf.firstValue().size() == 1 ? "is" : "are", hbuf.firstValue().size(), hbuf.firstValue().size() == 1 ? "" : "s", self.className(), self.className());
+            # NOTE: we cannot decide on the number of elements based on firstValue()
+            *int rec_list_size = getRecListSize(hbuf);
+            if (!exists rec_list_size || rec_list_size > 0)
+                throw "BLOCK-ERROR", sprintf("there is still %d row(s) of data in the block cache; make sure to call %s::flush() or %s::discard() before destroying the object to flush all data to the database",  (rec_list_size ?? 1), self.className(), self.className());
         }
 
         #! returns a description of the output record based on the @ref SqlUtil::AbstractTable "AbstractTable" target
@@ -730,7 +732,7 @@ table_mapper.setRowCode(rowcode);
 
             hash h;
             # return all target data
-            *hash th = flushIntern();
+            *hash th = flushIntern(out_list_size);
 
             if (th) {
                 if (h)
@@ -828,11 +830,8 @@ on_error table_mapper.rollback();
             if (!exists out_list_size || out_list_size < insert_block)
                 return;
 
-            # FIXME: see the queueData(hash rec, *hash crec) for more info
-            # about this situation. Also, is it possible that empty
-
             # return all target data
-            return flushIntern();
+            return flushIntern(out_list_size);
         }
 
         /** For a possible hash of lists (bulk data) returns the size of
@@ -876,8 +875,9 @@ on_error table_mapper.rollback();
             - discard()
         */
         *hash flush() {
-            if (hbuf.firstValue())
-                return flushIntern();
+            *int rec_list_size = getRecListSize(hbuf);
+            if (!exists rec_list_size || rec_list_size > 0)
+                return flushIntern(rec_list_size);
             remove rowcode;
         }
 
@@ -909,10 +909,8 @@ on_error table_mapper.rollback();
         }
 
         #! flushes queued data to the database
-        private hash flushIntern() {
+        private hash flushIntern(*int rec_list_size) {
             *hash rh;
-
-            *int rec_list_size = getRecListSize(hbuf);
 
             if (info_log)
                 info_log("%s: flushing %d row(s)", table.getSqlName(), (rec_list_size ?? 0));

@@ -305,8 +305,6 @@ public class TableMapperTest inherits QUnit::Test {
 
         # issue #1754: queueData() test with False-convertible value in 1st value
         # that is mapped as constant
-        # FIXME this should break Oracle test due to hbuf.firstValue() used in flush()
-        # and TableMapper destructor.
         {
             on_exit table.rollback();
 
@@ -383,6 +381,16 @@ public class TableMapperTest inherits QUnit::Test {
             if (!ret) { ret = mapper.flush(); }
             # FIXME what should we return for empty bulk input?
             assertEq(EmptyOutput, ret);
+        }
+
+        # queueData() test with number of rows on the border of flush()
+        {
+            on_exit table.rollback();
+            InboundTableMapper mapper(table, Map2NoSequence, ("insert_block" : 3));
+            *hash ret = mapper.queueData(Input3);
+            assertEq(3, ret.string.size());
+            ret = mapper.flush();
+            assertEq(NOTHING, ret);
         }
 
         # queueData() test with all constants with empty list
