@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -223,6 +223,8 @@ public:
       if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS)
          ref.id->parseAssigned();
    }
+
+   DLLLOCAL bool scanMembers(RSetHelper& rsh);
 };
 
 class GlobalVarRefNode : public VarRefNode {
@@ -237,6 +239,8 @@ public:
 
    DLLLOCAL void reg();
 };
+
+class RSetHelper;
 
 class VarRefDeclNode : public VarRefNode {
 protected:
@@ -309,7 +313,7 @@ public:
    }
    DLLLOCAL virtual void makeGlobal();
 
-   void parseInitCommon(LocalVar* oflag, int pflag, int& lvids, bool is_new = false);
+   DLLLOCAL void parseInitCommon(LocalVar* oflag, int pflag, int& lvids, bool is_new = false);
 };
 
 class VarRefImmediateNode : public VarRefDeclNode {

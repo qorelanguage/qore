@@ -95,6 +95,7 @@ union qore_gvar_ref_u {
 
 class LValueHelper;
 class LValueRemoveHelper;
+class RSetHelper;
 
 // structure for global variables
 class Var : protected QoreReferenceCounter {

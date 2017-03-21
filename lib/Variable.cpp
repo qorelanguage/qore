@@ -1246,6 +1246,10 @@ void LocalVarValue::remove(LValueRemoveHelper& lvrh, const QoreTypeInfo* typeInf
    lvrh.doRemove((QoreLValueGeneric&)val, typeInfo);
 }
 
+bool LocalVarValue::scanMembers(RSetHelper& rsh) {
+   return rsh.checkNode(val.getInternalNode());
+}
+
 const void* ClosureVarValue::getLValueId() const {
    QoreSafeVarRWWriteLocker sl(rml);
    if (val.getType() == NT_REFERENCE) {

@@ -279,6 +279,8 @@ bool RSetHelper::checkIntern(AbstractQoreNode* n) {
    if (!needs_scan(n))
       return false;
 
+   //printd(5, "RSetHelper::checkIntern() checking %p %s\n", n, get_type_name(n));
+
    switch (get_node_type(n)) {
       case NT_OBJECT:
          return checkIntern(*qore_object_private::get(*reinterpret_cast<QoreObject*>(n)));
@@ -352,6 +354,9 @@ bool RSetHelper::checkIntern(AbstractQoreNode* n) {
 
          return false;
       }
+
+      case NT_REFERENCE:
+         return checkIntern(*lvalue_ref::get(static_cast<ReferenceNode*>(n)));
 
       case NT_VALUE_LIST:
          assert(false);

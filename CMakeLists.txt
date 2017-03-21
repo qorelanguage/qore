@@ -296,6 +296,7 @@ set(LIBQORE_CPP_SRC
         lib/SelfVarrefNode.cpp
         lib/StaticClassVarRefNode.cpp
         lib/ReferenceNode.cpp
+        lib/lvalue_ref.cpp
         lib/BackquoteNode.cpp
         lib/ContextrefNode.cpp
         lib/ComplexContextrefNode.cpp

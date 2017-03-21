@@ -324,6 +324,8 @@ struct RSetStat {
    }
 };
 
+class QoreClosureBase;
+
 class RSetHelper {
    friend class RSectionScanHelper;
    friend class RObject;
@@ -406,6 +408,11 @@ public:
       rset_t::iterator i = tr_out.lower_bound(ro);
       if (i == tr_out.end() || *i != ro)
          tr_out.insert(i, ro);
+   }
+
+   // returns true if a lock error has occurred, false if otherwise
+   DLLLOCAL bool checkNode(AbstractQoreNode* n) {
+      return checkIntern(n);
    }
 };
 

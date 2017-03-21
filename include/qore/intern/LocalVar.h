@@ -185,6 +185,8 @@ public:
 
       return val.getReferencedValue(needs_deref);
    }
+
+   DLLLOCAL bool scanMembers(RSetHelper& rsh);
 };
 
 struct ClosureVarValue : public VarValueBase, public RObject {
@@ -387,6 +389,12 @@ public:
          return get_var()->remove(lvrh, typeInfo);
 
       return thread_find_closure_var(name.c_str())->remove(lvrh);
+   }
+
+   DLLLOCAL bool scanMembers(RSetHelper& rsh) {
+      return !closure_use
+         ? get_var()->scanMembers(rsh)
+         : thread_find_closure_var(name.c_str())->scanMembers(rsh);
    }
 
    DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
