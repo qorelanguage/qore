@@ -70,10 +70,14 @@ public:
 template <class T>
 class LValueRefHelper : public LocalRefHelper<T> {
 protected:
-   LValueHelper valp;
+   LValueHelper* valp;
 
 public:
-   DLLLOCAL LValueRefHelper(T* val, ExceptionSink* xsink) : LocalRefHelper<T>(val, xsink), valp(this->valid ? LValueHelper(*reinterpret_cast<const ReferenceNode*>(val->v.n), xsink, false) : LValueHelper(reinterpret_cast<AbstractQoreNode*>(0), xsink)) {
+   DLLLOCAL LValueRefHelper(T* val, ExceptionSink* xsink) : LocalRefHelper<T>(val, xsink), valp(this->valid ? new LValueHelper(*((ReferenceNode*)val->v.n), xsink) : nullptr) {
+   }
+
+   DLLLOCAL ~LValueRefHelper() {
+      delete valp;
    }
 
    DLLLOCAL operator bool() const {
@@ -81,7 +85,7 @@ public:
    }
 
    DLLLOCAL LValueHelper* operator->() {
-      return &valp;
+      return valp;
    }
 };
 
