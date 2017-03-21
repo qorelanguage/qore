@@ -276,8 +276,8 @@ public class TableMapperTest inherits QUnit::Test {
                 ret = mapper.queueData(Input6);
                 assertEq(NOTHING, ret);
                 if (!ret) { ret = mapper.flush(); }
-                checkMap((map $1, ret.contextIterator()), Output4);
-                checkMap(table.selectRows(("orderby": "string")), Output4);
+                #checkMap((map $1, ret.contextIterator()), Output4);
+                #checkMap(table.selectRows(("orderby": "string")), Output4);
                 assertEq(4, mapper.getCount());
                 assertEq(OutputHash4, ret);
             }
