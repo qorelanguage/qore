@@ -417,10 +417,8 @@ public class TableMapperTest inherits QUnit::Test {
             on_exit table.rollback();
             InboundTableMapper mapper(table, Map2NoSequence, ("insert_block" : 3));
             *hash ret = mapper.queueData(Input3);
-            printf("RET=%y\n", ret);
             assertEq(3, ret.string.size());
             ret = mapper.flush();
-            printf("RET2=%y\n", ret);
             assertEq(NOTHING, ret);
         }
 
