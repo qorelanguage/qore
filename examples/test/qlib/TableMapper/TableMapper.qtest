@@ -97,6 +97,10 @@ public class TableMapperTest inherits QUnit::Test {
             "dte" : ("constant" : date("2017-05-03"),),
             );
 
+        const Map2WithIndex = (
+            "id": ("index": 10),
+            );
+
         const ConstMap = (
             "id": ("constant": 1),
             "string": ("constant": "2"),
@@ -180,6 +184,12 @@ public class TableMapperTest inherits QUnit::Test {
                 ("string" : "string_2"),
                 ("string" : "string_6"),);
 
+        const Output5 = (
+                ("id" : "10"),
+                ("id" : "11"),
+                ("id" : "12"),
+                ("id" : "13"),);
+
         const ConstOutput =
             (("id": 1, "string" : "2"),
              ("id": 1, "string" : "2"),
@@ -192,6 +202,8 @@ public class TableMapperTest inherits QUnit::Test {
                 ("id" : 1,
                  "string" : ("string_1", "string_2", "str2", "string_6"),
                  "dte" : date("2017-05-03"),);
+        const OutputHash5 =
+                ("id" : (10,11,12,13));
 
         const MyOpts = Opts + (
             "connstr": "c,conn=s",
@@ -268,6 +280,23 @@ public class TableMapperTest inherits QUnit::Test {
                 #checkMap(table.selectRows(("orderby": "string")), Output4);
                 assertEq(4, mapper.getCount());
                 assertEq(OutputHash4, ret);
+            }
+
+            # two queueData() in sequence with 'index' in the mapper
+            {
+                on_exit table.rollback();
+                InboundTableMapper mapper(table, Map2WithIndex);
+                # assuming insert_block > size of Input3
+                # a bulk inserted
+                *hash ret = mapper.queueData(Input3);
+                assertEq(NOTHING, ret);
+                # single row inserted
+                ret = mapper.queueData(Input6);
+                assertEq(NOTHING, ret);
+                if (!ret) { ret = mapper.flush(); }
+                checkMap(table.selectRows(("orderby": "id")), Output5);
+                assertEq(4, mapper.getCount());
+                assertEq(OutputHash5, ret);
             }
 
             # queueData() test with all constants with empty list (with bulk)
