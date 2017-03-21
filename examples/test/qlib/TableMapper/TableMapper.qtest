@@ -267,6 +267,17 @@ public class TableMapperTest inherits QUnit::Test {
                 assertEq(4, mapper.getCount());
                 assertEq(OutputHash4, ret);
             }
+
+            # queueData() test with all constants with empty list (with bulk)
+            {
+                on_exit table.rollback();
+                InboundTableMapper mapper(table, ConstMap);
+                *hash ret = mapper.queueData(InputWithEmptyList);
+                if (!ret) { ret = mapper.flush(); }
+                checkMap(table.selectRows(("orderby": "id")), ());
+                # FIXME nothing in the table, but returned constant hash
+                assertEq(ConstOutputHash, ret);
+            }
         }
         else {
             testSkip("no Bulk DB connection");
@@ -422,12 +433,13 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(NOTHING, ret);
         }
 
-        # queueData() test with all constants with empty list
+        # queueData() test with all constants with empty list with insert_block=1
         {
             on_exit table.rollback();
-            InboundTableMapper mapper(table, ConstMap);
+            InboundTableMapper mapper(table, ConstMap, ("insert_block" : 1));
             *hash ret = mapper.queueData(InputWithEmptyList);
             if (!ret) { ret = mapper.flush(); }
+            checkMap(table.selectRows(("orderby": "id")), ());
             assertEq(NOTHING, ret);
         }
 

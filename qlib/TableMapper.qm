@@ -673,7 +673,7 @@ table_mapper.setRowCode(rowcode);
             }
 
             if (insert_block == 1) {
-                hash h;
+                *hash h;
                 foreach hash row in (rec.contextIterator()) {
                     # FIXME --PQ 21-Mar-2017
                     # for const hashes, we have a problem here, since
