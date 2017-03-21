@@ -99,6 +99,7 @@ public class TableMapperTest inherits QUnit::Test {
 
         const Map2WithIndex = (
             "id": ("index": 10),
+             "dte" : ("constant" : date("2017-05-03"),),
             );
 
         const ConstMap = (
@@ -203,7 +204,8 @@ public class TableMapperTest inherits QUnit::Test {
                  "string" : ("string_1", "string_2", "str2", "string_6"),
                  "dte" : date("2017-05-03"),);
         const OutputHash5 =
-                ("id" : (10,11,12,13));
+                ("id" : (10,11,12,13),
+                 "dte" : date("2017-05-03"),);
 
         const MyOpts = Opts + (
             "connstr": "c,conn=s",
@@ -251,7 +253,7 @@ public class TableMapperTest inherits QUnit::Test {
         # FIXME this test is not deterministic, though - we should impose
         # particular "input_block" values here. --PQ 21-Mar-2017
         if (table.hasArrayBind()) {
-            # queueData() test with all constants with bulk ops
+            # issue #1754: queueData() test with all constants with bulk ops
             {
                 on_exit table.rollback();
                 InboundTableMapper mapper(table, ConstMap);
@@ -263,8 +265,8 @@ public class TableMapperTest inherits QUnit::Test {
                 assertEq(ConstOutputHash, ret);
             }
 
-            # two queueData() in sequence, first inserting a bulk and then a single
-            # row
+            # issue #1754: two queueData() in sequence, first inserting a bulk and
+            # then a single row
             {
                 on_exit table.rollback();
                 InboundTableMapper mapper(table, Map2NoSequence);
@@ -282,24 +284,7 @@ public class TableMapperTest inherits QUnit::Test {
                 assertEq(OutputHash4, ret);
             }
 
-            # two queueData() in sequence with 'index' in the mapper
-            {
-                on_exit table.rollback();
-                InboundTableMapper mapper(table, Map2WithIndex);
-                # assuming insert_block > size of Input3
-                # a bulk inserted
-                *hash ret = mapper.queueData(Input3);
-                assertEq(NOTHING, ret);
-                # single row inserted
-                ret = mapper.queueData(Input6);
-                assertEq(NOTHING, ret);
-                if (!ret) { ret = mapper.flush(); }
-                checkMap(table.selectRows(("orderby": "id")), Output5);
-                assertEq(4, mapper.getCount());
-                assertEq(OutputHash5, ret);
-            }
-
-            # queueData() test with all constants with empty list (with bulk)
+            # issue 1754: queueData() test with all constants with empty list (with bulk)
             {
                 on_exit table.rollback();
                 InboundTableMapper mapper(table, ConstMap);
@@ -382,6 +367,69 @@ public class TableMapperTest inherits QUnit::Test {
             checkMap((map $1, mapper.flush().contextIterator()), Output3);
             checkMap(table.selectRows(("orderby": "id")), Output3);
             assertEq(3, mapper.getCount());
+        }
+
+        # issue #1754: two queueData() in sequence with 'index' in the mapper
+        # over an iterator
+        {
+            on_exit table.rollback();
+            InboundTableMapper mapper(table, Map2WithIndex);
+            # assuming insert_block > size of Input3
+            # a bulk inserted
+            *hash ret = mapper.queueData(Input3.contextIterator());
+            # single row inserted
+            *hash ret2 = mapper.queueData(Input6.contextIterator());
+            if (ret) {
+                if (ret2) {
+                    map ret{$1} += ret2{$1}, ret.keyIterator(), ret2{$1}.typeCode() == NT_LIST;
+                }
+            }
+            else {
+                ret = ret2;
+            }
+            ret2 = mapper.flush();
+            if (ret) {
+                if (ret2) {
+                    map ret{$1} += ret2{$1}, ret.keyIterator(), ret2{$1}.typeCode() == NT_LIST;
+                }
+            }
+            else {
+                ret = ret2;
+            }
+            checkMap(table.selectRows(("orderby": "id")), Output5);
+            assertEq(4, mapper.getCount());
+            assertEq(OutputHash5, ret);
+        }
+
+        # issue #1754: two queueData() in sequence with 'index' in the mapper
+        {
+            on_exit table.rollback();
+            InboundTableMapper mapper(table, Map2WithIndex);
+            # assuming insert_block > size of Input3
+            # a bulk inserted
+            *hash ret = mapper.queueData(Input3);
+            # single row inserted
+            *hash ret2 = mapper.queueData(Input6);
+            if (ret) {
+                if (ret2) {
+                    map ret{$1} += ret2{$1}, ret.keyIterator(), ret2{$1}.typeCode() == NT_LIST;
+                }
+            }
+            else {
+                ret = ret2;
+            }
+            ret2 = mapper.flush();
+            if (ret) {
+                if (ret2) {
+                    map ret{$1} += ret2{$1}, ret.keyIterator(), ret2{$1}.typeCode() == NT_LIST;
+                }
+            }
+            else {
+                ret = ret2;
+            }
+            checkMap(table.selectRows(("orderby": "id")), Output5);
+            assertEq(4, mapper.getCount());
+            assertEq(OutputHash5, ret);
         }
 
         # issue #1754: queueData() test with False-convertible value in 1st value
