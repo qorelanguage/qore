@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Techologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -41,10 +41,10 @@ enum qore_var_t {
    VT_IMMEDIATE  = 6   // used in references with immediate variable storage
 };
 
-#include <qore/intern/RSet.h>
-#include <qore/intern/VRMutex.h>
-#include <qore/intern/QoreLValue.h>
-#include <qore/intern/qore_var_rwlock_priv.h>
+#include "qore/intern/RSet.h"
+#include "qore/intern/VRMutex.h"
+#include "qore/intern/QoreLValue.h"
+#include "qore/intern/qore_var_rwlock_priv.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -60,6 +60,7 @@ enum qore_var_t {
 class Var;
 class ScopedObjectCallNode;
 class QoreSquareBracketsOperatorNode;
+class QoreHashObjectDereferenceOperatorNode;
 
 union qore_gvar_ref_u {
    bool b;
@@ -190,7 +191,7 @@ public:
    }
 
    DLLLOCAL void parseCheckAssignType(QoreParseTypeInfo *n_parseTypeInfo) {
-      std::auto_ptr<QoreParseTypeInfo> ti(n_parseTypeInfo);
+      std::unique_ptr<QoreParseTypeInfo> ti(n_parseTypeInfo);
 
       //printd(5, "Var::parseCheckAssignType() this=%p %s: type=%s %s new type=%s %s\n", this, name.c_str(), typeInfo->getTypeName(), typeInfo->getCID(), n_typeInfo->getTypeName(), n_typeInfo->getCID());
       // it is safe to call QoreTypeInfo::hasType() when this is 0
@@ -318,8 +319,6 @@ DLLLOCAL void delete_global_variables();
 
 DLLLOCAL extern QoreHashNode *ENV;
 
-class QoreTreeNode;
-
 typedef std::set<const void*> lvid_set_t;
 
 // track obj count changes
@@ -345,8 +344,8 @@ class LValueHelper {
 
 private:
    // not implemented
-   DLLLOCAL LValueHelper(const LValueHelper&);
-   DLLLOCAL LValueHelper& operator=(const LValueHelper&);
+   DLLLOCAL LValueHelper(const LValueHelper&) = delete;
+   DLLLOCAL LValueHelper& operator=(const LValueHelper&) = delete;
 
 protected:
    template <class T, typename t, int nt>
@@ -386,7 +385,7 @@ protected:
    }
 
    DLLLOCAL int doListLValue(const QoreSquareBracketsOperatorNode* op, bool for_remove);
-   DLLLOCAL int doHashObjLValue(const QoreTreeNode* tree, bool for_remove);
+   DLLLOCAL int doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* op, bool for_remove);
 
    DLLLOCAL int makeInt(const char* desc);
    DLLLOCAL int makeFloat(const char* desc);
@@ -420,6 +419,8 @@ public:
 
    DLLLOCAL LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove = false);
    DLLLOCAL LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bool for_remove = false);
+
+   DLLLOCAL LValueHelper(LValueHelper&& o);
 
    // to scan objects after initialization
    DLLLOCAL LValueHelper(QoreObject& obj, ExceptionSink* xsink);
