@@ -120,6 +120,7 @@ public class TableMapperTest inherits QUnit::Test {
         const Input4 = ("str2": "str2", "string": ("string_1", "string_2", NOTHING));
         const InputWithEmptyList = ("str2": list(), "string": list());
         const Input5 = ("string" : ("string_1",));
+        const Input6 = ("string": "string_6", "str2": "str6");
         const Output1 = (("string" : "string_1"),
                          ("string" : "string_2"),
                          ("string" : ""),
@@ -175,6 +176,12 @@ public class TableMapperTest inherits QUnit::Test {
              ("string": "string_2"),
             );
 
+        const Output4 = (
+                ("string" : "str2"),
+                ("string" : "string_1"),
+                ("string" : "string_2"),
+                ("string" : "string_6"),);
+
         const ConstOutput =
             (("id": 1, "string" : "2"),
              ("id": 1, "string" : "2"),
@@ -189,6 +196,14 @@ public class TableMapperTest inherits QUnit::Test {
             ("id": (1,1,1),
              "string" : ("2","2","2"),
              "dte" : (date("2017-05-03"), date("2017-05-03"), date("2017-05-03")));
+
+        # FIXME this is actually wrong, the output should be fixed
+        # "id" : 1 and date also fixed
+        const OutputHash4 =
+                ("id" : (1,1,1,1,),
+                 "string" : ("string_1", "string_2", "str2", "string_6"),
+                 "dte" : (date("2017-05-03"), date("2017-05-03"),
+                          date("2017-05-03"), date("2017-05-03")));
 
         const MyOpts = Opts + (
             "connstr": "c,conn=s",
@@ -233,9 +248,9 @@ public class TableMapperTest inherits QUnit::Test {
     }
 
     bulkInboundTableMapperTest() {
-        # queueData() test with all constants with bulk ops
-        {
-            if (table.hasArrayBind()) {
+        if (table.hasArrayBind()) {
+            # queueData() test with all constants with bulk ops
+            {
                 on_exit table.rollback();
                 InboundTableMapper mapper(table, ConstMap);
                 *hash ret = mapper.queueData(Input3);
@@ -247,9 +262,28 @@ public class TableMapperTest inherits QUnit::Test {
                 # NOTE: in fact this produces ConstOutputHash2 on the non-bulk
                 # DBs
             }
-            else {
-                testSkip("no Bulk DB connection");
+
+            # two queueData() in sequence, first inserting a bulk and then a single
+            # row
+            {
+                on_exit table.rollback();
+                InboundTableMapper mapper(table, Map2NoSequence);
+                # assuming insert_block > size of Input3
+                # a bulk inserted
+                *hash ret = mapper.queueData(Input3);
+                assertEq(NOTHING, ret);
+                # single row inserted
+                ret = mapper.queueData(Input6);
+                assertEq(NOTHING, ret);
+                if (!ret) { ret = mapper.flush(); }
+                checkMap((map $1, ret.contextIterator()), Output4);
+                checkMap(table.selectRows(("orderby": "string")), Output4);
+                assertEq(4, mapper.getCount());
+                assertEq(OutputHash4, ret);
             }
+        }
+        else {
+            testSkip("no Bulk DB connection");
         }
     }
 

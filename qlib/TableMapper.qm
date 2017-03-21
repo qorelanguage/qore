@@ -676,6 +676,7 @@ table_mapper.setRowCode(rowcode);
                 hash h;
                 foreach hash row in (rec.contextIterator()) {
                     *hash th = insertRow(row);
+                    # FIXME doublecheck this!
                     if (th) {
                         if (h)
                             map h.$1 += th.$1, th.keyIterator();
@@ -714,6 +715,7 @@ table_mapper.setRowCode(rowcode);
                 hbuf += dh;
             }
             else
+                # FIXME can any const (non-list) come from dh in value?
                 map hbuf{$1.key} += $1.value, dh.pairIterator();
 
             # return nothing if nothing needs to be flushed
