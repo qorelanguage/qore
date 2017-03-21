@@ -9,6 +9,7 @@
 
     @subsection qore_08129_bug_fixes Bug Fixes in Qore
 
+    - fixed a memory leak in the @ref Qore::Thread::Queue "Queue" copy constructor when the @ref Qore::Thread::Queue "Queue" was used in other objects (such as an event queue, etc; <a href="https://github.com/qorelanguage/qore/issues/1749">issue 1749</a>)
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module fixes:
       - fixed bugs handling the \c allow_dot and \c allow_output_dot options (<a href="https://github.com/qorelanguage/qore/issues/1690">issue 1690</a>)
 
