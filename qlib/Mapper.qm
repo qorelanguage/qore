@@ -947,6 +947,8 @@ Mapper mapv(DataMap);
           * @param list_size - size of the lists in case the input is in bulk
           *                    format (all lists must have the same length,
           *                    asserted inside the function).
+          *
+          * @note it is assumed that list_size > 0 whenever do_list is Qore::True
           */
         private nothing mapFieldIntern(reference h,
                                        string key,
@@ -971,11 +973,9 @@ Mapper mapv(DataMap);
             if (exists m.constant)
                 v = m.constant;
             else if (exists m.index) {
-                v = do_list ? (map m.index + count + $#, v) : m.index + count;
-                printf("M: %y -> V: %y\n", m, v);
-                #v = do_list ?
-                #    (map m.index + count + $#, xrange(0, list_size - 1)) :
-                #    m.index + count;
+                v = do_list ?
+                    (map m.index + count + $#, xrange(0, list_size - 1)) :
+                    m.index + count;
             }
             else if (exists m.runtime) {
                 any rtv = m_runtime{m.runtime};
@@ -1061,7 +1061,6 @@ Mapper mapv(DataMap);
             }
 
             if (m.mand) {
-                printf("V: %y\n", v);
                 if (do_list) {
                     map error2("MISSING-INPUT", "field %y element %d/%d is marked as mandatory but is missing in the input row: %y", getFieldName(key), $# + 1, v.size(), getrec(rec, $#)), v, !exists $1;
                 }
