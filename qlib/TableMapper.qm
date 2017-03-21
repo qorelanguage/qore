@@ -816,6 +816,7 @@ on_error table_mapper.rollback();
             # FIXME ANOTHER problem: if we already get some thing in hbuf
             # and the constants are not expanded in hbuf, what THIS will do to it?
             # it should catenate too, right?
+            printf("HBUF %y H %y\n", hbuf, h);
             if (!hbuf)
                 map hbuf{$1.key} = ($1.value,), h.pairIterator();
             else
