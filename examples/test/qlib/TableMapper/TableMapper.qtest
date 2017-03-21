@@ -213,6 +213,7 @@ public class TableMapperTest inherits QUnit::Test {
         }
         # add test cases
         addTestCase("InboundTableMapper", \inboundTableMapperTest());
+        addTestCase("BulkInboundTableMapper", \bulkInboundTableMapperTest());
         addTestCase("OutputTableMapper", \outputTableMapperTest());
 
         set_return_value(main());
@@ -227,6 +228,27 @@ public class TableMapperTest inherits QUnit::Test {
     private usageIntern() {
         TestReporter::usageIntern(OptionColumn);
         printOption("-c,--conn=ARG", "set DB connection argument (ex: \"driver:user/pass@db\")", OptionColumn);
+    }
+
+    bulkInboundTableMapperTest() {
+        # queueData() test with all constants with bulk ops
+        {
+            if (table.hasArrayBind()) {
+                on_exit table.rollback();
+                InboundTableMapper mapper(table, ConstMap);
+                *hash ret = mapper.queueData(Input3);
+                if (!ret) { ret = mapper.flush(); }
+                checkMap((map $1, ret.contextIterator()), ConstOutput);
+                checkMap(table.selectRows(("orderby": "id")), ConstOutput);
+                assertEq(3, mapper.getCount());
+                assertEq(ConstOutputHash, ret);
+                # NOTE: in fact this produces ConstOutputHash2 on the non-bulk
+                # DBs
+            }
+            else {
+                testSkip("no Bulk DB connection");
+            }
+        }
     }
 
     inboundTableMapperTest() {
@@ -328,18 +350,6 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(OutputNoBulk1, ret);
             checkMap(table.selectRows(("orderby": "string")), Output3a);
             assertEq(3, mapper.getCount());
-        }
-
-        # queueData() test with all constants with bulk ops
-        {
-            on_exit table.rollback();
-            InboundTableMapper mapper(table, ConstMap);
-            *hash ret = mapper.queueData(Input3);
-            if (!ret) { ret = mapper.flush(); }
-            checkMap((map $1, ret.contextIterator()), ConstOutput);
-            checkMap(table.selectRows(("orderby": "id")), ConstOutput);
-            assertEq(3, mapper.getCount());
-            assertEq(ConstOutputHash, ret);
         }
 
         # queueData() test with all constants with bulk input, but with non-bulk output
