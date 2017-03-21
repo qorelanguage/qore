@@ -675,13 +675,14 @@ table_mapper.setRowCode(rowcode);
             if (insert_block == 1) {
                 hash h;
                 foreach hash row in (rec.contextIterator()) {
+                    # FIXME --PQ 21-Mar-2017
+                    # for const hashes, we have a problem here, since
+                    # the row is actually inserted multiple times into the table,
+                    # but appears only once on the output!
                     *hash th = insertRow(row);
-                    # FIXME doublecheck this!
                     if (th) {
-                        if (h)
-                            map h.$1 += th.$1, th.keyIterator();
-                        else
-                            h = map { $1.key : ($1.value,) }, th.pairIterator();
+                        hash bulkth = record2Bulk(th);
+                        addBulkToBulk(\h, bulkth);
                     }
                 }
                 return h;
@@ -730,10 +731,8 @@ table_mapper.setRowCode(rowcode);
             *hash th = flushIntern(out_list_size);
 
             if (th) {
-                if (h)
-                    map h.$1 += th.$1, th.keyIterator();
-                else
-                    h = th;
+                hash bulkth = record2Bulk(th);
+                addBulkToBulk(\h, bulkth);
             }
             return h;
         }
@@ -782,13 +781,8 @@ on_error table_mapper.rollback();
             foreach hash row in (iter) {
                 *hash th = queueDataIntern(row + crec);
                 if (th) {
-                    printf("TH %y H %y\n", th, h);
-                    if (h)
-                        map h.$1 += th.$1, th.keyIterator();
-                        # FIXME add a test what happens when 'th' contains a constant?
-                        # it should catenate, right?
-                    else
-                        h = th;
+                    hash bulkth = record2Bulk(th);
+                    addBulkToBulk(\h, bulkth);
                 }
             }
             return h;
@@ -815,14 +809,8 @@ on_error table_mapper.rollback();
             hash h = mapDataIntern(rec);
 
             # map record data to get the keys for the buffer
-            # FIXME ANOTHER problem: if we already get some thing in hbuf
-            # and the constants are not expanded in hbuf, what THIS will do to it?
-            # it should catenate too, right?
-            printf("HBUF %y H %y\n", hbuf, h);
-            if (!hbuf)
-                map hbuf{$1.key} = ($1.value,), h.pairIterator();
-            else
-                map hbuf{$1.key} += $1.value, h.pairIterator();
+            hash bulk = record2Bulk(h);
+            addBulkToBulk(\hbuf, bulk);
 
             # return nothing if nothing needs to be flushed
             *int out_list_size = exists hbuf ? getRecListSize(hbuf) : NOTHING;
@@ -849,6 +837,37 @@ on_error table_mapper.rollback();
                 }
             }
             return NOTHING;
+        }
+
+        /**
+         * adds a bulk (hash of lists) to another bulk (in-place)
+         * @param hb reference to bulk that will be enriched
+         * @param bulk the bulk to be added to 'hb'
+         */
+        private nothing addBulkToBulk(reference hb, hash bulk) {
+            if (!hb) {
+                hb = bulk;
+            }
+            else {
+                # we add only lists - the constants remain untouched
+                # FIXME could assert that the constants remain the same? --PQ 21-Mar-2017
+                map hb{$1.key} += $1.value,
+                    bulk.pairIterator(),
+                    $1.value.typeCode() == NT_LIST;
+            }
+        }
+
+        /**
+         * transforms single record to a bulk - i.e. all non-constant elements
+         * are transformed to lists (with single elements)
+         */
+        private hash record2Bulk(hash h) {
+            hash ret = h;
+            map ret{$1.key} = ($1.value,),
+                h.pairIterator(),
+                (exists mapd{$1.key} || exists identh{$1.key});
+            # the rest is consth and rconsth elements which are kept as is
+            return ret;
         }
 
         #! flushes any remaining batched data to the database; this method should always be called before committing the transaction or destroying the object
