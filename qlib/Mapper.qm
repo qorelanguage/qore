@@ -971,8 +971,8 @@ Mapper mapv(DataMap);
             if (exists m.constant)
                 v = m.constant;
             else if (exists m.index) {
-                printf("M: %y\n", m);
                 v = do_list ? (map m.index + count + $#, v) : m.index + count;
+                printf("M: %y -> V: %y\n", m, v);
                 #v = do_list ?
                 #    (map m.index + count + $#, xrange(0, list_size - 1)) :
                 #    m.index + count;
@@ -1061,6 +1061,7 @@ Mapper mapv(DataMap);
             }
 
             if (m.mand) {
+                printf("V: %y\n", v);
                 if (do_list) {
                     map error2("MISSING-INPUT", "field %y element %d/%d is marked as mandatory but is missing in the input row: %y", getFieldName(key), $# + 1, v.size(), getrec(rec, $#)), v, !exists $1;
                 }
