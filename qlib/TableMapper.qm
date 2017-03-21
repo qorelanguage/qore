@@ -367,8 +367,6 @@ InboundTableMapper mapper(table, DbMapper);
         /** @throw BLOCK-ERROR there is unflushed data in the block cache; make sure to call flush() or discard() before destroying the object
         */
         destructor() {
-            # NOTE: we cannot decide on the number of elements based on firstValue()
-            # FIXME double check this code:
             if (exists hbuf) {
                 *int rec_list_size = getRecListSize(hbuf);
                 if (!exists rec_list_size || rec_list_size > 0)
@@ -711,8 +709,8 @@ table_mapper.setRowCode(rowcode);
                     # copy all constant mappings to the output hash
                     # consth, rconsth, identh and crec are removed from mapd,
                     # so they must be re-added now.
-                    # FIXME the question is why these fields are being processed in
-                    # mapFieldIntern(), then. --PQ 21-Mar-2017
+                    # FIXME what is not nice is that these fields are also
+                    # processed in mapFieldIntern() --PQ 21-Mar-2017
                     if (consth)
                         hbuf += consth;
                     # FIXME this is incorrect, 'crec' should be put into 'dh' since
@@ -997,8 +995,15 @@ on_error table_mapper.rollback();
 
             # get return value
             hash rv = hbuf + rh;
-            # clear buffer but keep hash keys
-            map hbuf.$1 = (), hbuf.keyIterator(), hbuf.$1.typeCode() == NT_LIST;
+            if (exists rec_list_size) {
+                # clear buffer but keep hash keys - non-const mapper
+                map hbuf.$1 = (), hbuf.keyIterator(), hbuf.$1.typeCode() == NT_LIST;
+            }
+            else {
+                # const mapper - do not keep anything after flush()
+                # assert(force_flush);
+                delete hbuf;
+            }
 
             # issue #1736: we need to iterate hash of lists with possible single constants in the hash as well
             if (output_log) {
