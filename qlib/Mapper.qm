@@ -953,6 +953,7 @@ Mapper mapv(DataMap);
                                        hash rec,
                                        bool do_list,
                                        int list_size) {
+            # FIXME: assert(!do_list || list_size > 0);
             # FIXME add the assert for equal length of the lists
             hash m = mapc{key};
 
@@ -970,7 +971,11 @@ Mapper mapv(DataMap);
             if (exists m.constant)
                 v = m.constant;
             else if (exists m.index) {
-                v = do_list ? (map m.index + count + $#, v) : m.index + count; # FIXME iterating empty list
+                printf("M: %y\n", m);
+                v = do_list ? (map m.index + count + $#, v) : m.index + count;
+                #v = do_list ?
+                #    (map m.index + count + $#, xrange(0, list_size - 1)) :
+                #    m.index + count;
             }
             else if (exists m.runtime) {
                 any rtv = m_runtime{m.runtime};
@@ -985,7 +990,7 @@ Mapper mapv(DataMap);
 
             if (do_list) {
                 if (!exists v)
-                    v = list_size > 0 ? (map NOTHING, xrange(list_size - 1)) : ();
+                    v = map NOTHING, xrange(list_size - 1);
                 else if (v.typeCode() != NT_LIST)
                     error2("MAPPER-FIELD-LIST-ERROR", "field %y value passed is %y in list mode; expecting \"list\"", key, v.type());
             }
