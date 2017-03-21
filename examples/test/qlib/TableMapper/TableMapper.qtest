@@ -188,14 +188,10 @@ public class TableMapperTest inherits QUnit::Test {
             ("id": 1,
              "string" : "2",
              "dte" : date("2017-05-03"));
-
-        # FIXME this is actually wrong, the output should be fixed
-        # "id" : 1 and date also fixed
         const OutputHash4 =
-                ("id" : (1,1,1,1,),
+                ("id" : 1,
                  "string" : ("string_1", "string_2", "str2", "string_6"),
-                 "dte" : (date("2017-05-03"), date("2017-05-03"),
-                          date("2017-05-03"), date("2017-05-03")));
+                 "dte" : date("2017-05-03"),);
 
         const MyOpts = Opts + (
             "connstr": "c,conn=s",
