@@ -681,7 +681,7 @@ table_mapper.setRowCode(rowcode);
                     # for const hashes, we have a problem here, since
                     # the row is actually inserted multiple times into the table,
                     # but appears only once on the output!
-                    *hash th = insertRow(row);
+                    *hash th = insertRow(row); # FIXME missing crec here
                     if (th) {
                         hash bulkth = record2Bulk(th);
                         addBulkToBulk(\h, bulkth);
@@ -790,7 +790,7 @@ on_error table_mapper.rollback();
 
             @return if batch data was inserted (flushed) then a hash (columns) of lists (row data) of all data inserted and potentially returned (in case of sequences) from the database server is returned; if constant mappings are used with batch data, then they are returned as single values assigned to the hash keys; if nothing was flushed to the database in the call, Qore::NOTHING is returned
 
-            @note this function does not process hashes of lists (bulk format), it expects always single input record on the input
+            @note this function does not process hashes of lists (bulk format), it expects always single input record on the input; it returns a bulk, though.
 
             @throw MISSING-INPUT a field marked mandatory is missing
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
