@@ -275,8 +275,7 @@ public class TableMapperTest inherits QUnit::Test {
                 *hash ret = mapper.queueData(InputWithEmptyList);
                 if (!ret) { ret = mapper.flush(); }
                 checkMap(table.selectRows(("orderby": "id")), ());
-                # FIXME nothing in the table, but returned constant hash
-                assertEq(ConstOutputHash, ret);
+                assertEq(NOTHING, ret);
             }
         }
         else {
