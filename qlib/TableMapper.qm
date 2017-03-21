@@ -775,7 +775,9 @@ on_error table_mapper.rollback();
             hash h;
             foreach hash row in (iter) {
                 *hash th = queueDataIntern(row + crec);
-                addBulkToBulk(\h, th);
+                if (th) {
+                    addBulkToBulk(\h, th);
+                }
             }
             return h;
         }
