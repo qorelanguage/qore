@@ -1019,11 +1019,16 @@ Mapper mapv(DataMap);
             # execute any field filter if necessary
             if (m.code) {
                 try {
-                    v = do_list
-                        ? (map m.code(
-                                    v_is_list ? v[$#] : v,
-                                    getrec(rec, $#)), xrange(0, list_size - 1))
-                        : m.code(v, rec);
+                    if (do_list) {
+                        v = map m.code(v_is_list ? v[$#] : v, getrec(rec, $#)),
+                            xrange(0, list_size - 1);
+                        # here we make a list from 'v' again, since we simply don't
+                        # know what 'code' could do with 'v' and 'rec'
+                        v_is_list = True;
+                    }
+                    else {
+                        v = m.code(v, rec);
+                    }
                 }
                 catch (hash ex) {
                     ex.desc = sprintf("field %y closure: %s", key, ex.desc);

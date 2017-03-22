@@ -561,8 +561,6 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(3, mapper.getCount());
         }
 
-        # FIXME add test for "type" modifier
-
         # issue #1754: queueData(hash of lists) with 'crec' and identity
         {
             on_exit table.rollback();
