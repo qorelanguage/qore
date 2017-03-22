@@ -931,6 +931,7 @@ on_error table_mapper.rollback();
                 return; # nothing to flush
             }
             *int rec_list_size = getRecListSize(hbuf);
+            # FIXME simplify this complex condition
             if (exists rec_list_size) {
                 if (rec_list_size == 0) {
                     return; # empty input, all flushed in previous round
@@ -949,7 +950,7 @@ on_error table_mapper.rollback();
             *hash rh;
 
             if (info_log)
-                info_log("%s: flushing %d row(s)", table.getSqlName(), (rec_list_size ?? 0));
+                info_log("%s: flushing %d row(s)", table.getSqlName(), rec_list_size);
 
             # if we have a batch (hash of list) AND the list is empty, do not attempt
             # to insert into DB, since at least Oracle module then throws an exception
