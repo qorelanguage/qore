@@ -701,6 +701,7 @@ table_mapper.setRowCode(rowcode);
                 # copy all runtime mappings to the output hash
                 map dh{$1.key} = m_runtime{$1.value}, rconsth.pairIterator();
 
+                # FIXME double check how we can pass 'crec' - we should pass it directly
                 map mapFieldIntern(\dh, $1, rec, True, rec_list_size, crec), mapd.keyIterator();
                 count += rec_list_size;
 
@@ -769,7 +770,8 @@ on_error table_mapper.rollback();
             hash h;
             foreach hash row in (iter) {
                 # FIXME --PQ 21-Mar-2017
-                # for const hashes, we have a problem here, since
+                # for constant mappers (those containing only "constant" or
+                # "runtime" entired), we have a problem here, since
                 # the row is actually inserted multiple times into the table,
                 # but appears only once on the output!
                 *hash th = queueDataIntern(row + crec);
