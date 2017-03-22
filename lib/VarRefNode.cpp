@@ -219,15 +219,6 @@ bool VarRefNode::scanMembers(RSetHelper& rsh) {
       return rsh.checkNode(*thread_find_closure_var(ref.id->getName()));
    if (type == VT_IMMEDIATE)
       return rsh.checkNode(*ref.cvv);
-
-   /*
-   if (type == VT_CLOSURE)
-      return thread_get_runtime_closure_var(ref.id)->scanMembers(rsh);
-   if (type == VT_LOCAL_TS)
-      return thread_find_closure_var(ref.id->getName())->scanMembers(rsh);
-   if (type == VT_IMMEDIATE)
-      return ref.cvv->scanMembers(rsh);
-   */
    // never called with type == VT_LOCAL
    // we don't scan global vars; they are deleted explicitly when the program goes out of scope
    assert(type == VT_GLOBAL);
