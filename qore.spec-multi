@@ -261,8 +261,11 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
-* Tue Feb 21 2017 David Nichols <david@qore.org> 0.8.13
+* Thu Mar 16 2017 David Nichols <david@qore.org> 0.8.13
 - updated version to 0.8.13
+
+* Thu Mar 16 2017 David Nichols <david@qore.org> 0.8.12.9
+- updated to 0.8.12.9
 
 * Tue Feb 21 2017 David Nichols <david@qore.org> 0.8.12.8
 - updated to 0.8.12.8

@@ -47,6 +47,7 @@
 #include "qore/intern/QoreHashNodeIntern.h"
 
 #include <memory>
+#include <utility>
 
 // global environment hash
 QoreHashNode* ENV;
@@ -204,6 +205,9 @@ LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bo
 // this constructor function is used to scan objects after initialization
 LValueHelper::LValueHelper(QoreObject& self, ExceptionSink* xsink) : vl(xsink), v(0), lvid_set(0), before(true), rdt(0), robj(qore_object_private::get(self)), val(0), typeInfo(0) {
    ocvec.push_back(ObjCountRec(&self));
+}
+
+LValueHelper::LValueHelper(LValueHelper&& o) : vl(std::move(o.vl)), v(o.v), tvec(std::move(o.tvec)), lvid_set(o.lvid_set), ocvec(std::move(o.ocvec)), before(o.before), rdt(o.rdt), robj(o.robj), val(o.val), typeInfo(o.typeInfo) {
 }
 
 LValueHelper::~LValueHelper() {

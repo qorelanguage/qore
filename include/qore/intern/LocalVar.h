@@ -73,7 +73,7 @@ protected:
    LValueHelper valp;
 
 public:
-   DLLLOCAL LValueRefHelper(T* val, ExceptionSink* xsink) : LocalRefHelper<T>(val, xsink), valp(this->valid ? *((ReferenceNode*)val->v.n) : 0, xsink) {
+   DLLLOCAL LValueRefHelper(T* val, ExceptionSink* xsink) : LocalRefHelper<T>(val, xsink), valp(this->valid ? LValueHelper(*reinterpret_cast<const ReferenceNode*>(val->v.n), xsink, false) : LValueHelper(reinterpret_cast<AbstractQoreNode*>(0), xsink)) {
    }
 
    DLLLOCAL operator bool() const {
