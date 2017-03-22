@@ -690,6 +690,11 @@ table_mapper.setRowCode(rowcode);
             if (rec_list_size > 0) {
                 hash dh;
 
+                # FIXME this may be not correct:
+                # - when rec is passed to mapFiledIntern(do_list=True) such that
+                # rec{some_out_name} = <constant>
+                rec += crec;
+
                 # identl and rconsth entries are added to 'dh' and not in 'hbuf'
                 # directly since identl and rconsth may change at each call of
                 # queueData() (unlike consth).
@@ -701,8 +706,7 @@ table_mapper.setRowCode(rowcode);
                 # copy all runtime mappings to the output hash
                 map dh{$1.key} = m_runtime{$1.value}, rconsth.pairIterator();
 
-                # FIXME double check how we can pass 'crec' - we should pass it directly
-                map mapFieldIntern(\dh, $1, rec, True, rec_list_size, crec), mapd.keyIterator();
+                map mapFieldIntern(\dh, $1, rec, True, rec_list_size), mapd.keyIterator();
                 count += rec_list_size;
 
                 # map record data to get the keys for the buffer

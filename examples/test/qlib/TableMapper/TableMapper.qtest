@@ -97,6 +97,12 @@ public class TableMapperTest inherits QUnit::Test {
             "dte" : ("constant" : date("2017-05-03"),),
             );
 
+        const Map2NoSequenceIdent = (
+            "id": ("constant": 1),
+            "string": True,
+            "dte" : ("constant" : date("2017-05-03"),),
+            );
+
         const Map2WithIndex = (
             "id": ("index": 10),
              "dte" : ("constant" : date("2017-05-03"),),
@@ -473,6 +479,33 @@ public class TableMapperTest inherits QUnit::Test {
 
             # prepare data for comparison
             InboundTableMapper mapper(table, Map2NoSequence, ("insert_block" : 1));
+            *hash ret = mapper.queueData(Input3, ("string" : "ms"));
+            if (!ret) { ret = mapper.flush(); }
+            assertEq(OutputBulk3 + ("string" : ("ms", "ms", "ms")), ret);
+            checkMap(table.selectRows(("orderby": "string")), Output3aCrec);
+            assertEq(3, mapper.getCount());
+        }
+
+        # issue #1754: queueData(hash of lists) with identity on non-list input
+        # in bulk context
+        {
+            on_exit table.rollback();
+
+            # prepare data for comparison
+            InboundTableMapper mapper(table, Map2NoSequenceIdent);
+            *hash ret = mapper.queueData(Input3 + ("string" : "ms", "zzz" : ("a", "b", "c")));
+            if (!ret) { ret = mapper.flush(); }
+            assertEq(OutputBulk3 + ("string" : ("ms", "ms", "ms")), ret);
+            checkMap(table.selectRows(("orderby": "string")), Output3aCrec);
+            assertEq(3, mapper.getCount());
+        }
+
+        # issue #1754: queueData(hash of lists) with 'crec' and identity
+        {
+            on_exit table.rollback();
+
+            # prepare data for comparison
+            InboundTableMapper mapper(table, Map2NoSequenceIdent);
             *hash ret = mapper.queueData(Input3, ("string" : "ms"));
             if (!ret) { ret = mapper.flush(); }
             assertEq(OutputBulk3 + ("string" : ("ms", "ms", "ms")), ret);
