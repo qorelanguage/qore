@@ -687,7 +687,7 @@ table_mapper.setRowCode(rowcode);
                 *hash h;
                 foreach hash row in (rec.contextIterator()) {
                     # FIXME --PQ 21-Mar-2017
-                    # for const hashes, we have a problem here, since
+                    # for constant mappers, we have a problem here, since
                     # the row is actually inserted multiple times into the table,
                     # but appears only once on the output!
                     *hash th = insertRow(row + crec);

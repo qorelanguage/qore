@@ -361,7 +361,8 @@ public class TableMapperTest inherits QUnit::Test {
                 *hash ret = mapper.queueData(Input3 + ("string" : "ms", "zzz" : ("a", "b", "c")));
                 if (!ret) { ret = mapper.flush(); }
                 assertEq(OutputBulk3 + ("string" : "ms"), ret);
-                checkMap(table.selectRows(("orderby": "string")), Output3aCrec[0]);
+                checkMap(table.selectRows(("orderby": "string")),
+                        (("string" : "ms"),));
                 assertEq(3, mapper.getCount());
             }
         }
