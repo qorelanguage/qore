@@ -820,9 +820,9 @@ on_error table_mapper.rollback();
          *         of records represented (may also be 0)
          */
         private *int getRecListSize(hash rec) {
-            foreach hash i in (rec.pairIterator()) {
-                if (i.value.typeCode() == NT_LIST) {
-                    return i.value.size();
+            foreach any v in (rec.iterator()) {
+                if (v.typeCode() == NT_LIST) {
+                    return v.size();
                 }
             }
             return NOTHING;
