@@ -414,6 +414,11 @@ public:
    DLLLOCAL bool checkNode(AbstractQoreNode* n) {
       return checkIntern(n);
    }
+
+   // returns true if a lock error has occurred, false if otherwise
+   DLLLOCAL bool checkNode(RObject& robj) {
+      return checkIntern(robj);
+   }
 };
 
 class qore_object_private;

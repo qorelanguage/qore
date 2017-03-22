@@ -31,39 +31,28 @@
   information.
 */
 
-lvalue_ref::lvalue_ref(ReferenceNode* ref, AbstractQoreNode* n_lvexp, QoreObject* n_self, const void* lvid) : RObject(ref->references), ref(ref), vexp(n_lvexp), self(n_self), pgm(getProgram()), lvalue_id(lvid) {
+lvalue_ref::lvalue_ref(AbstractQoreNode* n_lvexp, QoreObject* n_self, const void* lvid) : vexp(n_lvexp), self(n_self), pgm(getProgram()), lvalue_id(lvid) {
    //printd(5, "lvalue_ref::lvalue_ref() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
    if (self)
       self->tRef();
 }
 
-lvalue_ref::lvalue_ref(const lvalue_ref& old, ReferenceNode* ref) : RObject(ref->references), ref(ref), vexp(old.vexp->refSelf()), self(old.self), pgm(old.pgm), lvalue_id(old.lvalue_id) {
+lvalue_ref::lvalue_ref(const lvalue_ref& old) : vexp(old.vexp->refSelf()), self(old.self), pgm(old.pgm), lvalue_id(old.lvalue_id) {
    //printd(5, "lvalue_ref::lvalue_ref() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
    if (self)
       self->tRef();
 }
 
-bool lvalue_ref::scanMembers(RSetHelper& rsh) {
-   assert(rml.checkRSectionExclusive());
-
+bool lvalue_ref::scanReference(RSetHelper& rsh) {
    return scanNode(rsh, vexp);
 }
 
 bool lvalue_ref::scanNode(RSetHelper& rsh, AbstractQoreNode* vexp) {
-   printd(0, "lvalue_ref::scanNode() vexp: %p %s\n", vexp, get_type_name(vexp));
+   //printd(5, "lvalue_ref::scanNode() vexp: %p %s\n", vexp, get_type_name(vexp));
    qore_type_t ntype = vexp->getType();
    if (ntype == NT_VARREF) {
       return reinterpret_cast<VarRefNode*>(vexp)->scanMembers(rsh);
    }
-   /*
-   else if (ntype == NT_SELF_VARREF) {
-      //printd(5, "lvalue_ref::scanMembers() self ref %p\n", vexp);
-      // here we scan the whole object instead of just the key since effectively we have a link to the object
-      // note that getStackObject() is guaranteed to return a value here (self varref is only valid in a method)
-      QoreObject* obj = runtime_get_stack_object();
-      return rsh.checkNode(obj);
-   }
-   */
    else if (ntype == NT_OPERATOR) {
       QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(vexp);
       assert(op);
@@ -79,7 +68,7 @@ bool lvalue_ref::scanNode(RSetHelper& rsh, AbstractQoreNode* vexp) {
       return scanNode(rsh, tree->left);
    }
    else if (ntype == NT_REFERENCE) {
-      return rsh.checkNode(vexp);
+      return scanNode(rsh, reinterpret_cast<ReferenceNode*>(vexp)->priv->vexp);
    }
    /* other possibilities:
       - NT_CLASS_VARREF: does not need a scan - values are deleted when the Program is deleted
@@ -89,81 +78,7 @@ bool lvalue_ref::scanNode(RSetHelper& rsh, AbstractQoreNode* vexp) {
    return false;
 }
 
-bool lvalue_ref::needsScan(bool scan_now) {
+bool lvalue_ref::needsScan() {
    // we always perform the scan
    return true;
-}
-
-void lvalue_ref::deleteObject() {
-   delete ref;
-}
-
-const char* lvalue_ref::getName() const {
-   return "lvalue reference";
-}
-
-void lvalue_ref::doRef() const {
-   // the mutex ensures atomicity
-   AutoLocker al(rlck);
-   ++references;
-}
-
-void lvalue_ref::doDeref(ExceptionSink* xsink) {
-   int ref_copy;
-   bool do_del = false;
-   {
-      robject_dereference_helper qodh(this);
-      ref_copy = qodh.getRefs();
-      printd(0, "lvalue_ref::doDeref() refs: %d -> %d\n", ref_copy + 1, ref_copy);
-
-      if (!ref_copy) {
-         do_del = true;
-      }
-      else {
-         while (true) {
-            {
-               QoreRSectionLocker al(rml);
-
-               if (!rset) {
-                  if (ref_copy == rcount) {
-                     do_del = true;
-                  }
-                  break;
-               }
-               if (!qodh.deferredScan()) {
-                  int rc = rset->canDelete(ref_copy, rcount);
-                  if (rc == 1) {
-                     printd(0, "lvalue_ref::doDeref() this: %p found recursive reference; deleting value\n", this);
-                     do_del = true;
-                     break;
-                  }
-                  if (!rc)
-                     break;
-                  assert(rc == -1);
-               }
-            }
-            if (!qodh.doScan()) {
-               return;
-            }
-            // need to recalculate references
-            RSetHelper rsh(*this);
-         }
-         if (do_del)
-            qodh.willDelete();
-      }
-   }
-
-   if (do_del) {
-      // first invalidate any rset
-      removeInvalidateRSet();
-      // now dereference the expression which should cause the entire chain to be destroyed
-      vexp->deref(xsink);
-      vexp = 0;
-   }
-
-   if (!ref_copy) {
-      printd(QORE_DEBUG_OBJ_REFS, "lvalue_ref::doDeref() this: %p deleting\n", this);
-      delete ref;
-      return;
-   }
 }

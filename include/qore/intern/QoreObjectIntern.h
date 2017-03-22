@@ -40,7 +40,7 @@
 #include <set>
 #include <vector>
 
-#define _QORE_CYCLE_CHECK 1
+//#define _QORE_CYCLE_CHECK 1
 #ifdef _QORE_CYCLE_CHECK
 #define QORE_DEBUG_OBJ_REFS 0
 #define QRO_LVL 0

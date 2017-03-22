@@ -432,7 +432,6 @@ int LValueHelper::doLValue(const ReferenceNode* ref, bool for_remove) {
    // a reference to a reference, however it's safe to insert it multiple times;
    // the reference count for the lvalue_id object is handled elsewhere
    lvid_set->insert(r->lvalue_id);
-   robj = const_cast<lvalue_ref*>(r);
    return doLValue(r->vexp, for_remove);
 }
 
@@ -1247,11 +1246,6 @@ void LocalVarValue::remove(LValueRemoveHelper& lvrh, const QoreTypeInfo* typeInf
    lvrh.doRemove((QoreLValueGeneric&)val, typeInfo);
 }
 
-bool LocalVarValue::scanMembers(RSetHelper& rsh) {
-   printd(0, "LocalVarValue::scanMembers() scanning %p %s\n", val.getInternalNode(), get_type_name(val.getInternalNode()));
-   return rsh.checkNode(val.getInternalNode());
-}
-
 const void* ClosureVarValue::getLValueId() const {
    QoreSafeVarRWWriteLocker sl(rml);
    if (val.getType() == NT_REFERENCE) {
@@ -1363,6 +1357,6 @@ void ClosureVarValue::deref(ExceptionSink* xsink) {
 }
 
 bool ClosureVarValue::scanMembers(RSetHelper& rsh) {
-   printd(0, "ClosureVarValue::scanMembers() scanning %p %s\n", val.getInternalNode(), get_type_name(val.getInternalNode()));
+   //printd(5, "ClosureVarValue::scanMembers() scanning %p %s\n", val.getInternalNode(), get_type_name(val.getInternalNode()));
    return scanCheck(rsh, val.getInternalNode());
 }

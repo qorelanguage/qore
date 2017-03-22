@@ -34,10 +34,9 @@
 #ifndef _QORE_INTERN_LVALUE_REF_H
 #define _QORE_INTERN_LVALUE_REF_H
 
-#include <qore/intern/RSection.h>
-#include <qore/intern/RSet.h>
+class RSetHelper;
 
-class lvalue_ref : public RObject {
+class lvalue_ref {
 public:
    ReferenceNode* ref;
    AbstractQoreNode* vexp;
@@ -45,9 +44,9 @@ public:
    QoreProgram* pgm;
    const void* lvalue_id;
 
-   DLLLOCAL lvalue_ref(ReferenceNode* ref, AbstractQoreNode* n_lvexp, QoreObject* n_self, const void* lvid);
+   DLLLOCAL lvalue_ref(AbstractQoreNode* n_lvexp, QoreObject* n_self, const void* lvid);
 
-   DLLLOCAL lvalue_ref(const lvalue_ref& old, ReferenceNode* ref);
+   DLLLOCAL lvalue_ref(const lvalue_ref& old);
 
    DLLLOCAL ~lvalue_ref() {
       //printd(5, "lvalue_ref::~lvalue_ref() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
@@ -59,32 +58,17 @@ public:
 
    DLLLOCAL void del(ExceptionSink* xsink) {
       //printd(5, "lvalue_ref::del() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
-
-      removeInvalidateRSet();
-
       if (vexp) {
          vexp->deref(xsink);
          vexp = 0;
       }
    }
 
-   DLLLOCAL void doRef() const;
-
-   DLLLOCAL void doDeref(ExceptionSink* xsink);
-
    // returns true if a lock error has occurred and the transaction should be aborted or restarted; the rsection lock is held when this function is called
-   DLLLOCAL virtual bool scanMembers(RSetHelper& rsh);
+   DLLLOCAL bool scanReference(RSetHelper& rsh);
 
    // returns true if the object needs to be scanned for recursive references (ie could contain an object or closure or a container containing one of those)
-   /** @param scan_now scan will be made now
-    */
-   DLLLOCAL virtual bool needsScan(bool scan_now);
-
-   // deletes the object itself
-   DLLLOCAL virtual void deleteObject();
-
-   // returns the name of the object
-   DLLLOCAL virtual const char* getName() const;
+   DLLLOCAL bool needsScan();
 
    DLLLOCAL static lvalue_ref* get(const ReferenceNode* r) {
       return r->priv;
