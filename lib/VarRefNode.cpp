@@ -213,9 +213,8 @@ void VarRefNode::remove(LValueRemoveHelper& lvrh) {
 }
 
 bool VarRefNode::scanMembers(RSetHelper& rsh) {
-   if (type == VT_LOCAL) {
+   if (type == VT_LOCAL)
       return ref.id->scanMembers(rsh);
-   }
    if (type == VT_CLOSURE)
       return thread_get_runtime_closure_var(ref.id)->scanMembers(rsh);
    if (type == VT_LOCAL_TS)

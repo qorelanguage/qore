@@ -68,9 +68,9 @@ public:
       }
    }
 
-   DLLLOCAL static lvalue_ref* get(const ReferenceNode* r) {
-      return r->priv;
-   }
+   DLLLOCAL void doRef() const;
+
+   DLLLOCAL void doDeref(ExceptionSink* xsink);
 
    // returns true if a lock error has occurred and the transaction should be aborted or restarted; the rsection lock is held when this function is called
    DLLLOCAL virtual bool scanMembers(RSetHelper& rsh);
@@ -85,6 +85,10 @@ public:
 
    // returns the name of the object
    DLLLOCAL virtual const char* getName() const;
+
+   DLLLOCAL static lvalue_ref* get(const ReferenceNode* r) {
+      return r->priv;
+   }
 
    DLLLOCAL static bool scanNode(RSetHelper& rsh, AbstractQoreNode* vexp);
 };

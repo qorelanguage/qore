@@ -111,7 +111,14 @@ public:
    //! returns the type name as a c string
    DLLEXPORT virtual const char* getTypeName() const;
 
+   //! called when the object is deleted
    DLLEXPORT virtual bool derefImpl(ExceptionSink* xsink);
+
+   //! increments the reference count
+   DLLEXPORT virtual void customRef() const;
+
+   //! decrements the reference count
+   DLLEXPORT virtual void customDeref(ExceptionSink* xsink);
 };
 
 #endif

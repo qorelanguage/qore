@@ -16,6 +16,7 @@ class GcTest {
         any a;
         *GcTest b;
         *GcTest c;
+        any d;
     }
 
     private {
@@ -353,11 +354,27 @@ class DgcTest inherits QUnit::Test {
             # issue #1774 leak in closure-bound/reference local var handling
             GcTest o1(inc);
             GcTest o2(inc, o1);
-            o1.a = \o2;
-            hash h = ("a": \o2,);
-            o1.a."a" = \h.a;
+            o1.a = ("a": \o2);
         }
         assertEq(10, cnt);
+
+        {
+            # issue #1774 leak in closure-bound/reference local var handling
+            GcTest o1(inc);
+            GcTest o2(inc, o1);
+            o1.a = \o2;
+            o1.d = ("a": \o2);
+        }
+        assertEq(12, cnt);
+
+        {
+            # issue #1774 leak in closure-bound/reference local var handling
+            GcTest o1(inc);
+            GcTest o2(inc, o1);
+            o1.a = \o2;
+            o1.d = \o2;
+        }
+        assertEq(14, cnt);
 
         {
             # issue #1774 leak in closure-bound/reference local var handling
@@ -366,7 +383,7 @@ class DgcTest inherits QUnit::Test {
             list l = (\o2, \o2);
             o1.a = \l[0];
         }
-        assertEq(12, cnt);
+        assertEq(16, cnt);
 
         {
             # issue #1774 leak in closure-bound/reference local var handling
@@ -375,6 +392,6 @@ class DgcTest inherits QUnit::Test {
             hash h = ("a": \o2, "b": \o2);
             o1.a."a" = \h.a;
         }
-        assertEq(14, cnt);
+        assertEq(18, cnt);
     }
 }

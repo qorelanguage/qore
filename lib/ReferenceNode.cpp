@@ -147,11 +147,11 @@ AbstractQoreNode* ParseReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, 
    return this;
 }
 
-ReferenceNode::ReferenceNode(AbstractQoreNode* exp, QoreObject* self, const void* lvalue_id) : AbstractQoreNode(NT_REFERENCE, false, true), priv(new lvalue_ref(this, exp, self, lvalue_id)) {
+ReferenceNode::ReferenceNode(AbstractQoreNode* exp, QoreObject* self, const void* lvalue_id) : AbstractQoreNode(NT_REFERENCE, false, true, false, true), priv(new lvalue_ref(this, exp, self, lvalue_id)) {
    priv->ref = this;
 }
 
-ReferenceNode::ReferenceNode(const ReferenceNode& old) : AbstractQoreNode(NT_REFERENCE, false, true), priv(new lvalue_ref(*old.priv, this)) {
+ReferenceNode::ReferenceNode(const ReferenceNode& old) : AbstractQoreNode(NT_REFERENCE, false, true, false, true), priv(new lvalue_ref(*old.priv, this)) {
 }
 
 ReferenceNode::~ReferenceNode() {
@@ -244,4 +244,12 @@ bool ReferenceNode::boolEvalImpl(ExceptionSink *xsink) const {
 double ReferenceNode::floatEvalImpl(ExceptionSink *xsink) const {
    LValueHelper lvh(this, xsink);
    return lvh ? lvh.getAsFloat() : 0.0;
+}
+
+void ReferenceNode::customRef() const {
+   priv->doRef();
+}
+
+void ReferenceNode::customDeref(ExceptionSink* xsink) {
+   priv->doDeref(xsink);
 }
