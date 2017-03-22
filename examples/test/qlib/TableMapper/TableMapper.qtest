@@ -154,7 +154,7 @@ public class TableMapperTest inherits QUnit::Test {
             ("id": 24, "code1": "code", "string": NOTHING),
             );
 
-        const OutputNoBulk1 =
+        const OutputBulk3 =
             ("id": 1,
              "string": ("string_1", "string_2", "str2"),
              "dte" :
@@ -177,6 +177,13 @@ public class TableMapperTest inherits QUnit::Test {
              ("string": "str2"),
              ("string": "string_1"),
              ("string": "string_2"),
+            );
+
+        const Output3aCrec =
+            (
+             ("string": "ms"),
+             ("string": "ms"),
+             ("string": "ms"),
             );
 
         const Output4 = (
@@ -450,6 +457,19 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(1, mapper.getCount());
         }
 
+        # issue #1754: queueData(hash of lists) with insert_block=1 and 'crec'
+        {
+            on_exit table.rollback();
+
+            # prepare data for comparison
+            InboundTableMapper mapper(table, Map2NoSequence, ("insert_block" : 1));
+            *hash ret = mapper.queueData(Input3, ("string" : "ms"));
+            if (!ret) { ret = mapper.flush(); }
+            assertEq(OutputBulk3 + ("string" : ("ms", "ms", "ms")), ret);
+            checkMap(table.selectRows(("orderby": "string")), Output3aCrec);
+            assertEq(3, mapper.getCount());
+        }
+
         # issue #1754: queueData(hash of lists) with insert_block=1
         {
             on_exit table.rollback();
@@ -458,7 +478,7 @@ public class TableMapperTest inherits QUnit::Test {
             InboundTableMapper mapper(table, Map2NoSequence, ("insert_block" : 1));
             *hash ret = mapper.queueData(Input3);
             if (!ret) { ret = mapper.flush(); }
-            assertEq(OutputNoBulk1, ret);
+            assertEq(OutputBulk3, ret);
             checkMap(table.selectRows(("orderby": "string")), Output3a);
             assertEq(3, mapper.getCount());
         }

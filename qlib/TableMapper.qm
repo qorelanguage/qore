@@ -681,7 +681,7 @@ table_mapper.setRowCode(rowcode);
                     # for const hashes, we have a problem here, since
                     # the row is actually inserted multiple times into the table,
                     # but appears only once on the output!
-                    *hash th = insertRow(row); # FIXME missing crec here
+                    *hash th = insertRow(row + crec);
                     if (th) {
                         hash bulkth = record2Bulk(th);
                         addBulkToBulk(\h, bulkth);
@@ -774,6 +774,10 @@ on_error table_mapper.rollback();
 
             hash h;
             foreach hash row in (iter) {
+                # FIXME --PQ 21-Mar-2017
+                # for const hashes, we have a problem here, since
+                # the row is actually inserted multiple times into the table,
+                # but appears only once on the output!
                 *hash th = queueDataIntern(row + crec);
                 if (th) {
                     addBulkToBulk(\h, th);

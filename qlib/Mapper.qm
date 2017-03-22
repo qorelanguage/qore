@@ -978,8 +978,11 @@ Mapper mapv(DataMap);
                     m.index + count;
             }
             else if (exists m.runtime) {
+                # actually runtime should not happen with do_list since
+                # do_list = True is only used from TableMapper that is handling
+                # runtime outside mapFieldIntern()
                 any rtv = m_runtime{m.runtime};
-                v = do_list ? (map rtv, v) : rtv; # FIXME iterating empty list
+                v = do_list ? (map rtv, xrange(0, list_size - 1)) : rtv;
             }
             else if (m.struct) {
                 v = rec;
