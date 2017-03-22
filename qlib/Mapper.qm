@@ -960,7 +960,7 @@ Mapper mapv(DataMap);
                                        int list_size,
                                        *hash crec) {
             # FIXME: assert(!do_list || list_size > 0);
-            # FIXME add the assert for equal length of the lists
+            # FIXME can add the assert for equal length of the lists --PQ 22-Mar-2017
             hash m = mapc{key};
 
             # closure to get the current record hash from a hash of lists
@@ -1003,7 +1003,6 @@ Mapper mapv(DataMap);
             }
 
             # move any XML CDATA into the field value
-            # NOTE: cdata not supported with hashes of lists # FIXME add a test for it
             if (v."^cdata^")
                 v = v."^cdata^";
 
