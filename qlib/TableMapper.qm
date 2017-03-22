@@ -652,6 +652,7 @@ table_mapper.setRowCode(rowcode);
             - if an error occurs flushing data, the count is reset by calling @ref Mapper::Mapper::resetCount() "Mapper::resetCount()"
             - using a hash of lists in \a rec; note that this provides very high performance with SQL drivers that support Bulk DML
             - in case a hash of empty lists is passed, Qore::NOTHING is returned
+            - 'crec' does not affect the number of output lines; in particular, if 'rec' is a batch with \c N rows of a column \c C and 'crec = ("C" : "mystring")' then the output will be as if there was 'N' rows with \c C = "mystring" on the input.
 
             @see
             - flush()
@@ -666,6 +667,17 @@ table_mapper.setRowCode(rowcode);
             if (unstable_input)
                 throw "MAPPER-BATCH-ERROR", sprintf("cannot call %s::queueData() when the unstable_input option is set", self.className());
 
+            if (crec) {
+                if (exists getRecListSize(crec)) {
+                    throw "MAPPER-BATCH-ERROR", sprintf("%s::queueData() does not "
+                          "accept a batch as its 2nd argument, got %y",
+                          self.className(), crec);
+                }
+            }
+
+            # NOTE: we cannot add 'crec' into 'rec' here since it could affect the number
+            # of processed rows, actually, by overriding a column in 'rec' that
+            # contains a list.
             *int rec_list_size = getRecListSize(rec);
             if (!exists rec_list_size) {
                 return queueDataIntern(rec + crec);
@@ -690,9 +702,6 @@ table_mapper.setRowCode(rowcode);
             if (rec_list_size > 0) {
                 hash dh;
 
-                # FIXME this may be not correct:
-                # - when rec is passed to mapFiledIntern(do_list=True) such that
-                # rec{some_out_name} = <constant>
                 rec += crec;
 
                 # identl and rconsth entries are added to 'dh' and not in 'hbuf'
@@ -714,8 +723,10 @@ table_mapper.setRowCode(rowcode);
                     # copy all constant mappings to the output hash
                     # consth, rconsth, identh and crec are removed from mapd,
                     # so they must be re-added now.
-                    # FIXME what is not nice is that these fields are also
-                    # processed in mapFieldIntern() --PQ 21-Mar-2017
+                    # FIXME what is not nice is that "constant" and "runtime"
+                    # has also their if-then branches in mapFieldIntern(),
+                    # but this is necessary to accomodate Mapper::mapData()
+                    # --PQ 21-Mar-2017
                     if (consth)
                         hbuf += consth;
 

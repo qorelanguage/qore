@@ -97,6 +97,12 @@ public class TableMapperTest inherits QUnit::Test {
             "dte" : ("constant" : date("2017-05-03"),),
             );
 
+        const Map2CodeFirstVal = (
+            "id": ("constant": 1),
+            "string": ("code": *string sub (any x, hash rec) { return x; }),
+            "dte" : ("constant" : date("2017-05-03"),),
+            );
+
         const Map2NoSequenceIdent = (
             "id": ("constant": 1),
             "string": True,
@@ -157,12 +163,24 @@ public class TableMapperTest inherits QUnit::Test {
         const OutputBulk2 = (
             ("id": 22, "code1": "code", "string": "string_1"),
             ("id": 23, "code1": "code", "string": "string_2"),
-            ("id": 24, "code1": "code", "string": NOTHING),
+            ("id": 24, "code1": "code", "string": ""),
             );
 
         const OutputBulk3 =
             ("id": 1,
              "string": ("string_1", "string_2", "str2"),
+             "dte" :
+                 date("2017-05-03"),);
+
+        const OutputBulk3a =
+            ("id": 1,
+             "string": ("string_1", "string_2", NOTHING),
+             "dte" :
+                 date("2017-05-03"),);
+
+        const OutputBulk3b =
+            ("id": 1,
+             "string": ("string_6", "string_6", "string_6"),
              "dte" :
                  date("2017-05-03"),);
 
@@ -183,6 +201,20 @@ public class TableMapperTest inherits QUnit::Test {
              ("string": "str2"),
              ("string": "string_1"),
              ("string": "string_2"),
+            );
+
+        const Output3b =
+            (
+             ("string": "string_1"),
+             ("string": "string_2"),
+             ("string": NOTHING),
+            );
+
+        const Output3c =
+            (
+             ("string": "string_6"),
+             ("string": "string_6"),
+             ("string": "string_6"),
             );
 
         const Output3aCrec =
@@ -327,8 +359,11 @@ public class TableMapperTest inherits QUnit::Test {
             testSkip("no DB connection");
 
         list output1 = Output1;
-        if (table.bindEmptyStringsAsNull())
+        list outputBulk2 = OutputBulk2;
+        if (table.bindEmptyStringsAsNull()) {
             output1[2].string = NULL;
+            outputBulk2[2].string = NULL;
+        }
         list output2 = Output1;
         output2[2].string = "str2_3";
 
@@ -499,6 +534,34 @@ public class TableMapperTest inherits QUnit::Test {
             checkMap(table.selectRows(("orderby": "string")), Output3aCrec);
             assertEq(3, mapper.getCount());
         }
+
+        # issue #1754: queueData(hash of lists) with code using 1st val
+        {
+            on_exit table.rollback();
+
+            # prepare data for comparison
+            InboundTableMapper mapper(table, Map2CodeFirstVal);
+            *hash ret = mapper.queueData(Input3);
+            if (!ret) { ret = mapper.flush(); }
+            assertEq(OutputBulk3a, ret);
+            checkMap(table.selectRows(("orderby": "string")), Output3b);
+            assertEq(3, mapper.getCount());
+        }
+
+        # issue #1754: queueData(hash of lists) with code using 1st val with constant
+        {
+            on_exit table.rollback();
+
+            # prepare data for comparison
+            InboundTableMapper mapper(table, Map2CodeFirstVal);
+            *hash ret = mapper.queueData(Input6 + ("xxx" : (1,2,3)));
+            if (!ret) { ret = mapper.flush(); }
+            assertEq(OutputBulk3b, ret);
+            checkMap(table.selectRows(("orderby": "string")), Output3c);
+            assertEq(3, mapper.getCount());
+        }
+
+        # FIXME add test for "type" modifier
 
         # issue #1754: queueData(hash of lists) with 'crec' and identity
         {
@@ -674,7 +737,7 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(3, mapper.getCount());
             assertEq(Type::Date, rl[0].dte.type());
             map remove rl[$#].dte, rl;
-            assertEq(OutputBulk2, rl);
+            assertEq(outputBulk2, rl);
         }
 
         # queueData(list) test

@@ -949,6 +949,9 @@ Mapper mapv(DataMap);
           *                    asserted inside the function).
           *
           * @note it is assumed that list_size > 0 whenever do_list is Qore::True
+          * @note if do_list == Qore::True, the 'rec' can contain a mix of lists
+          *       and non-list values - the non-list values are used as constants
+          *       in the mapping - as if expanded to lists with all values identical.
           */
         private nothing mapFieldIntern(reference h,
                                        string key,
@@ -993,26 +996,33 @@ Mapper mapv(DataMap);
             else
                 v = rec{name} ?? NOTHING; # mitigate NULL -> NOTHING
 
-            if (do_list) {
-                if (!exists v)
-                    v = map NOTHING, xrange(list_size - 1);
-                else if (v.typeCode() != NT_LIST)
-                    error2("MAPPER-FIELD-LIST-ERROR", "field %y value passed is %y in list mode; expecting \"list\"", key, v.type());
+            bool v_is_list = v.typeCode() == NT_LIST;
+            if (v_is_list) {
+                if (do_list) {
+                    if (list_size != v.size())
+                        error2("MAPPER-FIELD-LIST-ERROR", "field %y value passed is the list %y with length %d - the input batch length expected is %d", key, v, v.size(), list_size);
+                }
+                else {
+                    error2("MAPPER-FIELD-LIST-ERROR", "field %y value passed is the list %y in non-list mode", key, v);
+                }
             }
 
             # move any XML CDATA into the field value
+            # FIXME review cdata, 'v' can be list here! --PQ 22-Mar-2017
             if (v."^cdata^")
                 v = v."^cdata^";
 
             # if the internal field was marked as needing processing by a subclass, then call the mapSubclass method
             if (m.subclass)
-                v = do_list ? (map mapSubclass(m, $1), v) : mapSubclass(m, v);
+                v = v_is_list ? (map mapSubclass(m, $1), v) : mapSubclass(m, v);
 
             # execute any field filter if necessary
             if (m.code) {
                 try {
                     v = do_list
-                        ? (map m.code($1, getrec(rec, $#)), v)
+                        ? (map m.code(
+                                    v_is_list ? v[$#] : v,
+                                    getrec(rec, $#)), xrange(0, list_size - 1))
                         : m.code(v, rec);
                 }
                 catch (hash ex) {
@@ -1021,7 +1031,7 @@ Mapper mapv(DataMap);
                 }
             }
 
-            if (do_list) {
+            if (v_is_list) {
                 map delete v[$#], v, (m_empty_strings_to_nothing && $1 === "" || $1 === NULL);
             }
             else {
@@ -1030,14 +1040,15 @@ Mapper mapv(DataMap);
             }
 
             if (m.type) {
-                if (do_list)
+                # note: v_is_list implies do_list
+                if (v_is_list)
                     map mapFieldType(key, m, \v[$#], getrec(rec, $#)), v, $1.typeCode() != m.typeCode;
                 else
                     mapFieldType(key, m, \v, rec);
             }
 
             if (exists m."default") {
-                if (do_list) {
+                if (v_is_list) {
                     map v[$#] = m."default", v, !exists $1;
                 }
                 else if (!exists v)
@@ -1046,7 +1057,7 @@ Mapper mapv(DataMap);
 
             # check maximum length
             if (m.maxlen) {
-                if (do_list) {
+                if (v_is_list) {
                     if (m.trunc)
                         map v[$1] = truncateField(key, $1, $#, v.size(), m.maxlen), v, $1.size() > m.maxlen;
                     else
@@ -1065,7 +1076,7 @@ Mapper mapv(DataMap);
             }
 
             if (m.mand) {
-                if (do_list) {
+                if (v_is_list) {
                     map error2("MISSING-INPUT", "field %y element %d/%d is marked as mandatory but is missing in the input row: %y", getFieldName(key), $# + 1, v.size(), getrec(rec, $#)), v, !exists $1;
                 }
                 else if (!exists v)
