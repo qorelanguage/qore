@@ -357,7 +357,7 @@ public class TableMapperTest inherits QUnit::Test {
                 on_exit table.rollback();
 
                 # prepare data for comparison
-                InboundTableMapper mapper(table, Map2NoSequenceIdent, ("insert_block" : 1));
+                InboundTableMapper mapper(table, Map2NoSequenceIdent);
                 *hash ret = mapper.queueData(Input3 + ("string" : "ms", "zzz" : ("a", "b", "c")));
                 if (!ret) { ret = mapper.flush(); }
                 assertEq(OutputBulk3 + ("string" : "ms"), ret);
