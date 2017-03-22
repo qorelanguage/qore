@@ -186,6 +186,16 @@ public class TableMapperTest inherits QUnit::Test {
              ("string": "ms"),
             );
 
+        const Output3bCrec =
+            (
+             ("string": "ms1"),
+             ("string": "ms1"),
+             ("string": "ms1"),
+             ("string": "ms2"),
+             ("string": "ms2"),
+             ("string": "ms2"),
+            );
+
         const Output4 = (
                 ("string" : "str2"),
                 ("string" : "string_1"),
@@ -470,6 +480,36 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(3, mapper.getCount());
         }
 
+        # issue #1754: multiple queueData(hash of lists) and 'crec'
+        {
+            on_exit table.rollback();
+
+            # prepare data for comparison
+            InboundTableMapper mapper(table, Map2NoSequence);
+            *hash ret = mapper.queueData(Input3, ("string" : "ms1"));
+            *hash ret2 = mapper.queueData(Input3, ("string" : "ms2"));
+            if (ret) {
+                if (ret2) {
+                    map ret{$1} += ret2{$1}, ret.keyIterator(), ret2{$1}.typeCode() == NT_LIST;
+                }
+            }
+            else {
+                ret = ret2;
+            }
+            ret2 = mapper.flush();
+            if (ret) {
+                if (ret2) {
+                    map ret{$1} += ret2{$1}, ret.keyIterator(), ret2{$1}.typeCode() == NT_LIST;
+                }
+            }
+            else {
+                ret = ret2;
+            }
+            assertEq(OutputBulk3 + ("string" : ("ms1", "ms1", "ms1", "ms2", "ms2", "ms2")), ret);
+            checkMap(table.selectRows(("orderby": "string")), Output3bCrec);
+            assertEq(6, mapper.getCount());
+        }
+
         # issue #1754: queueData(hash of lists) with insert_block=1
         {
             on_exit table.rollback();
@@ -491,6 +531,7 @@ public class TableMapperTest inherits QUnit::Test {
             if (!ret) { ret = mapper.flush(); }
             checkMap((map $1, ret.contextIterator()), ConstOutput);
             checkMap(table.selectRows(("orderby": "id")), ConstOutput);
+            assertEq(3, table.selectRows(("orderby": "id")).size());
             assertEq(3, mapper.getCount());
             # FIXME here we actually insert 3 rows into the DB, but we return only
             # one row in 'ret'
@@ -505,6 +546,7 @@ public class TableMapperTest inherits QUnit::Test {
             if (!ret) { ret = mapper.flush(); }
             checkMap((map $1, ret.contextIterator()), ConstOutput);
             checkMap(table.selectRows(("orderby": "id")), ConstOutput);
+            assertEq(3, table.selectRows(("orderby": "id")).size());
             assertEq(3, mapper.getCount());
             # FIXME here we actually insert 3 rows into the DB, but we return only
             # one row in 'ret'
