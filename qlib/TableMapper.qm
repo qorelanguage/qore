@@ -583,9 +583,6 @@ InboundTableMapper mapper(table, DbMapper);
         }
 
         #! sets a @ref closure "closure" or @ref call_reference "call reference" that will be called when data has been sent to the database and all output data is available; must accept a hash argument that represents the data written to the database including any output arguments. This code will be reset, once the transaction is commited.
-        # FIXME is it true that rowcode is reset once "transaction is commited"?
-        # actually it is reset after flush() - does flush mean a commit?
-        # Also on discard() the rowcode is removed. --PQ 21-Mar-2017
         /** @par Example:
             @code{.py}
 code rowcode = sub (hash row) {
