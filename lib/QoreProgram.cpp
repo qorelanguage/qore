@@ -1637,13 +1637,23 @@ QoreDebugProgram::~QoreDebugProgram() {
 }
 
 void QoreDebugProgram::addProgram(QoreProgram *pgm) {
-   printd(5, "QoreDebugProgram::addProgram(), this: %p, pgm: %d\n", this, pgm);
+   printd(5, "QoreDebugProgram::addProgram(), this: %p, pgm: %p\n", this, pgm);
    priv->addProgram(pgm);
 }
 
 void QoreDebugProgram::removeProgram(QoreProgram *pgm) {
-   printd(5, "QoreDebugProgram::removeProgram(), this: %p, pgm: %d\n", this, pgm);
+   printd(5, "QoreDebugProgram::removeProgram(), this: %p, pgm: %p\n", this, pgm);
    priv->removeProgram(pgm);
+}
+
+void QoreDebugProgram::breakProgramThread(QoreProgram *pgm, int tid) const {
+   printd(5, "QoreDebugProgram::breakProgramThread(), this: %p, pgm: %p, tid: %d\n", this, pgm, tid);
+   priv->breakProgramThread(pgm, tid);
+}
+
+void QoreDebugProgram::breakProgram(QoreProgram *pgm) const {
+   printd(5, "QoreDebugProgram::breakProgram(), this: %p, pgm: %p\n", this, pgm);
+   priv->breakProgram(pgm);
 }
 
 void QoreDebugProgram::waitForTerminationAndDeref(ExceptionSink* xsink) {

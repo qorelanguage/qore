@@ -204,7 +204,7 @@ DebugProgram::onException(Program[QoreProgram] pgm, hash location, hash ex, refe
   *
   */
 nothing DebugProgram::breakProgramThread(Program[QoreProgram] pgm, int tid) {
-//  dpgm->breakProgramThread(pgm, tid);
+   dpgm->breakProgramThread(pgm, tid);
 }
 
 //! Break program, i.e. all threads
@@ -212,5 +212,5 @@ nothing DebugProgram::breakProgramThread(Program[QoreProgram] pgm, int tid) {
   *
   */
 nothing DebugProgram::breakProgram(Program[QoreProgram] pgm) {
-//   dpgm->breakProgram(pgm);
+   dpgm->breakProgram(pgm);
 }
