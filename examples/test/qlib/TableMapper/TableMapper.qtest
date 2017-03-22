@@ -348,6 +348,22 @@ public class TableMapperTest inherits QUnit::Test {
                 checkMap(table.selectRows(("orderby": "id")), ());
                 assertEq(NOTHING, ret);
             }
+
+            # issue #1754: queueData(hash of lists) with identity on non-list input
+            # in bulk context
+            # FIXME we have identical test in normal section with insert_block = 1
+            # with different result!
+            {
+                on_exit table.rollback();
+
+                # prepare data for comparison
+                InboundTableMapper mapper(table, Map2NoSequenceIdent, ("insert_block" : 1));
+                *hash ret = mapper.queueData(Input3 + ("string" : "ms", "zzz" : ("a", "b", "c")));
+                if (!ret) { ret = mapper.flush(); }
+                assertEq(OutputBulk3 + ("string" : "ms"), ret);
+                checkMap(table.selectRows(("orderby": "string")), Output3aCrec[0]);
+                assertEq(3, mapper.getCount());
+            }
         }
         else {
             testSkip("no Bulk DB connection");
@@ -523,11 +539,13 @@ public class TableMapperTest inherits QUnit::Test {
 
         # issue #1754: queueData(hash of lists) with identity on non-list input
         # in bulk context
+        # FIXME we have identical test in bulk section without insert_block = 1
+        # with different result!
         {
             on_exit table.rollback();
 
             # prepare data for comparison
-            InboundTableMapper mapper(table, Map2NoSequenceIdent);
+            InboundTableMapper mapper(table, Map2NoSequenceIdent, ("insert_block" : 1));
             *hash ret = mapper.queueData(Input3 + ("string" : "ms", "zzz" : ("a", "b", "c")));
             if (!ret) { ret = mapper.flush(); }
             assertEq(OutputBulk3 + ("string" : ("ms", "ms", "ms")), ret);
