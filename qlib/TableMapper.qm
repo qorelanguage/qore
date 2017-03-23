@@ -748,9 +748,7 @@ table_mapper.setRowCode(rowcode);
                     hbuf += dh;
                 }
                 else
-                    # FIXME can any const (non-list) come from dh in value?
-                    # yes, runtime
-                    map hbuf{$1.key} += $1.value, dh.pairIterator();
+                    addBatchToBatch(\hbuf, dh);
             } # else no input, no work, not even for constant mappers
 
             return flushIntern(False);
