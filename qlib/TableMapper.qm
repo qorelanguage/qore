@@ -750,7 +750,8 @@ table_mapper.setRowCode(rowcode);
                     # but this is necessary to accomodate Mapper::mapData()
                     # --PQ 21-Mar-2017
                 }
-                addBatchToBatch(\hbuf, \hbuf_size, dh, rec_list_size);
+                addBatchToBatch(\hbuf, \hbuf_size,
+                                dh, isMapperConstant() ? NOTHING : rec_list_size);
             } # else no input, no work, not even for constant mappers
 
             return flushIntern(False);
@@ -869,9 +870,16 @@ on_error table_mapper.rollback();
             map ret{$1.key} = ($1.value,),
                 h.pairIterator(),
                 (exists mapd{$1.key} || exists identh{$1.key});
-            batch_size = (mapd.size() || identh.size()) ? 1 : NOTHING;
+            batch_size = isMapperConstant() ? 1 : NOTHING;
             # the rest is consth and rconsth elements which are kept as is
             return ret;
+        }
+
+        /** returns true when the mapper is all "constant", i.e. if it always
+          * provide the same output regardless on the input
+          */
+        private bool isMapperConstant() {
+            return !(mapd.size() || identh.size());
         }
 
         /**
