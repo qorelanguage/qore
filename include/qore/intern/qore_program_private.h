@@ -90,7 +90,7 @@ public:
 
 typedef QoreThreadLocalStorage<QoreHashNode> qpgm_thread_local_storage_t;
 
-#include "qore/intern/ThreadlocalVariableData.h"
+#include "qore/intern/ThreadLocalVariableData.h"
 #include "qore/intern/ThreadClosureVariableStack.h"
 
 struct ThreadLocalProgramData {
