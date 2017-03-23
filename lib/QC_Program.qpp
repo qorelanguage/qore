@@ -1574,7 +1574,7 @@ hash Program::getGlobalVars() [flags=CONSTANT] {
 //! set the value of a global variable
 /** @par Example:
     @code
-pgm.setGlobalVar("a", 1);
+pgm.setGlobalVarValue("a", 1);
     @endcode
 
     @param name the name of the variable
@@ -1583,6 +1583,8 @@ pgm.setGlobalVar("a", 1);
     @throw UNKNOWN-VARIABLE the variable is not a global variable
 
     @note other exceptions could be thrown if the value cannot be assigned to the given variable
+
+    @see @ref Qore::set_global_var_value()
 
     @since %Qore 0.8.13
  */

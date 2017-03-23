@@ -2658,4 +2658,25 @@ hash h = get_global_vars();
 hash get_global_vars() [flags=CONSTANT] {
    return getProgram()->getGlobalVars();
 }
+
+//! set the value of a global variable
+/** @par Example:
+    @code
+set_global_var_value("a", 1);
+    @endcode
+
+    @param name the name of the variable
+    @param value the value to assign
+
+    @throw UNKNOWN-VARIABLE the variable is not a global variable
+
+    @note other exceptions could be thrown if the value cannot be assigned to the given variable
+
+    @see @ref Qore::Program::setGlobalVarValue()
+
+    @since %Qore 0.8.13
+ */
+nothing set_global_var_value(string name, any value) {
+   getProgram()->setGlobalVarValue(name->c_str(), value.refSelf(), xsink);
+}
 //@}
