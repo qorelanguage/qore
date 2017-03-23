@@ -117,12 +117,13 @@
     n/a
 
     @par Parse Option Constant:
-    n/a
+    @ref Qore::PO_ALLOW_DEBUGGING
 
     @par Description:
     Allows debugging actions that could be insecure such as reading the thread local variable stack.
-    Currently allows the following function to be used:
+    Currently allows the following functions to be used:
     - @ref Qore::get_local_vars()
+    - @ref Qore::set_local_var_value()
 
     @since %Qore 0.8.13
 
