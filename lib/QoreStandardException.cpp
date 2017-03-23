@@ -35,11 +35,11 @@ QoreStandardException::QoreStandardException(const char* err, const char* desc_f
       va_list args;
 
       while (true) {
-	 va_start(args, desc_fmt);
-	 int rc = desc->vsprintf(desc_fmt, args);
-	 va_end(args);
-	 if (!rc)
-	    break;
+         va_start(args, desc_fmt);
+         int rc = desc->vsprintf(desc_fmt, args);
+         va_end(args);
+         if (!rc)
+            break;
       }
    }
 }
