@@ -137,11 +137,11 @@ public class TableMapperTest inherits QUnit::Test {
         const OutputRT = (
                 ("id" : 0, "string" : "pass1", "dte" : date("2017-05-03")),
                 ("id" : 1, "string" : "pass1", "dte" : date("2017-05-04")),
-                ("id" : 2, "string" : "pass2", "dte" : date("2017-05-05")),
-                ("id" : 3, "string" : "pass2", "dte" : date("2017-05-06")));
+                ("id" : 2, "string" : "pass1", "dte" : date("2017-05-05")),
+                ("id" : 3, "string" : "pass1", "dte" : date("2017-05-06")));
         const OutputRTHash =
-                ("id" : (0,1,0,1),
-                 "string" : ("pass1","pass1","pass2","pass2"),
+                ("id" : (0,1,2,3),
+                 "string" : "pass1",
                  "dte" : (date("2017-05-03"),
                           date("2017-05-04"),
                           date("2017-05-05"),
@@ -540,12 +540,16 @@ public class TableMapperTest inherits QUnit::Test {
             # assuming insert_block > size of Input3
             # a bulk inserted
             *hash ret = mapper.queueData(InputRT1);
-            mapper.setRuntime("rstring", "pass2");
+            printf("RET1: %y\n", ret);
             # single row inserted
             *hash ret2 = mapper.queueData(InputRT2);
-            InboundTableMapper::addBatchToBatch(\ret, ret2);
+            printf("RET2: %y\n", ret2);
+            if (ret2)
+                InboundTableMapper::addBatchToBatch(\ret, ret2);
             ret2 = mapper.flush();
-            InboundTableMapper::addBatchToBatch(\ret, ret2);
+            printf("RET3: %y\n", ret2);
+            if (ret2)
+                InboundTableMapper::addBatchToBatch(\ret, ret2);
             checkMap(table.selectRows(("orderby": "dte")), OutputRT);
             assertEq(4, mapper.getCount());
             assertEq(OutputRTHash, ret);

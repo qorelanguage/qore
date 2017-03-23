@@ -858,24 +858,6 @@ on_error table_mapper.rollback();
         }
 
         /**
-         * adds a batch (hash of lists) to another batch (in-place)
-         * @param hb reference to a batch that will be enriched
-         * @param batch the batch to be added to 'hb'
-         */
-        private nothing addBatchToBatch(reference hb, hash batch) {
-            if (!hb) {
-                hb = batch;
-            }
-            else {
-                # we add only lists - the constants remain untouched
-                # FIXME could assert that the constants remain the same? --PQ 21-Mar-2017
-                map hb{$1.key} += $1.value,
-                    batch.pairIterator(),
-                    $1.value.typeCode() == NT_LIST;
-            }
-        }
-
-        /**
          * transforms single record to a batch - i.e. all non-constant elements
          * are transformed to lists (with single elements)
          */
@@ -886,6 +868,24 @@ on_error table_mapper.rollback();
                 (exists mapd{$1.key} || exists identh{$1.key});
             # the rest is consth and rconsth elements which are kept as is
             return ret;
+        }
+
+        /**
+         * adds a batch (hash of lists) to another batch (in-place)
+         * @param hb reference to a batch that will be enriched
+         * @param batch the batch to be added to 'hb'
+         */
+        static nothing addBatchToBatch(reference hb, hash batch) {
+            if (!hb) {
+                hb = batch;
+            }
+            else {
+                # we add only lists - the constants remain untouched
+                # FIXME could assert that the constants remain the same? --PQ 21-Mar-2017
+                map hb{$1.key} += $1.value,
+                    batch.pairIterator(),
+                    $1.value.typeCode() == NT_LIST;
+            }
         }
 
         #! flushes any remaining batched data to the database; this method should always be called before committing the transaction or destroying the object

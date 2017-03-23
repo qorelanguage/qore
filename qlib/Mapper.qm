@@ -192,7 +192,6 @@ list: (2 elements)
     For example, runtime options can be useful in the following cases:
         - storing one date/time value for all output hashes of the @ref Mapper::Mapper "Mapper"
         - using a value from a database sequence value for the lifetime of the @ref Mapper::Mapper "Mapper" object
-        - grouping of the output data
 
     @par Example:
     @code{.py}
@@ -212,10 +211,11 @@ hash opts = (
 );
 Mapper m(mapv, opts);        # runtime options are active now
 m.mapData(input1);           # output record hash date_begin = start_date = timestamp of the opts creation and group = 0
-m.setRuntime("group_id", 1); # runtime group_id changed. From now it will use 1
-m.mapData(input2);           # date_begin is still the same as from beginning of processing, but group is 1 now
     @endcode
 
+    The runtime options are basicly same as constants during the insertion to the database in terms of efficiency. As such, the runtime options can be changed only before the first row is processed in by a @ref Mapper::Mapper "Mapper".
+
+    Note that functions setRuntime() and replaceRuntime() are deprecated - please use @ref Mapper::Mapper "Mapper" construction options to set the runtime value. The functions are deprecated since they add confusion of the purpose of the runtime options.
 
     @section mapperrelnotes Release Notes
 
@@ -750,14 +750,27 @@ Mapper mapv(DataMap);
              @param key a string with valid runtime key
              @param value anything passed to the current runtime \c key
 
+             @note
+
             @see
             - @ref mapper_runtime_handling
             - replaceRuntime()
             - setRuntime()
 
             @since %Mapper 1.1
+
+            @deprecated use @ref Mapper::constructor Mapper construction options to set
+                        the runtime options.
+
+            @throw RUNTIME-OPTION-CHANGED the option has changed during while already
+                   processing the data.
          */
-        setRuntime(string key, any value) {
+        /*deprecated*/ setRuntime(string key, any value) {
+            if (count > 0 && exists m_runtime{key} && m_runtime{key} != value) {
+                throw "RUNTIME-OPTION-CHANGED", sprintf("the runtime option %y "
+                        "has changed %y -> %y while already %y input rows have been "
+                        "processed", key, m_runtime{key}, value, count);
+            }
             m_runtime{key} = value;
         }
 
@@ -771,8 +784,19 @@ Mapper mapv(DataMap);
             - setRuntime()
 
             @since %Mapper 1.1
+
+            @deprecated use @ref Mapper::constructor Mapper construction options to set
+                        the runtime options.
+
+            @throw RUNTIME-OPTION-CHANGED the option has changed during while already
+                   processing the data.
          */
-        setRuntime(hash runtime) {
+        /*deprecated*/ setRuntime(hash runtime) {
+            if (count > 0 && m_runtime + runtime != m_runtime) {
+                throw "RUNTIME-OPTION-CHANGED", sprintf("the runtime options "
+                        "has changed %y -> %y while already %y input rows have been "
+                        "processed", m_runtime, m_runtime + runtime, count);
+            }
             m_runtime += runtime;
         }
 
@@ -786,8 +810,19 @@ Mapper mapv(DataMap);
             - setRuntime()
 
             @since %Mapper 1.1
+
+            @deprecated use @ref Mapper::constructor Mapper construction options to set
+                        the runtime options.
+
+            @throw RUNTIME-OPTION-CHANGED the option has changed during while already
+                   processing the data.
          */
-        replaceRuntime(*hash runtime) {
+        /*deprecated*/ replaceRuntime(*hash runtime) {
+            if (count > 0 && runtime != m_runtime) {
+                throw "RUNTIME-OPTION-CHANGED", sprintf("the runtime options "
+                        "has changed %y -> %y while already %y input rows have been "
+                        "processed", m_runtime, runtime, count);
+            }
             m_runtime = runtime;
         }
 
