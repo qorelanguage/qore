@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -380,6 +380,7 @@ DLLLOCAL int q_fstatvfs(const char* filepath, struct statvfs* buf);
 #include <qore/intern/QoreTypeInfo.h>
 #include <qore/intern/ParseNode.h>
 #include <qore/intern/QoreThreadList.h>
+#include <qore/intern/lvalue_ref.h>
 #include <qore/intern/qore_thread_intern.h>
 #include <qore/intern/Function.h>
 #include <qore/intern/CallReferenceCallNode.h>

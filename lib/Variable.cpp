@@ -1357,5 +1357,6 @@ void ClosureVarValue::deref(ExceptionSink* xsink) {
 }
 
 bool ClosureVarValue::scanMembers(RSetHelper& rsh) {
+   //printd(5, "ClosureVarValue::scanMembers() scanning %p %s\n", val.getInternalNode(), get_type_name(val.getInternalNode()));
    return scanCheck(rsh, val.getInternalNode());
 }
